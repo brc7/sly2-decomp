@@ -9,6 +9,7 @@ SCUS_*
 tools/compilers/
 tools/cc/
 tools/wibo-i686
+tools/wibo-macos
 # Build output / caches
 build/*
 __pycache__/
@@ -20,3 +21,6 @@ scratch*/
 /*.cc.*
 /*.c.*
 /*.s
+
+# macOS
+.DS_Store
