@@ -330,7 +330,7 @@ struct HURTEND
 struct JTHURT
 {
       struct STEPPLAYER *pstepplayer;
-      int nState;
+      int nState;           /* +0x04 [R] hurt state machine */
       undefined4 unk_0x008;
       int nHpMax;
       int *php;
@@ -338,7 +338,7 @@ struct JTHURT
       HURTEND hurtend;
       undefined4 unk_0x024[(0x30 - 0x24) / 4];
       ZPR zpr;
-      int nUnk90;
+      int nUnk90;           /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
       undefined4 unk_0x094[2];
       float gUnk9c;
       undefined4 unk_0x0a0[(0x10c - 0xa0) / 4];
@@ -411,7 +411,8 @@ struct STEPPLAYER : public STEP
       JTAIR jtair;
       JTGRAB jtgrab;
       JTPLACES jtplaces;
-      JTHURT jthurt;
+      JTHURT jthurt;        /* +0xDF0 [R] damage/health: +0x4 nState, +0xC nHpMax (40), +0x10 php -> save var <char>.hpCur,
+                               +0x30 zpr (last zap: source/kind/dhp), +0x90 post-hit mode */
       JTMODE jtmode;
       JTPIPE jtpipe;
       JTGOAL jtgoal;
@@ -448,9 +449,12 @@ struct STEPPLAYER : public STEP
       undefined4 unk_0x10cc[(0x10d4 - 0x10cc) / 4];
       float gUnk10d4;
       float gUnk10d8;
-      LO *ploUnk10dc;
+      LO *ploInteract;      /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
       int grfUnk10e0;
-      int nUnk10e4;
+      int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in func_0018A8C8). Not
+                               renamed: STEPPLAYER already has an nInteractMode member further down */
+
+
       LO *ploFightTarget;
       int nInteractMode;
       int nUnk10f0;
@@ -463,19 +467,19 @@ struct STEPPLAYER : public STEP
       int nIdleKind;
       float tIdle;
       undefined4 unk_0x1150[(0x1180 - 0x1150) / 4];
-      GADGETSLOT agadgetslot[3];
+      GADGETSLOT agadgetslot[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, nState, tState} (L1/R1/R2 slots) */
       undefined4 unk_0x11a4[(0x11b0 - 0x11a4) / 4];
       JTTHROW jtthrow;
       int nUnk12f0;
       int cUnk12f4;
       struct EMITTER *pemitterGrab;
-      int *pmpCur;
-      int mpMax;
-      float tGadgetUsed;
-      float gMpFrac;
+      int *pmpCur;          /* +0x12FC [R] -> save var <char>.mpCur (gadget power) */
+      int mpMax;            /* +0x1300 [R] max gadget power */
+      float tGadgetUsed;    /* +0x1304 [R] clock.t of the last gadget use */
+      float gMpFrac;        /* +0x1308 [R] fractional mp drain accumulator */
       int nUnk130c;
-      struct ASEGA *pasegaUnk1310;
-      int nUnk1314;
+      struct ASEGA *pasegaGadgetOverlay;   /* +0x1310 [R] ASEGA of the gadget overlay animation; was pasegaUnk1310 */
+      int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
       int nUnk1318;
       float tUnk131c;
     virtual void VUnk87(int n);
@@ -512,5 +516,18 @@ struct STEPPLAYER : public STEP
 typedef char assert_STEPPLAYER_size[sizeof(STEPPLAYER) == 0x1320 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEPPLAYER_jthurt_nHpMax[SLY2_OFFSETOF(STEPPLAYER, jthurt.nHpMax) == 0xDFC ? 1 : -1];   /* JT+0xDFC = 40 = max health (CONFIRMED runtime) */
 typedef char assert_STEPPLAYER_jthurt_php[SLY2_OFFSETOF(STEPPLAYER, jthurt.php) == 0xE00 ? 1 : -1];   /* JT+0xE00 -> g_gs+0x50 sly.hpCur (CONFIRMED runtime) */
+typedef char assert_STEPPLAYER_jtair_nState[SLY2_OFFSETOF(STEPPLAYER, jtair.nState) == 0x2DC ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jtair.fCanDoubleJump) == 0x2E8 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.nState) == 0x4C8 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.plo) == 0x4D4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtplaces_cplace[SLY2_OFFSETOF(STEPPLAYER, jtplaces.cplace) == 0x9E4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.nState) == 0xDF4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jthurt_zpr_zpk[SLY2_OFFSETOF(STEPPLAYER, jthurt.zpr.zpk) == 0xE2C ? 1 : -1];   /* last zap kind, CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.nKind) == 0xF20 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtpipe_pshape[SLY2_OFFSETOF(STEPPLAYER, jtpipe.pshape) == 0xF5C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_ploInteract[SLY2_OFFSETOF(STEPPLAYER, ploInteract) == 0x10DC ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_agadgetslot[SLY2_OFFSETOF(STEPPLAYER, agadgetslot) == 0x1180 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_pmpCur[SLY2_OFFSETOF(STEPPLAYER, pmpCur) == 0x12FC ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_idGadgetOverlay[SLY2_OFFSETOF(STEPPLAYER, idGadgetOverlay) == 0x1314 ? 1 : -1];   /* CONFIRMED runtime */
 
 #endif /* SLY2_STEPPLAYER_H */

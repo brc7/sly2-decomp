@@ -3,7 +3,7 @@
 // Globals: D_002BD280 (D_002BD280), D_002BD290 (D_002BD290), D_002BD2A0 (D_002BD2A0), D_002BD2B0 (D_002BD2B0), D_002BBB60 (g_lmZeroOne)
 // 0x001428D8 HeroInteractDistance  (T1414, our name)
 // How far an object is from the hero as the interact pickers rank it: *psDist = the xy distance |hero - plo| plus a bias, *pdz = the height difference (hero - plo)
-// plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->ploUnk10dc, *pdz is tested against the guard's height window;
+// plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->ploInteract, *pdz is tested against the guard's height window;
 // HeroPickInteractGuard minimises *psDist) and the interact-target pick 0x142AF8 (three calls, *pploCur = &hero->ploLean).
 // The biases are CLQs (c0 + c1 d + c2 d^2) from 0x2BD280: (1) for the current target: xy D_002BD280(d) = -200 - 0.2 d, height D_002BD290(dz) = -0.2 dz (hysteresis: the
 // target already chosen looks nearer). (2) while the hero is steered (pctl) and d > 0.0001: rAway = (stick . (hero - plo)) / d with the stick vector = MakeVecFromAngle

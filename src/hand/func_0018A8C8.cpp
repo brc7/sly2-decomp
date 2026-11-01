@@ -499,7 +499,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
                         SetJtJts(pjt, JTS_Unk05, JTBS_4);
                     break;
                 case JTS_Hang:
-                    if (D_002DDED0.t - pjt->tUnk18cc > 0.25f)
+                    if (D_002DDED0.t - pjt->tJts > 0.25f)
                     {
                         if (pjt->pctl->GrfConsumePressed(0x40, 0.25f))
                             SetJtAirJump(&pjt->jtair, 2, 0, 0);
@@ -515,7 +515,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
                     {
                         if (0.7f < pjt->pxpFloor->normal.z)
                         {
-                            if (D_002DDED0.t - pjt->tUnk18cc > 0.4f)
+                            if (D_002DDED0.t - pjt->tJts > 0.4f)
                                 SetJtJts(pjt, JTS_Stand, JTBS_Nil);
                         }
                     }
@@ -530,7 +530,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
                     {
                         if (0.7f < pjt->pxpFloor->normal.z)
                         {
-                            if (D_002DDED0.t - pjt->tUnk18cc > 0.4f)
+                            if (D_002DDED0.t - pjt->tJts > 0.4f)
                             {
                                 float tLabel = TFindAsegLabel(pjt->pasegUnk1a84, (OID)0x16D);
                                 ASEGA *pasega = pjt->pasegaUnk1030;
@@ -557,7 +557,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
                     break;
                 }
                 case JTS_Unk11:
-                    if (!pjt->nUnk1d30 || D_002DDED0.t - pjt->tUnk18cc > D_002BF360)
+                    if (!pjt->nUnk1d30 || D_002DDED0.t - pjt->tJts > D_002BF360)
                         SetJtJts(pjt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
@@ -568,22 +568,22 @@ extern "C" void JtChooseGroundState(JT *pjt)
                     if (pjt->pctl->GrfConsumePressed(0x40, 0.25f))
                     {
                         VECTOR4 vTarget;
-                        LO *ploTarget = pjt->phndUnk18c4->ploUnk138;
+                        LO *ploTarget = pjt->phndHang->ploUnk138;
                         if (ploTarget && FIsBasicDerivedFrom(ploTarget, (CID)10))
                         {
-                            SHAPE *pshape = (SHAPE *)pjt->phndUnk18c4->ploUnk138;
+                            SHAPE *pshape = (SHAPE *)pjt->phndHang->ploUnk138;
                             GetShapePosDirAtS(pshape, PeekLastB(pshape) * (0.5f - pjt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
                         }
                         else
                         {
                             VECTOR4 vLocal;
-                            if (pjt->phndUnk18c4->ploUnk138)
-                                *(qword *)&vLocal = ConvertLoPos(0, pjt->phndUnk18c4, PosLoWorld(pjt->phndUnk18c4->ploUnk138));
+                            if (pjt->phndHang->ploUnk138)
+                                *(qword *)&vLocal = ConvertLoPos(0, pjt->phndHang, PosLoWorld(pjt->phndHang->ploUnk138));
                             else
                                 *(qword *)&vLocal = D_002BF370;
                             MATRIX3 mat;
                             mat = LoadRotateMatrixRad(pjt->gUnk1f94 * D_002BF364, D_002A2DA0);
-                            *(qword *)&vTarget = QwTransformPos(pjt->phndUnk18c4->PmatWorld(), QwRotateVecAt(&mat, (qword *)&vLocal));
+                            *(qword *)&vTarget = QwTransformPos(pjt->phndHang->PmatWorld(), QwRotateVecAt(&mat, (qword *)&vLocal));
                         }
                         qword qwVel = CalculateLaunchVelocity(0.5f, PosLoWorld(pjt), QwSub(*(qword *)&vTarget, pjt->qwUnk240), *(qword *)&pjt->psophys->dvGravity);
                         VU_FLOAT gScale = VuFloatFromMemWord(*(int *)&pjt->gUnk1f98);

@@ -67,14 +67,17 @@ struct JT : public STEPPLAYER
       int cqwUnk1880;
       undefined4 unk_0x1884[3];
       qword aqwUnk1890[3];
-      LO *ploUnk18c0;
-      CID19 *phndUnk18c4;
-      JTS jts;
-      float tUnk18cc;
-      JTBS jtbs;
-      float tUnk18d4;
-      int jtas;
-      float tUnk18dc;
+      LO *ploAttached;      /* +0x18C0 [R] object Sly is attached to (ledge/pole/rope owner); was ploUnk18c0 */
+      CID19 *phndHang;      /* +0x18C4 [R] current HND (hang/hook object, CID 0x13); was phndUnk18c4 */
+      JTS jts;              /* +0x18C8 [R] movement state: 0 Stand 1 Run 2 Air 3 Hang 4 Hurt 6 Interact 8 Pipe 11 Pickpocket
+                               12 Walk 21 SurfaceClimb 22 HangFollow 23 Throw/aim (runtime2/3, slygame JTS) */
+      float tJts;           /* +0x18CC [R] clock.t when jts was entered (t - tJts = time in state); was tUnk18cc */
+      JTBS jtbs;            /* +0x18D0 [R] body state; -1 in all observed states */
+      float tJtbs;          /* +0x18D4 [S] clock.t when jtbs was entered (by analogy with tJts); was tUnk18d4 */
+      int jtas;             /* +0x18D8 [R] cane/attack anim state (SetJtAnimState); ram_inspector calls it jtcs; 8/9 = attack
+                               clips (func_0018A8C8), -1 none */
+      float tJtas;          /* +0x18DC [R] clock.t when jtas was entered; was tUnk18dc */
+
       JTANIM janim;
       undefined4 unk_0x1970[0x24 / 4];
       ASEG *pasegHang;
@@ -170,7 +173,8 @@ struct JT : public STEPPLAYER
       JTAIRBL ablLean[3];
       ASEGBL *pasegblUnk2038;
       undefined4 unk_0x203c[(0x2044 - 0x203c) / 4];
-      CRefPtr<SND> psndGadget;
+      CRefPtr<SND> psndGadget;   /* +0x2044 [R] looping gadget sound (ram_inspector) */
+
       undefined4 unk_0x2048;
       struct EXPL *pexplUnk204c;
       ASEG *pasegPouncePowerUp;
@@ -182,5 +186,9 @@ struct JT : public STEPPLAYER
 typedef char assert_JT_size[sizeof(JT) == 0x2060 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_JT_jts[SLY2_OFFSETOF(JT, jts) == 0x18C8 ? 1 : -1];   /* 0 standing / 11 pickpocket (CONFIRMED runtime) */
 typedef char assert_JT_jtbs[SLY2_OFFSETOF(JT, jtbs) == 0x18D0 ? 1 : -1];   /* -1 in all states (CONFIRMED runtime) */
+typedef char assert_JT_tJts[SLY2_OFFSETOF(JT, tJts) == 0x18CC ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_JT_jtas[SLY2_OFFSETOF(JT, jtas) == 0x18D8 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_JT_ploAttached[SLY2_OFFSETOF(JT, ploAttached) == 0x18C0 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */
 
 #endif /* SLY2_JT_H */

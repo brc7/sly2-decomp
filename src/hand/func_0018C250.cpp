@@ -405,7 +405,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
             {
                 case JTS_Hang:
                 case JTS_HangFollow:
-                    pjt->jtair.ploUnk37c = (LO *)pjt->phndUnk18c4;
+                    pjt->jtair.ploUnk37c = (LO *)pjt->phndHang;
                     break;
                 case JTS_Unk08:
                     pjt->jtair.ploUnk37c = (LO *)pjt->jtpipe.pshape;
@@ -481,8 +481,8 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 SetJtAirState(&pjt->jtair, -1, 0);
                 break;
             case JTS_Hang:
-                pjt->phndUnk18c4->HandleSpliceEvent(6, 0, 0, 0, 0);
-                ReleaseRefNode(pjt->phndUnk18c4, pjt);
+                pjt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
+                ReleaseRefNode(pjt->phndHang, pjt);
                 SetJtAnimState(pjt, -1);
                 RemoveNodeBySlot(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
                 if (pjt->janim.pxaHang != 0)
@@ -515,7 +515,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 SetJtRecState((JTREC *)&pjt->unk_0x1ff0, -1);
                 break;
             case JTS_Unk09:
-                pjt->ploUnk18c0 = 0;
+                pjt->ploAttached = 0;
                 ShowSoPartRec(pjt, pjt->precUnk1a90);
                 break;
             case JTS_Stand:
@@ -554,7 +554,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Pounce:
                 if (pjt->pasegaUnk1030 != 0 && !FAsegaStopped(pjt->pasegaUnk1030))
-                    GuardCapVelocityForPounce((STEPGUARD *)pjt->ploUnk10dc);
+                    GuardCapVelocityForPounce((STEPGUARD *)pjt->ploInteract);
                 pjt->nUnk1d2c = 0;
                 pjt->grfUnk10e0 &= ~4;
                 break;
@@ -573,9 +573,9 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 break;
             case JTS_HangFollow:
                 func_001F5720(pjt, 0);
-                pjt->phndUnk18c4->HandleSpliceEvent(6, 0, 0, 0, 0);
-                ReleaseRefNode(pjt->phndUnk18c4, pjt);
-                pjt->phndUnk18c4 = 0;
+                pjt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
+                ReleaseRefNode(pjt->phndHang, pjt);
+                pjt->phndHang = 0;
                 SetPlayerTn(pjt, 0);
                 break;
             case JTS_Unk11:
@@ -587,7 +587,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 pjt->pctl->radLeft = pjt->radTarget;
                 break;
             case JTS_Unk0D:
-                pjt->ploUnk18c0 = 0;
+                pjt->ploAttached = 0;
                 break;
         }
         switch (jts)
@@ -663,14 +663,14 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 qword posHand = PosLoWorld(pjt->psoUnk19a4);
                 pjt->janim.dposHang = QwSub(posHand, func_00190C58(pjt));
                 UpdateJtHangPlace(pjt);
-                pjt->phndUnk18c4->HandleSpliceEvent(5, 0, 0, 0, 0);
-                AddRefOidRef(pjt->phndUnk18c4, pjt);
+                pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
+                AddRefOidRef(pjt->phndHang, pjt);
                 float radFrame;
                 JtHangFrame(pjt, &radFrame);
                 float radBack = RadNormalize(radFrame + 3.1415927f);
                 int nKind = 1;
-                if (pjt->phndUnk18c4 != 0)
-                    nKind = pjt->phndUnk18c4->nHangKind;
+                if (pjt->phndHang != 0)
+                    nKind = pjt->phndHang->nHangKind;
                 switch (nKind)
                 {
                     case 1:
@@ -694,11 +694,11 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                         }
                         break;
                 }
-                sfxid = pjt->phndUnk18c4->sfxidHangStart;
+                sfxid = pjt->phndHang->sfxidHangStart;
                 SetJtAnimState(pjt, 1);
                 ClearXyz(&pjt->vUnk190);
                 CalculateJtHangAccel(pjt);
-                SetPlayerTn(pjt, pjt->phndUnk18c4->ptn);
+                SetPlayerTn(pjt, pjt->phndHang->ptn);
             }
             break;
             case JTS_Unk08:
@@ -766,7 +766,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 else
                 {
                     paseg = pjt->pasegUnk1d1c;
-                    qword posTarget = PosLoWorld(pjt->ploUnk10dc);
+                    qword posTarget = PosLoWorld(pjt->ploInteract);
                     float gZero = 0.0f;
                     qword dpos = QwSub(posTarget, PosLoWorld(pjt));
                     SetStepRadTowardDir(pjt, QwScale(dpos, VuFloat(-1.0f)));
@@ -775,8 +775,8 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                     MATRIX4 matHand;
                     PredictAsegEffect(tLabel, gZero, paseg, (ALO *)pjt, pjt->psoUnk19a4->pxfRoot, pjt->pxfRoot, &matHand, 0);
                     tLabel /= paseg->svtMaster;
-                    qword posHold = PosLoWorld(pjt->ploUnk10dc);
-                    qword posAim = QwSub(QwAddVelocity(VuFloatBits(tLabel), posHold, pjt->ploUnk10dc->GetVelocity()), QwRotateVecV(*(qword *)&matHand.mat[3], &pjt->matTarget));
+                    qword posHold = PosLoWorld(pjt->ploInteract);
+                    qword posAim = QwSub(QwAddVelocity(VuFloatBits(tLabel), posHold, pjt->ploInteract->GetVelocity()), QwRotateVecV(*(qword *)&matHand.mat[3], &pjt->matTarget));
                     *(qword *)&pjt->vUnk190 = QwDivide(QwSub(posAim, PosLoWorld(pjt)), VuFloatBits(tLabel));
                     pjt->vUnk190.z = gZero;
                     pjt->SetVelocity(*(qword *)&pjt->vUnk190);
@@ -823,9 +823,9 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 pjt->SetVelocity(D_002A2DD0);
                 pjt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&pjt->vUnk190);
-                pjt->phndUnk18c4->HandleSpliceEvent(5, 0, 0, 0, 0);
-                AddRefOidRef(pjt->phndUnk18c4, pjt);
-                SetPlayerTn(pjt, pjt->phndUnk18c4->ptn);
+                pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
+                AddRefOidRef(pjt->phndHang, pjt);
+                SetPlayerTn(pjt, pjt->phndHang->ptn);
                 break;
             case JTS_Unk18:
             {
@@ -925,12 +925,12 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
     if (jts != pjt->jts)
     {
         pjt->jts = jts;
-        pjt->tUnk18cc = D_002DDED0.t;
+        pjt->tJts = D_002DDED0.t;
     }
     if (jtbs != pjt->jtbs)
     {
         pjt->jtbs = jtbs;
-        pjt->tUnk18d4 = D_002DDED0.t;
+        pjt->tJtbs = D_002DDED0.t;
     }
     pjt->VUnk89();
     SetJtChannelMask(pjt, grf);

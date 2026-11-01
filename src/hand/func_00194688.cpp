@@ -235,7 +235,7 @@ void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo
         return;
     if (pstepplayer == (STEPPLAYER *)D_002E1E40)
     {
-        if (plo == ((JT *)pstepplayer)->phndUnk18c4)
+        if (plo == ((JT *)pstepplayer)->phndHang)
             return;
         if (plo == ((JT *)pstepplayer)->ploUnk1f18)
             return;
@@ -250,7 +250,7 @@ void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo
             return;
         if (pstepplayer == (STEPPLAYER *)D_002E1E40)
         {
-            if (((JT *)pstepplayer)->phndUnk18c4)
+            if (((JT *)pstepplayer)->phndHang)
                 return;
             if (((JT *)pstepplayer)->ploUnk1f18)
                 return;
