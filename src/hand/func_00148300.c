@@ -23,6 +23,14 @@ static __inline__ float GDistSq(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x148300
+ * Purpose: Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it
+ * Info: proposed name UpdateLoBusy (T2); TU busy
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#busy-0x147e20-0x148620
+ * @end-sly2-annot */
 void func_00148300(struct P *p, struct SO *pso)
 {
     int grf;

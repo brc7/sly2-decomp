@@ -8,6 +8,12 @@ struct E *func_001AE238(struct AL *pal, struct E *pv);
 void func_00127E90(struct SP *pret, struct RC *p, struct S *ps);
 void func_00257078(struct RC *p, int n);
 void func_00259A88(struct RC *p);
+/** @sly2-annot addr=0x1CA7B8
+ * Purpose: PROXY::Clone (vt41): clone XFM base and copy init records
+ * Info: proposed name CloneProxy (T1); class PROXY slot41; TU proxy
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 void func_001CA7B8(struct S *p, struct S *q)
 {
     int i;

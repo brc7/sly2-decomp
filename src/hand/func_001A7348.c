@@ -1,6 +1,12 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 void func_0011B340(M3 *pm);
+/** @sly2-annot addr=0x1A7348
+ * Purpose: Same for vectors with M3
+ * Info: proposed name ConvertMatVec (T2); TU lo
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 qword func_001A7348(M3 *pm, int f, qword v)
 {
     if (pm) {

@@ -12,6 +12,15 @@ void func_0011A220(void *pdl, void *p);
 void func_0011A280(void *pdl, void *pBefore, void *p);
 int func_001A61A0(ALO *p);
 void func_00148300(void *g, ALO *p);
+/** @sly2-annot addr=0x1A5900
+ * Purpose: LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set
+ *   psoParent, vt13 UpdateLoroot, recurse to children (vt10), re-add/notify as needed
+ * Info: proposed name SetLoParent (T1); class LO slot10; TU lo
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
+ *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/engine/object-model.md#9-key-functions
+ * @end-sly2-annot */
 void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
 {
     unsigned long fOld = palo->x28.u >> 60 & 1;

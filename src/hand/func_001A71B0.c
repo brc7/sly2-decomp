@@ -4,6 +4,13 @@ struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct O { int x0, x4, x8; struct VTE *vt; };
 void func_0011C318(M4 *out, void *in);
 void func_0011C168(M4 *out, void *a, M4 *b);
+/** @sly2-annot addr=0x1A71B0
+ * Purpose: Same for a 4x4 matrix (vt31 + inverse 0x11C318)
+ * Info: proposed name ConvertAloMat4 (T1); TU lo
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 M4 func_001A71B0(struct O *o1, struct O *o2, M4 *m)
 {
     M4 t;

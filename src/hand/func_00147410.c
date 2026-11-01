@@ -14,6 +14,15 @@ void func_0020F030(void *p, int a);
 int func_001A61A0(struct P *p);
 void func_0011A220(void *p, struct X14 *px);
 void func_00131A20(void *p, float g);
+/** @sly2-annot addr=0x147410
+ * Purpose: state change; leaving -1 grabs the screen: D_002DD644 = this, sound/stream 0x1FE5B8, clock rate
+ *   change (0x14D1D0 on g_clock), IncrementSwHandsOff, vt8
+ * Info: proposed name SetDancerState (T2); class DANCER; TU tu_1471C0
+ * Notes: class identity from whole_game WE names/object strings: SetCid68State -> SetDancerState
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
+ * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
+ * @end-sly2-annot */
 void func_00147410(struct P *p, int state)
 {
     if (state == p->state) return;

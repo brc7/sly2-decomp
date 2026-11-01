@@ -12,6 +12,12 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 
+/** @sly2-annot addr=0x2314D0
+ * Purpose: via GetXfAngularVelocity
+ * Info: proposed name GetXfmAngularVelocity (T2); class XFM slot34; TU xform
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 qword func_002314D0(X *p)
 {
     if (!p->x50) return D_002A2DD0;

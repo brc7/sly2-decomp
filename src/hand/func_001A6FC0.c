@@ -2,6 +2,13 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 M3 *func_001A6318(void *p);
 void func_0011B340(M3 *pm, M3 *pn);
+/** @sly2-annot addr=0x1A6FC0
+ * Purpose: Same for direction vectors (rotation only, M3)
+ * Info: proposed name ConvertAloVec (T1); TU lo
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 qword func_001A6FC0(void *a, void *b, qword v)
 {
     if (a) {

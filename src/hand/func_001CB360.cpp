@@ -6,6 +6,13 @@ extern "C" {
 int func_001CA930(S *p, N *pn);
 R func_001CB360(S *p);
 }
+/** @sly2-annot addr=0x1CB360
+ * Purpose: return CRef list (tag 0x2002) of objects of all held spares
+ * Info: proposed name RefProxyCopies (T2); TU proxy
+ * Notes: names_v2 C proposed PostSmLoadCallback__FP2SM5MSGIDPv (0.420)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 R func_001CB360(S *p)
 {
     void *ap[0x20];

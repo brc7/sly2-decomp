@@ -14,6 +14,12 @@ extern s32 D_003E139C;
 extern M2C_UNK D_004520D0;
 extern M2C_UNK D_00452148;
 
+/** @sly2-annot addr=0x1A6C90
+ * Purpose: Return signed 4-bit field bits 52-55 of x28
+ * Info: proposed name GetLoBusyk (T2); TU lo
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 s32 func_001A6C90(s32 arg0) {
     return (s32) ((s64) (M2C_FIELD(arg0, s64 *, 0x28) << 8) >> 0x3C);
 }

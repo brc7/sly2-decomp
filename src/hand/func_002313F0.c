@@ -15,6 +15,12 @@ typedef struct S {
     int x54;
 } S;
 
+/** @sly2-annot addr=0x2313F0
+ * Purpose: marks world stamp stale and flags
+ * Info: proposed name InvalidateXfm (T2); TU xform
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 void func_002313F0(S *p)
 {
     p->x54 = -1;

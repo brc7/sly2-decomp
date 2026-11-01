@@ -24,6 +24,16 @@ void func_001C9B08(struct G *, void *psw, int cid, int oid, int n, void *pbis, s
 
 static inline int FList(int k) { return k > 0 || k < -2; }
 
+/** @sly2-annot addr=0x13FB40
+ * Purpose: Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload
+ *   via vt14 LoadFromBrx}, proxies (FIsCidDerivedFrom(cid,6)) via LoadProxyFromBrx, filtered objects skipped
+ *   by cb
+ * Info: proposed name LoadSwObjectsFromBrx (T1); TU brx
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.97] - evidence: semantic review; sources: r2_131F70+parse-verified
+ * See: docs/engine/object-model.md#9-key-functions, docs/engine/overview.md#3-world--level-lifecycle,
+ *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
+ * @end-sly2-annot */
 void func_0013FB40(void *psw, void *pbisArg, struct IF *pifParent)
 {
     register void *pbis asm("$21") = pbisArg; /* register pin (Claude agent): target keeps pbis in s5 */

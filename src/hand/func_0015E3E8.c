@@ -12,6 +12,13 @@ struct LO {
 };
 typedef struct CH { void *p; struct CH *pNext; } CH;
 extern int func_001C9950(void *);
+/** @sly2-annot addr=0x15E3E8
+ * Purpose: Tests one candidate LO against the search flags/context and records it in the result array
+ *   (best-distance logic)
+ * Info: proposed name MatchSwObject (T1); TU find
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
+ * @end-sly2-annot */
 void func_0015E3E8(void *pv, LO *plo, CH *pch, unsigned int grf, void *ctx, CH *pchList, int cMax, int *pc, LO **aplo, int *pips)
 {
     LO *p;

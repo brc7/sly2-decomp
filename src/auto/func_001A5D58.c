@@ -14,6 +14,14 @@ extern s32 D_003E139C;
 extern M2C_UNK D_004520D0;
 extern M2C_UNK D_00452148;
 
+/** @sly2-annot addr=0x1A5D58
+ * Purpose: Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34
+ *   list
+ * Info: proposed name PdcbAddLo (T1); TU lo
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 s32 func_001A5D58(s32 arg0) {
     void *temp_v0;
 

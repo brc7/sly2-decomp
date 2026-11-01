@@ -7,6 +7,15 @@ struct N *func_0011CCC0(void *);
 void func_0011A1F8(void *, int);
 void func_0011A220(void *, struct N *);
 int func_0011A380(void *, void *);
+/** @sly2-annot addr=0x1336F0
+ * Purpose: Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints
+ *   on each of 3 axes to the sweep arrays (count += 2)
+ * Info: proposed name AddSwAaobrObject (T1); TU bbmark
+ * Notes: names_v2 C proposed InitDzg__FP3DZGi (0.200)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/engine/object-model.md#8-source-files, docs/engine/physics-collision.md#2-contacts-and-solving,
+ *   docs/engine/physics-collision.md#6-source-files
+ * @end-sly2-annot */
 struct N *func_001336F0(struct G *pg, struct P *p) {
     int i;
     struct N *pn = func_0011CCC0(&pg->pool3ce0);

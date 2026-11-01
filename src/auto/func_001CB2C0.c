@@ -33,6 +33,14 @@ extern M2C_UNK D_003DD4BC;
 extern s32 D_003E115C;
 extern s32 D_003E1398;
 
+/** @sly2-annot addr=0x1CB2C0
+ * Purpose: PspareChoose(this 2)!=0
+ * Info: proposed name FCanAcquireProxy (T1); TU proxy
+ * Notes: verifier CORRECT: FCanAcquirePspare -> FCanAcquireProxy
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 s32 func_001CB2C0(s32 arg0, s32 arg1) {
     return func_001CADE0(arg0, 2) != 0;
 }

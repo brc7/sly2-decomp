@@ -4,6 +4,14 @@ struct LO;
 typedef struct { short d; short pad; M4 *(*pfn)(struct LO *); } VT;
 struct LO { int x0, x4, x8; VT *vt; };
 void func_0011C318(M4 *pm, M4 *pn);
+/** @sly2-annot addr=0x1A6F00
+ * Purpose: Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse);
+ *   vector by value
+ * Info: proposed name ConvertAloPos (T1); TU lo
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 qword func_001A6F00(struct LO *a, struct LO *b, qword v)
 {
     if (a) {

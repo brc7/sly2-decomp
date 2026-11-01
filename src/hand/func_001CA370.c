@@ -4,6 +4,15 @@ struct Z { struct VTE *vt; };
 struct R { int n; struct LO **ap; int x8; int c; int x10; int x14; void **ap18; char pad[0x6C - 0x1C]; };
 struct G { char pad[0x3F08]; struct R *ar; };
 void *func_001C9940(int i, int c);
+/** @sly2-annot addr=0x1CA370
+ * Purpose: Take source isrc's next copy: SetIdProxy, Add, SetParent, apply placement (vt37) to each object;
+ *   notify collector; icopyNext++
+ * Info: proposed name AddProxyCopy (T1); TU proxy
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
+ *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 void func_001CA370(struct G *pg, int i, int a, int b, void *x, int y, struct Z *pz)
 {
     struct R *pr = &pg->ar[i];

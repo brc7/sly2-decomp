@@ -13,6 +13,13 @@ static inline qword MulPos(const M4 *m, qword v)
             : "=j"(r) : "j"(v), "j"(m->r[0]), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3]));
     return r;
 }
+/** @sly2-annot addr=0x231468
+ * Purpose: velocity via GetXfVelocity of parent XF
+ * Info: proposed name GetXfmVelocity (T2); class XFM slot33; TU xform
+ * Notes: names_v2 C proposed EnsureAloThrob__FP3ALO (0.253)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 qword func_00231468(S *p)
 {
     O *o = p->x50;

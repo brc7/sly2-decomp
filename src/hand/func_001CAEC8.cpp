@@ -35,6 +35,15 @@ static inline void Matrix(P *p,const M4 *m){VTE &v=p->vt[37];((void(*)(P *,const
 static inline void Reset(P *p){VTE &v=p->vt[8];((void(*)(P *))v.fn)(Adjusted(p,v));}
 static inline void Parent(P *p,P *parent){VTE &v=p->vt[26];((void(*)(P *,P *))v.fn)(Adjusted(p,v),parent);}
 static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,int,int,void **,int))v.fn)(Adjusted(p,v),14,0,1,cursor,0);}
+/** @sly2-annot addr=0x1CAEC8
+ * Purpose: Acquire a spare copy for the proxy: choose, release from previous owner, attach objects at proxy
+ *   placement, apply init records
+ * Info: proposed name PspareAcquire (T1); TU proxy
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/object-model.md#5-proxies-and-spares-object-pools,
+ *   docs/formats/world-file.md#world-file-brx-format-sly-2-ps2-scus-97316,
+ *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 extern "C" NODE *func_001CAEC8(P *p,int minimum){
  STREAM stream;
  WORK work;

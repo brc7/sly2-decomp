@@ -1,6 +1,12 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void func_0011C318(M4 *pm);
+/** @sly2-annot addr=0x1A72D0
+ * Purpose: Convert point through explicit M4 from/to matrices (to inverted)
+ * Info: proposed name ConvertMatPos (T2); TU lo
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 qword func_001A72D0(M4 *pm, int f, qword v)
 {
     if (pm) {

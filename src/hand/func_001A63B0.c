@@ -18,6 +18,12 @@ struct LO;
 typedef struct { short d; short pad; void (*pfn)(struct LO *, M3 *); } VT;
 struct LO { int x0, x4, x8; VT *vt; };
 void func_0011B628(M3 *pm, qword v);
+/** @sly2-annot addr=0x1A63B0
+ * Purpose: Degrees->radians (0.0174533), build M3 (0x11B628), vt30 RotateToMat
+ * Info: proposed name SetLoEulerDeg (T2); TU lo
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 void func_001A63B0(struct LO *p, qword v)
 {
     M3 c;

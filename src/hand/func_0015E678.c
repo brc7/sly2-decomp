@@ -26,6 +26,14 @@ extern void *D_003E139C;
 extern LO **func_0015E380(void *psw, int oid);
 extern ENT **func_0015E3C0(void *psw, int oid);
 extern void func_0015E3E8(void *pv, LO *plo, void *pch, unsigned int grf, LO *ctx, void *pchList, int cMax, int *pc, LO **aplo, int *pips);
+/** @sly2-annot addr=0x15E678
+ * Purpose: Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter
+ *   between ploContext and cploMax
+ * Info: proposed name CploFindSwObjects (T1); TU find
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
+ * @end-sly2-annot */
 int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo)
 {
     volatile int unused; /* unreferenced stack slot at 0x10 in the original */

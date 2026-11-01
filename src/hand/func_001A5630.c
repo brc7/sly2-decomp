@@ -6,6 +6,16 @@ void func_0011A2E8(void *a, void *b);
 void func_00147E20(void *a, int b);
 void func_001A5448(void *p, void **a, struct S ***b);
 void func_0011A220(void *a, struct S *s);
+/** @sly2-annot addr=0x1A5630
+ * Purpose: LO vt9 Remove: if in world vt22 + drop root from g_sw+0x2C; drop root from busy list; move to
+ *   removed tail of child DL, set bit56, remove children (vt9), then vt12 RemoveHierarchy if it was in world
+ * Info: proposed name RemoveLo (T1); class LO slot9; TU lo
+ * Notes: names_v2 v1 proposed UpdateLightBeamGrfzon__FP5LIGHT (0.008)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
+ *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/engine/object-model.md#9-key-functions
+ * @end-sly2-annot */
 void func_001A5630(struct S *s)
 {
     struct VTE *e;

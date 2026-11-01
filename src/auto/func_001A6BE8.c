@@ -14,6 +14,13 @@ extern s32 D_003E139C;
 extern M2C_UNK D_004520D0;
 extern M2C_UNK D_00452148;
 
+/** @sly2-annot addr=0x1A6BE8
+ * Purpose: vt29 TranslateToPos(mat.pos) then vt30 RotateToMat(mat)
+ * Info: proposed name SetLoXfFromMat (T1); TU lo
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 void func_001A6BE8(s32 arg0, s32 arg1) {
     void *temp_v0;
     void *temp_v0_2;

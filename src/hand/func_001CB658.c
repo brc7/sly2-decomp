@@ -5,6 +5,12 @@ struct S { char pad[0x3C]; struct A *pa; };
 extern struct E *D_003E1398;
 int func_001C9950(int id);
 int func_001C9958(int id);
+/** @sly2-annot addr=0x1CB658
+ * Purpose: per-copy value from aproxysrc[isrc] table for the object's proxy id
+ * Info: proposed name GetProxyCopyValue (T2); TU proxy
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 int func_001CB658(struct S *p)
 {
     struct A *pa = p->pa;

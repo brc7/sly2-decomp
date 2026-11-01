@@ -14,6 +14,12 @@ void func_00129A10(struct CRef *pref, int n);
 void func_00129EC8(struct CRef *pref);
 void func_002550F8(void *pv);
 void func_0011CD98(void *pool, void *pv);
+/** @sly2-annot addr=0x132ED8
+ * Purpose: Build the Splice call list (symid, self as BASIC, then the arg pair list) for an event
+ * Info: proposed name PpairBuildSpliceEventArgs (T2); TU basic
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
+ * @end-sly2-annot */
 struct SP *func_00132ED8(struct SP *ret, int a1, int a2, struct X *px)
 {
     struct SP sp;

@@ -6,6 +6,16 @@ void func_0022D670(void *);
 void func_0022D698(void *);
 void func_0013FB40(void *, void *, L *);
 
+/** @sly2-annot addr=0x2317E0
+ * Purpose: pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37)
+ * Info: proposed name LoadXfmChildObjectsFromBrx (T1); TU xform
+ * Notes: names_v2 C proposed SetAloForceCameraFade__FP3ALOi (0.438) | level_parser CONFIRMED-parse: payload
+ *   layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r8_21BB88+parse-verified
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 void func_002317E0(X *p, void *pv, L *pl)
 {
     int i;

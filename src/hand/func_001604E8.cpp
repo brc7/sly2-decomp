@@ -23,6 +23,15 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
+/** @sly2-annot addr=0x1604E8
+ * Purpose: Applies one transform constraint: dest local position/rotation = inverse(dest parent world) x
+ *   source world, re-orthonormalizes, bumps the SW stamp counter
+ * Info: proposed name ApplyXfmConstraint (T1); TU tu_1603B8
+ * Notes: names_v2 v1 proposed VU1_Interrupt__Fi (0.638)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
+ * See: docs/engine/object-model.md#7-xfm-and-transform-helpers,
+ *   docs/reference/functions/object-model.md#tu_1603b8-0x1603b8-0x1607a0
+ * @end-sly2-annot */
 extern "C" void func_001604E8(void *,S *s)
 {
  M3 m;

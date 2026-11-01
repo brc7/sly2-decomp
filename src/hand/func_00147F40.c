@@ -48,6 +48,15 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 
+/** @sly2-annot addr=0x147F40
+ * Purpose: Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current
+ *   player, and move them between busy/idle lists
+ * Info: proposed name UpdateSwBusyList (T1); TU busy
+ * Notes: runtime: update list = compacting {grf,plo} array at SW+0x3F20 confirmed
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/engine/object-model.md#9-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
+ * @end-sly2-annot */
 void func_00147F40(struct P *p)
 {
     DLI dli;
