@@ -6,6 +6,13 @@ int func_00132B10(void *p, int cid);
 qword func_001A62E8(struct O *po);
 void func_001E6F60(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
 float func_002458F0(float y, float x);
+/** @sly2-annot addr=0x1E4D40
+ * Purpose: Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER
+ *   -> pos+offset; else object pos and its matrix heading)
+ * Info: proposed name GetJsgTargetPosHeading (T1); TU relay
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E4D40(struct P *p, struct O *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;

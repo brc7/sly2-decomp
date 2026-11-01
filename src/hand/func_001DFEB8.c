@@ -33,6 +33,14 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1DFEB8
+ * Purpose: If firing: clear firer/state, stop every JSG (0x1E5628), clear the alarm list, release LO busy
+ *   (0x1A6CA8(p,2)), send itself msg 6
+ * Info: proposed name StopRelay (T1); TU relay
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#5-key-functions,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001DFEB8(OBJ *p)
 {
     DLI dli;

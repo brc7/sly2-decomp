@@ -4,6 +4,12 @@ void func_001B3130(int *pn);
 void func_001B3190(int *pn);
 int func_0024B590(int *pn);
 int func_0024B530(int *pn);
+/** @sly2-annot addr=0x1B4140
+ * Purpose: audio reset/close, sceMpegReset/Delete
+ * Info: proposed name CMpeg_Finish (T1); class CMpeg; TU mpeg
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B4140(struct P *p)
 {
     p->n114 = 0;

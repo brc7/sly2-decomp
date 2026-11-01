@@ -1,6 +1,12 @@
 struct S { int state; int x4; char x8[0x28]; char x30[0x10]; int x40; char pad[0xC]; char x50[0x10]; int x60; char pad2[0xC]; char x70[0x10]; };
 int func_0013D7D0(void *p, int cb, unsigned char *pb);
 int func_001B29D0(void *a, void *b);
+/** @sly2-annot addr=0x1B31E0
+ * Purpose: accept demuxed audio packet: pick stream id, init queue from header, CbFill
+ * Info: proposed name CMpegAudio_FAccept (T1); class CMpegAudio; TU mpeg
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 int func_001B31E0(struct S *p, int cb, unsigned char *pb)
 {
     int n;

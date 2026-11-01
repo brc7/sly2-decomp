@@ -2,6 +2,13 @@ struct U { char pad[0x40]; int n; };
 struct T { char pad[0x60]; struct U *pu; };
 struct S { char pad[0x200]; struct T *pt; };
 static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu %0,$zero,%1":"=r"(r):"i"(1));return r;}
+/** @sly2-annot addr=0x1FE848
+ * Purpose: True if dialog (optionally of given id) is playing
+ * Info: proposed name FDialogPlaying (T2); TU sound
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20,
+ *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 int func_001FE848(struct S *p, int n)
 {
     struct U *pu; int f;

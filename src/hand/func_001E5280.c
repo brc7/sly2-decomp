@@ -4,6 +4,12 @@ struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int func_00132B10(void *p, int cid);
 void *func_002332B8(void *pdst, const void *psrc, unsigned int cb);
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
+/** @sly2-annot addr=0x1E5280
+ * Purpose: Remove a held STEP and call its vt84(a,b)
+ * Info: proposed name RemoveJsgStepHold (T1); TU relay
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E5280(struct P *p, struct O *po, int a, int b)
 {
     int i;

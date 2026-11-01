@@ -54,6 +54,15 @@ static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z)
 static inline int IFix(const float &g, const int &off) { return ((int)g + off) << 4; }
 static inline float Screen(const float &g, const float &s) { return (g + 0.5f) * s + 0.5f; }
 
+/** @sly2-annot addr=0x1477D8
+ * Purpose: From main loop: draw the captured frame as two textured quads transformed by two child matrices
+ *   (screen split/flip transition)
+ * Info: proposed name DrawDancerScreen (T2); class DANCER; TU tu_1471C0
+ * Notes: class identity from whole_game WE names/object strings: DrawCid68Screen -> DrawDancerScreen
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
+ * See: docs/engine/cutscenes.md#3-screen-transitions, docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
+ * @end-sly2-annot */
 extern "C" void func_001477D8(struct P *p)
 {
     struct M4 am[2];

@@ -10,6 +10,13 @@ struct S *func_0011CCC0(void *);
 void *func_002333B4(void *, int, int);
 int func_0015E938(void *, int, int, int);
 void func_0011A250(void *, void *);
+/** @sly2-annot addr=0x1E5AE0
+ * Purpose: Allocate a JSG (0xF0) from slot heap D_003E1560, vtable 0x2D8C08, bind to relay and block (find
+ *   matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef
+ * Info: proposed name PjsgNew (T1); TU relay
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 struct S *func_001E5AE0(struct A *pa, struct E *pe, struct C *pc)
 {
     struct S *p = func_0011CCC0(D_003E1560);

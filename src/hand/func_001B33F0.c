@@ -6,6 +6,12 @@ void func_002333B4(void *p, int c, int n);
 void func_0013D7D0(void *p, int n, void *b);
 void func_0013D818(void *p, int n);
 void func_0013D6A8(void *p, int n, void *b);
+/** @sly2-annot addr=0x1B33F0
+ * Purpose: decode callback: feed IPU from video queue
+ * Info: proposed name FMpegDecodeVideo (T1); TU mpeg
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 int func_001B33F0(int a, int b, struct S *p)
 {
     void *buf[16];

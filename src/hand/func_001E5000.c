@@ -5,6 +5,13 @@ extern qword D_002A2DD0;
 int func_00132B10(void *, int);
 qword func_001A62E8(struct X *);
 void func_001E4D40(struct P *, void *, qword *, int);
+/** @sly2-annot addr=0x1E5000
+ * Purpose: Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
+ *   +0x1044/+0x1060/+0x1070)
+ * Info: proposed name SetJsgFocus (T1); TU relay
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E5000(struct P *p, void *pv)
 {
     struct X *px;

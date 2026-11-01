@@ -1,6 +1,12 @@
 struct S { int x0; int x4; int x8; int xC; int x10; int x14; int x18; int x1C; int x20; int x24; int x28; };
 int func_00233018(void);
 unsigned int func_00232FC0(void);
+/** @sly2-annot addr=0x1B2EB8
+ * Purpose: Read IOP playback position and update read/write cursors
+ * Info: proposed name CQueueOutputIop_Update (T1); class CQueueOutputIop; TU mpeg
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B2EB8(struct S *p)
 {
     if (p->x4 == 0x10) {

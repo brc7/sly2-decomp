@@ -31,6 +31,14 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E0E70;
 extern s32 D_003E134C;
 
+/** @sly2-annot addr=0x147E20
+ * Purpose: Remove an object from the SW busy list (+0x20), advancing the update cursor (+0x39A4) if it points
+ *   at it
+ * Info: proposed name RemoveSwBusyObject (T2); TU busy
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/cutscenes.md#4-source-files, docs/engine/object-model.md#8-source-files,
+ *   docs/engine/object-model.md#9-key-functions
+ * @end-sly2-annot */
 void func_00147E20(s32 arg0, s32 arg1) {
     s32 temp_s2;
 

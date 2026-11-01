@@ -2,6 +2,13 @@ struct A { int pad[2]; int a, b, c, d; };
 struct S { int n0; int a, b, c, d; int n14; int n18; };
 int func_00232EE8(int a, int b, int c, int d, int e, int f);
 void func_001B2A80(struct S *p);
+/** @sly2-annot addr=0x1B29D0
+ * Purpose: Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8),
+ *   Reset
+ * Info: proposed name CQueueOutputIop_Init (T1); class CQueueOutputIop; TU mpeg
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 int func_001B29D0(struct S *p, struct A *pa)
 {
     p->a = pa->a;

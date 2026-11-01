@@ -12,6 +12,12 @@ void func_001574B8(void *g);
 void func_00166C70(void *g, int rgba);
 void func_00166CE0(void *g, int a, int b);
 void func_00166DA0(void *g, int a, int b, int c);
+/** @sly2-annot addr=0x1475C0
+ * Purpose: GIF/DMA packet copying the frame buffer into a texture (D_002DECD0)
+ * Info: proposed name CaptureFramebufferToTexture (T2); TU tu_1471C0
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
+ * @end-sly2-annot */
 void func_001475C0(void)
 {
     void *g = D_002DEA00;

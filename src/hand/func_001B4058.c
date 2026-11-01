@@ -8,6 +8,17 @@ void func_001B3700(struct S *p);
 void func_00234CA0(int n);
 int func_00234A40(int n);
 void func_001B32B8(void *p);
+/** @sly2-annot addr=0x1B4058
+ * Purpose: get decoded picture, BuildMpegGifs, subtitles, signal display thread
+ * Info: proposed name CMpeg_Update (T1); class CMpeg; TU mpeg
+ * Notes: names_v2 v1 proposed FUN_0018f610__5CMpeg (0.000) | superseded: CMpeg_RenderPicture (arbitration) |
+ *   arbitration knock-on rename: CONFIRMED static: CbDemuxed loop, sceMpegGetPicture, BuildMpegGifs
+ *   (+subtitles), FlushCache, CbDemuxed loop, SignalSema, CMpegAudio::Update = Sly1 CMpeg::Update |
+ *   arbitration mangling: compile a declaration in the scratch build and compare before committing
+ * Confidence: high [T1 0.80] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass; sources:
+ *   r5_1AE130+arbitration
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B4058(struct S *p)
 {
     while (p->x240 == 1) func_001B41D0(p, 0);

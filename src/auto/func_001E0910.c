@@ -11,6 +11,14 @@ extern M2C_UNK D_003DA740;
 extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E11C4;
 
+/** @sly2-annot addr=0x1E0910
+ * Purpose: Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay
+ *   (PrelaycmdAddRelay(prelay,0x1B,fAsync)) and fill its args
+ * Info: proposed name AddRelayUnk1B (T2); TU relay
+ * Notes: v2: demoted to T2 (placeholder token in name: Unk)
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E0910(s32 arg0, s32 arg1) {
     M2C_FIELD(func_001E01F8(arg0, 0x1B, 0), s32 *, 0x10) = arg1;
 }

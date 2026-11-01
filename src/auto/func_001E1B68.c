@@ -13,6 +13,14 @@ extern M2C_UNK D_002DE440;
 extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E1560;
 
+/** @sly2-annot addr=0x1E1B68
+ * Purpose: --cref; at 0 release sound ref, destruct and free to the JSG slot heap D_003E1560
+ * Info: proposed name ReleaseJsg (T1); class JSG; TU relay
+ * Notes: agent qualifier: (DecrefJsg)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#5-key-functions,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E1B68(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

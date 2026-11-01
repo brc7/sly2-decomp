@@ -48,6 +48,12 @@ extern void *D_003E13B4;
 extern M2C_UNK D_003E1C20;
 extern M2C_UNK D_004435F0;
 
+/** @sly2-annot addr=0x1B33C8
+ * Purpose: audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180)
+ * Info: proposed name FMpegAcceptAudio (T1); TU mpeg
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B33C8(s32 arg0, s32 arg1, s32 arg2) {
     func_001B31E0(arg2 + 0x180, M2C_FIELD(arg1, s32 *, 0xC), M2C_FIELD(arg1, s32 *, 8));
 }

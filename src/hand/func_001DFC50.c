@@ -29,6 +29,15 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1DFC50
+ * Purpose: RELAY::Update (vt16): UpdateLo; while firing advance tFired (real-time dt if grf 0x100), UpdateJsg
+ *   on every running script; StopRelay when none remain
+ * Info: proposed name UpdateRelay (T1); class RELAY slot16; TU relay
+ * Notes: superseded r6_1D5150 proposal: UpdateSgg? (0.3)
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#5-key-functions,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001DFC50(OBJ *p)
 {
     DLI dli;

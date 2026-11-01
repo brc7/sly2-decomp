@@ -91,6 +91,13 @@ static inline int NearZInputs(qword previous,qword current,float tolerance){
  __asm__("mtc1 %1,%0":"=f"(previousInput):"r"(previousWord));
  return func_0011D4D0(currentInput,previousInput,tolerance);
 }
+/** @sly2-annot addr=0x1E46A0
+ * Purpose: Per-frame steering of a script-controlled player character: follow a path/curve or head to a
+ *   target and write stick/heading/speed into the step's control output
+ * Info: proposed name UpdateJsgJtControl (T2); TU relay
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 extern "C" void func_001E46A0(P *p,OUTPUT *out){
  WORK work;PARAM *param=p->param;ACTOR *actor=p->actor;
  typedef char layout_local_work[(sizeof(work)==0x60)?1:-1];

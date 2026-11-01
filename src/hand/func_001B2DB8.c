@@ -4,6 +4,13 @@ void func_00234CA0(int n);
 int func_00234DE0(struct REQ *r, int n);
 int func_00234DC0(int h);
 void func_00232FE8(int b, int x);
+/** @sly2-annot addr=0x1B2DB8
+ * Purpose: FlushCache + sceSifSetDma to IOP buffer at write offset; returns count
+ * Info: proposed name CQueueOutputIop_CbSend (T1); class CQueueOutputIop; TU mpeg
+ * Notes: names_v2 C proposed CbWrite__15CQueueOutputIopiPv (0.171)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 int func_001B2DB8(struct S *p, int b, int c)
 {
     struct REQ req;

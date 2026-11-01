@@ -3,6 +3,12 @@ struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x58]; struct O *po; int n5C; };
 void func_00133448(struct O *po, struct S *p);
+/** @sly2-annot addr=0x1E5410
+ * Purpose: Unregister from and release psmaCur (+0x58), fSmaReached=0
+ * Info: proposed name ClearJsgSma (T1); TU relay
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E5410(struct S *p)
 {
     if (p->po) {

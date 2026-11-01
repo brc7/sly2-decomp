@@ -96,6 +96,15 @@ typedef char P_PrefixSize[sizeof(P)==348?1:-1];
 typedef char G_PrefixSize[sizeof(G)==64852?1:-1];
 typedef char uint_PrefixSize[sizeof(uint)==4?1:-1];
 typedef char int_PrefixSize[sizeof(int)==4?1:-1];
+/** @sly2-annot addr=0x1B3BD0
+ * Purpose: Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode,
+ *   Finish
+ * Info: proposed name CMpeg_Execute (T1); class CMpeg; TU mpeg
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
+ *   r5_1AE130+verdicts_tu_r3r5+verdicts_A2+names_v2-signature(verified)
+ * See: docs/engine/cutscenes.md#2-fmv-playback-mpegcpp-0x1b2820-0x1b4438,
+ *   docs/engine/cutscenes.md#5-key-functions, docs/formats/disc-records.md#3-static-records-in-the-elf
+ * @end-sly2-annot */
 extern "C" void func_001B3BD0(P *p, K *k)
 {
     CTX ctx;
