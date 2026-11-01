@@ -46,8 +46,8 @@ struct ASEG : public LO
       OVR *aovr;
       int nPriority;
       int nWorldHold;
-      float tMax;
-      float svtMaster;
+      float tMax;           /* +0x74 [R] clip length (s) (anim_lab: 0.833 for 0x11D, parse) */
+      float svtMaster;      /* +0x78 [R] playback-speed multiplier copied into ASEGA::svtMaster (option 109 HYPOTHESIS) */
       uint32_t   _pad_263    [ 1 ] ;
       CLQ clqMasterSuck;
       LM lmMasterSuck;
@@ -105,26 +105,33 @@ typedef char assert_SMA_size[sizeof(SMA) == 0x50 ? 1 : -1];   /* class descripto
 /* ASEGA: from src/hand/func_00189C40.cpp (6 copies in Lilly ports) */
 struct ASEGA : public BASIC
 {
-      int cref;
-      ASEG *paseg;
-      ALO *paloRoot;
-      float tLocal;
+      int cref;             /* +0x10 [S] reference count (ASEGA is refcounted) */
+      ASEG *paseg;          /* +0x14 [R] the clip being played (anim_lab S68) */
+      ALO *paloRoot;        /* +0x18 [R] root object animated */
+      float tLocal;         /* +0x1C [R] local clip time (s); decoded curves at tLocal == the XF matrices (S68) */
       float tPrev;
-      uint32_t   _pad_35    [ 2 ] ;
+      DLE dleSw;            /* +0x24 [R] link in SW::dlAsega (SW+0x3D88, ibDle 0x24 in all 73 states, 8250 ASEGAs walked); was _pad_35[2] */
       DLE dleAseg;
       ACTSEG *pactsegFirst;
       OVRA *povraFirst;
       GRFAPL grfapl;
-      float svt;
-      float svtRate;
-      float svtMaster;
-      float svtSuck;
+      float svt;            /* +0x40 [R] effective speed = svtRate * svtMaster (all 8250 live ASEGAs, 73 states) */
+      float svtRate;        /* +0x44 [R] speed */
+      float svtMaster;      /* +0x48 [R] master speed, copied from ASEG::svtMaster (ApplyAseg; CONFIRMED code+runtime) */
+      float svtSuck;        /* +0x4C [R offset] anim_lab calls it "k" */
       int iea;
       int ieaEnd;
       int nWorldHold;
       CRefPtr<SND> psnd;
 };
 typedef char assert_ASEGA_size[sizeof(ASEGA) == 0x60 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+typedef char assert_ASEGA_dleSw[SLY2_OFFSETOF(ASEGA, dleSw) == 0x24 ? 1 : -1];   /* CONFIRMED runtime (SW::dlAsega ibDle) */
+typedef char assert_ASEGA_paseg[SLY2_OFFSETOF(ASEGA, paseg) == 0x14 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_ASEGA_tLocal[SLY2_OFFSETOF(ASEGA, tLocal) == 0x1C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_ASEGA_svt[SLY2_OFFSETOF(ASEGA, svt) == 0x40 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_ASEGA_svtMaster[SLY2_OFFSETOF(ASEGA, svtMaster) == 0x48 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_ASEG_svtMaster[SLY2_OFFSETOF(ASEG, svtMaster) == 0x78 ? 1 : -1];   /* ApplyAseg copies it (CONFIRMED code+runtime) */
+typedef char assert_ASEG_tMax[SLY2_OFFSETOF(ASEG, tMax) == 0x74 ? 1 : -1];   /* clip 0x11D tMax 0.833 (anim_lab, CONFIRMED parse) */
 
 /* SM: from src/hand/func_001EFAC0.cpp */
 struct SM : public LO

@@ -230,7 +230,7 @@ struct CM : public CMBASE
       float uFogMax;
       RGBA rgbaFog;
       float agRecipFit[4];
-      SO *psoAdjust;
+      SO *psoAdjust;        /* +0x260 [R] camera focus SO = the current player in gameplay (runtime3/6) */
       uint32_t   _pad_581    [ 3 ] ;
       CPDEFI cpdefi;
       qword dposAdjust;
@@ -242,17 +242,18 @@ struct CM : public CMBASE
       int nCut;
       float radCutPan;
       float radCutTilt;
-      int cmodeHero;
-      CPR acpr[8];
+      int ccpr;             /* +0x30C [R] depth of the policy stack acpr (ram_inspector "policy stack count"); was cmodeHero */
+      CPR acpr[8];          /* +0x310 [R] policy stack {prio, pcplcy, psoFocus, pv}, 16 bytes each; top = highest prio */
       float tModeStart;
       uint32_t   _pad_595    [ 3 ] ;
       CMPART1 part3a0;
       CMPART2 part3b0;
-      CPLOOK cplook;
-      CPCAMERA part4a8;
-      CPHANG part4c0;
-      CPCAMBLEND part500;
-      CPZOOM cpzoom;
+      CPLOOK cplook;        /* +0x450 [R] look-around policy (prio 7, focus JT in S31; vptr 0x2CD4E0) */
+      CPCAMERA part4a8;     /* +0x4A8 [R] fixed-camera policy (prio 10 on a CID 0x2C marker, runtime7a) */
+      CPHANG part4c0;       /* +0x4C0 [R offset / S type] embedded policy pushed at prio 10 */
+      CPCAMBLEND cpcamblend;  /* +0x500 [R] cutscene blend policy (prio 10, pv = a CAMMOVE in the JSG); was part500 */
+      CPZOOM cpzoom;        /* +0x520 [R] recon camera (prio 8 while JT mode kind 1, binocucom) */
+
       CPTURRET part5f0;
       CPTWOSHOT part600;
       float tJolt;
@@ -264,5 +265,10 @@ typedef char assert_CM_size[sizeof(CM) == 0x630 ? 1 : -1];   /* class descriptor
 typedef char assert_CM_acpr[SLY2_OFFSETOF(CM, acpr) == 0x310 ? 1 : -1];   /* policy stack acpr[8] of 16-byte CPR (CONFIRMED runtime) */
 typedef char assert_CM_part3a0[SLY2_OFFSETOF(CM, part3a0) == 0x3A0 ? 1 : -1];   /* bottom policy CMPART1 (CONFIRMED runtime) */
 typedef char assert_CM_part3b0[SLY2_OFFSETOF(CM, part3b0) == 0x3B0 ? 1 : -1];   /* upper policy with TN pv (CONFIRMED runtime) */
+typedef char assert_CM_psoAdjust[SLY2_OFFSETOF(CM, psoAdjust) == 0x260 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_CM_ccpr[SLY2_OFFSETOF(CM, ccpr) == 0x30C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_CM_cplook[SLY2_OFFSETOF(CM, cplook) == 0x450 ? 1 : -1];   /* CONFIRMED runtime (vptr seen in policy stack) */
+typedef char assert_CM_cpcamblend[SLY2_OFFSETOF(CM, cpcamblend) == 0x500 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_CM_cpzoom[SLY2_OFFSETOF(CM, cpzoom) == 0x520 ? 1 : -1];   /* CONFIRMED runtime */
 
 #endif /* SLY2_CM_H */

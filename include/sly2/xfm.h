@@ -32,12 +32,16 @@ struct XFM : public LO
       XF *pxfParent;
       int nStampWorld;
       undefined4 unk_0x58[2];
-      MATRIX4 mat;
-      MATRIX4 matWorld;
+      MATRIX4 mat;          /* +0x60 [S] local matrix */
+      MATRIX4 matWorld;     /* +0xA0 [R] world matrix, row 3 (+0xD0) = translation: holds for every LIGHT (CID 4,
+                               3504 instances / 73 states: w = 1; rows 0-2 unit length in 3492, 12 scaled). Plain XFM/PROXY/TARGET instances are
+                               mostly all-zero here (HYPOTHESIS: not maintained unless used). Note SO positions are NOT here:
+                               SO+0x60 pxfRoot is an XF whose world position is at XF+0x70. */
     virtual void VSlot49();   /* slot 49: not yet identified */
     virtual void VSlot50();   /* slot 50: not yet identified */
 };
 typedef char assert_XFM_size[sizeof(XFM) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+typedef char assert_XFM_matWorld[SLY2_OFFSETOF(XFM, matWorld) == 0xA0 ? 1 : -1];   /* translation at +0xD0 (CONFIRMED runtime) */
 
 /* SHAPE: from src/hand/func_00189618.cpp (3 copies in Lilly ports) */
 struct SHAPE : public XFM
