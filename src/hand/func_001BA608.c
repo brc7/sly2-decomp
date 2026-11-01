@@ -8,10 +8,10 @@ struct O { char pad[0xF64]; struct S *pF64; char pad2[0x1070 - 0xF68]; struct PO
 struct Q1 { char pad[0xC4]; float gC4; };
 struct Q2 { char pad[0x38]; float g38; };
 struct P { char pad[0x10]; struct O *po; char pad2[0x30 - 0x14]; int x30; float g34; };
-void func_001EEF98(struct P *p);
-int func_001EF0A8(struct P *p);
+void UpdateBhv(struct P *p);
+int FBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
-int func_00227C90(void *p, qword v);
+int FCheckVolPoint(void *p, qword v);
 void func_001BA828(struct P *p, int n);
 int func_00209A68(struct O *po, int n);
 void *func_00205458(struct O *po, int n);
@@ -29,21 +29,21 @@ static inline float GClamp(float g, float lo, float hi) { float r; if (g < lo) r
 void func_001BA608(struct P *p)
 {
     int s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     for (;;) {
-        if (func_001EF0A8(p))
+        if (FBhvBusyAbove(p))
             break;
         s = p->x30;
         switch (s) {
         case 0: {
             struct S *ps = p->po->pF64;
-            if (!func_00227C90(ps->xEC, func_001A62E8(D_002E1E40)))
+            if (!FCheckVolPoint(ps->xEC, func_001A62E8(D_002E1E40)))
                 func_001BA828(p, 1);
             break;
         }
         case 1: {
             struct S *ps = p->po->pF64;
-            if (func_00227C90(ps->xE8, func_001A62E8(D_002E1E40)))
+            if (FCheckVolPoint(ps->xE8, func_001A62E8(D_002E1E40)))
                 func_001BA828(p, 0);
             else if (p->po->poly.dt < D_002DDED0.t - p->g34)
                 func_001BA828(p, 2);

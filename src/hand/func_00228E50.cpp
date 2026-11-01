@@ -40,7 +40,7 @@ extern "C" {
 extern WORLD D_003DD490;
 extern qword D_002A2DC0,D_002A2DD0;
 
-void func_001F36E0(O *);
+void UpdateSo(O *);
 MARK *func_001AE478(MARK *);
 void func_001AE4A0(MARK *,int);
 void *func_001AE318(const REQ *);
@@ -71,7 +71,7 @@ static inline void Impact(O *o,EVENT *e){VE *v=o->vt;v[51].f.event((char *)o+v[5
 static inline void Signal(O *o,int event,PAIR *pair){VE *v=o->vt;v[4].f.signal((char *)o+v[4].delta,event,pair);}
 extern "C" void func_00228E50(O *p){
  WORK work;N *n;COLL **objects;LINK *link;
- func_001F36E0(p);
+ UpdateSo(p);
  if(!p->count)return;
  work.request=&work.scratch.request;work.head=&p->first;
  for(n=*work.head;n;n=n->next)n->object->flags|=0x80000000L;

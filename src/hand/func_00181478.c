@@ -1,6 +1,6 @@
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x1C0]; int n1C0; int x1C4; void *p1C8; void *p1CC; };
-extern void func_001F36E0(struct O *p);
+extern void UpdateSo(struct O *p);
 extern qword func_001A62E8(void *p);
 extern int func_0017F550(struct O *p);
 extern void func_001815E8(struct O *p, int n);
@@ -26,7 +26,7 @@ static __inline__ int FClose(float g)
 void func_00181478(struct O *p)
 {
     int s;
-    func_001F36E0(p);
+    UpdateSo(p);
     do {
         s = p->n1C0;
         switch (s) {

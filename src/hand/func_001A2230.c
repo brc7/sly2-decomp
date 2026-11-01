@@ -3,7 +3,7 @@ struct S { struct P *x0; int x4; char pad[0x88]; int x90; };
 extern int D_002E1E00;
 struct GAME { char pad[0x3D78]; int counter; };
 extern struct GAME D_003DD490;
-int func_0020F0B0(struct GAME *g);
+int FSwHandsOff(struct GAME *g);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char P_x298_Offset[FIELD_OFFSET(P,x298)==664?1:-1];
 typedef char P_x2DC_Offset[FIELD_OFFSET(P,x2DC)==732?1:-1];
@@ -54,7 +54,7 @@ int func_001A2230(struct S *s, int n)
         return 1;
     if (D_002E1E00 & 1)
         return 1;
-    if (!func_0020F0B0(&D_003DD490))
+    if (!FSwHandsOff(&D_003DD490))
         goto ret0;
 ret1:
     return 1;

@@ -1,5 +1,5 @@
 // func_001DF5B0 (w2lane4, wave 2): per-frame render of a "connector" (a chain of links drawn between pairs of points).
-// After the generic update (func_001F3C70) and a camera visibility test of the connector's bounding sphere
+// After the generic update (RenderSoSelf) and a camera visibility test of the connector's bounding sphere
 // (func_0014F850), each link is queried for its two end points and its length (func_001DEF98). A link longer than its
 // maximum is pulled back toward the first point, then the line object, the stretched middle object and the two end caps
 // (func_001A5FB8 / func_001A5EE8) are placed along the segment, in a basis built from the segment direction (BuildOrthonormalMatrixZ).
@@ -38,7 +38,7 @@ struct VU_FLOAT {
     VU_FLOAT(const float *p, int) { __asm__ __volatile__("" : "=r"(q) : "0"(*(const int *)p)); }
 };
 extern "C" {
-void func_001F3C70(P *);
+void RenderSoSelf(P *);
 int func_0014F850(CAMERA *, qword, VU_FLOAT);
 void func_001DEF98(P *, ENTRY *, qword *, float *);
 void func_001A5FB8(void *, qword, qword, float, float);
@@ -82,7 +82,7 @@ static inline void Query(P *owner, ENTRY *entry, U (&points)[2], float &distance
 
 extern "C" void func_001DF5B0(P *p)
 {
-    func_001F3C70(p);
+    RenderSoSelf(p);
     BOUND *bound = p->bound;
     if (!bound) return;
     CAMERA *cam = &D_002DDF40;

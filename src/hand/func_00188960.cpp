@@ -12,11 +12,11 @@ struct CLOCK{float time,dt;};struct WORK{U a,b;};
 extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
 extern float D_002BF288,D_002BF28C,D_002BF290,D_002BF294;
-void func_001F9B20(P*);void func_00204108(P*);
+void func_001F9B20(P*);void PresetStepAccel(P*);
 void func_001903B8(P*);void func_0019DF70(void*);void func_00196DF8(void*);
 void func_001A1148(void*);void func_00194170(void*);void func_00137248(void*);
 qword func_00204E38(P*,MODEL*,float);float func_0012F990(void*,int);
-void func_001FAC30(P*,qword);qword LimitVectorLength(qword,float);
+void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
 M4*func_001A6318(P*);float func_0011E290(qword,qword,qword*,qword*);
 M3 func_0011B500(qword,float);
 }
@@ -33,7 +33,7 @@ static inline qword QwDot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%
 static inline qword QwProjectOut(qword v,qword n){qword d=QwDot(v,n);qword al,ac;__asm__("vmulx.xyzw %0,%2,%1x":"=j"(al):"j"(d),"j"(n));__asm__("vsub.xyzw %0,%1,%2":"=j"(ac):"j"(v),"j"(al));return ac;}
 extern "C" void func_00188960(P*p){
  WORK w;
- switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:func_00204108(p);break;}
+ switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
  switch(p->mode){
  case 3:func_001903B8(p);break;
  case 8:func_0019DF70((char*)p+0xF50);break;
@@ -48,9 +48,9 @@ extern "C" void func_00188960(P*p){
   float cap=func_0012F990(p->lookup,0x16D);
   if(p->model->base<cap){
    qword resp=p->actor->response;
-   func_001FAC30(p,QwScaleX(resp,VuFloat(-1.0f)));
+   AddSoAcceleration(p,QwScaleX(resp,VuFloat(-1.0f)));
   }else w.b.f[2]=w.a.f[2];
-  func_001FAC30(p,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
+  AddSoAcceleration(p,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
   break;
  }
  case 24:
@@ -70,7 +70,7 @@ extern "C" void func_00188960(P*p){
    qword sum=QwAdd(w.a.q,w.b.q);
    qword moved=QwSub(QwRotateVecAt(&rotation,&sum),position);
    qword velocity=QwDivide(moved,VuFloatFromMemWord(*(int*)&D_002DDED0.dt));
-   func_001FAC30(p,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
+   AddSoAcceleration(p,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
   }
   break;
  }

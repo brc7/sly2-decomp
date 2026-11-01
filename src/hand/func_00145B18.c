@@ -8,7 +8,7 @@ struct P {
 };
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
@@ -24,7 +24,7 @@ static __inline__ void Activate(struct P *p, int oid)
 void func_00145B18(struct P *p, int state)
 {
     if (state == p->state) return;
-    func_001EF0D8(p->m18);
+    PopBhv(p->m18);
     p->state = state;
     p->tState = D_002DDED0.t;
     switch (state) {

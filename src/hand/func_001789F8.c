@@ -12,11 +12,11 @@ struct S {
     char pad4[4]; struct T *p54; int n58; float g5C; float g60; char pad5[4]; float g68; float g6C;
     char pad6[0x80 - 0x70]; qword v80;
 };
-void func_001EEF98(struct S *p);
+void UpdateBhv(struct S *p);
 void func_00177F78(struct S *p);
 qword func_001A62E8(struct A *a);
 int func_001BD718(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
-void func_001E6F60(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 float func_001E7B38(struct T *p, float a, float b);
 static inline float Dist(qword a, qword b) {
     qword d;
@@ -35,7 +35,7 @@ void func_001789F8(struct S *p) {
     float g;
     qword pos;
     int s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     func_00177F78(p);
     pos = func_001A62E8(p->p10);
     do {
@@ -58,7 +58,7 @@ void func_001789F8(struct S *p) {
                     break;
                 case 1:
                 case 2: {
-                    func_001E6F60(p->p54, pos, &D_003DD020, 0, 0, 0, &g);
+                    FindShapeClosestPoint(p->p54, pos, &D_003DD020, 0, 0, 0, &g);
                     if (80.0f < __builtin_fabsf(func_001E7B38(p->p54, g, p->g60))) {
                         p->g5C = g;
                         Set(p, 1);

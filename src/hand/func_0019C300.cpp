@@ -13,7 +13,7 @@ struct CONTEXT { OBJECT *owner; };
 struct SPACE;
 extern "C" {
     qword func_001A62E8(OBJECT *);
-    void func_002309E8(SPACE *,SPACE *,M4 *,M4 *,float);
+    void LoadIdentityMatrix4(SPACE *,SPACE *,M4 *,M4 *,float);
     M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
     extern qword D_002A2DD0;
     extern float D_002BF910;
@@ -105,7 +105,7 @@ extern "C" void func_0019C300(CONTEXT *context,OBJECT *target,qword localPoint,
       __asm__ volatile("la %0,%a4\n\tdaddu %1,%5,$zero\n\tmov.s %2,%6\n\tsq %7,%3":"=&r"(published),"=&r"(receiver),"=f"(dtArgument),"=m"(comparison.q):"p"(&predicted),"r"(frame),"f"(duration),"r"(snapshot));
       register SPACE*sourceSpace __asm__("$5");register M4*optionalOutput __asm__("$7");const int nullValue=0;
       __asm__("daddu %0,%z2,$zero\n\tdaddu %1,%z2,$zero":"=r"(optionalOutput),"=r"(sourceSpace):"rJ"(nullValue));
-      func_002309E8(receiver,sourceSpace,published,optionalOutput,dtArgument);
+      LoadIdentityMatrix4(receiver,sourceSpace,published,optionalOutput,dtArgument);
       __ml__FRC7MATRIX4T0(&product,published,inverseOwner);
     }
     register float squared __asm__("$f2"),radius __asm__("$f1"),radiusSquared __asm__("$f0");

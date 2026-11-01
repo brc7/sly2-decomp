@@ -5,7 +5,7 @@
 // The last step of the hero's per-frame update (JT::VUnk15). The three actuators at JT+0x19E4 / 0x19E8 / 0x19EC hold the lean offset of his body.
 //  - nothing happens before JT::VUnk14 made them, or while they are not in their owner's chain; in the look mode they go back to zero;
 //  - standing (jts 0) on an object (pxpFloor's part: the thing under his feet) or holding on to a curve (jts 7, grab record kind 0: state 3 a SHAPE he holds on at u, state 4 an object):
-//    the velocity of that object at his position (func_0022D348) is seen from his own frame (matTarget); its horizontal speed picks how far he leans (a quadratic of speed / 1000,
+//    the velocity of that object at his position (GetXfVelocity) is seen from his own frame (matTarget); its horizontal speed picks how far he leans (a quadratic of speed / 1000,
 //    D_002BF310, limited to 0..1: k) -> the lean vector (vx, vy) * 20 * k / |v|, z = -7.5 * sqrt(1 - k^2), z kept below what each foot's offset actuator (19F0 / 19F4) allows.
 //    (re/notes/hero-movement-matched.md, T1448, has the whole reading with the constants.)
 //    The first actuator (19E4) gets that; the other two (19E8 / 19EC) half of it while no animation state is set (jtas -1), else zero;
@@ -1518,7 +1518,7 @@ static inline qword QwCross(qword a, qword b)
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
     return qw;
 }
-qword func_0022D348(XF *pxfFrom, XF *pxfTo, qword qwPos);
+qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross);
 extern qword D_002A2DC0;
 extern float D_002BF2D0;
@@ -1663,7 +1663,7 @@ void UpdateJtLean(JT *pjt)
     if (!plo)
         return;
 lComputeLean:
-    *(qword *)&vecDir = func_0022D348(plo->PxfLocal(0), 0, *(qword *)&vecPos);
+    *(qword *)&vecDir = GetXfVelocity(plo->PxfLocal(0), 0, *(qword *)&vecPos);
     *(qword *)&vecLocal = QwDotRowsMatP(&pjt->matTarget, *(qword *)&vecDir);
     float gLen = GLengthXY(*(qword *)&vecLocal);
     if (gLen > 0.0001f)

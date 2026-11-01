@@ -7,7 +7,7 @@ struct S { char pad[0x10]; struct O *pParent; int pad14; int cid; char pad2[0x7C
 void PostLoLoad(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
 void func_00209130(void *pe, struct O *o);
-void *func_001F4C58(struct O *o, int a, int b);
+void *PxfFindSo(struct O *o, int a, int b);
 float *func_0012F938(int h, int a);
 void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
 void func_0020AE18(struct S *p)
@@ -24,8 +24,8 @@ void func_0020AE18(struct S *p)
         struct L l;
         int h;
         float *pf;
-        p->pa = func_001F4C58(p->pAC, p->a, 6);
-        p->nA4 = (int)func_001F4C58(p->pAC, p->b, 6);
+        p->pa = PxfFindSo(p->pAC, p->a, 6);
+        p->nA4 = (int)PxfFindSo(p->pAC, p->b, 6);
         h = p->hB4;
         pf = func_0012F938(h, p->c);
         func_001300B8(h, p->pAC, p->nA4, p->pa->nA0, &l, 0, *pf, 1.0f);

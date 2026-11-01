@@ -12,11 +12,11 @@ extern char D_003DD490[];
 void func_001FE738(void *p);
 void func_001DFEB8(void *p);
 void func_001C8918(struct S *p, int n);
-void func_0020F160(void *p);
+void ReleaseSwLetterbox(void *p);
 void func_001DAF38(int n, int f);
 int func_001FE5F0(void *p, void *q, int f);
 void func_0020F198(void *p);
-void func_0020F128(void *p);
+void AcquireSwLetterbox(void *p);
 void func_0020F1A8(void *p);
 void func_001DFD58(void *p, struct LO *q);
 void func_001C8730(struct S *p, int n)
@@ -32,7 +32,7 @@ void func_001C8730(struct S *p, int n)
     switch (p->x180) {
     case 2:
         func_001C8918(p, -1);
-        func_0020F160(D_003DD490);
+        ReleaseSwLetterbox(D_003DD490);
         break;
     case 3:
         if (p->x200 != -1)
@@ -53,7 +53,7 @@ void func_001C8730(struct S *p, int n)
     case 2:
         p->x194 = 5;
         func_001C8918(p, 1);
-        func_0020F128(D_003DD490);
+        AcquireSwLetterbox(D_003DD490);
         if (p->x1F4)
             p->x1A4 = func_001FE5F0(D_003DD040, p->x1F4, 0);
         break;

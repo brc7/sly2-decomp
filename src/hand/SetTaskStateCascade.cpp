@@ -14,7 +14,7 @@ void*func_001AE378(const REQUEST&);
 void func_001AE4A0(HEAP_SCOPE*,int);
 void CollectTaskCascade(P*,int,int*,P**);
 void SetTaskStatePropagate(P*,int);
-int func_00210AE0(void);
+int NWorldCur(void);
 int NEpisodePercentComplete(void*);
 int FTaskLive(P*);
 void OnJobTaskComplete(void*,P*);
@@ -57,7 +57,7 @@ extern "C" void SetTaskStateCascade(P*p,int state){
     }
     SetTaskStatePropagate(p,state);
     D_002DEB28=0;
-    int mode=func_00210AE0();
+    int mode=NWorldCur();
     if((unsigned)mode<9){
         void*object=D_003DD490.players[mode];
         if(object){SetValue(object,NEpisodePercentComplete(D_002DEB30));}

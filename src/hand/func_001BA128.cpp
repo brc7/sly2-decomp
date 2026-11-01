@@ -15,7 +15,7 @@ void func_00207350(P*);
 int func_00209A68(P*,int);
 qword func_001A62E8(P*);
 qword ConvertAloPos(P*,void*,qword);
-int func_00227C90(VOLUME*,qword);
+int FCheckVolPoint(VOLUME*,qword);
 void func_001BA408(P*,int);
 int func_00131968(POOL*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
@@ -24,7 +24,7 @@ qword func_0011BFF0(M3*);
 void*func_001AE478(void*);
 void func_001AE4A0(void*,int);
 int func_001BA100(void*,ROW*);
-void func_0020FAA0(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
+void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 extern P*D_003E1444;
 extern float D_002A7620;
 extern qword D_002C0A80,D_002C0A90,D_002C0AA0;
@@ -66,7 +66,7 @@ extern "C" void func_001BA128(P*p){
    qword origin=Vector(func_001A62E8(p));
    float distance=Square(Sub(origin,func_001A62E8(node)));
    if(nearest<distance)continue;
-   if(func_00227C90(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
+   if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
   }
   if(!p->target&&!func_00209A68(p,2)){
    qword position=Vector(ConvertAloPos(p,0,D_002C0A80));
@@ -74,10 +74,10 @@ extern "C" void func_001BA128(P*p){
    qword high=Add(position,D_002C0AA0);
    MARK arena;
    int count;ROW**rows;
-   func_0020FAA0(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
+   IntersectSwBoundingBox(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
-    if(func_00227C90(volume,func_001A62E8(row->object))){p->target=row->object;break;}
+    if(FCheckVolPoint(volume,func_001A62E8(row->object))){p->target=row->object;break;}
    }
   }
   if(p->target)func_001BA408(p,1);

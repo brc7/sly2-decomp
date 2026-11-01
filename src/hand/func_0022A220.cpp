@@ -1,5 +1,5 @@
 // func_0022A220 (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
-// posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by func_0020FAA0, clip each face edge that
+// posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by IntersectSwBoundingBox, clip each face edge that
 // crosses the curtain plane against its four side planes and store the largest added slope (scaled by the
 // camera->source XY distance) as po->dz. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
 typedef int qword __attribute__((mode(TI)));
@@ -33,7 +33,7 @@ FRAME *func_001AE478(FRAME *);
 void func_001AE4A0(FRAME *, int);
 void *func_001AE318(REQ *);
 int func_0014F030(void *, O *);
-void func_0020FAA0(WORLD *, qword, qword, int (*)(void *, O *), void *, int *, O ***);
+void IntersectSwBoundingBox(WORLD *, qword, qword, int (*)(void *, O *), void *, int *, O ***);
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
 static inline qword Q(float f)
@@ -193,7 +193,7 @@ extern "C" void func_0022A220(O *po)
     apface = (FACE **)func_001AE318(preq);
     qword k2 = QI(D_002C4490);
     tmp.q = k2;
-    func_0020FAA0(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
+    IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
                   func_0014F030, 0, &cpso, &apso);
     qword dpos = Sub(posSrc, posCam);
     int nso = cpso;

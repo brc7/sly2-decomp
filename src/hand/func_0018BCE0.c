@@ -31,7 +31,7 @@ extern void func_00189C40(void *p, void *a, float g, void *geometry, void *respo
 extern int func_00189EC8(void *p, void *a, void *response);
 extern void func_0018ED70(void *p);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-extern void func_001E7380(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
+extern void FindShapeClosestPointFromS(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
 extern void func_0018C250(void *p, int a, int b);
 extern qword func_001A62E8(void *p);
 extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
@@ -121,7 +121,7 @@ void func_0018BCE0(char *p)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0xB)) {
             void *po2 = F(void *, 0x1854);
             for (i = 0; i < 3; i++)
-                func_001E7380(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, F(float, 0x1858));
+                FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, F(float, 0x1858));
             goto loop;
         L16:
             func_0018C250(p, 0x16, -1);

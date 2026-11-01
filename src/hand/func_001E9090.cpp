@@ -1,12 +1,12 @@
 /* func_001E9090: one simulation step of a rope-like path chain (wave-4 lane 2, from w3lane9's rewrite).
  *
  * The first point is the start offset transformed by the first space's matrix; its velocity comes from
- * func_0022D348. Every later point is integrated (accel = force - damping * v, v += accel * dt,
+ * GetXfVelocity. Every later point is integrated (accel = force - damping * v, v += accel * dt,
  * pos += (v_old + v_new) * dt/2), then pulled back to the rest distance |dist[i] - dist[i-1]| from the previous
  * point along the normalized displacement (fallback direction D_002A2DA0 when shorter than 0.0001), and the
  * part of the relative velocity along that direction is removed. With mode 2 the last point is pinned to the
  * end offset in the last space and func_001E95B0 extends the path. Finally every point is transformed into
- * the path's local space (inverse of its world matrix, virtual slot 31) and func_001E6330 refreshes the path.
+ * the path's local space (inverse of its world matrix, virtual slot 31) and InvalidateShapeCache refreshes the path.
  *
  * Two register-choice devices (everything else is plain C++ plus one asm per VU operation):
  *  - DotVf1 hard-wires the dot product's 1.0 scratch to $vf1 (clobbered), used for the velocity projection only.
@@ -44,10 +44,10 @@ struct CLOCK { float t, dt; };
 extern CLOCK D_002DDED0;    // g_clock
 extern qword D_002A2DA0;    // fallback direction
 extern "C" {
-qword func_0022D348(SPACE *, SPACE *, qword);
+qword GetXfVelocity(SPACE *, SPACE *, qword);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);   // invert
 void func_001E95B0(CHAIN *, float);
-void func_001E6330(PATH *);
+void InvalidateShapeCache(PATH *);
 void func_001E9090(CHAIN *);
 }
 
@@ -111,7 +111,7 @@ void func_001E9090(CHAIN *p)
     int n = p->path->count;
     p->position[0].q = prev;
     U *velocity = p->velocity;
-    VV prevVel = func_0022D348(p->first, 0, prev);
+    VV prevVel = GetXfVelocity(p->first, 0, prev);
     velocity[0].q = prevVel;
     int i;
     for (i = 1; i < n; i++)
@@ -146,5 +146,5 @@ void func_001E9090(CHAIN *p)
         PATH *path = p->path;
         path->pos[i].q = TransformPoint(inverse, p->position[i].q);
     }
-    func_001E6330(p->path);
+    InvalidateShapeCache(p->path);
 }

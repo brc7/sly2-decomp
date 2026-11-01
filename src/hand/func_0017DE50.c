@@ -7,8 +7,8 @@ struct X { qword a; qword v; };
 struct T { char pad[0x40]; struct X x40; };
 struct A { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; int pad4; void *p38; float f3C; float f40; };
-void func_001EEF98(struct S *p);
-int func_001EF0A8(struct S *p);
+void UpdateBhv(struct S *p);
+int FBhvBusyAbove(struct S *p);
 int func_00174FB8(void *p);
 int func_00209098(void *p);
 void func_0017E278(struct S *p, int n);
@@ -28,8 +28,8 @@ static __inline__ float Dist(qword a, qword b) {
 }
 void func_0017DE50(struct S *p) {
     int s;
-    func_001EEF98(p);
-    while (s = p->n30, !func_001EF0A8(p)) {
+    UpdateBhv(p);
+    while (s = p->n30, !FBhvBusyAbove(p)) {
         switch (p->n30) {
         case 0:
             if (func_00174FB8(p->p18)) func_0017E278(p, 1);

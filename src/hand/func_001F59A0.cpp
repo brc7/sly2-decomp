@@ -12,8 +12,8 @@ struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
 struct CLOCK {float time,dt;};
 extern CLOCK D_002DDED0;
-extern "C" M3 *func_0022FD38(M3 *,SPACE *,SPACE *,const M3 *);
-static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {func_0022FD38(&result,0,parent,orientation);}
+extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
+static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void MulMatrix3Matrix3(M3 *,const M3 *,const M3 *);
 extern "C" void func_0011BCF8(const M3 *,float *,qword *);

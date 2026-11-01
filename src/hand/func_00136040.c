@@ -3,7 +3,7 @@ struct ASEG;
 struct S { int pad[3]; struct VTE *vt; char pad1[0x190 - 0x10]; float v190[3]; char pad2[0x1030 - 0x19c]; void *pasega1030; int f1034;
     char pad3[0x14e4 - 0x1038]; struct ASEG *f14e4; struct ASEG *f14e8; char pad4[0x15d4 - 0x14ec]; struct ASEG *f15d4;
     char pad5[0x15f0 - 0x15d8]; struct ASEG *f15f0; char pad6[0x16b0 - 0x15f4]; int f16b0; };
-void func_001F15B8(void *);
+void ReleaseSma(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
 void func_00136040(struct S *p, int n) {
     struct ASEG *paseg;
@@ -32,7 +32,7 @@ void func_00136040(struct S *p, int n) {
         grfapl = 9;
         break;
     }
-    func_001F15B8(&p->f1034);
+    ReleaseSma(&p->f1034);
     ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(paseg, p, 0.0f, 1.0f, grfapl, &p->pasega1030);
     ((void (*)(void *))p->vt[90].pfn)((char *)p + p->vt[90].d);
 }

@@ -7,7 +7,7 @@ void func_001B7D20(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void func_00209FB8(struct LO *p);
 qword func_001A62E8(struct LO *p);
-qword func_001F5860(struct LO *p);
+qword GetSoDvGravity(struct LO *p);
 qword func_001D69F0(qword a, qword b, qword c, float t);
 void func_001F7A68(struct LO *p, int n);
 static inline float Dist(qword a, qword b) {
@@ -31,7 +31,7 @@ void func_001B7970(struct P *p)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
             func_00209FB8(po);
         t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
-        v = func_001D69F0(func_001A62E8(po), p->v1420, func_001F5860(po), t);
+        v = func_001D69F0(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, v);
         func_001F7A68(po, 2);
     }

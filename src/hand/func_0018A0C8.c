@@ -12,17 +12,17 @@ struct S {
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 int func_001430C8(struct S *p);
-void func_001F1350(void *p, int n);
+void SetSmaMask(void *p, int n);
 float func_0011CFE0(float g, float h);
 void func_00204660(struct S *p, float g);
 void func_00189C40(struct S *p, int a, int b, int c, float g, void *pv);
 int func_00189EC8(struct S *p, void *pv, int n);
 int func_001F0400(void *p, int n);
-void func_001F09D8(void *p, int n);
+void SnapSma(void *p, int n);
 void func_0018A0C8(struct S *p)
 {
     struct VTE *e;
-    func_001F1350(p->x1034, func_001430C8(p));
+    SetSmaMask(p->x1034, func_001430C8(p));
     e = &p->vt[92];
     if (!((int (*)(void *))e->pfn)((char *)p + e->d) && p->pt208) {
         struct O *o = p->pt208->po;
@@ -37,7 +37,7 @@ void func_0018A0C8(struct S *p)
         func_00189C40(p, p->x19d4, p->x19dc, p->x19f4, 5.0f, p->x1620);
         if ((!func_00189EC8(p, p->x1520, p->x19f0) || !func_00189EC8(p, p->x1620, p->x19f4)) &&
             !p->x1514 && p->x1028) {
-            if (func_001F0400(p->x1028, 0x17C) >= 0) func_001F09D8(p->x1034, 0x17C);
+            if (func_001F0400(p->x1028, 0x17C) >= 0) SnapSma(p->x1034, 0x17C);
             p->x1514 = 1;
         }
     }

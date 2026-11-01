@@ -43,7 +43,7 @@ void func_001B9D28(OBJECT*,qword);
 OBJECT*func_00156698(void*,qword,OBJECT*);
 void func_00207030(OBJECT*,int);
 void func_001F7A68(OBJECT*,int);
-unsigned func_001F78D8(OBJECT*,unsigned);
+unsigned GrfzpdFromSoGrfzpk(OBJECT*,unsigned);
 int func_001F78A0(unsigned);
 void func_0020A9A8(TUNE*,int);
 void func_0017A5B0(HELPER*,int);
@@ -52,7 +52,7 @@ unsigned long func_00207A20(int);
 int func_0020A378(OBJECT*,OBJECT*,unsigned long);
 int func_0020A298(OBJECT*,OBJECT*,unsigned long);
 void*func_00209AD0(OBJECT*,unsigned long);
-int func_001EF0B8(S*,int,MSG*);
+int BHV_FHandleMessage(S*,int,MSG*);
 }
 static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
 static __inline__ int Accept(OBJECT*p,MSG*m){VE&v=p->vt[86];return((int(*)(void*,MSG*))v.fn)((char*)p+v.delta,m);}
@@ -87,7 +87,7 @@ extern "C" int func_00176BE8(S*p,int event,MSG*msg){
  }
  switch((KINDENUM)p->current.kind){
  case 9:
-  if(!(func_001F78D8(p->actor,msg->data.kind)&0x40)){
+  if(!(GrfzpdFromSoGrfzpk(p->actor,msg->data.kind)&0x40)){
    if(!(msg->data.kind&p->actor->mask9)||(p->helper->flags&p->actor->mask9))return 1;
   }break;
  case 10:if(!(msg->data.kind&p->actor->mask10))return 1;break;
@@ -190,7 +190,7 @@ finish:
  if(D_002F7900&&selected->data.kind==0x20000)func_001B9D28(D_002F7900,func_001A62E8(p->actor));
  return 1;
  }
- return func_001EF0B8(p,event,msg);
+ return BHV_FHandleMessage(p,event,msg);
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];

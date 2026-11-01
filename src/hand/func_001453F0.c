@@ -14,8 +14,8 @@ extern float D_002A4E34;
 extern struct LM D_002BD330;
 extern struct LM D_002BD338;
 extern float D_002BD340;
-void func_001EEF98(struct P *p);
-int func_001EF0A8(struct P *p);
+void UpdateBhv(struct P *p);
+int FBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
 struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
@@ -57,7 +57,7 @@ void func_001453F0(struct P *p)
     float gXY, g;
     struct SO *pso;
     void *pv30;
-    func_001EEF98(p);
+    UpdateBhv(p);
     po = p->p10;
     pv30 = p->p30;
     a = func_001A62E8(po);
@@ -72,7 +72,7 @@ void func_001453F0(struct P *p)
     } else {
         g = D_002A4E34;
     }
-    while (!func_001EF0A8(p)) {
+    while (!FBhvBusyAbove(p)) {
         int state = p->x60;
         int f;
         switch (state) {

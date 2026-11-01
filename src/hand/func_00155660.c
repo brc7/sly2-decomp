@@ -1,15 +1,15 @@
 typedef int qword __attribute__((mode(TI)));
 struct Y { char pad[0x30]; int x30; };
 struct X { char pad[0x10]; void *p10; int x14; struct Y *p18; char pad1[0x30 - 0x1C]; int state; int x34; void *p38; };
-void func_001EEF98(struct X *p);
-int func_001EF0A8(struct X *p);
+void UpdateBhv(struct X *p);
+int FBhvBusyAbove(struct X *p);
 qword func_001A62E8(void *p);
 void func_00155788(struct X *p, int k);
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 void func_00155660(struct X *p)
 {
-    func_001EEF98(p);
-    while (!func_001EF0A8(p)) {
+    UpdateBhv(p);
+    while (!FBhvBusyAbove(p)) {
         int s = p->state;
         switch (s) {
         case 0: {

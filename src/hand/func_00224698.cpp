@@ -10,7 +10,7 @@ qword func_001A62E8(void *);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 *func_001A6318(S *);
 void TiltMatUpright(M3 *,M3 *,M3 *);
-void func_001F5C30(S *,M3 *,void *,qword,void *);
+void AccelSoTowardMatSpring(S *,M3 *,void *,qword,void *);
 }
 static inline qword ToVF(qword a) { qword r; __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(r) : "r"(a));return r; }
 static inline qword Read(const qword &a) { qword r;__asm__("lqc2 %0,%1" : "=j"(r) : "m"(a));return r; }
@@ -46,5 +46,5 @@ extern "C" void func_00224698(S *p) {
     } else {
         TiltMatUpright(func_001A6318(p),0,&m);
     }
-    func_001F5C30(p,&m,D_002C4300,D_002A2DD0,D_002C4310);
+    AccelSoTowardMatSpring(p,&m,D_002C4300,D_002A2DD0,D_002C4310);
 }

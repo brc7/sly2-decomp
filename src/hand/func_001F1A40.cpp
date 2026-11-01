@@ -9,7 +9,7 @@ struct P {char pad404[0x404];struct ITEM items[8];int count;char pad488[8];int b
 extern char D_003DD490[];
 extern struct TABLE D_002C3968[],D_002C3748[];
 void func_001C2DB8(struct OWNER *);
-int func_00210AE0(void);
+int NWorldCur(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 void *func_002333B4(void *,int,int);
 struct OBJECT *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,void *);
@@ -23,7 +23,7 @@ void func_001F1A40(struct P *p)
     int id,total,remaining,slots;unsigned int i;
     func_001C2DB8(p->owner);
     if(p->busy)return;
-    id=func_00210AE0();if(id==-1)id=1;
+    id=NWorldCur();if(id==-1)id=1;
     if(FIsBasicDerivedFrom__FP5BASIC3CID(p,0x3A))table=&D_002C3968[id];else table=&D_002C3748[id];
     func_002333B4(&reward,0,sizeof(reward));
     if(p->count>0){

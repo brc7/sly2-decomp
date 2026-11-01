@@ -1,5 +1,5 @@
 // func_001B72B0: rotation (quaternion) and position of `stop` relative to the owner's two end nodes of p->link.
-//  - No pose: transform the input basis into the right parent's frame (func_0022FD38) and take its rotation
+//  - No pose: transform the input basis into the right parent's frame (ConvertXfMat) and take its rotation
 //    (func_0011BFF0); transform the input position through the left parent (func_0022FC48).
 //  - With a pose: collect the parent chain from pose->first up to `stop` (at most 16 nodes) and the indices of the
 //    owner's left/right nodes in it, build the relative frame replace = inverse(from * pose * inverse(input) * to)
@@ -30,7 +30,7 @@ typedef struct { char pad[0x50]; NODE *first; char pad54[0xC]; M4 transform; } P
 typedef struct { char pad[0x180]; OWNER *owner; int pad184; POSE *pose; } LINK;
 typedef struct { char pad[0x13F0]; LINK *link; } P;
 extern "C" M4 D_002A2D30;   // identity matrix
-extern "C" M3 func_0022FD38(NODE *, NODE *, const M3 &);
+extern "C" M3 ConvertXfMat(NODE *, NODE *, const M3 &);
 extern "C" M4 func_0022FF40(NODE *, NODE *, const M4 &);
 extern "C" VU_VECTOR func_0022FC48(NODE *, NODE *, VU_VECTOR);
 extern "C" VU_VECTOR func_0011BFF0(const M3 *);
@@ -43,7 +43,7 @@ extern "C" void func_001B72B0(P *const p, NODE *stop, const M4 *input, VU_VECTOR
 {
     if (!p->link->pose) {
         M3 basis;
-        basis = func_0022FD38(stop, p->link->owner->right->parent, input->basis);
+        basis = ConvertXfMat(stop, p->link->owner->right->parent, input->basis);
         *outRotation = func_0011BFF0(&basis);
         *outPosition = func_0022FC48(stop, p->link->owner->left->parent, input->position.q);
         return;

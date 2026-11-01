@@ -34,21 +34,21 @@ extern qword D_002A4B60;
 void UnlockProxyPlo(void *pv, struct O *p);
 void LockProxyPlo(void *pv, struct O *p);
 void func_001F6A68(struct O *p);
-void func_001F6978(struct O *p, int n);
-void func_001F2AD0(struct O *p, void *pv);
-void func_001F6AC8(struct O *p, int n);
+void ShowSoGlobsById(struct O *p, int n);
+void HideSoPart(struct O *p, void *pv);
+void ShowSoPartsById(struct O *p, int n);
 void func_001F6B48(struct O *p, int n);
 void func_001618F8(struct GS *pgs, float g);
 qword func_001A62E8(void *p);
 void func_00156C80(struct GS *pgs, int n, qword v, struct Q *pq, void *pv);
 void BroadcastGameEvent(void *pv, int n, struct O *p);
 void func_00161958(struct GS *pgs);
-void func_001F5720(struct O *p, int n);
-void func_001F57C0(struct O *p, int n);
-void func_001F5880(struct O *p, qword v);
+void SetSoCnstrForce(struct O *p, int n);
+void SetSoCnstrTorque(struct O *p, int n);
+void SetSoDvGravity(struct O *p, qword v);
 void SetLoParent_1A58D0(struct O *p, void *pv, int n);
 void SetLoXfFromMat(struct O *p, void *pv);
-void func_001F7C68(struct O *p, float g);
+void FadeSoIn(struct O *p, float g);
 struct E *func_001CE888(struct GS *pgs, int n, int m);
 void func_001CF578(struct E *pe, struct O *p);
 void func_001CFD30(struct E *pe);
@@ -151,11 +151,11 @@ void func_0013C560(struct O *p, int st)
     case 0:
         func_001F6A68(p);
         for (i = 0; i < p->pst->c1C; i++)
-            func_001F6978(p, p->pst->a20[i]);
+            ShowSoGlobsById(p, p->pst->a20[i]);
         for (i = 0; i < p->cE0; i++)
-            func_001F2AD0(p, p->aE4 + i * 0xB0);
+            HideSoPart(p, p->aE4 + i * 0xB0);
         if (p->pst->x18 != -1)
-            func_001F6AC8(p, p->pst->x18);
+            ShowSoPartsById(p, p->pst->x18);
         break;
     case 1:
         if (p->pst->xC)
@@ -181,7 +181,7 @@ void func_0013C560(struct O *p, int st)
         VCALL(pot4->pr, 9, PFNV));
         pot4->p11A8 = 0;
         if (p->pst->x18 != -1)
-            func_001F6AC8(p, p->pst->x18);
+            ShowSoPartsById(p, p->pst->x18);
         if (p->pst->xC)
             func_00161958(&D_003DD490);
         break;
@@ -189,11 +189,11 @@ void func_0013C560(struct O *p, int st)
         struct R *pr = p->p164;
         if (pr)
             Notify(pr, 1);
-        func_001F5720(p, 1);
-        func_001F57C0(p, 1);
+        SetSoCnstrForce(p, 1);
+        SetSoCnstrTorque(p, 1);
         VCALL(p, 35, PFNQ), D_002A2DD0);
         VCALL(p, 36, PFNQ), D_002A2DD0);
-        func_001F5880(p, D_002A2DD0);
+        SetSoDvGravity(p, D_002A2DD0);
         break;
     }
     case 6:
@@ -217,7 +217,7 @@ void func_0013C560(struct O *p, int st)
         p->pq->p194 = p;
         if (stOld != 3) {
             VCALL(p, 9, PFNV));
-            func_001F7C68(p, 0.5f);
+            FadeSoIn(p, 0.5f);
         }
         VCALL(p, 3, PFN3), 6, 0, 0, 0, 0);
         break;
@@ -266,8 +266,8 @@ void func_0013C560(struct O *p, int st)
         float lo = -6.2831855f, hi = 6.2831855f;
         (void)&w;
         SetLoParent_1A58D0(p, 0, 3);
-        func_001F5720(p, 0);
-        func_001F57C0(p, 0);
+        SetSoCnstrForce(p, 0);
+        SetSoCnstrTorque(p, 0);
         {
             qword *pv = (qword *)VCALL(p, 31, PFNP));
             qword vv = *pv;
@@ -287,7 +287,7 @@ void func_0013C560(struct O *p, int st)
         u.f[1] = b;
         u.f[2] = c;
         VCALL(p, 36, PFNQ), u.q);
-        func_001F5880(p, D_002A4B60);
+        SetSoDvGravity(p, D_002A4B60);
         BroadcastGameEvent(D_002DEB30, 0x30, p);
         break;
     }

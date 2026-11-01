@@ -13,7 +13,7 @@ struct P {
     char pad2[0x1088 - 0x58]; int x1088; char pad3[4]; struct O **apo; int cpo;
 };
 extern char D_002BC9F0[];
-void func_00203A38(struct P *);
+void PostStepLoad(struct P *);
 void BindLoOidTable(struct P *, int, void *);
 void func_001959C0(void *);
 void func_001910F8(void *);
@@ -27,7 +27,7 @@ void *func_001AE2A0(struct AREQ *);
 void func_00141EF8(struct P *);
 void func_001440D0(struct P *, int);
 int func_001F8278(struct P *);
-void func_001F35C8(struct P *, float);
+void SetSoMass(struct P *, float);
 qword func_001A62E8(struct P *);
 struct M3 *func_001A6318(struct P *);
 void *func_002333B4(void *, int, int);
@@ -39,7 +39,7 @@ void func_001400B8(struct P *p)
     int c;
     int i;
 
-    func_00203A38(p);
+    PostStepLoad(p);
     BindLoOidTable(p, 0x35, D_002BC9F0);
     func_001959C0((char *)p + 0x2C0);
     func_001910F8((char *)p + 0x4C0);
@@ -76,7 +76,7 @@ void func_001400B8(struct P *p)
     func_00141EF8(p);
     func_001440D0(p, D_003DD490.grf & 4);
     p->x1088 = func_001F8278(p);
-    func_001F35C8(p, 0.25f);
+    SetSoMass(p, 0.25f);
     if (p->pso->x94 == 0) {
         qword q = func_001A62E8(p);
         struct M3 m = *func_001A6318(p);

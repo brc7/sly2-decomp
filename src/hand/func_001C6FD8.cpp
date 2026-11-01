@@ -63,7 +63,7 @@ qword func_001A62E8(LO *);
 void *func_001AE318(ALLOCREQ *);
 int func_001C6CE8(void *, int, int, LO **);
 int func_001C5570(void *, CANDIDATE *);
-void func_0020FAA0(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 float GRandInRange__Fff(float, float);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
@@ -172,7 +172,7 @@ extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnu
     posMax.q = AddScaled(posSnap.q, VU_FLOAT(r), D_002A2DE0);
     int ccand;
     CANDIDATE **apcand;
-    func_0020FAA0(D_003DD490, posMin.q, posMax.q, func_001C5570, 0, &ccand, &apcand);
+    IntersectSwBoundingBox(D_003DD490, posMin.q, posMax.q, func_001C5570, 0, &ccand, &apcand);
     int cLaunched = 0;
     float gAngle = GRandInRange__Fff(-3.1415927f, 3.1415927f);
     float gRadius = D_002C0E8C;

@@ -31,7 +31,7 @@ void func_001BDBF0(X *p, int n, qword *pts);
 void func_001BDE18(X *p, X *pNew);
 void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
-void func_001E6180(X *p);
+void MeasureShape(X *p);
 int func_001BC2F8(X *p);
 }
 static inline void *Alloc(int cb) { return func_001AE318(AREQ(cb, 0x10)); }
@@ -117,6 +117,6 @@ extern "C" void func_001BDE80(int n, X **ap)
         }
     }
     pNew->xE4 = 1;
-    func_001E6180(pNew);
+    MeasureShape(pNew);
     pNew->x190 = func_001BC2F8(pNew);
 }

@@ -10,7 +10,7 @@ struct R { void *x0; };
 struct Q { struct O *x0; struct S *x4; struct R *x8; int xc; U x10; };
 struct P { char pad[0x240]; qword x240; };
 qword func_0022FC48(void *a, void *b, qword q);
-void func_002309E8(void *o, float g, int n, M4 *pm, int m);
+void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
 qword func_0019F3F8(struct P *p, struct Q *q, float g)
 {
     U t;
@@ -28,7 +28,7 @@ qword func_0019F3F8(struct P *p, struct Q *q, float g)
         v = q->x10.q;
     }
     if (o && 0.0f < g) {
-        func_002309E8(o, g, 0, &m, 0);
+        LoadIdentityMatrix4(o, g, 0, &m, 0);
         __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
                 : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
     } else {

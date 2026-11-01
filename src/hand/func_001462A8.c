@@ -8,7 +8,7 @@ extern qword D_002A2DA0;
 struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1714 - 0xDF8]; int x1714; };
 struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
-void func_001EEF98(struct P *);
+void UpdateBhv(struct P *);
 int func_001A61A0(struct Q *);
 qword func_001A62E8(void *);
 qword *func_001A6318(void *);
@@ -19,7 +19,7 @@ void func_001462A8(struct P *p)
     VU d;
     qword a, b, c, l, one, n;
     float g;
-    func_001EEF98(p);
+    UpdateBhv(p);
     if (p->x30 == -1)
         return;
     if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {

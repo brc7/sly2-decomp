@@ -13,7 +13,7 @@ extern char D_002DE2E0[];
 extern int D_002DFBC0;
 extern char D_002DFC00[];
 extern char D_002E0D00[];
-void func_001F36E0(OBJ *);
+void UpdateSo(OBJ *);
 int func_0014FD50(void *);
 int func_00187E88(void *);
 int func_00187D80(void *, int);
@@ -28,7 +28,7 @@ void func_001D72A8(OBJ *p)
     int n;
     int i;
     ENT *pe;
-    func_001F36E0(p);
+    UpdateSo(p);
     if (p->x180 == 0)
         return;
     if (p->x180 != 1)

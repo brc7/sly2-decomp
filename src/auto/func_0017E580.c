@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 M2C_UNK func_0017E6B0(void *, M2C_UNK);             /* extern */
-M2C_UNK func_001EF038(void *);                      /* extern */
+M2C_UNK ClearBhvBusy(void *);                      /* extern */
 
 void func_0017E580(void *arg0) {
     s32 temp_v0;
@@ -13,5 +13,5 @@ void func_0017E580(void *arg0) {
         return;
     }
     func_0017E6B0(arg0, -1);
-    func_001EF038(arg0);
+    ClearBhvBusy(arg0);
 }

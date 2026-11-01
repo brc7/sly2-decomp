@@ -28,7 +28,7 @@ void GetVectorCylind(qword,float *,float *,float *);
 float func_0011D948(RANGE *,float);
 void func_0021FB70(S *,int);
 float func_002458F0(float,float);
-float func_00204740(O *);
+float RadStepHeading(O *);
 float RadNormalize__Ff(float);
 void func_002206C8(S *,int);
 void func_001384C0(ASEG *);
@@ -188,7 +188,7 @@ extern "C" void func_0021F418(S *s){
   case 0:{
    w.scratch.vector.q=IdleDifference(func_001A62E8(s->selected),w.ownerPosition);
    float heading=func_002458F0(w.scratch.vector.f[1],w.scratch.vector.f[0]);
-   float angle=RadNormalize__Ff(heading-func_00204740(s->owner));
+   float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
    float threshold=s->idleThreshold;
    if(threshold<angle)func_002206C8(s,2);
    else if(angle<-threshold)func_002206C8(s,1);
@@ -224,7 +224,7 @@ extern "C" void func_0021F418(S *s){
    else if(s->state==4){
     w.scratch.vector.q=ActiveDifference(s->targetWorld,w.ownerPosition);
     float heading=func_002458F0(w.scratch.vector.f[1],w.scratch.vector.f[0]);
-    float angle=RadNormalize__Ff(heading-func_00204740(s->owner));
+    float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
     float threshold=s->activeThreshold;
     if(threshold<angle)func_002206C8(s,6);else if(angle<-threshold)func_002206C8(s,5);
    }

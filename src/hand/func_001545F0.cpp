@@ -8,7 +8,7 @@ void func_001AE4A0(void *p, int n);
 qword func_00153E60(T *p);
 void *func_001AE318(AL *pal);
 qword ConvertAloPos(SO *pso, int z, qword v);
-void func_0020FAA0(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int func_0014CC58(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
 void func_00154528(void);
@@ -38,7 +38,7 @@ int func_001545F0(T *p, SO *pso)
     }
     void *pfn = (void *)func_00154568;
     if (p->xF8 & 4) pfn = (void *)func_00154528;
-    func_0020FAA0(D_003DD490, vmin, vmax, pfn, p, &ii, &jj);
+    IntersectSwBoundingBox(D_003DD490, vmin, vmax, pfn, p, &ii, &jj);
     bool f;
     for (i = 0; (f = i < 1); i++)
         if (!func_0014CC58(0, q, apos[i], ii, jj, 0)) break;

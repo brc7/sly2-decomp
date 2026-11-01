@@ -24,8 +24,8 @@ float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
 float RadNormalize__Ff(float);
 M3*func_0011B500(M3*,qword,float);
 qword*func_00256D18(qword*,qword);
-void func_0022FAA0(P*);
-void func_001F3C70(P*);
+void UpdateSoXfWorldMatrices(P*);
+void RenderSoSelf(P*);
 }
 static inline float Abs(float f){float r;__asm__("abs.s %0,%1":"=f"(r):"f"(f));return r;}
 static inline M3 Rotation(qword axis,float angle) return r{func_0011B500(&r,axis,angle);}
@@ -77,5 +77,5 @@ extern "C" void func_001D41F8(P*p){
   register int generation=++D_003DD490.generation;
   e->node->generation=generation;
  }
- func_0022FAA0(p);func_001F3C70(p);
+ UpdateSoXfWorldMatrices(p);RenderSoSelf(p);
 }

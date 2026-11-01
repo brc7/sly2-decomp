@@ -9,7 +9,7 @@ void InitDl__FP2DLi(void *pdl, int ib);
 void *func_001AE2A0(struct MSG *pmsg);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void func_0017F138(struct S *p);
-void func_001F2B20(struct S *p);
+void AddSoParts(struct S *p);
 void func_00181840(struct S *p)
 {
     int i, j;
@@ -42,5 +42,5 @@ void func_00181840(struct S *p)
     pr->p = p;
     pr->fl |= 1UL << 48;
     pr->fl |= 1UL << 49;
-    if ((int)(p->fl >> 60) & 1) func_001F2B20(p);
+    if ((int)(p->fl >> 60) & 1) AddSoParts(p);
 }

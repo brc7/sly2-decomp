@@ -796,7 +796,7 @@ static inline qword QwCross(qword a, qword b)
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
     return qw;
 }
-qword func_0022D348(XF *pxfFrom, XF *pxfTo, qword qwPos);
+qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
 extern qword D_002A2DA0;
@@ -855,7 +855,7 @@ void UpdateChainLink(SO *pso, CHAINLINK *plink)
             qwPos = posAnchor;
             if (grf & 0x10)
             {
-                *(qword *)&vecVel = func_0022D348(pxfParent, 0, posAnchor);
+                *(qword *)&vecVel = GetXfVelocity(pxfParent, 0, posAnchor);
             }
             else
             {
@@ -871,7 +871,7 @@ void UpdateChainLink(SO *pso, CHAINLINK *plink)
             {
                 plinkCur = &pchain->alink[i];
                 plinkCur->posTip = ConvertXfPos(plinkCur->pxf, 0, plinkCur->qwSeg);
-                plinkCur->velTip = func_0022D348(plinkCur->pxf, 0, plinkCur->posTip);
+                plinkCur->velTip = GetXfVelocity(plinkCur->pxf, 0, plinkCur->posTip);
             }
             *(qword *)&vecVel = plink[-1].velTip;
             qword *pqwPosPrev = &plink[-1].posTip;

@@ -14,7 +14,7 @@ int func_00209A68(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
-int func_00227C90(struct L *pl, qword q);
+int FCheckVolPoint(struct L *pl, qword q);
 int func_0011D910(void *p, float f);
 
 int func_00208E70(struct S *p, struct X *x, float *pout)
@@ -51,7 +51,7 @@ int func_00208E70(struct S *p, struct X *x, float *pout)
             pl = p->p3F8;
         else
             pl = p->p3F4;
-        if (pl && !!((pl->fl28 >> 60) & 1) && func_00227C90(pl, func_001A62E8(x)))
+        if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, func_001A62E8(x)))
             return 3;
     }
     pv = func_00209A68(p, 0x17) ? p->a368 : p->a370;

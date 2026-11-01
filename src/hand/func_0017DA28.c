@@ -14,14 +14,14 @@ struct S {
     char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; char pad3[0x2C]; struct X x60; struct X x80;
     float fA0; int nA4; char pad4[0xC]; int nB4; struct Q *pB8; int nBC;
 };
-int func_001EF0A8(struct S *p);
+int FBhvBusyAbove(struct S *p);
 void func_0017D450(struct S *p, int n);
 void func_0017D8A8(struct S *p);
 void func_002562A8(struct X *x);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(struct X *s, qword v);
 void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
-void func_001E6180(struct B *b);
+void MeasureShape(struct B *b);
 int func_001C02D0(void *q, qword a, qword b, struct B *c);
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 void func_0017DA28(struct S *p) {
@@ -29,7 +29,7 @@ void func_0017DA28(struct S *p) {
     int k;
     if (p->n30 == -1) return;
     if (!(p->p10->nFE8 & 2)) return;
-    if (func_001EF0A8(p)) return;
+    if (FBhvBusyAbove(p)) return;
     func_0017D450(p, 0);
     func_0017D8A8(p);
     func_002562A8(&x);
@@ -71,7 +71,7 @@ void func_0017DA28(struct S *p) {
             b->nE8 = 2;
             b->pF4[0] = pos;
             b->pF4[1] = q;
-            func_001E6180(b);
+            MeasureShape(b);
         } else {
             struct C *c = p->p10->pE8;
             struct D *d = c ? c->pDC : 0;

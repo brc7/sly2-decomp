@@ -8,7 +8,7 @@ void func_002061D8(struct S *p);
 void BindLoOidTable(struct S *p, int n, void *pv);
 float *func_0012F938(void *p, int n);
 void func_001300B8(void *p, struct S *ps, void *p1, int n, struct L *pl, int m, float a, float b);
-void func_001F35C8(struct S *p, float g);
+void SetSoMass(struct S *p, float g);
 void func_001BA018(struct S *p)
 {
     struct L l;
@@ -24,5 +24,5 @@ void func_001BA018(struct S *p)
     p->n1060 = 0;
     p->q1040 = d;
     p->n106C = 1;
-    func_001F35C8(p, 0.25f);
+    SetSoMass(p, 0.25f);
 }

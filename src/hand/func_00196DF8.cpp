@@ -7,7 +7,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void func_001FAC30(ACTOR*,qword);void func_001F5E10(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
+qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -124,14 +124,14 @@ extern "C" void func_00196DF8(CONTEXT*p){WORK w;
    __asm__("prot3w $3,%0\n\tmtc1 %0,$f0\n\tmtc1 $3,$f1\n\tmfc1 %0,$f0\n\tmfc1 $3,$f1\n\tpextlw %0,$3,%0\n\tmfc1 $3,%2\n\tpcpyld %0,$3,%0\n\tsq %0,%1"
     :"+r"(acceleration),"=m"(w.turn.scalar.q):"f"(zero):"$3","$f0","$f1");
   }
-  func_001FAC30(p->actor,acceleration);break;
+  AddSoAcceleration(p->actor,acceleration);break;
  }
  case 22:{
   register PARAMS*parameters __asm__("$8"),*empty __asm__("$6");register ACTOR*actor __asm__("$4");
   register qword force __asm__("vf4"),origin __asm__("$5");
   __asm__("lui %0,%%hi(%7)\n\tli.s $f0,-1.0\n\taddiu %0,%0,%%lo(%7)\n\tlw %1,%6\n\tlwc1 $f1,4(%0)\n\tdaddu %2,$zero,$zero\n\tmfc1 $2,$f0\n\tdiv.s $f0,$f0,$f1\n\tlqc2 $vf1,0x190(%1)\n\tqmtc2.ni $2,$vf2\n\tsqc2 $vf2,%5\n\tlui $2,%%hi(%8)\n\tvmulx.xyzw $vf2,$vf1,$vf2x\n\taddiu $2,$2,%%lo(%8)\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf3\n\tlw $3,0xE8(%1)\n\tsqc2 $vf3,%5\n\tlqc2 $vf1,0x80($3)\n\tvadda.xyzw $ACC,$vf2,$vf0\n\tvmaddx.xyzw %3,$vf1,$vf3x\n\tlq %4,0($2)"
    :"=&r"(parameters),"=&r"(actor),"=r"(empty),"=j"(force),"=r"(origin),"=m"(w.scalar.q):"m"(p->actor),"i"(&D_002BF7E0),"i"(&D_002A2DD0):"$2","$3","$f0","$f1","vf1","vf2","vf3","at","memory");
-  func_001F5E10(actor,origin,empty,force,parameters);break;
+  AccelSoTowardPosSpring(actor,origin,empty,force,parameters);break;
  }
  case 6:case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 17:case 18:case 19:case 21:break;
  default:{
@@ -197,7 +197,7 @@ extern "C" void func_00196DF8(CONTEXT*p){WORK w;
      :"+m"(w.move.phase.vectors.corrected.q),"=m"(w.move.phase.vectors.scalar.q),"+f"(threshold):"f"(z),"i"(&D_002A2DC0):"$3","vf1","vf2","vf3","memory");
    }
   }
-  func_001FAC30(p->actor,w.move.phase.vectors.corrected.q);break;
+  AddSoAcceleration(p->actor,w.move.phase.vectors.corrected.q);break;
  }
  }
 }

@@ -8,7 +8,7 @@ typedef struct {
 } E;
 typedef struct { char pad[0x60]; void *x60; } OBJ;
 qword func_0022FC48(void *, int, qword);
-void func_001E6F10(void *, qword *, int, float);
+void EvaluateShapeS(void *, qword *, int, float);
 void func_001DEF98(OBJ *p, E *e, qword *out, float *pdist)
 {
     unsigned int i;
@@ -18,7 +18,7 @@ void func_001DEF98(OBJ *p, E *e, qword *out, float *pdist)
             out[i] = func_0022FC48(p->x60, 0, e->u.q);
             break;
         case 1:
-            func_001E6F10(e->u.s.pv, &out[i], 0, e->u.s.f);
+            EvaluateShapeS(e->u.s.pv, &out[i], 0, e->u.s.f);
             break;
         }
     }

@@ -24,14 +24,14 @@ extern GS D_003DD490;
 extern char D_002A7878[];
 extern int D_002DFBC0;
 extern char D_002DFC00[], D_002E0D00[];
-void func_001F1448(void *, OBJ *, int, int, void *);
+void ReplaceSma(void *, OBJ *, int, int, void *);
 void func_00162E38(SUB *);
 int CploFindSwObjectsByClass(GS *, int, int, int, int, SO **);
 void func_001433C8(SO *);
 void func_001440D0(SO *, int);
 CRef func_001D8A38(const char *, ...);
 int func_001F0400(void *, int);
-int func_001F04F8(void *, int);
+int OidFromSmIsms(void *, int);
 void func_001D77D0(OBJ *, int);
 void func_00187E78(void *);
 }
@@ -42,7 +42,7 @@ extern "C" void func_001D7480(OBJ *p, int s)
     if (p->x180 == s)
         return;
     if (p->x180 == 1) {
-        func_001F1448(0, p, -1, 0, p->x188);
+        ReplaceSma(0, p, -1, 0, p->x188);
         VCALL5(p, 3, 6, 0, 0, 0, 0);
     }
     p->x180 = s;
@@ -69,13 +69,13 @@ extern "C" void func_001D7480(OBJ *p, int s)
         if (p->x184) {
             int v = func_001D8A38(D_002A7878, 0).m_tag;
             if (func_001F0400(p->x184, v) == -1)
-                idx = func_001F04F8(p->x184, 0);
+                idx = OidFromSmIsms(p->x184, 0);
             else
                 idx = v;
         } else {
             idx = -1;
         }
-        func_001F1448(p->x184, p, idx, 0, p->x188);
+        ReplaceSma(p->x184, p, idx, 0, p->x188);
         func_001D77D0(p, 0);
         func_00187E78((D_002DFBC0 & 2) ? D_002DFC00 : D_002E0D00);
         VCALL5(p, 3, 5, 0, 0, 0, 0);

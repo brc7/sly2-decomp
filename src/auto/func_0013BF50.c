@@ -1,14 +1,14 @@
 #include "m2c_prelude.h"
 M2C_UNK func_0013C4E0(void *, M2C_UNK);             /* extern */
 M2C_UNK func_00143380(s32);                         /* extern */
-M2C_UNK func_001F36E0();                            /* extern */
+M2C_UNK UpdateSo();                            /* extern */
 extern f32 D_002DDED0;
 extern f32 D_003E1BFC;
 
 void func_0013BF50(void *arg0) {
     s32 temp_v1;
 
-    func_001F36E0();
+    UpdateSo();
     temp_v1 = M2C_FIELD(arg0, s32 *, 0x184);
     switch (temp_v1) {                              /* irregular */
     case 5:

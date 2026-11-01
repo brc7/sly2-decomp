@@ -3,7 +3,7 @@ struct S { char pad[0x10b8]; int f10b8; char pad2[0x1320 - 0x10bc]; char a1320[0
     char a14f0[0x100]; char a15f0[0x10]; char a1600[0x110]; char a1710[0x10]; };
 extern ti128 D_002BC920;
 void func_001400B8(struct S *);
-int func_001F4C58(struct S *, int, int);
+int PxfFindSo(struct S *, int, int);
 void func_001A0300(struct S *, void *, void *);
 void func_0020B868(void *);
 void func_00136D28(void *, struct S *, ti128, float, float);
@@ -11,7 +11,7 @@ void func_001426E8(struct S *, int);
 void func_00135248(struct S *, int);
 void func_001347A8(struct S *p) {
     func_001400B8(p);
-    p->f10b8 = func_001F4C58(p, 0xb, 1);
+    p->f10b8 = PxfFindSo(p, 0xb, 1);
     func_001A0300(p, p->a13e0, p->a14e0);
     func_001A0300(p, p->a14f0, p->a15f0);
     func_0020B868(p->a1320);

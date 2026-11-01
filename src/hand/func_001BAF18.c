@@ -11,9 +11,9 @@ typedef struct P {
 } P;
 extern char D_003DD490[];
 SO *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int v, P *p);
-void func_001F6978(P *p, int v);
-void func_001F69F8(P *p, int v);
-void func_001F6AC8(P *p, int v);
+void ShowSoGlobsById(P *p, int v);
+void HideSoGlobsById(P *p, int v);
+void ShowSoPartsById(P *p, int v);
 void func_001F6B48(P *p, int v);
 
 enum { EVENT_SHIFT = 4 };
@@ -56,13 +56,13 @@ void func_001BAF18(P *p, int id)
                     ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
                     break;
                 case 2:
-                    func_001F6978(p, pi->value);
+                    ShowSoGlobsById(p, pi->value);
                     break;
                 case 3:
-                    func_001F69F8(p, pi->value);
+                    HideSoGlobsById(p, pi->value);
                     break;
                 case 4:
-                    func_001F6AC8(p, pi->value);
+                    ShowSoPartsById(p, pi->value);
                     break;
                 case 5:
                     func_001F6B48(p, pi->value);
@@ -98,16 +98,16 @@ void func_001BAF18(P *p, int id)
                     ((void (*)(void *))ps->vt[8].pfn)((char *)ps + ps->vt[8].d);
                     break;
                 case 2:
-                    func_001F69F8(p, pi->value);
+                    HideSoGlobsById(p, pi->value);
                     break;
                 case 3:
-                    func_001F6978(p, pi->value);
+                    ShowSoGlobsById(p, pi->value);
                     break;
                 case 4:
                     func_001F6B48(p, pi->value);
                     break;
                 case 5:
-                    func_001F6AC8(p, pi->value);
+                    ShowSoPartsById(p, pi->value);
                     break;
                 }
             }

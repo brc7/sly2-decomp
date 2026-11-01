@@ -8,8 +8,8 @@ struct P {char padC[0xC];VE *vt;char pad10[0x48];LO *translation,*rotation;char 
 extern qword D_002A2DD0;
 extern struct GAME {char pad3D58[0x3D58];int stamp;} D_003DD490;
 extern "C" int func_0011D4D0(float,float,float);
-extern "C" void func_00230598(P *,LO *);
-extern "C" qword func_0022FCC8(void *,LO *,qword);
+extern "C" void SlotUnsettle(P *,LO *);
+extern "C" qword ConvertXfVec(void *,LO *,qword);
 extern "C" qword *func_00256D18(qword *,qword);
 extern "C" M3 func_0011B570(qword);
 extern "C" void func_001F4BF8(P *);
@@ -24,7 +24,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
-static inline qword Consume(P*p,LO*object,U&pending){func_00230598(p,object);qword world=func_0022FCC8(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
+static inline qword Consume(P*p,LO*object,U&pending){SlotUnsettle(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
 extern "C" void func_001FA528(P*p)
 {
     M3 final;

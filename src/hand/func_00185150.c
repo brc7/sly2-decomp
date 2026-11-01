@@ -2,7 +2,7 @@ struct MSG { int cb; int nKind; };
 struct X { int a; int b; int c; };
 struct V { int a[4]; };
 struct S { char pad[0xE0]; int cv; struct V *av; int cx; struct X *ax1; struct X *ax2; };
-void func_00231768(struct S *p, void *pbis);
+void LoadXfmXfFromBrx(struct S *p, void *pbis);
 int func_00117D50(void *pbis);
 void func_00117EB0(void *pbis, void *pv);
 void *func_001AE1D0(struct MSG *pmsg);
@@ -13,7 +13,7 @@ void func_00185150(struct S *p, void *pbis)
     struct MSG msg;
     int i, j;
     int n;
-    func_00231768(p, pbis);
+    LoadXfmXfFromBrx(p, pbis);
     p->cv = func_00117D50(pbis);
     p->av = (struct V *)PvAllocMsg(&msg, p->cv << 4, 0x10);
     for (i = 0; i < p->cv; i++)

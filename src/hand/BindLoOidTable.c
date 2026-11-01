@@ -5,10 +5,10 @@ struct SUB {char pad[0x9C];int x9C;char pad2[0x100-0xA0];};
 struct ALO {char pad[0x50];int c;struct SUB*a;};
 struct E {int grf,id,ib;};
 extern char D_003DD490[];
-void*func_001F6030(struct ALO*,int);
-void func_001F2AD0(struct ALO*, void*);
+void*PsopartFindSo(struct ALO*,int);
+void HideSoPart(struct ALO*, void*);
 void*func_001F5FF8(struct ALO*,int);
-void func_001F69F8(struct ALO*,int);
+void HideSoGlobsById(struct ALO*,int);
 struct LO*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct ALO*);
 void BindLoOidTable(struct ALO*palo,
 int c,struct E*ae){
@@ -27,11 +27,11 @@ again:
    *(void**)((char*)palo+pe->ib)=p;
 done:;
   }else if(grf&0x20){
-   void*p=func_001F6030(palo,pe->id);
-   if(p){i++;*(void**)((char*)palo+pe->ib)=p;if(pe->grf&0x200)func_001F2AD0(palo,p);}else i++;
+   void*p=PsopartFindSo(palo,pe->id);
+   if(p){i++;*(void**)((char*)palo+pe->ib)=p;if(pe->grf&0x200)HideSoPart(palo,p);}else i++;
   }else if(grf&0x40){
    void*p=func_001F5FF8(palo,pe->id);
-   if(p){i++;*(void**)((char*)palo+pe->ib)=p;if(pe->grf&0x200)func_001F69F8(palo,pe->id);}else i++;
+   if(p){i++;*(void**)((char*)palo+pe->ib)=p;if(pe->grf&0x200)HideSoGlobsById(palo,pe->id);}else i++;
   }else{
    int k;struct LO*p;
    if(grf&2)k=4;else k=(grf&1)?5:1;

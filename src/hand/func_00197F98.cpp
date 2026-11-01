@@ -1,6 +1,6 @@
 // func_00197F98: per-frame movement / jump-target update of a player context (MATCH; T1870, Lilly's agent; = lilly30 + FloatUse + EMPTY).
 // Joystick combo timers, a search over the two jump-target lists (D_003E13E4 sources / D_003E1420 objects) that picks the best
-// intercept (func_0019A4A0 + FindClosestPointOnLineSegment) and switches to mode 6/8, goal prediction for modes 6..18 (func_002309E8 forecast +
+// intercept (func_0019A4A0 + FindClosestPointOnLineSegment) and switches to mode 6/8, goal prediction for modes 6..18 (LoadIdentityMatrix4 forecast +
 // derivative matrices), an acceleration-cost check, the heading switch (modes 0, 11-15, 20, 22, default) and the basic-move
 // velocity (modes 0-5, 7).
 // Two allocation/frame probes (no register pins):
@@ -62,20 +62,20 @@ extern SMP D_002BF860;
 qword func_001A62E8(void *);
 void func_0019A4A0(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *);
 void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
-qword func_0022D348(SPACE *, SPACE *, qword);
+qword GetXfVelocity(SPACE *, SPACE *, qword);
 qword func_0022FC48(SPACE *, SPACE *, qword);
-qword func_0022FCC8(SPACE *, SPACE *, qword);
+qword ConvertXfVec(SPACE *, SPACE *, qword);
 void func_00195FB8(CONTEXT *, int, void *);
-void func_002309E8(SPACE *, SPACE *, M4 *, float, M4 *);
+void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
-float func_00204740(ACTOR *);
+float RadStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
 void CalculateSinCos__FfPfT1(float, float *, float *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void func_001384C0(CLIP *);
-void func_001E67B8(void *, float, qword *, qword *);
+void EvaluateShapeU(void *, float, qword *, qword *);
 void func_001CC2E8(void *);
-void func_002046B0(ACTOR *, qword);
+void SetStepRadTargetVec(ACTOR *, qword);
 void func_00204660(ACTOR *, float);
 void func_001441E8(ACTOR *, float);
 qword SetVectorCylind(float, float, float);
@@ -248,7 +248,7 @@ extern "C" void func_00197F98(CONTEXT *p)
                 continue;
             float alpha, dist;
             U velObj;
-            velObj.q = func_0022D348(GetFrame(obj), 0, posObj.q);
+            velObj.q = GetXfVelocity(GetFrame(obj), 0, posObj.q);
             U delta;
             delta.q = QwSub(pos.q, posObj.q);
             U rel;
@@ -276,7 +276,7 @@ extern "C" void func_00197F98(CONTEXT *p)
             U v;
             ACTOR *actor = p->actor;
             v.q = Make(velBest.f[0], velBest.f[1], FloatUse(vel.f[2], actor) + tBest * actor->physics->gravity.f[2]);
-            body->velocityGoal.q = func_0022FCC8(0, frame, v.q);
+            body->velocityGoal.q = ConvertXfVec(0, frame, v.q);
             if (srcBest)
                 func_00195FB8(p, 6, srcBest);
             else
@@ -297,14 +297,14 @@ extern "C" void func_00197F98(CONTEXT *p)
         float dt = body->deadline - D_002DDED0.t;
         SPACE *frame = GetFrame(p->source);
         M4 forecast, derivative;
-        func_002309E8(frame, 0, &forecast, dt, &derivative);
+        LoadIdentityMatrix4(frame, 0, &forecast, dt, &derivative);
         qword local = func_0022FC48(0, frame, point.q);
         body->goal.q = func_0022FC48(0, body->frame, Transform(forecast, local));
         if (p->mode != 10) {
             U v;
             v.q = Transform(derivative, local);
             v.f[2] = vel.f[2] + dt * p->actor->physics->gravity.f[2];
-            body->velocityGoal.q = func_0022FCC8(0, body->frame, v.q);
+            body->velocityGoal.q = ConvertXfVec(0, body->frame, v.q);
         }
         break;
     }
@@ -352,7 +352,7 @@ extern "C" void func_00197F98(CONTEXT *p)
         heading = headingSample;
         break;
     case 20: {
-        float headingOld = func_00204740(p->actor);
+        float headingOld = RadStepHeading(p->actor);
         float s, c;
         CalculateSinCos__FfPfT1(RadNormalize__Ff(input->heading - headingOld), &s, &c);
         float lateral = s * input->amount;
@@ -396,12 +396,12 @@ extern "C" void func_00197F98(CONTEXT *p)
     case 14: case 15: {
         U target;
         if (p->mode == 15)
-            func_001E67B8(p->source, p->parameter, &target.q, 0);
+            EvaluateShapeU(p->source, p->parameter, &target.q, 0);
         else
             target.q = func_001A62E8(p->source);
         if (p->actor != D_002E1E40)
             func_001CC2E8((char *)p->actor + 0x900);
-        func_002046B0(p->actor, QwSub(target.q, pos.q));
+        SetStepRadTargetVec(p->actor, QwSub(target.q, pos.q));
         heading = p->actor->heading;
         break;
     }

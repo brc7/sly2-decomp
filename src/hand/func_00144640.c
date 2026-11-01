@@ -16,11 +16,11 @@ extern float D_002BD2D4;
 extern char D_003DD490[];
 extern char D_002DEB30[];
 int func_00144068(struct PO *);
-int func_0020F0B0(void *);
+int FSwHandsOff(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *, int);
 struct R *func_00205458(void *, int);
 void BroadcastGameEvent(void *, int, struct T *);
-void func_001F7BF8(struct T *, float);
+void FadeSoOut(struct T *, float);
 qword func_001A62E8(void *p);
 int func_00173610(float, float, qword *, int, int);
 int func_0017D608(qword *);
@@ -59,7 +59,7 @@ void func_00144640(struct P *p)
     if (D_002DDED0.t < p->t24)
         return;
     p->t24 = D_002DDED0.t + D_002BD2D0;
-    if (func_0020F0B0(D_003DD490)) {
+    if (FSwHandsOff(D_003DD490)) {
         int fAny = 0;
         struct LN *pln;
         for (pln = p->p0->xEC->x64; pln; pln = pln->pnext) {
@@ -72,7 +72,7 @@ void func_00144640(struct P *p)
                     if (!pr || !pr->x4C) {
                         if (0.0f <= po->x130)
                             BroadcastGameEvent(D_002DEB30, 0x17, po);
-                        func_001F7BF8(po, 0.5f);
+                        FadeSoOut(po, 0.5f);
                         fAny = 1;
                     }
                 }

@@ -12,7 +12,7 @@ extern char D_003DD490[];
 extern char D_002DEB30[];
 struct OID *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct OID *po);
 void func_00130598(struct SO *pso, struct OID *po, int n, int x, float g, float h);
-void func_0020FF70(void *g, int a, void *b, struct OID *po, int f);
+void TriggerRsmg(void *g, int a, void *b, struct OID *po, int f);
 void func_001DFD58(void *p, int a);
 void ApplyTaskStates(void *g, int a, void *b, struct OID *po);
 void func_001488D8(struct P *p, int i)
@@ -37,7 +37,7 @@ void func_001488D8(struct P *p, int i)
             func_00130598(pso, po, 1, x, 0.0f, p->g8C);
         }
     }
-    func_0020FF70(D_003DD490, p->xB0, p->mB4, p->po, i == 0);
+    TriggerRsmg(D_003DD490, p->xB0, p->mB4, p->po, i == 0);
     if (i == 0) {
         if (p->pAC) func_001DFD58(p->pAC, p->xA8);
         ApplyTaskStates(D_002DEB30, p->x134, p->m138, p->po);

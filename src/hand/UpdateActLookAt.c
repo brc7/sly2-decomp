@@ -28,7 +28,7 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
 void *PpoClosestSw(void *pg, qword pos);
 qword func_001A62E8(void *po);
 void func_002301D0(void *a, struct X *b);
-qword func_0022FCC8(int n, int k, qword v);
+qword ConvertXfVec(int n, int k, qword v);
 void CalculateVectorPanTilt(qword q, float *pa, float *pb);
 static __inline__ float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
@@ -95,7 +95,7 @@ void UpdateActLookAt(struct P *p)
         s.vel = D_002A2DD0;
         p->x74 = 0;
     } else {
-        CalculateVectorPanTilt(func_0022FCC8(0, p->x8->xA0, dv), &ag[0], &ag[1]);
+        CalculateVectorPanTilt(ConvertXfVec(0, p->x8->xA0, dv), &ag[0], &ag[1]);
         ag[0] = GClamp(GEval(&p->poly30, ag[0]), p->g50, p->g54);
         ag[1] = GClamp(GEval(&p->poly40, ag[1]), p->g58, p->g5C);
         ((float *)&s.pos)[2] = ag[0];

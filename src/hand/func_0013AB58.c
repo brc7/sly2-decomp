@@ -3,7 +3,7 @@ struct VT { short d; short pad; void *pfn; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0x154 - 0x10]; float t154; float g158; char pad3[0x1F4 - 0x15C]; int f1F4; };
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
-void func_001F36E0(struct P *p);
+void UpdateSo(struct P *p);
 void func_0013B860(struct P *p);
 void func_0013AC18(struct P *p);
 static __inline__ float GLength(qword v)
@@ -22,7 +22,7 @@ static __inline__ float GLength(qword v)
 }
 void func_0013AB58(struct P *p)
 {
-    func_001F36E0(p);
+    UpdateSo(p);
     if (p->t154 <= D_002DDED0.t)
         goto out;
     {

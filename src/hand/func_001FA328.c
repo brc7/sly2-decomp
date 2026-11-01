@@ -5,8 +5,8 @@ struct B {char padA0[0xA0];struct LO *parent;char padA4[0xC];union V velocity;};
 struct P {char pad58[0x58];struct B *b58,*b5C;char pad60[0x88];void *data;char padEC[4];union V force0,force1;};
 extern qword D_002A2DD0;
 int func_0011D4D0(float,float,float);
-void func_00230598(struct P *,struct B *);
-qword func_0022FCC8(struct LO *,struct LO *,qword);
+void SlotUnsettle(struct P *,struct B *);
+qword ConvertXfVec(struct LO *,struct LO *,qword);
 void func_001F4BF8(struct P *);
 static __inline__ float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static __inline__ float Y(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
@@ -35,8 +35,8 @@ void func_001FA328(struct P *p)
             struct B *b=p->b58;
             union V *force=&p->force0;
             qword increment;
-            func_00230598(p,b);
-            increment=func_0022FCC8(0,b->parent,p->force0.q);
+            SlotUnsettle(p,b);
+            increment=ConvertXfVec(0,b->parent,p->force0.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&b->velocity,increment);
             func_001F4BF8(p);
@@ -47,8 +47,8 @@ void func_001FA328(struct P *p)
             struct B *b=p->b5C;
             union V *force=&p->force1;
             qword increment;
-            func_00230598(p,b);
-            increment=func_0022FCC8(0,b->parent,p->force1.q);
+            SlotUnsettle(p,b);
+            increment=ConvertXfVec(0,b->parent,p->force1.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&b->velocity,increment);
             func_001F4BF8(p);

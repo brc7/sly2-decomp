@@ -72,18 +72,18 @@ extern float D_002BF63C, D_002BF640;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword func_001A62E8(void *);
 M3 *func_001A6318(void *);
-void func_001E6F60(SOURCE *, qword, void *, void *, void *, float *, float *);
+void FindShapeClosestPoint(SOURCE *, qword, void *, void *, void *, float *, float *);
 void func_00183B80(SOURCE *, int);
 void SubscribeLoObject(SOURCE *, ACTOR *);
 void UnsubscribeLoObject(SOURCE *, ACTOR *);
 void func_00204F78(ACTOR *, SOURCE *, int);
-void func_001E67B8(SOURCE *, float, qword *, qword *);
+void EvaluateShapeU(SOURCE *, float, qword *, qword *);
 EFFECT *func_001FBB90(int);
 void func_001FB2F8(EFFECT *, SOURCE *);
 void func_00258040(EFFECT **, EFFECT *);
-void func_002046F0(ACTOR *, SOURCE *);
-void func_00204CA8(ACTOR *);
-void func_002046B0(ACTOR *, qword);
+void FaceStepToward(ACTOR *, SOURCE *);
+void FixStepAngularVelocity(ACTOR *);
+void SetStepRadTargetVec(ACTOR *, qword);
 void func_0014E328(MANAGER *, int, CAMERA *, ACTOR *, void *);
 void func_0014E4C8(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
 void func_0018E540(ACTOR *, int);
@@ -95,9 +95,9 @@ void func_00194118(CONTEXT *);
 qword ConvertAloPos(void *, void *, qword);
 void func_0020BD68(PROGRAM_ITEM *);
 void func_00130658(ANIMATION **);
-void func_001F15B8(COMPONENT *);
+void ReleaseSma(COMPONENT *);
 void func_001305B8(CLIP *, ACTOR *, float, float, int, ANIMATION **);
-void func_001F1448(PROGRAM *, ACTOR *, int, int, COMPONENT *);
+void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
 void func_0018C120(ACTOR *, int);
 }
 
@@ -192,7 +192,7 @@ extern "C" void func_00192BD8(CONTEXT *p, int step)
     case -1:
         if (p->focus && FIsBasicDerivedFrom__FP5BASIC3CID(p->focus, 10)) {
             SOURCE *source = p->focus;
-            func_001E6F60(source, func_001A62E8(p->pactor), 0, 0, 0, &p->param, &p->value);
+            FindShapeClosestPoint(source, func_001A62E8(p->pactor), 0, 0, 0, &p->param, &p->value);
         }
         switch (p->action) {
         case 1: {
@@ -219,7 +219,7 @@ extern "C" void func_00192BD8(CONTEXT *p, int step)
             SubscribeLoObject(source, p->pactor);
             func_00204F78(p->pactor, source, 1);
             p->index = -1;
-            func_001E67B8(source, p->param, &p->pactor->position, &tangent.q);
+            EvaluateShapeU(source, p->param, &p->pactor->position, &tangent.q);
             dir.i[2] = 0;
             Normalize(&dir.q);
             qword normal = dir.q;   // read before the call: a VU pseudo spilled to 0x50
@@ -238,8 +238,8 @@ extern "C" void func_00192BD8(CONTEXT *p, int step)
             break;
         case 12:
             if (p->focus)
-                func_002046F0(p->pactor, p->focus);
-            func_00204CA8(p->pactor);
+                FaceStepToward(p->pactor, p->focus);
+            FixStepAngularVelocity(p->pactor);
             break;
         }
         p->previous = -1;
@@ -252,7 +252,7 @@ extern "C" void func_00192BD8(CONTEXT *p, int step)
                 qword pos = func_001A62E8(source->other);
                 SetVector(p->pactor, 29, Sub(pos, p->pactor->posOffset));
                 p->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(p->pactor->height));
-                func_002046B0(p->pactor, func_001A6318(source->other)->row[0]);
+                SetStepRadTargetVec(p->pactor, func_001A6318(source->other)->row[0]);
                 SetPointer(p->pactor, 30, p->pactor->local);
                 SetVector(p->pactor, 35, D_002A2DD0);
                 SetVector(p->pactor, 36, D_002A2DD0);
@@ -479,7 +479,7 @@ extern "C" void func_00192BD8(CONTEXT *p, int step)
         clip = p->clip324;
         if (source->other) {
             M3 basis = *func_001A6318(source->other);
-            func_002046B0(p->pactor, basis.row[0]);
+            SetStepRadTargetVec(p->pactor, basis.row[0]);
         }
         p->pactor->velocity = D_002A2DD0;
         SourceState(source, 5);
@@ -512,9 +512,9 @@ extern "C" void func_00192BD8(CONTEXT *p, int step)
     p->tStep = D_002DDED0.t;
     if (step != -1) {
         func_00130658(&p->pactor->animation);
-        func_001F15B8(&p->pactor->component);
+        ReleaseSma(&p->pactor->component);
         func_001305B8(clip, p->pactor, blend, speed, flags, &p->pactor->animation);
-        func_001F1448(script, p->pactor, -1, flags, &p->pactor->component);
+        ReplaceSma(script, p->pactor, -1, flags, &p->pactor->component);
         Notify(p->pactor, 90);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactor, 53))
             func_0018C120(p->pactor, special);

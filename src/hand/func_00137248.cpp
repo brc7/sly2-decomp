@@ -115,7 +115,7 @@ float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float
 float func_0011CFE0(float g, float gMax);
 M3 func_0011B500(qword axis, float g);
 qword LimitVectorLength(qword v, float g);
-void func_001FAC30(P *p, qword v);
+void AddSoAcceleration(P *p, qword v);
 }
 
 extern "C" void func_00137248(S *s)
@@ -144,5 +144,5 @@ extern "C" void func_00137248(S *s)
     M3 m = func_0011B500(D_002A2DC0, w * D_002DDED0.dt);
     mc = m;
     qword r = DivF(Sub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
-    func_001FAC30(s->p, LimitVectorLength(r, gMax));
+    AddSoAcceleration(s->p, LimitVectorLength(r, gMax));
 }

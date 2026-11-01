@@ -26,15 +26,15 @@ extern "C"{
  float func_002458F0(float,float);
  float RadNormalize__Ff(float);
  void func_00204660(P*,float);
- void func_00204CA8(P*);
- void func_002046B0(P*,qword);
+ void FixStepAngularVelocity(P*);
+ void SetStepRadTargetVec(P*,qword);
  qword func_001A62E8(P*);
- float func_00204740(P*);
+ float RadStepHeading(P*);
  void func_001F4BF8(P*);
  void func_00130658(ASEGA**);
- void func_001F15B8(COMPONENT**);
+ void ReleaseSma(COMPONENT**);
  void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
- void func_001F1448(void*,P*,int,void*,COMPONENT**);
+ void ReplaceSma(void*,P*,int,void*,COMPONENT**);
 }
 static inline qword Vector(P*p){VE*v=&p->vt[33];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 static inline void SetVector(P*p,qword q){VE*v=&p->vt[36];((void(*)(P*,qword))v->fn)((P*)((char*)p+v->delta),q);}
@@ -147,12 +147,12 @@ extern "C" void func_001A0B40(C*p,int next){
    float angle=func_002458F0(velocity.f[1],velocity.f[0])+3.1415927f;
    angle=RadNormalize__Ff(angle-p->actor->yaw);
    func_00204660(p->actor,p->actor->yaw+angle*blend);
-   func_00204CA8(p->actor);
+   FixStepAngularVelocity(p->actor);
   }}
  case 9:clip=p->clips[next];flags=0x21;break;
  case 10:
   camera0.q=Position();
-  {P*owner;qword direction=Difference(&camera0,func_001A62E8(p->actor),p,owner);func_002046B0(owner,direction);}
+  {P*owner;qword direction=Difference(&camera0,func_001A62E8(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
   flags=0x21;
  case 3:
   clip=p->clips[next];
@@ -160,28 +160,28 @@ extern "C" void func_001A0B40(C*p,int next){
   break;
  case 5:case 11:
   camera1.q=Position();
-  {P*owner;qword direction=Difference1(&camera1,func_001A62E8(p->actor),p,owner);func_002046B0(owner,direction);}
+  {P*owner;qword direction=Difference1(&camera1,func_001A62E8(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
   if(next==11)flags=0x21;
   clip=p->clips[next];break;
  case 0:case 6:case 7:clip=p->clips[next];break;
  case 4:case 12:
   SetVector(p->actor,D_002A2DD0.q);
-  func_00204660(p->actor,func_00204740(p->actor));
+  func_00204660(p->actor,RadStepHeading(p->actor));
   p->actor->control->yaw=p->actor->yaw;
   if(next==12)flags=0x21;
   clip=p->clips[next];break;
  case 1:case 2:
   flags=0;
-  func_00204660(p->actor,func_00204740(p->actor));
+  func_00204660(p->actor,RadStepHeading(p->actor));
   p->actor->control->yaw=p->actor->yaw;clip=p->clips[next];break;
  }
  func_001F4BF8(p->actor);
  p->mode=next;p->time=D_002DDED0.time;
  if(next!=-1){
   if(!clip)clip=p->Default(next);
-  func_00130658(&p->actor->asega);func_001F15B8(&p->actor->component);
+  func_00130658(&p->actor->asega);ReleaseSma(&p->actor->component);
   func_001305B8(clip,p->actor,0.0f,1.0f,flags,&p->actor->asega);
-  func_001F1448(0,p->actor,-1,0,&p->actor->component);
+  ReplaceSma(0,p->actor,-1,0,&p->actor->component);
   Invoke(p->actor,90);
  }
 }

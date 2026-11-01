@@ -16,7 +16,7 @@ struct G;
 extern G D_003DD490;
 extern "C" int GrfFromState(int n);
 extern "C" int GrfFromStates(int c, int *ai);
-extern "C" int func_00210A88();
+extern "C" int IlevelCur__Fv();
 extern "C" void *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void ApplyStateLoVisibility(void *p, int nState, int c, E *ae)
 {
@@ -34,7 +34,7 @@ extern "C" void ApplyStateLoVisibility(void *p, int nState, int c, E *ae)
         E *pe = &ae[i];
         if (!(pe->grf & grfAll))
             continue;
-        if (pe->n != -1 && pe->n != func_00210A88())
+        if (pe->n != -1 && pe->n != IlevelCur__Fv())
             continue;
         void *pOwner = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, pe->oidB, 0);
         LO *plo = (LO *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, pOwner ? 4 : 5, pe->oidA, pOwner);

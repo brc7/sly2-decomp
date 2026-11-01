@@ -18,7 +18,7 @@ void func_001AE5A0(void *, void *, int);
 int CploFindSwObjectsByClass(struct G *, int, int, int, int, void **);
 int func_001A61A0(void *);
 qword func_001A62E8(void *);
-int func_00227C90(struct P *, qword);
+int FCheckVolPoint(struct P *, qword);
 void func_002338C0(void *, int, int, int (*)(const void *, const void *));
 int func_00149420(const void *, const void *);
 
@@ -53,7 +53,7 @@ void func_00149440(struct P *p)
         j = 0;
         if (j < c) do {
             void *po = apo[j];
-            if (po && func_001A61A0(po) && func_00227C90(p, func_001A62E8(po))) {
+            if (po && func_001A61A0(po) && FCheckVolPoint(p, func_001A62E8(po))) {
                 fFound = 1;
                 if (!p->x1D8)
                     p->x1D8 = po;

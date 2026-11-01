@@ -13,12 +13,12 @@ extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DC0;extern P*D_002E1E40;
 void SubscribeLoObject(PATH*,P*);void UnsubscribeLoObject(PATH*,P*);
 void func_00204F78(P*,PATH*,int);
-float func_001E6728(PATH*,float);void func_001E6F10(PATH*,float,U*,U*);
+float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);
 void func_0019E110(C*,LM*);float func_0011D948(LM*,float);
 qword ConvertAloPos(P*,P*,qword);qword func_001A62E8(P*);
 void func_00140C88(P*,void*);
 EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,void*);void func_001FB3F0(EFFECT*,qword);
-void func_0018E540(P*,int);void func_001F15B8(COMPONENT**);
+void func_0018E540(P*,int);void ReleaseSma(COMPONENT**);
 void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
 }
 static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
@@ -103,12 +103,12 @@ extern "C" void func_0019EAB0(C*p,int next){
  case -1:{
   PathState(p->path,5);SubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,1);
   p->previous=old;
-  func_001E6F10(p->path,func_001E6728(p->path,p->distance+50.0f),&w.ahead,0);
-  func_001E6F10(p->path,func_001E6728(p->path,p->distance-50.0f),&w.behind,0);
+  EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
+  EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
   U*axis; qword direction=Direction(&w.ahead,&w.behind,axis);
   p->descending=Z(Normal(direction,axis))<-0.5f;
   func_0019E110(p,&w.limit);p->distance=func_0011D948(&w.limit,p->distance);
-  func_001E6F10(p->path,p->distance,&w.point,0);
+  EvaluateShapeS(p->path,p->distance,&w.point,0);
   qword offset=Vector(ConvertAloPos(p->actor,0,p->offset.q));P*owner;
   qword point=WorldInputs(p,&w.point,&w.world,offset,owner);
   owner->offset.q=Sub(point,offset);
@@ -140,7 +140,7 @@ extern "C" void func_0019EAB0(C*p,int next){
  case 3:clip=p->clip2;speed=-1.0f;flags=9;break;
  case 4:p->descending=!p->descending;clip=p->fallback;break;
  }
- func_001F15B8(&p->actor->component);
+ ReleaseSma(&p->actor->component);
  func_001305B8(clip,p->actor,position,speed,flags,&p->actor->asega);
  Clear(&p->actor->velocity);
 }

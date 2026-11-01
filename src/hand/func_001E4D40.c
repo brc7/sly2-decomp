@@ -4,7 +4,7 @@ struct O { int pad[3]; struct VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword func_001A62E8(struct O *po);
-void func_001E6F60(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
+void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
 float func_002458F0(float y, float x);
 void func_001E4D40(struct P *p, struct O *po, qword *pv, float *pg)
 {
@@ -15,7 +15,7 @@ void func_001E4D40(struct P *p, struct O *po, qword *pv, float *pg)
     if (!px) px = p->po44;
     if (po) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
-            func_001E6F60(po, func_001A62E8(px), 0, &uv.q, ag, 0, 0);
+            FindShapeClosestPoint(po, func_001A62E8(px), 0, &uv.q, ag, 0, 0);
             g = func_002458F0(ag[1], ag[0]);
         } else {
             float *p1, *p2;

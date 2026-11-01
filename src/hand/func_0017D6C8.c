@@ -12,21 +12,21 @@ struct S {
     char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30;
     char pad4[0x80 - 0x34]; int n80; int n84; char pad5[8]; float a90[4]; float fA0; int nA4;
 };
-void func_001EEF98(struct S *p);
-int func_001EF0A8(struct S *p);
+void UpdateBhv(struct S *p);
+int FBhvBusyAbove(struct S *p);
 int func_00178D00(struct T *t);
 void func_0017D450(struct S *p, int n);
 int func_001792E8(struct T *t);
-float func_001E6648(void *p);
-void func_001E6F10(void *p, float f, float *pv, int n);
+float SMaxShape(void *p);
+void EvaluateShapeS(void *p, float f, float *pv, int n);
 int func_0017E570(struct T *t);
 int func_0017EAE8(struct T *t);
 void func_0017DA28(struct S *p);
 void func_0017D6C8(struct S *p) {
     int s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     if (!(p->p10->nFE8 & 2)) return;
-    while (!func_001EF0A8(p)) {
+    while (!FBhvBusyAbove(p)) {
         s = p->n30;
         switch (s) {
         case 1:
@@ -39,10 +39,10 @@ void func_0017D6C8(struct S *p) {
                     func_0017DA28(p);
                 } else if (func_001792E8(t)) {
                     float f = t->f34 + D_002BE75C;
-                    float hi = func_001E6648(t->p30);
+                    float hi = SMaxShape(t->p30);
                     p->n80 = 0;
                     p->n84 = 0;
-                    func_001E6F10(t->p30, f < hi ? f : hi, p->a90, 0);
+                    EvaluateShapeS(t->p30, f < hi ? f : hi, p->a90, 0);
                     p->a90[2] = p->p10->p218->f8;
                     func_0017D450(p, 5);
                 }

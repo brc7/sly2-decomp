@@ -1,10 +1,10 @@
-void func_00231100(void *p);
+void InitXfm(void *p);
 void func_00148718(void *p);
 void SetLoBusyk(void *p, int n);
 void func_001492F0(char *p)
 {
     unsigned int v;
-    func_00231100(p);
+    InitXfm(p);
     func_00148718(p + 0x130);
     *(int *)(p + 0x1CC) = 1;
     SetLoBusyk(p, 0);

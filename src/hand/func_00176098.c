@@ -12,8 +12,8 @@ typedef struct WORK{X frame;U point;}WORK;
 typedef struct CLOCK{float time,dt;}CLOCK;
 extern CLOCK D_002DDED0;
 extern float D_002BE614,D_003E1BE8;
-void func_001EEF98(C*);
-int func_001EF0A8(C*);
+void UpdateBhv(C*);
+int FBhvBusyAbove(C*);
 int func_00209098(P*);
 int func_00176060(C*);
 int func_00175FF0(C*);
@@ -83,13 +83,13 @@ typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
 void func_00176098(C*p){
  WORK work;int old;
- func_001EEF98(p);
+ UpdateBhv(p);
  do{
   old=p->state;
   switch(old){
   case 0:case 3:{
    float distance;void*region;qword current;P*actor;int mode;
-   if(func_001EF0A8(p))break;
+   if(FBhvBusyAbove(p))break;
    if(func_00209098(p->actor)){func_00176458(p,5);break;}
    if(func_00176060(p)){func_00176458(p,4);break;}
    if(func_00175FF0(p)){func_00176458(p,1);break;}
@@ -116,17 +116,17 @@ void func_00176098(C*p){
   }
   case 1:
    if(func_00209098(p->actor)){func_00176458(p,5);break;}
-   if(!func_001EF0A8(p)&&func_00175748(p->sub))func_00176458(p,0);
+   if(!FBhvBusyAbove(p)&&func_00175748(p->sub))func_00176458(p,0);
    break;
   case 2:
    if(func_00209098(p->actor)){func_00176458(p,5);break;}
-   if(!func_001EF0A8(p)&&func_0017B7F8(p->sub))func_00176458(p,0);
+   if(!FBhvBusyAbove(p)&&func_0017B7F8(p->sub))func_00176458(p,0);
    break;
   case 4:
-   if(!func_001EF0A8(p)&&func_00174FB8(p->sub))func_00176458(p,-1);
+   if(!FBhvBusyAbove(p)&&func_00174FB8(p->sub))func_00176458(p,-1);
    break;
   case 5:
-   if(!func_001EF0A8(p)&&!func_00209098(p->actor))func_00176458(p,3);
+   if(!FBhvBusyAbove(p)&&!func_00209098(p->actor))func_00176458(p,3);
    break;
   }
  }while(old!=p->state);

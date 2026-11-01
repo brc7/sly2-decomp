@@ -23,7 +23,7 @@ struct VU_FLOAT{qword qw;};
 extern "C"{
 qword func_001A62E8(void*);
 M4*func_001A6318(void*);
-qword func_0022D348(void*,void*,qword);
+qword GetXfVelocity(void*,void*,qword);
 float func_0011E290(qword,qword,qword*,qword*);
 float func_0011D1C0(float,float,float,float,SMPA*,float*);
 M3 func_0011B570(qword);
@@ -68,7 +68,7 @@ extern "C" void func_0018FC60(P*p){
  U anchor,displacement,anchorVelocity,axis;
  anchor.q=func_001A62E8(p->target);
  M3 anchorBasis=*(M3*)func_001A6318(p->target);
- anchorVelocity.q=func_0022D348(Space(p->target),0,anchor.q);
+ anchorVelocity.q=GetXfVelocity(Space(p->target),0,anchor.q);
  axis.q=QwSub(func_001A62E8(p),anchor.q);
  displacement=axis;
  qword length=NormalizeAt(&axis,&D_002A2DC0);

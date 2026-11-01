@@ -4,7 +4,7 @@ struct P {
     int x10E4; int x10E8; int x10EC; int x10F0; char pad6[0x1138 - 0x10F4]; float x1138; float x113C; float x1140; float x1144;
     char pad7[0x12F0 - 0x1148]; int x12F0; char pad8[0x1300 - 0x12F4]; int x1300; float x1304; char pad9[0x1318 - 0x1308]; int x1318;
 };
-void func_00203948(struct P *p);
+void InitStep(struct P *p);
 void func_00195950(void *pv, struct P *p);
 void func_00191090(void *pv, struct P *p);
 void func_0019F3E8(void *pv, struct P *p);
@@ -16,7 +16,7 @@ void func_00144638(void *pv, struct P *p);
 void func_001F7918(struct P *p, int mask, int n);
 void func_0013FF70(struct P *p)
 {
-    func_00203948(p);
+    InitStep(p);
     func_00195950((char *)p + 0x2C0, p);
     func_00191090((char *)p + 0x4C0, p);
     func_0019F3E8((char *)p + 0x9E0, p);

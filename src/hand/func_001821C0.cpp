@@ -10,7 +10,7 @@ struct N {qword pos,dir;char pad20[0x50-0x20];float lateral,roll;char pad58[8];N
 struct E {char pad[0x10];N*first;char pad14[0x1C];};
 struct P {char pad[0x1C4];void*model;int count;E entries[1];};
 extern qword D_002A2DC0;
-extern "C" void func_001F3C70(P*);
+extern "C" void RenderSoSelf(P*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*func_00256D18(qword*,qword);
@@ -32,7 +32,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 
 extern "C" void func_001821C0(P*p){
  int i,count;M3 m;M4 mm;qword pos;
- func_001F3C70(p);
+ RenderSoSelf(p);
  if(!p->model)return;
  count=p->count;i=0;
  do {

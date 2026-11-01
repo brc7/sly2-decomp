@@ -15,7 +15,7 @@ extern int D_002E0C20;
 extern char D_003D4A60[],D_002DE578[];
 extern "C" CRef func_002581C0(OPT*,void*);
 extern "C" CRef func_00258200(OPT*,const CRefData&,void*);
-extern "C" int func_00210AE0();
+extern "C" int NWorldCur();
 extern "C" void func_00154D88(void*,float);
 static inline float GetFloat(OPT*p,void*context){const CRef&r=func_002581C0(p,context);return r.g;}
 static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef&ret=func_00258200(p,arg,context);}
@@ -31,7 +31,7 @@ extern "C" void UpdateGameTimers(){
  if(!D_003DD490.primary)return;
  float x=GetFloat(D_003DD490.primary,D_003D4A60);
  SetPrimaryFloat(D_003DD490.primary,x+D_002DDED0.dt,D_003D4A60);
- unsigned int i=func_00210AE0();
+ unsigned int i=NWorldCur();
  if(i<9){
   OPT*p=D_003DD490.options[i];
   if(p){float g=GetFloat(p,D_003D4A60);SetFloat(p,g+D_002DDED0.dt,D_003D4A60);}

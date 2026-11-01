@@ -10,7 +10,7 @@ struct P {
 };
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
-void func_002309E8(void *a, int b, M4 *pm, int c, float g);
+void LoadIdentityMatrix4(void *a, int b, M4 *pm, int c, float g);
 qword func_001A62E8(void *p);
 static __inline__ qword Mul(M4 *pm, qword v)
 {
@@ -40,7 +40,7 @@ int func_001423A0(struct P *p)
     M4 m;
     qword v;
     if (p->x4C8 != 5 || !p->x4D4) return 1;
-    func_002309E8(p->po->vt[32].pfn((char *)p->po + p->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
+    LoadIdentityMatrix4(p->po->vt[32].pfn((char *)p->po + p->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
     if (5.0f < GDist(func_001A62E8(p->po), v)) return 0;
     if (p->x9A4 != 1) return 1;

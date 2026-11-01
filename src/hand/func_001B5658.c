@@ -45,9 +45,9 @@ extern qword D_002A2DD0;
 void func_002303A0(P *p, void *x, int k);
 void func_0020BD68(void *p);
 void func_00130658(A *pa);
-void func_001F15B8(C *pc);
+void ReleaseSma(C *pc);
 void ApplyAsegCur(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA");
-void func_001F1448(void *pv, P *p, int a, int k, C *pc);
+void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
 
 void func_001B5658(P *p, int k)
 {
@@ -94,7 +94,7 @@ state2:
     f=p->x1A0*pr->x74;
 done:
     func_00130658(&p->a);
-    func_001F15B8(&p->c);
+    ReleaseSma(&p->c);
     ApplyAsegCur(pr, p, f, 1.0f, n, &p->a);
-    func_001F1448(pv, p, -1, n, &p->c);
+    ReplaceSma(pv, p, -1, n, &p->c);
 }

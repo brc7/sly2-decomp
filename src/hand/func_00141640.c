@@ -18,7 +18,7 @@ extern char D_002BCCB8[], D_002BCCC8[], D_002BCCD8[];
 extern struct { float a, b, c; } D_002BCCF0;
 extern struct { float lo, hi; } D_002BBB60;
 extern qword D_002A2DD0;
-void func_001F58F0(struct JT *, struct XP *);
+void GetSoCpdefi(struct JT *, struct XP *);
 qword func_001A62E8(void *);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword func_0011F088(qword a, qword b, float dt, void *pv, int n);
@@ -41,7 +41,7 @@ static __inline__ float GClamp(float g, float lo, float hi)
 
 void func_00141640(struct JT *pjt, struct XP *pxp)
 {
-    func_001F58F0(pjt, pxp);
+    GetSoCpdefi(pjt, pxp);
     if (pjt->x1044) {
         pxp->pos.q = pjt->x1060.q;
         pjt->x104C = pjt->x1060.f[2];

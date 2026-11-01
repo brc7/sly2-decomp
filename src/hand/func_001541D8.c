@@ -16,7 +16,7 @@ qword func_001A62E8(struct SO *p);
 qword func_00153E60(struct T *p);
 qword ConvertAloPos(int z, struct W *pw, qword v);
 int func_00118668(void *p, int mask, qword a, qword b, int n, struct BUF *pbuf);
-int func_00227C90(void *p, qword v);
+int FCheckVolPoint(void *p, qword v);
 int func_00154770(struct T *p, struct SO *pso);
 int func_001545F0(struct T *p, struct SO *pso);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -55,18 +55,18 @@ int func_001541D8(struct T *p, struct SO *pso, int k)
                 }
             }
         }
-        if (!func_00227C90(p->xE8, v)) { k = 0; goto done; }
-        if (p->xEC && !func_00227C90(p->xEC, v)) { k = 0; goto done; }
+        if (!FCheckVolPoint(p->xE8, v)) { k = 0; goto done; }
+        if (p->xEC && !FCheckVolPoint(p->xEC, v)) { k = 0; goto done; }
         if (!(p->xF8 & 1) && func_00154770(p, pso)) { k = 0; goto done; }
         if (p->xF8 & 2) { k = 1; goto done; }
         { k = !func_001545F0(p, pso); goto done; }
     case 1:
-        if (p->xEC && !func_00227C90(p->xEC, v)) { k = 0; goto done; }
-        if (!func_00227C90(p->xE8, v)) { k = 2; goto done; }
+        if (p->xEC && !FCheckVolPoint(p->xEC, v)) { k = 0; goto done; }
+        if (!FCheckVolPoint(p->xE8, v)) { k = 2; goto done; }
         break;
     case 2:
-        if (p->xEC && !func_00227C90(p->xEC, v)) { k = 0; goto done; }
-        if (func_00227C90(p->xE8, v)) {
+        if (p->xEC && !FCheckVolPoint(p->xEC, v)) { k = 0; goto done; }
+        if (FCheckVolPoint(p->xE8, v)) {
             if (p->xF8 & 2) { k = 1; goto done; }
             if (func_001545F0(p, pso)) return k;
             k = 1;

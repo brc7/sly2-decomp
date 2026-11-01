@@ -4,7 +4,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x34]; int n4C; char pad3[0xC0 - 0x50]; int nC0; int pad4; int nC8; int pad5; qword qD0; float gE0; };
 void func_00178CD8(struct S *p, int n);
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 qword func_001A62E8(void *p);
 void func_001791C8(struct S *p, int n) {
@@ -14,7 +14,7 @@ void func_001791C8(struct S *p, int n) {
     switch (p->n4C) {
     case 0: case 1:
         if ((unsigned)old < 2) return;
-        func_001EF0D8(p->a18);
+        PopBhv(p->a18);
         {
             struct O *o = func_00205438(p->p10, 0x9D);
             struct VTE *e;
@@ -27,7 +27,7 @@ void func_001791C8(struct S *p, int n) {
         break;
     case 2: case 3: case 4:
         if (old == 2 || old == 4 || old == 3) return;
-        func_001EF0D8(p->a18);
+        PopBhv(p->a18);
         {
             struct O *o = func_00205438(p->p10, 0x9E);
             struct VTE *e;

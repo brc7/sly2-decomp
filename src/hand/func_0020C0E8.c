@@ -4,7 +4,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DE0;
 void func_0020C2F8(struct S *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
-void func_0020D1A0(void *p);
+void EnableStuckWatch(void *p);
 int func_00131968(int h);
 
 void func_0020C0E8(struct S *p)
@@ -26,7 +26,7 @@ void func_0020C0E8(struct S *p)
                 if (p->n60)
                     func_0020C2F8(p, 3);
                 else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x38))
-                    func_0020D1A0(p->po->p498);
+                    EnableStuckWatch(p->po->p498);
             }
             break;
         case 3:

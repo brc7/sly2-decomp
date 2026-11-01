@@ -28,7 +28,7 @@ typedef struct P {
 extern "C" float D_002C3C60[];
 extern "C" float D_002C0A38;
 extern "C" char D_003DD490[];
-extern "C" void func_00204250(P *p, X *px, int i);
+extern "C" void AdjustStepNewXp(P *p, X *px, int i);
 extern "C" void func_001A2100(void *p, X *px, int i);
 extern "C" void func_0019E9C8(void *p, X *px, int i);
 extern "C" qword func_0011F198(qword a, qword b);
@@ -38,7 +38,7 @@ extern "C" void func_001A9FE0(void *g, int r, void *p);
 extern "C" void func_001B9130(P *p, X *px, int i)
 {
     int n;
-    func_00204250(p, px, i);
+    AdjustStepNewXp(p, px, i);
     switch (p->x13D0) {
     case 14:
         func_001A2100(p->xDF0, px, i);

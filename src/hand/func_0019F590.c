@@ -18,7 +18,7 @@ void func_0019FAF8(void *p, E *e);
 struct P *PpoHero(struct G *g);
 qword func_0019F3F8(struct P *p, E *e, float g);
 float func_00196928(qword a, qword b, float c, float d, float e, float f);
-void func_002046B0(struct P *p, qword q);
+void SetStepRadTargetVec(struct P *p, qword q);
 void func_0014D8C0(struct D *d);
 void func_00195A00(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int a, int b);
@@ -39,7 +39,7 @@ void func_0019F590(struct P *p, E *q)
                 int save = p->x9e4;
                 ((void (*)(void *, qword))p->vt[29].pfn)((char *)p + p->vt[29].d, VSub(r, p->x240));
                 p->x9e4 = save;
-                func_002046B0(p, D_002DDF40.x60);
+                SetStepRadTargetVec(p, D_002DDF40.x60);
                 ((void (*)(void *, void *))p->vt[30].pfn)((char *)p + p->vt[30].d, p->x1b0);
                 func_0014D8C0(&D_002DDF40);
                 func_00195A00(p->x2c0, 0xB, 0, 0);

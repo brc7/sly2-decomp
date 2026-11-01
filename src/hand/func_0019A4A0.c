@@ -9,7 +9,7 @@ struct SPACE;
 typedef struct { short d; short pad; struct SPACE *(*pfn)(void *, void *); } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 qword func_001A62E8(void *p);
-qword func_0022D348(struct SPACE *p, struct SPACE *stop, qword q);
+qword GetXfVelocity(struct SPACE *p, struct SPACE *stop, qword q);
 int func_0019A400(struct S *p, qword a, qword b, qword c, qword d, float *pg);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
 static __inline__ float LenXY0(qword v)
@@ -43,7 +43,7 @@ void func_0019A4A0(struct S *p, qword aInput, struct O *o, qword bInput, qword c
     w.incoming=c;
     __asm__("por %0,$zero,%1":"=r"(pos):"r"(func_001A62E8(p->pb)));
     x=o->vt[32].pfn((char*)o+o->vt[32].d,0);
-    { register qword got __asm__("$2")=func_0022D348(x, 0, b);
+    { register qword got __asm__("$2")=GetXfVelocity(x, 0, b);
       register struct S*receiver __asm__("$4");
       register qword initial __asm__("$5"),velocity __asm__("$6");
       __asm__ volatile("sq %1,%0":"=m"(w.uq.q):"r"(got));

@@ -11,10 +11,10 @@ struct CLOCK {float t,dt;};
 extern struct CLOCK D_002DDED0;
 extern float D_002BF668;
 extern qword D_002A2DC0,D_002A2DD0;
-void func_001E67B8(struct CURVE*,float,qword*,qword*);
+void EvaluateShapeU(struct CURVE*,float,qword*,qword*);
 qword SetVectorCylind(float,float,float);
-float func_001E63C0(struct CURVE*,float);
-float func_001E6648(struct CURVE*);
+float SFromShapeU(struct CURVE*,float);
+float SMaxShape(struct CURVE*);
 float GSmooth__FfffP3SMPPf(float,float,float,struct SMP*,float*);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){register qword d __asm__("vf2");qword one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"0"(d));return d;}
@@ -24,13 +24,13 @@ static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0
 void func_00193A68(struct P*p,struct CURVE*curve,qword*outPos,qword*outVel,float t){
  U pos,dir,dead;struct SMP smp;float low,high;qword v;float dot,current;
  struct T*shape=p->o->x150;
- func_001E67B8(curve,t,&pos.q,&dir.q);
+ EvaluateShapeU(curve,t,&pos.q,&dir.q);
  dir.q=Normal(Reject(dir.q,D_002A2DC0),D_002A2DD0);
  {register float width __asm__("$f0")=shape->x1C;register float factor __asm__("$f13")=p->x2A0;v=SetVectorCylind(p->o->x150->x18,factor*width,0.0f);}
  dot=Dot(v,dir.q);dead.q=v;
- current=func_001E63C0(curve,t);
+ current=SFromShapeU(curve,t);
  smp.g1=p->x260;smp.g0=p->x2A0;smp.g2=D_002BF668;
  (void)GSmooth__FfffP3SMPPf(current,50.0f,D_002DDED0.dt,&smp,&low);
- (void)GSmooth__FfffP3SMPPf(current,func_001E6648(curve)-50.0f,D_002DDED0.dt,&smp,&high);
+ (void)GSmooth__FfffP3SMPPf(current,SMaxShape(curve)-50.0f,D_002DDED0.dt,&smp,&high);
  {float hi=high;*outPos=Sub(pos.q,p->o->pos);{float g;if(dot<low)g=low;else if(hi<dot)g=hi;else g=dot;*outVel=Scale(dir.q,g);}}
 }

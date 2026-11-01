@@ -23,18 +23,18 @@ void func_001CD098(CONTROL *,O *);
 void func_001CD2C0(CONTROL *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 void RecalcSwOxfFilterForObject(WORLD *,O *);
-float func_00204740(O *);
+float RadStepHeading(O *);
 void func_00204660(O *,float);
 qword func_001A62E8(O *);
-void func_002046B0(O *,qword);
+void SetStepRadTargetVec(O *,qword);
 void func_00136530(O *,int);
 void SetLoParent_1A58D0(O *,int,int);
-void func_001F7BF8(O *,float);
+void FadeSoOut(O *,float);
 void func_001384C0(ASEG *);
 qword ConvertAloPos(O *,O *,qword);
 void func_0021FB70(S *,int);
 void func_00141CD0(O *,int);
-void func_001F15B8(HANDLE *);
+void ReleaseSma(HANDLE *);
 void func_001305B8(ASEG *,O *,float,float,int,ASEGA **);
 }
 static inline void IntCall(O *o,int slot,int value){VE *v=o->vt;v[slot].f.integer((char *)o+v[slot].delta,value);}
@@ -125,10 +125,10 @@ extern "C" void func_002206C8(S *s,int state){
  s->state=state;s->time=D_002DDED0.t;
  RecalcSwOxfFilterForObject(&D_003DD490,s->owner);
  switch(s->state){
- case -1:func_00204660(s->owner,func_00204740(s->owner));s->owner->movement=0;break;
+ case -1:func_00204660(s->owner,RadStepHeading(s->owner));s->owner->movement=0;break;
  case 7:
   {O*getterOwner;w.saved.q=SavedTargetAndOwner(s,getterOwner);
-   qword position=func_001A62E8(getterOwner);qword current=ToVF(position);O *receiver;qword target=RestoreTarget(&receiver,s,w.saved);func_002046B0(receiver,Sub(target,current));}
+   qword position=func_001A62E8(getterOwner);qword current=ToVF(position);O *receiver;qword target=RestoreTarget(&receiver,s,w.saved);SetStepRadTargetVec(receiver,Sub(target,current));}
   s->owner->movement=0;
   break;
  default:s->owner->direction.q=D_002A2DD0.q;s->owner->movement=1;break;
@@ -150,7 +150,7 @@ extern "C" void func_002206C8(S *s,int state){
   }
   else if(s->selected->id==s->peer->id){
    if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))IntCall(s->selected,76,4);
-   else{SetLoParent_1A58D0(s->selected,0,0xF);func_001F7BF8(s->selected,0.25f);}
+   else{SetLoParent_1A58D0(s->selected,0,0xF);FadeSoOut(s->selected,0.25f);}
   }
   func_001CD2C0(&s->owner->controller);
   if(s->effect)EffectCall(s->effect,9);
@@ -173,7 +173,7 @@ extern "C" void func_002206C8(S *s,int state){
   if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))func_00141CD0(s->owner,s->selected->actorId);
   break;
  }
- func_001F15B8(&s->owner->extra);
+ ReleaseSma(&s->owner->extra);
  func_001305B8(animation,s->owner,0.0f,1.0f,flags,&s->owner->animation);
  PlainCall(s->owner,90);
  RecalcSwOxfFilterForObject(&D_003DD490,s->owner);

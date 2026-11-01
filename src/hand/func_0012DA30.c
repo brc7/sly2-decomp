@@ -8,7 +8,7 @@ static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) 
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int func_0011D4D0(float a, float b, float eps);
-void func_00230598(void *pv, void *px);
+void SlotUnsettle(void *pv, void *px);
 struct X { char pad[0x90]; void *p90; char pad2[0xC0 - 0x94]; qword vC0; qword vD0; qword vE0; };
 struct P { int x0; void *x4; struct X *x8; int xC; int pad[4]; qword v20; };
 extern qword D_002A2DD0;
@@ -25,6 +25,6 @@ void func_0012DA30(struct P *p, qword v)
     if (p->x8->p90 == p && !FVecsNear(D_002A2DD0, dv)) {
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(p->x8->vC0) : "j"(p->x8->vC0), "j"(dv), "j"(dv));
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(p->x8->vE0) : "j"(p->x8->vE0), "j"(dv));
-        func_00230598(p->x4, p->x8);
+        SlotUnsettle(p->x4, p->x8);
     }
 }

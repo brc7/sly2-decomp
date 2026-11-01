@@ -11,9 +11,9 @@ struct SEG { float a, b; };
 struct O { char padC[0xC]; void *vt; char pad10[0xE0-0x10]; int curved; int fE4; int count; float *parameters; float *distances; qword *points; };
 struct S { struct O *po; int c4; struct SEG *aseg; int cC; struct SEG aseg10[16]; int c90; void **apv; int n98; };
 extern float D_002C367C;
-float func_001E6620(struct O *);
-float func_001E6648(struct O *);
-void func_001E6F10(struct O *, float, qword *, qword *);
+float SMinShape(struct O *);
+float SMaxShape(struct O *);
+void EvaluateShapeS(struct O *, float, qword *, qword *);
 void *func_001C0D70(qword, int);
 int func_001C0920(void *, qword, int);
 void *func_001AE238(struct MSG *, void *);
@@ -32,16 +32,16 @@ void func_001E9C88(struct S *ps, struct O *po)
     void *pPrev;
 
     ps->po = po;
-    tStart = func_001E6620(po);
+    tStart = SMinShape(po);
     tPrev = tStart;
     t = tStart;
-    tEnd = func_001E6648(ps->po);
-    func_001E6F10(ps->po, tStart, &pos, 0);
+    tEnd = SMaxShape(ps->po);
+    EvaluateShapeS(ps->po, tStart, &pos, 0);
     pPrev = func_001C0D70(pos, 0);
     for (; t < tEnd; t += D_002C367C) {
         void *pCur;
         int outside;
-        func_001E6F10(ps->po, t, &pos2, 0);
+        EvaluateShapeS(ps->po, t, &pos2, 0);
         pCur = func_001C0D70(pos2, 0);
         if (pCur) {
             int i;

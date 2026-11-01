@@ -58,7 +58,7 @@ extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void ActivateTask(X *p);
 extern "C" void func_001D8B20(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void func_00129EC8(CRef *pref);
-extern "C" int func_00210A88();
+extern "C" int IlevelCur__Fv();
 extern "C" void *func_00210990(int n);
 extern "C" void func_0022B490(G *pg, void *p, int a, int b, int c, int d);
 extern "C" void GoToTask(X *p)
@@ -86,7 +86,7 @@ extern "C" void GoToTask(X *p)
     }
     int id = p->fB8 == -1 ? 0x189 : p->fB8;
     int k = 4;
-    if (D_003DD490.f3e38 && (p->fBC == -1 || p->fBC == func_00210A88()))
+    if (D_003DD490.f3e38 && (p->fBC == -1 || p->fBC == IlevelCur__Fv()))
         k = 0x24;
     func_0022B490(&D_003DD490, func_00210990(p->fBC), id, -1, k, 0x30A);
 }

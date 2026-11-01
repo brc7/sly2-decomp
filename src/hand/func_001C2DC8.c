@@ -4,7 +4,7 @@ struct S { char pad[0x150]; int x150; struct LO *x154; struct LO *x158; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *plo, int n);
 struct LO *PloAcquireProxy(struct LO *plo, int n);
 void func_001C7A58(struct LO *plo, int id);
-int func_001F4C58(struct S *p, void *pv, int n);
+int PxfFindSo(struct S *p, void *pv, int n);
 int func_001C2DC8(struct S *p, struct LO *plo, int id, void *pv)
 {
     if (p->x158) return 0;
@@ -26,6 +26,6 @@ int func_001C2DC8(struct S *p, struct LO *plo, int id, void *pv)
         ((void (*)(void *, int))p->x158->vt[76].pf)((char *)p->x158 + p->x158->vt[76].d, 2);
     else
         ((void (*)(void *))p->x158->vt[9].pf)((char *)p->x158 + p->x158->vt[9].d);
-    p->x150 = func_001F4C58(p, pv, 0xD);
+    p->x150 = PxfFindSo(p, pv, 0xD);
     return 3;
 }

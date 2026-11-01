@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 M2C_UNK SetS32__4CRefi(void *, s32);                 /* extern */
-s32 func_001F78D8(s32, s32);                        /* extern */
+s32 GrfzpdFromSoGrfzpk(s32, s32);                        /* extern */
 
 CRef *RefThunk_GrfzpdFromSoGrfzpk(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -9,7 +9,7 @@ CRef *RefThunk_GrfzpdFromSoGrfzpk(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x1011;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    SetS32__4CRefi(&ref, func_001F78D8(pbasic, arg0_v));
+    SetS32__4CRefi(&ref, GrfzpdFromSoGrfzpk(pbasic, arg0_v));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

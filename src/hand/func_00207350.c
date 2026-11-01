@@ -10,7 +10,7 @@ struct S {
     char pad9[0xFBC - 0xF10]; int kFBC; char padA[0xFD0 - 0xFC0]; char xFD0[0x10];
 };
 extern qword D_002A2DD0;
-void func_00203FC0(struct S *p);
+void UpdateStep(struct S *p);
 void func_00207288(struct S *p);
 void func_00206900(struct S *p);
 int func_00209430(void *pc);
@@ -19,14 +19,14 @@ void func_0020ACC0(struct S *p);
 void func_001F1CF8(struct S *p);
 void func_0020CE70(void *p);
 void func_0020D1F8(void *p);
-void func_001EED10(void *p);
+void UpdateBhvstk(void *p);
 void func_002097E0(void *p);
 int func_00131968(int h);
 void func_001306A8(int *ph);
 
 void func_00207350(struct S *p)
 {
-    func_00203FC0(p);
+    UpdateStep(p);
     if (!((p->fl28 >> 60) & 1))
         return;
     if (p->kFBC == 0xE)
@@ -41,7 +41,7 @@ void func_00207350(struct S *p)
         func_001F1CF8(p);
     func_0020CE70(p->p498);
     func_0020D1F8(p->p49C);
-    func_001EED10(p->x26C);
+    UpdateBhvstk(p->x26C);
     func_002097E0(p->xFD0);
     if (p->h34C && func_00131968(p->h34C))
         func_001306A8(&p->h34C);

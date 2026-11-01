@@ -9,7 +9,7 @@
 //  - dirNow length through QwLength2 (the vmul.xyz reads its input as two "j" operands, allocation only): the extra
 //    refs give the VLength copy a higher global.c priority than the projected dpos, so the copy takes vf5 and dpos vf7.
 // Earlier keys (lilly15):
-//  - func_001E7380 takes the float right after the position (pcrv, pos, s, pv, ...): arg-move order f12 before a2.
+//  - FindShapeClosestPointFromS takes the float right after the position (pcrv, pos, s, pv, ...): arg-move order f12 before a2.
 //  - Top and dirNow normalizes as `NormalizeSafeN(VV v, VV fallback)` / `DivSafe(v, len, fallback)` (return style,
 //    by-value VV fallback): the fallback lq/qmtc2 lands in the branch delay slots with the target registers.
 //  - "rV" on the VU_FLOAT(const float *) qmtc2 input: the lw reuses the dying lui register (reload-made load).
@@ -112,10 +112,10 @@ extern float D_002BE630, D_002BE634, D_002BE658, D_002BE65C, D_002BE660, D_002BE
 extern CLQ D_002BE640, D_002BE680;
 extern LM D_002BE650, D_002BBB60;
 qword func_001A62E8(void *pobj);
-float func_001E66C8(CURVE *pcrv, float s);
-float func_001E6648(CURVE *pcrv);
-void func_001E7380(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
-void func_001E6F10(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
+float SWrapShape(CURVE *pcrv, float s);
+float SMaxShape(CURVE *pcrv);
+void FindShapeClosestPointFromS(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
+void EvaluateShapeS(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
 int func_00178D00(S *p);
 void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
 int func_001C0B50(CONTEXT *pctx, qword pos, VEC *pv);
@@ -332,8 +332,8 @@ extern "C" void func_00177F78(S *p)
         s = p->s - D_002BE634;
     else
         s = p->s + D_002BE634;
-    float sCurve = func_001E66C8(p->pcrv, s);
-    func_001E7380(p->pcrv, qwActor, sCurve, D_003DD020, &point, &dir, 0, &p->s);
+    float sCurve = SWrapShape(p->pcrv, s);
+    FindShapeClosestPointFromS(p->pcrv, qwActor, sCurve, D_003DD020, &point, &dir, 0, &p->s);
     if (p->mode == 1 || p->mode == 4)
     {
         fReverse = p->modeExtra != 2;
@@ -341,8 +341,8 @@ extern "C" void func_00177F78(S *p)
             s = p->sExtra - D_002BE634;
         else
             s = p->sExtra + D_002BE634;
-        float sCurve = func_001E66C8(p->pcrvExtra, s);
-        func_001E7380(p->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &p->sExtra);
+        float sCurve = SWrapShape(p->pcrvExtra, s);
+        FindShapeClosestPointFromS(p->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &p->sExtra);
     }
     dir.qw = NormalizeSafeN(QwProjectOut(dir.qw, D_002A2DC0), D_002A2DA0);
     p->sSeparation = GXOfQw(QwLengthXY(QwSub(point.qw, posActor)));
@@ -367,7 +367,7 @@ extern "C" void func_00177F78(S *p)
             if (p->pcrv == p->pactor->pcrvPrimary)
             {
                 float sMin = -p->s;
-                float sMax = func_001E6648(p->pcrv) - p->s;
+                float sMax = SMaxShape(p->pcrv) - p->s;
                 float dsClamp = GClamp(ds, sMin, sMax);
                 if (ds != dsClamp)
                     gSpeed = 0.0f;
@@ -379,18 +379,18 @@ extern "C" void func_00177F78(S *p)
                 float sNext;
                 if (p->pcrv->fWrap)
                 {
-                    sNext = func_001E66C8(p->pcrv, p->s + ds);
+                    sNext = SWrapShape(p->pcrv, p->s + ds);
                 }
                 else
                 {
                     float sMin = -p->s;
-                    float sMax = func_001E6648(p->pcrv) - p->s;
+                    float sMax = SMaxShape(p->pcrv) - p->s;
                     float dsClamp = GClamp(ds, sMin, sMax);
                     if (ds != dsClamp)
                         gSpeed = 0.0f;
                     sNext = p->s + dsClamp;
                 }
-                func_001E6F10(p->pcrv, sNext, &next, &nextDir);
+                EvaluateShapeS(p->pcrv, sNext, &next, &nextDir);
             }
             break;
         case 1:

@@ -57,7 +57,7 @@ extern "C" void func_001B5380(P*);
 extern "C" void func_001B5820(P*);
 extern "C" void func_001B92F8(P*);
 extern "C" int func_00131968(void*);
-extern "C" int func_001F0638(void*);
+extern "C" int FSmaRetracted(void*);
 extern "C" void func_001B8988(P*);
 extern "C" void func_001B5990(P*);
 extern "C" void func_001B8EC0(P*);
@@ -133,7 +133,7 @@ extern "C" void func_001B4AA0(P*p){
   case 17:
    if(p->animation&&func_00131968(p->animation))goto idle;
    if(!p->other)break;
-   finished=func_001F0638(p->other);
+   finished=FSmaRetracted(p->other);
   checkIdle:
    if(!finished)break;
   idle:

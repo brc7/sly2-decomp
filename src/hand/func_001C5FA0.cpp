@@ -11,7 +11,7 @@ extern "C" {
 H *func_0012FF10(void *p, LO *plo, int a, int b);
 qword func_001A62E8(LO *plo);
 void *func_001A6318(LO *plo);
-void func_001F3C70(LO *plo);
+void RenderSoSelf(LO *plo);
 void func_001C5FA0(LO *p);
 }
 M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec);
@@ -31,9 +31,9 @@ void func_001C5FA0(LO *p)
             m = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);
             func_001A5EE8(p, m, p->x12C, p->x12C);
         } else {
-            func_001F3C70(p);
+            RenderSoSelf(p);
         }
     } else {
-        func_001F3C70(p);
+        RenderSoSelf(p);
     }
 }

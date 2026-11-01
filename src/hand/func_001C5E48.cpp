@@ -35,7 +35,7 @@ public:
     int f1c4;
 };
 extern "C" {
-void func_001F36E0(P *p);
+void UpdateSo(P *p);
 void func_001C6308(P *p);
 void func_001C55E0(P *p);
 void func_001C5D18(P *p);
@@ -51,7 +51,7 @@ static inline float LenSq(qword v)
 }
 void func_001C5E48(P *p)
 {
-    func_001F36E0(p);
+    UpdateSo(p);
     func_001C6308(p);
     switch (p->state) {
     case 0:

@@ -12,7 +12,7 @@ union U {qword q;float f[4];};
 struct PATH {char pad[0xE8];int count;int padEC;float*dist;U*pos;};
 struct S {char pad[0x48];PATH*path;int active;int pad50;U*a;U*b;float*time;char pad60[0x84-0x60];int capacity;float step;};
 extern float D_002C3678;
-extern "C" void func_001E6330(PATH*);
+extern "C" void InvalidateShapeCache(PATH*);
 extern "C" void func_001E95B0(S*,float);
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
@@ -60,5 +60,5 @@ void func_001E95B0(S*p,float time){
 finished:
  p->path->count=n;
 refresh:
- func_001E6330(p->path);
+ InvalidateShapeCache(p->path);
 }

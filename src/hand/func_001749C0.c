@@ -10,7 +10,7 @@ void func_00209790(void *p, struct S *ps);
 int func_00209A68(struct O *o, int n);
 void func_00209278(struct E *e, struct O *o, int n, float g);
 void func_00209360(struct E *e);
-void func_001EF038(struct S *p);
+void ClearBhvBusy(struct S *p);
 void func_001749C0(struct S *p, int n) {
     if (p->n30 == n) return;
     p->n30 = n;
@@ -27,7 +27,7 @@ void func_001749C0(struct S *p, int n) {
         break;
     }
     case 1:
-        func_001EF038(p);
+        ClearBhvBusy(p);
         if (p->pe) {
             if (p->pe->n0 == 0 && func_00209A68(p->p10, 9)) {
                 p->p10->gFF0 = p->pe->pb->g1C / p->pe->pa->g74;

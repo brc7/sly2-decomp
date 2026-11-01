@@ -18,7 +18,7 @@ struct S {
 extern float D_002A8600;
 extern float D_002A8604;
 extern int D_002C3CF0;
-void func_00203948(struct S *p);
+void InitStep(struct S *p);
 void func_00205E70(void);
 struct F64 *PloNew__F3CIDP2SO3OIDi(int a, void *b, int c, int d);
 void SetLoBusyk(struct F64 *p, int n);
@@ -29,7 +29,7 @@ void func_00205EB8(struct S *p)
 {
     int v;
     float a, b, limit, medium, high, extent;
-    func_00203948(p);
+    InitStep(p);
     func_00205E70();
     p->pF64 = PloNew__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
     SetLoBusyk(p->pF64, 2);

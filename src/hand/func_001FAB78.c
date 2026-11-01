@@ -3,11 +3,11 @@ struct O { char pad[0xA0]; int nA0; char pad3[0xF0 - 0xA4]; qword pos; };
 struct P { char pad[0x58]; struct O *po58; struct O *po5C; };
 qword func_001FAA00(struct P *, qword);
 qword func_001FAA48(struct P *, qword, qword);
-qword func_0022FCC8(int, int, qword);
+qword ConvertXfVec(int, int, qword);
 static inline void Add(struct O *po, qword d)
 {
     qword a = po->pos;
-    qword r = func_0022FCC8(0, po->nA0, d);
+    qword r = ConvertXfVec(0, po->nA0, d);
     qword s;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(a), "j"(r));
     po->pos = s;

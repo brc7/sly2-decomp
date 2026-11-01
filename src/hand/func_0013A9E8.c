@@ -2,10 +2,10 @@ struct S { char pad[0x40]; int f40; char pad2[0x150 - 0x44]; int f150; float f15
     char pad3[0x1e0 - 0x164]; int f1e0; int f1e4; int f1e8; int f1ec; int f1f0; char pad4[0x200 - 0x1f4]; struct S *f200; };
 extern float D_002BC9C8;
 extern float D_002A4B08;
-void func_001F2108(struct S *);
+void InitSo(struct S *);
 void func_0013A9E8(struct S *p) {
     int x;
-    func_001F2108(p);
+    InitSo(p);
     p->f154 = 3.40282346638528859812e+38f;
     p->f15c = D_002BC9C8;
     p->f160 = D_002BC9C8;

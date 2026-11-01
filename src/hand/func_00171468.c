@@ -9,7 +9,7 @@ int func_0017D188(void *p);
 int func_0017DCB8(void *p);
 int func_00174FB8(void *p);
 void func_00209818(void *p, float g);
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 int func_00171468(struct S *p) {
     if (!p->n40) return 0;
     switch (p->pe->k) {
@@ -39,6 +39,6 @@ int func_00171468(struct S *p) {
         if (func_00174FB8(p->p18)) p->n40 = 0;
         break;
     }
-    if (!p->n40) func_001EF0D8(&p->p18);
+    if (!p->n40) PopBhv(&p->p18);
     return p->n40;
 }

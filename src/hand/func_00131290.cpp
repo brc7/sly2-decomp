@@ -15,8 +15,8 @@ extern "C" {
 extern char D_002DDF40[];
 extern char D_002DFC00[];
 void *func_00131270(struct P *);
-void func_00210740(void *, int, int, int, int, void *, void *, struct Q *, void *, float, float, float);
-void func_002108E8(void *, void *, struct Q *, void *);
+void StartSwAsegSound(void *, int, int, int, int, void *, void *, struct Q *, void *, float, float, float);
+void StopSwAsegSound(void *, void *, struct Q *, void *);
 void func_0014F750(void *, void *);
 void func_00187E28(void *, void *, float);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, void *, void *);
@@ -26,7 +26,7 @@ void func_001DFD58(void *, int);
 void func_00130D30(struct P *, int, float, float);
 void func_00130B18(struct P *);
 void func_00131990(struct P *, int);
-void func_00210338(void *, int, void *, void *, struct Q *, float);
+void ShowSwAsegObject(void *, int, void *, void *, struct Q *, float);
 void func_00210538(void *, int, int, int, void *, struct Q *, float);
 void func_00210408(void *, int, void *, int, void *, void *, struct Q *);
 void func_002104A0(void *, int, void *, int, void *, void *, struct Q *);
@@ -54,11 +54,11 @@ extern "C" void func_00131290(struct P *p, struct EV *pev)
     case 0: {
         void *v = func_00131270(p);
         struct A0 *pa = (struct A0 *)pev->pv;
-        func_00210740(D_003DD490, pa->x0, pa->x4, pa->x8, pa->xC, p->po, v, pq, p->a5C, pa->g10, pa->g14, pa->g18);
+        StartSwAsegSound(D_003DD490, pa->x0, pa->x4, pa->x8, pa->xC, p->po, v, pq, p->a5C, pa->g10, pa->g14, pa->g18);
         break;
     }
     case 1:
-        func_002108E8(D_003DD490, pev->pv, pq, p->a5C);
+        StopSwAsegSound(D_003DD490, pev->pv, pq, p->a5C);
         break;
     case 2:
         func_0014F750(D_002DDF40, pev->pv);
@@ -98,7 +98,7 @@ extern "C" void func_00131290(struct P *p, struct EV *pev)
     case 8: {
         int fT = (pev->k == 7);
         fT ^= f;
-        func_00210338(D_003DD490, fT, pev->pv, func_00131270(p), pq, pev->uC.g);
+        ShowSwAsegObject(D_003DD490, fT, pev->pv, func_00131270(p), pq, pev->uC.g);
         break;
     }
     case 11: {

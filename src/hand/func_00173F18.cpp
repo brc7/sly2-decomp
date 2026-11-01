@@ -30,9 +30,9 @@ void func_001B44D8(int *, void ***);
 qword func_001A62E8(LO *);
 M4 *func_001A6318(LO *);
 int func_00173768(SET *, qword, int, void **, float);
-float func_001E6648(LO *);
+float SMaxShape(LO *);
 int func_001EA3B0(void *, float);
-void func_001E6F10(LO *, qword *, qword *, float);
+void EvaluateShapeS(LO *, qword *, qword *, float);
 float GRandInRange__Fff(float, float);
 float func_002458F0(float, float);
 M3 func_0011B500(float, qword);
@@ -174,7 +174,7 @@ extern "C" SEL *func_00173F18(SET *pset, qword pos, qword *pposOut, M3 *pmatOut,
         case 1:
         {
             union { VECTOR4 v; qword q; } posCurve, dirCurve;
-            int c = (int)(func_001E6648(plo) / D_002BE5E8);
+            int c = (int)(SMaxShape(plo) / D_002BE5E8);
             for (int k = 0; k < c; )
             {
                 int kNext = k + 1;
@@ -182,7 +182,7 @@ extern "C" SEL *func_00173F18(SET *pset, qword pos, qword *pposOut, M3 *pmatOut,
                 if (func_001EA3B0(plo->pv180, u))
                     goto nextSample;
                 {
-                    func_001E6F10(plo, &posCurve.q, &dirCurve.q, u);
+                    EvaluateShapeS(plo, &posCurve.q, &dirCurve.q, u);
                     float sDist = SLengthXY(QwSubFrom(pos, posCurve.q));
                     if (sDist < D_002BE5E4 || sBest < sDist)
                         goto nextSample;

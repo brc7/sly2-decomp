@@ -24,10 +24,10 @@ void func_001FB018(void *p);
 void ReleaseAct(int *p);
 void func_002303A0(struct S *p, struct N *n, int k);
 void SetLoParent_1A58D0(struct S *p, int a, int b);
-void func_001F5720(struct S *p, int n);
-void func_001F57C0(struct S *p, int n);
+void SetSoCnstrForce(struct S *p, int n);
+void SetSoCnstrTorque(struct S *p, int n);
 void func_001F68A8(struct S *p, int n);
-void func_001F0660(void *p, int n);
+void SetSmaGoal(void *p, int n);
 void func_001FB098(void *p, float f);
 struct M4 func_0022FF40(int a, int b, struct M4 *pm);
 int func_0012DC18(struct S *p, struct N *n, int a, int b, int c, qword v);
@@ -62,8 +62,8 @@ void func_0017FD08(struct S *p, int n) {
         func_002303A0(p, p->p58, 2);
         func_002303A0(p, p->p5C, 2);
         SetLoParent_1A58D0(p, 0, 0xF);
-        func_001F5720(p, 5);
-        func_001F57C0(p, 4);
+        SetSoCnstrForce(p, 5);
+        SetSoCnstrTorque(p, 4);
         func_001F68A8(p, 0);
         p->p294 = 0;
         break;
@@ -71,7 +71,7 @@ void func_0017FD08(struct S *p, int n) {
         {
             int i;
             for (i = 0; i < p->n230; i++) {
-                if (p->a248[i].p0) func_001F0660(p->a248[i].p0, 0x66);
+                if (p->a248[i].p0) SetSmaGoal(p->a248[i].p0, 0x66);
             }
         }
         break;
@@ -102,8 +102,8 @@ void func_0017FD08(struct S *p, int n) {
             { struct VTE *e = &p->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
             p->n298 = func_0012DC18(p, p->p58, 1, 7, 2, m.r[3]);
             p->n29C = func_0012DC18(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
-            func_001F5720(p, 1);
-            func_001F57C0(p, 1);
+            SetSoCnstrForce(p, 1);
+            SetSoCnstrTorque(p, 1);
             func_001F68A8(p, 1);
         }
         break;

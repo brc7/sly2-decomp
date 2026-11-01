@@ -21,15 +21,15 @@ extern LIMITS D_002C2050,D_002C2070,D_002C2090;
 extern float D_002C2030,D_002C20A4;
 extern char D_002C2098[],D_002C20A8[];
 extern "C" {
-void func_001F36E0(P *);
+void UpdateSo(P *);
 float func_002458F0(float,float);
 int func_001D4E08(ATTACH *);
-void func_001F0660(void *,int);
+void SetSmaGoal(void *,int);
 void func_001D2150(P *);
 void func_001D2610(P *);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float,float,float);
-qword func_0022FCC8(FRAME *,FRAME *,qword);
+qword ConvertXfVec(FRAME *,FRAME *,qword);
 float func_0011D948(const LIMITS *,float);
 void SetActPositionGoal(void *,qword);
 float func_0011D2D0(float,float,float,void *,float *);
@@ -67,13 +67,13 @@ extern "C" void func_001D19A8(P *p)
 {
     U scalar,position,targetPosition,targetVelocity,shot;
     int i=0;
-    func_001F36E0(p);
+    UpdateSo(p);
     p->heading=func_002458F0(p->space->world.basis.rows[0].f[1],p->space->world.basis.rows[0].f[0]);
     if(p->attachCount>0){
         ATTACH **current=p->attachments;
         do {
             ATTACH *attach=*current;
-            if(!func_001D4E08(attach))func_001F0660(attach->binding,0x65);
+            if(!func_001D4E08(attach))SetSmaGoal(attach->binding,0x65);
             ++i;++current;
         }while(i<p->attachCount);
     }
@@ -114,7 +114,7 @@ extern "C" void func_001D19A8(P *p)
         do {
             ++i;
             qword direction=SetVectorCylind(p->wheelAngle,1.0f,0.0f);
-            direction=func_0022FCC8(0,side->reference->parent,direction);
+            direction=ConvertXfVec(0,side->reference->parent,direction);
             float orientation=func_002458F0(Y(direction),X(direction));
             scalar.q=Pack(0.0f,0.0f,func_0011D948(limits,orientation));
             limits=(LIMITS*)((char*)limits+sizeof(SIDE));

@@ -1,16 +1,16 @@
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x10]; void *p10; int pad2; void *p18; char pad3[0x14]; float f30; float f34; int n38; char pad4[4]; int n40; };
-void func_001EEF98(struct S *p);
+void UpdateBhv(struct S *p);
 int func_00209098(void *p);
-int func_001EF0A8(struct S *p);
+int FBhvBusyAbove(struct S *p);
 void func_00179D30(struct S *p, int n);
 int func_00171458(void *p);
 void func_00179BA0(struct S *p) {
     int f, s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     f = func_00209098(p->p10);
-    while (!func_001EF0A8(p)) {
+    while (!FBhvBusyAbove(p)) {
         s = p->n38;
         switch (s) {
         case 1:

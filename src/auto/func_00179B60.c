@@ -28,6 +28,6 @@ extern M2C_UNK D_003DD490;
 
 void func_00179B60(s32 arg0) {
     func_00179D30(arg0, -1);
-    func_001EEF78(arg0);
+    CloseBhv(arg0);
     func_00209970(M2C_FIELD(arg0, s32 *, 0x10), 0x1E);
 }

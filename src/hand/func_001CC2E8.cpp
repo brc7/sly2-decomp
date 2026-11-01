@@ -19,7 +19,7 @@ struct WORK {U position; M3 basis; STAGE stage; float t,result,projection; U sav
 
 extern "C" {
 qword func_001A62E8(LO*);
-void func_001E7380(void*,qword,void*,qword*,qword*,float*,float*,float);
+void FindShapeClosestPointFromS(void*,qword,void*,qword*,qword*,float*,float*,float);
 M4 InvertMatrix4Rigid(const M4*);
 M4 *__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 qword ConvertAloPos(LO*,LO*,qword);
@@ -28,13 +28,13 @@ float func_001CC2B8(void*,float);
 float func_001CC288(void*,float);
 void func_001CC1F8(P*,qword,float*,float*,float);
 void func_001CC168(P*,qword,float*,float*,float);
-M3 *func_0022FD38(M3*,FRAME*,FRAME*,const M3*);
+M3 *ConvertXfMat(M3*,FRAME*,FRAME*,const M3*);
 qword func_0011BFF0(const M3*);
 void SetActPositionGoal(void*,qword);
 void func_00130D30(void*,int,float,float);
 void func_001384C0(MOTION*);
-void func_002046B0(LO*,qword);
-void func_00204CA8(LO*);
+void SetStepRadTargetVec(LO*,qword);
+void FixStepAngularVelocity(LO*);
 void func_001CC2E8(P*);
 }
 static inline void*operator new(unsigned size,void*destination){return destination;}
@@ -49,7 +49,7 @@ void func_001CC2E8(P*p){
  if(p->active==-1)return;
  switch(p->mode){
  default:cursor=&w.stage.late.context;break;
- case 0:{cursor=p->path;func_001E7380(cursor,func_001A62E8(p->owner),0,&w.position.q,0,0,&p->time,p->time);cursor=&w.stage.late.context;break;}
+ case 0:{cursor=p->path;FindShapeClosestPointFromS(cursor,func_001A62E8(p->owner),0,&w.position.q,0,0,&p->time,p->time);cursor=&w.stage.late.context;break;}
  case 1:{qword found=func_001A62E8(p->follow);__asm__("sq %1,%0":"=m"(w.position.q):"r"(found));cursor=&w.stage.late.context;break;}
  case 2:{
   M4*output=&w.stage.early.temporary;
@@ -68,7 +68,7 @@ void func_001CC2E8(P*p){
  if(p->mode==2){
   Minimize(func_001CC2B8,cursor,0.5f,0.1f,0.0f,1.0f,&w.t,&w.result);
   func_001CC1F8(p,w.stage.late.context.position,&w.projection,0,w.t);
-  func_0022FD38(&w.stage.late.temporary,0,p->space->frame,&w.basis);
+  ConvertXfMat(&w.stage.late.temporary,0,p->space->frame,&w.basis);
   w.stage.late.transformed=w.stage.late.temporary;
   SetActPositionGoal(p->job,func_0011BFF0(&w.stage.late.transformed));
  }else{
@@ -80,8 +80,8 @@ void func_001CC2E8(P*p){
  func_001384C0(p->motion);
  w.saved.q=w.position.q;
  LO*receiver;qword delta=DifferenceFromSaved(&w.saved,func_001A62E8(p->owner),p,receiver);
- func_002046B0(receiver,delta);
- func_00204CA8(p->owner);
+ SetStepRadTargetVec(receiver,delta);
+ FixStepAngularVelocity(p->owner);
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)

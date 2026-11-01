@@ -13,7 +13,7 @@ struct CLOCK {float t,dt;};
 extern "C" {
 qword func_001A62E8(void *);
 M3 *func_001A6318(void *);
-void func_002309E8(void *,void *,M4 *,M4 *,float);
+void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float func_00244B68(float);
 float func_0011D948(void *,float);
 float func_0011D1C0(float,float,float,float,SMP *,float *);
@@ -55,7 +55,7 @@ extern "C" void func_00225E98(S *p){
         angle=angle+angle;
         CLOCK *clock=&D_002DDED0;
         angle=Max(angle,p->range.lo);
-        func_002309E8(p->target->component,0,&m,0,clock->dt);
+        LoadIdentityMatrix4(p->target->component,0,&m,0,clock->dt);
         scratch.q=LoadVF(m.r[3]);future.q=scratch.q;
         offset.q=Sub(scratch.q,func_001A62E8(p->target));
         float extent=radius+OffsetLength(offset.q);

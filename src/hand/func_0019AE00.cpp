@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 extern "C" {
 void func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
-void func_0020FAA0(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 struct HIT;
 int func_0014CC58(int z, qword a, qword b, int i, int j, HIT *phit);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, int m, int n);
@@ -35,7 +35,7 @@ int func_0019AE00(void *unused, void *p1, void *p2, float tMax, qword a, qword v
         mn = a;
         mx = b;
     }
-    func_0020FAA0(D_003DD490, mn, mx, p1, p2, &i, &j);
+    IntersectSwBoundingBox(D_003DD490, mn, mx, p1, p2, &i, &j);
     for (t = 0.0f; ; t = t + 0.1f < tMax ? t + 0.1f : tMax) {
         EvaluateBezierPos(tMax, t, 1.0f, a, va, b, vb, (qword *)&pos, 0, 0);
         if (t != 0.0f && func_0014CC58(0, prev, *(qword *)&pos, i, j, &hit)) {

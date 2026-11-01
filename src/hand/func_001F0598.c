@@ -4,12 +4,12 @@ struct Q { char pad[0x68]; char dl[1]; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0x24 - 0x10]; struct Q *pq; char pad3[0x30 - 0x28]; void *p30; };
 struct DL;
 extern struct DL D_003E126C;
-int func_001F0638(struct P *);
+int FSmaRetracted(struct P *);
 void func_00130B18(void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void func_001F0598(struct P *p)
 {
-    if (!func_001F0638(p)) {
+    if (!FSmaRetracted(p)) {
         void *pv = p->p30;
         if (pv) {
             p->p30 = 0;

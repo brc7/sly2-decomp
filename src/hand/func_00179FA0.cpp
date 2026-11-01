@@ -19,7 +19,7 @@ extern "C"{
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  qword func_001A62E8(P*);
  M3*func_001A6318(P*);
- void func_001E6F60(P*,qword,void*,qword*,qword*,float*,float*);
+ void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
  float func_002458F0(float,float);
  float RadNormalize__Ff(float);
  void func_0011B500(M3*,float,qword);
@@ -31,7 +31,7 @@ extern "C"{
  void func_00209818(CONTROL*,float);
  void func_00209840(CONTROL*,M3*);
  void func_0020C6F8(INFO*,qword);
- void func_001EEFC0(C*);
+ void SetBhvBusy(C*);
 }
 static inline CONTROL*Control(P*p){return (CONTROL*)((char*)p+0xFD0);}
 static inline float Angle(qword delta){qword x;int y;float fx,fy;__asm__("qmfc2.ni %0,%1":"=r"(x):"j"(delta));__asm__("prot3w %0,%1":"=r"(y):"r"(x));__asm__("mtc1 %1,%0":"=f"(fx):"r"(x));__asm__("mtc1 %1,%0":"=f"(fy):"r"(y));return func_002458F0(fy,fx);}
@@ -88,7 +88,7 @@ extern "C" void func_00179FA0(C*p){
   if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,10)){
    P*target=p->target;
    qword position=func_001A62E8(p->actor);
-   func_001E6F60(target,position,0,&p->point.q,&work.temp.first.direction.q,0,&work.curve);
+   FindShapeClosestPoint(target,position,0,&p->point.q,&work.temp.first.direction.q,0,&work.curve);
    heading=func_002458F0(work.temp.first.direction.f[1],work.temp.first.direction.f[0]);
   }else{
    p->point.q=func_001A62E8(p->target);
@@ -151,5 +151,5 @@ extern "C" void func_00179FA0(C*p){
   p->driver->info->reverse=p->reverse;
   func_0020C6F8(p->driver->info,p->point.q);
  }
- func_001EEFC0(p);
+ SetBhvBusy(p);
 }

@@ -27,7 +27,7 @@ void func_00228358(s32 arg0, s32 arg1) {
     if (arg1 != M2C_FIELD(arg0, s32 *, 0x13C)) {
         if (arg1 == 4) {
             SetLoBusyk(arg0, 1);
-            func_0020EFC0((s32) &D_003DD490, 3);
+            IncrementSwHandsOff((s32) &D_003DD490, 3);
             M2C_FIELD(&D_003DD490, s32 *, 0x3C84) = arg0;
         }
         M2C_FIELD(arg0, s32 *, 0x13C) = arg1;

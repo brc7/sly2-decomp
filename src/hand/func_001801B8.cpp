@@ -11,7 +11,7 @@ struct P {char pad[0xC];VTE*vt;char pad10[0x17C];int flag;char pad190[0x30];floa
 struct CLOCK{float time,dt;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
-extern "C" void func_001F36E0(P*);
+extern "C" void UpdateSo(P*);
 extern "C" qword func_001A62E8(P*);
 extern "C" float func_002458F0(float,float);
 extern "C" float RadNormalize__Ff(float);
@@ -29,7 +29,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
 extern "C" void func_001801B8(P*p){
- func_001F36E0(p);
+ UpdateSo(p);
  if(!p->flag&&p->time<=D_002DDED0.time)((void(*)(void*,P*))p->vt[82].fn)((char*)p+p->vt[82].delta,0);
  if(!p->target||p->turnRate==0.0f)return;
  M3 rotation,matrix;

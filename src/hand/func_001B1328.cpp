@@ -16,8 +16,8 @@ extern "C"{
  void func_002303A0(P*,void*,int);void func_0022C840(P*,void*);void func_0022C818(P*,void*);
  float GRandInRange__Fff(float,float);void GetVectorSphere(qword,float*,float*,float*);
  void func_001B1818(P*,float);void func_001B17B8(P*,float);
- qword func_001A62E8(P*);void func_001E6F60(PATH*,qword,void*,U*,U*,float*,float*);
- float func_001E77E8(PATH*);float func_001E6648(PATH*);P*PpoClosestSw(void*,qword);
+ qword func_001A62E8(P*);void FindShapeClosestPoint(PATH*,qword,void*,U*,U*,float*,float*);
+ float DuGetShapeSearchIncrement(PATH*);float SMaxShape(PATH*);P*PpoClosestSw(void*,qword);
  EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,SOURCE*);void func_001FB3F0(EFFECT*,qword);
  qword ConvertAloPos(P*,P*,qword);void func_00154E10(void*,qword,int,int,P*);
  void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
@@ -79,14 +79,14 @@ extern "C" void func_001B1328(P*p,int next){
  case 4:{
   w.first.q=func_001A62E8(p);
   if(p->path){
-   func_001E6F60(p->path,w.first.q,0,&w.second,0,&p->parameter,&w.parameter);
-   float phase=func_001E77E8(p->path);
+   FindShapeClosestPoint(p->path,w.first.q,0,&w.second,0,&p->parameter,&w.parameter);
+   float phase=DuGetShapeSearchIncrement(p->path);
    qword delta=Sub(w.first.q,w.second.q);
    float speed=p->speed.value;
    float travel=FloatOf(LengthV(delta));
    p->phase=phase;
    travel/=speed;
-   float end=func_001E6648(p->path);
+   float end=SMaxShape(p->path);
    p->deadline=D_002DDED0.t+travel+(end-w.parameter)/p->speed.value-p->lead;
   }else{
    P*near=PpoClosestSw(D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);p->deadline=D_002DDED0.t+2.0f;

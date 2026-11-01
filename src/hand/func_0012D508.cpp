@@ -61,7 +61,7 @@ extern qword D_002A2DD0, D_002A2DC0, D_002BC380;
 void func_0022DD00(void *pv, X *px);
 void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n);
 M3 BuildOrthonormalMatrixZ(qword a, qword b);
-void func_0022FD38(M3 *pm, int n, X *px, M3 *pmSrc);
+void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc);
 }
 
 static inline void SetMat(X *px, const M3 &m)
@@ -75,7 +75,7 @@ static inline void Fin(P *p, M3 &mT, M3 m)
     mT = m;
     X *px = p->px8;
     M3 *pm = &px->mC0;
-    func_0022FD38(&m, 0, px->pxA0, &mT);
+    ConvertXfMat(&m, 0, px->pxA0, &mT);
     *pm = m;
     p->px8->s9A = 5;
 }

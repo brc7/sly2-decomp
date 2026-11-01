@@ -11,7 +11,7 @@ void BroadcastGameEvent(void *p, int n, int m);
 void func_00213B00(struct O *p, int n);
 void func_00212E40(struct O *p, int n, float f);
 void func_00227788(void *p);
-void func_00202768(void *p, int n);
+void SetReconSelState(void *p, int n);
 void func_00212A70(struct O *p, int n);
 void func_00212A50(struct O *p, int n);
 void func_0019D660(struct S *p, int st)
@@ -36,14 +36,14 @@ void func_0019D660(struct S *p, int st)
             func_00227788(D_004435F0);
             if (p->x10) p->x10->vt[49].pfn((char *)p->x10 + p->x10->vt[49].d, -1);
         }
-        if (p->x14) func_00202768(p->x14, 0);
+        if (p->x14) SetReconSelState(p->x14, 0);
         break;
     case 2:
         if (p->x0->x20 == 1) BroadcastGameEvent(D_002DEB30, 0xD, 0);
         else BroadcastGameEvent(D_002DEB30, 8, 0);
         if (p->x8) p->x8->vt[50].pfn((char *)p->x8 + p->x8->vt[50].d);
         if (p->x10) p->x10->vt[50].pfn((char *)p->x10 + p->x10->vt[50].d);
-        if (p->x14) func_00202768(p->x14, 10);
+        if (p->x14) SetReconSelState(p->x14, 10);
         break;
     case -1:
         if (old != 2) {
@@ -58,7 +58,7 @@ void func_0019D660(struct S *p, int st)
             func_00212A70(p->x10, 1);
             func_00212A50(p->x10, 1);
         }
-        if (p->x14) func_00202768(p->x14, -1);
+        if (p->x14) SetReconSelState(p->x14, -1);
         break;
     }
 }

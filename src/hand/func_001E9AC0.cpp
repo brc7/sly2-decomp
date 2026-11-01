@@ -6,10 +6,10 @@ struct E { int n; char pad4[8]; V *out; char pad10[0x1C-0x10]; U *samples; };
 struct NODE { int pad; int n; E *entries; NODE *next; };
 struct S { char pad[0xDC]; NODE *head; char padE0[0x150-0xE0]; void *path; };
 extern "C" {
-void func_001F3C70(S*);
-float func_001E6630(void*);
+void RenderSoSelf(S*);
+float UMaxShape(void*);
 M3 *func_001A6318(S*);
-void func_001E67B8(void*,float,qword*,qword*);
+void EvaluateShapeU(void*,float,qword*,qword*);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 void func_001E9AC0(S*);
 }
@@ -22,8 +22,8 @@ static inline float GetY(qword q) {float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q)
 static inline float Min(float a,float b) {return b<a?b:a;}
 void func_001E9AC0(S *p)
 {
- func_001F3C70(p);
- float end=func_001E6630(p->path);
+ RenderSoSelf(p);
+ float end=UMaxShape(p->path);
  qword axis=func_001A6318(p)->c;
  NODE *node;
  for(node=p->head;node;node=node->next) {
@@ -34,7 +34,7 @@ void func_001E9AC0(S *p)
    int k;
    for(k=0;k<e->n;k++) {
     U pos,dir;
-    func_001E67B8(p->path,Min(end,src->f[3]),&pos.q,&dir.q);
+    EvaluateShapeU(p->path,Min(end,src->f[3]),&pos.q,&dir.q);
     M3 m;
     M3 tmp=BuildOrthonormalMatrixZ(dir.q,axis);
     m=tmp;
@@ -47,5 +47,5 @@ void func_001E9AC0(S *p)
    }
   }
  }
- func_001F3C70(p);
+ RenderSoSelf(p);
 }

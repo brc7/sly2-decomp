@@ -26,9 +26,9 @@ struct X { char pad[0x40]; float a; float b; char pad2[0x18]; } __attribute__((a
 struct G { char pad[0x3D70]; int n3D70; };
 extern struct G D_003DD490;
 extern float D_002C367C;
-float func_001E6620(struct O *);
-float func_001E6648(struct O *);
-void func_001E6F10(struct O *, float, qword *, qword *);
+float SMinShape(struct O *);
+float SMaxShape(struct O *);
+void EvaluateShapeS(struct O *, float, qword *, qword *);
 void *func_001E9F50(qword);
 int func_001BD560(void *, struct O *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int);
@@ -55,14 +55,14 @@ void func_001EA000(struct S *ps)
     }
     aseg = ps->aseg10;
     cseg = 0;
-    tStart = func_001E6620(ps->po);
+    tStart = SMinShape(ps->po);
     t = tStart;
-    tEnd = func_001E6648(ps->po);
+    tEnd = SMaxShape(ps->po);
     asegSrc = ps->aseg;
     c = ps->c4;
     while (t < tEnd) {
         void *pv;
-        func_001E6F10(ps->po, t, (qword *)&pos, 0);
+        EvaluateShapeS(ps->po, t, (qword *)&pos, 0);
         pv = func_001E9F50(*(qword *)&pos);
         if (pv) {
             int fSave = ps->po->fE4;

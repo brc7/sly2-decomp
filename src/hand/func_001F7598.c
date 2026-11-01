@@ -18,7 +18,7 @@ extern struct N *D_003E15C0;
 extern char D_003E15A8[];
 extern float D_002DDED0;
 struct O *PsoFromLo(void *);
-int func_001F78D8(struct O *, int);
+int GrfzpdFromSoGrfzpk(struct O *, int);
 struct K *PvAllocSlotheapClear(void *);
 void ClearDle__FP3DLE(void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
@@ -36,7 +36,7 @@ struct O *func_001F7598(struct K *pk)
         for (pn = D_003E15C0; pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;
         }
-        pk->n44 = func_001F78D8(po, pk->nC);
+        pk->n44 = GrfzpdFromSoGrfzpk(po, pk->nC);
         if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
             struct K *pkNew;
             pk->p48 = po;

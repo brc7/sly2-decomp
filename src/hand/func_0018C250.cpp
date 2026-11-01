@@ -1641,7 +1641,7 @@ extern "C" {
 void PredictAsegEffect(float t, float svt, ASEG *paseg, ALO *palo, XF *pxfPart, XF *pxfRoot, MATRIX4 *pmat, int n);
 }
 extern "C" {
-void func_001F5720(SO *pso, int fOn);
+void SetSoCnstrForce(SO *pso, int fOn);
 }
 extern "C" {
 void UpdateHeadingSmooth(STEP *pstep);
@@ -1885,14 +1885,14 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 SlotSetRole(pjt, pjt->pxfUnk5c, 2);
                 break;
             case JTS_SurfaceClimb:
-                func_001F5720(pjt, 0);
+                SetSoCnstrForce(pjt, 0);
                 pjt->ploUnk1f18->HandleSpliceEvent(6, 0, 0, 0, 0);
                 if (pjt->ptnUnk1024 == *(TN **)((char *)pjt->ploUnk1f18 + 0x110))
                     SetPlayerTn(pjt, 0);
                 pjt->ploUnk1f18 = 0;
                 break;
             case JTS_HangFollow:
-                func_001F5720(pjt, 0);
+                SetSoCnstrForce(pjt, 0);
                 pjt->phndUnk18c4->HandleSpliceEvent(6, 0, 0, 0, 0);
                 ReleaseRefNode(pjt->phndUnk18c4, pjt);
                 pjt->phndUnk18c4 = 0;
@@ -2127,7 +2127,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 break;
             case JTS_SurfaceClimb:
                 ((CLIMBSURF *)pjt->ploUnk1f18)->FindClosestPoint(PosLoWorld(pjt), 0, (SURFLOC *)&pjt->unk_0x1f1c, 0, 0);
-                func_001F5720(pjt, 1);
+                SetSoCnstrForce(pjt, 1);
                 pjt->SetVelocity(D_002A2DD0);
                 pjt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&pjt->vUnk190);
@@ -2139,7 +2139,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 paseg = pjt->pasegblUnk1f90;
                 grfapl = 9;
                 SetJtAnimState(pjt, -1);
-                func_001F5720(pjt, 1);
+                SetSoCnstrForce(pjt, 1);
                 pjt->SetVelocity(D_002A2DD0);
                 pjt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&pjt->vUnk190);

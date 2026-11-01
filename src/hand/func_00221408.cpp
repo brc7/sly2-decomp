@@ -4,7 +4,7 @@ union U { qword q; float f[4]; };
 struct M3 { qword r[3]; };
 struct S { char pad[0x10C]; void *curve; char pad1[0x12C-0x110]; int arc; char pad2[0x140-0x130]; float time; char pad3[0x150-0x144]; qword origin; float radius; };
 extern "C" {
-void func_001E6F10(void *, float, qword *, qword *);
+void EvaluateShapeS(void *, float, qword *, qword *);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 qword SetVectorCylind(float,float,float);
 M3 *func_001A6318(struct S *);
@@ -33,7 +33,7 @@ extern "C" void func_00221408(S *p,qword v,qword *out,qword *normal) {
     U pos;
     M3 m;
     if(p->curve) {
-        func_001E6F10(p->curve,p->time,&pos.q,normal);
+        EvaluateShapeS(p->curve,p->time,&pos.q,normal);
         m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0);
         *out=InverseRotate(m,Sub(v,pos.q));
     } else if(p->arc) {

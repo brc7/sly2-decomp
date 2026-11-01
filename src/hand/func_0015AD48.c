@@ -9,7 +9,7 @@ struct E { int x0, x4; struct SO **ppso; int xC; struct Y y; };
 void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
 qword func_001A72D0(struct M4 *pm, int z, qword v);
 qword func_001A7348(struct M4 *pm, int z, qword v);
-qword func_0022D348(struct R *r, int z, qword v);
+qword GetXfVelocity(struct R *r, int z, qword v);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 
 void func_0015AD48(struct E *p, qword *pv, qword *pw)
@@ -26,6 +26,6 @@ void func_0015AD48(struct E *p, qword *pv, qword *pw)
     if (py->k != 3) {
         *pw = func_001A7348(&m, 0, *pw);
         if (py->k != 2)
-            *pw = Add(*pw, func_0022D348(r, 0, py->k == 1 ? *pv : r->m.r[3]));
+            *pw = Add(*pw, GetXfVelocity(r, 0, py->k == 1 ? *pv : r->m.r[3]));
     }
 }

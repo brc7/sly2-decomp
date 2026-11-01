@@ -14,12 +14,12 @@ struct S {
     int n230; struct E a234[1];
     char pad4[0x2A4 - 0x234 - 0x18]; struct M *p2A4; int pad5; float g2AC;
 };
-void func_001F36E0(struct S *p);
+void UpdateSo(struct S *p);
 int func_0017F550(struct S *p);
 void func_0017FD08(struct S *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void SetActPositionGoal(void *p, qword q);
-void func_001F0660(void *p, int n);
+void SetSmaGoal(void *p, int n);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 void func_001FB1F8(struct M *p, float g);
 void func_001FB060(struct M *p);
@@ -30,7 +30,7 @@ static __inline__ qword Make(float x, float y, float z) { qword q, t;
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
 void func_0017F930(struct S *p) {
     int s;
-    func_001F36E0(p);
+    UpdateSo(p);
     do {
         s = p->n1C0;
         if (s == 2 && func_0017F550(p)) func_0017FD08(p, 1);
@@ -51,8 +51,8 @@ void func_0017F930(struct S *p) {
             struct E *e = &p->a234[i];
             if (e->pC) SetActPositionGoal(e->pC, v);
             if (e->p14) {
-                if (0.0f < p->p150->g2C) func_001F0660(e->p14, 0x68);
-                else func_001F0660(e->p14, 0x66);
+                if (0.0f < p->p150->g2C) SetSmaGoal(e->p14, 0x68);
+                else SetSmaGoal(e->p14, 0x66);
             }
         }
         break;

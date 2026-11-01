@@ -11,8 +11,8 @@ extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;extern SMP D_002BF928;
 qword func_0011F088(qword,qword,float,SMP*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int func_00131968(ASEGA*);void func_0019EAB0(C*,int);
-float func_001E6728(PATH*,float);void func_001E6F10(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
-void func_0019E110(C*,LM*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001F4BF8(P*);float func_001E6648(PATH*);float GModPositive__Fff(float,float);void func_001384C0(ANIMATION*);
+float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
+void func_0019E110(C*,LM*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001F4BF8(P*);float SMaxShape(PATH*);float GModPositive__Fff(float,float);void func_001384C0(ANIMATION*);
 float fabsf(float);
 }
 static inline ulong Eligible(PATH*p){return (p->flags>>60)&1;}
@@ -92,8 +92,8 @@ extern "C" void func_0019E1E0(C*p){
  if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);func_0019CC50(p->actor->action,0,0,0);}
  int old;do{old=p->state;if((old==0||old==4)&&func_00131968(p->actor->asega))func_0019EAB0(p,1);}while(p->state!=old);
  if(p->state==0||p->state==4)return;
- func_001E6F10(p->path,func_001E6728(p->path,p->distance+50.0f),&w.ahead,0);
- func_001E6F10(p->path,func_001E6728(p->path,p->distance-50.0f),&w.behind,0);
+ EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
+ EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
  U*axis;qword direction=Direction(&w.ahead,&w.behind,axis);qword normalized=Normal(direction,axis);float z=Z(normalized);
  if(fabsf(z)>0.5f){
   if(z>0.0f){if(!p->descending)goto checkMemory;goto turn;}
@@ -135,7 +135,7 @@ extern "C" void func_0019E1E0(C*p){
  register float stopped __asm__("$f21")=0.0f;
  p->speed=-speed;
  if(speed!=stopped){p->distance+=p->speed*D_002DDED0.dt;func_001F4BF8(p->actor);}
- if(p->path->cyclic)p->distance=GModPositive__Fff(p->distance,func_001E6648(p->path));
+ if(p->path->cyclic)p->distance=GModPositive__Fff(p->distance,SMaxShape(p->path));
  register float magnitude __asm__("$f2")=fabsf(speed);
  if(magnitude<0.01f)mode=1;
  else{

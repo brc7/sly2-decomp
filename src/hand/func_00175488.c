@@ -10,8 +10,8 @@ struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; struct Q *q30; i
 void UnsubscribeLoObject(struct Q *q, void *p);
 void SubscribeLoObject(struct Q *q, void *p);
 void func_0020AC28(void *p, void *po, int n, qword v);
-void func_001EF0D8(void *p);
-void func_001EF038(struct S *p);
+void PopBhv(void *p);
+void ClearBhvBusy(struct S *p);
 struct O *func_00205438(void *p, int n);
 void func_00175488(struct S *p, int n) {
     if (n == p->n34) return;
@@ -20,7 +20,7 @@ void func_00175488(struct S *p, int n) {
         p->q30 = 0;
         func_0020AC28(p->p10, 0, 0, D_002A2DD0);
     }
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     p->n34 = n;
     p->g38 = D_002DDED0.t;
     switch (n) {
@@ -51,7 +51,7 @@ void func_00175488(struct S *p, int n) {
         }
         break;
     case -1:
-        func_001EF038(p);
+        ClearBhvBusy(p);
         break;
     }
 }

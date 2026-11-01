@@ -10,7 +10,7 @@ extern float D_002BD360;
 extern float D_002BD368;
 extern float D_002BD36C;
 extern float D_002BD370;
-void func_001EEF98(struct P *p);
+void UpdateBhv(struct P *p);
 int func_001A61A0(struct T *p);
 qword func_001A62E8(void *p);
 struct M3 *func_001A6318(void *p);
@@ -53,7 +53,7 @@ void func_001467A0(struct P *p)
     union { qword q; float f[4]; } d;
     float g;
     int state;
-    func_001EEF98(p);
+    UpdateBhv(p);
     if (p->x30 == -1)
         return;
     if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {

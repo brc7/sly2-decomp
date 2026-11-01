@@ -1,12 +1,12 @@
 #include "m2c_prelude.h"
 M2C_UNK func_0014AE38(void *, M2C_UNK);             /* extern */
-M2C_UNK func_001EEF78();                            /* extern */
+M2C_UNK CloseBhv();                            /* extern */
 M2C_UNK func_001FEEA0(M2C_UNK *);                   /* extern */
 M2C_UNK func_00209970(void *, M2C_UNK);             /* extern */
 extern M2C_UNK D_003DD040;
 
 void func_0014A248(void *arg0) {
-    func_001EEF78();
+    CloseBhv();
     func_0014AE38(arg0, -1);
     func_00209970(M2C_FIELD(arg0, void **, 0x10), 0x24);
     func_001FEEA0(&D_003DD040);

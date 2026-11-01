@@ -18,9 +18,9 @@ extern char D_002DFC00[];
 extern char D_002DE578[];
 extern char D_002DEB30[];
 SO *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int v, P *p);
-void func_001F6978(P *p, int v);
-void func_001F69F8(P *p, int v);
-void func_001F6AC8(P *p, int v);
+void ShowSoGlobsById(P *p, int v);
+void HideSoGlobsById(P *p, int v);
+void ShowSoPartsById(P *p, int v);
 void func_001F6B48(P *p, int v);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void func_0014F750(void *g, int v);
@@ -53,13 +53,13 @@ void func_001BB648(P *p, E *pe)
             ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
             break;
         case 2:
-            func_001F6978(p, pi->v);
+            ShowSoGlobsById(p, pi->v);
             break;
         case 3:
-            func_001F69F8(p, pi->v);
+            HideSoGlobsById(p, pi->v);
             break;
         case 4:
-            func_001F6AC8(p, pi->v);
+            ShowSoPartsById(p, pi->v);
             break;
         case 5:
             func_001F6B48(p, pi->v);

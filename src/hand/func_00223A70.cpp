@@ -16,7 +16,7 @@ void *func_001AE478(void *);
 void func_001AE4A0(void *,int);
 qword func_001A62E8(void *);
 int func_0014F030(void *,SO *);
-void func_0020FAA0(WORLD *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***);
+void IntersectSwBoundingBox(WORLD *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***);
 qword func_0014EB70(int,SO **,qword,float);
 int func_0014EA08(int count,SO **objects,qword origin,qword endpoint,float gap,float *low,float *high);
 float func_00223A10(void *,qword,qword,N *);
@@ -45,7 +45,7 @@ extern "C" void func_00223A70(S *p,qword begin,qword end,qword *out){
     float one=1.0f;
     w.minimum.q=Min(begin,Min(end,func_001A62E8(object)));
     w.maximum.q=Max(begin,Max(end,func_001A62E8(object)));
-    func_0020FAA0(&D_003DD490,w.minimum.q,w.maximum.q,func_0014F030,0,&w.count,&w.objects);
+    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,func_0014F030,0,&w.count,&w.objects);
     int count=w.count; SO **objects=w.objects;
     w.origin.q=func_0014EB70(count,objects,func_001A62E8(object),500.0f);
     func_0014EA08(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);

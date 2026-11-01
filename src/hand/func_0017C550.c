@@ -3,12 +3,12 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; char pad3[0x
 struct X { char pad[0xC]; int nC; };
 struct T { char pad[0x294]; int n294; char pad2[0x3CC - 0x298]; struct X *px; };
 struct S { char pad[0x10]; struct T *p10; int pad2; char a18[0x18]; int n30; };
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 void func_00178D90(struct O *o, int a, int b);
 void func_0017C550(struct S *p, int n) {
     if (n == p->n30) return;
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     p->n30 = n;
     switch (n) {
     case 0:

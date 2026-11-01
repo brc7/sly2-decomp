@@ -5,7 +5,7 @@ struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *
 struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float func_002458F0(float y, float x);
 float RadNormalize__Ff(float g);
-void func_001F15B8(void *p);
+void ReleaseSma(void *p);
 void func_001305B8(void *a, struct O *o, int n, void *b, float g, float h);
 #define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
 void func_00197370(struct P *p)
@@ -30,6 +30,6 @@ void func_00197370(struct P *p)
         pv = Get(p, 0);
     if (!pv)
         pv = p->a120[0];
-    func_001F15B8(p->x0->x1034);
+    ReleaseSma(p->x0->x1034);
     func_001305B8(pv, p->x0, 1, &p->x0->x1030, s->x1c, s->x40);
 }

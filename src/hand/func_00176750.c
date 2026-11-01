@@ -12,7 +12,7 @@ struct O {
 struct A { char pad[0x4B0]; qword v4B0; char pad2[0xF68 - 0x4C0]; int nF68; int pad3; qword vF70; char pad4[0x108C - 0xF80]; int n108C; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; struct F f30; float fA0; float fA4; };
 int func_00177DC0(struct F *a, struct F *b);
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 void func_00171258(struct O *o, int a, int b, int c);
 void func_001725E0(struct O *o, int n);
@@ -22,7 +22,7 @@ void func_00208540(void *p, int n);
 void func_00176750(struct S *p, struct F *m) {
     int fl;
     if (func_00177DC0(m, &p->f30)) return;
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     p->f30 = *m;
     p->fA0 = D_002DDED0.t;
     fl = 0;

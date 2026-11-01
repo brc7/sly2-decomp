@@ -4,7 +4,7 @@ union U {qword q;float f[4];};
 struct M4 {qword r[4];};
 struct BASIS3 {qword r[3];};
 struct P {char padA0[0xA0];struct M4 matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
-extern void func_00231368(struct P*);
+extern void UpdateXfmMatWorld(struct P*);
 static inline qword ReadPoint(const qword*source){register qword value __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(value):"m"(*source));return value;}
 static inline qword DirInPlace(qword m0,qword m1,qword m2,qword a){__asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m0),"j"(m1),"j"(m2));return a;}
 static inline float LenSq(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
@@ -14,7 +14,7 @@ static inline float Sqrt(float f){return __builtin_sqrtf(f);}
 float func_001E7D90(struct P*p)
 {
     register float squared __asm__("$f2");
-    func_00231368(p);squared=0.0f;
+    UpdateXfmMatWorld(p);squared=0.0f;
     if(p->mode==0){
         register int remaining __asm__("$3")=p->count;
         if(remaining>0){

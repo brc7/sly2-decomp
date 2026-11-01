@@ -26,7 +26,7 @@ void func_001FB4F0(void *, float, float);
 void func_001FB018(void *);
 void func_001FB098(void *, float);
 void func_001D4B28(OBJ *, int);
-void func_001F0730(void *, int);
+void SetSmaGoalIfReachable(void *, int);
 void func_001D4940(OBJ *p, int n)
 {
     W *pw;
@@ -76,5 +76,5 @@ void func_001D4940(OBJ *p, int n)
         break;
     }
     if (p->x570 && p->state != -1)
-        func_001F0730(p->x570, D_002C2208[p->state]);
+        SetSmaGoalIfReachable(p->x570, D_002C2208[p->state]);
 }

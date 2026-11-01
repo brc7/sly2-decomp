@@ -3,7 +3,7 @@ struct U { char pad[0x40]; void *p40; };
 struct T { char pad[0xF60]; int nF60; };
 struct S { char pad[0x10]; struct T *pt; int pad2; struct U *p18; char pad3[0x14]; int n30; };
 int func_00209518(void *p);
-int func_001EF0B8(struct S *p, int msg, struct M *pm);
+int BHV_FHandleMessage(struct S *p, int msg, struct M *pm);
 int func_0017B690(struct S *p, int msg, struct M *pm) {
     if (msg == 9 && !p->n30 && p->p18->p40 && func_00209518(p->p18->p40) == pm->n0) {
         switch (pm->n8) {
@@ -11,5 +11,5 @@ int func_0017B690(struct S *p, int msg, struct M *pm) {
         case 0x32: p->pt->nF60 = 0; return 1;
         }
     }
-    return func_001EF0B8(p, msg, pm);
+    return BHV_FHandleMessage(p, msg, pm);
 }

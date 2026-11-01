@@ -1,5 +1,5 @@
 // func_001C55E0: one commented pin (QwNormalizeInto), one allocation-only asm operand (GFromVf), VU one-op asm helpers only.
-// dprize-style collision response (next to matched FCheckDprizeCollect): query the radius box with func_0020FAA0, find the deepest
+// dprize-style collision response (next to matched FCheckDprizeCollect): query the radius box with IntersectSwBoundingBox, find the deepest
 // sphere / CplaneFromSphere contact that the velocity approaches, then push the position out and rebuild the velocity (floor case:
 // tangent + clamped normal parts, one-shot boost; otherwise normal/tangent split with the two response factors).
 // Keys (wave 4, from w3lane8.v3 at aligned 52): call results passed raw so gcc emits the qmtc2; QwNormalizeInto reads the vector
@@ -28,7 +28,7 @@ void func_001AE478(FRAME *);
 void func_001AE4A0(FRAME *, int);
 qword func_001A62E8(P *);
 int func_001C5570(void *, SOPART *);
-void func_0020FAA0(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
 int func_001A93C8(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
 float func_0011E290(qword, qword, qword *, qword *);
 }
@@ -110,7 +110,7 @@ extern "C" void func_001C55E0(P *p)
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);
     int cpart;
     SOPART **appart;
-    func_0020FAA0(D_003DD490, posMin, posMax, func_001C5570, 0, &cpart, &appart);
+    IntersectSwBoundingBox(D_003DD490, posMin, posMax, func_001C5570, 0, &cpart, &appart);
     U normal;
     CMCONTACT acontact[8];
     for (int i = 0; i < cpart; i++) {

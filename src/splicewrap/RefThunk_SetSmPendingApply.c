@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001F0128(s32, s32, s32, s32);          /* extern */
+void SetSmPendingApply(s32, s32, s32, s32);          /* extern */
 extern M2C_UNK D_002A3BE0;
 
 CRef *RefThunk_SetSmPendingApply(CRef *ret, void *pbasic, s32 cref, CRef *aref)
@@ -12,7 +12,7 @@ CRef *RefThunk_SetSmPendingApply(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 3, aref, aotyp, &arg0_v, &arg1_v, &arg2_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_001F0128(pbasic, arg0_v, arg1_v, arg2_v);
+    SetSmPendingApply(pbasic, arg0_v, arg1_v, arg2_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

@@ -21,7 +21,7 @@ void func_00228C18(void *o,qword pos,qword *dir,qword *v);
 void func_002297F8(struct P *p,void *o);
 qword func_001A62E8(struct P *p);
 float func_0011D1C0(float pos,float vel,float target,float dt,struct SMP *s,float *result);
-void func_001FAC30(struct P *p,qword v);
+void AddSoAcceleration(struct P *p,qword v);
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
 static inline qword Add(qword a,qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
@@ -58,7 +58,7 @@ void func_001A28B0(struct P *p,void *o)
   func_0011D1C0(origin.f[2]+p->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->dt,&p->smp10A8,&z);
   g=(z-vel.f[2])/clock->dt-p->xE8->v80.f[2];
   accel.f[2]=accel.f[2]>g?accel.f[2]:g;
-  func_001FAC30(p,accel.q);
+  AddSoAcceleration(p,accel.q);
   break;
  default:
   func_002297F8(p,o);

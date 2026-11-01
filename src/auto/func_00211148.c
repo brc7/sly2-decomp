@@ -88,11 +88,11 @@ void func_00211148(s32 arg0, s32 arg1) {
         if (temp_a0 != 0) {
             if (arg1 != 0) {
                 if (arg1 == 1) {
-                    var_v0 = func_002026F8(temp_a0);
+                    var_v0 = PchzReconPending(temp_a0);
                     goto block_7;
                 }
             } else {
-                var_v0 = func_00202730(temp_a0);
+                var_v0 = PchzReconSelected(temp_a0);
 block_7:
                 var_a1 = var_v0;
             }

@@ -33,7 +33,7 @@ struct EMITB {
 };
 extern "C" {
 float GRandInRange__Fff(float gMin, float gMax);
-void func_001E6F10(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
+void EvaluateShapeS(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *func_001A6318(void *palo);
 }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -128,13 +128,13 @@ extern "C" void func_0015A808(EMITB *p, int i, int c, qword *ppos, qword *pv)
         float g = GRandInRange__Fff(s, s + ds);
         switch (pep->kindDir) {
         default:
-            func_001E6F10(pmesh, g, ppos, 0);
+            EvaluateShapeS(pmesh, g, ppos, 0);
             break;
         case 2:
-            func_001E6F10(pmesh, g, ppos, pv);
+            EvaluateShapeS(pmesh, g, ppos, pv);
             goto normalize;
         case 3: {
-            func_001E6F10(pmesh, g, ppos, &av[0].q);
+            EvaluateShapeS(pmesh, g, ppos, &av[0].q);
             *pv = Cross(av[0].q, p->ep.v40);
             goto normalize;
         }

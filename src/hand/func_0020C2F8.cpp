@@ -15,20 +15,20 @@ extern GAME D_003DD490;
 void ApplyAsegCur(ASEG *,ALO *,float,float,int,ASEGA **);
 extern "C" {
 void SubscribeLoObject(ASEGA *,int);
-qword func_001F5860(ALO *);
+qword GetSoDvGravity(ALO *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ALO *,int);
 void func_0020B210(ALO *);
 void func_0020D178(void *);
 float func_00196928(qword,qword,float,float,float,float);
 qword func_0022FC48(SPACE *,SPACE *,qword);
-qword func_0022FCC8(SPACE *,SPACE *,qword);
+qword ConvertXfVec(SPACE *,SPACE *,qword);
 void *func_0012DE58(ALO *,SPACE *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
-void func_001F5880(ALO *,qword);
+void SetSoDvGravity(ALO *,qword);
 void func_00130D30(ASEGA *,int,float,float);
 void func_0020B2A8(ALO *,ALO *,int);
 void func_0020C760(P *);
-void func_0020D1A0(void *);
+void EnableStuckWatch(void *);
 }
 static inline qword Scalar(float f){qword r;__asm__("qmtc2 %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -52,7 +52,7 @@ extern "C" void func_0020C2F8(P *p,int state)
     case 0:
         ApplyAsegCur(p->tuning->animation,p->subject,0.0f,1.0f,p->index,&p->job);
         SubscribeLoObject(p->job,(int)p);
-        p->previousVelocity.q=func_001F5860(p->subject);
+        p->previousVelocity.q=GetSoDvGravity(p->subject);
         break;
     case 1:{
         if(FIsBasicDerivedFrom__FP5BASIC3CID(p->subject,0x38)){
@@ -113,12 +113,12 @@ extern "C" void func_0020C2F8(P *p,int state)
               :"=m"(finalVelocity.q),"=r"(parentSpace),"=m"(scalar.q)
               :"j"(timeScalar),"j"(motionVelocity),"m"(launchSubject->space));
             qword position=func_0022FC48(0,parentSpace->parent,target);
-            qword speed=func_0022FCC8(0,p->subject->space->parent,finalVelocity.q);
+            qword speed=ConvertXfVec(0,p->subject->space->parent,finalVelocity.q);
             p->constraint=func_0012DE58(p->subject,p->subject->space,5,position,speed,p->arrival);
             p->subject->flags|=0x04000000ul;
             RecalcSwOxfFilterForObject(&D_003DD490,p->subject);
         }
-        func_001F5880(p->subject,acceleration.q);
+        SetSoDvGravity(p->subject,acceleration.q);
         break;
     }
     case 2:func_00130D30(p->job,0,p->tuning->afterStart,1.0f);break;
@@ -128,8 +128,8 @@ extern "C" void func_0020C2F8(P *p,int state)
         break;
     case 4:
         if(p->ballistic)func_0020C760(p);
-        func_001F5880(p->subject,p->previousVelocity.q);
-        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->subject,0x38))func_0020D1A0(p->subject->control);
+        SetSoDvGravity(p->subject,p->previousVelocity.q);
+        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->subject,0x38))EnableStuckWatch(p->subject->control);
         break;
     }
 }

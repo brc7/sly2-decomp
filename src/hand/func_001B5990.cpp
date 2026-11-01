@@ -30,7 +30,7 @@ int func_001B84E0(P*);
 void func_001B8508(P*);
 void func_001B85D0(P*);
 void func_001B5D30(P*,int);
-void func_002046F0(P*,void*);
+void FaceStepToward(P*,void*);
 void func_00204660(P*,float);
 void func_0020BB58(void*,float);
 void func_0020BC08(void*);
@@ -98,9 +98,9 @@ extern "C" void func_001B5990(P*p){
   if(p->state==before||p->mainState!=9)break;
  }
  switch(p->state){
- case 0:func_002046F0(p,p->target);break;
+ case 0:FaceStepToward(p,p->target);break;
  case 2:{
-  func_002046F0(p,p->target);
+  FaceStepToward(p,p->target);
   float length=LengthXY(p->axes[1].direction.q);
   PL*input=p->input;
   qword direction=Vector(SetVectorCylind(input->angle+3.1415927f,(input->strength*length)*p->animation->rate,0.0f));

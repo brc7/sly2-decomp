@@ -7,7 +7,7 @@ extern float D_002A4B30[];
 struct RANGE { float a; float b; };
 extern struct RANGE D_002BBB60;
 struct P { char pad[0x170]; VU v170; float x180; int x184; float x188; };
-void func_001F3C70(struct P *);
+void RenderSoSelf(struct P *);
 qword func_001A62E8(void *);
 void *func_001A6318(void *);
 M4 LoadMatrixFromPosRotScale(qword, void *, VU *);
@@ -49,7 +49,7 @@ void func_0013C000(struct P *p)
     }
     case 1:
     case 5:
-        func_001F3C70(p);
+        RenderSoSelf(p);
         break;
     case 2:
     case 3:

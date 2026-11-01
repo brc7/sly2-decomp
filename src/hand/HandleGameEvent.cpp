@@ -27,7 +27,7 @@ extern "C"{
  void InitGame(P*);
  void func_00166008();
  void func_001AB630(BANK*);
- int func_00210AE0();
+ int NWorldCur();
  void func_001D8FF8(void*);
  void RestoreTasksAfterLoad(P*);
  LEASE*func_001AE478(LEASE*);
@@ -102,7 +102,7 @@ extern "C" void HandleGameEvent(P*p,int action){
   if(D_003DD490.flags&1){InitGame(p);D_002E65E0.selected=0;}
   else if(D_003DD490.flags&0x40)func_00166008();
   func_001AB630(&D_002E65E0);
-  if(func_00210AE0())break;
+  if(NWorldCur())break;
   if(D_002E65E0.mode!=6||D_002E65E0.selected||!D_002E65E0.current)break;
   if(GetFloat(D_003DD490.primary,D_003D4A60)!=0.0f)break;
   if(GetFloat(D_003DD490.primary,D_002E65E0.current)!=0.0f)func_001D8FF8(D_002E65E0.current);

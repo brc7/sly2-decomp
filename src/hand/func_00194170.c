@@ -9,9 +9,9 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
-void func_001E67B8(struct S *s, U *position, U *direction, float g);
+void EvaluateShapeU(struct S *s, U *position, U *direction, float g);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
-void func_001FAC30(struct O *o, qword q);
+void AddSoAcceleration(struct O *o, qword q);
 static __inline__ float GClamp(float g, float lo, float hi)
 {
     if (g < lo)
@@ -60,7 +60,7 @@ void func_00194170(struct P *p)
     if (!s->x1bc)
         return;
     v.q = p->x0->vt[33].pfn((char *)p->x0 + p->x0->vt[33].d);
-    func_001E67B8(s, 0, &w, p->x1c);
+    EvaluateShapeU(s, 0, &w, p->x1c);
     psmp = &D_002BF700;
     {
     register float goal __asm__("$f13");
@@ -88,5 +88,5 @@ void func_00194170(struct P *p)
     x = GClamp(s->x1c4 * d2, b, a) - d2;
     __asm__("qmtc2.ni %1, %0" : "=j"(k.q) : "r"(x));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r.q) : "j"(w.q), "j"(k.q));
-    func_001FAC30(p->x0, r.q);
+    AddSoAcceleration(p->x0, r.q);
 }

@@ -2,7 +2,7 @@ typedef struct MARK { int a[4]; } MARK;
 typedef struct MSG { int cb; int nKind; int k; int **pp; } MSG;
 struct O { char pad[0x28]; long bits; };
 struct S { char pad[0xE4]; char aE4[0x18]; char aFC[0x10]; struct O *p10C; int c; void *a; void *cur; int x11C; char pad2[0x164 - 0x120]; int flags; };
-void func_00231768(struct S *p, void *pbis);
+void LoadXfmXfFromBrx(struct S *p, void *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pv);
 void CBinaryInputStream_ReadBspc(void *pbis, void *pv, void *pv2);
 MARK *func_001AE478(MARK *pm);
@@ -13,13 +13,13 @@ void func_00221818(struct S *p, int id);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct S *p, void *pbis);
 void func_00221940(struct S *p);
 void CLoadCollectorArray_ctor(MSG *pmsg);
-void func_002317E0(struct S *p, void *pbis, MSG *pmsg);
+void LoadXfmChildObjectsFromBrx(struct S *p, void *pbis, MSG *pmsg);
 void func_00220FD0(struct S *p, void *pbis)
 {
     MARK mark;
     MSG msg;
     void *pv;
-    func_00231768(p, pbis);
+    LoadXfmXfFromBrx(p, pbis);
     ReadGeom__18CBinaryInputStreamP4GEOM(pbis, p->aE4);
     CBinaryInputStream_ReadBspc(pbis, p->aE4, p->aFC);
     func_001AE478(&mark);
@@ -42,7 +42,7 @@ void func_00220FD0(struct S *p, void *pbis)
     p->a = pv;
     p->cur = pv;
     CLoadCollectorArray_ctor(&msg);
-    func_002317E0(p, pbis, &msg);
+    LoadXfmChildObjectsFromBrx(p, pbis, &msg);
     switch (msg.k) {
     case 0:
         break;

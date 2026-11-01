@@ -1,7 +1,7 @@
 // func_0021FB70 = UpdateJtThrowArc (Lilly's Sly2Port name, 0x21FB70): while the hero holds an object (JTTHROW, jts 23)
 // it predicts the arc the object would fly to the aim point. The launch point (vLaunchLocal in the hero's space) and the
 // carried object's gravity give CalculateLaunchVelocity (func_001D6848) a velocity whose elevation follows lmAim; the
-// apex and the end point after tPredict seconds bound a box for FindSwObjectsInBox (func_0020FAA0). 28 samples along the
+// apex and the end point after tPredict seconds bound a box for FindSwObjectsInBox (IntersectSwBoundingBox). 28 samples along the
 // arc are line-tested (func_0014CC58); at the first hit the flight time is the closest non-negative root of the vertical
 // motion (CSolveQuadratic). The flight time may change by at most 3 * dt per frame; up to 30 points of the arc are written
 // back to front into the marker's ring of frames (matrix along the arc, BuildOrthonormalMatrixZ), and the four-clip / two-clip
@@ -56,7 +56,7 @@ extern "C" {
  qword func_001A62E8(LO *);                    // PosLoWorld
  qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
  int func_001DAEA8(int);                       // FPowerUpAcquired
- void func_0020FAA0(SW *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***); // FindSwObjectsInBox
+ void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***); // FindSwObjectsInBox
  int func_0021FB18(void *,SO *);
  SO *func_0014CC58(int,qword,qword,int,SO **,HIT *);
  int CSolveQuadratic__FfffPf(float,float,float,float *);
@@ -64,7 +64,7 @@ extern "C" {
  V *func_00256D18(V *,qword);
  void func_0021C5F8(MARKER *,qword);
  float func_002458F0(float,float);
- float func_00204740(LO *);                    // JtGetFacingAngle
+ float RadStepHeading(LO *);                    // JtGetFacingAngle
  float RadNormalize__Ff(float);                   // RadNormalize
  void func_001384C0(ASEGBL *);
 }
@@ -121,7 +121,7 @@ extern "C" void func_0021FB70(JTTHROW *pjtthrow,int fUpdateBlends)
  posMax=QwMax(posLaunch,posMax);
  posMin=QwMin(posLaunch,posMin);
  int cso;SO **apso;
- func_0020FAA0(&D_003DD490,posMin,posMax,func_0021FB18,pjtthrow->ploCarried->pvFilter,&cso,&apso);
+ IntersectSwBoundingBox(&D_003DD490,posMin,posMax,func_0021FB18,pjtthrow->ploCarried->pvFilter,&cso,&apso);
  pjtthrow->vLaunch.q=vLaunch;
  float dt=t*0.034482758f;
  V apos[30];
@@ -192,7 +192,7 @@ extern "C" void func_0021FB70(JTTHROW *pjtthrow,int fUpdateBlends)
  V dpos;
  dpos.q=QwSub(posAim,posHeroNow);
  float rad=func_002458F0(dpos.f[1],dpos.f[0]);
- float radHero=func_00204740(pjtthrow->pstepplayer);
+ float radHero=RadStepHeading(pjtthrow->pstepplayer);
  rad=RadNormalize__Ff(rad-radHero);
  float uTurn=GClamp(rad/pjtthrow->radTurnAim,-1.0f,1.0f)*0.5f+0.5f;
  if(fUpdateBlends){

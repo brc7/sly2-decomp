@@ -1,7 +1,7 @@
 struct S { char pad[0x1034]; void *p1034; char pad1[0x1530 - 0x1038]; void *p1530; int n1534; };
 void func_001B6078(struct S *p, int n);
-void func_001F0948(void *p, int n);
-void func_001F0660(void *p, int n);
+void SeekSma(void *p, int n);
+void SetSmaGoal(void *p, int n);
 void func_001B9C00(struct S *p, void *pv, int n, int m, int f)
 {
     p->p1530 = pv;
@@ -11,12 +11,12 @@ void func_001B9C00(struct S *p, void *pv, int n, int m, int f)
         return;
     if (p->p1530) {
         if (f)
-            func_001F0948(p->p1530, n);
+            SeekSma(p->p1530, n);
         else
-            func_001F0660(p->p1530, n);
+            SetSmaGoal(p->p1530, n);
     }
     if (f)
-        func_001F0948(p->p1034, n);
+        SeekSma(p->p1034, n);
     else
-        func_001F0660(p->p1034, n);
+        SetSmaGoal(p->p1034, n);
 }

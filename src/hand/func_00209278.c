@@ -2,7 +2,7 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct E { int k; int h; struct O *po; };
 void func_0012F9B8(int h, char *p, int fl, struct O **ppo, float g, float f);
-void func_001F0198(int h, char *p, int a, int fl, struct O **ppo);
+void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
 void func_0020BF80(int h, char *p, int fl, struct O *po);
 void func_0020C948(int h, char *p, int fl, struct O *po);
 #define VC1(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
@@ -16,7 +16,7 @@ void func_00209278(struct E *pe, char *p, int fl, float g)
         VC1(pe->po);
         break;
     case 1:
-        func_001F0198(pe->h, p, -1, fl, &pe->po);
+        PsmaApplySmOut(pe->h, p, -1, fl, &pe->po);
         VC1(pe->po);
         break;
     case 2:

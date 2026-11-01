@@ -1,6 +1,6 @@
 // func_00142AF8 (Claude agent, laneC38 2026-10-24): MATCH from fresh5 (aligned 18). Every matrix product is written with Lilly's
-// MATRIX3 operator* (the NRV helper from src/hand/func_0021CB18.cpp / func_001F4558.cpp: rows read into qword locals, each
-// result row stored through a VU_VECTOR4 copy), and the first func_0022FD38 call is a plain assignment (no dead-copy wrapper).
+// MATRIX3 operator* (the NRV helper from src/hand/func_0021CB18.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
+// result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
@@ -38,7 +38,7 @@ void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float RadLimitLm(LM *plm, float g);
 M3 LoadRotateMatrixPanTilt(float a, float b);
 M3 func_0011B500(qword v, float g);
-M3 func_0022FD38(void *pvFrom, void *pvTo, M3 *pm);
+M3 ConvertXfMat(void *pvFrom, void *pvTo, M3 *pm);
 M3 InvertMatrix3Cofactor(const M3 *pm);
 qword func_0011BFF0(M3 *pm);
 void SetActPositionGoal(Q *pq, qword q);
@@ -155,13 +155,13 @@ void func_00142AF8(P *p)
     }
     M3 m0, m1;
     m0 = LoadRotateMatrixPanTilt(pan, tilt) * func_0011B500(D_002A2DA0, g);
-    m1 = func_0022FD38(0, p->p60, &p->pq->p8->m40);
+    m1 = ConvertXfMat(0, p->p60, &p->pq->p8->m40);
     m1 = m1 * InvertMatrix3Cofactor(&p->m1150);
     M3 m2;
     if (X(m0, 0) + X(m1, 0) < 0.0f && X(m0, 1) * X(m1, 1) < 0.0f)
         m2 = p->m1150;
     else
         m2 = m0 * p->m1150;
-    m2 = func_0022FD38(p->p60, p->pq->p8->pA0, &m2);
+    m2 = ConvertXfMat(p->p60, p->pq->p8->pA0, &m2);
     SetActPositionGoal(p->pq, func_0011BFF0(&m2));
 }

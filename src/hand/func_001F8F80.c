@@ -6,7 +6,7 @@ struct L { char pad[0x40]; struct L *pNext; char pad2[0x60 - 0x44]; struct O *po
 struct P { char pad[0x3D1C]; struct L *pl; };
 struct A { void *objects[0x301]; int n; };
 int func_00230348(int);
-void func_001F8E90(struct P *, struct O *, int *, void **);
+void BuildContactGroup(struct P *, struct O *, int *, void **);
 void func_001F9240(struct P *, int, int, void **);
 void func_001F8F80(struct P *p, int k)
 {
@@ -32,7 +32,7 @@ void func_001F8F80(struct P *p, int k)
                 }
             }
             a.n=0;
-            func_001F8E90(p,receiver,&a.n,a.objects);
+            BuildContactGroup(p,receiver,&a.n,a.objects);
             func_001F9240(p,k,a.n,a.objects);
         }
     }

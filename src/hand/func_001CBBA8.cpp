@@ -12,7 +12,7 @@ struct START {qword q;START(const U&source,float zero,float*lowOut,float*highOut
 extern float D_002C1EC4,D_002C1EC8;
 extern qword D_002A2DC0,D_002A2DA0;
 extern "C" {
-float func_001E8008(S*,float,float);void func_001E6F10(S*,qword*,qword*,float);
+float SRandomShapeRange(S*,float,float);void EvaluateShapeS(S*,qword*,qword*,float);
 float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
 void func_001CBBA8(S*,qword*,qword*,float);
 }
@@ -48,9 +48,9 @@ void func_001CBBA8(S*p,qword*posOut,qword*dirOut,float g){
  U pos;
  M3 basis;
  U scalar,moved,out;
- float x=func_001E8008(p,g,D_002C1EC4);
+ float x=SRandomShapeRange(p,g,D_002C1EC4);
  S*sampleReceiver;float sampleTime;SamplerArguments(p,x,&sampleReceiver,&sampleTime);
- func_001E6F10(sampleReceiver,&pos.q,&basis.c,sampleTime);
+ EvaluateShapeS(sampleReceiver,&pos.q,&basis.c,sampleTime);
  const qword*fallbackAddress;float epsilon;
  qword cross=CrossAndFallbackAddress(basis.c,D_002A2DC0,&fallbackAddress,&epsilon);
  qword right=NormalizeOr(cross,fallbackAddress,epsilon);

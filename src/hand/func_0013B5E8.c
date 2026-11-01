@@ -9,7 +9,7 @@ struct P { char pad[0xEC]; struct X *px; char pad1[0x15C - 0xF0]; float g15C; fl
 struct HIT { int a[12]; };
 extern char D_003DD490[];
 void func_0020FA10();
-void func_0020FC60(void *pg, qword q, void (*pfn)(), struct X *px, float g, int *pc, struct S ***paps);
+void IntersectSwBoundingSphere(void *pg, qword q, void (*pfn)(), struct X *px, float g, int *pc, struct S ***paps);
 void *func_001AE318(struct AREQ *preq);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int n, int k);
 int func_001A93C8(qword q, struct S *ps, int n, int a, int b, int c, float g, struct HIT *phit);
@@ -22,7 +22,7 @@ void func_0013B5E8(struct P *p, int *pc, struct O ***papo)
     int n;
     struct O **apo;
     int i;
-    { float a = p->g15C; float b = p->g160; func_0020FC60(D_003DD490, p->q180, func_0020FA10, p->px, b >= a ? b : a, &c, &aps); }
+    { float a = p->g15C; float b = p->g160; IntersectSwBoundingSphere(D_003DD490, p->q180, func_0020FA10, p->px, b >= a ? b : a, &c, &aps); }
     if (c == 0) {
         *pc = 0;
         *papo = 0;

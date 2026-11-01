@@ -6,7 +6,7 @@ struct O { char pad[0xC]; struct VT *pvt; char pad1[0x150 - 0x10]; struct P *p15
     char pad3[0x18C8 - 0x10E0]; int n18C8; int x18CC; int n18D0; int x18D4; int n18D8; };
 extern qword func_001A62E8(void *p);
 extern int func_0011D910(void *p, float g);
-extern struct T *func_001EEEE0(void *p, int n);
+extern struct T *PbhvFindBhvstk(void *p, int n);
 extern void func_0018C250(struct O *p, int n, int m);
 extern float func_002458F0(float y, float x);
 extern float RadNormalize__Ff(float g);
@@ -30,7 +30,7 @@ int func_0018EE38(struct O *p)
         if (g < D_002BF4AC)
             f = func_0011D910(D_002BF4B0, GetZ(d)) != 0;
         if (f) {
-            struct T *pt = func_001EEEE0(p->p10DC + 0x26C, 0xB1);
+            struct T *pt = PbhvFindBhvstk(p->p10DC + 0x26C, 0xB1);
             if (pt && pt->p5C == p) {
                 int k = pt->n50;
                 if (k < 2) {

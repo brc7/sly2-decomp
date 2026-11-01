@@ -7,7 +7,7 @@ void func_0018F2B0(struct S *p, float g, int a, void *pv, int *pn, VEC *pq, floa
 
 float func_002458F0(float y, float x);
 void func_00204660(struct S *p, float g);
-void func_00204CA8(struct S *p);
+void FixStepAngularVelocity(struct S *p);
 void func_0018F688(struct S *p)
 {
     VEC v;
@@ -20,5 +20,5 @@ void func_0018F688(struct S *p)
     if (n)
         g = func_002458F0(v.y, v.x);
     func_00204660(p, g);
-    func_00204CA8(p);
+    FixStepAngularVelocity(p);
 }

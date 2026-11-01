@@ -6,7 +6,7 @@ struct B { char pad[0x40]; MATRIX4 m; };
 struct S { int x0; struct A *p4; struct A *p8; struct B *pC; MATRIX4 m10; MATRIX4 m50; qword v90; qword vA0; qword vB0;
     union{float value;int bits;}length0,length1; float gC8; };
 extern "C" float RadBetweenVectors(qword a, qword b, qword *pv);
-extern "C" qword func_0022FCC8(void *space, void *p, qword v);
+extern "C" qword ConvertXfVec(void *space, void *p, qword v);
 extern "C" void func_00186930(S*p){
  register int bits asm("$2");
  qword*axis=&p->v90;
@@ -25,7 +25,7 @@ extern "C" void func_00186930(S*p){
  register qword arg0 asm("$4"),arg1 asm("$5");
  asm("qmfc2.ni %0,%3\n\tqmfc2.ni %1,%4\n\tqmfc2.ni %2,%5":"=r"(arg0),"=r"(bits),"=r"(arg1):"j"(right),"j"(left),"j"(a));
  *(volatile int*)&p->length0.bits=bits;p->gC8=RadBetweenVectors(arg0,arg1,axis);
- p->v90=func_0022FCC8(0,p->p8->pA0,p->v90);
+ p->v90=ConvertXfVec(0,p->p8->pA0,p->v90);
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];

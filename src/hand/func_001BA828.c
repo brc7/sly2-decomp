@@ -6,7 +6,7 @@ struct VE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x38 - 0x10]; int x38; char pad2[4]; int x40; };
 struct S { char pad[0x10]; int x10; char pad1[4]; int x18; char pad2[0x30 - 0x1C]; int x30; float f34; int x38; };
 void func_00171C18(int a, int b);
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(int a, int b);
 void func_00171258(struct O *o, int a, int b, int c);
 void BroadcastGameEvent(void *p, int a, int b);
@@ -15,7 +15,7 @@ void func_001BA828(struct S *p, int st)
 {
     if (st == p->x30) return;
     if (p->x30 == 0) func_00171C18(p->x18, p->x10 + 0x1090);
-    func_001EF0D8(&p->x18);
+    PopBhv(&p->x18);
     p->x30 = st;
     p->f34 = D_002DDED0.t;
     switch (st) {

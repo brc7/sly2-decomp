@@ -2,9 +2,9 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct VT { short d; short pad; void *pfn; };
 struct X { char pad[0xC]; struct VT *vt; char pad2[0xF4 - 0x10]; qword *apos; };
-int func_001E7668(struct X *p, float g, int a, int b);
+int IsegFindShapeS(struct X *p, float g, int a, int b);
 int func_001BC530(struct X *p, int i);
-void func_001E6F10(struct X *p, qword *pv, float g, int n);
+void EvaluateShapeS(struct X *p, qword *pv, float g, int n);
 int func_001C0980(void *pv, qword a, qword b, int k);
 static inline qword MulPos(M4 *pm, qword v)
 {
@@ -16,8 +16,8 @@ static inline qword MulPos(M4 *pm, qword v)
 int func_001BCAC0(struct X *p, void *pv, int fRev, float g0, float g1)
 {
     int i0, r, pass, k, i1;
-    i0 = func_001E7668(p, g0, 0, 0);
-    i1 = func_001E7668(p, g1, 0, 0);
+    i0 = IsegFindShapeS(p, g0, 0, 0);
+    i1 = IsegFindShapeS(p, g1, 0, 0);
     for (pass = 0; pass < 2; pass++) {
         int i, iEnd, a;
         M4 m;
@@ -35,7 +35,7 @@ int func_001BCAC0(struct X *p, void *pv, int fRev, float g0, float g1)
         }
         i = a;
         m = *((M4 *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d);
-        func_001E6F10(p, &v0, g0, 0);
+        EvaluateShapeS(p, &v0, g0, 0);
         q = v0;
         while (i != iEnd) {
             v = MulPos(&m, p->apos[i]);
@@ -47,7 +47,7 @@ int func_001BCAC0(struct X *p, void *pv, int fRev, float g0, float g1)
                 i = func_001BC530(p, i - 1);
             q = v;
         }
-        func_001E6F10(p, &v1, g1, 0);
+        EvaluateShapeS(p, &v1, g1, 0);
         if (!func_001C0980(pv, q, v1, k))
             return r;
     next:;

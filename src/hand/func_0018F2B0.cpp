@@ -14,7 +14,7 @@ extern "C" float D_002BF4B8;
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword func_001A62E8(P*);
 extern "C" qword ConvertAloPos(P*,void*,qword);
-extern "C" void func_002309E8(void*,void*,M4*,float,M4*);
+extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,P*);
 extern "C" float func_002458F0(float,float);
@@ -54,7 +54,7 @@ extern "C" void func_0018F2B0(P*p,float headingInput,int mask,float dtInput,U*of
   if(!(node->flags&mask))continue;
   candidate.q=func_001A62E8(node);
   void*owner=GetFrame(node,&fx.m);
-  func_002309E8(owner,0,&prediction,dt,0);
+  LoadIdentityMatrix4(owner,0,&prediction,dt,0);
   FindClosestPointOnLineSegment(target.q,candidate.q,Transform(prediction,fx.m.r[3].q),0,&t,&distance);
   if(IsBonus(node))distance+=D_002BF4B8;
   if(distance<nearest){

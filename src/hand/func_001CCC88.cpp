@@ -33,9 +33,9 @@ void SetLoParent_1A58D0(LO *,int,int);
 float func_00196928(qword,qword,float,float,float,float);
 void func_00131A00(ANIM *,float);
 qword func_0022FC48(SPACE *,SPACE *,qword);
-qword func_0022FCC8(SPACE *,SPACE *,qword);
+qword ConvertXfVec(SPACE *,SPACE *,qword);
 JOB *func_0012DE58(LO *,CHANNEL *,int,float,qword,qword);
-M3 *func_0022FD38(M3 *,SPACE *,SPACE *,const M3 *);
+M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 qword func_0011BFF0(const M3 *);
 JOB *func_0012DC18(LO *,CHANNEL *,int,int,int,qword);
 void func_001F6860(LO *,int);
@@ -138,14 +138,14 @@ extern "C" void func_001CCC88(P *input,LO *other){
  }
  float endTime=D_002DDED0.time+phase;
  qword position=func_0022FC48(0,object->position->space,work.final.rows[3]);
- qword endVelocity=func_0022FCC8(0,object->position->space,work.endVelocity);
+ qword endVelocity=ConvertXfVec(0,object->position->space,work.endVelocity);
  {
  register CHANNEL*channel __asm__("$5");register qword velocityArgument __asm__("$8"),positionArgument __asm__("$7");register float timeArgument __asm__("$f12");register LO*receiver __asm__("$4");
  __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
   :"=&r"(channel),"=&r"(velocityArgument),"=f"(timeArgument),"=&r"(positionArgument),"=r"(receiver):"m"(object->position),"r"(endVelocity),"f"(endTime),"r"(position),"r"(object));
  p->positionJob=func_0012DE58(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
  }
- func_0022FD38(&work.views.basis.converted,0,object->orientation->space,(M3*)finalMatrix);
+ ConvertXfMat(&work.views.basis.converted,0,object->orientation->space,(M3*)finalMatrix);
  work.views.basis.angles=work.views.basis.converted;
  qword angles=func_0011BFF0((M3*)workingBase);
  register CHANNEL*orientationChannel __asm__("$5");register LO*orientationOwner __asm__("$4");register qword anglesArgument __asm__("$9");

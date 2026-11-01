@@ -7,7 +7,7 @@ void PostLoLoad(struct P *p);
 struct Q *func_001E94B0(int k, int c);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
 qword func_001A62E8(void *p);
-void func_001E6180(struct Q *q);
+void MeasureShape(struct Q *q);
 void func_0014A0A8(struct P *p)
 {
     int i;
@@ -23,5 +23,5 @@ void func_0014A0A8(struct P *p)
             *pq = func_001A62E8(o);
         }
     }
-    func_001E6180(p->q);
+    MeasureShape(p->q);
 }

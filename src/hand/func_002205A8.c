@@ -5,8 +5,8 @@ struct S { void *p0; char pad[0xC]; struct O *po; char pad1[0x1C]; qword q30; ch
 extern struct O *D_002DD5BC;
 void func_00136530(struct O *po, int n);
 void SetLoParent_1A58D0(struct O *po, int a, int b);
-void func_001F5720(struct O *po, int a);
-void func_001F57C0(struct O *po, int a);
+void SetSoCnstrForce(struct O *po, int a);
+void SetSoCnstrTorque(struct O *po, int a);
 qword ConvertAloVec(void *p, int a, qword q);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void func_002205A8(struct S *p)
@@ -17,8 +17,8 @@ void func_002205A8(struct S *p)
         func_00136530(p->po, 1);
     } else {
         SetLoParent_1A58D0(p->po, 0, 3);
-        func_001F5720(p->po, 0);
-        func_001F57C0(p->po, 0);
+        SetSoCnstrForce(p->po, 0);
+        SetSoCnstrTorque(p->po, 0);
     }
     p->po->vt[35].pfn((char *)p->po + p->po->vt[35].d, p->qF0);
     {

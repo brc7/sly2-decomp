@@ -1,4 +1,4 @@
-// Follow an animated target: sample the target's pose (func_002309E8), blend the end velocity of a Hermite step from
+// Follow an animated target: sample the target's pose (LoadIdentityMatrix4), blend the end velocity of a Hermite step from
 // the position delta, the current velocity and the acceleration, run the step (EvaluateBezierPos), then spin the
 // orientation about its axis in proportion to the elapsed time.
 typedef int qword __attribute__((mode(TI)));
@@ -12,7 +12,7 @@ struct S {
 };
 extern struct CLOCK { float t, dt; } D_002DDED0;
 extern "C" {
-void func_002309E8(void *, int, M4 *, M4 *, float);
+void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 M3 *func_0011B500(M3 *, qword, float);
 void func_001CFE88(S *);
@@ -46,7 +46,7 @@ void func_001CFE88(S *p)
     M3 spin;
     p->prev = p->pos;
     float remain = Max(clock->dt, p->start + p->duration - clock->t);
-    func_002309E8(p->x->data, 0, &m, 0, remain);
+    LoadIdentityMatrix4(p->x->data, 0, &m, 0, remain);
     qword delta = Sub(m.r[3], p->pos);
     qword w1 = Splat(1.5f / remain);
     qword w2 = Splat(-0.5f);

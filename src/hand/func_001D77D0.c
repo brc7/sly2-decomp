@@ -9,9 +9,9 @@ typedef struct {
 } OBJ;
 void *func_001F07E8(void *);
 int func_001F0438(LIST *, void *);
-void *func_001F04F8(LIST *, int);
-void func_001F0660(void *, void *);
-void func_001F1448(int, OBJ *, int, int, void **);
+void *OidFromSmIsms(LIST *, int);
+void SetSmaGoal(void *, void *);
+void ReplaceSma(int, OBJ *, int, int, void **);
 void func_001D77D0(OBJ *p, int d)
 {
     int i0;
@@ -28,10 +28,10 @@ void func_001D77D0(OBJ *p, int d)
             i = p->plist->c - 1;
         else if (i >= p->plist->c)
             i = 0;
-        pv = func_001F04F8(p->plist, i);
+        pv = OidFromSmIsms(p->plist, i);
         for (j = 0; j < p->c; j++) {
             if (p->a[j] == pv) {
-                func_001F0660(p->x188, pv);
+                SetSmaGoal(p->x188, pv);
                 return;
             }
         }
@@ -40,5 +40,5 @@ void func_001D77D0(OBJ *p, int d)
         else if (i == i0)
             break;
     }
-    func_001F1448(0, p, -1, 0, &p->x188);
+    ReplaceSma(0, p, -1, 0, &p->x188);
 }

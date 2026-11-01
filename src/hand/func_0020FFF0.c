@@ -5,8 +5,8 @@ int CploFindSwObjects_15E650(void *p, int k, int a, int b, int c, void **ppo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 struct Y *func_001F67E0(void *o, int b);
 void SubscribeLoObject(struct Y *y, int x);
-void func_001F0948(struct Y *y, int id);
-void func_001F0660(struct Y *y, int id);
+void SeekSma(struct Y *y, int id);
+void SetSmaGoal(struct Y *y, int id);
 void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
 {
     void *o;
@@ -33,7 +33,7 @@ void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
         SubscribeLoObject(y, x);
     }
     if (fl & 2)
-        func_001F0948(y, id);
+        SeekSma(y, id);
     else
-        func_001F0660(y, id);
+        SetSmaGoal(y, id);
 }

@@ -15,13 +15,13 @@ extern qword D_002A2DD0;
 extern float D_002A5138;
 void func_0020AC28(struct SO *pso, int a, int b, qword q);
 float GRandInRange__Fff(float a, float b);
-void func_001EF0D8(int *p);
+void PopBhv(int *p);
 void *func_00155A68(struct X *p);
 struct ASEG *func_00205438(struct SO *pso, int id);
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
 void func_00209818(void *p, float g);
-void func_001E6180(struct ALO *p);
+void MeasureShape(struct ALO *p);
 void func_00178D90(struct ASEG *a, struct ALO *b, int c);
 
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -53,7 +53,7 @@ void func_00155AE0(struct X *p, int k)
         p->plm = 0;
         break;
     }
-    func_001EF0D8(&p->x18);
+    PopBhv(&p->x18);
     p->state = k;
     p->t34 = D_002DDED0.t;
     switch (k) {
@@ -93,7 +93,7 @@ void func_00155AE0(struct X *p, int k)
             qword *pq = palo->pq;
             pq[1] = func_001A62E8(p->x40);
         }
-        func_001E6180(palo);
+        MeasureShape(palo);
         func_00178D90(pa, palo, 0);
         pa->xC0 = 8;
         pa->xC8 = p->x4C;

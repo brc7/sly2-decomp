@@ -20,7 +20,7 @@ qword SetVectorCylind(float a, float b, float c);
 qword func_001A62E8(void *p);
 void func_0020C6F8(void *p, qword v);
 void func_0020AB68(struct A *a, int b, int c, qword v);
-void func_001EEFC0(struct S *p);
+void SetBhvBusy(struct S *p);
 void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
 void *PpoHero(struct G *g);
 int FFindLoParent(int n, void *o);
@@ -55,7 +55,7 @@ void func_00179328(struct S *p) {
         func_0020C6F8(p->p40->p8, s);
     }
     func_0020AB68(p->p10, 0, 0, D_002A2DD0);
-    if (p->n30 == 0) func_001EEFC0(p);
+    if (p->n30 == 0) SetBhvBusy(p);
     func_00156C80(&D_003DD490, 1, func_001A62E8(p->p10), p->p10, p->p10->a35C);
     p->fB0 = p->fB4 = D_002A5584;
     p->p10->nF04 = 0;

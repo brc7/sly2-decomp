@@ -12,9 +12,9 @@ extern M2C_UNK D_004520A8;
 void func_00131990(s32 arg0, s32 arg1) {
     if ((func_00131968(arg0) == 0) && (arg1 != M2C_FIELD(arg0, s32 *, 0x58))) {
         if (arg1 != 0) {
-            func_0020EFC0((s32) &D_003DD490, 3);
+            IncrementSwHandsOff((s32) &D_003DD490, 3);
         } else {
-            func_0020F030((s32) &D_003DD490, 3);
+            DecrementSwHandsOff((s32) &D_003DD490, 3);
         }
         M2C_FIELD(arg0, s32 *, 0x58) = arg1;
     }

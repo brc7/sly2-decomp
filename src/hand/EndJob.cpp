@@ -21,7 +21,7 @@ extern char D_002DEB30[];
 extern "C" void SetSwJobCur(G *pg, O *p);
 extern "C" void SetSwTaskPending(G *pg, O *p);
 extern "C" W *func_00210B70();
-extern "C" int func_00210A88();
+extern "C" int IlevelCur__Fv();
 extern "C" W *func_00210990(int n);
 extern "C" int FJobLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
@@ -39,7 +39,7 @@ extern "C" void EndJob(O *p)
     if (D_003DD490.f3b14 && D_003DD490.f3b14->f7c && D_003DD490.f3b14->f7c == p)
         SetSwTaskPending(&D_003DD490, 0);
     W *pw1 = func_00210B70();
-    W *pw2 = func_00210990(func_00210A88());
+    W *pw2 = func_00210990(IlevelCur__Fv());
     if (FSame(pw1, pw2)) {
         D_003DD490.f3c88 = 0x189;
         D_003DD490.f3c8c = -1;

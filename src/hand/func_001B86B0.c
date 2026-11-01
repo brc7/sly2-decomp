@@ -22,8 +22,8 @@ qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
 float RadNormalize__Ff(float g);
 void func_00204660(struct P *p, float g);
-void func_00204CA8(struct P *p);
-void func_001F15B8(void *p);
+void FixStepAngularVelocity(struct P *p);
+void ReleaseSma(void *p);
 void func_001305B8(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
 float *func_0012F938(void *q, int n);
 void func_00131A90(struct ANIM *pa, float t);
@@ -57,11 +57,11 @@ void func_001B86B0(struct P *p, int k)
         g = func_002458F0(GetY(d), GetX(d));
         if (__builtin_fabsf(RadNormalize__Ff(g - p->g1A8)) < D_002C09F0) {
             func_00204660(p, g);
-            func_00204CA8(p);
+            FixStepAngularVelocity(p);
         }
     }
     g = 0.0f;
-    func_001F15B8(p->x1034);
+    ReleaseSma(p->x1034);
     func_001305B8(q, p, g, 1.0f, 1, &p->panim);
     if (q) {
         float *pg = func_0012F938(q, 0x1AC);

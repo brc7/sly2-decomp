@@ -17,14 +17,14 @@ extern qword D_002A2DD0;
 void SetLoParent_1A58D0(struct P *, int, int);
 void ReleaseAct(void *);
 void func_002303A0(struct P *, struct O *, int);
-float func_00204740(struct P *);
+float RadStepHeading(struct P *);
 void func_00204660(struct P *, float);
-void func_00204CA8(struct P *);
+void FixStepAngularVelocity(struct P *);
 void func_002206C8(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
 void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword func_0011BFF0(M4 *pm);
-void func_001F15B8(void *);
+void ReleaseSma(void *);
 void func_001305B8(void *, struct P *, int, void *, float, float);
 
 void func_00136530(struct P *p, int k)
@@ -44,9 +44,9 @@ void func_00136530(struct P *p, int k)
         break;
     }
     case 1:
-        func_00204660(p, func_00204740(p));
+        func_00204660(p, RadStepHeading(p));
         p->x1A4 = 0;
-        func_00204CA8(p);
+        FixStepAngularVelocity(p);
         break;
     }
     p->k1800 = k;
@@ -83,7 +83,7 @@ void func_00136530(struct P *p, int k)
         p->x1A4 = -1;
         break;
     }
-    func_001F15B8(&p->x1034);
+    ReleaseSma(&p->x1034);
     func_001305B8(pv, p, 9, &p->x1030, 0.0f, 1.0f);
     ((void (*)(void *))p->vt[90].f)((char *)p + p->vt[90].d);
 }

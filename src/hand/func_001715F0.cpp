@@ -29,8 +29,8 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void func_0017DD38(void *o, struct X *x);
 void func_0012F9B8(void *o, int a, int b, void *c, float f, float g);
 void *func_001711F0(void *p, int id);
-void func_001EEFC0(struct S *p);
-void func_001EF038(struct S *p);
+void SetBhvBusy(struct S *p);
+void ClearBhvBusy(struct S *p);
 void func_002090D0(struct X50 *x, struct A *a);
 void func_00209130(struct X50 *x, struct A *a);
 void func_001E0020(void *o, int n);
@@ -162,10 +162,10 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         break;
     }
     case 11:
-        func_001EEFC0(p);
+        SetBhvBusy(p);
         break;
     case 12:
-        func_001EF038(p);
+        ClearBhvBusy(p);
         break;
     case 13: {
         void *o = func_001715B8(p, p->p38->n4);

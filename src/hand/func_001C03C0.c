@@ -7,7 +7,7 @@ struct P { float x, y, z; unsigned short c, d; };
 struct S { char pad[0x18]; int x18; char p0[0xE0 - 0x1C]; int cE0; struct V *aE4; int cE8; struct F *aEC; int cF0; struct P *aF4; char p1[0x114 - 0xF8]; int x114; };
 struct G { char pad[0x3D70]; int x3D70; char p1[0x45C8 - 0x3D74]; struct S *x45C8; };
 extern struct G D_003DD490;
-void func_00231170(struct S *p, void *pbis);
+void LoadXfmFromBrx(struct S *p, void *pbis);
 int func_00117C20(void *pbis);
 int func_00117BD0(void *pbis);
 void func_00117EB0(void *pbis, struct V *pv);
@@ -19,7 +19,7 @@ void func_001C03C0(struct S *p, void *pbis)
 {
     struct A a;
     int i, j, k;
-    func_00231170(p, pbis);
+    LoadXfmFromBrx(p, pbis);
     p->cE0 = func_00117C20(pbis);
     a.cb = p->cE0 * 32;
     a.align = 0x10;

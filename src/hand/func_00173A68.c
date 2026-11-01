@@ -21,8 +21,8 @@ struct ENTRY*func_00173E78(struct P*,struct LO*);
 struct SELECTOR*func_00173F18(struct P*,qword,qword*,struct M3*,int*);
 void func_00173928(struct P*,struct ENTRY*,int,int);
 struct LO*func_00174490(struct P*,struct SELECTOR*,qword*,struct M3*,int);
-void func_001F7D10(struct LO*,float);
-void func_001F7C68(struct LO*,float);
+void SetSoAlpha(struct LO*,float);
+void FadeSoIn(struct LO*,float);
 void func_00154038(void*,struct LO*,int);
 static inline float DistanceXY(qword a,qword b){qword d;float f;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 void func_00173A68(struct P*p){
@@ -64,8 +64,8 @@ void func_00173A68(struct P*p){
  if(entry->object)func_00173928(p,entry,0,1);
  object=func_00174490(p,selector,&point.q,&rotation,flag);
  if(!object)return;
- func_001F7D10(object,0.01f);
- func_001F7C68(object,0.5f);
+ SetSoAlpha(object,0.01f);
+ FadeSoIn(object,0.5f);
  if(event)func_00154038(object->xF64,event->tag,2);
  entry->object=object;
  entry->time=D_002DDED0.t;

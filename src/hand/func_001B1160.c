@@ -7,11 +7,11 @@ struct P { char pad0[0xC]; struct VT *vt; char pad1[0x16C - 0x10]; struct CURVE 
 extern qword D_002A2DA0;
 qword func_001A62E8(void *p);
 struct SPACE;
-void func_001E6ED8(struct CURVE*,qword,struct SPACE*,qword*,qword*,float*,float*,float);
-float func_001E6660(struct CURVE *p, float g);
-float func_001E6610(struct CURVE *p);
-float func_001E6630(struct CURVE *p);
-void func_001E67B8(struct CURVE*,float,qword*,qword*);
+void FindShapeClosestPointFromU(struct CURVE*,qword,struct SPACE*,qword*,qword*,float*,float*,float);
+float UWrapShape(struct CURVE *p, float g);
+float UMinShape(struct CURVE *p);
+float UMaxShape(struct CURVE *p);
+void EvaluateShapeU(struct CURVE*,float,qword*,qword*);
 void func_001B1328(struct P *p, int n);
 static __inline__ qword VLen(qword c)
 {
@@ -61,9 +61,9 @@ void func_001B1160(struct P *p)
     if (!q)
         return;
     upos.q = func_001A62E8(p);
-    func_001E6ED8(q,upos.q,0,0,0,&p->g174,0,p->g174);
-    t = func_001E6660(q, p->g174 + p->g178);
-    if (t < func_001E6610(q) || func_001E6630(q) < t) {
+    FindShapeClosestPointFromU(q,upos.q,0,0,0,&p->g174,0,p->g174);
+    t = UWrapShape(q, p->g174 + p->g178);
+    if (t < UMinShape(q) || UMaxShape(q) < t) {
         if (p->x220 == 1)
             func_001B1328(p, 2);
     } else {
@@ -72,7 +72,7 @@ void func_001B1160(struct P *p)
         register qword k __asm__("$2");
         float gl;
         register int lengthBits __asm__("$3");
-        func_001E67B8(q,t,&v.q,0);
+        EvaluateShapeU(q,t,&v.q,0);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v.q), "j"(upos.q));
         {
             register const qword *address __asm__("$2") = &D_002A2DA0;

@@ -66,7 +66,7 @@ int func_0011D910(LM *, float);
 qword ConvertAloPos(P *, P *, qword);
 float func_002458F0(float, float);
 int func_00175820(void *, void *);
-void func_0020FAA0(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
 int func_0014CC58(int, qword, qword, int, void **, LSG *);
 void func_0020AB68(P *, ENTRY *, void *, qword);
 void func_0020A9A8(void *, int);
@@ -200,7 +200,7 @@ extern "C" ENTRY *func_001758A0(P *p, P *target, void *gate)
             void **objects;
             line.start.q = from;
             line.end.q = to;
-            func_0020FAA0(D_003DD490, from, to, func_00175820, entry, &count, &objects);
+            IntersectSwBoundingBox(D_003DD490, from, to, func_00175820, entry, &count, &objects);
             if (func_0014CC58(0, line.start.q, line.end.q, count, objects, &line.hit) &&
                 Blocked(&line, entry->minHit))
                 continue;

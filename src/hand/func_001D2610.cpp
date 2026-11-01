@@ -46,18 +46,18 @@ void func_001D4B28(P *, int);
 float func_002456F0(float);
 M3 func_0011B500(qword, float);
 int func_001C0960(void *, qword, qword, int, HIT *, int);
-void func_001E6180(PATH *);
+void MeasureShape(PATH *);
 void func_001D2420(P *);
 void func_001C02D0(void *, qword, qword, PATH *);
 float func_002458F0(float, float);
 M3 *func_001A6318(P *);
 qword func_0022CA18(void *, void *);
 float RadNormalize__Ff(float);
-void func_001F0660(void *, int);
+void SetSmaGoal(void *, int);
 float GRandInRange__Fff(float, float);
 void func_001D2490(P *);
 int func_001D4E08(ATTACH *);
-int func_00227C90(void *, qword);
+int FCheckVolPoint(void *, qword);
 }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
@@ -175,7 +175,7 @@ extern "C" void func_001D2610(P *p)
             p->path->points[0].q = position;
             p->path->points[1].q = goal;
             p->path->count = 2;
-            func_001E6180(p->path);
+            MeasureShape(p->path);
             func_001D2420(p);
         } else if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, target)) {
             func_001C02D0(p->navigator, position, target, p->path);
@@ -204,7 +204,7 @@ extern "C" void func_001D2610(P *p)
                     break;
                 }
             fire:
-                func_001F0660(attach->binding, 0x68);
+                SetSmaGoal(attach->binding, 0x68);
                 float t = D_002DDED0.t;
                 p->nextAttack = t + GRandInRange__Fff(1.0f, 1.5f);
             }
@@ -233,7 +233,7 @@ extern "C" void func_001D2610(P *p)
             ATTACH *attach = p->attachments[i];
             if (!func_001D4E08(attach))
                 continue;
-            if (attach->constraint && !func_00227C90(attach->constraint, target))
+            if (attach->constraint && !FCheckVolPoint(attach->constraint, target))
                 continue;
             if (0.0f < attach->enterRange.max && p->state != 1)
                 continue;
@@ -246,7 +246,7 @@ extern "C" void func_001D2610(P *p)
                 if (D_002C20F4 < error || D_002C20F8 < Abs(pitch))
                     continue;
             }
-            func_001F0660(attach->binding, 0x68);
+            SetSmaGoal(attach->binding, 0x68);
             float t = D_002DDED0.t;
             p->nextAttack = t + GRandInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
         }

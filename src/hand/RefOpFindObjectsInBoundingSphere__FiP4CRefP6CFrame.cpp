@@ -13,7 +13,7 @@ struct CRef {
 struct OBJ { int a[4]; OBJ(); ~OBJ(); };
 extern char D_003DD490[];
 extern "C" {
-void func_0020FC60(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
+void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
 void func_0020FDC8(int c, void *ap, int *pc, void **pap);
 CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
 CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
@@ -31,7 +31,7 @@ CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref
     void *ap0;
     int c1;
     void *ap1;
-    func_0020FC60(D_003DD490, *(qword *)aref[0].u.pv, 0, 0, g, &c0, &ap0);
+    IntersectSwBoundingSphere(D_003DD490, *(qword *)aref[0].u.pv, 0, 0, g, &c0, &ap0);
     func_0020FDC8(c0, ap0, &c1, &ap1);
     ref = RefPairFromAplo__FiPP2LO(c1, ap1);
     return ref;

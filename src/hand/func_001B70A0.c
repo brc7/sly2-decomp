@@ -8,7 +8,7 @@ extern char D_002C09B0[], D_002C09C0[];
 int func_00209A68(struct O *po, int n);
 int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
-struct S *func_001EEEE0(void *p, int n);
+struct S *PbhvFindBhvstk(void *p, int n);
 qword func_001A62E8(void *p);
 int func_0011D910(void *p, float g);
 void func_0017B1A8(struct S *p, int n);
@@ -34,7 +34,7 @@ int func_001B70A0(struct P *p)
         return 0;
     if (!func_00209A68(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
         goto ret0;
-    ps = func_001EEEE0(p->p10DC->x26C, 0xB1);
+    ps = PbhvFindBhvstk(p->p10DC->x26C, 0xB1);
     if (ps->x50 >= 3)
         return 0;
     if (ps->x5C != p) {

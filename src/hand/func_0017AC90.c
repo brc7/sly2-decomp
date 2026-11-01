@@ -16,7 +16,7 @@ void func_00174B68(struct S *p);
 void func_0017B1A8(struct S *p, int n);
 void func_0017ABC8(struct S *p);
 qword func_001A62E8(struct A *a);
-void func_002309E8(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
+void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->p19A4;return y->p60;}
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 void func_0017AC90(struct S *p) {
@@ -67,7 +67,7 @@ void func_0017AC90(struct S *p) {
                 /* Preserve velocity and prepare the prediction inputs. */
                 __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(p->p5C));
             }
-            func_002309E8(Frame(frameLink), nullSource, &out, nullOutput, dt);
+            LoadIdentityMatrix4(Frame(frameLink), nullSource, &out, nullOutput, dt);
             t.q = out.v;
             t.f[2] += D_002BE6C8;
             tq = t.q;

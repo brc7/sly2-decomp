@@ -69,10 +69,10 @@ struct P{
 extern "C"{
 extern CLOCK D_002DDED0;extern int D_002BF448[];extern float D_002BF430,D_002BF434,D_002BF438,D_002BF43C,D_002BF440;
 extern void*D_002E1E44;extern void*D_002E1E48;
-void func_001F2AD0(P*,ACTION*);void func_001F4BF8(P*);void func_001CCAC0(void*,int);
+void HideSoPart(P*,ACTION*);void func_001F4BF8(P*);void func_001CCAC0(void*,int);
 EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,void*);void func_001FB3F0(EFFECT*,qword);
 qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
-void func_0018F560(P*,BLEND*,ASEG*);int func_001F0400(SM*,int);void func_001F09D8(COMPONENT*,int);
+void func_0018F560(P*,BLEND*,ASEG*);int func_001F0400(SM*,int);void SnapSma(COMPONENT*,int);
 void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
 }
 static __inline__ void Emit(P*p,int id){if(id!=-1){EFFECT*effect=func_001FBB90(id);func_001FB2F8(effect,0);func_001FB3F0(effect,func_001A62E8(p));}}
@@ -83,7 +83,7 @@ extern "C" void func_0018E540(P*p,int state){
  if(p->state==state)return;
  int compatible=0;
  if(state!=-1&&p->state!=-1)compatible=state==D_002BF448[p->state];
- if(!compatible)func_001F2AD0(p,p->action);
+ if(!compatible)HideSoPart(p,p->action);
  int exitEffect=-1;
  switch(p->state){case 1:exitEffect=p->target->exitEffect;func_001F4BF8(p);break;case 2:func_001F4BF8(p);break;case 0:func_001CCAC0(p->track,-1);break;case -1:break;}
  Emit(p,exitEffect);
@@ -136,7 +136,7 @@ extern "C" void func_0018E540(P*p,int state){
   int found=func_001F0400(p->sm,0x17B);
   /* Native V1 is rebuilt after the cancellation callback. */
   clockHigh=(char*)0x002e0000;
-  if(found>=0){func_001F09D8(p->component,0x17B);clockHigh=(char*)0x002e0000;}
+  if(found>=0){SnapSma(p->component,0x17B);clockHigh=(char*)0x002e0000;}
   sharedDelay=D_002BF434;
   goto deadline_clock_read;
  }
@@ -144,7 +144,7 @@ extern "C" void func_0018E540(P*p,int state){
   int found=func_001F0400(p->sm,0x17B);
   /* Native V1 is rebuilt after the cancellation callback. */
   clockHigh=(char*)0x002e0000;
-  if(found>=0){func_001F09D8(p->component,0x17B);clockHigh=(char*)0x002e0000;}
+  if(found>=0){SnapSma(p->component,0x17B);clockHigh=(char*)0x002e0000;}
   sharedDelay=D_002BF438;
  }
  deadline_clock_read:
@@ -168,7 +168,7 @@ extern "C" void func_0018E540(P*p,int state){
   clip=p->clip13;
  }
  attack_ready:p->deadline=sharedDeadline;
- if(!sharedMode&&func_001F0400(p->sm,0x17B)>=0)func_001F09D8(p->component,0x17B);break;
+ if(!sharedMode&&func_001F0400(p->sm,0x17B)>=0)SnapSma(p->component,0x17B);break;
  case 14:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
@@ -223,7 +223,7 @@ extern "C" void func_0018E540(P*p,int state){
   register int mode __asm__("$2");
   __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw $zero,%2":"+f"(deadline),"=r"(mode),"=m"(p->attack):"f"(delay),"m"(p->mode):"memory");
   p->deadline=deadline;
-  if(!mode&&func_001F0400(p->sm,0x17B)>=0)func_001F09D8(p->component,0x17B);
+  if(!mode&&func_001F0400(p->sm,0x17B)>=0)SnapSma(p->component,0x17B);
   break;}
  }
  if(compatible){register ASEGA*current __asm__("$2")=p->current;enterEffect=-1;

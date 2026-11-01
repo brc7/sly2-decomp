@@ -18,15 +18,15 @@ struct OA7 { int pad[3]; struct VTE *vt; char pad1[0x40 - 0x10]; int x40; char p
 struct OAC { int pad[3]; struct VTE *vt; char padx[0x50 - 0x10]; qword x50; char pad1[0x68 - 0x60]; int x68; };
 struct OA4 { int pad[3]; struct VTE *vt; char pad1[0x30 - 0x10]; int x30; char pad2[8]; struct R *x3C; };
 void func_0020AC28(struct X *, int, int, qword);
-void func_001F5720(struct X *, int);
-void func_001F57C0(struct X *, int);
+void SetSoCnstrForce(struct X *, int);
+void SetSoCnstrTorque(struct X *, int);
 float GRandInRange__Fff(float, float);
-void func_001EF0D8(void *);
+void PopBhv(void *);
 void *func_00205438(struct X *, int);
 void *PpoHero(void *);
 qword func_001A62E8(void *);
 void *func_0014AE18(struct P *);
-void func_001E6180(struct SP *);
+void MeasureShape(struct SP *);
 void func_00178D90(struct OA7 *, struct SP *, int);
 
 #define VCALL0(po, n) { struct VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
@@ -41,8 +41,8 @@ void func_0014AE38(struct P *p, int state)
         break;
     case -1:
     case 1:
-        func_001F5720(p->p10, 1);
-        func_001F57C0(p->p10, 1);
+        SetSoCnstrForce(p->p10, 1);
+        SetSoCnstrTorque(p->p10, 1);
         break;
     case 3: {
         float t = D_002DDED0.t;
@@ -51,7 +51,7 @@ void func_0014AE38(struct P *p, int state)
         break;
     }
     }
-    func_001EF0D8(p->x18);
+    PopBhv(p->x18);
     p->x30 = state;
     p->x34 = D_002DDED0.t;
     switch (state) {
@@ -85,7 +85,7 @@ void func_0014AE38(struct P *p, int state)
             pq = psp->xF4;
             pq[1] = func_001A62E8(func_0014AE18(p));
         }
-        func_001E6180(psp);
+        MeasureShape(psp);
         po = func_00205438(p->p10, 0xA7);
         func_00178D90(po, psp, 0);
         po->xC0 = 8;
@@ -94,8 +94,8 @@ void func_0014AE38(struct P *p, int state)
         po->xC8 = PpoHero(D_003DD490);
         VCALL0(po, 8);
         p->p10->xF04 = D_002DDED0.t;
-        func_001F5720(p->p10, 0);
-        func_001F57C0(p->p10, 0);
+        SetSoCnstrForce(p->p10, 0);
+        SetSoCnstrTorque(p->p10, 0);
         break;
     }
     case 2: {
@@ -121,8 +121,8 @@ void func_0014AE38(struct P *p, int state)
         break;
     }
     case -1:
-        func_001F5720(p->p10, 0);
-        func_001F57C0(p->p10, 0);
+        SetSoCnstrForce(p->p10, 0);
+        SetSoCnstrTorque(p->p10, 0);
         break;
     }
 }

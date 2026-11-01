@@ -3,13 +3,13 @@ struct V2 { float x, y; };
 struct S { char pad[0x40]; int f; char pad2[0xF8]; int a; char pad3[0x24]; int b; char pad4[8]; float c, d, e, g; int h; char pad5[0x1C]; qword q; struct V2 v; };
 extern qword D_002C41C0;
 extern struct V2 D_002C41D0;
-void func_00231100(struct S *p);
+void InitXfm(struct S *p);
 void SetLoBusyk(struct S *p, int a);
 static inline int FIsPtr(int f) { return !(f & 1); }
 void func_00220ED0(struct S *p)
 {
     int f;
-    func_00231100(p);
+    InitXfm(p);
     p->e = 2.0f; /*P*/
     p->g = 1.0f; /*P*/
     p->c = 2.0f; /*P*/

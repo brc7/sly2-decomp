@@ -4,7 +4,7 @@ struct Q { int x0; };
 struct P { struct Q *x0; int x4; void *x8; void *xc; int x10; void *x14; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(int a, int b);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int z);
-void func_00201DC8(void *p);
+void PostReconSelLoad(void *p);
 void func_0019DCA0(struct P *p, void *q);
 void func_0019D540(struct P *p)
 {
@@ -19,6 +19,6 @@ void func_0019D540(struct P *p)
         p->xc = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36A, 0);
     }
     if (p->x14)
-        func_00201DC8(p->x14);
+        PostReconSelLoad(p->x14);
     func_0019DCA0(p, p->xc);
 }

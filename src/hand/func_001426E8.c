@@ -3,7 +3,7 @@ typedef struct { qword r[3]; } M3;
 struct SO { char pad[0x40]; M3 mat; };
 struct X60 { char pad[0x40]; M3 mat; };
 struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
-struct SO *func_001F4C58(struct P *p, int x, int n);
+struct SO *PxfFindSo(struct P *p, int x, int n);
 M3 InvertMatrix3Cofactor(M3 *pm);
 qword func_0011BFF0(M3 *pm);
 void *func_0012DC18(struct P *p, struct SO *pso, int a, int b, int c, qword q);
@@ -25,7 +25,7 @@ static __inline__ M3 MulM3(M3 *pa, M3 *pb)
 }
 void func_001426E8(struct P *p, int x)
 {
-    struct SO *pso = func_001F4C58(p, x, 6);
+    struct SO *pso = PxfFindSo(p, x, 6);
     M3 m, a;
     if (pso) {
         a = InvertMatrix3Cofactor(&p->p60->mat);

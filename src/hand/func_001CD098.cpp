@@ -51,11 +51,11 @@ void ReleaseAct(int *p);
 LO *func_001CCA40(void *pw, LO *po);
 void __ml__FRC7MATRIX4T0(MAT4 *pd, MAT4 *pa, MAT4 *pb);
 void SetLoXfFromMat(LO *po, MAT4 *pm);
-void func_001F5720(LO *po, int n);
-void func_001F57C0(LO *po, int n);
+void SetSoCnstrForce(LO *po, int n);
+void SetSoCnstrTorque(LO *po, int n);
 qword func_0022CA18(void *a, void *b);
 int func_0012DC18(LO *p, Q *q, int a, int b, int c, qword d);
-void func_001F7C68(LO *po, float g);
+void FadeSoIn(LO *po, float g);
 void func_001CD098(S *p, LO *po);
 }
 MAT4 ConvertAloMat4(int n, LO *po, MAT4 *pm);
@@ -82,13 +82,13 @@ void func_001CD098(S *p, LO *po)
     }
     SetLoXfFromMat(po, &m);
     if (po->xE8) {
-        func_001F5720(po, 1);
-        func_001F57C0(po, 1);
+        SetSoCnstrForce(po, 1);
+        SetSoCnstrTorque(po, 1);
     }
     Q *q = po->x58;
     p->x98 = func_0012DC18(po, q, 5, 0, 2, func_0022CA18(q, q));
     q = po->x5C;
     p->x9C = func_0012DC18(po, q, 5, 0, 2, func_0022CA18(q, q));
-    func_001F7C68(po, 0.25f);
+    FadeSoIn(po, 0.25f);
     p->xA0 = po;
 }

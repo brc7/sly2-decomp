@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 s32 func_00174898(s32);                             /* extern */
-s32 func_001EF0B8(void *, s32, void *);             /* extern */
+s32 BHV_FHandleMessage(void *, s32, void *);             /* extern */
 
 s32 func_001756C0(void *arg0, s32 arg1, void *arg2) {
     s32 temp_a0;
@@ -16,5 +16,5 @@ s32 func_001756C0(void *arg0, s32 arg1, void *arg2) {
         }
     }
 block_5:
-    return func_001EF0B8(arg0, arg1, arg2);
+    return BHV_FHandleMessage(arg0, arg1, arg2);
 }

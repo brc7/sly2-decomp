@@ -10,8 +10,8 @@ struct CLOCK{float time,dt;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern char D_003DD490[];
- void func_001EEF98(C*);
- int func_001EF0A8(C*);
+ void UpdateBhv(C*);
+ int FBhvBusyAbove(C*);
  int func_00177D20(C*);
  int func_00177D48(C*);
  int func_00177DC0(const STATE*,const STATE*);
@@ -68,8 +68,8 @@ typedef char C_expires_Offset[FIELD_OFFSET(C,expires)==164?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
 extern "C" void func_00177618(C*p){
- func_001EEF98(p);
- while(!func_001EF0A8(p)){
+ UpdateBhv(p);
+ while(!FBhvBusyAbove(p)){
   STATE previous=p->state;
   STATE*current=&p->state;
   switch(p->state.kind){

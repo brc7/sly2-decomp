@@ -7,7 +7,7 @@ struct K { char pad[0xC]; void *pC; char pad2[8]; float f18; };
 struct A { char pad[0xE8]; struct C *pE8; char pad2[0x294 - 0xEC]; struct B *p294; char pad3[0x324 - 0x298]; char a324[0xA8]; struct K *p3CC; };
 struct T { char pad[0x70]; float f70; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; };
-void func_001EEF98(struct S *p);
+void UpdateBhv(struct S *p);
 float func_0020A690(struct K *k);
 qword func_001A62E8(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
@@ -28,7 +28,7 @@ void func_0017C3E8(struct S *p) {
     struct T *t;
     float out[2];
     qword pos;
-    func_001EEF98(p);
+    UpdateBhv(p);
     d = 0;
     if (p->n30 != 0) {
     a = p->p10;

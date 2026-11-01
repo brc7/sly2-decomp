@@ -10,7 +10,7 @@ extern qword D_002A2DD0;
 V*func_001B2398(V*,P*,float);
 qword func_001A62E8(P*);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
-void func_001FAC30(P*,qword);
+void AddSoAcceleration(P*,qword);
 }
 int FFloatsNear(float,float,float)__asm__("FFloatsNear__Ffff");
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
@@ -66,7 +66,7 @@ extern "C" void func_001B2468(P*p){
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");
  __asm__("vsub.xyzw %0,%3,%4\n\tqmtc2.ni %5,%1\n\tvdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %2,%0,Q":"=j"(difference),"=j"(dt),"=j"(acceleration):"j"(copied),"j"(actualCurrent),"r"(dtWord));
  w.step.q=dt;
- func_001FAC30(owner,acceleration);
+ AddSoAcceleration(owner,acceleration);
 }
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)

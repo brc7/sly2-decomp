@@ -13,7 +13,7 @@ struct P {
 extern struct G D_002DFC00;
 extern char D_002DE2E0[];
 extern char D_003DA0F0[];
-void func_00203FC0(struct P *p);
+void UpdateStep(struct P *p);
 void func_00141A50(struct P *p);
 int GrfConsumePressed__5POCTLUif(struct Q *q, float g, int n);
 int GrfPressedWithin__5POCTLUif(struct Q *q, float g, int n);
@@ -30,11 +30,11 @@ void func_001306A8(int *px);
 int func_0014FD50(void *p);
 void func_00187DE0(struct G *pg, int n);
 void func_001DB490(void *p);
-void func_001EED10(int *p);
+void UpdateBhvstk(int *p);
 void func_001403D0(struct P *p)
 {
     int *pl;
-    func_00203FC0(p);
+    UpdateStep(p);
     func_00141A50(p);
     if (GrfConsumePressed__5POCTLUif(p->x150, 0.0f, 0x200))
         func_00140338(p);
@@ -65,5 +65,5 @@ void func_001403D0(struct P *p)
         }
     }
     if (!func_001449C8(pl))
-        func_001EED10(&p->x26C);
+        UpdateBhvstk(&p->x26C);
 }

@@ -49,11 +49,11 @@ extern float D_002C3668[4];
 extern qword D_002A2DA0;
 extern qword D_002A2DC0;
 extern "C" {
-qword func_0022D348(SPACE *, SPACE *, qword);
+qword GetXfVelocity(SPACE *, SPACE *, qword);
 void func_001AE5A0(void *, const void *, unsigned);
 int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);
-void func_001E6330(PATH *);
+void InvalidateShapeCache(PATH *);
 void func_001E8378(CHAIN *);
 }
 
@@ -178,9 +178,9 @@ void func_001E8378(CHAIN *p)
     int i;
     int count = p->path->count;
     VV start = TransformPoint(p->first->matrix, p->start);
-    VV startVel = func_0022D348(p->first, 0, start);
+    VV startVel = GetXfVelocity(p->first, 0, start);
     VV end = TransformPoint(p->last->matrix, p->end);
-    VV endVel = func_0022D348(p->last, 0, end);
+    VV endVel = GetXfVelocity(p->last, 0, end);
     if ((unsigned)count > 64)
         return;
     func_001AE5A0(accP, p->position, count * 16);
@@ -308,5 +308,5 @@ void func_001E8378(CHAIN *p)
         for (i = 1; i < count; i++)
             p->path->dist[i] = p->path->dist[i - 1] + GFromQw(Length(Sub(p->path->pos[i - 1].q, p->path->pos[i].q)));
     }
-    func_001E6330(p->path);
+    InvalidateShapeCache(p->path);
 }

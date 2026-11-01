@@ -10,7 +10,7 @@ struct Batch { int count; char pad4[8]; U *positions; byte *uv; struct RGBA *col
 struct N { void *record; int count; struct Batch *batches; struct N *next; };
 struct S { char pad[0xDC]; struct N *nodes; char padE0[0x4C]; float g; char pad130[0x20]; float fade; int pad154; int count; struct Ring *array; int index; char pad164[0x1C]; void *follow; };
 extern struct CLOCK { float t,dt; } D_002DDED0;
-void func_001F3C70(struct S *);
+void RenderSoSelf(struct S *);
 static inline qword Broadcast(float f) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(f)); return r; }
 static inline qword Transform(const struct M4 *m,qword p) {
     qword r;
@@ -73,6 +73,6 @@ void func_0021C340(struct S *p) {
     }
     saved=p->g;
     p->g=1.0f;
-    func_001F3C70(p);
+    RenderSoSelf(p);
     p->g=saved;
 }

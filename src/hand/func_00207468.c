@@ -5,7 +5,7 @@ struct Q { struct A *pa; int pad[2]; int nC; };
 struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char x26C[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
 int func_001F7588(struct S *p, struct Q *q);
-void func_001EED78(void *p, int k, struct Q *q);
+void HandleBhvstkMessage(void *p, int k, struct Q *q);
 int func_00207468(struct S *p, struct Q *q)
 {
     if (!((int (*)(void *))p->vt[86].pfn)((char *)p + p->vt[86].d)) {
@@ -16,6 +16,6 @@ int func_00207468(struct S *p, struct Q *q)
         if (!func_001F7588(p, q))
             return 0;
     }
-    func_001EED78(p->x26C, 0xC, q);
+    HandleBhvstkMessage(p->x26C, 0xC, q);
     return 1;
 }

@@ -31,7 +31,7 @@ void *func_00143410(void *p);
 int func_0013C478(void *p);
 void *func_0013D1A8(Q *p);
 S *func_00143AF0(LO *p, int n);
-int func_00210A88(void);
+int IlevelCur__Fv(void);
 BL *func_002109B8(int);
 int func_00233178(const void *a, const void *b, int n);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
@@ -92,7 +92,7 @@ extern "C" void func_00143678(LO *p, int n, Q *q)
     }
     case 2: {
         S *ps = func_00143AF0(p, func_0013C478(p->p11A8));
-        int i = func_00210A88();
+        int i = IlevelCur__Fv();
         if (ps && i != -1) {
             BL *pb = func_002109B8(i);
             int f = 0;

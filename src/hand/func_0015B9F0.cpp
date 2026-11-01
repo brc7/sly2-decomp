@@ -17,7 +17,7 @@ extern CLOCK D_002DDED0;
 extern float D_002A5150;
 void func_0015B7E8(int c, EMITB *pemitb, BUF *pb);
 int func_0011D4D0(float g1, float g2, float gEps);
-void func_002309E8(void *p, int n, M4 *pm0, float t, M4 *pm1);
+void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
 void func_0015B9F0(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb);
 }
@@ -67,11 +67,11 @@ void func_0015B9F0(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
         if (!func_0011D4D0(t, tPrev, 0.0001f)) {
             M4 mT;
             tPrev = t;
-            func_002309E8(pv, 0, &m, t, 0);
+            LoadIdentityMatrix4(pv, 0, &m, t, 0);
             __ml__FRC7MATRIX4T0(&mT, &m, &mBase);
             m = mT;
             if (k != 3) {
-                func_002309E8(pv, 0, &mA, t, &mB);
+                LoadIdentityMatrix4(pv, 0, &mA, t, &mB);
                 __ml__FRC7MATRIX4T0(&mT, &mA, &mWorld);
                 mA = mT;
                 __ml__FRC7MATRIX4T0(&mT, &mB, &mWorld);

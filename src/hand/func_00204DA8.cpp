@@ -6,14 +6,14 @@ struct VU_FLOAT { qword qw; };
 struct VU_VECTOR4 { qword qw; };
 struct SOPHYS { char pad[0x80]; struct VU_VECTOR4 dvGravity; char pad90[0x40]; float m; };
 struct STEP { char pad[0xE8]; struct SOPHYS *psophys; char padEC[0x260 - 0xEC]; float rUnk260; };
-extern "C" void func_001F35C8(struct STEP *pso, float m);   /* SetSoMass */
+extern "C" void SetSoMass(struct STEP *pso, float m);   /* SetSoMass */
 
 extern "C" void func_00204DA8(struct STEP *pstep, float rGravity)
 {
     float r = 0.1f;
     qword qwScaled;
     r = rGravity > r ? rGravity : r;
-    func_001F35C8(pstep, pstep->psophys->m * pstep->rUnk260 / r);
+    SetSoMass(pstep, pstep->psophys->m * pstep->rUnk260 / r);
     {
         struct VU_FLOAT vuR;
         qword qwGrav = pstep->psophys->dvGravity.qw;

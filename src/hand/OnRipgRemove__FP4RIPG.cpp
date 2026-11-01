@@ -7,7 +7,7 @@ struct SW { char pad[0x403C]; char pool[0x30]; RIPG *x406C; };
 extern SW D_003DD490;
 extern "C" {
 void func_001CE980(RIP *prip);
-void func_001F2D48(RIPG *p);
+void RemoveSoHierarchy(RIPG *p);
 void RemoveSwAaobrObject(SW *psw, void *pv);
 void SnipLo(RIPG *p);
 void *PdlFromSwCid(SW *psw, int n);
@@ -38,7 +38,7 @@ void OnRipgRemove(RIPG *pripg)
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) func_001CE980(prip);
     psw = &D_003DD490;
     if (pripg == psw->x406C) psw->x406C = 0;
-    func_001F2D48(pripg);
+    RemoveSoHierarchy(pripg);
     if (pripg->xEC) {
         RemoveSwAaobrObject(psw, pripg->xEC);
         pripg->xEC = 0;

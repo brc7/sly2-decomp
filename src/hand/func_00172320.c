@@ -7,7 +7,7 @@ struct X { qword a; qword v; };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; char pad3[0xC0 - 0x40]; int nC0; };
 struct A { char pad[0xFD0]; char aFD0[4]; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; int n30; float f34; float f38; char pad3[0xC]; int n48; };
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 qword func_00172760(struct S *p);
 qword func_001A62E8(void *p);
@@ -23,7 +23,7 @@ static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) 
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 void func_00172320(struct S *p, int n) {
     if (n == p->n30) return;
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     p->n30 = n;
     p->f34 = D_002DDED0.t;
     switch (n) {

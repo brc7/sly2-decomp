@@ -21,7 +21,7 @@ extern float D_002BD470, D_002BD474, D_002BD478, D_002BD47C;
 PSO *PpoHero(G *pg);
 qword func_001A62E8(void *p);
 float GRandInRange__Fff(float a, float b);
-int func_0020F0B0(G *pg);
+int FSwHandsOff(G *pg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(PSO *p, int n);
 void func_00208540(W *pw, void *p);
 int func_001BBE48(SO *p);
@@ -89,7 +89,7 @@ void func_0014A4D0(P *p)
     if (FLess(D_002BD460, Len(v)))
         p->t48 = D_002DDED0.t;
     float dt = D_002DDED0.t - p->t48;
-    if (GRandInRange__Fff(D_002BD468[0], D_002BD468[1]) < dt && !func_0020F0B0(pg)) {
+    if (GRandInRange__Fff(D_002BD468[0], D_002BD468[1]) < dt && !FSwHandsOff(pg)) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x2DC == 0x11) {
             PATH *ppath = pso->ppath;
             pos = func_001A62E8(pso);

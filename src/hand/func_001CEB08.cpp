@@ -12,7 +12,7 @@ extern float D_002C1F60,D_002C1F64,D_002C1F68,D_002C1F6C;
 extern qw D_002A2DA0,D_002A2DD0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void func_00228C18(void*,qw,qw*,qw*);
-qw func_0022D348(void*,void*,qw);
+qw GetXfVelocity(void*,void*,qw);
 void func_001CEAA8(RIP*,float);
 void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
 int func_001CEB08(RIP*,SHAPE*,qw,qw);
@@ -63,7 +63,7 @@ int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  register void*frameArg __asm__("$4");register void*nullArg __asm__("$5");register qw pointArg __asm__("$6");register float negativeRadius __asm__("$f0");
  __asm__("neg.s %0,%5\n\tlw %1,%6\n\tlq %3,%7\n\tdaddu %2,$zero,$zero\n\tsqc2 %8,%4":"=f"(negativeRadius),"=&r"(frameArg),"=r"(nullArg),"=r"(pointArg),"=m"(w.normal.q):"f"(radius),"m"(shape->frame),"m"(w.contact),"j"(sampledNormal));
  w.firstTorque.q=PrepareOffsetTorque(sampledNormal,negativeRadius,w);
- qw packedOther=func_0022D348(frameArg,nullArg,pointArg);
+ qw packedOther=GetXfVelocity(frameArg,nullArg,pointArg);
  float impulse,fricImpulse;
  register float unit __asm__("$f21");
  register qw lineStart __asm__("$5"),queryPoint __asm__("$4");

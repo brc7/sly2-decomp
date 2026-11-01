@@ -1,5 +1,5 @@
 struct S { char pad[0x180]; int x180; char p1[0x198 - 0x184]; int x198; void *x19C; char p2[0x1F0 - 0x1A0]; int x1F0; };
-void func_001F36E0(struct S *p);
+void UpdateSo(struct S *p);
 int func_001DFFD8(void *p);
 void func_001C8730(struct S *p, int n);
 void func_001C84D8(struct S *p);
@@ -7,7 +7,7 @@ void func_001C8188(int f);
 void func_001C8350(struct S *p)
 {
     int s;
-    func_001F36E0(p);
+    UpdateSo(p);
     do {
         s = p->x180;
         switch (s) {

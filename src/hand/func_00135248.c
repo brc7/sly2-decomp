@@ -36,9 +36,9 @@ void func_00142868(struct P *, int);
 void func_0020BD68(struct ASEGP *);
 void func_0019CD38(void *, int);
 void func_00130658(void *);
-void func_001F15B8(void *);
+void ReleaseSma(void *);
 void func_001305B8(struct ASEG *, struct P *, int, void *, float, float);
-void func_001F14F8(void *, struct P *, int, int, int, void *);
+void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 #define VCALL1(p, n, a) ((void (*)(void *, int))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d, a)
@@ -203,8 +203,8 @@ void func_00135248(struct P *p, int k)
         return;
     }
     func_00130658(&p->p1030);
-    func_001F15B8(&p->x1034);
+    ReleaseSma(&p->x1034);
     func_001305B8(pasega, p, n, &p->p1030, g, rate);
-    func_001F14F8(pjt, p, anim, n, c, &p->x1034);
+    ReplaceSmaEx(pjt, p, anim, n, c, &p->x1034);
     VCALL0(p, 90);
 }

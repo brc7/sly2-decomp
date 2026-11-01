@@ -12,7 +12,7 @@ extern float D_002C4338[11];
 void func_0020FA10();
 MARK *func_001AE478(MARK *pm);
 void func_001AE4A0(MARK *pm, int n);
-void func_0020FC60(struct G *pg, qword pos, void (*pfn)(), void *pv, float r, int *pc, struct A ***papa);
+void IntersectSwBoundingSphere(struct G *pg, qword pos, void (*pfn)(), void *pv, float r, int *pc, struct A ***papa);
 qword SetVectorSphere(float a, float b, float c);
 qword LimitVectorLength(qword v, float r);
 void func_00224820(struct S *p, int a, int b, qword pos, qword posT, int c, struct A **apa, int cMax, int *pcx, struct X *ax);
@@ -29,7 +29,7 @@ void func_00224BF8(struct S *p, int a, int b, qword pos, float r)
     int cx;
     int i, j, k, m;
     func_001AE478(&mark);
-    func_0020FC60(&D_003DD490, pos, func_0020FA10, p->xEC, r, &c, &apa);
+    IntersectSwBoundingSphere(&D_003DD490, pos, func_0020FA10, p->xEC, r, &c, &apa);
     cx = 0;
     for (i = 0; i < sizeof(D_002C4368) / sizeof(D_002C4368[0]); i++) {
         for (j = 0; j < D_002C4368[i]; j++) {

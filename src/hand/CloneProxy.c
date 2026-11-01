@@ -3,7 +3,7 @@ struct E { int x0; int x4; struct RC *x8; int pad[3]; };
 struct S { char pad[0xEC]; int c; struct E *ae; };
 struct AL { int cb; int cbAlign; };
 struct SP { struct RC *p; };
-void func_002311B0(struct S *p, struct S *q);
+void CloneXfm(struct S *p, struct S *q);
 struct E *func_001AE238(struct AL *pal, struct E *pv);
 void CFrame_CloneTo(struct SP *pret, struct RC *p, struct S *ps);
 void func_00257078(struct RC *p, int n);
@@ -12,7 +12,7 @@ void CloneProxy(struct S *p, struct S *q)
 {
     int i;
     union { struct AL al; struct SP sp; } u;
-    func_002311B0(p, q);
+    CloneXfm(p, q);
     for (i = 0; i < p->c; i++) {
         struct E *pe = &p->ae[i];
         struct RC *prc;

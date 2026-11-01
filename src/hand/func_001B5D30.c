@@ -6,9 +6,9 @@ struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190
 void func_002303A0(struct P *p, int a, int b);
 void func_0020BD68(void *p);
 void func_00130658(void *p);
-void func_001F15B8(void *p);
+void ReleaseSma(void *p);
 void func_001305B8(void *a, struct P *p, int n, void *q, float f1, float f2);
-void func_001F1448(int a, struct P *p, int b, int n, void *q);
+void ReplaceSma(int a, struct P *p, int b, int n, void *q);
 void func_001B5D30(struct P *p, int st)
 {
     void *o;
@@ -41,7 +41,7 @@ void func_001B5D30(struct P *p, int st)
         break;
     }
     func_00130658(p->x1030);
-    func_001F15B8(p->x1034);
+    ReleaseSma(p->x1034);
     func_001305B8(o, p, n, p->x1030, 0.0f, 1.0f);
-    func_001F1448(x, p, -1, n, p->x1034);
+    ReplaceSma(x, p, -1, n, p->x1034);
 }

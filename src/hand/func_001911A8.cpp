@@ -60,10 +60,10 @@ int func_00131968(ASEGA *);
 void func_00192BD8(CONTEXT *, int);                     // set the step
 void *func_001AE318(SWALLOC *);                         // stack allocation in the current STACKSCOPE
 qword func_001A62E8(ACTOR *);                           // world position
-int func_0020F948(void *, SO *);
-void func_0020FAA0(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
+int FFilterSoPair(void *, SO *);
+void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
 int func_0014C6A0(SO *, qword, qword, int, LSG *);      // line test against an object
-void func_001F38A8(SO *);
+void UpdateSoPartGeom(SO *);
 qword VecMinArray(int, qword *);                      // min of points
 qword VecMaxArray(int, qword *);                      // max of points
 void func_001A9B28(SW *, SO *, SO *, int, BSP *, XP **);
@@ -116,7 +116,7 @@ static inline void ProbeGround(CONTEXT *p)
     qword posEnd = QwAdd(posBase, QwScale(D_002A2DC0, VuFloat(&D_002BF5B0)));
     int cso;
     SO **apso;
-    func_0020FAA0(&D_003DD490, posEnd, posBase, func_0020F948, p->pactor->pvFilter, &cso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, FFilterSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++) {
         int clsg = func_0014C6A0(apso[i], posBase, posEnd, 8, alsg);
         LSG *plsg = alsg;
@@ -127,10 +127,10 @@ static inline void ProbeGround(CONTEXT *p)
     SO *psoSelf = p->pactor->pso;
     GEOM *pgeom = &psoSelf->geomWorld;
     int cbspMax = 0;
-    func_001F38A8(psoSelf);
+    UpdateSoPartGeom(psoSelf);
     qword posMin = VecMinArray(pgeom->cpos, pgeom->apos);
     qword posMax = VecMaxArray(pgeom->cpos, pgeom->apos);
-    func_0020FAA0(&D_003DD490, posMin, posMax, func_0020F948, p->pactor->pvFilter, &cso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, posMin, posMax, FFilterSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++)
         if (cbspMax <= apso[i]->cbsp)
             cbspMax = apso[i]->cbsp;

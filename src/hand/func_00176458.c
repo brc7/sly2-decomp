@@ -8,7 +8,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int n30; int pad3; in
 struct A { char pad[0x3CC]; void *p3CC; char pad2[0xF04 - 0x3D0]; float fF04; char pad3[0xF64 - 0xF08]; void *pF64; };
 struct P { char pad[0x60]; float f60; float f64; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; int n30; int n34; float f38; struct P *p3C; int pad4; int n44; char pad5[8]; qword v50; };
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 float GRandInRange__Fff(float a, float b);
 struct O *func_00205438(void *p, int n);
 void func_0020A9A8(void *p, int n);
@@ -20,7 +20,7 @@ void func_00154038(void *p, int a, int b);
 void func_00208540(void *p, int n);
 void func_00176458(struct S *p, int n) {
     if (n == p->n34) return;
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     if (p->n34 == 1) {
         float t = D_002DDED0.t;
         t += GRandInRange__Fff(p->p3C->f60, p->p3C->f64);

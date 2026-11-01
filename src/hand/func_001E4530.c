@@ -11,7 +11,7 @@ struct O *func_001E1DB8(struct C *pc, int n);
 float func_00154C90(struct G *pg);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *func_001F67E0(void *p, int n);
-float func_001F11A8(void *p, int n);
+float DtSmaToState(void *p, int n);
 float func_001FCFD0(struct G *pg, int n);
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
 float func_001E4530(struct C *pc, struct P *p)
@@ -33,7 +33,7 @@ float func_001E4530(struct C *pc, struct P *p)
             void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, p->u10.n, pc->x18);
             if (px) {
                 void *py = func_001F67E0(px, p->u14.n);
-                if (py) g = func_001F11A8(py, p->x18);
+                if (py) g = DtSmaToState(py, p->x18);
             }
         }
         break;

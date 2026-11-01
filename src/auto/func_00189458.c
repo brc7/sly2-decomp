@@ -48,7 +48,7 @@ s32 func_00189458(s32 arg0) {
     temp_a1 = M2C_FIELD(arg0, s32 *, 0x18C0);
     var_v0 = 0;
     if (temp_a1 != 0) {
-        func_002046F0(arg0, temp_a1);
+        FaceStepToward(arg0, temp_a1);
         var_v0 = 1;
     }
     return var_v0;

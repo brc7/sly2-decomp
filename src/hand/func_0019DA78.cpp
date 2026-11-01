@@ -5,7 +5,7 @@ struct OO { char pad[0x1A8]; float x1a8; char pad2[0x10E4-0x1AC]; int x10e4; int
 struct O { struct OO *x0; char pad[0x20-4]; int x20; char pad2[0x3C-0x24]; float x3c; };
 struct P { struct O *x0; int x4; struct Q *x8; int xc; struct Q *x10; SELECTOR*x14; };
 extern "C" int D_002BF920;
-extern "C" void func_00202D38(SELECTOR*p);
+extern "C" void UpdateReconSel(SELECTOR*p);
 extern "C" void func_0019D660(struct P *p, int n);
 extern "C" void func_00213B00(struct Q *q, int n);
 extern "C" void func_00213928(struct Q *q, int n);
@@ -16,7 +16,7 @@ extern "C" void func_0019DA78(struct P *p)
 {
 
     if (p->x14)
-        func_00202D38(p->x14);
+        UpdateReconSel(p->x14);
     switch (p->x4) {
     case -1:
         return;

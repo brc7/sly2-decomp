@@ -3,8 +3,8 @@ typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct X {qword header,v;};
 struct P {char pad10[0x10];void*p10;int pad14;void*p18;char pad1C[4];int pending;char pad24[12];void*p30;char pad34[0x40-0x34];qword v40;int state;float time;int pad58[2];qword v60;};
-void func_001EEF98(struct P*);
-int func_001EF0A8(struct P*);
+void UpdateBhv(struct P*);
+int FBhvBusyAbove(struct P*);
 qword func_001A62E8(void*);
 qword ConvertAloPos(void*,void*,qword);
 int func_00209098(void*);
@@ -16,7 +16,7 @@ static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):
 static inline float LenXY(qword v){float r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(v):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(v):"0"(v));__asm__("qmfc2.ni %0,%1":"=r"(r):"j"(v));return r;}
 void func_0017C6D0(struct P*p){
  struct X x;qword pos;float dist;int state;float lim=250.0f;
- func_001EEF98(p);
+ UpdateBhv(p);
  pos=func_001A62E8(p->p30);
  dist=LenXY(Sub(pos,func_001A62E8(p->p10)));
  goto test;
@@ -43,7 +43,7 @@ void func_0017C6D0(struct P*p){
   if(state==p->state)return;
  }
  test:
- if(!func_001EF0A8(p))goto top;
+ if(!FBhvBusyAbove(p))goto top;
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];

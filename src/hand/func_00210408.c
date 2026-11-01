@@ -1,7 +1,7 @@
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void func_001F6978(void *p, void *q);
-void func_001F69F8(void *p, void *q);
+void ShowSoGlobsById(void *p, void *q);
+void HideSoGlobsById(void *p, void *q);
 void func_00210408(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
@@ -11,8 +11,8 @@ void func_00210408(void *pv, int f, int id, void *q, void *pdef, void *ctx)
         p = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id, ctx);
     if (p && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
         if (f)
-            func_001F6978(p, q);
+            ShowSoGlobsById(p, q);
         else
-            func_001F69F8(p, q);
+            HideSoGlobsById(p, q);
     }
 }

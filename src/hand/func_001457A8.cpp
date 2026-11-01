@@ -26,7 +26,7 @@ M3 func_0011B500(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *func_00145AA8(P *p);
 int func_001C02D0(E *pe, qword r, qword v, B *pb);
-void func_001E6180(B *pb);
+void MeasureShape(B *pb);
 void func_00178D90(void *p, B *pb, int n);
 void func_001457A8(P *p);
 }
@@ -88,7 +88,7 @@ void func_001457A8(P *p)
             pb->k = 2;
             pb->pq[0] = r;
             pb->pq[1] = u.s.pos;
-            func_001E6180(pb);
+            MeasureShape(pb);
         } else if (func_00145AA8(p) != pe) {
             func_001C02D0(pe, r, r, pb);
         } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {

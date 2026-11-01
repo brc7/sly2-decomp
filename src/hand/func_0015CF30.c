@@ -36,7 +36,7 @@ int func_002121E8(struct X *p, int n);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, int n);
 void func_00228358(void *p, int n);
 void func_002283D0(void *p);
-int func_00210B98(int n);
+int PrecWorldEntry(int n);
 
 static __inline__ void PlaySound(int n)
 {
@@ -188,7 +188,7 @@ void func_0015CF30(struct X *p)
                     f = 0;
             }
             if (!f) {
-                int s = func_00210B98(p->n110);
+                int s = PrecWorldEntry(p->n110);
                 func_0022B490(&D_003DD490, s, 0x189, -1, 0, 0x30A);
             }
             func_0015D648(p, -1, -1);

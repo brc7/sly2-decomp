@@ -17,7 +17,7 @@ int FIsCidDerivedFrom(int a, int b);
 void func_00220D40(void *pe);
 void func_0014E968(struct G *pg, void *pj, void *pq);
 void func_00220DD8(void *pe, void *pa, qword *pb, struct T *pt);
-void func_001E6F60(void *p, qword q, int a, qword *pq, int b, int c, void *pv);
+void FindShapeClosestPoint(void *p, qword q, int a, qword *pq, int b, int c, void *pv);
 void func_00221CE8(struct S *p, void *pq);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 qword SetVectorSphere(float a, float b, float c);
@@ -51,7 +51,7 @@ void func_00221A18(struct S *p, void *pj, struct T *pt)
     if (p->pt) {
         struct T *ptT = p->pt;
         if (ptT->x10C)
-            func_001E6F60(ptT->x10C, q50, 0, &q60, 0, 0, ptT->x140);
+            FindShapeClosestPoint(ptT->x10C, q50, 0, &q60, 0, 0, ptT->x140);
         else if (ptT->x12C)
             func_00221CE8(p, &q0);
         func_00220DD8(p->pe, &q0, &q50, p->pt);

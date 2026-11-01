@@ -1,17 +1,17 @@
 // func_001E6A30 (w2lane4, wave 2): closest point on a path (chain of control points under the path's own matrix) to a query point,
-// searched from a starting time. func_001E7538 turns the starting time into a segment index; the loop projects the point on that
+// searched from a starting time. IsegFindShapeU turns the starting time into a segment index; the loop projects the point on that
 // segment (segment vector rotated by the matrix, point minus the transformed start) and walks to the next / previous segment (wrapping
 // when the path is cyclic) until the projection falls inside a segment. Afterwards the position, direction, time and value outputs
 // are produced from the final segment and fraction.
 // Matching notes (found with the -da dumps; the dumps explain every non-obvious choice):
 //  * `fraction` is reused for the final time (`fraction = (1-fraction)*t0 + fraction*t1`), which is what puts it in $f12 (the argument
-//    register of func_001E63C0) without any pin.
+//    register of SFromShapeU) without any pin.
 //  * `basis=&matrix` is declared inside the loop (and again in the direction block): loop.c hoists it to the loop preheader, which
 //    is where the target has it (after the matrix copy, in the delay slot of the jump into the loop) and what makes it outrank `space`
 //    in global allocation (space $s4, basis $s3). Rows 1 and 2 are read through `basis`, row 0 and the translation row directly.
 //  * `previous = index; continue;` is written in both branches (each gets its own delay-slot copy), and `backward = 1` / `forward = 1`
 //    are set after the if/else of their branch.
-//  * `segment` is a memory union (it is stored and reloaded around the func_001FA970 calls); `NormalizeTo` takes it by value, which
+//  * `segment` is a memory union (it is stored and reloaded around the ApplyConstr_1FA970 calls); `NormalizeTo` takes it by value, which
 //    is the unread temp copy stored to the temp slot (sp+0x50, shared with the VU_FLOAT temps of the position block).
 //  * Dot helpers list their input once and `LengthOf` lists the operand once ("j"(v.q) with %2 used twice): two operand
 //    references would make the loaded segment outrank the length in local allocation and swap vf1/vf2.
@@ -29,9 +29,9 @@ struct PATH {
     int cyclic, count; float *times; int padF0; qword *points;
 };
 extern "C" {
-int func_001E7538(PATH *, float, float *, float *);
-qword func_001FA970(SPACE *, qword);
-float func_001E63C0(PATH *, float);
+int IsegFindShapeU(PATH *, float, float *, float *);
+qword ApplyConstr_1FA970(SPACE *, qword);
+float SFromShapeU(PATH *, float);
 }
 struct VU_FLOAT {
     qword q;
@@ -110,7 +110,7 @@ extern "C" void func_001E6A30(PATH *p, qword point, SPACE *space, qword *outPosi
     M4 matrix;
     float elapsed, duration;
     int backward = 0, forward = 0, previous;
-    int index = func_001E7538(p, initial, &elapsed, &duration);
+    int index = IsegFindShapeU(p, initial, &elapsed, &duration);
     matrix = *((M4 *(*)(void *))p->vt[31].fn)((char *)p + p->vt[31].delta);
     float fraction;
     for (;;) {
@@ -119,8 +119,8 @@ extern "C" void func_001E6A30(PATH *p, qword point, SPACE *space, qword *outPosi
         segment.q = Rotate(matrix, basis, Sub(end, start));
         qword delta = Sub(point, TransformPoint(matrix, start));
         if (space) {
-            delta = func_001FA970(space, delta);
-            segment.q = func_001FA970(space, segment.q);
+            delta = ApplyConstr_1FA970(space, delta);
+            segment.q = ApplyConstr_1FA970(space, segment.q);
         }
         qword length = LengthOf(segment);
         float size = ToFloatR(length);
@@ -163,5 +163,5 @@ extern "C" void func_001E6A30(PATH *p, qword point, SPACE *space, qword *outPosi
     }
     fraction = (1.0f - fraction) * p->times[index] + fraction * p->times[index + 1];
     if (outTime) *outTime = fraction;
-    if (outValue) *outValue = func_001E63C0(p, fraction);
+    if (outValue) *outValue = SFromShapeU(p, fraction);
 }

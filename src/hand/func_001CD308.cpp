@@ -19,7 +19,7 @@ void *func_001A6318(LO *p);
 int func_0012DC18(LO *p, Q *q, int a, int b, int c, qword d);
 void func_001CD308(S *p, LO *po);
 }
-MAT func_0022FD38(int a, void *pv, void *v);
+MAT ConvertXfMat(int a, void *pv, void *v);
 qword func_0011BFF0(MAT m);
 void func_001CD308(S *p, LO *po)
 {
@@ -41,7 +41,7 @@ void func_001CD308(S *p, LO *po)
     Q *q = p->xA0->x58;
     p->x94 = func_0012DE58(p->xA0, q, 5, func_0022FC48(0, q->xA0, func_001A62E8(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
     q = p->xA0->x5C;
-    mat = func_0022FD38(0, q->xA0, func_001A6318(po));
+    mat = ConvertXfMat(0, q->xA0, func_001A6318(po));
     p->x9C = func_0012DC18(p->xA0, q, 5, 7, 2, func_0011BFF0(mat));
     p->x84 = p->xA0;
     func_001CCAC0(p, 1);

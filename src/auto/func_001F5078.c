@@ -20,8 +20,8 @@ void func_001F5078(s32 arg0) {
         temp_v0 = M2C_FIELD(arg0, void **, 0xC);
         M2C_FIELD(temp_v0, void (**)(s32, M2C_UNK), 0x17C)(arg0 + M2C_FIELD(temp_v0, s16 *, 0x178), 4);
         if (M2C_FIELD(arg0, s32 *, 0xE8) != 0) {
-            func_00230598(arg0, M2C_FIELD(arg0, s32 *, 0x58));
-            func_00230598(arg0, M2C_FIELD(arg0, s32 *, 0x5C));
+            SlotUnsettle(arg0, M2C_FIELD(arg0, s32 *, 0x58));
+            SlotUnsettle(arg0, M2C_FIELD(arg0, s32 *, 0x5C));
         }
     }
 }

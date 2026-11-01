@@ -8,13 +8,13 @@ struct M3 { qword r[3]; };
 struct PATH { char pad0[0xE4]; int cyclic; char padE8[0xD8]; qword axis; };
 extern "C" {
 extern qword D_002A2DA0, D_002A2DC0;   // fallback unit vectors
-float func_001E6620(PATH *);           // low distance bound
-float func_001E6648(PATH *);           // high distance bound
-float func_001E6610(PATH *);           // start distance
-void func_001E67B8(PATH *, float, qword *, qword *);
+float SMinShape(PATH *);           // low distance bound
+float SMaxShape(PATH *);           // high distance bound
+float UMinShape(PATH *);           // start distance
+void EvaluateShapeU(PATH *, float, qword *, qword *);
 float GModPositive__Fff(float, float);     // wrap into range
-float func_001E6728(PATH *, float);
-void func_001E6F10(PATH *, float, qword *, qword *);
+float SClampShape(PATH *, float);
+void EvaluateShapeS(PATH *, float, qword *, qword *);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 qword ConvertAloVec(PATH *, PATH *, qword);
 qword GetNormalVector(qword);
@@ -77,9 +77,9 @@ extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
     WORK w;
     U fwd;   // declared outside the inner block on purpose: the stack slot of `back` (declared inside) is freed at the
              // end of that block and is reused by the VU_FLOAT temporary of the final negate, like the original.
-    float low = func_001E6620(p), high = func_001E6648(p);
-    float t0 = func_001E6610(p);
-    func_001E67B8(p, t0, 0, &w.tangent);
+    float low = SMinShape(p), high = SMaxShape(p);
+    float t0 = UMinShape(p);
+    EvaluateShapeU(p, t0, 0, &w.tangent);
     w.tangent = Normalize(w.tangent, D_002A2DA0);
     {
         U back;
@@ -93,8 +93,8 @@ extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
             } else
                 sample = low + GModPositive__Fff(sample - low, high - low);
             float r = 50.0f;
-            func_001E6F10(p, func_001E6728(p, sample + r), &fwd.q, 0);
-            func_001E6F10(p, func_001E6728(p, sample - r), &back.q, 0);
+            EvaluateShapeS(p, SClampShape(p, sample + r), &fwd.q, 0);
+            EvaluateShapeS(p, SClampShape(p, sample - r), &back.q, 0);
             w.direction = Normalize(Sub(fwd.q, back.q), D_002A2DC0);
             if (i == 0)
                 w.first = w.direction;

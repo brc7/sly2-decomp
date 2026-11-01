@@ -28,7 +28,7 @@ void func_00136118(struct P *p);
 void func_001367D8(struct P *p);
 void func_0021F418(void *pv);
 int func_00131968(void *pv);
-int func_001F0638(void *pv);
+int FSmaRetracted(void *pv);
 void func_00136338(struct P *p);
 
 #define VCALL99(p, a) ((int (*)(void *, int))(p)->vt[99].pfn)((char *)(p) + (p)->vt[99].d, a)
@@ -137,7 +137,7 @@ void func_00134850(struct P *p)
         case 10:
             if (p->p1030 && func_00131968(p->p1030))
                 func_00135248(p, 0);
-            else if (p->p1034 && func_001F0638(p->p1034))
+            else if (p->p1034 && FSmaRetracted(p->p1034))
                 func_00135248(p, 0);
             break;
         case 14:

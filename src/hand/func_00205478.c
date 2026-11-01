@@ -4,7 +4,7 @@ struct S { char pad[0x2A0]; int a[6]; };
 int func_001FD0C0(void *p, int i);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *func_001F03C8(void *x, struct S *ps);
-void func_001F0198(void *x, struct S *ps, int a, int b, void **ppv);
+void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
 void func_00205478(struct S *p, int mask)
 {
     int i;
@@ -19,7 +19,7 @@ void func_00205478(struct S *p, int mask)
                 if (x) {
                     void *y = func_001F03C8(x, p);
                     if (!y)
-                        func_001F0198(x, p, -1, 9, &y);
+                        PsmaApplySmOut(x, p, -1, 9, &y);
                 }
             }
         }

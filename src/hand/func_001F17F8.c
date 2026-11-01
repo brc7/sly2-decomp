@@ -6,7 +6,7 @@ struct P { char pad[0x3F4]; struct X *px3F4; struct X *px3F8; int n3FC; float g4
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern int D_002C3738[];
-void func_001F0730(void *, int);
+void SetSmaGoalIfReachable(void *, int);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 void func_001F17F8(struct P *p, int k)
 {
@@ -25,5 +25,5 @@ void func_001F17F8(struct P *p, int k)
         break;
     }
     pv = p->pq->p16C;
-    if (pv) func_001F0730(pv, D_002C3738[p->n3FC + 1]);
+    if (pv) SetSmaGoalIfReachable(pv, D_002C3738[p->n3FC + 1]);
 }

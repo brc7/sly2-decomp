@@ -18,7 +18,7 @@ qword func_00204E38(struct P*,struct Q*,float);
 struct PARAM *func_0012F938(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertAloVec(void*,void*,qword);
-void func_002046F0(struct P*,void*);
+void FaceStepToward(struct P*,void*);
 static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 static inline void Blend(qword value,float g,qword*velocity,U*scalar){
@@ -82,5 +82,5 @@ void func_001B8B70(struct P*p){
             }
         }
     }
-    if(p->focus&&p->mode==4)func_002046F0(p,p->focus);
+    if(p->focus&&p->mode==4)FaceStepToward(p,p->focus);
 }

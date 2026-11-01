@@ -18,8 +18,8 @@ struct ANIMATION *func_00209518(void *p);
 qword func_00204E38(struct A *a, struct ANIMATION *animation, float f);
 void func_002097C8(void *p, struct S *s);
 void func_002097D8(void *p, struct S *s);
-void func_001EEFC0(struct S *p);
-void func_001EF038(struct S *p);
+void SetBhvBusy(struct S *p);
+void ClearBhvBusy(struct S *p);
 struct O *func_00205458(struct A *a, int n);
 void *PpoHero(struct G *g);
 void func_00187E28(void *p, int n, float f);
@@ -64,10 +64,10 @@ int func_00174BD0(struct S *p, int msg, struct M *pm) {
         p->p10->n1A4 = 0;
         return 1;
     case 0x27:
-        func_001EEFC0(p);
+        SetBhvBusy(p);
         return 1;
     case 0x28:
-        func_001EF038(p);
+        ClearBhvBusy(p);
         return 1;
     case 0x2F:
         {

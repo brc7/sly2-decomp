@@ -14,7 +14,7 @@ struct O { char pad[0x50]; int x50; int x54; struct E *x58; struct Q *x5C; };
 struct P { char pad[0x38]; struct O *p38; };
 void *PpoHero(void *);
 qword func_001A62E8(void *);
-void func_001E6F60(struct Q *, qword, int, int, int, int, float *);
+void FindShapeClosestPoint(struct Q *, qword, int, int, int, int, float *);
 int func_0011D910(struct RANGE *, float);
 qword func_0014F308(void *, qword);
 float sqrtf(float);
@@ -33,7 +33,7 @@ int func_0014AA30(struct P *p)
     float ag[1];
     void *pv = PpoHero(D_003DD490);
     float gBest = -1.0f;
-    func_001E6F60(p->p38->x5C, func_001A62E8(pv), 0, 0, 0, 0, ag);
+    FindShapeClosestPoint(p->p38->x5C, func_001A62E8(pv), 0, 0, 0, 0, ag);
     for (; i < p->p38->x54; i++) {
         float g, u1, u2, u3, s;
         VU v;

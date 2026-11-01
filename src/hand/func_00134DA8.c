@@ -34,12 +34,12 @@ void func_00134D30(struct P *p);
 void func_00134850(struct P *p);
 void func_00204660(struct P *p, float g);
 int func_001430C8(struct P *p);
-void func_001F1350(int a, int b);
+void SetSmaMask(int a, int b);
 void func_0020BB58(void *pv, float g);
 void func_0020BC08(void *pv);
 void func_00197F98(void *pv);
 void func_00191A10(void *pv);
-void func_002046F0(struct P *p, int n);
+void FaceStepToward(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void func_001A0450(struct P *p, void *pv, int n);
 qword func_00204E38(struct P *p, struct S1030 *px, float g);
@@ -131,7 +131,7 @@ void func_00134DA8(struct P *p)
             func_00204660(p, D_002BC934);
             break;
         }
-        func_001F1350(p->x1034, func_001430C8(p));
+        SetSmaMask(p->x1034, func_001430C8(p));
         break;
     case 1:
         func_00204660(p, p->p150->g18);
@@ -154,7 +154,7 @@ void func_00134DA8(struct P *p)
     case 13:
         break;
     case 5:
-        func_002046F0(p, p->x10DC);
+        FaceStepToward(p, p->x10DC);
         {
             struct S150 *pa = p->p150;
             struct S1030 *pb = p->p1030;

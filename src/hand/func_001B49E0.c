@@ -7,7 +7,7 @@ void func_001A0300(struct S *p, void *a, void *b);
 void func_0020BD88(void *p, struct S *s);
 void func_0021F388(void *p);
 void func_001426E8(struct S *p, int n);
-void *func_001F4C58(struct S *p, int a, int b);
+void *PxfFindSo(struct S *p, int a, int b);
 int func_0012DC18(struct S *p, void *a, int b, int c, int d, qword q);
 void func_001B6078(struct S *p, int n);
 void func_001B49E0(struct S *p)
@@ -23,7 +23,7 @@ void func_001B49E0(struct S *p)
     func_0020BD88(b + 0x1850, p);
     func_0021F388(b + 0x1910);
     func_001426E8(p, 0x16);
-    v = func_001F4C58(p, p->x18, 0xC);
+    v = PxfFindSo(p, p->x18, 0xC);
     if (v) {
         *(int *)(b + 0x1ACC) = func_0012DC18(p, v, 0, 7, 2, D_002A2DE0);
     }

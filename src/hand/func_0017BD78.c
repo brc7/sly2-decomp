@@ -1,17 +1,17 @@
 struct T { char pad[0x30]; int n30; };
 struct S { char pad[0x10]; void *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; char pad4[0xC]; int n40; };
-void func_001EEF98(struct S *p);
+void UpdateBhv(struct S *p);
 int func_00209098(void *p);
 void func_0017B9C0(struct S *p);
-int func_001EF0A8(struct S *p);
+int FBhvBusyAbove(struct S *p);
 void func_0017B8B0(struct S *p, int n);
 int func_00175810(struct T *p);
 void func_0017BD78(struct S *p) {
     int f, s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     f = func_00209098(p->p10);
     func_0017B9C0(p);
-    while (!func_001EF0A8(p)) {
+    while (!FBhvBusyAbove(p)) {
         s = p->n30;
         switch (s) {
         case 0:

@@ -10,8 +10,8 @@ int func_00208D70(S2 *p);
 void *func_00154180(F64 *p, void *x);
 qword func_001A62E8(void *p);
 int func_00156918(O *o, qword q);
-int func_00227C90(L *pl, qword q);
-void func_0020FAA0(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
+int FCheckVolPoint(L *pl, qword q);
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 int func_0014CC58(int z, qword a, qword b, int i, int j, void *phit);
 void func_0020FA10();
 extern char D_003DD490[];
@@ -46,12 +46,12 @@ int func_00208BE0(S2 *p, O *o)
         L *pl = p->pF64->pl;
         if (!pl || ((pl->fl28 >> 60) & 1) == 0)
             return 0;
-        if (!func_00227C90(pl, tpos))
+        if (!FCheckVolPoint(pl, tpos))
             return 0;
         {
             FRAME frame;
             int i, j;
-            func_0020FAA0(D_003DD490, pos, tpos, (void *)func_0020FA10, p->pEC, &i, &j);
+            IntersectSwBoundingBox(D_003DD490, pos, tpos, (void *)func_0020FA10, p->pEC, &i, &j);
             if (!func_0014CC58(0, pos, tpos, i, j, 0))
                 return 1;
             return 0;

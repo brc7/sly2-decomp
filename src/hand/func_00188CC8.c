@@ -8,7 +8,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BF298;
 extern float D_002BF29C;
-extern void func_00204250(struct O *p, struct A *pa, void *pv);
+extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
 extern void func_0019E9C8(void *p, struct A *pa, void *pv);
 extern void func_001A2100(void *p, struct A *pa, void *pv);
 extern void func_001374E0(void *p, struct A *pa, void *pv);
@@ -25,7 +25,7 @@ static __inline__ float GLimLo(float g, float lo, float v)
 }
 void func_00188CC8(struct O *p, struct A *pa, void *pv)
 {
-    func_00204250(p, pa, pv);
+    AdjustStepNewXp(p, pa, pv);
     switch (p->n18C8) {
     case 8:
         func_0019E9C8(p->aF50, pa, pv);

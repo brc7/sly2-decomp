@@ -85,7 +85,7 @@ void func_001B93E8(P *, int);
 void func_001B5658(P *, int);
 void func_001B5D30(P *, int);
 void func_002206C8(void *, int);
-void func_001F5720(P *, int);
+void SetSoCnstrForce(P *, int);
 void func_0019EAB0(void *, int);
 int func_001F0400(void *, int);
 int func_001430C8(P *);
@@ -95,11 +95,11 @@ void func_0019CD38(void *, int);
 int func_001DAEA8(int);
 void func_001B5E98(P *);
 qword func_001A62E8(P *);
-void func_002046B0(P *, qword);
+void SetStepRadTargetVec(P *, qword);
 void func_00130658(ASEGA **);
-void func_001F15B8(COMPONENT **);
+void ReleaseSma(COMPONENT **);
 void func_001305B8(ASEG *, P *, float, float, int, ASEGA **);
-void func_001F14F8(void *, P *, int, int, int, COMPONENT **);
+void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
 ENTRY *func_0012F938(ASEG *, int);
 void func_00131A90(ASEGA *, float);
 }
@@ -140,7 +140,7 @@ extern "C" void func_001B6078(P *p, int next)
     case 4: func_001B93E8(p, -1); break;
     case 5: func_001B5658(p, -1); break;
     case 9: func_001B5D30(p, -1); break;
-    case 15: Call(p->object15, 9); func_002206C8(Block(p, 0x1910), -1); func_001F5720(p, 0); break;
+    case 15: Call(p->object15, 9); func_002206C8(Block(p, 0x1910), -1); SetSoCnstrForce(p, 0); break;
     case 1: case 10: p->phase = p->asega->time / p->asega->clip->duration; break;
     case 6: p->marker = 0; break;
     case 20: func_0019EAB0(Block(p, 0xF50), -1); break;
@@ -175,14 +175,14 @@ extern "C" void func_001B6078(P *p, int next)
         U point = p->goal; qword current = func_001A62E8(p);
         qword difference;
         __asm__("vsub.xyzw %0,%0,%2" : "=j"(difference) : "0"(point.q), "j"(current));
-        func_002046B0(p, difference); break;
+        SetStepRadTargetVec(p, difference); break;
     }
     case 8: { ASEG *a = p->extra8; if (a && p->alternate8) clip = a; else clip = p->clip8; goto clear_velocity; }
     case 9: func_001B5D30(p, 0); Call((OBJ *)p, 90); return;
     case 10: clip = p->clip10; activation = Block(p, 0x1540);
     activate: flags = 9; func_0020BD68(activation); break;
     case 15:
-        Call(p->object15, 8); p->stamp15 = D_002DD5BC; func_002206C8(Block(p, 0x1910), 0); func_001F5720(p, 1); SetVelocity(p, D_002A2DD0.q); return;
+        Call(p->object15, 8); p->stamp15 = D_002DD5BC; func_002206C8(Block(p, 0x1910), 0); SetSoCnstrForce(p, 1); SetVelocity(p, D_002A2DD0.q); return;
     case 16: source = p->template16;
     case 17: case 18:
         func_002303A0(p, p->first, 1); func_002303A0(p, p->second, 1);
@@ -193,9 +193,9 @@ extern "C" void func_001B6078(P *p, int next)
     }
     {
         ASEGA **animation = &p->asega; COMPONENT **component = &p->component; float position = 0.0f;
-        func_00130658(animation); func_001F15B8(component);
+        func_00130658(animation); ReleaseSma(component);
         func_001305B8(clip, p, position, 1.0f, flags, animation);
-        func_001F14F8(source, p, id, flags, mode, component);
+        ReplaceSmaEx(source, p, id, flags, mode, component);
         if (clip || source) {
             if (clip) { if (duration == position) { ENTRY *e = func_0012F938(clip, 0x1AC); if (e) duration = e->value; } }
             if (duration != 0.0f) func_00131A90(p->asega, D_002DDED0.t + duration / p->asega->rate);

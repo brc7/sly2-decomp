@@ -11,9 +11,9 @@ extern "C" {
 void func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
 qword func_0019F3F8(O *p, Q *q, float g);
-void func_0020FC60(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
+void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int func_0014CC58(int z, qword a, qword b, int i, int j, HIT *phit);
-void func_0020F948(void);
+void FFilterSoPair(void);
 extern char D_003DD490[];
 extern float D_002BF944;
 extern qword D_002BF950[8];
@@ -34,7 +34,7 @@ float func_0019F7D0(S *p, Q *q, int n, LO2 **apo)
         U a, b;
         HIT hit;
         int i0, i1;
-        func_0020FC60(D_003DD490, pos, (void *)func_0020F948, p->x0->xec, &i0, &i1, D_002BF944);
+        IntersectSwBoundingSphere(D_003DD490, pos, (void *)FFilterSoPair, p->x0->xec, &i0, &i1, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;

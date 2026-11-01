@@ -28,8 +28,8 @@ extern char D_003DD490[];
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
 void func_0014D1D0(struct CLOCK *, float, int);
-void func_0020EFC0(void *, int);
-void func_0020F030(void *, int);
+void IncrementSwHandsOff(void *, int);
+void DecrementSwHandsOff(void *, int);
 void func_001DB390(OBJ *, int);
 void func_001DA950(OBJ *, int, int);
 void func_001DB010(OBJ *);
@@ -42,7 +42,7 @@ void func_001DB520(OBJ *p, int s)
         return;
     if (p->x40 == -1) {
         func_0014D1D0(&D_002DDED0, 0.0f, 0);
-        func_0020EFC0(D_003DD490, 0);
+        IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
     }
     func_001DB390(p, -1);
@@ -58,7 +58,7 @@ void func_001DB520(OBJ *p, int s)
         p->n = 0;
         p->ae = 0;
         func_0014D1D0(&D_002DDED0, 1.0f, 0);
-        func_0020F030(D_003DD490, 0);
+        DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         func_001DA950(p, -1, -1);
         p->x24 = 0;

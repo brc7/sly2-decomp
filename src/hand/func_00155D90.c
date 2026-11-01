@@ -8,8 +8,8 @@ struct X {
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void func_001EEF98(struct X *p);
-int func_001EF0A8(struct X *p);
+void UpdateBhv(struct X *p);
+int FBhvBusyAbove(struct X *p);
 int func_00174FB8(void *p);
 int func_00178D00(void *p);
 int func_00175748(void *p);
@@ -21,8 +21,8 @@ void *func_00155A68(struct X *p);
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 void func_00155D90(struct X *p)
 {
-    func_001EEF98(p);
-    while (!func_001EF0A8(p)) {
+    UpdateBhv(p);
+    while (!FBhvBusyAbove(p)) {
         int s = p->state;
         switch (s) {
         case 0:

@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001EEE00(s32);                         /* extern */
+M2C_UNK PbhvPushBhvstk(s32);                         /* extern */
 
 void func_00205438(s32 arg0) {
-    func_001EEE00(arg0 + 0x26C);
+    PbhvPushBhvstk(arg0 + 0x26C);
 }

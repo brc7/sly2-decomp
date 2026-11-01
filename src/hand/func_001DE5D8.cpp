@@ -72,17 +72,17 @@ extern G D_003DD490;
 extern qword D_002A2DF0, D_002A2E00;
 extern float D_002C3610;
 extern "C" {
-void func_001F2BA8(P *);
+void RemoveSoParts(P *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(G *, int, int, P *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-float func_001E6648(PATH *);
-void func_001E6F10(PATH *, qword *, qword *, float);
+float SMaxShape(PATH *);
+void EvaluateShapeS(PATH *, qword *, qword *, float);
 void *func_002333B4(void *, int, int);
 qword func_001A62E8(void *);
 qword func_0022FC48(void *, void *, qword);
 void *func_001AE2A0(MSG *);
 void func_00166270(GEO *, const M4 *, GEO *);
-void func_001F2B20(P *);
+void AddSoParts(P *);
 }
 
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
@@ -103,7 +103,7 @@ extern "C" void func_001DE5D8(P *p)
 {
     int i;
     qword minimum, maximum;
-    func_001F2BA8(p);
+    RemoveSoParts(p);
     minimum = D_002A2DF0;
     maximum = D_002A2E00;
     for (i = 0; i < p->count; i++) {
@@ -123,13 +123,13 @@ extern "C" void func_001DE5D8(P *p)
                         if (params.speed < 0.0f) { reverse = 1; params.speed = -params.speed; }
                         params.duration = __builtin_fabsf(params.duration);
                         if (params.mode != 8 && params.mode != 16 && params.mode != 0) params.mode = 8;
-                        float length = func_001E6648(path);
+                        float length = SMaxShape(path);
                         if (0.0f < params.duration) params.speed = length / params.duration;
                         else if (0.0f < params.speed) params.duration = length / params.speed;
                         float start = params.fraction * length;
                         if (params.speed == 0.0f || params.duration == 0.0f) {
                             endpoint->kind = 0;
-                            func_001E6F10(path, &endpoint->point, 0, start);
+                            EvaluateShapeS(path, &endpoint->point, 0, start);
                         } else {
                             endpoint->track.path = path;
                             endpoint->kind = 1;
@@ -279,5 +279,5 @@ extern "C" void func_001DE5D8(P *p)
         { U *out = bound->local.points; out[0].q = func_0022FC48(0, p->space, minimum); }
         { U *out = bound->local.points; out[1].q = func_0022FC48(0, p->space, maximum); }
     }
-    if ((int)(p->flags28 >> 60) & 1) func_001F2B20(p);
+    if ((int)(p->flags28 >> 60) & 1) AddSoParts(p);
 }

@@ -5,9 +5,9 @@ struct Q { int a; struct O *o; };
 struct S { char pad[0x1B0]; void *x; };
 extern qword D_002A2DD0;
 extern char D_002C43D0[], D_002C43E0[];
-void func_001FAC30(struct O *o, qword v);
+void AddSoAcceleration(struct O *o, qword v);
 qword func_001A62E8(void *p);
-void func_001F5E10(struct O *o, qword v, void *a, qword b, void *c);
+void AccelSoTowardPosSpring(struct O *o, qword v, void *a, qword b, void *c);
 void func_002255C8(struct S *p, struct Q *q)
 {
     struct O *o = q->o;
@@ -19,7 +19,7 @@ void func_002255C8(struct S *p, struct Q *q)
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(m));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(o->t->v), "j"(s));
     u.q = s;
-    func_001FAC30(o, r);
+    AddSoAcceleration(o, r);
     if (p->x) v = func_001A62E8(p->x); else v = func_001A62E8(p);
-    func_001F5E10(o, v, D_002C43D0, D_002A2DD0, D_002C43E0);
+    AccelSoTowardPosSpring(o, v, D_002C43D0, D_002A2DD0, D_002C43E0);
 }

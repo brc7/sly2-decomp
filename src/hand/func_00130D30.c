@@ -8,7 +8,7 @@ int func_00131968(struct P *p);
 void func_001317D8(struct P *p, float *pg, float *pg2);
 void func_00130EB0(struct P *p);
 int func_0012CEE0(struct S *ps);
-void func_00230598(void *p4, struct R *pr);
+void SlotUnsettle(void *p4, struct R *pr);
 void func_00230CF0(struct P *p, int n);
 void func_00130D30(struct P *p, int k, float g, float s)
 {
@@ -33,7 +33,7 @@ void func_00130D30(struct P *p, int k, float g, float s)
                 float v = *pr->pg;
                 if (v < pr->gMin || pr->gMax < v)
                     ((void (*)(void *))ps->vt[4].pfn)((char *)ps + ps->vt[4].d);
-                func_00230598(ps->p4, ps->pr);
+                SlotUnsettle(ps->p4, ps->pr);
             }
         }
         func_00230CF0(p, 0);

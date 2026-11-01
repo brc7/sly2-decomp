@@ -136,14 +136,14 @@ void func_0019A4A0(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECT
 float FUN_001cf138(JTAIR *pjtair, void *plo, float g, float dg);
 int func_0019AE00(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
-void func_0020F948();
+void FFilterSoPair();
 void func_0019B0A8();
-void func_001E6F60(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
+void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void func_001E7410(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
-float func_001E77E8(CURVE *pcurve);
-float func_001E64C8(CURVE *pcurve, float s);
-float func_001E6648(CURVE *pcurve);
-float func_001E63C0(CURVE *pcurve, float u);
+float DuGetShapeSearchIncrement(CURVE *pcurve);
+float UFromShapeS(CURVE *pcurve, float s);
+float SMaxShape(CURVE *pcurve);
+float SFromShapeU(CURVE *pcurve, float u);
 void func_0011D9E0(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
 float func_0019AA58(void *pv, float u);
 float func_0019ABB8(void *pv, float u);
@@ -155,7 +155,7 @@ void func_00193A68(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, fl
 void func_0019C300(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
 void func_00185310(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
 int func_00185D18(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
-void func_001E6F10(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
+void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
 qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
 float func_002458F0(float y, float x);                                 // atan2f
 void func_00195FB8(JTAIR *pjtair, int nKind, void *plo);
@@ -213,7 +213,7 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
                 g = FUN_001cf138(pjtair, pshape, g, D_002BF8E4);
                 if (gBest <= g)
                     continue;
-                if (func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                if (func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                                   posHit.q, vHit.q, 0))
                     continue;
             }
@@ -229,7 +229,7 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
             if (!(pcurve->grf & grf))
                 continue;
             if (pcurve != ploForce) {
-                func_001E6F60(pcurve, *pjtair->pstepplayer->pqwUnk218, 0, &posTarget, 0, 0, 0);
+                FindShapeClosestPoint(pcurve, *pjtair->pstepplayer->pqwUnk218, 0, &posTarget, 0, 0, 0);
                 if (pcurve->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
             }
@@ -240,8 +240,8 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
             ctx.pcurve = pcurve;
             ctx.v = vLaunch.q;
             func_001E7410(pcurve, func_0019AA58, &ctx, 0, 0, &uStart, 0);
-            func_0011D9E0(func_0019AA58, &ctx, uStart, func_001E77E8(pcurve), func_001E64C8(pcurve, 50.0f),
-                          func_001E64C8(pcurve, func_001E6648(pcurve) - 50.0f), &u, &g);
+            func_0011D9E0(func_0019AA58, &ctx, uStart, DuGetShapeSearchIncrement(pcurve), UFromShapeS(pcurve, 50.0f),
+                          UFromShapeS(pcurve, SMaxShape(pcurve) - 50.0f), &u, &g);
             if (pcurve != ploForce) {
                 if (g >= D_002BF8E0)
                     continue;
@@ -254,7 +254,7 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
             func_0019A4A0(pjtair, vLaunch, pcurve, posTarget, dpos, &t, 0, &posHit, &vHit);
             vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
             if (pcurve != ploForce &&
-                func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                               posHit.q, vHit.q, 0))
                 continue;
             ploBest = pcurve;
@@ -264,7 +264,7 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
             vBest = vHit;
             uBest = u;
             tBest = t;
-            sBest = func_001E63C0(pcurve, uBest);
+            sBest = SFromShapeU(pcurve, uBest);
         }
 
         for (HOOK *phook = D_003E13B4; phook; phook = phook->phookNext) {
@@ -298,7 +298,7 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
                 g = FUN_001cf138(pjtair, phook, g, D_002BF8EC);
                 if (gBest <= g)
                     continue;
-                if (func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
+                if (func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
                                   posHit.q, vHit.q, &posTarget))
                     continue;
             }
@@ -335,7 +335,7 @@ extern "C" void func_0019B110(JTAIR *pjtair, void *ploForce)
             func_00185D18(pmesh, pos.q, vLaunch.q, pjtair->pstepplayer->psophys->dvGravity.q, pjtair->pstepplayer->sRadius,
                           t, &triHit, &posHit, &vHit);
             if (pmesh != ploForce &&
-                func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+                func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
             nKind = 16;
@@ -381,7 +381,7 @@ LPartnerDone:
         if (!(pcurve->grf & pjtair->pstepplayer->grfTarget))
             continue;
         float sCur;
-        func_001E6F60(pcurve, pos.q, 0, &posTarget, 0, 0, &sCur);
+        FindShapeClosestPoint(pcurve, pos.q, 0, &posTarget, 0, 0, &sCur);
         if (pcurve != ploForce) {
             if (pcurve->sHeight < pos.f[2] - posTarget.f[2])
                 continue;
@@ -392,7 +392,7 @@ LPartnerDone:
         float s, gCurve;
         pair.pjtair = pjtair;
         pair.plo = pcurve;
-        func_0011D9E0(func_0019ABF0, &pair, sCur, 100.0f, 50.0f, func_001E6648(pcurve) - 50.0f, &s, &gCurve);
+        func_0011D9E0(func_0019ABF0, &pair, sCur, 100.0f, 50.0f, SMaxShape(pcurve) - 50.0f, &s, &gCurve);
         if (pcurve != ploForce) {
             if (D_002BF8E0 <= gCurve)
                 continue;
@@ -403,12 +403,12 @@ LPartnerDone:
         OBJCTX ctx;
         ctx.pjtair = pjtair;
         ctx.plo = pcurve;
-        func_001E6F10(pcurve, s, &posTarget, 0);
+        EvaluateShapeS(pcurve, s, &posTarget, 0);
         ctx.v = ConvertAloPos(0, pcurve, posTarget.q);
         func_0011D9E0(func_0019ABB8, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         func_0019C300(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
         if (pcurve != ploForce &&
-            func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, &posTarget))
             continue;
         nKind = 15;
@@ -449,7 +449,7 @@ LPartnerDone:
         func_0019A4A0(pjtair, v, pshape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (pshape != ploForce &&
-            func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         nKind = 12;
@@ -465,7 +465,7 @@ LPartnerDone:
         if (!(pcurve->grf & grf))
             continue;
         float sCur;
-        func_001E6F60(pcurve, pos.q, 0, &posTarget, 0, 0, &sCur);
+        FindShapeClosestPoint(pcurve, pos.q, 0, &posTarget, 0, 0, &sCur);
         if (pcurve->sHeight < pos.f[2] - posTarget.f[2])
             continue;
         OBJCTX ctx;
@@ -473,7 +473,7 @@ LPartnerDone:
         ctx.v = v.q;
         ctx.pjtair = pjtair;
         ctx.plo = pcurve;
-        func_0011D9E0(func_0019AB38, &ctx, sCur, D_002BF918, 30.0f, func_001E6648(pcurve) - 30.0f, &u, &g);
+        func_0011D9E0(func_0019AB38, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(pcurve) - 30.0f, &u, &g);
         g = g * D_002BF90C;
         if (pcurve != ploForce) {
             if (g >= D_002BF8E0)
@@ -487,7 +487,7 @@ LPartnerDone:
         func_0019A4A0(pjtair, v, pcurve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (pcurve != ploForce &&
-            func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         nKind = 11;
@@ -513,7 +513,7 @@ LPartnerDone:
             g = FUN_001cf138(pjtair, pshape, g, D_002BF8FC);
             if (gBest <= g)
                 continue;
-            if (func_0019AE00(pjtair, (void *)func_0020F948, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (func_0019AE00(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
         }

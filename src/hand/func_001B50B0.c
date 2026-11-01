@@ -26,7 +26,7 @@ void func_00194A40(struct G *pg, struct P *p, int n);
 void func_001B5038(struct P *p);
 void func_001B4AA0(struct P *p);
 int func_001430C8(struct P *p);
-void func_001F1350(void *p, int n);
+void SetSmaMask(void *p, int n);
 void func_00204660(struct P *p, float g);
 qword func_00204E38(struct P *p, struct ASEGA *pl, float g);
 void func_0020BB58(void *p, float g);
@@ -115,7 +115,7 @@ void func_001B50B0(struct P *p)
     func_001B4AA0(p);
     switch (p->x13D0) {
     case 0:
-        func_001F1350(p->p1034, func_001430C8(p));
+        SetSmaMask(p->p1034, func_001430C8(p));
         break;
     case 1:
         func_00204660(p, p->pl->g18);

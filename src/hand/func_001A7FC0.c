@@ -5,7 +5,7 @@ typedef struct { short d; short pad; void (*pfn)(struct LO *, struct P *, int); 
 struct LO { int x0, x4, x8; VT *vt; };
 struct E { int x0; void *x4; int x8; struct LO *xC; qword x10; qword x20; qword x30; };
 struct P { struct E e[2]; char pad[0x30]; qword xB0; };
-qword func_0022D348(void *p, int n, qword q);
+qword GetXfVelocity(void *p, int n, qword q);
 void func_001A7FC0(void *unused, int n, struct P **ap)
 {
     int i;
@@ -17,7 +17,7 @@ void func_001A7FC0(void *unused, int n, struct P **ap)
         for (j = 0; j < 2; j++, e++) {
             if (e->x4) {
                 struct LO *o;
-                e->x30 = func_0022D348(e->x4, 0, e->x10);
+                e->x30 = GetXfVelocity(e->x4, 0, e->x10);
                 o = e->xC;
                 o->vt[56].pfn((struct LO *)((char *)o + o->vt[56].d), p, j);
             }

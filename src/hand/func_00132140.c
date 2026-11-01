@@ -1,7 +1,7 @@
 struct S { char pad[0x150]; int c150; int a154[4]; int c164; int a168[4]; int f178; };
 int FMatchesLoName(void *, int);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int func_001F4FC8(struct S *, void *);
+int FIgnoreSoIntersection(struct S *, void *);
 int func_00132140(struct S *p, void *pv) {
     int i, j;
     int f;
@@ -17,7 +17,7 @@ int func_00132140(struct S *p, void *pv) {
         int r;
         if (p->f178) {
             if (f) r = 3;
-            else r = func_001F4FC8(p, pv);
+            else r = FIgnoreSoIntersection(p, pv);
         } else r = f ? 2 : 1;
         return r;
     }

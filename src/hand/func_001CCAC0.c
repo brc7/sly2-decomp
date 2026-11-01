@@ -15,7 +15,7 @@ extern char D_003DD490[];
 void ReleaseAct(int *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 qword func_001A62E8(struct W *p);
-void func_001E6F60(struct O *p, qword q, int a, int b, int c, int d, int *pn);
+void FindShapeClosestPoint(struct O *p, qword q, int a, int b, int c, int d, int *pn);
 struct O *func_001CCA40(struct W *pw, struct O *po);
 qword func_0022CA18(void *a, void *b);
 int func_0012DC18(struct W *p, void *q, int a, int b, int c, qword d);
@@ -37,7 +37,7 @@ void func_001CCAC0(struct S *p, int n)
         p->x90 = 1;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x84, 10)) {
             struct O *po = p->x84;
-            func_001E6F60(po, func_001A62E8(p->x0), 0, 0, 0, 0, &p->x88);
+            FindShapeClosestPoint(po, func_001A62E8(p->x0), 0, 0, 0, 0, &p->x88);
             p->x90 = 0;
         } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x84, 0x14) && (p->x84->xE0 & p->x0->x1000)) {
             p->x90 = 2;

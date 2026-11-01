@@ -3,7 +3,7 @@ struct A { char pad[0x1C]; float g1C; char pad2[0x50 - 0x20]; int k50; };
 struct P { char pad[0x58]; void *p58; void *p5C; char pad2[0x190 - 0x60]; qword v190; char pad3[0x2C0 - 0x1A0]; int n2C0;
     char pad4[0x408 - 0x2C4]; struct A *pa408; int f40C; };
 extern struct A *D_002DE570;
-void func_00203FC0(struct P *p);
+void UpdateStep(struct P *p);
 int func_00131968(struct A *pa);
 void func_002303A0(struct P *p, void *pv, int n);
 void func_001524A0(struct P *p, int n, int m);
@@ -21,7 +21,7 @@ static inline qword VecMul(qword v, float g)
 void func_00152148(struct P *p)
 {
     int k;
-    func_00203FC0(p);
+    UpdateStep(p);
     if (!p->pa408 || func_00131968(p->pa408)) {
         func_002303A0(p, p->p58, 1);
         func_002303A0(p, p->p5C, 1);

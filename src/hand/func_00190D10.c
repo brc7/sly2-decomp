@@ -10,7 +10,7 @@ struct G { char pad[0x3D58]; int x3d58; };
 extern struct G D_003DD490;
 qword func_00190C58(struct P *p);
 qword func_001A62E8(void *p);
-qword func_0022FCC8(int n, void *p, qword q);
+qword ConvertXfVec(int n, void *p, qword q);
 void func_00256D18(qword *pq, qword q);
 void __ml__FRC7MATRIX4T0(struct MATRIX4 *pm, void *p, struct T *t);
 void func_00186A50(struct P *p, int n);
@@ -26,7 +26,7 @@ void func_00190D10(struct P *p)
     a = VAdd(func_00190C58(p), p->x1960);
     b = func_001A62E8(p->x19a4);
     d = VSub(a, b);
-    a = func_0022FCC8(0, p->x19c4->xa0, d);
+    a = ConvertXfVec(0, p->x19c4->xa0, d);
     t = p->x19c4;
     func_00256D18(&t->x30, VAdd(t->x30, a));
     ((float *)&t->x30)[3] = 1.0f;

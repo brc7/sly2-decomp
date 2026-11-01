@@ -50,7 +50,7 @@ extern float D_002C4494, D_002C4498, D_002C449C, D_002C44D8;
 extern CLQ D_002C44A0, D_002C44B0, D_002C44C0;
 extern LM D_002C44D0;
 extern "C" {
-void func_001F3C70(WAYPT *pwaypt);
+void RenderSoSelf(WAYPT *pwaypt);
 int func_001DAEA8(int ipuk);
 int FJobComplete(void *pcond);
 void func_0022A220(WAYPT *pwaypt);
@@ -120,7 +120,7 @@ inline MATRIX3 operator*(const MATRIX3 &mat, VU_FLOAT g) return matRes
 
 extern "C" void func_0022A908(WAYPT *pwaypt)
 {
-    func_001F3C70(pwaypt);
+    RenderSoSelf(pwaypt);
     float tStart = GMax(D_003DD490.tUnk4750 + D_002C4494, D_003DD490.tUnk4754 + D_002C4498);
     float uShow = GLimitG(GEvaluateClq(&D_002C44A0, D_002DDED0.t - tStart), D_002BBB60.gMin, D_002BBB60.gMax);
     tStart = D_003DD490.tUnk4750 + D_002C449C;

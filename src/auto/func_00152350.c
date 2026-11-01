@@ -41,6 +41,6 @@ extern void *D_003E0F9C;
 extern s32 D_003E1480;
 
 void func_00152350(s32 arg0, s32 arg1) {
-    func_001F58F0(arg0, arg1);
+    GetSoCpdefi(arg0, arg1);
     M2C_FIELD(arg1, f32 *, 0x30) = (f32) (M2C_FIELD(arg1, f32 *, 0x30) - 2.3561945f);
 }

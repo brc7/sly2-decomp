@@ -574,7 +574,7 @@ struct SHAPE : public XFM
       undefined4 unk_0x184[3];
 };
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
-extern "C" void func_001E6180(SHAPE *pshape);
+extern "C" void MeasureShape(SHAPE *pshape);
 extern int D_002C1ED0;
 inline void *PvAllocSw(int cb, int cbAlign)
 {
@@ -637,7 +637,7 @@ void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
                 pshape->mpicvpos[k] = *(VECTOR4 *)&qwPos;
             }
             pshape->Remove();
-            func_001E6180(pshape);
+            MeasureShape(pshape);
             if (j == 0)
                 phands->abl[i].pshapeA = pshape;
             else

@@ -13,8 +13,8 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 int FTaskComplete(struct X *p);
 void SetLoBusyk(struct X *p, int n);
-void func_0020EFC0(void *pg, int n);
-void func_0020F030(void *pg, int n);
+void IncrementSwHandsOff(void *pg, int n);
+void DecrementSwHandsOff(void *pg, int n);
 void func_00213B00(struct O *po, int n);
 static __inline__ void VCall50(struct O *po)
 {
@@ -56,7 +56,7 @@ void SetJobCompletionPhase(struct X *p, int n)
             *(int *)v |= 0x102;
         else
             p->fl = v | 0x102;
-        func_0020EFC0(D_003DD490, 2);
+        IncrementSwHandsOff(D_003DD490, 2);
     }
     p->fC4 = n;
     p->fC8 = D_002DDED0.t;
@@ -71,7 +71,7 @@ void SetJobCompletionPhase(struct X *p, int n)
             *(int *)v &= ~0x102;
         else
             p->fl = v & ~0x102;
-        func_0020F030(D_003DD490, 2);
+        DecrementSwHandsOff(D_003DD490, 2);
         break;
     }
     case 1:

@@ -13,15 +13,15 @@ struct P {char pad[0x190];int count;char pad194[0xC];E entries[8];float width;in
 extern "C" {
 extern qword D_002A2DC0,D_002A2DD0;
 extern char D_003DD490[];
-void func_001F36A8(P *);
-REF *func_001F4C58(P *,int,int);
+void PostSoLoad(P *);
+REF *PxfFindSo(P *,int,int);
 void *func_002332B8(void *,const void *,int);
 qword ConvertAloPos(void *,P *,qword);
 void *func_0012DC18(P *,REF *,int,int,int,qword);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
 void *func_001F0380(void *,P *,int,int);
 void *func_001E94B0(int,int);
-void func_001F1448(void *,P *,int,int,void **);
+void ReplaceSma(void *,P *,int,int,void **);
 void func_001D14C0(P *);
 }
 static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
@@ -31,14 +31,14 @@ extern "C" void func_001D1518(P *p){
  register int i __asm__("$18")=0;CURRENT current;SCALE scale;
  register int count __asm__("$2");
  {qword zero=Zero();minimum.q=CPU(zero);maximum.q=zero;}
- func_001F36A8(p);
+ PostSoLoad(p);
  if(p->count>0){
  int stride=0x60;
  scale.axis=&D_002A2DC0;
  E *next=p->entries+1,*cursor=p->entries;
  do {
   current.entry=cursor;
-  REF *reference=func_001F4C58(p,current.entry->id,13);
+  REF *reference=PxfFindSo(p,current.entry->id,13);
   current.entry->reference=reference;
   if(!reference){
    unsigned bytes=(p->count-i)*stride-sizeof(E);
@@ -95,7 +95,7 @@ extern "C" void func_001D1518(P *p){
  scale.stride=0x14;
  SIDE*next=p->sides+1;current.side=p->sides;
  do {
-  REF *reference=func_001F4C58(p,current.side->id,6);
+  REF *reference=PxfFindSo(p,current.side->id,6);
   current.side->reference=reference;
   if(!reference){
    unsigned bytes=(p->sideCount-i)*scale.stride-sizeof(SIDE);
@@ -116,7 +116,7 @@ extern "C" void func_001D1518(P *p){
   current.attachment=*cursor;
   current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,p);
   if(current.attachment->object){
-   current.attachment->mesh=func_001F4C58(p,current.attachment->meshId,6);
+   current.attachment->mesh=PxfFindSo(p,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
     current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,p);
     if(current.attachment->extra || current.attachment->extraId==invalid){
@@ -140,7 +140,7 @@ extern "C" void func_001D1518(P *p){
  }while(j<p->attachCount);}
 
  p->path=func_001E94B0(0x2C9,16);
- func_001F1448(p->asset,p,-1,0,binding);
+ ReplaceSma(p->asset,p,-1,0,binding);
  func_001D14C0(p);
 }
 

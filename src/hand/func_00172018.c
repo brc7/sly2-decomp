@@ -4,8 +4,8 @@ extern struct CLOCK D_002DDED0;
 struct X { qword a; qword v; };
 struct A { char pad[0xFD0]; char aFD0[4]; };
 struct S { char pad[0x10]; struct A *p10; int pad2; void *p18; char pad3[0x14]; int n30; float f34; float f38; float f3C; char pad4[8]; int n48; };
-void func_001EEF98(struct S *p);
-int func_001EF0A8(struct S *p);
+void UpdateBhv(struct S *p);
+int FBhvBusyAbove(struct S *p);
 int func_00174FB8(void *p);
 int func_00209098(void *p);
 int func_00172658(struct S *p);
@@ -24,8 +24,8 @@ static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) 
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 void func_00172018(struct S *p) {
     int s;
-    func_001EEF98(p);
-    while (!func_001EF0A8(p)) {
+    UpdateBhv(p);
+    while (!FBhvBusyAbove(p)) {
         s = p->n30;
         switch (s) {
         case 0:

@@ -8,7 +8,7 @@ struct PP {
 };
 extern "C" {
 qword func_001A62E8(void *p);
-void func_001FAC30(PP *p, qword q);
+void AddSoAcceleration(PP *p, qword q);
 void func_001F59A0(PP *p, M3 *pm, float *pg);
 void func_001903B8(PP *p);
 }
@@ -35,7 +35,7 @@ void func_001903B8(PP *p)
 {
     U v, d;
     M3 m1, m2, m;
-    func_001FAC30(p, p->x1910);
+    AddSoAcceleration(p, p->x1910);
     qword a;
     __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(p->x18C4)));
     v.q = a;

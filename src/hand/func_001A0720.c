@@ -8,7 +8,7 @@ struct ANIM{char pad[0x40];int ratebits;};
 struct P{char pad[0xC];struct VT*vt;char pad10[0x180];U acceleration;char pad1A0[8];float heading;char pad1AC[0xE84];struct ANIM*anim;int pad1034;int side;char pad103C[0xA0];struct O*target;int pad10E0;int targetMode;};
 struct AXES{char pad[0x10];qword a;char pad20[0x10];qword b;char pad40[0x10];qword c;char pad60[0x10];qword d;char pad80[0x10];qword e;char padA0[0x10];qword f;};
 extern float D_002BF9F0;
-void func_002046F0(struct P*,struct O*);
+void FaceStepToward(struct P*,struct O*);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float,float,float);
 struct M4*func_001A6318(struct P*);
@@ -72,7 +72,7 @@ void func_001A0720(struct P*p,struct AXES*axes,int enabled,float heading,float m
  if(!enabled)return;
  target=p->target;
  if(target){if(p->targetMode==3)target=target->anchor;
- func_002046F0(p,target);}
+ FaceStepToward(p,target);}
  zero=0.0f;
  input.q=SetVectorCylind(RadNormalize__Ff(heading-p->heading),magnitude,zero);
  if(D_002BF9F0<input.f[1]){

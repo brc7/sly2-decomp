@@ -13,7 +13,7 @@ struct P {
     char pad[0xEC]; struct X *xEC; char pad1[0x1E0 - 0xF0]; int x1E0; float x1E4; float x1E8;
     char pad2[0x2A8 - 0x1EC]; int x2A8; char pad3[0x2F4 - 0x2AC]; int x2F4; int x2F8;
 };
-void func_001F36E0(struct P *);
+void UpdateSo(struct P *);
 void func_001490A0(struct P *, int);
 int func_00149100(struct P *, int);
 void EnsureSwCallback(void *, void *, struct K, int);
@@ -25,7 +25,7 @@ static inline int IOther(struct X *px, struct SO *pso)
 
 void func_00148C98(struct P *p)
 {
-    func_001F36E0(p);
+    UpdateSo(p);
     switch (p->x1E0) {
     case 2: {
         struct PG *pg = D_002E1E40;

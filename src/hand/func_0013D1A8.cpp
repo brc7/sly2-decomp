@@ -4,7 +4,7 @@ extern "C" {
 extern char D_003E0EA8[];
 extern char D_002A4BB8[];
 extern char D_002A4BC0[];
-int func_00210A88(void);
+int IlevelCur__Fv(void);
 short func_001D8720(void *, char *);
 void *func_002109B8(int);
 void func_001D8CC8(void *, struct P *);
@@ -16,7 +16,7 @@ void func_0013D1A8(struct S *p) {
     int i;
     int v;
     i = 0;
-    v = func_00210A88();
+    v = IlevelCur__Fv();
     if (v == -1) v = i;
     i = v;
     char *pv = D_003E0EA8;

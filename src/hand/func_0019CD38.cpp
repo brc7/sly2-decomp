@@ -1489,7 +1489,7 @@ extern "C" {
 void func_0020F1A8(SW *psw);
 }
 extern "C" {
-void func_001F5720(SO *pso, int fOn);
+void SetSoCnstrForce(SO *pso, int fOn);
 }
 extern SNDMGR D_003DD040;
 static inline void ClearXyz(VECTOR *pvec)
@@ -1519,7 +1519,7 @@ void SetJtModeState(JTMODE *pjtmode, int nState)
                         if (pstep)
                         {
                             pstep->VUnk83(0x3F, 1);
-                            func_001F5720(pstep, 0);
+                            SetSoCnstrForce(pstep, 0);
                         }
                     }
                     pjtmode->pstepplayer->VUnk83(0x3F, 0);
@@ -1582,7 +1582,7 @@ void SetJtModeState(JTMODE *pjtmode, int nState)
                         if (pstep)
                         {
                             pstep->VUnk82(0x3F, 1);
-                            func_001F5720(pstep, 1);
+                            SetSoCnstrForce(pstep, 1);
                             ClearXyz(&pstep->vUnk190);
                             pstep->SetVelocity(D_002A2DD0);
                             pstep->SetAngularVelocity(D_002A2DD0);

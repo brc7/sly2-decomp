@@ -18,7 +18,7 @@ struct R { int pad; struct R1 *p4; };
 union V { qword q; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 qword func_001A62E8(void *p);
-float func_00204740(struct A *a);
+float RadStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
 int func_0011D910(void *p, float f);
 float RadNormalize__Ff(float f);
@@ -27,7 +27,7 @@ void CalculateVectorPanTilt(qword v, int n, float *pf);
 void func_001AE478(struct X *x);
 void func_001AE4A0(struct X *x, int n);
 int func_0020FA10(void);
-void func_0020FAA0(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
+void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
 struct R *func_0014CC58(int n, qword a, qword b, int c, int d, struct Y *y);
 int func_00175D00(struct S *p) {
     struct X x;
@@ -67,7 +67,7 @@ int func_00175D00(struct S *p) {
     pa = func_001A62E8(p->p10);
     pb = func_001A62E8(p->p30);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
-    g = func_00204740(p->p10);
+    g = RadStepHeading(p->p10);
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
     if (!func_0011D910(p->p10->aF48, f[2])) return 0;
     {
@@ -89,7 +89,7 @@ int func_00175D00(struct S *p) {
     {
         struct R *r;
         func_001AE478(&x);
-        func_0020FAA0(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
+        IntersectSwBoundingBox(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
         r = func_0014CC58(0, pa, pb, na, nb, &y);
         if (r && r->p4->p14->p0 != p->p30) {
             func_001AE4A0(&x, 2);

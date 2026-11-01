@@ -1,13 +1,13 @@
 struct S { char pad[0x18]; void *p18; char pad2[0x18]; int n34; char pad3[8]; int n40; };
-void func_001EEF98(struct S *p);
-int func_001EF0A8(struct S *p);
+void UpdateBhv(struct S *p);
+int FBhvBusyAbove(struct S *p);
 int func_00174FB8(void *p);
 void func_00175488(struct S *p, int n);
 void func_00175600(struct S *p) {
     int s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     do {
-        if (func_001EF0A8(p)) return;
+        if (FBhvBusyAbove(p)) return;
         s = p->n34;
         switch (s) {
         case 0:

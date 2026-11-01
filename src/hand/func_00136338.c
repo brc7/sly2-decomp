@@ -10,7 +10,7 @@ int GrfConsumePressed__5POCTLUif(void *pv, int n, float g);
 void func_001357C0(struct P *p, int n);
 void func_00136DC0(void *pv, int n);
 int func_001F0400(void *pv, int n);
-void func_001F09D8(void *pv, int n);
+void SnapSma(void *pv, int n);
 void func_00136338(struct P *p)
 {
     int s;
@@ -39,7 +39,7 @@ void func_00136338(struct P *p)
             case 0:
                 func_00136DC0(p->a1710, 0);
                 if (p->x181C && p->x1714 != -1 && p->p1034 && func_001F0400(p->p1028, 0x17B) >= 0)
-                    func_001F09D8(p->p1034, 0x17B);
+                    SnapSma(p->p1034, 0x17B);
                 break;
             case 1: case 2: case 3: case 7:
                 func_00136DC0(p->a1710, 1);

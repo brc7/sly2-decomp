@@ -54,29 +54,29 @@ void func_00182CD8(void *, ACTOR *, float *, U *, float *);
 qword func_0011F088(qword, qword, float, SMP *, U *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword SetVectorCylind(float, float, float);
-float func_001E6620(FOCUS *);
-float func_001E6648(FOCUS *);
-float func_001E6610(FOCUS *);
-float func_001E6630(FOCUS *);
+float SMinShape(FOCUS *);
+float SMaxShape(FOCUS *);
+float UMinShape(FOCUS *);
+float UMaxShape(FOCUS *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void func_001940B0(CONTEXT *, int);
 void func_00204660(ACTOR *, float);
-float func_00204740(ACTOR *);
+float RadStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
 void func_00192BD8(CONTEXT *, int);
 void func_0020BB58(PROGRAM *, float);
 void func_0020BC08(PROGRAM *);
 void func_001441E8(ACTOR *, float);
-void func_001E6ED8(FOCUS *, qword, void *, U *, U *, float *, float *, float);
+void FindShapeClosestPointFromU(FOCUS *, qword, void *, U *, U *, float *, float *, float);
 void func_00195A00(void *, int, int, int);
 float func_002458F0(float, float);
-void func_001E6F60(FOCUS *, qword, void *, void *, U *, void *, void *);
+void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void func_001CC2E8(void *);
 void func_001A0450(ACTOR *, ENTRY *, void *);
 void func_00205910(ACTOR *, HEIGHT *, int, U *);
 BINDING *func_0012FF10(void *, ACTOR *, int, int);
-void func_002046F0(ACTOR *, FOCUS *);
-void func_00204CA8(ACTOR *);
+void FaceStepToward(ACTOR *, FOCUS *);
+void FixStepAngularVelocity(ACTOR *);
 void func_00189C40(ACTOR *, void *, void *, void *, float, void *);
 void func_00193C98(ACTOR *, void *, void *);
 }
@@ -190,8 +190,8 @@ extern "C" void func_00191A10(CONTEXT *ctx)
             FOCUS *focus;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
-                GSmooth__FfffP3SMPPf(ctx->value, func_001E6620(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
-                GSmooth__FfffP3SMPPf(ctx->value, func_001E6648(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
+                GSmooth__FfffP3SMPPf(ctx->value, SMinShape(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
+                GSmooth__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
                 s = GClamp(lateral, lo, hi);
             } else {
                 s = lateral;
@@ -232,7 +232,7 @@ extern "C" void func_00191A10(CONTEXT *ctx)
                 func_001940B0(ctx, 3);
         }
         func_00204660(ctx->actor, heading);
-        if (ctx->step == 5 && 0.25f < __builtin_fabsf(RadNormalize__Ff(func_00204740(ctx->actor) - heading)))
+        if (ctx->step == 5 && 0.25f < __builtin_fabsf(RadNormalize__Ff(RadStepHeading(ctx->actor) - heading)))
             step = 5;
         func_00192BD8(ctx, step);
         break;
@@ -263,9 +263,9 @@ extern "C" void func_00191A10(CONTEXT *ctx)
     case 3: {
         FOCUS *focus = ctx->focus;
         U point, tangent;
-        func_001E6ED8(focus, *ctx->actor->ppos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
+        FindShapeClosestPointFromU(focus, *ctx->actor->ppos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
         if (focus->flags && !focus->cyclic &&
-            (ctx->parameter < func_001E6610(focus) + 0.01f || func_001E6630(focus) - 0.01f < ctx->parameter)) {
+            (ctx->parameter < UMinShape(focus) + 0.01f || UMaxShape(focus) - 0.01f < ctx->parameter)) {
             func_00195A00(ctx->actor->control, 0, 0, 0);
             break;
         }
@@ -278,7 +278,7 @@ extern "C" void func_00191A10(CONTEXT *ctx)
         if (!focus->other)
             dir = tangent;
         else
-            func_001E6F60(focus->other, *ctx->actor->ppos, 0, 0, &dir, 0, 0);
+            FindShapeClosestPoint(focus->other, *ctx->actor->ppos, 0, 0, &dir, 0, 0);
         dir.f[2] = 0.0f;
         dir.q = QwNormalize(dir.q, D_002A2DA0);
         float g = GFromVf(QwDot(input.q, dir.q));
@@ -326,7 +326,7 @@ extern "C" void func_00191A10(CONTEXT *ctx)
                 GSmooth__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.dt, &smp, &limit);
                 limit = -limit;
             } else {
-                GSmooth__FfffP3SMPPf(ctx->value, func_001E6648(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
+                GSmooth__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
             }
             float ratio = (limit - smp.svSlow) / (smp.svFast - smp.svSlow);
             float amount = pjoy->amount;
@@ -400,8 +400,8 @@ extern "C" void func_00191A10(CONTEXT *ctx)
     }
     case 11:
         if (ctx->focus) {
-            func_002046F0(ctx->actor, ctx->focus);
-            func_00204CA8(ctx->actor);
+            FaceStepToward(ctx->actor, ctx->focus);
+            FixStepAngularVelocity(ctx->actor);
         }
         break;
     }

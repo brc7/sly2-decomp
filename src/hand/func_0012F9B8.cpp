@@ -1,4 +1,4 @@
-// MATCH (Claude agent, laneB6, 2026-10-23), from the 116/aligned-25 draft: (1) no f4/f2 locals (`(grf >> 2) & 1` and `grf & 2` at their uses), so the vtable address is hoisted into fp; (2) func_00230018 takes pn as a 3rd argument; (3) pn->xC before pn->x14; (4) floats before pp in the prototype (prologue copy order).
+// MATCH (Claude agent, laneB6, 2026-10-23), from the 116/aligned-25 draft: (1) no f4/f2 locals (`(grf >> 2) & 1` and `grf & 2` at their uses), so the vtable address is hoisted into fp; (2) AddXfAct takes pn as a 3rd argument; (3) pn->xC before pn->x14; (4) floats before pp in the prototype (prologue copy order).
 struct VTE { short d; short pad; void (*pfn)(); };
 struct POLY { float a, b, c; };
 struct E60 { unsigned int k; int x4; };
@@ -32,7 +32,7 @@ void func_00256EE0(P *, int);
 void func_0012FE58(struct T *, int, struct E60 *, int *, int *);
 void func_001F8668(int, long);
 void *func_0012E1F0(unsigned int);
-void func_00230018(int, int, void *);
+void AddXfAct(int, int, void *);
 void func_00130010(struct T *, int, struct E68 *, int *, int *);
 void *func_0012CE50(unsigned int);
 void func_00131990(P *, int);
@@ -90,7 +90,7 @@ extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, 
                 pn->p24 = p;
                 pn->pnNext = p->pn34;
                 p->pn34 = pn;
-                func_00230018(a, b, pn);
+                AddXfAct(a, b, pn);
             }
         }
     }
