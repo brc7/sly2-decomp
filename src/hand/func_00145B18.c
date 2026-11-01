@@ -11,7 +11,7 @@ extern struct CLOCK D_002DDED0;
 void func_001EF0D8(void *p);
 struct O *func_00205438(void *p, int oid);
 int func_00132B10(void *p, int n);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_001457A8(struct P *p);
 void func_0019F540(void *p, qword v);
 int func_00132EA0(void *p);
@@ -33,7 +33,7 @@ void func_00145B18(struct P *p, int state)
         if (func_00132B10(p->p30, 0x32)) {
             po->xC0 = p->p30->x150;
             po->xC4 = 8;
-            po->gC8 = func_0011D448(0.1f, 0.3f);
+            po->gC8 = GRandInRange__Fff(0.1f, 0.3f);
         }
         func_001457A8(p);
         po->vt[8].pfn((char *)po + po->vt[8].d);

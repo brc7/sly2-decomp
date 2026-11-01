@@ -11,9 +11,9 @@ struct P{char pad0[12];VE*vt;char pad10[0x150-0x10];PL*input;char pad154[0x1A8-0
 struct CLOCK{float time,dt;};struct LM{float values[3];};
 struct WORK{U reference,direction,local;M3 matrix,returned;float heading;U target;};
 extern "C"{
- void func_00190BE0(P*,float*);float func_0011CF60(float);void func_00204660(P*,float);qword func_001A62E8(P*);M3* func_0011B500(M3*,qword,float);float func_002458F0(float,float);
+ void func_00190BE0(P*,float*);float RadNormalize__Ff(float);void func_00204660(P*,float);qword func_001A62E8(P*);M3* func_0011B500(M3*,qword,float);float func_002458F0(float,float);
  void func_0018C250(P*,int,int);void func_0018FC60(P*);void func_001F5078(P*);int func_001C4660(PL*,uint,float);void func_001C4738(PL*,int);void func_0019CC50(void*,int,P*,void*);
- float func_0011D018(float,float,float,LM*,float*);void func_001384C0(ANIMATION*);float func_0011CFE0(float,float);
+ float GSmooth__FfffP3SMPPf(float,float,float,LM*,float*);void func_001384C0(ANIMATION*);float func_0011CFE0(float,float);
  extern CLOCK D_002DDED0;extern qword D_002A2DC0;
  extern float D_002BF554,D_002BF558,D_002BF55C,D_002BF560,D_002BF564,D_002BF568,D_002BF56C,D_002BF58C,D_002BF590;
  extern LM D_002BF570,D_002BF580;
@@ -74,9 +74,9 @@ typedef char WORK_target_Offset[FIELD_OFFSET(WORK,target)==160?1:-1];
 extern "C" void func_00190520(P*p){
  WORK w;int near=0,far=0;
  func_00190BE0(p,&w.heading);
- if(p->flipped)w.heading=func_0011CF60(w.heading+3.1415927410125732421875f);
+ if(p->flipped)w.heading=RadNormalize__Ff(w.heading+3.1415927410125732421875f);
  func_00204660(p,w.heading);
- float inputDifference=func_0011CF60(p->input->angle-p->angle);
+ float inputDifference=RadNormalize__Ff(p->input->angle-p->angle);
  if(p->input->amount>0.3f){float d=Abs(inputDifference);if(d<1.0471975803375244140625f){near=1;p->farTime=D_002DDED0.time;}else if(d>2.094395160675048828125f){far=1;p->farTime=D_002DDED0.time;}}
  else p->previous=-1;
  w.reference.q=func_001A62E8(p->target);register P*receiver __asm__("$4");
@@ -105,7 +105,7 @@ extern "C" void func_00190520(P*p){
  __asm__("lwc1 %0,%3\n\tlq %1,%4\n\tla %2,%a5" : "=f"(yaw),"=r"(axis),"=r"(rotationOutput) : "m"(p->angle),"m"(*axisPointer),"p"(&w.returned));
  w.direction.q=normal;
  (void)func_0011B500(rotationOutput,axis,yaw);w.matrix=w.returned;w.local.q=Local(w.matrix,w.direction.q);
- float angle=func_0011CF60(func_002458F0(w.local.f[2],w.local.f[0])-1.57079637050628662109375f);
+ float angle=RadNormalize__Ff(func_002458F0(w.local.f[2],w.local.f[0])-1.57079637050628662109375f);
  int next=p->state;
  switch(next){
  case 0:
@@ -141,8 +141,8 @@ extern "C" void func_00190520(P*p){
  switch(p->state){case 0:activeTarget=1.0f;speedTarget=1.0f;break;case 2:activeTarget=1.0f;speedTarget=0.0f;break;case 1:{register float half __asm__("$f0"),zero __asm__("$f20");const uint halfBits=0x3F000000;const int zeroBits=0;
  __asm__(".set noat\n\tlui $1,%2\n\tmtc1 $1,%0\n\tmtc1 %z3,%1\n\t.set at" : "=f"(half),"=f"(zero) : "i"(halfBits>>16),"rJ"(zeroBits) : "$1");
  activeTarget=zero;speedTarget=activeTarget;if(p->speedBlend>half)speedTarget=1.0f;break;}}
- p->activeBlend=func_0011D018(p->activeBlend,activeTarget,D_002DDED0.dt,&D_002BF570,0);
- p->speedBlend=func_0011D018(p->speedBlend,speedTarget,D_002DDED0.dt,&D_002BF580,0);
+ p->activeBlend=GSmooth__FfffP3SMPPf(p->activeBlend,activeTarget,D_002DDED0.dt,&D_002BF570,0);
+ p->speedBlend=GSmooth__FfffP3SMPPf(p->speedBlend,speedTarget,D_002DDED0.dt,&D_002BF580,0);
  float active=p->activeBlend,speed=p->speedBlend;float idle=1.0f-active;float combined=active*speed;float activeOnly=active*(1.0f-speed);p->combined=combined;p->idle=idle;p->activeOnly=activeOnly;func_001384C0(p->animation);
  float steering=Clamp(angle/D_002BF58C,-1.0f,1.0f);
  float target=p->animation->gain*(steering+1.0f);target*=0.5f;

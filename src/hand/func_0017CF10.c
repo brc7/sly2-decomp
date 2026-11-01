@@ -7,7 +7,7 @@ struct L { float a, b, c; };
 void func_001EEF98(struct S *p);
 int func_0017D188(struct S *p);
 void func_0017D058(struct S *p, int n);
-float func_0011D018(float a, float b, float dt, struct L *pl, int n);
+float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float func_001E66C8(int n, float g);
 void func_001C3500(int a, float g, int b, void *pv);
 void func_0017CF10(struct S *p) {
@@ -29,7 +29,7 @@ void func_0017CF10(struct S *p) {
                     l.b = 0.0f;
                     l.c = 0.1f;
                     l.a = __builtin_fabsf(d);
-                    g = func_0011D018(p->g3C, d, D_002DDED0.dt, &l, 0);
+                    g = GSmooth__FfffP3SMPPf(p->g3C, d, D_002DDED0.dt, &l, 0);
                 }
                 p->g3C = g;
                 p->p10->gF88 = func_001E66C8(p->p10->nF84, p->p10->gF88 + g * D_002DDED0.dt);

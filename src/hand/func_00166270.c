@@ -4,7 +4,7 @@ struct N { qword normal; char pad[0xC]; int index; };
 struct Geom { int count; qword *points; int countN; struct N *normals; int x10,x14; };
 struct REQ { int cb,kind; };
 void *func_001AE238(struct REQ *r,void *src);
-void func_00119390(struct N *n,qword v,qword p);
+void InitPlaneFromNormalPos(struct N *n,qword v,qword p);
 static inline qword Transform(const struct M4 *m,qword p) {
  qword r;
  __asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w"
@@ -41,7 +41,7 @@ void func_00166270(struct Geom *src,const struct M4 *transform,struct Geom *dest
   for(j=0;j<dest->countN;j++) {
    struct N *n=&dest->normals[j];
    register const struct M4 *pm __asm__("$17")=&m;
-   func_00119390(n,Normalize(Rotate(pm,n->normal)),dest->points[n->index]);
+   InitPlaneFromNormalPos(n,Normalize(Rotate(pm,n->normal)),dest->points[n->index]);
   }
  }
 }

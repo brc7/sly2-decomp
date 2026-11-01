@@ -56,6 +56,6 @@ extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_00443740;
 
 s32 func_001D93D8(s32 arg0) {
-    func_0011A1F8(arg0, 0x14);
+    InitDl__FP2DLi(arg0, 0x14);
     return arg0;
 }

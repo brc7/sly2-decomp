@@ -13,8 +13,8 @@ extern "C" struct CLOCK D_002DDED0;
 extern "C" qword D_002A2DD0;
 extern "C" void func_001C3500(struct CURVE *a, int b, M3 *pm, float g);
 extern "C" M3 *func_001A6318(struct O *o);
-extern "C" void func_00117308(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
-extern "C" M3 func_0011BC00(M3 *a, M3 *b);
+extern "C" void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
+extern "C" M3 MulMatrix3Matrix3(M3 *a, M3 *b);
 extern "C" void func_0011BCF8(M3 *pm, float *pg, U *pv);
 static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(g));u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
@@ -56,12 +56,12 @@ extern "C" void func_0019DF70(struct P *p)
         M3 *pa;
         g = g > dt ? g : dt;
         pa = func_001A6318(o);
-        func_00117308(pa, g, dt, 1.0f, p->x0->vt[34].pfn((char *)p->x0 + p->x0->vt[34].d), &m, D_002A2DD0, &m2, 0);
+        EvaluateBezierMat(pa, g, dt, 1.0f, p->x0->vt[34].pfn((char *)p->x0 + p->x0->vt[34].d), &m, D_002A2DD0, &m2, 0);
     } else {
         m2 = m;
     }
     pm = &m2;
-    m4 = func_0011BC00(func_001A6318(p->x0), pm);
+    m4 = MulMatrix3Matrix3(func_001A6318(p->x0), pm);
     func_0011BCF8(&m4, &f, &vec);
     {O *o=p->x0;VT *vt=o->vt;void (*call)(void *,qword)=(void(*)(void*,qword))vt[36].pfn;void *thisp=(char*)o+vt[36].d;call(thisp,Scale(vec.q,f/D_002DDED0.dt));}
 }

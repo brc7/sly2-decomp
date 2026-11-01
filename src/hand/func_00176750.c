@@ -16,7 +16,7 @@ void func_001EF0D8(void *p);
 struct O *func_00205438(void *p, int n);
 void func_00171258(struct O *o, int a, int b, int c);
 void func_001725E0(struct O *o, int n);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_00208540(void *p, int n);
 #define VCALL(o) { struct VTE *e = &(o)->vt[8]; e->pfn((char *)(o) + e->d); }
 void func_00176750(struct S *p, struct F *m) {
@@ -77,7 +77,7 @@ void func_00176750(struct S *p, struct F *m) {
         break;
     case 17:
         { struct O *o = func_00205438(p->p10, 0x9E); o->n3C = 0x1A; o->n38 = m->u.s.n10; VCALL(o) }
-        { float t = D_002DDED0.t; p->fA4 = t + func_0011D448(D_002BE618[0], D_002BE618[1]); }
+        { float t = D_002DDED0.t; p->fA4 = t + GRandInRange__Fff(D_002BE618[0], D_002BE618[1]); }
         break;
     case 18:
         { struct O *o = func_00205438(p->p10, 0xBD); o->n38 = m->u.s.n10; o->u40.f40 = m->u.s.f14; VCALL(o) }

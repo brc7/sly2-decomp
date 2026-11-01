@@ -5,8 +5,8 @@ struct M3 { qword r[3]; };
 struct S { char pad[0x10C]; void *curve; char pad1[0x12C-0x110]; int arc; char pad2[0x140-0x130]; float time; char pad3[0x150-0x144]; qword origin; float radius; };
 extern "C" {
 void func_001E6F10(void *, float, qword *, qword *);
-M3 func_0011B830(qword,qword);
-qword func_0011E1A0(float,float,float);
+M3 BuildOrthonormalMatrixZ(qword,qword);
+qword SetVectorCylind(float,float,float);
 M3 *func_001A6318(struct S *);
 qword func_001A6F00(void *,void *,qword);
 }
@@ -34,14 +34,14 @@ extern "C" void func_00221408(S *p,qword v,qword *out,qword *normal) {
     M3 m;
     if(p->curve) {
         func_001E6F10(p->curve,p->time,&pos.q,normal);
-        m=func_0011B830(*normal,D_002A2DC0);
+        m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0);
         *out=InverseRotate(m,Sub(v,pos.q));
     } else if(p->arc) {
         U a;
-        a.q=func_0011E1A0(p->time/p->radius,p->radius,0.0f);
+        a.q=SetVectorCylind(p->time/p->radius,p->radius,0.0f);
         pos.q=Add(p->origin,a.q);
         *normal=Normalize(Cross(D_002A2DC0,a.q));
-        m=func_0011B830(*normal,D_002A2DC0);
+        m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0);
         *out=InverseRotate(m,Sub(v,pos.q));
     } else {
         *normal=Normalize(func_001A6318(p)->r[0]);

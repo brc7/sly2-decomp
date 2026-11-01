@@ -8,8 +8,8 @@ struct DL;
 extern struct DL D_003E11AC;
 void func_001A6178(struct L *);
 void func_001D6378(struct L *);
-int func_0011A380(struct DL *, void *);
-void func_0011A220(struct DL *, void *);
+int FFindDlEntry__FP2DLPv(struct DL *, void *);
+void AppendDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 void func_001F3EA8(struct L *p)
 {
@@ -23,7 +23,7 @@ void func_001F3EA8(struct L *p)
     }
     for (q = p->first; q != p->end; q = q->next) VF(q, 23);
     if (p->pe && p->pe->p60 == p) {
-        if (!func_0011A380(&D_003E11AC, p->pe)) func_0011A220(&D_003E11AC, p->pe);
+        if (!FFindDlEntry__FP2DLPv(&D_003E11AC, p->pe)) AppendDlEntry__FP2DLPv(&D_003E11AC, p->pe);
         VF(p, 49);
     }
 }

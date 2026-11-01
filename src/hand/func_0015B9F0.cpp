@@ -18,7 +18,7 @@ extern float D_002A5150;
 void func_0015B7E8(int c, EMITB *pemitb, BUF *pb);
 int func_0011D4D0(float g1, float g2, float gEps);
 void func_002309E8(void *p, int n, M4 *pm0, float t, M4 *pm1);
-void func_0011C168(M4 *pmOut, M4 *pmA, M4 *pmB);
+void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
 void func_0015B9F0(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -68,13 +68,13 @@ void func_0015B9F0(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
             M4 mT;
             tPrev = t;
             func_002309E8(pv, 0, &m, t, 0);
-            func_0011C168(&mT, &m, &mBase);
+            __ml__FRC7MATRIX4T0(&mT, &m, &mBase);
             m = mT;
             if (k != 3) {
                 func_002309E8(pv, 0, &mA, t, &mB);
-                func_0011C168(&mT, &mA, &mWorld);
+                __ml__FRC7MATRIX4T0(&mT, &mA, &mWorld);
                 mA = mT;
-                func_0011C168(&mT, &mB, &mWorld);
+                __ml__FRC7MATRIX4T0(&mT, &mB, &mWorld);
                 mB = mT;
             }
         }

@@ -7,7 +7,7 @@ struct DL;
 extern struct DL D_003E11AC;
 void func_001A6150(struct L *);
 void func_001D6310(struct L *);
-void func_0011A2E8(struct DL *, void *);
+void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 void func_001F3E00(struct L *p)
 {
@@ -18,6 +18,6 @@ void func_001F3E00(struct L *p)
     for (q = p->first; q != p->end; q = q->next) VF(q, 22);
     if (p->pe && p->pe->p60 == p) {
         VF(p, 49);
-        func_0011A2E8(&D_003E11AC, p->pe);
+        RemoveDlEntry__FP2DLPv(&D_003E11AC, p->pe);
     }
 }

@@ -10,8 +10,8 @@ struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x1
 void func_001EEF98(struct S *p);
 float func_0020A690(struct K *k);
 qword func_001A62E8(void *p);
-void func_0011EF08(qword v, float *a, float *b, int n);
-float func_0011CF60(float f);
+void GetVectorCylind(qword v, float *a, float *b, int n);
+float RadNormalize__Ff(float f);
 int func_0011D910(void *p, float f);
 qword func_0017BFF8(struct S *p, void *q, float f, qword v);
 void func_001C02D0(void *q, qword a, qword b, struct B *c);
@@ -45,9 +45,9 @@ void func_0017C3E8(struct S *p) {
     {
         qword dv;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(b->pF4[b->nE8 - 1]), "j"(pos));
-        func_0011EF08(dv, &out[0], &out[1], 0);
+        GetVectorCylind(dv, &out[0], &out[1], 0);
     }
-    if (__builtin_fabsf(func_0011CF60(out[0] - g)) > k->f18) goto doit;
+    if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->f18) goto doit;
     if (func_0011D910(p->p10->a324, out[1])) return;
 doit:
     {

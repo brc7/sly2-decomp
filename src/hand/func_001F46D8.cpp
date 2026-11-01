@@ -4,7 +4,7 @@ struct M3 { U r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}
 struct LO { M3 matrix; U position; M3 rotation; char pad[0x24]; int kind; short state; char pad9A[6]; LO *parent; int stamp; char padA8[8]; U velocity; };
 struct VTE { short delta,pad; qword (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
-extern "C" M3 func_0011B340(const M3 *);
+extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int);
 extern "C" void func_00230598(P *,LO *);
@@ -37,7 +37,7 @@ extern "C" void func_001F46D8(P *p,qword position)
     qword origin=p->vt[34].fn((char *)p+p->vt[34].delta);
     normalized=*rotation;
     NormalizeRotateMatrix3__FP7MATRIX3(&normalized);
-    M3 relative=Mul(*rotation,func_0011B340(&normalized));
+    M3 relative=Mul(*rotation,InvertMatrix3Cofactor(&normalized));
     object->velocity.q=func_0022FCC8(0,object->parent,Transform(relative,Sub(position,&origin)));
     func_00230598(p,object);
     func_001F4BF8(p);

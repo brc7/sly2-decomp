@@ -4,14 +4,14 @@ struct S { char pad[0x39fc]; int pool39fc; };
 extern struct G D_003DD490;
 struct DL { struct N *head; struct N *tail; int ibDle; };
 extern struct DL D_003E0E80;
-struct N *func_0011CCC0(void *);
-void func_0011A0C0(struct DL *, struct N *, struct N *);
+struct N *PvAllocSlotheapClear(void *);
+void InsertSlEntryAfter(struct DL *, struct N *, struct N *);
 struct N *func_00133040(struct S *p, int a, int *pc, float t) {
     struct N *pn;
     struct N *pnPrev;
     struct N *pnCur;
     (*pc)++;
-    pn = func_0011CCC0(&p->pool39fc);
+    pn = PvAllocSlotheapClear(&p->pool39fc);
     pn->f4 = a;
     if (!a) pn->fc = ++D_003DD490.c3d6c;
     else pn->fc = -1;
@@ -23,6 +23,6 @@ struct N *func_00133040(struct S *p, int a, int *pc, float t) {
         if (pnCur->t > pn->t) break;
         pnPrev = pnCur;
     }
-    func_0011A0C0(&D_003E0E80, pnPrev, pn);
+    InsertSlEntryAfter(&D_003E0E80, pnPrev, pn);
     return pn;
 }

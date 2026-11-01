@@ -9,7 +9,7 @@ struct M { int n0; int pad; void *p8; int nC; struct Q *p10; };
 struct S { char pad[0x90]; int n90; struct O **a94; };
 struct R *func_001CB250(void *p, int n);
 void func_00173610(qword *pv, float a, float b, int c, int d);
-int func_0011D3F8(int lo, int hi);
+int NRandInRange__Fii(int lo, int hi);
 void *func_00205458(struct R *r, int n);
 void *func_002333B4(void *p, int c, int n);
 }
@@ -33,7 +33,7 @@ extern "C" struct R *func_00174490(struct S *p, struct M *m, qword *pv, int a3, 
         func_00173610(pv, D_002BE5F0[1], D_002BE5F0[0], 1, 0);
         for (l = 0; l < p->n90; l++) idx[l] = l;
         for (j = 0; j < p->n90; j++) {
-            int i = func_0011D3F8(0, p->n90 - 1);
+            int i = NRandInRange__Fii(0, p->n90 - 1);
             int t = idx[j];
             idx[j] = *(i + idx); *(i + idx) = t;
         }

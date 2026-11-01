@@ -8,7 +8,7 @@ struct CLOCK {float time,dt;};
 extern CLOCK D_002DDED0;
 extern "C" M3 func_0022FD38(OWNER *,OWNER *,const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
-extern "C" M3 func_0011BC00(const M3 *,const M3 *);
+extern "C" M3 MulMatrix3Matrix3(const M3 *,const M3 *);
 extern "C" void func_0011BCF8(const M3 *,float *,qword *);
 extern "C" qword func_0022FCC8(OWNER *,OWNER *,qword);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -27,7 +27,7 @@ extern "C" void func_001F5C30(P*p,const M3*orientation,const COEF*c,qword veloci
         float angle;
         frame=func_0022FD38(0,owner->parent,orientation);
         NormalizeRotateMatrix3__FP7MATRIX3(&frame);
-        relative=func_0011BC00(&owner->matrix,&frame);
+        relative=MulMatrix3Matrix3(&owner->matrix,&frame);
         func_0011BCF8(&relative,&angle,&axis.q);
         if(0.0001f<angle){
             float gain=c->c*angle*angle+c->b*angle+c->a;

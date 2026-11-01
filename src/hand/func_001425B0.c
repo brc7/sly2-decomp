@@ -12,7 +12,7 @@ extern struct P *D_002E1E40;
 extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
 void func_001F3C10(struct P *p);
-float func_0011D018(float g, float gTarget, float dt, void *pv, int n);
+float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 void func_00168638(void *p, int n, int m, float a, float b);
 void func_001425B0(struct P *p)
 {
@@ -27,8 +27,8 @@ void func_001425B0(struct P *p)
         g1 = 1.0f;
         g0 = g1;
     }
-    p->g10D4 = func_0011D018(p->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
-    p->g10D8 = func_0011D018(p->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
+    p->g10D4 = GSmooth__FfffP3SMPPf(p->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
+    p->g10D8 = GSmooth__FfffP3SMPPf(p->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
     if (p == D_002E1E40) {
         p->py0->g = p->g10D4;
         p->py1->g = p->g10D4;

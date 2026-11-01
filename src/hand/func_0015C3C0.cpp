@@ -9,7 +9,7 @@ struct P { int fl; void *pv; int a8, aC; qword q10, q20; int x30; XF *pxf; int x
 struct VTE { short d; short pad; void (*pfn)(void *, P *); };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
-MATRIX4 func_0011C318(MATRIX4 *pm);
+MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm);
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 struct VU_VECTOR4 { qword qw; };
@@ -54,7 +54,7 @@ void func_0015C3C0(S *p, P *pp)
     for (int i = 0; i < p->c; i++) {
         O *po = p->apo[i];
         MATRIX4 mRel;
-        mRel = func_0011C318(&p->mat) * po->mat;
+        mRel = InvertMatrix4Rigid(&p->mat) * po->mat;
         MATRIX3 &m3 = *(MATRIX3 *)&mRel;
         if (pp->fl & 0x40) {
             XF *px = pp->pxf;

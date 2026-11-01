@@ -22,12 +22,12 @@ void *func_001AE318(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb);
 qword func_001A62E8(void *pv);
 NAV *func_001C0D70(qword pos, int f);
-void func_0011A200(DL *pdl);
-void func_0011A1F8(DL *pdl, int ibDle);
-void func_0011A220(DL *pdl, void *pv);
-void func_0011A2E8(DL *pdl, void *pv);
-void func_0011A280(DL *pdl, void *pvNext, void *pv);
-int func_0011A3B0(DL *pdl);
+void ClearDl__FP2DL(DL *pdl);
+void InitDl__FP2DLi(DL *pdl, int ibDle);
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
+void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
+void InsertDlEntryBefore__FP2DLPvT1(DL *pdl, void *pvNext, void *pv);
+int FIsDlEmpty__FP2DL(DL *pdl);
 int func_001C26E0(GRAPH *pgraph, EDGE *pedge, void *pvActor);
 int func_001C0920(NAV *pnav, qword pos, int f);
 }
@@ -49,9 +49,9 @@ static inline qword QwLength(qword v)
 // Unknown object at sp+0x30 with an empty destructor (see the header comment)
 struct EMPTY { ~EMPTY() {} };
 static inline NAV *PnavFind(const qword &pos) { return func_001C0D70(pos, 0); }
-static inline void AppendNode(DL *pdl, NODE *pnode) { func_0011A220(pdl, pnode); }
-static inline void RemoveNode(DL *pdl, NODE *pnode) { func_0011A2E8(pdl, pnode); }
-static inline void InsertNode(DL *pdl, NODE *pnodeNext, NODE *pnode) { func_0011A280(pdl, pnodeNext, pnode); }
+static inline void AppendNode(DL *pdl, NODE *pnode) { AppendDlEntry__FP2DLPv(pdl, pnode); }
+static inline void RemoveNode(DL *pdl, NODE *pnode) { RemoveDlEntry__FP2DLPv(pdl, pnode); }
+static inline void InsertNode(DL *pdl, NODE *pnodeNext, NODE *pnode) { InsertDlEntryBefore__FP2DLPvT1(pdl, pnodeNext, pnode); }
 static inline float GXOfQw(qword qw) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw)); return x; }
 static inline float GDistX(const qword &a, const qword &b) { return GXOfQw(QwLength(QwSub(a, b))); }
 
@@ -73,10 +73,10 @@ extern "C" int func_001C21D8(GRAPH *pgraph, void *pvActor, qword posGoal, int fE
     }
     DL dlOpen;
     DL dlClosed;
-    func_0011A200(&dlOpen);
-    func_0011A1F8(&dlOpen, 0x18);
-    func_0011A200(&dlClosed);
-    func_0011A1F8(&dlClosed, 0x18);
+    ClearDl__FP2DL(&dlOpen);
+    InitDl__FP2DLi(&dlOpen, 0x18);
+    ClearDl__FP2DL(&dlClosed);
+    InitDl__FP2DLi(&dlClosed, 0x18);
     EMPTY e;
     NODE *pnode = &anode[pnavStart->index];
     pnode->pnav = pnavStart;
@@ -85,7 +85,7 @@ extern "C" int func_001C21D8(GRAPH *pgraph, void *pvActor, qword posGoal, int fE
 
     pnode->state = 2;
     AppendNode(&dlOpen, pnode);
-    while (!func_0011A3B0(&dlOpen)) {
+    while (!FIsDlEmpty__FP2DL(&dlOpen)) {
         pnode = (NODE *)dlOpen.pvFirst;
         if (fExact) {
             if (pnode->pnav == pnavGoal)
@@ -142,7 +142,7 @@ extern "C" int func_001C21D8(GRAPH *pgraph, void *pvActor, qword posGoal, int fE
         }
     }
     int c = 0;
-    if (!func_0011A3B0(&dlOpen)) {
+    if (!FIsDlEmpty__FP2DL(&dlOpen)) {
         if (!fExact && !pnode->pnodeParent) {
             apedge[0] = 0;
             c = 1;

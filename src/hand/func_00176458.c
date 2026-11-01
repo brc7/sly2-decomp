@@ -9,7 +9,7 @@ struct A { char pad[0x3CC]; void *p3CC; char pad2[0xF04 - 0x3D0]; float fF04; ch
 struct P { char pad[0x60]; float f60; float f64; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; int n30; int n34; float f38; struct P *p3C; int pad4; int n44; char pad5[8]; qword v50; };
 void func_001EF0D8(void *p);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 struct O *func_00205438(void *p, int n);
 void func_0020A9A8(void *p, int n);
 qword func_001A62E8(int p);
@@ -23,7 +23,7 @@ void func_00176458(struct S *p, int n) {
     func_001EF0D8(p->a18);
     if (p->n34 == 1) {
         float t = D_002DDED0.t;
-        t += func_0011D448(p->p3C->f60, p->p3C->f64);
+        t += GRandInRange__Fff(p->p3C->f60, p->p3C->f64);
         p->p10->fF04 = t;
         p->p3C = 0;
     }

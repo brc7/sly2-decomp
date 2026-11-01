@@ -40,11 +40,11 @@ void func_0020BC08(void *pv);
 void func_00197F98(void *pv);
 void func_00191A10(void *pv);
 void func_002046F0(struct P *p, int n);
-qword func_0011E1A0(float a, float b, float c);
+qword SetVectorCylind(float a, float b, float c);
 void func_001A0450(struct P *p, void *pv, int n);
 qword func_00204E38(struct P *p, struct S1030 *px, float g);
 void func_00131A00(struct S1030 *px, float g);
-float func_0011CF60(float g);
+float RadNormalize__Ff(float g);
 float func_0011CFE0(float g, float dg);
 void func_00135EB0(struct P *p);
 void func_001A1358(void *pv);
@@ -158,7 +158,7 @@ void func_00134DA8(struct P *p)
         {
             struct S150 *pa = p->p150;
             struct S1030 *pb = p->p1030;
-            SetVel(p, func_0011E1A0(pa->g18 + 3.1415927f, pa->g1C * LenXY5(p->v1410, pa, pb) * pb->g40, 0.0f), p->x13E0, p->x14E0);
+            SetVel(p, SetVectorCylind(pa->g18 + 3.1415927f, pa->g1C * LenXY5(p->v1410, pa, pb) * pb->g40, 0.0f), p->x13E0, p->x14E0);
         }
         break;
     case 6:
@@ -167,10 +167,10 @@ void func_00134DA8(struct P *p)
             float g1 = GClamp(GEval(&D_002BC950, p->p150->g1C), &D_002BBB60);
             float z = 0.0f;
             if (z < p->p150->g1C) {
-                float d = func_0011CF60(p->p150->g18 - p->g1A8);
+                float d = RadNormalize__Ff(p->p150->g18 - p->g1A8);
                 func_00204660(p, p->g1A8 + func_0011CFE0(d, g1 * D_002BC960 * D_002DDED0.dt));
             }
-            SetVel(p, func_0011E1A0(p->p150->g18 + 3.1415927f, g0 * LenXY(p->v1520) * p->p1030->g40, z), p->x14F0, p->x15F0);
+            SetVel(p, SetVectorCylind(p->p150->g18 + 3.1415927f, g0 * LenXY(p->v1520) * p->p1030->g40, z), p->x14F0, p->x15F0);
         }
         break;
     case 10:

@@ -14,7 +14,7 @@ struct SPACE;
 extern "C" {
     qword func_001A62E8(OBJECT *);
     void func_002309E8(SPACE *,SPACE *,M4 *,M4 *,float);
-    M4 *func_0011C168(M4 *,const M4 *,const M4 *);
+    M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
     extern qword D_002A2DD0;
     extern float D_002BF910;
 }
@@ -106,7 +106,7 @@ extern "C" void func_0019C300(CONTEXT *context,OBJECT *target,qword localPoint,
       register SPACE*sourceSpace __asm__("$5");register M4*optionalOutput __asm__("$7");const int nullValue=0;
       __asm__("daddu %0,%z2,$zero\n\tdaddu %1,%z2,$zero":"=r"(optionalOutput),"=r"(sourceSpace):"rJ"(nullValue));
       func_002309E8(receiver,sourceSpace,published,optionalOutput,dtArgument);
-      func_0011C168(&product,published,inverseOwner);
+      __ml__FRC7MATRIX4T0(&product,published,inverseOwner);
     }
     register float squared __asm__("$f2"),radius __asm__("$f1"),radiusSquared __asm__("$f0");
     register OBJECT*radiusOwner __asm__("$2");

@@ -14,7 +14,7 @@ struct M4{qword r[4];};
 struct PLANE{qword normal;int unknown10,unknown14,unknown18,vertex;};
 struct GEOMETRY{int pointCount;qword*points;int planeCount;PLANE*planes;};
 extern "C" void func_00166428(const M4*,unsigned int,const qword*,qword*);
-extern "C" M3 func_0011B340(const M3*);
+extern "C" M3 InvertMatrix3Cofactor(const M3*);
 static __inline__ qword ReadCPU(const qword*source){qword value;__asm__("lq %0,%1":"=r"(value):"m"(*source));return value;}
 static __inline__ M3 Transpose(const M3&input,GEOMETRY*source,int&planeCount){
  M3 out;
@@ -47,7 +47,7 @@ extern "C" void func_001664A0(const M4*matrix,GEOMETRY*source,GEOMETRY*dest){
  if(source->points!=dest->points){
   func_00166428(matrix,source->pointCount,source->points,dest->points);
   int planeCount;
-  M3 normal;normal=Transpose(func_0011B340((const M3*)inverseSource),source,planeCount);
+  M3 normal;normal=Transpose(InvertMatrix3Cofactor((const M3*)inverseSource),source,planeCount);
   if(planeCount>0){
    PLANE*input=source->planes;PLANE*output=dest->planes;PLANE*last=FinalPlane(output,planeCount);
    register qword nextNormal asm("$19"),nextAnchor asm("$18");

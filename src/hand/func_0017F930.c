@@ -17,10 +17,10 @@ struct S {
 void func_001F36E0(struct S *p);
 int func_0017F550(struct S *p);
 void func_0017FD08(struct S *p, int n);
-qword func_0011E1A0(float a, float b, float c);
+qword SetVectorCylind(float a, float b, float c);
 void func_0012D108(void *p, qword q);
 void func_001F0660(void *p, int n);
-float func_0011D018(void *, int, float, float, float);
+float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 void func_001FB1F8(struct M *p, float g);
 void func_001FB060(struct M *p);
 void func_001FB018(struct M *p);
@@ -45,7 +45,7 @@ void func_0017F930(struct S *p) {
         union { qword q; } u; qword v;
         int i;
         p->g218 = t->g18;
-        p->v220 = func_0011E1A0(t->g18, t->g1C * D_002BE7E8, 0.0f);
+        p->v220 = SetVectorCylind(t->g18, t->g1C * D_002BE7E8, 0.0f);
         v = Make(0.0f, 0.0f, p->p150->g28); u.q = v;
         for (i = 0; i < p->n230; i++) {
             struct E *e = &p->a234[i];
@@ -60,7 +60,7 @@ void func_0017F930(struct S *p) {
     }
     if (p->p2A4) {
         float g = (p->n1C0 == 1) ? p->p150->g1C : 0.0f;
-        p->g2AC = func_0011D018(D_002BE7F0, 0, p->g2AC, g, D_002DDED0.dt);
+        p->g2AC = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, p->g2AC, g, D_002DDED0.dt);
         func_001FB1F8(p->p2A4, p->g2AC);
         if (0.0f < p->g2AC) {
             if (p->p2A4->s4E > 0) func_001FB060(p->p2A4);

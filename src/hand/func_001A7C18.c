@@ -10,7 +10,7 @@ struct E { struct S *ps; void *x4; void *x8; struct LO *plo; qword pos; qword x2
 struct C { struct E ae[2]; qword dir; float g; float x94, x98; int x9C, xA0, xA4; int xA8; struct C *next; };
 struct W { char pad[0x3D40]; char pool[1]; };
 extern float D_002BFD30, D_002BFD34;
-struct C *func_0011CCC0(void *pool);
+struct C *PvAllocSlotheapClear(void *pool);
 qword func_0022FC48(int n, void *p, qword pos);
 void func_001A7FC0(struct W *pw, int n, struct C **ppc);
 void func_001A7C18(struct W *pw, struct S *a, struct S *b, qword pos, qword dir, int k, int x, int y, struct C **ppc, float g)
@@ -20,7 +20,7 @@ void func_001A7C18(struct W *pw, struct S *a, struct S *b, qword pos, qword dir,
     int i;
     struct E *e;
     struct C *pc;
-    c = pc = func_0011CCC0(pw->pool);
+    c = pc = PvAllocSlotheapClear(pw->pool);
     pc->ae[0].pos = pos;
     {
         qword s, r;

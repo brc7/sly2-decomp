@@ -14,7 +14,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002A5138;
 void func_0020AC28(struct SO *pso, int a, int b, qword q);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_001EF0D8(int *p);
 void *func_00155A68(struct X *p);
 struct ASEG *func_00205438(struct SO *pso, int id);
@@ -48,7 +48,7 @@ void func_00155AE0(struct X *p, int k)
     case 3:
         {
             float t = D_002DDED0.t;
-            p->pso->tF04 = t + func_0011D448(p->plm->gMin, p->plm->gMax);
+            p->pso->tF04 = t + GRandInRange__Fff(p->plm->gMin, p->plm->gMax);
         }
         p->plm = 0;
         break;

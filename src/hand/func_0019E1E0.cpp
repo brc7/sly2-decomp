@@ -12,7 +12,7 @@ qword func_0011F088(qword,qword,float,SMP*,U*);
 void func_00195A00(void*,int,void*,void*);int func_001C46C0(INPUT*,int,float);int func_001C4660(INPUT*,int,float);void func_001C4738(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int func_00131968(ASEGA*);void func_0019EAB0(C*,int);
 float func_001E6728(PATH*,float);void func_001E6F10(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
-void func_0019E110(C*,LM*);float func_0011D018(float,float,float,SMP*,float*);void func_001F4BF8(P*);float func_001E6648(PATH*);float func_0011D898(float,float);void func_001384C0(ANIMATION*);
+void func_0019E110(C*,LM*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001F4BF8(P*);float func_001E6648(PATH*);float GModPositive__Fff(float,float);void func_001384C0(ANIMATION*);
 float fabsf(float);
 }
 static inline ulong Eligible(PATH*p){return (p->flags>>60)&1;}
@@ -131,11 +131,11 @@ extern "C" void func_0019E1E0(C*p){
  register float nextMemory __asm__("$f0");register PATH*path __asm__("$3");
  __asm__("abs.s $f5,%2\n\tlwc1 $f2,4(%7)\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%2\n\t.set at\n\tneg.s %0,$f2\n\tlwc1 $f4,0x1c(%8)\n\tsub.s %2,%2,$f2\n\t.set noat\n\tlui $1,0x3e4c\n\tori $1,$1,0xcccd\n\tmtc1 $1,$f3\n\t.set at\n\tswc1 $f5,%3\n\tmul.s %0,%0,%6\n\tswc1 $f3,%4\n\tmul.s %2,%2,$f4\n\tsw $zero,%5\n\tdiv.s %0,%0,$f5\n\tlw %1,0xc(%8)\n\tadd.s %0,%0,%2":"=f"(nextMemory),"=r"(path),"+f"(maximumInput),"=m"(w.reuse.smooth.maximum),"=m"(w.reuse.smooth.duration),"=m"(w.reuse.smooth.minimum):"f"(speed),"r"(clock),"r"(p):"$1","$f2","$f3","$f4","$f5","memory");
  p->reset=nextMemory;
- if(!path->cyclic){func_0019E110(p,&w.limit);(void)func_0011D018(p->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)func_0011D018(p->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
+ if(!path->cyclic){func_0019E110(p,&w.limit);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
  register float stopped __asm__("$f21")=0.0f;
  p->speed=-speed;
  if(speed!=stopped){p->distance+=p->speed*D_002DDED0.dt;func_001F4BF8(p->actor);}
- if(p->path->cyclic)p->distance=func_0011D898(p->distance,func_001E6648(p->path));
+ if(p->path->cyclic)p->distance=GModPositive__Fff(p->distance,func_001E6648(p->path));
  register float magnitude __asm__("$f2")=fabsf(speed);
  if(magnitude<0.01f)mode=1;
  else{

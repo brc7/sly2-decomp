@@ -1,7 +1,7 @@
 // func_00139DC0 (0x139DC0): CPU fallback of func_00139AB8 (taken when p->x160 != 0 or D_002BC9C0 is set). For every particle
 // batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: x160 0 =
-// velocity transformed by func_0015BFD8's matrix, 1 = plain copy, 2 = func_00117120 path; x43C == 2 updates c.w through
-// func_0011CF60. It accumulates the bounding box in vMin/vMax and sets p->vF0 = centre, p->g100 = radius + p->g120 (or calls
+// velocity transformed by func_0015BFD8's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; x43C == 2 updates c.w through
+// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->vF0 = centre, p->g100 = radius + p->g120 (or calls
 // virtual slot 9 when p->c444 drops to 0).
 // MATCH (Claude agent for Lilly, T1677, 2026-10-25): lilly5 (T1673) + the T1675 func_00139AB8 prologue fix: VECTOR is a
 // struct with an anonymous union, so store_constructor emits a sched1-only CLOBBER after the clear, which gives both pool
@@ -46,8 +46,8 @@ extern int D_002BC9C0;
 extern "C" {
 void func_00139AB8(struct P *p);
 struct M4 func_0015BFD8(void *p);
-void func_00117120(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
-float func_0011CF60(float g);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
+float RadNormalize__Ff(float g);
 void func_00139098(struct Q *pq);
 void func_00139DC0(struct P *p);
 }
@@ -127,7 +127,7 @@ void func_00139DC0(struct P *p)
             case 2: {
                 float rem = tEnd - t;
                 float dt = pclock->dt;
-                func_00117120(rem, dt < rem ? dt : rem, 1.0f, pb->a[i].q, pb->b[i].q, pq->ae[i].v0, pq->ae[i].v10, &pbn->a[j].q, &pbn->b[j].q, 0);
+                EvaluateBezierPos(rem, dt < rem ? dt : rem, 1.0f, pb->a[i].q, pb->b[i].q, pq->ae[i].v0, pq->ae[i].v10, &pbn->a[j].q, &pbn->b[j].q, 0);
                 if (j != i)
                     pq->ae[j] = pq->ae[i];
                 break;
@@ -140,7 +140,7 @@ void func_00139DC0(struct P *p)
             CB(pcd)[0].v.w = CB(pcs)[0].v.w;
             *pcd = *pcs;
             if (p->x43C == 2)
-                pcd->v.w = func_0011CF60(pcs->v.w + pcs->v.z * pclock->dt);
+                pcd->v.w = RadNormalize__Ff(pcs->v.w + pcs->v.z * pclock->dt);
             *(qword *)&vMin = Min(*(qword *)&vMin, CA(pcd)[0].q);
             *(qword *)&vMax = Max(*(qword *)&vMax, CA(pcd)[0].q);
             }

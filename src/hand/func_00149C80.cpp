@@ -61,17 +61,17 @@ struct MGR {
 };
 
 extern "C" {
-void func_0011A060(LIST *pl);
-int func_0011A1E8(LIST *pl);
-void func_0011A118(LIST *pl, void *pv);
+void ClearSl(LIST *pl);
+int FIsSlEmpty(LIST *pl);
+void RemoveSlEntry(LIST *pl, void *pv);
 void func_00149C80(MGR *p);
 }
 
 void func_00149C80(MGR *p)
 {
-    while (!func_0011A1E8(&p->lcbs)) {
+    while (!FIsSlEmpty(&p->lcbs)) {
         CB *pcb = (CB *)p->lcbs.pvFirst;
-        func_0011A060(&p->lcbs);
+        ClearSl(&p->lcbs);
         while (pcb) {
             void (CObj::*pmf)(int) = pcb->pmf;
             (pcb->pobj->*pmf)(pcb->arg);
@@ -94,7 +94,7 @@ void func_00149C80(MGR *p)
             SP sp = func_00257058(x);
             func_00133000(p, pev->pnode, sp.p, 0);
         }
-        func_0011A118(&p->levs, pev);
+        RemoveSlEntry(&p->levs, pev);
         NODE *pn = pev->pnode;
         if (--pn->cref == 0)
             delete pn;

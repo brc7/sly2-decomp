@@ -7,7 +7,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword func_001A6FC0(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*func_0011B7E0(M3*,qword);M4*func_001A6318(ACTOR*);float func_0011D018(float,float,float,SMP*,float*);qword func_0011E9F8(qword,float);void func_001FAC30(ACTOR*,qword);void func_001F5E10(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
+qword func_001A6FC0(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void func_001FAC30(ACTOR*,qword);void func_001F5E10(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -99,25 +99,25 @@ extern "C" void func_00196DF8(CONTEXT*p){WORK w;
    __asm__("lqc2 $vf1,%5\n\tvmulax.xyz $ACC,%0,$vf1x\n\tvmadday.xyz $ACC,%3,$vf1y\n\tvmaddz.xyz %0,%4,$vf1z\n\tsqc2 %6,%1\n\tsqc2 %0,%2"
     :"+j"(r0),"=m"(w.turn.returned.row[1].q),"=m"(w.turn.basis.row[2].q):"j"(r1),"j"(r2),"m"(matrix->row[2].q),"j"(second):"vf1");
    w.turn.returned.row[2].q=r0;
-   updatedX=func_0011D018(current,target,step,parameters,empty);
+   updatedX=GSmooth__FfffP3SMPPf(current,target,step,parameters,empty);
   }
   {
    register SMP*parameters __asm__("$4");register float current __asm__("$f12"),step __asm__("$f14");
    __asm__("lwc1 %0,%4\n\tlui %2,%%hi(%6)\n\tlwc1 %1,%5\n\taddiu %2,%2,%%lo(%6)\n\tswc1 %7,%3"
     :"=f"(current),"=f"(step),"=&r"(parameters),"=m"(w.turn.local.f[0]):"m"(w.turn.local.f[1]),"m"(((CLOCK*)clockWord)->dt),"i"(&D_002BF7B8),"f"(updatedX));
-   updatedY=func_0011D018(current,zero,step,parameters,0);
+   updatedY=GSmooth__FfffP3SMPPf(current,zero,step,parameters,0);
   }
   {
    register SMP*parameters __asm__("$4");register float current __asm__("$f12"),step __asm__("$f14"),target __asm__("$f13");
    __asm__("lwc1 %1,%4\n\tlui %2,%%hi(%7)\n\tlwc1 %0,%5\n\taddiu %2,%2,%%lo(%7)\n\tlwc1 %3,%6"
     :"=f"(current),"=f"(step),"=&r"(parameters),"=f"(target):"m"(((CLOCK*)clockWord)->dt),"m"(w.turn.local.f[2]),"m"(p->targetZ),"i"(&D_002BF7C8));
    w.turn.local.f[1]=updatedY;
-   w.turn.local.f[2]=func_0011D018(current,target,step,parameters,0);
+   w.turn.local.f[2]=GSmooth__FfffP3SMPPf(current,target,step,parameters,0);
   }
   register qword desired __asm__("vf2");register float maximum __asm__("$f12");
   __asm__("lui $2,%%hi(%5)\n\tlqc2 $vf2,0x40(%4)\n\tlqc2 $vf5,0x20(%4)\n\tlqc2 $vf3,0x30(%4)\n\tlqc2 $vf1,0(%4)\n\tvmulax.xyz $ACC,$vf5,$vf1x\n\tvmadday.xyz $ACC,$vf3,$vf1y\n\tvmaddz.xyz $vf1,$vf2,$vf1z\n\tlw %0,4(%0)\n\tlqc2 $vf2,0xB0(%4)\n\tqmtc2.ni %0,$vf4\n\tvsub.xyzw $vf1,$vf1,$vf2\n\tlwc1 %2,%%lo(%5)($2)\n\tvdiv Q,$vf0w,$vf4x\n\tvwaitq\n\tvmulq.xyzw %1,$vf1,Q\n\tsqc2 $vf4,%3"
    :"+r"(clockWord),"=j"(desired),"=f"(maximum),"=m"(w.turn.scalar.q):"p"(&w),"i"(&D_002BF7D4):"$2","vf1","vf3","vf4","vf5","memory");
-  register qword acceleration __asm__("$2")=func_0011E9F8(desired,maximum);
+  register qword acceleration __asm__("$2")=LimitVectorLength(desired,maximum);
   register float z __asm__("$f0");
   __asm__("pextuw $3,$zero,%1\n\tmtc1 $3,%0":"=f"(z):"r"(acceleration):"$3");
   if(z<zero){
@@ -148,7 +148,7 @@ extern "C" void func_00196DF8(CONTEXT*p){WORK w;
   }
   register float speed __asm__("$f20");register qword axis __asm__("$5");
   __asm__("qmfc2.ni $3,%2\n\tlq %1,%3\n\tmtc1 $3,%0":"=f"(speed),"=r"(axis):"j"(root),"m"(w.move.direction.q):"$3");
-  (void)func_0011B7E0(&w.move.phase.returned,axis);
+  (void)LoadLookAtMatrix(&w.move.phase.returned,axis);
   register unsigned clockHigh __asm__("$4");register float step __asm__("$f1"),inverseTime __asm__("$f0");
   register qword row0 __asm__("vf2"),row1 __asm__("vf3"),row2 __asm__("vf4"),local __asm__("vf1");
   __asm__("lui $2,%%hi(%9)\n\tlqc2 %3,0x40(%7)\n\tdaddu %0,$2,$zero\n\tlqc2 %4,0x50(%7)\n\tlqc2 %5,0x60(%7)\n\taddiu $2,$2,%%lo(%9)\n\tlwc1 %1,4($2)\n\tlqc2 %6,0xA0(%8)\n\tli.s %2,1.0"

@@ -11,7 +11,7 @@ struct CLOCK { float t; };
 extern "C" {
 extern CLOCK D_002DDED0;
 int func_001E5778(P *p);
-void func_0011A2E8(int *pdl, P *p);
+void RemoveDlEntry__FP2DLPv(int *pdl, P *p);
 void func_001E5370(P *p);
 void func_001E53D8(P *p);
 void func_001E5410(P *p);
@@ -34,7 +34,7 @@ void func_001E5628(P *p)
     if (func_001E5778(p)) return;
     LOCK lock(p);
     void **ppv = &p->pvEC;
-    func_0011A2E8(&p->pq->dl, p);
+    RemoveDlEntry__FP2DLPv(&p->pq->dl, p);
     func_001E5370(p);
     func_001E53D8(p);
     func_001E5410(p);

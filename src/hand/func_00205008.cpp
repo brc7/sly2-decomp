@@ -15,7 +15,7 @@ extern char D_003DD490[];  // g_sw
 extern qword D_002A2DC0;   // g_normalZ
 extern "C" {
 SO *func_001A5BF0(LO *);                 // PsoZapTarget
-M3 func_0011B830(qword, qword);          // BuildOrthonormalMatrixZ
+M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
 void func_001A7C18(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
 }
 static inline qword Sub(const qword &a, const qword &b) {
@@ -61,7 +61,7 @@ extern "C" void func_00205008(SO *pso, int grf, LO *plo, qword posOther, qword d
         psopartOther = 0;
         ppxpFirst = ppxpOut = &pso->patt->pxpFirst;
     }
-    M3 mat = func_0011B830(direction, D_002A2DC0);
+    M3 mat = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
     qword posLocal = Rotate(mat, Sub(pos, posOther));
     if ((grf & 1) || ((grf & 8) && X(posLocal) < 0.0001f))
         func_001A7C18(D_003DD490, pso->psopart, psopartOther, pos, mat.r[0], X(posLocal), (grf & 1) ? 11 : 10, 0, 0, ppxpFirst);

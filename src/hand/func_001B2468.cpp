@@ -9,7 +9,7 @@ extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 V*func_001B2398(V*,P*,float);
 qword func_001A62E8(P*);
-void func_00117120(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
+void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
 void func_001FAC30(P*,qword);
 }
 int FFloatsNear(float,float,float)__asm__("FFloatsNear__Ffff");
@@ -56,7 +56,7 @@ extern "C" void func_001B2468(P*p){
  register float tension __asm__("$f14");
  register qword startPosition __asm__("$4"),startVelocity __asm__("$5"),endPosition __asm__("$6"),endVelocity __asm__("$7");
  __asm__("lq %2,%5\n\tpor %1,$zero,%6\n\tlq %3,%7\n\tpor %0,$zero,%8\n\tli.s %4,%9":"=r"(startPosition),"=&r"(startVelocity),"=&r"(endPosition),"=&r"(endVelocity),"=f"(tension):"m"(w.destination),"r"(velocity),"m"(w.output),"r"(position),"F"(1.0f));
- func_00117120(remaining,frameDt,tension,startPosition,startVelocity,endPosition,endVelocity,0,&w.integrated.q,0);
+ EvaluateBezierPos(remaining,frameDt,tension,startPosition,startVelocity,endPosition,endVelocity,0,&w.integrated.q,0);
  w.copy=w.integrated;
  VT*table=p->vt;register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].fn),"m"(table[33].delta));

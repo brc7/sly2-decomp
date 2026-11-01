@@ -12,7 +12,7 @@ struct LO {
 };
 extern "C" {
 void func_002333B4(void *, int, int);
-void func_0011C168(struct MAT *, struct ALO *, struct MAT *);
+void __ml__FRC7MATRIX4T0(struct MAT *, struct ALO *, struct MAT *);
 void func_001A5900(struct LO *, struct LO *, struct LO *, int);
 void func_0022FAA0(struct LO *);
 void func_001F2468(struct LO *);
@@ -38,7 +38,7 @@ extern "C" void func_001F21B8(struct LO *plo, struct LO *pa, struct LO *pb, int 
             mat.m[0][0] = mat.m[1][1] = mat.m[2][2] = mat.m[3][3] = 1.0f;
             for (palo = plo->palo; palo; palo = palo->pNext) {
                 struct MAT t;
-                func_0011C168(&t, palo, &mat);
+                __ml__FRC7MATRIX4T0(&t, palo, &mat);
                 mat = t;
             }
         }

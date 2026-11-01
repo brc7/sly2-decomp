@@ -27,8 +27,8 @@ PRG *func_001390D8(void *pv);
 void func_001394C8(PRG *pprg, EMITTER *p);
 BLK *func_00138FF8(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb);
-int func_0011D3F8(int nMin, int nMax);
-float func_0011D448(float gMin, float gMax);
+int NRandInRange__Fii(int nMin, int nMax);
+float GRandInRange__Fff(float gMin, float gMax);
 void func_0015B428(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
@@ -41,7 +41,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 
-static inline float GRand(LM *plm) { return func_0011D448(plm->gMin, plm->gMax); }
+static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
 
 void func_0015B428(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
@@ -72,18 +72,18 @@ void func_0015B428(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *
             ((float *)&pfr->av[i])[3] = ag2[k];
 #define pd ((PD *)&pfr->apd[i])
             func_002333B4(pd, 0, sizeof(PD));
-            pd->n0 = func_0011D3F8(0, pprg->c3B0 - 1);
+            pd->n0 = NRandInRange__Fii(0, pprg->c3B0 - 1);
             if (pprg->f434)
                 pd->n0 &= ~1u;
             if (p->fC8)
-                pd->n4 = func_0011D3F8(0, pprg->c1A0 - 1);
+                pd->n4 = NRandInRange__Fii(0, pprg->c1A0 - 1);
             if (pprg->k43C == 2) {
                 float g = GRand(&p->lm);
                 pd->g8 = g;
                 if (!p->kF0 && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
                     pd->g8 = -g;
                 if (p->fF4)
-                    pd->gC = func_0011D448(-3.14159265f, 3.14159265f);
+                    pd->gC = GRandInRange__Fff(-3.14159265f, 3.14159265f);
             }
             if (pprg->k160 == 2) {
                 PAIR *ppair = &pblk->apair[i];

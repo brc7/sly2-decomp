@@ -11,7 +11,7 @@ struct O { char pad[0xC]; VTE *vt; };
 qword func_001A62E8(void *p);
 qword func_0022D348(struct SPACE *p, struct SPACE *stop, qword q);
 int func_0019A400(struct S *p, qword a, qword b, qword c, qword d, float *pg);
-void func_00117120(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
 static __inline__ float LenXY0(qword v)
 {
     register float r __asm__("$2");
@@ -97,9 +97,9 @@ void func_0019A4A0(struct S *p, qword aInput, struct O *o, qword bInput, qword c
         register float halfTime __asm__("$f0");
         register float half __asm__("$f3");
         register float limit __asm__("$f2");
-        func_00117120(w.at, 0.0f, 1.0f, pos, a, w.u0.q, w.sum.q, 0, 0, &w.v10.q);
+        EvaluateBezierPos(w.at, 0.0f, 1.0f, pos, a, w.u0.q, w.sum.q, 0, 0, &w.v10.q);
         d1 = LenXY0(w.v10.q);
-        func_00117120(w.at, w.at, 1.0f, pos, a, w.u0.q, w.sum.q, 0, 0, &w.v20.q);
+        EvaluateBezierPos(w.at, w.at, 1.0f, pos, a, w.u0.q, w.sum.q, 0, 0, &w.v20.q);
         second=LenXY1(w.v20.q);
         halfTime=w.at; half=0.5f; limit=1000000.0f;
         __asm__("mtc1 %4,%2\n\tmul.s %1,%1,%5\n\tadd.s %0,%0,%2\n\tmul.s %0,%0,%1\n\tmin.s %0,%0,%3"

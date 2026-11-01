@@ -12,7 +12,7 @@ struct S {
 extern int D_003E139C;
 void func_001A53A0(struct S *s);
 void func_001A5448(struct S *p, void **a, void ***b);
-void func_0011A280(void *a, void *b, struct S *s);
+void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
 void func_001A5270(struct S *s)
 {
     void *a;
@@ -31,5 +31,5 @@ void func_001A5270(struct S *s)
     s->x40 = 0x21;
     s->x3C = s->x10 ? s->x10->x3C : D_003E139C;
     func_001A5448(s->x10, &a, &b);
-    func_0011A280(a, *b, s);
+    InsertDlEntryBefore__FP2DLPvT1(a, *b, s);
 }

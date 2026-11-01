@@ -25,7 +25,7 @@ struct Q {
 };
 int func_00138370(void *, struct SEG *, float *, float, float);
 void *func_002333B4(void *, int, int);
-void func_00117120(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
 
 static __inline__ qword Madd(qword a, qword v, qword s)
 {
@@ -126,7 +126,7 @@ void func_00138660(struct P *p, struct Q *pq)
                 struct VTE *e = &po->vt[2];
                 ((void (*)(void *, struct Q *))e->pfn)((char *)po + e->d, &q);
             }
-            func_00117120(q.x84 - q.x80, t[1] - q.x80, ratio, q.xC0.q, q.xD0.q, q.xE0.q, q.xF0.q, &c, &d, 0);
+            EvaluateBezierPos(q.x84 - q.x80, t[1] - q.x80, ratio, q.xC0.q, q.xD0.q, q.xE0.q, q.xF0.q, &c, &d, 0);
         }
         {
             qword s;

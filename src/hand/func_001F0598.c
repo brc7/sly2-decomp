@@ -6,7 +6,7 @@ struct DL;
 extern struct DL D_003E126C;
 int func_001F0638(struct P *);
 void func_00130B18(void *);
-void func_0011A2E8(void *, void *);
+void RemoveDlEntry__FP2DLPv(void *, void *);
 void func_001F0598(struct P *p)
 {
     if (!func_001F0638(p)) {
@@ -15,8 +15,8 @@ void func_001F0598(struct P *p)
             p->p30 = 0;
             func_00130B18(pv);
         }
-        func_0011A2E8(p->pq->dl, p);
-        func_0011A2E8(&D_003E126C, p);
+        RemoveDlEntry__FP2DLPv(p->pq->dl, p);
+        RemoveDlEntry__FP2DLPv(&D_003E126C, p);
         ((void (*)(void *, int, int, int, int, int))p->pvt->a[3].pfn)((char *)p + p->pvt->a[3].d, 3, 0, 0, 0, 0);
         ((void (*)(void *))p->pvt->a[2].pfn)((char *)p + p->pvt->a[2].d);
     }

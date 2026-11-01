@@ -14,7 +14,7 @@ struct CLOCK{float t,dt;};
 extern "C"{
  extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DA0;extern char D_003DD490[],D_002DE578[];
  void func_002303A0(P*,void*,int);void func_0022C840(P*,void*);void func_0022C818(P*,void*);
- float func_0011D448(float,float);void func_0011EFB0(qword,float*,float*,float*);
+ float GRandInRange__Fff(float,float);void GetVectorSphere(qword,float*,float*,float*);
  void func_001B1818(P*,float);void func_001B17B8(P*,float);
  qword func_001A62E8(P*);void func_001E6F60(PATH*,qword,void*,U*,U*,float*,float*);
  float func_001E77E8(PATH*);float func_001E6648(PATH*);P*func_001C4AF8(void*,qword);
@@ -65,13 +65,13 @@ extern "C" void func_001B1328(P*p,int next){
  switch(old){case -1:case 0:case 2:case 3:func_002303A0(p,p->group,p->oldMode);func_0022C840(p,p->group);break;}
  switch(next){
  case 0:
-  SetVelocity(p,D_002A2DD0.q);func_0022C818(p,p->group);{float now=D_002DDED0.t;p->randomDeadline=now+func_0011D448(p->low0,p->high0);}break;
+  SetVelocity(p,D_002A2DD0.q);func_0022C818(p,p->group);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low0,p->high0);}break;
  case 1:
-  SetMode(p);{float now=D_002DDED0.t;p->randomDeadline=now+func_0011D448(p->low1,p->high1);}break;
+  SetMode(p);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low1,p->high1);}break;
  case 2:{
   p->phase=-p->phase;float negative=-1.0f;M4*m=GetMatrix(p);
   qword row=m->row[0].q;qword factor=SplatInto(negative,&w.first);qword scaled=ScaleX(row,factor);
-  func_0011EFB0(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->group,1);func_0022C840(p,p->group);break;
+  GetVectorSphere(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->group,1);func_0022C840(p,p->group);break;
  }
  case 3:
   SetZeroVelocity(p);func_001B17B8(p,p->ratio+p->ratio);

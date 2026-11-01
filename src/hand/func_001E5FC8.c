@@ -15,7 +15,7 @@ struct PATH {
     int segment;        // 0x148, segment currently cached
     float lengths[11];  // 0x14C
 };
-void func_00117120(float duration, float t, float scale, qword start, qword startTangent, qword end, qword endTangent,
+void EvaluateBezierPos(float duration, float t, float scale, qword start, qword startTangent, qword end, qword endTangent,
                    qword *pos, qword *vel, qword *acc);
 
 static inline qword Dir(qword m0, qword m1, qword m2, qword v)
@@ -67,7 +67,7 @@ void func_001E5FC8(struct PATH *p, int i)
     duration = p->times[i + 1] - p->times[i];
     for (j = 0; j < 11; j++) {
         float frac = (float)j * 0.1f;
-        func_00117120(duration, frac * duration, 1.0f, start, a, end, b, &cur.q, 0, 0);
+        EvaluateBezierPos(duration, frac * duration, 1.0f, start, a, end, b, &cur.q, 0, 0);
         if (j > 0)
             p->lengths[j] = p->lengths[j - 1] + Len(Sub(prev.q, cur.q));
         prev.q = cur.q;

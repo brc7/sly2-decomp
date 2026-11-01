@@ -6,7 +6,7 @@ extern qword D_002A5000;
 qword func_001A62E8(void *p);
 qword func_00150780(struct X *p);
 float func_002458F0(float y, float x);
-void func_0011B720(M3 *pm, float a, float b);
+void LoadRotateMatrixPanTilt(M3 *pm, float a, float b);
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Len(qword v)
@@ -49,7 +49,7 @@ qword func_001507F8(struct X *p)
     } else {
         M3 m;
         qword v = D_002A5000;
-        func_0011B720(&m, p->gA4, p->gA8);
+        LoadRotateMatrixPanTilt(&m, p->gA4, p->gA8);
         r = Add(func_00150780(p), MulM3(&m, v));
     }
     return r;

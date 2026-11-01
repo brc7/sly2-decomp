@@ -26,14 +26,14 @@ qword func_001A62E8(void*);
 qword func_001A6FC0(void*,void*,qword);
 qword func_0022FCC8(void*,void*,qword);
 float func_002458F0(float,float);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 int func_0011D910(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
 void func_001E7380(void*,qword,void*,qword*,float,qword*,float*,float*);
 float func_001E6648(void*);
 float func_00154C90(void*);
 int func_0015E9C8(void*,int,int,void*,int,NODE**);
-qword func_0011E9F8(qword,float);
+qword LimitVectorLength(qword,float);
 }
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -85,7 +85,7 @@ extern "C" void func_00180668(P*p){
   qword target=func_001A62E8(p->target);
   qword delta=QwSub(target,func_001A62E8(p));
   float distance=Length(delta);
-  float heading=func_0011CF60(Heading(func_001A6FC0(0,p,delta)));
+  float heading=RadNormalize__Ff(Heading(func_001A6FC0(0,p,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=func_0011D910(&rule->stayDistance,distance);
   if(accept){
@@ -112,7 +112,7 @@ dispatch:
   FRAME*frame=p->node.frame;
   qword target=func_001A62E8(p->target);
   qword self=func_001A62E8(p);
-  float heading=func_0011CF60(Heading(func_0022FCC8(0,frame->space,QwSub(target,self))));
+  float heading=RadNormalize__Ff(Heading(func_0022FCC8(0,frame->space,QwSub(target,self))));
   p->heading=Clamp(Evaluate(&p->simpleAngle,heading),&p->simpleClamp);
   break;
  }
@@ -157,7 +157,7 @@ dispatch:
     force=RAddScaled(force,scalar.q,RVuFloat(weight));
    }
   }
-  p->output=func_0011E9F8(force,speed);
+  p->output=LimitVectorLength(force,speed);
   p->heading=func_002458F0(unit.f[1],unit.f[0]);
   break;
  }

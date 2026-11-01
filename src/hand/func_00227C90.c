@@ -1,7 +1,7 @@
 typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0xEC]; int k; char pad2[0x20]; qword pos; float r; };
 qword func_001A6F00(int a, struct S *p, qword q);
-int func_00118FB0(int a, int b, qword q);
+int PbspPointInBspQuick(int a, int b, qword q);
 int func_00227C90(struct S *p, qword q)
 {
     qword a = func_001A6F00(0, p, q), d, r, t;
@@ -12,5 +12,5 @@ int func_00227C90(struct S *p, qword q)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(r));
     fFar = p->r < f;
     if (fFar) return 0;
-    return func_00118FB0(p->k, 0x7FFFFFFF, a) != 0;
+    return PbspPointInBspQuick(p->k, 0x7FFFFFFF, a) != 0;
 }

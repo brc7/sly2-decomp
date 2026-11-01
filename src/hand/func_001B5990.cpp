@@ -34,7 +34,7 @@ void func_002046F0(P*,void*);
 void func_00204660(P*,float);
 void func_0020BB58(void*,float);
 void func_0020BC08(void*);
-qword func_0011E1A0(float,float,float);
+qword SetVectorCylind(float,float,float);
 void func_001A0450(P*,ENTRY*,void*);
 }
 static inline qword Load(const U*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
@@ -103,7 +103,7 @@ extern "C" void func_001B5990(P*p){
   func_002046F0(p,p->target);
   float length=LengthXY(p->axes[1].direction.q);
   PL*input=p->input;
-  qword direction=Vector(func_0011E1A0(input->angle+3.1415927f,(input->strength*length)*p->animation->rate,0.0f));
+  qword direction=Vector(SetVectorCylind(input->angle+3.1415927f,(input->strength*length)*p->animation->rate,0.0f));
   p->acceleration.q=direction;
   qword world=Rotate(&p->orientation,direction);
   p->side=-1;p->acceleration.q=world;

@@ -40,7 +40,7 @@ int func_00117C80(void *);
 T *func_001AE2A0(SZ *);
 E *func_001AE1D0(SZ *);
 SP func_0012A3D8(void *);
-void func_00118420(void *);
+void CBinaryInputStream_SkipStringSw(void *);
 CRef func_001FFA70(void *, T *, int);
 void func_00128148(void *);
 }
@@ -69,9 +69,9 @@ extern "C" void func_001FF858(G *pg, int a, void *px)
         pe->p = sp.p;
         pe->n = 0;
         if (D_003E1C34) {
-            func_00118420(px);
-            func_00118420(px);
-            func_00118420(px);
+            CBinaryInputStream_SkipStringSw(px);
+            CBinaryInputStream_SkipStringSw(px);
+            CBinaryInputStream_SkipStringSw(px);
         }
     }
     for (i = 0; i < c; i++) {

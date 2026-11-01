@@ -21,7 +21,7 @@ extern int func_00132B10(NODE*,int);
 extern int func_0015E9C8(void*,int,int,NODE*,int,NODE**);
 extern int func_00172888(ROW*,ROW*);
 extern void func_002338C0(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
-extern qword func_0011E1A0(float,float,float);extern float func_0011D448(float,float);
+extern qword SetVectorCylind(float,float,float);extern float GRandInRange__Fff(float,float);
 }
 struct VU_FLOAT{qword qw;};
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -109,13 +109,13 @@ extern "C" void func_001728B0(P*p){
   }
  }
  qword origin=w.query.point.q;
- qword anchor=QwAdd(origin,func_0011E1A0(w.query.heading+3.1415927f,-350.0f,0.0f));
+ qword anchor=QwAdd(origin,SetVectorCylind(w.query.heading+3.1415927f,-350.0f,0.0f));
  while(accepted<4){
   float angle,length;qword point;
-  lastAngle+=func_0011D448(D_002BE5A8.low,D_002BE5A8.high);
+  lastAngle+=GRandInRange__Fff(D_002BE5A8.low,D_002BE5A8.high);
   angle=lastAngle+w.query.heading;
-  length=func_0011D448(D_002BE5B0.low,D_002BE5B0.high);
-  point=QwAdd(anchor,func_0011E1A0(angle,length,0.0f));
+  length=GRandInRange__Fff(D_002BE5B0.low,D_002BE5B0.high);
+  point=QwAdd(anchor,SetVectorCylind(angle,length,0.0f));
   {PAIR*pair=&p->pair[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
  }
  p->index=0;p->time=D_002A53D0;

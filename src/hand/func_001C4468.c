@@ -12,7 +12,7 @@ extern struct J D_002E0D00;
 extern char D_002DDFA0[];
 void func_001C42E8(struct S *p);
 void func_0011BC88(void *pv, float *pa, float *pb);
-struct MATRIX3 func_0011B720(float a, float b);
+struct MATRIX3 LoadRotateMatrixPanTilt(float a, float b);
 void func_001C4330(struct S *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
 void func_001C45A8(struct S *p);
 void func_001C4468(struct S *p)
@@ -35,7 +35,7 @@ void func_001C4468(struct S *p)
         func_0011BC88(D_002DDFA0, &a, &b);
         break;
     }
-    p->mat = func_0011B720(a, b);
+    p->mat = LoadRotateMatrixPanTilt(a, b);
     func_001C4330(p, a, &p->g10, &p->g14, &p->g18, &p->g1c, &p->g70);
     func_001C4330(p, a, &p->g20, &p->g24, &p->g28, &p->g2c, &p->g74);
     func_001C45A8(p);

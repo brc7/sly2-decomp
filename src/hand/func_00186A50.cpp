@@ -19,7 +19,7 @@ struct GAME{char pad[0x3D58];int stamp;};extern "C" GAME D_003DD490;
 extern "C" float func_002456F0(float);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*func_00256D18(qword*,qword);
-extern "C" float func_0011E4B0(qword,qword,qword*);
+extern "C" float RadBetweenVectors(qword,qword,qword*);
 extern "C" qword func_0022FCC8(void*,void*,qword);
 static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__("$4")=q->current;register qword odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
 
@@ -67,7 +67,7 @@ extern "C" void func_00186A50(void*context,REQUEST*request){
  register qword worldDelta __asm__("vf1"),deltaArgument __asm__("$5");
  __asm__("lw $4,%3\n\tlq %1,%4\n\tlw $3,0xA0($4)\n\taddiu $2,$3,0x40\n\tlqc2 $vf4,0x40($3)\n\tlqc2 $vf3,0x30($2)\n\tlqc2 $vf2,0x10($2)\n\tlqc2 $vf1,0x20($2)\n\tvmulax.xyz $ACC,$vf4,%2x\n\tvmadday.xyz $ACC,$vf2,%2y\n\tvmaddaz.xyz $ACC,$vf1,%2z\n\tvmaddw.xyz %2,$vf3,$vf0w\n\tlqc2 %0,%5\n\tvsub.xyzw %0,%2,%0"
   :"=&j"(worldDelta),"=&r"(deltaArgument),"+j"(transported):"m"(q->current),"m"(w.row[22].q),"m"(w.row[21].q):"$2","$3","$4","vf2","vf3","vf4","memory");
- register float angle __asm__("$f20")=func_0011E4B0(worldDelta,deltaArgument,&axis->q);
+ register float angle __asm__("$f20")=RadBetweenVectors(worldDelta,deltaArgument,&axis->q);
  register qword converted __asm__("$2")=func_0022FCC8(0,q->current->parent,w.row[3].q);
  register M3*destination __asm__("$4");register qword normalized __asm__("vf3");register float keptAngle __asm__("$f12");
  __asm__("qmtc2.ni %4,$vf1\n\tdaddu %0,%5,$zero\n\tvmul.xyz $vf2,$vf1,$vf1\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,$vf2,$vf2y\n\tvmaddz.x $vf2,$vf3,$vf2z\n\tmov.s %2,%6\n\tvsqrt Q,$vf2x\n\tvwaitq\n\tvaddq.x $vf2,$vf0,Q\n\tsqc2 $vf1,%3\n\tvdiv Q,$vf0w,$vf2x\n\tvwaitq\n\tvmulq.xyzw %1,$vf1,Q"

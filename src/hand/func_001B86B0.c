@@ -20,7 +20,7 @@ struct P {
 void func_00130658(void *pp);
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
-float func_0011CF60(float g);
+float RadNormalize__Ff(float g);
 void func_00204660(struct P *p, float g);
 void func_00204CA8(struct P *p);
 void func_001F15B8(void *p);
@@ -55,7 +55,7 @@ void func_001B86B0(struct P *p, int k)
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(p->p10DC)), "j"(func_001A62E8(p)));
         g = func_002458F0(GetY(d), GetX(d));
-        if (__builtin_fabsf(func_0011CF60(g - p->g1A8)) < D_002C09F0) {
+        if (__builtin_fabsf(RadNormalize__Ff(g - p->g1A8)) < D_002C09F0) {
             func_00204660(p, g);
             func_00204CA8(p);
         }

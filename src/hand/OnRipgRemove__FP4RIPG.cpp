@@ -11,7 +11,7 @@ void func_001F2D48(RIPG *p);
 void func_001337D0(SW *psw, void *pv);
 void func_001A57A8(RIPG *p);
 void *func_0015E3A8(SW *psw, int n);
-void func_0011A118(void *pl, RIPG *p);
+void RemoveSlEntry(void *pl, RIPG *p);
 void func_001A53E0(RIPG *p);
 void func_0011CD98(void *pool, void *pv);
 }
@@ -44,7 +44,7 @@ void OnRipgRemove(RIPG *pripg)
         pripg->xEC = 0;
     }
     func_001A57A8(pripg);
-    func_0011A118(func_0015E3A8(psw, 0x57), pripg);
+    RemoveSlEntry(func_0015E3A8(psw, 0x57), pripg);
     if (!pripg->x10) func_001A53E0(pripg);
     func_0011CD98(psw->pool, pripg);
     D_002DD2FC = dli.m_pdliNext;

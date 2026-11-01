@@ -14,9 +14,9 @@ void *func_001C4840(void);
 qword func_001A62E8(void *p);
 void func_00147EC8(struct P *p, void *pv);
 void func_00147EE8(struct P *p, void *pv);
-int func_0011A380(void *p, void *pv);
-void func_0011A220(void *p, void *pv);
-void func_0011A2E8(void *p, void *pv);
+int FFindDlEntry__FP2DLPv(void *p, void *pv);
+void AppendDlEntry__FP2DLPv(void *p, void *pv);
+void RemoveDlEntry__FP2DLPv(void *p, void *pv);
 
 static __inline__ float GDist(qword a, qword b)
 {
@@ -110,13 +110,13 @@ void func_00147F40(struct P *p)
             }
             break;
         }
-        if (fIn != func_0011A380(p->x2C, pv)) {
+        if (fIn != FFindDlEntry__FP2DLPv(p->x2C, pv)) {
             if (fIn) {
-                func_0011A220(p->x2C, pv);
+                AppendDlEntry__FP2DLPv(p->x2C, pv);
                 pso->pvt->pfn23((struct SO *)((char *)pso + pso->pvt->d17));
             } else {
                 pso->pvt->pfn22((struct SO *)((char *)pso + pso->pvt->d16));
-                func_0011A2E8(p->x2C, pv);
+                RemoveDlEntry__FP2DLPv(p->x2C, pv);
             }
         }
     }

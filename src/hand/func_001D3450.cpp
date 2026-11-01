@@ -51,8 +51,8 @@ extern const qword D_002C2150[5];
 extern "C" {
 qword func_001A6F00(OWNER *, OWNER *, qword);
 qword *func_00256D18(qword *, qword);
-M4 func_0011C318(const M4 *);
-void func_00119390(VECTOR4 *, qword, qword);
+M4 InvertMatrix4Rigid(const M4 *);
+void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
 void *func_002333B4(void *, int, uint);
 void *func_001AE318(SWALLOC *);
 int func_00118A88(BSP *, BSP *, qword, float, int *, BSP **);
@@ -158,13 +158,13 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
     M4 *pframe = &frame;
     BuildFrame(pframe, pmat, func_001A6F00(owner, 0, wheel->pos));
     M4 inverse;
-    inverse = func_0011C318(pframe);
+    inverse = InvertMatrix4Rigid(pframe);
     float height = wheel->top - wheel->bottom;
     float radius = wheel->radius;
     qword plane;
     {
         VECTOR4 p;
-        func_00119390(&p, frame.r[1].q, frame.r[3].q);
+        InitPlaneFromNormalPos(&p, frame.r[1].q, frame.r[3].q);
         plane = *(qword *)&p;
     }
     SUPPORT asupport[64];

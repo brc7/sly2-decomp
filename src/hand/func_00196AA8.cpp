@@ -3,7 +3,7 @@ union U{qword q;float f[4];int i[4];};struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];U normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
 struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{U scalar;REQ request;};struct WORK{U normals[64];SCRATCH scratch;FRAME frame;U residual,original;};
-extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*func_001AE478(FRAME*);void func_001AE4A0(FRAME*,int);void*func_001AE318(REQ*);void func_0011AD30(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
+extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*func_001AE478(FRAME*);void func_001AE4A0(FRAME*,int);void*func_001AE318(REQ*);void SolveInequalities(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
 static inline void Publish(U*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(v):"j"(v),"j"(k));return v;}
@@ -71,7 +71,7 @@ extern "C" void func_00196AA8(MOVE*p,U*out){
  for(int i=0;i<count;i++){for(int j=0;j<count;j++){MatrixDot(cursor,((U*)((unsigned)(i*16)+(unsigned)w.normals))->q,w.normals[j].q);cursor++;}}
  {register qword original __asm__("$2");register float*write __asm__("$5");__asm__("lq %0,%2\n\tdaddu %1,%3,$zero":"=&r"(original),"=r"(write):"m"(out->q),"r"(rhs));w.residual.q=original;w.original.q=original;
  if(count>0){register qword value __asm__("vf3");register int remaining __asm__("$3");register U*normal __asm__("$2");__asm__("qmtc2.ni %3,%0\n\tdaddu %1,%4,$zero\n\tdaddu %2,%5,$zero":"=j"(value),"=&r"(remaining),"=r"(normal):"r"(original),"r"(count),"r"(w.normals));do{VectorDot(write,value,normal->q);write++;normal++;}while(--remaining!=0);}}
- func_0011AD30(count,matrix,rhs,weights,D_002A63B0);
+ SolveInequalities(count,matrix,rhs,weights,D_002A63B0);
  if(count>0){register float*read __asm__("$2")=weights;register U*normal __asm__("$4")=w.normals;for(register int remaining __asm__("$3")=count;remaining!=0;){register int bits __asm__("$5");__asm__("lw %0,%1":"=r"(bits):"m"(*read));--remaining;register qword scalar __asm__("vf2"),sum __asm__("vf3"),axis __asm__("vf1");__asm__ volatile("qmtc2.ni %5,%0\n\tlqc2 %1,%6\n\tsqc2 %0,%2\n\taddiu %3,%3,4\n\tlqc2 %4,%7":"=j"(scalar),"=j"(sum),"=m"(w.scratch.scalar.q),"+&r"(read),"=j"(axis):"r"(bits),"m"(w.residual.q),"m"(normal->q));w.residual.q=AddScaled(sum,axis,scalar);normal++;}}
  if(Square(Sub(w.original.q,w.residual.q))>1.0f){switch(p->mode){case 0:func_00195FB8(p,1,0);break;case 2:func_00195FB8(p,3,0);break;}}
  {register qword result __asm__("$4")=w.residual.q;out->q=result;}func_001AE4A0(&w.frame,2);

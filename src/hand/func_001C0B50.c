@@ -9,7 +9,7 @@ int func_001C1700(struct S*,void*,qword,qword,int,void**);
 int func_001BC9F0(void*,qword);
 qword func_001A6F00(void*,void*,qword);
 int func_001C0960(struct S*,qword,qword,int,struct HIT*,int);
-void func_0011EE08(qword,qword,qword,qword*,float*,float*);
+void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 int func_001C0940(struct S*,qword,qword*,int);
 static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;}
 static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;}
@@ -41,7 +41,7 @@ int func_001C0B50(struct S*p,qword point,qword*out){
   b.q=func_001A6F00(poly,0,poly->vertices[i]);b.f[2]=z;
   c=func_001C0960(p,a.q,b.q,1,hits,2);
   {int k;h=&hits[0].pos[1];for(k=0;k<c;k++){
-   func_0011EE08(projected,h[-1],h[0],&nearest.q,0,&distance);
+   FindClosestPointOnLineSegment(projected,h[-1],h[0],&nearest.q,0,&distance);
    if(distance<bestDistance){bestDistance=distance;*(qword*)&best=nearest.q;}
    h=(qword*)((char*)h+0x60);
   }}

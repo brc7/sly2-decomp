@@ -35,7 +35,7 @@ static __inline__ float GLimitLm(struct LM *plm, float g)
 /* b: allocation-only "j" input (Claude agent). It keeps b live past the clamp, so b gets its own early qmtc2 instead of
    staying in v0 until the vsub (then the clq clear can use v0 like the target). */
 static __inline__ float GAtanXY2(qword d, qword b) { register qword r __asm__("v1"); /* register pin (Claude agent) */ float x; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d), "j"(b)); x = GetX(r); { float y; __asm__("prot3w %0,%1" : "=r"(y) : "0"(r)); return func_002458F0(y, x); } }
-/* y via an int + mtc1 (as in func_0011E958): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
+/* y via an int + mtc1 (as in CalculateVectorPanTilt): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
 static __inline__ float GAtanR(qword d)
 {
     int y;

@@ -7,7 +7,7 @@ void func_00139098(void *);
 void func_001A5848(struct S *);
 void func_001A57A8(struct S *);
 void func_001A53E0(struct S *);
-void func_0011A220(void *, struct S *);
+void AppendDlEntry__FP2DLPv(void *, struct S *);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -30,6 +30,6 @@ void func_00139250(struct S *p) {
     func_001A5848(p);
     func_001A57A8(p);
     if (!p->f10) func_001A53E0(p);
-    func_0011A220(D_002DEAF0, p);
+    AppendDlEntry__FP2DLPv(D_002DEAF0, p);
     D_002DD2FC = dli.m_pdliNext;
 }

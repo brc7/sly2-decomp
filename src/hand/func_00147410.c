@@ -12,7 +12,7 @@ void func_0014D1D0(struct CLOCK *p, int a, float g);
 void func_0020EFC0(void *p, int a);
 void func_0020F030(void *p, int a);
 int func_001A61A0(struct P *p);
-void func_0011A220(void *p, struct X14 *px);
+void AppendDlEntry__FP2DLPv(void *p, struct X14 *px);
 void func_00131A20(void *p, float g);
 void func_00147410(struct P *p, int state)
 {
@@ -26,7 +26,7 @@ void func_00147410(struct P *p, int state)
         p->vt[8].pfn((char *)p + p->vt[8].d);
         if (!func_001A61A0(p)) {
             struct LO *plo;
-            func_0011A220(D_003DD490 + 0x2C, p->px14);
+            AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, p->px14);
             plo = p->px14->plo;
             plo->vt[23].pfn((char *)plo + plo->vt[23].d);
         }

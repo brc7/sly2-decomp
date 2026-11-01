@@ -1,6 +1,6 @@
 // func_001BFDB0: closest point of a navigation triangle to p (wave-3 lane 4). T holds pointers to the three corners.
 // If p lies outside an edge in the XY plane (z of cross(p - v0, v1 - v0) > 0, tested a-b, b-c, c-a in turn), the result
-// is the closest point on that edge (func_0011EE08); otherwise p is projected along D_002A2DC0 (world up) onto the
+// is the closest point on that edge (FindClosestPointOnLineSegment); otherwise p is projected along D_002A2DC0 (world up) onto the
 // triangle's plane.
 // Keys:
 //  * The inside block works on VU_VECTOR copies of the first and third corners made right after the loads. The
@@ -16,7 +16,7 @@ struct T { qword *a, *b, *c; };
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern "C" {
 extern qword D_002A2DC0; // (0, 0, 1, 0)
-void func_0011EE08(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
+void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
 qword func_001BFDB0(T *t, qword p);
 }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -45,9 +45,9 @@ qword func_001BFDB0(T *t, qword p)
     qword a = *t->a, b = *t->b, c = *t->c;
     qword ab = Sub(b, a);
     VU_VECTOR va(a), vc(c);
-    if (0.0f < Z(Cross(Sub(p, a), ab))) func_0011EE08(p, a, b, &result.q, 0, 0);
-    else if (0.0f < Z(Cross(Sub(p, b), Sub(c, b)))) func_0011EE08(p, b, c, &result.q, 0, 0);
-    else if (0.0f < Z(Cross(Sub(p, c), Sub(a, c)))) func_0011EE08(p, c, a, &result.q, 0, 0);
+    if (0.0f < Z(Cross(Sub(p, a), ab))) FindClosestPointOnLineSegment(p, a, b, &result.q, 0, 0);
+    else if (0.0f < Z(Cross(Sub(p, b), Sub(c, b)))) FindClosestPointOnLineSegment(p, b, c, &result.q, 0, 0);
+    else if (0.0f < Z(Cross(Sub(p, c), Sub(a, c)))) FindClosestPointOnLineSegment(p, c, a, &result.q, 0, 0);
     else {
         qword n = Cross(ab, Sub(vc.q, va.q));
         qword dv = Dot(Sub(va.q, p), n);

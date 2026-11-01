@@ -51,10 +51,10 @@ SO *func_001CDCD0(void *p, int n);
 void func_001CDE70(SO *pso, EMITTER *pemit);
 void func_001333C0(SO *pso, void *p);
 PART *func_001CE888(void *p, int n, SO *pso);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_0015BF40(void *p, EMITTER *pemit);
 MATRIX3 *func_001A6318(void *p);
-int func_0011A3B0(void *p);
+int FIsDlEmpty__FP2DL(void *p);
 }
 extern "C" void func_0015B1B0(EMITTER *pemit, EMITX *px, int c, qword *apos, qword *avel, float *at0, float *at1)
 {
@@ -76,7 +76,7 @@ extern "C" void func_0015B1B0(EMITTER *pemit, EMITX *px, int c, qword *apos, qwo
     if (!pso)
         return;
     for (i = 0; i < c && (ppart = func_001CE888(D_003DD490, pemit->xC0, pso)) != 0; i++) {
-        ppart->Set(apos[i], func_0011D448(pemit->gD8, pemit->gDC), pemit->pshd->x10);
+        ppart->Set(apos[i], GRandInRange__Fff(pemit->gD8, pemit->gDC), pemit->pshd->x10);
         if (pemit->gE4 != 0.0f || pemit->gE8 != 0.0f) {
             ppart->x24 = pemit->gE4;
             ppart->x28 = pemit->gE8;
@@ -91,6 +91,6 @@ extern "C" void func_0015B1B0(EMITTER *pemit, EMITX *px, int c, qword *apos, qwo
             ppart->mat40 = *func_001A6318(pemit->pshd->p0);
         ppart->Init(pemit);
     }
-    if (func_0011A3B0((char *)pso + 0x15C))
+    if (FIsDlEmpty__FP2DL((char *)pso + 0x15C))
         pso->V9();
 }

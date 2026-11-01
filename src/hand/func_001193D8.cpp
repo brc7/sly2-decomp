@@ -4,7 +4,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VECTOR;
 extern "C" VECTOR *func_002564C0(VECTOR *);
 extern "C" qword *func_002564A8(qword *p, qword v);
-extern "C" void func_001193C0(qword *p, qword n, float d);
+extern "C" void SetPlane(qword *p, qword n, float d);
 struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
 struct MAT { qword r[4]; };
 
@@ -27,6 +27,6 @@ extern "C" qword func_001193D8(MAT *pm, qword plane)
     __asm__("vmul.xyz %0, %0, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(p2), "=j"(one) : "0"(pos), "j"(n));
     float g;
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(p2));
-    func_001193C0(&u.q, n, g);
+    SetPlane(&u.q, n, g);
     return u.q;
 }

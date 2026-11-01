@@ -19,7 +19,7 @@ typedef struct EMITO { int grf; int x4; float g8; float gC; qword v10; qword v20
 typedef struct EMITR { int *p104; int *p100; EMITTER *p; } EMITR;
 
 extern char D_002BDEC0[];
-extern float func_0011D448(float lo, float hi);
+extern float GRandInRange__Fff(float lo, float hi);
 extern float func_0011D948(void *p, float g);
 typedef union V4 { qword q; float a[4]; } V4;
 extern V4 func_00256CE8(float g);
@@ -51,7 +51,7 @@ void func_0015C690(EMITTER *p, EMITO *po)
     if (po->grf & 0x80)
         c = po->x38;
     else
-        c = (int)func_0011D448(p->gF4, p->gF8);
+        c = (int)GRandInRange__Fff(p->gF4, p->gF8);
     if (po->grf & 1)
         emitp.x0 = po->x4;
     if (po->grf & 2)

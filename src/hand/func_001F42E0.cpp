@@ -6,7 +6,7 @@ struct VTE { short delta,pad; void (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 struct G { char pad[0x3D58]; int stamp; };
 extern G D_003DD490;
-extern "C" M3 func_0011B340(const M3 *);
+extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int);
 extern "C" void func_001F4E28(P *);
@@ -34,7 +34,7 @@ extern "C" void func_001F42E0(P *p,const M3 *basis)
             m.r[1].f[1]=1.0f;
             m.r[0].f[0]=1.0f;
         }
-        M3 transformed=Mul(func_0011B340(&m),*basis);
+        M3 transformed=Mul(InvertMatrix3Cofactor(&m),*basis);
         M3 *dest=&p->object->matrix;
         *dest=transformed;
         dest->r[0].i[3]=0;

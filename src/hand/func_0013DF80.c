@@ -7,8 +7,8 @@ extern char D_003E1C20[];
 int func_00117BD0(void *pbs);
 int func_00117D50(void *pbs);
 void *func_001AE1D0(struct AREQ *preq);
-void func_00118380(void *pbs, int *pn, void *pv, int n);
-void func_00118420(void *pbs);
+void CBinaryInputStream_ReadStringSw(void *pbs, int *pn, void *pv, int n);
+void CBinaryInputStream_SkipStringSw(void *pbs);
 void func_00210BE0(void *pv);
 void func_0013DF80(struct P *p, void *pbs)
 {
@@ -34,9 +34,9 @@ void func_0013DF80(struct P *p, void *pbs)
         pe->x0 = func_00117D50(pbs);
         for (j = 0; j < c; j++) {
             if (j == iMatch)
-                func_00118380(pbs, &pe->x4, D_002DD590, 0x2E);
+                CBinaryInputStream_ReadStringSw(pbs, &pe->x4, D_002DD590, 0x2E);
             else
-                func_00118420(pbs);
+                CBinaryInputStream_SkipStringSw(pbs);
         }
     }
     func_00210BE0(D_003E1C20);

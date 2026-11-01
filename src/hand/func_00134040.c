@@ -13,7 +13,7 @@ void func_001AE4A0(struct C *, int);
 void func_001A7E10(struct P *, void *);
 void *func_001AA1D8(struct P *, struct X *, struct X *);
 void func_001F5078(struct LO *);
-void func_0011A2E8(void *, struct X *);
+void RemoveDlEntry__FP2DLPv(void *, struct X *);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
 void func_00134040(struct P *p)
 {
@@ -68,7 +68,7 @@ void func_00134040(struct P *p)
         px->pv68 = 0;
         VCALL(px->plo, 59, void (*)(void *)));
         px->grf &= ~2L;
-        func_0011A2E8(&p->pxFirst, px);
+        RemoveDlEntry__FP2DLPv(&p->pxFirst, px);
     }
     for (i = 0; i < c; i++) {
         px = apx[i];

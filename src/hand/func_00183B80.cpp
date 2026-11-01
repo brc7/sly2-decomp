@@ -22,7 +22,7 @@ void func_001F57C0(struct O *p, int n);
 void func_001F68A8(struct O *p, int n);
 void func_00147F40(void *p);
 void *func_001A6318(struct O *p);
-void func_0011B938(void *pv, int n, MATRIX3 *pm);
+void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 func_0022FD38(void *pv, void *pvA0, MATRIX3 *pm);
 qword func_0011BFF0(MATRIX3 *pm);
 qword func_0022FC48(void *pv, void *pvA0, qword v);
@@ -63,7 +63,7 @@ void func_00183B80(struct O *p, int n)
             if (!ps)
                 ps = (struct S2 *)p->p190->p60;
             { struct VTE *e = &p->pvt[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)p + e->d, p->p190, ps, 3); }
-            func_0011B938(func_001A6318(p), 0, &m);
+            TiltMatUpright(func_001A6318(p), 0, &m);
             m = func_0022FD38(0, p->p5C->pA0, &m);
 
             q = func_0011BFF0(&m);

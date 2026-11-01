@@ -8,9 +8,9 @@ struct S {char pad258[0x258];struct M *pm0,*pm1;};
 struct CLK {float time,dt;};
 extern struct CLK D_002DDED0;
 extern float D_002C3C68[];
-M4 *func_0011C318(M4 *,const M4 *);
-M4 *func_0011C168(M4 *,const M4 *,const M4 *);
-float func_0011D018(float,float,float,float *,float *);
+M4 *InvertMatrix4Rigid(M4 *,const M4 *);
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
+float GSmooth__FfffP3SMPPf(float,float,float,float *,float *);
 static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     register qword row0 __asm__("$2");
     register qword row1 __asm__("$3");
@@ -53,7 +53,7 @@ void func_00203E08(struct S *input)
        :"=r"(nextPoints),"=r"(oldPoints),"+r"(firstBasis),"=r"(velocity)
        :"m"(secondSource->points),"m"(firstSource->points),"m"(velocityContainer->v));
      pd=nextPoints;old=oldPoints;}
-    func_0011C318(pmi,(M4 *)firstBasis);
+    InvertMatrix4Rigid(pmi,(M4 *)firstBasis);
     {register struct M *currentSource __asm__("$2");
      register M4 *destination __asm__("$4");
      register M4 *inverse __asm__("$5");
@@ -62,7 +62,7 @@ void func_00203E08(struct S *input)
      __asm__("daddu %0,%3,$zero\n\tdaddu %1,%4,$zero\n\tlw %2,%5"
        :"=&r"(destination),"=&r"(inverse),"=r"(basis)
        :"r"(pmm),"r"(pmi),"m"(currentSource->px));
-     func_0011C168(destination,inverse,&basis->m);}
+     __ml__FRC7MATRIX4T0(destination,inverse,&basis->m);}
 
     CopyMatrix(&m,&mm);
     i=((struct S*)context)->pm1->count;
@@ -81,7 +81,7 @@ void func_00203E08(struct S *input)
         pt=pv;ps=old->f;
         j=3;
         while(--j>=0){
-            float next=func_0011D018(*ps,*pt,clock->dt,D_002C3C68,0);
+            float next=GSmooth__FfffP3SMPPf(*ps,*pt,clock->dt,D_002C3C68,0);
             *pd=(next-*ps)/clock->dt;
             ++pt;++ps;++pd;
         }

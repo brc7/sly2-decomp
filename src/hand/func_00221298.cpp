@@ -9,7 +9,7 @@ extern "C" struct O *func_001C4A48(struct G *pg);
 extern "C" void func_00221178(struct S *p, int k);
 extern "C" qword func_001A62E8(struct O *po);
 extern "C" qword func_001A6F00(void *source, struct S *p, qword q);
-extern "C" struct BSP *func_00118FB0(struct BSP *p, unsigned int limit, qword v);
+extern "C" struct BSP *PbspPointInBspQuick(struct BSP *p, unsigned int limit, qword v);
 extern "C" int func_00132B10(struct O *po, int n);
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
 extern "C" void func_00221298(struct S *p)
@@ -23,7 +23,7 @@ extern "C" void func_00221298(struct S *p)
     }
     int initial=p->x13C;
     int sentinel=AutomaticSentinel();
-    if(initial==sentinel) f=func_00118FB0(p->p108, 0x7FFFFFFF, func_001A6F00(0, p, func_001A62E8(po))) != 0;
+    if(initial==sentinel) f=PbspPointInBspQuick(p->p108, 0x7FFFFFFF, func_001A6F00(0, p, func_001A62E8(po))) != 0;
     else f=initial;
     if (p->x124) goto set;
     if (!func_00132B10(po, 0x34)) goto set;

@@ -10,7 +10,7 @@ struct S { char pad[0x54]; int c54; void *a58; int c5C; void *a60; char pad2[0x8
 extern "C" void *func_001AE318(ALLOCREQ *preq);
 extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
 extern "C" void func_001A5C28(S *p, CBinaryInputStream *pbis);
-extern "C" void func_00118420(CBinaryInputStream *pbis);
+extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -36,5 +36,5 @@ extern "C" void func_001624A8(S *p, CBinaryInputStream *pbis)
     p->a98 = PvShrinkReq(&req, p->c94 * 0x18, 0x10, p->a98);
     p->a58 = PvShrinkReq(&req, p->c54 * 4, 0x10, p->a58);
     p->a60 = PvShrinkReq(&req, p->c5C * 4, 0x10, p->a60);
-    func_00118420(pbis);
+    CBinaryInputStream_SkipStringSw(pbis);
 }

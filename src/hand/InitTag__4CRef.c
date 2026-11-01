@@ -10,41 +10,41 @@ extern SLOTHEAP D_004521A0;
 extern SLOTHEAP D_004521B8;
 extern SLOTHEAP D_004521D0;
 extern SLOTHEAP D_004521E8;
-void *func_0011CCC0(SLOTHEAP *psh);
+void *PvAllocSlotheapClear(SLOTHEAP *psh);
 void InitTag__4CRef(CRef *pref, int tagk)
 {
     pref->m_tagk = tagk;
     switch (tagk) {
     case 0x1A: {
-        NV *p = (NV *)func_0011CCC0(&D_00452188);
+        NV *p = (NV *)PvAllocSlotheapClear(&D_00452188);
         p->cref = 0;
         pref->m_pv = p;
         p->cref++;
         break;
     }
     case 0x1B: {
-        NM *p = (NM *)func_0011CCC0(&D_004521A0);
+        NM *p = (NM *)PvAllocSlotheapClear(&D_004521A0);
         p->cref = 0;
         pref->m_pv = p;
         p->cref++;
         break;
     }
     case 0x1C: {
-        NV *p = (NV *)func_0011CCC0(&D_004521B8);
+        NV *p = (NV *)PvAllocSlotheapClear(&D_004521B8);
         p->cref = 0;
         pref->m_pv = p;
         p->cref++;
         break;
     }
     case 0x1D: {
-        N2 *p = (N2 *)func_0011CCC0(&D_004521D0);
+        N2 *p = (N2 *)PvAllocSlotheapClear(&D_004521D0);
         p->cref = 0;
         pref->m_pv = p;
         p->cref++;
         break;
     }
     case 0x1E: {
-        N3 *p = (N3 *)func_0011CCC0(&D_004521E8);
+        N3 *p = (N3 *)PvAllocSlotheapClear(&D_004521E8);
         p->cref = 0;
         pref->m_pv = p;
         p->cref++;

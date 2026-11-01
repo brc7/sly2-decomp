@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 M2C_UNK SetRipgEmitb__FP4RIPGP5EMITB(s32, s32);     /* extern */
-f32 func_0011D448(f32, f32);                        /* extern */
+f32 GRandInRange__Fff(f32, f32);                        /* extern */
 M2C_UNK func_001394C8(s32, s32);                    /* extern */
 
 void OnEmitterValuesChanged__FP7EMITTER(void *arg0) {
@@ -20,9 +20,9 @@ void OnEmitterValuesChanged__FP7EMITTER(void *arg0) {
     }
     temp_f12 = M2C_FIELD(arg0, f32 *, 0xF8);
     if (M2C_FIELD(arg0, s32 *, 0xF0) == 3) {
-        var_f0 = func_0011D448(temp_f12, M2C_FIELD(arg0, f32 *, 0xFC)) * 60.0f;
+        var_f0 = GRandInRange__Fff(temp_f12, M2C_FIELD(arg0, f32 *, 0xFC)) * 60.0f;
     } else {
-        var_f0 = func_0011D448(temp_f12, M2C_FIELD(arg0, f32 *, 0xFC));
+        var_f0 = GRandInRange__Fff(temp_f12, M2C_FIELD(arg0, f32 *, 0xFC));
     }
     M2C_FIELD(arg0, f32 *, 0x130) = var_f0;
 }

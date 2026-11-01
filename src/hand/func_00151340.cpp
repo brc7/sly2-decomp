@@ -26,7 +26,7 @@ struct X {
 };
 extern "C" {
 void func_0014FD40(X *p, void *pv, JOY *pjoy);
-float func_0011D448(float gMin, float gMax);
+float GRandInRange__Fff(float gMin, float gMax);
 void func_0012D108(TGT *p, qword pos);
 void func_0014E168(CM *p, int *pm);
 void func_00151340(X *p, void *pv, JOY *pjoy);
@@ -34,7 +34,7 @@ void func_00151340(X *p, void *pv, JOY *pjoy);
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
 static inline float GClampR(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
 static inline float GClamp(float g, float lo, float hi) { if (g < lo) g = lo; else if (g > hi) g = hi; return g; }
-static inline float GRand(const LM &lm) { return func_0011D448(lm.gMin, lm.gMax); }
+static inline float GRand(const LM &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }
 static inline qword Make(float x, float y, float z)
 {
     qword q, t;

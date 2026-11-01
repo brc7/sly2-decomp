@@ -13,7 +13,7 @@ float func_001E6648(int oid);
 qword func_001A62E8(void *p);
 void func_001E6F60(int oid, qword q, int a, int b, struct V *pv, int c, float *pg);
 void func_001E7380(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
-float func_0011D448(float lo, float hi);
+float GRandInRange__Fff(float lo, float hi);
 void func_00181CB0(struct S *p, struct E *pe);
 float func_0011D1C0(void *pv, float *pg, float a, float b, float c, float dt);
 void func_001E6F10(int oid, struct Q *q, void *pv, float g);
@@ -41,7 +41,7 @@ void func_00181F60(struct S *p)
             float t;
             func_001E6F60(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->g28);
             t = D_002DDED0.t;
-            pe->g2c = t + func_0011D448(0.5f, 0.75f);
+            pe->g2c = t + GRandInRange__Fff(0.5f, 0.75f);
         } else {
             func_001E7380(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->g28, pe->g28);
         }

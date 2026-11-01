@@ -2,7 +2,7 @@ struct MRSG { float g0; float g4; };
 struct X { char pad[0x74]; float g74; };
 struct E { float w; struct X *px; };
 struct P { char pad[0xC0]; int cb; int c; char *ab; };
-float func_0011D898(float, float);
+float GModPositive__Fff(float, float);
 void CalculateBlendAmrsg__FiiPviiP4MRSGPf(struct P *p, int ib, int c, struct MRSG *amrsg, float *pf)
 {
     float gSum = 0.0f;
@@ -48,7 +48,7 @@ void CalculateBlendAmrsg__FiiPviiP4MRSGPf(struct P *p, int ib, int c, struct MRS
                 }
             }
         }
-        amrsg[0].g0 = func_0011D898(gAvg, 1.0f) * gSum;
+        amrsg[0].g0 = GModPositive__Fff(gAvg, 1.0f) * gSum;
     }
     for (i = 1; i < c; i++) {
         float g = amrsg[i - 1].g0 + amrsg[i - 1].g4;

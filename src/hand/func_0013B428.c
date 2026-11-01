@@ -7,8 +7,8 @@ struct P {
     qword x1C0; qword x1D0;
 };
 M3 *func_001A6318(struct P *);
-void func_0011B830(M3 *, qword, qword);
-void func_0011BA08(M3 *, qword, qword);
+void BuildOrthonormalMatrixZ(M3 *, qword, qword);
+void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
@@ -42,15 +42,15 @@ void func_0013B428(struct P *p, qword pos, qword q)
     }
     switch (p->x170) {
     case 0:
-        func_0011BA08(&m, func_001A6318(p)->r[2], q);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(p)->r[2], q);
         MulStore(p, &m);
         break;
     case 1:
-        func_0011B830(&m, p->x1C0, D_002A2DC0);
+        BuildOrthonormalMatrixZ(&m, p->x1C0, D_002A2DC0);
         p->mat = m;
         break;
     case 2:
-        func_0011BA08(&m, func_001A6318(p)->r[0], q);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(p)->r[0], q);
         MulStore(p, &m);
         break;
     case 3:

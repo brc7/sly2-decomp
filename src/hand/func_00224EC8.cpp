@@ -22,7 +22,7 @@ qword func_0011BFF0(const void *);
 void *func_0012DC18(S *,NODE *,int,int,int,qword);
 int func_00224688(S *);
 qword func_0022FCC8(NODE *,NODE *,qword);
-M3 *func_0011B830(M3 *,qword,qword);
+M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 void func_001A58D0(S *,int,int);
 int func_0015E9C8(WORLD *,int,int,int,int,O **);
 qword func_001A62E8(void *);
@@ -58,7 +58,7 @@ static inline M3 MakeBasis(qword direction,qword rawUp) return result;{
  qword first=direction;
  __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));
  __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(normalized):"j"(v),"j"(len));
- func_0011B830(&result,first,normalized);
+ BuildOrthonormalMatrixZ(&result,first,normalized);
 }
 extern "C" void func_00224EC8(S *p,int state){
  int old=p->state;

@@ -16,7 +16,7 @@ extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
 qword func_00204E38(struct P*,struct Q*,float);
 struct PARAM *func_0012F938(void*,int);
-qword func_0011E1A0(float,float,float);
+qword SetVectorCylind(float,float,float);
 qword func_001A6FC0(void*,void*,qword);
 void func_002046F0(struct P*,void*);
 static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
@@ -62,7 +62,7 @@ static inline qword OrbitVector(struct P*p){
     __asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(d));
     zero=0.0f;
     __asm__("mtc1 %1,%0":"=f"(radius):"r"(bits));
-    return func_0011E1A0(angle,magnitude*radius,zero);
+    return SetVectorCylind(angle,magnitude*radius,zero);
 }
 void func_001B8B70(struct P*p){
     U scalar;

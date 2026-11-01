@@ -11,27 +11,27 @@ struct LO{char pad[12];VTE*vt;};
 struct Y{char pad[0x1088];void*storage;};
 struct FR{char pad[0x34];DL dl34,dl40;};
 extern char D_003E1530[],D_003E1518[];
-extern "C" int func_0011A3B0(DL*);
-extern "C" void func_0011A2E8(DL*,void*);
-extern "C" void func_0011A200(DL*);
+extern "C" int FIsDlEmpty__FP2DL(DL*);
+extern "C" void RemoveDlEntry__FP2DLPv(DL*,void*);
+extern "C" void ClearDl__FP2DL(DL*);
 extern "C" void func_0011CD98(void*,void*);
 extern "C" void func_00160CE0(FR*frame){
- if(!func_0011A3B0(&frame->dl34)){
+ if(!FIsDlEmpty__FP2DL(&frame->dl34)){
   DLI iter(&frame->dl34);
   for(LO*object=(LO*)iter.Next();object;object=(LO*)iter.Next()){
-   func_0011A2E8(&frame->dl34,object);
+   RemoveDlEntry__FP2DLPv(&frame->dl34,object);
    VTE*entry=&object->vt[2];entry->method((char*)object+entry->delta);
   }
-  func_0011A200(&frame->dl34);
+  ClearDl__FP2DL(&frame->dl34);
  }
- if(!func_0011A3B0(&frame->dl40)){
+ if(!FIsDlEmpty__FP2DL(&frame->dl40)){
   DLI iter(&frame->dl40);
   for(Y*object=(Y*)iter.Next();object;object=(Y*)iter.Next()){
    if(object->storage)func_0011CD98(D_003E1530,object->storage);
-   func_0011A2E8(&frame->dl40,object);
+   RemoveDlEntry__FP2DLPv(&frame->dl40,object);
    func_0011CD98(D_003E1518,object);
   }
-  func_0011A200(&frame->dl40);
+  ClearDl__FP2DL(&frame->dl40);
  }
 }
 

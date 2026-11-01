@@ -10,7 +10,7 @@ int func_00117D00(void *pbis);
 float func_00117E38(void *pbis);
 int func_00117C80(void *pbis);
 struct O *func_001AE2A0(AREQ *preq);
-void func_00118458(void *pbis, struct O *po);
+void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
 void func_0011A070(void *, struct O *po);
 void func_00214398(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
 void func_00214460(struct S *p, void *pbis, struct S *p2);
@@ -34,7 +34,7 @@ void func_00212298(struct S *p, void *pbis)
         p->xC4 = D_003E1C70;
         p->xC0 = func_001AE2A0(&req);
         p->xC0->x40 = p;
-        func_00118458(pbis, p->xC0);
+        CBinaryInputStream_ReadCb64(pbis, p->xC0);
         func_0011A070(D_003E106C, p->xC0);
     } else {
         p->x58 = 1;

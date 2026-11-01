@@ -11,7 +11,7 @@ typedef struct { qword r[4]; } M4;
 typedef struct { float x, y, z, w; } V;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 
 static __inline__ float FloatFromQw(qword q)
 {
@@ -26,7 +26,7 @@ static __inline__ void MoveExtra(qword *pc, int i, int j, int k, qword dt)
     pc[j] = pc[i];
     if (k == 2) {
         float g = FloatFromQw(dt);
-        ((V *)&pc[j])->w = func_0011CF60(((V *)&pc[i])->w + ((V *)&pc[i])->z * g);
+        ((V *)&pc[j])->w = RadNormalize__Ff(((V *)&pc[i])->w + ((V *)&pc[i])->z * g);
     }
 }
 

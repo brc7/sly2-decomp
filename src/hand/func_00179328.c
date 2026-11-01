@@ -15,8 +15,8 @@ void func_00174950(struct S *p);
 float func_002458F0(float y, float x);
 float *func_001A6318(struct A *a);
 void func_00209818(void *p, float f);
-float func_0011CF60(float f);
-qword func_0011E1A0(float a, float b, float c);
+float RadNormalize__Ff(float f);
+qword SetVectorCylind(float a, float b, float c);
 qword func_001A62E8(void *p);
 void func_0020C6F8(void *p, qword v);
 void func_0020AB68(struct A *a, int b, int c, qword v);
@@ -48,7 +48,7 @@ void func_00179328(struct S *p) {
     func_00209818(p->p10->aFD0, a);
     e = p->p40;
     if (e && e->n0 == 2) {
-        qword r = func_0011E1A0(func_0011CF60(p->p10->f1A8 + 3.14159274101257324219e+00f), p->p40->p4->f1C, 0.0f);
+        qword r = SetVectorCylind(RadNormalize__Ff(p->p10->f1A8 + 3.14159274101257324219e+00f), p->p40->p4->f1C, 0.0f);
         qword pos = func_001A62E8(p->p10);
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(pos), "j"(r));

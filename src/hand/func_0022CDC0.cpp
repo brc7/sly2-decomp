@@ -19,10 +19,10 @@ extern "C" M4 *func_0022CB90(M4 *pr, struct O *pa, const M3 *basis, qword c, qwo
 extern "C" M4 *func_0022CC00(M4 *pm, struct O *po, qword v);
 extern "C" qword func_0022CA18(struct O *pa, const M4 *matrix);
 extern "C" qword func_0011BFF0(const M3 *rotation);
-extern "C" void func_00117120(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
+extern "C" void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
 static __inline__ void Eval(struct O *po, qword *pa, qword *pb, qword *pc)
 {
-    func_00117120(po->g84 - po->g80, *po->pg88 - po->g80, *po->pg8C, po->data.r[0], po->data.r[1], po->data.r[2], po->data.r[3], pa, pb, pc);
+    EvaluateBezierPos(po->g84 - po->g80, *po->pg88 - po->g80, *po->pg8C, po->data.r[0], po->data.r[1], po->data.r[2], po->data.r[3], pa, pb, pc);
 }
 static inline qword SelectedValue(qword input){qword value;__asm__("por %0,$zero,%1":"=r"(value):"r"(input));return value;}
 static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value):"0"(&D_002A2DD0),"m"(D_002A2DD0));return value;}

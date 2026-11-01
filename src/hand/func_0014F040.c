@@ -9,7 +9,7 @@ extern float D_002BD8D8;
 extern char D_002BD8E0[];
 extern float D_002DDEE0;
 void *func_002564B8(void *p);
-void func_0011D018(float g, float gTarget, float dt, void *pv, float *pr);
+void GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 static __inline__ float GDistPlane(qword plane, qword pos)
 {
     U d, one;
@@ -40,6 +40,6 @@ float func_0014F040(struct P *p, int unused, qword vIn, struct PL *pl)
     float r;
     qword plane = pl->plane;
     qword pos = pl->pos;
-    func_0011D018(GDistPlane(plane, pos), p->g48 - D_002BD8D8, D_002DDEE0, D_002BD8E0, &r);
+    GSmooth__FfffP3SMPPf(GDistPlane(plane, pos), p->g48 - D_002BD8D8, D_002DDEE0, D_002BD8E0, &r);
     return GDot(&vIn, pl->plane) - r;
 }

@@ -4,7 +4,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 
 /* quadratic solver: returns the root count, roots written to the float buffer */
-int func_0011D508(float a, float b, float c, float *roots);
+int CSolveQuadratic__FfffPf(float a, float b, float c, float *roots);
 
 static inline float Sqrt(float x) { float r; __asm__("sqrt.s %0,%1" : "=&f"(r) : "f"(x)); return r; }
 static inline float Max(float a, float b) { return a < b ? b : a; }
@@ -28,9 +28,9 @@ float func_00196928(qword v, qword a, float low, float high, float slope0, float
     float vz, best = 0.0f, l, t;
     int n;
     vz = Zin(v);
-    n = func_0011D508(naz, -low, vz, r0.f);
+    n = CSolveQuadratic__FfffPf(naz, -low, vz, r0.f);
     if (n > 0) best = Max(r0.f[n - 1], best);
-    n = func_0011D508(az, -high, vz, r1.f);
+    n = CSolveQuadratic__FfffPf(az, -high, vz, r1.f);
     if (n > 0) best = Max(r1.f[n - 1], best);
     l = LenXY(v);
     t = (slope0 * l - vz) / naz;

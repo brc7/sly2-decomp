@@ -16,7 +16,7 @@ struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
 extern char D_002C0E10[];
 extern char D_002DEB30[];
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 struct X *func_001CE888(void *pg, int a, int b);
 struct LO *func_001C4840(void *pg);
 qword func_001A62E8(struct S *p);
@@ -32,7 +32,7 @@ void func_001C68F0(struct S *p, int n)
     if (p->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = func_0011D448(p->x230, p->x234);
+        p->x238 = GRandInRange__Fff(p->x230, p->x234);
         break;
     case 1: {
         struct LO *q = func_001C4840(D_003DD490);

@@ -4,7 +4,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 struct S { char pad[0xC]; struct VTE *vt; char pad2[0xE0-0x10]; int e0; char pad3[0xF4-0xE4]; qword *v; char pad4[0x140-0xF8]; qword *v140,*v144; };
 union U { qword q; float f; };
 int func_001E7538(struct S*,float,float*,float*);
-void func_00117120(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
+void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
 static inline qword ReadTangent(const qword*p){register qword a __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(a):"m"(*p));return a;}
 static inline qword ReadLinearSecond(const qword*p){register qword value __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(value):"m"(*p));return value;}
 static inline qword Sub(qword next,qword first){register qword a __asm__("vf2")=next,b __asm__("vf1")=first;__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -40,7 +40,7 @@ void func_001E67B8(struct S *p,float g,qword *pos,qword *dir)
         __asm__("lqc2 %0,%2\n\tdaddu %1,%3,$zero":"=j"(row1),"=r"(second):"m"(m.b),"r"(first));
         tangent=Sub(ReadTangent(second+1),TangentFirst(first));}
     } else {
-        func_00117120(duration,elapsed,1.0f,p->v[i],p->v144[i],p->v[i+1],p->v140[i+1],pos,dir,0);
+        EvaluateBezierPos(duration,elapsed,1.0f,p->v[i],p->v144[i],p->v[i+1],p->v140[i+1],pos,dir,0);
         if (pos) *pos=HermitePoint(&m,*pos);
         if (!dir) return;
         row0=m.a;

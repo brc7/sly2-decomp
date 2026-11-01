@@ -64,8 +64,8 @@ int func_0020F948(void *, SO *);
 void func_0020FAA0(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
 int func_0014C6A0(SO *, qword, qword, int, LSG *);      // line test against an object
 void func_001F38A8(SO *);
-qword func_0011F288(int, qword *);                      // min of points
-qword func_0011F2B8(int, qword *);                      // max of points
+qword VecMinArray(int, qword *);                      // min of points
+qword VecMaxArray(int, qword *);                      // max of points
 void func_001A9B28(SW *, SO *, SO *, int, BSP *, XP **);
 int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
 void func_001A8B50(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
@@ -128,8 +128,8 @@ static inline void ProbeGround(CONTEXT *p)
     GEOM *pgeom = &psoSelf->geomWorld;
     int cbspMax = 0;
     func_001F38A8(psoSelf);
-    qword posMin = func_0011F288(pgeom->cpos, pgeom->apos);
-    qword posMax = func_0011F2B8(pgeom->cpos, pgeom->apos);
+    qword posMin = VecMinArray(pgeom->cpos, pgeom->apos);
+    qword posMax = VecMaxArray(pgeom->cpos, pgeom->apos);
     func_0020FAA0(&D_003DD490, posMin, posMax, func_0020F948, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++)
         if (cbspMax <= apso[i]->cbsp)

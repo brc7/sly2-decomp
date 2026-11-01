@@ -4,7 +4,7 @@ extern char D_003DD490[];
 void *func_0015E938(void *g, int k, int oid, void *p);
 void func_001F1448(void *o2, void *o, int k, int n, void **ppo);
 int func_00152628(int k);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_00152810(struct S *p)
 {
     int i, j;
@@ -25,7 +25,7 @@ void func_00152810(struct S *p)
         g = p->g238;
         for (j = 0; j < 2; j++) {
             g -= d;
-            pe->ag[j] = func_0011D448(g - h, g + h);
+            pe->ag[j] = GRandInRange__Fff(g - h, g + h);
         }
         pe->ag[2] = p->g234;
     }

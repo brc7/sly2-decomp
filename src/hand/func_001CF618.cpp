@@ -5,7 +5,7 @@ struct G { char pad[0x60]; qword q60; };
 extern G D_002DDF40;
 extern qword D_002A2DC0;
 extern "C" {
-M func_0011B830(qword a, qword b);
+M BuildOrthonormalMatrixZ(qword a, qword b);
 int func_001CF338(S *p, qword q, M m);
 void func_001CF618(S *p);
 }
@@ -21,6 +21,6 @@ void func_001CF618(S *p)
     } else {
         v = D_002A2DC0;
     }
-    m = func_0011B830(p->q90, v);
+    m = BuildOrthonormalMatrixZ(p->q90, v);
     func_001CF338(p, p->q70, m);
 }

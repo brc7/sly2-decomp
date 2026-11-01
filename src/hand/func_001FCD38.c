@@ -10,7 +10,7 @@ extern char D_002CA510[];
 extern const struct V2 D_002A83B8;
 extern const struct V2 D_002A83C0;
 void func_0011CCA8(void *, int, int, int);
-void func_0011A1F8(void *, int);
+void InitDl__FP2DLi(void *, int);
 void func_0011D8D8(float, float, float, void *, float);
 static inline void InitT(struct T *pt, float a, float c)
 {
@@ -31,7 +31,7 @@ struct P *func_001FCD38(struct P *p)
     q = p->a208;
     for (n = 7; n != -1; n--) *q++ = 0;
     p->n228 = 0;
-    func_0011A1F8(p->x4C, 0x38);
+    InitDl__FP2DLi(p->x4C, 0x38);
     p->n68 = 3;
     p->n10 = 0;
     p->n104 = 0;

@@ -27,15 +27,15 @@ int func_001D4E08(ATTACH *);
 void func_001F0660(void *,int);
 void func_001D2150(P *);
 void func_001D2610(P *);
-float func_0011CF60(float);
-qword func_0011E1A0(float,float,float);
+float RadNormalize__Ff(float);
+qword SetVectorCylind(float,float,float);
 qword func_0022FCC8(FRAME *,FRAME *,qword);
 float func_0011D948(const LIMITS *,float);
 void func_0012D108(void *,qword);
 float func_0011D2D0(float,float,float,void *,float *);
 qword func_001A62E8(P *);
 int func_0011D4D0(float,float,float);
-float func_0011D018(float,float,float,void *,float *);
+float GSmooth__FfffP3SMPPf(float,float,float,void *,float *);
 void func_001FB1F8(SOUND *,float);
 void func_001FB2C0(SOUND *,float);
 void func_001FB060(SOUND *);
@@ -82,11 +82,11 @@ extern "C" void func_001D19A8(P *p)
     case 2:func_001D2150(p);break;
     case 1:func_001D2610(p);break;
     }
-    register float angle __asm__("$f0")=func_0011CF60(p->goalHeading-p->heading);
+    register float angle __asm__("$f0")=RadNormalize__Ff(p->goalHeading-p->heading);
     p->steering=Clamp(Evaluate(D_002C2040,angle),D_002C2050.low,D_002C2050.high);
-    angle=Abs(func_0011CF60(p->goalHeading-p->heading));
+    angle=Abs(RadNormalize__Ff(p->goalHeading-p->heading));
     p->acceleration=Clamp(Evaluate(D_002C2060,angle),D_002C2070.low,D_002C2070.high);
-    angle=func_0011CF60(p->goalHeading-p->heading);
+    angle=RadNormalize__Ff(p->goalHeading-p->heading);
     struct LOWER_PAGE {char before[0x2090];LIMITS limits;};
     typedef char lower_page_low_offset[((unsigned)&((LOWER_PAGE*)0)->limits.low==0x2090)?1:-1];
     typedef char lower_page_view_size[(sizeof(LOWER_PAGE)==0x2098)?1:-1];
@@ -113,7 +113,7 @@ extern "C" void func_001D19A8(P *p)
         LIMITS*limits=&p->sides[0].angleLimits;SIDE*side=p->sides;
         do {
             ++i;
-            qword direction=func_0011E1A0(p->wheelAngle,1.0f,0.0f);
+            qword direction=SetVectorCylind(p->wheelAngle,1.0f,0.0f);
             direction=func_0022FCC8(0,side->reference->parent,direction);
             float orientation=func_002458F0(Y(direction),X(direction));
             scalar.q=Pack(0.0f,0.0f,func_0011D948(limits,orientation));
@@ -195,7 +195,7 @@ extern "C" void func_001D19A8(P *p)
         }while(i<p->attachCount);
     }
     if(p->sound){
-        p->soundRate=func_0011D018(p->soundRate,p->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
+        p->soundRate=GSmooth__FfffP3SMPPf(p->soundRate,p->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
         float rate=Clamp(p->soundRate,0.2f,1.0f);
         func_001FB1F8(p->sound,rate);
         func_001FB2C0(p->sound,rate*0.2f);

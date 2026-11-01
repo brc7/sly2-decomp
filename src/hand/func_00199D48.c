@@ -56,7 +56,7 @@ extern char D_003DD490[];
 extern int func_00144068(LO *);
 extern int func_001999D0(P *,SHAPE *,qword,int,void *,U *);
 extern void func_001A7FC0(void *,int,CONTACT **);
-extern BSPNODE *func_00118FB0(BSPNODE *,BSPNODE *,qword);
+extern BSPNODE *PbspPointInBspQuick(BSPNODE *,BSPNODE *,qword);
 static inline qword Scalar(float f)
 {
     qword q;
@@ -134,7 +134,7 @@ CONTACT *func_00199D48(P *p,int *outSide,qword *outNormal)
                 scalar=(U){back};       /* the original keeps both scalars in one 16-byte stack temporary */
                 point.q=value;
                 scalar=(U){lift};
-                if (func_00118FB0(shape->bsp,(BSPNODE *)0x7FFFFFFF,value)) continue;
+                if (PbspPointInBspQuick(shape->bsp,(BSPNODE *)0x7FFFFFFF,value)) continue;
                 if (best && Opposite(contact,side)->position.f[2] < bestHeight) continue;
                 best=contact;
                 bestHeight=Opposite(best,side)->position.f[2];

@@ -31,7 +31,7 @@ void func_00166BD8(struct GIFS *pgifs, int a, int b, int c);
 void func_00166E90(struct GIFS *pgifs, int reg, ulong val);
 void func_0022FF40(struct M4 *pm, int n, void *p, void *q);
 qword func_0011C1A8(struct M4 *pm, qword v);
-void func_0011D9D8(void *pv);
+void Force__FPv(void *pv);
 void func_00166D38(struct GIFS *pgifs, float s, float t, float q);
 void func_00166C70(struct GIFS *pgifs, int rgba);
 void func_00166DA0(struct GIFS *pgifs, int x, int y, int z);
@@ -119,14 +119,14 @@ extern "C" void func_001477D8(struct P *p)
                 VU_VECTOR4 pos = am[i] * VU_VECTOR4(D_002BD3B0[j]);
                 VU_VECTOR4 posClip = D_002BD410 * pos;
                 u.q = posClip.q;
-                func_0011D9D8(&u);
+                Force__FPv(&u);
                 rw = 1.0f / u.f[3];
                 u.q = VU_FLOAT(rw) * VU_VECTOR(u);
-                func_0011D9D8(&rw);
-                func_0011D9D8(&u);
+                Force__FPv(&rw);
+                Force__FPv(&u);
                 u.f[0] = Screen(u.f[0], 512.0f);
                 u.f[1] = Screen(u.f[1], 224.0f);
-                func_0011D9D8(&u);
+                Force__FPv(&u);
                 SetStq(pgifs, rw * (D_002BD3F0[j * 2] + D_002BD398[i * 2]),
                        rw * (D_002BD3F0[j * 2 + 1] + D_002BD39C[i * 2]), rw);
                 SetRgba(pgifs, 0x80808080);

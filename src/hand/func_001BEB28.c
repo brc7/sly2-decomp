@@ -24,7 +24,7 @@ typedef struct P {
 extern R D_003E1A78[];
 extern char D_003DD4BC[];
 int func_001A61A0(O *o);
-void func_0011A220(void *pdl, void *p);
+void AppendDlEntry__FP2DLPv(void *pdl, void *p);
 
 R *func_001BEB28(P *p)
 {
@@ -49,7 +49,7 @@ R *func_001BEB28(P *p)
                 ((void (*)(void *))o->vt[8].pfn)((char *)o + o->vt[8].d);
                 if (!func_001A61A0(o)) {
                     VO *q;
-                    func_0011A220(D_003DD4BC, o->x14);
+                    AppendDlEntry__FP2DLPv(D_003DD4BC, o->x14);
                     q = *o->x14;
                     ((void (*)(void *))q->vt[23].pfn)((char *)q + q->vt[23].d);
                 }

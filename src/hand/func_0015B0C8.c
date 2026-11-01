@@ -4,17 +4,17 @@ struct P { char pad[0xC]; float gC; char pad1[0x38 - 0x10]; float g38; float g3C
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, struct P *plm, qword *pv, int n, qword *pvOut);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 
 void func_0015B0C8(struct P *p, void *pemitvx, int unused, int n, qword *ppos, qword *pv, qword *pvel, float *ptBirth, float *ptDeath)
 {
     float t, g;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, p->g38, p->gC, p, pv, n, pvel);
     t = D_002DDED0.t;
-    t = t - func_0011D448(p->g50, p->g54);
+    t = t - GRandInRange__Fff(p->g50, p->g54);
     *ptBirth = t;
     *ptDeath = t + p->g3C;
-    g = func_0011D448(p->g48, p->g4C);
+    g = GRandInRange__Fff(p->g48, p->g4C);
     if (g != 0.0f) {
         U u;
         qword r;

@@ -14,7 +14,7 @@ struct MATRIX3 { VECTOR mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
 extern qword D_002A2DC0;
 extern "C" {
-MATRIX3 func_0011B830(qword a, qword b);
+MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b);
 CRef func_00123208(void *pbasic, CRef *aref);
 }
 static inline qword VecSub(qword *pb, qword *pa)
@@ -35,7 +35,7 @@ CRef func_00123208(void *pbasic, CRef *aref)
     v.q = VecSub((qword *)aref[1].u.pv, (qword *)aref[0].u.pv);
     CRef ref(0x1B);
     MATRIX3 *pmat = (MATRIX3 *)ref.u.pv;
-    *pmat = func_0011B830(v.q, *pup);
+    *pmat = BuildOrthonormalMatrixZ(v.q, *pup);
     pmat->mat[2].w = 0.0f;
     pmat->mat[1].w = 0.0f;
     pmat->mat[0].w = 0.0f;

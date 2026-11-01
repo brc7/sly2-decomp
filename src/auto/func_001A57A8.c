@@ -30,5 +30,5 @@ void func_001A57A8(s32 arg0) {
     if (*fr.m4 == arg0) {
         *fr.m4 = M2C_FIELD(arg0, s32 *, 0x24);
     }
-    func_0011A2E8(fr.m0, arg0);
+    RemoveDlEntry__FP2DLPv(fr.m0, arg0);
 }

@@ -21,7 +21,7 @@ void func_0014E768(struct CM *p, struct O *po, void *pv);
 void func_0014F5A0(struct CM *p, float g);
 float func_0011D1C0(float g, float h, float i, float dt, float *pa, float *pb);
 void func_0014DB70(struct CM *p);
-float func_0011D018(float g, float gTarget, float dt, void *pv, float *pr);
+float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 void func_0014D478(struct CM *p)
 {
     struct O *po;
@@ -66,5 +66,5 @@ void func_0014D478(struct CM *p)
     }
     p->x300 = 0;
     if (D_003DD490.x3E38)
-        p->g620 = func_0011D018(p->g620, p->g624, D_002DDEE0, D_002BD810, 0);
+        p->g620 = GSmooth__FfffP3SMPPf(p->g620, p->g624, D_002DDEE0, D_002BD810, 0);
 }

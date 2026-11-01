@@ -16,7 +16,7 @@ void func_0012D108(void *p, qword q);
 qword func_0011F088(qword a, qword b, float g, float *p, int n);
 void func_00190E18(P *p);
 }
-M3 func_0011BA08(qword a, qword b);
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword a, qword b);
 M3 func_0011B500(qword a, float g);
 qword func_0011BFF0(M3 *pm);
 extern qword D_002A2DA0;
@@ -44,7 +44,7 @@ void func_00190E18(P *p)
     M3 m;
     qword d = Sub(func_001A62E8(p->x18C4), p->x19CC->x70);
     qword q = func_0022FCC8(0, p->x19C0->xA0, d);
-    m = Mul(func_0011BA08(D_002A2DA0, q), func_0011B500(D_002A2DA0, D_002BF594));
+    m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0, q), func_0011B500(D_002A2DA0, D_002BF594));
     func_0012D108(p->x1A00, func_0011BFF0(&m));
     p->x1960 = func_0011F088(p->x1960, D_002A2DD0, D_002DDED4, D_002BF598, 0);
 }

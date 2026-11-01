@@ -34,12 +34,12 @@ void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
 qword func_001A62E8(void *p);
 qword func_001A6F00(int n, P *p, qword q);
-void func_0011E958(qword v, float *pa, float *pb);
-float func_0011D978(LM *plm, float g);
-M3 func_0011B720(float a, float b);
+void CalculateVectorPanTilt(qword v, float *pa, float *pb);
+float RadLimitLm(LM *plm, float g);
+M3 LoadRotateMatrixPanTilt(float a, float b);
 M3 func_0011B500(qword v, float g);
 M3 func_0022FD38(void *pvFrom, void *pvTo, M3 *pm);
-M3 func_0011B340(const M3 *pm);
+M3 InvertMatrix3Cofactor(const M3 *pm);
 qword func_0011BFF0(M3 *pm);
 void func_0012D108(Q *pq, qword q);
 void func_00142AF8(P *p);
@@ -140,9 +140,9 @@ void func_00142AF8(P *p)
             return;
         }
         func_0012CFE0(p->pq);
-        func_0011E958(func_001A6F00(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
-        pan = func_0011D978(&p->lmPan, pan);
-        tilt = func_0011D978(&p->lmTilt, tilt);
+        CalculateVectorPanTilt(func_001A6F00(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
+        pan = RadLimitLm(&p->lmPan, pan);
+        tilt = RadLimitLm(&p->lmTilt, tilt);
         {
             float t;
             if (p->lmPan.gMax == p->lmPan.gMin)
@@ -154,9 +154,9 @@ void func_00142AF8(P *p)
         }
     }
     M3 m0, m1;
-    m0 = func_0011B720(pan, tilt) * func_0011B500(D_002A2DA0, g);
+    m0 = LoadRotateMatrixPanTilt(pan, tilt) * func_0011B500(D_002A2DA0, g);
     m1 = func_0022FD38(0, p->p60, &p->pq->p8->m40);
-    m1 = m1 * func_0011B340(&p->m1150);
+    m1 = m1 * InvertMatrix3Cofactor(&p->m1150);
     M3 m2;
     if (X(m0, 0) + X(m1, 0) < 0.0f && X(m0, 1) * X(m1, 1) < 0.0f)
         m2 = p->m1150;

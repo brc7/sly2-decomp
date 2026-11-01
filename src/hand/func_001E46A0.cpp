@@ -16,7 +16,7 @@ void func_001E6F10(PATH*,qword*,qword*,float);
 qword func_001C4768(OUTPUT*,qword);
 float func_002458F0(float,float);
 float func_001E6648(PATH*),func_001E6630(PATH*);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 ACTOR *func_001E1DB8(P*,int);
 void func_001E4D40(P*,ACTOR*,qword*,float*);
 void func_00204660(ACTOR*,float);
@@ -112,7 +112,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
    else {backward=p->previousCurve-actor->curveTime;forward=func_001E6648(actor->curve)+actor->curveTime-p->previousCurve;}
    if(forward<backward)reverse=1;
   }else if(p->previousCurve<actor->curveTime)reverse=1;
-  if(reverse){out->heading=func_0011CF60(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
+  if(reverse){out->heading=RadNormalize__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
   out->speed=1.0f;break;
  }
  case 0x1D:case 0x1E:case 0x1F:case 0x20:case 0x21:case 0x22:
@@ -142,7 +142,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
     else {backward=p->previousMotion-actor->motionTime;forward=func_001E6630(motion)+actor->motionTime-p->previousMotion;}
     if(forward<backward)reverse=1;
    }else if(p->previousMotion<actor->motionTime)reverse=1;
-   if(reverse)out->heading=func_0011CF60(out->heading+3.1415927f);
+   if(reverse)out->heading=RadNormalize__Ff(out->heading+3.1415927f);
   }else{
    func_001E4D40(p,target,&work.from.q,0);
    work.first=work.from.q;

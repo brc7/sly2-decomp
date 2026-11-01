@@ -3,12 +3,12 @@
 //         coordinate += velocity * dt) which is pushed into the position channel.
 // Step 2: if the object's holder has an animation, find the position/orientation motions of this object in the animation's action
 //         (entries keyed by id + channel via virtual slot 51), sample them (virtual slot 3) and apply them in the frame that
-//         func_0011B830 builds from (camera position - channel position, z = 0).
+//         BuildOrthonormalMatrixZ builds from (camera position - channel position, z = 0).
 // Matching notes:
 //  * "rV" on the dt word keeps the load as an asm memory operand (qmtc2 source gets its own reload register, which decides
 //    v0/v1 and the lqc2/qmtc2 order of the first VU block).
 //  * The locals sit in the innermost block so that the VU_FLOAT temporaries share the first stack slot (sp+0) and the
-//    positions/frame follow it; func_0011B830/func_0011B628 return M3 by value (hidden pointer) and are assigned to locals.
+//    positions/frame follow it; BuildOrthonormalMatrixZ/LoadRotateMatrixEuler return M3 by value (hidden pointer) and are assigned to locals.
 //  * operator* is the usual inline matrix product with a named return value plus a dead local copy `t`; each row is stored to
 //    `t` and `mat` right after its asm (the order of those stores decides the vf numbering of the loaded rows).
 //  * `spin` is a second variable for p->orientation so that `current` and the later reload get different registers.
@@ -40,8 +40,8 @@ extern float D_002C0D4C;
 extern qword D_002A2DC0;
 void func_001F3980(P *);
 qword *func_00256D18(qword *, qword);
-M3 func_0011B830(qword, qword);
-M3 func_0011B628(qword);
+M3 BuildOrthonormalMatrixZ(qword, qword);
+M3 LoadRotateMatrixEuler(qword);
 }
 
 struct VU_FLOAT {
@@ -145,7 +145,7 @@ extern "C" void func_001C5148(P *p)
             M3 frame, rot;
             dir.q = Difference(D_002DDF40.position, p->position->position);
             dir.words[2] = 0;
-            frame = func_0011B830(dir.q, D_002A2DC0);
+            frame = BuildOrthonormalMatrixZ(dir.q, D_002A2DC0);
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
                 channel = p->position;
@@ -157,7 +157,7 @@ extern "C" void func_001C5148(P *p)
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
-                rot = func_0011B628(angles.q);
+                rot = LoadRotateMatrixEuler(angles.q);
                 CHANNEL *current = p->orientation;
                 current->matrix = frame * rot;
                 current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;

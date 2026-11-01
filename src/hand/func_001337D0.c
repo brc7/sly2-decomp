@@ -18,8 +18,8 @@ struct L *func_00133CB8(struct P *, struct X *, struct X *);
 void func_001A7E10(struct P *, void *);
 void func_001F5078(struct LO *);
 void func_0011CD98(void *, void *);
-void func_0011A2E8(void *, struct X *);
-int func_0011A380(void *, struct X *);
+void RemoveDlEntry__FP2DLPv(void *, struct X *);
+int FFindDlEntry__FP2DLPv(void *, struct X *);
 void *func_002332B8(void *, void *, int);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
 void func_001337D0(struct P *p, struct X *px)
@@ -47,13 +47,13 @@ void func_001337D0(struct P *p, struct X *px)
     __asm__ __volatile__("");
     __asm__ __volatile__("");
     func_001A7E10(p, px->pv6C);
-    func_0011A2E8(p->a3D10, px);
-    if (func_0011A380(p->a3D1C, px))
-        func_0011A2E8(p->a3D1C, px);
+    RemoveDlEntry__FP2DLPv(p->a3D10, px);
+    if (FFindDlEntry__FP2DLPv(p->a3D1C, px))
+        RemoveDlEntry__FP2DLPv(p->a3D1C, px);
     if ((px->grf & 1) == 1)
-        func_0011A2E8(p->a3D28, px);
+        RemoveDlEntry__FP2DLPv(p->a3D28, px);
     if (px->grf & 2)
-        func_0011A2E8(p->a3D34, px);
+        RemoveDlEntry__FP2DLPv(p->a3D34, px);
     {
     struct E **paae;
     register unsigned int k3 __asm__("$21");

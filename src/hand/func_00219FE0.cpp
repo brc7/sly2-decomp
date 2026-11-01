@@ -71,7 +71,7 @@ struct KEY {
 struct ANIM { ushort count, pad2; KEY *keys; float duration; void *owner; GROUP *group; int id; };
 
 extern "C" {
-void func_0011A058(int *);
+void ClearSle(int *);
 void func_00219190(ANIM *, int, int);
 void func_002190F8(ANIM *, int, int);
 void func_00219348(ANIM *, int, int);
@@ -175,7 +175,7 @@ extern "C" void func_00219FE0(float duration, ANIM *animation, int index, M23 *p
                     item->matrix = matrix;
                     item->additive = outputAdditive.Raw();
                     item->multiply = outputMultiply.Raw();
-                    func_0011A058(&item->flags);
+                    ClearSle(&item->flags);
                 }
             }
         }

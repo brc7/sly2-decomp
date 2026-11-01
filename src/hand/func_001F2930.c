@@ -7,9 +7,9 @@ struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE0 - 0x10]; int nE0; stru
 struct Q2 { char pad[0xEC]; struct Q *pq; };
 struct G;
 extern struct G D_003DD490;
-int func_0011A380(void *, void *);
-void func_0011A2E8(void *, void *);
-int func_0011A3B0(void *);
+int FFindDlEntry__FP2DLPv(void *, void *);
+void RemoveDlEntry__FP2DLPv(void *, void *);
+int FIsDlEmpty__FP2DL(void *);
 void func_001A00D0(struct G *, int, struct E *);
 void func_001F4E28(struct P *);
 void func_001337D0(struct G *, struct Q *);
@@ -18,11 +18,11 @@ void func_001F2930(struct P *p, struct E *pe)
 {
     int i;
     if (!p->pq) return;
-    if (!func_0011A380(p->pq->dl, pe)) return;
-    func_0011A2E8(p->pq->dl, pe);
+    if (!FFindDlEntry__FP2DLPv(p->pq->dl, pe)) return;
+    RemoveDlEntry__FP2DLPv(p->pq->dl, pe);
     if (pe->fl & (1L << 51)) func_001A00D0(&D_003DD490, 0, pe);
     func_001F4E28(p);
-    if (func_0011A3B0(p->pq->dl)) {
+    if (FIsDlEmpty__FP2DL(p->pq->dl)) {
         struct Q *pq = p->pq;
         ((struct Q2 *)pq->p60)->pq = 0;
         p->pq = 0;
@@ -30,7 +30,7 @@ void func_001F2930(struct P *p, struct E *pe)
     } else if (p->pq->p60 != p) {
         i = p->nE0;
         while (--i >= 0) {
-            if (func_0011A380(p->pq->dl, (struct E *)(i * 0xB0 + (int)p->aE4))) break;
+            if (FFindDlEntry__FP2DLPv(p->pq->dl, (struct E *)(i * 0xB0 + (int)p->aE4))) break;
         }
         if (i < 0) p->pq = 0;
     }

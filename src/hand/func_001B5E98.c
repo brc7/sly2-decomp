@@ -12,8 +12,8 @@ qword func_001A62E8(void *p);
 int func_00184380(void *a, struct O *po);
 float func_002458F0(float y, float x);
 float func_00204740(struct P *p);
-float func_0011CF60(float g);
-qword func_0011E1A0(float a, float b, float c);
+float RadNormalize__Ff(float g);
+qword SetVectorCylind(float a, float b, float c);
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return GetX(t); }
 static __inline__ float GetY2(qword t) { __asm__("prot3w %0,%0" : "+r"(t)); return GetX(t); }
 static inline qword ToGpr(qword v) { qword r; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
@@ -46,7 +46,7 @@ void func_001B5E98(struct P *p)
         if (500.0f < GetZ2(ToGpr(d)))
             continue;
         { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = func_002458F0(GetX(t), x); }
-        if (D_002C0988 < __builtin_fabsf(func_0011CF60(g - func_00204740(p))))
+        if (D_002C0988 < __builtin_fabsf(RadNormalize__Ff(g - func_00204740(p))))
             continue;
         poBest = po;
         gMax = dist;
@@ -55,7 +55,7 @@ void func_001B5E98(struct P *p)
     if (!poBest) {
         qword a, b, r;
         a = func_001A62E8(p);
-        b = func_0011E1A0(p->g1A8, p->g1410, 0.0f);
+        b = SetVectorCylind(p->g1A8, p->g1410, 0.0f);
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
         p->v1420 = r;
     }

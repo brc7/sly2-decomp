@@ -9,7 +9,7 @@ struct P{struct O*self;char pad4[0x30-4];struct O*target;char pad34[8];int mode;
 extern F D_002BFACC,D_002BFAD0,D_002BFAD4,D_002BFB00,D_002BFB04;
 extern U D_002BFAE0,D_002BFAF0,D_002A2DA0,D_002A2DC0;
 int func_00132B10(struct O*,int);
-qword func_0011E9F8(qword,float);
+qword LimitVectorLength(qword,float);
 qword func_001A62E8(struct O*);
 struct M3*func_001A6318(struct O*);
 qword func_001A6FC0(struct O*,struct O*,qword);
@@ -60,7 +60,7 @@ void func_001A16C8(struct P*p){
             qword v=Scale(p->velocity.q,k);
             scratch.q=k;
             output.q=v;
-            output.q=func_0011E9F8(v,D_002BFAD4.value);
+            output.q=LimitVectorLength(v,D_002BFAD4.value);
             output.f[2]=Max(output.f[2],D_002BFAD0.value);
         }
         break;

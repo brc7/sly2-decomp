@@ -31,7 +31,7 @@ void func_0022DD00(LO *, P *);
 qword func_0022CA18(P *, P *);
 qword func_0011BFF0(qword *);
 M4 func_0022C8C0(P *, qword);
-void func_00117120(float, float, float, qword, qword, qword, qword, qword *, int, int);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
 
 void func_00230CF0(A *a, int flag)
 {
@@ -71,7 +71,7 @@ void func_00230CF0(A *a, int flag)
             v = func_0022CA18(p, p);
             break;
         case 1: {
-            func_00117120(p->x84 - p->x80, *p->x88 - p->x80, *p->x8C, p->xC0[0], p->xC0[1], p->xC0[2], p->xC0[3], (qword *)&out, 0, 0);
+            EvaluateBezierPos(p->x84 - p->x80, *p->x88 - p->x80, *p->x8C, p->xC0[0], p->xC0[1], p->xC0[2], p->xC0[3], (qword *)&out, 0, 0);
             v = *(qword *)&out;
             break;
         }

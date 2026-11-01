@@ -2,8 +2,8 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword q[4]; } M4;
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct O { int x0, x4, x8; struct VTE *vt; };
-void func_0011C318(M4 *out, void *in);
-void func_0011C168(M4 *out, void *a, M4 *b);
+void InvertMatrix4Rigid(M4 *out, void *in);
+void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
 M4 func_001A71B0(struct O *o1, struct O *o2, M4 *m)
 {
     M4 t;
@@ -12,7 +12,7 @@ M4 func_001A71B0(struct O *o1, struct O *o2, M4 *m)
     struct VTE *e;
     if (o1) {
         e = &o1->vt[0xF8 / 8];
-        func_0011C168(&r, e->pfn((char *)o1 + e->d), m);
+        __ml__FRC7MATRIX4T0(&r, e->pfn((char *)o1 + e->d), m);
         t = r;
     } else {
         t = *m;
@@ -21,8 +21,8 @@ M4 func_001A71B0(struct O *o1, struct O *o2, M4 *m)
         M4 *pinv = &inv;
         M4 *pr = &r;
         e = &o2->vt[0xF8 / 8];
-        func_0011C318(pinv, e->pfn((char *)o2 + e->d));
-        func_0011C168(pr, pinv, &t);
+        InvertMatrix4Rigid(pinv, e->pfn((char *)o2 + e->d));
+        __ml__FRC7MATRIX4T0(pr, pinv, &t);
         t = r;
     }
     return t;

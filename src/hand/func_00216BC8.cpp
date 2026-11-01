@@ -28,7 +28,7 @@ extern "C" void func_00215CA8(RT *,char *);
 extern "C" int func_00215D40(RT *);
 extern "C" void func_00215D00(RT *,RGBA *);
 extern "C" float func_00215ED8(RT *);
-extern "C" float func_0011D898(float,float);
+extern "C" float GModPositive__Fff(float,float);
 extern "C" void func_001DA5C8(SCROLL *,int);
 extern "C" void func_002166B0(RT *,T *,DATA *);
 static inline float Max(float a,float b){return a<b?b:a;}
@@ -88,7 +88,7 @@ extern "C" void func_00216BC8(S *p,T *t,DATA *data,int unused){
         }else{
             elapsed-=D_002C40B8;
             period=textWidth*0.01f;
-            position=func_0011D898(elapsed,period);
+            position=GModPositive__Fff(elapsed,period);
             if(D_003DA0C0.finish>=0.0f){
                 float finish=Max(D_003DA0C0.finish,(textWidth+Max(0.0f,textWidth-p->width*scale)+paddingWidth)*0.01f);
                 if(elapsed>=finish)func_001DA5C8(&D_003DA0C0,3);

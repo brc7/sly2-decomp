@@ -8,7 +8,7 @@ extern qword D_002A2DD0;
 void func_0012DA30(void *r, qword q);
 float func_001E6620(struct O *o);
 float func_001E6648(struct O *o);
-float func_0011D898(float g, float hi);
+float GModPositive__Fff(float g, float hi);
 void func_001E6F10(struct O *o, float g, U *pv, int n);
 qword func_001A6F00(int n, struct P *p, qword q);
 int func_0014C748(qword a, float g, qword b, qword c, int n, struct HIT *pv);
@@ -38,7 +38,7 @@ void func_00193C98(struct P *p, struct Q *q, void *r)
     lo = func_001E6620(o);
     hi = func_001E6648(o);
     if (o->xe4)
-        t = func_0011D898(p->x4e0 + g, hi);
+        t = GModPositive__Fff(p->x4e0 + g, hi);
     else
         t = GClamp(p->x4e0 + g, lo, hi);
     func_001E6F10(o, t, &v, 0);

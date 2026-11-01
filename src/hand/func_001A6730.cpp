@@ -67,8 +67,8 @@ int func_00259A88(ROOT*);
 RF func_0012AB78(FIELD*,P*);
 RR func_00127E90(ROOT*,P*);
 void*func_001AE238(REQUEST*,void*);
-void func_0011A058(int*);
-void func_0011A060(void*);
+void ClearSle(int*);
+void ClearSl(void*);
 void func_0011A070(void*,NODE*);
 void*func_0015E3C0(G*,int);
 void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
@@ -103,9 +103,9 @@ extern "C" void func_001A6730(P*p,const P*source){
         for(NODE*n=source->nodes;n&&n->owner==source;n=n->next){
             NODE*copy=CopyNode(sizeof(NODE),&request,n);
             copy->owner=p;
-            func_0011A058(&copy->chain);
-            func_0011A058(&copy->link);
-            func_0011A060(copy->list);
+            ClearSle(&copy->chain);
+            ClearSle(&copy->link);
+            ClearSl(copy->list);
             func_0011A070(copy->next->list,copy);
             void*list=func_0015E3C0(&D_003DD490,copy->key);
             func_0011A070(list,copy);

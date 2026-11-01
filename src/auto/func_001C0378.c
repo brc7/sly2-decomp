@@ -28,6 +28,6 @@ extern M2C_UNK D_003DD490;
 void func_001C0378(s32 arg0) {
     func_00231100(arg0);
     M2C_FIELD(arg0, s32 *, 0x110) = -1;
-    func_0011A1F8(arg0 + 0x118, 0x60);
+    InitDl__FP2DLi(arg0 + 0x118, 0x60);
     M2C_FIELD(arg0, s32 *, 0x124) = -1;
 }

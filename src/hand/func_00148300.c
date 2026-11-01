@@ -8,9 +8,9 @@ extern int D_003E0E70;
 extern struct G D_002DDF40;
 void *func_001C4840(void);
 qword func_001A62E8(void *p);
-int func_0011A380(void *p, int id);
-void func_0011A220(void *p, int id);
-void func_0011A2E8(void *p, int id);
+int FFindDlEntry__FP2DLPv(void *p, int id);
+void AppendDlEntry__FP2DLPv(void *p, int id);
+void RemoveDlEntry__FP2DLPv(void *p, int id);
 static __inline__ float GDistSq(qword a, qword b)
 {
     qword d, t;
@@ -64,12 +64,12 @@ void func_00148300(struct P *p, struct SO *pso)
         }
         break;
     }
-    if (fIn == func_0011A380(p->m2C, id)) return;
+    if (fIn == FFindDlEntry__FP2DLPv(p->m2C, id)) return;
     if (fIn) {
-        func_0011A220(p->m2C, id);
+        AppendDlEntry__FP2DLPv(p->m2C, id);
         pso->vt[23].pfn((char *)pso + pso->vt[23].d);
     } else {
         pso->vt[22].pfn((char *)pso + pso->vt[22].d);
-        func_0011A2E8(p->m2C, id);
+        RemoveDlEntry__FP2DLPv(p->m2C, id);
     }
 }

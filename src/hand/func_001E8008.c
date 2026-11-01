@@ -9,7 +9,7 @@ static inline float StoreEndpointAndUpperBits(float *endpoint,float upper,unsign
 struct P { char pad[0xE4]; int fE4; };
 extern int D_002C3650;
 float func_001E6648(struct P *);
-float func_0011D448(float, float);
+float GRandInRange__Fff(float, float);
 float func_001E66C8(struct P *, float);
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 static inline float GClamp(float x, float lo, float hi)
@@ -37,7 +37,7 @@ float func_001E8008(struct P *p, float a, float b)
     minimum=StoreEndpointAndUpperBits(&r[1],upper,0xBF800000u>>16);
     r[0] = lower;
     }
-    t = func_0011D448(minimum, 1.0f);
+    t = GRandInRange__Fff(minimum, 1.0f);
     switch (D_002C3650) {
     case 0:
         break;

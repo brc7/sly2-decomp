@@ -19,7 +19,7 @@ int func_00227C90(VOLUME*,qword);
 void func_001BA408(P*,int);
 int func_00131968(POOL*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
-M3*func_0011BA08(M3*,qword,qword);
+M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
 void*func_001AE478(void*);
 void func_001AE4A0(void*,int);
@@ -89,7 +89,7 @@ extern "C" void func_001BA128(P*p){
   qword position=func_001A62E8(p->target);
   qword local=func_0022FC48(0,node->space,position);
   qword direction=Sub(local,p->node->position);
-  M3 matrix;func_0011BA08(&matrix,p->axis,direction);
+  M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,p->axis,direction);
   MOTION*motion=p->motion;
   motion->angles=func_0011BFF0(&matrix);
   break;

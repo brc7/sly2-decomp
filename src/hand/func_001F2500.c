@@ -12,7 +12,7 @@ struct Node {
  int unused138;float scale;
  char pad140[8];ulong state;
 };
-struct Stats *func_0011CCC0(void *);
+struct Stats *PvAllocSlotheapClear(void *);
 qword func_001A62E8(struct Node *);
 static inline float Distance(qword a,qword b) {
  qword d,one;
@@ -43,7 +43,7 @@ void func_001F2500(struct Node *p) {
      register char*pool __asm__("$4");
      struct Stats *s;
      __asm__("lui %0,0x3e":"=r"(pool));
-     s=func_0011CCC0(pool+0x12D4);
+     s=PvAllocSlotheapClear(pool+0x12D4);
      top->stats=s;
      p->stats=s;
      s->origin=&top->reference->pos;

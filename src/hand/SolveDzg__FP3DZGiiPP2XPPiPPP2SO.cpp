@@ -7,8 +7,8 @@ struct XP; struct SO;
 extern "C" {
 int func_00158958(DZG *, DZ *);
 void func_00158728(DZG *, int, DZ *, int);
-void func_0011A2E8(DL *, void *);
-void func_0011A220(DL *, void *);
+void RemoveDlEntry__FP2DLPv(DL *, void *);
+void AppendDlEntry__FP2DLPv(DL *, void *);
 void func_0011A770(DZG *, DZ *);
 }
 static inline void InitDli(DLI *pdli, DL *pdl)
@@ -35,8 +35,8 @@ void SolveDzg(DZG *pdzg, int a, int b, XP **ppxp, int *pn, SO ***pppso)
         if (pdz->n0 == 1) {
             if (!pdz->f18)
                 func_00158728(pdzg, a, pdz, func_00158958(pdzg, pdz));
-            func_0011A2E8(&pdzg->dl30, pdz);
-            func_0011A220(&pdzg->dlC, pdz);
+            RemoveDlEntry__FP2DLPv(&pdzg->dl30, pdz);
+            AppendDlEntry__FP2DLPv(&pdzg->dlC, pdz);
             pdzg->c3C++;
         }
     }

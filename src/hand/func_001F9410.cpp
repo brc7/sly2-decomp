@@ -33,7 +33,7 @@ void func_00158E20(DZG *,float,float);
 void func_0011A6B8(DZG *);
 void func_001A7E60(GAME *,int,XP **);
 void func_001A7FC0(GAME *,int,XP **);
-float func_0011D448(float,float);
+float GRandInRange__Fff(float,float);
 void func_00158B20(DZG *,int);
 void func_001F9C48(P *);
 }
@@ -124,7 +124,7 @@ extern "C" void func_001F9410(GAME *game,int flags,int objectCount,P **objects,i
         for(;j<contactCount;j++){
             contact=contacts[j];
             row=&group.rows[j];
-            float factor=1.0f+contact->elasticity*func_0011D448(0.9f,1.1f);
+            float factor=1.0f+contact->elasticity*GRandInRange__Fff(0.9f,1.1f);
             row->target.value=Dot(contact->velocity.q,contact->normal.q)*factor;
             float magnitude=LengthSquared(contact->velocity.q);
             if(maximum<magnitude)maximum=magnitude;

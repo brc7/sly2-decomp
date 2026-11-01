@@ -11,7 +11,7 @@ void func_0022B490(struct G *p, int a, int b, int c, int d, int e);
 void *func_001C4840(struct G *pg);
 qword func_001A62E8(void *p);
 qword func_001A6F00(int a, struct S *p, qword q);
-int func_00118FB0(void *p, int n, qword q);
+int PbspPointInBspQuick(void *p, int n, qword q);
 void func_00228358(struct S *p, int k);
 void func_002283D0(struct S *p);
 void func_00228538(struct S *p)
@@ -33,7 +33,7 @@ void func_00228538(struct S *p)
         int f;
         if (!pj) return;
         u.q = func_001A6F00(0, p, func_001A62E8(pj));
-        f = func_00118FB0(p->xEC, 0x7FFFFFFF, u.q) != 0;
+        f = PbspPointInBspQuick(p->xEC, 0x7FFFFFFF, u.q) != 0;
         switch (p->k) {
         case 3:
             if (f) func_002283D0(p);

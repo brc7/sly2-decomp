@@ -38,7 +38,7 @@ struct SPN {
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
-extern "C" float func_0011E4B0(qword a, qword b, void *pvec);
+extern "C" float RadBetweenVectors(qword a, qword b, void *pvec);
 extern "C" CRef func_00122CE0(void *pbasic, CRef *aref);
 CRef func_00122CE0(void *pbasic, CRef *aref)
 {
@@ -47,6 +47,6 @@ CRef func_00122CE0(void *pbasic, CRef *aref)
     sp->SetNext(func_00256B48());
     CRef *pref = &sp->pnext.p->ref;
     pref->SetTag(0x1A);
-    sp->ref = func_0011E4B0(*(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, pref->u.pv);
+    sp->ref = RadBetweenVectors(*(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, pref->u.pv);
     return CRef(sp.p);
 }

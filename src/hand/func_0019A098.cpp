@@ -17,7 +17,7 @@ extern float D_002A656C;
 MARK*func_001AE478(MARK*);
 void func_001AE4A0(MARK*,int);
 void*func_001AE318(REQUEST*);
-void func_0011AD30(int,float*,float*,float*,float);
+void SolveInequalities(int,float*,float*,float*,float);
 }
 struct MARK{MARK(){func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
@@ -102,7 +102,7 @@ extern "C" int func_0019A098(P*p,float previous,float*stamp){
  }
  cursor=rhs;
  for(group=p->collision->groups;group;group=group->next){c=group->first;if(!c)continue;qword downvalue=down.q;do{StoreDot(cursor,Normal(p,c,&work),downvalue);cursor++;}while((c=c->next)!=0);}
- func_0011AD30(count,matrix,rhs,weights,D_002A656C);
+ SolveInequalities(count,matrix,rhs,weights,D_002A656C);
  qword sum=down.q;
  cursor=weights;
  for(group=p->collision->groups;group;group=group->next){c=group->first;if(!c)continue;do{qword normal=Normal(p,c,&work);float weight=*cursor;c=c->next;cursor++;sum=AddScaled(sum,normal,weight,&work);}while(c);}

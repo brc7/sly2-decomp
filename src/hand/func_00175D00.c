@@ -19,11 +19,11 @@ union V { qword q; };
 int func_00132B10(struct T *t, int n);
 qword func_001A62E8(void *p);
 float func_00204740(struct A *a);
-void func_0011EFB0(qword v, float *a, float *b, float *c);
+void GetVectorSphere(qword v, float *a, float *b, float *c);
 int func_0011D910(void *p, float f);
-float func_0011CF60(float f);
+float RadNormalize__Ff(float f);
 qword *func_001A6318(struct A *a);
-void func_0011E958(qword v, int n, float *pf);
+void CalculateVectorPanTilt(qword v, int n, float *pf);
 void func_001AE478(struct X *x);
 void func_001AE4A0(struct X *x, int n);
 int func_0020FA10(void);
@@ -68,15 +68,15 @@ int func_00175D00(struct S *p) {
     pb = func_001A62E8(p->p30);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
     g = func_00204740(p->p10);
-    func_0011EFB0(d, &f[0], &f[1], &f[2]);
+    GetVectorSphere(d, &f[0], &f[1], &f[2]);
     if (!func_0011D910(p->p10->aF48, f[2])) return 0;
     {
-        float h = func_0011CF60(f[0] - g);
+        float h = RadNormalize__Ff(f[0] - g);
         if (!func_0011D910(p->p10->aF50, h)) return 0;
     }
-    func_0011E958(*func_001A6318(p->p10), 0, &f[3]);
+    CalculateVectorPanTilt(*func_001A6318(p->p10), 0, &f[3]);
     {
-        float h = func_0011CF60(f[1] - f[3]);
+        float h = RadNormalize__Ff(f[1] - f[3]);
         if (!func_0011D910(p->p10->aF58, h)) return 0;
     }
     if (!k) {

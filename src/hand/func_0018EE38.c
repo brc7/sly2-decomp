@@ -9,7 +9,7 @@ extern int func_0011D910(void *p, float g);
 extern struct T *func_001EEEE0(void *p, int n);
 extern void func_0018C250(struct O *p, int n, int m);
 extern float func_002458F0(float y, float x);
-extern float func_0011CF60(float g);
+extern float RadNormalize__Ff(float g);
 extern int func_0018ED98(struct O *p);
 extern float D_002BF4AC;
 extern char D_002BF4B0[];
@@ -45,7 +45,7 @@ int func_0018EE38(struct O *p)
     if (p->n18D0 == 5) {
         float *pa = p->pvt->a[31].pfn((char *)p + p->pvt->a[31].d);
         float *pb = p->pvt->a[31].pfn((char *)p + p->pvt->a[31].d);
-        float d = func_0011CF60(p->p150->g18 - func_002458F0(pa[1], pb[0]));
+        float d = RadNormalize__Ff(p->p150->g18 - func_002458F0(pa[1], pb[0]));
         float ad = __builtin_fabsf(d);
         if (ad < 0.7853982f)
             n = 0xE;

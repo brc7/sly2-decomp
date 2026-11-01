@@ -797,7 +797,7 @@ static inline qword QwCross(qword a, qword b)
     return qw;
 }
 qword func_0022D348(XF *pxfFrom, XF *pxfTo, qword qwPos);
-float func_0011E4B0(qword qwVec0, qword qwVec1, qword *pqwNormal);
+float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
 extern qword D_002A2DA0;
 static inline qword QwAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
@@ -904,7 +904,7 @@ void UpdateChainLink(SO *pso, CHAINLINK *plink)
                 qword qwVelTip = plinkCur->velTip;
                 qword qwD = QwSub(qwTip, posBase);
                 qword qwVelRel = QwSub(qwVelTip, velBase);
-                float rad = func_0011E4B0(qwD, qwDPrev, (qword *)&vecDir);
+                float rad = RadBetweenVectors(qwD, qwDPrev, (qword *)&vecDir);
                 if (pchain->radBendMax < rad)
                 {
                     mat = LoadRotateMatrixRad(rad - pchain->radBendMax, *(qword *)&vecDir);

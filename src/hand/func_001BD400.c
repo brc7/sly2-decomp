@@ -6,7 +6,7 @@ struct O { char pad[0xA4]; int xA4; };
 struct X { int x0, x4, x8; VT *vt; char pad0[0x50 - 0x10]; struct O *po; char pad[0xE8 - 0x54]; int c; char pad2[0xF4 - 0xEC]; qword *apos;
            char pad3[0x1E8 - 0xF8]; int k; qword *aplane; };
 extern qword D_002A2DC0;
-void func_00119390(qword *pplane, qword n, qword pos);
+void InitPlaneFromNormalPos(qword *pplane, qword n, qword pos);
 static inline qword MulPt(M4 *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0]), "j"(v), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3])); return r; }
 static inline M4 *GetMat(struct X *p) { return p->vt[31].pfn((struct X *)((char *)p + p->vt[31].d)); }
 static inline qword Normalize(qword n)
@@ -33,7 +33,7 @@ void func_001BD400(struct X *p)
             do {
                 qword v0 = v;
                 v = MulPt(&m, p->apos[i]);
-                func_00119390(&p->aplane[i - 1], Normalize(Cross(Sub(v, v0), D_002A2DC0)), v0);
+                InitPlaneFromNormalPos(&p->aplane[i - 1], Normalize(Cross(Sub(v, v0), D_002A2DC0)), v0);
             } while (++i < p->c);
         }
         p->k = k;

@@ -16,7 +16,7 @@ extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void func_002550F8(void *pv);
 NODE *func_00256B48();
-int func_0011D3F8(int nLo, int nHi);
+int NRandInRange__Fii(int nLo, int nHi);
 }
 struct SPM {
     NODE *p;
@@ -60,7 +60,7 @@ CRef func_00120FB0(void *pbasic, CRef *aref)
         CRef *prefFirst = apref[0];
         int i;
         for (i = 0; i < c; i++) {
-            int j = func_0011D3F8(0, c - 1);
+            int j = NRandInRange__Fii(0, c - 1);
             CRef *pref = apref[j];
             apref[j] = apref[i];
             apref[i] = pref;

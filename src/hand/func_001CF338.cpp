@@ -11,7 +11,7 @@ extern struct LIMIT { float lo,hi; } D_002BBB60;
 extern "C" {
 int func_0014F850(G*,qword,qword);
 int func_0014F898(G*,qword,float,float*);
-M4 func_0011C288(qword,const M3&,float);
+M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void func_001A5EE8(LO*,const M4&,float,float);
 int func_001CF338(S*,qword,const M3&);
 }
@@ -34,7 +34,7 @@ int func_001CF338(S*p,qword pos,const M3&mat)
     if(!func_0014F898(pg,delta,p->lo->radius,&proj))return 0;
     if(alpha<0.0001f && size<0.0001f)return 1;
     M4 m;
-    M4 tmp=func_0011C288(pos,mat,size);
+    M4 tmp=LoadMatrixFromPosRotScalar(pos,mat,size);
     m=tmp;
     func_001A5EE8(p->lo,m,alpha*proj,1.0f);
     return 1;

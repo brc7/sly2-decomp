@@ -74,7 +74,7 @@ struct CLOCK { float t, dt; };
 
 extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
-float func_0011D448(float gMin, float gMax);                    // GRandInRange
+float GRandInRange__Fff(float gMin, float gMax);                    // GRandInRange
 void *func_002333B4(void *pv, int b, unsigned int cb);          // memset
 void func_0015B428(EMITB *pemitb, EMITX *pemitx, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
                    void *pv1, void *pv2);
@@ -82,7 +82,7 @@ void func_00195368(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtg
 }
 void OnEmitterValuesChanged(EMITTER *pemitter);
 
-static inline float GRand(LM *plm) { return func_0011D448(plm->gMin, plm->gMax); }
+static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
 static inline VU_VECTOR operator*(VU_FLOAT g, VU_VECTOR v)
 {
     __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(v.q) : "j"(g.q));
@@ -123,7 +123,7 @@ void func_00195368(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtg
         if (pcand->nPriority == -1)
             continue;
         g = pemitter->gRate * D_002DDED0.dt;
-        gRand = func_0011D448(0.0f, 1.0f);
+        gRand = GRandInRange__Fff(0.0f, 1.0f);
         c = (int)g;
         g -= (float)c;
         if (gRand < g)

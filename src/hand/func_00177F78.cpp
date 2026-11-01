@@ -117,7 +117,7 @@ float func_001E6648(CURVE *pcrv);
 void func_001E7380(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
 void func_001E6F10(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
 int func_00178D00(S *p);
-void func_0011EE08(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
+void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
 int func_001C0B50(CONTEXT *pctx, qword pos, VEC *pv);
 }
 struct VU_FLOAT
@@ -439,7 +439,7 @@ extern "C" void func_00177F78(S *p)
             qword dposLater = VProjectOut(VSub(p->pos, posPredict), D_002A2DC0);
 
             VEC normal;
-            func_0011EE08(D_002A2DD0, dpos, dposLater, &normal, 0, 0);
+            FindClosestPointOnLineSegment(D_002A2DD0, dpos, dposLater, &normal, 0, 0);
             const qword *pqwZeroHere = &D_002A2DA0;
             qword normalCopy;
             qword qwLen;

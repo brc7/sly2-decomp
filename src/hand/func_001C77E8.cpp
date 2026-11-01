@@ -2,7 +2,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 extern "C" {
 void func_00129EC8(void *p);
 void func_00129658(void *p, const void *q);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_0021ECD8(char *buf, const char *fmt, ...);
 void func_001C60B8(void *p, int n);
 }
@@ -34,7 +34,7 @@ void func_001C77E8(S *p, int n)
     if (p->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = func_0011D448(p->x230, p->x234);
+        p->x238 = GRandInRange__Fff(p->x230, p->x234);
         break;
     case 1: {
         CRef ref;

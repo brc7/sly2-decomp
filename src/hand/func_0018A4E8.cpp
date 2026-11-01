@@ -25,7 +25,7 @@ extern "C" float func_001E6620(B *p);
 extern "C" void func_001E6F10(B *p, qword *pv, qword *direction, float g);
 extern "C" qword func_001A62E8(A *p);
 extern "C" M *func_001A6318(A *p);
-extern "C" float func_0011D018(SMP *p, float a, float b, float c, float *output);
+extern "C" float GSmooth__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
 
 static __inline__ float GMin(float a,float b){return a<b?a:b;}
 static __inline__ float GMax(float a,float b){return a>b?a:b;}
@@ -129,7 +129,7 @@ tail:
         } else {
             k = 0.0f;
         }
-        ps->p68->p114->g10 = func_0011D018(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
+        ps->p68->p114->g10 = GSmooth__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
     }
     switch (ps->x8) {
     case 0:

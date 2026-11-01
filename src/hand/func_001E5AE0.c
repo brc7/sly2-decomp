@@ -6,13 +6,13 @@ struct S { int x0; int x4; int pad8; struct VTE *pvt; int pad10; struct A *pa; i
 extern char D_003E1560[];
 extern char D_003DD490[];
 extern struct VTE D_002D8C08[];
-struct S *func_0011CCC0(void *);
+struct S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
 int func_0015E938(void *, int, int, int);
-void func_0011A250(void *, void *);
+void PrependDlEntry__FP2DLPv(void *, void *);
 struct S *func_001E5AE0(struct A *pa, struct E *pe, struct C *pc)
 {
-    struct S *p = func_0011CCC0(D_003E1560);
+    struct S *p = PvAllocSlotheapClear(D_003E1560);
     struct E *peLast, *pe2;
     int depth;
     func_002333B4(p, 0, 0xF0);
@@ -46,7 +46,7 @@ struct S *func_001E5AE0(struct A *pa, struct E *pe, struct C *pc)
     }
     p->pe2C = p->pe28;
 done:
-    func_0011A250(pa->dl, p);
+    PrependDlEntry__FP2DLPv(pa->dl, p);
     p->pvt[1].pfn((char *)p + p->pvt[1].d);
     return p;
 }

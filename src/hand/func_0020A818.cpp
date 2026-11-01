@@ -8,9 +8,9 @@ extern Camera D_002DDF40;
 extern "C" {
 qword func_001A62E8(Actor *);
 int func_0014F850(Camera *,qword,qword);
-void func_0011EF08(qword,float *,float *,float *);
+void GetVectorCylind(qword,float *,float *,float *);
 float func_0020A690(P *);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 }
 static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float f,const qword *camera,const qword *position){
  register qword view asm("vf1"),bits asm("$2"),local asm("vf2"),value asm("$6");
@@ -41,15 +41,15 @@ extern "C" int func_0020A818(P*p,Actor*a)
         PlaneArguments(&threshold,&point,&scalar,0.0f,&camera->position,&position0.q);
         if(!func_0014F850(camera,point,threshold))goto fail;
         qword other;other=func_001A62E8(p->target);
-        func_0011EF08(Sub(position0.q,other),&angle[0],0,0);
-        if(p->tolerance<__builtin_fabsf(func_0011CF60(angle[0]-func_0020A690(p)))){fail:return 0;}
+        GetVectorCylind(Sub(position0.q,other),&angle[0],0,0);
+        if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[0]-func_0020A690(p)))){fail:return 0;}
         return 1;
     }
     case 1:{
         position1.q=func_001A62E8(a);
         qword other;other=func_001A62E8(p->target);
-        func_0011EF08(Sub(position1.q,other),&angle[1],0,0);
-        if(p->tolerance<__builtin_fabsf(func_0011CF60(angle[1]-func_0020A690(p))))return 0;
+        GetVectorCylind(Sub(position1.q,other),&angle[1],0,0);
+        if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[1]-func_0020A690(p))))return 0;
         return 1;
     }
     case -1:break;

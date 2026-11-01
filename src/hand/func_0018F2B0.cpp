@@ -15,10 +15,10 @@ extern "C" M3 func_0011B500(qword,float);
 extern "C" qword func_001A62E8(P*);
 extern "C" qword func_001A6F00(P*,void*,qword);
 extern "C" void func_002309E8(void*,void*,M4*,float,M4*);
-extern "C" void func_0011EE08(qword,qword,qword,qword*,float*,float*);
+extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 extern "C" int func_0015ED78(G*,int,int,P*);
 extern "C" float func_002458F0(float,float);
-extern "C" float func_0011CF60(float);
+extern "C" float RadNormalize__Ff(float);
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword QwFromF(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
 static inline float AngleOf(U v){return func_002458F0(v.f[1],v.f[0]);}
@@ -55,12 +55,12 @@ extern "C" void func_0018F2B0(P*p,float headingInput,int mask,float dtInput,U*of
   candidate.q=func_001A62E8(node);
   void*owner=GetFrame(node,&fx.m);
   func_002309E8(owner,0,&prediction,dt,0);
-  func_0011EE08(target.q,candidate.q,Transform(prediction,fx.m.r[3].q),0,&t,&distance);
+  FindClosestPointOnLineSegment(target.q,candidate.q,Transform(prediction,fx.m.r[3].q),0,&t,&distance);
   if(IsBonus(node))distance+=D_002BF4B8;
   if(distance<nearest){
    qword other=candidate.q;
    U scratch;scratch.q=Sub(other,func_001A62E8(p));
-   float angle=AbsF(func_0011CF60(func_002458F0(scratch.f[1],scratch.f[0])-heading));
+   float angle=AbsF(RadNormalize__Ff(func_002458F0(scratch.f[1],scratch.f[0])-heading));
    if(cone<angle)continue;
    best=node;nearest=distance;
    qword pred=prediction.r[3].q; answer.q=Sub(pred,origin.q);

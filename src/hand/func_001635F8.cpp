@@ -16,7 +16,7 @@ extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
 extern "C" void *func_001AE2A0(ALLOCREQ *preq);
 extern "C" void *func_001AE1D0(ALLOCREQ *preq);
 extern "C" void func_001A5C28(S *p, CBinaryInputStream *pbis);
-extern "C" void func_00118420(CBinaryInputStream *pbis);
+extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -61,5 +61,5 @@ extern "C" void func_001635F8(S *p, CBinaryInputStream *pbis)
     p->a9C = (int *)PvAllocB(&req, p->cA0 * 4, 0x10);
     for (int j = 0; j < p->cA0; j++)
         p->a9C[j] = pbis->S32Read();
-    func_00118420(pbis);
+    CBinaryInputStream_SkipStringSw(pbis);
 }

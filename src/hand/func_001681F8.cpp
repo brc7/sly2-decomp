@@ -97,7 +97,7 @@ extern G D_003DD490;
 extern "C" {
 void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
-M4 *func_0011C168(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
+M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float func_0011CAB0(const M3 *pmat);
 RPL *func_001CD998(void);
 }
@@ -146,7 +146,7 @@ static inline M4 ModelMatrix(const ENTRY *entry) return model
     if (parent)
     {
         M4 product;
-        func_0011C168(&product, &model, parent);
+        __ml__FRC7MATRIX4T0(&product, &model, parent);
         func_0023320C(&model, &product, sizeof(M4));
     }
 }

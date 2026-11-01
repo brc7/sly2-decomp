@@ -1,7 +1,7 @@
 struct LM { float gMin; float gMax; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
-float RadNormalize(float rad) asm("func_0011CF60");
-float GRandInRange(float gMin, float gMax) asm("func_0011D448");
+float RadNormalize(float rad) asm("RadNormalize__Ff");
+float GRandInRange(float gMin, float gMax) asm("GRandInRange__Fff");
 void CalculateEmitvx(int c, LM *plm, int cMax, EMITVX *pemitvx)
 {
     int n;

@@ -33,7 +33,7 @@ extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8;
 extern "C" {
 ITEM *func_001DAE20(SELECTOR *sel, int id);
 int func_0014C748(qword point, qword start, qword end, int flags, HIT *hit, float radius);
-void func_0011EE08(qword point, qword start, qword end, qword *unused, float *along, float *distance);
+void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance);
 void func_001DB390(SELECTOR *sel, int id);
 void func_001DA9E8(SELECTOR *sel);
 void *func_001FBB90(int id);
@@ -107,7 +107,7 @@ void func_001DB0C8(SELECTOR *sel, int mode)
         if (func_0014C748(point, origin, Add(origin, ray), 1, &hit, D_002C3278) > 0) {
             score = hit.fraction * D_002C3274;
         } else {
-            func_0011EE08(point, origin, Add(origin, ray), 0, &proximity.along, &proximity.distance);
+            FindClosestPointOnLineSegment(point, origin, Add(origin, ray), 0, &proximity.along, &proximity.distance);
             if (proximity.distance < D_002C327C) {
                 if (zero < proximity.along)
                     score = D_002C3274 + proximity.distance;

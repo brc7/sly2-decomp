@@ -1,8 +1,8 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct O { char pad[0x40]; M4 mat; char pad1[0x98 - 0x80]; short k; char pad2[0xA0 - 0x9A]; struct O *pParent; };
-void func_0011C318(M4 *pmDst, M4 *pmSrc);
-void func_0011C168(M4 *pmDst, M4 *pmA, M4 *pmB);
+void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
+void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
 void *func_0023320C(void *d, void *s, int n);
 void *func_002333B4(void *p, int c, int n);
 M4 *func_0022CDC0(M4 *pr, struct O *po);
@@ -33,16 +33,16 @@ M4 *func_0022D148(M4 *pm, struct O *po, struct O *poStop)
                 M4 *pmE = &mE;
                 
                 
-                func_0011C168(&mC, &p->pParent->mat, &mB);
+                __ml__FRC7MATRIX4T0(&mC, &p->pParent->mat, &mB);
                 
-                func_0011C318(&mD, &p->mat);
-                func_0011C168(pmE, &mC, &mD);
+                InvertMatrix4Rigid(&mD, &p->mat);
+                __ml__FRC7MATRIX4T0(pmE, &mC, &mD);
                 AddM4(&mA, pm, pmE);
                 func_0023320C(pm, &mA, 0x40);
             } else {
                 M4 *pmE = &mE;
-                func_0011C318(&mC, &p->mat);
-                func_0011C168(pmE, &mB, &mC);
+                InvertMatrix4Rigid(&mC, &p->mat);
+                __ml__FRC7MATRIX4T0(pmE, &mB, &mC);
                 AddM4(&mA, pm, pmE);
                 func_0023320C(pm, &mA, 0x40);
             }
@@ -53,8 +53,8 @@ M4 *func_0022D148(M4 *pm, struct O *po, struct O *poStop)
     if (poStop) {
         M4 *pmE = &mE;
         M4 *pmA = &mA;
-        func_0011C318(pmE, &poStop->mat);
-        func_0011C168(pmA, pmE, pm);
+        InvertMatrix4Rigid(pmE, &poStop->mat);
+        __ml__FRC7MATRIX4T0(pmA, pmE, pm);
         func_0023320C(pm, pmA, 0x40);
     }
     return pm;

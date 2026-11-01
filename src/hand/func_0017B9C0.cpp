@@ -11,9 +11,9 @@ extern "C"{
  extern CLOCK D_002DDED0;
  extern RANGE D_002BE740;
  extern POLY D_002BE720,D_002BE730;
- float func_0011D448(float,float);
+ float GRandInRange__Fff(float,float);
  qword func_001A62E8(P*);
- void func_0011ED40(qword,qword,qword,qword*,float*,float*);
+ void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*);
 }
 static inline unsigned long Eligible(unsigned long flags){return (flags>>60)&1;}
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
@@ -68,7 +68,7 @@ extern "C" void func_0017B9C0(C*p){
  __asm__("sqc2 %4,%0\n\tdaddu %2,%z5,$zero\n\tlwc1 %1,-0x18f0(%3)\n\taddiu %3,%3,-0x18f0"
    :"=m"(work.bestPoint.q),"=f"(lower),"=&r"(best),"+r"(randomAddress)
    :"j"(zero),"J"(0),"m"(*(float*)(randomAddress-0x18f0)));
- p->time=now+func_0011D448(lower,((RANGE*)randomAddress)->hi);
+ p->time=now+GRandInRange__Fff(lower,((RANGE*)randomAddress)->hi);
  work.origin.q=func_001A62E8(p->actor);
  // D_002A55FC supplies the initial selection cost.
  int i;P*actor;unsigned int limitHigh;
@@ -86,7 +86,7 @@ extern "C" void func_0017B9C0(C*p){
   if(choice==p->preferred)cost=D_002BE720.a+cost*(D_002BE720.b+cost*D_002BE720.c);
   for(int j=0;j<p->actor->nearCount;j++){
    qword position=func_001A62E8(p->actor->near[j]);
-   func_0011ED40(position,work.origin.q,To(candidate),0,&work.t,&work.d);
+   FindClosestPointOnLine(position,work.origin.q,To(candidate),0,&work.t,&work.d);
    if(work.t<0.0f)continue;
    if(work.t>1.0f)continue;
    float penalty=D_002BE730.a+work.d*(D_002BE730.b+work.d*D_002BE730.c);
@@ -104,7 +104,7 @@ extern "C" void func_0017B9C0(C*p){
   float f=DistanceFrom(position,&work.origin);
   if(f>distance)continue;
   if(best){
-   func_0011ED40(To(position),work.origin.q,work.bestPoint.q,0,&work.t2,&work.d2);
+   FindClosestPointOnLine(To(position),work.origin.q,work.bestPoint.q,0,&work.t2,&work.d2);
    if(work.t2<0.0f)continue;
    if(work.t2>1.0f)continue;
    if(work.d2>500.0f)continue;

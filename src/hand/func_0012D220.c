@@ -29,7 +29,7 @@ void *func_001C4AF8(void *pg, qword pos);
 qword func_001A62E8(void *po);
 void func_002301D0(void *a, struct X *b);
 qword func_0022FCC8(int n, int k, qword v);
-void func_0011E958(qword q, float *pa, float *pb);
+void CalculateVectorPanTilt(qword q, float *pa, float *pb);
 static __inline__ float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 static __inline__ float GLength(U *pv, qword a)
@@ -95,7 +95,7 @@ void func_0012D220(struct P *p)
         s.vel = D_002A2DD0;
         p->x74 = 0;
     } else {
-        func_0011E958(func_0022FCC8(0, p->x8->xA0, dv), &ag[0], &ag[1]);
+        CalculateVectorPanTilt(func_0022FCC8(0, p->x8->xA0, dv), &ag[0], &ag[1]);
         ag[0] = GClamp(GEval(&p->poly30, ag[0]), p->g50, p->g54);
         ag[1] = GClamp(GEval(&p->poly40, ag[1]), p->g58, p->g5C);
         ((float *)&s.pos)[2] = ag[0];

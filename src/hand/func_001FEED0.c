@@ -1,6 +1,6 @@
 struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
 struct P { char pad[0x64]; int n64; char pad2[0xE8 - 0x68]; int nE8; char pad3[0x138 - 0xEC]; int n138; };
-int func_0011D3F8(int, int);
+int NRandInRange__Fii(int, int);
 void *func_002333B4(void *, int, int);
 void *func_001FD028(struct P *, int);
 short func_001FD070(struct P *, void *);
@@ -21,7 +21,7 @@ void func_001FEED0(struct P *p)
     };
     int b[25] = { 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0 };
     struct M m;
-    r = func_0011D3F8(0, 5);
+    r = NRandInRange__Fii(0, 5);
     p->n138 += a[b[p->n138 + 12]][r];
     func_002333B4(&m, 0, 0x30);
     m.n28 = 0x13;

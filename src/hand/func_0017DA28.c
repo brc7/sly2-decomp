@@ -20,7 +20,7 @@ void func_0017D8A8(struct S *p);
 void func_002562A8(struct X *x);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(struct X *s, qword v);
-void func_0011EE08(qword p, qword a, qword b, qword *pc, float *pt, int n);
+void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
 void func_001E6180(struct B *b);
 int func_001C02D0(void *q, qword a, qword b, struct B *c);
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
@@ -47,7 +47,7 @@ void func_0017DA28(struct S *p) {
             qword a = func_001C1EC0(&q->x60, pos);
             qword b = func_001C1EC0(&q->x80, pos);
             int f;
-            func_0011EE08(pos, a, b, &c.q, &t, 0);
+            FindClosestPointOnLineSegment(pos, a, b, &c.q, &t, 0);
             f = 0;
             if (t > 0.0f && t < 1.0f) {
                 qword d, l;

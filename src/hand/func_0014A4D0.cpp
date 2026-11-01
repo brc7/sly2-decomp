@@ -20,17 +20,17 @@ extern float D_002BD468[2];
 extern float D_002BD470, D_002BD474, D_002BD478, D_002BD47C;
 PSO *func_001C4840(G *pg);
 qword func_001A62E8(void *p);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 int func_0020F0B0(G *pg);
 int func_00132B10(PSO *p, int n);
 void func_00208540(W *pw, void *p);
 int func_001BBE48(SO *p);
 int func_0015E9C8(G *pg, int a, int b, void *c, int d, SO **apso);
-int func_0011D3F8(int a, int b);
-qword func_0011E208(float a, float b, float c);
-float func_0011E4B0(qword a, qword b, void *p);
+int NRandInRange__Fii(int a, int b);
+qword SetVectorSphere(float a, float b, float c);
+float RadBetweenVectors(qword a, qword b, void *p);
 float func_002458F0(float y, float x);
-qword func_0011E1A0(float a, float b, float c);
+qword SetVectorCylind(float a, float b, float c);
 void func_0014A4D0(P *p);
 }
 static inline int FLess(float a, float b) { return a < b; }
@@ -89,7 +89,7 @@ void func_0014A4D0(P *p)
     if (FLess(D_002BD460, Len(v)))
         p->t48 = D_002DDED0.t;
     float dt = D_002DDED0.t - p->t48;
-    if (func_0011D448(D_002BD468[0], D_002BD468[1]) < dt && !func_0020F0B0(pg)) {
+    if (GRandInRange__Fff(D_002BD468[0], D_002BD468[1]) < dt && !func_0020F0B0(pg)) {
         if (func_00132B10(pso, 0x34) && pso->x2DC == 0x11) {
             PATH *ppath = pso->ppath;
             pos = func_001A62E8(pso);
@@ -119,22 +119,22 @@ void func_0014A4D0(P *p)
                     apso[k++] = apso[i];
             }
             if (k) {
-                SO *pt = apso[func_0011D3F8(0, k - 1)];
+                SO *pt = apso[NRandInRange__Fii(0, k - 1)];
                 posT = func_001A62E8(pt);
                 r = *(float *)&pt->pxEC;
             }
             if (!FLess(D_002BD478 * D_002BD478, LenSq(Sub(posT, posPlayer)))) {
-                float pan = func_0011D448(-3.1415927f, 3.1415927f);
-                float tilt = func_0011D448(-3.1415927f, 3.1415927f);
+                float pan = GRandInRange__Fff(-3.1415927f, 3.1415927f);
+                float tilt = GRandInRange__Fff(-3.1415927f, 3.1415927f);
                 register qword q asm("vf3"); /* register pin: the target's vadd writes posT's new value to vf3 */
-                q = Add(posT, func_0011E208(pan, tilt, func_0011D448(0.0f, r)));
+                q = Add(posT, SetVectorSphere(pan, tilt, GRandInRange__Fff(0.0f, r)));
                 qword e = SubX(q, posMe);
                 posT = q;
                 if (FLess(Len2(e), Len2(d))) {
                     pos = posT;
                     goto done;
                 }
-                float g = func_0011E4B0(d, e, 0);
+                float g = RadBetweenVectors(d, e, 0);
                 if (!(__builtin_fabsf(g) * 57.295776f <= D_002BD47C)) {
                     pos = posT;
                     goto done;
@@ -146,7 +146,7 @@ void func_0014A4D0(P *p)
         qword e = Sub(posMe, posPlayer);
         float rad = func_002458F0(GetY(e), GetX(e));
         qword pp = func_001A62E8(pso);
-        pos = Add(pp, func_0011E1A0(func_0011D448(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
+        pos = Add(pp, SetVectorCylind(GRandInRange__Fff(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {
         pos = AddScaledNorm(posPlayer, v, VU_FLOAT(-D_002BD470));
     }

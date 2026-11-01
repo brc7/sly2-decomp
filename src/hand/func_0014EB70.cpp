@@ -1,7 +1,7 @@
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
 extern int D_002BD8B0[];
-qword func_0011E208(float pan, float tilt, float s);
+qword SetVectorSphere(float pan, float tilt, float s);
 int func_0014EA08(void *p, void *x, qword a, qword b, float *pt, float *pu, float g);
 qword func_0014EB70(void *p, void *x, qword pos, float g);
 }
@@ -36,7 +36,7 @@ qword func_0014EB70(void *p, void *x, qword pos, float g)
         float tilt = (float)(i - 4) * 0.3926991f;
         int c = D_002BD8B0[i];
         for (j = 0; j < c; j++) {
-            qword dir = func_0011E208((float)j * 3.1415927f / (float)c, tilt, 1.0f);
+            qword dir = SetVectorSphere((float)j * 3.1415927f / (float)c, tilt, 1.0f);
             qword test = AddScaled(pos, dir, VU_FLOAT(g));
             if (func_0014EA08(p, x, pos, test, &t, &u, dg + dg)) {
                 if (0.0f < t)

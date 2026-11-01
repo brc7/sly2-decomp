@@ -27,8 +27,8 @@ extern "C" {
 int func_001F7588(P *, EVENT *);
 void func_001D4C88(P *);
 void func_001D4940(P *, int);
-float func_0011D448(float, float);
-qword func_0011E1A0(float, float, float);
+float GRandInRange__Fff(float, float);
+qword SetVectorCylind(float, float, float);
 qword func_001A62E8(P *);
 int func_001D4568(P *, EVENT *);
 }
@@ -67,7 +67,7 @@ static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
               "jm"(f1.q), "j"(f2.q)); /* last two: allocation only */
     return r;
 }
-static inline float Random(const float *range) { return func_0011D448(range[0], range[1]); }
+static inline float Random(const float *range) { return GRandInRange__Fff(range[0], range[1]); }
 /* object vector (virtual get) += delta (virtual set) */
 static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
 {
@@ -96,10 +96,10 @@ int func_001D4568(P *p, EVENT *event)
     {
     case 0x100:
     {
-        float angle = func_0011D448(-3.14159274f, 3.14159274f);
+        float angle = GRandInRange__Fff(-3.14159274f, 3.14159274f);
         float horizontal = Random(D_002C21D0);
         float vertical = Random(D_002C21D8);
-        linear.q = func_0011E1A0(angle, horizontal, vertical);
+        linear.q = SetVectorCylind(angle, horizontal, vertical);
         angular.q = VuFloat(Random(D_002C21E0)) * NormalizeSafe(Cross(D_002A2DC0, linear.q), D_002A2DA0);
         break;
     }

@@ -21,8 +21,8 @@ void *func_002333B4(void *,int,unsigned int);
 qword func_001A62E8(P *);
 float func_00245000(float);
 qword *func_00256D18(qword *,qword);
-M4 *func_0011C168(M4 *,const M4 *,const M4 *);
-M4 *func_0011C318(M4 *,const M4 *);
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
+M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 }
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float Length(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
@@ -76,10 +76,10 @@ extern "C" void func_00207690(P *p)
             basis.rows[1]=p->space->matrix.rows[1];
             basis.rows[2]=p->space->matrix.rows[2];
             basis.rows[3]=p->space->matrix.rows[3];
-            func_0011C168(productPointer,basisPointer,&local);
+            __ml__FRC7MATRIX4T0(productPointer,basisPointer,&local);
             M4 *inversePointer=&inverse;
-            func_0011C318(inversePointer,basisPointer);
-            func_0011C168(matrixPointer,productPointer,inversePointer);
+            InvertMatrix4Rigid(inversePointer,basisPointer);
+            __ml__FRC7MATRIX4T0(matrixPointer,productPointer,inversePointer);
             func_00168638((EFFECT *)((char *)p+0x80),matrixPointer,p->material,p->opacity,p->opacity);
         }
     }

@@ -45,7 +45,7 @@ float func_001FE3F8(void *p);
 FONT *func_00215AC0(FONT *pf, const char *sz, float scale);
 float func_00215ED8(FONT *pf);
 void func_002163B0(FONT *pf, TB *ptb, int grf);
-void func_00117120(float dt, float t, float dtScale, qword p0, qword v0, qword p1, qword v1, qword *ppos, qword *pvel, qword *pacc);
+void EvaluateBezierPos(float dt, float t, float dtScale, qword p0, qword v0, qword p1, qword v1, qword *ppos, qword *pvel, qword *pacc);
 void func_00152C58(P *p);
 }
 
@@ -127,7 +127,7 @@ void func_00152C58(P *p)
                 break;
             }
             if (p->stateHint == 1) {
-                func_00117120(GMax(pe->t - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->pos, p->vel, pe->pos, D_002BDBD0, &p->pos, &p->vel, 0);
+                EvaluateBezierPos(GMax(pe->t - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->pos, p->vel, pe->pos, D_002BDBD0, &p->pos, &p->vel, 0);
             }
         }
         tb.x = ((float *)&p->pos)[0] - dxB * 0.5f;

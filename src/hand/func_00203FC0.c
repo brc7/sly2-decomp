@@ -13,7 +13,7 @@ extern float D_002BBB60[2];
 void func_001F36E0(struct S *p);
 void func_00203E08(struct S *p);
 float func_002458F0(float y, float x);
-float func_0011CF60(float a);
+float RadNormalize__Ff(float a);
 
 void func_00203FC0(struct S *p)
 {
@@ -23,7 +23,7 @@ void func_00203FC0(struct S *p)
     case 0: {
         float *a = p->vt->e[31].pf((char *)p + p->vt->e[31].d);
         float *b = p->vt->e[31].pf((char *)p + p->vt->e[31].d);
-        float d = func_0011CF60(p->f1A8 - func_002458F0(a[1], b[0]));
+        float d = RadNormalize__Ff(p->f1A8 - func_002458F0(a[1], b[0]));
         float f;
         d = __builtin_fabsf(d);
         f = D_002C3C80[0] + d * (D_002C3C80[1] + d * D_002C3C80[2]);

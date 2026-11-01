@@ -12,7 +12,7 @@
 //     {pos - r*n, the face plane, 6, psurf} and grf |= 0x80.
 //  4. Edges: for each surface with 0x10 and neither 0x20 nor 0x80 (sets 0x20), each edge whose other face has 0x10 but not 0x80: the point of the edge closest
 //     to pos (u < 0.0001 -> vertex aipos[0], u > 0.9999 -> vertex aipos[1], else the interior point). Within the radius: unit = normalize(pos - closest),
-//     plane = (unit, unit . closest) (func_00119390), point = pos - r*unit. Interior -> contact kind 5 {point, plane, 5, pedge}; a vertex -> a candidate
+//     plane = (unit, unit . closest) (InitPlaneFromNormalPos), point = pos - r*unit. Interior -> contact kind 5 {point, plane, 5, pedge}; a vertex -> a candidate
 //     (at most 0x100 on the stack, no duplicates by vertex index).
 //  5. Vertices: each candidate whose vertex is not an end of one of the edge contacts -> contact kind 4 {point, plane, 4, &geomWorld.apos[ivert]}.
 //     (The game compares against the edge contacts made in step 4 only.) Reaching ccontactMax in any step skips to the clean-up.
@@ -233,7 +233,7 @@ static inline qword QwNormalize(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwNormal) : "j"(qw), "j"(v));
     return qwNormal;
 }
-extern "C" void func_00119390(SURF *psurf, qword qwNormal, qword qwPos);
+extern "C" void InitPlaneFromNormalPos(SURF *psurf, qword qwNormal, qword qwPos);
 void ContactInsideBsp(float sRadius, BSP *absp, BSP *pbspLimit, GEOM *pgeom, qword pos, CMCONTACT *pcontact);
 struct VERTCAND
 {
@@ -404,7 +404,7 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
                                         goto nextedge;
                             }
                             *(qword *)&vecUnit = QwNormalize(*(qword *)&vecDelta);
-                            func_00119390((SURF *)&plane, *(qword *)&vecUnit, *(qword *)pposClosest);
+                            InitPlaneFromNormalPos((SURF *)&plane, *(qword *)&vecUnit, *(qword *)pposClosest);
                             posContact = VecAddScaled(pos, VuFloat(-sRadius), *(qword *)&vecUnit);
                             if (ivert >= 0)
                             {

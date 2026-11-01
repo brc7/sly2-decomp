@@ -80,7 +80,7 @@ struct KEY {
 struct ROOT { char pad[0x54]; SPRITE *sprites; };
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
 extern "C" {
-void func_0011A058(int *);
+void ClearSle(int *);
 void *func_002333B4(void *, int, unsigned int);
 void func_00215730(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 void func_00219400(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
@@ -249,13 +249,13 @@ extern "C" void func_00219400(float time, float duration, ANIM *animation, int p
         item->interpolate = pose->interpolate;
         item->mode = pose->mode;
         item->field64 = pose->selected;
-        func_0011A058(&item->flags);
+        ClearSle(&item->flags);
         if (linkOffset) {
             item->kind = 1;
             items[entryIndex + linkOffset].kind = 4;
         } else if (item->kind != 4)
             item->kind = 0;
         if (fNever)
-            func_0011A058(0);
+            ClearSle(0);
     }
 }

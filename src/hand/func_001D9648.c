@@ -10,7 +10,7 @@ void func_001870A0(int);
 int func_00187D80(PAD *, int);
 void func_00187E08(PAD *, int);
 int func_001B0290(int);
-int func_0011A3B0(void *);
+int FIsDlEmpty__FP2DL(void *);
 void func_001AEEE0(void *);
 void func_001DB870(void *);
 void func_001DAA90(void *);
@@ -38,7 +38,7 @@ void func_001D9648(void *pdl)
         if (!func_001B0290(0))
             func_00187E08(pad, 0x800);
     } else if (D_002DFBC0 & 2) {
-        int r = func_0011A3B0(pdl);
+        int r = FIsDlEmpty__FP2DL(pdl);
         int f = 0;
         if (pad->x100C == 1 && 5.0f <= D_002DDED0.t)
             f = 1;

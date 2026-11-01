@@ -25,8 +25,8 @@ extern qword D_002A2DC0;
 extern WORLD D_003DD490;
 extern "C" {
 qword func_001A62E8(O *);
-void func_00119308(UQ *, qword, qword, qword);
-void func_00119390(UQ *, qword, qword);
+void InitPlaneFromPositions(UQ *, qword, qword, qword);
+void InitPlaneFromNormalPos(UQ *, qword, qword);
 UQ *func_002564C0(UQ *);
 UQ *func_002564B8(UQ *);
 FRAME *func_001AE478(FRAME *);
@@ -148,7 +148,7 @@ extern "C" void func_0022A220(O *po)
     po->frame = pcam->frame;
     qword posCam = pcam->pos;
     O *psrc = po->psrc;
-    register qword rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of func_00119308); later uses reload from the 0x190 slot
+    register qword rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of InitPlaneFromPositions); later uses reload from the 0x190 slot
     if (psrc)
         rr = func_001A62E8(psrc);
     else
@@ -168,7 +168,7 @@ extern "C" void func_0022A220(O *po)
     corner[2].q = v2;
     corner[1].q = v1;
     corner[3].q = posCam;
-    func_00119308(pplane, posCam, posSrc, corner[1].q);
+    InitPlaneFromPositions(pplane, posCam, posSrc, corner[1].q);
     qword plane = tmp.q;
     P4 pvA, pvB;
 
@@ -183,7 +183,7 @@ extern "C" void func_0022A220(O *po)
         qword edge = Sub(pc[(i + 1) % 4].q, pc[i].q);
         func_002564C0(&nrm);
         nrm.q = plane;
-        func_00119390(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
+        InitPlaneFromNormalPos(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
     }
     ipso = 0;
     func_001AE478(&frame);

@@ -55,7 +55,7 @@ int func_001DAEA8(int ipuk);
 int func_00163400(void *pcond);
 void func_0022A220(WAYPT *pwaypt);
 qword func_001A62E8(LO *plo);
-void func_0011EE08(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
+void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
 MATRIX4 *func_001A6318(SO *pso);
 VECTOR *func_00256D18(VECTOR *pv, qword qw);
 void func_001A5EE8(SO *pso, MATRIX4 *pmat, float a, float b);
@@ -150,7 +150,7 @@ extern "C" void func_0022A908(WAYPT *pwaypt)
     qword pos = func_001A62E8(pwaypt->ploSource);
     qword posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pwaypt->sHeight));
     float sDist;
-    func_0011EE08(posCam, pos, posTop, 0, 0, &sDist);
+    FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &sDist);
     float rScale = GLimitG(GEvaluateClq(&D_002C44C0, sDist), D_002C44D0.gMin, D_002C44D0.gMax);
     qword posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(rScale * D_002C44D8));
 

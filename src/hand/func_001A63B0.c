@@ -17,14 +17,14 @@ static __inline__ qword Make(float x, float y, float z)
 struct LO;
 typedef struct { short d; short pad; void (*pfn)(struct LO *, M3 *); } VT;
 struct LO { int x0, x4, x8; VT *vt; };
-void func_0011B628(M3 *pm, qword v);
+void LoadRotateMatrixEuler(M3 *pm, qword v);
 void func_001A63B0(struct LO *p, qword v)
 {
     M3 c;
     union { qword q; float f; } r;
     M3 m;
     r.q = Make(GetX(v) * 0.017453294f, GetY(v) * 0.017453294f, GetZ(v) * 0.017453294f);
-    func_0011B628(&m, r.q);
+    LoadRotateMatrixEuler(&m, r.q);
     c = m;
     p->vt[30].pfn((struct LO *)((char *)p + p->vt[30].d), &c);
 }

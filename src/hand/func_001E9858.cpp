@@ -4,7 +4,7 @@
  * output sample array, then for every vertex
  *   world = vertex * owner->mat                         (point transform)
  *   func_001E6F60 finds the closest hit/direction/distance on the path for `world`
- *   func_0011B830 builds a basis from (direction, axis); it is transposed (= inverted)
+ *   BuildOrthonormalMatrixZ builds a basis from (direction, axis); it is transposed (= inverted)
  *   sample = (world - hit) * inverse basis, with .w = distance.
  *
  * Notes on getting the exact code (plain C++ plus the VU0 / MMI asm that the original needs):
@@ -39,7 +39,7 @@ void func_0016EF00(CONFIG *, int);
 void func_001AE5A0(void *, const void *, unsigned);   /* memcpy */
 void *func_001AE1D0(AL *);                            /* allocate (size, align) */
 void func_001E6F60(void *, qword, void *, qword *, qword *, float *, float *);
-M3 *func_0011B830(M3 *, qword, qword);
+M3 *BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void func_001E9858(S *);
 }
 
@@ -105,7 +105,7 @@ void func_001E9858(S *p)
                 for (k = 0; k < e->n; k++) {
                     qword world = Point(&object->mat, vertices[k].q);
                     func_001E6F60(p->path, world, 0, &phase->hit.q, &w.direction.q, &w.distance, 0);
-                    func_0011B830(&w.temporary, w.direction.q, axis);
+                    BuildOrthonormalMatrixZ(&w.temporary, w.direction.q, axis);
                     qword difference = PointDifference(world, w.phase.hit.q);
                     w.basis = w.temporary;
                     TransposeInto(w.temporary, w.basis);

@@ -15,8 +15,8 @@ extern CLOCK D_002DDED0;
 extern "C" {
 void func_001A5E28(WR *);
 void func_0022B7D8(WR *);
-float func_0011CF60(float);
-void func_0011D608(float,float *,float *);
+float RadNormalize__Ff(float);
+void CalculateSinCos__FfPfT1(float,float *,float *);
 float func_0022BF70(ONZ *);
 M3 func_0011B500(qword,float);
 }
@@ -44,7 +44,7 @@ void UpdateWrMatrixes(WR *p){
    V position,uv,temporary;
    float sine,cosine;
    float angle=(D_002DDED0.t*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
-   func_0011D608(func_0011CF60(angle),&sine,&cosine);
+   CalculateSinCos__FfPfT1(RadNormalize__Ff(angle),&sine,&cosine);
    int column=entry->data.circle.column,next=column+1;
    V *pos0=&matrix->r[column],*pos1=&matrix->r[next],*uv0=&coordinates->r[column],*uv1=&coordinates->r[next];
    qword qn=Scalar(-sine),qc=ScalarLoad(cosine),qs=Scalar(sine);

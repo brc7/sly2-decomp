@@ -12,8 +12,8 @@ extern "C" void func_001AE4A0(FRAME *,int);
 struct MSG {int bytes,alignment;};
 extern "C" void *func_001AE378(MSG *);
 extern "C" void func_001AE5A0(void *,const void *,unsigned int);
-extern "C" M4 *func_0011C318(M4 *,const M4 *);
-extern "C" M4 *func_0011C168(M4 *,const M4 *,const M4 *);
+extern "C" M4 *InvertMatrix4Rigid(M4 *,const M4 *);
+extern "C" M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 extern "C" void func_00166270(GEO *,const M4 *,GEO *);
 extern "C" void func_001191E8(TREE *,GEO *,TREE *,GEO *);
 
@@ -38,7 +38,7 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
     func_001AE5A0(points,temporary.points,pinned*16);
     func_001AE5A0(points+(pinned+inserted),temporary.points+pinned,(temporary.count-pinned)*16);
     temporary.count+=inserted;temporary.points=points;
-    {M4 product,inverse;func_0011C168(&product,(func_0011C318(&inverse,&space->matrix),&inverse),&source->owner->matrix);transform=product;}
+    {M4 product,inverse;__ml__FRC7MATRIX4T0(&product,(InvertMatrix4Rigid(&inverse,&space->matrix),&inverse),&source->owner->matrix);transform=product;}
     func_00166270(&temporary,&transform,&dest->local);
     func_00166270(&dest->local,&space->matrix,&dest->world);
     func_001191E8(&source->tree,&source->world,&dest->tree,&dest->world);

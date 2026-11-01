@@ -52,9 +52,9 @@ void func_001C02D0(void *, qword, qword, PATH *);
 float func_002458F0(float, float);
 M3 *func_001A6318(P *);
 qword func_0022CA18(void *, void *);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 void func_001F0660(void *, int);
-float func_0011D448(float, float);
+float GRandInRange__Fff(float, float);
 void func_001D2490(P *);
 int func_001D4E08(ATTACH *);
 int func_00227C90(void *, qword);
@@ -197,7 +197,7 @@ extern "C" void func_001D2610(P *p)
                     M3 m = *func_001A6318(attach->anchor);
                     float aim = func_002458F0(m.rows[0].f[1], m.rows[0].f[0]);
                     qword packed = func_0022CA18(attach->mesh, attach->mesh);
-                    float error = Abs(func_0011CF60(aim - p->wheelAngle));
+                    float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
                     float pitch = GetZ(packed) - attach->meshBinding->pitch;
                     if (error < D_002C20EC && Abs(pitch) < D_002C20F0)
                         goto fire;
@@ -206,7 +206,7 @@ extern "C" void func_001D2610(P *p)
             fire:
                 func_001F0660(attach->binding, 0x68);
                 float t = D_002DDED0.t;
-                p->nextAttack = t + func_0011D448(1.0f, 1.5f);
+                p->nextAttack = t + GRandInRange__Fff(1.0f, 1.5f);
             }
         }
         break;
@@ -241,14 +241,14 @@ extern "C" void func_001D2610(P *p)
                 M3 m = *func_001A6318(attach->anchor);
                 float aim = func_002458F0(m.rows[0].f[1], m.rows[0].f[0]);
                 qword packed = func_0022CA18(attach->mesh, attach->mesh);
-                float error = Abs(func_0011CF60(aim - p->wheelAngle));
+                float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
                 float pitch = GetZ(packed) - attach->meshBinding->pitch;
                 if (D_002C20F4 < error || D_002C20F8 < Abs(pitch))
                     continue;
             }
             func_001F0660(attach->binding, 0x68);
             float t = D_002DDED0.t;
-            p->nextAttack = t + func_0011D448(attach->fireInterval.min, attach->fireInterval.max);
+            p->nextAttack = t + GRandInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
         }
     }
 }

@@ -6,7 +6,7 @@ struct Out { int n0; int pad[3]; qword q10; qword q20; float g30; float g34; flo
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 qword func_0022D348(struct O *, int, qword);
-void func_0011B938(void *, int, struct V *);
+void TiltMatUpright(void *, int, struct V *);
 float func_002458F0(float, float);
 void func_001F58F0(struct P *p, struct Out *po)
 {
@@ -17,6 +17,6 @@ void func_001F58F0(struct P *p, struct Out *po)
     po->q10 = q;
     ps = o->sub;
     po->q20 = func_0022D348(o, 0, q);
-    func_0011B938(ps, 0, &v);
+    TiltMatUpright(ps, 0, &v);
     po->g30 = func_002458F0(-v.y, -v.x); po->g34 = 100.0f; po->n0 = 0; po->g38 = D_002DDED0.t; po->n3C = 0;
 }

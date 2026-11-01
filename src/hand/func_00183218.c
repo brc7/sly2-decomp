@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 extern float func_001E8008(void *p, float g, float h);
 extern void func_001E6F10(void *p, float t, VU *ppos, VU *pdir);
-extern float func_0011D448(float a, float b);
+extern float GRandInRange__Fff(float a, float b);
 extern float D_002BE8B8;
 extern float D_002BE8BC;
 extern qword D_002A2DC0;
@@ -35,7 +35,7 @@ void func_00183218(void *p, float g, qword *pv, qword *pdv)
     }
     a = pos.q;
     {
-        float t = func_0011D448(0.0f, D_002BE8BC);
+        float t = GRandInRange__Fff(0.0f, D_002BE8BC);
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(t));
         u.q = s;
         __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(n), "j"(s));

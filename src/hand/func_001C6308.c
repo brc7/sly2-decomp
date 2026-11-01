@@ -17,7 +17,7 @@ extern qword D_002C0D80;
 extern float D_002C0D90;
 extern struct G D_003DD490;
 qword func_001A6FC0(struct S *,void *,qword);
-float func_0011D448(float,float);
+float GRandInRange__Fff(float,float);
 struct Q *func_001CE888(struct G *,void *,void *);
 qword func_001A62E8(void *);
 static inline float Dot(qword a,qword b)
@@ -45,7 +45,7 @@ void func_001C6308(struct S *p)
     direction=func_001A6FC0(p,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
     if(side!=p->previous) {
-        if(func_0011D448(0,1)<p->probability) {
+        if(GRandInRange__Fff(0,1)<p->probability) {
             if(D_002C0D90<D_002DDED0.t-p->last) {
                 if(Dot(direction,D_002DDF40.a)<0)emitter=p->left;
                 else emitter=p->right;

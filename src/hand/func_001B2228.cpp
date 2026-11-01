@@ -14,7 +14,7 @@ extern "C" qword D_002A2DD0;
 struct LO;
 extern "C" void func_001B1E88(P*,LO*,V*);
 extern "C" V*func_001B2398(V*,P*,float);
-extern "C" qword func_0011E9F8(qword,float);
+extern "C" qword LimitVectorLength(qword,float);
 extern "C" qword func_001A62E8(P*);
 extern "C" int func_0014C748(qword,qword,qword,int,HIT*,float);
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
@@ -33,7 +33,7 @@ extern "C" void func_001B2228(P*p,LO*source,V*point){
   w.spill.q=k;
   qword raw=method(receiver);
   w.velocity.q=Scale(raw,w.spill.q);
-  qword clamped=func_0011E9F8(w.velocity.q,0.75f*p->g274);
+  qword clamped=LimitVectorLength(w.velocity.q,0.75f*p->g274);
   register qword velocity __asm__("vf1");
   __asm__("qmtc2.ni %1,%0":"=j"(velocity):"r"(clamped));
   register qword scalarWord __asm__("$2");

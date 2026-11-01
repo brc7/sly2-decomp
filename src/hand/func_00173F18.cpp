@@ -33,7 +33,7 @@ int func_00173768(SET *, qword, int, void **, float);
 float func_001E6648(LO *);
 int func_001EA3B0(void *, float);
 void func_001E6F10(LO *, qword *, qword *, float);
-float func_0011D448(float, float);
+float GRandInRange__Fff(float, float);
 float func_002458F0(float, float);
 M3 func_0011B500(float, qword);
 }
@@ -178,7 +178,7 @@ extern "C" SEL *func_00173F18(SET *pset, qword pos, qword *pposOut, M3 *pmatOut,
             for (int k = 0; k < c; )
             {
                 int kNext = k + 1;
-                float u = D_002BE5E8 * ((float)k + func_0011D448(D_002BBB60.gMin, D_002BBB60.gMax));
+                float u = D_002BE5E8 * ((float)k + GRandInRange__Fff(D_002BBB60.gMin, D_002BBB60.gMax));
                 if (func_001EA3B0(plo->pv180, u))
                     goto nextSample;
                 {

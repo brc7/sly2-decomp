@@ -14,7 +14,7 @@ int func_00132B10(void*,int);
 void func_00228C18(void*,qw,qw*,qw*);
 qw func_0022D348(void*,void*,qw);
 void func_001CEAA8(RIP*,float);
-void func_0011EE08(qw,qw,qw,qw*,float*,float*);
+void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
 int func_001CEB08(RIP*,SHAPE*,qw,qw);
 }
 static inline float Max(float a,float b){return a<b?b:a;}
@@ -141,7 +141,7 @@ int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  __asm__("vsub.xyzw %0,%0,%1":"+j"(working):"j"(scratch));
  w.afterTangent.q=working;
  }
- func_0011EE08(queryPoint,lineStart,w.afterTangent.q,queryPosition,queryAlong,queryDistance);
+ FindClosestPointOnLineSegment(queryPoint,lineStart,w.afterTangent.q,queryPosition,queryAlong,queryDistance);
  register qw tailNormal __asm__("vf8");
  {
  register float secondWeight __asm__("$f0")=w.proximity.fraction;

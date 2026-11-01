@@ -25,10 +25,10 @@ float func_0012F990(MOTION *,int);
 void func_001300B8(MOTION *,float,float,LO *,SPACE *,SPACE *,M4 *,M4 *);
 qword func_001A62E8(LO *);
 qword *func_00256D18(qword *,qword);
-M4 *func_0011C168(M4 *,const M4 *,const M4 *);
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 LO *func_001CCA40(LO *,LO *);
 M4 func_001A71B0(LO *,LO *,const M4 *);
-M4 func_0011C318(const M4 *);
+M4 InvertMatrix4Rigid(const M4 *);
 void func_001A58D0(LO *,int,int);
 float func_00196928(qword,qword,float,float,float,float);
 void func_00131A00(ANIM *,float);
@@ -76,10 +76,10 @@ extern "C" void func_001CCC88(P *input,LO *other){
  register qword row1 __asm__("$3"),row2 __asm__("$2");
  __asm__("lq %0,16(%4)\n\tdaddu %2,%6,$zero\n\tsq %0,16(%5)\n\tlq %1,32(%4)\n\tsq %1,32(%5)\n\tswc1 %7,%3\n\tswc1 %7,32+%3\n\tswc1 %7,16+%3"
   :"=&r"(row1),"=&r"(row2),"=&r"(workingBase),"=m"(*(BASIS_TAIL*)((char*)&work.start+12)):"r"(basis),"r"(start),"r"(intermediate),"f"(zero));
- start->values[15]=homogeneous;func_0011C168(destination,left,right);
+ start->values[15]=homogeneous;__ml__FRC7MATRIX4T0(destination,left,right);
  register const M4*originalArgument __asm__("$6");register M4*secondDestination __asm__("$4");
  __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=r"(originalArgument),"=r"(secondDestination):"r"(&work.original),"r"(intermediate));
- func_0011C168(secondDestination,product,originalArgument);
+ __ml__FRC7MATRIX4T0(secondDestination,product,originalArgument);
  }
  LO*counterpart;
  {
@@ -100,9 +100,9 @@ extern "C" void func_001CCC88(P *input,LO *other){
   __asm__("lq %0,%4\n\taddiu %1,%5,0x180\n\tlq %2,%6\n\tdaddu %3,%1,$zero":"=&r"(row1),"=&r"(inverse),"=r"(row2),"=r"(inverseArgument):"m"(work.views.matrices.product.rows[1]),"r"(&work),"m"(work.views.matrices.product.rows[2]));
   __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\tlq %2,%6\n\tsq %7,%3\n\tsq %8,16+%3\n\tsq %0,32+%3"
    :"=&r"(row3),"=&r"(sourceArgument),"=&r"(row0),"=m"(*(M3*)&work.views.matrices.intermediate.rows[1]):"m"(work.views.matrices.product.rows[3]),"r"(workingBase),"m"(work.views.matrices.product.rows[0]),"r"(row1),"r"(row2));
-  work.views.matrices.intermediate.rows[0]=row0;new(inverseArgument)M4(func_0011C318(sourceArgument));
+  work.views.matrices.intermediate.rows[0]=row0;new(inverseArgument)M4(InvertMatrix4Rigid(sourceArgument));
   }
-  func_0011C168(product,finalMatrix,inverse);
+  __ml__FRC7MATRIX4T0(product,finalMatrix,inverse);
   {
   register qword row0 __asm__("$2"),row1 __asm__("$3"),row2 __asm__("$4"),row3 __asm__("$5");
   __asm__("lq %0,%5\n\tlq %1,%6\n\tlq %2,%7\n\tlq %3,%8\n\tsq %0,%4\n\tsq %1,16+%4\n\tsq %2,32+%4\n\tsq %3,48+%4"

@@ -5,9 +5,9 @@ typedef struct { qword r[3]; } M3;
 typedef union { qword q; float g; } UF;
 struct SMP;
 extern "C" {
-M3 func_0011BC00(M3 *pa, M3 *pb);
+M3 MulMatrix3Matrix3(M3 *pa, M3 *pb);
 void func_0011BCF8(M3 *pmat, float *prad, qword *pvec);
-float func_0011D018(float g, float gGoal, float dt, struct SMP *psmp, float *pdv);
+float GSmooth__FfffP3SMPPf(float g, float gGoal, float dt, struct SMP *psmp, float *pdv);
 M3 func_0011B500(float rad, qword axis);
 }
 static inline M3 MulM3(const M3 &a, M3 *pb) return m
@@ -30,10 +30,10 @@ void SmoothMatrix(M3 *pmatPrev, M3 *pmatGoal, struct SMP *psmp, float dt, M3 *pm
     UF normal;
     float rad, dv, radNew;
     {
-        M3 mat = func_0011BC00(pmatPrev, pmatGoal);
+        M3 mat = MulMatrix3Matrix3(pmatPrev, pmatGoal);
         func_0011BCF8(&mat, &rad, &normal.q);
     }
-    radNew = func_0011D018(0.0f, rad, dt, psmp, &dv);
+    radNew = GSmooth__FfffP3SMPPf(0.0f, rad, dt, psmp, &dv);
     if (pmatNext) {
         if (radNew == rad) {
             *pmatNext = *pmatGoal;

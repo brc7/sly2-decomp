@@ -52,7 +52,7 @@ void func_001F7C68(struct O *p, float g);
 struct E *func_001CE888(struct GS *pgs, int n, int m);
 void func_001CF578(struct E *pe, struct O *p);
 void func_001CFD30(struct E *pe);
-float func_0011D448(float a, float b);
+float GRandInRange__Fff(float a, float b);
 void func_0013C560(struct O *p, int st);
 
 #define VCALL(po, slot, T) ((T)(po)->pvt->a[slot].pfn)((char *)(po) + (po)->pvt->a[slot].d
@@ -280,9 +280,9 @@ void func_0013C560(struct O *p, int st)
             v.q = vq;
             ((PFNQ)pvt->a[35].pfn)((char *)p + pvt->a[35].d, v.q);
         }
-        a = func_0011D448(lo, hi);
-        b = func_0011D448(lo, hi);
-        c = func_0011D448(lo, hi);
+        a = GRandInRange__Fff(lo, hi);
+        b = GRandInRange__Fff(lo, hi);
+        c = GRandInRange__Fff(lo, hi);
         u.f[0] = a;
         u.f[1] = b;
         u.f[2] = c;

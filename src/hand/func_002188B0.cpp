@@ -12,7 +12,7 @@ struct ANIM;
 struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[0x14];int index;void *owner;int first,pad2C;};
 struct ANIM {ushort count,pad2;void *keys;float duration;void *owner;GROUP *group;int id;};
 extern "C" {
-void func_0011A058(int *);
+void ClearSle(int *);
 void func_00218790(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *);
 void func_00215850(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
 }
@@ -42,7 +42,7 @@ extern "C" void func_002188B0(float duration,ANIM *animation,int index,M23 *pare
  M23 matrix;RGBA outputAdditive,outputMultiply,currentMultiply,currentAdditive;
  for(;i<count;i++){
   ITEM *item=&items[i];
-  if(!item->sprite){item->cachedTime=time;func_0011A058(&item->flags);continue;}
+  if(!item->sprite){item->cachedTime=time;ClearSle(&item->flags);continue;}
   if(item->interpolate&&item->nextMatrix){
    float fraction=(time-item->previousTime)/(item->nextTime-item->previousTime);
    matrix=BlendMatrix(fraction,*item->previousMatrix,*item->nextMatrix);
@@ -58,6 +58,6 @@ extern "C" void func_002188B0(float duration,ANIM *animation,int index,M23 *pare
   if(item->sprite)func_00215850(item->sprite,item,duration,&matrix,outputAdditive,outputMultiply);
   item->cachedTime=time;item->matrix=matrix;
   item->additive=*(RGBA_RAW *)&outputAdditive;item->multiply=*(RGBA_RAW *)&outputMultiply;
-  func_0011A058(&item->flags);
+  ClearSle(&item->flags);
  }
 }

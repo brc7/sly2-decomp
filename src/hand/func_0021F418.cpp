@@ -23,13 +23,13 @@ extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
 extern "C" {
 qword func_001A62E8(O *);
 int func_001DAEA8(int);
-qword func_0011E1A0(float,float,float);
-void func_0011EF08(qword,float *,float *,float *);
+qword SetVectorCylind(float,float,float);
+void GetVectorCylind(qword,float *,float *,float *);
 float func_0011D948(RANGE *,float);
 void func_0021FB70(S *,int);
 float func_002458F0(float,float);
 float func_00204740(O *);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 void func_002206C8(S *,int);
 void func_001384C0(ASEG *);
 int func_00131968(ASEGA *);
@@ -169,13 +169,13 @@ extern "C" void func_0021F418(S *s){
     asm("lwc1 %0,%4\n\tlwc1 %1,%5\n\tmul.s %2,%2,%6\n\tsqc2 %7,%3":"=&f"(z),"=&f"(direction),"+f"(step),"=m"(w.vector.q):"m"(w.delta.f[2]),"m"(control->heading),"f"(scale),"j"(delta));
     elevation=z;heading=direction;advance=step;
    }
-   qword movement=func_0011E1A0(heading,advance,elevation);
+   qword movement=SetVectorCylind(heading,advance,elevation);
    float *angleArgument,*radiusArgument;
    qword sum=PolarOperands(w.vector,movement,&w.angle,&w.radius,angleArgument,radiusArgument);
    w.delta.q=sum;
-   func_0011EF08(sum,angleArgument,radiusArgument,0);
+   GetVectorCylind(sum,angleArgument,radiusArgument,0);
    w.radius=func_0011D948(&w.scratch.range,w.radius);
-   qword polar=func_0011E1A0(w.angle,w.radius,elevation);
+   qword polar=SetVectorCylind(w.angle,w.radius,elevation);
    StoreTarget(s->targetWorld,w.delta,w.ownerPosition,polar);
   }
   func_0021FB70(s,1);
@@ -188,7 +188,7 @@ extern "C" void func_0021F418(S *s){
   case 0:{
    w.scratch.vector.q=IdleDifference(func_001A62E8(s->selected),w.ownerPosition);
    float heading=func_002458F0(w.scratch.vector.f[1],w.scratch.vector.f[0]);
-   float angle=func_0011CF60(heading-func_00204740(s->owner));
+   float angle=RadNormalize__Ff(heading-func_00204740(s->owner));
    float threshold=s->idleThreshold;
    if(threshold<angle)func_002206C8(s,2);
    else if(angle<-threshold)func_002206C8(s,1);
@@ -224,7 +224,7 @@ extern "C" void func_0021F418(S *s){
    else if(s->state==4){
     w.scratch.vector.q=ActiveDifference(s->targetWorld,w.ownerPosition);
     float heading=func_002458F0(w.scratch.vector.f[1],w.scratch.vector.f[0]);
-    float angle=func_0011CF60(heading-func_00204740(s->owner));
+    float angle=RadNormalize__Ff(heading-func_00204740(s->owner));
     float threshold=s->activeThreshold;
     if(threshold<angle)func_002206C8(s,6);else if(angle<-threshold)func_002206C8(s,5);
    }

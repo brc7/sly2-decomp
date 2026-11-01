@@ -20,7 +20,7 @@ struct OA4 { int pad[3]; struct VTE *vt; char pad1[0x30 - 0x10]; int x30; char p
 void func_0020AC28(struct X *, int, int, qword);
 void func_001F5720(struct X *, int);
 void func_001F57C0(struct X *, int);
-float func_0011D448(float, float);
+float GRandInRange__Fff(float, float);
 void func_001EF0D8(void *);
 void *func_00205438(struct X *, int);
 void *func_001C4840(void *);
@@ -46,7 +46,7 @@ void func_0014AE38(struct P *p, int state)
         break;
     case 3: {
         float t = D_002DDED0.t;
-        p->p10->xF04 = t + func_0011D448(p->p44->x60, p->p44->x64);
+        p->p10->xF04 = t + GRandInRange__Fff(p->p44->x60, p->p44->x64);
         p->p44 = 0;
         break;
     }

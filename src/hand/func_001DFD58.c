@@ -20,7 +20,7 @@ struct OBJ {
 void func_001E02C0(OBJ *);
 void *func_001E5AE0(OBJ *, void *, int);
 void func_001E1C40(void *);
-int func_0011A3B0(DL *);
+int FIsDlEmpty__FP2DL(DL *);
 void func_001DFEB8(OBJ *);
 void func_001A6CA8(OBJ *, int);
 void func_001DFD58(OBJ *p, int n)
@@ -41,7 +41,7 @@ void func_001DFD58(OBJ *p, int n)
     func_001E1C40(func_001E5AE0(p, p->x54, 0));
     if (!p->x74)
         return;
-    if (func_0011A3B0(&p->dl)) {
+    if (FIsDlEmpty__FP2DL(&p->dl)) {
         func_001DFEB8(p);
         return;
     }

@@ -21,8 +21,8 @@ int func_00117D50(void *);
 int func_00117DB8(void *);
 int func_00117D00(void *);
 float func_00117E38(void *);
-void func_00117FD0(void *,GEO *);
-void func_00118220(void *,GEO *,TREE *);
+void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEO *);
+void CBinaryInputStream_ReadBspc(void *,GEO *,TREE *);
 void func_00117ED0(void *,STATE *);
 void func_00167320(DATA *,P *,void *);
 void *func_001AE2A0(MSG *);
@@ -60,10 +60,10 @@ extern "C" void func_001F31E0(P *p,void *stream)
         f=func_00117D00(stream);
         e->flags.raw=(e->flags.raw&~(1UL<<49))|((ulong)(f&1)<<49);
         e->radius=func_00117E38(stream);
-        func_00117FD0(stream,local);
+        ReadGeom__18CBinaryInputStreamP4GEOM(stream,local);
         if(!e->object){e->object=D_002C44F0;e->world=e->local;}
         else func_00166270(local,0,&e->world);
-        func_00118220(stream,&e->world,&e->tree);
+        CBinaryInputStream_ReadBspc(stream,&e->world,&e->tree);
         e->id=func_00117C80(stream);
         e->flags.fields.state=func_00117D50(stream);
         e->pinned=func_00117D50(stream);

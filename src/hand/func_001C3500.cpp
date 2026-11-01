@@ -12,12 +12,12 @@ float func_001E6620(PATH *);           // low distance bound
 float func_001E6648(PATH *);           // high distance bound
 float func_001E6610(PATH *);           // start distance
 void func_001E67B8(PATH *, float, qword *, qword *);
-float func_0011D898(float, float);     // wrap into range
+float GModPositive__Fff(float, float);     // wrap into range
 float func_001E6728(PATH *, float);
 void func_001E6F10(PATH *, float, qword *, qword *);
-M3 func_0011BA08(qword, qword);
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 qword func_001A6FC0(PATH *, PATH *, qword);
-qword func_0011E390(qword);
+qword GetNormalVector(qword);
 }
 
 union U { qword q; float f[4]; };
@@ -91,7 +91,7 @@ extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
                 if (sample < low || high < distance)
                     continue;
             } else
-                sample = low + func_0011D898(sample - low, high - low);
+                sample = low + GModPositive__Fff(sample - low, high - low);
             float r = 50.0f;
             func_001E6F10(p, func_001E6728(p, sample + r), &fwd.q, 0);
             func_001E6F10(p, func_001E6728(p, sample - r), &back.q, 0);
@@ -101,7 +101,7 @@ extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
             if (Dot(w.tangent, w.direction) > -0.9f)
                 break;
         }
-        rot = func_0011BA08(w.tangent, w.direction);
+        rot = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(w.tangent, w.direction);
         qword ref = func_001A6FC0(p, 0, p->axis);
         fwd.q = Transform(rot, ref);
         qword up = Normalize(w.first, D_002A2DC0);
@@ -111,7 +111,7 @@ extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
         qword len = Length(back.q);
         w.basis.r[1] = Unit(back.q, len);
         if (X(len) < 0.0001f)
-            w.basis.r[1] = func_0011E390(up);
+            w.basis.r[1] = GetNormalVector(up);
         w.basis.r[0] = Cross(w.basis.r[1], w.basis.r[2]);
     }
     if (!forward) {

@@ -20,7 +20,7 @@ extern struct { float lo, hi; } D_002BBB60;
 extern qword D_002A2DD0;
 void func_001F58F0(struct JT *, struct XP *);
 qword func_001A62E8(void *);
-float func_0011D018(float g, float gTarget, float dt, void *pv, int n);
+float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword func_0011F088(qword a, qword b, float dt, void *pv, int n);
 void func_0019C8B0(void *, struct XP *);
 void func_0018A4E8(void *, struct XP *);
@@ -68,7 +68,7 @@ void func_00141640(struct JT *pjt, struct XP *pxp)
             pxp->pos.f[2] = g;
         } else {
             void *pv = pjt->x434 ? D_002BCCC8 : D_002BCCB8;
-            pxp->pos.f[2] = func_0011D018(pjt->x1050, pjt->x104C, D_002DDED0.dt, pv, 0);
+            pxp->pos.f[2] = GSmooth__FfffP3SMPPf(pjt->x1050, pjt->x104C, D_002DDED0.dt, pv, 0);
             pxp->pos.f[2] = GClamp(pxp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         pxp->pos.f[0] = v.f[0];

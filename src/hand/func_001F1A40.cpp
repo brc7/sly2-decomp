@@ -14,8 +14,8 @@ int func_00132B10(void *,int);
 void *func_002333B4(void *,int,int);
 struct OBJECT *func_0015E938(void *,int,int,void *);
 int func_00164030(void *);
-float func_0011D448(float,float);
-int func_0011D3F8(int,int);
+float GRandInRange__Fff(float,float);
+int NRandInRange__Fii(int,int);
 void func_001F1A40(struct P *p)
 {
     struct TABLE *table;
@@ -33,10 +33,10 @@ void func_001F1A40(struct P *p)
         else goto choose_reward;
     }else{
 choose_reward:
-        if(func_0011D448(0.0f,1.0f)>table->chance){reward.key=-1;reward.kind=-1;}
+        if(GRandInRange__Fff(0.0f,1.0f)>table->chance){reward.key=-1;reward.kind=-1;}
         else{
             total=0;for(i=0;i<6;i++)total+=table->picks[i].weight;
-            int choice=func_0011D3F8(0,total-1);
+            int choice=NRandInRange__Fii(0,total-1);
             const PICK *pick=&table->picks[0];
             register int weight asm("$3")=pick->weight; /* pin: weight must be v1 (global-alloc gives it v0 and swaps pick/weight otherwise) */
             asm("" : "+r"(weight)); /* empty asm: gives the first weight load a dependent so sched2 issues it before the choice copy, as in the target */
@@ -54,8 +54,8 @@ selected_pick:;
         }
     }
     p->count=0;
-    remaining=func_0011D3F8(table->minimum,table->maximum);
-    slots=func_0011D3F8(2,3);
+    remaining=NRandInRange__Fii(table->minimum,table->maximum);
+    slots=NRandInRange__Fii(2,3);
     int j=0;
     if(slots>0){do{
         struct ITEM *item=&p->items[p->count++];

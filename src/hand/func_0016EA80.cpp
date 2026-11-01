@@ -55,8 +55,8 @@ void*func_001AE238(REQUEST*,void*);
 SO*func_001ED850(SO*);
 void func_00169EB8(D*,E*,int,void*,int,void*,void*);
 void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-void func_0011A058(int*);
-void func_0011A098(void*,LINK*);
+void ClearSle(int*);
+void PrependSlEntry(void*,LINK*);
 void func_001EC740(int,int,int,uint,uint);
 }
 static inline void*Copy(int bytes,void*source){REQUEST request;request.bytes=bytes;request.alignment=16;return func_001AE238(&request,source);}
@@ -105,8 +105,8 @@ extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
             for(uint j=entry->flags.bits.first;j<entry->flags.bits.last;j++){
                 LINK*link=&D_003DA798[j];
                 if(cloned){link->bounds=&entry->object->position;link->object=entry->object;}
-                func_0011A058(&link->next);
-                func_0011A098(link->object->list,link);
+                ClearSle(&link->next);
+                PrependSlEntry(link->object->list,link);
             }
             func_001EC740(entry->flags.bits.first,entry->flags.bits.last,bytes,(uint)old,(uint)data);
         }

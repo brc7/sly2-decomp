@@ -1,5 +1,5 @@
 // func_0019AC88: speed-limited trajectory time/length helper. Builds a path with func_00185D18 (3 outputs), integrates
-// the velocity with func_00117120 at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
+// the velocity with EvaluateBezierPos at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
 // Trick: the halved time goes into a NEW local (h), not back into t. Overwriting t adds an anti-dependence to the
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
 typedef int qword __attribute__((mode(TI)));
@@ -10,7 +10,7 @@ struct A { struct O *p; };
 struct P { struct A *a; void *p4; int pad[2]; qword v10; };
 qword func_001A62E8(void *p);
 int func_00185D18(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
-void func_00117120(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
 static inline float Len(qword v) {
  qword l, one; float r;
  __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l), "=&j"(one) : "0"(v));
@@ -30,9 +30,9 @@ float func_0019AC88(struct P *p, float t)
  pos=func_001A62E8(o);
  vel=p->v10;
  func_00185D18(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
- func_00117120(t,0.0f,1.0f,pos,vel,b.q,c.q,0,0,&d.q);
+ EvaluateBezierPos(t,0.0f,1.0f,pos,vel,b.q,c.q,0,0,&d.q);
  g=Len(d.q);
- func_00117120(t,t,1.0f,pos,vel,b.q,c.q,0,0,&e.q);
+ EvaluateBezierPos(t,t,1.0f,pos,vel,b.q,c.q,0,0,&e.q);
  g += Len(e.q);
  h = t*0.5f;
  g *= h;

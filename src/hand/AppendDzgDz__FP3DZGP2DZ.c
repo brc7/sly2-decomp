@@ -5,7 +5,7 @@ struct DL { void *a, *b; int c; };
 struct DZG { int x0; int c; struct E *ae; char pad[0x30 - 0xC]; struct DL dl; char pad2[0x60 - 0x3C]; struct F *af; };
 struct Y { char pad[0xA8]; int i; };
 struct X { char pad[0x40]; qword v; char pad2[0x50 - 0x50]; struct Y *py; };
-extern void func_0011A220(struct DL *pdl, void *pv);
+extern void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 static __inline__ int Dot(qword a, qword b)
 {
     qword r, one;
@@ -30,6 +30,6 @@ void AppendDzgDz(struct DZG *pdzg, void *pdz, struct X *px)
             }
         }
     }
-    func_0011A220(&pdzg->dl, pdz);
+    AppendDlEntry__FP2DLPv(&pdzg->dl, pdz);
     pdzg->c++;
 }

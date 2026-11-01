@@ -17,7 +17,7 @@ s32 func_00122EA0(s32 arg0, s32 arg1, s32 arg2) {
         M2C_UNK m4;
     } fr;
     func_0012A0B0((void *)&fr, 0x1B);
-    func_0011C3D0(M2C_FIELD(arg2, s32 *, 4), M2C_FIELD(arg2, s32 *, 0xC), fr.m4);
+    CalculateDmat4(M2C_FIELD(arg2, s32 *, 4), M2C_FIELD(arg2, s32 *, 0xC), fr.m4);
     func_001291A8(arg0, (void *)&fr);
     func_00129EC8((void *)&fr);
     return arg0;

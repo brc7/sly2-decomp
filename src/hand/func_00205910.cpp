@@ -5,7 +5,7 @@
  * sphere for the nearby-objects query (func_0020FC60, filter func_0020FA50 with p+0xEC as context).  Then D_002C3CE4 passes: every
  * probe point is placed with matCur and snapped to the floor by the line test func_00173610 (height->max / height->min); a probe
  * that finds no floor is dropped by D_002C3CE0 along matCur's up row.  The plane through the three probes gives a normal (cross of
- * the two edges, D_002A2DC0 if shorter than 0.0001), func_0011BA08 builds the rotation from matOrig's up row to it, func_0011BCF8
+ * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, func_0011BCF8
  * measures its angle, which is limited to D_002C3CE8 (func_0011B500 rebuilds the rotation about the same axis with the limit),
  * and matCur = adjustment * matOrig.  The final rotation is stored at p+0x1B0.
  * How it matches (everything came from the personal decomp's recipes, nothing from register pins):
@@ -43,7 +43,7 @@ extern int D_002C3CE4;
 extern "C" {
 MATRIX3 func_0011B500(qword,float);
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");
-MATRIX3 func_0011BA08(qword,qword);
+MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 qword func_001A62E8(P *);
 qword *func_00256D18(qword *,qword);
 FRAME *func_001AE478(FRAME *);
@@ -125,7 +125,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
         qword normal;
         if(GFromVf(qwLen)<0.0001f)normal=qwFallback;
         else{__asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq": :"j"(qwLen));__asm__("vmulq.xyzw %0, %1, $Q":"=j"(normal):"j"(qwCross));}
-        adjustment=func_0011BA08(*(qword *)matOrig.mat[2],normal);
+        adjustment=BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(*(qword *)matOrig.mat[2],normal);
         func_0011BCF8(&adjustment,&angle,&point.q);
         if(D_002C3CE8<angle)adjustment=func_0011B500(point.q,D_002C3CE8);
         const MATRIX3 *pmatOrig=(MATRIX3 *)&matOrig;

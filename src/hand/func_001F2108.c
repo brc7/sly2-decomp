@@ -4,12 +4,12 @@ struct P { char pad[0x10]; struct P *parent; char pad1[0x12C - 0x14]; float g12C
 extern float D_002C3B90;
 void func_001A5270(struct P *);
 void func_001A6CA8(struct P *, int);
-void func_0011A1F8(void *, int);
+void InitDl__FP2DLi(void *, int);
 void func_001F2108(struct P *p)
 {
     func_001A5270(p);
     func_001A6CA8(p, 0);
-    func_0011A1F8((char *)p + 0x64, 0x24);
+    InitDl__FP2DLi((char *)p + 0x64, 0x24);
     p->u.c.a = -10;
     p->u.c.b = -20;
     p->g12C = 1.0f;

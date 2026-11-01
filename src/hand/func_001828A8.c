@@ -3,7 +3,7 @@ struct Q { qword pos; qword v10; char pad[0x4C - 0x20]; int n4C; char pad2[0x58 
 struct M { char pad[0x10]; int n10; char pad1[0x20 - 0x14]; qword v20; qword v30; char pad2[0x44 - 0x40]; int n44; };
 struct O { char pad[0x190]; void *p190; };
 extern struct Q *func_00182810(struct O *po, qword pos);
-extern float func_0011D448(float a, float b);
+extern float GRandInRange__Fff(float a, float b);
 extern void func_00181EB0(struct O *po, struct Q *pq, int n);
 extern void func_0015C198(void *p, int k, int n, qword a, qword b, float g, float h);
 extern float D_002BE8A8;
@@ -24,7 +24,7 @@ int func_001828A8(struct O *po, struct M *pm)
             __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(pm->v30), "j"(c));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
             pq->g58 = g * D_002BE8A8;
-            pq->g5C = func_0011D448(-15.0f, 15.0f);
+            pq->g5C = GRandInRange__Fff(-15.0f, 15.0f);
             func_00181EB0(po, pq, 1);
         } else {
             if (po->p190)

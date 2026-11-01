@@ -4,7 +4,7 @@ typedef struct { float x, y, z; } V3;
 typedef union { qword q; V3 v; } UV;
 extern char D_002BBB60[];
 struct S { char pad[0x3D5C]; int n3D5C; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float f3E20; float f3E24; V3 rgb; float f3E34; int f3E38; };
-void func_0011DD90(V3 *pin, UV *pout);
+void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
 void func_001ED2D8(UV *pv);
 float func_0011D948(void *p, float g);
 void func_0020F1C8(struct S *p)
@@ -17,7 +17,7 @@ void func_0020F1C8(struct S *p)
     c.x = p->hsv.x;
     c.y = p->hsv.y * k;
     c.z = p->hsv.z * k;
-    func_0011DD90(&c, &out);
+    ConvertUserRgbToUserHsv(&c, &out);
     __asm__("qmtc2.ni %1, %0" : "=j"(u.q) : "r"(p->f3E20 * k));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;

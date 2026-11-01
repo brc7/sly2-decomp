@@ -18,7 +18,7 @@ struct LO {
     M4 m60;
     LO *xA0;
 };
-M4 func_0011C168(void *, M4 *);
+M4 __ml__FRC7MATRIX4T0(void *, M4 *);
 void func_001A5900(LO *, LO *, LO *, int);
 
 void func_002315F0(LO *p, LO *pNew, LO *pParent, int grf)
@@ -32,7 +32,7 @@ void func_002315F0(LO *p, LO *pNew, LO *pParent, int grf)
             m = p->m60;
             for (q = p->x50; q; q = q->xA0)
             {
-                M4 t = func_0011C168(q, &m);
+                M4 t = __ml__FRC7MATRIX4T0(q, &m);
                 m = t;
             }
         }

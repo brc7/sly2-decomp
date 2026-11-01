@@ -12,7 +12,7 @@
 //  * The box corners: posMin first (its VU_FLOAT temporary is stored to sp+0x50 first); AddScaled takes (VV base, scalar,
 //    vector), so the scalar is converted before the Normalize branch and the base is a separate pseudo (the vmove).
 //  * Scale lists the dot product first (local-alloc ties the projection to it); GClamp passes both bounds by value.
-//  * posBase is read before the func_0011E1A0 call, so it is a spilled pseudo at sp+0x80 like the game.
+//  * posBase is read before the SetVectorCylind call, so it is a spilled pseudo at sp+0x80 like the game.
 typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
 struct CLQ { float g0, g1, g2, gUnused; };
@@ -64,9 +64,9 @@ void *func_001AE318(ALLOCREQ *);
 int func_001C6CE8(void *, int, int, LO **);
 int func_001C5570(void *, CANDIDATE *);
 void func_0020FAA0(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
-float func_0011D448(float, float);
-float func_0011CF60(float);
-qword func_0011E1A0(float, float, float);
+float GRandInRange__Fff(float, float);
+float RadNormalize__Ff(float);
+qword SetVectorCylind(float, float, float);
 float func_00196928(qword, qword, float, float, float, float);
 void func_001C6BD0(LO *, qword, qword, float, float);
 }
@@ -174,12 +174,12 @@ extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnu
     CANDIDATE **apcand;
     func_0020FAA0(D_003DD490, posMin.q, posMax.q, func_001C5570, 0, &ccand, &apcand);
     int cLaunched = 0;
-    float gAngle = func_0011D448(-3.1415927f, 3.1415927f);
+    float gAngle = GRandInRange__Fff(-3.1415927f, 3.1415927f);
     float gRadius = D_002C0E8C;
     for (int iAttempt = 0; cLaunched < clo;) {
         float g = GClamp(GFromClq(D_002C0EA0, iAttempt * 0.02f), D_002C0EB0);
         qword posBase = posSnap.q;
-        qword posTrial = Add(posBase, func_0011E1A0(gAngle, gRadius, 0.0f));
+        qword posTrial = Add(posBase, SetVectorCylind(gAngle, gRadius, 0.0f));
         qword dpos = Sub(posTrial, posOrig.q);
         qword dposPerp = Sub(dpos, Scale(Dot(dpos, D_002A2DC0), D_002A2DC0));
         qword posAdjust = AddScaled(posTrial, VU_FLOAT(g), Normalize(dposPerp));
@@ -193,7 +193,7 @@ extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnu
             LO *ploLaunch = aplo[cLaunched++];
             func_001C6BD0(ploLaunch, posOrig.q, v, cLaunched * D_002C0D70, D_002A7760);
         }
-        gAngle = func_0011CF60(gAngle + D_002C0E94);
+        gAngle = RadNormalize__Ff(gAngle + D_002C0E94);
         gRadius += D_002C0E90;
         if (gRadius > D_002C0E84)
             gRadius -= D_002C0E84 - D_002C0E88;

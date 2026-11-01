@@ -11,7 +11,7 @@ extern char D_003E1218[];
 int func_00131968(struct P *p);
 void func_00131290(struct P *p);
 void func_00131990(struct P *p, int);
-void func_0011A2E8(void *, struct P *);
+void RemoveDlEntry__FP2DLPv(void *, struct P *);
 void func_00230100(void *, void *, struct L1 *);
 void func_0012E210(struct L1 *);
 void func_0012CE70(struct L2 *);
@@ -36,8 +36,8 @@ void func_00130B18(struct P *p)
                 { End(&g); return; }
         }
         func_00131990(p, 0);
-        func_0011A2E8(D_003E1218, p);
-        func_0011A2E8(p->pq->a50, p);
+        RemoveDlEntry__FP2DLPv(D_003E1218, p);
+        RemoveDlEntry__FP2DLPv(p->pq->a50, p);
         for (pl1 = p->pl1; pl1; pl1 = pl1Next) {
             pl1Next = pl1->pnext;
             func_00230100(pl1->x4, pl1->x8, pl1);

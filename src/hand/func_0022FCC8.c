@@ -1,7 +1,7 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 struct O { char pad[0x40]; M3 mat; };
-void func_0011B340(M3 *pd, M3 *ps);
+void InvertMatrix3Cofactor(M3 *pd, M3 *ps);
 static inline qword Mul3(const M3 *m, qword v)
 {
     qword r;
@@ -14,7 +14,7 @@ qword func_0022FCC8(struct O *a, struct O *b, qword v)
     if (a) v = Mul3(&a->mat, v);
     if (b) {
         M3 m;
-        func_0011B340(&m, &b->mat);
+        InvertMatrix3Cofactor(&m, &b->mat);
         v = Mul3(&m, v);
     }
     return v;

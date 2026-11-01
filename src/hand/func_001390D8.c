@@ -2,7 +2,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { int f0; int f4; int f8; struct VTE *vt; char pad[0x460 - 0x10]; };
 struct G { char pad[0x4070]; int pool4070; char pad2[0x407c - 0x4074]; int f407c; int f4080; int f4084; };
 extern struct VTE D_002CB5D8[];
-struct O *func_0011CCC0(void *);
+struct O *PvAllocSlotheapClear(void *);
 void func_002333B4(void *, int, int);
 void *func_0015E3A8(struct G *, int);
 void func_0011A070(void *, struct O *);
@@ -10,7 +10,7 @@ struct O *func_001390D8(struct G *pg) {
     struct O *po;
     int i;
     if (!pg->f407c && pg->f4084) return 0;
-    po = func_0011CCC0(&pg->pool4070);
+    po = PvAllocSlotheapClear(&pg->pool4070);
     func_002333B4(po, 0, 0x460);
     po->f0 = 0;
     po->f4 = 0;

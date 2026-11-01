@@ -45,7 +45,7 @@ extern CLOCK D_002DDED0;    // g_clock
 extern qword D_002A2DA0;    // fallback direction
 extern "C" {
 qword func_0022D348(SPACE *, SPACE *, qword);
-M4 *func_0011C318(M4 *, M4 *);   // invert
+M4 *InvertMatrix4Rigid(M4 *, M4 *);   // invert
 void func_001E95B0(CHAIN *, float);
 void func_001E6330(PATH *);
 void func_001E9090(CHAIN *);
@@ -139,7 +139,7 @@ void func_001E9090(CHAIN *p)
     {
         PATH *path = p->path;
         VT *e = &path->vt[31];
-        func_0011C318(&inverse, e->fn((char *)path + e->delta));
+        InvertMatrix4Rigid(&inverse, e->fn((char *)path + e->delta));
     }
     for (i = 0; i < n; i++)
     {

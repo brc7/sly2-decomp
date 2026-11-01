@@ -49,7 +49,7 @@ struct S { void *x0; char p0[0x34 - 4]; LO *x34; char p1[0x94 - 0x38]; int x94; 
 extern "C" {
 void func_0012E460(int *p);
 LO *func_001CCA40(void *pw, LO *po);
-void func_0011C168(MAT4 *pd, MAT4 *pa, MAT4 *pb);
+void __ml__FRC7MATRIX4T0(MAT4 *pd, MAT4 *pa, MAT4 *pb);
 void func_001A6BE8(LO *po, MAT4 *pm);
 void func_001F5720(LO *po, int n);
 void func_001F57C0(LO *po, int n);
@@ -59,7 +59,7 @@ void func_001F7C68(LO *po, float g);
 void func_001CD098(S *p, LO *po);
 }
 MAT4 func_001A71B0(int n, LO *po, MAT4 *pm);
-MAT4 func_0011C318(MAT4 m);
+MAT4 InvertMatrix4Rigid(MAT4 m);
 void func_001CD098(S *p, LO *po)
 {
     MAT4 buf;
@@ -76,8 +76,8 @@ void func_001CD098(S *p, LO *po)
         MAT4 u;
         MAT4 t = func_001A71B0(0, po, r->V31());
         u = t;
-        MAT4 w = func_0011C318(u);
-        func_0011C168(&t, &m, &w);
+        MAT4 w = InvertMatrix4Rigid(u);
+        __ml__FRC7MATRIX4T0(&t, &m, &w);
         m = t;
     }
     func_001A6BE8(po, &m);

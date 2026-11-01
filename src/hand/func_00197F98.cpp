@@ -1,6 +1,6 @@
 // func_00197F98: per-frame movement / jump-target update of a player context (MATCH; T1870, Lilly's agent; = lilly30 + FloatUse + EMPTY).
 // Joystick combo timers, a search over the two jump-target lists (D_003E13E4 sources / D_003E1420 objects) that picks the best
-// intercept (func_0019A4A0 + func_0011EE08) and switches to mode 6/8, goal prediction for modes 6..18 (func_002309E8 forecast +
+// intercept (func_0019A4A0 + FindClosestPointOnLineSegment) and switches to mode 6/8, goal prediction for modes 6..18 (func_002309E8 forecast +
 // derivative matrices), an acceleration-cost check, the heading switch (modes 0, 11-15, 20, 22, default) and the basic-move
 // velocity (modes 0-5, 7).
 // Two allocation/frame probes (no register pins):
@@ -61,30 +61,30 @@ extern LM D_002BF798, D_002BF850, D_002BF858, D_002BF870;
 extern SMP D_002BF860;
 qword func_001A62E8(void *);
 void func_0019A4A0(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *);
-void func_0011EE08(qword, qword, qword, qword *, float *, float *);
+void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
 qword func_0022D348(SPACE *, SPACE *, qword);
 qword func_0022FC48(SPACE *, SPACE *, qword);
 qword func_0022FCC8(SPACE *, SPACE *, qword);
 void func_00195FB8(CONTEXT *, int, void *);
 void func_002309E8(SPACE *, SPACE *, M4 *, float, M4 *);
-void func_00117120(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 float func_00204740(ACTOR *);
-float func_0011CF60(float);
-void func_0011D608(float, float *, float *);
-float func_0011D018(float, float, float, SMP *, float *);
+float RadNormalize__Ff(float);
+void CalculateSinCos__FfPfT1(float, float *, float *);
+float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void func_001384C0(CLIP *);
 void func_001E67B8(void *, float, qword *, qword *);
 void func_001CC2E8(void *);
 void func_002046B0(ACTOR *, qword);
 void func_00204660(ACTOR *, float);
 void func_001441E8(ACTOR *, float);
-qword func_0011E1A0(float, float, float);
-M3 func_0011BA08(qword, qword);
+qword SetVectorCylind(float, float, float);
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 M3 func_0011B500(qword, float);
 float func_002458F0(float, float);
 float func_00244E10(float);
 float func_0011E290(qword, qword, qword *, qword *);
-qword func_0011E9F8(qword, float);
+qword LimitVectorLength(qword, float);
 void func_00140C88(ACTOR *, void *);
 }
 
@@ -227,7 +227,7 @@ extern "C" void func_00197F98(CONTEXT *p)
             end.q = QwAddScaled(delta.q, rel.q, VuFloat(GMin(0.25f, t)));
 
             delta.f[2] = end.f[2] = 0.0f;
-            func_0011EE08(D_002A2DD0, delta.q, end.q, 0, &alpha, &dist);
+            FindClosestPointOnLineSegment(D_002A2DD0, delta.q, end.q, 0, &alpha, &dist);
             if (!((dist <= D_002BF83C && alpha != 0.0f) || (dist <= D_002BF83C * 0.25f && vel.f[2] <= 0.0f)))
                 continue;
 
@@ -258,7 +258,7 @@ extern "C" void func_00197F98(CONTEXT *p)
 
             delta.f[2] = end.f[2] = 0.0f;
 
-            func_0011EE08(D_002A2DD0, delta.q, end.q, 0, &alpha, &dist);
+            FindClosestPointOnLineSegment(D_002A2DD0, delta.q, end.q, 0, &alpha, &dist);
             if (!((dist <= obj->radius && alpha != 0.0f) || (dist <= obj->radius * 0.25f && vel.f[2] <= 0.0f)))
                 continue;
             objBest = obj;
@@ -332,8 +332,8 @@ extern "C" void func_00197F98(CONTEXT *p)
         BODY *body = p->actor->body;
         float dt = body->deadline - D_002DDED0.t + D_002DDED0.dt;
         U accel0, accel1;
-        func_00117120(dt, 0.0f, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel0.q);
-        func_00117120(dt, dt, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel1.q);
+        EvaluateBezierPos(dt, 0.0f, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel0.q);
+        EvaluateBezierPos(dt, dt, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel1.q);
         if (D_002BF844 < (GLengthQ(accel0.q) + GLengthQ(accel1.q)) * 0.5f * dt)
 
             func_00195FB8(p, 4, 0);
@@ -354,13 +354,13 @@ extern "C" void func_00197F98(CONTEXT *p)
     case 20: {
         float headingOld = func_00204740(p->actor);
         float s, c;
-        func_0011D608(func_0011CF60(input->heading - headingOld), &s, &c);
+        CalculateSinCos__FfPfT1(RadNormalize__Ff(input->heading - headingOld), &s, &c);
         float lateral = s * input->amount;
         float forward = c * input->amount;
         float mix = (forward + 1.0f) * 0.5f;
         if (p->scriptFocus) {
             DATA *data = p->scriptFocus->data;
-            data->amount = func_0011D018(data->amount, GLerp(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
+            data->amount = GSmooth__FfffP3SMPPf(data->amount, GLerp(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
         }
         float turn = GLerp(D_002BF870, mix) * lateral * D_002DDED0.dt;
         p->blend0 = GLerp(D_002BF850, mix);
@@ -410,7 +410,7 @@ extern "C" void func_00197F98(CONTEXT *p)
         func_001441E8(p->actor, D_002BF878);
         {
             ACTOR *actor = p->actor;
-            actor->velocity.q = func_0011E1A0(input->heading + 3.14159265f, input->amount * D_002BF87C, D_002BF880);
+            actor->velocity.q = SetVectorCylind(input->heading + 3.14159265f, input->amount * D_002BF87C, D_002BF880);
         }
         if (FMoving(vel.q))
             p->actor->heading = func_002458F0(vel.f[1], vel.f[0]) + offset;
@@ -421,7 +421,7 @@ extern "C" void func_00197F98(CONTEXT *p)
         qword b = p->actor->velocity.q;
         a = QwSub(a, QwScaleQ(up, QwDot(a, up)));
         b = QwSub(b, QwScaleQ(up, QwDot(b, up)));
-        basis = func_0011BA08(D_002A2DC0, QwCombine(D_002BF890, a, half, b, halfNeg));
+        basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, QwCombine(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
         actor->local = MulM3(basis, func_0011B500(D_002A2DC0, actor->heading));
@@ -463,7 +463,7 @@ extern "C" void func_00197F98(CONTEXT *p)
         }
         speed *= p->scale;
         U desired;
-        desired.q = func_0011E1A0(input->heading, input->amount * speed, 0.0f);
+        desired.q = SetVectorCylind(input->heading, input->amount * speed, 0.0f);
         ACTOR *actor = p->actor;
         actor->velocity.q = QwScale2(RotateTranspose(actor->local, desired.q), VuFloat(-1.0f));
         if ((p->mode != 0 || p->combo == 3) && !p->jump) {
@@ -476,7 +476,7 @@ extern "C" void func_00197F98(CONTEXT *p)
             float proj = func_0011E290(desired.q, dir.q, 0, &perp.q);
             if (proj < g && g * -0.25f < proj) {
                 desired.q = QwAddScaled(perp.q, dir.q, VuFloat(g));
-                desired.q = func_0011E9F8(desired.q, speed);
+                desired.q = LimitVectorLength(desired.q, speed);
             }
         }
         if (p->velocitySource) {

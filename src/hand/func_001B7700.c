@@ -9,7 +9,7 @@ struct P{char pad[0x1030];struct ANIM*anim;char pad1034[0x3BC];struct X*x;char p
 extern qword D_002A2DC0;
 extern float D_002C09C8;
 qword func_0022FCC8(struct LO*,struct LO*,qword);
-int func_0011D508(float,float,float,float*);
+int CSolveQuadratic__FfffPf(float,float,float,float*);
 void func_00130D30(struct ANIM*,int,float,float);
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
 static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
@@ -85,7 +85,7 @@ void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*ou
    __asm__("pextuw %0,$zero,%2\n\tmtc1 %3,%1":"=&r"(goalWord),"=f"(positionZ):"r"(goal),"r"(positionWord));
    __asm__("mtc1 %2,%0\n\tlq %1,%3":"=f"(goalZ),"=r"(velocityWord):"r"(goalWord),"m"(v.q));
    __asm__("mul.s %0,%0,%2\n\tpextuw %1,$zero,%3":"+f"(accelerationZ),"=r"(velocityZ):"f"(half),"1"(velocityWord));
-   count=func_0011D508(accelerationZ,velocityZ,positionZ-goalZ,outputRoots);
+   count=CSolveQuadratic__FfffPf(accelerationZ,velocityZ,positionZ-goalZ,outputRoots);
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);

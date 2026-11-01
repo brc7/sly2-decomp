@@ -9,7 +9,7 @@ struct RIPG { char pad[0xC]; struct VTE *vt; char p1[0x15C - 0x10]; DL dl; };
 void func_001CE9C0(struct RIP *prip);
 void func_001CE9D0(struct RIP *prip);
 int func_001A61A0(struct RIPG *p);
-int func_0011A3B0(DL *pdl);
+int FIsDlEmpty__FP2DL(DL *pdl);
 void func_001CE2E8(struct RIPG *p);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -36,7 +36,7 @@ void FUN_0019e420(struct RIPG *pripg)
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         func_001CE9D0(prip);
     }
-    if (!func_001A61A0(pripg) || func_0011A3B0(&pripg->dl))
+    if (!func_001A61A0(pripg) || FIsDlEmpty__FP2DL(&pripg->dl))
         ((void (*)(void *))pripg->vt[9].pf)((char *)pripg + pripg->vt[9].d);
     else
         func_001CE2E8(pripg);

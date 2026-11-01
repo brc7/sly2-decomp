@@ -7,8 +7,8 @@ struct VT { struct VTE a[63]; };
 struct Q { char pad[0x34]; char dl[1]; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct Q *pq; };
 void func_001F27F0(struct P *);
-int func_0011A380(void *, void *);
-void func_0011A220(void *, void *);
+int FFindDlEntry__FP2DLPv(void *, void *);
+void AppendDlEntry__FP2DLPv(void *, void *);
 void func_001F4BF8(struct P *);
 void func_001F38A8(struct E *);
 void func_001F5078(struct P *);
@@ -16,8 +16,8 @@ void func_001F2870(struct P *p, struct E *pe)
 {
     struct O *po;
     func_001F27F0(p);
-    if (func_0011A380(p->pq->dl, pe)) return;
-    func_0011A220(p->pq->dl, pe);
+    if (FFindDlEntry__FP2DLPv(p->pq->dl, pe)) return;
+    AppendDlEntry__FP2DLPv(p->pq->dl, pe);
     po = pe->po;
     pe->nA8 = -1;
     pe->m = po->m;

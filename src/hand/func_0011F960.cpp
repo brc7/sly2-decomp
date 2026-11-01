@@ -30,7 +30,7 @@ struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f); };
 struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v); };
 qword operator*(VU_FLOAT_X f, VU_VECTOR v);
 extern "C" qword *func_00256D18(VECTOR *p, qword v);
-MATRIX4 func_0011C168(const MATRIX4 &a, const MATRIX4 &b);
+MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
@@ -193,7 +193,7 @@ CRef func_0011F960(void *pv, CRef *aref)
             case 0x1A: ref = MulMatVec((MATRIX4 *)ref.u.pv, (qword *)pr->u.pv); break;
             case 0x1B: {
                 MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
-                *pm = func_0011C168(*pm, *(MATRIX4 *)pr->u.pv);
+                *pm = __ml__FRC7MATRIX4T0(*pm, *(MATRIX4 *)pr->u.pv);
                 break;
             }
             }

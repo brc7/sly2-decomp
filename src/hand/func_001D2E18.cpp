@@ -38,7 +38,7 @@ extern float D_002C2110, D_002C2114, D_002C2140, D_002C2144, D_002C2148;
 extern "C" {
 void func_001F9B20(P *);
 M3 *func_001A6318(P *);
-void func_0011B938(const M3 *, M3 *, M3 *);
+void TiltMatUpright(const M3 *, M3 *, M3 *);
 void func_001F5C30(P *, const M3 *, const POLY *, qword, const POLY *);
 CONTACT *func_001D2DD0(P *, ENTRY *);
 qword func_0022D348(MOTION *, MOTION *, qword);
@@ -47,7 +47,7 @@ qword func_0022FCC8(MOTION *, MOTION *, qword);
 float func_0011CFE0(float, float);
 void func_001FAC98(P *, qword);
 M3 *func_0011B500(M3 *, qword, float);
-qword func_0011E9F8(float, qword);
+qword LimitVectorLength(float, qword);
 void func_001FAC30(P *, qword);
 }
 static inline VV ScalarBits(int b) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(b)); return r; }
@@ -97,7 +97,7 @@ extern "C" void func_001D2E18(P *p)
     func_001F9B20(p);
     if (D_002DDED0.time - p->lastCorrection > 3.0f) {
         M3 reset;
-        func_0011B938(func_001A6318(p), 0, &reset);
+        TiltMatUpright(func_001A6318(p), 0, &reset);
         func_001F5C30(p, &reset, &D_002C2100, D_002A2DD0, 0);
     }
     U scalar, velocity, localVelocity, torque, worldTorque;
@@ -164,7 +164,7 @@ extern "C" void func_001D2E18(P *p)
     phase.impulse.acceleration.q = Divide(Subtract(desired.q, velocity.q), dtv.q);
     phase.impulse.acceleration.bits[2] = 0;
     phase.impulse.acceleration.f[0] = Clamp(phase.impulse.acceleration.f[0], minimum, maximum);
-    phase.impulse.limited.q = func_0011E9F8(budget, phase.impulse.acceleration.q);
+    phase.impulse.limited.q = LimitVectorLength(budget, phase.impulse.acceleration.q);
     phase.impulse.world.q = func_0022FCC8(p->secondary, 0, phase.impulse.limited.q);
     func_001FAC30(p, phase.impulse.world.q);
 }

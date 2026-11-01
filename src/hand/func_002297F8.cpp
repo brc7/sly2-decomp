@@ -33,7 +33,7 @@ int func_00230380(int);
 void func_001F5E10(O *,qword,const COEF *,qword,const COEF *);
 void func_001F5C30(O *,const M3 *,const COEF *,qword,const COEF *);
 M4 *func_001A6318(O *);
-void func_0011B938(const M3 *,M3 *,M3 *);
+void TiltMatUpright(const M3 *,M3 *,M3 *);
 void func_0011BCF8(const M3 *,float *,qword *);
 void func_001FAC98(O *,qword);
 void func_0015A2C0(O *,WATER *,float,qword,qword,float,float);
@@ -97,7 +97,7 @@ extern "C" void func_002297F8(O *a,O *b){
  }
  else Zero(w.velocity,0.0f);
  if(spring!=0.0f){
-  func_0011B938(&func_001A6318(a)->basis,&w.phase.basis,0);
+  TiltMatUpright(&func_001A6318(a)->basis,&w.phase.basis,0);
   func_0011BCF8(&w.phase.basis,&w.angle,&w.axis.vector.q);
   float gain=spring*3.0f;qword k=Scalar(w.angle*gain*span);
   qword rotation=Scale(w.axis.vector.q,k);w.angularNormal.q=k;

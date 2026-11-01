@@ -111,10 +111,10 @@ extern float D_002BC998, D_002BC99C, D_002BC9A0;
 extern SMP D_002BC9A8;
 extern qword D_002A2DC0, D_002A2DA0;
 qword func_001A62E8(P *p);
-float func_0011D018(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float func_0011CFE0(float g, float gMax);
 M3 func_0011B500(qword axis, float g);
-qword func_0011E9F8(qword v, float g);
+qword LimitVectorLength(qword v, float g);
 void func_001FAC30(P *p, qword v);
 }
 
@@ -137,12 +137,12 @@ extern "C" void func_00137248(S *s)
     float dot = GetX(Dot(dv, n.q));
     float w = cz / len;
     float dgNext;
-    func_0011D018(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);
+    GSmooth__FfffP3SMPPf(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);
     float g = func_0011CFE0(dgNext - dot, D_002BC9A0 * D_002DDED0.dt);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
     M3 mc;
     M3 m = func_0011B500(D_002A2DC0, w * D_002DDED0.dt);
     mc = m;
     qword r = DivF(Sub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
-    func_001FAC30(s->p, func_0011E9F8(r, gMax));
+    func_001FAC30(s->p, LimitVectorLength(r, gMax));
 }

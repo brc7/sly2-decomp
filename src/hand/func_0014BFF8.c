@@ -3,7 +3,7 @@ struct X { int a; int x4; void (*pfn)(void *); void *pv; int x10; int x14; };
 struct H { struct X *pxFirst; struct X *pxLast; int ibDle; float gC; };
 extern DLI *D_002DD2F8;
 extern float D_002DDF0C;
-void func_0011A118(struct H *ph, struct X *px);
+void RemoveSlEntry(struct H *ph, struct X *px);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_0014BF18(struct H *ph);
@@ -31,7 +31,7 @@ void func_0014BFF8(struct H *ph)
         pxBest = 0;
         while ((px = PvNextDli(&dli)) != 0) {
             if (px->x14) {
-                func_0011A118(ph, px);
+                RemoveSlEntry(ph, px);
                 px->x10 = 0;
                 px->x14 = 0;
             } else {

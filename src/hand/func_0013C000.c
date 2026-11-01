@@ -10,7 +10,7 @@ struct P { char pad[0x170]; VU v170; float x180; int x184; float x188; };
 void func_001F3C70(struct P *);
 qword func_001A62E8(void *);
 void *func_001A6318(void *);
-M4 func_0011C210(qword, void *, VU *);
+M4 LoadMatrixFromPosRotScale(qword, void *, VU *);
 void func_001A5EE8(struct P *, M4 *, float, float);
 
 static inline float GClamp(float g, float gMin, float gMax)
@@ -42,7 +42,7 @@ void func_0013C000(struct P *p)
             for (i = 0; i < 3; i++)
                 v.f[i] = (1.0f - g) + g * p->v170.f[i];
         }
-        mT = func_0011C210(func_001A62E8(p), func_001A6318(p), &v);
+        mT = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);
         m = mT;
         func_001A5EE8(p, &m, 1.0f, 1.0f);
         break;

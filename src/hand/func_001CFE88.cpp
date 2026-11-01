@@ -1,5 +1,5 @@
 // Follow an animated target: sample the target's pose (func_002309E8), blend the end velocity of a Hermite step from
-// the position delta, the current velocity and the acceleration, run the step (func_00117120), then spin the
+// the position delta, the current velocity and the acceleration, run the step (EvaluateBezierPos), then spin the
 // orientation about its axis in proportion to the elapsed time.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
@@ -13,7 +13,7 @@ struct S {
 extern struct CLOCK { float t, dt; } D_002DDED0;
 extern "C" {
 void func_002309E8(void *, int, M4 *, M4 *, float);
-void func_00117120(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 M3 *func_0011B500(M3 *, qword, float);
 void func_001CFE88(S *);
 }
@@ -55,7 +55,7 @@ void func_001CFE88(S *p)
     float cdt = clock->dt;
     qword v = p->vel;
     qword endvel = Blend(delta, v, Scale(p->accel, dt), w1, w2, w3);
-    func_00117120(remain, cdt, 1.0f, p->pos, v, m.r[3], endvel, &p->pos, &p->vel, 0);
+    EvaluateBezierPos(remain, cdt, 1.0f, p->pos, v, m.r[3], endvel, &p->pos, &p->vel, 0);
     spin = Rotation(p->axis, p->angle * remain / p->duration);
     p->mat = Mul(spin, *(M3 *)&m);
 }

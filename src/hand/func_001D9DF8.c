@@ -33,7 +33,7 @@ int func_00132B10(void *, int);
 void func_001D9B60(OBJ *, int);
 int func_001441A0(Q *);
 int func_0011D4D0(float, float, float);
-float func_0011D018(void *, int, float, float, float);
+float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 int func_002121E8(SUB *, int);
 void func_00212E40(SUB *, int, float);
 void func_001D9DF8(OBJ *p)
@@ -115,7 +115,7 @@ void func_001D9DF8(OBJ *p)
         if (p->x20 < p->x24)
             p->x20 = p->x24;
         else
-            p->x20 = func_0011D018(D_002C3248, 0, p->x20, p->x24, D_002DDED0.dt);
+            p->x20 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x20, p->x24, D_002DDED0.dt);
         func_00212E40(p->x38, 0x34F, 1.0f - p->x20);
         if (func_0011D4D0(p->x20, p->x24, 0.0001f))
             func_001D9B60(p, 1);
@@ -125,7 +125,7 @@ void func_001D9DF8(OBJ *p)
         if (p->x28 < p->x2C)
             p->x28 = p->x2C;
         else
-            p->x28 = func_0011D018(D_002C3248, 0, p->x28, p->x2C, D_002DDED0.dt);
+            p->x28 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x28, p->x2C, D_002DDED0.dt);
         func_00212E40(p->x38, 0x350, 1.0f - p->x28);
         if (func_0011D4D0(p->x28, p->x2C, 0.0001f))
             func_001D9B60(p, 1);

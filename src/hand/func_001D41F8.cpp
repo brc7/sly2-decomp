@@ -20,8 +20,8 @@ extern "C" {
 qword func_001A6FC0(P*,P*,qword);
 qword func_0022FC48(P*,NODE*,qword);
 CONTACT*func_001D2DD0(P*,ENTRY*);
-float func_0011D018(float,float,float,void*,float*);
-float func_0011CF60(float);
+float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
+float RadNormalize__Ff(float);
 M3*func_0011B500(M3*,qword,float);
 qword*func_00256D18(qword*,qword);
 void func_0022FAA0(P*);
@@ -48,7 +48,7 @@ extern "C" void func_001D41F8(P*p){
    float height;
    if(hit){float limit=e->height+hit->height;if(point.f[2]<limit){point.f[2]=limit;goto heightDone;}height=limit;}
    else height=e->height;
-   (void)func_0011D018(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
+   (void)GSmooth__FfffP3SMPPf(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
   }
   heightDone:;
   point.q=func_0022FC48(p->space,e->node->parent,point.q);
@@ -56,16 +56,16 @@ extern "C" void func_001D41F8(P*p){
   if(hit){
    float current=velocity.f[0]/e->radius;
    if((0.0f<desired&&current<D_002C21CC*desired)||(desired<0.0f&&D_002C21CC*desired<current))
-    e->speed=func_0011D018(e->speed,D_002C21CC*desired,D_002DDED0.dt,D_002C21B0,0);
+    e->speed=GSmooth__FfffP3SMPPf(e->speed,D_002C21CC*desired,D_002DDED0.dt,D_002C21B0,0);
    else e->speed=current;
   }else{
    float dt=D_002DDED0.dt;
    void*table;
    if(Abs(e->speed)<Abs(desired))table=D_002C21B0;else table=D_002C21C0;
-   e->speed=func_0011D018(e->speed,desired,dt,table,0);
+   e->speed=GSmooth__FfffP3SMPPf(e->speed,desired,dt,table,0);
   }
   float dt=D_002DDED0.dt;
-  e->angle=func_0011CF60(e->angle+e->speed*dt);
+  e->angle=RadNormalize__Ff(e->angle+e->speed*dt);
   basis=Mul(Rotation(D_002A2DC0,e->tilt),Rotation(D_002A2DB0,e->angle));
   NODE*node=e->node;
   func_00256D18(&node->matrix.position.q,point.q);

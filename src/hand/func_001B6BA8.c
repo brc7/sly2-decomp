@@ -7,7 +7,7 @@ void func_001B6078(struct P *p, int n);
 void func_001B6DA8(struct P *p, int n);
 int func_0019A098(struct P *p, void *q, float f);
 void func_0019F590(struct P *p, int n);
-qword func_0011E1A0(float a, float b, float c);
+qword SetVectorCylind(float a, float b, float c);
 void func_001B6BA8(struct P *p)
 {
     int s;
@@ -23,7 +23,7 @@ void func_001B6BA8(struct P *p)
     switch (p->x13D8) {
     case 0:
     case 1:
-        p->q190 = func_0011E1A0(p->x150->f18 + 3.14159265f, D_002C09A0 * D_002BF730 * p->x150->f1C, 0.0f);
+        p->q190 = SetVectorCylind(p->x150->f18 + 3.14159265f, D_002C09A0 * D_002BF730 * p->x150->f1C, 0.0f);
         break;
     }
 }

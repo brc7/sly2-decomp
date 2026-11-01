@@ -13,7 +13,7 @@ float func_001FE3F8(void *);
 void func_00152390(int, int, int, int);
 void func_001619A0(void *, int, struct S *);
 void func_00153640(struct S *, float);
-float func_0011D018(void *, float, float, float, int);
+float GSmooth__FfffP3SMPPf(void *, float, float, float, int);
 void func_00152B58(struct S *);
 void func_00152970(struct S *p)
 {
@@ -56,6 +56,6 @@ void func_00152970(struct S *p)
         }
         break;
     }
-    { float dt = D_002DDED0.dt; p->g288 = func_0011D018(p->x28C, p->g288, p->g284, dt, 0); }
+    { float dt = D_002DDED0.dt; p->g288 = GSmooth__FfffP3SMPPf(p->x28C, p->g288, p->g284, dt, 0); }
     func_00152B58(p);
 }

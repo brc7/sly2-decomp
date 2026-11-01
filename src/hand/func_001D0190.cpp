@@ -25,9 +25,9 @@ extern const qword D_002A2DA0,D_002A2DC0;
 extern "C" {
 void func_001CE980(RIP *);
 int func_0014F850(CAMERA *,qword,qword);
-M3 func_0011B830(qword,qword);
+M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 func_0011B500(qword,float);
-M4 func_0011C288(qword,const M3 &,float);
+M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
 void func_001A5EE8(void *,const M4 &,float,float);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -62,9 +62,9 @@ extern "C" void func_001D0190(RIP *p)
     float v=Evaluate(p->opacity,time);
     if(v<opacity){}else if(hi<v)opacity=hi;else opacity=v;
     opacity*=Clamp(Evaluate(D_002C1FD0,distance),D_002C1FE0[0],D_002C1FE0[1]);
-    basis=func_0011B830(direction,D_002A2DC0);
+    basis=BuildOrthonormalMatrixZ(direction,D_002A2DC0);
     rotation=func_0011B500(D_002A2DA0,Evaluate(D_002C1FF0,time));
     product=Multiply(basis,rotation);
-    transform=func_0011C288(p->position,product,size);
+    transform=LoadMatrixFromPosRotScalar(p->position,product,size);
     func_001A5EE8(p->material,transform,opacity,1.0f);
 }

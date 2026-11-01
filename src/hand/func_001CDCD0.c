@@ -3,7 +3,7 @@ struct O { int x0; int x4; int x8; struct VTE *vt; char p1[0x80 - 0x10]; char x8
 struct G { char pad[0x403C]; char pool[0x30]; struct O *x406C; };
 extern struct VTE D_002D9978[];
 extern struct VTE D_002D77D8[];
-void *func_0011CCC0(void *pool);
+void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb);
 void *func_00167310(void *p);
 void *func_0015E3A8(struct G *p, int n);
@@ -13,7 +13,7 @@ struct O *func_001CDCD0(struct G *p, int a)
 {
     struct O *po;
     if (!a && p->x406C) return p->x406C;
-    po = func_0011CCC0(p->pool);
+    po = PvAllocSlotheapClear(p->pool);
     if (!po) return 0;
     func_002333B4(po, 0, 0x1B0);
     po->x0 = 0;

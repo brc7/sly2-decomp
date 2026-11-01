@@ -26,14 +26,14 @@ struct P{
 union PHASE{qword direction;U scalar;};
 extern qword D_002A2DD0;extern char D_003DD490[];
 extern float D_002BF3C0,D_002BF3C4,D_002BF3C8,D_002BF3CC,D_002BF35C;
-float func_00204740(struct P*);float func_0011CF60(float);
+float func_00204740(struct P*);float RadNormalize__Ff(float);
 void func_00194A40(void*,struct P*,unsigned int);
 void func_0018B2C0(struct P*);void func_0018A8C8(struct P*);void func_0018F0A8(struct P*);
 struct BINDING*func_0012FF10(void*,struct P*,void*,int);
 void func_00190520(struct P*);void func_00197F98(void*);void func_00191A10(void*);void func_00137218(void*);
 void func_001A0720(struct P*,void*,int,float,float);void func_0018B460(struct P*);
 void func_0020BB58(void*,float);void func_002046F0(struct P*,void*);
-qword func_0011E1A0(float,float,float);qword func_001A6FC0(void*,void*,qword);
+qword SetVectorCylind(float,float,float);qword func_001A6FC0(void*,void*,qword);
 int func_001DAEA8(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void func_00131A00(struct MODEL*,float);void func_00204660(struct P*,float);
 void func_001441E8(struct P*,float);void func_0018C250(struct P*,int,int);
@@ -69,7 +69,7 @@ static inline void PrepareAnimation(struct P*p,U*u,struct MODEL**modelOut,struct
 static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(q));return r;}
 void func_0018B7E8(struct P*p){
  union PHASE phase;U scalar;float initialHeading;
- initialHeading=func_00204740(p);(void)func_0011CF60(p->state->heading-initialHeading);
+ initialHeading=func_00204740(p);(void)RadNormalize__Ff(p->state->heading-initialHeading);
  func_00194A40(D_003DD490,p,0xFFFF);
  func_0018B2C0(p);func_0018A8C8(p);func_0018F0A8(p);
  switch(p->mode){
@@ -89,7 +89,7 @@ void func_0018B7E8(struct P*p){
  case 5:switch(p->submode){
   case 4:if(p->owner)func_002046F0(p,p->owner);break;
   case 5:func_001A0720(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;
-  case 8:case 9:phase.direction=func_0011E1A0(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=func_001A6FC0(0,p,phase.direction);break;
+  case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=func_001A6FC0(0,p,phase.direction);break;
  }break;
  case 16:
   if(func_001DAEA8(0x1C))func_0018E1E0(p);
@@ -101,7 +101,7 @@ void func_0018B7E8(struct P*p){
  case 24:{
   register float one __asm__("$f20");register float weight __asm__("$f1");qword velocity;struct VTE*entry;
   func_001441E8(p,D_002BF3C4);
-  if(p->submode==12){float angle=func_0011CF60(func_00204740(p)-p->heading);if(__builtin_fabsf(angle)<D_002BF3C8)func_0018C250(p,24,13);}
+  if(p->submode==12){float angle=RadNormalize__Ff(func_00204740(p)-p->heading);if(__builtin_fabsf(angle)<D_002BF3C8)func_0018C250(p,24,13);}
   else func_00204660(p,p->state->heading);
   one=1.0f;entry=&p->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)p+entry->delta);
   weight=D_002BF3CC*func_0011CFE0(Z(velocity)/(p->factor*D_002BF35C),one);

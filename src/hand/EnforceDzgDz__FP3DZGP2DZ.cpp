@@ -28,8 +28,8 @@ struct DZG {
 };
 
 extern "C" {
-void func_0011A220(DL *pdl, void *pv);
-void func_0011A2E8(DL *pdl, void *pv);
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
+void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 extern const float D_002A4120;
 extern const float D_002A4124;
 }
@@ -40,8 +40,8 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz)
 {
     int iter;
     if (pdz) {
-        func_0011A2E8(&pdzg->dlD, pdz);
-        func_0011A220(&pdzg->dlA, pdz);
+        RemoveDlEntry__FP2DLPv(&pdzg->dlD, pdz);
+        AppendDlEntry__FP2DLPv(&pdzg->dlA, pdz);
         pdzg->cdzA++;
     }
     for (iter = 0; iter < 10; iter++) {
@@ -131,27 +131,27 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz)
             return;
         case 2:
             pdzg->cdzA--;
-            func_0011A2E8(&pdzg->dlA, pdzBest);
-            func_0011A220(&pdzg->dlB, pdzBest);
+            RemoveDlEntry__FP2DLPv(&pdzg->dlA, pdzBest);
+            AppendDlEntry__FP2DLPv(&pdzg->dlB, pdzBest);
             if (pdzBest == pdz)
                 return;
             break;
         case 1:
             pdzg->cdzA++;
-            func_0011A2E8(&pdzg->dlB, pdzBest);
-            func_0011A220(&pdzg->dlA, pdzBest);
+            RemoveDlEntry__FP2DLPv(&pdzg->dlB, pdzBest);
+            AppendDlEntry__FP2DLPv(&pdzg->dlA, pdzBest);
             break;
         case 4:
             pdzg->cdzA--;
-            func_0011A2E8(&pdzg->dlA, pdzBest);
-            func_0011A220(&pdzg->dlC, pdzBest);
+            RemoveDlEntry__FP2DLPv(&pdzg->dlA, pdzBest);
+            AppendDlEntry__FP2DLPv(&pdzg->dlC, pdzBest);
             if (pdzBest == pdz)
                 return;
             break;
         case 3:
             pdzg->cdzA++;
-            func_0011A2E8(&pdzg->dlC, pdzBest);
-            func_0011A220(&pdzg->dlA, pdzBest);
+            RemoveDlEntry__FP2DLPv(&pdzg->dlC, pdzBest);
+            AppendDlEntry__FP2DLPv(&pdzg->dlA, pdzBest);
             break;
         }
     }

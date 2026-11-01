@@ -3,8 +3,8 @@ typedef struct MSG { int cb; int nKind; int k; int **pp; } MSG;
 struct O { char pad[0x28]; long bits; };
 struct S { char pad[0xE4]; char aE4[0x18]; char aFC[0x10]; struct O *p10C; int c; void *a; void *cur; int x11C; char pad2[0x164 - 0x120]; int flags; };
 void func_00231768(struct S *p, void *pbis);
-void func_00117FD0(void *pbis, void *pv);
-void func_00118220(void *pbis, void *pv, void *pv2);
+void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pv);
+void CBinaryInputStream_ReadBspc(void *pbis, void *pv, void *pv2);
 MARK *func_001AE478(MARK *pm);
 void func_001AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
@@ -20,8 +20,8 @@ void func_00220FD0(struct S *p, void *pbis)
     MSG msg;
     void *pv;
     func_00231768(p, pbis);
-    func_00117FD0(pbis, p->aE4);
-    func_00118220(pbis, p->aE4, p->aFC);
+    ReadGeom__18CBinaryInputStreamP4GEOM(pbis, p->aE4);
+    CBinaryInputStream_ReadBspc(pbis, p->aE4, p->aFC);
     func_001AE478(&mark);
     {
         MSG *pm = &msg;

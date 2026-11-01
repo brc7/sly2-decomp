@@ -1,7 +1,7 @@
 // func_001C2EF0 (w3lane8, wave 3): launches `count` objects from an owner's source object towards the player.
 // The first object is the owner's existing one (+0x158), the others come from its factory (func_001CB250); new
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
-// offset (func_0011E1A0 from two random angles and -75) is expressed in a basis built (func_0011B830) from the
+// offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
 // horizontal part of the start->target direction and the up axis, and func_001D69F0 computes the launch velocity.
 // Class 0x5A objects are launched through func_001C6BD0 with an index-scaled delay; others are reset, parented to the
 // source and given the velocity through virtual calls.  func_001C2DB8 cleans up the owner on every exit.
@@ -26,9 +26,9 @@ extern LM D_002C0CF0, D_002C0CF8, D_002C0CE0;       // random ranges: two offset
 extern float D_002C0CE8, D_002C0CEC, D_002A76E8;
 void *func_001C4840(GAME *);
 qword func_001A62E8(void *);
-float func_0011D448(float, float);
-qword func_0011E1A0(float, float, float);
-M3 func_0011B830(qword, qword);
+float GRandInRange__Fff(float, float);
+qword SetVectorCylind(float, float, float);
+M3 BuildOrthonormalMatrixZ(qword, qword);
 qword func_001D69F0(qword, qword, qword, float);
 int func_00132B10(SO *, int);
 void func_001C6BD0(SO *, qword, qword, float, float);
@@ -73,7 +73,7 @@ static inline qword Transform(const M3 &m, qword q)
             : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(q));
     return r;
 }
-static inline float Rand(const LM &lm) { return func_0011D448(lm.gMin, lm.gMax); }
+static inline float Rand(const LM &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }
 static inline void SetState(SO *p, int state) { VTE *v = p->vt; ((void (*)(void *, int))v[76].fn)((char *)p + v[76].delta, state); }
 static inline void Reset(SO *p) { VTE *v = p->vt; ((void (*)(void *))v[8].fn)((char *)p + v[8].delta); }
 static inline void SetParent(SO *p, SO *parent) { VTE *v = p->vt; ((void (*)(void *, SO *))v[39].fn)((char *)p + v[39].delta, parent); }
@@ -99,11 +99,11 @@ extern "C" SO *func_001C2EF0(OWNER *p, int count)
         qword start = p->source->position;
         qword target = func_001A62E8(func_001C4840(game));
         float pan = Rand(D_002C0CF0);
-        qword offset = func_0011E1A0(pan, Rand(D_002C0CF8), -75.0f);
+        qword offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qword delta = Sub(target, start);
         qword side = Sub(delta, Scale(Dot(delta, D_002A2DC0), D_002A2DC0));
         M3 mat;
-        mat = func_0011B830(Normalize(side, D_002A2DA0), D_002A2DC0);
+        mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), D_002A2DC0);
         qword dest = Add(target, Transform(mat, offset));
         qword velocity = func_001D69F0(start, dest, D_002C0D60, Rand(D_002C0CE0));
         if (func_00132B10(node, 0x5A)) {

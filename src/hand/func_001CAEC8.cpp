@@ -27,7 +27,7 @@ short func_00117D50(STREAM *);
 void func_0013E818(P *,DESC *,int,STREAM *);
 void func_00127B40(void *,void *);
 void func_00256EE0(void **,void *);
-void func_001184B8(STREAM *,int);
+void CMemInputStream_ctor(STREAM *,int);
 }
 static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.delta);}
 static inline void Channel(P *p,void *context,void *channel){VTE &v=p->vt[10];((void(*)(P *,void *,void *,int))v.fn)(Adjusted(p,v),context,channel,0);}
@@ -61,7 +61,7 @@ extern "C" NODE *func_001CAEC8(P *p,int minimum){
    if(work.found->resource)func_00127B40(bind->resource,work.found->resource);
    func_00256EE0(&work.found->resource,bind->resource);
   }
-  func_001184B8(&stream,2);
+  CMemInputStream_ctor(&stream,2);
  }
  for(int i=0;i<p->table->count;i++){
  void **cursor=&work.cursor;

@@ -5,7 +5,7 @@ extern char D_002DD590[];
 extern struct G D_003D4A60;
 int func_00117C20(BIS *);
 void func_00117968(BIS *, int, void *);
-void func_00118380(BIS *, char **, void *, int);
+void CBinaryInputStream_ReadStringSw(BIS *, char **, void *, int);
 void func_001D8600(void *, int);
 void func_001D8690(void *, char *, int);
 void *func_001AE1D0(struct MSG *);
@@ -21,7 +21,7 @@ void func_001D7B88(OBJ *p, BIS *pbis)
     func_001D8600(p->ht, n);
     for (i = 0; i < n; i++) {
         int v = func_00117C20(pbis);
-        func_00118380(pbis, &pchz, D_002DD590, 0x2D);
+        CBinaryInputStream_ReadStringSw(pbis, &pchz, D_002DD590, 0x2D);
         func_001D8690(p->ht, pchz, v);
     }
     c = func_00117C20(pbis);

@@ -43,7 +43,7 @@ extern char D_00000390[];
 extern char D_00000870[];
 void func_001AE478(FRAME *pf);
 void func_001AE4A0(FRAME *pf, int n);
-int func_0011A3B0(void *pdl);
+int FIsDlEmpty__FP2DL(void *pdl);
 int func_0011A3C0(void *pdl);
 void *func_001AE318(const AL &al);
 int func_001A61A0(LO *plo);
@@ -84,7 +84,7 @@ void func_0013A1E8(P *p)
     func_001AE478(&frame);
     int cLight;
     M4 *aLight;
-    if (p->xE0 != 0 && func_0011A3B0(&p->xE0->x11C) == 0) {
+    if (p->xE0 != 0 && FIsDlEmpty__FP2DL(&p->xE0->x11C) == 0) {
         cLight = 0;
         aLight = (M4 *)PvAllocStack(func_0011A3C0(&p->xE0->x11C) << 6);
         M4 *pl = aLight;

@@ -12,10 +12,10 @@ extern char D_003D4A60[];
 extern float D_002C4408[];
 extern "C" {
 qword func_001A62E8(void *);
-M3 func_0011B7E0(qword);
+M3 LoadLookAtMatrix(qword);
 void func_0011BC88(const M3 *,float *,float *);
 float func_0011CFE0(float,float);
-float func_0011D018(float,float,float,const float *,float *);
+float GSmooth__FfffP3SMPPf(float,float,float,const float *,float *);
 float func_0011D948(const BOUND *,float);
 void func_0012D108(void *,qword);
 void func_00129EC8(void *);
@@ -33,7 +33,7 @@ extern "C" void func_00225BA0(S *p){
         M3 m;
         float pitch,yaw;
         qword target;
-        m=func_0011B7E0((target=func_001A62E8(p->target),Sub(target,func_001A62E8(p))));
+        m=LoadLookAtMatrix((target=func_001A62E8(p->target),Sub(target,func_001A62E8(p))));
         func_0011BC88(&m,&pitch,&yaw);
         float dp=pitch-p->pitch;
         float dy=yaw-p->yaw;
@@ -58,8 +58,8 @@ extern "C" void func_00225BA0(S *p){
             if(ay*p->vyaw<=0.0f)p->vyaw=0.0f;
             CLOCK *clock=&D_002DDED0;
             const float *damping=D_002C4408;
-            p->vpitch=func_0011D018(p->vpitch,0.0f,clock->dt,damping,0);
-            p->vyaw=func_0011D018(p->vyaw,0.0f,clock->dt,damping,0);
+            p->vpitch=GSmooth__FfffP3SMPPf(p->vpitch,0.0f,clock->dt,damping,0);
+            p->vyaw=GSmooth__FfffP3SMPPf(p->vyaw,0.0f,clock->dt,damping,0);
             p->vpitch=func_0011CFE0(p->vpitch+ax*clock->dt,limit*0.9f);
             p->vyaw=func_0011CFE0(p->vyaw+ay*clock->dt,limit*0.8f);
             p->pitch+=p->vpitch*clock->dt;

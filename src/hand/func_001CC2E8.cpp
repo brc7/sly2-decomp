@@ -20,8 +20,8 @@ struct WORK {U position; M3 basis; STAGE stage; float t,result,projection; U sav
 extern "C" {
 qword func_001A62E8(LO*);
 void func_001E7380(void*,qword,void*,qword*,qword*,float*,float*,float);
-M4 func_0011C318(const M4*);
-M4 *func_0011C168(M4*,const M4*,const M4*);
+M4 InvertMatrix4Rigid(const M4*);
+M4 *__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 qword func_001A6F00(LO*,LO*,qword);
 void Minimize(float(*)(void*,float),void*,float,float,float,float,float*,float*) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
 float func_001CC2B8(void*,float);
@@ -54,9 +54,9 @@ void func_001CC2E8(P*p){
  case 2:{
   M4*output=&w.stage.early.temporary;
   M4*world=p->follow->vt[31].matrix((char*)p->follow+p->follow->vt[31].delta);
-  cursor=&w.stage.early.inverse;new(cursor)M4(func_0011C318(&p->matrix));
+  cursor=&w.stage.early.inverse;new(cursor)M4(InvertMatrix4Rigid(&p->matrix));
   const M4*inverseArg=InverseArgument((M4*)cursor);
-  func_0011C168(output,world,inverseArg);
+  __ml__FRC7MATRIX4T0(output,world,inverseArg);
   cursor=PublishProductAndBasis(&w);
   break;
  }

@@ -3,7 +3,7 @@ typedef struct { qword r[3]; } M3;
 typedef union { qword q; float f[4]; } U;
 struct X { int a[4]; float g10; float g14; };
 extern qword D_002A5000;
-M3 func_0011B720(float x, float y);
+M3 LoadRotateMatrixPanTilt(float x, float y);
 qword func_0014FE58(struct X *p);
 qword func_0014FEC8(struct X *p)
 {
@@ -12,7 +12,7 @@ qword func_0014FEC8(struct X *p)
     qword pos;
     /* pinned $v0 for address and loaded value, like the target */
     { register qword *pa __asm__("$2") = &D_002A5000; register qword t __asm__("$2") = *pa; v.q = t; }
-    m = func_0011B720(p->g10, p->g14);
+    m = LoadRotateMatrixPanTilt(p->g10, p->g14);
     pos = func_0014FE58(p);
     {
         register qword r1 __asm__("vf2") = m.r[1];

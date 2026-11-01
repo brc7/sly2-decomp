@@ -6,10 +6,10 @@ union SOURCE {void *object;float deadline;};
 struct O {M4 local,world;float t0,t1;float *time,*dt;JOB *hook;int kind;short mode,state;unsigned int tag;O *parent;int priority;SOURCE source;unsigned short force,damping;qword velocity,v0,v1,v2,v3;};
 extern qword D_002A2DD0;
 extern "C" {
-M4 func_0011C318(const M4 *);
+M4 InvertMatrix4Rigid(const M4 *);
 M4 func_0022CDC0(O *);
 void func_0022DD00(void *,O *);
-void func_00117120(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
+void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
 static inline qword Zero() {qword r;__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline qword Add(qword a,qword b) {qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -29,7 +29,7 @@ static inline qword ParentRotate(const M4 &m,qword v) {register qword row0 __asm
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(row0),"j"(m.r[1]),"j"(m.r[2]));return v;}
 static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%3x\n\tvmadday.xyz ACC,%1,%3y\n\tvmaddz.xyz %0,%2,%3z":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
-static inline void Eval(O *p,qword *v) {func_00117120(p->t1-p->t0,*p->time-p->t0,*p->dt,p->v0,p->v1,p->v2,p->v3,0,v,0);}
+static inline void Eval(O *p,qword *v) {EvaluateBezierPos(p->t1-p->t0,*p->time-p->t0,*p->dt,p->v0,p->v1,p->v2,p->v3,0,v,0);}
 extern "C" qword func_0022D348(O *p,O *stop,qword in) {
     qword sum;
     qword delta;
@@ -62,10 +62,10 @@ extern "C" qword func_0022D348(O *p,O *stop,qword in) {
                 m=func_0022CDC0(p);
                 O *parent=p->parent;
                 if(parent) {
-                    M4 inverse=func_0011C318(&p->world);
+                    M4 inverse=InvertMatrix4Rigid(&p->world);
                     sum=Add(sum,ParentRotate(parent->world,Transform(m,InverseTransform(inverse,input))));
                 } else {
-                    M4 inverse=func_0011C318(&p->world);
+                    M4 inverse=InvertMatrix4Rigid(&p->world);
                     sum=Add(sum,Transform(m,InverseTransform(inverse,input)));
                 }
                 break;
@@ -74,6 +74,6 @@ extern "C" qword func_0022D348(O *p,O *stop,qword in) {
             break;
         }
     }
-    if(stop) {M4 inverse=func_0011C318(&stop->world);sum=RotatePointerRows(inverse,sum);}
+    if(stop) {M4 inverse=InvertMatrix4Rigid(&stop->world);sum=RotatePointerRows(inverse,sum);}
     return sum;
 }

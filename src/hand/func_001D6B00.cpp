@@ -69,7 +69,7 @@ extern qword D_002A2DA0;        // default direction
 extern char D_003DD490[];
 extern "C" {
 qword func_001A62E8(SO *);                                       // PosLoWorld
-MATRIX4 *func_0011C168(MATRIX4 *, MATRIX4 *, MATRIX4 *);
+MATRIX4 *__ml__FRC7MATRIX4T0(MATRIX4 *, MATRIX4 *, MATRIX4 *);
 void *func_002333B4(void *, int, int);                           // memset
 void func_002309E8(XF *, int, MATRIX4 *, MATRIX4 *, float);
 int func_00132B10(SO *, int);                                    // FIsBasicDerivedFrom
@@ -81,10 +81,10 @@ void func_001A58D0(SO *, int, int);
 void func_001F4898(SO *, qword);
 qword func_001F5860(SO *);
 qword func_001D6848(float, qword, qword, qword);                 // CalculateLaunchVelocity
-void func_0011B7E0(MATRIX3 *, qword);
-float func_0011D448(float, float);                               // GRandInRange
+void LoadLookAtMatrix(MATRIX3 *, qword);
+float GRandInRange__Fff(float, float);                               // GRandInRange
 }
-static inline float GRandInRange(const LM &lm) { return func_0011D448(lm.gMin, lm.gMax); }
+static inline float GRandInRange(const LM &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT {
     qword q;
@@ -193,14 +193,14 @@ extern "C" void func_001D6B00(LAUNCH *plaunch, SO *pso)
     float dist;
     {
         MATRIX4 mat;
-        func_0011C168(&mat, &pxf->matWorld, &matParent);
+        __ml__FRC7MATRIX4T0(&mat, &pxf->matWorld, &matParent);
         dpos = Sub(Point(mat, plaunch->posTarget), posStart);
         dist = GFromVf(Length(dpos));
         float t = GClamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.gMin, plaunch->lmPredict.gMax);
         if (t != 0.0f) {
             MATRIX4 matPredict;
             func_002309E8(pxf, 0, &mat, 0, t);
-            func_0011C168(&matPredict, &mat, &matParent);
+            __ml__FRC7MATRIX4T0(&matPredict, &mat, &matParent);
             dpos = Sub(Point(matPredict, plaunch->posTarget), posStart);
         }
     }
@@ -223,7 +223,7 @@ extern "C" void func_001D6B00(LAUNCH *plaunch, SO *pso)
         qword v = VuFloatFromWord(pso->svLaunch) * Normalize2(posAim, posStart);
         pso->SetVelocity(v);
         MATRIX3 mat;
-        func_0011B7E0(&mat, v);
+        LoadLookAtMatrix(&mat, v);
         pso->RotateToMat(&mat);
     } else {
         qword vAccel = func_001F5860(pso);
@@ -232,9 +232,9 @@ extern "C" void func_001D6B00(LAUNCH *plaunch, SO *pso)
     }
     if (plaunch->lmSpin.gMax > 0.0f) {
         float g = GRandInRange(plaunch->lmSpin);
-        float x = func_0011D448(-1.0f, 1.0f);
-        float y = func_0011D448(-1.0f, 1.0f);
-        float z = func_0011D448(-1.0f, 1.0f);
+        float x = GRandInRange__Fff(-1.0f, 1.0f);
+        float y = GRandInRange__Fff(-1.0f, 1.0f);
+        float z = GRandInRange__Fff(-1.0f, 1.0f);
         qword w = NormalizeTo(QwToVf(VECTOR(x, y, z).q)) * VU_FLOAT(g);
         pso->SetAngularVelocity(w);
     }

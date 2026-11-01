@@ -15,7 +15,7 @@ int func_001A61A0(struct T *p);
 qword func_001A62E8(void *p);
 struct M3 *func_001A6318(void *p);
 void func_00146E18(struct P *p, int n);
-float func_0011D448(float gMin, float gMax);
+float GRandInRange__Fff(float gMin, float gMax);
 
 static __inline__ float Dot(qword a, qword b)
 {
@@ -74,7 +74,7 @@ void func_001467A0(struct P *p)
             if (g < D_002BD360) {
                 struct M3 *pm = func_001A6318(p->p10);
                 if (0.8f < Dot(pm->r[0], d.q)) {
-                    if (func_0011D448(0.0f, 1.0f) < 0.3f)
+                    if (GRandInRange__Fff(0.0f, 1.0f) < 0.3f)
                         func_00146E18(p, 3);
                     else
                         func_00146E18(p, 2);

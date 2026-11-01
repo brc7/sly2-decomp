@@ -24,7 +24,7 @@ extern "C"{
  extern float D_002A6720;
  int func_00132B10(P*,int);
  float func_002458F0(float,float);
- float func_0011CF60(float);
+ float RadNormalize__Ff(float);
  void func_00204660(P*,float);
  void func_00204CA8(P*);
  void func_002046B0(P*,qword);
@@ -145,7 +145,7 @@ extern "C" void func_001A0B40(C*p,int next){
    __asm__("lui $3,%%hi(%5)\n\tvmul.xy $vf1,%4,%4\n\tvaddy.x $vf1,$vf1,$vf1y\n\taddiu %2,$3,%%lo(%5)\n\tvsqrt $Q,$vf1x\n\tvwaitq\n\tvaddq.x $vf1,$vf0,$Q\n\tlwc1 $f1,8(%2)\n\tqmfc2.ni $4,$vf1\n\tlwc1 $f2,4(%2)\n\tmtc1 $4,$f0\n\tlwc1 %0,%%lo(%5)($3)\n\tmul.s $f1,$f0,$f1\n\tlui %2,%%hi(%6)\n\tlwc1 %1,%%lo(%6)(%2)\n\tsqc2 %4,%3\n\taddiu %2,%2,%%lo(%6)\n\tadd.s $f2,$f2,$f1\n\tmul.s $f0,$f0,$f2\n\tadd.s %0,%0,$f0":"=&f"(fraction),"=&f"(lower),"=&r"(range),"=m"(velocity.q):"j"(v),"i"(&D_002BFA20),"i"(&D_002BBB60):"$3","$4","$f0","$f1","$f2","vf1","memory");
    float blend=ClampKnownLower(fraction,lower,range);
    float angle=func_002458F0(velocity.f[1],velocity.f[0])+3.1415927f;
-   angle=func_0011CF60(angle-p->actor->yaw);
+   angle=RadNormalize__Ff(angle-p->actor->yaw);
    func_00204660(p->actor,p->actor->yaw+angle*blend);
    func_00204CA8(p->actor);
   }}

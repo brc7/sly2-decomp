@@ -2,8 +2,8 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
 void *func_002333B4(void *p, int c, int cb);
-void func_0011C318(M4F *pmOut, M4F *pm);
-void func_0011C168(M4 *pmOut, M4F *pa, M4F *pb);
+void InvertMatrix4Rigid(M4F *pmOut, M4F *pm);
+void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb);
 void func_0014D8F8(M4F *pm, M4F *pproj, M4 *pmOut)
 {
     M4F m;
@@ -23,8 +23,8 @@ void func_0014D8F8(M4F *pm, M4F *pproj, M4 *pmOut)
     {
         M4F t;
         M4 *pr = &r;
-        func_0011C318(&t, &m);
-        func_0011C168(pr, pproj, &t);
+        InvertMatrix4Rigid(&t, &m);
+        __ml__FRC7MATRIX4T0(pr, pproj, &t);
     }
     *pmOut = r;
 }
