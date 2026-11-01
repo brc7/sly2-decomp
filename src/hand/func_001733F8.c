@@ -4,25 +4,25 @@ struct O { char pad[0x54]; int n54; };
 struct E { int n0; int n4; void *p8; struct O *pC; int n10; int pad[2]; };
 struct S { char pad[0x40]; unsigned int u40; char pad2[0xC]; int n50; struct E *a54; int pad3; int n5C; void *p60; };
 struct AL { int cb; int n; };
-void func_001A5C48(struct S *p);
-void *func_0015E938(struct G *g, int a, int b, int c);
-struct O *func_0013E3C8(int a, int b, int c, int d);
+void PostLoLoad(struct S *p);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
+struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_00170C50(struct O *o, int a, int b, int c);
 void *func_001AE2A0(struct AL *a);
-void func_001A6CA8(struct S *p, int n);
+void SetLoBusyk(struct S *p, int n);
 void func_001733F8(struct S *p) {
     int i;
     struct AL al;
     unsigned int f;
-    func_001A5C48(p);
+    PostLoLoad(p);
     for (i = 0; i < p->n50; i++) {
         struct E *e = &p->a54[i];
         switch (e->n0) {
         case 1:
             {
                 struct O *o;
-                e->p8 = func_0015E938(&D_003DD490, 5, e->n4, 0);
-                o = func_0013E3C8(0x71, 0, 0x2CB, -1);
+                e->p8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, e->n4, 0);
+                o = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
                 func_00170C50(o, e->n4, 1, -1);
                 e->n10 = o->n54;
                 e->pC = o;
@@ -30,14 +30,14 @@ void func_001733F8(struct S *p) {
             break;
         case 0:
         case 2:
-            e->p8 = func_0015E938(&D_003DD490, 5, e->n4, 0);
+            e->p8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, e->n4, 0);
             break;
         }
     }
     al.cb = p->n5C * 0x30;
     al.n = 0x10;
     p->p60 = func_001AE2A0(&al);
-    func_001A6CA8(p, 1);
+    SetLoBusyk(p, 1);
     f = p->u40;
     if ((f ^ 1) & 1) *(int *)f |= 2;
     else p->u40 = f | 2;

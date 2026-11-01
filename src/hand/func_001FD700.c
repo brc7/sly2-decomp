@@ -14,8 +14,8 @@ void func_00156BE0(int, qword, int, void *);
 void *func_002333B4(void *, int, int);
 void func_00227788(void *);
 void func_00259B48(void *, void *);
-void func_0011CDB8(void *);
-void func_0011A200(void *);
+void ResetSlotheap(void *);
+void ClearDl__FP2DL(void *);
 void func_001FEDF0(struct P *);
 void func_001FD700(struct P *p)
 {
@@ -44,8 +44,8 @@ void func_001FD700(struct P *p)
     func_00259B48(&p->r228, 0);
     func_002333B4(p->s22C, 0, 0x18);
     p->n68 = 3;
-    func_0011CDB8(p->s1C);
-    func_0011CDB8(p->s34);
-    func_0011A200(p->s4C);
+    ResetSlotheap(p->s1C);
+    ResetSlotheap(p->s34);
+    ClearDl__FP2DL(p->s4C);
     func_001FEDF0(p);
 }

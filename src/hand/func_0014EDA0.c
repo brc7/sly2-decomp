@@ -9,8 +9,8 @@ void func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
 void *func_001AE318(struct AL *pal);
 int func_001A93C8(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
-void func_0011AD30(int c, float *aDot, float *aW, float *aZ, float g);
-qword func_0011E9F8(qword v, float g);
+void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
+qword LimitVectorLength(qword v, float g);
 
 static inline int Dot(qword *pa, qword *pb)
 {
@@ -66,7 +66,7 @@ qword func_0014EDA0(void *p, int c, struct LO **apo, float (*pfn)(void *, qword,
         pg = aW;
         for (i = 0; i < n; i++)
             *pg++ = pfn(p, pos, v, &ax[i]);
-        func_0011AD30(n, aDot, aW, aZ, D_002BD8D4 * h);
+        SolveInequalities(n, aDot, aW, aZ, D_002BD8D4 * h);
         pg = aZ;
         sum = z;
         for (i = 0; i < n; i++) {
@@ -77,7 +77,7 @@ qword func_0014EDA0(void *p, int c, struct LO **apo, float (*pfn)(void *, qword,
         {
             qword q;
             __asm__("qmfc2.ni %0, %1" : "=r"(q) : "j"(sum));
-            r = func_0011E9F8(q, h);
+            r = LimitVectorLength(q, h);
         }
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(v), "j"(r));
         func_001AE4A0(&frame, 2);

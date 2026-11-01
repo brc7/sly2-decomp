@@ -1,8 +1,8 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001A6CA8(s32, M2C_UNK);                /* extern */
-M2C_UNK func_00231100();                            /* extern */
+M2C_UNK SetLoBusyk(s32, M2C_UNK);                /* extern */
+M2C_UNK InitXfm();                            /* extern */
 
 void func_0012EB48(s32 arg0) {
-    func_00231100();
-    func_001A6CA8(arg0, 0);
+    InitXfm();
+    SetLoBusyk(arg0, 0);
 }

@@ -3,13 +3,13 @@ typedef union { qword q; float f; } U;
 struct X { void *po; };
 extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
-int func_00132B10(void *p, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 qword func_0014FE58(struct X *p)
 {
     U s;
     U pos;
     pos.q = func_001A62E8(p->po);
-    if (func_00132B10(p->po, 0x34)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) {
         register qword rs __asm__("vf2");
         register qword rp __asm__("vf3");
         register qword rd __asm__("vf1");

@@ -2,7 +2,7 @@
 // - Segment start..end goes through func_0014CC58; the hit object's eligible actor comes from func_001F7530.
 // - A new HIT record (deduplicated by object, up to capacity) gets owner/object/filter/channel/point and
 //   impulse = normal * D_002C4334 (the target speed).
-// - If the body has physics: project its point velocity (func_0022D348) on the normal, evaluate the quadratic
+// - If the body has physics: project its point velocity (GetXfVelocity) on the normal, evaluate the quadratic
 //   D_002C4320 at along / D_002C4334 clamped to D_002BBB60, scale by D_002C4330, get the linear (func_001FAA00)
 //   and angular (func_001FAA48) responses and, when they speed the point up along the normal, add the fraction
 //   (target - along) / change (clamped to 0..1) of them to the body's velocity (virtuals 33/34 -> 35/36).
@@ -34,7 +34,7 @@ extern "C" {
 COLL *func_0014CC58(int,qword,qword,int,COLL **,LSG *);
 O *func_001F7530(O *,int);
 void *func_002333B4(void *,int,unsigned int);
-qword func_0022D348(NODE *,NODE *,qword);
+qword GetXfVelocity(NODE *,NODE *,qword);
 qword func_001FAA00(O *,qword);
 qword func_001FAA48(O *,qword,qword);
 }
@@ -82,7 +82,7 @@ extern "C" void func_00224820(O *ownerIn,int filter,int channel,qword start,qwor
   record->owner=owner;
  }
  if(!body->physics)return;
- float along=Dot(func_0022D348(body->motion,0,hit.point),normal);
+ float along=Dot(GetXfVelocity(body->motion,0,hit.point),normal);
  float ratio=along/D_002C4334;
  float response=Clamp(D_002C4320.a+ratio*(D_002C4320.b+ratio*D_002C4320.c),D_002BBB60.lo,D_002BBB60.hi);
  float fz=0.0f;

@@ -20,22 +20,22 @@ extern "C" {
 extern qword D_002C1EE0;
 extern float D_002C1EF0;
 extern CLOCK D_002DDED0;
-void func_0012E460(JOB **);
+void ReleaseAct(JOB **);
 float func_0012F990(MOTION *,int);
 void func_001300B8(MOTION *,float,float,LO *,SPACE *,SPACE *,M4 *,M4 *);
 qword func_001A62E8(LO *);
 qword *func_00256D18(qword *,qword);
-M4 *func_0011C168(M4 *,const M4 *,const M4 *);
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 LO *func_001CCA40(LO *,LO *);
-M4 func_001A71B0(LO *,LO *,const M4 *);
-M4 func_0011C318(const M4 *);
-void func_001A58D0(LO *,int,int);
+M4 ConvertAloMat4(LO *,LO *,const M4 *);
+M4 InvertMatrix4Rigid(const M4 *);
+void SetLoParent_1A58D0(LO *,int,int);
 float func_00196928(qword,qword,float,float,float,float);
 void func_00131A00(ANIM *,float);
 qword func_0022FC48(SPACE *,SPACE *,qword);
-qword func_0022FCC8(SPACE *,SPACE *,qword);
+qword ConvertXfVec(SPACE *,SPACE *,qword);
 JOB *func_0012DE58(LO *,CHANNEL *,int,float,qword,qword);
-M3 *func_0022FD38(M3 *,SPACE *,SPACE *,const M3 *);
+M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 qword func_0011BFF0(const M3 *);
 JOB *func_0012DC18(LO *,CHANNEL *,int,int,int,qword);
 void func_001F6860(LO *,int);
@@ -58,7 +58,7 @@ extern "C" void func_001CCC88(P *input,LO *other){
  __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
  __asm__("daddu %0,%1,$zero":"=r"(object):"r"(other));
  WORK work;
- func_0012E460(&p->positionJob);register float zero __asm__("$f21")=0.0f;func_0012E460(&p->otherJob);func_0012E460(&p->orientationJob);
+ ReleaseAct(&p->positionJob);register float zero __asm__("$f21")=0.0f;ReleaseAct(&p->otherJob);ReleaseAct(&p->orientationJob);
  ANIM *anim=p->owner->playing;MOTION *motion=anim->motion;
  float time=func_0012F990(motion,0x1C7),phase=(time-anim->start)/anim->duration;
  SPACE *space=SourceMatrix(p->source,&work.original);register M4*workingBase __asm__("$19")=&work.sample;
@@ -76,10 +76,10 @@ extern "C" void func_001CCC88(P *input,LO *other){
  register qword row1 __asm__("$3"),row2 __asm__("$2");
  __asm__("lq %0,16(%4)\n\tdaddu %2,%6,$zero\n\tsq %0,16(%5)\n\tlq %1,32(%4)\n\tsq %1,32(%5)\n\tswc1 %7,%3\n\tswc1 %7,32+%3\n\tswc1 %7,16+%3"
   :"=&r"(row1),"=&r"(row2),"=&r"(workingBase),"=m"(*(BASIS_TAIL*)((char*)&work.start+12)):"r"(basis),"r"(start),"r"(intermediate),"f"(zero));
- start->values[15]=homogeneous;func_0011C168(destination,left,right);
+ start->values[15]=homogeneous;__ml__FRC7MATRIX4T0(destination,left,right);
  register const M4*originalArgument __asm__("$6");register M4*secondDestination __asm__("$4");
  __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=r"(originalArgument),"=r"(secondDestination):"r"(&work.original),"r"(intermediate));
- func_0011C168(secondDestination,product,originalArgument);
+ __ml__FRC7MATRIX4T0(secondDestination,product,originalArgument);
  }
  LO*counterpart;
  {
@@ -93,23 +93,23 @@ extern "C" void func_001CCC88(P *input,LO *other){
  if(counterpart){
   M4*counterMatrix=WorldMatrix(counterpart);register const M4*counterArgument __asm__("$7");register LO*counterSpace __asm__("$6");
   __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=&r"(counterArgument),"=r"(counterSpace):"r"(counterMatrix),"r"(object));
-  new(product)M4(func_001A71B0(0,counterSpace,counterArgument));
+  new(product)M4(ConvertAloMat4(0,counterSpace,counterArgument));
   register M4*inverse __asm__("$16");
   {
   register qword row1 __asm__("$6"),row2 __asm__("$3"),row3 __asm__("$2"),row0 __asm__("$7");register M4*inverseArgument __asm__("$4");register const M4*sourceArgument __asm__("$5");
   __asm__("lq %0,%4\n\taddiu %1,%5,0x180\n\tlq %2,%6\n\tdaddu %3,%1,$zero":"=&r"(row1),"=&r"(inverse),"=r"(row2),"=r"(inverseArgument):"m"(work.views.matrices.product.rows[1]),"r"(&work),"m"(work.views.matrices.product.rows[2]));
   __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\tlq %2,%6\n\tsq %7,%3\n\tsq %8,16+%3\n\tsq %0,32+%3"
    :"=&r"(row3),"=&r"(sourceArgument),"=&r"(row0),"=m"(*(M3*)&work.views.matrices.intermediate.rows[1]):"m"(work.views.matrices.product.rows[3]),"r"(workingBase),"m"(work.views.matrices.product.rows[0]),"r"(row1),"r"(row2));
-  work.views.matrices.intermediate.rows[0]=row0;new(inverseArgument)M4(func_0011C318(sourceArgument));
+  work.views.matrices.intermediate.rows[0]=row0;new(inverseArgument)M4(InvertMatrix4Rigid(sourceArgument));
   }
-  func_0011C168(product,finalMatrix,inverse);
+  __ml__FRC7MATRIX4T0(product,finalMatrix,inverse);
   {
   register qword row0 __asm__("$2"),row1 __asm__("$3"),row2 __asm__("$4"),row3 __asm__("$5");
   __asm__("lq %0,%5\n\tlq %1,%6\n\tlq %2,%7\n\tlq %3,%8\n\tsq %0,%4\n\tsq %1,16+%4\n\tsq %2,32+%4\n\tsq %3,48+%4"
    :"=&r"(row0),"=&r"(row1),"=&r"(row2),"=&r"(row3),"=m"(work.final):"m"(work.views.matrices.product.rows[0]),"m"(work.views.matrices.product.rows[1]),"m"(work.views.matrices.product.rows[2]),"m"(work.views.matrices.product.rows[3]));
   }
  }
- func_001A58D0(object,0,15);
+ SetLoParent_1A58D0(object,0,15);
  const qword*velocityAddress=object->follow?&object->follow->velocity:&D_002C1EE0;register float unit __asm__("$f20");register LO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
  __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3":"=r"(initialVelocity),"=r"(initialOwner),"=f"(unit),"=m"(work.velocity):"m"(*velocityAddress),"r"(object):"$1");}
  {register qword destination __asm__("$2");__asm__("lq %0,%1":"=r"(destination):"m"(work.final.rows[3]));work.destination=destination;}
@@ -138,14 +138,14 @@ extern "C" void func_001CCC88(P *input,LO *other){
  }
  float endTime=D_002DDED0.time+phase;
  qword position=func_0022FC48(0,object->position->space,work.final.rows[3]);
- qword endVelocity=func_0022FCC8(0,object->position->space,work.endVelocity);
+ qword endVelocity=ConvertXfVec(0,object->position->space,work.endVelocity);
  {
  register CHANNEL*channel __asm__("$5");register qword velocityArgument __asm__("$8"),positionArgument __asm__("$7");register float timeArgument __asm__("$f12");register LO*receiver __asm__("$4");
  __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
   :"=&r"(channel),"=&r"(velocityArgument),"=f"(timeArgument),"=&r"(positionArgument),"=r"(receiver):"m"(object->position),"r"(endVelocity),"f"(endTime),"r"(position),"r"(object));
  p->positionJob=func_0012DE58(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
  }
- func_0022FD38(&work.views.basis.converted,0,object->orientation->space,(M3*)finalMatrix);
+ ConvertXfMat(&work.views.basis.converted,0,object->orientation->space,(M3*)finalMatrix);
  work.views.basis.angles=work.views.basis.converted;
  qword angles=func_0011BFF0((M3*)workingBase);
  register CHANNEL*orientationChannel __asm__("$5");register LO*orientationOwner __asm__("$4");register qword anglesArgument __asm__("$9");

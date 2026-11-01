@@ -14,7 +14,7 @@ struct K { qword pos; qword rot; float fov; };
 struct PATH { struct K *pk0; struct K *pk1; float dt; int pad; int ik; };
 struct X { char pad[0x10]; struct PATH *ppath; };
 void func_0014FD40(struct X *p);
-void func_0011B628(M3 *pm, qword v);
+void LoadRotateMatrixEuler(M3 *pm, qword v);
 qword *func_00256D18(qword *p, qword v);
 void func_0014E168(struct CM *p, M4 *m);
 void func_0014F5A0(struct CM *p, float g);
@@ -71,7 +71,7 @@ extern "C" void func_00151700(struct X *p)
     {
         M3 m3;
         M4 *pm4;
-        func_0011B628(&m3, rot.q);
+        LoadRotateMatrixEuler(&m3, rot.q);
         pm4 = &m4;
         func_00256D18(&pm4->q.r[3], pos.q);
         pm4->q.r[0] = m3.r[0];

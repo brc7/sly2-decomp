@@ -7,7 +7,7 @@ struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
 extern "C" void func_00218660(A *pa, int i);
-extern "C" void func_0011A058(int *p);
+extern "C" void ClearSle(int *p);
 extern "C" int func_00217EF8(A *pa);
 extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 extern "C" int func_00213F70(S *p, int k, int z, int c, Y *ay)
@@ -28,7 +28,7 @@ extern "C" int func_00213F70(S *p, int k, int z, int c, Y *ay)
         int oldframe=y->x58;
         if (pz->id == k) {
             func_00218660(&p->aa[k], oldframe);
-            func_0011A058(&y->x68);
+            ClearSle(&y->x68);
             y->x58 = func_00217EF8(&p->aa[k]);
             func_00217D98(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;

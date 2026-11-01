@@ -7,15 +7,15 @@ struct K { char pad[0xC]; void *pC; char pad2[8]; float f18; };
 struct A { char pad[0xE8]; struct C *pE8; char pad2[0x294 - 0xEC]; struct B *p294; char pad3[0x324 - 0x298]; char a324[0xA8]; struct K *p3CC; };
 struct T { char pad[0x70]; float f70; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; };
-void func_001EEF98(struct S *p);
+void UpdateBhv(struct S *p);
 float func_0020A690(struct K *k);
 qword func_001A62E8(void *p);
-void func_0011EF08(qword v, float *a, float *b, int n);
-float func_0011CF60(float f);
+void GetVectorCylind(qword v, float *a, float *b, int n);
+float RadNormalize__Ff(float f);
 int func_0011D910(void *p, float f);
 qword func_0017BFF8(struct S *p, void *q, float f, qword v);
 void func_001C02D0(void *q, qword a, qword b, struct B *c);
-void func_00178D90(struct T *t, struct B *b, int n);
+void SetBhvpathShape(struct T *t, struct B *b, int n);
 void func_0017C3E8(struct S *p) {
     struct A *a;
     struct C *c;
@@ -28,7 +28,7 @@ void func_0017C3E8(struct S *p) {
     struct T *t;
     float out[2];
     qword pos;
-    func_001EEF98(p);
+    UpdateBhv(p);
     d = 0;
     if (p->n30 != 0) {
     a = p->p10;
@@ -45,15 +45,15 @@ void func_0017C3E8(struct S *p) {
     {
         qword dv;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(b->pF4[b->nE8 - 1]), "j"(pos));
-        func_0011EF08(dv, &out[0], &out[1], 0);
+        GetVectorCylind(dv, &out[0], &out[1], 0);
     }
-    if (__builtin_fabsf(func_0011CF60(out[0] - g)) > k->f18) goto doit;
+    if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->f18) goto doit;
     if (func_0011D910(p->p10->a324, out[1])) return;
 doit:
     {
         qword v = func_001A62E8(p->p10);
         func_001C02D0(q, v, func_0017BFF8(p, q, g, pos), b);
     }
-    func_00178D90(t, b, 0);
+    SetBhvpathShape(t, b, 0);
     }
 }

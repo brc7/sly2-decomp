@@ -1,0 +1,20 @@
+struct S { char *p0; char pad[0x64]; void *x68; };
+void *PloNew__F3CIDP2SO3OIDi(int, int, int, int);
+void func_00221268(void *, int);
+void func_00194118(struct S *);
+void func_001A0300(char *, void *, void *);
+void PostJtLoadGait(void *);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(char *, int, int, void *, int, int, int, void *);
+void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *, char *, char *);
+void PostLoadJtGrab(struct S *p) {
+    char *pb = (char *)p;
+    p->x68 = PloNew__F3CIDP2SO3OIDi(0xF, 0, 0x148, -1);
+    func_00221268(p->x68, 0);
+    func_00194118(p);
+    func_001A0300(p->p0, pb + 0x70, pb + 0x170);
+    func_001A0300(p->p0, pb + 0x330, pb + 0x430);
+    PostJtLoadGait(pb + 0x180);
+    PostJtLoadGait(pb + 0x240);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->p0, 0xC, 3, pb + 0x2F0, 0, 0, 0, pb + 0x314);
+    InitJtHands__FP7JTHANDSP2SOPP5ASEGA(pb + 0x440, p->p0, p->p0 + 0x1030);
+}

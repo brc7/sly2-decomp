@@ -3,8 +3,8 @@
  * For each mesh node and each of its entries: copy the entry's vertices to a scratch array, allocate the
  * output sample array, then for every vertex
  *   world = vertex * owner->mat                         (point transform)
- *   func_001E6F60 finds the closest hit/direction/distance on the path for `world`
- *   func_0011B830 builds a basis from (direction, axis); it is transposed (= inverted)
+ *   FindShapeClosestPoint finds the closest hit/direction/distance on the path for `world`
+ *   BuildOrthonormalMatrixZ builds a basis from (direction, axis); it is transposed (= inverted)
  *   sample = (world - hit) * inverse basis, with .w = distance.
  *
  * Notes on getting the exact code (plain C++ plus the VU0 / MMI asm that the original needs):
@@ -33,13 +33,13 @@ struct WORK { PHASE phase; U direction; M3 basis, temporary, inverse; float dist
 extern char D_002C44F0;
 
 extern "C" {
-void func_001F36A8(S *);
+void PostSoLoad(S *);
 M3 *func_001A6318(S *);
 void func_0016EF00(CONFIG *, int);
 void func_001AE5A0(void *, const void *, unsigned);   /* memcpy */
 void *func_001AE1D0(AL *);                            /* allocate (size, align) */
-void func_001E6F60(void *, qword, void *, qword *, qword *, float *, float *);
-M3 *func_0011B830(M3 *, qword, qword);
+void FindShapeClosestPoint(void *, qword, void *, qword *, qword *, float *, float *);
+M3 *BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void func_001E9858(S *);
 }
 
@@ -80,7 +80,7 @@ void func_001E9858(S *p)
 {
     U vertices[128];
     WORK w;
-    func_001F36A8(p);
+    PostSoLoad(p);
     if (!p->path || !p->head) return;
     qword axis = func_001A6318(p)->c.q;
     NODE *head = p->head;
@@ -104,8 +104,8 @@ void func_001E9858(S *p)
                 e->samples = out;
                 for (k = 0; k < e->n; k++) {
                     qword world = Point(&object->mat, vertices[k].q);
-                    func_001E6F60(p->path, world, 0, &phase->hit.q, &w.direction.q, &w.distance, 0);
-                    func_0011B830(&w.temporary, w.direction.q, axis);
+                    FindShapeClosestPoint(p->path, world, 0, &phase->hit.q, &w.direction.q, &w.distance, 0);
+                    BuildOrthonormalMatrixZ(&w.temporary, w.direction.q, axis);
                     qword difference = PointDifference(world, w.phase.hit.q);
                     w.basis = w.temporary;
                     TransposeInto(w.temporary, w.basis);

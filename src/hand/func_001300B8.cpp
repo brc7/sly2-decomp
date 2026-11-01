@@ -11,7 +11,7 @@ extern "C" {
 void *func_001AE318(const AREQ &req);
 void *func_002333B4(void *pv, int b, int cb);
 void func_0012FE58(X *px, void *p, ENT *pent, int *pa, Y **ppy);
-M4 func_0011C168(M4 *pa, M4 *pb);
+M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
 M4 func_0022C8C0(Y *py, qword q);
 M4 func_0022CB90(Y *py, M4 *pm, qword q1, qword q2);
 M4 func_0022CC00(Y *py, qword q);
@@ -76,8 +76,8 @@ void func_001300B8(X *px, void *p, Y *pyFirst, Y *pyLast, float f, float g, M4 *
         ClearM4(&mB);
     found:
         {
-            m2 = AddM4(func_0011C168(&mA, &m2), func_0011C168(&mB, &m1));
-            m1 = func_0011C168(&mA, &m1);
+            m2 = AddM4(__ml__FRC7MATRIX4T0(&mA, &m2), __ml__FRC7MATRIX4T0(&mB, &m1));
+            m1 = __ml__FRC7MATRIX4T0(&mA, &m1);
         }
     }
     if (pm1) *pm1 = m1;

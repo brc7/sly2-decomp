@@ -8,7 +8,7 @@ extern G D_002DDF40;
 extern struct CLOCK {float t,dt;} D_002DDED0;
 extern "C" {
 qword func_0014F268(G*,qword);
-M3 func_0011BC00(const M3&,const M3&);
+M3 MulMatrix3Matrix3(const M3&,const M3&);
 void func_0011BCF8(M3*,float*,qword*);
 M3 func_0011B500(qword,float);
 int func_001CF338(S*,qword,const M3&);
@@ -24,7 +24,7 @@ void func_001D0630(S *p) {
  U axis;float angle;
  G *pg=&D_002DDF40;
  qword view=func_0014F268(pg,p->pos);
- camera=func_0011BC00(p->mat,pg->mat);
+ camera=MulMatrix3Matrix3(p->mat,pg->mat);
  func_0011BCF8(&camera,&angle,&axis.q);
  float t=(D_002DDED0.t-p->start)/p->duration;
  fade=func_0011B500(axis.q,angle*t);

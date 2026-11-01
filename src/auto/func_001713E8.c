@@ -80,7 +80,7 @@ s32 func_001713E8(s32 arg0) {
     s32 var_v0;
     void *temp_v0;
 
-    func_001EEF98();
+    UpdateBhv();
     var_v0 = M2C_FIELD(arg0, s32 *, 0x38);
     if (var_v0 != 0) {
 loop_1:

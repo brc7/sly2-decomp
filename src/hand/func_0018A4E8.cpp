@@ -18,14 +18,14 @@ struct SMP {float a,b,duration;};
 extern "C" CLOCK D_002DDED0;
 extern "C" SMP D_002BF348;
 
-extern "C" float func_00204740(A *p);
-extern "C" int func_00132B10(B *p, int n);
-extern "C" float func_001E6648(B *p);
-extern "C" float func_001E6620(B *p);
-extern "C" void func_001E6F10(B *p, qword *pv, qword *direction, float g);
+extern "C" float RadStepHeading(A *p);
+extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
+extern "C" float SMaxShape(B *p);
+extern "C" float SMinShape(B *p);
+extern "C" void EvaluateShapeS(B *p, qword *pv, qword *direction, float g);
 extern "C" qword func_001A62E8(A *p);
 extern "C" M *func_001A6318(A *p);
-extern "C" float func_0011D018(SMP *p, float a, float b, float c, float *output);
+extern "C" float GSmooth__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
 
 static __inline__ float GMin(float a,float b){return a<b?a:b;}
 static __inline__ float GMax(float a,float b){return a>b?a:b;}
@@ -45,7 +45,7 @@ extern "C" void func_0018A4E8(S *ps, R *pr)
 
     if (ps->x8 != 0)
         return;
-    pr->g30 = func_00204740(ps->p0);
+    pr->g30 = RadStepHeading(ps->p0);
     if (ps->p0->x1024 != ps->p68)
         return;
     pr->x34 = 0;
@@ -55,12 +55,12 @@ extern "C" void func_0018A4E8(S *ps, R *pr)
     goto tail;
     {
     a12:
-        if (func_00132B10(ps->p14, 0xC)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC)) {
             B *pb = ps->p14;
             if (ps->x2C == 1) {
                 g = ps->g20 + (ps->g50*125.0f)*ps->g50;
                 if (pb->xE4 == 0) {
-                    float h = func_001E6648(pb);
+                    float h = SMaxShape(pb);
                     if (pb->x1BC & 2)
                         h += 100.0f;
                     g = GMin(g, h);
@@ -68,13 +68,13 @@ extern "C" void func_0018A4E8(S *ps, R *pr)
             } else {
                 g = ps->g20 - (ps->g50*125.0f)*ps->g50;
                 if (pb->xE4 == 0) {
-                    float h = func_001E6620(pb);
+                    float h = SMinShape(pb);
                     if (pb->x1BC & 1)
                         h -= 100.0f;
                     g = GMax(g, h);
                 }
             }
-            func_001E6F10(pb, &ps->v40, 0, g);
+            EvaluateShapeS(pb, &ps->v40, 0, g);
             lift=125.0f;height=((float*)&ps->v40)[2];goto liftValue;
         } else if (ps->x2C == 1) {
             {register qword position __asm__("$2")=func_001A62E8(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
@@ -102,10 +102,10 @@ c0:
         lift=50.0f;__asm__("lwc1 %0,%1":"=f"(height):"m"(((float*)&ps->v40)[2]));
         liftValue:((float*)&ps->v40)[2]=height+lift;
 tail:
-    if (func_00132B10(ps->p14, 0xC) && ps->p14->xE4 == 0) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC) && ps->p14->xE4 == 0) {
         float k;
         float c = 30.0f;
-        register float h __asm__("$f0")=func_001E6648(ps->p14)-c;
+        register float h __asm__("$f0")=SMaxShape(ps->p14)-c;
         register float half __asm__("$f3")=0.5f,width __asm__("$f1")=h-c,d __asm__("$f2")=300.0f;
         __asm__("mul.s %0,%0,%1":"+f"(width):"f"(half));
         __asm__("min.s %0,%1,%0":"+f"(d):"f"(width));
@@ -129,7 +129,7 @@ tail:
         } else {
             k = 0.0f;
         }
-        ps->p68->p114->g10 = func_0011D018(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
+        ps->p68->p114->g10 = GSmooth__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
     }
     switch (ps->x8) {
     case 0:

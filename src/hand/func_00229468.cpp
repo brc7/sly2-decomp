@@ -13,7 +13,7 @@ MARK *func_001AE478(MARK *pm);
 void func_001AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
 qword func_001A62E8(void *p);
-int func_00132B10(struct J *pj, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct J *pj, int k);
 int func_00229D60(void *,void *);
 int func_001F7E08(struct S *p,int (*pfn)(void *,void *),void *context,void **apv);
 int func_0014CDB0(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg);
@@ -43,7 +43,7 @@ extern "C" float func_00229468(struct S *p, struct J *pj, qword *ppos, qword *pn
     int c;
     float g;
     work.a.q = work.b.q = func_001A62E8(pj);
-    if (func_00132B10(pj, 0x33)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(pj, 0x33)) {
         work.a.f[2] = work.a.f[2] + pj->g248;
         if (pj->x208)
             work.a.f[2] = work.a.f[2] > pj->g238 ? work.a.f[2] : pj->g238;

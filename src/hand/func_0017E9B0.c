@@ -3,18 +3,18 @@ extern qword D_002A2DD0;
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword q50; char pad3[8]; int n68; char pad4[0x240 - 0x6C]; qword pos; char pad5[0xFE8 - 0x250]; int nFE8; };
 struct S { char pad[0x10]; struct O *p10; int pad2; char a18[0x18]; char a30[0x10]; };
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 qword func_001A62E8(struct O *p);
 qword func_001C1EC0(void *p, qword q);
 int func_00173610(qword *pq, float a, float b, int n, void *pfn);
-void func_0017D608(qword *pq);
+void FSnapPosToSurfaceAbove(qword *pq);
 struct O *func_00205438(struct O *p, int n);
 void func_0020B210(struct O *p);
 void func_0017E9B0(struct S *p) {
     union { qword q; float a[4]; } u;
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     u.q = func_001C1EC0(p->a30, func_001A62E8(p->p10));
-    if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) func_0017D608(&u.q);
+    if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) FSnapPosToSurfaceAbove(&u.q);
     if (p->p10->nFE8 & 1) {
         struct O *o = func_00205438(p->p10, 0xAC);
         struct VTE *e;

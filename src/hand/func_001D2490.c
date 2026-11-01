@@ -15,7 +15,7 @@ typedef struct {
 extern float D_002C20D0[3];
 extern float D_002C20E0[2];
 qword func_001A62E8(void *);
-void func_001E7380(void *,qword,void *,qword *,qword *,float *,float *,float);
+void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
 float func_002458F0(float, float);
 static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
@@ -71,7 +71,7 @@ void func_001D2490(OBJ *p)
     register qword fallback __asm__("vf5");
     float f;
     pos = func_001A62E8(p);
-    func_001E7380(p->path,pos,0,(qword *)&va,(qword *)&vb,0,&p->cursor,p->cursor);
+    FindShapeClosestPointFromS(p->path,pos,0,(qword *)&va,(qword *)&vb,0,&p->cursor,p->cursor);
     {
         float dist = Dist2D(pos, *(qword *)&va);
         f = Clamp(D_002C20D0[0] + dist * (D_002C20D0[1] + dist * D_002C20D0[2]), D_002C20E0[0], D_002C20E0[1]);

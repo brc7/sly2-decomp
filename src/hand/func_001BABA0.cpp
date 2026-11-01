@@ -20,7 +20,7 @@ static inline void *Alloc(int cb) { return func_001AE318(AREQ(cb, 0x10)); }
 static inline void *AllocB(int cb) { return func_001AE378(AREQ(cb, 0x10)); }
 static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQ(cb, 0x10), pv); }
 extern "C" {
-void func_001F31E0(P *p, void *a);
+void LoadSoFromBrx(P *p, void *a);
 }
 
 extern "C" void func_001BABA0(P *p, void *a)
@@ -30,7 +30,7 @@ extern "C" void func_001BABA0(P *p, void *a)
 
     p->x154 = Alloc(0x40);
     p->ae = (E *)AllocB(0x200) + 1;
-    func_001F31E0(p, a);
+    LoadSoFromBrx(p, a);
     p->i = 0;
     p->x154 = Realloc(p->x154, p->c150 << 3);
     if (p->c) {

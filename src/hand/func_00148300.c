@@ -6,11 +6,11 @@ struct G { char pad[0x14]; int grf; char pad2[0x90 - 0x18]; qword pos; };
 struct P { char pad[0x2C]; char m2C[4]; };
 extern int D_003E0E70;
 extern struct G D_002DDF40;
-void *func_001C4840(void);
+void *PpoHero(void);
 qword func_001A62E8(void *p);
-int func_0011A380(void *p, int id);
-void func_0011A220(void *p, int id);
-void func_0011A2E8(void *p, int id);
+int FFindDlEntry__FP2DLPv(void *p, int id);
+void AppendDlEntry__FP2DLPv(void *p, int id);
+void RemoveDlEntry__FP2DLPv(void *p, int id);
 static __inline__ float GDistSq(qword a, qword b)
 {
     qword d, t;
@@ -32,7 +32,7 @@ void func_00148300(struct P *p, struct SO *pso)
     if (D_003E0E70) return;
     posA = D_002DDF40.pos;
     grf = D_002DDF40.grf;
-    po = func_001C4840();
+    po = PpoHero();
     if (po) posB = func_001A62E8(po);
     else posB = posA;
     id = pso->id;
@@ -64,12 +64,12 @@ void func_00148300(struct P *p, struct SO *pso)
         }
         break;
     }
-    if (fIn == func_0011A380(p->m2C, id)) return;
+    if (fIn == FFindDlEntry__FP2DLPv(p->m2C, id)) return;
     if (fIn) {
-        func_0011A220(p->m2C, id);
+        AppendDlEntry__FP2DLPv(p->m2C, id);
         pso->vt[23].pfn((char *)pso + pso->vt[23].d);
     } else {
         pso->vt[22].pfn((char *)pso + pso->vt[22].d);
-        func_0011A2E8(p->m2C, id);
+        RemoveDlEntry__FP2DLPv(p->m2C, id);
     }
 }

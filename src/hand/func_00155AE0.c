@@ -14,15 +14,15 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002A5138;
 void func_0020AC28(struct SO *pso, int a, int b, qword q);
-float func_0011D448(float a, float b);
-void func_001EF0D8(int *p);
+float GRandInRange__Fff(float a, float b);
+void PopBhv(int *p);
 void *func_00155A68(struct X *p);
 struct ASEG *func_00205438(struct SO *pso, int id);
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
-void func_00209818(void *p, float g);
-void func_001E6180(struct ALO *p);
-void func_00178D90(struct ASEG *a, struct ALO *b, int c);
+void SetStepguardMoverRadTarget(void *p, float g);
+void MeasureShape(struct ALO *p);
+void SetBhvpathShape(struct ASEG *a, struct ALO *b, int c);
 
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static __inline__ float GetX(qword q)
@@ -48,12 +48,12 @@ void func_00155AE0(struct X *p, int k)
     case 3:
         {
             float t = D_002DDED0.t;
-            p->pso->tF04 = t + func_0011D448(p->plm->gMin, p->plm->gMax);
+            p->pso->tF04 = t + GRandInRange__Fff(p->plm->gMin, p->plm->gMax);
         }
         p->plm = 0;
         break;
     }
-    func_001EF0D8(&p->x18);
+    PopBhv(&p->x18);
     p->state = k;
     p->t34 = D_002DDED0.t;
     switch (k) {
@@ -66,7 +66,7 @@ void func_00155AE0(struct X *p, int k)
         d = Sub(func_001A62E8(p->x40), func_001A62E8(p->pso));
         {
             float g = func_002458F0(GetY(d), GetX(d)) + 3.1415927f;
-            func_00209818(p->pso->xFD0, g);
+            SetStepguardMoverRadTarget(p->pso->xFD0, g);
         }
         pa->vt[8].pfn((char *)pa + pa->vt[8].d);
         p->g3C = D_002A5138;
@@ -93,8 +93,8 @@ void func_00155AE0(struct X *p, int k)
             qword *pq = palo->pq;
             pq[1] = func_001A62E8(p->x40);
         }
-        func_001E6180(palo);
-        func_00178D90(pa, palo, 0);
+        MeasureShape(palo);
+        SetBhvpathShape(pa, palo, 0);
         pa->xC0 = 8;
         pa->xC8 = p->x4C;
         pa->x40 = 1;

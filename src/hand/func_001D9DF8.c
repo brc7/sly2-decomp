@@ -28,12 +28,12 @@ typedef struct OBJ {
 extern struct G D_003DD490;
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3248[];
-Q *func_001C4840(struct G *);
-int func_00132B10(void *, int);
+Q *PpoHero(struct G *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001D9B60(OBJ *, int);
-int func_001441A0(Q *);
+int MpStepplayerCur(Q *);
 int func_0011D4D0(float, float, float);
-float func_0011D018(void *, int, float, float, float);
+float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 int func_002121E8(SUB *, int);
 void func_00212E40(SUB *, int, float);
 void func_001D9DF8(OBJ *p)
@@ -44,8 +44,8 @@ void func_001D9DF8(OBJ *p)
         return;
     old = p->x34;
     p->x34 = 0;
-    q = func_001C4840(&D_003DD490);
-    if (q && func_00132B10(q, 0x34))
+    q = PpoHero(&D_003DD490);
+    if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         p->x34 = q;
     if (!p->x34) {
         p->x20 = p->x24 = 0;
@@ -59,22 +59,22 @@ void func_001D9DF8(OBJ *p)
             func_001D9B60(p, 3);
         else
             func_001D9B60(p, 5);
-        if (func_00132B10(p->x34, 0x35)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x35)) {
             p->x3C = 0x33D; p->x40 = 0x33E; p->x44 = 0x33F; p->x48 = 0x340; p->x4C = 0x341;
-        } else if (func_00132B10(p->x34, 0x37)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x37)) {
             p->x3C = 0x347; p->x40 = 0x348; p->x44 = 0x349; p->x48 = 0x34A; p->x4C = 0x34B;
-        } else if (func_00132B10(p->x34, 0x36)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x36)) {
             p->x3C = 0x342; p->x40 = 0x343; p->x44 = 0x344; p->x48 = 0x345; p->x4C = 0x346;
         }
         p->x20 = p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x28 = p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x28 = p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
     }
     switch (p->x30) {
     case 1:
     case 6:
     case 7:
         p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
         if (*p->x34->xE00 <= 0) {
             func_001D9B60(p, 0);
         } else if (p->x20 > p->x24) {
@@ -101,7 +101,7 @@ void func_001D9DF8(OBJ *p)
         break;
     case 0:
         p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
         if (p->x20 < p->x24) {
             p->x20 = p->x24;
             func_00212E40(p->x38, 0x34F, 1.0f - p->x20);
@@ -115,17 +115,17 @@ void func_001D9DF8(OBJ *p)
         if (p->x20 < p->x24)
             p->x20 = p->x24;
         else
-            p->x20 = func_0011D018(D_002C3248, 0, p->x20, p->x24, D_002DDED0.dt);
+            p->x20 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x20, p->x24, D_002DDED0.dt);
         func_00212E40(p->x38, 0x34F, 1.0f - p->x20);
         if (func_0011D4D0(p->x20, p->x24, 0.0001f))
             func_001D9B60(p, 1);
         break;
     case 4:
-        p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
         if (p->x28 < p->x2C)
             p->x28 = p->x2C;
         else
-            p->x28 = func_0011D018(D_002C3248, 0, p->x28, p->x2C, D_002DDED0.dt);
+            p->x28 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x28, p->x2C, D_002DDED0.dt);
         func_00212E40(p->x38, 0x350, 1.0f - p->x28);
         if (func_0011D4D0(p->x28, p->x2C, 0.0001f))
             func_001D9B60(p, 1);

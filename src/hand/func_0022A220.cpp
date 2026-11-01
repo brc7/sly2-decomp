@@ -1,5 +1,5 @@
 // func_0022A220 (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
-// posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by func_0020FAA0, clip each face edge that
+// posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by IntersectSwBoundingBox, clip each face edge that
 // crosses the curtain plane against its four side planes and store the largest added slope (scaled by the
 // camera->source XY distance) as po->dz. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
 typedef int qword __attribute__((mode(TI)));
@@ -25,15 +25,15 @@ extern qword D_002A2DC0;
 extern WORLD D_003DD490;
 extern "C" {
 qword func_001A62E8(O *);
-void func_00119308(UQ *, qword, qword, qword);
-void func_00119390(UQ *, qword, qword);
+void InitPlaneFromPositions(UQ *, qword, qword, qword);
+void InitPlaneFromNormalPos(UQ *, qword, qword);
 UQ *func_002564C0(UQ *);
 UQ *func_002564B8(UQ *);
 FRAME *func_001AE478(FRAME *);
 void func_001AE4A0(FRAME *, int);
 void *func_001AE318(REQ *);
 int func_0014F030(void *, O *);
-void func_0020FAA0(WORLD *, qword, qword, int (*)(void *, O *), void *, int *, O ***);
+void IntersectSwBoundingBox(WORLD *, qword, qword, int (*)(void *, O *), void *, int *, O ***);
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
 static inline qword Q(float f)
@@ -148,7 +148,7 @@ extern "C" void func_0022A220(O *po)
     po->frame = pcam->frame;
     qword posCam = pcam->pos;
     O *psrc = po->psrc;
-    register qword rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of func_00119308); later uses reload from the 0x190 slot
+    register qword rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of InitPlaneFromPositions); later uses reload from the 0x190 slot
     if (psrc)
         rr = func_001A62E8(psrc);
     else
@@ -168,7 +168,7 @@ extern "C" void func_0022A220(O *po)
     corner[2].q = v2;
     corner[1].q = v1;
     corner[3].q = posCam;
-    func_00119308(pplane, posCam, posSrc, corner[1].q);
+    InitPlaneFromPositions(pplane, posCam, posSrc, corner[1].q);
     qword plane = tmp.q;
     P4 pvA, pvB;
 
@@ -183,7 +183,7 @@ extern "C" void func_0022A220(O *po)
         qword edge = Sub(pc[(i + 1) % 4].q, pc[i].q);
         func_002564C0(&nrm);
         nrm.q = plane;
-        func_00119390(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
+        InitPlaneFromNormalPos(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
     }
     ipso = 0;
     func_001AE478(&frame);
@@ -193,7 +193,7 @@ extern "C" void func_0022A220(O *po)
     apface = (FACE **)func_001AE318(preq);
     qword k2 = QI(D_002C4490);
     tmp.q = k2;
-    func_0020FAA0(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
+    IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
                   func_0014F030, 0, &cpso, &apso);
     qword dpos = Sub(posSrc, posCam);
     int nso = cpso;

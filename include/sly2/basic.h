@@ -90,7 +90,7 @@ struct VECTOR
     float x, y, z;
 };
 
-/* RGBA: from src/hand/func_0013E818.cpp (13 copies in Lilly ports) */
+/* RGBA: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (13 copies in Lilly ports) */
 struct RGBA
 {
     uchar bRed;
@@ -106,25 +106,25 @@ struct RGBA
     }
 };
 
-/* VECTOR4: from src/hand/func_0013E818.cpp (28 copies in Lilly ports) */
+/* VECTOR4: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (28 copies in Lilly ports) */
 struct VECTOR4
 {
     float x, y, z, w;
 } __attribute__((aligned(16)));
 
-/* MATRIX4: from src/hand/func_0013E818.cpp (32 copies in Lilly ports) */
+/* MATRIX4: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (32 copies in Lilly ports) */
 struct MATRIX4
 {
 	float mat[4][4];
 } __attribute__((aligned(16)));
 
-/* MATRIX3: from src/hand/func_0013E818.cpp (29 copies in Lilly ports) */
+/* MATRIX3: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (29 copies in Lilly ports) */
 struct MATRIX3
 {
 	float mat[3][4];
 } __attribute__((aligned(16)));
 
-/* SMP: from src/hand/func_0013E818.cpp (4 copies in Lilly ports) */
+/* SMP: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */
 struct SMP
 {
     float svFast;
@@ -132,7 +132,7 @@ struct SMP
     float dtFast;
 };
 
-/* SMPA: from src/hand/func_0013E818.cpp (16 copies in Lilly ports) */
+/* SMPA: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (16 copies in Lilly ports) */
 struct SMPA
 {
     float svFast;
@@ -141,7 +141,7 @@ struct SMPA
     float sdvMax;
 };
 
-/* CLQ: from src/hand/func_0013E818.cpp (24 copies in Lilly ports) */
+/* CLQ: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
 struct CLQ
 {
     union
@@ -154,25 +154,25 @@ struct CLQ
     };
 };
 
-/* LM: from src/hand/func_0013E818.cpp (24 copies in Lilly ports) */
+/* LM: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
 struct LM
 {
 	float gMin, gMax;
 };
 
-/* RAW8: from src/hand/func_001428D8.cpp (17 copies in Lilly ports) */
+/* RAW8: from src/hand/HeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct RAW8
 {
     char ach[8];
 };
 
-/* SLE: from src/hand/func_001428D8.cpp (28 copies in Lilly ports) */
+/* SLE: from src/hand/HeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct SLE
 {
     void *next;
 };
 
-/* DL: from src/hand/func_001428D8.cpp (28 copies in Lilly ports) */
+/* DL: from src/hand/HeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct DL
 {
     void *head;
@@ -180,14 +180,14 @@ struct DL
     int ibDle;
 };
 
-/* DLE: from src/hand/func_001428D8.cpp (29 copies in Lilly ports) */
+/* DLE: from src/hand/HeroInteractDistance.cpp (29 copies in Lilly ports) */
 struct DLE
 {
     void *next;
     void *prev;
 };
 
-/* CRefPtr: from src/hand/func_001FFD98.cpp (30 copies in Lilly ports) */
+/* CRefPtr: from src/hand/RefGetPeopid.cpp (30 copies in Lilly ports) */
 template <class T>
 class CRefPtr
 {
@@ -217,7 +217,7 @@ public:
     T *operator->() { return m_p; }
 };
 
-/* CGcObj: from src/hand/func_001FFD98.cpp (4 copies in Lilly ports) */
+/* CGcObj: from src/hand/RefGetPeopid.cpp (4 copies in Lilly ports) */
 template <class T>
 class CGcObj
 {
@@ -235,7 +235,7 @@ public:
     }
 };
 
-/* CFrame: from src/hand/func_001CAA60.cpp (2 copies in Lilly ports) */
+/* CFrame: from src/hand/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
 class CFrame : public CGcObj<CFrame>
 {
 public:
@@ -244,7 +244,7 @@ public:
       CRefPtr<CVarb> m_pvarb;
       int m_fVisited;
     void RemoveParent(CFrame *pframeParent);
-    void AddParent(CFrame *pframeParent);   /* from func_001C9B08.cpp */
+    void AddParent(CFrame *pframeParent);   /* from LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp */
 };
 
 /* BASIC: from src/hand/func_00167320.cpp (29 copies in Lilly ports) */
@@ -286,7 +286,7 @@ struct CLOCK
       float art[CRK_Max];   /* +0x18..+0x38 [R] 9 rate slots multiplied into rt: slot 0 = 0 in S54/S71 (paused), slot 1
                                (CRK_PowerUp) = 0.25 in S72 (slow-motion power-up active), slot 7 = 0 in S61 */
 
-      float tReal;          /* +0x3C [R] real time (s), keeps running during pause; used for UI/menu repeat (func_00187E88) */
+      float tReal;          /* +0x3C [R] real time (s), keeps running during pause; used for UI/menu repeat (DxSelectionJoy) */
       float dtReal;         /* +0x40 [R] real frame delta (s) */
       undefined4 unk_0x44;  /* +0x44 [?] */
 
@@ -303,7 +303,7 @@ typedef char assert_CLOCK_rtCm[SLY2_OFFSETOF(CLOCK, rtCm) == 0xC ? 1 : -1];    /
 typedef char assert_CLOCK_dtCm[SLY2_OFFSETOF(CLOCK, dtCm) == 0x10 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_CLOCK_tCm[SLY2_OFFSETOF(CLOCK, tCm) == 0x14 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_CLOCK_art[SLY2_OFFSETOF(CLOCK, art) == 0x18 ? 1 : -1];     /* CONFIRMED runtime */
-typedef char assert_CLOCK_tReal[SLY2_OFFSETOF(CLOCK, tReal) == 0x3C ? 1 : -1]; /* CONFIRMED runtime + match (func_00187E88 reads +0x3C) */
+typedef char assert_CLOCK_tReal[SLY2_OFFSETOF(CLOCK, tReal) == 0x3C ? 1 : -1]; /* CONFIRMED runtime + match (DxSelectionJoy reads +0x3C) */
 typedef char assert_CLOCK_dtReal[SLY2_OFFSETOF(CLOCK, dtReal) == 0x40 ? 1 : -1]; /* CONFIRMED runtime */
 
 /* SL: from src/hand/func_00167320.cpp (27 copies in Lilly ports) */

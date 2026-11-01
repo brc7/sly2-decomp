@@ -4,8 +4,8 @@ struct AL { int cb; int cbAlign; };
 extern char D_003DD490[];
 void *func_001AE2A0(const struct AL *pal);
 void func_0011A050(struct DL *pdl, int ib);
-int func_001C9968(int id);
-struct DL *func_0015E3C0(void *p, int id);
+int OidFromIdProxy(int id);
+struct DL *PdlFromSwPxrOid(void *p, int id);
 void func_0011A070(struct DL *pl, void *pv);
 struct N *func_001C99D8(struct N *p, int c, const int *aid)
 {
@@ -30,8 +30,8 @@ again:
         pn = &pnNew[i];
         func_0011A050(&pn->dl, 0x14);
         pn->id = aid[i];
-        pn->x8 = func_001C9968(pn->id);
-        func_0011A070(func_0015E3C0(D_003DD490, pn->x8), pn);
+        pn->x8 = OidFromIdProxy(pn->id);
+        func_0011A070(PdlFromSwPxrOid(D_003DD490, pn->x8), pn);
         pn->pnParent = pnParent;
         func_0011A070(&pnParent->dl, pn);
         pnParent = pn;

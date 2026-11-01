@@ -19,21 +19,21 @@ extern POLY D_002BE830,D_002BE840,D_002BE860;
 extern LM D_002BE850,D_002BBB60;
 extern CLOCK D_002DDED0;
 extern char D_002DE578[],D_003DD490[];
-void func_001F36E0(P*);
+void UpdateSo(P*);
 int func_0017F550(P*);
 void func_00181268(P*,int);
 qword func_001A62E8(void*);
-qword func_001A6FC0(void*,void*,qword);
-qword func_0022FCC8(void*,void*,qword);
+qword ConvertAloVec(void*,void*,qword);
+qword ConvertXfVec(void*,void*,qword);
 float func_002458F0(float,float);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 int func_0011D910(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
-void func_001E7380(void*,qword,void*,qword*,float,qword*,float*,float*);
-float func_001E6648(void*);
-float func_00154C90(void*);
-int func_0015E9C8(void*,int,int,void*,int,NODE**);
-qword func_0011E9F8(qword,float);
+void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
+float SMaxShape(void*);
+float GGetDifficulty(void*);
+int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
+qword LimitVectorLength(qword,float);
 }
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -77,7 +77,7 @@ static inline float Clamp(float f,LM*p){float low=p->low,high=p->high;if(f<low)f
 
 extern "C" void func_00180668(P*p){
  U nearest,direction,unit;
- func_001F36E0(p);
+ UpdateSo(p);
  if(p->state==2||p->state==4){if(func_0017F550(p))func_00181268(p,0);}
  if(p->state!=0&&p->state!=4){if(!p->target||!Alive(p->target))func_00181268(p,0);}
  if(!p->active&&p->target&&Alive(p->target)){
@@ -85,7 +85,7 @@ extern "C" void func_00180668(P*p){
   qword target=func_001A62E8(p->target);
   qword delta=QwSub(target,func_001A62E8(p));
   float distance=Length(delta);
-  float heading=func_0011CF60(Heading(func_001A6FC0(0,p,delta)));
+  float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,p,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=func_0011D910(&rule->stayDistance,distance);
   if(accept){
@@ -112,7 +112,7 @@ dispatch:
   FRAME*frame=p->node.frame;
   qword target=func_001A62E8(p->target);
   qword self=func_001A62E8(p);
-  float heading=func_0011CF60(Heading(func_0022FCC8(0,frame->space,QwSub(target,self))));
+  float heading=RadNormalize__Ff(Heading(ConvertXfVec(0,frame->space,QwSub(target,self))));
   p->heading=Clamp(Evaluate(&p->simpleAngle,heading),&p->simpleClamp);
   break;
  }
@@ -132,19 +132,19 @@ dispatch:
    p->previousSelf=self;
    p->stamp=D_002DDED0.t;
   }
-  func_001E7380(p->curve,self,0,&nearest.q,p->progress,&direction.q,0,&p->progress);
+  FindShapeClosestPointFromS(p->curve,self,0,&nearest.q,p->progress,&direction.q,0,&p->progress);
   {
    float eps=0.0001f;qword d;
    __asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(QwAddScaled(nearest.q,direction.q,VuFloatFromMemWord(*(int*)&D_002BE828))),"j"(self),"f"(eps)); /* allocation-only "f"(eps): the epsilon is loaded before the subtract */
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
-  float remaining=func_001E6648(p->curve)-p->progress;
-  float turn=Heading(func_001A6FC0(0,p,unit.q));
-  float response=func_00154C90(D_002DE578);
+  float remaining=SMaxShape(p->curve)-p->progress;
+  float turn=Heading(ConvertAloVec(0,p,unit.q));
+  float response=GGetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&p->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&p->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*p->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];
-  int n=func_0015E9C8(D_003DD490,0x105,0x49,0,64,objects);
+  int n=CploFindSwObjectsByClass(D_003DD490,0x105,0x49,0,64,objects);
   for(int i=0;i<n;i++){
    NODE*object=objects[i];
    if(object!=&p->node&&object->group!=p->node.group){
@@ -157,7 +157,7 @@ dispatch:
     force=RAddScaled(force,scalar.q,RVuFloat(weight));
    }
   }
-  p->output=func_0011E9F8(force,speed);
+  p->output=LimitVectorLength(force,speed);
   p->heading=func_002458F0(unit.f[1],unit.f[0]);
   break;
  }

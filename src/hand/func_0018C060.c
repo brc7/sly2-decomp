@@ -2,7 +2,7 @@ struct S { char pad[0x2C0]; char x2c0[0x200]; char x4c0[0x60]; void *x520; char 
 void *func_001944C8(void *p, int *pn);
 void *func_001A23F8(void *p, int *pn);
 void *func_0019C870(void *p, int *pn);
-void func_00203D00(struct S *p, void *pv, int n);
+void SetStepPhys(struct S *p, void *pv, int n);
 void func_0018C060(struct S *p)
 {
     int n = 0;
@@ -15,5 +15,5 @@ void func_0018C060(struct S *p)
     default: pv = p->a1720[p->n]; break;
     }
     if (!pv) pv = p->a1720[0];
-    func_00203D00(p, pv, n);
+    SetStepPhys(p, pv, n);
 }

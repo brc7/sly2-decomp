@@ -12,8 +12,8 @@ struct START {qword q;START(const U&source,float zero,float*lowOut,float*highOut
 extern float D_002C1EC4,D_002C1EC8;
 extern qword D_002A2DC0,D_002A2DA0;
 extern "C" {
-float func_001E8008(S*,float,float);void func_001E6F10(S*,qword*,qword*,float);
-float func_0011D448(float,float);qword func_0011E1A0(float,float,float);
+float SRandomShapeRange(S*,float,float);void EvaluateShapeS(S*,qword*,qword*,float);
+float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
 void func_001CBBA8(S*,qword*,qword*,float);
 }
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
@@ -48,21 +48,21 @@ void func_001CBBA8(S*p,qword*posOut,qword*dirOut,float g){
  U pos;
  M3 basis;
  U scalar,moved,out;
- float x=func_001E8008(p,g,D_002C1EC4);
+ float x=SRandomShapeRange(p,g,D_002C1EC4);
  S*sampleReceiver;float sampleTime;SamplerArguments(p,x,&sampleReceiver,&sampleTime);
- func_001E6F10(sampleReceiver,&pos.q,&basis.c,sampleTime);
+ EvaluateShapeS(sampleReceiver,&pos.q,&basis.c,sampleTime);
  const qword*fallbackAddress;float epsilon;
  qword cross=CrossAndFallbackAddress(basis.c,D_002A2DC0,&fallbackAddress,&epsilon);
  qword right=NormalizeOr(cross,fallbackAddress,epsilon);
  basis.a=CrossKeepSecond(right,&basis.c);basis.b=right;
- float r=func_0011D448(-1.0f,1.0f);register float zero __asm__("$f22")=0.0f;float ar=__builtin_fabsf(r);
- qword local=func_0011E1A0(r*ar*D_002C1EC8,1.0f,zero);
+ float r=GRandInRange__Fff(-1.0f,1.0f);register float zero __asm__("$f22")=0.0f;float ar=__builtin_fabsf(r);
+ qword local=SetVectorCylind(r*ar*D_002C1EC8,1.0f,zero);
  qword dir=Dir(basis,LocalDirection(local));
  qword cpu;__asm__("qmfc2.ni %0,%1":"=r"(cpu):"j"(dir));
  out.q=dir;moved.q=cpu;
  if(posOut){
   float low,high;START start(pos,zero,&low,&high);
-  float distance=ar*func_0011D448(low,high);
+  float distance=ar*GRandInRange__Fff(low,high);
   *posOut=DisplacementValue(start.q,moved.q,distance,scalar);
  }
  if(dirOut)*dirOut=out.q;

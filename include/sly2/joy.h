@@ -1,6 +1,6 @@
 /* include/sly2/joy.h -- JOY (controller state). g_joy = D_002DFC00 (pad 0); a second JOY at D_002E0D00 (= g_joy + 0x1100)
  * is used when g_grfjoyt bit 1 is clear (pine_input README). Layout from src/hand/func_001E3890.cpp (Lilly port), with the
- * menu-repeat fields at +0x1024 named from src/hand/func_00187E88.c (matched; reads dirX, dirY, tNextX/Y, tRepX/Y there and
+ * menu-repeat fields at +0x1024 named from src/hand/DxSelectionJoy.c (matched; reads dirX, dirY, tNextX/Y, tRepX/Y there and
  * gX/gY/gMag = dxLeft/dyLeft/uDeflectLeft at +0x103C..). Tags: [R] runtime / [M] offset used by matched code / [S] static. */
 #ifndef SLY2_JOY_H
 #define SLY2_JOY_H
@@ -29,7 +29,7 @@ struct JOY
       float tRead;          /* +0x1018 [R] clock.tReal of the last successful read: one frame (0.017 s) behind tReal in 72/73 states */
       float tActive;        /* +0x101C [S] */
       int dtIdle;           /* +0x1020 [S] */
-      int dirX;             /* +0x1024 [M] menu repeat direction -1/0/1 (func_00187E88) */
+      int dirX;             /* +0x1024 [M] menu repeat direction -1/0/1 (DxSelectionJoy) */
       int dirY;             /* +0x1028 [M] */
       float tNextX;         /* +0x102C [M] next repeat time (clock.tReal based) */
       float tRepX;          /* +0x1030 [M] repeat interval (0.3333 first) */
@@ -55,7 +55,7 @@ struct JOY
       float dydtLeft;
       float dxdtRight;
       float dydtRight;
-      uint grfbtn;          /* +0x10B4 [R][M] buttons held (copied to POCTL+0x30 with the mask at +0x10BC; func_00187E88 grfHeld) */
+      uint grfbtn;          /* +0x10B4 [R][M] buttons held (copied to POCTL+0x30 with the mask at +0x10BC; DxSelectionJoy grfHeld) */
       uint grfbtnPressed;   /* +0x10B8 [R] new presses this frame (cheat-code reader uses it) */
       uint grfbtnLatched;   /* +0x10BC [R] handled / masked buttons */
       byte mpbtnpb[12];     /* +0x10C0 [S] pressure bytes */
@@ -67,7 +67,7 @@ struct JOY
 typedef char assert_JOY_size[sizeof(JOY) == 0x1100 ? 1 : -1];   /* second JOY at g_joy+0x1100 (R: two instances) */
 typedef char assert_JOY_joys[SLY2_OFFSETOF(JOY, joys) == 0x100C ? 1 : -1];   /* CONFIRMED (pine_input: 0x2E0C0C) */
 typedef char assert_JOY_tRead[SLY2_OFFSETOF(JOY, tRead) == 0x1018 ? 1 : -1];   /* CONFIRMED (pine_input) */
-typedef char assert_JOY_dirX[SLY2_OFFSETOF(JOY, dirX) == 0x1024 ? 1 : -1];   /* CONFIRMED match func_00187E88 */
+typedef char assert_JOY_dirX[SLY2_OFFSETOF(JOY, dirX) == 0x1024 ? 1 : -1];   /* CONFIRMED match DxSelectionJoy */
 typedef char assert_JOY_dxLeft[SLY2_OFFSETOF(JOY, dxLeft) == 0x103C ? 1 : -1];   /* CONFIRMED (pine_input + match) */
 typedef char assert_JOY_dxRight[SLY2_OFFSETOF(JOY, dxRight) == 0x1070 ? 1 : -1];   /* CONFIRMED (pine_input) */
 typedef char assert_JOY_grfbtn[SLY2_OFFSETOF(JOY, grfbtn) == 0x10B4 ? 1 : -1];   /* CONFIRMED (pine_input + match) */

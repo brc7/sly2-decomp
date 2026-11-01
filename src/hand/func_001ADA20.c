@@ -11,7 +11,7 @@ int func_001B0108(struct G *g);
 int func_001B0078(struct G *g);
 void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
-char *func_0013E368(void *p, int n);
+char *PchzFindSwLangstr__FP2SWi(void *p, int n);
 char *func_0021ED58(char *d, const char *s);
 char *func_0021EDA0(char *d, const char *s);
 void func_001ADA20(char *buf)
@@ -32,21 +32,21 @@ void func_001ADA20(char *buf)
     switch (func_001B0078(g)) {
     case 0x1E:
         if (f != 0.0f)
-            func_0021ED58(buf, func_0013E368(gd, 0x25));
+            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
         else
-            func_0021ED58(buf, func_0013E368(gd, 0x26));
+            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
         break;
     case 0x1F:
         if (f != 0.0f)
-            func_0021ED58(buf, func_0013E368(gd, 0x27));
+            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x27));
         else
-            func_0021ED58(buf, func_0013E368(gd, 0x26));
+            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
         break;
     case 0x19:
-        func_0021ED58(buf, func_0013E368(gd, 0x29));
+        func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x29));
         if (f != 0.0f) {
             func_0021EDA0(buf, "\n");
-            func_0021EDA0(buf, func_0013E368(gd, 0x25));
+            func_0021EDA0(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
         }
         break;
     }

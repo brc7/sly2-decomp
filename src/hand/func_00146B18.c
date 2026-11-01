@@ -12,7 +12,7 @@ extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
-void func_001C45A8(struct Q *q);
+void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static __inline__ float SqrtQ(qword t)
@@ -35,7 +35,7 @@ static __inline__ float GLimitLm(struct LM *plm, float g)
 /* b: allocation-only "j" input (Claude agent). It keeps b live past the clamp, so b gets its own early qmtc2 instead of
    staying in v0 until the vsub (then the clq clear can use v0 like the target). */
 static __inline__ float GAtanXY2(qword d, qword b) { register qword r __asm__("v1"); /* register pin (Claude agent) */ float x; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d), "j"(b)); x = GetX(r); { float y; __asm__("prot3w %0,%1" : "=r"(y) : "0"(r)); return func_002458F0(y, x); } }
-/* y via an int + mtc1 (as in func_0011E958): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
+/* y via an int + mtc1 (as in CalculateVectorPanTilt): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
 static __inline__ float GAtanR(qword d)
 {
     int y;
@@ -60,7 +60,7 @@ void func_00146B18(struct P *p, struct Q *q)
         q->x18 = GAtanR(d);
         if (D_002DDED0.t - p->x34 < 0.1f) {
             q->x30 |= 0x80;
-            func_001C45A8(q);
+            UpdatePoctlPressed(q);
         }
         break;
     }
@@ -84,7 +84,7 @@ void func_00146B18(struct P *p, struct Q *q)
         q->x18 = GAtanXY2(d, b);
         if (D_002DDED0.t - p->x34 < 0.1f && p->p10->x2DC == -1) {
             q->x30 |= 0x40;
-            func_001C45A8(q);
+            UpdatePoctlPressed(q);
         }
         break;
     }
@@ -94,7 +94,7 @@ void func_00146B18(struct P *p, struct Q *q)
         q->x18 = GAtanR(d);
         if (D_002DDED0.t - p->x34 < 0.1f) {
             q->x30 |= 0x80;
-            func_001C45A8(q);
+            UpdatePoctlPressed(q);
         }
         break;
     }

@@ -3,7 +3,7 @@
 //  2. If p->strength != 0: four 48-byte VIF packets (tag 0x6C03C000 | (i*3+0x15) + 12 words), from each result
 //     object's payload (+0x120), the rest from the default block D_002BFC60 (same code as func_001A4AD8), padded to a qword.
 //  3. If p->limit != 0: weighted centre of the enabled results (kind 1: virtual slot 31 returns a matrix, its row 3;
-//     kind 0: point - direction * D_002BFC90), clamped to D_002BFC94 * limit from the point; basis from func_0011E2D8,
+//     kind 0: point - direction * D_002BFC90), clamped to D_002BFC94 * limit from the point; basis from GetNormalVectors,
 //     row 2 = dir * extent; packet (M4 rows + kind + fraction) unpacked with tag 0x6C05C00E after aligning to 12 mod 16.
 #include "vifs.h"
 typedef int qword __attribute__((mode(TI)));
@@ -45,7 +45,7 @@ extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern CAMERA D_002DDF40;
 extern "C" {
 void func_001A3F78(WORLD *world, qword pos, int capacity, RESULT *results);
-void func_0011E2D8(qword a, qword b, qword c, M3 *pm);
+void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 qword *func_00256D18(qword *p, qword v);
 int func_001A4258(qword pos, float radius, int csphere, SPHERE *asphere);
 }
@@ -176,7 +176,7 @@ extern "C" void func_001A4478(WORLD *world, M4 *transform, P *p)
             }
             extent = dist + p->extra;
             M3 basis;
-            func_0011E2D8(dir, D_002A2DB0, D_002A2DA0, &basis);
+            GetNormalVectors(dir, D_002A2DB0, D_002A2DA0, &basis);
             basis.row[2].q = Scale(dir, VU_FLOAT(extent));
             PACKET packet;
             U *row = packet.basis;

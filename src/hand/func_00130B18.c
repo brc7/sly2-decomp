@@ -8,19 +8,19 @@ struct P { int pad[3]; struct VTE *vt; int x10; struct Q *pq; struct O *x18; flo
     char pad3[0x54 - 0x3C]; int i54; int x58; char a5C[4]; };
 struct G { struct P *p; };
 extern char D_003E1218[];
-int func_00131968(struct P *p);
-void func_00131290(struct P *p);
-void func_00131990(struct P *p, int);
-void func_0011A2E8(void *, struct P *);
+int FAsegaRetracted(struct P *p);
+void HandleAsegaEvent(struct P *p);
+void SetAsegaHandsOff(struct P *p, int);
+void RemoveDlEntry__FP2DLPv(void *, struct P *);
 void func_00230100(void *, void *, struct L1 *);
 void func_0012E210(struct L1 *);
 void func_0012CE70(struct L2 *);
 void func_00258040(void *, int);
-void func_00133508(struct P *, int, struct P *);
+void SendLoMessage(struct P *, int, struct P *);
 static __inline__ void End(struct G *pg) { struct P *po = pg->p; ((void (*)(void *))po->vt[2].pfn)((char *)po + po->vt[2].d); }
 void func_00130B18(struct P *p)
 {
-    if (func_00131968(p))
+    if (FAsegaRetracted(p))
         return;
     {
         struct G g;
@@ -31,13 +31,13 @@ void func_00130B18(struct P *p)
         ((void (*)(void *))p->vt[1].pfn)((char *)p + p->vt[1].d);
         for (; p->i54 < p->pq->cA8; p->i54++) {
             { register struct E *pe __asm__("$5") = p->pq->aAC; pe += p->i54; pe->f = p->g1C; }
-            func_00131290(p);
-            if (func_00131968(p))
+            HandleAsegaEvent(p);
+            if (FAsegaRetracted(p))
                 { End(&g); return; }
         }
-        func_00131990(p, 0);
-        func_0011A2E8(D_003E1218, p);
-        func_0011A2E8(p->pq->a50, p);
+        SetAsegaHandsOff(p, 0);
+        RemoveDlEntry__FP2DLPv(D_003E1218, p);
+        RemoveDlEntry__FP2DLPv(p->pq->a50, p);
         for (pl1 = p->pl1; pl1; pl1 = pl1Next) {
             pl1Next = pl1->pnext;
             func_00230100(pl1->x4, pl1->x8, pl1);
@@ -55,7 +55,7 @@ void func_00130B18(struct P *p)
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 3, 0, 0, 0, 0);
         if (p->x18)
             ((void (*)(void *, int, struct P *))p->x18->vt[5].pfn)((char *)p->x18 + p->x18->vt[5].d, 2, p);
-        func_00133508(p, 2, p);
+        SendLoMessage(p, 2, p);
         ((void (*)(void *))p->vt[2].pfn)((char *)p + p->vt[2].d);
         End(&g);
     }

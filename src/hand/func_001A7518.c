@@ -4,13 +4,13 @@ extern int D_002BE538;
 extern char D_003DD490[], D_003D9E70[], D_002DFC00[], D_002DDF40[], D_002DDED0[];
 void func_0023B7D8(void);
 void func_001A7970(void);
-void func_001613A8(void);
-void func_0020E890(void *);
+void StartupGame(void);
+void ExecuteSwTransition(void *);
 void func_001871C0(void *);
 void func_0014BA38(void);
 void func_0014D470(void *);
 void func_0014D0B8(void *, int);
-void func_00226550(void *);
+void UpdateSw(void *);
 void func_001D9648(void *);
 void func_00160828(void);
 int func_001477B0(void *);
@@ -25,14 +25,14 @@ void func_001A7518(int a, int b)
     D_002E2050 = a;
     D_002E2054 = b;
     func_001A7970();
-    func_001613A8();
+    StartupGame();
     for (;;) {
-        func_0020E890(D_003DD490);
+        ExecuteSwTransition(D_003DD490);
         func_001871C0(D_002DFC00);
         func_0014BA38();
         func_0014D470(D_002DDF40);
         func_0014D0B8(D_002DDED0, 0);
-        func_00226550(D_003DD490);
+        UpdateSw(D_003DD490);
         func_001D9648(D_003D9E70);
         func_00160828();
         if (!D_002DD644 || func_001477B0(D_002DD644)) {

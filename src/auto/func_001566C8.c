@@ -65,7 +65,7 @@ void func_001566C8(s32 arg0, s32 arg1) {
     if (temp_v0 <= 0) {
         func_00256EE0(arg0, 0);
         func_002580A8(arg0 + 4, 0);
-        func_001334A8(arg0);
+        UnsubscribeLoAll(arg0);
         func_0011CD98((s32) &D_003E1498, arg0);
     }
 }

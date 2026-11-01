@@ -11,9 +11,9 @@ typedef struct {
     float t;
     int x74;
 } OBJ;
-void func_001A5E28(OBJ *);
+void UpdateLo(OBJ *);
 void func_001E1C40(void *);
-int func_0011A3B0(DL *);
+int FIsDlEmpty__FP2DL(DL *);
 void func_001DFEB8(OBJ *);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -34,7 +34,7 @@ void func_001DFC50(OBJ *p)
     DLI dli;
     void *pv;
     unsigned int fl;
-    func_001A5E28(p);
+    UpdateLo(p);
     if (p->x74 == 0)
         return;
     fl = p->x40;
@@ -47,7 +47,7 @@ void func_001DFC50(OBJ *p)
     InitDli(&dli, &p->dl);
     while ((pv = PvNextDli(&dli)) != 0)
         func_001E1C40(pv);
-    if (func_0011A3B0(&p->dl))
+    if (FIsDlEmpty__FP2DL(&p->dl))
         func_001DFEB8(p);
     D_002DD2FC = dli.pdliNext;
 }

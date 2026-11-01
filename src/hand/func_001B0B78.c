@@ -1,13 +1,13 @@
 struct E { int a; int b; int c; };
 struct S { char pad[0x40]; unsigned int x40; char pad1[0x150 - 0x44]; float f150, f154, f158, f15C, f160, f164, f168; char pad2[0x17C - 0x16C]; struct E ae[6]; char pad3[0x1CC - 0x1C4]; float f1CC, f1D0; char pad4[0x220 - 0x1D4]; int x220; char pad5[0xC]; int x230; };
 extern int D_002C0230[6];
-void func_001F2108(struct S *p);
+void InitSo(struct S *p);
 void func_001B0B78(struct S *p)
 {
     int i;
     struct E *pe;
     int *pi;
-    func_001F2108(p);
+    InitSo(p);
     p->f150 = 400.0f;
     p->f154 = 800.0f;
     p->f158 = 2.0f;

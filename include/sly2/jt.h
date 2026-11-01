@@ -7,7 +7,7 @@
 #include "sly2/aseg.h"
 #include "sly2/stepplayer.h"
 
-/* XMG: from src/hand/func_00189618.cpp (10 copies in Lilly ports) */
+/* XMG: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct XMG
 {
       ASEG *paseg;
@@ -22,7 +22,7 @@ struct XMG
       undefined4 unk_0x60[(0x100 - 0x60) / 4];
 };
 
-/* JTANIM: from src/hand/func_00189618.cpp (10 copies in Lilly ports) */
+/* JTANIM: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JTANIM
 {
       ASEGA *pasega;
@@ -40,7 +40,7 @@ struct JTANIM
       qword dposHang;
 };
 
-/* JTPOCKET: from src/hand/func_00189618.cpp (10 copies in Lilly ports) */
+/* JTPOCKET: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JTPOCKET
 {
       int idGadget;
@@ -48,7 +48,7 @@ struct JTPOCKET
       CID100 *pcid100;
 };
 
-/* JT: from src/hand/func_00189618.cpp (10 copies in Lilly ports) */
+/* JT: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JT : public STEPPLAYER
 {
       undefined4 unk_0x1320[0xb0 / 4];
@@ -75,7 +75,7 @@ struct JT : public STEPPLAYER
       JTBS jtbs;            /* +0x18D0 [R] body state; -1 in all observed states */
       float tJtbs;          /* +0x18D4 [S] clock.t when jtbs was entered (by analogy with tJts); was tUnk18d4 */
       int jtas;             /* +0x18D8 [R] cane/attack anim state (SetJtAnimState); ram_inspector calls it jtcs; 8/9 = attack
-                               clips (func_0018A8C8), -1 none */
+                               clips (JtChooseGroundState), -1 none */
       float tJtas;          /* +0x18DC [R] clock.t when jtas was entered; was tUnk18dc */
 
       JTANIM janim;
@@ -179,7 +179,7 @@ struct JT : public STEPPLAYER
       struct EXPL *pexplUnk204c;
       ASEG *pasegPouncePowerUp;
       undefined4 unk_0x2054[3];
-    virtual int FCanUseGadget(int idGadget) __asm__("func_0018D760");   /* override declared in func_0018D760.cpp */
+    virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__2JTi");   /* override declared in FCanUseGadget__2JTi.cpp */
     virtual void VSlot106();   /* slot 106: not yet identified */
     virtual void VSlot107();   /* slot 107: not yet identified */
 };

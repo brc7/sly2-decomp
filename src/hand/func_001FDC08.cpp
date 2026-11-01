@@ -6,9 +6,9 @@ struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pa
 struct P {char pad5C[0x5C];int modeA,modeB,selected;char pad68[0xA0];float weights[3];struct COEF coefficients[3];char pad138[0xCC];int count;struct REF *refs[8];};
 extern char D_003DD490[];
 extern float D_002DDF10;
-struct PLAYER *func_001C4A48(void *);
-int func_00132B10(void *,int);
-float func_0011D018(float,float,float,struct COEF *,float *);
+struct PLAYER *PpoCur(void *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
+float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
 void func_001FC2E0(struct REF *,int,float);
 static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
 void func_001FDC08(struct P *input)
@@ -21,8 +21,8 @@ void func_001FDC08(struct P *input)
     p->selected=1;
     if(p->modeA)p->selected=2;
     else if(p->modeB)p->selected=0;
-    else if(func_001C4A48(D_003DD490) && func_00132B10(func_001C4A48(D_003DD490),0x34)){
-        struct PLAYER *player=func_001C4A48(D_003DD490);
+    else if(PpoCur(D_003DD490) && FIsBasicDerivedFrom__FP5BASIC3CID(PpoCur(D_003DD490),0x34)){
+        struct PLAYER *player=PpoCur(D_003DD490);
         if(player->state==3)p->selected=0;
         else if(player->state==4)p->selected=2;
         else if(player->mode!=-1)p->selected=0;
@@ -37,7 +37,7 @@ void func_001FDC08(struct P *input)
     p->weights[p->selected]=1.0f;
     goto norm;
 smooth:
-    p->weights[p->selected]=func_0011D018(p->weights[p->selected],1.0f,D_002DDF10,&p->coefficients[p->selected],0);
+    p->weights[p->selected]=GSmooth__FfffP3SMPPf(p->weights[p->selected],1.0f,D_002DDF10,&p->coefficients[p->selected],0);
 norm:
     sum=0.0f;selectedSquare=p->weights[p->selected]*p->weights[p->selected];
     for(i=0;i<3;i++)if(i!=p->selected)sum+=p->weights[i]*p->weights[i];

@@ -28,11 +28,11 @@ public:
         }
     }
 };
-extern "C" void func_00164858(X *px, int a, int b);
-extern "C" void func_001649D0();
+extern "C" void ForceTaskState(X *px, int a, int b);
+extern "C" void UpdateCurrentJob();
 extern "C" void func_00164C58(X *px)
 {
     CSave save(px);
-    func_00164858(px, 3, 0);
-    func_001649D0();
+    ForceTaskState(px, 3, 0);
+    UpdateCurrentJob();
 }

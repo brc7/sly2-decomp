@@ -17,7 +17,7 @@ void *func_001AE318(MSG *);
 void *func_001AE1D0(MSG *);
 void func_001AE5A0(void *, void *, int);
 void func_001E0290(OBJ *, int);
-void func_001A5C28(OBJ *, void *);
+void LoadLoFromBrx(OBJ *, void *);
 static inline int Max(int a, int b) { return a < b ? b : a; }
 extern "C" void func_001DFB10(OBJ *p, void *x)
 {
@@ -29,7 +29,7 @@ extern "C" void func_001DFB10(OBJ *p, void *x)
     p->ae = (ENT *)func_001AE318(pmsg);
     func_001E0290(p, -1);
     p->f7C = 1;
-    func_001A5C28(p, x);
+    LoadLoFromBrx(p, x);
     {
         ENT *aeOld = p->ae;
         p->cMax = Max(p->c, p->cMax) + 1;

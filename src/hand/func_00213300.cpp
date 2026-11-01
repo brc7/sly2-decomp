@@ -12,13 +12,13 @@ struct S {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
 struct R {unsigned char *base;int pad[2];unsigned char *cur;};
 extern R D_002DEA28;
 extern "C" {
-void func_001A5ED8(S *);
+void RenderLoSelf(S *);
 int func_002132D0(S *);
 void func_002185D0(void *);
 void func_002130C0(S *);
 void func_00217298(S *,int,float);
 void func_002159E0(void *,void *,PARAM *,int);
-void func_0011A060(LIST *);
+void ClearSl(LIST *);
 }
 static inline void Align(R *r){while((uint)r->cur&63){*(uint *)r->cur=0;r->cur+=4;}}
 static inline float Min(float x,float y){return y<x?y:x;}
@@ -29,9 +29,9 @@ static inline float ColorScale(int c,float upper){return Max(Min((c-127)*0.00787
 static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=ColorScale(a,upper),y=ColorScale(b,upper),z=ColorScale(d,upper),w=ColorScale(e,upper);v.x=x;v.y=y;v.z=z;v.w=w;}
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 static inline Q *Begin(S *p,R *r){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c|=0x30000000;b|=0x30000000;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *pending=0;func_002130C0(p);return pending;}
-static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}func_0011A060(&p->queue);}
+static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 extern "C" void func_00213300(S *p){
-    func_001A5ED8(p);
+    RenderLoSelf(p);
     if(!func_002132D0(p))return;
     func_002185D0(p->sprites);
     float priority=16.0f;

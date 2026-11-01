@@ -14,20 +14,20 @@ extern float D_002A97A8;
 extern O *D_002E1E40;
 extern int D_002C4398[];
 extern "C" {
-void func_0012E460(void **);
-void func_00134320(WORLD *,S *);
-void func_001F5720(S *,int);
-void func_001F57C0(S *,int);
+void ReleaseAct(void **);
+void RecalcSwOxfFilterForObject(WORLD *,S *);
+void SetSoCnstrForce(S *,int);
+void SetSoCnstrTorque(S *,int);
 qword func_0011BFF0(const void *);
 void *func_0012DC18(S *,NODE *,int,int,int,qword);
 int func_00224688(S *);
-qword func_0022FCC8(NODE *,NODE *,qword);
-M3 *func_0011B830(M3 *,qword,qword);
-void func_001A58D0(S *,int,int);
-int func_0015E9C8(WORLD *,int,int,int,int,O **);
+qword ConvertXfVec(NODE *,NODE *,qword);
+M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
+void SetLoParent_1A58D0(S *,int,int);
+int CploFindSwObjectsByClass(WORLD *,int,int,int,int,O **);
 qword func_001A62E8(void *);
-void func_001F7BF8(S *,float);
-void func_001F0730(void *,int);
+void FadeSoOut(S *,float);
+void SetSmaGoalIfReachable(void *,int);
 }
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
@@ -58,50 +58,50 @@ static inline M3 MakeBasis(qword direction,qword rawUp) return result;{
  qword first=direction;
  __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));
  __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(normalized):"j"(v),"j"(len));
- func_0011B830(&result,first,normalized);
+ BuildOrthonormalMatrixZ(&result,first,normalized);
 }
 extern "C" void func_00224EC8(S *p,int state){
  int old=p->state;
  if(state==old)return;
  p->state=state;p->time=D_002DDED0.t;p->sentinel=-1;
- func_0012E460(&p->positionJob);
- func_0012E460(&p->rotationJob);
- if(old==0||old==4)func_00134320(&D_003DD490,p);
+ ReleaseAct(&p->positionJob);
+ ReleaseAct(&p->rotationJob);
+ if(old==0||old==4)RecalcSwOxfFilterForObject(&D_003DD490,p);
  switch(p->state){
  case 0:{
-  func_001F5720(p,0);func_001F57C0(p,0);
+  SetSoCnstrForce(p,0);SetSoCnstrTorque(p,0);
   ZeroVelocity(p->positionNode);ZeroVelocity(p->rotationNode);
   qword position=p->positionNode->orientation;
   qword rotation=func_0011BFF0(p->rotationNode);
   p->positionJob=func_0012DC18(p,p->positionNode,0,7,2,position);
   p->rotationJob=func_0012DC18(p,p->rotationNode,0,7,2,rotation);
-  func_00134320(&D_003DD490,p);
+  RecalcSwOxfFilterForObject(&D_003DD490,p);
   break;
  }
  case 2:{
-  func_001F5720(p,1);func_001F57C0(p,1);
+  SetSoCnstrForce(p,1);SetSoCnstrTorque(p,1);
   ZeroVelocity(p->positionNode);ZeroVelocity(p->rotationNode);
   if(func_00224688(p)&&p->rotationNode){
-   qword direction=Normalize(ToVF(func_0022FCC8(0,p->rotationNode->parent,p->direction)));
-   qword rawUp=func_0022FCC8(0,p->rotationNode->parent,D_002A2DC0);
+   qword direction=Normalize(ToVF(ConvertXfVec(0,p->rotationNode->parent,p->direction)));
+   qword rawUp=ConvertXfVec(0,p->rotationNode->parent,D_002A2DC0);
    M3 basis;basis=MakeBasis(direction,rawUp);
    p->rotationJob=func_0012DC18(p,p->rotationNode,0,7,2,func_0011BFF0(&basis));
   }
   break;
  }
  case 1:{
-  func_001A58D0(p,0,15);func_001F5720(p,0);
-  if(p->kind!=0x29){func_001F57C0(p,0);break;}
-  func_001F57C0(p,1);
+  SetLoParent_1A58D0(p,0,15);SetSoCnstrForce(p,0);
+  if(p->kind!=0x29){SetSoCnstrTorque(p,0);break;}
+  SetSoCnstrTorque(p,1);
   O *objects[32];
-  int count=func_0015E9C8(&D_003DD490,0x105,0x38,0,32,objects);
+  int count=CploFindSwObjectsByClass(&D_003DD490,0x105,0x38,0,32,objects);
   p->nearest=FindNearest(p,count,objects,D_002E1E40,D_002A97A8);
   break;
  }
  case 4:
-  func_00134320(&D_003DD490,p);
-  func_001F7BF8(p,0.25f);
+  RecalcSwOxfFilterForObject(&D_003DD490,p);
+  FadeSoOut(p,0.25f);
   break;
  }
- if(p->animation&&p->state>=0)func_001F0730(p->animation,D_002C4398[p->state]);
+ if(p->animation&&p->state>=0)SetSmaGoalIfReachable(p->animation,D_002C4398[p->state]);
 }

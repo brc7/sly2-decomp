@@ -6,10 +6,10 @@ struct ALO { int x0, x4, x8; VTE *vt; ALO *x10; ALO **x14; char pad[0x24 - 0x18]
 #define VTHIS(p, n) ((ALO *)((char *)(p) + (p)->vt[n].d))
 extern char D_003DD4BC[];
 extern char D_003DD490[];
-void func_001A5448(ALO *p, void **ppdl, ALO ***pppalo);
-void func_0011A2E8(void *pdl, void *p);
-void func_0011A220(void *pdl, void *p);
-void func_0011A280(void *pdl, void *pBefore, void *p);
+void GetLoChildDl(ALO *p, void **ppdl, ALO ***pppalo);
+void RemoveDlEntry__FP2DLPv(void *pdl, void *p);
+void AppendDlEntry__FP2DLPv(void *pdl, void *p);
+void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p);
 int func_001A61A0(ALO *p);
 void func_00148300(void *g, ALO *p);
 void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
@@ -26,23 +26,23 @@ void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
     if (!paloParent || ((int)(paloParent->x28.u >> 60) & 1)) {
         if (!(palo->x28.u & 0x0100000000000000UL)) fNew = 1; else fNew = 0;
     }
-    func_001A5448(palo->x10, &pdlOld, &ppaloOld);
-    func_001A5448(paloParent, &pdlNew, &ppaloNew);
+    GetLoChildDl(palo->x10, &pdlOld, &ppaloOld);
+    GetLoChildDl(paloParent, &pdlNew, &ppaloNew);
     if (palo->x28.u & 0x0100000000000000UL) {
         if (palo == *ppaloOld)
             *ppaloOld = palo->x24;
-        func_0011A2E8(pdlOld, palo);
-        func_0011A220(pdlNew, palo);
+        RemoveDlEntry__FP2DLPv(pdlOld, palo);
+        AppendDlEntry__FP2DLPv(pdlNew, palo);
         if (!*ppaloNew)
             *ppaloNew = palo;
     } else {
-        func_0011A2E8(pdlOld, palo);
-        func_0011A280(pdlNew, *ppaloNew, palo);
+        RemoveDlEntry__FP2DLPv(pdlOld, palo);
+        InsertDlEntryBefore__FP2DLPvT1(pdlNew, *ppaloNew, palo);
     }
     if (func_001A61A0(palo)) {
         VFN(palo, 22, void (*)(ALO *))(VTHIS(palo, 22));
         if (*palo->x14 == palo)
-            func_0011A2E8(D_003DD4BC, palo->x14);
+            RemoveDlEntry__FP2DLPv(D_003DD4BC, palo->x14);
     }
     paloOld = palo->x10;
     palo->x10 = paloParent;

@@ -14,8 +14,8 @@ extern struct G D_003DD490;
 extern float D_002C3264;
 extern int D_002C3268[];
 int func_002132D0(void *);
-Q *func_001C4840(struct G *);
-int func_00132B10(void *, int);
+Q *PpoHero(struct G *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_00258438(TXT *, float, float);
 void func_00258448(TXT *, float, float);
 void func_00258458(TXT *, unsigned int *);
@@ -32,10 +32,10 @@ void func_001DAC58(OBJ *p)
         return;
     if (!func_002132D0(p->x24))
         return;
-    q = func_001C4840(&D_003DD490);
+    q = PpoHero(&D_003DD490);
     if (q == 0)
         return;
-    if (!func_00132B10(q, 0x34))
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         return;
     for (i = 0; i < p->c; i++) {
         ENT *pe = &p->ae[i];

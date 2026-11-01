@@ -47,7 +47,7 @@ void func_00117968(BIS *,int,void *);
 void *func_00116918(HEAP *,int,int);
 void *func_001AE378(ALLOCREQ *);
 void func_00214398(OWNER *,BIS *,ROOT *,int *,SPRITE **);
-void func_00149A50(WORLD *,OWNER *,PMF,SPRITE *);
+void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
 // The current stack-allocation scope (out of line: 0x1AE478 / 0x1AE4A0)
 struct STACKSCOPE {STACKSCOPE();~STACKSCOPE();};
@@ -122,7 +122,7 @@ extern "C" void func_002149D8(OWNER *const owner,BIS *stream,ROOT *root,int,SPRI
   vif.AddVifUnpack(UPK_V4_32,((uint)gif.m_pb-(uint)gif.m_ab)>>4,gif.m_ab,7);
   vif.AddVifMscal(D_00000650);vif.EndDmaCnt();vif.AddDmaRet();
   if(sprite->kind==6)vif.DetachCopySw(owner->heap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
-  else{vif.DetachCopySw(owner->heap,&sprite->data.picture.count,0,&sprite->data.picture.packet);func_00149A50(&D_003DD490,owner,D_002A8B08,sprite);}
+  else{vif.DetachCopySw(owner->heap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&D_003DD490,owner,D_002A8B08,sprite);}
   break;
  }
  case 1:{

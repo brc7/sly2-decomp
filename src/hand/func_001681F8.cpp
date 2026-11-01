@@ -2,7 +2,7 @@
 // 6 qwords to VU address 0x301 (entry word + bounding sphere + model matrix), padding, and a DMA RET tag, then queues it
 // in a render-list entry (func_001CD998) with the descriptor's chain. Stamps the game tick at the end.
 // From lanef9v1 (aligned 5) plus func_00169198's packet idioms (template UNPACK tag, CopyQws with the empty do-while).
-// STAND-IN (same trick as func_00219400 / func_0013E818): `if (fNever)` is dead code (gcse's last cprop folds it, jump
+// STAND-IN (same trick as func_00219400 / LoadOptionFromBrx): `if (fNever)` is dead code (gcse's last cprop folds it, jump
 // deletes it; the final code is unchanged). It only supplies the extra basic block the game had between the UNPACK tag and
 // the copy loop at gcse time: gcse PRE then inserts the %hi(D_002DEA28) copy (t2) before that block and the outer `i + 1`
 // (s4) after it, below the do-while barrier. What the game really had there is unknown.
@@ -97,7 +97,7 @@ extern G D_003DD490;
 extern "C" {
 void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
-M4 *func_0011C168(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
+M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float func_0011CAB0(const M3 *pmat);
 RPL *func_001CD998(void);
 }
@@ -146,7 +146,7 @@ static inline M4 ModelMatrix(const ENTRY *entry) return model
     if (parent)
     {
         M4 product;
-        func_0011C168(&product, &model, parent);
+        __ml__FRC7MATRIX4T0(&product, &model, parent);
         func_0023320C(&model, &product, sizeof(M4));
     }
 }

@@ -4,13 +4,13 @@ enum EYESS { EYESS_Nil = -1, EYESS_Open = 0, EYESS_Closing = 1, EYESS_Closed = 2
 struct SAI { int a; };
 struct EYES { char pad[0x1C]; int cframe; char pad1[0x34 - 0x20]; SAI sai; char pad2[0x50 - 0x38]; float dtBlink; float dtOpenMin; float dtOpenMax; float uDoubleBlink;
     int pad60; EYESS eyess; float tEyess; float dtOpen; float dframe; float iframe; float uOpen; };
-extern "C" int func_0011A1E8(SAI *psai);
+extern "C" int FIsSlEmpty(SAI *psai);
 extern "C" void func_001EDA68(EYES *p, int iframe);
 void SetEyesEyess(EYES *peyes, EYESS eyess);
 extern "C" void func_001EE228(EYES *peyes);
 void func_001EE228(EYES *peyes)
 {
-    if (func_0011A1E8(&peyes->sai) || peyes->cframe < 2)
+    if (FIsSlEmpty(&peyes->sai) || peyes->cframe < 2)
         return;
 
     EYESS eyessNext = peyes->eyess;

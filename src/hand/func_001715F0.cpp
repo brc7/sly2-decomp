@@ -21,18 +21,18 @@ void func_00171AF8(struct S *p, void *o, qword *pq, float *pg);
 void func_00171B60(struct S *p, qword q, float g);
 void *func_00205438(struct A *a, int k);
 void func_001E9C30(void *o);
-void func_0017CDB8(void *o, int n);
-void func_0017D110(void *o, int n);
+void SetBhvrailGoal(void *o, int n);
+void SetBhvpipeGoal(void *o, int n);
 void func_002562A8(struct X *x);
 inline X::X() { func_002562A8(this); }
-int func_00132B10(void *o, int n);
-void func_0017DD38(void *o, struct X *x);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+void SetBhvgotoGoal(void *o, struct X *x);
 void func_0012F9B8(void *o, int a, int b, void *c, float f, float g);
 void *func_001711F0(void *p, int id);
-void func_001EEFC0(struct S *p);
-void func_001EF038(struct S *p);
-void func_002090D0(struct X50 *x, struct A *a);
-void func_00209130(struct X50 *x, struct A *a);
+void SetBhvBusy(struct S *p);
+void ClearBhvBusy(struct S *p);
+void ReleaseAnimBinding(struct X50 *x, struct A *a);
+void ResolveAnimBinding(struct X50 *x, struct A *a);
 void func_001E0020(void *o, int n);
 
 struct O2 : O { char pad1[0x30 - 0x10]; void *p30; int n34; float g38; char pad2[0x50-0x3C]; void *n50; int pad3; int n58; };
@@ -107,13 +107,13 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         }
         case 0: {
             struct O *o2 = (struct O *)func_00205438(a, 0xB8);
-            func_0017CDB8(o2, (int)p->p38->p8);
+            SetBhvrailGoal(o2, (int)p->p38->p8);
             VCALL8(o2);
             break;
         }
         case 1: {
             struct O *o2 = (struct O *)func_00205438(a, 0xB9);
-            func_0017D110(o2, (int)p->p38->p8);
+            SetBhvpipeGoal(o2, (int)p->p38->p8);
             VCALL8(o2);
             break;
         }
@@ -133,7 +133,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
             void *o = func_001715B8(p, qq->n4);
             if (o) {
                 func_00171AF8(p, o, 0, &p->g48);
-                if (func_00132B10(o, 10)) x.p0 = o;
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 10)) x.p0 = o;
                 else x.p4 = o;
             }
         }
@@ -141,7 +141,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         n = a->nF80;
         if (n == -1) {
             struct O3 *o3 = (struct O3 *)func_00205438(a, 0xBA);
-            func_0017DD38(o3, &x);
+            SetBhvgotoGoal(o3, &x);
             if (c->n10 != -1) o3->nA8 = func_001715B8(p, c->n10);
             o3->gB0 = c->g14;
             o3->nBC = p->n4C;
@@ -162,10 +162,10 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         break;
     }
     case 11:
-        func_001EEFC0(p);
+        SetBhvBusy(p);
         break;
     case 12:
-        func_001EF038(p);
+        ClearBhvBusy(p);
         break;
     case 13: {
         void *o = func_001715B8(p, p->p38->n4);
@@ -178,10 +178,10 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         break;
     }
     case 14:
-        func_002090D0(&p->x50, p->p10);
+        ReleaseAnimBinding(&p->x50, p->p10);
         p->x50.n54 = c->n4;
         p->x50.n5C = c->u.s.n8;
-        func_00209130(&p->x50, p->p10);
+        ResolveAnimBinding(&p->x50, p->p10);
         if (p->p10->nF80 == -1) {
             struct O5 *o5 = (struct O5 *)func_00205438(p->p10, 0x9D);
             o5->p40 = &p->x50;

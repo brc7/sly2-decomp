@@ -5,7 +5,7 @@ extern int D_003E1BEC;
 void func_0014D1D0(struct CLOCK *pclock, int n, float g);
 void func_001FB098(void *p, float g);
 void func_00258040(void **pp, int n);
-void func_00141E28(struct S *p, int n);
+void StopStepplayerGadget(struct S *p, int n);
 void func_0018DD78(struct S *p, int n)
 {
     if (n == 0x1D || n == 0x2A) {
@@ -18,6 +18,6 @@ void func_0018DD78(struct S *p, int n)
         }
         D_003E1BEC = 0;
     } else {
-        func_00141E28(p, n);
+        StopStepplayerGadget(p, n);
     }
 }

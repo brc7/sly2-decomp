@@ -65,7 +65,7 @@ void*func_001AE238(const REQUEST&,void*);
 MARK*func_001AE478(MARK*);
 void func_001AE4A0(MARK*,int);
 BINDING*func_0016C8E0(P*,STREAM*);
-M4*func_0011C168(M4*,const M4*,const M4*);
+M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
 struct MARK{MARK(){func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
@@ -96,7 +96,7 @@ extern "C" void func_00169AC8(P*p,const D*sourceD,const E*sourceE,const SPHERE*s
         entry->data=data;entry->base+=delta;
         if(entry->flags.word&0x1000){
             M4 product,temp;
-            func_0011C168(&temp,&entry->transform->matrix,&matrix);
+            __ml__FRC7MATRIX4T0(&temp,&entry->transform->matrix,&matrix);
             product=temp;
             func_001AE5A0(entry->data+0x14,&product,0x40);
         }

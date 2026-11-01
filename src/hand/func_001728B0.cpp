@@ -14,14 +14,14 @@ extern const float D_002A53D0;
 extern LM D_002BE5A8,D_002BE5B0;
 
 extern "C" {
-extern qword func_001A62E8(NODE*);extern float func_00204740(NODE*);
+extern qword func_001A62E8(NODE*);extern float RadStepHeading(NODE*);
 extern int func_00172798(QUERY*);
-extern void func_001E6F60(NODE*,qword,void*,qword*,qword*,float*,float*);
-extern int func_00132B10(NODE*,int);
-extern int func_0015E9C8(void*,int,int,NODE*,int,NODE**);
+extern void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
+extern int FIsBasicDerivedFrom__FP5BASIC3CID(NODE*,int);
+extern int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 extern int func_00172888(ROW*,ROW*);
 extern void func_002338C0(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
-extern qword func_0011E1A0(float,float,float);extern float func_0011D448(float,float);
+extern qword SetVectorCylind(float,float,float);extern float GRandInRange__Fff(float,float);
 }
 struct VU_FLOAT{qword qw;};
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -55,7 +55,7 @@ static inline qword VuFloatVolatile(float g){qword v;
 extern "C" void func_001728B0(P*p){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
  w.query.point.q=func_001A62E8(p->actor);
- w.query.heading=func_00204740(p->actor);w.query.count=0;
+ w.query.heading=RadStepHeading(p->actor);w.query.count=0;
  for(object=D_003E13FC;object;object=object->next104){
   qword posObj=func_001A62E8(object);
   qword qwFallback=D_002A2DA0;
@@ -69,20 +69,20 @@ extern "C" void func_001728B0(P*p){
   w.query.candidate.q=QwAddScaled(posObj,n,g);
   func_00172798(&w.query);
  }
- for(object=D_003E13F0;object;object=object->next1B4){func_001E6F60(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
+ for(object=D_003E13F0;object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
  for(object=D_003E1408;object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  for(object=D_003E13E4;object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
- for(object=D_003E13C0;object;object=object->next1B4){func_001E6F60(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
+ for(object=D_003E13C0;object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
  for(object=D_003E13D8;object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
- for(object=D_003E13CC;object;object=object->next1B4){func_001E6F60(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
+ for(object=D_003E13CC;object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
  for(object=D_003E13B4;object;object=object->nextE0){
-  if((object->flags&1)&&func_00132B10(object,0x13)){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+  if((object->flags&1)&&FIsBasicDerivedFrom__FP5BASIC3CID(object,0x13)){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  }
- {int count=func_0015E9C8(&D_003DD490,0x505,0x23,0,0x100,w.result256);
+ {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x23,0,0x100,w.result256);
  if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
- {int count=func_0015E9C8(&D_003DD490,0x505,0x67,0,0x20,w.result32);
+ {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x67,0,0x20,w.result32);
  if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
- {int count=func_0015E9C8(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
+ {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
  if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
  for(object=D_003E1450;object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  lastAngle=0.0f;
@@ -109,13 +109,13 @@ extern "C" void func_001728B0(P*p){
   }
  }
  qword origin=w.query.point.q;
- qword anchor=QwAdd(origin,func_0011E1A0(w.query.heading+3.1415927f,-350.0f,0.0f));
+ qword anchor=QwAdd(origin,SetVectorCylind(w.query.heading+3.1415927f,-350.0f,0.0f));
  while(accepted<4){
   float angle,length;qword point;
-  lastAngle+=func_0011D448(D_002BE5A8.low,D_002BE5A8.high);
+  lastAngle+=GRandInRange__Fff(D_002BE5A8.low,D_002BE5A8.high);
   angle=lastAngle+w.query.heading;
-  length=func_0011D448(D_002BE5B0.low,D_002BE5B0.high);
-  point=QwAdd(anchor,func_0011E1A0(angle,length,0.0f));
+  length=GRandInRange__Fff(D_002BE5B0.low,D_002BE5B0.high);
+  point=QwAdd(anchor,SetVectorCylind(angle,length,0.0f));
   {PAIR*pair=&p->pair[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
  }
  p->index=0;p->time=D_002A53D0;

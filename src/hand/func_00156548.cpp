@@ -10,9 +10,9 @@ extern VT D_002CE2B8;
 struct CLOCK { float t; float dt; };
 extern CLOCK D_002DDED0;
 extern "C" {
-S *func_0011CCC0(void *);
+S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
-void func_0011A220(void *, S *);
+void AppendDlEntry__FP2DLPv(void *, S *);
 void func_00256EE0(S *, int);
 }
 struct Lock {
@@ -22,7 +22,7 @@ struct Lock {
 };
 extern "C" void func_00156548(P *p, qword q, int b, S **pps)
 {
-    S *ps = func_0011CCC0(D_003DD490.pool);
+    S *ps = PvAllocSlotheapClear(D_003DD490.pool);
     func_002333B4(ps, 0, 0x60);
     ps->n0 = 0;
     ps->n4 = 0;
@@ -34,7 +34,7 @@ extern "C" void func_00156548(P *p, qword q, int b, S **pps)
     ps->n48 = ++D_003DD490.c;
     ps->f4C = D_002DDED0.t;
     ps->n54 = p->n64;
-    func_0011A220(D_003DD490.dl, ps);
+    AppendDlEntry__FP2DLPv(D_003DD490.dl, ps);
     ps->pvt->a[1].pfn((char *)ps + ps->pvt->a[1].d);
     Lock l(ps);
     func_00256EE0(ps, p->n0);

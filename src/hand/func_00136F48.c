@@ -7,10 +7,10 @@ struct S { struct PO *po; int state; int x8; int xC; int x10; int x14; float g18
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void func_0018F2B0(struct PO *, int, void *, int *, QF *, float, float, float);
-qword func_001A6F00(void *, struct PO *, qword);
-void func_002046B0(struct PO *, qword);
-void func_00204CA8(struct PO *);
+void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
+qword ConvertAloPos(void *, struct PO *, qword);
+void SetStepRadTargetVec(struct PO *, qword);
+void FixStepAngularVelocity(struct PO *);
 void func_001384C0(void *);
 void func_001305B8(void *, struct PO *, int, void **, float, float);
 void func_00131B10(void *, struct PO *, int);
@@ -41,17 +41,17 @@ void func_00136F48(struct S *ps, int state)
         g = 1.5f;
         if (state == 0)
             g = 3.15f;
-        func_0018F2B0(ps->po, 2, ps->a20, &f, &v, ps->po->g1A8, 0.15f, g);
+        ChooseJtAttackTarget(ps->po, 2, ps->a20, &f, &v, ps->po->g1A8, 0.15f, g);
         if (f) {
             ps->g1C = Clamp((v.a[2] - ps->g30) / (ps->g34 - ps->g30), 0.0f, 1.0f);
         } else {
             ps->g1C = 0.5f;
         }
-        r.q = func_001A6F00(ps->pvE4, ps->po, D_002A2DD0);
+        r.q = ConvertAloPos(ps->pvE4, ps->po, D_002A2DD0);
         ps->x8 = 0.0f < r.a[1] ? 1 : 0;
         if (state == 0 && f) {
-            func_002046B0(ps->po, v.q);
-            func_00204CA8(ps->po);
+            SetStepRadTargetVec(ps->po, v.q);
+            FixStepAngularVelocity(ps->po);
         }
     }
     ps->state = state;

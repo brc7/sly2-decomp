@@ -33,7 +33,7 @@ extern qword D_002C4290[5];
 extern "C" {
 qword func_001A62E8(LO *plo);
 int func_0014F030(void *pv, SO *pso);
-void func_0020FAA0(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
+void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
 qword func_0014F308(CM *pcm, qword pos);
 qword func_0014F268(CM *pcm, qword ndc);
 int func_0014EA08(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
@@ -154,7 +154,7 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
     STACKSCOPE scope;
     int cpso;
     SOPART **apso;
-    func_0020FAA0(&D_003DD490, aqw[0], aqw[1], func_0014F030, 0, &cpso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], func_0014F030, 0, &cpso, &apso);
     for (i = 0; i < 5; i++, pqw++)
     {
         aqw[2] = func_0014F308(&D_002DDF40, *pqw);

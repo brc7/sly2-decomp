@@ -14,7 +14,7 @@ void *func_002333B4(void *, int, int);
 void func_001FBAF8(void);
 void func_00232320(struct M *, void (*)(void), struct P *);
 void func_002322F0(struct M *);
-int func_001C4840(void *);
+int PpoHero(void *);
 void func_001FEED0(struct G *);
 void func_001FBC58(struct P *p)
 {
@@ -61,5 +61,5 @@ void func_001FBC58(struct P *p)
     case 0x73: id = D_002DD5BC; break;
     case 0x15: id = D_002F7900; break;
     }
-    if (id == func_001C4840(D_003DD490)) func_001FEED0(&D_003DD040);
+    if (id == PpoHero(D_003DD490)) func_001FEED0(&D_003DD040);
 }

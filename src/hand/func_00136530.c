@@ -14,17 +14,17 @@ extern struct G *D_002F7900;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void func_001A58D0(struct P *, int, int);
-void func_0012E460(void *);
+void SetLoParent_1A58D0(struct P *, int, int);
+void ReleaseAct(void *);
 void func_002303A0(struct P *, struct O *, int);
-float func_00204740(struct P *);
+float RadStepHeading(struct P *);
 void func_00204660(struct P *, float);
-void func_00204CA8(struct P *);
-void func_002206C8(void *, int);
+void FixStepAngularVelocity(struct P *);
+void SetJtthrowState(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
 void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword func_0011BFF0(M4 *pm);
-void func_001F15B8(void *);
+void ReleaseSma(void *);
 void func_001305B8(void *, struct P *, int, void *, float, float);
 
 void func_00136530(struct P *p, int k)
@@ -35,18 +35,18 @@ void func_00136530(struct P *p, int k)
     switch (p->k1800) {
     case 0: {
         int save = p->x9E4;
-        func_001A58D0(p, 0, 0xF);
+        SetLoParent_1A58D0(p, 0, 0xF);
         p->x9E4 = save;
-        func_0012E460(&p->pv1810);
-        func_0012E460(&p->pv1814);
+        ReleaseAct(&p->pv1810);
+        ReleaseAct(&p->pv1814);
         func_002303A0(p, p->p58, 2);
         func_002303A0(p, p->p5C, 2);
         break;
     }
     case 1:
-        func_00204660(p, func_00204740(p));
+        func_00204660(p, RadStepHeading(p));
         p->x1A4 = 0;
-        func_00204CA8(p);
+        FixStepAngularVelocity(p);
         break;
     }
     p->k1800 = k;
@@ -59,7 +59,7 @@ void func_00136530(struct P *p, int k)
             return;
         if (pg->k1914 == 7)
             return;
-        func_002206C8(&pg->x1910, 0);
+        SetJtthrowState(&pg->x1910, 0);
         return;
     }
     case 0: {
@@ -83,7 +83,7 @@ void func_00136530(struct P *p, int k)
         p->x1A4 = -1;
         break;
     }
-    func_001F15B8(&p->x1034);
+    ReleaseSma(&p->x1034);
     func_001305B8(pv, p, 9, &p->x1030, 0.0f, 1.0f);
     ((void (*)(void *))p->vt[90].f)((char *)p + p->vt[90].d);
 }

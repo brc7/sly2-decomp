@@ -7,7 +7,7 @@
 #include "sly2/stepplayer.h"
 #include "sly2/jt.h"
 
-/* MOVEREC: from src/hand/func_00197500.cpp (3 copies in Lilly ports) */
+/* MOVEREC: from src/hand/UpdateJtAirInput.cpp (3 copies in Lilly ports) */
 struct MOVEREC
 {
       int nUnk00;
@@ -26,7 +26,7 @@ struct MOVEREC
       int fStarted;
 };
 
-/* MURRAY: from src/hand/func_00197500.cpp (3 copies in Lilly ports) */
+/* MURRAY: from src/hand/UpdateJtAirInput.cpp (3 copies in Lilly ports) */
 struct MURRAY : public STEPPLAYER
 {
       undefined4 unk_0x1320[(0x13d0 - 0x1320) / 4];

@@ -11,7 +11,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern struct G D_002DDF40;
 extern struct G2 D_002DDFA0;
 int func_0011D4D0(float, float, float);
-float func_0011CF60(float);
+float RadNormalize__Ff(float);
 qword func_0011BFF0(void *);
 int func_0014FD50(void *);
 void func_0014E4C8(void *, int, int, void *, int, int);
@@ -44,7 +44,7 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
     pga = (float *)&pa->t.v10;
     pgb = (float *)&pb->t.v10;
     for (i = 2; i >= 0; i--) {
-        *pgb = *pga + func_0011CF60(*pgb - *pga);
+        *pgb = *pga + RadNormalize__Ff(*pgb - *pga);
         pga++;
         pgb++;
     }

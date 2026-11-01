@@ -6,7 +6,7 @@
 // func_00215730). Finally the item's matrix/colours/pose bytes are saved and the link kinds are set (1 for the
 // linking pose, 4 for the item it links to).
 //
-// STAND-IN (see func_0013E818.cpp for the same trick): the spilled gcse reaching pseudos (j+1, &item->flags, &outputAdditive
+// STAND-IN (see LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp for the same trick): the spilled gcse reaching pseudos (j+1, &item->flags, &outputAdditive
 // and the hoisted frame addresses) get their spill slots/registers from the gcse expression hash-table size
 // S = max_cuid/2|1. This spelling has S = 279 after cse1; the game's order needs S = 277/283/289. `if (fNever)` is dead code
 // (cprop folds it, jump deletes it; the final code is unchanged) that only supplies the missing insns (S = 283).
@@ -80,7 +80,7 @@ struct KEY {
 struct ROOT { char pad[0x54]; SPRITE *sprites; };
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
 extern "C" {
-void func_0011A058(int *);
+void ClearSle(int *);
 void *func_002333B4(void *, int, unsigned int);
 void func_00215730(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 void func_00219400(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
@@ -249,13 +249,13 @@ extern "C" void func_00219400(float time, float duration, ANIM *animation, int p
         item->interpolate = pose->interpolate;
         item->mode = pose->mode;
         item->field64 = pose->selected;
-        func_0011A058(&item->flags);
+        ClearSle(&item->flags);
         if (linkOffset) {
             item->kind = 1;
             items[entryIndex + linkOffset].kind = 4;
         } else if (item->kind != 4)
             item->kind = 0;
         if (fNever)
-            func_0011A058(0);
+            ClearSle(0);
     }
 }

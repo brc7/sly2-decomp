@@ -16,7 +16,7 @@ void func_001DA808(OBJ *);
 int func_002127C8(void);
 void func_00212A70(W *, int);
 void func_00212A50(W *, int);
-int func_00187D80(void *, int);
+int GrfHandleJoyBtn(void *, int);
 void func_001DD300(OBJ *, int);
 void func_001DA858(OBJ *);
 void func_001DD1F8(OBJ *);
@@ -34,27 +34,27 @@ void func_001DCD30(OBJ *p)
         func_00212A50(p->pw, 2);
         p->pw->vt->a[16].pfn((char *)p->pw + p->pw->vt->a[16].d);
     }
-    if (func_00187D80(p->x10, 0x800)) {
+    if (GrfHandleJoyBtn(p->x10, 0x800)) {
         func_001DD300(p, -1);
         return;
     }
     switch (p->x40) {
     case 0:
-        if (func_00187D80(p->x10, 0x10)) {
+        if (GrfHandleJoyBtn(p->x10, 0x10)) {
             func_001DD300(p, -1);
             return;
         }
-        if (p->c && func_00187D80(p->x10, 0xF0)) {
+        if (p->c && GrfHandleJoyBtn(p->x10, 0xF0)) {
             func_001DD300(p, 1);
             return;
         }
         break;
     case 1:
-        if (!p->x114 && func_00187D80(p->x10, 0x10)) {
+        if (!p->x114 && GrfHandleJoyBtn(p->x10, 0x10)) {
             func_001DD300(p, -1);
             return;
         }
-        if (func_00187D80(p->x10, 0xF0)) {
+        if (GrfHandleJoyBtn(p->x10, 0xF0)) {
             func_001DD300(p, 0);
             return;
         }

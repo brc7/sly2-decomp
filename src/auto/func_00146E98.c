@@ -1,11 +1,11 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001B6078(void *, M2C_UNK);             /* extern */
+M2C_UNK SetMurrayState(void *, M2C_UNK);             /* extern */
 M2C_UNK func_001B8D30(void *, M2C_UNK);             /* extern */
-M2C_UNK func_001EEF70();                            /* extern */
+M2C_UNK StartBhv();                            /* extern */
 
 void func_00146E98(void *arg0) {
-    func_001EEF70();
+    StartBhv();
     M2C_FIELD(M2C_FIELD(arg0, void **, 0x10), s32 *, 0x1AC0) = 1;
-    func_001B6078(M2C_FIELD(arg0, void **, 0x10), 0xC);
+    SetMurrayState(M2C_FIELD(arg0, void **, 0x10), 0xC);
     func_001B8D30(M2C_FIELD(arg0, void **, 0x10), 0);
 }

@@ -1,13 +1,13 @@
 struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
-int func_00132B10(void *p, int cid);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *func_002332B8(void *pdst, const void *psrc, unsigned int cb);
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 void func_001E5280(struct P *p, struct O *po, int a, int b)
 {
     int i;
-    if (!func_00132B10(po, 0x33)) return;
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
     for(i=0;i<p->c;i++) {
         if(p->apo[i]==po)break;
     }

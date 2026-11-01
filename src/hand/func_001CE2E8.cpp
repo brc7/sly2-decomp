@@ -37,8 +37,8 @@ void func_001AE4A0(FRAME *, int);
 void *func_001AE318(const REQ *);
 int func_00118A88(void *, int, qword, float, int *, ENTRY **);
 int func_0014C6D8(SHAPE *, ENTRY *, qword, qword, int, XP *);
-int func_00132B10(void *, int);
-int func_0011A3B0(DL *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int FIsDlEmpty__FP2DL(DL *);
 void func_001CE2E8(P *);
 }
 /* the scratch request and the rip iterator share one stack slot */
@@ -54,7 +54,7 @@ void func_001CE2E8(P *p)
         NODE *node;
         for (node = p->state->nodes; node; node = node->next) {
             if (node->object->state->flags & 4) continue;
-            int special = func_00132B10(node->object->state->subject, 0x59);
+            int special = FIsBasicDerivedFrom__FP5BASIC3CID(node->object->state->subject, 0x59);
             DLI shapes;
             Init(&shapes, &node->object->state->shapes);
             SHAPE *shape;
@@ -97,6 +97,6 @@ void func_001CE2E8(P *p)
             }
             D_002DD2FC = shapes.outer;
         }
-        if (func_0011A3B0(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
+        if (FIsDlEmpty__FP2DL(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
     }
 }

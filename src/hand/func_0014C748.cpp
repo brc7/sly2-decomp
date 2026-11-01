@@ -9,7 +9,7 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; };
 extern "C" {
 extern qword D_002A2DA0;
-void func_00119390(qword *pnormal, qword normal, qword pos);
+void InitPlaneFromNormalPos(qword *pnormal, qword normal, qword pos);
 int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
 }
 
@@ -85,7 +85,7 @@ int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int cl
         qword pos = Combo(VU_FLOAT(u), pos1, VU_FLOAT(1.0f - u), pos0);
         qword d = Sub(pos, posCenter);
         alsg->apos[i] = pos;
-        func_00119390(&alsg->anormal[i], Normalize(d), pos);
+        InitPlaneFromNormalPos(&alsg->anormal[i], Normalize(d), pos);
     }
     alsg->lsgk = 1;
     return 1;

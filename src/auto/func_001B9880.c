@@ -23,5 +23,5 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E1444;
 
 void func_001B9880(s32 arg0, s32 arg1, s32 arg2) {
-    func_001B6078(arg0, 0xF, arg2);
+    SetMurrayState(arg0, 0xF, arg2);
 }

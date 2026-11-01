@@ -1,7 +1,7 @@
 // func_00155FB0 (Claude agent, lane D20): matched from v8.
 // g_normalZ: Sly 1 name of the (0,0,1) vector at D_002A2DC0.
 // The clamp scale lives in a function-scope VUV sc (declared after lm) so its slot sits at 0x30 before frame.
-// Sub2 clobbers vf4, which is dead there (the next write to vf4 is the qmtc2 of func_0011E208's result), so the pos reload takes vf2.
+// Sub2 clobbers vf4, which is dead there (the next write to vf4 is the qmtc2 of SetVectorSphere's result), so the pos reload takes vf2.
 // The empty volatile asm in the loop stops jump threading of the two f tests.
 // DRAFT (Claude agent): escape/flee target position search (logic complete, not close: frame 0x130 vs 0x1D0 - target returns func_256CE8/256D08 VECTOR4 results via hidden pointer slots 0xB0..0xE0 and spills more temps; unreachable `b; mov.s f22,f20` block at 0x1561EC not reproduced).
 typedef int qword __attribute__((mode(TI)));
@@ -23,23 +23,23 @@ extern float D_002BDC70[2];
 extern float D_002BDC90[2];
 extern float D_002BDCA0[11];
 extern float D_002A513C;
-SO *func_001C4840(void *p);
+SO *PpoHero(void *p);
 extern char D_002DE578[];
 qword func_001A62E8(void *p);
 M3 *func_001A6318(void *p);
-float func_00154C90(void *p);
+float GGetDifficulty(void *p);
 VUV func_00256CE8(float g);
 VUV func_00256D08(VECTOR *pv);
 qword func_00258480(qword a, qword b, qword c, qword d);
 void func_00256D18(VECTOR *pv, qword v);
 float func_002458F0(float y, float x);
-qword func_0011E1A0(float a, float b, float c);
-void func_0011EFB0(qword v, float *pa, float *pb, float *pc);
+qword SetVectorCylind(float a, float b, float c);
+void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 FRAME *func_001AE478(FRAME *pf);
 void func_001AE4A0(FRAME *pf, int n);
 void func_001B44D8(int *pc, void **pa);
-float func_0011CF60(float g);
-qword func_0011E208(float pan, float tilt, float s);
+float RadNormalize__Ff(float g);
+qword SetVectorSphere(float pan, float tilt, float s);
 int func_0014CC58(int n, qword a, qword b, int c, void *pv, qword *phit);
 qword func_00155FB0(void *p, qword pos);
 }
@@ -71,9 +71,9 @@ static inline int FFast(qword v) { return D_002BDC98 < Len(v); }
 
 qword func_00155FB0(void *p, qword pos)
 {
-    SO *pso = func_001C4840(D_003DD490);
+    SO *pso = PpoHero(D_003DD490);
     float dist = Len(Sub(func_001A62E8(pso), pos));
-    float u = func_00154C90(D_002DE578);
+    float u = GGetDifficulty(D_002DE578);
     qword posTarget = AddScaled(func_001A62E8(pso), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
     VECTOR clq;
@@ -106,17 +106,17 @@ qword func_00155FB0(void *p, qword pos)
     } else {
         M3 *pm = func_001A6318(pso);
         M3 *pm2 = func_001A6318(pso);
-        off.q = func_0011E1A0(func_002458F0(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
+        off.q = SetVectorCylind(func_002458F0(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
     }
-    func_0011EFB0(Sub(Add(posTarget, off.q), pos), &pan, &tilt, &s);
+    GetVectorSphere(Sub(Add(posTarget, off.q), pos), &pan, &tilt, &s);
     func_001AE478(&frame);
     func_001B44D8(&c, &av);
     gBest = D_002A513C;
     for (i = 0; i < 11; i++) {
         qword test;
         float g;
-        float panT = func_0011CF60(pan + D_002BDCA0[i]);
-        test = Add(pos, func_0011E208(panT, tilt, s));
+        float panT = RadNormalize__Ff(pan + D_002BDCA0[i]);
+        test = Add(pos, SetVectorSphere(panT, tilt, s));
         int f = func_0014CC58(0, pos, test, c, av, &hit.q);
         if (f)
             test = hit.q;
@@ -132,7 +132,7 @@ qword func_00155FB0(void *p, qword pos)
         }
     }
     {
-        qword r = Add(pos, func_0011E208(panBest, tilt, s));
+        qword r = Add(pos, SetVectorSphere(panBest, tilt, s));
         func_001AE4A0(&frame, 2);
         return r;
     }

@@ -8,8 +8,8 @@ struct G {char pad3D58[0x3D58];int stamp;};
 struct CLOCK {float time,dt;};
 extern CLOCK D_002DDED0;
 extern G D_003DD490;
-extern "C" void func_00230598(P *,OWNER *);
-extern "C" qword func_0022FCC8(void *,OWNER *,qword);
+extern "C" void SlotUnsettle(P *,OWNER *);
+extern "C" qword ConvertXfVec(void *,OWNER *,qword);
 extern "C" int func_0011D4D0(float,float,float);
 extern qword D_002A2DD0;
 extern "C" void func_001F4BF8(P *);
@@ -33,7 +33,7 @@ static inline float Z(qword q){register float f __asm__("$2");__asm__("pextuw %0
 static inline int NearFlag(int code){register int r __asm__("$21");__asm__("sltu %0,$zero,%1":"=r"(r):"r"(code));return r;}
 static inline void Near(int *out,qword a,qword b){if(func_0011D4D0(X(a),X(b),0.0001f))if(func_0011D4D0(Y(a),Y(b),0.0001f))*out=NearFlag(func_0011D4D0(Z(a),Z(b),0.0001f));}
 static inline qword Zero(){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
-static inline void Consume(P *p,OWNER *object,U &pending,qword*out){func_00230598(p,object);qword world=func_0022FCC8(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
+static inline void Consume(P *p,OWNER *object,U &pending,qword*out){SlotUnsettle(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
 static inline float YFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tprot3w %0,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline float ZFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tpextuw %0,$zero,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(func_0011D4D0(ax,bx,0.0001f))if(func_0011D4D0(Y(a),YFromHome(b),0.0001f))*out=func_0011D4D0(Z(a),ZFromHome(b),0.0001f)!=0;}

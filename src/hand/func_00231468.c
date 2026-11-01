@@ -5,7 +5,7 @@ typedef struct { qword r[4]; } M4;
 typedef struct { char pad[0x40]; M4 m; } O;
 typedef struct { char pad[0x50]; O *x50; char pad2[0x3C]; qword x90; } S;
 extern qword D_002A2DD0;
-qword func_0022D348(O *, int, qword);
+qword GetXfVelocity(O *, int, qword);
 static inline qword MulPos(const M4 *m, qword v)
 {
     qword r;
@@ -17,5 +17,5 @@ qword func_00231468(S *p)
 {
     O *o = p->x50;
     if (!o) return D_002A2DD0;
-    return func_0022D348(o, 0, MulPos(&o->m, p->x90));
+    return GetXfVelocity(o, 0, MulPos(&o->m, p->x90));
 }

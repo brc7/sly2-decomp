@@ -29,9 +29,9 @@ void *func_001AE318(const AREQ &r);
 X *func_001BDA00(void);
 void func_001BDBF0(X *p, int n, qword *pts);
 void func_001BDE18(X *p, X *pNew);
-void func_0011A2E8(DL *pdl, void *pv);
-void func_0011A220(DL *pdl, void *pv);
-void func_001E6180(X *p);
+void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
+void MeasureShape(X *p);
 int func_001BC2F8(X *p);
 }
 static inline void *Alloc(int cb) { return func_001AE318(AREQ(cb, 0x10)); }
@@ -105,18 +105,18 @@ extern "C" void func_001BDE80(int n, X **ap)
             X *pv;
             InitDli(&dli, &px->dl);
             while ((pv = (X *)PvNextDli(&dli)) != 0) {
-                func_0011A2E8(&px->dl, pv);
+                RemoveDlEntry__FP2DLPv(&px->dl, pv);
                 pv->x1D8 = 0;
                 func_001BDE18(pv, pNew);
             }
             ((void (*)(X *))px->vt[9].pfn)((X *)((char *)px + px->vt[9].d));
-            func_0011A220(&D_003E1A40, px);
+            AppendDlEntry__FP2DLPv(&D_003E1A40, px);
             D_002DD2FC = dli.pdliNext;
         } else {
             func_001BDE18(px, pNew);
         }
     }
     pNew->xE4 = 1;
-    func_001E6180(pNew);
+    MeasureShape(pNew);
     pNew->x190 = func_001BC2F8(pNew);
 }

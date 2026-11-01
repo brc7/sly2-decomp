@@ -5,7 +5,7 @@ struct PROG { int cRetry; int nRemain; int nTarget; int nMax; char pad[0x50 - 0x
 void func_00166920(struct GS *p);
 void func_00157330(struct GS *p, int n, qword *buf);
 void func_001574B8(struct GS *p);
-float func_0011D7F0(float g);
+float GTrunc__Ff(float g);
 void func_001CD5F0(struct RGBA *pc, struct GS *pgs, float x0, float y0, float x1, float y1);
 void func_00166968(struct GS *p);
 void func_001576B0(struct GS *p);
@@ -24,7 +24,7 @@ void func_001C8DD8(struct PROG *p)
     w = (int)((float)p->nTarget * 620.0f / (float)p->nRemain);
     s = (int)((float)w * ((float)(p->nTarget - p->nMax) / (float)p->nTarget));
     c = p->c54;
-    func_001CD5F0(&c, &gs, 10.0f, func_0011D7F0(412.909088f) * 1.1f, (float)(s + 10), func_0011D7F0(412.909088f) * 1.1f + 6.6000004f);
+    func_001CD5F0(&c, &gs, 10.0f, GTrunc__Ff(412.909088f) * 1.1f, (float)(s + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
     if (p->x50 <= 0)
         c = p->c58;
     else if (p->x50 == 1)
@@ -33,7 +33,7 @@ void func_001C8DD8(struct PROG *p)
         c = p->c60;
     {
         struct RGBA c2 = c;
-        func_001CD5F0(&c2, &gs, (float)(s + 10), func_0011D7F0(412.909088f) * 1.1f, (float)(w + 10), func_0011D7F0(412.909088f) * 1.1f + 6.6000004f);
+        func_001CD5F0(&c2, &gs, (float)(s + 10), GTrunc__Ff(412.909088f) * 1.1f, (float)(w + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
     }
     func_00166968(&gs);
     func_001576B0(&gs);

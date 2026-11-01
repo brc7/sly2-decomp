@@ -5,7 +5,7 @@ extern G D_003DD490;
 extern char D_0025E090[];
 extern char D_0025E668[];
 extern "C" void func_00160918(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern "C" int func_0015E9C8(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void func_001AE5A0(void *pvDst, void *pvSrc, unsigned int cb);
 static inline int Min(int a, int b) { return a < b ? a : b; }
 extern "C" void func_00167FC0(VIFS *pvifs)
@@ -18,7 +18,7 @@ extern "C" void func_00167FC0(VIFS *pvifs)
     pvifs->AddDmaCnt();
     pvifs->AddVifFlusha();
     pvifs->AddVifBaseOffset(0x32, 0);
-    int c = func_0015E9C8(&D_003DD490, 0x505, 4, 0, 0x180, (void **)apx);
+    int c = CploFindSwObjectsByClass(&D_003DD490, 0x505, 4, 0, 0x180, (void **)apx);
     for (i = 0; i < c; i++) {
         px = apx[i];
         if (!px->f160)

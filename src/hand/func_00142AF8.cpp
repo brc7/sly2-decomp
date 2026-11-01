@@ -1,6 +1,6 @@
 // func_00142AF8 (Claude agent, laneC38 2026-10-24): MATCH from fresh5 (aligned 18). Every matrix product is written with Lilly's
-// MATRIX3 operator* (the NRV helper from src/hand/func_0021CB18.cpp / func_001F4558.cpp: rows read into qword locals, each
-// result row stored through a VU_VECTOR4 copy), and the first func_0022FD38 call is a plain assignment (no dead-copy wrapper).
+// MATRIX3 operator* (the NRV helper from src/hand/func_0021CB18.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
+// result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
@@ -27,21 +27,21 @@ extern qword D_002A2DA0;
 extern S *D_003E1474;
 extern GS D_003DD490;
 void func_00142880(P *p);
-void func_001427C8(P *p, int n, S *ps);
-void func_001428D8(P *p, S *ps, void **ppv, float *pg, float *pg2);
+void SetStepplayerLeanTarget(P *p, int n, S *ps);
+void HeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
 int func_0011D910(void *p, float g);
 void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
 qword func_001A62E8(void *p);
-qword func_001A6F00(int n, P *p, qword q);
-void func_0011E958(qword v, float *pa, float *pb);
-float func_0011D978(LM *plm, float g);
-M3 func_0011B720(float a, float b);
+qword ConvertAloPos(int n, P *p, qword q);
+void CalculateVectorPanTilt(qword v, float *pa, float *pb);
+float RadLimitLm(LM *plm, float g);
+M3 LoadRotateMatrixPanTilt(float a, float b);
 M3 func_0011B500(qword v, float g);
-M3 func_0022FD38(void *pvFrom, void *pvTo, M3 *pm);
-M3 func_0011B340(const M3 *pm);
+M3 ConvertXfMat(void *pvFrom, void *pvTo, M3 *pm);
+M3 InvertMatrix3Cofactor(const M3 *pm);
 qword func_0011BFF0(M3 *pm);
-void func_0012D108(Q *pq, qword q);
+void SetActPositionGoal(Q *pq, qword q);
 void func_00142AF8(P *p);
 }
 struct VU_VECTOR4 { qword qw; };
@@ -89,20 +89,20 @@ void func_00142AF8(P *p)
     }
     if (p->n1100 == 0) {
         if (D_002DD640 != 0) {
-            func_001427C8(p, -1, 0);
+            SetStepplayerLeanTarget(p, -1, 0);
         } else {
             S *psBest = p->ps10DC;
             int nBest = p->n10E4;
             float gBest, g1, g2;
             S *ps;
             if (psBest)
-                func_001428D8(p, psBest, &p->p10F8, &gBest, 0);
+                HeroInteractDistance(p, psBest, &p->p10F8, &gBest, 0);
             else
                 gBest = D_002A4D68;
             for (ps = D_003E1474; ps; ps = ps->pNext) {
                 if (ps->nF4 < nBest)
                     continue;
-                func_001428D8(p, ps, &p->p10F8, &g1, &g2);
+                HeroInteractDistance(p, ps, &p->p10F8, &g1, &g2);
                 if (g1 > ps->gE8)
                     continue;
                 if (!func_0011D910(ps->rng, g2))
@@ -118,7 +118,7 @@ void func_00142AF8(P *p)
                 ps = D_003DD490.ps4690;
                 if (ps) {
                     float g3, g4;
-                    func_001428D8(p, ps, &p->p10F8, &g3, &g4);
+                    HeroInteractDistance(p, ps, &p->p10F8, &g3, &g4);
                     if (nBest < 2 || (nBest == 2 && g3 < gBest)) {
                         psBest = ps;
                         nBest = 2;
@@ -126,7 +126,7 @@ void func_00142AF8(P *p)
                     }
                 }
             }
-            func_001427C8(p, nBest, psBest);
+            SetStepplayerLeanTarget(p, nBest, psBest);
         }
     }
     if (p->n1104 != 0) {
@@ -140,9 +140,9 @@ void func_00142AF8(P *p)
             return;
         }
         func_0012CFE0(p->pq);
-        func_0011E958(func_001A6F00(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
-        pan = func_0011D978(&p->lmPan, pan);
-        tilt = func_0011D978(&p->lmTilt, tilt);
+        CalculateVectorPanTilt(ConvertAloPos(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
+        pan = RadLimitLm(&p->lmPan, pan);
+        tilt = RadLimitLm(&p->lmTilt, tilt);
         {
             float t;
             if (p->lmPan.gMax == p->lmPan.gMin)
@@ -154,14 +154,14 @@ void func_00142AF8(P *p)
         }
     }
     M3 m0, m1;
-    m0 = func_0011B720(pan, tilt) * func_0011B500(D_002A2DA0, g);
-    m1 = func_0022FD38(0, p->p60, &p->pq->p8->m40);
-    m1 = m1 * func_0011B340(&p->m1150);
+    m0 = LoadRotateMatrixPanTilt(pan, tilt) * func_0011B500(D_002A2DA0, g);
+    m1 = ConvertXfMat(0, p->p60, &p->pq->p8->m40);
+    m1 = m1 * InvertMatrix3Cofactor(&p->m1150);
     M3 m2;
     if (X(m0, 0) + X(m1, 0) < 0.0f && X(m0, 1) * X(m1, 1) < 0.0f)
         m2 = p->m1150;
     else
         m2 = m0 * p->m1150;
-    m2 = func_0022FD38(p->p60, p->pq->p8->pA0, &m2);
-    func_0012D108(p->pq, func_0011BFF0(&m2));
+    m2 = ConvertXfMat(p->p60, p->pq->p8->pA0, &m2);
+    SetActPositionGoal(p->pq, func_0011BFF0(&m2));
 }

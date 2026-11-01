@@ -1,6 +1,6 @@
 /* func_001E9C88: samples the path po from its start to its end in steps of D_002C367C, collects the distinct
- * objects found at each sample (func_001C0D70) into apv[64] and the parameter ranges where consecutive samples
- * do not stay inside one object (func_001C0920) into aseg[64] (joining the first/last range when po->fE4), then copies
+ * objects found at each sample (PpathzoneFromPos) into apv[64] and the parameter ranges where consecutive samples
+ * do not stay inside one object (FPosInPathzone) into aseg[64] (joining the first/last range when po->fE4), then copies
  * both lists to the heap (func_001AE238) into ps.
  * Matching note: the &apv argument of the final func_001AE238 call must go through an inline helper; integrate.c
  * then puts sp+0x200 straight into a1, so gcse has nothing to hoist and the apv[cpv++] cursor (s6) keeps an
@@ -11,11 +11,11 @@ struct SEG { float a, b; };
 struct O { char padC[0xC]; void *vt; char pad10[0xE0-0x10]; int curved; int fE4; int count; float *parameters; float *distances; qword *points; };
 struct S { struct O *po; int c4; struct SEG *aseg; int cC; struct SEG aseg10[16]; int c90; void **apv; int n98; };
 extern float D_002C367C;
-float func_001E6620(struct O *);
-float func_001E6648(struct O *);
-void func_001E6F10(struct O *, float, qword *, qword *);
-void *func_001C0D70(qword, int);
-int func_001C0920(void *, qword, int);
+float SMinShape(struct O *);
+float SMaxShape(struct O *);
+void EvaluateShapeS(struct O *, float, qword *, qword *);
+void *PpathzoneFromPos(qword, int);
+int FPosInPathzone(void *, qword, int);
 void *func_001AE238(struct MSG *, void *);
 void func_001AE5A0(void *, const void *, unsigned);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
@@ -32,17 +32,17 @@ void func_001E9C88(struct S *ps, struct O *po)
     void *pPrev;
 
     ps->po = po;
-    tStart = func_001E6620(po);
+    tStart = SMinShape(po);
     tPrev = tStart;
     t = tStart;
-    tEnd = func_001E6648(ps->po);
-    func_001E6F10(ps->po, tStart, &pos, 0);
-    pPrev = func_001C0D70(pos, 0);
+    tEnd = SMaxShape(ps->po);
+    EvaluateShapeS(ps->po, tStart, &pos, 0);
+    pPrev = PpathzoneFromPos(pos, 0);
     for (; t < tEnd; t += D_002C367C) {
         void *pCur;
         int outside;
-        func_001E6F10(ps->po, t, &pos2, 0);
-        pCur = func_001C0D70(pos2, 0);
+        EvaluateShapeS(ps->po, t, &pos2, 0);
+        pCur = PpathzoneFromPos(pos2, 0);
         if (pCur) {
             int i;
             for (i = 0; i < cpv; i++)
@@ -52,7 +52,7 @@ void func_001E9C88(struct S *ps, struct O *po)
                 apv[cpv++] = pCur;
         }
         outside = 0;
-        if (!pCur || pPrev != pCur || !func_001C0920(pPrev, pos2, 0))
+        if (!pCur || pPrev != pCur || !FPosInPathzone(pPrev, pos2, 0))
             outside = 1;
         if (outside) {
             if (!pseg && cseg < 64) {

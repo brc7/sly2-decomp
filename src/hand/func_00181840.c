@@ -4,12 +4,12 @@ struct E { int oid; int c; int x8; int xc; char dl[0xC]; int x1c; float g; void 
 struct R { int a; void *p; int x8; int n; unsigned long fl; char pad[0x98]; };
 struct S { char pad[0x28]; unsigned long fl; char p0[0x30]; int x60; char p1[0x7C]; int ce0; struct R *ar; char p2[0xE0]; int c; struct E ae[4]; };
 extern char D_003DD490[];
-void *func_0015E938(void *g, int n, int oid, struct S *p);
-void func_0011A1F8(void *pdl, int ib);
+void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
+void InitDl__FP2DLi(void *pdl, int ib);
 void *func_001AE2A0(struct MSG *pmsg);
-void func_0011A220(void *pdl, void *pv);
+void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void func_0017F138(struct S *p);
-void func_001F2B20(struct S *p);
+void AddSoParts(struct S *p);
 void func_00181840(struct S *p)
 {
     int i, j;
@@ -17,13 +17,13 @@ void func_00181840(struct S *p)
     struct R *pr;
     for (i = 0; i < p->c; i++) {
         pe = &p->ae[i];
-        pe->pv = func_0015E938(D_003DD490, 4, pe->oid, p);
+        pe->pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, p);
         if (!pe->pv) {
             i--;
             p->c--;
             continue;
         }
-        func_0011A1F8(pe->dl, 0x60);
+        InitDl__FP2DLi(pe->dl, 0x60);
         for (j = 0; j < pe->c; j++) {
             struct MSG msg;
             struct Q *q;
@@ -32,7 +32,7 @@ void func_00181840(struct S *p)
             q = (struct Q *)func_001AE2A0(&msg);
             q->pr = pe;
             q->n = -1;
-            func_0011A220(pe->dl, q);
+            AppendDlEntry__FP2DLPv(pe->dl, q);
         }
     }
     func_0017F138(p);
@@ -42,5 +42,5 @@ void func_00181840(struct S *p)
     pr->p = p;
     pr->fl |= 1UL << 48;
     pr->fl |= 1UL << 49;
-    if ((int)(p->fl >> 60) & 1) func_001F2B20(p);
+    if ((int)(p->fl >> 60) & 1) AddSoParts(p);
 }

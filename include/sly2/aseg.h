@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* EA: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* EA: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct EA
 {
       float tLocal;
@@ -28,7 +28,7 @@ struct EA
     };
 };
 
-/* ASEGSTART: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* ASEGSTART: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGSTART
 {
       float tLocal;
@@ -36,7 +36,7 @@ struct ASEGSTART
       GRFAPL grfapl;
 };
 
-/* ASEG: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* ASEG: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEG : public LO
 {
       DL dlAsega;
@@ -62,7 +62,7 @@ struct ASEG : public LO
 };
 typedef char assert_ASEG_size[sizeof(ASEG) == 0xC0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* ASEGBL: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* ASEGBL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGBL : public ASEG
 {
       int cbBl;
@@ -82,7 +82,7 @@ struct SND
       undefined4 unk_0x00[3];
 };
 
-/* SMA: from src/hand/func_00189C40.cpp (3 copies in Lilly ports) */
+/* SMA: from src/hand/RebuildJtXmg.cpp (3 copies in Lilly ports) */
 struct SMA : public BASIC
 {
       int cref;
@@ -102,7 +102,7 @@ struct SMA : public BASIC
 };
 typedef char assert_SMA_size[sizeof(SMA) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* ASEGA: from src/hand/func_00189C40.cpp (6 copies in Lilly ports) */
+/* ASEGA: from src/hand/RebuildJtXmg.cpp (6 copies in Lilly ports) */
 struct ASEGA : public BASIC
 {
       int cref;             /* +0x10 [S] reference count (ASEGA is refcounted) */
@@ -133,7 +133,7 @@ typedef char assert_ASEGA_svtMaster[SLY2_OFFSETOF(ASEGA, svtMaster) == 0x48 ? 1 
 typedef char assert_ASEG_svtMaster[SLY2_OFFSETOF(ASEG, svtMaster) == 0x78 ? 1 : -1];   /* ApplyAseg copies it (CONFIRMED code+runtime) */
 typedef char assert_ASEG_tMax[SLY2_OFFSETOF(ASEG, tMax) == 0x74 ? 1 : -1];   /* clip 0x11D tMax 0.833 (anim_lab, CONFIRMED parse) */
 
-/* SM: from src/hand/func_001EFAC0.cpp */
+/* SM: from src/hand/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp */
 struct SM : public LO
 {
       int csms;
@@ -144,7 +144,7 @@ struct SM : public LO
       SMRT *asmrt;
       DL dlSma;
       SMINIT *psminit;
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001EFAC0");
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
     undefined4 unk_0x78[2];   /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
 };
 typedef char assert_SM_size[sizeof(SM) == 0x80 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

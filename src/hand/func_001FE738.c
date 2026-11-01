@@ -7,7 +7,7 @@ struct Y { char pad[0x60]; struct E *pe; };
 struct Ref { struct Y *px; };
 struct P { char pad[0x200]; struct Ref r; char pad2[0x22C - 0x204]; struct X *ap[6]; int n244; int n248; float g24C; };
 void func_001FE0E8(struct P *, struct A *);
-void func_001F0660(void *, int);
+void SetSmaGoal(void *, int);
 void func_001FB098(struct Y *, float);
 void func_00259B48(struct Ref *, void *);
 void func_002333B4(void *, int, int);
@@ -28,7 +28,7 @@ void func_001FE738(struct P *p)
         func_001FE0E8(p, &pe->ae[p->n244]);
         p->n244++;
     }
-    if (p->ap[5]) func_001F0660(p->ap[5], 0x611);
+    if (p->ap[5]) SetSmaGoal(p->ap[5], 0x611);
     Stop(&p->r);
     p->n244 = 0;
     p->n248 = 0;

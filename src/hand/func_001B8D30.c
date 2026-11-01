@@ -15,10 +15,10 @@ struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANI
     char pad2[0x1840 - 0x1038]; int x1840; float f1844; struct CLIP *x1848; struct CLIP *x184C; struct SCRIPT x1850; float f186C;
     char pad3[0x1890 - 0x1870]; struct O x1890; struct O *x1900; struct CLIP *x1904; int x1908; };
 void func_0020C080(struct O *o);
-void func_0020BF80(struct SCRIPT *a, struct P *p, int n, struct O *b);
+void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
 qword func_001A62E8(struct P *p);
 struct M3 *func_001A6318(struct P *p);
-void func_001F15B8(struct COMPONENT *p);
+void ReleaseSma(struct COMPONENT *p);
 void func_001305B8(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
@@ -83,7 +83,7 @@ void func_001B8D30(struct P *p, int st)
         union { qword q; float f[4]; } u, uv, u2;
         p->x1908 = 0;
         p->x1900 = &p->x1890;
-        func_0020BF80(&p->x1850, p, 1, &p->x1890);
+        StartLeap(&p->x1850, p, 1, &p->x1890);
         q = p->x1900;
         uv.q = func_001A62E8(p);
         __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-p->f186C));
@@ -108,6 +108,6 @@ void func_001B8D30(struct P *p, int st)
         p->x1908 = 0;
         return;
     }
-    func_001F15B8(&p->x1034);
+    ReleaseSma(&p->x1034);
     func_001305B8(o, p, 0.0f, 1.0f, n, &p->x1030);
 }

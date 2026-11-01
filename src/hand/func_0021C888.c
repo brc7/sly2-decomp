@@ -18,9 +18,9 @@ void func_00117EB0(void *,qword *);
 int func_00117D50(void *);
 void *func_001AE2A0(struct Alloc *);
 struct Hook *func_0012E1F0(int);
-void func_00230018(struct S *,struct O *,struct Hook *);
+void AddXfAct(struct S *,struct O *,struct Hook *);
 qword func_0022FC48(struct O *,struct O *,qword);
-qword func_0022FCC8(struct O *,struct O *,qword);
+qword ConvertXfVec(struct O *,struct O *,qword);
 static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return func_001AE2A0(&req); }
 void func_0021C888(struct S *p,void *stream) {
     int count=func_00117D00(stream);
@@ -51,13 +51,13 @@ void func_0021C888(struct S *p,void *stream) {
             h->xC=-1;
             h->entry=e;
             h->flags=16;
-            func_00230018(p,e->object,h);
+            AddXfAct(p,e->object,h);
             e->object->entry=e;
         }
         for(j=0;j<n->count;j++) {
             e=&n->entries[j];
             if(j<n->count-1) e->pos=func_0022FC48(0,e->object,n->entries[j+1].object->pos);
-            else if(j>0) e->pos=func_0022FCC8(((struct E *)((char *)e-0x70))->object,e->object,((struct E *)((char *)e-0x70))->pos);
+            else if(j>0) e->pos=ConvertXfVec(((struct E *)((char *)e-0x70))->object,e->object,((struct E *)((char *)e-0x70))->pos);
             else e->pos=n->q30;
             e->world=func_0022FC48(e->object,0,e->pos);
         }

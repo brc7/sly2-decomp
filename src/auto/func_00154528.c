@@ -62,5 +62,5 @@ s32 func_00154528(s32 arg0, s32 arg1) {
     if (func_0020FA10(arg0, arg1) == 0) {
         return 0;
     }
-    return func_00132EA0(M2C_FIELD(arg1, s32 *, 4)) == 0x31;
+    return CidBasic(M2C_FIELD(arg1, s32 *, 4)) == 0x31;
 }

@@ -8,7 +8,7 @@ struct G { char pad[0x3A18]; struct M m; };
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A7788[];
-int func_00210A88(void);
+int IlevelCur__Fv(void);
 struct { int a; int b; } *func_002109B8(int n);
 void func_001AE5A0(struct K *pk, int a, int b);
 void *func_001D7DA0(void *a, void *b, struct T *pt);
@@ -24,7 +24,7 @@ int func_001C7D08(void)
     unsigned int i;
     struct E *pe;
     unsigned int v;
-    n = func_00210A88();
+    n = IlevelCur__Fv();
     if (n == -1)
         return 0;
     c = 0;

@@ -21,7 +21,7 @@ struct X {
     struct SND *p34; int pad38; float g3C; float g40; float g44; float g48;
 };
 void func_0014FD40(struct X *p, void *pv, struct JOY *pjoy);
-float func_0011D018(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
+float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
 float func_0011D948(void *p, float g);
 void func_001FB2C0(struct SND *p, float g);
 void func_001FB1F8(struct SND *p, float g);
@@ -31,7 +31,7 @@ void func_0014F5A0(struct CM *p, float g);
 void func_002581C0(struct CRef *, void *, void *);
 void func_00129EC8(struct CRef *);
 float func_0011CFE0(float g, float gMax);
-float func_0011CF60(float g);
+float RadNormalize__Ff(float g);
 qword func_0014FEC8(struct X *p);
 qword func_0014FE58(struct X *p);
 void func_0014E1A8(struct CM *p, qword a, qword b, float c, float d);
@@ -85,11 +85,11 @@ void func_00150160(struct X *p, void *pv, struct JOY *pjoy)
     dt = D_002DDED0.dt * 0.5f;
     {
         float gMin, gMax;
-        func_0011D018(p->g10, p->g3C, dt, D_002BD9A0, &gMin);
-        func_0011D018(p->g10, p->g40, dt, D_002BD9A0, &gMax);
+        GSmooth__FfffP3SMPPf(p->g10, p->g3C, dt, D_002BD9A0, &gMin);
+        GSmooth__FfffP3SMPPf(p->g10, p->g40, dt, D_002BD9A0, &gMax);
         p->g18 = GClamp(gPan, gMin, gMax);
-        func_0011D018(p->g14, p->g44, dt, D_002BD9A0, &gMin);
-        func_0011D018(p->g14, p->g48, dt, D_002BD9A0, &gMax);
+        GSmooth__FfffP3SMPPf(p->g14, p->g44, dt, D_002BD9A0, &gMin);
+        GSmooth__FfffP3SMPPf(p->g14, p->g48, dt, D_002BD9A0, &gMax);
         p->g1C = GClamp(gTilt, gMin, gMax);
     }
     {
@@ -98,7 +98,7 @@ void func_00150160(struct X *p, void *pv, struct JOY *pjoy)
         p->g14 += k * p->g1C * D_002DDED0.dt;
     }
     if (6.2831855f <= p->g40 - p->g3C)
-        p->g10 = func_0011CF60(p->g10);
+        p->g10 = RadNormalize__Ff(p->g10);
     func_0014E1A8(&D_002DDF40, func_0014FEC8(p), func_0014FE58(p), 0.0f, 0.0f);
     D_003DD490.g4750 = D_002DDED0.t;
 }

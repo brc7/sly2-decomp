@@ -1,0 +1,41 @@
+typedef unsigned long ulong;
+struct VT { short d; short pad; int (*pfn)(void *); };
+struct O { char pad[0xC]; struct VT *pvt; };
+struct S { char pad[8]; struct O *po; char pad2[0x9C - 0xC]; int k; char pad3[0xA8 - 0xA0]; int i; struct S *pNext; };
+struct X;
+struct L { struct S *ps; struct L *pNext; char pad[4]; struct X *px; };
+struct E { char pad[0x64]; struct L *pl; struct S *ps; };
+struct X { char pad[0xEC]; struct E *pe; char pad2[0x148 - 0xF0]; ulong fl; };
+
+int CpxpBuildXpArray(int a, int b, int c, struct X **apx, int cMax, struct S **aps)
+{
+    int i;
+    int cs = 0;
+    for (i = 0; i < c; i++) {
+        struct X *px = apx[i];
+        struct L *pl;
+        px->fl |= 0x10000000;
+        pl = px->pe->pl;
+        while (1) {
+            struct S *ps;
+        again:
+            if (pl) {
+                if (pl->px->fl & 0x10000000) { pl = pl->pNext; goto again; }
+                ps = pl->ps;
+            } else ps = px->pe->ps;
+            for (; ps; ps = ps->pNext) {
+                if (ps->k == 0xD) continue;
+                if (ps->k == 0xE) {
+                    struct O *po = ps->po;
+                    if (!(po->pvt[85].pfn((char *)po + po->pvt[85].d) & 4)) continue;
+                }
+                if (cs >= cMax) return cs;
+                ps->i = cs;
+                aps[cs++] = ps;
+            }
+            if (!pl) break;
+            pl = pl->pNext;
+        }
+    }
+    return cs;
+}

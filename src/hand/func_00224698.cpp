@@ -7,10 +7,10 @@ extern char D_002C4300[],D_002C4310[];
 extern "C" {
 void func_001F9B20(S *);
 qword func_001A62E8(void *);
-M3 func_0011B830(qword,qword);
+M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 *func_001A6318(S *);
-void func_0011B938(M3 *,M3 *,M3 *);
-void func_001F5C30(S *,M3 *,void *,qword,void *);
+void TiltMatUpright(M3 *,M3 *,M3 *);
+void AccelSoTowardMatSpring(S *,M3 *,void *,qword,void *);
 }
 static inline qword ToVF(qword a) { qword r; __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(r) : "r"(a));return r; }
 static inline qword Read(const qword &a) { qword r;__asm__("lqc2 %0,%1" : "=j"(r) : "m"(a));return r; }
@@ -42,9 +42,9 @@ extern "C" void func_00224698(S *p) {
         register qword n __asm__("vf1");
         if(X(len)<1.0e-4f)n=fallback;
         else n=Scale(d,len);
-        m=func_0011B830(n,D_002A2DC0);
+        m=BuildOrthonormalMatrixZ(n,D_002A2DC0);
     } else {
-        func_0011B938(func_001A6318(p),0,&m);
+        TiltMatUpright(func_001A6318(p),0,&m);
     }
-    func_001F5C30(p,&m,D_002C4300,D_002A2DD0,D_002C4310);
+    AccelSoTowardMatSpring(p,&m,D_002C4300,D_002A2DD0,D_002C4310);
 }

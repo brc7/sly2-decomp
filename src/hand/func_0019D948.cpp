@@ -7,10 +7,10 @@ struct T {char pad[0xCC];int tags[2];};
 struct P {int a,b;T*t;};
 struct G {char pad[0x3B0C];X*x;};
 extern "C" G D_003DD490;
-extern "C" void func_00165C98(int*,X***);
+extern "C" void SortTasksTopologically(int*,X***);
 extern "C" void func_002338C0(void*,unsigned,unsigned,int(*)(const void*,const void*));
 extern "C" int func_00165C28(const void*,const void*);
-extern "C" int func_00164030(X*);
+extern "C" int FTaskComplete(X*);
 struct LOCAL_LAYOUT{FRAME frame;int count;X**array;};
 static inline G*CopyGame(G*source){register G*input __asm__("$16")=source;register G*result __asm__("$20");__asm__("daddu %0,%1,$zero":"=r"(result):"r"(input));return result;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -50,11 +50,11 @@ extern "C" void func_0019D948(P*p){
  FRAME fr;
  int c;
  X**ap;
- func_00165C98(&c,&ap);
+ SortTasksTopologically(&c,&ap);
  func_002338C0(ap,c,4,func_00165C28);
  for(;i<c;i++){
   X*x=ap[i];
-  if(pgLoop->x==x->x7C && x->x5C!=-1 && !func_00164030(x)){
+  if(pgLoop->x==x->x7C && x->x5C!=-1 && !FTaskComplete(x)){
    p->t->tags[n++]=x->x5C;
    break;
   }

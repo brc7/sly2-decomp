@@ -14,12 +14,12 @@ struct CLOCK{float t,dt;};
 extern "C"{
  extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DA0;extern char D_003DD490[],D_002DE578[];
  void func_002303A0(P*,void*,int);void func_0022C840(P*,void*);void func_0022C818(P*,void*);
- float func_0011D448(float,float);void func_0011EFB0(qword,float*,float*,float*);
+ float GRandInRange__Fff(float,float);void GetVectorSphere(qword,float*,float*,float*);
  void func_001B1818(P*,float);void func_001B17B8(P*,float);
- qword func_001A62E8(P*);void func_001E6F60(PATH*,qword,void*,U*,U*,float*,float*);
- float func_001E77E8(PATH*);float func_001E6648(PATH*);P*func_001C4AF8(void*,qword);
+ qword func_001A62E8(P*);void FindShapeClosestPoint(PATH*,qword,void*,U*,U*,float*,float*);
+ float DuGetShapeSearchIncrement(PATH*);float SMaxShape(PATH*);P*PpoClosestSw(void*,qword);
  EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,SOURCE*);void func_001FB3F0(EFFECT*,qword);
- qword func_001A6F00(P*,P*,qword);void func_00154E10(void*,qword,int,int,P*);
+ qword ConvertAloPos(P*,P*,qword);void func_00154E10(void*,qword,int,int,P*);
  void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
 }
 static inline void SetVelocity(P*p,qword q){VE&v=p->vt[35];((void(*)(void*,qword))v.fn)((char*)p+v.delta,q);}
@@ -65,13 +65,13 @@ extern "C" void func_001B1328(P*p,int next){
  switch(old){case -1:case 0:case 2:case 3:func_002303A0(p,p->group,p->oldMode);func_0022C840(p,p->group);break;}
  switch(next){
  case 0:
-  SetVelocity(p,D_002A2DD0.q);func_0022C818(p,p->group);{float now=D_002DDED0.t;p->randomDeadline=now+func_0011D448(p->low0,p->high0);}break;
+  SetVelocity(p,D_002A2DD0.q);func_0022C818(p,p->group);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low0,p->high0);}break;
  case 1:
-  SetMode(p);{float now=D_002DDED0.t;p->randomDeadline=now+func_0011D448(p->low1,p->high1);}break;
+  SetMode(p);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low1,p->high1);}break;
  case 2:{
   p->phase=-p->phase;float negative=-1.0f;M4*m=GetMatrix(p);
   qword row=m->row[0].q;qword factor=SplatInto(negative,&w.first);qword scaled=ScaleX(row,factor);
-  func_0011EFB0(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->group,1);func_0022C840(p,p->group);break;
+  GetVectorSphere(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->group,1);func_0022C840(p,p->group);break;
  }
  case 3:
   SetZeroVelocity(p);func_001B17B8(p,p->ratio+p->ratio);
@@ -79,17 +79,17 @@ extern "C" void func_001B1328(P*p,int next){
  case 4:{
   w.first.q=func_001A62E8(p);
   if(p->path){
-   func_001E6F60(p->path,w.first.q,0,&w.second,0,&p->parameter,&w.parameter);
-   float phase=func_001E77E8(p->path);
+   FindShapeClosestPoint(p->path,w.first.q,0,&w.second,0,&p->parameter,&w.parameter);
+   float phase=DuGetShapeSearchIncrement(p->path);
    qword delta=Sub(w.first.q,w.second.q);
    float speed=p->speed.value;
    float travel=FloatOf(LengthV(delta));
    p->phase=phase;
    travel/=speed;
-   float end=func_001E6648(p->path);
+   float end=SMaxShape(p->path);
    p->deadline=D_002DDED0.t+travel+(end-w.parameter)/p->speed.value-p->lead;
   }else{
-   P*near=func_001C4AF8(D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);p->deadline=D_002DDED0.t+2.0f;
+   P*near=PpoClosestSw(D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);p->deadline=D_002DDED0.t+2.0f;
   }
   qword ff=w.first.q;qword ss=w.second.q;qword gap=Sub(ss,ff);
   w.direction.q=gap;w.direction.i[2]=0;
@@ -105,7 +105,7 @@ extern "C" void func_001B1328(P*p,int next){
  }
  case 5:{
   EFFECT*e=func_001FBB90(0x14);func_001FB2F8(e,0);func_001FB3F0(e,func_001A62E8(p));
-  func_00154E10(D_002DE578,func_001A6F00(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
+  func_00154E10(D_002DE578,ConvertAloPos(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
  }
  }
  p->state=next;p->changed=D_002DDED0.t;

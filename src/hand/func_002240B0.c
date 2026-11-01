@@ -2,12 +2,12 @@ typedef int qword __attribute__((mode(TI)));
 struct S;
 typedef struct { short d; short pad; int (*pfn)(); } VT;
 struct S { int x0, x4, x8; VT *vt; char pad[0x150 - 0x10]; int k; int x154; int x158; char pad2[0x16C - 0x15C]; struct S *pt; float r; char pad3[0x1A0 - 0x174]; int x1A0; };
-void func_001F36E0(struct S *p);
+void UpdateSo(struct S *p);
 void func_00224258(struct S *p, int a);
 qword func_001A62E8(struct S *p);
 void func_002240B0(struct S *p)
 {
-    func_001F36E0(p);
+    UpdateSo(p);
     if (p->k == 1 && p->x158 != -1)
         func_00224258(p, p->x1A0);
     if (p->pt) {

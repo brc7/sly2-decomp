@@ -18,14 +18,14 @@ struct EMITTER {
 };
 struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTER *pemitter; };
 extern "C" {
-void func_001A5E28(EMITTER *p);
-int func_0011A3B0(int *pdl);
+void UpdateLo(EMITTER *p);
+int FIsDlEmpty__FP2DL(int *pdl);
 int func_001A61A0(EMITTER *p);
 qword func_001A62E8(void *p);
-float func_0011D448(float gMin, float gMax);
+float GRandInRange__Fff(float gMin, float gMax);
 int func_0011A3C0(int *pdl);
 void *func_002333B4(void *pv, int b, int cb);
-void func_0015BD20(int c, EMITB *pemitb, EMITX *px);
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTER *p);
 int FPausedEmitter(EMITTER *p);
@@ -48,10 +48,10 @@ void UpdateEmitter(EMITTER *p, float dt)
 {
     if (p->fChanged)
         OnEmitterValuesChanged(p);
-    func_001A5E28(p);
+    UpdateLo(p);
     if (p->x118 != -1)
         return;
-    if (!func_0011A3B0(&p->dl11C)) {
+    if (!FIsDlEmpty__FP2DL(&p->dl11C)) {
         EMITTER *pe;
         for (pe = (EMITTER *)p->dl11C; pe; pe = pe->pNext) {
             if (!func_001A61A0(pe))
@@ -91,10 +91,10 @@ LActive:
             }
             if (p->f114) {
                 PauseEmitterIndefinite(p);
-                p->g130 = func_0011D448(p->gF8, p->gFC) * 60.0f;
-            } else if (func_0011D448(0.0f, 1.0f) <= p->g104) {
-                PauseEmitter(p, func_0011D448(p->g108, p->g10C));
-                p->g130 = func_0011D448(p->gF8, p->gFC) * 60.0f;
+                p->g130 = GRandInRange__Fff(p->gF8, p->gFC) * 60.0f;
+            } else if (GRandInRange__Fff(0.0f, 1.0f) <= p->g104) {
+                PauseEmitter(p, GRandInRange__Fff(p->g108, p->g10C));
+                p->g130 = GRandInRange__Fff(p->gF8, p->gFC) * 60.0f;
             }
         }
         break;
@@ -109,9 +109,9 @@ LActive:
         }
         if (p->f114)
             PauseEmitterIndefinite(p);
-        else if (func_0011D448(0.0f, 1.0f) <= p->g104)
-            PauseEmitter(p, func_0011D448(p->g108, p->g10C));
-        p->g130 = func_0011D448(p->gF8, p->gFC);
+        else if (GRandInRange__Fff(0.0f, 1.0f) <= p->g104)
+            PauseEmitter(p, GRandInRange__Fff(p->g108, p->g10C));
+        p->g130 = GRandInRange__Fff(p->gF8, p->gFC);
         break;
     }
     case 0: {
@@ -155,12 +155,12 @@ LActive:
         void *palo = pemito->palo;
         if (!palo && !pemito->f4)
             pemito->palo = p;
-        func_0015BD20(c, p->pemitb, &x);
+        EmitParticles__FiP5EMITBP5EMITG(c, p->pemitb, &x);
         p->pemitb->pemito->palo = palo;
     }
 
     if (D_002DDED0.t >= p->g138) {
-        p->g130 = func_0011D448(p->gF8, p->gFC);
+        p->g130 = GRandInRange__Fff(p->gF8, p->gFC);
         p->g138 = D_002DDED0.t + p->g134;
     }
     ModifyEmitterParticles(p);

@@ -7,8 +7,8 @@ struct Dest { M4 m; char pad[0xA0-0x40]; Source *parent; int stamp; };
 struct S { Source *source; Dest *dest; int position,rotation; };
 struct G { char pad[0x3D58]; int counter; };
 extern G D_003DD490;
-extern "C" M4 func_0011C318(const M4 *m);
-extern "C" M3 func_0011B340(const M3 *m);
+extern "C" M4 InvertMatrix4Rigid(const M4 *m);
+extern "C" M3 InvertMatrix3Cofactor(const M3 *m);
 extern "C" void func_0011B3D0(M3 *m);
 extern "C" qword *func_00256D18(qword *p,qword v);
 static inline qword Transform(const M4 &m,qword p) {
@@ -27,13 +27,13 @@ extern "C" void func_001604E8(void *,S *s)
 {
  M3 m;
  if(s->position) {
-  M4 inv=func_0011C318(&s->dest->parent->m40);
+  M4 inv=InvertMatrix4Rigid(&s->dest->parent->m40);
   Dest *dest=s->dest;
   func_00256D18(&dest->m.r[3].q,Transform(inv,s->source->m40.r[3].q));
   dest->m.r[3].f[3]=1.0f;
  }
  if(s->rotation) {
-  m=Mul(func_0011B340((M3 *)&s->dest->parent->m40),*(M3 *)&s->source->m40);
+  m=Mul(InvertMatrix3Cofactor((M3 *)&s->dest->parent->m40),*(M3 *)&s->source->m40);
   func_0011B3D0(&m);
   Dest *dest=s->dest;
   *(M3 *)&dest->m=m;

@@ -3,7 +3,7 @@ typedef union {qword q;float f;} V;
 struct TRI {int index[3];};
 struct MESH {qword *velocity,*acceleration;struct TRI *triangles;};
 struct P {void *x0;int x4;float maximum;int xC;struct MESH*mesh;char pad14[0x64];int count;qword *positions;int triCount;void *planes;char pad88[0x20];int state;};
-void func_00119308(void*,qword,qword,qword);
+void InitPlaneFromPositions(void*,qword,qword,qword);
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Step(qword a,qword b,qword s){register qword r __asm__("vf5");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(s));return r;}
@@ -57,7 +57,7 @@ void func_001F6EF8(struct P*p,float dt)
    if(p->triCount>0){struct TRI*tri=firstTri;char*plane=firstPlane;do{
      qword a=positions[tri->index[0]],b=positions[tri->index[1]],c=positions[tri->index[2]];
      __asm__("addiu %0,%0,12":"+r"(tri));
-     func_00119308(plane,a,b,c);
+     InitPlaneFromPositions(plane,a,b,c);
      plane+=0x20;
    }while(PlaneLess(++planeIndex,p->triCount));}
  }

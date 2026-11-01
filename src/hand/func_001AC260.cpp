@@ -16,7 +16,7 @@ void *func_001AE318(REQUEST *pmsg);
 int func_00184D60(Y *py, X *px);
 int func_001AC8A8(void *p, int h, char *buf, int n, int *pn);
 int func_00117898(Y *py, int cb, char *buf);
-void func_00184CF0(Y *py);
+void CStreamBis_Close(Y *py);
 int func_001AC808(void *p, int h);
 int func_001AC260(void *p, const char *a, K *k, const char *b);
 }
@@ -111,7 +111,7 @@ int func_001AC260(void *p, const char *a, K *k, const char *b)
             ret = 0;
         }
     done:
-        func_00184CF0(&y);
+        CStreamBis_Close(&y);
         int r2 = func_001AC808(p, h);
         if (!ret)
             ret = r2;

@@ -10,7 +10,7 @@ struct X { int x0, x4, x8; VT *vt; char pad[0xE8 - 0x10]; int c; char pad2[0xF4 
 extern "C" {
 void *func_001AE318(const AREQ &r);
 qword func_001A62E8(X *p);
-void *func_001C0D70(qword pos, int n);
+void *PpathzoneFromPos(qword pos, int n);
 void func_001C1BA0(void *r, X *p);
 }
 extern float D_002A76D0, D_002A76D4;
@@ -42,7 +42,7 @@ extern "C" void func_001BD040(X *p)
     }
     p->vmin.f[2] = D_002A76D0;
     p->vmax.f[2] = D_002A76D4;
-    r = func_001C0D70(func_001A62E8(p), 0);
+    r = PpathzoneFromPos(func_001A62E8(p), 0);
     if (!r)
         return;
     func_001C1BA0(r, p);

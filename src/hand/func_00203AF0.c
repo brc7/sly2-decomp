@@ -13,9 +13,9 @@ struct S {
 extern float D_002A85F0;
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-void func_001F2BA8(struct S *p);
-void func_001F2B20(struct S *p);
-int func_00132B10(struct S *p, int n);
+void RemoveSoParts(struct S *p);
+void AddSoParts(struct S *p);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 void func_001F70C0(struct M *m, void *p, int k, struct Q *q);
 void func_001F6C08(struct Q *q);
 void func_001664A0(void *a, void *b, void *c);
@@ -27,12 +27,12 @@ void func_00203AF0(struct S *p, struct M *m)
     U u;
     qword r;
     if ((int)(p->fl28 >> 60) & 1)
-        func_001F2BA8(p);
+        RemoveSoParts(p);
     n = p->nE0;
     p->nE0 = n + 1;
     fl = 0;
     p->pq = (struct Q *)(p->pE4 + n * 0xB0);
-    if (!func_00132B10(p, 0x34))
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34))
         fl = m->n1C == m->n78;
     func_001F70C0(m, p->p60, !fl ? 2 : 3, p->pq);
     func_001F6C08(p->pq);
@@ -63,5 +63,5 @@ void func_00203AF0(struct S *p, struct M *m)
     p->p218 = p->pq->p94 + c * 16;
     p->p21C = p->pq->p94 + (c * 16 + 0x10);
     if ((int)(p->fl28 >> 60) & 1)
-        func_001F2B20(p);
+        AddSoParts(p);
 }

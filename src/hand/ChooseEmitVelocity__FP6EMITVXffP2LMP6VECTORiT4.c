@@ -5,10 +5,10 @@ struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; }
 struct LM { float gMin; float gMax; };
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
-float func_0011D448(float a, float b);
-float func_0011CF60(float g);
-qword func_0011E208(float pan, float tilt, float r);
-void func_0011E2D8(qword a, qword b, qword c, M3 *pm);
+float GRandInRange__Fff(float a, float b);
+float RadNormalize__Ff(float g);
+qword SetVectorSphere(float pan, float tilt, float r);
+void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
                                                      qword *pnormal, int i, qword *pv)
@@ -22,15 +22,15 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, floa
     M3 m;
     qword r;
     if (gRand != 0.0f) {
-        tilt += gRand * func_0011D448(-0.5f, 0.5f) * pemitvx->dTilt;
-        pan += gRand * func_0011D448(-0.5f, 0.5f) * pemitvx->dPan;
+        tilt += gRand * GRandInRange__Fff(-0.5f, 0.5f) * pemitvx->dTilt;
+        pan += gRand * GRandInRange__Fff(-0.5f, 0.5f) * pemitvx->dPan;
     }
-    tilt = func_0011CF60(tilt + 1.5707964f);
-    pan = func_0011CF60(pan);
-    v.q = func_0011E208(pan, tilt, func_0011D448(plm->gMin, plm->gMax));
+    tilt = RadNormalize__Ff(tilt + 1.5707964f);
+    pan = RadNormalize__Ff(pan);
+    v.q = SetVectorSphere(pan, tilt, GRandInRange__Fff(plm->gMin, plm->gMax));
     v.f[2] *= sv;
     m.r[2] = *pnormal;
-    func_0011E2D8(*pnormal, D_002A2DA0, D_002A2DB0, &m);
+    GetNormalVectors(*pnormal, D_002A2DA0, D_002A2DB0, &m);
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
             : "=j"(r) : "j"(v.q), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     *pv = r;

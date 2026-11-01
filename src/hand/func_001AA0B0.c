@@ -8,7 +8,7 @@ struct L { char pad[0x6C]; E *x6C; };
 struct S { char pad[0x3D40]; char pool[1]; };
 struct FILTER;
 struct FILTER *func_001F7530(void *a, int mask);
-E *func_0011CCC0(void *pool);
+E *PvAllocSlotheapClear(void *pool);
 void func_001A9FE0(struct S *s, E *e, E **pp);
 static inline int Index(E *e,struct K *k) { int one=1; int neq=e->u.s.x0!=k; return one-neq; }
 void func_001AA0B0(struct S *s, struct O *o, struct L *l, struct K *k, int a4, void *a5, void *a6, E **pp)
@@ -20,7 +20,7 @@ void func_001AA0B0(struct S *s, struct O *o, struct L *l, struct K *k, int a4, v
     v->pfn((char *)vo + v->d, k, a4, a5, a6, k->x18 ? &res : pp);
     if(res) { e=res; do {
         if (func_001F7530(((E *)((char *)e + (Index(e,k) << 6)))->u.s.xC, k->x18)) {
-            E *n = func_0011CCC0(s->pool);
+            E *n = PvAllocSlotheapClear(s->pool);
             *n = *e;
             n->u.s.next = l->x6C;
             l->x6C = n;

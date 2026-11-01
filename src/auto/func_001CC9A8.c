@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 s32 func_00134310(s32, M2C_UNK);                    /* extern */
-void *func_001A5BF0(s32);                           /* extern */
+void *PsoFromLo(s32);                           /* extern */
 
 s32 func_001CC9A8(void *arg0, void *arg1, s32 arg2) {
     s32 temp_v1;
@@ -9,7 +9,7 @@ s32 func_001CC9A8(void *arg0, void *arg1, s32 arg2) {
     void *temp_v0;
 
     var_s0 = arg2;
-    if ((M2C_FIELD(arg0, s32 *, 0xA4) == 1) && (temp_v0 = func_001A5BF0(M2C_FIELD(arg0, s32 *, 0x84)), (temp_v0 != NULL))) {
+    if ((M2C_FIELD(arg0, s32 *, 0xA4) == 1) && (temp_v0 = PsoFromLo(M2C_FIELD(arg0, s32 *, 0x84)), (temp_v0 != NULL))) {
         temp_v1 = M2C_FIELD(temp_v0, s32 *, 0xEC);
         var_v0 = var_s0;
         if (temp_v1 != 0) {

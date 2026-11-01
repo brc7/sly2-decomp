@@ -5,7 +5,7 @@ struct S { char pad[0x110]; qword q110; char p1[0x3C]; void *p15c; };
 extern int D_002DFB84;
 extern float D_002BE908;
 qword func_001A62E8(void *p);
-qword func_001A6F00(struct S *p, int n, qword q);
+qword ConvertAloPos(struct S *p, int n, qword q);
 static __inline__ float GetZ(qword q)
 {
     float z;
@@ -19,7 +19,7 @@ void func_00184510(struct S *p, int unused, UV *pv)
             pv->q = func_001A62E8(p->p15c);
             pv->v.z = pv->v.z + D_002BE908;
         } else {
-            pv->q = func_001A6F00(p, 0, p->q110);
+            pv->q = ConvertAloPos(p, 0, p->q110);
             pv->v.z = GetZ(func_001A62E8(p->p15c)) + D_002BE908;
         }
     }

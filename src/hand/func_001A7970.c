@@ -6,12 +6,12 @@ extern void (*D_002BFCE0[])(void);
 void func_001700D0(void);
 struct B *__5CProgP4RGBAN31(struct B *b, struct C *c0, struct C *c1, struct C *c2, struct C *c3);
 int kprintf(char *format, ...);
-void func_001C2A78(int n);
+void SetPhase__F5PHASE(int n);
 void Begin__5CProg(struct B *b);
 void func_0014D0B8(void *p, int n);
 void SetRemain__5CProgi(struct B *b, int n);
 void func_001C8DB8(struct B *b);
-void func_001C2BA8(int n);
+void ClearPhase(int n);
 void func_001A7970(void)
 {
     struct B b;
@@ -30,7 +30,7 @@ void func_001A7970(void)
     }
     __5CProgP4RGBAN31(&b, &c0, &c1, &c2, &c3);
     kprintf(D_002A6A58, D_002C46D8, D_002C46C0, 0x2B0);
-    func_001C2A78(1);
+    SetPhase__F5PHASE(1);
     Begin__5CProg(&b);
     f = 0;
     for (i = 0; i < 19; i++) {
@@ -43,5 +43,5 @@ void func_001A7970(void)
     }
     SetRemain__5CProgi(&b, 0);
     func_001C8DB8(&b);
-    func_001C2BA8(1);
+    ClearPhase(1);
 }

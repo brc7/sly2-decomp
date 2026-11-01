@@ -14,7 +14,7 @@ void *func_001AE2A0(struct MSG *pmsg);
 void func_0011A050(void *p, int n);
 void func_001703F8(struct ZPR *pz, int a, int b);
 void func_001BE398(void *p, struct ZPR *pz);
-void func_001619A0(void *p, int a, int b);
+void BroadcastGameEvent(void *p, int a, int b);
 
 void func_0020E180(struct S *p)
 {
@@ -41,5 +41,5 @@ void func_0020E180(struct S *p)
         func_001BE398(p->a45E8[j], &zpr);
     if (p->fl3BF4 & 0x20)
         p->n3E38 = 1;
-    func_001619A0(D_002DEB30, 2, 0);
+    BroadcastGameEvent(D_002DEB30, 2, 0);
 }

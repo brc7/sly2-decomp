@@ -11,7 +11,7 @@ extern char D_002F633C[];
 extern const struct PMF D_002A6D88;
 int func_0020E040(void *g);
 int func_001ACC80(struct S *s);
-int func_00187D80(void *p, int n);
+int GrfHandleJoyBtn(void *p, int n);
 void func_001AD168(struct S *s);
 void func_001ACFE0(struct S *s);
 int func_001AB088(void *p);
@@ -39,17 +39,17 @@ void func_001ACCC8(struct S *s)
     r = func_001ACC80(s);
     if (r != 1) {
         if (r == c) {
-            if (s->x10 && func_00187D80(s->x10, 0x80)) {
+            if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
                 func_001AD168(s);
                 return;
             }
-            if (s->x10 && func_00187D80(s->x10, 0x10)) {
+            if (s->x10 && GrfHandleJoyBtn(s->x10, 0x10)) {
                 func_001ACFE0(s);
                 return;
             }
         }
     } else {
-        if (s->x10 && func_00187D80(s->x10, 0x80)) {
+        if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
             func_001ACFE0(s);
             return;
         }

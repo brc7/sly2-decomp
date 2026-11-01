@@ -9,13 +9,13 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-void func_0011D608(float g, float *ps, float *pc);
+void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 qword func_0022CAD0(qword a, qword b)
 {
     float s0, c0, s1, c1;
     union { qword q; float f[4]; } r;
-    func_0011D608(GetY(a), &s0, &c0);
-    func_0011D608(GetZ(a), &s1, &c1);
+    CalculateSinCos__FfPfT1(GetY(a), &s0, &c0);
+    CalculateSinCos__FfPfT1(GetZ(a), &s1, &c1);
     r.q = Make(c0 * c1 * GetX(b) - s1 * GetY(b),
                c0 * s1 * GetX(b) + c1 * GetY(b),
                -s0 * GetX(b) + GetZ(b));

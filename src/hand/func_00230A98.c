@@ -3,7 +3,7 @@ typedef struct M4 { qword r[4]; } M4;
 typedef struct P { char pad[0xA0]; struct P *xA0; } P;
 void *func_002333B4(void *, int, int);
 void func_00230710(P *, M4 *, M4 *, float);
-M4 func_0011C168(M4 *, M4 *);
+M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
 
 static inline void AddM4(M4 *d, M4 *a, M4 *b)
 {
@@ -33,11 +33,11 @@ void func_00230A98(P *first, P *end, M4 *pA, M4 *pB, float f)
     }
     for (p = first; p != end; p = p->xA0) {
         func_00230710(p, &m1, &m2, f);
-        t1 = func_0011C168(&m1, &b);
-        t2 = func_0011C168(&m2, &a);
+        t1 = __ml__FRC7MATRIX4T0(&m1, &b);
+        t2 = __ml__FRC7MATRIX4T0(&m2, &a);
         AddM4(&s, &t1, &t2);
         b = s;
-        s = func_0011C168(&m1, &a);
+        s = __ml__FRC7MATRIX4T0(&m1, &a);
         a = s;
     }
     if (pA)

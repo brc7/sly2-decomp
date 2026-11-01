@@ -23,11 +23,11 @@ extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
 M3 *func_001A6318(void *p);
 M3 func_0011B500(qword axis, float g);
-int func_00132B10(void *p, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *func_00145AA8(P *p);
 int func_001C02D0(E *pe, qword r, qword v, B *pb);
-void func_001E6180(B *pb);
-void func_00178D90(void *p, B *pb, int n);
+void MeasureShape(B *pb);
+void SetBhvpathShape(void *p, B *pb, int n);
 void func_001457A8(P *p);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
@@ -67,7 +67,7 @@ void func_001457A8(P *p)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
     p->q50 = func_001A62E8(p->po);
-    if (func_00132B10(p->po, 0x33)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x33)) {
         O *po = p->po;
         u.s.m = func_0011B500(D_002A2DC0, po->g1A8);
         u.s.pos = AddScaled(p->q50, VU_FLOAT(-p->g68), MulM3(u.s.m, po->q190));
@@ -88,12 +88,12 @@ void func_001457A8(P *p)
             pb->k = 2;
             pb->pq[0] = r;
             pb->pq[1] = u.s.pos;
-            func_001E6180(pb);
+            MeasureShape(pb);
         } else if (func_00145AA8(p) != pe) {
             func_001C02D0(pe, r, r, pb);
         } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {
             func_001C02D0(pe, r, r, pb);
         }
-        func_00178D90(p->p18, pb, 0);
+        SetBhvpathShape(p->p18, pb, 0);
     }
 }

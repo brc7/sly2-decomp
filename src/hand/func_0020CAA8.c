@@ -1,6 +1,6 @@
 struct M { int a, b, n; };
 struct S { char pad[0x34]; int f34; int f38; };
-void func_00133590(struct S *p, int msg, struct M *pm);
+void HandleBasicMessage(struct S *p, int msg, struct M *pm);
 void func_0020CAA8(struct S *p, int msg, struct M *pm)
 {
     if (msg == 9) {
@@ -11,5 +11,5 @@ void func_0020CAA8(struct S *p, int msg, struct M *pm)
         case 0x180: p->f38 = 0; break;
         }
     }
-    func_00133590(p, msg, pm);
+    HandleBasicMessage(p, msg, pm);
 }

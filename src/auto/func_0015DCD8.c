@@ -55,7 +55,7 @@ extern M2C_UNK D_00452170;
 void func_0015DCD8(s32 arg0) {
     void *temp_v0;
 
-    func_001A5E28(arg0);
+    UpdateLo(arg0);
     if ((D_002DDED0 - M2C_FIELD(arg0, f32 *, 0x68)) > (M2C_FIELD(arg0, f32 *, 0x5C) + M2C_FIELD(arg0, f32 *, 0x60) + M2C_FIELD(arg0, f32 *, 0x64))) {
         temp_v0 = M2C_FIELD(arg0, void **, 0xC);
         M2C_FIELD(temp_v0, void (**)(s32), 0x4C)(arg0 + M2C_FIELD(temp_v0, s16 *, 0x48));

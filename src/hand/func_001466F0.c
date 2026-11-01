@@ -1,12 +1,12 @@
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
-void func_001EEF70(void *p);
+void StartBhv(void *p);
 void func_00146E18(void *p, int n);
 void func_001466F0(char *p)
 {
     struct O *o;
     struct VTE *e;
-    func_001EEF70(p);
+    StartBhv(p);
     func_00146E18(p, 0);
     o = *(struct O **)(p + 0x10);
     e = &o->vt[95];

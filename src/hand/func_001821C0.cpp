@@ -10,8 +10,8 @@ struct N {qword pos,dir;char pad20[0x50-0x20];float lateral,roll;char pad58[8];N
 struct E {char pad[0x10];N*first;char pad14[0x1C];};
 struct P {char pad[0x1C4];void*model;int count;E entries[1];};
 extern qword D_002A2DC0;
-extern "C" void func_001F3C70(P*);
-extern "C" M3 func_0011B830(qword,qword);
+extern "C" void RenderSoSelf(P*);
+extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*func_00256D18(qword*,qword);
 extern "C" void func_001A5EE8(void*,M4*,float,float);
@@ -32,7 +32,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 
 extern "C" void func_001821C0(P*p){
  int i,count;M3 m;M4 mm;qword pos;
- func_001F3C70(p);
+ RenderSoSelf(p);
  if(!p->model)return;
  count=p->count;i=0;
  do {
@@ -42,7 +42,7 @@ extern "C" void func_001821C0(P*p){
   N*n=((N**)((int)p+i*0x30))[0x1DC/4];
   while(n){M4*pm=&mm;
    pos=Load(&n->pos);
-   m=func_0011B830(n->dir,D_002A2DC0);
+   m=BuildOrthonormalMatrixZ(n->dir,D_002A2DC0);
    if(1.0f<fabsf(n->lateral))pos=AddLateral(pos,n,n->lateral);
    {float roll=n->roll;register float epsilon __asm__("$f1")=0.01f; /* the one pin */if(epsilon<fabsf(roll))m=Mul(m,func_0011B500(D_002A2DC0,roll));}
    func_00256D18(&mm.r[3].q,pos);

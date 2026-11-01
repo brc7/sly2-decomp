@@ -8,8 +8,8 @@ struct ANIM{char pad[0x40];float rate;};
 struct P{char pad[0x1030];struct ANIM*anim;char pad1034[0x3BC];struct X*x;char pad13F4[0x58];int state;};
 extern qword D_002A2DC0;
 extern float D_002C09C8;
-qword func_0022FCC8(struct LO*,struct LO*,qword);
-int func_0011D508(float,float,float,float*);
+qword ConvertXfVec(struct LO*,struct LO*,qword);
+int CSolveQuadratic__FfffPf(float,float,float,float*);
 void func_00130D30(struct ANIM*,int,float,float);
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
 static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
@@ -49,11 +49,11 @@ void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*ou
  switch(owner->state){
  case 0:{
   struct LO*parent=owner->x->object->lo->parent;
-  qword first=func_0022FCC8(0,parent,Scale(D_002A2DC0,2500.0f,&roots));
+  qword first=ConvertXfVec(0,parent,Scale(D_002A2DC0,2500.0f,&roots));
   {
    register struct LO*space __asm__("$4");register int bits __asm__("$2");
    __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct LO*)0));
-   end=func_0022FCC8(space,parent,FinalLaunchScale(&D_002A2DC0,bits,&roots));
+   end=ConvertXfVec(space,parent,FinalLaunchScale(&D_002A2DC0,bits,&roots));
   }
   break;
  }
@@ -73,7 +73,7 @@ void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*ou
     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->lo),"m"(object->acc));
     __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(source->v),"m"(lo->pos));
     v.q=velocity;
-    acceleration=func_0022FCC8(0,lo->parent,argument);
+    acceleration=ConvertXfVec(0,lo->parent,argument);
    }
   }
   {
@@ -85,7 +85,7 @@ void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*ou
    __asm__("pextuw %0,$zero,%2\n\tmtc1 %3,%1":"=&r"(goalWord),"=f"(positionZ):"r"(goal),"r"(positionWord));
    __asm__("mtc1 %2,%0\n\tlq %1,%3":"=f"(goalZ),"=r"(velocityWord):"r"(goalWord),"m"(v.q));
    __asm__("mul.s %0,%0,%2\n\tpextuw %1,$zero,%3":"+f"(accelerationZ),"=r"(velocityZ):"f"(half),"1"(velocityWord));
-   count=func_0011D508(accelerationZ,velocityZ,positionZ-goalZ,outputRoots);
+   count=CSolveQuadratic__FfffPf(accelerationZ,velocityZ,positionZ-goalZ,outputRoots);
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);

@@ -2,10 +2,10 @@ struct K { float a; float b; };
 struct Q { char pad[0x2C]; struct K k1; struct K k2; char p1[0x24]; struct Q *next; };
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
 struct S;
-float func_001E6648(int n);
+float SMaxShape(int n);
 void func_00181B60(struct S *p, struct E *pe)
 {
-    float g = func_001E6648(pe->x24);
+    float g = SMaxShape(pe->x24);
     int c = pe->d;
     float r = g * 0.5f / (float)c;
     int m;

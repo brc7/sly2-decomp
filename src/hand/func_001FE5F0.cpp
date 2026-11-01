@@ -17,7 +17,7 @@ void func_001FE738(P *, int);
 D *func_001FCFA0(P *, int);
 X *func_001FC138(D *, int);
 void func_00227728(void *, int, int);
-X *func_0015ED78(G *, int, int, int);
+X *PloFindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
 int func_001FD0C0(P *, int);
 X *func_001F67E0(X *, int);
 }
@@ -33,7 +33,7 @@ extern "C" X *func_001FE5F0(P *p, int k, int f)
     p->n24C = 0;
     if (!f) func_00227728(D_004435F0, k, pd->n48);
     if (pd->n48 != -1 && pd->n54) {
-        register X *po __asm__("$19")=func_0015ED78(&D_003DD490, 5, pd->n48, 0);
+        register X *po __asm__("$19")=PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, pd->n48, 0);
         if (po) {
             register int i __asm__("$18")=0;
             register int primaryRole __asm__("$20")=3;

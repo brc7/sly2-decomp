@@ -12,7 +12,7 @@ extern qword D_002A2DB0;
 extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
 qword func_0022FC48(int n, int m, qword q);
-void func_0011E2D8(qword a, qword b, qword c, qword *pm);
+void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 void func_001991A0(struct P *p)
 {
     if (p->x1c == 0x11) {
@@ -25,7 +25,7 @@ void func_001991A0(struct P *p)
         __asm__("qmtc2.ni %1, %0" : "=j"(s.q) : "r"(-1.0f));
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->xe0), "j"(s.q));
         m.r[0] = neg;
-        func_0011E2D8(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
+        GetNormalVectors(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
                 : "=j"(v) : "j"(p->xf0), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(r.q) : "j"(r.q), "j"(v));

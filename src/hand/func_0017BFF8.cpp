@@ -16,12 +16,12 @@ struct SEGMENT{qword a,b;char data[0x40];};
 extern "C"{
 extern float D_002A5600;
 qword func_001A62E8(ACTOR*);
-void func_0011EF08(qword,float*,float*,float*);
-float func_0011CF60(float);float func_0011CFE0(float,float);float func_0011D948(LM*,float);
-qword func_0011E1A0(float,float,float);int func_0011D910(LM*,float);
+void GetVectorCylind(qword,float*,float*,float*);
+float RadNormalize__Ff(float);float func_0011CFE0(float,float);float func_0011D948(LM*,float);
+qword SetVectorCylind(float,float,float);int func_0011D910(LM*,float);
 int func_001C0B50(void*,qword,qword*);
 int func_001C0A40(void*,qword,qword,int,SEGMENT*);
-void func_0011EE08(qword,qword,qword,qword*,float*,float*);
+void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 }
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -31,7 +31,7 @@ static inline qword QwOffset(qword base,qword v,const qword&g,U*scratch){scratch
 static inline qword QwFromMemWord(int n){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"rV"(n));return v;}
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 
-static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){func_0011EE08(t,s->a,s->b,&pt.q,0,&d);}
+static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){FindClosestPointOnLineSegment(t,s->a,s->b,&pt.q,0,&d);}
 extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
  U closest;LM first,second,selected;U point;SEGMENT segments[8];FLOW flow;
  TUNING*tuning;
@@ -41,12 +41,12 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
   if(scale){float factor=scale->value;first.low*=factor;first.high*=factor;second.low*=factor;second.high*=factor;}
  }
  tuning=p->actor->tuning;
- func_0011EF08(QwSub(func_001A62E8(p->actor),origin),&flow.polarAngle,&flow.polarLength,0);
- float angle=heading+func_0011CFE0(func_0011CF60(flow.polarAngle-heading),tuning->narrow);
+ GetVectorCylind(QwSub(func_001A62E8(p->actor),origin),&flow.polarAngle,&flow.polarLength,0);
+ float angle=heading+func_0011CFE0(RadNormalize__Ff(flow.polarAngle-heading),tuning->narrow);
  float length=func_0011D948(&first,flow.polarLength);
- if(func_001C0B50(region,QwAdd(origin,func_0011E1A0(angle,length,0.0f)),&closest.q)){
-  func_0011EF08(QwSub(closest.q,origin),&flow.candidateAngle,&flow.candidateLength,0);
-  if(__builtin_fabsf(func_0011CF60(flow.candidateAngle-heading))<tuning->wide&&func_0011D910(&second,flow.candidateLength))return closest.q;
+ if(func_001C0B50(region,QwAdd(origin,SetVectorCylind(angle,length,0.0f)),&closest.q)){
+  GetVectorCylind(QwSub(closest.q,origin),&flow.candidateAngle,&flow.candidateLength,0);
+  if(__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle-heading))<tuning->wide&&func_0011D910(&second,flow.candidateLength))return closest.q;
  }
  qword target,best;
  int mode;
@@ -61,7 +61,7 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
   float bestDistance=D_002A5600;
   int index;
   for(index=0;index<count;index++){
-   qword direction=func_0011E1A0(heading+(-1.0f+index/((count-1)*0.5f))*limit,1.0f,0.0f);
+   qword direction=SetVectorCylind(heading+(-1.0f+index/((count-1)*0.5f))*limit,1.0f,0.0f);
    int hits=func_001C0A40(region,QwOffset(origin,direction,QwFromMemWord(*(int*)&selected.low),&point),QwOffset(origin,direction,QwFromMemWord(*(int*)&selected.high),&point),8,segments);
    if(hits>0){
     int k=0;int i=hits;

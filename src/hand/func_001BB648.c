@@ -17,17 +17,17 @@ extern char D_002DDF40[];
 extern char D_002DFC00[];
 extern char D_002DE578[];
 extern char D_002DEB30[];
-SO *func_0015E938(void *g, int k, int v, P *p);
-void func_001F6978(P *p, int v);
-void func_001F69F8(P *p, int v);
-void func_001F6AC8(P *p, int v);
+SO *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int v, P *p);
+void ShowSoGlobsById(P *p, int v);
+void HideSoGlobsById(P *p, int v);
+void ShowSoPartsById(P *p, int v);
 void func_001F6B48(P *p, int v);
-int func_00132B10(void *p, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void func_0014F750(void *g, int v);
-void func_00187E28(void *g, int v, float f);
+void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *g, int v, float f);
 qword func_001A62E8(void *p);
 void func_00154E10(void *g, qword q, int v, int a, P *p);
-void func_00161F48(void *g, int k, int v, P *p);
+void ApplyTaskStates(void *g, int k, int v, P *p);
 
 void func_001BB648(P *p, E *pe)
 {
@@ -39,7 +39,7 @@ void func_001BB648(P *p, E *pe)
         if ((p->x158 > 0 || pe->n <= 0) && ((0x3F >> pi->k) & 1)) continue;
         ps = 0;
         if ((0xC3 >> pi->k) & 1) {
-            ps = func_0015E938(D_003DD490, 1, pi->v, p);
+            ps = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, pi->v, p);
             if (!ps) continue;
         }
         switch ((unsigned int)pi->k) {
@@ -53,19 +53,19 @@ void func_001BB648(P *p, E *pe)
             ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
             break;
         case 2:
-            func_001F6978(p, pi->v);
+            ShowSoGlobsById(p, pi->v);
             break;
         case 3:
-            func_001F69F8(p, pi->v);
+            HideSoGlobsById(p, pi->v);
             break;
         case 4:
-            func_001F6AC8(p, pi->v);
+            ShowSoPartsById(p, pi->v);
             break;
         case 5:
             func_001F6B48(p, pi->v);
             break;
         case 7:
-            if (func_00132B10(ps, 0x1E)) {
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(ps, 0x1E)) {
                 MSG msg;
                 msg.a = 1;
                 msg.ps = psPrev ? psPrev : ps;
@@ -76,7 +76,7 @@ void func_001BB648(P *p, E *pe)
             if (p->x168 & 2) func_0014F750(D_002DDF40, pi->v);
             break;
         case 9:
-            if (p->x168 & 4) func_00187E28(D_002DFC00, pi->v, 0.3f);
+            if (p->x168 & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->v, 0.3f);
             break;
         case 10:
             if (p->x168 & 8) {
@@ -93,7 +93,7 @@ void func_001BB648(P *p, E *pe)
             break;
         }
         case 12:
-            func_00161F48(D_002DEB30, 1, pi->v, p);
+            ApplyTaskStates(D_002DEB30, 1, pi->v, p);
             break;
         }
     }

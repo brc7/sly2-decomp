@@ -25,13 +25,13 @@ typedef struct A { char pad0[0x1C]; float x1C; char pad20[0x34 - 0x20]; C *x34; 
 typedef struct G { char pad[0x3D58]; int x3D58; } G;
 extern G D_003DD490;
 extern qword D_002A2DD0;
-int func_00131968(A *);
+int FAsegaRetracted(A *);
 int func_0012CEE0(C *);
 void func_0022DD00(LO *, P *);
 qword func_0022CA18(P *, P *);
 qword func_0011BFF0(qword *);
 M4 func_0022C8C0(P *, qword);
-void func_00117120(float, float, float, qword, qword, qword, qword, qword *, int, int);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
 
 void func_00230CF0(A *a, int flag)
 {
@@ -41,7 +41,7 @@ void func_00230CF0(A *a, int flag)
     int i;
     struct { float f[4]; } __attribute__((aligned(16))) out;
 
-    if (func_00131968(a))
+    if (FAsegaRetracted(a))
         return;
     n = 0;
     for (c = a->x34; c; c = c->x28) {
@@ -71,7 +71,7 @@ void func_00230CF0(A *a, int flag)
             v = func_0022CA18(p, p);
             break;
         case 1: {
-            func_00117120(p->x84 - p->x80, *p->x88 - p->x80, *p->x8C, p->xC0[0], p->xC0[1], p->xC0[2], p->xC0[3], (qword *)&out, 0, 0);
+            EvaluateBezierPos(p->x84 - p->x80, *p->x88 - p->x80, *p->x8C, p->xC0[0], p->xC0[1], p->xC0[2], p->xC0[3], (qword *)&out, 0, 0);
             v = *(qword *)&out;
             break;
         }

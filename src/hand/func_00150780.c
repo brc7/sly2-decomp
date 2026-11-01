@@ -5,14 +5,14 @@ extern struct G D_002DDF40;
 extern char D_003DD490[];
 struct S { int pad[4]; void *p10; };
 qword func_001A62E8(void *p);
-void *func_001C4A48(void *p);
+void *PpoCur(void *p);
 qword func_00150780(struct S *p)
 {
     VU v;
     if (p->p10) {
         v.q = func_001A62E8(p->p10);
     } else {
-        void *o = func_001C4A48(D_003DD490);
+        void *o = PpoCur(D_003DD490);
         if (o) {
             v.q = func_001A62E8(o);
             v.f[2] += 150.0f;

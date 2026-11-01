@@ -14,7 +14,7 @@ void *func_001AE378(struct MSG *);
 void *func_001AE2A0(struct MSG *);
 void *func_001ED7A8(int, void *);
 void func_001EB2F0(void *, struct E *);
-void func_0020F640(void *, void *);
+void LoadSwSharedDataFromBrx(void *, void *);
 void *func_001ECE58(int, int);
 void func_001EB960(void);
 void func_001EB678(struct E *, void *);
@@ -38,7 +38,7 @@ void func_001EB748(void *p, int k, void *pbis)
     D_003DCFEC = func_001AE378(&msg);
     for (j = 0; j < D_003DCFE8; j++)
         func_001EB2F0(pbis, &D_003DCFEC[j]);
-    func_0020F640(p, pbis);
+    LoadSwSharedDataFromBrx(p, pbis);
     pv = func_001ECE58(k, 3);
     if (pv && (unsigned)D_003DCFA0 < 16)
         D_003DCFA8[D_003DCFA0++] = pv;

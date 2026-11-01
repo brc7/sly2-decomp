@@ -30,8 +30,8 @@ s32 func_00183A50(s32 arg0, s32 arg1) {
     s32 var_s1;
     s32 var_v0;
 
-    var_s1 = func_001F4FC8(arg0, arg1);
-    if (func_00132B10(arg1, 0x34) != 0) {
+    var_s1 = FIgnoreSoIntersection(arg0, arg1);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(arg1, 0x34) != 0) {
         if ((M2C_FIELD(arg1, s32 *, 0x4C8) == 1) && (arg0 == M2C_FIELD(arg1, s32 *, 0x4D4))) {
             var_s1 = func_00134310(var_s1, 1);
         }

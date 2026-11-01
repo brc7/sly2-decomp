@@ -7,7 +7,7 @@ struct P {
 };
 extern "C" qword D_002A2DC0;
 enum { FACTOR_ADDRESS = 0x002C09A4 };
-extern "C" void func_001FAC30(struct P *p, qword v);
+extern "C" void AddSoAcceleration(struct P *p, qword v);
 typedef union { qword q; float f[4]; } U;
 static inline qword Scale(qword a, float g) { U u; qword k, r; __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g)); u.q = k; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(u.q)); return r; }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -43,7 +43,7 @@ extern "C" void func_001B6CC0(struct P *p)
 {
     switch (p->x13D8) {
     case 0:
-        func_001FAC30(p, Scale(p->pE8->v80, -1.0f));
+        AddSoAcceleration(p, Scale(p->pE8->v80, -1.0f));
     case 1: {
         qword v = ((qword (*)(void *))p->vt[33].pfn)((char *)p + p->vt[33].d);
         U u; register qword kn __asm__("vf5"); register qword n __asm__("vf1");
@@ -58,7 +58,7 @@ extern "C" void func_001B6CC0(struct P *p)
         __asm__("qmtc2.ni %2,%1\n\tvsub.xyzw %0,%3,%4":"=j"(difference),"=&j"(factor):"r"(bits),"j"(d),"j"(projected));
         d=difference;
         qword f = Factor(d, factor, kn, &u);
-        func_001FAC30(p, f);
+        AddSoAcceleration(p, f);
         break;
     }
     case 2:

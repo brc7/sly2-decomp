@@ -24,8 +24,8 @@ typedef struct OBJ {
 typedef struct { int a[8]; } VPAIR;
 extern char D_003E11C4[];
 float func_00245A18(float, float);
-void func_0011A220(void *, W *);
-void func_001DEF98(OBJ *, ENT *, VPAIR *, float *);
+void AppendDlEntry__FP2DLPv(void *, W *);
+void GetLasenBeamEnds(OBJ *, ENT *, VPAIR *, float *);
 void func_001DF3D0(OBJ *p)
 {
     int i;
@@ -50,14 +50,14 @@ void func_001DF3D0(OBJ *p)
             q->x14 = ps->a + ps->b * ps->u + ps->c * ps->u * ps->u * 0.5f;
             if (!(p->pw->fl & 2)) {
                 p->pw->fl |= 2;
-                func_0011A220(D_003E11C4, p->pw);
+                AppendDlEntry__FP2DLPv(D_003E11C4, p->pw);
             }
             f = 1;
         }
         if (f && e->x148 == 0) {
             VPAIR v;
             float g;
-            func_001DEF98(p, e, &v, &g);
+            GetLasenBeamEnds(p, e, &v, &g);
             e->x140 = e->x144 = g;
         }
     }

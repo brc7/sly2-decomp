@@ -8,7 +8,7 @@ typedef int qword __attribute__((mode(TI)));
 struct P { int count; int pad[3]; qword planes[6]; };
 extern "C" {
 extern float D_002A568C;
-void func_0011AD30(int n, float *matrix, float *rhs, float *weights, float eps);
+void SolveInequalities(int n, float *matrix, float *rhs, float *weights, float eps);
 }
 static inline qword DotQ(qword a, qword b)
 {
@@ -74,7 +74,7 @@ extern "C" qword func_00185A80(void *unused, P *p, qword v)
             float w = ((float *)pl)[3];
             *(float *)pm++ = w + FloatFromBitsW(BitsM(d), w);
         }
-        func_0011AD30(p->count, (float *)matrix, rhs, (float *)weights, D_002A568C);
+        SolveInequalities(p->count, (float *)matrix, rhs, (float *)weights, D_002A568C);
         int k = p->count;
         for (int m = 0; m < k; m++)
             v = AddScaled(v, p->planes[m], VuFloatFromMemWord(weights[m]));

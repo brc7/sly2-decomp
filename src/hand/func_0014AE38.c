@@ -18,16 +18,16 @@ struct OA7 { int pad[3]; struct VTE *vt; char pad1[0x40 - 0x10]; int x40; char p
 struct OAC { int pad[3]; struct VTE *vt; char padx[0x50 - 0x10]; qword x50; char pad1[0x68 - 0x60]; int x68; };
 struct OA4 { int pad[3]; struct VTE *vt; char pad1[0x30 - 0x10]; int x30; char pad2[8]; struct R *x3C; };
 void func_0020AC28(struct X *, int, int, qword);
-void func_001F5720(struct X *, int);
-void func_001F57C0(struct X *, int);
-float func_0011D448(float, float);
-void func_001EF0D8(void *);
+void SetSoCnstrForce(struct X *, int);
+void SetSoCnstrTorque(struct X *, int);
+float GRandInRange__Fff(float, float);
+void PopBhv(void *);
 void *func_00205438(struct X *, int);
-void *func_001C4840(void *);
+void *PpoHero(void *);
 qword func_001A62E8(void *);
 void *func_0014AE18(struct P *);
-void func_001E6180(struct SP *);
-void func_00178D90(struct OA7 *, struct SP *, int);
+void MeasureShape(struct SP *);
+void SetBhvpathShape(struct OA7 *, struct SP *, int);
 
 #define VCALL0(po, n) { struct VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
 
@@ -41,23 +41,23 @@ void func_0014AE38(struct P *p, int state)
         break;
     case -1:
     case 1:
-        func_001F5720(p->p10, 1);
-        func_001F57C0(p->p10, 1);
+        SetSoCnstrForce(p->p10, 1);
+        SetSoCnstrTorque(p->p10, 1);
         break;
     case 3: {
         float t = D_002DDED0.t;
-        p->p10->xF04 = t + func_0011D448(p->p44->x60, p->p44->x64);
+        p->p10->xF04 = t + GRandInRange__Fff(p->p44->x60, p->p44->x64);
         p->p44 = 0;
         break;
     }
     }
-    func_001EF0D8(p->x18);
+    PopBhv(p->x18);
     p->x30 = state;
     p->x34 = D_002DDED0.t;
     switch (state) {
     case 0: {
         struct O9E *po = func_00205438(p->p10, 0x9E);
-        po->x38 = func_001C4840(D_003DD490);
+        po->x38 = PpoHero(D_003DD490);
         VCALL0(po, 8);
         {
             struct X *px = p->p10;
@@ -85,17 +85,17 @@ void func_0014AE38(struct P *p, int state)
             pq = psp->xF4;
             pq[1] = func_001A62E8(func_0014AE18(p));
         }
-        func_001E6180(psp);
+        MeasureShape(psp);
         po = func_00205438(p->p10, 0xA7);
-        func_00178D90(po, psp, 0);
+        SetBhvpathShape(po, psp, 0);
         po->xC0 = 8;
         po->x40 = 1;
         po->x64 = 25.0f;
-        po->xC8 = func_001C4840(D_003DD490);
+        po->xC8 = PpoHero(D_003DD490);
         VCALL0(po, 8);
         p->p10->xF04 = D_002DDED0.t;
-        func_001F5720(p->p10, 0);
-        func_001F57C0(p->p10, 0);
+        SetSoCnstrForce(p->p10, 0);
+        SetSoCnstrTorque(p->p10, 0);
         break;
     }
     case 2: {
@@ -115,14 +115,14 @@ void func_0014AE38(struct P *p, int state)
     }
     case 4: {
         struct O9E *po = func_00205438(p->p10, 0x9E);
-        po->x38 = func_001C4840(D_003DD490);
+        po->x38 = PpoHero(D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
         break;
     }
     case -1:
-        func_001F5720(p->p10, 0);
-        func_001F57C0(p->p10, 0);
+        SetSoCnstrForce(p->p10, 0);
+        SetSoCnstrTorque(p->p10, 0);
         break;
     }
 }

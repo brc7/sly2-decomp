@@ -4,7 +4,7 @@ struct E { int x0; int x4; int x8; };
 struct K { float t; int x4; int x8; int xC; };
 struct P { char pad[0x50]; struct L *pl; char pad1[0x74 - 0x54]; float g74; char pad2[0xA0 - 0x78]; int cA0; struct K *aA4;
     char pad3[0xC0 - 0xA8]; int cbC0; int cC4; char *pC8; int cCC; struct E *aD0; int xD4; struct P *pD8; };
-void func_001383F0(struct P *p, int i);
+void SetAsegblDominantBl(struct P *p, int i);
 void func_001380F0(struct P *p, int a, int b, int c, float *pg);
 void func_001384C0(struct P *p)
 {
@@ -20,7 +20,7 @@ void func_001384C0(struct P *p)
             if (0.9999f < *(float *)(p->pC8 + j * p->cbC0))
                 break;
         } while (1);
-        func_001383F0(p, j);
+        SetAsegblDominantBl(p, j);
     }
     for (pl = p->pl; pl; pl = pl->pnext)
         pl->g1C = pl->g1C / p->g74;

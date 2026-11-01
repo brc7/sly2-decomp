@@ -14,10 +14,10 @@ struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x1
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
 qword func_001C1EC0(struct X *s, qword v);
-qword func_0011E1A0(float a, float b, float c);
+qword SetVectorCylind(float a, float b, float c);
 int func_001C0B50(void *q, qword v, qword *out);
 void func_002562A8(struct X *x);
-void func_0017DD38(void *p, struct X *x);
+void SetBhvgotoGoal(void *p, struct X *x);
 }
 inline X::X() { func_002562A8(this); }
 extern "C" {
@@ -45,7 +45,7 @@ extern "C" void func_0017E0E0(struct S *p) {
     ang = func_002458F0(GetY(d), GetX(d));
     r = func_001C1EC0(&t->x40, b);
     for (i = 0; i < 16; i++) {
-        qword o = func_0011E1A0(ang + D_002BE770[i], D_002BE76C, 0.0f);
+        qword o = SetVectorCylind(ang + D_002BE770[i], D_002BE76C, 0.0f);
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(b), "j"(o));
         if (func_001C0B50(q, s, &hit.q)) {
@@ -63,5 +63,5 @@ extern "C" void func_0017E0E0(struct S *p) {
     }
     struct X x;
     x.v = r;
-    func_0017DD38(t, &x);
+    SetBhvgotoGoal(t, &x);
 }

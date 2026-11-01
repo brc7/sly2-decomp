@@ -2,26 +2,26 @@ typedef struct MARK { int a[4]; } MARK;
 typedef struct MSG { int cb; int nKind; int k; int **pp; } MSG;
 struct O { char pad[0x28]; long bits; };
 struct S { char pad[0xE4]; char aE4[0x18]; char aFC[0x10]; struct O *p10C; int c; void *a; void *cur; int x11C; char pad2[0x164 - 0x120]; int flags; };
-void func_00231768(struct S *p, void *pbis);
-void func_00117FD0(void *pbis, void *pv);
-void func_00118220(void *pbis, void *pv, void *pv2);
+void LoadXfmXfFromBrx(struct S *p, void *pbis);
+void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pv);
+void CBinaryInputStream_ReadBspc(void *pbis, void *pv, void *pv2);
 MARK *func_001AE478(MARK *pm);
 void func_001AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
 void *func_001AE238(MSG *pmsg, void *pv);
 void func_00221818(struct S *p, int id);
-void func_0013F810(struct S *p, void *pbis);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct S *p, void *pbis);
 void func_00221940(struct S *p);
-void func_0013F888(MSG *pmsg);
-void func_002317E0(struct S *p, void *pbis, MSG *pmsg);
+void CLoadCollectorArray_ctor(MSG *pmsg);
+void LoadXfmChildObjectsFromBrx(struct S *p, void *pbis, MSG *pmsg);
 void func_00220FD0(struct S *p, void *pbis)
 {
     MARK mark;
     MSG msg;
     void *pv;
-    func_00231768(p, pbis);
-    func_00117FD0(pbis, p->aE4);
-    func_00118220(pbis, p->aE4, p->aFC);
+    LoadXfmXfFromBrx(p, pbis);
+    ReadGeom__18CBinaryInputStreamP4GEOM(pbis, p->aE4);
+    CBinaryInputStream_ReadBspc(pbis, p->aE4, p->aFC);
     func_001AE478(&mark);
     {
         MSG *pm = &msg;
@@ -30,7 +30,7 @@ void func_00220FD0(struct S *p, void *pbis)
         p->a = func_001AE318(pm);
     }
     func_00221818(p, 0x30);
-    func_0013F810(p, pbis);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
     func_00221940(p);
     {
         MSG *pm = &msg;
@@ -41,8 +41,8 @@ void func_00220FD0(struct S *p, void *pbis)
     p->x11C = 1;
     p->a = pv;
     p->cur = pv;
-    func_0013F888(&msg);
-    func_002317E0(p, pbis, &msg);
+    CLoadCollectorArray_ctor(&msg);
+    LoadXfmChildObjectsFromBrx(p, pbis, &msg);
     switch (msg.k) {
     case 0:
         break;

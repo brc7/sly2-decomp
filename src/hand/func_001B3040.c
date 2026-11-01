@@ -11,7 +11,7 @@ void func_00232D80(int n);
 void func_00232DA8(int n);
 int func_00232220(int n);
 void func_002321E8(int n, int m);
-void func_0013D558(void *p, int cb, void *pv);
+void Init__10CByteQueueiPv(void *p, int cb, void *pv);
 void func_001B3040(struct S *p)
 {
     func_00232438(0xFFFFFFFF);
@@ -27,6 +27,6 @@ void func_001B3040(struct S *p)
     func_002321E8(0x10, 0x400);
     p->x0 = 1;
     p->x4 = -1;
-    func_0013D558(p->x30, 0x28, p->x8);
-    func_0013D558(p->x50, 0x18000, (void *)(D_002F66B0.x110 + 0x80000));
+    Init__10CByteQueueiPv(p->x30, 0x28, p->x8);
+    Init__10CByteQueueiPv(p->x50, 0x18000, (void *)(D_002F66B0.x110 + 0x80000));
 }

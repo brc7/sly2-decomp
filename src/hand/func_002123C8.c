@@ -5,19 +5,19 @@ struct S {
     int xBC; char padc0[8]; struct S *xC8;
 };
 extern struct G { char pad[0x3BE8]; void *x3BE8; } D_003DD490;
-void func_001A5C48(struct S *p);
-void *func_0015E938(struct G *, int, int, struct S *);
-void func_001A6CA8(struct S *p, int);
+void PostLoLoad(struct S *p);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, struct S *);
+void SetLoBusyk(struct S *p, int);
 void func_002123C8(struct S *p)
 {
     unsigned int v;
     float w;
     int h;
-    func_001A5C48(p);
+    PostLoLoad(p);
     if (p->xBC) {
         struct G *pg = &D_003DD490;
         if (!pg->x3BE8)
-            pg->x3BE8 = func_0015E938(pg, 0x405, 0x374, p);
+            pg->x3BE8 = PloFindSwObject__FP2SWi3OIDP2LO(pg, 0x405, 0x374, p);
     }
     p->xC8 = p;
     p->xA8 = -1;
@@ -27,7 +27,7 @@ void func_002123C8(struct S *p)
     p->x9C = 2048.0f - (float)h * 0.5f;
     if (p->x6D)
         p->pvt->pf((char *)p + p->pvt->d, -1);
-    func_001A6CA8(p, 1);
+    SetLoBusyk(p, 1);
     v = p->x40;
     if ((v ^ 1) & 1) *(int *)v |= 0x102;
     else p->x40 = v | 0x102;

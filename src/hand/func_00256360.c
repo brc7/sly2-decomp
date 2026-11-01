@@ -3,7 +3,7 @@
 extern char D_002D9978[], D_002DA568[], D_002CB1F0[], D_002DA9D0[];
 typedef struct { int x0, x4, x8; void *xC; } B;
 typedef struct { int x0, x4, x8; void *xC; char pad[0x70]; char x80[0xF4]; int x174; char pad2[0xC38]; char xDB0[0x70]; B xE20; } S;
-void *func_00167310(void *); void *func_0020C058(void *);
+void *func_00167310(void *); void *LEAP_ctor(void *);
 S *func_00256360(S *p)
 {
     B *q;
@@ -14,7 +14,7 @@ S *func_00256360(S *p)
     func_00167310(p->x80);
     p->x174 = 0;
     p->xC = D_002DA568;
-    func_0020C058(p->xDB0);
+    LEAP_ctor(p->xDB0);
     q = &p->xE20;
     q->xC = v;
     p->xE20.x0 = 0;

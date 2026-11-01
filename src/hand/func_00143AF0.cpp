@@ -16,7 +16,7 @@ struct G;
 extern "C" G D_003D4A60;
 extern char D_002A4DB0[];
 extern "C" {
-void *func_00143410(void *p);
+void *PkeyFindBootySaveVar(void *p);
 CRef func_00258200(void *p, const CRef &ref, G *pv);
 CRef func_001D8B20(const CRef &ref, void *o, void *pv, int n);
 }
@@ -35,7 +35,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
 }
 extern "C" void *func_00143AF0(LO *p, int x)
 {
-    void *pv = func_00143410(p->p18);
+    void *pv = PkeyFindBootySaveVar(p->p18);
     if (pv) {
         CRef a(x, 0x15);
         SetPv(pv, a, &D_003D4A60);

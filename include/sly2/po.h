@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/so.h"
 
-/* POCTL: from src/hand/func_0018A8C8.cpp (15 copies in Lilly ports) */
+/* POCTL: from src/hand/JtChooseGroundState.cpp (15 copies in Lilly ports) */
 struct POCTL : public BASIC
 {
       float dxLeft;
@@ -37,7 +37,7 @@ struct POCTL : public BASIC
 };
 typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* PO: from src/hand/func_0018A8C8.cpp (15 copies in Lilly ports) */
+/* PO: from src/hand/JtChooseGroundState.cpp (15 copies in Lilly ports) */
 struct PO : public SO
 {
       POCTL *pctl;

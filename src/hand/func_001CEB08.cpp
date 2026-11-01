@@ -10,11 +10,11 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C1F60,D_002C1F64,D_002C1F68,D_002C1F6C;
 extern qw D_002A2DA0,D_002A2DD0;
-int func_00132B10(void*,int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void func_00228C18(void*,qw,qw*,qw*);
-qw func_0022D348(void*,void*,qw);
+qw GetXfVelocity(void*,void*,qw);
 void func_001CEAA8(RIP*,float);
-void func_0011EE08(qw,qw,qw,qw*,float*,float*);
+void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
 int func_001CEB08(RIP*,SHAPE*,qw,qw);
 }
 static inline float Max(float a,float b){return a<b?b:a;}
@@ -42,7 +42,7 @@ int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  if(p->kind==8){w.contact=point;radius=p->radius;elastic=p->restitution;friction=p->friction;}else{w.contact=point;radius=100.0f;elastic=0.7f;friction=0.8f;}
  radius*=Evaluate(&p->scale,(D_002DDED0.time-p->start)/p->duration);
  owner=OwnerAndNormal(shape,w,incomingNormal);}
- int special=func_00132B10(owner,0x59);register qw sampledNormal __asm__("vf8")=w.normal.q;
+ int special=FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x59);register qw sampledNormal __asm__("vf8")=w.normal.q;
  if(special){
   qw*output;qw samplePoint;void*sampleOwner=SampleOwner(shape,w,output,samplePoint);
   func_00228C18(sampleOwner,samplePoint,output,0);
@@ -63,7 +63,7 @@ int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  register void*frameArg __asm__("$4");register void*nullArg __asm__("$5");register qw pointArg __asm__("$6");register float negativeRadius __asm__("$f0");
  __asm__("neg.s %0,%5\n\tlw %1,%6\n\tlq %3,%7\n\tdaddu %2,$zero,$zero\n\tsqc2 %8,%4":"=f"(negativeRadius),"=&r"(frameArg),"=r"(nullArg),"=r"(pointArg),"=m"(w.normal.q):"f"(radius),"m"(shape->frame),"m"(w.contact),"j"(sampledNormal));
  w.firstTorque.q=PrepareOffsetTorque(sampledNormal,negativeRadius,w);
- qw packedOther=func_0022D348(frameArg,nullArg,pointArg);
+ qw packedOther=GetXfVelocity(frameArg,nullArg,pointArg);
  float impulse,fricImpulse;
  register float unit __asm__("$f21");
  register qw lineStart __asm__("$5"),queryPoint __asm__("$4");
@@ -141,7 +141,7 @@ int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  __asm__("vsub.xyzw %0,%0,%1":"+j"(working):"j"(scratch));
  w.afterTangent.q=working;
  }
- func_0011EE08(queryPoint,lineStart,w.afterTangent.q,queryPosition,queryAlong,queryDistance);
+ FindClosestPointOnLineSegment(queryPoint,lineStart,w.afterTangent.q,queryPosition,queryAlong,queryDistance);
  register qw tailNormal __asm__("vf8");
  {
  register float secondWeight __asm__("$f0")=w.proximity.fraction;

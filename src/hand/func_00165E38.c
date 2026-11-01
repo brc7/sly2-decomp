@@ -11,7 +11,7 @@ void func_00129EC8(CRef *pref);
 int func_001D9880(void *p);
 void func_001D54B8(void);
 void func_001DD888(void *p);
-void *func_00210B98(int n);
+void *PrecWorldEntry(int n);
 void func_0022B490(struct G *pg, void *p, int a, int b, int c, int d);
 void func_00165E38(void *pv)
 {
@@ -33,7 +33,7 @@ void func_00165E38(void *pv)
         D_002DEB30.f10 = -1;
         D_002DEB30.f14 = -1;
         D_002DEB30.f18 = 0x62F;
-        func_0022B490(&D_003DD490, func_00210B98(0), 0x189, -1, 0x48, -1);
+        func_0022B490(&D_003DD490, PrecWorldEntry(0), 0x189, -1, 0x48, -1);
         return;
     }
     {
@@ -47,7 +47,7 @@ void func_00165E38(void *pv)
     __asm__ __volatile__(""); /* ordering-only: ends the -1 constant's dependence chain at the call */
     n = ref.m_tag;
     func_00129EC8(&ref);
-    ps = func_00210B98(n);
+    ps = PrecWorldEntry(n);
     prop = D_003DD490.a3b7c[n];
     n = 0;
     if (prop) {

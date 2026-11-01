@@ -15,15 +15,15 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002BE8F0;
 extern char D_003DD490[];
-void func_001A58D0(struct O *p, int a, int b);
+void SetLoParent_1A58D0(struct O *p, int a, int b);
 void func_002303A0(struct O *p, struct X *px, int n);
-void func_001F5720(struct O *p, int n);
-void func_001F57C0(struct O *p, int n);
+void SetSoCnstrForce(struct O *p, int n);
+void SetSoCnstrTorque(struct O *p, int n);
 void func_001F68A8(struct O *p, int n);
-void func_00147F40(void *p);
+void UpdateSwBusyList(void *p);
 void *func_001A6318(struct O *p);
-void func_0011B938(void *pv, int n, MATRIX3 *pm);
-MATRIX3 func_0022FD38(void *pv, void *pvA0, MATRIX3 *pm);
+void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
+MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
 qword func_0011BFF0(MATRIX3 *pm);
 qword func_0022FC48(void *pv, void *pvA0, qword v);
 void func_00183B80(struct O *p, int n);
@@ -38,18 +38,18 @@ void func_00183B80(struct O *p, int n)
         return;
     if (p->n17C == 2) {
         if (p->n18C != 0) {
-            func_001A58D0(p, 0, 0xF);
+            SetLoParent_1A58D0(p, 0, 0xF);
             func_002303A0(p, p->p58, 1);
             p->p58->n9A = 0;
             func_002303A0(p, p->p5C, 1);
             p->p5C->n9A = 0;
             { struct VTE *e = &p->pvt[35]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
-            func_001F5720(p, 0);
-            func_001F57C0(p, 0);
+            SetSoCnstrForce(p, 0);
+            SetSoCnstrTorque(p, 0);
             func_001F68A8(p, 0);
         }
         { struct VTE *e = &p->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 6, 0, 0, 0, 0); }
-        func_00147F40(D_003DD490);
+        UpdateSwBusyList(D_003DD490);
         p->p190 = 0;
     }
     if (n == 2) {
@@ -57,14 +57,14 @@ void func_00183B80(struct O *p, int n)
             struct S2 *ps;
             MATRIX3 m;
             qword q;
-            func_001F5720(p, 1);
-            func_001F57C0(p, 1);
+            SetSoCnstrForce(p, 1);
+            SetSoCnstrTorque(p, 1);
             ps = (struct S2 *)p->p190->p10BC;
             if (!ps)
                 ps = (struct S2 *)p->p190->p60;
             { struct VTE *e = &p->pvt[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)p + e->d, p->p190, ps, 3); }
-            func_0011B938(func_001A6318(p), 0, &m);
-            m = func_0022FD38(0, p->p5C->pA0, &m);
+            TiltMatUpright(func_001A6318(p), 0, &m);
+            m = ConvertXfMat(0, p->p5C->pA0, &m);
 
             q = func_0011BFF0(&m);
             func_002303A0(p, p->p5C, 7);

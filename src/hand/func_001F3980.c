@@ -7,11 +7,11 @@ struct R { char pad[0x60]; qword v60; qword v70; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *p58; struct Q *p5C; char pad3[0xE0 - 0x60]; int nE0; struct E *aE4; struct R *pE8; };
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-void func_001F3900(struct P *);
+void UpdateSoPartMatrices(struct P *);
 void func_001F6EF8(struct E *, float);
 int func_00230380(int);
-void func_0022DE88(struct P *);
-void func_001F38A8(struct E *);
+void UpdateSoSlots(struct P *);
+void UpdateSoPartGeom(struct E *);
 static inline void Clear(int *a)
 {
     a[2] = 0;
@@ -21,7 +21,7 @@ static inline void Clear(int *a)
 void func_001F3980(struct P *p)
 {
     int i;
-    func_001F3900(p);
+    UpdateSoPartMatrices(p);
     for (i = 0; i < p->nE0; i++) {
         struct E *pe = &p->aE4[i];
         if (*(int *)&pe->fl) func_001F6EF8(pe, D_002DDED0.dt);
@@ -39,9 +39,9 @@ void func_001F3980(struct P *p)
             p->pvt[70].pfn((char *)p + p->pvt[70].d);
         }
     }
-    func_0022DE88(p);
+    UpdateSoSlots(p);
     for (i = 0; i < p->nE0; i++) {
         struct E *pe = &p->aE4[i];
-        if (!(pe->fl & (1L << 50))) func_001F38A8(pe);
+        if (!(pe->fl & (1L << 50))) UpdateSoPartGeom(pe);
     }
 }

@@ -2,16 +2,16 @@ struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern float D_002A70E0;
 struct S { char pad[0x168]; float f168; int x16C; char pad1[0x1C4 - 0x170]; int x1C4; char pad2[0x220 - 0x1C8]; int x220; int x224; float f228; float f22C; };
-void func_001F36E0(struct S *p);
+void UpdateSo(struct S *p);
 int func_001B1900(struct S *p);
 int func_001B1868(struct S *p);
-void func_001F7BF8(struct S *p, float f);
+void FadeSoOut(struct S *p, float f);
 void func_001B1328(struct S *p, int st);
 void func_001B1160(struct S *p);
 void func_001B0E28(struct S *p)
 {
     int st;
-    func_001F36E0(p);
+    UpdateSo(p);
     st = p->x220;
     switch (st) {
     case 0:
@@ -33,7 +33,7 @@ void func_001B0E28(struct S *p)
         break;
     case 4:
         if (p->f22C <= D_002DDED0.t) {
-            func_001F7BF8(p, p->f168);
+            FadeSoOut(p, p->f168);
             p->f22C = D_002A70E0;
         }
         break;

@@ -42,6 +42,6 @@ extern s32 D_003E1480;
 
 void func_00153EF8(s32 arg0, s32 arg1, s32 arg2) {
     if (arg1 != arg2) {
-        func_00153F18(arg0, arg2);
+        AddDetectorTarget(arg0, arg2);
     }
 }

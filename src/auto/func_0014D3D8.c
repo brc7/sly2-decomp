@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_0012E760(void *);                      /* extern */
+M2C_UNK CPCAMERA_ctor(void *);                      /* extern */
 M2C_UNK func_0014FCA8(void *);                      /* extern */
 M2C_UNK func_0014FD68(s32);                         /* extern */
 M2C_UNK func_0014FDE0(void *);                      /* extern */
@@ -21,7 +21,7 @@ void *func_0014D3D8(void *arg0) {
     func_0014FD68(arg0 + 0x3A0);
     func_00221990(arg0 + 0x3B0);
     func_0014FDE0(arg0 + 0x450);
-    func_0012E760(arg0 + 0x4A8);
+    CPCAMERA_ctor(arg0 + 0x4A8);
     func_00151208(arg0 + 0x4C0);
     func_00151610(arg0 + 0x500);
     func_00150728(arg0 + 0x520);

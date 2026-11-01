@@ -1,10 +1,10 @@
 #include "m2c_prelude.h"
 M2C_UNK func_0017E278(void *, M2C_UNK);             /* extern */
-M2C_UNK func_001EEF70();                            /* extern */
-M2C_UNK func_00208540(s32, s32);                    /* extern */
+M2C_UNK StartBhv();                            /* extern */
+M2C_UNK SetStepguardTarget(s32, s32);                    /* extern */
 
 void func_0017DDA8(void *arg0) {
-    func_001EEF70();
+    StartBhv();
     func_0017E278(arg0, 0);
-    func_00208540(M2C_FIELD(arg0, s32 *, 0x10), M2C_FIELD(arg0, s32 *, 0x38));
+    SetStepguardTarget(M2C_FIELD(arg0, s32 *, 0x10), M2C_FIELD(arg0, s32 *, 0x38));
 }

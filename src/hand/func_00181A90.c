@@ -2,7 +2,7 @@ struct Q { char pad[0x24]; int n; char p1[0x14]; float g3c; int x40; char p2[8];
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
 struct S;
 void func_00181B60(struct S *p, struct E *pe);
-float func_001E6648(int n);
+float SMaxShape(int n);
 void func_00181EB0(struct S *p, struct Q *q, int n);
 void func_00181A90(struct S *p, struct E *pe)
 {
@@ -10,7 +10,7 @@ void func_00181A90(struct S *p, struct E *pe)
     float g;
     struct Q *q;
     func_00181B60(p, pe);
-    g = func_001E6648(pe->x24);
+    g = SMaxShape(pe->x24);
     for (q = pe->pqFirst; q; q = q->next) {
         q->n = -1;
         func_00181EB0(p, q, 0);

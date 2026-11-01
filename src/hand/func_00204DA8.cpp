@@ -3,14 +3,14 @@
    the gravity is read as a struct member, and the old ratio goes into vf3 straight from memory ("rV"). No register pins. */
 #include "sly2/step.h"
 struct VU_FLOAT { qword qw; };
-extern "C" void func_001F35C8(struct STEP *pso, float m);   /* SetSoMass */
+extern "C" void SetSoMass(struct STEP *pso, float m);   /* SetSoMass */
 
 extern "C" void func_00204DA8(struct STEP *pstep, float rGravity)
 {
     float r = 0.1f;
     qword qwScaled;
     r = rGravity > r ? rGravity : r;
-    func_001F35C8(pstep, pstep->psophys->m * pstep->rUnk260 / r);
+    SetSoMass(pstep, pstep->psophys->m * pstep->rUnk260 / r);
     {
         struct VU_FLOAT vuR;
         qword qwGrav = *(qword *)&pstep->psophys->dvGravity;

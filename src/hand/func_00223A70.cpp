@@ -1,4 +1,4 @@
-/* (Claude agent) MATCH: the loop's func_0011E1A0 result is a plain qword local; gcc emits the qmtc2 itself and schedules it. */
+/* (Claude agent) MATCH: the loop's SetVectorCylind result is a plain qword local; gcc emits the qmtc2 itself and schedules it. */
 // Complete camera segment avoidance WIP. FRAME has no instance members.
 typedef int qword __attribute__((mode(TI)));
 union V {qword q;float f[4];};
@@ -16,13 +16,13 @@ void *func_001AE478(void *);
 void func_001AE4A0(void *,int);
 qword func_001A62E8(void *);
 int func_0014F030(void *,SO *);
-void func_0020FAA0(WORLD *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***);
+void IntersectSwBoundingBox(WORLD *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***);
 qword func_0014EB70(int,SO **,qword,float);
 int func_0014EA08(int count,SO **objects,qword origin,qword endpoint,float gap,float *low,float *high);
 float func_00223A10(void *,qword,qword,N *);
 qword func_0014EDA0(CAMERA *,int,SO **,float (*)(void *,qword,qword,N *),qword,qword,float,float);
-void func_0011EF08(qword,float *,float *,float *);
-qword func_0011E1A0(float,float,float);
+void GetVectorCylind(qword,float *,float *,float *);
+qword SetVectorCylind(float,float,float);
 }
 struct MARK {MARK(){(void)func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
 struct WORK {V minimum,maximum,origin,candidate;MARK mark;V offset,rayEnd,best,scalar;int count;SO **objects;float low,high,phase,radius,height;};
@@ -45,18 +45,18 @@ extern "C" void func_00223A70(S *p,qword begin,qword end,qword *out){
     float one=1.0f;
     w.minimum.q=Min(begin,Min(end,func_001A62E8(object)));
     w.maximum.q=Max(begin,Max(end,func_001A62E8(object)));
-    func_0020FAA0(&D_003DD490,w.minimum.q,w.maximum.q,func_0014F030,0,&w.count,&w.objects);
+    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,func_0014F030,0,&w.count,&w.objects);
     int count=w.count; SO **objects=w.objects;
     w.origin.q=func_0014EB70(count,objects,func_001A62E8(object),500.0f);
     func_0014EA08(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
     if(w.high<one){
         float angle=initialAngle;
         p->state=4;
-        func_0011EF08(Sub(end,begin),&w.phase,&w.radius,&w.height);
+        GetVectorCylind(Sub(end,begin),&w.phase,&w.radius,&w.height);
         float bestCost=D_002A9700;
         float minGap=initialAngle;
         do{
-            qword off=func_0011E1A0(w.phase+angle,w.radius,w.height);
+            qword off=SetVectorCylind(w.phase+angle,w.radius,w.height);
             w.offset.q=off;
             w.rayEnd.q=Add(begin,off);
             func_0014EA08(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);

@@ -12,10 +12,10 @@ struct P{char pad[0x60];struct SPACE*space;char pad64[0x1030-0x64];struct MODEL*
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
 extern float D_002BF380,D_002BF3A0,D_002BF3B8,D_002BF3BC;
 extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
-void func_002046F0(struct P*,struct AIM*);void func_002309E8(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
-qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword func_0022FCC8(struct SPACE*,struct SPACE*,qword);
+void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
+qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
 float func_002458F0(float,float);float func_0011D948(struct LM*,float);
-struct M3*func_0011B628(struct M3*,qword);qword*func_00256D18(qword*,qword);void func_0012DA30(struct DV*,qword);
+struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*func_00256D18(qword*,qword);void func_0012DA30(struct DV*,qword);
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Point(const struct M4*m,const qword*a,struct SPACE**source){
  register qword r __asm__("vf6"),row0 __asm__("vf5")=m->r[0].q;register struct SPACE*sourceValue __asm__("$4");const int nullSource=0;
@@ -39,14 +39,14 @@ void func_0018B460(struct P*p){
  float zero=0.0f;
  if(zero<ratio){
   register qword mapped __asm__("$17");qword tilt,axis,residual;register float limit __asm__("$f1");struct SPACE*space;register struct SPACE*relativeDestination __asm__("$5");struct M4*frame;float heading;
-  func_002046F0(p,p->owner->aim);
+  FaceStepToward(p,p->owner->aim);
   {register struct OWNER*predictionOwner __asm__("$2")=p->owner;
    register float capped __asm__("$f12");register struct M4*request __asm__("$6"),*optionalOutput __asm__("$7");
    register struct AIM*aim __asm__("$3");register struct SPACE*sourceSpace __asm__("$5");const int nullValue=0;
    __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu %4,%z9,$zero"
     :"=&f"(capped),"=&r"(request),"=&r"(aim),"=r"(optionalOutput),"=r"(sourceSpace)
     :"f"(ratio),"m"(D_002BF380),"r"(&w.phase.predicted),"m"(predictionOwner->aim),"rJ"(nullValue));
-   func_002309E8(aim->frame,sourceSpace,request,optionalOutput,capped);
+   LoadIdentityMatrix4(aim->frame,sourceSpace,request,optionalOutput,capped);
   }
   {struct SPACE*sourceSpace;qword predictedPoint=Point(&w.phase.predicted,&D_002BF390,&sourceSpace);register unsigned page __asm__("$3");
    __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,p->space,predictedPoint)),"i"(&D_002BF3A0));
@@ -55,7 +55,7 @@ void func_0018B460(struct P*p){
     heading=func_002458F0(-z,coefficient*x);}}
   heading=func_0011D948(&D_002BF3A8,heading);
   tilt=Pack(zero,heading,zero);w.axis.q=tilt;
-  func_0011B628(&w.rotation,Add(p->euler,w.axis.q));
+  LoadRotateMatrixEuler(&w.rotation,Add(p->euler,w.axis.q));
   frame=&w.transform;
   func_00256D18(&frame->r[3].q,p->position);
   {
@@ -81,10 +81,10 @@ void func_0018B460(struct P*p){
     }
    }
   }
-  heading=X(func_0022FCC8(p->space,relativeDestination,w.relative.q));heading=func_0011D948(&D_002BF3B0,heading);
+  heading=X(ConvertXfVec(p->space,relativeDestination,w.relative.q));heading=func_0011D948(&D_002BF3B0,heading);
   axis=Pack(heading,zero,zero);w.axis.q=axis;
   {
-   register qword returned __asm__("vf2")=func_0022FCC8(space,p->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
+   register qword returned __asm__("vf2")=ConvertXfVec(space,p->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
    __asm__("lqc2 %0,%2\n\tlui %1,%%hi(%3)":"=j"(relative),"=r"(page):"m"(w.relative.q),"i"(&D_002BF3B8));
    __asm__("vsub.xyzw %0,%1,%0":"+j"(returned):"j"(relative));
    __asm__("lwc1 %0,%%lo(%4)(%2)\n\tsqc2 %3,%1":"=f"(limit),"=m"(w.residual.q):"r"(page),"j"(returned),"i"(&D_002BF3B8):"memory");

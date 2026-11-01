@@ -5,12 +5,12 @@ struct O { VTE *vt; };
 struct X { int a; struct O *po; };
 struct TABLE;
 struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float g40; };
-int func_00131968(struct Q *q);
+int FAsegaRetracted(struct Q *q);
 struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
 qword func_00204ED8(void *p, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
-    if (q && !func_00131968(q)) {
+    if (q && !FAsegaRetracted(q)) {
         struct X *x = func_0012FF10(q->table, p, 6, 1);
         if (x) {
             struct O *o = x->po;

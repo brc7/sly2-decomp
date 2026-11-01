@@ -24,20 +24,20 @@ extern float D_002DDED4;
 extern "C" {
 float func_00229468(O *,O *,qword *,qword *);
 int func_0011D4D0(float,float,float);
-qword func_001FA810(CONSTRAINT *,NODE *,qword);
-void func_001FAC30(O *,qword);
+qword ApplyConstr(CONSTRAINT *,NODE *,qword);
+void AddSoAcceleration(O *,qword);
 qword func_001A62E8(O *);
 void func_00228C18(O *,qword,qword *,qword *);
 float func_0011E290(qword,qword,qword *,qword *);
 int func_00230380(int);
-void func_001F5E10(O *,qword,const COEF *,qword,const COEF *);
-void func_001F5C30(O *,const M3 *,const COEF *,qword,const COEF *);
+void AccelSoTowardPosSpring(O *,qword,const COEF *,qword,const COEF *);
+void AccelSoTowardMatSpring(O *,const M3 *,const COEF *,qword,const COEF *);
 M4 *func_001A6318(O *);
-void func_0011B938(const M3 *,M3 *,M3 *);
+void TiltMatUpright(const M3 *,M3 *,M3 *);
 void func_0011BCF8(const M3 *,float *,qword *);
 void func_001FAC98(O *,qword);
 void func_0015A2C0(O *,WATER *,float,qword,qword,float,float);
-int func_00132B10(O *,int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 void func_001FB098(EMITTER *,float);
 void func_00258040(EMITTER **,EMITTER *);
 }
@@ -69,7 +69,7 @@ extern "C" void func_002297F8(O *a,O *b){
  if(spring!=0.0f){
   asm volatile("": : :"memory"); // the original re-reads a->physics here instead of reusing the pointer loaded above
   qword k=Scalar(-spring*span);w.velocity.q=k;
-  func_001FAC30(a,func_001FA810(&a->physics->constraint,a->motion,Scale(a->physics->direction.q,k)));
+  AddSoAcceleration(a,ApplyConstr(&a->physics->constraint,a->motion,Scale(a->physics->direction.q,k)));
  }
  if(friction!=0.0f){
   func_00228C18(b,func_001A62E8(a),&w.velocity.q,&w.phase.vectors[0].q);
@@ -79,9 +79,9 @@ extern "C" void func_002297F8(O *a,O *b){
   if(func_00230380(a->body->kind)){
    COEF *coefficients=&w.axis.coefficients;
    GAIN2(D_002C4470,factor,friction);
-   func_001F5E10(a,D_002A2DD0,0,AddNormal(linear,w.phase.vectors[1]),coefficients);
+   AccelSoTowardPosSpring(a,D_002A2DD0,0,AddNormal(linear,w.phase.vectors[1]),coefficients);
    GAIN2(D_002C4470,span,friction);
-   func_001F5E10(a,D_002A2DD0,0,AddTangent(linear,w.phase.vectors[2]),coefficients);
+   AccelSoTowardPosSpring(a,D_002A2DD0,0,AddTangent(linear,w.phase.vectors[2]),coefficients);
   }
   if(func_00230380(a->rotation->kind)){
    qword angular=Get(a,34);
@@ -90,14 +90,14 @@ extern "C" void func_002297F8(O *a,O *b){
    w.scalar.q=k;func_0011E290(negative,w.normal.q,&w.angularNormal.q,&w.angularTangent.q);
    COEF *coefficients=&w.axis.coefficients;
    GAIN2(D_002C4480,span,friction);
-   func_001F5C30(a,&D_002A2D00,0,AddNormal(angular,w.angularNormal),coefficients);
+   AccelSoTowardMatSpring(a,&D_002A2D00,0,AddNormal(angular,w.angularNormal),coefficients);
    GAIN1(D_002C4480,friction);
-   func_001F5C30(a,&D_002A2D00,0,AddTangent(angular,w.angularTangent),coefficients);
+   AccelSoTowardMatSpring(a,&D_002A2D00,0,AddTangent(angular,w.angularTangent),coefficients);
   }
  }
  else Zero(w.velocity,0.0f);
  if(spring!=0.0f){
-  func_0011B938(&func_001A6318(a)->basis,&w.phase.basis,0);
+  TiltMatUpright(&func_001A6318(a)->basis,&w.phase.basis,0);
   func_0011BCF8(&w.phase.basis,&w.angle,&w.axis.vector.q);
   float gain=spring*3.0f;qword k=Scalar(w.angle*gain*span);
   qword rotation=Scale(w.axis.vector.q,k);w.angularNormal.q=k;
@@ -107,7 +107,7 @@ extern "C" void func_002297F8(O *a,O *b){
   float radius=((a->state->maximum.f[0]-a->state->minimum.f[0])+(a->state->maximum.f[1]-a->state->minimum.f[1]))*0.25f;
   func_0015A2C0(a,(WATER *)b,D_002DDED4,w.velocity.q,w.point.q,0.1f,radius);
  }
- else if(func_00132B10(a,0x32))Clear(&a->emitter);
+ else if(FIsBasicDerivedFrom__FP5BASIC3CID(a,0x32))Clear(&a->emitter);
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)

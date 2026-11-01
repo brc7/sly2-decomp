@@ -5,7 +5,7 @@
 #define SLY2_LO_H
 #include "sly2/basic.h"
 
-/* LORUN: from src/hand/func_0013E818.cpp (28 copies in Lilly ports) */
+/* LORUN: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (28 copies in Lilly ports) */
 struct LORUN
 {
       void (*pfn)(LO *plo, void *pv);
@@ -13,7 +13,7 @@ struct LORUN
       LORUN *plorunNext;
 };
 
-/* LOROOT: from src/hand/func_001428D8.cpp (28 copies in Lilly ports) */
+/* LOROOT: from src/hand/HeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct LOROOT
 {
       LO *plo;
@@ -21,7 +21,7 @@ struct LOROOT
       DLE dleBusy;
 };
 
-/* LO: from src/hand/func_0019CD38.cpp (27 copies in Lilly ports) */
+/* LO: from src/hand/SetJtModeState__FP6JTMODEi.cpp (27 copies in Lilly ports) */
 struct LO : public BASIC
 {
       SO *psoParent;
@@ -64,7 +64,7 @@ struct LO : public BASIC
       virtual void Freeze();
       virtual void Unfreeze();
       virtual void VUnk23();
-      virtual void SetIdProxy(int idProxy, int fChildren) __asm__("func_001CA118")   /* symbol from func_001CA118.cpp */;
+      virtual void SetIdProxy(int idProxy, int fChildren) __asm__("SetLoIdProxy")   /* symbol from SetLoIdProxy.cpp */;
       virtual void VUnk25(LO *plo);
       virtual void VUnk26(LO *plo);
       virtual int CploChildren(LO ***paplo);

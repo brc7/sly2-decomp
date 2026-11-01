@@ -28,12 +28,12 @@ extern char D_003DD490[];
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
 void func_0014D1D0(struct CLOCK *, float, int);
-void func_0020EFC0(void *, int);
-void func_0020F030(void *, int);
+void IncrementSwHandsOff(void *, int);
+void DecrementSwHandsOff(void *, int);
 void func_001DB390(OBJ *, int);
 void func_001DA950(OBJ *, int, int);
 void func_001DB010(OBJ *);
-SUB *func_0015E938(void *, int, int, int);
+SUB *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void func_001DB520(OBJ *p, int s);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 void func_001DB520(OBJ *p, int s)
@@ -42,7 +42,7 @@ void func_001DB520(OBJ *p, int s)
         return;
     if (p->x40 == -1) {
         func_0014D1D0(&D_002DDED0, 0.0f, 0);
-        func_0020EFC0(D_003DD490, 0);
+        IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
     }
     func_001DB390(p, -1);
@@ -58,7 +58,7 @@ void func_001DB520(OBJ *p, int s)
         p->n = 0;
         p->ae = 0;
         func_0014D1D0(&D_002DDED0, 1.0f, 0);
-        func_0020F030(D_003DD490, 0);
+        DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         func_001DA950(p, -1, -1);
         p->x24 = 0;
@@ -84,7 +84,7 @@ void func_001DB520(OBJ *p, int s)
     if (p->x40 != -1) {
         SUB *e;
         func_001DB010(p);
-        e = func_0015E938(D_003DD490, 5, p->x20, 0);
+        e = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->x20, 0);
         p->x24 = e;
         if (!e) {
             func_001DB520(p, -1);

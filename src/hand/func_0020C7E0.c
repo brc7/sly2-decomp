@@ -8,7 +8,7 @@ struct O { char pad[0x74]; union FLOATWORD duration; };
 struct E { struct O *po; int pad[3]; qword vel; union FLOATWORD speed; int pad2[3]; };
 struct S { struct E ae[4]; int fInit; };
 extern char D_003DD490[];
-struct O *func_0015E938(void *,int,int,void *);
+struct O *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,void *);
 struct C *func_0012FF10(struct O *,void *,int,int);
 
 void func_0020C7E0(struct S *p,void *arg)
@@ -28,7 +28,7 @@ void func_0020C7E0(struct S *p,void *arg)
         register qword scalar __asm__("vf1");
         int f;
         e = &p->ae[i];
-        o = func_0015E938(D_003DD490,4,(int)e->po,arg);
+        o = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,4,(int)e->po,arg);
         e->po = o;
         if (!o)
             continue;

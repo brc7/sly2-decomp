@@ -5,16 +5,16 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct X { qword a; qword v; };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; char pad3[0xA8 - 0x40]; void *pA8; int nAC; char pad4[0x10]; int nC0; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; void *p30; char pad3[0xC]; qword v40; int n50; float f54; char pad4[8]; qword v60; };
-void func_001EF0D8(void *p);
+void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 qword func_001A62E8(void *p);
-qword func_001A6F00(void *p, int n, qword v);
+qword ConvertAloPos(void *p, int n, qword v);
 void func_002562A8(struct X *x);
-void func_0017DD38(void *p, struct X *x);
+void SetBhvgotoGoal(void *p, struct X *x);
 void func_0017C928(struct S *p, int n) {
     struct X x;
     if (n == p->n50) return;
-    func_001EF0D8(p->a18);
+    PopBhv(p->a18);
     p->n50 = n;
     p->f54 = D_002DDED0.t;
     switch (n) {
@@ -27,7 +27,7 @@ void func_0017C928(struct S *p, int n) {
             o->nC0 = 1; o->pA8 = p->p30; o->nAC = 1;
             func_002562A8(&x);
             x.v = v;
-            func_0017DD38(o, &x);
+            SetBhvgotoGoal(o, &x);
             o->n38 = 0x1C;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
         }
@@ -47,11 +47,11 @@ void func_0017C928(struct S *p, int n) {
             qword v;
             struct VTE *e;
             p->v60 = func_001A62E8(p->p30);
-            v = func_001A6F00(p->p30, 0, p->v40);
+            v = ConvertAloPos(p->p30, 0, p->v40);
             o->nC0 = 1;
             func_002562A8(&x);
             x.v = v;
-            func_0017DD38(o, &x);
+            SetBhvgotoGoal(o, &x);
             o->pA8 = p->p30;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
         }

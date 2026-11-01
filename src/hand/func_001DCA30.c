@@ -1,6 +1,6 @@
 extern int D_003DA180;
 extern struct G D_003DD490;
-void *func_0013E368(struct G *g, int n);
+void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
 void func_0021ED58(char *p, void *q);
 void func_001DCA30(char *pch) {
     int id;
@@ -10,5 +10,5 @@ void func_001DCA30(char *pch) {
     case 1: id = 0xE0; break;
     default: *pch = 0; return;
     }
-    func_0021ED58(pch, func_0013E368(&D_003DD490, id));
+    func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, id));
 }

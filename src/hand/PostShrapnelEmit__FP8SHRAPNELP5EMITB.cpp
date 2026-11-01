@@ -12,7 +12,7 @@ extern "C" {
 extern LM D_002C1F78;
 extern float D_002C1F80[3];
 extern LM D_002BBB60;
-float func_0011D448(float gMin, float gMax);
+float GRandInRange__Fff(float gMin, float gMax);
 void func_001CE9B8(SHRAPNEL *psh, EMITB *pemitb);
 }
 static inline float GClamp(float g, float lo, float hi)
@@ -35,7 +35,7 @@ void PostShrapnelEmit(SHRAPNEL *psh, EMITB *pemitb)
     float len, g;
     int i;
     func_001CE9B8(psh, pemitb);
-    float gain=func_0011D448(D_002C1F78.gMin,D_002C1F78.gMax);
+    float gain=GRandInRange__Fff(D_002C1F78.gMin,D_002C1F78.gMax);
     float life=psh->g18*gain;
     qword lengthValue=VLen(psh->v);
     char*page;LM*limits;
@@ -43,7 +43,7 @@ void PostShrapnelEmit(SHRAPNEL *psh, EMITB *pemitb)
     CopyDirection(psh,pemitb);
     g = GClamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->gMax) * 10.0f;
     for (i = 0; i < 3; i++)
-        psh->ag[i] = func_0011D448(-g, g);
+        psh->ag[i] = GRandInRange__Fff(-g, g);
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)

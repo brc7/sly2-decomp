@@ -7,7 +7,7 @@ class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(AC
 class Y:public A0,public O{};
 struct S{MOVE*move;Y*object;int pad8[2];qword q;};
 extern qword D_002A2DD0;
-extern "C" void func_0019A4A0(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*);
+extern "C" void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char V_Size[sizeof(V)==16?1:-1];
@@ -23,6 +23,6 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
 extern "C" float func_0019AB38(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);
- func_0019A4A0(s->move,s->q,s->object,v.q,D_002A2DD0,0,&r,0,0);
+ MeasureJtJumpToTarget(s->move,s->q,s->object,v.q,D_002A2DD0,0,&r,0,0);
  return r;
 }

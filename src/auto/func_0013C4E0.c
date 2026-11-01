@@ -52,11 +52,11 @@ void func_0013C4E0(s32 arg0) {
         temp_s1 = M2C_FIELD(arg0, s32 *, 0x15C);
         M2C_FIELD(arg0, s32 *, 0x15C) = 0;
         temp_s2 = M2C_FIELD(arg0, s32 *, 0x158);
-        func_0013C560(arg0, 0);
+        SetBootyState(arg0, 0);
         if ((temp_s1 != 0) && (func_001A61A0(temp_s1) != 0)) {
             M2C_FIELD(arg0, s32 *, 0x15C) = temp_s1;
             M2C_FIELD(arg0, s32 *, 0x158) = temp_s2;
-            func_0013C560(arg0, 1);
+            SetBootyState(arg0, 1);
         }
     }
 }

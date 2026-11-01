@@ -3,10 +3,10 @@ struct K { int a, b; };
 extern qword D_002BE7D0;
 extern struct K D_002BE7E0;
 struct S { char pad[0x40]; int fl40; char pad2[0x13C]; int n180; char pad3[0x1C]; qword q1A0; struct K k1B0; };
-void func_001F2108(struct S *p);
+void InitSo(struct S *p);
 void func_0017F090(struct S *p) {
     int v;
-    func_001F2108(p);
+    InitSo(p);
     p->n180 = 10;
     p->q1A0 = D_002BE7D0;
     p->k1B0 = D_002BE7E0;

@@ -8,7 +8,7 @@ static __inline__ qword Make(float x, float y, float z)
 }
 struct S { char pad[0x5C]; int x5C; char pad2[0x18C - 0x60]; float f18C; float f190; char pad3[0x1CC - 0x194]; int k; char pad4[8]; int h; };
 int func_0012DC18(struct S *p, int c, int a, int b, int d, qword q);
-void func_0012E460(int *ph);
+void ReleaseAct(int *ph);
 void func_00226370(struct S *p, int k)
 {
     if (p->k != k) {
@@ -18,7 +18,7 @@ void func_00226370(struct S *p, int k)
             v.q = Make(0.0f, -p->f190, p->f18C);
             p->h = func_0012DC18(p, p->x5C, 1, 5, 3, v.q);
         } else {
-            func_0012E460(&p->h);
+            ReleaseAct(&p->h);
         }
     }
 }

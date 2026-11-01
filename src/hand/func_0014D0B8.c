@@ -5,7 +5,7 @@ struct CLOCK {
 };
 extern char D_002DEB30[];
 ulong func_0014D240(struct CLOCK *p);
-void func_00161478(void *p);
+void UpdateGameTimers(void *p);
 static __inline__ float GClamp(float g, float gMin, float gMax)
 {
     float r;
@@ -26,7 +26,7 @@ void func_0014D0B8(struct CLOCK *p, int fPaused)
     if (!fPaused) {
         p->dt = dt2 * p->rDt;
         p->t += p->dt;
-        func_00161478(D_002DEB30);
+        UpdateGameTimers(D_002DEB30);
     }
     }
     p->tick = tick;

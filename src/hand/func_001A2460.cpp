@@ -15,8 +15,8 @@ extern "C" qword func_001A62E8(P*);
 extern "C" void*func_002333B4(void*,int,int);
 extern "C" P*func_001F7598(HIT*);
 extern "C" int func_001A2788(P*,L*,qword*);
-extern "C" void func_002309E8(void*,void*,M4*,M4*,float);
-extern "C" M4 func_0011C168(const M4*,const M4*);
+extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
+extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
 static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 extern "C" void func_001A2460(P*p){
@@ -61,8 +61,8 @@ extern "C" void func_001A2460(P*p){
   P*object=entry->object;
   position.q=func_001A62E8(object);
   void*frame=((void*(*)(void*,M4*))object->vt[32].fn)((char*)object+object->vt[32].delta,pbase);
-  func_002309E8(frame,0,ppred,0,D_002DDED0.dt);
-  predicted=func_0011C168(ppred,pbase);
+  LoadIdentityMatrix4(frame,0,ppred,0,D_002DDED0.dt);
+  predicted=__ml__FRC7MATRIX4T0(ppred,pbase);
   int crossed=0;
   if(point.f[2]<=position.f[2]){if(predpos->f[2]<=point.f[2])crossed=1;}
   else if(point.f[2]<=predpos->f[2])crossed=1;

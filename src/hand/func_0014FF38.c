@@ -14,7 +14,7 @@ void func_001FB2F8(void *, int);
 void func_00258040(int *, void *);
 void func_001FB018(int);
 void func_0011BC88(void *, float *, float *);
-int func_00132B10(int, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(int, int);
 void *func_001A6318(int);
 float func_0011D948(F2 *, float);
 void func_0014F610(struct G *, float);
@@ -36,7 +36,7 @@ void func_0014FF38(struct X *p)
     func_001FB018(p->x34);
     pg = &D_002DDF40;
     func_0011BC88(&pg->x60, &p->x10, &p->x14);
-    if (func_00132B10(p->x0, 0x34)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x0, 0x34)) {
         p->x3C = D_002BD950;
         p->x44 = D_002BD958;
     } else {

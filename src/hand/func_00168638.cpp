@@ -4,7 +4,7 @@
 //   are VU helper inlines (lw/qmfc2/mtc1 VU_FLOAT-style, as in Lilly's files) or commented empty asms; globals are D_ names only.
 // lilly5 (Claude agent, T1703, 2026-10-26): MATCH (728/728, frame 0x290). NOT in src/hand only because of the team's one-pin rule:
 //   the microprogram 0x1C0 inputs/outputs are register variables bound to vf10..vf19 (20 `register ... __asm__("vfN")`, as in
-//   func_001684D0.c / func_00139950 lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
+//   func_001684D0.c / CblipeProjectBlipTransformAccel lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
 //   From lilly3 (aligned 2), cull 2 (GCullSphereSync) only: (1) qmfc2 straight into a float "=r" (the qmfc2 output becomes a reload
 //   in v0, reload's copy is the mtc1 v0,f0, so the i+1 reload after it gets v1 by round robin); (2) cfc2 outputs only vf19, an empty
 //   `"=j"(qwDpos)` asm declares vf18, and one empty `"+j"(qwDpos)` asm with a dead "$3" clobber: two no-code insns ready right after
@@ -196,8 +196,8 @@ void func_001681F8(MODEL *pmodel);
 int func_001EDA20(OBJ *pobj);
 void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
-void func_0011C168(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
-void func_0011C318(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
+void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
+void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float func_0011CAB0(const MATRIX4 *pmat);
 qword func_00167DA0(const MATRIX4 *pmat, qword qwPos, float *psRadius);
 int func_0014F898(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
@@ -206,7 +206,7 @@ RPL *func_001CD998(void);
 }
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
-    func_0011C168(&mat, &matA, &matB);
+    __ml__FRC7MATRIX4T0(&mat, &matA, &matB);
 }
 static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
@@ -519,7 +519,7 @@ extern "C" void func_00168638(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, f
         if (pskin)
         {
             MATRIX4 matInv;
-            func_0011C318(&matInv, &matModel);
+            InvertMatrix4Rigid(&matInv, &matModel);
             uint ib = pskin->ib;
             for (int imat = 0; imat < pskin->cmat; imat++)
             {

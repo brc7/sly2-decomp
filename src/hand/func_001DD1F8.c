@@ -11,8 +11,8 @@ typedef struct {
     int sel;
 } OBJ;
 void func_00213DB0(W *, int, int *);
-int func_00163400(void *);
-int func_00164030(void *);
+int FJobComplete(void *);
+int FTaskComplete(void *);
 void func_001DD1F8(OBJ *p)
 {
     int i;
@@ -25,10 +25,10 @@ void func_001DD1F8(OBJ *p)
         f = 0;
         switch (p->kind) {
         case 0:
-            f = func_00163400(pe->p);
+            f = FJobComplete(pe->p);
             break;
         case 1:
-            f = func_00164030(pe->p);
+            f = FTaskComplete(pe->p);
             break;
         }
         func_00213DB0(p->pw, f ? i + 0x507 : -1, &pe->b);

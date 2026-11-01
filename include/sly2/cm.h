@@ -34,7 +34,7 @@ struct CPLCYDATA
 struct CPLCY : public CPLCYDATA
 {
     virtual void Init();
-    int FIsTop();   /* from func_0018D760.cpp */
+    int FIsTop();   /* from FCanUseGadget__2JTi.cpp */
 };
 
 /* CPLOOK: from src/hand/func_0014DC58.cpp (6 copies in Lilly ports) */
@@ -114,7 +114,7 @@ struct CPTWOSHOT : public CPLCY
       LO *ploHero;
 };
 
-/* CPCAMBLEND: from src/hand/func_0019CD38.cpp (6 copies in Lilly ports) */
+/* CPCAMBLEND: from src/hand/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) */
 struct CPCAMBLEND : public CPLCY
 {
       CAMMOVE *pcammove;

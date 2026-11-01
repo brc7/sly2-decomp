@@ -7,12 +7,12 @@ struct SW { char pad[0x403C]; char pool[0x30]; RIPG *x406C; };
 extern SW D_003DD490;
 extern "C" {
 void func_001CE980(RIP *prip);
-void func_001F2D48(RIPG *p);
-void func_001337D0(SW *psw, void *pv);
-void func_001A57A8(RIPG *p);
-void *func_0015E3A8(SW *psw, int n);
-void func_0011A118(void *pl, RIPG *p);
-void func_001A53E0(RIPG *p);
+void RemoveSoHierarchy(RIPG *p);
+void RemoveSwAaobrObject(SW *psw, void *pv);
+void SnipLo(RIPG *p);
+void *PdlFromSwCid(SW *psw, int n);
+void RemoveSlEntry(void *pl, RIPG *p);
+void FreeLoroot(RIPG *p);
 void func_0011CD98(void *pool, void *pv);
 }
 static inline void InitDli(DLI *pdli, DL *pdl)
@@ -38,14 +38,14 @@ void OnRipgRemove(RIPG *pripg)
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) func_001CE980(prip);
     psw = &D_003DD490;
     if (pripg == psw->x406C) psw->x406C = 0;
-    func_001F2D48(pripg);
+    RemoveSoHierarchy(pripg);
     if (pripg->xEC) {
-        func_001337D0(psw, pripg->xEC);
+        RemoveSwAaobrObject(psw, pripg->xEC);
         pripg->xEC = 0;
     }
-    func_001A57A8(pripg);
-    func_0011A118(func_0015E3A8(psw, 0x57), pripg);
-    if (!pripg->x10) func_001A53E0(pripg);
+    SnipLo(pripg);
+    RemoveSlEntry(PdlFromSwCid(psw, 0x57), pripg);
+    if (!pripg->x10) FreeLoroot(pripg);
     func_0011CD98(psw->pool, pripg);
     D_002DD2FC = dli.m_pdliNext;
 }

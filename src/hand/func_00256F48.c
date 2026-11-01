@@ -5,8 +5,8 @@ extern void *D_00452110[4];
 extern int D_003E0EA4;
 extern unsigned int D_002DD2B4;
 extern int D_002DD598;
-void func_001286E0(void *);
-void *func_0011CCC0(POOL *);
+void Collect__3CGc(void *);
+void *PvAllocSlotheapClear(POOL *);
 void func_0011CD98(POOL *, void *);
 N *func_00255A58(N *);
 
@@ -15,15 +15,15 @@ N *func_00256F48(void)
     N *p;
     if (D_00452120.xC == 0) {
         if (!D_003E0EA4 || D_002DD2B4 >= 4)
-            func_001286E0(&D_002DD598);
+            Collect__3CGc(&D_002DD598);
         if (D_00452120.xC == 0) {
-            void *pv = func_0011CCC0(&D_00452120);
+            void *pv = PvAllocSlotheapClear(&D_00452120);
             if (D_002DD2B4)
                 func_0011CD98(&D_00452120, pv);
             D_00452110[D_002DD2B4++] = pv;
         }
     }
-    p = (N *)func_0011CCC0(&D_00452120);
+    p = (N *)PvAllocSlotheapClear(&D_00452120);
     func_00255A58(p);
     p->x8 = 0;
     p->x14 = 0;

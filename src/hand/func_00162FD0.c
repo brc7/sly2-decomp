@@ -3,7 +3,7 @@ struct S { char pad[0xC0]; void *pc0; char pad2[0xCC - 0xC4]; struct LO *pcc; };
 extern char D_002E1E88[];
 int func_001A4E70(void *p);
 void func_001A4E80(void *p);
-void func_00164640(void *p, int n, struct S *ps);
+void RequestTaskState(void *p, int n, struct S *ps);
 void func_002283D0(struct LO *plo);
 void func_00162FD0(struct S *p)
 {
@@ -11,7 +11,7 @@ void func_00162FD0(struct S *p)
     if (func_001A4E70(pv)) {
         func_001A4E80(pv);
     } else if (p->pc0) {
-        func_00164640(p->pc0, 4, p);
+        RequestTaskState(p->pc0, 4, p);
     } else if (p->pcc) {
         struct LO *plo = p->pcc;
         int v = plo->fl;

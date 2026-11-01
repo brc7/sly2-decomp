@@ -50,20 +50,20 @@ extern float D_002C4494, D_002C4498, D_002C449C, D_002C44D8;
 extern CLQ D_002C44A0, D_002C44B0, D_002C44C0;
 extern LM D_002C44D0;
 extern "C" {
-void func_001F3C70(WAYPT *pwaypt);
+void RenderSoSelf(WAYPT *pwaypt);
 int func_001DAEA8(int ipuk);
-int func_00163400(void *pcond);
+int FJobComplete(void *pcond);
 void func_0022A220(WAYPT *pwaypt);
 qword func_001A62E8(LO *plo);
-void func_0011EE08(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
+void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
 MATRIX4 *func_001A6318(SO *pso);
 VECTOR *func_00256D18(VECTOR *pv, qword qw);
 void func_001A5EE8(SO *pso, MATRIX4 *pmat, float a, float b);
 void func_001A5FB8(SO *pso, qword pos0, qword pos1, float s, float a);
-char *func_0013E368(SW *psw, int id);
+char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
 void func_001CD780(qword pos, float s, char *pchz, const RGBA *prgba0, const RGBA *prgba1);
 }
-static inline void DrawLabel(qword pos, RGBA rgba0, RGBA rgba1, int id, float s) { func_001CD780(pos, s, func_0013E368(&D_003DD490, id), &rgba0, &rgba1); }
+static inline void DrawLabel(qword pos, RGBA rgba0, RGBA rgba1, int id, float s) { func_001CD780(pos, s, PchzFindSwLangstr__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
 
 static inline float GEvaluateClq(CLQ *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 static inline float GLimitG(float g, float gMin, float gMax)
@@ -120,7 +120,7 @@ inline MATRIX3 operator*(const MATRIX3 &mat, VU_FLOAT g) return matRes
 
 extern "C" void func_0022A908(WAYPT *pwaypt)
 {
-    func_001F3C70(pwaypt);
+    RenderSoSelf(pwaypt);
     float tStart = GMax(D_003DD490.tUnk4750 + D_002C4494, D_003DD490.tUnk4754 + D_002C4498);
     float uShow = GLimitG(GEvaluateClq(&D_002C44A0, D_002DDED0.t - tStart), D_002BBB60.gMin, D_002BBB60.gMax);
     tStart = D_003DD490.tUnk4750 + D_002C449C;
@@ -134,7 +134,7 @@ extern "C" void func_0022A908(WAYPT *pwaypt)
     case 2:
         if (D_003DD490.cUnk4764 < D_003DD490.cUnk4768 || D_003DD490.fUnk3B0C ||
             (pwaypt->ipukReq != -1 && func_001DAEA8(pwaypt->ipukReq)) ||
-            (pwaypt->pcond && !func_00163400(pwaypt->pcond)))
+            (pwaypt->pcond && !FJobComplete(pwaypt->pcond)))
             uShow = uLabel = 0.0f;
         break;
     case 1:
@@ -150,7 +150,7 @@ extern "C" void func_0022A908(WAYPT *pwaypt)
     qword pos = func_001A62E8(pwaypt->ploSource);
     qword posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pwaypt->sHeight));
     float sDist;
-    func_0011EE08(posCam, pos, posTop, 0, 0, &sDist);
+    FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &sDist);
     float rScale = GLimitG(GEvaluateClq(&D_002C44C0, sDist), D_002C44D0.gMin, D_002C44D0.gMax);
     qword posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(rScale * D_002C44D8));
 

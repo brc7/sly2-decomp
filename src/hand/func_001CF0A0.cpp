@@ -6,7 +6,7 @@ struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float g
 extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0;
 extern "C" {
 int func_001CF010(qword);int func_001CEFC8(qword);int func_001CF058(qword);
-M3*func_0011B500(M3*,qword,float);M4 *func_0015BFD8(M4*,PHYS*);
+M3*func_0011B500(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
 void func_001CF0A0(S*);
 }
 static inline qword Scale(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
@@ -54,7 +54,7 @@ void func_001CF0A0(S*p){
  int moving=0;
  if(!func_001CEFC8(p->vel) || !func_001CF058(p->phys.accel))moving=1;
  if(moving){
-  func_0015BFD8(&w.shared.matrix,&p->phys);
+  CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(&w.shared.matrix,&p->phys);
   char*page=ClockPage();
   qword v=Point(w.shared.matrix,p->vel);
   p->vel=v;

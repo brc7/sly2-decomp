@@ -18,7 +18,7 @@ struct OBJ {
 };
 void func_001E5628(void *);
 void func_001E0120(OBJ *);
-void func_001A6CA8(OBJ *, int);
+void SetLoBusyk(OBJ *, int);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -47,7 +47,7 @@ void func_001DFEB8(OBJ *p)
         func_001E5628(pv);
     func_001E0120(p);
     if (p->x78) {
-        func_001A6CA8(p, 2);
+        SetLoBusyk(p, 2);
         if ((p->x40 ^ 1) & 1)
             *(int *)p->x40 &= ~2;
         else

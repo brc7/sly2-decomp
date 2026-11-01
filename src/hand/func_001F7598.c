@@ -17,11 +17,11 @@ struct M3 { struct K *pk; };
 extern struct N *D_003E15C0;
 extern char D_003E15A8[];
 extern float D_002DDED0;
-struct O *func_001A5BF0(void *);
-int func_001F78D8(struct O *, int);
-struct K *func_0011CCC0(void *);
-void func_0011A210(void *);
-void func_0011A220(void *, void *);
+struct O *PsoFromLo(void *);
+int GrfzpdFromSoGrfzpk(struct O *, int);
+struct K *PvAllocSlotheapClear(void *);
+void ClearDle__FP3DLE(void *);
+void AppendDlEntry__FP2DLPv(void *, void *);
 
 #define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
 
@@ -31,20 +31,20 @@ struct O *func_001F7598(struct K *pk)
     struct M m;
     struct M2 m2;
     struct O *po;
-    for (po = func_001A5BF0(pk->p8); po; po = po->pNext) {
+    for (po = PsoFromLo(pk->p8); po; po = po->pNext) {
         struct N *pn;
         for (pn = D_003E15C0; pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;
         }
-        pk->n44 = func_001F78D8(po, pk->nC);
+        pk->n44 = GrfzpdFromSoGrfzpk(po, pk->nC);
         if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
             struct K *pkNew;
             pk->p48 = po;
-            pkNew = func_0011CCC0(D_003E15A8);
+            pkNew = PvAllocSlotheapClear(D_003E15A8);
             *pkNew = *pk;
             pkNew->f4C = D_002DDED0;
-            func_0011A210(pkNew->dle);
-            func_0011A220(&D_003E15C0, pkNew);
+            ClearDle__FP3DLE(pkNew->dle);
+            AppendDlEntry__FP2DLPv(&D_003E15C0, pkNew);
             if (pk->n44 & 0xF8) {
                 {
                     m.po = po; m.n = (int)pk->p0; m.pk = pk;

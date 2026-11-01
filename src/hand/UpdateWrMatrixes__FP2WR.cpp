@@ -13,10 +13,10 @@ struct WR {char pad[0x50];float time;int count,count58,index5C;WRE entries[8];in
 struct CLOCK {float t,dt;};
 extern CLOCK D_002DDED0;
 extern "C" {
-void func_001A5E28(WR *);
+void UpdateLo(WR *);
 void func_0022B7D8(WR *);
-float func_0011CF60(float);
-void func_0011D608(float,float *,float *);
+float RadNormalize__Ff(float);
+void CalculateSinCos__FfPfT1(float,float *,float *);
 float func_0022BF70(ONZ *);
 M3 func_0011B500(qword,float);
 }
@@ -32,7 +32,7 @@ static inline qword Unit(qword v){qword len,one,r;__asm__("vmul.xyz %0,%2,%2\n\t
 static inline qword UnitFresh(qword v){qword len,one,r;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(r):"j"(v),"j"(len));return r;}
 static inline qword Rotate(const M3 &m,qword v){__asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(*(const qword *)m.f[0]),"j"(*(const qword *)m.f[1]),"j"(*(const qword *)m.f[2]));return v;}
 void UpdateWrMatrixes(WR *p){
- func_001A5E28(p);
+ UpdateLo(p);
  if(D_002DDED0.t==p->time)return;
  if(p->source)func_0022B7D8(p);
  for(int i=0;i<p->count;i++){
@@ -44,7 +44,7 @@ void UpdateWrMatrixes(WR *p){
    V position,uv,temporary;
    float sine,cosine;
    float angle=(D_002DDED0.t*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
-   func_0011D608(func_0011CF60(angle),&sine,&cosine);
+   CalculateSinCos__FfPfT1(RadNormalize__Ff(angle),&sine,&cosine);
    int column=entry->data.circle.column,next=column+1;
    V *pos0=&matrix->r[column],*pos1=&matrix->r[next],*uv0=&coordinates->r[column],*uv1=&coordinates->r[next];
    qword qn=Scalar(-sine),qc=ScalarLoad(cosine),qs=Scalar(sine);

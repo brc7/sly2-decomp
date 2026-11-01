@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/step.h"
 
-/* ZPR: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* ZPR: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct ZPR
 {
       LO *ploSource;
@@ -25,21 +25,21 @@ struct ZPR
       undefined4 unk_0x58[2];
 };
 
-/* MRSG: from src/hand/func_001428D8.cpp (17 copies in Lilly ports) */
+/* MRSG: from src/hand/HeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct MRSG
 {
     float t;
     float dt;
 };
 
-/* BL: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* BL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BL
 {
       float gWeight;
       ASEG *paseg;
 };
 
-/* BLGAIT: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* BLGAIT: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BLGAIT : public BL
 {
       char abUnk08[8];
@@ -48,7 +48,7 @@ struct BLGAIT : public BL
       MRSG amrsgFoot1[2];
 };
 
-/* GAIT: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* GAIT: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct GAIT
 {
       STEPPLAYER *pstepplayer;
@@ -62,20 +62,20 @@ struct GAIT
       char abUnkA4[0xc];
 };
 
-/* BLDIR: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* BLDIR: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLDIR : public BL
 {
       char abUnk08[8];
       qword vRoot;
 };
 
-/* BLLEAN: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* BLLEAN: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLLEAN : public BL
 {
       char abUnk08[4];
 };
 
-/* JTPLACE: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTPLACE: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACE
 {
       LO *plo;
@@ -85,7 +85,7 @@ struct JTPLACE
       qword qwPos;
 };
 
-/* JTPLACES: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTPLACES: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACES
 {
       STEPPLAYER *pstepplayer;
@@ -94,7 +94,7 @@ struct JTPLACES
       JTPLACE aplace[32];
 };
 
-/* JTMODEHUD: from src/hand/func_0019CD38.cpp (15 copies in Lilly ports) */
+/* JTMODEHUD: from src/hand/SetJtModeState__FP6JTMODEi.cpp (15 copies in Lilly ports) */
 struct JTMODEHUD
 {
       JTMODE *pjtmode;
@@ -108,7 +108,7 @@ struct JTMODEHUD
     void SetWidgetCur(struct WIDGET *pwidget);
 };
 
-/* JTMODE: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTMODE: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTMODE
 {
       STEPPLAYER *pstepplayer;
@@ -126,7 +126,7 @@ struct JTMODE
       undefined4 unk_0x48[2];
 };
 
-/* JTHANDBL: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* JTHANDBL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDBL
 {
       float uWeight;
@@ -136,7 +136,7 @@ struct JTHANDBL
       struct SHAPE *pshapeB;
 };
 
-/* JTHANDS: from src/hand/func_001428D8.cpp (16 copies in Lilly ports) */
+/* JTHANDS: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDS
 {
       SO *pso;
@@ -161,7 +161,7 @@ struct JTHANDS
       undefined4 unk_0xac;
 };
 
-/* JTGRAB: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTGRAB: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGRAB
 {
       STEPPLAYER *pstepplayer;
@@ -212,7 +212,7 @@ struct JTGRAB
       undefined4 unk_0x510[(0x520 - 0x510) / 4];
 };
 
-/* JTPIPEBL: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTPIPEBL: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPEBL
 {
       float gWeight;
@@ -221,7 +221,7 @@ struct JTPIPEBL
       float gSpeed;
 };
 
-/* JTPIPE: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTPIPE: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPE
 {
       struct STEPPLAYER *pstepplayer;
@@ -243,7 +243,7 @@ struct JTPIPE
       struct ASEG *pasegTurn;
 };
 
-/* JTAIRBL: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTAIRBL: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIRBL
 {
       float gWeight;
@@ -251,7 +251,7 @@ struct JTAIRBL
       undefined4 unk_0x08;
 };
 
-/* JTAIR: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTAIR: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIR
 {
       STEPPLAYER *pstepplayer;
@@ -321,12 +321,12 @@ struct JTAIR
       undefined4 unk_0x1f4[(0x200 - 0x1f4) / 4];
 };
 
-/* HURTEND: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* HURTEND: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct HURTEND
 {
 };
 
-/* JTHURT: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTHURT: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTHURT
 {
       struct STEPPLAYER *pstepplayer;
@@ -345,7 +345,7 @@ struct JTHURT
       struct ASEGA *pasegaUnk10c;
 };
 
-/* GADGETSLOT: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* GADGETSLOT: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct GADGETSLOT
 {
       int idGadget;
@@ -353,7 +353,7 @@ struct GADGETSLOT
       float tState;
 };
 
-/* JTGOAL: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTGOAL: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGOAL
 {
       STEPPLAYER *pstepplayer;
@@ -365,7 +365,7 @@ struct JTGOAL
       undefined4 unk_0x2c;
 };
 
-/* JTTHROW: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
+/* JTTHROW: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTTHROW
 {
       struct STEPPLAYER *pstepplayer;
@@ -405,7 +405,7 @@ struct JTTHROW
       undefined4 unk_0x134[(0x140 - 0x134) / 4];
 };
 
-/* STEPPLAYER: from src/hand/func_00197500.cpp (15 copies in Lilly ports) */
+/* STEPPLAYER: from src/hand/UpdateJtAirInput.cpp (15 copies in Lilly ports) */
 struct STEPPLAYER : public STEP
 {
       JTAIR jtair;
@@ -451,7 +451,7 @@ struct STEPPLAYER : public STEP
       float gUnk10d8;
       LO *ploInteract;      /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
       int grfUnk10e0;
-      int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in func_0018A8C8). Not
+      int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in JtChooseGroundState). Not
                                renamed: STEPPLAYER already has an nInteractMode member further down */
 
 
@@ -495,18 +495,18 @@ struct STEPPLAYER : public STEP
     virtual int VUnk97();
       virtual int FCanUseGadget(int idGadget);
       virtual void StartGadget(int idGadget);
-    virtual void SetCtlState(int nState);   /* override declared in func_0018C250.cpp */
-    virtual void OnActive(int fActive);   /* override declared in func_0018C250.cpp */
-    virtual int FTakeDamage(ZPR *pzpr);   /* override declared in func_0018C250.cpp */
-    virtual int FInvulnerable(ZPK zpk);   /* override declared in func_0018C250.cpp */
-    virtual int JthsCurrent();   /* override declared in func_0018C250.cpp */
-    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3);   /* override declared in func_0018C250.cpp */
-    virtual void VUnk82(uint grf, int fCount);   /* override declared in func_0018C250.cpp */
-    virtual void VUnk83(uint grf, int fCount);   /* override declared in func_0018C250.cpp */
-    virtual int VUnk84();   /* override declared in func_0018C250.cpp */
-    virtual int FCanBeHealed();   /* override declared in func_0018C250.cpp */
-    virtual void AddHpMp(int dhp, int dmp);   /* override declared in func_0018C250.cpp */
-    virtual int VUnk85(ZPR *pzpr);   /* override declared in func_0018C250.cpp */
+    virtual void SetCtlState(int nState);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void OnActive(int fActive);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int FTakeDamage(ZPR *pzpr);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int FInvulnerable(ZPK zpk);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int JthsCurrent();   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk82(uint grf, int fCount);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk83(uint grf, int fCount);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int VUnk84();   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int FCanBeHealed();   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void AddHpMp(int dhp, int dmp);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int VUnk85(ZPR *pzpr);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
     virtual void VSlot101();   /* slot 101: not yet identified */
     virtual void VSlot102();   /* slot 102: not yet identified */
     virtual void VSlot103();   /* slot 103: not yet identified */

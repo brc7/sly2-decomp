@@ -45,5 +45,5 @@ extern M2C_UNK D_390;
 extern M2C_UNK D_870;
 
 void func_0013BF30(s32 arg0, s32 arg1) {
-    func_0013C560(arg0, 0);
+    SetBootyState(arg0, 0);
 }

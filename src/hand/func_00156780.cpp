@@ -9,7 +9,7 @@ public:
 struct DL;
 extern DL D_003E148C;
 extern "C" int func_00156870(O *o);
-extern "C" void func_0011A2E8(DL *pdl, void *pv);
+extern "C" void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 class CRefGuard {
 public:
     O *m_p;
@@ -24,7 +24,7 @@ extern "C" void func_00156780(O *o)
     o->V4(0xF, o);
     if (func_00156870(o))
         return;
-    func_0011A2E8(&D_003E148C, o);
+    RemoveDlEntry__FP2DLPv(&D_003E148C, o);
     o->V3(3, 0, 0, 0, 0);
     o->Release();
 }

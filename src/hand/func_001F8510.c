@@ -4,7 +4,7 @@ struct P { char pad[0x50]; int c; struct E *ae; };
 extern char D_002CA2C0[];
 struct Pool;
 extern struct Pool D_003E15CC;
-struct Q *func_0011CCC0(struct Pool *);
+struct Q *PvAllocSlotheapClear(struct Pool *);
 void func_002333B4(void *, int, int);
 struct Q *func_001F8510(struct P *p, int k, int m)
 {
@@ -12,7 +12,7 @@ struct Q *func_001F8510(struct P *p, int k, int m)
     for (i = 0; i < p->c; i++) {
         struct E *pe = &p->ae[i];
         if (pe->n94 == m && (k == -1 || pe->n9C == k)) {
-            struct Q *q = func_0011CCC0(&D_003E15CC);
+            struct Q *q = PvAllocSlotheapClear(&D_003E15CC);
             func_002333B4(q, 0, 0x30);
             q->pvt = D_002CA2C0;
             q->p20 = p;

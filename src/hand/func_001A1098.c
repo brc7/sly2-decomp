@@ -3,7 +3,7 @@ struct S { int x0; int pad[4]; int x14; struct E *x18; };
 struct D { int a; int b; };
 extern char D_002BFA30[];
 struct E *func_001AE238(struct D *d, void *p);
-int func_001F4C58(int a, int b, int c);
+int PxfFindSo(int a, int b, int c);
 void func_001A1098(struct S *s)
 {
     struct D d;
@@ -14,6 +14,6 @@ void func_001A1098(struct S *s)
     s->x18 = func_001AE238(&d, D_002BFA30);
     for (i = 0; i < s->x14; i++) {
         struct E *e = &s->x18[i];
-        e->x8 = func_001F4C58(s->x0, e->x0, 6);
+        e->x8 = PxfFindSo(s->x0, e->x0, 6);
     }
 }

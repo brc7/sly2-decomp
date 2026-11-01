@@ -17,24 +17,24 @@ struct P{
 };
 extern "C"{
 extern float D_002C08DC;
-int func_00140AF8(P*,int);
-void func_001B6078(P*,int);
-int func_001C46C0(PL*,int,float);
-int func_001C4660(PL*,uint,float);
-void func_001C4738(PL*,int);
+int FStepplayerNearInteractTarget(P*,int);
+void SetMurrayState(P*,int);
+int GrfConsumePressed__5POCTLUif(PL*,int,float);
+int GrfPressedWithin__5POCTLUif(PL*,uint,float);
+void ClearPoctlJoyPressed(PL*,int);
 void func_00195A00(void*,int,int,void*);
 void func_0019CC50(void*,int,P*,void*);
-int func_001B70A0(P*);
-int func_001938C0(void*,int,int);
-int func_001B84E0(P*);
-void func_001B8508(P*);
-void func_001B85D0(P*);
+int FTryMurrayTakedown(P*);
+int FJtGrabNearestCandidate(void*,int,int);
+int FMurrayCanAttack(P*);
+void StartMurrayPunch(P*);
+void StartMurrayAltAttack(P*);
 void func_001B5D30(P*,int);
-void func_002046F0(P*,void*);
+void FaceStepToward(P*,void*);
 void func_00204660(P*,float);
-void func_0020BB58(void*,float);
-void func_0020BC08(void*);
-qword func_0011E1A0(float,float,float);
+void UpdateGaitBlend(void*,float);
+void UpdateGaitFootsteps(void*);
+qword SetVectorCylind(float,float,float);
 void func_001A0450(P*,ENTRY*,void*);
 }
 static inline qword Load(const U*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
@@ -81,35 +81,35 @@ extern "C" void func_001B5990(P*p){
  for(;;){
   before=p->state;
   switch(before){case 0:case 1:case 2:{
-   if((p->input->flags&8)||!func_00140AF8(p,1))func_001B6078(p,0);
-   else if(func_001C46C0(p->input,0x40,0.1f))func_00195A00(p->controller,1,0,0);
-   else if(func_001B70A0(p)){}
-   else if(func_001C46C0(p->input,0x20,0.2f)){
-    if(!func_001938C0(p->context,0x80,0)&&p->root){p->reset=0;func_001B6078(p,4);}
+   if((p->input->flags&8)||!FStepplayerNearInteractTarget(p,1))SetMurrayState(p,0);
+   else if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f))func_00195A00(p->controller,1,0,0);
+   else if(FTryMurrayTakedown(p)){}
+   else if(GrfConsumePressed__5POCTLUif(p->input,0x20,0.2f)){
+    if(!FJtGrabNearestCandidate(p->context,0x80,0)&&p->root){p->reset=0;SetMurrayState(p,4);}
    }
-   else if(func_001B84E0(p)&&func_001C46C0(p->input,0x80,D_002C08DC))func_001B8508(p);
-   else if(func_001C4660(p->input,0x400,0.15f)&&((int(*)(P*,int))p->vt[99].fn)((P*)((char*)p+p->vt[99].delta),3)){
-    func_001C4738(p->input,0x400);func_0019CC50(p->requestF00,0,0,0);
+   else if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC))StartMurrayPunch(p);
+   else if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&((int(*)(P*,int))p->vt[99].fn)((P*)((char*)p+p->vt[99].delta),3)){
+    ClearPoctlJoyPressed(p->input,0x400);func_0019CC50(p->requestF00,0,0,0);
    }
-   else if(func_001B84E0(p)&&func_001C46C0(p->input,0x10,D_002C08DC))func_001B85D0(p);
+   else if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC))StartMurrayAltAttack(p);
    else {PL*pl=p->input;float strength=pl->strength;if(p->mainState==0?0.1f<strength:0.0f<strength)func_001B5D30(p,2);else func_001B5D30(p,0);}
   }break;
   }
   if(p->state==before||p->mainState!=9)break;
  }
  switch(p->state){
- case 0:func_002046F0(p,p->target);break;
+ case 0:FaceStepToward(p,p->target);break;
  case 2:{
-  func_002046F0(p,p->target);
+  FaceStepToward(p,p->target);
   float length=LengthXY(p->axes[1].direction.q);
   PL*input=p->input;
-  qword direction=Vector(func_0011E1A0(input->angle+3.1415927f,(input->strength*length)*p->animation->rate,0.0f));
+  qword direction=Vector(SetVectorCylind(input->angle+3.1415927f,(input->strength*length)*p->animation->rate,0.0f));
   p->acceleration.q=direction;
   qword world=Rotate(&p->orientation,direction);
   p->side=-1;p->acceleration.q=world;
   func_001A0450(p,p->axes,p->request);
   break;
  }
- case 1:func_00204660(p,p->input->angle);func_0020BB58(p->motion,p->input->strength);func_0020BC08(p->motion);break;
+ case 1:func_00204660(p,p->input->angle);UpdateGaitBlend(p->motion,p->input->strength);UpdateGaitFootsteps(p->motion);break;
  }
 }

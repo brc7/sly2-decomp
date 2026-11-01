@@ -59,9 +59,9 @@ struct P { int x0; void *x4; X *px8; int xC; int pad10[3]; float g1C; float g20;
 extern "C" {
 extern qword D_002A2DD0, D_002A2DC0, D_002BC380;
 void func_0022DD00(void *pv, X *px);
-void func_00117120(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n);
-M3 func_0011B830(qword a, qword b);
-void func_0022FD38(M3 *pm, int n, X *px, M3 *pmSrc);
+void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n);
+M3 BuildOrthonormalMatrixZ(qword a, qword b);
+void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc);
 }
 
 static inline void SetMat(X *px, const M3 &m)
@@ -75,7 +75,7 @@ static inline void Fin(P *p, M3 &mT, M3 m)
     mT = m;
     X *px = p->px8;
     M3 *pm = &px->mC0;
-    func_0022FD38(&m, 0, px->pxA0, &mT);
+    ConvertXfMat(&m, 0, px->pxA0, &mT);
     *pm = m;
     p->px8->s9A = 5;
 }
@@ -113,7 +113,7 @@ extern "C" void func_0012D508(P *p)
             w = py->mC0.r[1];
             break;
         case 1:
-            func_00117120(py->mC0.r[0], py->mC0.r[1], py->mC0.r[2], py->vF0,
+            EvaluateBezierPos(py->mC0.r[0], py->mC0.r[1], py->mC0.r[2], py->vF0,
                 py->g84 - py->g80, *py->pg88 - py->g80, *py->pg8C, 0, &vT.q, 0);
             w = vT.q;
             break;
@@ -132,7 +132,7 @@ extern "C" void func_0012D508(P *p)
     if (py->pxA0)
         v = MulM3(py->pxA0->m40, v);
     if (GetX(VLen(v)) < 100.0f) {
-        Fin(p, mT, func_0011B830(p->px8->m40.r[0], D_002A2DC0));
+        Fin(p, mT, BuildOrthonormalMatrixZ(p->px8->m40.r[0], D_002A2DC0));
     } else {
         qword u = D_002BC380;
         if (0.0f < p->g20 && 0.0f < p->g1C && py->po90) {
@@ -143,6 +143,6 @@ extern "C" void func_0012D508(P *p)
                 vT.q = MulM3(py->pxA0->m40, vT.q);
             u = AddScaledDiff(u, vT.q, v, VU_FLOAT(p->g1C / p->g20));
         }
-        Fin(p, mT, func_0011B830(v, u));
+        Fin(p, mT, BuildOrthonormalMatrixZ(v, u));
     }
 }

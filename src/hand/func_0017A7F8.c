@@ -7,13 +7,13 @@ extern struct G D_003DD490;
 struct R { char pad[0x54]; int n54; };
 struct T { char pad[0x208]; int n208; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x1C]; int n30; int pad3; float g38; };
-void func_001EEF98(struct S *p);
+void UpdateBhv(struct S *p);
 void func_0017A8C8(struct S *p, int n);
 qword func_001A62E8(void *p);
 struct R *func_00156698(void *p, qword q, struct T *t);
 void func_0017A7F8(struct S *p) {
     int s;
-    func_001EEF98(p);
+    UpdateBhv(p);
     do {
         s = p->n30;
         if (s < 4) { if (s >= 2 && p->pt->n208) func_0017A8C8(p, -1); }

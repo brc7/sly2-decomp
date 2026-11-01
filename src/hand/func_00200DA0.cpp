@@ -6,12 +6,12 @@ extern char D_004520A8[];
 CRef *func_0012A0B0(CRef *pref, int tagk);
 void *func_002333B4(void *p, int c, int n);
 OBJ *func_00256B48(void);
-void func_001FFD98(CRef *ret, void *b, PRM *prm);
+void RefGetPeopid(CRef *ret, void *b, PRM *prm);
 CRef *func_00129658(CRef *pref, CRef *prefSrc); /* CRef::operator= returns *this */
 void func_00129EC8(CRef *pref);
 void func_002550F8(OBJ *p);
 void func_0011CD98(void *pool, OBJ *p);
-void func_00129480(CRef *pref, OBJ *p);
+void CRef_ctor_CPair(CRef *pref, OBJ *p);
 CRef *func_00200DA0(CRef *ret, int c, int *a, void **b);
 }
 class SP {
@@ -62,12 +62,12 @@ CRef *func_00200DA0(CRef *ret, int c, int *a, void **b)
         SP nw(func_00256B48());
         CRef *pr = &nw.p->ref;
         CREFA ref;
-        func_001FFD98(&ref.r, pb, &prm);
+        RefGetPeopid(&ref.r, pb, &prm);
         func_00129658(pr, &ref.r);
         func_00129EC8(&ref.r);
         ppTail->Set(nw.p);
         ppTail = &nw.p->next;
     }
-    func_00129480(ret, list.p);
+    CRef_ctor_CPair(ret, list.p);
     return ret;
 }

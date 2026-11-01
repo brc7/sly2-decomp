@@ -1,10 +1,10 @@
-// func_001999D0: contact direction of a JT against a shape feature, then func_001997D8(p, point, *out).
+// func_001999D0: contact direction of a JT against a shape feature, then FCheckJtEdgeNormal(p, point, *out).
 //   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (func_001665F0, max 64)
 //   kind 2 (face):   face must be flat enough (plane z >= 0.7); sum of the directions of both edge lists whose
 //                    segment passes func_00118668 against the actor's tree
 //   kind 3 (edge):   FCheckJtSingleEdge directly
 // A sum is normalized with D_002A2DA0 as the fallback; no accepted direction returns 0.
-// What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from func_001C3500 (the asm
+// What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from GetPipeGoalMat (the asm
 // between the fallback load and the bc1f stops reorg's backward delay-slot search, so the divide's reload fills
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
 typedef int qword __attribute__((mode(TI)));
@@ -25,7 +25,7 @@ extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
 int func_001665F0(GEOMETRY *, QUERY *, int, int, EDGE **);
 int func_00199408(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
-int func_001997D8(JT *, qword, qword);
+int FCheckJtEdgeNormal(JT *, qword, qword);
 }
 
 static inline qword Add(qword a, qword b)
@@ -125,5 +125,5 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         break;
     }
     }
-    return func_001997D8(p, point, out->q);
+    return FCheckJtEdgeNormal(p, point, out->q);
 }

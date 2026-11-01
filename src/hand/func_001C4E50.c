@@ -2,13 +2,13 @@ struct S { char pad[0x40]; int x40; char p1[0x150 - 0x44]; int x150; int x154; i
     char p2[0x1A4 - 0x160]; int x1A4; int x1A8; int x1AC; int x1B0; int x1B4; char p3[0x1C8 - 0x1B8]; int x1C8; float x1CC;
     char p4[0x204 - 0x1D0]; int x204; int x208; int x20C; int x210; int x214; int x218; float x21C; int x220; int x224; };
 extern float D_002A7710;
-void func_001F2108(struct S *p);
+void InitSo(struct S *p);
 void func_001F7918(struct S *p, int a, int b);
 static inline int FPtr(int v) { return !(v & 1); }
 void func_001C4E50(struct S *p)
 {
     int v;
-    func_001F2108(p);
+    InitSo(p);
     func_001F7918(p, 0x17E, 8);
     v = p->x40;
     p->x21C = 30.0f;

@@ -16,7 +16,7 @@ void func_001FDC08(struct P *);
 void func_001FDEC0(struct P *);
 void func_001FDEC8(struct P *);
 int func_001FE5E0(struct P *);
-float func_0011D018(float, float, float, struct K *, int);
+float GSmooth__FfffP3SMPPf(float, float, float, struct K *, int);
 void func_001FEA60(struct P *, int, float, int);
 void func_001FB8E0(struct Q *);
 int func_00231C48(void);
@@ -50,7 +50,7 @@ void func_001FD830(struct P *p)
     func_001FDEC8(p);
     k = D_002A8288;
     if (func_001FE5E0(p) && D_002DDED0.dt == 0.0f) g = 0.0f;
-    f = func_0011D018(p->f15C, g, D_002DDED0.f40, &k, 0);
+    f = GSmooth__FfffP3SMPPf(p->f15C, g, D_002DDED0.f40, &k, 0);
     func_001FEA60(p, 0, f, 2);
     func_001FEA60(p, 1, f, 2);
     func_001FEA60(p, 2, g, 2);

@@ -1,9 +1,9 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001EEF68();                            /* extern */
-M2C_UNK func_00209890(s32, M2C_UNK);                /* extern */
+M2C_UNK InitBhv();                            /* extern */
+M2C_UNK AddStepguardSgf(s32, M2C_UNK);                /* extern */
 
 void func_001BA560(void *arg0) {
-    func_001EEF68();
+    InitBhv();
     M2C_FIELD(arg0, s32 *, 0x30) = -1;
-    func_00209890(M2C_FIELD(arg0, s32 *, 0x10), 0x25);
+    AddStepguardSgf(M2C_FIELD(arg0, s32 *, 0x10), 0x25);
 }

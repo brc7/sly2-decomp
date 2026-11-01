@@ -14,7 +14,7 @@ extern "C" int func_00234A40(int sid);
 extern "C" void func_00160C80(FR *pfr, int f);
 extern "C" void func_00160F98();
 extern "C" void func_00160CE0(FR *pfr);
-extern "C" void func_001C2BA8(int phase);
+extern "C" void ClearPhase(int phase);
 void SwapGsBuffers();
 extern "C" void func_00160E68(int fReset)
 {
@@ -41,6 +41,6 @@ extern "C" void func_00160E68(int fReset)
             pfr++;
         } while (pfr < D_002DEA50 + 2);
     }
-    func_001C2BA8(3);
+    ClearPhase(3);
     D_002DEB14 = 0;
 }

@@ -4,11 +4,11 @@ union U { qword q; float f[4]; int i[4]; };
 struct M3 { qword r[3]; };
 struct S { char pad[0x10C]; void *curve; char pad1[0x120-0x110]; int polar; char pad120[0x12C-0x124]; int arc; char pad2[0x140-0x130]; float time; char pad3[0x150-0x144]; qword origin; float radius; };
 extern "C" {
-void func_001E6F10(void *, float, qword *, qword *);
-M3 func_0011B830(qword,qword);
-qword func_0011E1A0(float,float,float);
+void EvaluateShapeS(void *, float, qword *, qword *);
+M3 BuildOrthonormalMatrixZ(qword,qword);
+qword SetVectorCylind(float,float,float);
 M3 *func_001A6318(struct S *);
-qword func_001A6F00(void *,void *,qword);
+qword ConvertAloPos(void *,void *,qword);
 }
 extern qword D_002A2DC0;
 extern "C" float func_00245A18(float,float);
@@ -45,25 +45,25 @@ extern "C" void func_002215C0(S *p,float *times,COEF *coef,BOUND *bounds,int mod
         *f++=x; times++; bounds++; coef++;
     } while(--i>=0);
     if(mode==2) pos.f[0]=-pos.f[0];
-    if(p->polar) pos.q=func_0011E1A0(pos.f[0],pos.f[1],pos.f[2]);
+    if(p->polar) pos.q=SetVectorCylind(pos.f[0],pos.f[1],pos.f[2]);
     if(p->curve) {
-        func_001E6F10(p->curve,mode!=1?time-delta:time+delta,&center.q,&normal.q);
-        m=func_0011B830(normal.q,D_002A2DC0);
+        EvaluateShapeS(p->curve,mode!=1?time-delta:time+delta,&center.q,&normal.q);
+        m=BuildOrthonormalMatrixZ(normal.q,D_002A2DC0);
         rotated.q=Rotate(m,pos.q);
     } else if(p->arc) {
         float period=p->radius*6.2831855f;
         float phase=mode!=1?time-delta:time+delta;
         float angle=func_00245A18(phase,period);
-        center.q=func_0011E1A0(angle/p->radius,p->radius,0.0f);
+        center.q=SetVectorCylind(angle/p->radius,p->radius,0.0f);
         qword arc=center.q;
         center.q=Add(arc,p->origin);
         normal.q=Normalize(Cross(D_002A2DC0,arc));
-        m=func_0011B830(normal.q,D_002A2DC0);
+        m=BuildOrthonormalMatrixZ(normal.q,D_002A2DC0);
         rotated.q=Rotate(m,pos.q);
     } else {
         center.i[0]=center.i[1]=center.i[2]=0;
         pos.f[0]+=delta;
-        rotated.q=func_001A6F00(p,0,pos.q);
+        rotated.q=ConvertAloPos(p,0,pos.q);
     }
     *out=Add(center.q,rotated.q);
 }

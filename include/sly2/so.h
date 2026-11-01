@@ -7,7 +7,7 @@
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 
-/* GLOB: from src/hand/func_001428D8.cpp (7 copies in Lilly ports) */
+/* GLOB: from src/hand/HeroInteractDistance.cpp (7 copies in Lilly ports) */
 struct GLOB
 {
       OID oid;
@@ -37,7 +37,7 @@ struct GLOB
       struct POSE *ppose;
 };
 
-/* SUBGLOB: from src/hand/func_001428D8.cpp (8 copies in Lilly ports) */
+/* SUBGLOB: from src/hand/HeroInteractDistance.cpp (8 copies in Lilly ports) */
 struct SUBGLOB
 {
       char bUnk00;
@@ -50,7 +50,7 @@ struct SUBGLOB
       int cqw;
 };
 
-/* POSE: from src/hand/func_001428D8.cpp (23 copies in Lilly ports) */
+/* POSE: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct POSE
 {
       VECTOR pos;
@@ -65,13 +65,13 @@ struct POSE
       undefined4 unk_0x1c;
 };
 
-/* POSESET: from src/hand/func_001428D8.cpp (23 copies in Lilly ports) */
+/* POSESET: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct POSESET
 {
     POSE apose[4];
 };
 
-/* GLOBSET: from src/hand/func_001428D8.cpp (23 copies in Lilly ports) */
+/* GLOBSET: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct GLOBSET
 {
       SO *pso;
@@ -107,14 +107,14 @@ struct GLOBSET
       void *pbatchrecsFirst;
 };
 
-/* CONSTR: from src/hand/func_001428D8.cpp (23 copies in Lilly ports) */
+/* CONSTR: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct CONSTR
 {
       qword vecNormal;
       int nKind;
 };
 
-/* SOPHYS: from src/hand/func_001428D8.cpp (23 copies in Lilly ports) */
+/* SOPHYS: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct SOPHYS
 {
       MATRIX3 momintLocal;
@@ -130,7 +130,7 @@ struct SOPHYS
       struct REGENT *pregent;
 };
 
-/* SO: from src/hand/func_0018A8C8.cpp (23 copies in Lilly ports) */
+/* SO: from src/hand/JtChooseGroundState.cpp (23 copies in Lilly ports) */
 struct SO : public LO
 {
       int cxf;
@@ -197,8 +197,8 @@ struct SO : public LO
       virtual void VUnk72();
       virtual void ProcessSoZapContacts();
       virtual int FTakeDamage(ZPR *pzpr);
-    virtual qword GetAngularVelocity() __asm__("func_001F4558");   /* override declared in func_001F4558.cpp */
-    virtual void Clone(LO *ploBase) __asm__("func_001F6068");   /* override declared in func_001F6068.cpp */
+    virtual qword GetAngularVelocity() __asm__("GetSoAngularVelocity");   /* override declared in GetSoAngularVelocity.cpp */
+    virtual void Clone(LO *ploBase) __asm__("CloneSo");   /* override declared in CloneSo.cpp */
 };
 typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_SO_pxfRoot[SLY2_OFFSETOF(SO, pxfRoot) == 0x60 ? 1 : -1];   /* position = pxfRoot->matWorld row 3 (CONFIRMED runtime) */
@@ -262,7 +262,7 @@ struct SOTREE
                ulong unk_0x70 : 59;
 };
 
-/* XF: from src/hand/func_00189C40.cpp (8 copies in Lilly ports) */
+/* XF: from src/hand/RebuildJtXmg.cpp (8 copies in Lilly ports) */
 struct XF
 {
       MATRIX4 mat;
@@ -288,7 +288,7 @@ struct XF
       qword qwUnkF0;
 };
 
-/* XA: from src/hand/func_0018C250.cpp (4 copies in Lilly ports) */
+/* XA: from src/hand/SetJtJts__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
 struct XA
 {
       uint32_t   _pad_409    [ 1 ] ;

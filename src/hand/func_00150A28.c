@@ -17,14 +17,14 @@ struct X {
     struct SND *pC0;
 };
 void func_0014FD40(struct X *p);
-float func_0011D018(void *p, float *pdg, float g, float gTarget, float dt);
+float GSmooth__FfffP3SMPPf(void *p, float *pdg, float g, float gTarget, float dt);
 float func_0011D948(void *p, float g);
 void func_001FB2C0(struct SND *p, float g);
 void func_001FB1F8(struct SND *p, float g);
 void func_001FB060(struct SND *p);
 void func_001FB018(struct SND *p);
 qword func_0011F088(qword a, qword b, float g, void *p, int n);
-void func_0011B628(M3 *pm, qword v);
+void LoadRotateMatrixEuler(M3 *pm, qword v);
 void func_0011C950(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
 qword func_0011BFF0(M3 *pm);
 float func_0011D2D0(void *p, int n, float a, float b, float c);
@@ -55,7 +55,7 @@ void func_00150A28(struct X *p)
     if (D_002DDED0.dt == 0.0f)
         return;
     if (0.0f <= p->g18) {
-        float g = GClamp(func_0011D018(D_002BD9B8, 0, p->gAC, p->g18, D_002DDED0.dt), 0.0f, 1.0f);
+        float g = GClamp(GSmooth__FfffP3SMPPf(D_002BD9B8, 0, p->gAC, p->g18, D_002DDED0.dt), 0.0f, 1.0f);
         p->gB0 = (g - p->gAC) / D_002DDED0.dt;
         p->gAC = g;
     }
@@ -75,9 +75,9 @@ void func_00150A28(struct X *p)
         M4 m4;
         float u;
         p->q50 = func_0011F088(p->q50, p->q80, D_002DDED0.dt, D_002BD9C8, 0);
-        func_0011B628(&m90, p->q60);
+        LoadRotateMatrixEuler(&m90, p->q60);
         m0 = m90;
-        func_0011B628(&m90, p->q90);
+        LoadRotateMatrixEuler(&m90, p->q90);
         m30 = m90;
         func_0011C950(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.dt);
         p->q60 = func_0011BFF0(&m60);

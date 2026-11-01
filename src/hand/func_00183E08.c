@@ -7,8 +7,8 @@ struct M { struct Q *q; void *pv; };
 extern char D_003DD490[];
 int func_001F7588(struct S *p, struct Q *q);
 qword func_001A62E8(struct S *p);
-void func_00156B98(void *g, int n, qword pos, struct S *p);
-void func_0019CD38(void *p, int n);
+void EmitSwNoise(void *g, int n, qword pos, struct S *p);
+void SetJtModeState__FP6JTMODEi(void *p, int n);
 void func_00183B80(struct S *p, int n);
 int func_00183E08(struct S *p, struct Q *q)
 {
@@ -17,10 +17,10 @@ int func_00183E08(struct S *p, struct Q *q)
     if (!func_001F7588(p, q)) return 0;
     if (p->x17c == 3) return 1;
     if (!(q->fl & 8)) return 1;
-    func_00156B98(D_003DD490, 0, func_001A62E8(p), p);
+    EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
     if (p->x190) {
         struct O *o;
-        func_0019CD38(p->x190->xf00, -1);
+        SetJtModeState__FP6JTMODEi(p->x190->xf00, -1);
         o = p->x190;
         e = &o->vt[88];
         ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);

@@ -7,7 +7,7 @@ typedef struct MESH{char pad0[0xC];VTE*vt;char pad10[0xD4];qword*vertices;int co
 typedef struct TRIREF{int index;float u,v;}TRIREF;
 typedef struct WORK{M4 matrix;TRIREF candidate;TRIREF best __attribute__((aligned(16)));U closest,scalar;float parameter;U bestNormal,input,normal;}WORK;
 extern float D_002A5684;
-extern void func_0011EE08(qword,qword,qword,qword*,float*,float*);
+extern void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __asm__("vf1"),one __asm__("vf2"),r __asm__("vf1");__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"j"(d));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(d));return r;}
 void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
@@ -48,13 +48,13 @@ void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference
    :"+j"(cross),"=&f"(rawV),"+f"(u):"f"(denominator),"m"(w.normal.q):"$2","vf1","vf2");
   v=denominator*rawV;
   if(u<0.0f){
-   func_0011EE08(w.input.q,bc,cc,&w.closest.q,&w.parameter,0);
+   FindClosestPointOnLineSegment(w.input.q,bc,cc,&w.closest.q,&w.parameter,0);
    w.candidate.u=0.0f;w.candidate.v=1.0f-w.parameter;
   }else if(v<0.0f){
-   func_0011EE08(w.input.q,ac,cc,&w.closest.q,&w.parameter,0);
+   FindClosestPointOnLineSegment(w.input.q,ac,cc,&w.closest.q,&w.parameter,0);
    w.candidate.u=1.0f-w.parameter;w.candidate.v=0.0f;
   }else if(u+v>1.0f){
-   func_0011EE08(w.input.q,ac,bc,&w.closest.q,&w.parameter,0);
+   FindClosestPointOnLineSegment(w.input.q,ac,bc,&w.closest.q,&w.parameter,0);
    w.candidate.u=1.0f-w.parameter;w.candidate.v=w.parameter;
   }else{
    __asm__ volatile("sub.s $f0,%9,%7\n\tswc1 %7,%0\n\tmfc1 $3,%7\n\tqmtc2.ni $3,$vf2\n\tmfc1 $4,%8\n\tsub.s $f0,$f0,%8\n\tsqc2 $vf2,%2\n\tqmtc2.ni $4,$vf3\n\tswc1 %8,%1\n\tsqc2 $vf3,%2\n\tmfc1 $5,$f0\n\tqmtc2.ni $5,$vf1\n\tvmulax.xyzw $ACC,%4,$vf2x\n\tvmaddax.xyzw $ACC,%5,$vf3x\n\tvmaddx.xyzw $vf2,%6,$vf1x\n\tsqc2 $vf1,%2\n\tsqc2 $vf2,%3"

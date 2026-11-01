@@ -12,21 +12,21 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern struct P8 D_002A77C8;
 extern char D_003DD490[];
-void func_0012E460(int *p);
-int func_00132B10(struct O *p, int n);
+void ReleaseAct(int *p);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 qword func_001A62E8(struct W *p);
-void func_001E6F60(struct O *p, qword q, int a, int b, int c, int d, int *pn);
+void FindShapeClosestPoint(struct O *p, qword q, int a, int b, int c, int d, int *pn);
 struct O *func_001CCA40(struct W *pw, struct O *po);
 qword func_0022CA18(void *a, void *b);
 int func_0012DC18(struct W *p, void *q, int a, int b, int c, qword d);
 void func_001384C0(void *p);
-void func_00149AB8(void *pg, struct W *pw, struct P8 p8, struct S *p);
+void EnsureSwCallback(void *pg, struct W *pw, struct P8 p8, struct S *p);
 void func_001CCAC0(struct S *p, int n)
 {
     if (n == p->xA4) return;
     if (p->xA4 == 1) {
-        func_0012E460(&p->x94);
-        func_0012E460(&p->x9C);
+        ReleaseAct(&p->x94);
+        ReleaseAct(&p->x9C);
     }
     p->xA4 = n;
     p->xA8 = D_002DDED0.t;
@@ -35,13 +35,13 @@ void func_001CCAC0(struct S *p, int n)
     case 1:
         p->x8C = p->x84;
         p->x90 = 1;
-        if (func_00132B10(p->x84, 10)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x84, 10)) {
             struct O *po = p->x84;
-            func_001E6F60(po, func_001A62E8(p->x0), 0, 0, 0, 0, &p->x88);
+            FindShapeClosestPoint(po, func_001A62E8(p->x0), 0, 0, 0, 0, &p->x88);
             p->x90 = 0;
-        } else if (func_00132B10(p->x84, 0x14) && (p->x84->xE0 & p->x0->x1000)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x84, 0x14) && (p->x84->xE0 & p->x0->x1000)) {
             p->x90 = 2;
-        } else if (func_00132B10(p->x84, 0x30)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x84, 0x30)) {
             struct O *po = func_001CCA40(p->x0, p->x84);
             if (po) {
                 p->x8C = po;
@@ -52,10 +52,10 @@ void func_001CCAC0(struct S *p, int n)
             p->x80 = func_0012DC18(p->x0, p->x38, 5, 7, 3, func_0022CA18(p->x38, p->x38));
         p->x1C = p->x8 = 0.5f;
         func_001384C0(p->x30);
-        func_00149AB8(D_003DD490, p->x0, D_002A77C8, p);
+        EnsureSwCallback(D_003DD490, p->x0, D_002A77C8, p);
         break;
     case -1:
-        func_0012E460(&p->x80);
+        ReleaseAct(&p->x80);
         p->x90 = n;
         p->x84 = 0;
         p->x88 = 0;

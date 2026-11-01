@@ -19,7 +19,7 @@ typedef struct OBJ {
 } OBJ;
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
-int func_00132B10(void *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int func_001DAEA8(int);
 void func_00213B00(SUB *, int);
 void func_00213928(SUB *, int);
@@ -48,13 +48,13 @@ void func_001D9B60(OBJ *p, int s)
         VCALL1(p->x38, 49, p->x3C);
         func_00213B00(p->x38, 0x34F);
         func_00212E40(p->x38, 0x34F, 1.0f - p->x20);
-        if (func_00132B10(p->x34, 0x35)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x35)) {
             n = 0x12;
             tbl = D_002C2DE8;
-        } else if (func_00132B10(p->x34, 0x37)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x37)) {
             n = 9;
             tbl = D_002C3028;
-        } else if (func_00132B10(p->x34, 0x36)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x36)) {
             n = 8;
             tbl = D_002C3148;
         }

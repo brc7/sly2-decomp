@@ -1,14 +1,14 @@
 struct AR { int cb; int cbAlign; };
 typedef struct { float m[4][4]; } MATRIX4;
 struct X { char pad[0x60]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int xE0; int xE4; int xE8; float *ag; float *agF0; void *pvF4; };
-struct X *func_0013E3C8(int k, int n, void *pv, int m);
+struct X *PloNew__F3CIDP2SO3OIDi(int k, int n, void *pv, int m);
 void func_002333B4(void *p, int b, int cb);
 void *func_001AE1D0(struct AR *par);
 struct X *func_001E94B0(void *pv, int c)
 {
     struct AR ar;
     int i;
-    struct X *p = func_0013E3C8(10, 0, pv, -1);
+    struct X *p = PloNew__F3CIDP2SO3OIDi(10, 0, pv, -1);
     MATRIX4 *pm;
     p->xE0 = 0;
     p->xE4 = 0;

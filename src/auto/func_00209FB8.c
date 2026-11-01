@@ -15,7 +15,7 @@ extern M2C_UNK D_002DEB30;
 extern M2C_UNK D_003DD490;
 
 void func_00209FB8(s32 arg0) {
-    if ((func_00209A68(arg0, 0x16) != 0) || (func_00209A68(arg0, 0x13) != 0)) {
+    if ((FStepguardHasSgf(arg0, 0x16) != 0) || (FStepguardHasSgf(arg0, 0x13) != 0)) {
         func_0017A8C8(func_00205458(arg0, 0xB0), 3);
     }
 }

@@ -3,12 +3,12 @@ typedef union { qword q; float f[4]; } U;
 struct T { char pad[0xE0]; void *xE0; };
 extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
-int func_00132B10(void *p, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 
 qword func_00153E60(struct T *p)
 {
     if (!p->xE0) return func_001A62E8(p);
-    if (func_00132B10(p->xE0, 0x38)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->xE0, 0x38)) {
         U g;
         qword r;
         qword pos = func_001A62E8(p->xE0);

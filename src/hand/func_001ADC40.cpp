@@ -12,7 +12,7 @@ extern "C" {
  void func_001AE4A0(void*,int);
  void*func_001D89A8(void*,...);
  int func_001DDD40(int);
- void*func_0013E368(void*,int);
+ void*PchzFindSwLangstr__FP2SWi(void*,int);
  int func_001D82B8(void*,void*);
  int func_0021ECD8(char*,const char*,...);
  char*func_0021ED58(char*,const char*);
@@ -30,12 +30,12 @@ extern "C" void func_001ADC40(char*buf,int idx){
   void*value=func_001D89A8(D_002A6EE0,0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->fallback,pb);
-  func_0021ECD8(buf,D_002A6EC8,(char*)func_0013E368(&D_003DD490,func_001DDD40(tag)),func_001D82B8(D_003DD490.object,pb));
+  func_0021ECD8(buf,D_002A6EC8,(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,func_001DDD40(tag)),func_001D82B8(D_003DD490.object,pb));
   func_001AE4A0(frame,2);
  }else{
   switch(func_001B0078(D_003D9ED0)){
-   case 0x1E:case 0x1F:func_0021ED58(buf,(char*)func_0013E368(pg,0x44));break;
-   case 0x19:func_0021ED58(buf,(char*)func_0013E368(pg,0x45));break;
+   case 0x1E:case 0x1F:func_0021ED58(buf,(char*)PchzFindSwLangstr__FP2SWi(pg,0x44));break;
+   case 0x19:func_0021ED58(buf,(char*)PchzFindSwLangstr__FP2SWi(pg,0x45));break;
   }
  }
 }

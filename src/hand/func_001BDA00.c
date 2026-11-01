@@ -22,11 +22,11 @@ typedef struct O {
 } O;
 typedef struct DL { O *pvFirst; O *pvLast; int ibDle; } DL;
 extern DL D_003E1A40;
-O *func_0013E3C8(int a, int b, int c, int d);
+O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_002333B4(void *p, int c, int n);
 void *func_001AE1D0(AREQ *preq);
-void func_0011A220(DL *pdl, O *p);
-void func_0011A2E8(DL *pdl, O *p);
+void AppendDlEntry__FP2DLPv(DL *pdl, O *p);
+void RemoveDlEntry__FP2DLPv(DL *pdl, O *p);
 
 O *func_001BDA00(void)
 {
@@ -38,7 +38,7 @@ O *func_001BDA00(void)
     p = D_003E1A40.pvFirst;
     if (!p) {
         for (i = 0; i < 16; i++) {
-            O *q = func_0013E3C8(0xE, 0, 0x2CD, -1);
+            O *q = PloNew__F3CIDP2SO3OIDi(0xE, 0, 0x2CD, -1);
             q->xE0 = 0;
             q->xE4 = 1;
             q->x1C0 = 1;
@@ -62,11 +62,11 @@ O *func_001BDA00(void)
             req.align = 0x10;
             q->x1EC = func_001AE1D0(&req);
             ((void (*)(void *))q->vt[9].pfn)((char *)q + q->vt[9].d);
-            func_0011A220(&D_003E1A40, q);
+            AppendDlEntry__FP2DLPv(&D_003E1A40, q);
         }
         p = D_003E1A40.pvFirst;
     }
-    func_0011A2E8(&D_003E1A40, p);
+    RemoveDlEntry__FP2DLPv(&D_003E1A40, p);
     p->x1E8 = -1;
     ((void (*)(void *))p->vt[8].pfn)((char *)p + p->vt[8].d);
     p->x1D8 = 0;

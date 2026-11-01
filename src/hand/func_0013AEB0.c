@@ -35,12 +35,12 @@ extern qword D_002A2DA0;
 extern K D_002A4B10;
 extern char D_003DD490[];
 void func_001F4F10(P *p);
-int func_00132B10(P *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(P *p, int n);
 int func_001C4098(P *p);
 int func_0013B1C8(P *p, void *x);
-void func_0013B428(P *p, qword pos, qword dir);
-void func_0013B5C8(P *p, float g);
-void func_00149A50(void *pg, P *p, K k, void *x);
+void PrepareBombDetonation(P *p, qword pos, qword dir);
+void PrimeBomb__FP4BOMBf(P *p, float g);
+void PostSwCallback(void *pg, P *p, K k, void *x);
 
 static inline qword Length(qword a)
 {
@@ -121,7 +121,7 @@ void func_0013AEB0(P *p)
                 break;
             case 2: {
                 P *pOther = AE(pq)[IOther(pq, p)].p;
-                if (func_00132B10(pOther, 0x32)) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
                     f = 0;
                     if (func_001C4098(pOther))
                         f = 1;
@@ -161,12 +161,12 @@ void func_0013AEB0(P *p)
             __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(rn) : "j"(v), "j"(l));
             n = rn;
         }
-        func_0013B428(p, posT, n);
-        func_0013B5C8(p, 0.0f);
+        PrepareBombDetonation(p, posT, n);
+        PrimeBomb__FP4BOMBf(p, 0.0f);
         break;
     }
     case 1:
-        func_00149A50(D_003DD490, p, D_002A4B10, AE(pqBest)[IOther(pqBest, p)].x);
+        PostSwCallback(D_003DD490, p, D_002A4B10, AE(pqBest)[IOther(pqBest, p)].x);
         break;
     }
 }

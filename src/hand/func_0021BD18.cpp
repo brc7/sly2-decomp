@@ -13,7 +13,7 @@ struct S {char pad[0x40];unsigned int flags;char pad44[0x3C];MODEL model;char pa
 struct ALLOC {int bytes,align;};
 union REQUEST {ALLOC alloc;qword q;float f[4];};
 extern "C" {
-void func_001F36A8(S *);
+void PostSoLoad(S *);
 void *func_001AE2A0(ALLOC *);
 void func_001AE5A0(void *,const void *,unsigned int);
 void func_0016EF00(MODEL *,int);
@@ -45,7 +45,7 @@ static inline void SampleInputs(qword *buffer,float maximum,float minimum,qword 
  cursor=v;range=span;one=unit;
 }
 extern "C" void func_0021BD18(S *p){
-    func_001F36A8(p);
+    PostSoLoad(p);
     if(!p->count && p->fade==0.0f)p->fade=0.5f;
     if(p->fade!=0.0f)p->count=(int)(p->fade*60.0f+0.5f)+2;
     else p->fade=(p->count-2)*0.016666668f;

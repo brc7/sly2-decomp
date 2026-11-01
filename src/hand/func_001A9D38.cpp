@@ -5,7 +5,7 @@ struct A{LO*lo;int x4;float radius;int xC;unsigned long flags;int x18,first;M4 m
 struct B{LO*lo;char pad4[0xC];unsigned long flags;char pad18[8];M4 m;char pad60[0x48];int oldGeneration,generation;};
 struct HIT{qword p;char pad10[0x30];float time;int x44,x48,tag;char pad50[0x10];};
 struct W;struct C;
-extern "C" M4 func_0011C318(const M4*);
+extern "C" M4 InvertMatrix4Rigid(const M4*);
 extern "C" int func_0014C6A0(B*,qword,qword,int,HIT*);
 extern "C" void func_001A7C18(W*,A*,B*,qword,qword,int,int,int,C**,float);
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
@@ -29,7 +29,7 @@ extern "C" void func_001A9D38(W*w,A*a,B*b,C**out){
  for(i=a->first;i<a->count;i++){
   HIT hits[2];
   qword pos=TransformNew(&a->m,a->vertices[i]);
-  if(b->oldGeneration!=b->generation)pos=Transform(&b->lo->m,Transform(&func_0011C318(&b->m),pos));
+  if(b->oldGeneration!=b->generation)pos=Transform(&b->lo->m,Transform(&InvertMatrix4Rigid(&b->m),pos));
   qword dest=a->probes[i];
   int count=func_0014C6A0(b,pos,dest,2,hits);
   if(count){

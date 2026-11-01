@@ -11,8 +11,8 @@ extern float D_002DDF10;
 extern float D_002C01C8, D_002C01CC;
 extern float D_002F6468, D_002F646C;
 extern struct GS D_002DEB80;
-int func_00187E88(int);
-int func_001880D8(int);
+int DxSelectionJoy(int);
+int DySelectionJoy(int);
 float func_0011D948(void *, float);
 void func_001FEA60(struct G *, int, float, int);
 void func_00212E40(void *, int, float);
@@ -21,7 +21,7 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
 {
     switch (*pk) {
     case 0x67: {
-        float f = (float)func_00187E88(s->x10);
+        float f = (float)DxSelectionJoy(s->x10);
         float g;
         if (f == 0.0f)
             return;
@@ -31,7 +31,7 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
         break;
     }
     case 0x68: {
-        float f = (float)func_00187E88(s->x10);
+        float f = (float)DxSelectionJoy(s->x10);
         float g;
         if (f == 0.0f)
             return;
@@ -42,8 +42,8 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
         break;
     }
     case 0x3F: {
-        float x = (float)func_00187E88(s->x10);
-        float y = (float)func_001880D8(s->x10);
+        float x = (float)DxSelectionJoy(s->x10);
+        float y = (float)DySelectionJoy(s->x10);
         float v;
         int n;
         if (x == 0.0f && y == 0.0f)

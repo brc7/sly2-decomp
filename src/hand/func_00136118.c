@@ -5,11 +5,11 @@ struct P { char pad[0x150]; void *p150; char pad0[0x20C - 0x154]; float g20C; ch
     char pad1[0x13D0 - 0x1034]; int x13D0; char pad2[0x16B0 - 0x13D4]; int x16B0; struct Q *pq; char pad3[0x186C - 0x16B8]; struct O *po; };
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
-int func_00131968(void *pv);
+int FAsegaRetracted(void *pv);
 void func_00136040(struct P *p, int n);
 void func_00224258(struct O *po, int n);
-int func_00141EA8(struct P *p, int n);
-int func_001C4728(void *pv, int n);
+int GrfbtnGadget(struct P *p, int n);
+int POCTL_FButtonDown(void *pv, int n);
 void func_00136298(struct P *p);
 void func_00195A00(void *pv, int a, int b, int c);
 void func_00136118(struct P *p)
@@ -19,7 +19,7 @@ void func_00136118(struct P *p)
         s = p->x16B0;
         switch (s) {
         case 0:
-            if (func_00131968(p->p1030))
+            if (FAsegaRetracted(p->p1030))
                 func_00136040(p, 1);
             break;
         case 1:
@@ -29,7 +29,7 @@ void func_00136118(struct P *p)
                 func_00224258(po, po->x1A0);
                 goto common;
             }
-            if (po->x158 == 4 || !func_001C4728(p->p150, func_00141EA8(p, p->pq->x0) | 0x10)) {
+            if (po->x158 == 4 || !POCTL_FButtonDown(p->p150, GrfbtnGadget(p, p->pq->x0) | 0x10)) {
                 ((void (*)(void *, int))po->vt[76].pfn)((char *)po + po->vt[76].d, 1);
             common:
                 func_00136298(p);
