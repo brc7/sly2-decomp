@@ -10,6 +10,11 @@ static inline float GClamp(float g, float lo, float hi)
     if (g > hi) return hi;
     return g;
 }
+/** @sly2-annot addr=0x187768
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
+ * @end-sly2-annot */
 void GetJoyXYDeflection(JOY *pjoy, uchar bX, uchar bY, float *px, float *py, float *pgDeflection,
                         uchar *pbXPrev, uchar *pbYPrev, int *pfActive, LM *alm)
 {

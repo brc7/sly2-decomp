@@ -13,6 +13,18 @@ void func_00204D48(struct S *p, float g);
 void func_001371B8(void *pv, struct S *p);
 void func_001CC158(void *pv);
 static __inline__ void InitLm(struct LM4 *plm, float g8, float gc) { plm->g8 = g8; plm->gc = gc; plm->n = 0; }
+/** @sly2-annot addr=0x188488
+ * Purpose: JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits
+ *   -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt
+ *   D_002E1E40=pjt
+ * Info: proposed name InitJt (T1); class JT slot7; TU jt
+ * Notes: names_v2 v1 proposed Chetkido__Fv (0.002) | runtime: g_pjt D_002E1E40 = 0xFB1580 (only JT); x19AC
+ *   stored as float 15.0
+ * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r4_17F090+verdicts_tu_r4r6+runtime
+ * See: docs/engine/main-loop-startup.md#7-source-files, docs/engine/player.md#10-source-files,
+ *   docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 void func_00188488(struct S *p)
 {
     func_0013FF70(p);

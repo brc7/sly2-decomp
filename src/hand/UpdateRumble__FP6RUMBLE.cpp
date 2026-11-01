@@ -17,6 +17,14 @@ extern CLOCK D_002DDED0;
 extern "C" int func_00243870(int, int, byte *);
 void SetRumbleRums(RUMBLE *prumble, RUMS rums);
 void StopRumbleActuators(RUMBLE *prumble);
+/** @sly2-annot addr=0x1D51B8
+ * Purpose: Step rumble pattern instructions by real dt, stop when done
+ * Info: proposed name UpdateRumble__FP6RUMBLE (EXISTING); TU rumble
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
+ *   r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
+ * @end-sly2-annot */
 void UpdateRumble(RUMBLE *prumble)
 {
     byte abShockDirect[6];

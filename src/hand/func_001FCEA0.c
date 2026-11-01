@@ -5,6 +5,13 @@ extern struct CLOCK D_002DDED0;
 void func_002319E8(int);
 int func_00233048(int, int, int, int, int, int, int);
 long func_0014D240(struct CLOCK *);
+/** @sly2-annot addr=0x1FCEA0
+ * Purpose: snd_StartSoundSystem, SUKR init (cmd 0), all channel/category volumes = 1, record start clock
+ * Info: proposed name StartupSound (T1); TU sound
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot,
+ *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FCEA0(void)
 {
     int i, j;

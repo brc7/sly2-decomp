@@ -65,6 +65,13 @@ extern void func_0014BF48(void *p, JOY *pjoy, int grfbtn);
 extern int func_001C4840(void *p);
 extern void func_001619A0(SND *p, int n, int a);
 
+/** @sly2-annot addr=0x187998
+ * Purpose: Read the pad (scePadRead), compute pressed/released masks, analog deflection via
+ *   GetJoyXYDeflection, broadcast game event on activity
+ * Info: proposed name FReadJoy (T2); TU joy
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
+ * @end-sly2-annot */
 int func_00187998(JOY *p)
 {
     unsigned char ab[0x40];

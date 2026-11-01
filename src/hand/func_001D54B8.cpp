@@ -29,6 +29,12 @@ static inline void SetPv2(void *pv, const RAW &r)
     CRef arg(r);
     const CRef &ret = func_00258200(pv, arg, D_003D4A60);
 }
+/** @sly2-annot addr=0x1D54B8
+ * Purpose: Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1
+ * Info: proposed name ResetRumbleSaveVar (T1); TU rumble
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
+ * @end-sly2-annot */
 void func_001D54B8(void)
 {
     RAW ref;

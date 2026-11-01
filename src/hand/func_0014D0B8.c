@@ -14,6 +14,15 @@ static __inline__ float GClamp(float g, float gMin, float gMax)
     else r = g;
     return r;
 }
+/** @sly2-annot addr=0x14D0B8
+ * Purpose: dt = clamp(?tick?1/294.912MHz, 1/60, 1/30); dtReal = dt?rDtReal, tReal += dtReal; dt40 =
+ *   dt?slot[3]; if not paused, dt = dt40?rDt, t += dt, and pumps 0x161478(D_002DEB30); always t3C += dt40
+ * Info: proposed name MarkClockTick (T1); TU clock
+ * Notes: names_v2 v1 proposed ClsgClipCylinderToSphere__FP6VECTORfT0T0fiP3LSG (0.037)
+ * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/clock
+ * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
+ *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
+ * @end-sly2-annot */
 void func_0014D0B8(struct CLOCK *p, int fPaused)
 {
     ulong tick = func_0014D240(p);

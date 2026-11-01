@@ -10,6 +10,15 @@ struct CLOCK { char pad[0x3C]; float g3c; };
 extern struct CLOCK D_002DDED0;
 void func_001D5150(void *p, int a, int b);
 void func_002333B4(void *pv, int b, int cb);
+/** @sly2-annot addr=0x1875B8
+ * Purpose: Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4
+ *   changes, reset button state when state changes to/from 3
+ * Info: proposed name SetJoyJoys (T1); TU joy
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
+ *   r4b_rest+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
+ * @end-sly2-annot */
 void func_001875B8(struct S *p, int a, int b)
 {
     unsigned int i;
