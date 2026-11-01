@@ -82,6 +82,7 @@ def main():
     live = {rel(s) for s in srcs}
     for k in list(cache):
         if k not in live: del cache[k]
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
     json.dump(cache, open(CACHE, 'w'))
     rows = []; broken = []
     prev = {}   # previous results per source: a source this machine cannot build (e.g. SDK files needing Linux-only compilers) keeps them

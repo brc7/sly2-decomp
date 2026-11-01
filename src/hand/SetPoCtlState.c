@@ -6,7 +6,7 @@ int GetPoCtlState(struct LO *p);
 void *func_001AE4F8(int cb);
 void *POCTL_ctor(void *pv, struct LO *p);
 void SwitchToPo(struct G *pg, struct LO *plo);
-void SetPoctlState(void *pv, int n);
+void SetPoctlStateValue(void *pv, int n);
 /** @sly2-annot addr=0x1C3ED8
  * Purpose: PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16)
  *   and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)),
@@ -43,5 +43,5 @@ void SetPoCtlState(struct LO *p, int n)
         break;
     }
     }
-    SetPoctlState(p->x150, n);
+    SetPoctlStateValue(p->x150, n);
 }

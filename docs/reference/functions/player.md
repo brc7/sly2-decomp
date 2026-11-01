@@ -674,7 +674,7 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x1C4330](../../../src/hand/func_001C4330.c) | `ConvertPoctlStick` | Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays 0.2); below hold radius keeps previous angle | 0.45 | T2 |  |
 | [0x1C4468](../../../src/hand/func_001C4468.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), build matPanTilt from camera, polar sticks, update press times | 0.85 | T1 | verified |
 | [0x1C45A8](../../../src/hand/func_001C45A8.c) | `UpdatePoctlPressed` | Record g_clock.t into atPressed[i] for newly pressed buttons, and per-stick direction timestamps (atLeftStick/atRightStick) | 0.60 | T1 |  |
-| [0x1C4640](../../../src/auto/func_001C4640.c) | `SetPoctlState` | nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as presses | 0.70 | T1 |  |
+| [0x1C4640](../../../src/auto/func_001C4640.c) | `SetPoctlStateValue` | nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as presses | 0.70 | T1 |  |
 | [0x1C4660](../../../src/hand/func_001C4660.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
 | [0x1C46C0](../../../src/auto/func_001C46C0.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
 | [0x1C4700](../../../src/hand/func_001C4700.c) | `POCTL_FConsumePressed` | GrfConsumePressed(grf 0.0) != 0 | 0.50 | T1 |  |

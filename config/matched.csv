@@ -3892,7 +3892,7 @@ ResetPoctl,0x1C42E8,18,match,src/hand/ResetPoctl.c
 func_001C4330,0x1C4330,77,match,src/hand/func_001C4330.c
 UpdatePoctl,0x1C4468,80,match,src/hand/UpdatePoctl.c
 UpdatePoctlPressed,0x1C45A8,37,match,src/hand/UpdatePoctlPressed.c
-SetPoctlState,0x1C4640,7,match,src/auto/SetPoctlState.c
+SetPoctlStateValue,0x1C4640,7,match,src/auto/SetPoctlStateValue.c
 GrfPressedWithin__5POCTLUif,0x1C4660,24,match,src/hand/GrfPressedWithin__5POCTLUif.c
 GrfConsumePressed__5POCTLUif,0x1C46C0,16,match,src/auto/GrfConsumePressed__5POCTLUif.c
 POCTL_FConsumePressed,0x1C4700,9,match,src/hand/POCTL_FConsumePressed.c
@@ -5899,7 +5899,6 @@ func_00233638,0x233638,114,match,src/lib/func_00233638.c
 atoi,0x233800,10,match,src/lib/atoi.c
 func_00233828,0x233828,37,match,src/lib/func_00233828.c
 qsort,0x2338C0,631,match,src/lib/qsort.c
-rand,0x2342A0,12,match,src/auto/rand.c
 rand,0x2342A0,12,match,src/lib/rand.c
 func_002342D0,0x2342D0,31,match,src/lib/func_002342D0.c
 func_00234350,0x234350,139,match,src/lib/func_00234350.c
