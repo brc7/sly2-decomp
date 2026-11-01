@@ -58,6 +58,14 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x116A58
+ * Purpose: vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4
+ *   unless it is -1
+ * Info: proposed name CSwHeap_PvRealloc (T1); class CSwHeap; TU heap
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
+ * @end-sly2-annot */
 s32 CSwHeap_PvRealloc(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 temp_a2;
     void *temp_t0;

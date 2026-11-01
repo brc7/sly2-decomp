@@ -13,6 +13,13 @@ extern M2C_UNK D_002DE440;
 extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E1560;
 
+/** @sly2-annot addr=0x1E19B0
+ * Purpose: Splice builtin: append a RELAYCK 0x54 (ClearHintBox) command to the relay
+ *   (PrelaycmdAddRelay(prelay,0x54,fAsync)) and fill its args
+ * Info: proposed name AddRelayClearHintBox (T1); TU relay
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E19B0(s32 arg0, s32 arg1) {
     M2C_FIELD(func_001E01F8(arg0, 0x54, 1), s32 *, 0x10) = arg1;
 }

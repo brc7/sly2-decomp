@@ -56,6 +56,11 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_004425D0;
 extern M2C_UNK D_004425F0;
 
+/** @sly2-annot addr=0x21ED58
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 s32 strcpy(s32 arg0, s32 arg1) {
     CopyAb__FPvT0Ui(arg0, arg1, strlen(arg1) + 1);
     return arg0;

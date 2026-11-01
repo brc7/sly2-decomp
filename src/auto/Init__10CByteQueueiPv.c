@@ -60,6 +60,13 @@ extern s32 D_003E1468;
 extern M2C_UNK D_003E1C20;
 extern s32 D_003E1C34;
 
+/** @sly2-annot addr=0x13D558
+ * Purpose: Store buffer size (+4) and buffer (+0) then Reset
+ * Info: proposed name CByteQueue_Init (T1); class CByteQueue; TU bq
+ * Confidence: high [T1 0.92] - evidence: static analysis; sources: r2b_rest+verdicts_A1
+ * See: docs/engine/core-library.md#2-containers, docs/engine/core-library.md#6-source-files,
+ *   docs/engine/core-library.md#7-key-functions
+ * @end-sly2-annot */
 void Init__10CByteQueueiPv(s32 arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(arg0, s32 *, 4) = arg1;
     M2C_FIELD(arg0, s32 *, 0) = arg2;

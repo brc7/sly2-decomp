@@ -31,6 +31,14 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E0E70;
 extern s32 D_003E134C;
 
+/** @sly2-annot addr=0x147E88
+ * Purpose: Remove then insert the object before the update cursor in the busy list
+ * Info: proposed name ReinsertSwBusyObject (T2); TU busy
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100,
+ *   docs/reference/functions/object-model.md#busy-0x147e20-0x148620,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_00147E88(s32 arg0, s32 arg1) {
     func_00147E20(arg0, arg1);
     InsertDlEntryBefore__FP2DLPvT1(arg0 + 0x20, M2C_FIELD(arg0, s32 *, 0x39A4), arg1);

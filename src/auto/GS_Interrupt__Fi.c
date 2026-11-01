@@ -15,6 +15,11 @@ extern s32 D_002DEDB8;
 extern s32 D_002DEDBC;
 extern s32 D_002DFB5C;
 
+/** @sly2-annot addr=0x16F788
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 void GS_Interrupt__Fi(void) {
     M2C_UNK *var_a0;
     s32 temp_a1;

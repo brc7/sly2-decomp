@@ -57,6 +57,13 @@ extern M2C_UNK D_003E1518;
 extern M2C_UNK D_003E1530;
 extern s32 D_004425D4;
 
+/** @sly2-annot addr=0x1618B0
+ * Purpose: Same as 0x161868 for the HUD widget g_sw+0x3BB8
+ * Info: proposed name ShowSwWidget3BB8 (T2); TU game
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_001618B0(s32 arg0) {
     void *temp_s0;
     void *temp_v0;

@@ -59,6 +59,16 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x113318
+ * Purpose: pfnNew factory for BHV168 (cid 168): allocates 0xE0 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2CC4C0 at +0xC
+ * Info: proposed name NewBhvwalkgoal (T1); TU crt0_splicewrap
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): NewBhv168 ->
+ *   NewBhvwalkgoal
+ * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
+ *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *NewBhvwalkgoal(s32 arg0) {
     void *temp_v0;
 

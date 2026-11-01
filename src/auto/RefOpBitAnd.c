@@ -9,6 +9,14 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_004520A8;
 
+/** @sly2-annot addr=0x1255F0
+ * Purpose: Bitwise AND of all S32 list args (init -1)
+ * Info: proposed name RefOpBitAnd (T1); TU bif
+ * Notes: splice builtin 135 bit-and~ -> bit-and~ (0.80): Body: bitwise AND of the int arguments (variadic).
+ *   Scripts: (not (= (bit-and~ a b) 0)), (bit-and~ (geto x 'CID98+0x168:935) 1)
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 135)
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 s32 RefOpBitAnd(void *arg0, s32 arg1, void *arg2) {
     s32 temp_v0;
     s32 var_a1;

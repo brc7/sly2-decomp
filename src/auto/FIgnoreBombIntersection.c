@@ -36,6 +36,12 @@ extern s32 D_003E0F9C;
 extern M2C_UNK D_003E1C20;
 extern s32 D_003E1C34;
 
+/** @sly2-annot addr=0x13BBF8
+ * Purpose: BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root
+ * Info: proposed name FIgnoreBombIntersection (T1); class BOMB slot61; TU bomb
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 s32 FIgnoreBombIntersection(s32 arg0, s32 arg1) {
     s32 var_a3;
 

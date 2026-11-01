@@ -62,6 +62,14 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x1113C8
+ * Purpose: pfnNew factory for CID40 (cid 40): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2D3200 at +0xC
+ * Info: proposed name NewCid40 (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *NewCid40(s32 arg0) {
     void *temp_v0;
 

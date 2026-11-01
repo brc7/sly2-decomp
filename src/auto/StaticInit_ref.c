@@ -23,6 +23,12 @@ extern M2C_UNK D_004521B8;
 extern M2C_UNK D_004521D0;
 extern M2C_UNK D_004521E8;
 
+/** @sly2-annot addr=0x12A1A0
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU ref
+ * Info: proposed name StaticInit_ref (T1); TU ref
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r1_116918
+ * @end-sly2-annot */
 void StaticInit_ref(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_10;

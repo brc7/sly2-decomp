@@ -59,6 +59,16 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x1132E0
+ * Purpose: pfnNew factory for BHV167 (cid 167): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2D06A0 at +0xC
+ * Info: proposed name NewBhvwalkpath (T1); TU crt0_splicewrap
+ * Notes: BHV class word normalised: NewBhv167 -> NewBhvwalkpath | runtime2/4 confirmed the BHVWALKPATH role
+ *   on live guards (S02-S41)
+ * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
+ *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *NewBhvwalkpath(s32 arg0) {
     void *temp_v0;
 

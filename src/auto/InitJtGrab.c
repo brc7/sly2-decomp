@@ -44,6 +44,15 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E13B4;
 extern s32 D_003E1BEC;
 
+/** @sly2-annot addr=0x191090
+ * Purpose: Init the STEPPLAYER+0x4C0 grab/action context: owner, nState=-1, nKind=-1, x4FC=-1, init two
+ *   blend/actuator blocks (+0x180,+0x240, 0x20B840 id 0x6F) and the reach tracker at +0x440
+ * Info: proposed name InitJtGrab (T1); TU grab
+ * Notes: names_v2 B proposed GMeasureJumpHshape__FP3MJHf (0.978)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
+ *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void InitJtGrab(s32 arg0, s32 arg1) {
     M2C_FIELD(arg0, s32 *, 0) = arg1;
     M2C_FIELD(arg0, s32 *, 8) = -1;

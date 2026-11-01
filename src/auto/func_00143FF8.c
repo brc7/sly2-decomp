@@ -51,6 +51,13 @@ extern s32 D_003E1084;
 extern void *D_003E1474;
 extern s32 D_003E1AC8;
 
+/** @sly2-annot addr=0x143FF8
+ * Purpose: If generic state is 5 or 6 (0x144038) call vt88(0)
+ * Info: proposed name StopStepplayerScriptAnim (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00143FF8(s32 arg0) {
     void *temp_v0;
 

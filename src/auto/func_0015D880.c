@@ -51,6 +51,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x15D880
+ * Purpose: Plays label 0x5BD/0x5BE when the highlight flag changes
+ * Info: proposed name SetWidget131Highlight (T2); TU tu_15CD68
+ * Notes: names_v2 v1 proposed HandleExplsMessage__FP5EXPLS5MSGIDPv (0.823)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 void func_0015D880(s32 arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0x12C) != arg1) {
         if (arg1 != 0) {

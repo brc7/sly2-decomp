@@ -2,6 +2,12 @@
 M2C_UNK CopyAb__FPvT0Ui(void *, void *, s32);       /* extern */
 s32 func_0020A658();                                /* extern */
 
+/** @sly2-annot addr=0x20A790
+ * Purpose: Remove guard from record
+ * Info: proposed name RemoveTargetRecordGuard (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020A790(void *arg0) {
     s32 temp_v0;
     s32 temp_v0_2;

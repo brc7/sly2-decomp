@@ -44,6 +44,13 @@ extern void *D_003E13B4;
 extern M2C_UNK D_390;
 extern M2C_UNK D_870;
 
+/** @sly2-annot addr=0x13BF30
+ * Purpose: cid 0x67 vt27: SetBootyState(0)
+ * Info: proposed name BOOTY_VUnk26 (T2); class BOOTY slot27; TU booty
+ * Notes: names_v2 C proposed SetCmPos__FP2CMP6VECTOR (0.638)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void func_0013BF30(s32 arg0, s32 arg1) {
     SetBootyState(arg0, 0);
 }

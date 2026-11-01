@@ -39,6 +39,12 @@ extern M2C_UNK D_003DD040;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E0FE0;
 
+/** @sly2-annot addr=0x224350
+ * Purpose: base 0x1F4FB0 then out->0x98 = 0.25
+ * Info: class CID100 slot55; TU tu_223F70
+ * Notes: descriptive only: Cid100 slot (sets 0x98 = 0.25 on out struct) | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88+verdicts_A2
+ * @end-sly2-annot */
 f32 func_00224350(s32 arg0, s32 arg1) {
     func_001F4FB0();
     M2C_FIELD(arg1, f32 *, 0x98) = 0.25f;

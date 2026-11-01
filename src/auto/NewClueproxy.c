@@ -59,6 +59,15 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x110BF0
+ * Purpose: pfnNew factory for CID7 (cid 7): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor stores
+ *   vtable 0x2D5DC8 at +0xC
+ * Info: proposed name NewClueproxy (T1); TU crt0_splicewrap
+ * Notes: v3 class identity: NewCid7 -> NewClueproxy
+ * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *NewClueproxy(s32 arg0) {
     void *temp_v0;
 

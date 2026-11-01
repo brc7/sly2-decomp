@@ -54,6 +54,13 @@ extern M2C_UNK D_003DA150;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E0FD8;
 
+/** @sly2-annot addr=0x1D2DD0
+ * Purpose: Return the contact in an XP list with the largest +0x90 value (deepest)
+ * Info: proposed name PxpBestRobottankWheel (T2); TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: PxpBestRcCarWheel -> PxpBestRobottankWheel
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 s32 func_001D2DD0(s32 arg0, s32 arg1) {
     f32 temp_f0;
     f32 var_f1;

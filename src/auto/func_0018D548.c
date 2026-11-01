@@ -44,6 +44,12 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E13B4;
 extern s32 D_003E1BEC;
 
+/** @sly2-annot addr=0x18D548
+ * Purpose: JT vt91: calls 0x18E540(pjt,-1) (first fn of next TU)
+ * Info: proposed name JT_vt91 (T2); class JT slot91; TU jt
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018D548(s32 arg0, s32 arg1) {
     SetJtJtcs__FP2JTi(arg0, -1);
 }

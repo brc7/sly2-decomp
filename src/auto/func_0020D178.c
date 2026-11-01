@@ -83,6 +83,12 @@ extern s32 D_003E1C54;
 extern s32 D_003E1C58;
 extern s32 D_00443740;
 
+/** @sly2-annot addr=0x20D178
+ * Purpose: enabled = 0, state 0
+ * Info: proposed name DisableStuckWatch (T2); TU tu_20CE28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
+ * @end-sly2-annot */
 void func_0020D178(s32 arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(arg0, s32 *, 0xC) = 0;
     func_0020D108(arg0, 0, arg2);

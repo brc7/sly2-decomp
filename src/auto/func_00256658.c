@@ -51,6 +51,12 @@ extern M2C_UNK D_00452148;
 extern u32 D_00452160;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x256658
+ * Purpose: free array and destroy list nodes via vt [game linkonce (inline/template)]
+ * Info: proposed name CDynArrayV_Clear (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_00256658(s32 arg0) {
     void *temp_v0;
     void *var_s0;

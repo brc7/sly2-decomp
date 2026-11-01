@@ -46,6 +46,12 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x1957C0
+ * Purpose: g_sw+0x4744 = PloFindSwObject(g_sw, 0x405, oid 0x624)
+ * Info: proposed name PostSwLoadGrabMarker (T2); TU grab
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_001957C0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
     M2C_FIELD(arg0, s32 *, 0x4744) = PloFindSwObject__FP2SWi3OIDP2LO(arg0, 0x405, 0x624, 0, arg4, arg5, arg6);
 }

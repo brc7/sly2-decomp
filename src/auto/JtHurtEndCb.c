@@ -30,6 +30,14 @@ extern void *D_003E04F8;
 extern s32 D_003E19E4;
 extern M2C_UNK D_004435F0;
 
+/** @sly2-annot addr=0x1A1F68
+ * Purpose: Callback: health>0 -> SetJtHurtState(0) else 8 (dead)
+ * Info: proposed name JtHurtEndCb (T1); TU hurt
+ * Notes: runtime3: JTHURT PMF callback pfn in S27/S28 (knockback)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
+ *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 void JtHurtEndCb(s32 arg0, s32 arg1) {
     if (*M2C_FIELD(arg0, s32 **, 0x10) > 0) {
         SetJtHurtState(arg0, 0);

@@ -41,6 +41,13 @@ extern s32 D_002E0CBC;
 extern s32 D_002E1E40;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x1870A0
+ * Purpose: g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr
+ * Info: proposed name RemoveGrfusr (T1); TU joy
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4b_rest+verdicts_A1
+ * See: docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
+ * @end-sly2-annot */
 s32 RemoveGrfusr__Fi(s32 arg0) {
     D_002DFBC4 &= ~arg0;
     return UpdateGrfjoytFromGrfusr__Fv();

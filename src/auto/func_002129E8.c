@@ -75,6 +75,14 @@ extern M2C_UNK D_00452170;
 extern M2C_UNK D_100;
 extern M2C_UNK D_C0;
 
+/** @sly2-annot addr=0x2129E8
+ * Purpose: WIDGET slot50: request hide; if no disappear anim go straight to state 1
+ * Info: proposed name HideWidget (T1); class WIDGET slot50; TU hud
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/hud-ui.md#5-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002129E8(s32 arg0) {
     SetTimerTimers__FP5TIMER6TIMERS(arg0, 1);
     if (M2C_FIELD(arg0, s32 *, 0x78) == -1) {

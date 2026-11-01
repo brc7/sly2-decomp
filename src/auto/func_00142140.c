@@ -60,6 +60,13 @@ extern s32 D_003E1468;
 extern M2C_UNK D_003E1C20;
 extern s32 D_003E1C34;
 
+/** @sly2-annot addr=0x142140
+ * Purpose: Splice: if obj put jtgrab into state 5 with it (0x1928F8), else if jtgrab state is 5 call vt88(0)
+ *   (generic state 0)
+ * Info: proposed name SetStepplayerGrabTarget (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00142140(s32 arg0, s32 arg1) {
     void *temp_v0;
 

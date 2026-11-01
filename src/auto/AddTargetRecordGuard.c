@@ -16,6 +16,13 @@ extern M2C_UNK D_002DDF40;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E148C;
 
+/** @sly2-annot addr=0x20A730
+ * Purpose: Append guard to record (stamp time and reset state on first)
+ * Info: proposed name AddTargetRecordGuard (T1); TU stepguard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 s32 AddTargetRecordGuard(s32 arg0, s32 arg1) {
     s32 temp_v1;
     void *temp_v0;

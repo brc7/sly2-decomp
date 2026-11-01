@@ -155,6 +155,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x2185F8
+ * Purpose: draw items of a slot
+ * Info: proposed name DrawSpriteSlot (T2); TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002185F8(s32 arg0, s32 arg1, s32 arg2) {
     s16 temp_v0;
 

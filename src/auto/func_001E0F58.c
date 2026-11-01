@@ -1,4 +1,11 @@
 #include "m2c_prelude.h"
+/** @sly2-annot addr=0x1E0F58
+ * Purpose: Splice builtin: append a RELAYCK 0x2E (SetPartFlag) command to the relay
+ *   (PrelaycmdAddRelay(prelay,0x2E,fAsync)) and fill its args
+ * Info: proposed name AddRelaySetPartFlag (T1); TU relay
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E0F58(s32 arg0, s32 arg1, s32 arg2) {
     void *temp_v0;
 

@@ -2,6 +2,13 @@
 M2C_UNK InitDl__FP2DLi(s32, M2C_UNK);                /* extern */
 M2C_UNK InitLo();                            /* extern */
 
+/** @sly2-annot addr=0x12F248
+ * Purpose: InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0
+ * Info: proposed name InitAseg (T1); class ASEG slot7; TU aseg
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
+ *   docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions
+ * @end-sly2-annot */
 void InitAseg(void *arg0) {
     void *temp_v0;
 

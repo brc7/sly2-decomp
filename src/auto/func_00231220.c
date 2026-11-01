@@ -1,4 +1,11 @@
 #include "m2c_prelude.h"
+/** @sly2-annot addr=0x231220
+ * Purpose: unknown
+ * Info: class XFM slot50; TU xform
+ * Notes: names_v2 C proposed SetAloRotationDamping__FP3ALOf (0.253) | descriptive only: other-class vt slot2
+ *   (0x2DB84C) | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.15] - evidence: static naming pass; sources: r8_21BB88
+ * @end-sly2-annot */
 void func_00231220(void *arg0, void *arg1, void **arg2) {
     s32 temp_a0;
     void *temp_a1;

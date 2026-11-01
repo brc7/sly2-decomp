@@ -14,6 +14,13 @@ extern M2C_UNK D_002BBB20;
 extern void *D_002DD2F8;
 extern void *D_002DD2FC;
 
+/** @sly2-annot addr=0x117968
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * See: docs/formats/world-file.md#1-container,
+ *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
+ *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_00117968(void) {
     func_00117898();
 }

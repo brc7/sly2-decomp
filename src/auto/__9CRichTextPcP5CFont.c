@@ -57,6 +57,11 @@ extern M2C_UNK D_003E1518;
 extern M2C_UNK D_003E1530;
 extern s32 D_004425D4;
 
+/** @sly2-annot addr=0x15F928
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 s32 __9CRichTextPcP5CFont(s32 arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(arg0, s32 *, 0) = arg1;
     M2C_FIELD(arg0, s32 *, 0xC) = arg2;

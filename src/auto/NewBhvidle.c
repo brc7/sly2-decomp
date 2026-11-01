@@ -59,6 +59,16 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x1130E8
+ * Purpose: pfnNew factory for BHV158 (cid 158): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2D0A30 at +0xC
+ * Info: proposed name NewBhvidle (T1); TU crt0_splicewrap
+ * Notes: BHV class word normalised: NewBhv158 -> NewBhvidle | runtime2/4 confirmed the BHVIDLE role on live
+ *   guards (S02-S41)
+ * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
+ *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *NewBhvidle(s32 arg0) {
     void *temp_v0;
 

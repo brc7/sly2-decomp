@@ -75,6 +75,12 @@ extern M2C_UNK D_3AB0;
 extern M2C_UNK D_738;
 extern M2C_UNK D_7F0;
 
+/** @sly2-annot addr=0x1713E8
+ * Purpose: BHV169 slot 10: executes script commands (vt slot 15) until one is still busy or the script ends
+ * Info: proposed name UpdateBhv169 (T2); class BHV169 slot10; TU tu_1709A8
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 s32 func_001713E8(s32 arg0) {
     s32 temp_a1;
     s32 var_v0;

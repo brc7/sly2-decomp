@@ -60,6 +60,13 @@ extern s32 D_003E1468;
 extern M2C_UNK D_003E1C20;
 extern s32 D_003E1C34;
 
+/** @sly2-annot addr=0x141C08
+ * Purpose: Change a gadget slot's state: leaving 1 calls vt102 (stop gadget); stamps tState; state 1/2 call
+ *   vt100 StartGadget (2 = one-shot, returns to 0)
+ * Info: proposed name SetGadgetSlotState (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void SetGadgetSlotState(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_v0;
     void *temp_v0_2;

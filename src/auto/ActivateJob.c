@@ -8,6 +8,13 @@ s32 PpoHero(M2C_UNK *);                       /* extern */
 extern M2C_UNK D_002DEB30;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x162D50
+ * Purpose: Unless already current: event 0x1C, refresh current player if it is a STEPPLAYER (0x143380),
+ *   SetCurrentJob
+ * Info: proposed name ActivateJob (T1); TU game
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void ActivateJob(s32 arg0) {
     s32 temp_v0;
 

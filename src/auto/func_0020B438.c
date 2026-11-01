@@ -16,6 +16,14 @@ extern M2C_UNK D_002DDF40;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E148C;
 
+/** @sly2-annot addr=0x20B438
+ * Purpose: ++ +0xFFC; first makes it busy (SetLoBusyk 1)
+ * Info: proposed name IncrementStepguardBusy (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 s32 func_0020B438(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

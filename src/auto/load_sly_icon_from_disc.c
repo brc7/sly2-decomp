@@ -56,6 +56,14 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern s32 D_004425D8;
 
+/** @sly2-annot addr=0x1AC238
+ * Purpose: existing: load memcard_icon.ico from disc and write to card
+ * Info: proposed name load_sly_icon_from_disc (EXISTING); TU memcard
+ * Confidence: high [EXISTING 0.70] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4_17F090
+ * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
+ *   docs/formats/disc-records.md#3-static-records-in-the-elf,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void load_sly_icon_from_disc(s32 arg0, s32 arg1) {
     func_001AC260(arg0, arg1, (s32) &D_002A38E8, (s32) &D_002A6CA0);
 }

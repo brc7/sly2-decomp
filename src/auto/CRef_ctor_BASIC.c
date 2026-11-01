@@ -23,6 +23,14 @@ extern M2C_UNK D_004521B8;
 extern M2C_UNK D_004521D0;
 extern M2C_UNK D_004521E8;
 
+/** @sly2-annot addr=0x1294C0
+ * Purpose: Constructor: tag 0x21; calls the object's vtable slot 1 (Incref) if non-null
+ * Info: proposed name CRef_ctor_BASIC (T1); class CRef; TU ref
+ * Notes: names_v2 v1 proposed SetBool__4CRefi (0.002) | C++ signature hint (BASIC *) | COLLISION: CRef_ctor
+ *   already used (same name proposed for 0x129248); renamed to CRef_ctor_BASIC
+ * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 s32 CRef_ctor_BASIC(s32 arg0, s32 arg1) {
     void *temp_v0;
 

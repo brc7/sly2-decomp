@@ -8,6 +8,12 @@ extern s32 D_002DE598;
 extern s32 D_002DE59C;
 extern s32 D_002DE5A0;
 
+/** @sly2-annot addr=0x157200
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/guards-ai.md#8-source-files, docs/engine/overview.md#1-boot,
+ *   docs/engine/rendering.md#12-source-files
+ * @end-sly2-annot */
 void StartupDma__Fv(void) {
     sceDmaReset(1);
     sceGsResetPath();

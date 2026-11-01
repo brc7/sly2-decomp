@@ -56,6 +56,11 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x200C28
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
+ * @end-sly2-annot */
 s32 RefSetOption__FP5BASICiP4CRef(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     if (arg2 < 0x4D1) {
         RefSetPeopid(arg0, arg1, PeopidFind(arg1, arg2), arg3);

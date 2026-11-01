@@ -41,6 +41,13 @@ extern s32 D_002E0CBC;
 extern s32 D_002E1E40;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x184D60
+ * Purpose: If the file record kind is 2 (disc sector), FOpenSector(rec sector, size)
+ * Info: proposed name FOpenStreamFileRec (T2); TU tu_1848A8
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/formats/disc-records.md#2-the-read-path,
+ *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
+ * @end-sly2-annot */
 s32 func_00184D60(s32 arg0, s32 arg1) {
     s32 var_a2;
 

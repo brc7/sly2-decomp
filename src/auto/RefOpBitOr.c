@@ -9,6 +9,14 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_004520A8;
 
+/** @sly2-annot addr=0x125640
+ * Purpose: Bitwise OR of all S32 list args (init 0)
+ * Info: proposed name RefOpBitOr (T1); TU bif
+ * Notes: splice builtin 136 bit-or~ -> bit-or~ (0.80): Body: bitwise OR (variadic). Script: (seto! bentley
+ *   'PO+0x154:811 (bit-or~ s2046 16))
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 136)
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 s32 RefOpBitOr(void *arg0, s32 arg1, void *arg2) {
     s32 temp_v0;
     s32 var_a1;

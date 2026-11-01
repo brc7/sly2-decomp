@@ -37,6 +37,12 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E0F9C;
 extern s32 D_003E0FE4;
 
+/** @sly2-annot addr=0x1B10B0
+ * Purpose: CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position
+ * Info: proposed name PresetCid96Accel (T2); class CID96 slot70; TU tu_1B0B78
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 void func_001B10B0(s32 arg0, s32 arg1, s32 arg2) {
     func_001F59A0(arg0, arg0 + 0x1E0, arg0 + 0x210);
 }

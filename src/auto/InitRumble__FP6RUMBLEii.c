@@ -54,6 +54,14 @@ extern M2C_UNK D_003DA150;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E0FD8;
 
+/** @sly2-annot addr=0x1D5150
+ * Purpose: Init RUMBLE: state Idle (or Stop if already active), store port/slot
+ * Info: proposed name InitRumble__FP6RUMBLEii (EXISTING); TU rumble
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
+ *   r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/gameplay-objects.md#source-files, docs/engine/main-loop-startup.md#7-source-files,
+ *   docs/engine/main-loop-startup.md#8-key-functions
+ * @end-sly2-annot */
 void InitRumble__FP6RUMBLEii(s32 arg0, s32 arg1, s32 arg2) {
     if (M2C_FIELD(arg0, s32 *, 8) == 0) {
         SetRumbleRums__FP6RUMBLE4RUMS(arg0, 1);

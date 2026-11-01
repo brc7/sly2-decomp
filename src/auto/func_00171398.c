@@ -4,6 +4,13 @@ M2C_UNK CloseBhv();                            /* extern */
 M2C_UNK ClearBhvBusy(void *);                      /* extern */
 M2C_UNK RemoveStepguardSgf(s32, M2C_UNK);                /* extern */
 
+/** @sly2-annot addr=0x171398
+ * Purpose: BHV169 slot 9: base pop, ClearBhvBusy, clear the script, drop flag 0x21
+ * Info: proposed name CloseBhv169 (T2); class BHV169 slot9; TU tu_1709A8
+ * Notes: superseded: OnBhv169Pop (r3b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv169Pop
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00171398(void *arg0) {
     CloseBhv();
     ClearBhvBusy(arg0);

@@ -44,6 +44,13 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E13B4;
 extern s32 D_003E1BEC;
 
+/** @sly2-annot addr=0x18DE18
+ * Purpose: (pjt,obj): obj -> x9C0=1 and set grab sub-state kind 6 on x4C0 (0x1928F8); null -> release if kind
+ *   6
+ * Info: proposed name SetJtGrabObject (T2); class JT; TU jt
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018DE18(s32 arg0, s32 arg1) {
     void *temp_v0;
 

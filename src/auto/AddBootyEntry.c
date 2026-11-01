@@ -1,6 +1,13 @@
 #include "m2c_prelude.h"
 M2C_UNK func_0013C440();                            /* extern */
 
+/** @sly2-annot addr=0x13C3B8
+ * Purpose: Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158)
+ * Info: proposed name AddBootyEntry (T1); TU booty
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/game-progression.md#5-booty-booty-tu-0x13bdf0,
+ *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void AddBootyEntry(void *arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 temp_v1;
     void *temp_v0;

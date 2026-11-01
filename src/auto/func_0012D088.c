@@ -15,6 +15,12 @@ extern M2C_UNK D_004520D0;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_004521E8;
 
+/** @sly2-annot addr=0x12D088
+ * Purpose: vtable 0x2CA830 slot 4
+ * Info: proposed name ActUnk_2CA830_4 (T2); TU act
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012D088(s32 arg0) {
     M2C_FIELD(M2C_FIELD(arg0, void **, 8), s128 *, 0xC0) = (s128) M2C_FIELD(arg0, s128 *, 0x20);
     M2C_FIELD(M2C_FIELD(arg0, void **, 8), s128 *, 0xD0) = (s128) D_002A2DD0;

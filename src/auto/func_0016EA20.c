@@ -110,6 +110,15 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x16EA20
+ * Purpose: Pass 1 begin (kinds 9/17/20/24): upload the cel-border microprogram D_0025B880..D_0025C1B0
+ * Info: proposed name BeginRpCelBorder (T1); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources:
+ *   r3_1539A8+verdicts_tu_r3r5+rendering
+ * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 void func_0016EA20(s32 arg0) {
     func_00160918(arg0, (s32) &D_0025B880, (s32) &D_0025C1B0);
 }

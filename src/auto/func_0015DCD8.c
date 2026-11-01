@@ -52,6 +52,14 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x15DCD8
+ * Purpose: LO::Update; when clock time - t68 exceeds the sum of three durations (5C+60+64) calls vtable slot
+ *   (+0x48/0x4C) to expire itself
+ * Info: proposed name UpdateCid116 (T2); class CID116 slot16; TU tu_15DC80
+ * Notes: Cid74->Cid116 (CID 0x74=116, vtable)
+ * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
+ * @end-sly2-annot */
 void func_0015DCD8(s32 arg0) {
     void *temp_v0;
 

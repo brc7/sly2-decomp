@@ -13,6 +13,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x119EF8
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU empty_119EF8
+ * Info: proposed name StaticInit_empty_119EF8 (T1); TU empty_119EF8
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r1_116918
+ * See: docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 void StaticInit_empty_119EF8(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

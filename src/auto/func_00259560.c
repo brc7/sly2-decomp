@@ -15,6 +15,12 @@ extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_004520D0;
 extern M2C_UNK D_00452148;
 
+/** @sly2-annot addr=0x259560
+ * Purpose: ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)]
+ * Info: proposed name PemitoExploEnsureKind0 (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 s32 func_00259560(s32 arg0, s32 arg1) {
     if (arg1 == 1) {
         func_00259498(arg0, 0);

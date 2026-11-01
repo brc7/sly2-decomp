@@ -71,6 +71,14 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E1450;
 extern M2C_UNK D_004520A8;
 
+/** @sly2-annot addr=0x14C2D8
+ * Purpose: InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0
+ * Info: proposed name StartupCodes (T1); TU cheat
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/cheat
+ * See: docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
+ *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
+ * @end-sly2-annot */
 void func_0014C2D8(s32 arg0) {
     func_0011A050(arg0, 0x18);
     func_0014BEA8(arg0, (s32) &D_002BD4E0);

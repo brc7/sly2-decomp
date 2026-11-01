@@ -2,6 +2,12 @@
 s32 func_001DAE58(s32);                             /* extern */
 s32 func_001DAEA8(s32);                             /* extern */
 
+/** @sly2-annot addr=0x1DB010
+ * Purpose: Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired
+ * Info: proposed name RefreshGadgetMenuItems (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DB010(void *arg0) {
     s32 temp_v0;
     s32 var_s1;

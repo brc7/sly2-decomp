@@ -10,6 +10,13 @@ extern M2C_UNK D_003E11AC;
 extern M2C_UNK D_003E11B8;
 extern M2C_UNK D_003E12D4;
 
+/** @sly2-annot addr=0x1F3590
+ * Purpose: SO vt64: SOPHYS gravity vector (+0x80) = (0,0,-1750), both XF modes (+0xA0/+0xC0) = 3 (fixed)
+ * Info: proposed name ResetSoPhys (T2); class SO slot64; TU so
+ * Notes: names_v2 C proposed ConstrFromCnstr__F5CNSTRP2CTP6VECTOR (0.438)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 s32 func_001F3590(s32 arg0) {
     void *temp_v0;
     void *temp_v0_2;

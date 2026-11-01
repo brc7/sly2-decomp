@@ -5,6 +5,13 @@ M2C_UNK func_00147410(void *, M2C_UNK);             /* extern */
 s32 func_001FE848(M2C_UNK *, s32);                  /* extern */
 extern M2C_UNK D_003DD040;
 
+/** @sly2-annot addr=0x147278
+ * Purpose: vt16: state 0 -> 1; state 3 waits for a sound/stream (0x1FE848) then 2
+ * Info: proposed name UpdateCid104 (T2); class CID104 slot16; TU tu_1471C0
+ * Notes: Cid68->Cid104 (CID 0x68=104, vtable)
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20
+ * @end-sly2-annot */
 void func_00147278(void *arg0) {
     s32 temp_a0;
     s32 temp_v1;

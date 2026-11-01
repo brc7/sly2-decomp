@@ -33,6 +33,12 @@ extern M2C_UNK D_003DD4BC;
 extern s32 D_003E115C;
 extern s32 D_003E1398;
 
+/** @sly2-annot addr=0x1CCA20
+ * Purpose: SW callback wrapper calling UpdateJtHands
+ * Info: proposed name UpdateJtHandsCallback (T2); TU jthands
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
+ * @end-sly2-annot */
 void func_001CCA20(s32 arg0, s32 arg1) {
     UpdateJtHands(arg1);
 }

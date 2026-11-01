@@ -23,6 +23,13 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E10D0;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x22B050
+ * Purpose: wipes fields, state -1, SetWipeWipes(0)
+ * Info: proposed name InitWipe (T1); TU wipe
+ * Notes: agent qualifier: WIPE ctor
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
+ * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
+ * @end-sly2-annot */
 s32 func_0022B050(s32 arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(arg0, s32 *, 0x54) = 0;
     M2C_FIELD(arg0, s32 *, 0) = -1;

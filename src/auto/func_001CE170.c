@@ -33,6 +33,14 @@ extern M2C_UNK D_003DD4BC;
 extern s32 D_003E115C;
 extern s32 D_003E1398;
 
+/** @sly2-annot addr=0x1CE170
+ * Purpose: RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set
+ *   dirty flag D_003E115C, call SO bound update 0x1F4BA8
+ * Info: proposed name UpdateRipgBounds (T1); class RIPG slot49; TU rip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CE170(s32 arg0) {
     M2C_FIELD(M2C_FIELD(arg0, void **, 0xEC), s128 *, 0) = (s128) M2C_FIELD(arg0, s128 *, 0x170);
     M2C_FIELD(M2C_FIELD(arg0, void **, 0xEC), s128 *, 0x10) = (s128) M2C_FIELD(arg0, s128 *, 0x180);

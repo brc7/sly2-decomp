@@ -30,6 +30,12 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x1BBA60
+ * Purpose: Record action kind 6 with arg
+ * Info: proposed name AddCid98Action6 (T2); class CID98; TU tu_1BAB50
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 void func_001BBA60(s32 arg0, s32 arg1) {
     M2C_FIELD(func_001BBDB0(arg0, 6), s32 *, 4) = arg1;
 }

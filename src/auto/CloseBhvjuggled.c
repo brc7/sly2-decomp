@@ -26,6 +26,16 @@ extern s64 D_002DFB70;
 extern s32 D_002DFB78;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x17B178
+ * Purpose: BHVHELD Close: state -1 (restore mass), BHVANIM Close
+ * Info: proposed name CloseBhvjuggled (T1); class BHVJUGGLED slot9; TU guardbhv
+ * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded:
+ *   SetAloInitialVelocity (names_v2:B(unverified)) | BHV class word normalised: CloseBhvheld ->
+ *   CloseBhvjuggled | runtime2/4 confirmed the BHVJUGGLED role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   names_v2:B(unverified)+r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void CloseBhvjuggled(s32 arg0) {
     SetBhvjuggledState(arg0, -1);
     CloseBhvanim(arg0);

@@ -53,6 +53,15 @@ extern M2C_UNK D_3358;
 extern M2C_UNK D_3628;
 extern M2C_UNK D_37A8;
 
+/** @sly2-annot addr=0x167310
+ * Purpose: CRef default constructor emitted (weak) at the start of the glob TU
+ * Info: proposed name __4CRef (EXISTING); class CRef; TU glob
+ * Notes: agent/verifier proposes CRef_ctor for this existing name (see existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.60] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r3_1539A8
+ * See: docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 s32 __4CRef(s32 arg0) {
     M2C_FIELD(arg0, s32 *, 0x4C) = -1;
     return arg0;

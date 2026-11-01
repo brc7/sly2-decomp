@@ -40,6 +40,14 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E0F9C;
 extern s32 D_003E1480;
 
+/** @sly2-annot addr=0x154038
+ * Purpose: Looks up a target by id and sets its detection state
+ * Info: proposed name SetDetectorTargetStateById (T1); TU detector
+ * Notes: names_v2 C proposed UseStepguardAnimation__FP9STEPGUARD3SGS3OID (0.168)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660,
+ *   docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
+ * @end-sly2-annot */
 void SetDetectorTargetStateById(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_v0;
 

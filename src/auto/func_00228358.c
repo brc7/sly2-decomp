@@ -23,6 +23,17 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E10D0;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x228358
+ * Purpose: EXIT state change (Sly 1 SetExitExits): state 4 -> busyk 1, IncrementSwHandsOff(g_sw,3),
+ *   g_sw+0x3C84 = this; time stamp
+ * Info: proposed name SetExitExits (T1); TU exit_warp
+ * Notes: v3: superseded SetWarpState | CONFIRMED (fields; TriggerWarp resets every EXIT through it with 0, as
+ *   Sly 1 SetExitExits(pexit, EXITS_Blocked)); v2 SetWarpState
+ * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
+ *   r8_21BB88+class_review(master_names_v2_1)
+ * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
+ *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
+ * @end-sly2-annot */
 void func_00228358(s32 arg0, s32 arg1) {
     if (arg1 != M2C_FIELD(arg0, s32 *, 0x13C)) {
         if (arg1 == 4) {

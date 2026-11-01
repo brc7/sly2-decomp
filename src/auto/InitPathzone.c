@@ -25,6 +25,12 @@ extern s32 D_003D3980;
 extern M2C_UNK D_003DD020;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x1C0378
+ * Purpose: CID 17 vt7: InitXfm, ids -1, init DL
+ * Info: proposed name InitPathzone (T1); class PATHZONE slot7; TU path
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void InitPathzone(s32 arg0) {
     InitXfm(arg0);
     M2C_FIELD(arg0, s32 *, 0x110) = -1;

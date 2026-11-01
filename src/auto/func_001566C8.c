@@ -57,6 +57,12 @@ extern M2C_UNK D_003E12B8;
 extern void *D_003E148C;
 extern M2C_UNK D_003E1498;
 
+/** @sly2-annot addr=0x1566C8
+ * Purpose: cid 0x93 vt2: --refcount; at zero clears refs and frees to pool D_003E1498
+ * Info: proposed name DecrefNoise (T2); class CID147 slot2; TU noise
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
+ * @end-sly2-annot */
 void func_001566C8(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

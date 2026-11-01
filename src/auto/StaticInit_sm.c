@@ -13,6 +13,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1F1610
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU sm
+ * Info: proposed name StaticInit_sm (T1); TU sm
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: semantic review; sources: tu_map(structural)+semantic_tu_docs/sm
+ * @end-sly2-annot */
 void StaticInit_sm(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

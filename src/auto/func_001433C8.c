@@ -51,6 +51,14 @@ extern s32 D_003E1084;
 extern void *D_003E1474;
 extern s32 D_003E1AC8;
 
+/** @sly2-annot addr=0x1433C8
+ * Purpose: If carrying booty: booty save case 1 (clear oidBooty, increment loot.mplootkc[kind]), set its
+ *   state 0
+ * Info: proposed name DeliverStepplayerBooty (T2); TU stepplayer
+ * Notes: names_v2 C proposed FreezeTn__FP2TNi (0.200)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_001433C8(s32 arg0, s32 arg1, s32 arg2) {
     if (M2C_FIELD(arg0, s32 *, 0x11A8) != 0) {
         UpdateStepplayerBootySave(arg0, 1, 0);

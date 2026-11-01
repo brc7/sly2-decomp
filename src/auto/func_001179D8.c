@@ -14,6 +14,13 @@ extern M2C_UNK D_002BBB20;
 extern void *D_002DD2F8;
 extern void *D_002DD2FC;
 
+/** @sly2-annot addr=0x1179D8
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
+ *   docs/engine/overview.md#3-world--level-lifecycle,
+ *   docs/formats/compression-lzss.md#compression-whole-file-lzss
+ * @end-sly2-annot */
 void func_001179D8(void *arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(arg0, s32 *, 0x24) = arg2;
     M2C_FIELD(arg0, s32 *, 0x20) = arg1;

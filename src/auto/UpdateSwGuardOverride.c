@@ -48,6 +48,13 @@ extern void *D_003E1408;
 extern s32 D_003E142C;
 extern M2C_UNK D_004435F0;
 
+/** @sly2-annot addr=0x19F120
+ * Purpose: Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s,
+ *   clear it (0x19F170(psw,0))
+ * Info: proposed name UpdateSwGuardOverride (T1); TU tu_19F0A8
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_19f0a8-0x19f0a8-0x19f3e8
+ * @end-sly2-annot */
 void UpdateSwGuardOverride(s32 arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0x4748) != 0) {
         if (D_002BF938 < (D_002DDED0 - M2C_FIELD(arg0, f32 *, 0x474C))) {

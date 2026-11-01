@@ -11,6 +11,13 @@ extern M2C_UNK D_003DA740;
 extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E11C4;
 
+/** @sly2-annot addr=0x1E0880
+ * Purpose: Splice builtin: append a RELAYCK 0x19 (SetFocus) command to the relay
+ *   (PrelaycmdAddRelay(prelay,0x19,fAsync)) and fill its args
+ * Info: proposed name AddRelaySetFocus (T1); TU relay
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E0880(s32 arg0, s32 arg1, s32 arg2) {
     void *temp_v0;
 

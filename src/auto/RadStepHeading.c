@@ -1,6 +1,12 @@
 #include "m2c_prelude.h"
 M2C_UNK atan2f(f32, f32);                           /* extern */
 
+/** @sly2-annot addr=0x204740
+ * Purpose: Current heading = atan2(xf.mat[0][1], xf.mat[0][0])
+ * Info: proposed name RadStepHeading (T1); TU step
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void RadStepHeading(void *arg0) {
     void *temp_v0;
 

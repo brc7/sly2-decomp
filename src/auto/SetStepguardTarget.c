@@ -3,6 +3,14 @@ s32 func_001F8278(s32);                             /* extern */
 M2C_UNK AddTargetRecordGuard(s32, void *);                 /* extern */
 M2C_UNK func_0020A790(s32, void *);                 /* extern */
 
+/** @sly2-annot addr=0x208540
+ * Purpose: Change current target +0x38C: leave the old target's shared engagement record +0x3CC, join the new
+ *   one's (EnsureGlobalById 0x1F8278 / 0x20A730)
+ * Info: proposed name SetStepguardTarget (T1); TU stepguard
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void SetStepguardTarget(void *arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

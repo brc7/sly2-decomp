@@ -1,6 +1,12 @@
 #include "m2c_prelude.h"
 extern M2C_UNK D_002A8A98;
 
+/** @sly2-annot addr=0x210CA8
+ * Purpose: Search {key,ptr} table; return ptr or default empty D_002A8A98
+ * Info: proposed name PvFindSwKeyedTable (T2); TU sw
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 M2C_UNK *func_00210CA8(void *arg0, s32 arg1) {
     M2C_UNK *var_v0;
     s32 temp_a2;

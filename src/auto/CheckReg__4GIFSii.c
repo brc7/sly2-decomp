@@ -53,6 +53,11 @@ extern M2C_UNK D_3628;
 extern M2C_UNK D_37A8;
 extern M2C_UNK D_3AB0;
 
+/** @sly2-annot addr=0x166A50
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 s32 CheckReg__4GIFSii(void *arg0) {
     s32 temp_v0;
 

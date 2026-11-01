@@ -23,6 +23,12 @@ extern M2C_UNK D_004521B8;
 extern M2C_UNK D_004521D0;
 extern M2C_UNK D_004521E8;
 
+/** @sly2-annot addr=0x127B40
+ * Purpose: apframe[cframe++] = parent
+ * Info: proposed name CFrame_AddParent (T1); class CFrame; TU frame
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
+ * @end-sly2-annot */
 void CFrame_AddParent(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

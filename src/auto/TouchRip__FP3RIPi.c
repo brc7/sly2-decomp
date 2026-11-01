@@ -49,6 +49,12 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x1CEA88
+ * Purpose: if fTouching RemoveRip (default vt entry 7)
+ * Info: proposed name TouchRip__FP3RIPi (EXISTING); TU rip
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void TouchRip__FP3RIPi(s32 arg0, s32 arg1) {
     if (arg1 != 0) {
         RemoveRip__FP3RIP(arg0);

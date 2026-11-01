@@ -13,6 +13,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x127FE0
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU frame
+ * Info: proposed name StaticInit_frame (T1); TU frame
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r1_116918
+ * @end-sly2-annot */
 void StaticInit_frame(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

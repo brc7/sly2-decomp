@@ -4,6 +4,11 @@ M2C_UNK FinishSpooling__18CBinaryAsyncStream(void *); /* extern */
 M2C_UNK sceCdSync(M2C_UNK);                         /* extern */
 M2C_UNK sceClose(s32);                              /* extern */
 
+/** @sly2-annot addr=0x132688
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
+ * @end-sly2-annot */
 void Close__18CBinaryAsyncStream(void *arg0) {
     s32 temp_a0;
     s32 temp_v1;

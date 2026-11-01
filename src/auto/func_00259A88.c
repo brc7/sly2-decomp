@@ -10,6 +10,13 @@ extern s32 D_003E0EA4;
 extern M2C_UNK D_00452160;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x259A88
+ * Purpose: move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)]
+ * Info: proposed name GcFrame_MakeRoot (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
+ * @end-sly2-annot */
 s32 func_00259A88(s32 arg0) {
     s32 temp_v0;
 

@@ -37,6 +37,12 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E0F9C;
 extern s32 D_003E0FE4;
 
+/** @sly2-annot addr=0x1AF660
+ * Purpose: In state 7: keep only root page, state 8
+ * Info: proposed name PopPauseMenuToRoot (T2); TU menu
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001AF660(s32 arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0x1E8) == 7) {
         if (M2C_FIELD(arg0, s32 *, 0x24) >= 2) {

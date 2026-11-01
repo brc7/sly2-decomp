@@ -60,6 +60,12 @@ extern s32 D_003E1468;
 extern M2C_UNK D_003E1C20;
 extern s32 D_003E1C34;
 
+/** @sly2-annot addr=0x1421A0
+ * Purpose: Splice: clears grab (0x142140(p,0)) then sets/clears an object at +0x900 (0x1CD098 / 0x1CD2C0)
+ * Info: proposed name SetStepplayerGrabTargetEx (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_001421A0(s32 arg0, s32 arg1) {
     func_00142140(arg0, 0);
     if (arg1 != 0) {

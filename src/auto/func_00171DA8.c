@@ -34,6 +34,12 @@ extern s32 D_003E13FC;
 extern s32 D_003E1408;
 extern s32 D_003E1450;
 
+/** @sly2-annot addr=0x171DA8
+ * Purpose: True if the guard's BHV156 is in mode 5 with this script
+ * Info: proposed name FGuardRunningScript (T2); TU tu_1709A8
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 s32 func_00171DA8(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 var_a1;

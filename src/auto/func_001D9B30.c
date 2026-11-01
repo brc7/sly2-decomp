@@ -55,6 +55,12 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x1D9B30
+ * Purpose: Reset the meter: state 0, drop widget
+ * Info: proposed name ResetHudMeter (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001D9B30(s32 arg0) {
     func_001D9B60(arg0, 0);
     M2C_FIELD(arg0, s32 *, 0x38) = 0;

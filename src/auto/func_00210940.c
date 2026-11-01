@@ -75,6 +75,12 @@ extern M2C_UNK D_00452170;
 extern M2C_UNK D_100;
 extern M2C_UNK D_C0;
 
+/** @sly2-annot addr=0x210940
+ * Purpose: SW+0x4638 = PloFindSwObject(psw,5,oid 0x620,0)
+ * Info: proposed name BindSwObject620 (T2); TU sw
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_00210940(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
     M2C_FIELD(arg0, s32 *, 0x4638) = PloFindSwObject__FP2SWi3OIDP2LO(arg0, 5, 0x620, 0, arg4, arg5, arg6);
 }

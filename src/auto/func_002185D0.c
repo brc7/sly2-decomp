@@ -155,6 +155,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x2185D0
+ * Purpose: draw sprite (slot 0)
+ * Info: proposed name DrawSprite (T2); TU hud
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 s32 func_002185D0(s32 arg0, s32 arg1, s32 arg2) {
     s32 var_v0;
 

@@ -3,6 +3,14 @@ M2C_UNK SetDetectorTargetStateById(s32, s32, M2C_UNK);           /* extern */
 M2C_UNK HandleStepguardMessage();                            /* extern */
 s32 FStepguardHasSgf(s32, M2C_UNK);                    /* extern */
 
+/** @sly2-annot addr=0x14B218
+ * Purpose: vt5: STEPGUARD handler; msg 0xB about itself when flag 0x24 clear -> 0x154038
+ * Info: proposed name HandleCarmelitaMessage (T2); class CARMELITA slot5; TU tu_14A008
+ * Notes: Cid3F->Cid63 (CID 0x3F=63, hex-literal) | class identity from whole_game WE names/object strings:
+ *   HandleCid63Message -> HandleCarmelitaMessage
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
+ * @end-sly2-annot */
 void func_0014B218(s32 arg0, s32 arg1, void *arg2) {
     void *temp_v0;
 

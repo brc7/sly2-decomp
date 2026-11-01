@@ -85,6 +85,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1CA8C0
+ * Purpose: wrapper: PspareAcquire(this,2)
+ * Info: proposed name AcquireProxyCopy2 (T2); TU proxy
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 void func_001CA8C0(s32 arg0, s32 arg1) {
     PspareAcquire(arg0, 2);
 }

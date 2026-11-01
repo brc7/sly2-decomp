@@ -19,6 +19,13 @@ extern M2C_UNK D_003DA3C0;
 extern M2C_UNK D_003DA4F0;
 extern M2C_UNK D_003DA530;
 
+/** @sly2-annot addr=0x1D9520
+ * Purpose: Call PostLoad (slot 12) on every global HUD screen object (D_003D9E80, D_003DA0F0, D_003DA150,
+ *   D_003DA0C0, ...)
+ * Info: proposed name PostScreensLoad (T2); TU screen
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001D9520(void) {
     func_001D9968(&D_003D9E80);
     func_001AE928(&D_003D9ED0);

@@ -6,6 +6,12 @@ M2C_UNK PostSoLoad();                            /* extern */
 s32 PxfFindSo(void *, M2C_UNK, M2C_UNK);        /* extern */
 extern M2C_UNK D_002C0EC8;
 
+/** @sly2-annot addr=0x1C82F0
+ * Purpose: CID 78 vt15
+ * Info: proposed name PostVaultLoad (T2); class VAULT slot15; TU prize
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C82F0(void *arg0) {
     PostSoLoad();
     BindLoOidTable(arg0, 0x18, &D_002C0EC8);

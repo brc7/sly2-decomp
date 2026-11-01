@@ -13,6 +13,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x11AE88
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU dzg_11A550
+ * Info: proposed name StaticInit_dzgcore (T1); TU dzgcore
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU) |
+ *   TU relabel dzg_11A550 -> dzgcore
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r1_116918
+ * @end-sly2-annot */
 void StaticInit_dzgcore(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

@@ -2,6 +2,14 @@
 M2C_UNK func_0014FCA8();                            /* extern */
 extern M2C_UNK D_002CD4E0;
 
+/** @sly2-annot addr=0x14FDE0
+ * Purpose: CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndUnk38 = 0
+ * Info: proposed name CPLOOK_ctor (T1); class CPLOOK; TU cplcy
+ * Notes: runtime5a #9/#11: CM+0x450 CPLOOK prio 7 = binocucom camera for all three characters
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void *func_0014FDE0(void *arg0) {
     func_0014FCA8();
     M2C_FIELD(arg0, M2C_UNK **, 0xC) = &D_002CD4E0;

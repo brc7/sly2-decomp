@@ -49,6 +49,13 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x1D0CE8
+ * Purpose: RIPT 1 PostEmit
+ * Info: proposed name PostRipt1Emit (T2); TU rip
+ * Notes: names_v2 v1 proposed InitRose__FP4ROSEP6VECTORfP2SO (0.438)
+ * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 s32 func_001D0CE8(s32 arg0, s32 arg1) {
     void *temp_v0;
 

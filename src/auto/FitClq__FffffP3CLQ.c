@@ -1,4 +1,9 @@
 #include "m2c_prelude.h"
+/** @sly2-annot addr=0x11D8D8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
+ * @end-sly2-annot */
 void FitClq__FffffP3CLQ(void *arg0, f32 fparg0, f32 fparg1, f32 fparg2, f32 fparg3) {
     f32 temp_f13;
     f32 temp_f15;

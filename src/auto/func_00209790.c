@@ -1,6 +1,12 @@
 #include "m2c_prelude.h"
 M2C_UNK func_001F5078(void *);                      /* extern */
 
+/** @sly2-annot addr=0x209790
+ * Purpose: clear driver/lock, zero owner's desired velocity +0x190, 0x1F5078
+ * Info: proposed name ResetStepguardMover (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00209790(void *arg0) {
     void *temp_v0;
     void *temp_v1;

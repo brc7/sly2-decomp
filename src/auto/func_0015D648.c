@@ -51,6 +51,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x15D648
+ * Purpose: Switches the episode-menu widget mode (autosave on leaving mode 0, restores the selection on 4/6),
+ *   resets labels and shows the new label (vt49)
+ * Info: proposed name SetWidget131Mode (T2); TU tu_15CD68
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 void func_0015D648(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_v0;
     s32 temp_v1;

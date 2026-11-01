@@ -55,6 +55,13 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x1DA7D0
+ * Purpose: state(+0x28)=-1, t=now, SetScreenMode(-1,-1)
+ * Info: proposed name ResetScreenMode (T2); TU screen
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001DA7D0(s32 arg0) {
     M2C_FIELD(arg0, s32 *, 0x28) = -1;
     M2C_FIELD(arg0, f32 *, 0x2C) = (f32) D_002DDF0C;

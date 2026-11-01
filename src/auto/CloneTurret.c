@@ -39,6 +39,13 @@ extern M2C_UNK D_003DD040;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E0FE0;
 
+/** @sly2-annot addr=0x225A68
+ * Purpose: ClonePo then fix self pointer 0x1D0
+ * Info: proposed name CloneTurret (T1); class TURRET slot41; TU turret
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
+ * @end-sly2-annot */
 s32 CloneTurret(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

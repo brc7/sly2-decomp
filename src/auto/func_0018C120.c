@@ -2,6 +2,12 @@
 M2C_UNK func_0012CFE0(s32);                         /* extern */
 M2C_UNK func_0012D020(s32);                         /* extern */
 
+/** @sly2-annot addr=0x18C120
+ * Purpose: (pjt,f): enable/disable 5 actuators x19E4..x19F4 (0x12CFE0/0x12D020)
+ * Info: proposed name EnableJtLeanActs (T2); TU jt
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018C120(void *arg0, s32 arg1) {
     s32 temp_a0;
 

@@ -7,6 +7,14 @@ M2C_UNK func_001ADE70(M2C_UNK *);                   /* extern */
 extern M2C_UNK D_002E6550;
 extern M2C_UNK D_002E65A0;
 
+/** @sly2-annot addr=0x1ABBE0
+ * Purpose: Thread job: card info check, set UI/SAVE state
+ * Info: proposed name McJobCheckCard (T2); TU memcard
+ * Notes: names_v2 v1 proposed FUN_0018c770 (0.000)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4_17F090
+ * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 s32 func_001ABBE0(void *arg0) {
     s32 var_s1;
 

@@ -41,6 +41,15 @@ extern s32 D_002E0CBC;
 extern s32 D_002E1E40;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x189458
+ * Purpose: JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1
+ * Info: proposed name JT_FFaceTarget (T1); class JT slot92; TU jt
+ * Notes: verifier PLAUSIBLE: JT::FMatchAttached -> JT::FFaceTarget (vt92) | verifier: purpose partly wrong:
+ *   JT slot 92 (MURRAY returns 0, BENTLEY no-op). If ploUnk18c0: 0x2046F0 = atan2 of (target pos - own pos)
+ *   -> 0x204660 sets heading angle + Z rotation, i.e. turn t
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 s32 JT_FFaceTarget(s32 arg0) {
     s32 temp_a1;
     s32 var_v0;

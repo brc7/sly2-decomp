@@ -4,6 +4,16 @@ M2C_UNK UpdateStepguard();                            /* extern */
 extern M2C_UNK D_002BD910;
 extern M2C_UNK D_002BD940;
 
+/** @sly2-annot addr=0x14FAF8
+ * Purpose: vt16 override of cid 0x40: base slot-16 (0x207350) then, if +0xF80 == -1 and +0x208 != 0,
+ *   0x205910(this, D_002BD940, 3, D_002BD910)
+ * Info: proposed name UpdateContessa (T2); class CONTESSA slot16; TU tu_14FAC8
+ * Notes: class identity from whole_game WE names/object strings: UpdateCid64Guard -> UpdateContessa
+ * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70+whole_game(class
+ *   identity)
+ * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
+ *   docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
+ * @end-sly2-annot */
 void func_0014FAF8(void *arg0) {
     UpdateStepguard();
     if ((M2C_FIELD(arg0, s32 *, 0xF80) == -1) && (M2C_FIELD(arg0, s32 *, 0x208) != 0)) {
