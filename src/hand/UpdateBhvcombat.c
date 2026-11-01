@@ -20,7 +20,7 @@ int FBhvcombatChooseAttack(C*);
 int FBhvcombatCanShoot(C*);
 void SetBhvcombatState(C*,int);
 qword func_001A62E8(P*);
-void*func_001C0D70(qword,int);
+void*PpathzoneFromPos(qword,int);
 void func_002562A8(X*);
 void SetBhvgotoGoal(void*,X*);
 int FBhvattackDone(void*);
@@ -98,7 +98,7 @@ void UpdateBhvcombat(C*p){
    current=func_001A62E8(p->actor);
    distance=DistanceXY(p,&work.point,current,&actor,&mode);
    if(mode==8 ||mode==13){SCALE*scale=actor->scale;if(scale)distance/=scale->value;}
-   region=func_001C0D70(work.point.q,1);
+   region=PpathzoneFromPos(work.point.q,1);
    if(p->state!=0){
     if(p->state!=3)break;
     if(distance<p->actor->close &&region==ActorRegion(p->actor)){SetBhvcombatState(p,0);break;}

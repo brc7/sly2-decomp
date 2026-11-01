@@ -5,7 +5,7 @@ struct P { struct O *x0; int x4; int pad[3]; void *x14; int pad2[2]; int x20; ch
 struct D { char pad[0x460]; float x460; int p1[3]; float x470; char pad2[0x5C4-0x474]; float x5c4; int p2; float x5cc; };
 extern struct D D_002DDF40;
 extern qword D_002A2DD0;
-int func_00131968(void *p);
+int FAsegaRetracted(void *p);
 void SetJtModeState__FP6JTMODEi(struct P *p, int n);
 void func_00204660(struct O *o, float g);
 void func_0019DA78(void *p);
@@ -17,7 +17,7 @@ void UpdateJtMode(struct P *p)
         switch (n) {
         case 0:
             p->x0->x190 = D_002A2DD0;
-            if (!p->x14 || func_00131968(p->x14))
+            if (!p->x14 || FAsegaRetracted(p->x14))
                 SetJtModeState__FP6JTMODEi(p, 1);
             break;
         case 1:
@@ -37,7 +37,7 @@ void UpdateJtMode(struct P *p)
             break;
         case 2:
             p->x0->x190 = D_002A2DD0;
-            if (!p->x14 || func_00131968(p->x14))
+            if (!p->x14 || FAsegaRetracted(p->x14))
                 SetJtModeState__FP6JTMODEi(p, -1);
             break;
         }

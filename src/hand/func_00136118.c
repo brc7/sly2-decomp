@@ -5,7 +5,7 @@ struct P { char pad[0x150]; void *p150; char pad0[0x20C - 0x154]; float g20C; ch
     char pad1[0x13D0 - 0x1034]; int x13D0; char pad2[0x16B0 - 0x13D4]; int x16B0; struct Q *pq; char pad3[0x186C - 0x16B8]; struct O *po; };
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
-int func_00131968(void *pv);
+int FAsegaRetracted(void *pv);
 void func_00136040(struct P *p, int n);
 void func_00224258(struct O *po, int n);
 int GrfbtnGadget(struct P *p, int n);
@@ -19,7 +19,7 @@ void func_00136118(struct P *p)
         s = p->x16B0;
         switch (s) {
         case 0:
-            if (func_00131968(p->p1030))
+            if (FAsegaRetracted(p->p1030))
                 func_00136040(p, 1);
             break;
         case 1:

@@ -6,7 +6,7 @@ void EvaluateShapeS(S *p, qword *pv, int z, float t);
 float SWrapShape(S *p, float t);
 float SMinShape(S *p);
 float SMaxShape(S *p);
-int func_001BC688(void *p, qword a, qword b, int c, HIT *ahit);
+int ClsgClipEdgeToCnvo(void *p, qword a, qword b, int c, HIT *ahit);
 
 
 int func_001BD560(void *p, S *s, int fForward, qword *pq, float *pt, float t)
@@ -36,7 +36,7 @@ int func_001BD560(void *p, S *s, int fForward, qword *pq, float *pt, float t)
             else t = SMaxShape(s);
         }
         EvaluateShapeS(s, &av[1], 0, t);
-        c = func_001BC688(p, av[0], av[1], 2, ahit);
+        c = ClsgClipEdgeToCnvo(p, av[0], av[1], 2, ahit);
         if (c > 0) {
             if (pt) *pt = t;
             if (pq) *pq = (ahit - 1)[c].q;

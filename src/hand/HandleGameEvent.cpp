@@ -22,7 +22,7 @@ extern "C"{
  extern CHECK D_003E1088,D_002A37E8;
  extern char D_003D4A60[];
  int CploFindSwObjectsByClass(G*,int,int,P*,int,P**);
- int func_0013C478(void*);
+ int IdBootyCur(void*);
  void*func_00143AF0(P*,int);
  void InitGame(P*);
  void func_00166008();
@@ -94,7 +94,7 @@ extern "C" void HandleGameEvent(P*p,int action){
   if(Same(&D_003E1088,&D_002A37E8)){
    P*results[3];
    int found=CploFindSwObjectsByClass(&D_003DD490,5,0x34,0,3,results);
-   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)func_00143AF0(object,func_0013C478(object->widget));--count;++cursor;}while(count);}
+   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)func_00143AF0(object,IdBootyCur(object->widget));--count;++cursor;}while(count);}
   }
   break;
  }

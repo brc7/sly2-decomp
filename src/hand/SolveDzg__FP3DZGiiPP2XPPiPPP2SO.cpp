@@ -6,7 +6,7 @@ struct DZG { int pad0[3]; DL dlC; int pad18[6]; DL dl30; int c3C; };
 struct XP; struct SO;
 extern "C" {
 int func_00158958(DZG *, DZ *);
-void func_00158728(DZG *, int, DZ *, int);
+void FillDzgDz(DZG *, int, DZ *, int);
 void RemoveDlEntry__FP2DLPv(DL *, void *);
 void AppendDlEntry__FP2DLPv(DL *, void *);
 void func_0011A770(DZG *, DZ *);
@@ -34,7 +34,7 @@ void SolveDzg(DZG *pdzg, int a, int b, XP **ppxp, int *pn, SO ***pppso)
     while ((pdz = (DZ *)PvNextDli(&dli)) != 0) {
         if (pdz->n0 == 1) {
             if (!pdz->f18)
-                func_00158728(pdzg, a, pdz, func_00158958(pdzg, pdz));
+                FillDzgDz(pdzg, a, pdz, func_00158958(pdzg, pdz));
             RemoveDlEntry__FP2DLPv(&pdzg->dl30, pdz);
             AppendDlEntry__FP2DLPv(&pdzg->dlC, pdz);
             pdzg->c3C++;
@@ -54,7 +54,7 @@ void SolveDzg(DZG *pdzg, int a, int b, XP **ppxp, int *pn, SO ***pppso)
         if (!pdzBest)
             break;
         if (!pdzBest->f18)
-            func_00158728(pdzg, a, pdzBest, func_00158958(pdzg, pdzBest));
+            FillDzgDz(pdzg, a, pdzBest, func_00158958(pdzg, pdzBest));
         func_0011A770(pdzg, pdzBest);
     }
 }

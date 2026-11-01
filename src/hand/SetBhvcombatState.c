@@ -15,7 +15,7 @@ void func_0020A9A8(void *p, int n);
 qword func_001A62E8(int p);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
-int func_001C0D70(qword v, int n);
+int PpathzoneFromPos(qword v, int n);
 void SetDetectorTargetStateById(void *p, int a, int b);
 void SetStepguardTarget(void *p, int n);
 void SetBhvcombatState(struct S *p, int n) {
@@ -65,7 +65,7 @@ void SetBhvcombatState(struct S *p, int n) {
             o->nAC = 1;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
             p->v50 = v1;
-            p->n44 = func_001C0D70(v1, 1);
+            p->n44 = PpathzoneFromPos(v1, 1);
         }
         break;
     case 4:

@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001BE240(M2C_UNK, M2C_UNK);            /* extern */
+M2C_UNK StaticInit_tu_1BC050(M2C_UNK, M2C_UNK);            /* extern */
 
 void func_001BE378(void) {
-    func_001BE240(1, 0xFFFF);
+    StaticInit_tu_1BC050(1, 0xFFFF);
 }

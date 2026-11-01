@@ -9,7 +9,7 @@ extern float D_002DDED0;
 void func_001356E8(struct S *);
 struct O *PloAcquireProxy(void *, int);
 void LaunchSoFromLauncher(struct Q *, struct O *);
-void func_0013B5C8(struct O *, float);
+void PrimeBomb__FP4BOMBf(struct O *, float);
 void func_001362F8(struct S *, int);
 void FireBentleyDart(struct S *p, int a) {
     void *pv;
@@ -30,7 +30,7 @@ void FireBentleyDart(struct S *p, int a) {
     pq->v50 = p->v16f0;
     LaunchSoFromLauncher(pq, po);
     ((void (*)(void *, ti128))po->vt[36].pfn)((char *)po + po->vt[36].d, D_002A2DD0);
-    func_0013B5C8(po, 4.0f);
+    PrimeBomb__FP4BOMBf(po, 4.0f);
     func_001362F8(p, 1);
     p->f1700 = D_002DDED0;
 }

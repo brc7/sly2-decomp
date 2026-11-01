@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 struct M { qword a[3]; };
 extern float D_002C0D10, D_002C0D08, D_002C0D0C;
 float SRandomShapeRange(void *,float,float);
-void func_001C3500(void *,float,int,struct M *);
+void GetPipeGoalMat(void *,float,int,struct M *);
 void EvaluateShapeS(void *,float,qword *,int);
 float GRandInRange__Fff(float,float);
 qword SetVectorCylind(float,float,float);
@@ -21,7 +21,7 @@ void func_001C3A88(void *p,qword *ppos,qword *pdir,float t)
     qword dir,s,r,pos2;
     float n,mag;
     t=SRandomShapeRange(p,t,D_002C0D10);
-    func_001C3500(p,t,1,&m);
+    GetPipeGoalMat(p,t,1,&m);
     EvaluateShapeS(p,t,&vp.q,0);
     n=GRandInRange__Fff(-1.0f,1.0f);
     mag=__builtin_fabsf(n);

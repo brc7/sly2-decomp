@@ -13,7 +13,7 @@ void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
 int func_001A61A0(struct P *p);
 void AppendDlEntry__FP2DLPv(void *p, struct X14 *px);
-void func_00131A20(void *p, float g);
+void SetAsegaMasterSpeed(void *p, float g);
 void func_00147410(struct P *p, int state)
 {
     if (state == p->state) return;
@@ -32,7 +32,7 @@ void func_00147410(struct P *p, int state)
         }
         break;
     case 3:
-        if (p->p160) func_00131A20(p->p160, 1.0f);
+        if (p->p160) SetAsegaMasterSpeed(p->p160, 1.0f);
         break;
     }
     p->state = state;
@@ -46,7 +46,7 @@ void func_00147410(struct P *p, int state)
         p->vt[9].pfn((char *)p + p->vt[9].d);
         break;
     case 3:
-        if (p->p160) func_00131A20(p->p160, 0.0f);
+        if (p->p160) SetAsegaMasterSpeed(p->p160, 0.0f);
         break;
     }
 }

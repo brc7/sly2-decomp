@@ -56,7 +56,7 @@ extern "C" void func_001B6BA8(P*);
 extern "C" void UpdateMurrayCarry(P*);
 extern "C" void func_001B5820(P*);
 extern "C" void UpdateMurrayLift(P*);
-extern "C" int func_00131968(void*);
+extern "C" int FAsegaRetracted(void*);
 extern "C" int FSmaRetracted(void*);
 extern "C" void UpdateMurrayAttack(P*);
 extern "C" void func_001B5990(P*);
@@ -124,14 +124,14 @@ extern "C" void UpdateMurrayStateMachine(P*p){
   case 5:UpdateMurrayCarry(p);break;
   case 6:func_001B5820(p);break;
   case 4:UpdateMurrayLift(p);break;
-  case 7:case 8:finished=func_00131968(p->animation);goto checkIdle;
+  case 7:case 8:finished=FAsegaRetracted(p->animation);goto checkIdle;
   case 11:UpdateMurrayAttack(p);break;
   case 9:func_001B5990(p);break;
   case 12:func_001B8EC0(p);break;
   case 15:UpdateJtthrow(p->extra);break;
   case 20:UpdateJtActivePipe(p->physics);break;
   case 17:
-   if(p->animation&&func_00131968(p->animation))goto idle;
+   if(p->animation&&FAsegaRetracted(p->animation))goto idle;
    if(!p->other)break;
    finished=FSmaRetracted(p->other);
   checkIdle:

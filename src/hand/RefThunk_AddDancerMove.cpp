@@ -15,7 +15,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void func_001524D8(void *p, int, int, int, int, int); CRef RefThunk_AddDancerMove(void *p, int c, void *aref); }
+extern "C" { void AddDancerMove(void *p, int, int, int, int, int); CRef RefThunk_AddDancerMove(void *p, int c, void *aref); }
 CRef RefThunk_AddDancerMove(void *p, int c, void *aref)
 {
     int ak[5] = {0x103c, 0x6, 0x100b, 0x6, 0x6};
@@ -27,6 +27,6 @@ CRef RefThunk_AddDancerMove(void *p, int c, void *aref)
     CRef ref = func_00201360(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001524D8(p, v0, v1, v2, v3, v4);
+    AddDancerMove(p, v0, v1, v2, v3, v4);
     return ref;
 }

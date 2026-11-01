@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001B26C8(M2C_UNK, M2C_UNK);            /* extern */
+M2C_UNK StaticInit_missile(M2C_UNK, M2C_UNK);            /* extern */
 
 void func_001B2800(void) {
-    func_001B26C8(1, 0xFFFF);
+    StaticInit_missile(1, 0xFFFF);
 }

@@ -27,7 +27,7 @@ void UpdateJtActivePipe(void *pv);
 void func_00136118(struct P *p);
 void func_001367D8(struct P *p);
 void UpdateJtthrow(void *pv);
-int func_00131968(void *pv);
+int FAsegaRetracted(void *pv);
 int FSmaRetracted(void *pv);
 void UpdateBentleyAim(struct P *p);
 
@@ -135,7 +135,7 @@ void UpdateBentleyStateMachine(struct P *p)
             UpdateJtthrow(p->a11B0);
             break;
         case 10:
-            if (p->p1030 && func_00131968(p->p1030))
+            if (p->p1030 && FAsegaRetracted(p->p1030))
                 SetBentleyState(p, 0);
             else if (p->p1034 && FSmaRetracted(p->p1034))
                 SetBentleyState(p, 0);

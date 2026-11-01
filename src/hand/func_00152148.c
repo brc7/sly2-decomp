@@ -4,9 +4,9 @@ struct P { char pad[0x58]; void *p58; void *p5C; char pad2[0x190 - 0x60]; qword 
     char pad4[0x408 - 0x2C4]; struct A *pa408; int f40C; };
 extern struct A *D_002DE570;
 void UpdateStep(struct P *p);
-int func_00131968(struct A *pa);
+int FAsegaRetracted(struct A *pa);
 void func_002303A0(struct P *p, void *pv, int n);
-void func_001524A0(struct P *p, int n, int m);
+void ApplyDancerAseg(struct P *p, int n, int m);
 void func_00152390(struct P *p, int a, int b, int c);
 void func_001533B0(struct A *pa, struct P *p);
 qword func_00204E38(struct P *p, struct A *pa, float g);
@@ -22,11 +22,11 @@ void func_00152148(struct P *p)
 {
     int k;
     UpdateStep(p);
-    if (!p->pa408 || func_00131968(p->pa408)) {
+    if (!p->pa408 || FAsegaRetracted(p->pa408)) {
         func_002303A0(p, p->p58, 1);
         func_002303A0(p, p->p5C, 1);
         p->f40C = 0;
-        func_001524A0(p, p->n2C0, 8);
+        ApplyDancerAseg(p, p->n2C0, 8);
     }
     k = D_002DE570 ? D_002DE570->k50 : 0;
     switch (k) {

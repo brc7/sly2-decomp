@@ -7,7 +7,7 @@ struct O { char pad[0x74]; float x74; };
 struct E { int x0; struct O *x4; int x8; float xc; };
 struct P { int x0; char pad[0x50-4]; struct E ae[2]; int x70; };
 struct R *func_0012FF10(struct O *o, int a, int b, int c);
-void func_00137A30(int a, int b, int c, void *d, int e, int f, int g, void *h);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int a, int b, int c, void *d, int e, int f, int g, void *h);
 void PostJtLoadPipe(struct P *p)
 {
     int i;
@@ -24,5 +24,5 @@ void PostJtLoadPipe(struct P *p)
             }
         }
     }
-    func_00137A30(p->x0, 0x10, 2, p->ae, 0, 0, 0, &p->x70);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->x0, 0x10, 2, p->ae, 0, 0, 0, &p->x70);
 }

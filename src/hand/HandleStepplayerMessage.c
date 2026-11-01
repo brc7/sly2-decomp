@@ -30,7 +30,7 @@ void func_002205A8(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int func_00224590(void *p);
 void func_002245B8(void *p);
-void func_00130658(void *p);
+void ReleaseAsega(void *p);
 void ChargeGadgetMp(void *p);
 void func_001305B8(void *pa, void *p, float g, int n, float h, void *pb);
 void func_0019F170(void *p, int n);
@@ -140,7 +140,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                 if (F(void *, p, 0x130C) != 0) {
                     __asm__("" : : : "$3", "$4"); /* clobber of dead v1/a0 (Claude agent): target keeps n in a1 */
                     if (F(int, p, 0x1314) == n) {
-                        func_00130658((char *)p + 0x1310);
+                        ReleaseAsega((char *)p + 0x1310);
                         F(int, p, 0x1314) = -1;
                     } else {
                         ChargeGadgetMp(p);
@@ -225,7 +225,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
         break;
     case 11:
         if (((struct MSGB *)pv)->p4 == p) {
-            func_00130658((char *)p + 0x1310);
+            ReleaseAsega((char *)p + 0x1310);
             F(int, p, 0x1314) = -1;
         }
         break;

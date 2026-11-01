@@ -56,9 +56,9 @@ extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4;
 extern "C" {
 int func_001C6DE8(float, float, float, qword, int, CANDIDATE **, qword *);
 LO *PpoHero(void *);
-REGION *func_001C0D70(qword, int);
-int func_001C0940(REGION *, qword, qword *, int);
-int func_001C0980(REGION *, qword, qword, int);
+REGION *PpathzoneFromPos(qword, int);
+int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
+int FClipPathzone(REGION *, qword, qword, int);
 qword func_001A62E8(LO *);
 void *func_001AE318(ALLOCREQ *);
 int func_001C6CE8(void *, int, int, LO **);
@@ -147,13 +147,13 @@ extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnu
     if (plo)
         pregion = PregionFromLo(plo);
     if (!pregion)
-        pregion = func_001C0D70(posOrig.q, 1);
+        pregion = PpathzoneFromPos(posOrig.q, 1);
     VECTOR4 posSnap;
-    if (func_001C0940(pregion, posOrig.q, &posSnap.q, 1))
+    if (FindPathzoneClosestPoint(pregion, posOrig.q, &posSnap.q, 1))
         posSnap.f[2] = posOrig.f[2];
     else {
         qword pos = func_001A62E8(plo);
-        if (!func_001C0940(pregion, pos, &posSnap.q, 1))
+        if (!FindPathzoneClosestPoint(pregion, pos, &posSnap.q, 1))
             return;
         posSnap.f[2] = GetZ(pos);
     }
@@ -183,7 +183,7 @@ extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnu
         qword dpos = Sub(posTrial, posOrig.q);
         qword dposPerp = Sub(dpos, Scale(Dot(dpos, D_002A2DC0), D_002A2DC0));
         qword posAdjust = AddScaled(posTrial, VU_FLOAT(g), Normalize(dposPerp));
-        int fBlocked = !func_001C0980(pregion, posSnap.q, posTrial, 0) && !func_001C0980(pregion, posTrial, posAdjust, 0);
+        int fBlocked = !FClipPathzone(pregion, posSnap.q, posTrial, 0) && !FClipPathzone(pregion, posTrial, posAdjust, 0);
         VECTOR4 posLand;
         if (fBlocked && func_001C6DE8(-300.0f, 300.0f, 0.7f, posTrial, ccand, apcand, &posLand.q)) {
             qword posTarget = AddScaled(posLand.q, VU_FLOAT(aplo[cLaunched]->sRadius - 1.0f), D_002A2DC0);

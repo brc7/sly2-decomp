@@ -2,7 +2,7 @@ typedef struct VECTOR { float x, y, z, w; } __attribute__((aligned(16))) VECTOR;
 struct E { float x; int pad[3]; VECTOR v; int n20; int pad2[3]; };
 struct S { char pad[0x60]; int c; int pad64[3]; struct E a[6]; int n190; int n194; int pad198[2]; VECTOR v1A0; };
 void func_001AE5A0(void *dst, void *src, int cb);
-void func_00153128(struct S *p, void *q);
+void SetRhythmMgrState(struct S *p, void *q);
 static inline void SetVector(VECTOR *pv, float x, float y, float z)
 {
     pv->x = x;
@@ -29,5 +29,5 @@ void func_001531A8(struct S *p, void *q, int c, void *pv)
         p->n190 = 0;
         p->n194 = 0;
     }
-    func_00153128(p, q);
+    SetRhythmMgrState(p, q);
 }

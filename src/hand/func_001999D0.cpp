@@ -4,7 +4,7 @@
 //                    segment passes func_00118668 against the actor's tree
 //   kind 3 (edge):   FCheckJtSingleEdge directly
 // A sum is normalized with D_002A2DA0 as the fallback; no accepted direction returns 0.
-// What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from func_001C3500 (the asm
+// What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from GetPipeGoalMat (the asm
 // between the fallback load and the bc1f stops reorg's backward delay-slot search, so the divide's reload fills
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
 typedef int qword __attribute__((mode(TI)));

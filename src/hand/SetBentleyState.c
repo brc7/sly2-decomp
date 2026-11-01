@@ -35,7 +35,7 @@ int func_001430C8(struct P *);
 void func_00142868(struct P *, int);
 void func_0020BD68(struct ASEGP *);
 void SetJtModeState__FP6JTMODEi(void *, int);
-void func_00130658(void *);
+void ReleaseAsega(void *);
 void ReleaseSma(void *);
 void func_001305B8(struct ASEG *, struct P *, int, void *, float, float);
 void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
@@ -202,7 +202,7 @@ void SetBentleyState(struct P *p, int k)
     case 12:
         return;
     }
-    func_00130658(&p->p1030);
+    ReleaseAsega(&p->p1030);
     ReleaseSma(&p->x1034);
     func_001305B8(pasega, p, n, &p->p1030, g, rate);
     ReplaceSmaEx(pjt, p, anim, n, c, &p->x1034);

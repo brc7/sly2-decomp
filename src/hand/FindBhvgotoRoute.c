@@ -14,9 +14,9 @@ struct S {
 };
 qword func_001A62E8(struct A *p);
 qword func_001C1EC0(struct V2 *p, qword v);
-void *func_001C0D70(qword v, int n);
-int func_001C21D8(void *a, struct A *b, qword v, int c, int d, struct I **pp);
-void func_001C0940(void *a, qword v, qword *pv, int n);
+void *PpathzoneFromPos(qword v, int n);
+int FindPathlinkRoute(void *a, struct A *b, qword v, int c, int d, struct I **pp);
+void FindPathzoneClosestPoint(void *a, qword v, qword *pv, int n);
 void FindBhvgotoRoute(struct S *p) {
     p->nB4 = 0;
     p->u.v60 = p->v40;
@@ -28,18 +28,18 @@ void FindBhvgotoRoute(struct S *p) {
         void *q = d ? d->p10 : 0;
         void *r;
         int fail;
-        r = func_001C0D70(v, 0);
+        r = PpathzoneFromPos(v, 0);
         fail = 0;
         if (r == 0) {
             fail = 1;
         } else if (r != q) {
             struct G *g = &D_003DD490;
             int n;
-            if ((p->nB4 = func_001C21D8(g->p45CC, p->p10, v, 1, 1, p->aB8)) <= 0) {
+            if ((p->nB4 = FindPathlinkRoute(g->p45CC, p->p10, v, 1, 1, p->aB8)) <= 0) {
                 if (p->nC0 == 0) {
                     fail = 1;
                 } else {
-                    n = func_001C21D8(g->p45CC, p->p10, v, 0, 1, p->aB8);
+                    n = FindPathlinkRoute(g->p45CC, p->p10, v, 0, 1, p->aB8);
                     p->nB4 = n;
                     if (n == 0) {
                         fail = 1;
@@ -53,7 +53,7 @@ void FindBhvgotoRoute(struct S *p) {
                         }
                         p->u.s.n60 = 0;
                         p->u.s.n64 = 0;
-                        func_001C0940(a, v, &p->u.s.v70, 1);
+                        FindPathzoneClosestPoint(a, v, &p->u.s.v70, 1);
                     }
                 }
             }

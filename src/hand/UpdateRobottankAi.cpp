@@ -45,7 +45,7 @@ int func_0011D910(LM *, float);
 void func_001D4B28(P *, int);
 float func_002456F0(float);
 M3 func_0011B500(qword, float);
-int func_001C0960(void *, qword, qword, int, HIT *, int);
+int ClsgClipPathzone(void *, qword, qword, int, HIT *, int);
 void MeasureShape(PATH *);
 void func_001D2420(P *);
 void func_001C02D0(void *, qword, qword, PATH *);
@@ -169,7 +169,7 @@ extern "C" void UpdateRobottankAi(P *p)
             break;
         }
         HIT hits[4];
-        if (func_001C0960(p->navigator, position, goal, 4, hits, 2) == 1 &&
+        if (ClsgClipPathzone(p->navigator, position, goal, 4, hits, 2) == 1 &&
             hits[0].startFraction == 0.0f && hits[0].endFraction == 1.0f) {
             // straight line to the goal
             p->path->points[0].q = position;

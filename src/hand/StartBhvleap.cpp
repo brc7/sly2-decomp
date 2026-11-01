@@ -24,7 +24,7 @@ extern "C"{
  float RadNormalize__Ff(float);
  void func_0011B500(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
- void func_001C3500(P*,int,M3*,float);
+ void GetPipeGoalMat(P*,int,M3*,float);
  void func_0017A468(C*);
  int func_00173610(qword*,float,float,int,int(*)(void));
  void StartBhvanim(C*);
@@ -107,7 +107,7 @@ extern "C" void StartBhvleap(C*p){
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,11)){
    active|=GrfFromSgf(0x27);
    p->basisValid=1;
-   func_001C3500(p->target,p->reverse,&p->matrix,work.curve);
+   GetPipeGoalMat(p->target,p->reverse,&p->matrix,work.curve);
    func_0017A468(p);
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x13)&&p->target->kind==3){
    active|=GrfFromSgf(0x28);

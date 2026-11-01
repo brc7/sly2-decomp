@@ -11,7 +11,7 @@ struct P { struct O *x0; int x4; int x8; struct CURVE *xc; float x10; int x14; i
 struct CLOCK { float t; float dt; };
 extern "C" struct CLOCK D_002DDED0;
 extern "C" qword D_002A2DD0;
-extern "C" void func_001C3500(struct CURVE *a, int b, M3 *pm, float g);
+extern "C" void GetPipeGoalMat(struct CURVE *a, int b, M3 *pm, float g);
 extern "C" M3 *func_001A6318(struct O *o);
 extern "C" void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
 extern "C" M3 MulMatrix3Matrix3(M3 *a, M3 *b);
@@ -48,7 +48,7 @@ extern "C" void PresetJtAccelPipe(struct P *p)
     U vec;
     float f;
     M3 *pm;
-    func_001C3500(p->xc, p->x18 == 0, &m, p->x10);
+    GetPipeGoalMat(p->xc, p->x18 == 0, &m, p->x10);
     if (p->x4 == 0 || p->x4 == 4) {
         struct O *o = p->x0;
         float dt = D_002DDED0.dt;

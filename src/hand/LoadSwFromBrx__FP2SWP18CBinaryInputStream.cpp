@@ -53,7 +53,7 @@ void func_00184950(void *p, int n);
 void LoadSwSharedHeaderFromBrx(int n, BIS *pbis);
 void LoadSwSpliceFromBrx(void *psw, int n, BIS *pbis);
 void func_001EB748(void *pa, void *pb, BIS *pbis);
-void func_001C0EC0(void *psw, BIS *pbis);
+void LoadSwZoneBspFromBrx(void *psw, BIS *pbis);
 struct LO;
 struct LOL { void *pvt; int x4; int c; LO **apo; };
 LOL *CLoadCollectorArray_ctor(LOL *p);
@@ -165,7 +165,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         D_003E1C34 = func_00117DB8(pbis);
         LoadSwSpliceFromBrx(psw, pwe->x10, pbis);
         func_001EB748(&zpr0, &zpr1, pbis);
-        func_001C0EC0(psw, pbis);
+        LoadSwZoneBspFromBrx(psw, pbis);
         {
             FRAME frameT;
             int j, k;

@@ -2,7 +2,7 @@
 // func_0014C6A0, else the shape test FIsBasicDerivedFrom + func_00205670) and add a kind-10 contact there with PxpAdd
 // (func_001A7C18), then post the OBJ::Notify (ZapLasenBeams) message through EnsureSwCallback.
 // What mattered (w3lane2):
-//  - the same 6-argument virtual signature as func_001823C8 / func_0013ADE8, with every argument passed through to
+//  - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
 //    the empty base stub func_001F5990 (no code, but the call's argument uses fix the prologue schedule);
 //  - VU helpers taking VU_VECTOR parameters (const qword & conversion): the extra RTL copies keep the loop above
 //    loop.c's ~95-insn limit, so i * sizeof(ENTRY) stays a mult inside the loop as in the target;

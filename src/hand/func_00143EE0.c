@@ -6,7 +6,7 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void ReleaseSma(void *p);
 void func_001305B8(void *o, struct P *p, int a, void *b, float f, float g);
-void func_00130658(void *p);
+void ReleaseAsega(void *p);
 void ReplaceSma(void *o, struct P *p, int n, int a, void *b);
 void func_00143EE0(struct P *p, int oid, int a, int b)
 {
@@ -23,7 +23,7 @@ void func_00143EE0(struct P *p, int oid, int a, int b)
         func_001305B8(o, p, a, p->m1030, 0.0f, 1.0f);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
         p->vt[88].pfn((char *)p + p->vt[88].d, b);
-        func_00130658(p->m1030);
+        ReleaseAsega(p->m1030);
         ReplaceSma(o, p, -1, a, p->m1034);
     }
 }

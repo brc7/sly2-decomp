@@ -17,7 +17,7 @@ struct P {
     int x10E4; char pad6[0x17FC - 0x10E8]; void *ap17FC[5]; int x1810; float g1814; int x1818; int x181C; int x1820;
     char pad7[0x1830 - 0x1824]; qword v1830; char pad8[0x190C - 0x1840]; void *x190C;
 };
-void func_00130658(void *pp);
+void ReleaseAsega(void *pp);
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
 float RadNormalize__Ff(float g);
@@ -48,7 +48,7 @@ void SetMurrayAttack(struct P *p, int k)
     p->x1818 = 0;
     p->x181C = 0;
     if (p->x190C)
-        func_00130658(&p->x190C);
+        ReleaseAsega(&p->x190C);
     q = p->ap17FC[k];
     p->v190 = D_002A2DD0;
     if (p->p10DC && p->x10E4 >= 2 && !(p->pl->x30 & 8)) {

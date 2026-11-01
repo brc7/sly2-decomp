@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00149808(s32, s32, s32, s32, s32);          /* extern */
+void SetVolbtnRsmg(s32, s32, s32, s32, s32);          /* extern */
 CRef *RefThunkVolbtnSET_SM_GOAL(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[4] = { 0, 6, 6, 6 };
@@ -11,7 +11,7 @@ CRef *RefThunkVolbtnSET_SM_GOAL(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 4, aref, aotyp, &arg0_v, &arg1_v, &arg2_v, &arg3_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_00149808(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
+    SetVolbtnRsmg(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

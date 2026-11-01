@@ -4,7 +4,7 @@
 //   are VU helper inlines (lw/qmfc2/mtc1 VU_FLOAT-style, as in Lilly's files) or commented empty asms; globals are D_ names only.
 // lilly5 (Claude agent, T1703, 2026-10-26): MATCH (728/728, frame 0x290). NOT in src/hand only because of the team's one-pin rule:
 //   the microprogram 0x1C0 inputs/outputs are register variables bound to vf10..vf19 (20 `register ... __asm__("vfN")`, as in
-//   func_001684D0.c / func_00139950 lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
+//   func_001684D0.c / CblipeProjectBlipTransformAccel lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
 //   From lilly3 (aligned 2), cull 2 (GCullSphereSync) only: (1) qmfc2 straight into a float "=r" (the qmfc2 output becomes a reload
 //   in v0, reload's copy is the mtc1 v0,f0, so the i+1 reload after it gets v1 by round robin); (2) cfc2 outputs only vf19, an empty
 //   `"=j"(qwDpos)` asm declares vf18, and one empty `"+j"(qwDpos)` asm with a dead "$3" clobber: two no-code insns ready right after

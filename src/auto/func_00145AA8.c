@@ -1,7 +1,7 @@
 #include "m2c_prelude.h"
 s32 FIsBasicDerivedFrom__FP5BASIC3CID(void *, M2C_UNK);                 /* extern */
 s128 func_001A62E8(void *);                      /* extern */
-s32 func_001C0D70(s128, M2C_UNK);                /* extern */
+s32 PpathzoneFromPos(s128, M2C_UNK);                /* extern */
 
 s32 func_00145AA8(void *arg0) {
     s32 var_v0;
@@ -21,6 +21,6 @@ s32 func_00145AA8(void *arg0) {
         /* Duplicate return node #6. Try simplifying control flow for better match */
         return var_v0;
     }
-    var_v0 = func_001C0D70(func_001A62E8(M2C_FIELD(arg0, void **, 0x30)), 1);
+    var_v0 = PpathzoneFromPos(func_001A62E8(M2C_FIELD(arg0, void **, 0x30)), 1);
     return var_v0;
 }

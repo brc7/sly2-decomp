@@ -9,7 +9,7 @@ int FBhvpipeArrived(struct S *p);
 void SetBhvpipeState(struct S *p, int n);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float SWrapShape(int n, float g);
-void func_001C3500(int a, float g, int b, void *pv);
+void GetPipeGoalMat(int a, float g, int b, void *pv);
 void UpdateBhvpipe(struct S *p) {
     int s;
     UpdateBhv(p);
@@ -38,6 +38,6 @@ void UpdateBhvpipe(struct S *p) {
     } while (p->n30 != s);
     {
         struct O *o = p->p10;
-        func_001C3500(o->nF84, o->gF88, o->nF8C, o->a1B0);
+        GetPipeGoalMat(o->nF84, o->gF88, o->nF8C, o->a1B0);
     }
 }

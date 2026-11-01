@@ -25,7 +25,7 @@ qword func_001A62E8(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
 int func_0011A3C0(int *pdl);
 void *func_002333B4(void *pv, int b, int cb);
-void func_0015BD20(int c, EMITB *pemitb, EMITX *px);
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTER *p);
 int FPausedEmitter(EMITTER *p);
@@ -155,7 +155,7 @@ LActive:
         void *palo = pemito->palo;
         if (!palo && !pemito->f4)
             pemito->palo = p;
-        func_0015BD20(c, p->pemitb, &x);
+        EmitParticles__FiP5EMITBP5EMITG(c, p->pemitb, &x);
         p->pemitb->pemito->palo = palo;
     }
 

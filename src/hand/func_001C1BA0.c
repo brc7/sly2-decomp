@@ -6,7 +6,7 @@ struct M { struct O *po; void *pv; };
 struct G { char pad[0x3D70]; int x3D70; };
 extern struct G D_003DD490;
 int func_001C1700(struct S *p, int z, qword a, qword b, int c, void **ap);
-int func_001BD8A8(struct O *po, void *pv);
+int FCnvoOverlap(struct O *po, void *pv);
 void func_001BDE80(int n, struct M *pm);
 void func_001C1D20(struct S *p);
 void func_001C1A38(int c, struct E *ae, int bit, float g0, float g1);
@@ -16,7 +16,7 @@ void func_001C1BA0(struct S *p, struct O *po)
     int n, i;
     n = func_001C1700(p, 0, po->a.q, po->b.q, 0x20, ap);
     for (i = 0; i < n; i++) {
-        if (func_001BD8A8(po, ap[i])) {
+        if (FCnvoOverlap(po, ap[i])) {
             struct M m;
             m.po = po;
             m.pv = ap[i];

@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 s32 FIsBasicDerivedFrom__FP5BASIC3CID(void *, M2C_UNK);                 /* extern */
-M2C_UNK func_001490A0(void *, M2C_UNK);             /* extern */
+M2C_UNK SetButtonButtons(void *, M2C_UNK);             /* extern */
 extern f32 D_002DDED0;
 
 void func_00149010(void *arg0) {
@@ -23,5 +23,5 @@ block_4:
     }
 block_5:
 block_6:
-    func_001490A0(arg0, 1);
+    SetButtonButtons(arg0, 1);
 }

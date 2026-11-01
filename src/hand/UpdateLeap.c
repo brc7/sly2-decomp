@@ -5,7 +5,7 @@ extern float D_002C3DE0;
 void SetLeapState(struct S *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void EnableStuckWatch(void *p);
-int func_00131968(int h);
+int FAsegaRetracted(int h);
 
 void UpdateLeap(struct S *p)
 {
@@ -30,7 +30,7 @@ void UpdateLeap(struct S *p)
             }
             break;
         case 3:
-            if (func_00131968(p->h38))
+            if (FAsegaRetracted(p->h38))
                 SetLeapState(p, 4);
             break;
         }

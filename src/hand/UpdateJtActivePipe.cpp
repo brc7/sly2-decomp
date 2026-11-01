@@ -10,7 +10,7 @@ extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;extern SMP D_002BF928;
 qword func_0011F088(qword,qword,float,SMP*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
-void func_0019CC50(void*,int,void*,void*);int func_00131968(ASEGA*);void func_0019EAB0(C*,int);
+void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGA*);void func_0019EAB0(C*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
 void func_0019E110(C*,LM*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001F4BF8(P*);float SMaxShape(PATH*);float GModPositive__Fff(float,float);void func_001384C0(ANIMATION*);
 float fabsf(float);
@@ -90,7 +90,7 @@ extern "C" void UpdateJtActivePipe(C*p){
  if(!Eligible(p->path)){func_00195A00(p->actor->controller,0,0,0);return;}
  if(p->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){func_00195A00(p->actor->controller,2,0,0);return;}
  if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);func_0019CC50(p->actor->action,0,0,0);}
- int old;do{old=p->state;if((old==0||old==4)&&func_00131968(p->actor->asega))func_0019EAB0(p,1);}while(p->state!=old);
+ int old;do{old=p->state;if((old==0||old==4)&&FAsegaRetracted(p->actor->asega))func_0019EAB0(p,1);}while(p->state!=old);
  if(p->state==0||p->state==4)return;
  EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
  EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);

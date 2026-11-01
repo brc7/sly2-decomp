@@ -76,7 +76,7 @@ extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
 float GRandInRange__Fff(float gMin, float gMax);                    // GRandInRange
 void *func_002333B4(void *pv, int b, unsigned int cb);          // memset
-void func_0015B428(EMITB *pemitb, EMITX *pemitx, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITX *pemitx, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
                    void *pv1, void *pv2);
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
@@ -160,6 +160,6 @@ LEmit:
         func_002333B4(&emitx, 0, sizeof(emitx));
         emitx.ppprg = &pemitter->pprg;
         emitx.pemitter = pemitter;
-        func_0015B428(pemitter->pemitb, &emitx, cpart, apos, av, atBirth, atDeath, 0, 0);
+        EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(pemitter->pemitb, &emitx, cpart, apos, av, atBirth, atDeath, 0, 0);
     }
 }

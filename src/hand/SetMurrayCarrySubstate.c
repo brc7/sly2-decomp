@@ -44,7 +44,7 @@ typedef char P_x151C_Offset[FIELD_OFFSET(P,x151C)==5404?1:-1];
 extern qword D_002A2DD0;
 void func_002303A0(P *p, void *x, int k);
 void func_0020BD68(void *p);
-void func_00130658(A *pa);
+void ReleaseAsega(A *pa);
 void ReleaseSma(C *pc);
 void ApplyAsegCur(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA");
 void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
@@ -93,7 +93,7 @@ state2:
     n=9;
     f=p->x1A0*pr->x74;
 done:
-    func_00130658(&p->a);
+    ReleaseAsega(&p->a);
     ReleaseSma(&p->c);
     ApplyAsegCur(pr, p, f, 1.0f, n, &p->a);
     ReplaceSma(pv, p, -1, n, &p->c);

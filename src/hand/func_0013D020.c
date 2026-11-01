@@ -11,7 +11,7 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *pv, int n);
 void BroadcastGameEvent(void *pv, int n, struct P *p);
 void UpdateStepplayerBootySave(struct Q *q, int n, struct P *p);
-void func_0013C560(struct A *pa, int n);
+void SetBootyState(struct A *pa, int n);
 void func_00184130(struct P *p, struct Q *q);
 void func_0013D020(struct P *p, struct Q *q)
 {
@@ -36,15 +36,15 @@ void func_0013D020(struct P *p, struct Q *q)
     UpdateStepplayerBootySave(q, 0, p);
     if (q->pa && p->pa) {
         q->pa->p15C = p;
-        func_0013C560(q->pa, 3);
+        SetBootyState(q->pa, 3);
         p->pa->p160 = q;
-        func_0013C560(p->pa, 2);
+        SetBootyState(p->pa, 2);
     } else if (q->pa) {
         q->pa->p15C = p;
-        func_0013C560(q->pa, 3);
+        SetBootyState(q->pa, 3);
     } else {
         p->pa->p160 = q;
-        func_0013C560(p->pa, 2);
+        SetBootyState(p->pa, 2);
     }
     func_00184130(p, q);
 }

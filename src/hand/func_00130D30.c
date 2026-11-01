@@ -4,8 +4,8 @@ struct S { int x0; void *p4; struct R *pr; int xC; int x10; int x14; struct VTE 
 struct Q { char pad[0x74]; float g74; };
 struct P { int pad[5]; struct Q *pq; int x18; float g1C; float g20; char pad1[0x34 - 0x24]; struct S *ps; char pad2[0x40 - 0x38];
     float g40; float g44; float g48; float g4C; };
-int func_00131968(struct P *p);
-void func_001317D8(struct P *p, float *pg, float *pg2);
+int FAsegaRetracted(struct P *p);
+void FWrapAsegaTime(struct P *p, float *pg, float *pg2);
 void func_00130EB0(struct P *p);
 int func_0012CEE0(struct S *ps);
 void SlotUnsettle(void *p4, struct R *pr);
@@ -13,7 +13,7 @@ void func_00230CF0(struct P *p, int n);
 void func_00130D30(struct P *p, int k, float g, float s)
 {
     float t;
-    if (func_00131968(p))
+    if (FAsegaRetracted(p))
         return;
     p->g44 = s;
     p->g40 = s * p->g48 * p->g4C;
@@ -25,7 +25,7 @@ void func_00130D30(struct P *p, int k, float g, float s)
     if (t != p->g1C) {
         struct S *ps;
         p->g1C = t;
-        func_001317D8(p, &p->g1C, &p->g40);
+        FWrapAsegaTime(p, &p->g1C, &p->g40);
         func_00130EB0(p);
         for (ps = p->ps; ps; ps = ps->pnext) {
             if (func_0012CEE0(ps)) {

@@ -19,7 +19,7 @@ void func_001F4E28(struct P *);
 void SlotUnsettle(struct P *, struct LO *);
 void UpdateSoPartMatrices(struct P *);
 qword func_001A62E8(struct P *);
-struct REGION *func_001C0D70(qword, int);
+struct REGION *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct P *, struct REGION *);
 void TranslateSoToPos(struct P *p, qword v)
 {
@@ -69,7 +69,7 @@ void TranslateSoToPos(struct P *p, qword v)
     {
         struct REGION_LINK *link = 0;
         if (p->pe) link = p->pe->regionLink;
-        if (link) func_001F37C8(p, func_001C0D70(func_001A62E8(p), 1));
+        if (link) func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
     }
 }
 

@@ -13,8 +13,8 @@ int POCTL_FConsumePressed(void *, int);
 float func_001FE3F8(void *);
 void func_00152390(struct O *, int, int, int);
 void BroadcastGameEvent(void *, int, struct S *);
-void func_00153640(struct S *, float);
-float func_001535A0(struct S *, struct E *);
+void AddRhythmScore(struct S *, float);
+float GRhythmTimingScore(struct S *, struct E *);
 float func_00153638(struct S *, float);
 int func_0011D4D0(float, float, float);
 void func_001533B0(struct S *p, struct O *po)
@@ -34,18 +34,18 @@ void func_001533B0(struct S *p, struct O *po)
         BroadcastGameEvent(D_002DEB30, 0x35, p);
         if (func_001FE3F8(D_003DD040) < pe->gC - p->g58) {
             func_00152390(po, -1, -1, 1);
-            func_00153640(p, p->g298);
+            AddRhythmScore(p, p->g298);
             return;
         }
         if (pe->n1C) {
             func_00152390(po, -1, -1, 1);
-            func_00153640(p, p->g2A0);
+            AddRhythmScore(p, p->g2A0);
             return;
         }
         pe->n1C = 1;
         if (POCTL_FConsumePressed(pv, pe->n4)) {
             func_00152390(po, pe->n4, pe->n8, 0);
-            func_00153640(p, func_00153638(p, func_001535A0(p, pe)));
+            AddRhythmScore(p, func_00153638(p, GRhythmTimingScore(p, pe)));
             for (j = 0; j < p->n60; j++) {
                 struct Q *pq = &p->a70[j];
                 if (func_0011D4D0(pq->g0, pe->gC, 0.1f)) {
@@ -55,7 +55,7 @@ void func_001533B0(struct S *p, struct O *po)
             }
         } else {
             func_00152390(po, -1, -1, 1);
-            func_00153640(p, p->g29C);
+            AddRhythmScore(p, p->g29C);
         }
         return;
     }

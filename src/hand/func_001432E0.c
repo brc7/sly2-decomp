@@ -1,20 +1,20 @@
 extern void *D_003E1AC8;
-int func_0013C478(void *p);
+int IdBootyCur(void *p);
 void func_00143380(void *p);
 void *PloAcquireProxy(void *p, int n);
-void func_0013C490(void *p, int n);
-void func_0013C560(void *p, int n);
+void SelectBootyEntry(void *p, int n);
+void SetBootyState(void *p, int n);
 void func_001432E0(char *p, int n)
 {
     void *q = *(void **)(p + 0x11A8);
     char *o;
-    if (q && func_0013C478(q) == n) return;
+    if (q && IdBootyCur(q) == n) return;
     func_00143380(p);
     if (n == -1) return;
     if (!D_003E1AC8) return;
     o = PloAcquireProxy(D_003E1AC8, 1);
-    func_0013C490(o, n);
+    SelectBootyEntry(o, n);
     *(void **)(o + 0x160) = p;
-    func_0013C560(o, 6);
-    func_0013C560(o, 4);
+    SetBootyState(o, 6);
+    SetBootyState(o, 4);
 }

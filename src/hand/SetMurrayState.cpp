@@ -96,7 +96,7 @@ int func_001DAEA8(int);
 void ChooseMurrayThrowTarget(P *);
 qword func_001A62E8(P *);
 void SetStepRadTargetVec(P *, qword);
-void func_00130658(ASEGA **);
+void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
 void func_001305B8(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
@@ -193,7 +193,7 @@ extern "C" void SetMurrayState(P *p, int next)
     }
     {
         ASEGA **animation = &p->asega; COMPONENT **component = &p->component; float position = 0.0f;
-        func_00130658(animation); ReleaseSma(component);
+        ReleaseAsega(animation); ReleaseSma(component);
         func_001305B8(clip, p, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, p, id, flags, mode, component);
         if (clip || source) {

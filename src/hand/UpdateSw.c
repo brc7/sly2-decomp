@@ -19,7 +19,7 @@ void UpdateSwObjects(struct S *p);
 void UpdatePoctl(struct L *pl);
 void ExpireSwZapRecords(struct S *p);
 void UpdateSwGuardOverride(struct S *p);
-void func_00130918(void *pv);
+void UpdateAsega(void *pv);
 void func_00156728(void *pv);
 void SolveSw(struct S *p);
 void func_001BE1E8(void);
@@ -69,7 +69,7 @@ void UpdateSw(struct S *p)
         UpdateSwGuardOverride(p);
         InitDli(&dli, &p->dl);
         while ((pv = PvNextDli(&dli)) != 0)
-            func_00130918(pv);
+            UpdateAsega(pv);
         InitDli(&dli2, &p->dl2);
         while ((pv = PvNextDli(&dli2)) != 0)
             func_00156728(pv);

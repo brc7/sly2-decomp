@@ -21,7 +21,7 @@ void func_0020CE70(void *p);
 void func_0020D1F8(void *p);
 void UpdateBhvstk(void *p);
 void func_002097E0(void *p);
-int func_00131968(int h);
+int FAsegaRetracted(int h);
 void func_001306A8(int *ph);
 
 void UpdateStepguard(struct S *p)
@@ -43,7 +43,7 @@ void UpdateStepguard(struct S *p)
     func_0020D1F8(p->p49C);
     UpdateBhvstk(p->x26C);
     func_002097E0(p->xFD0);
-    if (p->h34C && func_00131968(p->h34C))
+    if (p->h34C && FAsegaRetracted(p->h34C))
         func_001306A8(&p->h34C);
     if (p->n4A4 && p->n208)
         p->q4B0 = *p->pq218;

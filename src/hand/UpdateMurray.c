@@ -20,7 +20,7 @@ struct P {
     struct O *x190C; char pad7[0x1AC8 - 0x1910]; float g1AC8; void *x1ACC;
 };
 void UpdateStepplayer(struct P *p);
-int func_00131968(struct O *p);
+int FAsegaRetracted(struct O *p);
 void func_001306A8(struct O **pp);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
 void func_001B5038(struct P *p);
@@ -108,7 +108,7 @@ void UpdateMurray(struct P *p)
     UpdateStepplayer(p);
     if (!((int)(p->x28 >> 60) & 1))
         return;
-    if (p->x190C && func_00131968(p->x190C))
+    if (p->x190C && FAsegaRetracted(p->x190C))
         func_001306A8(&p->x190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, p, 0xF8FA);
     func_001B5038(p);

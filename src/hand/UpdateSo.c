@@ -7,7 +7,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct P *);
 qword func_001A62E8(struct P *);
-void *func_001C0D70(qword, int);
+void *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct P *, void *);
 void UpdateSo(struct P *p)
 {
@@ -15,7 +15,7 @@ void UpdateSo(struct P *p)
     float d;
     UpdateLo(p);
     q = p->pe ? p->pe->pDC : 0;
-    if (q) func_001F37C8(p, func_001C0D70(func_001A62E8(p), 1));
+    if (q) func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
     d = p->g130;
     if (d != 0.0f) {
         float v = p->g12C + D_002DDED0.dt * d;

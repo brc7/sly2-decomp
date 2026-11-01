@@ -9,7 +9,7 @@ typedef struct P {
     char pad1814[0x181C - 0x1814];
     int x181C;
 } P;
-int func_00131968(void *p);
+int FAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
 int FMurrayCanAttack(P *p);
 int GrfConsumePressed__5POCTLUif(T *t, int k, float f);
@@ -22,7 +22,7 @@ void UpdateMurrayAttack(P *p)
     int s;
     for (;;) {
         s = p->x1810;
-        if (!p->x1030 || func_00131968(p->x1030)) {
+        if (!p->x1030 || FAsegaRetracted(p->x1030)) {
             SetMurrayState(p, 0);
         } else {
             switch (p->x1810) {

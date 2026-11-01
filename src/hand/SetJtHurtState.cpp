@@ -31,7 +31,7 @@ extern "C"{
  qword func_001A62E8(P*);
  float RadStepHeading(P*);
  void func_001F4BF8(P*);
- void func_00130658(ASEGA**);
+ void ReleaseAsega(ASEGA**);
  void ReleaseSma(COMPONENT**);
  void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
  void ReplaceSma(void*,P*,int,void*,COMPONENT**);
@@ -179,7 +179,7 @@ extern "C" void SetJtHurtState(C*p,int next){
  p->mode=next;p->time=D_002DDED0.time;
  if(next!=-1){
   if(!clip)clip=p->Default(next);
-  func_00130658(&p->actor->asega);ReleaseSma(&p->actor->component);
+  ReleaseAsega(&p->actor->asega);ReleaseSma(&p->actor->component);
   func_001305B8(clip,p->actor,0.0f,1.0f,flags,&p->actor->asega);
   ReplaceSma(0,p->actor,-1,0,&p->actor->component);
   Invoke(p->actor,90);

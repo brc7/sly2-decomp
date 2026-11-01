@@ -12,7 +12,7 @@ extern struct CLOCK {float t,dt;} D_002DDED0;
 extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*);
 extern "C" void func_001C8918(struct S*,int);
-extern "C" int func_00131968(void*);
+extern "C" int FAsegaRetracted(void*);
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 static inline qword Sub(qword a,qword b){qword d;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));return d;}
 static inline float Len(qword a){register qword d __asm__("vf1");register qword one __asm__("vf2");float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
@@ -50,7 +50,7 @@ extern "C" void func_001C84D8(struct S*p){
    if(p->timer->end<=ClockTime())func_001C8918(p,0);
    break;
   case 2:
-   if(!p->pending||func_00131968(p->pending)){
+   if(!p->pending||FAsegaRetracted(p->pending)){
     int next=(p->step*10)%divisor;next++;next+=p->index;
     p->step=next;
     if(next==p->target){func_001E0020(p->alarms,(ALARM*)0x655);func_001C8918(p,3);}

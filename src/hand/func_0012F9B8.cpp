@@ -35,10 +35,10 @@ void *func_0012E1F0(unsigned int);
 void AddXfAct(int, int, void *);
 void func_00130010(struct T *, int, struct E68 *, int *, int *);
 void *func_0012CE50(unsigned int);
-void func_00131990(P *, int);
-void func_00131290(P *, struct EV *);
+void SetAsegaHandsOff(P *, int);
+void HandleAsegaEvent(P *, struct EV *);
 void func_00230CF0(P *, int);
-void func_00131100(P *);
+void HandleAsegaEventsFF(P *);
 void func_00130EB0(P *);
 }
 static inline float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
@@ -110,16 +110,16 @@ extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, 
             ((void (*)(P *, int))po->pvt[44].pfn)((P *)((char *)po + po->pvt[44].d), pe->x0);
         }
     }
-    func_00131990(p, pt->x70);
+    SetAsegaHandsOff(p, pt->x70);
     p->g20 = g0;
     for (k = 0; k < pt->cev; k++)
-        func_00131290(p, &pt->aev[k]);
+        HandleAsegaEvent(p, &pt->aev[k]);
     p->g1C = p->g20;
     func_00230CF0(p, (grf >> 2) & 1);
     if (grf & 2) {
         if (p->g40 < 0.0f)
             p->x50 = pt->xA0;
-        func_00131100(p);
+        HandleAsegaEventsFF(p);
     } else {
         func_00130EB0(p);
     }

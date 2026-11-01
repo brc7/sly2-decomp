@@ -28,7 +28,7 @@ extern G D_003D4A60;
 extern char D_003DD490[];
 extern char D_002A4DB0[], D_002A4D50[], D_002A4DC0[], D_002A4DC8[];
 void *PkeyFindBootySaveVar(void *p);
-int func_0013C478(void *p);
+int IdBootyCur(void *p);
 void *func_0013D1A8(Q *p);
 S *func_00143AF0(LO *p, int n);
 int IlevelCur__Fv(void);
@@ -56,7 +56,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
     MARK m;
     switch (n) {
     case 0: {
-        CRef ret = func_001D8B20(CRef(0x15, q->p194 ? func_0013C478(q->p194) : -1), Vcall103(p), D_002A4DB0, 0);
+        CRef ret = func_001D8B20(CRef(0x15, q->p194 ? IdBootyCur(q->p194) : -1), Vcall103(p), D_002A4DB0, 0);
         if (p->p11A8) {
             if (!q->p194) {
                 int dummy[2];
@@ -65,7 +65,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
                 SetPv(pv0, a0, &D_003D4A60);
             }
             void *pv = func_0013D1A8(q);
-            CRef a(0x15, func_0013C478(p->p11A8));
+            CRef a(0x15, IdBootyCur(p->p11A8));
             SetPv(pv, a, &D_003D4A60);
         } else {
             void *pv = func_0013D1A8(q);
@@ -91,7 +91,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
         break;
     }
     case 2: {
-        S *ps = func_00143AF0(p, func_0013C478(p->p11A8));
+        S *ps = func_00143AF0(p, IdBootyCur(p->p11A8));
         int i = IlevelCur__Fv();
         if (ps && i != -1) {
             BL *pb = func_002109B8(i);

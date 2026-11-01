@@ -38,7 +38,7 @@ int func_001DAEA8(int);void func_0018E1E0(struct P*);qword func_00204E38(struct 
 void func_00131A00(struct MODEL*,float);void func_00204660(struct P*,float);
 void DrainStepplayerMp(struct P*,float);void SetJtJts__FP2JT3JTS4JTBS(struct P*,int,int);
 float func_0011CFE0(float,float);void func_001384C0(void*);
-void UpdateJtActiveZap(void*);void UpdateJtPlaces(struct P*);int func_00131968(void*);void func_001306A8(void**);
+void UpdateJtActiveZap(void*);void UpdateJtPlaces(struct P*);int FAsegaRetracted(void*);void func_001306A8(void**);
 static inline void*At(struct P*p,int offset){return(char*)p+offset;}
 static inline void ReadBinding(struct BINDING*b,struct MODEL*m,qword*out){
  struct COMPONENT*c=b->component;struct VTE*entry=&c->vt[3];
@@ -111,7 +111,7 @@ void UpdateJtPre(struct P*p){
  case 0:case 1:break;
  }
  UpdateJtActiveZap(At(p,0xDF0));UpdateJtPlaces(p);
- if(p->animation&&func_00131968(p->animation)){func_001306A8(&p->animation);p->animationKind=-1;}
+ if(p->animation&&FAsegaRetracted(p->animation)){func_001306A8(&p->animation);p->animationKind=-1;}
 }
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];

@@ -5,7 +5,7 @@ struct O { char pad[0x190]; void *p190; };
 extern struct Q *func_00182810(struct O *po, qword pos);
 extern float GRandInRange__Fff(float a, float b);
 extern void func_00181EB0(struct O *po, struct Q *pq, int n);
-extern void func_0015C198(void *p, int k, int n, qword a, qword b, float g, float h);
+extern void ExplodeExplParams(void *p, int k, int n, qword a, qword b, float g, float h);
 extern float D_002BE8A8;
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
@@ -28,7 +28,7 @@ int func_001828A8(struct O *po, struct M *pm)
             func_00181EB0(po, pq, 1);
         } else {
             if (po->p190)
-                func_0015C198(po->p190, 4, 0, D_002A2DD0, pq->pos, 0.0f, 0.0f);
+                ExplodeExplParams(po->p190, 4, 0, D_002A2DD0, pq->pos, 0.0f, 0.0f);
             func_00181EB0(po, pq, 2);
         }
     }

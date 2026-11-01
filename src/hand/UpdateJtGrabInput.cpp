@@ -56,7 +56,7 @@ int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
 void func_00195A00(void *, int, int, ACTOR *);
 void func_0019CC50(void *, int, int, int);
-int func_00131968(ASEGA *);
+int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
 void *func_001AE318(SWALLOC *);                         // stack allocation in the current STACKSCOPE
 qword func_001A62E8(ACTOR *);                           // world position
@@ -197,11 +197,11 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
         case 8:
             switch (p->step) {
             case 7:
-                if (func_00131968(p->pactor->pasega))
+                if (FAsegaRetracted(p->pactor->pasega))
                     SetJtGrabKind(p, 9);
                 break;
             case 8:
-                if (func_00131968(p->pactor->pasega))
+                if (FAsegaRetracted(p->pactor->pasega))
                     SetControl(p->pactor, 0);
                 break;
             default:
@@ -216,7 +216,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             }
             break;
         case 10:
-            if (!p->pactor->pasega || func_00131968(p->pactor->pasega)) {
+            if (!p->pactor->pasega || FAsegaRetracted(p->pactor->pasega)) {
                 SetControl(p->pactor, 0);
             } else if (D_002BF5B8 < D_002DDED0.t - p->tStamp) {
                 if (0.0f < p->pactor->pjoy->amount || (p->pactor->pjoy->grfbtn & 0xD0)) {
@@ -227,7 +227,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             break;
         case 11:
         case 12:
-            if (!p->pactor->pasega || func_00131968(p->pactor->pasega))
+            if (!p->pactor->pasega || FAsegaRetracted(p->pactor->pasega))
                 SetControl(p->pactor, 0);
             break;
         case 5:

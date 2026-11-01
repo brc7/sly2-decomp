@@ -18,7 +18,7 @@ void func_00208700(struct S *p, int n);
 void func_00206DB0(struct S *p);
 void *func_00205458(struct S *p, int n);
 struct Y *func_00209518(void *p);
-void func_00131A20(struct Y *y, float f);
+void SetAsegaMasterSpeed(struct Y *y, float f);
 int PpoHero(void *p);
 void ResumeBhvguard(struct Z *z);
 
@@ -48,7 +48,7 @@ void SetStepguardSpecial(struct S *p, int k)
         if (x) {
             struct Y *y = func_00209518(x->p40);
             if (y)
-                func_00131A20(y, y->p14->f78);
+                SetAsegaMasterSpeed(y, y->p14->f78);
         }
         break;
     }
@@ -75,7 +75,7 @@ void SetStepguardSpecial(struct S *p, int k)
         if (x) {
             struct Y *y = func_00209518(x->p40);
             if (y)
-                func_00131A20(y, 0.0f);
+                SetAsegaMasterSpeed(y, 0.0f);
         }
         {
             struct V3 *pv = &p->v190;

@@ -12,7 +12,7 @@ void AddLoHierarchy(struct L *);
 void UpdateSoXfWorldMatrices(struct L *);
 void AddSoParts(struct L *);
 qword func_001A62E8(struct L *);
-void *func_001C0D70(qword, int);
+void *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct L *, void *);
 void PostSwCallback(struct G *, struct L *, struct S8, int);
 void AddSoHierarchy(struct L *p)
@@ -30,7 +30,7 @@ void AddSoHierarchy(struct L *p)
     pv = p->pe ? p->pe->pDC : 0;
     if (pv) {
         if (D_003DD490.ph && D_003DD490.ph->n2C)
-            func_001F37C8(p, func_001C0D70(func_001A62E8(p), 1));
+            func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
         else
             PostSwCallback(&D_003DD490, p, D_002A8270, 0);
     }

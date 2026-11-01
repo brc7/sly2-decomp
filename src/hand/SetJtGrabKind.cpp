@@ -94,7 +94,7 @@ void SetStepplayerTnOverride(ACTOR *, void *);
 void func_00194118(CONTEXT *);
 qword ConvertAloPos(void *, void *, qword);
 void func_0020BD68(PROGRAM_ITEM *);
-void func_00130658(ANIMATION **);
+void ReleaseAsega(ANIMATION **);
 void ReleaseSma(COMPONENT *);
 void func_001305B8(CLIP *, ACTOR *, float, float, int, ANIMATION **);
 void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
@@ -511,7 +511,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
     p->step = step;
     p->tStep = D_002DDED0.t;
     if (step != -1) {
-        func_00130658(&p->pactor->animation);
+        ReleaseAsega(&p->pactor->animation);
         ReleaseSma(&p->pactor->component);
         func_001305B8(clip, p->pactor, blend, speed, flags, &p->pactor->animation);
         ReplaceSma(script, p->pactor, -1, flags, &p->pactor->component);

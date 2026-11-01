@@ -5,7 +5,7 @@ struct X { char pad[0xC]; struct VT *vt; char pad2[0xF4 - 0x10]; qword *apos; };
 int IsegFindShapeS(struct X *p, float g, int a, int b);
 int func_001BC530(struct X *p, int i);
 void EvaluateShapeS(struct X *p, qword *pv, float g, int n);
-int func_001C0980(void *pv, qword a, qword b, int k);
+int FClipPathzone(void *pv, qword a, qword b, int k);
 static inline qword MulPos(M4 *pm, qword v)
 {
     qword r;
@@ -39,7 +39,7 @@ int func_001BCAC0(struct X *p, void *pv, int fRev, float g0, float g1)
         q = v0;
         while (i != iEnd) {
             v = MulPos(&m, p->apos[i]);
-            if (func_001C0980(pv, q, v, k))
+            if (FClipPathzone(pv, q, v, k))
                 goto next;
             if (fRev)
                 i = func_001BC530(p, i + 1);
@@ -48,7 +48,7 @@ int func_001BCAC0(struct X *p, void *pv, int fRev, float g0, float g1)
             q = v;
         }
         EvaluateShapeS(p, &v1, g1, 0);
-        if (!func_001C0980(pv, q, v1, k))
+        if (!FClipPathzone(pv, q, v1, k))
             return r;
     next:;
     }

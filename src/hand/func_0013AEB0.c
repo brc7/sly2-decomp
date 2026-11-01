@@ -38,8 +38,8 @@ void func_001F4F10(P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(P *p, int n);
 int func_001C4098(P *p);
 int func_0013B1C8(P *p, void *x);
-void func_0013B428(P *p, qword pos, qword dir);
-void func_0013B5C8(P *p, float g);
+void PrepareBombDetonation(P *p, qword pos, qword dir);
+void PrimeBomb__FP4BOMBf(P *p, float g);
 void PostSwCallback(void *pg, P *p, K k, void *x);
 
 static inline qword Length(qword a)
@@ -161,8 +161,8 @@ void func_0013AEB0(P *p)
             __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(rn) : "j"(v), "j"(l));
             n = rn;
         }
-        func_0013B428(p, posT, n);
-        func_0013B5C8(p, 0.0f);
+        PrepareBombDetonation(p, posT, n);
+        PrimeBomb__FP4BOMBf(p, 0.0f);
         break;
     }
     case 1:

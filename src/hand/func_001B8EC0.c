@@ -17,7 +17,7 @@ typedef struct P {
 extern float D_002DDED0;
 extern float D_002C0A30;
 extern float D_002C0A34;
-int func_00131968(void *p);
+int FAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
 void func_001B8D30(P *p, int s);
 int FLeapDone(void *p);
@@ -30,10 +30,10 @@ void func_001B8EC0(P *p)
         s = p->x1840;
         switch (s) {
         case 0:
-            if (!p->x1030 || func_00131968(p->x1030)) func_001B8D30(p, 1);
+            if (!p->x1030 || FAsegaRetracted(p->x1030)) func_001B8D30(p, 1);
             break;
         case 1:
-            if (!p->x1030 || func_00131968(p->x1030)) {
+            if (!p->x1030 || FAsegaRetracted(p->x1030)) {
                 SetMurrayState(p, 0);
             } else if (p->x1908) {
                 func_001B8D30(p, 2);
@@ -50,7 +50,7 @@ void func_001B8EC0(P *p)
             }
             break;
         case 3:
-            if (!p->x1030 || func_00131968(p->x1030)) {
+            if (!p->x1030 || FAsegaRetracted(p->x1030)) {
                 SetMurrayState(p, 0);
             } else if (D_002DDED0 - p->x1844 > D_002C0A34 && p->x150->x80 == 1 && 0.0f < p->x150->x1C) {
                 SetMurrayState(p, 0);

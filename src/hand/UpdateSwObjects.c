@@ -7,7 +7,7 @@ struct E { int grf; struct O *po; };
 struct Q { char pad[0x40]; unsigned int x40; };
 struct A { char pad[0x14]; struct Q *pq; };
 struct S { char pad[0x3D88]; DL dl; char pad2[0x3F14 - 0x3D94]; int c; int x3F18; int *pi; struct E *ae; };
-void func_00130918(struct A *);
+void UpdateAsega(struct A *);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -40,7 +40,7 @@ void UpdateSwObjects(struct S *p)
     InitDli(&dli, &p->dl);
     while ((pa = PvNextDli(&dli)) != 0) {
         if (GrfQ(pa->pq) & 0x100)
-            func_00130918(pa);
+            UpdateAsega(pa);
     }
     p->pi = &i;
     for (i = 0; i < p->c; i++) {

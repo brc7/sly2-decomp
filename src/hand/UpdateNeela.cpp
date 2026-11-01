@@ -17,7 +17,7 @@ qword func_001A62E8(P*);
 qword ConvertAloPos(P*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
 void func_001BA408(P*,int);
-int func_00131968(POOL*);
+int FAsegaRetracted(POOL*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
@@ -84,7 +84,7 @@ extern "C" void UpdateNeela(P*p){
   break;
  }
  case 1:{
-  if(func_00131968(p->animation)){func_001BA408(p,0);break;}
+  if(FAsegaRetracted(p->animation)){func_001BA408(p,0);break;}
   NODE*node=p->node;
   qword position=func_001A62E8(p->target);
   qword local=func_0022FC48(0,node->space,position);
