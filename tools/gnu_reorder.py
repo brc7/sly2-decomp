@@ -211,6 +211,27 @@ def no_loop_fix(text):
         out.append(l)
     return '\n'.join(out)
 
+def run_linux_tool(cmd, root):
+    """Run a 32-bit x86 Linux tool (GNU as from ee-gcc 2.96).
+
+    On Linux it runs directly.  On macOS it can't, so it runs inside the toolchain Docker image
+    (tools/docker/Dockerfile, built by `tools/dev.sh image`) with the repo and every directory named by an
+    absolute path argument bind-mounted at the same path.  Docker Desktop shares /Users and the temp dirs
+    (/var/folders, /private, /tmp) by default.  Override the image with $SLY2_IMAGE."""
+    if sys.platform != 'darwin':
+        return subprocess.run(cmd, capture_output=True, text=True)
+    dirs = {os.path.realpath(root)}
+    for a in cmd:
+        if os.path.isabs(a):
+            dirs.add(os.path.realpath(os.path.dirname(a)))
+    mounts = []
+    for d in sorted(dirs):
+        mounts += ['-v', f'{d}:{d}']
+    real = [os.path.realpath(a) if os.path.isabs(a) else a for a in cmd]
+    image = os.environ.get('SLY2_IMAGE', 'sly2-decomp-tools:latest')
+    return subprocess.run(['docker', 'run', '--rm', '--platform', 'linux/amd64'] + mounts +
+                          ['-w', os.path.realpath(root), image] + real, capture_output=True, text=True)
+
 def assemble(s_path, obj, root, mode='gnu-reorder', divnop=False, noloopfix=False):
     g = os.path.join(root, 'tools', 'compilers', 'ee-gcc2.96')
     txt = open(s_path).read()
@@ -226,8 +247,7 @@ def assemble(s_path, obj, root, mode='gnu-reorder', divnop=False, noloopfix=Fals
         txt = no_loop_fix(txt)
     s2 = s_path + '.gr.s'
     open(s2, 'w').write(txt)
-    p = subprocess.run([os.path.join(g, 'ee', 'bin', 'as'), '-G0', '-EL', '-mabi=eabi', '-o', obj, s2],
-                       capture_output=True, text=True)
+    p = run_linux_tool([os.path.join(g, 'ee', 'bin', 'as'), '-G0', '-EL', '-mabi=eabi', '-o', obj, s2], root)
     if p.returncode:
         sys.stderr.write(p.stderr)
     return p.returncode
