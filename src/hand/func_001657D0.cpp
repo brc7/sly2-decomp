@@ -42,6 +42,13 @@ extern "C" void func_001623D0(O *p, int n, int c, int a, int b);
 extern "C" void func_001643B0(O *p);
 extern "C" void func_00163C28(O *p);
 extern "C" void func_00163CE0(O *p);
+/** @sly2-annot addr=0x1657D0
+ * Purpose: Low-level task state set: events 0x26/0x25, maintains the available-task list g_sw+0x3B00, counts,
+ *   save vars, SendMessage 0x16/0x15, follow-up activate/deactivate
+ * Info: proposed name SetTaskState (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_001657D0(O *p, int n)
 {
     if (p->n54 == n)

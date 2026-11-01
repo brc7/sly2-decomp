@@ -23,6 +23,12 @@ extern "C" RAW *func_002581C0(RAW *pr, void *pv, void *p);
 static inline int NFromPv(void *pv,RAW &ref) { int n; func_002581C0(&ref,pv,D_003D4A60);n=ref.m_tag;func_00129EC8(&ref);return n; }
 static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=func_00258200(pv,arg,D_003D4A60); }
 extern "C" void func_001C8188(int f);
+/** @sly2-annot addr=0x1C8188
+ * Purpose: set fVault and commit (0x1ABD98 memcard/save)
+ * Info: proposed name SetVaultOpened (T2); TU prize
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C8188(int f)
 {
     FRAME frame; RAW ref;

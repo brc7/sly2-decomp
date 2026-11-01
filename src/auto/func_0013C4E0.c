@@ -44,6 +44,13 @@ extern void *D_003E13B4;
 extern M2C_UNK D_390;
 extern M2C_UNK D_870;
 
+/** @sly2-annot addr=0x13C4E0
+ * Purpose: If dropped: reset to 0 and, if its container is still in world, put it back there (state 1)
+ * Info: proposed name ReturnDroppedBooty (T2); TU booty
+ * Notes: names_v2 v1 proposed FGetAlarmSensorList__FP5ALARMPv (0.001)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void func_0013C4E0(s32 arg0) {
     s32 temp_s1;
     s32 temp_s2;

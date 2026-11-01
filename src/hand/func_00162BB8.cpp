@@ -21,6 +21,14 @@ extern "C" int func_0020E040(G *pg);
 extern "C" void func_00162DD0(O *p);
 extern "C" void func_00162E38(O *p);
 extern "C" void func_00162DF8(O *p);
+/** @sly2-annot addr=0x162BB8
+ * Purpose: Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (->
+ *   0x162DD0) and fail-event list (-> FailJob); if not live, event 0x10 restarts it (RestartJob)
+ * Info: proposed name HandleJobGameEvent (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_B
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00162BB8(O *p, int n, int m)
 {
     if (func_00162670(p)) {

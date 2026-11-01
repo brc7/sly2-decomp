@@ -9,6 +9,12 @@ int func_001C8090(void);
 short func_001D8720(int *p, char *s);
 }
 inline short B::Find(char *s) { return func_001D8720(&c, s); }
+/** @sly2-annot addr=0x1C8090
+ * Purpose: query save-data flag 'fVault' for the level
+ * Info: proposed name FVaultOpened (T1); TU prize
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 int func_001C8090(void)
 {
     int n = func_00210A88();

@@ -13,6 +13,15 @@ void func_001D54B8(void);
 void func_001DD888(void *p);
 void *func_00210B98(int n);
 void func_0022B490(struct G *pg, void *p, int a, int b, int c, int d);
+/** @sly2-annot addr=0x165E38
+ * Purpose: Starts play from a save-slot GS: new game -> first task oid 0x62F in world entry 0; else the saved
+ *   episode (or hub level D_002A3828 if it is 100%)
+ * Info: proposed name PlayGameFromGs (T2); TU game
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/formats/disc-records.md#3-static-records-in-the-elf,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_00165E38(void *pv)
 {
     CRef ref;

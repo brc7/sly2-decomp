@@ -40,6 +40,13 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E0F9C;
 extern s32 D_003E1480;
 
+/** @sly2-annot addr=0x154A60
+ * Purpose: Zeroes the 0x18-byte DIFFICULTY object
+ * Info: proposed name InitDifficulty (T1); TU difficulty
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/game-progression.md#7-source-files, docs/engine/guards-ai.md#8-source-files,
+ *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
+ * @end-sly2-annot */
 void func_00154A60(s32 arg0, s32 arg1, s32 arg2) {
     memset(arg0, 0, 0x18);
 }

@@ -6,6 +6,15 @@ extern struct CLOCK D_002DDED0;
 extern int D_003E0F9C;
 void func_001A5E28(struct S *p);
 void func_00165118(struct S *p, int n);
+/** @sly2-annot addr=0x163B48
+ * Purpose: TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO
+ *   (+0x80, AddLo) only while available and no job is current, else removes it
+ * Info: proposed name UpdateTask (T1); class TASK slot16; TU game
+ * Notes: superseded r3_1539A8 proposal: UpdateCid85 (0.65) | runtime6 G3: marker LO +0x80 shown by state == 1
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime
+ * See: docs/engine/game-progression.md#task-lo-child-0x110, docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void func_00163B48(struct S *p)
 {
     struct O *po;

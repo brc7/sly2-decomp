@@ -4,6 +4,15 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00164640(void *p, int n, struct LO *plo);
 void func_001C60B8(struct LO *p, int n);
+/** @sly2-annot addr=0x1C6B28
+ * Purpose: CID 92 setter (sound on collect)
+ * Info: proposed name SetKeyDprizes (T2); class KEY slot76; TU prize
+ * Notes: class identity from whole_game WE names/object strings: SetDprize92Dprizes -> SetKeyDprizes
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
+ *   r5_1AE130+verdicts_tu_r3r5+whole_game(class identity)
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C6B28(struct LO *p, int n)
 {
     if (p->x150 == n) return;

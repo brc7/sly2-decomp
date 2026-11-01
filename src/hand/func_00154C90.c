@@ -6,6 +6,13 @@ struct S { int pad[2]; void *p8; void *pC; void *p10; };
 void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 static inline float GGet(void *p) { CRef ref; float g; func_002581C0(&ref, p, D_003D4A60); g = ref.m_g; func_00129EC8(&ref); return g; }
+/** @sly2-annot addr=0x154C90
+ * Purpose: Current difficulty: override value if set, else average of the last three samples
+ * Info: proposed name GGetDifficulty (T1); TU difficulty
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 float func_00154C90(struct S *p)
 { float g;
   if (D_003E0F9C) g = *D_003E0F9C->pg;

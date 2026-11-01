@@ -21,6 +21,13 @@ struct LO *func_001F0380(void *a, struct S *p, int anim, int z);
 void func_001F10F0(struct LO *q, float g);
 void func_001F0660(struct LO *q, int anim);
 void func_001F0598(struct LO *q);
+/** @sly2-annot addr=0x1C60B8
+ * Purpose: DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps)
+ * Info: proposed name SetDprizeDprizes (T1); class DPRIZE slot76; TU prize
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C60B8(struct S *p, int n)
 {
     int anim = -1;

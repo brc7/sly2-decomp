@@ -88,6 +88,15 @@ typedef char OVERRIDE_oldX_Offset[FIELD_OFFSET(OVERRIDE,oldX)==8?1:-1];
 typedef char OVERRIDE_oldY_Offset[FIELD_OFFSET(OVERRIDE,oldY)==12?1:-1];
 typedef char CRef_kind_Offset[FIELD_OFFSET(CRef,kind)==0?1:-1];
 typedef char CRef_g_Offset[FIELD_OFFSET(CRef,g)==4?1:-1];
+/** @sly2-annot addr=0x161A58
+ * Purpose: g_game handler: ev1 (world teardown) per-STEPPLAYER widget save in one level; ev3 reset/apply
+ *   pending GS + reload save slots; ev4 RestoreTasksAfterLoad; ev5 re-resolve current job/task/pending task
+ *   from saved oids, recompute task states, announce job; ev16 warp when no job
+ * Info: proposed name HandleGameEvent (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/formats/disc-records.md#3-static-records-in-the-elf,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00161A58(P*p,int action){
  switch(action){
  case 1:{

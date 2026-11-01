@@ -34,6 +34,13 @@ static inline float Max(float a,float b)
     __asm__("max.s %0,%0,%1":"+f"(a):"f"(b));
     return a;
 }
+/** @sly2-annot addr=0x1C6308
+ * Purpose: spawn sparkle rip (PripNewRipg) at prize position periodically
+ * Info: proposed name EmitDprizeGlint (T2); TU prize
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C6308(struct S *p)
 {
     union U scale;

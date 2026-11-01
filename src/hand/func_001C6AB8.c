@@ -1,5 +1,13 @@
 struct S { char pad[0x1A0]; float g1a0; char pad2[0x2C]; float g1d0, g1d4, g1d8, g1dc, g1e0, g1e4; };
 void func_001C4E50(struct S *p);
+/** @sly2-annot addr=0x1C6AB8
+ * Purpose: CID 92 Init
+ * Info: proposed name InitKey (T2); class KEY slot7; TU prize
+ * Notes: class identity from whole_game WE names/object strings: InitDprize92 -> InitKey
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C6AB8(struct S *p)
 {
     func_001C4E50(p);

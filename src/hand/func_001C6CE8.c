@@ -3,6 +3,14 @@ struct LO { char pad[0xC]; struct VTE *vt; };
 void *func_0015E938(void *p, int a, int id, int b);
 struct LO *func_001CB250(void *pg, int n);
 void func_001CB488(void *pg, struct LO *plo);
+/** @sly2-annot addr=0x1C6CE8
+ * Purpose: make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo)
+ * Info: proposed name PdprizeNewSpray (T1); TU prize
+ * Notes: runtime2: coin/medicine copies moved to break site
+ * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 int func_001C6CE8(void *p, int kind, int n, struct LO **aplo)
 {
     int id, i, c;

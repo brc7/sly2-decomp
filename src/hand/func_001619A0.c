@@ -7,6 +7,14 @@ void func_00161A58(void *pv, int n, void *p);
 void func_00154A90(void *pv, int n, void *p);
 void func_00165170(struct X *px, int n, void *p);
 void func_00162BB8(void *pv, int n, void *p);
+/** @sly2-annot addr=0x1619A0
+ * Purpose: Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list
+ *   g_sw+0x3B00) of the current job (SendTaskGameEvent), then the current job (HandleJobGameEvent)
+ * Info: proposed name BroadcastGameEvent (T1); TU game
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3b_rest+verdicts_followups
+ * See: docs/engine/game-progression.md#2-the-game-event-bus, docs/engine/game-progression.md#8-key-functions,
+ *   docs/engine/game-progression.md#open-questions
+ * @end-sly2-annot */
 void func_001619A0(void *pv, int n, void *p)
 {
     struct X *px;

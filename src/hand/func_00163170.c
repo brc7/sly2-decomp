@@ -26,6 +26,14 @@ static __inline__ void VCall49(struct O *po, int n)
     struct VTE *e = &po->vt[49];
     ((void (*)(void *, int))e->pfn)((char *)po + e->d, n);
 }
+/** @sly2-annot addr=0x163170
+ * Purpose: Sets completion phase (0 none,1 intro,2 outro,3 shared widget): entering from 0 finds the next
+ *   task, busy-flags the LO and increments hands-off; phase 0 hides widgets and decrements hands-off
+ * Info: proposed name SetJobCompletionPhase (T1); TU game
+ * Notes: runtime6 G8: SetJobCompletionPhase(1): IncrementSwHandsOff(SW,2) + WIDGET128 banner (S61)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void func_00163170(struct X *p, int n)
 {
     int i;

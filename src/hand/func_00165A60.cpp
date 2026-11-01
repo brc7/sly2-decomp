@@ -31,6 +31,12 @@ public:
 struct S { char pad[0x54]; int n; char pad2[0xA0 - 0x58]; int c; X **apx; char pad3[0xF4 - 0xA8]; int fF4; int fF8; };
 extern "C" void func_001657D0(S *p, int n);
 extern "C" void func_00165B40(X *px, int n);
+/** @sly2-annot addr=0x165A60
+ * Purpose: SetTaskState then recompute each successor
+ * Info: proposed name SetTaskStatePropagate (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00165A60(S *p, int n)
 {
     int i;

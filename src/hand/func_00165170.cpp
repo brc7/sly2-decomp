@@ -6,6 +6,12 @@ public:
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
 };
 extern "C" int func_001637E8(O *p);
+/** @sly2-annot addr=0x165170
+ * Purpose: If live, SendMessage 0x11(event, arg)
+ * Info: proposed name SendTaskGameEvent (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00165170(O *p, int n, int m)
 {
     if (func_001637E8(p)) {

@@ -11,6 +11,12 @@ int func_001D8720(struct HT *pt,const char *s);
 struct A *func_002109B8(int h);
 struct A *func_001D8CC8(struct A *p, struct A *pa);
 static inline int Find(struct X *px, const char *s) { return func_001D8720(&px->table,s); }
+/** @sly2-annot addr=0x1C7B18
+ * Purpose: query save data for bit n of 'afClue' for the current level
+ * Info: proposed name FClueCollected (T1); TU prize
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 struct A *func_001C7B18(int input)
 {
     register int n __asm__("$17")=input;

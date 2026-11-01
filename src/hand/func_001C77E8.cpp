@@ -29,6 +29,12 @@ extern char D_002A7778[];
 CRef func_001D8A38(char *a, char *b, char *c, int n);
 CRef func_001D8B20(const CRef &r, char *a, char *b, char *c, int n);
 extern "C" void func_001C77E8(S *p, int n);
+/** @sly2-annot addr=0x1C77E8
+ * Purpose: CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15)
+ * Info: proposed name SetLootDprizes (T1); class LOOT slot76; TU prize
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C77E8(S *p, int n)
 {
     if (p->x150 == n) return;

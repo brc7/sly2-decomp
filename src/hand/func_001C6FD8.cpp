@@ -137,6 +137,13 @@ static inline REGION *PregionFromLo(LO *plo)
 }
 static inline int FFartherThan(float g, float gMax) { return gMax < g; }
 
+/** @sly2-annot addr=0x1C6FD8
+ * Purpose: spray up to cRequested prizes of a kind out of a point onto the ground region
+ * Info: proposed name SprayDprizes (T1); TU prize
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/game-progression.md#4-collectibles-and-loot-prizecpp-0x1c4e50,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnused, int cRequested)
 {
     VECTOR4 posOrig;

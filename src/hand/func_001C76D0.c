@@ -7,6 +7,16 @@ void *func_001AE238(struct AL *pal, void *pv);
 void func_001AE4A0(struct H *ph, int n);
 void func_001C4EF8(struct S *p, void *pv);
 void func_001C7A08(struct S *p);
+/** @sly2-annot addr=0x1C76D0
+ * Purpose: CID 94 LoadFromBrx (base + copies table on stack heap)
+ * Info: proposed name LoadLootFromBrx (T1); class LOOT slot14; TU prize
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources:
+ *   r5_1AE130+verdicts_tu_r3r5+parse-verified
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C76D0(struct S *p, void *pv)
 {
     struct H h;

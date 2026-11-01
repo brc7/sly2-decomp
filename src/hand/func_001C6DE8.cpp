@@ -43,6 +43,12 @@ static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
     return r;
 }
 
+/** @sly2-annot addr=0x1C6DE8
+ * Purpose: find landing point on objects below/above a point
+ * Info: proposed name FFindDprizeLanding (T2); TU prize
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 extern "C" int func_001C6DE8(float gMin, float gMax, float gThreshold, qword point, int ccand, CANDIDATE **apcand,
                              qword *ppos)
 {

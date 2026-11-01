@@ -23,6 +23,12 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x22A060
+ * Purpose: SO update, distance to player/visibility
+ * Info: proposed name UpdateWaypt (T1); class WAYPT slot16; TU waypoint
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
+ * @end-sly2-annot */
 void func_0022A060(struct P *p)
 {
     struct J *pj;

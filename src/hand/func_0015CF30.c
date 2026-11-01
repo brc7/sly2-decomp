@@ -43,6 +43,15 @@ static __inline__ void PlaySound(int n)
     func_001FB2F8(func_001FBB90(n), 0);
 }
 
+/** @sly2-annot addr=0x15CF30
+ * Purpose: Per-frame update of the WIDGET131 HUD element
+ * Info: proposed name UpdateWidget131 (T2); class WIDGET131 slot16; TU tu_15CD68
+ * Notes: Cid83->Widget131 (CID 0x83=131, vtable) | runtime5b: WIDGET131 episode menu mode 10 (S55) | T2:
+ *   placeholder token 131
+ * Confidence: low (draft) [T2 0.70] - evidence: runtime (save-state RAM); sources: r3_1539A8+runtime
+ * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
+ *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 void func_0015CF30(struct X *p)
 {
     int r;

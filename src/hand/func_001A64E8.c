@@ -10,6 +10,15 @@ void func_001F2AD0(struct ALO*, void*);
 void*func_001F5FF8(struct ALO*,int);
 void func_001F69F8(struct ALO*,int);
 struct LO*func_0015E938(void*,int,int,struct ALO*);
+/** @sly2-annot addr=0x1A64E8
+ * Purpose: Resolve a table {grf,id,ib} of OID refs into fields at plo+ib: grf&0x10 part by id, 0x20/0x40 SO
+ *   sub-objects (0x1F6030/0x1F5FF8), else PloFindSwObject 0x15E938 (kind 4/5/1); grf&0x200 -> vt9 Remove the
+ *   found object
+ * Info: proposed name BindLoOidTable (T1); TU lo
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/engine/object-model.md#3-creation-hierarchy-and-removal, docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 void func_001A64E8(struct ALO*palo,
 int c,struct E*ae){
 int i=0;

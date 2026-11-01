@@ -23,6 +23,14 @@ static inline qword Normalize(qword v) {
  __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(l):"0"(l));
  __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(l),"j"(v));return r;
 }
+/** @sly2-annot addr=0x166270
+ * Purpose: Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by
+ *   a matrix and rotates/renormalizes the normals, recomputing plane offsets
+ * Info: proposed name CloneGeom (T1); TU geom
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#7-source-files,
+ *   docs/engine/physics-collision.md#4-geometry-and-queries, docs/engine/physics-collision.md#6-source-files
+ * @end-sly2-annot */
 void func_00166270(struct Geom *src,const struct M4 *transform,struct Geom *dest)
 {
  struct REQ req;

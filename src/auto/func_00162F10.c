@@ -15,6 +15,14 @@ extern void *D_003E0F90;
 extern s32 D_003E0F9C;
 extern void *D_003E0FA0;
 
+/** @sly2-annot addr=0x162F10
+ * Purpose: If the job has a completion widget run the completion sequence (phase 1), else FinishJob +
+ *   ContinueAfterJob
+ * Info: proposed name CompleteJob (T1); TU game
+ * Notes: names_v2 v1 proposed CollectTurretPrize__FP6TURRET3PCKP3ALO (0.040)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void func_00162F10(s32 arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0xB8) != 0) {
         func_00163170(arg0, 1);

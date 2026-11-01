@@ -27,6 +27,15 @@ void func_001FB2F8(void *p, int n);
 void func_00161868(void *pg);
 void func_001619A0(void *p, int n, struct S *ps);
 void func_001C60B8(struct S *p, int n);
+/** @sly2-annot addr=0x1C68F0
+ * Purpose: CID 93 setter (uses PpoCur - gives to current character)
+ * Info: proposed name SetMedicineDprizes (T2); class MEDICINE slot76; TU prize
+ * Notes: class identity from whole_game WE names/object strings: SetDprize93Dprizes -> SetMedicineDprizes
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
+ *   r5_1AE130+verdicts_tu_r3r5+whole_game(class identity)
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C68F0(struct S *p, int n)
 {
     if (p->x150 == n) return;

@@ -25,6 +25,12 @@ extern "C" void func_001619A0(void *pv, int n, O *p);
 extern "C" void func_001620B0(O *p, int n, int c, int a);
 extern "C" void func_001623D0(O *p, int n, int c, int a, int b);
 extern "C" void func_001DA578(void *pv, int n);
+/** @sly2-annot addr=0x163F48
+ * Purpose: Clears current task; if live: event 0x24, state-5 visuals/RSMGs, stops its music, SendMessage 0x14
+ * Info: proposed name EndTask (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00163F48(O *p)
 {
     func_00165DE8(&D_003DD490, 0);

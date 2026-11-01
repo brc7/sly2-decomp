@@ -5,6 +5,13 @@ M2C_UNK func_001F36E0();                            /* extern */
 extern f32 D_002DDED0;
 extern f32 D_003E1BFC;
 
+/** @sly2-annot addr=0x13BF50
+ * Purpose: cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried)
+ *   forces a drop (DropStepplayerBooty) once the level timer D_003E1BFC passes
+ * Info: proposed name UpdateBooty (T1); class BOOTY slot16; TU booty
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void func_0013BF50(void *arg0) {
     s32 temp_v1;
 

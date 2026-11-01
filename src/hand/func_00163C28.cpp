@@ -31,6 +31,12 @@ extern G D_003DD490;
 extern "C" int func_00164018(X *px);
 extern "C" void func_00163CE0(X *px);
 extern "C" void func_00163D18(X *px);
+/** @sly2-annot addr=0x163C28
+ * Purpose: Unless already current: end the current task (with source override) and BeginTask(p)
+ * Info: proposed name ActivateTask (T1); TU game
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00163C28(X *px)
 {
     if (func_00164018(px)) return;

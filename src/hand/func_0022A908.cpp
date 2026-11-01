@@ -118,6 +118,13 @@ inline MATRIX3 operator*(const MATRIX3 &mat, VU_FLOAT g) return matRes
     matRes = matT;
 }
 
+/** @sly2-annot addr=0x22A908
+ * Purpose: fades the job marker, draws 3 child SOs scaled by distance, job name plate
+ * Info: proposed name RenderWaypt (T1); class WAYPT slot19; TU waypoint
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
+ * @end-sly2-annot */
 extern "C" void func_0022A908(WAYPT *pwaypt)
 {
     func_001F3C70(pwaypt);

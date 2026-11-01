@@ -5,6 +5,13 @@ extern float D_002A7710;
 void func_001F2108(struct S *p);
 void func_001F7918(struct S *p, int a, int b);
 static inline int FPtr(int v) { return !(v & 1); }
+/** @sly2-annot addr=0x1C4E50
+ * Purpose: DPRIZE::Init (vt7): InitSo + 0x1F7918 setup
+ * Info: proposed name InitDprize (T1); class DPRIZE slot7; TU prize
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#7-source-files, docs/engine/game-progression.md#8-key-functions,
+ *   docs/engine/gameplay-objects.md#gameplay-object-classes
+ * @end-sly2-annot */
 void func_001C4E50(struct S *p)
 {
     int v;

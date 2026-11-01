@@ -38,6 +38,13 @@ inline CSave::~CSave()
     }
 }
 static inline int Max(int a, int b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x164100
+ * Purpose: Topological visit: records depth, counts visits, emits the task once all prerequisites are visited
+ *   and recurses into successors
+ * Info: proposed name VisitTaskTopo (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00164100(X *p, int *pc, X **apx, int nDepth, int n)
 {
     p->f100 = Max(nDepth, p->f100);

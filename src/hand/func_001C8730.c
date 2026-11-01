@@ -19,6 +19,13 @@ void func_0020F198(void *p);
 void func_0020F128(void *p);
 void func_0020F1A8(void *p);
 void func_001DFD58(void *p, struct LO *q);
+/** @sly2-annot addr=0x1C8730
+ * Purpose: state transition (camera/sound/hands-off)
+ * Info: proposed name SetVaultState (T2); TU prize
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C8730(struct S *p, int n)
 {
     void *pv;

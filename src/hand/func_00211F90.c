@@ -14,6 +14,16 @@ void func_00212C50(struct S *);
 int func_00164030(struct O *);
 int func_002121E8(struct S *,int);
 int func_0021ECD8(char *,char *,...);
+/** @sly2-annot addr=0x211F90
+ * Purpose: CID 0x81 Update: counts finished/active objects, writes counts into "Widget Item 0/1/2"
+ *   (doneB,totalB,remainingB) for text ids 0x2FF..; shows while any active, hides when all done
+ * Info: proposed name UpdateWidget129 (T2); class WIDGET129 slot16; TU hud
+ * Notes: v2: demoted to T2 (placeholder token in name: 129) | runtime6 G17: counts complete tasks each frame
+ *   and formats done/total/remaining | T2: placeholder token 129
+ * Confidence: low (draft) [T2 0.65] - evidence: runtime (save-state RAM); sources: r7c_hud+runtime
+ * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00211F90(struct S *p)
 {
     int i;

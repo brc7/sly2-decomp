@@ -10,6 +10,12 @@ void *func_002109B8(int);
 void func_001D8CC8(void *, struct P *);
 void func_0013D1A8(struct S *p);
 }
+/** @sly2-annot addr=0x13D1A8
+ * Purpose: Build the save key for this container (level entry + two symbols + id)
+ * Info: proposed name PkeyBootyContainerSave (T2); TU booty
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void func_0013D1A8(struct S *p) {
     short as[3];
     struct P par;

@@ -17,6 +17,15 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
     return func_001AE378(preq);
 }
 static inline int Min(int a, int b) { return a > b ? b : a; }
+/** @sly2-annot addr=0x161660
+ * Purpose: Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state
+ *   3)/count, clamped to 1..99 unless 0 or all
+ * Info: proposed name NEpisodePercentComplete (T1); TU game
+ * Notes: runtime6 G14: percent formula recomputed from RAM (2 -> 7)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime
+ * See: docs/engine/game-progression.md#-complete, docs/engine/game-progression.md#8-key-functions,
+ *   docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" int func_00161660()
 {
     int c = 0;

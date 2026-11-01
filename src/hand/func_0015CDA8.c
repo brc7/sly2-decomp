@@ -29,6 +29,14 @@ static inline int NFromP(void *pv)
     func_00129EC8(&ref);
     return n;
 }
+/** @sly2-annot addr=0x15CDA8
+ * Purpose: WIDGET PostLoad (0x2123C8) then picks the first empty slot index from g_sw arrays
+ * Info: proposed name PostWidget131Load (T2); class WIDGET131 slot15; TU tu_15CD68
+ * Notes: Cid83->Widget131 (CID 0x83=131, vtable)
+ * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
+ *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 void func_0015CDA8(struct S *p)
 {
     func_002123C8(p);

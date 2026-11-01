@@ -109,6 +109,13 @@ static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, q
     ((void (*)(MOTION *, float, float, qword *, qword *))e.fn)((MOTION *)((char *)motion + e.delta), animation->time, animation->duration, value, velocity);
 }
 
+/** @sly2-annot addr=0x1C5148
+ * Purpose: DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base)
+ * Info: proposed name ProjectDprizeTransform (T1); class DPRIZE slot17; TU prize
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 extern "C" void func_001C5148(P *p)
 {
     if (p->state == 6) { func_001F3980(p); return; }

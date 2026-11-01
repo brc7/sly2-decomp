@@ -27,6 +27,17 @@ struct CRefCopy:CRefData{
 static inline void SetPrimaryFloat(OPT*p,float value,void*context){
  CRef r(value);CRefCopy arg(r);const CRef&ret=func_00258200(p,arg,context);
 }
+/** @sly2-annot addr=0x161478
+ * Purpose: Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's
+ *   play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); adds dt to the current JOB's elapsed time and eases
+ *   difficulty (ChangeDifficulty(dt/(end-start))) once elapsed > job start threshold (default 480 s, end 720
+ *   s)
+ * Info: proposed name UpdateGameTimers (T1); TU game
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3b_rest
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/main-loop-startup.md#clock-0x14cfe0-0x14d3d8
+ * @end-sly2-annot */
 extern "C" void func_00161478(){
  if(!D_003DD490.primary)return;
  float x=GetFloat(D_003DD490.primary,D_003D4A60);

@@ -23,6 +23,18 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
     preq->nKind = nKind;
     return func_001AE238(preq, pv);
 }
+/** @sly2-annot addr=0x1624A8
+ * Purpose: JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load,
+ *   shrinks to the counts read
+ * Info: proposed name LoadJobFromBrx (T1); class JOB slot14; TU game
+ * Notes: superseded r3_1539A8 proposal: LoadCid84FromBrx (0.7) | level_parser CONFIRMED-parse: payload layout
+ *   followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources:
+ *   r3b_rest+verdicts_tu_r3r5+parse-verified
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_001624A8(S *p, CBinaryInputStream *pbis)
 {
     FRAME fr;

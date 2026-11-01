@@ -11,6 +11,14 @@ void func_00228358(struct S *p, int k);
 struct S *func_002280D0(struct G *pg);
 void func_00161F48(void *a, int b, void *c, struct S *p);
 void func_0014E4C8(void *a, int b, int c, void *d, int e, int f);
+/** @sly2-annot addr=0x2283D0
+ * Purpose: state 3 handling: find default, heading, revoke cm policy
+ * Info: proposed name UpdateWarpTriggered (T2); TU exit_warp
+ * Notes: names_v2 B proposed UpdateStepguardSgs__FP9STEPGUARD (0.913)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
+ * @end-sly2-annot */
 void func_002283D0(struct S *p)
 {
     if (p->k != 3) return;

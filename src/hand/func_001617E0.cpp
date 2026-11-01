@@ -15,6 +15,13 @@ static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=fu
 struct G { char pad[0x3B20]; O *f3b20; };
 extern G D_003DD490;
 extern "C" void func_00161868(G *pg);
+/** @sly2-annot addr=0x1617E0
+ * Purpose: Writes int n into save var g_sw+0x3B20 and refreshes its HUD widget (ShowGameWidget3BAC)
+ * Info: proposed name SetCPrize91 (T2); TU game
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 extern "C" void func_001617E0(void *pv, int n)
 {
     G *pg = &D_003DD490;

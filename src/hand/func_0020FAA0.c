@@ -8,6 +8,14 @@ void *func_001AE318(struct MSG *pmsg);
 void func_00133E30(struct S *p);
 void func_00133E80(struct S *p);
 
+/** @sly2-annot addr=0x20FAA0
+ * Purpose: Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter;
+ *   result in slot-allocated array
+ * Info: proposed name IntersectSwBoundingBox (T1); TU sw
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/game-progression.md#8-key-functions, docs/engine/world-sw.md#10-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_0020FAA0(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     U mn, mx;

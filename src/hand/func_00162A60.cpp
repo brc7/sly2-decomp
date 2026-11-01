@@ -33,6 +33,14 @@ static inline int FSame(W *pw1, W *pw2)
     if (!pw1 || !pw2) return 0;
     return (pw1->f8 ^ pw1->f38) == (pw2->f8 ^ pw2->f38);
 }
+/** @sly2-annot addr=0x162A60
+ * Purpose: Clears current job (and pending task if it belonged to p); resets the warp target when in the
+ *   job's world entry; if live: event 0x22, state-5 visibility/RSMGs, SendMessage 0x14
+ * Info: proposed name EndJob (T1); TU game
+ * Notes: names_v2 v1 proposed OnTurretActive__FP6TURRETiP2PO (0.005)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00162A60(O *p)
 {
     func_00165DC0(&D_003DD490, 0);

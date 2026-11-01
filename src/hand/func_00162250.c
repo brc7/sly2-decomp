@@ -7,6 +7,13 @@ int func_00132B10(void *pv, int n);
 void *func_001F67E0(void *pv, int n);
 void func_001F0948(void *p, int id);
 void func_001F0660(void *p, int id);
+/** @sly2-annot addr=0x162250
+ * Purpose: For one {state, oidRoot, oidSm, oidGoal, fOnLoadOnly, level} record matching the new state: find
+ *   the SM's SMA and SeekSma/SetSmaGoal to oidGoal (default goal oids 0x612..0x615 for states 0..3)
+ * Info: proposed name TriggerStateRsmg (T1); TU game
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void func_00162250(void *pvUnused, struct E *pe, int n, int k)
 {
     void *pv;
