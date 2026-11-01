@@ -10,6 +10,14 @@ void func_001B3A48(struct P *p, int n);
 void func_0022B490(void *g, void *a, int b, int c, int d, int e);
 void func_001651D8(void *g, int a, int b);
 void func_001ACC38(struct H *h, int n);
+/** @sly2-annot addr=0x1A4E80
+ * Purpose: Pop the next queued step and run it: movie (CMpeg::QueueMovie), world warp (WipeToWorldWarp), task
+ *   (StartTaskByOid), memcard UI phase (SetMcUiPhase); recurses for instant steps
+ * Info: proposed name RunNextBootStep (T2); TU tu_1A4E08
+ * Notes: names_v2 C proposed SetupBulkDataFromBrx__FiP18CBinaryInputStream (0.638)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
+ * @end-sly2-annot */
 void func_001A4E80(struct S *s)
 {
     struct E *e;

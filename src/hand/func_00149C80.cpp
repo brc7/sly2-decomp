@@ -67,6 +67,16 @@ void func_0011A118(LIST *pl, void *pv);
 void func_00149C80(MGR *p);
 }
 
+/** @sly2-annot addr=0x149C80
+ * Purpose: Drain the deferred-callback list (calling each member function, repeating while new ones are
+ *   posted), then run all Splice scheduled callbacks whose time has come (EvalSpliceEventCallback) and free
+ *   them
+ * Info: proposed name ProcessSwCallbacks (T1); TU callback
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#5-per-frame-update-and-render,
+ *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule
+ * @end-sly2-annot */
 void func_00149C80(MGR *p)
 {
     while (!func_0011A1E8(&p->lcbs)) {

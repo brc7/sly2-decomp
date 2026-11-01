@@ -13,6 +13,12 @@ static __inline__ int FSameChk(struct CHK *a, struct CHK *b)
     if (!a || !b) return 0;
     return (a->a[2] ^ a->a[14]) == (b->a[2] ^ b->a[14]);
 }
+/** @sly2-annot addr=0x22B220
+ * Purpose: starts a transition to a level/warp, comparing checkpoints
+ * Info: proposed name ActivateWipe (T2); TU wipe
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
+ * @end-sly2-annot */
 void func_0022B220(struct S *p, struct X *px, int n, int f)
 {
     switch (p->k) {

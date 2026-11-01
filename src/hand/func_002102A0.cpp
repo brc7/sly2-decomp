@@ -9,6 +9,15 @@ struct X : XB { char pad10[0x10]; X *next; };
 struct B { X *first; int a, b; };
 struct S { char pad[0x3038]; B ab[199]; };
 extern "C" void func_001C4A60(S *p, int k);
+/** @sly2-annot addr=0x2102A0
+ * Purpose: 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038)
+ * Info: proposed name RefreshSwObjects (T2); TU sw
+ * Notes: names_v2 v1 proposed InsertButtonPos__FP6BUTTONP3PNTP6VECTOR (0.008) | runtime: per-class list
+ *   stride at SW+0x3038 is 12 bytes
+ * Confidence: low (draft) [T2 0.25] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r7_1F8DD8+runtime-corrected
+ * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 extern "C" void func_002102A0(S *p)
 {
     int i;

@@ -2,6 +2,14 @@ typedef int OID;
 typedef struct RSMG { OID oidRoot; OID oidSM; OID oidTrigger; OID oidNoTrigger; } RSMG;
 int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
     __asm__("FAddRsmg__FP4RSMGiPii3OIDN24");
+/** @sly2-annot addr=0x20FEC0
+ * Purpose: Add/update a (root,SM)->trigger/untrigger goal record
+ * Info: proposed name FAddRsmg__FP2SWP4RSMGiPii3OIDN25 (EXISTING); TU sw
+ * Notes: RENAME proposed -> FAddRsmg__FP2SWP4RSMGiPii3OIDN25 (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.80] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r7_1F8DD8+verdicts_tu_r7r8+arbitration
+ * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
 {
     int i;

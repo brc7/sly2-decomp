@@ -16,6 +16,14 @@ void func_001703F8(struct ZPR *pz, int a, int b);
 void func_001BE398(void *p, struct ZPR *pz);
 void func_001619A0(void *p, int a, int b);
 
+/** @sly2-annot addr=0x20E180
+ * Purpose: Pre-load setup of the fresh SW: 3x0x4800 and 0x8000 work buffers, 0x28 header with DL, InitZpr x2,
+ *   game callback(2)
+ * Info: proposed name InitSwLoadBuffers (T2); TU sw
+ * Notes: names_v2 v1 proposed BindChkpnt__FP6CHKPNT (0.004)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_0020E180(struct S *p)
 {
     struct MSG msg;

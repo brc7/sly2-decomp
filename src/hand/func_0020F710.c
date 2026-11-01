@@ -8,6 +8,13 @@ int func_0015E938(void *p, int a, int b, int c);
 void func_00213C68(int x, struct L *pl);
 int func_001C7D08(void);
 int func_001C7D00(void);
+/** @sly2-annot addr=0x20F710
+ * Purpose: Find 4 HUD objects (kind 0x405, OIDs 0x371/0x36D/0x36E/0x36F), init them, record two counters
+ * Info: proposed name BindSwTimerHud (T2); TU sw
+ * Notes: names_v2 v1 proposed LoadBtn__FP3BTNP3ALO (0.003)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_0020F710(struct S *p)
 {
     struct L l;

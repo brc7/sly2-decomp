@@ -7,6 +7,14 @@ void *func_001AE318(struct MSG *pmsg);
 void func_00133E30(struct S *p);
 void func_00133E80(struct S *p);
 
+/** @sly2-annot addr=0x20FC60
+ * Purpose: Same for a sphere (center, radius)
+ * Info: proposed name IntersectSwBoundingSphere (T1); TU sw
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/world-sw.md#10-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
+ *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_0020FC60(struct S *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     struct MSG msg;

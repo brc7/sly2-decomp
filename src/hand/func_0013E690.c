@@ -8,6 +8,17 @@ void func_00129330(CRef *ret, float *ag);
 void func_00129398(CRef *ret, float *ag);
 void func_001291E0(CRef *ret, float *ag);
 void func_0012A0B0(CRef *ret, int tagk);
+/** @sly2-annot addr=0x13E690
+ * Purpose: Reads one typed method-option argument into a CRef by otyp: 0 bool(U8), 1 float, 5/6 S32, 7/14..23
+ *   S16, 2/9 3xF32 vectors, 10 2xF32, 0x1xxx U32, else null tag 0x24
+ * Info: proposed name RefFromBrx (T1); TU brx
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels;
+ *   METHOD option argument reader (2.2-2.8k method options per level now parsed)
+ * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70+parse-verified
+ * See: docs/engine/world-sw.md#10-key-functions,
+ *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
+ *   docs/formats/world-file.md#37-options-of-g_sw-and-g_cm-func_0013f810---func_0013e818
+ * @end-sly2-annot */
 CRef *func_0013E690(CRef *ret, int k, void *pbs)
 {
     float ag[3];
