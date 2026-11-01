@@ -27,6 +27,12 @@ CRef func_00127C00(FRAME *pframe, int sym, CRef *pref);
 void func_00127B18(FRAME *pframe, FRAME *pframeParent);
 CRef func_00126DB8(P *p, FRAME *pframe);
 }
+/** @sly2-annot addr=0x126DB8
+ * Purpose: (let ((sym val)...) body): new CFrame (0x256DD0), RefAddBinding each, then body
+ * Info: proposed name RefEvalLet (T1); TU eval
+ * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef func_00126DB8(P *p, FRAME *pframe)
 {
     CRef ref;

@@ -60,6 +60,13 @@ extern "C" int func_0014C6A0(SO *pso, qword pos0, qword pos1, int f, HIT *phit);
 
 /* Script builtin: ray-cast segment aref[1]->aref[2] against every SO of each LO in list aref[0].
    pv == 0x7B: return list of (lo pos normal) for all hits; otherwise return (lo normal) of the first hit. */
+/** @sly2-annot addr=0x1249A8
+ * Purpose: Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C
+ *   returns first hit
+ * Info: proposed name RefOpHitTestObjectsImpl (T1); TU bif
+ * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 extern "C" CRef func_001249A8(int pv, int c, CRef *aref)
 {
     CRef ref;

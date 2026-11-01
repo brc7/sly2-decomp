@@ -82,6 +82,14 @@ CRef func_00127190(LAMBDA *plambda, FRAME *pframe);
 CRef func_001272E0(NODE *p, FRAME *pframe);
 }
 
+/** @sly2-annot addr=0x1272E0
+ * Purpose: Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or
+ *   lambda (new frame binding params, rest list); then calls
+ * Info: proposed name RefEvalApply (T1); TU eval
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/formats/splice-scripts.md#3-names
+ * @end-sly2-annot */
 CRef func_001272E0(NODE *p, FRAME *pframe)
 {
     CRef ref;

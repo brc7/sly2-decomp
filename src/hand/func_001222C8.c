@@ -8,6 +8,12 @@ void Decref__4CRef(CRef *pref);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 CRef *func_00129558(CRef *pref, float g);
 CRef *func_001296A8(CRef *pref, VECTOR *pv);
+/** @sly2-annot addr=0x1222C8
+ * Purpose: Splice builtin "get-element": element of vector/matrix by index list
+ * Info: proposed name RefOpGetElement (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *func_001222C8(CRef *ret, int carg, CRef *aref)
 {
     CRef ref;

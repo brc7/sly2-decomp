@@ -38,6 +38,15 @@ struct SPW {
     W *operator->() { return p; }
 };
 extern "C" SPW func_00128CB8(W *src, void *a, void *b);
+/** @sly2-annot addr=0x128CB8
+ * Purpose: Deep-copies a list: new nodes (0x256B48) with RefClone of each element
+ * Info: proposed name CPair_CloneTo (T1); class CPair; TU pair
+ * Notes: agent qualifier: (returns clone)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/splice-scripting.md#6-source-files,
+ *   docs/reference/functions/splice-scripting.md#pair-0x128cb8-0x128f70,
+ *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 SPW func_00128CB8(W *src, void *a, void *b)
 {
     SPW sp;

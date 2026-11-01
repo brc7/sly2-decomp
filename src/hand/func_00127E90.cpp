@@ -64,6 +64,13 @@ extern "C" {
 O *func_00256DD0();
 SPO func_00127E90(O *src, void *a);
 }
+/** @sly2-annot addr=0x127E90
+ * Purpose: New frame (0x256DD0), copies parent pointers, clones binding list via CVarb clone 0x12B0E8
+ * Info: proposed name CFrame_CloneTo (T1); class CFrame; TU frame
+ * Notes: agent qualifier: (returns clone)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
+ * @end-sly2-annot */
 SPO func_00127E90(O *src, void *a)
 {
     SPO sp;

@@ -10,6 +10,15 @@ void *func_0011CCC0(POOL *);
 void func_0011CD98(POOL *, void *);
 N *func_002550A0(N *);
 
+/** @sly2-annot addr=0x256B48
+ * Purpose: allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
+ *   linkonce (inline/template)]
+ * Info: proposed name PvNewPair (T1); TU game_linkonce
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
+ * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
+ *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/splice-scripting.md#pair-0x128cb8-0x128f70
+ * @end-sly2-annot */
 N *func_00256B48(void)
 {
     N *p;

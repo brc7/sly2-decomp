@@ -5,6 +5,13 @@ void InitTag__4CRef(CRef *pref, int tagk);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_001294C0(CRef *pref, void *p);
+/** @sly2-annot addr=0x1251E8
+ * Purpose: Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound
+ * Info: proposed name RefOpStartSound (T1); TU bif
+ * Notes: names_v2 C proposed RefOpConvertObjectMatrix__FiP4CRefP6CFrame (0.200)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *func_001251E8(CRef *ret, void *pbasic, CRef *aref)
 {
     int n = aref[1].m_tag;

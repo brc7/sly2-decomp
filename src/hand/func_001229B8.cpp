@@ -49,4 +49,10 @@ static __inline__ void Normalize1(qword *pv, qword *pdef)
         *pv = rn;
     }
 }
+/** @sly2-annot addr=0x1229B8
+ * Purpose: Splice builtin "vector-normalize": normalize with 1e-4 guard/default
+ * Info: proposed name RefOpVectorNormalize (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_001229B8(void *pbasic, CRef *aref) { CRef ref((qword *)aref[0].u.pv); if (aref[1].m_tagk == 0) Normalize1(ref.u.pq, &D_002A2DD0); else Normalize(ref.u.pq, ((W *)aref[1].u.pv)->pv); return ref; }

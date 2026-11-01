@@ -47,6 +47,13 @@ SB *func_00257D80();
 SPB func_0012B0E8(BINDING *pb, void *p, void *q);
 SPS func_0012AB78(SB *psbSrc, void *q);
 }
+/** @sly2-annot addr=0x12AB78
+ * Purpose: New sidebag (0x257D80) with cloned binding list (0x12B0E8)
+ * Info: proposed name CSidebag_CloneTo (T1); class CSidebag; TU sidebag
+ * Notes: agent qualifier: (returns clone)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
+ * @end-sly2-annot */
 SPS func_0012AB78(SB *psbSrc, void *q)
 {
     SPS sp;

@@ -109,6 +109,12 @@ static inline void Mul2(V8 *p, float d)
     p->x *= d;
     p->y *= d;
 }
+/** @sly2-annot addr=0x11F960
+ * Purpose: Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU)
+ * Info: proposed name RefOpMult (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_0011F960(void *pv, CRef *aref)
 {
     CRef ref;

@@ -39,6 +39,15 @@ struct SPN {
     NODE *operator->() { return p; }
 };
 extern "C" SPN func_00121578(CRef **ppref1, CRef **ppref2);
+/** @sly2-annot addr=0x121578
+ * Purpose: Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for
+ *   map/filter/for-each
+ * Info: proposed name SpnNewApplyList2 (T2); TU bif
+ * Notes: names_v2 B proposed RefOpMatrix__FiP4CRefP6CFrame (0.897)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 SPN func_00121578(CRef **ppref1, CRef **ppref2)
 {
     SPN sp;

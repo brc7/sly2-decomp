@@ -11,6 +11,13 @@ M2C_UNK func_0012A0B0(M2C_UNK, s32);                /* extern */
 extern s128 D_002A2DA0;
 extern s128 D_002A2DD0;
 
+/** @sly2-annot addr=0x1204B8
+ * Purpose: Splice builtin "<=": RefCmp(aref,1) <=
+ * Info: proposed name RefOpLE (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 s32 func_001204B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     func_00120398(arg0, arg2, 1, arg3, arg4);
     return arg0;

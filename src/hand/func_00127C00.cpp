@@ -38,6 +38,13 @@ struct SPB {
 };
 struct FRAME { char pad[0x1C]; SPM pbinding; };
 extern "C" CRef func_00127C00(FRAME *pframe, int sym, CRef *pref);
+/** @sly2-annot addr=0x127C00
+ * Purpose: Prepends a new BINDING {sym, ref} (pool alloc 0x257340) to the frame binding list; returns Void
+ * Info: proposed name CFrame_RefAddBinding (T1); class CFrame; TU frame
+ * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
+ *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
+ * @end-sly2-annot */
 CRef func_00127C00(FRAME *pframe, int sym, CRef *pref)
 {
     SPM *ppbFirst = &pframe->pbinding;

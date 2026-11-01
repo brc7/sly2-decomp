@@ -7,6 +7,11 @@ public:
     BINDING *m_pbindingFirst;
     int FFindBinding(int sym, CRef *pref);
 };
+/** @sly2-annot addr=0x12AB28
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
+ * @end-sly2-annot */
 int CSidebag::FFindBinding(int sym, CRef *pref)
 {
     for (BINDING *p = m_pbindingFirst; p; p = p->pnext) {

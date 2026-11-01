@@ -15,6 +15,13 @@ extern "C" {
 CRef func_00129DA8(CRef *pref);
 CRef func_00121DD8(int c, CRef *pref);
 }
+/** @sly2-annot addr=0x121DD8
+ * Purpose: Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs)
+ * Info: proposed name RefOpVector (T1); TU bif
+ * Notes: names_v2 B proposed RefOpSmp__FiP4CRefP6CFrame (0.967)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_00121DD8(int c, CRef *pref)
 {
     CRef ref(0x1A);

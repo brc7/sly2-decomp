@@ -27,6 +27,14 @@ CRef func_00127068(NODE *p, CRef *aref);
 CRef func_001272E0(NODE *p, CRef *aref);
 CRef func_00127838(NODE *p, CRef *aref);
 }
+/** @sly2-annot addr=0x127838
+ * Purpose: Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else
+ *   apply; import (17) returns Nil, quote (18) returns datum
+ * Info: proposed name RefEval (T1); TU eval
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/overview.md#6-subsystem-map, docs/engine/splice-scripting.md#3-the-evaluator,
+ *   docs/engine/splice-scripting.md#7-key-functions
+ * @end-sly2-annot */
 CRef func_00127838(NODE *p, CRef *aref)
 {
     switch (p->ref.m_tagk) {

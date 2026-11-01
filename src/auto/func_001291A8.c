@@ -23,6 +23,13 @@ extern M2C_UNK D_004521B8;
 extern M2C_UNK D_004521D0;
 extern M2C_UNK D_004521E8;
 
+/** @sly2-annot addr=0x1291A8
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
+ *   docs/engine/splice-scripting.md#6-source-files,
+ *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 s32 *func_001291A8(s32 *arg0, s32 *arg1) {
     M2C_FIELD(arg0, s32 *, 0) = M2C_FIELD(arg1, s32 *, 0);
     M2C_FIELD(arg0, s32 *, 4) = (s32) M2C_FIELD(arg1, s32 *, 4);

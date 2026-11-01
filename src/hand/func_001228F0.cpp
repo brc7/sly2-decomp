@@ -30,4 +30,11 @@ static inline float SDistSq(qword *pa, qword *pb)
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
 }
+/** @sly2-annot addr=0x1228F0
+ * Purpose: Splice builtin "vector-distance-squared": squared distance
+ * Info: proposed name RefOpVectorDistanceSquared (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_001228F0(void *pbasic, CRef *aref) { CRef ref; if (aref[1].m_tagk == 0) ref = SDistSq((qword *)aref[0].u.pv, &D_002A2DD0); else { register W *pw __asm__("$5") = (W *)aref[1].u.pv; ref = SDistSq((qword *)aref[0].u.pv, pw->pv);} return ref; }

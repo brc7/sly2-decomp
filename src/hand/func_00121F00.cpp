@@ -16,6 +16,13 @@ void *func_002333B4(void *pv, int b, unsigned int cb);
 CRef func_00129DA8(CRef *pref);
 CRef func_00121F00(int carg, CRef *pref);
 }
+/** @sly2-annot addr=0x121F00
+ * Purpose: Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based
+ * Info: proposed name RefOpMatrix (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_00121F00(int carg, CRef *pref)
 {
     CRef ref(0x1B);

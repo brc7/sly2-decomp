@@ -45,6 +45,17 @@ struct G { char pad[0x3F0C]; int n3F0C; };
 extern G D_003DD490;
 extern "C" LO *func_0015E958(G *pg, int kind, int n, void *pv, int n2);
 extern "C" CRef func_001242B8(void *pbasic, CRef *aref);
+/** @sly2-annot addr=0x1242B8
+ * Purpose: Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as
+ *   find-object)
+ * Info: proposed name RefOpFindObjectsFromOids (T1); TU bif
+ * Notes: splice builtin 114 find-objects-from-oids~ -> find-objects-from-oids~ (0.75): Body maps a list of
+ *   oids to objects with PloFindSwObject (same root/optional context arg as find-object). Scripts:
+ *   (find-objects-from-oids~ '(60278 60279 60280)
+ * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r1_116918+top50_round(splice
+ *   builtin 114)
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_001242B8(void *pbasic, CRef *aref) { CRef res; if (aref[0].m_tagk == 0) return aref[0];
  void *pv = aref[1].u.pv; SW *psw; if (aref[2].m_tagk != 0) psw = ((OW *)aref[2].u.pv)->psw; else psw = (SW *)pv;
  SPN spRes; NODE *pnR = func_00256B48(); spRes.Set(pnR);

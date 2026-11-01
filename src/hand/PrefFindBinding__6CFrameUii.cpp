@@ -10,6 +10,11 @@ public:
     CRef *PrefFindBinding(unsigned int sym, int fRecurse);
     CRef *PrefFindLocal(unsigned int sym) { BINDING *pb; for (pb = pbindingFirst; pb; pb = pb->pnext) if (pb->sym == sym) return &pb->ref; return 0; }
 };
+/** @sly2-annot addr=0x127DB8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
+ * @end-sly2-annot */
 CRef *CFrame::PrefFindBinding(unsigned int sym, int fRecurse)
 {
     CRef *pref = 0;

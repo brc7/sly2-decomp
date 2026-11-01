@@ -3,6 +3,16 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct NODE { int pad[2]; CRef ref; struct NODE *pnext; } NODE;
 typedef struct ARR { int c; short *a; } ARR;
 short *func_001AE318(AREQ *preq);
+/** @sly2-annot addr=0x1252D0
+ * Purpose: Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements
+ *   (save-var path)
+ * Info: proposed name FillAsFromPair (T1); TU bif
+ * Notes: names_v2 B proposed RefOpStartSound__FiP4CRefP6CFrame (0.977) | splice_scripts format doc cites this
+ *   function by this name (CONFIRMED(code) in the doc)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources:
+ *   r1_116918+format-doc:splice_scripts
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 void func_001252D0(NODE *pnode, ARR *parr)
 {
     NODE *p;

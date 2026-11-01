@@ -19,6 +19,13 @@ CRef func_00129DA8(CRef *pref);
 qword func_001D6848(qword a, qword b, qword c, float g);
 CRef func_00122BE0(void *pbasic, CRef *aref);
 }
+/** @sly2-annot addr=0x122BE0
+ * Purpose: Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with
+ *   gravity (0,0,-1750) or object xfm
+ * Info: proposed name RefOpVectorBallisticVelocity (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_00122BE0(void *pbasic, CRef *aref)
 {
     VQ v;

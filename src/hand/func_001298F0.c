@@ -4,6 +4,12 @@ typedef struct TR { CLT v; int cref; } TR;
 extern char D_004521E8[];
 TR *func_0011CCC0(void *pslotheap);
 void Decref__4CRef(CRef *pref);
+/** @sly2-annot addr=0x1298F0
+ * Purpose: Decref, tag 0x1E
+ * Info: proposed name CRef_SetSmp (T1); class CRef; TU ref
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 CRef *func_001298F0(CRef *pref, CLT *pv)
 {
     TR *p;

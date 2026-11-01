@@ -17,6 +17,12 @@ extern "C" {
 CRef func_00127838(Q *pq, CRef *aref);
 CRef func_00126840(P *p, CRef *aref);
 }
+/** @sly2-annot addr=0x126840
+ * Purpose: (or ...): first non-false value, else #f
+ * Info: proposed name RefEvalOr (T1); TU eval
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef func_00126840(P *p, CRef *aref)
 {
     CRef ref;

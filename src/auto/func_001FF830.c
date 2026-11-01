@@ -38,6 +38,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1FF830
+ * Purpose: Clear root frame (0x256EE0(p,0)) and ShutdownSplice (0x12AE28)
+ * Info: proposed name DeleteSwSplice (T2); TU splicemap
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
+ *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
+ * @end-sly2-annot */
 void func_001FF830(s32 arg0, s32 arg1) {
     func_00256EE0(arg0, 0);
     func_0012AE28();

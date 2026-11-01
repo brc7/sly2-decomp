@@ -25,6 +25,14 @@ SP func_00257058(int);
 void func_00259A88(O *);
 CRef func_00127838(int, O *);
 }
+/** @sly2-annot addr=0x1FFA70
+ * Purpose: Build one splice table entry: new frame, CRef InitTag, bind
+ * Info: proposed name LoadSpliceEntryFromBrx (T1); TU splicemap
+ * Notes: splice_scripts format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7_1F8DD8+format-doc:splice_scripts
+ * See: docs/formats/splice-scripts.md#1-where-the-scripts-live-cstatic--cparse,
+ *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
+ * @end-sly2-annot */
 extern "C" CRef func_001FFA70(void *p, Q *pq, int i)
 {
     CRef r;

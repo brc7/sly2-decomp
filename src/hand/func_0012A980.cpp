@@ -38,6 +38,14 @@ struct SPB {
 };
 struct FRAME { char pad[0x8]; SPM pbinding; };
 extern "C" CRef func_0012A980(FRAME *pframe, int sym, CRef *pref);
+/** @sly2-annot addr=0x12A980
+ * Purpose: Prepends BINDING {n, ref} to sidebag list
+ * Info: proposed name CSidebag_RefAddBinding (T1); class CSidebag; TU sidebag
+ * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/splice-scripting.md#6-source-files,
+ *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 CRef func_0012A980(FRAME *pframe, int sym, CRef *pref)
 {
     SPM *ppbFirst = &pframe->pbinding;

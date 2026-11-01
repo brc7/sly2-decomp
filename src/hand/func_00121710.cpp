@@ -40,6 +40,14 @@ struct SPN {
 extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef func_00127838(NODE *pn, CRef *aref);
 extern "C" CRef func_00121710(void *pbasic, CRef *aref, CRef *arefCall);
+/** @sly2-annot addr=0x121710
+ * Purpose: Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects
+ *   results
+ * Info: proposed name RefOpMap (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef func_00121710(void *pbasic, CRef *aref, CRef *arefCall) { if (aref[1].m_tagk == 0) return aref[1];
  SPN spRes; spRes.Set(func_00256B48());
  SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);

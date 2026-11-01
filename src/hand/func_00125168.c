@@ -13,6 +13,13 @@ static __inline__ void SetVector(VECTOR *pv, float x, float y, float z)
     __asm__ ("pcpyld %0, %1, %2" : "=r"(t) : "r"(iz), "r"(t));
     *(qword *)pv = t;
 }
+/** @sly2-annot addr=0x125168
+ * Purpose: Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix
+ * Info: proposed name RefOpNearClipCenter (T1); TU bif
+ * Notes: names_v2 B proposed RefOpConvertObjectVector__FiP4CRefP6CFrame (0.856)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *func_00125168(CRef *ret)
 {
     VECTOR vec;
