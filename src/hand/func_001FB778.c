@@ -6,7 +6,7 @@ struct CAMERA {char pad[0x90];qword position;};
 extern char D_003DD490[],D_002BBB60[];
 extern struct CAMERA D_002DDF40;
 extern struct M3 D_002DDFA0;
-void *func_001C4A48(void*);
+void *PpoCur(void*);
 qword func_001A62E8(void*);
 qword func_001A7348(const struct M3*,const struct M3*,qword);
 float func_0011D948(void*,float);
@@ -29,7 +29,7 @@ void func_001FB778(void *unused,qword point,const struct RANGE*limits,float*outV
  float high,low,distance,value;
  register qword difference __asm__("vf3");
  source.q=point;
- player=func_001C4A48(D_003DD490);
+ player=PpoCur(D_003DD490);
  if(player)reference=func_001A62E8(player);
  else reference=D_002DDF40.position;
  high=limits->high;low=limits->low;

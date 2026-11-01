@@ -47,10 +47,10 @@ public:
 };
 struct S { void *x0; char p0[0x34 - 4]; LO *x34; char p1[0x94 - 0x38]; int x94; int x98; int x9C; LO *xA0; };
 extern "C" {
-void func_0012E460(int *p);
+void ReleaseAct(int *p);
 LO *func_001CCA40(void *pw, LO *po);
 void __ml__FRC7MATRIX4T0(MAT4 *pd, MAT4 *pa, MAT4 *pb);
-void func_001A6BE8(LO *po, MAT4 *pm);
+void SetLoXfFromMat(LO *po, MAT4 *pm);
 void func_001F5720(LO *po, int n);
 void func_001F57C0(LO *po, int n);
 qword func_0022CA18(void *a, void *b);
@@ -58,29 +58,29 @@ int func_0012DC18(LO *p, Q *q, int a, int b, int c, qword d);
 void func_001F7C68(LO *po, float g);
 void func_001CD098(S *p, LO *po);
 }
-MAT4 func_001A71B0(int n, LO *po, MAT4 *pm);
+MAT4 ConvertAloMat4(int n, LO *po, MAT4 *pm);
 MAT4 InvertMatrix4Rigid(MAT4 m);
 void func_001CD098(S *p, LO *po)
 {
     MAT4 buf;
     MAT4 m;
     if (po == p->xA0) return;
-    func_0012E460(&p->x94);
-    func_0012E460(&p->x98);
-    func_0012E460(&p->x9C);
+    ReleaseAct(&p->x94);
+    ReleaseAct(&p->x98);
+    ReleaseAct(&p->x9C);
     void *v = p->x34->V32(&buf);
     po->V10(p->x0, v, 0);
     m = *p->x34->V31();
     LO *r = func_001CCA40(p->x0, po);
     if (r) {
         MAT4 u;
-        MAT4 t = func_001A71B0(0, po, r->V31());
+        MAT4 t = ConvertAloMat4(0, po, r->V31());
         u = t;
         MAT4 w = InvertMatrix4Rigid(u);
         __ml__FRC7MATRIX4T0(&t, &m, &w);
         m = t;
     }
-    func_001A6BE8(po, &m);
+    SetLoXfFromMat(po, &m);
     if (po->xE8) {
         func_001F5720(po, 1);
         func_001F57C0(po, 1);

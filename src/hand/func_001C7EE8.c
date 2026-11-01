@@ -13,11 +13,11 @@ void func_001FB2F8(void *p, int n);
 qword func_001A62E8(struct S *p);
 void *func_00156B98(void *pg, int n, qword q, struct S *p);
 struct LO *func_001CB658(struct S *p);
-int func_00132B10(struct LO *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 void func_001C7C30(int n, int f);
 void func_001618B0(void *pg);
 void func_001C60B8(struct S *p, int n);
-static inline int FTest(struct S *p) { struct LO *q = func_001CB658(p); return q && func_00132B10(q, 7); }
+static inline int FTest(struct S *p) { struct LO *q = func_001CB658(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 void func_001C7EE8(struct S *p, int n)
 {
     struct LO *q;
@@ -40,7 +40,7 @@ void func_001C7EE8(struct S *p, int n)
         func_00156B98(pg, 0, qv, p);
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
         q = func_001CB658(p);
-        if (q && func_00132B10(q, 7)) {
+        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
             struct LO *plo = func_001CB658(p);
             func_001C7C30(plo->x100, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);

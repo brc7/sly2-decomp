@@ -11,7 +11,7 @@ extern qword D_002C3D30;
 extern float D_002A8698;
 extern char D_003DD490[];
 int func_00206EB0(struct S *p, int k);
-void func_0012D108(void *p, qword q);
+void SetActPositionGoal(void *p, qword q);
 void func_00208728(struct S *p, int n);
 void func_00206E50(struct S *p);
 void func_00208700(struct S *p, int n);
@@ -19,7 +19,7 @@ void func_00206DB0(struct S *p);
 void *func_00205458(struct S *p, int n);
 struct Y *func_00209518(void *p);
 void func_00131A20(struct Y *y, float f);
-int func_001C4840(void *p);
+int PpoHero(void *p);
 void func_00177BA0(struct Z *z);
 
 void func_00207030(struct S *p, int k)
@@ -36,7 +36,7 @@ void func_00207030(struct S *p, int k)
     case 8:
     case 0xD:
         if (p->pFC4)
-            func_0012D108(p->pFC4, D_002A2DE0);
+            SetActPositionGoal(p->pFC4, D_002A2DE0);
         break;
     case 0x22:
     case 0x25:
@@ -54,7 +54,7 @@ void func_00207030(struct S *p, int k)
     }
     case 0x15: {
         struct Z *z = func_00205458(p, 0x9C);
-        if (z && z->k30 == 0x12 && z->n40 == func_001C4840(D_003DD490) && z->f44 == D_002A8698)
+        if (z && z->k30 == 0x12 && z->n40 == PpoHero(D_003DD490) && z->f44 == D_002A8698)
             func_00177BA0(z);
         break;
     }
@@ -63,7 +63,7 @@ void func_00207030(struct S *p, int k)
     case 8:
     case 0xD:
         if (p->pFC4)
-            func_0012D108(p->pFC4, D_002C3D30);
+            SetActPositionGoal(p->pFC4, D_002C3D30);
         break;
     case 0x22:
     case 0x25:

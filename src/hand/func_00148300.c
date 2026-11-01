@@ -6,7 +6,7 @@ struct G { char pad[0x14]; int grf; char pad2[0x90 - 0x18]; qword pos; };
 struct P { char pad[0x2C]; char m2C[4]; };
 extern int D_003E0E70;
 extern struct G D_002DDF40;
-void *func_001C4840(void);
+void *PpoHero(void);
 qword func_001A62E8(void *p);
 int FFindDlEntry__FP2DLPv(void *p, int id);
 void AppendDlEntry__FP2DLPv(void *p, int id);
@@ -32,7 +32,7 @@ void func_00148300(struct P *p, struct SO *pso)
     if (D_003E0E70) return;
     posA = D_002DDF40.pos;
     grf = D_002DDF40.grf;
-    po = func_001C4840();
+    po = PpoHero();
     if (po) posB = func_001A62E8(po);
     else posB = posA;
     id = pso->id;

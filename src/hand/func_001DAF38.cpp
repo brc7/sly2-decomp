@@ -15,7 +15,7 @@ extern char D_002A79A8[];
 extern char D_002A79B8[];
 int func_0021ECD8(char *, const char *, ...);
 CRef func_001D8B20(const CRef &, const char *, ...);
-void func_001619A0(G *, int, int);
+void BroadcastGameEvent(G *, int, int);
 extern "C" void func_001DAF38(int n, int f)
 {
     CRef ref;
@@ -24,6 +24,6 @@ extern "C" void func_001DAF38(int n, int f)
     ref = func_001D8B20(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
         D_002DEB30.n = n;
-        func_001619A0(&D_002DEB30, 0x3B, 0);
+        BroadcastGameEvent(&D_002DEB30, 0x3B, 0);
     }
 }

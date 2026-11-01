@@ -11,13 +11,13 @@ extern char D_003DD490[];
 extern float D_002A7810;
 extern float D_002C20C0[3];
 qword func_001A62E8(void *);
-int func_0015E9C8(void *, int, int, int, int, SO **);
+int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
 SO *func_001D22D0(OBJ *p)
 {
     SO *best = 0;
     SO *aso[16];
     qword pos = func_001A62E8(p);
-    int n = func_0015E9C8(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
+    int n = CploFindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
     float fMin = D_002A7810;
     int i;
     for (i = 0; i < n; i++) {

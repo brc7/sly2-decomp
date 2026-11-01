@@ -30,7 +30,7 @@ struct OBJ {
 extern "C" {
 void func_00213928(void *, int);
 void func_002333B4(void *, int, unsigned int);
-void func_00165C98(int *, SO ***);
+void SortTasksTopologically(int *, SO ***);
 void func_002338C0(void *, int, int, int (*)(const void *, const void *));
 int func_00165C28(const void *, const void *);
 int func_00163430(SO *);
@@ -56,7 +56,7 @@ extern "C" void func_001DCED8(OBJ *p)
     FRAME frame;
     int c;
     SO **aso;
-    func_00165C98(&c, &aso);
+    SortTasksTopologically(&c, &aso);
     func_002338C0(aso, c, 4, func_00165C28);
     switch (p->x40) {
     case 0: {

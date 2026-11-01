@@ -40,9 +40,9 @@ extern "C" void func_00195A00(void*,int,void*,void*);
 extern "C" void func_0019CC50(void*,int,void*,void*);
 extern "C" int func_00140AF8(P*,int);
 extern "C" void func_001B6078(P*,int);
-extern "C" unsigned func_001C46C0(PL*,unsigned,float);
-extern "C" unsigned func_001C4660(PL*,unsigned,float);
-extern "C" void func_001C4738(PL*,int);
+extern "C" unsigned GrfConsumePressed__5POCTLUif(PL*,unsigned,float);
+extern "C" unsigned GrfPressedWithin__5POCTLUif(PL*,unsigned,float);
+extern "C" void ClearPoctlJoyPressed(PL*,int);
 extern "C" int func_001B84E0(P*);
 extern "C" void func_001B85D0(P*);
 extern "C" void func_001B8508(P*);
@@ -86,19 +86,19 @@ extern "C" void func_001B4AA0(P*p){
   switch(p->state){
   case 0:case 1:case 10:{
    if(!(p->input->flags&8)&&func_00140AF8(p,0)){func_001B6078(p,9);break;}
-   if(func_001C46C0(p->input,0x40,0.1f)){func_00195A00(&p->control,1,0,0);break;}
-   if(func_001C4660(p->input,0x400,0.15f)&&Can(p,3)){
-    func_001C4738(p->input,0x400);
+   if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f)){func_00195A00(&p->control,1,0,0);break;}
+   if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){
+    ClearPoctlJoyPressed(p->input,0x400);
     func_0019CC50(p->altAction,0,0,0);
     break;
    }
-   if(func_001B84E0(p)&&func_001C46C0(p->input,0x10,D_002C08DC)){func_001B85D0(p);break;}
+   if(func_001B84E0(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC)){func_001B85D0(p);break;}
    if(func_001B70A0(p))break;
-   if(func_001C46C0(p->input,0x20,0.2f)){
+   if(GrfConsumePressed__5POCTLUif(p->input,0x20,0.2f)){
     if(!func_001938C0(&p->gate,0xF8FA,0)&&p->root){p->flag=0;func_001B6078(p,4);}
     break;
    }
-   if(func_001B84E0(p)&&func_001C46C0(p->input,0x80,D_002C08DC)){func_001B8508(p);break;}
+   if(func_001B84E0(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC)){func_001B8508(p);break;}
    PL*input=p->input;PL*flagsInput=CopyPL(input);register int current __asm__("$3")=p->state;
    if(current==0){if(input->amount>0.1f)goto moving;}
    else if(input->amount>0.0f)goto moving;
@@ -111,8 +111,8 @@ extern "C" void func_001B4AA0(P*p){
    func_00197500(&p->control);
    switch(p->control.state){case 0:case 11:case 15:case 16:break;
    default:
-    if(func_001C4660(p->input,0x90,D_002C08DC)&&Can(p,2)&&p->control.count<6&&p->control.count>0&&!func_00143D20(p,D_002C08E0)){
-     func_001C4738(p->input,0x90);
+    if(GrfPressedWithin__5POCTLUif(p->input,0x90,D_002C08DC)&&Can(p,2)&&p->control.count<6&&p->control.count>0&&!func_00143D20(p,D_002C08E0)){
+     ClearPoctlJoyPressed(p->input,0x90);
      p->pending=0;
      func_001B6078(p,3);
     }
@@ -140,7 +140,7 @@ extern "C" void func_001B4AA0(P*p){
    func_001B6078(p,0);
    break;
   case 21:
-   if(func_001C46C0(p->input,0x40,0.0f))func_00195A00(&p->control,13,0,0);
+   if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.0f))func_00195A00(&p->control,13,0,0);
    else if(!(p->input->flags&func_00141EA8(p,0x10)))func_001B6078(p,0);
    break;
   default:break;

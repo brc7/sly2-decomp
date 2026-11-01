@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-s32 func_001C4840(M2C_UNK *);                       /* extern */
+s32 PpoHero(M2C_UNK *);                       /* extern */
 M2C_UNK func_001DB520(s32, M2C_UNK);                /* extern */
 extern s32 D_002DD5BC;
 extern s32 D_002E1E40;
@@ -9,7 +9,7 @@ extern M2C_UNK D_003DD490;
 void func_001DB490(s32 arg0) {
     s32 temp_v0;
 
-    temp_v0 = func_001C4840(&D_003DD490);
+    temp_v0 = PpoHero(&D_003DD490);
     if (temp_v0 != 0) {
         if (temp_v0 == D_002E1E40) {
             func_001DB520(arg0, 0);

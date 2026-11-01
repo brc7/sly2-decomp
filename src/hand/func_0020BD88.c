@@ -9,7 +9,7 @@ struct MARKER {union FLOATWORD value;int kind,id,unused;};
 struct V3 { float x, y, z; };
 struct S { int h; void *po; float a; float b; float c; float ca; float cb; union FLOATWORD dist; struct V3 v; int pad; int f; };
 extern char D_003DD490[];
-void *func_0015E938(void *p, int n, int h, void *arg);
+void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int n, int h, void *arg);
 struct MARKER *func_0012F938(void *po, int n);
 struct C *func_0012FF10(void *po, void *arg, int kind, int check);
 
@@ -27,7 +27,7 @@ void func_0020BD88(struct S *p, void *arg)
     if (p->f)
         return;
     if (!p->po) {
-        p->po = func_0015E938(D_003DD490, 4, p->h, arg);
+        p->po = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->h, arg);
         if (!p->po)
             return;
     }

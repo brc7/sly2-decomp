@@ -18,7 +18,7 @@ extern struct G D_003DD490;
 extern PAIR D_002A7AC0;
 void func_001F5988(void);
 void func_001A7E10(struct G *, LNK *);
-void func_00149AB8(struct G *, OBJ *, PAIR, int);
+void EnsureSwCallback(struct G *, OBJ *, PAIR, int);
 void func_001DEEA8(OBJ *p, void *x)
 {
     LNK *list = 0;
@@ -39,5 +39,5 @@ void func_001DEEA8(OBJ *p, void *x)
         }
     }
     func_001A7E10(&D_003DD490, list);
-    func_00149AB8(&D_003DD490, p, D_002A7AC0, 0);
+    EnsureSwCallback(&D_003DD490, p, D_002A7AC0, 0);
 }

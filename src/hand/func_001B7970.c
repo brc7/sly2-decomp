@@ -4,7 +4,7 @@ struct LO { char pad[0xC]; struct VT *vt; char pad2[0x28 - 0x10]; unsigned long 
 struct T { char pad[0x180]; struct LO *po; };
 struct P { char pad[0x13F0]; struct T *p13F0; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword v1420; };
 void func_001B7D20(struct P *p);
-int func_00132B10(struct LO *p, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void func_00209FB8(struct LO *p);
 qword func_001A62E8(struct LO *p);
 qword func_001F5860(struct LO *p);
@@ -28,7 +28,7 @@ void func_001B7970(struct P *p)
     if ((int)(po->x28 >> 60) & 1) {
         float t;
         qword v;
-        if (func_00132B10(po, 0x38))
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
             func_00209FB8(po);
         t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
         v = func_001D69F0(func_001A62E8(po), p->v1420, func_001F5860(po), t);

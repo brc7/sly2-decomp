@@ -8,7 +8,7 @@ extern float D_002BD4B0[3];
 int func_00209A68(struct P *p, int k);
 struct O *func_002082D0(struct P *p);
 qword func_001A62E8(void *p);
-int func_00132B10(struct O *po, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
 static __inline__ float GDist(qword a, qword b)
 {
     qword d, t;
@@ -48,9 +48,9 @@ struct O *func_0014B290(struct P *p)
         float g;
         if (!pe->fOn)
             continue;
-        if (func_00132B10(pe->po, 0x34))
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->po, 0x34))
             k = 0;
-        else if (func_00132B10(pe->po, 0x3A))
+        else if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->po, 0x3A))
             k = 1;
         else
             k = 2;

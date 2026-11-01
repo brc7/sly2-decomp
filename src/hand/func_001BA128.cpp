@@ -14,7 +14,7 @@ extern "C"{
 void func_00207350(P*);
 int func_00209A68(P*,int);
 qword func_001A62E8(P*);
-qword func_001A6F00(P*,void*,qword);
+qword ConvertAloPos(P*,void*,qword);
 int func_00227C90(VOLUME*,qword);
 void func_001BA408(P*,int);
 int func_00131968(POOL*);
@@ -69,7 +69,7 @@ extern "C" void func_001BA128(P*p){
    if(func_00227C90(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
   }
   if(!p->target&&!func_00209A68(p,2)){
-   qword position=Vector(func_001A6F00(p,0,D_002C0A80));
+   qword position=Vector(ConvertAloPos(p,0,D_002C0A80));
    qword low=Add(position,D_002C0A90);
    qword high=Add(position,D_002C0AA0);
    MARK arena;

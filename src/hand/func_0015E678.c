@@ -23,9 +23,9 @@ typedef struct ST {
     int f;
 } ST;
 extern void *D_003E139C;
-extern LO **func_0015E380(void *psw, int oid);
-extern ENT **func_0015E3C0(void *psw, int oid);
-extern void func_0015E3E8(void *pv, LO *plo, void *pch, unsigned int grf, LO *ctx, void *pchList, int cMax, int *pc, LO **aplo, int *pips);
+extern LO **PdlFromSwOid(void *psw, int oid);
+extern ENT **PdlFromSwPxrOid(void *psw, int oid);
+extern void MatchSwObject(void *pv, LO *plo, void *pch, unsigned int grf, LO *ctx, void *pchList, int cMax, int *pc, LO **aplo, int *pips);
 int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo)
 {
     volatile int unused; /* unreferenced stack slot at 0x10 in the original */
@@ -58,13 +58,13 @@ int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cM
         f = grf & 0x200;
         break;
     }
-    func_0015E380(psw, oid);
-    for (p = *func_0015E380(psw, oid); p; p = p->pNextHash) {
+    PdlFromSwOid(psw, oid);
+    for (p = *PdlFromSwOid(psw, oid); p; p = p->pNextHash) {
         if (p->oid == oid)
-            func_0015E3E8(psw, p, p->pch, grf, ploCtx, pchList, cMax, &cplo, aplo, &ips);
+            MatchSwObject(psw, p, p->pch, grf, ploCtx, pchList, cMax, &cplo, aplo, &ips);
     }
-    func_0015E3C0(psw, oid);
-    for (pe = *func_0015E3C0(psw, oid); pe; pe = pe->pNext) {
+    PdlFromSwPxrOid(psw, oid);
+    for (pe = *PdlFromSwPxrOid(psw, oid); pe; pe = pe->pNext) {
         LO *ploE;
         if (pe->oid != oid)
             continue;
@@ -79,7 +79,7 @@ int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cM
             if (i < cplo)
                 continue;
         }
-        func_0015E3E8(psw, pe->plo, pe->pch, grf, ploCtx, pchList, cMax, &cplo, aplo, &ips);
+        MatchSwObject(psw, pe->plo, pe->pch, grf, ploCtx, pchList, cMax, &cplo, aplo, &ips);
     }
     for (p = plo; p; p = p->pParent)
         p->ips = 0;

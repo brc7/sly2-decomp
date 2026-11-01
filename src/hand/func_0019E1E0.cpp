@@ -9,7 +9,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;extern SMP D_002BF928;
 qword func_0011F088(qword,qword,float,SMP*,U*);
-void func_00195A00(void*,int,void*,void*);int func_001C46C0(INPUT*,int,float);int func_001C4660(INPUT*,int,float);void func_001C4738(INPUT*,int);
+void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int func_00131968(ASEGA*);void func_0019EAB0(C*,int);
 float func_001E6728(PATH*,float);void func_001E6F10(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
 void func_0019E110(C*,LM*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001F4BF8(P*);float func_001E6648(PATH*);float GModPositive__Fff(float,float);void func_001384C0(ANIMATION*);
@@ -88,8 +88,8 @@ extern "C" void func_0019E1E0(C*p){
  register float amount __asm__("$f4"),dot __asm__("$f3"),zero __asm__("$f2");register int previous __asm__("$5");
  {register INPUT*input __asm__("$18")=p->actor->input;
  if(!Eligible(p->path)){func_00195A00(p->actor->controller,0,0,0);return;}
- if(p->state&&func_001C46C0(input,0x40,0.25f)){func_00195A00(p->actor->controller,2,0,0);return;}
- if(func_001C4660(input,0x400,0.15f)&&CanAct(p->actor,3)){func_001C4738(input,0x400);func_0019CC50(p->actor->action,0,0,0);}
+ if(p->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){func_00195A00(p->actor->controller,2,0,0);return;}
+ if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);func_0019CC50(p->actor->action,0,0,0);}
  int old;do{old=p->state;if((old==0||old==4)&&func_00131968(p->actor->asega))func_0019EAB0(p,1);}while(p->state!=old);
  if(p->state==0||p->state==4)return;
  func_001E6F10(p->path,func_001E6728(p->path,p->distance+50.0f),&w.ahead,0);

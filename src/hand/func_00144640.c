@@ -17,9 +17,9 @@ extern char D_003DD490[];
 extern char D_002DEB30[];
 int func_00144068(struct PO *);
 int func_0020F0B0(void *);
-int func_00132B10(struct T *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *, int);
 struct R *func_00205458(void *, int);
-void func_001619A0(void *, int, struct T *);
+void BroadcastGameEvent(void *, int, struct T *);
 void func_001F7BF8(struct T *, float);
 qword func_001A62E8(void *p);
 int func_00173610(float, float, qword *, int, int);
@@ -67,11 +67,11 @@ void func_00144640(struct P *p)
             for (pso = pln->pso; pso; pso = pso->pnext) {
                 int i = IOther(p->p0, pso);
                 struct T *po = pso->ae[1 - i].x8;
-                if (func_00132B10(po, 0x38)) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38)) {
                     struct R *pr = func_00205458(po, 0xA9);
                     if (!pr || !pr->x4C) {
                         if (0.0f <= po->x130)
-                            func_001619A0(D_002DEB30, 0x17, po);
+                            BroadcastGameEvent(D_002DEB30, 0x17, po);
                         func_001F7BF8(po, 0.5f);
                         fAny = 1;
                     }

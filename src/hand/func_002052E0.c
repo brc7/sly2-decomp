@@ -13,7 +13,7 @@ typedef struct P {
     char pad4[0x1060 - 0x104C]; qword adjusted;
 } P;
 extern qword D_002A2DD0, D_002A2DC0;
-extern int func_00132B10(B *, int);
+extern int FIsBasicDerivedFrom__FP5BASIC3CID(B *, int);
 extern void func_001F49C8(P *, B *);
 static inline qword Transform(const M4*m,qword v,qword last,qword*published){
  register qword result __asm__("vf7"),argument __asm__("$5"),origin __asm__("vf1")=last;
@@ -26,7 +26,7 @@ static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm_
 extern void func_002052E0(P *p, B *other)
 {
     if (!other) return;
-    if (func_00132B10(other, 3)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 3)) {
         M4 m;
         U scale;
         register qword v __asm__("vf2");
@@ -45,7 +45,7 @@ extern void func_002052E0(P *p, B *other)
         scale.q = sc;
         positionFn(self, t);}}
         { VTE *s=p->base.vt; ((void (*)(P *,const M4 *))s[30].fn)((P *)((char *)p+s[30].delta), &m); }
-        if (func_00132B10(&p->base,0x34)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(&p->base,0x34)) {
             qword r;
             __asm__("qmtc2.ni %1,%0" : "=j"(scale.q) : "r"(p->amount.word));
             r = m.row[3];

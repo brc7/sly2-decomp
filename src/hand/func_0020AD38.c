@@ -1,10 +1,10 @@
 extern float D_002A88C8;
 struct S { char pad[0x50]; int n50; float f54, f58, f5C, f60, f64, f68, f6C; char pad2[0x7C - 0x70]; int n7C; int n80; int n84; char pad3[0xA8 - 0x88]; int nA8; void *pAC; char eB0[4]; };
-void func_001A5270(struct S *p);
+void InitLo(struct S *p);
 void func_002090D0(void *pe, void *p);
 void func_0020AD38(struct S *p)
 {
-    func_001A5270(p);
+    InitLo(p);
     p->n50 = 0;
     p->f54 = 300.0f;
     p->f58 = -5000.0f;

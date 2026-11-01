@@ -15,7 +15,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void func_00132D28(void *p, int n, void *pu); CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref); }
+extern "C" { void EnsureLoSidebagLm__FP2LO5OPTIDP2LM(void *p, int n, void *pu); CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref); }
 CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref)
 {
     int ak[2] = {0x15, 0xA};
@@ -24,6 +24,6 @@ CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref)
     CRef ref = func_00201360(2, aref, ak, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00132D28(p, n, &u);
+    EnsureLoSidebagLm__FP2LO5OPTIDP2LM(p, n, &u);
     return ref;
 }

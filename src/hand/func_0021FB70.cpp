@@ -52,7 +52,7 @@ extern float D_002C4100,D_002C4104;            // 3.0 / 2.0: flight time / blend
 extern float D_002A96A0;                       // FLT_MAX
 extern V D_002A2DC0;                           // (0, 0, 1)
 extern "C" {
- qword func_001A6F00(LO *,LO *,qword);         // ConvertLoPos
+ qword ConvertAloPos(LO *,LO *,qword);         // ConvertLoPos
  qword func_001A62E8(LO *);                    // PosLoWorld
  qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
  int func_001DAEA8(int);                       // FPowerUpAcquired
@@ -103,7 +103,7 @@ static inline float GFromClq(const CLQ &clq,float x){return clq.g0+x*(clq.g1+x*c
 
 extern "C" void func_0021FB70(JTTHROW *pjtthrow,int fUpdateBlends)
 {
- qword posLaunch=func_001A6F00(pjtthrow->pstepplayer,0,pjtthrow->vLaunchLocal.q);
+ qword posLaunch=ConvertAloPos(pjtthrow->pstepplayer,0,pjtthrow->vLaunchLocal.q);
  qword posHold=pjtthrow->posHold.q;
  qword vAccel=pjtthrow->ploCarried->pgravity->vAccel.q;
  qword posHero=func_001A62E8(pjtthrow->pstepplayer);

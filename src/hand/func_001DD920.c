@@ -24,7 +24,7 @@ void func_001ACC38(void *, int);
 void func_00165E38(void *);
 void func_001DDB08(OBJ *);
 int func_001A2C98(void);
-void *func_0015E938(struct G *, int, int, int);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void func_001A2C48(int *, int **);
 void *func_002333B4(void *, int, int);
 void func_001AF4D8(void *, int, ITEM *, void *, void *);
@@ -57,7 +57,7 @@ void func_001DD920(OBJ *p)
         return;
     if (!func_00187D80(p->pad10, 0x10))
         return;
-    pv = func_0015E938(&D_003DD490, 5, 0x5D6, 0);
+    pv = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
     if (pv == 0)
         return;
     func_001A2C48(&c, &ak);

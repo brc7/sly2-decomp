@@ -2,7 +2,7 @@ struct LO { char pad[0x28]; unsigned long x28; };
 struct T { int c; struct LO **a; };
 struct A { int x0; int x4; int x8; };
 struct S { char pad[0xE0]; struct T *pt; };
-int func_001CA930(struct S *p, struct A *pa);
+int IcopyFromPspare__FP5PROXYP10PROXYSPARE(struct S *p, struct A *pa);
 int func_001A61A0(struct LO *plo);
 int func_001CA978(struct S *p, struct A *pa)
 {
@@ -10,7 +10,7 @@ int func_001CA978(struct S *p, struct A *pa)
     if (pa->x8) return 0;
     if (!pa->x0) return 4;
     r = 5;
-    i = func_001CA930(p, pa);
+    i = IcopyFromPspare__FP5PROXYP10PROXYSPARE(p, pa);
     for (j = 0; j < p->pt->c; j++) {
         struct LO *plo = p->pt->a[i * p->pt->c + j];
         if (!((int)(plo->x28 >> 60) & 1)) v = 3;

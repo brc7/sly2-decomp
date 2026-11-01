@@ -11,7 +11,7 @@ extern char D_003DD490[];
 void func_0020FA10();
 void func_0020FC60(void *pg, qword q, void (*pfn)(), struct X *px, float g, int *pc, struct S ***paps);
 void *func_001AE318(struct AREQ *preq);
-int func_00132B10(int n, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(int n, int k);
 int func_001A93C8(qword q, struct S *ps, int n, int a, int b, int c, float g, struct HIT *phit);
 void func_0013B7B8(struct P *p, int *pn, struct O **apo);
 void func_0013B5E8(struct P *p, int *pc, struct O ***papo)
@@ -40,7 +40,7 @@ void func_0013B5E8(struct P *p, int *pc, struct O ***papo)
             continue;
         if (x60 == p->px->x60)
             continue;
-        if (ps->x74 && !func_001A93C8(p->q180, ps, 0x7FFFFFFF, 0, 0, 1, func_00132B10(x60, 0x34) ? p->g160 : p->g15C, &hit))
+        if (ps->x74 && !func_001A93C8(p->q180, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(x60, 0x34) ? p->g160 : p->g15C, &hit))
             continue;
         apo[n] = ps->po;
         n++;

@@ -18,14 +18,14 @@ extern char D_002C0E10[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
 struct X *func_001CE888(void *pg, int a, int b);
-struct LO *func_001C4840(void *pg);
+struct LO *PpoHero(void *pg);
 qword func_001A62E8(struct S *p);
 struct MAT *func_001A6318(struct S *p);
 void func_001C6AB0(struct S *p, int n);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00161868(void *pg);
-void func_001619A0(void *p, int n, struct S *ps);
+void BroadcastGameEvent(void *p, int n, struct S *ps);
 void func_001C60B8(struct S *p, int n);
 void func_001C68F0(struct S *p, int n)
 {
@@ -35,7 +35,7 @@ void func_001C68F0(struct S *p, int n)
         p->x238 = GRandInRange__Fff(p->x230, p->x234);
         break;
     case 1: {
-        struct LO *q = func_001C4840(D_003DD490);
+        struct LO *q = PpoHero(D_003DD490);
         struct X *px;
         struct LO *plo;
         if (!((int (*)(void *))q->vt[80].pf)((char *)q + q->vt[80].d)) {

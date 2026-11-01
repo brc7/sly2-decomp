@@ -23,7 +23,7 @@ void func_001F36E0(P*);
 int func_0017F550(P*);
 void func_00181268(P*,int);
 qword func_001A62E8(void*);
-qword func_001A6FC0(void*,void*,qword);
+qword ConvertAloVec(void*,void*,qword);
 qword func_0022FCC8(void*,void*,qword);
 float func_002458F0(float,float);
 float RadNormalize__Ff(float);
@@ -32,7 +32,7 @@ void func_001C02D0(void*,qword,qword,void*);
 void func_001E7380(void*,qword,void*,qword*,float,qword*,float*,float*);
 float func_001E6648(void*);
 float func_00154C90(void*);
-int func_0015E9C8(void*,int,int,void*,int,NODE**);
+int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
@@ -85,7 +85,7 @@ extern "C" void func_00180668(P*p){
   qword target=func_001A62E8(p->target);
   qword delta=QwSub(target,func_001A62E8(p));
   float distance=Length(delta);
-  float heading=RadNormalize__Ff(Heading(func_001A6FC0(0,p,delta)));
+  float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,p,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=func_0011D910(&rule->stayDistance,distance);
   if(accept){
@@ -139,12 +139,12 @@ dispatch:
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
   float remaining=func_001E6648(p->curve)-p->progress;
-  float turn=Heading(func_001A6FC0(0,p,unit.q));
+  float turn=Heading(ConvertAloVec(0,p,unit.q));
   float response=func_00154C90(D_002DE578);
   float speed=Limit(Evaluate(&p->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&p->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*p->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];
-  int n=func_0015E9C8(D_003DD490,0x105,0x49,0,64,objects);
+  int n=CploFindSwObjectsByClass(D_003DD490,0x105,0x49,0,64,objects);
   for(int i=0;i<n;i++){
    NODE*object=objects[i];
    if(object!=&p->node&&object->group!=p->node.group){

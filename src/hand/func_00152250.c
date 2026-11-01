@@ -5,7 +5,7 @@ struct P { char pad[0xC]; struct VT *pvt; char pad1[0x190 - 0x10]; qword v190; c
     char pad4[0x40C - 0x1E0]; int f40C; };
 struct SO { char pad[0x18]; struct P *p18; };
 struct MSG { struct SO *pso; float g; int k; };
-void func_001C3E20(struct P *p, int msgk, struct MSG *pmsg);
+void HandlePoMessage(struct P *p, int msgk, struct MSG *pmsg);
 qword func_00204E38(struct P *p, struct SO *pso, float g);
 static inline qword VecMul(qword v, float g)
 {
@@ -17,7 +17,7 @@ static inline qword VecMul(qword v, float g)
 }
 void func_00152250(struct P *p, int msgk, struct MSG *pmsg)
 {
-    func_001C3E20(p, msgk, pmsg);
+    HandlePoMessage(p, msgk, pmsg);
     if (msgk == 9) {
         struct P *pp = pmsg->pso->p18;
         if (pp == p) {

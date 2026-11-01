@@ -10,7 +10,7 @@ extern float D_002BF3EC;
 extern float D_002BF3F0;
 extern float D_003E1BEC;
 
-extern void func_001619A0(void *p, int n, void *pv);
+extern void BroadcastGameEvent(void *p, int n, void *pv);
 extern void func_00141CD0(void *p, int n);
 extern void func_0014D1D0(void *p, int n, float g);
 extern void *func_001FBB90(int n);
@@ -21,7 +21,7 @@ extern void func_00195FB8(void *p, int a, int b);
 extern REC *func_0018D6F8(void *p, int n);
 extern void func_002206C8(void *p, int n);
 extern void func_001928F8(void *p, int a, int b, int c);
-extern OBJ *func_001CB250(int oid, int n);
+extern OBJ *PloAcquireProxy(int oid, int n);
 extern int func_00224610(OBJ *p);
 extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
 extern void func_00141EA8(void *p, int n);
@@ -32,7 +32,7 @@ extern void func_00141D38(void *p, int n);
 void func_0018DA48(char *p, int n)
 {
     D_002DEB30.xC = n;
-    func_001619A0(&D_002DEB30, 0x3C, p);
+    BroadcastGameEvent(&D_002DEB30, 0x3C, p);
     switch (n) {
     case 0x1D: {
         void *pv;
@@ -76,7 +76,7 @@ void func_0018DA48(char *p, int n)
             func_001928F8(A(0x4C0), 0xB, prec->x8, 0);
             break;
         }
-        pobj = func_001CB250(prec->x4, 0);
+        pobj = PloAcquireProxy(prec->x4, 0);
         if (!pobj)
             break;
         pobj->x15C = prec->x0;

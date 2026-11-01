@@ -18,7 +18,7 @@ struct EMITTER {
 };
 struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTER *pemitter; };
 extern "C" {
-void func_001A5E28(EMITTER *p);
+void UpdateLo(EMITTER *p);
 int FIsDlEmpty__FP2DL(int *pdl);
 int func_001A61A0(EMITTER *p);
 qword func_001A62E8(void *p);
@@ -48,7 +48,7 @@ void UpdateEmitter(EMITTER *p, float dt)
 {
     if (p->fChanged)
         OnEmitterValuesChanged(p);
-    func_001A5E28(p);
+    UpdateLo(p);
     if (p->x118 != -1)
         return;
     if (!FIsDlEmpty__FP2DL(&p->dl11C)) {

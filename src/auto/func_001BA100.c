@@ -23,5 +23,5 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E1444;
 
 s32 func_001BA100(s32 arg0, s32 arg1) {
-    return func_00132EA0(M2C_FIELD(arg1, s32 *, 4)) == 0x62;
+    return CidBasic(M2C_FIELD(arg1, s32 *, 4)) == 0x62;
 }

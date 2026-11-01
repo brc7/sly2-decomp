@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; };
 struct VTE { short d; short pad; float *(*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
-int func_00132B10(struct O *po, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void func_001E6F60(struct O *po, qword pos, int a, qword *pq, struct VEC *pv, int b, int c);
 float func_002458F0(float y, float x);
 qword func_001A62E8(struct O *po);
@@ -12,7 +12,7 @@ void func_001710F8(void *pv, qword pos, struct O *po, qword *ppos, float *pg) {
     struct VEC v;
     float f;
     if (po) {
-        if (func_00132B10(po, 10)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 10)) {
             func_001E6F60(po, pos, 0, &q, &v, 0, 0);
             f = func_002458F0(v.y, v.x);
         } else {

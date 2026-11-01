@@ -12,7 +12,7 @@ struct P {
 extern "C" {
 qword func_001A62E8(void *p);
 qword func_0022FCC8(int a, int b, qword v);
-void func_0012D108(void *p, qword q);
+void SetActPositionGoal(void *p, qword q);
 qword func_0011F088(qword a, qword b, float g, float *p, int n);
 void func_00190E18(P *p);
 }
@@ -45,6 +45,6 @@ void func_00190E18(P *p)
     qword d = Sub(func_001A62E8(p->x18C4), p->x19CC->x70);
     qword q = func_0022FCC8(0, p->x19C0->xA0, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0, q), func_0011B500(D_002A2DA0, D_002BF594));
-    func_0012D108(p->x1A00, func_0011BFF0(&m));
+    SetActPositionGoal(p->x1A00, func_0011BFF0(&m));
     p->x1960 = func_0011F088(p->x1960, D_002A2DD0, D_002DDED4, D_002BF598, 0);
 }

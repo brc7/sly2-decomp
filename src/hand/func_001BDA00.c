@@ -22,7 +22,7 @@ typedef struct O {
 } O;
 typedef struct DL { O *pvFirst; O *pvLast; int ibDle; } DL;
 extern DL D_003E1A40;
-O *func_0013E3C8(int a, int b, int c, int d);
+O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_002333B4(void *p, int c, int n);
 void *func_001AE1D0(AREQ *preq);
 void AppendDlEntry__FP2DLPv(DL *pdl, O *p);
@@ -38,7 +38,7 @@ O *func_001BDA00(void)
     p = D_003E1A40.pvFirst;
     if (!p) {
         for (i = 0; i < 16; i++) {
-            O *q = func_0013E3C8(0xE, 0, 0x2CD, -1);
+            O *q = PloNew__F3CIDP2SO3OIDi(0xE, 0, 0x2CD, -1);
             q->xE0 = 0;
             q->xE4 = 1;
             q->x1C0 = 1;

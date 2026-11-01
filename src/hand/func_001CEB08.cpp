@@ -10,7 +10,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C1F60,D_002C1F64,D_002C1F68,D_002C1F6C;
 extern qw D_002A2DA0,D_002A2DD0;
-int func_00132B10(void*,int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void func_00228C18(void*,qw,qw*,qw*);
 qw func_0022D348(void*,void*,qw);
 void func_001CEAA8(RIP*,float);
@@ -42,7 +42,7 @@ int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  if(p->kind==8){w.contact=point;radius=p->radius;elastic=p->restitution;friction=p->friction;}else{w.contact=point;radius=100.0f;elastic=0.7f;friction=0.8f;}
  radius*=Evaluate(&p->scale,(D_002DDED0.time-p->start)/p->duration);
  owner=OwnerAndNormal(shape,w,incomingNormal);}
- int special=func_00132B10(owner,0x59);register qw sampledNormal __asm__("vf8")=w.normal.q;
+ int special=FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x59);register qw sampledNormal __asm__("vf8")=w.normal.q;
  if(special){
   qw*output;qw samplePoint;void*sampleOwner=SampleOwner(shape,w,output,samplePoint);
   func_00228C18(sampleOwner,samplePoint,output,0);

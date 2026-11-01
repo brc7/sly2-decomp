@@ -1,10 +1,10 @@
 typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0xEC]; int k; char pad2[0x20]; qword pos; float r; };
-qword func_001A6F00(int a, struct S *p, qword q);
+qword ConvertAloPos(int a, struct S *p, qword q);
 int PbspPointInBspQuick(int a, int b, qword q);
 int func_00227C90(struct S *p, qword q)
 {
-    qword a = func_001A6F00(0, p, q), d, r, t;
+    qword a = ConvertAloPos(0, p, q), d, r, t;
     float f;
     int fFar;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(p->pos));

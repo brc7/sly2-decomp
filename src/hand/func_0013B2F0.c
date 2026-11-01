@@ -6,7 +6,7 @@ extern qword D_002A2DC0;
 int func_001F7588(struct P *p, struct M *pm);
 qword func_001A62E8(void *p);
 void func_0013B428(struct P *p, qword pos, qword n);
-int func_00132B10(int n, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(int n, int k);
 void func_0013B5C8(struct P *p, float g);
 static __inline__ qword VLen(qword c)
 {
@@ -42,7 +42,7 @@ int func_0013B2F0(struct P *p, struct M *pm)
         }
         pu->q = n;
         func_0013B428(p, func_001A62E8(p), u.q);
-        if (func_00132B10(pm->x0, 0x4F))
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pm->x0, 0x4F))
             func_0013B5C8(p, 0.25f);
         else
             func_0013B5C8(p, 0.0f);

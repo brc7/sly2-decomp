@@ -11,13 +11,13 @@ extern REC D_002BCD00[];
 extern REC2 D_002C3288[];
 extern struct G D_003DD490;
 extern char D_002DEB30[],D_002A7A38[];
-char *func_0013E368(struct G *,int);
+char *PchzFindSwLangstr__FP2SWi(struct G *,int);
 int func_00161798(void *);
 int func_0021ECD8(char *,const char *,...);
 char *func_0021ED58(char *,const char *);
 static inline void CopyId(char *p,int id)
 {
-    func_0021ED58(p,func_0013E368(&D_003DD490,id));
+    func_0021ED58(p,PchzFindSwLangstr__FP2SWi(&D_003DD490,id));
 }
 void func_001DCAB0(char *pch)
 {
@@ -36,9 +36,9 @@ void func_001DCAB0(char *pch)
                     int idsT=count<*pc?0xD9:0xDA;
                     struct G *pg=&D_003DD490;
                     char *fmt=D_002A7A38;
-                    char *pch1=func_0013E368(pg,D_002BCD00[i].ids1);
-                    char *pch2=func_0013E368(pg,D_002BCD00[i].ids2);
-                    func_0021ECD8(pch,fmt,pch1,pch2,func_0013E368(pg,idsT));
+                    char *pch1=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].ids1);
+                    char *pch2=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].ids2);
+                    func_0021ECD8(pch,fmt,pch1,pch2,PchzFindSwLangstr__FP2SWi(pg,idsT));
                     return;
                 }
             }
@@ -48,7 +48,7 @@ void func_001DCAB0(char *pch)
         case 1: {
             unsigned int i=pt->x258;
             if(i<0x40) {
-                func_0021ECD8(pch,func_0013E368(&D_003DD490,0xDB),D_002C3288[i].name);
+                func_0021ECD8(pch,PchzFindSwLangstr__FP2SWi(&D_003DD490,0xDB),D_002C3288[i].name);
                 return;
             }
             CopyId(pch,0xE3);

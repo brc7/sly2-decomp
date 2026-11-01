@@ -3,7 +3,7 @@ struct T { int x0; void *x4; void *x8; void *xC; };
 struct P { char pad[0x15F0]; void *x15F0; void *x15F4; void *x15F8; void *x15FC; char pad2[0x1610 - 0x1600]; struct T *x1610; struct T *x1614; };
 extern char D_002C0270[];
 void func_002039C0(struct P *p);
-void func_001A64E8(struct P *p, int n, void *q);
+void BindLoOidTable(struct P *p, int n, void *q);
 struct T *func_001AE2A0(struct REQ *r);
 void *func_001F4C58(struct P *p, int a, int b);
 void func_00186930(struct T *t);
@@ -11,7 +11,7 @@ static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.alig
 void func_001B4888(struct P *p)
 {
     func_002039C0(p);
-    func_001A64E8(p, 0x89, D_002C0270);
+    BindLoOidTable(p, 0x89, D_002C0270);
     p->x1610 = NewT();
     p->x1610->x4 = func_001F4C58(p, 0x200, 6);
     p->x1610->x8 = func_001F4C58(p, 0x201, 6);

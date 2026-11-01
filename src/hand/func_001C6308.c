@@ -16,7 +16,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002C0D80;
 extern float D_002C0D90;
 extern struct G D_003DD490;
-qword func_001A6FC0(struct S *,void *,qword);
+qword ConvertAloVec(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
 struct Q *func_001CE888(struct G *,void *,void *);
 qword func_001A62E8(void *);
@@ -42,7 +42,7 @@ void func_001C6308(struct S *p)
     void *emitter;
     struct Q *q;
     if(!p->owner||p->probability<=0)return;
-    direction=func_001A6FC0(p,0,D_002C0D80);
+    direction=ConvertAloVec(p,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
     if(side!=p->previous) {
         if(GRandInRange__Fff(0,1)<p->probability) {

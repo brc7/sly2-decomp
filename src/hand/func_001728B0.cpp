@@ -17,8 +17,8 @@ extern "C" {
 extern qword func_001A62E8(NODE*);extern float func_00204740(NODE*);
 extern int func_00172798(QUERY*);
 extern void func_001E6F60(NODE*,qword,void*,qword*,qword*,float*,float*);
-extern int func_00132B10(NODE*,int);
-extern int func_0015E9C8(void*,int,int,NODE*,int,NODE**);
+extern int FIsBasicDerivedFrom__FP5BASIC3CID(NODE*,int);
+extern int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 extern int func_00172888(ROW*,ROW*);
 extern void func_002338C0(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 extern qword SetVectorCylind(float,float,float);extern float GRandInRange__Fff(float,float);
@@ -76,13 +76,13 @@ extern "C" void func_001728B0(P*p){
  for(object=D_003E13D8;object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  for(object=D_003E13CC;object;object=object->next1B4){func_001E6F60(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
  for(object=D_003E13B4;object;object=object->nextE0){
-  if((object->flags&1)&&func_00132B10(object,0x13)){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+  if((object->flags&1)&&FIsBasicDerivedFrom__FP5BASIC3CID(object,0x13)){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  }
- {int count=func_0015E9C8(&D_003DD490,0x505,0x23,0,0x100,w.result256);
+ {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x23,0,0x100,w.result256);
  if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
- {int count=func_0015E9C8(&D_003DD490,0x505,0x67,0,0x20,w.result32);
+ {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x67,0,0x20,w.result32);
  if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
- {int count=func_0015E9C8(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
+ {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
  if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
  for(object=D_003E1450;object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  lastAngle=0.0f;

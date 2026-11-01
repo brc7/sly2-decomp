@@ -10,11 +10,11 @@ struct P {
 };
 extern char D_003DD490[];
 extern char D_002DEB30[];
-struct OID *func_0015E938(void *g, int k, int oid, struct OID *po);
+struct OID *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct OID *po);
 void func_00130598(struct SO *pso, struct OID *po, int n, int x, float g, float h);
 void func_0020FF70(void *g, int a, void *b, struct OID *po, int f);
 void func_001DFD58(void *p, int a);
-void func_00161F48(void *g, int a, void *b, struct OID *po);
+void ApplyTaskStates(void *g, int a, void *b, struct OID *po);
 void func_001488D8(struct P *p, int i)
 {
     int j;
@@ -27,7 +27,7 @@ void func_001488D8(struct P *p, int i)
         oid = pso->px14->po->oid;
         x = p->ae[i].a[j].x;
         if (p->po->oid == oid) po = p->po;
-        else if (oid != -1) po = func_0015E938(D_003DD490, 4, oid, p->po);
+        else if (oid != -1) po = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, oid, p->po);
         else po = 0;
         if (p->xA0) {
             int n = 0;
@@ -40,6 +40,6 @@ void func_001488D8(struct P *p, int i)
     func_0020FF70(D_003DD490, p->xB0, p->mB4, p->po, i == 0);
     if (i == 0) {
         if (p->pAC) func_001DFD58(p->pAC, p->xA8);
-        func_00161F48(D_002DEB30, p->x134, p->m138, p->po);
+        ApplyTaskStates(D_002DEB30, p->x134, p->m138, p->po);
     }
 }

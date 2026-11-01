@@ -8,10 +8,10 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_002DEB30[];
-void func_001A5E28(struct S *);
+void UpdateLo(struct S *);
 float func_001FE3F8(void *);
 void func_00152390(int, int, int, int);
-void func_001619A0(void *, int, struct S *);
+void BroadcastGameEvent(void *, int, struct S *);
 void func_00153640(struct S *, float);
 float GSmooth__FfffP3SMPPf(void *, float, float, float, int);
 void func_00152B58(struct S *);
@@ -20,7 +20,7 @@ void func_00152970(struct S *p)
     float t;
     int i, j;
     struct E *pe;
-    func_001A5E28(p);
+    UpdateLo(p);
     t = func_001FE3F8(D_003DD040);
     switch (p->n50) {
     case 1:
@@ -42,7 +42,7 @@ void func_00152970(struct S *p)
                 continue;
             if (!pe->n18 && pe->gC < t) {
                 p->n230 = pe->n4;
-                func_001619A0(D_002DEB30, 0x34, p);
+                BroadcastGameEvent(D_002DEB30, 0x34, p);
                 pe->n18 = 1;
             }
             if (pe->gC + p->g5C < t) {

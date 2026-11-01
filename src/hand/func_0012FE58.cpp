@@ -15,15 +15,15 @@ struct O {
 };
 extern char D_003DD490[];
 extern "C" {
-O *func_0015E938(void *pg, int k, int id, void *p);
+O *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int id, void *p);
 void func_0012FE58(void *a, void *b, KEYID *pk, O **ppo, int *pn);
 }
 void func_0012FE58(void *a, void *b, KEYID *pk, O **ppo, int *pn)
 {
     if (b)
-        *ppo = func_0015E938(D_003DD490, 1, pk->id, b);
+        *ppo = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, pk->id, b);
     else
-        *ppo = func_0015E938(D_003DD490, 4, pk->id, a);
+        *ppo = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pk->id, a);
     if (!*ppo)
         *pn = 0;
     else

@@ -1,7 +1,7 @@
 struct T { int x0; int x4; int c; int i0; };
 struct S { char pad[0xE0]; struct T *pt; int xE4; void *xE8; };
 int func_001CA978(struct S *p, void *pa);
-void *func_001CA958(struct S *p, int i);
+void *PspareFromIcopy(struct S *p, int i);
 void *func_001CADE0(struct S *p, int vMin)
 {
     int i, v, vBest;
@@ -13,7 +13,7 @@ void *func_001CADE0(struct S *p, int vMin)
         vBest = vMin;
         pvBest = 0;
         for (i = p->pt->i0; i < p->pt->c; i++) {
-            pv = func_001CA958(p, i);
+            pv = PspareFromIcopy(p, i);
             v = func_001CA978(p, pv);
             if (v >= vBest) {
                 pvBest = pv;

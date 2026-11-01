@@ -22,7 +22,7 @@ extern "C"{
  extern POLY D_002BFA20;
  extern LIMIT D_002BBB60;
  extern float D_002A6720;
- int func_00132B10(P*,int);
+ int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float func_002458F0(float,float);
  float RadNormalize__Ff(float);
  void func_00204660(P*,float);
@@ -115,7 +115,7 @@ extern "C" void func_001A0B40(C*p,int next){
  if(next==p->mode)return;
  switch(p->mode){
  case -1:
-  if(func_00132B10(p->actor,0x35)){
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(p->actor,0x35)){
    P*actor=p->actor;actor->first->inner->value->value=D_002BFA00;
    actor->second->inner->value->value=D_002BFA00;
   }
@@ -123,13 +123,13 @@ extern "C" void func_001A0B40(C*p,int next){
   p->actor->zero.Clear();p->actor->frozen=0;p->changed=D_002A6720;
   break;
  case 3:case 10:
-  if(func_00132B10(p->actor,0x35))p->actor->first->inner->value->value.Clear();
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(p->actor,0x35))p->actor->first->inner->value->value.Clear();
   break;
  }
  ASEG*clip=0;int flags=1;
  switch(next){
  case -1:
-  if(func_00132B10(p->actor,0x35)){
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(p->actor,0x35)){
    P*actor=p->actor;actor->first->inner->value->value.Clear();actor->second->inner->value->value.Clear();
   }
   p->actor->frozen=1;p->changed=D_002DDED0.time;break;
@@ -156,7 +156,7 @@ extern "C" void func_001A0B40(C*p,int next){
   flags=0x21;
  case 3:
   clip=p->clips[next];
-  if(func_00132B10(p->actor,0x35))p->actor->first->inner->value->value=D_002BFA10;
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(p->actor,0x35))p->actor->first->inner->value->value=D_002BFA10;
   break;
  case 5:case 11:
   camera1.q=Position();

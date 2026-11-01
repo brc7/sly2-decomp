@@ -4,7 +4,7 @@ struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
 void func_001E6F10(struct OBJECT *, float, V *, V *);
-qword func_001A6F00(struct OBJECT *, struct OBJECT *, qword);
+qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
 float func_0019ABB8(void *, float);
 void func_0011D9E0(float (*)(void *, float), void *, float, float, float, float, float *, float *);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -22,7 +22,7 @@ float func_0019ABF0(struct S *s, float parameter) {
     func_001E6F10(b, parameter, &v, 0);
     t.a = s->a;
     t.b = b;
-    t.q = func_001A6F00(0, b, v.q);
+    t.q = ConvertAloPos(0, b, v.q);
     func_0011D9E0(func_0019ABB8, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
     return r;
 }

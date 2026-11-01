@@ -5,7 +5,7 @@ struct S { char pad[0x1020]; void *p1020; char pad1[0x1030 - 0x1024]; void *p103
            char pad2[0x1040 - 0x1038]; qword q1040; char pad3[0x1060 - 0x1050]; int n1060; int pad4[2]; int n106C; };
 extern char D_002C0A50[];
 void func_002061D8(struct S *p);
-void func_001A64E8(struct S *p, int n, void *pv);
+void BindLoOidTable(struct S *p, int n, void *pv);
 float *func_0012F938(void *p, int n);
 void func_001300B8(void *p, struct S *ps, void *p1, int n, struct L *pl, int m, float a, float b);
 void func_001F35C8(struct S *p, float g);
@@ -15,7 +15,7 @@ void func_001BA018(struct S *p)
     qword a, b, d;
     float *pg;
     func_002061D8(p);
-    func_001A64E8(p, 3, D_002C0A50);
+    BindLoOidTable(p, 3, D_002C0A50);
     pg = func_0012F938(p->p1020, 0x5DB);
     func_001300B8(p->p1020, p, p->p1030, p->p1034->nA0, &l, 0, *pg, 1.0f);
     a = l.q30;

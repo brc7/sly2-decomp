@@ -15,8 +15,8 @@ extern struct G D_003DD490;
 extern int D_002C3258[];
 void func_001DA808(OBJ *);
 int func_00187D80(void *, int);
-void *func_001C4840(struct G *);
-int func_00132B10(void *, int);
+void *PpoHero(struct G *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001DB520(OBJ *, int);
 void func_001DA858(OBJ *);
 R *func_001DAE20(OBJ *, int);
@@ -40,8 +40,8 @@ void func_001DAA90(OBJ *p)
         func_001DB520(p, -1);
         return;
     }
-    pv = func_001C4840(&D_003DD490);
-    if (pv == 0 || !func_00132B10(pv, 0x34)) {
+    pv = PpoHero(&D_003DD490);
+    if (pv == 0 || !FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x34)) {
         func_001DB520(p, -1);
         return;
     }

@@ -22,7 +22,7 @@ qword func_001A62E8(LO*);
 void func_001E7380(void*,qword,void*,qword*,qword*,float*,float*,float);
 M4 InvertMatrix4Rigid(const M4*);
 M4 *__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
-qword func_001A6F00(LO*,LO*,qword);
+qword ConvertAloPos(LO*,LO*,qword);
 void Minimize(float(*)(void*,float),void*,float,float,float,float,float*,float*) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
 float func_001CC2B8(void*,float);
 float func_001CC288(void*,float);
@@ -30,7 +30,7 @@ void func_001CC1F8(P*,qword,float*,float*,float);
 void func_001CC168(P*,qword,float*,float*,float);
 M3 *func_0022FD38(M3*,FRAME*,FRAME*,const M3*);
 qword func_0011BFF0(const M3*);
-void func_0012D108(void*,qword);
+void SetActPositionGoal(void*,qword);
 void func_00130D30(void*,int,float,float);
 void func_001384C0(MOTION*);
 void func_002046B0(LO*,qword);
@@ -62,15 +62,15 @@ void func_001CC2E8(P*p){
  }
  }
  w.stage.late.context.p=p;
- {qword raw=func_001A6F00(0,p->owner,w.position.q);register qword point __asm__("vf1");__asm__("qmtc2.ni %1,%0":"=j"(point):"r"(raw));qword length=LengthXY(point);w.stage.late.local.q=point;w.stage.late.local.f[1]=0.0f;StoreX(&w.stage.late.local.f[0],length);}
+ {qword raw=ConvertAloPos(0,p->owner,w.position.q);register qword point __asm__("vf1");__asm__("qmtc2.ni %1,%0":"=j"(point):"r"(raw));qword length=LengthXY(point);w.stage.late.local.q=point;w.stage.late.local.f[1]=0.0f;StoreX(&w.stage.late.local.f[0],length);}
 
- w.stage.late.context.position=func_001A6F00(p->owner,0,w.stage.late.local.q);
+ w.stage.late.context.position=ConvertAloPos(p->owner,0,w.stage.late.local.q);
  if(p->mode==2){
   Minimize(func_001CC2B8,cursor,0.5f,0.1f,0.0f,1.0f,&w.t,&w.result);
   func_001CC1F8(p,w.stage.late.context.position,&w.projection,0,w.t);
   func_0022FD38(&w.stage.late.temporary,0,p->space->frame,&w.basis);
   w.stage.late.transformed=w.stage.late.temporary;
-  func_0012D108(p->job,func_0011BFF0(&w.stage.late.transformed));
+  SetActPositionGoal(p->job,func_0011BFF0(&w.stage.late.transformed));
  }else{
   Minimize(func_001CC288,cursor,0.5f,0.1f,0.0f,1.0f,&w.t,&w.result);
   func_001CC168(p,w.stage.late.context.position,&w.projection,0,w.t);

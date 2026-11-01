@@ -1,9 +1,9 @@
 #include "m2c_prelude.h"
 s32 func_001A23C0(s32);                             /* extern */
-s32 func_001C41B8();                                /* extern */
+s32 FCanPoBeHealed();                                /* extern */
 
 s32 func_00144090(s32 arg0) {
-    if (func_001C41B8() == 0) {
+    if (FCanPoBeHealed() == 0) {
         return 0;
     }
     return func_001A23C0(arg0 + 0xDF0) != 2;

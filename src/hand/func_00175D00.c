@@ -16,7 +16,7 @@ struct R2 { struct T *p0; };
 struct R1 { char pad[0x14]; struct R2 *p14; };
 struct R { int pad; struct R1 *p4; };
 union V { qword q; };
-int func_00132B10(struct T *t, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 qword func_001A62E8(void *p);
 float func_00204740(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
@@ -41,13 +41,13 @@ int func_00175D00(struct S *p) {
     struct T *t;
     struct A *a = p->p10;
     if (!(a->nFE8 & 8) || a->nF00 || p->n3C || !p->p30 || !((int)(p->p30->fl28 >> 60) & 1)) return 0;
-    if (func_00132B10(p->p30, 0x32)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x32)) {
         struct T *q = p->p30;
         struct VTE *e = &q->vt[0x4D];
         if (((int (*)(void *))e->pfn)((char *)q + e->d) == 2) return 0;
     }
     k = 0;
-    if (func_00132B10(p->p30, 0x34)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x34)) {
         t = p->p30;
         if (t->n4CC != -1) {
             if (t->n4C8 < 5) k = t->n4C8 >= 3;
@@ -56,7 +56,7 @@ int func_00175D00(struct S *p) {
             if (t->n2DC == 0x11) k = 1;
         }
         if (t->nF54 != -1) k = 1;
-        if (func_00132B10(t, 0x35)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(t, 0x35)) {
             switch (t->n18C8) {
             case 3: case 0x15: case 0x16:
                 k = 1;

@@ -8,7 +8,7 @@ struct O { char pad[0xC]; struct VE *vt; char pad1[0x38 - 0x10]; int x38; };
 struct S { char pad[0x1018]; int x1018; float f101C; int x1020; struct O *x1024; int x1028; int x102C; int x1030; int x1034; };
 #define VCALL0(o, n) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 void func_00130B18(struct O *o);
-void func_0012E460(int *p);
+void ReleaseAct(int *p);
 int func_00209A68(struct S *p, int n);
 struct O *func_00205458(struct S *p, int n);
 void func_00204D48(struct S *p, float f);
@@ -21,7 +21,7 @@ void func_001BA408(struct S *p, int st)
         func_00130B18(p->x1024);
         VCALL0(p->x1024, 2);
         p->x1024 = 0;
-        func_0012E460(&p->x102C);
+        ReleaseAct(&p->x102C);
         p->x102C = 0;
         p->x1028 = 0;
         if (func_00209A68(p, 2)) func_00205458(p, 0x9E)->x38 = D_002E1E40;

@@ -4,11 +4,11 @@ struct O { int x0, x4, x8; struct VTE *vt; char pad[0x13D0 - 0x10]; int x13D0; }
 struct S { void *p0; char pad[0xC]; struct O *po; char pad1[0x1C]; qword q30; char pad2[0xB0]; qword qF0; char pad3[0x2C]; struct O *p12C; };
 extern struct O *D_002DD5BC;
 void func_00136530(struct O *po, int n);
-void func_001A58D0(struct O *po, int a, int b);
+void SetLoParent_1A58D0(struct O *po, int a, int b);
 void func_001F5720(struct O *po, int a);
 void func_001F57C0(struct O *po, int a);
-qword func_001A6FC0(void *p, int a, qword q);
-int func_00132B10(struct O *po, int n);
+qword ConvertAloVec(void *p, int a, qword q);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void func_002205A8(struct S *p)
 {
     struct O *po;
@@ -16,7 +16,7 @@ void func_002205A8(struct S *p)
         if (p->po->x13D0 != 8) goto tail;
         func_00136530(p->po, 1);
     } else {
-        func_001A58D0(p->po, 0, 3);
+        SetLoParent_1A58D0(p->po, 0, 3);
         func_001F5720(p->po, 0);
         func_001F57C0(p->po, 0);
     }
@@ -26,9 +26,9 @@ void func_002205A8(struct S *p)
         po = p->po;
         pve = &po->vt[36];
         po = (struct O *)((char *)po + pve->d);
-        pve->pfn(po, func_001A6FC0(p->p0, 0, p->q30));
+        pve->pfn(po, ConvertAloVec(p->p0, 0, p->q30));
     }
-    if (func_00132B10(p->po, 100))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 100))
         p->po->vt[76].pfn((char *)p->po + p->po->vt[76].d, 1);
 tail:
     if (p->p12C)

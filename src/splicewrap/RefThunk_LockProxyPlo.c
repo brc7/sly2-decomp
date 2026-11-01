@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001CB488(s32, s32);                    /* extern */
+void LockProxyPlo(s32, s32);                    /* extern */
 CRef *RefThunk_LockProxyPlo(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
@@ -9,7 +9,7 @@ CRef *RefThunk_LockProxyPlo(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_001CB488(pbasic, arg0_v);
+    LockProxyPlo(pbasic, arg0_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

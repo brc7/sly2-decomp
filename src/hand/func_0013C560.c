@@ -31,8 +31,8 @@ extern struct GS D_003DD490;
 extern char D_002DEB30[];
 extern qword D_002A2DD0;
 extern qword D_002A4B60;
-void func_001CB4B8(void *pv, struct O *p);
-void func_001CB488(void *pv, struct O *p);
+void UnlockProxyPlo(void *pv, struct O *p);
+void LockProxyPlo(void *pv, struct O *p);
 void func_001F6A68(struct O *p);
 void func_001F6978(struct O *p, int n);
 void func_001F2AD0(struct O *p, void *pv);
@@ -41,13 +41,13 @@ void func_001F6B48(struct O *p, int n);
 void func_001618F8(struct GS *pgs, float g);
 qword func_001A62E8(void *p);
 void func_00156C80(struct GS *pgs, int n, qword v, struct Q *pq, void *pv);
-void func_001619A0(void *pv, int n, struct O *p);
+void BroadcastGameEvent(void *pv, int n, struct O *p);
 void func_00161958(struct GS *pgs);
 void func_001F5720(struct O *p, int n);
 void func_001F57C0(struct O *p, int n);
 void func_001F5880(struct O *p, qword v);
-void func_001A58D0(struct O *p, void *pv, int n);
-void func_001A6BE8(struct O *p, void *pv);
+void SetLoParent_1A58D0(struct O *p, void *pv, int n);
+void SetLoXfFromMat(struct O *p, void *pv);
 void func_001F7C68(struct O *p, float g);
 struct E *func_001CE888(struct GS *pgs, int n, int m);
 void func_001CF578(struct E *pe, struct O *p);
@@ -138,9 +138,9 @@ void func_0013C560(struct O *p, int st)
         int fNew = st >= 2;
         if (fOld) {
             if (!fNew)
-                func_001CB4B8(D_003DD490.p4638, p);
+                UnlockProxyPlo(D_003DD490.p4638, p);
         } else if (fNew) {
-            func_001CB488(D_003DD490.p4638, p);
+            LockProxyPlo(D_003DD490.p4638, p);
         }
     }
     stOld = p->st;
@@ -162,7 +162,7 @@ void func_0013C560(struct O *p, int st)
             func_001618F8(&D_003DD490, p->pq->g18C + 0.99f);
         func_00156C80(&D_003DD490, 1, func_001A62E8(p->pq), p->pq, (char *)p->pq + 0x198);
         if (st == 2)
-            func_001619A0(D_002DEB30, 0x2F, p);
+            BroadcastGameEvent(D_002DEB30, 0x2F, p);
         p->pq->p194 = 0;
         p->pq = 0;
         VCALL(p, 3, PFN3), 5, 0, 0, 0, 0);
@@ -207,13 +207,13 @@ void func_0013C560(struct O *p, int st)
     switch (st) {
     case 0:
         p->pst = 0;
-        func_001A58D0(p, 0, 0);
+        SetLoParent_1A58D0(p, 0, 0);
         VCALL(p, 9, PFNV));
         break;
     case 1:
         func_00156C80(&D_003DD490, -1, D_002A2DD0, 0, (char *)p->pq + 0x198);
-        func_001A6BE8(p, VCALL(p->pq, 31, PFNP)));
-        func_001A58D0(p, (void *)p->pq->x10, 3);
+        SetLoXfFromMat(p, VCALL(p->pq, 31, PFNP)));
+        SetLoParent_1A58D0(p, (void *)p->pq->x10, 3);
         p->pq->p194 = p;
         if (stOld != 3) {
             VCALL(p, 9, PFNV));
@@ -236,15 +236,15 @@ void func_0013C560(struct O *p, int st)
             if (pe)
                 LINKE(pe, p, p->pot->pr);
         }
-        func_001A6BE8(p, VCALL(p->pot->pr, 31, PFNP)));
-        func_001A58D0(p, p->pot->pr, 3);
+        SetLoXfFromMat(p, VCALL(p->pot->pr, 31, PFNP)));
+        SetLoParent_1A58D0(p, p->pot->pr, 3);
         if (!p->pe)
             func_0013C560(p, 4);
         break;
     case 3: {
         struct E *pe;
-        func_001A6BE8(p, VCALL(p->pq, 31, PFNP)));
-        func_001A58D0(p, (void *)p->pq->x10, 3);
+        SetLoXfFromMat(p, VCALL(p->pq, 31, PFNP)));
+        SetLoParent_1A58D0(p, (void *)p->pq->x10, 3);
         p->pe = func_001CE888(&D_003DD490, 6, 0);
         if (p->pe)
             LINKE3(p->pe, pot->pr, p);
@@ -265,7 +265,7 @@ void func_0013C560(struct O *p, int st)
         float a, b, c;
         float lo = -6.2831855f, hi = 6.2831855f;
         (void)&w;
-        func_001A58D0(p, 0, 3);
+        SetLoParent_1A58D0(p, 0, 3);
         func_001F5720(p, 0);
         func_001F57C0(p, 0);
         {
@@ -288,7 +288,7 @@ void func_0013C560(struct O *p, int st)
         u.f[2] = c;
         VCALL(p, 36, PFNQ), u.q);
         func_001F5880(p, D_002A4B60);
-        func_001619A0(D_002DEB30, 0x30, p);
+        BroadcastGameEvent(D_002DEB30, 0x30, p);
         break;
     }
     }

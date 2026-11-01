@@ -21,7 +21,7 @@ void func_0013B428(P *p, qword a, qword b);
 void func_0013B5E8(P *p, int *pc, PO ***papo);
 void *func_002333B4(void *pv, int b, int cb);
 int func_001F7598(MSG *pmsg);
-int func_00132B10(PO *po, int k);
+int FIsBasicDerivedFrom__FP5BASIC3CID(PO *po, int k);
 int *func_00156698(int n, qword pos, void *pv);
 }
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
@@ -93,7 +93,7 @@ extern "C" void func_0013B860(P *p)
     if (p->x1E0) {
         PO *po = p->p200;
         void *pv = p;
-        if (po != (PO *)p && func_00132B10(po, 0x70) && po->pp14) {
+        if (po != (PO *)p && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             PO *pT = *po->pp14;
             if (pT != po) pv = pT;
         }

@@ -58,12 +58,12 @@ extern CLOCK D_002DDED0;
 extern POLY D_002BE600;
 extern LM D_002BBB60;
 extern char D_003DD490[];
-int func_00132B10(P *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(P *, int);
 int func_0020A818(void *, P *);
 qword func_001A62E8(P *);
-unsigned func_001C9950(unsigned);
+unsigned IsrcFromIdProxy__Fi(unsigned);
 int func_0011D910(LM *, float);
-qword func_001A6F00(P *, P *, qword);
+qword ConvertAloPos(P *, P *, qword);
 float func_002458F0(float, float);
 int func_00175820(void *, void *);
 void func_0020FAA0(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
@@ -149,7 +149,7 @@ extern "C" ENTRY *func_001758A0(P *p, P *target, void *gate)
     }
     if (D_002DDED0.time < p->cooldown)
         return 0;
-    if (func_00132B10(target, 0x32)) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x32)) {
         VTE *e = &target->vt[77];
         if (((int (*)(void *))e->fn)((char *)target + e->delta))
             return 0;
@@ -163,7 +163,7 @@ extern "C" ENTRY *func_001758A0(P *p, P *target, void *gate)
         distance = GLengthXY(d);
         height = GZOfQw(d);
     }
-    if (func_001C9950(target->name->identity) == func_001C9950(p->name->identity))
+    if (IsrcFromIdProxy__Fi(target->name->identity) == IsrcFromIdProxy__Fi(p->name->identity))
         distance += ((unsigned)target < (unsigned)p) ? 75.0f : -75.0f;
     if ((p->mode == 8 || p->mode == 13) && p->scale) {
         float s = p->scale->value;
@@ -180,7 +180,7 @@ extern "C" ENTRY *func_001758A0(P *p, P *target, void *gate)
         if (!func_0011D910(&entry->height, height))
             continue;
         {
-            qword local = func_001A6F00(0, p, to);
+            qword local = ConvertAloPos(0, p, to);
             angle = __builtin_fabsf(func_002458F0(GYOfQw(local), GXOfQw(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);

@@ -7,7 +7,7 @@ void func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
 qword func_00153E60(T *p);
 void *func_001AE318(AL *pal);
-qword func_001A6F00(SO *pso, int z, qword v);
+qword ConvertAloPos(SO *pso, int z, qword v);
 void func_0020FAA0(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int func_0014CC58(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
@@ -31,7 +31,7 @@ int func_001545F0(T *p, SO *pso)
     qword vmax = q;
     qword vmin = q;
     for (i = 0; i < 1; i++) {
-        qword t = func_001A6F00(pso, 0, ppos[i]);
+        qword t = ConvertAloPos(pso, 0, ppos[i]);
         apos[i] = t;
         __asm__("vmini.xyz %0, %0, %1" : "+j"(vmin) : "j"(t));
         __asm__("vmax.xyz %0, %0, %1" : "+j"(vmax) : "j"(t));

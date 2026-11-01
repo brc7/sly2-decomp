@@ -20,16 +20,16 @@ extern "C" {
 extern qword D_002C1EE0;
 extern float D_002C1EF0;
 extern CLOCK D_002DDED0;
-void func_0012E460(JOB **);
+void ReleaseAct(JOB **);
 float func_0012F990(MOTION *,int);
 void func_001300B8(MOTION *,float,float,LO *,SPACE *,SPACE *,M4 *,M4 *);
 qword func_001A62E8(LO *);
 qword *func_00256D18(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 LO *func_001CCA40(LO *,LO *);
-M4 func_001A71B0(LO *,LO *,const M4 *);
+M4 ConvertAloMat4(LO *,LO *,const M4 *);
 M4 InvertMatrix4Rigid(const M4 *);
-void func_001A58D0(LO *,int,int);
+void SetLoParent_1A58D0(LO *,int,int);
 float func_00196928(qword,qword,float,float,float,float);
 void func_00131A00(ANIM *,float);
 qword func_0022FC48(SPACE *,SPACE *,qword);
@@ -58,7 +58,7 @@ extern "C" void func_001CCC88(P *input,LO *other){
  __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
  __asm__("daddu %0,%1,$zero":"=r"(object):"r"(other));
  WORK work;
- func_0012E460(&p->positionJob);register float zero __asm__("$f21")=0.0f;func_0012E460(&p->otherJob);func_0012E460(&p->orientationJob);
+ ReleaseAct(&p->positionJob);register float zero __asm__("$f21")=0.0f;ReleaseAct(&p->otherJob);ReleaseAct(&p->orientationJob);
  ANIM *anim=p->owner->playing;MOTION *motion=anim->motion;
  float time=func_0012F990(motion,0x1C7),phase=(time-anim->start)/anim->duration;
  SPACE *space=SourceMatrix(p->source,&work.original);register M4*workingBase __asm__("$19")=&work.sample;
@@ -93,7 +93,7 @@ extern "C" void func_001CCC88(P *input,LO *other){
  if(counterpart){
   M4*counterMatrix=WorldMatrix(counterpart);register const M4*counterArgument __asm__("$7");register LO*counterSpace __asm__("$6");
   __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=&r"(counterArgument),"=r"(counterSpace):"r"(counterMatrix),"r"(object));
-  new(product)M4(func_001A71B0(0,counterSpace,counterArgument));
+  new(product)M4(ConvertAloMat4(0,counterSpace,counterArgument));
   register M4*inverse __asm__("$16");
   {
   register qword row1 __asm__("$6"),row2 __asm__("$3"),row3 __asm__("$2"),row0 __asm__("$7");register M4*inverseArgument __asm__("$4");register const M4*sourceArgument __asm__("$5");
@@ -109,7 +109,7 @@ extern "C" void func_001CCC88(P *input,LO *other){
    :"=&r"(row0),"=&r"(row1),"=&r"(row2),"=&r"(row3),"=m"(work.final):"m"(work.views.matrices.product.rows[0]),"m"(work.views.matrices.product.rows[1]),"m"(work.views.matrices.product.rows[2]),"m"(work.views.matrices.product.rows[3]));
   }
  }
- func_001A58D0(object,0,15);
+ SetLoParent_1A58D0(object,0,15);
  const qword*velocityAddress=object->follow?&object->follow->velocity:&D_002C1EE0;register float unit __asm__("$f20");register LO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
  __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3":"=r"(initialVelocity),"=r"(initialOwner),"=f"(unit),"=m"(work.velocity):"m"(*velocityAddress),"r"(object):"$1");}
  {register qword destination __asm__("$2");__asm__("lq %0,%1":"=r"(destination):"m"(work.final.rows[3]));work.destination=destination;}

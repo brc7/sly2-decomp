@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001619A0(M2C_UNK *, M2C_UNK, void *);  /* extern */
+M2C_UNK BroadcastGameEvent(M2C_UNK *, M2C_UNK, void *);  /* extern */
 M2C_UNK func_0017F4C0(void *, void *);              /* extern */
 M2C_UNK func_0017FD08(void *, M2C_UNK);             /* extern */
 M2C_UNK func_00181728();                            /* extern */
@@ -23,7 +23,7 @@ void func_001815E8(void *arg0, s32 arg1) {
             func_0017FD08(M2C_FIELD(arg0, void **, 0x1C8), 3);
             break;
         case 2:
-            func_001619A0(&D_002DEB30, 0x39, arg0);
+            BroadcastGameEvent(&D_002DEB30, 0x39, arg0);
             break;
         }
         if (arg1 != -1) {

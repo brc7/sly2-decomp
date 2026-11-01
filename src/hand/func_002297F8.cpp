@@ -37,7 +37,7 @@ void TiltMatUpright(const M3 *,M3 *,M3 *);
 void func_0011BCF8(const M3 *,float *,qword *);
 void func_001FAC98(O *,qword);
 void func_0015A2C0(O *,WATER *,float,qword,qword,float,float);
-int func_00132B10(O *,int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 void func_001FB098(EMITTER *,float);
 void func_00258040(EMITTER **,EMITTER *);
 }
@@ -107,7 +107,7 @@ extern "C" void func_002297F8(O *a,O *b){
   float radius=((a->state->maximum.f[0]-a->state->minimum.f[0])+(a->state->maximum.f[1]-a->state->minimum.f[1]))*0.25f;
   func_0015A2C0(a,(WATER *)b,D_002DDED4,w.velocity.q,w.point.q,0.1f,radius);
  }
- else if(func_00132B10(a,0x32))Clear(&a->emitter);
+ else if(FIsBasicDerivedFrom__FP5BASIC3CID(a,0x32))Clear(&a->emitter);
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)

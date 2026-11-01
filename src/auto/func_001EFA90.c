@@ -15,7 +15,7 @@ extern M2C_UNK D_003E1278;
 s32 func_001EFA90(s32 arg0) {
     s32 temp_v0;
 
-    func_001A5270(arg0);
+    InitLo(arg0);
     temp_v0 = M2C_FIELD(arg0, s32 *, 0x40) | 0x40;
     M2C_FIELD(arg0, s32 *, 0x40) = temp_v0;
     return temp_v0;

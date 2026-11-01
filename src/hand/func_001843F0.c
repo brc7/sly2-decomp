@@ -1,8 +1,8 @@
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x38]; float g38; char pad2[0x110 - 0x3C]; qword pos; };
-extern void func_001A5C48(struct O *p);
+extern void PostLoLoad(struct O *p);
 extern qword func_001A62E8(void *p);
-extern qword func_001A6F00(void *p, void *q, qword v);
+extern qword ConvertAloPos(void *p, void *q, qword v);
 extern float D_002BE904;
 static __inline__ float GDist(qword a, qword b)
 {
@@ -17,8 +17,8 @@ static __inline__ float GDist(qword a, qword b)
 }
 void func_001843F0(struct O *p)
 {
-    func_001A5C48(p);
+    PostLoLoad(p);
     if (p->g38 == 1e10f) {
-        p->g38 = GDist(func_001A62E8(p), func_001A6F00(p, 0, p->pos)) + D_002BE904;
+        p->g38 = GDist(func_001A62E8(p), ConvertAloPos(p, 0, p->pos)) + D_002BE904;
     }
 }

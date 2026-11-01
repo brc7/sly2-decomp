@@ -14,9 +14,9 @@ extern float D_002BC930;
 void func_00195A00(void *pv, int a, int b, int c);
 int func_00140AF8(struct P *p, int n);
 void func_00135248(struct P *p, int n);
-int func_001C46C0(struct PO *po, int grf, float g);
-int func_001C4660(struct PO *po, int grf, float g);
-void func_001C4738(struct PO *po, int grf);
+int GrfConsumePressed__5POCTLUif(struct PO *po, int grf, float g);
+int GrfPressedWithin__5POCTLUif(struct PO *po, int grf, float g);
+void ClearPoctlJoyPressed(struct PO *po, int grf);
 void func_00197500(void *pv);
 void func_001911A8(void *pv);
 void func_001A12F0(void *pv);
@@ -69,16 +69,16 @@ void func_00134850(struct P *p)
         case 7:
             if (!(p->p150->x30 & 8) && func_00140AF8(p, 0)) {
                 func_00135248(p, 5);
-            } else if (func_001C46C0(p->p150, 0x40, 0.1f)) {
+            } else if (GrfConsumePressed__5POCTLUif(p->p150, 0x40, 0.1f)) {
                 func_00195A00(p->a2C0, 1, 0, 0);
-            } else if (func_001C4660(p->p150, 0x400, 0.15f) && VCALL99(p, 3)) {
-                func_001C4738(p->p150, 0x400);
+            } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x400, 0.15f) && VCALL99(p, 3)) {
+                ClearPoctlJoyPressed(p->p150, 0x400);
                 func_0019CC50(p->aF00, 0, 0, 0);
-            } else if (func_001C4660(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
-                func_001C4738(p->p150, 0x10);
+            } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
+                ClearPoctlJoyPressed(p->p150, 0x10);
                 p->x16B4 = func_00136A28(p, p->x1870);
                 func_00135248(p, 6);
-            } else if (func_001C46C0(p->p150, 0x20, 0.2f)) {
+            } else if (GrfConsumePressed__5POCTLUif(p->p150, 0x20, 0.2f)) {
                 func_001938C0(&p->x4C0, 0xF8FE, 0);
             } else {
                 float g = p->p150->g1C;
@@ -94,8 +94,8 @@ void func_00134850(struct P *p)
             break;
         case 2:
             func_00197500(p->a2C0);
-            if (func_001C4660(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
-                func_001C4738(p->p150, 0x10);
+            if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
+                ClearPoctlJoyPressed(p->p150, 0x10);
                 p->x16B4 = func_00136A28(p, p->x1870);
                 func_00135248(p, 6);
             }
@@ -109,15 +109,15 @@ void func_00134850(struct P *p)
         case 5:
             if ((p->p150->x30 & 8) || !func_00140AF8(p, 1)) {
                 func_00135248(p, 0);
-            } else if (func_001C46C0(p->p150, 0x40, 0.1f)) {
+            } else if (GrfConsumePressed__5POCTLUif(p->p150, 0x40, 0.1f)) {
                 func_00195A00(p->a2C0, 1, 0, 0);
-            } else if (func_001C4660(p->p150, 0x400, 0.15f) && VCALL99(p, 3)) {
-                func_001C4738(p->p150, 0x400);
+            } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x400, 0.15f) && VCALL99(p, 3)) {
+                ClearPoctlJoyPressed(p->p150, 0x400);
                 func_0019CC50(p->aF00, 0, 0, 0);
-            } else if (func_001C46C0(p->p150, 0x20, 0.2f)) {
+            } else if (GrfConsumePressed__5POCTLUif(p->p150, 0x20, 0.2f)) {
                 func_001938C0(&p->x4C0, 0xF8FE, 0);
-            } else if (func_001C4660(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
-                func_001C4738(p->p150, 0x10);
+            } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
+                ClearPoctlJoyPressed(p->p150, 0x10);
                 p->x16B4 = func_00136A28(p, p->x1870);
                 func_00135248(p, 6);
             }

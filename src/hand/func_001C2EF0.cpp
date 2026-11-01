@@ -1,5 +1,5 @@
 // func_001C2EF0 (w3lane8, wave 3): launches `count` objects from an owner's source object towards the player.
-// The first object is the owner's existing one (+0x158), the others come from its factory (func_001CB250); new
+// The first object is the owner's existing one (+0x158), the others come from its factory (PloAcquireProxy); new
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
 // offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
 // horizontal part of the start->target direction and the up axis, and func_001D69F0 computes the launch velocity.
@@ -24,15 +24,15 @@ extern GAME D_003DD490;
 extern qword D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
 extern LM D_002C0CF0, D_002C0CF8, D_002C0CE0;       // random ranges: two offset angles, flight time
 extern float D_002C0CE8, D_002C0CEC, D_002A76E8;
-void *func_001C4840(GAME *);
+void *PpoHero(GAME *);
 qword func_001A62E8(void *);
 float GRandInRange__Fff(float, float);
 qword SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 qword func_001D69F0(qword, qword, qword, float);
-int func_00132B10(SO *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(SO *, int);
 void func_001C6BD0(SO *, qword, qword, float, float);
-SO *func_001CB250(void *, int);
+SO *PloAcquireProxy(void *, int);
 void func_001C2DB8(OWNER *);
 }
 
@@ -88,8 +88,8 @@ extern "C" SO *func_001C2EF0(OWNER *p, int count)
         if (i == 0)
             node = p->first;
         else {
-            node = func_001CB250(p->factory, 0);
-            if (node && func_00132B10(node, 0x5A))
+            node = PloAcquireProxy(p->factory, 0);
+            if (node && FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A))
                 SetState(node, 2);
         }
         if (!node)
@@ -97,7 +97,7 @@ extern "C" SO *func_001C2EF0(OWNER *p, int count)
         if (!first)
             first = node;
         qword start = p->source->position;
-        qword target = func_001A62E8(func_001C4840(game));
+        qword target = func_001A62E8(PpoHero(game));
         float pan = Rand(D_002C0CF0);
         qword offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qword delta = Sub(target, start);
@@ -106,9 +106,9 @@ extern "C" SO *func_001C2EF0(OWNER *p, int count)
         mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), D_002A2DC0);
         qword dest = Add(target, Transform(mat, offset));
         qword velocity = func_001D69F0(start, dest, D_002C0D60, Rand(D_002C0CE0));
-        if (func_00132B10(node, 0x5A)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A)) {
             float lifetime;
-            if (func_00132B10(node, 0x5B) || func_00132B10(node, 0x5D))
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5B) || FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5D))
                 lifetime = (float)i * D_002C0CEC;
             else
                 lifetime = D_002A76E8;

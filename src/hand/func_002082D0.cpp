@@ -8,7 +8,7 @@ struct GROUP {char padFC[0xFC];int count;ENTRY entries[1];};
 struct P {char pad38C[0x38C];O *previous,*current;char pad394[0xBD0];GROUP *group;char padF68[0x54];int mode;};
 extern float D_002A886C,D_002C3D70[3],D_002C3D80[3];
 extern "C" qword func_001A62E8(void *);
-extern "C" int func_00132B10(O *,int);
+extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 extern "C" int func_002089F0(P *,O *);
 extern "C" int func_00208B38(P *,O *);
 extern "C" int func_002087E8(P *,O *);
@@ -38,13 +38,13 @@ extern "C" O *func_002082D0(P*p)
             ENTRY *entry=&p->group->entries[i];
             O *candidate=entry->object;
             if(!candidate)continue;
-            if(!entry->available&&(!(p->mode==0x22||p->mode==0x25)||!func_00132B10(candidate,0x38)))continue;
+            if(!entry->available&&(!(p->mode==0x22||p->mode==0x25)||!FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38)))continue;
             if(func_002089F0(p,candidate))continue;
             if(func_00208B38(p,candidate))return candidate;
             qword delta=Sub(origin.q,func_001A62E8(candidate));O *previous=p->previous;
             float distance=Length(delta);
             if(candidate==previous)distance=Weight(distance,D_002C3D70);
-            if((p->mode==0x22||p->mode==0x25)&&func_00132B10(candidate,0x38))distance=Weight(distance,D_002C3D80);
+            if((p->mode==0x22||p->mode==0x25)&&FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38))distance=Weight(distance,D_002C3D80);
             if(func_002087E8(p,candidate)){
                 if(best&&!func_002087E8(p,best)){bestDistance=distance;goto take;}
             }else if(best&&func_002087E8(p,best))continue;

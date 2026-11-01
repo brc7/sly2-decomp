@@ -4,7 +4,7 @@ extern int D_002BE538;
 extern char D_003DD490[], D_003D9E70[], D_002DFC00[], D_002DDF40[], D_002DDED0[];
 void func_0023B7D8(void);
 void func_001A7970(void);
-void func_001613A8(void);
+void StartupGame(void);
 void func_0020E890(void *);
 void func_001871C0(void *);
 void func_0014BA38(void);
@@ -25,7 +25,7 @@ void func_001A7518(int a, int b)
     D_002E2050 = a;
     D_002E2054 = b;
     func_001A7970();
-    func_001613A8();
+    StartupGame();
     for (;;) {
         func_0020E890(D_003DD490);
         func_001871C0(D_002DFC00);

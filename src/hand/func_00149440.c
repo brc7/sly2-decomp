@@ -10,12 +10,12 @@ struct P {
     int pad[3]; struct VTE *vt; char pad1[0x1C0 - 0x10]; int x1C0; float x1C4; float x1C8; char pad2[0x1D8 - 0x1CC]; void *x1D8;
     char pad3[0x288 - 0x1DC]; int c288; void *a28C[8]; int c2AC; int a2B0[4]; int c2C0; void **p2C4; int x2C8;
 };
-void func_001A5E28(struct P *);
+void UpdateLo(struct P *);
 void func_00149718(struct P *, int);
 struct CTX *func_001AE478(struct CTX *);
 void func_001AE4A0(struct CTX *, int);
 void func_001AE5A0(void *, void *, int);
-int func_0015E9C8(struct G *, int, int, int, int, void **);
+int CploFindSwObjectsByClass(struct G *, int, int, int, int, void **);
 int func_001A61A0(void *);
 qword func_001A62E8(void *);
 int func_00227C90(struct P *, qword);
@@ -25,7 +25,7 @@ int func_00149420(const void *, const void *);
 void func_00149440(struct P *p)
 {
     int k;
-    func_001A5E28(p);
+    UpdateLo(p);
     k = p->x1C0;
     if (k == 2) {
         if (0.0f <= p->x1C8 && p->x1C8 < D_002DDED0.t - p->x1C4)
@@ -43,7 +43,7 @@ void func_00149440(struct P *p)
         func_001AE5A0(apo, p->a28C, p->c288 * 4);
         c = p->c288;
         for (; i < p->c2AC; i++)
-            c += func_0015E9C8(&D_003DD490, 0x505, p->a2B0[i], 0, 0x40 - c, &apo[c]);
+            c += CploFindSwObjectsByClass(&D_003DD490, 0x505, p->a2B0[i], 0, 0x40 - c, &apo[c]);
         if (p->c288 == 0 && p->c2AC == 0) {
             func_001AE5A0(&apo[c], D_003DD490.apo, D_003DD490.c * 4);
             c += D_003DD490.c;

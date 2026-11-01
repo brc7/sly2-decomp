@@ -18,7 +18,7 @@ int func_00117C20(void *);
 void *func_001AE1D0(struct MSG *);
 void func_00117968(void *, int, void *);
 void func_00117EB0(void *, qword *);
-void func_0013F810(struct P *, void *);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct P *, void *);
 void func_001E6180(struct P *);
 void func_001E5DF8(struct P *p, void *pbis)
 {
@@ -52,6 +52,6 @@ void func_001E5DF8(struct P *p, void *pbis)
         for (i = 0; i < p->c; i++)
             func_00117EB0(pbis, &p->a144[i]);
     }
-    func_0013F810(p, pbis);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
     func_001E6180(p);
 }

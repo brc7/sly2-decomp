@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00132C78(s32, s32, f32);               /* extern */
+void EnsureLoSidebagFloat__FP2LO5OPTIDf(s32, s32, f32);               /* extern */
 CRef *RefThunkBasicCUSTOM_FLOAT_PROPERTY(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 21, 1 };
@@ -9,7 +9,7 @@ CRef *RefThunkBasicCUSTOM_FLOAT_PROPERTY(CRef *ret, void *pbasic, s32 cref, CRef
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_00132C78(pbasic, arg0_v, arg1_v);
+    EnsureLoSidebagFloat__FP2LO5OPTIDf(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

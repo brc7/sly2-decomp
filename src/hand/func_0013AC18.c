@@ -10,7 +10,7 @@ struct HIT { qword pos; qword a; qword normal; qword b; qword c; qword d; };
 struct G { char pad[0x3F24]; struct SO *psoFirst; };
 extern struct G D_003DD490;
 extern struct { struct SO *p; } D_003E13B4;
-void func_00133A38(struct G *pg, struct X *pa, struct X *pb, int n);
+void UpdateSwPox(struct G *pg, struct X *pa, struct X *pb, int n);
 qword func_001A62E8(void *p);
 int func_0014C748(qword a, qword b, qword c, int n, struct HIT *phit, float g);
 void func_0013AC18(struct P *p)
@@ -20,7 +20,7 @@ void func_0013AC18(struct P *p)
     int unused[4];
     struct HIT hit;
     for (i = 0; i < p->c; i++)
-        func_00133A38(&D_003DD490, p->px, p->ae[i].plo->px, 2);
+        UpdateSwPox(&D_003DD490, p->px, p->ae[i].plo->px, 2);
     p->c = 0;
     for (pso = D_003E13B4.p; pso; pso = pso->pnext) {
         struct LO *plo;
@@ -50,7 +50,7 @@ void func_0013AC18(struct P *p)
                 register qword vp __asm__("vf2");
                 register qword vn __asm__("vf1");
                 register int n __asm__("$2");
-                func_00133A38(&D_003DD490, p->px, plo->px, 1);
+                UpdateSwPox(&D_003DD490, p->px, plo->px, 1);
                 pe = &p->ae[p->c++];
                 pe->plo = plo;
                 __asm__("" : "+r"(pe));

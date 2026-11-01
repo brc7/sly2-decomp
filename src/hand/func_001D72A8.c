@@ -18,7 +18,7 @@ int func_0014FD50(void *);
 int func_00187E88(void *);
 int func_00187D80(void *, int);
 void *func_001F07E8(void *);
-OBJ *func_0015E938(struct G *, int, int, OBJ *);
+OBJ *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, OBJ *);
 void func_001DC260(void *, int);
 void func_001DFD58(OBJ *, int);
 void func_001D77D0(OBJ *, int);
@@ -58,7 +58,7 @@ void func_001D72A8(OBJ *p)
                 func_001DC260(D_003DA150, 0);
                 break;
             }
-            q = func_0015E938(&D_003DD490, 4, pe->n, p);
+            q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->n, p);
             if (q) {
                 func_001DFD58(q, 0);
                 return;

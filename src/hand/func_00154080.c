@@ -5,8 +5,8 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct E { int id; int n; float t; float tC; };
 struct O { int a[3]; struct VTE *vt; void *p10; };
 struct ARGS { struct E *pe; int *pn; int *pnNew; };
-int func_00132B10(void *p, int n);
-void func_001619A0(void *p, int n, void *q);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+void BroadcastGameEvent(void *p, int n, void *q);
 void func_00154080(struct O *o, struct E *pe, int nNew)
 {
     struct ARGS args;
@@ -24,7 +24,7 @@ void func_00154080(struct O *o, struct E *pe, int nNew)
     pe->t = D_002DDED0.t;
     if (nNew == 1) {
         void *q = o->p10;
-        if (q && func_00132B10(q, 0x33))
-            func_001619A0(D_002DEB30, 0x13, q);
+        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x33))
+            BroadcastGameEvent(D_002DEB30, 0x13, q);
     }
 }

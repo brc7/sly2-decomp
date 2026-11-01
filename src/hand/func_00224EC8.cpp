@@ -14,8 +14,8 @@ extern float D_002A97A8;
 extern O *D_002E1E40;
 extern int D_002C4398[];
 extern "C" {
-void func_0012E460(void **);
-void func_00134320(WORLD *,S *);
+void ReleaseAct(void **);
+void RecalcSwOxfFilterForObject(WORLD *,S *);
 void func_001F5720(S *,int);
 void func_001F57C0(S *,int);
 qword func_0011BFF0(const void *);
@@ -23,8 +23,8 @@ void *func_0012DC18(S *,NODE *,int,int,int,qword);
 int func_00224688(S *);
 qword func_0022FCC8(NODE *,NODE *,qword);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
-void func_001A58D0(S *,int,int);
-int func_0015E9C8(WORLD *,int,int,int,int,O **);
+void SetLoParent_1A58D0(S *,int,int);
+int CploFindSwObjectsByClass(WORLD *,int,int,int,int,O **);
 qword func_001A62E8(void *);
 void func_001F7BF8(S *,float);
 void func_001F0730(void *,int);
@@ -64,9 +64,9 @@ extern "C" void func_00224EC8(S *p,int state){
  int old=p->state;
  if(state==old)return;
  p->state=state;p->time=D_002DDED0.t;p->sentinel=-1;
- func_0012E460(&p->positionJob);
- func_0012E460(&p->rotationJob);
- if(old==0||old==4)func_00134320(&D_003DD490,p);
+ ReleaseAct(&p->positionJob);
+ ReleaseAct(&p->rotationJob);
+ if(old==0||old==4)RecalcSwOxfFilterForObject(&D_003DD490,p);
  switch(p->state){
  case 0:{
   func_001F5720(p,0);func_001F57C0(p,0);
@@ -75,7 +75,7 @@ extern "C" void func_00224EC8(S *p,int state){
   qword rotation=func_0011BFF0(p->rotationNode);
   p->positionJob=func_0012DC18(p,p->positionNode,0,7,2,position);
   p->rotationJob=func_0012DC18(p,p->rotationNode,0,7,2,rotation);
-  func_00134320(&D_003DD490,p);
+  RecalcSwOxfFilterForObject(&D_003DD490,p);
   break;
  }
  case 2:{
@@ -90,16 +90,16 @@ extern "C" void func_00224EC8(S *p,int state){
   break;
  }
  case 1:{
-  func_001A58D0(p,0,15);func_001F5720(p,0);
+  SetLoParent_1A58D0(p,0,15);func_001F5720(p,0);
   if(p->kind!=0x29){func_001F57C0(p,0);break;}
   func_001F57C0(p,1);
   O *objects[32];
-  int count=func_0015E9C8(&D_003DD490,0x105,0x38,0,32,objects);
+  int count=CploFindSwObjectsByClass(&D_003DD490,0x105,0x38,0,32,objects);
   p->nearest=FindNearest(p,count,objects,D_002E1E40,D_002A97A8);
   break;
  }
  case 4:
-  func_00134320(&D_003DD490,p);
+  RecalcSwOxfFilterForObject(&D_003DD490,p);
   func_001F7BF8(p,0.25f);
   break;
  }

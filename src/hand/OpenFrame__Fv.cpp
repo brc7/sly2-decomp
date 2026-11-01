@@ -26,13 +26,13 @@ extern int D_003D3980;
 extern int D_002DEB1C;
 extern int D_002DDF54;
 extern QW D_002DF740[];
-extern "C" void func_001C2A78(int phase);
+extern "C" void SetPhase__F5PHASE(int phase);
 extern "C" void func_00234A60(int sid);
 extern "C" void func_00160CE0(FR *pfr);
 void OpenFrame()
 {
     if (!D_003D3980)
-        func_001C2A78(3);
+        SetPhase__F5PHASE(3);
     func_00234A60(D_002DEB1C);
     D_002DEA4C = &D_002DEA50[D_002DEB10++];
     if (D_002DEB10 >= 2)

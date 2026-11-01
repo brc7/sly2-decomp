@@ -22,9 +22,9 @@ extern "C"{
  extern char D_003DD490[],D_002DFC00[];
  void func_001F35C8(P*,float);
  void func_00130D30(ASEGA*,int,float,float);
- void func_0012E460(DELTA**);
+ void ReleaseAct(DELTA**);
  void func_002303A0(P*,GROUP*,int);
- void func_00134320(void*,P*);
+ void RecalcSwOxfFilterForObject(void*,P*);
  void func_001F4E28(P*);
  void func_001749C0(C*,int);
  void func_0017AA78(C*,REQUEST*,U*,U*);
@@ -32,7 +32,7 @@ extern "C"{
  qword func_0022FC48(void*,void*,qword);
  qword func_0022FCC8(void*,void*,qword);
  DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
- P*func_001C4840(void*);
+ P*PpoHero(void*);
  void func_00187E28(void*,int,float);
  ENTRY*func_0012F938(void*,int);
 }
@@ -121,7 +121,7 @@ extern "C" void func_0017B1A8(C*p,int next){
  case 3:if(next!=-1)func_00130D30(p->control->asega,0,0.0f,1.0f);break;
  }
  if((unsigned)p->mode<2&&(unsigned)next>=2){
-  func_0012E460(&p->delta);func_002303A0(p->actor,p->actor->first,2);func_002303A0(p->actor,p->actor->second,2);
+  ReleaseAct(&p->delta);func_002303A0(p->actor,p->actor->first,2);func_002303A0(p->actor,p->actor->second,2);
  }
  int was=Still(p->mode),now=Still(next);
  p->mode=next;
@@ -131,7 +131,7 @@ extern "C" void func_0017B1A8(C*p,int next){
   register P*callbackActor __asm__("$5");
   __asm__("lui %0,%2\n\tlw %1,%3":"=&r"(gameBase),"=r"(callbackActor)
    :"i"((gameAddress+0x8000)>>16),"m"(p->actor));
-  func_00134320(gameBase+(short)(gameAddress&0xffff),callbackActor);
+  RecalcSwOxfFilterForObject(gameBase+(short)(gameAddress&0xffff),callbackActor);
   func_001F4E28(p->actor);p->mode=next;
  }
  const unsigned clockAddress=0x2DDED0;
@@ -165,7 +165,7 @@ extern "C" void func_0017B1A8(C*p,int next){
    p->delta=func_0012DE58(p->actor,first,0,end,localPoint,localDirection);
   }
   int owned=0;if(request.flag)owned=p->target->owner==p->actor;p->owned=owned;
-  if(p->actor->attention){P*focus=func_001C4840(D_003DD490);if(focus&&p->target==focus)func_00187E28(D_002DFC00,3,0.15f);}
+  if(p->actor->attention){P*focus=PpoHero(D_003DD490);if(focus&&p->target==focus)func_00187E28(D_002DFC00,3,0.15f);}
   break;
  }
  case 3:{ENTRY*entry=func_0012F938(p->control->curves,0x3C);if(entry)func_00130D30(p->control->asega,0,entry->value,1.0f);break;}

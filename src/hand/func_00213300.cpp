@@ -12,7 +12,7 @@ struct S {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
 struct R {unsigned char *base;int pad[2];unsigned char *cur;};
 extern R D_002DEA28;
 extern "C" {
-void func_001A5ED8(S *);
+void RenderLoSelf(S *);
 int func_002132D0(S *);
 void func_002185D0(void *);
 void func_002130C0(S *);
@@ -31,7 +31,7 @@ static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q
 static inline Q *Begin(S *p,R *r){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c|=0x30000000;b|=0x30000000;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *pending=0;func_002130C0(p);return pending;}
 static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 extern "C" void func_00213300(S *p){
-    func_001A5ED8(p);
+    RenderLoSelf(p);
     if(!func_002132D0(p))return;
     func_002185D0(p->sprites);
     float priority=16.0f;

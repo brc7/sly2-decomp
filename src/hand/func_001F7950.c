@@ -10,7 +10,7 @@ extern struct G2 D_002F7900;
 void func_001F7A68(struct P *, int);
 void func_002333B4(void *, int, int);
 qword func_001A62E8(struct P *);
-int func_00132B10(void *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001F7598(struct M *);
 void func_001F7950(struct P *p)
 {
@@ -26,7 +26,7 @@ void func_001F7950(struct P *p)
     m.p8 = p;
     m.q20 = func_001A62E8(p);
     m.q30 = ((qword (*)(void *))p->pvt->a[33].pfn)((char *)p + p->pvt->a[33].d);
-    if (k == 3 && func_00132B10(p, 0x38)) {
+    if (k == 3 && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x38)) {
         m.nC = 0x40000; m.n10 = -50; m.p0 = D_002F7900.p;
     } else {
         m.p0 = p; m.nC = 0x20000; m.n10 = p->u.c.b1;

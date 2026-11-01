@@ -7,8 +7,8 @@ struct O { char pad[0xFC4]; struct C *curve; };
 struct G { char pad[0x475C]; float offset; };
 extern float D_002C3EA0[3];
 extern float D_002C3EB0[2];
-struct O *func_0015E938(struct G *, int, int, void *);
-int func_00132B10(struct O *, int);
+struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, void *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
 struct M *func_001FBB90(int);
 void func_001FB2F8(struct M *, struct O *);
 void func_001FB4F0(struct M *, float, float);
@@ -24,9 +24,9 @@ void func_00210740(float offset, float fade, float scale, struct G *p, int id, i
     if (id == -1)
         return;
     __asm__ volatile("" ::: "$4");
-    if(oid!=-1)fallback=func_0015E938(p,4,oid,owner);
+    if(oid!=-1)fallback=PloFindSwObject__FP2SWi3OIDP2LO(p,4,oid,owner);
     o=SelectedValue(fallback);
-    if (o && func_00132B10(o, 0x38) && o->curve) {
+    if (o && FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x38) && o->curve) {
         float v = o->curve->value;
         float f = D_002C3EA0[0] + v * (D_002C3EA0[1] + v * D_002C3EA0[2]);
         Clamp(&f, D_002C3EB0);

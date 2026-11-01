@@ -4,7 +4,7 @@ struct G { char pad[0x4070]; int pool4070; char pad2[0x407c - 0x4074]; int f407c
 extern struct VTE D_002CB5D8[];
 struct O *PvAllocSlotheapClear(void *);
 void func_002333B4(void *, int, int);
-void *func_0015E3A8(struct G *, int);
+void *PdlFromSwCid(struct G *, int);
 void func_0011A070(void *, struct O *);
 struct O *func_001390D8(struct G *pg) {
     struct O *po;
@@ -17,7 +17,7 @@ struct O *func_001390D8(struct G *pg) {
     po->vt = D_002CB5D8;
     i = 31;
     while (--i != -1) ;   /* empty array-element ctor loop (31 elements) from inlined C++ ctor */
-    func_0011A070(func_0015E3A8(pg, 0x1c), po);
+    func_0011A070(PdlFromSwCid(pg, 0x1c), po);
     ((void (*)(void *))po->vt[7].pfn)((char *)po + po->vt[7].d);
     ((void (*)(void *))po->vt[11].pfn)((char *)po + po->vt[11].d);
     ((void (*)(void *))po->vt[15].pfn)((char *)po + po->vt[15].d);

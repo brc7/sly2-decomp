@@ -24,7 +24,7 @@ void func_001C67A0(struct S *p, int n);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00161868(void *pg);
-void func_001619A0(void *p, int n, struct S *ps);
+void BroadcastGameEvent(void *p, int n, struct S *ps);
 void func_001C60B8(struct S *p, int n);
 void func_001C65F8(struct S *p, int n)
 {
@@ -59,7 +59,7 @@ void func_001C65F8(struct S *p, int n)
         n = 2;
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
         func_00161868(D_003DD490);
-        func_001619A0(D_002DEB30, 0x12, p);
+        BroadcastGameEvent(D_002DEB30, 0x12, p);
         break;
     }
     }

@@ -1,7 +1,7 @@
 // v3 (Claude agent): MATCHES, but only with an unused duplicate "j"(dv) input on the first vadd (emits nothing).
 // The extra VF-class use makes regclass put dv in the VU register class, so it is spilled to 0(sp) across the calls
 // like the target. Kept here pending a policy decision / a natural source form giving dv one more "j" use.
-// wip (Claude agent): sibling of matched func_0012D108. ~60 diff: target spills dv (vsub result) to the stack
+// wip (Claude agent): sibling of matched SetActPositionGoal. ~60 diff: target spills dv (vsub result) to the stack
 // (sqc2 vf3,0(sp); lq before prot3w/pextuw; lqc2 vf2 for the vadds) and uses only s0-s2; ours keeps dv in $s1.
 typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }

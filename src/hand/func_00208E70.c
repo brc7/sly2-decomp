@@ -12,7 +12,7 @@ void func_001428D8(struct X *x, struct S *p, void *pv, float *pd, float *pa);
 unsigned long func_00207A20(int n);
 int func_00209A68(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
-int func_00132B10(void *po, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
 int func_00227C90(struct L *pl, qword q);
 int func_0011D910(void *p, float f);
@@ -43,7 +43,7 @@ int func_00208E70(struct S *p, struct X *x, float *pout)
             if (o) {
                 if (o == x)
                     return 4;
-                if (func_00132B10(o, 0x34))
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x34))
                     return 4;
             }
         }

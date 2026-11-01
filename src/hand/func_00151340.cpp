@@ -27,7 +27,7 @@ struct X {
 extern "C" {
 void func_0014FD40(X *p, void *pv, JOY *pjoy);
 float GRandInRange__Fff(float gMin, float gMax);
-void func_0012D108(TGT *p, qword pos);
+void SetActPositionGoal(TGT *p, qword pos);
 void func_0014E168(CM *p, int *pm);
 void func_00151340(X *p, void *pv, JOY *pjoy);
 }
@@ -104,7 +104,7 @@ void func_00151340(X *p, void *pv, JOY *pjoy)
         v = AddScaled(p->v, accel, VU_FLOAT(dt));
         pos = AddScaled2(p->p14->pos, p->v, v, VU_FLOAT(dt * 0.5f));
     }
-    func_0012D108(p->p14, pos);
+    SetActPositionGoal(p->p14, pos);
     p->v = v;
     func_0014E168(&D_002DDF40, &p->p10->m40);
 }

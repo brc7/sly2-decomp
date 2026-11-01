@@ -40,7 +40,7 @@ extern float D_002BDB50, D_002BDB54, D_002BDB58, D_002BDB5C, D_002BDBB0;
 extern KEY D_002BDB70[4];
 extern const SZ D_002A5018;
 extern qword D_002BDBC0, D_002BDBD0;
-void func_001A5ED8(P *p);
+void RenderLoSelf(P *p);
 float func_001FE3F8(void *p);
 FONT *func_00215AC0(FONT *pf, const char *sz, float scale);
 float func_00215ED8(FONT *pf);
@@ -52,7 +52,7 @@ void func_00152C58(P *p);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 void func_00152C58(P *p)
 {
-    func_001A5ED8(p);
+    RenderLoSelf(p);
     float t = func_001FE3F8(D_003DD040);
     if (p->state < 3) if (p->state > 0) if (p->c != 0) {
         FONT fontA;

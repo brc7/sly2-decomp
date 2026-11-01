@@ -17,7 +17,7 @@ void func_0011BC88(const M3 *,float *,float *);
 float func_0011CFE0(float,float);
 float GSmooth__FfffP3SMPPf(float,float,float,const float *,float *);
 float func_0011D948(const BOUND *,float);
-void func_0012D108(void *,qword);
+void SetActPositionGoal(void *,qword);
 void func_00129EC8(void *);
 }
 struct CRef {int kind,value;CRef(const CRef &) __asm__("func_001291A8");~CRef(){func_00129EC8(this);}};
@@ -68,5 +68,5 @@ extern "C" void func_00225BA0(S *p){
     }
     p->pitch=func_0011D948(&p->pitchRange,p->pitch);
     p->yaw=func_0011D948(&p->yawRange,p->yaw);
-    if(p->output){V v;v.q=Make(0.0f,-p->yaw,p->pitch);func_0012D108(p->rotation,v.q);}
+    if(p->output){V v;v.q=Make(0.0f,-p->yaw,p->pitch);SetActPositionGoal(p->rotation,v.q);}
 }

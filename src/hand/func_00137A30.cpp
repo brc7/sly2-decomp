@@ -23,13 +23,13 @@ struct XV { virtual void f1(); virtual void f2(); virtual void f3(); virtual voi
             virtual void f6(); virtual void f7(); virtual void f8(); virtual void Init(); };
 struct ELEM { float g; X *px; };
 extern "C" {
-X *func_0013E3C8(int a, void *p, int b, int c);
+X *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 void *func_001AE1D0(const AREQ &req);
 void *func_001AE238(const AREQ &req, void *pv);
 void *func_001AE378(const AREQ &req);
 void *func_001AE2A0(const AREQ &req);
-OBJ *func_0012B3B0(int id);
-OBJ *func_0012CB98(int id);
+OBJ *PacNewKind(int id);
+OBJ *PacNewKind2(int id);
 void func_0012FE58(X *px, void *p, ENT *pent, int *pa, void **ppb);
 qword func_0022CA18(void *pa, void *pb);
 void func_00256EE0(X *px, int n);
@@ -59,7 +59,7 @@ void func_00137A30(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb,
     if (!pxFirst) { *ppx = 0; return; }
     {
         FRAME frame;
-        X *pxNew = func_0013E3C8(0x6E, p, -1, -1);
+        X *pxNew = PloNew__F3CIDP2SO3OIDi(0x6E, p, -1, -1);
         pxNew->Init();
         pxNew->cb = cb;
         pxNew->cElem = c;
@@ -115,7 +115,7 @@ void func_00137A30(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb,
                 if (pent->f31 >= 0) {
             if (!pentNew->pobj) {
             int a; void *pv;
-            pobj = func_0012B3B0(5);
+            pobj = PacNewKind(5);
             func_0012FE58(pxNew, p, pentNew, &a, &pv);
             pobj->q10 = func_0022CA18(pv, pv);
             pobj->px = pxNew;
@@ -125,7 +125,7 @@ void func_00137A30(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb,
             } else pobj = pentNew->pobj;
                 } else {
             if (!pentNew->pobj) {
-            pobj = func_0012CB98(2);
+            pobj = PacNewKind2(2);
             pobj->px = pxNew;
             pobj->ae3 = pxNew->ae3;
             pobj->apobj = (OBJ **)func_001AE2A0(AREQ(c * 4));

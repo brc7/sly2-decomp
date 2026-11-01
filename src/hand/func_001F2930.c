@@ -12,7 +12,7 @@ void RemoveDlEntry__FP2DLPv(void *, void *);
 int FIsDlEmpty__FP2DL(void *);
 void func_001A00D0(struct G *, int, struct E *);
 void func_001F4E28(struct P *);
-void func_001337D0(struct G *, struct Q *);
+void RemoveSwAaobrObject(struct G *, struct Q *);
 void func_001F5078(struct P *);
 void func_001F2930(struct P *p, struct E *pe)
 {
@@ -26,7 +26,7 @@ void func_001F2930(struct P *p, struct E *pe)
         struct Q *pq = p->pq;
         ((struct Q2 *)pq->p60)->pq = 0;
         p->pq = 0;
-        func_001337D0(&D_003DD490, pq);
+        RemoveSwAaobrObject(&D_003DD490, pq);
     } else if (p->pq->p60 != p) {
         i = p->nE0;
         while (--i >= 0) {

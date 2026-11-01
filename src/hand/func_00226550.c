@@ -13,10 +13,10 @@ struct E { int grf; struct O *po; };
 struct L { char pad[0x84]; struct L *pnext; };
 struct S { char pad[0x3D88]; DL dl; char pad1[0x3EAC - 0x3D94]; struct L *pl; char pad2[0x3F14 - 0x3EB0]; int c; int x3F18; int *pi; struct E *ae;
     char pad3[0x3FFC - 0x3F24]; DL dl2; };
-void func_00149C80(struct S *p);
-void func_00147F40(struct S *p);
+void ProcessSwCallbacks(struct S *p);
+void UpdateSwBusyList(struct S *p);
 void func_002267C0(struct S *p);
-void func_001C4468(struct L *pl);
+void UpdatePoctl(struct L *pl);
 void func_001F77C0(struct S *p);
 void func_0019F120(struct S *p);
 void func_00130918(void *pv);
@@ -45,8 +45,8 @@ static inline void *PvNextDli(DLI *pdli)
 }
 void func_00226550(struct S *p)
 {
-    func_00149C80(p);
-    func_00147F40(p);
+    ProcessSwCallbacks(p);
+    UpdateSwBusyList(p);
     if (D_002DDED0.dt <= 0.0f) {
         func_002267C0(p);
     } else {
@@ -55,7 +55,7 @@ void func_00226550(struct S *p)
         DLI dli, dli2;
         void *pv;
         for (pl = p->pl; pl; pl = pl->pnext)
-            func_001C4468(pl);
+            UpdatePoctl(pl);
         func_001F77C0(p);
         p->pi = &i;
         for (i = 0; i < p->c; i++) {
@@ -73,11 +73,11 @@ void func_00226550(struct S *p)
         InitDli(&dli2, &p->dl2);
         while ((pv = PvNextDli(&dli2)) != 0)
             func_00156728(pv);
-        func_00149C80(p);
+        ProcessSwCallbacks(p);
         func_001F8DD8(p);
         func_001BE1E8();
         func_001EC968();
-        func_00149C80(p);
+        ProcessSwCallbacks(p);
         D_002DD2FC = dli.m_pdliNext;
     }
     func_001AB1A0(D_002E65E0);

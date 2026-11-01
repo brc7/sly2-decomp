@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-s32 func_00132B10(s32, M2C_UNK);                    /* extern */
+s32 FIsBasicDerivedFrom__FP5BASIC3CID(s32, M2C_UNK);                    /* extern */
 M2C_UNK func_0020B478(s32);                         /* extern */
 
 void func_001EF038(void *arg0) {
@@ -7,7 +7,7 @@ void func_001EF038(void *arg0) {
 
     if (M2C_FIELD(arg0, s32 *, 0x1C) != 0) {
         M2C_FIELD(arg0, s32 *, 0x1C) = 0;
-        if (func_00132B10(M2C_FIELD(arg0, s32 *, 0x10), 0x38) != 0) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(M2C_FIELD(arg0, s32 *, 0x10), 0x38) != 0) {
             func_0020B478(M2C_FIELD(arg0, s32 *, 0x10));
         }
         var_a0 = M2C_FIELD(arg0, void **, 0x14);

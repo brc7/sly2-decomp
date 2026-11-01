@@ -1,11 +1,11 @@
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x1310 - 0x10]; char sub[4]; int n1314; };
-void func_001C3FF0(void *p, int a);
+void OnPoActive(void *p, int a);
 void func_00130658(void *p);
 void func_00144480(struct O *p, int a)
 {
     struct VTE *e;
-    func_001C3FF0(p, a);
+    OnPoActive(p, a);
     e = &p->vt[105];
     ((void (*)(void *))e->pfn)((char *)p + e->d);
     if (!a) {

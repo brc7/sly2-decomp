@@ -33,7 +33,7 @@ void func_0020F030(void *, int);
 void func_001DB390(OBJ *, int);
 void func_001DA950(OBJ *, int, int);
 void func_001DB010(OBJ *);
-SUB *func_0015E938(void *, int, int, int);
+SUB *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void func_001DB520(OBJ *p, int s);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 void func_001DB520(OBJ *p, int s)
@@ -84,7 +84,7 @@ void func_001DB520(OBJ *p, int s)
     if (p->x40 != -1) {
         SUB *e;
         func_001DB010(p);
-        e = func_0015E938(D_003DD490, 5, p->x20, 0);
+        e = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->x20, 0);
         p->x24 = e;
         if (!e) {
             func_001DB520(p, -1);

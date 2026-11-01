@@ -28,8 +28,8 @@ typedef struct OBJ {
 extern struct G D_003DD490;
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3248[];
-Q *func_001C4840(struct G *);
-int func_00132B10(void *, int);
+Q *PpoHero(struct G *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001D9B60(OBJ *, int);
 int func_001441A0(Q *);
 int func_0011D4D0(float, float, float);
@@ -44,8 +44,8 @@ void func_001D9DF8(OBJ *p)
         return;
     old = p->x34;
     p->x34 = 0;
-    q = func_001C4840(&D_003DD490);
-    if (q && func_00132B10(q, 0x34))
+    q = PpoHero(&D_003DD490);
+    if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         p->x34 = q;
     if (!p->x34) {
         p->x20 = p->x24 = 0;
@@ -59,11 +59,11 @@ void func_001D9DF8(OBJ *p)
             func_001D9B60(p, 3);
         else
             func_001D9B60(p, 5);
-        if (func_00132B10(p->x34, 0x35)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x35)) {
             p->x3C = 0x33D; p->x40 = 0x33E; p->x44 = 0x33F; p->x48 = 0x340; p->x4C = 0x341;
-        } else if (func_00132B10(p->x34, 0x37)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x37)) {
             p->x3C = 0x347; p->x40 = 0x348; p->x44 = 0x349; p->x48 = 0x34A; p->x4C = 0x34B;
-        } else if (func_00132B10(p->x34, 0x36)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x36)) {
             p->x3C = 0x342; p->x40 = 0x343; p->x44 = 0x344; p->x48 = 0x345; p->x4C = 0x346;
         }
         p->x20 = p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;

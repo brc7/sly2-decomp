@@ -5,7 +5,7 @@ struct S {
     char pad4[0x154 - 0x11C]; float x154; int x158; int x15c, x160; float x164; float x168;
 };
 void func_00231100(struct S *s);
-void func_001A6CA8(struct S *s, int n);
+void SetLoBusyk(struct S *s, int n);
 void func_001A3360(struct S *s)
 {
     int v;
@@ -16,7 +16,7 @@ void func_001A3360(struct S *s)
     s->x168 = 2000.0f;
     s->x154 = 240.0f;
     s->x158 = 1;
-    func_001A6CA8(s, 1);
+    SetLoBusyk(s, 1);
     v = s->x40;
     if ((v ^ 1) & 1) *(int *)v &= ~0x20;
     else s->x40 = v & ~0x20;

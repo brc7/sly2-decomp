@@ -7,7 +7,7 @@ struct R { char pad[0x2E8]; int n2E8; char pad2[0x1000 - 0x2EC]; int n1000; };
 struct Q { int pad[2]; int n8; };
 struct M { int n0; int pad; void *p8; int nC; struct Q *p10; };
 struct S { char pad[0x90]; int n90; struct O **a94; };
-struct R *func_001CB250(void *p, int n);
+struct R *PloAcquireProxy(void *p, int n);
 void func_00173610(qword *pv, float a, float b, int c, int d);
 int NRandInRange__Fii(int lo, int hi);
 void *func_00205458(struct R *r, int n);
@@ -23,7 +23,7 @@ extern "C" struct R *func_00174490(struct S *p, struct M *m, qword *pv, int a3, 
     int k;
     switch (m->n0) {
     case 0:
-        r = func_001CB250(m->p8, 0);
+        r = PloAcquireProxy(m->p8, 0);
         break;
     case 1:
     case 2:
@@ -41,7 +41,7 @@ extern "C" struct R *func_00174490(struct S *p, struct M *m, qword *pv, int a3, 
             struct O *o = p->a94[idx[i]];
             { struct VTE *e = &o->vt[0x1D]; ((void (*)(void *, qword))e->pfn)((char *)o + e->d, *pv); }
             { struct VTE *e = &o->vt[0x1E]; ((void (*)(void *, int))e->pfn)((char *)o + e->d, a3); }
-            r = func_001CB250(o, 0);
+            r = PloAcquireProxy(o, 0);
             if (r) break;
         }
       }

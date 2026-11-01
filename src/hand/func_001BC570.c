@@ -1,6 +1,6 @@
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) V;
 struct S { char pad[0xE8]; int c; float *ag; char pad2[4]; V *av; char pad3[0x190 - 0xF8]; int x190; };
-void func_001A5C48(struct S *p);
+void PostLoLoad(struct S *p);
 int func_001BC2F8(struct S *p);
 float func_001E6630(struct S *p);
 void func_001E6180(struct S *p);
@@ -10,7 +10,7 @@ void func_001BC570(struct S *p)
 {
     int r, h, i, j;
     float t;
-    func_001A5C48(p);
+    PostLoLoad(p);
     r = func_001BC2F8(p);
     p->x190 = r;
     if (r == 3) return;

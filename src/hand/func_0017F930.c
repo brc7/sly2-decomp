@@ -18,7 +18,7 @@ void func_001F36E0(struct S *p);
 int func_0017F550(struct S *p);
 void func_0017FD08(struct S *p, int n);
 qword SetVectorCylind(float a, float b, float c);
-void func_0012D108(void *p, qword q);
+void SetActPositionGoal(void *p, qword q);
 void func_001F0660(void *p, int n);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 void func_001FB1F8(struct M *p, float g);
@@ -49,7 +49,7 @@ void func_0017F930(struct S *p) {
         v = Make(0.0f, 0.0f, p->p150->g28); u.q = v;
         for (i = 0; i < p->n230; i++) {
             struct E *e = &p->a234[i];
-            if (e->pC) func_0012D108(e->pC, v);
+            if (e->pC) SetActPositionGoal(e->pC, v);
             if (e->p14) {
                 if (0.0f < p->p150->g2C) func_001F0660(e->p14, 0x68);
                 else func_001F0660(e->p14, 0x66);

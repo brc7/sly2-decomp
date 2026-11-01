@@ -29,7 +29,7 @@ void func_001F7D10(s32 arg0, s32 arg1, f32 fparg0) {
     void *temp_v0_2;
 
     if (fparg0 <= 0.0f) {
-        if (func_00132B10(arg0, 0x69) == 0) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(arg0, 0x69) == 0) {
             temp_v0 = M2C_FIELD(arg0, void **, 0xC);
             M2C_FIELD(temp_v0, void (**)(s32), 0x4C)(arg0 + M2C_FIELD(temp_v0, s16 *, 0x48));
         }

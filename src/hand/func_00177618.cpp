@@ -23,7 +23,7 @@ extern "C"{
  void func_001725E0(H*,P*);
  int func_00172550(H*);
  int func_00174FB8(H*);
- int func_00132B10(P*,int);
+ int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  int func_00171458(H*);
  int func_00175810(H*);
  P*func_00174898(void*);
@@ -103,7 +103,7 @@ extern "C" void func_00177618(C*p){
   case 3:{
    if(func_00177D20(p)){STATE next;Clear(&next);next.kind=12;func_00176750(p,&next);}
    else if(func_00174FB8(p->helper)){
-    STATE next;Clear(&next);if(func_00132B10(p->actor,0x3B)){next.kind=13;next.payload.s.object=p->state.payload.s.object;}else{next.kind=4;next.payload.s.object=p->state.payload.s.object;}func_00176750(p,&next);
+    STATE next;Clear(&next);if(FIsBasicDerivedFrom__FP5BASIC3CID(p->actor,0x3B)){next.kind=13;next.payload.s.object=p->state.payload.s.object;}else{next.kind=4;next.payload.s.object=p->state.payload.s.object;}func_00176750(p,&next);
    }
    break;
   }
@@ -119,7 +119,7 @@ extern "C" void func_00177618(C*p){
      if(object)Attack(p,&next,object);
      else{
       next.kind=1;P*other=h->object;
-      if(other&&func_00132B10(other,0x34)&&Mode(other)==2){
+      if(other&&FIsBasicDerivedFrom__FP5BASIC3CID(other,0x34)&&Mode(other)==2){
        P*owner=func_00174898(other->extra);
        if(owner&&owner!=p->actor){next.payload.s.object=owner;next.kind=17;}
       }

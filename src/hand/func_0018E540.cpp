@@ -71,7 +71,7 @@ extern CLOCK D_002DDED0;extern int D_002BF448[];extern float D_002BF430,D_002BF4
 extern void*D_002E1E44;extern void*D_002E1E48;
 void func_001F2AD0(P*,ACTION*);void func_001F4BF8(P*);void func_001CCAC0(void*,int);
 EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,void*);void func_001FB3F0(EFFECT*,qword);
-qword func_001A62E8(void*);qword func_001A6F00(void*,void*,qword);
+qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
 void func_0018F560(P*,BLEND*,ASEG*);int func_001F0400(SM*,int);void func_001F09D8(COMPONENT*,int);
 void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
 }
@@ -104,10 +104,10 @@ extern "C" void func_0018E540(P*p,int state){
 
  case 3:{
   WORK work;
-  register qword first __asm__("$2")=func_001A6F00(0,p,func_001A62E8(p->pointObject));
+  register qword first __asm__("$2")=ConvertAloPos(0,p,func_001A62E8(p->pointObject));
   register POINT*point __asm__("$3");register void*world __asm__("$4");register P*receiver __asm__("$5");
   __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero":"=r"(point),"=r"(world),"=r"(receiver),"=m"(work.first.q):"m"(p->point),"r"(first),"r"(p));
-  register qword second __asm__("$2")=func_001A6F00(world,receiver,point->position.q);
+  register qword second __asm__("$2")=ConvertAloPos(world,receiver,point->position.q);
   register qword average __asm__("vf2");register int mode __asm__("$3");
   __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf1\n\tlw %1,%5\n\tvmulax.xyzw ACC,$vf3,$vf1x\n\tvmaddx.xyzw %0,$vf4,$vf1x\n\tsqc2 $vf1,%2":"=j"(average),"=r"(mode),"=m"(work.half.q):"r"(second),"m"(work.first.q),"m"(p->mode):"$1","$f0","vf1","vf3","vf4");
   work.average.q=average;

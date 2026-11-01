@@ -15,12 +15,12 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002BE8F0;
 extern char D_003DD490[];
-void func_001A58D0(struct O *p, int a, int b);
+void SetLoParent_1A58D0(struct O *p, int a, int b);
 void func_002303A0(struct O *p, struct X *px, int n);
 void func_001F5720(struct O *p, int n);
 void func_001F57C0(struct O *p, int n);
 void func_001F68A8(struct O *p, int n);
-void func_00147F40(void *p);
+void UpdateSwBusyList(void *p);
 void *func_001A6318(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 func_0022FD38(void *pv, void *pvA0, MATRIX3 *pm);
@@ -38,7 +38,7 @@ void func_00183B80(struct O *p, int n)
         return;
     if (p->n17C == 2) {
         if (p->n18C != 0) {
-            func_001A58D0(p, 0, 0xF);
+            SetLoParent_1A58D0(p, 0, 0xF);
             func_002303A0(p, p->p58, 1);
             p->p58->n9A = 0;
             func_002303A0(p, p->p5C, 1);
@@ -49,7 +49,7 @@ void func_00183B80(struct O *p, int n)
             func_001F68A8(p, 0);
         }
         { struct VTE *e = &p->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 6, 0, 0, 0, 0); }
-        func_00147F40(D_003DD490);
+        UpdateSwBusyList(D_003DD490);
         p->p190 = 0;
     }
     if (n == 2) {

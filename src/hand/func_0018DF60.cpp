@@ -18,7 +18,7 @@ extern "C" M4*func_001A6318(P*);
 extern "C" qword func_001A62E8(P*);
 extern "C" void func_0011C950(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword func_0011F088(qword,qword,SMP*,qword*,float);
-extern "C" qword func_001A6FC0(O*,O*,qword);
+extern "C" qword ConvertAloVec(O*,O*,qword);
 extern "C" void func_001384C0(ANIM*);
 static inline qword Make(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
@@ -95,7 +95,7 @@ extern "C" void func_0018DF60(P*p){
   __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2":"=j"(axis0),"=j"(axis1),"=j"(rotated):"m"(camera->r[0]),"m"(camera->r[1]),"r"(local));
   register O*object __asm__("$5");
   __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2":"+j"(rotated),"=&r"(object),"=m"(scratch.q):"j"(axis0),"j"(axis1),"j"(axis2),"m"(p->object),"r"(local));
-  relative=func_001A6FC0(root,object,rotated);
+  relative=ConvertAloVec(root,object,rotated);
  }
  qword normalized=Normalize(relative,&negative,&scratch);
  register float zero __asm__("$f2");

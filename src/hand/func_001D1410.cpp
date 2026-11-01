@@ -20,12 +20,12 @@ struct X : B {
 };
 struct OBJ { char pad[0x4F8]; int c; X *a[1]; };
 extern "C" {
-void func_001C3DF8(OBJ *);
+void ClonePo(OBJ *);
 void func_001D4DE0(X *, X *);
 void func_001D1410(OBJ *p)
 {
     int i;
-    func_001C3DF8(p);
+    ClonePo(p);
     for (i = 0; i < p->c; i++) {
         X *old = p->a[i];
         X *n = new X(p);

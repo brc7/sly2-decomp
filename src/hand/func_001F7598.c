@@ -17,7 +17,7 @@ struct M3 { struct K *pk; };
 extern struct N *D_003E15C0;
 extern char D_003E15A8[];
 extern float D_002DDED0;
-struct O *func_001A5BF0(void *);
+struct O *PsoFromLo(void *);
 int func_001F78D8(struct O *, int);
 struct K *PvAllocSlotheapClear(void *);
 void ClearDle__FP3DLE(void *);
@@ -31,7 +31,7 @@ struct O *func_001F7598(struct K *pk)
     struct M m;
     struct M2 m2;
     struct O *po;
-    for (po = func_001A5BF0(pk->p8); po; po = po->pNext) {
+    for (po = PsoFromLo(pk->p8); po; po = po->pNext) {
         struct N *pn;
         for (pn = D_003E15C0; pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;

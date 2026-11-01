@@ -62,8 +62,8 @@ extern void func_001AE5A0(void *dst, void *src, int cb);
 extern void func_00187768(JOY *p, unsigned char bX, unsigned char bY, float *px, float *py, float *pu,
                           unsigned char *pbX, unsigned char *pbY, int *pf, LM *alm);
 extern void func_0014BF48(void *p, JOY *pjoy, int grfbtn);
-extern int func_001C4840(void *p);
-extern void func_001619A0(SND *p, int n, int a);
+extern int PpoHero(void *p);
+extern void BroadcastGameEvent(SND *p, int n, int a);
 
 int func_00187998(JOY *p)
 {
@@ -135,7 +135,7 @@ int func_00187998(JOY *p)
             p->x1020 = 0;
 
             if (D_002DDED0.tReal - D_002DEB30.t > 15.0f) {
-                func_001619A0(&D_002DEB30, 0xE, func_001C4840(D_003DD490));
+                BroadcastGameEvent(&D_002DEB30, 0xE, PpoHero(D_003DD490));
                 D_002DEB30.t = D_002DDED0.tReal;
             }
         } else {

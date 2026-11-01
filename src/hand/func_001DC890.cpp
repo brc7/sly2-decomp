@@ -26,7 +26,7 @@ extern char D_002A7A30[];
 extern "C" int func_0021ECD8(char *, const char *, ...);
 extern "C" char *func_0021ED58(char *, const char *);
 extern "C" CRef func_001D8A38(const char *, ...);
-char *func_0013E368(G *, int);
+char *PchzFindSwLangstr__FP2SWi(G *, int);
 extern "C" void func_001DC890(char *pch, int k)
 {
     int ids = -1;
@@ -41,7 +41,7 @@ extern "C" void func_001DC890(char *pch, int k)
         ids = D_002C3288[i].ids;
     }
     if (ids != -1) {
-        func_0021ED58(pch, func_0013E368(&D_003DD490, ids));
+        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
         if (c >= 2)
             func_0021ECD8(pch, D_002A7A30, pch, c);
     } else {

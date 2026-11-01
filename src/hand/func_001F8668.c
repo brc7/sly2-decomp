@@ -4,7 +4,7 @@ struct G { char pad[0x3E5C]; int f; };
 extern struct G D_003DD490;
 void func_001D6378(struct L *);
 void func_001D6310(struct L *);
-int func_00132B10(void *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001F8668(struct L *p, long f)
 {
     struct L *q;
@@ -15,6 +15,6 @@ void func_001F8668(struct L *p, long f)
             else func_001D6310(p);
         }
         for (q = p->first; q; q = q->next)
-            if (func_00132B10(q, 0x30)) func_001F8668(q, f);
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) func_001F8668(q, f);
     }
 }

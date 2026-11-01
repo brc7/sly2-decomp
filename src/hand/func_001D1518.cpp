@@ -16,9 +16,9 @@ extern char D_003DD490[];
 void func_001F36A8(P *);
 REF *func_001F4C58(P *,int,int);
 void *func_002332B8(void *,const void *,int);
-qword func_001A6F00(void *,P *,qword);
+qword ConvertAloPos(void *,P *,qword);
 void *func_0012DC18(P *,REF *,int,int,int,qword);
-void *func_0015E938(void *,int,int,P *);
+void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
 void *func_001F0380(void *,P *,int,int);
 void *func_001E94B0(int,int);
 void func_001F1448(void *,P *,int,int,void **);
@@ -47,7 +47,7 @@ extern "C" void func_001D1518(P *p){
    func_002332B8(current.entry,source,bytes);
    --p->count;
   }else{
-   qword returned=func_001A6F00(0,p,reference->position);
+   qword returned=ConvertAloPos(0,p,reference->position);
    register qword position __asm__("vf2");register int upper __asm__("$2");
    asm("qmtc2.ni %3,%0\n\tsqc2 %0,%1\n\tlw %2,%4":"=j"(position),"=m"(current.entry->position.q),"=r"(upper):"r"(returned),"m"(current.entry->upper.bits));
    register qword high __asm__("vf3"),low __asm__("vf4");
@@ -114,11 +114,11 @@ extern "C" void func_001D1518(P *p){
  ATTACH **cursor=p->attachments;int byteOffset=0;
  do {
   current.attachment=*cursor;
-  current.attachment->object=func_0015E938(D_003DD490,1,current.attachment->id,p);
+  current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,p);
   if(current.attachment->object){
    current.attachment->mesh=func_001F4C58(p,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
-    current.attachment->extra=func_0015E938(D_003DD490,1,current.attachment->extraId,p);
+    current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,p);
     if(current.attachment->extra || current.attachment->extraId==invalid){
      current.attachment->binding=func_001F0380(current.attachment->object,p,-1,0);
      if(current.attachment->mesh)current.attachment->meshBinding=func_0012DC18(p,current.attachment->mesh,1,7,3,D_002A2DD0);

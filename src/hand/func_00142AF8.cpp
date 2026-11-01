@@ -33,7 +33,7 @@ int func_0011D910(void *p, float g);
 void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
 qword func_001A62E8(void *p);
-qword func_001A6F00(int n, P *p, qword q);
+qword ConvertAloPos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float RadLimitLm(LM *plm, float g);
 M3 LoadRotateMatrixPanTilt(float a, float b);
@@ -41,7 +41,7 @@ M3 func_0011B500(qword v, float g);
 M3 func_0022FD38(void *pvFrom, void *pvTo, M3 *pm);
 M3 InvertMatrix3Cofactor(const M3 *pm);
 qword func_0011BFF0(M3 *pm);
-void func_0012D108(Q *pq, qword q);
+void SetActPositionGoal(Q *pq, qword q);
 void func_00142AF8(P *p);
 }
 struct VU_VECTOR4 { qword qw; };
@@ -140,7 +140,7 @@ void func_00142AF8(P *p)
             return;
         }
         func_0012CFE0(p->pq);
-        CalculateVectorPanTilt(func_001A6F00(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
+        CalculateVectorPanTilt(ConvertAloPos(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
         pan = RadLimitLm(&p->lmPan, pan);
         tilt = RadLimitLm(&p->lmTilt, tilt);
         {
@@ -163,5 +163,5 @@ void func_00142AF8(P *p)
     else
         m2 = m0 * p->m1150;
     m2 = func_0022FD38(p->p60, p->pq->p8->pA0, &m2);
-    func_0012D108(p->pq, func_0011BFF0(&m2));
+    SetActPositionGoal(p->pq, func_0011BFF0(&m2));
 }

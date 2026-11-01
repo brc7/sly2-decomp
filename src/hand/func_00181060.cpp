@@ -6,14 +6,14 @@ struct X { char pad[0x30]; ANIMATION *x30; };
 struct O { char pad[0xC]; struct VT *pvt; char pad1[0x194 - 0x10]; ANIMATION *x194; struct X *p198; char pad2[0x1C8 - 0x19C];
     int x1C8; int x1CC; char pad3[0x204 - 0x1D0]; float g204; char pad4[0x210 - 0x208]; qword v210; };
 struct MSG { ANIMATION *animation; float time; int kind; };
-extern "C" void func_001C3E20(struct O *p, int msg, struct MSG *pm);
+extern "C" void HandlePoMessage(struct O *p, int msg, struct MSG *pm);
 extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" qword func_00204E38(struct O *p, ANIMATION *animation, float time);
 extern "C" qword D_002A2DC0;
 extern "C" void func_00181060(struct O *p, int msg, struct MSG *pm);
 void func_00181060(struct O *p, int msg, struct MSG *pm)
 {
-    func_001C3E20(p, msg, pm);
+    HandlePoMessage(p, msg, pm);
     if (msg == 9) {
         if (pm->animation == p->x194 || (p->p198 && pm->animation == p->p198->x30)) {
             switch (pm->kind) {

@@ -6,7 +6,7 @@ struct ALO { int x0, x4, x8; VTE *vt; ALO *x10; ALO **x14; char pad[0x24 - 0x18]
 #define VTHIS(p, n) ((ALO *)((char *)(p) + (p)->vt[n].d))
 extern char D_003DD4BC[];
 extern char D_003DD490[];
-void func_001A5448(ALO *p, void **ppdl, ALO ***pppalo);
+void GetLoChildDl(ALO *p, void **ppdl, ALO ***pppalo);
 void RemoveDlEntry__FP2DLPv(void *pdl, void *p);
 void AppendDlEntry__FP2DLPv(void *pdl, void *p);
 void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p);
@@ -26,8 +26,8 @@ void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
     if (!paloParent || ((int)(paloParent->x28.u >> 60) & 1)) {
         if (!(palo->x28.u & 0x0100000000000000UL)) fNew = 1; else fNew = 0;
     }
-    func_001A5448(palo->x10, &pdlOld, &ppaloOld);
-    func_001A5448(paloParent, &pdlNew, &ppaloNew);
+    GetLoChildDl(palo->x10, &pdlOld, &ppaloOld);
+    GetLoChildDl(paloParent, &pdlNew, &ppaloNew);
     if (palo->x28.u & 0x0100000000000000UL) {
         if (palo == *ppaloOld)
             *ppaloOld = palo->x24;

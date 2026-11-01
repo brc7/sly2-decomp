@@ -2,7 +2,7 @@
 // No actor -> state 3; actor without a live 0xB0 behaviour -> state 2. Otherwise copy the source's (or own) world basis
 // into the actor's control record (+0xFD0), set the behaviour to state 4 once within 100 units, fade the actor's colour
 // with the quadratic D_002C43C0 {1.2, 0, -1} over D_002C43B0 (3 s) clamped to D_002BBB60 {0, 1}, and after the fade
-// spawn prize 0x5D at the source, call actor slot 9, post game event 0x18 for the actor (func_001619A0) and set state 3.
+// spawn prize 0x5D at the source, call actor slot 9, post game event 0x18 for the actor (BroadcastGameEvent) and set state 3.
 // Matching notes (notes/220000.md, 2026-10-24):
 //  - Clamp reads both bounds before testing: gMax is loaded in the bc1f delay slot, and &D_002BBB60 becomes a loop
 //    invariant (fp) while gMin goes through the shared %hi (s5).
@@ -34,9 +34,9 @@ struct M4 *func_001A6318(void *);
 void func_00209840(struct CONTROL *,const struct M3 *);
 qword func_001A62E8(void *);
 void func_0017A8C8(struct R *,int);
-void func_0012D108(void *,qword);
+void SetActPositionGoal(void *,qword);
 void func_001C6FD8(void *,int,qword,void *,int);
-void func_001619A0(GAME *,int,void *);
+void BroadcastGameEvent(GAME *,int,void *);
 }
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b)); return r; }
 static inline float Length(qword d) {
@@ -76,14 +76,14 @@ extern "C" void func_00225300(struct S *p) {
                     float t=(D_002DDED0.t-p->time)/D_002C43B0;
                     float g=D_002C43C0[0]+t*(D_002C43C0[1]+t*D_002C43C0[2]);
                     Clamp(&g,&D_002BBB60);
-                    func_0012D108(p->actor->color,Splat(g));
+                    SetActPositionGoal(p->actor->color,Splat(g));
                 }
                 if(D_002C43B0<D_002DDED0.t-p->time) {
                     func_001C6FD8(D_003DD490,0x5D,func_001A62E8(p->source),p,1);
                     p->actor->vt[9].fn((char*)p->actor+p->actor->vt[9].d);
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
                     register GAME *pgame asm("$4")=&D_002DEB30;
-                    func_001619A0(pgame,0x18,p->actor);
+                    BroadcastGameEvent(pgame,0x18,p->actor);
                     p->vt[76].fn((char*)p+p->vt[76].d,3);
                 }
             }

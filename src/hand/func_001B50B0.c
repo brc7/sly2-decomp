@@ -39,8 +39,8 @@ void func_00131A00(struct ASEGA *p,float g);
 void func_001B82A0(struct P *p);
 void func_001A1358(void *p);
 int func_00133D08(struct G *pg,struct BBOX *a,struct BBOX *b);
-void func_00134320(struct G *pg, struct P *p);
-void func_0012D108(void *p, qword v);
+void RecalcSwOxfFilterForObject(struct G *pg, struct P *p);
+void SetActPositionGoal(void *p, qword v);
 static inline qword Bcast(float g) { qword a; __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(g)); return a; }
 static inline void Neg(struct P *p, qword v)
 {
@@ -153,12 +153,12 @@ void func_001B50B0(struct P *p)
         if (!p->p1430->xEC || !func_00133D08(&D_003DD490, p->xEC, p->p1430->xEC))
             p->p1430 = 0;
         if (!p->p1430)
-            func_00134320(&D_003DD490, p);
+            RecalcSwOxfFilterForObject(&D_003DD490, p);
     }
     if (p->x1ACC) {
         if (D_002DDED0.t - p->g1AC8 < D_002C08E4)
-            func_0012D108(p->x1ACC, D_002C08F0);
+            SetActPositionGoal(p->x1ACC, D_002C08F0);
         else
-            func_0012D108(p->x1ACC, D_002A2DE0);
+            SetActPositionGoal(p->x1ACC, D_002A2DE0);
     }
 }

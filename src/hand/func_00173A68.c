@@ -12,10 +12,10 @@ struct LINK{struct LO**pp;};
 struct CRef{int tag;void*value;};
 extern char D_003DD490[];
 struct CLOCK{float t,dt;};extern struct CLOCK D_002DDED0;extern float D_002BE5CC,D_002BE5D0,D_002BE5D4,D_002BE5D8;
-void func_001A5E28(struct P*);
+void UpdateLo(struct P*);
 qword func_00173A18(struct P*);
 void func_00173D18(struct P*,qword);
-struct LO*func_001C4840(void*);
+struct LO*PpoHero(void*);
 struct EVENT*func_001F8240(struct LO*);
 struct ENTRY*func_00173E78(struct P*,struct LO*);
 struct SELECTOR*func_00173F18(struct P*,qword,qword*,struct M3*,int*);
@@ -36,13 +36,13 @@ void func_00173A68(struct P*p){
  struct ENTRY*entry;
  struct SELECTOR*selector;
  struct LO*context;
- func_001A5E28(p);
+ UpdateLo(p);
  pos=func_00173A18(p);
  func_00173D18(p,pos);
  if(D_002DDED0.t<p->next)return;
  p->next=D_002DDED0.t+D_002BE5D0;
  if(p->count==p->capacity){int close=DistanceXY(pos,p->last)<D_002BE5D4;if(close)return;}
- event=0;context=func_001C4840(D_003DD490);
+ event=0;context=PpoHero(D_003DD490);
  {
  if(context){
   event=func_001F8240(context);

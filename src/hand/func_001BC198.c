@@ -1,7 +1,7 @@
 struct DL { void *pvFirst; void *pvLast; int ibDle; };
 struct S { char pad[0x1D8]; void *powner; };
 extern struct DL D_003E1A4C;
-void func_001A5848(struct S *p);
+void RemoveLoHierarchy(struct S *p);
 void func_001BD218(void *p);
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 int FFindDlEntry__FP2DLPv(struct DL *pdl, void *pv);
@@ -9,7 +9,7 @@ void func_001BD1E0(void *p);
 void func_001BC198(struct S *p)
 {
     struct DL *pdl;
-    func_001A5848(p);
+    RemoveLoHierarchy(p);
     if (p->powner) func_001BD218(p->powner);
     func_001BD1E0(p);
     pdl = &D_003E1A4C;

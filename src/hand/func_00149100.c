@@ -1,5 +1,5 @@
 struct P { char pad[0x2AC]; int c; int a[8]; int c2; int a2[8]; };
-int func_00132B10(int x, int y);
+int FIsBasicDerivedFrom__FP5BASIC3CID(int x, int y);
 int func_00149100(struct P *p, int x)
 {
     int i, j;
@@ -10,7 +10,7 @@ int func_00149100(struct P *p, int x)
     }
     if (p->c2 > 0) {
         for (j = 0; j < p->c2; j++)
-            if (func_00132B10(x, p->a2[j])) break;
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(x, p->a2[j])) break;
         if (j >= p->c2) return 0;
     }
     return 1;

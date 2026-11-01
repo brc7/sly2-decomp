@@ -6,7 +6,7 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BC994;
 int func_001443D8(struct P *p);
 void func_001362F8(struct P *p, int n);
-int func_001C46C0(void *pv, int n, float g);
+int GrfConsumePressed__5POCTLUif(void *pv, int n, float g);
 void func_001357C0(struct P *p, int n);
 void func_00136DC0(void *pv, int n);
 int func_001F0400(void *pv, int n);
@@ -24,7 +24,7 @@ void func_00136338(struct P *p)
             } else if (p->x16BC == 1) {
                 if (D_002BC994 < D_002DDED0.t - p->g1700)
                     func_001362F8(p, 0);
-            } else if (func_001C46C0(p->p150, 8, 0.25f)) {
+            } else if (GrfConsumePressed__5POCTLUif(p->p150, 8, 0.25f)) {
                 func_001357C0(p, 0x80000);
             }
             break;

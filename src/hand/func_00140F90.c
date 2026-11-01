@@ -1,6 +1,6 @@
 // func_00140F90 (0x140F90): message handler (p, msg, pv): msg 3 resets x1038 and stops the 0xDF0/0x11B0 actions, msg 9 (pso->p18 == p)
 // switches on pmsg->k (0x15E: x190 = -v and virtual slot 35 called with the 0x1B0 rows times v; 0x161/0x162; 0x27B/0x27C; 0x1C7/0x1C8),
-// msgs 4/5 call virtual slots 8/9 on the 0x1090 entries, msg 1 / msg 11 release 0x4D4 / 0x1310; then forwards to func_001EED78/func_001C3E20.
+// msgs 4/5 call virtual slots 8/9 on the 0x1090 entries, msg 1 / msg 11 release 0x4D4 / 0x1310; then forwards to func_001EED78/HandlePoMessage.
 // MATCH (Claude agent for Lilly, T1682, 2026-10-25), no pins: from v6 (aligned 2), case 0x15E written with NO volatile asm and no vf6 pin.
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
@@ -27,7 +27,7 @@ void func_002206C8(void *p, int n);
 qword func_00204E38(void *p, struct SO *pso, float g);
 qword func_001A62E8(void *p);
 void func_002205A8(void *p);
-int func_00132B10(void *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int func_00224590(void *p);
 void func_002245B8(void *p);
 void func_00130658(void *p);
@@ -35,15 +35,15 @@ void func_00141CD0(void *p);
 void func_001305B8(void *pa, void *p, float g, int n, float h, void *pb);
 void func_0019F170(void *p, int n);
 void func_0019F220(void *p, int n);
-void *func_001CB250(void *p, int n);
-void func_001A58D0(void *p, int a, int b);
+void *PloAcquireProxy(void *p, int n);
+void SetLoParent_1A58D0(void *p, int a, int b);
 void func_00156780(void *p);
 void func_001CCC88(void *p, void *q);
 void func_00131A00(void *p, float g);
 void func_001CD098(void *p, void *q);
-void func_00133448(void *p, void *q);
+void UnsubscribeLoObject(void *p, void *q);
 void func_001EED78(void *p, int msg, void *pmsg);
-void func_001C3E20(void *p, int msg, void *pmsg);
+void HandlePoMessage(void *p, int msg, void *pmsg);
 
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -131,7 +131,7 @@ void func_00140F90(void *p, int msg, void *pv)
             if (F(int, p, 0x4C8) == 0xB) {
                 void *po;
                 int n;
-                if (F(void *, p, 0x4D4) != 0 && func_00132B10(F(void *, p, 0x4D4), 100)) {
+                if (F(void *, p, 0x4D4) != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, p, 0x4D4), 100)) {
                     po = F(void *, p, 0x4D4);
                     if (func_00224590(po))
                         func_002245B8(po);
@@ -159,9 +159,9 @@ void func_00140F90(void *p, int msg, void *pv)
                     case 0x17: {
                         DLI dli;
                         void *po2;
-                        void *pa = func_001CB250(D_002E1E40->p2010, 0);
+                        void *pa = PloAcquireProxy(D_002E1E40->p2010, 0);
                         if (pa)
-                            func_001A58D0(pa, 0, 3);
+                            SetLoParent_1A58D0(pa, 0, 3);
                         InitDli(&dli, &D_003E148C);
                         while ((po2 = PvNextDli(&dli)) != 0) {
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == p)
@@ -219,7 +219,7 @@ void func_00140F90(void *p, int msg, void *pv)
     }
     case 1:
         if (F(int, p, 0x4C8) == 0xB && F(void *, p, 0x4D4) == pv) {
-            func_00133448(pv, p);
+            UnsubscribeLoObject(pv, p);
             F(void *, p, 0x4D4) = 0;
         }
         break;
@@ -231,5 +231,5 @@ void func_00140F90(void *p, int msg, void *pv)
         break;
     }
     func_001EED78((char *)p + 0x26C, msg, pv);
-    func_001C3E20(p, msg, pv);
+    HandlePoMessage(p, msg, pv);
 }

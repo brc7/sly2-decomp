@@ -51,9 +51,9 @@ extern CLOCK D_002DDED0;                                // g_clock
 extern uint D_002DFBC4;
 extern qword D_002A2DC0;                                // (0, 0, 1)
 extern float D_002BF5B0, D_002BF5B4, D_002BF5B8;
-int func_001C46C0(JOY *, uint, float);
-int func_001C4660(JOY *, uint, float);
-void func_001C4738(JOY *, uint);
+int GrfConsumePressed__5POCTLUif(JOY *, uint, float);
+int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
+void ClearPoctlJoyPressed(JOY *, uint);
 void func_00195A00(void *, int, int, ACTOR *);
 void func_0019CC50(void *, int, int, int);
 int func_00131968(ASEGA *);
@@ -70,7 +70,7 @@ void func_001A9B28(SW *, SO *, SO *, int, BSP *, XP **);
 int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
 void func_001A8B50(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
 void func_001CD098(ATTACH *, ACTOR *);
-int func_00132B10(ACTOR *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
 int func_001423A0(ACTOR *);
 int func_001441A0(ACTOR *);
 uint func_00141EA8(ACTOR *, int);
@@ -168,23 +168,23 @@ extern "C" void func_001911A8(CONTEXT *p)
         step = p->step;
         switch (p->action) {
         case 1:
-            if (0.15f < D_002DDED0.t - p->tHold && func_001C46C0(pjoy, 0x40, 0.25f)) {
+            if (0.15f < D_002DDED0.t - p->tHold && GrfConsumePressed__5POCTLUif(pjoy, 0x40, 0.25f)) {
                 func_00195A00((char *)p->pactor + 0x2C0, 7, 0, p->pactorFocus);
                 break;
             }
-            if (func_001C4660(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
-                func_001C4738(pjoy, 0x400);
+            if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
+                ClearPoctlJoyPressed(pjoy, 0x400);
                 func_0019CC50((char *)p->pactor + 0xF00, 0, 0, 0);
             }
             break;
         case 3:
         case 4:
-            if (func_001C46C0(pjoy, 0x40, 0.1f)) {
+            if (GrfConsumePressed__5POCTLUif(pjoy, 0x40, 0.1f)) {
                 func_00195A00((char *)p->pactor + 0x2C0, 1, 0, 0);
                 break;
             }
-            if (func_001C4660(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
-                func_001C4738(pjoy, 0x400);
+            if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
+                ClearPoctlJoyPressed(pjoy, 0x400);
                 func_0019CC50((char *)p->pactor + 0xF00, 0, 0, 0);
             }
             break;
@@ -231,7 +231,7 @@ extern "C" void func_001911A8(CONTEXT *p)
                 SetControl(p->pactor, 0);
             break;
         case 5:
-            if (func_00132B10(p->pactorFocus, 11) && func_001423A0(p->pactor)) {
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactorFocus, 11) && func_001423A0(p->pactor)) {
                 p->pactor->ptarget = p->pactorFocus;
                 p->pactor->gTarget = p->gParam;
                 SetControl(p->pactor, 8);
@@ -253,12 +253,12 @@ extern "C" void func_001911A8(CONTEXT *p)
             SetControl(p->pactor, 0);
             break;
         default:
-            if (func_001C46C0(pjoy, 0x40, 0.1f)) {
+            if (GrfConsumePressed__5POCTLUif(pjoy, 0x40, 0.1f)) {
                 func_00195A00((char *)p->pactor + 0x2C0, 1, 0, 0);
                 break;
             }
-            if (func_001C4660(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3) && (p->action == 0 || p->action == 13)) {
-                func_001C4738(pjoy, 0x400);
+            if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3) && (p->action == 0 || p->action == 13)) {
+                ClearPoctlJoyPressed(pjoy, 0x400);
                 func_0019CC50((char *)p->pactor + 0xF00, 0, 0, 0);
                 break;
             }

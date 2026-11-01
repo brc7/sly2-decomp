@@ -10,7 +10,7 @@ void func_0011CDD8(void *p);
 void func_0020E338(struct S *p);
 void func_0020E2B0(struct S *p);
 void func_001FF828(struct S *p);
-void func_001CA500(struct S *p);
+void InitSwProxySpares(struct S *p);
 void func_0020F710(struct S *p);
 void func_001569B8(struct S *p);
 void func_001A3260(struct S *p);
@@ -18,10 +18,10 @@ void func_001C10C8(struct S *p);
 void func_00210940(struct S *p);
 void func_001957C0(struct S *p);
 void func_001D9520(void *p);
-void func_00149C80(struct S *p);
+void ProcessSwCallbacks(struct S *p);
 void func_001C1260(void *p);
 void func_0014D470(void *p);
-void func_001619A0(void *p, int a, int b);
+void BroadcastGameEvent(void *p, int a, int b);
 
 void func_0020E740(struct S *p)
 {
@@ -33,7 +33,7 @@ void func_0020E740(struct S *p)
     func_0020E338(p);
     func_0020E2B0(p);
     func_001FF828(p);
-    func_001CA500(p);
+    InitSwProxySpares(p);
     func_0020F710(p);
     func_001569B8(p);
     func_001A3260(p);
@@ -41,7 +41,7 @@ void func_0020E740(struct S *p)
     func_00210940(p);
     func_001957C0(p);
     func_001D9520(D_003D9E70);
-    while (func_00149C80(p), p->ppoLast != p->ppoFirst) {
+    while (ProcessSwCallbacks(p), p->ppoLast != p->ppoFirst) {
         for (ppo = p->ppoFirst; ppo < p->ppoLast; ppo++)
             (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
         p->ppoLast = p->ppoFirst;
@@ -52,5 +52,5 @@ void func_0020E740(struct S *p)
     p->n39D0 = 0;
     func_001C1260(p->p45CC);
     func_0014D470(D_002DDF40);
-    func_001619A0(D_002DEB30, 4, 0);
+    BroadcastGameEvent(D_002DEB30, 4, 0);
 }

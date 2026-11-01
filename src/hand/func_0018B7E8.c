@@ -33,7 +33,7 @@ struct BINDING*func_0012FF10(void*,struct P*,void*,int);
 void func_00190520(struct P*);void func_00197F98(void*);void func_00191A10(void*);void func_00137218(void*);
 void func_001A0720(struct P*,void*,int,float,float);void func_0018B460(struct P*);
 void func_0020BB58(void*,float);void func_002046F0(struct P*,void*);
-qword SetVectorCylind(float,float,float);qword func_001A6FC0(void*,void*,qword);
+qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
 int func_001DAEA8(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void func_00131A00(struct MODEL*,float);void func_00204660(struct P*,float);
 void func_001441E8(struct P*,float);void func_0018C250(struct P*,int,int);
@@ -89,7 +89,7 @@ void func_0018B7E8(struct P*p){
  case 5:switch(p->submode){
   case 4:if(p->owner)func_002046F0(p,p->owner);break;
   case 5:func_001A0720(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;
-  case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=func_001A6FC0(0,p,phase.direction);break;
+  case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=ConvertAloVec(0,p,phase.direction);break;
  }break;
  case 16:
   if(func_001DAEA8(0x1C))func_0018E1E0(p);

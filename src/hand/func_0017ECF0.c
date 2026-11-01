@@ -4,7 +4,7 @@ struct R { float f0; float f4; };
 struct B { char pad[0xE4]; int nE4; char pad2[0x180 - 0xE8]; void *p180; };
 struct X { qword a; qword v; };
 struct S { char pad[0x10]; void *p10; int pad2; void *p18; char pad3[0x14]; struct B *p30; int n34; float f38; int pad4; qword v40; char pad5[8]; int n58; };
-int func_00132B10(void *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float func_001E6620(struct B *b);
 float func_001E6648(struct B *b);
 float func_001E66C8(struct B *b, float f);
@@ -16,7 +16,7 @@ void func_0017DD38(void *p, struct X *x);
 void func_0017ECF0(struct S *p, int force) {
     float d;
     float t;
-    if (func_00132B10(p->p10, 0x3A)) d = D_002BE7BC; else d = D_002BE7C0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p10, 0x3A)) d = D_002BE7BC; else d = D_002BE7C0;
     if (p->n34 == 0) d = -d;
     t = p->f38 + d;
     if (p->p30->nE4 == 0) {

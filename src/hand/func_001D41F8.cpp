@@ -17,7 +17,7 @@ extern qword D_002A2DC0,D_002A2DB0;
 extern char D_002C21A0[],D_002C21B0[],D_002C21C0[];
 extern float D_002C21CC;
 extern "C" {
-qword func_001A6FC0(P*,P*,qword);
+qword ConvertAloVec(P*,P*,qword);
 qword func_0022FC48(P*,NODE*,qword);
 CONTACT*func_001D2DD0(P*,ENTRY*);
 float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
@@ -38,7 +38,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
 extern "C" void func_001D41F8(P*p){
  V velocity,point;M3 basis;
  VE*method=&p->vt[33];
- velocity.q=func_001A6FC0(0,p,method->fn((P*)((char*)p+method->delta)));
+ velocity.q=ConvertAloVec(0,p,method->fn((P*)((char*)p+method->delta)));
  for(int i=0;i<p->count;i++){
   ENTRY*e=&p->entries[i];
   point.q=func_0022FC48(0,(NODE*)p->space,e->node->local.position.q);

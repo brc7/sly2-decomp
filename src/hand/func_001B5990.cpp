@@ -19,9 +19,9 @@ extern "C"{
 extern float D_002C08DC;
 int func_00140AF8(P*,int);
 void func_001B6078(P*,int);
-int func_001C46C0(PL*,int,float);
-int func_001C4660(PL*,uint,float);
-void func_001C4738(PL*,int);
+int GrfConsumePressed__5POCTLUif(PL*,int,float);
+int GrfPressedWithin__5POCTLUif(PL*,uint,float);
+void ClearPoctlJoyPressed(PL*,int);
 void func_00195A00(void*,int,int,void*);
 void func_0019CC50(void*,int,P*,void*);
 int func_001B70A0(P*);
@@ -82,16 +82,16 @@ extern "C" void func_001B5990(P*p){
   before=p->state;
   switch(before){case 0:case 1:case 2:{
    if((p->input->flags&8)||!func_00140AF8(p,1))func_001B6078(p,0);
-   else if(func_001C46C0(p->input,0x40,0.1f))func_00195A00(p->controller,1,0,0);
+   else if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f))func_00195A00(p->controller,1,0,0);
    else if(func_001B70A0(p)){}
-   else if(func_001C46C0(p->input,0x20,0.2f)){
+   else if(GrfConsumePressed__5POCTLUif(p->input,0x20,0.2f)){
     if(!func_001938C0(p->context,0x80,0)&&p->root){p->reset=0;func_001B6078(p,4);}
    }
-   else if(func_001B84E0(p)&&func_001C46C0(p->input,0x80,D_002C08DC))func_001B8508(p);
-   else if(func_001C4660(p->input,0x400,0.15f)&&((int(*)(P*,int))p->vt[99].fn)((P*)((char*)p+p->vt[99].delta),3)){
-    func_001C4738(p->input,0x400);func_0019CC50(p->requestF00,0,0,0);
+   else if(func_001B84E0(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC))func_001B8508(p);
+   else if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&((int(*)(P*,int))p->vt[99].fn)((P*)((char*)p+p->vt[99].delta),3)){
+    ClearPoctlJoyPressed(p->input,0x400);func_0019CC50(p->requestF00,0,0,0);
    }
-   else if(func_001B84E0(p)&&func_001C46C0(p->input,0x10,D_002C08DC))func_001B85D0(p);
+   else if(func_001B84E0(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC))func_001B85D0(p);
    else {PL*pl=p->input;float strength=pl->strength;if(p->mainState==0?0.1f<strength:0.0f<strength)func_001B5D30(p,2);else func_001B5D30(p,0);}
   }break;
   }

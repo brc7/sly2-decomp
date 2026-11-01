@@ -19,7 +19,7 @@ extern "C" {
 void func_00160E68(int);
 FRAME *func_001AE478(FRAME *);
 void func_001AE4A0(FRAME *,int);
-void func_001C2A78(int);
+void SetPhase__F5PHASE(int);
 void func_00258248(KEY *);
 STREAM *func_001848A8(STREAM *,int,void *,int);
 int func_00184D60(STREAM *,KEY *);
@@ -34,25 +34,25 @@ SW *func_0020D9D0(SW *);
 int func_001B3B08(void *);
 void func_0014D6D8(void *);
 void func_0020E180(SW *);
-void func_0013DA18(SW *,STREAM *);
+void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
 void func_00184CF0(STREAM *);
 void func_0020E740(SW *);
 void func_001618F8(SW *,float);
 void func_0014C258(void);
 CONTEXT *func_00227FE8(SW *,int,int);
 void func_00228750(CONTEXT *);
-ACTOR *func_001C4840(SW *);
-ACTOR *func_001C4A48(SW *);
+ACTOR *PpoHero(SW *);
+ACTOR *PpoCur(SW *);
 void func_00129EC8(REF *);
-ACTOR *func_0015E938(SW *,int,int,void *);
-int func_00132B10(ACTOR *,int);
-int func_001C4080(ACTOR *);
+ACTOR *PloFindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
+int GetPoCtlState(ACTOR *);
 int func_00210AE0(void);
 void func_00212A70(WIDGET *,int);
 void func_0014D478(void *);
 void func_0014D8C0(void *);
-void func_001619A0(void *,int,void *);
-void func_001C2BA8(int);
+void BroadcastGameEvent(void *,int,void *);
+void ClearPhase(int);
 void func_0022B420(void *);
 void func_001A4E80(void *);
 }
@@ -82,7 +82,7 @@ extern "C" void func_0020E890(SW *p)
     FRAME frame;
     FRAME *scope=&frame;
     func_001AE478(scope);
-    func_001C2A78(2);
+    SetPhase__F5PHASE(2);
     KEY key;
     KEY *keyPointer=&key;
     keyPointer->kind=2;
@@ -109,17 +109,17 @@ extern "C" void func_0020E890(SW *p)
     p->current=request.header;
     *destination=request;
     func_0020E180(p);
-    if(hasFile){func_0013DA18(p,reader);func_00184CF0(reader);}
+    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);func_00184CF0(reader);}
     func_0020E740(p);
     if(resume>0.0f)func_001618F8(p,resume);
     if(changed||(p->request.flags&0x40))func_0014C258();
     CONTEXT *context=func_00227FE8(p,p->request.objectId,p->request.objectKey);
     if(context){func_00228750(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
-    if(!func_001C4840(p)&&!func_001C4A48(p)&&p->actorCount>0){
+    if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
         ACTOR *selected=0;
         int actorId;
         {REF value=func_001D8A38(D_002A8A88,0);actorId=value.value;}
-        if(actorId!=-1)selected=func_0015E938(p,5,actorId,0);
+        if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(p,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
         if(!selected)selected=D_002F7900;
@@ -133,18 +133,18 @@ extern "C" void func_0020E890(SW *p)
             }
             for(int i=0;i<p->actorCount;i++){
                 ACTOR *actor=p->actors[i];
-                if(actor!=selected&&func_00132B10(actor,0x34)&&!func_001C4080(actor))Hide(actor);
+                if(actor!=selected&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
             }
         }
     }
     if(!func_00210AE0()){
-        ACTOR *actor=func_001C4840(p);
-        if(actor&&func_00132B10(actor,0x34)&&actor->widget&&!actor->widget->shown)func_00212A70(actor->widget,1);
+        ACTOR *actor=PpoHero(p);
+        if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)func_00212A70(actor->widget,1);
     }
     func_0014D478(D_002DDF40);
     func_0014D8C0(D_002DDF40);
-    func_001619A0(D_002DEB30,5,0);
-    func_001C2BA8(2);
+    BroadcastGameEvent(D_002DEB30,5,0);
+    ClearPhase(2);
     func_0022B420(D_00443740);
     if(!hasFile)func_001A4E80(D_002E1E88);
     func_00184950(reader,2);

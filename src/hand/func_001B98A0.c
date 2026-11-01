@@ -7,7 +7,7 @@ int func_001443D8(struct P *p);
 int func_0019C8D0(void *p, int k);
 int func_00194558(void *p, int k);
 int func_0019EEF0(void *p, int k);
-int func_00132B10(void *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int func_0014FD50(void *p);
 int func_001B98A0(struct P *p, int k)
 {
@@ -26,7 +26,7 @@ int func_001B98A0(struct P *p, int k)
         break;
     case 5:
         if (k == 3) return 1;
-        if (k == 19) { if (func_00132B10(p->x13F0->x180, 0x38)) return 1; }
+        if (k == 19) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x13F0->x180, 0x38)) return 1; }
         return 0;
     default:
         return 0;

@@ -22,8 +22,8 @@ void func_001E4D40(P*,ACTOR*,qword*,float*);
 void func_00204660(ACTOR*,float);
 void func_001E67B8(PATH*,float,qword*,qword*);
 qword func_001A62E8(ACTOR*);
-qword func_001A6FC0(void*,ACTOR*,qword);
-void func_001C45A8(OUTPUT*);
+qword ConvertAloVec(void*,ACTOR*,qword);
+void UpdatePoctlPressed(OUTPUT*);
 int func_0011D4D0(float,float,float);
 }
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -177,13 +177,13 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
     :"m"(work.second),"r"(actorPosition),"r"(actor),"rJ"(sourceSpace));
    work.to.f[2]=0.0f;
    float speed;
-   work.normal.q=NormalizeDirection(func_001A6FC0(sourceInput,targetInput,work.to.q),speed,out->speed);
+   work.normal.q=NormalizeDirection(ConvertAloVec(sourceInput,targetInput,work.to.q),speed,out->speed);
    out->y=work.normal.f[0]*speed;out->x=-work.normal.f[1]*speed;
   }
   break;
  }
  case 0x58:
-  out->speed=0.0f;out->flags|=0x20;func_001C45A8(out);break;
+  out->speed=0.0f;out->flags|=0x20;UpdatePoctlPressed(out);break;
  case 0x5A:{
   float tolerance;
   qword oldPosition,position;
@@ -197,13 +197,13 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   __asm__("mtc1 %1,%0":"=f"(currentX):"r"(position));
   if(func_0011D4D0(currentX,previousX,tolerance)&&NearYInputs(oldPosition,position,tolerance))near=NearZInputs(oldPosition,position,tolerance)!=0;
   if(near)out->flags|=0x40;
-  out->speed=0.0f;func_001C45A8(out);break;
+  out->speed=0.0f;UpdatePoctlPressed(out);break;
  }
  case 0x2A:out->speed=0.0f;break;
  case 0x50:p->blocked=1;break;
  case 0x51:p->blocked=0;break;
  }
- if(p->blocked){out->flags|=0x10;if(param->kind==0x50)func_001C45A8(out);}
+ if(p->blocked){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];

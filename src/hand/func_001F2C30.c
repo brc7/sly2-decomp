@@ -8,20 +8,20 @@ struct H { char pad[0x2C]; int n2C; };
 struct G { char pad[0x45CC]; struct H *ph; };
 extern struct G D_003DD490;
 extern struct S8 D_002A8270;
-void func_001A5800(struct L *);
+void AddLoHierarchy(struct L *);
 void func_0022FAA0(struct L *);
 void func_001F2B20(struct L *);
 qword func_001A62E8(struct L *);
 void *func_001C0D70(qword, int);
 void func_001F37C8(struct L *, void *);
-void func_00149A50(struct G *, struct L *, struct S8, int);
+void PostSwCallback(struct G *, struct L *, struct S8, int);
 void func_001F2C30(struct L *p)
 {
     struct L *q;
     void *pv;
     int unused[4];
     int v;
-    func_001A5800(p);
+    AddLoHierarchy(p);
     func_0022FAA0(p);
     func_001F2B20(p);
     v = p->v40;
@@ -32,7 +32,7 @@ void func_001F2C30(struct L *p)
         if (D_003DD490.ph && D_003DD490.ph->n2C)
             func_001F37C8(p, func_001C0D70(func_001A62E8(p), 1));
         else
-            func_00149A50(&D_003DD490, p, D_002A8270, 0);
+            PostSwCallback(&D_003DD490, p, D_002A8270, 0);
     }
     for (q = p->first; q != p->end; q = q->next)
         q->pvt->a[11].pfn((char *)q + q->pvt->a[11].d);

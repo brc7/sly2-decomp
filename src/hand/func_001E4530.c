@@ -9,7 +9,7 @@ struct C { char pad[0x18]; int x18; };
 struct O { char pad[0x74]; float g74; float g78; char pad2[0x80 - 0x7C]; float a[3]; int pad3; float gMin; float gMax; };
 struct O *func_001E1DB8(struct C *pc, int n);
 float func_00154C90(struct G *pg);
-void *func_0015E938(struct G *pg, int k, int a, int b);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *func_001F67E0(void *p, int n);
 float func_001F11A8(void *p, int n);
 float func_001FCFD0(struct G *pg, int n);
@@ -30,7 +30,7 @@ float func_001E4530(struct C *pc, struct P *p)
     }
     case 0xD:
         if (p->x18 != -1) {
-            void *px = func_0015E938(&D_003DD490, 4, p->u10.n, pc->x18);
+            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, p->u10.n, pc->x18);
             if (px) {
                 void *py = func_001F67E0(px, p->u14.n);
                 if (py) g = func_001F11A8(py, p->x18);

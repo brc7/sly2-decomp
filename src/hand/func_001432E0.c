@@ -1,7 +1,7 @@
 extern void *D_003E1AC8;
 int func_0013C478(void *p);
 void func_00143380(void *p);
-void *func_001CB250(void *p, int n);
+void *PloAcquireProxy(void *p, int n);
 void func_0013C490(void *p, int n);
 void func_0013C560(void *p, int n);
 void func_001432E0(char *p, int n)
@@ -12,7 +12,7 @@ void func_001432E0(char *p, int n)
     func_00143380(p);
     if (n == -1) return;
     if (!D_003E1AC8) return;
-    o = func_001CB250(D_003E1AC8, 1);
+    o = PloAcquireProxy(D_003E1AC8, 1);
     func_0013C490(o, n);
     *(void **)(o + 0x160) = p;
     func_0013C560(o, 6);

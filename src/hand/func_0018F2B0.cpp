@@ -13,10 +13,10 @@ extern "C" G D_003DD490;
 extern "C" float D_002BF4B8;
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword func_001A62E8(P*);
-extern "C" qword func_001A6F00(P*,void*,qword);
+extern "C" qword ConvertAloPos(P*,void*,qword);
 extern "C" void func_002309E8(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-extern "C" int func_0015ED78(G*,int,int,P*);
+extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,P*);
 extern "C" float func_002458F0(float,float);
 extern "C" float RadNormalize__Ff(float);
 struct VU_FLOAT{qword qw;};
@@ -30,7 +30,7 @@ static inline qword Sub(const qword &a,const qword &b){qword q;__asm__("vsub.xyz
 static inline qword GetVelocity(P*p){VTE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
 static inline void*GetFrame(P*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
-static inline int IsBonus(P*const &n){return func_0015ED78(&D_003DD490,3,0x33,n);}
+static inline int IsBonus(P*const &n){return PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
 extern "C" void func_0018F2B0(P*p,float headingInput,int mask,float dtInput,U*offset,P**out,qword*outvector,float cone){
  register float heading __asm__("$f21")=headingInput; float dt=dtInput; // the one pin: heading in f21 (else f20/f21 swap)
  M3 rotation;
@@ -45,7 +45,7 @@ extern "C" void func_0018F2B0(P*p,float headingInput,int mask,float dtInput,U*of
  position=func_001A62E8(p);
  VU_FLOAT scalar=VuFloatBits(dt);
  origin.q=AddScaled(position,GetVelocity(p),scalar);
- reference.q=func_001A6F00(p,0,offset->q);
+ reference.q=ConvertAloPos(p,0,offset->q);
  target.q=Add(Rotate(rotation,offset->q),origin.q);
  delta.q=Sub(target.q,reference.q);
  for(P*node=D_003E13B4;node;node=node->next){

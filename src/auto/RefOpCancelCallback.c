@@ -12,7 +12,7 @@ extern s32 D_003E0FA4;
 extern M2C_UNK D_004520A8;
 
 s32 RefOpCancelCallback(s32 arg0, s32 arg1, s32 arg2) {
-    func_00133130((s32) &D_003DD490, M2C_FIELD(arg2, s32 *, 4));
+    CancelSwSpliceCallback((s32) &D_003DD490, M2C_FIELD(arg2, s32 *, 4));
     func_0012A0B0((M2C_UNK *) arg0, 0x24);
     return arg0;
 }

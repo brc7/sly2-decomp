@@ -1,10 +1,10 @@
 extern float D_002A7874;
 struct V { float x, y, z; };
 struct S { char p0[0x70]; struct V v70; int pad; int n80; float g84; char p1[8]; struct V v90; int pad2; int nA0; float gA4; char p2[8]; float gB0; };
-void func_001A5270(struct S *p);
+void InitLo(struct S *p);
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 void func_001D6A90(struct S *p) {
-    func_001A5270(p);
+    InitLo(p);
     SetVector(&p->v70, 0, 0, 0);
     p->n80 = 0;
     p->g84 = D_002A7874;

@@ -16,7 +16,7 @@ float GModPositive__Fff(float, float);     // wrap into range
 float func_001E6728(PATH *, float);
 void func_001E6F10(PATH *, float, qword *, qword *);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
-qword func_001A6FC0(PATH *, PATH *, qword);
+qword ConvertAloVec(PATH *, PATH *, qword);
 qword GetNormalVector(qword);
 }
 
@@ -102,7 +102,7 @@ extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
                 break;
         }
         rot = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(w.tangent, w.direction);
-        qword ref = func_001A6FC0(p, 0, p->axis);
+        qword ref = ConvertAloVec(p, 0, p->axis);
         fwd.q = Transform(rot, ref);
         qword up = Normalize(w.first, D_002A2DC0);
         w.basis.r[2] = up;

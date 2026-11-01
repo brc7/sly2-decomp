@@ -14,7 +14,7 @@ extern ulong D_003DD480;
 extern float D_002A8614;
 extern float D_002C3D04,D_002C3D08,D_002C3D0C;
 ulong func_00207A20(int);
-int func_0015E9C8(struct GAME *,int,int,int,int,struct P **);
+int CploFindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
 qword func_001A62E8(struct P *);
 void func_002338C0(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
 int func_002068D8(const void *,const void *);
@@ -60,7 +60,7 @@ void func_00206900(struct P *p)
         int kind;
         for(kind=0;kind<p->kindCount;kind++){
             int *source=&p->kinds[kind];
-            int objectCount=func_0015E9C8(&D_003DD490,0x505,*source,0,256,objects);
+            int objectCount=CploFindSwObjectsByClass(&D_003DD490,0x505,*source,0,256,objects);
             int i=0;
             if(objectCount>0){
                 float initialStamp=D_002A8614;

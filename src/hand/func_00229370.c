@@ -7,7 +7,7 @@ struct G;
 extern struct G D_003DD490;
 void func_00229738(struct O *po, struct N *pn);
 void func_002296C0(struct G *pg, struct N *pn);
-void func_00133590(struct S *p, int k, struct O *q);
+void HandleBasicMessage(struct S *p, int k, struct O *q);
 void func_00229370(struct S *p, int k, struct O *q)
 {
     if (k == 1 && q != (struct O *)p) {
@@ -39,5 +39,5 @@ void func_00229370(struct S *p, int k, struct O *q)
         }
         msg.po->vt[4].pfn((char *)msg.po + msg.po->vt[4].d, 5, &msg);
     }
-    func_00133590(p, k, q);
+    HandleBasicMessage(p, k, q);
 }

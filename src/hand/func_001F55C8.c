@@ -6,9 +6,9 @@ struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong fl; cha
 struct G;
 extern struct G D_003DD490;
 struct O *func_001F2798(struct O *);
-int func_0015E9C8(struct G *, int, int, struct O *, int, struct O **);
+int CploFindSwObjectsByClass(struct G *, int, int, struct O *, int, struct O **);
 void func_001F2BA8(struct O *);
-void func_00134320(struct G *, struct O *);
+void RecalcSwOxfFilterForObject(struct G *, struct O *);
 void func_001F2B20(struct O *);
 void func_001F5078(struct O *);
 void func_001F55C8(struct O *p)
@@ -18,7 +18,7 @@ void func_001F55C8(struct O *p)
     int n;
     if (!((p->fl >> 60) & 1)) return;
     if (func_001F2798(p) != p->pq->p60) {
-        n = func_0015E9C8(&D_003DD490, 1, 0x30, p, 0x40, ap);
+        n = CploFindSwObjectsByClass(&D_003DD490, 1, 0x30, p, 0x40, ap);
         for (i = 0; i < n; i++) {
             {
                 struct O *po = ap[i];
@@ -28,7 +28,7 @@ void func_001F55C8(struct O *p)
                         func_001F2BA8(po);
                         if (!q->pq) {
                             q->pq = q->pvt[53].pfn((char *)q + q->pvt[53].d);
-                            func_00134320(&D_003DD490, q);
+                            RecalcSwOxfFilterForObject(&D_003DD490, q);
                         }
                         po->pq = q->pq;
                         func_001F2B20(po);
@@ -37,6 +37,6 @@ void func_001F55C8(struct O *p)
             }
         }
     }
-    func_00134320(&D_003DD490, p);
+    RecalcSwOxfFilterForObject(&D_003DD490, p);
     func_001F5078(p);
 }

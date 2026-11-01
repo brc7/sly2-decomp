@@ -33,8 +33,8 @@ float RadNormalize__Ff(float);
 void func_002206C8(S *,int);
 void func_001384C0(ASEG *);
 int func_00131968(ASEGA *);
-int func_00132B10(O *,int);
-int func_001C46C0(CONTROL *,int,float);
+int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
+int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void func_00136530(O *,int);
 TRACKREF *func_0012FF10(ASEG *,O *,void *,int);
 }
@@ -202,10 +202,10 @@ extern "C" void func_0021F418(S *s){
    if(!animation||func_00131968(animation)){if(D_002DD5BC->mode==8)func_002206C8(s,4);else func_002206C8(s,0);}
    break;
   case 4:case 5:case 6:{
-   if(func_00132B10(s->selected,0x64)&&s->selected->sentinel!=-1){IntCall(s->owner,88,0);break;}
+   if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64)&&s->selected->sentinel!=-1){IntCall(s->owner,88,0);break;}
    float margin=0.1f;
-   if(func_001C46C0(control,0xC0,margin)){func_002206C8(s,7);break;}
-   if(func_001C46C0(control,0x30,margin)){
+   if(GrfConsumePressed__5POCTLUif(control,0xC0,margin)){func_002206C8(s,7);break;}
+   if(GrfConsumePressed__5POCTLUif(control,0x30,margin)){
     if(s->animation0)func_002206C8(s,0);else IntCall(s->owner,88,0);
     O *selected=s->selected;if(selected==D_002DD5BC&&selected->mode==8){
      w.speed.q=ScalarHome(w.scratch.vector,CPUFloat(400.0f));

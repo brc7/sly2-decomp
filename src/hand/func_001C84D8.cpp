@@ -9,7 +9,7 @@ struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;
 extern float D_002C0FE8,D_002A7798;
 extern qword D_002C0FF0[9];
 extern struct CLOCK {float t,dt;} D_002DDED0;
-extern "C" int func_001C46C0(void*,int,float);
+extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*);
 extern "C" void func_001C8918(struct S*,int);
 extern "C" int func_00131968(void*);
@@ -26,13 +26,13 @@ extern "C" void func_001C84D8(struct S*p){
  int divisor=1000;
  do{
   old=p->state;
-  if(func_001C46C0(p->input,0x30,0)){
+  if(GrfConsumePressed__5POCTLUif(p->input,0x30,0)){
    func_001E0020(p->alarms,(ALARM*)0x655);
    func_001C8918(p,3);
   }
   switch(p->state){
   case 0:
-   if(func_001C46C0(p->input,0xC0,0)){func_001C8918(p,2);break;}
+   if(GrfConsumePressed__5POCTLUif(p->input,0xC0,0)){func_001C8918(p,2);break;}
    {
     char*minimumPage=MinimumPage();char*tablePage=SelectionTablePage();int current=p->index,best;register int comparison __asm__("$7")=current;
     unsigned i;qword*table;

@@ -6,7 +6,7 @@
 // func_00215730). Finally the item's matrix/colours/pose bytes are saved and the link kinds are set (1 for the
 // linking pose, 4 for the item it links to).
 //
-// STAND-IN (see func_0013E818.cpp for the same trick): the spilled gcse reaching pseudos (j+1, &item->flags, &outputAdditive
+// STAND-IN (see LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp for the same trick): the spilled gcse reaching pseudos (j+1, &item->flags, &outputAdditive
 // and the hoisted frame addresses) get their spill slots/registers from the gcse expression hash-table size
 // S = max_cuid/2|1. This spelling has S = 279 after cse1; the game's order needs S = 277/283/289. `if (fNever)` is dead code
 // (cprop folds it, jump deletes it; the final code is unchanged) that only supplies the missing insns (S = 283).

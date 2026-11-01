@@ -22,7 +22,7 @@ void *func_001E5AE0(OBJ *, void *, int);
 void func_001E1C40(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void func_001DFEB8(OBJ *);
-void func_001A6CA8(OBJ *, int);
+void SetLoBusyk(OBJ *, int);
 void func_001DFD58(OBJ *p, int n)
 {
     int fl;
@@ -50,7 +50,7 @@ void func_001DFD58(OBJ *p, int n)
         fl = *(int *)fl;
     if (fl & 2)
         return;
-    func_001A6CA8(p, 1);
+    SetLoBusyk(p, 1);
     if ((p->x40 ^ 1) & 1)
         *(int *)p->x40 |= 2;
     else

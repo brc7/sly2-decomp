@@ -5,19 +5,19 @@ typedef struct {
     int c2;
     void *a2[8];
 } OBJ;
-int func_001A6290(void *, void *);
-int func_00132B10(void *, void *);
+int FMatchesLoName(void *, void *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, void *);
 int func_00134310(int, int);
 int func_001DE2D8(OBJ *p, void *x)
 {
     int i, j;
     int r = 1;
     for (i = 0; i < p->c1; i++) {
-        if (func_001A6290(x, p->a1[i]))
+        if (FMatchesLoName(x, p->a1[i]))
             r = func_00134310(r, 2);
     }
     for (j = 0; j < p->c2; j++) {
-        if (func_00132B10(x, p->a2[j]))
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(x, p->a2[j]))
             r = func_00134310(r, 2);
     }
     return r;

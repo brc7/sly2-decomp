@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00164640(s32, s32, s32);               /* extern */
+void RequestTaskState(s32, s32, s32);               /* extern */
 CRef *RefThunk_RequestTaskState(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 4176, 8194 };
@@ -9,7 +9,7 @@ CRef *RefThunk_RequestTaskState(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_00164640(pbasic, arg0_v, arg1_v);
+    RequestTaskState(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

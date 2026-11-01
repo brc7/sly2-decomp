@@ -31,7 +31,7 @@ int func_002121E8(DISPLAY *,int);
 void func_00213B00(DISPLAY *,int);
 int func_00203758(ACTOR *);
 int func_0014FD50(void *);
-int func_001C46C0(void *,int,float);
+int GrfConsumePressed__5POCTLUif(void *,int,float);
 }
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwScaleX(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
@@ -171,10 +171,10 @@ extern "C" void func_00202D38(P *p)
     if(p->model->state!=1){
         switch(p->state){
         case 2:case 3:case 4:case 5:case 6:
-            if(!func_0014FD50(D_002DE2E0)&&func_001C46C0(D_002E1E40->control,10,0.0f))func_00202768(p,8);
+            if(!func_0014FD50(D_002DE2E0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,10,0.0f))func_00202768(p,8);
             break;
         case 7:
-            if(!func_0014FD50(D_002DE2E0)&&func_001C46C0(D_002E1E40->control,250,0.0f))func_00202768(p,8);
+            if(!func_0014FD50(D_002DE2E0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,250,0.0f))func_00202768(p,8);
             break;
         }
     }

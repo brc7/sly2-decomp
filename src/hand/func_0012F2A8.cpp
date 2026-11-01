@@ -13,10 +13,10 @@ int func_00117D00(BIS *pbis);
 int func_00117BD0(BIS *pbis);
 void *func_001AE1D0(AREQ *preq);
 void *func_001AE2A0(AREQ *preq);
-OBJ *func_0012B3B0(int id);
-OBJ *func_0012CB98(int id);
+OBJ *PacNewKind(int id);
+OBJ *PacNewKind2(int id);
 void func_0012F590(X *px, BIS *pbis, int n, int *pa, int *pb);
-void func_0013F810(X *px, BIS *pbis);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(X *px, BIS *pbis);
 void func_0012F2A8(X *px, BIS *pbis);
 }
 void func_0012F2A8(X *px, BIS *pbis) { int i; AREQ req;
@@ -29,9 +29,9 @@ void func_0012F2A8(X *px, BIS *pbis) { int i; AREQ req;
    pe->n = func_00117DB8(pbis);
    pe->k = func_00117D50(pbis);
    int id = func_00117D00(pbis);
-   if (id != -1) { pe->pobj = func_0012B3B0(id); pe->pobj->Load(pbis); pe->f31 = 0; }
+   if (id != -1) { pe->pobj = PacNewKind(id); pe->pobj->Load(pbis); pe->f31 = 0; }
    id = func_00117D00(pbis);
-   if (id != -1) { pe->pobj = func_0012CB98(id); pe->pobj->Load(pbis); pe->f31 = 1; }
+   if (id != -1) { pe->pobj = PacNewKind2(id); pe->pobj->Load(pbis); pe->f31 = 1; }
    pe->f30 = func_00117BD0(pbis) != 0;
  }
  px->c2 = func_00117BD0(pbis);
@@ -41,10 +41,10 @@ void func_0012F2A8(X *px, BIS *pbis) { int i; AREQ req;
    ENT2 *pe = &px->aent2[i];
    pe->a = func_00117BD0(pbis);
    pe->b = func_00117DB8(pbis);
-   pe->pobj = func_0012CB98(func_00117D00(pbis));
+   pe->pobj = PacNewKind2(func_00117D00(pbis));
    pe->pobj->Load(pbis);
  }
  func_0012F590(px, pbis, 0, &px->x98, &px->x9C);
  func_0012F590(px, pbis, 1, &px->xA0, &px->xA4);
  func_0012F590(px, pbis, 0, &px->xA8, &px->xAC);
- func_0013F810(px, pbis); }
+ LoadOptionsFromBrx__FPvP18CBinaryInputStream(px, pbis); }

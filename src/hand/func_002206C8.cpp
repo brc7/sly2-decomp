@@ -21,17 +21,17 @@ extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
 extern "C" {
 void func_001CD098(CONTROL *,O *);
 void func_001CD2C0(CONTROL *);
-int func_00132B10(O *,int);
-void func_00134320(WORLD *,O *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
+void RecalcSwOxfFilterForObject(WORLD *,O *);
 float func_00204740(O *);
 void func_00204660(O *,float);
 qword func_001A62E8(O *);
 void func_002046B0(O *,qword);
 void func_00136530(O *,int);
-void func_001A58D0(O *,int,int);
+void SetLoParent_1A58D0(O *,int,int);
 void func_001F7BF8(O *,float);
 void func_001384C0(ASEG *);
-qword func_001A6F00(O *,O *,qword);
+qword ConvertAloPos(O *,O *,qword);
 void func_0021FB70(S *,int);
 void func_00141CD0(O *,int);
 void func_001F15B8(HANDLE *);
@@ -114,7 +114,7 @@ extern "C" void func_002206C8(S *s,int state){
  switch(old){
  case -1:
   if(s->selected!=D_002DD5BC)func_001CD098(&s->owner->controller,s->selected);
-  if(func_00132B10(s->selected,0x64))IntCall(s->selected,76,0);
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))IntCall(s->selected,76,0);
   ZeroXYZ(s->owner->target);
   break;
  case 3:
@@ -123,7 +123,7 @@ extern "C" void func_002206C8(S *s,int state){
  }
  int previous=s->state;
  s->state=state;s->time=D_002DDED0.t;
- func_00134320(&D_003DD490,s->owner);
+ RecalcSwOxfFilterForObject(&D_003DD490,s->owner);
  switch(s->state){
  case -1:func_00204660(s->owner,func_00204740(s->owner));s->owner->movement=0;break;
  case 7:
@@ -149,8 +149,8 @@ extern "C" void func_002206C8(S *s,int state){
     VectorCall(D_002DD5BC,35,w.velocity.q);
   }
   else if(s->selected->id==s->peer->id){
-   if(func_00132B10(s->selected,0x64))IntCall(s->selected,76,4);
-   else{func_001A58D0(s->selected,0,0xF);func_001F7BF8(s->selected,0.25f);}
+   if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))IntCall(s->selected,76,4);
+   else{SetLoParent_1A58D0(s->selected,0,0xF);func_001F7BF8(s->selected,0.25f);}
   }
   func_001CD2C0(&s->owner->controller);
   if(s->effect)EffectCall(s->effect,9);
@@ -164,17 +164,17 @@ extern "C" void func_002206C8(S *s,int state){
  case 3:animation=s->animation3;IntCall(s->owner,79,1);break;
  case 4:
   if(s->effect){s->effect->active=1;s->effect->reset=0;EffectCall(s->effect,8);}
-  if(previous!=5&&previous!=6){s->distance=0.0f;s->targetWorld.q=func_001A6F00(s->owner,0,s->targetLocal.q);func_0021FB70(s,0);}
+  if(previous!=5&&previous!=6){s->distance=0.0f;s->targetWorld.q=ConvertAloPos(s->owner,0,s->targetLocal.q);func_0021FB70(s,0);}
   animation=s->animation4;flags=9;s->field128=0;break;
  case 5:animation=s->animation5;break;
  case 6:animation=s->animation6;break;
  case 7:
   animation=s->animation7;
-  if(func_00132B10(s->selected,0x64))func_00141CD0(s->owner,s->selected->actorId);
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))func_00141CD0(s->owner,s->selected->actorId);
   break;
  }
  func_001F15B8(&s->owner->extra);
  func_001305B8(animation,s->owner,0.0f,1.0f,flags,&s->owner->animation);
  PlainCall(s->owner,90);
- func_00134320(&D_003DD490,s->owner);
+ RecalcSwOxfFilterForObject(&D_003DD490,s->owner);
 }

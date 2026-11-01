@@ -69,7 +69,7 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 float GRandInRange__Fff(float lo, float hi);
 int NRandInRange__Fii(int lo, int hi);
-int func_00132B10(SO *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
 void func_001FB1F8(void *p, float g);
 void func_001FB098(void *p, float g);
 void *func_001FBB90(int id);
@@ -120,7 +120,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
     SND *psnd;
     float t, u;
     psnd = 0;
-    if (func_00132B10(p, 0x32))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x32))
         psnd = (SND *)p;
     if (d > 10.0f || fWake) {
         u = (d - 10.0f) * 0.0012658228f;

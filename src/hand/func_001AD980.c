@@ -4,7 +4,7 @@ extern char D_003DA530[], D_002A6EC8[], D_003D4A60[];
 int func_001D9880(void *p);
 void *func_00210B28(void);
 int func_001DDD40(void *p);
-char *func_0013E368(void *p, int n);
+char *PchzFindSwLangstr__FP2SWi(void *p, int n);
 char *func_001D82B8(void *p, void *q);
 void func_0021ECD8(char *buf, char *fmt, ...);
 void func_001AD980(char *buf)
@@ -16,6 +16,6 @@ void func_001AD980(char *buf)
         return;
     fmt = D_002A6EC8;
     g = &D_003DD490;
-    a = func_0013E368(g, func_001DDD40(func_00210B28()));
+    a = PchzFindSwLangstr__FP2SWi(g, func_001DDD40(func_00210B28()));
     func_0021ECD8(buf, fmt, a, func_001D82B8(g->x3A18, D_003D4A60));
 }

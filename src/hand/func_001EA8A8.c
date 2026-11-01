@@ -3,7 +3,7 @@ struct X { int id; unsigned char b4; signed char cch; char pad[2]; unsigned shor
 struct Y { char pad[0xC]; int *pv; };
 void func_00117968(void *pbis, int cb, void *pv);
 void func_001179B8(void *pbis, int cb);
-int func_0013FAD0(int cch, void *pw);
+int FMatchLoadFilter__FiPs(int cch, void *pw);
 struct Y *func_001ED5D0(int id);
 void *func_001AE1D0(struct AR *par);
 void func_001ED278(int *p);
@@ -15,7 +15,7 @@ void func_001EA8A8(void *pbis, struct X *px)
     cb = px->c * sizeof(int);
     if (px->cch > 0) {
         func_00117968(pbis, px->cch * 2, u.aw);
-        if (!func_0013FAD0(px->cch, u.aw)) {
+        if (!FMatchLoadFilter__FiPs(px->cch, u.aw)) {
             if (px->b4 != 1)
                 func_001179B8(pbis, cb);
             px->b4 = 0;

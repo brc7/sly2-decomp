@@ -6,7 +6,7 @@ struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
 extern struct DL D_003E11AC;
-void func_001A6178(struct L *);
+void OnLoAdd(struct L *);
 void func_001D6378(struct L *);
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void AppendDlEntry__FP2DLPv(struct DL *, void *);
@@ -15,7 +15,7 @@ void func_001F3EA8(struct L *p)
 {
     struct L *q;
     int unused[4];
-    func_001A6178(p);
+    OnLoAdd(p);
     if (p->fl & (1L << 35)) {
         int v = p->v40;
         if ((v ^ 1) & 1) v = *(int *)v;

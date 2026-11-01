@@ -1,6 +1,6 @@
 struct S { char pad[0x150]; int c150; int a154[4]; int c164; int a168[4]; int f178; };
-int func_001A6290(void *, int);
-int func_00132B10(void *, int);
+int FMatchesLoName(void *, int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int func_001F4FC8(struct S *, void *);
 int func_00132140(struct S *p, void *pv) {
     int i, j;
@@ -8,10 +8,10 @@ int func_00132140(struct S *p, void *pv) {
     i = 0;
     f = 0;
     for (; i < p->c150; i++) {
-        if (func_001A6290(pv, p->a154[i])) f = 1;
+        if (FMatchesLoName(pv, p->a154[i])) f = 1;
     }
     for (j = 0; j < p->c164; j++) {
-        if (func_00132B10(pv, p->a168[j])) f = 1;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pv, p->a168[j])) f = 1;
     }
     {
         int r;

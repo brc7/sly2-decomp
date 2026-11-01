@@ -8,11 +8,11 @@ struct M3{U row[3];};
 struct P{struct O*self;char pad4[0x30-4];struct O*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
 extern F D_002BFACC,D_002BFAD0,D_002BFAD4,D_002BFB00,D_002BFB04;
 extern U D_002BFAE0,D_002BFAF0,D_002A2DA0,D_002A2DC0;
-int func_00132B10(struct O*,int);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
 qword LimitVectorLength(qword,float);
 qword func_001A62E8(struct O*);
 struct M3*func_001A6318(struct O*);
-qword func_001A6FC0(struct O*,struct O*,qword);
+qword ConvertAloVec(struct O*,struct O*,qword);
 void func_001A0B40(struct P*,int);
 static inline float Max(float a,float b){return a>b?a:b;}
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
@@ -55,7 +55,7 @@ void func_001A16C8(struct P*p){
     switch(p->mode){
     case 0x200:
     case 0x8000:
-        if(func_00132B10(p->target,0x33)){
+        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x33)){
             qword k=Scalar(D_002BFACC.value+1.0f);
             qword v=Scale(p->velocity.q,k);
             scratch.q=k;
@@ -65,7 +65,7 @@ void func_001A16C8(struct P*p){
         }
         break;
     case 0x40:
-        if(func_00132B10(p->target,0x36)){
+        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x36)){
             struct O*target=p->target;
             struct M3*basis;
             qword delta,local;
@@ -74,16 +74,16 @@ void func_001A16C8(struct P*p){
             {qword k=Word(-150.0f);scratch.q=k;negative.q=k;}
             basis=func_001A6318(target);
             delta=Intercept(&selfPosition,&targetPosition,basis,&negative);
-            local=func_001A6FC0(0,target,delta);
-            if(Z(local)>0.0f)output.q=func_001A6FC0(target,0,D_002BFAE0.q);
-            else output.q=func_001A6FC0(target,0,D_002BFAF0.q);
+            local=ConvertAloVec(0,target,delta);
+            if(Z(local)>0.0f)output.q=ConvertAloVec(target,0,D_002BFAE0.q);
+            else output.q=ConvertAloVec(target,0,D_002BFAF0.q);
         }
         break;
     case 0x100:
-        if(func_00132B10(p->target,0x4F)){
+        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x4F)){
             struct O*target=p->target;
             qword n,a,b,mixed,z;
-            if(func_00132B10(target,0x51)){
+            if(FIsBasicDerivedFrom__FP5BASIC3CID(target,0x51)){
                 struct VT*vt=target->vt;
                 struct M3*basis=((struct M3*(*)(void*))vt[31].fn)((char*)target+vt[31].delta);
                 scratch=basis->row[0];

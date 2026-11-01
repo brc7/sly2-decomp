@@ -1,8 +1,8 @@
 struct S { char pad[0x184]; int st; int f188; int f18c; };
-void func_00133590(struct S *, int, int);
+void HandleBasicMessage(struct S *, int, int);
 void func_0013C560(struct S *, int);
 void func_0013C1B8(struct S *p, int msg, int a) {
-    func_00133590(p, msg, a);
+    HandleBasicMessage(p, msg, a);
     switch (msg) {
     case 4:
         if (p->st == 5) func_0013C560(p, 0);

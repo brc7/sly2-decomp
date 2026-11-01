@@ -5,7 +5,7 @@ struct S {
     char pad80[0x10]; float x90; int x94; int x98; char pad9c[0x20]; int xBC; struct O *xC0; void *xC4;
 };
 extern char D_003E1C70[], D_003E1C80[], D_003E106C[];
-void func_001A5C28(struct S *p, void *pbis);
+void LoadLoFromBrx(struct S *p, void *pbis);
 int func_00117D00(void *pbis);
 float func_00117E38(void *pbis);
 int func_00117C80(void *pbis);
@@ -20,7 +20,7 @@ void func_00212298(struct S *p, void *pbis)
     p->x70 = 0x310;
     p->x74 = 0x30F;
     p->x78 = 0x311;
-    func_001A5C28(p, pbis);
+    LoadLoFromBrx(p, pbis);
     f = func_00117D00(pbis);
     p->x90 = func_00117E38(pbis);
     p->x94 = func_00117C80(pbis);

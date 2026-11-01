@@ -21,9 +21,9 @@ void func_002097D8(void *p, struct S *s);
 void func_001EEFC0(struct S *p);
 void func_001EF038(struct S *p);
 struct O *func_00205458(struct A *a, int n);
-void *func_001C4840(struct G *g);
+void *PpoHero(struct G *g);
 void func_00187E28(void *p, int n, float f);
-int func_001A6AF8(void *n, void *o);
+int FFindLoParent(void *n, void *o);
 void func_0014F750(void *p, int n);
 void func_001F7A68(struct A *a, int n);
 int func_00174BD0(struct S *p, int msg, struct M *pm) {
@@ -72,15 +72,15 @@ int func_00174BD0(struct S *p, int msg, struct M *pm) {
     case 0x2F:
         {
             struct O *o = func_00205458(p->p10, 0xA5);
-            if (o && o->p30 == func_001C4840(&D_003DD490)) func_00187E28(D_002DFC00, 8, 1.0f);
+            if (o && o->p30 == PpoHero(&D_003DD490)) func_00187E28(D_002DFC00, 8, 1.0f);
         }
         return 0;
     case 0x34:
     case 0x35:
         {
-            void *g = func_001C4840(&D_003DD490);
+            void *g = PpoHero(&D_003DD490);
             struct O *o = func_00205458(p->p10, 0xA0);
-            if (o && func_001A6AF8(o->parent, g) && g == D_002F7900) {
+            if (o && FFindLoParent(o->parent, g) && g == D_002F7900) {
                 switch (pm->n8) {
                 case 0x35: func_0014F750(D_002DDF40, 0); break;
                 case 0x34: func_00187E28(D_002DFC00, 3, 1.50000005960464477539e-01f); break;

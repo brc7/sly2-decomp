@@ -14,7 +14,7 @@ struct SO { char pad0[0x10]; SO *psoParent; char pad14[0xEC - 0x14]; ATT *patt; 
 extern char D_003DD490[];  // g_sw
 extern qword D_002A2DC0;   // g_normalZ
 extern "C" {
-SO *func_001A5BF0(LO *);                 // PsoZapTarget
+SO *PsoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
 void func_001A7C18(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
 }
@@ -38,7 +38,7 @@ extern "C" void func_00205008(SO *pso, int grf, LO *plo, qword posOther, qword d
 {
     XP **ppxpFirst, **ppxpOut;
     SOPART *psopartOther;
-    SO *psoTarget = func_001A5BF0(plo);
+    SO *psoTarget = PsoFromLo(plo);
     ATT *patt, *pattThis;
     if (psoTarget) {
         patt = psoTarget->patt;

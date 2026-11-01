@@ -16,7 +16,7 @@ extern "C"{
  extern qword D_002A2DC0;
  extern LIMIT D_002BE6B8;
  unsigned long func_00207A20(int);
- int func_00132B10(P*,int);
+ int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  qword func_001A62E8(P*);
  M3*func_001A6318(P*);
  void func_001E6F60(P*,qword,void*,qword*,qword*,float*,float*);
@@ -85,7 +85,7 @@ extern "C" void func_00179FA0(C*p){
  unsigned long active=0;
  if(p->target){
   float heading;
-  if(func_00132B10(p->target,10)){
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,10)){
    P*target=p->target;
    qword position=func_001A62E8(p->actor);
    func_001E6F60(target,position,0,&p->point.q,&work.temp.first.direction.q,0,&work.curve);
@@ -96,20 +96,20 @@ extern "C" void func_00179FA0(C*p){
    M3*b=func_001A6318(p->target);
    heading=func_002458F0(((U*)a->r)->f[1],((U*)b->r)->f[0]);
   }
-  if(func_00132B10(p->target,13)){
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,13)){
    active|=func_00207A20(0x1B);
    if(!p->reverse)heading=RadNormalize__Ff(heading+3.1415927410125732421875f);
    p->basisValid=1;
    func_0011B500(&work.temp.first.rotation,heading,D_002A2DC0);
    p->matrix=work.temp.first.rotation;
-  }else if(func_00132B10(p->target,0x27)){
+  }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x27)){
    active|=func_00207A20(0x29);
-  }else if(func_00132B10(p->target,11)){
+  }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,11)){
    active|=func_00207A20(0x27);
    p->basisValid=1;
    func_001C3500(p->target,p->reverse,&p->matrix,work.curve);
    func_0017A468(p);
-  }else if(func_00132B10(p->target,0x13)&&p->target->kind==3){
+  }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x13)&&p->target->kind==3){
    active|=func_00207A20(0x28);
    p->basisValid=1;
    M3*m=func_001A6318(p->target);

@@ -8,7 +8,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void func_0018F2B0(struct PO *, int, void *, int *, QF *, float, float, float);
-qword func_001A6F00(void *, struct PO *, qword);
+qword ConvertAloPos(void *, struct PO *, qword);
 void func_002046B0(struct PO *, qword);
 void func_00204CA8(struct PO *);
 void func_001384C0(void *);
@@ -47,7 +47,7 @@ void func_00136F48(struct S *ps, int state)
         } else {
             ps->g1C = 0.5f;
         }
-        r.q = func_001A6F00(ps->pvE4, ps->po, D_002A2DD0);
+        r.q = ConvertAloPos(ps->pvE4, ps->po, D_002A2DD0);
         ps->x8 = 0.0f < r.a[1] ? 1 : 0;
         if (state == 0 && f) {
             func_002046B0(ps->po, v.q);

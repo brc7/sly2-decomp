@@ -3,7 +3,7 @@ struct S { char pad[0x10]; int k; float t14; char pad2[0x34 - 0x18]; struct O *p
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DE0;
 void func_0020C2F8(struct S *p, int k);
-int func_00132B10(struct O *po, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void func_0020D1A0(void *p);
 int func_00131968(int h);
 
@@ -25,7 +25,7 @@ void func_0020C0E8(struct S *p)
             else if (p->t50 <= D_002DDED0.t) {
                 if (p->n60)
                     func_0020C2F8(p, 3);
-                else if (func_00132B10(p->po, 0x38))
+                else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x38))
                     func_0020D1A0(p->po->p498);
             }
             break;

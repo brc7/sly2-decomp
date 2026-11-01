@@ -55,7 +55,7 @@ extern LM D_002C0EB0;
 extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4;
 extern "C" {
 int func_001C6DE8(float, float, float, qword, int, CANDIDATE **, qword *);
-LO *func_001C4840(void *);
+LO *PpoHero(void *);
 REGION *func_001C0D70(qword, int);
 int func_001C0940(REGION *, qword, qword *, int);
 int func_001C0980(REGION *, qword, qword, int);
@@ -142,7 +142,7 @@ extern "C" void func_001C6FD8(void *pworld, int kind, qword posSeed, void *pvUnu
     VECTOR4 posOrig;
     if (!func_001C6DE8(0.0f, 300.0f, D_002A775C, posSeed, 0, 0, &posOrig.q))
         return;
-    LO *plo = func_001C4840(pworld);
+    LO *plo = PpoHero(pworld);
     REGION *pregion = 0;
     if (plo)
         pregion = PregionFromLo(plo);

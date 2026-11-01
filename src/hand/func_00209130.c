@@ -11,8 +11,8 @@ struct E { int kind; union PAYLOAD value; int n8, nC; };
 extern char D_003DD490[];
 void func_0020BD88(struct H *, void *);
 void func_0020C7E0(struct DIRECTION_STATE *, void *);
-void *func_0015E938(void *, int, int, void *);
-int func_00132EA0(void *);
+void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
+int CidBasic(void *);
 struct MARKER *func_0012F938(void *, int);
 struct H *func_0020C010(int);
 void func_0020BD78(struct H *);
@@ -29,12 +29,12 @@ void func_00209130(struct E *e, void *context)
         func_0020BD88(e->value.curvature, context);
         return;
     }
-    resource = func_0015E938(D_003DD490, 4, e->value.oid, context);
+    resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, e->value.oid, context);
     if (!resource) {
         e->kind = -1;
         return;
     }
-    switch (func_00132EA0(resource)) {
+    switch (CidBasic(resource)) {
     case 0x6D:
         if (func_0012F938(resource, 0x22)) {
             e->kind = 2;

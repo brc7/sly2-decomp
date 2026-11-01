@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; float *(*pfn)(void *); };
 struct O { int pad[3]; struct VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
-int func_00132B10(void *p, int cid);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword func_001A62E8(struct O *po);
 void func_001E6F60(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
 float func_002458F0(float y, float x);
@@ -14,7 +14,7 @@ void func_001E4D40(struct P *p, struct O *po, qword *pv, float *pg)
     struct O *px = p->po24;
     if (!px) px = p->po44;
     if (po) {
-        if (func_00132B10(po, 0xA)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             func_001E6F60(po, func_001A62E8(px), 0, &uv.q, ag, 0, 0);
             g = func_002458F0(ag[1], ag[0]);
         } else {
@@ -26,7 +26,7 @@ void func_001E4D40(struct P *p, struct O *po, qword *pv, float *pg)
         }
     } else {
         uv.q = func_001A62E8(px);
-        if (func_00132B10(px, 0x33)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(px, 0x33)) {
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(uv.q) : "j"(uv.q), "j"(px->v240));
             g = px->g1A8;
         } else {

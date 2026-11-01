@@ -27,7 +27,7 @@ void func_00153EF8(struct F64 *pf, struct S *p, int n);
 void func_001F1A40(struct S *p);
 void func_001F1CF8(struct S *p);
 struct O *func_00205438(struct S *p, int n);
-void func_001A58D0(struct F64 *pf, struct S *p, int n);
+void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
 
 void func_00206518(struct S *p)
 {
@@ -72,7 +72,7 @@ void func_00206518(struct S *p)
         p->pFEC->vt[9].pf((char *)p->pFEC + p->pFEC->vt[9].d);
     o = func_00205438(p, 0x9C);
     o->vt[8].pf((char *)o + o->vt[8].d);
-    func_001A58D0(p->pF64, p, 0xF);
+    SetLoParent_1A58D0(p->pF64, p, 0xF);
     p->pF64->pE0 = p;
     p->pF64->pE4 = p->pEC;
 }

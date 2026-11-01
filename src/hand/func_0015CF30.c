@@ -33,7 +33,7 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 int func_0015D798(struct X *p);
 int func_002121E8(struct X *p, int n);
-void *func_0015E938(struct G *pg, int kind, int oid, int n);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, int n);
 void func_00228358(void *p, int n);
 void func_002283D0(void *p);
 int func_00210B98(int n);
@@ -180,7 +180,7 @@ void func_0015CF30(struct X *p)
                     f = 0;
             }
             if (f) {
-                void *po = func_0015E938(&D_003DD490, 5, D_002BE2A8[p->n110], 0);
+                void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE2A8[p->n110], 0);
                 if (po) {
                     func_00228358(po, 3);
                     func_002283D0(po);

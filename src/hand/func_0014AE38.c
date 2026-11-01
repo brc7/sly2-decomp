@@ -23,7 +23,7 @@ void func_001F57C0(struct X *, int);
 float GRandInRange__Fff(float, float);
 void func_001EF0D8(void *);
 void *func_00205438(struct X *, int);
-void *func_001C4840(void *);
+void *PpoHero(void *);
 qword func_001A62E8(void *);
 void *func_0014AE18(struct P *);
 void func_001E6180(struct SP *);
@@ -57,7 +57,7 @@ void func_0014AE38(struct P *p, int state)
     switch (state) {
     case 0: {
         struct O9E *po = func_00205438(p->p10, 0x9E);
-        po->x38 = func_001C4840(D_003DD490);
+        po->x38 = PpoHero(D_003DD490);
         VCALL0(po, 8);
         {
             struct X *px = p->p10;
@@ -91,7 +91,7 @@ void func_0014AE38(struct P *p, int state)
         po->xC0 = 8;
         po->x40 = 1;
         po->x64 = 25.0f;
-        po->xC8 = func_001C4840(D_003DD490);
+        po->xC8 = PpoHero(D_003DD490);
         VCALL0(po, 8);
         p->p10->xF04 = D_002DDED0.t;
         func_001F5720(p->p10, 0);
@@ -115,7 +115,7 @@ void func_0014AE38(struct P *p, int state)
     }
     case 4: {
         struct O9E *po = func_00205438(p->p10, 0x9E);
-        po->x38 = func_001C4840(D_003DD490);
+        po->x38 = PpoHero(D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
         break;

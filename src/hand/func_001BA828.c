@@ -9,7 +9,7 @@ void func_00171C18(int a, int b);
 void func_001EF0D8(void *p);
 struct O *func_00205438(int a, int b);
 void func_00171258(struct O *o, int a, int b, int c);
-void func_001619A0(void *p, int a, int b);
+void BroadcastGameEvent(void *p, int a, int b);
 #define VCALL0(o, n) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 void func_001BA828(struct S *p, int st)
 {
@@ -35,7 +35,7 @@ void func_001BA828(struct S *p, int st)
         struct O *o = func_00205438(p->x10, 0x9D);
         o->x40 = p->x10 + 0x1060;
         VCALL0(o, 8);
-        func_001619A0(D_002DEB30, 0x33, p->x10);
+        BroadcastGameEvent(D_002DEB30, 0x33, p->x10);
         break;
     }
     }

@@ -8,7 +8,7 @@ void func_001E6F10(void *, float, qword *, qword *);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 qword SetVectorCylind(float,float,float);
 M3 *func_001A6318(struct S *);
-qword func_001A6F00(void *,void *,qword);
+qword ConvertAloPos(void *,void *,qword);
 }
 extern qword D_002A2DC0;
 extern "C" float func_00245A18(float,float);
@@ -63,7 +63,7 @@ extern "C" void func_002215C0(S *p,float *times,COEF *coef,BOUND *bounds,int mod
     } else {
         center.i[0]=center.i[1]=center.i[2]=0;
         pos.f[0]+=delta;
-        rotated.q=func_001A6F00(p,0,pos.q);
+        rotated.q=ConvertAloPos(p,0,pos.q);
     }
     *out=Add(center.q,rotated.q);
 }

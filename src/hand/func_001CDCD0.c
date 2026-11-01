@@ -6,7 +6,7 @@ extern struct VTE D_002D77D8[];
 void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb);
 void *func_00167310(void *p);
-void *func_0015E3A8(struct G *p, int n);
+void *PdlFromSwCid(struct G *p, int n);
 void func_0011A070(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
 struct O *func_001CDCD0(struct G *p, int a)
@@ -22,7 +22,7 @@ struct O *func_001CDCD0(struct G *p, int a)
     func_00167310(po->x80);
     po->x150 = a;
     po->vt = D_002D77D8;
-    func_0011A070(func_0015E3A8(p, 0x57), po);
+    func_0011A070(PdlFromSwCid(p, 0x57), po);
     VCALL0(po, 7);
     VCALL0(po, 11);
     VCALL0(po, 15);

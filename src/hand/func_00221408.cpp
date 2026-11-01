@@ -8,7 +8,7 @@ void func_001E6F10(void *, float, qword *, qword *);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 qword SetVectorCylind(float,float,float);
 M3 *func_001A6318(struct S *);
-qword func_001A6F00(void *,void *,qword);
+qword ConvertAloPos(void *,void *,qword);
 }
 extern qword D_002A2DC0;
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
@@ -45,6 +45,6 @@ extern "C" void func_00221408(S *p,qword v,qword *out,qword *normal) {
         *out=InverseRotate(m,Sub(v,pos.q));
     } else {
         *normal=Normalize(func_001A6318(p)->r[0]);
-        *out=func_001A6F00(0,p,v);
+        *out=ConvertAloPos(0,p,v);
     }
 }

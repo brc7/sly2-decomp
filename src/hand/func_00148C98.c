@@ -16,7 +16,7 @@ struct P {
 void func_001F36E0(struct P *);
 void func_001490A0(struct P *, int);
 int func_00149100(struct P *, int);
-void func_00149AB8(void *, void *, struct K, int);
+void EnsureSwCallback(void *, void *, struct K, int);
 
 static inline int IOther(struct X *px, struct SO *pso)
 {
@@ -70,7 +70,7 @@ void func_00148C98(struct P *p)
         }
         found:
             p->x2F8 = oid;
-            func_00149AB8(D_003DD490, p, D_002A4E80, 0);
+            EnsureSwCallback(D_003DD490, p, D_002A4E80, 0);
             k = p->x1E0;
             break;
         case 0: {

@@ -1,11 +1,11 @@
 struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
-int func_00132B10(void *p, int cid);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void func_001E51A0(struct P *p, struct O *po, int a, int b)
 {
     int i;
-    if (!func_00132B10(po, 0x33)) return;
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
     for (i = 0; i < p->c; i++)
         if (p->apo[i] == po) return;
     if ((unsigned)p->c >= 4) return;

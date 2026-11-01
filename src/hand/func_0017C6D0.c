@@ -6,7 +6,7 @@ struct P {char pad10[0x10];void*p10;int pad14;void*p18;char pad1C[4];int pending
 void func_001EEF98(struct P*);
 int func_001EF0A8(struct P*);
 qword func_001A62E8(void*);
-qword func_001A6F00(void*,void*,qword);
+qword ConvertAloPos(void*,void*,qword);
 int func_00209098(void*);
 void func_0017C928(struct P*,int);
 void func_002562A8(struct X*);
@@ -27,7 +27,7 @@ void func_0017C6D0(struct P*p){
    if(func_00209098(p->p10))func_0017C928(p,2);
    else if(1000.0f<dist)func_0017C928(p,1);
    else if(lim<LenXY(SubIn(p->v60,pos))){
-    qword v;p->v60=pos;v=func_001A6F00(p->p30,0,p->v40);
+    qword v;p->v60=pos;v=ConvertAloPos(p->p30,0,p->v40);
     func_002562A8(&x);x.v=v;func_0017DD38(p->p18,&x);
    }
    break;

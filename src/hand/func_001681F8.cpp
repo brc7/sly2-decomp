@@ -2,7 +2,7 @@
 // 6 qwords to VU address 0x301 (entry word + bounding sphere + model matrix), padding, and a DMA RET tag, then queues it
 // in a render-list entry (func_001CD998) with the descriptor's chain. Stamps the game tick at the end.
 // From lanef9v1 (aligned 5) plus func_00169198's packet idioms (template UNPACK tag, CopyQws with the empty do-while).
-// STAND-IN (same trick as func_00219400 / func_0013E818): `if (fNever)` is dead code (gcse's last cprop folds it, jump
+// STAND-IN (same trick as func_00219400 / LoadOptionFromBrx): `if (fNever)` is dead code (gcse's last cprop folds it, jump
 // deletes it; the final code is unchanged). It only supplies the extra basic block the game had between the UNPACK tag and
 // the copy loop at gcse time: gcse PRE then inserts the %hi(D_002DEA28) copy (t2) before that block and the outer `i + 1`
 // (s4) after it, below the do-while barrier. What the game really had there is unknown.

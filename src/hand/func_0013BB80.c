@@ -5,7 +5,7 @@ void func_0013BC60(struct S *, struct S *);
 void func_001F5720(struct S *, int);
 void func_001F57C0(struct S *, int);
 void func_001F6860(struct S *, int);
-void func_001A58D0(struct S *, int, int);
+void SetLoParent_1A58D0(struct S *, int, int);
 void func_0013BB80(struct S *p) {
     func_001CB518(p);
     p->f174 = 0;
@@ -15,5 +15,5 @@ void func_0013BB80(struct S *p) {
     func_001F57C0(p, 0);
     func_001F6860(p, 0);
     p->f1e8 = 0;
-    func_001A58D0(p, 0, 0xf);
+    SetLoParent_1A58D0(p, 0, 0xf);
 }

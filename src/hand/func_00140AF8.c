@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct P { char pad[0x10E4]; int x10E4; void *p10E8; int x10EC; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
-int func_00132B10(void *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
 int func_00140AF8(struct P *p, int fX)
 {
@@ -12,7 +12,7 @@ int func_00140AF8(struct P *p, int fX)
     float g;
     int f;
     if (p->x10EC != 4 || p->x10E4 == 3) return 0;
-    if (func_00132B10(p->p10E8, 0x3A)) gDist = D_002BCC7C;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p10E8, 0x3A)) gDist = D_002BCC7C;
     else gDist = D_002BCC80;
     gMin = D_002BCC84;
     gMax = D_002BCC88;

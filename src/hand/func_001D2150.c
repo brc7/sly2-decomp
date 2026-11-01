@@ -26,7 +26,7 @@ typedef struct {
 } OBJ;
 int func_001D4E08(ITEM *);
 void func_001F0660(void *, int);
-int func_001C46C0(SUB *, int, float);
+int GrfConsumePressed__5POCTLUif(SUB *, int, float);
 void func_001D2150(OBJ *p)
 {
     int i;
@@ -45,7 +45,7 @@ void func_001D2150(OBJ *p)
         if (func_001D4E08(q)) {
             if (p->psub->fl & q->fl)
                 func_001F0660(q->x20, 0x67);
-            else if (func_001C46C0(p->psub, q->x28, 0.0f))
+            else if (GrfConsumePressed__5POCTLUif(p->psub, q->x28, 0.0f))
                 func_001F0660(q->x20, 0x68);
         }
     }

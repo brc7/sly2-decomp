@@ -5,13 +5,13 @@ struct LM { float gMin; float gMax; };
 struct S { char pad[0x40]; unsigned int fl; char pad2[0x14]; float g58; float g5C; char pad3[0x234 - 0x60];
     struct LM lm; char pad4[0x280 - 0x23C]; int n280; char pad5[8]; struct R r; float g298; float g29C; float g2A0; float g2A4; };
 extern struct S *D_002DE570;
-void func_001A5270(struct S *p);
-void func_001A6CA8(struct S *p, int n);
+void InitLo(struct S *p);
+void SetLoBusyk(struct S *p, int n);
 void func_001526D8(struct S *p)
 {
     unsigned int v;
     struct R *pr;
-    func_001A5270(p);
+    InitLo(p);
     D_002DE570 = p;
     {
         struct LM *plm = &p->lm;
@@ -29,7 +29,7 @@ void func_001526D8(struct S *p)
     p->g2A0 = -0.2f;
     p->g298 = -1.5f;
     p->g2A4 = -1.5f;
-    func_001A6CA8(p, 1);
+    SetLoBusyk(p, 1);
     v = p->fl;
     if ((v ^ 1) & 1) *(int *)v |= 0xA;
     else p->fl = v | 0xA;

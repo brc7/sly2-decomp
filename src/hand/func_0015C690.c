@@ -27,7 +27,7 @@ extern V4 func_00256D08(qword *pv);
 extern qword func_00256D28(qword a, qword b);
 extern void func_00256D18(qword *pv, qword a);
 extern void func_0015BD20(int c, EMITB *pb, EMITR *pr);
-extern qword func_001A6F00(int x, int y, qword v);
+extern qword ConvertAloPos(int x, int y, qword v);
 extern void *func_001FBB90(int id);
 extern void func_001FB2F8(void *p, void *pso);
 extern void func_001FB3F0(void *p, qword v);
@@ -145,7 +145,7 @@ void func_0015C690(EMITTER *p, EMITO *po)
             }
             pos.q = v;
         }
-        pos.q = func_001A6F00(emitp.x0, 0, pos.q);
+        pos.q = ConvertAloPos(emitp.x0, 0, pos.q);
         ps = func_001FBB90(p->psnd->id);
         func_001FB2F8(ps, 0);
         func_001FB3F0(ps, pos.q);

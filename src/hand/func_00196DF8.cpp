@@ -7,7 +7,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword func_001A6FC0(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void func_001FAC30(ACTOR*,qword);void func_001F5E10(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
+qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void func_001FAC30(ACTOR*,qword);void func_001F5E10(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -78,7 +78,7 @@ extern "C" void func_00196DF8(CONTEXT*p){WORK w;
   register float zero __asm__("$f20")=0.0f;
   register qword original __asm__("$2")=Velocity(p->actor);register ACTOR*empty __asm__("$4"),*actor __asm__("$5");
   __asm__("sq %3,%0\n\tdaddu %1,$zero,$zero\n\tlw %2,%4":"=m"(w.turn.original.q),"=r"(empty),"=r"(actor):"r"(original),"m"(p->actor));
-  w.turn.local.q=func_001A6FC0(empty,actor,original);
+  w.turn.local.q=ConvertAloVec(empty,actor,original);
   register unsigned clockWord __asm__("$16");register float updatedX __asm__("$f0"),updatedY __asm__("$f0");register M3*rotationOutput __asm__("$4");register qword rotation __asm__("vf2");
   __asm__("lui %0,%%hi(%6)\n\taddiu %0,%0,%%lo(%6)\n\tli.s $f1,0.5\n\tlw $3,%4\n\taddiu %1,%5,0x50\n\tlwc1 $f0,4(%0)\n\tlw $2,0x5C($3)\n\tmfc1 $3,$f0\n\tmul.s $f0,$f0,$f1\n\tqmtc2.ni $3,$vf5\n\tlqc2 $vf2,0xB0($2)\n\tsqc2 $vf5,%3\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf4\n\tlqc2 $vf3,0xF0($2)\n\tsqc2 $vf4,%3\n\tvadda.xyzw $ACC,$vf2,$vf0\n\tvmaddx.xyzw $vf2,$vf3,$vf5x\n\tlqc2 $vf1,0xB0($2)\n\tvadd.xyzw $vf1,$vf1,$vf2\n\tvmulx.xyzw %2,$vf1,$vf4x"
    :"=&r"(clockWord),"=r"(rotationOutput),"=j"(rotation),"=m"(w.turn.scalar.q):"m"(p->actor),"p"(&w),"i"(&D_002DDED0):"$2","$3","$f0","$f1","vf1","vf3","vf4","vf5","at","memory");

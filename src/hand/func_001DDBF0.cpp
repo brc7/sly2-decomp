@@ -16,14 +16,14 @@ extern char D_002A7A70[];
 extern "C" char *func_0021ED58(char *, const char *);
 extern "C" char *func_0021EDA0(char *, const char *);
 extern "C" int func_001A2C98(void);
-char *func_0013E368(G *, int);
+char *PchzFindSwLangstr__FP2SWi(G *, int);
 CRef func_002581C0(void *, void *);
 extern "C" void func_001DDBF0(char *pch)
 {
     float g;
     void *pv;
     if (D_002DFC00.x100C == 1 && D_002DFC00.x1010 == 0) {
-        func_0021ED58(pch, func_0013E368(&D_003DD490, 9));
+        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 9));
         return;
     }
     g = 0.0f;
@@ -34,12 +34,12 @@ extern "C" void func_001DDBF0(char *pch)
     }
     {
         int ids = g != 0.0f ? 6 : 5;
-        func_0021ED58(pch, func_0013E368(&D_003DD490, ids));
+        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
     }
     func_0021EDA0(pch, D_002A7A70);
-    func_0021EDA0(pch, func_0013E368(&D_003DD490, 8));
+    func_0021EDA0(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 8));
     if (func_001A2C98() >= 2) {
         func_0021EDA0(pch, D_002A7A70);
-        func_0021EDA0(pch, func_0013E368(&D_003DD490, 0x56));
+        func_0021EDA0(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 0x56));
     }
 }

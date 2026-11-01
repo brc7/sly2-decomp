@@ -24,13 +24,13 @@ extern "C"{
  int func_001A2358(C*,RECORD*);
  int func_00155228(void*,int);
  void func_001305B8(void*,P*,float,float,int,void**);
- int func_00132B10(P*,int);
+ int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void func_00143380(P*);
- void func_001619A0(void*,int,P*);
+ void BroadcastGameEvent(void*,int,P*);
  void func_001A15B0(C*,ACTION);
  void func_001A16C8(C*);
  void func_001A0B40(C*,int);
- int func_00132EA0(P*);
+ int CidBasic(P*);
  void*func_001FBB90(int);
  void func_001FB2F8(void*,P*);
  qword func_001A62E8(P*);
@@ -109,7 +109,7 @@ extern "C" int func_001A19A0(C*p,RECORD*input){
   accepted.flags=0x200;
   __asm__("sw $zero,4(%3)\n\tsw $zero,8(%3)\n\tsw $zero,%2":"=m"(accepted.b),"=m"(accepted.c),"=m"(accepted.a):"r"(&accepted.a));
  }
- if(input->object&&func_00132B10(input->object,0x38)){
+ if(input->object&&FIsBasicDerivedFrom__FP5BASIC3CID(input->object,0x38)){
   if(input->object->state==8||input->object->state==13)delta/=2;
  }
 notify:
@@ -117,7 +117,7 @@ notify:
   Notify(p->actor,3);
   W*widget=p->actor->widget;
   if(widget&&(widget->count->c||Add32(*p->counter,delta)<=0))func_00143380(p->actor);
-  func_001619A0(D_002DEB30,0xF,input->object);
+  BroadcastGameEvent(D_002DEB30,0xF,input->object);
   p->record=*input;p->record.delta=delta;func_001A15B0(p,0);
   int n=Add32(*p->counter,p->record.delta);*p->counter=n>=0?n:0;
   if(*p->counter>0){p->mode=1;p->time=D_002DDED0.time;}
@@ -126,7 +126,7 @@ notify:
    func_001A16C8(p);
    if(Z(Vector(p->actor,33))>400.0f){
     int effect=-1;
-    switch(func_00132EA0(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
+    switch(CidBasic(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
     P*actor=p->actor;void*created=func_001FBB90(effect);func_001FB2F8(created,actor);
    }
    func_001A15B0(p,&C::Reaction);break;

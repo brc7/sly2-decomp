@@ -5,7 +5,7 @@ struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char 
 struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char x9e0[0x108C-0x9E0]; int x108c; };
 struct T { char pad[0xEC]; int xec; char pad2[0x10C-0xF0]; float x10c; char pad3[0x184-0x110]; float x184; char pad4[0x19C-0x188]; int x19c; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; int x1c; float x20; };
-int func_00132B10(struct T *t, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 void func_0019FD30(void *p, void *s, float g);
 void func_0019FEB0(void *p, int a, qword q);
 qword func_001A62E8(void *p);
@@ -28,21 +28,21 @@ void func_001942F0(struct P *p)
         break;
     case 0:
     case 13:
-        if (func_00132B10(p->x14, 0xC)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0xC)) {
             if (p->x14->x19c)
                 return;
             g = p->x20;
             func_0019FD30(p->x0->x9e0, p->x18, g);
             break;
         }
-        if (func_00132B10(p->x14, 0x26)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0x26)) {
             if (p->x14->xec)
                 return;
             g = 0.0f;
             func_0019FD30(p->x0->x9e0, p->x18, g);
             break;
         }
-        if (func_00132B10(p->x14, 0x22)) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x14, 0x22)) {
             if (p->x14->xec)
                 return;
             s = p->x14->x10c;

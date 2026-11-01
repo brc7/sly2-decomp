@@ -15,5 +15,5 @@ extern M2C_UNK D_004520D0;
 extern M2C_UNK D_00452148;
 
 void func_001A6BC8(s32 arg0, s32 arg1) {
-    func_001A6BE8(arg0, arg1 + 0x40);
+    SetLoXfFromMat(arg0, arg1 + 0x40);
 }

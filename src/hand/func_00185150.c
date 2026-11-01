@@ -6,7 +6,7 @@ void func_00231768(struct S *p, void *pbis);
 int func_00117D50(void *pbis);
 void func_00117EB0(void *pbis, void *pv);
 void *func_001AE1D0(struct MSG *pmsg);
-void func_0013F810(struct S *p, void *pbis);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct S *p, void *pbis);
 static __inline__ void *PvAllocMsg(struct MSG *pmsg, int cb, int nKind) { pmsg->nKind = nKind; pmsg->cb = cb; return func_001AE1D0(pmsg); }
 void func_00185150(struct S *p, void *pbis)
 {
@@ -32,5 +32,5 @@ void func_00185150(struct S *p, void *pbis)
         p->ax2[j].b = func_00117D50(pbis);
         p->ax2[j].c = func_00117D50(pbis);
     }
-    func_0013F810(p, pbis);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
 }

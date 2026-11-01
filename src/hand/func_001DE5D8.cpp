@@ -73,8 +73,8 @@ extern qword D_002A2DF0, D_002A2E00;
 extern float D_002C3610;
 extern "C" {
 void func_001F2BA8(P *);
-void *func_0015E938(G *, int, int, P *);
-int func_00132B10(void *, int);
+void *PloFindSwObject__FP2SWi3OIDP2LO(G *, int, int, P *);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 float func_001E6648(PATH *);
 void func_001E6F10(PATH *, qword *, qword *, float);
 void *func_002333B4(void *, int, int);
@@ -113,9 +113,9 @@ extern "C" void func_001DE5D8(P *p)
             ENDPOINT *endpoint = &entry->endpoints[j];
             endpoint->kind = -1;
             if (endpoint->id != -1) {
-                void *object = func_0015E938(&D_003DD490, 1, endpoint->id, p);
+                void *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, endpoint->id, p);
                 if (object) {
-                    if (func_00132B10(object, 10)) {
+                    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 10)) {
                         PATH *path = (PATH *)object;
                         PARAMS params = endpoint->track.params;
                         int reverse = 0;
@@ -228,7 +228,7 @@ extern "C" void func_001DE5D8(P *p)
                             }
                             SetDirty(p);
                         }
-                    } else if (func_00132B10(object, 3) || func_00132B10(object, 0x30)) {
+                    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 3) || FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) {
                         endpoint->kind = 0;
                         endpoint->point = func_001A62E8(object);
                     }

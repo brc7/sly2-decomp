@@ -15,14 +15,14 @@ extern char D_003DD490[];
 extern const struct K D_002A5140;
 extern float D_002A5148;
 void func_002586D8(struct EMITTER *p);
-void func_00149A50(void *pg, struct EMITTER *p, struct K k, int n);
+void PostSwCallback(void *pg, struct EMITTER *p, struct K k, int n);
 float GRandInRange__Fff(float gMin, float gMax);
 void func_0015A150(struct EMITTER *p);
 void func_0015A138(struct EMITTER *p, float g);
-struct EMITTER *func_0015E938(void *pg, int kind, int oid, int n);
-struct EMITTER *func_0013E3C8(int cid, void *p, int oid, int n);
+struct EMITTER *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
+struct EMITTER *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
 void *func_001AE238(struct ALLOCREQ *preq, void *pv);
-void func_001A6CA8(struct EMITTER *p, int n);
+void SetLoBusyk(struct EMITTER *p, int n);
 void *func_001A6318(struct EMITTER *p);
 void AppendDlEntry__FP2DLPv(void *pv, struct EMITTER *p);
 
@@ -40,7 +40,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
 {
     func_002586D8(pemitter);
     if (pemitter->pemitb->pemito->palo)
-        func_00149A50(D_003DD490, pemitter, D_002A5140, 0);
+        PostSwCallback(D_003DD490, pemitter, D_002A5140, 0);
     if (pemitter->kind == -1) {
         if (pemitter->g104 != 0.0f || pemitter->n114)
             pemitter->kind = 3;
@@ -96,11 +96,11 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
         }
     }
     if (pemitter->oid118 != -1) {
-        struct EMITTER *pemitterNew = func_0015E938(D_003DD490, 5, pemitter->oid118, 0);
+        struct EMITTER *pemitterNew = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pemitter->oid118, 0);
         if (!pemitterNew) {
             struct VTE *pvte;
             void *pthis;
-            pemitterNew = func_0013E3C8(0x1D, 0, pemitter->oid118, -1);
+            pemitterNew = PloNew__F3CIDP2SO3OIDi(0x1D, 0, pemitter->oid118, -1);
             pemitterNew->pemitb = PvAllocCopy(0x100, pemitter->pemitb);
             pemitterNew->pemitb->n0 = 1;
             if (pemitter->pemitb->pemito->palo) {
@@ -116,7 +116,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
             pemitterNew->lm108 = pemitter->lm108;
             pemitterNew->g110 = pemitter->g110;
             pemitterNew->n114 = pemitter->n114;
-            func_001A6CA8(pemitterNew, 1);
+            SetLoBusyk(pemitterNew, 1);
             pvte = &pemitterNew->pvt[30];
             pthis = (char *)pemitterNew + pvte->delta;
             pvte->pfn(pthis, func_001A6318(pemitter));

@@ -14,7 +14,7 @@ extern char D_003DD490[];
 extern struct K D_002A8608;
 extern qword D_002A2DE0;
 void func_00203A38(struct S *p);
-void func_001A64E8(struct S *p, int n, void *pv);
+void BindLoOidTable(struct S *p, int n, void *pv);
 void func_00204DA8(struct S *p, float f);
 void func_002303A0(struct S *p, int n, int m);
 void func_002080F0(struct S *p);
@@ -22,8 +22,8 @@ void func_0020AAA8(struct S *p);
 void *func_001AE4F8(int cb);
 void func_0020CE28(void *pv, struct S *p);
 void func_0020D1B0(void *pv, struct S *p);
-void func_00149A50(void *g, struct S *p, struct K k, int n);
-struct O *func_0013E3C8(int a, int b, int c, int d);
+void PostSwCallback(void *g, struct S *p, struct K k, int n);
+struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_00170C90(struct O *po, int a, int b, float f);
 void *func_001F4C58(struct S *p, int n, int m);
 void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
@@ -32,7 +32,7 @@ void func_002061D8(struct S *p)
 {
     void *x;
     func_00203A38(p);
-    func_001A64E8(p, 1, D_002C3CF8);
+    BindLoOidTable(p, 1, D_002C3CF8);
     func_00204DA8(p, p->f260);
     func_002303A0(p, p->n58, 2);
     func_002303A0(p, p->n5C, 2);
@@ -43,8 +43,8 @@ void func_002061D8(struct S *p)
     p->p49C = func_001AE4F8(0x14);
     func_0020D1B0(p->p49C, p);
     if (!p->p3C->n24)
-        func_00149A50(D_003DD490, p, D_002A8608, 0);
-    p->p2EC = func_0013E3C8(0x71, 0, 0x2CB, -1);
+        PostSwCallback(D_003DD490, p, D_002A8608, 0);
+    p->p2EC = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
     func_00170C90(p->p2EC, -1, -1, 40.0f);
     p->n2F0 = p->p2EC->n50;
     p->p2EC->vt[9].pf((char *)p->p2EC + p->p2EC->vt[9].d);

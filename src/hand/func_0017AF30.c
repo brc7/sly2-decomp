@@ -18,7 +18,7 @@ void func_00209278(struct C *c, struct A *a, int fl, float g);
 float *func_0012F938(void *p, void *q);
 void func_00130D30(void *p, float a, float b, int n);
 void func_0017B1A8(struct S *p, int n);
-struct O *func_0015E938(struct G *g, int a, int b, int c);
+struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n);
 qword func_001A62E8(struct A *a);
 void func_00156698(void *p, qword v, struct A *a);
@@ -54,7 +54,7 @@ int func_0017AF30(struct S *p, int msg, struct M *pm) {
             }
             func_00130D30(p->p40->p8, g, 1.0f, 0);
             func_0017B1A8(p, 0);
-            o = func_0015E938(&D_003DD490, 5, D_002BE6E8[i], 0);
+            o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
                 struct X x;
                 struct VTE *e;

@@ -6,8 +6,8 @@ struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *p10DC
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
 int func_00209A68(struct O *po, int n);
-int func_001C4660(void *pl, int k, float g);
-int func_001C46C0(void *pl, int k, float g);
+int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
+int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
 struct S *func_001EEEE0(void *p, int n);
 qword func_001A62E8(void *p);
 int func_0011D910(void *p, float g);
@@ -32,7 +32,7 @@ int func_001B70A0(struct P *p)
     struct S *ps;
     if (!p->p10DC)
         return 0;
-    if (!func_00209A68(p->p10DC, 0x17) || !func_001C4660(p->pl, 0xA0, 0.15f))
+    if (!func_00209A68(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
         goto ret0;
     ps = func_001EEEE0(p->p10DC->x26C, 0xB1);
     if (ps->x50 >= 3)
@@ -48,7 +48,7 @@ int func_001B70A0(struct P *p)
             __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
             u.q = d;
             if (LenXY(d) < D_002C09AC && func_0011D910(D_002C09B0, GetZ(d)) && p->p10DC->xFEC)
-                f = func_001C46C0(p->pl, 0x20, 0.15f) != 0;
+                f = GrfConsumePressed__5POCTLUif(p->pl, 0x20, 0.15f) != 0;
             if (f) {
                 func_0017B1A8(ps, 2);
                 func_001B7050(p, p->p10DC->xFEC);
@@ -57,7 +57,7 @@ int func_001B70A0(struct P *p)
             d = u.q;
             g = 0;
             if (LenXY(d) < D_002C09B8 && func_0011D910(D_002C09C0, GetZ(d)) && p->x180C)
-                g = func_001C46C0(p->pl, 0x80, 0.15f) != 0;
+                g = GrfConsumePressed__5POCTLUif(p->pl, 0x80, 0.15f) != 0;
     if (!g)
         goto ret0;
     }

@@ -5,8 +5,8 @@ struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 struct S { char pad[0x3D1C]; struct G *first; };
 void *func_001AE318(struct MSG *pmsg);
-void func_00133E30(struct S *p);
-void func_00133E80(struct S *p);
+void FlushSwBoundsUpdates(struct S *p);
+void UpdateSwAaox(struct S *p);
 
 void func_0020FAA0(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
@@ -23,8 +23,8 @@ void func_0020FAA0(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *)
     }
     c = 0;
     ap = func_001AE318(&msg);
-    func_00133E30(p);
-    func_00133E80(p);
+    FlushSwBoundsUpdates(p);
+    UpdateSwAaox(p);
     for (g = p->first; g; g = g->next) {
         struct O *o;
         if (g->mn[0] > mx.f[0] || g->mx[0] < mn.f[0] ||

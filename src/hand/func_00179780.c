@@ -7,13 +7,13 @@ struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; struct E *p40; char pa
 extern char D_002DEB30[];
 int func_001F78A0(void *p);
 void func_00179328(struct S *p);
-void func_001619A0(void *g, int n, void *p);
+void BroadcastGameEvent(void *g, int n, void *p);
 void func_00154038(void *p, int a, int b);
 void func_00179780(struct S *p) {
     p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;
     func_00179328(p);
-    func_001619A0(D_002DEB30, 0x15, p->pt);
+    BroadcastGameEvent(D_002DEB30, 0x15, p->pt);
     func_00154038(((struct T2 *)p->pt)->pF64, p->n50, 2);
     { struct O *o = ((struct T2 *)p->pt)->pFEC; if (o) { struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); } }
 }

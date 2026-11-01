@@ -31,7 +31,7 @@ float RadNormalize__Ff(float);
 qword SetVectorCylind(float,float,float);
 qword func_0022FCC8(FRAME *,FRAME *,qword);
 float func_0011D948(const LIMITS *,float);
-void func_0012D108(void *,qword);
+void SetActPositionGoal(void *,qword);
 float func_0011D2D0(float,float,float,void *,float *);
 qword func_001A62E8(P *);
 int func_0011D4D0(float,float,float);
@@ -118,7 +118,7 @@ extern "C" void func_001D19A8(P *p)
             float orientation=func_002458F0(Y(direction),X(direction));
             scalar.q=Pack(0.0f,0.0f,func_0011D948(limits,orientation));
             limits=(LIMITS*)((char*)limits+sizeof(SIDE));
-            func_0012D108(side->binding,scalar.q);
+            SetActPositionGoal(side->binding,scalar.q);
             ++side;
         }while(i<p->sideCount);
     }
@@ -189,7 +189,7 @@ extern "C" void func_001D19A8(P *p)
             {register void*binding __asm__("$4");float angle;
             asm("lwc1 %0,%2\n\tlw %1,%3":"=f"(angle),"=r"(binding):"m"(attach->angle),"m"(attach->meshBinding));
             scalar.q=PackMesh(0.0f,-angle,0.0f);
-            func_0012D108(binding,scalar.q);}
+            SetActPositionGoal(binding,scalar.q);}
         aim_next:
             ++i;
         }while(i<p->attachCount);

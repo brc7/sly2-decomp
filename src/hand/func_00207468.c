@@ -3,7 +3,7 @@ struct T { char pad[0x14]; int n14; };
 struct A { char pad[0x200]; struct T *pt; };
 struct Q { struct A *pa; int pad[2]; int nC; };
 struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char x26C[4]; };
-int func_00132B10(struct A *pa, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
 int func_001F7588(struct S *p, struct Q *q);
 void func_001EED78(void *p, int k, struct Q *q);
 int func_00207468(struct S *p, struct Q *q)
@@ -11,7 +11,7 @@ int func_00207468(struct S *p, struct Q *q)
     if (!((int (*)(void *))p->vt[86].pfn)((char *)p + p->vt[86].d)) {
         if (((int (*)(void *, int))p->vt[76].pfn)((char *)p + p->vt[76].d, q->nC))
             return 1;
-        if (q->pa && func_00132B10(q->pa, 0x4F) && q->pa->pt->n14 == p->n14)
+        if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, 0x4F) && q->pa->pt->n14 == p->n14)
             return 1;
         if (!func_001F7588(p, q))
             return 0;

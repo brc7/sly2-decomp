@@ -14,11 +14,11 @@ struct A {
 struct S { char pad[0x10]; struct A *p10; char pad2[0x2C]; int *p40; char pad3[0xC]; void *p50; char pad4[8]; int mask5C; };
 int func_001F78A0(int mask);
 void func_00179328(struct S *p);
-void *func_001C4840(struct G *g);
-void func_001619A0(void *a, int n, struct A *p);
-qword func_001A6F00(struct A *source, void *target, qword v);
+void *PpoHero(struct G *g);
+void BroadcastGameEvent(void *a, int n, struct A *p);
+qword ConvertAloPos(struct A *source, void *target, qword v);
 void func_00154E10(void *a, qword v, int n, int m, struct A *p);
-void func_00134320(struct G *g, struct A *p);
+void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
 void func_00153FF8(void *p);
 static inline int Count(struct A *a) {
     int n, i;
@@ -43,20 +43,20 @@ void func_00179898(struct S *p) {
     a = p->p10;
     if (a->n330 == 0) {
         a->n330 = 1;
-        if (p->p50 == func_001C4840(&D_003DD490))
-            func_001619A0(D_002DEB30, 0x18, p->p10);
+        if (p->p50 == PpoHero(&D_003DD490))
+            BroadcastGameEvent(D_002DEB30, 0x18, p->p10);
         else
-            func_001619A0(D_002DEB30, 0x17, p->p10);
+            BroadcastGameEvent(D_002DEB30, 0x17, p->p10);
         n = Count(p->p10);
         {
             qword q = p->p10->v3E0;
             qword v;
             /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
             __asm__ __volatile__("" ::: "memory");
-            v = func_001A6F00(p->p10, 0, q);
+            v = ConvertAloPos(p->p10, 0, q);
             func_00154E10(D_002DE578, v, n, p->p10->n3F0, p->p10);
         }
-        func_00134320(&D_003DD490, p->p10);
+        RecalcSwOxfFilterForObject(&D_003DD490, p->p10);
         func_00153FF8(p->p10->pF64);
     }
 }

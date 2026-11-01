@@ -18,14 +18,14 @@ extern CLOCK D_002DDED0;
 extern float D_002BD460;
 extern float D_002BD468[2];
 extern float D_002BD470, D_002BD474, D_002BD478, D_002BD47C;
-PSO *func_001C4840(G *pg);
+PSO *PpoHero(G *pg);
 qword func_001A62E8(void *p);
 float GRandInRange__Fff(float a, float b);
 int func_0020F0B0(G *pg);
-int func_00132B10(PSO *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(PSO *p, int n);
 void func_00208540(W *pw, void *p);
 int func_001BBE48(SO *p);
-int func_0015E9C8(G *pg, int a, int b, void *c, int d, SO **apso);
+int CploFindSwObjectsByClass(G *pg, int a, int b, void *c, int d, SO **apso);
 int NRandInRange__Fii(int a, int b);
 qword SetVectorSphere(float a, float b, float c);
 float RadBetweenVectors(qword a, qword b, void *p);
@@ -76,7 +76,7 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 void func_0014A4D0(P *p)
 {
     G *pg = &D_003DD490;
-    PSO *pso = func_001C4840(pg);
+    PSO *pso = PpoHero(pg);
     qword posPlayer = func_001A62E8(pso);
     qword posMe = func_001A62E8(p->pw);
     qword d = Sub(posPlayer, posMe);
@@ -90,7 +90,7 @@ void func_0014A4D0(P *p)
         p->t48 = D_002DDED0.t;
     float dt = D_002DDED0.t - p->t48;
     if (GRandInRange__Fff(D_002BD468[0], D_002BD468[1]) < dt && !func_0020F0B0(pg)) {
-        if (func_00132B10(pso, 0x34) && pso->x2DC == 0x11) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x2DC == 0x11) {
             PATH *ppath = pso->ppath;
             pos = func_001A62E8(pso);
             int c = ppath->c;
@@ -112,7 +112,7 @@ void func_0014A4D0(P *p)
                 posT = ps->pxEC->pos;
                 r = ps->pxEC->g30;
             }
-            int c = func_0015E9C8(&D_003DD490, 1, 0x12, ps, 8, apso);
+            int c = CploFindSwObjectsByClass(&D_003DD490, 1, 0x12, ps, 8, apso);
             int k = 0;
             for (int i = 0; i < c; i++) {
                 if (apso[i]->grfE8 & 0x17E)

@@ -9,9 +9,9 @@ struct S { char pad[0xE0]; int c; struct O **apo; };
 void func_001AE478(struct C *);
 void func_001AE4A0(struct C *, int);
 void func_00231170(struct S *p, void *q);
-void func_0013F888(struct DA *pda);
+void CLoadCollectorArray_ctor(struct DA *pda);
 void func_002317E0(struct S *p, void *q, struct DA *pda);
-int func_00132B10(void *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void func_0015C1E8(struct S *p, void *q)
 {
     struct C ctx;
@@ -20,13 +20,13 @@ void func_0015C1E8(struct S *p, void *q)
     int i;
     func_00231170(p, q);
     func_001AE478(&ctx);
-    func_0013F888(&da);
+    CLoadCollectorArray_ctor(&da);
     func_002317E0(p, q, &da);
     p->apo = PvAllocMsg(&msg, da.c * 4, 0x10);
     for (i = 0; i < da.c; i++) {
         struct O *o = da.a[i];
         o->fl |= 0x200000000000000L;
-        if (!func_00132B10(o, 0x1E)) {
+        if (!FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x1E)) {
             struct VTE *e = &o->vt[9];
             e->pfn((char *)o + e->d);
         } else {

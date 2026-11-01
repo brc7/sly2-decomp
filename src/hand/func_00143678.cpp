@@ -34,7 +34,7 @@ S *func_00143AF0(LO *p, int n);
 int func_00210A88(void);
 BL *func_002109B8(int);
 int func_00233178(const void *a, const void *b, int n);
-int func_0015E9C8(void *p, int a, int b, int c, int d, SO **apso);
+int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int func_0021ECD8(char *, const char *, ...);
 CRef func_00258200(void *p, const CRef &ref, G *pv);
 }
@@ -99,7 +99,7 @@ extern "C" void func_00143678(LO *p, int n, Q *q)
             if (pb->c >= 4 && func_00233178(ps->pk, pb->pv, 8) == 0) f = 1;
             if (f) {
                 SO *apso[15];
-                int c = func_0015E9C8(D_003DD490, 5, 0x25, 0, 0xF, apso);
+                int c = CploFindSwObjectsByClass(D_003DD490, 5, 0x25, 0, 0xF, apso);
                 for (int j = 0; j < c; j++) {
                     if (apso[j]->x180 == ps->pk->xC) {
                         p->p11A8->p15C = apso[j];

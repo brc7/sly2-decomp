@@ -14,7 +14,7 @@ struct P {
 };
 extern char D_002BC9F0[];
 void func_00203A38(struct P *);
-void func_001A64E8(struct P *, int, void *);
+void BindLoOidTable(struct P *, int, void *);
 void func_001959C0(void *);
 void func_001910F8(void *);
 void func_0019F3F0(void *);
@@ -22,7 +22,7 @@ void func_001A1098(void *);
 void func_0019CC30(void *);
 void func_0021F388(void *);
 void func_0019DE58(void *);
-int func_0015E650(struct G *, int, int, struct P *, int, void **);
+int CploFindSwObjects_15E650(struct G *, int, int, struct P *, int, void **);
 void *func_001AE2A0(struct AREQ *);
 void func_00141EF8(struct P *);
 void func_001440D0(struct P *, int);
@@ -31,7 +31,7 @@ void func_001F35C8(struct P *, float);
 qword func_001A62E8(struct P *);
 struct M3 *func_001A6318(struct P *);
 void *func_002333B4(void *, int, int);
-void func_00149A50(struct G *, struct P *, struct K, int);
+void PostSwCallback(struct G *, struct P *, struct K, int);
 
 void func_001400B8(struct P *p)
 {
@@ -40,7 +40,7 @@ void func_001400B8(struct P *p)
     int i;
 
     func_00203A38(p);
-    func_001A64E8(p, 0x35, D_002BC9F0);
+    BindLoOidTable(p, 0x35, D_002BC9F0);
     func_001959C0((char *)p + 0x2C0);
     func_001910F8((char *)p + 0x4C0);
     func_0019F3F0((char *)p + 0x9E0);
@@ -48,7 +48,7 @@ void func_001400B8(struct P *p)
     func_0019CC30((char *)p + 0xF00);
     func_0021F388((char *)p + 0x11B0);
     func_0019DE58((char *)p + 0xF50);
-    c = func_0015E650(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
+    c = CploFindSwObjects_15E650(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
     if (c) {
         struct AREQ req;
         struct AREQ *preq = &req;
@@ -98,5 +98,5 @@ void func_001400B8(struct P *p)
             ((void (*)(void *, struct M3 *))e->pfn)((char *)p + e->d, &m);
         }
     }
-    func_00149A50(&D_003DD490, p, D_002A4D10, 0);
+    PostSwCallback(&D_003DD490, p, D_002A4D10, 0);
 }

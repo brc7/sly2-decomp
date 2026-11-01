@@ -7,8 +7,8 @@ struct A { char pad[0xC]; struct VTE *vt; char pad2[0xFBC - 0x10]; int nFBC; cha
 struct S { char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; };
 struct F { int a; int pad[3]; void *p10; float f14; int rest[0x16]; };
 void *func_002333B4(void *p, int c, int n);
-int func_00132B10(struct A *p, int n);
-void *func_001C4840(struct G *g);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
+void *PpoHero(struct G *g);
 int func_00177D20(struct S *p);
 int func_00177D70(struct S *p);
 int func_00208B38(struct A *p, void *q);
@@ -19,12 +19,12 @@ void func_00176750(struct S *p, struct F *f);
 void func_00177BA0(struct S *p) {
     struct F f;
     func_002333B4(&f, 0, sizeof f);
-    if (func_00132B10(p->p10, 0x3B) && p->p10->n1010 > 0) {
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p10, 0x3B) && p->p10->n1010 > 0) {
         f.a = 0xD;
-        f.p10 = func_001C4840(&D_003DD490);
+        f.p10 = PpoHero(&D_003DD490);
     } else if (p->p10->nFBC == 0x15) {
         f.a = 0x12;
-        f.p10 = func_001C4840(&D_003DD490);
+        f.p10 = PpoHero(&D_003DD490);
         f.f14 = D_002A54D0;
     } else if (func_00177D20(p)) {
         f.a = 0xC;

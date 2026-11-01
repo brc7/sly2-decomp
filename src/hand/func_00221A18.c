@@ -12,8 +12,8 @@ extern float D_002C41DC;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void func_0014FCC8(struct S *p, void *pj, struct T *pt);
-int func_00132B10(void *pj, int k);
-int func_0015E988(int a, int b);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *pj, int k);
+int FIsCidDerivedFrom(int a, int b);
 void func_00220D40(void *pe);
 void func_0014E968(struct G *pg, void *pj, void *pq);
 void func_00220DD8(void *pe, void *pa, qword *pb, struct T *pt);
@@ -39,7 +39,7 @@ void func_00221A18(struct S *p, void *pj, struct T *pt)
         int i;
         for (i = 1; i < p->pt->x110; i++) {
             struct E *peT = &p->pt->ae[i];
-            if (func_00132B10(pj, peT->x0) && func_0015E988(peT->x0, pe->x0))
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(pj, peT->x0) && FIsCidDerivedFrom(peT->x0, pe->x0))
                 pe = peT;
         }
         p->pe = pe;

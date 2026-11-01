@@ -12,7 +12,7 @@ struct E { int pad[2]; void *x8; };
 struct Q { char pad[0xF0]; float *xF0; qword *xF4; };
 struct O { char pad[0x50]; int x50; int x54; struct E *x58; struct Q *x5C; };
 struct P { char pad[0x38]; struct O *p38; };
-void *func_001C4840(void *);
+void *PpoHero(void *);
 qword func_001A62E8(void *);
 void func_001E6F60(struct Q *, qword, int, int, int, int, float *);
 int func_0011D910(struct RANGE *, float);
@@ -31,7 +31,7 @@ int func_0014AA30(struct P *p)
     int iBest = -1;
     int i = 0;
     float ag[1];
-    void *pv = func_001C4840(D_003DD490);
+    void *pv = PpoHero(D_003DD490);
     float gBest = -1.0f;
     func_001E6F60(p->p38->x5C, func_001A62E8(pv), 0, 0, 0, 0, ag);
     for (; i < p->p38->x54; i++) {

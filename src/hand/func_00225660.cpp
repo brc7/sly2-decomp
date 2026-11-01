@@ -14,12 +14,12 @@ extern float D_002C43F4;
 extern "C" void func_00229738(struct O *po, struct N *node);
 extern "C" void *func_00205458(struct O *po, int k);
 extern "C" void func_0017A8C8(void *pv, int k);
-extern "C" void func_0012D108(void *pv, qword q);
+extern "C" void SetActPositionGoal(void *pv, qword q);
 extern "C" void func_00224EC8(struct P *p, int k);
 extern "C" qword func_001A62E8(void *p);
 extern "C" qword SourcePosition(void * source) __asm__("func_001A62E8");
 
-extern "C" int func_0015E9C8(struct G *pg, int a, int b, int c, int cMax, struct O **apo);
+extern "C" int CploFindSwObjectsByClass(struct G *pg, int a, int b, int c, int cMax, struct O **apo);
 extern "C" int func_00206EB0(struct O *po, int k);
 extern "C" void func_00229710(struct O *po, struct N *node);
 extern "C" void func_00209E28(struct O *po, int k);
@@ -59,7 +59,7 @@ extern "C" void func_00225660(struct P *p, int k)
         if (pv)
             func_0017A8C8(pv, 2);
         if (p->po->xFC4)
-            func_0012D108(p->po->xFC4, D_002A2DE0);
+            SetActPositionGoal(p->po->xFC4, D_002A2DE0);
         p->po = 0;
     }
     func_00224EC8(p, k);
@@ -70,7 +70,7 @@ extern "C" void func_00225660(struct P *p, int k)
         float gBest;
         struct O *poBest;
         Vec pos(p->x1B0?SourcePosition(p->x1B0):func_001A62E8(p));
-        c = func_0015E9C8(&D_003DD490, 0x105, 0x38, 0, 0x20, apo);
+        c = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, apo);
         gBest = 400.0f;
         poBest = 0;
         for (i = 0; i < c; i++) {

@@ -19,7 +19,7 @@ void func_0014FE28(void *);
 void *func_001FE5F0(void *,int,int);
 void func_00147C20(void *,int,int);
 void func_002036E8(ACTOR *,int);
-void func_001619A0(void *,int,void *);
+void BroadcastGameEvent(void *,int,void *);
 int func_002022D8(P *);
 void func_002022A0(P *);
 void func_00201E88(P *);
@@ -90,7 +90,7 @@ extern "C" void func_00202768(P *p,int nextState)
             func_00147C20(p->resource,0x608,p->actor->key);
         }
         func_002036E8(p->actor,1);
-        func_001619A0(D_002DEB30,10,0);
+        BroadcastGameEvent(D_002DEB30,10,0);
         p->actor=0;
         if(func_002022D8(p)){
             func_00213B00(p->primary,0x35D);
@@ -108,7 +108,7 @@ extern "C" void func_00202768(P *p,int nextState)
         Post(p->primary,-1);
         func_00201E88(p);
         func_00201F90(p);
-        func_001619A0(D_002DEB30,9,0);
+        BroadcastGameEvent(D_002DEB30,9,0);
         break;
     case 1:
         func_00213928(p->primary,0x35D);
@@ -172,11 +172,11 @@ extern "C" void func_00202768(P *p,int nextState)
         Clear(p->secondary);
         Clear(p->primary);
         func_00201F00(p);
-        func_001619A0(D_002DEB30,11,0);
+        BroadcastGameEvent(D_002DEB30,11,0);
         break;
     case -1:
         if(previous!=10){
-            func_001619A0(D_002DEB30,11,0);
+            BroadcastGameEvent(D_002DEB30,11,0);
             if(p->primary->shown){func_00212A70(p->primary,1);func_00212A50(p->primary,1);}
             if(p->secondary->shown){func_00212A70(p->secondary,1);func_00212A50(p->secondary,1);}
         }

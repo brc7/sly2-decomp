@@ -11,7 +11,7 @@ typedef struct {
     float t;
     int x74;
 } OBJ;
-void func_001A5E28(OBJ *);
+void UpdateLo(OBJ *);
 void func_001E1C40(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void func_001DFEB8(OBJ *);
@@ -34,7 +34,7 @@ void func_001DFC50(OBJ *p)
     DLI dli;
     void *pv;
     unsigned int fl;
-    func_001A5E28(p);
+    UpdateLo(p);
     if (p->x74 == 0)
         return;
     fl = p->x40;

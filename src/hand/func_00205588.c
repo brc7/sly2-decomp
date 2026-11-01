@@ -2,7 +2,7 @@ extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
 int func_001FD0C0(void *p, int i);
-void *func_0015E938(void *p, int a, int b, struct S *ps);
+void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *func_001F03C8(void *x, struct S *ps);
 void func_001F0598(void *y);
 void func_00205588(struct S *p, int mask)
@@ -16,7 +16,7 @@ void func_00205588(struct S *p, int mask)
             if (p->a[i] != 0) {
                 if (--p->a[i] <= 0) {
                     int id = func_001FD0C0(D_003DD040, i);
-                    void *x = func_0015E938(D_003DD490, 4, id, p);
+                    void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, p);
                     if (x) {
                         void *y = func_001F03C8(x, p);
                         if (y)

@@ -8,7 +8,7 @@ int func_001F0638(struct P *);
 struct A *func_001F0CF0(struct G *, int, int, int);
 struct A *func_001F0B80(struct G *, int, int, int, int);
 void func_0012F9B8(struct T *, int, float, float, int, struct ANIMATION **);
-void func_001333C0(struct ANIMATION *, struct P *);
+void SubscribeLoObject(struct ANIMATION *, struct P *);
 void func_00130B18(struct ANIMATION *);
 void func_001F13A8(struct P *, int, int);
 static inline struct P *Receiver(struct P *p){register struct P *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
@@ -71,7 +71,7 @@ apply:
                 pArgument=Receiver(p);
             }else{
                 int old;
-                if(!fl){func_001333C0(p->n30,p);return;}
+                if(!fl){SubscribeLoObject(p->n30,p);return;}
                 fl=p->n38;
                 old=p->n34;
                 p->n34=fl;

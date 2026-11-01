@@ -7,7 +7,7 @@ struct S { char pad[0x234]; LM lm; int c; float ag[16]; float g280; float g284; 
 float func_00154C90(void *p);
 float GLimitLm__FP2LMf(LM *plm, float g);
 float func_00153760(struct S *p);
-void func_001619A0(void *p, int n, void *q);
+void BroadcastGameEvent(void *p, int n, void *q);
 void *func_002332B8(void *dst, void *src, int cb);
 static inline float GClampLm(LM *plm, float g)
 {
@@ -48,5 +48,5 @@ void func_00153640(struct S *p, int a, int b, float g)
     }
     *pg = GLimitLm__FP2LMf(&p->lm, g);
     p->g284 = func_00153760(p);
-    func_001619A0(D_002DEB30, 0x36, p);
+    BroadcastGameEvent(D_002DEB30, 0x36, p);
 }

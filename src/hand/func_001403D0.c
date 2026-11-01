@@ -15,8 +15,8 @@ extern char D_002DE2E0[];
 extern char D_003DA0F0[];
 void func_00203FC0(struct P *p);
 void func_00141A50(struct P *p);
-int func_001C46C0(struct Q *q, float g, int n);
-int func_001C4660(struct Q *q, float g, int n);
+int GrfConsumePressed__5POCTLUif(struct Q *q, float g, int n);
+int GrfPressedWithin__5POCTLUif(struct Q *q, float g, int n);
 void func_00140338(struct P *p);
 void func_00144640(int *pl);
 int func_001449C8(int *pl);
@@ -36,7 +36,7 @@ void func_001403D0(struct P *p)
     int *pl;
     func_00203FC0(p);
     func_00141A50(p);
-    if (func_001C46C0(p->x150, 0.0f, 0x200))
+    if (GrfConsumePressed__5POCTLUif(p->x150, 0.0f, 0x200))
         func_00140338(p);
     pl = &p->xFD0;
     if (p->xDF4 == -1) {
@@ -57,7 +57,7 @@ void func_001403D0(struct P *p)
     func_00142AF8(p);
     if (p->xEFC && func_00131968(p->xEFC))
         func_001306A8(&p->xEFC);
-    if (!func_0014FD50(D_002DE2E0) && p->x150->x80 == 1 && func_001C4660(p->x150, 0.0f, 0x100)) {
+    if (!func_0014FD50(D_002DE2E0) && p->x150->x80 == 1 && GrfPressedWithin__5POCTLUif(p->x150, 0.0f, 0x100)) {
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & 0x108) == 0x100) {
             func_00187DE0(pg, 0x100);

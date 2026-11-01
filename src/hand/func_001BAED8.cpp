@@ -5,10 +5,10 @@ struct S {
 struct G;
 extern G D_003DD490;
 typedef void (S::*PMF)();
-extern "C" void func_00149AB8(G *, S *, PMF, int);
+extern "C" void EnsureSwCallback(G *, S *, PMF, int);
 extern "C" void func_001BAED8(S *p, int a, int b)
 {
     p->b = b;
     p->a = a;
-    func_00149AB8(&D_003DD490, p, &S::Action, 0);
+    EnsureSwCallback(&D_003DD490, p, &S::Action, 0);
 }

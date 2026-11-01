@@ -10,7 +10,7 @@ extern char D_002DE578[];
 extern char D_003DD490[];
 extern float func_00154C90(void *p);
 extern int NRandInRange__Fii(int a, int b);
-extern int func_00132B10(void *p, int k);
+extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 extern void func_001C6FD8(void *p, int k, qword q, void *pv, int n);
 static inline int NLerp(float g, int a, int b)
 {
@@ -33,7 +33,7 @@ void func_00154E10(S *p, qword q, int n, int dn, void *pv)
         p->x4 = NRandInRange__Fii(a, b);
     }
     {
-        int d = func_00132B10(pv, 0x38) ? -2 : -1;
+        int d = FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x38) ? -2 : -1;
         p->x0 += d;
         p->x4 += dn;
     }

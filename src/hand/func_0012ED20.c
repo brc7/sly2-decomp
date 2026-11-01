@@ -1,7 +1,7 @@
 typedef struct REC { int id; float a, b, c, d; } REC;
 typedef struct H { void *p; } H;
 typedef struct T { char pad[0xE4]; int c; REC *arec; H *ap; } T;
-void func_001A6178(T *t);
+void OnLoAdd(T *t);
 void *func_001FBB90(int id);
 void func_001FB2F8(void *p, T *t);
 void func_001FB4F0(void *p, float a, float b);
@@ -11,7 +11,7 @@ void func_00258040(H *pp, void *p);
 void func_0012ED20(T *t)
 {
     int i;
-    func_001A6178(t);
+    OnLoAdd(t);
     for (i = 0; i < t->c; i++) {
         REC *prec = &t->arec[i];
         void *p = func_001FBB90(prec->id);

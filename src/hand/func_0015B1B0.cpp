@@ -49,7 +49,7 @@ extern "C" {
 extern char D_003DD490[];
 SO *func_001CDCD0(void *p, int n);
 void func_001CDE70(SO *pso, EMITTER *pemit);
-void func_001333C0(SO *pso, void *p);
+void SubscribeLoObject(SO *pso, void *p);
 PART *func_001CE888(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
 void func_0015BF40(void *p, EMITTER *pemit);
@@ -71,7 +71,7 @@ extern "C" void func_0015B1B0(EMITTER *pemit, EMITX *px, int c, qword *apos, qwo
             *px->ppso = pso;
         func_001CDE70(pso, pemit);
         if (px && px->p8)
-            func_001333C0(pso, px->p8);
+            SubscribeLoObject(pso, px->p8);
     }
     if (!pso)
         return;

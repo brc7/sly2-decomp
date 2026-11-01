@@ -9,7 +9,7 @@ struct CRef {
 };
 extern "C" {
 CRef func_00201360(int c, void *aref, int *ak, int *an);
-int func_00132B10(void *p, int n);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
 }
 CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref)
@@ -17,6 +17,6 @@ CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref)
     int k = 7;
     int n;
     CRef ref = func_00201360(1, aref, &k, &n);
-    ref = func_00132B10(p, n) != 0;
+    ref = FIsBasicDerivedFrom__FP5BASIC3CID(p, n) != 0;
     return ref;
 }

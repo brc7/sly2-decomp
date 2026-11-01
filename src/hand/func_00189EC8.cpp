@@ -5,7 +5,7 @@ struct M { char pad[0x4]; int x4; char pad1[0x10 - 0x8]; qword v10; char pad2[0x
     char pad3[0x08]; float g48; };
 struct O { char pad[0xEC]; int xEC; char pad1[0x208 - 0xF0]; int x208; };
 extern "C" {
-qword func_001A6F00(void *p, void *q, qword v);
+qword ConvertAloPos(void *p, void *q, qword v);
 void func_0020FAA0(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
 int func_0014CC58(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void func_0012DA30(void *p, qword v);
@@ -26,15 +26,15 @@ int func_00189EC8(O *p, M *pm, void *px)
         union { qword q; } u;
         int n0, n1;
         qword a, b, c;
-        a = func_001A6F00(p, 0, pm->v30);
-        b = func_001A6F00(p, 0, pm->v40);
-        c = func_001A6F00(p, 0, pm->v50);
+        a = ConvertAloPos(p, 0, pm->v30);
+        b = ConvertAloPos(p, 0, pm->v40);
+        c = ConvertAloPos(p, 0, pm->v50);
         func_0020FAA0(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)func_0020F948, p->xEC, &n0, &n1);
         if ((func_0014CC58(0, a, b, n0, n1, &hit) || func_0014CC58(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
             hit.v0 = VSub(hit.v0, D_002A2DC0);
-            w = func_001A6F00(0, p, hit.v0);
+            w = ConvertAloPos(0, p, hit.v0);
             u.q = w;
             func_0012DA30(px, VSub(w, pm->v10));
             return 1;

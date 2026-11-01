@@ -9,7 +9,7 @@ int func_00131968(void *pv);
 void func_00136040(struct P *p, int n);
 void func_00224258(struct O *po, int n);
 int func_00141EA8(struct P *p, int n);
-int func_001C4728(void *pv, int n);
+int POCTL_FButtonDown(void *pv, int n);
 void func_00136298(struct P *p);
 void func_00195A00(void *pv, int a, int b, int c);
 void func_00136118(struct P *p)
@@ -29,7 +29,7 @@ void func_00136118(struct P *p)
                 func_00224258(po, po->x1A0);
                 goto common;
             }
-            if (po->x158 == 4 || !func_001C4728(p->p150, func_00141EA8(p, p->pq->x0) | 0x10)) {
+            if (po->x158 == 4 || !POCTL_FButtonDown(p->p150, func_00141EA8(p, p->pq->x0) | 0x10)) {
                 ((void (*)(void *, int))po->vt[76].pfn)((char *)po + po->vt[76].d, 1);
             common:
                 func_00136298(p);

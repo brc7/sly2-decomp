@@ -5,8 +5,8 @@ struct P { char pad[0xC]; struct VTE *vt; char pad1[0x150 - 0x10]; int x150; int
 struct G { char pad[0x3B0C]; int x3B0C; };
 extern struct G D_003DD490;
 void func_001F36E0(struct P *p);
-struct J *func_001C4840(struct G *pg);
-int func_00132B10(struct J *pj, int k);
+struct J *PpoHero(struct G *pg);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct J *pj, int k);
 qword func_001A62E8(void *p);
 static __inline__ float GDist(qword a, qword b)
 {
@@ -29,14 +29,14 @@ void func_0022A060(struct P *p)
     int f;
     float r;
     func_001F36E0(p);
-    pj = func_001C4840(&D_003DD490);
-    if (pj && func_00132B10(pj, p->x154)) {
+    pj = PpoHero(&D_003DD490);
+    if (pj && FIsBasicDerivedFrom__FP5BASIC3CID(pj, p->x154)) {
         r = p->x164 ? p->g15C : p->g158;
         f = GDist(func_001A62E8(pj), func_001A62E8(p)) < r;
     } else f = 0;
     if ((p->x150 == 0 || p->x150 == 2) && D_003DD490.x3B0C)
         f = 0;
-    if (f && func_00132B10(pj, 0x34) &&
+    if (f && FIsBasicDerivedFrom__FP5BASIC3CID(pj, 0x34) &&
         (pj->x2DC != -1 || ((int (*)(void *))pj->vt[77].pfn)((char *)pj + pj->vt[77].d) == 2))
         f = p->x164;
     if (f != p->x164) {

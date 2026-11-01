@@ -1,11 +1,11 @@
 struct S { char pad[0x200]; float g200; char p1[0x10]; float g214; char p2[8]; float g220; char p3[0x3C]; float g260; int n264; char p4[4]; char x26C[4]; };
-void func_001C3D70(struct S *p);
+void InitPo(struct S *p);
 void func_00204D48(struct S *p, float g);
 void func_00204660(struct S *p, float g);
 void func_001EEC60(void *pv, struct S *p);
 void func_00203948(struct S *p)
 {
-    func_001C3D70(p);
+    InitPo(p);
     p->n264 = -1;
     p->g260 = 1.0f;
     p->g200 = 1.0f;

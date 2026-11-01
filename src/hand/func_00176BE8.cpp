@@ -36,8 +36,8 @@ extern CLOCK D_002DDED0;extern float D_002BE620;
 void*func_002333B4(void*,int,unsigned);
 void func_00176750(S*,STATE*);
 qword func_001A62E8(void*);M4*func_001A6318(void*);
-qword func_001A6FC0(void*,void*,qword);
-int func_00132B10(void*,int);
+qword ConvertAloVec(void*,void*,qword);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void func_001B9DB8(OBJECT*,qword);
 void func_001B9D28(OBJECT*,qword);
 OBJECT*func_00156698(void*,qword,OBJECT*);
@@ -130,7 +130,7 @@ extern "C" int func_00176BE8(S*p,int event,MSG*msg){
   void*context=msg->data.kind==0x40000?D_003E14BC:D_003E14B0;
   qword position=func_001A62E8(p->actor);(void)func_00156698(context,position,p->actor);
  }
- if(Below(p->current.kind,11)&&!Below(p->current.kind,8)&&func_00132B10(msg->data.object,0x65)&&(originalFlags&0xB0))flags=originalFlags|0x40;
+ if(Below(p->current.kind,11)&&!Below(p->current.kind,8)&&FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object,0x65)&&(originalFlags&0xB0))flags=originalFlags|0x40;
  if(func_0020A298(p->actor,msg->data.object,func_00207A20(0x17)))flags|=0x80;
  if(flags&0x40)flags&=~0xB0;
  if(flags&0xA0)flags&=~0x10;
@@ -158,7 +158,7 @@ extern "C" int func_00176BE8(S*p,int event,MSG*msg){
  }
  if(flags&0x40){w.next.kind=11;w.next.msg=*selected;selected=&w.next.msg;}
  if(flags&0xE0){
-  if(func_00132B10(selected->data.object,0x34)){
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object,0x34)){
    qword own=func_001A62E8(p->actor);OBJECT*otherObject=selected->data.object;w.own.q=own;w.other.q=func_001A62E8(otherObject);
    qword scalar=Raw(-150.0f);w.copy.q=scalar;OBJECT*frameObject=selected->data.object;w.scalar.q=scalar;
    M4*frame=func_001A6318(frameObject);
@@ -173,17 +173,17 @@ extern "C" int func_00176BE8(S*p,int event,MSG*msg){
       :"=&j"(axis),"=&j"(origin),"=&j"(delta),"=&r"(receiver),"=&r"(queryKind)
       :"m"(frame->r[0]),"m"(inputs),"m"(selected->data.object),"i"(targetKind));
     w.delta.q=delta;
-    special=func_00132B10(receiver,queryKind);
+    special=FIsBasicDerivedFrom__FP5BASIC3CID(receiver,queryKind);
    }
    qword direction=w.delta.q;
    if(special&&selected->data.object->state==12){
     OBJECT*object=selected->data.object;
-    *(qword*)&w.scalar=func_001A6FC0(0,object,direction);w.scalar.f[0]*=0.25f;
-    direction=func_001A6FC0(object,0,w.scalar.q);
+    *(qword*)&w.scalar=ConvertAloVec(0,object,direction);w.scalar.f[0]*=0.25f;
+    direction=ConvertAloVec(object,0,w.scalar.q);
    }
    qword normalized=Normalize(direction);*(qword*)&w.scalar=Scalar(500.0f);
    selected->data.direction=ScaleInPlace(normalized,w.scalar.q);
-  }else if(p->actor->mode==-1&&func_00132B10(selected->data.object,0x38)&&selected->data.object->mode==0x22)func_00207030(p->actor,0x22);
+  }else if(p->actor->mode==-1&&FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object,0x38)&&selected->data.object->mode==0x22)func_00207030(p->actor,0x22);
   p->current.kind=-1;func_00176750(p,&w.next);
  }
 finish:

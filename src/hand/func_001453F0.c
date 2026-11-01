@@ -21,7 +21,7 @@ struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
 int func_0011D910(struct LM *plm, float g);
 void func_00145B18(struct P *p, int n);
-int func_00132EA0(void *p);
+int CidBasic(void *p);
 int func_00145DA0(struct X *px);
 int func_00146298(struct X *px);
 int func_00146790(struct X *px);
@@ -96,7 +96,7 @@ void func_001453F0(struct P *p)
             else if (!func_0011D910(&D_002BD338, g))
                 func_00145B18(p, 0);
             else {
-                switch (func_00132EA0(p->p10)) {
+                switch (CidBasic(p->p10)) {
                 case 0x36:
                     if (func_00145DA0(p->p18))
                         func_00145B18(p, 0);

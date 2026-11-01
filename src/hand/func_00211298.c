@@ -5,7 +5,7 @@ struct F { int id; char pad[0x1C]; };
 struct E { int c; struct F *af; char pad[0xC]; int x14; char pad2[4]; };
 extern struct E D_003D9EDC[];
 extern int D_003D9EF4;
-const char *func_0013E368(struct G *g, int id);
+const char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
 char *func_0021ED58(char *dst, const char *src);
 void func_00211298(char *dst, int k)
 {
@@ -15,6 +15,6 @@ void func_00211298(char *dst, int k)
         int j = k + (long)(e->x14 - 3);
         while (j < 0)
             j += n;
-        (void)func_0021ED58(dst, func_0013E368(&D_003DD490, e->af[j % n].id));
+        (void)func_0021ED58(dst, PchzFindSwLangstr__FP2SWi(&D_003DD490, e->af[j % n].id));
     }
 }

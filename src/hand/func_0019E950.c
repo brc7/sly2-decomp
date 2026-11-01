@@ -3,11 +3,11 @@ struct VTE { short d; short pad; void (*pfn)(void *, int, int, qword, qword, qwo
 struct O { int a, b, c; struct VTE *vt; };
 struct S { struct O *o; int pad[2]; int c; float g; int pad2[7]; qword q30; };
 void func_001E6F10(int, qword *, qword *, float);
-qword func_001A6F00(struct O *, int, qword);
+qword ConvertAloPos(struct O *, int, qword);
 typedef union { qword q; float f[4]; } V;
 void func_0019E950(struct S *p) {
     V a, b, u;
     func_001E6F10(p->c, &a.q, &b.q, p->g);
-    u.q = func_001A6F00(p->o, 0, p->q30);
+    u.q = ConvertAloPos(p->o, 0, p->q30);
     { struct O *o = p->o; struct VTE *e = &o->vt[82]; e->pfn((char *)o + e->d, 7, p->c, a.q, b.q, u.q); }
 }

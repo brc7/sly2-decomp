@@ -4,7 +4,7 @@ static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pm
 struct E { char *pchz; int n4; int n8; int nC; char ab[0x40]; };
 struct S { char pad[0x50]; int c; struct E *ae; };
 extern char D_002DD590[];
-void func_001A5C28(struct S *p, void *pbis);
+void LoadLoFromBrx(struct S *p, void *pbis);
 int func_00117BD0(void *pbis);
 int func_00117D00(void *pbis);
 int func_00117DB8(void *pbis);
@@ -14,7 +14,7 @@ void func_00153B08(struct S *p, void *pbis)
 {
     MSG msg;
     int i;
-    func_001A5C28(p, pbis);
+    LoadLoFromBrx(p, pbis);
     p->c = func_00117BD0(pbis);
     p->ae = PvAllocMsg(&msg, p->c * sizeof(struct E), 0x10);
     for (i = 0; i < p->c; i++) {

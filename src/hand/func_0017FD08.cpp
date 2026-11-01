@@ -21,9 +21,9 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00258040(void **pp, void *q);
 void func_001FB018(void *p);
-void func_0012E460(int *p);
+void ReleaseAct(int *p);
 void func_002303A0(struct S *p, struct N *n, int k);
-void func_001A58D0(struct S *p, int a, int b);
+void SetLoParent_1A58D0(struct S *p, int a, int b);
 void func_001F5720(struct S *p, int n);
 void func_001F57C0(struct S *p, int n);
 void func_001F68A8(struct S *p, int n);
@@ -32,7 +32,7 @@ void func_001FB098(void *p, float f);
 struct M4 func_0022FF40(int a, int b, struct M4 *pm);
 int func_0012DC18(struct S *p, struct N *n, int a, int b, int c, qword v);
 qword func_0011BFF0(struct M4 *pm);
-void func_001619A0(void *a, int n, struct S *p);
+void BroadcastGameEvent(void *a, int n, struct S *p);
 void func_0017F4C0(struct S *p, struct Q *q);
 void func_0017FD08(struct S *p, int n);
 }
@@ -57,11 +57,11 @@ void func_0017FD08(struct S *p, int n) {
         }
         break;
     case 3:
-        func_0012E460(&p->n298);
-        func_0012E460(&p->n29C);
+        ReleaseAct(&p->n298);
+        ReleaseAct(&p->n29C);
         func_002303A0(p, p->p58, 2);
         func_002303A0(p, p->p5C, 2);
-        func_001A58D0(p, 0, 0xF);
+        SetLoParent_1A58D0(p, 0, 0xF);
         func_001F5720(p, 5);
         func_001F57C0(p, 4);
         func_001F68A8(p, 0);
@@ -108,7 +108,7 @@ void func_0017FD08(struct S *p, int n) {
         }
         break;
     case 4:
-        func_001619A0(D_002DEB30, 0x10, p);
+        BroadcastGameEvent(D_002DEB30, 0x10, p);
         break;
     }
     func_0017F4C0(p, n == -1 ? 0 : &p->a1C8[n]);

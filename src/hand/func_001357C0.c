@@ -7,8 +7,8 @@ struct S { char pad[0x16d8]; int f16d8; void *f16dc; void *f16e0; struct Q *pq; 
 extern ti128 D_002A2DD0;
 extern float D_002DDED0;
 void func_001356E8(struct S *);
-struct O *func_001CB250(void *, int);
-void func_001D6B00(struct Q *, struct O *);
+struct O *PloAcquireProxy(void *, int);
+void LaunchSoFromLauncher(struct Q *, struct O *);
 void func_0013B5C8(struct O *, float);
 void func_001362F8(struct S *, int);
 void func_001357C0(struct S *p, int a) {
@@ -22,13 +22,13 @@ void func_001357C0(struct S *p, int a) {
     default: return;
     }
     if (!pv) return;
-    po = func_001CB250(pv, 0);
+    po = PloAcquireProxy(pv, 0);
     if (!po) return;
     po->pe->f18 = a;
     pq = p->pq;
     pq->f60 = 0;
     pq->v50 = p->v16f0;
-    func_001D6B00(pq, po);
+    LaunchSoFromLauncher(pq, po);
     ((void (*)(void *, ti128))po->vt[36].pfn)((char *)po + po->vt[36].d, D_002A2DD0);
     func_0013B5C8(po, 4.0f);
     func_001362F8(p, 1);

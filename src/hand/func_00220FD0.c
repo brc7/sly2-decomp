@@ -10,9 +10,9 @@ void func_001AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
 void *func_001AE238(MSG *pmsg, void *pv);
 void func_00221818(struct S *p, int id);
-void func_0013F810(struct S *p, void *pbis);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct S *p, void *pbis);
 void func_00221940(struct S *p);
-void func_0013F888(MSG *pmsg);
+void CLoadCollectorArray_ctor(MSG *pmsg);
 void func_002317E0(struct S *p, void *pbis, MSG *pmsg);
 void func_00220FD0(struct S *p, void *pbis)
 {
@@ -30,7 +30,7 @@ void func_00220FD0(struct S *p, void *pbis)
         p->a = func_001AE318(pm);
     }
     func_00221818(p, 0x30);
-    func_0013F810(p, pbis);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
     func_00221940(p);
     {
         MSG *pm = &msg;
@@ -41,7 +41,7 @@ void func_00220FD0(struct S *p, void *pbis)
     p->x11C = 1;
     p->a = pv;
     p->cur = pv;
-    func_0013F888(&msg);
+    CLoadCollectorArray_ctor(&msg);
     func_002317E0(p, pbis, &msg);
     switch (msg.k) {
     case 0:
