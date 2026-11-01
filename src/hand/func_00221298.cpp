@@ -12,6 +12,13 @@ extern "C" qword func_001A6F00(void *source, struct S *p, qword q);
 extern "C" struct BSP *func_00118FB0(struct BSP *p, unsigned int limit, qword v);
 extern "C" int func_00132B10(struct O *po, int n);
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
+/** @sly2-annot addr=0x221298
+ * Purpose: current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override;
+ *   switch unless jumping
+ * Info: proposed name UpdateTnCallback (T1); TU tn
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 extern "C" void func_00221298(struct S *p)
 {
     struct O *po = func_001C4A48(&D_003DD490);

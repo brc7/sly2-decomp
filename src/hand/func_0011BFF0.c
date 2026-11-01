@@ -11,6 +11,14 @@ static __inline__ qword Make(float x, float y, float z)
 float func_0011CFE0(float g, float gLimit);
 float func_002457F0(float g);
 float func_002458F0(float y, float x);
+/** @sly2-annot addr=0x11BFF0
+ * Purpose: Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock
+ *   branch)
+ * Info: proposed name DecomposeRotateMatrixEuler (T1); TU mat
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
+ *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 qword func_0011BFF0(MATRIX3 *pmat)
 {
     U r;

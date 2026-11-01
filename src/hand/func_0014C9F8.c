@@ -7,6 +7,14 @@ void func_001AE4A0(struct CTX *, int);
 void *func_001AE318(struct AREQ *);
 void func_001AE5A0(void *, void *, int);
 
+/** @sly2-annot addr=0x14C9F8
+ * Purpose: Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 =
+ *   union ...)
+ * Info: proposed name ClsgMergeAlsg (T1); TU clip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verify_side
+ * See: docs/engine/camera.md#5-key-functions, docs/engine/physics-collision.md#4-geometry-and-queries,
+ *   docs/engine/physics-collision.md#7-key-functions
+ * @end-sly2-annot */
 int func_0014C9F8(int c1, struct LSG *alsg1, int c2, struct LSG *alsg2_, int cMax, struct LSG *alsgOut, int k)
 {
     /* hard-register local: fixes the s2/s3 assignment of alsg2 vs c2 */

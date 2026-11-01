@@ -19,6 +19,16 @@ void *func_001A6318(int);
 float func_0011D948(F2 *, float);
 void func_0014F610(struct G *, float);
 
+/** @sly2-annot addr=0x14FF38
+ * Purpose: Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus),
+ *   pan/tilt limits, uZoom=0, fov zoom range, near clip 49, cEnter++
+ * Info: proposed name ActivateCplook (T1); TU cplcy
+ * Notes: runtime3: CM+0x450 CPLOOK prio 7
+ * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/engine/camera.md#5-key-functions, docs/engine/camera.md#open-questions,
+ *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_0014FF38(struct X *p)
 {
     struct G *pg;

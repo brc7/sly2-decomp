@@ -11,6 +11,12 @@ static inline void Release(void **pp, float g)
         func_00258040(pp, 0);
     }
 }
+/** @sly2-annot addr=0x151130
+ * Purpose: Release sounds, clear owner/focus/pose, uZoomTarget=-1, CutCm, CPLCY::Deactivate
+ * Info: proposed name DeactivateCpzoom (T1); TU cplcy
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00151130(struct A *a, int n, void *b)
 {
     Release(&a->pC0, 0.0f);

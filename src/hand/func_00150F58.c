@@ -21,6 +21,12 @@ static __inline__ float GetZ(qword q)
     return z;
 }
 static __inline__ int FNear(float a, float b) { return func_0011D4D0(a, b, 0.0001f); }
+/** @sly2-annot addr=0x150F58
+ * Purpose: Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis
+ * Info: proposed name FCpzoomCenterArrived (T2); TU cplcy
+ * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 int func_00150F58(struct S *p)
 {
     int f = 0;

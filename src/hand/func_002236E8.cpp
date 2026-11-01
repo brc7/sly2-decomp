@@ -105,6 +105,12 @@ static inline qword QwAxesXyz(qword qwV, qword qwBack, qword qwSide, qword qwUp)
     return qw;
 }
 
+/** @sly2-annot addr=0x2236E8
+ * Purpose: every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden
+ * Info: proposed name UpdateCmLineOfSight (T1); TU tn
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 extern "C" void func_002236E8(CMPART2 *pcmpart)
 {
     LO *plo = pcmpart->pvHero;

@@ -32,6 +32,13 @@ static inline void *PvAlloc(int cb, int cbAlign)
     return func_001AE318(&al);
 }
 
+/** @sly2-annot addr=0x14EDA0
+ * Purpose: Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix +
+ *   constraint values via pfn, solves (0x11AD30) and returns v + sum of normal impulses
+ * Info: proposed name SquishCmEye (T1); TU cm
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 qword func_0014EDA0(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, qword, struct X *),
                     qword pos, qword v, float g, float h)
 {

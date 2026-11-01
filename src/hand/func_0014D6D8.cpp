@@ -25,6 +25,15 @@ void func_0014E328(CM *p, int prio, void *po, int a, int b);
 }
 static inline void SetNF(CM *p, float n, float f) { p->g4C = n; p->g50 = f; }
 static inline void InitLm(LM *plm, float g0, float g8, float gC) { plm->g0 = g0; plm->gC = gC; plm->g8 = g8; plm->n4 = 0; }
+/** @sly2-annot addr=0x14D6D8
+ * Purpose: Camera init: rgba fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat,
+ *   RecalcCmFrustrum, SetCmLookAt, CutCm, Init on each embedded policy, push default policy (+0x3A0) with
+ *   SetCmPolicy(prio 0), tJolt=-10
+ * Info: proposed name InitCm (T1); TU cm
+ * Notes: names_v2 v1 proposed AdjustCmCpdefi__FP2CMP2SOfP6CPDEFI (0.638)
+ * Confidence: high [T1 0.90] - evidence: semantic review; static naming pass; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 extern "C" void func_0014D6D8(CM *p)
 {
     static RGBA s_rgba(0x80303030);

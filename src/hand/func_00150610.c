@@ -12,6 +12,13 @@ static inline void Release(void **pp, float g)
         func_00258040(pp, 0);
     }
 }
+/** @sly2-annot addr=0x150610
+ * Purpose: Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then
+ *   CPLCY::Deactivate
+ * Info: proposed name DeactivateCplook (T1); TU cplcy
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00150610(struct A *a, int n, void *b)
 {
     Release(&a->p34, 0.0f);

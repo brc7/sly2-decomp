@@ -7,6 +7,14 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 void func_0011D608(float g, float *ps, float *pc);
+/** @sly2-annot addr=0x11E1A0
+ * Purpose: Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value
+ * Info: proposed name SetVectorCylind (T1); TU vec
+ * Notes: names_v2 v1 proposed ConvertUserRgbToUserHsv__FP6VECTORT0 (0.000)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
+ *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 qword func_0011E1A0(float rad, float r, float z)
 {
     union { qword q; float f[4]; } v; float gA, gB; func_0011D608(rad, &gA, &gB); v.q = Make(gB * r, gA * r, z); return v.q;

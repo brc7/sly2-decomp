@@ -10,6 +10,11 @@ void BuildProj(void *p, float a, float b, float c, float d, float e, float f);
 void SetCmLookAt(CM *p, float g, void *pv);
 void RecalcCm(CM *p);
 static inline float GMax(float a, float b) { return a > b ? a : b; }
+/** @sly2-annot addr=0x14DB70
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/camera.md#2-the-policy-stack, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void RecalcCmFrustrum(CM *pcm)
 {
     float t = tanf(pcm->x20 * 0.5f);

@@ -8,6 +8,16 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void *func_002332B8(void *dst, void *src, int cb);
 static inline void Move(void *pvDst, void *pvSrc, int cb) { func_002332B8(pvDst, pvSrc, cb); }
+/** @sly2-annot addr=0x14E328
+ * Purpose: Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4
+ *   Set(pv); if new top: prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate
+ * Info: proposed name SetCmPolicy (T1); TU cm
+ * Notes: runtime: CM policy stack acpr[8] at +0x310 sorted by priority confirmed
+ * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
+ *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void func_0014E328(struct P *p, int prio, struct O *po, int a, int b)
 {
     int i;

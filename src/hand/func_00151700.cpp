@@ -48,6 +48,15 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 }
 
 }
+/** @sly2-annot addr=0x151700
+ * Purpose: t=(clock.t - tModeStart)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov
+ *   between the two CAMPOSEs; SetCmMat4 + SetCmFov
+ * Info: proposed name UpdateCpcamblend (T1); TU cplcy
+ * Notes: runtime6 C7: CPCAMBLEND is the cutscene blend camera (S59)
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/engine/camera.md#open-questions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 extern "C" void func_00151700(struct X *p)
 {
     float u, t, t1, fov;

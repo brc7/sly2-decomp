@@ -12,6 +12,15 @@ void func_001FB018(void *p);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pmat, float *pa, float *pb);
 void func_0014F610(struct G *pg, float g);
 void func_00150EF0(struct A *a);
+/** @sly2-annot addr=0x150938
+ * Purpose: Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49,
+ *   SnapCpzoom, shares cEnter counter (g_cm+0x4A4)
+ * Info: proposed name ActivateCpzoom (T1); TU cplcy
+ * Notes: runtime6 C7: CPZOOM activated as the recon camera (JTMODE kind 1, S57)
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00150938(struct A *a, int n)
 {
     void *p;

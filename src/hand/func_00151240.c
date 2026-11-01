@@ -6,6 +6,12 @@ void func_0014FCC8(struct A *a, int n, void *b);
 void func_0014F610(void *pg, float g);
 void func_0014F5A0(void *pg, float g);
 int func_0012DC18(int n, void *pb, int a, int b, int c, qword q);
+/** @sly2-annot addr=0x151240
+ * Purpose: Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1
+ * Info: proposed name ActivateCphang (T1); TU cplcy
+ * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00151240(struct A *a, int n, void *b)
 {
     void *pg;

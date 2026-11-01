@@ -7,6 +7,12 @@ struct S { char pad[0x120]; int x120; char pad1[0x1C]; float g140; };
 void *func_002333B4(void *p, int c, int n);
 void func_00221408(struct S *ps, qword v, qword *pq, void *pv);
 void func_002215C0(struct S *ps, qword *pq, M3 *pm, void *pv, float g, float h, int f, qword *ppos);
+/** @sly2-annot addr=0x220DD8
+ * Purpose: lerp of two endpoints by t; optional matrix/basis via 0x221408 / 0x2215C0
+ * Info: proposed name GetTnfnNose (T2); TU tn
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 void func_00220DD8(struct P *p, struct A *pa, qword *ppos, struct S *ps)
 {
     VU u;

@@ -39,6 +39,13 @@ void func_0011A220(DL *pdl, void *pv);
 void func_0011ABF8(DZG *pdzg);
 
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318(pmsg); }
+/** @sly2-annot addr=0x11AD30
+ * Purpose: Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln
+ * Info: proposed name SolveInequalities (T1); TU dzgcore
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
+ *   docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
+ * @end-sly2-annot */
 void func_0011AD30(int c, float *agA, float *agB, float *agX, float g)
 {
     FRAME frame;

@@ -7,6 +7,13 @@ void func_00220DD8(int a, int b, qword *pq, int c);
 void func_001E7380(void *p, qword q, float g, int a, int b, int c, int d, float *pg);
 qword func_001A6F00(int a, struct S *ps, qword q);
 float func_002458F0(float y, float x);
+/** @sly2-annot addr=0x221CE8
+ * Purpose: positions tn target via FillCrvcCache or atan2 heading
+ * Info: proposed name UpdateCptnTarget (T2); TU tn
+ * Notes: agent qualifier: tn follow target heading
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 void func_00221CE8(struct P *p, int b)
 {
     struct S *ps = p->ps;

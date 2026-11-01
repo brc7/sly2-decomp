@@ -30,6 +30,12 @@ extern M2C_UNK D_002DFC00;
 extern M2C_UNK D_002E0D00;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x14F030
+ * Purpose: Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0)
+ * Info: proposed name FFilterCamera (T1); TU cm
+ * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 s32 func_0014F030(s32 arg0, s32 arg1) {
     return M2C_FIELD(arg1, s32 *, 0x70) > 0;
 }

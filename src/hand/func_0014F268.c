@@ -11,6 +11,12 @@ static __inline__ qword Mul(M4 *pm, qword v)
             : "=j"(o) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]));
     return o;
 }
+/** @sly2-annot addr=0x14F268
+ * Purpose: Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat
+ * Info: proposed name ConvertCmScreenToWorld (T1); TU cm
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 qword func_0014F268(struct CM *p, qword v)
 {
     union { qword q; float f[4]; } r;

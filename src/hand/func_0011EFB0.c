@@ -5,6 +5,13 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%0" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r"(z) : "0"(q)); return z; }
 float func_002458F0(float y, float x);
 float func_0011CF60(float g);
+/** @sly2-annot addr=0x11EFB0
+ * Purpose: Inverse of SetVectorSphere: pan, tilt, length of v
+ * Info: proposed name GetVectorSphere (T1); TU vec
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
+ *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 void func_0011EFB0(qword v, float *pradPan, float *pradTilt, float *pr)
 {
     if (pradPan) {

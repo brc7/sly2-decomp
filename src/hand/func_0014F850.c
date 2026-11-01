@@ -1,5 +1,12 @@
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; qword r[3]; };
+/** @sly2-annot addr=0x14F850
+ * Purpose: True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0)
+ *   and VU clip flags
+ * Info: proposed name FInsideCmFrustum (T1); TU cm
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 int func_0014F850(struct X *p, qword v, qword w)
 {
     qword one;

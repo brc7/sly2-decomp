@@ -18,6 +18,13 @@ typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 struct CM { char pad[0x60]; M4 mat; };
 void func_0011B628(M3 *pm, qword v);
 void func_0014E168(struct CM *p, M4 *m);
+/** @sly2-annot addr=0x14F4E0
+ * Purpose: Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4
+ * Info: proposed name SetCmRotDeg (T1); TU cm
+ * Notes: names_v2 v1 proposed ConvertCylindToWorldVelocity (0.200)
+ * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; static naming pass; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void func_0014F4E0(struct CM *p, qword v)
 {
     M4 mat = p->mat;

@@ -50,6 +50,13 @@ static __inline__ float GClamp2(float g, float gMin, float gMax)
     return g;
 }
 
+/** @sly2-annot addr=0x150160
+ * Purpose: Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks
+ *   (invert option via splice 0x3D4A60), limits, SetCmLookAt(eye, anchor)
+ * Info: proposed name UpdateCplook (T1); TU cplcy
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00150160(struct X *p, void *pv, struct JOY *pjoy)
 {
     float x, u, gPan, gTilt, dt;

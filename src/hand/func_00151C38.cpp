@@ -68,6 +68,13 @@ static inline qword Scale(qword a, VU_FLOATJ s) { qword r; __asm__("vmulx.xyzw %
 
 static inline void Cm1(M4 *pm) { func_0014E168(&D_002DDF40, pm); }
 static inline void Cm2(float g) { func_0014F5A0(&D_002DDF40, g); }
+/** @sly2-annot addr=0x151C38
+ * Purpose: Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by
+ *   distance curves, look-at matrix, fov from distance curve
+ * Info: proposed name UpdateCptwoshot (T1); TU cplcy
+ * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00151C38(X *p)
 {
     U d;

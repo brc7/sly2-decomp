@@ -30,6 +30,12 @@ return r; }
 static inline qword Rotate(const M3 &m,qword v) {
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2])); return v;
 }
+/** @sly2-annot addr=0x2215C0
+ * Purpose: evaluates a clamped path offset (fmodf), rotates/translates to world
+ * Info: proposed name CalculateTnPos (T2); TU tn
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 extern "C" void func_002215C0(S *p,float *times,COEF *coef,BOUND *bounds,int mode,qword *out,float time,float delta) {
     U pos,normal,center;
     M3 m;
