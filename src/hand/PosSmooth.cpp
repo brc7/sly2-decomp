@@ -10,16 +10,11 @@
 // temp) and qwDpos is a qword copy of it that every later use reads; the length is the dot product with the vector passed twice (QwLengthDot - with QwLength
 // it is 51%): that gives the pseudo enough references for the register allocator to keep it in vf3 with a caller-save (sqc2 / lqc2 sp+0x40) around the
 // GSmooth call, while the temp stays in memory (sp+0x30) for the reloads. Using dpos.qw again after the call, or without the copy, is 7%.
-typedef unsigned long long qword __attribute__((mode(TI)));
-struct VECTOR
-{
-    float x, y, z;
-};
+#include "sly2/basic.h"
 struct VU_VECTOR4
 {
     qword qw;
 };
-struct SMP;
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 struct VU_FLOAT
 {

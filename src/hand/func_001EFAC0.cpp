@@ -16,151 +16,10 @@
 // `plo` is ONE variable too, declared at the top and first used by the Remove loop: jump.c duplicate_loop_exit_test gives a pseudo that is set and last used inside
 // the copied exit code NEW registers only if this very insn is its first use; a `plo` local to the segment search was copied (two pseudos, two `sw`s that
 // jump2 cannot merge, v1 / v0), the shared one stays one pseudo in the peeled first iteration and the loop (one `sw a2,0(s2)`).
-typedef unsigned char    uint8_t;
-typedef unsigned int     uint32_t;
-typedef unsigned long    uint64_t;
-typedef uint8_t     uchar;
-typedef uint32_t    uint;
-typedef uint64_t    ulong;
-typedef uint    undefined4;
-typedef uchar byte;
-enum CID
-{
-};
-enum MSGID
-{
-};
-struct CBinaryInputStream;
-struct LO;
-struct SO;
-enum OID
-{
-    OID_Nil = -1,
-};
-struct SL
-{
-    void *head;
-    void *tail;
-    int ibSle;
-};
-struct SLE
-{
-    void *next;
-};
-struct DL
-{
-    void *head;
-    void *tail;
-    int ibDle;
-};
-struct DLE
-{
-    void *next;
-    void *prev;
-};
+#include "sly2/basic.h"
+#include "sly2/lo.h"
+#include "sly2/aseg.h"
 void InitDl(DL *pdl, int ibDle);
-template <class T>
-class CRefPtr
-{
-public:
-    T *m_p;
-    CRefPtr() {}
-    CRefPtr(T *p) { Attach(p); }
-    CRefPtr(const CRefPtr &ref)
-    {
-        m_p = ref.m_p;
-        if (m_p)
-        {
-            m_p->m_cref++;
-        }
-    }
-    ~CRefPtr()
-    {
-        if (m_p)
-        {
-            m_p->Release();
-        }
-    }
-    void operator=(T *p);
-    void operator=(const CRefPtr &ref) { *this = ref.m_p; }
-    operator T *() { return m_p; }
-    T *operator->() { return m_p; }
-};
-class CSidebag;
-class CFrame;
-struct CLASSINFO
-{
-      CLASSINFO *pclassinfoSuper;
-      CID cid;
-      CID cidMax;
-      int cb;
-};
-struct BASIC
-{
-      CRefPtr<CFrame> pframe;
-      CRefPtr<CSidebag> psidebag;
-      struct REFNODE *prefnodeFirst;
-      virtual void VUnk00();
-      virtual void VUnk01();
-      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk);
-      virtual void SendMessage(MSGID msgid, void *pv);
-      virtual void HandleMessage(MSGID msgid, void *pv);
-      virtual CLASSINFO *Pclassinfo();
-};
-struct LOROOT
-{
-      LO *plo;
-      DLE dle;
-      DLE dleBusy;
-};
-struct LORUN
-{
-      void *pv;
-      LORUN *plorunNext;
-};
-struct PXR
-{
-      int idProxy;
-      PXR *ppxrParent;
-      int oidProxy;
-      SLE slePxrOid;
-      LO *plo;
-      SLE sleSibling;
-      SL slChild;
-      undefined4 unk_0x24;
-};
-struct LO : public BASIC
-{
-      SO *psoParent;
-      LOROOT *ploroot;
-      OID oid;
-      SLE sleOid;
-      SLE sleCid;
-      DLE dleChild;
-      char cpaloFindSwObjects;
-      uchar grfvis;
-      long nUnk48 : 4;
-               long busyk : 4;
-               ulong fRemoved : 1;
-               ulong fUnk57 : 1;
-               ulong fUnk58 : 1;
-               ulong fUnk59 : 1;
-               ulong fInWorld : 1;
-      float gUnk30;
-      LORUN *plorunFirst;
-      float sBusy;
-      PXR *ppxr;
-      int grfUnk40;
-      undefined4 unk_0x44[3];
-      virtual void Init();
-      virtual void Add();
-      virtual void Remove();
-};
-struct SMT;
-struct SMS;
-struct ASEG;
-typedef int GRFAPL;
-typedef int GRFSMT;
 struct SMRT
 {
       int grf;
@@ -171,18 +30,6 @@ struct SMINIT
       OID oidRoot;
       OID oidInitialState;
       GRFAPL grfapl;
-};
-struct SM : public LO
-{
-      int csms;
-      SMS *asms;
-      int csmt;
-      SMT *asmt;
-      int csmrt;
-      SMRT *asmrt;
-      DL dlSma;
-      SMINIT *psminit;
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001EFAC0");
 };
 struct SMT
 {

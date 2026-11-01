@@ -20,16 +20,8 @@
 // products are the non-tied form (`%2w`: the plane is not overwritten); the first reads g1 with a plain qmfc2 (GFromVf: the sqc2 home store lands between
 // qmfc2 and mtc1), the second is ONE asm with the qmfc2 + mtc1 inside and its outputs listed vfOne first: vfOne2 is then stored (and dies) before
 // the branch and gets vf1, dot2 (stored after it) vf2.
+#include "sly2/basic.h"
 typedef unsigned  size_t;
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef unsigned long long qword __attribute__((mode(TI)));
-struct VECTOR
-{
-    float x, y, z;
-};
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
@@ -48,9 +40,6 @@ struct SURF
     EDGE *pedgeOther;
     uint grf;
     int ipos;
-};
-enum LSGK
-{
 };
 struct BSP
 {

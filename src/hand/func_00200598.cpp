@@ -9,42 +9,13 @@
 // and for bool / vector4 (by value, *pvector) / matrix / clq / lm / smp / int-flag / BASIC *-flag the payload word of the reference WITHOUT a tag check
 // or conversion. Match notes: the bool setter takes `int` - with `long` (a DImode argument) the arm no longer cross-jumps into the shared
 // `lw a1,4(s1); jalr` tail with the others (394 instead of 386 instructions).
-typedef unsigned char    uint8_t;
-typedef unsigned int     uint32_t;
-typedef uint8_t     uchar;
-typedef uint32_t    uint;
-typedef unsigned long long qword __attribute__((mode(TI)));
-typedef uchar byte;
-template <class T>
-class CGcObj
-{
-public:
-      int m_cref;
-      uint m_grfGc;
-    ~CGcObj() { Unlink(); }
-    void Release()
-    {
-        if (--m_cref == 0)
-        {
-            delete (T *)this;
-        }
-    }
-};
+#include "sly2/basic.h"
+#include "sly2/sw.h"
 struct SLOT
 {
       SLOT *pslotNext;
 };
-struct SLOTHEAP
-{
-      int cb;
-      int c;
-      int cbAlign;
-      SLOT *pslotFree;
-      int cAlloc;
-      byte *ab;
-};
 void FreeSlotheapPv(SLOTHEAP *pslotheap, void *pv);
-struct BASIC;
 extern SLOTHEAP D_00452170;
 class CMethod : public CGcObj<CMethod>
 {
@@ -52,34 +23,6 @@ public:
       BASIC *m_pbasic;
       int m_crefReq;
     void operator delete(void *pv) { FreeSlotheapPv(&D_00452170, pv); }
-};
-enum BIFK
-{
-};
-struct CLQ;
-struct LM;
-struct VECTOR
-{
-    float x, y, z;
-};
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
-struct MATRIX3
-{
-	float mat[3][4];
-} __attribute__((aligned(16)));
-struct SMP;
-class CPair;
-class CProc;
-enum TAGK
-{
-    TAGK_Nil = -1,
 };
 union TAG
 {
@@ -117,12 +60,7 @@ public:
     CRef RefCoerceS32() const;
     CRef RefCoerceF32() const;
 };
-typedef int GRFEOPID;
-enum OTYP
-{
-};
 typedef void (BASIC::*PMF)();
-typedef CRef (*PFNTHUNK)(BASIC *, int, CRef *);
 union SETTER
 {
     int ibSet;
