@@ -35,6 +35,8 @@ matching decompilation in this repo. It is written for two readers:
 | [engine/animation.md](engine/animation.md) | ASEG/ASEGA, blends, actuators, XF slots, state machines (SM/SMA), IK, gait |
 | [engine/cutscenes.md](engine/cutscenes.md) | RELAY/JSG scripted sequences, FMV playback, screen transitions |
 | [engine/core-library.md](engine/core-library.md) | Heaps, slot heaps, lists, math, the binary input stream, CD, threads, text |
+| [engine/bosses.md](engine/bosses.md) | Boss fights: which levels, boss classes, phases, how the task picks the controlled PO (static + one live warp) |
+| [engine/minigames.md](engine/minigames.md) | Minigames (hacking, RC chopper, turrets, dance ...): jobs/tasks, played-as PO, engine classes |
 | [engine/gameplay-objects.md](engine/gameplay-objects.md) | Smaller gameplay classes (buttons, barriers, bombs, turrets, RC car, ...) |
 | [formats/disc-records.md](formats/disc-records.md) | How files are found on disc (64-byte FILERECs, no TOC) |
 | [formats/compression-lzss.md](formats/compression-lzss.md) | The whole-file LZSS compression |
@@ -48,6 +50,7 @@ matching decompilation in this repo. It is written for two readers:
 | [guides/playtesting.md](guides/playtesting.md) | Symbol file, pnach, patched ELF, save-state analysis toolkit, PINE harness |
 | [guides/devtools.md](guides/devtools.md) | What each devtool (viewers, browsers, editors, PINE toolkit) is for and how it verifies claims |
 | [guides/live-pine.md](guides/live-pine.md) | Driving the running game over PINE; addresses confirmed live (coins, clock, level warp) |
+| [guides/port-plan.md](guides/port-plan.md) | Proposal: native macOS (Apple Silicon) port architecture (static recompilation spine, render-pass HLE, Metal) |
 | [guides/naming-workflow.md](guides/naming-workflow.md) | Naming playbook, conventions, verification calibration, the rename tool |
 | [reference/class-tree.md](reference/class-tree.md) | All 199 classes (CIDs) with v2 class names, sizes, vtables, identifications |
 | [reference/tu-map.md](reference/tu-map.md) | Address range -> source file (translation unit) |

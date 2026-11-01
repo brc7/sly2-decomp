@@ -22,7 +22,7 @@ Sly 2 split Sly 1's huge SO into separate records `[H r6 so.md]` (offsets `[C:ru
 | +0x13C | float 400.0 (REFUTED "= const address 0x2C3B90") | [C:runtime] |
 | +0x148 | flags: damage bytes (10/20), zap mode, fIceable, sphere-tree flag | [H] |
 
-SO-only slots 48-74 `[H r6 so.md]`: 49 tree bounds, 50 GetCpdefi, 53 PtreeNew, 54 contact notify, 55 AdjustNewXp (contact elasticity),
+SO-only slots 49-75 (LO vtable 0x2D3540 ends at slot 48 = `ClearLoGrf` 0x1A66F8; SO vtable 0x2D9978 has 75 slots, 49 = 0x1F50E0, 75 = 0x1F7588) `[C:static v3.1 re-check]`; roles `[H r6 so.md]`: 49 tree bounds, 50 GetCpdefi, 53 PtreeNew, 54 contact notify, 55 AdjustNewXp (contact elasticity),
 58 touch, 61 `FIgnoreIntersection` (tri-state 1/2/3, sides combined with max), 62 FIsSoFixed, 64 ResetPhys, 68 contact impulse,
 70 PresetAccel, 71/72 XA hooks, 73 FPosInSo, 74 contact zaps, 75 FTakeDamage (last SO slot).
 Caution: the old Sly 1-alignment names in 0x1F6C08-0x1F8C40 are shifted almost everywhere; do not promote them `[H r6]`.

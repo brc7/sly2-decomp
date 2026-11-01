@@ -60,7 +60,7 @@ starts below it; third PT_LOAD) `[H]` for boot safety. Writable static data alwa
 identity test). `--manifest` lists every word; `pnach.py --diff RETAIL PATCHED` converts any patched ELF. Data-only tweaks need no compile:
 `patch=2,EE,002BF738,word,43D70000` (jump apex 430.0f).
 
-Demo patches (`patch_tools/demo/`): `coins_x10` (one instruction at 0x1C67C4), `higher_jump` (JtPlanLaunchVz uses the double-jump apex 315.0), `jump_x2_cave`
+Demo patches (`patch_tools/demo/`): `coins_x10` (one instruction at 0x1C67C4), `higher_jump` (JtPlanLaunchVz uses the double-jump apex, retail **215.0**; v3 said 315.0), `jump_x2_cave`
 (784-byte body in the RAM cave; boot fresh). In-game effect is `[H]` until tried.
 
 ## 4. Save-state analysis toolkit

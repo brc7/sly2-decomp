@@ -66,7 +66,7 @@ index and cclut x U16 CLUT index (0xFFFF none).
 
 ## 6. Runtime notes
 
-The BMP/CLUT arrays are zeroed after every load (`ResetShaders` 0x1EC7A0, `ClearTexHashTables`), so save-state RAM cannot be cross-checked `[C:runtime]` (S02-S04).
+After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTexHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
 GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic).
 
 ## Devtools findings (v3, 2026-11-01)

@@ -29,7 +29,7 @@ The same 11 JOBs and 99 TASKs load in every Paris level (WE `f_nightclub_macro`:
 | +0x90 / +0x94 / +0x98 | prerequisites: oid array / count / TASK* array | [C:runtime] |
 | +0x9C / +0xA0 / +0xA4 | successors: oid array / count / TASK* array | [C:runtime] |
 | +0xB8 / +0xBC | warp / level | [H r3b] |
-| +0xC0 | character to play as (7 Sly on intro and checkpoint tasks, -1 elsewhere; written to `oidPoCurrent`) | [C:runtime] consistent |
+| +0xC0 | **oid of the PO the player controls** for the task (7 = Sly/`jt`, 8 = Bentley, 9 = Murray; other POs in minigames, e.g. the RC chopper; -1 = keep the current one); written to `oidPoCurrent`. v3 read it as a 3-character index: corrected per [bosses](bosses.md) / [minigames](minigames.md) | [C:runtime] + [C:data] |
 | +0xC8..+0xE8 | save-variable refs | [C:runtime] |
 
 **Task states** `[C:runtime]`:
@@ -166,6 +166,8 @@ object (do not rename them BOOTY).
 - **WIDGET131** (CID 0x83, singleton D_003E1C04) episode menu in the front-end world L01 (fields: selected +0x110, max +0x118, mode +0x11C (2 browse, 10 start)): mode 10 = "start episode" plays sprite label 0x539
   (D_002BE080[ep][10]) for 10.6 s; then `UpdateWidget131` 0x15CF30 fires the episode's intro EXIT (oids 0x531-0x538, table D_002BE2A8) if
   `episode.<w>.dt == 0`, else `WipeToWorldWarp(PrecWorldEntry(ep), 0x189, -1, 0, 0x30A)` `[C:runtime S55/S56]`.
+
+See also [bosses](bosses.md) and [minigames](minigames.md) for every boss and minigame job/task.
 
 ## Devtools findings (v3, 2026-11-01)
 

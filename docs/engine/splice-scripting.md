@@ -48,6 +48,15 @@ anything else is an application (`RefEvalApply` 0x1272E0): builtin via the table
 Frames: `{cref, cframe parents, apframe[], bindings}`; `PrefFindBinding` recurses into parents with a busy flag to break cycles `[H r1 splice_lib.md]`.
 GC: `CGc` (g_gc; TU 0x128138) marks live objects from roots and collects at level transitions `[H r1 splice_lib.md]`. Fix: `_GLOBAL_$I$g_gc` sits on frame.cpp's stub 0x128118; g_gc's own stub is 0x128B40.
 
+**Evaluator quirks** (splice_vm, ported from the matched C and diff-tested) `[C:static]`:
+- `if` (0x126758) takes the THEN branch only when the payload word **== 1**, whatever the tag: `(if 2 ..)` and `(if '(x) ..)` take the else branch.
+  `and`/`or`/`cond`/`not` instead treat only Bool #f as false.
+- `while` (0x126F78) evaluates **only the first body expression** and always returns Void.
+- `+` and `-` accumulate ints in a **float** (`(+ 16777216 1)` = 16777216); `(- 5)` = 5; `=` compares raw payload words, so `(= 1 1.0)` is #f.
+- **Tag 20 (0x14) is the rest-parameter dot** in lambda lists: `cargMin` = params before it, `fRest` = whether it is there (0x127068). Extra args beyond
+  cargMin are never evaluated unless fRest.
+- Unbound symbols evaluate to nil without error; `set!` on an unbound name does nothing; `define` prepends (shadows).
+
 ## 4. Builtin table D_002BBB90
 
 169 records `{PFN pfn; int cargMin; int fRest;}`, index = BIFK, signature `CRef RefOpXxx(int carg, CRef *aref, CFrame *pframe)` `[C:verified]`.

@@ -58,6 +58,18 @@ its own loop (clock ticked paused, UpdateJoy, UpdateCd) -> `sceMpeg` decode with
   ApplySm 0x1E44B 0x17DE2 0x1512; HintBox 0x2F4; Line 0x51A; SetTaskState 0x6E2 2 / 5); the runtime adds BlockBegin/BlockEnd around them. Confirms
   live scripts S59 ([devtools/splice_browser](../guides/devtools.md#splice_browser)). Text ids decode to English strings (hint 810 = "Find and reprogram all 3 satellite dishes.").
 
+## Camera command argument format (cutscene_player, v3.1)
+
+From `devtools/cutscene_player/docs/relay_commands.txt`, checked against RELAY 0x6E3 live in S59 and RELAY 0x6B2 in S57.
+- **CamBlendFrom / CamBlendTo (pose, angles, fov, dt, ...)** `[C:runtime]`: arg0 = position in game units; arg1 = **[roll, pitch, yaw] in degrees** (stored
+  in RAM as radians); pitch positive = looking down; yaw = atan2(fwd.y, fwd.x) in game xy; +roll tilts toward camera-right; arg2 = **vertical fov in radians**
+  (1.1 = default 63.03 deg). At S59 all six quantities (pos, roll, pitch, yaw, fov) match one blend fraction f = 0.204 between From#10 and To#13.
+- Semantics `[H]` (strongly supported): `CamBlendFrom(pose, fov, dt)` starts a dt-second linear blend toward the pose of the **next** `CamBlendTo` in the list
+  (look-ahead); a sync To waits for the running blend; a To with no pending From cuts. To arg3/arg4 are ints, probably `fCutOnLeave` / `iCurve` of CAMMOVE
+  ([camera](camera.md)).
+- **TweenTarget(pos, angles, dt)** (recon/binocucom): same pose convention, fov 1.0 rad; RELAY 0x6B2 matches S57 exactly `[C:runtime]`; dt = tween seconds `[H]`.
+- Async flags live at RELAYCMD +4 in RAM but are **not in the level record** `[C:runtime, 0x6E3 only]`.
+
 ## 4. Source files
 
 | Span | File (label) | Conf | Notes |

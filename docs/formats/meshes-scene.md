@@ -24,7 +24,7 @@ sub-globs until cglob slots are used (a sub-glob with csub extra instances uses 
   body by type; then csub instance records
 pose sets (0x167870): S16 c; c x up to 4 {S8 kind (4-bit, -1 ends the group); VECTOR; F32; F32; U8; kind 0/1: S16}
 ```
-**Type dispatch** (jal switch at 0x167748) `[C:static]` + `[C:parse]`: type 0 -> 0x16A000, type 1 -> `LoadSubglobType1FromBrx` 0x16E438, type 2 -> 0x16CAA0,
+**Type dispatch** (compare chain on the type byte at +3: `lb $3,3($19)` at 0x167748, then beq/slti/beqz; no jal, no jump table) `[C:static v3.1]` + `[C:parse]`: type 0 -> 0x16A000, type 1 -> `LoadSubglobType1FromBrx` 0x16E438, type 2 -> 0x16CAA0,
 type 3 -> 0x16CF78. (The v1 names were permuted; master_names_v2 fixed them.) Samples L02: type 0 x2022, 1 x254, 2 x40, 3 x99; fCompact on 6 of 848 globsets.
 The `kind` byte: 1 = sky dome, 3 = buildings/backdrop, 4, 5, 10, 11, 13 other categories (11/13 select other VU1 entries) `[H]`.
 
@@ -96,7 +96,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
 
 - **Placement rules for every record** (devtools/level_viewer, lib/scene.py), extending the SO rules above: XFM family (LIGHT, SHAPE/RAIL/PIPE, VOL, TN,
   EMITTER, CID24/27/36/43, ...) world = `LoadXfmXfFromBrx` 0x231768 matrix x resolve(ixf) with the same ref rules; top-level XFMs of a proxy copy get
-  matProxy + repoint; LO-only classes (TASK, JOB, RELAY, ASEG, SM) have no transform. Runtime check: matWorld at **XFM+0xD0**; 787/842 live XFMs in S02 match
+  matProxy + repoint; LO-only classes (TASK, JOB, RELAY, ASEG, SM) have no transform. Runtime check: matWorld translation at **XFM+0xD0** (types round 2: confirmed only for LIGHT; plain XFM/PROXY/TARGET have it all zero; SO positions are at pxfRoot+0x70); 787/842 live XFMs in S02 match
   a placed instance within 2 units `[C:runtime level_viewer]` (see [object-model](../engine/object-model.md#devtools-findings-v3-2026-11-01)).
 - Load filter: records with k > 0 are kept iff the level index (D_003E1110 = Lnn) is in the filter (`FMatchLoadFilter` 0x13FAD0) `[C:runtime]` (re-checked v3, and `[C:live]`).
 - All 43 levels place with 0 mesh-parse failures and 0 missing proxy sources; an SO placed >= 3 times with identical XF structure can be instanced

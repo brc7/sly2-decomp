@@ -11,7 +11,7 @@ Related: [player](player.md), [guards-ai](guards-ai.md) (animation bindings), [c
   `ApplyAsegCur` 0x1305B8 (matched hand file) is the usual entry; `PasegaApplyAseg` 0x130488 wraps `ApplyAseg` 0x12F9B8 `[C:verified]` (r1r2 verifier: wrapper level).
 - ASEGA events: `HandleAsegaEvent` 0x131290 switches on the event kind; actions are implemented in sw.cpp (0 sound start, 1 sound stop,
   7/8 show/hide with fade, 13-17/20 object toggles); events 0x25-0x28 drive the guard mover lock and BHV busy flags `[H r7 sw.md, r6b bhvstk.md]`.
-- UpdateSw walks the ASEGA list each frame (0x130918) `[H r8 update.md]`.
+- UpdateSw walks the ASEGA list each frame (0x130918) `[H r8 update.md]`. The list link is **ASEGA+0x24 `dleSw`** (SW::dlAsega ibDle = 0x24; 8,250 ASEGAs walked; was `_pad_35`) `[C:runtime types round 2]`; ASEGA svt = svtRate * svtMaster, ASEG tMax +0x74 / svtMaster +0x78.
 
 ## 2. Curves and actuators (act? 0x12B3B0)
 
@@ -54,6 +54,24 @@ From [devtools/anim_lab](../guides/devtools.md#anim_lab) (ANIM_FORMAT.txt; RAM c
   ASEGA+0x48. Option 109 = playback speed (1.2 on the cane clip) `[C:static+runtime]` for clip 0x11D only; for all clips `[H]`.
 - **Cane swing clip 0x11D** (JT+0x1CE0): tMax 0.833 s, speed 1.2; event 15/16 = show/hide SOPART 0x14C at t 0.133 / 0.333 (the hit window), swing trail
   0x104B, sounds 11 and 59, messages 0x164/0x165 at 0.5 `[C:parse anim_lab]` + runtime7b.
+
+## Animation format summary (anim_lab, v3.1)
+
+From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / runtime / data).
+- **Conventions** `[code 0x22FAA0, 0x11C168]`: row vectors, `p_parent = p_local . L`, row 3 = translation, world = local . parentWorld. Times in seconds,
+  stored as U16 ticks of 1/60 s.
+- **Skeleton = the SO's XF table** (`LoadSoXfsFromBrx` 0x22D7A0) `[parse]`. An XF is one degree-of-freedom group, not a bone: kind 1/4/5/9/10 translate,
+  6/7 rotate (Euler, R = Rx.Ry.Rz), 12 scale, 11 shear, 8/14 pivot, others static `[code 0x22C8C0 / 0x22CA18]`. A joint is a translate -> rotate -> scale stack
+  sharing one tag; only kinds 1, 6 and 12 are animated by clips `[data, 30k+ channels]`. parentRef: -1 none, 0x0nnn own XF, 0x1nnn parent SO's XF, 0x2000 context
+  top. FK reproduces RAM world matrices to 0.005 units `[runtime S68]`. Sly 139 XFs, Murray 145, Bentley 76, boar guard 71.
+- **Two-bone IK** (`LoadSoIkFromBrx` 0x186670, `SolveIk` 0x186A50) runs after FK; the twist is the clip's scalar (factory-2) channel on the upper XF. All 4 of
+  Sly's chains reproduced to 1e-4 in S68 `[runtime]`. Constraints and chains (tails/ropes) are parsed, not simulated.
+- **Clips = ASEG (cid 0x6D)** (`LoadAsegFromBrx` 0x12F2A8): channels keyed by SO oid + XF; each channel adds an actuator to the XF (`AddXfAct` 0x230018,
+  priority ASEG+0x6C) whose value **replaces** the XF value per kind `[code + runtime]`. Curves: constant, component keys and cubic Hermite keys (tangents in
+  units/s, 0x117120); scalar factory 2 for IK twist. Short 0.083 s clips act as overlays on a second ASEGA.
+- **ASEGA** (cid 0x86): +0x14 ASEG*, +0x18 root, +0x1C tLocal, +0x40 effective speed; option 109 = 1.2 on ASEG 0x11D copied to ASEGA+0x48 `[code + runtime, one clip]`;
+  that option 109 is a general speed multiplier is `[H]`.
+- Open: blending/priority between simultaneous ASEGAs, ASEGBL blends, SM-driven transitions.
 
 ## 6. Source files
 

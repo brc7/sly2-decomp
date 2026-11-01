@@ -58,6 +58,21 @@ From [devtools/audio_browser](../guides/devtools.md#audio_browser) (all 43 world
   map_low = map_high = 0. The rate formula is suspect for these `[H]` (open: compare an SPU2 dump).
 - **Open issue (modded ISO, live test 2026-11-01)**: see [open-questions](../open-questions.md#modding-live-test-2026-11-01) (all SFX missing after the L02 mod).
 
+## 989snd bank and grain notes (sfx_synth, v3.1)
+
+From `devtools/sfx_synth/FORMAT.txt`. Semantics come from OpenGOAL's clean 989snd re-implementation checked against Sly 2 data and one SPU2 state;
+the Sly 2 989snd.irx (in SCUS_973.16 at file offset 0x21ED80) was **not** disassembled.
+- Bank: `u32 3, u32 nchunks, {off, size}[n]`; chunk 0 = SBlk (v>=2 layout: +0x16 nsound, +0x18 ngrain, +0x1A nvag, +0x1C first sound, +0x20 first grain,
+  +0x34 grain data), chunk 1 = SPU sample image `[C:parse]`.
+- Sound (12 B): vol, vol group, pan, grain count, instance limit, flags (1 LOOP, 2 SOLO, 8/0x10/0x20 instance limits `[H]`), first-grain offset `[C:parse]`.
+- Grain (8 B): `type<<24 | low24`, s32 delay (ticks). L02: 3,028 grains, mostly TONE (1,920), RAND_PB, RAND_PLAY, RAND_DELAY, LFO_SETTINGS; every program is
+  well formed under these semantics `[C:data]`. Tick rate 240 Hz `[H]`.
+- Tone (0x18 B): priority, vol, **signed** center_note (< 0 = 48 kHz-referenced, >= 0 = PS1 tone scaled 44100/48000), fine, pan, map range, pitch-bend range
+  (semitones), ADSR1/2, flags (8 noise, 0x10 reverb only), sample offset. Pitch = sceSdNote2Pitch(...), 4096 = 48 kHz; dominant tuning cn -86 cf 66 = 0x3AC
+  = 11,016 Hz `[C:runtime SPU2 state]`. Tones above 48 kHz are real data clamped by the SPU at 0x3FFF (4x) `[H]`.
+- Validation: the L02 sample image is resident in SPU2 RAM and 8/8 live SFX voices carry a bank tone's ADSR and an in-range pitch `[C:runtime]`. Not checked:
+  envelope timing, LFO speeds, volume law.
+
 ## 5. Source files
 
 | Span | File (label) | Conf | Notes |

@@ -183,6 +183,8 @@ GS register packets) around the entries' DMA calls `[H r3 draw.md]`.
 | Boot, frame loop, clock, pad | [main-loop-startup](main-loop-startup.md) | `main` 0x1A7518, `g_clock` 0x2DDED0, `g_joy` 0x2DFC00 |
 | Object model | [object-model](object-model.md) | D_002BAAE8, `PloNew` 0x13E3C8, `InitLo` 0x1A5270, `PloFindSwObject` 0x15E938 |
 | World, load, transitions | [world-sw](world-sw.md) | `g_sw` 0x3DD490, `LoadSwFromBrx` 0x13DA18, `ExecuteSwTransition` 0x20E890 |
+| Bosses | [bosses](bosses.md) | boss levels, boss classes, task +0xC0 controlled PO |
+| Minigames | [minigames](minigames.md) | hacking, RC vehicles, turrets, dance; controller hand-off |
 | Scripting | [splice-scripting](splice-scripting.md) | BIF table D_002BBB90, `RefEval` 0x127838, option table D_002AC880 |
 | Rendering | [rendering](rendering.md) | `DrawSw` 0x157FA0, pass table D_002BDD88, `g_vifs`/`g_gifs` |
 | Camera | [camera](camera.md) | `g_cm` 0x2DDF40, policy stack CM+0x310 |

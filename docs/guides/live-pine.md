@@ -64,10 +64,36 @@ safehouse character select `[C:live]`. FILEREC words: copy them from the level t
 words but all decode to the same lba/size; [world-sw](../engine/world-sw.md)), or use `progression.py warp Lnn`, which reads them from
 pine_toolkit `data/levels.json`. Save vars survive the warp (the save blob is not touched).
 
-Still `[H]`: warping from inside a cutscene (hands-off flags), the character chosen on arrival (`oidPoCurrent`), and the `prepare <job>` flow.
+**live_lab session (07:06-07:33 UTC)** `[C:live]`: the same warp works for all 6 episode hubs tried (L12, L14, L17, L27, L32, L38; each loads in
+5-9 s into the episode safehouse character select, level index = target, pending flag back to 0). **L37 drops straight into the Jean Bison boss
+arena** with Sly ready to fight; L43 loads the blimp deck (boss start not seen). L41 er_bentley loads **with Sly**: the player comes from
+`oidPoCurrent`, not the level. Bridge note: results come back as `"0x.."` strings, so `progression.py wait_level` (int compare) times out;
+normalise with `int(v, 0)`.
+
+Still `[H]`: warping from inside a cutscene (hands-off flags) and the `prepare <job>` flow.
+
+## 5a. Input injection (pine_input)
+
+Two paths, both `[C:live]` (reports/pine_input/inject.py):
+
+| Path | How | Live result |
+|---|---|---|
+| A: force mask | OR a button mask into PO+0x154; it is OR'd into the POCTL buttons each frame | CROSS (0x40) held 0.15 s: jts 0 -> 2 within one frame, z +215; clear the mask after |
+| B: freeze `g_joy` | write `joys` (g_joy 0x2DFC00 +0x100C) = 0 so the pad is no longer read, then write the stick/button fields yourself | stick (0, 1) for 45 frames moved Sly about 405 units; START pauses and unpauses; SQUARE/RIGHT/CROSS drive menus (memcard dialog, character select) |
+| restore | `joys` = 3, force mask 0 | `tRead` advances again |
+
+**Pause sets dt = 0** `[C:live]`: START via path B: dt 0.0167 -> 0.0 -> 0.0167.
+
+**After any loadstate** PCSX2 shows "Memory Card removed - Auto-save disabled" and the game **pauses (rDt 0)** until SQUARE is pressed
+`[C:live]`. Dismiss it before timing anything (it caused one false clock FAIL). Side benefit: auto-save is off. Also: `savestate` is asynchronous,
+so wait at least 8 s before copying the file.
+
+Other recipes run live: `loot.ccoin` 777 -> 1234; `sly.hpCur` via STEPPLAYER+0xE00 and `mpCur` via +0x12FC; `rDt` = 0.25 gives 0.249x; SW+0x3D78
+hands-off counter sticks (visual effect not seen); guard +0x33C hp 40 -> 1 sticks; poking BHV156+0x30 mode = 4 does not change behaviour (the
+prediction holds). Double-jump apex: see [player](../engine/player.md).
 
 ## 6. Next live checks
 
-From pine_toolkit TESTPLAN and the open questions: the guard-mode poke falsification test; `unlock_all_episodes` (D_002BE26C); `reach_m1_boss` on an
+From pine_toolkit TESTPLAN and the open questions: jts 14 (triangle) context; gadgets_all / equip_slot / episodes_cheat / char_switch (save-var writes, not run); `unlock_all_episodes` (D_002BE26C); `reach_m1_boss` on an
 early save; reading the moved car's world matrix in the modded ISO ([open-questions](../open-questions.md#modding-live-test-2026-11-01)); a
 `BroadcastGameEvent` 0x1619A0 logger for game event ids.

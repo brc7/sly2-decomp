@@ -14,7 +14,7 @@ Related: [player](player.md) (the focus object supplies a CPDEFI), [rendering](r
 
 ## 2. The policy stack
 
-- `acpr[8]` at CM+0x310, count +0x30C; entries are 16 bytes `{prio, pcplcy, psoFocus, pv}`, kept sorted by priority `[C:runtime]`.
+- `acpr[8]` at CM+0x310, count +0x30C (`ccpr` = camera policy-stack depth; earlier headers called +0x30C `cmodeHero`, types round 2 corrected it `[C:runtime]`); entries are 16 bytes `{prio, pcplcy, psoFocus, pv}`, kept sorted by priority `[C:runtime]`.
   `SetCmPolicy` / `RevokeCmPolicy` (Sly 1 names) push and pop `[H r2 cm.md]`.
 - Each frame `UpdateCmLast` runs the top policy's Update with the focus object's **CPDEFI** (camera definition), obtained
   from the focus object's vt50 `GetCpdefi` (STEPPLAYER's 0x141640 gives a smoothed focus height) and softened by adjust springs

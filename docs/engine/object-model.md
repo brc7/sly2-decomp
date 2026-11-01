@@ -61,7 +61,7 @@ subclass (XFM 50, SO 75, PO 81, STEP 87, STEPPLAYER 105, JT 107, STEPGUARD 89) `
 | 14 | LoadFromBrx(CBinaryInputStream*) | `LoadLoFromBrx` 0x1A5C28 (options loop) | [C:verified] |
 | 15 | PostLoad | `PostLoLoad` 0x1A5C48 | [C:verified] |
 | 16 | Update (dt read from g_clock) | `UpdateLo` 0x1A5E28 (fires the Splice update event) | [C:verified] |
-| 17 | ProjectTransform | 0x1A5E80 | [H r5 SUMMARY] |
+| 17 | (Sly 1: ProjectTransform) | 0x1A5E80 | LO body = `LO_vt17_InheritFlag4`: copies bit 2 (0x4) of the parent's +0x40 flag word into its own; no matrix math `[C:static v3.1]`. "ProjectTransform" is only a Sly 1 analogy for the slot |
 | 19 | RenderSelf(CM*) | 0x1A5ED8 (empty) | [C:static] |
 | **22** | **OnRemove**: object stops being live | `OnLoRemove` 0x1A6150 | [C:verified arbitration] |
 | **23** | **OnAdd**: object becomes live | `OnLoAdd` 0x1A6178 | [C:verified arbitration] |
@@ -154,7 +154,7 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
   cid 59 -> 0x2BAF84) ([devtools/symbols_export](../guides/devtools.md#symbols_export)).
 - **g_sw and g_cm are objects in place, not pointers** `[C:runtime v3]`: the word at +0xC is vt_SW 0x2DC018 at 0x3DD490 and vt_CM 0x2CA4D0 at 0x2DDF40 in every
   state checked (S02, S65, S71-S73).
-- **XFM world matrix at XFM+0xD0** `[C:runtime level_viewer]`: in Paris S02, 787 of 842 live XFM objects with a non-zero matWorld have a placed instance with
+- **XFM world matrix** (types round 2 correction: matWorld at XFM+0xA0 with its translation row at **+0xD0**; holds for all 3,504 LIGHT instances `[C:runtime]`, but plain XFM/PROXY/TARGET instances have an all-zero matWorld, so do not read object positions there; **SO positions are at pxfRoot (XF) + 0x70**) `[C:runtime level_viewer]`: in Paris S02, 787 of 842 live XFM objects with a non-zero matWorld have a placed instance with
   the same oid within 2 units (LIGHT 248/248); misses are 7 VOLs on moving SOs and 21 runtime-spawned oids. collision_paths' independent check reproduces
   LIGHT 248/248, PROXY 385/385, RAIL 21/21 in S02 ([placement rules](../formats/meshes-scene.md#devtools-findings-v3-2026-11-01)).
 

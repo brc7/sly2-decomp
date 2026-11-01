@@ -26,6 +26,8 @@ movement components (the same JTGRAB/JTAIR/JTMODE offsets are live in Murray and
 REFUTED: "g_pjt is the current player". Code that wants the controlled character must use SW+0x3EFC.
 All three player pointers and the PO list are NULL during a level load (DeleteSw clears them) `[C:runtime S56]`.
 
+**Which PO you play** comes from `oidPoCurrent` (g_gs save blob), not from the level: warping into L41 er_bentley loads the level with Sly `[C:live]`.
+
 ## 2. PO and POCTL (po.cpp, 0x1C3D70)
 
 - SW+0x3EB8 = PO count, `apo[]` at SW+0x3EBC (Paris hub: BENTLEY oid 8, JT oid 7, MURRAY oid 9, SAFEHOUSE PO oid 0x4357), current PO
@@ -36,7 +38,7 @@ All three player pointers and the PO list are NULL during a level load (DeleteSw
 - Non-current players are out of the world and parked at the safehouse next to the character-select PO; right after a level reload
   they stand at (40000,0,72) / (39000,0,42) `[C:runtime S30, S32-S35]`.
 - `FInvulnerablePo` 0x1C3E90 (slot 76) = cheat bit 1 || hands-off (exact Sly 1) `[H r5 po.md]`.
-- PO virtual slots: 75 FTakeDamage, 76 FInvulnerable, 77 JthsCurrent, 78 OnActive, 79 SetCtlState, 80 FCanBeHealed, 81 AddHpMp `[H r2b]` (78/79/76 verified).
+- PO virtual slots: PO vtable 0x2D5898 has 81 slots; slot 75 = 0x1F7588 is **inherited from SO** (same pointer as SO slot 75), so PO adds 6 slots, 76-81 `[C:static v3.1 re-check]`: 76 FInvulnerable (0x1C3E90), 77 JthsCurrent (0x1C3ED0), 78 OnActive, 79 SetCtlState, 80 FCanBeHealed, 81 AddHpMp (0x1C4228) `[H r2b]` (78/79/76 verified). Where FTakeDamage sits is open (v3 said slot 75: WRONG, red-team #131).
 
 ### Pad bits (POCTL `grfbtn`)
 
@@ -125,14 +127,17 @@ wherever observed.
 | 7 | Grab / target point | S17, S18 (wire), S23 (wall press), S24 (under table) | sub-state in JTGRAB | [C:runtime] |
 | 8 | Pipe | S22 | jtcs 2, JTPIPE nState 1 | [C:runtime] |
 | 11 | Pickpocket | S03 | guard loot transfer (guards-ai section 4) | [C:runtime] |
-| 12 | Walk | S21 | full stick without 0x8 (Lilly `JTS_Gait2`) | [C:runtime] |
-| 9, 10, 13, 14, 16 | rush; walk in pickpocket range; air smash (square); triangle attack; pounce | - | code only | [C:static] |
+| 12 | Walk | S21 | full stick without 0x8 (Lilly `JTS_Gait2`); live: stick alone -> 12, stick + R1 (0x8) -> 1 Run `[C:live]` | [C:runtime] [C:live] |
+| 13 | Air smash | live | jump + SQUARE: jts 2 -> 13 -> 0 (was code only) | [C:live] |
+| 9, 10, 14, 16 | rush; walk in pickpocket range; triangle attack; pounce | - | code only; TRIANGLE (and CIRCLE) on the ground in Paris left jts 0 live, so 14 is context-dependent or misnamed | [C:static] |
 | 3, 6 | hang from hook; ? | - | no hook (HND) in the hub | [H r4 jt.md] |
 
 **JTAIR sub-states** (`nState` +0x2DC; `nKind` +0x2C4 = 1 for every jump seen) `[C:runtime]`: 1 rising (S12), 4 falling (S13, S14),
 3 double-jump flight (S15, S16; fCanDoubleJump 1 -> 0; a double jump never stores kind 6), 10 homing onto a grab target (S19, plo = the RAIL),
 0x11 ledge hang (S25; entered from falling via `FindJtEdgeGrabContact`, code 0x197500; X after 0.25 s -> `SetJtAirJump(3)` pull-up; 0x400 opens
-look mode from the ledge). REFUTED: info.txt's "S14 rising".
+look mode from the ledge). REFUTED: info.txt's "S14 rising". Live (input-driven) `[C:live]`: jump = nState 0 (1-2 frames) -> 1 -> 4 -> -1 on landing, kind 1; double jump = 2 (2 frames) -> 3. States 0 and 2 are new transient states.
+
+**Double-jump apex** `D_002BF738` = **215.0** in the retail ELF (v3 and playtesting.md said 315.0) `[C:static v3.1]` `[C:live]`; `JtPlanLaunchVz` reads it. Live: rise 315.5 units at 215, 430.6 at 430 (repeatable), so jump height scales with it `[C:live]`.
 
 **JTGRAB sub-states** `[C:runtime]`: wire = state 3 kind 0 on RAIL (CID 0x0D) oid 0x9EBD; wall press = state 0 kind 0 on CID 0x0C, hfdk 3,
 circle held (pushes the grab context's private TN camera policy); under a table = state 8 kind 9 on CID27 (0x1B, VOL + GRABSPOT)
@@ -158,7 +163,7 @@ see [world-sw](world-sw.md#7-checkpoints-refuted). Sly reappears about 1000 unit
 Other JT facts:
 - `UpdateJt` 0x18BCE0 (slot 16) order: STEPPLAYER Update -> `UpdateJtPre` (grab candidates, mode input, `JtChooseGroundState`, per-jts dispatch)
   -> actuators/gait -> `UpdateJtStand` (foot IK) -> smoothing -> cane -> attach checks -> `UpdateJtLean` `[H r4 jt.md]`.
-- **Cane attacks are a jtcs overlay on jts 0 (or 5)**, not a jts `[C:runtime S68]`: jtcs 12 = first ground combo hit (`JtcsChooseJtAttack`; 13 = alternate
+- **Cane attacks are a jtcs overlay on jts 0 (or 5)**, not a jts `[C:runtime S68]` `[C:live]` (SQUARE on the ground: jtcs -1 -> 12 for about 0.5 s while jts stays 0): jtcs 12 = first ground combo hit (`JtcsChooseJtAttack`; 13 = alternate
   swing; combo table D_002BF448: 12 -> 14, 13 -> 15), entry time +0x18DC, swing ASEGA +0x18E0 on clip JT+0x1CE0 (ASEG 0x11D, tMax 0.833). Clip events: t 0 add the swing
   trail (CID105 0x104B); **t 0.133 `ShowSoPartsById(Sly, 0x14C)` opens the hit window, t 0.333 hides it** (SOPART 0x14C = part 17 at JT+0x1A88, entered into the collision
   tree while shown); t 0.5 messages 0x164/0x165 (finished, fight stance). How a contact becomes a zap is not traced. `SetJtJtcs` 0x18E540 `[C:static]`.

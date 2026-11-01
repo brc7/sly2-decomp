@@ -15,7 +15,7 @@ objects live in the Paris hub `[C:runtime]` (count), `[H r7c hud.md]` (design).
   **0x81 WIDGET129 = objective counter**: counts complete tasks of its list B (+0x194/+0x19C) every frame and sprintf's done/total/remaining into
   "Widget Item 0/1/2" D_002C3EC0 (+0/+0x30/+0x60); the count is not stored anywhere `[C:runtime S57-S62]`; 0x83 WIDGET131 = episode menu in the front-end
   world (mode 10 start-episode animation, label 0x539) `[C:runtime S55]`. See [game-progression](game-progression.md#6-objective-counters-job-markers-and-the-episode-menu).
-- Letterbox widget: oid 0x373 via D_002E1E60; state 2 only while SW+0x3D80 = 1 `[C:runtime]`. Binocucom widget pairs: Sly 0x35F/0x368, Murray 0x361/0x36A, Bentley 0x360/0x369; per-character health widgets 0x33D-0x341 (Sly), 0x342-0x346 (Murray) `[C:runtime]`.
+- Letterbox widget: oid 0x373 via D_002E1E60; state 2 only while SW+0x3D80 = 1 `[C:runtime]`. Binocucom widget pairs: Sly 0x35F/0x368, Murray 0x361/0x36A, Bentley 0x360/0x369; per-character health widgets 0x33D-0x341 (Sly), 0x342-0x346 (Murray) `[H]` (red-team #51: oids 0x33D, 0x341 and 0x342 match no live object in S02/S04/S24/S40/S56; 0x346 seen once in S04 off the class lists, vptr 0x2CA8A0; re-derive).
 - SW HUD stack: four 12-byte records at SW+0x3BA0/+0x3BAC/+0x3BB8/+0x3BC4 (oids 0x371, 0x36D coins, 0x36E clues, 0x36F countdown) `[C:runtime]`
   (REFUTED "4 pointers"); 0x20F7E0 slides visible ones into a stacked layout `[H r7c]`.
 
@@ -26,7 +26,7 @@ HUD values `[C:runtime]` unless noted:
 | coins | STRINGGEN id 0x2CF, getter `BuildCoinCountText` 0x210ED8 reads save var `loot.ccoin` via SW+0x3B20 |
 | clue bottles | "%d/%d" of SW+0x4764 / SW+0x4768 (`BuildClueCountText`) |
 | countdown | SW+0x476C - g_clock.t (`BuildTimerText`) [H r7c] |
-| health meter | widget oid 0x36B, loop anim per character (Sly 0x33D, also 0x340 seen), `SetWidgetAnimPhase` 0x212E40(w, 0x34F, 1 - hp/hpMax); driver 0x1D9968 (PARTIAL: anim 0x340 in S02/S03 not in the doc list) |
+| health meter | widget oid 0x36B, loop anim per character (Sly 0x33D `[H]` unconfirmed as a live object, also 0x340 seen), `SetWidgetAnimPhase` 0x212E40(w, 0x34F, 1 - hp/hpMax); driver 0x1D9968 (PARTIAL: anim 0x340 in S02/S03 not in the doc list) |
 
 **Text table** STRINGGEN: 108 entries `{id, get(pchz, context, widget), context}` at D_003E1C88, copied from rodata 0x2A8B90 by the static init 0x21AA60;
 sprite text elements of kind 1 look up their id here, kind 0 uses a plain localized string `[H r7c]`. Rich text: `CRichText` (0x98 bytes) `[H r7c]`.
