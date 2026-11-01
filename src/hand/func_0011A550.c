@@ -20,6 +20,16 @@ void *func_001AE318(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb);
 void func_0011A1F8(DL *pdl, int ibDle);
 
+/** @sly2-annot addr=0x11A550
+ * Purpose: Allocates DZ array and matrices for c constraints, inits the constraint DLs
+ * Info: proposed name InitDzg (T1); TU dzgcore
+ * Notes: arbitration keep master: CONFIRMED static: body = Sly1 InitDzg (4x InitDl dlPos/dlZero/dlMax/dlUncat
+ *   + per-cdzMax matrices). Called by SolveInequalities 0x11AD30 (Sly1 SolveInequalities
+ * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; arbitration; sources:
+ *   r1_116918+verdicts_tu_r1r2+arbitration
+ * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
+ *   docs/engine/physics-collision.md#2-contacts-and-solving
+ * @end-sly2-annot */
 DZG *func_0011A550(DZG *pdzg, int cpsoMax)
 {
     MSG msg;

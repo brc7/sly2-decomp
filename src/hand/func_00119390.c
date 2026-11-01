@@ -1,6 +1,12 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct PLANE { float x, y, z, d; } __attribute__((aligned(16))) PLANE;
 
+/** @sly2-annot addr=0x119390
+ * Purpose: Plane from normal and a point on it (d = n.pos), VU asm
+ * Info: proposed name InitPlaneFromNormalPos (T1); TU bsp
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
+ * @end-sly2-annot */
 void func_00119390(PLANE *pplane, qword vecNormal, qword vecPos)
 {
     __asm__ __volatile__(

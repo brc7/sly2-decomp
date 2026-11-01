@@ -18,6 +18,12 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 static inline qword QF(float g) { U u; __asm__("mfc1 %0, %1" : "=r"(u.q) : "f"(g)); return u.q; }
+/** @sly2-annot addr=0x11F198
+ * Purpose: Returns an angle-like float between a and b, 0 if either is shorter than 1e-4
+ * Info: proposed name RadBetweenVectorsSafe (T2); TU vec
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 qword func_0011F198(qword a, qword b)
 {
     float g, lb;

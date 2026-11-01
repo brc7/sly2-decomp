@@ -35,6 +35,13 @@ static inline void Release4(R4 *r)
 
 typedef struct S { R2 *p0; R4 *p4; } S;
 
+/** @sly2-annot addr=0x258348
+ * Purpose: base destructor: release binding/sidebag refs [game linkonce (inline/template)]
+ * Info: proposed name BASIC_dtor (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_00258348(S *p, int flags)
 {
     Release4(p->p4);

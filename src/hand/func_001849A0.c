@@ -23,6 +23,13 @@ extern int func_00242AE0(void);
 extern void func_0014BC78(unsigned int isector, unsigned int csector, void *pv, int mode);
 
 static __inline__ int Min(int a, int b) { return a < b ? a : b; }
+/** @sly2-annot addr=0x1849A0
+ * Purpose: Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling
+ *   (0x14BC78)
+ * Info: proposed name CStreamBis_RefillCd (T2); class CStreamBis; TU tu_1848A8
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
+ * @end-sly2-annot */
 void func_001849A0(S *p)
 {
     int cbuf;

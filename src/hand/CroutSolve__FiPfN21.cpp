@@ -1,3 +1,8 @@
+/** @sly2-annot addr=0x1198F8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#crout-0x1195e0-0x119bc8
+ * @end-sly2-annot */
 void CroutSolve(int n, float *a, float *b, float *x)
 {
     int i, j;

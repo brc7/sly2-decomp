@@ -39,6 +39,13 @@ static inline qword Div(qword v, qword l)
     return r;
 }
 static __inline__ float F(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
+/** @sly2-annot addr=0x11B830
+ * Purpose: Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback
+ *   0x11E390)
+ * Info: proposed name BuildOrthonormalMatrixZ (T1); TU mat
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M3 *func_0011B830(M3 *pm, qword x, qword y)
 {
     qword l, l2, z;

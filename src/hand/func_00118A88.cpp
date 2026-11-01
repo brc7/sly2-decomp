@@ -13,6 +13,14 @@ static inline NODE *PnodeCheck(NODE *p, NODE *pnodeMax)
         p = 0;
     return p;
 }
+/** @sly2-annot addr=0x118A88
+ * Purpose: Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree
+ * Info: proposed name PruneBsp (T1); TU bsp
+ * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0,
+ *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
+ * @end-sly2-annot */
 extern "C" int func_00118A88(NODE *pnode, NODE *pnodeMax, qword pos, float eps, int *pcnode, NODE **ppnode)
 {
     float g;

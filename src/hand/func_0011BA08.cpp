@@ -43,6 +43,20 @@ static inline qword Dot(qword a, qword b)
 }
 struct MAT3 { float m[3][4]; };
 extern "C" M3 *func_0011BA08(M3 *pm, qword a, qword b);
+/** @sly2-annot addr=0x11BA08
+ * Purpose: Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b)
+ *   with perpendicular fallback, clamped cos
+ * Info: proposed name BuildRotateVectorsMatrix (T1); TU mat
+ * Notes: names_v2 A proposed BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3 (0.923) [verified CORRECT] |
+ *   CONFLICT: verified tier-A name differs from TU name; orchestrator: verified name
+ *   BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3 restored over LoadRotateVectorMatrix (verified >
+ *   unverified) | arbitration adopt verified: Verifier matched Sly1 body; caller 0x11B938 = Sly1
+ *   TiltMatUpright.
+ * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
+ *   sources: r1_116918+verdicts_A1;verified_A+arbitration
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M3 *func_0011BA08(M3 *pm, qword a, qword b)
 {
     VU_FLOAT la, lb;

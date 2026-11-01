@@ -7,6 +7,16 @@ struct BIS {
 };
 extern char D_002D2918[];
 void func_001177A8(struct BIS *p);
+/** @sly2-annot addr=0x1848A8
+ * Purpose: Constructor of a CBinaryInputStream subclass: base ctor 0x1177A8, vptr D_002D2918, grf,
+ *   64-byte-aligned spool buffer from (cb, pv)
+ * Info: proposed name CStreamBis_ctor_1848A8 (T2); class CStreamBis; TU tu_1848A8
+ * Notes: COLLISION: CStreamBis_ctor already used (same name proposed for 0x184950); renamed to
+ *   CStreamBis_ctor_1848A8
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
+ *   docs/engine/player.md#10-source-files
+ * @end-sly2-annot */
 struct BIS *func_001848A8(struct BIS *p, int cb, char *pv, int grf)
 {
     char *ab;

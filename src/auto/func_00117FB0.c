@@ -10,6 +10,11 @@ extern M2C_UNK D_002BBB20;
 extern void *D_002DD2F8;
 extern void *D_002DD2FC;
 
+/** @sly2-annot addr=0x117FB0
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void func_00117FB0(s32 arg0, s32 arg1) {
     func_00117968(arg0, 8, arg1);
 }

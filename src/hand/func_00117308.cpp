@@ -64,6 +64,14 @@ static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
     t.r[2] = r2; pm->r[2] = r2;
 }
 extern "C" void func_00117308(float dt, float t, float gScale, M3 *pmat0, qword w0, M3 *pmat1, qword w1, M3 *pmatOut, qword *pwOut);
+/** @sly2-annot addr=0x117308
+ * Purpose: Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular
+ *   velocity
+ * Info: proposed name EvaluateBezierMat (T1); TU bez
+ * Notes: names_v2 C proposed LimitBezierMulti__Fie (0.356)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#bez-0x117030-0x1177a8
+ * @end-sly2-annot */
 void func_00117308(float dt, float t, float gScale, M3 *pmat0, qword w0, M3 *pmat1, qword w1, M3 *pmatOut, qword *pwOut)
 {
     float u = t / dt;

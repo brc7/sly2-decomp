@@ -16,6 +16,15 @@ static inline float Dot(qword a, qword b)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d) : "$4");
     return g;
 }
+/** @sly2-annot addr=0x11ED40
+ * Purpose: Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance
+ * Info: proposed name FindClosestPointOnLine (T1); TU vec
+ * Notes: v3: superseded ClosestPointOnSegment | top50_round (0.65): [extra: knock-on fix] FIX of current
+ *   ClosestPointOnSegment: body has no clamp (0x11EE08 is the clamped segment version) | v2 draft was
+ *   ClosestPointOnSegment
+ * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 void func_0011ED40(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist)
 {
     register qword p0r __asm__("vf5") = p0; /* the one register pin: p0 copy shared by both Subs and the vadda */

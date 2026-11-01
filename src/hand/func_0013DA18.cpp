@@ -87,6 +87,17 @@ static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; pre
 static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE1D0(preq); }
 static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE318(preq); }
 
+/** @sly2-annot addr=0x13DA18
+ * Purpose: Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells,
+ *   g_sw/g_cm options, then per proxy source: refs+shader/texture blob+object list, cloned ccopy-1 times
+ * Info: proposed name LoadSwFromBrx (T1); TU brx_sw
+ * Notes: names_v2 C proposed LoadOptionFromBrx__FPvP5EOPIDP18CBinaryInputStream (0.438) | level_parser
+ *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.97] - evidence: semantic review; static naming pass; sources:
+ *   r2_131F70+parse-verified
+ * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#3-world--level-lifecycle
+ * @end-sly2-annot */
 extern "C" void func_0013DA18(SW *psw, BIS *pbis)
 {
     union { AREQ req; RGBA rgba; struct { int pad[2]; int c; LO **apo; } lol; } u;

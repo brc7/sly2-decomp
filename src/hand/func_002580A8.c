@@ -30,6 +30,13 @@ static inline void Release4(R4 *r)
     }
 }
 
+/** @sly2-annot addr=0x2580A8
+ * Purpose: refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce
+ *   (inline/template)]
+ * Info: proposed name SidebagPtr_Assign (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_002580A8(R4 **pp, R4 *p)
 {
     if (p)

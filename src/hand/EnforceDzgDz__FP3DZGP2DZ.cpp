@@ -36,6 +36,11 @@ extern const float D_002A4124;
 void CroutDecomp(int n, float *a, float *lu);
 void CroutSolve(int n, float *lu, float *b, float *x);
 
+/** @sly2-annot addr=0x11A770
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
+ * @end-sly2-annot */
 void EnforceDzgDz(DZG *pdzg, DZ *pdz)
 {
     int iter;

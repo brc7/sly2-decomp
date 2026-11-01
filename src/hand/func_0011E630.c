@@ -31,6 +31,13 @@ static inline float DotG(qword a, qword b)
     __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
     return f;
 }
+/** @sly2-annot addr=0x11E630
+ * Purpose: Closest points between two infinite lines
+ * Info: proposed name FindClosestPointBetweenLines (T1); TU vec
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 void func_0011E630(qword a, qword b, qword c, qword pos, float *puv, float *pdist, qword *pnormal)
 {
     qword ca, ba, pc, n;

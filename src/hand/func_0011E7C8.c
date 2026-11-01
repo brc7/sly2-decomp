@@ -24,6 +24,12 @@ static inline qword Len(qword v)
     return l;
 }
 static __inline__ float F(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
+/** @sly2-annot addr=0x11E7C8
+ * Purpose: Closest points between two segments (clamped line solution)
+ * Info: proposed name FindClosestPointBetweenLineSegments (T1); TU vec
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 void func_0011E7C8(qword a, qword b, qword c, qword pos, float *puv, float *pdist, qword *pnormal)
 {
     float v;

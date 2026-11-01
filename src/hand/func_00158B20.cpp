@@ -70,6 +70,14 @@ static inline qword QwDivX(qword v, VU_FLOAT g)
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
 union VEC4 { qword q; float f[4]; };
 
+/** @sly2-annot addr=0x158B20
+ * Purpose: Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest
+ *   tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz
+ * Info: proposed name SolveDzgFric (T1); TU dzg
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3b_rest+verdicts_A1
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
+ * @end-sly2-annot */
 void func_00158B20(DZG *pdzg, int grf)
 {
     for (;;) {

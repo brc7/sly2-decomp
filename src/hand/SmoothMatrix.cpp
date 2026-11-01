@@ -25,6 +25,16 @@ static inline M3 MulM3(const M3 &a, M3 *pb) return m
     t.r[2] = r2; m.r[2] = r2;
 }
 extern "C" void SmoothMatrix(M3 *pmatPrev, M3 *pmatGoal, struct SMP *psmp, float dt, M3 *pmatNext, qword *pw);
+/** @sly2-annot addr=0x11C950
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name SmoothMatrix (EXISTING); TU mat
+ * Notes: arbitration: keep existing name (Name correct (Sly1 util SmoothMatrix). Proposed mangling
+ *   SmoothMatrix__FP7MATRIX3T0P3SMPfT0P6VECTOR is plausible but unv)
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: Sly 1 / Lilly reference; arbitration;
+ *   pre-existing symbol in symbol_addrs.txt
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 void SmoothMatrix(M3 *pmatPrev, M3 *pmatGoal, struct SMP *psmp, float dt, M3 *pmatNext, qword *pw)
 {
     UF normal;

@@ -12,6 +12,12 @@ extern M2C_UNK D_002CA5C0;
 extern void *D_002DD2F8;
 extern void *D_002DD2FC;
 
+/** @sly2-annot addr=0x1184B8
+ * Purpose: Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1
+ * Info: proposed name CMemInputStream_ctor (T1); class CMemInputStream; TU bis
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void func_001184B8(s32 arg0, s32 arg1) {
     M2C_FIELD(arg0, M2C_UNK **, 0x30) = &D_002CA5A0;
     if (arg1 & 1) {

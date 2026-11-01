@@ -58,6 +58,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1177A8
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Info: proposed name __18CBinaryInputStream (EXISTING); TU bis
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
+ *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void *func_001177A8(void *arg0) {
     M2C_FIELD(arg0, s32 *, 0) = 0;
     M2C_FIELD(arg0, M2C_UNK **, 0x30) = &D_002CA5C0;

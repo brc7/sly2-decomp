@@ -10,6 +10,15 @@ void *func_0011CCC0(POOL *);
 void func_0011CD98(POOL *, void *);
 N *func_00255718(N *);
 
+/** @sly2-annot addr=0x256DD0
+ * Purpose: allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
+ *   linkonce (inline/template)]
+ * Info: proposed name PvNewFrame (T1); TU game_linkonce
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
+ *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
+ * @end-sly2-annot */
 N *func_00256DD0(void)
 {
     N *p;

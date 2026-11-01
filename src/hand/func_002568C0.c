@@ -5,6 +5,12 @@ typedef struct E { unsigned int key; int k; int v; struct E *next; } E;
 typedef struct H { int c; E **ap; int count; A *pa; } H;
 void *func_002333B4(void *, int, int);
 
+/** @sly2-annot addr=0x2568C0
+ * Purpose: rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)]
+ * Info: proposed name CHash_Resize (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_002568C0(H *h, int n)
 {
     register E *list asm("s1") = 0;

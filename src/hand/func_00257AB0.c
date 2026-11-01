@@ -18,6 +18,12 @@ static inline N *Next(N *p)
     return Ptr(p->next, p->nextpg);
 }
 
+/** @sly2-annot addr=0x257AB0
+ * Purpose: GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]
+ * Info: proposed name GcSweepSidebags (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_00257AB0(void)
 {
     N *p;

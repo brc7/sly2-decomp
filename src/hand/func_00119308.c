@@ -32,6 +32,13 @@ static inline qword Normalize(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
+/** @sly2-annot addr=0x119308
+ * Purpose: Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a
+ * Info: proposed name InitPlaneFromPositions (T1); TU bsp
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
+ * @end-sly2-annot */
 void func_00119308(PLANE *pplane, qword a, qword b, qword c)
 {
     UV u;

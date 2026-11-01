@@ -16,6 +16,13 @@ static inline void Handle(N *p, int *pidx, int *ppg)
     *ppg = 0;
 }
 
+/** @sly2-annot addr=0x2558C0
+ * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
+ *   linkonce (inline/template)]
+ * Info: proposed name GcProc_PushFront (T1); TU game_linkonce
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_002558C0(N *p, N **phead)
 {
     int idx0, pg0, idx1, pg1;

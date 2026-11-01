@@ -11,6 +11,13 @@ void func_00116D70(void *, int);
 void *func_002333B4(void *, int, int);
 }
 
+/** @sly2-annot addr=0x2566D8
+ * Purpose: virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce
+ *   (inline/template)]
+ * Info: proposed name LoadListFromBrx_vt (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 extern "C" void func_002566D8(O *p, void *pv)
 {
     ((void (*)(void *))p->vt[2].pfn)((char *)p + p->vt[2].d);

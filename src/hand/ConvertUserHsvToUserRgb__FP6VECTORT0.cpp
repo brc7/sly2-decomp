@@ -1,6 +1,11 @@
 struct VECTOR { float x, y, z; } __attribute__((aligned(16)));
 extern "C" void func_0011DD90(VECTOR *pvecHsv, VECTOR *pvecRgb);
 
+/** @sly2-annot addr=0x11DFA0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
+ * @end-sly2-annot */
 void ConvertUserHsvToUserRgb(VECTOR *pvecHsv, VECTOR *pvecRgb)
 {
     VECTOR vecHsv = *pvecHsv;

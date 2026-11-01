@@ -12,6 +12,12 @@ int func_00233178(const void *a, const void *b, int n);
 void *func_0015E938(void *pg, int kind, int oid, SO *p);
 void func_002590F0(SO *p, int f);
 void *func_001AE238(AREQ *preq, void *pv);
+/** @sly2-annot addr=0x259170
+ * Purpose: EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)]
+ * Info: proposed name BindExplo (T2); class EXPLO slot15; TU game_linkonce
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_00259170(SO *p)
 {
     void *a[5];

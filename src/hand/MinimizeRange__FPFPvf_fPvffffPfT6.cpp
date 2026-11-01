@@ -10,6 +10,11 @@ static inline float GClamp(float g, float lo, float hi)
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 
+/** @sly2-annot addr=0x11D9E0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
+ * @end-sly2-annot */
 void MinimizeRange(PFNGG pfn, void *pv, float g, float dg, float gMin, float gMax, float *pg, float *pgResult)
 {
     GG agg[5];

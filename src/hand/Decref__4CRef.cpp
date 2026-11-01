@@ -34,6 +34,12 @@ struct O22 {
     ~O22() { func_00256120(this); }
     void operator delete(void *pv) { func_0011CD98(&D_00452170, pv); }
 };
+/** @sly2-annot addr=0x129EC8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 void CRef::Decref()
 {
     switch (m_tagk) {

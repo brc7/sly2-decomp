@@ -35,6 +35,16 @@ static inline float GClamp(float g, float lo, float hi)
     else if (g > hi) g = hi;
     return g;
 }
+/** @sly2-annot addr=0x11EE08
+ * Purpose: Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t,
+ *   distance
+ * Info: proposed name FindClosestPointOnLineSegment (T1); TU vec
+ * Notes: v3: superseded ClosestPointOnSegmentT | top50_round (0.80): Body clamps t to [0,1] (GClamp) before
+ *   forming p0+t*d; 0x11ED40 is the same code without the clamp (infinite line). Callers: path/pathzone
+ *   nearest point, FindMeshClosestPoint, ClosestPointOnCgt (triangle edges), RenderWa
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 void func_0011EE08(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist)
 {
     qword d = Sub(p1, p0);

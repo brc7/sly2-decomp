@@ -8,6 +8,13 @@ static __inline__ float GClamp(float g, float lo, float hi)
     return g;
 }
 
+/** @sly2-annot addr=0x11DD90
+ * Purpose: RGB -> HSV (floorf), clamps
+ * Info: proposed name ConvertUserRgbToUserHsv (T1); TU util
+ * Notes: names_v2 C proposed ConvertHsvToRgb__FP6VECTORT0 (0.438)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
+ * @end-sly2-annot */
 void func_0011DD90(VECTOR *phsv, VECTOR *prgb)
 {
     float h, s, v, f, p, q, t;

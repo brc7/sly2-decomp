@@ -56,6 +56,13 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x116CA0
+ * Purpose: memcmp(a,b,4) (tail-returns result)
+ * Info: proposed name NCmpAb4 (T2); TU dynarray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
+ *   docs/engine/core-library.md#open-questions
+ * @end-sly2-annot */
 void func_00116CA0(s32 arg0, s32 arg1, s32 arg2) {
     memcmp(arg0, arg1, 4);
 }

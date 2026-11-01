@@ -2,6 +2,13 @@
 M2C_UNK func_00182C70(s32);                         /* extern */
 M2C_UNK func_0021D278();                            /* extern */
 
+/** @sly2-annot addr=0x184F50
+ * Purpose: CID19 (HND) vt7: InitTarget then InitGrabspot on its GRABSPOT part
+ * Info: proposed name InitHnd (T1); class HND slot7; TU hnd
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/core-library.md#6-source-files, docs/engine/player.md#10-source-files,
+ *   docs/reference/functions/player.md#hnd-0x184f50-0x185130
+ * @end-sly2-annot */
 void func_00184F50(void *arg0) {
     func_0021D278();
     func_00182C70(arg0 + 0x100);

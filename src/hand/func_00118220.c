@@ -10,6 +10,16 @@ int func_00117C20(CBinaryInputStream *pbis);
 void *func_001AE2A0(MSG *pmsg);
 extern char D_002BBAF0[];
 
+/** @sly2-annot addr=0x118220
+ * Purpose: Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children
+ *   indices
+ * Info: proposed name CBinaryInputStream_ReadBspc (T1); class CBinaryInputStream; TU bis
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918+parse-verified
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
+ *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void func_00118220(CBinaryInputStream *pbis, OWNER *powner, TREE *ptree)
 {
     int i;

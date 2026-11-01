@@ -25,6 +25,15 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x158988
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name SolveDzg__FP3DZGi (EXISTING); TU dzg
+ * Notes: RENAME proposed -> SolveDzg__FP3DZGi (existing_name_changes.csv)
+ * Confidence: name high [EXISTING 0.80]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
+ *   symbol_addrs.txt
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
+ * @end-sly2-annot */
 void SolveDzg(DZG *pdzg, int a, int b, XP **ppxp, int *pn, SO ***pppso)
 {
     DLI dli;

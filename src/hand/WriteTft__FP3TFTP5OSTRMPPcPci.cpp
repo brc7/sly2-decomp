@@ -10,6 +10,11 @@ static inline void WritePchz(OSTRM *out,char *s){out->CbWrite(s,func_0021ED28(s)
 static inline char *LiteralAddress(char *text){char *value;asm("la %0,%1":"=r"(value):"i"(text));return value;}
 static inline int CountWord(const OSTRM *out){register int value asm("$2");asm("lw %0,%1":"=r"(value):"m"(out->count));return value;}
 static inline short *ShortDestination(const char *slot){register short *value asm("$4");asm("lw %0,%1":"=r"(value):"m"(*(short *const *)slot));return value;}
+/** @sly2-annot addr=0x21E718
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 void WriteTft(TFT *f,OSTRM *out,char **args,char *text,int count){
     switch(f->conversion){
     case '%':out->CbWrite(&f->conversion,1);break;

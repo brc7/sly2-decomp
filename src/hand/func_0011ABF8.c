@@ -42,6 +42,19 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 
+/** @sly2-annot addr=0x11ABF8
+ * Purpose: Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the
+ *   most-violated constraint
+ * Info: proposed name SolveDzgFilled (T1); TU dzgcore
+ * Notes: COLLISION: SolveDzg already used (existing symbol at 0x158988); renamed to SolveDzg_11ABF8 |
+ *   superseded: SolveDzg_11ABF8 (arbitration) | arbitration other name: CONFIRMED static: Sly1 SolveDzg loop
+ *   (equality rows Uncat->Pos, EnforceDzgDz(0), add most-violated row) WITHOUT the lazy FillDzgDz; only
+ *   caller SolveInequalitie
+ * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; arbitration; sources:
+ *   r1_116918+arbitration
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
+ * @end-sly2-annot */
 void func_0011ABF8(DZG *pdzg)
 {
     DLI dli;

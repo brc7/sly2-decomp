@@ -77,6 +77,16 @@ static inline VU_VECTOR4 SubPos(qword a, qword b)
     return r;
 }
 qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv) __asm__("PosSmooth");
+/** @sly2-annot addr=0x11F088
+ * Purpose: Smooth a position toward a target (existing name)
+ * Info: proposed name PosSmooth (EXISTING); TU vec
+ * Notes: arbitration: keep existing name (Name correct; args a0/a1 are 128-bit VU_VECTORs (dmtc2), f12 dt, a2
+ *   psmp, a3 pv = Sly1 signature. Proposed mangling "FUx)
+ * Confidence: high [EXISTING 0.85] - evidence: Sly 1 / Lilly reference; arbitration; pre-existing symbol in
+ *   symbol_addrs.txt; sources: r1_116918+arbitration
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv)
 {
     VU_VECTOR4 dpos = SubPos(posTarget, posCur);

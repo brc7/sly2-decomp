@@ -8,6 +8,11 @@ int UnRadixFromChConversion(unsigned char) __asm__("UnRadixFromChConversion__Fc"
 extern "C" unsigned int func_0021ED28(const char *);
 extern "C" void func_0021EE30(char *);
 static inline void WritePad(OSTRM *out,char ch,int count){char b=ch;while(count-- >0)if(out->CbWrite(&b,1)!=1)break;}
+/** @sly2-annot addr=0x21DD40
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 void WriteTftUl(TFT *f,OSTRM *out,unsigned long n){
     char digits[65];
     char prefix[3];

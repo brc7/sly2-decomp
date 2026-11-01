@@ -31,6 +31,12 @@ static inline float DotS(qword a, qword b)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(n));
     return g;
 }
+/** @sly2-annot addr=0x11EBB0
+ * Purpose: Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v)
+ * Info: proposed name FIntersectRayTriangle (T1); TU vec
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 int func_0011EBB0(qword dir, qword orig, qword v0, qword v1, qword v2, float *pt, float *puv)
 {
     V e1, e2, pvec, tvec, qvec;

@@ -10,6 +10,13 @@ static inline qword Mulx(qword a, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s.q));
     return r;
 }
+/** @sly2-annot addr=0x11C288
+ * Purpose: 4x4 from 3x3 rotation uniformly scaled by g plus position
+ * Info: proposed name LoadMatrixFromPosRotScalar (T1); TU mat
+ * Notes: names_v2 v1 proposed DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1 (0.001)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M4 *func_0011C288(M4 *pm, qword pos, M3 *pmat, float g)
 {
     *(qword *)pm->m[0] = Mulx(pmat->r[0], g);

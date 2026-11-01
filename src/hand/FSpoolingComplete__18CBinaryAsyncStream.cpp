@@ -22,6 +22,11 @@ public:
 extern "C" int sceIoctl(int fd, int req, void *pv);
 extern "C" int sceCdSync(int mode);
 extern "C" int sceCdGetError(void);
+/** @sly2-annot addr=0x1327E0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
+ * @end-sly2-annot */
 bool CBinaryAsyncStream::FSpoolingComplete()
 {
     int status = 0;

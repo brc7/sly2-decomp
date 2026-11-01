@@ -15,6 +15,12 @@ void func_002417F0(DMAC *pch, int a, int b);
 void func_00241728(DMAC *pch, int a);
 }
 
+/** @sly2-annot addr=0x201620
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/core-library.md#6-source-files, docs/engine/splice-scripting.md#1-layout-of-the-runtime,
+ *   docs/engine/splice-scripting.md#6-source-files
+ * @end-sly2-annot */
 void LoadSprBuf(int cb, ...)
 {
     SPRBUF *psb = &D_003DD2C0[1 - D_002C3C5C];

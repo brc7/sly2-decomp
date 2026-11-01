@@ -5,6 +5,11 @@ int CchParsePchzInt(char *,int *);
 static inline int Abs(int n){return n<0?-n:n;}
 static inline int Upper(unsigned char c){return D_002AA6A1[c]&1;}
 static inline int Lower(unsigned char c){int r=c+0x20;if(!Upper(c))r=c;return r;}
+/** @sly2-annot addr=0x21D6B0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 int CchParsePchzTft(char *format,TFT *f,char **args){
     int state=0;
     func_002333B4(f,0,0x34);

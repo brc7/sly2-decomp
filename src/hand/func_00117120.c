@@ -10,6 +10,14 @@ static inline qword VF(float g)
     __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(g));
     return q;
 }
+/** @sly2-annot addr=0x117120
+ * Purpose: Cubic Hermite position/velocity/acceleration along a curve segment
+ * Info: proposed name EvaluateBezierPos (T1); TU bez
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#bez-0x117030-0x1177a8,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_00117120(qword p0, qword v0, qword p1, qword v1, float dt, float t, float dtScale, qword *ppos, qword *pvel, qword *pacc)
 {
     float v;

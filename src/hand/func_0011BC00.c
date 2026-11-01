@@ -31,6 +31,13 @@ static inline M3 MulM3(M3 *pa, M3 *pb, M3 *pd)
     m.r[2] = v8;
     return m;
 }
+/** @sly2-annot addr=0x11BC00
+ * Purpose: 3x3 matrix product into *pm (VU rows)
+ * Info: proposed name MulMatrix3Matrix3 (T1); TU mat
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 M3 *func_0011BC00(M3 *pm, M3 *pa, M3 *pb)
 {
     M3 m;

@@ -14,6 +14,12 @@ static inline qword Cross(qword a, qword b)
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+/** @sly2-annot addr=0x11B3D0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name NormalizeRotateMatrix3__FP7MATRIX3 (EXISTING); TU mat
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 void NormalizeRotateMatrix3(MATRIX3 *pmat)
 {
     qword v0 = Normalize(pmat->r[0]);

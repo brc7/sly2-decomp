@@ -1,4 +1,10 @@
 #include "m2c_prelude.h"
+/** @sly2-annot addr=0x2599F8
+ * Purpose: option-record base accessor: return this+0x190 [game linkonce (inline/template)]
+ * Info: proposed name PvOptBase_Plus190_002599F8 (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 s32 func_002599F8(s32 arg0) {
     return arg0 + 0x190;
 }

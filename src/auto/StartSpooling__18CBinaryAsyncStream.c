@@ -9,6 +9,12 @@ extern f32 *D_003E0E80;
 extern M2C_UNK D_003E1144;
 extern M2C_UNK D_004520A8;
 
+/** @sly2-annot addr=0x132710
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/disc-records.md#2-the-read-path,
+ *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
+ * @end-sly2-annot */
 void StartSpooling__18CBinaryAsyncStream(s32 arg0) {
     s32 temp_a1;
     s32 temp_a2;

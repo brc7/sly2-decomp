@@ -1,5 +1,13 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
+/** @sly2-annot addr=0x11C318
+ * Purpose: Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value
+ * Info: proposed name InvertMatrix4Rigid (T1); TU mat
+ * Notes: names_v2 v1 proposed TiltMatUpright__FP7MATRIX3N20 (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 M4 func_0011C318(M4 *pm)
 {
     M4 m;

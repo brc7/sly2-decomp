@@ -11,6 +11,15 @@ void func_0011CCA8(SLOTHEAP *psh, int cb, int c, int cbAlign);
 void func_001147D8(int fInit, int nPriority);
 }
 inline void *operator new(unsigned int, void *p) { return p; }
+/** @sly2-annot addr=0x1147D8
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU tu_1147D8
+ * Info: proposed name StaticInit_tu_1147D8 (T1); TU tu_1147D8
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)
+ * See: docs/engine/core-library.md#6-source-files,
+ *   docs/guides/naming-workflow.md#1-where-things-stand-master_names_v2,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 void func_001147D8(int fInit, int nPriority) { if (nPriority == 0xFFFF && fInit) { RGBA *p = D_0029A7C0;
  new (p) RGBA(0,0,0,0xF); p++;
  new (p) RGBA(0x67,0x67,0x67,0x7D); p++;

@@ -21,6 +21,13 @@ static inline void Release0(R0 *r)
     }
 }
 
+/** @sly2-annot addr=0x257148
+ * Purpose: CProc destructor body: release arg/body pairs and frame, unlink, free [game linkonce
+ *   (inline/template)]
+ * Info: proposed name DeleteProc (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_00257148(X *p, int flags)
 {
     Release0(p->p18);

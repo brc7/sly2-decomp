@@ -11,6 +11,13 @@ void func_002348B0(int tid, int prio);
 void *func_002333B4(void *p, int c, int n);
 int func_00234820(struct ThreadParam *tp);
 
+/** @sly2-annot addr=0x21F100
+ * Purpose: creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5
+ * Info: proposed name StartupThread (T1); TU thread
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r8_21BB88+verdicts_A2
+ * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#open-questions,
+ *   docs/engine/overview.md#1-boot
+ * @end-sly2-annot */
 void func_0021F100(void)
 {
     struct ThreadParam tp;

@@ -1,5 +1,12 @@
 typedef struct VECTOR { float x, y, z; } VECTOR;
 struct S { int n; char pad[0xC]; VECTOR v; char pad2[0x8C]; int a; };
+/** @sly2-annot addr=0x201D78
+ * Purpose: recon selector init: owner, origin = screen centre (320,246.4), state -1
+ * Info: proposed name InitReconSel (T1); TU tu_201D78
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/core-library.md#6-source-files, docs/engine/player.md#10-source-files,
+ *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 void func_00201D78(struct S *p, int a)
 {
     VECTOR *pv = &p->v;

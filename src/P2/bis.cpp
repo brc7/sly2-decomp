@@ -1,5 +1,12 @@
 #include "bis.h"
 
+/** @sly2-annot addr=0x1177A8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name __18CBinaryInputStream (EXISTING); TU bis
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
+ *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 CBinaryInputStream::CBinaryInputStream() : m_grfbis(0)
 {
     m_pbRaw = NULL;
@@ -15,6 +22,11 @@ CBinaryInputStream::CBinaryInputStream() : m_grfbis(0)
     m_unk28 = 0;
 }
 
+/** @sly2-annot addr=0x1177F0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::Close()
 {
     m_pbRaw = NULL;
@@ -25,6 +37,14 @@ void CBinaryInputStream::Close()
     m_cbPending = 0;
 }
 
+/** @sly2-annot addr=0x117810
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name Refill__18CBinaryInputStream (EXISTING); TU bis
+ * Notes: names_v2 v1 hint not used: Pump__18CBinaryInputStream
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: static naming pass; pre-existing symbol
+ *   in symbol_addrs.txt
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::Refill()
 {
     if (m_cb != 0)
@@ -45,6 +65,11 @@ void CBinaryInputStream::Refill()
     m_cbConsumed += m_cb;
 }
 
+/** @sly2-annot addr=0x117898
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 int CBinaryInputStream::CbRead(int cb, void *pv)
 {
     int cbLeft = cb;
@@ -78,11 +103,28 @@ int CBinaryInputStream::CbRead(int cb, void *pv)
     return cb - cbLeft;
 }
 
+/** @sly2-annot addr=0x117968
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container,
+ *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
+ *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void CBinaryInputStream::Read(int cb, void *pv)
 {
     CbRead(cb, pv);
 }
 
+/** @sly2-annot addr=0x117988
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name Align__18CBinaryInputStreami (EXISTING); TU bis
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: name high [EXISTING 0.45]; purpose not reviewed - evidence: pre-existing symbol in
+ *   symbol_addrs.txt
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
+ *   docs/formats/world-file.md#3-head-layout-loadswfrombrx-func_0013da18
+ * @end-sly2-annot */
 void CBinaryInputStream::Align(int n)
 {
     int pbAligned = ((int)m_pb + (n - 1)) & -n;
@@ -90,6 +132,11 @@ void CBinaryInputStream::Align(int n)
     m_pb = (byte *)pbAligned;
 }
 
+/** @sly2-annot addr=0x117BD0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 uchar CBinaryInputStream::U8Read()
 {
     if (m_cb >= 1)
@@ -105,6 +152,11 @@ uchar CBinaryInputStream::U8Read()
     return b;
 }
 
+/** @sly2-annot addr=0x117C20
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 ushort CBinaryInputStream::U16Read()
 {
     if (m_cb >= 2)
@@ -121,6 +173,11 @@ ushort CBinaryInputStream::U16Read()
     return v;
 }
 
+/** @sly2-annot addr=0x117C80
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 uint CBinaryInputStream::U32Read()
 {
     if (m_cb >= 4)
@@ -136,6 +193,11 @@ uint CBinaryInputStream::U32Read()
     return v;
 }
 
+/** @sly2-annot addr=0x117D00
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 char CBinaryInputStream::S8Read()
 {
     if (m_cb >= 1)
@@ -151,6 +213,11 @@ char CBinaryInputStream::S8Read()
     return b;
 }
 
+/** @sly2-annot addr=0x117D50
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 short CBinaryInputStream::S16Read()
 {
     if (m_cb >= 2)
@@ -167,6 +234,11 @@ short CBinaryInputStream::S16Read()
     return v;
 }
 
+/** @sly2-annot addr=0x117DB8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 int CBinaryInputStream::S32Read()
 {
     if (m_cb >= 4)
@@ -182,6 +254,11 @@ int CBinaryInputStream::S32Read()
     return v;
 }
 
+/** @sly2-annot addr=0x117E38
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 float CBinaryInputStream::F32Read()
 {
     if (m_cb >= 4)
@@ -196,11 +273,23 @@ float CBinaryInputStream::F32Read()
     return f;
 }
 
+/** @sly2-annot addr=0x1179B8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::Skip(int cb)
 {
     Read(cb, NULL);
 }
 
+/** @sly2-annot addr=0x1179D8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
+ *   docs/engine/overview.md#3-world--level-lifecycle,
+ *   docs/formats/compression-lzss.md#compression-whole-file-lzss
+ * @end-sly2-annot */
 void CBinaryInputStream::SetDecompress(int n, byte *pb)
 {
     m_grfbis |= 2;
@@ -210,6 +299,12 @@ void CBinaryInputStream::SetDecompress(int n, byte *pb)
 
 /* LZSS: 8K window, flag byte per 8 tokens (bit set = literal), references are
  * 13-bit offset + 3-bit length (copies length + 3 bytes). */
+/** @sly2-annot addr=0x1179F0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
+ *   docs/formats/compression-lzss.md#compression-whole-file-lzss, docs/formats/world-file.md#1-container
+ * @end-sly2-annot */
 void CBinaryInputStream::Decompress()
 {
     int cbOut = 0;
@@ -289,11 +384,21 @@ void CBinaryInputStream::Decompress()
     m_grfDecomp = grf;
 }
 
+/** @sly2-annot addr=0x117EB0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::ReadVector(VECTOR *pvec)
 {
     Read(sizeof(float) * 3, pvec);
 }
 
+/** @sly2-annot addr=0x117ED0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::ReadMatrix(MATRIX3 *pmat)
 {
     ReadVector((VECTOR *)pmat->mat[0]);
@@ -301,6 +406,12 @@ void CBinaryInputStream::ReadMatrix(MATRIX3 *pmat)
     ReadVector((VECTOR *)pmat->mat[2]);
 }
 
+/** @sly2-annot addr=0x117F18
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/level-objects.md#world-file-part-2-world-entries-and-object-records-all-classes,
+ *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::ReadMatrix4(MATRIX4 *pmat)
 {
     ReadMatrix((MATRIX3 *)pmat);
@@ -311,16 +422,31 @@ void CBinaryInputStream::ReadMatrix4(MATRIX4 *pmat)
     pmat->mat[3][3] = 1.0f;
 }
 
+/** @sly2-annot addr=0x117F70
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::ReadVector4(VECTOR4 *pvec)
 {
     Read(sizeof(VECTOR4), pvec);
 }
 
+/** @sly2-annot addr=0x117F90
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::ReadCb12(void *pv)
 {
     Read(12, pv);
 }
 
+/** @sly2-annot addr=0x117FB0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
+ * @end-sly2-annot */
 void CBinaryInputStream::ReadCb8(void *pv)
 {
     Read(8, pv);
