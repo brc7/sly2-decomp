@@ -1,5 +1,10 @@
 #include "dmas.h"
 
+/** @sly2-annot addr=0x157278
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 DMAS::DMAS()
 {
     m_fPad = 0;
@@ -7,6 +12,11 @@ DMAS::DMAS()
     Clear();
 }
 
+/** @sly2-annot addr=0x1572B8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::Clear()
 {
     m_pbMax = NULL;
@@ -15,12 +25,28 @@ void DMAS::Clear()
     m_pb = NULL;
 }
 
+/** @sly2-annot addr=0x1572D0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::Reset()
 {
     m_pqwCnt = NULL;
     m_pb = m_ab;
 }
 
+/** @sly2-annot addr=0x1572E0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name AllocStack__4DMASi (EXISTING); TU dmas
+ * Notes: names_v2 v1 hint not used: AllocStack__4DMASi | RENAME proposed -> AllocStack__4DMASi
+ *   (existing_name_changes.csv)
+ * Confidence: name high [EXISTING 0.90]; purpose not reviewed - evidence: arbitration; static naming pass;
+ *   pre-existing symbol in symbol_addrs.txt
+ * See: docs/engine/core-library.md#1-memory,
+ *   docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 void DMAS::AllocSw(int cqw)
 {
     ALLOCREQ req;
@@ -33,6 +59,11 @@ void DMAS::AllocSw(int cqw)
     m_pbMax = ab + cb;
 }
 
+/** @sly2-annot addr=0x157330
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AllocStatic(int cqw, QW *aqw)
 {
     m_ab = (uchar *)aqw;
@@ -40,11 +71,21 @@ void DMAS::AllocStatic(int cqw, QW *aqw)
     m_pbMax = (uchar *)(aqw + cqw);
 }
 
+/** @sly2-annot addr=0x1573C0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::DetachCopySw(int *pcqw, QW **paqw, QW **paqwCopy)
 {
     DetachCopySw(&g_heapSw, pcqw, paqw, paqwCopy);
 }
 
+/** @sly2-annot addr=0x1573F8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::DetachCopySw(HEAP *pheap, int *pcqw, QW **paqw, QW **paqwCopy)
 {
     EndDmaCnt();
@@ -65,10 +106,20 @@ void DMAS::DetachCopySw(HEAP *pheap, int *pcqw, QW **paqw, QW **paqwCopy)
     Clear();
 }
 
+/** @sly2-annot addr=0x1574A0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::Flush()
 {
 }
 
+/** @sly2-annot addr=0x1574B8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AddDmaCnt()
 {
     EndDmaCnt();
@@ -79,6 +130,11 @@ void DMAS::AddDmaCnt()
     m_pqwCnt->aul[1] = 0;
 }
 
+/** @sly2-annot addr=0x1576F0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::EndDmaCnt()
 {
     if (m_fPad)
@@ -103,6 +159,11 @@ void DMAS::EndDmaCnt()
     }
 }
 
+/** @sly2-annot addr=0x157348
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::Detach(int *pcqw, QW **paqw)
 {
     EndDmaCnt();
@@ -118,6 +179,11 @@ void DMAS::Detach(int *pcqw, QW **paqw)
     Clear();
 }
 
+/** @sly2-annot addr=0x157500
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AddDmaRefs(int cqw, QW *aqw)
 {
     int fCnt = 0;
@@ -142,6 +208,11 @@ void DMAS::AddDmaRefs(int cqw, QW *aqw)
     }
 }
 
+/** @sly2-annot addr=0x157598
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AddDmaCall(QW *aqw)
 {
     int fCnt = 0;
@@ -166,6 +237,11 @@ void DMAS::AddDmaCall(QW *aqw)
     }
 }
 
+/** @sly2-annot addr=0x157620
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AddDmaRet()
 {
     EndDmaCnt();
@@ -175,12 +251,22 @@ void DMAS::AddDmaRet()
     pqw->aul[1] = 0;
 }
 
+/** @sly2-annot addr=0x157660
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AddDmaBulk(int cqw, QW *aqw)
 {
     CopyAqw(m_pb, aqw, cqw);
     m_pb += cqw * sizeof(QW);
 }
 
+/** @sly2-annot addr=0x1576B0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::AddDmaEnd()
 {
     EndDmaCnt();
@@ -190,6 +276,11 @@ void DMAS::AddDmaEnd()
     pqw->aul[1] = 0;
 }
 
+/** @sly2-annot addr=0x157798
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void DMAS::EndPrim(int n)
 {
 }

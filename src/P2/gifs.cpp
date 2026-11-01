@@ -1,10 +1,20 @@
 #include "gifs.h"
 
+/** @sly2-annot addr=0x166A50
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::CheckReg(int fExpectPack, int regExpect)
 {
     m_cregAll++;
 }
 
+/** @sly2-annot addr=0x166C70
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::PackRGBA(uint rgba)
 {
     CheckReg(1, 1);
@@ -16,6 +26,11 @@ void GIFS::PackRGBA(uint rgba)
     pqw->aun[3] = (rgba >> 24) & 0xff;
 }
 
+/** @sly2-annot addr=0x166CE0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::PackUV(int u, int v)
 {
     CheckReg(1, 3);
@@ -25,6 +40,11 @@ void GIFS::PackUV(int u, int v)
     pqw->an[1] = v;
 }
 
+/** @sly2-annot addr=0x166D38
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::PackSTQ(float s, float t, float q)
 {
     CheckReg(1, 2);
@@ -35,6 +55,11 @@ void GIFS::PackSTQ(float s, float t, float q)
     pqw->ag[2] = q;
 }
 
+/** @sly2-annot addr=0x166DA0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::PackXYZ(int x, int y, int z)
 {
     CheckReg(1, 5);
@@ -45,6 +70,11 @@ void GIFS::PackXYZ(int x, int y, int z)
     pqw->al[1] = z;
 }
 
+/** @sly2-annot addr=0x166E08
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::PackXYZF(int x, int y, int z, int fog)
 {
     CheckReg(1, 4);
@@ -56,6 +86,11 @@ void GIFS::PackXYZF(int x, int y, int z, int fog)
     pqw->an[3] = (fog & 0xff) << 4;
 }
 
+/** @sly2-annot addr=0x166E90
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::PackAD(long a, long d)
 {
     CheckReg(1, 14);
@@ -65,6 +100,11 @@ void GIFS::PackAD(long a, long d)
     pqw->aul[1] = a;
 }
 
+/** @sly2-annot addr=0x166FE8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::ListUV(int u, int v)
 {
     CheckReg(0, 3);
@@ -73,6 +113,12 @@ void GIFS::ListUV(int u, int v)
     *pul = u | (v << 16);
 }
 
+/** @sly2-annot addr=0x166920
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 GIFS::GIFS()
 {
     m_fEndPrim = 1;
@@ -81,6 +127,11 @@ GIFS::GIFS()
     m_cregAll = 0;
 }
 
+/** @sly2-annot addr=0x166968
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::AddPrimEnd()
 {
     if (m_pqwPrim)
@@ -94,6 +145,11 @@ void GIFS::AddPrimEnd()
     }
 }
 
+/** @sly2-annot addr=0x1669E0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::EndPrim(int fEOP)
 {
     if (m_pqwPrim)
@@ -113,6 +169,11 @@ void GIFS::EndPrim(int fEOP)
     }
 }
 
+/** @sly2-annot addr=0x166A60
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::AddGifTag(int prim, int c, int creg, ulong regs, uint fEOP)
 {
     EndPrim(0);
@@ -126,6 +187,11 @@ void GIFS::AddGifTag(int prim, int c, int creg, ulong regs, uint fEOP)
     pqw->aul[1] = regs;
 }
 
+/** @sly2-annot addr=0x166BD8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::AddPrimPack(int prim, int creg, ulong regs)
 {
     EndPrim(0);
@@ -139,6 +205,11 @@ void GIFS::AddPrimPack(int prim, int creg, ulong regs)
     m_cregAll = 0;
 }
 
+/** @sly2-annot addr=0x166B10
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::AddPrimBulk(int prim, int c, int creg, ulong regs, QW **paqwBulk)
 {
     EndPrim(0);
@@ -156,6 +227,11 @@ void GIFS::AddPrimBulk(int prim, int c, int creg, ulong regs, QW **paqwBulk)
     m_pb += c * creg * sizeof(QW);
 }
 
+/** @sly2-annot addr=0x166EF0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::AddPrimList(int creg, ulong regs)
 {
     EndPrim(0);
@@ -168,6 +244,11 @@ void GIFS::AddPrimList(int creg, ulong regs)
     m_cregAll = 0;
 }
 
+/** @sly2-annot addr=0x166F70
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::ListRGBAQ(uint rgba, float q)
 {
     CheckReg(0, 1);
@@ -176,6 +257,11 @@ void GIFS::ListRGBAQ(uint rgba, float q)
     *pul = (ulong)rgba | ((ulong)*(uint *)&q << 32);
 }
 
+/** @sly2-annot addr=0x167048
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::ListXYZ(int x, int y, int z)
 {
     CheckReg(0, 5);
@@ -184,6 +270,11 @@ void GIFS::ListXYZ(int x, int y, int z)
     *pul = (x | (y << 16)) | ((ulong)z << 32);
 }
 
+/** @sly2-annot addr=0x1670B8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::ListXYZF(int x, int y, int z, int fog)
 {
     CheckReg(0, 4);
@@ -192,6 +283,11 @@ void GIFS::ListXYZF(int x, int y, int z, int fog)
     *pul = (x | (y << 16)) | ((ulong)(z & 0xFFFFFF) << 32) | ((ulong)fog << 56);
 }
 
+/** @sly2-annot addr=0x167150
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gifs-0x166920-0x167310
+ * @end-sly2-annot */
 void GIFS::AddImage(int cqw)
 {
     EndPrim(0);
