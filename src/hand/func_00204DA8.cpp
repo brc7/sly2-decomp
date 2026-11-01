@@ -8,6 +8,12 @@ struct SOPHYS { char pad[0x80]; struct VU_VECTOR4 dvGravity; char pad90[0x40]; f
 struct STEP { char pad[0xE8]; struct SOPHYS *psophys; char padEC[0x260 - 0xEC]; float rUnk260; };
 extern "C" void func_001F35C8(struct STEP *pso, float m);   /* SetSoMass */
 
+/** @sly2-annot addr=0x204DA8
+ * Purpose: Clamp r>=0.1, SetSoMass(m*rOld/r), scale gravity vector by r/rOld, store rGravity +0x260
+ * Info: proposed name SetStepGravityRatio (T1); TU step
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 extern "C" void func_00204DA8(struct STEP *pstep, float rGravity)
 {
     float r = 0.1f;

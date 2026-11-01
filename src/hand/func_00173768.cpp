@@ -17,6 +17,15 @@ static inline float Len2(qword input){register qword a asm("vf2")=input,d asm("v
 static inline void ReadInputs(CM*source,const U&position,qword&cpu,qword&point,qword&vector){register CM*p asm("$2")=source;register qword r asm("$5"),v asm("vf1"),o asm("vf2");__asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2":"=r"(r),"=j"(v),"=j"(o):"m"(p->mat.r[3]),"m"(position.q));cpu=r;point=v;vector=o;}
 static inline float Z(qword a){register int bits asm("$5");union{int n;float f;}value;__asm__("pextuw %0,$0,%1":"=r"(bits):"r"(a));value.n=bits;return value.f;}
 static inline int TooFar(qword a,float limit){return limit<Len2(a);}
+/** @sly2-annot addr=0x173768
+ * Purpose: Camera check for a spawn point: 0 if too far, behind or off screen; else 1 at screen edge, 2 out
+ *   of planar range, 3 occluded (0 if plainly visible)
+ * Info: proposed name KCid119PointConcealed (T2); class CID119; TU tu_173158
+ * Notes: names_v2 C proposed PostFlameEmit__FP5FLAMEP5EMITB (0.200) | Cid77->Cid119 (CID 0x77=119,
+ *   agent-default(hex))
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
+ * @end-sly2-annot */
 extern "C" int func_00173768(S*p,qword pos,int count,void**objects,float distance){
  register int cso asm("$19")=count;register void**apso asm("$18")=objects;
  U raised,origin,position,difference;

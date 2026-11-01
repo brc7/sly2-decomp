@@ -38,6 +38,13 @@ static __inline__ float GetY(qword q)
     return y;
 }
 
+/** @sly2-annot addr=0x155AE0
+ * Purpose: States: 0 face away and run, 1 wait, 2 path-follow (BHV167), 3 hide (BHV164)
+ * Info: proposed name SetBhv181State (T2); TU tu_1553F0
+ * Notes: runtime2 REFUTED: BHV164 is the attack behaviour, not hide
+ * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime-corrected
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 void func_00155AE0(struct X *p, int k)
 {
     if (k == p->state) return;

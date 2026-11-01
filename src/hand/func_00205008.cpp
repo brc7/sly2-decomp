@@ -34,6 +34,14 @@ static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q
 static inline float Y(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
+/** @sly2-annot addr=0x205008
+ * Purpose: STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir)
+ *   for a point, per grf bits, into the link list shared with plo's zap target
+ * Info: proposed name AddStepAxisXps (T1); class STEP slot82; TU step
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" void func_00205008(SO *pso, int grf, LO *plo, qword posOther, qword direction, qword pos)
 {
     XP **ppxpFirst, **ppxpOut;

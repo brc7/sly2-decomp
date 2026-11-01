@@ -4,6 +4,15 @@ void func_001EEF70(struct S *p);
 void func_00208540(struct T *pt, int n);
 int func_00155868(struct S *p);
 void func_00155788(struct S *p, int f);
+/** @sly2-annot addr=0x1555E0
+ * Purpose: BHV180 slot 8: picks a route after enough frames and starts fleeing (state 0) or watching (state
+ *   1)
+ * Info: proposed name StartBhv180 (T2); class BHV180 slot8; TU tu_1553F0
+ * Notes: superseded: OnBhv180Resume (r3b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
+ *   OnBhv180Resume
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 void func_001555E0(struct S *p)
 {
     func_001EEF70(p);

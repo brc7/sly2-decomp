@@ -81,6 +81,16 @@ typedef char WORK_frame_Offset[FIELD_OFFSET(WORK,frame)==0?1:-1];
 typedef char WORK_point_Offset[FIELD_OFFSET(WORK,point)==32?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+/** @sly2-annot addr=0x176098
+ * Purpose: BHVCOMBAT Update: state machine 0 close/3 pursue -> 1 melee attack / 2 ranged / 4 give up / 5
+ *   hands-off; re-goals the pursuit when the target moves >threshold or changes path zone; emits a stimulus
+ *   to alert other guards
+ * Info: proposed name UpdateBhvcombat (T1); class BHVCOMBAT slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVCOMBAT role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00176098(C*p){
  WORK work;int old;
  func_001EEF98(p);

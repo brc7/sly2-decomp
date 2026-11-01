@@ -8,6 +8,12 @@ extern float D_002C3E58;
 qword func_001A62E8(void *p);
 void func_0020D3C0(struct S *p, int k);
 
+/** @sly2-annot addr=0x20D1F8
+ * Purpose: inside hazard object (vt73) while falling for > D_002C3E58 s -> zap with hazard params
+ * Info: proposed name UpdateHazardWatch (T2); TU tu_20CE28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
+ * @end-sly2-annot */
 void func_0020D1F8(struct S *p)
 {
     int k;

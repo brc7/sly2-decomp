@@ -92,6 +92,15 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 }
 // 10 empty asm volatile (see the header: gcse hash-table size)
 #define GCSE_PAD10 __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile("");
+/** @sly2-annot addr=0x205910
+ * Purpose: Fit orientation to the floor under 3 probe points (IntersectSwBoundingSphere + line tests
+ *   0x173610), tilt limited to D_002C3CE8; result in matTarget-like +0x1B0
+ * Info: proposed name FitStepToTerrain (T2); TU step
+ * Notes: names_v2 C proposed SetDprizeDprizes__FP6DPRIZE7DPRIZES (0.638)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8,
+ *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;

@@ -110,6 +110,14 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x170B40
+ * Purpose: Splice: append command kind 0 (set lookup context oid)
+ * Info: proposed name AddCid113CmdContext (T2); class CID113; TU tu_1709A8
+ * Notes: names_v2 C proposed SetCmMat__FP2CMP7MATRIX3 (0.200) | Cid71->Cid113 (CID 0x71=113,
+ *   agent-default(hex))
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00170B40(s32 arg0, s32 arg1) {
     func_00170E00(arg0, 0, arg1);
 }

@@ -36,6 +36,12 @@ static inline void EnablePrimary(PMODE*mode)
     __asm__("li %1,%2\n\tld %0,%3":"=r"(word),"=r"(mask):"i"(primaryMask),"m"(*mode));
     mode->word=word|mask;
 }
+/** @sly2-annot addr=0x16F2D0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/guards-ai.md#8-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/formats/textures.md#6-runtime-notes
+ * @end-sly2-annot */
 void BlendDisplayOnBufferMismatch__Fv(void)
 {
     int field=D_002DEDB8;

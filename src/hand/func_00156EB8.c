@@ -5,6 +5,13 @@ extern struct O *D_003E148C;
 void func_001A5E28(struct S *p);
 void func_00156DE0(struct S *p, int f);
 int func_00156FE8(struct S *p, struct O *o);
+/** @sly2-annot addr=0x156EB8
+ * Purpose: LO::Update then 0x156DE0(p,0) and scans list D_003E148C for objects not in its own set
+ * Info: proposed name UpdateCid47 (T2); class CID47 slot16; TU noise
+ * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal)
+ * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
+ * @end-sly2-annot */
 void func_00156EB8(struct S *p)
 {
     struct O *o;

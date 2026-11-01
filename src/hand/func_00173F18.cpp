@@ -99,6 +99,14 @@ static inline float SLengthXY(qword qw)
     return GXOfQw(qwT);
 }
 
+/** @sly2-annot addr=0x173F18
+ * Purpose: Picks the nearest usable spawn selector (LO spot or curve sample) where every offset point is
+ *   concealed from the camera
+ * Info: proposed name ChooseCid119SpawnPoint (T2); class CID119; TU tu_173158
+ * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
+ * @end-sly2-annot */
 extern "C" SEL *func_00173F18(SET *pset, qword pos, qword *pposOut, M3 *pmatOut, int *pfFlip)
 {
     FRAME frame;

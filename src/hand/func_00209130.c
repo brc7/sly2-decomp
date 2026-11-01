@@ -17,6 +17,15 @@ struct MARKER *func_0012F938(void *, int);
 struct H *func_0020C010(int);
 void func_0020BD78(struct H *);
 
+/** @sly2-annot addr=0x209130
+ * Purpose: Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else
+ *   -1
+ * Info: proposed name ResolveAnimBinding (T1); TU stepguard
+ * Notes: names_v2 C proposed SetPrsenSensors__FP5PRSEN7SENSORS (0.181)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00209130(struct E *e, void *context)
 {
     void *resource;

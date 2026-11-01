@@ -25,6 +25,14 @@ void func_001F7D10(struct LO*,float);
 void func_001F7C68(struct LO*,float);
 void func_00154038(void*,struct LO*,int);
 static inline float DistanceXY(qword a,qword b){qword d;float f;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
+/** @sly2-annot addr=0x173A68
+ * Purpose: Periodically spawns a guard at a concealed spawn point when a slot is free (gated by the player's
+ *   last alert event), aims it and sends message 0x19
+ * Info: proposed name UpdateCid119 (T2); class CID119 slot16; TU tu_173158
+ * Notes: Cid77->Cid119 (CID 0x77=119, vtable)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
+ * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
+ * @end-sly2-annot */
 void func_00173A68(struct P*p){
  U point;
  struct M3 rotation;

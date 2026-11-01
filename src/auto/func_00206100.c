@@ -35,6 +35,13 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E1444;
 extern M2C_UNK D_003E1A60;
 
+/** @sly2-annot addr=0x206100
+ * Purpose: STEPGUARD vt41: CloneStep keeping own detector, re-own mover, copy detector state through its vt
+ *   (slot 41), deep-copy bindings (0x208250)
+ * Info: proposed name CloneStepguard (T1); class STEPGUARD slot41; TU stepguard
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00206100(s32 arg0, s32 arg1) {
     void *temp_s1;
     void *temp_v0;

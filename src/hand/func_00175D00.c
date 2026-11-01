@@ -29,6 +29,17 @@ void func_001AE4A0(struct X *x, int n);
 int func_0020FA10(void);
 void func_0020FAA0(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
 struct R *func_0014CC58(int n, qword a, qword b, int c, int d, struct Y *y);
+/** @sly2-annot addr=0x175D00
+ * Purpose: Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's
+ *   range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging,
+ *   on pipe, special JT states) else only after 3 s in close range
+ * Info: proposed name FBhvcombatCanShoot (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVCOMBAT role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#3-the-behaviour-stack-and-the-guard-modes,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 int func_00175D00(struct S *p) {
     struct X x;
     struct Y y;

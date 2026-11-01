@@ -8,4 +8,14 @@ void func_0020B210(struct T *t);
 void func_0017B1A8(struct S *p, int n);
 void func_001EEFC0(struct S *p);
 void func_00154038(void *p, int a, int b);
+/** @sly2-annot addr=0x17AA08
+ * Purpose: BHVHELD Start: BHVANIM Start, cancel attack, detach, state 0 (attached to the holder's hold
+ *   point), busy
+ * Info: proposed name StartBhvjuggled (T1); class BHVJUGGLED slot8; TU guardbhv
+ * Notes: BHV class word normalised: StartBhvheld -> StartBhvjuggled | runtime2/4 confirmed the BHVJUGGLED
+ *   role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017AA08(struct S *p) { func_00174950(p); func_0020AB68(p->pt, 0, 0, D_002A2DD0); func_0020B210(p->pt); func_0017B1A8(p, 0); func_001EEFC0(p); func_00154038(p->pt->pF64, p->n5C, 2); }

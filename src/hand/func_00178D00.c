@@ -19,6 +19,13 @@ static inline float Dist(qword a, qword b) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x178D00
+ * Purpose: Path end is defined (+0x3C) and the guard is within +0x64 of the end point +0xB0
+ * Info: proposed name FBhvpathAtEnd (T1); TU guardbhv
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090,
+ *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 int func_00178D00(struct O *p)
 {
     if (!p->f3C)

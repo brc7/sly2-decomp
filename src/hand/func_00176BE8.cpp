@@ -69,6 +69,20 @@ static __inline__ qword Normalize(qword input){
 static __inline__ qword ScaleInPlace(qword a,qword s){__asm__("vmulx.xyzw %0,%1,%0x":"+j"(s):"j"(a));return s;}
 static __inline__ int Below(int a,int b){return a<b;}
 enum KINDENUM{KIND_NONE=-1,KIND_MAX=0x7fffffff};
+/** @sly2-annot addr=0x176BE8
+ * Purpose: BHVGUARD message handler: msg 12 (zap/damage) -> choose hurt/knockdown/KO by zap kind, reaction
+ *   tables +0x8D0/+0xA70/+0xC10 and hit points; special zaps 0x80000 sleep, 0x200000 grab (held),
+ *   0x1000000/0x2000000 shrink/rage gadgets, 0x4000/0x2000 relocate; emits noise
+ * Info: proposed name BHVGUARD_FHandleMessage (T1); class BHVGUARD slot13; TU guardbhv
+ * Notes: runtime4: BHVGUARD zap handler: zap 0x200000 -> hp=max(hp+dhp,5), mode 7 (S38) | runtime4
+ *   CORRECTION: pad bit 0x400 = look mode (JTMODE); gadgets are slot buttons 0x4/0x1/0x2 | runtime2/4
+ *   confirmed the BHVGUARD role on live guards (S02-S41)
+ * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime+runtime-corrected+verdicts_followups+runtime(class role)
+ * See: docs/engine/guards-ai.md#3-the-behaviour-stack-and-the-guard-modes,
+ *   docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" int func_00176BE8(S*p,int event,MSG*msg){
  WORK w;int flags;int originalFlags;
  if(event==12){

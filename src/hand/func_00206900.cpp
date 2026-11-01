@@ -37,6 +37,15 @@ static __inline__ int Near(qword difference){return LengthXY(difference)<D_002C3
 #define PAD1 __asm__ volatile("");
 #define PAD4 PAD1 PAD1 PAD1 PAD1
 #define LOOP_SIZE_PAD PAD4 PAD4 PAD4 PAD4 PAD4 PAD4
+/** @sly2-annot addr=0x206900
+ * Purpose: Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by
+ *   distance, re-add them as detector targets keeping previous state; UpdateDetectorTargets; update shared
+ *   target record from detector (seen=1, lost-and-near=2)
+ * Info: proposed name UpdateStepguardDetectTargets (T1); TU stepguard
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00206900(struct P *p)
 {
     struct CANDIDATE candidates[64];

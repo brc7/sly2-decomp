@@ -8,6 +8,13 @@ struct GEOM {char pad94[0x94];qword *positions;int unknown;struct POLY *polygons
 struct P {char pad210[0x210];float height;char pad214[0x34];float previous;};
 void func_0011EE08(qword,qword,qword,qword *,float *,float *);
 static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+/** @sly2-annot addr=0x2048C8
+ * Purpose: BFS over mesh polygon adjacency (max 32) from a hit polygon: true if a reachable neighbour within
+ *   the step height window has normal.z>0.7
+ * Info: proposed name FStepFloorNearby (T2); TU step
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 int func_002048C8(struct P *p,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];

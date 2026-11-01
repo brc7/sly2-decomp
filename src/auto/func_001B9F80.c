@@ -1,6 +1,14 @@
 #include "m2c_prelude.h"
 M2C_UNK func_00205EB8();                            /* extern */
 
+/** @sly2-annot addr=0x1B9F80
+ * Purpose: CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags
+ * Info: proposed name InitNeela (T1); class NEELA slot7; TU tu_1B9F80
+ * Notes: class identity from whole_game WE names/object strings: InitCid60Guard -> InitNeela
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
+ *   docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
+ * @end-sly2-annot */
 void func_001B9F80(void *arg0) {
     void *temp_v0;
 

@@ -10,6 +10,14 @@ int func_00173610(qword *pq, float a, float b, int n, void *pfn);
 void func_0017D608(qword *pq);
 struct O *func_00205438(struct O *p, int n);
 void func_0020B210(struct O *p);
+/** @sly2-annot addr=0x17E9B0
+ * Purpose: Snap the point to ground (or the surface above); leap there (capability bit 0) or teleport
+ *   (detach, set position, zero velocities)
+ * Info: proposed name GoBhv191 (T2); TU guardbhv
+ * Notes: BHV class word normalised: GoBhvrelocate -> GoBhv191
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017E9B0(struct S *p) {
     union { qword q; float a[4]; } u;
     func_001EF0D8(p->a18);

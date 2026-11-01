@@ -3,6 +3,14 @@ s32 func_0017DCB8(s32);                             /* extern */
 M2C_UNK func_0017ECF0(void *, M2C_UNK);             /* extern */
 M2C_UNK func_001EEF98();                            /* extern */
 
+/** @sly2-annot addr=0x17ECB0
+ * Purpose: BHVPATROLPATH Update: on arrival advance the goal along the shape
+ * Info: proposed name UpdateBhvpatrolpath (T1); class BHVPATROLPATH slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATROLPATH role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017ECB0(void *arg0) {
     func_001EEF98();
     if (func_0017DCB8(M2C_FIELD(arg0, s32 *, 0x18)) != 0) {

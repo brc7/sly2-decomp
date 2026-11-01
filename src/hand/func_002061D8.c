@@ -28,6 +28,15 @@ void func_00170C90(struct O *po, int a, int b, float f);
 void *func_001F4C58(struct S *p, int n, int m);
 void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
 
+/** @sly2-annot addr=0x2061D8
+ * Purpose: STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children,
+ *   resolve anim bindings (0x2080F0) and attack oids (0x20AAA8), create the two helper components
+ *   +0x498/+0x49C (next TU 0x20CE28/0x20D1B0), create cid 0x71 object (oid 0x2CB), remove pickpocket glints
+ *   from world, create scale act +0xFC4
+ * Info: proposed name PostStepguardLoad (T1); class STEPGUARD slot15; TU stepguard
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_002061D8(struct S *p)
 {
     void *x;

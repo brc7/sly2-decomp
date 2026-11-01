@@ -9,6 +9,16 @@ void func_00171C18(void *p, void *q);
 void func_00171258(struct O *o, void *t, int a, void *u);
 void func_00179EF8(struct S *p);
 void func_00179E80(struct S *p);
+/** @sly2-annot addr=0x179D30
+ * Purpose: BHVPATROL state switch: 0 push BHV169 script runner on the route (saves resume point), 1/2 push
+ *   BHVIDLE, 3 push BHVIDLE flag 1
+ * Info: proposed name SetBhvpatrolState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATROL role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00179D30(struct S *p, int n) {
     if (n == p->n38) return;
     if (p->n38 == 0) func_00171C18(p->p18, p->p10 + 0x2DC);

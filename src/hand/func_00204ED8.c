@@ -7,6 +7,12 @@ struct TABLE;
 struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float g40; };
 int func_00131968(struct Q *q);
 struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
+/** @sly2-annot addr=0x204ED8
+ * Purpose: Same as 0x204E38 for channel kind 6 (rotation)
+ * Info: proposed name VecStepAsegaRotation (T2); TU step
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 qword func_00204ED8(void *p, struct Q *q, float g)
 {
     qword r = D_002A2DD0;

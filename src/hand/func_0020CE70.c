@@ -6,6 +6,12 @@ extern float D_002C3DF0;
 int func_0020D020(struct S *p);
 void func_0020D108(struct S *p, int k);
 
+/** @sly2-annot addr=0x20CE70
+ * Purpose: if all 5 probe points blocked for > D_002C3DF0 s -> InflictZap kind 0x4000 on self
+ * Info: proposed name UpdateStuckWatch (T2); TU tu_20CE28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
+ * @end-sly2-annot */
 void func_0020CE70(struct S *p)
 {
     int f, k;

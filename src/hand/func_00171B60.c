@@ -5,6 +5,12 @@ struct T { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char a1B0[0x10]; };
 struct S { char pad[0x10]; struct T *pt; };
 void func_0020B210(struct T *t);
 void func_00204660(struct T *t, float g);
+/** @sly2-annot addr=0x171B60
+ * Purpose: Places the guard at a position and heading and zeroes its velocities
+ * Info: proposed name TeleportBhv169Guard (T2); TU tu_1709A8
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00171B60(struct S *p, qword q, float g) {
     struct T *t = p->pt;
     struct VTE *e;

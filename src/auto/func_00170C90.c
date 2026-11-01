@@ -75,6 +75,13 @@ extern M2C_UNK D_3AB0;
 extern M2C_UNK D_738;
 extern M2C_UNK D_7F0;
 
+/** @sly2-annot addr=0x170C90
+ * Purpose: Append command kind 7 (target oid, int, float)
+ * Info: proposed name AddCid113CmdLookAt (T2); class CID113; TU tu_1709A8
+ * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00170C90(s32 arg0, s32 arg1, s32 arg2, f32 fparg0) {
     void *temp_v0;
 

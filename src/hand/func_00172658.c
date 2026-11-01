@@ -13,6 +13,12 @@ static inline float Dist(qword a, qword b) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x172658
+ * Purpose: True if the guard can't search or the last-known position is nearer than the target object + 50
+ * Info: proposed name FBhv171TargetReached (T2); TU tu_171F58
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
+ * @end-sly2-annot */
 int func_00172658(struct S *p) {
     struct O *o = p->p10;
     struct O *t;

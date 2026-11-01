@@ -7,6 +7,15 @@ struct S { char pad[0x10]; struct T *p10; int pad2; char a18[0x18]; int n30; flo
 void func_001EF0D8(void *p);
 void func_001EF038(struct S *p);
 struct O *func_00205438(void *p, int n);
+/** @sly2-annot addr=0x17A8C8
+ * Purpose: BHV176 (thrown/stunned guard) state switch: push BHVANIM (cid 0x9D) with anim flag 18/19/20/21/19
+ *   for states 0-4, airborne flag step+0x32C for states 0-1; -1 clears busy
+ * Info: proposed name SetBhv176State (T2); TU guardbhv
+ * Notes: BHV class word normalised: SetBhvthrownState -> SetBhv176State | top50_round (0.45): Body; BHV slot
+ *   15 canon. Class word BHVTHROWN not accepted by canon (placeholder kept) -> T2 | T2: placeholder token 176
+ * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r9_bhv_screen+top50_round
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017A8C8(struct S *p, int n) {
     if (p->n30 == n) return;
     func_001EF0D8(p->a18);

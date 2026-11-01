@@ -67,6 +67,16 @@ typedef char C_started_Offset[FIELD_OFFSET(C,started)==160?1:-1];
 typedef char C_expires_Offset[FIELD_OFFSET(C,expires)==164?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+/** @sly2-annot addr=0x177618
+ * Purpose: BHVGUARD Update: top-level guard AI: patrol -> (stimulus) search -> (target) alert anim -> combat;
+ *   returns to patrol when the child finishes; script/escort/target-list modes
+ * Info: proposed name UpdateBhvguard (T1); class BHVGUARD slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVGUARD role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" void func_00177618(C*p){
  func_001EEF98(p);
  while(!func_001EF0A8(p)){

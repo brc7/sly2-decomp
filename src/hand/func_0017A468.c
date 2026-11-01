@@ -10,6 +10,14 @@ struct O {
     char pad3[0x70 - 0x60];
     qword m[3];
 };
+/** @sly2-annot addr=0x17A468
+ * Purpose: Offset the leap landing point by the guard's attach-point offset in the attach basis
+ * Info: proposed name AdjustBhvleapAttachPoint (T2); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVLEAP role on live guards (S02-S41)
+ * Confidence: low (draft) [T2 0.45] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017A468(struct O *p)
 {
     struct A *a = p->p10;

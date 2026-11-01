@@ -132,6 +132,14 @@ static inline int Blocked(LOS *line, float limit)
     return GLength(QwSub(line->start.q, line->hit.point.q)) < limit;
 }
 
+/** @sly2-annot addr=0x1758A0
+ * Purpose: Pick the first enabled attack entry whose range/height/angle/LOS accept the target, confirm via
+ *   Splice event 0x18, then start it (SetStepguardAttack) and mark the target record attacking
+ * Info: proposed name PentryChooseStepguardAttack (T1); TU guardbhv
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" ENTRY *func_001758A0(P *p, P *target, void *gate)
 {
     qword from, to;

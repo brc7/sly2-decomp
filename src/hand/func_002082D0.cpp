@@ -27,6 +27,14 @@ static inline float Length(qword d){
     return f;
 }
 static inline float Weight(float distance,const float *k){return k[0]+distance*(k[1]+distance*k[2]);}
+/** @sly2-annot addr=0x2082D0
+ * Purpose: STEPGUARD vt88: keep forced target +0x390 if in world; else among detector entries pick: forced
+ *   classes (+0x3C0) first, skip ignored classes (+0x3A8), prefer classes +0x394, hysteresis for current
+ *   target (+0x38C, CLQ -400+0.8d), rage weighting for guards
+ * Info: proposed name PloChooseStepguardTarget (T1); class STEPGUARD slot88; TU stepguard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 extern "C" O *func_002082D0(P*p)
 {
     O *best=0;

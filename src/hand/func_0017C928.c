@@ -11,6 +11,15 @@ qword func_001A62E8(void *p);
 qword func_001A6F00(void *p, int n, qword v);
 void func_002562A8(struct X *x);
 void func_0017DD38(void *p, struct X *x);
+/** @sly2-annot addr=0x17C928
+ * Purpose: BHVESCORT state: 0 push BHVGOTO to the offset point, 1 push BHVGOTO with run flag 0x1C to the
+ *   object, 2 idle hands-off
+ * Info: proposed name SetBhv183State (T2); TU guardbhv
+ * Notes: BHV class word normalised: SetBhvescortState -> SetBhv183State
+ * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017C928(struct S *p, int n) {
     struct X x;
     if (n == p->n50) return;

@@ -23,6 +23,13 @@ static inline qword Transform(const M4*m,qword v,qword last,qword*published){
 }
 static inline qword Broadcast(float f){register qword r __asm__("vf6");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
+/** @sly2-annot addr=0x2052E0
+ * Purpose: STEP vt38: copy pose of another object (vt31 matrix) incl. offset -+0x240
+ *   (TranslateToPos/RotateToMat), reset velocities; else SO::MatchXf
+ * Info: proposed name MatchStepXf (T1); class STEP slot38; TU step
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 extern void func_002052E0(P *p, B *other)
 {
     if (!other) return;

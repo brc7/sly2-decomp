@@ -3,6 +3,15 @@ void func_001EEF98(struct S *p);
 int func_001EF0A8(struct S *p);
 int func_00174FB8(void *p);
 void func_00175488(struct S *p, int n);
+/** @sly2-annot addr=0x175600
+ * Purpose: BHVATTACK Update: after the strike, go to follow-through if the victim confirmed the hit (+0x40),
+ *   else finish
+ * Info: proposed name UpdateBhvattack (T1); class BHVATTACK slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVATTACK role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00175600(struct S *p) {
     int s;
     func_001EEF98(p);

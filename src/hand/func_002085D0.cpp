@@ -8,6 +8,13 @@ extern "C" CLOCK D_002DDED0;
 extern "C" struct E *func_00154180(struct T *pt, struct S *object);
 extern "C" void *func_002332B8(void *d, void *s, int n);
 
+/** @sly2-annot addr=0x2085D0
+ * Purpose: Insert plo into the detector target list (8 max): fFront appends; else inserts before the
+ *   generated tail (+0x3A4), evicting the oldest generated entry when full
+ * Info: proposed name FAddStepguardDetectTarget (T1); TU stepguard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 extern "C" int func_002085D0(struct S *p, struct S *object, int fFront)
 {
     struct E *e;

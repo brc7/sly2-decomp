@@ -6,6 +6,13 @@ struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; int n30; float g
 void func_001EF0D8(void *p);
 struct O *func_00205438(void *p, int n);
 void func_00208540(void *p, int n);
+/** @sly2-annot addr=0x17B8B0
+ * Purpose: BHVTARGETS state: 0 idle and no target, 1 push BHVCOMBAT on the chosen target, 2 idle hands-off
+ * Info: proposed name SetBhv178State (T2); TU guardbhv
+ * Notes: BHV class word normalised: SetBhvtargetsState -> SetBhv178State
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017B8B0(struct S *p, int n) {
     if (n == p->n30) return;
     func_001EF0D8(p->a18);

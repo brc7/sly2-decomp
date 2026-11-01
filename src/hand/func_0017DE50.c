@@ -26,6 +26,14 @@ static __inline__ float Dist(qword a, qword b) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x17DE50
+ * Purpose: BHVSTALK Update: after the alert anim run near the forced-class target and keep re-positioning;
+ *   leave when the delay expires and the target is no longer forced
+ * Info: proposed name UpdateBhv189 (T2); class BHV189 slot10; TU guardbhv
+ * Notes: BHV class word normalised: UpdateBhvstalk -> UpdateBhv189
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017DE50(struct S *p) {
     int s;
     func_001EEF98(p);

@@ -8,6 +8,14 @@ struct O *func_0015E938(struct G *, int, int, int);
 int func_00132B10(struct O *, int);
 int func_001C2DC8(int, struct O *, int, int);
 void func_001F1900(struct P *);
+/** @sly2-annot addr=0x1F1CF8
+ * Purpose: From the next loot entry on, find its template object (PloFindSwObject oid) and load it into the
+ *   pouch launcher (0x1C2DC8, kind 0x2B0, or 0x2B1 for cid-0x5C objects); then refresh pickpocket state
+ * Info: proposed name StageStepguardLoot (T1); TU pickpocket
+ * Notes: runtime: pickpocket pouch is CID99 (SO child), not a PO
+ * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
+ * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
+ * @end-sly2-annot */
 void func_001F1CF8(struct P *p)
 {
     p->n48C = 0;

@@ -22,6 +22,16 @@ struct O *func_0015E938(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n);
 qword func_001A62E8(struct A *a);
 void func_00156698(void *p, qword v, struct A *a);
+/** @sly2-annot addr=0x17AF30
+ * Purpose: BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held =
+ *   extra hit (seek labels, spawn effect, raise hit value +0x33C, noise)
+ * Info: proposed name BHVJUGGLED_FHandleMessage (T1); class BHVJUGGLED slot13; TU guardbhv
+ * Notes: BHV class word normalised: BHVHELD_FHandleMessage -> BHVJUGGLED_FHandleMessage | runtime2/4
+ *   confirmed the BHVJUGGLED role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 int func_0017AF30(struct S *p, int msg, struct M *pm) {
     if (func_00174BD0(p, msg, pm)) return 1;
     switch (msg) {

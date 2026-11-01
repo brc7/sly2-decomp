@@ -13,6 +13,15 @@ void func_0020AC28(void *p, void *po, int n, qword v);
 void func_001EF0D8(void *p);
 void func_001EF038(struct S *p);
 struct O *func_00205438(void *p, int n);
+/** @sly2-annot addr=0x175488
+ * Purpose: BHVATTACK state switch: 0 = subscribe to victim, push BHVSTRIKE with the chosen attack entry and
+ *   aim; 1 = push BHVANIM flag 4 (follow-through after a confirmed hit); -1 = clear busy
+ * Info: proposed name SetBhvattackState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVATTACK role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00175488(struct S *p, int n) {
     if (n == p->n34) return;
     if (p->n34 == 0) {

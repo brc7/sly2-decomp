@@ -20,6 +20,14 @@ void func_001F70C0(struct M *m, void *p, int k, struct Q *q);
 void func_001F6C08(struct Q *q);
 void func_001664A0(void *a, void *b, void *c);
 
+/** @sly2-annot addr=0x203AF0
+ * Purpose: Build the step's collision part from a mesh part: new SOPART (+0xE4[+0xE0++]), copy geometry, min
+ *   height -> +0x210, append 2 extra points (base point and base+up*0x214) whose world ptrs go to
+ *   +0x218/+0x21C
+ * Info: proposed name CloneStepPhys (T2); TU step
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_00203AF0(struct S *p, struct M *m)
 {
     int n, fl, i, c;

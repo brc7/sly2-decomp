@@ -9,6 +9,17 @@ void func_001A6150(struct L *);
 void func_001D6310(struct L *);
 void func_0011A2E8(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
+/** @sly2-annot addr=0x1F3E00
+ * Purpose: SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from
+ *   D_003E11AC
+ * Info: proposed name OnSoRemove (T1); class SO slot22; TU so
+ * Notes: names_v2 C proposed RebuildSoPhysHook__FP2SO (0.638) | slot 22 OnRemove resolved by arbitration
+ *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was FreezeSo)
+ * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources:
+ *   arbitration_slots22_23+verdicts_tu_r4r6
+ * See: docs/engine/guards-ai.md#9-key-functions, docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_001F3E00(struct L *p)
 {
     struct L *q;

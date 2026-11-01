@@ -12,6 +12,13 @@ int func_0020A168(struct S *p, struct O *a, struct O *b);
 struct X *func_00154180(void *p, int n);
 void func_00154080(void *p, struct X *x, int n);
 
+/** @sly2-annot addr=0x20A408
+ * Purpose: Best perceivable stimulus (vt89) from list D_003E0000 by IcmpStepguardStimulus; a stimulus of kind
+ *   4 already tracked just re-marks the detector entry lost and returns the default
+ * Info: proposed name PstimChooseStepguard (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 struct O *func_0020A408(struct S *p, struct O *def)
 {
     struct O *o, *best;

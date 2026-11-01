@@ -6,6 +6,13 @@ extern struct R D_002A53C0, D_002A53C8;
 void func_0011EFB0(qword v, float *pa, float *pb, float *pc);
 int func_0011D910(struct R *pr, float g);
 float func_0011CF60(float g);
+/** @sly2-annot addr=0x172798
+ * Purpose: Adds a candidate point to a 64-entry list if its pitch and distance are within limits, storing its
+ *   relative heading
+ * Info: proposed name FAddSearchCandidate (T2); TU tu_171F58
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
+ * @end-sly2-annot */
 int func_00172798(struct S *p) {
     float a, b, c;
     qword d;

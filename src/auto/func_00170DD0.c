@@ -34,6 +34,16 @@ extern s32 D_003E13FC;
 extern s32 D_003E1408;
 extern s32 D_003E1450;
 
+/** @sly2-annot addr=0x170DD0
+ * Purpose: Splice: append command kind 15 (EnsureRelayAlarm on target)
+ * Info: proposed name AddCid113CmdEnsureRelayAlarm (T2); class CID113; TU tu_1709A8
+ * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex)) | superseded: AddCid113CmdRelayAlarm
+ *   (verdicts_followups) | verifier better_name (PLAUSIBLE row): Placeholder class. Appends kind 15; executor
+ *   0x1715F0 case 15 calls EnsureSggAlarm(target, arg) (0x1E0020, existing name: adds an ALARM to an SGG's
+ *   apalarm[8]).
+ * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_followups
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00170DD0(s32 arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(func_00170E00(arg0, 0xF, arg1), s32 *, 8) = arg2;
 }

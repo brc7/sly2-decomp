@@ -11,6 +11,14 @@ void func_001EEF98(struct S *p);
 void func_0017A8C8(struct S *p, int n);
 qword func_001A62E8(void *p);
 struct R *func_00156698(void *p, qword q, struct T *t);
+/** @sly2-annot addr=0x17A7F8
+ * Purpose: BHVTHROWN Update: end when landed (+0x208) in states 2/3; emit yelling noise periodically while
+ *   airborne
+ * Info: proposed name UpdateBhv176 (T2); class BHV176 slot10; TU guardbhv
+ * Notes: BHV class word normalised: UpdateBhvthrown -> UpdateBhv176
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017A7F8(struct S *p) {
     int s;
     func_001EEF98(p);

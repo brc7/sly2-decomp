@@ -7,6 +7,15 @@ int func_00209A68(struct T *t, int n);
 void func_0020AB68(struct T *t, int a, int b, qword q);
 void func_00153FF8(void *p);
 void func_002303A0(struct T *t, int a, int b);
+/** @sly2-annot addr=0x174FF8
+ * Purpose: BHVIDLE Start: BHVANIM Start; if flag 1 (hands-off) also cancel attack and reset detector targets;
+ *   set XF roles
+ * Info: proposed name StartBhvidle (T1); class BHVIDLE slot8; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVIDLE role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00174FF8(struct S *p) {
     func_00174950(p);
     if (func_00209A68(p->pt, 1)) {

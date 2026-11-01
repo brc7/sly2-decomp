@@ -9,6 +9,14 @@ int func_001F78A0(void *p);
 void func_00179328(struct S *p);
 void func_001619A0(void *g, int n, void *p);
 void func_00154038(void *p, int a, int b);
+/** @sly2-annot addr=0x179780
+ * Purpose: BHVKNOCKDOWN Start: entry from table +0x8D0, BHVHIT Start, event 0x15, start helper +0xFEC
+ * Info: proposed name StartBhv162 (T2); class BHV162 slot8; TU guardbhv
+ * Notes: no usable identifier; purpose only | BHV class word normalised: StartBhvknockdown -> StartBhv162
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources:
+ *   verify:verdicts_B+verdicts_B+r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00179780(struct S *p) {
     p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;

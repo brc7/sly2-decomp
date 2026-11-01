@@ -18,6 +18,16 @@ void func_0017DD38(void *p, struct X *x);
 int func_001C0D70(qword v, int n);
 void func_00154038(void *p, int a, int b);
 void func_00208540(void *p, int n);
+/** @sly2-annot addr=0x176458
+ * Purpose: BHVCOMBAT state switch: 0 push BHVCIRCLE, 1 push BHVATTACK with entry, 2 push BHVSHOOT, 3 push
+ *   BHVGOTO toward target with run flag 0x1C, 4 push BHVANIM flag 0xD (lost him) and drop target, 5 push
+ *   BHVIDLE flag 1; leaving 1 sets cooldown
+ * Info: proposed name SetBhvcombatState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVCOMBAT role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00176458(struct S *p, int n) {
     if (n == p->n34) return;
     func_001EF0D8(p->a18);

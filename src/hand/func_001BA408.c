@@ -14,6 +14,14 @@ struct O *func_00205458(struct S *p, int n);
 void func_00204D48(struct S *p, float f);
 void func_0012F9B8(int a, struct S *p, int n, struct O **ppo, float f1, float f2);
 int func_0012DC18(struct S *p, int a, int b, int c, int d, qword q);
+/** @sly2-annot addr=0x1BA408
+ * Purpose: State 1 starts prop animation (0x12F9B8), constraint to target (0x12DC18), behaviour 0x9E target,
+ *   speed x4; leaving restores
+ * Info: proposed name SetNeelaState (T2); class NEELA; TU tu_1B9F80
+ * Notes: class identity from whole_game WE names/object strings: SetCid60GuardState -> SetNeelaState
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
+ * @end-sly2-annot */
 void func_001BA408(struct S *p, int st)
 {
     if (st == p->x1018) return;

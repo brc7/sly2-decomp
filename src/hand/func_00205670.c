@@ -14,6 +14,13 @@ __asm__("qmfc2.ni %0,%1":"=r"(g):"j"(one));
 if(g<0.0001f)v->q=*fallback;
 else {register qword normalized __asm__("vf1");__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=&j"(normalized):"j"(a),"j"(one));v->q=normalized;}
 __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
+/** @sly2-annot addr=0x205670
+ * Purpose: If grounded (+0x208), intersect segment from->to with the 2 footprint triangles (0x2057E8); return
+ *   hit point
+ * Info: proposed name FIntersectStepFootprint (T2); TU step
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 int func_00205670(struct P*p,qword from,qword to,qword*output)
 {
  V tri[6],d,k;

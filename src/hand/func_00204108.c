@@ -16,6 +16,15 @@ static inline void InitScalar(U *value,int bits) {
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
     value->q=scalar;
 }
+/** @sly2-annot addr=0x204108
+ * Purpose: STEP vt70: base accel (0x1F9B20) then steering: mode +0x1A4==0 accelerate toward matTarget with
+ *   smpSpin (0x1F59A0), mode 1 angular force from desired w +0x1E0
+ * Info: proposed name PresetStepAccel (T1); class STEP slot70; TU step
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_00204108(struct S *p)
 {
     func_001F9B20(p);

@@ -10,6 +10,13 @@ void func_0017D058(struct S *p, int n);
 float func_0011D018(float a, float b, float dt, struct L *pl, int n);
 float func_001E66C8(int n, float g);
 void func_001C3500(int a, float g, int b, void *pv);
+/** @sly2-annot addr=0x17CF10
+ * Purpose: BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal
+ *   matrix
+ * Info: proposed name UpdateBhvpipe (T1); class BHVPIPE slot10; TU guardbhv
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017CF10(struct S *p) {
     int s;
     func_001EEF98(p);

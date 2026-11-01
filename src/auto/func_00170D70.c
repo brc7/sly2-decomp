@@ -34,6 +34,15 @@ extern s32 D_003E13FC;
 extern s32 D_003E1408;
 extern s32 D_003E1450;
 
+/** @sly2-annot addr=0x170D70
+ * Purpose: Splice: append command kind 13 (target + int; runs BHV172 0xAC)
+ * Info: proposed name AddCid113CmdKind13 (T2); class CID113; TU tu_1709A8
+ * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex)) | verifier PLAUSIBLE: Placeholder (kind number).
+ *   Appends kind 13; executor 0x1715F0 case 13 drives behaviour 0xAC (BHV172) on target with int arg. | T2
+ *   forced: verifier: placeholder name
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+verdicts_followups
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00170D70(s32 arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(func_00170E00(arg0, 0xD, arg1), s32 *, 8) = arg2;
 }

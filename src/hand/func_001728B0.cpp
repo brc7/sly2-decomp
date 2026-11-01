@@ -52,6 +52,13 @@ static inline qword VuFloatVolatile(float g){qword v;
  __asm__ __volatile__("qmtc2 %1, %0":"=j"(v):"r"(g));return v;}
 // vsub r = t - b. Allocation-only constraints: "=j"(t)/"1"(t) marks the copy t as consumed by the vsub, and "0"(b) puts r in b's register (as in the target)
 #define QW_SUB_T(r,t,b) __asm__("vsub.xyzw %0, %1, %2":"=j"(r),"=j"(t):"0"(b),"1"(t))
+/** @sly2-annot addr=0x1728B0
+ * Purpose: Gathers candidate hiding places (several global object lists, cids 0x23/0x67/0x1B), sorts by
+ *   heading, keeps up to 4 spread points, fills the rest randomly behind the guard
+ * Info: proposed name ChooseBhv171SearchPoints (T2); TU tu_171F58
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
+ * @end-sly2-annot */
 extern "C" void func_001728B0(P*p){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
  w.query.point.q=func_001A62E8(p->actor);

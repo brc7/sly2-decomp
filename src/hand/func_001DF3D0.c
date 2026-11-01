@@ -26,6 +26,14 @@ extern char D_003E11C4[];
 float func_00245A18(float, float);
 void func_0011A220(void *, W *);
 void func_001DEF98(OBJ *, ENT *, VPAIR *, float *);
+/** @sly2-annot addr=0x1DF3D0
+ * Purpose: Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark
+ *   the tree dirty, recompute length
+ * Info: proposed name MoveLasenEndpoints (T2); TU sensor
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/guards-ai.md#5-perception,
+ *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 void func_001DF3D0(OBJ *p)
 {
     int i;

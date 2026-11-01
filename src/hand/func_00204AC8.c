@@ -14,6 +14,13 @@ int func_0014C6D8(struct X *x, int a, qword pos, qword v, int n, struct HIT *phi
 int func_002048C8(struct S *p, qword v, struct X *x, int n);
 void func_001A7C18(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
 
+/** @sly2-annot addr=0x204AC8
+ * Purpose: STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a
+ *   kind-0xE base contact with floor or hit normal
+ * Info: proposed name AddStepCustomXps (T1); class STEP slot60; TU step
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_00204AC8(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
 {
     unsigned int fl;

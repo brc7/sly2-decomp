@@ -21,6 +21,13 @@ void func_00172F10(struct S *p);
 void func_001725E0(struct S *p, int n);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x172320
+ * Purpose: Enters a search state, starting the matching sub-behaviour (BHV157 anim 0xC/0xE/1, BHV186 goto,
+ *   BHV158 look) and timers
+ * Info: proposed name SetBhv171State (T2); TU tu_171F58
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
+ * @end-sly2-annot */
 void func_00172320(struct S *p, int n) {
     if (n == p->n30) return;
     func_001EF0D8(p->a18);

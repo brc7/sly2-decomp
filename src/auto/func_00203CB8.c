@@ -56,6 +56,12 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x203CB8
+ * Purpose: Find SOPART by oid (0x1F6030) then SetStepPhys(this,part,f)
+ * Info: proposed name SetStepPhysByOid (T2); TU step
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_00203CB8(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_v0;
 

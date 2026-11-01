@@ -14,6 +14,16 @@ void *func_002333B4(void *p, int c, int n);
 void func_00176750(void *p, struct L *pl);
 void func_00153FF8(void *p);
 
+/** @sly2-annot addr=0x20B590
+ * Purpose: cid 0x7D vt16: guards out of the list for > 0.25 s (+0xFF8): mode +0x1000 1 = RemoveLo, 2 =
+ *   restart BHV156 and reset detector
+ * Info: proposed name UpdateCid125GuardMgr (T2); class CID125 slot16; TU stepguard
+ * Notes: Cid7D->Cid125 (CID 0x7D=125, hex-literal) | T2 forced: verifier: coined class word without
+ *   descriptor
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#1-stepguard-stepguardcpp-0x205e70-0x20b840-and-its-subclasses,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020B590(struct S *p)
 {
     int i, c;

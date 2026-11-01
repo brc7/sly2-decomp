@@ -11,6 +11,16 @@ int func_00209A68(struct O *o, int n);
 void func_00209278(struct E *e, struct O *o, int n, float g);
 void func_00209360(struct E *e);
 void func_001EF038(struct S *p);
+/** @sly2-annot addr=0x1749C0
+ * Purpose: BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when
+ *   flag 9), 1 = ClearBhvBusy, save walk phase, StopAnimBinding, release mover
+ * Info: proposed name SetBhvanimState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVANIM role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_001749C0(struct S *p, int n) {
     if (p->n30 == n) return;
     p->n30 = n;

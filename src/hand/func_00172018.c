@@ -22,6 +22,14 @@ float func_002458F0(float y, float x);
 void func_00209818(void *p, float f);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x172018
+ * Purpose: Search state machine: 0 react, 1 go to last-known position, 2 face it, 3 visit search points, 4
+ *   give up, 5 hold while 0x209098
+ * Info: proposed name UpdateBhv171 (T2); class BHV171 slot10; TU tu_171F58
+ * Notes: names_v2 C proposed CalculateAloTransform__FP3ALOT0iP6VECTORP7MATRIX3T3T3 (0.438)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
+ * @end-sly2-annot */
 void func_00172018(struct S *p) {
     int s;
     func_001EEF98(p);

@@ -8,6 +8,13 @@ struct O *func_00205458(struct S *p, int n);
 void func_0017A8C8(struct O *o, int n);
 void func_0017B1A8(struct O *o, int n);
 qword func_0011E9F8(qword v, float g);
+/** @sly2-annot addr=0x209EE0
+ * Purpose: Flags 0x12/0x13: BHV176 op 2; else stunned (0x17): BHV177 op 2; then scale velocity (0x11E9F8,
+ *   800)
+ * Info: proposed name StunStepguardBhv176B (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00209EE0(struct S *p)
 {
     if (func_00209A68(p, 0x12) || func_00209A68(p, 0x13)) {

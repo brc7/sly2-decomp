@@ -6,6 +6,15 @@ int func_00209098(void *p);
 int func_001EF0A8(struct S *p);
 void func_00179D30(struct S *p, int n);
 int func_00171458(void *p);
+/** @sly2-annot addr=0x179BA0
+ * Purpose: BHVPATROL Update: alternate walking the script for a random time and standing idle for a random
+ *   time; stand forever when the script ends; hands-off pause
+ * Info: proposed name UpdateBhvpatrol (T1); class BHVPATROL slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATROL role on live guards (S02-S41)
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00179BA0(struct S *p) {
     int f, s;
     func_001EEF98(p);

@@ -313,6 +313,13 @@ static inline qword VecCombo(VUF f1, VU_VECTOR v1, VUF f2, VU_VECTOR v2)
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.qw), "j"(v1.q), "j"(f2.qw), "j"(v2.q));
     return r;
 }
+/** @sly2-annot addr=0x177F78
+ * Purpose: Curve follower step: closest point on the path SHAPE, steer toward the next point, avoid other
+ *   bodies, integrate and clamp to collision
+ * Info: proposed name StepBhvpathAlongShape (T1); TU guardbhv
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" void func_00177F78(S *p)
 {
     VEC point, dir, next, nextDir;

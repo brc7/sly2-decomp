@@ -11,6 +11,15 @@ struct S {
 void func_001EF0D8(void *p);
 struct O *func_00205438(void *p, int n);
 void func_00178D90(struct O *o, int a, int b);
+/** @sly2-annot addr=0x17D450
+ * Purpose: BHVGOTO state: 4 stand (BHVIDLE), 1/2 walk path (BHVWALKPATH, run anim 8 when allowed), 3 traverse
+ *   pathlink (BHVPATHLINK), 5 relocate (BHVRELOCATE)
+ * Info: proposed name SetBhvgotoState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVGOTO role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017D450(struct S *p, int n) {
     if (n == p->n30) return;
     if (!((unsigned)n < 3 && p->n30 >= 0 && p->n30 < 3)) func_001EF0D8((char *)p + 0x18);

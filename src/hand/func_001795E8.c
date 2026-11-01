@@ -9,6 +9,15 @@ void func_00174B68(struct S *p);
 qword func_001A62E8(void *p);
 void func_0014F750(void *p, int n);
 void func_001F7A68(struct T *t, int n);
+/** @sly2-annot addr=0x1795E8
+ * Purpose: BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode
+ *   change
+ * Info: proposed name UpdateBhvhit (T1); class BHVHIT slot10; TU guardbhv
+ * Notes: names_v2 B RenderFastShadow__FP3ALOP2CMP2RO graded WRONG | no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
+ *   verify:verdicts_B+verdicts_B+r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_001795E8(struct S *p) {
     float t;
     func_00174B68(p);

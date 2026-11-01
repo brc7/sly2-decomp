@@ -32,6 +32,14 @@ static inline qword QwFromMemWord(int n){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 
 static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){func_0011EE08(t,s->a,s->b,&pt.q,0,&d);}
+/** @sly2-annot addr=0x17BFF8
+ * Purpose: Choose a free path-zone point near the target within the guard's close/far distance bands
+ *   (+0x31C/+0x324) and angle limits (narrow/wide), sampling 10/10/15 directions
+ * Info: proposed name PosBhv179Choose (T2); TU guardbhv
+ * Notes: BHV class word normalised: PosBhvcircleChoose -> PosBhv179Choose
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
  U closest;LM first,second,selected;U point;SEGMENT segments[8];FLOW flow;
  TUNING*tuning;

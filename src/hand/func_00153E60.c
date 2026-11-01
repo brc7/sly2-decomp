@@ -5,6 +5,13 @@ extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
 int func_00132B10(void *p, int k);
 
+/** @sly2-annot addr=0x153E60
+ * Purpose: Returns the detector eye position: own position, or its parent position (+80 units up if the
+ *   parent is a STEPGUARD-family object, cid test 0x38)
+ * Info: proposed name PosDetectorEye (T2); TU detector
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
+ * @end-sly2-annot */
 qword func_00153E60(struct T *p)
 {
     if (!p->xE0) return func_001A62E8(p);

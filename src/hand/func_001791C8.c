@@ -7,6 +7,15 @@ void func_00178CD8(struct S *p, int n);
 void func_001EF0D8(void *p);
 struct O *func_00205438(void *p, int n);
 qword func_001A62E8(void *p);
+/** @sly2-annot addr=0x1791C8
+ * Purpose: BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped
+ *   states push BHVIDLE
+ * Info: proposed name SetBhvwalkpathState (T1); class BHVWALKPATH slot15; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVWALKPATH role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_001791C8(struct S *p, int n) {
     int old = p->n4C;
     if (n == old) return;

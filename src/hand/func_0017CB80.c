@@ -15,6 +15,13 @@ void func_0017CD00(struct S *p, int n);
 float func_002458F0(float y, float x);
 void func_00209818(void *p, float f);
 void func_00131A00(void *p, float f);
+/** @sly2-annot addr=0x17CB80
+ * Purpose: BHVRAIL Update: walk along the attached rail shape (+0xF84, param +0xF88) toward the goal
+ *   parameter; stand on arrival
+ * Info: proposed name UpdateBhvrail (T1); class BHVRAIL slot10; TU guardbhv
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017CB80(struct S *p) {
     int s;
     func_001EEF98(p);

@@ -30,6 +30,14 @@ typedef struct { qword a[2]; } VPAIR;
 void func_001DEF98(OBJ *, ENT *, VPAIR *, float *);
 void *func_002333B4(void *, int, int);
 void func_001F7598(MSG *);
+/** @sly2-annot addr=0x1DF260
+ * Purpose: For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped
+ *   (InflictZap kind 0x1000, -10) and the visible length is cut to it
+ * Info: proposed name ZapLasenBeams (T1); TU sensor
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/guards-ai.md#5-perception,
+ *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 void func_001DF260(OBJ *p)
 {
     int i;

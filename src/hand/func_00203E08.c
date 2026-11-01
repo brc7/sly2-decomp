@@ -22,6 +22,13 @@ static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     destination->a[1]=row1;destination->a[2]=row2;
     destination->a[3]=row3;destination->a[0]=row0;
 }
+/** @sly2-annot addr=0x203E08
+ * Purpose: Per point: smooth the body shape toward the phys shape with GSmooth(old,new,dt,s_smpPhys
+ *   D_002C3C68) and store (new-old)/dt as point velocity
+ * Info: proposed name UpdateStepPhys (T1); TU step
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_00203E08(struct S *input)
 {
     void *context=input;

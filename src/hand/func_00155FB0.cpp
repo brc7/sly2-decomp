@@ -69,6 +69,13 @@ static inline float GClampR(float g, LM *plm) { if (g < plm->gMin) return plm->g
 
 static inline int FFast(qword v) { return D_002BDC98 < Len(v); }
 
+/** @sly2-annot addr=0x155FB0
+ * Purpose: Escape target: projects the player's motion by a difficulty-scaled time and finds the clearest of
+ *   11 directions
+ * Info: proposed name PosChooseEscape (T2); TU tu_1553F0
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 qword func_00155FB0(void *p, qword pos)
 {
     SO *pso = func_001C4840(D_003DD490);

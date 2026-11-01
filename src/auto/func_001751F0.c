@@ -1,6 +1,15 @@
 #include "m2c_prelude.h"
 M2C_UNK func_00174950();                            /* extern */
 
+/** @sly2-annot addr=0x1751F0
+ * Purpose: BHVSTRIKE Start: mark guard engaged-busy (+0xF3C=1), BHVANIM Start; enable leap payload when the
+ *   binding is kind 2
+ * Info: proposed name StartBhvstrike (T1); class BHVSTRIKE slot8; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVSTRIKE role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_001751F0(void *arg0) {
     void *temp_a0;
 

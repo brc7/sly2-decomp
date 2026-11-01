@@ -8,6 +8,15 @@ MATRIX4 func_0011C318(MATRIX4 *ps);
 void func_0011C168(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
 void *func_002333B4(void *p, int c, int n);
 void func_001F4BF8(struct S *p);
+/** @sly2-annot addr=0x203D00
+ * Purpose: Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body
+ *   part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts)
+ * Info: proposed name SetStepPhys (T1); TU step
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_00203D00(struct S *p, struct M *pm, int f)
 {
     p->pm1 = pm;

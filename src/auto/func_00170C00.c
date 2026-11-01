@@ -34,6 +34,13 @@ extern s32 D_003E13FC;
 extern s32 D_003E1408;
 extern s32 D_003E1450;
 
+/** @sly2-annot addr=0x170C00
+ * Purpose: Splice: append command kind 4 (send message 4 with arg)
+ * Info: proposed name AddCid113CmdMessage (T2); class CID113; TU tu_1709A8
+ * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00170C00(s32 arg0, s32 arg1) {
     func_00170E00(arg0, 4, arg1);
 }

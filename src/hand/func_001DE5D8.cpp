@@ -99,6 +99,14 @@ static inline float Clamp(float f, float low, float high) { if (f < low) return 
 static inline M4 *GetMatrix(PATH *path) { VTE *v = &path->vt[31]; return ((M4 * (*)(void *))v->fn)((char *)path + v->delta); }
 static inline void SetDirty(P *p) { uint f = p->flags; if ((f ^ 1) & 1) *(uint *)f |= 2; else p->flags = f | 2; }
 
+/** @sly2-annot addr=0x1DE5D8
+ * Purpose: (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a
+ *   1/2/6-segment motion profile) and the beams' bounding box as the SO's single part
+ * Info: proposed name BuildLasenBeams (T2); TU sensor
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/guards-ai.md#5-perception,
+ *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 extern "C" void func_001DE5D8(P *p)
 {
     int i;

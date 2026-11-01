@@ -16,6 +16,15 @@ qword func_001C1EC0(struct SEG *s, qword v);
 void func_001E6180(struct B *b);
 void func_00178D90(struct O *o, struct B *b, int n);
 void func_0017E628(struct S *p);
+/** @sly2-annot addr=0x17E6B0
+ * Purpose: BHVPATHLINK state: 0 walk segment (2-point shape, BHVWALKPATH, timeout) or leap, 1 relocate
+ *   (BHVRELOCATE)
+ * Info: proposed name SetBhvpathlinkState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATHLINK role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017E6B0(struct S *p, int n) {
     if (n == p->n38) return;
     func_001EF0D8(p->a18);

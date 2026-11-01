@@ -16,6 +16,14 @@ extern M2C_UNK D_002DDF40;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E148C;
 
+/** @sly2-annot addr=0x20B478
+ * Purpose: -- +0xFFC; at 0 SetLoBusyk 0
+ * Info: proposed name DecrementStepguardBusy (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020B478(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

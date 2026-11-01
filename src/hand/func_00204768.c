@@ -11,6 +11,14 @@ extern struct SW D_003DD490;
 void func_001F4F10(struct P *);
 void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *);
 static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;}
+/** @sly2-annot addr=0x204768
+ * Purpose: STEP vt58: base 0x1F4F10, then keep only the best (lowest distance) kind-14 base contact as +0x208
+ *   (stamp +0x20C, pos +0x230) and free the other base contacts
+ * Info: proposed name AdjustStepXps (T2); class STEP slot58; TU step
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00204768(struct P *p)
 {
     struct N *best;

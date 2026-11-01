@@ -6,6 +6,12 @@ int func_001EF0A8(struct X *p);
 qword func_001A62E8(void *p);
 void func_00155788(struct X *p, int k);
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
+/** @sly2-annot addr=0x155660
+ * Purpose: While watching: switches to state 1 when the player is within 850 xy and 400 z
+ * Info: proposed name UpdateBhv180 (T2); class BHV180 slot10; TU tu_1553F0
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 void func_00155660(struct X *p)
 {
     func_001EEF98(p);

@@ -120,6 +120,14 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
     return qw;
 }
 
+/** @sly2-annot addr=0x2044B0
+ * Purpose: STEP vt57: for base contacts (kind 0xE) smooth closing speed (GSmooth D_002C3C98/D_002C3CA8)
+ *   limited by dt*9000/-4500 and add the desired tangential velocity matTarget*v190*g180
+ * Info: proposed name AdjustStepXpVelocity (T1); class STEP slot57; TU step
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 extern "C" void func_002044B0(struct STEP *pstep, struct XP *pxp, int ixpd)
 {
     func_001F4FC0(pstep, pxp, ixpd);

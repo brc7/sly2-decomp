@@ -10,6 +10,15 @@ void func_001E7380(int a, float g, qword q, struct G *pg, void *pv, int b, int c
 void func_001E6F60(int a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 struct O *func_00205438(void *p, int n);
 void func_0017ECF0(struct S *p, int n);
+/** @sly2-annot addr=0x17EB88
+ * Purpose: BHVPATROLPATH Start: closest parameter on the path shape, push BHVGOTO, first goal
+ * Info: proposed name StartBhvpatrolpath (T1); class BHVPATROLPATH slot8; TU guardbhv
+ * Notes: names_v2 v1 hint not used: UpdateStepguardDrive__FP9STEPGUARD | runtime2/4 confirmed the
+ *   BHVPATROLPATH role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017EB88(struct S *p) {
     struct O *o;
     func_001EEF70(p);

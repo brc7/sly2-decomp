@@ -26,6 +26,13 @@ static inline float Dist(qword a, qword b) {
 }
 static inline float GEval(struct POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }
 static inline float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
+/** @sly2-annot addr=0x1BA608
+ * Purpose: BHV174 s10: state 0 while player (g_pjt) inside volume xEC, 1 when outside, back when inside xE8,
+ *   2 after timeout; scales a behaviour parameter by distance to player
+ * Info: proposed name UpdateBhv174 (T2); class BHV174 slot10; TU tu_1B9F80
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
+ * @end-sly2-annot */
 void func_001BA608(struct P *p)
 {
     int s;

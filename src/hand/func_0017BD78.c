@@ -6,6 +6,13 @@ void func_0017B9C0(struct S *p);
 int func_001EF0A8(struct S *p);
 void func_0017B8B0(struct S *p, int n);
 int func_00175810(struct T *p);
+/** @sly2-annot addr=0x17BD78
+ * Purpose: BHVTARGETS Update: re-choose and (re)engage designated targets; hands-off pause
+ * Info: proposed name UpdateBhv178 (T2); class BHV178 slot10; TU guardbhv
+ * Notes: BHV class word normalised: UpdateBhvtargets -> UpdateBhv178
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017BD78(struct S *p) {
     int f, s;
     func_001EEF98(p);

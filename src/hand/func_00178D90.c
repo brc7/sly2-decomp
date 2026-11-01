@@ -9,6 +9,17 @@ void func_001E6F60(struct O *po, qword q, struct G *pg, void *pv, int b, int c, 
 float func_001E6620(struct O *po);
 float func_001E6648(struct O *po);
 void func_001E6F10(struct O *po, float g, void *pv, int n);
+/** @sly2-annot addr=0x178D90
+ * Purpose: Set the SHAPE to follow and direction: find the start parameter (closest point) and, for open
+ *   shapes, the end point
+ * Info: proposed name SetBhvpathShape (T1); TU guardbhv
+ * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded: UpdateAlo
+ *   (names_v2:B(unverified))
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
+ *   names_v2:B(unverified)+r9_bhv_screen+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_00178D90(struct S *p, struct O *po, int n) {
     p->n38 = n;
     p->po = po;
