@@ -19,6 +19,13 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+/** @sly2-annot addr=0x18E1E0
+ * Purpose: Turn Sly toward object x10DC with GSmooth
+ * Info: proposed name UpdateJtFaceTarget (T2); TU jt
+ * Notes: names_v2 C proposed UpdateRop__FP3ROPf (0.438)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018E1E0(struct O *p)
 {
     VU n;

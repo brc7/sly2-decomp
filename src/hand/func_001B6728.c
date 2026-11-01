@@ -4,6 +4,13 @@ struct S { char pad[0x4CC]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; ch
 void func_00141640(struct S *p, int *pf);
 void func_00220388(void *p, int *pf);
 void func_0019EA00(void *p, int *pf);
+/** @sly2-annot addr=0x1B6728
+ * Purpose: MURRAY vt50: stamp x1080 while moving, base GetStepplayerCpdefi 0x141640, then set flag bit 1 for
+ *   flop/strafe/power/takedown states and defer to JTTHROW / +0xF50 component
+ * Info: proposed name GetMurrayCpdefi (T1); class MURRAY slot50; TU murray
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B6728(struct S *p, int *pf)
 {
     if (p->k != 0 && p->k != 16 && p->x4CC) p->t1080 = D_002DDED0.t;

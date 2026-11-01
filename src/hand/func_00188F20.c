@@ -34,6 +34,13 @@ extern void func_0018D698(void *p, E *pe, void *c);
 static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
 
 
+/** @sly2-annot addr=0x188F20
+ * Purpose: JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for
+ *   x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...)
+ * Info: proposed name HandleJtMessage (T1); class JT slot5; TU jt
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_00188F20(char *p, int msg, void *pv)
 {
     func_00140F90(p, msg, pv);

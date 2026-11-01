@@ -39,6 +39,13 @@ static inline void *Alloc(int cb)
     AREQ req(cb, 0x10);
     return func_001AE318(req);
 }
+/** @sly2-annot addr=0x143410
+ * Purpose: Search save trie episode.level.booty.aoidAssembly[0..14] for an entry equal to oid; return an
+ *   allocated copy of its key
+ * Info: proposed name PkeyFindBootySaveVar (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" KEY *func_00143410(int id)
 {
     unsigned short as[8];

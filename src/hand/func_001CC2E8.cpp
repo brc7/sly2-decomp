@@ -44,6 +44,14 @@ static inline qword LengthXY(qword v){register qword d __asm__("vf2");qword word
 static inline void StoreX(float*p,qword q){__asm__("sw %1,%0":"=m"(*p):"r"(q));}
 static inline qword DifferenceFromSaved(const U*saved,qword raw,P*p,LO*&receiver){register qword point __asm__("vf1"),current __asm__("vf2");register LO*owner __asm__("$4");__asm__("lqc2 %0,%3\n\tqmtc2.ni %4,%1\n\tlw %2,%5\n\tvsub.xyzw %0,%0,%1":"=&j"(point),"=&j"(current),"=r"(owner):"m"(*saved),"r"(raw),"m"(p->owner));receiver=owner;return point;}
 static inline const M4*InverseArgument(const M4*value){register const M4*arg __asm__("$6");__asm__("daddu %0,%1,$zero":"=r"(arg):"r"(value));return arg;}
+/** @sly2-annot addr=0x1CC2E8
+ * Purpose: Fit the hand curves to the grab target: find best clip parameter, seek/reblend the hold clips, set
+ *   actor position goal and step turn target
+ * Info: proposed name UpdateJtHands (T1); TU jthands
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908,
+ *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
+ * @end-sly2-annot */
 void func_001CC2E8(P*p){
  WORK w;register void*cursor __asm__("$16");
  if(p->active==-1)return;

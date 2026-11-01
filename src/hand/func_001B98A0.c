@@ -9,6 +9,13 @@ int func_00194558(void *p, int k);
 int func_0019EEF0(void *p, int k);
 int func_00132B10(void *p, int n);
 int func_0014FD50(void *p);
+/** @sly2-annot addr=0x1B98A0
+ * Purpose: MURRAY vt99: can gadget/power k be used in the current state (per-state allow lists, components
+ *   2/13/20)
+ * Info: proposed name MURRAY_FCanUseGadget (T1); class MURRAY slot99; TU murray
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 int func_001B98A0(struct P *p, int k)
 {
     if (func_001443D8(p)) return 0;

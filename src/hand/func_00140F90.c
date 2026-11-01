@@ -66,6 +66,15 @@ static inline qword VecSub(qword a, qword b)
     return r;
 }
 
+/** @sly2-annot addr=0x140F90
+ * Purpose: STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds
+ *   0x15E/0x161/0x162/0x27B/0x27C/0x1C7/0x1C8, msgs 4/5/1/11) then forwards to 0x1EED78/0x1C3E20
+ * Info: proposed name HandleStepplayerMessage (T1); class STEPPLAYER slot5; TU stepplayer
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_00140F90(void *p, int msg, void *pv)
 {
     switch (msg) {

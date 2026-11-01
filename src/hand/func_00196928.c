@@ -22,6 +22,13 @@ static inline float LenXY(qword v) {
     return r;
 }
 
+/** @sly2-annot addr=0x196928
+ * Purpose: Largest non-negative time from two quadratic root sets (projectile z(t) reaching low/high bounds)
+ *   and two cone terms
+ * Info: proposed name DtBallisticMax (T2); TU air
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 float func_00196928(qword v, qword a, float low, float high, float slope0, float slope1) {
     U r0, r1;
     float az = Z(a) * 0.5f, naz = -az;

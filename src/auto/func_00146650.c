@@ -3,6 +3,12 @@ M2C_UNK func_001EEFC0(void *);                      /* extern */
 M2C_UNK func_001EF038();                            /* extern */
 extern f32 D_002DDED0;
 
+/** @sly2-annot addr=0x146650
+ * Purpose: state setter
+ * Info: proposed name SetBhv196State (T2); TU tu_144B28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_00146650(void *arg0, s32 arg1) {
     s32 temp_v0;
 

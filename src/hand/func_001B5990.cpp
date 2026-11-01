@@ -76,6 +76,14 @@ typedef char P_axes_Offset[FIELD_OFFSET(P,axes)==5872?1:-1];
 typedef char P_request_Offset[FIELD_OFFSET(P,request)==6128?1:-1];
 typedef char P_state_Offset[FIELD_OFFSET(P,state)==6132?1:-1];
 typedef char Axis1Direction_Offset[(FIELD_OFFSET(P,axes)+sizeof(ENTRY)+FIELD_OFFSET(ENTRY,direction))==0x1720?1:-1];
+/** @sly2-annot addr=0x1B5990
+ * Purpose: State 9 (locked onto nearby target x10DC): exits if R1-flag 8 or target lost (0x140AF8); allows
+ *   jump/takedown/lift/punch/gadget; substate 2 moves along 8-way directional blend (0x1A0450) facing the
+ *   target (0x2046F0)
+ * Info: proposed name UpdateMurrayStrafe (T2); TU murray
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void func_001B5990(P*p){
  int before;
  for(;;){

@@ -65,6 +65,12 @@ static inline void BuildPlane(qword *plane, const qword &normal, const float &g)
 }
 static inline U *Addr(U *p) { return p; }
 static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->count++]; *p = q; }
+/** @sly2-annot addr=0x1856C0
+ * Purpose: Gather contact planes of nearby mesh edges/triangles for a set of points within radius
+ * Info: proposed name CollectMeshContacts (T2); TU tu_185130
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
+ * @end-sly2-annot */
 extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, PARAMS *params, float radius)
 {
     M4 mat;

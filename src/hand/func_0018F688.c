@@ -8,6 +8,13 @@ void func_0018F2B0(struct S *p, float g, int a, void *pv, int *pn, VEC *pq, floa
 float func_002458F0(float y, float x);
 void func_00204660(struct S *p, float g);
 void func_00204CA8(struct S *p);
+/** @sly2-annot addr=0x18F688
+ * Purpose: ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2),
+ *   FixStepAngularVelocity
+ * Info: proposed name ChooseJtRushTarget (T1); TU cane
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_B
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#cane-0x18e540-0x18f908
+ * @end-sly2-annot */
 void func_0018F688(struct S *p)
 {
     VEC v;

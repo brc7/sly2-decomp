@@ -37,6 +37,14 @@ void func_002205A8(void *p);
 void func_001B93E8(P *p, int k);
 void func_001B6078(P *p, int s);
 
+/** @sly2-annot addr=0x1B68B8
+ * Purpose: MURRAY vt5: base HandleStepplayerMessage; msg 9 (anim events from own ASEGA): 0x1A4 flop dive,
+ *   0x1A5/0x1C8 stimulus, 0x1EB release thrown object, 0x1C6/0x1C7 lift events, 0x240-0x242 attack window
+ *   flags; msg 10 from SMA in struggle state
+ * Info: proposed name HandleMurrayMessage (T1); class MURRAY slot5; TU murray
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B68B8(P *p, int msg, MSG *pm)
 {
     func_00140F90(p, msg, pm);

@@ -33,6 +33,14 @@ struct M3 *func_001A6318(struct P *);
 void *func_002333B4(void *, int, int);
 void func_00149A50(struct G *, struct P *, struct K, int);
 
+/** @sly2-annot addr=0x1400B8
+ * Purpose: STEPPLAYER vt15: base 0x203A38 then each component's post-load (0x1959C0, 0x1910F8, 0x19F3F0,
+ *   0x1A1098, 0x19CC30, 0x21F388, 0x19DE58), allocations, registers a callback (0x149A50)
+ * Info: proposed name PostLoadStepplayer (T1); class STEPPLAYER slot15; TU stepplayer
+ * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_001400B8(struct P *p)
 {
     void *apv[16];

@@ -4,6 +4,14 @@ struct P { char pad[0x10E4]; int x10E4; void *p10E8; int x10EC; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
 int func_00132B10(void *p, int n);
 qword func_001A62E8(void *p);
+/** @sly2-annot addr=0x140AF8
+ * Purpose: True when interact mode (+0x10EC)==4 and kind!=3 and the target (+0x10E8) is within an xy distance
+ *   (larger if target has class 0x3A) and a z window, widened when fX
+ * Info: proposed name FStepplayerNearInteractTarget (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 int func_00140AF8(struct P *p, int fX)
 {
     float gDist, gMin, gMax;

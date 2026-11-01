@@ -15,6 +15,14 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return o;
 }
+/** @sly2-annot addr=0x18B348
+ * Purpose: From clip label 0x167 sample positions of 3 child XFs into x1BE0..x1C20
+ * Info: proposed name CacheJtRestPose (T2); TU jt
+ * Notes: verifier: purpose partly wrong: Samples ASEG label 0x167 via PredictAsegEffect for 3 XFs into
+ *   0x1BE0..0x1C00, plus a derived vector and the first point re-expressed in inverse(m2). 'Rest pose'
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018B348(struct O *p)
 {
     MATRIX4 m0, m1, m2, mi;

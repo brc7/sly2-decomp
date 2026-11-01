@@ -83,6 +83,13 @@ typedef char WORK_reuse_Offset[FIELD_OFFSET(WORK,reuse)==32?1:-1];
 typedef char WORK_limit_Offset[FIELD_OFFSET(WORK,limit)==48?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+/** @sly2-annot addr=0x19E1E0
+ * Purpose: Per-frame pipe climbing: smooth offset, X jumps off (SetJtAirJump 2), 0x400 starts JtMode, climb
+ *   up/down/spin along curve within GetJtPipeSRange, sounds
+ * Info: proposed name UpdateJtActivePipe (T1); TU pipe_jt
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
+ * @end-sly2-annot */
 extern "C" void func_0019E1E0(C*p){
  WORK w;float lowSpeed,highSpeed;P*actor=p->actor;actor->offset.q=func_0011F088(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
  register float amount __asm__("$f4"),dot __asm__("$f3"),zero __asm__("$f2");register int previous __asm__("$5");

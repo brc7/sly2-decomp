@@ -48,6 +48,12 @@ extern void *D_003E1408;
 extern s32 D_003E142C;
 extern M2C_UNK D_004435F0;
 
+/** @sly2-annot addr=0x19C828
+ * Purpose: Kind 0x11 (wall run) -> SetJtAirJump(3); else SetJtAirState(4)
+ * Info: proposed name LandJtAir (T2); TU air
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void func_0019C828(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     if (M2C_FIELD(arg0, s32 *, 0x1C) == 0x11) {
         func_00195A00(arg0, 3, 0, 0);

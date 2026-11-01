@@ -6,6 +6,13 @@ struct S { struct O *x0; int x4; char pad[0x14]; struct PMF pmf; char pad2[0xC];
 void *func_002333B4(void *p, int c, unsigned int n);
 void func_001A16A8(struct S *p);
 void func_00195A00(void *p, int a, int b, int c);
+/** @sly2-annot addr=0x1A15D0
+ * Purpose: Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a
+ *   safe place, others SetJtAirJump
+ * Info: proposed name RunJtHurtCallback (T1); TU hurt
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 void func_001A15D0(struct S *s)
 {
     struct PMF pmf = s->pmf;

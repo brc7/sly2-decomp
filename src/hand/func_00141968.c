@@ -11,6 +11,14 @@ struct P {
 qword func_001A62E8(struct P *p);
 qword func_001D6848(qword a, qword b, float g, qword c);
 void func_00195A00(void *p, int a, int b, int c);
+/** @sly2-annot addr=0x141968
+ * Purpose: Splice: compute ballistic velocity from pos(+dz) toward target (0x1D6848 with g,h), SetVelocity
+ *   (vt35), and if not hurt put jtair into launched state 8 with apex params
+ * Info: proposed name LaunchStepplayer (T2); TU stepplayer
+ * Notes: names_v2 C proposed JumpJlo__FP3JLO (0.638)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00141968(struct P *p, qword v, float g, float h)
 {
     UQ pos;

@@ -48,6 +48,15 @@ extern void *D_003E1408;
 extern s32 D_003E142C;
 extern M2C_UNK D_004435F0;
 
+/** @sly2-annot addr=0x19CC50
+ * Purpose: Request the look/recon mode of kind n: if running and switching to kind 1, end (2) and reset (-1)
+ *   first; store kind (+0x20) and enter state 0
+ * Info: proposed name StartJtMode (T1); TU mode
+ * Notes: runtime4: started by 0x400 + FCanUseGadget(3) in Murray switch = JTMODE look mode | runtime5a
+ *   #9-#11: JTMODE kind 0 = binocucom for Sly/Murray/Bentley (shared component +0xF00)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 void func_0019CC50(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     if (M2C_FIELD(arg0, s32 *, 4) != -1) {
         if ((M2C_FIELD(arg0, s32 *, 0x20) != 1) && (arg1 == 1)) {

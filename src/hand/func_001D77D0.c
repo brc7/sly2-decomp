@@ -12,6 +12,13 @@ int func_001F0438(LIST *, void *);
 void *func_001F04F8(LIST *, int);
 void func_001F0660(void *, void *);
 void func_001F1448(int, OBJ *, int, int, void **);
+/** @sly2-annot addr=0x1D77D0
+ * Purpose: Move SMA goal by d through SM states skipping disallowed ones (wrap)
+ * Info: proposed name StepCharSelect (T2); TU tu_1D7238
+ * Notes: names_v2 C proposed BindSgg__FP3SGG (0.638)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
+ * @end-sly2-annot */
 void func_001D77D0(OBJ *p, int d)
 {
     int i0;

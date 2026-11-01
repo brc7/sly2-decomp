@@ -31,6 +31,14 @@ static inline float GZOfQw(qword a){float f;__asm__("pextuw %0,$zero,%1":"=r"(f)
 static inline qword QwRotateVecAt(M3*m,qword*pv){qword r;__asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
 static inline qword QwDot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
 static inline qword QwProjectOut(qword v,qword n){qword d=QwDot(v,n);qword al,ac;__asm__("vmulx.xyzw %0,%2,%1x":"=j"(al):"j"(d),"j"(n));__asm__("vsub.xyzw %0,%1,%2":"=j"(ac):"j"(v),"j"(al));return ac;}
+/** @sly2-annot addr=0x188960
+ * Purpose: JT vt70: base accel (SO 0x1F9B20 for jts 3/8 else STEP 0x204108), then per-jts sub-handler:
+ *   3->0x1903B8, 8->0x19DF70(+0xF50), 2 jump->0x196DF8(+0x2C0), 4->0x1A1148(+0xDF0), 7->0x194170(+0x4C0),
+ *   6->0x137248(+0x1FF0), 14/24 velocity projections
+ * Info: proposed name PresetJtAccel (T2); class JT slot70; TU jt
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 extern "C" void func_00188960(P*p){
  WORK w;
  switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:func_00204108(p);break;}

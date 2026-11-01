@@ -15,6 +15,13 @@ float func_0011CFE0(float g, float dg);
 void func_00204660(struct X *px, float g);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x146F18
+ * Purpose: BHV198 slot 10: Murray sub-state machine (+0x1840) relative to the current player D_002E1E40
+ * Info: proposed name UpdateBhv198 (T2); class BHV198 slot10; TU tu_144B28
+ * Notes: names_v2 C proposed SetAloPoseCombo__FP3ALO3OID (0.438)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_00146F18(struct P *p)
 {
     func_001EEF98(p);

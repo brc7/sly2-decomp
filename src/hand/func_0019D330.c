@@ -9,6 +9,15 @@ int func_00131968(void *p);
 void func_0019CD38(struct P *p, int n);
 void func_00204660(struct O *o, float g);
 void func_0019DA78(void *p);
+/** @sly2-annot addr=0x19D330
+ * Purpose: Per-frame mode state machine: 0 waits for start clip then 1, 1 turns toward look direction, 2
+ *   waits for end clip then -1; updates HUD (0x19DA78)
+ * Info: proposed name UpdateJtMode (T1); TU mode
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 void func_0019D330(struct P *p)
 {
     int n;

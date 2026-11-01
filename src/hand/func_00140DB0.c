@@ -17,6 +17,14 @@ extern int D_002DD5BC;
 extern int D_002F7900;
 int func_00144068(struct P *p);
 void func_001FAD00(struct P *p, void *a, struct S *s, void *b, int i);
+/** @sly2-annot addr=0x140DB0
+ * Purpose: vt68 (SO VUnk67 contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900
+ *   and the player is not controlled or is pushing (0x144068), scale the contact velocity by 0.01 before
+ *   calling base 0x1FAD00
+ * Info: proposed name STEPPLAYER_VUnk67 (T2); class STEPPLAYER slot68; TU stepplayer
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00140DB0(struct P *p, void *a, struct S *s, void *b, int i)
 {
     U c;

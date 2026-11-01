@@ -10,6 +10,12 @@ extern float D_002C4108;
 extern F32 D_002C410C;
 extern qword D_002A2DD0;
 
+/** @sly2-annot addr=0x220388
+ * Purpose: vector-state update of hold point for states 4..6 (gain D_002C4108, normalize)
+ * Info: proposed name UpdateJtthrowHoldPos (T2); TU throw
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
+ * @end-sly2-annot */
 extern "C" void func_00220388(S *owner,Q *value){
  VU plane,scratch;
  register float gain asm("$f1");register G *movementAddress asm("$3");register qword prior asm("vf2"),position asm("vf5");

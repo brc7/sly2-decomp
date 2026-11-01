@@ -16,6 +16,14 @@ void func_00141EA8(struct P *p, int k);
 void func_00135248(struct P *p, int n);
 void func_00141CD0(struct P *p, int k);
 void func_00141D38(struct P *p, int k);
+/** @sly2-annot addr=0x136A90
+ * Purpose: BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget
+ *   record
+ * Info: proposed name StartBentleyGadget (T1); class BENTLEY slot100; TU bentley
+ * Notes: runtime5a #7: gadget 7 two-press chain observed (S50/S51)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136A90(struct P *p, int k)
 {
     D_002DEB30.xC = k;

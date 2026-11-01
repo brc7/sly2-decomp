@@ -33,6 +33,12 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     }
     func_00129EC8((CRef *)&arg);
 }
+/** @sly2-annot addr=0x143AF0
+ * Purpose: Mark the assembly save slot for booty x and set oidBooty=-1
+ * Info: proposed name ClearStepplayerBootySave (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" void *func_00143AF0(LO *p, int x)
 {
     void *pv = func_00143410(p->p18);

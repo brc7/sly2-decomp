@@ -15,6 +15,15 @@ void func_00203E08(struct S *p);
 float func_002458F0(float y, float x);
 float func_0011CF60(float a);
 
+/** @sly2-annot addr=0x203FC0
+ * Purpose: STEP vt16: UpdateSo, UpdateStepPhys, then turn-rate speed factor +0x180 (CLQ D_002C3C80 of
+ *   |radTarget-heading| clamped 0..1, or 1), stamp +0x20C while grounded
+ * Info: proposed name UpdateStep (T1); class STEP slot16; TU step
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
+ *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_00203FC0(struct S *p)
 {
     func_001F36E0(p);

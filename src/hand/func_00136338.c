@@ -11,6 +11,15 @@ void func_001357C0(struct P *p, int n);
 void func_00136DC0(void *pv, int n);
 int func_001F0400(void *pv, int n);
 void func_001F09D8(void *pv, int n);
+/** @sly2-annot addr=0x136338
+ * Purpose: Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; pad
+ *   0x8 within 0.25 s while 0 fires (FireBentleyDart); back to 0 after 2.0 s
+ * Info: proposed name UpdateBentleyAim (T1); TU bentley
+ * Notes: runtime5a #3 CLARIFIED: binocucom dart aim; +0x16BC -1 not in look mode, 0 ready, 1 fired/cool-down
+ *   (2.0 s)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136338(struct P *p)
 {
     int s;

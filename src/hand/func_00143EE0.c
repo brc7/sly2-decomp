@@ -8,6 +8,13 @@ void func_001F15B8(void *p);
 void func_001305B8(void *o, struct P *p, int a, void *b, float f, float g);
 void func_00130658(void *p);
 void func_001F1448(void *o, struct P *p, int n, int a, void *b);
+/** @sly2-annot addr=0x143EE0
+ * Purpose: oid -1 stops; else find object: class 0x6D -> vt88(b) and ApplyAsegCur(o,p,a,+0x1030); class 0x6F
+ *   -> vt88(b) and SMA start 0x1F1448 into +0x1034
+ * Info: proposed name PlayStepplayerScriptAnim (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00143EE0(struct P *p, int oid, int a, int b)
 {
     void *o;

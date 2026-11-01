@@ -37,6 +37,12 @@ static __inline__ qword VNormalize(qword c, qword k)
     }
     return t;
 }
+/** @sly2-annot addr=0x1830D8
+ * Purpose: Position and facing (atan2 of tangent x up) on the shape at param g
+ * Info: proposed name GetCid12GrabPos (T2); class CID12; TU grabspot
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_001830D8(void *p, float g, struct J *pj, qword *pv, float *pg)
 {
     VU pos, dir;

@@ -74,6 +74,13 @@ static inline qword QwRotateVecRJ(const M3*m,qword v){qword r;__asm__("vmulax.xy
 static inline void MulM3(M3*r,const M3*a,const M3*b){qword c0=QwRotateVecR(a,b->r[0].q),c1=QwRotateVecR(a,b->r[1].q),c2=QwRotateVecR(a,b->r[2].q);r->r[0].q=c0;r->r[1].q=c1;r->r[2].q=c2;}
 static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
 static inline void SetVec(P*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(void*,qword))e->fn)((char*)p+e->delta,q);}
+/** @sly2-annot addr=0x185E40
+ * Purpose: Each frame keep Sly attached to the mesh surface: closest point, frame from normal, smoothed
+ *   matrix/position, contact solve
+ * Info: proposed name UpdateJtMeshAttach (T2); TU tu_185130
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
+ * @end-sly2-annot */
 extern "C" void func_00185E40(P*p){
  U closest,normal;
  qword position=func_001A62E8(p);

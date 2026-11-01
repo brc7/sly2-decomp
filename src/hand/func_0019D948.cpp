@@ -38,6 +38,12 @@ typedef char Alignment_2[__alignof__(X)==4?1:-1];
 typedef char Alignment_3[__alignof__(T)==4?1:-1];
 typedef char Alignment_4[__alignof__(P)==4?1:-1];
 typedef char Alignment_5[__alignof__(G)==4?1:-1];
+/** @sly2-annot addr=0x19D948
+ * Purpose: Collect and qsort a list of world tag ids (g_sw game record x6C...) for the HUD
+ * Info: proposed name GatherJtModeHudTags (T2); TU mode
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 extern "C" void func_0019D948(P*p){
  T*pt=p->t;
  if(!pt)return;

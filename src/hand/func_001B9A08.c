@@ -7,6 +7,14 @@ void func_00141D38(struct P *p, int k);
 void func_001B6078(struct P *p, int n);
 void func_001B8D30(struct P *p, int n);
 void func_001928F8(void *p, int a, int b, int c);
+/** @sly2-annot addr=0x1B9A08
+ * Purpose: MURRAY vt100(k): BroadcastGameEvent(0x3C,k) then per power: 20 power move (state 12), 19 alt toss
+ *   (state 8), 22 alt flop (state 3), 16 state 21, 15/21 component +0x4C0; default base 0x141D38
+ * Info: proposed name UseMurrayGadget (T1); class MURRAY slot100; TU murray
+ * Notes: runtime3/4: UseGadget writes g_game+0xC; gadget 16 -> state 21, 15 -> overlay ASEG
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B9A08(struct P *p, int k)
 {
     D_002DEB30.xC = k;

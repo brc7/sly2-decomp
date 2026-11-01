@@ -72,6 +72,15 @@ static inline qword Cross(qword a, qword b)
 
 struct WORK { M3 basis; qword tangent, first, direction; };
 
+/** @sly2-annot addr=0x1C3500
+ * Purpose: Orientation basis for a position `distance` along the pipe path (searching samples until tangent
+ *   agrees)
+ * Info: proposed name GetPipeGoalMat (T1); TU pipe
+ * Notes: names_v2 C proposed GetJtPipeGoalMat__FP2JTP4PIPEfP7MATRIX3 (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8,
+ *   docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
+ * @end-sly2-annot */
 extern "C" void func_001C3500(PATH *p, float distance, int forward, M3 *out)
 {
     WORK w;

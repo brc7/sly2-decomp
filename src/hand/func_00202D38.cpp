@@ -57,6 +57,14 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
 static inline float Min(float a,float b){return a<b?a:b;}
 static inline float Max(float a,float b){return a<b?b:a;}
 static inline float GClamp(float g,float gMin,float gMax){return Max(gMin,Min(g,gMax));}
+/** @sly2-annot addr=0x202D38
+ * Purpose: per frame: project target head to screen, proximity to centre / size gain, drive states, shutter
+ *   on button 10 (250 when locked)
+ * Info: proposed name UpdateReconSel (T1); TU tu_201D78
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10,
+ *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
+ * @end-sly2-annot */
 extern "C" void func_00202D38(P *p)
 {
     if(!p->primary)return;

@@ -8,6 +8,13 @@ float func_0011CF60(float g);
 void func_001F15B8(void *p);
 void func_001305B8(void *a, struct O *o, int n, void *b, float g, float h);
 #define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
+/** @sly2-annot addr=0x197370
+ * Purpose: Set x30=1 and start a turn/flip clip chosen from the heading difference (atan2, RadNormalize) via
+ *   ApplyAsegCur
+ * Info: proposed name StartJtAirTurn (T2); TU air
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void func_00197370(struct P *p)
 {
     float d, ad;

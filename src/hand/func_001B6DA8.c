@@ -65,6 +65,14 @@ typedef char P_g131C_Offset[FIELD_OFFSET(P,g131C)==4892?1:-1];
 typedef char P_x13D8_Offset[FIELD_OFFSET(P,x13D8)==5080?1:-1];
 typedef char P_g13DC_Offset[FIELD_OFFSET(P,g13DC)==5084?1:-1];
 typedef char P_plink_Offset[FIELD_OFFSET(P,plink)==5092?1:-1];
+/** @sly2-annot addr=0x1B6DA8
+ * Purpose: Flop substates: 1 = dive (sets downward velocity via vt35), 2 = impact: zap every contact link
+ *   (InflictZap kind 4 damage -20), free contact list, play landing ASEG event 0x1A5; -1 cleanup
+ * Info: proposed name SetMurrayFlopSubstate (T1); TU murray
+ * Notes: runtime5a #27/#28: substate 1 dive (vz -880), 2 impact -> InflictZap(grfzpk 4, dhp -20) per contact
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B6DA8(struct P *p, int s)
 {
     if (p->x13D8 == s)

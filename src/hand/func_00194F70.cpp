@@ -54,6 +54,12 @@ LO *func_001956D0(SW *psw, int id, JTGRABCAND *pcand);
 void func_00194F70(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
 
+/** @sly2-annot addr=0x194F70
+ * Purpose: Refine the best grab candidates (param/position on the spot, timers)
+ * Info: proposed name UpdateJtGrabCandidates (T1); TU grab
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_00194F70(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand)
 {
     float asRange[2];

@@ -14,6 +14,14 @@ extern char D_002BD270[];
 void func_001F3C10(struct P *p);
 float func_0011D018(float g, float gTarget, float dt, void *pv, int n);
 void func_00168638(void *p, int n, int m, float a, float b);
+/** @sly2-annot addr=0x1425B0
+ * Purpose: vt19: if visible (grfvis & D_002DDF54) render via 0x1F3C10; smooth two scale factors
+ *   (+0x10D4/+0x10D8) toward per-grab-state targets and draw shadow 0x168638
+ * Info: proposed name RenderStepplayerSelf (T1); class STEPPLAYER slot19; TU stepplayer
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_001425B0(struct P *p)
 {
     float g0, g1;

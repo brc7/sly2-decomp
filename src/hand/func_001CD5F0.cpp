@@ -1,6 +1,13 @@
 struct RGBA { unsigned char r, g, b, a; };
 #include "gifs.h"
 extern "C" void func_001CD5F0(struct RGBA*,GIFS*,float,float,float,float);
+/** @sly2-annot addr=0x1CD5F0
+ * Purpose: GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF)
+ * Info: proposed name FillScreenRect (T1); TU render
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/player.md#10-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 void func_001CD5F0(struct RGBA *pc, GIFS *pgs, float x0, float y0, float x1, float y1)
 {
     pgs->AddPrimPack( pc->a <= 0xFE ? 0x46 : 6, 5, 0x441EE);

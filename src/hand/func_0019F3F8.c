@@ -11,6 +11,12 @@ struct Q { struct O *x0; struct S *x4; struct R *x8; int xc; U x10; };
 struct P { char pad[0x240]; qword x240; };
 qword func_0022FC48(void *a, void *b, qword q);
 void func_002309E8(void *o, float g, int n, M4 *pm, int m);
+/** @sly2-annot addr=0x19F3F8
+ * Purpose: World position of a recorded place (object-local pos via ConvertXfPos, or stored world pos)
+ * Info: proposed name PosFromJtPlace (T2); TU places
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 qword func_0019F3F8(struct P *p, struct Q *q, float g)
 {
     U t;

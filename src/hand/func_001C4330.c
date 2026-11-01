@@ -3,6 +3,13 @@ void func_0011D608(float g, float *ps, float *pc);
 float func_002458F0(float y, float x);
 float func_0011CF60(float g);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x1C4330
+ * Purpose: Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays
+ *   0.2); below hold radius keeps previous angle
+ * Info: proposed name ConvertPoctlStick (T2); TU po
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
+ * @end-sly2-annot */
 void func_001C4330(void *p, float g, float *px, float *py, float *pang, float *pr, float *pr2)
 {
     float s, c;

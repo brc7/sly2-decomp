@@ -34,6 +34,13 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x1423A0
+ * Purpose: Splice predicate: true unless in jtgrab state 5 with a target farther than 5 units from its attach
+ *   point or a pending timer (+0x9A4/+0x994)
+ * Info: proposed name FStepplayerGrabReady (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 int func_001423A0(struct P *p)
 {
     struct BUF buf;

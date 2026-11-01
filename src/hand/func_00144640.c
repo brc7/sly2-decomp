@@ -47,6 +47,15 @@ static inline int IOther(struct PO *p0, struct SO *pso)
     return p0 == pso->ae[0].x8 ? 0 : 1;
 }
 
+/** @sly2-annot addr=0x144640
+ * Purpose: Anti-stuck for scripted walk-to-goal: every D_002BD2D0 s while the player is pushed (behaviour
+ *   stack/ride), if hands-off nudge blocking guards (event 0x17, 0x1F7BF8); if distance to qwGoal did not
+ *   shrink enough, snap goal to ground (0x173610/0x17D608) and warp the player there (0x19F540), fHold=1
+ * Info: proposed name UpdateJtgoal (T1); TU jtgoal
+ * Notes: names_v2 B proposed BindRob__FP3ROB (0.885)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
+ * @end-sly2-annot */
 void func_00144640(struct P *p)
 {
     if (p->f28) {

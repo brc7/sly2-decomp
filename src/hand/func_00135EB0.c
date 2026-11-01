@@ -6,6 +6,12 @@ struct S { char pad[0x208]; struct A *pa; char pad1[0x4c0 - 0x20c]; int f4c0; ch
 void func_0019FEB0(void *, int, ti128);
 void func_001942F0(void *);
 void func_0019EA60(void *);
+/** @sly2-annot addr=0x135EB0
+ * Purpose: Per state: remember standing places (jtplaces 0x19FEB0) when on solid ground, or grab/pipe updates
+ * Info: proposed name UpdateBentleyPlaces (T2); TU bentley
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00135EB0(struct S *p) {
     struct A *pa;
     switch (p->st) {

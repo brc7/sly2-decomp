@@ -37,6 +37,12 @@ void func_00187E78(void *);
 }
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 #define VCALL5(o, n, a1, a2, a3, a4, a5) ((void (*)(void *, int, int, int, int, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1, a2, a3, a4, a5)
+/** @sly2-annot addr=0x1D7480
+ * Purpose: Enter/leave selection state: ReplaceSma, SetSaveVar lookups ('oidPoCurrent'), StartJoySelection
+ * Info: proposed name SetCharSelectState (T2); TU tu_1D7238
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
+ * @end-sly2-annot */
 extern "C" void func_001D7480(OBJ *p, int s)
 {
     if (p->x180 == s)

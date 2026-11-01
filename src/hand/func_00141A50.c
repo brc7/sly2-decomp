@@ -15,6 +15,16 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 int func_001441A0(struct P *p);
 void func_00141C08(struct P *p, struct E *pe, int n);
+/** @sly2-annot addr=0x141A50
+ * Purpose: Per frame for the 3 gadget slots (+0x1180, buttons D_002C3258 = 4,1,2): on press check vt99
+ *   FCanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - error sound 0x2E or start; while held call
+ *   vt101, release -> stop
+ * Info: proposed name UpdateStepplayerGadgets (T1); TU stepplayer
+ * Notes: runtime3/4: 3 gadget slots, buttons {4,1,2}
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00141A50(struct P *p)
 {
     int i;

@@ -24,6 +24,12 @@ static inline qword Norm(qword v, qword fallback)
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(d));
     return r;
 }
+/** @sly2-annot addr=0x1C4768
+ * Purpose: Transform a direction into matPanTilt frame, take (-y,z,0), normalize (fallback D_002A2DB0)
+ * Info: proposed name POCTL_VecLateral (T2); class POCTL; TU po
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
+ * @end-sly2-annot */
 qword func_001C4768(struct S *p, qword dir)
 {
     union U v;

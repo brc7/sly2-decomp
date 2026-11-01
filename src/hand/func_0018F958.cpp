@@ -54,6 +54,14 @@ typedef char DELTA_first_Offset[FIELD_OFFSET(DELTA,first)==0?1:-1];
 typedef char DELTA_second_Offset[FIELD_OFFSET(DELTA,second)==16?1:-1];
 /* const-ref read: a non-scalar MEM, so the axis load for call 2 waits for the .first store */
 static inline const qword&Ref(const qword&q){return q;}
+/** @sly2-annot addr=0x18F958
+ * Purpose: Solve a 3x3 system (CroutDecomp/CroutSolve) of per-axis impulse responses of Sly and the hang
+ *   object (DvFromSoImpulse/DwFromSoImpulse, vt69) to get the force pair giving the requested velocity
+ * Info: proposed name AnticipateJtForce (T1); TU hang
+ * Notes: names_v2 v1 proposed FUN_001ceb18 (0.000)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
+ * @end-sly2-annot */
 extern "C" void func_0018F958(P*p,P*other,qword*point,float*input,DELTA*out){
  int axisIndex=0,side;
  OBJ objects[2];U points[2];/* initializer only marks axis addressable at its declaration (keeps slot 0x30) */qword axis=(sizeof(&axis),axis);

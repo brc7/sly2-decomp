@@ -23,6 +23,13 @@ static __inline__ M3 MulM3(M3 *pa, M3 *pb)
     m.r[2] = MulV(pa, pb->r[2]);
     return m;
 }
+/** @sly2-annot addr=0x1426E8
+ * Purpose: Find child SO x (0x1F4C58 kind 6), compute relative matrix, create an actor/ACT (0x12DC18) at
+ *   +0x10F4 and start it
+ * Info: proposed name AttachStepplayerToStartMarker (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_001426E8(struct P *p, int x)
 {
     struct SO *pso = func_001F4C58(p, x, 6);

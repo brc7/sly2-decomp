@@ -15,6 +15,14 @@ void func_0011BC88(void *pv, float *pa, float *pb);
 struct MATRIX3 func_0011B720(float a, float b);
 void func_001C4330(struct S *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
 void func_001C45A8(struct S *p);
+/** @sly2-annot addr=0x1C4468
+ * Purpose: Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00)
+ *   sticks+buttons (grfbtn = held & ~mask | ppo->grfbtnForce), build matPanTilt from camera, polar sticks,
+ *   update press times
+ * Info: proposed name UpdatePoctl (T1); class POCTL; TU po
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
+ * @end-sly2-annot */
 void func_001C4468(struct S *p)
 {
     float a, b;

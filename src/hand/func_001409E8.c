@@ -11,6 +11,13 @@ void *func_00156698(void *a, qword pos, struct P *p);
 int func_00209A68(struct SO *pso, int n);
 int func_00156FE8(struct X *px, void *q);
 void func_00156780(void *q);
+/** @sly2-annot addr=0x1409E8
+ * Purpose: Returns 2 if in jtmode<3 or no query from 0x156698; else 1 if any guard (D_003E1444) answers
+ *   vt89(query) or any D_003E1468 entry 0x156FE8 matches, 0 otherwise; guard states 0x1D/0xB force 2
+ * Info: proposed name NStepplayerHideTest (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 int func_001409E8(struct P *p)
 {
     int unused[4];

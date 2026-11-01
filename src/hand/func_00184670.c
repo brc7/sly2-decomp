@@ -1,4 +1,12 @@
 int func_00132B10(void *p, int n);
+/** @sly2-annot addr=0x184670
+ * Purpose: Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0,
+ *   CID12 +0x190, ...) or NULL
+ * Info: proposed name PgrabspotFromLo (T1); TU grabspot
+ * Notes: names_v2 C proposed PdartOldestHbskStuck__FP4HBSK (0.638)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void *func_00184670(char *p)
 {
     if (!p) return 0;

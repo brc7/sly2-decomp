@@ -26,6 +26,14 @@ extern M2C_UNK D_002DEB30;
 extern s32 D_002DFB80;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x183A50
+ * Purpose: vt61: SO base, and ignore a STEPPLAYER that is holding this object (grab state 1 on it)
+ * Info: proposed name BARREL_FIgnoreIntersection (T2); class BARREL slot61; TU grabspot
+ * Notes: v3 class identity: CID88_FIgnoreIntersection -> BARREL_FIgnoreIntersection
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources:
+ *   r4b_rest+class_review(master_names_v2_1)
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 s32 func_00183A50(s32 arg0, s32 arg1) {
     s32 var_s1;
     s32 var_v0;

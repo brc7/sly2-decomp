@@ -23,6 +23,13 @@ static inline float GClamp(float g, float lo, float hi)
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return b > a ? b : a; }
 
+/** @sly2-annot addr=0x140750
+ * Purpose: If +0x10C4 (a shadow/hide volume set) exists: smooth +0x10CC toward 1/0 by 0x1409E8 result, derive
+ *   +0x10C8 state (-1/0/1), combine with vt98, smooth +0x10D0 and at 1.0 register with 0x156548
+ * Info: proposed name UpdateStepplayerHideBlend (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00140750(struct P *p)
 {
     int k;

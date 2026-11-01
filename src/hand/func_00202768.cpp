@@ -46,6 +46,13 @@ static inline int IndirectWord(int word)
     return result;
 }
 static inline void Restore(X *x,uint mask){uint f=x->flags;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->flags=mask|(f&1);}
+/** @sly2-annot addr=0x202768
+ * Purpose: state machine -1..10; 8 = snapshot (clock & sound paused, player flags 0x102), 9 = photo taken
+ *   (StartDialog, BroadcastGameEvent 10, mark target done)
+ * Info: proposed name SetReconSelState (T1); TU tu_201D78
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
+ * @end-sly2-annot */
 extern "C" void func_00202768(P *p,int nextState)
 {
     if(p->state==nextState)return;

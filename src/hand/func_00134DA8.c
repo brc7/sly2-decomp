@@ -117,6 +117,12 @@ static __inline__ void Kick(void *pv, float g)
     func_0020BC08(pv);
 }
 
+/** @sly2-annot addr=0x134DA8
+ * Purpose: BENTLEY vt16: UpdateStepplayer, then (if in world) Bentley state machine and per-state actions
+ * Info: proposed name UpdateBentley (T1); class BENTLEY slot16; TU bentley
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00134DA8(struct P *p)
 {
     func_001403D0(p);

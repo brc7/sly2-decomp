@@ -110,6 +110,16 @@ typedef char RIG_Prefix_Size[sizeof(RIG)==0xAC?1:-1];
 typedef char P_Prefix_Size[sizeof(P)==0x19C0?1:-1];
 typedef char C_Prefix_Size[sizeof(C)==0xD4?1:-1];
 typedef char CM_Prefix_Size[sizeof(CM)==0xA0?1:-1];
+/** @sly2-annot addr=0x1A0B40
+ * Purpose: Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit
+ *   direction, retract/apply hit clips, death states 8..12
+ * Info: proposed name SetJtHurtState (T1); TU hurt
+ * Notes: runtime3: JTHURT nState +4 / tState +8 layout confirmed
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources:
+ *   r4b_rest+runtime+verdicts_followups
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 extern "C" void func_001A0B40(C*p,int next){
  U velocity,camera0,camera1;
  if(next==p->mode)return;

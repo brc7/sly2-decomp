@@ -9,6 +9,14 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern "C" void *func_002332B8(void *dst, void *src, int cb);
 extern "C" void *func_002333B4(void *p, int v, int cb);
+/** @sly2-annot addr=0x19FD30
+ * Purpose: Move-to-front insert of (object, param s) into the place table, merging entries within 50 of s
+ * Info: proposed name AddJtPlaceOnCurve (T2); TU places
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950,
+ *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8,
+ *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 extern "C" void func_0019FD30(struct P *p, struct S *s, float g)
 {
     int i;

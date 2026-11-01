@@ -35,6 +35,14 @@ extern "C" qword func_0011F198(qword a, qword b);
 extern "C" int func_001AA020(void *g, X *px);
 extern "C" void func_001A9FE0(void *g, int r, void *p);
 
+/** @sly2-annot addr=0x1B9130
+ * Purpose: MURRAY vt55(pxp,i): STEP base 0x204250; per-state contact handling (power-move contact trigger,
+ *   flop impact registration 0x1A9FE0, components 14/20)
+ * Info: proposed name AdjustMurrayNewXp (T1); class MURRAY slot55; TU murray
+ * Notes: runtime5a #28: records contacts with normal z > 0.7 during the dive into x13E4
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void func_001B9130(P *p, X *px, int i)
 {
     int n;

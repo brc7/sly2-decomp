@@ -88,6 +88,14 @@ static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
     int one=1;
     return (ENDPOINT *)(((one-side)<<6)+(uint)contact);
 }
+/** @sly2-annot addr=0x199D48
+ * Purpose: Pick the best supporting ledge contact of the player (walk contact groups, FCheckJtEdgeGrab, BSP
+ *   point test), returning side and normal
+ * Info: proposed name PxpFindJtBestEdge (T1); TU air
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources:
+ *   r4b_rest+verdicts_A2+names_v2-signature(verified)
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 CONTACT *func_00199D48(P *p,int *outSide,qword *outNormal)
 {
     U direction,point,scalar;

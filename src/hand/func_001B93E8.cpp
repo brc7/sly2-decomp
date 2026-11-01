@@ -97,6 +97,13 @@ extern "C" MOTION*func_0012DDB0(void*,void*,void*,void*,int,M4*);
 extern "C" void func_001B7D20(P*);
 extern "C" void func_001B6078(P*,int);
 static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
+/** @sly2-annot addr=0x1B93E8
+ * Purpose: Lift substates: 1 = launch object toward hands (constraints 0x12DE58/0x12DC18, SetVelocity), 2 =
+ *   attach object to grip nodes (SetLoParent, stretch constraints), failure detaches; toggles proxy active
+ * Info: proposed name SetMurrayLiftSubstate (T1); TU murray
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void func_001B93E8(P*p,int state) {
  if(p->state==state)return;
  if(p->state==1){func_0012E460(&p->m13FC);func_0012E460(&p->m1400);}

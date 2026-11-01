@@ -12,6 +12,13 @@ static __inline__ float GetZ(qword q)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q));
     return z;
 }
+/** @sly2-annot addr=0x184510
+ * Purpose: Hold position (debug flag D_002DFB84 uses child x15C pos + offset)
+ * Info: proposed name GetCid27GrabPos (T2); class CID27; TU grabspot
+ * Notes: names_v2 B proposed PresetHbskAccel__FP4HBSKf (0.856)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00184510(struct S *p, int unused, UV *pv)
 {
     if (pv) {

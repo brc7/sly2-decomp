@@ -11,6 +11,17 @@ struct O *func_001CB250(void *, int);
 void func_001D6B00(struct Q *, struct O *);
 void func_0013B5C8(struct O *, float);
 void func_001362F8(struct S *, int);
+/** @sly2-annot addr=0x1357C0
+ * Purpose: Binocucom crossbow dart: clone the selected ACCMISS template (+0x16DC/+0x16E0), launch from the
+ *   launcher CID112 toward the aim point +0x16F0 (LaunchSoFromLauncher), PrimeBomb(4.0), aim state +0x16BC =
+ *   1
+ * Info: proposed name FireBentleyDart (T1); TU bentley
+ * Notes: v3: superseded FireBentleyProjectile | runtime5a #1/#2 CORRECTION: fires the ACCMISS dart (S53 oid
+ *   0x245, tDetonate = fire + 4.0), not a BOMB; v2 FireBentleyProjectile
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime5a
+ * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648, docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_001357C0(struct S *p, int a) {
     void *pv;
     struct O *po;

@@ -29,6 +29,13 @@ static __inline__ unsigned LenXY1(qword v)
     return bits;
 }
 static inline float GMax(float a, float b) { return a > b ? a : b; }
+/** @sly2-annot addr=0x19A4A0
+ * Purpose: Predict a jump from Sly's pos/velocity to a target point on (moving) object: time, cost g,
+ *   predicted pos/velocity
+ * Info: proposed name MeasureJtJumpToTarget (T1); TU air
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void func_0019A4A0(struct S *p, qword aInput, struct O *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
 {
     struct WORK w;

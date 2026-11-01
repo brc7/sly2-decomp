@@ -6,6 +6,13 @@ int func_00132B10(int a, int b);
 void *func_0015E938(struct G *g, int k, int oid, int z);
 void func_00201DC8(void *p);
 void func_0019DCA0(struct P *p, void *q);
+/** @sly2-annot addr=0x19D540
+ * Purpose: Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36
+ *   0x361/...) via PloFindSwObject
+ * Info: proposed name PostLoadJtModeHud (T1); TU mode
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 void func_0019D540(struct P *p)
 {
     if (func_00132B10(p->x0->x0, 0x35)) {

@@ -6,6 +6,16 @@ void func_001A0300(char *, void *, void *);
 void func_0020B868(void *);
 void func_00137A30(char *, int, int, void *, int, int, int, void *);
 void func_001CC5E8(void *, char *, char *);
+/** @sly2-annot addr=0x1910F8
+ * Purpose: PostLoad of the grab context: PloNew(CID 0xF TN, oid 0x148) as its private TN (SetTnTnsOverride
+ *   0), reset TN params (0x194118), two place tables (0x1A0300), blend blocks, 3-entry swing blend (0x137A30
+ *   cbBl 0xC), reach tracker bound to owner SMA x1030
+ * Info: proposed name PostLoadJtGrab (T1); TU grab
+ * Notes: runtime2: private TN oid 0x148
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_001910F8(struct S *p) {
     char *pb = (char *)p;
     p->x68 = func_0013E3C8(0xF, 0, 0x148, -1);

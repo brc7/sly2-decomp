@@ -107,6 +107,15 @@ static inline void *Block(P *p, int offset) { return (void *)((char *)p + offset
 // virtual call through slot `index` of an object whose vptr is at +0xC
 static inline void Call(OBJ *p, int index) { VE &v = p->vt[index]; ((void (*)(void *))v.fn)((char *)p + v.delta); }
 static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
+/** @sly2-annot addr=0x1B6078
+ * Purpose: Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity
+ *   reset, component state), shared ApplyAsegCur/component restart, then vt90
+ * Info: proposed name SetMurrayState (T1); TU murray
+ * Notes: runtime3/4: states 0,1,4,10,11,13,21
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/engine/player.md#11-key-functions, docs/open-questions.md#top-5-highest-leverage,
+ *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 extern "C" void func_001B6078(P *p, int next)
 {
     if (next == p->state)

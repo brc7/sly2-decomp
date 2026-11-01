@@ -10,6 +10,14 @@ int func_001F07E8(int a);
 int func_001F07C8(int a);
 int func_001C46C0(int a, int b, float f);
 void func_001F0660(int a, int b);
+/** @sly2-annot addr=0x1B5820
+ * Purpose: State 6 (scripted SMA struggle): only when Murray is current PO and not hands-off; face-button
+ *   mashing (0xF0) decrements counter; picks next SMA state 0x1CA..0x1D0 from tables
+ *   D_002C0908/D_002C0948[x1534] and drives both own SMA (x1034) and partner SMA (x1530)
+ * Info: proposed name UpdateMurrayStruggle (T2); TU murray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B5820(struct P *p)
 {
     int a;

@@ -14,6 +14,12 @@ qword func_001A62E8(void *);
 qword *func_001A6318(void *);
 void func_00146158(struct P *, int);
 
+/** @sly2-annot addr=0x145DB0
+ * Purpose: BHV195 slot 10: approach target (+0x38) and interact; abort when hurt or target gone
+ * Info: proposed name UpdateBhv195 (T2); class BHV195 slot10; TU tu_144B28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_00145DB0(struct P *p)
 {
     VU d;

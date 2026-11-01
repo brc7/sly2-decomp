@@ -39,6 +39,13 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char U_q_Offset[((unsigned int)&(((U*)0x10000)->q)-0x10000)==0?1:-1];
 typedef char Factor_Address[FACTOR_ADDRESS==0x002C09A4?1:-1];
+/** @sly2-annot addr=0x1B6CC0
+ * Purpose: State-3 accel helper: substate 0 cancel ground velocity, substate 1 add horizontal correction
+ *   toward desired velocity (AddSoVelocity)
+ * Info: proposed name PresetMurrayFlopAccel (T2); TU murray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void func_001B6CC0(struct P *p)
 {
     switch (p->x13D8) {

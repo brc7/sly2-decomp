@@ -10,6 +10,13 @@ void func_002303A0(struct X *x, int a, int b);
 void func_001F6860(struct X *x, int a);
 void func_001A58D0(struct X *x, int a, int b);
 void func_00134320(void *g, struct P *p);
+/** @sly2-annot addr=0x1B7D20
+ * Purpose: Free the 12 grip constraints (0x12E460), notify object (vt3 msg 6), restore its XF roles,
+ *   SetSoTreeFlag2(0), SetLoParent(0,0xF); remember it as recently released (x1430, time)
+ * Info: proposed name DetachMurrayCarried (T1); TU murray
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B7D20(struct P *p)
 {
     struct O *o;

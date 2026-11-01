@@ -57,6 +57,14 @@ static inline qword NegativeAngular(qword angular,float sign,qword &scalar){qwor
 #define GAIN1(G,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*friction;}
 static inline void Zero(V &v,float zero){v.f[0]=v.f[1]=v.f[2]=zero;}
 static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){func_001FB098(*emitter,0.0f);func_00258040(emitter,0);}}
+/** @sly2-annot addr=0x2297F8
+ * Purpose: resolves one contact between two physics objects incl. water splash
+ * Info: class SO slot72; TU water
+ * Notes: descriptive only: SO slot72: resolve XA contact (spring/friction/splash) | no usable identifier;
+ *   purpose only
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 extern "C" void func_002297F8(O *a,O *b){
  WORK w;
  int i;

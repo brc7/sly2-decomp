@@ -5,6 +5,14 @@ struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34
 void func_001EEF70(void *p);
 struct O *func_00205438(void *p, int n);
 void func_00144F48(struct P *p, qword q);
+/** @sly2-annot addr=0x144E68
+ * Purpose: BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it
+ * Info: proposed name StartBhv193 (T2); class BHV193 slot8; TU tu_144B28
+ * Notes: superseded: OnBhv193Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
+ *   OnBhv193Resume
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_00144E68(struct P *p)
 {
     struct O *o;

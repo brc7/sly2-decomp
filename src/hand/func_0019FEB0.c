@@ -16,6 +16,14 @@ static __inline__ float Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(r));
     return g;
 }
+/** @sly2-annot addr=0x19FEB0
+ * Purpose: Move-to-front insert of (object, position) merging entries within 50 units
+ * Info: proposed name AddJtPlaceAtPos (T2); TU places
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950,
+ *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 void func_0019FEB0(struct P *p, struct S *s, qword q)
 {
     int i;

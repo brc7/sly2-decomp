@@ -9,6 +9,13 @@ void func_0020B868(void *);
 void func_00136D28(void *, struct S *, ti128, float, float);
 void func_001426E8(struct S *, int);
 void func_00135248(struct S *, int);
+/** @sly2-annot addr=0x1347A8
+ * Purpose: BENTLEY vt15: PostLoadStepplayer, find child SO 0xB, bind anim blends, init crosshair/aim helper
+ *   (0x136D28), AttachStepplayerToStartMarker(0x16), SetBentleyState(0)
+ * Info: proposed name PostBentleyLoad (T1); class BENTLEY slot15; TU bentley
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_001347A8(struct S *p) {
     func_001400B8(p);
     p->f10b8 = func_001F4C58(p, 0xb, 1);

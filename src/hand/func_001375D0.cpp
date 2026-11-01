@@ -71,6 +71,13 @@ void func_001305B8(X *px, P *p, int n, void *pv, float g0, float g1);
 }
 #define PXOF(p) ((PX *)(p))
 
+/** @sly2-annot addr=0x1375D0
+ * Purpose: state setter scaling velocity on exit
+ * Info: proposed name JtHelperSetState (T2); TU bentley
+ * Notes: names_v2 C proposed CatchWmDisplayState__FP2WM (0.200)
+ * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 extern "C" void func_001375D0(S *s, int k)
 {
     X *px;

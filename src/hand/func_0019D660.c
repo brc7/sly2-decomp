@@ -14,6 +14,13 @@ void func_00227788(void *p);
 void func_00202768(void *p, int n);
 void func_00212A70(struct O *p, int n);
 void func_00212A50(struct O *p, int n);
+/** @sly2-annot addr=0x19D660
+ * Purpose: Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1,
+ *   starts timers/speaker labels
+ * Info: proposed name SetJtModeHudState (T2); TU mode
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 void func_0019D660(struct S *p, int st)
 {
     int old;

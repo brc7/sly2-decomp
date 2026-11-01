@@ -3,6 +3,13 @@ void *func_001944C8(void *p, int *pn);
 void *func_001A23F8(void *p, int *pn);
 void *func_0019C870(void *p, int *pn);
 void func_00203D00(struct S *p, void *pv, int n);
+/** @sly2-annot addr=0x18C060
+ * Purpose: JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass
+ *   to 0x203D00
+ * Info: proposed name JT_vt90 (T2); class JT slot90; TU jt
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018C060(struct S *p)
 {
     int n = 0;

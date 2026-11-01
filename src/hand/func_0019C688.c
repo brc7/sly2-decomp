@@ -9,6 +9,13 @@ void func_0018C250(struct O *o, int a, int b);
 void func_00135248(int a, int b);
 void func_00195FB8(struct P *p, int a, int b);
 #define B(c, off) ((c) ? (void *)((char *)(c) + (off)) : (void *)0)
+/** @sly2-annot addr=0x19C688
+ * Purpose: On landing on a grab target, switch per air kind (6,11,12,13,...) to SetJtGrabState with the
+ *   target's GRABSPOT sub-object (+0x150/+0x190/+0xE0) or SetJtJts
+ * Info: proposed name GrabJtAirTarget (T2); TU air
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void func_0019C688(struct P *p)
 {
     switch (p->x1c) {

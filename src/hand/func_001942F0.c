@@ -10,6 +10,13 @@ void func_0019FD30(void *p, void *s, float g);
 void func_0019FEB0(void *p, int a, qword q);
 qword func_001A62E8(void *p);
 float func_002458F0(float y, float x);
+/** @sly2-annot addr=0x1942F0
+ * Purpose: Per grab state, record the held spot/param into the STEPPLAYER+0x9E0 place table (0x19FD30 /
+ *   0x19FEB0) unless the object forbids it
+ * Info: proposed name RecordJtGrabPlace (T2); TU grab
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_001942F0(struct P *p)
 {
     float g, s;

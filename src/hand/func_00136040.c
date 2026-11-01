@@ -5,6 +5,12 @@ struct S { int pad[3]; struct VTE *vt; char pad1[0x190 - 0x10]; float v190[3]; c
     char pad5[0x15f0 - 0x15d8]; struct ASEG *f15f0; char pad6[0x16b0 - 0x15f4]; int f16b0; };
 void func_001F15B8(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
+/** @sly2-annot addr=0x136040
+ * Purpose: Set +0x16B0 sub-state and play the matching aseg
+ * Info: proposed name SetBentleySubState16B0 (T2); TU bentley
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136040(struct S *p, int n) {
     struct ASEG *paseg;
     int grfapl;

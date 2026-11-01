@@ -18,6 +18,14 @@ struct O { char pad[0xF64]; F *xf64; char pad2[0xFE0 - 0xF68]; O *xfe0; };
 extern "C" O *D_003E1444;
 struct P { void *x0; };
 extern "C" void func_00192A28(P *p);
+/** @sly2-annot addr=0x192A28
+ * Purpose: For each detector-owning object in list D_003E1444 that currently tracks the player: if farther
+ *   than D_002BF638 or line of sight blocked (IntersectSwBoundingBox + PsoHitTestLineObjects) reset its
+ *   detector state (SetDetectorTargetState 0)
+ * Info: proposed name ClearJtDetectionOutOfSight (T2); TU grab
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_00192A28(P *p)
 {
     O *o;

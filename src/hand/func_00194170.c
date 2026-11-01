@@ -47,6 +47,19 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char VT_Size[sizeof(VT)==8?1:-1];
 typedef char VT_d_Offset[((unsigned int)&(((VT*)0x10000)->d)-0x10000)==0?1:-1];
 typedef char VT_fn_Offset[((unsigned int)&(((VT*)0x10000)->pfn)-0x10000)==4?1:-1];
+/** @sly2-annot addr=0x194170
+ * Purpose: If grab state 3 on a curve object: smooth the velocity component along the curve direction
+ *   (GSmooth D_002BF700) and AddSoVelocity
+ * Info: proposed name PresetJtAccelHide (T1); TU grab
+ * Notes: names_v2 A proposed PresetJtAccelHide__FP2JT (0.988) [verified CORRECT] | CONFLICT: verified tier-A
+ *   name differs from TU name; orchestrator: verified name PresetJtAccelHide__FP2JT restored over
+ *   PresetJtAccelGrab (verified > unverified) | arbitration adopt verified: Verifier matched Sly1 body; same
+ *   substate arg; keep unmangled.
+ * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
+ *   sources: r4b_rest+verdicts_A2;verified_A+arbitration
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_00194170(struct P *p)
 {
     U v, w, r, k;

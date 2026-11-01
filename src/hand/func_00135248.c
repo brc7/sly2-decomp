@@ -43,6 +43,14 @@ void func_001F14F8(void *, struct P *, int, int, int, void *);
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 #define VCALL1(p, n, a) ((void (*)(void *, int))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d, a)
 
+/** @sly2-annot addr=0x135248
+ * Purpose: Bentley state change (+0x13D0): exit/enter actions, animations (asega), component state changes
+ * Info: proposed name SetBentleyState (T1); TU bentley
+ * Notes: runtime5a #8: Bentley state +0x13D0 values 0/12/3 observed
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648,
+ *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00135248(struct P *p, int k)
 {
     int kOld;

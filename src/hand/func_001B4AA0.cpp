@@ -66,6 +66,19 @@ extern "C" void func_0019E1E0(void*);
 extern "C" int func_00141EA8(P*,int);
 static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
 static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,kind);}
+/** @sly2-annot addr=0x1B4AA0
+ * Purpose: Per-frame input-driven state machine (loops until state stable): idle/move -> jump (Cross 0x40),
+ *   lift (Circle 0x20), punch (Square 0x80), alt attack (0x10), gadget (0x400 + FCanUseGadget(3)), strafe
+ *   (0x140AF8); dispatches per-state updates (carry, flop, lift, attack, power, struggle, jtthrow)
+ * Info: proposed name UpdateMurrayStateMachine (T1); TU murray
+ * Notes: runtime4: the per-state switch (no stored per-state fn pointers in MURRAY); 0x400 = look mode
+ *   (JTMODE), not gadget | runtime4 CORRECTION: pad bit 0x400 = look mode (JTMODE); gadgets are slot buttons
+ *   0x4/0x1/0x2
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources:
+ *   r5b_rest+runtime+runtime-corrected
+ * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728, docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void func_001B4AA0(P*p){
  int state;
  do{

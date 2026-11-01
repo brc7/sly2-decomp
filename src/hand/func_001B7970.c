@@ -19,6 +19,15 @@ static inline float Dist(qword a, qword b) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x1B7970
+ * Purpose: Release (anim event 0x1EB in state 7): detach carried object, give it VecToReachPosInDt velocity
+ *   toward v1420 at speed g1414, SetSoZapMode 2
+ * Info: proposed name ThrowMurrayCarried (T1); TU murray
+ * Notes: runtime5a #22: release on anim event 0x1EB, prop unparented, v = 3500
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B7970(struct P *p)
 {
     struct LO *po;

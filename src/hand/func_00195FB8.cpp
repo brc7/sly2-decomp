@@ -143,6 +143,13 @@ typedef char WORK_endVelocity_Offset[FIELD_OFFSET(WORK,endVelocity)==160?1:-1];
 typedef char WORK_duration_Offset[FIELD_OFFSET(WORK,duration)==176?1:-1];
 typedef void(*VECTOR_SETTER)(void*,qword);
 static inline void PublishReal(U*home,qword value){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(value));}
+/** @sly2-annot addr=0x195FB8
+ * Purpose: Set the air context sub-state: leave old / enter new (clips, cane state via SetJtJtcs, landing
+ *   target, velocities, SM flags)
+ * Info: proposed name SetJtAirState (T1); TU air
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  if(newMode==p->mode)return;
  switch(p->mode){

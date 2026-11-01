@@ -15,6 +15,12 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+/** @sly2-annot addr=0x183218
+ * Purpose: Random point along the shape with outward offset
+ * Info: proposed name GetCid12SparklePos (T2); class CID12; TU grabspot
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00183218(void *p, float g, qword *pv, qword *pdv)
 {
     VU pos, dir, u;

@@ -6,6 +6,12 @@ extern qword *func_001A6318(void *p);
 extern float func_002458F0(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x183818
+ * Purpose: Hold position/heading from the object matrix (offset by player radius unless x10C)
+ * Info: proposed name GetCid38GrabPos (T2); class CID38; TU grabspot
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00183818(struct O *p, struct J *pj, qword *pv, float *pg)
 {
     float g = 0.0f;

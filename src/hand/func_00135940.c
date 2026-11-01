@@ -11,6 +11,13 @@ void func_00194170(void *p);
 void func_001A1148(void *p);
 void func_0019DF70(void *p);
 void func_001FAC30(struct P *p, qword v);
+/** @sly2-annot addr=0x135940
+ * Purpose: BENTLEY vt70: state-dependent physics preset (pipe/jtair/jtgrab/jthurt components; state 6 sub 2
+ *   applies drag via 0x1FAC30)
+ * Info: proposed name BENTLEY_VUnk69 (T2); class BENTLEY slot70; TU bentley
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00135940(struct P *p)
 {
     if (p->k == 13)

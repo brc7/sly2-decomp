@@ -79,6 +79,15 @@ static __inline__ void Emit(P*p,int id){if(id!=-1){EFFECT*effect=func_001FBB90(i
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static __inline__ void Link(NODE*p,NODE*other){VE&v=p->vt[38];((void(*)(void*,NODE*))v.fn)((char*)p+v.delta,other);}
 static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((char*)p+v.delta);}
+/** @sly2-annot addr=0x18E540
+ * Purpose: Set Sly's cane state (x18D8): exit old (remove sweep effect unless continuing, stop reach track),
+ *   state 3 resolves to fore/back sweep 4/5 or 6/7, enter new (blend clip, contact deadline, sounds),
+ *   continue ASEGA if transition table D_002BF448 says so
+ * Info: proposed name SetJtJtcs (T1); TU cane
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#10-source-files,
+ *   docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 extern "C" void func_0018E540(P*p,int state){
  if(p->state==state)return;
  int compatible=0;

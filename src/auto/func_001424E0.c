@@ -51,6 +51,12 @@ extern s32 D_003E1084;
 extern void *D_003E1474;
 extern s32 D_003E1AC8;
 
+/** @sly2-annot addr=0x1424E0
+ * Purpose: Set jtgrab +0x9CC (default +0x9C8), enter jtgrab state 0xC, store +0x1318
+ * Info: proposed name StartStepplayerGrabC (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_001424E0(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 var_a1;
 

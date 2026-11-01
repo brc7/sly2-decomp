@@ -17,6 +17,16 @@ void func_001B86B0(P *p, int k);
 int func_001B70A0(P *p);
 void func_001B8938(P *p);
 
+/** @sly2-annot addr=0x1B8988
+ * Purpose: State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement
+ *   cancel
+ * Info: proposed name UpdateMurrayAttack (T1); TU murray
+ * Notes: runtime4: state 11 attack routine (S38-S40)
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources:
+ *   r5b_rest+runtime+verdicts_followups
+ * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728, docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B8988(P *p)
 {
     int s;

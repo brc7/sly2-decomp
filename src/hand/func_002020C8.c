@@ -7,6 +7,12 @@ qword func_001A62E8(void *p);
 void func_001F7C68(struct T *pt, float f);
 void func_001F7BF8(struct T *pt, float f);
 
+/** @sly2-annot addr=0x2020C8
+ * Purpose: fade marker SO in/out (0.25 s) by camera distance vs radius
+ * Info: proposed name FadeReconTargetMarkers (T2); TU tu_201D78
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
+ * @end-sly2-annot */
 void func_002020C8(struct S *p)
 {
     int i;

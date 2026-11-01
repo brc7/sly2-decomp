@@ -22,6 +22,15 @@ OBJ *func_0015E938(struct G *, int, int, OBJ *);
 void func_001DC260(void *, int);
 void func_001DFD58(OBJ *, int);
 void func_001D77D0(OBJ *, int);
+/** @sly2-annot addr=0x1D72A8
+ * Purpose: UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0
+ * Info: proposed name UpdateSafehouse (T2); class SAFEHOUSE slot16; TU tu_1D7238
+ * Notes: names_v2 C proposed OnStepguardExitingSgs__FP9STEPGUARD3SGS (0.438) | class identity from whole_game
+ *   WE names/object strings: UpdateCharSelectPo -> UpdateSafehouse
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
+ * @end-sly2-annot */
 void func_001D72A8(OBJ *p)
 {
     char *pad;

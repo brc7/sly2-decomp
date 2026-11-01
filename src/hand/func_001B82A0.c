@@ -5,6 +5,13 @@ struct S { char pad[0x208]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; 
 void func_0019FEB0(void *p, int a, qword q);
 void func_001942F0(void *p);
 void func_0019EA60(void *p);
+/** @sly2-annot addr=0x1B82A0
+ * Purpose: Per-frame: on flat ground (normal z>0.7, material flag clear) call 0x19FEB0 on +0x9E0; component
+ *   hooks for states 13/20
+ * Info: proposed name UpdateMurrayGroundEffects (T2); TU murray
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B82A0(struct S *p)
 {
     struct Q *pq;

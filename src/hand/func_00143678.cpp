@@ -51,6 +51,13 @@ static inline void SetPv(void *pv, const CRef &r, void *)
 }
 static inline void *Vcall103(LO *p) { VTE *e = &p->vt[103]; return e->pfn((char *)p + e->d); }
 
+/** @sly2-annot addr=0x143678
+ * Purpose: Booty save-state transitions: 0 = picked up (oidBooty=id, mark assembly slot), 1 = delivered
+ *   (clear, loot count++), 2 = dropped/restore
+ * Info: proposed name UpdateStepplayerBootySave (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" void func_00143678(LO *p, int n, Q *q)
 {
     MARK m;

@@ -63,6 +63,15 @@ static inline qword Add(qword a, qword b)
     return r;
 }
 
+/** @sly2-annot addr=0x1457A8
+ * Purpose: compute follow target position behind the leader (uses its facing if STEP)
+ * Info: proposed name UpdateBhvfollowPos (T2); TU tu_144B28
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): UpdateBhv194FollowPos
+ *   -> UpdateBhvfollowPos | runtime6 P2: follow point +0x50
+ * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
+ *   role)+runtime
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_001457A8(P *p)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;

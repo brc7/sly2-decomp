@@ -31,6 +31,15 @@ void func_00183B80(struct O *p, int n);
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 static inline qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
+/** @sly2-annot addr=0x183B80
+ * Purpose: Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent),
+ *   constraint force/torque, part flags
+ * Info: proposed name SetBarrelState (T2); class BARREL; TU grabspot
+ * Notes: v3 class identity: SetCid88State -> SetBarrelState
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
+ *   r4b_rest+class_review(master_names_v2_1)
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00183B80(struct O *p, int n)
 {
 

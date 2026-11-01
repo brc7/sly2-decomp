@@ -101,6 +101,13 @@ static inline float GClamp(float g,float gMin,float gMax){if(g<gMin)return gMin;
 static inline float GMax(float g0,float g1){return g0<g1?g1:g0;}
 static inline float GFromClq(const CLQ &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
 
+/** @sly2-annot addr=0x21FB70
+ * Purpose: predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the
+ *   aim marker ring, updates aim blends
+ * Info: proposed name UpdateJtThrowArc (T1); TU throw
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
+ * @end-sly2-annot */
 extern "C" void func_0021FB70(JTTHROW *pjtthrow,int fUpdateBlends)
 {
  qword posLaunch=func_001A6F00(pjtthrow->pstepplayer,0,pjtthrow->vLaunchLocal.q);

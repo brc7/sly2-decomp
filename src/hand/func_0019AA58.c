@@ -11,6 +11,12 @@ typedef char S_a_Offset[FIELD_OFFSET(S,a)==0?1:-1];
 typedef char S_b_Offset[FIELD_OFFSET(S,b)==4?1:-1];
 typedef char S_c_Offset[FIELD_OFFSET(S,c)==8?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
+/** @sly2-annot addr=0x19AA58
+ * Purpose: MinimizeRange callback: GetJtRailLanding at u then MeasureJtJumpToTarget cost
+ * Info: proposed name GMeasureJumpRail (T1); TU air
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 float func_0019AA58(S*s,float parameter){
  float r;qword a,b;
  func_00193A68(s->a,s->c,&a,&b,parameter);

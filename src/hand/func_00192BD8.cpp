@@ -179,6 +179,14 @@ static inline qword Transform(const M3 &m, qword q)
     return r;
 }
 
+/** @sly2-annot addr=0x192BD8
+ * Purpose: Set the sub-step (nKind, +0xC) of the grab context: leave old (per-kind/per-state cleanup), enter
+ *   new (anim clip, script, flags, blend; TN params via 0x194118)
+ * Info: proposed name SetJtGrabKind (T1); TU grab
+ * Notes: names_v2 v1 proposed UpdateJtActiveHide__FP2JTP3JOY (0.027)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 extern "C" void func_00192BD8(CONTEXT *p, int step)
 {
     if (step == p->step)

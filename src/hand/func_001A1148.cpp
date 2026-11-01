@@ -15,6 +15,14 @@ static inline qword BroadcastTo(float g,U *u) { qword q=Broadcast(g); u->q=q;ret
 static inline qword Scale(qword a,qword b) { qword q; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(q) : "j"(a),"j"(b));return q; }
 static inline float GetZ(qword v) { float g; __asm__("pextuw %0,$0,%1" : "=r"(g) : "r"(v));return g; }
 inline void O::Negate(U &u) { qword v=xE8->v80; qword k=Broadcast(-1.0f); u.q=k; Set(Scale(v,k)); }
+/** @sly2-annot addr=0x1A1148
+ * Purpose: Hurt-state acceleration: in knockback states add velocity / spring toward target velocity
+ *   (AccelSoTowardPosSpring)
+ * Info: proposed name PresetJtAccelZap (T1); TU hurt
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 extern "C" void func_001A1148(struct P *p)
 {
  U u,v,u2;

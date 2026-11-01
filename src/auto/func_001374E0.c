@@ -18,6 +18,12 @@ extern M2C_UNK D_002DDF40;
 extern void *D_002F7900;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x1374E0
+ * Purpose: arg1+0x94 = const
+ * Info: proposed name SetJtContactParam (T2); TU bentley
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_001374E0(s32 arg0, s32 arg1) {
     M2C_FIELD(arg1, f32 *, 0x94) = (f32) D_002BC9B4;
 }

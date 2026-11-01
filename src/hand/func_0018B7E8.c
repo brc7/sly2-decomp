@@ -67,6 +67,13 @@ static inline void PrepareAnimation(struct P*p,U*u,struct MODEL**modelOut,struct
 }
 
 static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(q));return r;}
+/** @sly2-annot addr=0x18B7E8
+ * Purpose: Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input,
+ *   JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
+ * Info: proposed name UpdateJtPre (T1); TU jt
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018B7E8(struct P*p){
  union PHASE phase;U scalar;float initialHeading;
  initialHeading=func_00204740(p);(void)func_0011CF60(p->state->heading-initialHeading);

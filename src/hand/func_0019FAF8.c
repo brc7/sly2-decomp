@@ -9,6 +9,12 @@ int func_0015E9C8(struct G *g, int k, int n, int m, int c, void **apv);
 float func_0019F7D0(struct P *p, struct E *e, int c, void **apv);
 void func_002333B4(void *p, int v, int cb);
 qword func_001A62E8(void *p);
+/** @sly2-annot addr=0x19FAF8
+ * Purpose: Pick the best recorded place (ScoreJtPlace against up to 16 STEP objects CID 0x33)
+ * Info: proposed name ChooseJtSafePlace (T2); TU places
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 void func_0019FAF8(struct P *p, struct E *pe)
 {
     void *apv[16];

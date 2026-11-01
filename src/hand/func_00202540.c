@@ -34,6 +34,13 @@ __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(a):"0"(a));
 __asm__("qmfc2.ni %0,%1":"=r"(g):"j"(a));return g;}
 static inline void Store(qword*p,qword q){__asm__("sq %1,%0":"=m"(*p):"r"(q));}
 static inline qword ScalarBits(const float*p){qword q;__asm__("lw %0,%1":"=r"(q):"m"(*p));return q;}
+/** @sly2-annot addr=0x202540
+ * Purpose: choose closest unblocked target in frustum; on change SetReconSelState(2)
+ * Info: proposed name SelectReconTarget (T1); TU tu_201D78
+ * Notes: names_v2 C proposed FAbsorbBrkWkr__FP3BRKP3WKR (0.638)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
+ * @end-sly2-annot */
 void func_00202540(struct P*p)
 {
  V radius,screen,position;

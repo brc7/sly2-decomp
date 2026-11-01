@@ -13,6 +13,14 @@ struct P {
 extern struct P *D_002DD5BC;
 void func_0013FF70(struct P *p);
 void func_0020B840(void *pv, struct P *p, int n);
+/** @sly2-annot addr=0x134648
+ * Purpose: BENTLEY vt7: InitStepplayer then Bentley defaults (camera offsets 45/125, two 0x20B840 sub-objects
+ *   at +0x1320/+0x1600, gadget slot kinds 7/9/11 ...)
+ * Info: proposed name InitBentley (T1); class BENTLEY slot7; TU bentley
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 void func_00134648(struct P *p)
 {
     func_0013FF70(p);

@@ -12,6 +12,12 @@ int func_00141EA8(struct P *p, int n);
 int func_001C4728(void *pv, int n);
 void func_00136298(struct P *p);
 void func_00195A00(void *pv, int a, int b, int c);
+/** @sly2-annot addr=0x136118
+ * Purpose: Sub-state machine on +0x16B0
+ * Info: proposed name UpdateBentleySubState16B0 (T2); TU bentley
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136118(struct P *p)
 {
     int s;
