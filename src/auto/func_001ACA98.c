@@ -37,6 +37,12 @@ extern s32 D_003E0FAC;
 extern s32 D_003E0FE4;
 extern M2C_UNK D_47220F;
 
+/** @sly2-annot addr=0x1ACA98
+ * Purpose: ctor: UI base ctor 0x1DA728, vptr 0x2D3750, id 0x52C, state x40=-1, register 0x1DA7D0
+ * Info: proposed name CMemcardDialog_ctor (T1); class CMemcardDialog; TU memcard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 s32 func_001ACA98(s32 arg0) {
     func_001DA728(arg0);
     M2C_FIELD(arg0, M2C_UNK **, 0xC) = &D_002D3750;

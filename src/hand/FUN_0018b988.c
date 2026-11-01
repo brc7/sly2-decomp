@@ -8,6 +8,16 @@
    the original.  Kind 1's `result = 9` is plain.  No register pin or asm is needed. */
 static inline int Fallback(int err) { int msg = 11; if (err >= -9) msg = 31; return msg; }
 
+/** @sly2-annot addr=0x1AABC0
+ * Purpose: (kind 1..21, sceMc error) -> message id for the UI
+ * Info: proposed name MsgFromMcError (EXISTING); TU memcard
+ * Notes: agent/verifier proposes MsgFromMcError for this existing name (see existing_name_changes.csv) |
+ *   RENAME proposed -> MsgFromMcError (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r4_17F090+arbitration
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int FUN_0018b988(int kind, int err)
 {
     int result;

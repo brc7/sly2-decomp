@@ -8,6 +8,12 @@ void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 void func_001D8D80(struct B *b, int n);
 void func_00165E38(struct B *b);
+/** @sly2-annot addr=0x1AD320
+ * Purpose: Menu action slot i: make current, ResetGs, start (0x165E38)
+ * Info: proposed name SelectSaveSlotLoad (T2); TU memcard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AD320(struct S *s)
 {
     struct CRef ref;

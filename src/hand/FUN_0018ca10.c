@@ -20,6 +20,16 @@ void func_001EEA70(char *, unsigned char *);
 int func_0021ECD8(char *, const char *, ...);
 int func_001AC900(void *s, char *name, void *b, int n);
 
+/** @sly2-annot addr=0x1AC008
+ * Purpose: Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it
+ * Info: proposed name WriteIconSys (EXISTING); TU memcard
+ * Notes: agent/verifier proposes WriteIconSys for this existing name (see existing_name_changes.csv) | RENAME
+ *   proposed -> WriteIconSys (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r4_17F090+verdicts_tu_r4r6+arbitration
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int FUN_0018ca10(void *p, char *dir, char *title)
 {
     ICONSYS icon;

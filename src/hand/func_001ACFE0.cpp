@@ -35,6 +35,13 @@ void func_001ACFE0(S *s);
 CRef func_00258200(O *, const CRef &, void *);                   // O::Set(const CRef &, context), returns a CRef
 }
 static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = func_00258200(po, arg, D_003D4A60); }
+/** @sly2-annot addr=0x1ACFE0
+ * Purpose: Switch on dialog state x40 and run follow-up (UI hooks, SAVE jobs, 0x1ABD40)
+ * Info: proposed name OnMcDialogChoice (T2); TU memcard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001ACFE0(S *s)
 {
     switch (s->x40) {

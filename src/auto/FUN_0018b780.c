@@ -2,6 +2,16 @@
 M2C_UNK memset(void *, M2C_UNK, M2C_UNK);           /* extern */
 M2C_UNK strcpy(void *, s32);                        /* extern */
 
+/** @sly2-annot addr=0x1AA9B8
+ * Purpose: memset + fill a save-directory info block from sceMcGetDir results
+ * Info: proposed name FillMcDirInfo (EXISTING); TU memcard
+ * Notes: agent/verifier proposes FillMcDirInfo for this existing name (see existing_name_changes.csv) |
+ *   RENAME proposed -> FillMcDirInfo (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r4_17F090+arbitration
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void FUN_0018b780(void *arg0, void *arg1) {
     memset(arg1, 0, 0x5C);
     strcpy(arg1, arg0 + 0x20);

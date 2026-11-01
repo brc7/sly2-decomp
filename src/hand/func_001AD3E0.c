@@ -9,6 +9,12 @@ void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 void func_001ACB58(struct H *h, int n);
 void func_001ABD40(struct G *g);
+/** @sly2-annot addr=0x1AD3E0
+ * Purpose: Eval slot, set dialog state, start save job (0x1ABD40)
+ * Info: proposed name SaveToSlot (T2); TU memcard
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AD3E0(void)
 {
     struct G *g = &D_002E65E0;

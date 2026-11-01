@@ -2,6 +2,13 @@ struct S { int x0; int x4; int x8; int xC; int x10; float x14; int x18; int x1C;
 extern float D_002DDF0C;
 int func_00244570(int a, int b, int *c, int *d, int *e);
 int func_001AB098(void *p, int a, int b, int c);
+/** @sly2-annot addr=0x1AC598
+ * Purpose: Thread job: sceMcGetInfo + sync -> card type/free/format state
+ * Info: proposed name McJobGetInfo (T1); TU memcard
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int func_001AC598(struct S *s)
 {
     void *p = s->xFD5C;

@@ -5,6 +5,17 @@ int func_002446F0(int a, int b, char *c, int d, int e, int f);
 int func_001AB098(void *p, int a, int b, int *c);
 int func_001AC6A0(struct S *s, int *out);
 int func_001AC4C8(struct S *s, struct B *b);
+/** @sly2-annot addr=0x1ABA10
+ * Purpose: Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8)
+ * Info: proposed name McJobGetDir (EXISTING); TU memcard
+ * Notes: agent/verifier proposes McJobGetDir for this existing name (see existing_name_changes.csv) | RENAME
+ *   proposed -> McJobGetDir (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.60] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r4_17F090+arbitration
+ * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
+ *   docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int FUN_0018c420(struct S *s)
 {
     void *p = s->xFD5C;

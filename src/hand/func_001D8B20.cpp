@@ -22,6 +22,14 @@ extern H D_003E0EA8;
 void func_001D87C0(const char *p, va_list ap, V *pv);
 CRef func_001D80C8(H *, V *, const CRef &, G *);
 static inline CRef Eval(V *pv, const CRef &r, G *pg) { return func_001D80C8(&D_003E0EA8, pv, r, pg); }
+/** @sly2-annot addr=0x1D8B20
+ * Purpose: CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs
+ * Info: proposed name RefSetSaveVarV (T1); TU save
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
+ *   docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" CRef func_001D8B20(const CRef &refArg, const char *fmt, ...)
 {
     CRef ref;

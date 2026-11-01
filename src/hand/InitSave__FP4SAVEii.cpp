@@ -11,6 +11,12 @@ struct SAVE {
 };
 extern "C" void func_00243CB0(void);
 extern "C" void func_001AAED8(void *);
+/** @sly2-annot addr=0x1AB128
+ * Purpose: sceMcInit, InitMemcard(+0xFD5C), zero SAVE header
+ * Info: proposed name InitSave__FP4SAVEii (EXISTING); TU memcard
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void InitSave(SAVE *psave, int a, int b)
 {
     func_00243CB0();

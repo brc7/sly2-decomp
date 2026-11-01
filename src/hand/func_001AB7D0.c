@@ -3,6 +3,13 @@ void *func_001AC748(void *s, char *a);
 void *func_001AC900(void *s, char *a, char *b, int n);
 void *func_001AC008(void *s, char *a, char *b);
 void *func_001AC238(void *s, char *a);
+/** @sly2-annot addr=0x1AB7D0
+ * Purpose: mkdir /BASCUS-97316YAOTWTD!, write data file, write icon.sys (0x1AC008), copy icon from disc
+ *   (load_sly_icon_from_disc)
+ * Info: proposed name CreateSaveDir (T1); TU memcard
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void *func_001AB7D0(void *s)
 {
     void *p = func_001AC748(s, D_002A6BB0);

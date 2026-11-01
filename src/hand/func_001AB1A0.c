@@ -14,6 +14,14 @@ void func_001AB418(struct S *s, int);
 int func_001B42C0(void *p);
 int func_001B01E8(void *p);
 void func_001ACB58(struct H *h, int n);
+/** @sly2-annot addr=0x1AB1A0
+ * Purpose: Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0)
+ *   or advance state (0x1AB418); autosave trigger with 0.3s debounce
+ * Info: proposed name UpdateSave (T1); TU memcard
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090+verdicts_A2
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AB1A0(struct S *s)
 {
     if (func_0020E040(D_003DD490))

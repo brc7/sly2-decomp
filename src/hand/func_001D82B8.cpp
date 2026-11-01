@@ -35,6 +35,15 @@ static inline int Clamp(int n, int lo, int hi)
     return n;
 }
 static inline int NFind(OBJ *p, char *pch) { return func_001D8720(p->ht, pch); }
+/** @sly2-annot addr=0x1D82B8
+ * Purpose: Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set
+ *   'fVault' bool/bit; returns 0 / 100 / clamp(1..99)
+ * Info: proposed name NCompletionPercentGs (T1); TU save
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" int func_001D82B8(OBJ *p, unsigned char *pb)
 {
     int sum = 0;

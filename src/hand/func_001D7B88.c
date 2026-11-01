@@ -10,6 +10,17 @@ void func_001D8600(void *, int);
 void func_001D8690(void *, char *, int);
 void *func_001AE1D0(struct MSG *);
 void func_001D7C80(OBJ *, struct G *);
+/** @sly2-annot addr=0x1D7B88
+ * Purpose: Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry
+ *   count -> c*10-byte trie entries; then reset g_gs if schema checksum changed
+ * Info: proposed name LoadSaveSchemaFromBrx (T1); TU save
+ * Notes: runtime: schema at g_sw+0x3A18 (5461 entries, 960 symbols) confirmed | splice_scripts format doc
+ *   cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
+ *   r6_1D5150+runtime+format-doc:splice_scripts
+ * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
+ *   docs/engine/save-memcard.md#4-source-files, docs/engine/save-memcard.md#5-key-functions
+ * @end-sly2-annot */
 void func_001D7B88(OBJ *p, BIS *pbis)
 {
     struct MSG msg;

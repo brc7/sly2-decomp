@@ -8,6 +8,14 @@ void *func_001AE318(struct MSG *);
 int func_001D8720(void *, char *);
 static inline int NFind(H *ph, char *pch) { return func_001D8720(ph->ht, pch); }
 short func_00233800(char *);
+/** @sly2-annot addr=0x1D87C0
+ * Purpose: Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols
+ *   via atoi as array indices)
+ * Info: proposed name BuildSaveKeyV (T1); TU save
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 void func_001D87C0(char *pch, va_list ap, V *pv)
 {
     va_list apSave = ap;

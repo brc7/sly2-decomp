@@ -7,6 +7,12 @@ int func_001DDD40(void *p);
 char *func_0013E368(void *p, int n);
 char *func_001D82B8(void *p, void *q);
 void func_0021ECD8(char *buf, char *fmt, ...);
+/** @sly2-annot addr=0x1AD980
+ * Purpose: Text '%s : %d%%' with NCompletionPercentGs
+ * Info: proposed name TextSaveCompletion (T2); TU memcard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AD980(char *buf)
 {
     char *a;

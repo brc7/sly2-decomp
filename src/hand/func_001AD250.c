@@ -10,6 +10,13 @@ void func_001D8D80(struct B *b, int n);
 void func_00165E38(struct B *b);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
+/** @sly2-annot addr=0x1AD250
+ * Purpose: Menu action slot i: if slot empty (Splice eval) make it current and start (0x1D8D80, 0x165E38)
+ *   else error sound 0x36
+ * Info: proposed name SelectSaveSlotNew (T2); TU memcard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AD250(struct S *s)
 {
     struct CRef ref;

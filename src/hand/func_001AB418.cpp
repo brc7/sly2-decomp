@@ -34,6 +34,14 @@ static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
 struct X { int A() __asm__("func_001AB0A0"); int B() __asm__("func_001AB0F0"); };
 void StartThread(void *, int (X::*)()) __asm__("func_001AAF90");
 
+/** @sly2-annot addr=0x1AB418
+ * Purpose: SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state
+ *   updates, ResetGs on load
+ * Info: proposed name SetSaveState (T1); TU memcard
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AB418(MC *p, int state)
 {
     int i;

@@ -10,6 +10,13 @@ struct V { int c; void *pv; };
 V *func_001AE1D0(MSG *pmsg);
 void *func_001AE238(MSG *pmsg, void *pv);
 void func_001D87C0(void *p, va_list ap, V *pv);
+/** @sly2-annot addr=0x1D88D0
+ * Purpose: Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238
+ *   (realloc-like)
+ * Info: proposed name PkeyNewSaveKey (T1); TU save
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" V *func_001D88D0(void *p, ...)
 {
     FRAME frame;

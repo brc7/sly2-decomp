@@ -22,6 +22,14 @@ struct TRIE;
 struct KEY;
 struct OUT { ENT *pe; int n; };
 extern "C" int func_001D7DA0(TRIE *, KEY *, OUT *);
+/** @sly2-annot addr=0x1D80C8
+ * Purpose: Write a CRef into a save var by kind (bitfield set/clear for packed bools)
+ * Info: proposed name RefSetSaveVar (T1); TU save
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 extern "C" CRef func_001D80C8(TRIE *p, KEY *key, const CRef &val, char *pb)
 {
     CRef ref(0x24);

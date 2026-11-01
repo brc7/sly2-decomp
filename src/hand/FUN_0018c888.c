@@ -9,6 +9,17 @@ int func_002446F0(int, int, char *, int, int, ENT *);
 int func_001AB098(void *, int, int, int *);
 void func_001AA9B8(ENT *, OUT *);
 
+/** @sly2-annot addr=0x1ABE78
+ * Purpose: sceMcGetDir into table, then FillMcDirInfo
+ * Info: proposed name ReadMcDir (EXISTING); TU memcard
+ * Notes: agent/verifier proposes ReadMcDir for this existing name (see existing_name_changes.csv) |
+ *   arbitration: draft replacement (not re-derived) | RENAME proposed -> ReadMcDir
+ *   (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.50] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r4_17F090+arbitration
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int FUN_0018c888(int *p, char *path, int c, OUT *aout, int *pc)
 {
     int f;
