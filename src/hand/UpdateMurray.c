@@ -29,8 +29,8 @@ int func_001430C8(struct P *p);
 void SetSmaMask(void *p, int n);
 void func_00204660(struct P *p, float g);
 qword func_00204E38(struct P *p, struct ASEGA *pl, float g);
-void func_0020BB58(void *p, float g);
-void func_0020BC08(void *p);
+void UpdateGaitBlend(void *p, float g);
+void UpdateGaitFootsteps(void *p);
 void UpdateJtActiveJump(void *p);
 void UpdateJtActiveHide(void *p);
 void func_001B8B70(struct P *p);
@@ -119,13 +119,13 @@ void UpdateMurray(struct P *p)
         break;
     case 1:
         func_00204660(p, p->pl->g18);
-        func_0020BB58(p->x1320, 1.0f);
-        func_0020BC08(p->x1320);
+        UpdateGaitBlend(p->x1320, 1.0f);
+        UpdateGaitFootsteps(p->x1320);
         break;
     case 10:
         func_00204660(p, p->pl->g18);
-        func_0020BB58(p->x1540, p->pl->g1C);
-        func_0020BC08(p->x1540);
+        UpdateGaitBlend(p->x1540, p->pl->g1C);
+        UpdateGaitFootsteps(p->x1540);
         break;
     case 2:
         UpdateJtActiveJump(p->x2C0);

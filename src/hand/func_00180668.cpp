@@ -31,7 +31,7 @@ int func_0011D910(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
 float SMaxShape(void*);
-float func_00154C90(void*);
+float GGetDifficulty(void*);
 int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
@@ -140,7 +140,7 @@ dispatch:
   }
   float remaining=SMaxShape(p->curve)-p->progress;
   float turn=Heading(ConvertAloVec(0,p,unit.q));
-  float response=func_00154C90(D_002DE578);
+  float response=GGetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&p->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&p->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*p->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];

@@ -11,7 +11,7 @@ extern char D_003DD490[];
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 qword func_001A62E8(struct S *p);
-void *func_00156B98(void *pg, int n, qword q, struct S *p);
+void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
 struct LO *func_001CB658(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 void func_001C7C30(int n, int f);
@@ -37,7 +37,7 @@ void func_001C7EE8(struct S *p, int n)
         pg = D_003DD490;
         n = 2;
         qv = func_001A62E8(p);
-        func_00156B98(pg, 0, qv, p);
+        EmitSwNoise(pg, 0, qv, p);
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
         q = func_001CB658(p);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {

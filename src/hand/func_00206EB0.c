@@ -1,5 +1,5 @@
 struct X { char pad[0x4C]; int n4C; };
-int func_00209A68(void *p, int n);
+int FStepguardHasSgf(void *p, int n);
 struct X *func_00205458(void *p, int n);
 int func_00206D48(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
@@ -9,7 +9,7 @@ int func_00206EB0(void *p, int k)
     struct X *x;
     if (k == -1)
         return 1;
-    if (func_00209A68(p, 7))
+    if (FStepguardHasSgf(p, 7))
         return 0;
     x = func_00205458(p, 0xA9);
     if (x && x->n4C)

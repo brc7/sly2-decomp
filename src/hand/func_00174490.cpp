@@ -15,8 +15,8 @@ void *func_002333B4(void *p, int c, int n);
 }
 struct F { int a; int rest[0x1B]; F() { func_002333B4(this, 0, sizeof *this); } };
 extern "C" {
-void func_00176750(void *o, struct F *f);
-void func_00176750(void *o, struct F *f);
+void SetBhvguardMode(void *o, struct F *f);
+void SetBhvguardMode(void *o, struct F *f);
 }
 extern "C" struct R *func_00174490(struct S *p, struct M *m, qword *pv, int a3, int t0) {
     struct R *r = 0;
@@ -54,9 +54,9 @@ extern "C" struct R *func_00174490(struct S *p, struct M *m, qword *pv, int a3, 
             o = func_00205458(r, 0x9C);
             F f;
             f.a = -1;
-            func_00176750(o, &f);
+            SetBhvguardMode(o, &f);
             f.a = k;
-            func_00176750(o, &f);
+            SetBhvguardMode(o, &f);
             }
         }
     

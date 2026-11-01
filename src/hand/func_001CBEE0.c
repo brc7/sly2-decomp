@@ -2,7 +2,7 @@ struct R { float lo, hi; };
 struct T { char pad[0x50]; int x50; float x54; struct R r; };
 struct U { char pad[0x18]; int x18; };
 struct S { char pad[0x14]; struct T *pt; char p1[0x40 - 0x18]; struct U *pu; };
-int func_00208BE0(void *p, struct S *ps);
+int FStepguardSenseStimulus(void *p, struct S *ps);
 int func_001CBEE0(void *p, struct S *ps)
 {
     struct T *pt = ps->pt;
@@ -18,7 +18,7 @@ int func_001CBEE0(void *p, struct S *ps)
         pt->r.hi = c + d;
         pt->r.lo = c - d;
     }
-    ret = func_00208BE0(p, ps);
+    ret = FStepguardSenseStimulus(p, ps);
     pt->r = r;
     pt->x54 = f;
     return ret;

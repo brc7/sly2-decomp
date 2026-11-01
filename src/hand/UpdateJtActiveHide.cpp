@@ -64,8 +64,8 @@ void func_00204660(ACTOR *, float);
 float RadStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
 void SetJtGrabKind(CONTEXT *, int);
-void func_0020BB58(PROGRAM *, float);
-void func_0020BC08(PROGRAM *);
+void UpdateGaitBlend(PROGRAM *, float);
+void UpdateGaitFootsteps(PROGRAM *);
 void DrainStepplayerMp(ACTOR *, float);
 void FindShapeClosestPointFromU(FOCUS *, qword, void *, U *, U *, float *, float *, float);
 void func_00195A00(void *, int, int, int);
@@ -240,9 +240,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     case 1:
         if (ctx->focus->enabled && 0.0f < pjoy->amount && ctx->program180.clip) {
             SetJtGrabKind(ctx, 4);
-            func_0020BB58(&ctx->program180, pjoy->amount);
+            UpdateGaitBlend(&ctx->program180, pjoy->amount);
             func_00204660(ctx->actor, ctx->actor->pjoy->heading);
-            func_0020BC08(&ctx->program180);
+            UpdateGaitFootsteps(&ctx->program180);
         } else {
             SetJtGrabKind(ctx, 0);
         }
@@ -251,7 +251,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         DrainStepplayerMp(ctx->actor, D_002BF5C0);
         if (ctx->step == 0 ? 0.1f < pjoy->amount : 0.0f < pjoy->amount) {
             SetJtGrabKind(ctx, 4);
-            func_0020BB58((PROGRAM *)((char *)ctx->actor + 0x1C30), pjoy->amount * D_002BF5C4);
+            UpdateGaitBlend((PROGRAM *)((char *)ctx->actor + 0x1C30), pjoy->amount * D_002BF5C4);
         } else {
             SetJtGrabKind(ctx, 0);
             break;
@@ -341,9 +341,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             heading = RadNormalize__Ff(heading + 3.1415927f);
         if (0.0f < g) {
             SetJtGrabKind(ctx, 4);
-            func_0020BB58(&ctx->program240, g);
+            UpdateGaitBlend(&ctx->program240, g);
             func_00204660(ctx->actor, heading);
-            func_0020BC08(&ctx->program240);
+            UpdateGaitFootsteps(&ctx->program240);
         } else {
             SetJtGrabKind(ctx, 0);
             func_00204660(ctx->actor, heading);

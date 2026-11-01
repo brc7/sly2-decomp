@@ -25,8 +25,8 @@ extern qword D_002A2DA0, D_002A2DC0;
 extern float D_002C21D0[2], D_002C21D8[2], D_002C21E0[2], D_002C21E8[2], D_002C21F0[2], D_002C21F8[2], D_002C2200[2];
 extern "C" {
 int func_001F7588(P *, EVENT *);
-void func_001D4C88(P *);
-void func_001D4940(P *, int);
+void UpdateRobottankHealthMeter(P *);
+void SetRobottankState(P *, int);
 float GRandInRange__Fff(float, float);
 qword SetVectorCylind(float, float, float);
 qword func_001A62E8(P *);
@@ -86,9 +86,9 @@ int func_001D4568(P *p, EVENT *event)
     if (remaining < 0)
         remaining = 0;
     p->remaining = remaining;
-    func_001D4C88(p);
+    UpdateRobottankHealthMeter(p);
     if (!p->remaining)
-        func_001D4940(p, 3);
+        SetRobottankState(p, 3);
     VU_VECTOR4 linear, angular;
     linear = VecZero();
     angular = linear;

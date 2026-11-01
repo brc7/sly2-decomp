@@ -8,7 +8,7 @@ struct P { int kind; int x4; int pad[2]; union U u10; union U u14; int x18; };
 struct C { char pad[0x18]; int x18; };
 struct O { char pad[0x74]; float g74; float g78; char pad2[0x80 - 0x7C]; float a[3]; int pad3; float gMin; float gMax; };
 struct O *func_001E1DB8(struct C *pc, int n);
-float func_00154C90(struct G *pg);
+float GGetDifficulty(struct G *pg);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *func_001F67E0(void *p, int n);
 float DtSmaToState(void *p, int n);
@@ -22,7 +22,7 @@ float func_001E4530(struct C *pc, struct P *p)
     case 0xA: {
         struct O *po = func_001E1DB8(pc, p->u10.n);
         if (po) {
-            float t = func_00154C90(&D_002DE578);
+            float t = GGetDifficulty(&D_002DE578);
             float *pa = po->a; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->gMin, po->gMax);
             g = po->g74 / (po->g78 * s);
         }

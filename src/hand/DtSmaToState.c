@@ -7,7 +7,7 @@ extern char D_002DE578[];
 int FSmaRetracted(struct P *);
 int func_001F0438(void *, int);
 struct A *PsmtChooseTowardGoal(void *, int, int, int, int);
-float func_00154C90(void *);
+float GGetDifficulty(void *);
 static inline float Eval(struct V3 *pv, float t)
 {
     return pv->x + t * (pv->y + t * pv->z);
@@ -35,7 +35,7 @@ float DtSmaToState(struct P *p, int k)
     }
     while (cur != end && (pa = PsmtChooseTowardGoal(p->p24, p->n48, cur, end, 1)) != 0) {
         if (pa->pt) {
-            float t = func_00154C90(D_002DE578);
+            float t = GGetDifficulty(D_002DE578);
             float v = Eval(&pa->pt->v80, t);
             float mn = pa->pt->f90;
             float mx = pa->pt->f94;

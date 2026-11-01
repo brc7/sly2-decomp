@@ -27,7 +27,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *func_00145AA8(P *p);
 int func_001C02D0(E *pe, qword r, qword v, B *pb);
 void MeasureShape(B *pb);
-void func_00178D90(void *p, B *pb, int n);
+void SetBhvpathShape(void *p, B *pb, int n);
 void func_001457A8(P *p);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
@@ -94,6 +94,6 @@ void func_001457A8(P *p)
         } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {
             func_001C02D0(pe, r, r, pb);
         }
-        func_00178D90(p->p18, pb, 0);
+        SetBhvpathShape(p->p18, pb, 0);
     }
 }

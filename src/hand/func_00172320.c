@@ -12,9 +12,9 @@ struct O *func_00205438(void *p, int n);
 qword func_00172760(struct S *p);
 qword func_001A62E8(void *p);
 void func_002562A8(struct X *x);
-void func_0017DD38(void *p, struct X *x);
+void SetBhvgotoGoal(void *p, struct X *x);
 float func_002458F0(float y, float x);
-void func_00209818(void *p, float f);
+void SetStepguardMoverRadTarget(void *p, float f);
 void func_00172560(struct S *p);
 void func_001728B0(struct S *p);
 void func_00172F10(struct S *p);
@@ -40,7 +40,7 @@ void func_00172320(struct S *p, int n) {
             v = func_00172760(p);
             func_002562A8(&x);
             x.v = v;
-            func_0017DD38(o, &x);
+            SetBhvgotoGoal(o, &x);
             e = &o->vt[8]; e->pfn((char *)o + e->d);
             p->f38 = D_002A5398;
         }
@@ -51,7 +51,7 @@ void func_00172320(struct S *p, int n) {
             qword b = func_001A62E8(p->p10);
             qword d;
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            func_00209818(p->p10->aFD0, func_002458F0(GetY(d), GetX(d)));
+            SetStepguardMoverRadTarget(p->p10->aFD0, func_002458F0(GetY(d), GetX(d)));
             { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
             func_00172560(p);
         }

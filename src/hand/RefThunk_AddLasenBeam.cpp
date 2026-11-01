@@ -15,7 +15,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void func_001DF908(void *p, int, float, float, float, int, int, float, float, float, int); CRef RefThunk_AddLasenBeam(void *p, int c, void *aref); }
+extern "C" { void AddLasenBeam(void *p, int, float, float, float, int, int, float, float, float, int); CRef RefThunk_AddLasenBeam(void *p, int c, void *aref); }
 CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
 {
     int ak[10] = {0x6, 0x1, 0x1, 0x1, 0x100b, 0x6, 0x1, 0x1, 0x1, 0x100b};
@@ -32,6 +32,6 @@ CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
     CRef ref = func_00201360(10, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001DF908(p, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+    AddLasenBeam(p, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9);
     return ref;
 }

@@ -5,7 +5,7 @@ int func_00209098(void *p);
 void func_0017B9C0(struct S *p);
 int FBhvBusyAbove(struct S *p);
 void func_0017B8B0(struct S *p, int n);
-int func_00175810(struct T *p);
+int FBhvcombatDone(struct T *p);
 void func_0017BD78(struct S *p) {
     int f, s;
     UpdateBhv(p);
@@ -22,7 +22,7 @@ void func_0017BD78(struct S *p) {
             if (f) func_0017B8B0(p, 2);
             else if (!p->n40) func_0017B8B0(p, 0);
             else if (p->n40 != p->p18->n30) { func_0017B8B0(p, -1); func_0017B8B0(p, 1); }
-            else if (func_00175810(p->p18)) func_0017B8B0(p, 0);
+            else if (FBhvcombatDone(p->p18)) func_0017B8B0(p, 0);
             break;
         case 2:
             if (!f) func_0017B8B0(p, 0);

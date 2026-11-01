@@ -1,6 +1,6 @@
 // func_001DF0A0: for every segment entry of p, find where the segment's two endpoints hit the request (first
 // func_0014C6A0, else the shape test FIsBasicDerivedFrom + func_00205670) and add a kind-10 contact there with PxpAdd
-// (func_001A7C18), then post the OBJ::Notify (func_001DF260) message through EnsureSwCallback.
+// (func_001A7C18), then post the OBJ::Notify (ZapLasenBeams) message through EnsureSwCallback.
 // What mattered (w3lane2):
 //  - the same 6-argument virtual signature as func_001823C8 / func_0013ADE8, with every argument passed through to
 //    the empty base stub func_001F5990 (no code, but the call's argument uses fix the prologue schedule);
@@ -18,7 +18,7 @@ struct OBJ {
     char padE8[0x198 - 0xE8];
     int entryCount;
     ENTRY *entries;
-    void Notify() __asm__("func_001DF260");
+    void Notify() __asm__("ZapLasenBeams");
 };
 struct SUB { char pad[0x14]; void **x14; };
 struct REQUEST { int x0; SUB *x4; };
@@ -29,7 +29,7 @@ extern G D_003DD490;
 typedef void (OBJ::*PMF)();
 extern "C" {
 void func_001F5990(OBJ *, REQUEST *, int, int, int, CONTACT **);
-void func_001DEF98(OBJ *, ENDPOINT *, qword *, float *);
+void GetLasenBeamEnds(OBJ *, ENDPOINT *, qword *, float *);
 int func_0014C6A0(REQUEST *, qword, qword, int, HIT *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int func_00205670(void *, qword, qword, qword *);
@@ -80,7 +80,7 @@ extern "C" void func_001DF0A0(OBJ *p, REQUEST *q, int a2, int a3, int a4, CONTAC
         VECTOR pos;
         HIT hit;
         int found = 0;
-        func_001DEF98(p, e->endpoint, seg, 0);
+        GetLasenBeamEnds(p, e->endpoint, seg, 0);
         if (!func_0014C6A0(q, seg[0], seg[1], 1, &hit)) {
             void *so = *q->x4->x14;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x33))

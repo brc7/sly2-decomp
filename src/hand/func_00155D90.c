@@ -10,10 +10,10 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void UpdateBhv(struct X *p);
 int FBhvBusyAbove(struct X *p);
-int func_00174FB8(void *p);
-int func_00178D00(void *p);
-int func_00175748(void *p);
-int func_001758A0(struct SO *p, int n, int z);
+int FBhvanimDone(void *p);
+int FBhvpathAtEnd(void *p);
+int FBhvattackDone(void *p);
+int PentryChooseStepguardAttack(struct SO *p, int n, int z);
 qword func_001A62E8(void *p);
 void func_00155AE0(struct X *p, int k);
 void *func_00155A68(struct X *p);
@@ -26,7 +26,7 @@ void func_00155D90(struct X *p)
         int s = p->state;
         switch (s) {
         case 0:
-            if (func_00174FB8(p->x18)) {
+            if (FBhvanimDone(p->x18)) {
                 struct SO *pso;
                 qword d = Sub(func_001A62E8(p->x40), p->pso->pos);
                 pso = p->pso;
@@ -40,18 +40,18 @@ void func_00155D90(struct X *p)
             }
             break;
         case 2:
-            if (func_00178D00(p->x18))
+            if (FBhvpathAtEnd(p->x18))
                 func_00155AE0(p, 1);
             break;
         case 1:
             if (2.5f < D_002DDED0.t - p->t48 && 0.1f < D_002DDED0.t - p->t34) {
-                if ((p->x54 = func_001758A0(p->pso, p->x4C, 0)) != 0)
+                if ((p->x54 = PentryChooseStepguardAttack(p->pso, p->x4C, 0)) != 0)
                     func_00155AE0(p, 3);
             }
             break;
         case 3:
             p->t44 = D_002DDED0.t;
-            if (func_00175748(p->x18)) {
+            if (FBhvattackDone(p->x18)) {
                 int k = 1;
                 void *n = func_00155A68(p);
                 if (n != p->x40) {

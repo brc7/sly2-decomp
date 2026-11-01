@@ -17,8 +17,8 @@ extern float D_002BF3DC;
 extern void UpdateStepplayer(void *p);
 extern void UpdateJtPre(void *p);
 extern void func_00204660(void *p, float g);
-extern void func_0020BB58(void *p, float g);
-extern void func_0020BC08(void *p);
+extern void UpdateGaitBlend(void *p, float g);
+extern void UpdateGaitFootsteps(void *p);
 extern void func_001A0450(void *p, void *a, void *animation);
 extern void UpdateJtStand(void *p);
 extern void UpdateJtHangIkGoals__FP2JT(void *p);
@@ -57,8 +57,8 @@ void UpdateJt(char *p)
     case 1: {
         qword s, motion;
         func_00204660(p, F(struct X150 *, 0x150)->g18);
-        func_0020BB58(A(0x1320), 1.0f);
-        func_0020BC08(A(0x1320));
+        UpdateGaitBlend(A(0x1320), 1.0f);
+        UpdateGaitFootsteps(A(0x1320));
         {
             unsigned page;
             __asm__("lui %0,%%hi(%2)\n\tlqc2 %1,%3"
@@ -99,7 +99,7 @@ void UpdateJt(char *p)
         UpdateJtHangIkGoals__FP2JT(p);
         break;
     case 0xC:
-        func_0020BC08(A(0x1C30));
+        UpdateGaitFootsteps(A(0x1C30));
         break;
     case 0x15:
         func_00185E40(p);

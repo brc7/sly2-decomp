@@ -24,7 +24,7 @@ void *PpoHero(void *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void func_001BB648(P *p, E *pe);
 qword func_001A62E8(P *p);
-void func_00156B98(void *g, int z, qword q, void *x);
+void EmitSwNoise(void *g, int z, qword q, void *x);
 void BroadcastGameEvent(void *g, int k, P *p);
 
 void func_001BB400(P *p)
@@ -47,7 +47,7 @@ void func_001BB400(P *p)
     func_001BB648(p, p->ae - 1);
     func_001BB648(p, pe);
     if (!p->x16C || !FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x38) || FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x3C)) {
-        func_00156B98(D_003DD490, 0, func_001A62E8(p), p->x16C);
+        EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p->x16C);
     }
     if (pe->n > 0) {
         if (++p->x158 >= pe->n) {

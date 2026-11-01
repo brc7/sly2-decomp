@@ -25,7 +25,7 @@ STREAM *func_001848A8(STREAM *,int,void *,int);
 int func_00184D60(STREAM *,KEY *);
 void func_00184950(STREAM *,int);
 void func_001179D8(STREAM *,int,void *);
-void func_00184CA0(STREAM *);
+void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);
 void func_0014D068(void *);
 void AddGrfusr__Fi(int);
@@ -35,7 +35,7 @@ int func_001B3B08(void *);
 void func_0014D6D8(void *);
 void func_0020E180(SW *);
 void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
-void func_00184CF0(STREAM *);
+void CStreamBis_Close(STREAM *);
 void PostSwLoad(SW *);
 void func_001618F8(SW *,float);
 void func_0014C258(void);
@@ -97,7 +97,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     func_001848A8(argument,0xD8000,D_002F7980,0);
     if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);func_001AE4A0(scope,2);return;}
     func_001179D8(reader,0x4000,(void *)0x70000000);
-    func_00184CA0(reader);
+    CStreamBis_Refill(reader);
     DeleteSw(p);
     func_0014D068(D_002DDED0);
     AddGrfusr__Fi(8);
@@ -109,7 +109,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     p->current=request.header;
     *destination=request;
     func_0020E180(p);
-    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);func_00184CF0(reader);}
+    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);CStreamBis_Close(reader);}
     PostSwLoad(p);
     if(resume>0.0f)func_001618F8(p,resume);
     if(changed||(p->request.flags&0x40))func_0014C258();

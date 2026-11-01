@@ -7,14 +7,14 @@ void PopBhv(void *p);
 qword func_001A62E8(struct O *p);
 qword func_001C1EC0(void *p, qword q);
 int func_00173610(qword *pq, float a, float b, int n, void *pfn);
-void func_0017D608(qword *pq);
+void FSnapPosToSurfaceAbove(qword *pq);
 struct O *func_00205438(struct O *p, int n);
 void func_0020B210(struct O *p);
 void func_0017E9B0(struct S *p) {
     union { qword q; float a[4]; } u;
     PopBhv(p->a18);
     u.q = func_001C1EC0(p->a30, func_001A62E8(p->p10));
-    if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) func_0017D608(&u.q);
+    if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) FSnapPosToSurfaceAbove(&u.q);
     if (p->p10->nFE8 & 1) {
         struct O *o = func_00205438(p->p10, 0xAC);
         struct VTE *e;

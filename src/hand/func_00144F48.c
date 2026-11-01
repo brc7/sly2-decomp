@@ -8,7 +8,7 @@ struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *p18; char pad2[0x30
 qword func_001A62E8(struct A *pa);
 void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
 void MeasureShape(struct B *pb);
-void func_00178D90(void *p, struct B *pb, int n);
+void SetBhvpathShape(void *p, struct B *pb, int n);
 void func_00144F48(struct P *p, qword v)
 {
     p->v = v;
@@ -26,6 +26,6 @@ void func_00144F48(struct P *p, qword v)
         } else {
             func_001C02D0(pe, r, p->v, pb);
         }
-        func_00178D90(p->p18, pb, 0);
+        SetBhvpathShape(p->p18, pb, 0);
     }
 }

@@ -32,8 +32,8 @@ void StartMurrayAltAttack(P*);
 void func_001B5D30(P*,int);
 void FaceStepToward(P*,void*);
 void func_00204660(P*,float);
-void func_0020BB58(void*,float);
-void func_0020BC08(void*);
+void UpdateGaitBlend(void*,float);
+void UpdateGaitFootsteps(void*);
 qword SetVectorCylind(float,float,float);
 void func_001A0450(P*,ENTRY*,void*);
 }
@@ -110,6 +110,6 @@ extern "C" void func_001B5990(P*p){
   func_001A0450(p,p->axes,p->request);
   break;
  }
- case 1:func_00204660(p,p->input->angle);func_0020BB58(p->motion,p->input->strength);func_0020BC08(p->motion);break;
+ case 1:func_00204660(p,p->input->angle);UpdateGaitBlend(p->motion,p->input->strength);UpdateGaitFootsteps(p->motion);break;
  }
 }

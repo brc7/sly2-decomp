@@ -1,7 +1,7 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00177E80();                            /* extern */
+M2C_UNK InitBhvpath();                            /* extern */
 
 void InitBhvwalkgoal(void *arg0) {
-    func_00177E80();
+    InitBhvpath();
     M2C_FIELD(arg0, f32 *, 0xD0) = 1.0f;
 }

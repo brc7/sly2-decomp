@@ -13,7 +13,7 @@ int FBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
 int FCheckVolPoint(void *p, qword v);
 void func_001BA828(struct P *p, int n);
-int func_00209A68(struct O *po, int n);
+int FStepguardHasSgf(struct O *po, int n);
 void *func_00205458(struct O *po, int n);
 static inline float Dist(qword a, qword b) {
     qword d;
@@ -55,7 +55,7 @@ void func_001BA608(struct P *p)
         if (s == p->x30)
             break;
     }
-    if (p->x30 == 0 && func_00209A68(p->po, 9)) {
+    if (p->x30 == 0 && FStepguardHasSgf(p->po, 9)) {
         float d = Dist(func_001A62E8(p->po), func_001A62E8(D_002E1E40));
         struct O *po = p->po;
         float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);

@@ -25,8 +25,8 @@ extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
 extern void func_001424E0(void *p, int oid, void *pv, int n);
 extern void *func_00205458(void *p, int n);
-extern void func_0017B1A8(void *p, int n);
-extern void func_00156B98(void *p, int a, qword q, void *c);
+extern void SetBhvjuggledState(void *p, int n);
+extern void EmitSwNoise(void *p, int a, qword q, void *c);
 extern void func_00195A00(void *p, int a, int b, int c);
 extern void func_0018D698(void *p, E *pe, void *c);
 
@@ -116,17 +116,17 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 { struct VTE *e = &F(struct VTE *, 0xC)[35]; ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190)); }
                 px = func_00205458(F(void *, 0x10DC), 0xB1);
                 if (px)
-                    func_0017B1A8(px, 4);
+                    SetBhvjuggledState(px, 4);
                 break;
             }
             case 0x174: {
                 void *px = func_00205458(F(void *, 0x10DC), 0xB1);
                 if (px)
-                    func_0017B1A8(px, 6);
+                    SetBhvjuggledState(px, 6);
                 break;
             }
             case 0x16D:
-                func_00156B98(D_003DD490, 0, func_001A62E8(p), p);
+                EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
                 break;
             }
         }

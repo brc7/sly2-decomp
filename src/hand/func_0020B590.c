@@ -11,7 +11,7 @@ extern const float D_002A88CC;
 void UpdateLo(struct S *p);
 void *func_00205458(struct O *po, int n);
 void *func_002333B4(void *p, int c, int n);
-void func_00176750(void *p, struct L *pl);
+void SetBhvguardMode(void *p, struct L *pl);
 void func_00153FF8(void *p);
 
 void func_0020B590(struct S *p)
@@ -36,7 +36,7 @@ void func_0020B590(struct S *p)
                     struct L l;
                     func_002333B4(&l, 0, sizeof(l));
                     l.k = 1;
-                    func_00176750(x, &l);
+                    SetBhvguardMode(x, &l);
                 }
                 if (o->pF64)
                     func_00153FF8(o->pF64);

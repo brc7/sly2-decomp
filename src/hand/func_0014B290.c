@@ -5,8 +5,8 @@ struct L { char pad[0xFC]; int c; struct E ae[1]; };
 struct P { char pad[0x38C]; struct O *x38C; struct O *x390; char pad2[0xF64 - 0x394]; struct L *pl; };
 extern float D_002A4EE8;
 extern float D_002BD4B0[3];
-int func_00209A68(struct P *p, int k);
-struct O *func_002082D0(struct P *p);
+int FStepguardHasSgf(struct P *p, int k);
+struct O *PloChooseStepguardTarget(struct P *p);
 qword func_001A62E8(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
 static __inline__ float GDist(qword a, qword b)
@@ -32,8 +32,8 @@ struct O *func_0014B290(struct P *p)
     int kBest;
     qword pos;
     int i;
-    if (func_00209A68(p, 0x24))
-        return func_002082D0(p);
+    if (FStepguardHasSgf(p, 0x24))
+        return PloChooseStepguardTarget(p);
     poBest = 0;
     po = p->x390;
     if (po && po->f) {

@@ -8,7 +8,7 @@ extern struct X *D_003E1468;
 int FStepplayerInJtmode(struct P *p);
 qword func_001A62E8(struct P *p);
 void *func_00156698(void *a, qword pos, struct P *p);
-int func_00209A68(struct SO *pso, int n);
+int FStepguardHasSgf(struct SO *pso, int n);
 int func_00156FE8(struct X *px, void *q);
 void func_00156780(void *q);
 int func_001409E8(struct P *p)
@@ -26,7 +26,7 @@ int func_001409E8(struct P *p)
     pso = D_003E1444;
     for (;;) {
         if (!pso) break;
-        if (func_00209A68(pso, 0x1D) || func_00209A68(pso, 0xB)) { r = 2; break; }
+        if (FStepguardHasSgf(pso, 0x1D) || FStepguardHasSgf(pso, 0xB)) { r = 2; break; }
         if (pso->vt[89].pfn((char *)pso + pso->vt[89].d, q)) { r = 1; break; }
         pso = pso->psoNext;
     }

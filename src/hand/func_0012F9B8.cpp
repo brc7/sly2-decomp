@@ -25,7 +25,7 @@ extern VTE D_002CAF08[];
 extern char D_002DE578[];
 P *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
-float func_00154C90(void *);
+float GGetDifficulty(void *);
 void func_00131A00(P *, float);
 void AppendDlEntry__FP2DLPv(void *, void *);
 void func_00256EE0(P *, int);
@@ -59,7 +59,7 @@ extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, 
     p->x3C = grf;
     p->g48 = pt->g78;
     {
-        p->g4C = GClamp(GEval(&pt->poly, func_00154C90(D_002DE578)), pt->g90, pt->g94);
+        p->g4C = GClamp(GEval(&pt->poly, GGetDifficulty(D_002DE578)), pt->g90, pt->g94);
     }
     func_00131A00(p, g1);
     AppendDlEntry__FP2DLPv(D_003E1218, p);

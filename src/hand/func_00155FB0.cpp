@@ -27,7 +27,7 @@ SO *PpoHero(void *p);
 extern char D_002DE578[];
 qword func_001A62E8(void *p);
 M3 *func_001A6318(void *p);
-float func_00154C90(void *p);
+float GGetDifficulty(void *p);
 VUV func_00256CE8(float g);
 VUV func_00256D08(VECTOR *pv);
 qword func_00258480(qword a, qword b, qword c, qword d);
@@ -73,7 +73,7 @@ qword func_00155FB0(void *p, qword pos)
 {
     SO *pso = PpoHero(D_003DD490);
     float dist = Len(Sub(func_001A62E8(pso), pos));
-    float u = func_00154C90(D_002DE578);
+    float u = GGetDifficulty(D_002DE578);
     qword posTarget = AddScaled(func_001A62E8(pso), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
     VECTOR clq;

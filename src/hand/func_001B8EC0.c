@@ -20,8 +20,8 @@ extern float D_002C0A34;
 int func_00131968(void *p);
 void SetMurrayState(P *p, int s);
 void func_001B8D30(P *p, int s);
-int func_0020C0D8(void *p);
-void func_0020C0E8(void *p);
+int FLeapDone(void *p);
+void UpdateLeap(void *p);
 
 void func_001B8EC0(P *p)
 {
@@ -42,11 +42,11 @@ void func_001B8EC0(P *p)
             }
             break;
         case 2:
-            if (!p->x1900 || func_0020C0D8(p->x1900)) {
+            if (!p->x1900 || FLeapDone(p->x1900)) {
                 if (p->x1AC0) func_001B8D30(p, 0);
                 else SetMurrayState(p, 0);
             } else {
-                func_0020C0E8(p->x1900);
+                UpdateLeap(p->x1900);
             }
             break;
         case 3:

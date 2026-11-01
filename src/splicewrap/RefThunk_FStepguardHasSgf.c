@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void CRef_SetBool(void *, s32);                 /* extern */
-s32 func_00209A68(s32, s32);                        /* extern */
+s32 FStepguardHasSgf(s32, s32);                        /* extern */
 
 CRef *RefThunk_FStepguardHasSgf(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -9,7 +9,7 @@ CRef *RefThunk_FStepguardHasSgf(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x1010;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    CRef_SetBool(&ref, func_00209A68(pbasic, arg0_v) != 0);
+    CRef_SetBool(&ref, FStepguardHasSgf(pbasic, arg0_v) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

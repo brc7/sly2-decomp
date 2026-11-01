@@ -5,13 +5,13 @@ struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
 struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *p10DC; char pad3[0x180C - 0x10E0]; int x180C; };
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
-int func_00209A68(struct O *po, int n);
+int FStepguardHasSgf(struct O *po, int n);
 int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
 struct S *PbhvFindBhvstk(void *p, int n);
 qword func_001A62E8(void *p);
 int func_0011D910(void *p, float g);
-void func_0017B1A8(struct S *p, int n);
+void SetBhvjuggledState(struct S *p, int n);
 void StartMurrayLiftGuard(struct P *p, void *q);
 void SetMurrayState(struct P *p, int n);
 void SetMurrayAttack(struct P *p, int n);
@@ -32,7 +32,7 @@ int FTryMurrayTakedown(struct P *p)
     struct S *ps;
     if (!p->p10DC)
         return 0;
-    if (!func_00209A68(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
+    if (!FStepguardHasSgf(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
         goto ret0;
     ps = PbhvFindBhvstk(p->p10DC->x26C, 0xB1);
     if (ps->x50 >= 3)
@@ -50,7 +50,7 @@ int FTryMurrayTakedown(struct P *p)
             if (LenXY(d) < D_002C09AC && func_0011D910(D_002C09B0, GetZ(d)) && p->p10DC->xFEC)
                 f = GrfConsumePressed__5POCTLUif(p->pl, 0x20, 0.15f) != 0;
             if (f) {
-                func_0017B1A8(ps, 2);
+                SetBhvjuggledState(ps, 2);
                 StartMurrayLiftGuard(p, p->p10DC->xFEC);
                 return 1;
             }

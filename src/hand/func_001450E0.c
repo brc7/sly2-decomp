@@ -10,8 +10,8 @@ extern struct CLQ D_002BD300;
 extern struct CLQ D_002BD310;
 extern struct CLQ D_002BD320;
 qword func_001A62E8(void *p);
-ulong func_00207A20(int n);
-int func_00209A68(struct SO *p, int n);
+ulong GrfFromSgf(int n);
+int FStepguardHasSgf(struct SO *p, int n);
 struct LIST *func_001F8240(void *p);
 
 static __inline__ float GDist(qword a, qword b)
@@ -41,8 +41,8 @@ struct SO *func_001450E0(struct P *p)
     int i;
     func_001A62E8(p->p10);
     pos = func_001A62E8(p->p30);
-    grf = func_00207A20(7) | func_00207A20(0x10) | func_00207A20(0x16) | func_00207A20(0x17) |
-          func_00207A20(0x2A) | func_00207A20(0x2B);
+    grf = GrfFromSgf(7) | GrfFromSgf(0x10) | GrfFromSgf(0x16) | GrfFromSgf(0x17) |
+          GrfFromSgf(0x2A) | GrfFromSgf(0x2B);
     plist = p->p10->plist;
     for (i = 0; i < plist->c; i++) {
         struct SO *pso = plist->a[i];
@@ -52,7 +52,7 @@ struct SO *func_001450E0(struct P *p)
         g = GDist(pos, func_001A62E8(pso));
         if (pso == p->p90)
             g = GFromClq(g, &D_002BD300);
-        if (func_00209A68(pso, 3))
+        if (FStepguardHasSgf(pso, 3))
             g = GFromClq(g, &D_002BD320);
         if (g < gBest) {
             psoBest = pso;
@@ -70,7 +70,7 @@ struct SO *func_001450E0(struct P *p)
             g = GFromClq(g, &D_002BD310);
             if (pso == p->p90)
                 g = GFromClq(g, &D_002BD300);
-            if (func_00209A68(pso, 3))
+            if (FStepguardHasSgf(pso, 3))
                 g = GFromClq(g, &D_002BD320);
             if (g < gBest) {
                 psoBest = pso;

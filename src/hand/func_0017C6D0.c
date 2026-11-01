@@ -10,7 +10,7 @@ qword ConvertAloPos(void*,void*,qword);
 int func_00209098(void*);
 void func_0017C928(struct P*,int);
 void func_002562A8(struct X*);
-void func_0017DD38(void*,const struct X*);
+void SetBhvgotoGoal(void*,const struct X*);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
 static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline float LenXY(qword v){float r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(v):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(v):"0"(v));__asm__("qmfc2.ni %0,%1":"=r"(r):"j"(v));return r;}
@@ -28,14 +28,14 @@ void func_0017C6D0(struct P*p){
    else if(1000.0f<dist)func_0017C928(p,1);
    else if(lim<LenXY(SubIn(p->v60,pos))){
     qword v;p->v60=pos;v=ConvertAloPos(p->p30,0,p->v40);
-    func_002562A8(&x);x.v=v;func_0017DD38(p->p18,&x);
+    func_002562A8(&x);x.v=v;SetBhvgotoGoal(p->p18,&x);
    }
    break;
   case 1:
    if(func_00209098(p->p10))func_0017C928(p,2);
    else if(dist<700.0f)func_0017C928(p,0);
    else if(lim<LenXY(SubIn(p->v60,pos))){
-    p->v60=pos;func_002562A8(&x);x.v=pos;func_0017DD38(p->p18,&x);
+    p->v60=pos;func_002562A8(&x);x.v=pos;SetBhvgotoGoal(p->p18,&x);
    }
    break;
   case 2:if(!func_00209098(p->p10))func_0017C928(p,0);break;

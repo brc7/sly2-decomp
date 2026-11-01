@@ -8,7 +8,7 @@ struct S {
 };
 extern struct S *D_002E1E40;
 void InitStepplayer(struct S *p);
-void func_0020B840(void *pv, struct S *p, int n);
+void InitGait(void *pv, struct S *p, int n);
 void func_00204D48(struct S *p, float g);
 void func_001371B8(void *pv, struct S *p);
 void func_001CC158(void *pv);
@@ -20,8 +20,8 @@ void InitJt(struct S *p)
     p->x18c8 = -1;
     p->x18d8 = -1;
     p->x18d0 = -1;
-    func_0020B840(p->x1320, p, 0x6F);
-    func_0020B840(p->x1c30, p, 0x6F);
+    InitGait(p->x1320, p, 0x6F);
+    InitGait(p->x1c30, p, 0x6F);
     {
     register float a __asm__("$f5")=-100.0f;
     register float b __asm__("$f1")=100.0f;

@@ -4,7 +4,7 @@ extern char D_002DEB30[];
 extern float D_002BDBE0[3];
 extern LM D_002BBB60;
 struct S { char pad[0x234]; LM lm; int c; float ag[16]; float g280; float g284; };
-float func_00154C90(void *p);
+float GGetDifficulty(void *p);
 float GLimitLm__FP2LMf(LM *plm, float g);
 float func_00153760(struct S *p);
 void BroadcastGameEvent(void *p, int n, void *q);
@@ -37,7 +37,7 @@ void func_00153640(struct S *p, int a, int b, float g)
 {
     float *pg;
     if (g < 0.0f) {
-        float t = func_00154C90(D_002DE578);
+        float t = GGetDifficulty(D_002DE578);
         g *= GClamp(D_002BDBE0[0] + t * (D_002BDBE0[1] + t * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
     }
     if (p->c == 16) {

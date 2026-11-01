@@ -25,5 +25,5 @@ extern s32 D_003E1444;
 void func_001BA5C8(s32 arg0) {
     func_001BA828(arg0, -1);
     CloseBhv(arg0);
-    func_00209970(M2C_FIELD(arg0, s32 *, 0x10), 0x25);
+    RemoveStepguardSgf(M2C_FIELD(arg0, s32 *, 0x10), 0x25);
 }

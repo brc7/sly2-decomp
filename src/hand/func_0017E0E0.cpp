@@ -17,7 +17,7 @@ qword func_001C1EC0(struct X *s, qword v);
 qword SetVectorCylind(float a, float b, float c);
 int func_001C0B50(void *q, qword v, qword *out);
 void func_002562A8(struct X *x);
-void func_0017DD38(void *p, struct X *x);
+void SetBhvgotoGoal(void *p, struct X *x);
 }
 inline X::X() { func_002562A8(this); }
 extern "C" {
@@ -63,5 +63,5 @@ extern "C" void func_0017E0E0(struct S *p) {
     }
     struct X x;
     x.v = r;
-    func_0017DD38(t, &x);
+    SetBhvgotoGoal(t, &x);
 }

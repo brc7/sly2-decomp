@@ -3,7 +3,7 @@ struct SO { char pad[0xFE0]; struct SO *psoNext; };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int x10E0; };
 extern struct SO *D_003E1444;
 extern float D_002A4D18;
-int func_00208E70(struct SO *pso, struct P *p, float *pg);
+int GuardEvalInteractMode(struct SO *pso, struct P *p, float *pg);
 void UpdateStepplayerInteractCandidates(struct P *p)
 {
     struct SO *pso, *pso0, *pso1;
@@ -18,7 +18,7 @@ void UpdateStepplayerInteractCandidates(struct P *p)
     g0 = g1;
     for (pso = D_003E1444; pso; pso = pso->psoNext) {
         float ag[2];
-        int n = func_00208E70(pso, p, &ag[1]);
+        int n = GuardEvalInteractMode(pso, p, &ag[1]);
         float g = ag[1];
         if (g < g0) {
             g0 = g;

@@ -21,8 +21,8 @@ void func_0019CC50(void *p, int a, int b, int c);
 void SetMurrayCarrySubstate(struct P *p, int n);
 void func_00204660(struct P *p, float g);
 qword func_00204E38(struct P *p,struct PL*pl,float g);
-void func_0020BB58(void *p, float g);
-void func_0020BC08(void *p);
+void UpdateGaitBlend(void *p, float g);
+void UpdateGaitFootsteps(void *p);
 static inline void NegateSource(qword value,qword*velocity,U*scalar){
     register qword input __asm__("vf3"),neg __asm__("vf1"),result __asm__("vf2");
     register int bits __asm__("$3");
@@ -79,8 +79,8 @@ void UpdateMurrayCarry(struct P *p)
         break;
     case 1:
         func_00204660(p, p->pl->g18);
-        func_0020BB58(p->x1460, p->pl->g1C);
-        func_0020BC08(p->x1460);
+        UpdateGaitBlend(p->x1460, p->pl->g1C);
+        UpdateGaitFootsteps(p->x1460);
         break;
     case 2: {
         U u;

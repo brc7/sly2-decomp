@@ -1,10 +1,10 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00205EB8();                            /* extern */
+M2C_UNK InitStepguard();                            /* extern */
 
 void InitNeela(void *arg0) {
     void *temp_v0;
 
-    func_00205EB8();
+    InitStepguard();
     temp_v0 = arg0 + 0x1070;
     M2C_FIELD(arg0, f32 *, 0x1070) = 1.35f;
     M2C_FIELD(temp_v0, f32 *, 4) = -0.0003f;

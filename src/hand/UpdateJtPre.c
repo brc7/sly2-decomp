@@ -32,7 +32,7 @@ void func_0018B2C0(struct P*);void JtChooseGroundState(struct P*);void UpdateJtA
 struct BINDING*func_0012FF10(void*,struct P*,void*,int);
 void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void func_00137218(void*);
 void func_001A0720(struct P*,void*,int,float,float);void func_0018B460(struct P*);
-void func_0020BB58(void*,float);void FaceStepToward(struct P*,void*);
+void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
 qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
 int func_001DAEA8(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void func_00131A00(struct MODEL*,float);void func_00204660(struct P*,float);
@@ -85,7 +85,7 @@ void UpdateJtPre(struct P*p){
  case 6:func_00137218(At(p,0x1FF0));break;
  case 10:func_001A0720(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
  case 11:func_0018B460(p);break;
- case 12:func_0020BB58(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
+ case 12:UpdateGaitBlend(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
  case 5:switch(p->submode){
   case 4:if(p->owner)FaceStepToward(p,p->owner);break;
   case 5:func_001A0720(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;

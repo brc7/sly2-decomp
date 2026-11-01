@@ -16,7 +16,7 @@ struct S {
 };
 extern "C" {
 void func_00213B00(struct O *o, int n);
-void func_00180100(struct S *p);
+void UpdateHackshipHealthBar(struct S *p);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00258040(void **pp, void *q);
@@ -46,7 +46,7 @@ void func_0017FD08(struct S *p, int n) {
             if (q) {
                 { struct VTE *e = &q->vt[0x31]; ((void (*)(void *, int))e->pfn)((char *)q + e->d, -1); }
                 func_00213B00(p->p2A0, 0x34F);
-                func_00180100(p);
+                UpdateHackshipHealthBar(p);
                 if (p->n2A8 != old) {
                     void *r = func_001FBB90(p->n2A8);
                     func_001FB2F8(r, 0);

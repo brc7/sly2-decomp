@@ -30,7 +30,7 @@ extern float D_002C099C;
 void HandleStepplayerMessage(P *p, int msg, MSG *pm);
 void SetMurrayFlopSubstate(P *p, int k);
 qword func_001A62E8(P *p);
-void func_00156B98(void *g, int z, qword q, P *p);
+void EmitSwNoise(void *g, int z, qword q, P *p);
 void ThrowMurrayCarried(P *p);
 void func_001B7AE8(P *p);
 void func_002205A8(void *p);
@@ -48,7 +48,7 @@ void HandleMurrayMessage(P *p, int msg, MSG *pm)
             SetMurrayFlopSubstate(p, 1);
             break;
         case 0x1A5:
-            func_00156B98(D_003DD490, 0, func_001A62E8(p), p);
+            EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
             break;
         case 0x1EB:
             switch (p->x13D0) {
@@ -68,7 +68,7 @@ void HandleMurrayMessage(P *p, int msg, MSG *pm)
             break;
         case 0x1C8:
             if (!p->x1450) {
-                func_00156B98(D_003DD490, 0, func_001A62E8(p), p);
+                EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
                 SetMurrayLiftSubstate(p, 1);
             }
             break;

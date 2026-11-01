@@ -25,7 +25,7 @@ typedef struct { int a[8]; } VPAIR;
 extern char D_003E11C4[];
 float func_00245A18(float, float);
 void AppendDlEntry__FP2DLPv(void *, W *);
-void func_001DEF98(OBJ *, ENT *, VPAIR *, float *);
+void GetLasenBeamEnds(OBJ *, ENT *, VPAIR *, float *);
 void func_001DF3D0(OBJ *p)
 {
     int i;
@@ -57,7 +57,7 @@ void func_001DF3D0(OBJ *p)
         if (f && e->x148 == 0) {
             VPAIR v;
             float g;
-            func_001DEF98(p, e, &v, &g);
+            GetLasenBeamEnds(p, e, &v, &g);
             e->x140 = e->x144 = g;
         }
     }

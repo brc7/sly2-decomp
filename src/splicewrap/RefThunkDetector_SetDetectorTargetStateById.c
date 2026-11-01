@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00154038(s32, s32, s32);               /* extern */
+void SetDetectorTargetStateById(s32, s32, s32);               /* extern */
 CRef *RefThunkDetector_SetDetectorTargetStateById(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 8194, 4203 };
@@ -9,7 +9,7 @@ CRef *RefThunkDetector_SetDetectorTargetStateById(CRef *ret, void *pbasic, s32 c
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_00154038(pbasic, arg0_v, arg1_v);
+    SetDetectorTargetStateById(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

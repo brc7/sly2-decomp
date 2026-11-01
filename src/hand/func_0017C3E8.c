@@ -15,7 +15,7 @@ float RadNormalize__Ff(float f);
 int func_0011D910(void *p, float f);
 qword func_0017BFF8(struct S *p, void *q, float f, qword v);
 void func_001C02D0(void *q, qword a, qword b, struct B *c);
-void func_00178D90(struct T *t, struct B *b, int n);
+void SetBhvpathShape(struct T *t, struct B *b, int n);
 void func_0017C3E8(struct S *p) {
     struct A *a;
     struct C *c;
@@ -54,6 +54,6 @@ doit:
         qword v = func_001A62E8(p->p10);
         func_001C02D0(q, v, func_0017BFF8(p, q, g, pos), b);
     }
-    func_00178D90(t, b, 0);
+    SetBhvpathShape(t, b, 0);
     }
 }

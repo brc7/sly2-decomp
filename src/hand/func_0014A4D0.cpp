@@ -23,7 +23,7 @@ qword func_001A62E8(void *p);
 float GRandInRange__Fff(float a, float b);
 int FSwHandsOff(G *pg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(PSO *p, int n);
-void func_00208540(W *pw, void *p);
+void SetStepguardTarget(W *pw, void *p);
 int func_001BBE48(SO *p);
 int CploFindSwObjectsByClass(G *pg, int a, int b, void *c, int d, SO **apso);
 int NRandInRange__Fii(int a, int b);
@@ -100,7 +100,7 @@ void func_0014A4D0(P *p)
             }
             goto done;
         }
-        func_00208540(p->pw, pso);
+        SetStepguardTarget(p->pw, pso);
         return;
     }
     for (SO *ps = D_003E1450; ps; ps = ps->pnext) {
@@ -156,5 +156,5 @@ done:
         VTE *e = &plo->vt[29];
         ((void (*)(void *, qword))e->pfn)((char *)plo + e->d, pos);
     }
-    func_00208540(p->pw, p->pw->plo);
+    SetStepguardTarget(p->pw, p->pw->plo);
 }

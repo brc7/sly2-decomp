@@ -11,8 +11,8 @@ struct P{char pad[0xFE0];P*next;char padFE4[0x2C];VOLUME*first,*second;int state
 struct ROW{int key;P*object;};
 struct GAME;
 extern "C"{
-void func_00207350(P*);
-int func_00209A68(P*,int);
+void UpdateStepguard(P*);
+int FStepguardHasSgf(P*,int);
 qword func_001A62E8(P*);
 qword ConvertAloPos(P*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
@@ -52,23 +52,23 @@ typedef char P_motion_Offset[FIELD_OFFSET(P,motion)==4140?1:-1];
 typedef char P_node_Offset[FIELD_OFFSET(P,node)==4148?1:-1];
 typedef char P_axis_Offset[FIELD_OFFSET(P,axis)==4160?1:-1];
 extern "C" void UpdateNeela(P*p){
- func_00207350(p);
+ UpdateStepguard(p);
  switch(p->state){
  case 0:{
-  if(!func_00209A68(p,0x25))break;
+  if(!FStepguardHasSgf(p,0x25))break;
   VOLUME*volume;
-  if(func_00209A68(p,9)){volume=p->first;p->target=0;}
-  else if(func_00209A68(p,2)){volume=p->second;p->target=0;}
+  if(FStepguardHasSgf(p,9)){volume=p->first;p->target=0;}
+  else if(FStepguardHasSgf(p,2)){volume=p->second;p->target=0;}
   else break;
   float nearest=D_002A7620;
   for(P*node=D_003E1444;node;node=node->next){
-   if(node==p||func_00209A68(node,7))continue;
+   if(node==p||FStepguardHasSgf(node,7))continue;
    qword origin=Vector(func_001A62E8(p));
    float distance=Square(Sub(origin,func_001A62E8(node)));
    if(nearest<distance)continue;
    if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
   }
-  if(!p->target&&!func_00209A68(p,2)){
+  if(!p->target&&!FStepguardHasSgf(p,2)){
    qword position=Vector(ConvertAloPos(p,0,D_002C0A80));
    qword low=Add(position,D_002C0A90);
    qword high=Add(position,D_002C0AA0);

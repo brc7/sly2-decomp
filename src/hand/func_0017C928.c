@@ -10,7 +10,7 @@ struct O *func_00205438(void *p, int n);
 qword func_001A62E8(void *p);
 qword ConvertAloPos(void *p, int n, qword v);
 void func_002562A8(struct X *x);
-void func_0017DD38(void *p, struct X *x);
+void SetBhvgotoGoal(void *p, struct X *x);
 void func_0017C928(struct S *p, int n) {
     struct X x;
     if (n == p->n50) return;
@@ -27,7 +27,7 @@ void func_0017C928(struct S *p, int n) {
             o->nC0 = 1; o->pA8 = p->p30; o->nAC = 1;
             func_002562A8(&x);
             x.v = v;
-            func_0017DD38(o, &x);
+            SetBhvgotoGoal(o, &x);
             o->n38 = 0x1C;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
         }
@@ -51,7 +51,7 @@ void func_0017C928(struct S *p, int n) {
             o->nC0 = 1;
             func_002562A8(&x);
             x.v = v;
-            func_0017DD38(o, &x);
+            SetBhvgotoGoal(o, &x);
             o->pA8 = p->p30;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
         }

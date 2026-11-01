@@ -9,7 +9,7 @@ struct A { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; int pad4; void *p38; float f3C; float f40; };
 void UpdateBhv(struct S *p);
 int FBhvBusyAbove(struct S *p);
-int func_00174FB8(void *p);
+int FBhvanimDone(void *p);
 int func_00209098(void *p);
 void func_0017E278(struct S *p, int n);
 int func_00208B38(struct A *a, void *o);
@@ -32,7 +32,7 @@ void func_0017DE50(struct S *p) {
     while (s = p->n30, !FBhvBusyAbove(p)) {
         switch (p->n30) {
         case 0:
-            if (func_00174FB8(p->p18)) func_0017E278(p, 1);
+            if (FBhvanimDone(p->p18)) func_0017E278(p, 1);
             break;
         case 1:
             if (func_00209098(p->p10)) {

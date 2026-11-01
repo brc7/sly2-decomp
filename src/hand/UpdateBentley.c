@@ -35,8 +35,8 @@ void UpdateBentleyStateMachine(struct P *p);
 void func_00204660(struct P *p, float g);
 int func_001430C8(struct P *p);
 void SetSmaMask(int a, int b);
-void func_0020BB58(void *pv, float g);
-void func_0020BC08(void *pv);
+void UpdateGaitBlend(void *pv, float g);
+void UpdateGaitFootsteps(void *pv);
 void UpdateJtActiveJump(void *pv);
 void UpdateJtActiveHide(void *pv);
 void FaceStepToward(struct P *p, int n);
@@ -113,8 +113,8 @@ static __inline__ void PullB(struct P *p)
 }
 static __inline__ void Kick(void *pv, float g)
 {
-    func_0020BB58(pv, g);
-    func_0020BC08(pv);
+    UpdateGaitBlend(pv, g);
+    UpdateGaitFootsteps(pv);
 }
 
 void UpdateBentley(struct P *p)

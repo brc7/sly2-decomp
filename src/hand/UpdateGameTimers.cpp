@@ -16,7 +16,7 @@ extern char D_003D4A60[],D_002DE578[];
 extern "C" CRef func_002581C0(OPT*,void*);
 extern "C" CRef func_00258200(OPT*,const CRefData&,void*);
 extern "C" int NWorldCur();
-extern "C" void func_00154D88(void*,float);
+extern "C" void ChangeDifficulty(void*,float);
 static inline float GetFloat(OPT*p,void*context){const CRef&r=func_002581C0(p,context);return r.g;}
 static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef&ret=func_00258200(p,arg,context);}
 static inline void SetFloat(OPT*p,float x,void*context){CRef r(x);SetPv(p,r,context);}
@@ -39,7 +39,7 @@ extern "C" void UpdateGameTimers(){
  H*p=D_003DD490.object;
  if(p&&(float)D_002E0C20<10.0f){
   p->elapsed+=D_002DDED0.dt;
-  if(p->start<p->elapsed)func_00154D88(D_002DE578,D_002DDED0.dt/(p->end-p->start));
+  if(p->start<p->elapsed)ChangeDifficulty(D_002DE578,D_002DDED0.dt/(p->end-p->start));
  }
 }
 
