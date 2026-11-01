@@ -17,6 +17,14 @@ typedef char P_PrefixSize[sizeof(struct P)==3576?1:-1];
 typedef char S_PrefixSize[sizeof(struct S)==148?1:-1];
 typedef char GAME_PrefixSize[sizeof(struct GAME)==15740?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
+/** @sly2-annot addr=0x1A2230
+ * Purpose: Base check: object flag x298, hands-off, or for kinds 0x2000/0x4000 depending on hurt/grab/air
+ *   sub-states
+ * Info: proposed name FStepplayerIgnoreZap (T2); TU hurt
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 int func_001A2230(struct S *s, int n)
 {
     if (s->x0->x298)

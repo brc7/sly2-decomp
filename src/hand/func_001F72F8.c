@@ -4,6 +4,13 @@ struct O { char pad[0x70]; qword pos; };
 struct E { struct O *po; int pad; float r; int pad2; ulong fl; char pad3[0x74 - 0x18]; void *p74; char pad4[0xB0 - 0x78]; };
 struct P { char pad[0xE0]; int c; struct E *ae; };
 int PbspPointInBspQuick(void *, int, qword);
+/** @sly2-annot addr=0x1F72F8
+ * Purpose: SO vt73: true if pos is inside any visible sphere part or part BSP (0x118FB0)
+ * Info: proposed name FPosInSo (T2); class SO slot73; TU so
+ * Notes: names_v2 v1 proposed ExtendSoBounds__FP2SOP6VECTORf (0.058)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 int func_001F72F8(struct P *p, qword pos)
 {
     int i;

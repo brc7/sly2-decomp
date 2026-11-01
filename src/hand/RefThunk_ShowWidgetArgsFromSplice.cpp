@@ -16,6 +16,14 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00212828(void *p, CRef *pref); CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x10DE58
+ * Purpose: Splice option thunk: optid 984 on WIDGET (g_aeopid[1132] thunkFn, returns Void, crefReq 1);
+ *   unpacks 1 args (0x8010) -> Void via RefSetArgsFromSplice then calls ShowWidgetArgsFromSplice (0x212828)
+ * Info: proposed name RefThunk_ShowWidgetArgsFromSplice (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref)
 {
     int k = 0x8010;

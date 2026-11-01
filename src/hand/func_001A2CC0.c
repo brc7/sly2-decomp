@@ -1,3 +1,11 @@
+/** @sly2-annot addr=0x1A2CC0
+ * Purpose: Map language index 0..13 to the 4CC 'FK$x' with x = e f i g s d p a h n w j k c (English, French,
+ *   Italian, German, Spanish, Dutch, Portuguese, ..., Japanese, Korean, Chinese)
+ * Info: proposed name FourccFromLanguage (T1); TU language
+ * Notes: names_v2 C proposed PeaFindAsegLabel__FP4ASEG3OID (0.438)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
+ * @end-sly2-annot */
 int func_001A2CC0(unsigned int n)
 {
     switch (n) {

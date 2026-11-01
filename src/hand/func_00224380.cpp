@@ -19,6 +19,13 @@ static inline qword Scale(const qword &direction,const SCALAR &scalar){qword res
 static inline S *Neighbor(const SIDE &side){register S *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.pOther));return value;}
 static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
+/** @sly2-annot addr=0x224380
+ * Purpose: walks contact edges, picks neighbouring actor (0x224638, 0x224508)
+ * Info: proposed name UpdateCid100Contacts (T2); class CID100 slot58; TU tu_223F70
+ * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 extern "C" void func_00224380(struct S *p)
 {
     struct S *q;

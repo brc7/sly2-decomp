@@ -8,6 +8,13 @@ int func_001BC278(qword a, qword b, qword c);
 int func_001BC530(struct X *p, int i);
 static inline qword MulPt(M4 *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0]), "j"(v), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3])); return r; }
 static inline M4 *GetMat(struct X *p) { return p->vt[31].pfn((struct X *)((char *)p + p->vt[31].d)); }
+/** @sly2-annot addr=0x1BC2F8
+ * Purpose: Classify polygon (too few points / convex CW / CCW / not convex) from turn signs
+ * Info: proposed name ClassifyCid14Polygon (T2); class CID14; TU tu_1BC050
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+verdicts_B
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 int func_001BC2F8(struct X *p)
 {
     int cFlip, i, sPrev, sgn;

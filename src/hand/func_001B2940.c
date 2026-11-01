@@ -9,6 +9,13 @@ void *func_002333B4(void *pv, int c, int cb);
 int func_00234820(struct ThreadParam *ptp);
 int func_002355E0(int id, void *arg);
 void func_001B2828(void *);
+/** @sly2-annot addr=0x1B2940
+ * Purpose: Create mpeg semaphore and start the display thread
+ * Info: proposed name StartupMpeg (T1); TU mpeg
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/engine/main-loop-startup.md#open-questions,
+ *   docs/engine/overview.md#1-boot
+ * @end-sly2-annot */
 void func_001B2940(void)
 {
     struct ThreadParam tp;

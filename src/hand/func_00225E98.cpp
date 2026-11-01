@@ -42,6 +42,13 @@ static inline float Min(float a,float b){return a<b?a:b;}
 static inline float Abs(float x){return __builtin_fabsf(x);}
 static inline float Fraction(RANGE *range,float f){if(range->lo==range->hi)return 0.0f;return (f-range->lo)/(range->hi-range->lo);}
 static inline float Blend(RANGE *range,float u){return (1.0f-u)*range->lo+u*range->hi;}
+/** @sly2-annot addr=0x225E98
+ * Purpose: zoom from target bounds or controller
+ * Info: proposed name UpdateTurretZoom (T2); TU turret
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
+ *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
+ * @end-sly2-annot */
 extern "C" void func_00225E98(S *p){
     if(p->target && p->follow){
         M4 m;

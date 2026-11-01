@@ -124,6 +124,15 @@ extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void func_0011A050(DL *,int);
 extern "C" int func_001CF5C8(void);
 extern "C" void *func_002333B4(void *,int,unsigned int);
+/** @sly2-annot addr=0x20D9D0
+ * Purpose: SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV
+ *   (180,255,255), fog/fov defaults
+ * Info: proposed name SW_ctor (T1); class SW; TU sw
+ * Notes: runtime5b: SW re-constructed in place on every level change (S56)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r7_1F8DD8+runtime
+ * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#3-world--level-lifecycle,
+ *   docs/engine/world-sw.md#1-sw-the-world-singleton
+ * @end-sly2-annot */
 extern "C" SW *SW_ctor(SW *p)
 {
     p->a=0;p->b=0;p->vt=D_002DC018;

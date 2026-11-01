@@ -36,6 +36,13 @@ extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
 extern "C" void func_001DA4B8(void *pv, int n, float g);
 extern "C" void func_002283D0(LO *plo);
+/** @sly2-annot addr=0x163D18
+ * Purpose: Makes p the current task (and pending task if it has a warp), activates its job, if live: ++count,
+ *   event 0x23, state-4 visuals, starts its music (+0x5C, 0x1DA4B8), SendMessage 0x13, triggers LO +0xC4
+ * Info: proposed name BeginTask (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void BeginTask(O *p)
 {
     G *pg = &D_003DD490;

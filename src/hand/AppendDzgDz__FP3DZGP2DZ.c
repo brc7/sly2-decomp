@@ -15,6 +15,12 @@ static __inline__ int Dot(qword a, qword b)
     return g;
 }
 void AppendDzgDz(struct DZG *pdzg, void *pdz, struct X *px) __asm__("AppendDzgDz__FP3DZGP2DZ");
+/** @sly2-annot addr=0x158668
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name AppendDzgDz__FP3DZGP2DZ (EXISTING); TU dzg
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
+ * @end-sly2-annot */
 void AppendDzgDz(struct DZG *pdzg, void *pdz, struct X *px)
 {
     int i;

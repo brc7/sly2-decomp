@@ -5,6 +5,13 @@ typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI
 
 extern DLI *g_pdliFirst;
 
+/** @sly2-annot addr=0x11A2E8
+ * Purpose: Unlink and fix up iterators on g_pdliFirst chain
+ * Info: proposed name RemoveDlEntry (T1); TU dl
+ * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918+verify_side
+ * See: docs/engine/core-library.md#2-containers,
+ *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
+ * @end-sly2-annot */
 void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv)
 {
     DLE *pdle = PDLE(pdl, pv);

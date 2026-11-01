@@ -43,6 +43,13 @@ static inline float Len(qword a)
     return f;
 }
 
+/** @sly2-annot addr=0x1E5FC8
+ * Purpose: Cache 11 Hermite samples of curve segment i (transformed by the shape matrix) and their cumulative
+ *   lengths (+0x14C), segment id +0x148
+ * Info: proposed name CacheShapeSegment (T1); TU shape
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void CacheShapeSegment(struct PATH *p, int i)
 {
     union U prev, cur;

@@ -26,6 +26,15 @@ static inline float LenXY(qword v) {
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return GetX(t); }
 static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
+/** @sly2-annot addr=0x1B70A0
+ * Purpose: If target x10DC is a stunned guard (0x209A68(..,0x17)) within reach and 0xA0 pressed: Circle lifts
+ *   the guard (0x17B1A8 + StartMurrayLiftGuard), Square does finishing attack (state 11 kind 4)
+ * Info: proposed name FTryMurrayTakedown (T1); TU murray
+ * Notes: runtime4: needs flag 0x17 guard as x10DC, BHV177 +0x50<3, +0x5C==Murray (S38/S39)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 int FTryMurrayTakedown(struct P *p)
 {
     union { qword q; float f[4]; } u;

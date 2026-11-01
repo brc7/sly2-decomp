@@ -38,6 +38,13 @@ struct SPN {
 extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef RefEval__FP5CPairP6CFrame(NODE *pn, CRef *aref);
 extern "C" CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall);
+/** @sly2-annot addr=0x121C20
+ * Purpose: Splice builtin "for-each": same, discards results
+ * Info: proposed name RefOpForEach (T1); TU bif
+ * Notes: names_v2 C proposed RefOpClq__FiP4CRefP6CFrame (0.638)
+ * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall)
 {
     if (aref[1].m_tagk == 0x1F) {

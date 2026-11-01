@@ -16,6 +16,13 @@ static inline void Align(struct R *r) {
     while((int)r->cur&15) { *(int *)r->cur=0; r->cur+=4; }
 }
 static inline void Unpack(struct R *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
+/** @sly2-annot addr=0x217058
+ * Purpose: matrix/parameter DMA packet ending in a call tag
+ * Info: proposed name BuildGlyphPacket (T2); TU hud
+ * Notes: names_v2 C proposed DrawTotals__FP6TOTALS (0.438)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00217058(struct S *p,const int *matrix,struct D *data,int flags) {
     unsigned char *tag=D_002DEA28.cur;
     *(unsigned long *)tag=0x10000000UL;

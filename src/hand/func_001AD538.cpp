@@ -18,6 +18,12 @@ int func_001B0078(void *g);
 }
 CRef Eval(int a, void *b) __asm__("func_002581C0");
 static inline float F(int x, void *pb) { return Eval(x, pb).m_tag; }
+/** @sly2-annot addr=0x1AD538
+ * Purpose: Menu hook: eval 3 slots' Splice values and update entries
+ * Info: proposed name UpdateSaveMenuSlots (T2); TU memcard
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 extern "C" void func_001AD538(void)
 {
     float a[3];

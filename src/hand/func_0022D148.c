@@ -15,6 +15,13 @@ static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
         pmDst->r[i] = r;
     }
 }
+/** @sly2-annot addr=0x22D148
+ * Purpose: angular velocity of an XF (finite difference via 0x22CDC0)
+ * Info: proposed name GetXfAngularVelocity (T2); TU xf
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 M4 *func_0022D148(M4 *pm, struct O *po, struct O *poStop)
 {
     M4 mB, mA, mE, mC, mD;

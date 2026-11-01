@@ -19,6 +19,14 @@ static inline void CopyId(char *p,int id)
 {
     func_0021ED58(p,PchzFindSwLangstr__FP2SWi(&D_003DD490,id));
 }
+/** @sly2-annot addr=0x1DCAB0
+ * Purpose: Text callback 0x435: popup message, or the selected power-up's name, description and affordability
+ *   (0xD9/0xDA), or the loot sell line (0xDB)
+ * Info: proposed name BuildThiefnetInfoText (T1); TU screen
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DCAB0(char *pch)
 {
     TBL *pt=&D_003DA150;

@@ -12,6 +12,14 @@ void func_0014D0B8(void *p, int n);
 void SetRemain__5CProgi(struct B *b, int n);
 void func_001C8DB8(struct B *b);
 void ClearPhase(int n);
+/** @sly2-annot addr=0x1A7970
+ * Purpose: Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs),
+ *   MarkClockTick(g_clock,1) per stage; prints build "0813.0032"/"america"
+ * Info: proposed name Startup (T1); TU main
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r4_17F090+verdicts_A2+verify_side
+ * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
+ *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
+ * @end-sly2-annot */
 void func_001A7970(void)
 {
     struct B b;

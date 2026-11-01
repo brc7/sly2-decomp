@@ -5,6 +5,12 @@ struct RUMBLE { int nPort; int nSlot; RUMS rums; RUMPAT *prumpat; int pad; int p
 extern float D_002DDF10;
 extern "C" int func_00243870(int, int, unsigned char *);
 void StopRumbleActuators(RUMBLE *prumble);
+/** @sly2-annot addr=0x1D53C0
+ * Purpose: Rumble state machine transition (scePadSetActDirect)
+ * Info: proposed name SetRumbleRums__FP6RUMBLE4RUMS (EXISTING); TU rumble
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r6_1D5150
+ * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
+ * @end-sly2-annot */
 void SetRumbleRums(RUMBLE *prumble, RUMS rums)
 {
     if (rums == prumble->rums)

@@ -25,6 +25,14 @@ typedef char P_parameter_Offset[FIELD_OFFSET(struct P,parameter)==620?1:-1];
 typedef char P_PrefixSize[sizeof(struct P)==0x270?1:-1];
 typedef char Vector_Size[sizeof(struct VECTOR)==16?1:-1];
 typedef char AsegaArray_Size[sizeof(((struct P*)0)->asega)==48?1:-1];
+/** @sly2-annot addr=0x1B1E88
+ * Purpose: MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg,
+ *   optionally start action
+ * Info: proposed name FireMissile (T1); class MISSILE slot78; TU missile
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
+ * @end-sly2-annot */
 void FireMissile(struct P *p,struct LO *source,struct VECTOR *point)
 {
  struct VECTOR v;

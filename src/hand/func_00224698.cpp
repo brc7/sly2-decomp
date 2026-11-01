@@ -28,6 +28,12 @@ static inline qword Sqrt(qword len) {
 static inline float X(qword v) { float f;__asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(v));return f; }
 static inline qword Scale(qword d,qword len) { qword r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
+/** @sly2-annot addr=0x224698
+ * Purpose: turns linked active object toward target in horizontal plane
+ * Info: proposed name OrientCid100ToTarget (T2); class CID100 slot70; TU tu_223F70
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 extern "C" void func_00224698(S *p) {
     M3 m;
     if(p->k==0 || p->k==4)return;

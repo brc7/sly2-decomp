@@ -15,4 +15,10 @@ CRef RefEval__FP5CPairP6CFrame(void *pv, CRef *aref);
 CRef CFrame_RefAddBinding(CRef *aref, void *pv, CRef *pref);
 CRef RefEvalDefine__FP5CPairP6CFrame(P *p, CRef *aref);
 }
+/** @sly2-annot addr=0x126540
+ * Purpose: (define sym expr): evaluate, CFrame::RefAddBinding (0x127C00)
+ * Info: proposed name RefEvalDefine (T1); TU eval
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef RefEvalDefine__FP5CPairP6CFrame(P *p, CRef *aref) { CRef ref; Q *pq = p->pr->pq; ref = RefEval__FP5CPairP6CFrame(pq->pv10, aref); ref = CFrame_RefAddBinding(aref, pq->pv0C, &ref); return ref; }

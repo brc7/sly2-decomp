@@ -9,6 +9,12 @@ qword func_001A62E8(struct A *pa);
 void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
 void MeasureShape(struct B *pb);
 void SetBhvpathShape(void *p, struct B *pb, int n);
+/** @sly2-annot addr=0x144F48
+ * Purpose: store goal; build a path (straight or via nav graph 0x1C02D0) into the child's route
+ * Info: proposed name SetBhv193Goal (T2); TU tu_144B28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_00144F48(struct P *p, qword v)
 {
     p->v = v;

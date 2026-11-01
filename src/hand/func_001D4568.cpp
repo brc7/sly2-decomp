@@ -78,6 +78,16 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
     ((void (*)(void *, qword))pset->fn)(receiver, Add(original, delta.q));
 }
 
+/** @sly2-annot addr=0x1D4568
+ * Purpose: CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when
+ *   dead, random or sender-relative knock-back impulse
+ * Info: proposed name HandleRobottankZap (T2); class ROBOTTANK slot75; TU tu_1D1370
+ * Notes: names_v2 B proposed CalculateAloDrive__FP3ALOP3CLQP2LMffPfN25 (0.856) | class identity from
+ *   whole_game WE names/object strings: HandleRcCarZap -> HandleRobottankZap
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 int func_001D4568(P *p, EVENT *event)
 {
     if (!func_001F7588(p, event))

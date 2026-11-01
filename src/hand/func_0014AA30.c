@@ -26,6 +26,12 @@ static inline float GRemap(struct RANGE *pr, float g)
     return (g - pr->a) / (pr->b - pr->a);
 }
 
+/** @sly2-annot addr=0x14AA30
+ * Purpose: route point index closest to the current player
+ * Info: proposed name IBhv182NearestRoutePoint (T2); TU tu_14A008
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
+ * @end-sly2-annot */
 int func_0014AA30(struct P *p)
 {
     int iBest = -1;

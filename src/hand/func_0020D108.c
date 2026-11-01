@@ -4,6 +4,12 @@ struct F { int a[0x18]; };
 struct S { int n0; int n; float t; };
 void *func_002333B4(void *pv, int c, int cb);
 void func_001F7598(struct F *pf);
+/** @sly2-annot addr=0x20D108
+ * Purpose: state 2 -> InflictZap 0x4000
+ * Info: proposed name SetStuckWatchState (T2); TU tu_20CE28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
+ * @end-sly2-annot */
 void func_0020D108(struct S *p, int n)
 {
     if (p->n == n) return;

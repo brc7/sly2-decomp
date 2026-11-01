@@ -23,6 +23,13 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 static __inline__ unsigned int GrfQ(struct Q *pq) { unsigned int x = pq->x40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
+/** @sly2-annot addr=0x2267C0
+ * Purpose: iterates the SW object DL (0x3D88) calling each object update / asega 0x130918
+ * Info: proposed name UpdateSwObjects (T1); TU update
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/world-sw.md#10-key-functions,
+ *   docs/reference/functions/world-sw.md#update-0x226550-0x226ab8
+ * @end-sly2-annot */
 void UpdateSwObjects(struct S *p)
 {
     DLI dli;

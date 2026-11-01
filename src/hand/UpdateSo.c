@@ -9,6 +9,15 @@ void UpdateLo(struct P *);
 qword func_001A62E8(struct P *);
 void *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct P *, void *);
+/** @sly2-annot addr=0x1F36E0
+ * Purpose: SO vt16: UpdateLo; refresh region from position; advance fade alpha +0x12C by rate +0x130*dt,
+ *   removing (vt9) at 0
+ * Info: proposed name UpdateSo (T1); class SO slot16; TU so
+ * Notes: names_v2 C proposed PxpFindSoGround__FP2SOT0Pi (0.200)
+ * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void UpdateSo(struct P *p)
 {
     void *q;

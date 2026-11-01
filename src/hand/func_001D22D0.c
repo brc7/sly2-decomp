@@ -12,6 +12,13 @@ extern float D_002A7810;
 extern float D_002C20C0[3];
 qword func_001A62E8(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
+/** @sly2-annot addr=0x1D22D0
+ * Purpose: Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass
+ * Info: proposed name FindRobottankPickup (T2); TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: FindRcCarPickup -> FindRobottankPickup
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 SO *func_001D22D0(OBJ *p)
 {
     SO *best = 0;

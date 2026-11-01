@@ -5,6 +5,14 @@ struct CRef {
     CRef(int n, int tagk) { m_tag = n; m_tagk = tagk; }
 };
 extern "C" CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+/** @sly2-annot addr=0x120548
+ * Purpose: Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare
+ * Info: proposed name RefOpEqv (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
+ *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef RefOpEqv__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     CRef *pa = &aref[0];

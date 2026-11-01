@@ -49,6 +49,15 @@ static __inline__ float GFrac(float g, float a, float b)
     return (g - a) / (b - a);
 }
 
+/** @sly2-annot addr=0x150A28
+ * Purpose: Smooth uZoom toward uZoomTarget with sounds; if posed (fPose +0x40) blend pos/eul/fov to target
+ *   pose, else smooth center/eye and SetCmLookAt
+ * Info: proposed name UpdateCpzoom (T1); TU cplcy
+ * Notes: runtime6 C7: CPZOOM = recon camera (S57)
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00150A28(struct X *p)
 {
     func_0014FD40(p);

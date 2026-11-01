@@ -24,6 +24,15 @@ void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw);
 void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw);
 extern "C" void ClearDl__FP2DL(DL *pdl);
 extern "C" void func_00234A40(int sid);
+/** @sly2-annot addr=0x160A98
+ * Purpose: Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two
+ *   deferred-release DLs into the frame, clears g_pfrmOpen and signals the render thread
+ * Info: proposed name CloseFrame (T1); TU frm
+ * Notes: names_v2 C proposed check_anticrack_antigrab__Fv (0.650)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r3_1539A8+verify_side
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order, docs/engine/rendering.md#1-frame-structure,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 extern "C" void func_00160A98()
 {
     FinalizeFrameVifs(&D_002DEA28, &D_002DEA4C->cqwVifs, &D_002DEA4C->aqwVifs);

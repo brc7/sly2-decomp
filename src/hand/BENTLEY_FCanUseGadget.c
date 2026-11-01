@@ -16,6 +16,12 @@ struct E *func_00136A28(struct P *p, int k);
 int func_00224590(void *pv);
 int func_001CADE0(void *pv, int n);
 int func_0014FD50(void *pv);
+/** @sly2-annot addr=0x136870
+ * Purpose: BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability
+ * Info: proposed name BENTLEY_FCanUseGadget (T1); class BENTLEY slot99; TU bentley
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 int BENTLEY_FCanUseGadget(struct P *p, int k)
 {
     register int f __asm__("$3");  /* register pin: target keeps x15C and the func_001CADE0 result in v1 */

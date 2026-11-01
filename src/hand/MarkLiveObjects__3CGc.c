@@ -30,6 +30,12 @@ static inline void PushFrame(GC *pgc, FRAME *pf) { pgc->apFrame[pgc->cFrame++] =
     case 0x22: STMT22; break; \
     }
 
+/** @sly2-annot addr=0x1281B0
+ * Purpose: Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked
+ * Info: proposed name CGc_MarkLiveObjects (T1); class CGc; TU gc
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
+ * @end-sly2-annot */
 void MarkLiveObjects__3CGc(GC *pgc)
 {
     CLO *pcRef;

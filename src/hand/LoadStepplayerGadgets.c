@@ -7,6 +7,12 @@ extern char D_002A4D58[];
 int sprintf(char *, const char *, ...);
 void func_001D8A38(struct CRef *r, void *a, void *b, char *c, int d);
 void func_00129EC8(struct CRef *r);
+/** @sly2-annot addr=0x141EF8
+ * Purpose: For i<3: GetSaveVar(vt103 root, 'apukCur', '%d' i) -> slot id; then vt105
+ * Info: proposed name LoadStepplayerGadgets (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void LoadStepplayerGadgets(struct P *p)
 {
     int i;

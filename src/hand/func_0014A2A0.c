@@ -13,6 +13,13 @@ void func_0014AD70(struct P *p);
 int FBhvpathAtEnd(void *p);
 int FBhvanimDone(void *p);
 int FBhvattackDone(void *p);
+/** @sly2-annot addr=0x14A2A0
+ * Purpose: BHV182 slot 10: keep pace with the player along a route (distance-to-player logic 0x14A4D0, next
+ *   point 0x14AD70, nearest point 0x14AA30)
+ * Info: proposed name UpdateBhv182 (T2); class BHV182 slot10; TU tu_14A008
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
+ * @end-sly2-annot */
 void func_0014A2A0(struct P *p)
 {
     int s;

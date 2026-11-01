@@ -26,6 +26,12 @@ static inline qword Transform(const M3 &m,qword v) { qword r;
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;
 }
 static inline void Clear(U *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
+/** @sly2-annot addr=0x1F46D8
+ * Purpose: SO vt36: set rotation-XF (kind 6) angular velocity from world w
+ * Info: proposed name SetSoAngularVelocity (T1); class SO slot36; TU so
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void SetSoAngularVelocity(P *p,qword position)
 {
     LO *object=p->object;

@@ -17,6 +17,14 @@ void AddRhythmScore(struct S *, float);
 float GRhythmTimingScore(struct S *, struct E *);
 float func_00153638(struct S *, float);
 int func_0011D4D0(float, float, float);
+/** @sly2-annot addr=0x1533B0
+ * Purpose: Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat ->
+ *   g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C
+ * Info: proposed name JudgeRhythmPress (T2); TU rhythm
+ * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_001533B0(struct S *p, struct O *po)
 {
     void *pv = po->p150;

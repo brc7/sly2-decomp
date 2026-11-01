@@ -21,6 +21,15 @@ int func_00154770(struct T *p, struct SO *pso);
 int func_001545F0(struct T *p, struct SO *pso);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 
+/** @sly2-annot addr=0x1541D8
+ * Purpose: Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects
+ *   hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes
+ *   (0x227C90) and optional line test (0x1545F0)
+ * Info: proposed name KCalculateDetectorTarget (T1); TU detector
+ * Notes: names_v2 C proposed UpdateStepguardEffect__FP9STEPGUARD (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
+ * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
+ * @end-sly2-annot */
 int KCalculateDetectorTarget(struct T *p, struct SO *pso, int k)
 {
     struct BUF buf;

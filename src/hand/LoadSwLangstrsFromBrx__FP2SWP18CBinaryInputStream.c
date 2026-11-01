@@ -10,6 +10,14 @@ void *func_001AE1D0(struct AREQ *preq);
 void CBinaryInputStream_ReadStringSw(void *pbs, int *pn, void *pv, int n);
 void CBinaryInputStream_SkipStringSw(void *pbs);
 void func_00210BE0(void *pv);
+/** @sly2-annot addr=0x13DF80
+ * Purpose: Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the
+ *   g_nLang (D_002E1E54) string into SW.alangstr (+0x4640/+0x4644)
+ * Info: proposed name LoadSwLangstrsFromBrx (T1); TU brx_sw
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
+ *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
+ * @end-sly2-annot */
 void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(struct P *p, void *pbs)
 {
     struct AREQ req;

@@ -16,6 +16,15 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void EnsureLoSidebagVector(void *p, int n, qword q); CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x1006B8
+ * Purpose: Splice option thunk: optid 10 on BASIC (g_aeopid[9] thunkFn/thunkUser, returns Void, crefReq 2);
+ *   unpacks 2 args (Basic?, Vector) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagVector
+ *   (0x132DE0)
+ * Info: proposed name RefThunkBasicCUSTOM_VECTOR_PROPERTY (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *p, int c, void *aref)
 {
     int ak[2] = {0x15, 2};

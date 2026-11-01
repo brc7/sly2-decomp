@@ -4,6 +4,12 @@ extern VECTOR D_002A2DA0;
 extern "C" float acosf(float g);
 static inline float SqrtF(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 
+/** @sly2-annot addr=0x11BCF8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR (EXISTING); TU mat
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec)
 {
     float c = (pmat->mat[0][0] + pmat->mat[1][1] + pmat->mat[2][2] - 1.0f) * 0.5f;

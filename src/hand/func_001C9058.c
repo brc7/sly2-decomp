@@ -11,6 +11,15 @@ static inline float *Receiver(float *p)
     return copy;
 }
 
+/** @sly2-annot addr=0x1C9058
+ * Purpose: Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and
+ *   signal the loading-thread start sema
+ * Info: proposed name BeginLoadingScreen (T1); TU prog
+ * Notes: runtime5b: D_002DD314 = &h of LoadSwFromBrx during load (S56)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
+ * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
+ *   docs/engine/world-sw.md#2-loading-a-level, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
+ * @end-sly2-annot */
 void func_001C9058(float *input)
 {
     float now = D_002DDF0C;

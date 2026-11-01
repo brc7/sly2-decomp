@@ -18,6 +18,15 @@ static inline void Clear(int *a)
     a[1] = 0;
     a[0] = 0;
 }
+/** @sly2-annot addr=0x1F3980
+ * Purpose: SO vt17: refresh part matrices, step soft-mesh parts (0x1F6EF8), sync XF positions into SOPHYS,
+ *   vt70 if XF kinds 1/2, UpdateSoSlots, UpdateSoPartGeom
+ * Info: proposed name UpdateSoXfWorld (T2); class SO slot17; TU so
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_001F3980(struct P *p)
 {
     int i;

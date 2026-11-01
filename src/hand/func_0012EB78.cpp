@@ -7,6 +7,13 @@ void *func_001AE238(AREQ *preq, void *pv);
 void LoadXfmFromBrx(T *t, void *p);
 void func_0012EB78(T *t, void *p);
 }
+/** @sly2-annot addr=0x12EB78
+ * Purpose: slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list
+ * Info: proposed name LoadCid43FromBrx (T2); class CID43 slot14; TU amb
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
+ * @end-sly2-annot */
 void func_0012EB78(T *t, void *p)
 {
     OBJ obj;

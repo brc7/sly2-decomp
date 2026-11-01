@@ -12,6 +12,14 @@ void func_001AE4A0(struct C *, int);
 void func_0020FA10();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
 int func_0014CC58(int, ti128, ti128, int, int, struct LSG *);
+/** @sly2-annot addr=0x1356E8
+ * Purpose: Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox +
+ *   PsoHitTestLineObjects); store hit (or far point) at +0x16F0
+ * Info: proposed name UpdateBentleyAimPoint (T2); TU bentley
+ * Notes: runtime5a #4: +0x16F0 written at fire (S53) | T2 forced: v2 tier kept (v2 held this name at T2)
+ * Confidence: low (draft) [T2 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_001356E8(struct S *p) {
     struct C ctx;
     struct LSG lsg;

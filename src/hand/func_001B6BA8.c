@@ -8,6 +8,14 @@ void SetMurrayFlopSubstate(struct P *p, int n);
 int FCheckJtStuck(struct P *p, void *q, float f);
 void ReturnJtToSafePlace(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
+/** @sly2-annot addr=0x1B6BA8
+ * Purpose: State 3 (air slam): end when anim done; substate 1 waits for landing (0x19A098) then impact
+ *   substate 2; steer velocity from stick
+ * Info: proposed name UpdateMurrayFlop (T2); TU murray
+ * Notes: names_v2 C proposed SeekAsega__FP5ASEGA4SEEKff (0.418)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B6BA8(struct P *p)
 {
     int s;

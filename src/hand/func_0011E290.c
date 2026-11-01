@@ -1,4 +1,10 @@
 typedef int qword __attribute__((mode(TI)));
+/** @sly2-annot addr=0x11E290
+ * Purpose: Scalar projection of a on b; optionally returns parallel and perpendicular components
+ * Info: proposed name SProjectVector (T1); TU vec
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 float func_0011E290(qword a, qword b, qword *ppar, qword *pperp)
 {
     qword d, one, p;

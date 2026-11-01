@@ -7,6 +7,13 @@ struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword
 void func_002162D8(struct RT *p, O *po, T *pt);
 void func_00216750(struct RT *p, O *po, struct DATA *q);
 static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->sx):"f"(x));}
+/** @sly2-annot addr=0x2166B0
+ * Purpose: draw at a sprite transform (font scale, line height)
+ * Info: proposed name CRichText_DrawXf (T2); class CRichText; TU hud
+ * Notes: names_v2 C proposed PostTotalsLoad__FP6TOTALS (0.438)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002166B0(struct RT *p, T *pt, struct DATA *q)
 {
     T t = *pt;

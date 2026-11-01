@@ -17,6 +17,18 @@ static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 static inline qword AddScaled(qword a,qword b,float g){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
 static inline float Clamp(float g,float lo,float hi){if(g<lo)return lo;if(hi<g)return hi;return g;}
+/** @sly2-annot addr=0x17F1D0
+ * Purpose: vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos
+ *   (quadratic gain, limited) through constraint and SetVelocity
+ * Info: proposed name HACK_TakeDamage (T2); class HACK slot75; TU tu_17F090
+ * Notes: names_v2 v1 proposed OnStepguardExitingSgs__FP9STEPGUARD3SGS (0.000) | CID47->CID71 (CID 0x47=71,
+ *   vtable) | v3 class identity: CID71_TakeDamage -> HACK_TakeDamage | T2 forced: v3: coined class word
+ *   (HACK) without descriptor/string backing
+ * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources:
+ *   r4b_rest+class_review(master_names_v2_1)
+ * See: docs/engine/minigames.md#21-classes-hack-tu-0x17f090-0x182ab8-ccode-names-cparse-we-names-hack-word-coined-t2,
+ *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 int func_0017F1D0(struct P*p,struct MSG*m){
  qword dir,v;float g,t;
  if(!(m->flags&8))return 0;

@@ -136,6 +136,13 @@ static inline void CopyRange(RANGE &destination,const RANGE &source){
  register RangeBits value asm("$5");
  asm("ldl %0,7+%2\n\tldr %0,%2\n\tsdl %0,7+%1\n\tsdr %0,%1":"=&r"(value),"=m"(destination):"m"(source));
 }
+/** @sly2-annot addr=0x21F418
+ * Purpose: per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70),
+ *   state transitions (0x2206C8)
+ * Info: proposed name UpdateJtthrow (T1); TU throw
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
+ * @end-sly2-annot */
 extern "C" void UpdateJtthrow(S *s){
  WORK w;
  register CONTROL *control asm("$19")=s->owner->control;

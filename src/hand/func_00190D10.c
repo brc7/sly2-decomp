@@ -16,6 +16,14 @@ void __ml__FRC7MATRIX4T0(struct MATRIX4 *pm, void *p, struct T *t);
 void SolveIk(struct P *p, int n);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x190D10
+ * Purpose: Render-time fix-up while hanging: move child XF x19C4 so the hand reaches PosJtHangHandle(+x1960
+ *   offset), bump g_sw xf stamp, rebuild its matrix, then vt18
+ * Info: proposed name RenderJtHangIk (T2); TU hang
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#hang-0x18f908-0x191090
+ * @end-sly2-annot */
 void func_00190D10(struct P *p)
 {
     struct T *t;

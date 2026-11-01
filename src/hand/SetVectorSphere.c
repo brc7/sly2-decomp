@@ -7,6 +7,12 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
+/** @sly2-annot addr=0x11E208
+ * Purpose: Vector from spherical (pan, tilt, r)
+ * Info: proposed name SetVectorSphere (T1); TU vec
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 qword SetVectorSphere(float radPan, float radTilt, float r)
 {
     union { qword q; float f[4]; } v;

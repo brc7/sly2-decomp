@@ -16,6 +16,16 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00142310(void *p, float, float, void *, float, float, qword, qword); CRef func_0010B230(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x10B230
+ * Purpose: Splice option thunk: optid 743 on STEPPLAYER (g_aeopid[760] thunkFn/thunkUser, returns Void,
+ *   crefReq 7); unpacks 7 args (Float, Float, Lm, Float, Float, Vector, Vector) -> Void via
+ *   RefSetArgsFromSplice then calls SetStepplayerThrowParams (0x142310)
+ * Info: proposed name RefThunk_SetStepplayerThrowParams (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x142310 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_0010B230(void *p, int c, void *aref)
 {
     int ak[7] = {0x1, 0x1, 0xa, 0x1, 0x1, 0x2, 0x2};

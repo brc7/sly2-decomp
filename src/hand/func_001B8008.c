@@ -3,6 +3,13 @@ int func_001944C8(void *p, int *pk);
 int func_001A23F8(void *p, int *pk);
 int func_0019C870(void *p, int *pk);
 void SetStepPhys(struct P *p, int v, int k);
+/** @sly2-annot addr=0x1B8008
+ * Purpose: MURRAY vt90: choose the per-state STEP parameter block (component-supplied for 2/13/14, carry
+ *   table x1AB0, default x268) and apply it (0x203D00)
+ * Info: proposed name ApplyMurrayStateStepParams (T2); class MURRAY slot90; TU murray
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B8008(struct P *p)
 {
     int k = 0;

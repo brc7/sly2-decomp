@@ -13,6 +13,15 @@ void func_001EC7E8(void);
 void func_001D53C0(void *p, int n);
 void func_001AE300(void);
 
+/** @sly2-annot addr=0x20E068
+ * Purpose: Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr,
+ *   clear ~15 global object pointers, FreeSw
+ * Info: proposed name DeleteSw (T1); TU sw
+ * Notes: names_v2 v1 proposed LoadChkpntFromBrx__FP6CHKPNTP18CBinaryInputStream (0.000)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level,
+ *   docs/engine/world-sw.md#10-key-functions
+ * @end-sly2-annot */
 void DeleteSw(struct S *p)
 {
     void *pv = D_002DEB30;

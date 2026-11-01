@@ -19,6 +19,15 @@ typedef struct {
 } OBJ;
 extern S8 D_002C2218, D_002C2220, D_002C2240;
 extern qword D_002C2230;
+/** @sly2-annot addr=0x1D4D30
+ * Purpose: Weapon record defaults (owner, default vectors D_002C2218..)
+ * Info: proposed name InitRobottankWeapon (T2); TU tu_1D1370
+ * Notes: names_v2 v1 proposed UpdateRemit__FP5REMITf (0.013) | class identity from whole_game WE names/object
+ *   strings: InitRcCarWeapon -> InitRobottankWeapon
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void func_001D4D30(OBJ *p, void *q)
 {
     p->x10 = q;

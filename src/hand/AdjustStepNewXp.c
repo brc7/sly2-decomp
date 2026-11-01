@@ -62,6 +62,15 @@ static inline qword AddScaled(const qword *pa, qword b, float g)
     return a;
 }
 
+/** @sly2-annot addr=0x204250
+ * Purpose: STEP vt55: new contact setup: reset friction/response; kind 14 (base) gets mu D_002C3C90 when
+ *   normal.z>0.7 and force limits mass*-4500..9000; side contacts add a horizontal kind-10 contact
+ * Info: proposed name AdjustStepNewXp (T1); class STEP slot55; TU step
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void AdjustStepNewXp(struct P *p, struct XP *x, int side)
 {
     U dir, diff, point;

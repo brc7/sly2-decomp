@@ -7,6 +7,14 @@ struct S { char pad[0x3D5C]; int n3D5C; char pad2[0x3E10 - 0x3D60]; V3 hsv; int 
 void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
 void func_001ED2D8(UV *pv);
 float func_0011D948(void *p, float g);
+/** @sly2-annot addr=0x20F1C8
+ * Purpose: Recompute ambient light colour from HSV (+0x3E10) scaled by midtone (+0x3E20/255) and shadow level
+ *   (+0x3E24/255); bump illum change counter
+ * Info: proposed name UpdateSwIllum (T1); TU sw
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/rendering.md#3-drawsw-sort-prologue-and-pass-dispatch-srchandfunc_00157fa0c-cstatic,
+ *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void UpdateSwIllum(struct S *p)
 {
     float k = 1.0f / 255.0f;

@@ -61,6 +61,13 @@ extern "C" void func_00129EC8(CRef *pref);
 extern "C" int IlevelCur__Fv();
 extern "C" void *func_00210990(int n);
 extern "C" void func_0022B490(G *pg, void *p, int a, int b, int c, int d);
+/** @sly2-annot addr=0x165538
+ * Purpose: Switches the current job to the task's job, makes the task available and current, sets
+ *   oidPoCurrent (+0xC0, which character), wipes to the task's level and warp (+0xBC/+0xB8)
+ * Info: proposed name GoToTask (T1); TU game
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void GoToTask(X *p)
 {
     CSave save(p, 2, 0);

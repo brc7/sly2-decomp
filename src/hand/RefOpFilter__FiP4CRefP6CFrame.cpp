@@ -47,6 +47,13 @@ struct SPN {
 extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef RefEval__FP5CPairP6CFrame(NODE *pn, CRef *aref);
 extern "C" CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall);
+/** @sly2-annot addr=0x121938
+ * Purpose: Splice builtin "filter": same, keeps elems where result true
+ * Info: proposed name RefOpFilter (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { if (aref[1].m_tagk == 0) return aref[1];
  SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
  *pa = aref[0];

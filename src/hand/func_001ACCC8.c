@@ -20,6 +20,14 @@ void func_001ACB58(struct S *s, int n);
 void func_001ACBB8(struct S *s);
 void func_001660F8(void);
 void func_001AF660(void *p);
+/** @sly2-annot addr=0x1ACCC8
+ * Purpose: vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs
+ *   (CreateMemcardThread), transition (0x1ACFE0)
+ * Info: proposed name CMemcardDialog_Update (T1); class CMemcardDialog; TU memcard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001ACCC8(struct S *s)
 {
     struct P *p = s->x24;

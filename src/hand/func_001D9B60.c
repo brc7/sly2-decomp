@@ -25,6 +25,13 @@ void func_00213B00(SUB *, int);
 void func_00213928(SUB *, int);
 void func_00212E40(SUB *, int, float);
 #define VCALL1(o, n, a) ((void (*)(void *, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a)
+/** @sly2-annot addr=0x1D9B60
+ * Purpose: Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the
+ *   character owns a power-up with a cost), 2 damage, 6/7 alternate anims
+ * Info: proposed name SetHudMeterState (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001D9B60(OBJ *p, int s)
 {
     int old = p->x30;

@@ -10,6 +10,12 @@ static inline qword Pack(float x,float y,float z){U u;qword q,t;__asm__("mfc1 %0
 static inline qword Rot(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(v));return r;}
 static inline void Set(U*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
+/** @sly2-annot addr=0x1995D8
+ * Purpose: Generate paired arc sample points (9 rotations of 15 deg) and transform them to world
+ * Info: proposed name BuildJtEdgeProbeArc (T2); TU air
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void func_001995D8(P*p,const M4*world,int count,U*out){
  M3 m;U *cursor=out,*v;
  Set(cursor++,p->bx,p->bz);Set(cursor++,p->bx,p->by);Set(cursor++,p->ax,p->az);v=cursor++;Set(v,p->bx,p->bz);

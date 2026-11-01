@@ -52,6 +52,14 @@ SPN CPair_CloneTo(NODE *pn, void *a, void *b);
 SPO CProc_CloneTo(O *po, void *a);
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
+/** @sly2-annot addr=0x129BC8
+ * Purpose: Deep copy: boxes re-allocated, pairs cloned via 0x128CB8, procs via 0x128F70, objects
+ *   re-referenced
+ * Info: proposed name CRef_CloneTo (T1); class CRef; TU ref
+ * Notes: agent qualifier: (returns clone)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 CRef CRef_CloneTo(CRef *pref, void *a, void *b)
 {
     switch (pref->m_tagk) {

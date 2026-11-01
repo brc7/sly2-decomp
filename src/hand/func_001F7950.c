@@ -12,6 +12,13 @@ void func_002333B4(void *, int, int);
 qword func_001A62E8(struct P *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001F7598(struct M *);
+/** @sly2-annot addr=0x1F7950
+ * Purpose: Deferred callback: process contact zaps (vt74) then emit self zap depending on zap mode (+0x148
+ *   bits 24-25)
+ * Info: proposed name SoTouchZapCallback (T2); TU so
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F7950(struct P *p)
 {
     int k;

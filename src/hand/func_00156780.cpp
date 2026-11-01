@@ -16,6 +16,13 @@ public:
     CRefGuard(O *p) : m_p(p) { p->AddRef(); }
     ~CRefGuard() { m_p->Release(); }
 };
+/** @sly2-annot addr=0x156780
+ * Purpose: Notifies listeners (vt 0xF), unlinks the noise from the active list D_003E148C, sends message 3,
+ *   releases
+ * Info: proposed name RemoveNoise (T2); TU noise
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
+ * @end-sly2-annot */
 extern "C" void func_00156780(O *o)
 {
     if (func_00156870(o))

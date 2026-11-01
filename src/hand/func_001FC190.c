@@ -6,6 +6,13 @@ void func_001FAFD0(struct P *);
 void func_001FB658(struct P *, int, int);
 int func_001FD080(struct G *, int);
 void func_001FB018(struct P *);
+/** @sly2-annot addr=0x1FC190
+ * Purpose: STREAMSND ctor: SND ctor, vt D_002D9BE0, stream record + kind, 6 group volumes=1; auto-pause if
+ *   its channel volume is 0 or SNDMGR paused
+ * Info: proposed name STREAMSND_ctor (T1); class STREAMSND; TU sound
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 struct P *func_001FC190(struct P *p, int n, int m)
 {
     int i;

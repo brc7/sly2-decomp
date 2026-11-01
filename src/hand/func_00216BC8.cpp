@@ -33,6 +33,13 @@ extern "C" void func_001DA5C8(SCROLL *,int);
 extern "C" void func_002166B0(RT *,T *,DATA *);
 static inline float Max(float a,float b){return a<b?b:a;}
 
+/** @sly2-annot addr=0x216BC8
+ * Purpose: sprite text: STRINGGEN text (kind 1, 108-entry table D_003E1C88) or langstr (kind 0); subtitle
+ *   (0x2EF) and ticker (0x2F1) special cases
+ * Info: proposed name RenderSpriteText (T1); TU hud
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00216BC8(S *p,T *t,DATA *data,int unused){
     char text[0x400];
     RT rt;

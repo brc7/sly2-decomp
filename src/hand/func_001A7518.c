@@ -19,6 +19,14 @@ void func_00157FA0(void *);
 void func_001D9820(void *);
 void func_001477D8(void *);
 void func_00160A98(void);
+/** @sly2-annot addr=0x1A7518
+ * Purpose: Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame
+ *   loop (see tu_docs/main.md)
+ * Info: proposed name main (T1); TU main
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6+verdicts_A2
+ * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
+ *   docs/engine/main-loop-startup.md#7-source-files, docs/engine/main-loop-startup.md#8-key-functions
+ * @end-sly2-annot */
 void func_001A7518(int a, int b)
 {
     func_0023B7D8();

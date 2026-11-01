@@ -39,6 +39,15 @@ static __inline__ float GClamp(float g, float lo, float hi)
     return r;
 }
 
+/** @sly2-annot addr=0x141640
+ * Purpose: STEPPLAYER vt50 GetCpdefi: base 0x1F58F0, then camera focus height (posBase.z) clamped/smoothed by
+ *   mode (+0x434, state 0x16); uses g_cm.nCut/psoAdjust
+ * Info: proposed name GetStepplayerCpdefi (T1); class STEPPLAYER slot50; TU stepplayer
+ * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#2-the-policy-stack,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void GetStepplayerCpdefi(struct JT *pjt, struct XP *pxp)
 {
     GetSoCpdefi(pjt, pxp);

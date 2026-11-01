@@ -1,6 +1,13 @@
 typedef int qword __attribute__((mode(TI)));
 struct B { qword min; qword max; qword c; float r; };
 struct P { char pad[0xEC]; struct B *pb; };
+/** @sly2-annot addr=0x1F5480
+ * Purpose: Grow tree AABB/radius to include sphere (c,r)
+ * Info: proposed name ExtendSoTreeBounds (T1); TU so
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void ExtendSoTreeBounds(struct P *p, qword c, float r)
 {
     qword rr, lo, hi, d, t, one;

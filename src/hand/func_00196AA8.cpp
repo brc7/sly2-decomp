@@ -57,6 +57,13 @@ typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char U_float_Offset[FIELD_OFFSET(U,f)==0?1:-1];
 typedef char Normal_Count[sizeof(((WORK*)0)->normals)/sizeof(U)==64?1:-1];
 typedef char Normal_Stride[(FIELD_OFFSET(WORK,normals[1])-FIELD_OFFSET(WORK,normals[0]))==16?1:-1];
+/** @sly2-annot addr=0x196AA8
+ * Purpose: Collect up to 64 contact normals (flipped when Sly is not the owner), SolveInequalities and return
+ *   the residual direction used to slide along contacts
+ * Info: proposed name ProjectJtVelocityOnContacts (T2); TU air
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void func_00196AA8(MOVE*p,U*out){
  WORK w;unsigned base=(unsigned)w.normals-16;int count=0;CONTACT*c;GROUP*group=p->actor->collision->groups;
  for(;;){c=group?group->first:p->actor->collision->single;

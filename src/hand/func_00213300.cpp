@@ -30,6 +30,12 @@ static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=Colo
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 static inline Q *Begin(S *p,R *r){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c|=0x30000000;b|=0x30000000;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *pending=0;func_002130C0(p);return pending;}
 static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
+/** @sly2-annot addr=0x213300
+ * Purpose: WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets
+ * Info: proposed name RenderWidget (T1); class WIDGET slot19; TU hud
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00213300(S *p){
     RenderLoSelf(p);
     if(!func_002132D0(p))return;

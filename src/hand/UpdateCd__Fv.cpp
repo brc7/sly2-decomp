@@ -23,6 +23,12 @@ static inline unsigned int UCrc(unsigned char *pb, int cb)
         crc = *(unsigned int *)((char *)tbl + (((crc ^ *pb++) & 0xFF) << 2)) ^ (crc >> 8);
     return crc;
 }
+/** @sly2-annot addr=0x14BA38
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
+ *   docs/engine/overview.md#2-the-frame-loop-exact-order, docs/formats/disc-records.md#2-the-read-path
+ * @end-sly2-annot */
 void UpdateCd(void)
 {
     int cds = D_002BD4C0;

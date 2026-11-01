@@ -5,6 +5,12 @@ extern struct CLOCK D_002DDED0;
 void *func_001F7588(struct P *p, struct Q *q);
 int FCheckButtonObject(struct P *p, int x);
 void SetButtonButtons(struct P *p, int f);
+/** @sly2-annot addr=0x148F20
+ * Purpose: vt75: zap/hit by an allowed object presses the button (by btnt mode)
+ * Info: proposed name FAbsorbButtonWkr (T1); class BUTTON slot75; TU button
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void *FAbsorbButtonWkr(struct P *p, struct Q *q)
 {
     void *r = func_001F7588(p, q);

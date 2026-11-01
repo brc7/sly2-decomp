@@ -5,6 +5,13 @@ void SetTaskStateCascade(void *p, int n);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void EndCurrentJob(struct S *p);
 void func_001ABD98(void *p, int n);
+/** @sly2-annot addr=0x162F60
+ * Purpose: Unless +0x78: set the end task complete (3); event 0x20; EndCurrentJob; unless +0x78 autosave
+ *   (AutoSaveGame 0x1ABD98)
+ * Info: proposed name FinishJob (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void FinishJob(struct S *p)
 {
     if (!p->f78)

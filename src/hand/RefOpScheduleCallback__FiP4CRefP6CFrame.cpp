@@ -48,4 +48,11 @@ struct SPN {
     NODE *operator->() { return p; }
 };
 extern "C" CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref);
+/** @sly2-annot addr=0x123BD8
+ * Purpose: Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32
+ *   handle
+ * Info: proposed name RefOpScheduleCallback (T1); TU bif
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)aref[1].u.pv; NODE *pnNew = func_00256B48(); sp.Set(pnNew); sp->ref = func_00256B48(); NODE *pn = sp->ref.u.pnode; pn->ref = pobj; if (c >= 3) { NODE *pnT = pn; for (NODE *pw = aref[2].u.pnode; pw; pw = pw->pnext.p) { pnT->SetNext(func_00256B48()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = func_00256B48(); NODE *pc = pref->u.pnode; pc->ref.SetTag(0x12); pc->SetNext(func_00256B48()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(aref).u.g); res = pr->n; return res; }

@@ -7,6 +7,16 @@ void *func_001AE4F8(int cb);
 void *POCTL_ctor(void *pv, struct LO *p);
 void SwitchToPo(struct G *pg, struct LO *plo);
 void SetPoctlState(void *pv, int n);
+/** @sly2-annot addr=0x1C3ED8
+ * Purpose: PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16)
+ *   and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)),
+ *   0/-1 drop it; then POCTL::SetState
+ * Info: proposed name SetPoCtlState (T1); class PO slot79; TU po
+ * Notes: names_v2 B proposed DestroyedRobRoc__FP3ROBP3ROC (0.856)
+ * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50,
+ *   docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
+ * @end-sly2-annot */
 void SetPoCtlState(struct LO *p, int n)
 {
     if (n == GetPoCtlState(p)) return;

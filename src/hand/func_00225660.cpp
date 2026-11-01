@@ -48,6 +48,13 @@ static inline qword LoadCoefficient(){
     return scalar;
 }
 struct Vec {qword q;Vec(const qword &v):q(v){}operator qword()const{return q;}};
+/** @sly2-annot addr=0x225660
+ * Purpose: change selection state and prepare nearest eligible actor
+ * Info: proposed name SenseCid102 (T2); class CID102 slot76; TU tu_223F70
+ * Notes: names_v2 C proposed SenseCamsen__FP6CAMSENP7SENSORS (0.438) | agent qualifier: select nearest actor
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 extern "C" void func_00225660(struct P *p, int k)
 {
     if (k == p->k)

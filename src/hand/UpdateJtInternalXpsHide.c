@@ -32,6 +32,20 @@ static __inline__ float Dot2(qword a, qword b)
     __asm__("qmfc2.ni %0,%2\n\tmtc1 %0,%1":"=&r"(bits),"=f"(r):"j"(d));
     return r;
 }
+/** @sly2-annot addr=0x193DE8
+ * Purpose: Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge ->
+ *   constraint along curve from velocity
+ * Info: proposed name UpdateJtInternalXpsHide (T1); TU grab
+ * Notes: names_v2 A proposed UpdateJtInternalXpsHide__FP2JT (0.995) [verified CORRECT] | CONFLICT: verified
+ *   tier-A name differs from TU name; orchestrator: verified name UpdateJtInternalXpsHide__FP2JT restored
+ *   over AddJtGrabXps (verified > unverified) | arbitration adopt verified: Verifier matched Sly1 body; arg
+ *   is the hide substate (reads +0x8 first), keep unmangled.
+ * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
+ *   sources: r4b_rest+verdicts_A2;verified_A+arbitration
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void UpdateJtInternalXpsHide(struct S *p)
 {
     switch (p->x8) {

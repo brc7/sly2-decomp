@@ -7,6 +7,14 @@ int func_001F78A0(void *p);
 void StartBhvhit(struct S *p);
 void BroadcastGameEvent(void *g, int n, void *p);
 void SetDetectorTargetStateById(void *p, int a, int b);
+/** @sly2-annot addr=0x1796D0
+ * Purpose: BHVHURT Start: reaction entry from table +0xA70 by zap kind, BHVHIT Start, broadcast game event
+ *   0x15, mark detector target
+ * Info: proposed name StartBhv161 (T2); class BHV161 slot8; TU guardbhv
+ * Notes: BHV class word normalised: StartBhvhurt -> StartBhv161
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_001796D0(struct S *p) {
     p->p40 = &p->pt->ae[func_001F78A0(p->p5C)];
     if (p->p40->n == -1) p->p40 = 0;

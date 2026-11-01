@@ -24,6 +24,13 @@ qword SetVectorSphere(float a, float b, float c);
 void func_0014D8C0(struct G *pg);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x221A18
+ * Purpose: base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8)
+ * Info: proposed name ActivateCptn (T1); TU tn
+ * Notes: agent qualifier: CPTN vt slot2
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 void func_00221A18(struct S *p, void *pj, struct T *pt)
 {
     struct { qword a[5]; } q0;

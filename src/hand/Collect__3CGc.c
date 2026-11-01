@@ -59,6 +59,13 @@ static inline ENV *PtrEnv(unsigned idx, unsigned pg)
 }
 static inline ENV *NextEnv(ENV *p) { return PtrEnv(p->next, p->nextpg); }
 
+/** @sly2-annot addr=0x1286E0
+ * Purpose: Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots
+ *   (frames/sidebags/stack), MarkLiveObjects, FreeGarbage on all heaps
+ * Info: proposed name CGc_Collect (T1); class CGc; TU gc
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
+ * @end-sly2-annot */
 void Collect__3CGc(GC *pgc)
 {
     CTX ctx;

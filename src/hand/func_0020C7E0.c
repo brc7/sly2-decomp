@@ -11,6 +11,13 @@ extern char D_003DD490[];
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,void *);
 struct C *func_0012FF10(struct O *,void *,int,int);
 
+/** @sly2-annot addr=0x20C7E0
+ * Purpose: 4 directional ASEGs: root velocity and speed
+ * Info: proposed name InitDirAnims (T2); TU tu_20B840
+ * Notes: T2 forced: verifier: coined class word without descriptor
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 void func_0020C7E0(struct S *p,void *arg)
 {
     struct E *e; unsigned int i;

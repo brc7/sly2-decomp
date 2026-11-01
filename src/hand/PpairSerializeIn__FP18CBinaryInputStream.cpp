@@ -56,6 +56,18 @@ struct SPN {
     NODE *operator->() { return p; }
 };
 extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
+/** @sly2-annot addr=0x12A3D8
+ * Purpose: Deserializes a compiled Splice expression tree from the level stream (typed U8 tag,
+ *   S32/S16/F32/U32 payloads, jump table 0x2A4500)
+ * Info: proposed name PpairSerializeIn (T1); TU serialize
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels;
+ *   splice Ref node list (WE header) | splice_scripts format doc cites this function by this name
+ *   (CONFIRMED(code) in the doc)
+ * Confidence: high [T1 0.97] - evidence: static analysis; sources:
+ *   r1_116918+parse-verified+format-doc:splice_scripts
+ * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
+ *   docs/engine/splice-scripting.md#6-source-files, docs/engine/splice-scripting.md#7-key-functions
+ * @end-sly2-annot */
 SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = func_00117BD0(pbis);
  if (b == 0xFF) return SPN(0);
  SPN sp; NODE *pnNew = func_00256B48(); sp.Set(pnNew);

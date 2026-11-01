@@ -11,6 +11,12 @@ extern G D_003DD490;
 extern "C" void *func_001AE378(ALLOCREQ *preq);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void VisitTaskTopo(X *px, int *pc, void *pv, int a, int b);
+/** @sly2-annot addr=0x165C98
+ * Purpose: Returns all TASKs in prerequisite order (VisitTaskTopo from every root)
+ * Info: proposed name SortTasksTopologically (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void SortTasksTopologically(int *pc, void **ppv)
 {
     ALLOCREQ req;

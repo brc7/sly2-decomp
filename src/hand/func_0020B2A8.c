@@ -6,6 +6,12 @@ qword func_001A62E8(void *p);
 void FindShapeClosestPoint(struct A *pa, qword q, int a, int b, int c, int d, int *pn);
 void func_00204F78(struct S *p, struct A *pa, int n);
 
+/** @sly2-annot addr=0x20B2A8
+ * Purpose: Attach to object by class: CID11 pipe?, CID13 rail?, CID19 (k124==3), CID39 -> +0xF80 kind 0..3
+ * Info: proposed name AttachStepguard (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020B2A8(struct S *p, struct A *pa, int n)
 {
     p->pF84 = pa;

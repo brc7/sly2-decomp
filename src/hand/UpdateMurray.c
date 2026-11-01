@@ -103,6 +103,14 @@ typedef char Size_7[sizeof(unsigned long)==8?1:-1];
 typedef char Size_8[sizeof(float)==4?1:-1];
 typedef char Size_9[sizeof(int)==4?1:-1];
 typedef char Size_10[sizeof(void*)==4?1:-1];
+/** @sly2-annot addr=0x1B50B0
+ * Purpose: MURRAY vt16 Update: STEPPLAYER Update, gather grab candidates (0x194A40 g_sw,p,0xF8FA), state
+ *   machine, per-state locomotion (blends x1320/x1540 driven by stick), root-motion velocities, ground
+ *   effects, clears recently-thrown object p1430 once bounding boxes separate
+ * Info: proposed name UpdateMurray (T1); class MURRAY slot16; TU murray
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void UpdateMurray(struct P *p)
 {
     UpdateStepplayer(p);

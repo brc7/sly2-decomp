@@ -15,6 +15,15 @@ int func_001E3890(P *p, E *pe);
 void func_001E5628(P *p);
 void func_001E1C40(P *p);
 }
+/** @sly2-annot addr=0x1E1C40
+ * Purpose: Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while
+ *   the current command is fAsync or complete (FIsJsgCommandComplete); release JT if done; remove the JSG
+ *   past the block end
+ * Info: proposed name UpdateJsg (T1); TU relay
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#5-key-functions,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E1C40(P *p)
 {
     LOCK lock(p);

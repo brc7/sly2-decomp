@@ -61,6 +61,12 @@ static inline void BasisArguments(qword normal,struct B*destination,qword*argume
      :"=&r"(value),"=r"(output):"j"(normal),"p"(destination));
  *argument=value;*receiver=output;
 }
+/** @sly2-annot addr=0x1D0EB8
+ * Purpose: RIPT 0 Project: wobble + base ProjectRipTransform
+ * Info: proposed name ProjectBubletTransform (T2); TU rip
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D0EB8(struct S*p) {
     int near=0,choose=0;
     float roll;

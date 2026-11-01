@@ -8,6 +8,15 @@ void func_00117F70(void *pbis, VECTOR *pv);
 int func_00117DB8(void *pbis);
 void *func_001AE1D0(struct A *pa);
 void *func_001AE2A0(struct A *pa);
+/** @sly2-annot addr=0x1C0F30
+ * Purpose: Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids
+ * Info: proposed name LoadZoneBspFromBrx (T1); TU path
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
+ *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void LoadZoneBspFromBrx(struct S *p, int c, void *pbis)
 {
     struct A a;

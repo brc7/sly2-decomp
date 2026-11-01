@@ -20,6 +20,14 @@ static inline qword AddScale(qword a, qword b, const VUF &t)
     return a;
 }
 class FRAME { public: FRAME() { func_001AE478(this); } ~FRAME() { func_001AE4A0(this, 2); } };
+/** @sly2-annot addr=0x158E20
+ * Purpose: Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps
+ *   both to maxima g1/g2
+ * Info: proposed name ApplyDzg (T1); TU dzg
+ * Notes: names_v2 C proposed SolveInequalities__FiPfN21 (0.638)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
+ * @end-sly2-annot */
 void ApplyDzg(S *p, float g1, float g2)
 {
     FRAME frame;

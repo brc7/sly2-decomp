@@ -14,6 +14,14 @@ void *func_001AE318(struct AREQ *preq);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int n, int k);
 int func_001A93C8(qword q, struct S *ps, int n, int a, int b, int c, float g, struct HIT *phit);
 void func_0013B7B8(struct P *p, int *pn, struct O **apo);
+/** @sly2-annot addr=0x13B5E8
+ * Purpose: Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered
+ *   by line of sight, sorted/uniqued
+ * Info: proposed name CollectBombVictims (T2); TU bomb
+ * Notes: names_v2 C proposed LoadAloAloxFromBrx__FP3ALOP18CBinaryInputStream (0.168)
+ * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void func_0013B5E8(struct P *p, int *pc, struct O ***papo)
 {
     struct AREQ req;

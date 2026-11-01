@@ -4,6 +4,12 @@ struct S { char pad[0xE4]; int xe4; };
 struct V { float a[4]; };
 void FindShapeClosestPoint(struct S *p, qword q, int a, struct V *pv, int b, int c, float *pg);
 float SMaxShape(struct S *p);
+/** @sly2-annot addr=0x183040
+ * Purpose: FindShapeClosestPoint to the player, clamp to [30, sMax-30] if open
+ * Info: proposed name GetCid12ClosestParam (T2); class CID12; TU grabspot
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00183040(struct S *p, struct T *t, float *pg)
 {
     struct V v;

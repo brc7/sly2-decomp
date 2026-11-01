@@ -23,6 +23,13 @@ static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return Sqrt(SumXY(a)); }
 static inline float LengthXY(VU_VECTOR a) { return GetX(LengthXYV(a)); }
 static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b); }
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
+/** @sly2-annot addr=0x173D18
+ * Purpose: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough
+ * Info: proposed name UpdateCid119Entries (T2); class CID119; TU tu_173158
+ * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
+ * @end-sly2-annot */
 extern "C" void func_00173D18(struct S *p, qword pos) {
     int i;
     for (i = 0; i < p->c; i++) {

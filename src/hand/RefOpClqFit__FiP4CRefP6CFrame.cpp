@@ -14,6 +14,13 @@ CRef CRef_RefCoerceF32(CRef *pref);
 void func_0011D8D8(void *pv, float a, float b, float c, float d);
 CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
+/** @sly2-annot addr=0x123498
+ * Purpose: Splice builtin "clq-fit": FitClq
+ * Info: proposed name RefOpClqFit (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     CRef ref(0x1C);

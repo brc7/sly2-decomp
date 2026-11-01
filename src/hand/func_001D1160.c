@@ -13,6 +13,12 @@ typedef struct {
     float xF8;
 } OBJ;
 void func_001CF268(OBJ *);
+/** @sly2-annot addr=0x1D1160
+ * Purpose: REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target
+ * Info: proposed name UpdateRemit (T1); TU rip
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D1160(OBJ *p)
 {
     func_001CF268(p);

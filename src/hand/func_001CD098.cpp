@@ -60,6 +60,14 @@ void func_001CD098(S *p, LO *po);
 }
 MAT4 ConvertAloMat4(int n, LO *po, MAT4 *pm);
 MAT4 InvertMatrix4Rigid(MAT4 m);
+/** @sly2-annot addr=0x1CD098
+ * Purpose: Attach held object to the hand: constraints (SetSoCnstrForce/Torque), XF from matrix, acts,
+ *   FadeSoIn
+ * Info: proposed name AttachJtHandsObject (T2); TU jthands
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
+ * @end-sly2-annot */
 void func_001CD098(S *p, LO *po)
 {
     MAT4 buf;

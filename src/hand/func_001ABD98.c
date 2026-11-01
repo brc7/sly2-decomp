@@ -13,6 +13,15 @@ void func_00129EC8(struct CRef *);
 void func_001ACB58(struct H *h, int n);
 void func_001ABCE8(struct S *s);
 void func_001ADE38(void *p);
+/** @sly2-annot addr=0x1ABD98
+ * Purpose: If a slot is current and not in transition: eval Splice flag; if card missing show UI state 0x22
+ *   else start save job
+ * Info: proposed name AutoSaveGame (T2); TU memcard
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001ABD98(struct S *s, int force)
 {
     struct G *g;

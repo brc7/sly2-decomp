@@ -29,6 +29,16 @@ void func_001F1CF8(struct S *p);
 struct O *func_00205438(struct S *p, int n);
 void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
 
+/** @sly2-annot addr=0x206518
+ * Purpose: STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and
+ *   flags, re-cache home pos/heading (+0x300/+0x310), capability bits +0xFE8 from anim bindings for flags
+ *   9/8/0xF/0x11, add the 4 player characters as detector targets, roll loot, push root behaviour BHV156 (cid
+ *   0x9C)
+ * Info: proposed name ResetStepguardToHome (T1); class STEPGUARD slot26; TU stepguard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void ResetStepguardToHome(struct S *p)
 {
     struct O *o;

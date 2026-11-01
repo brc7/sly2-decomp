@@ -12,6 +12,13 @@ static __inline__ float GClamp(float g, float lo, float hi)
     if (g > hi) return hi;
     return g;
 }
+/** @sly2-annot addr=0x18F560
+ * Purpose: ChooseJtAttackTarget(grf 2, dt 0.15, drad 3.15 if jts==0 else 1.6), blend u=clamp((z+50)/110) into
+ *   the two sweep BLs, reblend, face the target when standing
+ * Info: proposed name ChooseJtSweepTarget (T1); TU cane
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
+ * @end-sly2-annot */
 void ChooseJtSweepTarget(struct S *p, VEC *pvOut, void *pv)
 {
     VEC v;

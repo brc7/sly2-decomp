@@ -17,6 +17,13 @@ void ShowSoPartsById(P *p, int v);
 void func_001F6B48(P *p, int v);
 
 enum { EVENT_SHIFT = 4 };
+/** @sly2-annot addr=0x1BAF18
+ * Purpose: Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and
+ *   target stage
+ * Info: proposed name SetCid98Stage (T2); class CID98; TU tu_1BAB50
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 void func_001BAF18(P *p, int id)
 {
     int iTarget = p->current;

@@ -19,6 +19,12 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r {
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[1]));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[2]));
 }
+/** @sly2-annot addr=0x1D0630
+ * Purpose: SMACK Render
+ * Info: proposed name RenderSmack (T1); TU rip
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D0630(S *p) {
  M3 camera,fade,spin,render;
  U axis;float angle;

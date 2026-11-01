@@ -10,6 +10,15 @@ void *PvAllocSlotheapClear(POOL *);
 void func_0011CD98(POOL *, void *);
 N *func_002553E0(N *);
 
+/** @sly2-annot addr=0x257340
+ * Purpose: allocate Binding node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
+ *   linkonce (inline/template)]
+ * Info: proposed name PvNewBinding (T1); TU game_linkonce
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138,
+ *   docs/reference/functions/splice-scripting.md#varb-0x12b0e8-0x12b3b0
+ * @end-sly2-annot */
 N *func_00257340(void)
 {
     N *p;

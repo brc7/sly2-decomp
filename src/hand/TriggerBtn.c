@@ -5,6 +5,12 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *p, void *q);
 void RunBtnAsegs(struct P *p, int n);
 void SetBtnButtons(struct P *p, int n);
+/** @sly2-annot addr=0x1487A0
+ * Purpose: Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers
+ * Info: proposed name TriggerBtn (T1); TU button
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void TriggerBtn(struct P *p)
 {
     struct O *o = p->po;

@@ -11,6 +11,16 @@ int FStepguardHasSgf(struct O *o, int n);
 void StartAnimBinding(struct E *e, struct O *o, int n, float g);
 void StopAnimBinding(struct E *e);
 void ClearBhvBusy(struct S *p);
+/** @sly2-annot addr=0x1749C0
+ * Purpose: BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when
+ *   flag 9), 1 = ClearBhvBusy, save walk phase, StopAnimBinding, release mover
+ * Info: proposed name SetBhvanimState (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVANIM role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void SetBhvanimState(struct S *p, int n) {
     if (p->n30 == n) return;
     p->n30 = n;

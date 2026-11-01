@@ -27,6 +27,16 @@ void func_001FB018(void *);
 void func_001FB098(void *, float);
 void func_001D4B28(OBJ *, int);
 void SetSmaGoalIfReachable(void *, int);
+/** @sly2-annot addr=0x1D4940
+ * Purpose: Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5);
+ *   drives body SMA goal from D_002C2208[state]
+ * Info: proposed name SetRobottankState (T1); TU tu_1D1370
+ * Notes: names_v2 v1 proposed ProjectMatchTransform__FP5MATCHf (0.042) | class identity from whole_game WE
+ *   names/object strings: SetRcCarState -> SetRobottankState
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void SetRobottankState(OBJ *p, int n)
 {
     W *pw;

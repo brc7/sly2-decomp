@@ -4,6 +4,12 @@ struct P { char pad[0x20]; void *p20; void *p24; };
 struct R *func_001F8910(struct P *, int, int, int);
 void SetActPositionGoal(struct R *, qword);
 void func_0012DC18(void *, void *, int, int, int, qword);
+/** @sly2-annot addr=0x1F89E0
+ * Purpose: Update/create kind-1 actuator with value n,m,q
+ * Info: proposed name SetXfhActuator1 (T2); TU so
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F89E0(struct P *p, int n, int m, qword q)
 {
     struct R *r = func_001F8910(p, 1, n, m);

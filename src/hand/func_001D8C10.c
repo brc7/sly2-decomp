@@ -10,6 +10,13 @@ void func_001AE4A0(FRAME *, int);
 void func_00129EC8(CREF *);
 void func_001D87C0(void *p, va_list ap, LIST *pv);
 int func_001D7E80(void *, LIST *, void *);
+/** @sly2-annot addr=0x1D8C10
+ * Purpose: Varargs: address of a named save var inside g_gs
+ * Info: proposed name PvSaveVarV (T1); TU save
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 int func_001D8C10(void *p, ...)
 {
     CREF ref;

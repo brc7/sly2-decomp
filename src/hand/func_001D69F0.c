@@ -8,6 +8,12 @@ static inline qword Bc(float g) {
     u.q=k;
     return k;
 }
+/** @sly2-annot addr=0x1D69F0
+ * Purpose: Velocity that moves a->b in dt under vertical acceleration acc
+ * Info: proposed name VecToReachPosInDt (T2); TU tu_1D6848
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
+ * @end-sly2-annot */
 qword func_001D69F0(qword a, qword b, qword acc, float dt)
 {
     float halfdt = dt * 0.5f;

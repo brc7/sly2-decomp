@@ -129,6 +129,12 @@ static inline float LenXYFN(qword v, int n)
     return f;
 }
 
+/** @sly2-annot addr=0x22A220
+ * Purpose: camera->source curtain query vs BSPs, stores max slope dz
+ * Info: proposed name CalculateWayptCurtainDz (T2); TU waypoint
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/game-progression.md#waypoint-0x229ef0-0x22b040
+ * @end-sly2-annot */
 extern "C" void func_0022A220(O *po)
 {
     UQ corner[4];

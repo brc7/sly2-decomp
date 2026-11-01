@@ -27,6 +27,14 @@ int *func_00156698(int n, qword pos, void *pv);
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 extern "C" void *FrameInit(FRAME *); extern "C" void FrameFree(FRAME *, int);
 
+/** @sly2-annot addr=0x13B860
+ * Purpose: If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode
+ *   effects, reclaim or remove
+ * Info: proposed name DetonateBomb (T1); TU bomb
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 extern "C" void DetonateBomb(P *p)
 {
     if (((p->ul28 >> 60) & 1) == 0)

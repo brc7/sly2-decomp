@@ -14,6 +14,17 @@ void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
 void func_0011A070(void *, struct O *po);
 void func_00214398(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
 void func_00214460(struct S *p, void *pbis, struct S *p2);
+/** @sly2-annot addr=0x212298
+ * Purpose: WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width,
+ *   height, fFont; immediate or deferred sprite load
+ * Info: proposed name LoadWidgetFromBrx (T1); class WIDGET slot14; TU hud
+ * Notes: names_v2 v1 proposed UpdateCtr__FP3CTR (0.007) | level_parser CONFIRMED-parse: payload layout
+ *   followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.90] - evidence: static naming pass; sources: r7c_hud+parse-verified
+ * See: docs/engine/hud-ui.md#5-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00212298(struct S *p, void *pbis)
 {
     int f;

@@ -1,4 +1,10 @@
 typedef int qword __attribute__((mode(TI)));
+/** @sly2-annot addr=0x1AE528
+ * Purpose: Quadword copy (remainder then 4x unrolled)
+ * Info: proposed name CopyAqw__FPvT0i (EXISTING); TU memory
+ * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
+ * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
+ * @end-sly2-annot */
 void CopyAqw(void *pvDst, void *pvSrc, int cqw)
 {
     qword *pqwdst = (qword *)pvDst;

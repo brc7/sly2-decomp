@@ -25,6 +25,12 @@ static inline float GMax(float a, float b) { return a > b ? a : b; }
 static inline float GFromClq(CLQ *pclq, float g) { return pclq->g + g * (pclq->gFirst + g * pclq->gSecond); }
 static inline float GClamp(float g, float lo, float hi) { if (g < lo) g = lo; else if (g > hi) g = hi; return g; }
 extern "C" float func_0019F7D0(S *p, Q *q, int n, LO2 **apo);
+/** @sly2-annot addr=0x19F7D0
+ * Purpose: Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects
+ * Info: proposed name ScoreJtPlace (T2); TU places
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 float func_0019F7D0(S *p, Q *q, int n, LO2 **apo)
 {
     float g = 0.0f;

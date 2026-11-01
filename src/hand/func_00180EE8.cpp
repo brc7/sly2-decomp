@@ -12,6 +12,15 @@ extern "C" void AddSoAcceleration(struct O *p, qword v);
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 extern "C" void func_00180EE8(struct O *p);
+/** @sly2-annot addr=0x180EE8
+ * Purpose: vt70 override
+ * Info: proposed name PresetHackenemyAccel (T2); class HACKENEMY slot70; TU tu_17F090
+ * Notes: names_v2 C proposed RebindStepguardEnemy__FP9STEPGUARD (0.638) | CID49->CID73 (CID 0x49=73, vtable)
+ *   | class identity from whole_game WE names/object strings: PresetCid73Accel -> PresetHackenemyAccel
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00180EE8(struct O *p)
 {
     if (p->n1C0 != 4) {

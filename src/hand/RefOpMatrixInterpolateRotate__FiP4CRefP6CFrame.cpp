@@ -34,6 +34,12 @@ static inline M3 MulM3(const M3 &a, M3 *pb) return m
     m.r[2] = r2; t.r[2] = r2;
 }
 extern "C" CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref);
+/** @sly2-annot addr=0x122F00
+ * Purpose: Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500)
+ * Info: proposed name RefOpMatrixInterpolateRotate (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref)
 {
     M3 mat = MulMatrix3Matrix3((M3 *)aref[0].u.pv, (M3 *)aref[1].u.pv);

@@ -1,4 +1,10 @@
 struct S { char pad[0xFC]; int fl; };
+/** @sly2-annot addr=0x184040
+ * Purpose: Map player class to mask: STEPPLAYER 0x34 -> 7, JT 0x35
+ * Info: proposed name SetGrabspotPlayerClass (T2); TU grabspot
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00184040(struct S *p, int n)
 {
     switch (n) {

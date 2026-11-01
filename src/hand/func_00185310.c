@@ -9,6 +9,13 @@ typedef struct WORK{M4 matrix;TRIREF candidate;TRIREF best __attribute__((aligne
 extern float D_002A5684;
 extern void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __asm__("vf1"),one __asm__("vf2"),r __asm__("vf1");__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"j"(d));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(d));return r;}
+/** @sly2-annot addr=0x185310
+ * Purpose: Closest point/normal/triangle on the object's triangle mesh to a point (world matrix via vt31)
+ * Info: proposed name FindMeshClosestPoint (T2); TU tu_185130
+ * Notes: names_v2 C proposed MoveStepguardToGoal__FP9STEPGUARD (0.438)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
+ * @end-sly2-annot */
 void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  VTE*entry=&mesh->vt[31];

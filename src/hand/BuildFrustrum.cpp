@@ -39,6 +39,11 @@ static inline qword Normalize1(qword v)
     return r;
 }
 
+/** @sly2-annot addr=0x14DA08
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/camera.md#2-the-policy-stack, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal)
 {
     anormal[0] = Cross(pmat->r[2], Normalize1(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(gx))));

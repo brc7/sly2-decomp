@@ -15,6 +15,15 @@ extern float D_002BF4AC;
 extern char D_002BF4B0[];
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x18EE38
+ * Purpose: Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1
+ *   points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground;
+ *   +1 alternates fore/back
+ * Info: proposed name JtcsChooseJtAttack (T2); TU cane
+ * Notes: names_v2 C proposed PostAloLoad__FP3ALO (0.438)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
+ * @end-sly2-annot */
 int func_0018EE38(struct O *p)
 {
     int n;

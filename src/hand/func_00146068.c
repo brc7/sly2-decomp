@@ -10,6 +10,12 @@ float func_002458F0(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x146068
+ * Purpose: BHV195 slot 14: drive toward target (slow in state 0)
+ * Info: proposed name Bhv195_VUnk14 (T2); class BHV195 slot14; TU tu_144B28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_00146068(struct P *p, struct Q *q)
 {
     func_001EF0C0(p, q);

@@ -42,6 +42,13 @@ typedef char O_PrefixSize[sizeof(struct O)==236?1:-1];
 typedef char X_PrefixSize[sizeof(struct X)==388?1:-1];
 typedef char ANIM_PrefixSize[sizeof(struct ANIM)==68?1:-1];
 typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
+/** @sly2-annot addr=0x1B7700
+ * Purpose: Compute start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 ballistic solve
+ *   (CSolveQuadratic) so the object reaches the hands at the grab event time
+ * Info: proposed name CalcMurrayLiftLaunch (T2); TU murray
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
  struct P*owner=CaptureActor(p);
  U roots;U u;U start;

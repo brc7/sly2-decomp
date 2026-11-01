@@ -6,6 +6,14 @@ struct P { char pad[0x50]; struct L *pl; char pad1[0x74 - 0x54]; float g74; char
     char pad3[0xC0 - 0xA8]; int cbC0; int cC4; char *pC8; int cCC; struct E *aD0; int xD4; struct P *pD8; };
 void SetAsegblDominantBl(struct P *p, int i);
 void func_001380F0(struct P *p, int a, int b, int c, float *pg);
+/** @sly2-annot addr=0x1384C0
+ * Purpose: Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc),
+ *   rescale times; mirror times from a linked asegbl (+0xD8)
+ * Info: proposed name ReblendAsegbl (T1); TU blend
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verdicts_followups
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
+ * @end-sly2-annot */
 void func_001384C0(struct P *p)
 {
     int unused[4];

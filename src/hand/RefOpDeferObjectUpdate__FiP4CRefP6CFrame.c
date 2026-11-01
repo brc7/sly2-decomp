@@ -4,6 +4,12 @@ void InitTag__4CRef(CRef *pref, int tagk);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 extern float D_002DDED0;
+/** @sly2-annot addr=0x123E18
+ * Purpose: Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt
+ * Info: proposed name RefOpDeferObjectUpdate (T1); TU bif
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

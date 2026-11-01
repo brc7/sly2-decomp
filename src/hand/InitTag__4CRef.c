@@ -11,6 +11,14 @@ extern SLOTHEAP D_004521B8;
 extern SLOTHEAP D_004521D0;
 extern SLOTHEAP D_004521E8;
 void *PvAllocSlotheapClear(SLOTHEAP *psh);
+/** @sly2-annot addr=0x12A0B0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name SetTag__4CRef4TAGK (EXISTING); TU ref
+ * Notes: RENAME proposed -> SetTag__4CRef4TAGK (existing_name_changes.csv)
+ * Confidence: name high [EXISTING 0.65]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
+ *   symbol_addrs.txt
+ * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 void InitTag__4CRef(CRef *pref, int tagk)
 {
     pref->m_tagk = tagk;

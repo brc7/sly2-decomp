@@ -4,6 +4,15 @@ extern char D_003DD490[], D_002DEB30[];
 void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
 void ApplyTaskStates(void *g, int a, int *pb, struct S *p);
 void func_001DFD58(void *p, int n);
+/** @sly2-annot addr=0x184130
+ * Purpose: Set state x10C, send message 6, TriggerRsmg, ApplyTaskStates, FireRelay
+ * Info: proposed name TriggerCid35 (T2); class CID35 slot51; TU grabspot
+ * Notes: runtime6 O1: CID35 spot -> ApplyTaskStates(task, 4) | T2: placeholder token Cid35
+ * Confidence: low (draft) [T2 0.45] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/engine/game-progression.md#worked-example-job-m1_sat-s57-s62-cruntime,
+ *   docs/engine/player.md#9-grabbable-world-objects,
+ *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00184130(struct S *p, int n)
 {
     struct VTE *e;

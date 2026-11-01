@@ -7,6 +7,11 @@ extern "C" int func_0020D660(OSTRM *postrm, char *pb, int cb);
 int CchParsePchzTft(char *pchz, TFT *ptft, char **ppv);
 void WriteTft(TFT *ptft, OSTRM *postrm, char **ppv, char *pchz, int cch);
 
+/** @sly2-annot addr=0x21EAC8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 int CchOstrmPrintf(OSTRM *postrm, char *pchzFormat, char *pv)
 {
     TFT tft;

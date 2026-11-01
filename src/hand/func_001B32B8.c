@@ -2,6 +2,12 @@ struct S { int state; char pad[0x4C]; char x50[0x20]; int x70; int x74; int x78;
 int func_0013D6A8(void *a, int b, void *c);
 void func_00232F88(int a, int b, int c, int d, int e);
 void func_001B2EB8(void *p);
+/** @sly2-annot addr=0x1B32B8
+ * Purpose: drain byte queue to IOP per state
+ * Info: proposed name CMpegAudio_Update (T1); class CMpegAudio; TU mpeg
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B32B8(struct S *p)
 {
     switch (p->state) {

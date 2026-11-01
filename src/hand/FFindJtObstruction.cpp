@@ -20,6 +20,13 @@ static inline float Dist(qword a, qword b)
     return r;
 }
 extern "C" int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
+/** @sly2-annot addr=0x19AE00
+ * Purpose: Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment);
+ *   return hit point
+ * Info: proposed name FFindJtObstruction (T1); TU air
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
 {
     struct V { float x, y, z; } __attribute__((aligned(16))) pos;

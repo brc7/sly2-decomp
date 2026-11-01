@@ -41,6 +41,17 @@ struct SPN {
 extern "C" CRef RefOpShuffle(void *pbasic, CRef *aref);
 static inline void SetSpn(SPN *psp, NODE *pn) { *psp = pn; }
 static inline void InsertAfter(SPM *psp, SPN &sp) { sp->pnext = psp->p; *psp = sp.p; }
+/** @sly2-annot addr=0x120FB0
+ * Purpose: Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element
+ *   changes; Nil entry pins tail
+ * Info: proposed name RefOpShuffle (T1); TU bif
+ * Notes: splice builtin 41 shuffle~ -> shuffle~ (0.75): Body: Fisher-Yates over list elements with
+ *   NRandInRange, forces a different first element, keeps a nil marker position. Scripts reshuffle dialog
+ *   line lists befo
+ * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r1_116918+top50_round(splice
+ *   builtin 41)
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpShuffle(void *pbasic, CRef *aref)
 {
     if (aref[0].m_tagk == 0) return CRef(0);

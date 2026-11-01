@@ -51,6 +51,12 @@ extern "C" int FTaskPrereqsMet(X *p);
 extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void ActivateTask(X *p);
 extern "C" void DeactivateTask(X *p);
+/** @sly2-annot addr=0x164858
+ * Purpose: Unvalidated counterpart of RequestTaskState
+ * Info: proposed name ForceTaskState (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void ForceTaskState(X *p, int n, int nF8)
 {
     CSave save(p, p->fF4, nF8);

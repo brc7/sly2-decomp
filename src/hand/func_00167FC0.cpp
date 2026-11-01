@@ -8,6 +8,18 @@ extern "C" void func_00160918(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void func_001AE5A0(void *pvDst, void *pvSrc, unsigned int cb);
 static inline int Min(int a, int b) { return a < b ? a : b; }
+/** @sly2-annot addr=0x167FC0
+ * Purpose: Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE
+ *   0x32 OFFSET 0, upload up to 256 lights x 3 qw
+ * Info: proposed name BeginRpRelight (T1); TU glob
+ * Notes: verifier: purpose partly wrong: No name proposed. Pass-table entry 4 begin: VU1 code + UNPACK of up
+ *   to 256 objects' 0x30-byte matrices. Wrong detail: 0x505 is the grffso; class arg is cid 4 = | no usable
+ *   identifier; purpose only
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources:
+ *   r3_1539A8+verdicts_tu_r3r5+rendering
+ * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 extern "C" void func_00167FC0(VIFS *pvifs)
 {
     X *apx[0x180];

@@ -43,6 +43,14 @@ static __inline__ int Dot(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(r));
     return g;
 }
+/** @sly2-annot addr=0x158728
+ * Purpose: Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO
+ *   relative vectors and the dot products against existing rows
+ * Info: proposed name FillDzgDz (T1); TU dzg
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3b_rest+verdicts_A1
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
+ * @end-sly2-annot */
 void FillDzgDz(DZG *pdzg, int a, DZ *pdz, X *px)
 {
     int i;

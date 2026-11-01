@@ -5,6 +5,13 @@ struct S { char pad[0x4564]; char *x4564; };
 void func_002564B8(void *p);
 struct BS { int a[8]; };
 static __inline__ void SetBit(int *a, int bit) { int *pw = &a[bit / 32]; *pw |= 1 << bit; }
+/** @sly2-annot addr=0x1A3B80
+ * Purpose: Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf
+ *   masks
+ * Info: proposed name InsertLightInTree (T2); TU light
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 void func_001A3B80(struct S *s, struct N *n, qword pos, float r, int bit)
 {
     U d, one;

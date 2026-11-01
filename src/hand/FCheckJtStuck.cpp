@@ -57,6 +57,15 @@ typedef char P_Size[sizeof(P)==524?1:-1];
 typedef char WORK_request_Offset[FIELD_OFFSET(WORK,request)==0?1:-1];
 typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
 typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
+/** @sly2-annot addr=0x19A098
+ * Purpose: Return true if Sly is wedged: at most once per second and >=1 s after state change, solve contact
+ *   normals against gravity (SolveInequalities) and test residual z > -0.1
+ * Info: proposed name FCheckJtStuck (T1); TU air
+ * Notes: names_v2 v1 proposed FUN_0017ece8 (0.000)
+ * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" int FCheckJtStuck(P*p,float previous,float*stamp){
  float now=D_002DDED0.time;
  if(now-previous<1.0f)return 0;

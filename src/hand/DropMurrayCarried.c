@@ -10,6 +10,13 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
 void func_00209EE0(struct X *x);
 void func_001F7A68(struct X *x, int n);
 qword ConvertAloVec(struct P *p, int n, qword q);
+/** @sly2-annot addr=0x1B7BA8
+ * Purpose: Abort carrying (on forced state change): detach the carried/lifted object and set its velocity per
+ *   current state
+ * Info: proposed name DropMurrayCarried (T1); TU murray
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void DropMurrayCarried(struct P *p)
 {
     struct O *o;

@@ -26,6 +26,13 @@ M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 }
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float Length(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
+/** @sly2-annot addr=0x207690
+ * Purpose: STEPGUARD vt19: draw the globset; when the camera policy is active, apply a 0.85 s squash/stretch
+ *   pulse after +0x360 (pivot +0x240) and distance-based scale
+ * Info: proposed name RenderStepguardSelf (T1); class STEPGUARD slot19; TU stepguard
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 extern "C" void RenderStepguardSelf(P *p)
 {
     M4 local;

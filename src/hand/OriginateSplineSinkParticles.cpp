@@ -39,6 +39,13 @@ static inline qword MulRot(const M4 &m, qword v)
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(v), "j"(s.q)); return d; }
 
+/** @sly2-annot addr=0x15B9F0
+ * Purpose: For spline-sink emitters (kind 2) computes the extra per-particle transform data passed to
+ *   EmitBlips
+ * Info: proposed name OriginateSplineSinkParticles (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
 {
     ALO *palo = pemit->peo->palo;

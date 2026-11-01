@@ -56,6 +56,13 @@ static inline float GXOfQw(qword qw) { float x; __asm__("mtc1 %1, %0" : "=f"(x) 
 static inline float GDistX(const qword &a, const qword &b) { return GXOfQw(QwLength(QwSub(a, b))); }
 
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
+/** @sly2-annot addr=0x1C21D8
+ * Purpose: A* over pathzones connected by path links, from actor to goal
+ * Info: proposed name FindPathlinkRoute (T1); TU path
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/engine/physics-collision.md#5-navigation-pathcpp-0x1bf110-0x1c2920,
+ *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, int fExact, int cpedgeMax, EDGE **apedge)
 {
     STACKSCOPE scope;

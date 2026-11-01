@@ -73,6 +73,16 @@ typedef char TEMP_first_rotation_Offset[FIELD_OFFSET(TEMP,first.rotation)==16?1:
 typedef char TEMP_basis_Offset[FIELD_OFFSET(TEMP,basis)==0?1:-1];
 typedef char LIMIT_low_Offset[FIELD_OFFSET(LIMIT,low)==0?1:-1];
 typedef char LIMIT_high_Offset[FIELD_OFFSET(LIMIT,high)==4?1:-1];
+/** @sly2-annot addr=0x179FA0
+ * Purpose: BHVLEAP Start: aim at point/object +0x50/+0x58; if it is a rail/pipe/CID39/CID19 (kind 3) set
+ *   attach flag 0x1B/0x27/0x29/0x28 for anim choice and build attach basis; start leap anim and
+ *   SetLeapTarget; busy
+ * Info: proposed name StartBhvleap (T1); class BHVLEAP slot8; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVLEAP role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" void StartBhvleap(C*p){
  WORK work;U point,otherPoint,direction;
  if(!D_002DFB78){

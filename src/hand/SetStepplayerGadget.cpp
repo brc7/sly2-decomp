@@ -17,6 +17,15 @@ void SetGadgetSlotState(P *p, E *pe, int n);
 int func_0021ECD8(char *pch, const char *fmt, ...);
 }
 CRef func_001D8B20(const CRef &ref, void *o, const char *fmt, ...);
+/** @sly2-annot addr=0x141FC8
+ * Purpose: Assign gadget id to slot i (<3): stop old, clear duplicates in other slots, write all to save var
+ *   apukCur[%d], then vt105
+ * Info: proposed name SetStepplayerGadget (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" void SetStepplayerGadget(P *p, unsigned int i, int id)
 {
     if (i < 3) {

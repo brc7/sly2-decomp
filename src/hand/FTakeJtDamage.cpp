@@ -86,6 +86,17 @@ typedef char P_Prefix_Size[sizeof(P)==0x11AC?1:-1];
 typedef char W_Prefix_Size[sizeof(W)==0x15C?1:-1];
 typedef char COUNT_Size[sizeof(COUNT)==12?1:-1];
 typedef char G_Prefix_Size[sizeof(G)==0x403C?1:-1];
+/** @sly2-annot addr=0x1A19A0
+ * Purpose: Apply a damage record to the player: owner vt86 veto, flag filters, damage scaled by difficulty
+ *   (NScaleByDifficulty), health counter, game event broadcast, hit clip, sound, knockback, callback
+ * Info: proposed name FTakeJtDamage (T1); TU hurt
+ * Notes: names_v2 C proposed SetWmWms__FP2WM3WMS (0.438) | runtime3: ZPR record layout
+ * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r4b_rest+runtime
+ * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 extern "C" int FTakeJtDamage(C*p,RECORD*input){
  RECORD accepted;int delta;
  if(func_001A2358(p,input)){

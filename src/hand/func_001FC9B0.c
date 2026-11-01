@@ -17,6 +17,12 @@ static inline int FNear(qword a, qword b)
 {
     return func_0011D4D0(X(a), X(b), 0.0001f) && func_0011D4D0(Y(a), Y(b), 0.0001f) && func_0011D4D0(Z(a), Z(b), 0.0001f);
 }
+/** @sly2-annot addr=0x1FC9B0
+ * Purpose: vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan
+ * Info: proposed name UpdateStreamsndPositional (T1); class STREAMSND; TU sound
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FC9B0(struct P *p)
 {
     int group;

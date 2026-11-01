@@ -53,6 +53,12 @@ static inline float DotS(qword a, qword b)
 {
     return F3(DotQ(a, b));
 }
+/** @sly2-annot addr=0x11EA60
+ * Purpose: Vector geometry helper (edge cross products and dot readbacks against a triangle/segment)
+ * Info: proposed name FClipLineToTriangle (T2); TU vec
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qword *pnormal)
 {
     qword ca = Sub(c, a);

@@ -232,6 +232,13 @@ extern int D_002BF340;
 extern int D_002BF344;
 extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
+/** @sly2-annot addr=0x189C40
+ * Purpose: Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical
+ *   probe line)
+ * Info: proposed name RebuildJtXmg (T1); TU jt
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg)
 {
     ASEGA *pasega;

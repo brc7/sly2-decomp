@@ -31,6 +31,15 @@ public:
     virtual void F();
 };
 
+/** @sly2-annot addr=0x112100
+ * Purpose: pfnNew factory for CID88 (cid 88): allocates 0x1A0 bytes (operator new 0x1AE4F8), calls ctor
+ *   __4CRef
+ * Info: proposed name NewBarrel (T1); TU crt0_splicewrap
+ * Notes: v3 class identity: NewCid88 -> NewBarrel
+ * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 extern "C" void *NewBarrel(void)
 {
     return new Y;

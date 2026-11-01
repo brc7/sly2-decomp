@@ -20,6 +20,13 @@ int NWorldCur(void);
 int CidBasic(void *p);
 void func_001AF4D8(MENU *pm, int c, M *am, int x, void *p);
 
+/** @sly2-annot addr=0x1B0290
+ * Purpose: If allowed (not transitioning, no dialog), build the 7-item root page filtered by availability and
+ *   push it
+ * Info: proposed name FOpenPauseMenu (T2); TU menu
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 int func_001B0290(X *px)
 {
     char *pl;

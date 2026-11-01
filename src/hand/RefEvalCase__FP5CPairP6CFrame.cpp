@@ -14,6 +14,12 @@ CRef RefEval__FP5CPairP6CFrame(NODE *p, void *penv);
 CRef RefOpEqv__FiP4CRefP6CFrame(int carg, CRef *aref, void *penv);
 CRef RefEvalCase__FP5CPairP6CFrame(P *p, void *penv);
 }
+/** @sly2-annot addr=0x126BA0
+ * Purpose: (case key clauses...): compares via RefOpEqv 0x120548, else clause
+ * Info: proposed name RefEvalCase (T1); TU eval
+ * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef RefEvalCase__FP5CPairP6CFrame(P *p, void *penv)
 {
     CRef ref;

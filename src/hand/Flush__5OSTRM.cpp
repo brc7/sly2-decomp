@@ -16,6 +16,11 @@ public:
     void Flush();
     int CbWrite(void *pv, int cb);
 };
+/** @sly2-annot addr=0x20D798
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
+ * @end-sly2-annot */
 void OSTRM::Flush()
 {
     if (m_cbBuf == 0 || m_pbMem)

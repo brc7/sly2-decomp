@@ -24,6 +24,12 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     CRef arg(r);
     const CRef &ret = func_00258200(pv, arg, D_003D4A60);
 }
+/** @sly2-annot addr=0x1C7C30
+ * Purpose: set clue bit / count
+ * Info: proposed name SetClueCollected (T2); TU prize
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C7C30(int n, int f)
 {
     FRAME frame;

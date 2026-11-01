@@ -4,6 +4,14 @@ typedef struct VR { TI vec; int cref; } VR;
 extern char D_00452188[];
 VR *PvAllocSlotheapClear(void *pslotheap);
 void Decref__4CRef(CRef *pref);
+/** @sly2-annot addr=0x129718
+ * Purpose: Same as SetVector but vector passed by value
+ * Info: proposed name CRef_SetVector_VU_VECTOR (T1); class CRef; TU ref
+ * Notes: C++ signature hint (VU_VECTOR) | COLLISION: CRef_SetVector already used (same name proposed for
+ *   0x1296A8); renamed to CRef_SetVector_VU_VECTOR
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 CRef *CRef_SetVector_VU_VECTOR(CRef *pref, TI vec)
 {
     VR *p;

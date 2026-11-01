@@ -18,6 +18,14 @@ extern "C" int GrfFromState(int n);
 extern "C" int GrfFromStates(int c, int *ai);
 extern "C" int IlevelCur__Fv();
 extern "C" void *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
+/** @sly2-annot addr=0x1620B0
+ * Purpose: For a job/task state change: for each {oidLo, oidContext, grfStates, level} record whose mask
+ *   covers the state group (0-3 or 4-5) and level matches, AddLo (vt8) if the state bit is set else RemoveLo
+ *   (vt9)
+ * Info: proposed name ApplyStateLoVisibility (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void ApplyStateLoVisibility(void *p, int nState, int c, E *ae)
 {
     int i;

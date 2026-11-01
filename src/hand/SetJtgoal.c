@@ -35,6 +35,14 @@ static __inline__ int IDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x1448F0
+ * Purpose: Set goal position unless holding or already within D_002BD2D8: store qwGoal, sDist = distance from
+ *   player, tCheck = now + interval
+ * Info: proposed name SetJtgoal (T1); TU jtgoal
+ * Notes: names_v2 B proposed FChooseRobReturnPoint__FP3ROBP3ROH (0.856)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
+ * @end-sly2-annot */
 void SetJtgoal(struct P *p, qword pos)
 {
     if (p->f28 == 0) {

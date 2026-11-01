@@ -11,6 +11,12 @@ static inline void SetM(M3 *pm, M3 m)
     pm->r[1].w = 0;
     pm->r[2].w = 0;
 }
+/** @sly2-annot addr=0x231300
+ * Purpose: store rotation rows (w=0), invalidate
+ * Info: proposed name RotateXfmToMat (T1); class XFM slot30; TU xform
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 void RotateXfmToMat(S *p, int x)
 {
     SetM(&p->m, ConvertXfMat(0, p->x50, x));

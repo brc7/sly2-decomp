@@ -60,6 +60,14 @@ static inline qword QwMix(VU_FLOAT g1, const qword &qw1, VU_FLOAT g2, const qwor
 static inline qword QwZero() { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(qw)); return qw; }
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 
+/** @sly2-annot addr=0x1BC688
+ * Purpose: Clip segment to the convex volume and write the parts outside it (LSG 0x60)
+ * Info: proposed name ClsgClipEdgeToCnvo (T1); TU tu_1BC050
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_followups
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
+ *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 extern "C" int ClsgClipEdgeToCnvo(CNVO *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg)
 {
     func_001BD400(pcnvo);

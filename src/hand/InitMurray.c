@@ -15,6 +15,14 @@ void InitGait(struct BIND*a,void*owner,int word90);
 void func_0020BD78(struct RESET*a);
 void InitThrow(struct CONTEXT*a,void*owner);
 static inline void Init(struct SUB *ps, float f, float g) { ps->f2 = g; ps->f1 = f; ps->i = 0; }
+/** @sly2-annot addr=0x1B4728
+ * Purpose: MURRAY vt7 Init: STEPPLAYER Init, defaults (x220=50, state fields -1, throw range 1500/3500), 4
+ *   locomotion blends (0x20B840 x1320/1460/1540/1630), JTTHROW at +0x1910, sets g_pmurray D_002F7900=this
+ * Info: proposed name InitMurray (T1); class MURRAY slot7; TU murray
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest
+ * See: docs/engine/player.md#10-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void InitMurray(struct S *p)
 {
     InitStepplayer(p);

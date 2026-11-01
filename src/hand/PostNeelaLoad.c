@@ -9,6 +9,16 @@ void BindLoOidTable(struct S *p, int n, void *pv);
 float *func_0012F938(void *p, int n);
 void func_001300B8(void *p, struct S *ps, void *p1, int n, struct L *pl, int m, float a, float b);
 void SetSoMass(struct S *p, float g);
+/** @sly2-annot addr=0x1BA018
+ * Purpose: CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for
+ *   the held prop, SetSoMass 0.25
+ * Info: proposed name PostNeelaLoad (T1); class NEELA slot15; TU tu_1B9F80
+ * Notes: names_v2 C proposed FadeAloIn__FP3ALOf (0.253) | class identity from whole_game WE names/object
+ *   strings: PostCid60GuardLoad -> PostNeelaLoad
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
+ * @end-sly2-annot */
 void PostNeelaLoad(struct S *p)
 {
     struct L l;

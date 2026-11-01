@@ -5,6 +5,14 @@ struct O { int pad[3]; struct VTE *vt; };
 struct S { int k; float g4; float g8; int pad; qword pos; qword dir; };
 extern qword D_002A2DC0;
 qword func_001A62E8(struct O *p);
+/** @sly2-annot addr=0x143220
+ * Purpose: vt96: velocity minus vertical part -> dir; pos = pos + dir*dt; radii 150/75
+ * Info: proposed name GetStepplayerStunHold (T1); class STEPPLAYER slot96; TU stepplayer
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void GetStepplayerStunHold(struct O *p, struct S *ps, float g)
 {
     struct VTE *e = &p->vt[33];

@@ -99,6 +99,12 @@ static inline void GetSparkle(JTGRABCAND *pcand, VECTOR *ppos, VECTOR *pv)
     pcand->pspot->GetSparkle(ppos, pv, pcand->sParam);
 }
 
+/** @sly2-annot addr=0x195368
+ * Purpose: For every candidate spawn/refresh the grab sparkle marker effect
+ * Info: proposed name EmitJtGrabSparkles (T1); TU grab
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand)
 {
     VECTOR apos[10], av[10];

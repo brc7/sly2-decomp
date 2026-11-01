@@ -31,6 +31,12 @@ typedef char Size_5[sizeof(qword)==16?1:-1];
 typedef char Size_6[sizeof(void*)==4?1:-1];
 typedef char Size_7[sizeof(int)==4?1:-1];
 typedef char Size_8[sizeof(float)==4?1:-1];
+/** @sly2-annot addr=0x1A9B28
+ * Purpose: Sphere vs BSP shape: CsbiIntersectSphereBsp then PxpAdd for each hit
+ * Info: proposed name MarkSoContactsSphereBsp (T1); TU mark
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 extern "C" void func_001A9B28(void *a, struct S*s,struct S*b,int d,struct NODE*e,struct CONTACT**g)
 {
     register S*bodyOwner __asm__("$19")=b;

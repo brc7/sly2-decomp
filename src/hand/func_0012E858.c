@@ -21,6 +21,13 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 }
 static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 
+/** @sly2-annot addr=0x12E858
+ * Purpose: Per-frame camera computation for this policy (positions, atanf -> SetCmFov)
+ * Info: proposed name UpdateCpcamera (T2); class CPCAMERA; TU tu_12E600
+ * Notes: verify r1r2: CplcyCid44 is Lilly CPCAMERA (CM+0x4A8)
+ * Confidence: low (draft) [T2 0.35] - evidence: Sly 1 / Lilly reference; sources: r1_116918
+ * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
+ * @end-sly2-annot */
 void func_0012E858(struct P *p)
 {
     struct SO *pso = p->pso;

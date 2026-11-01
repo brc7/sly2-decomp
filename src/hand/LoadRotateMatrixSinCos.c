@@ -1,5 +1,11 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
+/** @sly2-annot addr=0x11B480
+ * Purpose: Rotation matrix about an axis from (sin, cos)
+ * Info: proposed name LoadRotateMatrixSinCos (T1); TU mat
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M3 LoadRotateMatrixSinCos(qword s, qword c, qword axis)
 {
     M3 m;

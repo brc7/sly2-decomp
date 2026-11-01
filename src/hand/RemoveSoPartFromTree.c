@@ -14,6 +14,13 @@ void RemoveSwPlacesOf(struct G *, int, struct E *);
 void func_001F4E28(struct P *);
 void RemoveSwAaobrObject(struct G *, struct Q *);
 void func_001F5078(struct P *);
+/** @sly2-annot addr=0x1F2930
+ * Purpose: Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if
+ *   no own parts remain
+ * Info: proposed name RemoveSoPartFromTree (T1); TU so
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void RemoveSoPartFromTree(struct P *p, struct E *pe)
 {
     int i;

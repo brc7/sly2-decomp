@@ -38,6 +38,12 @@ static inline void MarkRef(GC *pgc, CRef *pref)
     }
 }
 
+/** @sly2-annot addr=0x1285D8
+ * Purpose: Marks one root CRef (pair/proc/method) and pushes it on the GC stacks
+ * Info: proposed name CGc_MarkRootRef (T2); class CGc; TU gc
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
+ * @end-sly2-annot */
 void func_001285D8(GC *pgc, CRef *pref)
 {
     MarkRef(pgc, pref);

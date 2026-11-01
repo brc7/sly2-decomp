@@ -6,6 +6,13 @@ struct S { char pad[0x10]; struct T *p10; int pad2; char a18[0x18]; int n30; };
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 void SetBhvpathShape(struct O *o, int a, int b);
+/** @sly2-annot addr=0x17C550
+ * Purpose: BHVCIRCLE state: 0 push BHVIDLE facing target, 1 push BHVWALKPATH on the guard path shape
+ * Info: proposed name SetBhv179State (T2); TU guardbhv
+ * Notes: BHV class word normalised: SetBhvcircleState -> SetBhv179State
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017C550(struct S *p, int n) {
     if (n == p->n30) return;
     PopBhv(p->a18);

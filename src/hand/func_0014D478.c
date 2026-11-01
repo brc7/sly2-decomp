@@ -22,6 +22,14 @@ void func_0014F5A0(struct CM *p, float g);
 float func_0011D1C0(float g, float h, float i, float dt, float *pa, float *pb);
 void func_0014DB70(struct CM *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
+/** @sly2-annot addr=0x14D478
+ * Purpose: Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50
+ *   GetCpdefi into cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then policy vt6 Update(pcpdefi, joy); then fov
+ *   smoothing (SetCmFov if nCut else GSmoothA+RecalcCmFrustrum); clears nCut; smooths +0x620
+ * Info: proposed name UpdateCmLast (T1); TU cm
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void func_0014D478(struct CM *p)
 {
     struct O *po;

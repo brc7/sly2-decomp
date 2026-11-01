@@ -11,6 +11,13 @@ void LockProxyPlo(void *pv, struct O *po);
 void FireBentleyDart(struct P *p, int n);
 void func_00136ED0(void *pv, int k, struct M *pm);
 void func_0018D698(struct P *p, struct E *pe, int n);
+/** @sly2-annot addr=0x135AD8
+ * Purpose: BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from
+ *   template, ...)
+ * Info: proposed name HandleBentleyMessage (T1); class BENTLEY slot5; TU bentley
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void HandleBentleyMessage(struct P *p, int k, struct M *pm)
 {
     HandleStepplayerMessage(p, k, pm);

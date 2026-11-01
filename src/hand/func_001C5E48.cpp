@@ -49,6 +49,13 @@ static inline float LenSq(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(t));
     return r;
 }
+/** @sly2-annot addr=0x1C5E48
+ * Purpose: DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect
+ * Info: proposed name UpdateDprize (T1); class DPRIZE slot16; TU prize
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C5E48(P *p)
 {
     UpdateSo(p);

@@ -17,6 +17,14 @@ extern "C" void InitPlaneFromNormalPos(qword*,qword,qword);
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword Normal(qword v){register qword d __asm__("vf2"),one __asm__("vf3"),r __asm__("vf3");__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(d),"j"(v));return r;}
+/** @sly2-annot addr=0x1A9108
+ * Purpose: Prune a BSP to a sphere (radius >= 100) and clip its edges (PruneBsp, ClsgClipEdgeToBsp,
+ *   InitPlaneFromNormalPos)
+ * Info: proposed name PruneSphereBsp (T2); TU mark
+ * Notes: names_v2 C proposed PxpMarkSwContactsRoot__FP2SWPP2SOi (0.167)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 extern "C" void func_001A9108(ENTRY*tree,int mask,void*geometry,qword pos,OUT*out,float radius0){
  WORK work;
  work.position.q=pos;

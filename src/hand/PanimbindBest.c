@@ -2,6 +2,13 @@ struct E { char pad[0x10]; long id; char pad2[8]; };
 struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
 long GrfFromSgf(int n);
 int func_00209A28(long id, long mask);
+/** @sly2-annot addr=0x209AD0
+ * Purpose: Binding whose flag set is the largest subset of mask and contains its lowest flag
+ * Info: proposed name PanimbindBest (T1); TU stepguard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 struct E *PanimbindBest(struct S *p, long mask)
 {
     int i;

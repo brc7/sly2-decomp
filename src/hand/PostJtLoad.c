@@ -21,6 +21,15 @@ extern int func_001F0380(int a, int b, int c, int d);
 extern char D_002BF1B0[];
 extern qword D_002A2DD0;
 
+/** @sly2-annot addr=0x188608
+ * Purpose: JT vt15 PostLoad: base 0x1400B8, BindLoOidTable, look up ~10 named child ALOs/actuators (0x1F4C58
+ *   by id+kind) into x10B8/x19C0..x19E0, sub-object postloads (0x1A0300, 0x18F908), build blend/aseg tables,
+ *   SM applies
+ * Info: proposed name PostJtLoad (T1); class JT slot15; TU jt
+ * Notes: names_v2 C proposed PostStepLoadRun__FP4STEPP5BLRUNPP6ASEGBL (0.438)
+ * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void PostJtLoad(char *p)
 {
     int n;

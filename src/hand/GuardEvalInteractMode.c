@@ -17,6 +17,17 @@ qword func_001A62E8(void *p);
 int FCheckVolPoint(struct L *pl, qword q);
 int func_0011D910(void *p, float f);
 
+/** @sly2-annot addr=0x208E70
+ * Purpose: Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint
+ *   volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM +0x370/+0x368), 1 in range (d<=+0x388, dz in LM
+ *   +0x380), 0
+ * Info: proposed name GuardEvalInteractMode (T1); TU stepguard
+ * Notes: names_v2 C proposed UpdatePrsen__FP5PRSENf (0.380)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
 {
     float d, ang;

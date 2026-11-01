@@ -36,6 +36,12 @@ struct WORK {
  MSG msg __attribute__((aligned(16)));
  LSG alsg[0x10];
 };
+/** @sly2-annot addr=0x229468
+ * Purpose: vertical hit span and optional surface point/normal
+ * Info: proposed name UGetWaterSubmerged (T2); TU water
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
+ * @end-sly2-annot */
 extern "C" float func_00229468(struct S *p, struct J *pj, qword *ppos, qword *pnormal)
 {
     WORK work;

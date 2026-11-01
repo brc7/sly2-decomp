@@ -18,6 +18,15 @@ extern "C" {
 void SetBhvguardMode(void *o, struct F *f);
 void SetBhvguardMode(void *o, struct F *f);
 }
+/** @sly2-annot addr=0x174490
+ * Purpose: Clones/activates a guard from a template at the chosen point (0x1CB250), optionally sets its
+ *   BHV156 mode
+ * Info: proposed name SpawnCid119Guard (T2); class CID119; TU tu_173158
+ * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/engine/guards-ai.md#open-questions, docs/open-questions.md#guards,
+ *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
+ * @end-sly2-annot */
 extern "C" struct R *func_00174490(struct S *p, struct M *m, qword *pv, int a3, int t0) {
     struct R *r = 0;
     int k;

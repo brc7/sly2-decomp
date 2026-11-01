@@ -12,6 +12,12 @@ extern "C" void func_00213928(struct Q *q, int n);
 extern "C" void func_00212E40(struct Q *q, int n, float g);
 static inline void Below(int&value,Q*q){value=0;if(!q||q->x58<2)value=1;}
 static inline void Equal(int&value,Q*q){value=0;if(!q||q->x58==2)value=1;}
+/** @sly2-annot addr=0x19DA78
+ * Purpose: Per-frame HUD update for the mode state (widget update 0x202D38, timers)
+ * Info: proposed name UpdateJtModeHud (T2); TU mode
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 extern "C" void func_0019DA78(struct P *p)
 {
 

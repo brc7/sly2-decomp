@@ -21,6 +21,20 @@ M4 InvertMatrix4Rigid(P *);
 M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
 void func_0022C818(S *, P *);
 
+/** @sly2-annot addr=0x2303A0
+ * Purpose: Set the motion role (+0x98) of one XF slot of an SO; on leaving a static role capture the current
+ *   value from the slot matrix; zero dv for velocity roles; wake the SO (vt47 SetSoGrf 4) unless the new role
+ *   is an at-rest role
+ * Info: proposed name SlotSetRole (T1); TU xf
+ * Notes: top50_round (0.65): Lilly's Sly 2 headers declare 'void SlotSetRole(SO *pso, XF *pxf, int nRole)'
+ *   (src/hand/func_0018C250.cpp:1649, Lilly jtstate.c port) and call it with (pjt, pjt->pxfUnk58/5c, 1|2),
+ *   matching this body's (so,xf,role). Body
+ * Confidence: mid (draft) [T1 0.65] - evidence: Sly 1 / Lilly reference; semantic review; sources:
+ *   r8_21BB88+top50_round
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
+ *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 void func_002303A0(S *s, P *p, int n)
 {
     if (n == p->x98)

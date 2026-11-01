@@ -28,6 +28,15 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1F2D48
+ * Purpose: SO vt12: RemoveLoHierarchy, RemoveSoParts, reset fade (+0x130=0, +0x12C=1), unregister region
+ *   callback, recurse vt12 on children
+ * Info: proposed name RemoveSoHierarchy (T1); class SO slot12; TU so
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
+ *   docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
+ * @end-sly2-annot */
 void RemoveSoHierarchy(struct P *p)
 {
     DLI dli;

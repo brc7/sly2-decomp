@@ -1,6 +1,12 @@
 typedef unsigned int uint;
 typedef unsigned char uchar;
 void CopyAqw(void *pvDst, void *pvSrc, uint cqw) __asm__("func_001AE528");
+/** @sly2-annot addr=0x1AE5A0
+ * Purpose: Byte/word memcpy
+ * Info: proposed name CopyAb (EXISTING); TU memory
+ * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
+ * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
+ * @end-sly2-annot */
 void CopyAb(void *pvDst, void *pvSrc, uint cb)
 {
     if (((uint)pvDst | (uint)pvSrc | cb) & 0x03)

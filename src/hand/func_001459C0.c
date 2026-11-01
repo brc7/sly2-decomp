@@ -11,6 +11,15 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
 int func_001C09A0(struct SO *pso, qword pos, int n);
 int func_00173610(qword *ppos, float a, float b, int c, int d);
+/** @sly2-annot addr=0x1459C0
+ * Purpose: checks the leader's ground object vs own
+ * Info: proposed name FBhvfollowLeaderOnNewGround (T2); TU tu_144B28
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
+ *   FBhv194LeaderOnNewGround -> FBhvfollowLeaderOnNewGround | runtime6: BHV194 class role confirmed
+ * Confidence: low (draft) [T2 0.30] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2b_rest+runtime(class role)+runtime
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 int func_001459C0(struct P *p)
 {
     struct SO *pso = func_00145AA8(p);

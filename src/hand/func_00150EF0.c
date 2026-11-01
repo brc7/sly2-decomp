@@ -6,6 +6,12 @@ struct S {
 };
 qword func_00150780(struct S *p);
 qword func_001507F8(struct S *p);
+/** @sly2-annot addr=0x150EF0
+ * Purpose: Reset smoothed center/eye to current targets, uZoom=uZoomTarget (if >=0), pose = target pose
+ * Info: proposed name SnapCpzoom (T1); TU cplcy
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00150EF0(struct S *p)
 {
     p->q20 = func_00150780(p);

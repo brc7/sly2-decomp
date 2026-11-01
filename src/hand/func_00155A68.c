@@ -3,6 +3,15 @@ struct Q { int pad0; int n4; int pad8; void *pC; int pad10; int n14; int pad18; 
 struct S { char pad[0x38]; struct Q *pq; char pad2[0x10]; void *p4C; };
 qword func_001A62E8(void *p);
 int FCheckVolPoint(void *p, qword q);
+/** @sly2-annot addr=0x155A68
+ * Purpose: Picks which end of the route to run to (volume test 0x227C90)
+ * Info: proposed name PloBhv181RouteEnd (T2); TU tu_1553F0
+ * Notes: verifier PLAUSIBLE: Returns end-A object (+4) if FCheckVolPoint(volA, pos of +0x4C) else end-B
+ *   (+0x14) if in volB, default A: it selects the end whose volume CONTAINS the tracked object, not obviously
+ *   the one to run to. | T2 forced: verifier: role word not supported by the code
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+verdicts_followups
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 int func_00155A68(struct S *p)
 {
     if (FCheckVolPoint(p->pq->pC, func_001A62E8(p->p4C)))

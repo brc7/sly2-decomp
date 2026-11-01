@@ -18,6 +18,18 @@ void func_00256D40(struct SP *psp, int n);
 void func_00129EC8(struct CRef *pref);
 void func_002550F8(void *pv);
 void func_0011CD98(void *pool, void *pv);
+/** @sly2-annot addr=0x1331F8
+ * Purpose: BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and
+ *   either schedule (fPost) or evaluate now
+ * Info: proposed name HandleBasicSpliceEvent (T1); class SW slot3; TU basic
+ * Notes: superseded: HandleLoSpliceEvent (arbitration) | arbitration knock-on rename: CONFIRMED static:
+ *   slot-3 pfn in 50+ vtables incl. SW (not an LO), i.e. owner class BASIC. Body = Sly1 HandleLoSpliceEvent
+ *   (frame binding lookup). Needed so the
+ * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; arbitration; sources:
+ *   r2b_rest+arbitration
+ * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
+ *   docs/engine/splice-scripting.md#5-objects-and-scripts
+ * @end-sly2-annot */
 void HandleBasicSpliceEvent(struct P *p, int k, int f, int x, int y, int z)
 {
     if (p->p0 && func_00127DB8(p->p0, k, 1)) {

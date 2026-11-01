@@ -38,6 +38,13 @@ static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *
     return func_0014C6A0(s, *a, *b, 1, h);
 }
 
+/** @sly2-annot addr=0x1997D8
+ * Purpose: Sweep 11 probe segments around the edge point against every layer's shapes; true if >=2 hit (valid
+ *   ledge normal)
+ * Info: proposed name FCheckJtEdgeNormal (T1); TU air
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest+verdicts_A2
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" int FCheckJtEdgeNormal(struct P *p, qword q1, qword q2)
 {
     M3 m;

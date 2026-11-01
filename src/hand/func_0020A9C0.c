@@ -5,6 +5,12 @@ static __inline__ void Push(struct S *p, int id, int v)
     p->aEDC[p->cEFC++] = v;
     p->aEB8[p->cED8++] = id;
 }
+/** @sly2-annot addr=0x20A9C0
+ * Purpose: Return first attack object; if none create default cid 0x78 (oid 0x2CC)
+ * Info: proposed name PattackDefaultStepguard (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 int func_0020A9C0(struct S *p)
 {
     int v;

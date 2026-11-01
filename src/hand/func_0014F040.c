@@ -35,6 +35,13 @@ static __inline__ float GDot(const qword *pa, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x14F040
+ * Purpose: Constraint for SquishCmEye: GSmooth(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye,
+ *   normal) - smoothed
+ * Info: proposed name SvSquishCmEyeConstraint (T1); TU cm
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 float func_0014F040(struct P *p, int unused, qword vIn, struct PL *pl)
 {
     float r;

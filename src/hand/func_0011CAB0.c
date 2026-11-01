@@ -9,6 +9,12 @@ static inline float Dot(qword v)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
+/** @sly2-annot addr=0x11CAB0
+ * Purpose: Largest row length (max of the three row dot products, then sqrt)
+ * Info: proposed name SMaxRowMatrix3 (T2); TU mat
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 float func_0011CAB0(M3 *pm)
 {
     float d0 = Dot(pm->r[0]);

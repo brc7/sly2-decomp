@@ -51,6 +51,14 @@ typedef char P_target_Offset[FIELD_OFFSET(P,target)==4136?1:-1];
 typedef char P_motion_Offset[FIELD_OFFSET(P,motion)==4140?1:-1];
 typedef char P_node_Offset[FIELD_OFFSET(P,node)==4148?1:-1];
 typedef char P_axis_Offset[FIELD_OFFSET(P,axis)==4160?1:-1];
+/** @sly2-annot addr=0x1BA128
+ * Purpose: CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a
+ *   volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends
+ * Info: proposed name UpdateNeela (T1); class NEELA slot16; TU tu_1B9F80
+ * Notes: class identity from whole_game WE names/object strings: UpdateCid60Guard -> UpdateNeela
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
+ * @end-sly2-annot */
 extern "C" void UpdateNeela(P*p){
  UpdateStepguard(p);
  switch(p->state){

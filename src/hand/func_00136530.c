@@ -27,6 +27,12 @@ qword func_0011BFF0(M4 *pm);
 void ReleaseSma(void *);
 void func_001305B8(void *, struct P *, int, void *, float, float);
 
+/** @sly2-annot addr=0x136530
+ * Purpose: State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code
+ * Info: proposed name SetBentleyHoverState (T2); TU bentley
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136530(struct P *p, int k)
 {
     void *pv;

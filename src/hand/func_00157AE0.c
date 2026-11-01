@@ -2,6 +2,14 @@ typedef struct RPL { int k; float z; int a, b; } RPL;
 extern int func_00157A50(const void *, const void *);
 extern int func_00157A98(const void *, const void *);
 extern void func_002338C0(void *, int, int, int (*)(const void *, const void *));
+/** @sly2-annot addr=0x157AE0
+ * Purpose: Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some
+ *   buckets, returns end index
+ * Info: proposed name CprplPartitionArpl (T1); TU draw
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+verdicts_A1
+ * See: docs/engine/rendering.md#3-drawsw-sort-prologue-and-pass-dispatch-srchandfunc_00157fa0c-cstatic,
+ *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
+ * @end-sly2-annot */
 int func_00157AE0(int c, RPL *arpl, RPL **aprpl, int *aiFirst, int *ac)
 {
     int ai[26];

@@ -4,6 +4,12 @@ struct A { char pad[0xA0]; int nA0; };
 struct S { char pad[0xF08]; struct A *pa; int h; int n; char pad2[0xC]; qword v; };
 void ReleaseAct(int *ph);
 int func_0012DC18(struct S *p, int a, int b, int c, int d, qword q);
+/** @sly2-annot addr=0x20AC28
+ * Purpose: Release/create an aim act (PactNewVector) for the attack
+ * Info: proposed name SetStepguardAimAct (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020AC28(struct S *p, struct A *pa, int n, qword v)
 {
     if (p->pa) {

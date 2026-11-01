@@ -44,6 +44,17 @@ void CBinaryInputStream_SkipStringSw(void *);
 CRef LoadSpliceEntryFromBrx(void *, T *, int);
 void CGc_UpdateRecyclable(void *);
 }
+/** @sly2-annot addr=0x1FF858
+ * Purpose: Read the level Splice section: count, per-entry frames/CRefs (0x1FFA70) into a SW-heap table
+ * Info: proposed name LoadSwSpliceFromBrx (T1); TU splicemap
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
+ *   splice_scripts format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources:
+ *   r7_1F8DD8+parse-verified+format-doc:splice_scripts
+ * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
+ *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
+ *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
+ * @end-sly2-annot */
 extern "C" void LoadSwSpliceFromBrx(G *pg, int a, void *px)
 {
     int c = func_00117C80(px);

@@ -32,6 +32,13 @@ struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){fun
 extern "C" CRef func_00258200(void*,const CRef&,void*);
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=func_00258200(object,arg,D_003D4A60);}
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}
+/** @sly2-annot addr=0x164DF0
+ * Purpose: Main task state change: propagates to collected successors, sets the state, updates the episode
+ *   percent save var, handles job start/end tasks, autosaves
+ * Info: proposed name SetTaskStateCascade (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void SetTaskStateCascade(P*p,int state){
     int old=p->state;
     if(state==old)return;

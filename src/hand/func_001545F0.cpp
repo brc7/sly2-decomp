@@ -19,6 +19,14 @@ int func_001545F0(T *p, SO *pso);
 class FRAME { public: FRAME() { func_001AE478(this); } ~FRAME() { func_001AE4A0(this, 2); } };
 
 
+/** @sly2-annot addr=0x1545F0
+ * Purpose: Tests whether the line from the detector eye to the target is blocked by objects
+ *   (PsoHitTestLineObjects with the filter callbacks)
+ * Info: proposed name FDetectorLineBlocked (T2); TU detector
+ * Notes: names_v2 C proposed FCheckStepguardEnemyHidden__FP9STEPGUARD (0.438)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3_1539A8
+ * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
+ * @end-sly2-annot */
 int func_001545F0(T *p, SO *pso)
 {
     FRAME frame;

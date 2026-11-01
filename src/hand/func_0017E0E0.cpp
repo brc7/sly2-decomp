@@ -24,6 +24,13 @@ extern "C" {
 }
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x17E0E0
+ * Purpose: Pick the farthest free point among 16 directions around the target and send BHVGOTO there
+ * Info: proposed name RegoalBhv189 (T2); TU guardbhv
+ * Notes: BHV class word normalised: RegoalBhvstalk -> RegoalBhv189
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" void func_0017E0E0(struct S *p) {
     union { qword q; } hit;
     qword a, b, d, r;

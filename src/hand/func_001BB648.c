@@ -29,6 +29,13 @@ qword func_001A62E8(void *p);
 void func_00154E10(void *g, qword q, int v, int a, P *p);
 void ApplyTaskStates(void *g, int k, int v, P *p);
 
+/** @sly2-annot addr=0x1BB648
+ * Purpose: Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm,
+ *   TriggerJoyRumbleRumk, sound 0x154E10, spawn 0x161F48
+ * Info: proposed name RunCid98StageActions (T2); class CID98; TU tu_1BAB50
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 void func_001BB648(P *p, E *pe)
 {
     int i;

@@ -79,6 +79,15 @@ typedef char FieldRefSize[sizeof(RF)==4?1:-1];
 typedef char RootRefSize[sizeof(RR)==4?1:-1];
 static inline NODE*CopyNode(int bytes,REQUEST*r,NODE*n){r->bytes=bytes;r->alignment=16;return(NODE*)func_001AE238(r,n);}
 static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delta));}
+/** @sly2-annot addr=0x1A6730
+ * Purpose: LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone
+ *   proxy nodes when g_sw phase==-2; CopyAb the class body past 0x50 (size from classinfo)
+ * Info: proposed name CloneLo (T1); class LO slot41; TU lo
+ * Notes: runtime: LO slot 41 = CloneLo 0x1A6730 confirmed
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
+ * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 extern "C" void CloneLo(P*p,const P*source){
     CGc_UpdateRecyclable(D_002DD598);
     if(source->field){

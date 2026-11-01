@@ -22,6 +22,12 @@ int FCheckVolPoint(struct P *, qword);
 void func_002338C0(void *, int, int, int (*)(const void *, const void *));
 int func_00149420(const void *, const void *);
 
+/** @sly2-annot addr=0x149440
+ * Purpose: vt16: volume button - objects inside the volume trigger/untrigger
+ * Info: proposed name UpdateVolbtn (T1); class VOLBTN slot16; TU button
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void UpdateVolbtn(struct P *p)
 {
     int k;

@@ -1,5 +1,13 @@
 typedef int qword __attribute__((mode(TI)));
 struct P { int pad[7]; float g1C; };
+/** @sly2-annot addr=0x14F898
+ * Purpose: True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale)
+ * Info: proposed name FInsideCmMrd (T1); TU cm
+ * Notes: names_v2 v1 proposed FUN_00145de8 (0.000)
+ * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
+ * See: docs/engine/rendering.md#10-models-globset-at-render-time-cstatic,
+ *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 int func_0014F898(struct P *p, qword v, float g, float *pu)
 {
     qword l, one;

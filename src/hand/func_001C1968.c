@@ -3,6 +3,12 @@ struct S { char pad[0xF8]; int xF8; int xFC; int x100; struct E *x104; struct E 
 struct G { char pad[0x3D70]; int x3D70; };
 extern struct G D_003DD490;
 void func_001C18B8(int n, struct E *a, int key);
+/** @sly2-annot addr=0x1C1968
+ * Purpose: Unregister obstacle (both axes) and bump nav version
+ * Info: proposed name RemovePathzoneObstacle (T2); TU path
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C1968(struct S *p, int key)
 {
     int i;

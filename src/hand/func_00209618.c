@@ -11,6 +11,13 @@ extern qword D_002A2DD0;
 qword func_00204E38(struct S *, struct E *, float);
 qword func_00204ED8(struct S *, struct E *, float);
 void UpdateLeap(struct B *);
+/** @sly2-annot addr=0x209618
+ * Purpose: Set desired velocity +0x190 (= -translation*scale) and angular +0x1E0 from the binding's
+ *   ASEG/object (VecStepAsegaTranslation/Rotation)
+ * Info: proposed name DriveStepguardFromAnim (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00209618(struct Entry *entry, struct S *s)
 {
     U factor, value;

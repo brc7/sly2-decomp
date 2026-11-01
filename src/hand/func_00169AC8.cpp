@@ -71,6 +71,16 @@ void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 struct MARK{MARK(){func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
 static inline void*Allocate(int bytes){return func_001AE1D0(REQUEST(bytes,16));}
 static inline void*Reallocate(int bytes,void*old){return func_001AE238(REQUEST(bytes,16),old);}
+/** @sly2-annot addr=0x169AC8
+ * Purpose: Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional
+ *   binding table, relocates packet data
+ * Info: proposed name LoadSubglobInstanceFromBrx (T1); TU glob
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#type-0-the-visible-textured-mesh-loadsubglobtype0frombrx-0x16a000-cparse,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 extern "C" void func_00169AC8(P*p,const D*sourceD,const E*sourceE,const SPHERE*sourceSphere,D*desc,E*entry,SPHERE*sphere,int groups,const int*counts,FACE**faces,STREAM*stream){
     M4 matrix;
     (void)func_00117D00(stream);

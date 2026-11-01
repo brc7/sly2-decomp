@@ -11,6 +11,12 @@ void RemoveSoParts(struct O *);
 void RecalcSwOxfFilterForObject(struct G *, struct O *);
 void AddSoParts(struct O *);
 void func_001F5078(struct O *);
+/** @sly2-annot addr=0x1F55C8
+ * Purpose: After physics-root change: regroup contact trees of SOs whose phys root changed, re-register
+ * Info: proposed name RebuildSoPhysHook (T2); TU so
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F55C8(struct O *p)
 {
     struct O *ap[64];

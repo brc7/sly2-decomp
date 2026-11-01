@@ -23,6 +23,14 @@ extern "C" void UpdateJobSaveVars(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
+/** @sly2-annot addr=0x1629A0
+ * Purpose: Makes p the current job; if live: ++count, save vars, event 0x21, state-4 visibility/RSMGs,
+ *   SendMessage 0x13
+ * Info: proposed name BeginJob (T1); TU game
+ * Notes: names_v2 v1 proposed UpdateTurretActive__FP6TURRETP3JOYf (0.000)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void BeginJob(O *p)
 {
     SetSwJobCur(&D_003DD490, p);

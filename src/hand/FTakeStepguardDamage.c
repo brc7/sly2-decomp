@@ -6,6 +6,13 @@ struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
 int func_001F7588(struct S *p, struct Q *q);
 void HandleBhvstkMessage(void *p, int k, struct Q *q);
+/** @sly2-annot addr=0x207468
+ * Purpose: STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid
+ *   0x4F), or base says no; then forward the zap to the BHV stack (message 0xC)
+ * Info: proposed name FTakeStepguardDamage (T1); class STEPGUARD slot75; TU stepguard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 int FTakeStepguardDamage(struct S *p, struct Q *q)
 {
     if (!((int (*)(void *))p->vt[86].pfn)((char *)p + p->vt[86].d)) {

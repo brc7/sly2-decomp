@@ -11,6 +11,17 @@ void SetJtJtcs__FP2JTi(struct O *o, int n);
 void UpdateJtCane__FP2JT(struct O *o);
 void func_001CCAC0(void *p, int n);
 void func_00192A28(struct P *p);
+/** @sly2-annot addr=0x1928F8
+ * Purpose: Start a grab action: SetJtGrabKind(-1), store nState/tEnter/plo/pspot, owner vt88
+ *   SetPlayerState(2) (=jts 7), then map nState to initial kind (6 = Sly cane reach:
+ *   SetJtJtcs(0)+UpdateJtCane; 5/9 reach tracker; 8 -> kind 7; 1 -> detector reset 0x192A28; 11/12 set x500)
+ * Info: proposed name SetJtGrabState (T1); TU grab
+ * Notes: runtime4: JTGRAB tEnter = Murray state entry
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void SetJtGrabState(struct P *p, int n, int a, int b)
 {
     SetJtGrabKind(p, -1);

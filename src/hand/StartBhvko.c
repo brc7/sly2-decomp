@@ -33,6 +33,16 @@ static inline int Count(struct A *a) {
     }
     return n;
 }
+/** @sly2-annot addr=0x179898
+ * Purpose: BHVKO Start: entry from table +0xC10, BHVHIT Start; first time: mark KO (+0x330), broadcast 0x18
+ *   (by hero) or 0x17, drop coins from the loot list, reset detector
+ * Info: proposed name StartBhvko (T1); class BHVKO slot8; TU guardbhv
+ * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded: RenderAloLine
+ *   (names_v2:B(unverified)) | runtime2/4 confirmed the BHVKO role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   names_v2:B(unverified)+r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void StartBhvko(struct S *p) {
     int n;
     struct A *a;

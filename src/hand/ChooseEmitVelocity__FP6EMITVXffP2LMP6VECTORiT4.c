@@ -10,6 +10,11 @@ float RadNormalize__Ff(float g);
 qword SetVectorSphere(float pan, float tilt, float r);
 void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 
+/** @sly2-annot addr=0x15AF08
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
                                                      qword *pnormal, int i, qword *pv)
 {

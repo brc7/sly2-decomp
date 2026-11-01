@@ -5,6 +5,14 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, void *p);
 void ReplaceSma(void *o2, void *o, int k, int n, void **ppo);
 int func_00152628(int k);
 float GRandInRange__Fff(float a, float b);
+/** @sly2-annot addr=0x152810
+ * Purpose: Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random
+ *   grade thresholds across the score range
+ * Info: proposed name BindRhythmMgrGrades (T2); TU rhythm
+ * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152810(struct S *p)
 {
     int i, j;

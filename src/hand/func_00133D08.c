@@ -6,6 +6,13 @@ static __inline__ int Call(struct O *po, struct O *poOther)
 {
     return ((int (*)(void *, struct O *))po->pvt[61].pfn)((char *)po + po->pvt[61].d, poOther);
 }
+/** @sly2-annot addr=0x133D08
+ * Purpose: AABB overlap on 3 axes, then both objects' FIgnoreIntersection (vt61) combined by max; pair unless
+ *   result is 1 or 3
+ * Info: proposed name FSwShouldPairObjects (T2); TU bbmark
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
+ * @end-sly2-annot */
 int func_00133D08(void *unused, struct B *pa, struct B *pb)
 {
     int n1, n2, r;

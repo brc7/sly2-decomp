@@ -13,6 +13,16 @@ static __inline__ void *PvLookup(struct S *p, void *pbis)
     struct VTE *e = &p->vt[51];
     return e->pfn((char *)p + e->d, func_00117D50(pbis));
 }
+/** @sly2-annot addr=0x186670
+ * Purpose: Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930),
+ *   create actuators (PactNewC); set SO flag bit 36
+ * Info: proposed name LoadSoIkFromBrx (T1); TU ik
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest+parse-verified
+ * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
+ *   docs/engine/animation.md#7-key-functions,
+ *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse
+ * @end-sly2-annot */
 void LoadSoIkFromBrx(struct S *p, void *pbis)
 {
     int c = func_00117BD0(pbis);

@@ -5,6 +5,13 @@ struct TEX0 {
 };
 struct BMP { int pad[2]; unsigned short cx; unsigned short cy; unsigned char psm; unsigned char cbw; char pad2[0x20 - 0xE]; TEX0 tex0; };
 extern "C" int func_001703C0(int n);
+/** @sly2-annot addr=0x1ECB18
+ * Purpose: existing name kept
+ * Info: proposed name BuildBmpTex0__FP3BMPi (EXISTING); TU shd
+ * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
+ *   r6b_rest+verdicts_tu_r4r6
+ * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void BuildBmpTex0(BMP *pbmp, int tbp)
 {
     pbmp->tex0.TBP0 = tbp;

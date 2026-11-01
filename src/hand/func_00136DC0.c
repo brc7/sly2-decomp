@@ -6,6 +6,12 @@ int FAsegaRetracted(void *p);
 void func_00136F48(struct P *p, int k);
 int GrfPressedWithin__5POCTLUif(struct A *pa, float g, int n);
 void ClearPoctlJoyPressed(struct A *pa, int n);
+/** @sly2-annot addr=0x136DC0
+ * Purpose: Aim-helper update: on button 0x80 and FCanUseGadget(2) restart
+ * Info: proposed name UpdateBentleyCrosshair (T2); TU bentley
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136DC0(struct P *p, int k)
 {
     if (p->pE0 && FAsegaRetracted(p->pE0))

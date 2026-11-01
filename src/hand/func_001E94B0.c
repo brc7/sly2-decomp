@@ -4,6 +4,13 @@ struct X { char pad[0x60]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int xE0; int xE4
 struct X *PloNew__F3CIDP2SO3OIDi(int k, int n, void *pv, int m);
 void func_002333B4(void *p, int b, int cb);
 void *func_001AE1D0(struct AR *par);
+/** @sly2-annot addr=0x1E94B0
+ * Purpose: Create a SHAPE (cid 0xA) with c samples (times 0..c-1) and empty dist/point arrays
+ * Info: proposed name PshapeNewSampled (T2); TU shape
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 struct X *func_001E94B0(void *pv, int c)
 {
     struct AR ar;

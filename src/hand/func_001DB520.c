@@ -36,6 +36,13 @@ void func_001DB010(OBJ *);
 SUB *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void func_001DB520(OBJ *p, int s);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
+/** @sly2-annot addr=0x1DB520
+ * Purpose: Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 =
+ *   Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0x377, 8); close restores clock
+ * Info: proposed name SetGadgetMenuState (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DB520(OBJ *p, int s)
 {
     if (s == p->x40)

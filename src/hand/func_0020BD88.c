@@ -13,6 +13,12 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int n, int h, void *arg);
 struct MARKER *func_0012F938(void *po, int n);
 struct C *func_0012FF10(void *po, void *arg, int kind, int check);
 
+/** @sly2-annot addr=0x20BD88
+ * Purpose: arc timing from ASEG labels 0x22/0x23/0x24, planar distance, curvature
+ * Info: proposed name PostAsegArcLoad (T2); TU tu_20B840
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 void func_0020BD88(struct S *p, void *arg)
 {
     struct MARKER *pa, *pb, *pc;

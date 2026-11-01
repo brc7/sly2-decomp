@@ -6,6 +6,11 @@ extern "C" int FIsSlEmpty(SAI *psai);
 extern "C" float RadNormalize__Ff(float rad);
 extern "C" void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);
 extern "C" void func_001EDAD8(CIRCLER *p, float du, float dv);
+/** @sly2-annot addr=0x1EE6D8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void UpdateCircler(CIRCLER *pcircler, float dt)
 {
     if (FIsSlEmpty(&pcircler->sai))

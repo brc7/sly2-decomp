@@ -24,6 +24,15 @@ void func_001DA950(OBJ *, int, int);
 void *func_001FBB90(int);
 void func_001FB2F8(void *, int);
 void SetStepplayerGadget(void *, int, int);
+/** @sly2-annot addr=0x1DAA90
+ * Purpose: Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons
+ *   (D_002C3258 = 4,1,2) assign the selected power-up to that slot (SetStepplayerGadget) when owned, else
+ *   error message 0x32/0x33
+ * Info: proposed name UpdateGadgetMenu (T1); TU screen
+ * Notes: names_v2 C hint not used: CalculateTnCrv__FP2TNP6VECTORN21
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DAA90(OBJ *p)
 {
     void *pv;

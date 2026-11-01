@@ -63,6 +63,14 @@ static inline qword AddScaled(qword p, qword axis, VU_FLOAT s)
     return r;
 }
 
+/** @sly2-annot addr=0x1BFF28
+ * Purpose: Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min
+ *   spacing
+ * Info: proposed name CposFindPath (T1); TU path
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest+verdicts_A2
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 int CposFindPath(G *g, qword from, qword to, int capacity, U *out)
 {
     TRI *first = PcgtPointInCbspSafe(g, g->pbsp, from, 1);

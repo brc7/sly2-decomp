@@ -3,6 +3,12 @@ struct X { char pad[0xC]; struct VT *pvt; char pad2[0x40 - 0x10]; void *p40; cha
 void func_001FBB30(void);
 void func_00232498(void *, void (*)(void), void *);
 void func_001FB658(struct X *, int, int);
+/** @sly2-annot addr=0x1FBFB0
+ * Purpose: vt14: if 0x400 pending, Incref and ask IOP IsStillPlaying with callback OnBanksndStatus
+ * Info: proposed name BANKSND_QueryStatus (T1); class BANKSND; TU sound
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FBFB0(struct X *px)
 {
     if (px->fl & 0x400) {

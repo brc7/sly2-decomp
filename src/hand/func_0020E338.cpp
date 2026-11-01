@@ -3,6 +3,12 @@ class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual
 class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int x54; char p2[8]; float g60; float g64; int p68; int n6C; };
 struct S { char pad[0x3E60]; O *o; };
 extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
+/** @sly2-annot addr=0x20E338
+ * Purpose: PloNew(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60
+ * Info: proposed name CreateSwDefaultObject74 (T2); TU sw
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 extern "C" void func_0020E338(S *p)
 {
     p->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);

@@ -11,6 +11,12 @@ extern "C" VU *func_00256D18(VU *pv, qword q);
 
 extern "C" void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
 extern "C" qword func_0011BFB8(M4 *pm);
+/** @sly2-annot addr=0x228C18
+ * Purpose: converts pos to water local space and evaluates current (v, w)
+ * Info: proposed name CalculateWaterCurrent (T1); TU water
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
+ * @end-sly2-annot */
 extern "C" void func_00228C18(struct S *p, qword v, qword *ppos, qword *prot)
 {
     VU q;

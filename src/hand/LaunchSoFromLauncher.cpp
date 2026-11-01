@@ -176,6 +176,16 @@ static inline float GClamp(float g, float gMin, float gMax) { if (g < gMin) g = 
 static inline float GClampR(float g, float gMin, float gMax) { if (g < gMin) return gMin; if (gMax < g) return gMax; return g; }
 static inline void LoadIdentity(MATRIX4 *pm) { func_002333B4(pm, 0, sizeof(*pm)); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 
+/** @sly2-annot addr=0x1D6B00
+ * Purpose: Launch an object from a launcher: predicted aim point, class-dependent velocity (0x50/0x51/0x52
+ *   CIDs), random spin
+ * Info: proposed name LaunchSoFromLauncher (T1); TU tu_1D6848
+ * Notes: runtime5a #13: darts launched via the launcher CID112 (owner +0x200)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r6_1D5150+runtime
+ * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns,
+ *   docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
+ *   docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SO *pso)
 {
     MATRIX4 matParent;

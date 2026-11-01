@@ -29,6 +29,13 @@ void func_001D51B8(void *prumble);
 void SetJoyJoys__FP3JOY4JOYS4JOYK(JOY *pjoy, int joys, int joyk);
 }
 
+/** @sly2-annot addr=0x1871C0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/main-loop-startup.md#3-pad-input-joycpp-0x187030-0x188488,
+ *   docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/guides/port-plan.md#11-known-facts-that-drive-the-design
+ * @end-sly2-annot */
 void UpdateJoy(JOY *pjoy)
 {
 

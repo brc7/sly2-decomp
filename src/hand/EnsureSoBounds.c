@@ -29,6 +29,13 @@ static inline ulong LoadState(struct Node *p)
     __asm__("ld %0,%1":"=r"(value):"m"(p->state));
     return value;
 }
+/** @sly2-annot addr=0x1F2500
+ * Purpose: Attach SO to the bounds record (+0x134) of its root (alloc from pool if none), then grow record
+ *   low/high radius by radius+distance from root origin per flag bits 32/33 of +0xD0
+ * Info: proposed name EnsureSoBounds (T1); TU so
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void EnsureSoBounds(struct Node *p) {
  struct Node *top;
  struct Stats *attached;

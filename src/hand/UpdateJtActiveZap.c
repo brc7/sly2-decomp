@@ -22,6 +22,13 @@ static inline float GClamp(float g, float lo, float hi)
     else r = g;
     return r;
 }
+/** @sly2-annot addr=0x1A1358
+ * Purpose: jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, FCheckJtStuck
+ *   escape
+ * Info: proposed name UpdateJtActiveZap (T1); TU hurt
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 void UpdateJtActiveZap(struct S *s)
 {
     if (s->x90 != -1) {

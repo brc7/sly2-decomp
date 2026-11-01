@@ -150,6 +150,15 @@ static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b
     return VU_VECTOR(r);
 }
 
+/** @sly2-annot addr=0x1D3450
+ * Purpose: Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass
+ *   (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18)
+ * Info: proposed name AddRobottankWheelXps (T1); TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: AddRcCarWheelXps -> AddRobottankWheelXps
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3, int unused4, BSP *pbspRoot, CONTACT **ppcontact)
 {
     int csupport = 0;

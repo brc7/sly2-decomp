@@ -12,6 +12,14 @@ static inline float GetX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) 
 static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; }
 static inline qword Broadcast(float g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
+/** @sly2-annot addr=0x1A5FB8
+ * Purpose: Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos
+ *   D_002DDF40+0x90) and apply via 0x1A5EE8
+ * Info: proposed name SetLoBeamXf (T2); TU lo
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090+verdicts_B
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 void func_001A5FB8(void *p,qword a,qword b,float width,float scale)
 {
  U x,y,z;

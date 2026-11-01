@@ -15,6 +15,12 @@ static __inline__ float GDist(qword a, qword b)
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x1843F0
+ * Purpose: vt15: PostLoLoad; default radius = distance to its point + D_002BE904
+ * Info: proposed name PostCid27Load (T2); class CID27 slot15; TU grabspot
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_001843F0(struct O *p)
 {
     PostLoLoad(p);

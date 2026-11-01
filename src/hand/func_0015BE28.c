@@ -6,6 +6,13 @@ struct Y { int a; int b; int c; };
 void func_00159118(struct X *px);
 void EmitParticles__FiP5EMITBP5EMITG(void *p, struct X *px, struct Y *py);
 void func_002333B4(void *pv, int b, int cb);
+/** @sly2-annot addr=0x15BE28
+ * Purpose: Builds a temporary EMITB (InitEmitb) from explicit position/velocity/matrix/params and calls
+ *   EmitParticles
+ * Info: TU emitter
+ * Notes: names_v2 B proposed StockSplashBig__FP6VECTORfP2SO (0.856) | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r3_1539A8
+ * @end-sly2-annot */
 void func_0015BE28(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2, int n3)
 {
     struct X x;

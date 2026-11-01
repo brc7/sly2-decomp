@@ -10,6 +10,15 @@ void *PvAllocSlotheapClear(POOL *);
 void func_0011CD98(POOL *, void *);
 N *func_00255D90(N *);
 
+/** @sly2-annot addr=0x257D80
+ * Purpose: allocate Sidebag node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
+ *   linkonce (inline/template)]
+ * Info: proposed name PvNewSidebag (T1); TU game_linkonce
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
+ *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
+ * @end-sly2-annot */
 N *func_00257D80(void)
 {
     N *p;

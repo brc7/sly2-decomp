@@ -20,6 +20,14 @@ struct Lock {
     Lock(S *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
     ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
 };
+/** @sly2-annot addr=0x156548
+ * Purpose: Creates a refcounted 0x60 stimulus object (cid 0x93) at a position from a template (class 0x75),
+ *   stamps time/serial, appends it to the SW list and to D_003E148C
+ * Info: proposed name NewNoise (T2); TU noise
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/guards-ai.md#5-perception, docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 extern "C" void func_00156548(P *p, qword q, int b, S **pps)
 {
     S *ps = PvAllocSlotheapClear(D_003DD490.pool);

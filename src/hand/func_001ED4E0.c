@@ -1,5 +1,11 @@
 struct S { int n; };
 extern struct S **D_003DD010;
+/** @sly2-annot addr=0x1ED4E0
+ * Purpose: Look up a bitmap by id in the hash
+ * Info: proposed name PbmpFindHash (T2); TU shd
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 struct S *func_001ED4E0(int n)
 {
     int i;

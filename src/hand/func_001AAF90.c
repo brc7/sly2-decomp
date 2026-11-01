@@ -8,6 +8,13 @@ void func_001AB040(struct S *s);
 void *func_002333B4(void *p, int c, unsigned int n);
 int func_00234820(struct ThreadParam *tp);
 void func_002355E0(int id, void *arg);
+/** @sly2-annot addr=0x1AAF90
+ * Purpose: Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, CreateThread+StartThread
+ * Info: proposed name CreateMemcardThread (T1); TU memcard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6+verdicts_A2
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AAF90(struct S *s, struct PMF pmf)
 {
     struct ThreadParam tp;

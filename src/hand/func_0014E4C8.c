@@ -5,6 +5,14 @@ struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
+/** @sly2-annot addr=0x14E4C8
+ * Purpose: Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if
+ *   top removed: Deactivate it and Activate new top
+ * Info: proposed name RevokeCmPolicy (T1); TU cm
+ * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
+ *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void func_0014E4C8(struct P *p, int grf, int prio, struct O *po, int a, int b)
 {
     struct E *peOut;

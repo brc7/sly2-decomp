@@ -12,6 +12,12 @@ struct CRef {
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+/** @sly2-annot addr=0x123788
+ * Purpose: Splice builtin "max": max over varargs
+ * Info: proposed name RefOpMaximum (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     CRef ref(aref[0]);

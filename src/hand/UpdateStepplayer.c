@@ -31,6 +31,17 @@ int func_0014FD50(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
 void func_001DB490(void *p);
 void UpdateBhvstk(int *p);
+/** @sly2-annot addr=0x1403D0
+ * Purpose: STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0),
+ *   interact-target pick 0x142AF8, gadget/menu button handling when the default camera policy is active
+ *   (FActiveCplcy(g_cm+0x3A0))
+ * Info: proposed name UpdateStepplayer (T1); class STEPPLAYER slot16; TU stepplayer
+ * Notes: runtime6 P1: calls the top BHV slot 14 with the POCTL (AI partner, S62)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/engine/player.md#8-look-mode-recon-mode-and-the-ai-partner,
+ *   docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void UpdateStepplayer(struct P *p)
 {
     int *pl;

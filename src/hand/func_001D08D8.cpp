@@ -10,6 +10,12 @@ extern "C" void func_001CE9B8(OBJ *);
 extern "C" float GRandInRange__Fff(float, float);
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword);
 static inline MATRIX3 MakeBasis(qword vector) return r {LoadLookAtMatrix(&r,vector);}
+/** @sly2-annot addr=0x1D08D8
+ * Purpose: LEAF (RIPT 5) PostEmit: random initial orientation
+ * Info: proposed name PostLeafEmit (T1); TU rip
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 extern "C" void func_001D08D8(OBJ *p)
 {
     VECTOR v;

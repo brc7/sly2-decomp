@@ -16,6 +16,15 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void AddLasenBeam(void *p, int, float, float, float, int, int, float, float, float, int); CRef RefThunk_AddLasenBeam(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x1056A0
+ * Purpose: Splice option thunk: optid 541 on CID85 (g_aeopid[455] thunkUser, returns Void, crefReq 10);
+ *   unpacks 10 args (Oid, Float, Float, Float, 0x100B, Oid, Float, Float, Float, 0x100B) -> Void via
+ *   RefSetArgsFromSplice then calls AddLasenBeam (0x1DF908)
+ * Info: proposed name RefThunk_AddLasenBeam (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
 {
     int ak[10] = {0x6, 0x1, 0x1, 0x1, 0x100b, 0x6, 0x1, 0x1, 0x1, 0x100b};

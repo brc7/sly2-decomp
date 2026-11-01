@@ -16,6 +16,16 @@ extern "C" int FJobComplete(S*);
 static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=func_00258200(p,arg,D_003D4A60);}
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
+/** @sly2-annot addr=0x163460
+ * Purpose: Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs
+ *   (+0xD0/+0xD8/+0xE0)
+ * Info: proposed name UpdateJobSaveVars (T1); TU game
+ * Notes: runtime6 G13: JOB save-var refs +0xD0..+0xE0
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime
+ * See: docs/engine/game-progression.md#1-job-and-task-gamecpp-0x1613a8-0x166270,
+ *   docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void UpdateJobSaveVars(S*p){
  {OPT*opt=&p->a;if(opt->kind){SetInt(opt,p->n);}}
  {OPT*opt=&p->b;if(opt->kind){void*key=D_003D4A60;int f=FJobComplete(p);{SetBool(opt,f!=0,key);}}}

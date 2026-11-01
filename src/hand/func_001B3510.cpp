@@ -17,6 +17,12 @@ public:
 };
 struct P { char pad[0x110]; char *x110; int pad114; int x118; int x11C; };
 
+/** @sly2-annot addr=0x1B3510
+ * Purpose: build GIF packets to upload decoded RGB32 picture
+ * Info: proposed name BuildMpegGifs (T1); TU mpeg
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 extern "C" void func_001B3510(P *p)
 {
     char *pb = p->x110 + 0x285A80;

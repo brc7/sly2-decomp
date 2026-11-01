@@ -12,6 +12,13 @@ int func_0021ECD8(char *, char *, ...);
 OBJ *func_001DAE20(GS *,int);
 void *PpoHero(void *);
 int IGadgetSlotFromId(void *, int);
+/** @sly2-annot addr=0x1DC598
+ * Purpose: Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name,
+ *   slot button and description
+ * Info: proposed name BuildGadgetMenuInfoText (T1); TU screen
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DC598(char *out)
 {
     char buf[256];

@@ -29,6 +29,13 @@ struct TRIE;
 struct KEY;
 struct OUT { ENT *pe; int n; };
 extern "C" int func_001D7DA0(TRIE *, KEY *, OUT *);
+/** @sly2-annot addr=0x1D7ED8
+ * Purpose: Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...)
+ * Info: proposed name RefGetSaveVar (T1); TU save
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" CRef func_001D7ED8(TRIE *p, KEY *key, char *pb)
 {
     CRef ref;

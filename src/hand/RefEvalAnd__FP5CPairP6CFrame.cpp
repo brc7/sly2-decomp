@@ -17,6 +17,12 @@ extern "C" {
 CRef RefEval__FP5CPairP6CFrame(Q *pq, CRef *aref);
 CRef RefEvalAnd__FP5CPairP6CFrame(P *p, CRef *aref);
 }
+/** @sly2-annot addr=0x126928
+ * Purpose: (and ...): stops at first #f, else last value
+ * Info: proposed name RefEvalAnd (T1); TU eval
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef RefEvalAnd__FP5CPairP6CFrame(P *p, CRef *aref)
 {
     CRef ref;

@@ -17,6 +17,18 @@ static __inline__ qword MAdd(qword p, qword up, float s) {
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(p), "j"(up), "j"(u.q));
     return r;
 }
+/** @sly2-annot addr=0x173610
+ * Purpose: Cast a line along the up axis from pos+a*up to pos+b*up against SW objects (IntersectSwBoundingBox
+ *   + PsoHitTestLineObjects, default filter FFilterSoNotSelfVt62); on a hit with a walkable normal (z>=0.7
+ *   unless k) move *ppos to it
+ * Info: proposed name FSnapToGround (T2); TU tu_173158
+ * Notes: top50_round (0.55): Body (STACKSCOPE). Callers FStepplayerWillLand, FitStepToTerrain, StartBhvleap,
+ *   SpawnCid119Guard, FGuardStuck
+ * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r3b_rest+top50_round
+ * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898,
+ *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 int func_00173610(qword *pv, float a, float b, int k, int (*fn)(void)) {
     struct X x;
     int na, nb;

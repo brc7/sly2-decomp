@@ -29,6 +29,14 @@ qword func_001A62E8(struct S *p);
 void FitLinearFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb);
 void func_001A3B38(struct S *p);
 static inline float Max1(float a, float b) { return (a > b) ? a : b; }
+/** @sly2-annot addr=0x1A3968
+ * Purpose: Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction
+ *   falloff, position; then InvalidateLight
+ * Info: proposed name RebuildLight (T1); TU light
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 void func_001A3968(struct S *p)
 {
     V3 v;

@@ -18,6 +18,14 @@ static inline qword VecMul(qword v, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
     return r;
 }
+/** @sly2-annot addr=0x152148
+ * Purpose: cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the
+ *   rhythm manager's state (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from
+ *   aseg
+ * Info: proposed name UpdateDancer (T2); class DANCER slot16; TU rhythm
+ * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152148(struct P *p)
 {
     int k;

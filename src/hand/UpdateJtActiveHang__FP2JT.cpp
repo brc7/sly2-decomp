@@ -71,6 +71,13 @@ typedef char WORK_matrix_Offset[FIELD_OFFSET(WORK,matrix)==48?1:-1];
 typedef char WORK_returned_Offset[FIELD_OFFSET(WORK,returned)==96?1:-1];
 typedef char WORK_heading_Offset[FIELD_OFFSET(WORK,heading)==144?1:-1];
 typedef char WORK_target_Offset[FIELD_OFFSET(WORK,target)==160?1:-1];
+/** @sly2-annot addr=0x190520
+ * Purpose: Per-frame active hang: heading from GetJtHangHeading (flipped +pi), stick near/far detection
+ *   (60/120 deg), swing anim weights, jump-off/drop via SetJtJts, CalculateJtHangAccel
+ * Info: proposed name UpdateJtActiveHang (T1); TU hang
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
+ * @end-sly2-annot */
 extern "C" void UpdateJtActiveHang__FP2JT(P*p){
  WORK w;int near=0,far=0;
  GetJtHangHeading__FP2JTPf(p,&w.heading);

@@ -43,6 +43,13 @@ static inline qword Scale(qword v, qword g)
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(u.q));
     return r;
 }
+/** @sly2-annot addr=0x11E4B0
+ * Purpose: Angle between two vectors (acosf) and optional normalised rotation axis
+ * Info: proposed name RadBetweenVectors (T1); TU vec
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 float RadBetweenVectors(qword a, qword b, qword *paxis)
 {
     float la = Length(a);

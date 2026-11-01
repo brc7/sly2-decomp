@@ -19,6 +19,12 @@ int FPosInPathzone(void *, qword, int);
 void *func_001AE238(struct MSG *, void *);
 void func_001AE5A0(void *, const void *, unsigned);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
+/** @sly2-annot addr=0x1E9C88
+ * Purpose: Sample the path, collect distinct containing objects (0x1C0D70) and parameter ranges
+ * Info: proposed name BuildShapeVolumeSegments (T2); TU shape
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E9C88(struct S *ps, struct O *po)
 {
     struct SEG aseg[64];

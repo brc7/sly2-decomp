@@ -263,6 +263,15 @@ extern float D_002BF70C;
 extern HINTBOX D_003DA0C0;
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand);
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
+/** @sly2-annot addr=0x194A40
+ * Purpose: Every frame collect the player's grab candidates from the world grab lists selected by grf (HND,
+ *   PIPE, CID27, HSHAPE, CID34/38/35, RAIL, CID39), refine the best 4, drive the hint box text
+ * Info: proposed name GatherJtGrabCandidates (T1); TU grab
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/player.md#9-grabbable-world-objects,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf)
 {
     JTGRABCAND ajtgrabcand[4];

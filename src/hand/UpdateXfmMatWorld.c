@@ -3,6 +3,12 @@ typedef struct Y { char pad[0x40]; M4 m40; char pad2[0x24]; int xA4; } Y;
 typedef struct X { char pad[0x50]; Y *y; int x54; int pad2[2]; M4 m60; M4 mA0; } X;
 M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
 
+/** @sly2-annot addr=0x231368
+ * Purpose: recompute matWorld when parent stamp newer
+ * Info: proposed name UpdateXfmMatWorld (T1); TU xform
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 void UpdateXfmMatWorld(X *p)
 {
     Y *y = p->y;

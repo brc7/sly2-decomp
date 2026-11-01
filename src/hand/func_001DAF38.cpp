@@ -16,6 +16,13 @@ extern char D_002A79B8[];
 int func_0021ECD8(char *, const char *, ...);
 CRef func_001D8B20(const CRef &, const char *, ...);
 void BroadcastGameEvent(G *, int, int);
+/** @sly2-annot addr=0x1DAF38
+ * Purpose: Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n
+ * Info: proposed name SetPowerupAcquired (T1); TU screen
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 extern "C" void func_001DAF38(int n, int f)
 {
     CRef ref;

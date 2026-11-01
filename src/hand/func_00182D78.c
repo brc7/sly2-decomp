@@ -7,6 +7,12 @@ extern float GRandInRange__Fff(float a, float b);
 extern float D_002BE8B0;
 extern qword D_002A2DC0;
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x182D78
+ * Purpose: Default: random point in a sphere around the owner (GRandInRange pan/tilt/radius), zero dv
+ * Info: proposed name GetGrabspotSparklePos (T2); class GRABSPOT; TU grabspot
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 void func_00182D78(struct O *p, qword *pv, qword *pdv)
 {
     void *po = p->pvt->a[6].pfn((char *)p + p->pvt->a[6].d);

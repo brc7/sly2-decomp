@@ -10,6 +10,13 @@ int FBhvgotoArrived(void *p);
 int FBhvanimDone(void *p);
 void SetStepguardMoverRadTarget(void *p, float g);
 void PopBhv(void *p);
+/** @sly2-annot addr=0x171468
+ * Purpose: Whether the running command's sub-behaviour is still active (goto/look/wait/13/14 kinds); pops it
+ *   when done
+ * Info: proposed name FBhv169CmdBusy (T2); TU tu_1709A8
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 int func_00171468(struct S *p) {
     if (!p->n40) return 0;
     switch (p->pe->k) {

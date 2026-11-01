@@ -3,6 +3,12 @@ struct O { char pad[0xFC]; int c; QW a[1]; };
 struct S { char pad[0x3A4]; int n; char p2[0xF64 - 0x3A8]; struct O *o; };
 QW *PdteFindDetectorTarget(struct O *o);
 void func_001AE5A0(void *dst, void *src, int cb);
+/** @sly2-annot addr=0x208860
+ * Purpose: Remove a non-generated detector entry (compact)
+ * Info: proposed name RemoveStepguardDetectTarget (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00208860(struct S *p)
 {
     QW *pq = PdteFindDetectorTarget(p->o);

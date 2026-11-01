@@ -52,6 +52,13 @@ extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void ActivateTask(X *p);
 extern "C" void DeactivateTask(X *p);
 extern "C" void func_00163E88(X *p, int n);
+/** @sly2-annot addr=0x164640
+ * Purpose: Validated state request (4=activate, 5=deactivate, 0..3 only by +1 steps or prerequisites met),
+ *   else RejectTaskState
+ * Info: proposed name RequestTaskState (T1); TU game
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void RequestTaskState(X *p, int n, int nF8)
 {
     CSave save(p, p->fF4, nF8);

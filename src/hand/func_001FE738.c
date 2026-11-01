@@ -18,6 +18,12 @@ static inline void Stop(struct Ref *pr)
         func_00259B48(pr, 0);
     }
 }
+/** @sly2-annot addr=0x1FE738
+ * Purpose: Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state
+ * Info: proposed name StopDialog (T1); TU sound
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FE738(struct P *p)
 {
     int i;

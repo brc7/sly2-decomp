@@ -4,6 +4,11 @@ int CchAchFromDouble(char *,int,TFT *,double);
 extern "C" unsigned int func_0021ED28(const char *);
 extern "C" void func_0021EE30(char *);
 static inline void WritePad(OSTRM *out,char ch,int count){char b=ch;while(count-- >0)if(out->CbWrite(&b,1)!=1)break;}
+/** @sly2-annot addr=0x21E4B8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 void WriteTftDouble(TFT *f,OSTRM *out,double value){
     char digits[0x1B6];
     char prefix[0x10];

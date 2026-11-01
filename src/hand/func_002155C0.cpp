@@ -15,6 +15,12 @@ struct BUF { int a[12]; };
 struct P { char pad[0xC4]; int xC4; };
 struct Q { int x0; int x4; char pad8[8]; int x10; char pad14[8]; int x1C; int x20; };
 extern "C" void func_002155C0(P *p, Q *q);
+/** @sly2-annot addr=0x2155C0
+ * Purpose: kind-7 picture callback: GIF TEX0/TEXA packet for the texture of q->x10
+ * Info: proposed name BuildSpritePictureTexPacket (T2); TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002155C0(P *p, Q *q)
 {
     FRAME frame;

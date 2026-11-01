@@ -11,6 +11,12 @@ struct Lock {
     Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
     ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
 };
+/** @sly2-annot addr=0x1F09D8
+ * Purpose: Jump straight to a state: kill the ASEGA, set cur/goal, notify enter, choose
+ * Info: proposed name SnapSma (T1); TU sm
+ * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
+ * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 extern "C" void SnapSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {

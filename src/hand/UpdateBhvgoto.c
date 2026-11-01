@@ -22,6 +22,15 @@ void EvaluateShapeS(void *p, float f, float *pv, int n);
 int FBhvpathlinkDone(struct T *t);
 int func_0017EAE8(struct T *t);
 void PlanBhvgoto(struct S *p);
+/** @sly2-annot addr=0x17D6C8
+ * Purpose: BHVGOTO Update: re-plan when stale or the path graph changed; at a pathlink start traverse it;
+ *   stuck -> relocate
+ * Info: proposed name UpdateBhvgoto (T1); class BHVGOTO slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVGOTO role on live guards (S02-S41)
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void UpdateBhvgoto(struct S *p) {
     int s;
     UpdateBhv(p);

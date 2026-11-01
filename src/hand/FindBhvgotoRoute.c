@@ -17,6 +17,15 @@ qword func_001C1EC0(struct V2 *p, qword v);
 void *PpathzoneFromPos(qword v, int n);
 int FindPathlinkRoute(void *a, struct A *b, qword v, int c, int d, struct I **pp);
 void FindPathzoneClosestPoint(void *a, qword v, qword *pv, int n);
+/** @sly2-annot addr=0x17D8A8
+ * Purpose: Route the goal through path zones: same zone direct, else FindPathlinkRoute (optionally allowing
+ *   partial routes) else stop at closest reachable point
+ * Info: proposed name FindBhvgotoRoute (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVGOTO role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void FindBhvgotoRoute(struct S *p) {
     p->nB4 = 0;
     p->u.v60 = p->v40;

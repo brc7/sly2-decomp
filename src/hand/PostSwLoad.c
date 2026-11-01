@@ -23,6 +23,15 @@ void func_001C1260(void *p);
 void func_0014D470(void *p);
 void BroadcastGameEvent(void *p, int a, int b);
 
+/** @sly2-annot addr=0x20E740
+ * Purpose: After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15)
+ *   until queue empty, StartupCm-like camera reset, game callback(4)
+ * Info: proposed name PostSwLoad (T1); TU sw
+ * Notes: names_v2 v1 proposed UpdateChkpnt__FP6CHKPNTf (0.000)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level
+ * @end-sly2-annot */
 void PostSwLoad(struct S *p)
 {
     struct O **ppo;

@@ -26,6 +26,19 @@ static __inline__ void Integrate(float *px, float *pv, float a, float dt)
     vAvg = (vOld + *pv) * 0.5f;
     *px += dt * vAvg;
 }
+/** @sly2-annot addr=0x181F60
+ * Purpose: vt16: UpdateSo, per-segment shape tracking and random effects
+ * Info: proposed name UpdateHackwall (T2); class HACKWALL slot16; TU tu_17F090
+ * Notes: names_v2 C proposed SetSggSggs__FP3SGG4SGGS (0.438) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) |
+ *   verifier PLAUSIBLE: Placeholder class. CID 0x4C vtable slot 16: UpdateSo, then per entry (max 4): closest
+ *   point on shape to D_002DFB80's position, full search every 0.5-0.75 s (GRandInRange) else from previous
+ *   s, piece u | class identity from whole_game WE names/object strings: UpdateCid76 -> UpdateHackwall | T2
+ *   forced: verifier: placeholder name
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources:
+ *   r4b_rest+verdicts_followups+whole_game(class identity)
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181F60(struct S *p)
 {
     int i;

@@ -3,6 +3,13 @@ struct S { int a[3]; struct VTE *vt; char pad[0x140]; void *x; char pad2[0x6C]; 
 int POCTL_FConsumePressed(void *x, int a);
 void *PloAcquireProxy(void *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
+/** @sly2-annot addr=0x226250
+ * Purpose: on fire button (0x1C4700 mask 0xFF) spawn projectile (0x1CB250/0x1D6B00) and send splice event 5
+ * Info: proposed name FireTurret (T2); TU turret
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
+ *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
+ * @end-sly2-annot */
 void func_00226250(struct S *p)
 {
     if (p->x && POCTL_FConsumePressed(p->x, 0xFF)) {

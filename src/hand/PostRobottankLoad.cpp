@@ -26,6 +26,17 @@ void ResetRobottankHealth(P *);
 }
 static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline qword CPU(qword value){qword result;asm("qmfc2.ni %0,%1":"=r"(result):"j"(value));return result;}
+/** @sly2-annot addr=0x1D1518
+ * Purpose: CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their
+ *   normalized layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA
+ *   bindings), drop unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth
+ * Info: proposed name PostRobottankLoad (T1); class ROBOTTANK slot15; TU tu_1D1370
+ * Notes: names_v2 C proposed SetAloParent__FP3ALOT0 (0.438) | class identity from whole_game WE names/object
+ *   strings: PostRcCarLoad -> PostRobottankLoad
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void PostRobottankLoad(P *p){
  U scalar,maximum,minimum;
  register int i __asm__("$18")=0;CURRENT current;SCALE scale;

@@ -9,6 +9,13 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 void func_00209FB8(struct O *p);
 qword ConvertAloVec(struct S *p, int n, qword q);
 void func_001F7A68(struct O *p, int n);
+/** @sly2-annot addr=0x1B7AE8
+ * Purpose: Release in state 8: detach, velocity = fixed local vector D_002C09D0, zero angular velocity,
+ *   SetSoZapMode 3
+ * Info: proposed name TossMurrayCarried (T2); TU murray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B7AE8(struct S *p)
 {
     struct O *po;

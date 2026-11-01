@@ -397,6 +397,12 @@ static inline void TurnSlotMat(XF *pxf, MATRIX3 *pmatFrom, qword qwTurn)
 }
 MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis);
 void UpdateSoSlots(SO *pso) __asm__("UpdateSoSlots");
+/** @sly2-annot addr=0x22DE88
+ * Purpose: per-frame step of all XF slots of an SO (roles, chase, springs, chains)
+ * Info: proposed name UpdateSoSlots (T1); TU xf
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 void UpdateSoSlots(SO *pso)
 {
     int fMoving;

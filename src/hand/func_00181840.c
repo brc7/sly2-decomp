@@ -10,6 +10,14 @@ void *func_001AE2A0(struct MSG *pmsg);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void func_0017F138(struct S *p);
 void AddSoParts(struct S *p);
+/** @sly2-annot addr=0x181840
+ * Purpose: vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load
+ * Info: proposed name PostHackwallLoad (T2); class HACKWALL slot15; TU tu_17F090
+ * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
+ *   PostCid76Load -> PostHackwallLoad
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181840(struct S *p)
 {
     int i, j;

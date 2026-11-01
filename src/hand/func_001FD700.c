@@ -17,6 +17,13 @@ void func_00259B48(void *, void *);
 void ResetSlotheap(void *);
 void ClearDl__FP2DL(void *);
 void func_001FEDF0(struct P *);
+/** @sly2-annot addr=0x1FD700
+ * Purpose: Stop all sounds/streams (989 cmd 0x18, SUKR cmd 10), flush, clear state, free dirty list, reset
+ *   volumes
+ * Info: proposed name ResetSndmgr (T1); TU sound
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FD700(struct P *p)
 {
     func_00232408();

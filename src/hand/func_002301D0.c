@@ -7,6 +7,14 @@ void func_0022C840(void *, S *);
 
 #define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
 
+/** @sly2-annot addr=0x2301D0
+ * Purpose: re-sorts up to 16 actuators by priority
+ * Info: proposed name ResortXfActList (T2); TU xf
+ * Notes: names_v2 C proposed ResortAloActList__FP3ALO (0.638)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 void func_002301D0(void *ctx, S *s)
 {
     N *a[16];

@@ -10,6 +10,14 @@ struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_00170C50(struct O *o, int a, int b, int c);
 void *func_001AE2A0(struct AL *a);
 void SetLoBusyk(struct S *p, int n);
+/** @sly2-annot addr=0x1733F8
+ * Purpose: Resolves selector oids; for kind 1 creates a cid 0x71 script with a goto; allocates per-slot
+ *   entries; marks busy
+ * Info: proposed name PostCid119Load (T2); class CID119 slot15; TU tu_173158
+ * Notes: Cid77->Cid119 (CID 0x77=119, vtable)
+ * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
+ * @end-sly2-annot */
 void func_001733F8(struct S *p) {
     int i;
     struct AL al;

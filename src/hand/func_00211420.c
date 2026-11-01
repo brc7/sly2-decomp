@@ -8,6 +8,13 @@ struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 char *PchzFindSwLangstr__FP2SWi(void *, int);
 void func_0021ED58(char *, char *);
+/** @sly2-annot addr=0x211420
+ * Purpose: STRINGGEN id 0x2F4: name of the object the player operates in mode x4C8==0xC (cid 0x5E table
+ *   D_002C3288 / cid 0x5C field / player x1318)
+ * Info: proposed name BuildOperatedObjectText (T2); TU hud
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00211420(char *pch)
 {
     int id = -1;

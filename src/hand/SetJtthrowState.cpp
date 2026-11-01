@@ -107,6 +107,13 @@ static inline qword SavedPlayerAndOwner(qword position,const S*state,O*&receiver
  asm("qmtc2.ni %2,%0\n\tlw %1,%3":"=j"(point),"=r"(owner):"r"(position),"m"(state->owner));
  receiver=owner;return point;
 }
+/** @sly2-annot addr=0x2206C8
+ * Purpose: state transitions of the carry/throw controller and selection of the matching animation (0x1305B8)
+ * Info: proposed name SetJtthrowState (T1); TU throw
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
+ * @end-sly2-annot */
 extern "C" void SetJtthrowState(S *s,int state){
  WORK w;
  int old=s->state;

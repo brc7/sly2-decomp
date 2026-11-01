@@ -79,6 +79,13 @@ static __inline__ qword MulPoint(struct M4 *pm, qword v)
     return r;
 }
 
+/** @sly2-annot addr=0x139DC0
+ * Purpose: BLIPG vt17: per-blip transform/projection (non-accelerated path)
+ * Info: proposed name ProjectBlipgTransform (T1); class BLIPG slot17; TU blip
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 void ProjectBlipgTransform(struct P *p)
 {
     struct M4 m;

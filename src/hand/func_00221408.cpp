@@ -29,6 +29,12 @@ static inline qword InverseRotate(const M3 &m, qword v) {
     __asm__("vmul.xyzw %2,%5,%0\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%0\n\tvmul.xyzw %4,%7,%0\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y" : "+j"(v),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));
     return v;
 }
+/** @sly2-annot addr=0x221408
+ * Purpose: projects a world point into the path basis and returns path direction
+ * Info: proposed name CalculateTnCrv (T2); TU tn
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 extern "C" void func_00221408(S *p,qword v,qword *out,qword *normal) {
     U pos;
     M3 m;

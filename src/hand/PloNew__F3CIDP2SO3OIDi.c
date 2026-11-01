@@ -11,6 +11,18 @@ void *PdlFromSwCid(struct G *pg, int cid);
 void func_0011A070(void *pdl, struct LO *plo);
 int func_001A61A0(struct LO *plo);
 #define VCALL(p, n) ((void (*)(void *))(p)->pvt[n].pfn)((char *)(p) + (p)->pvt[n].d)
+/** @sly2-annot addr=0x13E3C8
+ * Purpose: Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from
+ *   isplice; append to SW oid and cid hash lists; vt7 Init; vt11 if fInWorld; vt23 if frozen-list member;
+ *   record in SW load list (+0x39E4)
+ * Info: proposed name PloNew (T1); TU brx
+ * Notes: runtime: links into SW oid hash + per-class list confirmed
+ * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); semantic review; sources:
+ *   r2_131F70+runtime
+ * See: docs/engine/object-model.md#3-creation-hierarchy-and-removal,
+ *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/engine/overview.md#3-world--level-lifecycle
+ * @end-sly2-annot */
 struct LO *PloNew__F3CIDP2SO3OIDi(int cid, void *psw, int oid, int n)
 {
     struct G *pg; struct LO *plo = (D_002BAAE8 + cid)->pfnNew();

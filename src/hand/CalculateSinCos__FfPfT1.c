@@ -6,6 +6,15 @@ static inline float GClamp(float g, float lo, float hi)
     return g;
 }
 
+/** @sly2-annot addr=0x11D608
+ * Purpose: sin and cos of an angle (polynomial, clamped)
+ * Info: proposed name CalculateSinCos (T1); TU util
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
+ *   r1_116918+verdicts_tu_r1r2+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
+ *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
+ * @end-sly2-annot */
 void CalculateSinCos__FfPfT1(float rad, float *psin, float *pcos)
 {
     float g = (rad + 1.5707963705062866f) * 0.31830987334251404f;

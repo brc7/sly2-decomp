@@ -2,6 +2,12 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct S { char pad[0xC]; VTE *vt; };
 #define VT(p, n, T) ((T)(p)->vt[n].pfn)
 struct REQUEST { int value; int *pointer; };
+/** @sly2-annot addr=0x206820
+ * Purpose: vt27(0), message 0xF, vt26(0), message 0xE
+ * Info: proposed name RestartStepguard (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00206820(struct S *p)
 {
     struct REQUEST request;

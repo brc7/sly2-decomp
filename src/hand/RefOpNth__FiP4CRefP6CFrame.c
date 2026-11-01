@@ -4,6 +4,12 @@ void func_0012A0B0(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
+/** @sly2-annot addr=0x120D78
+ * Purpose: Splice builtin "nth": walk list to index a1
+ * Info: proposed name RefOpNth (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verify_side
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

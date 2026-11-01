@@ -7,6 +7,12 @@ struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]
 qword func_0022FC48(int a, int b, qword v);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
 qword func_0011BFF0(MATRIX3 *pm);
+/** @sly2-annot addr=0x20ACC0
+ * Purpose: Aim rotation toward predicted point (0x22FC48) as Euler
+ * Info: proposed name UpdateStepguardAim (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020ACC0(struct S *p)
 {
     MATRIX3 m;

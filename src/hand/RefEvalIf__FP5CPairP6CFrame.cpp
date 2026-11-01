@@ -16,6 +16,13 @@ extern "C" {
 CRef RefEval__FP5CPairP6CFrame(Q *pq, CRef *aref);
 CRef RefEvalIf__FP5CPairP6CFrame(P *p, CRef *aref);
 }
+/** @sly2-annot addr=0x126758
+ * Purpose: (if c then [else])
+ * Info: proposed name RefEvalIf (T1); TU eval
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/splice-scripting.md#3-the-evaluator,
+ *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef RefEvalIf__FP5CPairP6CFrame(P *p, CRef *aref)
 {
     CRef ref;

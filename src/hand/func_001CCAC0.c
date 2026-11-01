@@ -21,6 +21,14 @@ qword func_0022CA18(void *a, void *b);
 int func_0012DC18(struct W *p, void *q, int a, int b, int c, qword d);
 void func_001384C0(void *p);
 void EnsureSwCallback(void *pg, struct W *pw, struct P8 p8, struct S *p);
+/** @sly2-annot addr=0x1CCAC0
+ * Purpose: Choose grab target (shape closest point or class-0x14 object), new position act, reblend, schedule
+ *   UpdateJtHandsCallback
+ * Info: proposed name SetJtHandsTarget (T2); TU jthands
+ * Notes: names_v2 C proposed RevokeCmPolicy__FP2CMi3CPPP5CPLCYP2SOPv (0.438)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
+ * @end-sly2-annot */
 void func_001CCAC0(struct S *p, int n)
 {
     if (n == p->xA4) return;

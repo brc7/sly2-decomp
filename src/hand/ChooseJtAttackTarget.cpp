@@ -31,6 +31,14 @@ static inline qword GetVelocity(P*p){VTE*e=&p->vt[33];qword(*f)(void*)=(qword(*)
 static inline void*GetFrame(P*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 static inline int IsBonus(P*const &n){return PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
+/** @sly2-annot addr=0x18F2B0
+ * Purpose: Search the target list D_003E13B4 (flags&mask) for the best TARGET within 300 of Sly's projected
+ *   position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta
+ * Info: proposed name ChooseJtAttackTarget (T1); TU cane
+ * Notes: names_v2 v1 proposed MeasureJtJumpToTarget__FP2JTP6VECTORP3ALOT1T1PfT5T1T1 (0.019)
+ * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
+ * @end-sly2-annot */
 extern "C" void ChooseJtAttackTarget(P*p,float headingInput,int mask,float dtInput,U*offset,P**out,qword*outvector,float cone){
  register float heading __asm__("$f21")=headingInput; float dt=dtInput; // the one pin: heading in f21 (else f20/f21 swap)
  M3 rotation;

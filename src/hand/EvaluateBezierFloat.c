@@ -1,4 +1,13 @@
 static inline float GDiv(float a, float b) { float r; __asm__ __volatile__("div.s %0, %1, %2" : "=f"(r) : "f"(a), "f"(b)); return r; }
+/** @sly2-annot addr=0x117030
+ * Purpose: Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at
+ *   time t; writes value and slope
+ * Info: proposed name EvaluateBezierFloat (T1); TU bez
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/core-library.md#6-source-files,
+ *   docs/reference/functions/core-library.md#bez-0x117030-0x1177a8,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale, float g0, float dg0, float g1, float dg1)
 {
     float dg;

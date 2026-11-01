@@ -9,6 +9,15 @@ void SetJtJts__FP2JT3JTS4JTBS(struct S *p, int a, int b);
 void SetJtJtcs__FP2JTi(struct S *p, int n);
 int func_0018F050(struct S *p);
 int func_0018EE38(struct S *p);
+/** @sly2-annot addr=0x18F0A8
+ * Purpose: Per-frame cane input: per-jts allow list (3/21/22 hang states: square(0x80) launches jump via
+ *   SetJtAirJump; sidestep sub-cases), then buffered button 0x10/0x80 within 0.35 s restarts SetJtJtcs with
+ *   JtcsChooseJtSweep/Attack
+ * Info: proposed name UpdateJtActiveCane (T1); TU cane
+ * Notes: names_v2 C proposed MatchAloOtherObject__FP3ALOT0 (0.638)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
+ * @end-sly2-annot */
 void UpdateJtActiveCane__FP2JT(struct S *p)
 {
     int f;

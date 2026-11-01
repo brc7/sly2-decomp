@@ -8,6 +8,14 @@ struct S { M4 m; char pad[0x94 - 0x40]; int k; };
 void *func_0023320C(void *d, void *s, int n);
 M3 *LoadRotateMatrixEuler(M3 *pm, qword v);
 VU *func_00256D18(VU *pv, qword q);
+/** @sly2-annot addr=0x22C8C0
+ * Purpose: switch on kind: rotation/position override applied to matrix
+ * Info: proposed name ApplyXfOverride (T2); TU xf
+ * Notes: names_v2 C proposed ApplyAloProxy__FP3ALOP5PROXY (0.438)
+ * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 M4 *func_0022C8C0(M4 *pm, struct S *p, qword v)
 {
     switch (p->k) {

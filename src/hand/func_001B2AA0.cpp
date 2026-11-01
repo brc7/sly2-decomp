@@ -7,6 +7,13 @@ void func_001AE5A0(void *dst, void *src, int cb);
 }
 static inline char *Alloc(int cb, int align) { return func_001AE318(AREQ(cb, align)); }
 
+/** @sly2-annot addr=0x1B2AA0
+ * Purpose: Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb)
+ *   before send
+ * Info: proposed name CQueueOutputIop_StageInterleaved (T2); class CQueueOutputIop; TU mpeg
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 extern "C" void func_001B2AA0(S *p, int cb, char *pb)
 {
     int ch = p->x4;

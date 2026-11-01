@@ -21,6 +21,13 @@ struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref);
 
 static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
+/** @sly2-annot addr=0x11F440
+ * Purpose: Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion)
+ * Info: proposed name RefOpAdd (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/core-library.md#core-library-memory-containers-math-streams-cd-threads-text,
+ *   docs/engine/core-library.md#6-source-files, docs/engine/splice-scripting.md#1-layout-of-the-runtime
+ * @end-sly2-annot */
 CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref)
 {
     CRef ref;

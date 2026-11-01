@@ -77,6 +77,13 @@ typedef char Size_4[sizeof(Y)==112?1:-1];
 typedef char Size_5[sizeof(uint)==4?1:-1];
 typedef char Size_6[sizeof(int)==4?1:-1];
 typedef char Size_7[sizeof(void*)==4?1:-1];
+/** @sly2-annot addr=0x1AC260
+ * Purpose: Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close
+ * Info: proposed name load_file_from_disc (T1); TU memcard
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_A2
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int func_001AC260(void *p, const char *a, K *k, const char *b)
 {
     FRAME frame;

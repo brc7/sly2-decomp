@@ -5,6 +5,13 @@ struct P { char pad[0xF1C]; struct O *xF1C; char pad2[0x13F0 - 0xF20]; struct T 
 void func_00205D10(struct P *p, int b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 #define VCALL(o, n, ...) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, __VA_ARGS__)
+/** @sly2-annot addr=0x1B81B8
+ * Purpose: MURRAY vt87(p,f): STEP base 0x205D10, then propagate to carried object (vt21(!f), and vt87 if it
+ *   is a STEP)
+ * Info: proposed name SetMurrayPlayable (T2); class MURRAY slot87; TU murray
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B81B8(struct P *p, int b)
 {
     struct O *o;

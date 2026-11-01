@@ -44,6 +44,17 @@ void func_00130EB0(P *);
 static inline float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 static inline float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 
+/** @sly2-annot addr=0x12F9B8
+ * Purpose: Core of applying an animation segment to an ALO hierarchy: allocates an ASEGA from the pool, links
+ *   it, binds channels, sets speed, fast-forwards events, UpdateAsegaIeaCur
+ * Info: proposed name ApplyAseg (T1); TU aseg
+ * Notes: verifier: 0x12F9B8 is the ApplyAseg body (Sly 2 dropped the OVR arg); r1 ApplyAsegOvr superseded
+ *   (was ApplyAsegOvr)
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: verify_r1r2_summary
+ * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
+ *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
+ *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, P **pp)
 {
     P *p = PvAllocSlotheapClear(D_003E1224);

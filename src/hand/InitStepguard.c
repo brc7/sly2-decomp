@@ -25,6 +25,16 @@ void SetLoBusyk(struct F64 *p, int n);
 void func_002081C8(struct S *p);
 void func_00209768(struct BLOCK *p, struct S *s);
 
+/** @sly2-annot addr=0x205EB8
+ * Purpose: STEPGUARD vt7 Init: InitStep, ensure guard manager, create the vision detector (PloNew cid 0x10
+ *   oid 0x288 -> +0xF64), default ranges/angles (+-45deg, +-75deg, 300/800/1200/3000...), HP 0x338.., masks,
+ *   release anim/zap tables, init mover +0xFD0
+ * Info: proposed name InitStepguard (T1); class STEPGUARD slot7; TU stepguard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8,
+ *   docs/reference/functions/guards-ai.md#gomer-0x16f148-0x16f2d0
+ * @end-sly2-annot */
 void InitStepguard(struct S *p)
 {
     int v;

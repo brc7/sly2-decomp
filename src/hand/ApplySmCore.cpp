@@ -21,6 +21,13 @@ struct Lock {
     Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
     ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
 };
+/** @sly2-annot addr=0x1F01B8
+ * Purpose: Takes an SMA from the g_sw pool (+0x3DDC), memsets 0x50, links it into SM and world lists, runs
+ *   the ctor, sets the start state, notifies, chooses a transition
+ * Info: proposed name ApplySmCore (T1); TU sm
+ * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: semantic_tu_docs/sm
+ * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
 {
     S *ps = PvAllocSlotheapClear(D_003DD490.pool);

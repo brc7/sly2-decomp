@@ -20,6 +20,12 @@ static inline void StoreX(float *p,qword q) {__asm__("sw %1,%0":"=m"(*p):"r"(q))
 static inline float GetZ(qword q) {float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 static inline float GetY(qword q) {float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline float Min(float a,float b) {return b<a?b:a;}
+/** @sly2-annot addr=0x1E9AC0
+ * Purpose: CID 0x6A vt19: RenderSoSelf and deform the mesh along the path (EvaluateShapeU per sample)
+ * Info: proposed name RenderCid106Self (T2); class CID106 slot19; TU shape
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E9AC0(S *p)
 {
  RenderSoSelf(p);

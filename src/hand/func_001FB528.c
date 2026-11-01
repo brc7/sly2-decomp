@@ -8,6 +8,13 @@ qword ConvertAloPos(struct O *, int, qword);
 void func_001FB778(struct P *, qword, void *, float *, int *);
 void func_001FB658(struct P *, int, int);
 void func_001FB268(struct P *, int);
+/** @sly2-annot addr=0x1FB528
+ * Purpose: vt16: from source ALO/pos compute distance volume and pan angle (CalculateSndVolPan); vt15 on
+ *   audible<->silent transitions
+ * Info: proposed name UpdateSndPositional (T1); class SND; TU sound
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FB528(struct P *p)
 {
     float f;

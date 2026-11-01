@@ -39,6 +39,13 @@ extern "C" qword *func_00256D18(qword *, VU_VECTOR);
 extern "C" void InvertMatrix4Rigid(M4 *, const M4 *);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4 &, const M4 &);
 
+/** @sly2-annot addr=0x1B72B0
+ * Purpose: Rotation and position of the carried object relative to the owner's two grip nodes (with optional
+ *   pose chain)
+ * Info: proposed name GetMurrayGripFrame (T2); TU murray
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void func_001B72B0(P *const p, NODE *stop, const M4 *input, VU_VECTOR *outRotation, VU_VECTOR *outPosition)
 {
     if (!p->link->pose) {

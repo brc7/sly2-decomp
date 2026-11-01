@@ -7,6 +7,13 @@ extern char D_002A2D00[];
 struct O *PloAcquireProxy(int, int);
 void SetLoParent_1A58D0(struct O *, int, int);
 void FadeSoIn(struct O *, float);
+/** @sly2-annot addr=0x1956D0
+ * Purpose: Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with
+ *   identity rotation and zero velocity
+ * Info: proposed name PloAcquireJtGrabMarker (T1); TU grab
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 struct O *PloAcquireJtGrabMarker(void *p, int id, struct E *pe) {
     struct O *po;
     if (!id) return 0;

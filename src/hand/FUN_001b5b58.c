@@ -8,6 +8,16 @@ static inline void Addresses(struct GM*base,unsigned int offset,struct GM**first
 static inline int GroupBase(int group){register int r __asm__("$2");__asm__("addiu %0,%1,31":"=r"(r):"r"(group));return r;}
 static inline int CharacterOffset(unsigned char ch,int origin){register int r __asm__("$2")=origin;__asm__("subu %0,%1,%0":"+r"(r):"r"(ch));return r;}
 static inline struct GM*Element(struct GM*base,int index){register int scaled __asm__("$2")=index;__asm__("sll %0,%0,2\n\taddu %0,%0,%1":"+r"(scaled):"r"(base));return (struct GM*)scaled;}
+/** @sly2-annot addr=0x1EE988
+ * Purpose: Map one ASCII byte to a 16-bit SJIS code via table
+ * Info: proposed name WSjisFromCh (EXISTING); TU sjis
+ * Notes: agent/verifier proposes WSjisFromCh for this existing name (see existing_name_changes.csv) | RENAME
+ *   proposed -> WSjisFromCh (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.55] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r6_1D5150+verdicts_tu_r4r6+arbitration
+ * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files,
+ *   docs/engine/hud-ui.md#5-key-functions
+ * @end-sly2-annot */
 unsigned short FUN_001b5b58(unsigned char ch)
 {
     register int i __asm__("$3") = 0;

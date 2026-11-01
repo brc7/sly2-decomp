@@ -16,6 +16,15 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00162728(void *p, int, int, int, int, int); CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x10ECC8
+ * Purpose: Splice option thunk: optid 526 on JOB (g_aeopid[1256] thunkUser, returns Void, crefReq 5); unpacks
+ *   5 args (0x1050, Oid, Oid, Oid, 0xF) -> Void via RefSetArgsFromSplice then calls AddJobStateRsmg
+ *   (0x162728)
+ * Info: proposed name RefThunkJobSET_SM_GOAL (T1); TU crt0_splicewrap
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref)
 {
     int ak[5] = {0x1050, 0x6, 0x6, 0x6, 0xf};

@@ -64,6 +64,13 @@ static inline qword OrbitVector(struct P*p){
     __asm__("mtc1 %1,%0":"=f"(radius):"r"(bits));
     return SetVectorCylind(angle,magnitude*radius,zero);
 }
+/** @sly2-annot addr=0x1B8B70
+ * Purpose: State 11 velocity: animation root motion, blended toward stick direction between anim params
+ *   0x240..0x242; face target in mode 4
+ * Info: proposed name UpdateMurrayAttackVelocity (T2); TU murray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B8B70(struct P*p){
     U scalar;
     if(p->source){

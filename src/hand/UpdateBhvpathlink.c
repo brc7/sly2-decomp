@@ -13,6 +13,15 @@ int FBhvpathlinkAtSegmentEnd(struct S *p);
 void AdvanceBhvpathlink(struct S *p);
 void SetBhvpathlinkState(struct S *p, int n);
 int FBhvpathAtEnd(void *p);
+/** @sly2-annot addr=0x17E458
+ * Purpose: BHVPATHLINK Update: per segment: kind 0 walk (timeout), kind 1 leap; advance when at the segment
+ *   end; final relocation step
+ * Info: proposed name UpdateBhvpathlink (T1); class BHVPATHLINK slot10; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATHLINK role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void UpdateBhvpathlink(struct S *p) {
     UpdateBhv(p);
     if (FBhvpathlinkDone(p)) return;

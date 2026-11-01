@@ -21,6 +21,12 @@ static inline M23 Mul(const M23 &q, const M23 &n)
 }
 extern "C" void func_002188B0(float,F *,int,M23 *,RGBA,RGBA);
 extern "C" void func_00219FE0(float,F *,int,M23 *,RGBA,RGBA);
+/** @sly2-annot addr=0x2183E8
+ * Purpose: forward update to 0x2188B0 or 0x219FE0
+ * Info: proposed name UpdateSpriteSlot (T2); TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_002183E8(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
     E *e=&p->ae[i];
     int h=e->h8;

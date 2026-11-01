@@ -27,6 +27,14 @@ static inline qword Bc(float g)
     u.q = s;
     return s;
 }
+/** @sly2-annot addr=0x1CFD30
+ * Purpose: Aim match at its target object: take target pose, decompose rotation, set launch velocity
+ * Info: proposed name LaunchMatch (T1); TU rip
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
+ *   r5_1AE130+verdicts_tu_r3r5+verdicts_A2+verify_side+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CFD30(S *p)
 {
     MAT4 m4;

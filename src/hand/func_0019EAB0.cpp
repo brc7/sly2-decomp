@@ -96,6 +96,14 @@ typedef char LM_low_Offset[FIELD_OFFSET(LM,low)==0?1:-1];
 typedef char LM_high_Offset[FIELD_OFFSET(LM,high)==4?1:-1];
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+/** @sly2-annot addr=0x19EAB0
+ * Purpose: Pipe sub-state switch: from -1 mount (subscribe, register, find curve s +-50), per-state
+ *   clips/sounds, cane reach via SetJtJtcs
+ * Info: proposed name SetJtPipeState (T1); TU pipe_jt
+ * Notes: names_v2 C proposed UpdateSuvSounds__FP3SUVf (0.200)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
+ * @end-sly2-annot */
 extern "C" void func_0019EAB0(C*p,int next){
  int old=p->state;if(next==old)return;
  WORK w;

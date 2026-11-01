@@ -16,6 +16,15 @@ struct OBJECT *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,void *);
 int FTaskComplete(void *);
 float GRandInRange__Fff(float,float);
 int NRandInRange__Fii(int,int);
+/** @sly2-annot addr=0x1F1A40
+ * Purpose: Roll the guard's loot at load: per-world table (D_002C3968 for cid 0x3A guards, else D_002C3748,
+ *   indexed by NWorldCur): random coin total split into 2-3 coin entries (oid 0x2B3) plus, with probability
+ *   chance, one weighted-random loot entry (oid 0x2B5, key from 6 weighted picks)
+ * Info: proposed name GenerateStepguardLoot (T1); TU pickpocket
+ * Notes: names_v2 C proposed StartSound__F5SFXIDPP3AMBP3ALOP6VECTORfffffP2LMT9 (0.438)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
+ * @end-sly2-annot */
 void func_001F1A40(struct P *p)
 {
     struct TABLE *table;

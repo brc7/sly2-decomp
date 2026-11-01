@@ -13,6 +13,14 @@ extern float D_002BFD30, D_002BFD34;
 struct C *PvAllocSlotheapClear(void *pool);
 qword func_0022FC48(int n, void *p, qword pos);
 void func_001A7FC0(struct W *pw, int n, struct C **ppc);
+/** @sly2-annot addr=0x1A7C18
+ * Purpose: Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind,
+ *   convert to local frames, compute movement, link into *ppxpFirst
+ * Info: proposed name PxpAdd (T1); TU mark
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest+verdicts_A2
+ * See: docs/engine/main-loop-startup.md#7-source-files,
+ *   docs/engine/physics-collision.md#2-contacts-and-solving, docs/engine/physics-collision.md#6-source-files
+ * @end-sly2-annot */
 void func_001A7C18(struct W *pw, struct S *a, struct S *b, qword pos, qword dir, int k, int x, int y, struct C **ppc, float g)
 {
     U u;

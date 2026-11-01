@@ -37,6 +37,13 @@ static inline qword Normalize(qword v)
 }
 // v *= k.x in place
 #define SCALE_IN_PLACE(v,k) __asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k))
+/** @sly2-annot addr=0x202378
+ * Purpose: 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial
+ * Info: proposed name UpdateReconTargetVisibility (T1); TU tu_201D78
+ * Notes: names_v2 C proposed PostBrkLoadCallbackHookup__FP3BRK5MSGIDPv (0.438)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud+verdicts_followups
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
+ * @end-sly2-annot */
 extern "C" void UpdateReconTargetVisibility(P *p,LO *other)
 {
     int cHit=0;

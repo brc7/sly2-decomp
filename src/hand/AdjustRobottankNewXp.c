@@ -14,6 +14,14 @@ void func_001F4FB0(void *, OBJ *, int);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, S8, void *);
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
+/** @sly2-annot addr=0x1D4050
+ * Purpose: CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D
+ *   vehicle); touching CID 0x6C pickup schedules CollectRcCarPickup
+ * Info: proposed name AdjustRobottankNewXp (T1); class ROBOTTANK slot55; TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: AdjustRcCarNewXp -> AdjustRobottankNewXp
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void AdjustRobottankNewXp(void *a, OBJ *p, int n)
 {
     void *e;

@@ -5,6 +5,15 @@ extern char D_002A4E20[];
 int *func_001D8C10(void *p, char *name, int n);
 void SetStepplayerHp(struct P *p, int n);
 void SetStepplayerMp(struct P *p, int n);
+/** @sly2-annot addr=0x1440D0
+ * Purpose: Bind hp/mp to save vars hpCur/mpCur under vt103 root (+0xE00, +0x12FC); if unset or forced, reset
+ *   to max
+ * Info: proposed name BindStepplayerHpMp (T1); TU stepplayer
+ * Notes: runtime3: php -> save var hpCur
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void BindStepplayerHpMp(struct P *p, int f)
 {
     struct VTE *e = &p->vt[103];

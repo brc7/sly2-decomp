@@ -3,6 +3,12 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
+/** @sly2-annot addr=0x122B70
+ * Purpose: Splice builtin "vector-project-tangent": a-(a.b)b
+ * Info: proposed name RefOpVectorProjectTangent (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

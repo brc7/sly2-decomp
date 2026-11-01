@@ -41,6 +41,14 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
     float alpha=*gain*0.003921569f;
     *outAlpha=alpha;outColor->n=rgb;
 }
+/** @sly2-annot addr=0x1EA9F0
+ * Purpose: Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block
+ *   (tex0 saved at g_sw+0x3EA0)
+ * Info: proposed name BuildSwBackgroundGifs (T2); TU shd
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/rendering.md#7-shadow-volumes-kinds-78-p6p7-prog4-z-fail-counting-in-the-green-channel-cstatic,
+ *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001EA9F0(O *p, void *pbs)
 {
     if (!pbs && !(p->tex0 & (0x3FFFL << 37)))

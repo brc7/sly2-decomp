@@ -24,6 +24,15 @@ void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *
 void MeasureShape(struct B *b);
 int func_001C02D0(void *q, qword a, qword b, struct B *c);
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
+/** @sly2-annot addr=0x17DA28
+ * Purpose: Plan: route, build the path curve to the next waypoint/pathlink (or a straight 2-point shape) and
+ *   pick the state
+ * Info: proposed name PlanBhvgoto (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVGOTO role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void PlanBhvgoto(struct S *p) {
     struct X x;
     int k;

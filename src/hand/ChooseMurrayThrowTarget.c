@@ -25,6 +25,14 @@ static inline float LenXY(qword v) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x1B5E98
+ * Purpose: Pick throw goal v1420: nearest object with flag 0x10000 (not the carried one) within range
+ *   g1410*k, >150 away, <500 above, inside a facing cone; else a point g1410 ahead
+ * Info: proposed name ChooseMurrayThrowTarget (T1); TU murray
+ * Notes: runtime5a #20/#21: fallback goal 1500 units ahead (S43)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void ChooseMurrayThrowTarget(struct P *p)
 {
     struct { int a[4]; } unused;

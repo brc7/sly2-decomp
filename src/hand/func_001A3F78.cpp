@@ -101,6 +101,13 @@ typedef char Offset_sphere[FIELD_OFFSET(OBJ, sphere) == 0x100 ? 1 : -1];
 typedef char Size_NODE[sizeof(NODE) == 32 ? 1 : -1];
 typedef char Size_RESULT[sizeof(RESULT) == 8 ? 1 : -1];
 
+/** @sly2-annot addr=0x1A3F78
+ * Purpose: Walk the light tree for a point and rank up to N lights affecting it
+ * Info: proposed name FindSwLights (T2); TU light
+ * Notes: names_v2 C proposed PrepareSwLightsForDraw__FP2SW (0.638)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 extern "C" void func_001A3F78(WORLD *p, qword pos, int capacity, RESULT *results)
 {
     WORK w;

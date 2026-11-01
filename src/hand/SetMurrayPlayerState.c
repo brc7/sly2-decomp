@@ -1,6 +1,13 @@
 struct P { char pad[0x2C4]; int x2C4; char pad2[0x13F0 - 0x2C8]; void *x13F0; };
 void SetMurrayState(struct P *p, int n);
 void DropMurrayCarried(struct P *p);
+/** @sly2-annot addr=0x1B7E40
+ * Purpose: MURRAY vt88: map generic player state 0..8 to Murray states (0->carry 5 or idle 0, 1->jump 2,
+ *   2->13, 3->14, 4->16, 5..8->17..20), dropping carried object where needed
+ * Info: proposed name SetMurrayPlayerState (T1); class MURRAY slot88; TU murray
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void SetMurrayPlayerState(struct P *p, unsigned int k)
 {
     switch (k) {

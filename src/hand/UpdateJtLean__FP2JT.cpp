@@ -370,6 +370,13 @@ static inline qword QwFromXyzV(float gX, float gY, float gZ)
     return *(qword *)&vecXyz;
 }
 void UpdateJtLean(JT *pjt) __asm__("UpdateJtLean__FP2JT");
+/** @sly2-annot addr=0x189618
+ * Purpose: Body lean actuators x19E4/E8/EC from velocity of the floor object / curve he stands on; last step
+ *   of UpdateJt
+ * Info: proposed name UpdateJtLean (T1); TU jt
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void UpdateJtLean(JT *pjt)
 {
     VECTOR4 vecDv;

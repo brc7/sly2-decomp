@@ -45,6 +45,12 @@ inline SP::~SP()
     }
 }
 
+/** @sly2-annot addr=0x200DA0
+ * Purpose: Build a Splice list CRef from c (otype, pv) pairs (empty -> void)
+ * Info: proposed name RefSetArgListFromPvs (T1); TU spliceobj
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
+ * @end-sly2-annot */
 CRef *func_00200DA0(CRef *ret, int c, int *a, void **b)
 {
     if (c == 0) {

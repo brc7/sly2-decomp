@@ -34,6 +34,14 @@ static inline qword MulM3(qword *m, qword v)
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(v) : "j"(m[0]), "j"(m[1]), "j"(m[2]));
     return v;
 }
+/** @sly2-annot addr=0x1B86B0
+ * Purpose: Attack substate x1810 (clip ap17FC[k]): reset event flags, auto-face target within cone, start
+ *   clip, predict root-motion end position v1830
+ * Info: proposed name SetMurrayAttack (T1); TU murray
+ * Notes: runtime4: clears x1818/x181C/x1820 per attack (S39)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void SetMurrayAttack(struct P *p, int k)
 {
     void *q;

@@ -30,6 +30,14 @@ static inline qword VLen(qword v)
 static inline float LowerLimit(char*page){return *(const float*)(page-0x44A0);}
 static inline float ReadLengthAndPublish(qword length,char**out,LM**limits,float*duration,float life){register char*page __asm__("$2");register LM*address __asm__("$3");register float scalar __asm__("$f3");__asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\tswc1 %6,%3\n\tmtc1 %1,%2\n\taddiu %1,%0,%%lo(%5)":"=&r"(page),"=&r"(address),"=f"(scalar),"=m"(*duration):"j"(length),"i"(&D_002BBB60),"f"(life));*out=page;*limits=address;return scalar;}
 static inline void CopyDirection(SHRAPNEL*dest,const EMITB*source){register float xz __asm__("$f0");register float y __asm__("$f1");__asm__("lwc1 %0,%5\n\tswc1 %0,%2\n\tlwc1 %1,%6\n\tswc1 %1,%3\n\tlwc1 %0,%7\n\tswc1 %0,%4":"=&f"(xz),"=&f"(y),"=m"(dest->dir.x),"=m"(dest->dir.y),"=m"(dest->dir.z):"m"(source->dir.x),"m"(source->dir.y),"m"(source->dir.z));}
+/** @sly2-annot addr=0x1CFAB8
+ * Purpose: SHRAPNEL (RIPT 8) PostEmit
+ * Info: proposed name PostShrapnelEmit__FP8SHRAPNELP5EMITB (EXISTING); TU rip
+ * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
+ *   r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void PostShrapnelEmit(SHRAPNEL *psh, EMITB *pemitb)
 {
     float len, g;

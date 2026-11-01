@@ -5,6 +5,12 @@ int CploFindSwObjectsByClass(struct G *pg, int kind, int n, int m, int c, void *
 int FTaskComplete(void *p);
 void EndCurrentJob(struct X *p);
 void SetCurrentJob(struct X *p);
+/** @sly2-annot addr=0x1649D0
+ * Purpose: Picks the job whose start task is complete and end task is not, and switches the current job to it
+ * Info: proposed name UpdateCurrentJob (T1); TU game
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void UpdateCurrentJob(void)
 {
     struct X *apx[256];

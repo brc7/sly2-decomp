@@ -10,6 +10,12 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
+/** @sly2-annot addr=0x22CAD0
+ * Purpose: CalculateSinCos-based helper
+ * Info: TU xf
+ * Notes: descriptive only: xf: sin/cos basis helper | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
+ * @end-sly2-annot */
 qword func_0022CAD0(qword a, qword b)
 {
     float s0, c0, s1, c1;

@@ -14,6 +14,13 @@ static inline float Float3(qword q){register int bits __asm__("$7");float f;__as
 static inline qword ScalarBits(int bits){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 
 static inline float Float1(qword q){register int bits __asm__("$7");register float f __asm__("$f1");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
+/** @sly2-annot addr=0x1A0450
+ * Purpose: Choose/blend directional clip weights from the movement vector and update the animation request
+ * Info: proposed name UpdateDirBlend (T2); TU dirblend
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001A0450(struct P*p,struct ENTRY*axes,void*request){
  int indices[5];
  U total,scalar;

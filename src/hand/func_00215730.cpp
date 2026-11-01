@@ -10,6 +10,13 @@ extern "C" int func_00217EF8(void *p);
 extern "C" void func_00217CA8(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *func_001BEED8(int);
 extern "C" void *func_001BEB28(void *);
+/** @sly2-annot addr=0x215730
+ * Purpose: bind item to payload by kind (4 nested sprite: start anim 0x314)
+ * Info: proposed name SetSpriteItemSource (T2); TU hud
+ * Notes: names_v2 C proposed PostLoad__8CFontBrxP3GSB (0.638)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00215730(S *p, T *t, void *q, RGBA c0, RGBA c1)
 {
     t->x30 = p;

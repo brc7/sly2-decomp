@@ -8,6 +8,16 @@ struct T *func_001AE2A0(struct REQ *r);
 void *PxfFindSo(struct P *p, int a, int b);
 void func_00186930(struct T *t);
 static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return func_001AE2A0(&req); }
+/** @sly2-annot addr=0x1B4888
+ * Purpose: MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0
+ *   hand/grip records looking up child XFs 0x200-0x205 (PxfFindSo), caches grip XFs at x15F0..x15FC
+ * Info: proposed name LoadMurrayFromBrx (T1); class MURRAY slot14; TU murray
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest+parse-verified
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void LoadMurrayFromBrx(struct P *p)
 {
     LoadStepFromBrx(p);

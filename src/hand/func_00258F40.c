@@ -12,6 +12,14 @@ void *func_001AE1D0(DESC *);
 
 static inline int Min(int a, int b) { return a < b ? a : b; }
 
+/** @sly2-annot addr=0x258F40
+ * Purpose: EXPLO twin of 0x2584A8 [game linkonce (inline/template)]
+ * Info: proposed name LoadExploBlipColorsFromBrx (T1); TU game_linkonce
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: sdk_names+parse-verified
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_00258F40(X *p, void *ps)
 {
     int n = func_00117C20(ps);

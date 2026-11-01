@@ -5,6 +5,13 @@ int func_001A4E70(void *p);
 void func_001A4E80(void *p);
 void RequestTaskState(void *p, int n, struct S *ps);
 void func_002283D0(struct LO *plo);
+/** @sly2-annot addr=0x162FD0
+ * Purpose: After a job: step the game sequence queue if non-empty; else activate the next task (+0xC0) or
+ *   trigger the warp LO (+0xCC, 0x2283D0)
+ * Info: proposed name ContinueAfterJob (T2); TU game
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void func_00162FD0(struct S *p)
 {
     char *pv = D_002E1E88;

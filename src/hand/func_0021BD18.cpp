@@ -44,6 +44,14 @@ static inline void SampleInputs(qword *buffer,float maximum,float minimum,qword 
  asm("sub.s %0,%3,%4\n\tli.s %1,1.0\n\tdaddu %2,%5,$zero":"=&f"(span),"=&f"(unit),"=r"(v):"f"(maximum),"f"(minimum),"r"(buffer));
  cursor=v;range=span;one=unit;
 }
+/** @sly2-annot addr=0x21BD18
+ * Purpose: PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis
+ *   (min/max) and builds per-vertex Sample{pos,fraction} tables
+ * Info: proposed name PostTrailLoad (T1); class CID105 slot15; TU trail
+ * Notes: agent qualifier: cid105 PostLoad
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
+ * @end-sly2-annot */
 extern "C" void func_0021BD18(S *p){
     PostSoLoad(p);
     if(!p->count && p->fade==0.0f)p->fade=0.5f;

@@ -9,6 +9,18 @@ float func_002458F0(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+/** @sly2-annot addr=0x174F08
+ * Purpose: BHVANIM motion: drive guard velocity from the anim root motion (DriveStepguardFromAnim) while
+ *   playing, else zero; face +0x38 look-at object
+ * Info: proposed name UpdateBhvanimMotion (T1); class BHVANIM slot11; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVANIM role on live guards (S02-S41) | BHV slot 11 (UpdateMotion):
+ *   canonical form would be UpdateBhvleapMotion | BHV slot 11 (UpdateMotion): canonical form would be
+ *   UpdateBhv175Motion | BHV slot 11 (UpdateMotion): canonical form would be UpdateBhvjuggledMotion
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void UpdateBhvanimMotion(struct S *p)
 {
     UpdateBhvMotion(p);

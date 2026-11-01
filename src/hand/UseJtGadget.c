@@ -29,6 +29,14 @@ extern void func_0015C150(int x);
 extern void func_00195A00(void *p, int a, int b, int c);
 extern void StartStepplayerGadget(void *p, int n);
 
+/** @sly2-annot addr=0x18DA48
+ * Purpose: JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66),
+ *   states via SetJtJts (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records
+ * Info: proposed name UseJtGadget (T1); class JT slot100; TU jt
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void UseJtGadget(char *p, int n)
 {
     D_002DEB30.xC = n;

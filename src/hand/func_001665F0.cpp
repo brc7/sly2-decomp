@@ -12,6 +12,12 @@ extern "C" void *func_001AE318(struct REQ*);
 extern "C" int func_00118A88(void*,int,qword,int*,struct Entry**,float);
 static inline int Min(int a,int b){return a<b?a:b;}
 // Collect unique edges incident to a geometry point.
+/** @sly2-annot addr=0x1665F0
+ * Purpose: Collects up to max unique edges incident to a given GEOM point, using a BSP query around the point
+ * Info: proposed name CpedgeFromGeomPoint (T2); TU geom
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
+ * @end-sly2-annot */
 extern "C" int func_001665F0(struct P*p,struct G*g,int index,int max,struct E**out){
  struct FRAME frame;int capacity,limit,count,i;struct Entry*first,*end;
  func_001AE478(&frame);

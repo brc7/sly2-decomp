@@ -24,6 +24,18 @@ extern "C" void func_00215D00(struct RT *,RGBA *);
 extern "C" void func_002162D8(struct RT *,struct M4 *,struct M23 *);
 extern "C" void func_00216750(struct RT *,struct M4 *,struct DATA *);
 extern qword D_002A2E10,D_002A2E20;
+/** @sly2-annot addr=0x2163B0
+ * Purpose: configure box/alignment/colour and queue rich text
+ * Info: proposed name CRichText2_Draw (T2); class CRichText; TU hud
+ * Notes: names_v2 B proposed DrawTitle__FP5TITLE (0.932) | COLLISION: CRichText_Draw already used at 0x15FFD0
+ *   (existing symbol); renamed CRichText_Draw_2163B0 | v3: superseded CRichText_Draw_2163B0 | top50 finding
+ *   8: hud-TU rich text (colours +0x14/+0x18) is a second class; Reset__9CRichText 0x15F970 keeps CRichText.
+ *   CRichText2 is a placeholder class word (T2); resolves the v2 T3 collision | T2: placeholder token
+ *   CRichText2
+ * Confidence: low (draft) [T2 0.50] - evidence: semantic review; static naming pass; sources:
+ *   r7c_hud+top50_round(CRichText2 class split)
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_002163B0(struct RT *p,struct CONFIG *config,int priority){
     RGBA color;
     unsigned char *tag;

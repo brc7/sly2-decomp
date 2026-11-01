@@ -15,6 +15,12 @@ void func_00130598(struct SO *pso, struct OID *po, int n, int x, float g, float 
 void TriggerRsmg(void *g, int a, void *b, struct OID *po, int f);
 void func_001DFD58(void *p, int a);
 void ApplyTaskStates(void *g, int a, void *b, struct OID *po);
+/** @sly2-annot addr=0x1488D8
+ * Purpose: Apply/seek every aseg in ASH list i on its object
+ * Info: proposed name RunBtnAsegs (T1); TU button
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void RunBtnAsegs(struct P *p, int i)
 {
     int j;

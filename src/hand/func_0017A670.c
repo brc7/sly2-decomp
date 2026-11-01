@@ -7,6 +7,16 @@ struct S { char pad[0x10]; struct T *pt; char pad2[0x3C]; int n50; int pad3; flo
 void UpdateBhvanim(struct S *p);
 void func_0017A5B0(struct S *p, int n);
 qword func_001A62E8(void *p);
+/** @sly2-annot addr=0x17A670
+ * Purpose: BHVSLEEP Update: wake (state 1) when timer expires; keep held noise at the guard
+ * Info: proposed name UpdateBhv175 (T2); class BHV175 slot10; TU guardbhv
+ * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | COLLISION: ConvertAloVec
+ *   already used (same name proposed for 0x1A6FC0); renamed to ConvertAloVec_17A670 | superseded:
+ *   ConvertAloVec_17A670 (names_v2:B(unverified)) | BHV class word normalised: UpdateBhvsleep -> UpdateBhv175
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
+ *   names_v2:B(unverified)+r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017A670(struct S *p) {
     int s;
     UpdateBhvanim(p);

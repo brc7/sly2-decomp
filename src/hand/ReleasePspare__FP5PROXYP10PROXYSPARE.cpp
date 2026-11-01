@@ -72,6 +72,13 @@ struct PROXYINIT
 };
 int IcopyFromPspare(PROXY *pproxy, PROXYSPARE *pspare);
 void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare) __asm__("ReleasePspare__FP5PROXYP10PROXYSPARE");
+/** @sly2-annot addr=0x1CAA60
+ * Purpose: return a copy to the spare pool and restore its objects
+ * Info: proposed name ReleasePspare (T1); TU proxy
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare)
 {
     int iplo;

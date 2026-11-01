@@ -26,6 +26,13 @@ extern int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
 extern CE *PdlFromSwCid(void *psw, int k);
 extern int FIsCidDerivedFrom(int k, int cid);
 extern void MatchSwObject(void *pv, LO *plo, void *pch, unsigned int grf, LO *ctx, void *pchList, int cMax, int *pc, LO **aplo, int *pips);
+/** @sly2-annot addr=0x15E9C8
+ * Purpose: Collects up to cploMax LOs of a class (or derived) relative to a context
+ * Info: proposed name CploFindSwObjectsByClass (T1); TU find
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/camera.md#5-key-functions, docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 int CploFindSwObjectsByClass(void *psw, int grf, int cid, LO *ploCtx, int cMax, LO **aplo)
 {
     volatile int unused;

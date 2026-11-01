@@ -12,6 +12,13 @@ static inline float Eval(struct V3 *pv, float t)
 {
     return pv->x + t * (pv->y + t * pv->z);
 }
+/** @sly2-annot addr=0x1F11A8
+ * Purpose: Estimated time to reach a state: remaining time of the current segment plus durations along the
+ *   path (quadratic x + t(y + tz) fits)
+ * Info: proposed name DtSmaToState (T1); TU sm
+ * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
+ * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 float DtSmaToState(struct P *p, int k)
 {
     float r = 0.0f;

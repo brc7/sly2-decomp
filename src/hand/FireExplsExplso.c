@@ -35,6 +35,13 @@ extern void func_001FB4F0(void *p, float a, float b);
 extern void func_001FB1F8(void *p, float g);
 extern void func_001FB2C0(void *p, float g);
 
+/** @sly2-annot addr=0x15C690
+ * Purpose: EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position
+ *   and emits particles
+ * Info: proposed name FireExplsExplso (T1); class EXPLS slot52; TU emitter
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void FireExplsExplso(EMITTER *p, EMITO *po)
 {
     EMITP emitp;

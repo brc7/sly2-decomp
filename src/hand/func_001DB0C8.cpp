@@ -73,6 +73,13 @@ static inline qword Scale(qword a, qword s) { qword r; __asm__("vmulx.xyzw %0,%1
 // reloads it into the register the result goes to.
 static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
+/** @sly2-annot addr=0x1DB0C8
+ * Purpose: Gadget menu slot 14: move the selection to the selectable item lying closest along the stick
+ *   direction
+ * Info: proposed name SetGadgetMenuStickDir (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DB0C8(SELECTOR *sel, int mode)
 {
     U home;

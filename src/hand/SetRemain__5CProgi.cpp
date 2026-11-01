@@ -5,6 +5,13 @@ public:
     void SetRemain(int nRemain);
     void Draw();
 };
+/** @sly2-annot addr=0x1C8D40
+ * Purpose: update remaining count
+ * Info: proposed name SetRemain__5CProgi (EXISTING); class CProg; TU prog
+ * Notes: agent/verifier proposes CProg_SetRemain for this existing name (see existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
+ * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
+ * @end-sly2-annot */
 void CProg::SetRemain(int nRemain)
 {
     if (m_fActive != 0) {

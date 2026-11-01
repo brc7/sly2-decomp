@@ -20,6 +20,14 @@ struct LO *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void BuildOrthonormalMatrixZ(M3 *pm, qword v, qword w);
 void func_001A3610(struct LO *p, float f);
 void func_001A3630(struct LO *p, float f);
+/** @sly2-annot addr=0x1A3260
+ * Purpose: After world load, if no light in the world light list D_003E04F8 qualifies (x160==0), create a
+ *   LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240
+ * Info: proposed name EnsureSwDefaultLight (T1); TU light
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/hud-ui.md#4-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 void func_001A3260(void)
 {
     struct LO *p;

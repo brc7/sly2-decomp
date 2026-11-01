@@ -5,6 +5,13 @@ int POCTL_FConsumePressed(void *p, int a);
 int func_00152520(struct S *p, int id);
 void func_002303A0(struct S *p, void *q, int n);
 void ApplyDancerAseg(struct S *p, int a, int b);
+/** @sly2-annot addr=0x152390
+ * Purpose: Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally
+ *   rebind result, stop asegs (0x2303A0 x2) and apply entry's aseg j
+ * Info: proposed name PlayDancerMove (T2); TU rhythm
+ * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152390(struct S *p, int id, int idNew, int j)
 {
     int i;

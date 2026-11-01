@@ -21,6 +21,12 @@ static inline void Selection(const struct S*p,int*index,struct X**timer){
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(p),"m"(p->x194),"m"(p->x204));
  *index=selected;*timer=receiver;
 }
+/** @sly2-annot addr=0x1C8918
+ * Purpose: dial/handle orientation update
+ * Info: proposed name UpdateVaultDial (T2); TU prize
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C8918(struct S *p, int n)
 {
     struct X *px;

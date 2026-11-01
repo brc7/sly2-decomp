@@ -37,6 +37,15 @@ static inline void CopyXY(M23 *dst,const M3 &src){
  dst->a[2]=src.row[1].x;dst->a[3]=src.row[1].y;
  dst->a[4]=src.row[2].x;dst->a[5]=src.row[2].y;
 }
+/** @sly2-annot addr=0x214460
+ * Purpose: deserialize sprite groups, reusable frames and animation keys
+ * Info: proposed name LoadSpriteGroups (T1); TU hud
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7c_hud+parse-verified
+ * See: docs/engine/hud-ui.md#5-key-functions,
+ *   docs/formats/level-objects.md#8-widget-payload-loadwidgetfrombrx-0x212298-cparse,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00214460(OWNER *owner,BIS *stream,ROOT *root){
  int i,j,k,m;
  root->groupCount=func_00117C20(stream);

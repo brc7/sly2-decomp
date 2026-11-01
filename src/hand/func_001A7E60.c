@@ -12,6 +12,13 @@ static __inline__ qword Lin(qword a, qword *pb, int f)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(a) : "0"(a), "j"(*pb), "j"(t.q):"memory");
     return a;
 }
+/** @sly2-annot addr=0x1A7E60
+ * Purpose: For each XP in the array recompute world positions of its two sides (ConvertXfPos)
+ * Info: proposed name RecalcSwXpPos (T1); TU mark
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_A2+verify_side
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 void func_001A7E60(void *unused, int n, struct P **ap)
 {
     int i;

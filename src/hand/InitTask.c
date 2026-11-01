@@ -2,6 +2,14 @@ struct S { char pad[0x54]; int f54; int f58; int f5c; char p2[0xB8-0x60]; int fb
 struct G { char pad[0x3AFC]; int c; };
 extern struct G D_003DD490;
 void InitLo(struct S *p);
+/** @sly2-annot addr=0x1635A0
+ * Purpose: TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC
+ * Info: proposed name InitTask (T1); class TASK slot7; TU game
+ * Notes: superseded r3_1539A8 proposal: InitCid85 (0.75)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3b_rest
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void InitTask(struct S *p)
 {
     InitLo(p);

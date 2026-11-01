@@ -3,6 +3,13 @@ void Decref__4CRef(CRef *pref);
 void InitTag__4CRef(CRef *pref, int tagk);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+/** @sly2-annot addr=0x122168
+ * Purpose: Splice builtin "lm": 2 floats -> tag 0x1D
+ * Info: proposed name RefOpLm (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

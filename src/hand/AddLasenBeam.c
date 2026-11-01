@@ -8,6 +8,13 @@ static inline void SetV(struct V *pv, float x, float y, float z, int m) {
     pv->z = z;
     pv->m = m;
 }
+/** @sly2-annot addr=0x1DF908
+ * Purpose: Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40)
+ * Info: proposed name AddLasenBeam (T1); TU sensor
+ * Notes: names_v2 C proposed FFilterCamsen__FPvP2SO (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 void AddLasenBeam(struct S *p, int n0, float x0, float y0, float z0, int m0, int n1, float x1, float y1, float z1, int m1) {
     if (p->c < 0x40) {
         struct Q *pq; struct V *pv;

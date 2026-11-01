@@ -15,6 +15,12 @@ extern Q D_002DEB30;
 extern "C" int FTaskLive(O *p);
 extern "C" int FJobLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
+/** @sly2-annot addr=0x163E88
+ * Purpose: Refused state change: event 0x27 (arg in g_game+8), SendMessage 0x12(n) to the task and to its job
+ * Info: proposed name RejectTaskState (T2); TU game
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00163E88(O *p, int n)
 {
     void *apv[1];

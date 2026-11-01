@@ -11,6 +11,13 @@ extern char D_003DD490[];
 void PostSoLoad(struct S *p);
 struct LO *PloFindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
+/** @sly2-annot addr=0x1C4F60
+ * Purpose: DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup
+ * Info: proposed name PostDprizeLoad (T1); class DPRIZE slot15; TU prize
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C4F60(struct S *p)
 {
     struct LO *plo;

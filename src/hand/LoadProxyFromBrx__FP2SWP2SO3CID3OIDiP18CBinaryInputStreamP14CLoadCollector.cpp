@@ -195,6 +195,15 @@ inline void *PvAllocSw(int cb, int cbAlign)
     return PvAllocSwImpl(pswalloc);
 }
 void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *pbis, CLoadCollector *pcollector) __asm__("LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector");
+/** @sly2-annot addr=0x1C9B08
+ * Purpose: read one proxy record (source id/mode/placement) and instantiate copy or PROXY object
+ * Info: proposed name LoadProxyFromBrx (T1); TU proxy
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r5_1AE130+parse-verified
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/engine/world-sw.md#loadswobjectsfrombrx-0x13fb40-matched,
+ *   docs/formats/level-objects.md#3-object-list-and-object-record
+ * @end-sly2-annot */
 void LoadProxyFromBrx(SW *psw, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *pbis, CLoadCollector *pcollector)
 {
     int idSource = pbis->S32Read();

@@ -18,6 +18,12 @@ NODE *func_00256B48();
 void func_00256C58(NODE **pp, NODE *p);
 CRef RefPairFromAplo__FiPP2LO(int c, O **apo);
 }
+/** @sly2-annot addr=0x124078
+ * Purpose: Builds a Splice list of CRef(BASIC*) from an LO* array
+ * Info: proposed name RefPairFromAplo (T1); TU bif
+ * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefPairFromAplo__FiPP2LO(int c, O **apo)
 {
     if (c == 0)

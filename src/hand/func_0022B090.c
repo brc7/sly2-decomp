@@ -6,6 +6,12 @@ struct G;
 extern struct G D_003DD490;
 void *func_002333B4(void *p, int c, int n);
 void func_0020DF80(struct G *pg, void *p);
+/** @sly2-annot addr=0x22B090
+ * Purpose: state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint)
+ * Info: proposed name SetWipeWipes (T1); TU wipe
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
+ * @end-sly2-annot */
 void func_0022B090(struct S *p, int k)
 {
     struct O *po;

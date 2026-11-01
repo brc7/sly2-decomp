@@ -6,6 +6,12 @@ void *func_002333B4(void *, int, int);
 void func_002568C0(H *, int);
 unsigned int HashPchzCaseless(int);
 
+/** @sly2-annot addr=0x2569F8
+ * Purpose: insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)]
+ * Info: proposed name CHash_Insert (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 int *func_002569F8(H *h, int *pk, int *pv)
 {
     unsigned int hash, i;

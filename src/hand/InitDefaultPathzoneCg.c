@@ -15,6 +15,14 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 void *func_001AE2A0(struct A *pa);
 void *func_001AE1D0(struct A *pa);
 void HookupCg(int *p);
+/** @sly2-annot addr=0x1C0648
+ * Purpose: Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables
+ *   D_002C0C10/D_002C0C90) covering everything
+ * Info: proposed name InitDefaultPathzoneCg (T1); TU path
+ * Notes: names_v2 v1 proposed PresetJtAccel__FP2JTf (0.000)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void InitDefaultPathzoneCg(struct S *p)
 {
     struct A a;

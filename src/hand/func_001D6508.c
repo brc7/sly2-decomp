@@ -15,6 +15,13 @@ static inline float Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x1D6508
+ * Purpose: Descend sphere tree choosing child sphere that contains (pos,r) within busy distance; allocate
+ *   free entry
+ * Info: proposed name PsphentInsert (T2); TU tu_1D57A8
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/rendering.md#tu_1d57a8-0x1d57a8-0x1d6848
+ * @end-sly2-annot */
 struct E *func_001D6508(G *g, qword pos, float r, float f, int mask)
 {
     struct S *psLevel = g->ps;

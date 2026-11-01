@@ -8,6 +8,12 @@ struct S {
 extern qword D_002C1F40;
 extern void func_001CE920(struct S *);
 
+/** @sly2-annot addr=0x1D0E48
+ * Purpose: RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, accel -8
+ * Info: proposed name InitBublet (T2); TU rip
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D0E48(struct S *p)
 {
     union U u;

@@ -14,6 +14,12 @@ struct Ref {
 struct S { int c; Ref a[8]; };
 struct P { char pad[0x204]; S s; };
 extern "C" X *func_001FCFF8(P *, int);
+/** @sly2-annot addr=0x1FE478
+ * Purpose: Ref to a music STREAMSND on the stack matching id
+ * Info: proposed name FindMusic (T2); TU sound
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 extern "C" Ref func_001FE478(P *p, int n)
 {
     X *v = func_001FCFF8(p, n);

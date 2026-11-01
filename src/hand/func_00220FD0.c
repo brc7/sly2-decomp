@@ -14,6 +14,16 @@ void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct S *p, void *pbis);
 void func_00221940(struct S *p);
 void CLoadCollectorArray_ctor(MSG *pmsg);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *pbis, MSG *pmsg);
+/** @sly2-annot addr=0x220FD0
+ * Purpose: LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot
+ * Info: proposed name LoadTnFromBrx (T1); class TN slot14; TU tn
+ * Notes: names_v2 C proposed PostAloLoadCallback__FP3ALO5MSGIDPv (0.438) | level_parser CONFIRMED-parse:
+ *   payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r8_21BB88+parse-verified
+ * See: docs/engine/camera.md#5-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 void func_00220FD0(struct S *p, void *pbis)
 {
     MARK mark;

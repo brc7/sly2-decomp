@@ -54,6 +54,13 @@ static inline float PlaneDist(VU_VECTOR4 plane, qword pos)
     return f;
 }
 
+/** @sly2-annot addr=0x1A87F0
+ * Purpose: Rank embedded vertex surfaces (largest min distance above D_002A6AD0) and emit vertex contacts
+ *   through PxpAdd
+ * Info: proposed name AddSoEmbedXps (T2); TU mark
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 extern "C" void func_001A87F0(W *w, A *a, B *b, int count, int *indices, NODE **heads, XP **out)
 {
     float d;

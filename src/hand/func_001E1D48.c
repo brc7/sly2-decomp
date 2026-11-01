@@ -2,6 +2,14 @@ struct O { int n0; char pad[0xC]; int n10; };
 struct S { char pad[0x40]; struct O *po; };
 int func_001E3890(struct S *p, struct O *po);
 void func_001E4EB8(struct S *p, int a, int b);
+/** @sly2-annot addr=0x1E1D48
+ * Purpose: If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal
+ *   is -1) release it (SetJsgJt(p,0,0))
+ * Info: proposed name ReleaseJsgJtIfComplete (T1); TU relay
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#5-key-functions,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E1D48(struct S *p)
 {
     if (p->po && func_001E3890(p, p->po)) {

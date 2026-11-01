@@ -7,6 +7,12 @@ struct O { char pad[0x208]; int n208; char pad2[0x4A0 - 0x20C]; int n4A0; char p
 int FStepguardHasSgf(struct O *o, int n);
 qword ConvertAloPos(struct O *o, int a, qword v);
 int func_00173610(qword *pv, float f, float g, int a, int (*pfn)(void));
+/** @sly2-annot addr=0x20D020
+ * Purpose: 5 probe offsets D_002C3E00 around guard all blocked
+ * Info: proposed name FGuardStuck (T2); TU tu_20CE28
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
+ * @end-sly2-annot */
 int func_0020D020(struct O **pp)
 {
     struct O *o = *pp;

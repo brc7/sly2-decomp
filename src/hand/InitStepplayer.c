@@ -14,6 +14,14 @@ void InitThrow(void *pv, struct P *p);
 void InitJtPipe(void *pv, struct P *p);
 void InitJtgoal(void *pv, struct P *p);
 void func_001F7918(struct P *p, int mask, int n);
+/** @sly2-annot addr=0x13FF70
+ * Purpose: STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at
+ *   +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x103C=20.0 ...)
+ * Info: proposed name InitStepplayer (T1); class STEPPLAYER slot7; TU stepplayer
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/player.md#10-source-files, docs/engine/player.md#11-key-functions,
+ *   docs/engine/world-sw.md#9-source-files
+ * @end-sly2-annot */
 void InitStepplayer(struct P *p)
 {
     InitStep(p);

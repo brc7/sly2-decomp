@@ -28,6 +28,14 @@ static inline qword MulMVRow(M3 *pm, qword *pv)
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(*pv) : "j"(row0), "j"(row1), "j"(row));
     return row;
 }
+/** @sly2-annot addr=0x1FAA98
+ * Purpose: Transform torque into body frame, apply inertia tensor, back to world, constrain by torque
+ *   constraint
+ * Info: proposed name ApplySoInverseInertia (T2); TU solve
+ * Notes: names_v2 v1 proposed FUN_001bc670 (0.000)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 qword func_001FAA98(struct X *p, qword v)
 {
     struct B *pb = p->pb;

@@ -7,6 +7,14 @@ struct Y *func_001F67E0(void *o, int b);
 void SubscribeLoObject(struct Y *y, int x);
 void SeekSma(struct Y *y, int id);
 void SetSmaGoal(struct Y *y, int id);
+/** @sly2-annot addr=0x20FFF0
+ * Purpose: Find root object, its SM by oid, then SeekSma or SetSmaGoal to trigger/untrigger goal; optional
+ *   returned SMA ref
+ * Info: proposed name TriggerRsmgOne (T2); TU sw
+ * Notes: names_v2 v1 proposed TriggerRsmg__FP2SWiP4RSMGP2LOi (0.012)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
 {
     void *o;

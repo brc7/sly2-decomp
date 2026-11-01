@@ -6,6 +6,14 @@ struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
 int func_0021ECD8(char *, char *, ...);
 int func_0023E290(float);
+/** @sly2-annot addr=0x210FE0
+ * Purpose: STRINGGEN id 0x2DC: per-character readout from STEPPLAYER F20/F3C: JT "x%d", BENTLEY "x%5.3f",
+ *   MURRAY "Far"/"Near"/"YIKES"
+ * Info: proposed name BuildBinocReadoutText (T2); TU hud
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/player.md#8-look-mode-recon-mode-and-the-ai-partner,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00210FE0(char *pch)
 {
     struct X *x = PpoHero(D_003DD490);

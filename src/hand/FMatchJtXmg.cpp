@@ -18,6 +18,12 @@ int FMatchJtXmg(O *p, M *pm, void *px);
 static inline qword VMin(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VMax(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x189EC8
+ * Purpose: Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target
+ * Info: proposed name FMatchJtXmg (T1); TU jt
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 int FMatchJtXmg(O *p, M *pm, void *px)
 {
     if (pm->x4) {

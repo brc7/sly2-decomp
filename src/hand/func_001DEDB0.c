@@ -7,6 +7,13 @@ void CploFindSwObjectsByClass(struct G *, int, int, void *, int, Q **);
 void *func_001F6788(void *, int);
 void *func_00130488(Q *, void *, int, float, float);
 R *func_0012FF10(Q *, void *, int, int);
+/** @sly2-annot addr=0x1DEDB0
+ * Purpose: For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key
+ * Info: proposed name BindLasenAnims (T2); TU sensor
+ * Notes: names_v2 C proposed RebuildLightFrustrum__FP5LIGHT (0.167)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 void func_001DEDB0(OBJ *p)
 {
     unsigned int i;

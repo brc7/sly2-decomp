@@ -8,6 +8,15 @@ extern struct G { char pad[0x3BE8]; void *x3BE8; } D_003DD490;
 void PostLoLoad(struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, struct S *);
 void SetLoBusyk(struct S *p, int);
+/** @sly2-annot addr=0x2123C8
+ * Purpose: WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag,
+ *   busy 1, set LO flags 0x102
+ * Info: proposed name PostWidgetLoad (T1); class WIDGET slot15; TU hud
+ * Notes: names_v2 v1 proposed DrawCtr__FP3CTR (0.037)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002123C8(struct S *p)
 {
     unsigned int v;

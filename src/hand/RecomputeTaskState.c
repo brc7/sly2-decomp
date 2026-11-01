@@ -1,6 +1,13 @@
 struct Y { char pad[0x54]; int n; };
 struct X { char pad[0x54]; int n; char pad2[0x94 - 0x58]; int c; struct Y **apy; char pad3[0xF0 - 0x9C]; int fF0; };
 void SetTaskStatePropagate(struct X *p, int n);
+/** @sly2-annot addr=0x165B40
+ * Purpose: Derives a successor's state from its prerequisites (locked unless all complete; locked->available)
+ * Info: proposed name RecomputeTaskState (T1); TU game
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3b_rest+verdicts_followups
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void RecomputeTaskState(struct X *p, int n)
 {
     int nNew; int nState;

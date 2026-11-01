@@ -7,6 +7,14 @@ struct L { struct S *ps; struct L *pNext; char pad[4]; struct X *px; };
 struct E { char pad[0x64]; struct L *pl; struct S *ps; };
 struct X { char pad[0xEC]; struct E *pe; char pad2[0x148 - 0xF0]; ulong fl; };
 
+/** @sly2-annot addr=0x1F90D0
+ * Purpose: Collect the contact points (XP) of a group of SOs into an array (max cMax), marking objects
+ *   0x10000000; returns count
+ * Info: proposed name CpxpBuildXpArray (T1); TU solve
+ * Notes: names_v2 v1 proposed GetSoContacts__FP2SOPiPPP2SO (0.638)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 int CpxpBuildXpArray(int a, int b, int c, struct X **apx, int cMax, struct S **aps)
 {
     int i;

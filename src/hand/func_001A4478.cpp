@@ -91,6 +91,14 @@ static inline void Align(uint align)
         pb = dma->m_pb;
     }
 }
+/** @sly2-annot addr=0x1A4478
+ * Purpose: Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag
+ *   0x6C03C000
+ * Info: proposed name BuildSoLightPackets (T2); TU light
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
+ *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 extern "C" void func_001A4478(WORLD *world, M4 *transform, P *p)
 {
     RESULT results[4];

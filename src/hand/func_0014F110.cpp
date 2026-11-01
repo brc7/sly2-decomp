@@ -39,6 +39,14 @@ static inline qword QwSqrt(const qword &a) { qword r; __asm__("vsqrt $Q, %1x\n\t
 static inline float GXOfQw(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static inline float Length(const qword &v) { return GXOfQw(QwSqrt(QwDot(v, v))); }
 
+/** @sly2-annot addr=0x14F110
+ * Purpose: vEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return
+ *   prev + vClip*dt
+ * Info: proposed name ClipCmEye (T1); TU cm
+ * Notes: names_v2 v1 proposed SetupCmRotateToCam (0.005)
+ * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 qword func_0014F110(void *p, qword pos, qword posTarget)
 {
     CLOCK *pclock = &D_002DDED0;

@@ -23,6 +23,13 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
     return r;
 }
 
+/** @sly2-annot addr=0x14EB70
+ * Purpose: Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position
+ * Info: proposed name FindCmClosestClearPos (T1); TU cm
+ * Notes: names_v2 v1 proposed UpdateCmFade (0.200)
+ * Confidence: high [T1 0.90] - evidence: semantic review; static naming pass; sources: r2_131F70
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 qword func_0014EB70(void *p, void *x, qword pos, float g)
 {
     float t, u;

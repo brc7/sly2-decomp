@@ -30,6 +30,13 @@ extern "C" {
 O *func_00256F48();
 CRef RefEvalLambda__FP5CPairP6CFrame(P *p, X *px);
 }
+/** @sly2-annot addr=0x127068
+ * Purpose: (lambda args body): allocates CProc (0x256F48) capturing the frame, args and body
+ * Info: proposed name RefEvalLambda (T1); TU eval
+ * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/splice-scripting.md#3-the-evaluator,
+ *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
+ * @end-sly2-annot */
 CRef RefEvalLambda__FP5CPairP6CFrame(P *p, X *px)
 {
     Q *pq = p->pr->pq;

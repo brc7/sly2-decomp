@@ -19,6 +19,14 @@ extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
 static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
+/** @sly2-annot addr=0x1A2460
+ * Purpose: From UpdateStepplayer: if the player's (height-adjusted) point is inside the linked volume (vt73)
+ *   inflict zap/drown (InflictZap) and probe surface (0x1A2788)
+ * Info: proposed name UpdateStepplayerWater (T2); TU hurt
+ * Notes: runtime3: water zap kind 0x2000
+ * Confidence: low (draft) [T2 0.40] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 extern "C" void func_001A2460(P*p){
  U point;
  int valid;

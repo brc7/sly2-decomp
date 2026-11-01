@@ -38,6 +38,12 @@ static __inline__ qword OffsetSub(const M*m,const VU*scalar,const VU*base){
  register qword value __asm__("vf1"),row __asm__("vf2");
  __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvsub.xyzw %0,%1,%0":"=&j"(value),"=&j"(row):"m"(m->r[1]),"m"(scalar->q),"m"(base->q));return value;
 }
+/** @sly2-annot addr=0x18A4E8
+ * Purpose: VU-heavy helper called by STEPPLAYER 0x141640: smoothed curve target (GSmooth, SMaxCrv)
+ * Info: TU jt
+ * Notes: descriptive only: (JT curve/rail helper) | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
+ * @end-sly2-annot */
 extern "C" void func_0018A4E8(S *ps, R *pr)
 {
     float g;register float lift __asm__("$f1"),height __asm__("$f0");

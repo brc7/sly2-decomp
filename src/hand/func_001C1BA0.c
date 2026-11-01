@@ -10,6 +10,12 @@ int FCnvoOverlap(struct O *po, void *pv);
 void func_001BDE80(int n, struct M *pm);
 void func_001C1D20(struct S *p);
 void func_001C1A38(int c, struct E *ae, int bit, float g0, float g1);
+/** @sly2-annot addr=0x1C1BA0
+ * Purpose: Register obstacle in a zone unless it overlaps an existing one (then message 2), growing arrays
+ * Info: proposed name AddPathzoneObstacle (T2); TU path
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C1BA0(struct S *p, struct O *po)
 {
     void *ap[0x20];

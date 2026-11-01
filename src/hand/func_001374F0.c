@@ -4,6 +4,12 @@ struct O { char pad[0x150]; struct Q *pq; char pad2[0x10DC - 0x154]; void *p10DC
 struct P { struct O *po; int x4; int x8; int xC; };
 qword SetVectorCylind(float a, float b, float c);
 qword func_001A62E8(void *p);
+/** @sly2-annot addr=0x1374F0
+ * Purpose: aim toward +0x10DC target
+ * Info: proposed name JtHelper1374F0 (T2); TU bentley
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 int func_001374F0(struct P *p)
 {
     float zero = 0.0f;

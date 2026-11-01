@@ -6,6 +6,13 @@ struct Pool;
 extern struct Pool D_003E15CC;
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void func_002333B4(void *, int, int);
+/** @sly2-annot addr=0x1F8510
+ * Purpose: Create a 0x30 handle object (pool D_003E15CC, vtable 0x2CA2C0 = CID 0x95) for the XF matching
+ *   (oid,kind)
+ * Info: proposed name PxfhNewSo (T2); TU so
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 struct Q *func_001F8510(struct P *p, int k, int m)
 {
     int i;

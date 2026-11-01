@@ -57,6 +57,12 @@ static inline float Clamp(float f,float lo,float hi){float r;if(f<lo)r=lo;else i
 static inline qword Get(O *o,int slot){VE *v=o->vt;return v[slot].f.get((char *)o+v[slot].delta);}
 static inline void Set(O *o,int slot,qword q){VE *v=o->vt;v[slot].f.set((char *)o+v[slot].delta,q);}
 static inline O *Pin(O *p){register O *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
+/** @sly2-annot addr=0x224820
+ * Purpose: traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*)
+ * Info: proposed name ProbeCid100Hit (T2); class CID100; TU tu_223F70
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 extern "C" void func_00224820(O *ownerIn,int filter,int channel,qword start,qword end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
  O *owner=Pin(ownerIn);LSG hit;int bits;
  COLL *collider=func_0014CC58(0,start,end,queryCount,objects,&hit);

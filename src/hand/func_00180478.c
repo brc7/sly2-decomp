@@ -4,6 +4,14 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 void RecalcSwOxfFilterForObject(void *g, struct S *p);
+/** @sly2-annot addr=0x180478
+ * Purpose: Set mode field and recalc object filters (RecalcSwOxfFilterForObject)
+ * Info: proposed name SetHackbulletMode (T2); class HACKBULLET; TU tu_17F090
+ * Notes: Cid4A->Cid74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
+ *   SetCid74Mode -> SetHackbulletMode
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00180478(struct S *p, int n)
 {
     if (n != p->n) {

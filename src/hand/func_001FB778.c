@@ -21,6 +21,13 @@ static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));retu
 static inline float Y(qword q){int bits;float f;__asm__("prot3w %0,%1":"=r"(bits):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 static inline qword Bits(qword v){qword q;__asm__("qmfc2.ni %0,%1":"=r"(q):"j"(v));return q;}
 static inline void Rounded(int*out,float f){float bits;__asm__("cvt.w.s %0,%1":"=&f"(bits):"f"(f));__asm__("swc1 %1,%0":"=m"(*out):"f"(bits));}
+/** @sly2-annot addr=0x1FB778
+ * Purpose: Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped;
+ *   atan2 -> pan degrees
+ * Info: proposed name CalculateSndVolPan (T1); TU sound
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FB778(void *unused,qword point,const struct RANGE*limits,float*outValue,int*outAngle)
 {
  V source,delta;

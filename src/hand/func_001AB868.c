@@ -9,6 +9,14 @@ int func_001AC468(struct S *s, struct B *b);
 void func_001ABB10(struct S *s, struct B *b, char *name);
 void func_001ACA40(struct S *s, char *name);
 void func_001ACC38(void *p, int n);
+/** @sly2-annot addr=0x1AB868
+ * Purpose: Thread job: check space (sceMcGetEntSpace), delete stale, CreateSaveDir, write slot files
+ * Info: proposed name McJobCreateSave (T1); TU memcard
+ * Notes: names_v2 v1 proposed FUN_0018c250 (0.000)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4_17F090
+ * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
+ *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 int func_001AB868(struct S *s)
 {
     char name[0x50];

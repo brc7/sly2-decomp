@@ -26,6 +26,14 @@ static inline qword Bcast(float f){register qword q __asm__("vf2");__asm__("qmtc
 
 static inline qword Scale0(qword v,qword k){register qword q __asm__("vf4");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
 static inline qword Scale2(qword v,qword k){register qword q __asm__("vf1");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
+/** @sly2-annot addr=0x1BE6F0
+ * Purpose: Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset,
+ *   unpack)
+ * Info: proposed name SetupItemRenderView (T2); TU tu_1BE398
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
+ * @end-sly2-annot */
 extern "C" void func_001BE6F0(P*p,V*v){
  U axis0,axis1,axis2,minus2,minus0,copy1;
  M4 view;

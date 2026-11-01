@@ -19,6 +19,12 @@ void func_00155AE0(struct X *p, int k);
 void *func_00155A68(struct X *p);
 
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+/** @sly2-annot addr=0x155D90
+ * Purpose: Run/hide state machine for the fleeing guard
+ * Info: proposed name UpdateBhv181 (T2); class BHV181 slot10; TU tu_1553F0
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 void func_00155D90(struct X *p)
 {
     UpdateBhv(p);

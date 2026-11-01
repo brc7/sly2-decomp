@@ -23,6 +23,12 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
+/** @sly2-annot addr=0x218220
+ * Purpose: advance main sprite by dt; world-anchored position via PosLoWorld + ConvertCmWorldToScreen
+ * Info: proposed name AdvanceWidgetSprite (T2); TU hud
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00218220(S *p,float dt) {
     if(p->enabled) {
         M23 m=D_002A3A10;

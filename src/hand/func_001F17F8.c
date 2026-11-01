@@ -8,6 +8,15 @@ extern struct CLOCK D_002DDED0;
 extern int D_002C3738[];
 void SetSmaGoalIfReachable(void *, int);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
+/** @sly2-annot addr=0x1F17F8
+ * Purpose: Change pickpocket display state k (-1..2): record time, hide (vt9) or show (vt8) the two glint
+ *   objects +0x3F4/+0x3F8, and drive the pouch's SMA (+0x494->+0x16C) to state oid D_002C3738[k+1] via
+ *   SetSmaGoalIfReachable
+ * Info: proposed name SetStepguardPickpocketState (T1); TU pickpocket
+ * Notes: runtime: pickpocket pouch is CID99 (SO child), not a PO
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
+ * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
+ * @end-sly2-annot */
 void func_001F17F8(struct P *p, int k)
 {
     void *pv;

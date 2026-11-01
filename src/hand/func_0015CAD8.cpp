@@ -77,6 +77,12 @@ SLOTHEAP D_00452148(0xC, 0xC8, 0x10);
 extern SLOTHEAP D_00452170 __attribute__((weak));
 SLOTHEAP D_00452170(0x14, 0x100, 0x10);
 
+/** @sly2-annot addr=0x15CAD8
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU emitter
+ * Info: proposed name StaticInit_emitter (T1); TU emitter
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r3_1539A8
+ * @end-sly2-annot */
 __asm__(".text\n"
         ".globl func_0015CAD8\n"
         ".type func_0015CAD8,@function\n"

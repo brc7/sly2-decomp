@@ -12,6 +12,12 @@ void func_001B33C8(void);
 void func_001B33F0(void);
 void func_001B34D0(void);
 void func_001B3508(void);
+/** @sly2-annot addr=0x1B3EC0
+ * Purpose: init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks
+ * Info: proposed name CMpeg_Start (T1); class CMpeg; TU mpeg
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B3EC0(struct S *p, int a)
 {
     p->x114 = a;

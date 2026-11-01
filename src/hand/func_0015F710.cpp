@@ -14,6 +14,14 @@ void BuildBmpTex0__FP3BMPi(BMP *pbmp, int n);
 void func_001ECBF0(BMP *pbmp, int n, GIFS *pgifs);
 void func_001EC9D0(CLUT *pclut, int n);
 void BuildClutGifs__FP4CLUTiP4GIFS(CLUT *pclut, int n, GIFS *pgifs);
+/** @sly2-annot addr=0x15F710
+ * Purpose: CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb)
+ *   and builds TEX0/CLUT upload GIFs for its bitmap
+ * Info: proposed name PostLoad (T1); TU font
+ * Notes: names_v2 v1 proposed DrawPart__8CFontBrxffffffffUiP4GIFS (0.932)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3_1539A8
+ * See: docs/formats/textures.md#7-open, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 void func_0015F710(FONT *pfont, FD *pfd, void *p)
 {
     HDR *phdr = pfd->phdr;

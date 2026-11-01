@@ -21,6 +21,12 @@ extern "C" {
 struct FRAME{FRAME()__asm__("func_001AE478");~FRAME(){func_001AE4A0(this,2);}};
 static inline float GetG(REF&r,void*a,B*b){func_002581C0(&r,a,b);float g=r.g;func_00129EC8(&r);return g;}
 static inline int GetN(REF&r,void*a,B*b){func_002581C0(&r,a,b);int n=r.n;func_00129EC8(&r);return n;}
+/** @sly2-annot addr=0x1ADC40
+ * Purpose: Per-slot text (0x5CF..0x5D1, arg=slot): episode best key + completion %
+ * Info: proposed name TextSaveSlotSummary (T2); TU memcard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 extern "C" void func_001ADC40(char*buf,int idx){
  REF ref;
  G*pg=&D_003DD490;

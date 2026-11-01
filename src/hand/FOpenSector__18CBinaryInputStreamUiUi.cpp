@@ -18,6 +18,13 @@ public:
     int m_isector;               // 0x5C
     int m_cbuf;                  // 0x60
 };
+/** @sly2-annot addr=0x184D98
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
+ *   docs/formats/disc-records.md#2-the-read-path,
+ *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
+ * @end-sly2-annot */
 int CBinaryInputStream::FOpenSector(uint isector, uint cb)
 {
     m_cbAsyncRequest = isector;

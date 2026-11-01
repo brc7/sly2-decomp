@@ -7,6 +7,12 @@ struct Q { char pad[0x20]; int n20; };
 struct S { int pad[4]; struct T *pt; int pad2; char ab18[0x18]; int k30; float t34; int n38; struct Q *pq; };
 void PopBhv(void *p);
 struct O *func_00205438(struct T *pt, int n);
+/** @sly2-annot addr=0x155788
+ * Purpose: State 0 runs BHV181 along the chosen route; state 1 runs BHV165
+ * Info: proposed name SetBhv180State (T2); TU tu_1553F0
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 void func_00155788(struct S *p, int k)
 {
     if (k == p->k30)

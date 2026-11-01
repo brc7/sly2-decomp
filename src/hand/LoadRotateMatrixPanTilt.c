@@ -15,6 +15,13 @@ static inline M3 MulM3(M3 *pa, M3 *pb)
             : "=j"(m.r[2]) : "j"(pa->r[0]), "j"(pa->r[1]), "j"(pa->r[2]), "j"(pb->r[2]));
     return m;
 }
+/** @sly2-annot addr=0x11B720
+ * Purpose: R = Rz(pan) * Ry(-tilt)
+ * Info: proposed name LoadRotateMatrixPanTilt (T1); TU mat
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
+ *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M3 *LoadRotateMatrixPanTilt(M3 *pm, float g1, float g2)
 {
     M3 c;

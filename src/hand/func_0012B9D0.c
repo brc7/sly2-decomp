@@ -5,6 +5,12 @@ typedef struct KEY { VECTOR3 pos; float t; qword dposIn; qword dposOut; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 int func_0012B6D8(T *t, float g);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
+/** @sly2-annot addr=0x12B9D0
+ * Purpose: Evaluates via EvaluateBezierPos (value/velocity)
+ * Info: proposed name EvaluateAcVecABezier (T2); class AcVecA; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012B9D0(T *t, void *pv, void *pdv, float g, float dtScale)
 {
     int i = func_0012B6D8(t, g);

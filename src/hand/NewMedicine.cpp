@@ -22,6 +22,15 @@ public:
     virtual void F();
 };
 
+/** @sly2-annot addr=0x112268
+ * Purpose: pfnNew factory for CID93 (cid 93): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
+ *   __4CRef
+ * Info: proposed name NewMedicine (T1); TU crt0_splicewrap
+ * Notes: class identity from whole_game WE names/object strings: NewCid93 -> NewMedicine
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 extern "C" void *NewMedicine(void)
 {
     return new Y;

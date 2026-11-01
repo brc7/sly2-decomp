@@ -7,6 +7,13 @@ void func_0011A050(struct DL *pdl, int ib);
 int OidFromIdProxy(int id);
 struct DL *PdlFromSwPxrOid(void *p, int id);
 void func_0011A070(struct DL *pl, void *pv);
+/** @sly2-annot addr=0x1C99D8
+ * Purpose: Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR
+ * Info: proposed name FindPxr (T1); TU proxy
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 struct N *func_001C99D8(struct N *p, int c, const int *aid)
 {
     struct N *pn, *pnParent, *pnNew;

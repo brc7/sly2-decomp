@@ -7,6 +7,15 @@ struct N *PvAllocSlotheapClear(void *);
 void InitDl__FP2DLi(void *, int);
 void AppendDlEntry__FP2DLPv(void *, struct N *);
 int FFindDlEntry__FP2DLPv(void *, void *);
+/** @sly2-annot addr=0x1336F0
+ * Purpose: Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints
+ *   on each of 3 axes to the sweep arrays (count += 2)
+ * Info: proposed name AddSwAaobrObject (T1); TU bbmark
+ * Notes: names_v2 C proposed InitDzg__FP3DZGi (0.200)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/engine/object-model.md#8-source-files, docs/engine/physics-collision.md#2-contacts-and-solving,
+ *   docs/engine/physics-collision.md#6-source-files
+ * @end-sly2-annot */
 struct N *AddSwAaobrObject(struct G *pg, struct P *p) {
     int i;
     struct N *pn = PvAllocSlotheapClear(&pg->pool3ce0);

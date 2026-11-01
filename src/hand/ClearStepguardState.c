@@ -15,6 +15,14 @@ void SetStepguardTarget(struct S *p, int n);
 void func_002088E0(struct S *p);
 void func_001F17F8(struct S *p, int a);
 void SetStepguardSpecial(struct S *p, int n);
+/** @sly2-annot addr=0x206748
+ * Purpose: STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state
+ *   -1, pickpocket state -1
+ * Info: proposed name ClearStepguardState (T1); class STEPGUARD slot27; TU stepguard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void ClearStepguardState(struct S *p)
 {
     int one;

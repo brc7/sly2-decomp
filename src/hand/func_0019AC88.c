@@ -18,6 +18,13 @@ static inline float Len(qword v) {
  __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(l));
  return r;
 }
+/** @sly2-annot addr=0x19AC88
+ * Purpose: Callback: speed-limited path length/time to a target along a Bezier path (0x185D18), min(1e6,
+ *   (v0+v1)*t/2)
+ * Info: proposed name GMeasureJumpPath (T2); TU air
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 float func_0019AC88(struct P *p, float t)
 {
  U a,b,c,d,e;

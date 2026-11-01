@@ -10,6 +10,14 @@ qword func_001A62E8(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
 void func_00183B80(struct S *p, int n);
+/** @sly2-annot addr=0x183E08
+ * Purpose: CID88 own vt slot 75: on a zap that qualifies, noise event and drop/state change
+ * Info: proposed name HandleBarrelZap (T2); class BARREL slot75; TU grabspot
+ * Notes: v3 class identity: HandleCid88Zap -> HandleBarrelZap
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources:
+ *   r4b_rest+class_review(master_names_v2_1)
+ * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
+ * @end-sly2-annot */
 int func_00183E08(struct S *p, struct Q *q)
 {
     struct M m;

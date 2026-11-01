@@ -1,3 +1,9 @@
+/** @sly2-annot addr=0x1DDD40
+ * Purpose: World index 0-8 -> episode name string id 0x6D-0x75
+ * Info: proposed name IdsFromWorld (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 int func_001DDD40(int n) {
     int r = -1;
     switch (n) {

@@ -5,6 +5,13 @@ void func_0012A0B0(CRef *pref, int tagk);
 void ConvertAloMat4(MATRIX4 *pmat, int a, int b, int c);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
+/** @sly2-annot addr=0x1250D8
+ * Purpose: Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0
+ * Info: proposed name RefOpConvertObjectMatrix (T1); TU bif
+ * Notes: names_v2 B proposed RefOpConvertObjectPosition__FiP4CRefP6CFrame (0.779)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

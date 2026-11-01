@@ -5,6 +5,12 @@ void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 int FFindDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 void func_001BD1E0(void *p);
+/** @sly2-annot addr=0x1BDE18
+ * Purpose: Attach polygon to merged owner and unregister it individually
+ * Info: proposed name AddCid14ToMerged (T2); class CID14; TU tu_1BC050
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 void func_001BDE18(void *p, struct O *po)
 {
     struct DL *pdl;

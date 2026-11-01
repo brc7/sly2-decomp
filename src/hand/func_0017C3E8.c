@@ -16,6 +16,14 @@ int func_0011D910(void *p, float f);
 qword func_0017BFF8(struct S *p, void *q, float f, qword v);
 void func_001C02D0(void *q, qword a, qword b, struct B *c);
 void SetBhvpathShape(struct T *t, struct B *b, int n);
+/** @sly2-annot addr=0x17C3E8
+ * Purpose: BHVCIRCLE Update: when out of the distance band or off-heading relative to the target, re-path to
+ *   a new spacing point
+ * Info: proposed name UpdateBhv179 (T2); class BHV179 slot10; TU guardbhv
+ * Notes: BHV class word normalised: UpdateBhvcircle -> UpdateBhv179
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017C3E8(struct S *p) {
     struct A *a;
     struct C *c;

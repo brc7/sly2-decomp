@@ -29,6 +29,13 @@ static inline qword Mul(qword a, qword s)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s));
     return r;
 }
+/** @sly2-annot addr=0x11C210
+ * Purpose: 4x4 from 3x3 rotation with per-row scale vector plus position
+ * Info: proposed name LoadMatrixFromPosRotScale (T1); TU mat
+ * Notes: names_v2 v1 proposed CalculateDmat4__FP7MATRIX4N20 (0.200)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M4 *LoadMatrixFromPosRotScale(M4 *pm, qword pos, M3 *pmat, int *pg)
 {
     union { qword q; float f[4]; } u;

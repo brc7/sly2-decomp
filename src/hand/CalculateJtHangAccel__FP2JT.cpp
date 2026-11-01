@@ -64,6 +64,13 @@ static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))
 static inline qword QwNormalize(qword v,qword fallback){qword len=QwSqrt(QwDot(v,v));qword r;if(GXOfQw(len)<0.0001f)r=fallback;else r=QwDivide(v,len);return r;}
 static inline CLOCK*Addr(CLOCK*p){return p;}
 static inline qword QwAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
+/** @sly2-annot addr=0x18FC60
+ * Purpose: Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle,
+ *   LoadRotateMatrix) and call AnticipateJtForce
+ * Info: proposed name CalculateJtHangAccel (T1); TU hang
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
+ * @end-sly2-annot */
 extern "C" void CalculateJtHangAccel__FP2JT(P*p){
  U anchor,displacement,anchorVelocity,axis;
  anchor.q=func_001A62E8(p->target);

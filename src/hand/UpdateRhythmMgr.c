@@ -15,6 +15,15 @@ void BroadcastGameEvent(void *, int, struct S *);
 void AddRhythmScore(struct S *, float);
 float GSmooth__FfffP3SMPPf(void *, float, float, float, int);
 void func_00152B58(struct S *);
+/** @sly2-annot addr=0x152970
+ * Purpose: cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due,
+ *   state 2 posts msg 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score;
+ *   UpdateRhythmMgrGrades
+ * Info: proposed name UpdateRhythmMgr (T1); class CID121 slot16; TU rhythm
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void UpdateRhythmMgr(struct S *p)
 {
     float t;

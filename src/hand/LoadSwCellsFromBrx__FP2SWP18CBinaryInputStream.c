@@ -5,6 +5,14 @@ int func_00117C20(void *pbs);
 void func_00117F70(void *pbs, struct E *pe);
 int func_00117D50(void *pbs);
 void *func_001AE2A0(struct AREQ *preq);
+/** @sly2-annot addr=0x13E0E0
+ * Purpose: Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index;
+ *   allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (cleaf x 0x20)
+ * Info: proposed name LoadSwCellsFromBrx (T1); TU brx_sw
+ * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
+ *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
+ * @end-sly2-annot */
 void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(struct P *p, void *pbs)
 {
     struct AREQ req;

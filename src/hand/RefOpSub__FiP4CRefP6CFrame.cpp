@@ -20,6 +20,12 @@ struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref);
 
 static inline NODE *PnFromRef(CRef *p) { return (NODE *)p->u.pv; }
+/** @sly2-annot addr=0x11F6D0
+ * Purpose: Splice builtin "-": n-ary subtract, same shape as +
+ * Info: proposed name RefOpSub (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref)
 {
     CRef ref;

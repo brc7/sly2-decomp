@@ -45,6 +45,12 @@ public:
     void *pE8;
 };
 extern "C" void func_001A6B88(X *, X *);
+/** @sly2-annot addr=0x1F49C8
+ * Purpose: SO vt38: LO::MatchLoXf then copy velocities via vt33..36 when SO has physics
+ * Info: proposed name MatchSoXf (T2); class SO slot38; TU so
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F49C8(X *p, X *q)
 {
     func_001A6B88(p, q);

@@ -140,6 +140,18 @@ static inline int FMoved(qword qwPos, qword qwPosLast)
     return D_002BE6B0 < GLength(QwSub(qwPos, qwPosLast));
 }
 
+/** @sly2-annot addr=0x178EE0
+ * Purpose: BHVWALKPATH Update: BHVPATH update, then set walk-anim speed and mover heading toward the target
+ *   point; stuck timer when not moving
+ * Info: proposed name UpdateBhvwalkpath (T1); class BHVWALKPATH slot10; TU guardbhv
+ * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded:
+ *   UpdateAloXfWorldHierarchy (names_v2:B(unverified)) | runtime2/4 confirmed the BHVWALKPATH role on live
+ *   guards (S02-S41)
+ * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   names_v2:B(unverified)+r9_bhv_screen+verdicts_followups+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" void UpdateBhvwalkpath(P *p)
 {
     UpdateBhvpath(p);

@@ -11,6 +11,13 @@ struct O *func_00205438(int a, int b);
 void func_00171258(struct O *o, int a, int b, int c);
 void BroadcastGameEvent(void *p, int a, int b);
 #define VCALL0(o, n) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
+/** @sly2-annot addr=0x1BA828
+ * Purpose: BHV174 state: 0 resume script (0xA9), 1 chase player (0x9E target=g_pjt), 2 behaviour 0x9D +
+ *   BroadcastGameEvent 0x33
+ * Info: proposed name SetBhv174State (T2); TU tu_1B9F80
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
+ * @end-sly2-annot */
 void func_001BA828(struct S *p, int st)
 {
     if (st == p->x30) return;

@@ -56,6 +56,12 @@ static inline void DivMatrix(MATRIX4 *pm, float d)
     *pm = mat;
 }
 
+/** @sly2-annot addr=0x11FEC8
+ * Purpose: Splice builtin "/": n-ary divide incl. int-matrix path
+ * Info: proposed name RefOpDiv (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *aref)
 {
     CRef ref;

@@ -11,6 +11,13 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
 void func_001FC2E0(struct REF *,int,float);
 static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
+/** @sly2-annot addr=0x1FDC08
+ * Purpose: Pick music layer (0 calm/1/2 action) from player state and smooth 3 group weights into the music
+ *   STREAMSND
+ * Info: proposed name UpdateSndmgrMusicMix (T2); TU sound
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FDC08(struct P *input)
 {
     struct P *p=input;

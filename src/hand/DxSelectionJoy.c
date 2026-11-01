@@ -11,6 +11,13 @@ static __inline__ float GClamp(float g, float lo, float hi)
     if (g > hi) return hi;
     return g;
 }
+/** @sly2-annot addr=0x187E88
+ * Purpose: Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8,
+ * Info: proposed name DxSelectionJoy (T1); TU joy
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
+ * @end-sly2-annot */
 int DxSelectionJoy(struct JOY *p)
 {
     float g;

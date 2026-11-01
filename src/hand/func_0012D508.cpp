@@ -80,6 +80,12 @@ static inline void Fin(P *p, M3 &mT, M3 m)
     p->px8->s9A = 5;
 }
 
+/** @sly2-annot addr=0x12D508
+ * Purpose: Path-following act: EvaluateBezierPos + BuildOrthonormalMatrixZ
+ * Info: proposed name UpdateActPath (T2); class ActPath; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 extern "C" void func_0012D508(P *p)
 {
     X *py;

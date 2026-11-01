@@ -14,6 +14,14 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 qword func_0011BFF0(void *p);
+/** @sly2-annot addr=0x14F478
+ * Purpose: Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees
+ * Info: proposed name GetCmRotDeg (T1); TU cm
+ * Notes: names_v2 v1 proposed SetCmPosMat__FP2CMP6VECTORP7MATRIX3 (0.167)
+ * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources:
+ *   r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 qword func_0014F478(char *p)
 {
     union { qword q; float f; } r;

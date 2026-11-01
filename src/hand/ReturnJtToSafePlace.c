@@ -26,6 +26,16 @@ void func_00148300(struct G *g, int a);
 void JtbsChooseJtLanding(void *p, int a);
 void func_0015E1D8(int a);
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x19F590
+ * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
+ *   it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not
+ *   the active player
+ * Info: proposed name ReturnJtToSafePlace (T1); TU places
+ * Notes: runtime3: places MRU table
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 void ReturnJtToSafePlace(struct P *p, E *q)
 {
     E e;

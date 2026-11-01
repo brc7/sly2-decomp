@@ -80,6 +80,14 @@ static inline void Query(P *owner, ENTRY *entry, U (&points)[2], float &distance
     GetLasenBeamEnds(owner, entry, &points[0].q, &distance);
 }
 
+/** @sly2-annot addr=0x1DF5B0
+ * Purpose: LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix)
+ * Info: proposed name RenderLasenSelf (T1); class LASEN slot19; TU sensor
+ * Notes: superseded r6_1D5150 proposal: RenderLasenSelf? (0.3) | names_v2 B proposed
+ *   RenderCamsenSelf__FP6CAMSENP2CMP2RO (0.901)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 extern "C" void RenderLasenSelf(P *p)
 {
     RenderSoSelf(p);

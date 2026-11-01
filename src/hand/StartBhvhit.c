@@ -25,6 +25,16 @@ void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
 void *PpoHero(struct G *g);
 int FFindLoParent(int n, void *o);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
+/** @sly2-annot addr=0x179328
+ * Purpose: BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain
+ *   noise, rumble/zap-mode timers
+ * Info: proposed name StartBhvhit (T1); class BHVHIT slot8; TU guardbhv
+ * Notes: unverified names_v2 tier-B alignment hint (tier B verified ~33% precise) | superseded:
+ *   PredictAloTransform (names_v2:B(unverified))
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
+ *   names_v2:B(unverified)+r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void StartBhvhit(struct S *p) {
     int f;
     float a;

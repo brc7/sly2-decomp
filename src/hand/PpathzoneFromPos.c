@@ -23,6 +23,15 @@ static __inline__ int ISide(qword plane, qword pos)
         i = 0;
     return i;
 }
+/** @sly2-annot addr=0x1C0D70
+ * Purpose: Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone
+ *   SW+0x45C8
+ * Info: proposed name PpathzoneFromPos (T1); TU path
+ * Notes: names_v2 v1 proposed UpdateJtInternalXps__FP2JT (0.077)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/engine/physics-collision.md#5-navigation-pathcpp-0x1bf110-0x1c2920,
+ *   docs/engine/physics-collision.md#7-key-functions, docs/engine/physics-collision.md#open-questions
+ * @end-sly2-annot */
 void *PpathzoneFromPos(qword pos, int f)
 {
     struct B *pb = D_003DD490.pbsp;

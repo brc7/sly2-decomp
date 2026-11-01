@@ -4,6 +4,14 @@ int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void func_00147E20(void *, void *);
 void func_0011CD98(void *, void *);
+/** @sly2-annot addr=0x1A53E0
+ * Purpose: Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool
+ *   g_sw+0x398C, clear x14
+ * Info: proposed name FreeLoroot (T1); TU lo
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
+ * @end-sly2-annot */
 void FreeLoroot(struct S *p)
 {
     char *pdl = D_003DD490 + 0x2C;

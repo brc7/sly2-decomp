@@ -172,6 +172,12 @@ static inline VV SubP(const U *a, const U *b) { return Sub(a->q, b->q); }
 static inline void Blend(U *pd, const U *pa, const qword &b, float t) { pd->q = VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(pa->q), VU_FLOAT(t), VU_VECTOR(b)); }
 static inline void LerpP(U *pd, const U *pa, const U *pb, float t) { pd->q = VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(pa->q), VU_FLOAT(t), VU_VECTOR(pb->q)); }
 
+/** @sly2-annot addr=0x1E8378
+ * Purpose: One RK4-style step of the spring rope chain
+ * Info: proposed name StepChainRk4 (T2); TU shape
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E8378(CHAIN *p)
 {
     U newP[64], newV[64], accP[64], accV[64], force[64];

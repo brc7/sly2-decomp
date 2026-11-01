@@ -20,6 +20,15 @@ static inline float GClamp(float x, float lo, float hi)
 }
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x1E8008
+ * Purpose: Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650
+ * Info: proposed name SRandomShapeRange (T1); TU shape
+ * Notes: verifier better_name (CORRECT row): Range [a-b, a+b] (wrapped if +0xE4 closed, else clamped into [0,
+ *   SMaxShape]); t = GRandInRange(-1,1) shaped by global D_002C3650 (linear, t|t|, smoothstep, sign
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 float SRandomShapeRange(struct P *p, float a, float b)
 {
     float r[2];

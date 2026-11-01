@@ -19,6 +19,15 @@ int FStepguardSenseStimulus(S2 *p, O *o);
 }
 class FRAME { public: FRAME(); ~FRAME(); };
 
+/** @sly2-annot addr=0x208BE0
+ * Purpose: STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >=
+ *   +0xE68, not own; kind 0 radius test (0x156918), kind 1 inner volume of detector + clear line
+ *   (PsoHitTestLineObjects)
+ * Info: proposed name FStepguardSenseStimulus (T1); class STEPGUARD slot89; TU stepguard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 int FStepguardSenseStimulus(S2 *p, O *o)
 {
     int k;

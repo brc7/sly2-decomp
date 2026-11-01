@@ -14,6 +14,11 @@ void func_002417F0(DMAC *pch, int a, int b);
 void func_002417A0(DMAC *pch);
 }
 
+/** @sly2-annot addr=0x2017A0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/core-library.md#sprbuf-0x201620-0x201d78
+ * @end-sly2-annot */
 void SaveSprBuf(void *pv, ...)
 {
     SPRBUF *psb = &D_003DD2C0[D_002C3C5C];

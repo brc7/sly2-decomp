@@ -5,6 +5,14 @@ extern char D_003CF980[];
 extern char D_002F7980[];
 extern char D_00303980[];
 void func_00234CA0(int n);
+/** @sly2-annot addr=0x1C2A78
+ * Purpose: if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers
+ * Info: proposed name SetPhase (T1); TU phasemem
+ * Notes: names_v2 v1 proposed UpdateJtDrive__FP2JT (0.022)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
+ *   docs/engine/world-sw.md#9-source-files, docs/engine/world-sw.md#10-key-functions
+ * @end-sly2-annot */
 void SetPhase__F5PHASE(int mode)
 {
     struct BUF *pb;

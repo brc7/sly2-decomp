@@ -11,6 +11,13 @@ static inline int ScaleBits(void) {
     return bits;
 }
 
+/** @sly2-annot addr=0x1C3A08
+ * Purpose: GRABSPOT iface: basis + position at distance
+ * Info: proposed name GetPipeGrabPosMat (T2); class PIPE; TU pipe
+ * Notes: names_v2 C proposed InitHbsk__FP4HBSK (0.638)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
+ * @end-sly2-annot */
 void func_001C3A08(void *p, int unused, qword *pvec, float g)
 {
     qword a[3];

@@ -3,6 +3,12 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
+/** @sly2-annot addr=0x122770
+ * Purpose: Splice builtin "vector-cross-product": VU outer product (cross)
+ * Info: proposed name RefOpVectorCrossProduct (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

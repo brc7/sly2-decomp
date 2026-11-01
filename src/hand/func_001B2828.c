@@ -18,6 +18,13 @@ static __inline__ void Draw(struct QW *x, struct G *draw)
     if (x) func_0016F8B8(D_002DE598, x);
     func_0016F590();
 }
+/** @sly2-annot addr=0x1B2828
+ * Purpose: Movie display thread: wait sema, DMA the decoded frame to GS (SendDmaSyncGsFinish),
+ *   RestoreGsBuffers, time window check
+ * Info: proposed name MpegDisplayThread (T1); TU mpeg
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 void func_001B2828(void)
 {
     struct QW *x;

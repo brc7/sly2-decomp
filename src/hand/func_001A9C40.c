@@ -11,6 +11,13 @@ extern qword D_002A2DC0;
 
 void func_001A7C18(void *p, struct S *a, struct S *b, qword pos, qword dir, int k, int x, int y, struct CONTACT **out, float g);
 
+/** @sly2-annot addr=0x1A9C40
+ * Purpose: Sphere vs sphere: if overlapping add one XP along the centre line
+ * Info: proposed name MarkSoContactsSphereSphere (T1); TU mark
+ * Notes: names_v2 B proposed FMarkSoContactsCenterBsp__FP2SOT0iP3BSPT3PP2XP (0.856)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 void func_001A9C40(void *p, struct S *a, struct S *b, struct CONTACT **out)
 
 {

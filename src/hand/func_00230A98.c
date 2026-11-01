@@ -15,6 +15,12 @@ static inline void AddM4(M4 *d, M4 *a, M4 *b)
     }
 }
 
+/** @sly2-annot addr=0x230A98
+ * Purpose: adds rows then 0x230710
+ * Info: TU xf
+ * Notes: descriptive only: xf: blend matrices | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
+ * @end-sly2-annot */
 void func_00230A98(P *first, P *end, M4 *pA, M4 *pB, float f)
 {
     M4 m1, m2, a, b, s, t1, t2;

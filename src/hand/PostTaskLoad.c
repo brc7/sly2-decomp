@@ -23,6 +23,17 @@ void TriggerStateRsmgs(struct S *p, int n, int c, struct E24 *a, int b);
 CRef *func_002581C0(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
 void SetLoBusyk(struct S *p, int n);
+/** @sly2-annot addr=0x1638F8
+ * Purpose: TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK
+ *   pointers, apply inactive visuals if live, restore two save vars, busy-flag it if timed or it has a marker
+ *   LO (+0x80)
+ * Info: proposed name PostTaskLoad (T1); class TASK slot15; TU game
+ * Notes: superseded r3_1539A8 proposal: PostCid85Load (0.65) | runtime6 G2: prereq/successor arrays
+ *   +0x90..+0xA4 exact
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void PostTaskLoad(struct S *p)
 {
     CRef ref;

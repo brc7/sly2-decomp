@@ -1,4 +1,10 @@
 void SetJtJts__FP2JT3JTS4JTBS(void *p, int n, int m);
+/** @sly2-annot addr=0x18D568
+ * Purpose: JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8)
+ * Info: proposed name SetJtPlayerState (T1); class JT slot88; TU jt
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void SetJtPlayerState(void *p, int n)
 {
     switch (n) {

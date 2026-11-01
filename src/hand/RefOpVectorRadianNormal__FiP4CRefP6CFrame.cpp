@@ -40,6 +40,12 @@ struct SPN {
 };
 extern "C" float RadBetweenVectors(qword a, qword b, void *pvec);
 extern "C" CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+/** @sly2-annot addr=0x122CE0
+ * Purpose: Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0
+ * Info: proposed name RefOpVectorRadianNormal (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     SPN sp;

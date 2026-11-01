@@ -20,6 +20,15 @@ void func_002581C0(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
 void *func_001D7E80(void *p, void *q, void *r);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
+/** @sly2-annot addr=0x162780
+ * Purpose: JOB PostLoad: if not current and live apply 'inactive' (state 5) visibility/RSMGs; restore start
+ *   count and elapsed time from save vars; resolve a save var; find its completion widget (+0xAC) and the
+ *   shared widget oid 0x379
+ * Info: proposed name PostJobLoad (T1); class JOB slot15; TU game
+ * Notes: superseded r3_1539A8 proposal: PostCid84Load (0.65)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void PostJobLoad(struct S *p)
 {
     CRef ref;

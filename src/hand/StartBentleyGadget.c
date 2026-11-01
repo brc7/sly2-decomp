@@ -16,6 +16,14 @@ void GrfbtnGadget(struct P *p, int k);
 void SetBentleyState(struct P *p, int n);
 void ChargeGadgetMp(struct P *p, int k);
 void StartStepplayerGadget(struct P *p, int k);
+/** @sly2-annot addr=0x136A90
+ * Purpose: BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget
+ *   record
+ * Info: proposed name StartBentleyGadget (T1); class BENTLEY slot100; TU bentley
+ * Notes: runtime5a #7: gadget 7 two-press chain observed (S50/S51)
+ * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void StartBentleyGadget(struct P *p, int k)
 {
     D_002DEB30.xC = k;

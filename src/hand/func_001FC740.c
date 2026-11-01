@@ -1,6 +1,12 @@
 struct P { char pad[0x14]; int n14; float f18; char pad2[0x40 - 0x1C]; int n40; float f44; char pad3[0x50 - 0x48]; unsigned short f50;
     char pad4[0x70 - 0x52]; float af70[6]; int a88[6]; char pad5[0x3BC - 0xA0]; int n3BC; };
 void func_00233088(int, int, int, int, int, int, int);
+/** @sly2-annot addr=0x1FC740
+ * Purpose: vt13: SUKR cmd 5 vol/pan/pitch, then per-group params
+ * Info: proposed name ApplyStreamsndParams (T1); class STREAMSND; TU sound
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FC740(struct P *p)
 {
     int i;

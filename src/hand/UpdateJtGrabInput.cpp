@@ -160,6 +160,17 @@ static inline void ProbeGround(CONTEXT *p)
     SetJtGrabKind(p, 8);
 }
 
+/** @sly2-annot addr=0x1911A8
+ * Purpose: Per-frame input for the current grab action: X (0x40) jumps off via SetJtAirJump kinds 7/1, button
+ *   0x400 enters JTMODE, actions 8/9/10/11/12 finish on anim end or stick input, action 5 targets a class-11
+ *   object, action 8 probes ground under the player (box query + line test + BSP sphere) before entering step
+ *   8
+ * Info: proposed name UpdateJtGrabInput (T1); TU grab
+ * Notes: runtime4: Murray state 13 runs it (wall press S37)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
+ *   docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 extern "C" void UpdateJtGrabInput(CONTEXT *p)
 {
     JOY *pjoy = p->pactor->pjoy;

@@ -139,6 +139,12 @@ struct LM {
 };
 float GLimitLm(LM *, float);
 
+/** @sly2-annot addr=0x219400
+ * Purpose: apply one animation key poses to items
+ * Info: proposed name ApplySpriteKeyPoses (T1); TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00219400(float time, float duration, ANIM *animation, int phase, int index, M23 *parent, const RGBA *additive, const RGBA *multiply)
 {
     int fNever = 0;

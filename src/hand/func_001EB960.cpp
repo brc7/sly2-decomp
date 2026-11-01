@@ -29,6 +29,12 @@ static inline ulong TestBaseAndKind(const ENTRY *entry,uint flags,uint &depthKin
   :"+r"(base),"+r"(marked),"+r"(retained):"r"(rawKind));
  depthKind=retained;flags4=marked;return base;
 }
+/** @sly2-annot addr=0x1EB960
+ * Purpose: Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind
+ * Info: proposed name FillShaders (T2); TU shd
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001EB960(){
  int i;
  for(i=0;i<D_003DCFE8;i++){

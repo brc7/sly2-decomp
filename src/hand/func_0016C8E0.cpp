@@ -16,6 +16,20 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
     preq->nKind = nKind;
     return func_001AE378(preq);
 }
+/** @sly2-annot addr=0x16C8E0
+ * Purpose: Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices
+ *   (0x1ED1A8)
+ * Info: proposed name LoadClutsetFromBrx (T2); TU glob
+ * Notes: no usable identifier; purpose only | rendering proposes LoadSubglobBindingsFromBrx (0.35) |
+ *   MESH_FORMAT + LEVEL_FORMAT both call this block CLUTSET; rendering proposes LoadSubglobBindingsFromBrx
+ *   (0.35) | level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ *   | T2 forced: noun disputed (CLUTSET vs subglob bindings); layout parse-verified
+ * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources:
+ *   r3_1539A8+rendering+format-docs+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#type-0-the-visible-textured-mesh-loadsubglobtype0frombrx-0x16a000-cparse,
+ *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
+ * @end-sly2-annot */
 extern "C" T *func_0016C8E0(void *pv, CBinaryInputStream *pbis)
 {
     T *pt = 0;

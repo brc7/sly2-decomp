@@ -1,5 +1,13 @@
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+/** @sly2-annot addr=0x11E9F8
+ * Purpose: Scales v down to length gMax if longer
+ * Info: proposed name LimitVectorLength (T1); TU vec
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 qword LimitVectorLength(qword v, float gMax)
 {
     qword d, one, l;

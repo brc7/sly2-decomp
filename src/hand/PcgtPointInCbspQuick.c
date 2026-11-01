@@ -19,6 +19,14 @@ static __inline__ float Dot(qword a, qword b)
 typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
+/** @sly2-annot addr=0x1BF110
+ * Purpose: Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2)
+ * Info: proposed name PcgtPointInCbspQuick (T1); TU path
+ * Notes: names_v2 C proposed PcgtPointInCbspSafe__FP4CBSPP6VECTOR (0.638)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 LEAF *PcgtPointInCbspQuick(struct T *p, qword pos, int fl)
 {
     union { qword q; float f; } u;

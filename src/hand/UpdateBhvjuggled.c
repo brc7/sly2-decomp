@@ -19,6 +19,16 @@ qword func_001A62E8(struct A *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->p19A4;return y->p60;}
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
+/** @sly2-annot addr=0x17AC90
+ * Purpose: BHVHELD Update: held/carried states 0-1, released/fall states 2-3 (landed via +0x208), prediction
+ *   states 4-5
+ * Info: proposed name UpdateBhvjuggled (T1); class BHVJUGGLED slot10; TU guardbhv
+ * Notes: BHV class word normalised: UpdateBhvheld -> UpdateBhvjuggled | runtime2/4 confirmed the BHVJUGGLED
+ *   role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void UpdateBhvjuggled(struct S *p) {
     qword v;
     int s;

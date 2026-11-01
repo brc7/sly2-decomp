@@ -15,6 +15,13 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+/** @sly2-annot addr=0x13B2F0
+ * Purpose: BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit
+ *   normal
+ * Info: proposed name FAbsorbBombWkr (T1); class BOMB slot75; TU bomb
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 int FAbsorbBombWkr(struct P *p, struct M *pm)
 {
     int r;

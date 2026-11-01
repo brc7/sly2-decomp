@@ -7,6 +7,15 @@ extern struct DL D_003E126C;
 int FSmaRetracted(struct P *);
 void func_00130B18(void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
+/** @sly2-annot addr=0x1F0598
+ * Purpose: If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send
+ *   message 3, Decref
+ * Info: proposed name RetractSma (T1); TU sm
+ * Notes: names_v2 v1 proposed SetSmaGoal__FP3SMA3OID (0.185)
+ * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768,
+ *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_001F0598(struct P *p)
 {
     if (!FSmaRetracted(p)) {

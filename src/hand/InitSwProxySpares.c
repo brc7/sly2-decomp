@@ -16,6 +16,14 @@ struct MAT3 *func_001A6318(struct LO *p);
 void func_0011B3D0(struct MAT3 *pm);
 void *func_002333B4(void *p, int c, int cb);
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
+/** @sly2-annot addr=0x1CA500
+ * Purpose: After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest,
+ *   PROXYSPARE array, identity mats)
+ * Info: proposed name InitSwProxySpares (T1); TU proxy
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/object-model.md#9-key-functions,
+ *   docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 void InitSwProxySpares(struct G *pg)
 {
     int i, j, k;

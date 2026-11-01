@@ -6,6 +6,12 @@ void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
+/** @sly2-annot addr=0x1244E8
+ * Purpose: Splice builtin "find-nearest-object": like find-object with k=4
+ * Info: proposed name RefOpFindNearestObject (T1); TU bif
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;

@@ -27,6 +27,14 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char VT_Size[sizeof(VT)==8?1:-1];
 typedef char VT_d_Offset[((unsigned int)&(((VT*)0x10000)->d)-0x10000)==0?1:-1];
 typedef char VT_fn_Offset[((unsigned int)&(((VT*)0x10000)->pfn)-0x10000)==4?1:-1];
+/** @sly2-annot addr=0x1A0300
+ * Purpose: For 8 directional clips measure root velocity (clip displacement / duration via key lookup
+ *   0x12FF10) and build the 8-entry blend (0x137A30 cbBl 0x20)
+ * Info: proposed name PostLoadDirBlend (T2); TU dirblend
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
+ *   docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files
+ * @end-sly2-annot */
 void func_001A0300(struct ACTOR *p, struct E *ae, struct MULTI **pn)
 {
     struct E *e = ae;

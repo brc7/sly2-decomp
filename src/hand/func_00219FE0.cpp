@@ -122,6 +122,12 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     return r;
 }
 
+/** @sly2-annot addr=0x219FE0
+ * Purpose: advance sprite animation to slot time and redraw changed items
+ * Info: proposed name AdvanceSpriteAnim (T1); TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00219FE0(float duration, ANIM *animation, int index, M23 *parent, RGBA additive, RGBA multiply)
 {
     // items is read last: that read carries the reuse pointer's REG_DEAD note, which is

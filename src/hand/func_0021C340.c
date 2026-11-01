@@ -26,6 +26,14 @@ static inline void StoreXYZ(U *dst,qword v) {
     dst->f[1]=GetY(q);
     dst->f[2]=GetZ(q);
 }
+/** @sly2-annot addr=0x21C340
+ * Purpose: deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction,
+ *   writes positions and per-vertex alpha, then base render 0x1F3C70
+ * Info: proposed name RenderTrailSelf (T2); class CID105 slot19; TU trail
+ * Notes: agent qualifier: cid105 slot19
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
+ * @end-sly2-annot */
 void func_0021C340(struct S *p) {
     struct N *node;
     U scalar;

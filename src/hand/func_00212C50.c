@@ -11,6 +11,16 @@ int func_002121E8(struct S *,int);
 void func_00212A50(struct S *,int);
 void func_00212A70(struct S *,int);
 void func_00218220(void *,float);
+/** @sly2-annot addr=0x212C50
+ * Purpose: WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main
+ *   sprite
+ * Info: proposed name UpdateWidget (T1); class WIDGET slot16; TU hud
+ * Notes: names_v2 v1 proposed FUN_001abe70 (0.000) | runtime: WIDGET +0x58 state 1 hidden / 2 visible
+ *   confirmed
+ * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r7c_hud+runtime
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00212C50(struct S *p) {
     int state;
     UpdateLo(p);

@@ -44,6 +44,16 @@ CRef func_001D8B20(const CRef &, const char *, ...);
 void func_001DA858(OBJ *);
 void func_001DBEF0(OBJ *);
 }
+/** @sly2-annot addr=0x1DB870
+ * Purpose: ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm,
+ *   deduct, SetPowerupAcquired, notify players); tab 1 sell one loot item (loot.mplootkc[i]-1, add its price
+ *   to coins); tab switch and close
+ * Info: proposed name UpdateThiefnet (T1); TU screen
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/engine/hud-ui.md#2-screens-and-menus-screencpp-0x1d93d8-menu-0x1ae928,
+ *   docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 extern "C" void func_001DB870(OBJ *p)
 {
     func_001DA808(p);

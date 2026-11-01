@@ -14,6 +14,16 @@ qword ConvertAloPos(int a, struct S *p, qword q);
 int PbspPointInBspQuick(void *p, int n, qword q);
 void func_00228358(struct S *p, int k);
 void func_002283D0(struct S *p);
+/** @sly2-annot addr=0x228538
+ * Purpose: UpdateLo then player inside test (BSP) and trigger handling
+ * Info: proposed name UpdateExit (T1); class EXIT slot16; TU exit_warp
+ * Notes: CID26 EXIT Update = Sly1 UpdateExit (player-in-volume state machine, wipe after tWipe) (was
+ *   UpdateWarp)
+ * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; sources:
+ *   verify_B+verify_r7r8_summary+verdicts_B
+ * See: docs/engine/world-sw.md#10-key-functions,
+ *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
+ * @end-sly2-annot */
 void func_00228538(struct S *p)
 {
     UpdateLo(p);

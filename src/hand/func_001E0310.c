@@ -4,6 +4,13 @@ void func_002013D8(struct CRef *pref, void *x, int a, int b, unsigned int *pc, i
 struct CMD *func_001E01F8(void *pq, int kind, int b);
 void func_001AE5A0(void *pdst, void *psrc, int cb);
 void func_00129EC8(struct CRef *pref);
+/** @sly2-annot addr=0x1E0310
+ * Purpose: Splice builtin: append a RELAYCK 0x3 (WaitBlocks) command to the relay
+ *   (PrelaycmdAddRelay(prelay,0x3,fAsync)) and fill its args
+ * Info: proposed name AddRelayWaitBlocks (T1); TU relay
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E0310(void *pq, void *x)
 {
     int a[8];

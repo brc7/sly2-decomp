@@ -30,6 +30,14 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 
+/** @sly2-annot addr=0x1821C0
+ * Purpose: vt19: RenderSoSelf then draw each segment piece with its own matrix
+ * Info: proposed name RenderHackwallSelf (T2); class HACKWALL slot19; TU tu_17F090
+ * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
+ *   RenderCid76Self -> RenderHackwallSelf
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 extern "C" void func_001821C0(P*p){
  int i,count;M3 m;M4 mm;qword pos;
  RenderSoSelf(p);

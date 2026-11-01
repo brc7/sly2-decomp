@@ -43,6 +43,13 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x226550
+ * Purpose: per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ...
+ * Info: proposed name UpdateSw (T1); class SW slot7; TU update
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/gameplay-objects.md#source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#5-per-frame-update-and-render
+ * @end-sly2-annot */
 void UpdateSw(struct S *p)
 {
     ProcessSwCallbacks(p);

@@ -69,6 +69,16 @@ static inline void Attach(ACTOR *actor,CONTEXT *context){VT *entry=&actor->vtabl
 static inline void Hide(ACTOR *actor){VT *entry=&actor->vtable[9];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
 static inline int NonZero(int v){int r; __asm__("sltu %0,$zero,%1":"=r"(r):"r"(v));return r;}
 static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("$4");__asm__("la %0,%a1":"=r"(result):"p"(home));return result;}
+/** @sly2-annot addr=0x20E890
+ * Purpose: Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw,
+ *   InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore checkpoint/actor (oidPoCurrent), camera, game
+ *   callback(5)
+ * Info: proposed name ExecuteSwTransition (T1); TU sw
+ * Notes: runtime5b: SW memset + SW::SW before LoadSwFromBrx (S56); step order corrected in docs
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r7_1F8DD8+runtime
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#3-world--level-lifecycle, docs/engine/overview.md#6-subsystem-map
+ * @end-sly2-annot */
 extern "C" void ExecuteSwTransition(SW *p)
 {
     if(!p->pending)return;

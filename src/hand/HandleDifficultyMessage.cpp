@@ -29,6 +29,15 @@ static inline void Set(V *k, CRef r) { func_00258200(k, r, &D_003D4A60); }
 static inline void SetG(V *k, float g) { CRef r(g); Set(k, r); }
 static inline CRef Get(V *k) { G *pg = &D_003D4A60; return func_001D7ED8(&D_003E0EA8, k, pg); }
 
+/** @sly2-annot addr=0x154A90
+ * Purpose: Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the
+ *   samples (rolling window of 3), 37/16/29 apply difficulty deltas from table D_002BDC00
+ * Info: proposed name HandleDifficultyMessage (T1); TU difficulty
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void HandleDifficultyMessage(S *p, int msgk, M *pm)
 {
     switch (msgk) {

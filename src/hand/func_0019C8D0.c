@@ -3,6 +3,12 @@ struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
 extern char D_002DE2E0[];
 int func_0014FD50(void *);
+/** @sly2-annot addr=0x19C8D0
+ * Purpose: Can gadget/action k be used in the current air sub-state
+ * Info: proposed name FJtAirAllowsGadget (T2); TU air
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 int func_0019C8D0(struct S *p, int k) {
     switch (k) {
     case 22:

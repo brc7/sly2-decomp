@@ -18,6 +18,12 @@ void func_001C7C30(int n, int f);
 void func_001618B0(void *pg);
 void func_001C60B8(struct S *p, int n);
 static inline int FTest(struct S *p) { struct LO *q = func_001CB658(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+/** @sly2-annot addr=0x1C7EE8
+ * Purpose: CID 95 setter: sound, proxy-copy value, mark clue collected
+ * Info: proposed name SetClueDprizes (T1); class CLUE slot76; TU prize
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C7EE8(struct S *p, int n)
 {
     struct LO *q;

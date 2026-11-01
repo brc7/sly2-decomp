@@ -12,6 +12,12 @@ static inline float GClamp(float g, float gMin, float gMax)
     if (gMax < g) return gMax;
     return g;
 }
+/** @sly2-annot addr=0x2160D8
+ * Purpose: convert current RGBA to clamped float colours
+ * Info: proposed name CRichText_UpdateColor (T2); class CRichText; TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002160D8(struct S *p)
 {
     float k = p->aA * 0.007874016f;

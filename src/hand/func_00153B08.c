@@ -10,6 +10,17 @@ int func_00117D00(void *pbis);
 int func_00117DB8(void *pbis);
 void CBinaryInputStream_ReadStringSw(void *pbis, char **ppchz, void *palloc, int nKind);
 void CBinaryInputStream_ReadCb64(void *pbis, void *pv);
+/** @sly2-annot addr=0x153B08
+ * Purpose: Reads the base LO then a u8-counted table of {string (symbol table D_002DD590), s16, s32...}
+ *   records
+ * Info: proposed name LoadCid122FromBrx (T2); class CID122 slot14; TU tu_153B08
+ * Notes: Cid7A->Cid122 (CID 0x7A=122, hex-literal) | level_parser CONFIRMED-code (layout read from the
+ *   matched function; class absent from samples)
+ * Confidence: low (draft) [T2 0.70] - evidence: static analysis; sources: r3_1539A8+parse-code
+ * See: docs/engine/gameplay-objects.md#source-files,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/gameplay-objects.md#tu_153b08-0x153b08-0x153d58
+ * @end-sly2-annot */
 void func_00153B08(struct S *p, void *pbis)
 {
     MSG msg;

@@ -33,6 +33,12 @@ qword func_0011BFF0(qword *);
 M4 func_0022C8C0(P *, qword);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
 
+/** @sly2-annot addr=0x230CF0
+ * Purpose: evaluates an actuator value (Bezier/limits)
+ * Info: proposed name QwSlotValue (T2); TU xf
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 void func_00230CF0(A *a, int flag)
 {
     LO *list[16];

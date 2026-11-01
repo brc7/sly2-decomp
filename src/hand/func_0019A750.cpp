@@ -146,6 +146,13 @@ static inline float SqrtfEarly(float g)
     return r;
 }
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("func_0019A750");
+/** @sly2-annot addr=0x19A750
+ * Purpose: Launch velocity for a flight kind: z raised to the per-kind value (215/1200/250/500 apex,
+ *   700/900/800 constants, bounce, double jump solved with CSolveQuadratic)
+ * Info: proposed name JtPlanLaunchVz (T1); TU air
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind)
 {
     VECTOR4 pos;

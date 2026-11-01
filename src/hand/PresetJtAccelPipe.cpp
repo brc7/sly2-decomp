@@ -42,6 +42,13 @@ typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char VT_d_Offset[((unsigned int)&(((VT*)0x10000)->d)-0x10000)==0?1:-1];
 typedef char VT_fn_Offset[((unsigned int)&(((VT*)0x10000)->pfn)-0x10000)==4?1:-1];
 typedef char M3_mat_Offset[((unsigned int)&(((M3*)0x10000)->mat)-0x10000)==0?1:-1];
+/** @sly2-annot addr=0x19DF70
+ * Purpose: Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4
+ * Info: proposed name PresetJtAccelPipe (T1); TU pipe_jt
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
+ * @end-sly2-annot */
 extern "C" void PresetJtAccelPipe(struct P *p)
 {
     M3 m, m2, m4;

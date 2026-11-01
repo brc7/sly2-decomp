@@ -11,6 +11,15 @@ void func_00226CE0(void *, void *);
 void func_00226D28(void *);
 void func_002270C8(void *, int, void *, int);
 void func_001576F0(void *);
+/** @sly2-annot addr=0x211A80
+ * Purpose: Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state
+ * Info: proposed name BeginRpHud (T1); TU hud
+ * Notes: superseded: SetupSpriteVu1 (r7c_hud)
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+rendering+verdicts_followups
+ * See: docs/engine/hud-ui.md#5-key-functions,
+ *   docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00211A80(void *p)
 {
     func_00160918(p, D_0025AFA0, D_0025B870);

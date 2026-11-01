@@ -8,6 +8,13 @@ struct G { char pad[0x3D58]; int n; };
 extern struct G D_003DD490;
 struct M4 __ml__FRC7MATRIX4T0(void *, struct T *);
 void func_00186820(struct P *);
+/** @sly2-annot addr=0x1F4010
+ * Purpose: SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820
+ * Info: proposed name ApplySoProxy (T2); class SO slot37; TU so
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F4010(struct P *p, void *pv)
 {
     struct T *pt = p->pt;

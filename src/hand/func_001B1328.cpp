@@ -60,6 +60,13 @@ typedef char P_changed_Offset[FIELD_OFFSET(P,changed)==548?1:-1];
 typedef char P_deadline_Offset[FIELD_OFFSET(P,deadline)==556?1:-1];
 typedef char P_amount_Offset[FIELD_OFFSET(P,amount)==560?1:-1];
 typedef char P_damageOffset_Offset[FIELD_OFFSET(P,damageOffset)==576?1:-1];
+/** @sly2-annot addr=0x1B1328
+ * Purpose: State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee
+ *   to path end from nearest player with deadline, 5 hit; sound and ASEG per state
+ * Info: proposed name SetCid96State (T2); class CID96; TU tu_1B0B78
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 extern "C" void func_001B1328(P*p,int next){
  int old=p->state;if(old==next)return;WORK w;
  switch(old){case -1:case 0:case 2:case 3:func_002303A0(p,p->group,p->oldMode);func_0022C840(p,p->group);break;}

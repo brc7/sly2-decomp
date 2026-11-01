@@ -3,6 +3,14 @@ void InitPo(struct S *p);
 void func_00204D48(struct S *p, float g);
 void func_00204660(struct S *p, float g);
 void InitBhvstk(void *pv, struct S *p);
+/** @sly2-annot addr=0x203948
+ * Purpose: STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius
+ *   0x220=30, 0x214=-50, InitBhvstk(+0x26C,this)
+ * Info: proposed name InitStep (T1); class STEP slot7; TU step
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
+ *   docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 void InitStep(struct S *p)
 {
     InitPo(p);

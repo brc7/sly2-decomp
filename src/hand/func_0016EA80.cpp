@@ -62,6 +62,13 @@ void func_001EC740(int,int,int,uint,uint);
 static inline void*Copy(int bytes,void*source){REQUEST request;request.bytes=bytes;request.alignment=16;return func_001AE238(&request,source);}
 static inline void ReadTransform(SO*object,STREAM*stream,TRANSFORM**output){VE*method=&object->vt[52];method->readTransform((SO*)((char*)object+method->delta),stream,output);}
 static inline void CopyObjects(P*p){for(int i=0;i<p->objectCount;i++){if(p->objects[i]->flags&4){p->objects=(SO**)Copy(p->objectCount*4,p->objects);return;}}}
+/** @sly2-annot addr=0x16EA80
+ * Purpose: Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned
+ *   objects, relocates packet copies
+ * Info: proposed name CloneGlobset (T2); TU glob
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
     int bytes;
     p->owner=owner;

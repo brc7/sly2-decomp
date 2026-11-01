@@ -21,6 +21,12 @@ static inline int Clamp(int n, int lo, int hi)
         return hi;
     return n;
 }
+/** @sly2-annot addr=0x1DBBE0
+ * Purpose: Select row i (clamped), scroll the window, set current power-up/loot id
+ * Info: proposed name SelectThiefnetItem (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DBBE0(OBJ *p, int i)
 {
     if (p->c == 0) {

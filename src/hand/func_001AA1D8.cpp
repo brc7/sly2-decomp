@@ -64,6 +64,13 @@ static inline int NMin(int a, int b) { return (a < b) ? a : b; }
 #define SHAPE_FILTERED (1UL << 48)
 #define SHAPE_SPHERE (1UL << 49)
 
+/** @sly2-annot addr=0x1AA1D8
+ * Purpose: Build all contacts between two SOs: order by radius, per shape pair dispatch sphere/sphere,
+ *   sphere/BSP, BSP/BSP, sweep, zap responders
+ * Info: proposed name AddSoXps (T1); TU mark
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 extern "C" CONTACT *func_001AA1D8(WORLD *pworld, SO *psoSmall, SO *psoLarge)
 {
     CONTACT *pcontactFirst = 0;

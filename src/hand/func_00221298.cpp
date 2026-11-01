@@ -12,6 +12,13 @@ extern "C" qword ConvertAloPos(void *source, struct S *p, qword q);
 extern "C" struct BSP *PbspPointInBspQuick(struct BSP *p, unsigned int limit, qword v);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
+/** @sly2-annot addr=0x221298
+ * Purpose: current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override;
+ *   switch unless jumping
+ * Info: proposed name UpdateTnCallback (T1); TU tn
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 extern "C" void func_00221298(struct S *p)
 {
     struct O *po = PpoCur(&D_003DD490);

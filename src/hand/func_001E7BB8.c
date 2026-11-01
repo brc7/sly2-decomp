@@ -5,6 +5,12 @@ struct M4 {qword r[4];};
 struct S {char pad[0xA0];struct M4 mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct S*);
 static inline qword Point(qword old,qword r0,qword r1,qword r2,qword r3,qword p){__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(old):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(p));return old;}
+/** @sly2-annot addr=0x1E7BB8
+ * Purpose: World AABB of the transformed points and curve controls
+ * Info: proposed name GetShapeBounds (T2); TU shape
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E7BB8(struct S*p,qword*lo,qword*hi){
  register qword r0 __asm__("vf2"),r1 __asm__("vf3"),r2 __asm__("vf4"),r3 __asm__("vf11");
  register qword maximum __asm__("vf5"),minimum __asm__("vf6");

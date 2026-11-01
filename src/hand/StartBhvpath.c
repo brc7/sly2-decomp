@@ -6,6 +6,12 @@ void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
 static inline float Max(float a, float b) { return a > b ? a : b; }
 static inline float Min(float a, float b) { return a < b ? a : b; }
+/** @sly2-annot addr=0x177EF0
+ * Purpose: BHVPATH Start: remember start pos, clamp radii from speed, SetState(0)
+ * Info: proposed name StartBhvpath (T1); class BHVPATH slot8; TU guardbhv
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void StartBhvpath(struct S *p) {
     struct VTE *e;
     float g;

@@ -33,6 +33,16 @@ void UpdateBentleyAim(struct P *p);
 
 #define VCALL99(p, a) ((int (*)(void *, int))(p)->vt[99].pfn)((char *)(p) + (p)->vt[99].d, a)
 
+/** @sly2-annot addr=0x134850
+ * Purpose: Per-frame transitions of the Bentley state (+0x13D0) driven by component states, then sub-machines
+ *   0x136118/0x136338/0x1367D8
+ * Info: proposed name UpdateBentleyStateMachine (T1); TU bentley
+ * Notes: runtime5a #8/#31: input switch (0x40 jump, 0x400 look, 0x10 gadget, 0x20 grab) consistent with
+ *   S49-S53
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648,
+ *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void UpdateBentleyStateMachine(struct P *p)
 {
     int s;

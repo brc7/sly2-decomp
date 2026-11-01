@@ -42,6 +42,14 @@ static inline PLANE *FinalPlane(PLANE *base,int count){
  return last;
 }
 
+/** @sly2-annot addr=0x1664A0
+ * Purpose: Transforms a local GEOM into world space: points via VU0 (0x166428), plane normals by the
+ *   inverse-transpose rotation, recomputing plane distances
+ * Info: proposed name UpdateGeomWorld (T1); TU geom
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001664A0(const M4*matrix,GEOMETRY*source,GEOMETRY*dest){
  register const M4 *inverseSource asm("$16")=matrix;
  if(source->points!=dest->points){

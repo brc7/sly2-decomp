@@ -4,6 +4,16 @@ void func_00132930(struct T *t);
 void func_00234CA0(int n);
 int func_0024F770(void *p, int a, int n);
 void func_00132998(struct T *t, int r);
+/** @sly2-annot addr=0x1B41D0
+ * Purpose: spool async stream and demux into sceMpeg (returns 2 at EOF)
+ * Info: proposed name CMpeg_CbDemuxed (T1); class CMpeg; TU mpeg
+ * Notes: verifier side finding names it CbDemuxed | superseded: CMpeg_Update (arbitration) | arbitration
+ *   adopt verifier: CONFIRMED static: body = Sly1 CMpeg::CbDemuxed(int fBlock): while stream empty Spool,
+ *   return 0 if still empty and !fBlock; FlushCache(0); demux (0x24F770 = sceM | arbitration mangling:
+ *   compile a declaration in the scratch build and compare before committing
+ * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; arbitration; sources: r5_1AE130+arbitration
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 int func_001B41D0(struct S *p, int wait)
 {
     int n, r;

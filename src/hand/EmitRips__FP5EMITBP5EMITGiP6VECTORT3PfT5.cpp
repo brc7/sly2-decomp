@@ -56,6 +56,14 @@ void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTER *pemit);
 MATRIX3 *func_001A6318(void *p);
 int FIsDlEmpty__FP2DL(void *p);
 }
+/** @sly2-annot addr=0x15B1B0
+ * Purpose: Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions
+ * Info: proposed name EmitRips (T1); TU emitter
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
+ *   r3_1539A8+verdicts_tu_r3r5+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTER *pemit, EMITX *px, int c, qword *apos, qword *avel, float *at0, float *at1)
 {
     SO *pso = 0;

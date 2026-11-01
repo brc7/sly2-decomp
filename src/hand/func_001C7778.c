@@ -3,6 +3,13 @@ struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4];
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void func_001C5E48(struct O *p);
+/** @sly2-annot addr=0x1C7778
+ * Purpose: CID 94 Update
+ * Info: proposed name UpdateLoot (T2); class LOOT slot16; TU prize
+ * Notes: names_v2 C proposed DisableAlarmSensors__FP5ALARM (0.195)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C7778(struct O *p)
 {
     func_001C5E48(p);

@@ -9,6 +9,13 @@ M BuildOrthonormalMatrixZ(qword a, qword b);
 int func_001CF338(S *p, qword q, M m);
 void func_001CF618(S *p);
 }
+/** @sly2-annot addr=0x1CF618
+ * Purpose: FLYING Render: oriented render via FRenderRipPosMat
+ * Info: proposed name RenderFlying (T1); TU rip
+ * Notes: names_v2 B proposed RenderStuck__FP5STUCKP2CM (0.957)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CF618(S *p)
 {
     qword v;

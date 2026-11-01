@@ -50,6 +50,14 @@ typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
 typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char QW_Alignment[__alignof__(QW)==16?1:-1];
+/** @sly2-annot addr=0x1BE398
+ * Purpose: Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots
+ *   (D_003E1A78, D_003E1AA0)
+ * Info: proposed name InitItemRenderTargets (T2); TU tu_1BE398
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
+ * @end-sly2-annot */
 extern "C" void func_001BE398(T *pt, X *px)
 {
     register int cbBlock __asm__("$17") = 0x40;

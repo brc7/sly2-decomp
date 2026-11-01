@@ -65,6 +65,13 @@ static inline qword AddScaled2(VU_VECTOR a, VU_VECTOR b, VU_VECTOR c, VU_FLOAT s
     return r;
 }
 
+/** @sly2-annot addr=0x151340
+ * Purpose: Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF
+ *   (0x12D108) and SetCmMat4 from the camera transform
+ * Info: proposed name UpdateCphang (T1); TU cplcy
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00151340(X *p, void *pv, JOY *pjoy)
 {
     qword pos, v;

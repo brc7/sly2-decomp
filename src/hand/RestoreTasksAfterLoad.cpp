@@ -67,6 +67,13 @@ extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void func_001D8B20(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void func_00129EC8(CRef *pref);
 extern "C" void SetTaskState(X *p, int n);
+/** @sly2-annot addr=0x165280
+ * Purpose: Event 4 when g_sw flag 8: recompute tasks in topological order, make the pending task available,
+ *   set oidPoCurrent from it, set the warp oid, flag 8->4
+ * Info: proposed name RestoreTasksAfterLoad (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void RestoreTasksAfterLoad(SS *ps)
 {
     if (!(D_003DD490.f3bf4 & 8))

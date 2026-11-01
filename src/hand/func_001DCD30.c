@@ -20,6 +20,13 @@ int GrfHandleJoyBtn(void *, int);
 void func_001DD300(OBJ *, int);
 void func_001DA858(OBJ *);
 void func_001DD1F8(OBJ *);
+/** @sly2-annot addr=0x1DCD30
+ * Purpose: Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle
+ *   jobs page <-> tasks page
+ * Info: proposed name UpdateJobList (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DCD30(OBJ *p)
 {
     func_001DA808(p);

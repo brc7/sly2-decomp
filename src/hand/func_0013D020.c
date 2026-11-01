@@ -13,6 +13,14 @@ void BroadcastGameEvent(void *pv, int n, struct P *p);
 void UpdateStepplayerBootySave(struct Q *q, int n, struct P *p);
 void SetBootyState(struct A *pa, int n);
 void func_00184130(struct P *p, struct Q *q);
+/** @sly2-annot addr=0x13D020
+ * Purpose: cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast
+ *   event 0x32 on mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0)
+ *   and sound 0x27
+ * Info: proposed name OnBootyContainerTouched (T2); class CID37 slot51; TU booty
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void func_0013D020(struct P *p, struct Q *q)
 {
     struct A *pqa, *ppa;

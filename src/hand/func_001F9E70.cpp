@@ -40,6 +40,13 @@ static inline void NearVector(int *out,const qword &first,const qword &b){regist
 static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
 static inline qword*PointAddress(OWNER*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,0x30\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->position));*value=point;return address;}
 static inline float HalfAndDelta(float dt,float half,const qword&source,qword*delta){register float product __asm__("$f0");register qword d __asm__("vf3");__asm__("mul.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(product),"=j"(d):"f"(dt),"f"(half),"m"(source));*delta=d;return product;}
+/** @sly2-annot addr=0x1F9E70
+ * Purpose: Applies two queued force/torque vectors to an SO transform (rotation build 0x11B570, normalize);
+ *   no direct callers (vtable/callback)
+ * Info: proposed name ApplySoForcesXf (T2); class SO slot65; TU solve
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 extern "C" void func_001F9E70(P *input)
 {
     register P *p __asm__("$18");

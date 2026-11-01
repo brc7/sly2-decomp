@@ -7,6 +7,13 @@ static inline float DivideBits(int bits,float denominator){register float value 
 static inline float ClockNow(void){float value;__asm__ __volatile__ ("lwc1 %0,%1":"=f"(value):"m"(D_002DDED0.t));return value;}
 static inline void PublishStart(struct S *p,int active,float now,float span){asm("sw %3,%0\n\tswc1 %4,%1\n\tswc1 %5,%2":"=m"(p->g),"=m"(p->t),"=m"(p->f):"r"(active),"f"(now),"f"(span));}
 static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero,1":"=r"(value));return value;}
+/** @sly2-annot addr=0x220508
+ * Purpose: for states 4..6: store launch/target points, flight time = distance / speed, start time = now,
+ *   active=1
+ * Info: proposed name StartJtthrowFlight (T2); TU throw
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
+ * @end-sly2-annot */
 void func_00220508(struct S *p, void *q)
 {
     int k = p->k;

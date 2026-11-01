@@ -5,6 +5,12 @@ struct S { char pad[0x150]; int n150; struct A *a154; };
 int func_001BBE48(struct S *p, struct E *e);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 void func_001BAED8(struct S *p, struct S *a, int b);
+/** @sly2-annot addr=0x1BADF0
+ * Purpose: Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8)
+ * Info: proposed name FCid98AcceptZap (T2); class CID98 slot75; TU tu_1BAB50
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 int func_001BADF0(struct S *p, struct E *e)
 {
     int i;

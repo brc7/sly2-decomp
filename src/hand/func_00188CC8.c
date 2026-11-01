@@ -23,6 +23,13 @@ static __inline__ float GLimLo(float g, float lo, float v)
     if (g < lo) return v;
     return g;
 }
+/** @sly2-annot addr=0x188CC8
+ * Purpose: JT vt55 (p, XP-like pa, pv): base STEP 0x204250, jts 8 -> 0x19E9C8, jts 7 friction-like scale g94
+ *   = clamp(|v.xy|/g88+0.5, 0.5,1.5)
+ * Info: proposed name AdjustJtXp (T2); class JT slot55; TU jt
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_00188CC8(struct O *p, struct A *pa, void *pv)
 {
     AdjustStepNewXp(p, pa, pv);

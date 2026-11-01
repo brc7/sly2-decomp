@@ -202,6 +202,15 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
+/** @sly2-annot addr=0x169198
+ * Purpose: Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin
+ *   matrices) and queues it with its sort distance
+ * Info: proposed name DrawGlobsetSkinned (T2); TU glob
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/rendering.md#2-render-list-entries-rpl,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148,
+ *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
+ * @end-sly2-annot */
 extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
 {
     SHD shd;

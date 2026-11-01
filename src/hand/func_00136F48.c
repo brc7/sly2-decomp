@@ -23,6 +23,12 @@ static __inline__ float Clamp(float g, float gMin, float gMax)
         return gMax;
     return g;
 }
+/** @sly2-annot addr=0x136F48
+ * Purpose: helper state change
+ * Info: proposed name SetBentleyCrosshairState (T2); TU bentley
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00136F48(struct S *ps, int state)
 {
     void *pv;

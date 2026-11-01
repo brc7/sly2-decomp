@@ -14,6 +14,12 @@ static inline float DistSq(void *p, qword *pq)
     return f;
 }
 
+/** @sly2-annot addr=0x20A168
+ * Purpose: Compare stimuli: template priority, level, time, then distance
+ * Info: proposed name IcmpStepguardStimulus (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 int func_0020A168(void *p, struct E2 *a, struct E2 *b)
 {
     int n;

@@ -48,6 +48,12 @@ static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
     return g;
 }
 
+/** @sly2-annot addr=0x1467A0
+ * Purpose: BHV197 slot 10: approach target with extra states 3/4
+ * Info: proposed name UpdateBhv197 (T2); class BHV197 slot10; TU tu_144B28
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void func_001467A0(struct P *p)
 {
     union { qword q; float f[4]; } d;

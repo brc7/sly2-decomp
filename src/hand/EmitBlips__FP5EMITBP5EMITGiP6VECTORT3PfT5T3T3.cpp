@@ -43,6 +43,14 @@ static inline float Dot(qword a, qword b)
 
 static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
 
+/** @sly2-annot addr=0x15B428
+ * Purpose: Spawns BLIP particles for originated positions
+ * Info: proposed name EmitBlips (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources:
+ *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;

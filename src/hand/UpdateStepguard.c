@@ -24,6 +24,15 @@ void func_002097E0(void *p);
 int FAsegaRetracted(int h);
 void func_001306A8(int *ph);
 
+/** @sly2-annot addr=0x207350
+ * Purpose: STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets,
+ *   finish attack anim, aim, pickpocket, update components, BHV stack (0x1EED10), mover, release finished
+ *   ASEGA, track base position
+ * Info: proposed name UpdateStepguard (T1); class STEPGUARD slot16; TU stepguard
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void UpdateStepguard(struct S *p)
 {
     UpdateStep(p);

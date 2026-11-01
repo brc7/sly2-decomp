@@ -18,6 +18,11 @@ static inline void *GetGp(void)
     return gp;
 }
 
+/** @sly2-annot addr=0x23ADA8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/sdk-libraries.md#sdk_libs-0x233000-0x254f00
+ * @end-sly2-annot */
 void sceSifAddCmdHandler(int cid, void *handler, void *data)
 {
     if (cid < 0) {

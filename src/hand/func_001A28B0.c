@@ -28,6 +28,13 @@ static inline qword Add(qword a,qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2"
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
+/** @sly2-annot addr=0x1A28B0
+ * Purpose: STEPPLAYER vt72 (shared by JT/Murray): in water/vertical states apply water current
+ *   (CalculateWaterCurrent) and buoyancy (GSmoothA, AddSoVelocity); else SO slot72 0x2297F8
+ * Info: proposed name ResolveStepplayerXaContact (T2); class STEPPLAYER slot72; TU hurt
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 void func_001A28B0(struct P *p,void *o)
 {
  U origin,vel,pos,local,dir,v50,accel,bcast;

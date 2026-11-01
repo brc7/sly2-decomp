@@ -16,6 +16,14 @@ void FillAsFromPair(void *pv, X *px);
 CRef func_001D80C8(void *a, X *px, CRef *pref, void *b);
 CRef RefOpSetSaveVar(void *pbasic, CRef *aref);
 }
+/** @sly2-annot addr=0x125450
+ * Purpose: Path list + value -> RefSetSaveVar 0x1D80C8
+ * Info: proposed name RefOpSetSaveVar (T1); TU bif
+ * Notes: splice builtin 132 set-save-var!~ -> set-save-var!~ (0.80): Body pair of 131 (RefSetSaveVar). Unused
+ *   by retail scripts
+ * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 132)
+ * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpSetSaveVar(void *pbasic, CRef *aref)
 {
     CRef ref;

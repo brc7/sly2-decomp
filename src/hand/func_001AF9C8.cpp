@@ -9,6 +9,12 @@ extern char D_003D4A60[];
 }
 CRef Eval(int a, void *b) __asm__("func_002581C0");
 static inline int GetTag(int id) { return Eval(id, D_003D4A60).m_tag; }
+/** @sly2-annot addr=0x1AF9C8
+ * Purpose: Item text callback: choose string for video items 76-78 from option values
+ * Info: proposed name PauseItemTextVideo (T2); TU menu
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 extern "C" void func_001AF9C8(int *s)
 {
     int t;

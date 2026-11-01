@@ -25,6 +25,13 @@ static inline int FSet(struct K *pk, struct X *px)
     }
     return pk->n4 != 0;
 }
+/** @sly2-annot addr=0x1FC510
+ * Purpose: vt9: resolve stream file key, send start to SUKR IOP module with vol/pan
+ * Info: proposed name PlayStreamsnd (T1); class STREAMSND; TU sound
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/sound.md#6-key-functions, docs/guides/port-plan.md#64-sound--coreaudio-k12,
+ *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FC510(struct P *p)
 {
     struct K k;

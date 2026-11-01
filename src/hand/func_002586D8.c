@@ -12,6 +12,12 @@ int func_00233178(const void *a, const void *b, int n);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, SO *p);
 void func_00258658(SO *p, int f);
 void *func_001AE238(AREQ *preq, void *pv);
+/** @sly2-annot addr=0x2586D8
+ * Purpose: resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)]
+ * Info: proposed name BindEmitter (T2); TU game_linkonce
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
+ * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
+ * @end-sly2-annot */
 void func_002586D8(SO *p)
 {
     void *a[5];

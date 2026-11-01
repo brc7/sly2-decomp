@@ -4,6 +4,13 @@ typedef struct { qword r[3]; } M3;
 extern M3 D_002A2D00;
 M3 *func_0011B500(M3 *pm, float g, qword axis);
 void *func_0023320C(void *pvDst, void *pvSrc, int cb);
+/** @sly2-annot addr=0x11B570
+ * Purpose: Rotation matrix from a rotation vector (angle = |v|, axis = v/|v|)
+ * Info: proposed name LoadRotateMatrix (T1); TU mat
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
+ *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 M3 *func_0011B570(M3 *pm, qword v)
 {
     qword d, one, l;

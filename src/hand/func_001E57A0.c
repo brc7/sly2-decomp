@@ -23,6 +23,13 @@ static inline int FNear(qword a, qword b)
 {
     return func_0011D4D0(X(b), X(a), 0.0001f) && func_0011D4D0(Y(b), Y(a), 0.0001f) && func_0011D4D0(Z(b), Z(a), 0.0001f);
 }
+/** @sly2-annot addr=0x1E57A0
+ * Purpose: Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm),
+ *   tBlendEnd(+0x80)=now+t, and push it into the camera's blend slot
+ * Info: proposed name StartJsgCamBlend (T2); TU relay
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
 {
     float tBase;

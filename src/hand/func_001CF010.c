@@ -1,4 +1,11 @@
 typedef int qword __attribute__((mode(TI)));
+/** @sly2-annot addr=0x1CF010
+ * Purpose: helper: |v|^2 < 0.0004
+ * Info: proposed name FVecShorterThan0p02 (T2); TU rip
+ * Notes: names_v2 B proposed InitDablet__FP6DABLETP6VECTORfP2SO (0.856)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 int func_001CF010(qword v)
 {
     float g;

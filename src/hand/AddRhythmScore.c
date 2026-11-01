@@ -33,6 +33,13 @@ static inline float GClamp(float g, float gMin, float gMax)
         return gMax;
     return g;
 }
+/** @sly2-annot addr=0x153640
+ * Purpose: Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute
+ *   average (+0x284); post msg 0x36
+ * Info: proposed name AddRhythmScore (T1); TU rhythm
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void AddRhythmScore(struct S *p, int a, int b, float g)
 {
     float *pg;

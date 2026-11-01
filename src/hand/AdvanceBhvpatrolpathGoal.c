@@ -13,6 +13,15 @@ struct R *func_001EA3B0(void *p, float f);
 void EvaluateShapeS(struct B *b, float f, qword *pv, int n);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
+/** @sly2-annot addr=0x17ECF0
+ * Purpose: Step the shape parameter by a class-dependent distance in the travel direction (clamp/wrap, skip
+ *   invalid ranges) and send it to BHVGOTO
+ * Info: proposed name AdvanceBhvpatrolpathGoal (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATROLPATH role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void AdvanceBhvpatrolpathGoal(struct S *p, int force) {
     float d;
     float t;

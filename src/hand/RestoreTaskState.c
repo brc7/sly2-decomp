@@ -5,6 +5,14 @@ extern char D_003D4A60[];
 void func_002581C0(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
 void SetTaskState(struct X *p, int n);
+/** @sly2-annot addr=0x164270
+ * Purpose: Reads the task's saved state and flag vars and sets the derived state (SetTaskState), handling
+ *   start tasks of jobs
+ * Info: proposed name RestoreTaskState (T1); TU game
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/engine/game-progression.md#devtools-findings-v3-2026-11-01,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void RestoreTaskState(struct X *p)
 {
     CRef ref;

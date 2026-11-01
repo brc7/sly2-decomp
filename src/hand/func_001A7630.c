@@ -27,6 +27,15 @@ static inline int CopyLimit(int value)
     __asm__("daddu %0,%1,$zero" : "=r"(copy) : "r"(value));
     return copy;
 }
+/** @sly2-annot addr=0x1A7630
+ * Purpose: IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode,
+ *   sceFsReset, alloc IOP heap and sceSifLoadModuleBuffer for each embedded IRX in table
+ *   D_004E5D80..D_004E5E38
+ * Info: proposed name StartupSif (T1); TU main
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_A2
+ * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
+ *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
+ * @end-sly2-annot */
 void func_001A7630(void)
 {
     union { char buf[0x100]; struct DMA dma; } u;

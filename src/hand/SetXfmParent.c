@@ -21,6 +21,12 @@ struct LO {
 M4 __ml__FRC7MATRIX4T0(void *, M4 *);
 void func_001A5900(LO *, LO *, LO *, int);
 
+/** @sly2-annot addr=0x2315F0
+ * Purpose: re-parent keeping world matrix (0x1A5900)
+ * Info: proposed name SetXfmParent (T1); class XFM slot10; TU xform
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
+ * @end-sly2-annot */
 void SetXfmParent(LO *p, LO *pNew, LO *pParent, int grf)
 {
     M4 m;

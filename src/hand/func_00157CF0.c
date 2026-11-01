@@ -20,6 +20,15 @@ extern void func_00226F28(P *, int, int, void *, int);
 extern void func_0014F768(CM *, int, int, MATRIX4 *, MATRIX4 *);
 extern void func_001576F0(P *);
 extern void func_0016E1A8(P *, void *, void *);
+/** @sly2-annot addr=0x157CF0
+ * Purpose: Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010,
+ *   re-upload camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob
+ * Info: proposed name BeginRpForeground (T1); TU draw
+ * Notes: no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
+ * @end-sly2-annot */
 void func_00157CF0(P *p, void *a1, void *a2)
 {
     KG akg[2];

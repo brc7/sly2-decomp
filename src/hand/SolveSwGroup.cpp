@@ -51,6 +51,14 @@ static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r
 static inline float ClockDt(){return D_002DDED0.dt;}
 static inline void Callback(P *p,int slot){VT *vt=p->vtable;vt[slot].function((char *)p+vt[slot].delta);}
 
+/** @sly2-annot addr=0x1F9410
+ * Purpose: Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses,
+ *   notify objects (vt 65/66/67)
+ * Info: proposed name SolveSwGroup (T1); TU solve
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/physics-collision.md#2-contacts-and-solving,
+ *   docs/engine/physics-collision.md#7-key-functions, docs/engine/physics-collision.md#open-questions
+ * @end-sly2-annot */
 extern "C" void SolveSwGroup(GAME *game,int flags,int objectCount,P **objects,int contactCount,XP **contacts)
 {
     FRAME frame;

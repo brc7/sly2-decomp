@@ -6,6 +6,14 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void func_0014E328(void *a, int b, void *c, void *d, struct S *p);
 void func_0014E4C8(void *a, int b, int c, int d, int e, struct S *p);
+/** @sly2-annot addr=0x221178
+ * Purpose: tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out ->
+ *   RevokeCmPolicy(8) + event 6; store tns and tTns=g_clock.t
+ * Info: proposed name SetTnTns (T1); TU tn
+ * Notes: names_v2 C proposed FChooseRobRoc__FP3ROBP3ROH (0.638)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r8_21BB88+verdicts_tu_r7r8
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
+ * @end-sly2-annot */
 void func_00221178(struct S *p, int k)
 {
     if (k == p->k) return;

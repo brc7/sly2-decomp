@@ -21,6 +21,13 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1BD218
+ * Purpose: Remove from merged owner's DL (with safe DL iterator) and re-queue
+ * Info: proposed name DetachCid14FromOwner (T2); class CID14; TU tu_1BC050
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest+verdicts_B
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 void func_001BD218(struct S *p)
 {
     DLI dli;

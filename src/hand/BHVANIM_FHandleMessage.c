@@ -26,6 +26,18 @@ void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 int FFindLoParent(void *n, void *o);
 void func_0014F750(void *p, int n);
 void func_001F7A68(struct A *a, int n);
+/** @sly2-annot addr=0x174BD0
+ * Purpose: BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation,
+ *   0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35
+ *   rumble/camera jolt on hit
+ * Info: proposed name BHVANIM_FHandleMessage (T1); class BHVANIM slot13; TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVANIM role on live guards (S02-S41) | BHV slot 13 (_FHandleMessage):
+ *   canonical form would be BHVLEAP_FHandleMessage | BHV slot 13 (_FHandleMessage): canonical form would be
+ *   BHV175_FHandleMessage
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r9_bhv_screen+runtime(class role)
+ * See: docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
     struct ANIMATION *animation;
     if (msg != 9) return 0;

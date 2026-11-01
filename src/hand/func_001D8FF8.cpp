@@ -26,6 +26,15 @@ unsigned int func_0023E1C8(float);
 }
 static inline int GetInt(KEY *k, char *pb) { return func_002581C0(k, pb).m_tag; }
 static inline float GetFloat(KEY *k, char *pb) { return func_002581C0(k, pb).m_g; }
+/** @sly2-annot addr=0x1D8FF8
+ * Purpose: Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at
+ *   D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50)
+ * Info: proposed name ApplyGsSettings (T1); TU save
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/save-memcard.md#5-key-functions,
+ *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" void func_001D8FF8(char *pb)
 {
     if (D_003DD490.k[0] && func_001A2C98() >= 2)

@@ -66,6 +66,13 @@ static inline qword Normalize(qword v, qword fallback)
     return Div(v, l);
 }
 
+/** @sly2-annot addr=0x1999D0
+ * Purpose: Contact direction vs a shape feature: vertex -> sum FCheckJtSingleEdge over edges at the point
+ *   (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then FCheckJtEdgeNormal
+ * Info: proposed name FCheckJtEdgeGrab (T1); TU air
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest+verdicts_B
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *info, U *out)
 {
     switch (kind) {

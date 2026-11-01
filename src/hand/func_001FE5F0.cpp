@@ -21,6 +21,13 @@ X *PloFindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
 int func_001FD0C0(P *, int);
 X *func_001F67E0(X *, int);
 }
+/** @sly2-annot addr=0x1FE5F0
+ * Purpose: Stop current dialog, create dialog STREAMSND kind 0, notify subtitles (0x227728), bind the speaker
+ *   object SMs for 6 lip-sync roles
+ * Info: proposed name StartDialog (T1); TU sound
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 extern "C" X *func_001FE5F0(P *p, int k, int f)
 {
     D *pd;

@@ -29,6 +29,13 @@ extern QW D_002DF740[];
 extern "C" void SetPhase__F5PHASE(int phase);
 extern "C" void func_00234A60(int sid);
 extern "C" void func_00160CE0(FR *pfr);
+/** @sly2-annot addr=0x160828
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name OpenFrame__Fv (EXISTING); TU frm
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order, docs/engine/rendering.md#1-frame-structure,
+ *   docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 void OpenFrame()
 {
     if (!D_003D3980)

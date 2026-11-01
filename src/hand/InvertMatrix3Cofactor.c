@@ -1,5 +1,11 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
+/** @sly2-annot addr=0x11B340
+ * Purpose: 3x3 inverse by cofactors (row cross products / determinant) returned by value
+ * Info: proposed name InvertMatrix3Cofactor (T1); TU mat
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
+ * @end-sly2-annot */
 M3 InvertMatrix3Cofactor(M3 *pm)
 {
     M3 m;

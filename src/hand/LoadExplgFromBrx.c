@@ -12,6 +12,15 @@ void LoadXfmFromBrx(struct S *p, void *q);
 void CLoadCollectorArray_ctor(struct DA *pda);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+/** @sly2-annot addr=0x15C1E8
+ * Purpose: EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo
+ * Info: proposed name LoadExplgFromBrx (T1); class EXPLG slot14; TU emitter
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+parse-verified
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void LoadExplgFromBrx(struct S *p, void *q)
 {
     struct C ctx;

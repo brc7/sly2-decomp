@@ -48,6 +48,13 @@ static inline qword Difference(U*first,qword target){
     __asm__("lqc2 %0,%2\n\tqmtc2.ni %3,%1":"=j"(a),"=j"(b):"m"(first->q),"r"(target));
     __asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;
 }
+/** @sly2-annot addr=0x1A16C8
+ * Purpose: Select/blend the knockback velocity by damage kind flags (0x200/0x8000/...) and source direction,
+ *   limited length; then SetJtHurtState
+ * Info: proposed name GetJtKnockbackVelocity (T2); TU hurt
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 void func_001A16C8(struct P*p){
     U output=p->velocity;
     U scratch,scalar;

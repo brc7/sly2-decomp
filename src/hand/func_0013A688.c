@@ -8,6 +8,13 @@ extern char D_002DEA28[];
 void func_00226E88(void *pdma, int a, int b, int c, int d, void *ppv);
 void func_00226F28(void *pdma, int a, int b, void *pv, int d);
 void func_00227010(void *pdma, int a, int b, void *pv, int d, int e);
+/** @sly2-annot addr=0x13A688
+ * Purpose: Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to
+ *   the DMA list
+ * Info: proposed name AddBlipgVu1Params (T2); TU blip
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 void func_0013A688(struct P *p)
 {
     float *pg;

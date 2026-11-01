@@ -144,6 +144,13 @@ extern float D_002BF3EC;
 extern float D_002BF3F0;
 int FPocketItemCarried(CID100 *pcid100);
 JTPOCKET *FindJtPocket(JT *pjt, int idGadget);
+/** @sly2-annot addr=0x18D760
+ * Purpose: Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket
+ *   item)
+ * Info: proposed name JT_FCanUseGadget (T1); class JT slot99; TU jt
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 int JT::FCanUseGadget(int idGadget)
 {
     if (FJtModeActive(this))

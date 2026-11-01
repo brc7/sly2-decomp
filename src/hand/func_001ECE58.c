@@ -35,6 +35,15 @@ void func_00166968(struct DMAS *);
 void func_001576F0(struct X *);
 void func_00157620(struct X *);
 void func_001573C0(struct X *, int, int, int *);
+/** @sly2-annot addr=0x1ECE58
+ * Purpose: Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs
+ * Info: proposed name UploadPermShaders (T1); TU shd
+ * Notes: textures format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest+format-doc:textures
+ * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
+ *   docs/engine/rendering.md#13-key-functions,
+ *   docs/guides/port-plan.md#63-textures-k8-renderingmd-9-formatstexturesmd
+ * @end-sly2-annot */
 int func_001ECE58(struct BS *pbs, int k)
 {
     struct DMAS dmas;

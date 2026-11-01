@@ -95,6 +95,16 @@ static inline VU_VECTOR Normalize(qword d)
     }
     return dir;
 }
+/** @sly2-annot addr=0x15A808
+ * Purpose: Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton)
+ * Info: proposed name ChooseEmitoPos (T1); TU emitter
+ * Notes: verifier: purpose partly wrong: Sly 1 ChooseEmitoPos(emito,i,c,ppos,pnormal). Cases are
+ *   point(0)/box(1)/curve(2, cumulative length)/mesh(3, area-weighted triangle), not 'sphere/skeleton'.
+ * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
+ *   r3_1539A8+verdicts_tu_r3r5+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *p, int i, int c, qword *ppos, qword *pv)
 {
     EP *pep = &p->ep;

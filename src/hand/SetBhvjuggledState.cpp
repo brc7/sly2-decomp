@@ -112,6 +112,17 @@ typedef char ENTRY_key_Offset[FIELD_OFFSET(ENTRY,key)==8?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
 static inline int Still(int m){int f=0;if(m==4||m==5||m==0)f=1;return f;}
+/** @sly2-annot addr=0x17B1A8
+ * Purpose: BHVHELD state switch: attach ACT to holder (PactNewE), release ACT/XF roles, mass change, anim
+ *   label seeks 0x3C/0x173
+ * Info: proposed name SetBhvjuggledState (T1); TU guardbhv
+ * Notes: BHV class word normalised: SetBhvheldState -> SetBhvjuggledState | runtime2/4 confirmed the
+ *   BHVJUGGLED role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 extern "C" void SetBhvjuggledState(C*p,int next){
  REQUEST request;
  U point,direction,scratch,scale,cached;

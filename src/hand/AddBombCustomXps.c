@@ -8,6 +8,14 @@ struct G { int x; };
 extern struct G D_003DD490;
 void func_001F5990(struct P *p, struct S *ps, int a2, int a3, int a4, int a5);
 void func_001A7C18(struct G *pg, int n, struct S *ps, qword a, qword b, int k, int x, int y, float g, int z);
+/** @sly2-annot addr=0x13ADE8
+ * Purpose: BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd
+ *   type 9)
+ * Info: proposed name AddBombCustomXps (T1); class BOMB slot60; TU bomb
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void AddBombCustomXps(struct P *p, struct S *ps, int a2, int a3, int a4, int a5)
 {
     func_001F5990(p, ps, a2, a3, a4, a5);

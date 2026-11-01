@@ -30,6 +30,12 @@ public:
 };
 extern "C" void ForceTaskState(X *px, int a, int b);
 extern "C" void UpdateCurrentJob();
+/** @sly2-annot addr=0x164C58
+ * Purpose: ForceTaskState(p,3) then UpdateCurrentJob
+ * Info: proposed name ForceTaskState3 (T2); TU game
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void func_00164C58(X *px)
 {
     CSave save(px);

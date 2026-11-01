@@ -14,6 +14,12 @@ int func_0014CDB0(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void func_00229D60(void);
 int func_001A2788(O *po, L *pl, qword *pv);
 }
+/** @sly2-annot addr=0x1A2788
+ * Purpose: Line/part test from the player down to the linked volume's surface; out position
+ * Info: proposed name FProbeStepplayerSurface (T2); TU hurt
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 int func_001A2788(O *po, L *pl, qword *pv)
 {
     U off, b, a;

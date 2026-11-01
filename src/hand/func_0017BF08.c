@@ -7,6 +7,13 @@ void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
 void func_001C02D0(void *p, qword a, qword b, int n);
 void func_0017C550(struct S *p, int n);
+/** @sly2-annot addr=0x17BF08
+ * Purpose: BHVCIRCLE Start: with path-zone capability (bit 2) walk to a spacing point, else stand facing
+ * Info: proposed name StartBhv179 (T2); class BHV179 slot8; TU guardbhv
+ * Notes: BHV class word normalised: StartBhvcircle -> StartBhv179
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017BF08(struct S *p) {
     StartBhv(p);
     if (p->pt->nFE8 & 4) {

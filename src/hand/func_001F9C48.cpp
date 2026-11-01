@@ -29,6 +29,17 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
+/** @sly2-annot addr=0x1F9C48
+ * Purpose: Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom)
+ *   stamped with SW frame counter +0x3D58
+ * Info: proposed name IntegrateSoGroupXf (T2); TU solve
+ * Notes: names_v2 v1 proposed EnsureSoLvo__FP2SO (0.073) | runtime: SW+0x3D58 is a stamp counter
+ *   (~145/frame), frame counter is SW+0x3D60
+ * Confidence: low (draft) [T2 0.25] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r7_1F8DD8+runtime-corrected
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 extern "C" void func_001F9C48(P *p)
 {
     U scalar;

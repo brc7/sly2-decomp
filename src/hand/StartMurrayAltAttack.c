@@ -7,6 +7,14 @@ qword func_001A62E8(void *p);
 qword ConvertAloVec(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+/** @sly2-annot addr=0x1B85D0
+ * Purpose: 0x10-button attack (needs clips x1804/x1808): state 11 with kind 2/3
+ * Info: proposed name StartMurrayAltAttack (T1); TU murray
+ * Notes: runtime4: triangle alt attack kinds 2/3 (S38)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
+ * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void StartMurrayAltAttack(struct P *p)
 {
     int k;

@@ -9,6 +9,13 @@ static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm_
 static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->c2=count;return result;}
 static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_003DD490));return page;}
 static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(D_003DD490));return world;}
+/** @sly2-annot addr=0x1C1138
+ * Purpose: Resolve leaf zone ids to PATHZONE objects (index at +0x124), collect all CID 124 path links (index
+ *   at +0x150)
+ * Info: proposed name BindSwPathzones (T2); TU path
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C1138(struct S *p)
 {
     int i,n;register int c __asm__("$6");

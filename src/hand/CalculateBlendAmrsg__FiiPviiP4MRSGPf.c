@@ -3,6 +3,11 @@ struct X { char pad[0x74]; float g74; };
 struct E { float w; struct X *px; };
 struct P { char pad[0xC0]; int cb; int c; char *ab; };
 float GModPositive__Fff(float, float);
+/** @sly2-annot addr=0x1380F0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
+ * @end-sly2-annot */
 void CalculateBlendAmrsg__FiiPviiP4MRSGPf(struct P *p, int ib, int c, struct MRSG *amrsg, float *pf)
 {
     float gSum = 0.0f;

@@ -23,6 +23,16 @@ typedef char GIFS_m_pb_Offset[FIELD_OFFSET(GIFS,m_pb)==12?1:-1];
 typedef char GAME_ready_Offset[FIELD_OFFSET(GAME,ready)==15928?1:-1];
 typedef char COMMAND_kind_Offset[FIELD_OFFSET(COMMAND,kind)==0?1:-1];
 typedef char COMMAND_index_Offset[FIELD_OFFSET(COMMAND,index)==2?1:-1];
+/** @sly2-annot addr=0x16DD58
+ * Purpose: Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 D_003E1330) with
+ *   alpha blend over full-screen strips (MSCAL 0x1C48)
+ * Info: proposed name EndRpProjVolume (T1); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/engine/rendering.md#7-shadow-volumes-kinds-78-p6p7-prog4-z-fail-counting-in-the-green-channel-cstatic,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 extern "C" void func_0016DD58(VIFS*input,int first,int mode){
  register VIFS*vifs __asm__("$20")=input;
  register uint programHigh __asm__("$22");

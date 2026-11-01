@@ -247,6 +247,17 @@ static inline qword QwScale(qword qwVec, VU_FLOAT gScale)
     return qw;
 }
 void UpdateJtAirInput(JTAIR *pjtair) __asm__("UpdateJtAirInput");
+/** @sly2-annot addr=0x197500
+ * Purpose: Per-frame air input: double jump, glide/hover (Murray/Sly sheet D_002F7900), throws
+ *   (SetJtthrowState), grabs (SetJtGrabState / 0x19C688), JtbsChooseJtLanding, edge grabs via
+ *   PxpFindJtBestEdge
+ * Info: proposed name UpdateJtAirInput (T1); TU air
+ * Notes: runtime2/3: JTAIR states 1/3/4/10/0x11 observed; +4 is nKind, +0x1C is nState (purpose claims
+ *   otherwise are refuted)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
+ *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void UpdateJtAirInput(JTAIR *pjtair)
 {
     VECTOR4 posHero;

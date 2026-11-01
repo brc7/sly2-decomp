@@ -36,6 +36,12 @@ static inline float LenSq(qword a)
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
+/** @sly2-annot addr=0x1C5B20
+ * Purpose: test one collector (PZI) against the prize: in range -> collect
+ * Info: proposed name FCheckDprizeCollect (T1); TU prize
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 int func_001C5B20(struct S *p,struct Q *q)
 {
     char scratch[0x30] __attribute__((aligned(16)));

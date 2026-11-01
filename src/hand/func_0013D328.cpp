@@ -22,6 +22,12 @@ void func_0013CF38(S *, int);
 CRef func_00258200(O *, const CRef &, void *);
 }
 static inline void SetPv(O *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = func_00258200(pv, arg, D_003D4A60); }
+/** @sly2-annot addr=0x13D328
+ * Purpose: Splice: reset current booty, save kind n, and spawn if n != -1
+ * Info: proposed name SetBootyContainerKind (T2); TU booty
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 extern "C" void func_0013D328(S *p, int n)
 {
     if (p->f194) SetBootyState(p->f194, 0);

@@ -74,6 +74,13 @@ struct P { P0 *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; C8 *xc8; };
 struct G;
 extern G D_003DD490;
 extern "C" void func_001A7E10(G *g, X *x);
+/** @sly2-annot addr=0x199298
+ * Purpose: If kind 0x11, free the wall-run XP list (FreeSwXpList)
+ * Info: proposed name FreeJtWallRunXps (T2); TU air
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void func_00199298(P *p)
 {
     EC *ec;

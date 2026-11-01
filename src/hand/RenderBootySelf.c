@@ -25,6 +25,14 @@ static inline float GClamp(float g, float gMin, float gMax)
     return r;
 }
 
+/** @sly2-annot addr=0x13C000
+ * Purpose: cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states
+ *   1/5 draw normally
+ * Info: proposed name RenderBootySelf (T1); class BOOTY slot19; TU booty
+ * Notes: names_v2 v1 proposed PostAlarmLoadCallbackHookup__FP5ALARM5MSGIDPv (0.168)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 void RenderBootySelf(struct P *p)
 {
     switch (p->x184) {

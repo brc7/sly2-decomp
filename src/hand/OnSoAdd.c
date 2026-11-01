@@ -11,6 +11,15 @@ void func_001D6378(struct L *);
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void AppendDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
+/** @sly2-annot addr=0x1F3EA8
+ * Purpose: SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49
+ * Info: proposed name OnSoAdd (T1); class SO slot23; TU so
+ * Notes: names_v2 C proposed FGetSoContactList__FP2SOPv (0.167) | slot 23 OnAdd resolved by arbitration
+ *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was UnfreezeSo)
+ * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: arbitration_slots22_23
+ * See: docs/engine/guards-ai.md#9-key-functions, docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void OnSoAdd(struct L *p)
 {
     struct L *q;

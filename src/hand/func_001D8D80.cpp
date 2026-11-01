@@ -27,6 +27,16 @@ void func_001D54B8(void);
 }
 static inline CRef Get(KEY *k, char *pb) { return func_001D7ED8(&D_003E0EA8, k, pb); }
 static inline CRef Set(KEY *k, CRef *r, char *pb) { return func_00258200(k, r, pb); }
+/** @sly2-annot addr=0x1D8D80
+ * Purpose: Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars
+ *   (keys in global +0x3B2C) across the clear
+ * Info: proposed name ResetSaveGs (T2); TU save
+ * Notes: save-TU g_gs blob reset; ResetGs__Fv (0x16F868, GS graphics) is a different function; integrator
+ *   name (was ResetGs)
+ * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150,
+ *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
+ * @end-sly2-annot */
 extern "C" void func_001D8D80(char *pb, int f)
 {
     FRAME frame;

@@ -29,6 +29,15 @@ void func_00258040(void **ppv, int n);
 void func_001E5A98(P *p, int n);
 void func_001E5628(P *p);
 }
+/** @sly2-annot addr=0x1E5628
+ * Purpose: Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA,
+ *   widget, JT mode, step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera
+ *   blend), then drop the relay's reference
+ * Info: proposed name RemoveJsg (T1); TU relay
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#5-key-functions,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001E5628(P *p)
 {
     if (func_001E5778(p)) return;

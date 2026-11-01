@@ -19,6 +19,13 @@ void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
 int FMatchJtXmg(struct S *p, void *pv, int n);
 int func_001F0400(void *p, int n);
 void SnapSma(void *p, int n);
+/** @sly2-annot addr=0x18A0C8
+ * Purpose: Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620),
+ *   FMatchJtXmg
+ * Info: proposed name UpdateJtStand (T1); TU jt
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void UpdateJtStand(struct S *p)
 {
     struct VTE *e;

@@ -4,6 +4,14 @@ struct P { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int x10E0; }
 extern struct SO *D_003E1444;
 extern float D_002A4D18;
 int GuardEvalInteractMode(struct SO *pso, struct P *p, float *pg);
+/** @sly2-annot addr=0x140558
+ * Purpose: Unless +0x10E0 set, scans guard list D_003E1444 with GuardEvalInteractMode 0x208E70 and picks
+ *   nearest guard and best-mode guard, then calls vt95 SetPlayerInteractMode(n0,pso0,n1,pso1)
+ * Info: proposed name UpdateStepplayerInteractCandidates (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void UpdateStepplayerInteractCandidates(struct P *p)
 {
     struct SO *pso, *pso0, *pso1;

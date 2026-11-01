@@ -47,6 +47,12 @@ static inline float FloatFromBitsW(int b, float w)
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(b), "f"(w), "f"(w), "f"(w));
     return x;
 }
+/** @sly2-annot addr=0x185A80
+ * Purpose: SolveInequalities on contact planes to project a vector
+ * Info: proposed name SolveMeshConstraints (T2); TU tu_185130
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
+ * @end-sly2-annot */
 extern "C" qword func_00185A80(void *unused, P *p, qword v)
 {
     int matrix[36];

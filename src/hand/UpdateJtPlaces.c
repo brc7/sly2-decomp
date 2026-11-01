@@ -9,6 +9,13 @@ void func_0019FEB0(void *p, int a, qword q);
 void func_0019FD30(void *p, void *b, float g);
 void func_001942F0(void *p);
 void func_0019EA60(void *p);
+/** @sly2-annot addr=0x19FC30
+ * Purpose: Each frame, when standing on stable ground (jts in a ground list, floor normal z>0.7, not flagged)
+ *   record the floor object/pos; grab and pipe states record their spot (RecordJtGrabPlace/RecordJtPipePlace)
+ * Info: proposed name UpdateJtPlaces (T1); TU places
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
+ * @end-sly2-annot */
 void UpdateJtPlaces(struct P *p)
 {
     struct VECTOR v = D_002A2DD0;

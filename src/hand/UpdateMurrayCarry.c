@@ -34,6 +34,17 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
     *velocity=result;
 }
 static inline struct PL*CopyPL(struct PL*p){register struct PL*source __asm__("$2")=p;register struct PL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;}
+/** @sly2-annot addr=0x1B5380
+ * Purpose: State 5 (carrying object x13F0): drop if object no longer active; Cross+powerup 0x12 -> jump; 0xA0
+ *   -> throw (state 7); 0x10 -> state 8 toss; 0x400 gadget; else choose carry substate stand/walk/run from
+ *   stick
+ * Info: proposed name UpdateMurrayCarry (T1); TU murray
+ * Notes: runtime4 (code): Atlas Strength 0x12 jump while carrying | runtime4 CORRECTION: pad bit 0x400 = look
+ *   mode (JTMODE); gadgets are slot buttons 0x4/0x1/0x2
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources:
+ *   r5b_rest+runtime+runtime-corrected
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void UpdateMurrayCarry(struct P *p)
 {
     int s;

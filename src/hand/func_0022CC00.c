@@ -4,6 +4,12 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct S { char pad[0x94]; int k; };
 void *func_002333B4(void *p, int c, int n);
+/** @sly2-annot addr=0x22CC00
+ * Purpose: memset then switch on kind
+ * Info: TU xf
+ * Notes: descriptive only: xf: derivative matrix by kind | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
+ * @end-sly2-annot */
 float *func_0022CC00(float *m, struct S *p, qword v)
 {
     func_002333B4(m, 0, 0x40);

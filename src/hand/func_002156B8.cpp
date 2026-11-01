@@ -3,6 +3,12 @@ struct CP { RGBA c0, c1; };
 struct S { CP x0; char pad[0x28]; int x30, x34, x38; CP x3c; void *x44; int x48; CP x4c; int x54, x58, x5c; int pad2; int x64; char x68[4]; };
 extern "C" char D_002A3A10[];
 extern "C" void ClearSle(void *p);
+/** @sly2-annot addr=0x2156B8
+ * Purpose: item defaults: colours 0x7F7F7F7F/0xFFFFFFFF, identity M23, ids -1
+ * Info: proposed name InitSpriteItem (T1); TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_002156B8(S *p)
 {
     p->x44 = D_002A3A10;

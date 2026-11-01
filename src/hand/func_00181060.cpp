@@ -11,6 +11,14 @@ extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" qword func_00204E38(struct O *p, ANIMATION *animation, float time);
 extern "C" qword D_002A2DC0;
 extern "C" void func_00181060(struct O *p, int msg, struct MSG *pm);
+/** @sly2-annot addr=0x181060
+ * Purpose: vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step
+ * Info: proposed name HandleHackenemyMessage (T2); class HACKENEMY slot5; TU tu_17F090
+ * Notes: Cid49->Cid73 (CID 0x49=73, vtable) | class identity from whole_game WE names/object strings:
+ *   HandleCid73Message -> HandleHackenemyMessage
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181060(struct O *p, int msg, struct MSG *pm)
 {
     HandlePoMessage(p, msg, pm);

@@ -12,6 +12,18 @@ static __inline__ int FVecsNear(qword a, qword b)
     return func_0011D4D0(GetX(a), GetX(b), 1e-4f) && func_0011D4D0(GetY(a), GetY(b), 1e-4f) &&
            func_0011D4D0(GetZ(a), GetZ(b), 1e-4f);
 }
+/** @sly2-annot addr=0x12D108
+ * Purpose: Store a new position goal (+0x20); if this act is the XF driver (xf+0x90==act) and the goal moved,
+ *   copy it to xf+0xC0 and un-settle the slot (0x230598)
+ * Info: proposed name SetActPositionGoal (T1); TU act
+ * Notes: top50_round (0.65): Body. Pairs with SetActRotationGoal 0x12DA30; Sly 1 ACT has
+ *   GetActPositionGoal/GetActRotationGoal. Callers UpdateJtHands, UpdateJtHangIkGoals, UpdateMurray,
+ *   UpdateRobottank
+ * Confidence: mid (draft) [T1 0.65] - evidence: Sly 1 / Lilly reference; semantic review; sources:
+ *   r1_116918+top50_round
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
+ *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void SetActPositionGoal(struct P *p, qword v)
 {
     qword dv;

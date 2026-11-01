@@ -6,6 +6,12 @@ extern char D_003DD490[];
 struct S { int pad[4]; void *p10; };
 qword func_001A62E8(void *p);
 void *PpoCur(void *p);
+/** @sly2-annot addr=0x150780
+ * Purpose: Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos
+ * Info: proposed name PosCpzoomCenter (T1); TU cplcy
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 qword func_00150780(struct S *p)
 {
     VU v;

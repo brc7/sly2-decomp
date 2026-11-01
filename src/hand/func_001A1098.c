@@ -4,6 +4,14 @@ struct D { int a; int b; };
 extern char D_002BFA30[];
 struct E *func_001AE238(struct D *d, void *p);
 int PxfFindSo(int a, int b, int c);
+/** @sly2-annot addr=0x1A1098
+ * Purpose: Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs
+ *   (PxfFindSo)
+ * Info: proposed name PostLoadJtHurt (T2); TU hurt
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
+ * @end-sly2-annot */
 void func_001A1098(struct S *s)
 {
     struct D d;

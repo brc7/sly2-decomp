@@ -139,6 +139,19 @@ static inline float GClamp(float g, float lo, float hi) { if (g < lo) return lo;
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 
+/** @sly2-annot addr=0x191A10
+ * Purpose: Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind,
+ *   SetJtHfdk, curve param clamp (0x193C98), commit animation/axis weights
+ * Info: proposed name UpdateJtActiveHide (T1); TU grab
+ * Notes: names_v2 v1 proposed UpdateJtActiveHide__FP2JTP3JOY (0.000) [verified CORRECT] | verifier side
+ *   finding names it UpdateJtActiveHide; orchestrator: verified name UpdateJtActiveHide__FP2JTP3JOY restored
+ *   over UpdateJtActiveGrab (verified > unverified) | arbitration adopt verified: Calls SetJtHfdk at 4 sites
+ *   like Sly1 UpdateJtActiveHide (Match/Right/Left/Stand). First arg is the hide substate (+0 = JT), so drop
+ *   the Sly1 mangling UpdateJtAc
+ * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
+ *   sources: r4b_rest+verdicts_A1;verified_A+arbitration
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 {
     U pos;

@@ -4,6 +4,13 @@ struct X *func_00205458(void *p, int n);
 int func_00206D48(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
+/** @sly2-annot addr=0x206EB0
+ * Purpose: Whether special state k is allowed: -1 always; never while dead (flag 7) or BHV169 busy; 8/0xD/0xE
+ *   yes; 0x15 not for cids 0x3E/0x42/0x43; 0x22/0x25 not for rage-immune; 0xB only for plain guards
+ * Info: proposed name FCanSetStepguardSpecial (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 int func_00206EB0(void *p, int k)
 {
     struct X *x;

@@ -9,6 +9,15 @@ void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 int func_001DAEA8(void *p);
 void func_0021ECD8(char *pch, char *fmt, ...);
+/** @sly2-annot addr=0x15D8F8
+ * Purpose: Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is
+ *   set)
+ * Info: proposed name FormatEpisodePercent (T1); TU tu_15CD68
+ * Notes: names_v2 v1 proposed ExplodeExplsExplso__FP5EXPLSP6EXPLSO (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
+ *   docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 void func_0015D8F8(char *pch)
 {
     struct G *pg = &D_003DD490;

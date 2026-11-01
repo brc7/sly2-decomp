@@ -7,6 +7,11 @@ extern "C" int FIsSlEmpty(SAI *psai);
 extern "C" int NRandInRange__Fii(int nLow, int nHigh);
 extern "C" float GRandInRange__Fff(float gLow, float gHigh);
 extern "C" void func_001EDA68(SHUFFLE *p, int iframe);
+/** @sly2-annot addr=0x1EDFE0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void UpdateShuffle(SHUFFLE *pshuffle, float dt)
 {
     if (FIsSlEmpty(&pshuffle->sai) || pshuffle->cframe < 2)

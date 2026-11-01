@@ -98,6 +98,13 @@ static inline float GDot(qword a, qword b)
 }
 static inline float GMin(float a, float b) { return (b < a) ? b : a; }
 
+/** @sly2-annot addr=0x1C55E0
+ * Purpose: query nearby solids (0x20FAA0) and resolve deepest contact (bounce)
+ * Info: proposed name CheckDprizeBounce (T1); TU prize
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 extern "C" void func_001C55E0(P *p)
 {
     FRAME frame;

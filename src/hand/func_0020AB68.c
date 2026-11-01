@@ -8,6 +8,13 @@ void StopAnimBinding(struct C *pc);
 float GRandInRange__Fff(float a, float b);
 void StartAnimBinding(struct C *pc, struct S *p, int fl, float g);
 void func_0020AC28(struct S *p, struct O *po, int n, qword v);
+/** @sly2-annot addr=0x20AB68
+ * Purpose: Switch current attack +0xF00: stop old anim, cooldown +0xF04 = now+GRandInRange(lm), start new
+ *   anim, then aim (0x20AC28)
+ * Info: proposed name SetStepguardAttack (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020AB68(struct S *p, struct O *po, int n, qword v)
 {
     if (p->po) {

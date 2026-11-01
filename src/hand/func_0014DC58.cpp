@@ -90,6 +90,14 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
     return g;
 }
 void UpdateCmMat4(CM *pcm) __asm__("func_0014DC58");
+/** @sly2-annot addr=0x14DC58
+ * Purpose: Recomputes matViewProj (+jolt shake for 0.5 s), its inverse, frustum side planes (normal and wide)
+ *   and transposed VU0 cull rows, then UpdateCmVisZone
+ * Info: proposed name UpdateCmMat4 (T1); TU cm
+ * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
+ * See: docs/engine/camera.md#2-the-policy-stack, docs/engine/camera.md#5-key-functions,
+ *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void UpdateCmMat4(CM *pcm)
 {
     MATRIX4 matEye;

@@ -53,6 +53,13 @@ static inline void DeltaForDuration(WORK&w,qword raw,float&bound,qword&speed){re
  bound=limit;speed=velocity;
 }
 struct __attribute__((packed)) BASIS_TAIL {float firstW;qword row1,row2;};
+/** @sly2-annot addr=0x1CCC88
+ * Purpose: Create position and orientation jobs that carry the selected animated object along the predicted
+ *   clip path to the hand (ballistic time, SetLoParent)
+ * Info: proposed name StartJtHandsCarry (T2); TU jthands
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
+ * @end-sly2-annot */
 extern "C" void func_001CCC88(P *input,LO *other){
  register P*p __asm__("$22");register LO*object __asm__("$20");
  __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));

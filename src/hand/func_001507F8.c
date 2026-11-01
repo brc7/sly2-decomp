@@ -37,6 +37,13 @@ static inline qword MulM3(M3 *pm, qword v)
     __asm__("vmulax.xyz ACC, %2, %1x\n\tvmadday.xyz ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(r) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
     return r;
 }
+/** @sly2-annot addr=0x1507F8
+ * Purpose: Eye: if ploFocus(+0x14), behind center looking at focus (updates radPan +0xA4); else center +
+ *   Rot(radPan,radTilt)*offset
+ * Info: proposed name PosCpzoomEye (T1); TU cplcy
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 qword func_001507F8(struct X *p)
 {
     qword r;

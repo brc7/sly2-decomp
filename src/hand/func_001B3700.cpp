@@ -103,6 +103,13 @@ typedef char float_Size[sizeof(float)==4?1:-1];
 typedef char CFont_Alignment[__alignof__(CFont)==16?1:-1];
 typedef char CRichText_Alignment[__alignof__(CRichText)==16?1:-1];
 typedef char RGBA_RAW_Alignment[__alignof__(RGBA_RAW)==1?1:-1];
+/** @sly2-annot addr=0x1B3700
+ * Purpose: Draw movie subtitle/caption text (CRichText/CFont scaling)
+ * Info: proposed name DrawMpegSubtitles (T2); TU mpeg
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/cutscenes.md#2-fmv-playback-mpegcpp-0x1b2820-0x1b4438,
+ *   docs/engine/cutscenes.md#open-questions, docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 extern "C" void func_001B3700(P *p)
 {
     GIFS gifs;

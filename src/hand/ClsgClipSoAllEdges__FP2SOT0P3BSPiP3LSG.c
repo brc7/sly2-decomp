@@ -5,6 +5,11 @@ typedef struct GEOM { char pad[0x94]; qword *apos; char pad2[0xA0 - 0x98]; int c
 int func_00118668(void *bsp, int max, qword a, qword b, int clsgMax, LSG *alsg);
 int ClsgClipSoAllEdges(void *pso, void *psoOther, GEOM *pgeom, void *pbsp, int clsgMax, LSG *alsg)
     __asm__("ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG");
+/** @sly2-annot addr=0x1A80D8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 int ClsgClipSoAllEdges(void *pso, void *psoOther, GEOM *pgeom, void *pbsp, int clsgMax, LSG *alsg)
 {
     int ilsg = 0;

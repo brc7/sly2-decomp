@@ -70,6 +70,12 @@ static inline qword AddScale(qword a, qword v, const VUF &f)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=&j"(r) : "j"(a), "j"(v), "j"(f.q));
     return r;
 }
+/** @sly2-annot addr=0x230710
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Info: TU xf
+ * Notes: descriptive only: xf: apply job override to matrix | no usable identifier; purpose only
+ * Confidence: name low [T2 0.20]; purpose not reviewed - evidence: static analysis
+ * @end-sly2-annot */
 void func_00230710(O *po, M4 *pm, M4 *pm2, float g)
 {
     if (po->pob) {

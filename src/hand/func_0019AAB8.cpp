@@ -20,6 +20,13 @@ typedef char S_Size[sizeof(S)==32?1:-1];
 typedef char S_move_Offset[FIELD_OFFSET(S,move)==0?1:-1];
 typedef char S_object_Offset[FIELD_OFFSET(S,object)==4?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
+/** @sly2-annot addr=0x19AAB8
+ * Purpose: MinimizeRange callback: object vfunc gives target pos at u, then MeasureJtJumpToTarget cost
+ * Info: proposed name GMeasureJumpHpnt (T2); TU air
+ * Notes: names_v2 B proposed GetJtJumpToTargetVelocity__FP2JTP6VECTOR (0.856)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" float func_0019AAB8(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);

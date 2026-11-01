@@ -9,6 +9,12 @@ struct B {
 };
 struct S { int n; int a; struct B *pb; };
 
+/** @sly2-annot addr=0x209518
+ * Purpose: Return the animation instance pointer for a binding kind
+ * Info: proposed name PasegaFromAnimBinding (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 struct ANIMATION *func_00209518(struct S *p)
 {
     switch (p->n) {

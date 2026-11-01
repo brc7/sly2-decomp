@@ -55,6 +55,14 @@ typedef char RANGE_lo_Offset[FIELD_OFFSET(RANGE,lo)==0?1:-1];
 typedef char RANGE_hi_Offset[FIELD_OFFSET(RANGE,hi)==4?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+/** @sly2-annot addr=0x17B9C0
+ * Purpose: Every random interval pick the cheapest designated target (+0xF98[], cost = distance, preferred
+ *   bonus, penalty near avoid objects +0xFAC[]) or a nearer avoid object within 800
+ * Info: proposed name ChooseBhv178Target (T2); TU guardbhv
+ * Notes: BHV class word normalised: ChooseBhvtargetsTarget -> ChooseBhv178Target
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 extern "C" void func_0017B9C0(C*p){
  WORK work;
  P*best;

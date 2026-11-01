@@ -16,6 +16,16 @@ float func_00208BB0(struct A *p);
 qword func_001A62E8(struct A *p);
 void *EmitSwNoise(struct G *g, int n, qword v, struct A *p);
 void SetBhvguardMode(struct S *p, struct F *f);
+/** @sly2-annot addr=0x177BA0
+ * Purpose: Pick the mode to resume after an interrupting mode ends: flee (cid 0x3B), stalk hero (special
+ *   0x15), target list, BHV174, combat/stalk on current target, investigate own position after being hit,
+ *   else patrol
+ * Info: proposed name ResumeBhvguard (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVGUARD role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void ResumeBhvguard(struct S *p) {
     struct F f;
     func_002333B4(&f, 0, sizeof f);

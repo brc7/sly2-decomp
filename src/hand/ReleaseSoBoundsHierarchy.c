@@ -4,6 +4,12 @@ struct Pool;
 extern struct Pool D_003E12D4;
 void func_0011CD98(struct Pool *, struct R *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
+/** @sly2-annot addr=0x1F2468
+ * Purpose: Drop the shared bounds record (+0x134, refcounted, pool D_003E12D4) of this SO and all SO children
+ * Info: proposed name ReleaseSoBoundsHierarchy (T1); TU so
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void ReleaseSoBoundsHierarchy(struct L *p)
 {
     struct L *q;

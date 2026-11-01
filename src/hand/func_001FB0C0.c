@@ -10,6 +10,13 @@ static inline int FNear(qword a, qword b)
 {
     return func_0011D4D0(X(a), X(b), 0.0001f) && func_0011D4D0(Y(a), Y(b), 0.0001f) && func_0011D4D0(Z(a), Z(b), 0.0001f);
 }
+/** @sly2-annot addr=0x1FB0C0
+ * Purpose: vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused,
+ *   +0x200 if positional)
+ * Info: proposed name StartSnd (T1); class SND; TU sound
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FB0C0(struct P *p)
 {
     int f = 0;

@@ -16,6 +16,13 @@ struct W { int cref; int n4; int n8; CRef ref; int n14; NODE *pnext; };
 struct X { int cref; int n4; int n8; int nC; };
 
 extern "C" CRef RefEqualHelper__FP4CRefT0(const CRef &a, const CRef &b);
+/** @sly2-annot addr=0x1205B8
+ * Purpose: Recursive structural equality (lists, vectors, matrices) -> Bool
+ * Info: proposed name RefEqualHelper (T1); TU bif
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefEqualHelper__FP4CRefT0(const CRef &a, const CRef &b)
 {
     int f;

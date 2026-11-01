@@ -27,6 +27,13 @@ static inline qword Normalize(qword v)
     return r;
 }
 float fabsf(float);
+/** @sly2-annot addr=0x11E390
+ * Purpose: A unit vector perpendicular to v (picks smallest component axis)
+ * Info: proposed name GetNormalVector (T1); TU vec
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
+ *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
+ * @end-sly2-annot */
 qword GetNormalVector(qword v)
 {
     float x, y, z;

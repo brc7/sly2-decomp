@@ -35,6 +35,16 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(x),"j"(y),"j"(z),"j"(b.r[1].q));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(x),"j"(y),"j"(z),"j"(b.r[2].q));
 }
+/** @sly2-annot addr=0x1D41F8
+ * Purpose: CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices,
+ *   then RenderSoSelf
+ * Info: proposed name RenderRobottankSelf (T1); class ROBOTTANK slot19; TU tu_1D1370
+ * Notes: names_v2 v1 proposed RenderGlint__FP5GLINTP2CM (0.200) | class identity from whole_game WE
+ *   names/object strings: RenderRcCarSelf -> RenderRobottankSelf
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void RenderRobottankSelf(P*p){
  V velocity,point;M3 basis;
  VE*method=&p->vt[33];

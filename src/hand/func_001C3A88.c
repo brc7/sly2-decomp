@@ -14,6 +14,12 @@ static inline qword Bc(float g) {
     u.q=q;
     return q;
 }
+/** @sly2-annot addr=0x1C3A88
+ * Purpose: GRABSPOT iface: orientation at distance
+ * Info: proposed name GetPipeGrabMat (T2); class PIPE; TU pipe
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
+ * @end-sly2-annot */
 void func_001C3A88(void *p,qword *ppos,qword *pdir,float t)
 {
     union { qword q; float f[4]; } vp;

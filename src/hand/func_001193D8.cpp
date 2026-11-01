@@ -8,6 +8,12 @@ extern "C" void SetPlane(qword *p, qword n, float d);
 struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
 struct MAT { qword r[4]; };
 
+/** @sly2-annot addr=0x1193D8
+ * Purpose: Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d)
+ * Info: proposed name ConvertPlane (T2); TU bsp
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
+ * @end-sly2-annot */
 extern "C" qword func_001193D8(MAT *pm, qword plane)
 {
     union { qword q; float f[4]; } u;

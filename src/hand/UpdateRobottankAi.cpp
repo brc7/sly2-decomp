@@ -103,6 +103,15 @@ static inline VV Rotate(const M3 &m, VV v)
 static inline float Max(float a, float b) { return a < b ? b : a; }
 static inline float Abs(float f) { return __builtin_fabsf(f); }
 
+/** @sly2-annot addr=0x1D2610
+ * Purpose: Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack
+ *   in place, 2 pursue, 3 back away), steering, fire weapons when aim error is small
+ * Info: proposed name UpdateRobottankAi (T1); TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: UpdateRcCarAi -> UpdateRobottankAi
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/engine/minigames.md#5-rc-combat-robottank-0x4d-tu-0x1d1370-ccode,
+ *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void UpdateRobottankAi(P *p)
 {
     VV position = func_001A62E8(p);

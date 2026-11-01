@@ -72,6 +72,14 @@ typedef char WORK_move_direction_Offset[FIELD_OFFSET(WORK,move.direction)==0?1:-
 typedef char WORK_move_basis_Offset[FIELD_OFFSET(WORK,move.basis)==16?1:-1];
 typedef char WORK_move_phase_Offset[FIELD_OFFSET(WORK,move.phase)==64?1:-1];
 typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
+/** @sly2-annot addr=0x196DF8
+ * Purpose: Air acceleration: spin toward target matrix (GSmooth), steer with stick (AccelSoTowardPosSpring),
+ *   limit horizontal speed, contact slide via 0x196AA8
+ * Info: proposed name PresetJtAccelJump (T1); TU air
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
+ *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void PresetJtAccelJump(CONTEXT*p){WORK w;
  switch(p->mode){
  case 20:{

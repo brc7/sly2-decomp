@@ -11,6 +11,12 @@ static inline void Release(void **pp)
         func_00258040(pp, 0);
     }
 }
+/** @sly2-annot addr=0x218660
+ * Purpose: stop slot sounds (StopSnd) and reset its items
+ * Info: proposed name StopSpriteSlot (T2); TU hud
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00218660(struct S *p, int i)
 {
     struct E *e = (struct E*)(i*sizeof(struct E)+(int)p->ae);

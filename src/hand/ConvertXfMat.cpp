@@ -13,6 +13,15 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
+/** @sly2-annot addr=0x22FD38
+ * Purpose: Transform a 3x3 matrix from XF space a to XF space b (NULL = world): inv(b)*a*m, copies to *pr
+ * Info: proposed name ConvertXfMat (T1); TU xf
+ * Notes: top50_round (0.65): Body: InvertMatrix3Cofactor(b->mat) and 3x3 products; four NULL cases. Same
+ *   family as ConvertXfPos/ConvertXfVec. Sly 1 ConvertAloMat
+ * Confidence: mid (draft) [T1 0.65] - evidence: Sly 1 / Lilly reference; semantic review; sources:
+ *   r8_21BB88+top50_round
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 extern "C" M3 *ConvertXfMat(M3 *pr, O *pa, O *pb, const M3 *pm)
 {
     if (pa) {

@@ -9,6 +9,16 @@ extern int D_002DEB70[2];
 extern "C" void func_00160918(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" void func_0016D698(int n, GIFS *pgifs, short **pps);
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps);
+/** @sly2-annot addr=0x16DA48
+ * Purpose: Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040,
+ *   build/kick (MSCAL 0x1AA0) the masked full-screen stencil-init strips
+ * Info: proposed name BeginRpProjVolume (T1); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
+ *   docs/engine/rendering.md#7-shadow-volumes-kinds-78-p6p7-prog4-z-fail-counting-in-the-green-channel-cstatic,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 extern "C" void func_0016DA48(VIFS *pvifs, int n1, int n2)
 {
     func_00160918(pvifs, D_0025C1C0, D_0025E040);

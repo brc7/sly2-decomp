@@ -8,6 +8,13 @@ extern char D_002C44F0[];
 void *func_001AE2A0(struct AL*);
 void func_001E9828(struct S*);
 static inline qword Point(struct M4 *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->a),"j"(m->b),"j"(m->c),"j"(m->d),"j"(a));return r;}
+/** @sly2-annot addr=0x1E81C0
+ * Purpose: Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths)
+ * Info: proposed name InitChain (T1); TU shape
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 struct S *InitChain(struct S *p,struct PATH *path) {
  struct AL size;struct M4 *m;int i;
  p->path=path;p->n4C=-1;

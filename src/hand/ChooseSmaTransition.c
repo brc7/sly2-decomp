@@ -13,6 +13,13 @@ void func_00130B18(struct ANIMATION *);
 void NotifySmaSpliceOnEnterState(struct P *, int, int);
 static inline struct P *Receiver(struct P *p){register struct P *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
 static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;}
+/** @sly2-annot addr=0x1F0D88
+ * Purpose: Main driver: if no goal or at goal, random wander; else toward goal. Starts the transition's ASEG
+ *   via ApplyAseg (0x12F9B8), sets ismsNext, notifies
+ * Info: proposed name ChooseSmaTransition (T1); TU sm
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
+ * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 void ChooseSmaTransition(struct P *p, int k)
 {
     struct A *pa;

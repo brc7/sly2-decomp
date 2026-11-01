@@ -21,6 +21,16 @@ static __inline__ void Activate(struct P *p, int oid)
     po->x38 = p->x90;
     po->vt[8].pfn((char *)po + po->vt[8].d);
 }
+/** @sly2-annot addr=0x145B18
+ * Purpose: state change; state 0 pushes a BHV168 walk-to-goal child
+ * Info: proposed name SetBhvfollowState (T1); TU tu_144B28
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): SetBhv194State ->
+ *   SetBhvfollowState | runtime6 P2: state 0 pushes the BHV168 walk-to-goal child (live stack [BHV194,
+ *   BHV168], child +0x18)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
+ *   role)+runtime
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void SetBhvfollowState(struct P *p, int state)
 {
     if (state == p->state) return;

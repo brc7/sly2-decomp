@@ -2,6 +2,14 @@ typedef struct EDGE { int x0; unsigned short ipos[2]; } EDGE;
 typedef struct LSG { char pad[0x54]; EDGE *pedge; int pad2; struct LSG *next; } LSG;
 typedef struct VTX { char pad[0x18]; int grf; int pad2[1]; } __attribute__((aligned(32))) VTX;
 typedef struct NODE { struct NODE *parent; LSG *plsg; int ipos; } NODE;
+/** @sly2-annot addr=0x1A86B8
+ * Purpose: Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges
+ * Info: proposed name CplsgFindEdgePath (T1); TU mark
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources:
+ *   r4b_rest+verdicts_A2+names_v2-signature(verified)
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 int func_001A86B8(VTX *avtx, int iposStart, int iposEnd, LSG *plsgFirst, LSG **aplsg)
 {
     NODE anode[64];

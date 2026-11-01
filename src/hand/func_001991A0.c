@@ -13,6 +13,14 @@ extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
 qword func_0022FC48(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
+/** @sly2-annot addr=0x1991A0
+ * Purpose: If air kind 0x11 (wall run) build a constraint frame against the wall (GetNormalVectors) and add
+ *   it
+ * Info: proposed name AddJtWallRunXps (T2); TU air
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void func_001991A0(struct P *p)
 {
     if (p->x1c == 0x11) {

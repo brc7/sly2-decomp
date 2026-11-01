@@ -33,6 +33,13 @@ void func_00213BD8(SUB *, int, int);
 void func_00213A08(SUB *, int, int);
 void func_00213B00(SUB *, int);
 void func_00213928(SUB *, int);
+/** @sly2-annot addr=0x1DBEF0
+ * Purpose: Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind
+ *   (0x456-0x458), cursor 0x437, popup 0x43B/0x439
+ * Info: proposed name UpdateThiefnetWidgets (T1); TU screen
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DBEF0(OBJ *p)
 {
     M2 m;

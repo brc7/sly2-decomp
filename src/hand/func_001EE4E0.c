@@ -6,6 +6,12 @@ struct SCROLLER { char pad[0x24]; short du; short dv; char pad2[0x34 - 0x28]; st
 int FIsSlEmpty(struct SAI *psai);
 float func_00245A18(float x, float y);
 void func_001EDAD8(struct SCROLLER *p, float du, float dv);
+/** @sly2-annot addr=0x1EE4E0
+ * Purpose: SCROLLER vt8 Update
+ * Info: proposed name UpdateScroller (T1); class SCROLLER slot8; TU shdanim
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void func_001EE4E0(struct SCROLLER *p)
 {
     float du, dv;

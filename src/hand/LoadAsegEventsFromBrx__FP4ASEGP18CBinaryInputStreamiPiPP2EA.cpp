@@ -16,6 +16,16 @@ void func_00117FB0(BIS *pbis, void *pv);
 void LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA(void *px, BIS *pbis, int fTime, int *pc, struct ENT **pa);
 }
 static __inline__ void *PvAlloc(int cb) { AREQ req; req.cb = cb; req.cbAlign = 0x10; return func_001AE2A0(&req); }
+/** @sly2-annot addr=0x12F590
+ * Purpose: Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays
+ * Info: proposed name LoadAsegEventsFromBrx (T1); TU aseg
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
+ *   r1_116918+verdicts_B+names_v2-signature(verified)+parse-verified
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
+ *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
+ * @end-sly2-annot */
 void LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA(void *px, BIS *pbis, int fTime, int *pc, ENT **pa) { int i; int c; ENT *aent;
  c = func_00117BD0(pbis);
  *pc = c;

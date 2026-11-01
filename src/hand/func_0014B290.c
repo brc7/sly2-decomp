@@ -24,6 +24,14 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x14B290
+ * Purpose: vt88 (STEPGUARD own slot): choose best candidate object by kind/distance
+ * Info: proposed name Carmelita_VUnk88 (T2); class CARMELITA slot88; TU tu_14A008
+ * Notes: agent qualifier: | Cid3F->Cid63 (CID 0x3F=63, hex-literal) | class identity from whole_game WE
+ *   names/object strings: Cid63_VUnk88 -> Carmelita_VUnk88
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
+ * @end-sly2-annot */
 struct O *func_0014B290(struct P *p)
 {
     struct O *poBest;

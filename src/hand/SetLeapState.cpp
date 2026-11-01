@@ -42,6 +42,12 @@ static inline qword MotionScalar(U *home,float value){
     return home->q;
 }
 static inline qword MotionAcceleration(qword value,qword scalar){register qword result __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(result):"j"(value),"j"(scalar));return result;}
+/** @sly2-annot addr=0x20C2F8
+ * Purpose: 0 start anim; 1 launch (ballistic DtBallisticMax or flightTime), constraint; 2/3 seek; 4 land
+ * Info: proposed name SetLeapState (T1); TU tu_20B840
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 extern "C" void SetLeapState(P *p,int state)
 {
     U scalar,delta,acceleration,velocity,finalVelocity;

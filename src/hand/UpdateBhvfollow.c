@@ -50,6 +50,16 @@ static __inline__ float Len(qword d)
 static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
 static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
+/** @sly2-annot addr=0x1453F0
+ * Purpose: BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when
+ *   far
+ * Info: proposed name UpdateBhvfollow (T1); class BHVFOLLOW slot10; TU tu_144B28
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): UpdateBhv194 ->
+ *   UpdateBhvfollow | runtime6 P2: distance bands/leader +0x30 = JT confirmed (S62)
+ * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
+ *   role)+runtime
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void UpdateBhvfollow(struct P *p)
 {
     struct PO *po;

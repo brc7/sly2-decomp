@@ -10,6 +10,14 @@ void ResolveAnimBinding(void *pe, struct O *o);
 void *PxfFindSo(struct O *o, int a, int b);
 float *func_0012F938(int h, int a);
 void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
+/** @sly2-annot addr=0x20AE18
+ * Purpose: cid 0x78 vt15: PostLoLoad, find owning STEPGUARD up parent chain, resolve binding, precompute ASEG
+ *   effect (0x1300B8)
+ * Info: proposed name PostCid120AttackLoad (T2); class CID120 slot15; TU stepguard
+ * Notes: Cid78->Cid120 (CID 0x78=120, vtable)
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_0020AE18(struct S *p)
 {
     struct O *o;

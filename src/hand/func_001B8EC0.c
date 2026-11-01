@@ -23,6 +23,13 @@ void func_001B8D30(P *p, int s);
 int FLeapDone(void *p);
 void UpdateLeap(void *p);
 
+/** @sly2-annot addr=0x1B8EC0
+ * Purpose: State 12 update: advance substates on anim end, contact trigger x1908 (set in AdjustMurrayNewXp)
+ *   or timeout
+ * Info: proposed name UpdateMurrayPower (T2); TU murray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B8EC0(P *p)
 {
     int s;

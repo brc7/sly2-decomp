@@ -7,6 +7,13 @@ extern struct G D_003D9ED0;
 int func_001D9880(void *p);
 void func_001AF390(struct G *g, int n, struct E *pe);
 void func_001AF4D8(struct G *g, int n, struct E *pe, int a, void *b);
+/** @sly2-annot addr=0x1B04E0
+ * Purpose: Build 11-item options page (filtered) and push or replace
+ * Info: proposed name OpenPauseOptionsPage (T2); TU menu
+ * Notes: names_v2 v1 proposed FUN_001c4848 (0.000)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001B04E0(struct S *p)
 {
     struct E *src = D_002BFEC8;

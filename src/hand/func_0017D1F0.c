@@ -9,6 +9,13 @@ void StartBhv(struct S *p);
 struct O *func_00205438(void *p, int n);
 qword *func_001A6318(void *p);
 struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
+/** @sly2-annot addr=0x17D1F0
+ * Purpose: BHVATTACH19 Start: push BHVANIM flag 2 and align to the attach object's frame
+ * Info: proposed name StartBhv187 (T2); class BHV187 slot8; TU guardbhv
+ * Notes: BHV class word normalised: StartBhvattach19 -> StartBhv187
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017D1F0(struct S *p) {
     struct O *o; struct VTE *e; struct T *t;
     StartBhv(p);

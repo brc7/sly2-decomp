@@ -14,6 +14,14 @@ void SetBhvgotoGoal(void*,const struct X*);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
 static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline float LenXY(qword v){float r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(v):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(v):"0"(v));__asm__("qmfc2.ni %0,%1":"=r"(r):"j"(v));return r;}
+/** @sly2-annot addr=0x17C6D0
+ * Purpose: BHVESCORT Update: follow object +0x30 at local offset +0x40: walk when <700, run (state 1) when
+ *   >1000, re-goal after the object moves 250
+ * Info: proposed name UpdateBhv183 (T2); class BHV183 slot10; TU guardbhv
+ * Notes: BHV class word normalised: UpdateBhvescort -> UpdateBhv183
+ * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void func_0017C6D0(struct P*p){
  struct X x;qword pos;float dist;int state;float lim=250.0f;
  UpdateBhv(p);

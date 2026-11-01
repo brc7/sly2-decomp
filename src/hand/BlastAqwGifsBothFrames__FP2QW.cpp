@@ -13,6 +13,12 @@ void func_002406C0(GSDB *p);
 void func_00241728(int ch, QW *aqw);
 void func_002417F0(int ch, int a, int b);
 }
+/** @sly2-annot addr=0x170278
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name BlastAqwGifsBothFrames__FP2QW (EXISTING); TU gs
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 void BlastAqwGifsBothFrames(QW *aqw)
 {
     func_0021F060(&D_002DFB40);

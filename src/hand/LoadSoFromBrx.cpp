@@ -38,6 +38,15 @@ static inline int Extra(P *p){VE *v=&p->vt[63];return ((int (*)(P *))v->fn)((P *
 static inline void *Lookup(P *p,int id){VE *v=&p->vt[51];return ((void *(*)(P *,int))v->fn)((P *)((char *)p+v->delta),id);}
 static inline void Post(P *p){VE *v=&p->vt[64];((void (*)(P *))v->fn)((P *)((char *)p+v->delta));}
 static inline void SetActive(P *p){uint f=p->flags;if((f^1)&1)*(uint *)f|=8;else p->flags=f|8;}
+/** @sly2-annot addr=0x1F31E0
+ * Purpose: SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...),
+ *   physics block (matrix, mass), options, bounds
+ * Info: proposed name LoadSoFromBrx (T1); class SO slot14; TU so
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6+parse-verified
+ * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/physics-collision.md#7-key-functions,
+ *   docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 extern "C" void LoadSoFromBrx(P *p,void *stream)
 {
     int i=0;E *e;

@@ -23,6 +23,12 @@ static inline int IOther(struct X *px, struct SO *pso)
     return px->x60 == pso->ae[0].x8 ? 0 : 1;
 }
 
+/** @sly2-annot addr=0x148C98
+ * Purpose: vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.)
+ * Info: proposed name UpdateButton (T1); class BUTTON slot16; TU button
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void UpdateButton(struct P *p)
 {
     UpdateSo(p);

@@ -3,6 +3,13 @@ struct RGBA {
     uchar bRed; uchar bGreen; uchar bBlue; uchar bAlpha;
     RGBA(const RGBA &rgba);
 };
+/** @sly2-annot addr=0x16F960
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name BuildClearGifs__FP2QWG4RGBAi (EXISTING); TU gs
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/engine/rendering.md#8-blips-hud-screen-effects,
+ *   docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 void BuildClearGifs(QW *aqw, RGBA rgba, int n)
 {
     GIFS gifs;

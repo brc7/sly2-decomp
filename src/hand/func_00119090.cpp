@@ -13,6 +13,12 @@ static inline NODE *PnodeCheck(NODE *p, NODE *pnodeMax)
         p = 0;
     return p;
 }
+/** @sly2-annot addr=0x119090
+ * Purpose: Point location with on-plane case: if |dist|<=1e-4 try both children recursively
+ * Info: proposed name PbspPointInBsp (T1); TU bsp
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
+ * @end-sly2-annot */
 extern "C" NODE *func_00119090(NODE *pnode, NODE *pnodeMax, qword pos)
 {
     while (pnode) {

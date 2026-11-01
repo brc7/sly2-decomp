@@ -17,6 +17,12 @@ typedef struct {
 } OBJ;
 void func_00213928(void *, int);
 void func_00213B00(void *, int);
+/** @sly2-annot addr=0x1DB390
+ * Purpose: Select item key and switch each item's highlight anim (selected / acquired / unlocked)
+ * Info: proposed name SelectGadgetMenuItem (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DB390(OBJ *p, int key)
 {
     int i;

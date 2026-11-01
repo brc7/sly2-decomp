@@ -33,6 +33,14 @@ static inline qword AddScaled2H(qword a, qword b, VU_FLOAT sb, qword c, VU_FLOAT
         : "=j"(r) : "j"(a), "j"(b), "j"(sb.q), "j"(c), "j"(sc.q), "r"(hint), "r"(hint2) : "$2");
     return r;
 }
+/** @sly2-annot addr=0x185D18
+ * Purpose: Project a ballistic point (pos+v t+a t^2/2) onto the mesh; out landing pos (offset along normal)
+ *   and velocity
+ * Info: proposed name PredictMeshContact (T2); TU tu_185130
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
+ *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" int func_00185D18(void *p, qword pos, qword vel, qword acc, TRIREF *ptr, qword *ppos, qword *pvel, float offset, float t)
 {
     TRIREF tr;

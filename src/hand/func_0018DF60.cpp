@@ -71,6 +71,13 @@ static inline float SmoothInputs(M4*source,const CLOCK*clock,float factor,unsign
  current=receiver;optional=out;sample=(SMP*)address;return dt;
 }
 
+/** @sly2-annot addr=0x18DF60
+ * Purpose: Smooth Sly's matrix/position (SmoothMatrix, PosSmooth) and update directional anim weights
+ * Info: proposed name UpdateJtSmoothing (T2); TU jt
+ * Notes: names_v2 C proposed UpdateSuvInfluences__FP3SUVP2RO (0.438)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 extern "C" void func_0018DF60(P*p){
  M4 m=*((M4*(*)(void*))p->object->vt[31].fn)((char*)p->object+p->object->vt[31].delta);
  U direction,position,scratch,negative;

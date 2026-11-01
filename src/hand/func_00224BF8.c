@@ -20,6 +20,12 @@ void func_001F7598(struct X *px);
 struct R *func_00156698(void *pv, qword pos, struct S *p);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x224BF8
+ * Purpose: builds probe sphere set and calls 0x224820 per probe
+ * Info: proposed name SweepCid100Probes (T2); class CID100; TU tu_223F70
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 void func_00224BF8(struct S *p, int a, int b, qword pos, float r)
 {
     MARK mark;

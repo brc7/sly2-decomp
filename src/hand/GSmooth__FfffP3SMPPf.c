@@ -3,6 +3,13 @@
 typedef struct SMP { float gA; float gB; float gC; } SMP;
 int CSolveQuadratic__FfffPf(float a, float b, float c, float *ax);
 
+/** @sly2-annot addr=0x11D018
+ * Purpose: Critically-damped style smoothing of a scalar toward a target with SMP limits
+ * Info: proposed name GSmooth (T1); TU util
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/core-library.md#7-key-functions, docs/MATCHING_NOTES.md#gsmooth-prototype-2026-10-16,
+ *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
+ * @end-sly2-annot */
 float GSmooth__FfffP3SMPPf(SMP *psmp, float *pdgNext, float gCur, float gTarget, float dt)
 {
     float dg;

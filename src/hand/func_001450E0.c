@@ -31,6 +31,15 @@ static __inline__ float GDist(qword a, qword b)
 }
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 
+/** @sly2-annot addr=0x1450E0
+ * Purpose: Pick the nearest SO of several guard-state classes around the followed object
+ * Info: proposed name PsoBhvfollowPickTarget (T2); TU tu_144B28
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): PsoBhv194PickTarget
+ *   -> PsoBhvfollowPickTarget | runtime6: BHV194 class role confirmed
+ * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
+ *   role)+runtime
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 struct SO *func_001450E0(struct P *p)
 {
     struct SO *psoBest = 0;

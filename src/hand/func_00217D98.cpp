@@ -21,6 +21,13 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     return r;
 }
 extern "C" void func_00219FE0(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1);
+/** @sly2-annot addr=0x217D98
+ * Purpose: select initial frame/time then draw
+ * Info: proposed name StartSpriteAnimAt (T2); TU hud
+ * Notes: names_v2 C proposed DrawLineScreen__FUiUiUiUiUiUiG4RGBAi (0.168)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00217D98(S *p, int i, int z, M23 *pm, float t, RGBA c0, RGBA c1)
 {
     E *e = &p->ae[z];

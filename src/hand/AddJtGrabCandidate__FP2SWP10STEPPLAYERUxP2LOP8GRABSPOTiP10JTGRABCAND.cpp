@@ -218,6 +218,13 @@ static inline void MoveJtGrabCands(JTGRABCAND *pcandDst, JTGRABCAND *pcandSrc, s
     memmove(pcandDst, pcandSrc, cb);
 }
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
+/** @sly2-annot addr=0x194688
+ * Purpose: Test one grab spot against the player and insert it into the sorted candidate array (priority,
+ *   distance, one per group); skips held/just-released objects, mask mismatch, beyond sBusy or 1000
+ * Info: proposed name AddJtGrabCandidate (T1); TU grab
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand)
 {
     JTGRABCAND cand;

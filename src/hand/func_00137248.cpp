@@ -118,6 +118,14 @@ qword LimitVectorLength(qword v, float g);
 void AddSoAcceleration(P *p, qword v);
 }
 
+/** @sly2-annot addr=0x137248
+ * Purpose: Relative velocity/position correction against a ridden object
+ * Info: proposed name JT_VUnk69 (T2); class JT; TU bentley
+ * Notes: agent qualifier: helper
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 extern "C" void func_00137248(S *s)
 {
     P *p = s->p;

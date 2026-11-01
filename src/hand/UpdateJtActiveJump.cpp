@@ -163,6 +163,13 @@ static inline float GLerp(const LM &lm, float u) { return (1.0f - u) * lm.low + 
 static inline float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
 static inline int FMoving(qword v) { return D_002BF848 < GLengthXY(v); }
 
+/** @sly2-annot addr=0x197F98
+ * Purpose: jts 2 per-frame update on +0x2C0: stick combo timers, jump-target intercept search over
+ *   D_003E13E4/D_003E1420 (JMT list), goal prediction, heading per mode, basic move
+ * Info: proposed name UpdateJtActiveJump (T1); TU air
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void UpdateJtActiveJump(CONTEXT *p)
 {
     INPUT *input = p->actor->input;

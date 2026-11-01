@@ -31,6 +31,14 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
+/** @sly2-annot addr=0x1CF6B0
+ * Purpose: Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation
+ * Info: proposed name CreateStuck (T1); TU rip
+ * Notes: names_v2 C proposed ProjectLeafTransform__FP4LEAFf (0.638)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 O *func_001CF6B0(EMIT*p,LO*visual,LO*space,qword position,qword direction){
  O*object=0;
  if(visual){

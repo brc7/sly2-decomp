@@ -14,6 +14,12 @@ void func_001AE5A0(struct K *pk, int a, int b);
 void *func_001D7DA0(void *a, void *b, struct T *pt);
 short func_001D8720(void *a, char *s);
 unsigned int *func_001D7E80(void *a, void *b, void *c);
+/** @sly2-annot addr=0x1C7D08
+ * Purpose: count collected clue bottles: popcount of afClue words over the level's entries
+ * Info: proposed name CClueCollected (T1); TU prize
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 int func_001C7D08(void)
 {
     int n;

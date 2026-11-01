@@ -32,6 +32,14 @@ static inline qword DotQ(qword value,qword normal){qword d=value,b=normal,one;__
 static inline float GetX(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 
+/** @sly2-annot addr=0x1F59A0
+ * Purpose: Angular braking + bounded angular-velocity correction toward an orientation (coef top speed /
+ *   accel)
+ * Info: proposed name AccelSoTowardMatBounded (T2); TU so
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F59A0(P *p,const M3 *orientation,const COEF *c)
 {
     M3 frame,relative;

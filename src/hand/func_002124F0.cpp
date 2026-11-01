@@ -41,6 +41,12 @@ struct WORK {
  BIS stream __attribute__((aligned(16)));
  KEY key __attribute__((aligned(16)));
 };
+/** @sly2-annot addr=0x2124F0
+ * Purpose: deferred (streamed) sprite file load when a widget leaves state 0
+ * Info: proposed name LoadWidgetSprites (T1); TU hud
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
+ * See: docs/formats/textures.md#7-open, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_002124F0(S *p) {
     WORK work;
     register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"(&work.stream));

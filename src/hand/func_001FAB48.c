@@ -1,6 +1,12 @@
 typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0x70]; qword pos; };
 struct A { char pad[0x5C]; struct B *pb; };
+/** @sly2-annot addr=0x1FAB48
+ * Purpose: v + w x (pos - center): velocity of a point of the SO
+ * Info: proposed name VelocityAtSoPos (T2); TU solve
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 qword func_001FAB48(struct A *p, qword *pv, qword q)
 {
     qword r, c, s;

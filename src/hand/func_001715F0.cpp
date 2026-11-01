@@ -42,6 +42,14 @@ struct O5 : O { char pad1[0x40 - 0x10]; struct X50 *p40; };
 
 #define VCALL8(o) { struct O *oo = (struct O *)(o); oo->V8(); }
 
+/** @sly2-annot addr=0x1715F0
+ * Purpose: Executes one script command (kinds 0-15): set context, teleport, message, spawn sub-behaviours
+ *   BHV157/158/172/184-188/192, jump, busy on/off, relay alarm
+ * Info: proposed name ExecuteBhv169Cmd (T2); class BHV169 slot15; TU tu_1709A8
+ * Notes: BHV slot 15 role is SetState per r9; name kept (descriptive)
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 extern "C" void func_001715F0(struct S *p, struct CMD *c)
 {
     union { qword q; } q;

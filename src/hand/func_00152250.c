@@ -15,6 +15,14 @@ static inline qword VecMul(qword v, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
     return r;
 }
+/** @sly2-annot addr=0x152250
+ * Purpose: cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E
+ *   apply aseg-derived velocity via vt35
+ * Info: proposed name HandleDancerMessage (T2); class DANCER slot5; TU rhythm
+ * Notes: names_v2 C proposed UploadBitmaps__FiP3GSB (0.438)
+ * Confidence: low (draft) [T2 0.40] - evidence: semantic review; static naming pass; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152250(struct P *p, int msgk, struct MSG *pmsg)
 {
     HandlePoMessage(p, msgk, pmsg);

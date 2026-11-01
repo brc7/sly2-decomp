@@ -9,6 +9,13 @@ void SetSoCnstrForce(struct O *po, int a);
 void SetSoCnstrTorque(struct O *po, int a);
 qword ConvertAloVec(void *p, int a, qword q);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
+/** @sly2-annot addr=0x2205A8
+ * Purpose: detaches carried object (SetLoParent(0,3) / no-gravity reset) and gives it linear (vt35
+ *   SetVelocity) and angular (vt36) velocity; removes arc marker (vt9)
+ * Info: proposed name ReleaseJtthrowObject (T2); TU throw
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
+ * @end-sly2-annot */
 void func_002205A8(struct S *p)
 {
     struct O *po;

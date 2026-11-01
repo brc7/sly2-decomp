@@ -10,6 +10,16 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, struct S *b, struct S *s);
 void func_00147E88(void *g, int n);
 int func_001A61A0(struct S *s);
 void func_00148300(void *g, struct S *s);
+/** @sly2-annot addr=0x1A5478
+ * Purpose: LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call
+ *   vt11 AddHierarchy if parent in world, root not-busyk2 -> g_sw busy list, add children (vt8), then vt23 if
+ *   in world else 0x148300
+ * Info: proposed name AddLo (T1); class LO slot8; TU lo
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
+ * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
+ *   docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/engine/object-model.md#9-key-functions
+ * @end-sly2-annot */
 void AddLo(struct S *s)
 {
     void *a;

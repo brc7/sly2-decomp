@@ -54,6 +54,14 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
     return r;
 }
 
+/** @sly2-annot addr=0x151950
+ * Purpose: Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position
+ *   unless cut; fov from turret +0x1BC
+ * Info: proposed name UpdateCpturret (T1); TU cplcy
+ * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
+ *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 void func_00151950(X *p)
 {
     func_0014FD40(p);

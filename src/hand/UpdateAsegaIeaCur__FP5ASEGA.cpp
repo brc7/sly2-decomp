@@ -3,6 +3,12 @@
 // fast-math from folding !(a <= b) into a < b.
 // Types: include/sly2/aseg.h (ASEG::ceaFrame/aeaFrame at 0xA0/0xA4, ASEGA::tLocal/svt/iea at 0x1C/0x40/0x50).
 #include "sly2/aseg.h"
+/** @sly2-annot addr=0x130EB0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name UpdateAsegaIeaCur__FP5ASEGA (EXISTING); TU asega
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 void UpdateAsegaIeaCur(ASEGA *pasega)
 {
     ASEG *paseg = pasega->paseg;

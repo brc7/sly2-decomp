@@ -16,6 +16,16 @@ static inline int NFromRef(void *pv)
     func_00129EC8(&ref);
     return n;
 }
+/** @sly2-annot addr=0x13D248
+ * Purpose: Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 ->
+ *   -1
+ * Info: proposed name NBootyContainerKind (T1); TU booty
+ * Notes: verifier better_name (CORRECT row): Reads save-var via PkeyBootyContainerSave key; 0 -> default
+ *   +0x184; 7..9 -> -1; 0x2BF-0x2C1 -> 0x2BC-0x2BE; sole caller SpawnBootyInContainer. Drop the trailing
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
+ * @end-sly2-annot */
 int NBootyContainerKind(struct S *p) {
     struct C ctx;
     int n;

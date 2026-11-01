@@ -9,6 +9,12 @@ void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
 void func_001305B8(void *a, struct P *p, int n, void *q, float f1, float f2);
 void ReplaceSma(int a, struct P *p, int b, int n, void *q);
+/** @sly2-annot addr=0x1B5D30
+ * Purpose: Switch strafe substate x17F4 (0 stand, 1 blend x1630, 2 clip x17F0), restart animation
+ * Info: proposed name SetMurrayStrafeSubstate (T2); TU murray
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B5D30(struct P *p, int st)
 {
     void *o;

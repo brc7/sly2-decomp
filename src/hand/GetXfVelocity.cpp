@@ -30,6 +30,14 @@ static inline qword ParentRotate(const M4 &m,qword v) {register qword row0 __asm
 static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%3x\n\tvmadday.xyz ACC,%1,%3y\n\tvmaddz.xyz %0,%2,%3z":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
 static inline void Eval(O *p,qword *v) {EvaluateBezierPos(p->t1-p->t0,*p->time-p->t0,*p->dt,p->v0,p->v1,p->v2,p->v3,0,v,0);}
+/** @sly2-annot addr=0x22D348
+ * Purpose: linear velocity of an XF
+ * Info: proposed name GetXfVelocity (T1); TU xf
+ * Notes: runtime4: XF +0xB0 velocity; SO velocity = XF at SO+0x58 (plausible live values)
+ * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
+ * See: docs/engine/animation.md#7-key-functions, docs/engine/player.md#3-step-stepcpp-0x203948,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
     qword sum;
     qword delta;

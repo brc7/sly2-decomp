@@ -10,6 +10,13 @@ static __inline__ float GetZ(qword q)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q));
     return z;
 }
+/** @sly2-annot addr=0x18A350
+ * Purpose: JT vt97 (p, out): target pos; jts 3 -> z of x18C4 obj -175, jts 0x16 -> -100, jts 0x15 own pos;
+ *   default STEPPLAYER 0x141588
+ * Info: proposed name GetJtCameraTarget (T2); class JT slot97; TU jt
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void func_0018A350(struct S *p, UV *pv)
 {
     switch (p->n) {

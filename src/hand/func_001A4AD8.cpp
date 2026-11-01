@@ -29,6 +29,12 @@ typedef char BLOCK_PrefixSize[sizeof(BLOCK)==48?1:-1];
 typedef char P_PrefixSize[sizeof(P)==336?1:-1];
 typedef char O_PrefixSize[sizeof(O)==28?1:-1];
 typedef char VIFS_PrefixSize[sizeof(VIFS)==36?1:-1];
+/** @sly2-annot addr=0x1A4AD8
+ * Purpose: Same packet build for an explicit light list (rebuilds each light first)
+ * Info: proposed name BuildLightPackets (T2); TU light
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 extern "C" void func_001A4AD8(void *a0, int n, struct P **ap, struct O *o)
 {
     int i;

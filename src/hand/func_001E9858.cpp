@@ -76,6 +76,17 @@ static inline void TransposeInto(M3 &r, const M3 &m)
     r.a.q = a; r.b.q = b; r.c.q = d;
 }
 
+/** @sly2-annot addr=0x1E9858
+ * Purpose: CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local
+ *   basis, distance along path)
+ * Info: proposed name PostCid106Load (T2); class CID106 slot15; TU shape
+ * Notes: verifier PLAUSIBLE: Placeholder class (CID 0x6A vtable slot 15). PostSoLoad, then for each mesh node
+ *   re-expresses vertices relative to closest point on the path (orthonormal basis from the tangent and the
+ *   object's Z axis | T2 forced: verifier: placeholder name
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest+verdicts_followups
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E9858(S *p)
 {
     U vertices[128];

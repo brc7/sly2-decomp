@@ -11,6 +11,13 @@ int func_001A61A0(struct P *);
 void func_001D6378(struct P *);
 void func_001D6310(struct P *);
 
+/** @sly2-annot addr=0x1F3B28
+ * Purpose: SO vt21: set/clear grf bit 8; when enabling and +0x148 bit35 and in world -> register (0x1D6378);
+ *   disabling -> unregister
+ * Info: proposed name SetSoFlag8 (T2); class SO slot21; TU so
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F3B28(struct P *p, int enabled)
 {
     register int word __asm__("a2") = p->v40;

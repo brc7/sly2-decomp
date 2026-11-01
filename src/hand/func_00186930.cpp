@@ -7,6 +7,13 @@ struct S { int x0; struct A *p4; struct A *p8; struct B *pC; MATRIX4 m10; MATRIX
     union{float value;int bits;}length0,length1; float gC8; };
 extern "C" float RadBetweenVectors(qword a, qword b, qword *pv);
 extern "C" qword ConvertXfVec(void *space, void *p, qword v);
+/** @sly2-annot addr=0x186930
+ * Purpose: Initialise an IK chain: rest lengths and bend axis from the two bone matrices (RadBetweenVectors)
+ * Info: proposed name InitIkChain (T2); TU ik
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01, docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#ik-0x186610-0x187030
+ * @end-sly2-annot */
 extern "C" void func_00186930(S*p){
  register int bits asm("$2");
  qword*axis=&p->v90;

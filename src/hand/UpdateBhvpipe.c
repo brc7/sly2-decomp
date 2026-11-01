@@ -10,6 +10,13 @@ void SetBhvpipeState(struct S *p, int n);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float SWrapShape(int n, float g);
 void GetPipeGoalMat(int a, float g, int b, void *pv);
+/** @sly2-annot addr=0x17CF10
+ * Purpose: BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal
+ *   matrix
+ * Info: proposed name UpdateBhvpipe (T1); class BHVPIPE slot10; TU guardbhv
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 void UpdateBhvpipe(struct S *p) {
     int s;
     UpdateBhv(p);

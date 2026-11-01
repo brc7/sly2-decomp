@@ -3,6 +3,14 @@ struct S { char pad[0x30]; struct O *p30; int n34; float g38; };
 extern float D_002BE7B8;
 float SMaxShape(struct O *p);
 float SMinShape(struct O *p);
+/** @sly2-annot addr=0x17EEB8
+ * Purpose: Open shape and parameter within tolerance of its end
+ * Info: proposed name FBhvpatrolpathAtEnd (T1); TU guardbhv
+ * Notes: runtime2/4 confirmed the BHVPATROLPATH role on live guards (S02-S41)
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
+ *   r9_bhv_screen+runtime(class role)
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 int FBhvpatrolpathAtEnd(struct S *p) {
     float g;
     if (p->p30->nE4) return 0;

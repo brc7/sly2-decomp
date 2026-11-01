@@ -42,6 +42,13 @@ static __inline__ float GLength(U *pv, qword a)
     return g;
 }
 
+/** @sly2-annot addr=0x12D220
+ * Purpose: Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt
+ *   (CalculateVectorPanTilt)
+ * Info: proposed name UpdateActLookAt (T1); class ActLookAt; TU act
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void UpdateActLookAt(struct P *p)
 {
     struct { qword pos; qword vel; } s;

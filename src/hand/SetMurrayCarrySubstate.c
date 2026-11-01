@@ -49,6 +49,13 @@ void ReleaseSma(C *pc);
 void ApplyAsegCur(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA");
 void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
 
+/** @sly2-annot addr=0x1B5658
+ * Purpose: Switch carry substate x1458 (0 stand,1 walk via blend x1460,2 run clip x151C); restarts animation
+ *   with ApplyAsegCur and component
+ * Info: proposed name SetMurrayCarrySubstate (T1); TU murray
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void SetMurrayCarrySubstate(P *p, int k)
 {
     R *pr;

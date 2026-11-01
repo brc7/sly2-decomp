@@ -52,6 +52,14 @@ typedef char O_Size[sizeof(struct O)==112?1:-1];
 typedef char P_Size[sizeof(struct P)==6416?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char V3_Size[sizeof(union V3)==16?1:-1];
+/** @sly2-annot addr=0x1B8D30
+ * Purpose: State 12 (gadget 20 power move) substates: 0 wind-up clip, 1 clip, 2 spawn/launch script object
+ *   (0x20BF80) in front, 3 recover; -1 cleanup
+ * Info: proposed name SetMurrayPowerSubstate (T2); TU murray
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0,
+ *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void func_001B8D30(struct P *p, int st)
 {
     struct CLIP *o;

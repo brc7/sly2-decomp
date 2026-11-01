@@ -31,6 +31,14 @@ static inline void Set(struct S *p, int n) {
     struct VTE *e = &p->vt[15];
     ((void (*)(void *, int))e->pfn)((char *)p + e->d, n);
 }
+/** @sly2-annot addr=0x1789F8
+ * Purpose: BHVPATH Update: follow the path; detect blockers on the shape (FindShapeFreePoint) and switch
+ *   move/wait/end states (3 = end reached)
+ * Info: proposed name UpdateBhvpath (T1); class BHVPATH slot10; TU guardbhv
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090,
+ *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void UpdateBhvpath(struct S *p) {
     float g;
     qword pos;

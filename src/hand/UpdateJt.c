@@ -39,6 +39,14 @@ extern void UpdateJtLean__FP2JT(void *p);
 
 static __inline__ qword VMulX(qword a, qword s) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s)); return r; }
 
+/** @sly2-annot addr=0x18BCE0
+ * Purpose: JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand,
+ *   feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLean last
+ * Info: proposed name UpdateJt (T1); class JT slot16; TU jt
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
+ * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 void UpdateJt(char *p)
 {
     VU u;

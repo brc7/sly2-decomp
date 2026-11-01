@@ -24,6 +24,12 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 }
 /* pd = p0 * cf + p1 * f */
 static inline void Lerp(U*pd,const U*p0,const U*p1,float f,float cf){pd->q=VecCombo(VU_FLOAT(cf),VU_VECTOR(p0->q),VU_FLOAT(f),VU_VECTOR(p1->q));}
+/** @sly2-annot addr=0x1E95B0
+ * Purpose: Append a time sample to a sampled path (truncate on going back, interpolate inserted samples)
+ * Info: proposed name AddChainSample (T2); TU shape
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E95B0(S*p,float time){
  int count=p->path->count;
  int n;

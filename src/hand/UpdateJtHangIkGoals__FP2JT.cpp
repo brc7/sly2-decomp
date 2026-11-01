@@ -39,6 +39,14 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
     __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
         : "=j"(r.r[2]) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
 }
+/** @sly2-annot addr=0x190E18
+ * Purpose: Orient hand toward the hook (rotate-vectors * fixed wrist angle D_002BF594), set actuator x1A00
+ *   from Euler angles, smooth the x1960 hand offset toward zero
+ * Info: proposed name UpdateJtHangIkGoals (T1); TU hang
+ * Notes: names_v2 C proposed PresetJtAccelPipe__FP2JT (0.167)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
+ * @end-sly2-annot */
 void UpdateJtHangIkGoals__FP2JT(P *p)
 {
     M3 m;

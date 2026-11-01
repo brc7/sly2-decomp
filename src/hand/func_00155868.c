@@ -15,6 +15,15 @@ static inline qword Dot(qword v)
 static inline qword Sqrt(qword v) { qword d; __asm__ __volatile__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(v)); return d; }
 static inline float GFromQ(qword v) { float g; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 static inline float GMin(float a, float b) { return a < b ? a : b; }
+/** @sly2-annot addr=0x155868
+ * Purpose: Chooses the route whose nearer end is farthest from the player
+ * Info: proposed name PrteDimitriFarthest (T2); class DIMITRI; TU tu_1553F0
+ * Notes: Cid3B->Cid59 (CID 0x3B=59, hex-literal) | class identity from whole_game WE names/object strings:
+ *   PrteCid59Farthest -> PrteDimitriFarthest
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest+whole_game(class identity)
+ * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
+ *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
+ * @end-sly2-annot */
 struct E *func_00155868(struct X *p)
 {
     struct E *peBest = 0;

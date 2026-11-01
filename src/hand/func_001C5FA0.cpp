@@ -16,6 +16,15 @@ void func_001C5FA0(LO *p);
 }
 M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec);
 void func_001A5EE8(LO *plo, M4 m, float a, float b);
+/** @sly2-annot addr=0x1C5FA0
+ * Purpose: DPRIZE vt19 RenderSelf (bob/spin then SO render)
+ * Info: proposed name RenderDprizeSelf (T1); class DPRIZE slot19; TU prize
+ * Notes: verifier: purpose partly wrong: DPRIZE slot 19 (RenderSelf): skip in state 2; if the ASEGA at +0x168
+ *   has channel 0xC, evaluate it and render with that matrix/scale (0x1A5EE8), else SO RenderSe
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C5FA0(LO *p)
 {
     Q *q;

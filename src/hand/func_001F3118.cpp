@@ -7,6 +7,14 @@ extern G D_003DD490;
 extern "C" void func_001D6310(L *);
 extern "C" void func_001D6378(L *);
 extern "C" void func_00147E88(G *, int);
+/** @sly2-annot addr=0x1F3118
+ * Purpose: SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root
+ *   in g_sw (0x147E88), push smaller value to children
+ * Info: proposed name SetSoSBusy (T2); class SO slot42; TU so
+ * Notes: names_v2 C proposed ApplyConstr__FP6CONSTRP6VECTORN21 (0.438)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F3118(L *p, float t)
 {
     L *q;

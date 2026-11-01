@@ -11,6 +11,13 @@ extern QW D_004424F0[3];
 extern QW D_00442520[4];
 extern int D_002DEDB0;
 extern ulong D_002DECE0,D_002DEBF0;
+/** @sly2-annot addr=0x211528
+ * Purpose: startup-table entry: builds the static GIF register packets used by sprite/HUD rendering
+ * Info: proposed name StartupScreen (T2); TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot,
+ *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00211528(){
  GIFS setup;
  QW *data=D_004421B0;

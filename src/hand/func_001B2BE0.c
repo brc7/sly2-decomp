@@ -5,6 +5,12 @@ typedef struct S {
 void func_001B2AA0(S *p, int cb, char *pb);
 int func_001B2DB8(S *p, int cb, char *pb);
 
+/** @sly2-annot addr=0x1B2BE0
+ * Purpose: Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written
+ * Info: proposed name CQueueOutputIop_CbWrite (T1); class CQueueOutputIop; TU mpeg
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/cutscenes.md#mpeg-0x1b2820-0x1b4438
+ * @end-sly2-annot */
 int func_001B2BE0(S *p, int cb, char *pb)
 {
     int c = cb;

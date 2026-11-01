@@ -7,6 +7,14 @@ struct P {
 void ClearBhvstk__FP6BHVSTK(void *p);
 int FStepplayerInJtmode(struct P *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
+/** @sly2-annot addr=0x143DE8
+ * Purpose: Set object at +0x1084: old one gets vt2, leaves grab states 5/6 via vt88(0); new one gets vt1,
+ *   message list cleared, jtmode reset
+ * Info: proposed name SetStepplayerRide (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00143DE8(struct P *p, struct LO *plo)
 {
     struct LO *old = p->plo;

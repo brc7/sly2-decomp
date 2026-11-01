@@ -17,6 +17,13 @@ static inline qword FirstPointAndWeight(const qword*first,qword weight,union U*h
 static inline unsigned PointOffset(int i){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,4":"=r"(bytes):"r"(i));return bytes;}
 static inline qword TangentFirst(const qword*p){register qword point __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(point):"m"(*p));return point;}
 static inline int SegmentIndex(int value){register int index __asm__("$18");__asm__("daddu %0,%1,$zero":"=r"(index):"r"(value));return index;}
+/** @sly2-annot addr=0x1E67B8
+ * Purpose: Position and tangent at parameter u (linear lerp or Hermite via 0x117120), in world space
+ * Info: proposed name EvaluateShapeU (T1); TU shape
+ * Notes: names_v2 C proposed UpdateStepFootfall__FP4STEPfP3SFF (0.638)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void EvaluateShapeU(struct S *p,float g,qword *pos,qword *dir)
 {
     struct M m;

@@ -23,6 +23,16 @@ void func_001E1C40(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void func_001DFEB8(OBJ *);
 void SetLoBusyk(OBJ *, int);
+/** @sly2-annot addr=0x1DFD58
+ * Purpose: Start the relay (if not already firing): ploFirer=arg, fFiring=1, send itself msg 5, append
+ *   BlockEnd if fAppendEnd, spawn a JSG for the top block (PjsgNew) and run it; if still running mark the LO
+ *   busy (0x1A6CA8(p,1), grf bit 2, fBusy)
+ * Info: proposed name FireRelay (T1); TU relay
+ * Notes: runtime5b/runtime6: charsel entries fire RELAYs; JSG spawned per fired RELAY (S57-S61)
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
+ * See: docs/engine/cutscenes.md#5-key-functions, docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_001DFD58(OBJ *p, int n)
 {
     int fl;

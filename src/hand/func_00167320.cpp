@@ -132,6 +132,15 @@ static inline void *PvAllocSwClear(int cb)
     return PvAllocSwClearImpl(&swalloc);
 }
 void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis) __asm__("func_00167320");
+/** @sly2-annot addr=0x167320
+ * Purpose: Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type
+ *   geometry
+ * Info: proposed name LoadGlobsetFromBrx (T1); TU glob
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 {
     pglobset->pso = pso;

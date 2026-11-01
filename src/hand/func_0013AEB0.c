@@ -83,6 +83,14 @@ static inline qword NormalizeSafe(qword v, qword def)
         return def;
     return DivQ(v, len);
 }
+/** @sly2-annot addr=0x13AEB0
+ * Purpose: BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine
+ *   on +0x170 kinds 0/1/2)
+ * Info: proposed name BOMB_VUnk57 (T2); class BOMB slot58; TU bomb
+ * Notes: names_v2 C proposed ProjectAloTransform__FP3ALOfi (0.438)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void func_0013AEB0(P *p)
 {
     qword pos;

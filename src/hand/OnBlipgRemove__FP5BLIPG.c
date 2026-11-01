@@ -22,6 +22,15 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x139250
+ * Purpose: BLIPG vt12: remove all blips, base remove, queue group for freeing
+ * Info: proposed name OnBlipgRemove (T1); class BLIPG slot12; TU blip
+ * Notes: slot 12 is RemoveHierarchy by position, but the body matches Sly 1 OnBlipgRemove; Sly 1 name kept
+ * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
+ *   r2b_rest+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 void OnBlipgRemove__FP5BLIPG(struct S *p) {
     DLI dli;
     void *pv;

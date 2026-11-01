@@ -25,6 +25,14 @@ extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
 extern "C" void *func_002333B4(void *pv, int n, int cb);
 extern "C" void func_0022B7A0(LO *plo, X *px);
+/** @sly2-annot addr=0x167B68
+ * Purpose: Resolves globset bone references after load: finds each referenced LO by oid, its bone, and
+ *   computes the relative bind matrix
+ * Info: proposed name BindGlobset (T1); TU glob
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 extern "C" void func_00167B68(S *p)
 {
     if (p->f4C != -1)

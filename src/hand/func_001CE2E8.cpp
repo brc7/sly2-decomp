@@ -48,6 +48,14 @@ static inline void *Next(DLI *it) { void *p = *it->next; it->next = (void **)((c
 static inline void SetAlign(REQ *r, int a) { r->align = a; }
 static inline const qword &Origin(STATE *s) { return s->origin; }
 static inline int Min(int a, int b) { return a <= b ? a : b; }
+/** @sly2-annot addr=0x1CE2E8
+ * Purpose: Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's
+ *   FBounce virtual
+ * Info: proposed name BounceRipgRips (T1); TU rip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CE2E8(P *p)
 {
     if (p->mode == 1) {

@@ -25,6 +25,16 @@ typedef struct OBJ {
 extern char D_003DD490[];
 float func_0011CAB0(MATRIX4 *);
 struct E *func_001D6508(void *, qword, float, float, int);
+/** @sly2-annot addr=0x1D6378
+ * Purpose: Insert LO's world bounding sphere (vt31 matrix * +0x90, radius +0xA0*scale) into world 4-ary
+ *   sphere tree (g_sw+?), store entry +0x144, set grf 0x80
+ * Info: proposed name AddLoToSphereTree (T2); TU tu_1D57A8
+ * Notes: names_v2 C proposed SCalcLasenShapeExtent__FP5LASENP5LBEAM (0.501)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001D6378(OBJ *p)
 {
     MATRIX4 m = *((MATRIX4 *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d);

@@ -26,6 +26,13 @@ extern char D_003DD4BC[];
 int func_001A61A0(O *o);
 void AppendDlEntry__FP2DLPv(void *pdl, void *p);
 
+/** @sly2-annot addr=0x1BEB28
+ * Purpose: Grab a free render slot for this holder, prepare objects (in-world check, DL append)
+ * Info: proposed name AcquireCid45RenderSlot (T2); class CID45; TU tu_1BE398
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
+ *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
+ * @end-sly2-annot */
 R *func_001BEB28(P *p)
 {
     unsigned int i;

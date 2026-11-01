@@ -36,6 +36,15 @@ void func_001576F0(VIFS *p);
 void func_001574A0(void *p);
 void func_001EA9F0(GAME *p, int n);
 
+/** @sly2-annot addr=0x157FA0
+ * Purpose: Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL
+ *   kind-change calls the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL
+ *   tags; flushes VIFS/GIFS
+ * Info: proposed name DrawSw (T1); class SW slot9; TU draw
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#5-per-frame-update-and-render, docs/engine/overview.md#6-subsystem-map
+ * @end-sly2-annot */
 void func_00157FA0(GAME *pgame)
 {
     M4 mat0;

@@ -15,6 +15,13 @@ static __inline__ float DistXY(qword d)
     return dist;
 }
 static __inline__ int FIn(qword d, float g) { return DistXY(d) < g; }
+/** @sly2-annot addr=0x156FE8
+ * Purpose: True if an LO lies within a noise's height range and radius
+ * Info: proposed name FLoInNoise (T2); TU noise
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 int func_00156FE8(struct LO *plo, struct P *p)
 {
     struct Q *pq;

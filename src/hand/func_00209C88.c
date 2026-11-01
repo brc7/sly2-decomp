@@ -8,6 +8,13 @@ void EvaluateShapeS(void *po, qword *pa, qword *pb, float f);
 qword func_001A62E8(void *p);
 qword *func_001A6318(void *p);
 
+/** @sly2-annot addr=0x209C88
+ * Purpose: STEPGUARD vt59: when attached (+0xF80 0..3) add constraint contacts via vt82 against the attach
+ *   object (rail/pipe closest point 0x1E6F10, target pos, fixed axis)
+ * Info: proposed name AddStepguardAttachXps (T2); class STEPGUARD slot59; TU stepguard
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
+ * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_00209C88(struct S *p)
 {
     qword a, b;

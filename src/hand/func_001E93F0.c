@@ -7,6 +7,12 @@ extern char D_002C44F0[];
 float UMinShape(int);
 float UMaxShape(int);
 void EvaluateShapeU(int, qword *, int, float);
+/** @sly2-annot addr=0x1E93F0
+ * Purpose: Attach chain end i to object (its matrix via vt32) or to the shape's start/end point
+ * Info: proposed name SetChainEndObject (T2); TU shape
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E93F0(struct P *p, int i, struct LO *po)
 {
     p->apo[i] = po;

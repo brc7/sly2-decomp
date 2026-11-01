@@ -22,6 +22,15 @@ void SetAsegaMasterSpeed(struct Y *y, float f);
 int PpoHero(void *p);
 void ResumeBhvguard(struct Z *z);
 
+/** @sly2-annot addr=0x207030
+ * Purpose: Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE
+ *   time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage (target other guards: prefer cid 0x38,
+ *   ignore 5 cids), 0x15 (BHV156 sub-states); undoes the old state
+ * Info: proposed name SetStepguardSpecial (T1); TU stepguard
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns, docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void SetStepguardSpecial(struct S *p, int k)
 {
     int old;

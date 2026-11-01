@@ -2,6 +2,13 @@ struct VT { char pad[0x198]; short d; short pd; void (*pf)(void *, void *); };
 struct X { char pad[0xC]; struct VT *pvt; };
 struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
 struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
+/** @sly2-annot addr=0x210538
+ * Purpose: ASEG event 17: find object and two optional others, build a message (grf bits 1/0x20/0x18) and
+ *   send via vt
+ * Info: proposed name SendSwAsegMessage (T2); TU sw
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_00210538(void *pg, int oid, int oid1, int oid2, float g, void *ctx)
 {
     struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid, ctx);

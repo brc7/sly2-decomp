@@ -6,6 +6,13 @@ struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; st
 void PopBhv(void *p);
 void func_00256EE0(struct S *p, int n);
 void func_002580A8(void *p, int n);
+/** @sly2-annot addr=0x171258
+ * Purpose: Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new
+ *   (message 2) at its first command or a saved resume point
+ * Info: proposed name SetBhv169Script (T2); TU tu_1709A8
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void func_00171258(struct S *p, struct T *t, int a, struct U *u) {
     if (t == p->pt) return;
     if (p->pt) {

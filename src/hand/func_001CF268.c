@@ -7,6 +7,13 @@ struct G { char pad[0x150]; int x150; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float x14; float x18; char p1[0x70 - 0x1C]; qword x70;
     char p2[0xE0 - 0x80]; struct LO *xE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
 void func_001CE980(struct S *p);
+/** @sly2-annot addr=0x1CF268
+ * Purpose: RIP default Update (vt entry 5): fade/age and RemoveRip when expired
+ * Info: proposed name UpdateRip (T1); TU rip
+ * Notes: names_v2 v1 proposed TouchDroplet__FP7DROPLETi (0.167)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CF268(struct S *p)
 {
     struct LO *plo;

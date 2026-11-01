@@ -23,6 +23,13 @@ static inline float ReturnValue(float value)
     return result;
 }
 
+/** @sly2-annot addr=0x1E64C8
+ * Purpose: Parameter u at arc length s (inverse of SFromShapeU)
+ * Info: proposed name UFromShapeS (T1); TU shape
+ * Notes: names_v2 C proposed EvaluateAposG__FfiP6VECTORPfiT2T2 (0.638)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 float UFromShapeS(struct X *p, float time)
 {
     float a, b;

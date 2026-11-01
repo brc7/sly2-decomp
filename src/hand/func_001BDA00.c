@@ -28,6 +28,12 @@ void *func_001AE1D0(AREQ *preq);
 void AppendDlEntry__FP2DLPv(DL *pdl, O *p);
 void RemoveDlEntry__FP2DLPv(DL *pdl, O *p);
 
+/** @sly2-annot addr=0x1BDA00
+ * Purpose: Create merged obstacle object (PloNew) holding member polygons
+ * Info: proposed name PcnvoNewMerged (T2); TU tu_1BC050
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 O *func_001BDA00(void)
 {
     O *p;

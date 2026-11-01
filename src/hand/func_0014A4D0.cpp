@@ -73,6 +73,12 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
     return r;
 }
 
+/** @sly2-annot addr=0x14A4D0
+ * Purpose: Compare player and guard positions/velocities to choose speed (lead the player)
+ * Info: proposed name UpdateBhv182Pace (T2); TU tu_14A008
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
+ * @end-sly2-annot */
 void func_0014A4D0(P *p)
 {
     G *pg = &D_003DD490;

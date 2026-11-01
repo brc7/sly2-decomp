@@ -41,6 +41,17 @@ static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
     preq->nKind = nKind;
     return func_001AE1D0(preq);
 }
+/** @sly2-annot addr=0x1635F8
+ * Purpose: TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and
+ *   successors (+0x9C)
+ * Info: proposed name LoadTaskFromBrx (T1); class TASK slot14; TU game
+ * Notes: superseded r3_1539A8 proposal: LoadCid85FromBrx (0.7) | level_parser CONFIRMED-parse: payload layout
+ *   followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3b_rest+parse-verified
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 extern "C" void LoadTaskFromBrx(S *p, CBinaryInputStream *pbis)
 {
     int i = 0;

@@ -37,6 +37,13 @@ int func_00163430(SO *);
 void func_002332B8(void *, void *, unsigned int);
 void func_001DCE90(OBJ *, int);
 }
+/** @sly2-annot addr=0x1DCED8
+ * Purpose: Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the
+ *   selected job up to the first unfinished one; keep the last 10/4
+ * Info: proposed name RefreshJobListEntries (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 extern "C" void func_001DCED8(OBJ *p)
 {
     for (int i = 0; i < p->n; i++) {

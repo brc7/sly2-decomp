@@ -6,6 +6,13 @@ double func_0023D7A0(double,double);
 double func_0023DD80(int);
 int func_0023DE38(double);
 /* Digit of g at decimal position a (precision b): 0 outside [b, b+15). */
+/** @sly2-annot addr=0x21E0D8
+ * Purpose: digit character of g at decimal position a (precision b)
+ * Info: proposed name ChDigitFromG (T1); TU text
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+verdicts_A2
+ * See: docs/engine/core-library.md#7-key-functions,
+ *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
+ * @end-sly2-annot */
 unsigned char func_0021E0D8(double g, int a, int b)
 {
 int i; double x;

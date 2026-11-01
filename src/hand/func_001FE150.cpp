@@ -26,6 +26,13 @@ void func_001FC408(X *, int, int, float, float *);
 }
 struct V2 { float x, y; };
 static inline void Set(V2 *pv, float x, float y) { pv->x = x; pv->y = y; }
+/** @sly2-annot addr=0x1FE150
+ * Purpose: Start music id: stop current top, reuse or create STREAMSND kind 4 with player-object sources,
+ *   push on 8-deep music stack
+ * Info: proposed name PushMusic (T1); TU sound
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 extern "C" X *func_001FE150(P *p, int n)
 {
     Ref r = func_001FE478(p, n);

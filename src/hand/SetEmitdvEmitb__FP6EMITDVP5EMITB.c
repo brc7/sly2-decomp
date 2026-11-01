@@ -27,6 +27,12 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
     }
     *pr = t;
 }
+/** @sly2-annot addr=0x15BF40
+ * Purpose: Copies the drift/velocity parameters of an EMITB into an EMITDV
+ * Info: proposed name SetEmitdvEmitb (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *po, struct S *ps)
 {
     po->q0 = ps->q60;

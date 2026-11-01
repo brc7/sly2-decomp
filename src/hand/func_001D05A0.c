@@ -18,6 +18,13 @@ typedef struct {
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
 qword func_0014F268(void *, qword);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x1D05A0
+ * Purpose: SMACK Project
+ * Info: proposed name ProjectSmackTransform (T1); TU rip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D05A0(OBJ *p)
 {
     EvaluateBezierPos(GMax(p->x14 + p->x18 - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->x100, p->x90, p->xF0->a, p->xF0->b, &p->x100, &p->x90, 0);

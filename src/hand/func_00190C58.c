@@ -19,6 +19,12 @@ typedef char Size_4[sizeof(struct S)==312?1:-1];
 typedef char Size_5[sizeof(struct P)==6608?1:-1];
 typedef char LengthBits_Size[sizeof(int)==4?1:-1];
 typedef char DataPointer_Size[sizeof(struct S*)==4?1:-1];
+/** @sly2-annot addr=0x190C58
+ * Purpose: Return hook pos + normalize(hook pos - hand XF x19CC pos) * hook radius (x134)
+ * Info: proposed name PosJtHangHandle (T2); TU hang
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
+ * @end-sly2-annot */
 qword func_00190C58(struct P *p)
 {
     qword q, d, dir, r;

@@ -31,6 +31,12 @@ void SetBhvpathShape(struct OA7 *, struct SP *, int);
 
 #define VCALL0(po, n) { struct VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
 
+/** @sly2-annot addr=0x14AE38
+ * Purpose: BHV182 state change
+ * Info: proposed name SetBhv182State (T2); TU tu_14A008
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
+ * @end-sly2-annot */
 void func_0014AE38(struct P *p, int state)
 {
     if (state == p->x30)

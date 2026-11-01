@@ -8,6 +8,14 @@ static __inline__ float GClamp(float g, float lo, float hi)
     if (g > hi) return hi;
     return g;
 }
+/** @sly2-annot addr=0x181CB0
+ * Purpose: Per-frame piece placement along shape
+ * Info: proposed name UpdateHackwallPieces (T2); class HACKWALL; TU tu_17F090
+ * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
+ *   UpdateCid76Pieces -> UpdateHackwallPieces
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181CB0(struct S *p, struct E *pe)
 {
     float g = SMaxShape(pe->x24);

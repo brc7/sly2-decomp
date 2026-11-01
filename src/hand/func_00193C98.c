@@ -20,6 +20,13 @@ static __inline__ float GClamp(float g, float lo, float hi)
         return hi;
     return g;
 }
+/** @sly2-annot addr=0x193C98
+ * Purpose: Advance/clamp the grab param along the held curve object (wrap with GModPositive if closed, else
+ *   clamp to [sMin,sMax]) and line-test the new point
+ * Info: proposed name ClampJtGrabCurveParam (T2); TU grab
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
+ * @end-sly2-annot */
 void func_00193C98(struct P *p, struct Q *q, void *r)
 {
     struct O *o;

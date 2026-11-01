@@ -11,6 +11,14 @@ void *func_001F7530(void *, int);
 void func_002333B4(void *, int, int);
 int func_001F7598(struct M *);
 void func_001A7E10(struct G *, void *);
+/** @sly2-annot addr=0x1F7410
+ * Purpose: SO vt74: for each contact, if other part has zap kinds, build a zap record and InflictZap; free
+ *   contact list
+ * Info: proposed name InflictSoContactZaps (T2); class SO slot74; TU so
+ * Notes: names_v2 v1 proposed UpdateGeomWorld__FP4GEOMT0G9VU_VECTORP7MATRIX3 (0.200)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F7410(struct P *p)
 {
     struct N *pn;

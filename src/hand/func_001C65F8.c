@@ -26,6 +26,12 @@ void func_001FB2F8(void *p, int n);
 void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void func_001C60B8(struct S *p, int n);
+/** @sly2-annot addr=0x1C65F8
+ * Purpose: CID 91 state setter: on collect play sound, emit rip, award (0x1C67A0)
+ * Info: proposed name SetDprize91Dprizes (T2); class COIN slot76; TU prize
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
+ * @end-sly2-annot */
 void func_001C65F8(struct S *p, int n)
 {
     if (p->x150 == n) return;

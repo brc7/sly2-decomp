@@ -4,6 +4,12 @@ struct C { struct VE *vt; };
 struct Y { int x0; struct C *pc; };
 struct X { char pad[0x74]; float f74; float f78; };
 struct Y *func_0012FF10(struct X *px, void *p, int a, int b);
+/** @sly2-annot addr=0x1B1A38
+ * Purpose: Root-motion speed of a clip for this object (displacement / duration)
+ * Info: proposed name GetAsegSpeedForObject (T2); TU tu_1B0B78
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 void func_001B1A38(void *p, struct X *px, float *pf)
 {
     V v0, v1;

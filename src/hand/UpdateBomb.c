@@ -20,6 +20,14 @@ static __inline__ float GLength(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+/** @sly2-annot addr=0x13AB58
+ * Purpose: BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else
+ *   UpdateBombCustomXps when enabled
+ * Info: proposed name UpdateBomb (T1); class BOMB slot16; TU bomb
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void UpdateBomb(struct P *p)
 {
     UpdateSo(p);

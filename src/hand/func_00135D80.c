@@ -3,6 +3,13 @@ int func_001944C8(void *, int *);
 int func_0019C870(void *, int *);
 int func_001A23F8(void *, int *);
 void SetStepPhys(struct S *, int, int);
+/** @sly2-annot addr=0x135D80
+ * Purpose: BENTLEY vt90: ask the active component (jtair/jtgrab/jthurt) for an animation/feature id, default
+ *   +0x268, then STEP 0x203D00
+ * Info: proposed name BENTLEY_VUnk89 (T2); class BENTLEY slot90; TU bentley
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
+ * @end-sly2-annot */
 void func_00135D80(struct S *p) {
     int n = 0;
     int r;

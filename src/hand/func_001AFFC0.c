@@ -16,6 +16,12 @@ typedef char Size_1[sizeof(struct S)==32?1:-1];
 typedef char Size_2[sizeof(int)==4?1:-1];
 typedef char Size_3[sizeof(unsigned)==4?1:-1];
 typedef char Size_4[sizeof(void*)==4?1:-1];
+/** @sly2-annot addr=0x1AFFC0
+ * Purpose: Item callback: cycle value through its list and apply
+ * Info: proposed name CyclePauseOptionItem (T2); TU menu
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001AFFC0(struct S *s)
 {
     int i;int *a=s->xC;

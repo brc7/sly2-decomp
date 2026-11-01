@@ -39,6 +39,12 @@ typedef char Final_Size_3[sizeof(int)==4?1:-1];
 typedef char Final_Size_4[sizeof(float)==4?1:-1];
 typedef char Final_Size_5[sizeof(bool)==4?1:-1];
 typedef char Final_Size_6[sizeof(void*)==4?1:-1];
+/** @sly2-annot addr=0x1AFB88
+ * Purpose: Apply option item (msg kinds 103..): set option values (CRef setters) and ApplyGsSettings
+ * Info: proposed name ActivatePauseVideoItem (T2); TU menu
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 extern "C" void func_001AFB88(void*owner,MSG*msg){
  switch(msg->kind){
  case 103:

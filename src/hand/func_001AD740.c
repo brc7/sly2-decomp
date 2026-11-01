@@ -7,6 +7,12 @@ struct S { int x0, x4; char *x8; };
 void func_001AF608(struct G *g);
 int func_001B0108(struct G *g);
 void func_00213B00(void *a, char *b);
+/** @sly2-annot addr=0x1AD740
+ * Purpose: Menu hook: set text id 0x5C8+i or 0x5C5+i for slot i
+ * Info: proposed name SetSaveSlotLabel (T2); TU memcard
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001AD740(struct S *s)
 {
     struct E *e;

@@ -9,6 +9,14 @@ static inline void SetVector(VECTOR *pv, float x, float y, float z)
     pv->y = y;
     pv->z = z;
 }
+/** @sly2-annot addr=0x1531A8
+ * Purpose: Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at
+ *   y=468.8; then SetRhythmMgrState(q)
+ * Info: proposed name SetRhythmMgrPrompts (T2); TU rhythm
+ * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_001531A8(struct S *p, void *q, int c, void *pv)
 {
     p->c = c;

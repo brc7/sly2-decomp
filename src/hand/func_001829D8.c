@@ -9,6 +9,15 @@ void func_002333B4(void *pv, int b, int cb);
 int func_001F7598(struct CTX *pctx);
 void ExplodeExplParams(void *p, int a, int b, qword q1, qword q2, float g, float h);
 void func_00181EB0(struct S *p, struct Q *q, int n);
+/** @sly2-annot addr=0x1829D8
+ * Purpose: vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state
+ *   change
+ * Info: proposed name HACKWALL_Die (T2); class HACKWALL slot82; TU tu_17F090
+ * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
+ *   CID76_Die -> HACKWALL_Die
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_001829D8(struct S *p, void *pv)
 {
     struct Q *q;

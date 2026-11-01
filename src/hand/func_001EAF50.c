@@ -6,6 +6,17 @@ void func_001179B8(void *pbis, int cb);
 int FMatchLoadFilter__FiPs(int cch, void *pw);
 struct Y *func_001ED4E0(int id);
 void *func_001AE1D0(struct AR *par);
+/** @sly2-annot addr=0x1EAF50
+ * Purpose: Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
+ * Info: proposed name LoadBmpFromBrx (T1); TU shd
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
+ *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources:
+ *   r6b_rest+parse-verified+format-doc:textures
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse,
+ *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001EAF50(void *pbis, struct X *px)
 {
     union { short aw[0x80]; struct AR ar; } u;

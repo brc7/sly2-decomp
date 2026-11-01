@@ -16,6 +16,12 @@ typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
 typedef char T_Context_Offset[FIELD_OFFSET(struct T,a)==0?1:-1];
 typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
+/** @sly2-annot addr=0x19ABF0
+ * Purpose: Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime
+ * Info: proposed name GMeasureJumpPipe (T1); TU air
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 float GMeasureJumpPipe(struct S *s, float parameter) {
     V v; struct T t; float r;
     struct OBJECT *b = s->b;

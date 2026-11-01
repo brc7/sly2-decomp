@@ -39,6 +39,13 @@ struct SP {
 };
 extern "C" SP CPair_CloneTo(NODE *src, void *a, void *b);
 extern "C" CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
+/** @sly2-annot addr=0x1212F8
+ * Purpose: Splice builtin "append": concatenates list args (copies all but last)
+ * Info: proposed name RefOpAppend (T1); TU bif
+ * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref) { if (aref[0].m_tagk == 0) return aref[0];
  SP spRes; NODE *pTail;
  for (NODE *pn = aref[0].u.pnode; pn; pn = pn->pnext.p) {

@@ -58,6 +58,13 @@ typedef char M4_row0_Offset[((unsigned)&((M4*)0)->row[0])==0?1:-1];
 typedef char M4_row1_Offset[((unsigned)&((M4*)0)->row[1])==16?1:-1];
 typedef char M4_row2_Offset[((unsigned)&((M4*)0)->row[2])==32?1:-1];
 typedef char M4_row3_Offset[((unsigned)&((M4*)0)->row[3])==48?1:-1];
+/** @sly2-annot addr=0x19C300
+ * Purpose: Cost of landing on target local point after duration dt in the target's predicted frame; out goal
+ *   pos/velocity
+ * Info: proposed name MeasureJtJumpToTargetAtTime (T1); TU air
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context,OBJECT *target,qword localPoint,
                              float *score,qword *point,qword *velocity,float duration) {
     V delta;

@@ -8,6 +8,12 @@ void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 float func_00245A18(float a, float b);
 void func_0021ECD8(char *pch, char *fmt, ...);
+/** @sly2-annot addr=0x15D9C0
+ * Purpose: Text callback: '%01d:%02d' hours:minutes of the selected episode's play time
+ * Info: proposed name FormatEpisodePlayTime (T1); TU tu_15CD68
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
+ * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 void func_0015D9C0(char *pch)
 {
     struct G *pg = &D_003DD490;

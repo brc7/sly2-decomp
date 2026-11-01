@@ -129,6 +129,16 @@ inline int FSameFileId(FILEREC *prec, FILEREC *precOther)
     return (prec->aw[2] ^ prec->aw[14]) == (precOther->aw[2] ^ precOther->aw[14]);
 }
 extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbis) __asm__("func_001FD0E8");
+/** @sly2-annot addr=0x1FD0E8
+ * Purpose: Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream,
+ *   dialogue/music stream records per language, loose file records
+ * Info: proposed name LoadSoundSectionFromBrx (T1); TU sound
+ * Notes: audio format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources:
+ *   r7_1F8DD8+verdicts_tu_r7r8+format-doc:audio
+ * See: docs/engine/sound.md#1-sound-manager-soundcpp-0x1faf70-0x1ff398, docs/engine/sound.md#6-key-functions,
+ *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
+ * @end-sly2-annot */
 extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbis)
 {
     FILEREC rec;

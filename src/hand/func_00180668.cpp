@@ -75,6 +75,15 @@ static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 static inline float Limit(float f,LM*p){float low=p->low,high=p->high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
 static inline float Clamp(float f,LM*p){float low=p->low,high=p->high;if(f<low)f=low;else if(high<f)f=high;return f;}
 
+/** @sly2-annot addr=0x180668
+ * Purpose: vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion
+ * Info: proposed name UpdateHackenemy (T2); class HACKENEMY slot16; TU tu_17F090
+ * Notes: Cid49->Cid73 (CID 0x49=73, vtable) | class identity from whole_game WE names/object strings:
+ *   UpdateCid73 -> UpdateHackenemy
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/engine/minigames.md#23-enemies-walls-lock,
+ *   docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 extern "C" void func_00180668(P*p){
  U nearest,direction,unit;
  UpdateSo(p);

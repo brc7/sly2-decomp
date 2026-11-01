@@ -44,6 +44,13 @@ static inline qword DisplacementValue(const qword&start,const qword&direction,fl
  __asm__("qmtc2.ni %1,%0":"=j"(scale):"r"(word));scalar.q=scale;
  return AddScaled(point,vector,scalar.q);
 }
+/** @sly2-annot addr=0x1CBBA8
+ * Purpose: GRABSPOT iface: orientation basis along rail at distance
+ * Info: proposed name GetRailGrabMat (T2); class RAIL; TU rail
+ * Notes: names_v2 C proposed SetHbskHbsks__FP4HBSK5HBSKS (0.438)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
+ * @end-sly2-annot */
 void func_001CBBA8(S*p,qword*posOut,qword*dirOut,float g){
  U pos;
  M3 basis;

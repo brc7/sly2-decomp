@@ -42,6 +42,13 @@ extern char D_002CFD20[];
 extern char D_002CFCA0[];
 extern char D_002CFC20[];
 extern char D_002CFDA0[];
+/** @sly2-annot addr=0x1EF138
+ * Purpose: Placement factory: switch(cid 0x9C..0xC6) memset size, set BASIC header + vtable for that BHV
+ *   subclass
+ * Info: proposed name PbhvNew (T1); TU bhvstk
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850
+ * @end-sly2-annot */
 struct P *PbhvNew(int kind,void *memory){
  struct P *result;
  switch(kind){

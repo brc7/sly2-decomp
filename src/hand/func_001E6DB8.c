@@ -9,6 +9,12 @@ void func_0011D9E0(float (*pfn)(void *, float), void *pv, float g, float dg, flo
 float UWrapShape(struct X *p, float g);
 void EvaluateShapeU(struct X *p, float g, qword *a, qword *b);
 float SFromShapeU(struct X *p, float g);
+/** @sly2-annot addr=0x1E6DB8
+ * Purpose: Closest point on a curved shape by MinimizeRange around a start parameter (step = segment/10)
+ * Info: proposed name FindShapeClosestPointCurveFromU (T2); TU shape
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E6DB8(struct X *p, qword q, struct SPACE *space, qword *a, qword *b, float *pg, float *pgOut, float g)
 {
     struct CTX ctx;

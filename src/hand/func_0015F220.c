@@ -5,6 +5,13 @@ void func_00166BD8(struct GIFS *, int, int, int);
 void func_00166E90(struct GIFS *, int, ulong);
 void func_00166EF0(struct GIFS *, int, ulong);
 int func_0015F148(struct FONT *, struct GIFS *);
+/** @sly2-annot addr=0x15F220
+ * Purpose: CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then
+ *   the sprite prim list setup
+ * Info: proposed name SetupDraw (T1); TU font
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 void func_0015F220(struct FONT *pfont, float *prc, struct GIFS *pgifs)
 {
     int fFlush;

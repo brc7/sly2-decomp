@@ -38,6 +38,12 @@ static __inline__ float GMax3(float a, float b, float c) { if (b < a && c < a) r
 void func_0011D5B0(float g, float h, void *pa, void *pb);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, struct Q *q);
 
+/** @sly2-annot addr=0x1394C8
+ * Purpose: Bind emitter parameter block to the blip group (copies emit settings, then PropagateBlipgShader)
+ * Info: proposed name SetBlipgEmitb (T1); TU blip
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 void SetBlipgEmitb(struct P *p, struct Q *q)
 {
     struct CLR *pclr;

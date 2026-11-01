@@ -25,6 +25,19 @@ void AppendDlEntry__FP2DLPv(void *, void *);
 
 #define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
 
+/** @sly2-annot addr=0x1F7598
+ * Purpose: Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the
+ *   recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time
+ *   and, if damaging (grfzpd&0xF8), send msg 0xB to both and splice events 0xA/0xB; return the SO or NULL
+ * Info: proposed name PsoInflictZap (T2); TU so
+ * Notes: v3: superseded InflictZap | top50_round (0.55): Body. Sly 1 zap.cpp InflictZpdZap/FInflictSoZap
+ *   vocabulary (ZPR record, FInflictSoZap = SO vt). Callers DetonateBomb, InflictBhvguardZap, ZapLasenBeams,
+ *   InflictSoContactZaps, SoTouchZapCallback. Returns the zapped SO ->
+ * Confidence: low (draft) [T2 0.55] - evidence: Sly 1 / Lilly reference; semantic review; sources:
+ *   r6_1D5150+top50_round
+ * See: docs/engine/overview.md#6-subsystem-map, docs/engine/physics-collision.md#3-zaps-damage-delivery,
+ *   docs/engine/physics-collision.md#7-key-functions
+ * @end-sly2-annot */
 struct O *func_001F7598(struct K *pk)
 {
     int unused[4];

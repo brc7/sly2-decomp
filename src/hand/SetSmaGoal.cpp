@@ -11,6 +11,13 @@ struct Lock {
     Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
     ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
 };
+/** @sly2-annot addr=0x1F0660
+ * Purpose: ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the
+ *   transition allows a break (flag 2), else choose a transition
+ * Info: proposed name SetSmaGoal (T1); TU sm
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 extern "C" void SetSmaGoal(P *p, int n)
 {
     if (FSmaRetracted(p)) return;

@@ -44,6 +44,13 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
     return r;
 }
 
+/** @sly2-annot addr=0x138660
+ * Purpose: Blended-channel actuator virtual: if a solo bl is selected forward to its channel, else blend all
+ *   weighted bls' pose/transform at the current time into the output record
+ * Info: proposed name EvaluateBlendChnPose (T2); TU blend
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
+ * @end-sly2-annot */
 void func_00138660(struct P *p, struct Q *pq)
 {
     VU c, d;

@@ -20,6 +20,12 @@ typedef char S_Size[sizeof(S)==32?1:-1];
 typedef char S_move_Offset[FIELD_OFFSET(S,move)==0?1:-1];
 typedef char S_object_Offset[FIELD_OFFSET(S,object)==4?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
+/** @sly2-annot addr=0x19AB38
+ * Purpose: Same as 0x19AAB8 for the other hide-shape class
+ * Info: proposed name GMeasureJumpToHshape (T2); TU air
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+verdicts_B
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" float func_0019AB38(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);

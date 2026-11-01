@@ -16,6 +16,16 @@ static inline void Zero(struct V3 *pv)
     pv->x = 0.0f;
 }
 #define VT(o, n) (o)->vt[n]
+/** @sly2-annot addr=0x1C6BD0
+ * Purpose: re-parent spawned prize (0x1A58D0) and init motion
+ * Info: proposed name LaunchSprayedDprize (T1); TU prize
+ * Notes: verifier PLAUSIBLE: AttachSprayedDprize -> LaunchSprayedDprize | names_v2 C proposed
+ *   PostAlarmLoad__FP5ALARM (0.167)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
+ *   docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390
+ * @end-sly2-annot */
 void func_001C6BD0(struct S *p, qword q1, qword q2, float f1, float f2)
 {
     ((void (*)(void *))VT(p, 8).pf)((char *)p + VT(p, 8).d);

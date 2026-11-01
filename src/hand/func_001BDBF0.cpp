@@ -18,6 +18,12 @@ static inline float CrossZ(qword a, qword b, qword c)
     __asm__("qmfc2.ni %0, %1\n\tpextuw %0, $0, %0" : "=r"(z) : "j"(r));
     return z;
 }
+/** @sly2-annot addr=0x1BDBF0
+ * Purpose: 2D convex hull of points (sort + monotone chain)
+ * Info: proposed name CposConvexHull (T2); TU tu_1BC050
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 extern "C" void func_001BDBF0(P *p, int n, qword *pts)
 {
     int i, k, t;

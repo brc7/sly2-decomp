@@ -27,6 +27,12 @@ typedef struct OBJ {
     qword dpos1;
 } OBJ;
 int func_0012BB70(T *t, float g);
+/** @sly2-annot addr=0x12BBD0
+ * Purpose: Evaluate at t
+ * Info: proposed name EvaluateAcVecB (T2); class AcVecB; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012BBD0(T *t, OBJ *po)
 {
     int i = func_0012BB70(t, *po->pt);

@@ -5,6 +5,12 @@ struct X { int a[4]; float g10; float g14; };
 extern qword D_002A5000;
 M3 LoadRotateMatrixPanTilt(float x, float y);
 qword func_0014FE58(struct X *p);
+/** @sly2-annot addr=0x14FEC8
+ * Purpose: Eye = anchor + RotMatrix(radPan +0x10, radTilt +0x14) * D_002A5000 offset
+ * Info: proposed name PosCplookEye (T1); TU cplcy
+ * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
+ * @end-sly2-annot */
 qword func_0014FEC8(struct X *p)
 {
     M3 m;

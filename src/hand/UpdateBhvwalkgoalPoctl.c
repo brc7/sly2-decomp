@@ -55,6 +55,17 @@ static __inline__ qword Perp(qword d, qword axis) { qword v, r;
         __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(v) : "j"(axis));
         __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; }
 static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
+/** @sly2-annot addr=0x144BC8
+ * Purpose: BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ
+ *   of xy distance, scaled by +0xD0) and heading toward the goal
+ * Info: proposed name UpdateBhvwalkgoalPoctl (T1); class BHVWALKGOAL slot14; TU tu_144B28
+ * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): Bhv168_VUnk14 ->
+ *   UpdateBhvwalkgoalPoctl | runtime6 P1: slot 14 called by UpdateStepplayer 0x1403D0 with the POCTL; writes
+ *   POCTL +0x18 heading = atan2 to goal, +0x1C speed 0 when arrived
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
+ *   role)+runtime
+ * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
+ * @end-sly2-annot */
 void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
 {
     func_001EF0C0(p, q);

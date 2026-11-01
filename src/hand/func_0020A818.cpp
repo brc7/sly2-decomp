@@ -21,6 +21,14 @@ static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float 
 }
 static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(*p));return r;}
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j"(b),"0"(a));return a;}
+/** @sly2-annot addr=0x20A818
+ * Purpose: Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires
+ *   guard ready or inside camera frustum within heading tolerance of the camera
+ * Info: proposed name FTargetRecordAllowsGuard (T2); TU stepguard
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns, docs/engine/guards-ai.md#9-key-functions,
+ *   docs/open-questions.md#guards
+ * @end-sly2-annot */
 extern "C" int func_0020A818(P*p,Actor*a)
 {
     U scalar;

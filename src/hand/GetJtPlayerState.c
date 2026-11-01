@@ -1,4 +1,10 @@
 struct S { char pad[0x18C8]; int n; };
+/** @sly2-annot addr=0x18D620
+ * Purpose: JT vt89: inverse map jts -> generic state 0..8 or -1
+ * Info: proposed name GetJtPlayerState (T1); class JT slot89; TU jt
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 int GetJtPlayerState(struct S *p)
 {
     switch (p->n) {

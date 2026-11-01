@@ -8,6 +8,15 @@ long GrfFromSgf(int n);
 void SetStepguardGrfsgf(struct S *p, long fl);
 int FGrfHasSgf(long m, int a);
 void BroadcastGameEvent(void *p, int b, struct S *ps);
+/** @sly2-annot addr=0x209890
+ * Purpose: Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98
+ *   (3->0x14, 0xC->0x16)
+ * Info: proposed name AddStepguardSgf (T1); TU stepguard
+ * Notes: runtime: guard flag word +0x2C0 == union of BHV-raised flags in every state
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r7b_guard+runtime
+ * See: docs/engine/guards-ai.md#2-the-guard-flag-word-0x2c0, docs/engine/guards-ai.md#9-key-functions,
+ *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
+ * @end-sly2-annot */
 void AddStepguardSgf(struct S *p, int n)
 {
     long m = GrfFromSgf(n);

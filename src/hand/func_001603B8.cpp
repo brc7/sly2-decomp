@@ -22,6 +22,15 @@ public:
 };
 extern "C" void *func_001AE2A0(ALLOCREQ *preq);
 extern "C" void func_002303A0(LOBase *p, LOX *plo, int n);
+/** @sly2-annot addr=0x1603B8
+ * Purpose: Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from
+ *   the BRX stream, links each dest to its record and switches the dest transform mode (0x2303A0(...,0xF))
+ * Info: proposed name LoadXfmConstraintsFromBrx (T1); TU tu_1603B8
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+parse-verified
+ * See: docs/engine/hud-ui.md#4-source-files, docs/engine/object-model.md#7-xfm-and-transform-helpers,
+ *   docs/engine/object-model.md#8-source-files
+ * @end-sly2-annot */
 extern "C" void func_001603B8(LOBase *p, CBinaryInputStream *pbis)
 {
     int c = pbis->S8Read();

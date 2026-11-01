@@ -60,6 +60,17 @@ static inline M3 MakeBasis(qword direction,qword rawUp) return result;{
  __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(normalized):"j"(v),"j"(len));
  BuildOrthonormalMatrixZ(&result,first,normalized);
 }
+/** @sly2-annot addr=0x224EC8
+ * Purpose: CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to
+ *   surface +0x1A0, 3 detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114
+ * Info: proposed name SetCid100State (T2); class CID100 slot76; TU tu_223F70
+ * Notes: runtime5a #19 CLARIFIED: states -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health-extract;
+ *   SMA goal D_002C4398[state] | T2: placeholder token Cid100
+ * Confidence: low (draft) [T2 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
+ * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
+ *   docs/engine/player.md#7-bentley-bentleycpp-0x134648,
+ *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 extern "C" void func_00224EC8(S *p,int state){
  int old=p->state;
  if(state==old)return;

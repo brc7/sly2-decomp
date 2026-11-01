@@ -10,6 +10,14 @@ void func_00130EB0(struct P *p);
 int func_0012CEE0(struct S *ps);
 void SlotUnsettle(void *p4, struct R *pr);
 void func_00230CF0(struct P *p, int n);
+/** @sly2-annot addr=0x130D30
+ * Purpose: Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur
+ * Info: proposed name SeekAsega (T1); TU asega
+ * Notes: names_v2 C proposed HandleAsegaEvents__FP5ASEGAP4ASEGPi (0.438)
+ * Confidence: high [T1 0.90] - evidence: static naming pass; sources: r1_116918
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 void func_00130D30(struct P *p, int k, float g, float s)
 {
     float t;

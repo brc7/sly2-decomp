@@ -3,6 +3,15 @@ typedef int qword __attribute__((mode(TI)));
 union VUF { qword q; float f[4]; };
 struct NODE { NODE *pnodeLeft; NODE *pnodeRight; qword *pplane; };
 extern "C" void *func_002564B8(void *p);
+/** @sly2-annot addr=0x118FB0
+ * Purpose: Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the
+ *   leaf node
+ * Info: proposed name PbspPointInBspQuick (T1); TU bsp
+ * Notes: names_v2 C proposed CloneBspc__FP4GEOMP4BSPCT0T1 (0.638)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
+ * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70,
+ *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
+ * @end-sly2-annot */
 extern "C" NODE *PbspPointInBspQuick(NODE *pnode, NODE *pnodeMax, qword pos)
 {
     NODE *p;

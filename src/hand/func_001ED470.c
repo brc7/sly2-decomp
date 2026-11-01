@@ -1,5 +1,11 @@
 struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
+/** @sly2-annot addr=0x1ED470
+ * Purpose: Insert a record into the bitmap hash (key % 0x3FFD, linear probe)
+ * Info: proposed name AddBmpHash (T2); TU shd
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001ED470(struct S *input){
     struct S *p;
     register int nextIndex __asm__("$3");

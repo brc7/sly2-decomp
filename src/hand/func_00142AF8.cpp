@@ -71,6 +71,14 @@ static inline float GFrac(float g, float a, float b)
 }
 static inline float X(const M3 &m, int i) { return ((float *)&m.r[0])[i]; }
 
+/** @sly2-annot addr=0x142AF8
+ * Purpose: Per-frame interact/lean target pick: ranks candidates with HeroInteractDistance (3 calls,
+ *   &hero->ploLean)
+ * Info: proposed name PickHeroInteractTarget (T2); TU stepplayer
+ * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 void func_00142AF8(P *p)
 {
     int f;

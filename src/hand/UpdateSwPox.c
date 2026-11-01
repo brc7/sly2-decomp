@@ -10,6 +10,15 @@ void func_001A7E10(struct P *, void *);
 void func_001F5078(struct LO *);
 void func_0011CD98(void *, struct L *);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
+/** @sly2-annot addr=0x133A38
+ * Purpose: Create or destroy the OX pair between two OXAs: k=1 force on, 2 force off, 0 keep current; pair if
+ *   forced or overlapping (0x133D08); on removal call vt54 on both and free XP list
+ * Info: proposed name UpdateSwPox (T1); TU bbmark
+ * Notes: names_v2 C proposed UpdateTank__FP4TANKf (0.438)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
+ *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
+ * @end-sly2-annot */
 void UpdateSwPox(struct P *p, struct X *px1, struct X *px2, int k)
 {
     struct L *pl;

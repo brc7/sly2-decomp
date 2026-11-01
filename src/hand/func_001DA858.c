@@ -9,6 +9,14 @@ struct OBJ {
     int n;
 };
 float func_002458F0(float, float);
+/** @sly2-annot addr=0x1DA858
+ * Purpose: Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1)
+ *   when back under 0.5
+ * Info: proposed name UpdateScreenStickDir (T1); TU screen
+ * Notes: names_v2 C hint not used: LoadTnFromBrx__FP2TNP18CBinaryInputStream
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DA858(OBJ *p)
 {
     Q *q = p->q;

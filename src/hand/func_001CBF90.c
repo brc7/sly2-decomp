@@ -4,6 +4,15 @@ extern struct G D_002DDF40;
 extern int D_002F7900;
 void func_0014E328(struct G *pg, int n, void *pv, int m, void *p);
 void func_0014E4C8(struct G *pg, int a, int b, void *c, void *d, int e);
+/** @sly2-annot addr=0x1CBF90
+ * Purpose: Toggle camera policy 6 framing g_pmurray (D_002F7900) and this guard (SetCmPolicy/RevokeCmPolicy)
+ * Info: proposed name SetRajanCameraFocus (T2); class RAJAN slot90; TU tu_1CBEB0
+ * Notes: class identity from whole_game WE names/object strings: SetCid61GuardCameraFocus ->
+ *   SetRajanCameraFocus
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/engine/bosses.md#32-rajan-m3_boss-l12-temple-exterior,
+ *   docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158
+ * @end-sly2-annot */
 void func_001CBF90(struct S *p, int n)
 {
     if (p->n == n) return;

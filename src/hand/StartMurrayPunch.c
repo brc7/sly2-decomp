@@ -7,6 +7,13 @@ qword func_001A62E8(void *p);
 qword ConvertAloVec(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+/** @sly2-annot addr=0x1B8508
+ * Purpose: Square attack: SetMurrayState(11) and SetMurrayAttack kind 0/1 (alternating hand, chosen by side
+ *   of target)
+ * Info: proposed name StartMurrayPunch (T1); TU murray
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
+ * @end-sly2-annot */
 void StartMurrayPunch(struct P *p)
 {
     int k;

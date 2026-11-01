@@ -4,6 +4,15 @@ int func_002121E8(void *p, int n);
 void FinishJob(struct S *p);
 void func_00162FD0(struct S *p);
 void SetJobCompletionPhase(struct S *p, int n);
+/** @sly2-annot addr=0x163078
+ * Purpose: JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when
+ *   the widget label finishes
+ * Info: proposed name UpdateJob (T1); class JOB slot16; TU game
+ * Notes: superseded r3_1539A8 proposal: UpdateCid84 (0.65) | runtime6 G7/G8: job phase 1 banner (S61)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime
+ * See: docs/engine/game-progression.md#job-lo-child-0x100, docs/engine/game-progression.md#8-key-functions,
+ *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
+ * @end-sly2-annot */
 void UpdateJob(struct S *p)
 {
     UpdateLo(p);

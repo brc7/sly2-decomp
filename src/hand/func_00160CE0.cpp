@@ -15,6 +15,13 @@ extern "C" int FIsDlEmpty__FP2DL(DL*);
 extern "C" void RemoveDlEntry__FP2DLPv(DL*,void*);
 extern "C" void ClearDl__FP2DL(DL*);
 extern "C" void func_0011CD98(void*,void*);
+/** @sly2-annot addr=0x160CE0
+ * Purpose: Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2
+ *   (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40
+ * Info: proposed name ClearPendingFrame (T1); TU frm
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 extern "C" void func_00160CE0(FR*frame){
  if(!FIsDlEmpty__FP2DL(&frame->dl34)){
   DLI iter(&frame->dl34);

@@ -14,6 +14,12 @@ void func_00129EC8(struct CRef *);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
 char *func_0021ED58(char *d, const char *s);
 char *func_0021EDA0(char *d, const char *s);
+/** @sly2-annot addr=0x1ADA20
+ * Purpose: Dynamic text provider (0x5CD)
+ * Info: proposed name TextSaveB (T2); TU memcard
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
+ * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
+ * @end-sly2-annot */
 void func_001ADA20(char *buf)
 {
     struct G *g = &D_003D9ED0;

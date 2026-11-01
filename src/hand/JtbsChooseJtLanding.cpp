@@ -180,6 +180,14 @@ static inline float Length(qword v)
 }
 static inline float GMinOf(float a, float b) { return a < b ? a : b; }
 
+/** @sly2-annot addr=0x19B110
+ * Purpose: Choose the jump target/landing among all candidate lists (D_003E13B4..D_003E142C), scoring with
+ *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then
+ *   SetJtAirState
+ * Info: proposed name JtbsChooseJtLanding (T1); TU air
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
 {
     void *ploBest = 0;

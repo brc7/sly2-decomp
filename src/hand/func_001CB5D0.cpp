@@ -21,6 +21,12 @@ void func_001CB5C8(LO *p, int n);
 void func_001F37C8(LO *p, int n);
 void func_001CB5D0(LO *p, int n);
 }
+/** @sly2-annot addr=0x1CB5D0
+ * Purpose: SO vt27
+ * Info: proposed name SO_VUnk27Proxy (T2); class SO slot27; TU proxy
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
+ * @end-sly2-annot */
 void func_001CB5D0(LO *p, int n)
 {
     LO *pc;

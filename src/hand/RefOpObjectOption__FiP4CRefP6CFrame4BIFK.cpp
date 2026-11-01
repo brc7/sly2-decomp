@@ -16,6 +16,14 @@ CRef func_00200C28(void *a, void *b, CRef *pref);
 CRef RefGetOption__FP5BASICi(void *a, void *b);
 CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *aref, void *pv, int op);
 }
+/** @sly2-annot addr=0x123EB0
+ * Purpose: Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
+ *   RefAddOption/RefEnsureOption/RefSetOption/RefGetOption
+ * Info: proposed name RefOpObjectOption (T1); TU bif
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r1_116918+verdicts_B
+ * See: docs/engine/splice-scripting.md#7-key-functions, docs/formats/splice-scripts.md#3-names,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *aref, void *pv, int op)
 {
     CRef ref;

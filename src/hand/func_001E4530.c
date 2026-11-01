@@ -14,6 +14,14 @@ void *func_001F67E0(void *p, int n);
 float DtSmaToState(void *p, int n);
 float func_001FCFD0(struct G *pg, int n);
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
+/** @sly2-annot addr=0x1E4530
+ * Purpose: Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
+ *   Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if
+ *   fAsync
+ * Info: proposed name GJsgCommandWait (T2); TU relay
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 float func_001E4530(struct C *pc, struct P *p)
 {
     float g = 0.0f;

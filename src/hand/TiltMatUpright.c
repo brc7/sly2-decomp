@@ -21,6 +21,14 @@ static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
     m.r[1] = r1; pd->r[1] = m.r[1];
     m.r[2] = r2; pd->r[2] = m.r[2];
 }
+/** @sly2-annot addr=0x11B938
+ * Purpose: Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted
+ *   matrix
+ * Info: proposed name TiltMatUpright (T1); TU mat
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
+ *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
+ * @end-sly2-annot */
 void TiltMatUpright(M3 *pm, M3 *pmA, M3 *pmB)
 {
     M3 local;
