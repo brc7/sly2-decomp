@@ -58,6 +58,12 @@ extern s32 D_003E1480;
 extern void *D_003E148C;
 extern M2C_UNK D_003E1498;
 
+/** @sly2-annot addr=0x154528
+ * Purpose: Hit-test filter callback: accepts SOs passing 0x20FA10 whose class id is 0x31
+ * Info: TU detector
+ * Notes: no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
+ * @end-sly2-annot */
 s32 func_00154528(s32 arg0, s32 arg1) {
     if (func_0020FA10(arg0, arg1) == 0) {
         return 0;

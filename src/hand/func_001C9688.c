@@ -14,6 +14,12 @@ static inline void InitE(struct E *pe, int n, void *p, int r, int g, int b, int 
     pe->p = p;
     SetRgba(&pe->c, r, g, b, a);
 }
+/** @sly2-annot addr=0x1C9688
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU prog
+ * Info: proposed name StaticInit_prog (T1); TU prog
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r5_1AE130
+ * @end-sly2-annot */
 void func_001C9688(int init, int prio)
 {
     if (prio == 0xFFFF && init) {

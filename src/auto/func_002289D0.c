@@ -23,6 +23,12 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E10D0;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x2289D0
+ * Purpose: 0x228988(p,0x18A)
+ * Info: TU exit_warp
+ * Notes: descriptive only: Add oid 0x18A | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
+ * @end-sly2-annot */
 void func_002289D0(s32 arg0, s32 arg1) {
     func_00228988(arg0, 0x18A);
 }

@@ -18,6 +18,12 @@ static inline M4 *PublishSkew(M4 &m,qword value){
  :"r"(value),"r"(&m):"$f0","$f1","$f2","$f3","$f4");return result;
 }
 static inline void RetainMatrices(M4 *incomingDestination,const M3 *incomingBasis,M4 *&outDestination,const M3 *&outBasis){register M4 *destination asm("$17");register const M3 *basis asm("$18");asm("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=&r"(destination),"=&r"(basis):"r"(incomingDestination),"r"(incomingBasis));outDestination=destination;outBasis=basis;}
+/** @sly2-annot addr=0x22CCD0
+ * Purpose: hand comment
+ * Info: TU xf
+ * Notes: descriptive only: xf: skew derivative matrix | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
+ * @end-sly2-annot */
 extern "C" M4 *func_0022CCD0(M4 *destination, void *pv, const M3 *basis, qword v)
 {
     M4 *pm;const M3 *pmB;RetainMatrices(destination,basis,pm,pmB);func_002333B4(destination, 0, 0x40);

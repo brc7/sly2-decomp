@@ -13,6 +13,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x19F290
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU tu_19F0A8
+ * Info: proposed name StaticInit_tu_19F0A8 (T1); TU tu_19F0A8
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r4b_rest
+ * @end-sly2-annot */
 void func_0019F290(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

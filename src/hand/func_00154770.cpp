@@ -18,6 +18,12 @@ static inline float Dot(qword a, const VECTOR &b)
     return g;
 }
 
+/** @sly2-annot addr=0x154770
+ * Purpose: Additional per-target visibility test (darkness/cover) used when flag xF8&1 is clear
+ * Info: TU detector
+ * Notes: no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
+ * @end-sly2-annot */
 int func_00154770(void *p, SO *pso)
 {
     if (!func_00132B10(pso, 0x34)) return 0;

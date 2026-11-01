@@ -40,6 +40,12 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E0F9C;
 extern s32 D_003E1480;
 
+/** @sly2-annot addr=0x153EF8
+ * Purpose: If the tracked object changed (a!=b) registers the new one as a detector target
+ * Info: TU detector
+ * Notes: names_v2 C proposed FReachedStepguardGoal__FP9STEPGUARD (0.200) | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3_1539A8
+ * @end-sly2-annot */
 void func_00153EF8(s32 arg0, s32 arg1, s32 arg2) {
     if (arg1 != arg2) {
         func_00153F18(arg0, arg2);

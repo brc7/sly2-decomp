@@ -8,6 +8,12 @@ extern char D_002C43D0[], D_002C43E0[];
 void func_001FAC30(struct O *o, qword v);
 qword func_001A62E8(void *p);
 void func_001F5E10(struct O *o, qword v, void *a, qword b, void *c);
+/** @sly2-annot addr=0x2255C8
+ * Purpose: negated vector -> 0x1FAC30
+ * Info: class CID102 slot71; TU tu_223F70
+ * Notes: descriptive only: Cid102 impulse helper | no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
+ * @end-sly2-annot */
 void func_002255C8(struct S *p, struct Q *q)
 {
     struct O *o = q->o;

@@ -12,6 +12,12 @@ static inline void Release(struct X **pp)
     struct X *px = *pp;
     if (px) px->pvt[2].pfn((char *)px + px->pvt[2].d);
 }
+/** @sly2-annot addr=0x1FF188
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU sound
+ * Info: proposed name StaticInit_sound (T1); TU sound
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r7_1F8DD8
+ * @end-sly2-annot */
 void func_001FF188(int init, int prio)
 {
     if (prio != 0xFFFF) return;

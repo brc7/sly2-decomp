@@ -19,6 +19,12 @@ static inline void InitBase(BASE *p, void *vt)
     p->x4 = 0;
     p->vptr = vt;
 }
+/** @sly2-annot addr=0x1DE008
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU screen
+ * Info: proposed name StaticInit_screen (T1); TU screen
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r6b_rest
+ * @end-sly2-annot */
 void func_001DE008(int init, int prio)
 {
     if (prio == 0xFFFF) {

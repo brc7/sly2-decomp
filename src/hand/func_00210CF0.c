@@ -7,6 +7,12 @@ extern char D_004520A8[], D_004520D0[], D_004520F8[], D_00452120[], D_00452148[]
 void func_0020D9D0(void *);
 void func_0011CCA8(void *, int, int, int);
 void func_00258348(void *, int);
+/** @sly2-annot addr=0x210CF0
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU sw
+ * Info: proposed name StaticInit_sw (T1); TU sw
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r7_1F8DD8
+ * @end-sly2-annot */
 void func_00210CF0(int fInit, int prio)
 {
     if (prio != 0xFFFF)

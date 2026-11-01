@@ -13,6 +13,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1B0A20
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU menu
+ * Info: proposed name StaticInit_menu (T1); TU menu
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r5b_rest
+ * @end-sly2-annot */
 void func_001B0A20(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

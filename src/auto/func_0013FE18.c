@@ -13,6 +13,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x13FE18
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU brx
+ * Info: proposed name StaticInit_brx (T1); TU brx
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: semantic review; sources: tu_map(structural)+r2_131F70
+ * @end-sly2-annot */
 void func_0013FE18(s32 arg0, s32 arg1) {
     s32 temp_v0;
     s32 temp_v0_2;

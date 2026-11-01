@@ -10,6 +10,11 @@ void func_00129EC8(CRef *pref);
 CRef *func_00129D58(CRef *ret, CRef *pref);
 CRef *func_00129DA8(CRef *ret, CRef *pref);
 
+/** @sly2-annot addr=0x201110
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Info: TU spliceobj
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * @end-sly2-annot */
 CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
 {
     CREFA ref;
