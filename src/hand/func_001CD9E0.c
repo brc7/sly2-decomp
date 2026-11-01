@@ -9,6 +9,15 @@ static inline int Flags(struct LO *plo)
     if (FPtr(v)) v = *(int *)v;
     return v;
 }
+/** @sly2-annot addr=0x1CD9E0
+ * Purpose: On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's
+ *   globset
+ * Info: proposed name SubmitSwRelightAll (T1); TU render
+ * Notes: superseded: RenderSwObjectsFound (r5_1AE130)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130+rendering
+ * See: docs/engine/rendering.md#1-frame-structure,
+ *   docs/reference/functions/rendering.md#render-0x1cd5f0-0x1cdcd0
+ * @end-sly2-annot */
 void func_001CD9E0(struct G *p)
 {
     struct LO *ap[0x400];

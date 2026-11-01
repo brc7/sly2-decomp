@@ -37,6 +37,13 @@ static __inline__ void Align(uint align)
     }
 }
 
+/** @sly2-annot addr=0x1684D0
+ * Purpose: Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet
+ * Info: proposed name UnpackSubglobBones (T1); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 void func_001684D0(void *context, DESC *descriptor, ENTRY *entry)
 {
     uint opcode;

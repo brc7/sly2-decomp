@@ -5,6 +5,14 @@ M2C_UNK func_0011A060(s32);                         /* extern */
 M2C_UNK func_0011A070(M2C_UNK *, s32);              /* extern */
 extern M2C_UNK D_003E159C;
 
+/** @sly2-annot addr=0x1ED850
+ * Purpose: Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the
+ *   SAA list D_003E159C
+ * Info: proposed name PsaaClone (T2); TU shdanim
+ * Notes: names_v2 v1 proposed PvtsaaFromSaak__F4SAAK (0.012)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 s32 func_001ED850(void *arg0) {
     s32 temp_v0;
     void *temp_v0_2;

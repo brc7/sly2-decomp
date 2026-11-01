@@ -39,6 +39,13 @@ extern M2C_UNK D_003DD040;
 extern M2C_UNK D_003DD490;
 extern s32 D_003E0FE0;
 
+/** @sly2-annot addr=0x226C10
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * See: docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/rendering.md#vifs-0x226c10-0x227350,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 s32 func_00226C10(s32 arg0) {
     __4DMAS(arg0);
     M2C_FIELD(arg0, s32 *, 0x10) = 1;

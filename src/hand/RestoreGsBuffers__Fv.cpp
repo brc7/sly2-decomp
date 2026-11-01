@@ -11,6 +11,11 @@ extern "C" void func_00240AE0(void *pdraw, short x, short y, short half);
 extern "C" void func_00234CA0(int n);
 extern "C" void func_002406C0(void *p);
 static inline int FField() { return ((CSR *)0x12001000)->FIELD; }
+/** @sly2-annot addr=0x16F6B8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 void RestoreGsBuffers()
 {
     if (D_002DEDBC == 3)

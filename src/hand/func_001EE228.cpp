@@ -8,6 +8,12 @@ extern "C" int func_0011A1E8(SAI *psai);
 extern "C" void func_001EDA68(EYES *p, int iframe);
 void SetEyesEyess(EYES *peyes, EYESS eyess);
 extern "C" void func_001EE228(EYES *peyes);
+/** @sly2-annot addr=0x1EE228
+ * Purpose: EYES vt8 Update
+ * Info: proposed name UpdateEyes (T1); class EYES slot8; TU shdanim
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void func_001EE228(EYES *peyes)
 {
     if (func_0011A1E8(&peyes->sai) || peyes->cframe < 2)

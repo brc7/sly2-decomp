@@ -37,6 +37,13 @@ static __inline__ void SetBit(int *a, int bit)
     *pw |= m;
 }
 
+/** @sly2-annot addr=0x1A3D00
+ * Purpose: Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending
+ * Info: proposed name AddLightToSw (T1); TU light
+ * Notes: names_v2 C proposed UpdateLightBeamGrfzon__FP5LIGHT (0.638)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 void func_001A3D00(struct SLOTS *s, struct OBJ *o)
 {
     if (o->slot < 0) {

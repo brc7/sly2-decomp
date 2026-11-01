@@ -9,6 +9,13 @@ float func_002599D8(V4 *pv);
 float func_002599E0(V4 *pv);
 float func_002599E8(V4 *pv);
 
+/** @sly2-annot addr=0x16EF00
+ * Purpose: Resets an attachment record (clear flag on attached object, zero vector, radius 1e6)
+ * Info: proposed name ResetGlobAttachment (T2); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 void func_0016EF00(S *p, int i)
 {
     float g = 1000000.0f;

@@ -57,6 +57,11 @@ extern M2C_UNK D_003E1518;
 extern M2C_UNK D_003E1530;
 extern s32 D_004425D4;
 
+/** @sly2-annot addr=0x160A20
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 void FinalizeFrameGifs__FP4GIFSPiPP2QW(s32 arg0, s32 arg1, s32 arg2) {
     AddPrimPack__4GIFSiiUl(arg0, 0, 1, 0xE);
     PackAD__4GIFSll(arg0, 0x61, 0);

@@ -15,6 +15,13 @@ extern "C" int func_0011A3B0(DL*);
 extern "C" void func_0011A2E8(DL*,void*);
 extern "C" void func_0011A200(DL*);
 extern "C" void func_0011CD98(void*,void*);
+/** @sly2-annot addr=0x160CE0
+ * Purpose: Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2
+ *   (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40
+ * Info: proposed name ClearPendingFrame (T1); TU frm
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 extern "C" void func_00160CE0(FR*frame){
  if(!func_0011A3B0(&frame->dl34)){
   DLI iter(&frame->dl34);

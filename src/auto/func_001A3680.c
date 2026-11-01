@@ -30,6 +30,12 @@ extern void *D_003E04F8;
 extern s32 D_003E19E4;
 extern M2C_UNK D_004435F0;
 
+/** @sly2-annot addr=0x1A3680
+ * Purpose: Toggle flag x15C (clears x160 when set), invalidating before/after
+ * Info: proposed name SetLightFStatic (T2); TU light
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 void func_001A3680(s32 arg0, s32 arg1) {
     if (arg1 != M2C_FIELD(arg0, s32 *, 0x15C)) {
         func_001A3B38(arg0);

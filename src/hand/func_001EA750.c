@@ -6,6 +6,13 @@ struct Y { int a; unsigned short grf; short pad; struct S8 *ps8; };
 ulong func_001EA6C8(struct Y *py, int i, int n);
 void func_00166E90(void *pq, int reg, ulong val);
 void *func_002333B4(void *p, int b, int cb);
+/** @sly2-annot addr=0x1EA750
+ * Purpose: Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D
+ *   stream
+ * Info: proposed name PackTexGifs (T1); TU shd
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001EA750(struct Y *py, int n, void *pq)
 {
     struct TEX1 tex1;

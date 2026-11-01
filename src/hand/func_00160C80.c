@@ -4,6 +4,13 @@ extern void *D_002DE598;
 void func_001EE7B0(struct S *p, int f);
 void func_00170048(void);
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(void *pch, void *pqw);
+/** @sly2-annot addr=0x160C80
+ * Purpose: Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain,
+ *   and GIF chain if fRenderGifs
+ * Info: proposed name RenderFrame (T1); TU frm
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5+verdicts_A1
+ * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 void func_00160C80(struct S *p, int f)
 {
     func_001EE7B0(p, f);

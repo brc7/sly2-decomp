@@ -31,6 +31,18 @@ static inline void InitEnt(struct ENT *pe, int n, struct MSG *pmsg)
     pmsg->nKind = 0x10;
     pe->p = func_001AE2A0(pmsg);
 }
+/** @sly2-annot addr=0x1EB2F0
+ * Purpose: Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame
+ *   data
+ * Info: proposed name LoadShdFromBrx (T1); TU shd
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
+ *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources:
+ *   r6b_rest+parse-verified+format-doc:textures
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
+ *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
+ * @end-sly2-annot */
 void func_001EB2F0(void *pbis, struct L *p)
 {
     struct MSG msg;

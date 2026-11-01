@@ -1,5 +1,13 @@
 struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
+/** @sly2-annot addr=0x1ED560
+ * Purpose: Insert into the clut hash
+ * Info: proposed name AddClutHash (T2); TU shd
+ * Notes: names_v2 C proposed PropagateSurs__Fv (0.638)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/formats/textures.md#2-clut-record-0x10-byte-header-cstatic,
+ *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001ED560(struct S *input){
     struct S *p;
     register int nextIndex __asm__("$3");

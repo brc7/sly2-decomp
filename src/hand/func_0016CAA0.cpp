@@ -57,6 +57,18 @@ typedef char HEADER_segments_Offset[FIELD_OFFSET(HEADER,segments)==20?1:-1];
 typedef char HEADER_bones_Offset[FIELD_OFFSET(HEADER,bones)==24?1:-1];
 typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
+/** @sly2-annot addr=0x16CAA0
+ * Purpose: Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline
+ * Info: proposed name LoadSubglobType2FromBrx (T1); TU glob
+ * Notes: superseded: LoadSubglobType1FromBrx (r3_1539A8) | sub-glob type->loader correction (CONFLICTS #16,
+ *   MESH_FORMAT, level_parser type switch 0x167748): v1 had the types permuted | level_parser
+ *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
+ *   0x167750)+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
+ *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
+ * @end-sly2-annot */
 extern "C" void func_0016CAA0(OWNER*p,D*desc,E*entry,void*,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  int i=0;
  p->flags|=1UL<<33;

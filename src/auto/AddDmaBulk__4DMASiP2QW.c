@@ -40,6 +40,11 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E12B8;
 extern void *D_003E148C;
 
+/** @sly2-annot addr=0x157660
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 s32 AddDmaBulk__4DMASiP2QW(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_v0;
 

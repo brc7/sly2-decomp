@@ -15,6 +15,14 @@ void func_0016F868(void);
 void func_00234700(int a, void (*pfn)(void), int b);
 void func_00235178(int a);
 void func_0016F788(void);
+/** @sly2-annot addr=0x1700D0
+ * Purpose: GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame
+ *   context packets, semaphores, VBlank/GS interrupt handlers
+ * Info: proposed name StartupGs (T1); TU gs
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/overview.md#1-boot, docs/engine/rendering.md#1-frame-structure,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 void func_001700D0(void) {
     int i;
     int c;

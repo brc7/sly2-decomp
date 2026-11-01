@@ -7,6 +7,15 @@ extern char D_002BBB60[];
 float func_00245B58(float, float);
 float func_0011D948(void *, float);
 void func_0011DD90(struct G3 *, VEC *);
+/** @sly2-annot addr=0x1ED2D8
+ * Purpose: Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x)
+ *   and rebuild via HSV
+ * Info: proposed name ColorCorrectVector (T2); TU shd
+ * Notes: names_v2 C proposed ReferenceShaderAqwRegs__FP3SHDP4SHDPP2QWiiP3SAI (0.638)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/engine/rendering.md#8-blips-hud-screen-effects,
+ *   docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8
+ * @end-sly2-annot */
 void func_001ED2D8(VEC *p)
 {
     struct G3 c;

@@ -1,12 +1,22 @@
 #include "vifs.h"
 #include "bis.h"
 
+/** @sly2-annot addr=0x226CA8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifBaseOffset(int iqwBase, int diqwOffset)
 {
     AddDmaInt(this, iqwBase | 0x03000000);
     AddDmaInt(this, diqwOffset | 0x02000000);
 }
 
+/** @sly2-annot addr=0x226CE0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifMscal(void *pv)
 {
     int i = (int)pv < 0 ? (int)pv + 7 : (int)pv;
@@ -15,21 +25,43 @@ void VIFS::AddVifMscal(void *pv)
     *(int *)p = (i >> 3) | 0x14000000;
 }
 
+/** @sly2-annot addr=0x226D10
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifFlush()
 {
     AddDmaInt(this, 0x11000000);
 }
 
+/** @sly2-annot addr=0x226D28
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifFlusha()
 {
     AddDmaInt(this, 0x13000000);
 }
 
+/** @sly2-annot addr=0x226D40
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifStcycl(int wl, int cl)
 {
     AddDmaInt(this, cl | (wl << 8) | 0x1000000);
 }
 
+/** @sly2-annot addr=0x226C10
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/rendering.md#vifs-0x226c10-0x227350,
+ *   docs/reference/tu-map.md#tu-map-address-range---source-file
+ * @end-sly2-annot */
 VIFS::VIFS()
 {
     m_fPad = 1;
@@ -37,6 +69,11 @@ VIFS::VIFS()
     m_fCheckCnt = 0;
 }
 
+/** @sly2-annot addr=0x226C58
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::Align(int iun)
 {
     int i = ((uint)m_pb & 0xC) >> 2;
@@ -50,6 +87,11 @@ void VIFS::Align(int iun)
     m_pb = pb;
 }
 
+/** @sly2-annot addr=0x226D68
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifStrow(QW *pqw)
 {
     { uchar *p = m_pb; m_pb = p + 4; *(int *)p = 0x30000000; }
@@ -59,6 +101,11 @@ void VIFS::AddVifStrow(QW *pqw)
     { uchar *p = m_pb; m_pb = p + 4; *(int *)p = pqw->aui[3]; }
 }
 
+/** @sly2-annot addr=0x226DD0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifStmask(uint unMask)
 {
     if (unMask)
@@ -71,6 +118,11 @@ void VIFS::AddVifStmask(uint unMask)
 
 extern int s_mpupkcb[];
 
+/** @sly2-annot addr=0x226E10
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 int VIFS::CbUnpackSetup(UPK upk, int c, int iqw)
 {
     int vifcode;
@@ -92,6 +144,12 @@ int VIFS::CbUnpackSetup(UPK upk, int c, int iqw)
     return s_mpupkcb[upk] * c;
 }
 
+/** @sly2-annot addr=0x226E88
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988,
+ *   docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun)
 {
     if (c == 0)
@@ -111,6 +169,12 @@ void VIFS::UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun)
         *pcb = cb;
 }
 
+/** @sly2-annot addr=0x226F28
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#shd-0x1ea568-0x1ed7a8,
+ *   docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw)
 {
     int cb;
@@ -140,6 +204,11 @@ void VIFS::AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw)
     }
 }
 
+/** @sly2-annot addr=0x226FD0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifUnpack(UPK upk, int c, CBinaryInputStream *pbis, int iqw)
 {
     int cb;
@@ -148,6 +217,11 @@ void VIFS::AddVifUnpack(UPK upk, int c, CBinaryInputStream *pbis, int iqw)
     pbis->Read(cb, pun);
 }
 
+/** @sly2-annot addr=0x227010
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifUnpackRefs(UPK upk, int c, void *pvSrc, int iqw, void ***pppv)
 {
     if (c == 0)
@@ -160,6 +234,11 @@ void VIFS::AddVifUnpackRefs(UPK upk, int c, void *pvSrc, int iqw, void ***pppv)
         *pppv = (void **)((uchar *)m_pqwCnt - 12);
 }
 
+/** @sly2-annot addr=0x2270C8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifDirect(int cqw, QW *aqw, int fInt)
 {
     Align(3);
@@ -169,6 +248,11 @@ void VIFS::AddVifDirect(int cqw, QW *aqw, int fInt)
     AddDmaBulk(cqw, aqw);
 }
 
+/** @sly2-annot addr=0x227148
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifDirectRefs(int cqw, QW *aqw, int fInt)
 {
     Align(3);
@@ -178,6 +262,11 @@ void VIFS::AddVifDirectRefs(int cqw, QW *aqw, int fInt)
     AddDmaRefs(cqw, aqw);
 }
 
+/** @sly2-annot addr=0x2271C8
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#vifs-0x226c10-0x227350
+ * @end-sly2-annot */
 void VIFS::AddVifGifs(GIFS *pgifs)
 {
     DMAS *pdmas = (DMAS *)pgifs;

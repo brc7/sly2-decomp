@@ -25,6 +25,12 @@ static inline float SavedHeight(float value){register float height __asm__("$f20
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+/** @sly2-annot addr=0x1CD780
+ * Purpose: project a world-space label, fit its rect and draw text in a color
+ * Info: proposed name RenderWorldLabel (T2); TU render
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/rendering.md#render-0x1cd5f0-0x1cdcd0
+ * @end-sly2-annot */
 extern "C" void func_001CD780(qword position,const char *text,const RGBA *unusedColor,const RGBA *color,float inputHeight)
 {
     float height=SavedHeight(inputHeight);

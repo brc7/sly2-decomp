@@ -52,6 +52,14 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
 }
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 
+/** @sly2-annot addr=0x1A4258
+ * Purpose: True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones)
+ * Info: proposed name FSphereHitsSpheres (T1); TU light
+ * Notes: names_v2 B proposed TwpsFindSwLights__FP2SWP6VECTORfiiPiT5PP5LIGHT (0.950)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r4b_rest+verdicts_followups
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 extern "C" int func_001A4258(qword pos, float sRadius, int csphere, SPHERE *asphere)
 {
     int i;

@@ -40,6 +40,11 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E12B8;
 extern void *D_003E148C;
 
+/** @sly2-annot addr=0x1574A0
+ * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
+ * Confidence: none - unanalysed; anything inferred from the code here is a guess
+ * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
+ * @end-sly2-annot */
 void func_001574A0(void) {
 
 }

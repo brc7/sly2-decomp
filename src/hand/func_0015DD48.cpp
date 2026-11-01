@@ -41,6 +41,14 @@ static inline void Build(BUF *pbuf, RGBA rgba)
 {
     func_0016F960(pbuf, &rgba, 3);
 }
+/** @sly2-annot addr=0x15DD48
+ * Purpose: Draws the timed object (1168-byte body)
+ * Info: proposed name RenderCid116Self (T2); class CID116 slot19; TU tu_15DC80
+ * Notes: Cid74->Cid116 (CID 0x74=116, vtable)
+ * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/rendering.md#2-render-list-entries-rpl,
+ *   docs/reference/functions/gameplay-objects.md#tu_15dc80-0x15dc80-0x15e380
+ * @end-sly2-annot */
 extern "C" void func_0015DD48(X *p)
 {
     RGBA rgba;

@@ -16,6 +16,13 @@ extern "C" void func_00160F98();
 extern "C" void func_00160CE0(FR *pfr);
 extern "C" void func_001C2BA8(int phase);
 void SwapGsBuffers();
+/** @sly2-annot addr=0x160E68
+ * Purpose: Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to
+ *   both buffers and clears pending frames
+ * Info: proposed name FlushFrames (T1); TU frm
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 extern "C" void func_00160E68(int fReset)
 {
     unsigned int i;

@@ -3,6 +3,14 @@ struct B { int n0; int n4; struct B *next; };
 struct S { char pad0[4]; int n4; char pad8[4]; struct B *ap[8]; };
 int func_00170448(int n);
 void func_001704B8(struct S *p);
+/** @sly2-annot addr=0x170548
+ * Purpose: Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump
+ *   igsMac (padding to a 0x80 boundary if it would straddle); returns the start index
+ * Info: proposed name IgsAllocGsb (T1); TU gs
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
+ *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 int func_00170548(struct S *input, int cb)
 {
     register struct S *p __asm__("$19")=input;

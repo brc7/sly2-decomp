@@ -80,6 +80,18 @@ static inline void WriteVertex(U *destination,U value){
  float z=func_002599E8(&value);
  destination->f[0]=x;destination->f[1]=y;destination->f[2]=z;
 }
+/** @sly2-annot addr=0x16CF78
+ * Purpose: Sub-glob type 3 loader: U16 shader + indexed vectors + strip bits; HYPOTHESIS cel edge strips
+ * Info: proposed name LoadSubglobType3FromBrx (T1); TU glob
+ * Notes: superseded: LoadSubglobType2FromBrx (r3_1539A8) | sub-glob type->loader correction (CONFLICTS #16,
+ *   MESH_FORMAT, level_parser type switch 0x167748): v1 had the types permuted | level_parser
+ *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
+ *   0x167750)+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
+ *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
+ * @end-sly2-annot */
 extern "C" void func_0016CF78(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  register CBinaryInputStream *input asm("$23")=stream; // pin: the game keeps the stream in s7 for the whole function
  int i=0;

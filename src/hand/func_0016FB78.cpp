@@ -8,6 +8,13 @@ static inline ulong FrameFromDisp(ulong disp)
 {
     return ((disp & 0x1FF) << 5) | (((disp >> 16) & 0x3F) << 14);
 }
+/** @sly2-annot addr=0x16FB78
+ * Purpose: Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width
+ *   of the current and the other display framebuffer (lets the framebuffer be sampled as a texture)
+ * Info: proposed name BuildFrameTex0Gifs (T1); TU gs
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 extern "C" void func_0016FB78()
 {
     char *pdisp;

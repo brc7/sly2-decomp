@@ -373,6 +373,15 @@ static inline int KindOf(SUB *psub)
 {
     return (ulong)(psub->grf & 0xF8) >> 3;
 }
+/** @sly2-annot addr=0x168638
+ * Purpose: Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates
+ *   shader animations, builds/queues VIF packets (0x1681F8/0x1684D0)
+ * Info: proposed name RenderSoGlobset (T1); TU glob
+ * Notes: verifier PLAUSIBLE: DrawGlobset -> RenderSoGlobset
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/rendering.md#2-render-list-entries-rpl, docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" void func_00168638(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SHD *pshd)
 {
     SUBDESC *pdesc;

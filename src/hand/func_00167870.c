@@ -19,6 +19,19 @@ float func_00117E38(struct STREAM*) __asm__("F32Read__18CBinaryInputStream");
 unsigned char func_00117BD0(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
 void*func_001AE2A0(struct REQUEST*);
 static inline float Min(float a,float b){float r;__asm__("min.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
+/** @sly2-annot addr=0x167870
+ * Purpose: Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per
+ *   globset descriptor
+ * Info: proposed name LoadPoseSetsFromBrx (T1); TU glob
+ * Notes: superseded: LoadGlobsetLodsFromBrx (r3_1539A8) | name from the hand source of 0x167320
+ *   (LoadPoseSetsFromBrx) + MESH_FORMAT "posesets"; v1 LoadGlobsetLodsFromBrx | level_parser CONFIRMED-parse:
+ *   payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources:
+ *   r3_1539A8+format-docs+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 void func_00167870(struct P*p,struct STREAM*stream){
     int count=func_00117D50(stream);
     if(count){

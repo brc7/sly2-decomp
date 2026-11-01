@@ -150,6 +150,15 @@ static inline M4 ModelMatrix(const ENTRY *entry) return model
         func_0023320C(&model, &product, sizeof(M4));
     }
 }
+/** @sly2-annot addr=0x1681F8
+ * Purpose: Queues a kind-0 RPL per model packet: CNT + UNPACK 6 qw (EE dest word, sphere, matrix) to VU
+ *   TOPS+0x301 + RET; stamps the model with g_sw+0x3D5C
+ * Info: proposed name SubmitGlobsetRelight (T1); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/engine/rendering.md#2-render-list-entries-rpl,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 extern "C" void func_001681F8(PACKETS *p)
 {
     int fNever = 0;

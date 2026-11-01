@@ -20,6 +20,14 @@ static inline float Length(qword v)
 }
 static inline qword Broadcast(float f) { qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r; }
 static inline qword MAdd(qword p,qword v,qword k) {qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(p),"j"(v),"j"(k));return r; }
+/** @sly2-annot addr=0x167DA0
+ * Purpose: Grows a sub/model cull sphere to include its projection through pshd->pmatClip (projected-volume
+ *   geometry)
+ * Info: proposed name ExpandSphereForProjection (T2); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 qword func_00167DA0(const struct M4 *m,qword p,float *radius)
 {
  U u;

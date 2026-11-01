@@ -18,6 +18,13 @@ void func_001ECBF0(struct E2 *, int, struct X *);
 void func_00157500(struct X *, int, int);
 void func_001ED560(struct E1 *);
 void func_001ED470(struct E2 *);
+/** @sly2-annot addr=0x1ECC28
+ * Purpose: Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added
+ * Info: proposed name FBuildUploadBitmapGifs (T1); TU shd
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest+verdicts_B
+ * See: docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
+ *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 int func_001ECC28(int k, struct BS *pbs, struct X *px)
 {
     int c0 = 0;

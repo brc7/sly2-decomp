@@ -11,6 +11,14 @@ void func_001A3EE8(struct G *p);
 void func_001CD9E0(struct G *p);
 void func_001DAC58(void *p);
 void func_001574A0(void *p);
+/** @sly2-annot addr=0x1CDA80
+ * Purpose: SW vt8: per-frame world render entry (called from main loop)
+ * Info: proposed name RenderSw (T1); class SW slot8; TU render
+ * Notes: runtime: bumps frame counter SW+0x3D60 (== g_cframe delta)
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
+ * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
+ *   docs/engine/overview.md#5-per-frame-update-and-render, docs/engine/rendering.md#1-frame-structure
+ * @end-sly2-annot */
 void func_001CDA80(struct G *p)
 {
     int i;

@@ -12,6 +12,16 @@ static inline ulong Tex0FromDisp(ulong disp)
 {
     return ((disp & 0x1FF) << 5) | (((disp >> 16) & 0x3F) << 14) | (((disp >> 24) & 0x3F) << 20);
 }
+/** @sly2-annot addr=0x160F98
+ * Purpose: Draws the other (previous) framebuffer back over the current one as 32-px textured strips with
+ *   alpha 0x64/0x80 (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8
+ * Info: proposed name BlendPrevFrame (T1); TU frm
+ * Notes: verifier: purpose partly wrong: Sly 1 has BlendPrevFrame in frm; same callers (FrameRenderLoop,
+ *   FlushFrames). Draws the other framebuffer as 32-px sprite strips. Detail wrong: ALPHA_1=0x300000
+ * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/rendering.md#1-frame-structure, docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 extern "C" void func_00160F98()
 {
     if (D_002DEB24 || D_003E12C8)

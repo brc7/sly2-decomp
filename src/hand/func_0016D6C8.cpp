@@ -1,5 +1,13 @@
 #include "gifs.h"
 extern "C" void func_0016D698(int n, GIFS *pgifs, short **pps);
+/** @sly2-annot addr=0x16D6C8
+ * Purpose: Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected
+ *   by grf bits
+ * Info: proposed name BuildProjVolumeGifs (T2); TU glob
+ * Notes: no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8+rendering
+ * See: docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
 {
     pgifs->AddPrimPack(0x200, 1, 0xE);

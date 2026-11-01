@@ -3,6 +3,11 @@
 extern "C" void func_00160918(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern char D_0025E680[];
 extern char D_00262320[];
+/** @sly2-annot addr=0x160940
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
+ * @end-sly2-annot */
 void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw)
 {
     QW aqw[8];

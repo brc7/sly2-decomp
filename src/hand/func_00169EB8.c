@@ -3,6 +3,15 @@ typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
 struct X { int pad[4]; int cqw; };
 struct Y { int pad[4]; QW *aqw; char *pb; };
 QW *func_001AE238(ALLOCREQ *preq, QW *aqw);
+/** @sly2-annot addr=0x169EB8
+ * Purpose: Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by
+ *   a delta
+ * Info: proposed name CopyRelocateDmaChain (T1); TU glob
+ * Notes: verifier PLAUSIBLE: -> CopyRelocateDmaChain
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148
+ * @end-sly2-annot */
 void func_00169EB8(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
 {
     ALLOCREQ req;

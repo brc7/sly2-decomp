@@ -28,6 +28,14 @@ typedef char DISPLAY_scissor_Offset[FIELD_OFFSET(DISPLAY,scissor)==48?1:-1];
 typedef char DISPLAY_test_Offset[FIELD_OFFSET(DISPLAY,test)==112?1:-1];
 typedef char DMAS_m_ab_Offset[FIELD_OFFSET(DMAS,m_ab)==4?1:-1];
 typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
+/** @sly2-annot addr=0x16FCA8
+ * Purpose: Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1
+ *   and 2 of the current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for
+ *   current/other buffer
+ * Info: proposed name BuildFrameContextGifs (T1); TU gs
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/rendering.md#gs-0x16f2d0-0x1709a8
+ * @end-sly2-annot */
 extern "C" void func_0016FCA8(int gifCount,QW*gifBuffer,int vifCount,QW*vifBuffer,uint mask){
  DISPLAY*current;DISPLAY*other;
  if(D_002DEDB0&1){current=&D_002DECD0;other=current-1;}

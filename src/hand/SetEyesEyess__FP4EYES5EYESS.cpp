@@ -4,6 +4,11 @@ enum EYESS { EYESS_Nil = -1, EYESS_Open = 0, EYESS_Closing = 1, EYESS_Closed = 2
 struct EYES { char pad[0x1C]; int cframe; char pad1[0x50 - 0x20]; float dtBlink; float dtOpenMin; float dtOpenMax; float uDoubleBlink;
     int pad60; EYESS eyess; float tEyess; float dtOpen; float dframe; float iframe; float uOpen; };
 extern "C" float func_0011D448(float gLow, float gHigh);
+/** @sly2-annot addr=0x1EE100
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void SetEyesEyess(EYES *peyes, EYESS eyess)
 {
     if (eyess == peyes->eyess)

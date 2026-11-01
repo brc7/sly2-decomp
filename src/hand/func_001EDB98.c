@@ -3,6 +3,14 @@ struct SAA { char pad[0xC]; struct LM lm1; struct LM lm2; unsigned short c; };
 struct P { char pad[0x1C]; int cframe; char pad1[0x50 - 0x20]; struct LM lm1; struct LM lm2; float g60; float g64; float g68; float g6C; };
 void func_001ED8E0(struct P *p, struct SAA *psaa);
 float func_0011D448(float gLow, float gHigh);
+/** @sly2-annot addr=0x1EDB98
+ * Purpose: LOOP vt7 Init
+ * Info: proposed name InitLoop (T1); class LOOP slot7; TU shdanim
+ * Notes: names_v2 C proposed PostLoopLoad__FP4LOOP (0.638)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void func_001EDB98(struct P *p, struct SAA *psaa)
 {
     struct LM *plm2 = &p->lm2;

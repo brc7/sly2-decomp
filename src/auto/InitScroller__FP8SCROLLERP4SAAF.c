@@ -32,6 +32,11 @@ extern s32 D_003DD018;
 extern s32 D_003E12C8;
 extern void *D_003E159C;
 
+/** @sly2-annot addr=0x1EE480
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/rendering.md#shdanim-0x1ed7a8-0x1ee988
+ * @end-sly2-annot */
 void InitScroller__FP8SCROLLERP4SAAF(s32 arg0, s32 arg1) {
     func_001ED8E0(arg0, arg1);
     M2C_FIELD(arg0, f32 *, 0x50) = (f32) M2C_FIELD(arg1, f32 *, 0xC);

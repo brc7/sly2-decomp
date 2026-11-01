@@ -6,6 +6,13 @@ struct S {
 };
 void func_00231100(struct S *s);
 void func_001A6CA8(struct S *s, int n);
+/** @sly2-annot addr=0x1A3360
+ * Purpose: LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ...
+ * Info: proposed name InitLight (T1); class LIGHT slot7; TU light
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
+ * @end-sly2-annot */
 void func_001A3360(struct S *s)
 {
     int v;

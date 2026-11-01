@@ -64,6 +64,18 @@ typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 typedef char ENV_width_Offset[FIELD_OFFSET(ENV,width)==576?1:-1];
 typedef char ENV_height_Offset[FIELD_OFFSET(ENV,height)==580?1:-1];
 typedef char ENV_fade_Offset[FIELD_OFFSET(ENV,fade)==584?1:-1];
+/** @sly2-annot addr=0x16E438
+ * Purpose: Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader
+ * Info: proposed name LoadSubglobType1FromBrx (T1); TU glob
+ * Notes: superseded: LoadSubglobType3FromBrx (r3_1539A8) | sub-glob type->loader correction (CONFLICTS #16,
+ *   MESH_FORMAT, level_parser type switch 0x167748): v1 had the types permuted | level_parser
+ *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
+ *   0x167750)+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
+ *   docs/formats/meshes-scene.md#types-1-3-byte-layouts-cparse-roles-h-except-where-noted
+ * @end-sly2-annot */
 extern "C" void func_0016E438(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  int i=0;
  VIFS vifs;

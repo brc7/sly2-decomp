@@ -321,6 +321,14 @@ static inline void PadQw()
         pdma->pb += 4;
     }
 }
+/** @sly2-annot addr=0x1D5808
+ * Purpose: Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and
+ *   queue meshes/packets/deferred blocks
+ * Info: proposed name CullSceneRenderList (T1); TU tu_1D57A8
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/rendering.md#2-render-list-entries-rpl, docs/engine/rendering.md#13-key-functions,
+ *   docs/reference/functions/rendering.md#ms-0x1b4438-0x1b4728
+ * @end-sly2-annot */
 extern "C" void func_001D5808(STACK *pstack, SCENE *pscene)
 {
     OBJ *apobjDeferred[512];

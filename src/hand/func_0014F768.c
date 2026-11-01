@@ -15,6 +15,14 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
     ((int *)&pm->r[0])[3] = 0;
     ((float *)&pm->r[3])[3] = 1.0f;
 }
+/** @sly2-annot addr=0x14F768
+ * Purpose: Builds a view-proj from CM::mat with pos offset along the right axis by +/- rUnk620 (k=1/2) via
+ *   CombineEyeLookAtProj into pm (proj = pv or matProj)
+ * Info: proposed name BuildCmEyeViewProj (T2); TU cm
+ * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
+ * See: docs/engine/rendering.md#8-blips-hud-screen-effects,
+ *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
+ * @end-sly2-annot */
 void func_0014F768(struct CM *p, int k, void *pv, int n, M4 *pm)
 {
     U r, g;
