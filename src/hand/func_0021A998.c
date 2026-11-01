@@ -15,6 +15,12 @@ static inline void Draw(struct S *p, int n, struct Y *ay, int a)
             func_0011A098(p->pc + 0xFC, y);
     }
 }
+/** @sly2-annot addr=0x21A998
+ * Purpose: queue items in reverse order
+ * Info: proposed name DrawSpriteItems (T2); TU hud
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_0021A998(struct S *p, int i, int a)
 {
     Draw(p, p->pq->af[i].c, p->pq->af[i].ay, a);

@@ -127,6 +127,13 @@ extern const STRINGGEN D_002A9200;
 extern const STRINGGEN D_002A9210;
 extern const STRINGGEN D_002A9220;
 extern const STRINGGEN D_002A9230;
+/** @sly2-annot addr=0x21AA60
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU hud
+ * Info: proposed name StaticInit_hud (T1); TU hud
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r7c_hud
+ * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown
+ * @end-sly2-annot */
 extern "C" void func_0021AA60(int initialize,int priority){
  if(priority==0xFFFF&&initialize){
   func_00116A98(&D_003E1C70,0x60000,D_003E21A0);

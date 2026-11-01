@@ -31,6 +31,11 @@ void func_0015F3E8(CFont *pfont, GIFS *pgifs);
 float func_0015F480(CFont *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs);
 void func_0015F000(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
 }
+/** @sly2-annot addr=0x15FFD0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
 {
     float adx[64];

@@ -7,6 +7,12 @@ extern struct E D_003D3A00[5];
 extern struct V2 D_002C10D0[];
 #include "gifs.h"
 extern "C" void func_001C93E0(GIFS*,struct M2*,float);
+/** @sly2-annot addr=0x1C93E0
+ * Purpose: build GIF packet for the scaled/alpha quad
+ * Info: proposed name DrawLoadingQuad (T2); TU prog
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
+ * @end-sly2-annot */
 void func_001C93E0(GIFS *pgs, struct M2 *pm, float alpha)
 {
     unsigned int i;

@@ -8,6 +8,11 @@ public:
     SCL m_ascl[1];
     void PushScaling(float rx, float ry);
 };
+/** @sly2-annot addr=0x15F078
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 void CFont::PushScaling(float rx, float ry)
 {
     SCL *pscl = &m_ascl[m_cscl++];

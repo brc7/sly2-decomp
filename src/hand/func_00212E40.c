@@ -4,6 +4,13 @@ struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
 void func_00217FB8(struct A *pa, float g);
 void func_00217FE0(struct A *pa, int l, float g, int z);
+/** @sly2-annot addr=0x212E40
+ * Purpose: seek anim id (0x314=main) to fraction g of its length (meters)
+ * Info: proposed name SetWidgetAnimPhase (T1); TU hud
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown,
+ *   docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00212E40(struct S *p, int k, float g)
 {
     int i, j;

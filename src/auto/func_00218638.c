@@ -155,6 +155,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x218638
+ * Purpose: stop slot 0
+ * Info: proposed name StopSprite (T2); TU hud
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00218638(s32 arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0x28) != 0) {
         func_00218660(arg0, 0);

@@ -4,6 +4,12 @@ struct S { int pad[3]; struct E a[1]; };
 struct S1 { char pad[0x1EC]; int x1EC; };
 void func_001AEAA8(struct S *s, int n);
 void *func_002333B4(void *p, int c, unsigned int n);
+/** @sly2-annot addr=0x1AF390
+ * Purpose: Replace top page with item array af[n] (run item init callbacks), state 3
+ * Info: proposed name ReplacePauseMenuPage (T2); TU menu
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001AF390(struct S *s, int n, struct F *af)
 {
     int x18, x8;

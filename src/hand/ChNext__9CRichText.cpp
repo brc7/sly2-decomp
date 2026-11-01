@@ -28,6 +28,11 @@ CFont *func_0015EFA0(int ch);
 void func_0015F0C0(CFont *pfont);
 void func_0015F078(CFont *pfont, float rx, float ry);
 }
+/** @sly2-annot addr=0x15F9D0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 unsigned char CRichText::ChNext()
 {
     int fDone = 0;

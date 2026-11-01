@@ -10,6 +10,14 @@ struct S { int x0; int x4; char *x8; char *xC; char *x10; int x14; int x18; char
   char pad60[4]; float f64; float f68; int x6C; int x70; float f74; float f78; float f7C; float f80; float f84; float f88;
   int x8C; int x90; int x94; };
 extern "C" void func_00215CA8(S *p, int i);
+/** @sly2-annot addr=0x215BA8
+ * Purpose: rich-text ctor from a sprite text element (width/height/colour)
+ * Info: proposed name CRichText_ctor_215BA8 (T2); class CRichText; TU hud
+ * Notes: names_v2 C proposed DrawBlot__FP4BLOT (0.638) | agent qualifier: (sprite text) | COLLISION:
+ *   CRichText_ctor already used (same name proposed for 0x215AC0); renamed to CRichText_ctor_215BA8
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" S *func_00215BA8(S *p, int a, R *r, Q3 *pq)
 {
     Q3 t = *pq;

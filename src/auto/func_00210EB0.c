@@ -75,6 +75,14 @@ extern M2C_UNK D_00452170;
 extern M2C_UNK D_100;
 extern M2C_UNK D_C0;
 
+/** @sly2-annot addr=0x210EB0
+ * Purpose: STRINGGEN getter: strcpy(pchz, context)
+ * Info: proposed name BuildContextText (T1); TU hud
+ * Notes: names_v2 v1 proposed AddBtnOffAseg__FP3BTNP3ALO3OID (0.000)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/engine/hud-ui.md#4-source-files, docs/engine/hud-ui.md#5-key-functions,
+ *   docs/engine/world-sw.md#9-source-files
+ * @end-sly2-annot */
 void func_00210EB0(s32 arg0, s32 arg1) {
     strcpy(arg0, arg1);
 }

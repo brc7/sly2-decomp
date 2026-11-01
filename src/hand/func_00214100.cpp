@@ -10,6 +10,13 @@ extern "C" void func_00218660(A *pa, int i);
 extern "C" void func_0011A058(int *p);
 extern "C" int func_00217EF8(A *pa);
 extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+/** @sly2-annot addr=0x214100
+ * Purpose: as RestartNestedSprite with extra argument
+ * Info: proposed name RestartNestedSpriteArg (T2); TU hud
+ * Notes: names_v2 v1 proposed DrawLogo__FP4LOGO (0.003)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" int func_00214100(S *p, int k, int z, int x, int c, Y *ay)
 {
     int i;

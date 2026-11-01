@@ -6,6 +6,13 @@ struct Y { struct RGBA c0; struct RGBA c1; char pad8[8]; struct QQ q; struct Z *
 struct H { int c; struct Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; struct H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; struct A *aa; };
+/** @sly2-annot addr=0x213E20
+ * Purpose: recursive search of nested sprite k: return its M23 and colours
+ * Info: proposed name FFindSpriteItemPose (T2); TU hud
+ * Notes: names_v2 B proposed ClineWrapPchz__5CFontPcf (0.856)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 int func_00213E20(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, struct RGBA *pc1, int c, struct Y *ay)
 {
     int i;

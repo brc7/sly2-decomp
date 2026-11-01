@@ -75,6 +75,13 @@ extern M2C_UNK D_00452170;
 extern M2C_UNK D_100;
 extern M2C_UNK D_C0;
 
+/** @sly2-annot addr=0x211148
+ * Purpose: STRINGGEN ids 0x2DD/0x2DE: text of recon selector selected id (ctx 0 -> 0x202730, P+0xBC) or
+ *   pending caption (ctx 1 -> 0x2026F8, P+0xC0)
+ * Info: proposed name BuildReconSelectionText (T1); TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00211148(s32 arg0, s32 arg1) {
     s32 temp_a0;
     s32 temp_v0;

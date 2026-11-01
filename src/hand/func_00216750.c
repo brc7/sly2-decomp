@@ -20,6 +20,13 @@ struct E *func_001CD998(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
+/** @sly2-annot addr=0x216750
+ * Purpose: align, clip and queue glyphs with colours
+ * Info: proposed name CRichText_DrawGlyphs (T2); class CRichText; TU hud
+ * Notes: names_v2 C proposed EdgeRect__8CFontBrxP9CTextEdgeP8CTextBoxP4GIFS (0.638)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
     float widths[32];
     unsigned char *tag=D_002DEA28.cur;

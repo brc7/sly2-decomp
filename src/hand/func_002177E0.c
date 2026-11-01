@@ -21,6 +21,12 @@ static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,hea
 void func_001AE528(void *,void *,int);
 static inline void AlignTo(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Direct(struct R *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);func_001AE528(r->cur,source,n);r->cur+=n*16;}
+/** @sly2-annot addr=0x2177E0
+ * Purpose: transformed sprite parameters + direct GIF payload
+ * Info: proposed name RenderSpritePicture (T2); TU hud
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002177E0(struct S *p,struct T *t,struct D *data,int unused){
     struct M4 m;
     unsigned char *tag;

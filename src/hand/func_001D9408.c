@@ -29,6 +29,13 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1D9408
+ * Purpose: Call each global HUD screen's Reset (slot-13 implementations
+ *   0x1D9B30/0x1DAA48/0x1DB7F0/0x1DA320/0x1DCCD8/0x1DA7B0) and walk the active list
+ * Info: proposed name ResetScreens (T2); TU screen
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001D9408(DL *pdl)
 {
     DLI dli;

@@ -7,6 +7,12 @@ struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; E *a; char pad8[8]; unsigned long ul10; float f18; int x1C; int x20; };
 extern "C" unsigned long D_002DDF18;
 extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
+/** @sly2-annot addr=0x217CA8
+ * Purpose: start anim k in a reuse slot
+ * Info: proposed name StartSpriteAnimSlot (T2); TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
 {
     float t = 0.0f;

@@ -75,6 +75,13 @@ extern M2C_UNK D_00452170;
 extern M2C_UNK D_100;
 extern M2C_UNK D_C0;
 
+/** @sly2-annot addr=0x2132D0
+ * Purpose: main anim active and not obscured by a higher-priority exclusive widget
+ * Info: proposed name FWidgetVisible (T1); TU hud
+ * Notes: names_v2 v1 proposed FUN_001aca30 (0.000)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 s32 func_002132D0(s32 arg0) {
     if (M2C_FIELD(arg0, s32 *, 0x7C) == -1) {
         return 0;

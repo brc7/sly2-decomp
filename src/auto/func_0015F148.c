@@ -57,6 +57,14 @@ extern M2C_UNK D_003E1518;
 extern M2C_UNK D_003E1530;
 extern s32 D_004425D4;
 
+/** @sly2-annot addr=0x15F148
+ * Purpose: Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when
+ *   drawing into g_gifs, emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed
+ * Info: proposed name FEnsureLoaded (T1); TU font
+ * Notes: names_v2 B proposed FEnsureLoaded__8CFontBrxP4GIFS (0.895)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r3_1539A8
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 s32 func_0015F148(s32 arg0, s32 arg1) {
     s32 temp_a1;
     s32 temp_v0;

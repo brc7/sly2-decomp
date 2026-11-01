@@ -36,6 +36,14 @@ int func_0011D4D0(float, float, float);
 float func_0011D018(void *, int, float, float, float);
 int func_002121E8(SUB *, int);
 void func_00212E40(SUB *, int, float);
+/** @sly2-annot addr=0x1D9DF8
+ * Purpose: Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and
+ *   power change (state 4) with GSmooth, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1,
+ *   empty at 0 hp
+ * Info: proposed name UpdateHudMeter (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001D9DF8(OBJ *p)
 {
     Q *old;

@@ -7,6 +7,14 @@ extern int D_002BE2D0[];
 struct S { char pad[0x118]; int i; };
 void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
+/** @sly2-annot addr=0x15D798
+ * Purpose: Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus
+ *   1 if under 100%
+ * Info: proposed name CEpisodeMenuItems (T2); TU tu_15CD68
+ * Notes: names_v2 v1 proposed BindExpls__FP5EXPLS (0.438)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3b_rest
+ * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
+ * @end-sly2-annot */
 int func_0015D798(struct S *p)
 {
     void *pA, *pB;

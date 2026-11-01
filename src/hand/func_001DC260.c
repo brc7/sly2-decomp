@@ -34,6 +34,14 @@ void func_001FB2F8(void *, int);
 void func_001DBD10(OBJ *);
 void func_001DBBE0(OBJ *, int);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
+/** @sly2-annot addr=0x1DC260
+ * Purpose: ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1
+ *   sell page (0x49B-0x49D); refresh list
+ * Info: proposed name SetThiefnetTab (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/engine/hud-ui.md#2-screens-and-menus-screencpp-0x1d93d8-menu-0x1ae928,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DC260(OBJ *p, int s)
 {
     int old;

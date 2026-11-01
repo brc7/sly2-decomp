@@ -5,6 +5,13 @@ void func_001619A0(void *p, int a, int b);
 void *func_001C4840(void *p);
 int func_00132EA0(void *p);
 void func_001AF4D8(void *p, int a, int b, int c, char *s);
+/** @sly2-annot addr=0x1B0740
+ * Purpose: Game event 0x29; push page for the current player class (JT 0x35 / BENTLEY 0x37 / MURRAY 0x36)
+ * Info: proposed name OpenPauseCharacterPage (T2); TU menu
+ * Notes: names_v2 C proposed UpdateTnCallback__FP2TN5MSGIDPv (0.438)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001B0740(struct S *p)
 {
     char *s;

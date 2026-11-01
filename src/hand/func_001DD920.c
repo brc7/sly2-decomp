@@ -28,6 +28,13 @@ void *func_0015E938(struct G *, int, int, int);
 void func_001A2C48(int *, int **);
 void *func_002333B4(void *, int, int);
 void func_001AF4D8(void *, int, ITEM *, void *, void *);
+/** @sly2-annot addr=0x1DD920
+ * Purpose: Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts
+ *   a new game; SELECT opens options; X opens the language list when the region has several languages
+ * Info: proposed name UpdateTitleScreen (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DD920(OBJ *p)
 {
     void *pv;

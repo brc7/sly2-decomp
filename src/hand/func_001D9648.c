@@ -23,6 +23,14 @@ void func_001ACCC8(void *);
 void func_001ADEE8(void *);
 void func_001DA808(void *);
 void func_001DD920(void *);
+/** @sly2-annot addr=0x1D9648
+ * Purpose: Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD
+ *   screens
+ * Info: proposed name UpdateScreens (T2); TU screen
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/hud-ui.md#2-screens-and-menus-screencpp-0x1d93d8-menu-0x1ae928,
+ *   docs/engine/hud-ui.md#5-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
+ * @end-sly2-annot */
 void func_001D9648(void *pdl)
 {
     PAD *pad;

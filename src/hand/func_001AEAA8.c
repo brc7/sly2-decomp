@@ -13,6 +13,16 @@ extern float D_002F6468, D_002F646C;
 extern float D_003DD190, D_003DD18C;
 void func_00213B00(struct LO *, int);
 void func_00212E40(struct LO *, int, float);
+/** @sly2-annot addr=0x1AEAA8
+ * Purpose: Pause menu state machine (+0x1E8, 0..11): exit actions (move selection on 5/6, close on 0) then
+ *   entry actions that play widget anims of the current page (text ids 0x331..0x335, slider 0x315 for volume
+ *   items)
+ * Info: proposed name SetPauseMenuState (T1); TU menu
+ * Notes: top50_round (0.60): Body: SP SetXxxState(p,state) shape; callers ResetPauseMenu, UpdatePauseMenu,
+ *   Push/Pop/ReplacePauseMenuPage
+ * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r5b_rest+top50_round
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001AEAA8(S *s, int st)
 {
     E *pe;

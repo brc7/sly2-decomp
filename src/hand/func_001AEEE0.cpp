@@ -63,6 +63,13 @@ typedef char BANK_contexts_Offset[FIELD_OFFSET(BANK,contexts)==36?1:-1];
 typedef char BANK_current_Offset[FIELD_OFFSET(BANK,current)==64856?1:-1];
 typedef char CRef_tag_Offset[FIELD_OFFSET(CRef,tag)==0?1:-1];
 typedef char CRef_f_Offset[FIELD_OFFSET(CRef,f)==4?1:-1];
+/** @sly2-annot addr=0x1AEEE0
+ * Purpose: Screen vt7: per-frame menu input (DySelectionJoy, GrfHandleJoyBtn), item activation callbacks,
+ *   volume/video item handling, save-slot pages
+ * Info: proposed name UpdatePauseMenu (T1); TU menu
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 extern "C" void func_001AEEE0(P*p){
  int direction;
  func_001D9870();

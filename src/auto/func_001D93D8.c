@@ -55,6 +55,13 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x1D93D8
+ * Purpose: InitDl(arg, ibDle 0x14) and return it (list constructor)
+ * Info: proposed name InitScreenDl (T2); TU screen
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/hud-ui.md#4-source-files, docs/engine/save-memcard.md#4-source-files,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 s32 func_001D93D8(s32 arg0) {
     func_0011A1F8(arg0, 0x14);
     return arg0;

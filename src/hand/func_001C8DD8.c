@@ -12,6 +12,12 @@ void func_001576B0(struct GS *p);
 void func_001576F0(struct GS *p);
 void func_00157348(struct GS *p, int a, int b);
 void func_00170278(qword *buf);
+/** @sly2-annot addr=0x1C8DD8
+ * Purpose: draw progress bar (GIF/DMA packet)
+ * Info: proposed name CProg_Draw (T1); class CProg; TU prog
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
+ * @end-sly2-annot */
 void func_001C8DD8(struct PROG *p)
 {
     qword buf[0x400];

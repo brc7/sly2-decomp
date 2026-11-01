@@ -3,6 +3,12 @@ extern float D_002A7984, D_002C3254;
 struct S { char p0[0x30]; int n30; float g34; int n38; };
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
+/** @sly2-annot addr=0x1DA950
+ * Purpose: Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout
+ * Info: proposed name SetScreenMode (T2); TU screen
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DA950(struct S *p, int n, int m) {
     p->n38 = m;
     p->n30 = n;

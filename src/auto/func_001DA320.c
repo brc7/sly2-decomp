@@ -55,6 +55,12 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x1DA320
+ * Purpose: Notice banner reset: no current/queued text, drop widget, state 0
+ * Info: proposed name ResetNotice (T1); TU screen
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DA320(s32 arg0) {
     M2C_FIELD(arg0, s32 *, 0x18) = -1;
     M2C_FIELD(arg0, s32 *, 0x20) = -1;

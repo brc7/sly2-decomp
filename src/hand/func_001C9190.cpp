@@ -43,6 +43,14 @@ static inline void BeginFrame()
     D_002DEA28.AddVifDirect(0x25,D_002DF260,0);
     D_002DEA28.EndDmaCnt();
 }
+/** @sly2-annot addr=0x1C9190
+ * Purpose: thread: wait start sema, draw pulsing quad each frame until end sema
+ * Info: proposed name LoadingScreenThread (T1); TU prog
+ * Notes: runtime5b: 80x80 pulsing quad, 1 s fade-in; ticks the clock paused (S55->S56)
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
+ * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
+ *   docs/engine/main-loop-startup.md#6-threads, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
+ * @end-sly2-annot */
 extern "C" void func_001C9190(void *)
 {
     SEMA status;M2 matrix;

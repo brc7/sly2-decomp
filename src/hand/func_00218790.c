@@ -1,5 +1,11 @@
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x218790
+ * Purpose: combine parent/child additive and multiplicative RGBA
+ * Info: proposed name CombineSpriteColors (T1); TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00218790(unsigned char *pa, unsigned char *pb, unsigned char *pc, unsigned char *pd,
                    unsigned char *pout0, unsigned char *pout1)
 {

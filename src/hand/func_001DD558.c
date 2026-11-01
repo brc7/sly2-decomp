@@ -12,6 +12,12 @@ void func_001DD300(OBJ *, int);
 void func_001DCE90(OBJ *, int);
 void *func_001FBB90(int);
 void func_001FB2F8(void *, int);
+/** @sly2-annot addr=0x1DD558
+ * Purpose: Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows
+ * Info: proposed name SetJobListStickDir (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DD558(OBJ *p, unsigned int n)
 {
     if (n == p->state)

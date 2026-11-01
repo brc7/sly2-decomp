@@ -11,6 +11,14 @@ int func_001D9880(void *);
 int func_00187D80(void *, int);
 void func_0020F030(struct G *, int);
 void func_00162DF8(void *);
+/** @sly2-annot addr=0x211D38
+ * Purpose: CID 0x7F Update: modal box; after 0.5 s visible and button mask 0xF0 pressed ->
+ *   DecrementSwHandsOff, optional resume via SW+0x3B0C, HideWidget
+ * Info: proposed name UpdateWidget127 (T2); class WIDGET127 slot16; TU hud
+ * Notes: names_v2 v1 proposed DrawBlot__FP4BLOT (0.016) | v2: demoted to T2 (placeholder token in name: 127)
+ * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00211D38(struct S *p)
 {
     int r = func_002121C8(p);

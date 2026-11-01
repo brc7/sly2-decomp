@@ -24,6 +24,12 @@ static inline R *StopReceiver(const S *owner){register R *value asm("$3");asm("l
 static inline E *StopArray(const R *receiver){register E *value asm("$4");asm("lw %0,%1":"=r"(value):"m"(receiver->ae));return value;}
 static inline M **SlotAddress(E *entry){M **value;asm("addiu %0,%0,%2":"=r"(value):"0"(entry),"i"(sizeof(E)-sizeof(M *)));return value;}
 static inline E *StopEntry(E *array,int offset){register E *value asm("$2");asm("addu %0,%1,%2":"=r"(value):"r"(offset),"r"(array));return value;}
+/** @sly2-annot addr=0x219190
+ * Purpose: sprite key actions: start/stop sound, StartDialog/StopDialog
+ * Info: proposed name HandleSpriteKeyEvents (T1); TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00219190(struct S *p,int fi,int i) {
     struct F *f=&p->af[fi];
     int j=0;

@@ -9,6 +9,12 @@ struct S { int x0; int x4; char *x8; char *xC; char *x10; int x14; RGBA x18; cha
   char pad60[4]; float f64; float f68; int x6C; int x70; int x74; int x78; float f7C; float f80; float f84; float f88;
   int x8C; int x90; int x94; };
 extern "C" void func_00215CA8(S *p, int i);
+/** @sly2-annot addr=0x215AC0
+ * Purpose: rich-text ctor from string + font + scale (offsets 1792/1936)
+ * Info: proposed name CRichText_ctor (T1); class CRichText; TU hud
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" S *func_00215AC0(S *p, int a, float f)
 {
     p->x0 = a;

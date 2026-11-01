@@ -38,6 +38,14 @@ void func_00212A70(SUB *, int);
 void func_00212A50(SUB *, int);
 void func_001DCED8(OBJ *);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
+/** @sly2-annot addr=0x1DD300
+ * Purpose: Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off
+ *   while open
+ * Info: proposed name SetJobListPage (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DD300(OBJ *p, int s)
 {
     int old;

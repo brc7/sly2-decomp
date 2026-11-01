@@ -24,6 +24,13 @@ void func_00258478(TXT *, int);
 FONT *func_00215AC0(FONT *, int, float);
 void func_002163B0(FONT *, TXT *, int);
 static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;}
+/** @sly2-annot addr=0x1DAC58
+ * Purpose: While the gadget menu widget is visible draw the button glyph (&2L / &2l / &2r) next to each
+ *   power-up equipped in a slot
+ * Info: proposed name DrawGadgetMenuSlotLabels (T2); TU screen
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DAC58(OBJ *p)
 {
     Q *q;

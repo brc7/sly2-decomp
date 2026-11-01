@@ -14,6 +14,13 @@ void func_002124F0(struct S *);
 void func_00212780(struct S *);
 void func_00213898(struct S *);
 void func_00213830(struct S *,int);
+/** @sly2-annot addr=0x212A70
+ * Purpose: state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC,
+ *   pauses clock when fPause
+ * Info: proposed name SetWidgetState (T1); TU hud
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00212A70(struct S *p,int state) {
     if(p->state==state) return;
     if(p->flag>=16) {

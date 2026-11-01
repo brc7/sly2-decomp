@@ -18,6 +18,13 @@ extern "C" char *func_0021EDA0(char *, const char *);
 extern "C" int func_001A2C98(void);
 char *func_0013E368(G *, int);
 CRef func_002581C0(void *, void *);
+/** @sly2-annot addr=0x1DDBF0
+ * Purpose: Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids
+ *   5/6/8/0x56
+ * Info: proposed name BuildTitlePromptText (T1); TU screen
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 extern "C" void func_001DDBF0(char *pch)
 {
     float g;

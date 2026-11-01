@@ -13,6 +13,12 @@ static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){func_001AE528(r->cur,source,n);r->cur+=n*16;}
 static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
+/** @sly2-annot addr=0x2130C0
+ * Purpose: DMA packet with render init payloads (frame/mask GIF data) before widget sprites
+ * Info: proposed name QueueWidgetRenderSetup (T1); TU hud
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
+ * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_002130C0(struct S *p){
     unsigned char *tag=D_002DEA28.cur;
     struct E *e;

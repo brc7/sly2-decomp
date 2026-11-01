@@ -4,6 +4,12 @@ struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
 void func_00218038(struct A *pa, float g);
 void func_00218060(struct A *pa, int l, float g, int z);
+/** @sly2-annot addr=0x212F80
+ * Purpose: like SetWidgetAnimPhase but absolute time
+ * Info: proposed name SetWidgetAnimTime (T2); TU hud
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00212F80(struct S *p, int k, float g)
 {
     int i, j;

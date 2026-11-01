@@ -7,6 +7,13 @@ extern struct E D_003D9EDC[];
 extern int D_003D9EF4;
 const char *func_0013E368(struct G *g, int id);
 char *func_0021ED58(char *dst, const char *src);
+/** @sly2-annot addr=0x211298
+ * Purpose: STRINGGEN ids 0x2D2-0x2DB: name of entry (k + sel - 3) mod n of the current menu page
+ *   D_003D9EDC[D_003D9EF4]
+ * Info: proposed name BuildMenuCarouselText (T2); TU hud
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00211298(char *dst, int k)
 {
     struct E *e = &D_003D9EDC[D_003D9EF4];

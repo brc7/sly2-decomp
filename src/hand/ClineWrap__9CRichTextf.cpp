@@ -13,6 +13,11 @@ public:
 };
 extern "C" void func_0015F970(CRichText *p);
 extern "C" int func_0015F9D0(CRichText *p);
+/** @sly2-annot addr=0x15FD68
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 int CRichText::ClineWrap(float dxMax)
 {
     int cline = 1;

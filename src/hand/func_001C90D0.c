@@ -9,6 +9,13 @@ void func_002333B4(void *p, int c, int cb);
 int func_00234820(struct TP *ptp);
 int func_0021EFD0(int a, int b);
 int func_002355E0(int tid, void *arg);
+/** @sly2-annot addr=0x1C90D0
+ * Purpose: create the two semaphores and start the loading render thread (0x1C9190)
+ * Info: proposed name StartupLoadingScreen (T1); TU prog
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
+ *   docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot
+ * @end-sly2-annot */
 void func_001C90D0(void)
 {
     struct TP tp;

@@ -13,6 +13,13 @@ typedef struct {
 } OBJ;
 void func_00213830(LO *, int);
 void func_00212880(LO *, int, int *);
+/** @sly2-annot addr=0x1DA5C8
+ * Purpose: Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main
+ *   anim 0x310 after a swap
+ * Info: proposed name SetNoticeState (T1); TU screen
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DA5C8(OBJ *p, int n)
 {
     LO *plo;

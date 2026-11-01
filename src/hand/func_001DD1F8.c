@@ -13,6 +13,13 @@ typedef struct {
 void func_00213DB0(W *, int, int *);
 int func_00163400(void *);
 int func_00164030(void *);
+/** @sly2-annot addr=0x1DD1F8
+ * Purpose: Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via
+ *   FJobComplete/FTaskComplete
+ * Info: proposed name UpdateJobListWidgets (T1); TU screen
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DD1F8(OBJ *p)
 {
     int i;

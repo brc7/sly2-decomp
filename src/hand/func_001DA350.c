@@ -13,6 +13,13 @@ typedef struct {
 void func_001DA5C8(OBJ *, int);
 int func_002132D0(W *);
 int func_002121E8(W *, int);
+/** @sly2-annot addr=0x1DA350
+ * Purpose: Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden)
+ *   or swap to the queued text (anim 0x312); hide
+ * Info: proposed name UpdateNotice (T1); TU screen
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DA350(OBJ *p)
 {
     if (p->pw == 0)

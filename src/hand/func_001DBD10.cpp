@@ -24,6 +24,14 @@ extern "C" CRef func_001D8A38(const char *, ...);
 extern "C" int func_001DAE58(int);
 extern "C" int func_001DAEA8(int);
 extern "C" void func_001DBBE0(OBJ *, int);
+/** @sly2-annot addr=0x1DBD10
+ * Purpose: Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot
+ *   kinds with count > 0
+ * Info: proposed name RefreshThiefnetItems (T1); TU screen
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/engine/hud-ui.md#2-screens-and-menus-screencpp-0x1d93d8-menu-0x1ae928,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 extern "C" void func_001DBD10(OBJ *p)
 {
     {

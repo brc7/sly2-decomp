@@ -55,6 +55,12 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E0EA8;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x1DA9E8
+ * Purpose: SetScreenMode(-1,-1)
+ * Info: proposed name CloseScreen (T2); TU screen
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001DA9E8(s32 arg0, s32 arg1, s32 arg2) {
     func_001DA950(arg0, -1, -1);
 }

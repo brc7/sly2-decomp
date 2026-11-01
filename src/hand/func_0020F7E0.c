@@ -10,6 +10,15 @@ float func_0011D1C0(float a, float b, float c, void *p, float *pv, float dt);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, void *source);
 
+/** @sly2-annot addr=0x20F7E0
+ * Purpose: Per-frame: smooth the 4 HUD elements; while a countdown (SW+0x476C - t) runs play tick/tock sfx
+ *   0x30/0x31 each second
+ * Info: proposed name UpdateSwTimerHud (T2); TU sw
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown,
+ *   docs/engine/overview.md#5-per-frame-update-and-render,
+ *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_0020F7E0(struct S *p)
 {
     float z;

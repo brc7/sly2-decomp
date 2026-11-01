@@ -21,6 +21,12 @@ extern "C" void func_00217F38(A *p, int i);
 extern "C" void func_002183E8(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x218060
+ * Purpose: refresh reused sprite at t=0 then at clamped time
+ * Info: proposed name SetSpriteAnimTime (T2); TU hud
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 extern "C" void func_00218060(A *p, int i, Y *py, float g)
 {
     QQ q;

@@ -25,6 +25,15 @@ int func_00132B10(Q *, int);
 int func_001441A0(Q *);
 void func_00213B00(W *, int);
 void func_00212E40(W *, int, float);
+/** @sly2-annot addr=0x1D9968
+ * Purpose: Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp
+ *   (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly
+ *   0x33D-341, Murray 0x342-346, Bentley 0x347-34B), set gauge phases 0x34F/0x350
+ * Info: proposed name PostHudMeterLoad (T1); TU screen
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown,
+ *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
+ * @end-sly2-annot */
 void func_001D9968(OBJ *p)
 {
     Q *q;

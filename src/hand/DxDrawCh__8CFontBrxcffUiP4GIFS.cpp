@@ -35,6 +35,11 @@ void func_00166F70(GIFS *pgifs, unsigned int rgba);
 void func_00166FE8(GIFS *pgifs, int u, int v);
 void func_001670B8(GIFS *pgifs, int x, int y, int z, int f);
 }
+/** @sly2-annot addr=0x15F480
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
+ * @end-sly2-annot */
 float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
 {
     GLYPH *pglyph = func_0015F8A8(this, ch);

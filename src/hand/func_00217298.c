@@ -10,6 +10,13 @@ struct E *func_001CD998(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Mscal(struct R *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
+/** @sly2-annot addr=0x217298
+ * Purpose: queue VU microprogram pair for render mode
+ * Info: proposed name QueueSpriteVuProgram (T2); TU hud
+ * Notes: names_v2 C proposed DrawLogo__FP4LOGO (0.638)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
+ * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
+ * @end-sly2-annot */
 void func_00217298(struct S *p,int mode,float priority){
     unsigned char *tag=D_002DEA28.cur;
     struct E *e;

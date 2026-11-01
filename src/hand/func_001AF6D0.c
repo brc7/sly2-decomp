@@ -17,6 +17,13 @@ float func_0011D948(void *, float);
 void func_001FEA60(struct G *, int, float, int);
 void func_00212E40(void *, int, float);
 static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
+/** @sly2-annot addr=0x1AF6D0
+ * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (DxSelectionJoy),
+ *   SetSndmgrChannelVolume, update meter
+ * Info: proposed name AdjustPauseVolumeItem (T2); TU menu
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
+ * @end-sly2-annot */
 void func_001AF6D0(struct S *s, struct P *p, int *pk)
 {
     switch (*pk) {
