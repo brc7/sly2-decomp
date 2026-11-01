@@ -7,7 +7,12 @@ flags.  Every other invocation is passed straight to the real wibo."""
 import os, sys, subprocess, tempfile, shutil, signal, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 WIN = os.name == 'nt'   # native Windows: the compilers are .exe files, run them directly (no wibo)
-REAL = None if WIN else os.path.join(HERE, 'wibo-i686')
+def default_wibo():
+    """Path of the wibo binary: $SLY2_WIBO_BIN, else tools/wibo-macos on macOS, else tools/wibo-i686."""
+    if os.environ.get('SLY2_WIBO_BIN'):
+        return os.environ['SLY2_WIBO_BIN']
+    return os.path.join(HERE, 'wibo-macos' if sys.platform == 'darwin' else 'wibo-i686')
+REAL = None if WIN else default_wibo()
 sys.path.insert(0, HERE)
 import asfix
 
