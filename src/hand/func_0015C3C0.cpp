@@ -40,6 +40,13 @@ inline qword QwRotateVec(const MATRIX3 *pmat, qword qwVec)
     return qwResult;
 }
 extern "C" void func_0015C3C0(S *p, P *pp);
+/** @sly2-annot addr=0x15C3C0
+ * Purpose: EXPLG explode: transforms the explosion origin by its matrix and forwards the explode call to
+ *   every child explosion (vtable)
+ * Info: proposed name ExplodeExplgExplso (T1); class EXPLG slot51; TU emitter
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void func_0015C3C0(S *p, P *pp)
 {
     P loc = *pp;

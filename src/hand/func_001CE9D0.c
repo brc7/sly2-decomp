@@ -5,6 +5,14 @@ struct S { int x0; int cRef; char p1[0xE8 - 0x8]; struct N *pn; struct VTE *vt; 
 extern char D_003E1144[];
 extern char D_003E14E4[];
 void func_0011CD98(void *pool, void *pv);
+/** @sly2-annot addr=0x1CE9D0
+ * Purpose: Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes,
+ *   free rip
+ * Info: proposed name ReleaseRip (T1); TU rip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CE9D0(struct S *p)
 {
     struct N *pn, *pnNext;

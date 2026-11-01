@@ -104,6 +104,13 @@ static inline float GFromQw(const qword &qw)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(qw)); /* mtc1 from a qword: gcc emits the qmfc2 */
     return g;
 }
+/** @sly2-annot addr=0x139AB8
+ * Purpose: VU-accelerated particle advance with bounds
+ * Info: proposed name ProjectBlipgTransformAccel (T1); TU blip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 void func_00139AB8(PX *p)
 {
     VECTOR vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};

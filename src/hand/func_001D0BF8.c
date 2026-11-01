@@ -7,6 +7,15 @@ int func_00132B10(void *, int);
 R *func_001CF6B0(OBJ *, void *, void *, qword, qword);
 void func_001A7050(M3 *, int, void *, M3 *);
 void func_001CE980(OBJ *);
+/** @sly2-annot addr=0x1D0BF8
+ * Purpose: LEAF FBounce: CreateStuck/RemoveRip on contact
+ * Info: proposed name FBounceLeaf_1D0BF8 (T3); TU rip
+ * Notes: COLLISION: FBounceLeaf already used at 0x1CF968; renamed FBounceLeaf_1D0BF8 | arbitration assigned
+ *   FBounceLeaf to 0x1CF968; this body needs another name
+ * Confidence: low (draft) [T3 0.70] - evidence: arbitration; sources: r5_1AE130
+ * See: docs/open-questions.md#names-and-classes-cross-cutting,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 int func_001D0BF8(OBJ *p, S *s, qword a, qword b)
 {
     R *r;

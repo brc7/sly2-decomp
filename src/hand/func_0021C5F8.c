@@ -7,6 +7,12 @@ struct S { char pad[0xBC]; struct T *aBC; char padc0[4]; struct V *aC4; char pad
 float func_00259D98(qword *pq);
 float func_00259DA8(qword *pq);
 float func_00259DC0(qword *pq);
+/** @sly2-annot addr=0x21C5F8
+ * Purpose: copies one position into the vertex record of every linked mesh node
+ * Info: proposed name SetTrailMeshPositions (T2); TU trail
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
+ * @end-sly2-annot */
 void func_0021C5F8(struct S *p, qword q)
 {
     struct N *n;

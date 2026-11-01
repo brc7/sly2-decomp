@@ -4,6 +4,12 @@ static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg-
 struct S { int pad[4]; void *p10; char pad2[0xE0 - 0x14]; int c; void **apv; };
 void func_002311B0(struct S *p, void *pv);
 void *func_0013E510(void *pv, void *p10);
+/** @sly2-annot addr=0x15C320
+ * Purpose: EXPLG clone: XFM clone, realloc child array, clone each child (0x13E510)
+ * Info: proposed name CloneExplg (T1); class EXPLG slot41; TU emitter
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void func_0015C320(struct S *p, void *pv)
 {
     MSG msg;

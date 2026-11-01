@@ -90,6 +90,12 @@ static inline qword NormalizeSafe(qword *pv, const qword *pfallback)
     else *pv = Divide(v, len);
     return len;
 }
+/** @sly2-annot addr=0x1D09A0
+ * Purpose: LEAF Project: flutter + base ProjectRipTransform
+ * Info: proposed name ProjectLeafTransform (T1); TU rip
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 extern "C" void func_001D09A0(P *p)
 {
     qword row0 = p->matrix.r[0];

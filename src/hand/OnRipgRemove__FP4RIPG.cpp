@@ -29,6 +29,12 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1CDE80
+ * Purpose: RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG
+ * Info: proposed name OnRipgRemove__FP4RIPG (EXISTING); class RIPG slot12; TU rip
+ * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void OnRipgRemove(RIPG *pripg)
 {
     DLI dli;

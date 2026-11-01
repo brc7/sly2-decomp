@@ -36,6 +36,14 @@ static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xy
 // Length of a vector in two steps (sum of squares, then sqrt).  The "memory" clobbers keep the stores around the steps in source order.
 #define LEN1(d, one, v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v) : "memory")
 #define LEN2(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d) : : "memory")
+/** @sly2-annot addr=0x1CDF88
+ * Purpose: RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by
+ *   size, set center/radius
+ * Info: proposed name ProjectRipgTransform (T1); class RIPG slot17; TU rip
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CDF88(S *p)
 {
     DLI dli;

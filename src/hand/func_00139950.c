@@ -70,6 +70,12 @@ static __inline__ int UpdateMs10(const M4 *pm, qword dt, qword *pa, qword *pb, q
     return cDead;
 }
 
+/** @sly2-annot addr=0x139950
+ * Purpose: VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds
+ * Info: proposed name CblipeProjectBlipTransformAccel (T1); TU blip
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 int func_00139950(M4 *pm, qword dt, qword *pa, qword *pb, qword *pc, int c, int k, qword *pvMin, qword *pvMax)
 {
     return UpdateMs10(pm, dt, pa, pb, pc, c, k, pvMin, pvMax);

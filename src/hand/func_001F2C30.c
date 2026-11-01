@@ -15,6 +15,14 @@ qword func_001A62E8(struct L *);
 void *func_001C0D70(qword, int);
 void func_001F37C8(struct L *, void *);
 void func_00149A50(struct G *, struct L *, struct S8, int);
+/** @sly2-annot addr=0x1F2C30
+ * Purpose: SO vt11: AddLoHierarchy, 0x22FAA0, AddSoParts, set grf 0x14, register region (if SOPHYS region
+ *   record), recurse vt11 on children
+ * Info: proposed name AddSoHierarchy (T1); class SO slot11; TU so
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F2C30(struct L *p)
 {
     struct L *q;

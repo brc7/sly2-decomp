@@ -3,6 +3,11 @@ M2C_UNK SetRipgEmitb__FP4RIPGP5EMITB(s32, s32);     /* extern */
 f32 func_0011D448(f32, f32);                        /* extern */
 M2C_UNK func_001394C8(s32, s32);                    /* extern */
 
+/** @sly2-annot addr=0x15A1C0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void OnEmitterValuesChanged__FP7EMITTER(void *arg0) {
     f32 temp_f12;
     f32 var_f0;

@@ -111,6 +111,11 @@ static inline float GetX(qword q)
 }
 
 void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale) __asm__("WakeSoWater__FP2SOP5WATERfP6VECTORT3ff");
+/** @sly2-annot addr=0x15A2C0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale)
 {
     float g = 0.0f;

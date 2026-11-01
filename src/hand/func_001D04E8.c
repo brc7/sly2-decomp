@@ -27,6 +27,13 @@ extern qword D_002BBB50;
 void func_001CE920(OBJ *, qword);
 qword func_0014F308(void *, qword);
 float func_0011D448(float, float);
+/** @sly2-annot addr=0x1D04E8
+ * Purpose: SMACK (RIPT 9) Init
+ * Info: proposed name InitSmack (T1); TU rip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D04E8(OBJ *p, qword q)
 {
     DEF *d;

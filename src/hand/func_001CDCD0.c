@@ -9,6 +9,14 @@ void *func_00167310(void *p);
 void *func_0015E3A8(struct G *p, int n);
 void func_0011A070(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
+/** @sly2-annot addr=0x1CDCD0
+ * Purpose: Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool
+ *   (+0x403C), zero it, construct (CRef), add to world
+ * Info: proposed name PripgNew (T1); TU rip
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/engine/particles-effects.md#5-source-files, docs/engine/particles-effects.md#6-key-functions,
+ *   docs/engine/rendering.md#12-source-files
+ * @end-sly2-annot */
 struct O *func_001CDCD0(struct G *p, int a)
 {
     struct O *po;

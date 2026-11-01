@@ -24,6 +24,13 @@ typedef struct { qword pos; char rest[0x50]; } HIT;
 int func_0014C6A0(void *, qword, qword, int, HIT *);
 EMIT *func_001CE888(struct G *, int, int);
 void func_001CEA88(OBJ *, int);
+/** @sly2-annot addr=0x1D0D28
+ * Purpose: RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself
+ * Info: proposed name UpdateRipt1 (T2); TU rip
+ * Notes: names_v2 v1 proposed UpdateRose__FP4ROSEf (0.638)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D0D28(OBJ *p, int n)
 {
     HIT hit;

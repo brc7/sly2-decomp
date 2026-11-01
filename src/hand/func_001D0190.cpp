@@ -47,6 +47,15 @@ static inline M3 Multiply(const M3&a,const M3&b) return r {
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[1]));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[2]));
 }
+/** @sly2-annot addr=0x1D0190
+ * Purpose: RIPT 4 Render: large custom draw (fades; RemoveRip when done)
+ * Info: proposed name RenderGlint (T1); TU rip
+ * Notes: verifier: purpose partly wrong: RIPT 4 VTRIP entry 5 (Render); matches Sly 1 RenderGlint
+ *   (dist*0.001, clq size/alpha/spin, camera-facing). RemoveRip happens when the camera cull fails, not 'wh
+ * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 extern "C" void func_001D0190(RIP *p)
 {
     M3 basis,rotation,product;

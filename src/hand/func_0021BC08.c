@@ -8,6 +8,13 @@ static inline int Wrap(int index, int count)
 {
     return index % count;
 }
+/** @sly2-annot addr=0x21BC08
+ * Purpose: fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix,
+ *   alpha 0; idle=0
+ * Info: proposed name ResetTrailHistory (T1); TU trail
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
+ * @end-sly2-annot */
 void func_0021BC08(struct S *p)
 {
     float t = D_002DDED0.t;

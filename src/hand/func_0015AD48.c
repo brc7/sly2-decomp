@@ -12,6 +12,15 @@ qword func_001A7348(struct M4 *pm, int z, qword v);
 qword func_0022D348(struct R *r, int z, qword v);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 
+/** @sly2-annot addr=0x15AD48
+ * Purpose: Transforms a chosen particle position (and velocity, depending on mode) from the reference SO
+ *   space to world space
+ * Info: proposed name ConvertEmitoPosVec (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources:
+ *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void func_0015AD48(struct E *p, qword *pv, qword *pw)
 {
     struct Y *py = &p->y;

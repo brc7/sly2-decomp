@@ -36,6 +36,12 @@ static __inline__ void *PvAllocCopy(int cb, void *pv)
 
 static __inline__ int FPtr(int n) { return !(n & 1); }
 
+/** @sly2-annot addr=0x159500
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
 {
     func_002586D8(pemitter);

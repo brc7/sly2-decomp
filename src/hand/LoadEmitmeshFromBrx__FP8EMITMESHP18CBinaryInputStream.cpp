@@ -46,6 +46,15 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
     }
     *pr = t;
 }
+/** @sly2-annot addr=0x159240
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream (EXISTING); TU emitter
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: name high [EXISTING 0.75]; purpose not reviewed - evidence: pre-existing symbol in
+ *   symbol_addrs.txt
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis)
 {
     int i;

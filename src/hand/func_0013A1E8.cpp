@@ -78,6 +78,13 @@ static inline qword RotKZ(const M3 &m, qword v, qword k, int z)
     return r;
 }
 
+/** @sly2-annot addr=0x13A1E8
+ * Purpose: BLIPG vt19 RenderSelf: build VU1 DMA for the blip group
+ * Info: proposed name RenderBlipgSelf (T1); class BLIPG slot19; TU blip
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
+ * See: docs/engine/particles-effects.md#6-key-functions, docs/engine/particles-effects.md#open-questions,
+ *   docs/engine/rendering.md#2-render-list-entries-rpl
+ * @end-sly2-annot */
 void func_0013A1E8(P *p)
 {
     FRAME frame;

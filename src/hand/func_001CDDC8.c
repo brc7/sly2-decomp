@@ -5,6 +5,13 @@ void func_001A6CA8(struct S *p, int n);
 void func_001F27F0(struct S *p);
 void func_001F6860(struct S *p, int n);
 static inline int FPtr(int v) { return !(v & 1); }
+/** @sly2-annot addr=0x1CDDC8
+ * Purpose: RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags
+ * Info: proposed name InitRipg (T1); class RIPG slot7; TU rip
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CDDC8(struct S *p)
 {
     int v;

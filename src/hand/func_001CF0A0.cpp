@@ -37,6 +37,13 @@ static inline qword AddScaled(qword a,qword b,qword s){qword r;__asm__("vadda.xy
 static inline int ClockWord(char*page){int word;__asm__("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.dtbits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.dtbits));return page;}
 static inline void PublishBasisStart(S*p,qword first,qword second){__asm__("sqc2 %3,0x40(%2)\n\tsqc2 %4,0x50(%2)":"=m"(p->mat.r[0].q),"=m"(p->mat.r[1].q):"r"(p),"j"(first),"j"(second));}
+/** @sly2-annot addr=0x1CF0A0
+ * Purpose: RIP default Project (vt entry 4): integrate velocity/position with damping and gravity
+ * Info: proposed name ProjectRipTransform (T1); TU rip
+ * Notes: names_v2 B proposed RenderTrail__FP5TRAILP2CM (0.856)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CF0A0(S*p){
  WORK w;
  if(!func_001CF010(p->omega)) {

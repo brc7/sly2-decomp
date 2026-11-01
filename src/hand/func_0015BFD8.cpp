@@ -16,6 +16,12 @@ static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
         r.r[i] = Add(a.r[i], b.r[i]);
 }
 extern "C" MATRIX4 func_0015BFD8(X *p);
+/** @sly2-annot addr=0x15BFD8
+ * Purpose: Computes the drift/curl matrix of an EMITDV for time t
+ * Info: proposed name CalculateEmitdvMatrix (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 MATRIX4 func_0015BFD8(X *p)
 {
     MATRIX4 mScale = D_002A2D30;

@@ -18,6 +18,13 @@ int func_001CF338(S*,qword,const M3&);
 static inline float Poly(POLY *p,float t){return p->a+t*(p->b+t*p->c);}
 static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
 static inline qword BcG(float f){U u;qword r;__asm__("mfc1 %0,%1":"=r"(r):"f"(f));u.q=r;return r;}
+/** @sly2-annot addr=0x1CF338
+ * Purpose: Compute rip render position/matrix relative to camera; false if culled
+ * Info: proposed name FRenderRipPosMat (T1); TU rip
+ * Notes: names_v2 v1 proposed ProjectBubletTransform__FP6BUBLETf (0.002)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 int func_001CF338(S*p,qword pos,const M3&mat)
 {
     if(!p->lo)return 1;

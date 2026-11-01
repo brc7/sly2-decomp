@@ -35,6 +35,14 @@ static inline qw PrepareOffsetTorque(qw normal,float amount,WORK&w){register qw 
  __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tvmulx.xyzw $vf10,%4,%0x\n\tsqc2 %0,%1\n\tvopmula.xyz $ACC,$vf10,%4\n\tvopmsub.xyz %0,%4,$vf10\n\tsqc2 $vf10,%2":"=&j"(torque),"=m"(w.temporary.q),"=m"(w.offset.q):"f"(amount),"j"(normal):"vf10","$3");return torque;
 }
 static inline SHAPE*CaptureShape(SHAPE*incoming){register SHAPE*saved __asm__("$17");__asm__("daddu %0,%1,$zero":"=r"(saved):"r"(incoming));return saved;}
+/** @sly2-annot addr=0x1CEB08
+ * Purpose: RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity,
+ *   ForceRipFade
+ * Info: proposed name FBounceRip (T1); TU rip
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 int func_001CEB08(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  SHAPE*shape=CaptureShape(incomingShape);
  WORK w;float radius,elastic,friction;void*owner;

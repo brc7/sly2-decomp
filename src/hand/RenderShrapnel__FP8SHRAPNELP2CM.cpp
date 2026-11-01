@@ -17,6 +17,12 @@ static inline qword Depth(SHRAPNEL*p){
  __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0":"=j"(k),"=&r"(bits):"r"(p),"m"(p->depth.bits));
  return k;
 }
+/** @sly2-annot addr=0x1CFC88
+ * Purpose: SHRAPNEL Render
+ * Info: proposed name RenderShrapnel__FP8SHRAPNELP2CM (EXISTING); TU rip
+ * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void RenderShrapnel(SHRAPNEL *input,CM *){
     SHRAPNEL *p=Receiver(input);
     U point,scalar;

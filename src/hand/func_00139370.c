@@ -18,6 +18,13 @@ static __inline__ int NPow2(int c)
     n <<= (n < c);
     return n;
 }
+/** @sly2-annot addr=0x139370
+ * Purpose: Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build
+ *   the texture GIF regs
+ * Info: proposed name PropagateBlipgShader (T1); TU blip
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
+ * @end-sly2-annot */
 void func_00139370(struct P *p, void *pv)
 {
     register struct X *px asm("$9") = func_001EC8D0(pv); /* register pin (Claude agent): px in t1 */

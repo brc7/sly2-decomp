@@ -2,6 +2,11 @@ struct LM { float gMin; float gMax; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
 float RadNormalize(float rad) asm("func_0011CF60");
 float GRandInRange(float gMin, float gMax) asm("func_0011D448");
+/** @sly2-annot addr=0x15AE38
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void CalculateEmitvx(int c, LM *plm, int cMax, EMITVX *pemitvx)
 {
     int n;

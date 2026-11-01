@@ -12,6 +12,14 @@ struct OBJ {
     void *xF8;
 };
 extern "C" void func_001CE980(OBJ *);
+/** @sly2-annot addr=0x1D0800
+ * Purpose: SMACK Update (RemoveRip when done)
+ * Info: proposed name UpdateSmack (T1); TU rip
+ * Notes: names_v2 C proposed UpdateRip__FP3RIPf (0.200)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 extern "C" void func_001D0800(OBJ *p)
 {
     if (p->x18 < D_002DDED0.t - p->x14) {

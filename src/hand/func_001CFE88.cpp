@@ -38,6 +38,13 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r {
     __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z" : "=j"(r.r[1]) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[1]));
     __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z" : "=j"(r.r[2]) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
 }
+/** @sly2-annot addr=0x1CFE88
+ * Purpose: MATCH Project: Hermite-follow target pose
+ * Info: proposed name ProjectMatchTransform (T1); TU rip
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001CFE88(S *p)
 {
     CLOCK *clock = &D_002DDED0;

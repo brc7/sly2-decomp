@@ -12,6 +12,15 @@ void func_0015B7E8(void *a, B *b, LOC *ploc);
 void func_0015B1B0(B *b, void *c, void *a, int q0, int q1, int q2, int q3);
 void func_0015B9F0(void *a, B *b, LOC *ploc, L2 *pl2);
 void func_0015B428(B *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
+/** @sly2-annot addr=0x15BD20
+ * Purpose: Emits c particles: OriginateParticles, then EmitRips (rip emitters) or
+ *   [OriginateSplineSinkParticles] + EmitBlips
+ * Info: proposed name EmitParticles (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
+ *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions, docs/engine/particles-effects.md#open-questions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void func_0015BD20(void *a, B *b, void *c)
 {
     if (a) {

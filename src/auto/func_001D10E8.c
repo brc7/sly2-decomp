@@ -49,6 +49,12 @@ Please include it in the input .s file(s), or in an additional file.
 
 */
 
+/** @sly2-annot addr=0x1D10E8
+ * Purpose: RIPT 0 Touch: TouchRip
+ * Info: proposed name TouchBublet (T2); TU rip
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void func_001D10E8(s32 arg0, s32 arg1) {
     TouchRip__FP3RIPi(arg0, arg1 == 0);
 }

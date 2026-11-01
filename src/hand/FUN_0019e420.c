@@ -25,6 +25,18 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
+/** @sly2-annot addr=0x1CE1C8
+ * Purpose: RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then
+ *   BounceRipgRips if active
+ * Info: proposed name UpdateRipg (EXISTING); class RIPG slot16; TU rip
+ * Notes: agent/verifier proposes UpdateRipg for this existing name (see existing_name_changes.csv) | RENAME
+ *   proposed -> UpdateRipg (existing_name_changes.csv)
+ * Confidence: high [EXISTING 0.75] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
+ *   r5_1AE130+arbitration
+ * See: docs/engine/particles-effects.md#2-rip-particles-ripcpp-0x1cdcd0-0x1d1370,
+ *   docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
+ * @end-sly2-annot */
 void FUN_0019e420(struct RIPG *pripg)
 {
     DLI dli;

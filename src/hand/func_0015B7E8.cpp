@@ -30,6 +30,15 @@ static inline qword Cross(qword a, qword b)
     __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
     return d;
 }
+/** @sly2-annot addr=0x15B7E8
+ * Purpose: Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos,
+ *   ChooseEmitvVelocityAge, ConvertEmitoPosVec)
+ * Info: proposed name OriginateParticles (T1); TU emitter
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources:
+ *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
+ * See: docs/engine/particles-effects.md#6-key-functions,
+ *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
+ * @end-sly2-annot */
 void func_0015B7E8(int c, EMITTER *pemit, BUF *pb)
 {
     pb->apos = (qword *)PvAlloc(c * 16, 16);

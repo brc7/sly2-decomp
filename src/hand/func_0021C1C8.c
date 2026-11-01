@@ -29,6 +29,14 @@ static inline float Sqrt(qword d) {
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x21C1C8
+ * Purpose: after SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow
+ *   target moved by rate/distance (0x21C5F8)
+ * Info: proposed name Cid105_slot17 (T2); class CID105 slot17; TU trail
+ * Notes: agent qualifier: (per-frame SO update) - record history sample
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
+ * @end-sly2-annot */
 void func_0021C1C8(struct S *p)
 {
     func_001F3980(p);
