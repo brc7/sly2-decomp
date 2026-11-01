@@ -8,6 +8,13 @@ struct Lock {
     Lock(P *pp) { p = pp; VCALL(p, 1); }
     ~Lock() { VCALL(p, 2); }
 };
+/** @sly2-annot addr=0x1FB8E0
+ * Purpose: Per-frame flush of a dirty sound: positional update;
+ *   start(vt9)/stop(vt10)/status(vt14)/params(vt13)/pause(vt11)/continue(vt12) by flag bits
+ * Info: proposed name UpdateSnd (T1); TU sound
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/sound.md#2-sound-instances, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 extern "C" void func_001FB8E0(P *p)
 {
     Lock l(p);

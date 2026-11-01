@@ -14,6 +14,12 @@ static inline float Eval(struct V3 *pv, float t)
 {
     return pv->x + t * (pv->y + t * pv->z);
 }
+/** @sly2-annot addr=0x1FDA48
+ * Purpose: Poll SUKR cmd 0xB; when player (STEPPLAYER 0x34) exists and +0x70>0.5, track a listener object
+ * Info: proposed name UpdateSndmgrListener (T2); TU sound
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FDA48(struct P *p)
 {
     struct O *po;

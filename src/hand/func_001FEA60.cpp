@@ -13,6 +13,13 @@ static inline X *ReadReceiver(X **pp)
     __asm__("lw %0,%1":"=r"(receiver):"m"(*pp));
     return receiver;
 }
+/** @sly2-annot addr=0x1FEA60
+ * Purpose: Set weight[category<8][channel<4], recompute channel output and send snd_SetMasterVolume; update
+ *   live streams
+ * Info: proposed name SetSndmgrChannelVolume (T1); TU sound
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 extern "C" void func_001FEA60(P *p,int channel,int category,float input)
 {
     if((unsigned int)category>=8)return;

@@ -12,6 +12,12 @@ extern M2C_UNK D_003DD040;
 extern M2C_UNK D_003DD08C;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x1FB6A8
+ * Purpose: If not in SNDMGR pending DL, append and Incref
+ * Info: proposed name AddSndToDirtyList (T1); TU sound
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FB6A8(s32 arg0) {
     void *temp_v0;
 

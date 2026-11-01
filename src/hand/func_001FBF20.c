@@ -1,5 +1,11 @@
 struct X { char pad[0x14]; int n14; float g18; char pad2[0x40 - 0x1C]; void *p40; float g44; char pad3[0x50 - 0x48]; unsigned short fl; };
 void func_00232500(void *, int, int, int, int, int);
+/** @sly2-annot addr=0x1FBF20
+ * Purpose: vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40
+ * Info: proposed name ApplyBanksndParams (T1); class BANKSND; TU sound
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FBF20(struct X *px)
 {
     int fl = px->fl;

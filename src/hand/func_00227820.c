@@ -10,6 +10,12 @@ int func_001FE848(void *p, int id);
 float func_001FE888(void *p);
 void func_00215E80(struct Q *q, int n);
 void func_0021EDA0(void *p, void *s);
+/** @sly2-annot addr=0x227820
+ * Purpose: draws text label via blot helpers and strcpy
+ * Info: proposed name RenderSpeakerText (T2); TU tu_2275B8
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
+ * @end-sly2-annot */
 void func_00227820(struct P *p, struct Q *q)
 {
     void *pv;

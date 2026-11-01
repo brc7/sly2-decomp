@@ -20,6 +20,14 @@ float func_0011D018(float, float, float, struct K *, int);
 void func_001FEA60(struct P *, int, float, int);
 void func_001FB8E0(struct Q *);
 int func_00231C48(void);
+/** @sly2-annot addr=0x1FD830
+ * Purpose: Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync,
+ *   master fades, UpdateSnd on every pending sound, flush 989 commands
+ * Info: proposed name UpdateSndmgr (T1); TU sound
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/overview.md#5-per-frame-update-and-render,
+ *   docs/engine/sound.md#1-sound-manager-soundcpp-0x1faf70-0x1ff398, docs/engine/sound.md#6-key-functions
+ * @end-sly2-annot */
 void func_001FD830(struct P *p)
 {
     struct X *top;

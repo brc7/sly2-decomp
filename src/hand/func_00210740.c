@@ -17,6 +17,14 @@ void func_001FB2C0(struct M *, float);
 void func_001FB520(struct M *, float);
 void func_00258040(struct M **, struct M *);
 static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
+/** @sly2-annot addr=0x210740
+ * Purpose: ASEG event 0: start sfx at source object (optionally by oid) with range/vol/pitch; continuous ones
+ *   stored in the ASEGA ref
+ * Info: proposed name StartSwAsegSound (T1); TU sw
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8,
+ *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
+ * @end-sly2-annot */
 void func_00210740(float offset, float fade, float scale, struct G *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
 {
     struct O *o;

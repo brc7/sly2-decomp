@@ -2,6 +2,12 @@ struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
 struct X { char pad[0xC]; struct VT *pvt; char pad2[0x52 - 0x10]; short s52; };
 void func_001FB060(struct X *);
 void func_001FB658(struct X *, int, int);
+/** @sly2-annot addr=0x1FCC30
+ * Purpose: SUKR status callback (cmd 7)
+ * Info: proposed name OnStreamsndStatus (T1); TU sound
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FCC30(int f, long l)
 {
     struct X *px = (struct X *)l;

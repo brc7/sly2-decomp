@@ -38,6 +38,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1FC6D0
+ * Purpose: vt11: SUKR cmd 3
+ * Info: proposed name PauseStreamsnd (T2); class STREAMSND; TU sound
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FC6D0(s32 arg0) {
     func_00233088(0x524B5553, 3, M2C_FIELD(arg0, s32 *, 0x40), 0, M2C_ERROR(/* Read from unset register $a4 */), M2C_ERROR(/* Read from unset register $a5 */), M2C_ERROR(/* Read from unset register $a6 */));
 }

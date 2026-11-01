@@ -16,6 +16,13 @@ void func_00232320(struct M *, void (*)(void), struct P *);
 void func_002322F0(struct M *);
 int func_001C4840(void *);
 void func_001FEED0(struct G *);
+/** @sly2-annot addr=0x1FBC58
+ * Purpose: vt9: build 989 play params (bank, sound index, vol/pan/pitch); loopers play async with handle
+ *   callback, one-shots fire-and-forget; per-sfx special cases
+ * Info: proposed name PlayBanksnd (T1); class BANKSND; TU sound
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FBC58(struct P *p)
 {
     struct G *pg = &D_003DD040;

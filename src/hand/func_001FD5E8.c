@@ -19,6 +19,13 @@ static inline int FSet(struct K *pk, struct X *px)
     }
     return pk->n4 != 0;
 }
+/** @sly2-annot addr=0x1FD5E8
+ * Purpose: Load bank if needed, snd_ResolveBankXREFS, mark looping sounds (kind 2) via snd_IsSoundALooper
+ * Info: proposed name PostSoundLoad (T1); TU sound
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/open-questions.md#modding-live-test-2026-11-01,
+ *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
+ * @end-sly2-annot */
 void func_001FD5E8(struct P *p)
 {
     int i;
