@@ -10,7 +10,8 @@ Comparison masks only the fields that the object's relocations will fill in at l
 (jal targets, %hi/%lo of globals, %gp_rel), so a MATCH here means byte-identical after linking.
 """
 import os, re, struct, subprocess, sys, csv, tempfile
-for _p in ("/home/claude/pylibs", "/home/claude/spimdisasm", "/home/claude/splat/src"):
+# Extra Python search paths (e.g. a local rabbitizer checkout), os.pathsep-separated.
+for _p in filter(None, os.environ.get('SLY2_PYTHONPATH', '').split(os.pathsep)):
     if _p not in sys.path and os.path.isdir(_p): sys.path.insert(0, _p)
 import rabbitizer
 
@@ -20,7 +21,7 @@ TEXT_VA, TEXT_OFF, TEXT_SIZE = 0x100000, 0x80, 0x159df0
 CC = os.environ.get('SLY2_CC', os.path.join(ROOT, 'tools', 'compilers', 'bundle', 'ee-gcc2.95.3-136', 'bin', 'ee-gcc.exe'))  # Sly 2 compiler
 WIBO = os.environ.get('SLY2_WIBO', os.path.join(ROOT, 'tools', 'wibo_cc.py'))
 WIBO_CMD = [sys.executable, WIBO] if os.name == 'nt' else [WIBO]   # native Windows: no wibo, wibo_cc.py runs the .exe files
-M2C_INC = os.environ.get('SLY2_M2C_INC', '/home/claude/m2c')     # directory holding m2c_macros.h (needed by raw m2c .c files)
+M2C_INC = os.environ.get('SLY2_M2C_INC', os.path.expanduser('~/m2c'))     # directory holding m2c_macros.h (needed by raw m2c .c files)
 CFLAGS = os.environ.get('SLY2_CFLAGS', '-x c++ -O2 -G0 -ffast-math -mvu0-use-vf0-vf31 -fno-exceptions').split() + ['-B' + os.path.join(ROOT, 'tools/compilers/bundle/ee-gcc2.95.3-136/lib/gcc-lib/ee/2.95.3') + '/']
 INCLUDES = ['-I' + os.path.join(ROOT, 'include')] + os.environ.get('SLY2_INC', '').split()
 
@@ -195,7 +196,7 @@ def compile_src(src):
         # SDK path: compile to .s without delay-slot filling, then GNU-as reorder assembly (tools/gnu_reorder.py)
         import gnu_reorder
         s_out = out + '.s'
-        real = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wibo-i686')
+        import wibo_cc; real = wibo_cc.default_wibo()
         scmd = ([] if native else [real]) + [cc, '-S'] + INCLUDES + [x for x in flags] + (['-fno-delayed-branch'] if asm_mode == 'gnu-reorder' else []) + [src, '-o', s_out]
         if native: scmd = [x for x in scmd if x != '-mvu0-use-vf0-vf31']
         p = subprocess.run(scmd, capture_output=True, text=True, cwd=ROOT, timeout=300)

@@ -2,7 +2,7 @@
 
 **Complete: all 6,662 functions match the original game byte for byte.**
 
-This repo contains no game data; bring your own disc. **To build and check it, start with [SETUP.md](SETUP.md).**
+This repo contains no game data; bring your own disc. **To build and check it, start with [SETUP.md](SETUP.md).** On macOS (incl. Apple Silicon) or with Docker: [docs/guides/setup.md](docs/guides/setup.md).
 Who did what: [CREDITS.md](CREDITS.md).
 
 Target: `SCUS_973.16` (NTSC-U, SHA-1 de2af92a54de71e33edc8a160c31c0337a95e6f5)

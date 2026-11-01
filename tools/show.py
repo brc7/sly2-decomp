@@ -4,7 +4,7 @@ import os, sys, re, csv, glob
 sys.path.insert(0, os.path.dirname(__file__))
 import matchtool as M
 ROOT = M.ROOT
-SLY1 = '/home/claude/sly1'
+SLY1 = os.environ.get('SLY2_SLY1', os.path.expanduser('~/sly1'))   # checkout of github.com/TheOnlyZac/sly1
 
 def sly1_ref(name):
     p = os.path.join(ROOT, 'config', 'sly1_matches.csv')
