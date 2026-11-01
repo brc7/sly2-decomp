@@ -31,7 +31,7 @@ extern char D_002C3248[];
 Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001D9B60(OBJ *, int);
-int func_001441A0(Q *);
+int MpStepplayerCur(Q *);
 int func_0011D4D0(float, float, float);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 int func_002121E8(SUB *, int);
@@ -67,14 +67,14 @@ void func_001D9DF8(OBJ *p)
             p->x3C = 0x342; p->x40 = 0x343; p->x44 = 0x344; p->x48 = 0x345; p->x4C = 0x346;
         }
         p->x20 = p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x28 = p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x28 = p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
     }
     switch (p->x30) {
     case 1:
     case 6:
     case 7:
         p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
         if (*p->x34->xE00 <= 0) {
             func_001D9B60(p, 0);
         } else if (p->x20 > p->x24) {
@@ -101,7 +101,7 @@ void func_001D9DF8(OBJ *p)
         break;
     case 0:
         p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
         if (p->x20 < p->x24) {
             p->x20 = p->x24;
             func_00212E40(p->x38, 0x34F, 1.0f - p->x20);
@@ -121,7 +121,7 @@ void func_001D9DF8(OBJ *p)
             func_001D9B60(p, 1);
         break;
     case 4:
-        p->x2C = (float)func_001441A0(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
         if (p->x28 < p->x2C)
             p->x28 = p->x2C;
         else

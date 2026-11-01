@@ -7,7 +7,7 @@ struct S { struct PO *po; int state; int x8; int xC; int x10; int x14; float g18
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void func_0018F2B0(struct PO *, int, void *, int *, QF *, float, float, float);
+void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
 qword ConvertAloPos(void *, struct PO *, qword);
 void SetStepRadTargetVec(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
@@ -41,7 +41,7 @@ void func_00136F48(struct S *ps, int state)
         g = 1.5f;
         if (state == 0)
             g = 3.15f;
-        func_0018F2B0(ps->po, 2, ps->a20, &f, &v, ps->po->g1A8, 0.15f, g);
+        ChooseJtAttackTarget(ps->po, 2, ps->a20, &f, &v, ps->po->g1A8, 0.15f, g);
         if (f) {
             ps->g1C = Clamp((v.a[2] - ps->g30) / (ps->g34 - ps->g30), 0.0f, 1.0f);
         } else {

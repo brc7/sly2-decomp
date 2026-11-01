@@ -1,13 +1,13 @@
 struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char xf50[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-void func_00141640(struct S *p, int *pf);
+void GetStepplayerCpdefi(struct S *p, int *pf);
 void func_0019EA00(void *p, int *pf);
 void func_0018A428(struct S *p, int *pf)
 {
     if (p->n != 0 && p->n != 0x12 && p->x4cc && p->xf54 != 1)
         p->t = D_002DDED0.t;
-    func_00141640(p, pf);
+    GetStepplayerCpdefi(p, pf);
     switch (p->n) {
     case 8:
         func_0019EA00(p->xf50, pf);

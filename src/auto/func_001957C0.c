@@ -38,7 +38,7 @@ extern s32 D_003E1438;
 extern void *D_003E1444;
 
 /*
-Decompilation failure in function func_001928F8:
+Decompilation failure in function SetJtGrabState:
 
 Found jr instruction at chunk.s line 40, but the corresponding jump table is not provided.
 

@@ -4,7 +4,7 @@ struct O { char pad[0xC]; struct VE *vt; char pad2[0x18]; unsigned long f28; };
 struct T { char pad[0x180]; struct O *po; };
 struct S { char pad[0x13F0]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
-void func_001B7D20(struct S *p);
+void DetachMurrayCarried(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 void func_00209FB8(struct O *p);
 qword ConvertAloVec(struct S *p, int n, qword q);
@@ -13,7 +13,7 @@ void func_001B7AE8(struct S *p)
 {
     struct O *po;
     qword q;
-    func_001B7D20(p);
+    DetachMurrayCarried(p);
     po = p->pt->po;
     p->pt = 0;
     if ((int)(po->f28 >> 60) & 1) {

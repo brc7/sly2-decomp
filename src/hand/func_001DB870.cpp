@@ -28,7 +28,7 @@ extern char D_002DEB30[];
 extern char D_003DD490[];
 extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
 void func_001DA808(OBJ *);
-int func_00187D80(void *, int);
+int GrfHandleJoyBtn(void *, int);
 void func_001DC260(OBJ *, int);
 int func_00161798(void *);
 void func_001617E0(void *, int);
@@ -51,13 +51,13 @@ extern "C" void func_001DB870(OBJ *p)
         return;
     if (!p->x10)
         return;
-    if (p->x30 && func_00187D80(p->x10, 0x10)) {
+    if (p->x30 && GrfHandleJoyBtn(p->x10, 0x10)) {
         func_001DC260(p, -1);
         return;
     }
     switch (p->x40) {
     case 0:
-        if (func_00187D80(p->x10, 0x40)) {
+        if (GrfHandleJoyBtn(p->x10, 0x40)) {
             if (p->x254 != -1) {
                 int cost = D_002BCD00[p->x254].x8;
                 int have = func_00161798(D_002DEB30);
@@ -79,7 +79,7 @@ extern "C" void func_001DB870(OBJ *p)
         }
         break;
     case 1:
-        if (func_00187D80(p->x10, 0x40)) {
+        if (GrfHandleJoyBtn(p->x10, 0x40)) {
             if (p->x258 == -1) {
                 func_001FB2F8(func_001FBB90(0x36), 0);
             } else {
@@ -97,9 +97,9 @@ extern "C" void func_001DB870(OBJ *p)
         }
         break;
     }
-    if (!p->x30 && func_00187D80(p->x10, 0x10))
+    if (!p->x30 && GrfHandleJoyBtn(p->x10, 0x10))
         func_001DA950(p, -1, -1);
-    if (func_00187D80(p->x10, 0x80)) {
+    if (GrfHandleJoyBtn(p->x10, 0x80)) {
         func_001DA950(p, -1, -1);
         func_001DC260(p, p->x40 == 0);
     }

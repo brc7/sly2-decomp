@@ -27,8 +27,8 @@ extern qword D_002A2DA0;
 extern S *D_003E1474;
 extern GS D_003DD490;
 void func_00142880(P *p);
-void func_001427C8(P *p, int n, S *ps);
-void func_001428D8(P *p, S *ps, void **ppv, float *pg, float *pg2);
+void SetStepplayerLeanTarget(P *p, int n, S *ps);
+void HeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
 int func_0011D910(void *p, float g);
 void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
@@ -89,20 +89,20 @@ void func_00142AF8(P *p)
     }
     if (p->n1100 == 0) {
         if (D_002DD640 != 0) {
-            func_001427C8(p, -1, 0);
+            SetStepplayerLeanTarget(p, -1, 0);
         } else {
             S *psBest = p->ps10DC;
             int nBest = p->n10E4;
             float gBest, g1, g2;
             S *ps;
             if (psBest)
-                func_001428D8(p, psBest, &p->p10F8, &gBest, 0);
+                HeroInteractDistance(p, psBest, &p->p10F8, &gBest, 0);
             else
                 gBest = D_002A4D68;
             for (ps = D_003E1474; ps; ps = ps->pNext) {
                 if (ps->nF4 < nBest)
                     continue;
-                func_001428D8(p, ps, &p->p10F8, &g1, &g2);
+                HeroInteractDistance(p, ps, &p->p10F8, &g1, &g2);
                 if (g1 > ps->gE8)
                     continue;
                 if (!func_0011D910(ps->rng, g2))
@@ -118,7 +118,7 @@ void func_00142AF8(P *p)
                 ps = D_003DD490.ps4690;
                 if (ps) {
                     float g3, g4;
-                    func_001428D8(p, ps, &p->p10F8, &g3, &g4);
+                    HeroInteractDistance(p, ps, &p->p10F8, &g3, &g4);
                     if (nBest < 2 || (nBest == 2 && g3 < gBest)) {
                         psBest = ps;
                         nBest = 2;
@@ -126,7 +126,7 @@ void func_00142AF8(P *p)
                     }
                 }
             }
-            func_001427C8(p, nBest, psBest);
+            SetStepplayerLeanTarget(p, nBest, psBest);
         }
     }
     if (p->n1104 != 0) {

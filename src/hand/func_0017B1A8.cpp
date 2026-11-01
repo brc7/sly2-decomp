@@ -33,7 +33,7 @@ extern "C"{
  qword ConvertXfVec(void*,void*,qword);
  DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
  P*PpoHero(void*);
- void func_00187E28(void*,int,float);
+ void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
  ENTRY*func_0012F938(void*,int);
 }
 static inline void Request(P*p,REQUEST*r,float duration){VE*v=&p->vt[96];((void(*)(P*,REQUEST*,float))v->fn)((P*)((char*)p+v->delta),r,duration);}
@@ -165,7 +165,7 @@ extern "C" void func_0017B1A8(C*p,int next){
    p->delta=func_0012DE58(p->actor,first,0,end,localPoint,localDirection);
   }
   int owned=0;if(request.flag)owned=p->target->owner==p->actor;p->owned=owned;
-  if(p->actor->attention){P*focus=PpoHero(D_003DD490);if(focus&&p->target==focus)func_00187E28(D_002DFC00,3,0.15f);}
+  if(p->actor->attention){P*focus=PpoHero(D_003DD490);if(focus&&p->target==focus)TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00,3,0.15f);}
   break;
  }
  case 3:{ENTRY*entry=func_0012F938(p->control->curves,0x3C);if(entry)func_00130D30(p->control->asega,0,entry->value,1.0f);break;}

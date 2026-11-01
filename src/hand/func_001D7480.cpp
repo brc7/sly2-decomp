@@ -28,12 +28,12 @@ void ReplaceSma(void *, OBJ *, int, int, void *);
 void func_00162E38(SUB *);
 int CploFindSwObjectsByClass(GS *, int, int, int, int, SO **);
 void func_001433C8(SO *);
-void func_001440D0(SO *, int);
+void BindStepplayerHpMp(SO *, int);
 CRef func_001D8A38(const char *, ...);
 int func_001F0400(void *, int);
 int OidFromSmIsms(void *, int);
 void func_001D77D0(OBJ *, int);
-void func_00187E78(void *);
+void StartJoySelection__FP3JOY(void *);
 }
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 #define VCALL5(o, n, a1, a2, a3, a4, a5) ((void (*)(void *, int, int, int, int, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1, a2, a3, a4, a5)
@@ -58,7 +58,7 @@ extern "C" void func_001D7480(OBJ *p, int s)
         for (int i0 = 0; i0 < n; i0++) {
             SO *so = aso0[i0];
             func_001433C8(so);
-            func_001440D0(so, 1);
+            BindStepplayerHpMp(so, 1);
         }
         n = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, aso1);
         for (int i1 = 0; i1 < n; i1++)
@@ -77,7 +77,7 @@ extern "C" void func_001D7480(OBJ *p, int s)
         }
         ReplaceSma(p->x184, p, idx, 0, p->x188);
         func_001D77D0(p, 0);
-        func_00187E78((D_002DFBC0 & 2) ? D_002DFC00 : D_002E0D00);
+        StartJoySelection__FP3JOY((D_002DFBC0 & 2) ? D_002DFC00 : D_002E0D00);
         VCALL5(p, 3, 5, 0, 0, 0, 0);
     }
 }

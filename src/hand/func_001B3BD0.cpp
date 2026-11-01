@@ -39,7 +39,7 @@ int func_0024B610(MPEG *p);
 void func_0014D0B8(CLOCK *p, int k);
 void func_001871C0(JOY *p);
 void func_001AB1A0(G *g);
-uint func_00187D80(JOY *p, uint k);
+uint GrfHandleJoyBtn(JOY *p, uint k);
 void func_0014BA38(void);
 void func_001B4058(P *p);
 void func_001B4140(P *p);
@@ -115,7 +115,7 @@ extern "C" void func_001B3BD0(P *p, K *k)
             if (D_002C0268) f = 1;
             if (f) {
                 int fQuit = 0;
-                if (func_00187D80(&D_002DFC00, 0x91F)) fQuit = 1;
+                if (GrfHandleJoyBtn(&D_002DFC00, 0x91F)) fQuit = 1;
                 if (fQuit) {
                     p->x108 = 0;
                     break;

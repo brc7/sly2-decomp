@@ -55,7 +55,7 @@ void func_001421F8(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     void *temp_v0;
 
     if (arg1 != 0) {
-        func_001928F8(arg0 + 0x4C0, 5, arg1, 0);
+        SetJtGrabState(arg0 + 0x4C0, 5, arg1, 0);
         func_001CD308(arg0 + 0x900, arg1);
     } else if (M2C_FIELD(arg0, s32 *, 0x4C8) == 5) {
         temp_v0 = M2C_FIELD(arg0, void **, 0xC);

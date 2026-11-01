@@ -13,8 +13,8 @@ extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
 extern float D_002BF288,D_002BF28C,D_002BF290,D_002BF294;
 void func_001F9B20(P*);void PresetStepAccel(P*);
-void func_001903B8(P*);void func_0019DF70(void*);void func_00196DF8(void*);
-void func_001A1148(void*);void func_00194170(void*);void func_00137248(void*);
+void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
+void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
 qword func_00204E38(P*,MODEL*,float);float func_0012F990(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
 M4*func_001A6318(P*);float func_0011E290(qword,qword,qword*,qword*);
@@ -35,11 +35,11 @@ extern "C" void func_00188960(P*p){
  WORK w;
  switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
  switch(p->mode){
- case 3:func_001903B8(p);break;
- case 8:func_0019DF70((char*)p+0xF50);break;
- case 2:func_00196DF8((char*)p+0x2C0);break;
- case 4:func_001A1148((char*)p+0xDF0);break;
- case 7:func_00194170((char*)p+0x4C0);break;
+ case 3:PresetJtAccelHang__FP2JT(p);break;
+ case 8:PresetJtAccelPipe((char*)p+0xF50);break;
+ case 2:PresetJtAccelJump((char*)p+0x2C0);break;
+ case 4:PresetJtAccelZap((char*)p+0xDF0);break;
+ case 7:PresetJtAccelHide((char*)p+0x4C0);break;
  case 6:func_00137248((char*)p+0x1FF0);break;
  case 14:{
   VTE*e=&p->vt[33];

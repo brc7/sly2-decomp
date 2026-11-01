@@ -28,7 +28,7 @@ void func_001179D8(STREAM *,int,void *);
 void func_00184CA0(STREAM *);
 void DeleteSw(SW *);
 void func_0014D068(void *);
-void func_00187078(int);
+void AddGrfusr__Fi(int);
 void *func_002333B4(void *,int,uint);
 SW *SW_ctor(SW *);
 int func_001B3B08(void *);
@@ -100,7 +100,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     func_00184CA0(reader);
     DeleteSw(p);
     func_0014D068(D_002DDED0);
-    func_00187078(8);
+    AddGrfusr__Fi(8);
     func_002333B4(&D_003DD490,0,0x4790);
     func_002333B4(&D_003DD490,0,0x4790);
     SW_ctor(&D_003DD490);

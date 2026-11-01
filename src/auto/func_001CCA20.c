@@ -34,5 +34,5 @@ extern s32 D_003E115C;
 extern s32 D_003E1398;
 
 void func_001CCA20(s32 arg0, s32 arg1) {
-    func_001CC2E8(arg1);
+    UpdateJtHands(arg1);
 }

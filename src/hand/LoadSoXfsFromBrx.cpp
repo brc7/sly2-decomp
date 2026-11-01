@@ -33,7 +33,7 @@ qword func_0022CA18(E *,E *);
 void func_0022C818(S *,E *);
 void AddXfAct(S *,E *,JOB *);
 void UpdateSoXfWorldMatrices(S *);
-void func_00186670(S *,void *);
+void LoadSoIkFromBrx(S *,void *);
 void func_001603B8(S *,void *);
 void func_0021C888(S *,void *);
 }
@@ -81,7 +81,7 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
   if(flags){j9->h.owner=p;j9->h.entry=e;j9->h.order=-1;AddXfAct(p,e,&j9->h);}
  }
  UpdateSoXfWorldMatrices(p);
- func_00186670(p,stream);
+ LoadSoIkFromBrx(p,stream);
  func_001603B8(p,stream);
  func_0021C888(p,stream);
  p->a=Lookup(p,func_00117D50(stream));p->b=Lookup(p,func_00117D50(stream));p->c=Lookup(p,func_00117D50(stream));

@@ -1,7 +1,0 @@
-#include "m2c_prelude.h"
-M2C_UNK TranslateStepToPos();                            /* extern */
-
-void func_00143CF8(void *arg0) {
-    TranslateStepToPos();
-    M2C_FIELD(arg0, s32 *, 0x9E4) = 0;
-}

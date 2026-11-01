@@ -18,7 +18,7 @@ extern CLOCK D_002DDED0;
 extern PLAYER *D_002E1E40;
 extern char D_002DE2E0[];
 extern "C" {
-void func_0019CCE8(MODEL *);
+void EndJtMode(MODEL *);
 void func_00213928(DISPLAY *,int);
 void SelectReconTarget(P *);
 void func_002020C8(P *);
@@ -61,7 +61,7 @@ extern "C" void UpdateReconSel(P *p)
 {
     if(!p->primary)return;
     if(!p->secondary)return;
-    if(p->refreshPending){p->refreshPending=0;func_0019CCE8(p->model);}
+    if(p->refreshPending){p->refreshPending=0;EndJtMode(p->model);}
     if(p->choiceTime+5.0f<D_002DDED0.time)func_00213928(p->primary,0x35B);
     if(p->state<8)if(p->state>=2){
         SelectReconTarget(p);

@@ -2843,7 +2843,7 @@ extern "C" BHV *PbhvFindStep(STEP *pstep, int cid);
 extern "C" int FObjHasTarget(LO *plo, OID oid);
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSG *pjsg);
-extern "C" int func_00187D80(JOY *pjoy, uint grfbtn);
+extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
 extern "C" int func_001D9880(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine);
 extern "C" float func_001FE888(SNDMGR *psndmgr);
@@ -3225,7 +3225,7 @@ int FIsJsgCommandComplete(JSG *pjsg, RELAYCMD *prelaycmd)
     case RELAYCK_ButtonPrompt:
         if (prelaycmd->buttonPrompt.oidWho == -1)
         {
-            fComplete = func_00187D80(&D_002DFC00, prelaycmd->buttonPrompt.grfbtn);
+            fComplete = GrfHandleJoyBtn(&D_002DFC00, prelaycmd->buttonPrompt.grfbtn);
         }
         else
         {

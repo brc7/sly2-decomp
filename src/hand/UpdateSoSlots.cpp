@@ -787,7 +787,7 @@ void SlotSetRole(SO *pso, XF *pxf, int nRole);
 MATRIX4 SlotStoreValue(XF *pxf, qword qwVal);
 qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate);
 extern "C" void func_0022FA20(SO *pso);
-extern "C" void func_00186A50(SO *pso, void *pv);
+extern "C" void SolveIk(SO *pso, void *pv);
 void UpdateXflock(SO *pso, struct XFLOCK *pxflock);
 void UpdateChainLink(SO *pso, struct CHAINLINK *plink);
 extern "C" float *func_00256D18(float *pg, qword qw);
@@ -1354,7 +1354,7 @@ void UpdateSoSlots(SO *pso)
                 break;
             }
             case 0xd:
-                func_00186A50(pso, pxf->pxfRef);
+                SolveIk(pso, pxf->pxfRef);
                 break;
             case 0xf:
                 UpdateXflock(pso, (struct XFLOCK *)pxf->pxfRef);

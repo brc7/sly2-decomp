@@ -35,7 +35,7 @@ void func_0011C950(M4*,M3*,PARAMS*,M3*,qword*,float);
 void func_0011F088(qword,qword,PARAMS*,qword*,float);
 void func_001856B8(void*,LIST*);void func_001856C0(void*,LIST*,int,U*,PARAMS*,float);
 qword func_00185A80(void*,LIST*,qword);
-void func_0018C250(P*,int,int);void func_001A0450(P*,AXIS*,REQUEST*);
+void SetJtJts__FP2JT3JTS4JTBS(P*,int,int);void func_001A0450(P*,AXIS*,REQUEST*);
 }
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -121,7 +121,7 @@ extern "C" void func_00185E40(P*p){
  if(GXOfQw(QwDot(p->acceleration.q,p->acceleration.q))>1.0f)active=1;
  else if(p->control->speed!=0.0f)active=1;
  if(active){
-  func_0018C250(p,21,11);func_001A0450(p,p->axes,p->request);
+  SetJtJts__FP2JT3JTS4JTBS(p,21,11);func_001A0450(p,p->axes,p->request);
   SetVec(p,35,QwAdd(linear.q,QwRotateVec(&p->basis,QwScaleX(p->acceleration.q,VuFloatC1(-1.0f)))));
- }else{func_0018C250(p,21,10);SetVec(p,35,linear.q);}
+ }else{SetJtJts__FP2JT3JTS4JTBS(p,21,10);SetVec(p,35,linear.q);}
 }

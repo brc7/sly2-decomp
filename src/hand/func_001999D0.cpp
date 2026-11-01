@@ -1,4 +1,4 @@
-// func_001999D0: contact direction of a JT against a shape feature, then func_001997D8(p, point, *out).
+// func_001999D0: contact direction of a JT against a shape feature, then FCheckJtEdgeNormal(p, point, *out).
 //   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (func_001665F0, max 64)
 //   kind 2 (face):   face must be flat enough (plane z >= 0.7); sum of the directions of both edge lists whose
 //                    segment passes func_00118668 against the actor's tree
@@ -25,7 +25,7 @@ extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
 int func_001665F0(GEOMETRY *, QUERY *, int, int, EDGE **);
 int func_00199408(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
-int func_001997D8(JT *, qword, qword);
+int FCheckJtEdgeNormal(JT *, qword, qword);
 }
 
 static inline qword Add(qword a, qword b)
@@ -125,5 +125,5 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         break;
     }
     }
-    return func_001997D8(p, point, out->q);
+    return FCheckJtEdgeNormal(p, point, out->q);
 }

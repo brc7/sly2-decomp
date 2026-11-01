@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00142830(s32, s32, s32);               /* extern */
+void ForceStepplayerLeanTarget(s32, s32, s32);               /* extern */
 CRef *RefThunk_ForceStepplayerLeanTarget(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 4179, 8194 };
@@ -9,7 +9,7 @@ CRef *RefThunk_ForceStepplayerLeanTarget(CRef *ret, void *pbasic, s32 cref, CRef
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_00142830(pbasic, arg0_v, arg1_v);
+    ForceStepplayerLeanTarget(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

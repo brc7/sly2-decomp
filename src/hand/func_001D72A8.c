@@ -15,8 +15,8 @@ extern char D_002DFC00[];
 extern char D_002E0D00[];
 void UpdateSo(OBJ *);
 int func_0014FD50(void *);
-int func_00187E88(void *);
-int func_00187D80(void *, int);
+int DxSelectionJoy(void *);
+int GrfHandleJoyBtn(void *, int);
 void *func_001F07E8(void *);
 OBJ *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, OBJ *);
 void func_001DC260(void *, int);
@@ -41,7 +41,7 @@ void func_001D72A8(OBJ *p)
         pad = D_002DFC00;
     else
         pad = D_002E0D00;
-    n = func_00187E88(pad);
+    n = DxSelectionJoy(pad);
     if (n == 0) {
         for (i = 0; ; i++) {
             OBJ *q;
@@ -50,7 +50,7 @@ void func_001D72A8(OBJ *p)
                 return;
             if (pe->p != func_001F07E8(p->x188))
                 continue;
-            if (!func_00187D80(pad, pe->fl))
+            if (!GrfHandleJoyBtn(pad, pe->fl))
                 continue;
             if (pe->n == -1)
                 continue;

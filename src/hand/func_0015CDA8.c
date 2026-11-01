@@ -10,7 +10,7 @@ void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 void func_002123C8(struct S *p);
 void func_0015D648(struct S *p, int a, int b);
-void func_00187E78(void *p);
+void StartJoySelection__FP3JOY(void *p);
 static inline float GFromP(void *pv)
 {
     CRef ref;
@@ -59,5 +59,5 @@ void func_0015CDA8(struct S *p)
         D_002BE270 = -1;
         func_0015D648(p, 8, 0);
     }
-    func_00187E78(D_002DFC00);
+    StartJoySelection__FP3JOY(D_002DFC00);
 }

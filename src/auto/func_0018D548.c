@@ -45,5 +45,5 @@ extern void *D_003E13B4;
 extern s32 D_003E1BEC;
 
 void func_0018D548(s32 arg0, s32 arg1) {
-    func_0018E540(arg0, -1);
+    SetJtJtcs__FP2JTi(arg0, -1);
 }

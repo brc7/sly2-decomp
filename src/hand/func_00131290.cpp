@@ -18,7 +18,7 @@ void *func_00131270(struct P *);
 void StartSwAsegSound(void *, int, int, int, int, void *, void *, struct Q *, void *, float, float, float);
 void StopSwAsegSound(void *, void *, struct Q *, void *);
 void func_0014F750(void *, void *);
-void func_00187E28(void *, void *, float);
+void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *, void *, float);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, void *, void *);
 int CidBasic(void *);
 void func_0012F9B8(void *, int, int, int, float, float);
@@ -64,7 +64,7 @@ extern "C" void func_00131290(struct P *p, struct EV *pev)
         func_0014F750(D_002DDF40, pev->pv);
         break;
     case 3:
-        func_00187E28(D_002DFC00, pev->pv, pev->uC.g);
+        TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pev->pv, pev->uC.g);
         break;
     case 4: {
         void *po = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pev->pv, func_00131270(p));

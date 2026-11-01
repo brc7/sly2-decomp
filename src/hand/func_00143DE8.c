@@ -5,8 +5,8 @@ struct P {
     char pad2[0xF00 - 0x4CC]; char mF00[0x1084 - 0xF00]; struct LO *plo; char pad3[0x11B4 - 0x1088]; int x11B4;
 };
 void ClearBhvstk__FP6BHVSTK(void *p);
-int func_001443D8(struct P *p);
-void func_0019CD38(void *p, int n);
+int FStepplayerInJtmode(struct P *p);
+void SetJtModeState__FP6JTMODEi(void *p, int n);
 void func_00143DE8(struct P *p, struct LO *plo)
 {
     struct LO *old = p->plo;
@@ -23,7 +23,7 @@ void func_00143DE8(struct P *p, struct LO *plo)
     if (plo) {
         plo->vt[1].pfn((char *)plo + plo->vt[1].d);
         ClearBhvstk__FP6BHVSTK(p->m26C);
-        if (func_001443D8(p)) func_0019CD38(p->mF00, -1);
+        if (FStepplayerInJtmode(p)) SetJtModeState__FP6JTMODEi(p->mF00, -1);
         if (p->x11B4 != -1 && *p->plo->p40 != 0x1E)
             p->vt[88].pfn((char *)p + p->vt[88].d, 0);
     }

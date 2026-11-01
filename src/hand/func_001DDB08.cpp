@@ -15,7 +15,7 @@ extern void *D_002DD5BC;
 extern void *D_002F7900;
 extern "C" {
 CRef func_00258200(void *, const CRef &, G *);
-void func_001440D0(void *, int);
+void BindStepplayerHpMp(void *, int);
 void func_00165E38(G *);
 }
 /* The unused third parameter is deliberate: it is the same SetPv form as func_0013D328 / func_00143AF0,
@@ -28,10 +28,10 @@ extern "C" void func_001DDB08(void)
         SetPv(D_003E0FAC, ref, &D_003D4A60);
     }
     if (D_002E1E40)
-        func_001440D0(D_002E1E40, 1);
+        BindStepplayerHpMp(D_002E1E40, 1);
     if (D_002DD5BC)
-        func_001440D0(D_002DD5BC, 1);
+        BindStepplayerHpMp(D_002DD5BC, 1);
     if (D_002F7900)
-        func_001440D0(D_002F7900, 1);
+        BindStepplayerHpMp(D_002F7900, 1);
     func_00165E38(&D_003D4A60);
 }

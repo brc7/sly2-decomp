@@ -13,7 +13,7 @@ qword LimitVectorLength(qword,float);
 qword func_001A62E8(struct O*);
 struct M3*func_001A6318(struct O*);
 qword ConvertAloVec(struct O*,struct O*,qword);
-void func_001A0B40(struct P*,int);
+void SetJtHurtState(struct P*,int);
 static inline float Max(float a,float b){return a>b?a:b;}
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;}
@@ -118,5 +118,5 @@ void func_001A16C8(struct P*p){
         struct VT*vt=object->vt;
         ((void(*)(void*,qword))vt[35].fn)((char*)object+vt[35].delta,output.q);
     }
-    func_001A0B40(p,7);
+    SetJtHurtState(p,7);
 }

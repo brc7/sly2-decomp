@@ -14,7 +14,7 @@ int func_0020E040(G *g);
 int func_001D9880(void *p);
 char *PpoHero(G *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-void func_0019CD38(void *p, int k);
+void SetJtModeState__FP6JTMODEi(void *p, int k);
 int func_002127C8(void);
 int NWorldCur(void);
 int CidBasic(void *p);
@@ -31,7 +31,7 @@ int func_001B0290(X *px)
     if (func_0020E040(&D_003DD490)) return 0;
     if (func_001D9880(D_002E6550)) return 0;
     pl = PpoHero(&D_003DD490);
-    if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) func_0019CD38(pl + 0xF00, -1);
+    if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!func_002127C8()) return 0;
     psrc = D_002C00E8;
     pdst = D_002F65D0;

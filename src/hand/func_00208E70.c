@@ -8,7 +8,7 @@ struct S {
 };
 extern float D_002C3D90;
 extern float D_002C3D94;
-void func_001428D8(struct X *x, struct S *p, void *pv, float *pd, float *pa);
+void HeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
 unsigned long func_00207A20(int n);
 int func_00209A68(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
@@ -23,7 +23,7 @@ int func_00208E70(struct S *p, struct X *x, float *pout)
     void *o;
     struct L *pl;
     void *pv;
-    func_001428D8(x, p, &x->p10DC, &d, &ang);
+    HeroInteractDistance(x, p, &x->p10DC, &d, &ang);
     if (pout)
         *pout = d;
     if (!(p->fl2C0 & func_00207A20(1))) {

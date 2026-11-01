@@ -7,10 +7,10 @@ struct O { char pad[0xC]; struct VT *pvt; char pad1[0x150 - 0x10]; struct P *p15
 extern qword func_001A62E8(void *p);
 extern int func_0011D910(void *p, float g);
 extern struct T *PbhvFindBhvstk(void *p, int n);
-extern void func_0018C250(struct O *p, int n, int m);
+extern void SetJtJts__FP2JT3JTS4JTBS(struct O *p, int n, int m);
 extern float func_002458F0(float y, float x);
 extern float RadNormalize__Ff(float g);
-extern int func_0018ED98(struct O *p);
+extern int FJtSweepBack(struct O *p);
 extern float D_002BF4AC;
 extern char D_002BF4B0[];
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -35,7 +35,7 @@ int func_0018EE38(struct O *p)
                 int k = pt->n50;
                 if (k < 2) {
                     if (k >= 0) {
-                        func_0018C250(p, 0x10, -1);
+                        SetJtJts__FP2JT3JTS4JTBS(p, 0x10, -1);
                         return -1;
                     }
                 }
@@ -67,7 +67,7 @@ int func_0018EE38(struct O *p)
     case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
         break;
     default:
-        if (func_0018ED98(p))
+        if (FJtSweepBack(p))
             n++;
         break;
     }

@@ -26,7 +26,7 @@
 //       &fNear, so loop.c no longer folds it: it is hoisted to the while top and spilled to 0x8F0 as in the target (no 0x8F4 shifts).
 //   (2) Both params unpacks (4 words) go through UnpackWords too: the dead odd loop ends gcse's block before the copy, so the PRE
 //       `lui t3` (hi of D_002DEA28) is inserted above the do-while barrier and scheduled early as in the target.
-//   (3) Packet dist is stored by a `sw` asm (SetX, as func_00192BD8/func_001E9AC0): reorg never fills a delay slot from an asm,
+//   (3) Packet dist is stored by a `sw` asm (SetX, as SetJtGrabKind/func_001E9AC0): reorg never fills a delay slot from an asm,
 //       giving the target's unfilled bc1f slot; its allocation-only "j" input keeps the Dot result in a VF register.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
@@ -206,7 +206,7 @@ static inline float SqLength(VU_VECTOR v)
 {
     return Scalar(Dot(v, v));
 }
-// The low word of a VU qword stored straight from the GPR gcc moves it to (as func_00192BD8's SetX); the second, unused "j" input
+// The low word of a VU qword stored straight from the GPR gcc moves it to (as SetJtGrabKind's SetX); the second, unused "j" input
 // is allocation-only: it keeps the qword's pseudo in a VF reg, so the qmfc2 is the "r" input reload (the target's GPRs).
 static inline void SetX(float *pg, qword q) { __asm__("sw %1,%0" : "=m"(*pg) : "r"(q), "j"(q)); }
 // Microprogram 0x1C0 (sphere against the view): inputs vf10..vf17, results (offset, visibility) in vf18/vf19.

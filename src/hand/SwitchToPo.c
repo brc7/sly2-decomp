@@ -6,7 +6,7 @@ struct LO *PpoCur(struct G *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *plo, int n);
 struct CRef *func_001D8B20(struct CRef *pret, struct CRef *pref, const char *s, int n);
 void func_00129EC8(struct CRef *p);
-void func_00194F70(struct G *p, int a, int b, int c);
+void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(struct G *p, int a, int b, int c);
 void func_001C48C0(struct G *p);
 #define VCALL(o, n, a) ((void (*)(void *, int))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d, a)
 void SwitchToPo(struct G *p, struct LO *plo)
@@ -25,6 +25,6 @@ void SwitchToPo(struct G *p, struct LO *plo)
         func_00129EC8(&ret);
         func_00129EC8(&ref);
     }
-    func_00194F70(p, 0, 0, 0);
+    UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(p, 0, 0, 0);
     func_001C48C0(p);
 }

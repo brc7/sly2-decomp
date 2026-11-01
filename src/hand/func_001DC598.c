@@ -11,7 +11,7 @@ char *func_0021ED58(char *, char *);
 int func_0021ECD8(char *, char *, ...);
 OBJ *func_001DAE20(GS *,int);
 void *PpoHero(void *);
-int func_00141E78(void *, int);
+int IGadgetSlotFromId(void *, int);
 void func_001DC598(char *out)
 {
     char buf[256];
@@ -22,7 +22,7 @@ void func_001DC598(char *out)
         func_0021ED58(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
     } else {
         OBJ *po = func_001DAE20(&D_003DA0F0,D_003DA0F0.x48);
-        int v = func_00141E78(PpoHero(D_003DD490), D_003DA0F0.x48);
+        int v = IGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.x48);
         if ((po->x1C & 1) && v < 0) {
             func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;

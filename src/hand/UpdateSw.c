@@ -18,7 +18,7 @@ void UpdateSwBusyList(struct S *p);
 void UpdateSwObjects(struct S *p);
 void UpdatePoctl(struct L *pl);
 void ExpireSwZapRecords(struct S *p);
-void func_0019F120(struct S *p);
+void UpdateSwGuardOverride(struct S *p);
 void func_00130918(void *pv);
 void func_00156728(void *pv);
 void SolveSw(struct S *p);
@@ -66,7 +66,7 @@ void UpdateSw(struct S *p)
             }
         }
         p->pi = 0;
-        func_0019F120(p);
+        UpdateSwGuardOverride(p);
         InitDli(&dli, &p->dl);
         while ((pv = PvNextDli(&dli)) != 0)
             func_00130918(pv);

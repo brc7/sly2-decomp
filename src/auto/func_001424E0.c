@@ -59,6 +59,6 @@ void func_001424E0(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
         var_a1 = M2C_FIELD(arg0, s32 *, 0x9C8);
     }
     M2C_FIELD(arg0, s32 *, 0x9CC) = var_a1;
-    func_001928F8(arg0 + 0x4C0, 0xC, arg2, 0);
+    SetJtGrabState(arg0 + 0x4C0, 0xC, arg2, 0);
     M2C_FIELD(arg0, s32 *, 0x1318) = arg3;
 }

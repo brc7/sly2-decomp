@@ -22,7 +22,7 @@ extern struct G D_003DD490;
 W *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
-int func_001441A0(Q *);
+int MpStepplayerCur(Q *);
 void func_00213B00(W *, int);
 void func_00212E40(W *, int, float);
 void func_001D9968(OBJ *p)
@@ -41,7 +41,7 @@ void func_001D9968(OBJ *p)
         return;
     }
     p->x20 = p->x24 = (float)*p->q->pn / (float)p->q->c;
-    p->x28 = p->x2C = (float)func_001441A0(p->q) / (float)p->q->cMax;
+    p->x28 = p->x2C = (float)MpStepplayerCur(p->q) / (float)p->q->cMax;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->q, 0x37)) {
             p->ids[0] = 0x347;
             p->ids[1] = 0x348;

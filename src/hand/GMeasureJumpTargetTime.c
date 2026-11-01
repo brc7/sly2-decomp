@@ -1,0 +1,10 @@
+typedef int qword __attribute__((mode(TI)));
+struct CONTEXT; struct OBJECT;
+struct S { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
+void MeasureJtJumpToTargetAtTime(struct CONTEXT *, struct OBJECT *, qword, float *, qword *, qword *, float);
+#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
+typedef char S_Size[sizeof(struct S)==32?1:-1];
+typedef char S_Context_Offset[FIELD_OFFSET(struct S,a)==0?1:-1];
+typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
+typedef char S_Local_Point_Offset[FIELD_OFFSET(struct S,q)==16?1:-1];
+float GMeasureJumpTargetTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }

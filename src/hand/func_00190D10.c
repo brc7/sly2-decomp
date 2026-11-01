@@ -13,7 +13,7 @@ qword func_001A62E8(void *p);
 qword ConvertXfVec(int n, void *p, qword q);
 void func_00256D18(qword *pq, qword q);
 void __ml__FRC7MATRIX4T0(struct MATRIX4 *pm, void *p, struct T *t);
-void func_00186A50(struct P *p, int n);
+void SolveIk(struct P *p, int n);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 void func_00190D10(struct P *p)
@@ -37,6 +37,6 @@ void func_00190D10(struct P *p)
         __ml__FRC7MATRIX4T0(&m, t2->xa0 + 0x40, t2);
         t2->m40 = m;
     }
-    func_00186A50(p, p->x19cc->xa8);
+    SolveIk(p, p->x19cc->xa8);
     p->vt[18].pfn((char *)p + p->vt[18].d);
 }

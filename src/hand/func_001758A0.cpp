@@ -77,7 +77,7 @@ static inline qword QwSub(qword qw0, qword qw1)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-/* the second "j"(v) is allocation-only (same helper as func_001428D8): it fixes the from/to lqc2 reloads */
+/* the second "j"(v) is allocation-only (same helper as HeroInteractDistance): it fixes the from/to lqc2 reloads */
 static inline qword QwLengthXY(qword v)
 {
     qword qw;

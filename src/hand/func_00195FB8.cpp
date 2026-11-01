@@ -10,7 +10,7 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void func_0018E540(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void func_00140C88(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
+void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
 qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void func_001305B8(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
@@ -151,8 +151,8 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  case 6:{SOURCE*old=p->source;p->source=0;if(p->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)func_00183B80(old,0);}func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;break;}
  case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 18:
   func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;
-  if(Less(p->mode,16)&&!Less(p->mode,14)){if(p->actor!=D_002E1E40)func_001CCAC0((SECONDARY*)p->actor->secondary,-1);else func_0018E540(p->actor,-1);}break;
- case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F8);func_00140C88(p->actor,0);break;
+  if(Less(p->mode,16)&&!Less(p->mode,14)){if(p->actor!=D_002E1E40)func_001CCAC0((SECONDARY*)p->actor->secondary,-1);else SetJtJtcs__FP2JTi(p->actor,-1);}break;
+ case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F8);SetStepplayerTnOverride(p->actor,0);break;
  case 21:ReleaseAct(&p->event);func_002303A0(p->actor,p->actor->body,2);func_001F6860(p->actor,0);break;
  }
  register unsigned clockHigh __asm__("$3"),savedClockHigh __asm__("$21");
@@ -184,7 +184,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
    __asm__("qmtc2.ni %1,%0":"=j"(position):"r"(point));
    __asm__("vsub.xyzw %0,%0,%1":"+j"(delta):"j"(position));actor->offset.q=delta;}
   ClearVelocity(p->actor);p->flags28=0;clip=p->special154;
-  if(p->focused){func_00204DA8(p->actor,p->oldScale);func_00140C88(p->actor,0);p->focused=0;}break;}
+  if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}break;}
  case 0:case 1:case 4:case 5:case 7:
   switch(p->state){case 13:clip=p->special148;break;case 14:clip=p->special158;break;case 16:clip=p->actor->clip1514;break;case 15:clip=p->actor->clip1518;break;}
   if(!clip)clip=p->base[p->variant];if(!clip)clip=p->base[0];break;
@@ -193,10 +193,10 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  case 8:func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);clip=active->clip;break;
  case 11:case 12:case 13:case 14:case 15:
   func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;p->variant=0;clip=p->base[0];
-  if(Less(p->mode,16)&&!Less(p->mode,14)){ACTOR*actor=p->actor;if(actor==D_002E1E40){actor->primaryFocus=p->source;func_0018E540(actor,0);}else{actor->secondaryFocus=p->source;weight=0.0f;func_001CCAC0((SECONDARY*)p->actor->secondary,0);clip=p->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
+  if(Less(p->mode,16)&&!Less(p->mode,14)){ACTOR*actor=p->actor;if(actor==D_002E1E40){actor->primaryFocus=p->source;SetJtJtcs__FP2JTi(actor,0);}else{actor->secondaryFocus=p->source;weight=0.0f;func_001CCAC0((SECONDARY*)p->actor->secondary,0);clip=p->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
  case 9:case 10:case 16:case 18:{func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;ACTOR*actor=p->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=func_0019A750(p,4);((void(*)(void*,qword))v.fn)(receiver,velocity);p->variant=0;if(p->mode==16)clip=p->special14C;else clip=p->special148;active=0;break;}
- case -1:if(p->focused){func_00204DA8(p->actor,p->oldScale);func_00140C88(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
- case 19:func_00204660(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;func_00140C88(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
+ case -1:if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
+ case 19:func_00204660(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;SetStepplayerTnOverride(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
  case 20:p->tracks[0].control.bits=0;p->tracks[1].control.bits=0;p->tracks[2].control.bits=0;p->tracks[3].control.bits=0;p->scriptedGain=1.0f;func_001384C0(p->multi);clip=p->multi;flags=9;break;
  case 21:{register float minimum __asm__("$f21"),maximum __asm__("$f20");register qword bodyPosition __asm__("$3");register OBJECT*queryObject __asm__("$4");
   __asm__("lw $2,0(%4)\n\tlw %1,0x1D0(%4)\n\tlw %0,0x58($2)\n\tli.s %2,-1.00000000000000000000e3\n\tlq %0,0x70(%0)\n\tli.s %3,-1.00000000000000000000e0"

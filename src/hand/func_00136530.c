@@ -20,7 +20,7 @@ void func_002303A0(struct P *, struct O *, int);
 float RadStepHeading(struct P *);
 void func_00204660(struct P *, float);
 void FixStepAngularVelocity(struct P *);
-void func_002206C8(void *, int);
+void SetJtthrowState(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
 void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword func_0011BFF0(M4 *pm);
@@ -59,7 +59,7 @@ void func_00136530(struct P *p, int k)
             return;
         if (pg->k1914 == 7)
             return;
-        func_002206C8(&pg->x1910, 0);
+        SetJtthrowState(&pg->x1910, 0);
         return;
     }
     case 0: {

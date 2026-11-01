@@ -53,7 +53,7 @@ extern s32 D_003E1AC8;
 
 void func_00143380(s32 arg0, s32 arg1, s32 arg2) {
     if (M2C_FIELD(arg0, s32 *, 0x11A8) != 0) {
-        func_00143678(arg0, 2, 0);
+        UpdateStepplayerBootySave(arg0, 2, 0);
         func_0013C560(M2C_FIELD(arg0, s32 *, 0x11A8), 5);
     }
 }

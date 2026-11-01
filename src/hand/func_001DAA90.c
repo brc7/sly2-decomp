@@ -14,7 +14,7 @@ typedef struct {
 extern struct G D_003DD490;
 extern int D_002C3258[];
 void func_001DA808(OBJ *);
-int func_00187D80(void *, int);
+int GrfHandleJoyBtn(void *, int);
 void *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001DB520(OBJ *, int);
@@ -23,7 +23,7 @@ R *func_001DAE20(OBJ *, int);
 void func_001DA950(OBJ *, int, int);
 void *func_001FBB90(int);
 void func_001FB2F8(void *, int);
-void func_00141FC8(void *, int, int);
+void SetStepplayerGadget(void *, int, int);
 void func_001DAA90(OBJ *p)
 {
     void *pv;
@@ -36,7 +36,7 @@ void func_001DAA90(OBJ *p)
         return;
     if (p->x10 == 0)
         return;
-    if (p->x30 && func_00187D80(p->x10, 0x10)) {
+    if (p->x30 && GrfHandleJoyBtn(p->x10, 0x10)) {
         func_001DB520(p, -1);
         return;
     }
@@ -46,7 +46,7 @@ void func_001DAA90(OBJ *p)
         return;
     }
     func_001DA858(p);
-    if (func_00187D80(p->x10, 0x7E8)) {
+    if (GrfHandleJoyBtn(p->x10, 0x7E8)) {
         r = func_001DAE20(p, p->x48);
         if (r == 0 || !(r->fl & 1))
             func_001DA950(p, 1, 0xE2);
@@ -54,7 +54,7 @@ void func_001DAA90(OBJ *p)
             func_001DA950(p, 1, 0x31);
     }
     for (i = 0; i < 3; i++) {
-        if (!func_00187D80(p->x10, D_002C3258[i]))
+        if (!GrfHandleJoyBtn(p->x10, D_002C3258[i]))
             continue;
         r = func_001DAE20(p, p->x48);
         if (r == 0 || !(r->fl & 4)) {
@@ -63,7 +63,7 @@ void func_001DAA90(OBJ *p)
             func_001DA950(p, 1, 0x33);
         } else {
             func_001FB2F8(func_001FBB90(0x34), 0);
-            func_00141FC8(pv, i, p->x48);
+            SetStepplayerGadget(pv, i, p->x48);
         }
     }
 }

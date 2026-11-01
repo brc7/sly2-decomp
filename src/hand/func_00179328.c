@@ -24,7 +24,7 @@ void SetBhvBusy(struct S *p);
 void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
 void *PpoHero(struct G *g);
 int FFindLoParent(int n, void *o);
-void func_00187E28(void *p, int n, float f);
+void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 void func_00179328(struct S *p) {
     int f;
     float a;
@@ -62,7 +62,7 @@ void func_00179328(struct S *p) {
     if (p->p10->n334) {
         void *o = PpoHero(&D_003DD490);
         if (o && FFindLoParent(p->n50, o) && (o == D_002F7900 || (p->n5C & 0x40000))) {
-            func_00187E28(D_002DFC00, 3, 1.50000005960464477539e-01f);
+            TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f);
             p->fB0 = D_002DDED0.t + 5.00000044703483581543e-02f;
         }
         p->fB4 = D_002DDED0.t + 1.33333340287208557129e-01f;

@@ -16,9 +16,9 @@ void func_00204F78(P*,PATH*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);
 void func_0019E110(C*,LM*);float func_0011D948(LM*,float);
 qword ConvertAloPos(P*,P*,qword);qword func_001A62E8(P*);
-void func_00140C88(P*,void*);
+void SetStepplayerTnOverride(P*,void*);
 EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,void*);void func_001FB3F0(EFFECT*,qword);
-void func_0018E540(P*,int);void ReleaseSma(COMPONENT**);
+void SetJtJtcs__FP2JTi(P*,int);void ReleaseSma(COMPONENT**);
 void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
 }
 static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
@@ -114,11 +114,11 @@ extern "C" void func_0019EAB0(C*p,int next){
   owner->offset.q=Sub(point,offset);
   p->actor->motion.q=Sub(p->actor->goal.q,w.point.q);
   p->actor->motion.i[2]=0;
-  func_00140C88(p->actor,p->path->focus);
+  SetStepplayerTnOverride(p->actor,p->path->focus);
   if(p->path->attachEffectId){EFFECT*e=func_001FBB90(p->path->attachEffectId);func_001FB2F8(e,0);func_001FB3F0(e,w.point.q);}
   break;
  }
- case 0:if(p->actor==D_002E1E40)func_0018E540(p->actor,p->actor->alternate?10:2);break;
+ case 0:if(p->actor==D_002E1E40)SetJtJtcs__FP2JTi(p->actor,p->actor->alternate?10:2);break;
  }
  p->state=next;p->time=D_002DDED0.t;
  ASEG*clip=0;float position=0.0f,speed=1.0f;int flags=1;
@@ -127,7 +127,7 @@ extern "C" void func_0019EAB0(C*p,int next){
   PathState(p->path,6);UnsubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,0);
   P*actor=p->actor;w.target=actor->goal;
   void*focus;actor->motion.q=GoalInputs(&w.target,func_001A62E8(actor),focus);
-  p->actor->motion.i[2]=0;func_00140C88(p->actor,focus);
+  p->actor->motion.i[2]=0;SetStepplayerTnOverride(p->actor,focus);
   if(p->path->releaseEffectId){EFFECT*e=func_001FBB90(p->path->releaseEffectId);func_001FB2F8(e,0);func_001FB3F0(e,func_001A62E8(p->actor));}
   p->path=0;return;
  }

@@ -20,9 +20,9 @@ extern int D_002BE2A8[];
 void func_00212C50(struct X *p);
 int func_001D9880(void *p);
 int func_0015D5C8(struct X *p);
-int func_001880D8(void *p);
-int func_00187D80(void *p, int n);
-int func_00187E88(void *p);
+int DySelectionJoy(void *p);
+int GrfHandleJoyBtn(void *p, int n);
+int DxSelectionJoy(void *p);
 void func_0015D648(struct X *p, int a, int b);
 void func_002581C0(void *pref, void *p, void *q);
 void func_00129EC8(void *pref);
@@ -58,7 +58,7 @@ void func_0015CF30(struct X *p)
     case -1:
         return;
     case 2: {
-        float g = func_001880D8(D_002DFC00);
+        float g = DySelectionJoy(D_002DFC00);
         if (g < 0.0f && p->n110 <= 0) {
             PlaySound(0x36);
             return;
@@ -75,11 +75,11 @@ void func_0015CF30(struct X *p)
             func_0015D648(p, 0.0f < g ? 4 : 6, -1);
             return;
         }
-        if (func_00187D80(D_002DFC00, 0x40)) {
+        if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
             func_0015D648(p, 7, -1);
             return;
         }
-        if (p->n110 && func_00187D80(D_002DFC00, 0x10)) {
+        if (p->n110 && GrfHandleJoyBtn(D_002DFC00, 0x10)) {
             p->n114 = 0;
             func_0015D648(p, 6, -1);
             return;
@@ -107,7 +107,7 @@ void func_0015CF30(struct X *p)
             return;
         }
         case 1:
-            if (func_00187D80(D_002DFC00, 0x80)) {
+            if (GrfHandleJoyBtn(D_002DFC00, 0x80)) {
                 func_001B3A48(D_002F66B0, D_002BE248[p->n110]);
                 func_0022B490(&D_003DD490, 0, 0x189, -1, 0, -1);
                 PlaySound(0x34);
@@ -122,25 +122,25 @@ void func_0015CF30(struct X *p)
     case 8:
         switch (p->n120) {
         case -1:
-            if (func_00187D80(D_002DFC00, 0x40))
+            if (GrfHandleJoyBtn(D_002DFC00, 0x40))
                 func_0015D648(p, 10, -1);
-            else if (func_00187D80(D_002DFC00, 0x10))
+            else if (GrfHandleJoyBtn(D_002DFC00, 0x10))
                 func_0015D648(p, 9, -1);
             return;
         case 0: {
             float g;
-            if (func_00187D80(D_002DFC00, 0x40)) {
+            if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
                 D_002BE270 = p->n128;
                 func_001B3A48(D_002F66B0, D_002BE200[p->n128]);
                 func_0022B490(&D_003DD490, 0, 0x189, -1, 0, -1);
                 PlaySound(0x34);
                 return;
             }
-            if (func_00187D80(D_002DFC00, 0x10)) {
+            if (GrfHandleJoyBtn(D_002DFC00, 0x10)) {
                 func_0015D648(p, 9, -1);
                 return;
             }
-            g = func_00187E88(D_002DFC00);
+            g = DxSelectionJoy(D_002DFC00);
             if (g < 0.0f && p->n128 <= 0) {
                 PlaySound(0x36);
                 return;
