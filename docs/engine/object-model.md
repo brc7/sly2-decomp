@@ -148,87 +148,104 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
 - `ConvertAloPos/Vec/Mat` 0x1A6F00.. convert between object frames `[H r4 lo.md]`.
 - Transform constraints (dest follows source position/rotation): `LoadXfmConstraintsFromBrx` 0x1603B8, `ApplyXfmConstraint` 0x1604E8 `[H r3 frm.md]`.
 
+## Devtools findings (v3, 2026-11-01)
+
+- **CLASSINFO stride 0x14** `[C:static v3 disassembly]`: the 199 getters at 0x113A10 + 0x10*cid return `g_aclassinfo + 0x14*cid` (e.g. cid 58 -> 0x2BAF70,
+  cid 59 -> 0x2BAF84) ([devtools/symbols_export](../guides/devtools.md#symbols_export)).
+- **g_sw and g_cm are objects in place, not pointers** `[C:runtime v3]`: the word at +0xC is vt_SW 0x2DC018 at 0x3DD490 and vt_CM 0x2CA4D0 at 0x2DDF40 in every
+  state checked (S02, S65, S71-S73).
+- **XFM world matrix at XFM+0xD0** `[C:runtime level_viewer]`: in Paris S02, 787 of 842 live XFM objects with a non-zero matWorld have a placed instance with
+  the same oid within 2 units (LIGHT 248/248); misses are 7 VOLs on moving SOs and 21 runtime-spawned oids. collision_paths' independent check reproduces
+  LIGHT 248/248, PROXY 385/385, RAIL 21/21 in S02 ([placement rules](../formats/meshes-scene.md#devtools-findings-v3-2026-11-01)).
+
 ## 8. Source files
 
-| Span | File (label) | Notes |
-|---|---|---|
-| 0x100000-0x1147D8 | crt0 + Splice thunks + class factories | no static-init boundary inside; thunks in src/splicewrap |
-| 0x132B00-0x1336F0 | basic |  |
-| 0x147E20-0x148620 | busy? |  |
-| 0x15E380-0x15EF00 | find | was labelled font |
-| 0x1603B8-0x1607A0 | tu_1603B8 (XFM constraints) | sorts font<x<frm |
-| 0x1A5270-0x1A7518 | lo | was labelled light |
-| 0x1C9940-0x1CB908 | proxy |  |
-| 0x231100-0x2319E8 | xform |  |
+| Span | File (label) | Conf | Notes |
+|---|---|---|---|
+| 0x132B00-0x1336F0 | basic | medium | tu_table "?" |
+| 0x147E20-0x148620 | busy | low | SW busy list |
+| 0x15E380-0x15EF00 | find | high | Sly1 find.c order; tu_table said font; was labelled font |
+| 0x1603B8-0x1607A0 | tu_1603B8 | low | XFM transform constraints (font<x<frm); sorts font<x<frm |
+| 0x1A5270-0x1A7518 | lo | high | tu_table said light; was labelled light |
+| 0x1C9940-0x1CB908 | proxy | high |  |
+| 0x231100-0x2319E8 | xform | high |  |
 
 ## 9. Key functions
 
-| Addr | Name | Purpose | Conf | Status |
-|---|---|---|---|---|
-| [0x132B10](../../src/hand/func_00132B10.c) | `FIsBasicDerivedFrom` | cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax) | 0.92 | HYP |
-| [0x132B78](../../src/hand/func_00132B78.c) | `EnsureBasicSidebag` | If psidebag (+4) is null create one (0x257D80) and addref | 0.85 | HYP |
-| [0x132BC8](../../src/hand/func_00132BC8.c) | `EnsureLoSidebagBool` | RefEnsureOption(plo, optid, bool CRef (tagk 0x17)) | 0.90 | HYP |
-| [0x132C20](../../src/hand/func_00132C20.c) | `EnsureLoSidebagInt` | RefEnsureOption with S32 CRef (tagk 0x15) | 0.88 | HYP |
-| [0x132C78](../../src/hand/func_00132C78.c) | `EnsureLoSidebagFloat` | RefEnsureOption with F32 CRef (tagk 0x16) | 0.90 | HYP |
-| [0x132CC8](../../src/auto/func_00132CC8.c) | `EnsureLoSidebagClq` | RefEnsureOption with CRef(CLQ*) | 0.85 | HYP |
-| [0x132D28](../../src/auto/func_00132D28.c) | `EnsureLoSidebagLm` | RefEnsureOption with CRef(LM*) | 0.85 | HYP |
-| [0x132D88](../../src/hand/func_00132D88.c) | `EnsureLoSidebagOid` | RefEnsureOption with S32 CRef holding an OID | 0.85 | HYP |
-| [0x132DE0](../../src/hand/func_00132DE0.c) | `EnsureLoSidebagVector` | RefEnsureOption with a vector CRef (passed by value as qword) | 0.85 | HYP |
-| [0x1331F8](../../src/hand/func_001331F8.c) | `HandleLoSpliceEvent` | BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and either schedule (fPost) or evaluate now | 0.75 | HYP |
-| [0x133508](../../src/hand/func_00133508.c) | `SendLoMessage` | BASIC vt4: own vt5 HandleMessage, then vt5 of every subscriber | 0.85 | HYP |
-| [0x133590](../../src/auto/func_00133590.c) | `BASIC::HandleMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | HYP |
-| [0x147F40](../../src/hand/func_00147F40.c) | `UpdateSwBusyList` | Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current player, and move them between busy/idle lists | 0.50 | VERIFIED |
-| [0x148300](../../src/hand/func_00148300.c) | `UpdateLoBusy` | Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it | 0.40 | VERIFIED (arbitration/conflict fix; was UpdateLoBusy?) |
-| [0x15E380](../../src/hand/func_0015E380.c) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.80 | HYP |
-| [0x15E650](../../src/hand/func_0015E650.c) | `CploFindSwObjects` | Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra arg 0) | 0.80 | HYP |
-| [0x15E678](../../src/hand/func_0015E678.c) | `CploFindSwObjects` | Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter between ploContext and cploMax | 0.65 | VERIFIED |
-| [0x15E938](../../src/hand/func_0015E938.c) | `PloFindSwObject` | Returns the first LO matching grffso/oid relative to a context LO (or NULL) | 0.90 | HYP |
-| [0x15E988](../../src/hand/func_0015E988.c) | `FIsCidDerivedFrom` | Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches cidAncestor | 0.85 | VERIFIED |
-| [0x15E9C8](../../src/hand/func_0015E9C8.c) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | VERIFIED |
-| [0x15ED78](../../src/hand/func_0015ED78.c) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | HYP |
-| [0x1A5270](../../src/hand/func_001A5270.c) | `InitLo` | LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21 | 0.90 | VERIFIED |
-| [0x1A53E0](../../src/hand/func_001A53E0.c) | `FreeLoroot` | Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool g_sw+0x398C, clear x14 | 0.60 | VERIFIED |
-| [0x1A5478](../../src/hand/func_001A5478.c) | `AddLo` | LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call vt11 AddHierarchy if parent in world, root not-busyk2 | 0.80 | VERIFIED |
-| [0x1A5630](../../src/hand/func_001A5630.c) | `RemoveLo` | LO vt9 Remove: if in world vt22 + drop root from g_sw+0x2C; drop root from busy list; move to removed tail of child DL, set bit56, remove children (vt | 0.80 | VERIFIED |
-| [0x1A5900](../../src/hand/func_001A5900.c) | `LO::SetParent` | LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set psoParent, vt13 UpdateLoroot, recurse to children ( | 0.75 | VERIFIED |
-| [0x1A5C28](../../src/auto/func_001A5C28.c) | `LoadLoFromBrx` | LO vt14: LoadOptionsFromBrx loop (0x13F810) | 0.80 | VERIFIED |
-| [0x1A5C48](../../src/hand/func_001A5C48.c) | `PostLoLoad` | LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf x40\|=2 (wants Splice update) else tSplice(x30)=D_002A | 0.85 | VERIFIED |
-| [0x1A5D30](../../src/auto/func_001A5D30.c) | `DeferLoRemove` | Queue Remove of plo to run later (pushes callback 0x1A5D08 on plo deferred list) | 0.75 | HYP |
-| [0x1A5D58](../../src/auto/func_001A5D58.c) | `PdcbAddLo` | Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34 list | 0.45 | VERIFIED |
-| [0x1A6118](../../src/auto/func_001A6118.c) | `LO::RotateToMat` | LO vt30 default no-op | 0.60 | VERIFIED |
-| [0x1A6138](../../src/auto/func_001A6138.c) | `LO::GetAngularVelocity` | LO vt34: return zero vector | 0.45 | VERIFIED |
-| [0x1A6148](../../src/auto/func_001A6148.c) | `LO::SetAngularVelocity` | LO vt36 default no-op | 0.40 | VERIFIED |
-| [0x1A6150](../../src/auto/func_001A6150.c) | `OnLoRemove` | LO vt22: unregister from g_sw per-object update table (0x210268: clear entry, dead++) | 0.45 | VERIFIED (arbitration/conflict fix; was LO::Freeze) |
-| [0x1A6178](../../src/auto/func_001A6178.c) | `OnLoAdd` | LO vt23: register in g_sw update table (0x210140, compacts when >10% dead) | 0.45 | VERIFIED (arbitration/conflict fix; was LO::Unfreeze) |
-| [0x1A61A0](../../src/hand/func_001A61A0.c) | `FIsLoInWorld` | bit60 set and plo->ploroot is in g_sw+0x2C list | 0.70 | HYP |
-| [0x1A6290](../../src/hand/func_001A6290.c) | `FMatchesLoName` | True if plo->oid==oid or any proxy-alias node owned by plo has that oid | 0.75 | VERIFIED |
-| [0x1A62D8](../../src/auto/func_001A62D8.c) | `LO::PmatWorld` | LO vt31 default: return static identity D_002A2D30 | 0.75 | HYP |
-| [0x1A62E8](../../src/auto/func_001A62E8.c) | `PosLoWorld` | Return vt31 PmatWorld()->pos (row 3, +0x30) | 0.90 | VERIFIED |
-| [0x1A6318](../../src/auto/func_001A6318.c) | `PmatLoWorld` | Return vt31 PmatWorld() | 0.90 | VERIFIED |
-| [0x1A6730](../../src/hand/func_001A6730.cpp) | `CloneLo` | LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone proxy nodes when g_sw phase==-2; CopyAb the class body  | 0.75 | HYP |
-| [0x1A6BE8](../../src/auto/func_001A6BE8.c) | `SetLoXfFromMat` | vt29 TranslateToPos(mat.pos) then vt30 RotateToMat(mat) | 0.50 | VERIFIED |
-| [0x1A6F00](../../src/hand/func_001A6F00.c) | `ConvertAloPos` | Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse); vector by value | 0.80 | HYP |
-| [0x1A6FC0](../../src/hand/func_001A6FC0.c) | `ConvertAloVec` | Same for direction vectors (rotation only, M3) | 0.80 | HYP |
-| [0x1C9940](../../src/auto/func_001C9940.c) | `IdProxy` | (isrc<<16)\|(icopy&0xFFFF) | 0.85 | HYP |
-| [0x1C9950](../../src/auto/func_001C9950.c) | `IsrcFromIdProxy` | idProxy>>16 | 0.85 | HYP |
-| [0x1C99D8](../../src/hand/func_001C99D8.c) | `FindPxr` | Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR | 0.70 | VERIFIED |
-| [0x1C9B08](../../src/hand/func_001C9B08.cpp) | `LoadProxyFromBrx` | read one proxy record (source id/mode/placement) and instantiate copy or PROXY object | 0.90 | HYP |
-| [0x1CA118](../../src/hand/func_001CA118.cpp) | `LO::SetIdProxy` | LO vt25: put object into proxy copy tree under idProxy | 0.90 | HYP |
-| [0x1CA370](../../src/hand/func_001CA370.c) | `AddProxyCopy` | Take source isrc's next copy: SetIdProxy, Add, SetParent, apply placement (vt37) to each object; notify collector; icopyNext++ | 0.80 | VERIFIED |
-| [0x1CA500](../../src/hand/func_001CA500.c) | `InitSwProxySpares` | After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest, PROXYSPARE array, identity mats) | 0.50 | VERIFIED |
-| [0x1CA788](../../src/auto/func_001CA788.c) | `InitProxy` | PROXY::Init (vt7): InitXfm + flag | 0.85 | HYP |
-| [0x1CA7B8](../../src/hand/func_001CA7B8.c) | `CloneProxy` | PROXY::Clone (vt41): clone XFM base and copy init records | 0.75 | HYP |
-| [0x1CA8E0](../../src/hand/func_001CA8E0.c) | `OnProxyAdd` | PROXY vt23: LO::Unfreeze then 0x149AB8 | 0.40 | VERIFIED (arbitration/conflict fix; was PROXY::Unfreeze) |
-| [0x1CA930](../../src/auto/func_001CA930.c) | `IcopyFromPspare` | (pspare - aspare)/0x50 + first spare copy index | 0.85 | HYP |
-| [0x1CAA60](../../src/hand/func_001CAA60.cpp) | `ReleasePspare` | return a copy to the spare pool and restore its objects | 0.90 | HYP |
-| [0x1CB2C0](../../src/auto/func_001CB2C0.c) | `FCanAcquirePspare` | PspareChoose(this 2)!=0 | 0.40 | VERIFIED |
-| [0x1CB328](../../src/auto/func_001CB328.c) | `EnsureProxyCopy` | if no current copy acquire one | 0.40 | VERIFIED |
-| [0x1CB770](../../src/hand/func_001CB770.c) | `FindProxysrc` | index of proxy source with id or -1 | 0.80 | HYP |
-| [0x231100](../../src/lib/func_00231100.c) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | VERIFIED |
-| [0x231170](../../src/auto/func_00231170.c) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.80 | VERIFIED |
-| [0x2311B0](../../src/auto/func_002311B0.c) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.80 | VERIFIED |
+| Addr | Name | Purpose | Conf | Tier | Evidence |
+|---|---|---|---|---|---|
+| [0x132B10](../../src/hand/func_00132B10.c) | `FIsBasicDerivedFrom` | cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax) | 0.92 | T1 |  |
+| [0x132B78](../../src/hand/func_00132B78.c) | `EnsureBasicSidebag` | If psidebag (+4) is null create one (0x257D80) and addref | 0.85 | T1 |  |
+| [0x132BC8](../../src/hand/func_00132BC8.c) | `EnsureLoSidebagBool` | RefEnsureOption(plo, optid, bool CRef (tagk 0x17)) | 0.90 | T1 |  |
+| [0x132C20](../../src/hand/func_00132C20.c) | `EnsureLoSidebagInt` | RefEnsureOption with S32 CRef (tagk 0x15) | 0.88 | T1 |  |
+| [0x132C78](../../src/hand/func_00132C78.c) | `EnsureLoSidebagFloat` | RefEnsureOption with F32 CRef (tagk 0x16) | 0.90 | T1 |  |
+| [0x132CC8](../../src/auto/func_00132CC8.c) | `EnsureLoSidebagClq` | RefEnsureOption with CRef(CLQ*) | 0.85 | T1 |  |
+| [0x132D28](../../src/auto/func_00132D28.c) | `EnsureLoSidebagLm` | RefEnsureOption with CRef(LM*) | 0.85 | T1 |  |
+| [0x132D88](../../src/hand/func_00132D88.c) | `EnsureLoSidebagOid` | RefEnsureOption with S32 CRef holding an OID | 0.85 | T1 |  |
+| [0x132DE0](../../src/hand/func_00132DE0.c) | `EnsureLoSidebagVector` | RefEnsureOption with a vector CRef (passed by value as qword) | 0.85 | T1 |  |
+| [0x1331F8](../../src/hand/func_001331F8.c) | `HandleBasicSpliceEvent` | BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and either schedule (fPost) or evaluate now | 0.75 | T1 | arbitration |
+| [0x1333C0](../../src/hand/func_001333C0.c) | `SubscribeLoObject` | Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted | 0.85 | T1 | verified |
+| [0x133508](../../src/hand/func_00133508.c) | `SendLoMessage` | BASIC vt4: own vt5 HandleMessage, then vt5 of every subscriber | 0.85 | T1 |  |
+| [0x133590](../../src/auto/func_00133590.c) | `HandleBasicMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | T1 |  |
+| [0x147F40](../../src/hand/func_00147F40.c) | `UpdateSwBusyList` | Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current player, and move them between busy/idle lists | 0.85 | T1 | runtime |
+| [0x148300](../../src/hand/func_00148300.c) | `UpdateLoBusy` | Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it | 0.40 | T2 |  |
+| [0x15E380](../../src/hand/func_0015E380.c) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.85 | T1 | runtime |
+| [0x15E3A8](../../src/hand/func_0015E3A8.c) | `PdlFromSwCid` | Returns the per-class object DL of the SW (SW+0x3038 + 8*cid) | 0.85 | T1 | runtime-corrected, runtime |
+| [0x15E3C0](../../src/hand/func_0015E3C0.c) | `PdlFromSwPxrOid` | Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash) | 0.60 | T1 | verified |
+| [0x15E650](../../src/hand/func_0015E650.c) | `CploFindSwObjects_15E650` | Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra arg 0) | 0.80 | T1 |  |
+| [0x15E678](../../src/hand/func_0015E678.c) | `CploFindSwObjects` | Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter between ploContext and cploMax | 0.85 | T1 | verified |
+| [0x15E938](../../src/hand/func_0015E938.c) | `PloFindSwObject` | Returns the first LO matching grffso/oid relative to a context LO (or NULL) | 0.90 | T1 |  |
+| [0x15E988](../../src/hand/func_0015E988.c) | `FIsCidDerivedFrom` | Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches cidAncestor | 0.85 | T1 | verified |
+| [0x15E9C8](../../src/hand/func_0015E9C8.c) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | T1 | verified |
+| [0x15ED78](../../src/hand/func_0015ED78.c) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | T1 |  |
+| [0x1603B8](../../src/hand/func_001603B8.cpp) | `LoadXfmConstraintsFromBrx` | Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from the BRX stream, links each dest to its record and sw | 0.75 | T1 | parse |
+| [0x1A5270](../../src/hand/func_001A5270.c) | `InitLo` | LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21 | 0.95 | T1 | runtime, verified |
+| [0x1A53E0](../../src/hand/func_001A53E0.c) | `FreeLoroot` | Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool g_sw+0x398C, clear x14 | 0.85 | T1 | verified |
+| [0x1A5478](../../src/hand/func_001A5478.c) | `AddLo` | LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call vt11 AddHierarchy if parent in world, root not-busyk2 | 0.85 | T1 | verified |
+| [0x1A5630](../../src/hand/func_001A5630.c) | `RemoveLo` | LO vt9 Remove: if in world vt22 + drop root from g_sw+0x2C; drop root from busy list; move to removed tail of child DL, set bit56, remove children (vt | 0.85 | T1 | verified |
+| [0x1A5900](../../src/hand/func_001A5900.c) | `SetLoParent` | LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set psoParent, vt13 UpdateLoroot, recurse to children ( | 0.85 | T1 | verified |
+| [0x1A5C28](../../src/auto/func_001A5C28.c) | `LoadLoFromBrx` | LO vt14: LoadOptionsFromBrx loop (0x13F810) | 0.90 | T1 | parse, verified |
+| [0x1A5C48](../../src/hand/func_001A5C48.c) | `PostLoLoad` | LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf x40\|=2 (wants Splice update) else tSplice(x30)=D_002A | 0.85 | T1 | verified |
+| [0x1A5D58](../../src/auto/func_001A5D58.c) | `PdcbAddLo` | Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34 list | 0.85 | T1 | verified |
+| [0x1A5FB8](../../src/hand/func_001A5FB8.c) | `SetLoBeamXf` | Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos D_002DDF40+0x90) and apply via 0x1A5EE8 | 0.35 | T2 | verified |
+| [0x1A6118](../../src/auto/func_001A6118.c) | `RotateLoToMat` | LO vt30 default no-op | 0.85 | T1 | verified |
+| [0x1A6138](../../src/auto/func_001A6138.c) | `GetLoAngularVelocity` | LO vt34: return zero vector | 0.85 | T1 | verified |
+| [0x1A6148](../../src/auto/func_001A6148.c) | `SetLoAngularVelocity` | LO vt36 default no-op | 0.85 | T1 | verified |
+| [0x1A6150](../../src/auto/func_001A6150.c) | `OnLoRemove` | LO vt22: unregister from g_sw per-object update table (0x210268: clear entry, dead++) | 0.85 | T1 | arbitration |
+| [0x1A6178](../../src/auto/func_001A6178.c) | `OnLoAdd` | LO vt23: register in g_sw update table (0x210140, compacts when >10% dead) | 0.85 | T1 | arbitration |
+| [0x1A61A0](../../src/hand/func_001A61A0.c) | `FIsLoInWorld` | bit60 set and plo->ploroot is in g_sw+0x2C list | 0.70 | T1 |  |
+| [0x1A61E0](../../src/hand/func_001A61E0.c) | `HandleLoSpliceEvent` | LO vt3: BASIC Splice-event post (0x1331F8) then for msg 5/6 notify D_002DEB30 with 0x1A/0x1B | 0.85 | T1 | arbitration |
+| [0x1A6290](../../src/hand/func_001A6290.c) | `FMatchesLoName` | True if plo->oid==oid or any proxy-alias node owned by plo has that oid | 0.85 | T1 | verified |
+| [0x1A62E8](../../src/auto/func_001A62E8.c) | `PosLoWorld` | Return vt31 PmatWorld()->pos (row 3, +0x30) | 0.90 | T1 | verified |
+| [0x1A6318](../../src/auto/func_001A6318.c) | `PmatLoWorld` | Return vt31 PmatWorld() | 0.90 | T1 | verified |
+| [0x1A6730](../../src/hand/func_001A6730.cpp) | `CloneLo` | LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone proxy nodes when g_sw phase==-2; CopyAb the class body  | 0.85 | T1 | runtime |
+| [0x1A6AD0](../../src/hand/func_001A6AD0.c) | `CloneLoHierarchy` | LO vt40: forwards to vt41 Clone | 0.85 | T1 | runtime |
+| [0x1A6BE8](../../src/auto/func_001A6BE8.c) | `SetLoXfFromMat` | vt29 TranslateToPos(mat.pos) then vt30 RotateToMat(mat) | 0.85 | T1 | verified |
+| [0x1A6CA8](../../src/hand/func_001A6CA8.c) | `SetLoBusyk` | Set the LO busy kind (LO+0x28 bits 52-55: 0 busy within sBusy of the camera, 1 always busy, 2 never busy, 3 busy within sBusy of the hero) and re-sort | 0.80 | T1 | top50 |
+| [0x1A6EE8](../../src/auto/func_001A6EE8.c) | `LO_vt43` | LO vt43 default: return 0 | 0.20 | T2 | verified |
+| [0x1A6F00](../../src/hand/func_001A6F00.c) | `ConvertAloPos` | Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse); vector by value | 0.80 | T1 |  |
+| [0x1A6FC0](../../src/hand/func_001A6FC0.c) | `ConvertAloVec` | Same for direction vectors (rotation only, M3) | 0.80 | T1 |  |
+| [0x1C9940](../../src/auto/func_001C9940.c) | `IdProxy` | (isrc<<16)\|(icopy&0xFFFF) | 0.85 | T1 |  |
+| [0x1C9950](../../src/auto/func_001C9950.c) | `IsrcFromIdProxy` | idProxy>>16 | 0.85 | T1 |  |
+| [0x1C99D8](../../src/hand/func_001C99D8.c) | `FindPxr` | Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR | 0.85 | T1 | verified |
+| [0x1C9B08](../../src/hand/func_001C9B08.cpp) | `LoadProxyFromBrx` | read one proxy record (source id/mode/placement) and instantiate copy or PROXY object | 0.95 | T1 | parse |
+| [0x1CA118](../../src/hand/func_001CA118.cpp) | `SetLoIdProxy` | LO vt25: put object into proxy copy tree under idProxy | 0.90 | T1 |  |
+| [0x1CA370](../../src/hand/func_001CA370.c) | `AddProxyCopy` | Take source isrc's next copy: SetIdProxy, Add, SetParent, apply placement (vt37) to each object; notify collector; icopyNext++ | 0.85 | T1 | verified |
+| [0x1CA500](../../src/hand/func_001CA500.c) | `InitSwProxySpares` | After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest, PROXYSPARE array, identity mats) | 0.85 | T1 | verified |
+| [0x1CA788](../../src/auto/func_001CA788.c) | `InitProxy` | PROXY::Init (vt7): InitXfm + flag | 0.85 | T1 |  |
+| [0x1CA8E0](../../src/hand/func_001CA8E0.c) | `OnProxyAdd` | PROXY vt23: LO::Unfreeze then 0x149AB8 | 0.85 | T1 | verified, arbitration |
+| [0x1CA930](../../src/auto/func_001CA930.c) | `IcopyFromPspare` | (pspare - aspare)/0x50 + first spare copy index | 0.85 | T1 |  |
+| [0x1CAA60](../../src/hand/func_001CAA60.cpp) | `ReleasePspare` | return a copy to the spare pool and restore its objects | 0.90 | T1 |  |
+| [0x1CB2C0](../../src/auto/func_001CB2C0.c) | `FCanAcquireProxy` | PspareChoose(this 2)!=0 | 0.85 | T1 | verified |
+| [0x1CB328](../../src/auto/func_001CB328.c) | `EnsureProxyCopy` | if no current copy acquire one | 0.85 | T1 | verified |
+| [0x1CB770](../../src/hand/func_001CB770.c) | `FindProxysrc` | index of proxy source with id or -1 | 0.80 | T1 |  |
+| [0x231100](../../src/lib/func_00231100.c) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | T1 | verified |
+| [0x231170](../../src/auto/func_00231170.c) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.90 | T1 | parse, verified |
+| [0x2311B0](../../src/auto/func_002311B0.c) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.85 | T1 | verified |
+| [0x231768](../../src/lib/func_00231768.c) | `LoadXfmXfFromBrx` | S16 XF id -> pxfParent via vt49, matrix read, invalidate, vis mask | 0.75 | T1 | parse |
+| [0x2317E0](../../src/hand/func_002317E0.c) | `LoadXfmChildObjectsFromBrx` | pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37) | 0.75 | T1 | parse |
 
-Selected 62 of 166 named functions (confidence >= 0.75, verified, or flagged). Full list: [reference/functions/object-model.md](../reference/functions/object-model.md).
+Selected 70 of 166 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/object-model.md](../reference/functions/object-model.md).
 
 ## Open questions
 - Meaning of LO slots 17, 20, 21, 26/27, 32, 37-39, 42-45 (shape-only names). Compare overriding methods across subclasses.

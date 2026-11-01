@@ -21,6 +21,7 @@ Samples used:
 * `london` = record 0x2A37E8 (LBA 350144, 1,949,759 bytes compressed, 4,084,599 decompressed).
 
 The "london" text at the start of `london` is really `abandon_icon` (see section 3). That file is level 1 in the level table: world 0 ("intro"), episode 1.
+**v2 note:** `london` = L01 is the **front-end/menu world** (only 3 WEs: `abandon_icon`, `swf_ui`, `dvd_menu`; the episode menu WIDGET131 runs here); `boot_world` = L00 is the playable prologue (`jb_intro_*`) `[C:parse whole_game]` `[C:runtime S55]`. The level parser now reads **every** world file to the last byte (43 files, [level-objects.md](level-objects.md)); all `[C:verified]` tags of this page are covered by that `[C:parse]` result.
 
 ## 1. Container
 
@@ -130,7 +131,7 @@ S32 cfile ; cfile x { S16 id ; FILEREC rec }
 | ambience | none (camb=0) | lba 341088, 6,588,416 B; ids 65,66,67 | confirmed |
 | clang / langs | 1 / [0] | 1 / [0] | NTSC-U disc: one language |
 | cstream | 2 | 61 (lba 1205954..1207693, 3.5 MB) | confirmed |
-| stream.g50 | 4.23, 3.958 | 1.8 .. 21.0 | **hypothesis: duration in seconds.** size/g50 is about 12.6 KB/s, which matches 22.05 kHz mono PS-ADPCM (22050 x 16/28) |
+| stream.g50 | 4.23, 3.958 | 1.8 .. 21.0 | **duration in seconds** `[C:parse audio_browser]` (v3; was hypothesis): 7,849 / 7,970 stream records within 0.05 s of the duration predicted from the FILEREC size at 22.05 kHz mono PS-ADPCM, median difference 0; decoded stream1259 = 4.886 s = its g50 |
 | stream.n48 | 55 | 53/54/55/60/63 | unknown |
 | stream.n4C | 0 / -1 | -1, 0, 2 | unknown (S8) |
 | stream.pairs | 30, 29 | 15..119 | hypothesis: lip-sync or subtitle keys. The count grows with g50 (about 7 per second). 8 bytes each, layout unknown |
@@ -211,7 +212,7 @@ Value sizes by otyp:
 | 22 | U16 c + 2c |
 | other | 0 |
 
-A grf with 0x400 set means a method option. Its arguments are U16 otyp (bit 0x8000 = U8 count list) + RefFromBrx value; this is not implemented in the tool.
+A grf with 0x400 set means a method option. Its arguments are U16 otyp (bit 0x8000 = U8 count list) + a `RefFromBrx` 0x13E690 value. The original head parser did not implement them and stopped on 22 of 43 files (head option 934 on g_sw, 44 instances game-wide); the level parser does `[C:parse]`; layout in [level-objects.md](level-objects.md#4-common-building-blocks-cparse).
 
 Samples:
 * `london`: g_sw = {913: 1, 923: RGBA 0x80000000, 914: (230,260,250), 915: 0.0, 916: 95.0}; g_cm = {164: 10.0, 165: 1000.0}.
@@ -233,6 +234,8 @@ Samples:
 | 0x5C / 0x60 | defer flag / flag | [H] |
 
 ## 4. Per-world-entry data (after the head)
+
+> Superseded in detail by [level-objects.md](level-objects.md) (all sub-structures decoded and parse-verified, every class payload) and [textures.md](textures.md) (the `func_001EB748` tables). The text below is the original first walk, kept for its sample offsets.
 
 For each WE i in order (loop body of `func_0013DA18`):
 
@@ -276,10 +279,10 @@ Status:
 * The object-record layout is **code** (`func_0013FB40`).
 * The `cb` size field is **confirmed by walking**: in `london`, WE 0 has 31 objects at 0x179C4. Walking them by cb ends at 0x76E21. Align(0x10) gives 0x76E30, which is exactly where WE 1's header starts (`cbBlob=0x8800, idBlob=0x411C7D26, fExtra=0, cref=1`).
 * In WE 0 of `london`, the header fields line up: cbBlob=48, the 48-byte blob sits at 0x17990 (16-aligned), and `U32 n=0` at 0x179C0 sits right before `S16 cobj=31` at 0x179C4.
-* The sub-structures of `func_001EB748` were not decoded. They were located only by these boundary checks.
+* The sub-structures of `func_001EB748` are now decoded: [textures.md](textures.md).
 
 Observations:
-* `idBlob` values look like 0x411Cxxxx (0x411C70BF, 0x411C7D26, 0x411C7D54). The same pattern occurs inside blob data. **Hypothesis:** content hashes or build stamps, used to skip re-uploading an identical blob. The blob itself is **hypothesis: GS texture/CLUT data** (`func_001EA568` then `func_00170730`).
+* `idBlob` values look like 0x411Cxxxx (0x411C70BF, 0x411C7D26, 0x411C7D54); the blob is re-read only when idBlob changes. The blob is the WE's texture image data (bitmaps + CLUT colours) `[C:parse]` ([textures.md](textures.md)).
 * Class ids in the object lists are 0x03 (XFM), 0x05, 0x06 (PROXY), 0x0E, 0x11 (PATHZONE), 0x1A (EXIT), 0x1F (EXPLG), 0x21 (EXPLS), 0x30 (SO), 0x6D (ASEG), 0x7E (WIDGET), 0x82 (WIDGET subclass) and so on (names: [class-tree](../reference/class-tree.md)). Most objects have `n = -1` (no splice frame). cid 0x84/0x85 objects are always loaded even when filtered. See [class-tree](../reference/class-tree.md) for the mapping.
 
 ### Relation to Sly 1 (ProjectCane `brx.cpp`)

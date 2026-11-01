@@ -1,5 +1,7 @@
 # Engine overview
 
+> v2: for the corrected level-transition order see [world-sw](world-sw.md#2-loading-a-level); for the full render pipeline see [rendering](rendering.md); file formats are now complete under [formats/](../formats/level-objects.md).
+
 The big picture of the Sly 2 engine, in the order the machine runs it: boot, the frame loop, the level
 lifecycle, the object model, then the per-frame update and render, and a map of the subsystems.
 Tags are explained in the [README](../README.md#how-knowledge-is-marked).
@@ -51,10 +53,10 @@ From the matched `main` body (`src/hand/func_001A7518.c`) `[C:static]`; callee n
 
 ```
 for (;;) {
-  1  ExecuteSwTransition(g_sw)   0x20E890  if a level change / checkpoint restore is pending: tear down, load, post-load
+  1  ExecuteSwTransition(g_sw)   0x20E890  if a level change is pending (SetSwTransition): open file, tear down, load, post-load
   2  UpdateJoy(&g_joy)           0x1871C0  pad read
   3  UpdateCd()                  0x14BA38  disc check / CD service
-  4  StartupCm(&g_cm)            0x14D470  EMPTY stub at Sly 1's SetupCm position (name disputed, CONFLICTS #3)
+  4  SetupCm(&g_cm)              0x14D470  EMPTY in Sly 2 (Sly 1 SetupCm call site kept) [C:verified arbitration]
   5  MarkClockTick(&g_clock, 0)  0x14D0B8  dt from the EE cycle counter, clamped to [1/60, 1/30] s
   6  UpdateSw(g_sw)              0x226550  the world update (section 5)
   7  UpdateUi(D_003D9E70)        0x1D9648  pause / menus / memcard UI
@@ -82,7 +84,7 @@ flowchart TD
     startup --> sgame["StartupGame 0x1613A8<br/>boot step queue: logo movie, memcard, warp to boot world"]
     sgame --> loop{{"frame loop"}}
     loop --> trans["1 ExecuteSwTransition 0x20E890<br/>(only if SW+0x3BF0 pending)"]
-    trans -->|pending| load["DeleteSw -> SW::SW -> LoadSwFromBrx 0x13DA18<br/>-> PostSwLoad 0x20E740 -> restore checkpoint/actor"]
+    trans -->|pending| load["open file -> DeleteSw -> SW::SW -> LoadSwFromBrx 0x13DA18<br/>-> PostSwLoad 0x20E740 -> current character, wipe-in"]
     trans --> input["2 UpdateJoy 3 UpdateCd 4 (empty cm stub)"]
     load --> input
     input --> clock["5 MarkClockTick"]
@@ -116,7 +118,7 @@ It owns every pool, object list and hash table of the level. Loading a level reu
 | Open | the world file's FILEREC -> sector range; a CD-backed binary input stream with LZSS decompression into a scratchpad window | 0x20E890, 0x1179D8 | [C:static disc_toc.md] |
 | Load | `LoadSwFromBrx`: world-entry (proxy source) table, sound section, save-variable schema, level table, localized strings, cell BSP, options of g_sw and g_cm, then per world entry: Splice refs, textures/shaders, the object list (each object `c8` times) | 0x13DA18 | [C:static], [C:verified samples] |
 | Create | per object `PloNew(cid, parent, oid, isplice)`: factory, link into oid hash + class list, vt7 Init, vt11 AddHierarchy, vt23 OnAdd if live; then vt14 LoadFromBrx consumes the object's bytes | 0x13E3C8, 0x13FB40 | [C:static] |
-| Post-load | `PostSwLoad`: drain the post-load callback queue, vt15 PostLoad on objects, bind save vars, restore checkpoint / current character (`oidPoCurrent`), game events 4/5 | 0x20E740 | [H r7 sw.md] |
+| Post-load | `PostSwLoad`: drain the post-load callback queue, vt15 PostLoad on objects, bind save vars, current character (`oidPoCurrent`), game events 4/5 (no checkpoint record exists: a death reloads the level) | 0x20E740 | [C:static], [C:runtime S29-S30, S56] |
 | Run | the frame loop; objects become live/inactive by proximity (section 4) | | |
 
 Level identity: 44 levels (9 worlds intro..blimp, each with a hub "episode 0" level) are listed in a level table

@@ -1,102 +1,139 @@
 # Open questions and suggested experiments
 
-Consolidated from the per-TU write-ups, CONFLICTS.txt and the verifier/runtime passes. Grouped by subsystem; the most important first
-within each group. "Exp." = a concrete experiment (PCSX2 breakpoint, memory watch, patch, or a save-state pair: take state A, perform one
-action, take state B, diff with `slyram.py`/`savevars.py`/`probe.py`).
+Consolidated from the per-TU write-ups, CONFLICTS.txt, the verifier and arbitration passes, runtime rounds 1-6, the format work and the master-name
+reviews. Grouped by subsystem; most important first. "Exp." = a concrete experiment: a PCSX2 breakpoint or memory watch, a pnach patch
+([guides/playtesting](guides/playtesting.md)), a save-state pair (take A, do one thing, take B, diff with the runtime scripts), or a harness spec once the
+PINE harness runs. Questions answered since the first draft are in the table at the end.
 
 ## Top 5 (highest leverage)
 
-1. **The BHV behaviour classes.** ~43 classes (CID 0x9C-0xC6) drive all guard and partner AI, and the BHV TU 0x174898-0x17F090 (189 functions)
-   is unnamed. Only BHV156 (root), 169 (script runner), 171 (search), 172/190 (reaction) have roles. Exp.: save-state pairs while a guard
-   *spots* Sly, chases, searches and gives up (none of S02-S05 has a spotting); break 0x1EEE00 (push, a1 = cid) and log stacks with `probe.py`.
-2. **What happens inside a level transition.** No save state covers a load. The order DeleteSw -> SW::SW -> LoadSwFromBrx -> PostSwLoad ->
-   checkpoint restore (0x20E890 / 0x20E740) is from code reading only, and vt9-on-every-object after a world entry is unexplained.
-   Exp.: breakpoints on 0x20E068, 0x20D9D0, 0x13DA18, 0x20E740, 0x20DF80 entering a level; log `cid/oid` at 0x13FB40 for a census.
-3. **Render pass table semantics.** The 26 RPL kinds and 12 passes (D_002BDD20 / D_002BDD88) are the main hook for a native renderer; only
-   a few passes are understood. Exp.: dump the sorted RPL list per frame at 0x157FA0; patch a kind's pass to 0, or a pass hook to `jr ra`, and see what disappears.
-4. **JOB/TASK and the game event ids.** The progression model (CID 0x84/0x85, event bus 0x1619A0) is coherent but its names are coinage and
-   most event ids are unmapped; no state has a running job. Exp.: break 0x1619A0 and log (id, arg) through one complete job; save states
-   before/after starting a job (watch SW+0x3B0C/+0x3B10, g_game+0x10..0x18, `t*_*.state`).
-5. **Sly's state enum and gadgets.** jts values beyond 0 (stand) and 11 (pickpocket) are not mapped, nor gadget ids, the gadget table
-   D_002BCD00, or the guard special states they cause. Exp.: log (a1, a2) at `SetJtJts` 0x18C250 while running, jumping, hanging, climbing;
-   break `JT::UseGadget` 0x18DA48 / `SetStepguardSpecial` 0x207030 with each gadget.
+1. **The game event ids.** Events leave no trace in snapshots; only the Splice-handled ids (9, 11, 16, 19, 23, 24, 26, 29, 61) and a few code paths are known.
+   Exp.: breakpoint `BroadcastGameEvent` 0x1619A0 and log (id, arg) through one complete job (first harness experiment candidate).
+2. **End-to-end GS check of the rendering model.** Everything in [rendering](engine/rendering.md) is read from code and VU disassembly; the shadow-volume face sign,
+   the TEX2 CLUT, and the producers of kinds 2/8/11/13 still need a GS dump. Exp.: rendering EXPERIMENTS E1 (zero one kind's RPLs per screenshot), E2/E3 (GS dump of a
+   frame with Sly and guards), E4 (relight readback after changing ambient).
+3. **Unseen character states.** jts 3/6/9/10/13/14/16, JTHURT 8/9/11/12, Murray 6/8/9/12, Bentley 1/2/4-11/13/14, hover pack, adrenaline burst; HND hooks (none in the hub).
+   Exp.: save states in a hook level and during each Bentley/Murray gadget; log (a1, a2) at `SetJtJts` 0x18C250 / `SetMurrayState` 0x1B6078.
+4. **Modding round trip for world files - first live test FAILED in part (v3).** The pipeline (writer, LZSS compressor, disc patcher) is built and
+   verified offline 43/43, but the first modded ISO lost all SFX and the moved car did not visibly move. See
+   [Modding live test](#modding-live-test-2026-11-01) below.
+5. **The respawn point and level-reload rules.** A death reloads the level with save vars kept; which marker places Sly (start marker vs JTPLACES vs a checkpoint
+   task's data) is unknown. Exp.: die after reaching a checkpoint task in a mission; watch TASK +0xC0 and the placement.
 
-## Object model
-- LO slots 17, 20, 21, 26/27, 32, 37-39, 42-45: shape-only names. Compare overriding methods across subclasses.
-- The second oid table at g_sw+0x1838 (1,752 non-object records at runtime): what is it? (INCONCLUSIVE)
-- Exp.: watch g_sw+0x2C (active roots) while walking away from a guard: the guard's root should leave the list and `OnStepguardRemove` 0x2079A0 fire.
-
-## World / level
-- Real file name of the LoadSwFromBrx TU (sorts bq < x < brx); WE fields x5C/x60/x14; load filter semantics beyond "level index".
-- Is the boot step queue 0x1A4E08 the same structure as the game sequence queue D_002E1E88?
-- Hands-off/lock counters SW+0x3D78..+0x3D84 are only "consistent" (all 0). Exp.: save state during a cutscene.
-- CID 0x74 created by PostSwLoad; D_00443740 == 1 in 0x20E040.
-- `RestoreChkmgrFromCheckpoint` and `FAddRsmg` signatures contradict Sly 1 (CONFLICTS #10).
-
-## Main loop / startup
-- 0x14D470 `StartupCm` vs Sly 1 `SetupCm` (CONFLICTS #3).
-- Unverified startup-table entries: 0x21F100, 0x14B660, 0x15EF00, 0x1C90D0, 0x14CFE0, 0x1FCEA0, 0x138FC0, 0x211528, 0x1B2940.
-- Overlay D_002DD644: wipe, fade, or loading cover? Exp.: break 0x1477B0 returning 0 during a level fade.
-
-## Splice
-- Special form 6; builtins 97-104, 114, 118, 133, 137; are the 29 nil stubs dead? Exp.: break 0x1266C8 and 0x1258F0..0x125FF0.
-- Tag 0x23; which static pool is frame/proc/method/sidebag.
+## Object model / world
+- LO slots 17, 20, 21, 26/27 (26 = `ResetLoForProxy` proposed by the top-50 round), 32, 37-39, 42-45.
+- Second oid table at g_sw+0x1838 (1,752 non-object records).
+- 10 PROXY records in L02 whose idSource matches no WE.x10; the PROXYSPARE bookkeeping behind `PspareAcquire` (copy choice consistent, not located).
+- Real file name of the LoadSwFromBrx TU (sorts bq < x < brx) and of the RELAY/JSG TU.
+- What the overlay D_002DD644 is (NULL in all 55 snapshots, including mid-load).
+- Whether the boot step queue 0x1A4E08 and the game sequence queue D_002E1E88 are one structure.
 
 ## Rendering
-- Sub-glob type loader numbering/dispatch (0x16CAA0/0x16CF78/0x16E438); class "0x505" uploaded in pass 4.
-- Colour correction flag D_003E12C8: option or level flag? Exp.: toggle before load and compare colours.
+- See Top 5 #2. Also: which models set the foreground bit 34 (E5); when the render-to-texture slots run (E6); whether anaglyph stereo is reachable (E8).
+- Blip curve meanings and the three variants; B-family optional stage uses (morph, rim fade).
+- Mapping of GLOBSET file types 1-3 onto render subtypes 1-3; SAA payloads; CLAMP per shader.
 
 ## Camera
-- Assignment of embedded policies +0x450/+0x4C0/+0x500/+0x520 to CPLOOK/CPZOOM/CPHANG/CPCAMBLEND; policy slot 7; CID 0x15.
-- Exp.: break 0x14FF38 (ActivateCplook) entering binocucom; dump the CAMMOVE at 0x151700 during a cut-scene blend.
+- Which of CPZOOM / CPHANG is CM+0x4C0; policy slot 7; CID21 (0x15).
 
 ## Player
-- Unnamed STEPPLAYER slots 82-87, 90-92; JTMODE kind 1 = binocucom? (break 0x19CC50); recon selector confidence ~0.6 (break 0x202768 a1 == 8).
-- PIPE vs HND among CID 0x0B / 0x13; in-game identity of each GRABSPOT class (break their Init at load).
-- Health widget loop anim 0x340 seen in S02/S03.
+- Top 5 #3. Unnamed STEPPLAYER slots 82-87, 90-92; JT slots 49/50/55/57/85/90-98/103/106.
+- Trigger-bomb, fists-of-flame and Voltage Attack damage paths; how the cane hit part (SOPART 0x14C) becomes a zap; dart hitting a guard; what returns a thrown prop; D_003E1BEC.
+- The other player BHVs (193, 195-198) at runtime.
 
 ## Guards
-- Alert flags 0x1D/0x20/0x2A not observed; meaning of the reaction BHV190/BHV172; BHV slot names 8, 11, 12, 14.
-- Is CID 0x77 the reinforcement spawner? Exp.: trigger an alarm, break 0x174490.
-- Engagement token rule (0x20A818): confirm "one guard attacks at a time, on screen" with two guards engaging.
+- Flags 0x20 / 0x2A; awareness mode 3 and modes other than 1/2/4/5/7/11; what promotes suspicious -> alert.
+- Roles of BHV161, 162, 175, 176, 178, 179 (circle; never seen), 183, 187-189, 191 (placeholders).
+- Rhino sword-missile launch path; projectile damage fields; the InflictZap de-dup list remover.
+- Engagement on-screen rule (`FTargetRecordAllowsGuard` 0x20A818) with one guard off-screen.
+- Is CID119 (0x77) the reinforcement spawner? Exp.: trigger an alarm, break 0x174490.
+- The guard +0xDC0 KO sub-state block.
 
 ## Progression / collectibles
-- Real names of CID 0x84/0x85; identities of CID 0x5C/0x5D; booty states; why % complete counts only tasks with successors.
-- CONFLICTS #2: 0x1C7A10 `AddAlarmSensor` (writes LOOT's +0x244) still disputed between verifier and r5.
+- Top 5 #1. JOB visibility/RSMG record offsets; complete-event and fail-event lists; `g_game+8`.
+- How CID35 trigger spots are triggered (button vs proximity); booty states at runtime.
 
 ## Save / memcard
-- SAVE state enum and dialog states; schema kinds 5-10. Exp.: pull the card at slot select, break 0x1ACB58.
-- Exp.: save-state pair across a save/load cycle to confirm the 0x5464-byte slot layout (`g_save` 0x2E65E0 + 0x24).
+- The autosave in progress (memcard busy between FinishJob and the next load); SAVE state enum and dialog states; schema kinds 5-10.
+- Exp.: save-state pair across a save/load cycle to confirm the 0x5464-byte slot layout.
 
-## Sound
-- SUKR RPC commands 0xB/0xC; 989snd commands 0x18/0x21/0x5A/0x5C (break 0x232838, log a0); stream "pairs" (lip-sync?); bank format.
+## Sound / audio
+- Bank sound index -> game sfx id join (world sound section `aisnd`); non-TONE grain types; SUKR commands 0-12; VPK per-channel byte 0.
+- A batch decode of all 1,880 manifest files (only one sample per kind was checked).
 
 ## HUD / UI
-- Which screen class is which (break Show 0x1D98B0, read vtable); STRINGGEN entries 44-103.
+- Which screen class is which (Show 0x1D98B0); STRINGGEN entries 44-103; gadget-select menu (D_003DA0F0), ThiefNet loot tab, job map and title screens (no snapshot yet).
 
 ## Physics / navigation
-- SO slots 49-60 and 65-72; suspect `fIgnoreLocked` label on 0x1F2768.
-- Exp.: break 0x1F9410 pushing a crate; 0x1C0D70 as a guard crosses rooms; 0x1C21D8 when a chase crosses zones.
+- SO slots 49-60 and 65-72; `WakeSo` 0x1F5078 / `SlotUnsettle` 0x230598 confirmation (Exp.: break 0x230598 during a jump/land, roles 10 -> 7).
 
 ## Animation / cutscenes
-- Curve/actuator class identities in act? (0x12B3B0); ASEGA event kinds 13-16, 20 (break 0x131290).
-- RELAYCK names for ~90 kinds; real file name of the RELAY/JSG TU.
+- ASEGA event kinds 13-16, 20; RELAYCK names for the ~70 kinds not seen live; `StartJtMode(7, 8)` argument roles.
 
-## Class identities and TU names (cross-cutting)
-- 86 unidentified CIDs (class-tree "?"), most resolvable by matching their LoadFromBrx/Init slot bodies to Sly 1.
-- MISSILE vtable length 78 vs 79 (CONFLICTS #4).
-- Placeholder names (`InitCid84` style) must be replaced once classes are identified, never committed as final (CONFLICTS #7).
-- Re-generate the TU table with the 3-stub (`_GLOBAL_$D`) rule (CONFLICTS #9).
+## Names and classes (cross-cutting)
+- Human decisions from master_names_v2 REPORT s4: the two `FBounceLeaf` bodies (0x1CF968 vs 0x1D0BF8); the two rich-text classes (`CRichText` vs hud-TU class,
+  `CRichText2` proposed); `LoadClutsetFromBrx` vs `LoadSubglobBindingsFromBrx`; approval of the structural-T1 and BHV class-word rules and of the 25 whole-game class words.
+- Apply PENDING_FIXES (EXIT/WARP method names, class names VOLBTN/LASEN/PATHLINK/HND/..., top-50 merges, runtime6 renames) and update `types/cid_table.csv` labels.
+- Compile arbitration's new manglings in the scratch build before committing (`SetupCm__FP2CM`, `SolveDzg__FP3DZGi`, `FAddRsmg__FP2SWP4RSMGiPii3OIDN25`, ...).
+- 12 functions with no proposal at all; 113 used Splice options without a name; MISSILE vtable 78 vs 79 slots (CONFLICTS #4).
+- Rename-tool policy questions (`rename_tool/OPEN_QUESTIONS.txt`): plain names, asm-label aliases, `main`, functions.csv sync, data symbols.
 
-## Resolved since the first drafts (for the record)
+## Modding live test (2026-11-01)
+
+Source: modding/MODDING.txt (pipeline v1, demo `mod_L02_floating_car`: PROXY oid 138404 in WE 286 moved +350 z, 4 bytes changed, L02 rewritten
+**inplace** with the retail record size) and modding/debug_sfx/FINDINGS.txt (debug agent, marked "work in progress - preliminary").
+
+- **Observed** `[C:live]`: the modded ISO boots and Paris loads, but **all SFX are missing** for the level, and the car **did not visibly move**.
+- **Root-cause candidate (SFX)** `[H debug_sfx]`: our compressed L02 stream is shorter than retail and padded with zeros to the record size, so ~100 KB
+  (49 sectors) of the level file are still unread when `LoadSwFromBrx` finishes; the async CD read is still busy when `PostSoundLoad` 0x1FD5E8 calls
+  `snd_BankLoadByLoc` 0x231FB0, which returns 0 on "CD BUSY!" -> no SFX bank for the whole level. Spot-check v3: the string
+  "snd_BankLoadByLoc: CD BUSY!" exists in the ELF (vaddr 0x2AA280) and master_names has `PostSoundLoad` -> bank load `[C:static]`; the timing link
+  itself is **not verified** (no RAM evidence from the live state was available here). Note the ~100 KB equals the documented L02 inplace
+  headroom (100,239 bytes), which fits the explanation. Likely fixes to test: pad with a stream the game finishes reading (shrink the read size in the
+  FILEREC copies = `resize` mode), or make our output the retail length.
+- **Car did not move** `[H]`: no root cause yet. Candidates from MODDING.txt section 4: (ii) the x60 spare-copy pooling poses copies from something other
+  than the PROXY placement; or the edited oid is not the car seen on screen; or (if the read issue above truncates data) the level was not loaded from
+  our bytes as expected. Exp.: read the car's XF matWorld (XFM+0xD0 / SO XF+0x70) over PINE in the modded game and compare with +350 z.
+- Not affected: compressor/writer correctness offline (43/43 under the game-decoder model).
+
+## Resolved since the first draft
 | Question | Resolution | Tag |
 |---|---|---|
-| LO slots 22/23 (CONFLICTS #1, #5) | 22 = OnRemove, 23 = OnAdd; fire when FIsLoInWorld flips (structure + proximity) | [C:verified] arbitration |
-| vtable stride / cid_table vtable_len (#6) | 8-byte slots; vtable_len already counts slots | [C:runtime] |
-| Clone slot | 40 CloneHierarchy, 41 Clone | [C:runtime] |
-| 989snd wrapper names (#8) | r8's command-id decoding | [C:verified] |
-| Health location | `sly.hpCur` = 0x3D4AB0 via JT+0xE00 | [C:runtime] |
-| SW+0x3B20 collectible counter | `loot.ccoin` key | [C:runtime] |
-| Option key k0 | `flags.lang` (not vibration; vibration is k7) | [C:runtime] |
-| CMPART2 at CM+0x3B0 | the TN (CPTN) policy | [C:runtime] |
-| S04 "guards alerted" (states/info.txt) | REFUTED: S04 is patrol; the reaction is in S05 | [C:runtime] |
+| (v3) Stream field g50 | duration in seconds (7,849/7,970 records within 0.05 s of the size-predicted duration) | [C:parse] audio_browser |
+| (v3) TASK +0x5C "music" | it is the objective text id (eopid 1265) | [C:static] + [C:decode] splice_browser |
+| (v3) Does a rate-slot write change game speed? | not alone: rDt (+8) is a cached product, recomputed only by SetClockRate; live test 0.25 -> no effect until rDt written | [C:live] + [C:static] |
+| (v3) Can the warp request be written directly? | yes: SW+0x3BF0..+0x3C3C written over PINE warped Paris -> India L08 | [C:live] + [C:static] |
+| (v3) Memory-card save checksum? | none: save%d = 0x5408 bytes = raw g_gs + schema fingerprint | [C:static] save_editor |
+| (v3) Episode menu lower bound | can reach 1 (v2 "never below 2" was wrong) | [C:static] |
+| BHV behaviour classes (old Top 5 #1) | 14 classes role-confirmed on live stacks (BHVGUARD ... BHVPATROLPATH, BHVKO, BHVJUGGLED); awareness modes 1/2/4/7/11 mapped; flag word = union of stack flags in 59/59 states | [C:runtime] rounds 2, 4 |
+| What happens inside a level transition (old #2) | corrected order: file opened before DeleteSw; ResetClock, AddGrfusr(8), CMpeg::ExecuteOids inside; loading screen started by LoadSwFromBrx; FILEREC request XOR-obfuscated | [C:runtime S56] + code |
+| Render pass table semantics (old #3) | all 26 kinds and 12 passes described; VU programs disassembled (relight formula, outlines = 1-px AA silhouette lines, shadows = Z-fail volumes in the green channel) | [C:static] |
+| JOB/TASK and save naming (old #4) | m<N> = JOB, t<N> = TASK; task states 0/1/2/3; % complete = state-3 tasks with successors; banner pauses clock slot 7; autosave from FinishJob | [C:runtime runtime6] |
+| Sly's state enum and gadgets (old #5) | jts 0/1/2/4/5/7/8/11/12 observed; JTAIR/JTGRAB/JTHURT sub-states; gadget table D_002BCD00 decoded; guard specials = gadget ids | [C:runtime] rounds 2-4 |
+| JTMODE kind 1 = binocucom? | REFUTED: binocucom is kind 0 (CPLOOK prio 7) for all three characters; kind 1 is the scripted recon view (CM+0x520, prio 8) | [C:runtime] |
+| CM+0x450/0x4C0/0x500/0x520 assignment | 0x450 CPLOOK, 0x500 CPCAMBLEND, 0x520 recon camera (0x4C0 used under tables) | [C:runtime] |
+| PIPE vs HND (CID 0x0B / 0x13) | 0x0B PIPE (lamp posts), 0x0D RAIL (wires), 0x0C walls, 0x1B tables; no HND in the hub | [C:runtime] |
+| CID 0x5C / 0x5D identities | KEY / MEDICINE | [C:runtime] + [C:parse] |
+| cid 0x67 "ALARM" | BOOTY (41/41 instances are WE booty) | [C:parse] + arbitration |
+| Sub-glob loader numbering | type 1 0x16E438, 2 0x16CAA0, 3 0x16CF78 (jal switch) | [C:static] + [C:parse] |
+| Class "0x505" in the relight pass | LIGHT objects (CID 4), 3 qw each | [C:static] |
+| Colour-correction flag D_003E12C8 | it is the anaglyph-stereo flag (g_sw+0x3E38); not used in normal rendering | [C:static] |
+| Writer/use of D_002DE5A4 (VU qw 0xD) | only consumed by unreachable debug-break hooks | [C:static] |
+| World file trailing bytes | LZSS ring echo (decompressor run-off), never read | [C:parse] |
+| Sound bank / stream formats | 989snd SBlk v3, VPK (0x1000 interleave), VAGp 22050 Hz | [C:parse+decode] |
+| Splice builtins 97-103, 137 | level index, episode, world, current job/task/pending task, difficulty, hint box | [H top50] (code) + [C:runtime] (100-102) |
+| SW+0x3D7C "user lock" | the no-pause counter (`IncrementSwNoPause`) | [C:runtime runtime6] |
+| Checkpoint manager in sw.cpp | REFUTED: 0x20DF80 = SetSwTransition; death = level reload, no checkpoint record | [C:runtime] + arbitration |
+| `StartupCm` vs `SetupCm` (CONFLICTS #3) | SetupCm (empty), two Sly 1 call sites, no startup-table entry | [C:verified arbitration] |
+| `AddAlarmSensor` (CONFLICTS #2) | `AddLootEntryOid` (LOOT +0x244) and `AddBootyEntryOid` | [C:verified arbitration] |
+| `RestoreChkmgrFromCheckpoint` / `FAddRsmg` signatures (CONFLICTS #10) | `SetSwTransition(SW*, TRANS*)`; FAddRsmg signature fixed | [C:verified arbitration] |
+| Overlay = loading cover? | no (NULL during a load) | [C:runtime] |
+| Guard species and ranged attacks | one template per species (swarmer rat/monkey/goat, surprise cobra, boar/rhino GUARD); BHV173 = SHOOT; goat rocks = BOMB, rhino swords = ACCMISS | [C:runtime runtime7a] |
+| "noise" stimuli / gadget lure | confirmed: stimulus templates with radius/height/ramp; the alarm clock's stimulus re-targets searching guards; combat guards emit alert calls | [C:runtime runtime7a] |
+| Slow-motion gadgets 0x1D / 0x2A | Thief Reflexes / Time Rush: clock slot 1 at 0.25 / 1.35; MP drain 2.0 / 1.0 per game second | [C:runtime runtime7b] |
+| Gadget table +0x10 | unlock episode (ThiefNet stock rule), not shop order | [C:runtime runtime7b] |
+| Episode unlock and displayed % | max episode from dt == 0 and previous < 100%; display = 95% x percent + 5% vault power-up | [C:runtime runtime7b] |
+| Cane attacks in the jts table | jtcs overlay (12 = ground combo hit) on jts 0/5; hit window via SOPART 0x14C | [C:runtime runtime7a/7b] |
+| JTHURT+0x90 | post-hit mode (damage forced to 0), not "alive" | [C:runtime runtime7a] |
+| AI partner control | top BHV slot 14 writes the POCTL; Murray [BHV194 follow, BHV168 walk-to-goal]; started by Splice optid 446 | [C:runtime runtime6] |
+| Earlier rows (LO slots 22/23, vtable stride, clone slots, 989snd names, health location, SW+0x3B20, option k0, CMPART2 = CPTN, S04 not alert) | unchanged from the first draft | [C:verified] / [C:runtime] |

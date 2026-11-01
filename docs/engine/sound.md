@@ -1,7 +1,8 @@
 # Sound
 
 Sly 2 rewrote Sly 1's C sound code as C++ classes with a request queue. Sound effects come from a per-level 989snd bank;
-music, dialogue and ambience stream from disc through Sucker Punch's own IOP module.
+music, dialogue and ambience stream from disc through Sucker Punch's own IOP module (`spiop.irx`, RPC 'SUKR'). File formats (989snd 'SBlk' v3 banks,
+VPK ambience/music, VAGp dialogue) and the decoder are in [formats/audio.md](../formats/audio.md) `[C:parse+decode]`.
 Related: [world file](../formats/world-file.md#32-sound-section-loadsoundsectionfrombrx-func_001fd0e8) (sound section), [cutscenes](cutscenes.md) (movie audio).
 
 ## 1. Sound manager (sound.cpp, 0x1FAF70-0x1FF398)
@@ -40,63 +41,83 @@ Conflict resolutions: the names_v2 proposals for 0x2322F0-0x232568 are shifted b
 
 Classless helpers: speaker-kind -> RGBA table (`RgbaFromSpeakerKind`, verified), label init used by MPEG audio and sound, oid -> name `[H r8 voice_helpers.md]`.
 
+## Devtools findings (v3, 2026-11-01)
+
+From [devtools/audio_browser](../guides/devtools.md#audio_browser) (all 43 worlds parsed; 4 sound files decoded in the sandbox). Not re-derived from code in v3 unless stated.
+- **SFX id space**: each level's sound list is sorted; ids **0-146 exist in all 43 levels** (common block); all 37 constant ids passed to
+  `PsndStartSound` 0x1FBB90 in code lie in 2..106. Higher ids are per level (csfx shrinks from 690 in the boot world to 290 in L43), so an id > 146
+  probably means different sounds in different levels `[C:parse audio_browser]` (set facts); meaning of the block (player/gadget/UI) `[H]`.
+- **CID43 = ambient sound emitter**: option eopid 99 = `SetCid43SoundParam(sfxid, sFull, sStop, f, f)`; `OnCid43Add` starts it via
+  `PsndStartSound`/`SetSndRange` `[C:parse]` (id), argument meanings 2-5 `[H]`.
+- **SW option 934 `SetAmbienceGroup(ambid, vol, pan_deg)`**: 22 levels, always 2 calls, pans mostly 90/270 (L19 320/50): two ambience groups
+  panned left/right `[C:parse]`; ambid i = VPK channel i `[H]`.
+- **Music ids without a file**: some music ids carry a null FILEREC (lba 3232, size 0; e.g. L02 ids 29-31) yet scripts still `PushMusic` them; the track
+  ships with the sibling episode file `[C:parse]`.
+- L02 bank: 383 sounds, 381 mapped (csnd): the last bank sounds have no sfx id `[C:parse]`.
+- **Odd-rate tones**: with the note-60 pitch formula some TONEs come out above 48 kHz (center_note 220 -> 197,804 Hz); all tones have
+  map_low = map_high = 0. The rate formula is suspect for these `[H]` (open: compare an SPU2 dump).
+- **Open issue (modded ISO, live test 2026-11-01)**: see [open-questions](../open-questions.md#modding-live-test-2026-11-01) (all SFX missing after the L02 mod).
+
 ## 5. Source files
 
-| Span | File (label) | Notes |
-|---|---|---|
-| 0x1FAF70-0x1FF398 | sound |  |
-| 0x2275B8-0x227BB8 | voice? (subtitle helpers) |  |
-| 0x2319E8-0x233000 | 989snd (Sony lib) |  |
+| Span | File (label) | Conf | Notes |
+|---|---|---|---|
+| 0x1FAF70-0x1FF3B8 | sound | high | ends with $D stub 0x1FF398 |
+| 0x2275B8-0x227BB8 | tu_2275B8 | low | voice/subtitle helpers |
+| 0x2319E8-0x233000 | 989snd | high | Sony 989snd EE library |
 
 ## 6. Key functions
 
-| Addr | Name | Purpose | Conf | Status |
-|---|---|---|---|---|
-| [0x1FB098](../../src/auto/func_001FB098.c) | `StopSnd` | Request stop (flag 8) with fade time arg | 0.75 | VERIFIED |
-| [0x1FB2F8](../../src/hand/func_001FB2F8.c) | `SetSndSourceAlo` | Attach sound to an ALO (positional), flag 0x200 | 0.60 | VERIFIED |
-| [0x1FB658](../../src/hand/func_001FB658.c) | `SetSndFlags` | fl = (fl&~mask)\|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink | 0.75 | HYP |
-| [0x1FB778](../../src/hand/func_001FB778.c) | `CalculateSndVolPan` | Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees | 0.60 | VERIFIED |
-| [0x1FBB90](../../src/auto/func_001FBB90.c) | `PsndStartSound` | Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd | 0.60 | HYP |
-| [0x1FC510](../../src/hand/func_001FC510.c) | `STREAMSND::Play` | vt9: resolve stream file key, send start to SUKR IOP module with vol/pan | 0.50 | VERIFIED |
-| [0x1FC9B0](../../src/hand/func_001FC9B0.c) | `STREAMSND::UpdatePositional` | vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan | 0.45 | VERIFIED |
-| [0x1FCC30](../../src/hand/func_001FCC30.c) | `OnStreamsndStatus` | SUKR status callback (cmd 7) | 0.40 | VERIFIED |
-| [0x1FCCF0](../../src/auto/func_001FCCF0.c) | `PvAllocStreamsnd` | Allocate from SNDMGR 0x3C0 pool (+0x34) | 0.50 | VERIFIED |
-| [0x1FD0E8](../../src/hand/func_001FD0E8.cpp) | `LoadSoundSectionFromBrx` | Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose fi | 0.85 | VERIFIED |
-| [0x1FD830](../../src/hand/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 98 | 0.75 | HYP |
-| [0x1FE738](../../src/hand/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.50 | VERIFIED |
-| [0x2275B8](../../src/hand/func_002275B8.cpp) | `RgbaFromSpeakerKind?` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.35 | VERIFIED |
-| [0x2319E8](../../src/hand/func_002319E8.c) | `snd_StartSoundSystem` | 989snd API | 0.90 | VERIFIED |
-| [0x231C48](../../src/lib/snd_FlushSoundCommands.c) | `snd_FlushSoundCommands` | 989snd API | 0.90 | HYP |
-| [0x231E90](../../src/lib/func_00231E90.c) | `snd_GotReturns` | 989snd API | 0.90 | VERIFIED |
-| [0x231F38](../../src/lib/func_00231F38.c) | `snd_PrepareReturnBuffer` | 989snd API | 0.80 | HYP |
-| [0x231FB0](../../src/lib/func_00231FB0.c) | `snd_BankLoadByLoc` | 989snd API | 0.90 | VERIFIED |
-| [0x232188](../../src/lib/func_00232188.c) | `snd_ResolveBankXREFS` | 989snd API | 0.90 | VERIFIED |
-| [0x2321B8](../../src/lib/func_002321B8.c) | `snd_UnloadBank` | 989snd API | 0.90 | VERIFIED |
-| [0x2321E8](../../src/lib/func_002321E8.c) | `snd_SetMasterVolume` | 989snd API | 0.90 | VERIFIED |
-| [0x232220](../../src/lib/func_00232220.c) | `snd_GetMasterVolume` | 989snd API | 0.90 | VERIFIED |
-| [0x232250](../../src/lib/func_00232250.c) | `snd_SetPlaybackMode` | 989snd API | 0.90 | VERIFIED |
-| [0x2322A0](../../src/lib/func_002322A0.c) | `snd_IsSoundALooper` | 989snd API | 0.80 | HYP |
-| [0x232350](../../src/lib/func_00232350.c) | `snd_StopSound` | 989snd API | 0.90 | VERIFIED |
-| [0x2323A8](../../src/lib/func_002323A8.c) | `snd_PauseSound` | 989snd API | 0.90 | VERIFIED |
-| [0x2323D8](../../src/lib/func_002323D8.c) | `snd_ContinueSound` | 989snd API | 0.90 | VERIFIED |
-| [0x232438](../../src/lib/func_00232438.c) | `snd_PauseAllSoundsInGroup` | 989snd API | 0.90 | VERIFIED |
-| [0x232468](../../src/lib/func_00232468.c) | `snd_ContinueAllSoundsInGroup` | 989snd API | 0.90 | VERIFIED |
-| [0x232498](../../src/lib/func_00232498.c) | `snd_SoundIsStillPlaying_CB` | 989snd API | 0.90 | VERIFIED |
-| [0x232568](../../src/lib/func_00232568.c) | `snd_AutoVol` | 989snd API | 0.90 | VERIFIED |
-| [0x2325E0](../../src/lib/func_002325E0.c) | `snd_SendIOPCommandAndWait` | 989snd API | 0.90 | VERIFIED |
-| [0x232838](../../src/lib/func_00232838.c) | `snd_SendIOPCommandNoWait` | 989snd API | 0.90 | VERIFIED |
-| [0x232BB8](../../src/lib/func_00232BB8.c) | `snd_PostMessage` | 989snd API | 0.90 | VERIFIED |
-| [0x232BF8](../../src/lib/snd_SendCurrentBatch__Fv.cpp) | `snd_SendCurrentBatch` | 989snd API | 0.90 | HYP |
-| [0x232D80](../../src/lib/func_00232D80.c) | `snd_StreamSafeCheckCDIdle` | 989snd API | 0.90 | VERIFIED |
-| [0x232DA8](../../src/hand/func_00232DA8.c) | `snd_StreamSafeCdSync` | 989snd API | 0.85 | VERIFIED |
-| [0x232F28](../../src/auto/func_00232F28.c) | `snd_ResetMovieSound` | 989snd API | 0.90 | VERIFIED |
-| [0x232F60](../../src/auto/func_00232F60.c) | `snd_CloseMovieSound` | 989snd API | 0.90 | VERIFIED |
-| [0x232F88](../../src/lib/func_00232F88.c) | `snd_StartMovieSound` | 989snd API | 0.90 | VERIFIED |
-| [0x232FC0](../../src/auto/func_00232FC0.c) | `snd_GetTransStatus` | 989snd API | 0.90 | VERIFIED |
+| Addr | Name | Purpose | Conf | Tier | Evidence |
+|---|---|---|---|---|---|
+| [0x1FB098](../../src/auto/func_001FB098.c) | `StopSnd` | Request stop (flag 8) with fade time arg | 0.85 | T1 | verified |
+| [0x1FB2F8](../../src/hand/func_001FB2F8.c) | `SetSndSourceLo` | Attach sound to an ALO (positional), flag 0x200 | 0.85 | T1 | verified |
+| [0x1FB658](../../src/hand/func_001FB658.c) | `SetSndFlags` | fl = (fl&~mask)\|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink | 0.75 | T1 |  |
+| [0x1FB778](../../src/hand/func_001FB778.c) | `CalculateSndVolPan` | Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees | 0.85 | T1 | verified |
+| [0x1FBB90](../../src/auto/func_001FBB90.c) | `PsndStartSound` | Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd | 0.60 | T1 |  |
+| [0x1FC4F8](../../src/hand/func_001FC4F8.c) | `GetStreamsndKind` | vt8: 2 if looping flag 4 else 1 | 0.45 | T2 | verified |
+| [0x1FC510](../../src/hand/func_001FC510.c) | `PlayStreamsnd` | vt9: resolve stream file key, send start to SUKR IOP module with vol/pan | 0.85 | T1 | verified |
+| [0x1FC9B0](../../src/hand/func_001FC9B0.c) | `UpdateStreamsndPositional` | vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan | 0.85 | T1 | verified |
+| [0x1FCC30](../../src/hand/func_001FCC30.c) | `OnStreamsndStatus` | SUKR status callback (cmd 7) | 0.85 | T1 | verified |
+| [0x1FCCF0](../../src/auto/func_001FCCF0.c) | `PvAllocStreamsnd` | Allocate from SNDMGR 0x3C0 pool (+0x34) | 0.85 | T1 | verified |
+| [0x1FD0C0](../../src/hand/func_001FD0C0.c) | `OidDialogSmRole` | Table D_002C3C40[n] for n<6 (else -1): SM oid for dialog speaker role n | 0.30 | T2 | verified |
+| [0x1FD0E8](../../src/hand/func_001FD0E8.cpp) | `LoadSoundSectionFromBrx` | Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose fi | 0.90 | T1 | verified, format-doc |
+| [0x1FD830](../../src/hand/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 98 | 0.75 | T1 |  |
+| [0x1FE738](../../src/hand/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
+| [0x1FEED0](../../src/hand/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
+| [0x2275B8](../../src/hand/func_002275B8.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
+| [0x2319E8](../../src/hand/func_002319E8.c) | `snd_StartSoundSystem` | 989snd API | 0.90 | T1 | verified |
+| [0x231E90](../../src/lib/func_00231E90.c) | `snd_GotReturns` | 989snd API | 0.90 | T1 | verified |
+| [0x231F38](../../src/lib/func_00231F38.c) | `snd_PrepareReturnBuffer` | 989snd API | 0.80 | T1 |  |
+| [0x231FB0](../../src/lib/func_00231FB0.c) | `snd_BankLoadByLoc` | 989snd API | 0.90 | T1 | verified |
+| [0x232188](../../src/lib/func_00232188.c) | `snd_ResolveBankXREFS` | 989snd API | 0.90 | T1 | verified |
+| [0x2321B8](../../src/lib/func_002321B8.c) | `snd_UnloadBank` | 989snd API | 0.90 | T1 | verified |
+| [0x2321E8](../../src/lib/func_002321E8.c) | `snd_SetMasterVolume` | 989snd API | 0.90 | T1 | verified |
+| [0x232220](../../src/lib/func_00232220.c) | `snd_GetMasterVolume` | 989snd API | 0.90 | T1 | verified |
+| [0x232250](../../src/lib/func_00232250.c) | `snd_SetPlaybackMode` | 989snd API | 0.90 | T1 | verified |
+| [0x2322A0](../../src/lib/func_002322A0.c) | `snd_IsSoundALooper` | 989snd API | 0.80 | T1 |  |
+| [0x232350](../../src/lib/func_00232350.c) | `snd_StopSound` | 989snd API | 0.90 | T1 | verified |
+| [0x2323A8](../../src/lib/func_002323A8.c) | `snd_PauseSound` | 989snd API | 0.90 | T1 | verified |
+| [0x2323D8](../../src/lib/func_002323D8.c) | `snd_ContinueSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232408](../../src/lib/func_00232408.c) | `snd_StopAllStreams` | 989snd API | 0.75 | T1 |  |
+| [0x232438](../../src/lib/func_00232438.c) | `snd_PauseAllSoundsInGroup` | 989snd API | 0.90 | T1 | verified |
+| [0x232468](../../src/lib/func_00232468.c) | `snd_ContinueAllSoundsInGroup` | 989snd API | 0.90 | T1 | verified |
+| [0x232498](../../src/lib/func_00232498.c) | `snd_SoundIsStillPlaying_CB` | 989snd API | 0.90 | T1 | verified |
+| [0x232520](../../src/lib/func_00232520.c) | `snd_Cmd21_CB` | 989snd API | 0.35 | T2 | verified |
+| [0x232568](../../src/lib/func_00232568.c) | `snd_AutoVol` | 989snd API | 0.90 | T1 | verified |
+| [0x2325E0](../../src/lib/func_002325E0.c) | `snd_SendIOPCommandAndWait` | 989snd API | 0.90 | T1 | verified |
+| [0x232838](../../src/lib/func_00232838.c) | `snd_SendIOPCommandNoWait` | 989snd API | 0.90 | T1 | verified |
+| [0x232BB8](../../src/lib/func_00232BB8.c) | `snd_PostMessage` | 989snd API | 0.90 | T1 | verified |
+| [0x232D80](../../src/lib/func_00232D80.c) | `snd_StreamSafeCheckCDIdle` | 989snd API | 0.90 | T1 | verified |
+| [0x232DA8](../../src/hand/func_00232DA8.c) | `snd_StreamSafeCdSync` | 989snd API | 0.85 | T1 | verified |
+| [0x232F28](../../src/auto/func_00232F28.c) | `snd_ResetMovieSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232F60](../../src/auto/func_00232F60.c) | `snd_CloseMovieSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232F88](../../src/lib/func_00232F88.c) | `snd_StartMovieSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232FC0](../../src/auto/func_00232FC0.c) | `snd_GetTransStatus` | 989snd API | 0.90 | T1 | verified |
 
-Selected 41 of 139 named functions (confidence >= 0.75, verified, or flagged). Full list: [reference/functions/sound.md](../reference/functions/sound.md).
+Selected 44 of 139 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/sound.md](../reference/functions/sound.md).
 
 ## Open questions
 - SUKR RPC commands 0xB and 0xC (polled every frame); 989snd commands 0x18, 0x21, 0x5A, 0x5C. Experiment: break 0x232838 and log a0.
 - What the two Splice-driven counters (+0x5C/+0x60) gate (ducking?).
-- Sound bank and stream formats on disc (not analysed; streams look like 22.05 kHz mono PS-ADPCM).
+- Mapping the bank's sound indices to game sfx ids (world sound section `aisnd`) and the non-TONE grain types; see [formats/audio.md](../formats/audio.md).
