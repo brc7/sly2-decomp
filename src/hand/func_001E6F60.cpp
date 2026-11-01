@@ -80,6 +80,13 @@ static inline float Clamp(float g, float lo, float hi)
     else if (g > hi) g = hi;
     return g;
 }
+/** @sly2-annot addr=0x1E6F60
+ * Purpose: Global closest point on the shape to a position (segment scan, or nearest vertex then refine);
+ *   outputs pos, dir, u, s
+ * Info: proposed name FindShapeClosestPoint (T1); TU shape
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 extern "C" void func_001E6F60(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue)
 {

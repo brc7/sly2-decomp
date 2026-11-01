@@ -7,6 +7,13 @@ static inline float Abs(float f){return __builtin_fabsf(f);}
 static inline float Dot(qword a,qword b){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"0"(a),"j"(b));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
+/** @sly2-annot addr=0x1F9240
+ * Purpose: Builds XP array for a group then runs SolveSwGroup in one or two passes depending on flags (1
+ *   resting, 4 position pass)
+ * Info: proposed name SplitSwGroup (T2); TU solve
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 void func_001F9240(struct P*p,int flags,int count,void**objects)
 {
  int i;

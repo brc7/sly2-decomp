@@ -20,6 +20,12 @@ extern "C" void func_001191E8(TREE *,GEO *,TREE *,GEO *);
 static inline float SquaredLength(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
 /* volatile: the game's sqrt.s is a barrier for the scheduler (the radius store must precede the next constant). */
 static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
+/** @sly2-annot addr=0x1F70C0
+ * Purpose: Copy a part's geometry into another space inserting zeroed vertices, rebuild world geom and BSP
+ * Info: proposed name CloneSoPartGeomInserting (T2); TU so
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
 {
     M4 transform;

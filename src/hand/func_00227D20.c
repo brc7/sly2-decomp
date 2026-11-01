@@ -9,6 +9,12 @@ void func_001AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
 qword func_001A6F00(int a, struct S *p, qword q);
 int func_00118A88(void *p, int n, qword v, int *pc, void **ppv, float g);
+/** @sly2-annot addr=0x227D20
+ * Purpose: radius<=1 -> point test else BSP prune with radius (0x118A88)
+ * Info: proposed name FCheckVolSphere (T2); TU vol
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
+ * @end-sly2-annot */
 int func_00227D20(struct S *p, qword v, float g)
 {
     if (g <= 1.0f) {

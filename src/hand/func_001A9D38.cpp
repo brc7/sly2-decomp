@@ -24,6 +24,14 @@ do {float d=Dot(Sub(*points,p),n);if(d<best)best=d;points++;}while(--count);}
  return best;
 }
 // Sweep vertices and create contacts from the first accepted segment hit.
+/** @sly2-annot addr=0x1A9D38
+ * Purpose: Sweep moving vertices of one shape (old->new frame) with line tests against the other and add
+ *   contacts at first hit
+ * Info: proposed name MarkSoContactsSweepVertices (T2); TU mark
+ * Notes: names_v2 v1 proposed PxpMarkSwContactsRoot__FP2SWPP2SOi (0.167)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 extern "C" void func_001A9D38(W*w,A*a,B*b,C**out){
  int i;
  for(i=a->first;i<a->count;i++){

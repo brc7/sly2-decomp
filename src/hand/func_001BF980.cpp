@@ -24,6 +24,12 @@ static inline float Dist2(const qword &a, const qword &b)
     return r;
 }
 
+/** @sly2-annot addr=0x1BF980
+ * Purpose: A* over the pathzone vertex graph
+ * Info: proposed name FindPathAStar (T1); TU path
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 extern "C" void func_001BF980(G *p, V *pvStart, V *pvGoal, int cMax, int *pc, V **apv)
 {
     NODE node;

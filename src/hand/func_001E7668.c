@@ -22,6 +22,12 @@ static inline int Count(struct X *p)
     return value;
 }
 
+/** @sly2-annot addr=0x1E7668
+ * Purpose: Segment index containing s
+ * Info: proposed name IsegFindShapeS (T1); TU shape
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 int func_001E7668(struct X *p, float *pdg, float *pdgSeg, float g)
 {
     int i;

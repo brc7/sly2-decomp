@@ -7,6 +7,16 @@ void func_00117FD0(void *pbis, void *pv);
 void func_00118220(void *pbis, void *pv, void *pv2);
 qword func_0011F288(int c, qword *points);
 qword func_0011F2B8(int c, qword *points);
+/** @sly2-annot addr=0x227BB8
+ * Purpose: LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points
+ * Info: proposed name LoadVolFromBrx (T1); class VOL slot14; TU vol
+ * Notes: names_v2 C proposed GetHpntClosestHidePos__FP4HPNTP6VECTORPf (0.438) | level_parser CONFIRMED-parse:
+ *   payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.90] - evidence: static naming pass; sources:
+ *   r8_21BB88+verdicts_tu_r7r8+parse-verified
+ * See: docs/engine/physics-collision.md#4-geometry-and-queries,
+ *   docs/engine/physics-collision.md#6-source-files, docs/engine/physics-collision.md#7-key-functions
+ * @end-sly2-annot */
 void func_00227BB8(struct S *p, void *pbis)
 {
     func_00231170(p, pbis);

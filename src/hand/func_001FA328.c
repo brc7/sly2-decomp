@@ -26,6 +26,13 @@ static __inline__ void AddTo(union V *out,qword q)
     __asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(q));
     out->q=r;
 }
+/** @sly2-annot addr=0x1FA328
+ * Purpose: If SO has data and nonzero force0, project/apply it through 0x230598/0x22FCC8; no direct callers
+ * Info: proposed name ProjectSoForce (T2); class SO slot66; TU solve
+ * Notes: names_v2 v1 proposed ProjectSoLvo__FP2SOf (0.608)
+ * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 void func_001FA328(struct P *p)
 {
     if(p->data){

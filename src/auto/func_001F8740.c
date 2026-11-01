@@ -24,6 +24,14 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1F8740
+ * Purpose: --cref; at 0 destroy and free to pool D_003E15CC
+ * Info: proposed name DecrefXfh (T1); class CID148 slot2; TU so
+ * Notes: verifier CORRECT: HANDLE::Decref -> XFH::Decref
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F8740(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

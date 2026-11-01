@@ -4,6 +4,13 @@
 struct E { float t; unsigned short k; unsigned short bit; };
 void *func_002332B8(void *dst, const void *src, unsigned int cb);
 static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { func_002332B8(pvDst, pvSrc, cb); }
+/** @sly2-annot addr=0x1C1A38
+ * Purpose: Insert begin/end events into a time-sorted event array
+ * Info: proposed name InsertObstacleEvents (T2); TU path
+ * Notes: names_v2 v1 proposed CalculateJtToolSpin__FP2JTfP7MATRIX3 (0.001)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C1A38(int c, struct E *ae, int bit, float g0, float g1)
 {
     int i, j;

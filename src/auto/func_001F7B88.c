@@ -24,6 +24,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1F7B88
+ * Purpose: return -(+0x149 byte)
+ * Info: proposed name GetSoDhp1 (T2); TU so
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 s32 func_001F7B88(s32 arg0) {
     return (s32) -M2C_FIELD(arg0, s8 *, 0x149);
 }

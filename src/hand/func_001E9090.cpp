@@ -104,6 +104,12 @@ static inline VV VecCombo3(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)
 }
 static inline float Abs(float g) { return __builtin_fabsf(g); }
 
+/** @sly2-annot addr=0x1E9090
+ * Purpose: One integration step of the rope chain (Verlet-like with distance constraints, pinned ends)
+ * Info: proposed name StepChain (T2); TU shape
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E9090(CHAIN *p)
 {
     float dt = D_002DDED0.dt;

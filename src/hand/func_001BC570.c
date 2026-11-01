@@ -6,6 +6,13 @@ float func_001E6630(struct S *p);
 void func_001E6180(struct S *p);
 static __inline__ void SwapV(V *a, V *b) { V t = *a; *a = *b; *b = t; }
 static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t; }
+/** @sly2-annot addr=0x1BC570
+ * Purpose: CID 14 vt15: PostLoLoad, classify polygon, reverse/measure when needed
+ * Info: proposed name PostCid14Load (T2); class CID14 slot15; TU tu_1BC050
+ * Notes: names_v2 B proposed AdjustJtNewXp__FP2JTP2XPi (0.952)
+ * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 void func_001BC570(struct S *p)
 {
     int r, h, i, j;

@@ -13,6 +13,13 @@ static inline int Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x1C0880
+ * Purpose: Compute edge costs (XY distance between vertices)
+ * Info: proposed name HookupCg (T1); TU path
+ * Notes: names_v2 v1 proposed AdjustJtDz__FP2JTiP2DZif (0.000)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C0880(struct A *pa)
 {
     int i, j;

@@ -20,6 +20,13 @@ static inline SETVECTOR ReadSetter(const VTE &entry){
  asm("lw %0,%1":"=r"(function):"m"(entry.pfn));
  return function;
 }
+/** @sly2-annot addr=0x1F4A80
+ * Purpose: SO vt39: LO::SetXf, then derive linear/angular velocity from XF rate matrix (0x22D148) via
+ *   vt35/vt36
+ * Info: proposed name SetSoXf (T2); class SO slot39; TU so
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F4A80(struct P *p, struct A *pa)
 {
     M4 m;

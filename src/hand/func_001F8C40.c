@@ -6,6 +6,13 @@ extern int D_002DD2E0, D_002DD2E4, D_002DD2E8, D_002DD2EC, D_002DD2F0, D_002DD2F
 extern char D_004520A8[], D_004520D0[], D_004520F8[], D_00452120[], D_00452148[], D_00452170[];
 void *func_002333B4(void *, int, int);
 void func_0011CCA8(void *, int, int, int);
+/** @sly2-annot addr=0x1F8C40
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU so
+ * Info: proposed name StaticInit_so (T1); TU so
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r6_1D5150
+ * See: docs/engine/physics-collision.md#1-so-the-solid-object-socpp-0x1f2108-0x1f8dd8-174-functions
+ * @end-sly2-annot */
 void func_001F8C40(int init, int prio)
 {
     if (prio == 0xFFFF && init) {

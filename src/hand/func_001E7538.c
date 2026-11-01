@@ -1,5 +1,12 @@
 struct X { char pad[0xE8]; int c; float *ag; char pad2[0x178 - 0xF0]; int i; };
 float func_001E6660(struct X *p, float g);
+/** @sly2-annot addr=0x1E7538
+ * Purpose: Segment index containing u (searching from hint +0x178), with offset and segment span outputs
+ * Info: proposed name IsegFindShapeU (T1); TU shape
+ * Notes: names_v2 C proposed FindCrvcClosestPointAll__FP4CRVCP6VECTORP6CONSTRT1T1PfT5 (0.638)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 int func_001E7538(struct X *p, float *pdg, float *pdgSeg, float g)
 {
     int i;

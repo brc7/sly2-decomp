@@ -16,6 +16,13 @@ static inline qword ConvertedSquareBits(qword a) {
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(square),"=&j"(one):"j"(value));
     return square;
 }
+/** @sly2-annot addr=0x1E69A0
+ * Purpose: Minimizer callback: squared distance from a query point (in a space) to EvaluateShapeU(u)
+ * Info: proposed name GDistShapeU (T2); TU shape
+ * Notes: names_v2 C proposed PemitbCopyOnWrite__FP5EMITB (0.638)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 float func_001E69A0(void *context,float g){
     struct S *p=(struct S *)context;
     qword v;register qword bits __asm__("$2");float result;

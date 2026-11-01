@@ -11,6 +11,12 @@ static inline float LenSq(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\
 static inline void Max(float*out,float value){if(*out<value)*out=value;}
 static inline qword Scalar(float f,union U*out){register int bits __asm__("$10");register qword q __asm__("vf4");__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));out->q=q;return out->q;}
 static inline float Sqrt(float f){return __builtin_sqrtf(f);}
+/** @sly2-annot addr=0x1E7D90
+ * Purpose: Bounding radius from transformed vertices and Bezier controls (after UpdateXfmMatWorld)
+ * Info: proposed name UpdateShapeBoundingSphere (T2); TU shape
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 float func_001E7D90(struct P*p)
 {
     register float squared __asm__("$f2");

@@ -8,6 +8,12 @@ void *func_001BD310(void *a, void *b, qword q2, qword q3);
 int func_001BD560(void *x, void *a, float t, int dir, V *pv, int n);
 void func_001E6F60(void *x, qword q, void *g, int a, int b, int c, float *pf);
 int func_001BCCE0(void *x, void *a, float *pf, int n, float f);
+/** @sly2-annot addr=0x1BD718
+ * Purpose: Free point on a shape around parameter g avoiding obstacles
+ * Info: proposed name FindShapeFreePoint (T2); TU tu_1BC050
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 int func_001BD718(qword q, void *a1, void *a2, void *obj, int dir, void **pp, float *pf, float g)
 {
     float t;

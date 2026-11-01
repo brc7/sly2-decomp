@@ -19,6 +19,13 @@ static inline qword Normalize(qword n)
 }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b)); return r; }
+/** @sly2-annot addr=0x1BD400
+ * Purpose: (Re)build edge planes of the polygon in world space when its transform changed
+ * Info: proposed name BuildCnvoPlanes (T2); TU tu_1BC050
+ * Notes: names_v2 B proposed PsoGetJtEffect__FP2JTPi (0.856)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 void func_001BD400(struct X *p)
 {
     int i;

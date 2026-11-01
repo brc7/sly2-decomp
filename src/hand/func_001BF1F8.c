@@ -20,6 +20,13 @@ typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
 extern float D_002C0C00;
+/** @sly2-annot addr=0x1BF1F8
+ * Purpose: Tolerant BSP walk returning nearest triangle
+ * Info: proposed name PcgtPointInCbspSafe (T1); TU path
+ * Notes: names_v2 B proposed FindClosestPointInCg__FP2CGP6VECTORT1 (0.856)
+ * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 LEAF *func_001BF1F8(struct T *p, NODE *pn, qword pos, int fl)
 {
     union { qword q; float f; } u;

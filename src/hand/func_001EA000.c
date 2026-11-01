@@ -34,6 +34,12 @@ int func_001BD560(void *, struct O *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int);
 int func_0014C9F8(int, struct X *, int, struct X *, int, struct X *, int);
 
+/** @sly2-annot addr=0x1EA000
+ * Purpose: Sample the path over [t0,t1] and collect valid parameter ranges, intersect with existing ones
+ * Info: proposed name BuildShapeValidRanges (T2); TU shape
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001EA000(struct S *ps)
 {
     struct VEC pos;

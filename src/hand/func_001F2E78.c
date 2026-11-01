@@ -9,6 +9,14 @@ static inline struct O *Find(struct O *x)
     while (x && !(x->fl & (1L << 56))) x = x->p10;
     return x;
 }
+/** @sly2-annot addr=0x1F2E78
+ * Purpose: SO vt13: UpdateLoroot, recurse to children; if the SO has parts and its root changed, re-add parts
+ *   to the new tree
+ * Info: proposed name UpdateSoLoroot (T1); class SO slot13; TU so
+ * Notes: names_v2 C proposed ApplySoConstraintWorld__FP2SOP6CONSTRP6VECTORN22 (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F2E78(struct O *p, struct O *pNew, struct O *pOld)
 {
     struct O *po;

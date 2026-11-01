@@ -13,6 +13,13 @@ static inline qword MulPos(M4 *pm, qword v)
             : "=j"(r) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return r;
 }
+/** @sly2-annot addr=0x1BCAC0
+ * Purpose: Walk polygon edges against the pathzone (FClipPathzone) to find valid span
+ * Info: proposed name FindCid14PathzoneSpan (T2); class CID14; TU tu_1BC050
+ * Notes: names_v2 B proposed RebuildJtXmg__FP2JTP3ALOfT1P6ACTADJP3XMG (0.961)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 int func_001BCAC0(struct X *p, void *pv, int fRev, float g0, float g1)
 {
     int i0, r, pass, k, i1;

@@ -9,6 +9,13 @@ static inline qword Min(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Z(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
+/** @sly2-annot addr=0x1C1700
+ * Purpose: Sweep-and-prune query: obstacles whose x and y intervals overlap the segment box
+ * Info: proposed name CploFindPathzoneObstacles (T2); TU path
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 int func_001C1700(struct S*p,struct C*c,qword a,qword b,int max,void**out){
  struct C local;
  union U mask,copy;

@@ -1,6 +1,13 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 
+/** @sly2-annot addr=0x166428
+ * Purpose: Transforms an array of qword points by a 4x4 matrix using VU0 micro-subroutines (vcallms
+ *   0x120/0xF0), double-buffered
+ * Info: proposed name TransformPointsVu0 (T1); TU geom
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
+ * @end-sly2-annot */
 void func_00166428(const M4 *matrix, unsigned int count,
                    const qword *in0, qword *output)
 {

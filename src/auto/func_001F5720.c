@@ -13,6 +13,13 @@ extern void *D_003E126C;
 extern M2C_UNK D_003E15A8;
 extern s32 *D_003E15C0;
 
+/** @sly2-annot addr=0x1F5720
+ * Purpose: Set translation constraint from CNSTR: make pos XF dynamic if needed, store axis/mode in
+ *   SOPHYS+0xB0, rebuild phys hook
+ * Info: proposed name SetSoCnstrForce (T1); TU so
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F5720(s32 arg0, s32 arg1, s32 arg2) {
     void *temp_s1;
 

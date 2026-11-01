@@ -20,6 +20,16 @@ void func_00117968(void *, int, void *);
 void func_00117EB0(void *, qword *);
 void func_0013F810(struct P *, void *);
 void func_001E6180(struct P *);
+/** @sly2-annot addr=0x1E5DF8
+ * Purpose: SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then
+ *   times/dists/points (+tangent arrays +0x140/+0x144 for curves), options; then MeasureShape
+ * Info: proposed name LoadShapeFromBrx (T1); class SHAPE slot14; TU shape
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r6b_rest+parse-verified
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E5DF8(struct P *p, void *pbis)
 {
     struct MSG msg;

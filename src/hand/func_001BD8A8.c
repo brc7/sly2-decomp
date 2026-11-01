@@ -8,6 +8,13 @@ int func_001BC688(struct X *p, qword a, qword b, int n, HIT *phit);
 int func_001BC9F0(struct X *p, qword pos);
 static inline qword MulPt(M4 *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0]), "j"(v), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3])); return r; }
 static inline M4 *GetMat(struct X *p) { return p->vt[31].pfn((struct X *)((char *)p + p->vt[31].d)); }
+/** @sly2-annot addr=0x1BD8A8
+ * Purpose: Two convex polygons overlap (edge clip or containment)
+ * Info: proposed name FCnvoOverlap (T1); TU tu_1BC050
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2+verdicts_followups
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 int func_001BD8A8(struct X *p, struct X *q)
 {
     int i;

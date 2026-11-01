@@ -81,6 +81,14 @@ static inline void Closest(VV a, VV b, VV c, VV d, float *au, U *normal)
     (void)func_0011EA60(a, b, c, d, au, normal);
 }
 
+/** @sly2-annot addr=0x1A8B50
+ * Purpose: Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg,
+ *   embedded vertex XPs, edge paths and closest points (kind 3)
+ * Info: proposed name MarkSoContactsBspBsp (T1); TU mark
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_A2+verdicts_followups
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 extern "C" void func_001A8B50(SCENE *scene, SHAPE *a, SHAPE *b, int nodeCount, NODE *nodes, NODE *last, CONTACT **out)
 {
     int aclsg[2];

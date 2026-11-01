@@ -11,6 +11,12 @@ struct FILTER *func_001F7530(void *a, int mask);
 E *func_0011CCC0(void *pool);
 void func_001A9FE0(struct S *s, E *e, E **pp);
 static inline int Index(E *e,struct K *k) { int one=1; int neq=e->u.s.x0!=k; return one-neq; }
+/** @sly2-annot addr=0x1AA0B0
+ * Purpose: Query the zap responder (PloFindZapResponder, vt slot 0x3C) and append its contacts
+ * Info: proposed name AddSoZapXps (T2); TU mark
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 void func_001AA0B0(struct S *s, struct O *o, struct L *l, struct K *k, int a4, void *a5, void *a6, E **pp)
 {
     E *res = 0;

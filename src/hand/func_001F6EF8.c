@@ -16,6 +16,13 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 static inline float Root(float x){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(x));return r;}
 static inline qword *VelocityCursor(qword *p){register qword *initial __asm__("$2")=p;register qword *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(initial));return r;}
 static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("slt %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
+/** @sly2-annot addr=0x1F6EF8
+ * Purpose: Integrate soft-mesh vertices by dt (semi-implicit), track max radius, invalidate on large moves
+ * Info: proposed name UpdateSoPartMesh (T2); TU so
+ * Notes: names_v2 v1 proposed ImpactSo__FP2SOi (0.167)
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F6EF8(struct P*p,float dt)
 {
  V scalar;

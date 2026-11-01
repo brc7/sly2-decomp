@@ -25,6 +25,14 @@ static inline qword Cross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,
 static inline float Dot(qword a,qword b){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"0"(a),"j"(b));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
+/** @sly2-annot addr=0x1F6C08
+ * Purpose: Build a soft-mesh scratch record (velocities, accelerations, oriented triangles) for a part once
+ * Info: proposed name EnsureSoPartMesh (T2); TU so
+ * Notes: names_v2 v1 proposed DisplaceSo__FP2SOi (0.034)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/engine/physics-collision.md#1-so-the-solid-object-socpp-0x1f2108-0x1f8dd8-174-functions,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F6C08(P *p)
 {
     if(p->mesh)return;

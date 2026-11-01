@@ -21,6 +21,14 @@ void func_001F3900(struct P *);
 qword func_001A62E8(struct P *);
 struct REGION *func_001C0D70(qword, int);
 void func_001F37C8(struct P *, struct REGION *);
+/** @sly2-annot addr=0x1F40A0
+ * Purpose: SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part
+ *   matrices, region
+ * Info: proposed name TranslateSoToPos (T1); class SO slot29; TU so
+ * Notes: names_v2 B proposed EnsureSoLvo__FP2SO (0.856)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F40A0(struct P *p, qword v)
 {
     M4 m0, m40, m80, mC0, m100, m140, m180, m1C0;

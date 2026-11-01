@@ -6,6 +6,13 @@ struct LO { int x0, x4, x8; VT *vt; };
 struct E { int x0; void *x4; int x8; struct LO *xC; qword x10; qword x20; qword x30; };
 struct P { struct E e[2]; char pad[0x30]; qword xB0; };
 qword func_0022D348(void *p, int n, qword q);
+/** @sly2-annot addr=0x1A7FC0
+ * Purpose: For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides)
+ * Info: proposed name RecalcSwXpMovement (T1); TU mark
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_A2+verify_side
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 void func_001A7FC0(void *unused, int n, struct P **ap)
 {
     int i;

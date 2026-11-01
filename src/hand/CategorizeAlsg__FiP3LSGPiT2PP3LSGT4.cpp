@@ -17,6 +17,11 @@ extern "C" void *func_002332B8(void *dst, const void *src, int cb);
 // CategorizeAlsg (0x1A8410).  Keys: one function-scope plsg shared by both loops (its base becomes unknown to
 // alias analysis, so the VECTOR swap temp at 0(sp) is not forwarded and fA/fB are reloaded); plain block temps
 // for the float/int swaps; pipos formed just before the second memmove.
+/** @sly2-annot addr=0x1A8410
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 void CategorizeAlsg(int clsg, LSG *alsg, int *pcpos, int *aipos, LSG **aplsg, LSG **pplsgBoth)
 {
     LSG *plsgNone = 0;

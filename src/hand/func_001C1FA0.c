@@ -2,6 +2,12 @@ typedef int qword __attribute__((mode(TI)));
 struct LO { char pad[0x218]; qword *pq; };
 int func_00132B10(struct LO *p, int n);
 qword func_001C1EC0(void *p, qword q);
+/** @sly2-annot addr=0x1C1FA0
+ * Purpose: Object within radius of the endpoint (class 0x40 always true)
+ * Info: proposed name FNearPathlinkEndpoint (T2); TU path
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 int func_001C1FA0(void *p, struct LO *plo, float r)
 {
     qword a, b, d;

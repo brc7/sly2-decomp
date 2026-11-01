@@ -10,6 +10,12 @@ int *func_001AE378(struct A *pa);
 void *func_001AE1D0(struct A *pa);
 static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return func_001AE378(pa); }
 static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return func_001AE1D0(pa); }
+/** @sly2-annot addr=0x1C1260
+ * Purpose: Bucket path links by the zone of their first endpoint
+ * Info: proposed name BuildPathzoneLinkLists (T2); TU path
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C1260(struct S *p)
 {
     struct H h;

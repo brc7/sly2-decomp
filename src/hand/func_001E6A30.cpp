@@ -103,6 +103,12 @@ static inline VV Normalize(VV a)
     __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "+j"(length) : "j"(a));
     return length;
 }
+/** @sly2-annot addr=0x1E6A30
+ * Purpose: Closest point on a linear shape, walking segments from a start parameter
+ * Info: proposed name FindShapeClosestPointLinearFromU (T2); TU shape
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 extern "C" void func_001E6A30(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue, float initial)
 {

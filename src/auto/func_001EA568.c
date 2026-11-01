@@ -5,6 +5,17 @@ extern void *D_003DCFF4;
 extern s32 D_003DCFF8;
 extern s32 D_003DCFFC;
 
+/** @sly2-annot addr=0x1EA568
+ * Purpose: After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load
+ *   offset to its data pointer and color-correct its entries
+ * Info: proposed name RelocateSharedColorTables (T1); TU shd
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
+ *   textures format doc cites this function by this name (CONFIRMED(code) in the doc)
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources:
+ *   r6b_rest+parse-verified+format-doc:textures
+ * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/engine/rendering.md#13-key-functions
+ * @end-sly2-annot */
 void func_001EA568(s32 arg0) {
     s32 var_a0;
     s32 var_a1;

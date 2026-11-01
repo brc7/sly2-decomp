@@ -10,6 +10,13 @@ void func_00230598(struct P *, struct O *);
 void func_001F4BF8(struct P *);
 void func_001F5078(struct P *);
 void func_001F8668(struct P *, int);
+/** @sly2-annot addr=0x1F4488
+ * Purpose: SO vt35: set position-XF velocity so world velocity = v (minus current), refresh, mark phys
+ * Info: proposed name SetSoVelocity (T1); class SO slot35; TU so
+ * Notes: names_v2 C proposed CalculateSoTrajectoryApex__FP2SOP6VECTORfT1 (0.638)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F4488(struct P *p, qword q)
 {
     struct O *po = p->po;

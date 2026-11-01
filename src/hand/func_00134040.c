@@ -15,6 +15,16 @@ void *func_001AA1D8(struct P *, struct X *, struct X *);
 void func_001F5078(struct LO *);
 void func_0011A2E8(void *, struct X *);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
+/** @sly2-annot addr=0x134040
+ * Purpose: Per solver step: flush bounds, sort, then walk objects and their pairs building contact (XP) lists
+ *   into a stack array of up to 0x300 objects
+ * Info: proposed name RecalcSwXpAll (T1); TU bbmark
+ * Notes: names_v2 C proposed UpdateVolzp__FP5VOLZPf (0.221)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
+ *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 void func_00134040(struct P *p)
 {
     struct C ctx;

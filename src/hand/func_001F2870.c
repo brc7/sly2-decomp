@@ -12,6 +12,13 @@ void func_0011A220(void *, void *);
 void func_001F4BF8(struct P *);
 void func_001F38A8(struct E *);
 void func_001F5078(struct P *);
+/** @sly2-annot addr=0x1F2870
+ * Purpose: Add one SOPART to the tree record's part DL (+0x34): copy XF matrix/stamp, mark tree dirty
+ *   (0x1F4BF8), UpdateSoPartGeom, invalidate if not fixed
+ * Info: proposed name AddSoPartToTree (T1); TU so
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F2870(struct P *p, struct E *pe)
 {
     struct O *po;

@@ -57,6 +57,12 @@ static inline VU_VECTOR Lerp(const qword &a, const qword &b, float t)
     return VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(a), VU_FLOAT(t), VU_VECTOR(b));
 }
 
+/** @sly2-annot addr=0x1BF3D8
+ * Purpose: Clip segment against the pathzone BSP, writing crossed leaf spans (LSG rows 96 B)
+ * Info: proposed name ClsgClipEdgeToCbsp (T1); TU path
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 extern "C" int func_001BF3D8(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags)
 {
     STATE st[33]; // st[0] is the current state, st[1..32] the stack of pending far sides

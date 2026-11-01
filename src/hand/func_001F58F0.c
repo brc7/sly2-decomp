@@ -8,6 +8,15 @@ extern struct CLOCK D_002DDED0;
 qword func_0022D348(struct O *, int, qword);
 void func_0011B938(void *, int, struct V *);
 float func_002458F0(float, float);
+/** @sly2-annot addr=0x1F58F0
+ * Purpose: SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix,
+ *   sAdjust 100, grfcpd 0, tMoveLast = g_clock.t
+ * Info: proposed name GetSoCpdefi (T1); class SO slot50; TU so
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F58F0(struct P *p, struct Out *po)
 {
     struct O *o = p->po;

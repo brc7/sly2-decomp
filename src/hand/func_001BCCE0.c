@@ -3,6 +3,12 @@ float func_001E6648(void *s);
 int func_001BCF18(void *s, void *x, float t, float dt, float *pt, int k);
 int func_001BCAC0(void *s, void *x, float a, float b, int k);
 
+/** @sly2-annot addr=0x1BCCE0
+ * Purpose: Find valid parameter range of a shape inside the pathzone (returns status)
+ * Info: proposed name ClipShapeToPathzone (T2); TU tu_1BC050
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 int func_001BCCE0(void *s, void *x, float *pt, int mode, float t)
 {
     float at[2];

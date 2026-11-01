@@ -69,6 +69,12 @@ static inline float Min(float a,float b){return b<a?b:a;}
 static inline qword Velocity(O *o){VE *v=o->vt;return v[33].f.velocity((char *)o+v[33].delta);}
 static inline void Impact(O *o,EVENT *e){VE *v=o->vt;v[51].f.event((char *)o+v[51].delta,e);}
 static inline void Signal(O *o,int event,PAIR *pair){VE *v=o->vt;v[4].f.signal((char *)o+v[4].delta,event,pair);}
+/** @sly2-annot addr=0x228E50
+ * Purpose: tracks objects inside the water, emits contact/impact (splash) events
+ * Info: proposed name UpdateWater (T1); class WATER slot16; TU water
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
+ * @end-sly2-annot */
 extern "C" void func_00228E50(O *p){
  WORK work;N *n;COLL **objects;LINK *link;
  func_001F36E0(p);

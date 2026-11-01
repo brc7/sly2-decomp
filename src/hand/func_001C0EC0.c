@@ -3,6 +3,15 @@ struct G { char pad[0x45CC]; void *p45cc; };
 int func_00117C80(void *pbis);
 void *func_001AE2A0(struct MSG *pmsg);
 void func_001C0F30(void *p, int n, void *pbis);
+/** @sly2-annot addr=0x1C0EC0
+ * Purpose: Read world zone BSP (if count) into SW+0x45CC
+ * Info: proposed name LoadSwZoneBspFromBrx (T1); TU path
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
+ *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
+ * @end-sly2-annot */
 void func_001C0EC0(struct G *p, void *pbis)
 {
     int n = func_00117C80(pbis);

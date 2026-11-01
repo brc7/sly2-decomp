@@ -22,6 +22,15 @@ void func_001F8668(struct LO *, int);
 
 #define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
 
+/** @sly2-annot addr=0x1F21B8
+ * Purpose: SO vt10: compute old world matrix / velocities (vt33/vt34), LO::SetParent, re-point XF parents
+ *   into new parent, rebind contacts and bounds (0x1F2468/0x1F26A8), refresh phys flag
+ * Info: proposed name SetSoParent (T1); class SO slot10; TU so
+ * Notes: names_v2 C proposed PivotSo__FP2SOi (0.196)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F21B8(struct LO *plo, struct LO *pa, struct LO *pb, int grf)
 {
     struct MAT mat;

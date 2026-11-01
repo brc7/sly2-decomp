@@ -20,6 +20,14 @@ static inline M4 *GetMat(X *p) { return p->vt[31].pfn((X *)((char *)p + p->vt[31
 static inline qword Min(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Max(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
+/** @sly2-annot addr=0x1BD040
+ * Purpose: Transform polygon to world, find its pathzone (PpathzoneFromPos), compute bounds,
+ *   AddPathzoneObstacle
+ * Info: proposed name RegisterCid14Obstacle (T2); class CID14; TU tu_1BC050
+ * Notes: names_v2 C proposed UpdateJtStand__FP2JT (0.638)
+ * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 extern "C" void func_001BD040(X *p)
 {
     CTX ctx;

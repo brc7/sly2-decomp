@@ -23,6 +23,13 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E10D0;
 extern M2C_UNK D_00443740;
 
+/** @sly2-annot addr=0x229710
+ * Purpose: push XA on SO XA list (0x138) then 0x1F5078 (wake)
+ * Info: proposed name AddSoXa (T1); TU water
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verify_side
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
+ * @end-sly2-annot */
 void func_00229710(s32 arg0, s32 arg1) {
     M2C_FIELD(arg1, s32 *, 8) = (s32) M2C_FIELD(arg0, s32 *, 0x138);
     M2C_FIELD(arg0, s32 *, 0x138) = arg1;

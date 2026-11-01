@@ -127,6 +127,14 @@ static inline void ExtendBox(qword &qwMin, qword &qwMax, const qword &qwPos)
     qwMax = QwMax(qwMax, qwPos);
 }
 
+/** @sly2-annot addr=0x1F50E0
+ * Purpose: SO vt49: rebuild tree record AABB and bounding sphere from visible parts, set g_sw+0x3CCC, clear
+ *   dirty
+ * Info: proposed name UpdateSoTreeBounds (T1); class SO slot49; TU so
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
+ *   docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 extern "C" void func_001F50E0(SO *pso)
 {
     qword qwMin = D_002A2DF0;

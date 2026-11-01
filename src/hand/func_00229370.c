@@ -8,6 +8,13 @@ extern struct G D_003DD490;
 void func_00229738(struct O *po, struct N *pn);
 void func_002296C0(struct G *pg, struct N *pn);
 void func_00133590(struct S *p, int k, struct O *q);
+/** @sly2-annot addr=0x229370
+ * Purpose: drops XAs on some messages then base HandleLoMessage 0x133590
+ * Info: proposed name HandleWaterMessage (T2); class WATER slot5; TU water
+ * Notes: names_v2 C proposed TranslateSoToPosSafe__FP2SOP6VECTORT1 (0.200)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
+ * @end-sly2-annot */
 void func_00229370(struct S *p, int k, struct O *q)
 {
     if (k == 1 && q != (struct O *)p) {

@@ -22,6 +22,14 @@ void func_0011A2E8(void *, struct X *);
 int func_0011A380(void *, struct X *);
 void *func_002332B8(void *, void *, int);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
+/** @sly2-annot addr=0x1337D0
+ * Purpose: Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from
+ *   SW lists and delete its endpoints from the 3 axis arrays
+ * Info: proposed name RemoveSwAaobrObject (T1); TU bbmark
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001337D0(struct P *p, struct X *px)
 {
     struct L *pl, *plNext;

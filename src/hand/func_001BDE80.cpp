@@ -55,6 +55,12 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 
+/** @sly2-annot addr=0x1BDE80
+ * Purpose: Merge overlapping convex polygons into one new hull polygon
+ * Info: proposed name MergeCid14Obstacles (T2); class CID14; TU tu_1BC050
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 extern "C" void func_001BDE80(int n, X **ap)
 {
     int c = 0;

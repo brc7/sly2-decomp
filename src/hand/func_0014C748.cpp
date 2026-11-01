@@ -47,6 +47,14 @@ static inline qword Normalize(const qword &v)
     return r;
 }
 
+/** @sly2-annot addr=0x14C748
+ * Purpose: Segment/sphere intersection: quadratic in u, clamp to [0,1], emit up to 2 LSG entries
+ * Info: proposed name ClsgClipEdgeToSphere (T1); TU clip
+ * Notes: names_v2 C proposed ClsgClipLineToSphere__FP6VECTORfT0T0iP3LSG (0.638)
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/engine/physics-collision.md#4-geometry-and-queries,
+ *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
+ * @end-sly2-annot */
 int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg)
 {
     float au[2];

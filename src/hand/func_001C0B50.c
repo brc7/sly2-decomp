@@ -13,6 +13,12 @@ void func_0011EE08(qword,qword,qword,qword*,float*,float*);
 int func_001C0940(struct S*,qword,qword*,int);
 static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;}
 static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;}
+/** @sly2-annot addr=0x1C0B50
+ * Purpose: Closest point to pos inside the pathzone and outside obstacles
+ * Info: proposed name FindPathzoneClosestFreePoint (T2); TU path
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 int func_001C0B50(struct S*p,qword point,qword*out){
  void*objects[128];
  union U a,b;

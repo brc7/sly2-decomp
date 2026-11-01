@@ -8,6 +8,14 @@ struct A { void *objects[0x301]; int n; };
 int func_00230348(int);
 void func_001F8E90(struct P *, struct O *, int *, void **);
 void func_001F9240(struct P *, int, int, void **);
+/** @sly2-annot addr=0x1F8F80
+ * Purpose: For each dynamic root LO in the SW list: build its contact group (BuildContactGroup) and solve it
+ *   (0x1F9240)
+ * Info: proposed name SolveSwContactGroups (T2); TU solve
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 void func_001F8F80(struct P *p, int k)
 {
     struct A a;

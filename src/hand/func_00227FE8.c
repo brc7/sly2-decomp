@@ -1,6 +1,17 @@
 struct O { char pad[0x18]; int id; char pad1[0x16C - 0x1C]; int c; int aid[1]; };
 struct O *func_0015E938(void *pg, int k, int id, struct O *p);
 int func_0015E9C8(void *pg, int a, int b, struct O *po, int n, struct O **apo);
+/** @sly2-annot addr=0x227FE8
+ * Purpose: finds a WARP by oid (0x15E938) else searches class 0x2A (WARP) by id or alias list +0x16C
+ *   (0x15E9C8(sw, a, 0x2A, ...)); Sly 1 WARP oidAlias lookup
+ * Info: proposed name PwarpFromOid (T1); TU exit_warp
+ * Notes: v3 purpose fix (class review): falls back over cid 0x2A WARP, not 0x1A
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources:
+ *   r8_21BB88+class_review(master_names_v2_1)
+ * See: docs/engine/physics-collision.md#6-source-files,
+ *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
+ *   docs/engine/world-sw.md#9-source-files
+ * @end-sly2-annot */
 struct O *func_00227FE8(void *pg, int id, int k)
 {
     struct O *apo[32];

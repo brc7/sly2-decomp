@@ -9,6 +9,12 @@ extern struct G D_003DD490;
 void func_001F4BF8(struct P *);
 void func_001A7E10(struct G *, void *);
 #define VF(q, n, a) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d, a)
+/** @sly2-annot addr=0x1F4E28
+ * Purpose: Notify both sides (vt54) for each contact of the tree, free XP lists, clear tree contacts
+ * Info: proposed name FreeSoContacts (T2); TU so
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F4E28(struct P *p)
 {
     struct N *pn;

@@ -13,6 +13,13 @@ extern void *D_003E126C;
 extern M2C_UNK D_003E15A8;
 extern s32 *D_003E15C0;
 
+/** @sly2-annot addr=0x1F57C0
+ * Purpose: Same for rotation XF into SOPHYS+0x90
+ * Info: proposed name SetSoCnstrTorque (T1); TU so
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F57C0(s32 arg0, s32 arg1, s32 arg2) {
     void *temp_s1;
 

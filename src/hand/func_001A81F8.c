@@ -8,6 +8,13 @@ typedef struct GEOM { char pad[0x94]; qword *apos; char pad2[0x9C - 0x98]; VTX *
 typedef struct SO { char pad[0x74]; void *pbsp; } SO;
 int func_00118668(void *bsp, int max, qword a, qword b, int clsgMax, LSG *alsg);
 // Clip edges of selected surfaces and attach their originating edge.
+/** @sly2-annot addr=0x1A81F8
+ * Purpose: Clip the edges of selected (pruned) surfaces of one shape against the other's BSP into LSGs,
+ *   attaching the source edge
+ * Info: proposed name ClsgClipSoBspEdges (T1); TU mark
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
+ * @end-sly2-annot */
 int func_001A81F8(void *unused, SO *pso, GEOM *pgeom, int cent, ENT *aent, int clsgMax, LSG *alsg)
 {
     int ilsg = 0;

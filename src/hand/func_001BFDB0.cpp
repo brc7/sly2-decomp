@@ -39,6 +39,13 @@ static inline qword AddScaled(qword a, qword b, float g)
     return r;
 }
 
+/** @sly2-annot addr=0x1BFDB0
+ * Purpose: Closest point of a navigation triangle to p (edge clamp or vertical projection)
+ * Info: proposed name ClosestPointOnCgt (T1); TU path
+ * Notes: names_v2 v1 proposed InitJt__FP2JT (0.000)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 qword func_001BFDB0(T *t, qword p)
 {
     U result;

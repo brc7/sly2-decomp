@@ -25,6 +25,12 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
 static inline qword Consume(P*p,LO*object,U&pending){func_00230598(p,object);qword world=func_0022FCC8(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
+/** @sly2-annot addr=0x1FA528
+ * Purpose: Apply queued translation and rotation (shift/turn) to SO then refresh changed objects
+ * Info: proposed name ApplySoQueuedMotion (T2); class SO slot67; TU solve
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
+ * @end-sly2-annot */
 extern "C" void func_001FA528(P*p)
 {
     M3 final;

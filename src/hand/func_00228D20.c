@@ -6,6 +6,13 @@ extern struct G D_003DD490;
 void func_00229738(struct O *po, struct N *pn);
 void func_00229710(struct O *po, struct N *pn);
 void func_002296C0(struct G *pg, struct N *pn);
+/** @sly2-annot addr=0x228D20
+ * Purpose: rebuilds the per-object XA records (add/remove, free unused)
+ * Info: proposed name UpdateWaterXaList (T2); TU water
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88+verdicts_B
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
+ * @end-sly2-annot */
 void func_00228D20(void *pv, struct N **ppn)
 {
     struct N *pn = *ppn;

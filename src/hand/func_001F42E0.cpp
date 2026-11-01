@@ -19,6 +19,14 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
+/** @sly2-annot addr=0x1F42E0
+ * Purpose: SO vt30: set rotation XF matrix from world matrix (parent-normalized), bump stamp, vt18, free
+ *   contacts, refresh
+ * Info: proposed name RotateSoToMat (T1); class SO slot30; TU so
+ * Notes: names_v2 B proposed ApplySoImpulse__FP2SOP6VECTORT1f (0.792)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_001F42E0(P *p,const M3 *basis)
 {
     LO *object=p->object;

@@ -24,6 +24,12 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x1F7D10
+ * Purpose: alpha<=0: Remove (vt9) unless class 0x69; else Add (vt8); store +0x12C
+ * Info: proposed name SetSoAlpha (T1); TU so
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F7D10(s32 arg0, s32 arg1, f32 fparg0) {
     void *temp_v0;
     void *temp_v0_2;

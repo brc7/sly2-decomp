@@ -6,6 +6,13 @@ extern const float D_002A76E4;
 void *func_001AE1D0(struct A *pa);
 void func_001AE5A0(void *dst, void *src, int cb);
 void *func_002333B4(void *p, int c, int cb);
+/** @sly2-annot addr=0x1C1D20
+ * Purpose: Grow obstacle/event arrays 0->16->128 with sentinel events
+ * Info: proposed name GrowPathzoneObstacleArrays (T2); TU path
+ * Notes: names_v2 v1 proposed FUN_001725e0 (0.000)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C1D20(struct S *p)
 {
     struct A a;

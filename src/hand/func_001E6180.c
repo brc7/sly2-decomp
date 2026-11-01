@@ -23,6 +23,15 @@ static inline qword LenVec(qword a) {
  __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));
  return d;
 }
+/** @sly2-annot addr=0x1E6180
+ * Purpose: Recompute the cumulative-distance array (+0xF0) from the world-space points (linear) or
+ *   per-segment cached lengths (curve); invalidate cache; resync chain
+ * Info: proposed name MeasureShape (T1); TU shape
+ * Notes: names_v2 C proposed OnAloRemove__FP3ALO (0.638)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
+ *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
+ * @end-sly2-annot */
 void func_001E6180(struct S *p)
 {
  int i;

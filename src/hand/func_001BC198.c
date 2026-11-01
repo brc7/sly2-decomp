@@ -6,6 +6,12 @@ void func_001BD218(void *p);
 void func_0011A2E8(struct DL *pdl, void *pv);
 int func_0011A380(struct DL *pdl, void *pv);
 void func_001BD1E0(void *p);
+/** @sly2-annot addr=0x1BC198
+ * Purpose: CID 14 vt12: RemoveLoHierarchy, detach from merged owner, unregister obstacle, leave pending list
+ * Info: proposed name RemoveCid14Hierarchy (T2); class CID14 slot12; TU tu_1BC050
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
+ * @end-sly2-annot */
 void func_001BC198(struct S *p)
 {
     struct DL *pdl;

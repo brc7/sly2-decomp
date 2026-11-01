@@ -15,6 +15,15 @@ float func_00117E38(void *pbis);
 void *func_001AE2A0(struct A *pa);
 void *func_001AE1D0(struct A *pa);
 void func_001C0880(int *p);
+/** @sly2-annot addr=0x1C03C0
+ * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg
+ * Info: proposed name LoadPathzoneFromBrx (T1); class PATHZONE slot14; TU path
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+parse-verified
+ * See: docs/engine/physics-collision.md#7-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
+ * @end-sly2-annot */
 void func_001C03C0(struct S *p, void *pbis)
 {
     struct A a;

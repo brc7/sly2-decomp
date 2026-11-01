@@ -31,6 +31,14 @@ static inline qword Norm(qword a) {
     return d;
 }
 static inline qword Difference(qword end,const qword *start){qword result;__asm__("vsub.xyzw %0,%1,%2":"=j"(result):"j"(end),"j"(*start));return result;}
+/** @sly2-annot addr=0x1D6848
+ * Purpose: Launch velocity from start to end at elevation angle g under gravity acc (sin/cos/tan/atan2)
+ * Info: proposed name VecLaunchBallistic (T2); TU tu_1D6848
+ * Notes: names_v2 B proposed FCalculateMuzzleVelocity__FP6VECTORT0fT0P2SO (0.891)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
+ *   docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
+ * @end-sly2-annot */
 qword func_001D6848(float g, qword start, qword end, qword acc)
 {
     union U delta, vel, scalar;

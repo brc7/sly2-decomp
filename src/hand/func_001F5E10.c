@@ -17,6 +17,13 @@ static inline qword LoadVector(const V *value){register qword result asm("v0");_
 static inline qword Scalar(float f){register qword r __asm__("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
 static inline qword AddScaled(qword old,qword direction,qword factor){register qword a __asm__("vf2")=old,b __asm__("vf4")=direction,scale __asm__("vf3")=factor,r __asm__("vf1");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(scale));return r;}
+/** @sly2-annot addr=0x1F5E10
+ * Purpose: Spring force toward position (CLQ on distance) and toward target velocity (clamped 1/dt)
+ * Info: proposed name AccelSoTowardPosSpring (T1); TU so
+ * Notes: names_v2 C proposed ActivateCptn__FP4CPTNPv (0.170)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
+ * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 void func_001F5E10(struct S*input,qword position,struct COEF*positionCoefficients,qword velocity,struct COEF*velocityCoefficients)
 {
  V argument,point,old1,scale1,speed,old2,scale2;
