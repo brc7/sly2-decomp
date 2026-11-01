@@ -1,6 +1,0 @@
-#include "m2c_prelude.h"
-extern M2C_UNK D_002BAB4C;
-
-M2C_UNK *func_00113A60(void) {
-    return &D_002BAB4C;
-}
