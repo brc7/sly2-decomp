@@ -90,12 +90,12 @@ struct SW : public BASIC
       SAVEVARS savevars;
       int ctask;
       uint32_t   _pad_202    [ 3 ] ;
-      LO *ploJobCur;
-      LO *ploTaskCur;
-      LO *ploTaskPending;
+      LO *ploJobCur;        /* +0x3B0C [R] current JOB (CID 0x84); mirrors g_game+0x10 oid (runtime FINDINGS, slygame SW_CURTASK) */
+      LO *ploTaskCur;       /* +0x3B10 [R] current TASK (CID 0x85) */
+      LO *ploTaskPending;   /* +0x3B14 [R] pending TASK */
       LO *ploJobFailed;
       SVPATH *psvpDt;
-      SVPATH *psvpCcoin;
+      SVPATH *psvpCcoin;    /* +0x3B20 [R] -> save var loot.ccoin (g_gs+0xA0) (runtime3b FINDINGS) */
       SVPATH *psvpWidCurrent;
       SVPATH *psvpEpisodeCurrent;
       SVPATH *psvpLang;
@@ -114,12 +114,16 @@ struct SW : public BASIC
       HUDSTACK ahudstack[4];
       uint32_t   _pad_228    [ 7 ] ;
       int fUnk3bec;
-      int fUnk3bf0;
-      uint grfUnk3bf4;
-      FILEREC filerecDest;
-      int nUnk3c38;
-      int nUnk3c3c;
-      uint32_t   _pad_235    [ 16 ] ;
+      /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
+      int fTransitionPending;   /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
+                                   (request already consumed); was fUnk3bf0 */
+      uint grfTransition;       /* +0x3BF4 [S] request flags (0x80 return-to-hideout, 2 same level; 0xCD bits -> no resume
+                                   timer) (slygame SW_REQ_FLAGS, from code); was grfUnk3bf4 */
+      FILEREC filerecDest;      /* +0x3BF8 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == filerecCur after load */
+      int oidWarpDest;          /* +0x3C38 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
+                                   specific warps); was nUnk3c38 */
+      int oidWarpContext;       /* +0x3C3C [S] requested warp context oid (-1); was nUnk3c3c */
+      FILEREC filerecCur;       /* +0x3C40 [R] current level FILEREC (equal to filerecDest in every state); was _pad_235[16] */
       int nLoadFilter;
       int fUnk3c84;
       int nUnk3c88;
@@ -139,13 +143,13 @@ struct SW : public BASIC
       SLOTHEAP slotheapXp;
       int nStampXf;
       int nUnk3d5c;
-      int nStampLights;
+      int nStampLights;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       uint32_t   _pad_256    [ 1 ] ;
       int nStimulusSerial;
       int cEventWorld;
       int nUnk3d70;
       int nUnk3d74;
-      int cHandsOff;
+      int cHandsOff;        /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
       int cNoPause;
       int cUnk3d80;
       int cUnk3d84;
@@ -169,10 +173,12 @@ struct SW : public BASIC
       CID116 *pcid116Fade;
       uint32_t   _pad_283    [ 18 ] ;
       SL slPoctl;
-      uint cpo;
-      PO *apo[16];
-      PO *ppoHero;
-      PO *ppoOverride;
+      uint cpo;             /* +0x3EB8 [R] player-object count (4 in the Paris hub: Bentley, Sly, Murray, char-select PO; 0 in
+                               the 3 states with no world loaded) */
+
+      PO *apo[16];          /* +0x3EBC [R] player objects (oids 8 Bentley, 7 Sly(JT), 9 Murray, 0x4357 CID 0x46 char-select) */
+      PO *ppoHero;          /* +0x3EFC [R] CURRENT player (PpoCur): follows character switches; g_pjt stays Sly (runtime3) */
+      PO *ppoOverride;      /* +0x3F00 [R] override player; 0 in all states; current = ppoOverride ? ppoOverride : ppoHero */
       int cproxysrc;
       PROXYSRC *aproxysrc;
       PXR *ppxrRoot;
@@ -238,7 +244,10 @@ struct SW : public BASIC
       float tLookLast;
       uint32_t   _pad_352    [ 2 ] ;
       float gUnk475c;
-      uint32_t   _pad_354    [ 3 ] ;
+      uint32_t   _pad_354    [ 1 ] ;
+      int cClue;            /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
+      int cClueTotal;       /* +0x4768 [R] clue bottles in this level (30 in the Paris hub) */
+
       float tHudTimerEnd;
       int csecHudTimerShown;
       uint32_t   _pad_357    [ 1 ] ;
@@ -255,5 +264,17 @@ typedef char assert_SW_aslOid[SLY2_OFFSETOF(SW, aslOid) == 0x38 ? 1 : -1];   /* 
 typedef char assert_SW_aslCid[SLY2_OFFSETOF(SW, aslCid) == 0x3038 ? 1 : -1];   /* per-class SL lists, 12-byte stride (CONFIRMED runtime) */
 typedef char assert_SW_savevars[SLY2_OFFSETOF(SW, savevars) == 0x3A18 ? 1 : -1];   /* save-var schema (CONFIRMED runtime) */
 typedef char assert_SW_ahudstack[SLY2_OFFSETOF(SW, ahudstack) == 0x3BA0 ? 1 : -1];   /* 4 records of 12 bytes (CONFIRMED runtime) */
+typedef char assert_SW_ploJobCur[SLY2_OFFSETOF(SW, ploJobCur) == 0x3B0C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_psvpCcoin[SLY2_OFFSETOF(SW, psvpCcoin) == 0x3B20 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_fTransitionPending[SLY2_OFFSETOF(SW, fTransitionPending) == 0x3BF0 ? 1 : -1];   /* CONFIRMED runtime + code */
+typedef char assert_SW_filerecDest[SLY2_OFFSETOF(SW, filerecDest) == 0x3BF8 ? 1 : -1];   /* CONFIRMED runtime + code */
+typedef char assert_SW_oidWarpDest[SLY2_OFFSETOF(SW, oidWarpDest) == 0x3C38 ? 1 : -1];   /* CONFIRMED runtime + code */
+typedef char assert_SW_filerecCur[SLY2_OFFSETOF(SW, filerecCur) == 0x3C40 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_nStampLights[SLY2_OFFSETOF(SW, nStampLights) == 0x3D60 ? 1 : -1];   /* CONFIRMED runtime (frame counter) */
+typedef char assert_SW_cHandsOff[SLY2_OFFSETOF(SW, cHandsOff) == 0x3D78 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_cpo[SLY2_OFFSETOF(SW, cpo) == 0x3EB8 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_ppoHero[SLY2_OFFSETOF(SW, ppoHero) == 0x3EFC ? 1 : -1];   /* current player, CONFIRMED runtime */
+typedef char assert_SW_ppoOverride[SLY2_OFFSETOF(SW, ppoOverride) == 0x3F00 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_cClue[SLY2_OFFSETOF(SW, cClue) == 0x4764 ? 1 : -1];   /* CONFIRMED runtime */
 
 #endif /* SLY2_SW_H */
