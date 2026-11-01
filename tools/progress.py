@@ -57,15 +57,31 @@ def main():
     funcs = M.load_functions()
     real = real_functions(funcs)
     total_f = len(real); total_i = sum(s // 4 for n, s in real.values())
+    # Cache is keyed by repo-relative path so results from different environments merge (e.g. on Apple Silicon:
+    # wibo-compiled files natively on macOS + Linux-only SDK compilers in Docker, sharing one checkout).
+    # A file whose build FAILED is retried on every run; a failed build never overwrites a good result for the
+    # same file version (mtime).
     cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
+    cache = {k: v for k, v in cache.items() if not os.path.isabs(k)}   # drop old absolute-path entries
     srcs = sorted(glob.glob(os.path.join(M.ROOT, 'src', '**', '*.cpp'), recursive=True) +
                   glob.glob(os.path.join(M.ROOT, 'src', '**', '*.c'), recursive=True))
-    todo = [s for s in srcs if cache.get(s, {}).get('mtime') != os.path.getmtime(s)]
+    rel = lambda p: os.path.relpath(p, M.ROOT).replace(os.sep, '/')
+    def fresh(s):
+        e = cache.get(rel(s))
+        return e is not None and e['mtime'] == os.path.getmtime(s) and e['res'] is not None
+    todo = [s for s in srcs if not fresh(s)]
+    import time
+    t0 = time.time(); every = max(1, len(todo) // 100)
+    print(f'compiling {len(todo)} of {len(srcs)} sources (others cached), JOBS={os.environ.get("JOBS", "2")}', flush=True)
     with ThreadPoolExecutor(int(os.environ.get('JOBS', '2'))) as ex:
-        for src, res in ex.map(one, todo):
-            cache[src] = {'mtime': os.path.getmtime(src), 'res': res}
+        for i, (src, res) in enumerate(ex.map(one, todo), 1):
+            cache[rel(src)] = {'mtime': os.path.getmtime(src), 'res': res}
+            if i % every == 0 or i == len(todo):   # progress + ETA (one line per ~1%)
+                dt = time.time() - t0; rate = i / dt
+                print(f'  {i}/{len(todo)}  {rate:.1f} files/s  elapsed {dt/60:.1f} min  ETA {(len(todo)-i)/rate/60:.1f} min', flush=True)
+    live = {rel(s) for s in srcs}
     for k in list(cache):
-        if k not in srcs: del cache[k]
+        if k not in live: del cache[k]
     json.dump(cache, open(CACHE, 'w'))
     rows = []; broken = []
     prev = {}   # previous results per source: a source this machine cannot build (e.g. SDK files needing Linux-only compilers) keeps them
@@ -75,7 +91,7 @@ def main():
     except OSError:
         pass
     for src in srcs:
-        res = cache[src]['res']
+        res = cache[rel(src)]['res']
         if res is None:
             broken.append(src)
             rows.extend(prev.get(os.path.relpath(src, M.ROOT).replace(os.sep, '/'), []))
@@ -92,13 +108,21 @@ def main():
     mf = len(seen); mi = sum(r[2] for r in seen.values())
     print(f'matched functions: {mf}/{total_f} ({mf/total_f:.2%})   instructions: {mi}/{total_i} ({mi/total_i:.2%})')
     print(f'  hand-written (src/P2 etc): {sum(1 for r in seen.values() if "/auto/" not in r[4])}, auto/fixed m2c (src/auto): {sum(1 for r in seen.values() if "/auto/" in r[4])}')
-    for b in broken: print('  BUILD FAILED (previous results kept):', os.path.relpath(b, M.ROOT))
+    for b in broken[:20]: print('  BUILD FAILED (previous results kept, NOT verified):', rel(b))
+    if len(broken) > 20: print(f'  ... and {len(broken) - 20} more')
+    if broken:
+        nf = sum(len(prev.get(rel(b), [])) for b in broken)
+        print(f'WARNING: {len(broken)} source files did not build in any environment yet; their {nf} function results '
+              f'are carried over from the committed config/matched.csv and were NOT verified. '
+              f'Totals above include them. (On Apple Silicon run both: natively AND `tools/dev.sh progress`.)')
+    rc = 1 if broken else 0
     try:
         import progress_graph
         progress_graph.render(real, {int(a, 16) for a in seen})
         print('  graph: docs/progress.svg updated')
     except Exception as e:
         print('  graph not updated:', e)
+    return rc
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
