@@ -4,6 +4,7 @@
 #ifndef SLY2_SW_H
 #define SLY2_SW_H
 #include "sly2/basic.h"
+#include "sly2/slotheap.h"
 
 /* JTGRABCAND: from src/hand/func_00194688.cpp (8 copies in Lilly ports) */
 struct JTGRABCAND
@@ -19,16 +20,7 @@ struct JTGRABCAND
       qword qwPos;
 };
 
-/* SLOTHEAP: from src/hand/func_00194A40.cpp (9 copies in Lilly ports) */
-struct SLOTHEAP
-{
-      int cb;
-      int c;
-      int cbAlign;
-      SLOT *pslotFree;
-      int cAlloc;
-      byte *ab;
-};
+/* SLOTHEAP: moved to sly2/slotheap.h (same layout; CONFIRMED by match of the slotheap TU) */
 
 /* FILEREC: from src/hand/func_00194A40.cpp (8 copies in Lilly ports) */
 struct FILEREC

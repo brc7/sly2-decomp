@@ -11,14 +11,14 @@ SLOTHEAP *InitSlotheap(SLOTHEAP *pslotheap, int cb, int c, int cbAlign)
     pslotheap->cb = cb;
     pslotheap->c = c;
     pslotheap->cbAlign = cbAlign;
-    pslotheap->pvFree = 0;
+    pslotheap->pslotFree = 0;
     return pslotheap;
 }
 
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap)
 {
-    void *pv;
-    if (pslotheap->pvFree == 0) {
+    SLOT *pslot;
+    if (pslotheap->pslotFree == 0) {
         // First allocation: carve one block into c slots linked through their first word.
         ALLOCREQ req;
         char *ab;
@@ -27,31 +27,32 @@ void *PvAllocSlotheapClear(SLOTHEAP *pslotheap)
         req.cbAlign = pslotheap->cbAlign;
         ab = (char *)PvAllocSwImpl(&req);
         for (i = 1; i < pslotheap->c; i++) {
-            *(void **)(ab + (i - 1) * pslotheap->cb) = ab + i * pslotheap->cb;
+                ((SLOT *)(ab + (i - 1) * pslotheap->cb))->pslotNext = (SLOT *)(ab + i * pslotheap->cb);
         }
-        *(void **)(ab + (i - 1) * pslotheap->cb) = 0;
-        pslotheap->pvFree = ab;
-        pslotheap->pvBlock = ab;
+        ((SLOT *)(ab + (i - 1) * pslotheap->cb))->pslotNext = 0;
+        pslotheap->pslotFree = (SLOT *)ab;
+        pslotheap->ab = (byte *)ab;
     }
-    pv = pslotheap->pvFree;
-    pslotheap->pvFree = *(void **)pv;
-    func_002333B4(pv, 0, pslotheap->cb);
+    pslot = pslotheap->pslotFree;
+    pslotheap->pslotFree = pslot->pslotNext;
+    func_002333B4(pslot, 0, pslotheap->cb);
     pslotheap->cAlloc++;
-    return pv;
+    return pslot;
 }
 
 void FreeSlotheapPv(SLOTHEAP *pslotheap, void *pv)
 {
     pslotheap->cAlloc--;
-    *(void **)pv = pslotheap->pvFree;
-    pslotheap->pvFree = pv;
+    SLOT *pslot = (SLOT *)pv;
+    pslot->pslotNext = pslotheap->pslotFree;
+    pslotheap->pslotFree = pslot;
 }
 
 void ResetSlotheap(SLOTHEAP *pslotheap)
 {
-    pslotheap->pvBlock = 0;
+    pslotheap->ab = 0;
     pslotheap->cAlloc = 0;
-    pslotheap->pvFree = 0;
+    pslotheap->pslotFree = 0;
 }
 
 // Allocate and immediately free one slot so the block exists before gameplay.

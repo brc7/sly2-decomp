@@ -1,7 +1,10 @@
 /* include/sly2/slotheap.h -- fixed-size slot allocator (TU slotheap, 0x11CCA8..0x11CF60). */
 #ifndef SLY2_SLOTHEAP_H
 #define SLY2_SLOTHEAP_H
+#include "sly2/basic.h"
 #include "dmas.h"          /* ALLOCREQ */
+
+struct SLOT { SLOT *pslotNext; };
 
 /* Layout CONFIRMED by match of every slotheap function (offsets 0x0..0x14). */
 struct SLOTHEAP
@@ -9,9 +12,9 @@ struct SLOTHEAP
     int cb;                /* 0x00 slot size */
     int c;                 /* 0x04 slots per block */
     int cbAlign;           /* 0x08 block alignment (passed to the world allocator) */
-    void *pvFree;          /* 0x0C free list (first word of a free slot links to the next) */
+    SLOT *pslotFree;       /* 0x0C free list */
     int cAlloc;            /* 0x10 live slots */
-    void *pvBlock;         /* 0x14 the block carved into slots */
+    byte *ab;              /* 0x14 the block carved into slots */
 };
 
 SLOTHEAP *InitSlotheap(SLOTHEAP *pslotheap, int cb, int c, int cbAlign);
