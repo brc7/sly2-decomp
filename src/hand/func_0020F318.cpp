@@ -4,14 +4,7 @@
 // 0x0020F318 LoadLevelTableFromBrx  (T1038)
 // u32 clevel, u32 (unused); clevel x { file record (0x40 bytes); u8 world; u8 episode; u8 fEntry (the record is also the entry of its world:
 // copied to g_aWorldEntryRecord[world]); u8 n + n u16 level numbers }.
-typedef unsigned char    uint8_t;
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef uint8_t     uchar;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef uchar byte;
-struct SW;
+#include "sly2/sw.h"
 class CBinaryStreamBase
 {
 public:
@@ -47,10 +40,6 @@ public:
     ushort U16Read();
     uint U32Read();
     void ReadFileRecord(void *pv);
-};
-struct FILEREC
-{
-      uint aw[16];
 };
 struct SWALLOC
 {

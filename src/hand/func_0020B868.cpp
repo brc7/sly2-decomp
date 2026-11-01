@@ -5,176 +5,11 @@
 // After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlAmrsg), each clip's root movement per second
 // ((position at the end - position at the start) / length), the blend (EnsureAsegBlendDynamic with the two marker arrays). Then every blended channel is told
 // which marker array keeps it in step: XFs with oid 0x10 / 0x12 / 0x14 the second foot's (amrsgc[1]), 0x11 / 0x13 / 0x15 the first's (the default), any other none.
-typedef unsigned char    uint8_t;
-typedef unsigned int     uint32_t;
-typedef unsigned long    uint64_t;
-typedef uint8_t     uchar;
-typedef uint32_t    uint;
-typedef uint64_t    ulong;
-typedef uint    undefined4;
-typedef unsigned long long qword __attribute__((mode(TI)));
-struct CBinaryInputStream;
-enum OID
-{
-};
-struct SO;
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
-struct SL
-{
-    void *head;
-    void *tail;
-    int ibSle;
-};
-struct SLE
-{
-    void *next;
-};
-struct DL
-{
-    void *head;
-    void *tail;
-    int ibDle;
-};
-struct DLE
-{
-    void *next;
-    void *prev;
-};
-template <class T>
-class CRefPtr
-{
-public:
-    T *m_p;
-    CRefPtr() {}
-    CRefPtr(T *p) { Attach(p); }
-    CRefPtr(const CRefPtr &ref)
-    {
-        m_p = ref.m_p;
-        if (m_p)
-        {
-            m_p->m_cref++;
-        }
-    }
-    ~CRefPtr()
-    {
-        if (m_p)
-        {
-            m_p->Release();
-        }
-    }
-    void operator=(T *p);
-    void operator=(const CRefPtr &ref) { *this = ref.m_p; }
-    operator T *() { return m_p; }
-    T *operator->() { return m_p; }
-};
-class CSidebag;
-class CFrame;
-struct BASIC
-{
-      CRefPtr<CFrame> pframe;
-      CRefPtr<CSidebag> psidebag;
-      struct REFNODE *prefnodeFirst;
-};
-class LO;
-struct ALO;
-struct LOROOT
-{
-      LO *plo;
-      DLE dle;
-      DLE dleBusy;
-};
-struct LORUN
-{
-      void *pv;
-      LORUN *plorunNext;
-};
-struct PXR
-{
-      int idProxy;
-      PXR *ppxrParent;
-      int oidProxy;
-      SLE slePxrOid;
-      LO *plo;
-      SLE sleSibling;
-      SL slChild;
-      undefined4 unk_0x24;
-};
-struct LO : public BASIC
-{
-      SO *psoParent;
-      LOROOT *ploroot;
-      OID oid;
-      SLE sleOid;
-      SLE sleCid;
-      DLE dleChild;
-      char cpaloFindSwObjects;
-      uchar grfvis;
-      long nUnk48 : 4;
-               long busyk : 4;
-               ulong fRemoved : 1;
-               ulong fUnk57 : 1;
-               ulong fUnk58 : 1;
-               ulong fUnk59 : 1;
-               ulong fInWorld : 1;
-      float gUnk30;
-      LORUN *plorunFirst;
-      float sBusy;
-      PXR *ppxr;
-      int grfUnk40;
-      undefined4 unk_0x44[3];
-};
-typedef int GRFAPL;
-struct CLQ
-{
-    union
-    {
-        struct
-        {
-            float g0, g1, g2, gUnused;
-        };
-        float ag[4];
-    };
-};
-struct LM
-{
-	float gMin, gMax;
-};
-struct ACT;
-struct XF
-{
-      MATRIX4 mat;
-      MATRIX4 matWorld;
-      float gUnk80;
-      float gUnk84;
-      float *pgUnk88;
-      float *pgUnk8c;
-      ACT *pactFirst;
-      int xfk;
-      short nRole;
-      short nPhase;
-      OID oid;
-      XF *pxfParent;
-      int nStampWorld;
-      XF *pxfRef;
-      short nUnkAc;
-      short nUnkAe;
-      VECTOR4 vUnkB0;
-      qword qwRest;
-      qword qwUnkD0;
-      qword qwRestUnkE0;
-      qword qwUnkF0;
-};
-struct RAW8
-{
-    char ach[8];
-};
+#include "sly2/basic.h"
+#include "sly2/lo.h"
+#include "sly2/so.h"
+#include "sly2/aseg.h"
+#include "sly2/stepplayer.h"
 struct SWALLOC
 {
     int cb;
@@ -215,9 +50,6 @@ struct OVR
       OID oid;
       KEY *pkey;
 };
-enum EAK
-{
-};
 struct EASND
 {
       int sfxid;
@@ -245,107 +77,17 @@ struct EA24
 {
       RAW8 a[3];
 };
-struct EA
-{
-      float tLocal;
-      EAK eak;
-    union
-    {
-          int n8;
-          float g8;
-          OID oid;
-          EASND *pesnd;
-          EA17 *pea17;
-          EA20 *pea20;
-          EA24 *pea24;
-    };
-    union
-    {
-          int nC;
-          float gC;
-    };
-};
-struct ASEGSTART
-{
-      float tLocal;
-      float svtLocal;
-      GRFAPL grfapl;
-};
-struct ASEG : public LO
-{
-      DL dlAsega;
-      int cchn;
-      CHN *achn;
-      int covr;
-      OVR *aovr;
-      int nPriority;
-      int nWorldHold;
-      float tMax;
-      float svtMaster;
-      uint32_t   _pad_263    [ 1 ] ;
-      CLQ clqMasterSuck;
-      LM lmMasterSuck;
-      int ceaStart;
-      EA *aeaStart;
-      int ceaFrame;
-      EA *aeaFrame;
-      int ceaEnd;
-      EA *aeaEnd;
-      ASEGSTART *pasegstart;
-      uint32_t   _pad_273    [ 3 ] ;
-};
-struct MRSG
-{
-    float t;
-    float dt;
-};
 struct MRSGC
 {
       int ib;
       int cmrsg;
       MRSG *amrsg;
 };
-struct ASEGBL : public ASEG
-{
-      int cbBl;
-      int cbl;
-      void *abl;
-      int cmrsgc;
-      MRSGC *amrsgc;
-      int iblSolo;
-      ASEG *pasegEvents;
-      uint32_t   _pad_333    [ 1 ] ;
-};
 void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf);
 CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped);
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
 void ReblendAsegbl(ASEGBL *pasegbl);
-struct STEPPLAYER;
-struct BL
-{
-      float gWeight;
-      ASEG *paseg;
-};
-struct BLGAIT : public BL
-{
-      char abUnk08[8];
-      qword vRoot;
-      MRSG amrsgFoot0[2];
-      MRSG amrsgFoot1[2];
-};
-struct GAIT
-{
-      STEPPLAYER *pstepplayer;
-      ASEGBL *pasegbl;
-      char abUnk08[8];
-      BLGAIT abl[2];
-      int sfxidStep;
-      float gVolWalk;
-      float gVolRun;
-      int afFootDown[2];
-      char abUnkA4[0xc];
-};
 struct VKBLEND : public VECKEY
 {
       ASEGBL *pasegbl;

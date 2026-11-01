@@ -46,26 +46,9 @@
 // s0 / wrong schedule), fused qmfc2+mtc1 asm.
 // Gotos: the early PRUNE exits and the "contact array full" exits jump past whole phases, and the two duplicate scans branch straight to the next
 // iteration of the outer loop (loop/flag/inline-function spellings all gave a peeled loop or a leftover flag test, see re/notes/camera-updatecm.md).
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef unsigned long    uint64_t;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef uint64_t    ulong;
-typedef unsigned long long qword __attribute__((mode(TI)));
-struct SO;
-struct VECTOR
-{
-    float x, y, z;
-};
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
+#include "sly2/basic.h"
+#include "sly2/xfm.h"
+#include "sly2/so.h"
 struct VU_VECTOR4
 {
     qword qw;
@@ -86,35 +69,11 @@ struct SURF
     uint grf;
     int ipos;
 };
-struct GEOM
-{
-      int cpos;
-      VECTOR *apos;
-      int csurf;
-      SURF *asurf;
-      int cedge;
-      EDGE *aedge;
-};
-enum LSGK
-{
-};
-enum PRUNE
-{
-    PRUNE_Neg = 0,
-    PRUNE_Pos = 1,
-};
 struct BSP
 {
     BSP *pbspNeg;
     BSP *pbspPos;
     SURF *psurf;
-};
-struct BSPC
-{
-      int cbsp;
-      int cbspFull;
-      int nUnk08;
-      BSP *absp;
 };
 struct LSG
 {
@@ -136,45 +95,6 @@ struct CMCONTACT
       qword plane;
       int kind;
       void *pv;
-};
-enum OID
-{
-};
-struct DLE
-{
-    void *next;
-    void *prev;
-};
-struct XF;
-struct SURFX;
-struct LVO
-{
-    VECTOR *mpiposvLocal;
-    VECTOR *mpiposdvLocal;
-    SURFX *mpisurfsurfx;
-};
-struct SOPART
-{
-      XF *pxf;
-      SO *pso;
-      float gUnk08;
-      OID oid;
-      LVO *plvo;
-      short dhp;
-      ulong fUnk48 : 1;
-               ulong fUnk49 : 1;
-               ulong fHidden : 1;
-               ulong fUnk51 : 1;
-               ulong unk_0x16 : 12;
-      uint grfzpk;
-      int nUnk1c;
-      MATRIX4 matWorld;
-      DLE dle;
-      BSPC bspc;
-      GEOM geomLocal;
-      GEOM geomWorld;
-      int nStampGeom;
-      int nStampWorld;
 };
 struct SWALLOC
 {

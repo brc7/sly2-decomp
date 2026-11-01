@@ -12,44 +12,13 @@
 // `(pobj->*ppvrec->pmfGetM)()`. A cast `(MATRIX3 *(BASIC::*)())ppvrec->pmfGet` gives the same code except two instruction pairs in the arms whose
 // delay slot gets a hoisted load (99.2%); (2) `CRef ref;` is a plain store of -1 in the tag (ref.h: CRef() no longer calls SetTag; spaprops.c builds its empty CRef with
 // CRef((TAGK)0x24)); (3) `CMethod *pmethodNew = PmethodNew(); pmethod.Attach(pmethodNew);` as two statements; (4) the matrix `MATRIX4 *pmat = ref.m_tag.m_pmatrix;` once.
-typedef unsigned char    uint8_t;
-typedef unsigned int     uint32_t;
-typedef uint8_t     uchar;
-typedef uint32_t    uint;
-typedef unsigned long long qword __attribute__((mode(TI)));
-typedef uchar byte;
-template <class T>
-class CGcObj
-{
-public:
-      int m_cref;
-      uint m_grfGc;
-    void Unlink();
-    ~CGcObj() { Unlink(); }
-    void Release()
-    {
-        if (--m_cref == 0)
-        {
-            delete (T *)this;
-        }
-    }
-};
+#include "sly2/basic.h"
+#include "sly2/sw.h"
 struct SLOT
 {
       SLOT *pslotNext;
 };
-struct SLOTHEAP
-{
-      int cb;
-      int c;
-      int cbAlign;
-      SLOT *pslotFree;
-      int cAlloc;
-      byte *ab;
-};
 void FreeSlotheapPv(SLOTHEAP *pslotheap, void *pv);
-struct BASIC;
-class CRef;
 extern SLOTHEAP D_00452170;
 class CMethod : public CGcObj<CMethod>
 {
@@ -60,62 +29,6 @@ public:
     void operator delete(void *pv) { FreeSlotheapPv(&D_00452170, pv); }
 };
 CMethod* PmethodNew();
-enum BIFK
-{
-};
-template <class T>
-class CRefPtr
-{
-public:
-    T *m_p;
-    CRefPtr() {}
-    void Attach(T *p);
-    CRefPtr(T *p) { Attach(p); }
-    CRefPtr(const CRefPtr &ref)
-    {
-        m_p = ref.m_p;
-        if (m_p)
-        {
-            m_p->m_cref++;
-        }
-    }
-    ~CRefPtr()
-    {
-        if (m_p)
-        {
-            m_p->Release();
-        }
-    }
-    void operator=(T *p);
-    void operator=(const CRefPtr &ref) { *this = ref.m_p; }
-    operator T *() { return m_p; }
-    T *operator->() { return m_p; }
-};
-struct CLQ;
-struct LM;
-struct VECTOR
-{
-    float x, y, z;
-};
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
-struct MATRIX3
-{
-	float mat[3][4];
-} __attribute__((aligned(16)));
-struct SMP;
-class CPair;
-class CProc;
-enum TAGK
-{
-    TAGK_Nil = -1,
-};
 union TAG
 {
     int m_n;
@@ -160,12 +73,7 @@ public:
     CRef *SetBasic(BASIC *pbasic);
     void SetMethod(CMethod *pmethod);
 };
-typedef int GRFEOPID;
-enum OTYP
-{
-};
 typedef void (BASIC::*PMF)();
-typedef CRef (*PFNTHUNK)(BASIC *, int, CRef *);
 union SETTER
 {
     int ibSet;

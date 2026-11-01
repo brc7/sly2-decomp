@@ -4,15 +4,7 @@
 // 0x0017D608 FSnapPosToSurfaceAbove__FPUx  (our name; was FUN_0017D608)
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
 // hit piece and 1 is returned. BHV191::Start (0x17E9B0) tries it when GuardSpawnerGroundSnap finds no floor under the target.
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef unsigned long long qword __attribute__((mode(TI)));
-struct VECTOR
-{
-    float x, y, z;
-};
+#include "sly2/basic.h"
 struct EDGE
 {
     ushort aipos[2];
@@ -29,9 +21,6 @@ struct SURF
     uint grf;
     int ipos;
 };
-enum LSGK
-{
-};
 struct LSG
 {
       qword apos[2];
@@ -43,7 +32,6 @@ struct LSG
       int iiposSwap;
       LSG *plsgNext;
 };
-struct SOPART;
 struct STACKSCOPE
 {
     STACKSCOPE();

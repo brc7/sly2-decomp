@@ -27,85 +27,10 @@
 // 91.1% -> 97.7%); the setters of non-int types are CASTS of the int setter (`(void (BASIC::*)(float))pmfSet`: gcc's cast of a pointer to member function is
 // the idx > 0 ? ... : ... conditional that gives the bgtz in the game); the record arms are switches (jump tables 0x2A4C50 / 0x2A4CB0 / 0x2A4BF0).
 // See re/notes/decomp-compiler-quirks.md sections 31, 37 and 41 for everything tried.
-typedef unsigned char    uint8_t;
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef uint8_t     uchar;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef unsigned long long qword __attribute__((mode(TI)));
-typedef uchar byte;
-struct LO;
-struct RGBA
-{
-    uchar bRed;
-    uchar bGreen;
-    uchar bBlue;
-    uchar bAlpha;
-    inline void operator=(const int rgba)
-    {
-        bRed = (rgba >> 24) & 0xFF;
-        bGreen = (rgba >> 16) & 0xFF;
-        bBlue = (rgba >> 8) & 0xFF;
-        bAlpha = rgba & 0xFF;
-    }
-};
-struct VECTOR
-{
-    float x, y, z;
-};
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
-struct MATRIX3
-{
-	float mat[3][4];
-} __attribute__((aligned(16)));
+#include "sly2/basic.h"
+#include "sly2/lo.h"
 MATRIX3 LoadRotateMatrix(qword vec);
-enum OID
-{
-};
-struct BASIC;
-struct LORUN
-{
-      void (*pfn)(LO *plo, void *pv);
-      void *pv;
-      LORUN *plorunNext;
-};
 LORUN *AddLoRunListEntry(LO *plo);
-struct SMP
-{
-    float svFast;
-    float svSlow;
-    float dtFast;
-};
-struct SMPA
-{
-    float svFast;
-    float svSlow;
-    float dtFast;
-    float sdvMax;
-};
-struct CLQ
-{
-    union
-    {
-        struct
-        {
-            float g0, g1, g2, gUnused;
-        };
-        float ag[4];
-    };
-};
-struct LM
-{
-	float gMin, gMax;
-};
 class CBinaryStreamBase
 {
 public:
@@ -145,16 +70,8 @@ public:
     int S32Read();
     float F32Read();
 };
-struct SW;
-class CPair;
 extern SW D_003DD490;
-typedef int GRFEOPID;
-enum OTYP
-{
-};
-class CRef;
 typedef void (BASIC::*PMF)();
-typedef CRef (*PFNTHUNK)(BASIC *, int, CRef *);
 union SETTER
 {
     int ibSet;
@@ -193,15 +110,6 @@ struct STACKSCOPE
 {
     STACKSCOPE();
     ~STACKSCOPE();
-};
-enum BIFK
-{
-};
-class CProc;
-class CMethod;
-enum TAGK
-{
-    TAGK_Nil = -1,
 };
 union TAG
 {
