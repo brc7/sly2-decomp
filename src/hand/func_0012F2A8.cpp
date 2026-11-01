@@ -19,6 +19,15 @@ void func_0012F590(X *px, BIS *pbis, int n, int *pa, int *pb);
 void func_0013F810(X *px, BIS *pbis);
 void func_0012F2A8(X *px, BIS *pbis);
 }
+/** @sly2-annot addr=0x12F2A8
+ * Purpose: Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590)
+ * Info: proposed name LoadAsegFromBrx (T1); class ASEG slot14; TU aseg
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+parse-verified
+ * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
+ *   docs/engine/animation.md#7-key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
+ * @end-sly2-annot */
 void func_0012F2A8(X *px, BIS *pbis) { int i; AREQ req;
  px->g74 = func_00117E38(pbis);
  px->c = func_00117D50(pbis);

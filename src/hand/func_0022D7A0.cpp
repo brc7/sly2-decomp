@@ -45,6 +45,15 @@ static inline RESOURCE *Lookup(S *p,int id){VE *ve=&p->vt[51];return ve->get((ch
 static inline int ToInt(float f){return (int)f;}
 static inline void Identity(M4 *m){func_002333B4(m,0,sizeof(*m));m->r[3].f[3]=1.0f;m->r[2].f[2]=1.0f;m->r[1].f[1]=1.0f;m->r[0].f[0]=1.0f;}
 static inline void ClearFlag(S *p){int f=p->flags;if((f^1)&1)*(int *)f&=~0x20;else p->flags=f&~0x20;}
+/** @sly2-annot addr=0x22D7A0
+ * Purpose: reads XF records and optional animation jobs (incl. chains 0x21C888)
+ * Info: proposed name LoadSoXfsFromBrx (T1); TU xf
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88+parse-verified
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 extern "C" void func_0022D7A0(S *p,void *stream){
  int i=0;
  p->count=func_00117D50(stream);

@@ -5,6 +5,12 @@ extern char D_003DD490[];
 void func_001D6310(struct S *p);
 void func_001D6378(struct S *p);
 void func_00147E88(void *g, int b);
+/** @sly2-annot addr=0x22FA20
+ * Purpose: if grf bit60: kind-specific refresh (0x1D6310/0x1D6378/0x147E88)
+ * Info: proposed name PostSoSlotsUpdate (T2); TU xf
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 void func_0022FA20(struct S *p)
 {
     if (!!((p->f >> 60) & 1)) {

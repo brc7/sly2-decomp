@@ -12,6 +12,13 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E126C;
 extern M2C_UNK D_003E1278;
 
+/** @sly2-annot addr=0x1F0FA0
+ * Purpose: pasegaCur=0; ismsCur=ismsNext; ismsNext=-1; NotifySmaSpliceOnEnterState(old, new)
+ * Info: proposed name EndSmaTransition (T1); TU sm
+ * Notes: names_v2 v1 proposed FUN_001b6df8 (0.000)
+ * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
+ * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 void func_001F0FA0(s32 arg0) {
     s32 temp_a1;
     s32 temp_a3;

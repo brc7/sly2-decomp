@@ -38,6 +38,15 @@ void func_001F81E0(void *, int);
 int func_00132B10(void *, int);
 void func_00143090(void *, void *, void *, void *);
 }
+/** @sly2-annot addr=0x131290
+ * Purpose: Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs,
+ *   Splice, emitters...)
+ * Info: proposed name HandleAsegaEvent (T1); TU asega
+ * Notes: names_v2 B proposed UpdateAsega__FP5ASEGAf (0.964)
+ * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
+ * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
+ *   docs/engine/animation.md#7-key-functions, docs/engine/animation.md#open-questions
+ * @end-sly2-annot */
 extern "C" void func_00131290(struct P *p, struct EV *pev)
 {
     G g(p);

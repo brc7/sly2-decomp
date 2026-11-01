@@ -18,6 +18,14 @@ void func_0012CE70(struct L2 *);
 void func_00258040(void *, int);
 void func_00133508(struct P *, int, struct P *);
 static __inline__ void End(struct G *pg) { struct P *po = pg->p; ((void (*)(void *))po->vt[2].pfn)((char *)po + po->vt[2].d); }
+/** @sly2-annot addr=0x130B18
+ * Purpose: Stops an application: unlink, hands-off release, notify, Decref
+ * Info: proposed name RetractAsega (T1); TU asega
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
+ *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void func_00130B18(struct P *p)
 {
     if (func_00131968(p))

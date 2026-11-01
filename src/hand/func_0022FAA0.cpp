@@ -5,6 +5,14 @@ struct X {M4 local,world;char pad80[0x20];X *parent;int priority;char pada8[0x58
 struct S {char pad[0x50];int count;X *array;};
 extern M4 D_002A2D30;
 extern "C" void func_0022FA20(S *);
+/** @sly2-annot addr=0x22FAA0
+ * Purpose: recomputes linked XF world matrices with the VU matrix microprogram
+ * Info: proposed name UpdateSoXfWorldMatrices (T1); TU xf
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01,
+ *   docs/formats/meshes-scene.md#3-transforms-cstatic,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 extern "C" void func_0022FAA0(S *p) {
     if(p->count>0) {
         X *x=p->array,*last=p->array+p->count-1;

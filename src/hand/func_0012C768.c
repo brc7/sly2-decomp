@@ -27,6 +27,12 @@ typedef struct OBJ {
     VQ dpos1;
 } OBJ;
 int func_0012C708(T *t, float g);
+/** @sly2-annot addr=0x12C768
+ * Purpose: Evaluate at t
+ * Info: proposed name EvaluateAcFloatB (T2); class AcFloatB; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012C768(T *t, OBJ *po)
 {
     int i;

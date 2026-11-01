@@ -7,6 +7,12 @@ int func_00132B10(struct O *po, int n);
 void func_0020D1A0(void *p);
 int func_00131968(int h);
 
+/** @sly2-annot addr=0x20C0E8
+ * Purpose: leap state machine 1..3
+ * Info: proposed name UpdateLeap (T1); TU tu_20B840
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 void func_0020C0E8(struct S *p)
 {
     int k;

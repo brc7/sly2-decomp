@@ -8,6 +8,18 @@ static __inline__ qword Make(float x, float y, float z)
 }
 struct S { char pad[0x94]; int k; };
 qword func_0011BFF0(float *m);
+/** @sly2-annot addr=0x22CA18
+ * Purpose: Extract an XF component value from a matrix by component kind (+0x94): translation row
+ *   (1,4,5,9,10), Euler angles (6,7), shear (11), scale diagonal (12); kinds 0/15 nothing
+ * Info: proposed name QwXfValueFromMat (T2); TU xf
+ * Notes: descriptive only: xf: build matrix/vector from kind | no usable identifier; purpose only |
+ *   top50_round (0.50): Body switch on +0x94 with the same kind groups SlotSetRole uses when it captures the
+ *   current value; callers UpdateAct, UpdateActXform, SlotCurrentMatrix, LoadSoXfsFromBrx, QwSlotValue.
+ *   Sibling naming QwSlotValue 0x230CF0
+ * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r8_21BB88+top50_round
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
+ *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 qword func_0022CA18(struct S *p, float *m)
 {
     qword v;

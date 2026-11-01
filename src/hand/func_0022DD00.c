@@ -3,6 +3,12 @@ struct O { char pad[0x18]; struct VTE *vt; };
 struct S { char pad[0x80]; float gMin; float gMax; float *pg; int pad1; struct O *po; int pad2; short k; short state; };
 void func_0022C818(void *pa, struct S *p);
 void func_002303A0(void *pa, struct S *p, int state);
+/** @sly2-annot addr=0x22DD00
+ * Purpose: limits/advances a job value against gMin/gMax
+ * Info: proposed name UpdateXfJobRange (T2); TU xf
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 void func_0022DD00(void *pa, struct S *p)
 {
     float g = *p->pg;

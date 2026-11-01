@@ -31,6 +31,17 @@ static __inline__ qword Madd(qword a, qword v, qword s)
     return r;
 }
 
+/** @sly2-annot addr=0x138970
+ * Purpose: Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's
+ *   position/rotation at time t (MRSG-mapped)
+ * Info: proposed name EvaluateBlendChnPosVel (T1); TU blend
+ * Notes: superseded: EvaluateBlendChnPosRot (verdicts_followups) | verifier better_name (PLAUSIBLE row): Slot
+ *   in a non-CID AC vtable (0x2CB5C4; neighbours GetAcConstTimes, EvaluateBlendChnPose/Scalar). Weighted sum
+ *   over bl entries of child AC vt3(t', rate') outputs
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest+verdicts_followups
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
+ * @end-sly2-annot */
 void func_00138970(struct P *p, qword *ppos, qword *prot, float t, float rate)
 {
     float u;

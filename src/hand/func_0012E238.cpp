@@ -20,6 +20,12 @@ struct C7 : CBase { int b[1]; C7() { k = 7; } virtual void F(); };
 struct C8 : CBase { int b[9]; C8() { k = 8; } virtual void F(); };
 struct C9 : CBase { int b[5]; C9() { k = 9; a5 = 0x14; } virtual void F(); };
 extern "C" CBase *func_0012E238(int k);
+/** @sly2-annot addr=0x12E238
+ * Purpose: Initialises an act record by kind
+ * Info: proposed name InitActKind (T2); TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 CBase *func_0012E238(int k)
 {
     CBase *p;

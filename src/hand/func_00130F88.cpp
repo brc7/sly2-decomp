@@ -16,6 +16,12 @@ static inline int FEq(float a, float b) { return a == b; }
 static inline int FB(float a, float b, float d) { return a < b || (b == a && 0.0f < d); }
 static inline int FB2(float b, float a, float d) { return a < b || (b == a && 0.0f < d); }
 static inline int FC(float a, float b, float d) { return a < b || (a == b && d < 0.0f); }
+/** @sly2-annot addr=0x130F88
+ * Purpose: Dispatches events crossed during the frame (calls HandleAsegaEvent)
+ * Info: proposed name HandleAsegaEvents (T1); TU asega
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 extern "C" void func_00130F88(struct P *p)
 {
     if (p->pq->c) {

@@ -17,6 +17,12 @@ static __inline__ int FVecsNear(qword a, qword b)
     return func_0011D4D0(GetX(a), GetX(b), 1e-4f) && func_0011D4D0(GetY(a), GetY(b), 1e-4f) &&
            func_0011D4D0(GetZ(a), GetZ(b), 1e-4f);
 }
+/** @sly2-annot addr=0x12DA30
+ * Purpose: Stores a rotation goal and pushes it to the ALO (0x230598)
+ * Info: proposed name SetActRotationGoal (T2); TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012DA30(struct P *p, qword v)
 {
     qword dv;

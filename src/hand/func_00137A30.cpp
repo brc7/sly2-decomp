@@ -37,6 +37,13 @@ void func_001384C0(X *px);
 void func_00137A30(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, X **ppx);
 }
 #define PELEM(i) ((ELEM *)((char *)aelem + (i) * cb))
+/** @sly2-annot addr=0x137A30
+ * Purpose: Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables
+ * Info: proposed name EnsureAsegBlendDynamic (T1); TU blend
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r2b_rest+verdicts_A1
+ * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
+ *   docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions
+ * @end-sly2-annot */
 void func_00137A30(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, X **ppx)
 {
     ELEM *pe;

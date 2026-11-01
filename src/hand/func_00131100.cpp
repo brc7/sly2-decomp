@@ -8,6 +8,13 @@ extern "C" {
 void func_00131290(struct P *p, struct E *pe);
 int func_00131968(struct P *p);
 }
+/** @sly2-annot addr=0x131100
+ * Purpose: Fast-forward event dispatch used when applying at t>0
+ * Info: proposed name HandleAsegaEventsFF (T1); TU asega
+ * Notes: names_v2 v1 proposed HandleAsegaEvents__FP5ASEGAP4ASEGPi (0.000)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 extern "C" void func_00131100(struct P *p)
 {
     if (p->pq->c) {

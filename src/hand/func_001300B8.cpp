@@ -27,6 +27,14 @@ static inline M4 AddM4(const M4 &a, const M4 &b) return m
         m.a[i] = q;
     }
 }
+/** @sly2-annot addr=0x1300B8
+ * Purpose: Predicts the transform an ASEG applies to an ALO at time t (matrix math on channels)
+ * Info: proposed name PredictAsegEffect (T1); TU aseg
+ * Notes: names_v2 C proposed ApplyAsegOvr__FP4ASEGP3ALOiP3OVRffiPP5ASEGA (0.638)
+ * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
+ *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
+ * @end-sly2-annot */
 void func_001300B8(X *px, void *p, Y *pyFirst, Y *pyLast, float f, float g, M4 *pm1, M4 *pm2)
 {
     M4 mA;

@@ -155,6 +155,14 @@ extern M2C_UNK D_00452120;
 extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
+/** @sly2-annot addr=0x21C820
+ * Purpose: clone of an XF actuator hook: base copy 0x12CF88 then copies owner field 0xA8 -> +0x1C
+ * Info: proposed name CloneChainAct (T2); TU tail
+ * Notes: agent qualifier: hook vt slot6
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
+ *   docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files
+ * @end-sly2-annot */
 s32 func_0021C820(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 temp_v0;
 

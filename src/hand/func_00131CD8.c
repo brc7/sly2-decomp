@@ -4,6 +4,12 @@ struct C { struct VTE *vt; };
 struct S { int f0; int f4; struct X *px; int pad[4]; struct C *pc; int f20; int f24; };
 void func_002303A0(int, struct X *, int);
 void func_0022C818(int, struct X *);
+/** @sly2-annot addr=0x131CD8
+ * Purpose: Applies channel to target (+0x88) and kicks state
+ * Info: proposed name AsegaChnApply (T2); TU asega
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 void func_00131CD8(struct S *p) {
     if (p->pc) {
         struct C *pc;

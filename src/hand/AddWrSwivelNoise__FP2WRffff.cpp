@@ -4,6 +4,11 @@ enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 struct WRE { char pad[0x80]; char onz[1]; };
 WRE *PwreGetWrBend(WR *pwr, ENSK ensk);
 void AddOnzOnze(ONZ *ponz, float uAmpl, float gFreq, float gPhase, float uRandom);
+/** @sly2-annot addr=0x22C658
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
+ * @end-sly2-annot */
 void AddWrSwivelNoise(WR *pwr, float uAmpl, float gFreq, float gPhase, float uRandom)
 {
     WRE *pwre = PwreGetWrBend(pwr, ENSK_Set);

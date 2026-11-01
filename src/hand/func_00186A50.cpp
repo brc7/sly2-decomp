@@ -23,6 +23,16 @@ extern "C" float func_0011E4B0(qword,qword,qword*);
 extern "C" qword func_0022FCC8(void*,void*,qword);
 static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__("$4")=q->current;register qword odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
 
+/** @sly2-annot addr=0x186A50
+ * Purpose: Two-bone IK solve: law-of-cosines elbow angle (acosf, clamp [-1,1]), rotate bones
+ *   (LoadRotateMatrixRad), write XFs
+ * Info: proposed name SolveIk (T1); TU ik
+ * Notes: names_v2 C proposed UpdateLgnActive__FP3LGNP3JOYf (0.167)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
+ *   docs/engine/animation.md#devtools-findings-v3-2026-11-01,
+ *   docs/reference/functions/animation.md#ik-0x186610-0x187030
+ * @end-sly2-annot */
 extern "C" void func_00186A50(void*context,REQUEST*request){
  register REQUEST*q __asm__("$17")=request;
  WORK w;

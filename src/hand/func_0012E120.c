@@ -28,6 +28,12 @@ static __inline__ qword Normalize1(qword *pv, qword *pdef)
     }
     return l;
 }
+/** @sly2-annot addr=0x12E120
+ * Purpose: vtable 0x2CA6A0 slot 1 (calls ACT::Retract)
+ * Info: proposed name ActUnk_2CA6A0_1 (T2); TU act
+ * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012E120(X *x)
 {
     qword l;

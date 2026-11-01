@@ -18,6 +18,14 @@ extern "C" {
 O *func_0015E938(void *pg, int k, int id, void *p);
 void func_0012FE58(void *a, void *b, KEYID *pk, O **ppo, int *pn);
 }
+/** @sly2-annot addr=0x12FE58
+ * Purpose: Resolves a channel key: PloFindSwObject(oid) under the root (or world), then the object's
+ *   sub-target via its virtual Get
+ * Info: proposed name ResolveAsegKeyObject (T2); TU aseg
+ * Notes: names_v2 B proposed PostAsegLoad__FP4ASEG (0.856)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r1_116918
+ * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
+ * @end-sly2-annot */
 void func_0012FE58(void *a, void *b, KEYID *pk, O **ppo, int *pn)
 {
     if (b)

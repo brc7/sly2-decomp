@@ -16,6 +16,12 @@ typedef struct T {
     VECTOR v3;      /* 0xF0 */
 } T;
 static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
+/** @sly2-annot addr=0x12B520
+ * Purpose: Returns the constant value
+ * Info: proposed name EvaluateAcConst (T2); class AcConst; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012B520(S *s, T *t)
 {
     t->s = 2;

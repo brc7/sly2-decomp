@@ -12,6 +12,13 @@ void func_001FB3F0(void *p, qword q);
 void func_001FB4F0(void *p, float a, float b);
 void func_001FB1F8(void *p, float t);
 
+/** @sly2-annot addr=0x20BC08
+ * Purpose: footstep sfx when a foot goes down; volume lerp walk/run; range 500/2000
+ * Info: proposed name UpdateGaitFootsteps (T1); TU tu_20B840
+ * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
+ *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 void func_0020BC08(struct S *p)
 {
     struct X *x = p->py->px;

@@ -5,6 +5,14 @@ struct S { char pad[0x50]; struct A *paFirst; char pad2[0xd4 - 0x54]; int fd4; }
 extern const float D_002A4AF0;
 extern char D_002C44E0[];
 int func_0012CEE0(struct C *);
+/** @sly2-annot addr=0x1383F0
+ * Purpose: When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping
+ *   of every live ACT on the blended aseg channels
+ * Info: proposed name SetAsegblDominantBl (T1); TU blend
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
+ * @end-sly2-annot */
 void func_001383F0(struct S *p, int n) {
     struct A *pa;
     struct C *pc;

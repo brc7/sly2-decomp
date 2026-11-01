@@ -11,6 +11,14 @@ struct C3 : CBase { int a[11]; virtual void F(); };
 struct C4 : CBase { int a[11]; virtual void F(); };
 struct C5 : CBase { int a[7]; virtual void F(); };
 extern "C" CBase *func_0012B3B0(int k);
+/** @sly2-annot addr=0x12B3B0
+ * Purpose: Factory: new animation-curve object of kind 0..5 (six C++ curve classes)
+ * Info: proposed name PacNewKind (T1); TU act
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
+ * See: docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions,
+ *   docs/engine/animation.md#open-questions
+ * @end-sly2-annot */
 CBase *func_0012B3B0(int k)
 {
     switch (k) {

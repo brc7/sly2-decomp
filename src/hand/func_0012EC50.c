@@ -7,6 +7,14 @@ void func_001A5C48(T *t);
 void **func_001AE2A0(AREQ *preq);
 void *func_001FE990(G *pg, int id);
 void func_001FC408(float g, void *p, void *q, T *t, float *pv);
+/** @sly2-annot addr=0x12EC50
+ * Purpose: slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind
+ *   (0x1FE990)
+ * Info: proposed name PostCid43Load (T2); class CID43 slot15; TU amb
+ * Notes: names_v2 C proposed ConvertAloMat__FP3ALOT0P7MATRIX3T2 (0.438)
+ * Confidence: low (draft) [T2 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
+ * @end-sly2-annot */
 void func_0012EC50(T *t)
 {
     AREQ req;

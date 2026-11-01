@@ -267,6 +267,13 @@ static inline float GFromVu(VU_FLOAT g)
     return gResult;
 }
 
+/** @sly2-annot addr=0x22B7D8
+ * Purpose: per WRBG vertex weights + state vectors
+ * Info: proposed name UpdateWrStateVectors (T1); TU wr
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
+ *   r8_21BB88+verdicts_A2+names_v2-signature(verified)
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#wr-0x22b720-0x22c818
+ * @end-sly2-annot */
 extern "C" void func_0022B7D8(WR *pwr)
 {
     MATRIX4 dmat;

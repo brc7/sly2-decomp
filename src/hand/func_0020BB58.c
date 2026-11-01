@@ -22,6 +22,13 @@ static inline qword Negate(qword v,U *value) {
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(result) : "j"(v),"j"(value->q));
     return result;
 }
+/** @sly2-annot addr=0x20BB58
+ * Purpose: set walk/run weights, reblend, write root velocity
+ * Info: proposed name UpdateGaitBlend (T1); TU tu_20B840
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
+ * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
+ *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 void func_0020BB58(struct S *p, float g)
 {
     struct T *pt;

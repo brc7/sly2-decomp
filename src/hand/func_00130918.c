@@ -12,6 +12,14 @@ int func_001317D8(struct P *p, float *pt, float *pdt);
 void func_00130B18(struct P *p);
 static __inline__ unsigned int GrfQ(struct Q *pq) { unsigned int x = pq->x40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
 static __inline__ void End(struct G *pg) { struct P *po = pg->p; ((void (*)(void *))po->vt[2].pfn)((char *)po + po->vt[2].d); }
+/** @sly2-annot addr=0x130918
+ * Purpose: Per-frame advance: time wrap (0x1317D8), event dispatch (0x130F88), retract when finished
+ * Info: proposed name UpdateAsega (T1); TU asega
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
+ * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
+ *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
+ *   docs/reference/functions/world-sw.md#update-0x226550-0x226ab8
+ * @end-sly2-annot */
 void func_00130918(struct P *p)
 {
     if (__builtin_fabsf(p->g40) < 1e-4f)

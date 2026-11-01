@@ -12,6 +12,12 @@ extern M2C_UNK D_003DD490;
 extern M2C_UNK D_003E126C;
 extern M2C_UNK D_003E1278;
 
+/** @sly2-annot addr=0x1F0538
+ * Purpose: --cref; at 0: dtor, clear, unlink, free to pool D_003E1278
+ * Info: proposed name DecrefSma (T1); class SMA slot2; TU sm
+ * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
+ * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 void func_001F0538(s32 arg0, s32 arg1) {
     s32 temp_v0;
 

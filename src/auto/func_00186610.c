@@ -41,6 +41,13 @@ extern s32 D_002E0CBC;
 extern s32 D_002E1E40;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x186610
+ * Purpose: ACT subclass override: ACT::Clone-slot base then save owner xA8 into x1C
+ * Info: proposed name ApplyActik (T2); class ACTIK; TU ik
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
+ * See: docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files,
+ *   docs/reference/functions/animation.md#ik-0x186610-0x187030
+ * @end-sly2-annot */
 s32 func_00186610(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     void *temp_v0;
 

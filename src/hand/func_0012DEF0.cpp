@@ -10,4 +10,10 @@ MATRIX4 func_0011C168(const MATRIX4 &a, const MATRIX4 &b);
 qword func_0022CA18(Y *py, MATRIX4 mat);
 void func_0012DEF0(XX *x);
 }
+/** @sly2-annot addr=0x12DEF0
+ * Purpose: Matrix-based act update (InvertMatrix4Rigid, M4*M4)
+ * Info: proposed name UpdateActXform (T2); class ActXform; TU act
+ * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012DEF0(XX *x) { MATRIX4 m; if (x->py->pA0) m = func_0011C168(func_0011C168(func_0011C318(x->py->pA0->mat), x->p1C->mat), x->mat); else m = func_0011C168(x->p1C->mat, x->mat); Y *py = x->py; py->qC0 = func_0022CA18(py, m); x->py->qD0 = D_002A2DD0; x->py->s9A = 3; }

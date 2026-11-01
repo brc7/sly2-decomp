@@ -4,6 +4,12 @@
 struct EA { float t; int pad[3]; };
 struct ASEG { char pad[0xa0]; int cea; EA *aea; };
 struct ASEGA { char pad[0x14]; ASEG *paseg; char pad2[4]; float t; char pad3[0x40 - 0x20]; float svt; char pad4[0x50 - 0x44]; int ieaCur; };
+/** @sly2-annot addr=0x130EB0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Info: proposed name UpdateAsegaIeaCur__FP5ASEGA (EXISTING); TU asega
+ * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
+ * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 void UpdateAsegaIeaCur(ASEGA *pasega)
 {
     ASEG *paseg = pasega->paseg;

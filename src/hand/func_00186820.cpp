@@ -9,6 +9,13 @@ struct N { int k; char pad[0xC]; struct N *next; char pad2[8]; struct S *ps; };
 struct E { char pad[0x90]; struct N *pn; char pad2[0x100 - 0x94]; };
 struct O { char pad[0x50]; int c; struct E *ae; char pad2[0x148 - 0x58]; unsigned long grf; };
 static inline N*Entry(O*owner,int i){register E*entries asm("$2")=owner->ae;register int offset asm("$3")=i*256;entries=(E*)((int)entries+offset);return entries->pn;}
+/** @sly2-annot addr=0x186820
+ * Purpose: For SOs with bit 36, update each IK node's bone lengths/distances
+ * Info: proposed name UpdateSoIkLengths (T2); TU ik
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
+ * See: docs/reference/functions/animation.md#ik-0x186610-0x187030,
+ *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
+ * @end-sly2-annot */
 extern "C" void func_00186820(O*owner){
  if(!(owner->grf&(1UL<<36)))return;
  for(int i=0;i<owner->c;i++)for(N*node=Entry(owner,i);node;node=node->next)if(node->k==7){

@@ -5,6 +5,15 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int func_00117C20(void *pbis);
 void func_00117EB0(void *pbis, VECTOR3 *pv);
 KEY *func_001AE2A0(AREQ *preq);
+/** @sly2-annot addr=0x12BA98
+ * Purpose: Second vector-keyed curve class: load
+ * Info: proposed name LoadAcVecBFromBrx (T1); class AcVecB; TU act
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
+ *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012BA98(T *t, void *pbis)
 {
     int i;

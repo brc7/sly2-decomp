@@ -26,6 +26,12 @@ static __inline__ void Eval(struct O *po, qword *pa, qword *pb, qword *pc)
 }
 static inline qword SelectedValue(qword input){qword value;__asm__("por %0,$zero,%1":"=r"(value):"r"(input));return value;}
 static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value):"0"(&D_002A2DD0),"m"(D_002A2DD0));return value;}
+/** @sly2-annot addr=0x22CDC0
+ * Purpose: evaluates an XF slot matrix incl. jobs/parent
+ * Info: proposed name SlotCurrentMatrix (T2); TU xf
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
+ * @end-sly2-annot */
 extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
 {
     M4 m, m2;

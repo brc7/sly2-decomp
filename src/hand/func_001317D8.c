@@ -12,6 +12,14 @@ static __inline__ void PingPong(struct P *p, float *pt, float *pdt, float tMax, 
         p->g44 = -p->g44;
     }
 }
+/** @sly2-annot addr=0x1317D8
+ * Purpose: Wraps/ping-pongs the ASEGA time at segment end (fmodf, GModPositive)
+ * Info: proposed name FWrapAsegaTime (T1); TU asega
+ * Notes: names_v2 v1 proposed RetractAsega__FP5ASEGA (0.171)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
+ * @end-sly2-annot */
 int func_001317D8(struct P *p, float *pt, float *pdt)
 {
     float tMax = p->pq->tMax;

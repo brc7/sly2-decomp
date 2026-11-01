@@ -4,6 +4,12 @@ typedef struct KEY { float g; float dg; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2; qword v; } T;
 int func_0012C708(T *t, float g);
 void func_00117030(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
+/** @sly2-annot addr=0x12CA68
+ * Purpose: Evaluate via EvaluateBezierFloat
+ * Info: proposed name EvaluateAcFloatBBezier (T2); class AcFloatB; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012CA68(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)

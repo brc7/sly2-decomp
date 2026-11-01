@@ -3,6 +3,14 @@ int func_001F0638(struct P *);
 int func_001F0400(void *, int);
 int func_001F0B80(void *, int, int, int, int);
 void func_001F0660(struct P *, int);
+/** @sly2-annot addr=0x1F0730
+ * Purpose: SetSmaGoal only if the chooser finds a path under the current mask
+ * Info: proposed name SetSmaGoalIfReachable (T1); TU sm
+ * Notes: names_v2 C proposed SetSmaGoal__FP3SMA3OID (0.200)
+ * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; static naming pass; sources:
+ *   semantic_tu_docs/sm
+ * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
+ * @end-sly2-annot */
 void func_001F0730(struct P *p, int n)
 {
     if (!func_001F0638(p) && n != -1) {

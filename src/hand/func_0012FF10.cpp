@@ -18,6 +18,19 @@ struct E { KEYID k; int x; };
 struct T { char pad[0x5C]; int c; E *ae; };
 struct O2 : O { };
 extern "C" E *func_0012FF10(T *t, O *po, void *pv, int fCheck);
+/** @sly2-annot addr=0x12FF10
+ * Purpose: Find the ASEG channel entry (+0x60[], count +0x5C, 8 B each) that animates this object (oid +0x18)
+ *   and XF component kind; optional check of the entry flag bit30; skips bit31 entries
+ * Info: proposed name PchnFindAseg (T1); TU aseg
+ * Notes: v3: superseded PeFindAsegKeyForObject | top50_round (0.60): Sly 1 aseg.cpp PchnFindAseg(paseg,palo)
+ *   loops achn and matches FMatchesLoName(palo,pchn->oid). Sly 2 entry = {oid:20, ixf:10, f30, f31}; it also
+ *   requires po->vt51(ixf) (SO::PxfFromId) ->+0x94 (component kind) == kind. Ve
+ * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; semantic review; sources:
+ *   r1_116918+top50_round
+ * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
+ *   docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18,
+ *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
+ * @end-sly2-annot */
 E *func_0012FF10(T *t, O *po, void *pv, int fCheck)
 {
     int i;

@@ -11,6 +11,14 @@ static inline int FNear(qword a, qword b)
 {
     return func_0011D4D0(X(a), X(b), 0.0001f) && func_0011D4D0(Y(a), Y(b), 0.0001f) && func_0011D4D0(Z(a), Z(b), 0.0001f);
 }
+/** @sly2-annot addr=0x1FB2F8
+ * Purpose: Attach sound to an ALO (positional), flag 0x200
+ * Info: proposed name SetSndSourceLo (T1); TU sound
+ * Notes: verifier CORRECT: SetSndSourceAlo -> SetSndSourceLo
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/animation.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
+ *   docs/engine/sound.md#2-sound-instances
+ * @end-sly2-annot */
 void func_001FB2F8(struct P *p, struct SOURCE *source)
 {
     p->source = source;

@@ -9,6 +9,13 @@ struct P { int x0; struct L *pl; struct S8 *ps; struct V **apv; float g10; };
 
 extern int func_00138370(int, int, float, float, float *);
 
+/** @sly2-annot addr=0x138BA0
+ * Purpose: Blended-channel actuator virtual (p, t, r, pa, pb): weighted sum of two scalars (e.g. twist and
+ *   its rate) across bls
+ * Info: proposed name EvaluateBlendChnScalar (T2); TU blend
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
+ * @end-sly2-annot */
 void func_00138BA0(struct P *p, float t, float r, float *pa, float *pb)
 {
     float g0;

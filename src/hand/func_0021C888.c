@@ -22,6 +22,19 @@ void func_00230018(struct S *,struct O *,struct Hook *);
 qword func_0022FC48(struct O *,struct O *,qword);
 qword func_0022FCC8(struct O *,struct O *,qword);
 static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return func_001AE2A0(&req); }
+/** @sly2-annot addr=0x21C888
+ * Purpose: reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves
+ *   the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018);
+ *   computes rest segments
+ * Info: proposed name LoadSoChainsFromBrx (T1); TU tail
+ * Notes: names_v2 C proposed LoadAloFromBrx__FP3ALOP18CBinaryInputStream (0.438) | level_parser
+ *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: high [T1 0.90] - evidence: static naming pass; sources:
+ *   r8_21BB88+verdicts_tu_r7r8+parse-verified
+ * See: docs/engine/animation.md#7-key-functions,
+ *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse,
+ *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
+ * @end-sly2-annot */
 void func_0021C888(struct S *p,void *stream) {
     int count=func_00117D00(stream);
     int i,j;

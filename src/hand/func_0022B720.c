@@ -3,6 +3,13 @@ void func_001A5270(struct S *p);
 void func_0011A050(void *pv, int cb);
 void func_001A6CA8(struct S *p, int a);
 static inline int FIsPtr(int f) { return !(f & 1); }
+/** @sly2-annot addr=0x22B720
+ * Purpose: InitLo; -1 fields, g=-1.0, busyk, grf
+ * Info: proposed name InitWr (T1); class WR slot7; TU wr
+ * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/engine/animation.md#6-source-files, docs/engine/world-sw.md#9-source-files,
+ *   docs/reference/functions/animation.md#wr-0x22b720-0x22c818
+ * @end-sly2-annot */
 void func_0022B720(struct S *p)
 {
     int f;

@@ -27,6 +27,12 @@ typedef struct OBJ {
     qword dpos1;
 } OBJ;
 int func_0012B6D8(T *t, float g);
+/** @sly2-annot addr=0x12B738
+ * Purpose: Evaluates the vector curve at t (inline Hermite)
+ * Info: proposed name EvaluateAcVecA (T2); class AcVecA; TU act
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
+ * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
+ * @end-sly2-annot */
 void func_0012B738(T *t, OBJ *po)
 {
     int i = func_0012B6D8(t, *po->pt);
