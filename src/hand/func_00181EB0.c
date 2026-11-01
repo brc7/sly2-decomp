@@ -8,6 +8,14 @@ void func_0011A2E8(void *pdl, void *pv);
 void func_0011A220(void *pdl, void *pv);
 void func_001619A0(void *g, int n, struct S *p);
 void func_00181B60(struct S *p, struct R *r);
+/** @sly2-annot addr=0x181EB0
+ * Purpose: Segment state switch: move between DLs, game event, relayout
+ * Info: proposed name SetHackwallSegmentState (T2); class HACKWALL; TU tu_17F090
+ * Notes: Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
+ *   SetCid76SegmentState -> SetHackwallSegmentState
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181EB0(struct S *p, struct Q *q, int n)
 {
     struct R *r;

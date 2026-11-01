@@ -40,6 +40,12 @@ typedef char P_g1D0_Offset[FIELD_OFFSET(P,g1D0)==464?1:-1];
 typedef char P_x220_Offset[FIELD_OFFSET(P,x220)==544?1:-1];
 typedef char LengthBits_Size[sizeof(int)==4?1:-1];
 typedef char FallbackPointer_Size[sizeof(const qword*)==4?1:-1];
+/** @sly2-annot addr=0x1B1160
+ * Purpose: Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends
+ * Info: proposed name UpdateCid96PathFollow (T2); class CID96; TU tu_1B0B78
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 void func_001B1160(struct P *p)
 {
     struct CURVE *q;

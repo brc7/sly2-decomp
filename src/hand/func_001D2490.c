@@ -63,6 +63,16 @@ static inline qword NormalizeOr(qword value,qword fallback)
     }
     return cpu;
 }
+/** @sly2-annot addr=0x1D2490
+ * Purpose: Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal
+ *   heading/drive
+ * Info: proposed name SteerRobottankAlongPath (T2); TU tu_1D1370
+ * Notes: names_v2 v1 proposed FBounceBullet__FP6BULLETP2SOP6VECTORT2 (0.002) | class identity from whole_game
+ *   WE names/object strings: SteerRcCarAlongPath -> SteerRobottankAlongPath
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void func_001D2490(OBJ *p)
 {
     VECTOR va, vb;

@@ -3,6 +3,14 @@ struct S { char pad[0x1CC]; int x1cc; };
 void func_0017F1A0(struct S *p, struct E *ae, int i);
 int func_00132B10(int oid, int n);
 void func_0017F5B0(struct S *p, int n);
+/** @sly2-annot addr=0x1803E0
+ * Purpose: vt55: CID47::AdjustXp then start dying on contact
+ * Info: proposed name AdjustHackbulletXp (T2); class HACKBULLET slot55; TU tu_17F090
+ * Notes: CID4A->CID74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
+ *   AdjustCid74Xp -> AdjustHackbulletXp
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_001803E0(struct S *p, struct E *ae, int i)
 {
     struct E *pe;

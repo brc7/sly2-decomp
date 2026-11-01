@@ -19,6 +19,13 @@ extern PAIR D_002A7AC0;
 void func_001F5988(void);
 void func_001A7E10(struct G *, LNK *);
 void func_00149AB8(struct G *, OBJ *, PAIR, int);
+/** @sly2-annot addr=0x1DEEA8
+ * Purpose: LASEN vt54: drop beam contact links that reference object x and free them
+ * Info: proposed name RemoveLasenContacts (T2); class LASEN slot54; TU sensor
+ * Notes: agent qualifier: (vt54)
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 void func_001DEEA8(OBJ *p, void *x)
 {
     LNK *list = 0;

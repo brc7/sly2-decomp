@@ -79,6 +79,15 @@ static inline void Reset(SO *p) { VTE *v = p->vt; ((void (*)(void *))v[8].fn)((c
 static inline void SetParent(SO *p, SO *parent) { VTE *v = p->vt; ((void (*)(void *, SO *))v[39].fn)((char *)p + v[39].delta, parent); }
 static inline void SetVelocity(SO *p, qword velocity) { VTE *v = p->vt; ((void (*)(void *, qword))v[35].fn)((char *)p + v[35].delta, velocity); }
 
+/** @sly2-annot addr=0x1C2EF0
+ * Purpose: Launch count loot objects (first held, rest from proxy pool) toward random points around the
+ *   player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay
+ * Info: proposed name LaunchCid99LootAtPlayer (T2); class CID99; TU tu_1C2D20
+ * Notes: names_v2 B proposed PqwVifsBitmapUpload__Fi (0.785)
+ * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1c2d20-0x1c2d20-0x1c3390,
+ *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
+ * @end-sly2-annot */
 extern "C" SO *func_001C2EF0(OWNER *p, int count)
 {
     GAME *game = &D_003DD490;

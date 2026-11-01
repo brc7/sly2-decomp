@@ -4,6 +4,15 @@ struct S;
 void func_00181B60(struct S *p, struct E *pe);
 float func_001E6648(int n);
 void func_00181EB0(struct S *p, struct Q *q, int n);
+/** @sly2-annot addr=0x181A90
+ * Purpose: Reset one segment's pieces along its shape
+ * Info: proposed name ResetHackwallSegment (T2); class HACKWALL; TU tu_17F090
+ * Notes: names_v2 v1 proposed FAbandonSggSearch__FP3SGG (0.200) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) |
+ *   class identity from whole_game WE names/object strings: ResetCid76Segment -> ResetHackwallSegment
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181A90(struct S *p, struct E *pe)
 {
     int i = 0;

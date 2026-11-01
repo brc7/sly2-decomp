@@ -40,6 +40,13 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E0F9C;
 extern s32 D_003E1480;
 
+/** @sly2-annot addr=0x152350
+ * Purpose: cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135
+ *   degrees)
+ * Info: proposed name GetDancerCpdefi (T1); class DANCER slot50; TU rhythm
+ * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152350(s32 arg0, s32 arg1) {
     func_001F58F0(arg0, arg1);
     M2C_FIELD(arg1, f32 *, 0x30) = (f32) (M2C_FIELD(arg1, f32 *, 0x30) - 2.3561945f);

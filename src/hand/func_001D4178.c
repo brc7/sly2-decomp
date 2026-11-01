@@ -4,6 +4,13 @@ struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void func_001F50E0(struct S *p);
 qword func_001A6F00(struct S *p, int n, qword q);
 void func_001F5480(struct S *p, qword q, float g);
+/** @sly2-annot addr=0x1D4178
+ * Purpose: CID 77 vt49: SO tree bounds then extend by each wheel sphere
+ * Info: proposed name UpdateRobottankBounds (T1); class ROBOTTANK slot49; TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: UpdateRcCarBounds -> UpdateRobottankBounds
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void func_001D4178(struct S *p) {
     int i;
     func_001F50E0(p);

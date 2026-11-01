@@ -20,6 +20,13 @@ static inline int NLerp(float g, int a, int b)
         return a + (int)(g * ((float)b + 0.999f - (float)a));
     return b + (int)((1.0f - g) * ((float)a + 0.999f - (float)b));
 }
+/** @sly2-annot addr=0x154E10
+ * Purpose: Difficulty-dependent gameplay helper (uses GGetDifficulty, random 0x11D3F8)
+ * Info: TU difficulty
+ * Notes: no usable identifier; purpose only
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
+ * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 void func_00154E10(S *p, qword q, int n, int dn, void *pv)
 {
     if (p->x0 <= 0) {

@@ -22,6 +22,16 @@ struct OBJ { char pad[0x4F8]; int c; X *a[1]; };
 extern "C" {
 void func_001C3DF8(OBJ *);
 void func_001D4DE0(X *, X *);
+/** @sly2-annot addr=0x1D1410
+ * Purpose: CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0,
+ *   init 0x1D4D30, copy 0x9C bytes)
+ * Info: proposed name CloneRobottank (T1); class ROBOTTANK slot41; TU tu_1D1370
+ * Notes: names_v2 v1 proposed FBounceFlying__FP6FLYINGP2SOP6VECTORT2 (0.003) | class identity from whole_game
+ *   WE names/object strings: CloneRcCar -> CloneRobottank
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void func_001D1410(OBJ *p)
 {
     int i;

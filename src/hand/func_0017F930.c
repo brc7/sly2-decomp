@@ -28,6 +28,14 @@ struct V3 { float x, y, z; };
 static __inline__ qword Make(float x, float y, float z) { qword q, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
+/** @sly2-annot addr=0x17F930
+ * Purpose: vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals
+ * Info: proposed name UpdateHackship (T2); class HACKSHIP slot16; TU tu_17F090
+ * Notes: Cid48->Cid72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
+ *   UpdateCid72 -> UpdateHackship
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_0017F930(struct S *p) {
     int s;
     func_001F36E0(p);

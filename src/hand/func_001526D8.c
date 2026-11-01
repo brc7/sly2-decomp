@@ -7,6 +7,13 @@ struct S { char pad[0x40]; unsigned int fl; char pad2[0x14]; float g58; float g5
 extern struct S *D_002DE570;
 void func_001A5270(struct S *p);
 void func_001A6CA8(struct S *p, int n);
+/** @sly2-annot addr=0x1526D8
+ * Purpose: cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range
+ *   lm(+0x234)=[-1.5,1.0], windows 0.4/0.4, 8-sample average, grade thresholds
+ * Info: proposed name InitRhythmMgr (T1); class CID121 slot7; TU rhythm
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_001526D8(struct S *p)
 {
     unsigned int v;

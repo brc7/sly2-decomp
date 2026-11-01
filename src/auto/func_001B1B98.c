@@ -37,6 +37,12 @@ extern M2C_UNK D_003DD490;
 extern s32 D_003E0F9C;
 extern s32 D_003E0FE4;
 
+/** @sly2-annot addr=0x1B1B98
+ * Purpose: PloFindSwObject by id and call its vt (slot 9)
+ * Info: proposed name PloFindCid96Link (T2); class CID96; TU tu_1B0B78
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 s32 func_001B1B98(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
     s32 temp_v0;
     void *temp_v0_2;

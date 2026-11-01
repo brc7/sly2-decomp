@@ -92,6 +92,14 @@ static inline float ClampTo(float v, const LIMITS &l) { return Clamp(v, l.low, l
 static inline float Min(float a, float b) { return b < a ? b : a; }
 static inline float Abs(float f) { return __builtin_fabsf(f); }
 
+/** @sly2-annot addr=0x1D2E18
+ * Purpose: CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses,
+ *   turn and drive within traction budget
+ * Info: proposed name PresetRobottankAccel (T1); class ROBOTTANK slot70; TU tu_1D1370
+ * Notes: class identity from whole_game WE names/object strings: PresetRcCarAccel -> PresetRobottankAccel
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void func_001D2E18(P *p)
 {
     func_001F9B20(p);

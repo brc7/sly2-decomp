@@ -45,6 +45,12 @@ extern s32 D_003E134C;
 extern s32 D_003E1450;
 extern M2C_UNK D_004520A8;
 
+/** @sly2-annot addr=0x149848
+ * Purpose: build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002)
+ * Info: proposed name RefGetVolbtnPushState (T2); TU button
+ * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 s32 func_00149848(s32 arg0, s32 arg1) {
     func_00200F58(arg0, M2C_FIELD(arg1, s32 *, 0x2C0), 0x2002, M2C_FIELD(arg1, s32 *, 0x2C4));
     return arg0;

@@ -19,6 +19,17 @@ int func_00132B10(O *p, int k);
 void func_001BAED8(O *p, O *q, int z);
 void func_001A7E10(void *g, int k);
 
+/** @sly2-annot addr=0x1BB250
+ * Purpose: CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to
+ *   touching CID-98 objects
+ * Info: proposed name ScheduleCid98TouchEvents (T2); class CID98 slot58; TU tu_1BAB50
+ * Notes: verifier PLAUSIBLE: Placeholder class (CID 0x62 vtable slot 58). ScheduleSoTouchEvents, then for
+ *   each pending contact whose class matches an enabled filter entry: ScheduleCid98Reaction (both ways when
+ *   the other is also C | T2 forced: verifier: placeholder name
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+verdicts_followups
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 void func_001BB250(O *p)
 {
     L *pl;

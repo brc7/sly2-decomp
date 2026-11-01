@@ -6,6 +6,17 @@ void *func_002333B4(void *p, int c, int n);
 qword func_001A62E8(void *p);
 void func_001F7598(struct F *pf);
 void func_0015C150(void *p);
+/** @sly2-annot addr=0x17F5F8
+ * Purpose: vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its
+ *   explosion x190, then vt9 Remove
+ * Info: proposed name HACK_Die (T2); class HACK slot82; TU tu_17F090
+ * Notes: names_v2 C proposed OnStepguardWaypointActive__FP9STEPGUARD (0.438) | CID47->CID71 (CID 0x47=71,
+ *   vtable) | v3 class identity: CID71_Die -> HACK_Die | T2 forced: v3: coined class word (HACK) without
+ *   descriptor/string backing
+ * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources:
+ *   r4b_rest+class_review(master_names_v2_1)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_0017F5F8(struct S *p, int n) {
     if (n && p->n188) {
         struct F f;

@@ -63,6 +63,17 @@ static inline void ResetDrive(P *p){
 }
 static inline M4*GetMatrixFrom(P*p,VENTRY*vt){VENTRY&e=vt[31];return ((M4*(*)(void*))e.fn)((char*)p+e.delta);}
 static inline qword GetVelocity(P *p){VENTRY &e=p->vt[33];return ((qword (*)(void *))e.fn)((char *)p+e.delta);}
+/** @sly2-annot addr=0x1D19A8
+ * Purpose: CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input /
+ *   mode 1 AI / else idle; steering and throttle from polynomial tables of heading error; turret/actuator
+ *   goal; engine sound volume/pitch
+ * Info: proposed name UpdateRobottank (T1); class ROBOTTANK slot16; TU tu_1D1370
+ * Notes: names_v2 C proposed RenderAloGlobset__FP3ALOP2CMP2RO (0.638) | class identity from whole_game WE
+ *   names/object strings: UpdateRcCar -> UpdateRobottank
+ * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void func_001D19A8(P *p)
 {
     U scalar,position,targetPosition,targetVelocity,shot;

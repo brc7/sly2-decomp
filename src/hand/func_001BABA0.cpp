@@ -23,6 +23,16 @@ extern "C" {
 void func_001F31E0(P *p, void *a);
 }
 
+/** @sly2-annot addr=0x1BABA0
+ * Purpose: CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim
+ *   allocations to counts
+ * Info: proposed name LoadCid98FromBrx (T2); class CID98 slot14; TU tu_1BAB50
+ * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
+ * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
+ *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 extern "C" void func_001BABA0(P *p, void *a)
 {
     CTX ctx;

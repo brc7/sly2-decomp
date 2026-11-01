@@ -28,6 +28,15 @@ static inline M3 Mul(const M3&a,const M3&b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
+/** @sly2-annot addr=0x1801B8
+ * Purpose: vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn
+ *   rate
+ * Info: proposed name UpdateHackbullet (T2); class HACKBULLET slot16; TU tu_17F090
+ * Notes: Cid4A->Cid74 (CID 0x4A=74, hex-literal) | class identity from whole_game WE names/object strings:
+ *   UpdateCid74 -> UpdateHackbullet
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 extern "C" void func_001801B8(P*p){
  func_001F36E0(p);
  if(!p->flag&&p->time<=D_002DDED0.time)((void(*)(void*,P*))p->vt[82].fn)((char*)p+p->vt[82].delta,0);

@@ -27,6 +27,14 @@ qword func_001A62E8(P *p);
 void func_00156B98(void *g, int z, qword q, void *x);
 void func_001619A0(void *g, int k, P *p);
 
+/** @sly2-annot addr=0x1BB400
+ * Purpose: Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648),
+ *   stimulus 0x156B98, BroadcastGameEvent, advance stage
+ * Info: proposed name ReactCid98 (T2); class CID98; TU tu_1BAB50
+ * Notes: names_v2 C proposed FIsJsgJsgeComplete__FP3JSGP4JSGE (0.638)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
+ * @end-sly2-annot */
 void func_001BB400(P *p)
 {
     E *pe;

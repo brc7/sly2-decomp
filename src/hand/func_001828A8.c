@@ -9,6 +9,15 @@ extern void func_0015C198(void *p, int k, int n, qword a, qword b, float g, floa
 extern float D_002BE8A8;
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
+/** @sly2-annot addr=0x1828A8
+ * Purpose: vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and
+ *   segment state change
+ * Info: proposed name HACKWALL_TakeDamage (T2); class HACKWALL slot75; TU tu_17F090
+ * Notes: CID4C->CID76 (CID 0x4C=76, hex-literal) | class identity from whole_game WE names/object strings:
+ *   CID76_TakeDamage -> HACKWALL_TakeDamage
+ * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 int func_001828A8(struct O *po, struct M *pm)
 {
     struct Q *pq;

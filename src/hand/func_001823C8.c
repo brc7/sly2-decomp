@@ -40,6 +40,15 @@ static inline float Distance(U*dot,U*one,qword plane,qword point){
  __asm__("vmul.xyz %0,%2,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w":"+j"(d),"=&j"(o):"j"(plane));
  one->q=o;dot->q=d;return GX(d);
 }
+/** @sly2-annot addr=0x1823C8
+ * Purpose: vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49
+ * Info: proposed name AddHackwallXps (T2); class HACKWALL slot60; TU tu_17F090
+ * Notes: names_v2 C proposed AssignSggSearchPoints__FP3SGG (0.638) | CID4C->CID76 (CID 0x4C=76, hex-literal)
+ *   | class identity from whole_game WE names/object strings: AddCid76Xps -> AddHackwallXps
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
  WORK w;int i,count;qword center;CONTACT**out=pout;
  func_001F5990(p,q,unused2,unused3,unused4,pout);

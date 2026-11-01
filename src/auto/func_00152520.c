@@ -40,6 +40,12 @@ extern M2C_UNK D_003DD490;
 extern void *D_003E0F9C;
 extern s32 D_003E1480;
 
+/** @sly2-annot addr=0x152520
+ * Purpose: PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9
+ * Info: proposed name PloFindDancerMoveObject (T2); TU rhythm
+ * Confidence: low (draft) [T2 0.30] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 s32 func_00152520(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
     s32 temp_v0;
     void *temp_v0_2;

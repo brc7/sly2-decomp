@@ -27,6 +27,16 @@ typedef struct {
 int func_001D4E08(ITEM *);
 void func_001F0660(void *, int);
 int func_001C46C0(SUB *, int, float);
+/** @sly2-annot addr=0x1D2150
+ * Purpose: Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its
+ *   button mask fires (SMA goal 0x68) or held-flag variant (0x67)
+ * Info: proposed name ReadRobottankInput (T1); TU tu_1D1370
+ * Notes: names_v2 C proposed UpdateAloThrob__FP3ALOf (0.200) | class identity from whole_game WE names/object
+ *   strings: ReadRcCarInput -> ReadRobottankInput
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 void func_001D2150(OBJ *p)
 {
     int i;

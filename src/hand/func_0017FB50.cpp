@@ -9,6 +9,14 @@ void func_001F59A0(S *p, MATRIX3 *pm, void *pv);
 void func_001F5E10(S *p, qword a, int b, qword c, void *pv);
 void func_0017FB50(S *p);
 }
+/** @sly2-annot addr=0x17FB50
+ * Purpose: vt70 override
+ * Info: proposed name PresetHackshipAccel (T2); class HACKSHIP slot70; TU tu_17F090
+ * Notes: CID48->CID72 (CID 0x48=72, vtable) | class identity from whole_game WE names/object strings:
+ *   PresetCid72Accel -> PresetHackshipAccel
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_0017FB50(S *p) {
     if (p->n1C0 == 3) return;
     MATRIX3 m; m = func_0011B500(D_002A2DC0, p->g218);

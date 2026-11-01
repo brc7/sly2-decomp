@@ -19,6 +19,13 @@ extern "C" qword func_001A62E8(P*);
 extern "C" int func_0014C748(qword,qword,qword,int,HIT*,float);
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
 struct WORK{U pos;V dir;U velocity,tmp;V factor;HIT hit;V scalar;U direction,spill;};
+/** @sly2-annot addr=0x1B2228
+ * Purpose: CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and
+ *   set clamped launch velocity
+ * Info: proposed name FireSplmiss (T1); class CID82 slot78; TU missile
+ * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
+ * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
+ * @end-sly2-annot */
 extern "C" void func_001B2228(P*p,LO*source,V*point){
  WORK w;
  w.pos.q=*(qword*)point;

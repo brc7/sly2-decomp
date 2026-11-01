@@ -8,6 +8,14 @@ int func_001B1868(struct S *p);
 void func_001F7BF8(struct S *p, float f);
 void func_001B1328(struct S *p, int st);
 void func_001B1160(struct S *p);
+/** @sly2-annot addr=0x1B0E28
+ * Purpose: CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut);
+ *   path following
+ * Info: proposed name UpdateCid96 (T2); class CID96 slot16; TU tu_1B0B78
+ * Notes: names_v2 v1 proposed AddStepCustomXpsBase__FP4STEPP2SOP3BSPPP2XP (0.058)
+ * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 void func_001B0E28(struct S *p)
 {
     int st;

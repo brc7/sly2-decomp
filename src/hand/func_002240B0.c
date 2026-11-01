@@ -5,6 +5,15 @@ struct S { int x0, x4, x8; VT *vt; char pad[0x150 - 0x10]; int k; int x154; int 
 void func_001F36E0(struct S *p);
 void func_00224258(struct S *p, int a);
 qword func_001A62E8(struct S *p);
+/** @sly2-annot addr=0x2240B0
+ * Purpose: CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (0x224258); if the
+ *   owner +0x16C is farther than +0x170 (3000) -> vt75 -> state 3 (auto-fire)
+ * Info: proposed name UpdateCid100 (T2); class CID100 slot16; TU tu_223F70
+ * Notes: runtime5a #18 CLARIFIED: distance owner(+0x16C) > +0x170 (3000) -> vt75 -> state 3 (auto-fire) | T2:
+ *   placeholder token Cid100
+ * Confidence: low (draft) [T2 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 void func_002240B0(struct S *p)
 {
     func_001F36E0(p);

@@ -6,6 +6,13 @@ void func_001B1328(struct S *p, int f);
 float func_001E6610(void *p);
 float func_001E77E8(void *p);
 void func_001E67B8(void *p, float g, qword *pv, int n);
+/** @sly2-annot addr=0x1B0D90
+ * Purpose: Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle
+ * Info: proposed name ResetCid96 (T2); class CID96; TU tu_1B0B78
+ * Notes: names_v2 v1 proposed UpdateStepXfWorld__FP4STEP (0.070)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 void func_001B0D90(struct S *p)
 {
     qword v;

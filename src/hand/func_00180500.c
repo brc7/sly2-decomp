@@ -3,6 +3,15 @@ void func_0017F090(struct S *p);
 void func_001813C0(struct S *p, float g);
 void func_001813F0(struct S *p, float g);
 void func_0017F3E0(struct S *p, int n, void *pv);
+/** @sly2-annot addr=0x180500
+ * Purpose: CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries
+ * Info: proposed name InitHackenemy (T1); class HACKENEMY slot7; TU tu_17F090
+ * Notes: names_v2 C proposed LoadStepguardPhys__FP9STEPGUARD (0.438) | Cid49->Cid73 (CID 0x49=73, vtable) |
+ *   class identity from whole_game WE names/object strings: InitCid73 -> InitHackenemy
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00180500(struct S *p)
 {
     func_0017F090(p);

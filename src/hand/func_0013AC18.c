@@ -13,6 +13,12 @@ extern struct { struct SO *p; } D_003E13B4;
 void func_00133A38(struct G *pg, struct X *pa, struct X *pb, int n);
 qword func_001A62E8(void *p);
 int func_0014C748(qword a, qword b, qword c, int n, struct HIT *phit, float g);
+/** @sly2-annot addr=0x13AC18
+ * Purpose: Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100
+ * Info: proposed name UpdateBombCustomXps (T1); TU bomb
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void func_0013AC18(struct P *p)
 {
     int i;

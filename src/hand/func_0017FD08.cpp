@@ -36,6 +36,14 @@ void func_001619A0(void *a, int n, struct S *p);
 void func_0017F4C0(struct S *p, struct Q *q);
 void func_0017FD08(struct S *p, int n);
 }
+/** @sly2-annot addr=0x17FD08
+ * Purpose: State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5
+ * Info: proposed name SetHackshipState (T2); class HACKSHIP; TU tu_17F090
+ * Notes: Cid48->Cid72 (CID 0x48=72, agent-default(hex)) | class identity from whole_game WE names/object
+ *   strings: SetCid72State -> SetHackshipState
+ * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+whole_game(class identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_0017FD08(struct S *p, int n) {
     int old = p->n1C0;
     if (n == old) return;

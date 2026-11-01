@@ -7,6 +7,15 @@ void *func_001F6030(struct O *p, int oid);
 void func_00203AF0(struct O *p, void *pv);
 void func_001F2AD0(struct O *p, void *pv);
 void func_001EEC70(void *pv);
+/** @sly2-annot addr=0x203A38
+ * Purpose: STEP vt15: PostSoLoad, alloc 0x294, attach two child objects (oids +0x58/+0x5C), find phys SOPART
+ *   by oid +0x264 -> CloneStepPhys + hide it, allocate the 8 BHV slots
+ * Info: proposed name PostStepLoad (T1); class STEP slot15; TU step
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
+ *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
+ * @end-sly2-annot */
 void func_00203A38(struct O *p)
 {
     func_001F36A8(p);

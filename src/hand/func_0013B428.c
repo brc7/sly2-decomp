@@ -25,6 +25,16 @@ static __inline__ void MulStore(struct P *p, M3 *pm)
     t.r[2] = u.r[2] = MulV(pm, pb->r[2]);
     p->mat = t;
 }
+/** @sly2-annot addr=0x13B428
+ * Purpose: Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal
+ * Info: proposed name PrepareBombDetonation (T1); TU bomb
+ * Notes: names_v2 C proposed CalculateAloTransformAdjust__FP3ALOT0P6VECTORP7MATRIX3T2T2 (0.167) | runtime5a
+ *   #14: spent darts +0x180 = rest position, +0x1C0 = flight velocity
+ * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r2b_rest+runtime
+ * See: docs/engine/gameplay-objects.md#key-functions,
+ *   docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void func_0013B428(struct P *p, qword pos, qword q)
 {
     M3 m;

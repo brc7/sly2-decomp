@@ -70,6 +70,13 @@ static inline float Scalar(VU_VECTOR v)
     return f;
 }
 
+/** @sly2-annot addr=0x1DF0A0
+ * Purpose: LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap
+ * Info: proposed name UpdateLasenContacts (T2); class LASEN slot60; TU sensor
+ * Notes: names_v2 C proposed SetLasenSensors__FP5LASEN7SENSORS (0.438) | agent qualifier: (vt60)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6b_rest
+ * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 extern "C" void func_001DF0A0(OBJ *p, REQUEST *q, int a2, int a3, int a4, CONTACT **pout)
 {
     int i;

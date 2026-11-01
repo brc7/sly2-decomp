@@ -26,6 +26,13 @@ static inline int CaptureDestinationAndEqual(P*p,const V*output,V*destination){
  return FFloatsNear(zeroX,targetX,epsilon)&&FFloatsNear(Y(zero),Y(target),0.0001f)&&FFloatsNear(Z(zero),Z(target),0.0001f);
 }
 struct WORK{V output;U integrated,step;V destination;U scale,delta,negative,copy;};
+/** @sly2-annot addr=0x1B2468
+ * Purpose: CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278)
+ * Info: proposed name PresetSplmissAccel (T2); class CID82 slot70; TU missile
+ * Notes: names_v2 C proposed UpdatePrsenLoopShader__FP5PRSEN (0.653)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
+ * See: docs/reference/functions/gameplay-objects.md#missile-0x1b1db8-0x1b2820
+ * @end-sly2-annot */
 extern "C" void func_001B2468(P*p){
  if(p->disabled)return;
  WORK w;

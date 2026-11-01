@@ -4,6 +4,12 @@ int func_001F0638(void *o);
 void func_001F1448(int a, int b, int c, int d, void **ppo);
 int func_00152680(int j);
 void func_001F0660(void *o, int n);
+/** @sly2-annot addr=0x152B58
+ * Purpose: Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score
+ * Info: proposed name UpdateRhythmMgrGrades (T2); TU rhythm
+ * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152B58(struct S *p)
 {
     int i, j;

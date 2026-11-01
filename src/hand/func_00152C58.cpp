@@ -50,6 +50,13 @@ void func_00152C58(P *p);
 }
 
 static inline float GMax(float a, float b) { return a < b ? b : a; }
+/** @sly2-annot addr=0x152C58
+ * Purpose: Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline
+ *   positions, highlights the expected one, animates a hint marker
+ * Info: proposed name DrawRhythmMgr (T1); class CID121 slot19; TU rhythm
+ * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00152C58(P *p)
 {
     func_001A5ED8(p);

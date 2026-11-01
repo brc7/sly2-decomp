@@ -9,6 +9,13 @@ typedef struct {
 typedef struct { char pad[0x60]; void *x60; } OBJ;
 qword func_0022FC48(void *, int, qword);
 void func_001E6F10(void *, qword *, int, float);
+/** @sly2-annot addr=0x1DEF98
+ * Purpose: World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and
+ *   optionally their distance
+ * Info: proposed name GetLasenBeamEnds (T1); TU sensor
+ * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
+ * See: docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8
+ * @end-sly2-annot */
 void func_001DEF98(OBJ *p, E *e, qword *out, float *pdist)
 {
     unsigned int i;

@@ -28,6 +28,13 @@ static inline qword Make(float x,float y,float z) {
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));
     return q;
 }
+/** @sly2-annot addr=0x225BA0
+ * Purpose: pan/tilt toward target or from stick, limited by lmPan/lmTilt
+ * Info: proposed name UpdateTurretAim (T1); TU turret
+ * Notes: names_v2 C proposed AdjustStepXpVelocityBase__FP4STEPP2XPi (0.438)
+ * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
+ * @end-sly2-annot */
 extern "C" void func_00225BA0(S *p){
     if(p->target && p->aim) {
         M3 m;

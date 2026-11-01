@@ -17,6 +17,12 @@ static inline float Length(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+/** @sly2-annot addr=0x1B1900
+ * Purpose: Look at nearest player (0x1C4AF8): flee/turn decision and heading
+ * Info: proposed name ChooseCid96StateFromPlayer (T2); class CID96; TU tu_1B0B78
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
+ * @end-sly2-annot */
 int func_001B1900(struct P *p)
 {
     int r = p->n220;

@@ -45,6 +45,13 @@ inline SP::~SP()
     }
 }
 
+/** @sly2-annot addr=0x200F58
+ * Purpose: Same as RefSetArgListFromPvs with one otype for all values
+ * Info: proposed name RefSetArgListFromPvsUniform (T2); TU spliceobj
+ * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50,
+ *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
+ * @end-sly2-annot */
 CRef *func_00200F58(CRef *ret, int c, int x, void *pb)
 {
     if (c == 0) {

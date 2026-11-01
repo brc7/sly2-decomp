@@ -8,6 +8,15 @@ void func_0011A210(struct DLE *pdle);
 void func_0011A220(void *pdl, void *pv);
 void func_0011A200(void *pdl);
 void func_00181A90(struct S *p, struct E *pe);
+/** @sly2-annot addr=0x1819E0
+ * Purpose: Reset all segments
+ * Info: proposed name ResetHackwall (T2); class HACKWALL slot83; TU tu_17F090
+ * Notes: names_v2 v1 proposed FDetectSgg__FP3SGG (0.638) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class
+ *   identity from whole_game WE names/object strings: ResetCid76 -> ResetHackwall
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_001819E0(struct S *p)
 {
     struct Q *q;

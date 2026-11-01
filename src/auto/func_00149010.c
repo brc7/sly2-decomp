@@ -3,6 +3,13 @@ s32 func_00132B10(void *, M2C_UNK);                 /* extern */
 M2C_UNK func_001490A0(void *, M2C_UNK);             /* extern */
 extern f32 D_002DDED0;
 
+/** @sly2-annot addr=0x149010
+ * Purpose: if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button
+ * Info: proposed name UpdateButtonPlayerPush (T2); TU button
+ * Notes: names_v2 C proposed DisablePrsen__FP5PRSEN (0.668)
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void func_00149010(void *arg0) {
     void *temp_a0;
 

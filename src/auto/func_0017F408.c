@@ -3,6 +3,13 @@ s32 func_00132B10(s32, M2C_UNK);                    /* extern */
 s32 func_0015E938(M2C_UNK *, M2C_UNK, s32, s32);    /* extern */
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x17F408
+ * Purpose: Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D
+ * Info: proposed name BindCid47Entries (T2); class CID47; TU tu_17F090
+ * Notes: names_v2 v1 proposed FTakeStepguardDamage__FP9STEPGUARDP3ZPR (0.019)
+ * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_0017F408(s32 arg0, s32 arg1, void *arg2) {
     s32 temp_a2;
     s32 temp_v0;

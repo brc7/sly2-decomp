@@ -32,6 +32,15 @@ static inline X *CreateItem(OBJ *owner) {
  __asm__("sw %1,%0":"=m"(item->vt):"r"(vtable):"memory");
  register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));func_001D4D30(receiver,owner);return item;
 }
+/** @sly2-annot addr=0x1D4B90
+ * Purpose: Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8
+ * Info: proposed name AddRobottankWeapon (T2); TU tu_1D1370
+ * Notes: names_v2 v1 proposed UpdateMatch__FP5MATCHf (0.001) | class identity from whole_game WE names/object
+ *   strings: AddRcCarWeapon -> AddRobottankWeapon
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
+ * @end-sly2-annot */
 extern "C" void func_001D4B90(OBJ *p, int a, int b, int inputC, int inputD)
 {
     register int c __asm__("$20")=inputC;

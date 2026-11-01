@@ -6,6 +6,13 @@ void func_001F5720(struct S *, int);
 void func_001F57C0(struct S *, int);
 void func_001F6860(struct S *, int);
 void func_001A58D0(struct S *, int, int);
+/** @sly2-annot addr=0x13BB80
+ * Purpose: BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent
+ * Info: proposed name ResetBomb (T1); class BOMB slot26; TU bomb
+ * Notes: runtime5a #15 CONSISTENT: spent darts out of world, tDetonate FLT_MAX, parent 0
+ * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
+ * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
+ * @end-sly2-annot */
 void func_0013BB80(struct S *p) {
     func_001CB518(p);
     p->f174 = 0;

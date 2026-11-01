@@ -3,6 +3,15 @@ struct Q { char pad[0x2C]; struct K k1; struct K k2; char p1[0x24]; struct Q *ne
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int x24; int x28; float h; };
 struct S;
 float func_001E6648(int n);
+/** @sly2-annot addr=0x181B60
+ * Purpose: Distribute pieces along the segment shape length (SMaxShape)
+ * Info: proposed name LayoutHackwallPieces (T2); class HACKWALL; TU tu_17F090
+ * Notes: names_v2 C proposed SggsNextSgg__FP3SGG (0.438) | Cid4C->Cid76 (CID 0x4C=76, hex-literal) | class
+ *   identity from whole_game WE names/object strings: LayoutCid76Pieces -> LayoutHackwallPieces
+ * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181B60(struct S *p, struct E *pe)
 {
     float g = func_001E6648(pe->x24);

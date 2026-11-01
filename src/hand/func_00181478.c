@@ -23,6 +23,15 @@ static __inline__ int FClose(float g)
     if (g < D_002BE880) {} else f = 0;
     return f;
 }
+/** @sly2-annot addr=0x181478
+ * Purpose: vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression
+ * Info: proposed name UpdateHacklock (T2); class HACKLOCK slot16; TU tu_17F090
+ * Notes: names_v2 v1 proposed BindSgg__FP3SGG (0.011) | Cid4B->Cid75 (CID 0x4B=75, hex-literal) | class
+ *   identity from whole_game WE names/object strings: UpdateCid75 -> UpdateHacklock
+ * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest+whole_game(class
+ *   identity)
+ * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
+ * @end-sly2-annot */
 void func_00181478(struct O *p)
 {
     int s;

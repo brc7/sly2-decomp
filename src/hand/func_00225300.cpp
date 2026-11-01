@@ -52,6 +52,13 @@ static inline qword Splat(float f) {
     __asm__("pextlw %0,%2,%2\n\tpextlw %1,%0,%0" : "=r"(t),"=r"(r) : "r"(b));
     return r;
 }
+/** @sly2-annot addr=0x225300
+ * Purpose: state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3
+ * Info: proposed name UpdateCid102 (T2); class CID102 slot16; TU tu_223F70
+ * Notes: names_v2 C proposed UpdateCamsen__FP6CAMSENf (0.290)
+ * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
+ * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
+ * @end-sly2-annot */
 extern "C" void func_00225300(struct S *p) {
     int old;
     func_002240B0(p);

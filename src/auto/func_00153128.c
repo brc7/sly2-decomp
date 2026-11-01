@@ -4,6 +4,13 @@ M2C_UNK func_0020F030(M2C_UNK *, M2C_UNK);          /* extern */
 extern f32 D_002DDED0;
 extern M2C_UNK D_003DD490;
 
+/** @sly2-annot addr=0x153128
+ * Purpose: Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 =
+ *   Decrement; stamps time, resets cue index
+ * Info: proposed name SetRhythmMgrState (T1); TU rhythm
+ * Confidence: mid (draft) [T1 0.55] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
+ * @end-sly2-annot */
 void func_00153128(void *arg0, s32 arg1) {
     s32 temp_v0;
 

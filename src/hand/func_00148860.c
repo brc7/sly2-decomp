@@ -1,6 +1,13 @@
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void func_001488D8(void *p, int n);
+/** @sly2-annot addr=0x148860
+ * Purpose: Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1))
+ * Info: proposed name UntriggerBtn (T1); TU button
+ * Notes: names_v2 C proposed FFoundAshAseg__FP3ASHP4ASEG (0.638)
+ * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r2b_rest
+ * See: docs/reference/functions/gameplay-objects.md#button-0x148620-0x149a50
+ * @end-sly2-annot */
 void func_00148860(struct O **p)
 {
     struct O *o = *p;
