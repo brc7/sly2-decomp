@@ -6,6 +6,11 @@ struct CRef {
     union { int n; void *pv; VECTOR *pvec; VECTOR2 *pvec2; } u;
     bool operator==(const CRef &ref);
 };
+/** @sly2-annot addr=0x129AC0
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
+ * @end-sly2-annot */
 bool CRef::operator==(const CRef &ref)
 {
     if (m_tagk != ref.m_tagk)
