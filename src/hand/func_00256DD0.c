@@ -5,7 +5,7 @@ extern void *D_004520E8[4];
 extern int D_003E0EA4;
 extern unsigned int D_002DD2A4;
 extern int D_002DD598;
-void func_001286E0(void *);
+void Collect__3CGc(void *);
 void *PvAllocSlotheapClear(POOL *);
 void func_0011CD98(POOL *, void *);
 N *func_00255718(N *);
@@ -15,7 +15,7 @@ N *func_00256DD0(void)
     N *p;
     if (D_004520F8.xC == 0) {
         if (!D_003E0EA4 || D_002DD2A4 >= 4)
-            func_001286E0(&D_002DD598);
+            Collect__3CGc(&D_002DD598);
         if (D_004520F8.xC == 0) {
             void *pv = PvAllocSlotheapClear(&D_004520F8);
             if (D_002DD2A4)

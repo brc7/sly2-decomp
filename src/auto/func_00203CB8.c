@@ -39,7 +39,7 @@ extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
 /*
-Decompilation failure in function func_001FFD98:
+Decompilation failure in function RefGetPeopid:
 
 Found jr instruction at chunk.s line 237, but the corresponding jump table is not provided.
 
@@ -48,7 +48,7 @@ Please include it in the input .s file(s), or in an additional file.
 */
 
 /*
-Decompilation failure in function func_00200598:
+Decompilation failure in function RefSetPeopid:
 
 Found jr instruction at chunk.s line 805, but the corresponding jump table is not provided.
 

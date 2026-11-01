@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00129518(void *, s32);                 /* extern */
+void SetS32__4CRefi(void *, s32);                 /* extern */
 s32 func_00154158(s32, s32);                        /* extern */
 
 CRef *func_001042D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
@@ -9,7 +9,7 @@ CRef *func_001042D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x2002;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    func_00129518(&ref, func_00154158(pbasic, arg0_v));
+    SetS32__4CRefi(&ref, func_00154158(pbasic, arg0_v));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

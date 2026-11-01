@@ -25,7 +25,7 @@ STREAM *func_00118480(STREAM *);
 void func_00118500(STREAM *,void *,void *,int);
 short func_00117D50(STREAM *);
 void func_0013E818(P *,DESC *,int,STREAM *);
-void func_00127B40(void *,void *);
+void CFrame_AddParent(void *,void *);
 void func_00256EE0(void **,void *);
 void CMemInputStream_ctor(STREAM *,int);
 }
@@ -58,7 +58,7 @@ extern "C" NODE *func_001CAEC8(P *p,int minimum){
   int index;
   while((index=func_00117D50(&stream))>=0){DESC *desc=&D_002AC880[index];func_0013E818(work.found,desc,desc->flags&0x2031,&stream);}
   if(bind->resource && !p->disabled){
-   if(work.found->resource)func_00127B40(bind->resource,work.found->resource);
+   if(work.found->resource)CFrame_AddParent(bind->resource,work.found->resource);
    func_00256EE0(&work.found->resource,bind->resource);
   }
   CMemInputStream_ctor(&stream,2);

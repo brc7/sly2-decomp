@@ -7,8 +7,8 @@ typedef struct { int a, b, c; } V3;
 CRef *func_0012A0B0(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
-CRef *func_00129D58(CRef *ret, CRef *pref);
-CRef *func_00129DA8(CRef *ret, CRef *pref);
+CRef *CRef_RefCoerceS32(CRef *ret, CRef *pref);
+CRef *CRef_RefCoerceF32(CRef *ret, CRef *pref);
 
 CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
 {
@@ -32,7 +32,7 @@ CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
                 CREFA tmp;
                 CRef *pt = &t.r;
                 pt->tagk = -1;
-                func_00129D58(&tmp.r, &ref.r);
+                CRef_RefCoerceS32(&tmp.r, &ref.r);
                 func_00129658(pt, &tmp.r);
                 func_00129EC8(&tmp.r);
                 *(int *)pv = t.r.u.n;
@@ -46,7 +46,7 @@ CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
                 CREFA tmp;
                 CRef *pt = &t.r;
                 pt->tagk = -1;
-                func_00129DA8(&tmp.r, &ref.r);
+                CRef_RefCoerceF32(&tmp.r, &ref.r);
                 func_00129658(pt, &tmp.r);
                 func_00129EC8(&tmp.r);
                 *(float *)pv = t.r.u.g;

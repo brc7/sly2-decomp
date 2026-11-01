@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 s32 FWipingAseg__FP4ASEG(s32, s32);                 /* extern */
-void func_00129598(void *, s32);                 /* extern */
+void CRef_SetBool(void *, s32);                 /* extern */
 CRef *func_00106910(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
@@ -8,7 +8,7 @@ CRef *func_00106910(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 6;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    func_00129598(&ref, FWipingAseg__FP4ASEG(pbasic, arg0_v) != 0);
+    CRef_SetBool(&ref, FWipingAseg__FP4ASEG(pbasic, arg0_v) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

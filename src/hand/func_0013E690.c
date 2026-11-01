@@ -4,9 +4,9 @@ int func_00117DB8(void *pbs);
 float func_00117E38(void *pbs);
 int func_00117D50(void *pbs);
 int func_00117C80(void *pbs);
-void func_00129330(CRef *ret, float *ag);
-void func_00129398(CRef *ret, float *ag);
-void func_001291E0(CRef *ret, float *ag);
+void CRef_ctor_CLQ(CRef *ret, float *ag);
+void CRef_ctor_LM(CRef *ret, float *ag);
+void CRef_ctor_VECTOR(CRef *ret, float *ag);
 void func_0012A0B0(CRef *ret, int tagk);
 CRef *func_0013E690(CRef *ret, int k, void *pbs)
 {
@@ -38,12 +38,12 @@ CRef *func_0013E690(CRef *ret, int k, void *pbs)
             for (j = 0; j < 3; j++)
                 *pg++ = func_00117E38(pbs);
         }
-        func_00129330(ret, ag);
+        CRef_ctor_CLQ(ret, ag);
         break;
     case 10:
         ag[0] = func_00117E38(pbs);
         ag[1] = func_00117E38(pbs);
-        func_00129398(ret, ag);
+        CRef_ctor_LM(ret, ag);
         break;
     case 2:
         {
@@ -52,7 +52,7 @@ CRef *func_0013E690(CRef *ret, int k, void *pbs)
             for (j = 0; j < 3; j++)
                 *pg++ = func_00117E38(pbs);
         }
-        func_001291E0(ret, ag);
+        CRef_ctor_VECTOR(ret, ag);
         break;
     default:
         if (((k & ~0x8000) >> 12) == 1) {

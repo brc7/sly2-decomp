@@ -53,7 +53,7 @@ typedef char G_phase_Offset[FIELD_OFFSET(G,phase)==16144?1:-1];
 extern "C"{
 extern char D_002DD598[],D_004520D0[],D_00452148[];
 extern G D_003DD490;
-void func_00128148(void*);
+void CGc_UpdateRecyclable(void*);
 void func_00257250(void*,int);
 void func_00129EC8(void*);
 void func_00255438(void*);
@@ -64,8 +64,8 @@ void func_002580A8(FIELD**,FIELD*);
 void func_00256EE0(ROOT**,ROOT*);
 int func_00258178(FIELD*);
 int func_00259A88(ROOT*);
-RF func_0012AB78(FIELD*,P*);
-RR func_00127E90(ROOT*,P*);
+RF CSidebag_CloneTo(FIELD*,P*);
+RR CFrame_CloneTo(ROOT*,P*);
 void*func_001AE238(REQUEST*,void*);
 void ClearSle(int*);
 void ClearSl(void*);
@@ -80,13 +80,13 @@ typedef char RootRefSize[sizeof(RR)==4?1:-1];
 static inline NODE*CopyNode(int bytes,REQUEST*r,NODE*n){r->bytes=bytes;r->alignment=16;return(NODE*)func_001AE238(r,n);}
 static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delta));}
 extern "C" void func_001A6730(P*p,const P*source){
-    func_00128148(D_002DD598);
+    CGc_UpdateRecyclable(D_002DD598);
     if(source->field){
-        {RF r=func_0012AB78(source->field,p);func_002580A8(&p->field,r.p);}
+        {RF r=CSidebag_CloneTo(source->field,p);func_002580A8(&p->field,r.p);}
         (void)func_00258178(p->field);
     }
     if(source->root){
-        {RR r=func_00127E90(source->root,p);func_00256EE0(&p->root,r.p);}
+        {RR r=CFrame_CloneTo(source->root,p);func_00256EE0(&p->root,r.p);}
         (void)func_00259A88(p->root);
     }
     p->scale=source->scale;

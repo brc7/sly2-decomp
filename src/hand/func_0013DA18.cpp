@@ -23,7 +23,7 @@ void *func_001AE2A0(AREQ *preq);
 void *func_001AE318(AREQ *preq);
 void func_001AE5A0(void *pvDst, void *pvSrc, int cb);
 void *func_002333B4(void *pv, int b, int cb);
-void func_0012AE18(void);
+void StartupSplice(void);
 int func_00117D50(BIS *pbis);
 int func_00117DB8(BIS *pbis);
 void func_00117968(BIS *pbis, int cb, void *pv);
@@ -51,7 +51,7 @@ void *func_0014B690(void *p);
 void func_001848A8(void *p, int k, void *pv, int n);
 void func_00184950(void *p, int n);
 void func_0020F5D0(int n, BIS *pbis);
-void func_001FF858(void *psw, int n, BIS *pbis);
+void LoadSwSpliceFromBrx(void *psw, int n, BIS *pbis);
 void func_001EB748(void *pa, void *pb, BIS *pbis);
 void func_001C0EC0(void *psw, BIS *pbis);
 struct LO;
@@ -92,7 +92,7 @@ extern "C" void func_0013DA18(SW *psw, BIS *pbis)
     union { AREQ req; RGBA rgba; struct { int pad[2]; int c; LO **apo; } lol; } u;
     int i;
     int fNever = 0;
-    func_0012AE18();
+    StartupSplice();
     psw->cwe = func_00117D50(pbis);
     psw->awe = (WE *)AllocZ(&u.req, psw->cwe * 0x6C, 0x10);
     int h;
@@ -163,7 +163,7 @@ extern "C" void func_0013DA18(SW *psw, BIS *pbis)
         OBJ obj(0x403F, ab, 0);
         func_0020F5D0(1, pbis);
         D_003E1C34 = func_00117DB8(pbis);
-        func_001FF858(psw, pwe->x10, pbis);
+        LoadSwSpliceFromBrx(psw, pwe->x10, pbis);
         func_001EB748(&zpr0, &zpr1, pbis);
         func_001C0EC0(psw, pbis);
         {

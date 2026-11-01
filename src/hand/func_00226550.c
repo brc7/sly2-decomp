@@ -28,7 +28,7 @@ void func_001AB1A0(void *pv);
 void func_001FD830(void *pv);
 void func_0014D478(void *pv);
 void func_0020F7E0(struct S *p);
-void func_00128148(void *pv);
+void CGc_UpdateRecyclable(void *pv);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -85,5 +85,5 @@ void func_00226550(struct S *p)
     if (0.0f < D_002DDED0.g10)
         func_0014D478(D_002DDF40);
     func_0020F7E0(p);
-    func_00128148(D_002DD598);
+    CGc_UpdateRecyclable(D_002DD598);
 }

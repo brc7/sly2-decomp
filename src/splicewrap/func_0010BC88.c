@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_00129598(void *, s32);                 /* extern */
+void CRef_SetBool(void *, s32);                 /* extern */
 CRef *func_0010BC88(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
@@ -9,7 +9,7 @@ CRef *func_0010BC88(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     aotyp[0] = 0x1011;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
     temp_v1 = M2C_FIELD(pbasic, void **, 0xC);
-    func_00129598(&ref, M2C_FIELD(temp_v1, s32 (**)(void *, s32), 0x264)(pbasic + M2C_FIELD(temp_v1, s16 *, 0x260), arg0_v) != 0);
+    CRef_SetBool(&ref, M2C_FIELD(temp_v1, s32 (**)(void *, s32), 0x264)(pbasic + M2C_FIELD(temp_v1, s16 *, 0x260), arg0_v) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

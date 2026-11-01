@@ -39,7 +39,7 @@ extern M2C_UNK D_00452148;
 extern M2C_UNK D_00452170;
 
 /*
-Decompilation failure in function func_001FFD98:
+Decompilation failure in function RefGetPeopid:
 
 Found jr instruction at chunk.s line 237, but the corresponding jump table is not provided.
 
@@ -48,7 +48,7 @@ Please include it in the input .s file(s), or in an additional file.
 */
 
 /*
-Decompilation failure in function func_00200598:
+Decompilation failure in function RefSetPeopid:
 
 Found jr instruction at chunk.s line 805, but the corresponding jump table is not provided.
 
@@ -58,7 +58,7 @@ Please include it in the input .s file(s), or in an additional file.
 
 s32 RefSetOption__FP5BASICiP4CRef(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     if (arg2 < 0x4D1) {
-        func_00200598(arg0, arg1, func_001FFCF8(arg1, arg2), arg3);
+        RefSetPeopid(arg0, arg1, PeopidFind(arg1, arg2), arg3);
     } else {
         RefSetBinding__8CSidebagiP4CRef(arg0, M2C_FIELD(arg1, s32 *, 4), arg2, arg3);
     }

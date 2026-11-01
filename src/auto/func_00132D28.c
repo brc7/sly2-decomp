@@ -15,7 +15,7 @@ void func_00132D28(s32 arg0, s32 arg1, s32 arg2) {
         char pad0[0xC];
         M2C_UNK m10;
     } fr;
-    func_00129398((s32) (void *)&fr, arg2);
+    CRef_ctor_LM((s32) (void *)&fr, arg2);
     RefEnsureOption__FP5BASICiP4CRef((s32) &fr.m10, arg0, arg1, (s32) (void *)&fr);
     func_00129EC8(&fr.m10);
     func_00129EC8((void *)&fr);

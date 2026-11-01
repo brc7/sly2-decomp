@@ -8,9 +8,9 @@ struct N *func_00256B48(void);
 void func_00256C38(struct SP *psp, struct N *pn);
 void func_00256C58(struct SP *psp, struct N *pn);
 void func_00256D40(struct SP *psp, int n);
-struct CRef *func_00129970(struct CRef *pref, struct N *pn);
-void func_001295D8(struct CRef *pref, int n);
-void func_00129A10(struct CRef *pref, int n);
+struct CRef *CRef_SetPair(struct CRef *pref, struct N *pn);
+void CRef_SetSymid(struct CRef *pref, int n);
+void CRef_SetBasic(struct CRef *pref, int n);
 void func_00129EC8(struct CRef *pref);
 void func_002550F8(void *pv);
 void func_0011CD98(void *pool, void *pv);
@@ -21,16 +21,16 @@ struct SP *func_00132ED8(struct SP *ret, int a1, int a2, struct X *px)
     func_00256C38(&sp, func_00256B48());
     {
         struct CRef *pref = &sp.p->ref;
-        func_00129970(pref, func_00256B48());
+        CRef_SetPair(pref, func_00256B48());
     }
     p = (struct N *)sp.p->ref.pv;
-    func_001295D8(&p->ref, a2);
+    CRef_SetSymid(&p->ref, a2);
     {
         struct N *pn = func_00256B48();
         func_00256C58(&p->sp, pn);
     }
     p = p->sp.p;
-    func_00129A10(&p->ref, a1);
+    CRef_SetBasic(&p->ref, a1);
     if (px && px->f)
         func_00256C58(&p->sp, px->pn);
     func_00256C38(ret, sp.p);

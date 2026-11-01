@@ -26,6 +26,6 @@ extern M2C_UNK D_004521E8;
 s32 *func_001291A8(s32 *arg0, s32 *arg1) {
     M2C_FIELD(arg0, s32 *, 0) = M2C_FIELD(arg1, s32 *, 0);
     M2C_FIELD(arg0, s32 *, 4) = (s32) M2C_FIELD(arg1, s32 *, 4);
-    func_00129DF8((s32) arg0);
+    Incref__4CRef((s32) arg0);
     return arg0;
 }
