@@ -62,6 +62,14 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x111438
+ * Purpose: pfnNew factory for WARP (cid 42): allocates 0x180 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2DC550 at +0xC
+ * Info: proposed name NewWarp (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *func_00111438(s32 arg0) {
     void *temp_v0;
 

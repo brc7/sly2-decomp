@@ -16,6 +16,15 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_001F82B8(void *p, int, void *); CRef func_00101608(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x101608
+ * Purpose: Splice option thunk: optid 196 on SO (g_aeopid[79] thunkFn/thunkUser, returns Void, crefReq 2);
+ *   unpacks 2 args (0x104D, Lm) -> Void via RefSetArgsFromSplice then calls SetSoSideRecordParams (0x1F82B8)
+ * Info: proposed name RefThunk_SetSoSideRecordParams (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x1F82B8 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_00101608(void *p, int c, void *aref)
 {
     int ak[2] = {0x104d, 0xa};

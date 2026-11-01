@@ -16,6 +16,15 @@ public:
     virtual void F();
 };
 
+/** @sly2-annot addr=0x110EC0
+ * Purpose: pfnNew factory for CID19 (cid 19): allocates 0x140 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2D2978 at +0xC
+ * Info: proposed name NewHnd (T1); TU crt0_splicewrap
+ * Notes: v3 class identity: NewCid19 -> NewHnd
+ * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 extern "C" void *func_00110EC0(void)
 {
     return new X;

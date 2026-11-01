@@ -16,6 +16,17 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00181330(void *p, int, void *, void *); CRef func_0010FF18(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x10FF18
+ * Purpose: Splice option thunk: optid 1182 on CID73 (g_aeopid[1380] thunkFn/thunkUser, returns Void, crefReq
+ *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors
+ *   (0x181330)
+ * Info: proposed name RefThunk_SetHackenemyEntryVectors (T2); TU crt0_splicewrap
+ * Notes: class identity from whole_game WE names/object strings: RefThunk_SetCid73EntryVectors ->
+ *   RefThunk_SetHackenemyEntryVectors | T2 forced: thunk name is only as good as its native (0x181330 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)+whole_game(class identity)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_0010FF18(void *p, int c, void *aref)
 {
     int ak[3] = {0x105f, 0xa, 0xa};

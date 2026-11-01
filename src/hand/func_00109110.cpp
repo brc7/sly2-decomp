@@ -16,6 +16,15 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_001E1238(void *p, qword, qword, float, float, int); CRef func_00109110(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x109110
+ * Purpose: Splice option thunk: optid 677 on RELAY (g_aeopid[682] thunkFn/thunkUser, returns Void, crefReq
+ *   5); unpacks 5 args (Vector, Vector, Float, Float, 0x106D) -> Void via RefSetArgsFromSplice then calls
+ *   AddRelayCamBlendFrom (0x1E1238)
+ * Info: proposed name RefThunk_AddRelayCamBlendFrom (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_00109110(void *p, int c, void *aref)
 {
     int ak[5] = {0x2, 0x2, 0x1, 0x1, 0x106d};

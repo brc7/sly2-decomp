@@ -19,6 +19,15 @@ extern "C" {
 void func_0018DF58(void *p, qword q);
 CRef func_0010B6D0(void *p, int c, void *aref);
 }
+/** @sly2-annot addr=0x10B6D0
+ * Purpose: Splice option thunk: optid 755 on JT (g_aeopid[772] thunkFn/thunkUser, returns Void, crefReq 1);
+ *   unpacks 1 args (Vector) -> Void via RefSetArgsFromSplice then calls SetJtX1FA0 (0x18DF58)
+ * Info: proposed name RefThunk_SetJtX1FA0 (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x18DF58 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_0010B6D0(void *p, int c, void *aref)
 {
     union { qword q; } u;

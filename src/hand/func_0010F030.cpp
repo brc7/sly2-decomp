@@ -16,6 +16,16 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00163838(void *p, int, void *, int, int); CRef func_0010F030(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x10F030
+ * Purpose: Splice option thunk: optid 1108 on TASK (g_aeopid[1287] thunkUser, returns Void, crefReq 4);
+ *   unpacks 4 args (Oid, 0x9050, Oid, 0xF) -> Void via RefSetArgsFromSplice then calls AddTaskStateLo
+ *   (0x163838)
+ * Info: proposed name RefThunk_AddTaskStateLo (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x163838 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_0010F030(void *p, int c, void *aref)
 {
     int ak[4] = {0x6, 0x9050, 0x6, 0xf};

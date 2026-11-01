@@ -59,6 +59,16 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x113270
+ * Purpose: pfnNew factory for BHV165 (cid 165): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2D05A0 at +0xC
+ * Info: proposed name NewBhvcombat (T1); TU crt0_splicewrap
+ * Notes: BHV class word normalised: NewBhv165 -> NewBhvcombat | runtime2/4 confirmed the BHVCOMBAT role on
+ *   live guards (S02-S41)
+ * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
+ *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *func_00113270(s32 arg0) {
     void *temp_v0;
 

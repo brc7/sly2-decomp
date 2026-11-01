@@ -59,6 +59,15 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x110FE8
+ * Purpose: pfnNew factory for CID24 (cid 24): allocates 0x2D0 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2CC7B0 at +0xC
+ * Info: proposed name NewVolbtn (T1); TU crt0_splicewrap
+ * Notes: v3 class identity: NewCid24 -> NewVolbtn
+ * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *func_00110FE8(s32 arg0) {
     void *temp_v0;
 

@@ -66,6 +66,15 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x1136D0
+ * Purpose: pfnNew factory for BHV185 (cid 185): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2CFFA0 at +0xC
+ * Info: proposed name NewBhvpipe (T1); TU crt0_splicewrap
+ * Notes: BHV class word normalised: NewBhv185 -> NewBhvpipe
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *func_001136D0(s32 arg0) {
     void *temp_v0;
 

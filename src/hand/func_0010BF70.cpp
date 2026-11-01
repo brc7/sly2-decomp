@@ -13,6 +13,14 @@ CRef func_00201360(int c, void *aref, int *ak, void *an);
 void *func_001C4AF8(void *p, qword q);
 CRef func_0010BF70(void *p, int c, void *aref);
 }
+/** @sly2-annot addr=0x10BF70
+ * Purpose: Splice option thunk: optid 847 on SW (g_aeopid[929] thunkFn, returns 0x2032, crefReq 1); unpacks 1
+ *   args (Vector) -> 0x2032 via RefSetArgsFromSplice then calls PpoClosestSw (0x1C4AF8)
+ * Info: proposed name RefThunk_PpoClosestSw (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_0010BF70(void *p, int c, void *aref)
 {
     union { qword q; } u;

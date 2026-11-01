@@ -16,6 +16,16 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_001F8A78(void *p, int, int, qword); CRef func_0010E5D8(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x10E5D8
+ * Purpose: Splice option thunk: optid 1060 on CID149 (g_aeopid[1228] thunkFn, returns Void, crefReq 3);
+ *   unpacks 3 args (0x100D, Int, Vector) -> Void via RefSetArgsFromSplice then calls SetXfhActuator1World
+ *   (0x1F8A78)
+ * Info: proposed name RefThunk_SetXfhActuator1World (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x1F8A78 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_0010E5D8(void *p, int c, void *aref)
 {
     int ak[3] = {0x100d, 0x5, 0x2};

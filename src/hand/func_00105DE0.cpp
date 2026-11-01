@@ -19,6 +19,15 @@ extern "C" {
 void func_00170B60(void *p, void *pv);
 CRef func_00105DE0(void *p, int c, void *aref);
 }
+/** @sly2-annot addr=0x105DE0
+ * Purpose: Splice option thunk: optid 623 on CID113 (g_aeopid[596] thunkFn/thunkUser, returns Void, crefReq
+ *   1); unpacks 1 args (Lm) -> Void via RefSetArgsFromSplice then calls AddCid113CmdSetK2CC (0x170B60)
+ * Info: proposed name RefThunk_AddCid113CmdSetK2CC (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x170B60 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_00105DE0(void *p, int c, void *aref)
 {
     union { qword q; } u;

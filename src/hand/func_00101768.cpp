@@ -16,6 +16,16 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_0012EEE0(void *p, int, int, int, float, float); CRef func_00101768(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x101768
+ * Purpose: Splice option thunk: optid 207 on CID43 (g_aeopid[99] thunkUser, returns Void, crefReq 5); unpacks
+ *   5 args (0xE, Int, Int, Float, Float) -> Void via RefSetArgsFromSplice then calls SetCid43SoundParam
+ *   (0x12EEE0)
+ * Info: proposed name RefThunk_SetCid43SoundParam (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x12EEE0 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_00101768(void *p, int c, void *aref)
 {
     int ak[5] = {0xe, 0x5, 0x5, 0x1, 0x1};

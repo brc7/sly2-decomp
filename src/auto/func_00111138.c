@@ -59,6 +59,14 @@ static inline void *m2c_ctor_0(void *p)
     return p;
 }
 
+/** @sly2-annot addr=0x111138
+ * Purpose: pfnNew factory for EMITTER (cid 29): allocates 0x160 bytes (operator new 0x1AE4F8), inline ctor
+ *   stores vtable 0x2CEB78 at +0xC
+ * Info: proposed name NewEmitter (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 void *func_00111138(s32 arg0) {
     void *temp_v0;
 

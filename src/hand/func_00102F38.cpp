@@ -16,6 +16,16 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00207E08(void *p, void *, int, float, float, float, float); CRef func_00102F38(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x102F38
+ * Purpose: Splice option thunk: optid 371 on STEPGUARD (g_aeopid[245] thunkFn, returns Void, crefReq 6);
+ *   unpacks 6 args (0x9010, Oid, Float, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
+ *   SetStepguardAnimBindingK2Resolve (0x207E08)
+ * Info: proposed name RefThunk_SetStepguardAnimBindingK2Resolve (T2); TU crt0_splicewrap
+ * Notes: T2 forced: thunk name is only as good as its native (0x207E08 T2)
+ * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_00102F38(void *p, int c, void *aref)
 {
     int ak[6] = {0x9010, 0x6, 0x1, 0x1, 0x1, 0x1};

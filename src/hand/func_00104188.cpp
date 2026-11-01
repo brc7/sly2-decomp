@@ -16,6 +16,15 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { int func_001541D8(void *p, int, int); CRef func_00104188(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x104188
+ * Purpose: Splice option thunk: optid 466 on DETECTOR (g_aeopid[347] thunkFn, returns 0x106B, crefReq 2);
+ *   unpacks 2 args (0x2002, 0x106B) -> 0x106B via RefSetArgsFromSplice then calls KCalculateDetectorTarget
+ *   (0x1541D8)
+ * Info: proposed name RefThunk_KCalculateDetectorTarget (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_00104188(void *p, int c, void *aref)
 {
     int ak[2] = {0x2002, 0x106b};

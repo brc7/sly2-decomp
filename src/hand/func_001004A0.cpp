@@ -16,6 +16,14 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void func_00132CC8(void *p, int n, void *pu); CRef func_001004A0(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x1004A0
+ * Purpose: Splice option thunk: optid 7 on BASIC (g_aeopid[6] thunkFn/thunkUser, returns Void, crefReq 2);
+ *   unpacks 2 args (Basic?, Clq) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagClq (0x132CC8)
+ * Info: proposed name RefThunkBasicCUSTOM_CLQ_PROPERTY (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_001004A0(void *p, int c, void *aref)
 {
     int ak[2] = {0x15, 9};

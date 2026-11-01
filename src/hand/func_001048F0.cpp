@@ -16,6 +16,14 @@ struct CRef {
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
 extern "C" { void * func_001F03A8(void *p, int, int, int, int); CRef func_001048F0(void *p, int c, void *aref); }
+/** @sly2-annot addr=0x1048F0
+ * Purpose: Splice option thunk: optid 477 on SM (g_aeopid[369] thunkFn, returns 0x2088, crefReq 4); unpacks 4
+ *   args (0x2030, Oid, 0x100B, 0x1054) -> 0x2088 via RefSetArgsFromSplice then calls PsmaApplySmEx (0x1F03A8)
+ * Info: proposed name RefThunk_PsmaApplySmEx (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
+ *   D_002AC880)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 CRef func_001048F0(void *p, int c, void *aref)
 {
     int ak[4] = {0x2030, 0x6, 0x100b, 0x1054};

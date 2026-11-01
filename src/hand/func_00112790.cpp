@@ -22,6 +22,14 @@ public:
     virtual void F();
 };
 
+/** @sly2-annot addr=0x112790
+ * Purpose: pfnNew factory for CID108 (cid 108): allocates 0x170 bytes (operator new 0x1AE4F8), calls ctor
+ *   __4CRef
+ * Info: proposed name NewCid108 (T1); TU crt0_splicewrap
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
+ *   pfnNew/size 185/185; vt slot6 199/199)
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 extern "C" void *func_00112790(void)
 {
     return new Y;
