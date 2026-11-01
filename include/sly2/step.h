@@ -9,11 +9,11 @@
 /* BHV: from src/hand/func_001E1E30.cpp (9 copies in Lilly ports) */
 struct BHV : public BASIC
 {
-      STEP *pstep;
-      BHV *pbhvPrev;
-      BHV *pbhvNext;
-      int fBusy;
-      int cBusyAbove;
+      STEP *pstep;          /* +0x10 [R] owner STEP (== the guard/partner whose bhvstk holds it, all states) */
+      BHV *pbhvPrev;        /* +0x14 [S] */
+      BHV *pbhvNext;        /* +0x18 [S] */
+      int fBusy;            /* +0x1C [R] behaviour busy (shown with '*' in ram_inspector stacks) */
+      int cBusyAbove;       /* +0x20 [R] number of busy behaviours above this one in the stack */
       undefined4 unk_0x24[3];
       virtual void OnPush();
       virtual void Start();
@@ -29,10 +29,11 @@ typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descripto
 /* BHVSTK: from src/hand/func_001428D8.cpp (15 copies in Lilly ports) */
 struct BHVSTK
 {
-      STEP *pstep;
-      int cpbhv;
-      BHV *apbhv[8];
+      STEP *pstep;          /* +0x00 [R] owner (STEP+0x26C) */
+      int cpbhv;            /* +0x04 [R] depth, 1..8 (STEP+0x270) */
+      BHV *apbhv[8];        /* +0x08 [R] apbhv[0] = root behaviour (guards: BHV156, mode at +0x30) (STEP+0x274) */
 };
+
 
 /* STEP: from src/hand/func_0018A8C8.cpp (15 copies in Lilly ports) */
 struct STEP : public PO
