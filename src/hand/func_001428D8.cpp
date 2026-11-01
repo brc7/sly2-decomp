@@ -1048,6 +1048,13 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 }
 extern "C" qword MakeVecFromAngle(float rad, float sXY, float sZ);
 extern "C" void HeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pploCur, float *psDist, float *pdz) __asm__("func_001428D8");
+/** @sly2-annot addr=0x1428D8
+ * Purpose: Distance score of an object for interact picking: xy distance + CLQ biases (hysteresis for current
+ *   target, stick-direction bonus), optional height delta
+ * Info: proposed name HeroInteractDistance (T1); TU stepplayer
+ * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
+ * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
+ * @end-sly2-annot */
 extern "C" void HeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pploCur, float *psDist, float *pdz)
 {
     float sBias = 0.0f;

@@ -1499,6 +1499,14 @@ static inline void ClearXyz(VECTOR *pvec)
     pvec->x = 0.0f;
 }
 void SetJtModeState(JTMODE *pjtmode, int nState) __asm__("func_0019CD38");
+/** @sly2-annot addr=0x19CD38
+ * Purpose: Leave/enter mode states -1 off, 0 starting, 1 running (push CPLOOK prio 7 for kinds 0/2, recon
+ *   camera prio 8 for kind 1, stop hero, duck sound buses 0/1 to 0.6), 2 ending; HUD follows
+ * Info: proposed name SetJtModeState (T1); TU mode
+ * Notes: runtime6 C7/C8: kind 1 (recon) pushes CPZOOM at CM+0x520 prio 8 + IncrementSwNoPause (S57)
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
+ * @end-sly2-annot */
 void SetJtModeState(JTMODE *pjtmode, int nState)
 {
     ASEG *paseg;

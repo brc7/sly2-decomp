@@ -269,6 +269,19 @@ inline void *PvAllocStackClear(int cb, int cbAlign)
     return PvAllocStackClearImpl(pswalloc);
 }
 void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, CBinaryInputStream *pbis) __asm__("func_0013E818");
+/** @sly2-annot addr=0x13E818
+ * Purpose: Reads one option value and applies it via g_aeopid record (method/field/setter forms; oid refs
+ *   deferred to LORUN)
+ * Info: proposed name LoadOptionFromBrx (T1); TU brx
+ * Notes: names_v2 C proposed LoadGlobsetFromBrx__FP7GLOBSETP18CBinaryInputStreamP3ALO (0.638) | level_parser
+ *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels; per-option value
+ *   reader by otyp
+ * Confidence: high [T1 0.97] - evidence: semantic review; static naming pass; sources:
+ *   r2_131F70+parse-verified
+ * See: docs/engine/world-sw.md#10-key-functions,
+ *   docs/formats/level-objects.md#4-common-building-blocks-cparse,
+ *   docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
+ * @end-sly2-annot */
 void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, CBinaryInputStream *pbis)
 {
     int fNever = 0;

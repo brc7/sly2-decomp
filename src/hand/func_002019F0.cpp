@@ -71,6 +71,12 @@ typedef char check_pool_D[(sizeof(POOLD)==sizeof(SLOTHEAP))?1:-1];
 typedef char check_pool_E[(sizeof(POOLE)==sizeof(SLOTHEAP))?1:-1];
 typedef char check_pool_F[(sizeof(POOLF)==sizeof(SLOTHEAP))?1:-1];
 
+/** @sly2-annot addr=0x2019F0
+ * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU sprbuf
+ * Info: proposed name StaticInit_sprbuf (T1); TU sprbuf
+ * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
+ * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r7_1F8DD8
+ * @end-sly2-annot */
 __asm__(".text\n"
         ".globl func_002019F0\n"
         ".type func_002019F0,@function\n"

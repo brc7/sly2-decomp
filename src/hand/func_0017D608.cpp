@@ -75,6 +75,12 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
     return qw;
 }
 int FSnapPosToSurfaceAbove(qword *ppos) __asm__("func_0017D608");
+/** @sly2-annot addr=0x17D608
+ * Purpose: Cast a line 5000 up; on hit move the position to the hit and return 1
+ * Info: proposed name FSnapPosToSurfaceAbove (T1); TU guardbhv
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r9_bhv_screen
+ * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
+ * @end-sly2-annot */
 int FSnapPosToSurfaceAbove(qword *ppos)
 {
     STACKSCOPE scope;

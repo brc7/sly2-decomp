@@ -1556,6 +1556,13 @@ static inline qword QwRotateVecAt(MATRIX3 *pmat, qword *pqwVec)
     return qwResult;
 }
 extern "C" void JtChooseGroundState(JT *pjt) __asm__("func_0018A8C8");
+/** @sly2-annot addr=0x18A8C8
+ * Purpose: Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor
+ * Info: proposed name JtChooseGroundState (T1); TU jt
+ * Notes: runtime2: run(1) with grfbtn 0x8 / walk(12) / fight stance(5) choices observed
+ * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
+ * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
+ * @end-sly2-annot */
 extern "C" void JtChooseGroundState(JT *pjt)
 {
     JTS jtsOld;

@@ -88,6 +88,14 @@ extern int *D_003E1C48;
 extern LEVELLIST *D_003E1C4C;
 extern FILEREC *D_003E1C50;
 extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__("func_0020F318");
+/** @sly2-annot addr=0x20F318
+ * Purpose: Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills
+ *   g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry records
+ * Info: proposed name LoadLevelTableFromBrx (T1); TU sw
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8
+ * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
+ *   docs/engine/world-sw.md#3-level-table-and-world-identity, docs/engine/world-sw.md#10-key-functions
+ * @end-sly2-annot */
 extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis)
 {
     D_003E1C38 = pbis->U32Read();

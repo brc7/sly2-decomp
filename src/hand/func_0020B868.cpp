@@ -382,6 +382,12 @@ extern OID D_002C3DC8[2];
 extern int D_002C3DD0[2];
 extern int D_002C3DD8[2];
 void PostJtLoadGait(GAIT *pgait) __asm__("func_0020B868");
+/** @sly2-annot addr=0x20B868
+ * Purpose: GAIT PostLoad: foot markers, root velocity per clip, dynamic blend
+ * Info: proposed name PostJtLoadGait (T1); TU tu_20B840
+ * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7c_hud
+ * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
+ * @end-sly2-annot */
 void PostJtLoadGait(GAIT *pgait)
 {
     if (pgait->abl[0].paseg == 0)

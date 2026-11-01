@@ -585,6 +585,12 @@ inline void *PvAllocSw(int cb, int cbAlign)
     return PvAllocSwImpl(pswalloc);
 }
 void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega) __asm__("func_001CC5E8");
+/** @sly2-annot addr=0x1CC5E8
+ * Purpose: Build hands record: hand-frame matrix, sampled A/B curves per hold clip (PredictAsegEffect), blend
+ * Info: proposed name InitJtHands (T1); TU jthands
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest
+ * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
+ * @end-sly2-annot */
 void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
 {
     phands->pso = pso;

@@ -1703,6 +1703,16 @@ void ChooseJtRushTarget(JT *pjt);
 void ChooseJtSmashTarget(JT *pjt);
 void SetJtChannelMask(JT *pjt, uint grf);
 void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("func_0018C250");
+/** @sly2-annot addr=0x18C250
+ * Purpose: Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state
+ * Info: proposed name SetJtJts (T1); TU jt
+ * Notes: names_v2 C proposed UpdateCplook__FP6CPLOOKP6CPDEFIP3JOYf (0.200) | runtime2: jts values
+ *   0/1/2/5/7/8/11/12 and runtime3 jts 4 observed
+ * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); static naming pass; sources:
+ *   r4_17F090+verdicts_tu_r4r6+runtime
+ * See: docs/engine/overview.md#6-subsystem-map, docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
+ *   docs/engine/player.md#11-key-functions
+ * @end-sly2-annot */
 void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
 {
     ASEG *paseg = 0;

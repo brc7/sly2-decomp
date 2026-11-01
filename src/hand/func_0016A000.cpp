@@ -632,6 +632,18 @@ static inline char *PbReloc(char *pbOld, int cb, char *pbNew, char *pb)
 struct RGBA5551 { ushort r : 5; ushort g : 5; ushort b : 5; ushort a : 1; };
 struct UVLINK { short u, v; ushort link; } __attribute__((packed));
 static inline int Min(int a, int b) { return a < b ? a : b; }
+/** @sly2-annot addr=0x16A000
+ * Purpose: Sub-glob type 0 loader: textured lit triangle strips (the visible mesh); builds VIF batches
+ * Info: proposed name LoadSubglobType0FromBrx (T1); TU glob
+ * Notes: sub-glob type->loader correction (CONFLICTS #16, MESH_FORMAT, level_parser type switch 0x167748): v1
+ *   had the types permuted | level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of
+ *   bytes in 4 levels
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+meshes(MESH_FORMAT jal switch
+ *   0x167750)+parse-verified
+ * See: docs/engine/rendering.md#13-key-functions,
+ *   docs/formats/meshes-scene.md#2-globset-loadglobsetfrombrx-0x167320-matched-cparse,
+ *   docs/formats/meshes-scene.md#type-0-the-visible-textured-mesh-loadsubglobtype0frombrx-0x16a000-cparse
+ * @end-sly2-annot */
 void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis)
 {
     psubglob->bUnk02 = pbis->U8Read();

@@ -205,6 +205,13 @@ struct PVREC : EOPID
 {
 };
 CRef RefFromPv(void *pv, PVREC *ppvrec) __asm__("func_001FFD98");
+/** @sly2-annot addr=0x1FFD98
+ * Purpose: Splice value of an object option (method, direct member or getter; by type
+ *   bool/float/vector/matrix/int/clq/lm/smp)
+ * Info: proposed name RefGetPeopid (T1); TU spliceobj
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verify_side
+ * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
+ * @end-sly2-annot */
 CRef RefFromPv(void *pv, PVREC *ppvrec)
 {
     CRef ref;

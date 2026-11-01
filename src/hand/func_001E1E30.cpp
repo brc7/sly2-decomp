@@ -2790,6 +2790,13 @@ static inline qword QwAddScaledX(qword qw, qword qwDir, VU_FLOAT vuScale)
     return qwSum;
 }
 void NextJsgCommand(JSG *pjsg) __asm__("func_001E1E30");
+/** @sly2-annot addr=0x1E1E30
+ * Purpose: Advance the script to the next command and execute it by kind
+ * Info: proposed name NextJsgCommand (T1); TU relay
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r6b_rest
+ * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
+ *   docs/engine/cutscenes.md#5-key-functions, docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
+ * @end-sly2-annot */
 void NextJsgCommand(JSG *pjsg)
 {
     pjsg->prelaycmdCur++;

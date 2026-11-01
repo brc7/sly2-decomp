@@ -836,6 +836,13 @@ static inline float GMaxOf(float a, float b)
     return (a > b) ? a : b;
 }
 void UpdateChainLink(SO *pso, CHAINLINK *plink) __asm__("func_0021CB18");
+/** @sly2-annot addr=0x21CB18
+ * Purpose: per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then
+ *   aims the XF at the simulated tip
+ * Info: proposed name UpdateChainLink (T1); TU tail
+ * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r8_21BB88
+ * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
+ * @end-sly2-annot */
 void UpdateChainLink(SO *pso, CHAINLINK *plink)
 {
     CHAIN *pchain = plink->pchain;

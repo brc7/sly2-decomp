@@ -480,6 +480,16 @@ CRef SetSaveVarByName(const CRef &ref, const char *pchz, ...);
 extern "C" int func_00210AE0();
 int NGetEpisodeBest();
 void ResolveSwSaveVars(SW *psw) __asm__("func_0020E3C0");
+/** @sly2-annot addr=0x20E3C0
+ * Purpose: Look up save-variable paths the game reads (language, sound flags, job/world, per-world
+ *   dt/percent_complete), store current language/job/world, raise episodeBest, notify game (event 3)
+ * Info: proposed name ResolveSwSaveVars (T1); TU sw
+ * Notes: names_v2 C proposed LoadSwFromBrx__FP2SWP18CBinaryInputStream (0.438)
+ * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
+ *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
+ *   docs/engine/world-sw.md#10-key-functions
+ * @end-sly2-annot */
 void ResolveSwSaveVars(SW *psw)
 {
     psw->psvpDt = PsvpMake("dt", 0);

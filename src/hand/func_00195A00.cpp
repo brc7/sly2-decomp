@@ -1328,6 +1328,17 @@ static inline qword QwProjectOut(qword v, qword n)
     return qw;
 }
 void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
+/** @sly2-annot addr=0x195A00
+ * Purpose: Start a flight of kind nKind (n2 = directional clip, plo = object): reset record unless double
+ *   jump (6), launch velocity from JtPlanLaunchVz, push along facing for 3/0xE, wall run 0x11 adds 400 up,
+ *   then SetJtAirState
+ * Info: proposed name SetJtAirJump (T1); TU air
+ * Notes: runtime2: kind 1 jump, double jump keeps kind 1
+ * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
+ * See: docs/engine/player.md#11-key-functions,
+ *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
+ *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
+ * @end-sly2-annot */
 void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo)
 {
     qword vel;

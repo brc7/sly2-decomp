@@ -162,6 +162,13 @@ struct PVREC : EOPID
 {
 };
 CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref) __asm__("func_00200598");
+/** @sly2-annot addr=0x200598
+ * Purpose: Setter twin: write a Splice value into an object option
+ * Info: proposed name RefSetPeopid (T1); TU spliceobj
+ * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
+ * See: docs/engine/splice-scripting.md#7-key-functions,
+ *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
+ * @end-sly2-annot */
 CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
 {
     CRef ref;

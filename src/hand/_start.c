@@ -1,4 +1,9 @@
 /* crt0: EE startup code (hand-written assembly in the original). */
+/** @sly2-annot addr=0x100008
+ * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
+ * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
+ * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
+ * @end-sly2-annot */
 __asm__(
     ".set noreorder\n"
     ".set noat\n"

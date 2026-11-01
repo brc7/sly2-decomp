@@ -113,6 +113,13 @@ static inline qword QwMix(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
     return qw;
 }
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("func_00118668");
+/** @sly2-annot addr=0x118668
+ * Purpose: Clips an edge against a BSP volume; returns inside segments (LSG list)
+ * Info: proposed name ClsgClipEdgeToBsp (T1); TU bsp
+ * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
+ * See: docs/engine/camera.md#5-key-functions, docs/engine/core-library.md#6-source-files,
+ *   docs/engine/core-library.md#7-key-functions
+ * @end-sly2-annot */
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg)
 {
     CEB ceb;
