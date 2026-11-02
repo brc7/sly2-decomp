@@ -4,6 +4,7 @@
 #ifndef SLY2_SW_H
 #define SLY2_SW_H
 #include "sly2/basic.h"
+#include "sly2/slotheap.h"
 
 /* JTGRABCAND: from src/game/gameplay/player/grab/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp (8 copies in Lilly ports) */
 struct JTGRABCAND
@@ -19,16 +20,7 @@ struct JTGRABCAND
       qword qwPos;
 };
 
-/* SLOTHEAP: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (9 copies in Lilly ports) */
-struct SLOTHEAP
-{
-      int cb;
-      int c;
-      int cbAlign;
-      SLOT *pslotFree;
-      int cAlloc;
-      byte *ab;
-};
+/* SLOTHEAP: moved unchanged to sly2/slotheap.h (layout CONFIRMED by match of the slotheap TU) */
 
 /* FILEREC: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (8 copies in Lilly ports) */
 struct FILEREC
