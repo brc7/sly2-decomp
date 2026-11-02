@@ -126,12 +126,15 @@ the other Splice node kinds (frames, procs, method records...).
 | a caller is ~40 instructions short around a `delete` | the per-function file had a class-specific `operator delete` that a hand-filtered draft lost | concatenate the files verbatim first; never filter lines when drafting | pair (drafting mistake) |
 | field access through a raw offset (`*(ulong *)((char *)p + 0x148) &= ~(1UL << 35)`) | — | the header bitfield (`SO::fUnk35`) gives the same `ld/and/sd` | ms |
 | a `.c` body is 2-3 instructions off as C++ around a bit test: target `andi 1; bnez`, ours `xori 1; andi 1; beqz` | in C++ `!` yields `bool`, so `!(x & 1)` is computed, not branched on | write `(x & 1) == 0` | tu_15DC80 (func_0015E1D8) |
-| a `.c` function that passes an 8-byte struct by value differs: target spills the incoming `a2` (`sd a2,0(sp)`) and reloads it for the call (`ld a2,0(sp)`); ours copies it through a stack temporary with `ldl/ldr/sdl/sdr` and has a bigger frame | g++ 2.95 copies every by-value class argument into a temporary (pilot blocker B4) | not solved. Tried: an `aligned(8)` copy of the type for the parameter (keeps it in a register: 39/40 differ); punning the parameter as `long` (30/39 differ). Leave the TU unmerged | callback (EnsureSwCallback; PostSwCallback and ClearSwCallbacks, which only receive the struct, match as C++) |
+| a `.c` function that passes an 8-byte struct by value differs: target spills the incoming `a2` (`sd a2,0(sp)`) and reloads it for the call (`ld a2,0(sp)`); ours copies it through a stack temporary with `ldl/ldr/sdl/sdr` and has a bigger frame | g++ 2.95 copies every by-value class argument into a temporary (pilot blocker B4) | solved in wave 4 for the one case: the struct was a pointer to member function (`{short delta; short index; union {short delta2; pfn}}`; the per-file field test "index equal, then delta2 for a virtual or pfn, delta ignored" is g++'s own PMF `==`). Declared `void (CObj::*)(int)` it is passed in a register like the C struct and compared with `==`. Earlier tries (an `aligned(8)` copy of the type: 39/40 differ; the parameter as `long`: 30/39 differ) were dead ends. Before punning an 8-byte struct, check whether it is a PMF | callback (EnsureSwCallback, ClearSwCallbacks, PostSwCallback) |
 | shared-base stores (`lui; addiu; sw 0/4/8/C(base)`) where the target has one `lui` per store | the target's four words are separate globals, not one struct | keep separate `extern int D_...` declarations | spliceutils (GcShutdown*Pool) |
 | compile error: conflicting declarations of the same `extern "C"` function | two `.c` files declared one callee with different parameter types (C allowed it) | one prototype with the real types; callers cast if needed | tu_19F0A8 (SetStepguardSpecial), brx_sw (CBinaryInputStream readers) |
 | compile error: `redefinition of struct RGBA` (or CLOCK, DL...) | a TU-private type collides with a shared header | include only what the TU uses (slotheap.h deliberately does not include basic.h); a private type whose inline members shape codegen (tu_15DC80's `RGBA() {}`) stays private, under its own name if the TU also needs the shared header (brx_sw renamed its POD copy `RGBAPOD`) | brx_sw, tu_15DC80 |
 | an m2c body calls `UpdateLo()` / `UpdateStepguard()` with no arguments | m2c could not see that `a0`/`f12` are passed through unchanged | give the function the real parameters and pass them on (`UpdateStepguard(pguard, dt)`); no instructions change | tu_14FAC8, tu_15DC80 |
-| a `.c` caller passing an 8-byte struct by value is ~19 instructions off as C++: target loads it straight into `a2` with `ldl/ldr`, ours builds a stack temporary (B4, caller side) | as above: g++ copies a by-value class argument through a temporary | declare the parameter `long` and pass the 8 bytes read through a packed view: `struct LONGU { long l; } __attribute__((packed));` ... `EnsureSwCallback(psw, p, ((LONGU *)&D_002A4790)->l, 0)`; the packed (alignment 1) read is what gives `ldl/ldr` (an `aligned(4)` long typedef gives a plain `ld`) | barrier (NotifyBarrierImpact) |
+| a `.c` caller passing an 8-byte struct by value is ~19 instructions off as C++: target loads it straight into `a2` with `ldl/ldr`, ours builds a stack temporary (B4, caller side) | as above: g++ copies a by-value class argument through a temporary | declare the parameter `long` and pass the 8 bytes read through a packed view: `struct LONGU { long l; } __attribute__((packed));` ... `EnsureSwCallback(psw, p, ((LONGU *)&D_002A4790)->l, 0)`; the packed (alignment 1) read is what gives `ldl/ldr` (an `aligned(4)` long typedef gives a plain `ld`) | barrier (NotifyBarrierImpact), button (UpdateButton) |
+| button's UpdateButton is 8 instructions off with barrier's packed-long spelling `((LONGU *)&D_002A4E80)->l`: the high part of the global's address is scheduled after a store that precedes the call, not before it | the cast of the global's address builds the address differently from a direct reference | declare the global itself with the packed type: `extern const LONGU D_002A4E80;` and pass `D_002A4E80.l` (alias tricks on the view changed nothing). Since the struct is a PMF (callback above), passing a real PMF is the better long-term spelling for both callers (not done) | button |
+| a call through an inline wrapper in the per-function file is a few instructions off when the merged file calls the callee directly (arguments evaluated in the other order, or a temporary handled differently) | an inline function's parameters are evaluated into pseudos first | keep a small inline wrapper with the per-file shape (`NFindSymbol(psvstore, pchz)` around `NFindSaveSymbol(&psvstore->symtab, pchz)`; `RefGetSaveVarGlobal(pkey, psvset)`) | save (func_001D84B0, BuildSaveKeyV, RefGetSaveVarV, RefSetSaveVarV, func_001D8D80) |
+| a local that passes through an inline accessor is far off (95 of 103) | a `pash = &pbtn->aash[i]` local changes register allocation of the whole loop | index the member array in each expression as the per-file code did | button (RunBtnAsegs) |
 | a `.c` function calling through a table of `{pfnBegin, pfnEnd}` structs is ~30 instructions off as C++: target materialises `table+4` for `pfnEnd` apart, ours reuses the hoisted table base and loads at +4 | the C and C++ front ends build different RTL for `a[i].field` | declare the table as an array of pairs, `PFN D_002BDD88[][2]`, and call through `D_002BDD88[k][1]` | draw (DrawSw) |
 | a 1-bit bit-field test (`p->f == 0`) is far off as C++ (71 and 83 of ~200 instructions): target `ld; dsrl32 28; andi 1`, ours an AND with a 64-bit mask built by `ori; dsll32` | g++ folds the comparison into a mask test; the C front end extracts the bit. Changing the field's declared type does not help | compare `(int)p->f == 0` | find (MatchSwObject, CploFindSwObjectsByClass) |
 | an m2c body is a few instructions off by scheduling: a global float load hoisted above stores into the object | the global (`D_002DDF0C`) is really a field of a struct (`CLOCK` at `D_002DDED0` + 0x3C); a scalar memory reference can be moved across struct stores, an in-struct one cannot | read it as the struct field (sly2/basic.h `CLOCK::tReal`, or a TU-local view) | tu_15CD68 (func_0015D648 4 off, func_0015D880 12 off) |
@@ -185,6 +188,31 @@ Other observations:
   pool's SLOTHEAP (0x452098, 0x4520C0, 0x4520E8, 0x452110, 0x452138, 0x452160 for the six pools), which suggests
   the pool object is `{ void *apvBlock[4]; SLOTHEAP slotheap; }` (0x28 bytes, matching the pool spacing).
   include/sly2/slotheap.h is unchanged; check against the pool code before changing it.
+- Wave 4: the object parts of game classes (BUTTON : SO, VOLBTN/EXIT : VOL, WARP : XFM) were written as views of
+  the fields used (as barrier did), with hand-made vtable-entry calls whose slots are named in comments (3
+  HandleSpliceEvent, 4 SendMessage, 9 Remove, 38 an LO slot taking an LO *). This is what made exit_warp tractable
+  without the real LO/XFM/VOL classes; replacing the views with sly2/lo.h classes and real virtual calls is a later
+  step that needs the slot numbering checked.
+- Wave 4: a shared header may define something another shared header also defines: sly2/basic.h (generated) already
+  had `enum TAGK`, and it also defines CFrame and CLOCK, so sly2/cref.h cannot include it. Both now define TAGK under
+  one guard (`SLY2_ENUM_TAGK`). Check `grep -n "enum X\|struct X" include/sly2/*.h` before adding a type to a header,
+  and recompile every includer of a changed header (cref.h: nine files, identical matchtool output each time).
+- Wave 4: CRef's setters are split between members with mangled symbols (SetS32, SetF32, operator=, operator==,
+  Incref, Decref, SetTag) and C-named functions (CRef_ctor_*, CRef_Set*) that tools/rename.py has not named yet.
+  Callers in merged files call the members as members and the C-named ones as `CRef_SetVector(&ref, ...)`; both give
+  the same code as the per-file `ref = value` overloads (save).
+- Wave 4: the five Splice value heaps (CSpliceHeap, 0x452188..0x4521E8) moved to sly2/slotheap.h with
+  `SLY2_INSTANTIATE_SPLICE_HEAPS()`: TU ref uses them too and has the same 133-instruction static initializer as
+  spliceutils. Frames live in pool 2 (`CSlotPool<0x28, 0x200>`) and procs in pool 3 (`CSlotPool<0x1C, 0x800>`)
+  (CONFIRMED by eval's PvNewFrame/PvNewProc), methods in pool 6 (`CSlotPool<0x14, 0x100>`, ref's Decref).
+- Wave 4: linkonce destructors with in-charge flags appear as plain `func_` functions: eval's func_00257078 is
+  `~CFrame` (frees into pool 2 when `flags & 1`), func_002572E0 the parent-link destructor, ref's func_00257148
+  `~CProc`. A `delete pframe` in a merged file calls them through the class's out-of-line destructor.
+- Wave 4: the `SLY2_CC`/`-G0` overrides of eval's GcFrame_InitNode and GcProc_InitNode were not needed in the merged
+  file either.
+- tools/rename.py (wave 4 follow-up): it now always rebuilds the file that matches the renamed address (its
+  matched.csv source) and refuses a rename whose definition there is not spelled with the old symbol (a C++ member
+  such as `DMAS::AllocSw`). A merged TU is rebuilt whole and every function of it is compared by address.
 - `_GLOBAL_$I$` stubs named after a global (`_GLOBAL_$I$g_dro`, `_GLOBAL_$I$g_gc`): g++ names the stub after the
   first global the original file defined; the `_GLOBAL_$I$*` alias handles them like the `func_` ones.
 - Finalize hazards (wave 3): (1) never edit a file inside the TU directory in place while experimenting; `git rm`
@@ -326,19 +354,33 @@ changed matched.csv only in the line endings of the two dynarray rows edited by 
 rows; `sed` dropped the `\r`), committed as is. The same 333 SDK/asm sources do not build here; two wibo compiles of
 SDK files hung and were killed (a leftover from an earlier run among them).
 
+Wave 4 (the last asm-free TUs by size, exit_warp, save and callback):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| eval | splice/eval.cpp | 27 | 17 mangled evaluators as C++ over one CPair/CFrame/CProc; 8 linkonce (~CFrame, frame/proc pools); header: cref.h additions |
+| ref | splice/ref.cpp | 38 | CRef members; 133-instruction StaticInit (pools + CSpliceHeap, moved to slotheap.h); 9 m2c; 3 linkonce (~CProc); header: cref.h members, TAGK guard |
+| button | gameplay/objects/button.cpp | 50 | BTN (0x158) in BUTTON : SO and VOLBTN : VOL views; 27 m2c; packed global for the B4 caller |
+| exit_warp | level/exit_warp.cpp | 22 | EXIT : VOL, WARP : XFM views with named vtable slots; bis.h member calls; the exit timers at 0x15C (re-arm) and 0x160 (wipe delay) are two fields (both called `dt` in the per-file views; the commit message's "one field" is wrong) |
+| save | world/state/save.cpp | 24 | CRef setters from ref; SVKEY/SVENT/SVSTORE/SVSET; inline wrappers kept |
+| callback | world/scene/callback.cpp | 6 | B4 solved: the by-value struct is a pointer to member function |
+
+Total wave 4: 6 TUs, 167 functions, plus three header commits (sly2/cref.h twice with basic.h's TAGK guard,
+sly2/slotheap.h CSpliceHeap) and the rename.py fix.
+After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
+matched.csv unchanged by the run. The same 333 sources do not build here (one hung wibo compile of an SDK file,
+kCopy_0023B238.c, was killed).
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
 | tu_1147D8, tu_114AE0 | non-standard static initializer (185 / 1926 instructions): file-scope objects to model first |
-| callback | EnsureSwCallback passes an 8-byte struct by value (B4, see the table); the other 5 functions merge fine |
 | sprbuf | its static initializer (SPRBUF array + pools) is currently emulated with an asm-labelled hack under `SLY2_ASM: gnu-reorder-db`, which this Linux environment cannot build; needs a real spelling and a Mac to verify |
 | tu_119BC8 | 16 functions, 13 of them linkonce hash-table/dynarray instances with mixed per-file flags, an m2c body and a register pin; worth a session of its own |
-| exit_warp | 22 functions over two classes (EXIT : VOL, WARP : XFM) whose per-file views call virtuals through hand-made vtable-entry structs (slots 3 and 38); needs the real LO/XFM/VOL classes from sly2/lo.h and sly2/xfm.h and the slot numbering checked first. Not attempted in wave 3 |
-| save | 24 functions; RefGetSaveVar/RefSetSaveVar need CRef assignment overloads for VECTOR/CLQ/LM/SMP values that sly2/cref.h lacks, and sly2/basic.h's VECTOR is 12 bytes while the save data uses a 16-byte stride (a private aligned VECTOR would collide with basic.h). Needs a cref.h extension design first. Not attempted in wave 3 |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
-| eval, ref (wave 3) | next in size order (27 and 38 functions); eval has 17 per-file CRef spellings and two `SLY2_CC` files; not reached |
 
-B4 note: barrier's caller-side trick (pass a packed `long`) has not been tried on callback's EnsureSwCallback, which is
-the callee side (it spills the incoming register); HYPOTHESIS: declaring that parameter `long` and copying it into a
-local struct through the same packed view might reproduce the spill.
+After wave 4 no asm-free game TU is left unmerged except the four above (tu_1147D8, tu_114AE0, sprbuf's emulated
+initializer, tu_119BC8) and the two non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances
+not yet homed in a TU). The next merges are TUs whose files contain inline asm (134 directories, most of them
+register pins or VU0 macro-mode helpers); read "Path-hash quirk" first.
