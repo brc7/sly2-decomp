@@ -3846,8 +3846,8 @@ FindPathlinkRoute,0x1C21D8,321,match,src/game/engine/physics/path/FindPathlinkRo
 func_001C26E0,0x1C26E0,58,match,src/game/engine/physics/path/func_001C26E0.c
 StaticInit_path,0x1C27C8,77,match,src/game/engine/physics/path/StaticInit_path.c
 func_001C2900,0x1C2900,8,match,src/game/engine/physics/path/func_001C2900.c
-StaticInit_empty_1C2920,0x1C2920,77,match,src/game/engine/physics/empty_1C2920/StaticInit_empty_1C2920.c
-func_001C2A58,0x1C2A58,8,match,src/game/engine/physics/empty_1C2920/func_001C2A58.c
+StaticInit_empty_1C2920,0x1C2920,77,match,src/game/engine/physics/empty_1C2920.cpp
+func_001C2A58,0x1C2A58,8,match,src/game/engine/physics/empty_1C2920.cpp
 SetPhase__F5PHASE,0x1C2A78,76,match,src/game/platform/memory/phasemem/SetPhase__F5PHASE.c
 ClearPhase,0x1C2BA8,7,match,src/game/platform/memory/phasemem/ClearPhase.c
 StaticInit_phasemem,0x1C2BC8,77,match,src/game/platform/memory/phasemem/StaticInit_phasemem.c
