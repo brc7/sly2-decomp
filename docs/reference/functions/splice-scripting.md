@@ -242,11 +242,11 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128138](../../../src/game/splice/gc/CGc_ctor.c) | `CGc_ctor` | Constructor of the global GC object (zeroes first field) | 0.80 | T1 |  |
-| [0x128148](../../../src/game/splice/gc/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
-| [0x1281B0](../../../src/game/splice/gc/MarkLiveObjects__3CGc.c) | `CGc_MarkLiveObjects` | Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked | 0.85 | T1 |  |
-| [0x1285D8](../../../src/game/splice/gc/func_001285D8.c) | `CGc_MarkRootRef` | Marks one root CRef (pair/proc/method) and pushes it on the GC stacks | 0.40 | T2 |  |
-| [0x1286E0](../../../src/game/splice/gc/Collect__3CGc.c) | `CGc_Collect` | Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots (frames/sidebags/stack), MarkLiveObjects, FreeGarbage on all heaps | 0.85 | T1 |  |
+| [0x128138](../../../src/game/splice/gc.cpp) | `CGc_ctor` | Constructor of the global GC object (zeroes first field) | 0.80 | T1 |  |
+| [0x128148](../../../src/game/splice/gc.cpp) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
+| [0x1281B0](../../../src/game/splice/gc.cpp) | `CGc_MarkLiveObjects` | Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked | 0.85 | T1 |  |
+| [0x1285D8](../../../src/game/splice/gc.cpp) | `CGc_MarkRootRef` | Marks one root CRef (pair/proc/method) and pushes it on the GC stacks | 0.40 | T2 |  |
+| [0x1286E0](../../../src/game/splice/gc.cpp) | `CGc_Collect` | Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots (frames/sidebags/stack), MarkLiveObjects, FreeGarbage on all heaps | 0.85 | T1 |  |
 
 ## pair (0x128CB8-0x128F70)
 

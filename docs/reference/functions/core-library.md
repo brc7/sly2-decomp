@@ -482,18 +482,18 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x257340](../../../src/game/splice/frame.cpp) | `PvNewBinding` | allocate Binding node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257430](../../../src/game/splice/varb.cpp) | `BindingPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x257450](../../../src/game/splice/frame.cpp) | `BindingPtr_Assign` | refptr assign for binding list [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x2574E0](../../../src/game/splice/gc/func_002574E0.c) | `GcCollectNop0` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2574E8](../../../src/game/splice/gc/func_002574E8.c) | `GcCollectNop1` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2574F0](../../../src/game/splice/gc/func_002574F0.c) | `GcCollectNop2` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2574F8](../../../src/game/splice/gc/func_002574F8.c) | `GcCollectNop3` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x257500](../../../src/game/splice/gc/func_00257500.c) | `GcCollectNop4` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x257508](../../../src/game/splice/gc/func_00257508.c) | `GcCollectNop5` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x257510](../../../src/game/splice/gc/func_00257510.c) | `GcSweepFrames` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x257678](../../../src/game/splice/gc/func_00257678.c) | `GcSweepBindings` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x2577E0](../../../src/game/splice/gc/func_002577E0.c) | `GcSweepPairs` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x257948](../../../src/game/splice/gc/func_00257948.c) | `GcSweepProcs` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x257AB0](../../../src/game/splice/gc/func_00257AB0.c) | `GcSweepSidebags` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x257C18](../../../src/game/splice/gc/func_00257C18.c) | `GcSweepPool6s` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x2574E0](../../../src/game/splice/gc.cpp) | `GcCollectNop0` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2574E8](../../../src/game/splice/gc.cpp) | `GcCollectNop1` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2574F0](../../../src/game/splice/gc.cpp) | `GcCollectNop2` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2574F8](../../../src/game/splice/gc.cpp) | `GcCollectNop3` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x257500](../../../src/game/splice/gc.cpp) | `GcCollectNop4` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x257508](../../../src/game/splice/gc.cpp) | `GcCollectNop5` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x257510](../../../src/game/splice/gc.cpp) | `GcSweepFrames` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x257678](../../../src/game/splice/gc.cpp) | `GcSweepBindings` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x2577E0](../../../src/game/splice/gc.cpp) | `GcSweepPairs` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x257948](../../../src/game/splice/gc.cpp) | `GcSweepProcs` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x257AB0](../../../src/game/splice/gc.cpp) | `GcSweepSidebags` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x257C18](../../../src/game/splice/gc.cpp) | `GcSweepPool6s` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x257D80](../../../src/game/splice/sidebag/func_00257D80.c) | `PvNewSidebag` | allocate Sidebag node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257E68](../../../src/game/splice/sidebag/func_00257E68.c) | `SidebagPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x257E88](../../../src/game/splice/spliceutils.cpp) | `GcShutdownPairPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
