@@ -6,6 +6,9 @@
 > as `worklist.py`, `permute.sh`, `quickfix.py`). They are all still in the git history at commit `e0aacd4`.
 
 
+> **Merging per-function files into one file per translation unit** (the TU merge wave): see
+> [guides/tu-merging.md](guides/tu-merging.md) for the procedure, the mismatch causes met so far and the merged TUs.
+
 Goal: write C/C++ source that compiles to **byte-identical** code for functions of Sly 2 (SCUS_973.16).
 Project root: `/home/claude/decomp`. Always run tools from the root.
 
