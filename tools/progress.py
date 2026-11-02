@@ -21,7 +21,7 @@ def is_m2c(relpath):
 
 CACHE = os.path.join(M.ROOT, 'build', 'progress_cache.json')
 # NOTE: cached results are keyed by source path + mtime only. After changing the matching tools themselves
-# (matchtool.py, wibo_cc.py, asfix.py, gnu_reorder.py, tools/layout/compile_paths.csv), delete this file or
+# (matchtool.py, wibo_cc.py, asfix.py, gnu_reorder.py), delete this file or
 # the run will report stale results.
 B = os.path.join(M.ROOT, 'tools/compilers/bundle/ee-gcc2.95.3-136/lib/gcc-lib/ee/2.95.3')
 
