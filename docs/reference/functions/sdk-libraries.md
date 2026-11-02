@@ -28,33 +28,33 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x23320C](../../../src/sdk/libc/memcpy.c) | `memcpy` |  |  | existing |  |
 | [0x2332B8](../../../src/sdk/libc/memmove.c) | `memmove` |  |  | existing |  |
 | [0x2333B4](../../../src/sdk/libc/memset.c) | `memset` |  |  | existing |  |
-| [0x233470](../../../src/sdk/libc/func_00233470.c) | `strncmp` | newlib R5900 strncmp (MMI 8/16-byte compare, hand asm) [libc strncmp.o] | 0.95 | T1 |  |
+| [0x233470](../../../src/sdk/libc/strncmp.c) | `strncmp` | newlib R5900 strncmp (MMI 8/16-byte compare, hand asm) [libc strncmp.o] | 0.95 | T1 |  |
 | [0x233638](../../../src/sdk/libc/func_00233638.c) | `strncpy` | newlib R5900 strncpy (MMI, hand asm) [libc strncpy.o] | 0.95 | T1 |  |
 | [0x233800](../../../src/sdk/libc/atoi.c) | `atoi` |  |  | existing |  |
-| [0x233828](../../../src/sdk/libc/func_00233828.c) | `exit` | newlib exit: run atexit list (_impure_ptr->_atexit), __cleanup, then _exit [libc exit.o] | 0.95 | T1 |  |
+| [0x233828](../../../src/sdk/libc/exit.c) | `exit` | newlib exit: run atexit list (_impure_ptr->_atexit), __cleanup, then _exit [libc exit.o] | 0.95 | T1 |  |
 | [0x2338C0](../../../src/sdk/libc/qsort.c) | `qsort` |  |  | existing |  |
 | [0x2342A0](../../../src/sdk/libc/rand.c) | `rand` |  |  | existing |  |
-| [0x2342D0](../../../src/sdk/libc/func_002342D0.c) | `strcasecmp` | newlib strcasecmp via tolower [libc strcasecmp.o] | 0.95 | T1 |  |
-| [0x234350](../../../src/sdk/libc/func_00234350.c) | `_strtol_r` | newlib _strtol_r (64-bit long on EE) [libc strtol.o] | 0.95 | T1 |  |
+| [0x2342D0](../../../src/sdk/libc/strcasecmp.c) | `strcasecmp` | newlib strcasecmp via tolower [libc strcasecmp.o] | 0.95 | T1 |  |
+| [0x234350](../../../src/sdk/libc/_strtol_r.c) | `_strtol_r` | newlib _strtol_r (64-bit long on EE) [libc strtol.o] | 0.95 | T1 |  |
 | [0x234580](../../../src/sdk/libc/func_00234580.c) | `strtol` | newlib strtol: _strtol_r(_impure_ptr,...) [libc strtol.o] | 0.95 | T1 |  |
-| [0x2345B8](../../../src/sdk/libc/func_002345B8.c) | `tolower` | newlib tolower (ctype _U bit -> +0x20) [libc tolower.o] | 0.90 | T1 |  |
-| [0x234600](../../../src/sdk/libkernel/syscall/func_00234600.c) | `FullReset` | EE kernel syscall stub: li v1,0; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234610](../../../src/sdk/libkernel/syscall/func_00234610.c) | `ResetEE` | EE kernel syscall stub: li v1,1; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2345B8](../../../src/sdk/libc/tolower.c) | `tolower` | newlib tolower (ctype _U bit -> +0x20) [libc tolower.o] | 0.90 | T1 |  |
+| [0x234600](../../../src/sdk/libkernel/syscall/FullReset.c) | `FullReset` | EE kernel syscall stub: li v1,0; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234610](../../../src/sdk/libkernel/syscall/ResetEE.c) | `ResetEE` | EE kernel syscall stub: li v1,1; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234620](../../../src/sdk/libkernel/syscall/func_00234620.c) | `SetGsCrt` | EE kernel syscall stub: li v1,2; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234630](../../../src/sdk/libkernel/syscall/func_00234630.c) | `RFU003` | EE kernel syscall stub: li v1,3; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234630](../../../src/sdk/libkernel/syscall/RFU003.c) | `RFU003` | EE kernel syscall stub: li v1,3; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234640](../../../src/sdk/libkernel/syscall/func_00234640.c) | `_Exit` | EE kernel syscall stub: li v1,4; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234650](../../../src/sdk/libkernel/syscall/func_00234650.c) | `RFU005` | EE kernel syscall stub: li v1,5; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234660](../../../src/sdk/libkernel/syscall/func_00234660.c) | `_LoadExecPS2` | EE kernel syscall stub: li v1,6; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234670](../../../src/sdk/libkernel/syscall/func_00234670.c) | `_ExecPS2` | EE kernel syscall stub: li v1,7; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234680](../../../src/sdk/libkernel/syscall/func_00234680.c) | `RFU008` | EE kernel syscall stub: li v1,8; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234690](../../../src/sdk/libkernel/syscall/func_00234690.c) | `RFU009` | EE kernel syscall stub: li v1,9; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2346A0](../../../src/sdk/libkernel/syscall/func_002346A0.c) | `AddSbusIntcHandler` | EE kernel syscall stub: li v1,10; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2346B0](../../../src/sdk/libkernel/syscall/func_002346B0.c) | `RemoveSbusIntcHandler` | EE kernel syscall stub: li v1,11; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2346C0](../../../src/sdk/libkernel/syscall/func_002346C0.c) | `Interrupt2Iop` | EE kernel syscall stub: li v1,12; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2346D0](../../../src/sdk/libkernel/syscall/func_002346D0.c) | `SetVTLBRefillHandler` | EE kernel syscall stub: li v1,13; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2346E0](../../../src/sdk/libkernel/syscall/func_002346E0.c) | `SetVCommonHandler` | EE kernel syscall stub: li v1,14; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2346F0](../../../src/sdk/libkernel/syscall/func_002346F0.c) | `SetVInterruptHandler` | EE kernel syscall stub: li v1,15; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234700](../../../src/sdk/libkernel/syscall/func_00234700.c) | `AddIntcHandler` | EE kernel syscall stub: li v1,16; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234650](../../../src/sdk/libkernel/syscall/RFU005.c) | `RFU005` | EE kernel syscall stub: li v1,5; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234660](../../../src/sdk/libkernel/syscall/_LoadExecPS2.c) | `_LoadExecPS2` | EE kernel syscall stub: li v1,6; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234670](../../../src/sdk/libkernel/syscall/_ExecPS2.c) | `_ExecPS2` | EE kernel syscall stub: li v1,7; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234680](../../../src/sdk/libkernel/syscall/RFU008.c) | `RFU008` | EE kernel syscall stub: li v1,8; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234690](../../../src/sdk/libkernel/syscall/RFU009.c) | `RFU009` | EE kernel syscall stub: li v1,9; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2346A0](../../../src/sdk/libkernel/syscall/AddSbusIntcHandler.c) | `AddSbusIntcHandler` | EE kernel syscall stub: li v1,10; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2346B0](../../../src/sdk/libkernel/syscall/RemoveSbusIntcHandler.c) | `RemoveSbusIntcHandler` | EE kernel syscall stub: li v1,11; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2346C0](../../../src/sdk/libkernel/syscall/Interrupt2Iop.c) | `Interrupt2Iop` | EE kernel syscall stub: li v1,12; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2346D0](../../../src/sdk/libkernel/syscall/SetVTLBRefillHandler.c) | `SetVTLBRefillHandler` | EE kernel syscall stub: li v1,13; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2346E0](../../../src/sdk/libkernel/syscall/SetVCommonHandler.c) | `SetVCommonHandler` | EE kernel syscall stub: li v1,14; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2346F0](../../../src/sdk/libkernel/syscall/SetVInterruptHandler.c) | `SetVInterruptHandler` | EE kernel syscall stub: li v1,15; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234700](../../../src/sdk/libkernel/syscall/AddIntcHandler.c) | `AddIntcHandler` | EE kernel syscall stub: li v1,16; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234710](../../../src/sdk/libkernel/syscall/func_00234710.c) | `AddIntcHandler2` | EE kernel syscall stub: li v1,16; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234720](../../../src/sdk/libkernel/syscall/func_00234720.c) | `RemoveIntcHandler` | EE kernel syscall stub: li v1,17; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234730](../../../src/sdk/libkernel/syscall/func_00234730.c) | `AddDmacHandler` | EE kernel syscall stub: li v1,18; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
@@ -64,116 +64,116 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x234770](../../../src/sdk/libkernel/syscall/func_00234770.c) | `_DisableIntc` | EE kernel syscall stub: li v1,21; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234780](../../../src/sdk/libkernel/syscall/func_00234780.c) | `_EnableDmac` | EE kernel syscall stub: li v1,22; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234790](../../../src/sdk/libkernel/syscall/func_00234790.c) | `_DisableDmac` | EE kernel syscall stub: li v1,23; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2347A0](../../../src/sdk/libkernel/syscall/func_002347A0.c) | `SetAlarm` | EE kernel syscall stub: li v1,252; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2347B0](../../../src/sdk/libkernel/syscall/func_002347B0.c) | `ReleaseAlarm` | EE kernel syscall stub: li v1,253; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2347C0](../../../src/sdk/libkernel/syscall/func_002347C0.c) | `_iEnableIntc` | EE kernel syscall stub: li v1,-26; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2347A0](../../../src/sdk/libkernel/syscall/SetAlarm.c) | `SetAlarm` | EE kernel syscall stub: li v1,252; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2347B0](../../../src/sdk/libkernel/syscall/ReleaseAlarm.c) | `ReleaseAlarm` | EE kernel syscall stub: li v1,253; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2347C0](../../../src/sdk/libkernel/syscall/_iEnableIntc.c) | `_iEnableIntc` | EE kernel syscall stub: li v1,-26; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x2347D0](../../../src/sdk/libkernel/syscall/s1_CreateThread.c) | `_iDisableIntc` | EE kernel syscall stub: li v1,-27; syscall; jr ra [CORRECTION: current name is wrong for this syscall number] | 0.90 | existing | replaces existing CreateThread |
-| [0x2347E0](../../../src/sdk/libkernel/syscall/StartThread.c) | `_iEnableDmac` | EE kernel syscall stub: li v1,-28; syscall; jr ra [CORRECTION: current name is wrong for this syscall number] | 0.80 | existing | replaces existing StartThread |
-| [0x2347F0](../../../src/sdk/libkernel/syscall/func_002347F0.c) | `_iDisableDmac` | EE kernel syscall stub: li v1,-29; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234800](../../../src/sdk/libkernel/syscall/func_00234800.c) | `iSetAlarm` | EE kernel syscall stub: li v1,-254; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2347E0](../../../src/sdk/libkernel/syscall/_iEnableDmac.c) | `_iEnableDmac` | EE kernel syscall stub: li v1,-28; syscall; jr ra [CORRECTION: current name is wrong for this syscall number] | 0.80 | existing | replaces existing StartThread |
+| [0x2347F0](../../../src/sdk/libkernel/syscall/_iDisableDmac.c) | `_iDisableDmac` | EE kernel syscall stub: li v1,-29; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234800](../../../src/sdk/libkernel/syscall/iSetAlarm.c) | `iSetAlarm` | EE kernel syscall stub: li v1,-254; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234810](../../../src/sdk/libkernel/syscall/s1_ChangeThreadPriority.c) | `iReleaseAlarm` | EE kernel syscall stub: li v1,-255; syscall; jr ra [CORRECTION: current name is wrong for this syscall number] | 0.80 | existing | replaces existing ChangeThreadPriority |
 | [0x234820](../../../src/sdk/libkernel/syscall/func_00234820.c) | `CreateThread` | EE kernel syscall stub: li v1,32; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234830](../../../src/sdk/libkernel/syscall/func_00234830.c) | `DeleteThread` | EE kernel syscall stub: li v1,33; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234830](../../../src/sdk/libkernel/syscall/DeleteThread.c) | `DeleteThread` | EE kernel syscall stub: li v1,33; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234840](../../../src/sdk/libkernel/syscall/func_00234840.c) | `StartThread` | EE kernel syscall stub: li v1,34; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234850](../../../src/sdk/libkernel/syscall/func_00234850.c) | `ExitThread` | EE kernel syscall stub: li v1,35; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234860](../../../src/sdk/libkernel/syscall/func_00234860.c) | `ExitDeleteThread` | EE kernel syscall stub: li v1,36; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234870](../../../src/sdk/libkernel/syscall/func_00234870.c) | `TerminateThread` | EE kernel syscall stub: li v1,37; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234880](../../../src/sdk/libkernel/syscall/func_00234880.c) | `iTerminateThread` | EE kernel syscall stub: li v1,-38; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234890](../../../src/sdk/libkernel/syscall/func_00234890.c) | `DisableDispatchThread` | EE kernel syscall stub: li v1,39; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2348A0](../../../src/sdk/libkernel/syscall/func_002348A0.c) | `EnableDispatchThread` | EE kernel syscall stub: li v1,40; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234850](../../../src/sdk/libkernel/syscall/ExitThread.c) | `ExitThread` | EE kernel syscall stub: li v1,35; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234860](../../../src/sdk/libkernel/syscall/ExitDeleteThread.c) | `ExitDeleteThread` | EE kernel syscall stub: li v1,36; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234870](../../../src/sdk/libkernel/syscall/TerminateThread.c) | `TerminateThread` | EE kernel syscall stub: li v1,37; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234880](../../../src/sdk/libkernel/syscall/iTerminateThread.c) | `iTerminateThread` | EE kernel syscall stub: li v1,-38; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234890](../../../src/sdk/libkernel/syscall/DisableDispatchThread.c) | `DisableDispatchThread` | EE kernel syscall stub: li v1,39; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2348A0](../../../src/sdk/libkernel/syscall/EnableDispatchThread.c) | `EnableDispatchThread` | EE kernel syscall stub: li v1,40; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x2348B0](../../../src/sdk/libkernel/syscall/func_002348B0.c) | `ChangeThreadPriority` | EE kernel syscall stub: li v1,41; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2348C0](../../../src/sdk/libkernel/syscall/func_002348C0.c) | `iChangeThreadPriority` | EE kernel syscall stub: li v1,-42; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x2348C0](../../../src/sdk/libkernel/syscall/iChangeThreadPriority.c) | `iChangeThreadPriority` | EE kernel syscall stub: li v1,-42; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x2348D0](../../../src/sdk/libkernel/syscall/func_002348D0.c) | `RotateThreadReadyQueue` | EE kernel syscall stub: li v1,43; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2348E0](../../../src/sdk/libkernel/syscall/func_002348E0.c) | `_iRotateThreadReadyQueue` | EE kernel syscall stub: li v1,-44; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2348E0](../../../src/sdk/libkernel/syscall/_iRotateThreadReadyQueue.c) | `_iRotateThreadReadyQueue` | EE kernel syscall stub: li v1,-44; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x2348F0](../../../src/sdk/libkernel/syscall/s1_GetThreadId.c) | `ReleaseWaitThread` | EE kernel syscall stub: li v1,45; syscall; jr ra [CORRECTION: current name is wrong for this syscall number] | 0.80 | existing | replaces existing GetThreadId |
-| [0x234900](../../../src/sdk/libkernel/syscall/func_00234900.c) | `iReleaseWaitThread` | EE kernel syscall stub: li v1,-46; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234900](../../../src/sdk/libkernel/syscall/iReleaseWaitThread.c) | `iReleaseWaitThread` | EE kernel syscall stub: li v1,-46; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234910](../../../src/sdk/libkernel/syscall/func_00234910.c) | `GetThreadId` | EE kernel syscall stub: li v1,47; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234920](../../../src/sdk/libkernel/syscall/func_00234920.c) | `ReferThreadStatus` | EE kernel syscall stub: li v1,48; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234930](../../../src/sdk/libkernel/syscall/func_00234930.c) | `iReferThreadStatus` | EE kernel syscall stub: li v1,-49; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234940](../../../src/sdk/libkernel/syscall/func_00234940.c) | `SleepThread` | EE kernel syscall stub: li v1,50; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234930](../../../src/sdk/libkernel/syscall/iReferThreadStatus.c) | `iReferThreadStatus` | EE kernel syscall stub: li v1,-49; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234940](../../../src/sdk/libkernel/syscall/SleepThread.c) | `SleepThread` | EE kernel syscall stub: li v1,50; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234950](../../../src/sdk/libkernel/syscall/func_00234950.c) | `WakeupThread` | EE kernel syscall stub: li v1,51; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234960](../../../src/sdk/libkernel/syscall/func_00234960.c) | `_iWakeupThread` | EE kernel syscall stub: li v1,-52; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234970](../../../src/sdk/libkernel/syscall/func_00234970.c) | `CancelWakeupThread` | EE kernel syscall stub: li v1,53; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234980](../../../src/sdk/libkernel/syscall/func_00234980.c) | `iCancelWakeupThread` | EE kernel syscall stub: li v1,-54; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234970](../../../src/sdk/libkernel/syscall/CancelWakeupThread.c) | `CancelWakeupThread` | EE kernel syscall stub: li v1,53; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234980](../../../src/sdk/libkernel/syscall/iCancelWakeupThread.c) | `iCancelWakeupThread` | EE kernel syscall stub: li v1,-54; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234990](../../../src/sdk/libkernel/syscall/func_00234990.c) | `SuspendThread` | EE kernel syscall stub: li v1,55; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x2349A0](../../../src/sdk/libkernel/syscall/func_002349A0.c) | `_iSuspendThread` | EE kernel syscall stub: li v1,-56; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2349B0](../../../src/sdk/libkernel/syscall/func_002349B0.c) | `ResumeThread` | EE kernel syscall stub: li v1,57; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2349C0](../../../src/sdk/libkernel/syscall/func_002349C0.c) | `iResumeThread` | EE kernel syscall stub: li v1,-58; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2349D0](../../../src/sdk/libkernel/syscall/func_002349D0.c) | `JoinThread` | EE kernel syscall stub: li v1,59; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2349E0](../../../src/sdk/libkernel/syscall/func_002349E0.c) | `SetupThread` | EE kernel syscall stub: li v1,60; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x2349F0](../../../src/sdk/libkernel/syscall/func_002349F0.c) | `SetupHeap` | EE kernel syscall stub: li v1,61; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234A00](../../../src/sdk/libkernel/syscall/func_00234A00.c) | `EndOfHeap` | EE kernel syscall stub: li v1,62; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234A10](../../../src/sdk/libkernel/syscall/func_00234A10.c) | `RFU063` | EE kernel syscall stub: li v1,63; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2349A0](../../../src/sdk/libkernel/syscall/_iSuspendThread.c) | `_iSuspendThread` | EE kernel syscall stub: li v1,-56; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2349B0](../../../src/sdk/libkernel/syscall/ResumeThread.c) | `ResumeThread` | EE kernel syscall stub: li v1,57; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2349C0](../../../src/sdk/libkernel/syscall/iResumeThread.c) | `iResumeThread` | EE kernel syscall stub: li v1,-58; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2349D0](../../../src/sdk/libkernel/syscall/JoinThread.c) | `JoinThread` | EE kernel syscall stub: li v1,59; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2349E0](../../../src/sdk/libkernel/syscall/SetupThread.c) | `SetupThread` | EE kernel syscall stub: li v1,60; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x2349F0](../../../src/sdk/libkernel/syscall/SetupHeap.c) | `SetupHeap` | EE kernel syscall stub: li v1,61; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234A00](../../../src/sdk/libkernel/syscall/EndOfHeap.c) | `EndOfHeap` | EE kernel syscall stub: li v1,62; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234A10](../../../src/sdk/libkernel/syscall/RFU063.c) | `RFU063` | EE kernel syscall stub: li v1,63; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234A20](../../../src/sdk/libkernel/syscall/s1_CreateSema.c) | `CreateSema` |  |  | existing |  |
 | [0x234A30](../../../src/sdk/libkernel/syscall/func_00234A30.c) | `DeleteSema` | EE kernel syscall stub: li v1,65; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234A40](../../../src/sdk/libkernel/syscall/s1_SignalSema.c) | `SignalSema` |  |  | existing |  |
 | [0x234A50](../../../src/sdk/libkernel/syscall/func_00234A50.c) | `iSignalSema` | EE kernel syscall stub: li v1,-67; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234A60](../../../src/sdk/libkernel/syscall/s1_WaitSema.c) | `WaitSema` |  |  | existing |  |
 | [0x234A70](../../../src/sdk/libkernel/syscall/func_00234A70.c) | `PollSema` | EE kernel syscall stub: li v1,69; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234A80](../../../src/sdk/libkernel/syscall/func_00234A80.c) | `iPollSema` | EE kernel syscall stub: li v1,-70; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234A90](../../../src/sdk/libkernel/syscall/func_00234A90.c) | `ReferSemaStatus` | EE kernel syscall stub: li v1,71; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234AA0](../../../src/sdk/libkernel/syscall/func_00234AA0.c) | `iReferSemaStatus` | EE kernel syscall stub: li v1,-72; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234AB0](../../../src/sdk/libkernel/syscall/func_00234AB0.c) | `RFU073` | EE kernel syscall stub: li v1,73; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234A80](../../../src/sdk/libkernel/syscall/iPollSema.c) | `iPollSema` | EE kernel syscall stub: li v1,-70; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234A90](../../../src/sdk/libkernel/syscall/ReferSemaStatus.c) | `ReferSemaStatus` | EE kernel syscall stub: li v1,71; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234AA0](../../../src/sdk/libkernel/syscall/iReferSemaStatus.c) | `iReferSemaStatus` | EE kernel syscall stub: li v1,-72; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234AB0](../../../src/sdk/libkernel/syscall/RFU073.c) | `RFU073` | EE kernel syscall stub: li v1,73; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234AC0](../../../src/sdk/libkernel/syscall/func_00234AC0.c) | `SetOsdConfigParam` | EE kernel syscall stub: li v1,74; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234AD0](../../../src/sdk/libkernel/syscall/func_00234AD0.c) | `GetOsdConfigParam` | EE kernel syscall stub: li v1,75; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234AE0](../../../src/sdk/libkernel/syscall/func_00234AE0.c) | `GetGsHParam` | EE kernel syscall stub: li v1,76; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234AF0](../../../src/sdk/libkernel/syscall/func_00234AF0.c) | `GetGsVParam` | EE kernel syscall stub: li v1,77; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B00](../../../src/sdk/libkernel/syscall/func_00234B00.c) | `SetGsHParam` | EE kernel syscall stub: li v1,78; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B10](../../../src/sdk/libkernel/syscall/func_00234B10.c) | `SetGsVParam` | EE kernel syscall stub: li v1,79; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B20](../../../src/sdk/libkernel/syscall/func_00234B20.c) | `CreateEventFlag` | EE kernel syscall stub: li v1,80; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B30](../../../src/sdk/libkernel/syscall/func_00234B30.c) | `DeleteEventFlag` | EE kernel syscall stub: li v1,81; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B40](../../../src/sdk/libkernel/syscall/func_00234B40.c) | `SetEventFlag` | EE kernel syscall stub: li v1,82; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B50](../../../src/sdk/libkernel/syscall/func_00234B50.c) | `iSetEventFlag` | EE kernel syscall stub: li v1,-83; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234B60](../../../src/sdk/libkernel/syscall/func_00234B60.c) | `ClearEventFlag` | EE kernel syscall stub: li v1,84; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234B70](../../../src/sdk/libkernel/syscall/func_00234B70.c) | `iClearEventFlag` | EE kernel syscall stub: li v1,-85; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234B80](../../../src/sdk/libkernel/syscall/func_00234B80.c) | `WaitEventFlag` | EE kernel syscall stub: li v1,86; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234B90](../../../src/sdk/libkernel/syscall/func_00234B90.c) | `PollEventFlag` | EE kernel syscall stub: li v1,87; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234BA0](../../../src/sdk/libkernel/syscall/func_00234BA0.c) | `iPollEventFlag` | EE kernel syscall stub: li v1,-88; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234BB0](../../../src/sdk/libkernel/syscall/func_00234BB0.c) | `ReferEventFlagStatus` | EE kernel syscall stub: li v1,89; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234BC0](../../../src/sdk/libkernel/syscall/func_00234BC0.c) | `iReferEventFlagStatus` | EE kernel syscall stub: li v1,-90; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
-| [0x234BD0](../../../src/sdk/libkernel/syscall/func_00234BD0.c) | `GetEntryAddress` | EE kernel syscall stub: li v1,91; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234BE0](../../../src/sdk/libkernel/syscall/func_00234BE0.c) | `EnableIntcHandler` | EE kernel syscall stub: li v1,92; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234BF0](../../../src/sdk/libkernel/syscall/func_00234BF0.c) | `iEnableIntcHandler` | EE kernel syscall stub: li v1,-92; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C00](../../../src/sdk/libkernel/syscall/func_00234C00.c) | `DisableIntcHandler` | EE kernel syscall stub: li v1,93; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C10](../../../src/sdk/libkernel/syscall/func_00234C10.c) | `iDisableIntcHandler` | EE kernel syscall stub: li v1,-93; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C20](../../../src/sdk/libkernel/syscall/func_00234C20.c) | `EnableDmacHandler` | EE kernel syscall stub: li v1,94; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C30](../../../src/sdk/libkernel/syscall/func_00234C30.c) | `iEnableDmacHandler` | EE kernel syscall stub: li v1,-94; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C40](../../../src/sdk/libkernel/syscall/func_00234C40.c) | `DisableDmacHandler` | EE kernel syscall stub: li v1,95; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C50](../../../src/sdk/libkernel/syscall/func_00234C50.c) | `iDisableDmacHandler` | EE kernel syscall stub: li v1,-95; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C60](../../../src/sdk/libkernel/syscall/func_00234C60.c) | `KSeg0` | EE kernel syscall stub: li v1,96; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C70](../../../src/sdk/libkernel/syscall/func_00234C70.c) | `EnableCache` | EE kernel syscall stub: li v1,97; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C80](../../../src/sdk/libkernel/syscall/func_00234C80.c) | `DisableCache` | EE kernel syscall stub: li v1,98; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234C90](../../../src/sdk/libkernel/syscall/func_00234C90.c) | `GetCop0` | EE kernel syscall stub: li v1,99; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234AE0](../../../src/sdk/libkernel/syscall/GetGsHParam.c) | `GetGsHParam` | EE kernel syscall stub: li v1,76; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234AF0](../../../src/sdk/libkernel/syscall/GetGsVParam.c) | `GetGsVParam` | EE kernel syscall stub: li v1,77; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B00](../../../src/sdk/libkernel/syscall/SetGsHParam.c) | `SetGsHParam` | EE kernel syscall stub: li v1,78; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B10](../../../src/sdk/libkernel/syscall/SetGsVParam.c) | `SetGsVParam` | EE kernel syscall stub: li v1,79; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B20](../../../src/sdk/libkernel/syscall/CreateEventFlag.c) | `CreateEventFlag` | EE kernel syscall stub: li v1,80; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B30](../../../src/sdk/libkernel/syscall/DeleteEventFlag.c) | `DeleteEventFlag` | EE kernel syscall stub: li v1,81; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B40](../../../src/sdk/libkernel/syscall/SetEventFlag.c) | `SetEventFlag` | EE kernel syscall stub: li v1,82; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B50](../../../src/sdk/libkernel/syscall/iSetEventFlag.c) | `iSetEventFlag` | EE kernel syscall stub: li v1,-83; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234B60](../../../src/sdk/libkernel/syscall/ClearEventFlag.c) | `ClearEventFlag` | EE kernel syscall stub: li v1,84; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234B70](../../../src/sdk/libkernel/syscall/iClearEventFlag.c) | `iClearEventFlag` | EE kernel syscall stub: li v1,-85; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234B80](../../../src/sdk/libkernel/syscall/WaitEventFlag.c) | `WaitEventFlag` | EE kernel syscall stub: li v1,86; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234B90](../../../src/sdk/libkernel/syscall/PollEventFlag.c) | `PollEventFlag` | EE kernel syscall stub: li v1,87; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234BA0](../../../src/sdk/libkernel/syscall/iPollEventFlag.c) | `iPollEventFlag` | EE kernel syscall stub: li v1,-88; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234BB0](../../../src/sdk/libkernel/syscall/ReferEventFlagStatus.c) | `ReferEventFlagStatus` | EE kernel syscall stub: li v1,89; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234BC0](../../../src/sdk/libkernel/syscall/iReferEventFlagStatus.c) | `iReferEventFlagStatus` | EE kernel syscall stub: li v1,-90; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.60 | T1 |  |
+| [0x234BD0](../../../src/sdk/libkernel/syscall/GetEntryAddress.c) | `GetEntryAddress` | EE kernel syscall stub: li v1,91; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234BE0](../../../src/sdk/libkernel/syscall/EnableIntcHandler.c) | `EnableIntcHandler` | EE kernel syscall stub: li v1,92; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234BF0](../../../src/sdk/libkernel/syscall/iEnableIntcHandler.c) | `iEnableIntcHandler` | EE kernel syscall stub: li v1,-92; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C00](../../../src/sdk/libkernel/syscall/DisableIntcHandler.c) | `DisableIntcHandler` | EE kernel syscall stub: li v1,93; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C10](../../../src/sdk/libkernel/syscall/iDisableIntcHandler.c) | `iDisableIntcHandler` | EE kernel syscall stub: li v1,-93; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C20](../../../src/sdk/libkernel/syscall/EnableDmacHandler.c) | `EnableDmacHandler` | EE kernel syscall stub: li v1,94; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C30](../../../src/sdk/libkernel/syscall/iEnableDmacHandler.c) | `iEnableDmacHandler` | EE kernel syscall stub: li v1,-94; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C40](../../../src/sdk/libkernel/syscall/DisableDmacHandler.c) | `DisableDmacHandler` | EE kernel syscall stub: li v1,95; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C50](../../../src/sdk/libkernel/syscall/iDisableDmacHandler.c) | `iDisableDmacHandler` | EE kernel syscall stub: li v1,-95; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C60](../../../src/sdk/libkernel/syscall/KSeg0.c) | `KSeg0` | EE kernel syscall stub: li v1,96; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C70](../../../src/sdk/libkernel/syscall/EnableCache.c) | `EnableCache` | EE kernel syscall stub: li v1,97; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C80](../../../src/sdk/libkernel/syscall/DisableCache.c) | `DisableCache` | EE kernel syscall stub: li v1,98; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234C90](../../../src/sdk/libkernel/syscall/GetCop0.c) | `GetCop0` | EE kernel syscall stub: li v1,99; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234CA0](../../../src/sdk/libkernel/syscall/s1_FlushCache.c) | `FlushCache` |  |  | existing |  |
-| [0x234CB0](../../../src/sdk/libkernel/syscall/func_00234CB0.c) | `CpuConfig` | EE kernel syscall stub: li v1,102; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234CC0](../../../src/sdk/libkernel/syscall/func_00234CC0.c) | `iGetCop0` | EE kernel syscall stub: li v1,-103; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234CD0](../../../src/sdk/libkernel/syscall/func_00234CD0.c) | `iFlushCache` | EE kernel syscall stub: li v1,-104; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234CE0](../../../src/sdk/libkernel/syscall/func_00234CE0.c) | `iCpuConfig` | EE kernel syscall stub: li v1,-106; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234CB0](../../../src/sdk/libkernel/syscall/CpuConfig.c) | `CpuConfig` | EE kernel syscall stub: li v1,102; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234CC0](../../../src/sdk/libkernel/syscall/iGetCop0.c) | `iGetCop0` | EE kernel syscall stub: li v1,-103; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234CD0](../../../src/sdk/libkernel/syscall/iFlushCache.c) | `iFlushCache` | EE kernel syscall stub: li v1,-104; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234CE0](../../../src/sdk/libkernel/syscall/iCpuConfig.c) | `iCpuConfig` | EE kernel syscall stub: li v1,-106; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234CF0](../../../src/sdk/libkernel/syscall/func_00234CF0.c) | `sceSifStopDma` | EE kernel syscall stub: li v1,107; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234D00](../../../src/sdk/libkernel/syscall/func_00234D00.c) | `SetCPUTimerHandler` | EE kernel syscall stub: li v1,108; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234D10](../../../src/sdk/libkernel/syscall/func_00234D10.c) | `SetCPUTimer` | EE kernel syscall stub: li v1,109; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234D00](../../../src/sdk/libkernel/syscall/SetCPUTimerHandler.c) | `SetCPUTimerHandler` | EE kernel syscall stub: li v1,108; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234D10](../../../src/sdk/libkernel/syscall/SetCPUTimer.c) | `SetCPUTimer` | EE kernel syscall stub: li v1,109; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234D20](../../../src/sdk/libkernel/syscall/func_00234D20.c) | `SetOsdConfigParam2` | EE kernel syscall stub: li v1,110; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T2 |  |
 | [0x234D30](../../../src/sdk/libkernel/syscall/func_00234D30.c) | `GetOsdConfigParam2` | EE kernel syscall stub: li v1,111; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T2 |  |
 | [0x234D40](../../../src/sdk/libkernel/syscall/func_00234D40.c) | `GsGetIMR` | EE kernel syscall stub: li v1,112; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234D50](../../../src/sdk/libkernel/syscall/func_00234D50.c) | `iGsGetIMR` | EE kernel syscall stub: li v1,-112; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234D50](../../../src/sdk/libkernel/syscall/iGsGetIMR.c) | `iGsGetIMR` | EE kernel syscall stub: li v1,-112; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234D60](../../../src/sdk/libkernel/syscall/func_00234D60.c) | `GsPutIMR` | EE kernel syscall stub: li v1,113; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234D70](../../../src/sdk/libkernel/syscall/func_00234D70.c) | `iGsPutIMR` | EE kernel syscall stub: li v1,-113; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234D80](../../../src/sdk/libkernel/syscall/func_00234D80.c) | `SetPgifHandler` | EE kernel syscall stub: li v1,114; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234D90](../../../src/sdk/libkernel/syscall/func_00234D90.c) | `SetVSyncFlag` | EE kernel syscall stub: li v1,115; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234DA0](../../../src/sdk/libkernel/syscall/func_00234DA0.c) | `SetSyscall` | EE kernel syscall stub: li v1,116; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234DB0](../../../src/sdk/libkernel/syscall/func_00234DB0.c) | `_print` | EE kernel syscall stub: li v1,117; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234D70](../../../src/sdk/libkernel/syscall/iGsPutIMR.c) | `iGsPutIMR` | EE kernel syscall stub: li v1,-113; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234D80](../../../src/sdk/libkernel/syscall/SetPgifHandler.c) | `SetPgifHandler` | EE kernel syscall stub: li v1,114; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234D90](../../../src/sdk/libkernel/syscall/SetVSyncFlag.c) | `SetVSyncFlag` | EE kernel syscall stub: li v1,115; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234DA0](../../../src/sdk/libkernel/syscall/SetSyscall.c) | `SetSyscall` | EE kernel syscall stub: li v1,116; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234DB0](../../../src/sdk/libkernel/syscall/_print.c) | `_print` | EE kernel syscall stub: li v1,117; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234DC0](../../../src/sdk/libkernel/syscall/func_00234DC0.c) | `sceSifDmaStat` | EE kernel syscall stub: li v1,118; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234DD0](../../../src/sdk/libkernel/syscall/func_00234DD0.c) | `isceSifDmaStat` | EE kernel syscall stub: li v1,-118; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
+| [0x234DD0](../../../src/sdk/libkernel/syscall/isceSifDmaStat.c) | `isceSifDmaStat` | EE kernel syscall stub: li v1,-118; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234DE0](../../../src/sdk/libkernel/syscall/func_00234DE0.c) | `sceSifSetDma` | EE kernel syscall stub: li v1,119; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234DF0](../../../src/sdk/libkernel/syscall/func_00234DF0.c) | `isceSifSetDma` | EE kernel syscall stub: li v1,-119; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234E00](../../../src/sdk/libkernel/syscall/func_00234E00.c) | `sceSifSetDChain` | EE kernel syscall stub: li v1,120; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234E10](../../../src/sdk/libkernel/syscall/func_00234E10.c) | `isceSifSetDChain` | EE kernel syscall stub: li v1,-120; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234E20](../../../src/sdk/libkernel/syscall/func_00234E20.c) | `sceSifSetReg` | EE kernel syscall stub: li v1,121; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234E30](../../../src/sdk/libkernel/syscall/func_00234E30.c) | `sceSifGetReg` | EE kernel syscall stub: li v1,122; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234E40](../../../src/sdk/libkernel/syscall/func_00234E40.c) | `_ExecOSD` | EE kernel syscall stub: li v1,123; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234E40](../../../src/sdk/libkernel/syscall/_ExecOSD.c) | `_ExecOSD` | EE kernel syscall stub: li v1,123; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234E50](../../../src/sdk/libkernel/syscall/func_00234E50.c) | `Deci2Call` | EE kernel syscall stub: li v1,124; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
-| [0x234E60](../../../src/sdk/libkernel/syscall/func_00234E60.c) | `PSMode` | EE kernel syscall stub: li v1,125; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
-| [0x234E70](../../../src/sdk/libkernel/syscall/func_00234E70.c) | `MachineType` | EE kernel syscall stub: li v1,126; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234E60](../../../src/sdk/libkernel/syscall/PSMode.c) | `PSMode` | EE kernel syscall stub: li v1,125; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
+| [0x234E70](../../../src/sdk/libkernel/syscall/MachineType.c) | `MachineType` | EE kernel syscall stub: li v1,126; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.80 | T1 |  |
 | [0x234E80](../../../src/sdk/libkernel/syscall/func_00234E80.c) | `GetMemorySize` | EE kernel syscall stub: li v1,127; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234E90](../../../src/sdk/libkernel/syscall/func_00234E90.c) | `_InitTLB` | EE kernel syscall stub: li v1,130; syscall; jr ra [libkernel klib.o (syscall stub table)] | 0.90 | T1 |  |
 | [0x234EA0](../../../src/sdk/libkernel/_sceSDC.c) | `_sceSDC` |  |  | existing |  |
@@ -240,7 +240,7 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x238BD0](../../../src/sdk/libkernel/sceSifInitIopHeap.c) | `sceSifInitIopHeap` |  |  | existing |  |
 | [0x238C58](../../../src/sdk/libkernel/sceSifAllocIopHeap.c) | `sceSifAllocIopHeap` |  |  | existing |  |
 | [0x238CC8](../../../src/sdk/libkernel/func_00238CC8.c) | `sceSifFreeSysMemory` | IOP heap RPC #2 free(addr); returns result [libkernel iopheap.o] | 0.75 | T1 |  |
-| [0x238D40](../../../src/sdk/libkernel/func_00238D40.c) | `sceSifFreeIopHeap` | wrapper -> sceSifFreeSysMemory [libkernel iopheap.o] | 0.75 | T1 |  |
+| [0x238D40](../../../src/sdk/libkernel/sceSifFreeIopHeap.c) | `sceSifFreeIopHeap` | wrapper -> sceSifFreeSysMemory [libkernel iopheap.o] | 0.75 | T1 |  |
 | [0x238D70](../../../src/sdk/libkernel/_lf_bind.c) | `_lf_bind` |  |  | existing |  |
 | [0x238E70](../../../src/sdk/libkernel/func_00238E70.c) | `_lf_version` | loadfile version check (memcmp x3) [libkernel eeloadfile.o] | 0.80 | T1 |  |
 | [0x238F00](../../../src/sdk/libkernel/sceSifLoadFileReset.c) | `sceSifLoadFileReset` |  |  | existing |  |
@@ -392,7 +392,7 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x2401D8](../../../src/sdk/libc/func_002401D8.c) | `strcmp` | newlib R5900 strcmp (MMI, hand asm) [libc strcmp.o] | 0.95 | T1 |  |
 | [0x240328](../../../src/sdk/libc/func_00240328.c) | `abort` | abort: _exit(1) (noreturn); called by __default_terminate [libc abort.o] | 0.80 | T1 |  |
 | [0x240338](../../../src/sdk/libgraph/s1_sceGsResetPath.c) | `sceGsResetPath` |  |  | existing |  |
-| [0x2403D8](../../../src/sdk/libgraph/func_002403D8.c) | `sceGsSyncPath` | wait until VIF0/VIF1/GIF/VU0/VU1 idle; returns 0 (mode/timeout unused here) [libgraph] | 0.65 | T1 |  |
+| [0x2403D8](../../../src/sdk/libgraph/sceGsSyncPath.c) | `sceGsSyncPath` | wait until VIF0/VIF1/GIF/VU0/VU1 idle; returns 0 (mode/timeout unused here) [libgraph] | 0.65 | T1 |  |
 | [0x240460](../../../src/sdk/libgraph/sceGsResetGraph.c) | `sceGsResetGraph` |  |  | existing |  |
 | [0x2405F0](../../../src/sdk/libgraph/func_002405F0.c) | `sceGsGetGParam` | return &gs param block (D_002C66F0) [libgraph graph001.o] | 0.85 | T1 |  |
 | [0x240600](../../../src/sdk/libgraph/sceGsPutDispEnv.c) | `sceGsPutDispEnv` |  |  | existing |  |
@@ -400,8 +400,8 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x2407A8](../../../src/sdk/libgraph/sceGsSetDefDBuff.c) | `sceGsSetDefDBuff` |  |  | existing |  |
 | [0x240A40](../../../src/sdk/libgraph/sceGsSwapDBuff.c) | `sceGsSwapDBuff` |  |  | existing |  |
 | [0x240AA0](../../../src/sdk/libgraph/func_00240AA0.c) | `sceGsPutIMR` | old=GsGetIMR(); GsPutIMR(v); return old [libgraph] | 0.85 | T1 |  |
-| [0x240AE0](../../../src/sdk/libgraph/func_00240AE0.c) | `sceGsSetHalfOffset` | set XYOFFSET from scissor centre, +8 (half pixel) when half!=0 [libgraph] | 0.85 | T1 |  |
-| [0x240B68](../../../src/sdk/libgraph/func_00240B68.c) | `sceGsGetIMR` | return GsGetIMR() [libgraph] | 0.80 | T1 |  |
+| [0x240AE0](../../../src/sdk/libgraph/sceGsSetHalfOffset.c) | `sceGsSetHalfOffset` | set XYOFFSET from scissor centre, +8 (half pixel) when half!=0 [libgraph] | 0.85 | T1 |  |
+| [0x240B68](../../../src/sdk/libgraph/sceGsGetIMR.c) | `sceGsGetIMR` | return GsGetIMR() [libgraph] | 0.80 | T1 |  |
 | [0x240B88](../../../src/sdk/libgraph/checkModelVersion.c) | `checkModelVersion` |  |  | existing |  |
 | [0x240C28](../../../src/sdk/libgraph/syscall/func_00240C28.c) | `_GetGsDxDyOffset` | file-local copy of syscall 128 stub (li v1,128; syscall) [libkernel libgraph (checkModelVersion object)] | 0.70 | T1 |  |
 | [0x240C38](../../../src/sdk/libgraph/sceGsSetDefDispEnv.c) | `sceGsSetDefDispEnv` |  |  | existing |  |
@@ -525,10 +525,10 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x24B148](../../../src/sdk/libmpeg/_decodeOrSkipFrame.c) | `_decodeOrSkipFrame` |  |  | existing |  |
 | [0x24B2B8](../../../src/sdk/libmpeg/_decodeOrSkipField.c) | `_decodeOrSkipField` |  |  | existing |  |
 | [0x24B480](../../../src/sdk/libmpeg/sceMpegInit.c) | `sceMpegInit` |  |  | existing |  |
-| [0x24B530](../../../src/sdk/libmpeg/func_0024B530.c) | `sceMpegDelete` | return 1 [libmpeg mpeg.o] | 0.75 | T1 |  |
+| [0x24B530](../../../src/sdk/libmpeg/sceMpegDelete.c) | `sceMpegDelete` | return 1 [libmpeg mpeg.o] | 0.75 | T1 |  |
 | [0x24B540](../../../src/sdk/libmpeg/sceMpegGetPicture.c) | `sceMpegGetPicture` |  |  | existing |  |
 | [0x24B590](../../../src/sdk/libmpeg/sceMpegReset.c) | `sceMpegReset` |  |  | existing |  |
-| [0x24B610](../../../src/sdk/libmpeg/func_0024B610.c) | `sceMpegIsEnd` | return mp->sys->isEnd [libmpeg mpeg.o] | 0.70 | T1 |  |
+| [0x24B610](../../../src/sdk/libmpeg/sceMpegIsEnd.c) | `sceMpegIsEnd` | return mp->sys->isEnd [libmpeg mpeg.o] | 0.70 | T1 |  |
 | [0x24B628](../../../src/sdk/libmpeg/sceMpegAddCallback.c) | `sceMpegAddCallback` |  |  | existing |  |
 | [0x24B670](../../../src/sdk/libmpeg/_sceMpegDispatchMpegCallback.c) | `_sceMpegDispatchMpegCallback` |  |  | existing |  |
 | [0x24B6E8](../../../src/sdk/libmpeg/_sceMpegDispatchMpegCbNodata.c) | `_sceMpegDispatchMpegCbNodata` |  |  | existing |  |
@@ -537,7 +537,7 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x24B828](../../../src/sdk/libmpeg/_decPicture.c) | `_decPicture` |  |  | existing |  |
 | [0x24B8F8](../../../src/sdk/libmpeg/func_0024B8F8.c) | `_alalcInit` | aligned allocator init {base,size,cur=base,dyn=base} [libmpeg mpeg.o] | 0.75 | T1 |  |
 | [0x24B910](../../../src/sdk/libmpeg/func_0024B910.c) | `_alalcSetDynamic` | mark current position as dynamic start [libmpeg mpeg.o] | 0.70 | T1 |  |
-| [0x24B920](../../../src/sdk/libmpeg/func_0024B920.c) | `_alalcFree` | reset current to dynamic start [libmpeg mpeg.o] | 0.70 | T1 |  |
+| [0x24B920](../../../src/sdk/libmpeg/_alalcFree.c) | `_alalcFree` | reset current to dynamic start [libmpeg mpeg.o] | 0.70 | T1 |  |
 | [0x24B930](../../../src/sdk/libmpeg/func_0024B930.c) | `_alalcAlloc` | aligned bump alloc; error "work area size is too small" [libmpeg mpeg.o] | 0.80 | T1 |  |
 | [0x24B9A0](../../../src/sdk/libmpeg/func_0024B9A0.c) | `_defStopDMA` | default stop-DMA callback: sceIpuStopDMA(sys+0x68) [libmpeg defhandler.o] | 0.85 | T1 |  |
 | [0x24B9C8](../../../src/sdk/libmpeg/func_0024B9C8.c) | `_defRestartDMA` | default restart-DMA callback: sceIpuRestartDMA [libmpeg defhandler.o] | 0.85 | T1 |  |
@@ -554,7 +554,7 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x24CF40](../../../src/sdk/libmpeg/_pack_header.c) | `_pack_header` |  |  | existing |  |
 | [0x24D5E8](../../../src/sdk/libmpeg/_PES_packet.c) | `_PES_packet` |  |  | existing |  |
 | [0x24F390](../../../src/sdk/libmpeg/sceMpegDemuxPssRing.c) | `sceMpegDemuxPssRing` |  |  | existing |  |
-| [0x24F770](../../../src/sdk/libmpeg/func_0024F770.c) | `sceMpegDemuxPss` | sceMpegDemuxPssRing(mp,pss,size,0,-1) [libmpeg] | 0.85 | T1 |  |
+| [0x24F770](../../../src/sdk/libmpeg/sceMpegDemuxPss.c) | `sceMpegDemuxPss` | sceMpegDemuxPssRing(mp,pss,size,0,-1) [libmpeg] | 0.85 | T1 |  |
 | [0x24F790](../../../src/sdk/libmpeg/sceMpegAddStrCallback.c) | `sceMpegAddStrCallback` |  |  | existing |  |
 | [0x24F8C0](../../../src/sdk/libmpeg/func_0024F8C0.c) | `_ErrMessage` | scePrintf("[MPEG ERROR]%s\n", msg) [libmpeg init.o] | 0.85 | T1 |  |
 | [0x24F8D0](../../../src/sdk/libmpeg/_sceMpegStopIpuDma.c) | `_sceMpegStopIpuDma` |  |  | existing |  |

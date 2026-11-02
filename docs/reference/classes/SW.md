@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetSwClassDesc`](../../../src/game/app/class_registry/GetSwClassDesc.c) | `0x113A20` | Pclassinfo |
 | 7 | UpdateSw | **new** | [`UpdateSw`](../../../src/game/level/update.cpp) | `0x226550` | VSlot7 |
-| 8 | RenderSw | **new** | [`RenderSw?`](../../../src/game/engine/graphics/pipeline/render/func_001CDA80.c) | `0x1CDA80` | VSlot8 |
+| 8 | RenderSw | **new** | [`RenderSw?`](../../../src/game/engine/graphics/pipeline/render/RenderSw.c) | `0x1CDA80` | VSlot8 |
 | 9 | DrawSw | **new** | [`DrawSw?`](../../../src/game/engine/graphics/pipeline/draw.cpp) | `0x157FA0` | VSlot9 |
 
 ## Fields

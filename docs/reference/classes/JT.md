@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewJt`](../../../src/game/app/class_registry/NewJt.c) `0x1116D8` |
 | Descriptor getter (slot 6) | `GetJtClassDesc` `0x113D60` |
 | vtable | `D_002D2E98`, 108 entries (slots 0..107; slot 0 null), 2 new, 31 overridden |
-| vtable stored by | [`JT_ctor?`](../../../src/game/app/class_registry/func_002563E8.c) (vptr +0xC) |
+| vtable stored by | [`JT_ctor?`](../../../src/game/app/class_registry/JT_ctor.c) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table

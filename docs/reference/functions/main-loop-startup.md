@@ -35,12 +35,12 @@ Totals on this page: EXISTING 12, T1 31, T2 5.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14CFE0](../../../src/game/core/time/clock/func_0014CFE0.c) | `StartupClock` | Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and rDt/rDtReal to 1, calls ResetClock | 0.85 | T1 |  |
-| [0x14D068](../../../src/game/core/time/clock/func_0014D068.c) | `ResetClock` | t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate | 0.65 | T1 |  |
-| [0x14D0B8](../../../src/game/core/time/clock/func_0014D0B8.c) | `MarkClockTick` | dt = clamp(Δtick·1/294.912MHz, 1/60, 1/30); dtReal = dt·rDtReal, tReal += dtReal; dt40 = dt·slot[3]; if not paused, dt = dt40·rDt, t += dt, and pumps 0x161478(D_002DEB30); always t3C += dt40 | 0.85 | T1 |  |
+| [0x14CFE0](../../../src/game/core/time/clock/StartupClock.c) | `StartupClock` | Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and rDt/rDtReal to 1, calls ResetClock | 0.85 | T1 |  |
+| [0x14D068](../../../src/game/core/time/clock/ResetClock.c) | `ResetClock` | t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate | 0.65 | T1 |  |
+| [0x14D0B8](../../../src/game/core/time/clock/MarkClockTick.c) | `MarkClockTick` | dt = clamp(Δtick·1/294.912MHz, 1/60, 1/30); dtReal = dt·rDtReal, tReal += dtReal; dt40 = dt·slot[3]; if not paused, dt = dt40·rDt, t += dt, and pumps 0x161478(D_002DEB30); always t3C += dt40 | 0.85 | T1 |  |
 | [0x14D1D0](../../../src/game/core/time/clock/func_0014D1D0.c) | `SetClockRate` | slot[islot] = r; RecalcClockRate() | 0.70 | T1 |  |
-| [0x14D1F8](../../../src/game/core/time/clock/func_0014D1F8.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
-| [0x14D240](../../../src/game/core/time/clock/func_0014D240.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
+| [0x14D1F8](../../../src/game/core/time/clock/RecalcClockRate.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
+| [0x14D240](../../../src/game/core/time/clock/TickNow.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
 
 ## joy (0x187030-0x188488)
 
@@ -69,10 +69,10 @@ Totals on this page: EXISTING 12, T1 31, T2 5.
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x1A7518](../../../src/game/app/main/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
-| [0x1A7630](../../../src/game/app/main/func_001A7630.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuffer for each embedded IRX in table D_004E5D80..D_004E5E38 | 0.90 | T1 | verified |
+| [0x1A7630](../../../src/game/app/main/StartupSif__Fv.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuffer for each embedded IRX in table D_004E5D80..D_004E5E38 | 0.90 | T1 | verified |
 | [0x1A7890](../../../src/game/app/main/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
 | [0x1A7900](../../../src/game/app/main/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
-| [0x1A7970](../../../src/game/app/main/func_001A7970.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "0813.0032"/"america" | 0.95 | T1 | verified |
+| [0x1A7970](../../../src/game/app/main/Startup__Fv.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "0813.0032"/"america" | 0.95 | T1 | verified |
 
 ## rumble (0x1D5150-0x1D57A8)
 

@@ -224,7 +224,7 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x14A478](../../src/game/gameplay/ai/tu_14A008/func_0014A478.c) | `FBhv182OffGround` | true if guard not in air and no ground found within 100/-250 | 0.85 | T2 | verified |
 | [0x153D58](../../src/game/gameplay/ai/detector/InitDetector.c) | `InitDetector` | XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2 | 0.75 | T1 | verified |
 | [0x154080](../../src/game/gameplay/ai/detector/SetDetectorTargetState.c) | `SetDetectorTargetState` | Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and,  | 0.85 | T1 | verified |
-| [0x154158](../../src/game/gameplay/ai/detector/X509v3_data_type_by_NID.c) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
+| [0x154158](../../src/game/gameplay/ai/detector/GetDetectorTargetStateById.c) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
 | [0x1553F0](../../src/game/gameplay/ai/tu_1553F0/LoadDimitriFromBrx.c) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
 | [0x1559F8](../../src/game/gameplay/ai/tu_1553F0/func_001559F8.c) | `CloseBhv181` | BHV181 slot 9 | 0.80 | T2 | verified |
 | [0x16F148](../../src/game/gameplay/ai/gomer.cpp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |

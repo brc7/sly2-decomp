@@ -94,12 +94,12 @@ the memcard worker (`MemcardThreadMain` 0x1AAF18), and an MPEG display thread `[
 | [0x14C258](../../src/game/gameplay/progression/cheat.cpp) | `ClearCheatItems` | If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0) | 0.65 | T1 |  |
 | [0x14C2B0](../../src/game/gameplay/progression/cheat.cpp) | `CheatGiveGadget` | 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh) | 0.65 | T1 |  |
 | [0x14C2D8](../../src/game/gameplay/progression/cheat.cpp) | `StartupCodes` | InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0 | 0.85 | T1 |  |
-| [0x14CFE0](../../src/game/core/time/clock/func_0014CFE0.c) | `StartupClock` | Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and rDt/rDtReal to 1, calls ResetClock | 0.85 | T1 |  |
-| [0x14D068](../../src/game/core/time/clock/func_0014D068.c) | `ResetClock` | t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate | 0.65 | T1 |  |
-| [0x14D0B8](../../src/game/core/time/clock/func_0014D0B8.c) | `MarkClockTick` | dt = clamp(Δtick·1/294.912MHz, 1/60, 1/30); dtReal = dt·rDtReal, tReal += dtReal; dt40 = dt·slot[3]; if not paused, dt = dt40·rDt, t += dt, and pumps  | 0.85 | T1 |  |
+| [0x14CFE0](../../src/game/core/time/clock/StartupClock.c) | `StartupClock` | Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and rDt/rDtReal to 1, calls ResetClock | 0.85 | T1 |  |
+| [0x14D068](../../src/game/core/time/clock/ResetClock.c) | `ResetClock` | t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate | 0.65 | T1 |  |
+| [0x14D0B8](../../src/game/core/time/clock/MarkClockTick.c) | `MarkClockTick` | dt = clamp(Δtick·1/294.912MHz, 1/60, 1/30); dtReal = dt·rDtReal, tReal += dtReal; dt40 = dt·slot[3]; if not paused, dt = dt40·rDt, t += dt, and pumps  | 0.85 | T1 |  |
 | [0x14D1D0](../../src/game/core/time/clock/func_0014D1D0.c) | `SetClockRate` | slot[islot] = r; RecalcClockRate() | 0.70 | T1 |  |
-| [0x14D1F8](../../src/game/core/time/clock/func_0014D1F8.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
-| [0x14D240](../../src/game/core/time/clock/func_0014D240.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
+| [0x14D1F8](../../src/game/core/time/clock/RecalcClockRate.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
+| [0x14D240](../../src/game/core/time/clock/TickNow.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
 | [0x187030](../../src/game/platform/input/joy/StartupJoy__Fv.c) | `StartupJoy` | UpdateGrfjoytFromGrfusr, scePadInit(0), InitJoy(&g_joy D_002DFC00, 0, 0), then init D_002DDEC0 (0x14C2D8) | 0.90 | T1 |  |
 | [0x187078](../../src/game/platform/input/joy/AddGrfusr__Fi.c) | `AddGrfusr` | g_grfusr (D_002DFBC4) | 0.90 | T1 | verified |
 | [0x1870A0](../../src/game/platform/input/joy/RemoveGrfusr__Fi.c) | `RemoveGrfusr` | g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr | 0.90 | T1 | verified |
@@ -112,10 +112,10 @@ the memcard worker (`MemcardThreadMain` 0x1AAF18), and an MPEG display thread `[
 | [0x187E88](../../src/game/platform/input/joy/DxSelectionJoy.c) | `DxSelectionJoy` | Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8, | 0.70 | T1 |  |
 | [0x1880D8](../../src/game/platform/input/joy/DySelectionJoy.c) | `DySelectionJoy` | Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick | 0.70 | T1 |  |
 | [0x1A7518](../../src/game/app/main/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
-| [0x1A7630](../../src/game/app/main/func_001A7630.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuff | 0.90 | T1 | verified |
+| [0x1A7630](../../src/game/app/main/StartupSif__Fv.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuff | 0.90 | T1 | verified |
 | [0x1A7890](../../src/game/app/main/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
 | [0x1A7900](../../src/game/app/main/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
-| [0x1A7970](../../src/game/app/main/func_001A7970.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "08 | 0.95 | T1 | verified |
+| [0x1A7970](../../src/game/app/main/Startup__Fv.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "08 | 0.95 | T1 | verified |
 | [0x1D5150](../../src/game/platform/input/rumble.cpp) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
 | [0x1D51B8](../../src/game/platform/input/rumble.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
 | [0x1D5310](../../src/game/platform/input/rumble.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |

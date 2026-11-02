@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetWrClassDesc`](../../../src/game/app/class_registry/GetWrClassDesc.c) | `0x114140` |
-| 7 | Init | **override** | [`InitWr?`](../../../src/game/engine/anim/wr/func_0022B720.c) | `0x22B720` |
+| 7 | Init | **override** | [`InitWr?`](../../../src/game/engine/anim/wr/InitWr.c) | `0x22B720` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` |

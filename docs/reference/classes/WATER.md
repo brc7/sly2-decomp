@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleWaterMessage?`](../../../src/game/engine/physics/water/func_00229370.c) | `0x229370` |
 | 6 | Pclassinfo | **override** | [`GetWaterClassDesc`](../../../src/game/app/class_registry/GetWaterClassDesc.c) | `0x113FA0` |
-| 7 | Init | **override** | [`InitWater?`](../../../src/game/engine/physics/water/func_00228B48.c) | `0x228B48` |
+| 7 | Init | **override** | [`InitWater?`](../../../src/game/engine/physics/water/InitWater.c) | `0x228B48` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | **override** | [`RemoveWaterHierarchy?`](../../../src/game/engine/physics/water/func_00229308.c) | `0x229308` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostWaterLoad?`](../../../src/game/engine/physics/water/func_00228BF8.c) | `0x228BF8` |
-| 16 | Update | **override** | [`UpdateWater?`](../../../src/game/engine/physics/water/func_00228E50.cpp) | `0x228E50` |
+| 15 | PostLoad | **override** | [`PostWaterLoad?`](../../../src/game/engine/physics/water/PostWaterLoad.c) | `0x228BF8` |
+| 16 | Update | **override** | [`UpdateWater?`](../../../src/game/engine/physics/water/UpdateWater.cpp) | `0x228E50` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |

@@ -318,7 +318,7 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x134770](../../src/game/gameplay/player/bentley/LoadBentleyFromBrx.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
 | [0x1357C0](../../src/game/gameplay/player/bentley/FireBentleyDart.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb | 0.45 | T2 |  |
 | [0x135AD8](../../src/game/gameplay/player/bentley/HandleBentleyMessage.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
-| [0x136A28](../../src/game/gameplay/player/bentley/CbFromSaak__F4SAAK.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
+| [0x136A28](../../src/game/gameplay/player/bentley/PgadgetBentleyFromId.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
 | [0x136CB0](../../src/game/gameplay/player/bentley/BENTLEY_PchzSaveVarRoot.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
 | [0x13FF70](../../src/game/gameplay/player/stepplayer/InitStepplayer.c) | `InitStepplayer` | STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x | 0.85 | T1 | verified |
 | [0x1403D0](../../src/game/gameplay/player/stepplayer/UpdateStepplayer.c) | `UpdateStepplayer` | STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0), interact-target pick 0x142AF8, gadget/menu button han | 0.65 | T1 |  |
@@ -390,9 +390,9 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x1C46C0](../../src/game/actor/po/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
 | [0x1C4840](../../src/game/actor/po/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
 | [0x1C4A48](../../src/game/actor/po/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
-| [0x1CB9B0](../../src/game/gameplay/player/rail/func_001CB9B0.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
-| [0x1CB9E8](../../src/game/gameplay/player/rail/func_001CB9E8.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
-| [0x1CBA20](../../src/game/gameplay/player/rail/func_001CBA20.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
+| [0x1CB9B0](../../src/game/gameplay/player/rail/OnRailAdd.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
+| [0x1CB9E8](../../src/game/gameplay/player/rail/OnRailRemove.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
+| [0x1CBA20](../../src/game/gameplay/player/rail/CloneRail.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
 | [0x202378](../../src/game/gameplay/player/tu_201D78/UpdateReconTargetVisibility.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
 | [0x2035A8](../../src/game/gameplay/player/tu_201D78/LoadReconTargetFromBrx.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
 

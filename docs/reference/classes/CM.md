@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewCm`](../../../src/game/app/class_registry/NewCm.c) `0x112DA8` |
 | Descriptor getter (slot 6) | `GetCmClassDesc` `0x114280` |
 | vtable | `D_002CA4D0`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`CM_ctor?`](../../../src/game/engine/camera/cm/func_0014D3D8.c) (vptr +0xC) |
+| vtable stored by | [`CM_ctor?`](../../../src/game/engine/camera/cm/CM_ctor.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

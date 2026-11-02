@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) `0x1120A8` |
 | Descriptor getter (slot 6) | `GetRipgClassDesc` `0x113F80` |
 | vtable | `D_002D77D8`, 76 entries (slots 0..75; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/func_001CDCD0.c) (vptr +0xC) |
+| vtable stored by | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/PripgNew.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetRipgClassDesc`](../../../src/game/app/class_registry/GetRipgClassDesc.c) | `0x113F80` |
-| 7 | Init | **override** | [`InitRipg?`](../../../src/game/engine/fx/rip/func_001CDDC8.c) | `0x1CDDC8` |
+| 7 | Init | **override** | [`InitRipg?`](../../../src/game/engine/fx/rip/InitRipg__FP4RIPG.c) | `0x1CDDC8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -38,8 +38,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
 | 15 | PostLoad | inherited (SO) | `PostSoLoad` | `0x1F36A8` |
-| 16 | Update | **override** | [`FUN_0019e420`](../../../src/game/engine/fx/rip/FUN_0019e420.c) | `0x1CE1C8` |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`ProjectRipgTransform?`](../../../src/game/engine/fx/rip/func_001CDF88.c) | `0x1CDF88` |
+| 16 | Update | **override** | [`FUN_0019e420`](../../../src/game/engine/fx/rip/UpdateRipg.c) | `0x1CE1C8` |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`ProjectRipgTransform?`](../../../src/game/engine/fx/rip/ProjectRipgTransform.c) | `0x1CDF88` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | **override** | [`RenderRipgSelf__FP4RIPGP2CMP2RO`](../../../src/game/engine/fx/rip/RenderRipgSelf__FP4RIPGP2CMP2RO.cpp) | `0x1CE608` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
@@ -71,7 +71,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (SO) | `SetSoVisMask` | `0x1A6DC8` |
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` |
-| 49 | UpdateSoTreeBounds | **override** | [`UpdateRipgBounds?`](../../../src/game/engine/fx/rip/func_001CE170.c) | `0x1CE170` |
+| 49 | UpdateSoTreeBounds | **override** | [`UpdateRipgBounds?`](../../../src/game/engine/fx/rip/UpdateRipgBounds.c) | `0x1CE170` |
 | 50 | GetSoCpdefi | inherited (SO) | `GetSoCpdefi` | `0x1F58F0` |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |

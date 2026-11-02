@@ -86,59 +86,59 @@ Totals on this page: EXISTING 27, T1 81, T2 18, T3 1.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CDCD0](../../../src/game/engine/fx/rip/func_001CDCD0.c) | `PripgNew` | Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world | 0.75 | T1 |  |
-| [0x1CDDC8](../../../src/game/engine/fx/rip/func_001CDDC8.c) | `InitRipg` | RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags | 0.85 | T1 | verified |
+| [0x1CDCD0](../../../src/game/engine/fx/rip/PripgNew.c) | `PripgNew` | Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world | 0.75 | T1 |  |
+| [0x1CDDC8](../../../src/game/engine/fx/rip/InitRipg__FP4RIPG.c) | `InitRipg` | RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags | 0.85 | T1 | verified |
 | [0x1CDE70](../../../src/game/engine/fx/rip/SetRipgEmitb__FP4RIPGP5EMITB.c) | `SetRipgEmitb__FP4RIPGP5EMITB` | copy emitb rate into RIPG | 0.90 | existing | verified |
 | [0x1CDE80](../../../src/game/engine/fx/rip/OnRipgRemove__FP4RIPG.cpp) | `OnRipgRemove__FP4RIPG` | RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG | 0.90 | existing |  |
-| [0x1CDF88](../../../src/game/engine/fx/rip/func_001CDF88.c) | `ProjectRipgTransform` | RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set center/radius | 0.70 | T1 | verified |
-| [0x1CE170](../../../src/game/engine/fx/rip/func_001CE170.c) | `UpdateRipgBounds` | RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag D_003E115C, call SO bound update 0x1F4BA8 | 0.85 | T1 | verified |
-| [0x1CE1C8](../../../src/game/engine/fx/rip/FUN_0019e420.c) | `UpdateRipg` | RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active | 0.75 | existing | arbitration; replaces existing FUN_0019e420 |
-| [0x1CE2E8](../../../src/game/engine/fx/rip/func_001CE2E8.cpp) | `BounceRipgRips` | Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual | 0.85 | T1 | verified |
+| [0x1CDF88](../../../src/game/engine/fx/rip/ProjectRipgTransform.c) | `ProjectRipgTransform` | RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set center/radius | 0.70 | T1 | verified |
+| [0x1CE170](../../../src/game/engine/fx/rip/UpdateRipgBounds.c) | `UpdateRipgBounds` | RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag D_003E115C, call SO bound update 0x1F4BA8 | 0.85 | T1 | verified |
+| [0x1CE1C8](../../../src/game/engine/fx/rip/UpdateRipg.c) | `UpdateRipg` | RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active | 0.75 | existing | arbitration; replaces existing FUN_0019e420 |
+| [0x1CE2E8](../../../src/game/engine/fx/rip/BounceRipgRips__FP4RIPG.cpp) | `BounceRipgRips` | Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual | 0.85 | T1 | verified |
 | [0x1CE608](../../../src/game/engine/fx/rip/RenderRipgSelf__FP4RIPGP2CMP2RO.cpp) | `RenderRipgSelf__FP4RIPGP2CMP2RO` | RIPG vt slot 19 RenderSelf: render each rip via vtable | 0.90 | existing |  |
 | [0x1CE6C0](../../../src/game/engine/fx/rip/func_001CE6C0.c) | `FRipgUnk62` | RIPG vt slot 62: returns (state(+0x150) != 1) | 0.25 | T2 |  |
-| [0x1CE6D0](../../../src/game/engine/fx/rip/func_001CE6D0.c) | `PvtripFromRipt` | Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's vtable (11 types, vtables 0x2D7468..0x2D7788) | 0.70 | T1 |  |
-| [0x1CE888](../../../src/game/engine/fx/rip/func_001CE888.c) | `PripNewRipg` | Allocate a RIP from the rip pool (D_003E1144?), construct by type, link into RIPG dlRip, AddRipRef | 0.85 | T1 | verified |
-| [0x1CE920](../../../src/game/engine/fx/rip/func_001CE920.c) | `InitRip` | RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix | 0.85 | T1 | verified |
+| [0x1CE6D0](../../../src/game/engine/fx/rip/PvtripFromRipt.c) | `PvtripFromRipt` | Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's vtable (11 types, vtables 0x2D7468..0x2D7788) | 0.70 | T1 |  |
+| [0x1CE888](../../../src/game/engine/fx/rip/PripNewRipg.c) | `PripNewRipg` | Allocate a RIP from the rip pool (D_003E1144?), construct by type, link into RIPG dlRip, AddRipRef | 0.85 | T1 | verified |
+| [0x1CE920](../../../src/game/engine/fx/rip/InitRip.c) | `InitRip` | RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix | 0.85 | T1 | verified |
 | [0x1CE980](../../../src/game/engine/fx/rip/RemoveRip__FP3RIP.c) | `RemoveRip__FP3RIP` | unlink from RIPG dl + ReleaseRip | 0.90 | existing |  |
-| [0x1CE9B8](../../../src/game/engine/fx/rip/func_001CE9B8.c) | `PostRipEmit` | RIP default PostEmit (vt entry 2): empty | 0.60 | T1 |  |
+| [0x1CE9B8](../../../src/game/engine/fx/rip/PostRipEmit.c) | `PostRipEmit` | RIP default PostEmit (vt entry 2): empty | 0.60 | T1 |  |
 | [0x1CE9C0](../../../src/game/engine/fx/rip/AddRipRef__FP3RIP.c) | `AddRipRef__FP3RIP` | cRef++ | 0.90 | existing |  |
-| [0x1CE9D0](../../../src/game/engine/fx/rip/func_001CE9D0.c) | `ReleaseRip` | Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip | 0.85 | T1 | verified |
+| [0x1CE9D0](../../../src/game/engine/fx/rip/ReleaseRip__FP3RIP.c) | `ReleaseRip` | Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip | 0.85 | T1 | verified |
 | [0x1CEA88](../../../src/game/engine/fx/rip/TouchRip__FP3RIPi.c) | `TouchRip__FP3RIPi` | if fTouching RemoveRip (default vt entry 7) | 0.90 | existing |  |
 | [0x1CEAA8](../../../src/game/engine/fx/rip/ForceRipFade__FP3RIPf.cpp) | `ForceRipFade__FP3RIPf` | start fade | 0.90 | existing | verified |
-| [0x1CEB08](../../../src/game/engine/fx/rip/func_001CEB08.cpp) | `FBounceRip` | RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade | 0.75 | T1 | verified |
+| [0x1CEB08](../../../src/game/engine/fx/rip/FBounceRip.cpp) | `FBounceRip` | RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade | 0.75 | T1 | verified |
 | [0x1CEFC8](../../../src/game/engine/fx/rip/func_001CEFC8.c) | `FVecShorterThan2` | helper: \|v\|^2 < 4 | 0.40 | T2 |  |
 | [0x1CF010](../../../src/game/engine/fx/rip/func_001CF010.c) | `FVecShorterThan0p02` | helper: \|v\|^2 < 0.0004 | 0.40 | T2 |  |
 | [0x1CF058](../../../src/game/engine/fx/rip/func_001CF058.c) | `FVecShorterThan5` | helper: \|v\|^2 < 25 | 0.40 | T2 |  |
-| [0x1CF0A0](../../../src/game/engine/fx/rip/func_001CF0A0.cpp) | `ProjectRipTransform` | RIP default Project (vt entry 4): integrate velocity/position with damping and gravity | 0.70 | T1 |  |
-| [0x1CF268](../../../src/game/engine/fx/rip/func_001CF268.c) | `UpdateRip` | RIP default Update (vt entry 5): fade/age and RemoveRip when expired | 0.70 | T1 |  |
-| [0x1CF338](../../../src/game/engine/fx/rip/func_001CF338.cpp) | `FRenderRipPosMat` | Compute rip render position/matrix relative to camera; false if culled | 0.65 | T1 |  |
-| [0x1CF518](../../../src/game/engine/fx/rip/func_001CF518.cpp) | `RenderRip` | RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip | 0.85 | T1 | verified |
-| [0x1CF570](../../../src/game/engine/fx/rip/func_001CF570.c) | `OnRipRemove` | RIP default OnRemove (vt entry 3): empty | 0.55 | T1 |  |
-| [0x1CF578](../../../src/game/engine/fx/rip/func_001CF578.c) | `SubscribeRipObject` | Push {plo} subscription node (pool D_003E1144) onto rip->(+0xE8) list | 0.75 | T1 |  |
-| [0x1CF5C8](../../../src/game/engine/fx/rip/func_001CF5C8.c) | `CbMaxRip` | Returns 0x110 (largest RIP subclass size) for the rip pool | 0.50 | T1 |  |
-| [0x1CF5D0](../../../src/game/engine/fx/rip/func_001CF5D0.c) | `PostFlyingEmit` | FLYING (Sly2 RIPT 3) PostEmit: base PostRipEmit + setup | 0.70 | T1 |  |
-| [0x1CF618](../../../src/game/engine/fx/rip/func_001CF618.cpp) | `RenderFlying` | FLYING Render: oriented render via FRenderRipPosMat | 0.70 | T1 |  |
-| [0x1CF6B0](../../../src/game/engine/fx/rip/func_001CF6B0.cpp) | `CreateStuck` | Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation | 0.75 | T1 |  |
-| [0x1CF968](../../../src/game/engine/fx/rip/func_001CF968.c) | `FBounceLeaf` | FLYING FBounce: on contact CreateStuck then RemoveRip | 0.65 | T1 | verified, arbitration |
-| [0x1CFA20](../../../src/game/engine/fx/rip/func_001CFA20.c) | `UpdateStuck` | STUCK (RIPT 10) Update: base UpdateRip | 0.65 | T1 |  |
-| [0x1CFA40](../../../src/game/engine/fx/rip/func_001CFA40.cpp) | `RenderStuck` | STUCK Render: transform by host object's matrix, FRenderRipPosMat | 0.65 | T1 |  |
+| [0x1CF0A0](../../../src/game/engine/fx/rip/ProjectRipTransform.cpp) | `ProjectRipTransform` | RIP default Project (vt entry 4): integrate velocity/position with damping and gravity | 0.70 | T1 |  |
+| [0x1CF268](../../../src/game/engine/fx/rip/UpdateRip.c) | `UpdateRip` | RIP default Update (vt entry 5): fade/age and RemoveRip when expired | 0.70 | T1 |  |
+| [0x1CF338](../../../src/game/engine/fx/rip/FRenderRipPosMat.cpp) | `FRenderRipPosMat` | Compute rip render position/matrix relative to camera; false if culled | 0.65 | T1 |  |
+| [0x1CF518](../../../src/game/engine/fx/rip/RenderRip.cpp) | `RenderRip` | RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip | 0.85 | T1 | verified |
+| [0x1CF570](../../../src/game/engine/fx/rip/OnRipRemove.c) | `OnRipRemove` | RIP default OnRemove (vt entry 3): empty | 0.55 | T1 |  |
+| [0x1CF578](../../../src/game/engine/fx/rip/SubscribeRipObject.c) | `SubscribeRipObject` | Push {plo} subscription node (pool D_003E1144) onto rip->(+0xE8) list | 0.75 | T1 |  |
+| [0x1CF5C8](../../../src/game/engine/fx/rip/CbMaxRip.c) | `CbMaxRip` | Returns 0x110 (largest RIP subclass size) for the rip pool | 0.50 | T1 |  |
+| [0x1CF5D0](../../../src/game/engine/fx/rip/PostFlyingEmit.c) | `PostFlyingEmit` | FLYING (Sly2 RIPT 3) PostEmit: base PostRipEmit + setup | 0.70 | T1 |  |
+| [0x1CF618](../../../src/game/engine/fx/rip/RenderFlying.cpp) | `RenderFlying` | FLYING Render: oriented render via FRenderRipPosMat | 0.70 | T1 |  |
+| [0x1CF6B0](../../../src/game/engine/fx/rip/CreateStuck.cpp) | `CreateStuck` | Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation | 0.75 | T1 |  |
+| [0x1CF968](../../../src/game/engine/fx/rip/FBounceLeaf.c) | `FBounceLeaf` | FLYING FBounce: on contact CreateStuck then RemoveRip | 0.65 | T1 | verified, arbitration |
+| [0x1CFA20](../../../src/game/engine/fx/rip/UpdateStuck.c) | `UpdateStuck` | STUCK (RIPT 10) Update: base UpdateRip | 0.65 | T1 |  |
+| [0x1CFA40](../../../src/game/engine/fx/rip/RenderStuck.cpp) | `RenderStuck` | STUCK Render: transform by host object's matrix, FRenderRipPosMat | 0.65 | T1 |  |
 | [0x1CFAB8](../../../src/game/engine/fx/rip/PostShrapnelEmit__FP8SHRAPNELP5EMITB.cpp) | `PostShrapnelEmit__FP8SHRAPNELP5EMITB` | SHRAPNEL (RIPT 8) PostEmit | 0.85 | existing | verified |
-| [0x1CFBE0](../../../src/game/engine/fx/rip/func_001CFBE0.c) | `FBounceShrapnel` | SHRAPNEL FBounce: FBounceRip then remove on condition | 0.75 | T1 |  |
+| [0x1CFBE0](../../../src/game/engine/fx/rip/FBounceShrapnel.c) | `FBounceShrapnel` | SHRAPNEL FBounce: FBounceRip then remove on condition | 0.75 | T1 |  |
 | [0x1CFC88](../../../src/game/engine/fx/rip/RenderShrapnel__FP8SHRAPNELP2CM.cpp) | `RenderShrapnel__FP8SHRAPNELP2CM` | SHRAPNEL Render | 0.85 | existing |  |
 | [0x1CFCD8](../../../src/game/engine/fx/rip/InitMatch__FP5MATCHP6VECTORfP2SO.cpp) | `InitMatch__FP5MATCHP6VECTORfP2SO` | MATCH (RIPT 6) Init | 0.80 | existing |  |
-| [0x1CFD30](../../../src/game/engine/fx/rip/func_001CFD30.cpp) | `LaunchMatch` | Aim match at its target object: take target pose, decompose rotation, set launch velocity | 0.85 | T1 | verified |
-| [0x1CFE88](../../../src/game/engine/fx/rip/func_001CFE88.cpp) | `ProjectMatchTransform` | MATCH Project: Hermite-follow target pose | 0.70 | T1 | verified |
-| [0x1D0038](../../../src/game/engine/fx/rip/func_001D0038.c) | `UpdateMatch` | MATCH Update: LaunchMatch / RemoveRip | 0.85 | T1 | verified |
-| [0x1D00D0](../../../src/game/engine/fx/rip/func_001D00D0.c) | `RenderMatch` | MATCH Render: wraps RenderRip | 0.70 | T1 |  |
+| [0x1CFD30](../../../src/game/engine/fx/rip/LaunchMatch__FP5MATCH.cpp) | `LaunchMatch` | Aim match at its target object: take target pose, decompose rotation, set launch velocity | 0.85 | T1 | verified |
+| [0x1CFE88](../../../src/game/engine/fx/rip/ProjectMatchTransform.cpp) | `ProjectMatchTransform` | MATCH Project: Hermite-follow target pose | 0.70 | T1 | verified |
+| [0x1D0038](../../../src/game/engine/fx/rip/UpdateMatch.c) | `UpdateMatch` | MATCH Update: LaunchMatch / RemoveRip | 0.85 | T1 | verified |
+| [0x1D00D0](../../../src/game/engine/fx/rip/RenderMatch.c) | `RenderMatch` | MATCH Render: wraps RenderRip | 0.70 | T1 |  |
 | [0x1D0108](../../../src/game/engine/fx/rip/func_001D0108.c) | `InitGlint` | RIPT 4 Init: InitRip + extra fields | 0.45 | T2 |  |
 | [0x1D0158](../../../src/game/engine/fx/rip/func_001D0158.c) | `ProjectGlintTransform` | RIPT 4 Project: snap position to followed LO (PosLoWorld) | 0.35 | T2 |  |
-| [0x1D0190](../../../src/game/engine/fx/rip/func_001D0190.cpp) | `RenderGlint` | RIPT 4 Render: large custom draw (fades; RemoveRip when done) | 0.85 | T1 | verified |
-| [0x1D04E8](../../../src/game/engine/fx/rip/func_001D04E8.c) | `InitSmack` | SMACK (RIPT 9) Init | 0.85 | T1 | verified |
-| [0x1D05A0](../../../src/game/engine/fx/rip/func_001D05A0.c) | `ProjectSmackTransform` | SMACK Project | 0.85 | T1 | verified |
-| [0x1D0630](../../../src/game/engine/fx/rip/func_001D0630.cpp) | `RenderSmack` | SMACK Render | 0.70 | T1 |  |
-| [0x1D0800](../../../src/game/engine/fx/rip/func_001D0800.cpp) | `UpdateSmack` | SMACK Update (RemoveRip when done) | 0.85 | T1 | verified |
-| [0x1D08D8](../../../src/game/engine/fx/rip/func_001D08D8.cpp) | `PostLeafEmit` | LEAF (RIPT 5) PostEmit: random initial orientation | 0.65 | T1 |  |
-| [0x1D09A0](../../../src/game/engine/fx/rip/func_001D09A0.cpp) | `ProjectLeafTransform` | LEAF Project: flutter + base ProjectRipTransform | 0.65 | T1 |  |
+| [0x1D0190](../../../src/game/engine/fx/rip/RenderGlint.cpp) | `RenderGlint` | RIPT 4 Render: large custom draw (fades; RemoveRip when done) | 0.85 | T1 | verified |
+| [0x1D04E8](../../../src/game/engine/fx/rip/InitSmack.c) | `InitSmack` | SMACK (RIPT 9) Init | 0.85 | T1 | verified |
+| [0x1D05A0](../../../src/game/engine/fx/rip/ProjectSmackTransform.c) | `ProjectSmackTransform` | SMACK Project | 0.85 | T1 | verified |
+| [0x1D0630](../../../src/game/engine/fx/rip/RenderSmack.cpp) | `RenderSmack` | SMACK Render | 0.70 | T1 |  |
+| [0x1D0800](../../../src/game/engine/fx/rip/UpdateSmack.cpp) | `UpdateSmack` | SMACK Update (RemoveRip when done) | 0.85 | T1 | verified |
+| [0x1D08D8](../../../src/game/engine/fx/rip/PostLeafEmit.cpp) | `PostLeafEmit` | LEAF (RIPT 5) PostEmit: random initial orientation | 0.65 | T1 |  |
+| [0x1D09A0](../../../src/game/engine/fx/rip/ProjectLeafTransform.cpp) | `ProjectLeafTransform` | LEAF Project: flutter + base ProjectRipTransform | 0.65 | T1 |  |
 | [0x1D0BF8](../../../src/game/engine/fx/rip/func_001D0BF8.c) | `FBounceLeaf_1D0BF8` | LEAF FBounce: CreateStuck/RemoveRip on contact | 0.70 | T3 |  |
 | [0x1D0CA8](../../../src/game/engine/fx/rip/func_001D0CA8.c) | `InitRipt1` | RIPT 1 Init: InitRip + params | 0.25 | T2 |  |
 | [0x1D0CE8](../../../src/game/engine/fx/rip/func_001D0CE8.c) | `PostRipt1Emit` | RIPT 1 PostEmit | 0.25 | T2 |  |
@@ -146,18 +146,18 @@ Totals on this page: EXISTING 27, T1 81, T2 18, T3 1.
 | [0x1D0E48](../../../src/game/engine/fx/rip/func_001D0E48.c) | `InitBublet` | RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, accel -8 | 0.45 | T2 |  |
 | [0x1D0EB8](../../../src/game/engine/fx/rip/func_001D0EB8.c) | `ProjectBubletTransform` | RIPT 0 Project: wobble + base ProjectRipTransform | 0.45 | T2 |  |
 | [0x1D10E8](../../../src/game/engine/fx/rip/func_001D10E8.c) | `TouchBublet` | RIPT 0 Touch: TouchRip | 0.45 | T2 |  |
-| [0x1D1108](../../../src/game/engine/fx/rip/func_001D1108.c) | `PostRemitEmit` | REMIT (RIPT 2) PostEmit: resolve target emitter oid via SW lookup, copy rate | 0.60 | T1 |  |
-| [0x1D1160](../../../src/game/engine/fx/rip/func_001D1160.c) | `UpdateRemit` | REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target | 0.60 | T1 |  |
+| [0x1D1108](../../../src/game/engine/fx/rip/PostRemitEmit.c) | `PostRemitEmit` | REMIT (RIPT 2) PostEmit: resolve target emitter oid via SW lookup, copy rate | 0.60 | T1 |  |
+| [0x1D1160](../../../src/game/engine/fx/rip/UpdateRemit.c) | `UpdateRemit` | REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target | 0.60 | T1 |  |
 
 ## trail (0x21BB88-0x21C820)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21BB88](../../../src/game/engine/fx/trail/func_0021BB88.c) | `InitTrail` | Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0 | 0.60 | T1 |  |
+| [0x21BB88](../../../src/game/engine/fx/trail/InitTrail.c) | `InitTrail` | Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0 | 0.60 | T1 |  |
 | [0x21BBD0](../../../src/game/engine/fx/trail/func_0021BBD0.c) | `Cid105_slot11` | calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08) | 0.45 | T2 |  |
-| [0x21BC08](../../../src/game/engine/fx/trail/func_0021BC08.c) | `ResetTrailHistory` | fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix, alpha 0; idle=0 | 0.55 | T1 |  |
-| [0x21BD18](../../../src/game/engine/fx/trail/func_0021BD18.cpp) | `PostTrailLoad` | PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and builds per-vertex Sample{pos,fraction} tables | 0.60 | T1 |  |
-| [0x21C0D8](../../../src/game/engine/fx/trail/func_0021C0D8.c) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
+| [0x21BC08](../../../src/game/engine/fx/trail/ResetTrailHistory.c) | `ResetTrailHistory` | fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix, alpha 0; idle=0 | 0.55 | T1 |  |
+| [0x21BD18](../../../src/game/engine/fx/trail/PostTrailLoad.cpp) | `PostTrailLoad` | PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and builds per-vertex Sample{pos,fraction} tables | 0.60 | T1 |  |
+| [0x21C0D8](../../../src/game/engine/fx/trail/UpdateTrail.c) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
 | [0x21C1C8](../../../src/game/engine/fx/trail/func_0021C1C8.c) | `Cid105_slot17` | after SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by rate/distance (0x21C5F8) | 0.55 | T2 |  |
 | [0x21C340](../../../src/game/engine/fx/trail/func_0021C340.c) | `RenderTrailSelf` | deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction, writes positions and per-vertex alpha, then base render 0x1F3C70 | 0.50 | T2 |  |
 | [0x21C5F8](../../../src/game/engine/fx/trail/func_0021C5F8.c) | `SetTrailMeshPositions` | copies one position into the vertex record of every linked mesh node | 0.40 | T2 |  |

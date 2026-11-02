@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetVaultClassDesc`](../../../src/game/app/class_registry/GetVaultClassDesc.c) | `0x113EF0` |
-| 7 | Init | **override** | [`InitVault?`](../../../src/game/gameplay/progression/prize/func_001C8280.c) | `0x1C8280` |
+| 7 | Init | **override** | [`InitVault?`](../../../src/game/gameplay/progression/prize/InitVault.c) | `0x1C8280` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |

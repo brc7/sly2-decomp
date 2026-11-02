@@ -52,17 +52,17 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1607A0](../../../src/game/engine/graphics/backend/frm/func_001607A0.cpp) | `StartupFrame` | Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears the two deferred-release DLs, starts the render thread | 0.85 | T1 |  |
+| [0x1607A0](../../../src/game/engine/graphics/backend/frm/StartupFrame__Fv.cpp) | `StartupFrame` | Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears the two deferred-release DLs, starts the render thread | 0.85 | T1 |  |
 | [0x160828](../../../src/game/engine/graphics/backend/frm/OpenFrame__Fv.cpp) | `OpenFrame__Fv` |  |  | existing |  |
-| [0x160918](../../../src/game/engine/graphics/backend/frm/func_00160918.cpp) | `EnsureVu1Code` | Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd) | 0.85 | T1 | verified |
+| [0x160918](../../../src/game/engine/graphics/backend/frm/EnsureVu1Code__FP4VIFSPvT1.cpp) | `EnsureVu1Code` | Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd) | 0.85 | T1 | verified |
 | [0x160940](../../../src/game/engine/graphics/backend/frm/FinalizeFrameVifs__FP4VIFSPiPP2QW.cpp) | `FinalizeFrameVifs__FP4VIFSPiPP2QW` |  |  | existing |  |
 | [0x160A20](../../../src/game/engine/graphics/backend/frm/FinalizeFrameGifs__FP4GIFSPiPP2QW.c) | `FinalizeFrameGifs__FP4GIFSPiPP2QW` |  |  | existing |  |
-| [0x160A98](../../../src/game/engine/graphics/backend/frm/func_00160A98.cpp) | `CloseFrame` | Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two deferred-release DLs into the frame, clears g_pfrmOpen and signals the render thread | 0.85 | T1 |  |
-| [0x160B70](../../../src/game/engine/graphics/backend/frm/func_00160B70.cpp) | `FrameRenderLoop` | Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA VIF1 then GIF chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever | 0.90 | T1 | verified |
-| [0x160C80](../../../src/game/engine/graphics/backend/frm/func_00160C80.c) | `RenderFrame` | Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain, and GIF chain if fRenderGifs | 0.90 | T1 | verified |
-| [0x160CE0](../../../src/game/engine/graphics/backend/frm/func_00160CE0.cpp) | `ClearPendingFrame` | Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40 | 0.75 | T1 |  |
-| [0x160E68](../../../src/game/engine/graphics/backend/frm/func_00160E68.cpp) | `FlushFrames` | Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to both buffers and clears pending frames | 0.90 | T1 |  |
-| [0x160F98](../../../src/game/engine/graphics/backend/frm/func_00160F98.cpp) | `BlendPrevFrame` | Draws the other (previous) framebuffer back over the current one as 32-px textured strips with alpha 0x64/0x80 (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8 | 0.85 | T1 | verified |
+| [0x160A98](../../../src/game/engine/graphics/backend/frm/CloseFrame__Fv.cpp) | `CloseFrame` | Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two deferred-release DLs into the frame, clears g_pfrmOpen and signals the render thread | 0.85 | T1 |  |
+| [0x160B70](../../../src/game/engine/graphics/backend/frm/FrameRenderLoop__FPv.cpp) | `FrameRenderLoop` | Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA VIF1 then GIF chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever | 0.90 | T1 | verified |
+| [0x160C80](../../../src/game/engine/graphics/backend/frm/RenderFrame__FP3FRMi.c) | `RenderFrame` | Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain, and GIF chain if fRenderGifs | 0.90 | T1 | verified |
+| [0x160CE0](../../../src/game/engine/graphics/backend/frm/ClearPendingFrame__FP3FRM.cpp) | `ClearPendingFrame` | Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40 | 0.75 | T1 |  |
+| [0x160E68](../../../src/game/engine/graphics/backend/frm/FlushFrames__Fi.cpp) | `FlushFrames` | Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to both buffers and clears pending frames | 0.90 | T1 |  |
+| [0x160F98](../../../src/game/engine/graphics/backend/frm/BlendPrevFrame__Fv.cpp) | `BlendPrevFrame` | Draws the other (previous) framebuffer back over the current one as 32-px textured strips with alpha 0x64/0x80 (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8 | 0.85 | T1 | verified |
 
 ## gifs (0x166920-0x167310)
 
@@ -93,40 +93,40 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x167310](../../../src/game/engine/graphics/pipeline/glob/__4CRef.c) | `__4CRef` | CRef default constructor emitted (weak) at the start of the glob TU | 0.60 | existing |  |
-| [0x167320](../../../src/game/engine/graphics/pipeline/glob/func_00167320.cpp) | `LoadGlobsetFromBrx` | Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type geometry | 0.95 | T1 | parse, verified |
+| [0x167320](../../../src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp) | `LoadGlobsetFromBrx` | Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type geometry | 0.95 | T1 | parse, verified |
 | [0x167870](../../../src/game/engine/graphics/pipeline/glob/func_00167870.c) | `LoadPoseSetsFromBrx` | Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor | 0.75 | T1 | parse, format-doc |
-| [0x167B68](../../../src/game/engine/graphics/pipeline/glob/func_00167B68.cpp) | `BindGlobset` | Resolves globset bone references after load: finds each referenced LO by oid, its bone, and computes the relative bind matrix | 0.55 | T1 |  |
+| [0x167B68](../../../src/game/engine/graphics/pipeline/glob/BindGlobset.cpp) | `BindGlobset` | Resolves globset bone references after load: finds each referenced LO by oid, its bone, and computes the relative bind matrix | 0.55 | T1 |  |
 | [0x167DA0](../../../src/game/engine/graphics/pipeline/glob/func_00167DA0.c) | `ExpandSphereForProjection` | Grows a sub/model cull sphere to include its projection through pshd->pmatClip (projected-volume geometry) | 0.40 | T2 |  |
-| [0x167E58](../../../src/game/engine/graphics/pipeline/glob/func_00167E58.c) | `StoreRelightColors` | Relight readback: converts the two RGBA results per vertex in VU1 data memory to RGBA5551 into the glob's EE colour buffers (+alpha bytes) | 0.65 | T1 |  |
-| [0x167F78](../../../src/game/engine/graphics/pipeline/glob/func_00167F78.c) | `VU1_Interrupt` | INTC VIF1/VU1 interrupt handler: reads back VU1 data memory results (colour conversion), clears the VIF1 stall (VIF1_FBRST=8), returns -1 | 0.60 | T1 |  |
-| [0x167FC0](../../../src/game/engine/graphics/pipeline/glob/func_00167FC0.cpp) | `BeginRpRelight` | Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload up to 256 lights x 3 qw | 0.70 | T1 | verified |
-| [0x1681B0](../../../src/game/engine/graphics/pipeline/glob/func_001681B0.c) | `EndRpRelight` | Pass 4 end: FLUSHA, restore BASE/OFFSET 0x32/0x1E7 | 0.65 | T1 |  |
-| [0x1681F8](../../../src/game/engine/graphics/pipeline/glob/func_001681F8.cpp) | `SubmitGlobsetRelight` | Queues a kind-0 RPL per model packet: CNT + UNPACK 6 qw (EE dest word, sphere, matrix) to VU TOPS+0x301 + RET; stamps the model with g_sw+0x3D5C | 0.65 | T1 |  |
-| [0x1684D0](../../../src/game/engine/graphics/pipeline/glob/func_001684D0.c) | `UnpackSubglobBones` | Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet | 0.50 | T1 |  |
-| [0x168638](../../../src/game/engine/graphics/pipeline/glob/func_00168638.cpp) | `RenderSoGlobset` | Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates shader animations, builds/queues VIF packets (0x1681F8/0x1684D0) | 0.60 | T1 | verified |
+| [0x167E58](../../../src/game/engine/graphics/pipeline/glob/StoreRelightColors.c) | `StoreRelightColors` | Relight readback: converts the two RGBA results per vertex in VU1 data memory to RGBA5551 into the glob's EE colour buffers (+alpha bytes) | 0.65 | T1 |  |
+| [0x167F78](../../../src/game/engine/graphics/pipeline/glob/VU1_Interrupt.c) | `VU1_Interrupt` | INTC VIF1/VU1 interrupt handler: reads back VU1 data memory results (colour conversion), clears the VIF1 stall (VIF1_FBRST=8), returns -1 | 0.60 | T1 |  |
+| [0x167FC0](../../../src/game/engine/graphics/pipeline/glob/BeginRpRelight.cpp) | `BeginRpRelight` | Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload up to 256 lights x 3 qw | 0.70 | T1 | verified |
+| [0x1681B0](../../../src/game/engine/graphics/pipeline/glob/EndRpRelight.c) | `EndRpRelight` | Pass 4 end: FLUSHA, restore BASE/OFFSET 0x32/0x1E7 | 0.65 | T1 |  |
+| [0x1681F8](../../../src/game/engine/graphics/pipeline/glob/SubmitGlobsetRelight.cpp) | `SubmitGlobsetRelight` | Queues a kind-0 RPL per model packet: CNT + UNPACK 6 qw (EE dest word, sphere, matrix) to VU TOPS+0x301 + RET; stamps the model with g_sw+0x3D5C | 0.65 | T1 |  |
+| [0x1684D0](../../../src/game/engine/graphics/pipeline/glob/UnpackSubglobBones.c) | `UnpackSubglobBones` | Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet | 0.50 | T1 |  |
+| [0x168638](../../../src/game/engine/graphics/pipeline/glob/RenderSoGlobset.cpp) | `RenderSoGlobset` | Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates shader animations, builds/queues VIF packets (0x1681F8/0x1684D0) | 0.60 | T1 | verified |
 | [0x169198](../../../src/game/engine/graphics/pipeline/glob/func_00169198.cpp) | `DrawGlobsetSkinned` | Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin matrices) and queues it with its sort distance | 0.40 | T2 |  |
 | [0x169988](../../../src/game/engine/graphics/pipeline/glob/func_00169988.c) | `NCmpGlobKeys` | qsort comparator over 4 int keys (>>6 granularity on two) | 0.25 | T2 |  |
 | [0x1699E8](../../../src/game/engine/graphics/pipeline/glob/func_001699E8.c) | `LoadSubglobInstancesFromBrx` | For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance record (0x169AC8) | 0.40 | T2 |  |
-| [0x169AC8](../../../src/game/engine/graphics/pipeline/glob/func_00169AC8.cpp) | `LoadSubglobInstanceFromBrx` | Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional binding table, relocates packet data | 0.75 | T1 | parse |
-| [0x169EB8](../../../src/game/engine/graphics/pipeline/glob/func_00169EB8.c) | `CopyRelocateDmaChain` | Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by a delta | 0.60 | T1 | verified |
+| [0x169AC8](../../../src/game/engine/graphics/pipeline/glob/LoadSubglobInstanceFromBrx.cpp) | `LoadSubglobInstanceFromBrx` | Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional binding table, relocates packet data | 0.75 | T1 | parse |
+| [0x169EB8](../../../src/game/engine/graphics/pipeline/glob/CopyRelocateDmaChain.c) | `CopyRelocateDmaChain` | Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by a delta | 0.60 | T1 | verified |
 | [0x16A000](../../../src/game/engine/graphics/pipeline/glob/func_0016A000.cpp) | `LoadSubglobType0FromBrx` | Sub-glob type 0 loader: textured lit triangle strips (the visible mesh); builds VIF batches | 0.85 | T1 | parse, format-doc |
 | [0x16C8E0](../../../src/game/engine/graphics/pipeline/glob/func_0016C8E0.cpp) | `LoadClutsetFromBrx` | Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices (0x1ED1A8) | 0.75 | T2 | parse, format-doc |
-| [0x16CAA0](../../../src/game/engine/graphics/pipeline/glob/func_0016CAA0.cpp) | `LoadSubglobType2FromBrx` | Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline | 0.80 | T1 | parse, format-doc |
+| [0x16CAA0](../../../src/game/engine/graphics/pipeline/glob/LoadSubglobType2FromBrx.cpp) | `LoadSubglobType2FromBrx` | Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline | 0.80 | T1 | parse, format-doc |
 | [0x16CF78](../../../src/game/engine/graphics/pipeline/glob/func_0016CF78.cpp) | `LoadSubglobType3FromBrx` | Sub-glob type 3 loader: U16 shader + indexed vectors + strip bits; HYPOTHESIS cel edge strips | 0.80 | T1 | parse, format-doc |
-| [0x16D698](../../../src/game/engine/graphics/pipeline/glob/func_0016D698.c) | `AddFramePatch` | Records a (framebuffer word index, qword offset+0x23) patch for the VU1 microprogram, which fills FRAME/TEX0 of the current buffer from VU qw 0xB/0xC | 0.50 | T1 |  |
+| [0x16D698](../../../src/game/engine/graphics/pipeline/glob/AddFramePatch.c) | `AddFramePatch` | Records a (framebuffer word index, qword offset+0x23) patch for the VU1 microprogram, which fills FRAME/TEX0 of the current buffer from VU qw 0xB/0xC | 0.50 | T1 |  |
 | [0x16D6C8](../../../src/game/engine/graphics/pipeline/glob/func_0016D6C8.cpp) | `BuildProjVolumeGifs` | Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected by grf bits | 0.40 | T2 |  |
-| [0x16DA48](../../../src/game/engine/graphics/pipeline/glob/func_0016DA48.cpp) | `BeginRpProjVolume` | Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040, build/kick (MSCAL 0x1AA0) the masked full-screen stencil-init strips | 0.60 | T1 |  |
-| [0x16DD58](../../../src/game/engine/graphics/pipeline/glob/func_0016DD58.cpp) | `EndRpProjVolume` | Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 D_003E1330) with alpha blend over full-screen strips (MSCAL 0x1C48) | 0.60 | T1 |  |
-| [0x16E1A8](../../../src/game/engine/graphics/pipeline/glob/func_0016E1A8.cpp) | `BeginRpGlob` | Pass 0 begin: upload main glob microprogram D_0025E680..D_00262320, zero the 11-qw batch descriptor at TOPS+0xA, MSCAL 0 | 0.75 | T1 |  |
-| [0x16E228](../../../src/game/engine/graphics/pipeline/glob/func_0016E228.cpp) | `EndRpGlob` | Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA | 0.75 | T1 |  |
-| [0x16E298](../../../src/game/engine/graphics/pipeline/glob/func_0016E298.cpp) | `BeginRpBackground` | Pass 3 begin (kind 1 sky/background): BeginRpGlob + DMA CALL each per-frame texture upload chain D_003DCFA8[0..D_003DCFA0) | 0.70 | T1 |  |
-| [0x16E318](../../../src/game/engine/graphics/pipeline/glob/func_0016E318.c) | `AddVifDirectFlushed` | CNT{FLUSH, DIRECT(cqw, static GIF packet), FLUSH} | 0.60 | T1 |  |
-| [0x16E380](../../../src/game/engine/graphics/pipeline/glob/func_0016E380.c) | `EndRpBackground` | Pass 3 end: EndRpGlob + Z-only clear (D_002DF010) when per-frame uploads were made (textures parked in Z-buffer memory) | 0.70 | T1 |  |
-| [0x16E3C8](../../../src/game/engine/graphics/pipeline/glob/func_0016E3C8.c) | `BeginRpCutout` | Pass 11 begin (kinds 4/6): BeginRpGlob + DIRECT FBA_1=1 packet D_002DF700 | 0.70 | T1 |  |
-| [0x16E400](../../../src/game/engine/graphics/pipeline/glob/func_0016E400.c) | `EndRpCutout` | Pass 11 end: EndRpGlob + DIRECT FBA_1=0 packet D_002DF720 | 0.70 | T1 |  |
-| [0x16E438](../../../src/game/engine/graphics/pipeline/glob/func_0016E438.cpp) | `LoadSubglobType1FromBrx` | Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader | 0.80 | T1 | parse, format-doc |
-| [0x16EA20](../../../src/game/engine/graphics/pipeline/glob/func_0016EA20.c) | `BeginRpCelBorder` | Pass 1 begin (kinds 9/17/20/24): upload the cel-border microprogram D_0025B880..D_0025C1B0 | 0.55 | T1 | verified |
-| [0x16EA48](../../../src/game/engine/graphics/pipeline/glob/func_0016EA48.c) | `EndRpCelBorder` | Pass 1 end: FLUSHA | 0.55 | T1 |  |
+| [0x16DA48](../../../src/game/engine/graphics/pipeline/glob/BeginRpProjVolume.cpp) | `BeginRpProjVolume` | Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040, build/kick (MSCAL 0x1AA0) the masked full-screen stencil-init strips | 0.60 | T1 |  |
+| [0x16DD58](../../../src/game/engine/graphics/pipeline/glob/EndRpProjVolume.cpp) | `EndRpProjVolume` | Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 D_003E1330) with alpha blend over full-screen strips (MSCAL 0x1C48) | 0.60 | T1 |  |
+| [0x16E1A8](../../../src/game/engine/graphics/pipeline/glob/BeginRpGlob.cpp) | `BeginRpGlob` | Pass 0 begin: upload main glob microprogram D_0025E680..D_00262320, zero the 11-qw batch descriptor at TOPS+0xA, MSCAL 0 | 0.75 | T1 |  |
+| [0x16E228](../../../src/game/engine/graphics/pipeline/glob/EndRpGlob.cpp) | `EndRpGlob` | Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA | 0.75 | T1 |  |
+| [0x16E298](../../../src/game/engine/graphics/pipeline/glob/BeginRpBackground.cpp) | `BeginRpBackground` | Pass 3 begin (kind 1 sky/background): BeginRpGlob + DMA CALL each per-frame texture upload chain D_003DCFA8[0..D_003DCFA0) | 0.70 | T1 |  |
+| [0x16E318](../../../src/game/engine/graphics/pipeline/glob/AddVifDirectFlushed.c) | `AddVifDirectFlushed` | CNT{FLUSH, DIRECT(cqw, static GIF packet), FLUSH} | 0.60 | T1 |  |
+| [0x16E380](../../../src/game/engine/graphics/pipeline/glob/EndRpBackground.c) | `EndRpBackground` | Pass 3 end: EndRpGlob + Z-only clear (D_002DF010) when per-frame uploads were made (textures parked in Z-buffer memory) | 0.70 | T1 |  |
+| [0x16E3C8](../../../src/game/engine/graphics/pipeline/glob/BeginRpCutout.c) | `BeginRpCutout` | Pass 11 begin (kinds 4/6): BeginRpGlob + DIRECT FBA_1=1 packet D_002DF700 | 0.70 | T1 |  |
+| [0x16E400](../../../src/game/engine/graphics/pipeline/glob/EndRpCutout.c) | `EndRpCutout` | Pass 11 end: EndRpGlob + DIRECT FBA_1=0 packet D_002DF720 | 0.70 | T1 |  |
+| [0x16E438](../../../src/game/engine/graphics/pipeline/glob/LoadSubglobType1FromBrx.cpp) | `LoadSubglobType1FromBrx` | Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader | 0.80 | T1 | parse, format-doc |
+| [0x16EA20](../../../src/game/engine/graphics/pipeline/glob/BeginRpCelBorder.c) | `BeginRpCelBorder` | Pass 1 begin (kinds 9/17/20/24): upload the cel-border microprogram D_0025B880..D_0025C1B0 | 0.55 | T1 | verified |
+| [0x16EA48](../../../src/game/engine/graphics/pipeline/glob/EndRpCelBorder.c) | `EndRpCelBorder` | Pass 1 end: FLUSHA | 0.55 | T1 |  |
 | [0x16EA80](../../../src/game/engine/graphics/pipeline/glob/func_0016EA80.cpp) | `CloneGlobset` | Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned objects, relocates packet copies | 0.45 | T2 |  |
 | [0x16EF00](../../../src/game/engine/graphics/pipeline/glob/func_0016EF00.c) | `ResetGlobAttachment` | Resets an attachment record (clear flag on attached object, zero vector, radius 1e6) | 0.25 | T2 |  |
 
@@ -143,37 +143,37 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 | [0x16F868](../../../src/game/engine/graphics/backend/gs/ResetGs__Fv.cpp) | `ResetGs__Fv` |  |  | existing |  |
 | [0x16F8B8](../../../src/game/engine/graphics/backend/gs/SendDmaSyncGsFinish__FP10sceDmaChanP2QW.cpp) | `SendDmaSyncGsFinish__FP10sceDmaChanP2QW` |  |  | existing |  |
 | [0x16F960](../../../src/game/engine/graphics/backend/gs/BuildClearGifs__FP2QWG4RGBAi.cpp) | `BuildClearGifs__FP2QWG4RGBAi` |  |  | existing |  |
-| [0x16FAF8](../../../src/game/engine/graphics/backend/gs/func_0016FAF8.cpp) | `BuildFbaGifs` | Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer | 0.60 | T1 |  |
-| [0x16FB78](../../../src/game/engine/graphics/backend/gs/func_0016FB78.cpp) | `BuildFrameTex0Gifs` | Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width of the current and the other display framebuffer (lets the framebuffer be sampled as a texture) | 0.50 | T1 |  |
-| [0x16FCA8](../../../src/game/engine/graphics/backend/gs/func_0016FCA8.cpp) | `BuildFrameContextGifs` | Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1 and 2 of the current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for current/other buffer | 0.50 | T1 |  |
-| [0x170048](../../../src/game/engine/graphics/backend/gs/func_00170048.c) | `RebuildFrameGifs` | Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a buffer swap | 0.85 | T1 | verified |
-| [0x1700D0](../../../src/game/engine/graphics/backend/gs/func_001700D0.c) | `StartupGs` | GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets, semaphores, VBlank/GS interrupt handlers | 0.90 | T1 |  |
+| [0x16FAF8](../../../src/game/engine/graphics/backend/gs/BuildFbaGifs__FiP2QWl.cpp) | `BuildFbaGifs` | Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer | 0.60 | T1 |  |
+| [0x16FB78](../../../src/game/engine/graphics/backend/gs/BuildFrameTex0Gifs__Fv.cpp) | `BuildFrameTex0Gifs` | Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width of the current and the other display framebuffer (lets the framebuffer be sampled as a texture) | 0.50 | T1 |  |
+| [0x16FCA8](../../../src/game/engine/graphics/backend/gs/BuildFrameContextGifs.cpp) | `BuildFrameContextGifs` | Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1 and 2 of the current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for current/other buffer | 0.50 | T1 |  |
+| [0x170048](../../../src/game/engine/graphics/backend/gs/RebuildFrameGifs__Fv.c) | `RebuildFrameGifs` | Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a buffer swap | 0.85 | T1 | verified |
+| [0x1700D0](../../../src/game/engine/graphics/backend/gs/StartupGs__Fv.c) | `StartupGs` | GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets, semaphores, VBlank/GS interrupt handlers | 0.90 | T1 |  |
 | [0x170278](../../../src/game/engine/graphics/backend/gs/BlastAqwGifsBothFrames__FP2QW.cpp) | `BlastAqwGifsBothFrames__FP2QW` |  |  | existing |  |
 | [0x170348](../../../src/game/engine/graphics/backend/gs/ClearFrameBuffers__Fv.cpp) | `ClearFrameBuffers__Fv` |  |  | existing |  |
 | [0x1703C0](../../../src/game/engine/graphics/backend/gs/NLog2__FUi.cpp) | `NLog2__FUi` |  |  | existing |  |
 | [0x1703F8](../../../src/game/engine/graphics/backend/gs/InitZpr__FP3ZPR3ZPKP2LO.cpp) | `InitGsb__FP3GSBii` |  | 0.85 | existing | arbitration; replaces existing InitZpr__FP3ZPR3ZPKP2LO |
-| [0x170448](../../../src/game/engine/graphics/backend/gs/func_00170448.c) | `IgsbBucketFromCgs` | Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64 | 0.50 | T1 |  |
-| [0x1704B8](../../../src/game/engine/graphics/backend/gs/func_001704B8.c) | `PadGsbToPage` | Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists | 0.50 | T1 |  |
-| [0x170548](../../../src/game/engine/graphics/backend/gs/func_00170548.cpp) | `IgsAllocGsb` | Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a 0x80 boundary if it would straddle); returns the start index | 0.85 | T1 | verified |
+| [0x170448](../../../src/game/engine/graphics/backend/gs/IgsbBucketFromCgs__Fi.c) | `IgsbBucketFromCgs` | Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64 | 0.50 | T1 |  |
+| [0x1704B8](../../../src/game/engine/graphics/backend/gs/PadGsbToPage__FP3GSB.c) | `PadGsbToPage` | Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists | 0.50 | T1 |  |
+| [0x170548](../../../src/game/engine/graphics/backend/gs/IgsAllocGsb__FP3GSBi.cpp) | `IgsAllocGsb` | Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a 0x80 boundary if it would straddle); returns the start index | 0.85 | T1 | verified |
 | [0x170650](../../../src/game/engine/graphics/backend/gs/BuildImageGifs__FiiiiiiP4GIFS.cpp) | `BuildImageGifs__FiiiiiiP4GIFS` |  |  | existing |  |
-| [0x170730](../../../src/game/engine/graphics/backend/gs/func_00170730.c) | `UploadBitmaps` | Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the GSB, then TEXFLUSH + FINISH | 0.70 | T1 | format-doc |
+| [0x170730](../../../src/game/engine/graphics/backend/gs/UploadBitmaps__FP3GSB.c) | `UploadBitmaps` | Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the GSB, then TEXFLUSH + FINISH | 0.70 | T1 | format-doc |
 | [0x170828](../../../src/game/engine/graphics/backend/gs/func_00170828.c) | `AllocBitmapsGsb` | Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) | 0.45 | T2 |  |
 
 ## light (0x1A3260-0x1A4E08)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A3260](../../../src/game/engine/graphics/pipeline/light/func_001A3260.c) | `EnsureSwDefaultLight` | After world load, if no light in the world light list D_003E04F8 qualifies (x160==0), create a LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240 | 0.50 | T1 |  |
-| [0x1A3360](../../../src/game/engine/graphics/pipeline/light/func_001A3360.c) | `InitLight` | LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ... | 0.85 | T1 |  |
-| [0x1A3400](../../../src/game/engine/graphics/pipeline/light/func_001A3400.c) | `PostLightLoad` | LIGHT vt15: PostLoLoad then RebuildLight | 0.80 | T1 |  |
-| [0x1A3430](../../../src/game/engine/graphics/pipeline/light/func_001A3430.c) | `AddLightHierarchy` | LIGHT vt11: AddLoHierarchy then RebuildLight | 0.70 | T1 |  |
+| [0x1A3260](../../../src/game/engine/graphics/pipeline/light/EnsureSwDefaultLight.c) | `EnsureSwDefaultLight` | After world load, if no light in the world light list D_003E04F8 qualifies (x160==0), create a LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240 | 0.50 | T1 |  |
+| [0x1A3360](../../../src/game/engine/graphics/pipeline/light/InitLight.c) | `InitLight` | LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ... | 0.85 | T1 |  |
+| [0x1A3400](../../../src/game/engine/graphics/pipeline/light/PostLightLoad.c) | `PostLightLoad` | LIGHT vt15: PostLoLoad then RebuildLight | 0.80 | T1 |  |
+| [0x1A3430](../../../src/game/engine/graphics/pipeline/light/AddLightHierarchy.c) | `AddLightHierarchy` | LIGHT vt11: AddLoHierarchy then RebuildLight | 0.70 | T1 |  |
 | [0x1A3460](../../../src/game/engine/graphics/pipeline/light/func_001A3460.c) | `LIGHT_vt17` | LIGHT vt17: LO vt17, then if parent's x0A4 differs from own xE4 rebuild | 0.35 | T2 |  |
-| [0x1A34B0](../../../src/game/engine/graphics/pipeline/light/func_001A34B0.c) | `RemoveLightHierarchy` | LIGHT vt12: RemoveLoHierarchy then InvalidateLight | 0.70 | T1 |  |
-| [0x1A34E0](../../../src/game/engine/graphics/pipeline/light/func_001A34E0.c) | `OnLightRemove` | LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot) | 0.85 | T1 | arbitration |
-| [0x1A3518](../../../src/game/engine/graphics/pipeline/light/func_001A3518.c) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
-| [0x1A3550](../../../src/game/engine/graphics/pipeline/light/func_001A3550.c) | `TranslateLightToPos` | LIGHT vt29: XFM TranslateToPos then RebuildLight | 0.65 | T1 |  |
-| [0x1A3580](../../../src/game/engine/graphics/pipeline/light/func_001A3580.c) | `RotateLightToMat` | LIGHT vt30: XFM RotateToMat then RebuildLight | 0.65 | T1 |  |
-| [0x1A35B0](../../../src/game/engine/graphics/pipeline/light/func_001A35B0.c) | `SetLightKind` | Invalidate, set kind (xE0), RebuildLight | 0.55 | T1 |  |
+| [0x1A34B0](../../../src/game/engine/graphics/pipeline/light/RemoveLightHierarchy.c) | `RemoveLightHierarchy` | LIGHT vt12: RemoveLoHierarchy then InvalidateLight | 0.70 | T1 |  |
+| [0x1A34E0](../../../src/game/engine/graphics/pipeline/light/OnLightRemove.c) | `OnLightRemove` | LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot) | 0.85 | T1 | arbitration |
+| [0x1A3518](../../../src/game/engine/graphics/pipeline/light/OnLightAdd.c) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
+| [0x1A3550](../../../src/game/engine/graphics/pipeline/light/TranslateLightToPos.c) | `TranslateLightToPos` | LIGHT vt29: XFM TranslateToPos then RebuildLight | 0.65 | T1 |  |
+| [0x1A3580](../../../src/game/engine/graphics/pipeline/light/RotateLightToMat.c) | `RotateLightToMat` | LIGHT vt30: XFM RotateToMat then RebuildLight | 0.65 | T1 |  |
+| [0x1A35B0](../../../src/game/engine/graphics/pipeline/light/SetLightKind.c) | `SetLightKind` | Invalidate, set kind (xE0), RebuildLight | 0.55 | T1 |  |
 | [0x1A35F0](../../../src/game/engine/graphics/pipeline/light/func_001A35F0.c) | `SetLightHighlightColor` | Store color vector xF0 (HSV, converted with ConvertUserHsvToUserRgb in RebuildLight) and rebuild | 0.45 | T2 |  |
 | [0x1A3610](../../../src/game/engine/graphics/pipeline/light/func_001A3610.c) | `SetLightMidtoneStrength` | Store float x150 and rebuild | 0.40 | T2 |  |
 | [0x1A3630](../../../src/game/engine/graphics/pipeline/light/func_001A3630.c) | `SetLightMidtoneAngle` | Store float x154 (deg, clamped >=30 in RebuildLight) and rebuild | 0.45 | T2 |  |
@@ -183,14 +183,14 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 | [0x1A3730](../../../src/game/engine/graphics/pipeline/light/FitLinearFunction__FffffPfT4.cpp) | `FitLinearFunction__FffffPfT4` |  |  | existing |  |
 | [0x1A37D0](../../../src/game/engine/graphics/pipeline/light/FitRecipFunction__FffffPfT4.cpp) | `FitRecipFunction__FffffPfT4` |  |  | existing |  |
 | [0x1A38A8](../../../src/game/engine/graphics/pipeline/light/ConvertAngleStrength__FffffPfT4.cpp) | `ConvertAngleStrength__FffffPfT4` |  |  | existing |  |
-| [0x1A3968](../../../src/game/engine/graphics/pipeline/light/func_001A3968.c) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
+| [0x1A3968](../../../src/game/engine/graphics/pipeline/light/RebuildLight.c) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
 | [0x1A3B38](../../../src/game/engine/graphics/pipeline/light/func_001A3B38.c) | `InvalidateLight` | If not dynamic bump g_sw static-light stamp (+0x3D5C); if x15C==0 and kind!=0 set global dirty D_003E19E4 | 0.45 | T2 |  |
 | [0x1A3B80](../../../src/game/engine/graphics/pipeline/light/func_001A3B80.c) | `InsertLightInTree` | Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf masks | 0.40 | T2 |  |
-| [0x1A3D00](../../../src/game/engine/graphics/pipeline/light/func_001A3D00.c) | `AddLightToSw` | Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending | 0.55 | T1 |  |
-| [0x1A3E88](../../../src/game/engine/graphics/pipeline/light/func_001A3E88.c) | `RemoveLightFromSw` | Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) | 0.55 | T1 |  |
-| [0x1A3EE8](../../../src/game/engine/graphics/pipeline/light/func_001A3EE8.c) | `PrepareSwLights` | If the light tree is dirty, clear masks and re-insert every slotted light | 0.50 | T1 |  |
+| [0x1A3D00](../../../src/game/engine/graphics/pipeline/light/AddLightToSw.c) | `AddLightToSw` | Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending | 0.55 | T1 |  |
+| [0x1A3E88](../../../src/game/engine/graphics/pipeline/light/RemoveLightFromSw.c) | `RemoveLightFromSw` | Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) | 0.55 | T1 |  |
+| [0x1A3EE8](../../../src/game/engine/graphics/pipeline/light/PrepareSwLights.c) | `PrepareSwLights` | If the light tree is dirty, clear masks and re-insert every slotted light | 0.50 | T1 |  |
 | [0x1A3F78](../../../src/game/engine/graphics/pipeline/light/func_001A3F78.cpp) | `FindSwLights` | Walk the light tree for a point and rank up to N lights affecting it | 0.40 | T2 |  |
-| [0x1A4258](../../../src/game/engine/graphics/pipeline/light/func_001A4258.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
+| [0x1A4258](../../../src/game/engine/graphics/pipeline/light/FSphereHitsSpheres.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
 | [0x1A4478](../../../src/game/engine/graphics/pipeline/light/func_001A4478.cpp) | `BuildSoLightPackets` | Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000 | 0.45 | T2 |  |
 | [0x1A4AD8](../../../src/game/engine/graphics/pipeline/light/func_001A4AD8.cpp) | `BuildLightPackets` | Same packet build for an explicit light list (rebuilds each light first) | 0.45 | T2 |  |
 
@@ -208,8 +208,8 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 |---|---|---|---|---|---|
 | [0x1BE398](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BE398.cpp) | `InitItemRenderTargets` | Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots (D_003E1A78, D_003E1AA0) | 0.40 | T2 |  |
 | [0x1BE6F0](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BE6F0.cpp) | `SetupItemRenderView` | Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset, unpack) | 0.40 | T2 |  |
-| [0x1BE990](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BE990.c) | `BeginRpRenderTarget0` | Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob | 0.55 | T1 |  |
-| [0x1BE9E8](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BE9E8.c) | `BeginRpRenderTarget1` | Pass 9 begin (kind 18): same for slot 1 | 0.55 | T1 |  |
+| [0x1BE990](../../../src/game/engine/graphics/pipeline/tu_1BE398/BeginRpRenderTarget0.c) | `BeginRpRenderTarget0` | Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob | 0.55 | T1 |  |
+| [0x1BE9E8](../../../src/game/engine/graphics/pipeline/tu_1BE398/BeginRpRenderTarget1.c) | `BeginRpRenderTarget1` | Pass 9 begin (kind 18): same for slot 1 | 0.55 | T1 |  |
 | [0x1BEA40](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEA40.c) | `InitCid45` | CID 45 vt7: InitXfm, fov/near/far defaults 1, 4, 1000 | 0.55 | T2 |  |
 | [0x1BEA88](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEA88.c) | `LoadCid45FromBrx` | CID 45 vt14: LoadXfmFromBrx | 0.75 | T2 | parse, verified |
 | [0x1BEAA8](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEAA8.c) | `AddCid45Object` | Append object to list | 0.30 | T2 |  |
@@ -225,11 +225,11 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CD5F0](../../../src/game/engine/graphics/pipeline/render/func_001CD5F0.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |
+| [0x1CD5F0](../../../src/game/engine/graphics/pipeline/render/FillScreenRect.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |
 | [0x1CD780](../../../src/game/engine/graphics/pipeline/render/func_001CD780.cpp) | `RenderWorldLabel` | project a world-space label, fit its rect and draw text in a color | 0.30 | T2 |  |
-| [0x1CD998](../../../src/game/engine/graphics/pipeline/render/func_001CD998.c) | `PrplAllocRpl` | Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB) | 0.60 | T1 |  |
-| [0x1CD9E0](../../../src/game/engine/graphics/pipeline/render/func_001CD9E0.c) | `SubmitSwRelightAll` | On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's globset | 0.60 | T1 |  |
-| [0x1CDA80](../../../src/game/engine/graphics/pipeline/render/func_001CDA80.c) | `RenderSw` | SW vt8: per-frame world render entry (called from main loop) | 0.85 | T1 | runtime |
+| [0x1CD998](../../../src/game/engine/graphics/pipeline/render/PrplAllocRpl.c) | `PrplAllocRpl` | Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB) | 0.60 | T1 |  |
+| [0x1CD9E0](../../../src/game/engine/graphics/pipeline/render/SubmitSwRelightAll.c) | `SubmitSwRelightAll` | On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's globset | 0.60 | T1 |  |
+| [0x1CDA80](../../../src/game/engine/graphics/pipeline/render/RenderSw.c) | `RenderSw` | SW vt8: per-frame world render entry (called from main loop) | 0.85 | T1 | runtime |
 
 ## tu_1D57A8 (0x1D57A8-0x1D6848)
 
@@ -248,42 +248,42 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EA568](../../../src/game/engine/graphics/pipeline/shd/func_001EA568.c) | `RelocateSharedColorTables` | After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entries | 0.65 | T1 | parse, format-doc |
+| [0x1EA568](../../../src/game/engine/graphics/pipeline/shd/RelocateSharedColorTables.c) | `RelocateSharedColorTables` | After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entries | 0.65 | T1 | parse, format-doc |
 | [0x1EA688](../../../src/game/engine/graphics/pipeline/shd/func_001EA688.c) | `CpassShd` | Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1 | 0.35 | T2 |  |
-| [0x1EA6C8](../../../src/game/engine/graphics/pipeline/shd/func_001EA6C8.c) | `Tex0FromTexIframeCtk` | TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 \| clut TEX0 | 0.65 | T1 | format-doc |
-| [0x1EA750](../../../src/game/engine/graphics/pipeline/shd/func_001EA750.c) | `PackTexGifs` | Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream | 0.50 | T1 |  |
-| [0x1EA8A8](../../../src/game/engine/graphics/pipeline/shd/func_001EA8A8.c) | `LoadClutFromBrx` | Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entries | 0.80 | T1 | parse, format-doc |
+| [0x1EA6C8](../../../src/game/engine/graphics/pipeline/shd/Tex0FromTexIframeCtk.c) | `Tex0FromTexIframeCtk` | TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 \| clut TEX0 | 0.65 | T1 | format-doc |
+| [0x1EA750](../../../src/game/engine/graphics/pipeline/shd/PackTexGifs.c) | `PackTexGifs` | Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream | 0.50 | T1 |  |
+| [0x1EA8A8](../../../src/game/engine/graphics/pipeline/shd/LoadClutFromBrx.c) | `LoadClutFromBrx` | Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entries | 0.80 | T1 | parse, format-doc |
 | [0x1EA9F0](../../../src/game/engine/graphics/pipeline/shd/func_001EA9F0.cpp) | `BuildSwBackgroundGifs` | Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at g_sw+0x3EA0) | 0.30 | T2 |  |
 | [0x1EAD98](../../../src/game/engine/graphics/pipeline/shd/func_001EAD98.c) | `CopyClutHeader` | Copy a CLUT header, color-correct its colors, compute qword count | 0.30 | T2 |  |
-| [0x1EAE40](../../../src/game/engine/graphics/pipeline/shd/func_001EAE40.c) | `LoadColorTablesFromBrx` | Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count | 0.85 | T1 | parse, format-doc |
-| [0x1EAF50](../../../src/game/engine/graphics/pipeline/shd/func_001EAF50.c) | `LoadBmpFromBrx` | Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash) | 0.80 | T1 | parse, format-doc |
+| [0x1EAE40](../../../src/game/engine/graphics/pipeline/shd/LoadColorTablesFromBrx__FP18CBinaryInputStream.c) | `LoadColorTablesFromBrx` | Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count | 0.85 | T1 | parse, format-doc |
+| [0x1EAF50](../../../src/game/engine/graphics/pipeline/shd/LoadBmpFromBrx.c) | `LoadBmpFromBrx` | Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash) | 0.80 | T1 | parse, format-doc |
 | [0x1EB050](../../../src/game/engine/graphics/pipeline/shd/func_001EB050.c) | `CopyBmpHeader` | Copy a BMP header and compute qword count | 0.30 | T2 |  |
-| [0x1EB098](../../../src/game/engine/graphics/pipeline/shd/func_001EB098.c) | `LoadBitmapsFromBrx` | Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each | 0.85 | T1 | parse, format-doc |
-| [0x1EB1A8](../../../src/game/engine/graphics/pipeline/shd/func_001EB1A8.c) | `LoadTexFromBrx` | Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) | 0.75 | T1 | parse |
-| [0x1EB2F0](../../../src/game/engine/graphics/pipeline/shd/func_001EB2F0.c) | `LoadShdFromBrx` | Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data | 0.80 | T1 | parse, format-doc |
+| [0x1EB098](../../../src/game/engine/graphics/pipeline/shd/LoadBitmapsFromBrx__FP18CBinaryInputStream.c) | `LoadBitmapsFromBrx` | Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each | 0.85 | T1 | parse, format-doc |
+| [0x1EB1A8](../../../src/game/engine/graphics/pipeline/shd/LoadTexFromBrx.c) | `LoadTexFromBrx` | Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) | 0.75 | T1 | parse |
+| [0x1EB2F0](../../../src/game/engine/graphics/pipeline/shd/LoadShdFromBrx.c) | `LoadShdFromBrx` | Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data | 0.80 | T1 | parse, format-doc |
 | [0x1EB678](../../../src/game/engine/graphics/pipeline/shd/func_001EB678.c) | `BuildShdTex0List` | Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture) | 0.35 | T2 |  |
-| [0x1EB748](../../../src/game/engine/graphics/pipeline/shd/func_001EB748.c) | `LoadShadersFromBrx` | Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures (0x1ECE58); build shader packets | 0.80 | T1 | parse, format-doc |
+| [0x1EB748](../../../src/game/engine/graphics/pipeline/shd/LoadShadersFromBrx.c) | `LoadShadersFromBrx` | Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures (0x1ECE58); build shader packets | 0.80 | T1 | parse, format-doc |
 | [0x1EB960](../../../src/game/engine/graphics/pipeline/shd/func_001EB960.cpp) | `FillShaders` | Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind | 0.45 | T2 |  |
 | [0x1EC688](../../../src/game/engine/graphics/pipeline/shd/func_001EC688.c) | `AddShdVifUnpack` | Emit a VIF unpack (0x226F28 kind 12) for record i; return its size | 0.25 | T2 |  |
 | [0x1EC6D0](../../../src/game/engine/graphics/pipeline/shd/func_001EC6D0.c) | `AddShdVifUnpackQw` | Variant of 0x1EC688 for a single qword from an object | 0.25 | T2 |  |
 | [0x1EC718](../../../src/game/engine/graphics/pipeline/shd/func_001EC718.c) | `ApplyCopyRecord` | CopyAb(dst=+8, src=+4, cb=+0) | 0.25 | T2 |  |
 | [0x1EC740](../../../src/game/engine/graphics/pipeline/shd/func_001EC740.c) | `RelocateShdRefs` | Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew | 0.30 | T2 |  |
-| [0x1EC7A0](../../../src/game/engine/graphics/pipeline/shd/func_001EC7A0.c) | `ResetShaders` | Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) | 0.65 | T1 | format-doc |
+| [0x1EC7A0](../../../src/game/engine/graphics/pipeline/shd/ResetShaders.c) | `ResetShaders` | Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) | 0.65 | T1 | format-doc |
 | [0x1EC7E8](../../../src/game/engine/graphics/pipeline/shd/func_001EC7E8.c) | `UnloadShaders` | Clear shader GS state (D_003DA790, D_003DCFA0, 0x40 bytes at D_003DCFA8) | 0.40 | T2 |  |
-| [0x1EC820](../../../src/game/engine/graphics/pipeline/shd/func_001EC820.c) | `PshdFindShader` | Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL | 0.75 | T1 | format-doc |
+| [0x1EC820](../../../src/game/engine/graphics/pipeline/shd/PshdFindShader.c) | `PshdFindShader` | Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL | 0.75 | T1 | format-doc |
 | [0x1EC880](../../../src/game/engine/graphics/pipeline/shd/func_001EC880.c) | `PfontFind` | Find an entry by oid in linked list D_003E1590 (next +0x18) | 0.30 | T2 |  |
 | [0x1EC8D0](../../../src/game/engine/graphics/pipeline/shd/func_001EC8D0.c) | `PfontFindOrDefault` | 0x1EC880(oid) or the list head | 0.30 | T2 |  |
 | [0x1EC8F8](../../../src/game/engine/graphics/pipeline/shd/func_001EC8F8.c) | `PshdFromIshd` | &D_003DCFEC[i] (stride 0x2C) | 0.85 | T1 | verified |
 | [0x1EC918](../../../src/game/engine/graphics/pipeline/shd/func_001EC918.c) | `PsaaFind` | Find an SAA by id (+0x14) in list D_003E159C (stops at entries with a child) | 0.35 | T2 |  |
-| [0x1EC968](../../../src/game/engine/graphics/pipeline/shd/func_001EC968.c) | `UpdateShaders` | For each SAA in D_003E159C: if FUpdatableSaa call its vt8 (Update) | 0.65 | T1 |  |
-| [0x1EC9D0](../../../src/game/engine/graphics/pipeline/shd/func_001EC9D0.c) | `BuildClutTex2` | Fill TEX2-style CLUT fields | 0.90 | T1 | verified, format-doc |
+| [0x1EC968](../../../src/game/engine/graphics/pipeline/shd/UpdateShaders.c) | `UpdateShaders` | For each SAA in D_003E159C: if FUpdatableSaa call its vt8 (Update) | 0.65 | T1 |  |
+| [0x1EC9D0](../../../src/game/engine/graphics/pipeline/shd/BuildClutTex2__FP4CLUTi.c) | `BuildClutTex2` | Fill TEX2-style CLUT fields | 0.90 | T1 | verified, format-doc |
 | [0x1ECAB0](../../../src/game/engine/graphics/pipeline/shd/BuildClutGifs__FP4CLUTiP4GIFS.cpp) | `BuildClutGifs__FP4CLUTiP4GIFS` | existing name kept | 0.85 | existing | verified |
 | [0x1ECB18](../../../src/game/engine/graphics/pipeline/shd/BuildBmpTex0__FP3BMPi.cpp) | `BuildBmpTex0__FP3BMPi` | existing name kept | 0.85 | existing | verified |
-| [0x1ECBF0](../../../src/game/engine/graphics/pipeline/shd/func_001ECBF0.c) | `BuildBmpGifs` | BuildImageGifs for a bitmap | 0.60 | T1 |  |
-| [0x1ECC28](../../../src/game/engine/graphics/pipeline/shd/func_001ECC28.c) | `FBuildUploadBitmapGifs` | Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added | 0.80 | T1 | verified |
-| [0x1ECE58](../../../src/game/engine/graphics/pipeline/shd/func_001ECE58.c) | `UploadPermShaders` | Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs | 0.65 | T1 | format-doc |
+| [0x1ECBF0](../../../src/game/engine/graphics/pipeline/shd/BuildBmpGifs.c) | `BuildBmpGifs` | BuildImageGifs for a bitmap | 0.60 | T1 |  |
+| [0x1ECC28](../../../src/game/engine/graphics/pipeline/shd/FBuildUploadBitmapGifs__FiP3GSBP4GIFS.c) | `FBuildUploadBitmapGifs` | Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added | 0.80 | T1 | verified |
+| [0x1ECE58](../../../src/game/engine/graphics/pipeline/shd/UploadPermShaders.c) | `UploadPermShaders` | Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs | 0.65 | T1 | format-doc |
 | [0x1ED1A8](../../../src/game/engine/graphics/pipeline/shd/func_001ED1A8.cpp) | `ColorCorrectRgba16` | Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (D_003E12C8) | 0.45 | T2 |  |
-| [0x1ED278](../../../src/game/engine/graphics/pipeline/shd/func_001ED278.c) | `ColorCorrectRgba` | If color correction enabled (D_003E12C8): RGBA -> vector -> ColorCorrectVector -> RGBA | 0.65 | T1 | format-doc |
+| [0x1ED278](../../../src/game/engine/graphics/pipeline/shd/ColorCorrectRgba.c) | `ColorCorrectRgba` | If color correction enabled (D_003E12C8): RGBA -> vector -> ColorCorrectVector -> RGBA | 0.65 | T1 | format-doc |
 | [0x1ED2D8](../../../src/game/engine/graphics/pipeline/shd/func_001ED2D8.c) | `ColorCorrectVector` | Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via HSV | 0.45 | T2 |  |
 | [0x1ED3A8](../../../src/game/engine/graphics/pipeline/shd/func_001ED3A8.c) | `AllocTexHashTables` | Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018) | 0.45 | T2 |  |
 | [0x1ED448](../../../src/game/engine/graphics/pipeline/shd/func_001ED448.c) | `ClearTexHashTables` | Null both hash tables and counts | 0.45 | T2 |  |
@@ -301,32 +301,32 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 | [0x1ED8E0](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED8E0.c) | `InitSaa` | SAA (CID 0x8A) vt7 Init | 0.60 | T1 |  |
 | [0x1ED960](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED960.c) | `AddSaaCopyRecord` | Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack (0x226E88) and apply it | 0.30 | T2 |  |
 | [0x1EDA20](../../../src/game/engine/graphics/pipeline/shdanim/FUpdatableSaa__FP3SAA.c) | `FUpdatableSaa__FP3SAA` |  |  | existing |  |
-| [0x1EDA50](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDA50.c) | `UpdateSaa` | SAA vt8 base: empty | 0.50 | T1 |  |
+| [0x1EDA50](../../../src/game/engine/graphics/pipeline/shdanim/UpdateSaa.c) | `UpdateSaa` | SAA vt8 base: empty | 0.50 | T1 |  |
 | [0x1EDA58](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteSaa__FP3SAA.c) | `UCompleteSaa__FP3SAA` |  |  | existing |  |
-| [0x1EDA68](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDA68.c) | `SetSaiIframe` | Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked | 0.60 | T1 |  |
-| [0x1EDAD8](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDAD8.c) | `SetSaiDuDv` | Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked | 0.65 | T1 |  |
+| [0x1EDA68](../../../src/game/engine/graphics/pipeline/shdanim/SetSaiIframe.c) | `SetSaiIframe` | Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked | 0.60 | T1 |  |
+| [0x1EDAD8](../../../src/game/engine/graphics/pipeline/shdanim/SetSaiDuDv.c) | `SetSaiDuDv` | Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked | 0.65 | T1 |  |
 | [0x1EDB80](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDB80.c) | `SAA_FMatches` | SAA vt10: *poid == psaa->+0x14 | 0.40 | T2 |  |
-| [0x1EDB98](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDB98.c) | `InitLoop` | LOOP vt7 Init | 0.85 | T1 | verified |
+| [0x1EDB98](../../../src/game/engine/graphics/pipeline/shdanim/InitLoop.c) | `InitLoop` | LOOP vt7 Init | 0.85 | T1 | verified |
 | [0x1EDC40](../../../src/game/engine/graphics/pipeline/shdanim/UpdateLoop__FP4LOOPf.cpp) | `UpdateLoop__FP4LOOPf` |  |  | existing |  |
 | [0x1EDD30](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteLoop__FP4LOOP.c) | `UCompleteLoop__FP4LOOP` |  |  | existing |  |
-| [0x1EDD60](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDD60.c) | `InitPingpong` | PINGPONG vt7 Init | 0.60 | T1 |  |
+| [0x1EDD60](../../../src/game/engine/graphics/pipeline/shdanim/InitPingpong.c) | `InitPingpong` | PINGPONG vt7 Init | 0.60 | T1 |  |
 | [0x1EDE10](../../../src/game/engine/graphics/pipeline/shdanim/UpdatePingpong__FP8PINGPONGf.cpp) | `UpdatePingpong__FP8PINGPONGf` |  |  | existing |  |
 | [0x1EDF28](../../../src/game/engine/graphics/pipeline/shdanim/UCompletePingpong__FP8PINGPONG.cpp) | `UCompletePingpong__FP8PINGPONG` |  |  | existing |  |
 | [0x1EDFA0](../../../src/game/engine/graphics/pipeline/shdanim/InitShuffle__FP7SHUFFLEP4SAAF.cpp) | `InitShuffle__FP7SHUFFLEP4SAAF` |  |  | existing |  |
 | [0x1EDFE0](../../../src/game/engine/graphics/pipeline/shdanim/UpdateShuffle__FP7SHUFFLEf.cpp) | `UpdateShuffle__FP7SHUFFLEf` |  |  | existing |  |
-| [0x1EE090](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE090.c) | `InitEyes` | EYES vt7 Init | 0.60 | T1 |  |
+| [0x1EE090](../../../src/game/engine/graphics/pipeline/shdanim/InitEyes.c) | `InitEyes` | EYES vt7 Init | 0.60 | T1 |  |
 | [0x1EE100](../../../src/game/engine/graphics/pipeline/shdanim/SetEyesEyess__FP4EYES5EYESS.cpp) | `SetEyesEyess__FP4EYES5EYESS` |  |  | existing |  |
-| [0x1EE228](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE228.cpp) | `UpdateEyes` | EYES vt8 Update | 0.60 | T1 |  |
-| [0x1EE3B0](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE3B0.c) | `SetEyesClosed` | Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) | 0.50 | T1 |  |
+| [0x1EE228](../../../src/game/engine/graphics/pipeline/shdanim/UpdateEyes.cpp) | `UpdateEyes` | EYES vt8 Update | 0.60 | T1 |  |
+| [0x1EE3B0](../../../src/game/engine/graphics/pipeline/shdanim/SetEyesClosed.c) | `SetEyesClosed` | Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) | 0.50 | T1 |  |
 | [0x1EE420](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE420.c) | `EYES_FMatches` | EYES vt10: SAA::FMatches or *poid == +0x60 | 0.40 | T2 |  |
 | [0x1EE480](../../../src/game/engine/graphics/pipeline/shdanim/InitScroller__FP8SCROLLERP4SAAF.c) | `InitScroller__FP8SCROLLERP4SAAF` |  |  | existing |  |
-| [0x1EE4E0](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE4E0.c) | `UpdateScroller` | SCROLLER vt8 Update | 0.60 | T1 |  |
+| [0x1EE4E0](../../../src/game/engine/graphics/pipeline/shdanim/UpdateScroller.c) | `UpdateScroller` | SCROLLER vt8 Update | 0.60 | T1 |  |
 | [0x1EE5B8](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteScroller__FP8SCROLLER.cpp) | `UCompleteScroller__FP8SCROLLER` |  |  | existing |  |
 | [0x1EE678](../../../src/game/engine/graphics/pipeline/shdanim/SetScrollerMasterSpeeds__FP8SCROLLERff.cpp) | `SetScrollerMasterSpeeds__FP8SCROLLERff` |  |  | existing |  |
-| [0x1EE688](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE688.c) | `InitCircler` | CIRCLER vt7 Init | 0.60 | T1 |  |
+| [0x1EE688](../../../src/game/engine/graphics/pipeline/shdanim/InitCircler.c) | `InitCircler` | CIRCLER vt7 Init | 0.60 | T1 |  |
 | [0x1EE6D8](../../../src/game/engine/graphics/pipeline/shdanim/UpdateCircler__FP7CIRCLERf.cpp) | `UpdateCircler__FP7CIRCLERf` |  |  | existing |  |
 | [0x1EE768](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteCircler__FP7CIRCLER.cpp) | `UCompleteCircler__FP7CIRCLER` |  |  | existing |  |
-| [0x1EE7B0](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE7B0.c) | `PropagateSais` | For every dirty SAA in D_003E159C apply its copy records and clear dirty | 0.60 | T1 |  |
+| [0x1EE7B0](../../../src/game/engine/graphics/pipeline/shdanim/PropagateSais.c) | `PropagateSais` | For every dirty SAA in D_003E159C apply its copy records and clear dirty | 0.60 | T1 |  |
 
 ## sky (0x1EF850-0x1EFA90)
 

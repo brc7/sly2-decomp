@@ -35,45 +35,45 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14C6A0](../../../src/game/engine/physics/clip/func_0014C6A0.c) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
-| [0x14C6D8](../../../src/game/engine/physics/clip/func_0014C6D8.c) | `ClsgClipEdgeToObjectPruned` | If a BSP is given ClsgClipEdgeToBsp, else if the object is a sphere (bit 49) ClsgClipEdgeToSphere with its center/radius | 0.75 | T1 |  |
+| [0x14C6A0](../../../src/game/engine/physics/clip/ClsgClipEdgeToObject.c) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
+| [0x14C6D8](../../../src/game/engine/physics/clip/ClsgClipEdgeToObjectPruned.c) | `ClsgClipEdgeToObjectPruned` | If a BSP is given ClsgClipEdgeToBsp, else if the object is a sphere (bit 49) ClsgClipEdgeToSphere with its center/radius | 0.75 | T1 |  |
 | [0x14C748](../../../src/game/engine/physics/clip/func_0014C748.cpp) | `ClsgClipEdgeToSphere` | Segment/sphere intersection: quadratic in u, clamp to [0,1], emit up to 2 LSG entries | 0.75 | T1 |  |
-| [0x14C9F8](../../../src/game/engine/physics/clip/func_0014C9F8.c) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
+| [0x14C9F8](../../../src/game/engine/physics/clip/ClsgMergeAlsg.c) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
 | [0x14CC58](../../../src/game/engine/physics/clip/PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG.c) | `PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG` |  |  | existing |  |
-| [0x14CDB0](../../../src/game/engine/physics/clip/func_0014CDB0.c) | `ClsgClipEdgeToObjects` | Clip a segment against a list of SOs, merging each object's LSG list into the result (ClsgMergeAlsg k=0) | 0.60 | T1 |  |
+| [0x14CDB0](../../../src/game/engine/physics/clip/ClsgClipEdgeToObjects.c) | `ClsgClipEdgeToObjects` | Clip a segment against a list of SOs, merging each object's LSG list into the result (ClsgMergeAlsg k=0) | 0.60 | T1 |  |
 
 ## geom (0x166270-0x166920)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x166270](../../../src/game/engine/physics/geom/func_00166270.c) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recomputing plane offsets | 0.85 | T1 | verified |
-| [0x166428](../../../src/game/engine/physics/geom/func_00166428.c) | `TransformPointsVu0` | Transforms an array of qword points by a 4x4 matrix using VU0 micro-subroutines (vcallms 0x120/0xF0), double-buffered | 0.50 | T1 |  |
-| [0x1664A0](../../../src/game/engine/physics/geom/func_001664A0.cpp) | `UpdateGeomWorld` | Transforms a local GEOM into world space: points via VU0 (0x166428), plane normals by the inverse-transpose rotation, recomputing plane distances | 0.55 | T1 |  |
+| [0x166270](../../../src/game/engine/physics/geom/CloneGeom__FP4GEOMP7MATRIX4T0.c) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recomputing plane offsets | 0.85 | T1 | verified |
+| [0x166428](../../../src/game/engine/physics/geom/TransformPointsVu0.c) | `TransformPointsVu0` | Transforms an array of qword points by a 4x4 matrix using VU0 micro-subroutines (vcallms 0x120/0xF0), double-buffered | 0.50 | T1 |  |
+| [0x1664A0](../../../src/game/engine/physics/geom/UpdateGeomWorld.cpp) | `UpdateGeomWorld` | Transforms a local GEOM into world space: points via VU0 (0x166428), plane normals by the inverse-transpose rotation, recomputing plane distances | 0.55 | T1 |  |
 | [0x1665F0](../../../src/game/engine/physics/geom/func_001665F0.cpp) | `CpedgeFromGeomPoint` | Collects up to max unique edges incident to a given GEOM point, using a BSP query around the point | 0.40 | T2 |  |
 
 ## mark (0x1A7C18-0x1AA978)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A7C18](../../../src/game/engine/physics/mark/func_001A7C18.c) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *ppxpFirst | 0.75 | T1 | verified |
+| [0x1A7C18](../../../src/game/engine/physics/mark/PxpAdd.c) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *ppxpFirst | 0.75 | T1 | verified |
 | [0x1A7E10](../../../src/game/engine/physics/mark/FreeSwXpList__FP2SWP2XP.cpp) | `FreeSwXpList__FP2SWP2XP` |  |  | existing |  |
-| [0x1A7E60](../../../src/game/engine/physics/mark/func_001A7E60.c) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
-| [0x1A7FC0](../../../src/game/engine/physics/mark/func_001A7FC0.c) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
+| [0x1A7E60](../../../src/game/engine/physics/mark/RecalcSwXpPos.c) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
+| [0x1A7FC0](../../../src/game/engine/physics/mark/RecalcSwXpMovement.c) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
 | [0x1A80D8](../../../src/game/engine/physics/mark/ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG.c) | `ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG` |  |  | existing |  |
-| [0x1A81F8](../../../src/game/engine/physics/mark/func_001A81F8.c) | `ClsgClipSoBspEdges` | Clip the edges of selected (pruned) surfaces of one shape against the other's BSP into LSGs, attaching the source edge | 0.60 | T1 |  |
+| [0x1A81F8](../../../src/game/engine/physics/mark/ClsgClipSoBspEdges.c) | `ClsgClipSoBspEdges` | Clip the edges of selected (pruned) surfaces of one shape against the other's BSP into LSGs, attaching the source edge | 0.60 | T1 |  |
 | [0x1A8410](../../../src/game/engine/physics/mark/CategorizeAlsg__FiP3LSGPiT2PP3LSGT4.cpp) | `CategorizeAlsg__FiP3LSGPiT2PP3LSGT4` |  |  | existing |  |
-| [0x1A86B8](../../../src/game/engine/physics/mark/func_001A86B8.c) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
+| [0x1A86B8](../../../src/game/engine/physics/mark/CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG.c) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
 | [0x1A87F0](../../../src/game/engine/physics/mark/func_001A87F0.cpp) | `AddSoEmbedXps` | Rank embedded vertex surfaces (largest min distance above D_002A6AD0) and emit vertex contacts through PxpAdd | 0.35 | T2 |  |
-| [0x1A8B50](../../../src/game/engine/physics/mark/func_001A8B50.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (kind 3) | 0.85 | T1 | verified |
+| [0x1A8B50](../../../src/game/engine/physics/mark/MarkSoContactsBspBsp.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (kind 3) | 0.85 | T1 | verified |
 | [0x1A9108](../../../src/game/engine/physics/mark/func_001A9108.cpp) | `PruneSphereBsp` | Prune a BSP to a sphere (radius >= 100) and clip its edges (PruneBsp, ClsgClipEdgeToBsp, InitPlaneFromNormalPos) | 0.35 | T2 |  |
-| [0x1A93C8](../../../src/game/engine/physics/mark/func_001A93C8.cpp) | `CsbiIntersectSphereBsp` | Contacts of a sphere with the BSP hull of a collision part (up to ccontactMax) | 0.70 | T1 |  |
-| [0x1A9B28](../../../src/game/engine/physics/mark/func_001A9B28.cpp) | `MarkSoContactsSphereBsp` | Sphere vs BSP shape: CsbiIntersectSphereBsp then PxpAdd for each hit | 0.65 | T1 |  |
-| [0x1A9C40](../../../src/game/engine/physics/mark/func_001A9C40.c) | `MarkSoContactsSphereSphere` | Sphere vs sphere: if overlapping add one XP along the centre line | 0.65 | T1 |  |
+| [0x1A93C8](../../../src/game/engine/physics/mark/CsbiIntersectSphereBsp.cpp) | `CsbiIntersectSphereBsp` | Contacts of a sphere with the BSP hull of a collision part (up to ccontactMax) | 0.70 | T1 |  |
+| [0x1A9B28](../../../src/game/engine/physics/mark/MarkSoContactsSphereBsp.cpp) | `MarkSoContactsSphereBsp` | Sphere vs BSP shape: CsbiIntersectSphereBsp then PxpAdd for each hit | 0.65 | T1 |  |
+| [0x1A9C40](../../../src/game/engine/physics/mark/MarkSoContactsSphereSphere.c) | `MarkSoContactsSphereSphere` | Sphere vs sphere: if overlapping add one XP along the centre line | 0.65 | T1 |  |
 | [0x1A9D38](../../../src/game/engine/physics/mark/func_001A9D38.cpp) | `MarkSoContactsSweepVertices` | Sweep moving vertices of one shape (old->new frame) with line tests against the other and add contacts at first hit | 0.35 | T2 |  |
 | [0x1A9FE0](../../../src/game/engine/physics/mark/func_001A9FE0.c) | `AppendXpList` | Splice list b in front of *pp (walk to tail, link) | 0.40 | T2 |  |
 | [0x1AA020](../../../src/game/engine/physics/mark/func_001AA020.c) | `PxpCloneList` | Duplicate an XP list into new slotheap nodes | 0.35 | T2 |  |
 | [0x1AA0B0](../../../src/game/engine/physics/mark/func_001AA0B0.c) | `AddSoZapXps` | Query the zap responder (PloFindZapResponder, vt slot 0x3C) and append its contacts | 0.30 | T2 |  |
-| [0x1AA1D8](../../../src/game/engine/physics/mark/func_001AA1D8.cpp) | `AddSoXps` | Build all contacts between two SOs: order by radius, per shape pair dispatch sphere/sphere, sphere/BSP, BSP/BSP, sweep, zap responders | 0.55 | T1 |  |
+| [0x1AA1D8](../../../src/game/engine/physics/mark/AddSoXps.cpp) | `AddSoXps` | Build all contacts between two SOs: order by radius, per shape pair dispatch sphere/sphere, sphere/BSP, BSP/BSP, sweep, zap responders | 0.55 | T1 |  |
 
 ## tu_1BC050 (0x1BC050-0x1BE398)
 
@@ -103,7 +103,7 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1BD718](../../../src/game/engine/physics/tu_1BC050/func_001BD718.c) | `FindShapeFreePoint` | Free point on a shape around parameter g avoiding obstacles | 0.30 | T2 |  |
 | [0x1BD8A8](../../../src/game/engine/physics/tu_1BC050/FCnvoOverlap.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
 | [0x1BDA00](../../../src/game/engine/physics/tu_1BC050/func_001BDA00.c) | `PcnvoNewMerged` | Create merged obstacle object (PloNew) holding member polygons | 0.35 | T2 |  |
-| [0x1BDBC8](../../../src/game/engine/physics/tu_1BC050/NCmpWkr__FP3WKRT0.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
+| [0x1BDBC8](../../../src/game/engine/physics/tu_1BC050/NCmpPosX.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
 | [0x1BDBF0](../../../src/game/engine/physics/tu_1BC050/func_001BDBF0.cpp) | `CposConvexHull` | 2D convex hull of points (sort + monotone chain) | 0.45 | T2 |  |
 | [0x1BDE18](../../../src/game/engine/physics/tu_1BC050/func_001BDE18.c) | `AddCid14ToMerged` | Attach polygon to merged owner and unregister it individually | 0.35 | T2 |  |
 | [0x1BDE80](../../../src/game/engine/physics/tu_1BC050/func_001BDE80.cpp) | `MergeCid14Obstacles` | Merge overlapping convex polygons into one new hull polygon | 0.40 | T2 |  |
@@ -449,17 +449,17 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x228B48](../../../src/game/engine/physics/water/func_00228B48.c) | `InitWater` | InitSo; defaults (1, -10, ...) | 0.55 | T1 |  |
-| [0x228BF8](../../../src/game/engine/physics/water/func_00228BF8.c) | `PostWaterLoad` | calls SO PostLoad 0x1F36A8 | 0.50 | T1 |  |
-| [0x228C18](../../../src/game/engine/physics/water/func_00228C18.cpp) | `CalculateWaterCurrent` | converts pos to water local space and evaluates current (v, w) | 0.55 | T1 |  |
+| [0x228B48](../../../src/game/engine/physics/water/InitWater.c) | `InitWater` | InitSo; defaults (1, -10, ...) | 0.55 | T1 |  |
+| [0x228BF8](../../../src/game/engine/physics/water/PostWaterLoad.c) | `PostWaterLoad` | calls SO PostLoad 0x1F36A8 | 0.50 | T1 |  |
+| [0x228C18](../../../src/game/engine/physics/water/CalculateWaterCurrent.cpp) | `CalculateWaterCurrent` | converts pos to water local space and evaluates current (v, w) | 0.55 | T1 |  |
 | [0x228D20](../../../src/game/engine/physics/water/func_00228D20.c) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
-| [0x228E50](../../../src/game/engine/physics/water/func_00228E50.cpp) | `UpdateWater` | tracks objects inside the water, emits contact/impact (splash) events | 0.55 | T1 |  |
+| [0x228E50](../../../src/game/engine/physics/water/UpdateWater.cpp) | `UpdateWater` | tracks objects inside the water, emits contact/impact (splash) events | 0.55 | T1 |  |
 | [0x229308](../../../src/game/engine/physics/water/func_00229308.c) | `RemoveWaterHierarchy` | SO slot12 then removes and frees all XAs | 0.40 | T2 |  |
 | [0x229370](../../../src/game/engine/physics/water/func_00229370.c) | `HandleWaterMessage` | drops XAs on some messages then base HandleLoMessage 0x133590 | 0.45 | T2 |  |
 | [0x229468](../../../src/game/engine/physics/water/func_00229468.cpp) | `UGetWaterSubmerged` | vertical hit span and optional surface point/normal | 0.40 | T2 |  |
 | [0x2296A0](../../../src/game/engine/physics/water/func_002296A0.c) | `FreeXa` | returns one XA to g_sw slotheapXa (+0x40E8) | 0.40 | T2 |  |
 | [0x2296C0](../../../src/game/engine/physics/water/func_002296C0.c) | `FreeXaList` | frees a linked list of XA nodes into g_sw slotheapXa | 0.45 | T2 |  |
-| [0x229710](../../../src/game/engine/physics/water/func_00229710.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
+| [0x229710](../../../src/game/engine/physics/water/AddSoXa.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
 | [0x229738](../../../src/game/engine/physics/water/func_00229738.c) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
 | [0x229798](../../../src/game/engine/physics/water/func_00229798.c) | `AddSoXaAccelerations` | for each XA call owner vt71 (AddSoExternalAccelerations) | 0.35 | T2 |  |
-| [0x2297F0](../../../src/game/engine/physics/water/func_002297F0.c) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |
+| [0x2297F0](../../../src/game/engine/physics/water/AddSoExternalAccelerations.c) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |

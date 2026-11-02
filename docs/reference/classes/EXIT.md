@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetExitClassDesc`](../../../src/game/app/class_registry/GetExitClassDesc.c) | `0x113BB0` |
-| 7 | Init | **override** | [`InitExit?`](../../../src/game/level/exit_warp/func_002281E8.c) | `0x2281E8` |
+| 7 | Init | **override** | [`InitExit?`](../../../src/game/level/exit_warp/InitExit.c) | `0x2281E8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadExitFromBrx?`](../../../src/game/level/exit_warp/func_002282B0.c) | `0x2282B0` |
+| 14 | LoadFromBrx | **override** | [`LoadExitFromBrx?`](../../../src/game/level/exit_warp/LoadExitFromBrx.c) | `0x2282B0` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
-| 16 | Update | **override** | [`UpdateExit?`](../../../src/game/level/exit_warp/func_00228538.c) | `0x228538` |
+| 16 | Update | **override** | [`UpdateExit?`](../../../src/game/level/exit_warp/UpdateExit.c) | `0x228538` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |

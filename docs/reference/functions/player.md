@@ -49,7 +49,7 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x136530](../../../src/game/gameplay/player/bentley/func_00136530.c) | `SetBentleyHoverState` | State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code | 0.30 | T2 |  |
 | [0x1367D8](../../../src/game/gameplay/player/bentley/func_001367D8.c) | `UpdateBentleyStateMisc` | Small transition loop (state 1 returns to 0 and makes the PO current via vt79) | 0.30 | T2 |  |
 | [0x136870](../../../src/game/gameplay/player/bentley/BENTLEY_FCanUseGadget.c) | `BENTLEY_FCanUseGadget` | BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability | 0.70 | T1 |  |
-| [0x136A28](../../../src/game/gameplay/player/bentley/CbFromSaak__F4SAAK.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
+| [0x136A28](../../../src/game/gameplay/player/bentley/PgadgetBentleyFromId.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
 | [0x136A90](../../../src/game/gameplay/player/bentley/StartBentleyGadget.c) | `StartBentleyGadget` | BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget record | 0.70 | T1 |  |
 | [0x136C50](../../../src/game/gameplay/player/bentley/OnBentleyGadgetsChanged.c) | `OnBentleyGadgetsChanged` | BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else disable | 0.50 | T1 |  |
 | [0x136CB0](../../../src/game/gameplay/player/bentley/BENTLEY_PchzSaveVarRoot.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
@@ -460,7 +460,7 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x19ABF0](../../../src/game/gameplay/player/air/GMeasureJumpPipe.c) | `GMeasureJumpPipe` | Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime | 0.65 | T1 |  |
 | [0x19AC88](../../../src/game/gameplay/player/air/func_0019AC88.c) | `GMeasureJumpPath` | Callback: speed-limited path length/time to a target along a Bezier path (0x185D18), min(1e6, (v0+v1)*t/2) | 0.35 | T2 |  |
 | [0x19AE00](../../../src/game/gameplay/player/air/FFindJtObstruction.cpp) | `FFindJtObstruction` | Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment); return hit point | 0.65 | T1 |  |
-| [0x19B088](../../../src/game/gameplay/player/air/FUN_001cf138.c) | `GAdjustJtLandingScore` | g + gPenalty, + D_002BF900 if candidate is the jump source | 0.65 | existing | arbitration; replaces existing FUN_001cf138 |
+| [0x19B088](../../../src/game/gameplay/player/air/GAdjustJtLandingScore.c) | `GAdjustJtLandingScore` | g + gPenalty, + D_002BF900 if candidate is the jump source | 0.65 | existing | arbitration; replaces existing FUN_001cf138 |
 | [0x19B0A8](../../../src/game/gameplay/player/air/func_0019B0A8.c) | `FFilterJtObstruction` | Obstruction filter: ignore flagged XPs, objects with flag 4 and objects in an ignore list | 0.35 | T2 |  |
 | [0x19B110](../../../src/game/gameplay/player/air/JtbsChooseJtLanding.cpp) | `JtbsChooseJtLanding` | Choose the jump target/landing among all candidate lists (D_003E13B4..D_003E142C), scoring with MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then SetJtAirState | 0.60 | T1 |  |
 | [0x19C300](../../../src/game/gameplay/player/air/MeasureJtJumpToTargetAtTime.cpp) | `MeasureJtJumpToTargetAtTime` | Cost of landing on target local point after duration dt in the target's predicted frame; out goal pos/velocity | 0.60 | T1 |  |
@@ -694,11 +694,11 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CB908](../../../src/game/gameplay/player/rail/func_001CB908.c) | `InitRail` | RAIL::Init (vt7): InitShape + init GRABSPOT base at +0x190; +0x1C4=1, +0x1C0=1000 | 0.85 | T1 |  |
-| [0x1CB950](../../../src/game/gameplay/player/rail/func_001CB950.c) | `PostRailLoad` | RAIL vt15 PostLoad: base then if length (+0x38)==1e10 compute path length + margin | 0.80 | T1 |  |
-| [0x1CB9B0](../../../src/game/gameplay/player/rail/func_001CB9B0.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
-| [0x1CB9E8](../../../src/game/gameplay/player/rail/func_001CB9E8.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
-| [0x1CBA20](../../../src/game/gameplay/player/rail/func_001CBA20.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
+| [0x1CB908](../../../src/game/gameplay/player/rail/InitRail.c) | `InitRail` | RAIL::Init (vt7): InitShape + init GRABSPOT base at +0x190; +0x1C4=1, +0x1C0=1000 | 0.85 | T1 |  |
+| [0x1CB950](../../../src/game/gameplay/player/rail/PostRailLoad.c) | `PostRailLoad` | RAIL vt15 PostLoad: base then if length (+0x38)==1e10 compute path length + margin | 0.80 | T1 |  |
+| [0x1CB9B0](../../../src/game/gameplay/player/rail/OnRailAdd.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
+| [0x1CB9E8](../../../src/game/gameplay/player/rail/OnRailRemove.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
+| [0x1CBA20](../../../src/game/gameplay/player/rail/CloneRail.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
 | [0x1CBA68](../../../src/game/gameplay/player/rail/func_001CBA68.c) | `RAIL_FGetGrabRange` | GRABSPOT iface: if enabled return path [low,high] distance | 0.35 | T2 |  |
 | [0x1CBAC0](../../../src/game/gameplay/player/rail/func_001CBAC0.c) | `RAIL_ClampGrabDistance` | GRABSPOT iface: nearest path distance to point, clamped to [50, high-50] unless looping | 0.35 | T2 |  |
 | [0x1CBB58](../../../src/game/gameplay/player/rail/func_001CBB58.c) | `GetRailGrabPos` | GRABSPOT iface: position at distance (+ offset from given point) | 0.30 | T2 |  |

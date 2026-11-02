@@ -37,7 +37,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadExploFromBrx?`](../../../src/game/engine/fx/emitter/func_00259030.c) | `0x259030` |
+| 14 | LoadFromBrx | **override** | [`LoadExploFromBrx?`](../../../src/game/engine/fx/emitter/LoadExploFromBrx.c) | `0x259030` |
 | 15 | PostLoad | **override** | [`BindExplo?`](../../../src/game/engine/fx/emitter/func_00259170.c) | `0x259170` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
@@ -64,7 +64,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneExplo?`](../../../src/game/engine/fx/emitter/func_002590B8.c) | `0x2590B8` |
+| 41 | Clone | **override** | [`CloneExplo?`](../../../src/game/engine/fx/emitter/CloneExplo.c) | `0x2590B8` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

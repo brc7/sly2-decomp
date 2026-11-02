@@ -277,16 +277,16 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 |---|---|---|---|---|---|
 | [0x21C820](../../../src/game/engine/anim/tail/func_0021C820.c) | `CloneChainAct` | clone of an XF actuator hook: base copy 0x12CF88 then copies owner field 0xA8 -> +0x1C | 0.35 | T2 |  |
 | [0x21C858](../../../src/game/engine/anim/tail/func_0021C858.c) | `RetractChainAct` | hook vt slot1: base 0x12CE98 (calls 0x2303A0 + 0x22C840 = XF act list update) then writes +0x1C back to object+0xA8 | 0.35 | T2 |  |
-| [0x21C888](../../../src/game/engine/anim/tail/func_0021C888.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018); computes rest segments | 0.90 | T1 | parse, verified |
+| [0x21C888](../../../src/game/engine/anim/tail/LoadSoChainsFromBrx.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018); computes rest segments | 0.90 | T1 | parse, verified |
 | [0x21CB18](../../../src/game/engine/anim/tail/func_0021CB18.cpp) | `UpdateChainLink` | per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then aims the XF at the simulated tip | 0.70 | T1 |  |
 
 ## wr (0x22B720-0x22C818)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x22B720](../../../src/game/engine/anim/wr/func_0022B720.c) | `InitWr` | InitLo; -1 fields, g=-1.0, busyk, grf | 0.75 | T1 |  |
+| [0x22B720](../../../src/game/engine/anim/wr/InitWr.c) | `InitWr` | InitLo; -1 fields, g=-1.0, busyk, grf | 0.75 | T1 |  |
 | [0x22B7A0](../../../src/game/engine/anim/wr/func_0022B7A0.c) | `AddWrEntry` | append arg1 to DL at wr+0x8F0 and set arg1->wr | 0.30 | T2 |  |
-| [0x22B7D8](../../../src/game/engine/anim/wr/func_0022B7D8.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
+| [0x22B7D8](../../../src/game/engine/anim/wr/UpdateWrStateVectors__FP2WR.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
 | [0x22BE08](../../../src/game/engine/anim/wr/UNoise__Fi.cpp) | `UNoise__Fi` |  |  | existing |  |
 | [0x22BE60](../../../src/game/engine/anim/wr/UNoise__Ffff.cpp) | `UNoise__Ffff` |  |  | existing |  |
 | [0x22BF40](../../../src/game/engine/anim/wr/UBias__Fff.c) | `UBias__Fff` |  |  | existing |  |
@@ -298,7 +298,7 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 | [0x22C4D8](../../../src/game/engine/anim/wr/PwreGetWrCircle__FP2WR4ENSK.cpp) | `PwreGetWrCircle__FP2WR4ENSK` |  |  | existing |  |
 | [0x22C4F8](../../../src/game/engine/anim/wr/PwreGetWrBend__FP2WR4ENSK.cpp) | `PwreGetWrBend__FP2WR4ENSK` |  |  | existing |  |
 | [0x22C518](../../../src/game/engine/anim/wr/SetWrWavelength__FP2WRf.cpp) | `SetWrWavelength__FP2WRf` |  |  | existing |  |
-| [0x22C570](../../../src/game/engine/anim/wr/func_0022C570.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
+| [0x22C570](../../../src/game/engine/anim/wr/GetWrWavelength.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
 | [0x22C5B8](../../../src/game/engine/anim/wr/AddOnzOnze__FP3ONZffff.c) | `AddOnzOnze__FP3ONZffff` |  |  | existing |  |
 | [0x22C5F0](../../../src/game/engine/anim/wr/AddWrBendNoise__FP2WRffff.cpp) | `AddWrBendNoise__FP2WRffff` |  |  | existing |  |
 | [0x22C658](../../../src/game/engine/anim/wr/AddWrSwivelNoise__FP2WRffff.cpp) | `AddWrSwivelNoise__FP2WRffff` |  |  | existing |  |

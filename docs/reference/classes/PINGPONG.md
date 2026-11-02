@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetPingpongClassDesc`](../../../src/game/app/class_registry/GetPingpongClassDesc.c) | `0x1142D0` |
-| 7 | InitSaa | **override** | [`InitPingpong?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDD60.c) | `0x1EDD60` |
+| 7 | InitSaa | **override** | [`InitPingpong?`](../../../src/game/engine/graphics/pipeline/shdanim/InitPingpong.c) | `0x1EDD60` |
 | 8 | UpdateSaa | **override** | [`UpdatePingpong__FP8PINGPONGf`](../../../src/game/engine/graphics/pipeline/shdanim/UpdatePingpong__FP8PINGPONGf.cpp) | `0x1EDE10` |
 | 9 | UCompleteSaa__FP3SAA | **override** | [`UCompletePingpong__FP8PINGPONG`](../../../src/game/engine/graphics/pipeline/shdanim/UCompletePingpong__FP8PINGPONG.cpp) | `0x1EDF28` |
 | 10 | SAA_FMatches | inherited (SAA) | `SAA_FMatches?` | `0x1EDB80` |

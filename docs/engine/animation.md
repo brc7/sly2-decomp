@@ -146,9 +146,9 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x20BD78](../../src/game/gameplay/player/tu_20B840/func_0020BD78.c) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
 | [0x20BF80](../../src/game/gameplay/player/tu_20B840/StartLeap.c) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
 | [0x20CAA8](../../src/game/gameplay/player/tu_20B840/func_0020CAA8.c) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |
-| [0x21C888](../../src/game/engine/anim/tail/func_0021C888.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_0 | 0.90 | T1 | parse, verified |
-| [0x22B7D8](../../src/game/engine/anim/wr/func_0022B7D8.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
-| [0x22C570](../../src/game/engine/anim/wr/func_0022C570.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
+| [0x21C888](../../src/game/engine/anim/tail/LoadSoChainsFromBrx.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_0 | 0.90 | T1 | parse, verified |
+| [0x22B7D8](../../src/game/engine/anim/wr/UpdateWrStateVectors__FP2WR.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
+| [0x22C570](../../src/game/engine/anim/wr/GetWrWavelength.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
 | [0x22D348](../../src/game/engine/anim/xf/GetXfVelocity.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
 | [0x22D7A0](../../src/game/engine/anim/xf/LoadSoXfsFromBrx.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
 | [0x22FCC8](../../src/game/engine/anim/xf/ConvertXfVec.c) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |

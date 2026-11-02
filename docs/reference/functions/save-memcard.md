@@ -19,62 +19,62 @@ Totals on this page: EXISTING 17, T1 46, T2 35.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1AA978](../../../src/game/ui/memcard/func_001AA978.c) | `StartupMemcard` | Startup-table entry: reset D_002DEB30 (0x1613F8), clear D_004425D8, InitSave(&g_save,0,0) | 0.85 | T1 | verified |
-| [0x1AA9B8](../../../src/game/ui/memcard/FUN_0018b780.c) | `FillMcDirInfo` | memset + fill a save-directory info block from sceMcGetDir results | 0.60 | existing | arbitration; replaces existing FUN_0018b780 |
+| [0x1AA978](../../../src/game/ui/memcard/StartupMemcard__Fv.c) | `StartupMemcard` | Startup-table entry: reset D_002DEB30 (0x1613F8), clear D_004425D8, InitSave(&g_save,0,0) | 0.85 | T1 | verified |
+| [0x1AA9B8](../../../src/game/ui/memcard/FillMcDirInfo.c) | `FillMcDirInfo` | memset + fill a save-directory info block from sceMcGetDir results | 0.60 | existing | arbitration; replaces existing FUN_0018b780 |
 | [0x1AAB48](../../../src/game/ui/memcard/FUN_0018b910__Fi.cpp) | `McResFromSyncState` | sceMcSync state -> internal result: 0 -> 0x1D (done), >0 -> 0x1E, <0 -> 0x1F | 0.50 | existing | arbitration; replaces existing FUN_0018b910__Fi |
 | [0x1AAB68](../../../src/game/ui/memcard/FUN_0018b930__Fi.cpp) | `McResFromSyncCmd` | sceMcSync cmd result -> 0x21 (0), 0x22 (1), 0x20 (-1), else 0x1F | 0.50 | existing | arbitration; replaces existing FUN_0018b930__Fi |
-| [0x1AABC0](../../../src/game/ui/memcard/FUN_0018b988.c) | `MsgFromMcError` | (kind 1..21, sceMc error) -> message id for the UI | 0.60 | existing | arbitration; replaces existing FUN_0018b988 |
-| [0x1AAED8](../../../src/game/ui/memcard/func_001AAED8.c) | `InitMemcard` | MEMCARD init: SemaCreate(1,1), thread id -1, prio 0x20 | 0.75 | T1 | verified |
-| [0x1AAF18](../../../src/game/ui/memcard/func_001AAF18.c) | `MemcardThreadMain` | Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear job, signal, ExitThread | 0.60 | T1 |  |
-| [0x1AAF90](../../../src/game/ui/memcard/func_001AAF90.c) | `CreateMemcardThread` | Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, CreateThread+StartThread | 0.85 | T1 | verified |
-| [0x1AB040](../../../src/game/ui/memcard/func_001AB040.c) | `SetMemcardThreadHighPrio` | If thread valid ChangeThreadPriority(id,1); then wait/signal sema (block until job finishes) | 0.60 | T1 | verified |
+| [0x1AABC0](../../../src/game/ui/memcard/MsgFromMcError.c) | `MsgFromMcError` | (kind 1..21, sceMc error) -> message id for the UI | 0.60 | existing | arbitration; replaces existing FUN_0018b988 |
+| [0x1AAED8](../../../src/game/ui/memcard/InitMemcard__FP7MEMCARD.c) | `InitMemcard` | MEMCARD init: SemaCreate(1,1), thread id -1, prio 0x20 | 0.75 | T1 | verified |
+| [0x1AAF18](../../../src/game/ui/memcard/MemcardThreadMain.c) | `MemcardThreadMain` | Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear job, signal, ExitThread | 0.60 | T1 |  |
+| [0x1AAF90](../../../src/game/ui/memcard/CreateMemcardThread.c) | `CreateMemcardThread` | Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, CreateThread+StartThread | 0.85 | T1 | verified |
+| [0x1AB040](../../../src/game/ui/memcard/SetMemcardThreadHighPrio__FP7MEMCARD.c) | `SetMemcardThreadHighPrio` | If thread valid ChangeThreadPriority(id,1); then wait/signal sema (block until job finishes) | 0.60 | T1 | verified |
 | [0x1AB088](../../../src/game/ui/memcard/FMemcardThreadValid__FP7MEMCARD.c) | `FMemcardThreadValid__FP7MEMCARD` | Thread id (+4) != -1 | 0.90 | existing | verified |
-| [0x1AB098](../../../src/game/ui/memcard/FUN_0018bc90.c) | `McSyncResult` | Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError | 0.60 | existing | arbitration; replaces existing FUN_0018bc90 |
+| [0x1AB098](../../../src/game/ui/memcard/McSyncResult.c) | `McSyncResult` | Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError | 0.60 | existing | arbitration; replaces existing FUN_0018bc90 |
 | [0x1AB128](../../../src/game/ui/memcard/InitSave__FP4SAVEii.cpp) | `InitSave__FP4SAVEii` | sceMcInit, InitMemcard(+0xFD5C), zero SAVE header | 0.90 | existing |  |
-| [0x1AB1A0](../../../src/game/ui/memcard/func_001AB1A0.c) | `UpdateSave` | Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0) or advance state (0x1AB418); autosave trigger with 0.3s debounce | 0.80 | T1 | verified |
+| [0x1AB1A0](../../../src/game/ui/memcard/UpdateSave__FP4SAVE.c) | `UpdateSave` | Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0) or advance state (0x1AB418); autosave trigger with 0.3s debounce | 0.80 | T1 | verified |
 | [0x1AB398](../../../src/game/ui/memcard/CompareSaves__FP4SAVET0.c) | `CompareSaves__FP4SAVET0` | existing | 0.85 | existing | verified |
-| [0x1AB418](../../../src/game/ui/memcard/func_001AB418.cpp) | `SetSaveState` | SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state updates, ResetGs on load | 0.55 | T1 |  |
+| [0x1AB418](../../../src/game/ui/memcard/SetSaveState.cpp) | `SetSaveState` | SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state updates, ResetGs on load | 0.55 | T1 |  |
 | [0x1AB630](../../../src/game/ui/memcard/func_001AB630.c) | `ReloadSaveSlots` | If state 5 and D_003E0EA8: wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to state 6 | 0.45 | T2 |  |
-| [0x1AB6C0](../../../src/game/ui/memcard/func_001AB6C0.c) | `McJobFormat` | Thread job: sceMcFormat(port,slot); result -> SAVE next state 2/3 and UI state | 0.75 | T1 |  |
-| [0x1AB750](../../../src/game/ui/memcard/FUN_0018c1e8.cpp) | `FOpenSaveIconFile` | Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670 | 0.35 | existing | arbitration; replaces existing FUN_0018c1e8 |
-| [0x1AB7D0](../../../src/game/ui/memcard/func_001AB7D0.c) | `CreateSaveDir` | mkdir /BASCUS-97316YAOTWTD!, write data file, write icon.sys (0x1AC008), copy icon from disc (load_sly_icon_from_disc) | 0.60 | T1 |  |
-| [0x1AB868](../../../src/game/ui/memcard/func_001AB868.c) | `McJobCreateSave` | Thread job: check space (sceMcGetEntSpace), delete stale, CreateSaveDir, write slot files | 0.60 | T1 |  |
-| [0x1ABA10](../../../src/game/ui/memcard/FUN_0018c420.c) | `McJobGetDir` | Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8) | 0.60 | existing | arbitration; replaces existing FUN_0018c420 |
-| [0x1ABB10](../../../src/game/ui/memcard/func_001ABB10.c) | `BuildSaveFilePath` | sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i) | 0.85 | T1 | verified |
-| [0x1ABB60](../../../src/game/ui/memcard/func_001ABB60.c) | `McJobSaveSlot` | Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420) | 0.85 | T1 | verified |
+| [0x1AB6C0](../../../src/game/ui/memcard/McJobFormat.c) | `McJobFormat` | Thread job: sceMcFormat(port,slot); result -> SAVE next state 2/3 and UI state | 0.75 | T1 |  |
+| [0x1AB750](../../../src/game/ui/memcard/FOpenSaveIconFile.cpp) | `FOpenSaveIconFile` | Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670 | 0.35 | existing | arbitration; replaces existing FUN_0018c1e8 |
+| [0x1AB7D0](../../../src/game/ui/memcard/CreateSaveDir.c) | `CreateSaveDir` | mkdir /BASCUS-97316YAOTWTD!, write data file, write icon.sys (0x1AC008), copy icon from disc (load_sly_icon_from_disc) | 0.60 | T1 |  |
+| [0x1AB868](../../../src/game/ui/memcard/McJobCreateSave.c) | `McJobCreateSave` | Thread job: check space (sceMcGetEntSpace), delete stale, CreateSaveDir, write slot files | 0.60 | T1 |  |
+| [0x1ABA10](../../../src/game/ui/memcard/McJobGetDir.c) | `McJobGetDir` | Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8) | 0.60 | existing | arbitration; replaces existing FUN_0018c420 |
+| [0x1ABB10](../../../src/game/ui/memcard/BuildSaveFilePath.c) | `BuildSaveFilePath` | sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i) | 0.85 | T1 | verified |
+| [0x1ABB60](../../../src/game/ui/memcard/McJobSaveSlot.c) | `McJobSaveSlot` | Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420) | 0.85 | T1 | verified |
 | [0x1ABBE0](../../../src/game/ui/memcard/func_001ABBE0.c) | `McJobCheckCard` | Thread job: card info check, set UI/SAVE state | 0.45 | T2 |  |
 | [0x1ABC68](../../../src/game/ui/memcard/func_001ABC68.c) | `McJobWriteSave` | Thread job: card check, CreateSaveDir, write via 0x1AC468 (with ResetGs) | 0.45 | T2 |  |
 | [0x1ABCE8](../../../src/game/ui/memcard/func_001ABCE8.c) | `StartSaveJobA` | Build GS mask (BuildMemcardGsMask) and CreateMemcardThread for a save | 0.35 | T2 |  |
 | [0x1ABD40](../../../src/game/ui/memcard/func_001ABD40.c) | `StartSaveJobB` | Same as 0x1ABCE8 with other job | 0.35 | T2 |  |
 | [0x1ABD98](../../../src/game/ui/memcard/func_001ABD98.c) | `AutoSaveGame` | If a slot is current and not in transition: eval Splice flag; if card missing show UI state 0x22 else start save job | 0.45 | T2 |  |
-| [0x1ABE78](../../../src/game/ui/memcard/FUN_0018c888.c) | `ReadMcDir` | sceMcGetDir into table, then FillMcDirInfo | 0.50 | existing | arbitration; replaces existing FUN_0018c888 |
-| [0x1ABFC0](../../../src/game/ui/memcard/FUN_0018c9c0.c) | `ReadMcDirWrapper` | wrapper of 0x1ABE78 | 0.35 | existing | arbitration; replaces existing FUN_0018c9c0 |
-| [0x1AC008](../../../src/game/ui/memcard/FUN_0018ca10.c) | `WriteIconSys` | Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it | 0.60 | existing | verified, arbitration; replaces existing FUN_0018ca10 |
+| [0x1ABE78](../../../src/game/ui/memcard/ReadMcDir.c) | `ReadMcDir` | sceMcGetDir into table, then FillMcDirInfo | 0.50 | existing | arbitration; replaces existing FUN_0018c888 |
+| [0x1ABFC0](../../../src/game/ui/memcard/ReadMcDirWrapper.c) | `ReadMcDirWrapper` | wrapper of 0x1ABE78 | 0.35 | existing | arbitration; replaces existing FUN_0018c9c0 |
+| [0x1AC008](../../../src/game/ui/memcard/WriteIconSys.c) | `WriteIconSys` | Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it | 0.60 | existing | verified, arbitration; replaces existing FUN_0018ca10 |
 | [0x1AC238](../../../src/game/ui/memcard/load_sly_icon_from_disc.c) | `load_sly_icon_from_disc` | existing: load memcard_icon.ico from disc and write to card | 0.70 | existing |  |
-| [0x1AC260](../../../src/game/ui/memcard/func_001AC260.cpp) | `load_file_from_disc` | Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close | 0.60 | T1 | verified |
-| [0x1AC420](../../../src/game/ui/memcard/FUN_0018d2e8.c) | `WriteSaveSlotFile` | BuildSaveFilePath + McWriteFile | 0.40 | existing | arbitration; replaces existing FUN_0018d2e8 |
-| [0x1AC468](../../../src/game/ui/memcard/FUN_0018d328.c) | `WriteSaveSlotFileReset` | ResetGs then BuildSaveFilePath + McWriteFile | 0.35 | existing | arbitration; replaces existing FUN_0018d328 |
+| [0x1AC260](../../../src/game/ui/memcard/load_file_from_disc.cpp) | `load_file_from_disc` | Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close | 0.60 | T1 | verified |
+| [0x1AC420](../../../src/game/ui/memcard/WriteSaveSlotFile.c) | `WriteSaveSlotFile` | BuildSaveFilePath + McWriteFile | 0.40 | existing | arbitration; replaces existing FUN_0018d2e8 |
+| [0x1AC468](../../../src/game/ui/memcard/WriteSaveSlotFileReset.c) | `WriteSaveSlotFileReset` | ResetGs then BuildSaveFilePath + McWriteFile | 0.35 | existing | arbitration; replaces existing FUN_0018d328 |
 | [0x1AC4C8](../../../src/game/ui/memcard/func_001AC4C8.c) | `ReadSaveSlotHeaders` | For each slot: BuildSaveFilePath, read dir entry, McReadFile | 0.40 | T2 |  |
 | [0x1AC570](../../../src/game/ui/memcard/func_001AC570.c) | `ResetSaveSlot` | Thin wrapper over ResetGsIfSchemaChanged for a slot | 0.35 | T2 |  |
-| [0x1AC598](../../../src/game/ui/memcard/func_001AC598.c) | `McJobGetInfo` | Thread job: sceMcGetInfo + sync -> card type/free/format state | 0.55 | T1 |  |
+| [0x1AC598](../../../src/game/ui/memcard/McJobGetInfo.c) | `McJobGetInfo` | Thread job: sceMcGetInfo + sync -> card type/free/format state | 0.55 | T1 |  |
 | [0x1AC6A0](../../../src/game/ui/memcard/func_001AC6A0.c) | `McGetInfoSync` | sceMcGetInfo + McSyncResult | 0.45 | T2 |  |
-| [0x1AC748](../../../src/game/ui/memcard/func_001AC748.c) | `McMkdir` | sceMcMkdir wrapper + sync | 0.70 | T1 |  |
-| [0x1AC7A0](../../../src/game/ui/memcard/func_001AC7A0.c) | `McOpen` | sceMcOpen wrapper + sync | 0.85 | T1 | verified |
-| [0x1AC808](../../../src/game/ui/memcard/func_001AC808.c) | `McClose` | sceMcClose wrapper + sync | 0.70 | T1 |  |
-| [0x1AC850](../../../src/game/ui/memcard/func_001AC850.c) | `McRead` | sceMcRead + McSyncResult | 0.70 | T1 |  |
-| [0x1AC8A8](../../../src/game/ui/memcard/func_001AC8A8.c) | `McWrite` | sceMcWrite + McSyncResult | 0.70 | T1 |  |
-| [0x1AC900](../../../src/game/ui/memcard/FUN_0018d368.c) | `McWriteFile` | McOpen(create) + McWrite + McClose | 0.60 | existing | arbitration; replaces existing FUN_0018d368 |
-| [0x1AC9A0](../../../src/game/ui/memcard/func_001AC9A0.c) | `McReadFile` | McOpen + McRead + McClose | 0.65 | T1 |  |
-| [0x1ACA40](../../../src/game/ui/memcard/func_001ACA40.c) | `McDelete` | sceMcDelete wrapper | 0.85 | T1 | verified |
-| [0x1ACA98](../../../src/game/ui/memcard/func_001ACA98.c) | `CMemcardDialog_ctor` | ctor: UI base ctor 0x1DA728, vptr 0x2D3750, id 0x52C, state x40=-1, register 0x1DA7D0 | 0.50 | T1 |  |
+| [0x1AC748](../../../src/game/ui/memcard/McMkdir.c) | `McMkdir` | sceMcMkdir wrapper + sync | 0.70 | T1 |  |
+| [0x1AC7A0](../../../src/game/ui/memcard/McOpen.c) | `McOpen` | sceMcOpen wrapper + sync | 0.85 | T1 | verified |
+| [0x1AC808](../../../src/game/ui/memcard/McClose.c) | `McClose` | sceMcClose wrapper + sync | 0.70 | T1 |  |
+| [0x1AC850](../../../src/game/ui/memcard/McRead.c) | `McRead` | sceMcRead + McSyncResult | 0.70 | T1 |  |
+| [0x1AC8A8](../../../src/game/ui/memcard/McWrite.c) | `McWrite` | sceMcWrite + McSyncResult | 0.70 | T1 |  |
+| [0x1AC900](../../../src/game/ui/memcard/McWriteFile.c) | `McWriteFile` | McOpen(create) + McWrite + McClose | 0.60 | existing | arbitration; replaces existing FUN_0018d368 |
+| [0x1AC9A0](../../../src/game/ui/memcard/McReadFile.c) | `McReadFile` | McOpen + McRead + McClose | 0.65 | T1 |  |
+| [0x1ACA40](../../../src/game/ui/memcard/McDelete.c) | `McDelete` | sceMcDelete wrapper | 0.85 | T1 | verified |
+| [0x1ACA98](../../../src/game/ui/memcard/CMemcardDialog_ctor.c) | `CMemcardDialog_ctor` | ctor: UI base ctor 0x1DA728, vptr 0x2D3750, id 0x52C, state x40=-1, register 0x1DA7D0 | 0.50 | T1 |  |
 | [0x1ACAE8](../../../src/game/ui/memcard/func_001ACAE8.c) | `CMemcardDialog_vt12` | UI slot 12: base 0x1DA770 then SetMcDialogState | 0.30 | T2 |  |
 | [0x1ACB38](../../../src/game/ui/memcard/func_001ACB38.c) | `CMemcardDialog_vt13` | UI slot 13: forwards to 0x1DA7B0 | 0.30 | T2 |  |
-| [0x1ACB58](../../../src/game/ui/memcard/func_001ACB58.c) | `SetMcDialogState` | x40 = state; if shown (x24) call vt10 and child vt49(-1) | 0.85 | T1 | verified |
-| [0x1ACBB8](../../../src/game/ui/memcard/func_001ACBB8.c) | `ClearMcDialogState` | x40=-1; vt11 and child vt50 | 0.85 | T1 | verified |
+| [0x1ACB58](../../../src/game/ui/memcard/SetMcDialogState.c) | `SetMcDialogState` | x40 = state; if shown (x24) call vt10 and child vt49(-1) | 0.85 | T1 | verified |
+| [0x1ACBB8](../../../src/game/ui/memcard/ClearMcDialogState.c) | `ClearMcDialogState` | x40=-1; vt11 and child vt50 | 0.85 | T1 | verified |
 | [0x1ACC18](../../../src/game/ui/memcard/func_001ACC18.c) | `CMemcardDialog_SetMode` | vt14: x28=mode, x2C=time if changed | 0.30 | T2 |  |
 | [0x1ACC38](../../../src/game/ui/memcard/func_001ACC38.c) | `SetMcDialogPhase` | Memcard dialog (D_002E6550): set phase +0x44 and its start time +0x48 (g_clock t3C); phases 2/3 clear g_save+0xFD50 | 0.45 | T2 | top50; top50 round; v2 name SetMcUiPhase |
 | [0x1ACC80](../../../src/game/ui/memcard/func_001ACC80.c) | `KMcDialogButtons` | State -> 1 (one-button) / 2 (two-choice) / 0 | 0.40 | T2 |  |
-| [0x1ACCC8](../../../src/game/ui/memcard/func_001ACCC8.c) | `CMemcardDialog_Update` | vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs (CreateMemcardThread), transition (0x1ACFE0) | 0.85 | T1 | verified |
+| [0x1ACCC8](../../../src/game/ui/memcard/CMemcardDialog_Update.c) | `CMemcardDialog_Update` | vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs (CreateMemcardThread), transition (0x1ACFE0) | 0.85 | T1 | verified |
 | [0x1ACFE0](../../../src/game/ui/memcard/func_001ACFE0.cpp) | `OnMcDialogChoice` | Switch on dialog state x40 and run follow-up (UI hooks, SAVE jobs, 0x1ABD40) | 0.40 | T2 |  |
 | [0x1AD168](../../../src/game/ui/memcard/func_001AD168.c) | `McDialogConfirm` | Confirm path: 0x1AD3E0 or CreateMemcardThread | 0.30 | T2 |  |
 | [0x1AD250](../../../src/game/ui/memcard/func_001AD250.c) | `SelectSaveSlotNew` | Menu action slot i: if slot empty (Splice eval) make it current and start (0x1D8D80, 0x165E38) else error sound 0x36 | 0.40 | T2 |  |
@@ -91,7 +91,7 @@ Totals on this page: EXISTING 17, T1 46, T2 35.
 | [0x1ADBB8](../../../src/game/ui/memcard/func_001ADBB8.c) | `TextSaveTime` | Dynamic text provider (0x5CE) with ' : &2T&.' format | 0.25 | T2 |  |
 | [0x1ADC40](../../../src/game/ui/memcard/func_001ADC40.cpp) | `TextSaveSlotSummary` | Per-slot text (0x5CF..0x5D1, arg=slot): episode best key + completion % | 0.40 | T2 |  |
 | [0x1ADDF0](../../../src/game/ui/memcard/func_001ADDF0.cpp) | `CMcStatus_ctor` | ctor of second UI object: id 0x5D4, register | 0.40 | T2 |  |
-| [0x1ADE70](../../../src/game/ui/memcard/func_001ADE70.c) | `HideMcDialogWidget` | small | 0.60 | T1 | verified |
+| [0x1ADE70](../../../src/game/ui/memcard/HideMcDialogWidget.c) | `HideMcDialogWidget` | small | 0.60 | T1 | verified |
 | [0x1ADEA8](../../../src/game/ui/memcard/func_001ADEA8.cpp) | `FMcStatusVisible` | child x58>=2 or x64>=2 | 0.30 | T2 |  |
 | [0x1ADEE8](../../../src/game/ui/memcard/func_001ADEE8.c) | `CMcStatus_Update` | vt7 (vtable 0x2D36D0): base 0x1DA808; when shown >1s and thread idle hide (0x1ADE70) | 0.40 | T2 |  |
 | [0x1ADF78](../../../src/game/ui/memcard/func_001ADF78.c) | `CMcStatus_SetMode` | vt14 same body as 0x1ACC18 | 0.30 | T2 | runtime-corrected |
@@ -100,25 +100,25 @@ Totals on this page: EXISTING 17, T1 46, T2 35.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D7B88](../../../src/game/world/state/save/func_001D7B88.c) | `LoadSaveSchemaFromBrx` | Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if schema checksum changed | 0.90 | T1 | runtime, format-doc |
-| [0x1D7C80](../../../src/game/world/state/save/func_001D7C80.c) | `ResetGsIfSchemaChanged` | Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum | 0.70 | T1 |  |
-| [0x1D7D30](../../../src/game/world/state/save/func_001D7D30.c) | `FGsMatchesSchema` | True if GS stored version/checksum (+0x5400/+0x5404) equal schema's | 0.75 | T1 |  |
-| [0x1D7DA0](../../../src/game/world/state/save/func_001D7DA0.c) | `FFindSaveVar` | Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling}) along a key of symbol ids; outputs entry + array index | 0.75 | T1 |  |
-| [0x1D7E80](../../../src/game/world/state/save/func_001D7E80.c) | `PvFromSaveVar` | Address of a save var in a GS blob: pb + ib + index*size[kind] | 0.85 | T1 | verified |
-| [0x1D7ED8](../../../src/game/world/state/save/func_001D7ED8.cpp) | `RefGetSaveVar` | Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...) | 0.75 | T1 |  |
-| [0x1D80C8](../../../src/game/world/state/save/func_001D80C8.cpp) | `RefSetSaveVar` | Write a CRef into a save var by kind (bitfield set/clear for packed bools) | 0.75 | T1 |  |
-| [0x1D82B8](../../../src/game/world/state/save/func_001D82B8.cpp) | `NCompletionPercentGs` | Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set 'fVault' bool/bit; returns 0 / 100 / clamp(1..99) | 0.85 | T1 | verified |
+| [0x1D7B88](../../../src/game/world/state/save/LoadSaveSchemaFromBrx.c) | `LoadSaveSchemaFromBrx` | Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if schema checksum changed | 0.90 | T1 | runtime, format-doc |
+| [0x1D7C80](../../../src/game/world/state/save/ResetGsIfSchemaChanged.c) | `ResetGsIfSchemaChanged` | Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum | 0.70 | T1 |  |
+| [0x1D7D30](../../../src/game/world/state/save/FGsMatchesSchema.c) | `FGsMatchesSchema` | True if GS stored version/checksum (+0x5400/+0x5404) equal schema's | 0.75 | T1 |  |
+| [0x1D7DA0](../../../src/game/world/state/save/FFindSaveVar.c) | `FFindSaveVar` | Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling}) along a key of symbol ids; outputs entry + array index | 0.75 | T1 |  |
+| [0x1D7E80](../../../src/game/world/state/save/PvFromSaveVar.c) | `PvFromSaveVar` | Address of a save var in a GS blob: pb + ib + index*size[kind] | 0.85 | T1 | verified |
+| [0x1D7ED8](../../../src/game/world/state/save/RefGetSaveVar.cpp) | `RefGetSaveVar` | Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...) | 0.75 | T1 |  |
+| [0x1D80C8](../../../src/game/world/state/save/RefSetSaveVar.cpp) | `RefSetSaveVar` | Write a CRef into a save var by kind (bitfield set/clear for packed bools) | 0.75 | T1 |  |
+| [0x1D82B8](../../../src/game/world/state/save/NCompletionPercentGs.cpp) | `NCompletionPercentGs` | Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set 'fVault' bool/bit; returns 0 / 100 / clamp(1..99) | 0.85 | T1 | verified |
 | [0x1D84B0](../../../src/game/world/state/save/func_001D84B0.c) | `BuildMemcardGsMask` | Copy D_003D4A60 into a big buffer then set flag byte at ib for every schema entry whose symbol is 'from_memcard' | 0.45 | T2 |  |
-| [0x1D8600](../../../src/game/world/state/save/func_001D8600.c) | `InitSaveSymbolTable` | Allocate c 16-byte hash entries for the symbol table at schema+0xD4 | 0.60 | T1 |  |
-| [0x1D8640](../../../src/game/world/state/save/func_001D8640.c) | `UHashPchzCi` | Case-insensitive string hash h=h*33+toupper(c) | 0.75 | T1 |  |
-| [0x1D8690](../../../src/game/world/state/save/func_001D8690.c) | `AddSaveSymbol` | Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the preallocated array | 0.70 | T1 |  |
-| [0x1D8720](../../../src/game/world/state/save/func_001D8720.c) | `NFindSaveSymbol` | Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent | 0.75 | T1 |  |
-| [0x1D87C0](../../../src/game/world/state/save/func_001D87C0.c) | `BuildSaveKeyV` | Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols via atoi as array indices) | 0.70 | T1 |  |
-| [0x1D88D0](../../../src/game/world/state/save/func_001D88D0.cpp) | `PkeyNewSaveKey` | Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238 (realloc-like) | 0.55 | T1 |  |
-| [0x1D89A8](../../../src/game/world/state/save/func_001D89A8.c) | `PkeyAllocSaveKey` | Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV | 0.55 | T1 |  |
-| [0x1D8A38](../../../src/game/world/state/save/func_001D8A38.cpp) | `RefGetSaveVarV` | CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60 | 0.90 | T1 | runtime, verified |
-| [0x1D8B20](../../../src/game/world/state/save/func_001D8B20.cpp) | `RefSetSaveVarV` | CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs | 0.85 | T1 | verified |
-| [0x1D8C10](../../../src/game/world/state/save/func_001D8C10.c) | `PvSaveVarV` | Varargs: address of a named save var inside g_gs | 0.65 | T1 |  |
-| [0x1D8CC8](../../../src/game/world/state/save/func_001D8CC8.c) | `PkeyConcatSaveKeys` | Allocate a new key = concatenation of two keys' id arrays | 0.65 | T1 |  |
+| [0x1D8600](../../../src/game/world/state/save/InitSaveSymbolTable.c) | `InitSaveSymbolTable` | Allocate c 16-byte hash entries for the symbol table at schema+0xD4 | 0.60 | T1 |  |
+| [0x1D8640](../../../src/game/world/state/save/UHashPchzCi.c) | `UHashPchzCi` | Case-insensitive string hash h=h*33+toupper(c) | 0.75 | T1 |  |
+| [0x1D8690](../../../src/game/world/state/save/AddSaveSymbol.c) | `AddSaveSymbol` | Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the preallocated array | 0.70 | T1 |  |
+| [0x1D8720](../../../src/game/world/state/save/NFindSaveSymbol.c) | `NFindSaveSymbol` | Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent | 0.75 | T1 |  |
+| [0x1D87C0](../../../src/game/world/state/save/BuildSaveKeyV.c) | `BuildSaveKeyV` | Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols via atoi as array indices) | 0.70 | T1 |  |
+| [0x1D88D0](../../../src/game/world/state/save/PkeyNewSaveKey.cpp) | `PkeyNewSaveKey` | Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238 (realloc-like) | 0.55 | T1 |  |
+| [0x1D89A8](../../../src/game/world/state/save/PkeyAllocSaveKey.c) | `PkeyAllocSaveKey` | Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV | 0.55 | T1 |  |
+| [0x1D8A38](../../../src/game/world/state/save/RefGetSaveVarV.cpp) | `RefGetSaveVarV` | CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60 | 0.90 | T1 | runtime, verified |
+| [0x1D8B20](../../../src/game/world/state/save/RefSetSaveVarV.cpp) | `RefSetSaveVarV` | CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs | 0.85 | T1 | verified |
+| [0x1D8C10](../../../src/game/world/state/save/PvSaveVarV.c) | `PvSaveVarV` | Varargs: address of a named save var inside g_gs | 0.65 | T1 |  |
+| [0x1D8CC8](../../../src/game/world/state/save/PkeyConcatSaveKeys.c) | `PkeyConcatSaveKeys` | Allocate a new key = concatenation of two keys' id arrays | 0.65 | T1 |  |
 | [0x1D8D80](../../../src/game/world/state/save/func_001D8D80.cpp) | `ResetSaveGs` | Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars (keys in global +0x3B2C) across the clear | 0.60 | T2 |  |
-| [0x1D8FF8](../../../src/game/world/state/save/func_001D8FF8.cpp) | `ApplyGsSettings` | Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50) | 0.70 | T1 |  |
+| [0x1D8FF8](../../../src/game/world/state/save/ApplyGsSettings.cpp) | `ApplyGsSettings` | Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50) | 0.70 | T1 |  |

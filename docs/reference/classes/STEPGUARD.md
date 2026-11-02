@@ -15,7 +15,7 @@
 | Factory (`pfnNew`) | [`NewStepguard`](../../../src/game/app/class_registry/NewStepguard.c) `0x111780` |
 | Descriptor getter (slot 6) | `GetStepguardClassDesc` `0x113D90` |
 | vtable | `D_002DA568`, 90 entries (slots 0..89; slot 0 null), 2 new, 20 overridden |
-| vtable stored by | [`STEPGUARD_ctor?`](../../../src/game/app/class_registry/func_00256360.c) (vptr +0xC) |
+| vtable stored by | [`STEPGUARD_ctor?`](../../../src/game/app/class_registry/STEPGUARD_ctor.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

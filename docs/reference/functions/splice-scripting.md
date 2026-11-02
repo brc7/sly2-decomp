@@ -296,7 +296,7 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 | [0x129DA8](../../../src/game/splice/ref/CRef_RefCoerceF32.c) | `CRef_RefCoerceF32` | Returns F32 copy (int promoted); used by most numeric builtins | 0.88 | T1 |  |
 | [0x129DF8](../../../src/game/splice/ref/Incref__4CRef.c) | `CRef_Incref` | Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p, objects vtable slot 1) | 0.88 | T1 |  |
 | [0x129EC8](../../../src/game/splice/ref/Decref__4CRef.cpp) | `Decref__4CRef` |  |  | existing |  |
-| [0x12A0B0](../../../src/game/splice/ref/InitTag__4CRef.c) | `SetTag__4CRef4TAGK` |  | 0.65 | existing | arbitration; replaces existing InitTag__4CRef |
+| [0x12A0B0](../../../src/game/splice/ref/SetTag__4CRef4TAGK.c) | `SetTag__4CRef4TAGK` |  | 0.65 | existing | arbitration; replaces existing InitTag__4CRef |
 
 ## serialize (0x12A3D8-0x12A980)
 

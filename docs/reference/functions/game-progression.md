@@ -85,7 +85,7 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 | [0x1623D0](../../../src/game/world/state/game/TriggerStateRsmgs.c) | `TriggerStateRsmgs` | Loops TriggerStateRsmg over an array of 24-byte records | 0.55 | T1 |  |
 | [0x162448](../../../src/game/world/state/game/InitJob.c) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
 | [0x1624A8](../../../src/game/world/state/game/LoadJobFromBrx.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
-| [0x162600](../../../src/game/world/state/game/FUN_001e53f8.c) | `AddJobCompleteEvent` | Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives | 0.55 | existing | arbitration; replaces existing FUN_001e53f8 |
+| [0x162600](../../../src/game/world/state/game/AddJobCompleteEvent.c) | `AddJobCompleteEvent` | Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives | 0.55 | existing | arbitration; replaces existing FUN_001e53f8 |
 | [0x162630](../../../src/game/world/state/game/func_00162630.c) | `AddJobFailEvent` | Splice: appends a game-event id to the job list at +0x5C/+0x60 (max 32); HandleJobGameEvent calls FailJob when it arrives | 0.40 | T2 |  |
 | [0x162660](../../../src/game/world/state/game/func_00162660.c) | `SetJobCompletionWidget` | Splice: sets job +0xAC widget oid, +0xB0 intro label, +0xB4 outro label used by the completion sequence | 0.40 | T2 |  |
 | [0x162670](../../../src/game/world/state/game/FJobLive.c) | `FJobLive` | True if the job is enabled (+0x50==0), its mode (+0xF0) is not 2/3, and no world transition is in progress | 0.50 | T1 |  |
@@ -164,19 +164,19 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C4E50](../../../src/game/gameplay/progression/prize/func_001C4E50.c) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
-| [0x1C4EF8](../../../src/game/gameplay/progression/prize/func_001C4EF8.c) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
-| [0x1C4F60](../../../src/game/gameplay/progression/prize/func_001C4F60.c) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |
-| [0x1C5098](../../../src/game/gameplay/progression/prize/func_001C5098.c) | `HandleDprizeMessage` | DPRIZE vt5 HandleMessage: base 0x133590 + prize-specific msgs | 0.55 | T1 |  |
-| [0x1C5148](../../../src/game/gameplay/progression/prize/func_001C5148.cpp) | `ProjectDprizeTransform` | DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base) | 0.75 | T1 |  |
-| [0x1C5570](../../../src/game/gameplay/progression/prize/func_001C5570.c) | `FFilterDprizeObjects` | collision filter callback (FIsCidDerived test) | 0.65 | T1 |  |
-| [0x1C55E0](../../../src/game/gameplay/progression/prize/func_001C55E0.cpp) | `CheckDprizeBounce` | query nearby solids (0x20FAA0) and resolve deepest contact (bounce) | 0.70 | T1 |  |
-| [0x1C5B20](../../../src/game/gameplay/progression/prize/func_001C5B20.c) | `FCheckDprizeCollect` | test one collector (PZI) against the prize: in range -> collect | 0.60 | T1 |  |
-| [0x1C5D18](../../../src/game/gameplay/progression/prize/func_001C5D18.c) | `CheckDprizeCollect` | for each collector PZI (CppziCur) check collection | 0.65 | T1 |  |
+| [0x1C4E50](../../../src/game/gameplay/progression/prize/InitDprize.c) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
+| [0x1C4EF8](../../../src/game/gameplay/progression/prize/LoadDprizeFromBrx.c) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
+| [0x1C4F60](../../../src/game/gameplay/progression/prize/PostDprizeLoad.c) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |
+| [0x1C5098](../../../src/game/gameplay/progression/prize/HandleDprizeMessage.c) | `HandleDprizeMessage` | DPRIZE vt5 HandleMessage: base 0x133590 + prize-specific msgs | 0.55 | T1 |  |
+| [0x1C5148](../../../src/game/gameplay/progression/prize/ProjectDprizeTransform.cpp) | `ProjectDprizeTransform` | DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base) | 0.75 | T1 |  |
+| [0x1C5570](../../../src/game/gameplay/progression/prize/FFilterDprizeObjects.c) | `FFilterDprizeObjects` | collision filter callback (FIsCidDerived test) | 0.65 | T1 |  |
+| [0x1C55E0](../../../src/game/gameplay/progression/prize/CheckDprizeBounce.cpp) | `CheckDprizeBounce` | query nearby solids (0x20FAA0) and resolve deepest contact (bounce) | 0.70 | T1 |  |
+| [0x1C5B20](../../../src/game/gameplay/progression/prize/FCheckDprizeCollect.c) | `FCheckDprizeCollect` | test one collector (PZI) against the prize: in range -> collect | 0.60 | T1 |  |
+| [0x1C5D18](../../../src/game/gameplay/progression/prize/CheckDprizeCollect.c) | `CheckDprizeCollect` | for each collector PZI (CppziCur) check collection | 0.65 | T1 |  |
 | [0x1C5DF0](../../../src/game/gameplay/progression/prize/func_001C5DF0.c) | `DPRIZE_VUnk75` | DPRIZE new virtual slot 75 | 0.25 | T2 |  |
-| [0x1C5E48](../../../src/game/gameplay/progression/prize/func_001C5E48.cpp) | `UpdateDprize` | DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect | 0.80 | T1 |  |
-| [0x1C5FA0](../../../src/game/gameplay/progression/prize/func_001C5FA0.cpp) | `RenderDprizeSelf` | DPRIZE vt19 RenderSelf (bob/spin then SO render) | 0.85 | T1 | verified |
-| [0x1C60B8](../../../src/game/gameplay/progression/prize/func_001C60B8.c) | `SetDprizeDprizes` | DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps) | 0.85 | T1 | verified |
+| [0x1C5E48](../../../src/game/gameplay/progression/prize/UpdateDprize.cpp) | `UpdateDprize` | DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect | 0.80 | T1 |  |
+| [0x1C5FA0](../../../src/game/gameplay/progression/prize/RenderDprizeSelf.cpp) | `RenderDprizeSelf` | DPRIZE vt19 RenderSelf (bob/spin then SO render) | 0.85 | T1 | verified |
+| [0x1C60B8](../../../src/game/gameplay/progression/prize/SetDprizeDprizes.c) | `SetDprizeDprizes` | DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps) | 0.85 | T1 | verified |
 | [0x1C6308](../../../src/game/gameplay/progression/prize/func_001C6308.c) | `EmitDprizeGlint` | spawn sparkle rip (PripNewRipg) at prize position periodically | 0.30 | T2 |  |
 | [0x1C64F8](../../../src/game/gameplay/progression/prize/func_001C64F8.c) | `Dprize_Stub64F8` | 16-byte helper | 0.15 | T2 |  |
 | [0x1C6508](../../../src/game/gameplay/progression/prize/func_001C6508.c) | `InitDprize91` | CID 91 Init (sprayable pickup; coin?) | 0.45 | T2 |  |
@@ -186,36 +186,36 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 | [0x1C67D8](../../../src/game/gameplay/progression/prize/func_001C67D8.c) | `InitMedicine` | CID 93 Init (sprayable pickup 0x5D) | 0.40 | T2 | whole-game |
 | [0x1C6880](../../../src/game/gameplay/progression/prize/func_001C6880.c) | `UpdateMedicine` | CID 93 Update | 0.35 | T2 | whole-game |
 | [0x1C68F0](../../../src/game/gameplay/progression/prize/func_001C68F0.c) | `SetMedicineDprizes` | CID 93 setter (uses PpoCur - gives to current character) | 0.35 | T2 | verified, whole-game |
-| [0x1C6AB0](../../../src/game/gameplay/progression/prize/func_001C6AB0.c) | `OnMedicineSmackDone` | 8-byte helper | 0.60 | T1 | verified, whole-game |
+| [0x1C6AB0](../../../src/game/gameplay/progression/prize/OnMedicineSmackDone.c) | `OnMedicineSmackDone` | 8-byte helper | 0.60 | T1 | verified, whole-game |
 | [0x1C6AB8](../../../src/game/gameplay/progression/prize/func_001C6AB8.c) | `InitKey` | CID 92 Init | 0.40 | T2 | whole-game |
 | [0x1C6B28](../../../src/game/gameplay/progression/prize/func_001C6B28.c) | `SetKeyDprizes` | CID 92 setter (sound on collect) | 0.35 | T2 | verified, whole-game |
-| [0x1C6BD0](../../../src/game/gameplay/progression/prize/func_001C6BD0.c) | `LaunchSprayedDprize` | re-parent spawned prize (0x1A58D0) and init motion | 0.60 | T1 | verified |
-| [0x1C6CE8](../../../src/game/gameplay/progression/prize/func_001C6CE8.c) | `PdprizeNewSpray` | make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo) | 0.50 | T1 | runtime |
+| [0x1C6BD0](../../../src/game/gameplay/progression/prize/LaunchSprayedDprize.c) | `LaunchSprayedDprize` | re-parent spawned prize (0x1A58D0) and init motion | 0.60 | T1 | verified |
+| [0x1C6CE8](../../../src/game/gameplay/progression/prize/PdprizeNewSpray.c) | `PdprizeNewSpray` | make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo) | 0.50 | T1 | runtime |
 | [0x1C6DE8](../../../src/game/gameplay/progression/prize/func_001C6DE8.cpp) | `FFindDprizeLanding` | find landing point on objects below/above a point | 0.45 | T2 |  |
-| [0x1C6FD8](../../../src/game/gameplay/progression/prize/func_001C6FD8.cpp) | `SprayDprizes` | spray up to cRequested prizes of a kind out of a point onto the ground region | 0.60 | T1 |  |
-| [0x1C7648](../../../src/game/gameplay/progression/prize/func_001C7648.c) | `InitLoot` | CID 94 Init | 0.55 | T1 |  |
-| [0x1C76D0](../../../src/game/gameplay/progression/prize/func_001C76D0.c) | `LoadLootFromBrx` | CID 94 LoadFromBrx (base + copies table on stack heap) | 0.75 | T1 | parse, verified |
+| [0x1C6FD8](../../../src/game/gameplay/progression/prize/SprayDprizes.cpp) | `SprayDprizes` | spray up to cRequested prizes of a kind out of a point onto the ground region | 0.60 | T1 |  |
+| [0x1C7648](../../../src/game/gameplay/progression/prize/InitLoot.c) | `InitLoot` | CID 94 Init | 0.55 | T1 |  |
+| [0x1C76D0](../../../src/game/gameplay/progression/prize/LoadLootFromBrx.c) | `LoadLootFromBrx` | CID 94 LoadFromBrx (base + copies table on stack heap) | 0.75 | T1 | parse, verified |
 | [0x1C7778](../../../src/game/gameplay/progression/prize/func_001C7778.c) | `UpdateLoot` | CID 94 Update | 0.45 | T2 |  |
-| [0x1C77E8](../../../src/game/gameplay/progression/prize/func_001C77E8.cpp) | `SetLootDprizes` | CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15) | 0.55 | T1 |  |
-| [0x1C7988](../../../src/game/gameplay/progression/prize/func_001C7988.c) | `AddLootEntry` | calls 0x1C7A08 stub | 0.70 | T1 | arbitration |
+| [0x1C77E8](../../../src/game/gameplay/progression/prize/SetLootDprizes.cpp) | `SetLootDprizes` | CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15) | 0.55 | T1 |  |
+| [0x1C7988](../../../src/game/gameplay/progression/prize/AddLootEntry.c) | `AddLootEntry` | calls 0x1C7A08 stub | 0.70 | T1 | arbitration |
 | [0x1C7A08](../../../src/game/gameplay/progression/prize/func_001C7A08.c) | `Dprize_Stub7A08` | 8-byte stub | 0.15 | T2 |  |
 | [0x1C7A10](../../../src/game/gameplay/progression/prize/AddAlarmSensor__FP5ALARM3OID.cpp) | `AddLootEntryOid` | Append OID to the list behind this+0x244 (count +0x1C, max 3) | 0.85 | existing | arbitration; replaces existing AddAlarmSensor__FP5ALARM3OID |
 | [0x1C7A40](../../../src/game/gameplay/progression/prize/func_001C7A40.c) | `Dprize_7A40` | small setter | 0.15 | T2 |  |
 | [0x1C7A58](../../../src/game/gameplay/progression/prize/func_001C7A58.c) | `Clue_7A58` | helper used by 0x1C2DC8 (calls SO 0x1F6A68/0x1F6978) | 0.25 | T2 |  |
-| [0x1C7B18](../../../src/game/gameplay/progression/prize/func_001C7B18.c) | `FClueCollected` | query save data for bit n of 'afClue' for the current level | 0.50 | T1 |  |
+| [0x1C7B18](../../../src/game/gameplay/progression/prize/FClueCollected.c) | `FClueCollected` | query save data for bit n of 'afClue' for the current level | 0.50 | T1 |  |
 | [0x1C7BB8](../../../src/game/gameplay/progression/prize/func_001C7BB8.cpp) | `FClueCollectedSelf` | wrapper of FClueCollected | 0.30 | T2 |  |
 | [0x1C7C30](../../../src/game/gameplay/progression/prize/func_001C7C30.cpp) | `SetClueCollected` | set clue bit / count | 0.35 | T2 |  |
 | [0x1C7D00](../../../src/game/gameplay/progression/prize/func_001C7D00.c) | `Clue_Stub7D00` | 8-byte stub | 0.15 | T2 |  |
-| [0x1C7D08](../../../src/game/gameplay/progression/prize/func_001C7D08.c) | `CClueCollected` | count collected clue bottles: popcount of afClue words over the level's entries | 0.60 | T1 |  |
-| [0x1C7E38](../../../src/game/gameplay/progression/prize/func_001C7E38.c) | `InitClue` | CID 95 Init (clue bottle) | 0.50 | T1 |  |
+| [0x1C7D08](../../../src/game/gameplay/progression/prize/CClueCollected.c) | `CClueCollected` | count collected clue bottles: popcount of afClue words over the level's entries | 0.60 | T1 |  |
+| [0x1C7E38](../../../src/game/gameplay/progression/prize/InitClue.c) | `InitClue` | CID 95 Init (clue bottle) | 0.50 | T1 |  |
 | [0x1C7E68](../../../src/game/gameplay/progression/prize/func_001C7E68.c) | `ClueVt26` | CID 95 vt26: SO::VUnk26Proxy base + extra | 0.30 | T2 |  |
 | [0x1C7EA8](../../../src/game/gameplay/progression/prize/func_001C7EA8.c) | `ClueVt27` | CID 95 vt27 | 0.30 | T2 | verified |
-| [0x1C7EE8](../../../src/game/gameplay/progression/prize/func_001C7EE8.c) | `SetClueDprizes` | CID 95 setter: sound, proxy-copy value, mark clue collected | 0.50 | T1 |  |
+| [0x1C7EE8](../../../src/game/gameplay/progression/prize/SetClueDprizes.c) | `SetClueDprizes` | CID 95 setter: sound, proxy-copy value, mark clue collected | 0.50 | T1 |  |
 | [0x1C8030](../../../src/game/gameplay/progression/prize/func_001C8030.c) | `PostClueProxyLoad` | CID 7 (PROXY child) vt15: base + hide if clue already collected | 0.35 | T2 |  |
-| [0x1C8090](../../../src/game/gameplay/progression/prize/func_001C8090.cpp) | `FVaultOpened` | query save-data flag 'fVault' for the level | 0.55 | T1 |  |
+| [0x1C8090](../../../src/game/gameplay/progression/prize/FVaultOpened.cpp) | `FVaultOpened` | query save-data flag 'fVault' for the level | 0.55 | T1 |  |
 | [0x1C8110](../../../src/game/gameplay/progression/prize/func_001C8110.cpp) | `FVaultOpenedSelf` | wrapper | 0.30 | T2 |  |
 | [0x1C8188](../../../src/game/gameplay/progression/prize/func_001C8188.cpp) | `SetVaultOpened` | set fVault and commit (0x1ABD98 memcard/save) | 0.40 | T2 |  |
-| [0x1C8280](../../../src/game/gameplay/progression/prize/func_001C8280.c) | `InitVault` | CID 78 (PO child, 0x230) Init: InitPo + fields | 0.50 | T1 |  |
+| [0x1C8280](../../../src/game/gameplay/progression/prize/InitVault.c) | `InitVault` | CID 78 (PO child, 0x230) Init: InitPo + fields | 0.50 | T1 |  |
 | [0x1C82F0](../../../src/game/gameplay/progression/prize/func_001C82F0.c) | `PostVaultLoad` | CID 78 vt15 | 0.45 | T2 |  |
 | [0x1C8350](../../../src/game/gameplay/progression/prize/func_001C8350.c) | `UpdateVault` | CID 78 vt16: per-state update (input / open) | 0.45 | T2 | verified |
 | [0x1C84D8](../../../src/game/gameplay/progression/prize/func_001C84D8.cpp) | `UpdateVaultInput` | read POCTL presses (GrfConsumePressed) to dial the safe combination; EnsureSggAlarm | 0.35 | T2 |  |
@@ -227,8 +227,8 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x229EF0](../../../src/game/gameplay/progression/waypoint/func_00229EF0.c) | `InitWaypt` | InitSo; 50, 300.0, ... | 0.55 | T1 |  |
-| [0x229F88](../../../src/game/gameplay/progression/waypoint/func_00229F88.c) | `PostWayptLoad` | SO PostLoad then clears grf bit 8 on child markers | 0.50 | T1 |  |
-| [0x22A060](../../../src/game/gameplay/progression/waypoint/func_0022A060.c) | `UpdateWaypt` | SO update, distance to player/visibility | 0.50 | T1 |  |
+| [0x229EF0](../../../src/game/gameplay/progression/waypoint/InitWaypt.c) | `InitWaypt` | InitSo; 50, 300.0, ... | 0.55 | T1 |  |
+| [0x229F88](../../../src/game/gameplay/progression/waypoint/PostWayptLoad.c) | `PostWayptLoad` | SO PostLoad then clears grf bit 8 on child markers | 0.50 | T1 |  |
+| [0x22A060](../../../src/game/gameplay/progression/waypoint/UpdateWaypt.c) | `UpdateWaypt` | SO update, distance to player/visibility | 0.50 | T1 |  |
 | [0x22A220](../../../src/game/gameplay/progression/waypoint/func_0022A220.cpp) | `CalculateWayptCurtainDz` | camera->source curtain query vs BSPs, stores max slope dz | 0.45 | T2 |  |
-| [0x22A908](../../../src/game/gameplay/progression/waypoint/func_0022A908.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
+| [0x22A908](../../../src/game/gameplay/progression/waypoint/RenderWaypt.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |

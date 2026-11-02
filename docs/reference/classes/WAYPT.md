@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetWayptClassDesc`](../../../src/game/app/class_registry/GetWayptClassDesc.c) | `0x1140C0` |
-| 7 | Init | **override** | [`InitWaypt?`](../../../src/game/gameplay/progression/waypoint/func_00229EF0.c) | `0x229EF0` |
+| 7 | Init | **override** | [`InitWaypt?`](../../../src/game/gameplay/progression/waypoint/InitWaypt.c) | `0x229EF0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,11 +37,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostWayptLoad?`](../../../src/game/gameplay/progression/waypoint/func_00229F88.c) | `0x229F88` |
-| 16 | Update | **override** | [`UpdateWaypt?`](../../../src/game/gameplay/progression/waypoint/func_0022A060.c) | `0x22A060` |
+| 15 | PostLoad | **override** | [`PostWayptLoad?`](../../../src/game/gameplay/progression/waypoint/PostWayptLoad.c) | `0x229F88` |
+| 16 | Update | **override** | [`UpdateWaypt?`](../../../src/game/gameplay/progression/waypoint/UpdateWaypt.c) | `0x22A060` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderWaypt?`](../../../src/game/gameplay/progression/waypoint/func_0022A908.cpp) | `0x22A908` |
+| 19 | RenderSelf | **override** | [`RenderWaypt?`](../../../src/game/gameplay/progression/waypoint/RenderWaypt.cpp) | `0x22A908` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |

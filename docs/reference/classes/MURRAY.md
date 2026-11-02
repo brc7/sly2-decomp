@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewMurray`](../../../src/game/app/class_registry/NewMurray.c) `0x111700` |
 | Descriptor getter (slot 6) | `GetMurrayClassDesc` `0x113D70` |
 | vtable | `D_002D44C8`, 106 entries (slots 0..105; slot 0 null), 0 new, 24 overridden |
-| vtable stored by | [`MURRAY_ctor?`](../../../src/game/app/class_registry/func_00256440.c) (vptr +0xC) |
+| vtable stored by | [`MURRAY_ctor?`](../../../src/game/app/class_registry/MURRAY_ctor.c) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table

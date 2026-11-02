@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetSaaClassDesc`](../../../src/game/app/class_registry/GetSaaClassDesc.c) | `0x1142B0` |
 | 7 | InitSaa | **new** | [`InitSaa?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED8E0.c) | `0x1ED8E0` |
-| 8 | UpdateSaa | **new** | [`UpdateSaa?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDA50.c) | `0x1EDA50` |
+| 8 | UpdateSaa | **new** | [`UpdateSaa?`](../../../src/game/engine/graphics/pipeline/shdanim/UpdateSaa.c) | `0x1EDA50` |
 | 9 | UCompleteSaa__FP3SAA | **new** | [`UCompleteSaa__FP3SAA`](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteSaa__FP3SAA.c) | `0x1EDA58` |
 | 10 | SAA_FMatches | **new** | [`SAA_FMatches?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDB80.c) | `0x1EDB80` |
 
