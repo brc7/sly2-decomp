@@ -60,7 +60,10 @@ enum LSGK { };
 enum OID { OID_Nil = -1 };
 enum OTYP { };
 enum BIFK { };
+#ifndef SLY2_ENUM_TAGK /* also defined by sly2/cref.h */
+#define SLY2_ENUM_TAGK
 enum TAGK { TAGK_Nil = -1 };
+#endif
 enum MSGID { };
 enum EAK { };
 enum HFDK { };
