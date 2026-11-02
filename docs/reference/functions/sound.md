@@ -122,12 +122,12 @@ Totals on this page: EXISTING 2, T1 88, T2 49.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x2275B8](../../../src/game/engine/sound/tu_2275B8/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
-| [0x227728](../../../src/game/engine/sound/tu_2275B8/func_00227728.c) | `SetSpeaker` | reset then kind=k, colour from kind | 0.30 | T2 |  |
-| [0x227788](../../../src/game/engine/sound/tu_2275B8/func_00227788.c) | `InitSpeakerLabel` | kind=-1, default colour, flag 0 | 0.30 | T2 |  |
-| [0x2277D0](../../../src/game/engine/sound/tu_2275B8/func_002277D0.c) | `GetOidName` | oid -1 -> empty string else strcpy(name of oid via 0x13E368(g_sw,oid)) | 0.45 | T2 |  |
-| [0x227820](../../../src/game/engine/sound/tu_2275B8/func_00227820.c) | `RenderSpeakerText` | draws text label via blot helpers and strcpy | 0.30 | T2 |  |
-| [0x227940](../../../src/game/engine/sound/tu_2275B8/func_00227940.c) | `FlagsToPchz` | appends one char per set bit from a 16-entry {mask,ch} table D_002A97F8 via sprintf | 0.40 | T2 |  |
+| [0x2275B8](../../../src/game/engine/sound/tu_2275B8.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
+| [0x227728](../../../src/game/engine/sound/tu_2275B8.cpp) | `SetSpeaker` | reset then kind=k, colour from kind | 0.30 | T2 |  |
+| [0x227788](../../../src/game/engine/sound/tu_2275B8.cpp) | `InitSpeakerLabel` | kind=-1, default colour, flag 0 | 0.30 | T2 |  |
+| [0x2277D0](../../../src/game/engine/sound/tu_2275B8.cpp) | `GetOidName` | oid -1 -> empty string else strcpy(name of oid via 0x13E368(g_sw,oid)) | 0.45 | T2 |  |
+| [0x227820](../../../src/game/engine/sound/tu_2275B8.cpp) | `RenderSpeakerText` | draws text label via blot helpers and strcpy | 0.30 | T2 |  |
+| [0x227940](../../../src/game/engine/sound/tu_2275B8.cpp) | `FlagsToPchz` | appends one char per set bit from a 16-entry {mask,ch} table D_002A97F8 via sprintf | 0.40 | T2 |  |
 
 ## 989snd (0x2319E8-0x233000)
 

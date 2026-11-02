@@ -100,7 +100,7 @@ the Sly 2 989snd.irx (in SCUS_973.16 at file offset 0x21ED80) was **not** disass
 | [0x1FD830](../../src/game/engine/sound/sound/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 98 | 0.75 | T1 |  |
 | [0x1FE738](../../src/game/engine/sound/sound/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
 | [0x1FEED0](../../src/game/engine/sound/sound/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
-| [0x2275B8](../../src/game/engine/sound/tu_2275B8/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
+| [0x2275B8](../../src/game/engine/sound/tu_2275B8.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
 | [0x2319E8](../../src/sdk/989snd/func_002319E8.c) | `snd_StartSoundSystem` | 989snd API | 0.90 | T1 | verified |
 | [0x231E90](../../src/sdk/989snd/func_00231E90.c) | `snd_GotReturns` | 989snd API | 0.90 | T1 | verified |
 | [0x231F38](../../src/sdk/989snd/func_00231F38.c) | `snd_PrepareReturnBuffer` | 989snd API | 0.80 | T1 |  |
