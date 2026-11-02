@@ -4,7 +4,7 @@ struct A { int cb; int align; };
 extern const float D_002A76E0;
 extern const float D_002A76E4;
 void *func_001AE1D0(struct A *pa);
-void func_001AE5A0(void *dst, void *src, int cb);
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *func_002333B4(void *p, int c, int cb);
 /** @sly2-annot addr=0x1C1D20
  * Purpose: Grow obstacle/event arrays 0->16->128 with sentinel events
@@ -35,9 +35,9 @@ void func_001C1D20(struct S *p)
     a.cb = n * 4;
     a.align = 0x10;
     apv = func_001AE1D0(&a);
-    func_001AE5A0(ae1, p->x104, p->x100 * 8);
-    func_001AE5A0(ae2, p->x108, p->x100 * 8);
-    func_001AE5A0(apv, p->x10C, p->xFC * 4);
+    CopyAb__FPvT0Ui(ae1, p->x104, p->x100 * 8);
+    CopyAb__FPvT0Ui(ae2, p->x108, p->x100 * 8);
+    CopyAb__FPvT0Ui(apv, p->x10C, p->xFC * 4);
     { int cz = (n - p->xFC) * 4; func_002333B4((void *)(p->xFC * 4 + (int)apv), 0, cz); }
     p->x108 = ae2;
     p->x10C = apv;

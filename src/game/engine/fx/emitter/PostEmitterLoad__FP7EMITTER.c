@@ -17,8 +17,8 @@ extern float D_002A5148;
 void func_002586D8(struct EMITTER *p);
 void PostSwCallback(void *pg, struct EMITTER *p, struct K k, int n);
 float GRandInRange__Fff(float gMin, float gMax);
-void func_0015A150(struct EMITTER *p);
-void func_0015A138(struct EMITTER *p, float g);
+void PauseEmitterIndefinite__FP7EMITTER(struct EMITTER *p);
+void PauseEmitter__FP7EMITTERf(struct EMITTER *p, float g);
 struct EMITTER *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
 struct EMITTER *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
 void *func_001AE238(struct ALLOCREQ *preq, void *pv);
@@ -60,17 +60,17 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
         pemitter->g138 = D_002A5148;
         pemitter->g130 = GRandInRange__Fff(pemitter->lmF8.gMin, pemitter->lmF8.gMax);
         if (pemitter->n114)
-            func_0015A150(pemitter);
+            PauseEmitterIndefinite__FP7EMITTER(pemitter);
         else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->g104)
-            func_0015A138(pemitter, GRandInRange__Fff(pemitter->lm108.gMin, pemitter->lm108.gMax));
+            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->lm108.gMin, pemitter->lm108.gMax));
         break;
     case 3:
         pemitter->g138 = D_002A5148;
         pemitter->g130 = GRandInRange__Fff(pemitter->lmF8.gMin, pemitter->lmF8.gMax) * 60.0f;
         if (pemitter->n114)
-            func_0015A150(pemitter);
+            PauseEmitterIndefinite__FP7EMITTER(pemitter);
         else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->g104)
-            func_0015A138(pemitter, GRandInRange__Fff(pemitter->lm108.gMin, pemitter->lm108.gMax));
+            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->lm108.gMin, pemitter->lm108.gMax));
         break;
     case 0:
     case 1:

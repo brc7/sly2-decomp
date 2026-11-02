@@ -13,7 +13,7 @@ extern float D_002F6468, D_002F646C;
 extern struct GS D_002DEB80;
 int DxSelectionJoy(int);
 int DySelectionJoy(int);
-float func_0011D948(void *, float);
+float GLimitLm__FP2LMf(void *, float);
 void SetSndmgrChannelVolume(struct G *, int, float, int);
 void SetWidgetAnimPhase(void *, int, float);
 static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
@@ -32,7 +32,7 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = func_0011D948(D_002BBB60, D_003DD040.x150 + f * D_002DDF10 * 1.5f);
+        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.x150 + f * D_002DDF10 * 1.5f);
         SetSndmgrChannelVolume(&D_003DD040, 1, g, 1);
         SetWidgetAnimPhase(p->x8, 0x315, g);
         break;
@@ -42,7 +42,7 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = func_0011D948(D_002BBB60, D_003DD040.x14C + f * D_002DDF10 * 1.5f);
+        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.x14C + f * D_002DDF10 * 1.5f);
         SetSndmgrChannelVolume(&D_003DD040, 0, g, 1);
         SetSndmgrChannelVolume(&D_003DD040, 3, g, 1);
         SetWidgetAnimPhase(p->x8, 0x315, g);

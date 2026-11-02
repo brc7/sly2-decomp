@@ -9,7 +9,7 @@ qword func_00153E60(T *p);
 void *func_001AE318(AL *pal);
 qword ConvertAloPos(SO *pso, int z, qword v);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-int func_0014CC58(int z, qword a, qword b, int i, int j, int k);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
 void func_00154528(void);
 extern char D_003DD490[];
@@ -49,6 +49,6 @@ int func_001545F0(T *p, SO *pso)
     IntersectSwBoundingBox(D_003DD490, vmin, vmax, pfn, p, &ii, &jj);
     bool f;
     for (i = 0; (f = i < 1); i++)
-        if (!func_0014CC58(0, q, apos[i], ii, jj, 0)) break;
+        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, q, apos[i], ii, jj, 0)) break;
     return !f;
 }

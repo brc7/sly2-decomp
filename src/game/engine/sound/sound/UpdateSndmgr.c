@@ -19,7 +19,7 @@ int func_001FE5E0(struct P *);
 float GSmooth__FfffP3SMPPf(float, float, float, struct K *, int);
 void SetSndmgrChannelVolume(struct P *, int, float, int);
 void UpdateSnd(struct Q *);
-int func_00231C48(void);
+int snd_FlushSoundCommands(void);
 /** @sly2-annot addr=0x1FD830
  * Purpose: Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync,
  *   master fades, UpdateSnd on every pending sound, flush 989 commands
@@ -67,5 +67,5 @@ void UpdateSndmgr(struct P *p)
         UpdateSnd(q);
         q = n;
     }
-    func_00231C48();
+    snd_FlushSoundCommands();
 }

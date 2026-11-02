@@ -17,7 +17,7 @@ void EvaluateShapeS(struct O *, float, qword *, qword *);
 void *PpathzoneFromPos(qword, int);
 int FPosInPathzone(void *, qword, int);
 void *func_001AE238(struct MSG *, void *);
-void func_001AE5A0(void *, const void *, unsigned);
+void CopyAb__FPvT0Ui(void *, const void *, unsigned);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
 /** @sly2-annot addr=0x1E9C88
  * Purpose: Sample the path, collect distinct containing objects (0x1C0D70) and parameter ranges
@@ -81,7 +81,7 @@ void func_001E9C88(struct S *ps, struct O *po)
     ps->c4 = cseg;
     ps->aseg = PvReallocMsg((struct MSG *)&pos2, cseg * 8, 0x10, aseg);
     ps->cC = cseg;
-    func_001AE5A0(ps->aseg10, aseg, cseg * 8);
+    CopyAb__FPvT0Ui(ps->aseg10, aseg, cseg * 8);
     ps->c90 = cpv;
     ps->apv = PvReallocMsg((struct MSG *)&pos2, cpv * 4, 0x10, apv);
     ps->n98 = -1;

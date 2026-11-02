@@ -23,7 +23,7 @@ struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; F
 extern "C" {
 extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
 int func_001665F0(GEOMETRY *, QUERY *, int, int, EDGE **);
-int func_00199408(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
+int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
 int FCheckJtEdgeNormal(JT *, qword, qword);
 }
@@ -84,7 +84,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         GEOMETRY *geometry = &shape->geometry;
         int count = func_001665F0(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
         for (int i = 0; i < count; i++) {
-            if (func_00199408(p, shape, edges[i], &direction)) {
+            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edges[i], &direction)) {
                 found = 1;
                 sum = Add(sum, direction.q);
             }
@@ -95,7 +95,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         break;
     }
     case 3:
-        if (!func_00199408(p, shape, (EDGE *)info, out))
+        if (!FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, (EDGE *)info, out))
             return 0;
         break;
     case 2: {
@@ -107,7 +107,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         U direction;
         SPAN spans[2];
         for (EDGE *edge = face->first; edge; edge = edge->next) {
-            if (func_00199408(p, shape, edge, &direction)) {
+            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edge, &direction)) {
                 U *points = shape->geometry.points;
                 if (func_00118668(p->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
@@ -117,7 +117,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
             }
         }
         for (EDGE *edge = face->second; edge; edge = edge->nextOther) {
-            if (func_00199408(p, shape, edge, &direction)) {
+            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edge, &direction)) {
                 U *points = shape->geometry.points;
                 if (func_00118668(p->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {

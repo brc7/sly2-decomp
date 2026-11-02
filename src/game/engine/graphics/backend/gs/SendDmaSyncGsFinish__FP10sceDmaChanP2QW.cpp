@@ -9,7 +9,7 @@ void LeaveCritSect(CRITSECT *pcs);
 extern "C" int sceGsGetIMR();
 extern "C" void func_00240AA0(int n);
 extern "C" void func_00234CA0(int n);
-extern "C" void func_00241728(sceDmaChan *pch, QW *pqw);
+extern "C" void sceDmaSend(sceDmaChan *pch, QW *pqw);
 extern "C" void func_00234A60(int sid);
 /** @sly2-annot addr=0x16F8B8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -23,7 +23,7 @@ void SendDmaSyncGsFinish(sceDmaChan *pch, QW *pqw)
     *(volatile long *)0x12001000 |= 2;
     func_00240AA0(sceGsGetIMR() & ~0x200);
     func_00234CA0(0);
-    func_00241728(pch, pqw);
+    sceDmaSend(pch, pqw);
     func_00234A60(D_002DFB50);
     LeaveCritSect(&D_002DFB40);
 }

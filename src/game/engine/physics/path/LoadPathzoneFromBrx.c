@@ -8,10 +8,10 @@ struct S { char pad[0x18]; int x18; char p0[0xE0 - 0x1C]; int cE0; struct V *aE4
 struct G { char pad[0x3D70]; int x3D70; char p1[0x45C8 - 0x3D74]; struct S *x45C8; };
 extern struct G D_003DD490;
 void LoadXfmFromBrx(struct S *p, void *pbis);
-int func_00117C20(void *pbis);
-int func_00117BD0(void *pbis);
-void func_00117EB0(void *pbis, struct V *pv);
-float func_00117E38(void *pbis);
+int U16Read__18CBinaryInputStream(void *pbis);
+int U8Read__18CBinaryInputStream(void *pbis);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv);
+float F32Read__18CBinaryInputStream(void *pbis);
 void *func_001AE2A0(struct A *pa);
 void *func_001AE1D0(struct A *pa);
 void HookupCg(int *p);
@@ -29,42 +29,42 @@ void LoadPathzoneFromBrx(struct S *p, void *pbis)
     struct A a;
     int i, j, k;
     LoadXfmFromBrx(p, pbis);
-    p->cE0 = func_00117C20(pbis);
+    p->cE0 = U16Read__18CBinaryInputStream(pbis);
     a.cb = p->cE0 * 32;
     a.align = 0x10;
     p->aE4 = func_001AE2A0(&a);
-    p->cE8 = func_00117C20(pbis);
+    p->cE8 = U16Read__18CBinaryInputStream(pbis);
     a.cb = p->cE8 * 12;
     a.align = 0x10;
     p->aEC = func_001AE2A0(&a);
     for (i = 0; i < p->cE0; i++) {
         struct V *pd = &p->aE4[i];
-        func_00117EB0(pbis, pd);
-        pd->c = func_00117BD0(pbis);
+        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, pd);
+        pd->c = U8Read__18CBinaryInputStream(pbis);
         a.cb = pd->c * 8 + 8;
         a.align = 0x10;
         pd->ae = func_001AE1D0(&a);
         for (j = 0; j < pd->c; j++) {
             struct E8 *pe = &pd->ae[j];
-            pe->pv = &p->aE4[func_00117C20(pbis)];
+            pe->pv = &p->aE4[U16Read__18CBinaryInputStream(pbis)];
         }
     }
     for (k = 0; k < p->cE8; k++) {
         struct V **ppv = p->aEC[k].apv;
         for (i = 0; i < 3; i++)
-            *ppv++ = &p->aE4[func_00117C20(pbis)];
+            *ppv++ = &p->aE4[U16Read__18CBinaryInputStream(pbis)];
     }
-    p->cF0 = func_00117C20(pbis);
+    p->cF0 = U16Read__18CBinaryInputStream(pbis);
     a.cb = p->cF0 * 16;
     a.align = 0x10;
     p->aF4 = func_001AE2A0(&a);
     for (i = 0; i < p->cF0; i++) {
         struct P *pp = &p->aF4[i];
-        pp->x = func_00117E38(pbis);
-        pp->y = func_00117E38(pbis);
-        pp->z = func_00117E38(pbis);
-        pp->c = func_00117C20(pbis);
-        pp->d = func_00117C20(pbis);
+        pp->x = F32Read__18CBinaryInputStream(pbis);
+        pp->y = F32Read__18CBinaryInputStream(pbis);
+        pp->z = F32Read__18CBinaryInputStream(pbis);
+        pp->c = U16Read__18CBinaryInputStream(pbis);
+        pp->d = U16Read__18CBinaryInputStream(pbis);
     }
     HookupCg(&p->cE0);
     if (p->x18 == 0x2CA)

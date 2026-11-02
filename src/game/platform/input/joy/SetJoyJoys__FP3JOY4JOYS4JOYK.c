@@ -8,7 +8,7 @@ struct S {
 };
 struct CLOCK { char pad[0x3C]; float g3c; };
 extern struct CLOCK D_002DDED0;
-void func_001D5150(void *p, int a, int b);
+void InitRumble__FP6RUMBLEii(void *p, int a, int b);
 void func_002333B4(void *pv, int b, int cb);
 /** @sly2-annot addr=0x1875B8
  * Purpose: Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4
@@ -27,7 +27,7 @@ void SetJoyJoys__FP3JOY4JOYS4JOYK(struct S *p, int a, int b)
         p->x1008 = 0;
         a = 1;
     }
-    if (p->b < 3 && b >= 3) func_001D5150(p->x10cc, p->x1000, p->x1004);
+    if (p->b < 3 && b >= 3) InitRumble__FP6RUMBLEii(p->x10cc, p->x1000, p->x1004);
     if (p->b == 4 ? b != 4 : b == 4) func_002333B4(p->x10c0, 0, 0xC);
     if (p->a == 3 ? a != 3 : a == 3) {
         p->x10bc = 0xFFFF;

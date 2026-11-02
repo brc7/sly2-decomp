@@ -9,7 +9,7 @@ extern qword D_002A2DD0;
 extern char D_004435F0[];
 void snd_StopAllStreams(void);
 void func_00233048(int, int, int, int, int, int, int);
-int func_00231C48(void);
+int snd_FlushSoundCommands(void);
 void func_00156BE0(int, qword, int, void *);
 void *func_002333B4(void *, int, int);
 void func_00227788(void *);
@@ -28,7 +28,7 @@ void ResetSndmgr(struct P *p)
 {
     snd_StopAllStreams();
     func_00233048(0x524B5553, 10, 0, 0, 0, 0, 0);
-    while (func_00231C48())
+    while (snd_FlushSoundCommands())
         ;
     p->n14 = 0;
     p->n18 = -1;

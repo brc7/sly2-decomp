@@ -1,7 +1,7 @@
 extern "C" {
 void *STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n);
-void func_00129EC8(void *p);
+void Decref__4CRef(void *p);
 void func_001291A8(void *p, const void *q);
 void *FClueCollected(int n);
 int CClueCollected(void);
@@ -13,7 +13,7 @@ struct CRef {
     CRef() {}
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
     CRef(const CRef &r) { func_001291A8(this, &r); }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 extern char D_003D4A60[];
 extern int D_003E1BF4;

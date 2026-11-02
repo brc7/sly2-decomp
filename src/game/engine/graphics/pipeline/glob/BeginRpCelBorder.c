@@ -1,22 +1,22 @@
 #include "m2c_prelude.h"
 M2C_UNK CopyAb__FPvT0Ui(s128 *, s128 *, s8, s128);  /* extern */
-M2C_UNK func_00117968(s32, s32, s32 *);             /* extern */
-M2C_UNK func_00117EB0(s32, s32 *);                  /* extern */
-M2C_UNK func_00117F18(s32, M2C_UNK *);              /* extern */
-M2C_UNK func_00117F90(s32, M2C_UNK *);              /* extern */
-M2C_UNK func_00117FB0(s32, M2C_UNK *);              /* extern */
+M2C_UNK Read__18CBinaryInputStreamiPv(s32, s32, s32 *);             /* extern */
+M2C_UNK ReadVector__18CBinaryInputStreamP6VECTOR(s32, s32 *);                  /* extern */
+M2C_UNK ReadMatrix4__18CBinaryInputStreamP7MATRIX4(s32, M2C_UNK *);              /* extern */
+M2C_UNK ReadCb12__18CBinaryInputStreamPv(s32, M2C_UNK *);              /* extern */
+M2C_UNK ReadCb8__18CBinaryInputStreamPv(s32, M2C_UNK *);              /* extern */
 M2C_UNK AllocStack__4DMASi(M2C_UNK *, s32);              /* extern */
-M2C_UNK func_001573C0(M2C_UNK *, s32 *, s32 *, s32 *); /* extern */
+M2C_UNK DetachCopySw__4DMASPiPP2QWT2(M2C_UNK *, s32 *, s32 *, s32 *); /* extern */
 s32 *func_001AE318(s32 *, s8, M2C_UNK, M2C_UNK);    /* extern */
-M2C_UNK func_00226C10(M2C_UNK *, s64, s64, s64);    /* extern */
-M2C_UNK func_00226FD0(M2C_UNK *, s32, s32, s32);    /* extern */
-M2C_UNK func_00240460(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
-M2C_UNK func_00240600(void *, s32 *, s32 *, s32 *); /* extern */
-M2C_UNK func_002406C0(M2C_UNK *);                   /* extern */
-M2C_UNK func_002407A8(s32 *, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
-M2C_UNK func_00240A40(s32 *, s32);                  /* extern */
-M2C_UNK func_00241728(s32, s32);                    /* extern */
-M2C_UNK func_002417F0(s32, M2C_UNK, M2C_UNK);       /* extern */
+M2C_UNK __4VIFS(M2C_UNK *, s64, s64, s64);    /* extern */
+M2C_UNK AddVifUnpack__4VIFS3UPKiP18CBinaryInputStreami(M2C_UNK *, s32, s32, s32);    /* extern */
+M2C_UNK sceGsResetGraph(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
+M2C_UNK sceGsPutDispEnv(void *, s32 *, s32 *, s32 *); /* extern */
+M2C_UNK sceGsPutDrawEnv(M2C_UNK *);                   /* extern */
+M2C_UNK sceGsSetDefDBuff(s32 *, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
+M2C_UNK sceGsSwapDBuff(s32 *, s32);                  /* extern */
+M2C_UNK sceDmaSend(s32, s32);                    /* extern */
+M2C_UNK sceDmaSync(s32, M2C_UNK, M2C_UNK);       /* extern */
 extern M2C_UNK D_0025B880;
 extern M2C_UNK D_0025C1B0;
 extern M2C_UNK D_0025C1C0;

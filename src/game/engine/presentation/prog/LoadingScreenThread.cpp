@@ -26,7 +26,7 @@ extern QW D_002DF260[];
 extern "C" int func_00234A60(int);
 extern "C" int func_00234A40(int);
 extern "C" int ReferSemaStatus(int,SEMA *);
-extern "C" float func_00245000(float);
+extern "C" float sinf(float);
 extern "C" void func_001C93E0(GIFS *,M2 *,float);
 extern "C" void CloseFrame__Fv(void);
 extern "C" void MarkClockTick(CLOCK *,int);
@@ -62,7 +62,7 @@ extern "C" void LoadingScreenThread(void *)
             ReferSemaStatus(D_003D3A40,&status);
             if(status.count!=0)break;
             float t=-*D_002DD314+D_002DDED0.frameT;
-            float scale=1.0f+D_002C10B0*func_00245000(t*D_002C10B4);
+            float scale=1.0f+D_002C10B0*sinf(t*D_002C10B4);
             matrix.Identity();
             matrix.a[0]=D_002C10A0*scale;
             matrix.a[3]=D_002C10A4*scale;

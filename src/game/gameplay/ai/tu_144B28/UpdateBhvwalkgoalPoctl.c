@@ -16,7 +16,7 @@ extern float D_002BBB60[2];
 extern float D_002BD2F0;
 void func_001EF0C0(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -82,7 +82,7 @@ void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
         s = GClampR(g, D_002BBB60[0], D_002BBB60[1]);
         if (0.0f < s) {
             q->x1C = s * p->xD0;
-            q->x18 = func_002458F0(GetY(v), GetX(v));
+            q->x18 = atan2f(GetY(v), GetX(v));
         }
         if (p->xCC)
             q->x30 |= 8;

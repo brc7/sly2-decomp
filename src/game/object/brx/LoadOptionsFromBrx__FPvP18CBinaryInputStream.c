@@ -1,6 +1,6 @@
 struct E { int f0; int f4; char pad[0x20]; };
 extern struct E D_002AC880[];
-int func_00117D50(void *);
+int S16Read__18CBinaryInputStream(void *);
 void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(void *, struct E *, int, void *);
 /** @sly2-annot addr=0x13F810
  * Purpose: Loop: S16 eopid until <0; LoadOptionFromBrx(pv, &g_aeopid[eopid] (D_002AC880 stride 0x28), grf &
@@ -14,7 +14,7 @@ void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(void *, struct E *, int
  * @end-sly2-annot */
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *p, void *pbis) {
     int n;
-    while ((n = func_00117D50(pbis)) >= 0) {
+    while ((n = S16Read__18CBinaryInputStream(pbis)) >= 0) {
         struct E *pe = &D_002AC880[n];
         LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(p, pe, pe->f4 & 0x2580, pbis);
     }

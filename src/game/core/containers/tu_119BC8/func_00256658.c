@@ -5,8 +5,8 @@
 
 /* Warning: missing "jr $ra" in last block of func_00258008 (initial). */
 
-M2C_UNK func_00117968(s32, M2C_UNK, s32);           /* extern */
-M2C_UNK func_00129EC8(void *);                      /* extern */
+M2C_UNK Read__18CBinaryInputStreamiPv(s32, M2C_UNK, s32);           /* extern */
+M2C_UNK Decref__4CRef(void *);                      /* extern */
 s32 func_001AE318(s32 *, s32 *);                    /* extern */
 extern M2C_UNK D_002CB1F0;
 extern M2C_UNK D_002D9978;
@@ -61,7 +61,7 @@ void func_00256658(s32 arg0) {
     void *temp_v0;
     void *var_s0;
 
-    func_00116D28(arg0 + 0x10);
+    Free__9CDynArray(arg0 + 0x10);
     var_s0 = M2C_FIELD(arg0, void **, 0x28);
     if (var_s0 != NULL) {
         do {

@@ -6,7 +6,7 @@ struct X {char pad[8];struct HT table;};
 extern struct X D_003E0EA8;
 extern const char D_002A7768[],D_002A7788[];
 int IlevelCur__Fv(void);
-int func_0021ECD8(char *buf,const char *fmt,...);
+int sprintf(char *buf,const char *fmt,...);
 int NFindSaveSymbol(struct HT *pt,const char *s);
 struct A *func_002109B8(int h);
 struct A *PkeyConcatSaveKeys(struct A *p, struct A *pa);
@@ -26,7 +26,7 @@ struct A *FClueCollected(int input)
     char buf[0x10];
     h = IlevelCur__Fv();
     if (h == -1) return 0;
-    func_0021ECD8(buf, D_002A7768, n);
+    sprintf(buf, D_002A7768, n);
     k.a = Find(&D_003E0EA8, D_002A7788);
     k.b = n;
     a.c = 2;

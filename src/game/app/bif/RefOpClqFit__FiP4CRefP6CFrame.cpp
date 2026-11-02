@@ -11,7 +11,7 @@ struct CRef {
 };
 extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
-void func_0011D8D8(void *pv, float a, float b, float c, float d);
+void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d);
 CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
 /** @sly2-annot addr=0x123498
@@ -32,7 +32,7 @@ CRef RefOpClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
         CRef r2 = CRef_RefCoerceF32(&aref[2]);
         float g2 = r2.u.g;
         CRef r3 = CRef_RefCoerceF32(&aref[3]);
-        func_0011D8D8(ref.u.pv, g0, g1, g2, r3.u.g);
+        FitClq__FffffP3CLQ(ref.u.pv, g0, g1, g2, r3.u.g);
     }
     return ref;
 }

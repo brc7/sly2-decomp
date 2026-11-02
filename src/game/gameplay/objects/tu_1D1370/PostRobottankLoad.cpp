@@ -15,7 +15,7 @@ extern qword D_002A2DC0,D_002A2DD0;
 extern char D_003DD490[];
 void PostSoLoad(P *);
 REF *PxfFindSo(P *,int,int);
-void *func_002332B8(void *,const void *,int);
+void *memmove(void *,const void *,int);
 qword ConvertAloPos(void *,P *,qword);
 void *func_0012DC18(P *,REF *,int,int,int,qword);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
@@ -55,7 +55,7 @@ extern "C" void PostRobottankLoad(P *p){
    unsigned bytes=(p->count-i)*stride-sizeof(E);
    E*source=next;
    cursor=current.entry-1;--next;--i;
-   func_002332B8(current.entry,source,bytes);
+   memmove(current.entry,source,bytes);
    --p->count;
   }else{
    qword returned=ConvertAloPos(0,p,reference->position);
@@ -112,7 +112,7 @@ extern "C" void PostRobottankLoad(P *p){
    unsigned bytes=(p->sideCount-i)*scale.stride-sizeof(SIDE);
    SIDE*destination=current.side;SIDE*source=next;
    --current.side;--next;--i;
-   func_002332B8(destination,source,bytes);
+   memmove(destination,source,bytes);
    --p->sideCount;
   }else current.side->binding=func_0012DC18(p,reference,1,7,3,D_002A2DD0);
   count=p->sideCount;
@@ -143,7 +143,7 @@ extern "C" void PostRobottankLoad(P *p){
   source+=0x500;
   int bytes=(p->attachCount-j)*4-4;
   --cursor;byteOffset-=4;--j;
-  func_002332B8(destination,source,bytes);
+  memmove(destination,source,bytes);
   register int remaining __asm__("$3");
   asm("lw %0,%1\n\taddiu %0,%0,-1\n\tsw %0,%1":"=&r"(remaining),"+m"(p->attachCount));}
  attachment_next:

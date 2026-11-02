@@ -4,7 +4,7 @@
 /* Warning: missing "jr $ra" in last block of func_0011B040 (initial). */
 
 M2C_UNK CopyAb__FPvT0Ui(s32, s32, s32);             /* extern */
-M2C_UNK func_00117898();                            /* extern */
+M2C_UNK CbRead__18CBinaryInputStreamiPv();                            /* extern */
 s32 func_001AE318(s32 *, s32, s32);                 /* extern */
 extern u8 D_002A4150;
 extern M2C_UNK D_002AA6A1;
@@ -19,8 +19,8 @@ extern void *D_002DD2FC;
  * Confidence: none - unanalysed; anything inferred from the code here is a guess
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void func_00117ED0(s32 arg0, s32 arg1) {
-    func_00117EB0();
-    func_00117EB0(arg0, arg1 + 0x10);
-    func_00117EB0(arg0, arg1 + 0x20);
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(s32 arg0, s32 arg1) {
+    ReadVector__18CBinaryInputStreamP6VECTOR();
+    ReadVector__18CBinaryInputStreamP6VECTOR(arg0, arg1 + 0x10);
+    ReadVector__18CBinaryInputStreamP6VECTOR(arg0, arg1 + 0x20);
 }

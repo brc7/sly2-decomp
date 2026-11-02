@@ -12,19 +12,19 @@ struct SRC { float ag[3]; float aclr[3][4]; };
 extern struct SRC D_003E12F4;
 extern int D_002C3680[];
 extern int D_002DE598;
-void func_0011DFA0(const float *, VEC3 *);
+void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *);
 int IgsAllocGsb__FP3GSBi(void *, int);
-void func_00166920(GIFS *);
-void func_00157330(GIFS *, int, void *);
-void func_001574B8(GIFS *);
-void func_00170650(int, int, int, int, int, int, GIFS *);
-void func_00157500(GIFS *, int, void *);
-void func_00166BD8(GIFS *, int, int, ulong);
-void func_00166E90(GIFS *, int, ulong);
-void func_00166968(GIFS *);
-void func_001576B0(GIFS *);
-void func_00157348(GIFS *, int *, qword **);
-void func_0016F8B8(int, qword *);
+void __4GIFS(GIFS *);
+void AllocStatic__4DMASiP2QW(GIFS *, int, void *);
+void AddDmaCnt__4DMAS(GIFS *);
+void BuildImageGifs__FiiiiiiP4GIFS(int, int, int, int, int, int, GIFS *);
+void AddDmaRefs__4DMASiP2QW(GIFS *, int, void *);
+void AddPrimPack__4GIFSiiUl(GIFS *, int, int, ulong);
+void PackAD__4GIFSll(GIFS *, int, ulong);
+void AddPrimEnd__4GIFS(GIFS *);
+void AddDmaEnd__4DMAS(GIFS *);
+void Detach__4DMASPiPP2QW(GIFS *, int *, qword **);
+void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, qword *);
 void func_001EA9F0(O *p, void *pbs);
 }
 static inline void ClearClr(CLR *pc)
@@ -60,7 +60,7 @@ void func_001EA9F0(O *p, void *pbs)
     int i;
     {
         for (i = 0; i < 3; i++) {
-            func_0011DFA0(D_003E12F4.aclr[i], &v);
+            ConvertUserHsvToUserRgb__FP6VECTORT0(D_003E12F4.aclr[i], &v);
             StoreColor(&argb[i],&ag[i],&D_003E12F4.ag[i],v);
         }
     }
@@ -105,17 +105,17 @@ void func_001EA9F0(O *p, void *pbs)
     qword *x;
     if (pbs)
         p->tex0 = ((ulong)IgsAllocGsb__FP3GSBi(pbs, 4) << 37) | 0x2000000001B00000L;
-    func_00166920(&dmas);
-    func_00157330(&dmas, 0x80, aqw);
-    func_001574B8(&dmas);
-    func_00170650((int)((p->tex0 >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &dmas);
-    func_00157500(&dmas, 0x40, aclr);
-    func_00166BD8(&dmas, 0, 1, 14);
-    func_00166E90(&dmas, 0x3F, 0);
-    func_00166E90(&dmas, 0x61, 0);
-    func_00166968(&dmas);
-    func_001576B0(&dmas);
-    func_00157348(&dmas, 0, &x);
-    func_0016F8B8(D_002DE598, x);
+    __4GIFS(&dmas);
+    AllocStatic__4DMASiP2QW(&dmas, 0x80, aqw);
+    AddDmaCnt__4DMAS(&dmas);
+    BuildImageGifs__FiiiiiiP4GIFS((int)((p->tex0 >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &dmas);
+    AddDmaRefs__4DMASiP2QW(&dmas, 0x40, aclr);
+    AddPrimPack__4GIFSiiUl(&dmas, 0, 1, 14);
+    PackAD__4GIFSll(&dmas, 0x3F, 0);
+    PackAD__4GIFSll(&dmas, 0x61, 0);
+    AddPrimEnd__4GIFS(&dmas);
+    AddDmaEnd__4DMAS(&dmas);
+    Detach__4DMASPiPP2QW(&dmas, 0, &x);
+    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, x);
     }
 }

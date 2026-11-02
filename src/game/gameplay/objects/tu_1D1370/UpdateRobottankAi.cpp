@@ -41,15 +41,15 @@ extern "C" {
 qword func_001A62E8(P *);
 ATTACH *func_001D2240(P *);
 P *func_001D22D0(P *);
-int func_0011D910(LM *, float);
+int FCheckLm__FP2LMf(LM *, float);
 void func_001D4B28(P *, int);
-float func_002456F0(float);
+float acosf(float);
 M3 func_0011B500(qword, float);
 int ClsgClipPathzone(void *, qword, qword, int, HIT *, int);
 void MeasureShape(PATH *);
 void func_001D2420(P *);
 void func_001C02D0(void *, qword, qword, PATH *);
-float func_002458F0(float, float);
+float atan2f(float, float);
 M3 *func_001A6318(P *);
 qword func_0022CA18(void *, void *);
 float RadNormalize__Ff(float);
@@ -129,7 +129,7 @@ extern "C" void UpdateRobottankAi(P *p)
         switch (state) {
         case 0:
             if (p->selectedAttach) {
-                if (func_0011D910(&p->selectedAttach->enterRange, distance))
+                if (FCheckLm__FP2LMf(&p->selectedAttach->enterRange, distance))
                     func_001D4B28(p, 1);
             } else if (p->selectedObject) {
                 func_001D4B28(p, 2);
@@ -138,7 +138,7 @@ extern "C" void UpdateRobottankAi(P *p)
             }
             break;
         case 1:
-            if (!p->selectedAttach || !func_0011D910(&p->selectedAttach->exitRange, distance))
+            if (!p->selectedAttach || !FCheckLm__FP2LMf(&p->selectedAttach->exitRange, distance))
                 func_001D4B28(p, 0);
             break;
         case 2:
@@ -156,7 +156,7 @@ extern "C" void UpdateRobottankAi(P *p)
     case 0: {
         // approach: a point at the attachment's radius from the target, rotated around it by the tactic
         float radius = p->selectedAttach->radius;
-        float angle = func_002456F0(radius / Max(radius * D_002C20E8, distance));
+        float angle = acosf(radius / Max(radius * D_002C20E8, distance));
         VV goal;
         VV offset = VuFloatFromMemWord(*(int *)&p->selectedAttach->radius) * NormalizeSafe(Sub(position, target), D_002A2DA0);
         switch (p->selectedAttach->tactic) {
@@ -198,13 +198,13 @@ extern "C" void UpdateRobottankAi(P *p)
         // attack: stop, turn the wheels towards the target, fire when the selected attachment is aimed
         p->drive = 0.0f;
         p->goalHeading = p->heading;
-        p->wheelAngle = func_002458F0(GetY(delta), GetX(delta));
+        p->wheelAngle = atan2f(GetY(delta), GetX(delta));
         if (p->nextAttack < D_002DDED0.t) {
             ATTACH *attach = func_001D2240(p);
             if (attach) {
                 if (attach->mesh) {
                     M3 m = *func_001A6318(attach->anchor);
-                    float aim = func_002458F0(m.rows[0].f[1], m.rows[0].f[0]);
+                    float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                     qword packed = func_0022CA18(attach->mesh, attach->mesh);
                     float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
                     float pitch = GetZ(packed) - attach->meshBinding->pitch;
@@ -231,7 +231,7 @@ extern "C" void UpdateRobottankAi(P *p)
         break;
     }
     case 3:
-        p->goalHeading = func_002458F0(-GetY(delta), -GetX(delta));
+        p->goalHeading = atan2f(-GetY(delta), -GetX(delta));
         p->wheelAngle = p->heading;
         p->drive = p->slip * 0.85f;
         break;
@@ -248,7 +248,7 @@ extern "C" void UpdateRobottankAi(P *p)
                 continue;
             if (attach->mesh) {
                 M3 m = *func_001A6318(attach->anchor);
-                float aim = func_002458F0(m.rows[0].f[1], m.rows[0].f[0]);
+                float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                 qword packed = func_0022CA18(attach->mesh, attach->mesh);
                 float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
                 float pitch = GetZ(packed) - attach->meshBinding->pitch;

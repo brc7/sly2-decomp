@@ -11,7 +11,7 @@ M3 *func_001A6318(struct S *);
 qword ConvertAloPos(void *,void *,qword);
 }
 extern qword D_002A2DC0;
-extern "C" float func_00245A18(float,float);
+extern "C" float fmodf(float,float);
 struct COEF { float a,b,c,d; };
 struct BOUND { float low,high; };
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
@@ -59,7 +59,7 @@ extern "C" void func_002215C0(S *p,float *times,COEF *coef,BOUND *bounds,int mod
     } else if(p->arc) {
         float period=p->radius*6.2831855f;
         float phase=mode!=1?time-delta:time+delta;
-        float angle=func_00245A18(phase,period);
+        float angle=fmodf(phase,period);
         center.q=SetVectorCylind(angle/p->radius,p->radius,0.0f);
         qword arc=center.q;
         center.q=Add(arc,p->origin);

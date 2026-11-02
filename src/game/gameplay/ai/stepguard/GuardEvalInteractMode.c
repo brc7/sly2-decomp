@@ -15,7 +15,7 @@ struct Y *func_00205458(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
 int FCheckVolPoint(struct L *pl, qword q);
-int func_0011D910(void *p, float f);
+int FCheckLm__FP2LMf(void *p, float f);
 
 /** @sly2-annot addr=0x208E70
  * Purpose: Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint
@@ -66,9 +66,9 @@ int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
             return 3;
     }
     pv = FStepguardHasSgf(p, 0x17) ? p->a368 : p->a370;
-    if (d <= p->f378 * D_002C3D94 && func_0011D910(pv, ang) && p->n364)
+    if (d <= p->f378 * D_002C3D94 && FCheckLm__FP2LMf(pv, ang) && p->n364)
         return 2;
-    if (d <= p->f388 && func_0011D910(p->a380, ang) && p->n37C)
+    if (d <= p->f388 && FCheckLm__FP2LMf(p->a380, ang) && p->n37C)
         return 1;
     return 0;
 }

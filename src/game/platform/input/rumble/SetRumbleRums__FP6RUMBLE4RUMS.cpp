@@ -3,7 +3,7 @@ struct RUMPAT { RUMINS arumins[1]; };
 enum RUMS { RUMS_Dead, RUMS_Idle, RUMS_Rumble, RUMS_Stop, RUMS_Kill };
 struct RUMBLE { int nPort; int nSlot; RUMS rums; RUMPAT *prumpat; int pad; int pad2; float dtRumins; };
 extern float D_002DDF10;
-extern "C" int func_00243870(int, int, unsigned char *);
+extern "C" int scePadSetActDirect(int, int, unsigned char *);
 void StopRumbleActuators(RUMBLE *prumble);
 /** @sly2-annot addr=0x1D53C0
  * Purpose: Rumble state machine transition (scePadSetActDirect)
@@ -21,7 +21,7 @@ void SetRumbleRums(RUMBLE *prumble, RUMS rums)
     case RUMS_Rumble:
         abShockDirect[0] = prumble->prumpat->arumins[0].fHighSpeedMotor;
         abShockDirect[1] = prumble->prumpat->arumins[0].bLowSpeedMotor;
-        func_00243870(prumble->nPort, prumble->nSlot, abShockDirect);
+        scePadSetActDirect(prumble->nPort, prumble->nSlot, abShockDirect);
         prumble->rums = rums;
         break;
     case RUMS_Stop:

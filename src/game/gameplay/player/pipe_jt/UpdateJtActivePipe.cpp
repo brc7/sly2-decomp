@@ -8,7 +8,7 @@ struct C{P*actor;int state;float time;PATH*path;float distance,speed;int descend
 struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct LM{float low,high;};struct WORK{U ahead,behind;union{U input;SMP smooth;}reuse;LM limit;};
 extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;extern SMP D_002BF928;
-qword func_0011F088(qword,qword,float,SMP*,U*);
+qword PosSmooth(qword,qword,float,SMP*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGA*);void func_0019EAB0(C*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
@@ -91,7 +91,7 @@ typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
 extern "C" void UpdateJtActivePipe(C*p){
- WORK w;float lowSpeed,highSpeed;P*actor=p->actor;actor->offset.q=func_0011F088(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
+ WORK w;float lowSpeed,highSpeed;P*actor=p->actor;actor->offset.q=PosSmooth(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
  register float amount __asm__("$f4"),dot __asm__("$f3"),zero __asm__("$f2");register int previous __asm__("$5");
  {register INPUT*input __asm__("$18")=p->actor->input;
  if(!Eligible(p->path)){func_00195A00(p->actor->controller,0,0,0);return;}

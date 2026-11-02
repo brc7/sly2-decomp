@@ -3,7 +3,7 @@ struct T { struct E a[16]; };
 extern struct T D_002A97F8;
 extern char D_002A9878[];
 struct S { int x0, x4, flags; };
-void func_0021ECD8(char *pch, char *fmt, int ch);
+void sprintf(char *pch, char *fmt, int ch);
 /** @sly2-annot addr=0x227940
  * Purpose: appends one char per set bit from a 16-entry {mask,ch} table D_002A97F8 via sprintf
  * Info: proposed name FlagsToPchz (T2); TU tu_2275B8
@@ -18,6 +18,6 @@ void func_00227940(struct S *p, char *pch)
     *pch = 0;
     for (i = 0; i < 16; i++) {
         if (p->flags & t.a[i].mask)
-            func_0021ECD8(pch, D_002A9878, t.a[i].ch);
+            sprintf(pch, D_002A9878, t.a[i].ch);
     }
 }

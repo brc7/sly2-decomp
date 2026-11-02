@@ -3,7 +3,7 @@
 typedef struct { int ref; char pad[4]; int c; char pad2[4]; void *m; } S;
 extern char D_004520A8[];
 void PairPtr_Release(void *, int);
-void func_00129EC8(void *); void GcPair_Unlink(S *); void func_0011CD98(void *, S *);
+void Decref__4CRef(void *); void GcPair_Unlink(S *); void func_0011CD98(void *, S *);
 void PairPtr_Assign(S **pp, S *n)
 {
     S *p;
@@ -12,7 +12,7 @@ void PairPtr_Assign(S **pp, S *n)
     if (p) {
         if (--p->ref == 0) {
             PairPtr_Release(&p->m, 2);
-            func_00129EC8(&p->c);
+            Decref__4CRef(&p->c);
             GcPair_Unlink(p);
             func_0011CD98(D_004520A8, p);
         }

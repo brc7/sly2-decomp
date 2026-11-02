@@ -6,9 +6,9 @@ extern char D_003D4A60[];
 extern void *D_002BE2F8[];
 extern char D_002A5160[];
 void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 int FPowerupAcquired(void *p);
-void func_0021ECD8(char *pch, char *fmt, ...);
+void sprintf(char *pch, char *fmt, ...);
 /** @sly2-annot addr=0x15D8F8
  * Purpose: Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is
  *   set)
@@ -27,10 +27,10 @@ void FormatEpisodePercent(char *pch)
         int n;
         RefGetGlobalSaveVar(&ref, p, D_003D4A60);
         n = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         n = n * 95 / 100;
         if (FPowerupAcquired(D_002BE2F8[pg->px->i]))
             n += 5;
-        func_0021ECD8(pch, D_002A5160, n);
+        sprintf(pch, D_002A5160, n);
     }
 }

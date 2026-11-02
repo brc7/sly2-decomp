@@ -11,7 +11,7 @@ void PairPtr_Release(struct SP *psp, int n);
 struct CRef *CRef_SetPair(struct CRef *pref, struct N *pn);
 void CRef_SetSymid(struct CRef *pref, int n);
 void CRef_SetBasic(struct CRef *pref, int n);
-void func_00129EC8(struct CRef *pref);
+void Decref__4CRef(struct CRef *pref);
 void GcPair_Unlink(void *pv);
 void func_0011CD98(void *pool, void *pv);
 /** @sly2-annot addr=0x132ED8
@@ -44,7 +44,7 @@ struct SP *func_00132ED8(struct SP *ret, int a1, int a2, struct X *px)
         struct N *pt = sp.p;
         if (pt && --pt->cref == 0) {
             PairPtr_Release(&pt->sp, 2);
-            func_00129EC8(&pt->ref);
+            Decref__4CRef(&pt->ref);
             GcPair_Unlink(pt);
             func_0011CD98(D_004520A8, pt);
         }

@@ -13,7 +13,7 @@ void *IdProxy__Fii(int i, int c);
 void *func_001AE2A0(struct A *pa);
 qword func_001A62E8(struct LO *p);
 struct MAT3 *func_001A6318(struct LO *p);
-void func_0011B3D0(struct MAT3 *pm);
+void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
 void *func_002333B4(void *p, int c, int cb);
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 /** @sly2-annot addr=0x1CA500
@@ -50,7 +50,7 @@ void InitSwProxySpares(struct G *pg)
             plo = pr->ap[pr->c * pr->n + k];
             px->q = func_001A62E8(plo);
             px->mat = *func_001A6318(plo);
-            func_0011B3D0(&px->mat);
+            NormalizeRotateMatrix3__FP7MATRIX3(&px->mat);
         }
         a.cb = (pr->x8 - pr->c) * 0x50;
         a.align = 0x10;

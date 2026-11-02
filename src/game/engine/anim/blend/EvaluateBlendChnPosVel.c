@@ -11,7 +11,7 @@ struct E { union { float w; int iw; } u; struct CL *p4; };
 struct A { char pad[0x74]; float x74; char pad2[0xC0 - 0x78]; int xC0; int xC4; char *xC8; };
 struct B { int x0; void *x4; struct SEG *x8; };
 struct P { int pad; struct A *p4; struct B *x8; struct O **xC; qword x10; };
-int func_00138370(void *, struct SEG *, float *, float, float);
+int ImrsgLookUp__FffiP4MRSGPf(void *, struct SEG *, float *, float, float);
 static __inline__ qword ToVf(int g)
 {
     qword s;
@@ -55,7 +55,7 @@ void EvaluateBlendChnPosVel(struct P *p, qword *ppos, qword *prot, float t, floa
         u = t / p->p4->x74;
     } else {
         float tLocal;
-        iSeg = func_00138370(p->x8->x4, p->x8->x8, &tLocal, t, p->p4->x74);
+        iSeg = ImrsgLookUp__FffiP4MRSGPf(p->x8->x4, p->x8->x8, &tLocal, t, p->p4->x74);
         pseg = &p->x8->x8[iSeg];
         u = tLocal / pseg->g4;
     }

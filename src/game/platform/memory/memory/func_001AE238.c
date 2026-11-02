@@ -1,6 +1,6 @@
 struct MSG { int cb; int nKind; };
 void *func_001AE1D0(struct MSG *pm);
-void func_001AE5A0(void *, void *, int);
+void CopyAb__FPvT0Ui(void *, void *, int);
 /** @sly2-annot addr=0x1AE238
  * Purpose: PvAllocSwImpl then CopyAb(dst src cb)
  * Info: proposed name PvAllocSwCopyImpl (T1); TU memory
@@ -12,6 +12,6 @@ void *func_001AE238(struct MSG *pm, void *pvSrc)
 {
     struct MSG m = *pm;
     void *p = func_001AE1D0(&m);
-    if (p) func_001AE5A0(p, pvSrc, pm->cb);
+    if (p) CopyAb__FPvT0Ui(p, pvSrc, pm->cb);
     return p;
 }

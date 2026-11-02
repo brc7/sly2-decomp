@@ -12,7 +12,7 @@ qword ConvertAloPos(void *, struct PO *, qword);
 void SetStepRadTargetVec(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void func_001384C0(void *);
-void func_001305B8(void *, struct PO *, int, void **, float, float);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void func_00131B10(void *, struct PO *, int);
 void func_00131A90(void *, float);
 static __inline__ float Clamp(float g, float gMin, float gMax)
@@ -78,7 +78,7 @@ void func_00136F48(struct S *ps, int state)
         break;
     }
     }
-    func_001305B8(pv, ps->po, 1, &ps->pvE0, D_002DDED0.t - ps->g18, 1.0f);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->po, 1, &ps->pvE0, D_002DDED0.t - ps->g18, 1.0f);
     if (!ps->pvE0)
         return;
     if (ps->x10)

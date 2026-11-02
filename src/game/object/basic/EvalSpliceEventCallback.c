@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-void func_00129EC8(M2C_UNK *);                   /* extern */
+void Decref__4CRef(M2C_UNK *);                   /* extern */
 extern M2C_UNK D_0027A10C;
 extern M2C_UNK D_0027A1D8;
 extern M2C_UNK D_002BAAE8;
@@ -23,5 +23,5 @@ void EvalSpliceEventCallback(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     if (arg3 != 0) {
         __as__4CRefRC4CRef(arg3, (s32) (void *)&fr);
     }
-    func_00129EC8((void *)&fr);
+    Decref__4CRef((void *)&fr);
 }

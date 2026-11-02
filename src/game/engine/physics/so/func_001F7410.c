@@ -10,7 +10,7 @@ extern struct G D_003DD490;
 void *func_001F7530(void *, int);
 void func_002333B4(void *, int, int);
 int func_001F7598(struct M *);
-void func_001A7E10(struct G *, void *);
+void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 /** @sly2-annot addr=0x1F7410
  * Purpose: SO vt74: for each contact, if other part has zap kinds, build a zap record and InflictZap; free
  *   contact list
@@ -44,7 +44,7 @@ void func_001F7410(struct P *p)
         }
     }
     if (p->pe) {
-        func_001A7E10(&D_003DD490, p->pe->pn);
+        FreeSwXpList__FP2SWP2XP(&D_003DD490, p->pe->pn);
         p->pe->pn = 0;
     }
 }

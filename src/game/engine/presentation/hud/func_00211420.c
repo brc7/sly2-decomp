@@ -7,7 +7,7 @@ extern char D_003DD490[];
 struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 char *PchzFindSwLangstr__FP2SWi(void *, int);
-void func_0021ED58(char *, char *);
+void strcpy(char *, char *);
 /** @sly2-annot addr=0x211420
  * Purpose: STRINGGEN id 0x2F4: name of the object the player operates in mode x4C8==0xC (cid 0x5E table
  *   D_002C3288 / cid 0x5C field / player x1318)
@@ -34,7 +34,7 @@ void func_00211420(char *pch)
         }
     }
     if (id != -1)
-        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(D_003DD490, id));
+        strcpy(pch, PchzFindSwLangstr__FP2SWi(D_003DD490, id));
     else
         *pch = 0;
 }

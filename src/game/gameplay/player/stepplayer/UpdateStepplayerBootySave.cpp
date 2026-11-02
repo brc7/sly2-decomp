@@ -1,6 +1,6 @@
 // MATCH (Claude agent, laneC20 2026-10-23): v4 + func_001291A8 (CRef copy ctor) declared returning void * instead of void.
 struct CRef;
-extern "C" void func_00129EC8(CRef *);
+extern "C" void Decref__4CRef(CRef *);
 extern "C" void *func_001291A8(CRef *, const CRef *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
 extern "C" CRef *func_00129658(CRef *, const CRef *);
 struct CRef {
@@ -8,7 +8,7 @@ struct CRef {
     CRef() { tagk = -1; }
     CRef(int k, int n) { tagk = k; tag = n; }
     CRef(const CRef &r) { func_001291A8(this, &r); }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 struct CRef16 : CRef { int pad[2]; CRef16(int k, int n) : CRef(k, n) {} };
@@ -35,7 +35,7 @@ int IlevelCur__Fv(void);
 BL *func_002109B8(int);
 int func_00233178(const void *a, const void *b, int n);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
-int func_0021ECD8(char *, const char *, ...);
+int sprintf(char *, const char *, ...);
 CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 }
 CRef RefSetSaveVarV(const CRef &ref, const void *o, ...);
@@ -47,7 +47,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     CRefRaw arg;
     func_001291A8((CRef *)&arg, &r);
     RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
-    func_00129EC8((CRef *)&arg);
+    Decref__4CRef((CRef *)&arg);
 }
 static inline void *Vcall103(LO *p) { VTE *e = &p->vt[103]; return e->pfn((char *)p + e->d); }
 
@@ -91,7 +91,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
         Y *py = p->p11A8->p158;
         if (py->x4 != -1) {
             char ach[32];
-            func_0021ECD8(ach, D_002A4D50, py->x4);
+            sprintf(ach, D_002A4D50, py->x4);
             ret = RefGetSaveVarV(D_002A4DC0, D_002A4DC8, ach, 0);
             ret = RefSetSaveVarV(CRef(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
         }

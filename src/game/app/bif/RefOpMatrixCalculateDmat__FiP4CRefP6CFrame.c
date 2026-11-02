@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 void func_001291A8(s32, M2C_UNK *);              /* extern */
-void func_00129EC8(M2C_UNK *);                   /* extern */
+void Decref__4CRef(M2C_UNK *);                   /* extern */
 void SetTag__4CRef4TAGK(M2C_UNK *, M2C_UNK);          /* extern */
 extern f32 D_002DDED0;
 extern M2C_UNK D_002DDF40;
@@ -25,6 +25,6 @@ s32 RefOpMatrixCalculateDmat__FiP4CRefP6CFrame(s32 arg0, s32 arg1, s32 arg2) {
     SetTag__4CRef4TAGK((void *)&fr, 0x1B);
     CalculateDmat4(M2C_FIELD(arg2, s32 *, 4), M2C_FIELD(arg2, s32 *, 0xC), fr.m4);
     func_001291A8(arg0, (void *)&fr);
-    func_00129EC8((void *)&fr);
+    Decref__4CRef((void *)&fr);
     return arg0;
 }

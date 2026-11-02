@@ -13,7 +13,7 @@ extern G D_002DEB30;
 extern char D_002A79A0[];
 extern char D_002A79A8[];
 extern char D_002A79B8[];
-int func_0021ECD8(char *, const char *, ...);
+int sprintf(char *, const char *, ...);
 CRef RefSetSaveVarV(const CRef &, const char *, ...);
 void BroadcastGameEvent(G *, int, int);
 /** @sly2-annot addr=0x1DAF38
@@ -27,7 +27,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
 {
     CRef ref;
     char buf[0x20];
-    func_0021ECD8(buf, D_002A79A0, n);
+    sprintf(buf, D_002A79A0, n);
     ref = RefSetSaveVarV(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
         D_002DEB30.n = n;

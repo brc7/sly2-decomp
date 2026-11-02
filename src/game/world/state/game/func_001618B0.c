@@ -6,10 +6,10 @@
 /* Warning: missing "jr $ra" in last block of func_0015FD58 (initial). */
 
 M2C_UNK func_001291A8(s32 *, s32 *, s32, s32);      /* extern */
-M2C_UNK func_00129EC8(s32 *);                       /* extern */
-M2C_UNK func_002271C8(s32, M2C_UNK *);              /* extern */
+M2C_UNK Decref__4CRef(s32 *);                       /* extern */
+M2C_UNK AddVifGifs__4VIFSP4GIFS(s32, M2C_UNK *);              /* extern */
 M2C_UNK func_002355E0(s32, M2C_UNK);                /* extern */
-M2C_UNK func_002417F0(s32, M2C_UNK, M2C_UNK);       /* extern */
+M2C_UNK sceDmaSync(s32, M2C_UNK, M2C_UNK);       /* extern */
 extern M2C_UNK D_0025E680;
 extern M2C_UNK D_00262320;
 extern M2C_UNK D_002AA6A1;

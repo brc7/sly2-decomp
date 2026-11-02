@@ -4,7 +4,7 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 struct HIT;
-int func_0014CC58(int z, qword a, qword b, int i, int j, HIT *phit);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, int m, int n);
 extern char D_003DD490[];
 }
@@ -45,13 +45,13 @@ int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qw
     IntersectSwBoundingBox(D_003DD490, mn, mx, p1, p2, &i, &j);
     for (t = 0.0f; ; t = t + 0.1f < tMax ? t + 0.1f : tMax) {
         EvaluateBezierPos(tMax, t, 1.0f, a, va, b, vb, (qword *)&pos, 0, 0);
-        if (t != 0.0f && func_0014CC58(0, prev, *(qword *)&pos, i, j, &hit)) {
+        if (t != 0.0f && PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, prev, *(qword *)&pos, i, j, &hit)) {
             if (100.0f < Dist(hit.pos, b)) return 1;
         }
         prev = *(qword *)&pos;
         if (t == tMax) break;
     }
-    if (pc && func_0014CC58(0, b, *pc, i, j, &hit) && hit.x44 != 1.0f && 50.0f < Dist(hit.pos, *pc))
+    if (pc && PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, b, *pc, i, j, &hit) && hit.x44 != 1.0f && 50.0f < Dist(hit.pos, *pc))
         return 1;
     return 0;
 }

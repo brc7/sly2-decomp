@@ -2,12 +2,12 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int func_0011D4D0(float a, float b, float eps);
+int FFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int FVecsNear(qword a, qword b)
 {
-    return func_0011D4D0(GetX(a), GetX(b), 1e-4f) && func_0011D4D0(GetY(a), GetY(b), 1e-4f) &&
-           func_0011D4D0(GetZ(a), GetZ(b), 1e-4f);
+    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 typedef struct KEY { float g; float dgIn; float dgOut; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;

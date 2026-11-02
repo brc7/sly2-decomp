@@ -6,8 +6,8 @@ struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-void *func_002332B8(void *dst, void *src, int cb);
-static inline void Move(void *pvDst, void *pvSrc, int cb) { func_002332B8(pvDst, pvSrc, cb); }
+void *memmove(void *dst, void *src, int cb);
+static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
 /** @sly2-annot addr=0x14E328
  * Purpose: Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4
  *   Set(pv); if new top: prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate

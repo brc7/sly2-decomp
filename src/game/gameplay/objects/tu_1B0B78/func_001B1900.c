@@ -6,7 +6,7 @@ struct P { char pad[0x150]; float g150; float g154; char pad2[0x220 - 0x158]; in
 extern char D_003DD490[];
 qword func_001A62E8(void *p);
 struct LO *PpoClosestSw(void *pg, qword pos);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 void func_001B1818(struct P *p, float g);
 static inline float Length(qword v)
 {
@@ -41,6 +41,6 @@ int func_001B1900(struct P *p)
         if (Length(v) < 150.0f)
             return r;
     }
-    func_001B1818(p, func_002458F0(d.f[1], d.f[0]));
+    func_001B1818(p, atan2f(d.f[1], d.f[0]));
     return 3;
 }

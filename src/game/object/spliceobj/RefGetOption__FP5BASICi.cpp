@@ -1,12 +1,12 @@
 class CRef;
-extern "C" void func_00129EC8(CRef *pref);
+extern "C" void Decref__4CRef(CRef *pref);
 class CRef {
 public:
     int m_tagk;
     int m_tag;
     CRef() { m_tagk = -1; }
     CRef(const CRef &ref) asm("func_001291A8");
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 class CSidebag { public: int FFindBinding(int sym, CRef *pref); };
 struct S { int a; CSidebag *psidebag; };

@@ -6,7 +6,7 @@ struct P { int pad[5]; struct Q *pq; int x18; float g1C; float g20; char pad1[0x
     float g40; float g44; float g48; float g4C; };
 int FAsegaRetracted(struct P *p);
 void FWrapAsegaTime(struct P *p, float *pg, float *pg2);
-void func_00130EB0(struct P *p);
+void UpdateAsegaIeaCur__FP5ASEGA(struct P *p);
 int func_0012CEE0(struct S *ps);
 void SlotUnsettle(void *p4, struct R *pr);
 void func_00230CF0(struct P *p, int n);
@@ -34,7 +34,7 @@ void func_00130D30(struct P *p, int k, float g, float s)
         struct S *ps;
         p->g1C = t;
         FWrapAsegaTime(p, &p->g1C, &p->g40);
-        func_00130EB0(p);
+        UpdateAsegaIeaCur__FP5ASEGA(p);
         for (ps = p->ps; ps; ps = ps->pnext) {
             if (func_0012CEE0(ps)) {
                 struct R *pr = ps->pr;

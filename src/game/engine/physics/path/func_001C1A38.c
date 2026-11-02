@@ -2,8 +2,8 @@
    (lane 10).  The memmove goes through an inline helper: its parameters get their own pseudos, which gives the
    target's "pointer copied into a0/a1, then a0 += 16" argument setup. */
 struct E { float t; unsigned short k; unsigned short bit; };
-void *func_002332B8(void *dst, const void *src, unsigned int cb);
-static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { func_002332B8(pvDst, pvSrc, cb); }
+void *memmove(void *dst, const void *src, unsigned int cb);
+static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { memmove(pvDst, pvSrc, cb); }
 /** @sly2-annot addr=0x1C1A38
  * Purpose: Insert begin/end events into a time-sorted event array
  * Info: proposed name InsertObstacleEvents (T2); TU path

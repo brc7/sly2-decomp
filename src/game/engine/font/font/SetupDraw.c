@@ -1,9 +1,9 @@
 typedef unsigned long ulong __attribute__((mode(DI)));
 struct GIFS;
 struct FONT { char pad[0x3C]; int n3C; ulong q40; int pad48[2]; ulong q50; };
-void func_00166BD8(struct GIFS *, int, int, int);
-void func_00166E90(struct GIFS *, int, ulong);
-void func_00166EF0(struct GIFS *, int, ulong);
+void AddPrimPack__4GIFSiiUl(struct GIFS *, int, int, int);
+void PackAD__4GIFSll(struct GIFS *, int, ulong);
+void AddPrimList__4GIFSiUl(struct GIFS *, int, ulong);
 int FEnsureLoaded(struct FONT *, struct GIFS *);
 /** @sly2-annot addr=0x15F220
  * Purpose: CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then
@@ -21,18 +21,18 @@ void SetupDraw(struct FONT *pfont, float *prc, struct GIFS *pgifs)
         y1 = (int)((prc[1] + prc[3]) * 0.45454547f) - 1;
         x0 = (int)(prc[0] * 0.8f);
         y0 = (int)(prc[1] * 0.45454547f);
-        func_00166BD8(pgifs, 0, 1, 0xE);
-        func_00166E90(pgifs, 0x40, (ulong)x0 | ((ulong)x1 << 16) | ((ulong)y0 << 32) | ((ulong)y1 << 48));
+        AddPrimPack__4GIFSiiUl(pgifs, 0, 1, 0xE);
+        PackAD__4GIFSll(pgifs, 0x40, (ulong)x0 | ((ulong)x1 << 16) | ((ulong)y0 << 32) | ((ulong)y1 << 48));
     }
     fFlush = FEnsureLoaded(pfont, pgifs);
-    func_00166BD8(pgifs, 6, 1, 0xE);
+    AddPrimPack__4GIFSiiUl(pgifs, 6, 1, 0xE);
     if (fFlush)
-        func_00166E90(pgifs, 0x3F, 0);
-    func_00166E90(pgifs, 0x47, pfont->n3C ? pfont->q40 : 0x31001);
-    func_00166E90(pgifs, 0x42, 0x44);
-    func_00166E90(pgifs, 6, pfont->q50);
-    func_00166E90(pgifs, 0x14, 0x60);
-    func_00166E90(pgifs, 8, 5);
-    func_00166E90(pgifs, 0, 0x1D6);
-    func_00166EF0(pgifs, 5, 0x43431);
+        PackAD__4GIFSll(pgifs, 0x3F, 0);
+    PackAD__4GIFSll(pgifs, 0x47, pfont->n3C ? pfont->q40 : 0x31001);
+    PackAD__4GIFSll(pgifs, 0x42, 0x44);
+    PackAD__4GIFSll(pgifs, 6, pfont->q50);
+    PackAD__4GIFSll(pgifs, 0x14, 0x60);
+    PackAD__4GIFSll(pgifs, 8, 5);
+    PackAD__4GIFSll(pgifs, 0, 0x1D6);
+    AddPrimList__4GIFSiUl(pgifs, 5, 0x43431);
 }

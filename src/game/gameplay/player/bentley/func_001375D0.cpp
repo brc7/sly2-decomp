@@ -67,7 +67,7 @@ extern float D_002BC9B8;
 void FaceStepToward(P *p, int n);
 R *func_0012FF10(X *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
-void func_001305B8(X *px, P *p, int n, void *pv, float g0, float g1);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
 }
 #define PXOF(p) ((PX *)(p))
 
@@ -106,5 +106,5 @@ extern "C" void func_001375D0(S *s, int k)
         s->kCur = k;
     }
     ReleaseSma(PXOF(s->p)->a1034);
-    func_001305B8(px, s->p, 1, &PXOF(s->p)->a1030, 0.0f, 1.0f);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(px, s->p, 1, &PXOF(s->p)->a1030, 0.0f, 1.0f);
 }

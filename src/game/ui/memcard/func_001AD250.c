@@ -5,7 +5,7 @@ struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
 extern int D_003E0FAC;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void func_00129EC8(struct CRef *);
+void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
 void func_00165E38(struct B *b);
 void *PsndStartSound(int n);
@@ -24,7 +24,7 @@ void func_001AD250(struct S *s)
     float f;
     RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
     f = ref.m_tag;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     if (f == 0.0f) {
         D_002E65E0.xFD50 = p;
         func_001D8D80(p, 1);

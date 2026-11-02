@@ -14,7 +14,7 @@ extern RPC D_00443800, D_00448440;
 extern int D_00448400[];
 extern unsigned int D_00448480;
 extern char D_002AA100[], D_002AA128[];
-void func_0021EC18(const char *, ...);
+void printf(const char *, ...);
 void func_00236A60(int);
 int func_002370A8(void *, int, int);
 int snd_SendIOPCommandAndWait__FiiPc(int, int, void *);
@@ -44,7 +44,7 @@ void snd_StartSoundSystem(int flags)
     func_00236A60(0);
     do {
         if (func_002370A8(&D_00443800, 0x123456, 0) < 0) {
-            func_0021EC18(D_002AA100, D_002AA128, 0xB5);
+            printf(D_002AA100, D_002AA128, 0xB5);
             while (1)
                 ;
         }
@@ -58,7 +58,7 @@ void snd_StartSoundSystem(int flags)
     D_00448480 = 0;
     do {
         if (func_002370A8(&D_00448440, 0x123457, 0) < 0) {
-            func_0021EC18(D_002AA100, D_002AA128, 0xCA);
+            printf(D_002AA100, D_002AA128, 0xCA);
             while (1)
                 ;
         }

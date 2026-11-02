@@ -3,7 +3,7 @@ struct OSTRM { char pad[0x10]; int cchWritten; };
 struct TFT {int fLeft,fPlus,fSpace,fPrefix,fZero,fPrec0,width,precision,cbits,matrixRows,vectorColumns;unsigned char conversion;int fUpper;};
 extern "C" char *strchr(char *p, int ch);
 extern "C" int func_0021ED28(char *p);
-extern "C" int func_0020D660(OSTRM *postrm, char *pb, int cb);
+extern "C" int CbWrite__5OSTRMPvi(OSTRM *postrm, char *pb, int cb);
 int CchParsePchzTft(char *pchz, TFT *ptft, char **ppv);
 void WriteTft(TFT *ptft, OSTRM *postrm, char **ppv, char *pchz, int cch);
 
@@ -23,7 +23,7 @@ int CchOstrmPrintf(OSTRM *postrm, char *pchzFormat, char *pv)
             pchz = pchzFormat + cch;
         }
         if (cch != 0) {
-            if (func_0020D660(postrm, pchzFormat, cch) < cch)
+            if (CbWrite__5OSTRMPvi(postrm, pchzFormat, cch) < cch)
                 break;
             pchzFormat = pchz;
         }

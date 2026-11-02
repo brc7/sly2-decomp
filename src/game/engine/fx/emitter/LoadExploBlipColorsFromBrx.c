@@ -4,9 +4,9 @@ typedef struct { char pad[0xC]; int xC; char pad2[0xC]; LIST *x1C; } Y;
 typedef struct { char pad[0xC0]; Y y; } T;
 typedef struct { char pad[0xE4]; T *xE4; } X;
 typedef struct { int cb; int align; } DESC;
-int func_00117C20(void *);
-int func_00117BD0(void *);
-int func_00117C80(void *);
+int U16Read__18CBinaryInputStream(void *);
+int U8Read__18CBinaryInputStream(void *);
+int U32Read__18CBinaryInputStream(void *);
 void ColorCorrectRgba(RGBA *);
 void *func_001AE1D0(DESC *);
 
@@ -22,7 +22,7 @@ static inline int Min(int a, int b) { return a < b ? a : b; }
  * @end-sly2-annot */
 void LoadExploBlipColorsFromBrx(X *p, void *ps)
 {
-    int n = func_00117C20(ps);
+    int n = U16Read__18CBinaryInputStream(ps);
     int i;
     Y *y;
     LIST *l;
@@ -34,10 +34,10 @@ void LoadExploBlipColorsFromBrx(X *p, void *ps)
     u.d.align = 0x10;
     l = func_001AE1D0(&u.d);
     y->x1C = l;
-    y->xC = func_00117BD0(ps);
+    y->xC = U8Read__18CBinaryInputStream(ps);
     l->n = Min(n, 32);
     for (i = 0; i < n; i++) {
-        *(int *)&u.c = func_00117C80(ps);
+        *(int *)&u.c = U32Read__18CBinaryInputStream(ps);
         ColorCorrectRgba(&u.c);
         if (i < l->n)
             l->ac[i] = u.c;

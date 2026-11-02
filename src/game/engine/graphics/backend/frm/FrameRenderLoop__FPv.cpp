@@ -20,7 +20,7 @@ extern "C" void func_00234A40(int sid);
 extern "C" void PropagateSais(FR *pfr);
 extern "C" void RebuildFrameGifs__Fv();
 extern "C" void BlendPrevFrame__Fv();
-extern "C" void func_002417F0(sceDmaChan *pch, int a, int b);
+extern "C" void sceDmaSync(sceDmaChan *pch, int a, int b);
 void RestoreGsBuffers();
 void SwapGsBuffers();
 void SendDmaSyncGsFinish(sceDmaChan *pch, QW *pqw);
@@ -50,7 +50,7 @@ extern "C" void FrameRenderLoop__FPv()
         SendDmaSyncGsFinish(D_002DE598, D_002DEB14->aqwGifs);
         if (D_002DEB14->n30 & 1)
             BlendPrevFrame__Fv();
-        func_002417F0(D_002DE594, 0, 0);
+        sceDmaSync(D_002DE594, 0, 0);
         func_00234A40(D_002DEB1C);
         SwapGsBuffers();
         D_002DEDBC = 1;

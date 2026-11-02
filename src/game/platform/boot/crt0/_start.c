@@ -131,7 +131,7 @@ __asm__(
     "addiu $5, $5, -1\n"
     "addiu $3, $0, 0x3D\n"
     "syscall 0\n"
-    "jal func_002396C0\n"
+    "jal _InitSys\n"
     "nop\n"
     "jal func_00234CA0\n"
     "daddu $4, $0, $0\n"

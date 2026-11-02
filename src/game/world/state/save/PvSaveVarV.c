@@ -7,7 +7,7 @@ extern char D_003E0EA8[];
 extern char D_003D4A60[];
 void STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int);
-void func_00129EC8(CREF *);
+void Decref__4CRef(CREF *);
 void BuildSaveKeyV(void *p, va_list ap, LIST *pv);
 int PvFromSaveVar(void *, LIST *, void *);
 /** @sly2-annot addr=0x1D8C10
@@ -30,6 +30,6 @@ int PvSaveVarV(void *p, ...)
     BuildSaveKeyV(p, ap, &l);
     r = PvFromSaveVar(D_003E0EA8, &l, D_003D4A60);
     STACKSCOPE_ctor_1AE4A0(&fr, 2);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return r;
 }

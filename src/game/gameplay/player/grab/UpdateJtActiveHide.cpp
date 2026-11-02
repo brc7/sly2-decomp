@@ -51,7 +51,7 @@ extern HEIGHT D_002BF630;
 extern U D_002BF5D0[3], D_002BF600[3];
 qword func_001A62E8(ACTOR *);
 void func_00182CD8(void *, ACTOR *, float *, U *, float *);
-qword func_0011F088(qword, qword, float, SMP *, U *);
+qword PosSmooth(qword, qword, float, SMP *, U *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword SetVectorCylind(float, float, float);
 float SMinShape(FOCUS *);
@@ -69,7 +69,7 @@ void UpdateGaitFootsteps(PROGRAM *);
 void DrainStepplayerMp(ACTOR *, float);
 void FindShapeClosestPointFromU(FOCUS *, qword, void *, U *, U *, float *, float *, float);
 void func_00195A00(void *, int, int, int);
-float func_002458F0(float, float);
+float atan2f(float, float);
 void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
 void func_001A0450(ACTOR *, ENTRY *, void *);
@@ -177,7 +177,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         smp.svSlow = 0.0f;
         smp.dtFast = 0.3f;
         U vel;
-        func_0011F088(pos.q, goal.q, D_002DDED0.dt, &smp, &vel);
+        PosSmooth(pos.q, goal.q, D_002DDED0.dt, &smp, &vel);
         float lateral;
         qword offset;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
@@ -284,7 +284,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         }
         tangent.f[2] = 0.0f;
         tangent.q = QwNormalize(tangent.q, D_002A2DA0);
-        float heading = func_002458F0(tangent.f[1], tangent.f[0]);
+        float heading = atan2f(tangent.f[1], tangent.f[0]);
         U dir;
         U input;
         input.q = SetVectorCylind(pjoy->heading, 1.0f, 0.0f);

@@ -6,7 +6,7 @@ struct P { char pad[0x3CF8]; char aCF8[4]; };
 int func_00133D08(struct P *, struct X *, struct X *);
 struct L *PoxAddSw(struct P *, struct X *, struct X *);
 struct L *PoxRemoveSw(struct P *, struct X *, struct X *);
-void func_001A7E10(struct P *, void *);
+void FreeSwXpList__FP2SWP2XP(struct P *, void *);
 void func_001F5078(struct LO *);
 void func_0011CD98(void *, struct L *);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
@@ -58,7 +58,7 @@ void UpdateSwPox(struct P *p, struct X *px1, struct X *px2, int k)
         pl1 = PoxRemoveSw(p, px1, px2);
         pl2 = PoxRemoveSw(p, px2, px1);
         if (pl1->pv) {
-            func_001A7E10(p, pl1->pv);
+            FreeSwXpList__FP2SWP2XP(p, pl1->pv);
             if (!VCALL(pl1->po, 62, int (*)(void *))))
                 func_001F5078(pl1->po);
             if (!VCALL(pl2->po, 62, int (*)(void *))))

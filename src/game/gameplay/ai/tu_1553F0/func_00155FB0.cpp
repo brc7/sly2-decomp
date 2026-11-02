@@ -29,10 +29,10 @@ qword func_001A62E8(void *p);
 M3 *func_001A6318(void *p);
 float GGetDifficulty(void *p);
 VUV func_00256CE8(float g);
-VUV func_00256D08(VECTOR *pv);
-qword func_00258480(qword a, qword b, qword c, qword d);
+VUV __9VU_VECTORRC6VECTOR(VECTOR *pv);
+qword VecCombo__FG8VU_FLOATG9VU_VECTORT0T1(qword a, qword b, qword c, qword d);
 void VECTOR_opAssign(VECTOR *pv, qword v);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 FRAME *STACKSCOPE_ctor(FRAME *pf);
@@ -40,7 +40,7 @@ void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n);
 void func_001B44D8(int *pc, void **pa);
 float RadNormalize__Ff(float g);
 qword SetVectorSphere(float pan, float tilt, float s);
-int func_0014CC58(int n, qword a, qword b, int c, void *pv, qword *phit);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, void *pv, qword *phit);
 qword func_00155FB0(void *p, qword pos);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -99,7 +99,7 @@ qword func_00155FB0(void *p, qword pos)
         float g;
         VECTOR *pv0 = &D_002BDC60;
         VECTOR *pv1 = &D_002BDC80;
-        qword cq = func_00258480(func_00256CE8(u1).q, func_00256D08(pv0).q, func_00256CE8(u).q, func_00256D08(pv1).q);
+        qword cq = VecCombo__FG8VU_FLOATG9VU_VECTORT0T1(func_00256CE8(u1).q, __9VU_VECTORRC6VECTOR(pv0).q, func_00256CE8(u).q, __9VU_VECTORRC6VECTOR(pv1).q);
         VECTOR_opAssign(&clq, cq);
         g = clq.x + dist * (clq.y + dist * clq.z);
         lm.gMin = u1 * D_002BDC70[0] + u * D_002BDC90[0];
@@ -113,7 +113,7 @@ qword func_00155FB0(void *p, qword pos)
     } else {
         M3 *pm = func_001A6318(pso);
         M3 *pm2 = func_001A6318(pso);
-        off.q = SetVectorCylind(func_002458F0(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
+        off.q = SetVectorCylind(atan2f(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
     }
     GetVectorSphere(Sub(Add(posTarget, off.q), pos), &pan, &tilt, &s);
     STACKSCOPE_ctor(&frame);
@@ -124,7 +124,7 @@ qword func_00155FB0(void *p, qword pos)
         float g;
         float panT = RadNormalize__Ff(pan + D_002BDCA0[i]);
         test = Add(pos, SetVectorSphere(panT, tilt, s));
-        int f = func_0014CC58(0, pos, test, c, av, &hit.q);
+        int f = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pos, test, c, av, &hit.q);
         if (f)
             test = hit.q;
         __asm__ __volatile__(""); /* emulates the original compiler not threading this jump */

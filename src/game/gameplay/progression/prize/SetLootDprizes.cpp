@@ -1,16 +1,16 @@
 struct VTE { short d; short pad; void (*pf)(); };
 extern "C" {
-void func_00129EC8(void *p);
+void Decref__4CRef(void *p);
 void func_00129658(void *p, const void *q);
 float GRandInRange__Fff(float a, float b);
-void func_0021ECD8(char *buf, const char *fmt, ...);
+void sprintf(char *buf, const char *fmt, ...);
 void SetDprizeDprizes(void *p, int n);
 }
 struct CRef {
     int m_tagk; int m_tag;
     CRef() { m_tagk = -1; }
     CRef(int k, int n) { m_tagk = k; m_tag = n; }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 struct ALS { int x0; int x4; };
@@ -45,7 +45,7 @@ void SetLootDprizes(S *p, int n)
     case 1: {
         CRef ref;
         char buf[0x10];
-        func_0021ECD8(buf, D_002A7768, p->x244->x4);
+        sprintf(buf, D_002A7768, p->x244->x4);
         ref = RefGetSaveVarV(D_002A7770, D_002A7778, buf, 0);
         RefSetSaveVarV(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
         LO *plo = p->x210;

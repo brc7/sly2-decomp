@@ -19,8 +19,8 @@ extern char D_002BD810[];
 void ResetCmAdjust(struct CM *p, void *pv);
 void AdjustCmCpdefi(struct CM *p, struct O *po, void *pv);
 void SetCmFov__FP2CMf(struct CM *p, float g);
-float func_0011D1C0(float g, float h, float i, float dt, float *pa, float *pb);
-void func_0014DB70(struct CM *p);
+float GSmoothA__FffffP4SMPAPf(float g, float h, float i, float dt, float *pa, float *pb);
+void RecalcCmFrustrum__FP2CM(struct CM *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 /** @sly2-annot addr=0x14D478
  * Purpose: Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50
@@ -69,8 +69,8 @@ void UpdateCmLast__FP2CM(struct CM *p)
     if (p->x300) {
         SetCmFov__FP2CMf(p, p->g24);
     } else if (p->g24 != p->g20) {
-        p->g20 = func_0011D1C0(p->g20, p->g28, p->g24, D_002DDED0.dt, &p->g2C, &p->g28);
-        func_0014DB70(p);
+        p->g20 = GSmoothA__FffffP4SMPAPf(p->g20, p->g28, p->g24, D_002DDED0.dt, &p->g2C, &p->g28);
+        RecalcCmFrustrum__FP2CM(p);
     }
     p->x300 = 0;
     if (D_003DD490.x3E38)

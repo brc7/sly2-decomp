@@ -6,7 +6,7 @@ typedef union { qword q; float g; } UF;
 struct SMP;
 extern "C" {
 M3 MulMatrix3Matrix3(M3 *pa, M3 *pb);
-void func_0011BCF8(M3 *pmat, float *prad, qword *pvec);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pmat, float *prad, qword *pvec);
 float GSmooth__FfffP3SMPPf(float g, float gGoal, float dt, struct SMP *psmp, float *pdv);
 M3 func_0011B500(float rad, qword axis);
 }
@@ -41,7 +41,7 @@ void SmoothMatrix(M3 *pmatPrev, M3 *pmatGoal, struct SMP *psmp, float dt, M3 *pm
     float rad, dv, radNew;
     {
         M3 mat = MulMatrix3Matrix3(pmatPrev, pmatGoal);
-        func_0011BCF8(&mat, &rad, &normal.q);
+        DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&mat, &rad, &normal.q);
     }
     radNew = GSmooth__FfffP3SMPPf(0.0f, rad, dt, psmp, &dv);
     if (pmatNext) {

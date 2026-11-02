@@ -1,4 +1,4 @@
-float cosf(float) __asm__("func_00244E10");
+float cosf(float) __asm__("cosf");
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru);
 /** @sly2-annot addr=0x1A38A8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.

@@ -10,7 +10,7 @@ void FlushSwBoundsUpdates(struct P *p);
 void UpdateSwAaox(struct P *p);
 struct C *STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int);
-void func_001A7E10(struct P *, void *);
+void FreeSwXpList__FP2SWP2XP(struct P *, void *);
 void *AddSoXps(struct P *, struct X *, struct X *);
 void func_001F5078(struct LO *);
 void RemoveDlEntry__FP2DLPv(void *, struct X *);
@@ -61,7 +61,7 @@ void RecalcSwXpAll(struct P *p)
             VCALL(px->plo, 54, void (*)(void *, struct LO *)), px2->plo);
             VCALL(px2->plo, 54, void (*)(void *, struct LO *)), px->plo);
             pv = pl->pv;
-            func_001A7E10(p, pv);
+            FreeSwXpList__FP2SWP2XP(p, pv);
             { void *pvNew = AddSoXps(p, px, px2); pl->pv = pvNew; pl->pother->pv = pvNew; }
             if (pv || pl->pv) {
                 if (!VCALL(px->plo, 62, int (*)(void *))))
@@ -74,7 +74,7 @@ void RecalcSwXpAll(struct P *p)
     for (px = p->pxFirst; px; px = p->pxFirst) {
         px->grf &= ~0x10L;
         VCALL(px->plo, 54, void (*)(void *, struct LO *)), 0);
-        func_001A7E10(p, px->pv68);
+        FreeSwXpList__FP2SWP2XP(p, px->pv68);
         px->pv68 = 0;
         VCALL(px->plo, 59, void (*)(void *)));
         px->grf &= ~2L;

@@ -9,7 +9,7 @@ struct CRef {
     CRef &operator=(bool f);
 };
 extern "C" {
-CRef func_00201360(int c, void *aref, int *ak, void *a0);
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *a0);
 int FCheckVolPoint(void *p, qword q);
 CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
 }
@@ -25,7 +25,7 @@ CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref)
 {
     int ak[1] = {2};
     union { qword q; } u;
-    CRef ref = func_00201360(1, aref, ak, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, ak, &u);
     ref = FCheckVolPoint(p, u.q) != 0;
     return ref;
 }

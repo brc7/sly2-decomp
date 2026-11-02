@@ -96,7 +96,7 @@ qword ConvertAloPos(void *, void *, qword);
 void func_0020BD68(PROGRAM_ITEM *);
 void ReleaseAsega(ANIMATION **);
 void ReleaseSma(COMPONENT *);
-void func_001305B8(CLIP *, ACTOR *, float, float, int, ANIMATION **);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP *, ACTOR *, float, float, int, ANIMATION **);
 void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
 void func_0018C120(ACTOR *, int);
 }
@@ -521,7 +521,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
     if (step != -1) {
         ReleaseAsega(&p->pactor->animation);
         ReleaseSma(&p->pactor->component);
-        func_001305B8(clip, p->pactor, blend, speed, flags, &p->pactor->animation);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, p->pactor, blend, speed, flags, &p->pactor->animation);
         ReplaceSma(script, p->pactor, -1, flags, &p->pactor->component);
         Notify(p->pactor, 90);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactor, 53))

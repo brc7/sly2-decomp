@@ -1,9 +1,9 @@
 struct CRef;
-extern "C" void func_00129EC8(CRef *);
+extern "C" void Decref__4CRef(CRef *);
 struct CRef {
     int tagk; int tag;
     CRef(int k, int n) { tagk = k; tag = n; }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct E { int id; int a; float g; };
@@ -14,7 +14,7 @@ extern CLOCK D_002DDED0;
 extern char D_002A4D50[];
 extern char D_002A4D58[];
 void SetGadgetSlotState(P *p, E *pe, int n);
-int func_0021ECD8(char *pch, const char *fmt, ...);
+int sprintf(char *pch, const char *fmt, ...);
 }
 CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...);
 /** @sly2-annot addr=0x141FC8
@@ -41,7 +41,7 @@ extern "C" void SetStepplayerGadget(P *p, unsigned int i, int id)
                 SetGadgetSlotState(p, pe2, -1);
                 pe2->id = -1;
             }
-            func_0021ECD8(ach, D_002A4D50, j);
+            sprintf(ach, D_002A4D50, j);
             VTE *e = &p->vt[103];
             RefSetSaveVarV(CRef(0x15, p->ae[j].id), e->pfn((char *)p + e->d), D_002A4D58, ach, 0);
         }

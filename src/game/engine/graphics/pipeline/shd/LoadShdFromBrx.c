@@ -19,9 +19,9 @@ struct L {
     void *p28;
 };
 extern void **D_003DD004;
-void func_00117968(void *, int, void *);
+void Read__18CBinaryInputStreamiPv(void *, int, void *);
 void ColorCorrectRgba(int *);
-int func_00117D50(void *);
+int S16Read__18CBinaryInputStream(void *);
 void *func_001AE2A0(struct MSG *);
 void LoadTexFromBrx(void *, struct C *);
 static inline void InitEnt(struct ENT *pe, int n, struct MSG *pmsg)
@@ -48,11 +48,11 @@ void LoadShdFromBrx(void *pbis, struct L *p)
     struct MSG msg;
     int i, j;
     struct ENT *ae, *pe;
-    func_00117968(pbis, 0x18, p);
+    Read__18CBinaryInputStreamiPv(pbis, 0x18, p);
     ColorCorrectRgba(&p->c8);
     ColorCorrectRgba(&p->cC);
     ColorCorrectRgba(&p->c10);
-    i = func_00117D50(pbis);
+    i = S16Read__18CBinaryInputStream(pbis);
     if (i >= 0)
         p->p28 = D_003DD004[i];
     msg.cb = p->b17 * 0x14;

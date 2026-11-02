@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void *EmitSwNoise(void *p, int a, qword q, int b); CRef RefThunk_EmitSwNoise(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10BFF8
  * Purpose: Splice option thunk: optid 850 on SW (g_aeopid[932] thunkFn, returns 0x2093, crefReq 3); unpacks 3
@@ -30,7 +30,7 @@ CRef RefThunk_EmitSwNoise(void *p, int c, void *aref)
     int ak[3] = {0x1046, 2, 0x2002};
     union { qword q; } u;
     int a, b;
-    CRef ref = func_00201360(3, aref, ak, &a, &u, &b);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &a, &u, &b);
     ref = EmitSwNoise(p, a, u.q, b);
     return ref;
 }

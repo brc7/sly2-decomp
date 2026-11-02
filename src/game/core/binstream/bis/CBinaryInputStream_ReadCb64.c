@@ -19,5 +19,5 @@ extern void *D_002DD2FC;
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
 void CBinaryInputStream_ReadCb64(s32 arg0, s32 arg1) {
-    func_00117968(arg0, 0x40, arg1);
+    Read__18CBinaryInputStreamiPv(arg0, 0x40, arg1);
 }

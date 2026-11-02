@@ -1,5 +1,5 @@
 struct CRef;
-extern "C" void func_00129EC8(CRef *);
+extern "C" void Decref__4CRef(CRef *);
 extern "C" void func_001291A8(CRef *, const CRef *);
 extern "C" void func_00129658(CRef *, const CRef *);
 extern "C" void SetTag__4CRef4TAGK(CRef *, int);
@@ -7,7 +7,7 @@ struct CRef {
     int tagk; int tag;
     CRef() { tagk = -1; }
     CRef(const CRef &r) { func_001291A8(this, &r); }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 struct O { int cref; char pad[0x24 - 4]; int n24; };
@@ -45,7 +45,7 @@ extern "C" CRef LoadSpliceEntryFromBrx(void *p, Q *pq, int i)
         sp.p->cref++;
         pq->ae[i].b = sp.p;
     }
-    func_00129EC8(&r);
+    Decref__4CRef(&r);
     SetTag__4CRef4TAGK(&r, 0x24);
     return r;
 }

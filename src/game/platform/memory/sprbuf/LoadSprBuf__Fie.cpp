@@ -11,8 +11,8 @@ extern int D_002C3C5C;
 extern SPRBUF D_003DD2C0[2];
 extern DMAC *D_002DE59C;
 extern DMAC *D_002DE5A0;
-void func_002417F0(DMAC *pch, int a, int b);
-void func_00241728(DMAC *pch, int a);
+void sceDmaSync(DMAC *pch, int a, int b);
+void sceDmaSend(DMAC *pch, int a);
 }
 
 /** @sly2-annot addr=0x201620
@@ -31,7 +31,7 @@ void LoadSprBuf(int cb, ...)
     va_start(ap, cb);
     pv = psb->pv;
     if (psb->state == 3)
-        func_002417F0(D_002DE59C, 0, 0);
+        sceDmaSync(D_002DE59C, 0, 0);
     psb->state = 1;
     pvSrc = va_arg(ap, char *);
     while (cb) {
@@ -54,6 +54,6 @@ void LoadSprBuf(int cb, ...)
     psb->c = c;
     D_002DE5A0->chcr |= 0x40;
     D_002DE5A0->sadr = ((int)psb->pv & 0x0FFFFFFF) | 0x80000000;
-    func_00241728(D_002DE5A0, (int)psb->aqw & 0x0FFFFFFF);
+    sceDmaSend(D_002DE5A0, (int)psb->aqw & 0x0FFFFFFF);
     va_end(ap);
 }

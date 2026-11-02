@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00117968(s32, M2C_UNK, s32);           /* extern */
+M2C_UNK Read__18CBinaryInputStreamiPv(s32, M2C_UNK, s32);           /* extern */
 
 /** @sly2-annot addr=0x12B4F8
  * Purpose: Reads a fixed-size constant record (Read)
@@ -11,5 +11,5 @@ M2C_UNK func_00117968(s32, M2C_UNK, s32);           /* extern */
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 void LoadAcConstFromBrx(s32 arg0, s32 arg1) {
-    func_00117968(arg1, 0xC, arg0 + 4);
+    Read__18CBinaryInputStreamiPv(arg1, 0xC, arg0 + 4);
 }

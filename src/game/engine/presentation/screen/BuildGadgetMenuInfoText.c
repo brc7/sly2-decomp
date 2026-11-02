@@ -7,8 +7,8 @@ extern REC D_002BCD00[];
 extern char *D_002C3268[];
 extern char D_002A7A10[], D_002A7A18[], D_002A7A28[];
 char *PchzFindSwLangstr__FP2SWi(void *, int);
-char *func_0021ED58(char *, char *);
-int func_0021ECD8(char *, char *, ...);
+char *strcpy(char *, char *);
+int sprintf(char *, char *, ...);
 OBJ *func_001DAE20(GS *,int);
 void *PpoHero(void *);
 int IGadgetSlotFromId(void *, int);
@@ -24,14 +24,14 @@ void BuildGadgetMenuInfoText(char *out)
     char buf[256];
     unsigned char *s;
     if (D_003DA0F0.x30 != -1) {
-        func_0021ED58(out, PchzFindSwLangstr__FP2SWi(D_003DD490, D_003DA0F0.x38));
+        strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, D_003DA0F0.x38));
     } else if (D_003DA0F0.x48 == -1) {
-        func_0021ED58(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
+        strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
     } else {
         OBJ *po = func_001DAE20(&D_003DA0F0,D_003DA0F0.x48);
         int v = IGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.x48);
         if ((po->x1C & 1) && v < 0) {
-            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;
         } else {
             char *sz;
@@ -39,10 +39,10 @@ void BuildGadgetMenuInfoText(char *out)
                 sz = D_002C3268[v];
             else
                 sz = D_002A7A10;
-            func_0021ECD8(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x1C), sz, sz, sz);
+            sprintf(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x1C), sz, sz, sz);
             s = (unsigned char *)PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x18);
         }
-        func_0021ECD8(out, D_002A7A18, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x14),
+        sprintf(out, D_002A7A18, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x14),
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
     }
 }

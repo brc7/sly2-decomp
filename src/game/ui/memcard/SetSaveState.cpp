@@ -1,9 +1,9 @@
 struct CRef;
-extern "C" void func_00129EC8(CRef *);
+extern "C" void Decref__4CRef(CRef *);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef(const CRef &) __asm__("func_001291A8");
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct SLOT { char pad[0x5408]; char x5408[0x5C]; };
@@ -25,7 +25,7 @@ void func_001ACC38(ST *, int);
 int func_001ADEA8(void *);
 void SetMcDialogState(ST *, int);
 void HideMcDialogWidget(void *);
-int func_001AB398(char *, char *);
+int CompareSaves__FP4SAVET0(char *, char *);
 void func_001D8D80(SLOT *, int);
 void SetSaveState(MC *p, int state);
 }
@@ -76,7 +76,7 @@ void SetSaveState(MC *p, int state)
             SLOT *pslot = &p->aslot[i];
             float g = GetF(D_003DD490.x3B1C, pslot);
             if (g != 0.0f) {
-                if (func_001AB398(p->pslotCur->x5408, pslot->x5408) < 0)
+                if (CompareSaves__FP4SAVET0(p->pslotCur->x5408, pslot->x5408) < 0)
                     p->pslotCur = pslot;
             } else {
                 func_001D8D80(pslot, 0);

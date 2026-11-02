@@ -25,8 +25,8 @@ public:
 };
 extern "C" {
 CFont *func_0015EFA0(int ch);
-void func_0015F0C0(CFont *pfont);
-void func_0015F078(CFont *pfont, float rx, float ry);
+void PopScaling__5CFont(CFont *pfont);
+void PushScaling__5CFontff(CFont *pfont, float rx, float ry);
 }
 /** @sly2-annot addr=0x15F9D0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -113,11 +113,11 @@ unsigned char CRichText::ChNext()
                 m_pchCur = pch + 1;
                 fDone = 1;
             } else if (pch[1] == '.') {
-                func_0015F0C0(m_pfontCur);
+                PopScaling__5CFont(m_pfontCur);
                 m_pchCur += 2;
             } else {
                 float s = (float)(pch[1] - '0') + (float)(pch[2] - '0') * 0.1f;
-                func_0015F078(m_pfontCur, s * m_pfontCur->m_rxScale, s * m_pfontCur->m_ryScale);
+                PushScaling__5CFontff(m_pfontCur, s * m_pfontCur->m_rxScale, s * m_pfontCur->m_ryScale);
                 m_pchCur += 3;
             }
             break;

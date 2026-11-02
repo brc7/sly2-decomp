@@ -7,7 +7,7 @@ extern void *D_002DEB4C;
 extern char D_003DA530[];
 extern char D_002A3828[];
 CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 int FScreenShown(void *p);
 void ResetRumbleSaveVar(void);
 void HideTitleScreen(void *p);
@@ -31,7 +31,7 @@ void func_00165E38(void *pv)
     void *prop;
     RefGetGlobalSaveVar(&ref, D_003DD490.f3b1c, pv);
     g = *(float *)&ref.m_tag;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     if (FScreenShown(D_003DA530) && g == 0.0f) {
         ResetRumbleSaveVar();
         HideTitleScreen(D_003DA530);
@@ -55,14 +55,14 @@ void func_00165E38(void *pv)
     }
     __asm__ __volatile__(""); /* ordering-only: ends the -1 constant's dependence chain at the call */
     n = ref.m_tag;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     ps = PrecWorldEntry(n);
     prop = D_003DD490.a3b7c[n];
     n = 0;
     if (prop) {
         RefGetGlobalSaveVar(&ref, prop, pv);
         n = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
     }
     if (n >= 100 || !ps) {
         ps = D_002A3828;

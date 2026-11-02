@@ -7,7 +7,7 @@ extern H D_003E0EA8;
 void *func_001AE318(struct MSG *);
 int NFindSaveSymbol(void *, char *);
 static inline int NFind(H *ph, char *pch) { return NFindSaveSymbol(ph->ht, pch); }
-short func_00233800(char *);
+short atoi(char *);
 /** @sly2-annot addr=0x1D87C0
  * Purpose: Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols
  *   via atoi as array indices)
@@ -34,7 +34,7 @@ void BuildSaveKeyV(char *pch, va_list ap, V *pv)
         for (pchT = pch, i = 0; pchT; pchT = va_arg_pch(ap), i++) {
             int n = NFind(&D_003E0EA8, pchT);
             if (n == -1)
-                pv->ash[i] = func_00233800(pchT);
+                pv->ash[i] = atoi(pchT);
             else
                 pv->ash[i] = n;
         }

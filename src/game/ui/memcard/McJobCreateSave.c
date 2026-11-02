@@ -1,7 +1,7 @@
 struct B { char data[0x5464]; };
 struct S { int x0; int x4; int x8; int xC; int x10, x14, x18; int x1C; int x20; struct B a[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char xFD5C[1]; };
 extern char D_002A6C00[], D_002A38E8[], D_002A6C08[], D_002A6C28[], D_002A6BC8[], D_002A6BB0[], D_002E6550[];
-int func_00244A58(int a, int b, char *c);
+int sceMcGetEntSpace(int a, int b, char *c);
 int McSyncResult(void *p, int a, int b, int *c);
 int FOpenSaveIconFile(void *p);
 int CreateSaveDir(struct S *s);
@@ -26,7 +26,7 @@ int McJobCreateSave(struct S *s)
     int i;
     void *p = s->xFD5C;
     k = 1;
-    r = McSyncResult(p, func_00244A58(s->x0, s->x4, D_002A6C00), 0x12, &n);
+    r = McSyncResult(p, sceMcGetEntSpace(s->x0, s->x4, D_002A6C00), 0x12, &n);
     if (r == 0) {
         if (!n)
             k = 2;

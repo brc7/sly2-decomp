@@ -1,7 +1,7 @@
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-int func_0011D910(int n, float g);
+int FCheckLm__FP2LMf(int n, float g);
 /** @sly2-annot addr=0x123608
  * Purpose: Splice builtin "lm-check?": FCheckLm
  * Info: proposed name RefOpLmCheck (T1); TU bif
@@ -15,7 +15,7 @@ CRef *RefOpLmCheck__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
     CRef ref;
     int f;
     CRef_RefCoerceF32(&ref, &aref[1]);
-    f = func_0011D910(n, ref.u.g) != 0;
+    f = FCheckLm__FP2LMf(n, ref.u.g) != 0;
     ret->m_tagk = 0x17;
     ret->u.n = f;
     Decref__4CRef(&ref);

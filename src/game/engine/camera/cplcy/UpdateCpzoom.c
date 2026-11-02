@@ -18,20 +18,20 @@ struct X {
 };
 void UpdateCplcy(struct X *p);
 float GSmooth__FfffP3SMPPf(void *p, float *pdg, float g, float gTarget, float dt);
-float func_0011D948(void *p, float g);
+float GLimitLm__FP2LMf(void *p, float g);
 void SetSndPitch(struct SND *p, float g);
 void func_001FB1F8(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
-qword func_0011F088(qword a, qword b, float g, void *p, int n);
+qword PosSmooth(qword a, qword b, float g, void *p, int n);
 void LoadRotateMatrixEuler(M3 *pm, qword v);
-void func_0011C950(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
+void SmoothMatrix(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
 qword func_0011BFF0(M3 *pm);
-float func_0011D2D0(void *p, int n, float a, float b, float c);
+float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
 void SetCmFov__FP2CMf(struct CM *p, float g);
-void func_0011BC88(M4 *pm, float *pa, float *pb);
+void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(M4 *pm, float *pa, float *pb);
 qword PosCpzoomEye(struct X *p);
 qword PosCpzoomCenter(struct X *p);
 void func_0014E1A8(struct CM *p, qword a, qword b, float c, float d);
@@ -70,9 +70,9 @@ void UpdateCpzoom(struct X *p)
     }
     if (p->gB0 != 0.0f) {
         struct SND *ps = p->pC0;
-        SetSndPitch(ps, func_0011D948(D_002BBB68, __builtin_fabsf(p->gB0)));
+        SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->gB0)));
         ps = p->pC0;
-        func_001FB1F8(ps, func_0011D948(D_002BBB60, __builtin_fabsf(p->gB0) * 0.5f + 0.5f));
+        func_001FB1F8(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->gB0) * 0.5f + 0.5f));
         if (p->pC0->c4E > 0)
             ResumeSnd(p->pC0);
     } else {
@@ -83,14 +83,14 @@ void UpdateCpzoom(struct X *p)
         M3 m0, m30, m60, m90;
         M4 m4;
         float u;
-        p->q50 = func_0011F088(p->q50, p->q80, D_002DDED0.dt, D_002BD9C8, 0);
+        p->q50 = PosSmooth(p->q50, p->q80, D_002DDED0.dt, D_002BD9C8, 0);
         LoadRotateMatrixEuler(&m90, p->q60);
         m0 = m90;
         LoadRotateMatrixEuler(&m90, p->q90);
         m30 = m90;
-        func_0011C950(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.dt);
+        SmoothMatrix(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.dt);
         p->q60 = func_0011BFF0(&m60);
-        p->g70 = func_0011D2D0(D_002BD9E8, 0, p->g70, p->gA0, D_002DDED0.dt);
+        p->g70 = RadSmooth__FfffP3SMPPf(D_002BD9E8, 0, p->g70, p->gA0, D_002DDED0.dt);
         {
         M4 *pm4 = &m4;
         VECTOR_opAssign(&pm4->q.r[3], p->q50);
@@ -103,19 +103,19 @@ void UpdateCpzoom(struct X *p)
         pm4->af[3][3] = 1.0f;
         SetCmMat4(&D_002DDF40, pm4);
         SetCmFov__FP2CMf(&D_002DDF40, p->g70);
-        func_0011BC88(pm4, &p->gA4, &p->gA8);
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(pm4, &p->gA4, &p->gA8);
         }
-        p->gAC = func_0011D948(D_002BBB60, GFrac(p->g70, p->gB8, p->gBC));
+        p->gAC = GLimitLm__FP2LMf(D_002BBB60, GFrac(p->g70, p->gB8, p->gBC));
     } else {
         float u = 1.0f - p->gAC;
         SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->gB8 + u * p->gBC);
         {
             qword a = p->q30;
-            p->q30 = func_0011F088(a, PosCpzoomEye(p), D_002DDED0.dt, D_002BD9F8, 0);
+            p->q30 = PosSmooth(a, PosCpzoomEye(p), D_002DDED0.dt, D_002BD9F8, 0);
         }
         {
             qword a = p->q20;
-            p->q20 = func_0011F088(a, PosCpzoomCenter(p), D_002DDED0.dt, D_002BD9F8, 0);
+            p->q20 = PosSmooth(a, PosCpzoomCenter(p), D_002DDED0.dt, D_002BD9F8, 0);
         }
         func_0014E1A8(&D_002DDF40, p->q30, p->q20, 0.0f, 0.0f);
     }

@@ -5,7 +5,7 @@ struct LSG { qword v0; qword v10; qword v20; qword v30; float at[2]; int x48; in
 struct CTX *STACKSCOPE_ctor(struct CTX *);
 void STACKSCOPE_ctor_1AE4A0(struct CTX *, int);
 void *func_001AE318(struct AREQ *);
-void func_001AE5A0(void *, void *, int);
+void CopyAb__FPvT0Ui(void *, void *, int);
 
 /** @sly2-annot addr=0x14C9F8
  * Purpose: Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 =
@@ -92,7 +92,7 @@ int ClsgMergeAlsg(int c1, struct LSG *alsg1, int c2, struct LSG *alsg2_, int cMa
             *ppl = pl + 1;
     }
     c = plsg - alsgT;
-    func_001AE5A0(alsgOut, alsgT, c * sizeof(struct LSG));
+    CopyAb__FPvT0Ui(alsgOut, alsgT, c * sizeof(struct LSG));
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
     return c;
 }

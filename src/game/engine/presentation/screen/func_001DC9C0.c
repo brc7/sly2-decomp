@@ -4,7 +4,7 @@ extern struct G2 D_003DA150;
 struct T { char *pch; int b[2]; };
 extern struct T D_002C3288[];
 extern char D_002A79A0[];
-void func_0021ECD8(char *pch, char *fmt, char *s);
+void sprintf(char *pch, char *fmt, char *s);
 /** @sly2-annot addr=0x1DC9C0
  * Purpose: Text callback rows 0x44E-0x453: loot price of row i
  * Info: proposed name BuildThiefnetLootPriceText (T2); TU screen
@@ -16,6 +16,6 @@ void func_001DC9C0(char *pch, int i) {
     unsigned int n = pg->ae[pg->i + i].n;
     char *s = 0;
     if (n < 0x40) s = D_002C3288[n].pch;
-    if (s) func_0021ECD8(pch, D_002A79A0, s);
+    if (s) sprintf(pch, D_002A79A0, s);
     else *pch = 0;
 }

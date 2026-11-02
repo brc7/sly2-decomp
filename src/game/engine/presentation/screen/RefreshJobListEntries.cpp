@@ -31,10 +31,10 @@ extern "C" {
 void StopWidgetAnim(void *, int);
 void func_002333B4(void *, int, unsigned int);
 void SortTasksTopologically(int *, SO ***);
-void func_002338C0(void *, int, int, int (*)(const void *, const void *));
+void qsort(void *, int, int, int (*)(const void *, const void *));
 int func_00165C28(const void *, const void *);
 int func_00163430(SO *);
-void func_002332B8(void *, void *, unsigned int);
+void memmove(void *, void *, unsigned int);
 void SelectJobListItem(OBJ *, int);
 }
 /** @sly2-annot addr=0x1DCED8
@@ -64,7 +64,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
     int c;
     SO **aso;
     SortTasksTopologically(&c, &aso);
-    func_002338C0(aso, c, 4, func_00165C28);
+    qsort(aso, c, 4, func_00165C28);
     switch (p->x40) {
     case 0: {
         SO *last = 0;
@@ -105,7 +105,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
     }
     }
     if (p->n > p->x10C) {
-        func_002332B8(p->ae, &p->ae[p->n - p->x10C], p->x10C * sizeof(E));
+        memmove(p->ae, &p->ae[p->n - p->x10C], p->x10C * sizeof(E));
         int d = p->n - p->x10C;
         if (d < p->x118)
             p->x118 -= d;

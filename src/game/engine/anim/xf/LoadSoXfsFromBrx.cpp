@@ -17,15 +17,15 @@ struct S {char pad0[0xC];VE *vt;char pad10[0x30];int flags;char pad44[0xC];int c
 struct REQ {int size,kind;};
 extern char D_002CA820[],D_002CA7E0[],D_002CA7A0[],D_002CA6A0[];
 extern "C" {
-int func_00117D50(void *);
-int func_00117DB8(void *);
-int func_00117D00(void *);
-int func_00117BD0(void *);
-float func_00117E38(void *);
-void func_00117F90(void *,V *);
-void func_00117FB0(void *,V2 *);
-void func_00117EB0(void *,V *);
-void func_00117F18(void *,M4 *);
+int S16Read__18CBinaryInputStream(void *);
+int S32Read__18CBinaryInputStream(void *);
+int S8Read__18CBinaryInputStream(void *);
+int U8Read__18CBinaryInputStream(void *);
+float F32Read__18CBinaryInputStream(void *);
+void ReadCb12__18CBinaryInputStreamPv(void *,V *);
+void ReadCb8__18CBinaryInputStreamPv(void *,V2 *);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *,V *);
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,M4 *);
 void *func_001AE2A0(REQ *);
 void *func_0012E1F0(int);
 void *func_002333B4(void *,int,int);
@@ -56,32 +56,32 @@ static inline void ClearFlag(S *p){int f=p->flags;if((f^1)&1)*(int *)f&=~0x20;el
  * @end-sly2-annot */
 extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
  int i=0;
- p->count=func_00117D50(stream);
+ p->count=S16Read__18CBinaryInputStream(stream);
  REQ request;request.size=p->count*sizeof(E);request.kind=16;
  p->records=(E *)func_001AE2A0(&request);
  for(;i<p->count;i++){
   E *e=&p->records[i];
-  e->reference=Lookup(p,func_00117D50(stream));
-  e->kind=func_00117D50(stream);
-  e->tag=func_00117DB8(stream);
-  int flags=func_00117BD0(stream);
-  if(flags&1){e->lo=ToInt(func_00117E38(stream)*1000.0f);e->hi=1000;}
-  else if(flags&2){float thousand=1000.0f;e->lo=ToInt(func_00117E38(stream)*thousand);e->hi=ToInt(func_00117E38(stream)*thousand);}
+  e->reference=Lookup(p,S16Read__18CBinaryInputStream(stream));
+  e->kind=S16Read__18CBinaryInputStream(stream);
+  e->tag=S32Read__18CBinaryInputStream(stream);
+  int flags=U8Read__18CBinaryInputStream(stream);
+  if(flags&1){e->lo=ToInt(F32Read__18CBinaryInputStream(stream)*1000.0f);e->hi=1000;}
+  else if(flags&2){float thousand=1000.0f;e->lo=ToInt(F32Read__18CBinaryInputStream(stream)*thousand);e->hi=ToInt(F32Read__18CBinaryInputStream(stream)*thousand);}
   else{e->lo=1000;e->hi=1000;}
   J1 *j1;J2 *j2;J4 *j4;J9 *j9;
   int has1=flags&4;
-  if(has1){j1=CreateJ1();j1->h.id=func_00117D00(stream);}
+  if(has1){j1=CreateJ1();j1->h.id=S8Read__18CBinaryInputStream(stream);}
   int has2=flags&8;
-  if(has2){j2=CreateJ2();j2->h.id=func_00117D00(stream);j2->g=func_00117E38(stream);func_00117F90(stream,&j2->begin);func_00117FB0(stream,&j2->timingBegin);func_00117F90(stream,&j2->end);func_00117FB0(stream,&j2->timingEnd);j2->a=func_00117D00(stream);j2->b=func_00117D00(stream);j2->c=func_00117DB8(stream);}
+  if(has2){j2=CreateJ2();j2->h.id=S8Read__18CBinaryInputStream(stream);j2->g=F32Read__18CBinaryInputStream(stream);ReadCb12__18CBinaryInputStreamPv(stream,&j2->begin);ReadCb8__18CBinaryInputStreamPv(stream,&j2->timingBegin);ReadCb12__18CBinaryInputStreamPv(stream,&j2->end);ReadCb8__18CBinaryInputStreamPv(stream,&j2->timingEnd);j2->a=S8Read__18CBinaryInputStream(stream);j2->b=S8Read__18CBinaryInputStream(stream);j2->c=S32Read__18CBinaryInputStream(stream);}
   int has4=flags&16;
-  if(has4){j4=CreateJ4();j4->h.id=func_00117D00(stream);j4->lo=func_00117E38(stream);j4->hi=func_00117E38(stream);}
+  if(has4){j4=CreateJ4();j4->h.id=S8Read__18CBinaryInputStream(stream);j4->lo=F32Read__18CBinaryInputStream(stream);j4->hi=F32Read__18CBinaryInputStream(stream);}
   flags&=32;
-  if(flags){j9=CreateJ9();func_00117EB0(stream,&j9->value);}
+  if(flags){j9=CreateJ9();ReadVector__18CBinaryInputStreamP6VECTOR(stream,&j9->value);}
   switch(e->kind){
-  case 0:case 13:case 15:func_00117F18(stream,&e->matrix);break;
-  case 8:case 14:{Identity(&e->matrix);e->origin=Lookup(p,func_00117D50(stream));e->matrix.r[3].f[0]=-e->origin->position[0];e->matrix.r[3].f[1]=-e->origin->position[1];e->matrix.r[3].f[2]=-e->origin->position[2];break;}
+  case 0:case 13:case 15:ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);break;
+  case 8:case 14:{Identity(&e->matrix);e->origin=Lookup(p,S16Read__18CBinaryInputStream(stream));e->matrix.r[3].f[0]=-e->origin->position[0];e->matrix.r[3].f[1]=-e->origin->position[1];e->matrix.r[3].f[2]=-e->origin->position[2];break;}
   case 1:case 2:case 3:case 4:case 5:case 6:case 7:case 9:case 10:case 11:case 12:default:
-   func_00117F18(stream,&e->matrix);e->current=e->previous=func_0022CA18(e,e);break;
+   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);e->current=e->previous=func_0022CA18(e,e);break;
   }
   func_0022C818(p,e);
   if(has1){j1->h.owner=p;j1->h.entry=e;j1->h.order=-1;j1->initial=func_0022CA18(e,e);AddXfAct(p,e,&j1->h);}
@@ -93,6 +93,6 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
  LoadSoIkFromBrx(p,stream);
  LoadXfmConstraintsFromBrx(p,stream);
  LoadSoChainsFromBrx(p,stream);
- p->a=Lookup(p,func_00117D50(stream));p->b=Lookup(p,func_00117D50(stream));p->c=Lookup(p,func_00117D50(stream));
+ p->a=Lookup(p,S16Read__18CBinaryInputStream(stream));p->b=Lookup(p,S16Read__18CBinaryInputStream(stream));p->c=Lookup(p,S16Read__18CBinaryInputStream(stream));
  if(p->count>0)ClearFlag(p);
 }

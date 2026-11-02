@@ -20,7 +20,7 @@ int FTaskLive(P*);
 void OnJobTaskComplete(void*,P*);
 void func_001ABD98(void*,int);
 CRef*func_001291A8(CRef*,const CRef*);
-void func_00129EC8(CRef*);
+void Decref__4CRef(CRef*);
 }
 static inline void*Allocate(int n){return func_001AE378(REQUEST(n,16));}
 struct HEAP_SCOPE{HEAP_SCOPE(){STACKSCOPE_ctor(this);}~HEAP_SCOPE(){STACKSCOPE_ctor_1AE4A0(this,2);}};
@@ -28,7 +28,7 @@ struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
     OVERRIDE(P*p,int x,int y):context(0),object(p){if(object){oldX=object->x;object->x=x;oldY=object->y;object->y=y;}}
     ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
 };
-struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){func_00129EC8(this);}};
+struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefSetGlobalSaveVar(void*,const CRef&,void*);
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=RefSetGlobalSaveVar(object,arg,D_003D4A60);}
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}

@@ -23,8 +23,8 @@ extern char D_002A79A0[];
 extern char D_002A79D0[];
 extern char D_002A79D8[];
 extern char D_002A7A30[];
-extern "C" int func_0021ECD8(char *, const char *, ...);
-extern "C" char *func_0021ED58(char *, const char *);
+extern "C" int sprintf(char *, const char *, ...);
+extern "C" char *strcpy(char *, const char *);
 extern "C" CRef RefGetSaveVarV(const char *, ...);
 char *PchzFindSwLangstr__FP2SWi(G *, int);
 /** @sly2-annot addr=0x1DC890
@@ -41,15 +41,15 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
     if (i < 0x40) {
         CRef ref;
         char ach[0x20];
-        func_0021ECD8(ach, D_002A79A0, i);
+        sprintf(ach, D_002A79A0, i);
         ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
         c = ref.m_tag;
         ids = D_002C3288[i].ids;
     }
     if (ids != -1) {
-        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
+        strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
         if (c >= 2)
-            func_0021ECD8(pch, D_002A7A30, pch, c);
+            sprintf(pch, D_002A7A30, pch, c);
     } else {
         *pch = 0;
     }

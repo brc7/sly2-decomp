@@ -2,7 +2,7 @@
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
 // FRAME with out-of-line ctor/dtor (STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2)), CRef(bool) with inline dtor
-// (func_00129EC8), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
+// (Decref), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct M4 { U row[4]; };
@@ -39,11 +39,11 @@ struct P {
 struct FRAME { int n; FRAME(); ~FRAME(); }; /* out-of-line ctor/dtor: STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2) */
 struct LSG { U point; char rest[0x50]; };
 struct LOS { U start, end; LSG hit; };
-extern "C" void func_00129EC8(void *);
+extern "C" void Decref__4CRef(void *);
 struct CREF {
     int tagk, tag;
     CREF(bool f) { tagk = 0x17; tag = f; }
-    ~CREF() { func_00129EC8(this); }
+    ~CREF() { Decref__4CRef(this); }
 };
 struct POLY { float a, b, c; };
 struct CLOCK { float time, dt; };
@@ -62,12 +62,12 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(P *, int);
 int func_0020A818(void *, P *);
 qword func_001A62E8(P *);
 unsigned IsrcFromIdProxy__Fi(unsigned);
-int func_0011D910(LM *, float);
+int FCheckLm__FP2LMf(LM *, float);
 qword ConvertAloPos(P *, P *, qword);
-float func_002458F0(float, float);
+float atan2f(float, float);
 int func_00175820(void *, void *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
-int func_0014CC58(int, qword, qword, int, void **, LSG *);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, void **, LSG *);
 void func_0020AB68(P *, ENTRY *, void *, qword);
 void func_0020A9A8(void *, int);
 }
@@ -183,13 +183,13 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
         float angle, gain;
         if (!entry->enabled)
             continue;
-        if (!func_0011D910(&entry->distance, distance))
+        if (!FCheckLm__FP2LMf(&entry->distance, distance))
             continue;
-        if (!func_0011D910(&entry->height, height))
+        if (!FCheckLm__FP2LMf(&entry->height, height))
             continue;
         {
             qword local = ConvertAloPos(0, p, to);
-            angle = __builtin_fabsf(func_002458F0(GYOfQw(local), GXOfQw(local)));
+            angle = __builtin_fabsf(atan2f(GYOfQw(local), GXOfQw(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
         {
@@ -209,7 +209,7 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
             line.start.q = from;
             line.end.q = to;
             IntersectSwBoundingBox(D_003DD490, from, to, func_00175820, entry, &count, &objects);
-            if (func_0014CC58(0, line.start.q, line.end.q, count, objects, &line.hit) &&
+            if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, line.start.q, line.end.q, count, objects, &line.hit) &&
                 Blocked(&line, entry->minHit))
                 continue;
         }

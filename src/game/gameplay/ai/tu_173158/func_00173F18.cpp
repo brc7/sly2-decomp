@@ -34,7 +34,7 @@ float SMaxShape(LO *);
 int func_001EA3B0(void *, float);
 void EvaluateShapeS(LO *, qword *, qword *, float);
 float GRandInRange__Fff(float, float);
-float func_002458F0(float, float);
+float atan2f(float, float);
 M3 func_0011B500(float, qword);
 }
 
@@ -201,7 +201,7 @@ extern "C" SEL *func_00173F18(SET *pset, qword pos, qword *pposOut, M3 *pmatOut,
                             VU_FLOAT gNeg = VuFloatFromMemWord(0xBF800000);
                             dirCurve.q = QwScaleX(dirCurve.q, gNeg);
                         }
-                        M3 matCurve = func_0011B500(func_002458F0(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
+                        M3 matCurve = func_0011B500(atan2f(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
                         int j;
                         for (j = 0; j < pset->cpos; j++)
                         {

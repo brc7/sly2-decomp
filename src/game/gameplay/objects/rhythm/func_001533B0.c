@@ -16,7 +16,7 @@ void BroadcastGameEvent(void *, int, struct S *);
 void AddRhythmScore(struct S *, float);
 float GRhythmTimingScore(struct S *, struct E *);
 float func_00153638(struct S *, float);
-int func_0011D4D0(float, float, float);
+int FFloatsNear__Ffff(float, float, float);
 /** @sly2-annot addr=0x1533B0
  * Purpose: Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat ->
  *   g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C
@@ -56,7 +56,7 @@ void func_001533B0(struct S *p, struct O *po)
             AddRhythmScore(p, func_00153638(p, GRhythmTimingScore(p, pe)));
             for (j = 0; j < p->n60; j++) {
                 struct Q *pq = &p->a70[j];
-                if (func_0011D4D0(pq->g0, pe->gC, 0.1f)) {
+                if (FFloatsNear__Ffff(pq->g0, pe->gC, 0.1f)) {
                     pq->n20 = 1;
                     break;
                 }

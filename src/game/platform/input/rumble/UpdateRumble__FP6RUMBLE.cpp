@@ -14,7 +14,7 @@ struct RUMBLE {
 };
 struct CLOCK { float a[20]; };
 extern CLOCK D_002DDED0;
-extern "C" int func_00243870(int, int, byte *);
+extern "C" int scePadSetActDirect(int, int, byte *);
 void SetRumbleRums(RUMBLE *prumble, RUMS rums);
 void StopRumbleActuators(RUMBLE *prumble);
 /** @sly2-annot addr=0x1D51B8
@@ -39,7 +39,7 @@ void UpdateRumble(RUMBLE *prumble)
                     prumble->irumins = 0;
                 abShockDirect[0] = prumble->prumpat->arumins[prumble->irumins].fHighSpeedMotor;
                 abShockDirect[1] = prumble->prumpat->arumins[prumble->irumins].bLowSpeedMotor;
-                func_00243870(prumble->nPort, prumble->nSlot, abShockDirect);
+                scePadSetActDirect(prumble->nPort, prumble->nSlot, abShockDirect);
                 prumble->dtRumins = prumble->prumpat->arumins[prumble->irumins].dt;
             }
             prumble->dtRumble -= dtReal;

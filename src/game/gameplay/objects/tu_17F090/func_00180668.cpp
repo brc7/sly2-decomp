@@ -25,9 +25,9 @@ void func_00181268(P*,int);
 qword func_001A62E8(void*);
 qword ConvertAloVec(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
-float func_002458F0(float,float);
+float atan2f(float,float);
 float RadNormalize__Ff(float);
-int func_0011D910(LM*,float);
+int FCheckLm__FP2LMf(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
 float SMaxShape(void*);
@@ -48,7 +48,7 @@ static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
 static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return GXOfQw(r);}
 static inline float Length(qword v){return GXOfQw(QwSqrt(QwDot(v,v)));}
-static inline float Heading(qword v){return func_002458F0(GYOfQw(v),GXOfQw(v));}
+static inline float Heading(qword v){return atan2f(GYOfQw(v),GXOfQw(v));}
 static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
  qword r=QwSqrt(QwDot(v,v));float x;
  __asm__("mtc1 %1,%0":"=f"(x):"r"(r),"r"(fallback)); /* allocation-only "r"(fallback): the fallback is held in a GPR */
@@ -96,19 +96,19 @@ extern "C" void func_00180668(P*p){
   float distance=Length(delta);
   float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,p,delta)));
   int accept;
-  if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=func_0011D910(&rule->stayDistance,distance);
+  if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=FCheckLm__FP2LMf(&rule->stayDistance,distance);
   if(accept){
    if(!rule->angleEnabled)goto dispatch;
-   if(func_0011D910(&rule->stayAngle,heading))goto dispatch;
+   if(FCheckLm__FP2LMf(&rule->stayAngle,heading))goto dispatch;
   }
   {
    int state;
    for(state=4;state>0;state--){
     rule=&p->rules[state];
-    if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=func_0011D910(&rule->enterDistance,distance);
+    if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=FCheckLm__FP2LMf(&rule->enterDistance,distance);
     if(!accept)continue;
     if(!rule->angleEnabled)break;
-    if(func_0011D910(&rule->enterAngle,heading))break;
+    if(FCheckLm__FP2LMf(&rule->enterAngle,heading))break;
    }
    func_00181268(p,state);
   }
@@ -167,7 +167,7 @@ dispatch:
    }
   }
   p->output=LimitVectorLength(force,speed);
-  p->heading=func_002458F0(unit.f[1],unit.f[0]);
+  p->heading=atan2f(unit.f[1],unit.f[0]);
   break;
  }
  }

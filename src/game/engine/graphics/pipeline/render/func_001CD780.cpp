@@ -17,7 +17,7 @@ extern float D_002C1F20;
 extern LM D_002C1F28;
 extern int D_002C1F30,D_002C1F34;
 extern "C" qword ConvertCmWorldToScreen(CM *,qword);
-extern "C" float func_0011D948(LM *,float);
+extern "C" float GLimitLm__FP2LMf(LM *,float);
 extern "C" RT *CRichText_ctor(RT *,const char *,float);
 extern "C" void CRichText_GetExtents(RT *,float *,float *);
 extern "C" void func_002163B0(RT *,CONFIG *,int);
@@ -38,7 +38,7 @@ extern "C" void func_001CD780(qword position,const char *text,const RGBA *unused
     qword screen=ConvertCmWorldToScreen(camera,position);
     float depth=Z(screen);
     if(depth<camera->nearDepth)return;
-    float scale=func_0011D948(&D_002C1F28,height*(D_002C1F20/(camera->sx*depth)));
+    float scale=GLimitLm__FP2LMf(&D_002C1F28,height*(D_002C1F20/(camera->sx*depth)));
     RT rt;CRichText_ctor(&rt,text,scale);
     CONFIG config;
     float w,h;

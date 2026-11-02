@@ -3,7 +3,7 @@ extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
 int func_001FD0C0(void *p, int i);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
-void *func_001F03C8(void *x, struct S *ps);
+void *PsmaFindSm__FP2SMP3ALO(void *x, struct S *ps);
 void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
 /** @sly2-annot addr=0x205478
  * Purpose: STEP vt83: for each set bit i<6 of mask, ++refcount +0x2A0[i]; on first ref ensure an SMA of the
@@ -25,7 +25,7 @@ void func_00205478(struct S *p, int mask)
                 int id = func_001FD0C0(D_003DD040, i);
                 void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, p);
                 if (x) {
-                    void *y = func_001F03C8(x, p);
+                    void *y = PsmaFindSm__FP2SMP3ALO(x, p);
                     if (!y)
                         PsmaApplySmOut(x, p, -1, 9, &y);
                 }

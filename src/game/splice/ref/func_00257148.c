@@ -3,7 +3,7 @@ typedef struct R2 { int cref; } R2;
 typedef struct X { int x0; int x4; R2 *p8; int xC; int x10; R0 *p14; R0 *p18; } X;
 extern char D_004520A8[], D_00452120[];
 void PairPtr_Release(void *, int);
-void func_00129EC8(void *);
+void Decref__4CRef(void *);
 void GcPair_Unlink(void *);
 void GcProc_Unlink(void *);
 void func_00257078(void *, int);
@@ -14,7 +14,7 @@ static inline void Release0(R0 *r)
     if (r) {
         if (--r->cref == 0) {
             PairPtr_Release(r->x10, 2);
-            func_00129EC8(r->x8);
+            Decref__4CRef(r->x8);
             GcPair_Unlink(r);
             func_0011CD98(D_004520A8, r);
         }

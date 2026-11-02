@@ -1,10 +1,10 @@
 #include "m2c_prelude.h"
 M2C_UNK CopyAb__FPvT0Ui(s32, M2C_UNK *, M2C_UNK);   /* extern */
-M2C_UNK func_001177A8();                            /* extern */
-M2C_UNK func_00117EB0(s32, s32);                    /* extern */
-s32 func_00242810();                                /* extern */
-s32 func_002432D0(s32, s32, M2C_UNK *);             /* extern */
-s32 func_00243388(s32, s32);                        /* extern */
+M2C_UNK __18CBinaryInputStream();                            /* extern */
+M2C_UNK ReadVector__18CBinaryInputStreamP6VECTOR(s32, s32);                    /* extern */
+s32 sceCdGetReadPos();                                /* extern */
+s32 scePadRead(s32, s32, M2C_UNK *);             /* extern */
+s32 scePadGetState_243388(s32, s32);                        /* extern */
 s32 scePadGetState(s32, s32);                       /* extern */
 extern s128 D_002A2DC0;
 extern f32 D_002A5684;

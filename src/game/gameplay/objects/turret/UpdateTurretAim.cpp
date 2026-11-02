@@ -13,14 +13,14 @@ extern float D_002C4408[];
 extern "C" {
 qword func_001A62E8(void *);
 M3 LoadLookAtMatrix(qword);
-void func_0011BC88(const M3 *,float *,float *);
-float func_0011CFE0(float,float);
+void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(const M3 *,float *,float *);
+float GLimitAbs__Fff(float,float);
 float GSmooth__FfffP3SMPPf(float,float,float,const float *,float *);
-float func_0011D948(const BOUND *,float);
+float GLimitLm__FP2LMf(const BOUND *,float);
 void SetActPositionGoal(void *,qword);
-void func_00129EC8(void *);
+void Decref__4CRef(void *);
 }
-struct CRef {int kind,value;CRef(const CRef &) __asm__("func_001291A8");~CRef(){func_00129EC8(this);}};
+struct CRef {int kind,value;CRef(const CRef &) __asm__("func_001291A8");~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefGetGlobalSaveVar(int,void *);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Make(float x,float y,float z) {
@@ -42,15 +42,15 @@ extern "C" void UpdateTurretAim(S *p){
         float pitch,yaw;
         qword target;
         m=LoadLookAtMatrix((target=func_001A62E8(p->target),Sub(target,func_001A62E8(p))));
-        func_0011BC88(&m,&pitch,&yaw);
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&m,&pitch,&yaw);
         float dp=pitch-p->pitch;
         float dy=yaw-p->yaw;
         p->pitch=pitch;p->yaw=yaw;
         p->vpitch=dp;p->vyaw=dy;
     } else {
         if(p->control) {
-            float x=func_0011CFE0(p->control->x+p->control->z,1.0f);
-            float y=func_0011CFE0(p->control->y,1.0f);
+            float x=GLimitAbs__Fff(p->control->x+p->control->z,1.0f);
+            float y=GLimitAbs__Fff(p->control->y,1.0f);
             float strength=p->strength;
             float gain=(1.0f-strength)*0.5f+strength;
             float cubic=-x*x;
@@ -68,13 +68,13 @@ extern "C" void UpdateTurretAim(S *p){
             const float *damping=D_002C4408;
             p->vpitch=GSmooth__FfffP3SMPPf(p->vpitch,0.0f,clock->dt,damping,0);
             p->vyaw=GSmooth__FfffP3SMPPf(p->vyaw,0.0f,clock->dt,damping,0);
-            p->vpitch=func_0011CFE0(p->vpitch+ax*clock->dt,limit*0.9f);
-            p->vyaw=func_0011CFE0(p->vyaw+ay*clock->dt,limit*0.8f);
+            p->vpitch=GLimitAbs__Fff(p->vpitch+ax*clock->dt,limit*0.9f);
+            p->vyaw=GLimitAbs__Fff(p->vyaw+ay*clock->dt,limit*0.8f);
             p->pitch+=p->vpitch*clock->dt;
             p->yaw+=p->vyaw*clock->dt;
         }
     }
-    p->pitch=func_0011D948(&p->pitchRange,p->pitch);
-    p->yaw=func_0011D948(&p->yawRange,p->yaw);
+    p->pitch=GLimitLm__FP2LMf(&p->pitchRange,p->pitch);
+    p->yaw=GLimitLm__FP2LMf(&p->yawRange,p->yaw);
     if(p->output){V v;v.q=Make(0.0f,-p->yaw,p->pitch);SetActPositionGoal(p->rotation,v.q);}
 }

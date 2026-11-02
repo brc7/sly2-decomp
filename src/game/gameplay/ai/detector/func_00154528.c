@@ -1,11 +1,11 @@
 #include "m2c_prelude.h"
 /* Warning: missing "jr $ra" in last block of func_001574A8 (initial). */
 
-s32 func_00116970(s32, s32, s32, M2C_UNK);          /* extern */
-M2C_UNK func_00129EC8(void *);                      /* extern */
+s32 PvAllocCopy__FP4HEAPiPvi(s32, s32, s32, M2C_UNK);          /* extern */
+M2C_UNK Decref__4CRef(void *);                      /* extern */
 s128 *func_001AE318(s32 *, s32, s32);               /* extern */
 void DetachCopySw__4DMASPiPP2QWT2i(M2C_UNK *arg0, s32 arg1, u32 *arg2, s32 *arg3); /* static */
-void func_001574A0(s32, s32 *);                     /* static */
+void Flush__4DMAS(s32, s32 *);                     /* static */
 extern s128 D_002A2DD0;
 extern f32 D_002A5130;
 extern f32 D_002A5134;

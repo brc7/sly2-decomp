@@ -7,7 +7,7 @@ extern int D_003D3A3C, D_003D3A40, D_003D3A44;
 void LoadingScreenThread(void *);
 void func_002333B4(void *p, int c, int cb);
 int func_00234820(struct TP *ptp);
-int func_0021EFD0(int a, int b);
+int SemaCreate__Fii(int a, int b);
 int func_002355E0(int tid, void *arg);
 /** @sly2-annot addr=0x1C90D0
  * Purpose: create the two semaphores and start the loading render thread (0x1C9190)
@@ -26,8 +26,8 @@ void StartupLoadingScreen(void)
     tp.initial_priority = 4;
     tp.func = LoadingScreenThread;
     D_004425D0.tid = func_00234820(&tp);
-    D_003D3A3C = func_0021EFD0(0, 1);
-    D_003D3A40 = func_0021EFD0(0, 1);
-    D_003D3A44 = func_0021EFD0(0, 1);
+    D_003D3A3C = SemaCreate__Fii(0, 1);
+    D_003D3A40 = SemaCreate__Fii(0, 1);
+    D_003D3A44 = SemaCreate__Fii(0, 1);
     func_002355E0(D_004425D0.tid, 0);
 }

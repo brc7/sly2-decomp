@@ -15,7 +15,7 @@ void FindShapeClosestPoint(int oid, qword q, int a, int b, struct V *pv, int c, 
 void FindShapeClosestPointFromS(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
 float GRandInRange__Fff(float lo, float hi);
 void func_00181CB0(struct S *p, struct E *pe);
-float func_0011D1C0(void *pv, float *pg, float a, float b, float c, float dt);
+float GSmoothA__FffffP4SMPAPf(void *pv, float *pg, float a, float b, float c, float dt);
 void EvaluateShapeS(int oid, struct Q *q, void *pv, float g);
 void func_00181E10(struct S *p, struct Q *q);
 static __inline__ void Integrate(float *px, float *pv, float a, float dt)
@@ -61,7 +61,7 @@ void func_00181F60(struct S *p)
         func_00181CB0(p, pe);
         for (q = pe->pqFirst; q; q = q->next) {
             float a, b;
-            q->g3c = func_0011D1C0(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
+            q->g3c = GSmoothA__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
             EvaluateShapeS(oid, q, q->x10, q->g3c);
             a = D_002BE898 * q->g50 + D_002BE89C * q->g58;
             b = D_002BE8A0 * q->g54 + D_002BE8A4 * q->g5c;

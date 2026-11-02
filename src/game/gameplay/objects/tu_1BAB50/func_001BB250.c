@@ -17,7 +17,7 @@ void func_001F4F10(O *p);
 int func_001BBE48(O *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(O *p, int k);
 void func_001BAED8(O *p, O *q, int z);
-void func_001A7E10(void *g, int k);
+void FreeSwXpList__FP2SWP2XP(void *g, int k);
 
 /** @sly2-annot addr=0x1BB250
  * Purpose: CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to
@@ -55,7 +55,7 @@ void func_001BB250(O *p)
             }
             ((void (*)(void *, O *))p->vt[54].pfn)((char *)p + p->vt[54].d, pl->po);
             ((void (*)(void *, O *))pl->po->vt[54].pfn)((char *)pl->po + pl->po->vt[54].d, p);
-            func_001A7E10(D_003DD490, pl->x0);
+            FreeSwXpList__FP2SWP2XP(D_003DD490, pl->x0);
             *pl->px8 = 0;
             pl->x0 = 0;
             break;

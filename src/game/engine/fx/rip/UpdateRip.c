@@ -6,7 +6,7 @@ struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long x
 struct G { char pad[0x150]; int x150; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float x14; float x18; char p1[0x70 - 0x1C]; qword x70;
     char p2[0xE0 - 0x80]; struct LO *xE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
-void func_001CE980(struct S *p);
+void RemoveRip__FP3RIP(struct S *p);
 /** @sly2-annot addr=0x1CF268
  * Purpose: RIP default Update (vt entry 5): fade/age and RemoveRip when expired
  * Info: proposed name UpdateRip (T1); TU rip
@@ -19,7 +19,7 @@ void UpdateRip(struct S *p)
     struct LO *plo;
     int f;
     if (D_002DDED0.t - p->x14 > p->x18) {
-        func_001CE980(p);
+        RemoveRip__FP3RIP(p);
         return;
     }
     if (p->pg->x150 == 1) return;

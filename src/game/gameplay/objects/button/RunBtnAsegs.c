@@ -11,7 +11,7 @@ struct P {
 extern char D_003DD490[];
 extern char D_002DEB30[];
 struct OID *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct OID *po);
-void func_00130598(struct SO *pso, struct OID *po, int n, int x, float g, float h);
+void PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(struct SO *pso, struct OID *po, int n, int x, float g, float h);
 void TriggerRsmg(void *g, int a, void *b, struct OID *po, int f);
 void FireRelay(void *p, int a);
 void ApplyTaskStates(void *g, int a, void *b, struct OID *po);
@@ -38,9 +38,9 @@ void RunBtnAsegs(struct P *p, int i)
         if (p->xA0) {
             int n = 0;
             if (p->g8C < 0.0f) n = 2;
-            func_00130598(pso, po, n, x, 0.0f, p->g8C);
+            PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(pso, po, n, x, 0.0f, p->g8C);
         } else {
-            func_00130598(pso, po, 1, x, 0.0f, p->g8C);
+            PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(pso, po, 1, x, 0.0f, p->g8C);
         }
     }
     TriggerRsmg(D_003DD490, p->xB0, p->mB4, p->po, i == 0);

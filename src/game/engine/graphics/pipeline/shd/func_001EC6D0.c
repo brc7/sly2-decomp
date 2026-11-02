@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x30]; qword q; };
 struct E { int a; struct O *po; };
 struct S { char pad[0x20]; struct E *ae; };
-void func_00226F28(int a, int b, int c, qword *d, int e);
+void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, qword *d, int e);
 /** @sly2-annot addr=0x1EC6D0
  * Purpose: Variant of 0x1EC688 for a single qword from an object
  * Info: proposed name AddShdVifUnpackQw (T2); TU shd
@@ -12,6 +12,6 @@ void func_00226F28(int a, int b, int c, qword *d, int e);
 int func_001EC6D0(struct S *p, int i, int x, int y)
 {
     struct E *pe = p->ae + i; qword q = pe->po->q;
-    func_00226F28(y, 12, 1, &q, x);
+    AddVifUnpack__4VIFS3UPKiPvi(y, 12, 1, &q, x);
     return 1;
 }

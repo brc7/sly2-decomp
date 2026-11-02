@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x122B08
  * Purpose: Splice builtin "vector-project-normal": (a.b)b
  * Info: proposed name RefOpVectorProjectNormal (T1); TU bif
@@ -22,6 +22,6 @@ CRef *RefOpVectorProjectNormal__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
         "vmulx.xyzw %1, %2, %0x" : "+j"(a), "=j"(t) : "j"(b));
     CRef_ctor(&ref, t);
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

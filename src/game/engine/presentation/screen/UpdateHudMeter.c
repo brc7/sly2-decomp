@@ -32,7 +32,7 @@ Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetHudMeterState(OBJ *, int);
 int MpStepplayerCur(Q *);
-int func_0011D4D0(float, float, float);
+int FFloatsNear__Ffff(float, float, float);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 int FWidgetAnimPlaying(SUB *, int);
 void SetWidgetAnimPhase(SUB *, int, float);
@@ -89,7 +89,7 @@ void UpdateHudMeter(OBJ *p)
             SetHudMeterState(p, 2);
         } else if (p->x20 < p->x24) {
             SetHudMeterState(p, 3);
-        } else if (!func_0011D4D0(p->x28, p->x2C, 0.0001f)) {
+        } else if (!FFloatsNear__Ffff(p->x28, p->x2C, 0.0001f)) {
             SetHudMeterState(p, 4);
         } else if (p->x34->x10EC == 4) {
             SetHudMeterState(p, 7);
@@ -125,7 +125,7 @@ void UpdateHudMeter(OBJ *p)
         else
             p->x20 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x20, p->x24, D_002DDED0.dt);
         SetWidgetAnimPhase(p->x38, 0x34F, 1.0f - p->x20);
-        if (func_0011D4D0(p->x20, p->x24, 0.0001f))
+        if (FFloatsNear__Ffff(p->x20, p->x24, 0.0001f))
             SetHudMeterState(p, 1);
         break;
     case 4:
@@ -135,7 +135,7 @@ void UpdateHudMeter(OBJ *p)
         else
             p->x28 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x28, p->x2C, D_002DDED0.dt);
         SetWidgetAnimPhase(p->x38, 0x350, 1.0f - p->x28);
-        if (func_0011D4D0(p->x28, p->x2C, 0.0001f))
+        if (FFloatsNear__Ffff(p->x28, p->x2C, 0.0001f))
             SetHudMeterState(p, 1);
         break;
     }

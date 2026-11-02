@@ -8,7 +8,7 @@ struct OBJ {
     char pad14[0x28 - 0x14];
     int n;
 };
-float func_002458F0(float, float);
+float atan2f(float, float);
 /** @sly2-annot addr=0x1DA858
  * Purpose: Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1)
  *   when back under 0.5
@@ -28,7 +28,7 @@ void UpdateScreenStickDir(OBJ *p)
     g = q->g;
     if (n == -1) {
         if (0.8f < g) {
-            int k = (int)(func_002458F0(q->y, q->x) * 1.2732395f + 8.5f);
+            int k = (int)(atan2f(q->y, q->x) * 1.2732395f + 8.5f);
             p->vt[14].pfn((char *)p + p->vt[14].d, k % 8);
         }
     } else if (g < 0.5f) {

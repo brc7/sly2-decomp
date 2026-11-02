@@ -12,16 +12,16 @@ extern "C" V3 D_002C1F00,D_002C1F10;
 extern "C" M3*func_001A6318(O*);
 extern "C" qword func_001A62E8(O*);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
-extern "C" float func_002450F0(float);
-extern "C" void func_0011C448(float,float,float,float,float,float,M4*);
+extern "C" float tanf(float);
+extern "C" void BuildSimpleProjectionMatrix__FffffffP7MATRIX4(float,float,float,float,float,float,M4*);
 extern "C" void func_0014D8F8(M4*,M4*,M4*);
-extern "C" void func_001574B8(V*);
-extern "C" void func_00226D10(V*);
-extern "C" void func_002270C8(V*,int,QW*,int);
-extern "C" void func_00226D28(V*);
-extern "C" void func_00226CA8(V*,int,int);
-extern "C" void func_00226F28(V*,int,int,void*,int);
-extern "C" void func_001576F0(V*);
+extern "C" void AddDmaCnt__4DMAS(V*);
+extern "C" void AddVifFlush__4VIFS(V*);
+extern "C" void AddVifDirect__4VIFSiP2QWi(V*,int,QW*,int);
+extern "C" void AddVifFlusha__4VIFS(V*);
+extern "C" void AddVifBaseOffset__4VIFSii(V*,int,int);
+extern "C" void AddVifUnpack__4VIFS3UPKiPvi(V*,int,int,void*,int);
+extern "C" void EndDmaCnt__4DMAS(V*);
 static inline qword Bcast(float f){register qword q __asm__("vf2");__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 
 static inline qword Scale0(qword v,qword k){register qword q __asm__("vf4");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
@@ -68,11 +68,11 @@ extern "C" void func_001BE6F0(P*p,V*v){
  pv->r[2]=copy1;
  view.r[0].i[3]=view.r[1].i[3]=view.r[2].i[3]=0;
  pv->r[3].f[3]=1.0f;
- slope=func_002450F0(p->camera->fov*0.5f);
+ slope=tanf(p->camera->fov*0.5f);
  aspect=slope*aspect;
  slope*=4096.0f;
  aspect*=4096.0f;
- func_0011C448((float)p->width/aspect,(float)p->height/slope,0.0f,0.0f,p->camera->clipFar,p->camera->clipNear,&projection);
+ BuildSimpleProjectionMatrix__FffffffP7MATRIX4((float)p->width/aspect,(float)p->height/slope,0.0f,0.0f,p->camera->clipFar,p->camera->clipNear,&projection);
  func_0014D8F8(pv,&projection,&product);
  {O*camera=p->camera;
   float z=(camera->clipFar+camera->clipNear)/(camera->clipFar-camera->clipNear);
@@ -82,14 +82,14 @@ extern "C" void func_001BE6F0(P*p,V*v){
   planes[1].normal=D_002C1F10;
   planes[1].distance=-z/(camera->clipFar*k);
  }
- func_001574B8(v);
- func_00226D10(v);
- func_002270C8(v,p->directCount,p->directData,0);
- func_00226D28(v);
- func_00226CA8(v,0,0);
- func_00226F28(v,0xC,4,&product,2);
- func_00226F28(v,0xC,4,pv,6);
- func_00226F28(v,0xC,2,planes,0);
- func_00226CA8(v,0x32,0x1E7);
- func_001576F0(v);
+ AddDmaCnt__4DMAS(v);
+ AddVifFlush__4VIFS(v);
+ AddVifDirect__4VIFSiP2QWi(v,p->directCount,p->directData,0);
+ AddVifFlusha__4VIFS(v);
+ AddVifBaseOffset__4VIFSii(v,0,0);
+ AddVifUnpack__4VIFS3UPKiPvi(v,0xC,4,&product,2);
+ AddVifUnpack__4VIFS3UPKiPvi(v,0xC,4,pv,6);
+ AddVifUnpack__4VIFS3UPKiPvi(v,0xC,2,planes,0);
+ AddVifBaseOffset__4VIFSii(v,0x32,0x1E7);
+ EndDmaCnt__4DMAS(v);
 }

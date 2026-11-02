@@ -9,7 +9,7 @@ int CRichText_Cch(struct Q *q);
 int func_001FE848(void *p, int id);
 float func_001FE888(void *p);
 void CRichText_Trim(struct Q *q, int n);
-void func_0021EDA0(void *p, void *s);
+void strcpy1(void *p, void *s);
 /** @sly2-annot addr=0x227820
  * Purpose: draws text label via blot helpers and strcpy
  * Info: proposed name RenderSpeakerText (T2); TU tu_2275B8
@@ -35,5 +35,5 @@ void func_00227820(struct P *p, struct Q *q)
     } else {
         fShow = (int)(D_002DDED0.t * 4.0f) & 1;
     }
-    if (fShow) func_0021EDA0(q->p0, D_002A97F0);
+    if (fShow) strcpy1(q->p0, D_002A97F0);
 }

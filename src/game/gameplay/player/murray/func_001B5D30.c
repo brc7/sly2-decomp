@@ -7,7 +7,7 @@ void func_002303A0(struct P *p, int a, int b);
 void func_0020BD68(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
-void func_001305B8(void *a, struct P *p, int n, void *q, float f1, float f2);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
 void ReplaceSma(int a, struct P *p, int b, int n, void *q);
 /** @sly2-annot addr=0x1B5D30
  * Purpose: Switch strafe substate x17F4 (0 stand, 1 blend x1630, 2 clip x17F0), restart animation
@@ -48,6 +48,6 @@ void func_001B5D30(struct P *p, int st)
     }
     ReleaseAsega(p->x1030);
     ReleaseSma(p->x1034);
-    func_001305B8(o, p, n, p->x1030, 0.0f, 1.0f);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, p, n, p->x1030, 0.0f, 1.0f);
     ReplaceSma(x, p, -1, n, p->x1034);
 }

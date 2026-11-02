@@ -3,8 +3,8 @@ typedef struct BIS BIS;
 typedef struct { int c; void *pv; char ht[1]; } OBJ;
 extern char D_002DD590[];
 extern struct G D_003D4A60;
-int func_00117C20(BIS *);
-void func_00117968(BIS *, int, void *);
+int U16Read__18CBinaryInputStream(BIS *);
+void Read__18CBinaryInputStreamiPv(BIS *, int, void *);
 void CBinaryInputStream_ReadStringSw(BIS *, char **, void *, int);
 void InitSaveSymbolTable(void *, int);
 void AddSaveSymbol(void *, char *, int);
@@ -28,18 +28,18 @@ void LoadSaveSchemaFromBrx(OBJ *p, BIS *pbis)
     int i;
     int n;
     int c;
-    n = func_00117C20(pbis);
+    n = U16Read__18CBinaryInputStream(pbis);
     InitSaveSymbolTable(p->ht, n);
     for (i = 0; i < n; i++) {
-        int v = func_00117C20(pbis);
+        int v = U16Read__18CBinaryInputStream(pbis);
         CBinaryInputStream_ReadStringSw(pbis, &pchz, D_002DD590, 0x2D);
         AddSaveSymbol(p->ht, pchz, v);
     }
-    c = func_00117C20(pbis);
+    c = U16Read__18CBinaryInputStream(pbis);
     p->c = c;
     msg.cb = c * 10;
     msg.nKind = 0x10;
     p->pv = func_001AE1D0(&msg);
-    func_00117968(pbis, c * 10, p->pv);
+    Read__18CBinaryInputStreamiPv(pbis, c * 10, p->pv);
     ResetGsIfSchemaChanged(p, &D_003D4A60);
 }

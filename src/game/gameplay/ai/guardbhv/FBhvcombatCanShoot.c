@@ -20,7 +20,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 qword func_001A62E8(void *p);
 float RadStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
-int func_0011D910(void *p, float f);
+int FCheckLm__FP2LMf(void *p, float f);
 float RadNormalize__Ff(float f);
 qword *func_001A6318(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
@@ -28,7 +28,7 @@ void STACKSCOPE_ctor(struct X *x);
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n);
 int func_0020FA10(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
-struct R *func_0014CC58(int n, qword a, qword b, int c, int d, struct Y *y);
+struct R *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, int d, struct Y *y);
 /** @sly2-annot addr=0x175D00
  * Purpose: Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's
  *   range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging,
@@ -80,15 +80,15 @@ int FBhvcombatCanShoot(struct S *p) {
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
     g = RadStepHeading(p->p10);
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
-    if (!func_0011D910(p->p10->aF48, f[2])) return 0;
+    if (!FCheckLm__FP2LMf(p->p10->aF48, f[2])) return 0;
     {
         float h = RadNormalize__Ff(f[0] - g);
-        if (!func_0011D910(p->p10->aF50, h)) return 0;
+        if (!FCheckLm__FP2LMf(p->p10->aF50, h)) return 0;
     }
     CalculateVectorPanTilt(*func_001A6318(p->p10), 0, &f[3]);
     {
         float h = RadNormalize__Ff(f[1] - f[3]);
-        if (!func_0011D910(p->p10->aF58, h)) return 0;
+        if (!FCheckLm__FP2LMf(p->p10->aF58, h)) return 0;
     }
     if (!k) {
         if (p->n34 == 0) {
@@ -101,7 +101,7 @@ int FBhvcombatCanShoot(struct S *p) {
         struct R *r;
         STACKSCOPE_ctor(&x);
         IntersectSwBoundingBox(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
-        r = func_0014CC58(0, pa, pb, na, nb, &y);
+        r = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pa, pb, na, nb, &y);
         if (r && r->p4->p14->p0 != p->p30) {
             STACKSCOPE_ctor_1AE4A0(&x, 2);
             return 0;

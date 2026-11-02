@@ -3,12 +3,12 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 struct X { char pad[0x14]; unsigned long *px14; };
 X *func_001EC880(int);
-void func_00166920(void *);
+void __4GIFS(void *);
 void AllocStack__4DMASi(void *, int);
-void func_00166BD8(void *, int, int, int);
-void func_00166E90(void *, int, unsigned long);
-void func_00166968(void *);
-void func_001573F8(void *, int, int *, int, int *);
+void AddPrimPack__4GIFSiiUl(void *, int, int, int);
+void PackAD__4GIFSll(void *, int, unsigned long);
+void AddPrimEnd__4GIFS(void *);
+void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *);
 }
 class FRAME { public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct BUF { int a[12]; };
@@ -30,14 +30,14 @@ void func_002155C0(P *p, Q *q)
         X *x = func_001EC880(q->x10);
         if (x) {
             BUF b;
-            func_00166920(&b);
+            __4GIFS(&b);
             AllocStack__4DMASi(&b, 0x10);
-            func_00166BD8(&b, 0, 1, 0xE);
-            func_00166E90(&b, 6, *x->px14);
-            func_00166E90(&b, 0x14, 0x60);
-            func_00166E90(&b, 8, 5);
-            func_00166968(&b);
-            func_001573F8(&b, p->xC4, &q->x1C, 0, &q->x20);
+            AddPrimPack__4GIFSiiUl(&b, 0, 1, 0xE);
+            PackAD__4GIFSll(&b, 6, *x->px14);
+            PackAD__4GIFSll(&b, 0x14, 0x60);
+            PackAD__4GIFSll(&b, 8, 5);
+            AddPrimEnd__4GIFS(&b);
+            DetachCopySw__4DMASPiPP2QWT2i(&b, p->xC4, &q->x1C, 0, &q->x20);
         }
     }
 }

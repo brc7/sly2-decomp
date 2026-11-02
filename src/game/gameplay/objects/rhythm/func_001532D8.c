@@ -2,7 +2,7 @@ struct E { int a; int b; int c; float g; float t; int z14; int z18; int z1C; int
 struct S { char pad[0x1C0]; int c; struct E a[3]; };
 extern char D_003DD040[];
 float TMusicCur(void *p);
-void *func_002332B8(void *dst, void *src, int cb);
+void *memmove(void *dst, void *src, int cb);
 /** @sly2-annot addr=0x1532D8
  * Purpose: Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0
  * Info: proposed name PushRhythmMgrCue (T2); TU rhythm
@@ -13,7 +13,7 @@ void func_001532D8(struct S *p, int a, int b, int c, float g)
 {
     struct E *pe;
     if (p->c == 3) {
-        func_002332B8(&p->a[0], &p->a[1], (p->c - 1) * sizeof(struct E));
+        memmove(&p->a[0], &p->a[1], (p->c - 1) * sizeof(struct E));
         pe = &p->a[p->c - 1];
     } else {
         pe = &p->a[p->c++];

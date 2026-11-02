@@ -1,5 +1,5 @@
 // func_00224820: trace a probe segment, record the contact in the caller's HIT list, and push the touched body.
-// - Segment start..end goes through func_0014CC58; the hit object's eligible actor comes from func_001F7530.
+// - Segment start..end goes through PsoHitTestLineObjects; the hit object's eligible actor comes from func_001F7530.
 // - A new HIT record (deduplicated by object, up to capacity) gets owner/object/filter/channel/point and
 //   impulse = normal * D_002C4334 (the target speed).
 // - If the body has physics: project its point velocity (GetXfVelocity) on the normal, evaluate the quadratic
@@ -31,7 +31,7 @@ extern float D_002C4330;
 extern POLY D_002C4320;
 extern RANGE D_002BBB60;
 extern "C" {
-COLL *func_0014CC58(int,qword,qword,int,COLL **,LSG *);
+COLL *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,COLL **,LSG *);
 O *func_001F7530(O *,int);
 void *func_002333B4(void *,int,unsigned int);
 qword GetXfVelocity(NODE *,NODE *,qword);
@@ -65,7 +65,7 @@ static inline O *Pin(O *p){register O *r asm("$21");asm("daddu %0,%1,$zero":"=r"
  * @end-sly2-annot */
 extern "C" void func_00224820(O *ownerIn,int filter,int channel,qword start,qword end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
  O *owner=Pin(ownerIn);LSG hit;int bits;
- COLL *collider=func_0014CC58(0,start,end,queryCount,objects,&hit);
+ COLL *collider=PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,start,end,queryCount,objects,&hit);
  if(!collider)return;
  qword normal;
  O *chain=collider->object;

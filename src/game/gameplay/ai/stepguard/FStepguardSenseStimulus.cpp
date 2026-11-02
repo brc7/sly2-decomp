@@ -12,7 +12,7 @@ qword func_001A62E8(void *p);
 int func_00156918(O *o, qword q);
 int FCheckVolPoint(L *pl, qword q);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
-int func_0014CC58(int z, qword a, qword b, int i, int j, void *phit);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, void *phit);
 void func_0020FA10();
 extern char D_003DD490[];
 int FStepguardSenseStimulus(S2 *p, O *o);
@@ -61,7 +61,7 @@ int FStepguardSenseStimulus(S2 *p, O *o)
             FRAME frame;
             int i, j;
             IntersectSwBoundingBox(D_003DD490, pos, tpos, (void *)func_0020FA10, p->pEC, &i, &j);
-            if (!func_0014CC58(0, pos, tpos, i, j, 0))
+            if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pos, tpos, i, j, 0))
                 return 1;
             return 0;
         }

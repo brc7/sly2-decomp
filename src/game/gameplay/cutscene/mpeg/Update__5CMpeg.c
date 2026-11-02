@@ -2,7 +2,7 @@ struct CLOCK { float t; float dt; char pad[0x34]; float t3c; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x10C]; float f10C; int x110; int x114; char x118[8]; int x120; char pad2[0x5C]; char x180[0xBC]; int x23C; volatile int x240; };
 int CbDemuxed__5CMpegi(struct S *p, int n);
-int func_0024B540(void *a, int b, int c);
+int sceMpegGetPicture(void *a, int b, int c);
 void BuildMpegGifs(struct S *p);
 void func_001B3700(struct S *p);
 void func_00234CA0(int n);
@@ -22,7 +22,7 @@ void Update__10CMpegAudio(void *p);
 void Update__5CMpeg(struct S *p)
 {
     while (p->x240 == 1) CbDemuxed__5CMpegi(p, 0);
-    if (func_0024B540(p->x118, p->x110 + 0x285A80, 0x5CD) < 0) return;
+    if (sceMpegGetPicture(p->x118, p->x110 + 0x285A80, 0x5CD) < 0) return;
     if (p->x120 == 0) {
         p->f10C = D_002DDED0.t3c;
         BuildMpegGifs(p);

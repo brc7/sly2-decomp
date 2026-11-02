@@ -1,9 +1,9 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00129EC8(M2C_UNK *);                   /* extern */
+M2C_UNK Decref__4CRef(M2C_UNK *);                   /* extern */
 s32 func_001AE318(void *);                          /* extern */
-s32 func_002441C0(s32, s32, s32);                   /* extern */
-s32 func_002442D8(s32, s32, s32);                   /* extern */
-s32 func_00244570(s32, s32, s32, s32);              /* extern */
+s32 sceMcRead(s32, s32, s32);                   /* extern */
+s32 sceMcWrite(s32, s32, s32);                   /* extern */
+s32 sceMcGetInfo(s32, s32, s32, s32);              /* extern */
 void CopyAb__FPvT0Ui(s32 arg0, s32 arg1, u32 arg2); /* static */
 extern M2C_UNK D_002A6EA0;
 extern M2C_UNK D_002A6EB0;

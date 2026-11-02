@@ -48,7 +48,7 @@ struct EMITX { int x0; SO **ppso; void *p8; };
 extern "C" {
 extern char D_003DD490[];
 SO *PripgNew(void *p, int n);
-void func_001CDE70(SO *pso, EMITTER *pemit);
+void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITTER *pemit);
 void SubscribeLoObject(SO *pso, void *p);
 PART *PripNewRipg(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
@@ -77,7 +77,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTER *pemit, EMITX *
             return;
         if (px && px->ppso)
             *px->ppso = pso;
-        func_001CDE70(pso, pemit);
+        SetRipgEmitb__FP4RIPGP5EMITB(pso, pemit);
         if (px && px->p8)
             SubscribeLoObject(pso, px->p8);
     }

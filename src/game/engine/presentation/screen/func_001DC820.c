@@ -4,7 +4,7 @@ extern struct G2 D_003DA150;
 struct T { int a[2]; char *pch; int b[5]; };
 extern struct T D_002BCD00[];
 extern char D_002A79A0[];
-void func_0021ECD8(char *pch, char *fmt, char *s);
+void sprintf(char *pch, char *fmt, char *s);
 /** @sly2-annot addr=0x1DC820
  * Purpose: Text callback rows 0x442-0x447: power-up cost of row i
  * Info: proposed name BuildThiefnetPowerupCostText (T2); TU screen
@@ -16,6 +16,6 @@ void func_001DC820(char *pch, int i) {
     unsigned int n = pg->ae[pg->i + i].n;
     char *s = 0;
     if (n < 0x2B) s = D_002BCD00[n].pch;
-    if (s) func_0021ECD8(pch, D_002A79A0, s);
+    if (s) sprintf(pch, D_002A79A0, s);
     else *pch = 0;
 }

@@ -6,7 +6,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
 int FWidgetVisible(struct O *po);
-float func_0011D1C0(float a, float b, float c, void *p, float *pv, float dt);
+float GSmoothA__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, void *source);
 
@@ -37,7 +37,7 @@ void func_0020F7E0(struct S *p)
             e->v = 0.0f;
             e->f = 0;
         } else {
-            o->pf8->v = func_0011D1C0(o->pf8->v, e->v, t, D_002C3E88, &e->v, D_002DDED0.dt);
+            o->pf8->v = GSmoothA__FffffP4SMPAPf(o->pf8->v, e->v, t, D_002C3E88, &e->v, D_002DDED0.dt);
         }
         t += D_002C3E80;
         if (i == 3) {

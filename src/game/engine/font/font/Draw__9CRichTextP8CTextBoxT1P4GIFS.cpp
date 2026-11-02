@@ -22,13 +22,13 @@ public:
 };
 extern "C" {
 void *func_002333B4(void *, int, unsigned int);
-void func_0015F970(CRichText *p);
-int func_0015F9D0(CRichText *p);
-float func_0015F0F0(CFont *pfont, int ch);
-void func_0015F9A8(CRichText *p, RGBA *prgba);
+void Reset__9CRichText(CRichText *p);
+int ChNext__9CRichText(CRichText *p);
+float DxFromCh__8CFontBrxc(CFont *pfont, int ch);
+void SetBaseColor__9CRichTextP4RGBA(CRichText *p, RGBA *prgba);
 void SetupDraw(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
-void func_0015F3E8(CFont *pfont, GIFS *pgifs);
-float func_0015F480(CFont *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs);
+void SwitchTex0__8CFontBrxP4GIFS(CFont *pfont, GIFS *pgifs);
+float DxDrawCh__8CFontBrxcffUiP4GIFS(CFont *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs);
 void CleanupDraw(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
 }
 /** @sly2-annot addr=0x15FFD0
@@ -47,14 +47,14 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
     float *pdx;
     RGBA rgba;
     func_002333B4(adx, 0, sizeof(adx));
-    func_0015F970(this);
+    Reset__9CRichText(this);
     {
         int chT;
-        while ((chT = func_0015F9D0(this)) != 0) {
+        while ((chT = ChNext__9CRichText(this)) != 0) {
             if (chT == '\n')
                 iline++;
             else
-                adx[iline] += func_0015F0F0(m_pfontCur, chT);
+                adx[iline] += DxFromCh__8CFontBrxc(m_pfontCur, chT);
         }
     }
     if (ptb->jv == 0) {
@@ -67,11 +67,11 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
             y = ptb->y + (ptb->dy - dy) * 0.5f;
     }
     rgba = ptb->rgba;
-    func_0015F9A8(this, &rgba);
+    SetBaseColor__9CRichTextP4RGBA(this, &rgba);
     pfontSetup = 0;
-    func_0015F970(this);
+    Reset__9CRichText(this);
     pdx = adx;
-    while ((ch = func_0015F9D0(this)) != 0) {
+    while ((ch = ChNext__9CRichText(this)) != 0) {
         if (ch == '\n') {
             fNewLine = 1;
             pdx++;
@@ -94,10 +94,10 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
             SetupDraw(m_pfontCur, ptbClip, pgifs);
             pfontSetup = m_pfontCur;
         } else if (m_fDirty) {
-            func_0015F3E8(m_pfontCur, pgifs);
+            SwitchTex0__8CFontBrxP4GIFS(m_pfontCur, pgifs);
             m_fDirty = 0;
         }
-        x += func_0015F480(m_pfontCur, ch, x, y, m_rgbaCur, pgifs);
+        x += DxDrawCh__8CFontBrxcffUiP4GIFS(m_pfontCur, ch, x, y, m_rgbaCur, pgifs);
     }
     CleanupDraw(m_pfontCur, ptbClip, pgifs);
 }

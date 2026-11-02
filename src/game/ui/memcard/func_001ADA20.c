@@ -10,10 +10,10 @@ extern struct B D_002E6604[];
 int func_001B0108(struct G *g);
 int IdPauseTopPage(struct G *g);
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void func_00129EC8(struct CRef *);
+void Decref__4CRef(struct CRef *);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
-char *func_0021ED58(char *d, const char *s);
-char *func_0021EDA0(char *d, const char *s);
+char *strcpy(char *d, const char *s);
+char *strcpy1(char *d, const char *s);
 /** @sly2-annot addr=0x1ADA20
  * Purpose: Dynamic text provider (0x5CD)
  * Info: proposed name TextSaveB (T2); TU memcard
@@ -34,25 +34,25 @@ void func_001ADA20(char *buf)
     RefGetGlobalSaveVar(&ref, gd->x3B1C, &D_002E6604[e->x14]);
     }
     f = ref.m_tag;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     switch (IdPauseTopPage(g)) {
     case 0x1E:
         if (f != 0.0f)
-            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
         else
-            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
         break;
     case 0x1F:
         if (f != 0.0f)
-            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x27));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x27));
         else
-            func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
         break;
     case 0x19:
-        func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x29));
+        strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x29));
         if (f != 0.0f) {
-            func_0021EDA0(buf, "\n");
-            func_0021EDA0(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
+            strcpy1(buf, "\n");
+            strcpy1(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
         }
         break;
     }

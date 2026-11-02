@@ -38,7 +38,7 @@ void RefreshThiefnetItems(OBJ *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, int);
 void func_0019F0A8(void *);
-void func_0021ECD8(char *, const char *, ...);
+void sprintf(char *, const char *, ...);
 CRef RefGetSaveVarV(const char *, ...);
 CRef RefSetSaveVarV(const CRef &, const char *, ...);
 void UpdateScreenStickDir(OBJ *);
@@ -95,7 +95,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
             } else {
                 CRef r;
                 char buf[32];
-                func_0021ECD8(buf, D_002A79A0, p->x258);
+                sprintf(buf, D_002A79A0, p->x258);
                 r = RefGetSaveVarV(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.m_tag > 0) {
                     RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);

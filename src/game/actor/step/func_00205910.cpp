@@ -5,7 +5,7 @@
  * sphere for the nearby-objects query (IntersectSwBoundingSphere, filter func_0020FA50 with p+0xEC as context).  Then D_002C3CE4 passes: every
  * probe point is placed with matCur and snapped to the floor by the line test func_00173610 (height->max / height->min); a probe
  * that finds no floor is dropped by D_002C3CE0 along matCur's up row.  The plane through the three probes gives a normal (cross of
- * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, func_0011BCF8
+ * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, DecomposeRotateMatrixRad
  * measures its angle, which is limited to D_002C3CE8 (func_0011B500 rebuilds the rotation about the same axis with the limit),
  * and matCur = adjustment * matOrig.  The final rotation is stored at p+0x1B0.
  * How it matches (everything came from the personal decomp's recipes, nothing from register pins):
@@ -51,7 +51,7 @@ void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 void IntersectSwBoundingSphere(GAME *,qword,float,int (*)(void *,void *),void *,int *,void ***);
 int func_0020FA50(void *,void *);
 int func_00173610(qword *,float,float,int,void *);
-void func_0011BCF8(MATRIX3 *,float *,qword *);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
 }
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
@@ -135,7 +135,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
         if(GFromVf(qwLen)<0.0001f)normal=qwFallback;
         else{__asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq": :"j"(qwLen));__asm__("vmulq.xyzw %0, %1, $Q":"=j"(normal):"j"(qwCross));}
         adjustment=BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(*(qword *)matOrig.mat[2],normal);
-        func_0011BCF8(&adjustment,&angle,&point.q);
+        DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&adjustment,&angle,&point.q);
         if(D_002C3CE8<angle)adjustment=func_0011B500(point.q,D_002C3CE8);
         const MATRIX3 *pmatOrig=(MATRIX3 *)&matOrig;
         *(MATRIX3 *)&matCur=adjustment**pmatOrig;

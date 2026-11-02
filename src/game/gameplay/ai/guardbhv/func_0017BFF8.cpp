@@ -17,8 +17,8 @@ extern "C"{
 extern float D_002A5600;
 qword func_001A62E8(ACTOR*);
 void GetVectorCylind(qword,float*,float*,float*);
-float RadNormalize__Ff(float);float func_0011CFE0(float,float);float func_0011D948(LM*,float);
-qword SetVectorCylind(float,float,float);int func_0011D910(LM*,float);
+float RadNormalize__Ff(float);float GLimitAbs__Fff(float,float);float GLimitLm__FP2LMf(LM*,float);
+qword SetVectorCylind(float,float,float);int FCheckLm__FP2LMf(LM*,float);
 int func_001C0B50(void*,qword,qword*);
 int func_001C0A40(void*,qword,qword,int,SEGMENT*);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
@@ -50,11 +50,11 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
  }
  tuning=p->actor->tuning;
  GetVectorCylind(QwSub(func_001A62E8(p->actor),origin),&flow.polarAngle,&flow.polarLength,0);
- float angle=heading+func_0011CFE0(RadNormalize__Ff(flow.polarAngle-heading),tuning->narrow);
- float length=func_0011D948(&first,flow.polarLength);
+ float angle=heading+GLimitAbs__Fff(RadNormalize__Ff(flow.polarAngle-heading),tuning->narrow);
+ float length=GLimitLm__FP2LMf(&first,flow.polarLength);
  if(func_001C0B50(region,QwAdd(origin,SetVectorCylind(angle,length,0.0f)),&closest.q)){
   GetVectorCylind(QwSub(closest.q,origin),&flow.candidateAngle,&flow.candidateLength,0);
-  if(__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle-heading))<tuning->wide&&func_0011D910(&second,flow.candidateLength))return closest.q;
+  if(__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle-heading))<tuning->wide&&FCheckLm__FP2LMf(&second,flow.candidateLength))return closest.q;
  }
  qword target,best;
  int mode;

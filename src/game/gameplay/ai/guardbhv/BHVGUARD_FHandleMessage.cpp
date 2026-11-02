@@ -47,7 +47,7 @@ unsigned GrfzpdFromSoGrfzpk(OBJECT*,unsigned);
 int func_001F78A0(unsigned);
 void func_0020A9A8(TUNE*,int);
 void func_0017A5B0(HELPER*,int);
-void func_001305B8(ASEG*,OBJECT*,float,float,int,ASEGA**);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,OBJECT*,float,float,int,ASEGA**);
 unsigned long GrfFromSgf(int);
 int func_0020A378(OBJECT*,OBJECT*,unsigned long);
 int func_0020A298(OBJECT*,OBJECT*,unsigned long);
@@ -118,7 +118,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
    p->actor->otherProgress+=msg->data.amount;
    if(p->actor->otherProgress<=0){
     p->actor->otherProgress=p->actor->otherCapacity;Clear(&w.next);w.next.kind=8;SetBhvguardMode(p,&w.next);
-   }else func_001305B8(p->actor->otherClip,p->actor,0.0f,1.0f,1,&p->actor->otherAnimation);
+   }else ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->actor->otherClip,p->actor,0.0f,1.0f,1,&p->actor->otherAnimation);
   }goto finish;
  }
  if(msg->data.kind==0x200000&&(msg->data.flags&8)){
@@ -158,7 +158,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
   if(p->actor->capacity>0){
    p->actor->progress+=msg->data.amount;
    if(p->actor->progress>0){
-    func_001305B8(p->actor->clip,p->actor,0.0f,1.0f,1,&p->actor->animation);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->actor->clip,p->actor,0.0f,1.0f,1,&p->actor->animation);
     p->actor->animationTime=D_002DDED0.t;
    }else flags|=0x20;
   }else flags|=0x20;

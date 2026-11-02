@@ -15,7 +15,7 @@ struct CRef {
 };
 extern "C" {
 M3 MulMatrix3Matrix3(M3 *pa, M3 *pb);
-void func_0011BCF8(M3 *pmat, float *prad, qword *pvec);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pmat, float *prad, qword *pvec);
 M3 func_0011B500(float rad, qword axis);
 void *func_002333B4(void *pv, int n, int cb);
 }
@@ -45,7 +45,7 @@ CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref)
     M3 mat = MulMatrix3Matrix3((M3 *)aref[0].u.pv, (M3 *)aref[1].u.pv);
     UF normal;
     float rad;
-    func_0011BCF8(&mat, &rad, &normal.q);
+    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&mat, &rad, &normal.q);
     CRef ref(0x1B);
     MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
     func_002333B4(pm, 0, 0x40);

@@ -19,14 +19,14 @@ int FBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
 struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
-int func_0011D910(struct LM *plm, float g);
+int FCheckLm__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
 int CidBasic(void *p);
 int func_00145DA0(struct X *px);
 int func_00146298(struct X *px);
 int func_00146790(struct X *px);
 void func_001457A8(struct P *p);
-void func_00131A00(void *p, float g);
+void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 
 static __inline__ float LenXY(qword d)
 {
@@ -90,7 +90,7 @@ void UpdateBhvfollow(struct P *p)
             f = func_001459C0(p) != 0;
             if (f)
                 SetBhvfollowState(p, 1);
-            else if (func_0011D910(&D_002BD330, g)) {
+            else if (FCheckLm__FP2LMf(&D_002BD330, g)) {
                 p->p90 = pso;
                 SetBhvfollowState(p, 2);
             }
@@ -103,7 +103,7 @@ void UpdateBhvfollow(struct P *p)
             f = func_001459C0(p) != 0;
             if (f)
                 SetBhvfollowState(p, 1);
-            else if (!func_0011D910(&D_002BD338, g))
+            else if (!FCheckLm__FP2LMf(&D_002BD338, g))
                 SetBhvfollowState(p, 0);
             else {
                 switch (CidBasic(p->p10)) {
@@ -136,7 +136,7 @@ void UpdateBhvfollow(struct P *p)
         if (po->p1030) {
             float t = (gXY - p->g6C) / (p->g70 - p->g6C);
             GClamp(&t, 0.0f, 1.0f);
-            func_00131A00(po->p1030, (1.0f - t) * p->g74 + t * p->g78);
+            SetAsegaSpeed__FP5ASEGAf(po->p1030, (1.0f - t) * p->g74 + t * p->g78);
         }
     }
 }

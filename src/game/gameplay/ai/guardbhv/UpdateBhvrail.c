@@ -12,9 +12,9 @@ float SWrapShape(void *p, float f);
 void FindShapeClosestPointFromS(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
 int FBhvrailArrived(struct S *p);
 void SetBhvrailState(struct S *p, int n);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
-void func_00131A00(void *p, float f);
+void SetAsegaSpeed__FP5ASEGAf(void *p, float f);
 /** @sly2-annot addr=0x17CB80
  * Purpose: BHVRAIL Update: walk along the attached rail shape (+0xF84, param +0xF88) toward the goal
  *   parameter; stand on arrival
@@ -46,8 +46,8 @@ void UpdateBhvrail(struct S *p) {
                     __asm__("qmtc2.ni %1, %0" : "=j"(u.q) : "r"(-1.0f));
                     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v.q) : "j"(w), "j"(u.q));
                 }
-                SetStepguardMoverRadTarget(p->p10->aFD0, func_002458F0(v.f[1], v.f[0]));
-                func_00131A00(p->p18->p40->p8, p->f38);
+                SetStepguardMoverRadTarget(p->p10->aFD0, atan2f(v.f[1], v.f[0]));
+                SetAsegaSpeed__FP5ASEGAf(p->p18->p40->p8, p->f38);
             }
         }
     } while (p->n30 != s);

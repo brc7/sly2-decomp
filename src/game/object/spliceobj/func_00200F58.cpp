@@ -8,7 +8,7 @@ void *func_002333B4(void *p, int c, int n);
 OBJ *PvNewPair(void);
 void RefGetPeopid(CRef *ret, void *b, PRM *prm);
 CRef *func_00129658(CRef *pref, CRef *prefSrc); /* CRef::operator= returns *this */
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 void GcPair_Unlink(OBJ *p);
 void func_0011CD98(void *pool, OBJ *p);
 void CRef_ctor_CPair(CRef *pref, OBJ *p);
@@ -38,7 +38,7 @@ inline SP::~SP()
     if (q) {
         if (--q->cref == 0) {
             PairPtr_Release(&q->next, 2);
-            func_00129EC8(&q->ref);
+            Decref__4CRef(&q->ref);
             GcPair_Unlink(q);
             func_0011CD98(D_004520A8, q);
         }
@@ -72,7 +72,7 @@ CRef *func_00200F58(CRef *ret, int c, int x, void *pb)
         CREFA ref;
         RefGetPeopid(&ref.r, pb, &prm);
         func_00129658(pr, &ref.r);
-        func_00129EC8(&ref.r);
+        Decref__4CRef(&ref.r);
         ppTail->Set(nw.p);
         ppTail = &nw.p->next;
     }

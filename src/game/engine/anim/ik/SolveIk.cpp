@@ -16,7 +16,7 @@ struct REQUEST{
 struct WORK{U row[23];};
 inline void*operator new(unsigned int,void*p){return p;}
 struct GAME{char pad[0x3D58];int stamp;};extern "C" GAME D_003DD490;
-extern "C" float func_002456F0(float);
+extern "C" float acosf(float);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" float RadBetweenVectors(qword,qword,qword*);
@@ -45,7 +45,7 @@ extern "C" void SolveIk(void*context,REQUEST*request){
   :"=f"(cosine),"=&j"(inheritedBase),"=m"(w.row[21].q),"=m"(w.row[22].q):"r"(q):"$2","$3","$4","$5","$6","$f0","$f1","$f2","$f3","$f4","vf1","vf2","vf3","vf5","vf6","vf7","vf8","memory");
  if(cosine<low)cosine=low;else if(high<cosine)cosine=high;
  originalBasis=(M3*)&q->snapshot;
- float initialAngle=func_002456F0(cosine);
+ float initialAngle=acosf(cosine);
  (void)new(&w.row[0])M3(func_0011B500(q->axis,initialAngle-q->referenceAngle));
  register FRAME*output __asm__("$16");register M3*rest __asm__("$2");
  register qword r0 __asm__("vf3"),r1 __asm__("vf5"),r2 __asm__("vf4"),first __asm__("vf2");

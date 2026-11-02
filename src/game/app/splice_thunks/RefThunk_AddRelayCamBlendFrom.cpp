@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void AddRelayCamBlendFrom(void *p, qword, qword, float, float, int); CRef RefThunk_AddRelayCamBlendFrom(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x109110
  * Purpose: Splice option thunk: optid 677 on RELAY (g_aeopid[682] thunkFn/thunkUser, returns Void, crefReq
@@ -33,7 +33,7 @@ CRef RefThunk_AddRelayCamBlendFrom(void *p, int c, void *aref)
     float v2;
     float v3;
     int v4;
-    CRef ref = func_00201360(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
     AddRelayCamBlendFrom(p, v0.q, v1.q, v2, v3, v4);

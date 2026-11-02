@@ -4,7 +4,7 @@ extern struct G D_002F66B0;
 extern char D_002F6900[];
 extern char D_002E5270[];
 extern int D_004425DC;
-int func_0021EFD0(int a, int b);
+int SemaCreate__Fii(int a, int b);
 void *func_002333B4(void *pv, int c, int cb);
 int func_00234820(struct ThreadParam *ptp);
 int func_002355E0(int id, void *arg);
@@ -19,7 +19,7 @@ void MpegDisplayThread(void *);
 void StartupMpeg__Fv(void)
 {
     struct ThreadParam tp;
-    D_002F66B0.n23C = func_0021EFD0(0, 1);
+    D_002F66B0.n23C = SemaCreate__Fii(0, 1);
     D_002F66B0.n114 = 0;
     func_002333B4(&tp, 0, sizeof(tp));
     tp.entry = MpegDisplayThread;

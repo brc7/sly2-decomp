@@ -3,7 +3,7 @@ struct O { int a, b, c; struct VTE *vt; };
 extern struct CLOCK { float t; } D_002DDED0;
 struct S { char p0[0x14]; float g14; float g18; struct O *po; char p1[0x104-0x20]; int f104; };
 void LaunchMatch__FP5MATCH(struct S *p);
-void func_001CE980(struct S *p);
+void RemoveRip__FP3RIP(struct S *p);
 /** @sly2-annot addr=0x1D0038
  * Purpose: MATCH Update: LaunchMatch / RemoveRip
  * Info: proposed name UpdateMatch (T1); TU rip
@@ -17,6 +17,6 @@ void UpdateMatch(struct S *p) {
         struct O *po = p->po;
         struct VTE *e = &po->vt[8];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
-        func_001CE980(p);
+        RemoveRip__FP3RIP(p);
     }
 }

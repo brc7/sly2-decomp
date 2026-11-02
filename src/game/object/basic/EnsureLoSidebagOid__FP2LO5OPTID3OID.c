@@ -1,8 +1,8 @@
-/* EnsureLoSidebagOid (Sly 1 name); C++ original inlined CRef ctor/Set*, ~CRef -> Decref (func_00129EC8) */
+/* EnsureLoSidebagOid (Sly 1 name); C++ original inlined CRef ctor/Set*, ~CRef -> Decref (Decref) */
 struct LO;
 struct CRef { int m_tagk; union { int m_n; float m_g; } m_tag; };
 void RefEnsureOption(struct CRef *pref, struct LO *pbasic, int optid, struct CRef *prefValue);
-void func_00129EC8(struct CRef *);
+void Decref__4CRef(struct CRef *);
 /** @sly2-annot addr=0x132D88
  * Purpose: RefEnsureOption with S32 CRef holding an OID
  * Info: proposed name EnsureLoSidebagOid (T1); TU basic
@@ -17,6 +17,6 @@ void EnsureLoSidebagOid__FP2LO5OPTID3OID(struct LO *plo, int optid, int v)
     ref.m_tagk = 0x15;
     ref.m_tag.m_n = v;
     RefEnsureOption(&refT, plo, optid, &ref);
-    func_00129EC8(&refT);
-    func_00129EC8(&ref);
+    Decref__4CRef(&refT);
+    Decref__4CRef(&ref);
 }

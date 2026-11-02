@@ -2,7 +2,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void *func_002332B8(void *pdst, const void *psrc, unsigned int cb);
+void *memmove(void *pdst, const void *psrc, unsigned int cb);
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 /** @sly2-annot addr=0x1E5280
  * Purpose: Remove a held STEP and call its vt84(a,b)
@@ -22,7 +22,7 @@ void RemoveJsgStepHold(struct P *p, struct O *po, int a, int b)
         register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)p;
         unsigned int dest;
         __asm__("daddu %0,%1,$zero":"=r"(dest):"r"(addr));
-        func_002332B8((void *)(dest+0xA8),(void *)(addr+0xAC),(p->c-i)*4-4);
+        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(p->c-i)*4-4);
     }
     p->c--;
     po->vt[0x54].pfn((char *)po + po->vt[0x54].d, a, b);

@@ -35,7 +35,7 @@ qword ConvertAloPos(O *,O *,qword);
 void UpdateJtThrowArc(S *,int);
 void ChargeGadgetMp(O *,int);
 void ReleaseSma(HANDLE *);
-void func_001305B8(ASEG *,O *,float,float,int,ASEGA **);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGA **);
 }
 static inline void IntCall(O *o,int slot,int value){VE *v=o->vt;v[slot].f.integer((char *)o+v[slot].delta,value);}
 static inline void PlainCall(O *o,int slot){VE *v=o->vt;v[slot].f.plain((char *)o+v[slot].delta);}
@@ -181,7 +181,7 @@ extern "C" void SetJtthrowState(S *s,int state){
   break;
  }
  ReleaseSma(&s->owner->extra);
- func_001305B8(animation,s->owner,0.0f,1.0f,flags,&s->owner->animation);
+ ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(animation,s->owner,0.0f,1.0f,flags,&s->owner->animation);
  PlainCall(s->owner,90);
  RecalcSwOxfFilterForObject(&D_003DD490,s->owner);
 }

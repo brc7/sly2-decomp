@@ -16,8 +16,8 @@ extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void MulMatrix3Matrix3(M3 *,const M3 *,const M3 *);
-extern "C" void func_0011BCF8(const M3 *,float *,qword *);
-extern "C" float func_0011CFE0(float,float);
+extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
+extern "C" float GLimitAbs__Fff(float,float);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Add(qword a,qword b){__asm__("vadd.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 // volatile store: the game's later loads (dt, velocity, the epilogue) wait for these sqc2s
@@ -63,13 +63,13 @@ extern "C" void func_001F59A0(P *p,const M3 *orientation,const COEF *c)
     frame=BuildFrame(owner->parent,orientation);
     NormalizeRotateMatrix3__FP7MATRIX3(&frame);
     {M3 out;MulMatrix3Matrix3(&out,&owner->matrix,&frame);relative=out;}
-    func_0011BCF8(&relative,&angle,&axis.q);
-    desired=func_0011CFE0((angle/stopAngle)*maximum,maximum);
+    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&relative,&angle,&axis.q);
+    desired=GLimitAbs__Fff((angle/stopAngle)*maximum,maximum);
     speed=GetX(DotQ(owner->velocity,axis.q));
     clock=&D_002DDED0;
     float half=clock->dt*0.5f;
     remaining=angle-(speed+desired)*half;
-    if(remaining<stopAngle)desired=func_0011CFE0((remaining/stopAngle)*maximum,maximum);
+    if(remaining<stopAngle)desired=GLimitAbs__Fff((remaining/stopAngle)*maximum,maximum);
     U scalar;
     qword w;
     {qword k=Scalar(desired,&scalar);w=Scale(axis.q,k);StoreQ(w,&wanted);}

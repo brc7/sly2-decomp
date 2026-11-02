@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x122B70
  * Purpose: Splice builtin "vector-project-tangent": a-(a.b)b
  * Info: proposed name RefOpVectorProjectTangent (T1); TU bif
@@ -24,6 +24,6 @@ CRef *RefOpVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef 
         "vsub.xyzw %3, %2, %0" : "=&j"(t), "=&j"(u), "+j"(a), "+j"(b));
     CRef_ctor(&ref, b);
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

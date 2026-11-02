@@ -23,7 +23,7 @@ int FIsDlEmpty__FP2DL(int *pdl);
 int func_001A61A0(EMITTER *p);
 qword func_001A62E8(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
-int func_0011A3C0(int *pdl);
+int CPvDl__FP2DL(int *pdl);
 void *func_002333B4(void *pv, int b, int cb);
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
 }
@@ -140,7 +140,7 @@ LActive:
         if (!p->pemitb->f4)
             cCur = p->pprg ? p->pprg->cpart : 0;
         else
-            cCur = p->pripg ? func_0011A3C0(&p->pripg->dl) : 0;
+            cCur = p->pripg ? CPvDl__FP2DL(&p->pripg->dl) : 0;
         int d = cWant - cCur;
         c = 0;
         int f = 0 < d;

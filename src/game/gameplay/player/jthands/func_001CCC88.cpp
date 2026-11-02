@@ -31,7 +31,7 @@ M4 ConvertAloMat4(LO *,LO *,const M4 *);
 M4 InvertMatrix4Rigid(const M4 *);
 void SetLoParent_1A58D0(LO *,int,int);
 float func_00196928(qword,qword,float,float,float,float);
-void func_00131A00(ANIM *,float);
+void SetAsegaSpeed__FP5ASEGAf(ANIM *,float);
 qword func_0022FC48(SPACE *,SPACE *,qword);
 qword ConvertXfVec(SPACE *,SPACE *,qword);
 JOB *func_0012DE58(LO *,CHANNEL *,int,float,qword,qword);
@@ -125,7 +125,7 @@ extern "C" void func_001CCC88(P *input,LO *other){
  __asm__("neg.s %0,%3\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%1\n\t.set at\n\tmov.s %2,%4":"=f"(negativeLimit),"=f"(minimum),"=f"(maximum):"f"(limit),"f"(unit):"$1");
  float duration=Max(phase,func_00196928(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
  float speed=phase/duration;phase=duration;
- func_00131A00(anim,speed);
+ SetAsegaSpeed__FP5ASEGAf(anim,speed);
  {
  register float negativeTime __asm__("$f0"),positiveTime __asm__("$f1");
  register qword first __asm__("vf4"),speedVector __asm__("vf5");

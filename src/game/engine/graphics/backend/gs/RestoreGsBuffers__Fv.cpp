@@ -9,7 +9,7 @@ extern char D_002DECC0[];
 extern char D_002DEBD0[];
 extern "C" void sceGsSetHalfOffset(void *pdraw, short x, short y, short half);
 extern "C" void func_00234CA0(int n);
-extern "C" void func_002406C0(void *p);
+extern "C" void sceGsPutDrawEnv(void *p);
 static inline int FField() { return ((CSR *)0x12001000)->FIELD; }
 /** @sly2-annot addr=0x16F6B8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -25,6 +25,6 @@ void RestoreGsBuffers()
         D_002DEDB4 = FField() == 0;
         sceGsSetHalfOffset((D_002DEDB0 & 1) ? D_002DECD0 : D_002DEBE0, 0x800, 0x800, D_002DEDB4);
         func_00234CA0(0);
-        func_002406C0((D_002DEDB0 & 1) ? D_002DECC0 : D_002DEBD0);
+        sceGsPutDrawEnv((D_002DEDB0 & 1) ? D_002DECC0 : D_002DEBD0);
     }
 }

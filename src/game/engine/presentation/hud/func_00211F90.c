@@ -13,7 +13,7 @@ extern char D_002A8AA0[];
 void UpdateWidget(struct S *);
 int FTaskComplete(struct O *);
 int FWidgetAnimPlaying(struct S *,int);
-int func_0021ECD8(char *,char *,...);
+int sprintf(char *,char *,...);
 /** @sly2-annot addr=0x211F90
  * Purpose: CID 0x81 Update: counts finished/active objects, writes counts into "Widget Item 0/1/2"
  *   (doneB,totalB,remainingB) for text ids 0x2FF..; shows while any active, hides when all done
@@ -49,9 +49,9 @@ void func_00211F90(struct S *p)
         }
     }
     if(FWidgetAnimPlaying(p,0x314)) {
-        func_0021ECD8(D_002C3EC0,D_002A8AA0,readyB);
-        func_0021ECD8(D_002C3EC0+0x30,D_002A8AA0,p->countB);
-        func_0021ECD8(D_002C3EC0+0x60,D_002A8AA0,p->countB-readyB);
+        sprintf(D_002C3EC0,D_002A8AA0,readyB);
+        sprintf(D_002C3EC0+0x30,D_002A8AA0,p->countB);
+        sprintf(D_002C3EC0+0x60,D_002A8AA0,p->countB-readyB);
     }
     if(ready==p->countB+p->countA || !loading) {
         p->vt->f50((char*)p+p->vt->d50);

@@ -22,8 +22,8 @@ struct S {
     int pad158[3];
     float x164, x168;
 };
-void func_001A38A8(float a, float b, float c, float d, float *pa, float *pb);
-void func_0011DFA0(void *p, V3 *pv);
+void ConvertAngleStrength__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb);
+void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
 void func_001ED2D8(V3 *pv);
 qword func_001A62E8(struct S *p);
 void FitLinearFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb);
@@ -44,8 +44,8 @@ void RebuildLight(struct S *p)
     float a;
     g = Max1(p->x150, p->xF8);
     a = (p->x154 > 30.0f) ? p->x154 : 30.0f;
-    func_001A38A8(a, 0.0f, 0.0f, g, &p->x124, &p->x128);
-    func_0011DFA0(p->xF0, &v);
+    ConvertAngleStrength__FffffPfT4(a, 0.0f, 0.0f, g, &p->x124, &p->x128);
+    ConvertUserHsvToUserRgb__FP6VECTORT0(p->xF0, &v);
     func_001ED2D8(&v);
     p->x130 = v.x;
     p->x134 = v.y;

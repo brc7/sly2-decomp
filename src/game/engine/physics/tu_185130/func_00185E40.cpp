@@ -31,8 +31,8 @@ extern U D_002A2DC0;extern M3 D_002DDFA0;extern CLOCK D_002DDED0;extern PARAMS D
 qword func_001A62E8(P*);M4*func_001A6318(P*);
 void func_00185310(void*,qword,TRIREF*,TRIREF*,qword*,qword*);
 M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
-void func_0011C950(M4*,M3*,PARAMS*,M3*,qword*,float);
-void func_0011F088(qword,qword,PARAMS*,qword*,float);
+void SmoothMatrix(M4*,M3*,PARAMS*,M3*,qword*,float);
+void PosSmooth(qword,qword,PARAMS*,qword*,float);
 void func_001856B8(void*,LIST*);void func_001856C0(void*,LIST*,int,U*,PARAMS*,float);
 qword func_00185A80(void*,LIST*,qword);
 void SetJtJts__FP2JT3JTS4JTBS(P*,int,int);void func_001A0450(P*,AXIS*,REQUEST*);
@@ -98,9 +98,9 @@ extern "C" void func_00185E40(P*p){
  qword unit=QwDivide(surface,QwSqrt(QwDot(surface,surface)));
  {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);p->basis.r[0]=m.r[0];p->basis.r[1]=m.r[1];p->basis.r[2]=m.r[2];}
  U angular,linear;
- func_0011C950(func_001A6318(p),&p->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
+ SmoothMatrix(func_001A6318(p),&p->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
  SetVec(p,36,angular.q);
- func_0011F088(position,target,&D_002BE930,&linear.q,D_002DDED0.dt*0.5f);
+ PosSmooth(position,target,&D_002BE930,&linear.q,D_002DDED0.dt*0.5f);
  LIST planes;U samples[3];
  for(i=0;i<3;i++)StoreAddRot(&samples[i],target,&p->basis,&p->points[i].q);
  func_001856B8(p->mesh,&planes);

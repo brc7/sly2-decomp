@@ -1,18 +1,18 @@
 #include "m2c_prelude.h"
 M2C_UNK CopyAb__FPvT0Ui(s128 *, s128 *, s8, s128);  /* extern */
-M2C_UNK func_00117968(s32, s32, s32 *);             /* extern */
-M2C_UNK func_001179B8(s32, s32);                    /* extern */
-M2C_UNK func_00117EB0(s32, s32 *);                  /* extern */
-M2C_UNK func_00117F18(s32, M2C_UNK *);              /* extern */
-M2C_UNK func_00117F90(s32, M2C_UNK *);              /* extern */
-M2C_UNK func_00117FB0(s32, M2C_UNK *);              /* extern */
+M2C_UNK Read__18CBinaryInputStreamiPv(s32, s32, s32 *);             /* extern */
+M2C_UNK Skip__18CBinaryInputStreami(s32, s32);                    /* extern */
+M2C_UNK ReadVector__18CBinaryInputStreamP6VECTOR(s32, s32 *);                  /* extern */
+M2C_UNK ReadMatrix4__18CBinaryInputStreamP7MATRIX4(s32, M2C_UNK *);              /* extern */
+M2C_UNK ReadCb12__18CBinaryInputStreamPv(s32, M2C_UNK *);              /* extern */
+M2C_UNK ReadCb8__18CBinaryInputStreamPv(s32, M2C_UNK *);              /* extern */
 M2C_UNK func_001291A8(void **, void **);            /* extern */
-M2C_UNK func_00129EC8(void **);                     /* extern */
+M2C_UNK Decref__4CRef(void **);                     /* extern */
 M2C_UNK AllocStack__4DMASi(M2C_UNK *, M2C_UNK);          /* extern */
-M2C_UNK func_001573C0(M2C_UNK *, s32 *, s32 *, s32 *); /* extern */
+M2C_UNK DetachCopySw__4DMASPiPP2QWT2(M2C_UNK *, s32 *, s32 *, s32 *); /* extern */
 s32 *func_001AE318(s32 *, s32, s32 *, M2C_UNK);     /* extern */
-M2C_UNK func_00226C10(M2C_UNK *);                   /* extern */
-M2C_UNK func_00226FD0(M2C_UNK *, s32, s32, s32);    /* extern */
+M2C_UNK __4VIFS(M2C_UNK *);                   /* extern */
+M2C_UNK AddVifUnpack__4VIFS3UPKiP18CBinaryInputStreami(M2C_UNK *, s32, s32, s32);    /* extern */
 extern M2C_UNK D_0025E090;
 extern M2C_UNK D_0025E668;
 extern M2C_UNK D_002A2D30;
@@ -59,7 +59,7 @@ extern M2C_UNK D_37A8;
  * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/rendering.md#gifs-0x166920-0x167310
  * @end-sly2-annot */
-s32 func_00166920(s32 arg0) {
+s32 __4GIFS(s32 arg0) {
     __4DMAS(arg0);
     M2C_FIELD(arg0, s32 *, 0x14) = 1;
     M2C_FIELD(arg0, M2C_UNK **, 0x18) = &D_002CF508;

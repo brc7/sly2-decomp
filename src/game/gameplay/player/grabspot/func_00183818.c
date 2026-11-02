@@ -3,7 +3,7 @@ struct O { char pad[0x10C]; int n10C; };
 struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
 extern qword func_001A62E8(void *p);
 extern qword *func_001A6318(void *p);
-extern float func_002458F0(float y, float x);
+extern float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x183818
@@ -30,7 +30,7 @@ void func_00183818(struct O *p, struct J *pj, qword *pv, float *pg)
         *pv = r;
     }
     if (pg) {
-        float gAng = func_002458F0(GetY(d), GetX(d));
+        float gAng = atan2f(GetY(d), GetX(d));
         if (pj->n1040 == 1)
             gAng += 3.14159265f;
         *pg = gAng;

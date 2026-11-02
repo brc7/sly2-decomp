@@ -140,7 +140,7 @@ extern VECTOR D_002A2DD0; // (0, 0, 0, 0)
 extern "C"
 {
 void *func_002333B4(void *pv, int b, uint cb);                       // memset
-void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);         // CopyAb
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);         // CopyAb
 qword ConvertAloPos(SO *psoFrom, SO *psoTo, qword pos);              // ConvertLoPos
 float RadNormalize__Ff(float rad);                                      // RadNormalize
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);           // CalculateSinCos
@@ -322,7 +322,7 @@ extern "C" void UpdateWrStateVectors__FP2WR(WR *pwr)
         {
             VECTOR apos[256];
             float au[256];
-            func_001AE5A0(apos, pwrbgbatch->apos, pwrbgbatch->cvtx * sizeof(VECTOR));
+            CopyAb__FPvT0Ui(apos, pwrbgbatch->apos, pwrbgbatch->cvtx * sizeof(VECTOR));
             VECTOR *pposEnd = apos + pwrbgbatch->cvtx;
             VECTOR *ppos = apos;
             float *pu = au;

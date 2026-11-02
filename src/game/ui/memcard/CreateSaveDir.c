@@ -2,7 +2,7 @@ extern char D_002A6BB0[], D_002A6BC8[], D_002A6BF8[];
 void *McMkdir(void *s, char *a);
 void *McWriteFile(void *s, char *a, char *b, int n);
 void *WriteIconSys(void *s, char *a, char *b);
-void *func_001AC238(void *s, char *a);
+void *load_sly_icon_from_disc(void *s, char *a);
 /** @sly2-annot addr=0x1AB7D0
  * Purpose: mkdir /BASCUS-97316YAOTWTD!, write data file, write icon.sys (0x1AC008), copy icon from disc
  *   (load_sly_icon_from_disc)
@@ -21,5 +21,5 @@ void *CreateSaveDir(void *s)
     p = WriteIconSys(s, D_002A6BB0, D_002A6BF8);
     if (p)
         return p;
-    return func_001AC238(s, D_002A6BB0);
+    return load_sly_icon_from_disc(s, D_002A6BB0);
 }

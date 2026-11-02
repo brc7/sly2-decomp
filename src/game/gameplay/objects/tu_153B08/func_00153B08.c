@@ -5,9 +5,9 @@ struct E { char *pchz; int n4; int n8; int nC; char ab[0x40]; };
 struct S { char pad[0x50]; int c; struct E *ae; };
 extern char D_002DD590[];
 void LoadLoFromBrx(struct S *p, void *pbis);
-int func_00117BD0(void *pbis);
-int func_00117D00(void *pbis);
-int func_00117DB8(void *pbis);
+int U8Read__18CBinaryInputStream(void *pbis);
+int S8Read__18CBinaryInputStream(void *pbis);
+int S32Read__18CBinaryInputStream(void *pbis);
 void CBinaryInputStream_ReadStringSw(void *pbis, char **ppchz, void *palloc, int nKind);
 void CBinaryInputStream_ReadCb64(void *pbis, void *pv);
 /** @sly2-annot addr=0x153B08
@@ -26,14 +26,14 @@ void func_00153B08(struct S *p, void *pbis)
     MSG msg;
     int i;
     LoadLoFromBrx(p, pbis);
-    p->c = func_00117BD0(pbis);
+    p->c = U8Read__18CBinaryInputStream(pbis);
     p->ae = PvAllocMsg(&msg, p->c * sizeof(struct E), 0x10);
     for (i = 0; i < p->c; i++) {
         struct E *pe = &p->ae[i];
         CBinaryInputStream_ReadStringSw(pbis, &pe->pchz, D_002DD590, 7);
-        pe->n4 = func_00117D00(pbis);
-        pe->n8 = func_00117DB8(pbis);
-        pe->nC = func_00117DB8(pbis);
+        pe->n4 = S8Read__18CBinaryInputStream(pbis);
+        pe->n8 = S32Read__18CBinaryInputStream(pbis);
+        pe->nC = S32Read__18CBinaryInputStream(pbis);
         CBinaryInputStream_ReadCb64(pbis, pe->ab);
     }
 }

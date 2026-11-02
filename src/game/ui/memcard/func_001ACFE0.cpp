@@ -6,7 +6,7 @@
 // D_003D4A60 again after the copy. That is what puts `lui a3` after the copy ctor yet keeps a3's low half
 // ahead of the a2 setup (the scheduler boosts insns that set a register exactly once in the function).
 class CRef;
-extern "C" void func_00129EC8(CRef *pref);                       // ~CRef
+extern "C" void Decref__4CRef(CRef *pref);                       // ~CRef
 extern "C" CRef *func_001291A8(CRef *, const CRef *);            // CRef copy ctor, returns this
 class CRef {
 public:
@@ -14,7 +14,7 @@ public:
     int m_tag;
     CRef(bool f) { m_tagk = 0x17; m_tag = f; }
     CRef(const CRef &ref) { func_001291A8(this, &ref); }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 class O;
 struct S { char pad[0x40]; int x40; int x44; float x48; int x4C; };   // x40 = state id, x4C = counter

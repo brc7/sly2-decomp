@@ -13,8 +13,8 @@ extern G D_003DD490;
 extern H D_002DFC00;
 extern I D_002E65E0;
 extern char D_002A7A70[];
-extern "C" char *func_0021ED58(char *, const char *);
-extern "C" char *func_0021EDA0(char *, const char *);
+extern "C" char *strcpy(char *, const char *);
+extern "C" char *strcpy1(char *, const char *);
 extern "C" int CLanguagesRegion(void);
 char *PchzFindSwLangstr__FP2SWi(G *, int);
 CRef RefGetGlobalSaveVar(void *, void *);
@@ -30,7 +30,7 @@ extern "C" void BuildTitlePromptText(char *pch)
     float g;
     void *pv;
     if (D_002DFC00.x100C == 1 && D_002DFC00.x1010 == 0) {
-        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 9));
+        strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 9));
         return;
     }
     g = 0.0f;
@@ -41,12 +41,12 @@ extern "C" void BuildTitlePromptText(char *pch)
     }
     {
         int ids = g != 0.0f ? 6 : 5;
-        func_0021ED58(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
+        strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
     }
-    func_0021EDA0(pch, D_002A7A70);
-    func_0021EDA0(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 8));
+    strcpy1(pch, D_002A7A70);
+    strcpy1(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 8));
     if (CLanguagesRegion() >= 2) {
-        func_0021EDA0(pch, D_002A7A70);
-        func_0021EDA0(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 0x56));
+        strcpy1(pch, D_002A7A70);
+        strcpy1(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 0x56));
     }
 }

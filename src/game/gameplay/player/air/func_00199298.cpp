@@ -73,7 +73,7 @@ struct P0 { char pad[0xEC]; EC *xec; };
 struct P { P0 *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; C8 *xc8; };
 struct G;
 extern G D_003DD490;
-extern "C" void func_001A7E10(G *g, X *x);
+extern "C" void FreeSwXpList__FP2SWP2XP(G *g, X *x);
 /** @sly2-annot addr=0x199298
  * Purpose: If kind 0x11, free the wall-run XP list (FreeSwXpList)
  * Info: proposed name FreeJtWallRunXps (T2); TU air
@@ -108,5 +108,5 @@ extern "C" void func_00199298(P *p)
         }
         *l->x8 = l->x0;
     }
-    func_001A7E10(&D_003DD490, head);
+    FreeSwXpList__FP2SWP2XP(&D_003DD490, head);
 }

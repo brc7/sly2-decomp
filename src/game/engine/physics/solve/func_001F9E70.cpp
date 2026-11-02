@@ -10,7 +10,7 @@ extern CLOCK D_002DDED0;
 extern G D_003DD490;
 extern "C" void SlotUnsettle(P *,OWNER *);
 extern "C" qword ConvertXfVec(void *,OWNER *,qword);
-extern "C" int func_0011D4D0(float,float,float);
+extern "C" int FFloatsNear__Ffff(float,float,float);
 extern qword D_002A2DD0;
 extern "C" void func_001F4BF8(P *);
 extern "C" qword *VECTOR_opAssign(qword *,qword);
@@ -31,12 +31,12 @@ static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));retu
 static inline float Y(qword q){register float f __asm__("$2");__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline float Z(qword q){register float f __asm__("$2");__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 static inline int NearFlag(int code){register int r __asm__("$21");__asm__("sltu %0,$zero,%1":"=r"(r):"r"(code));return r;}
-static inline void Near(int *out,qword a,qword b){if(func_0011D4D0(X(a),X(b),0.0001f))if(func_0011D4D0(Y(a),Y(b),0.0001f))*out=NearFlag(func_0011D4D0(Z(a),Z(b),0.0001f));}
+static inline void Near(int *out,qword a,qword b){if(FFloatsNear__Ffff(X(a),X(b),0.0001f))if(FFloatsNear__Ffff(Y(a),Y(b),0.0001f))*out=NearFlag(FFloatsNear__Ffff(Z(a),Z(b),0.0001f));}
 static inline qword Zero(){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline void Consume(P *p,OWNER *object,U &pending,qword*out){SlotUnsettle(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
 static inline float YFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tprot3w %0,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline float ZFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tpextuw %0,$zero,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
-static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(func_0011D4D0(ax,bx,0.0001f))if(func_0011D4D0(Y(a),YFromHome(b),0.0001f))*out=func_0011D4D0(Z(a),ZFromHome(b),0.0001f)!=0;}
+static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(FFloatsNear__Ffff(ax,bx,0.0001f))if(FFloatsNear__Ffff(Y(a),YFromHome(b),0.0001f))*out=FFloatsNear__Ffff(Z(a),ZFromHome(b),0.0001f)!=0;}
 static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
 static inline qword*PointAddress(OWNER*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,0x30\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->position));*value=point;return address;}
 static inline float HalfAndDelta(float dt,float half,const qword&source,qword*delta){register float product __asm__("$f0");register qword d __asm__("vf3");__asm__("mul.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(product),"=j"(d):"f"(dt),"f"(half),"m"(source));*delta=d;return product;}

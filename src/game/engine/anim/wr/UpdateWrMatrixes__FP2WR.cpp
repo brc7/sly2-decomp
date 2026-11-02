@@ -17,7 +17,7 @@ void UpdateLo(WR *);
 void UpdateWrStateVectors__FP2WR(WR *);
 float RadNormalize__Ff(float);
 void CalculateSinCos__FfPfT1(float,float *,float *);
-float func_0022BF70(ONZ *);
+float GFromOnz__FP3ONZ(ONZ *);
 M3 func_0011B500(qword,float);
 }
 static inline qword ScalarLoad(const float &f){int bits;qword q;__asm__("lw %0,%1":"=r"(bits):"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
@@ -67,8 +67,8 @@ void UpdateWrMatrixes(WR *p){
   case 1:{
    M3 result,first;
    V rotated;
-   float bend=func_0022BF70(&entry->data.bend.bend);
-   float swivel=func_0022BF70(&entry->data.bend.swivel);
+   float bend=GFromOnz__FP3ONZ(&entry->data.bend.bend);
+   float swivel=GFromOnz__FP3ONZ(&entry->data.bend.swivel);
    first=func_0011B500(UnitFresh(entry->vectorA.q),swivel);
    rotated.q=Rotate(first,Unit(entry->axis.q));
    result=func_0011B500(UnitFresh(rotated.q),bend);

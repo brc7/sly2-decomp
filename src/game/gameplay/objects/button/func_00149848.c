@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 M2C_UNK CopyAb__FPvT0Ui(s32 *, s32 *, s32);         /* extern */
-M2C_UNK func_00129EC8(s32);                         /* extern */
+M2C_UNK Decref__4CRef(s32);                         /* extern */
 extern M2C_UNK D_002A2E50;
 extern M2C_UNK D_002A2E58;
 extern s32 D_002A2E5C;

@@ -14,12 +14,12 @@ extern CLOCK D_002DDED0;extern U D_002A2DC0;extern P*D_002E1E40;
 void SubscribeLoObject(PATH*,P*);void UnsubscribeLoObject(PATH*,P*);
 void func_00204F78(P*,PATH*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);
-void func_0019E110(C*,LM*);float func_0011D948(LM*,float);
+void func_0019E110(C*,LM*);float GLimitLm__FP2LMf(LM*,float);
 qword ConvertAloPos(P*,P*,qword);qword func_001A62E8(P*);
 void SetStepplayerTnOverride(P*,void*);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 void SetJtJtcs__FP2JTi(P*,int);void ReleaseSma(COMPONENT**);
-void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
 }
 static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -115,7 +115,7 @@ extern "C" void func_0019EAB0(C*p,int next){
   EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
   U*axis; qword direction=Direction(&w.ahead,&w.behind,axis);
   p->descending=Z(Normal(direction,axis))<-0.5f;
-  func_0019E110(p,&w.limit);p->distance=func_0011D948(&w.limit,p->distance);
+  func_0019E110(p,&w.limit);p->distance=GLimitLm__FP2LMf(&w.limit,p->distance);
   EvaluateShapeS(p->path,p->distance,&w.point,0);
   qword offset=Vector(ConvertAloPos(p->actor,0,p->offset.q));P*owner;
   qword point=WorldInputs(p,&w.point,&w.world,offset,owner);
@@ -149,6 +149,6 @@ extern "C" void func_0019EAB0(C*p,int next){
  case 4:p->descending=!p->descending;clip=p->fallback;break;
  }
  ReleaseSma(&p->actor->component);
- func_001305B8(clip,p->actor,position,speed,flags,&p->actor->asega);
+ ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,p->actor,position,speed,flags,&p->actor->asega);
  Clear(&p->actor->velocity);
 }

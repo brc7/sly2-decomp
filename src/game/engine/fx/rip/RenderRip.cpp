@@ -3,7 +3,7 @@ struct M { qword a, b, c; };
 struct S { char pad[0x40]; M m; qword q70; };
 extern "C" {
 int FRenderRipPosMat(S *p, qword q, M m);
-void func_001CE980(S *p);
+void RemoveRip__FP3RIP(S *p);
 void RenderRip(S *p);
 }
 /** @sly2-annot addr=0x1CF518
@@ -15,5 +15,5 @@ void RenderRip(S *p);
  * @end-sly2-annot */
 void RenderRip(S *p)
 {
-    if (!FRenderRipPosMat(p, p->q70, p->m)) func_001CE980(p);
+    if (!FRenderRipPosMat(p, p->q70, p->m)) RemoveRip__FP3RIP(p);
 }

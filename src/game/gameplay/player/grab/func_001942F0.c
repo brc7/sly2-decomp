@@ -9,7 +9,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 void func_0019FD30(void *p, void *s, float g);
 void func_0019FEB0(void *p, int a, qword q);
 qword func_001A62E8(void *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 /** @sly2-annot addr=0x1942F0
  * Purpose: Per grab state, record the held spot/param into the STEPPLAYER+0x9E0 place table (0x19FD30 /
  *   0x19FEB0) unless the object forbids it
@@ -60,7 +60,7 @@ void func_001942F0(struct P *p)
             U d;
             a = func_001A62E8(p->x0);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d.q) : "j"(a), "j"(func_001A62E8(p->x14)));
-            g = func_002458F0(d.f[1], d.f[0]) * s;
+            g = atan2f(d.f[1], d.f[0]) * s;
         }
         func_0019FD30(p->x0->x9e0, p->x18, g);
         break;

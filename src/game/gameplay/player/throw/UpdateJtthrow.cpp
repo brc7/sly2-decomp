@@ -25,9 +25,9 @@ qword func_001A62E8(O *);
 int FPowerupAcquired(int);
 qword SetVectorCylind(float,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
-float func_0011D948(RANGE *,float);
+float GLimitLm__FP2LMf(RANGE *,float);
 void UpdateJtThrowArc(S *,int);
-float func_002458F0(float,float);
+float atan2f(float,float);
 float RadStepHeading(O *);
 float RadNormalize__Ff(float);
 void SetJtthrowState(S *,int);
@@ -181,7 +181,7 @@ extern "C" void UpdateJtthrow(S *s){
    qword sum=PolarOperands(w.vector,movement,&w.angle,&w.radius,angleArgument,radiusArgument);
    w.delta.q=sum;
    GetVectorCylind(sum,angleArgument,radiusArgument,0);
-   w.radius=func_0011D948(&w.scratch.range,w.radius);
+   w.radius=GLimitLm__FP2LMf(&w.scratch.range,w.radius);
    qword polar=SetVectorCylind(w.angle,w.radius,elevation);
    StoreTarget(s->targetWorld,w.delta,w.ownerPosition,polar);
   }
@@ -194,7 +194,7 @@ extern "C" void UpdateJtthrow(S *s){
   switch(previous){
   case 0:{
    w.scratch.vector.q=IdleDifference(func_001A62E8(s->selected),w.ownerPosition);
-   float heading=func_002458F0(w.scratch.vector.f[1],w.scratch.vector.f[0]);
+   float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
    float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
    float threshold=s->idleThreshold;
    if(threshold<angle)SetJtthrowState(s,2);
@@ -230,7 +230,7 @@ extern "C" void UpdateJtthrow(S *s){
    if(!animation||FAsegaRetracted(animation))SetJtthrowState(s,4);
    else if(s->state==4){
     w.scratch.vector.q=ActiveDifference(s->targetWorld,w.ownerPosition);
-    float heading=func_002458F0(w.scratch.vector.f[1],w.scratch.vector.f[0]);
+    float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
     float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
     float threshold=s->activeThreshold;
     if(threshold<angle)SetJtthrowState(s,6);else if(angle<-threshold)SetJtthrowState(s,5);

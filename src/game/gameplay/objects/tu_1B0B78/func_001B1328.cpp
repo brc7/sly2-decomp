@@ -20,7 +20,7 @@ extern "C"{
  float DuGetShapeSearchIncrement(PATH*);float SMaxShape(PATH*);P*PpoClosestSw(void*,qword);
  EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,SOURCE*);void SetSndSourcePos(EFFECT*,qword);
  qword ConvertAloPos(P*,P*,qword);void func_00154E10(void*,qword,int,int,P*);
- void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
+ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
 }
 static inline void SetVelocity(P*p,qword q){VE&v=p->vt[35];((void(*)(void*,qword))v.fn)((char*)p+v.delta,q);}
 static inline void SetZeroVelocity(P*p){SetVelocity(p,D_002A2DD0.q);}
@@ -117,6 +117,6 @@ extern "C" void func_001B1328(P*p,int next){
  }
  p->state=next;p->changed=D_002DDED0.t;
  if(next!=2){
-  func_001305B8(p->aseg[next].clip,p,0.0f,1.0f,p->aseg[next].flags|1,&p->animation);
+  ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->aseg[next].clip,p,0.0f,1.0f,p->aseg[next].flags|1,&p->animation);
  }
 }

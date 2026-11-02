@@ -4,7 +4,7 @@ struct S { char pad[0xF0]; void *xF0; };
 extern int D_002C1F70[1];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
-void func_001CE980(struct S *p);
+void RemoveRip__FP3RIP(struct S *p);
 /** @sly2-annot addr=0x1CF968
  * Purpose: FLYING FBounce: on contact CreateStuck then RemoveRip
  * Info: proposed name FBounceLeaf (T1); TU rip
@@ -26,6 +26,6 @@ int FBounceLeaf(struct S *p, struct A *pa, qword q0, qword q1)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, D_002C1F70[i])) return 0;
     }
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, 0x59)) CreateStuck(p, p->xF0, pa->x0, q0, q1);
-    func_001CE980(p);
+    RemoveRip__FP3RIP(p);
     return 1;
 }

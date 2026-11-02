@@ -11,7 +11,7 @@ extern const struct V2 D_002A83B8;
 extern const struct V2 D_002A83C0;
 void func_0011CCA8(void *, int, int, int);
 void InitDl__FP2DLi(void *, int);
-void func_0011D8D8(float, float, float, void *, float);
+void FitClq__FffffP3CLQ(float, float, float, void *, float);
 static inline void InitT(struct T *pt, float a, float c)
 {
     pt->a = a;
@@ -51,8 +51,8 @@ struct P *SNDMGR_ctor(struct P *p)
         float h = 0.5f;
         InitT(pt, 3.0f, 0.25f);
         b = pt->b;
-        func_0011D8D8(b, D_002A83B8.y, h, p->x80, D_002A83B8.x);
-        func_0011D8D8(b, D_002A83C0.y, h, p->x90, D_002A83C0.x);
+        FitClq__FffffP3CLQ(b, D_002A83B8.y, h, p->x80, D_002A83B8.x);
+        FitClq__FffffP3CLQ(b, D_002A83C0.y, h, p->x90, D_002A83C0.x);
     }
     p->n58 = 0;
     return p;

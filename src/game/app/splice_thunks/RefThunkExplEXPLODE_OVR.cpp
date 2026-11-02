@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void ExplodeExplParams(void *p, int, int, qword, qword, float, float); CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x105BE0
  * Purpose: Splice option thunk: optid 616 on EXPL (g_aeopid[535] thunkFn, returns Void, crefReq 6); unpacks 6
@@ -34,7 +34,7 @@ CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref)
     int v1;
     float v4;
     float v5;
-    CRef ref = func_00201360(6, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(6, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5);
     ref.Decref();
     ref.InitTag(0x24);
     ExplodeExplParams(p, v0, v1, v2.q, v3.q, v4, v5);

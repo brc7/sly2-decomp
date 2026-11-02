@@ -2,7 +2,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 extern int D_003E0FB0;
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(CRef *pref, int a, void *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x161798
  * Purpose: Reads the int save var at g_sw+0x3B20 (a collectible counter)
  * Info: proposed name CPrize91Get (T2); TU game
@@ -16,6 +16,6 @@ int func_00161798(void)
     int n;
     RefGetGlobalSaveVar(&ref, D_003E0FB0, D_003D4A60);
     n = ref.m_tag;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return n;
 }

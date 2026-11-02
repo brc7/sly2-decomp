@@ -2,10 +2,10 @@ typedef struct VECTOR { float x, y, z, w; } __attribute__((aligned(16))) VECTOR;
 struct E { VECTOR *pv; short a; short b; };
 struct S { int c0; struct E *ae; int c8; VECTOR *av; int c10; int *a14; void *x18; };
 struct A { int cb; int align; };
-int func_00117C80(void *pbis);
-int func_00117C20(void *pbis);
-void func_00117F70(void *pbis, VECTOR *pv);
-int func_00117DB8(void *pbis);
+int U32Read__18CBinaryInputStream(void *pbis);
+int U16Read__18CBinaryInputStream(void *pbis);
+void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR *pv);
+int S32Read__18CBinaryInputStream(void *pbis);
 void *func_001AE1D0(struct A *pa);
 void *func_001AE2A0(struct A *pa);
 /** @sly2-annot addr=0x1C0F30
@@ -22,8 +22,8 @@ void LoadZoneBspFromBrx(struct S *p, int c, void *pbis)
     struct A a;
     int i, j;
     p->c0 = c;
-    p->c8 = func_00117C80(pbis);
-    p->c10 = func_00117C80(pbis);
+    p->c8 = U32Read__18CBinaryInputStream(pbis);
+    p->c10 = U32Read__18CBinaryInputStream(pbis);
     a.cb = p->c0 * 8;
     a.align = 0x10;
     p->ae = func_001AE1D0(&a);
@@ -38,12 +38,12 @@ void LoadZoneBspFromBrx(struct S *p, int c, void *pbis)
     p->a14 = func_001AE1D0(&a);
     for (i = 0; i < p->c0; i++) {
         struct E *pe = &p->ae[i];
-        pe->pv = &p->av[func_00117C20(pbis)];
-        pe->a = func_00117C20(pbis);
-        pe->b = func_00117C20(pbis);
+        pe->pv = &p->av[U16Read__18CBinaryInputStream(pbis)];
+        pe->a = U16Read__18CBinaryInputStream(pbis);
+        pe->b = U16Read__18CBinaryInputStream(pbis);
     }
     for (j = 0; j < p->c8; j++)
-        func_00117F70(pbis, &p->av[j]);
+        ReadVector4__18CBinaryInputStreamP7VECTOR4(pbis, &p->av[j]);
     for (j = 0; j < p->c10; j++)
-        p->a14[j] = func_00117DB8(pbis);
+        p->a14[j] = S32Read__18CBinaryInputStream(pbis);
 }

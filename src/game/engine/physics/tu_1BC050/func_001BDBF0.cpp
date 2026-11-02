@@ -4,8 +4,8 @@ struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct P { char pad[0xE8]; int c; char pad1[0xF4 - 0xEC]; qword *a; };
 extern "C" {
 void *func_001AE318(const AREQ &r);
-void func_002338C0(void *base, int n, int cb, int (*cmp)(const void *, const void *));
-void func_001AE5A0(void *dst, const void *src, int cb);
+void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
+void CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
 int NCmpPosX(const void *a, const void *b);
 }
 static inline void *Alloc(int cb) { return func_001AE318(AREQ(cb, 0x10)); }
@@ -28,12 +28,12 @@ extern "C" void func_001BDBF0(P *p, int n, qword *pts)
 {
     int i, k, t;
     qword *hull, *pv;
-    func_002338C0(pts, n, 0x10, NCmpPosX);
+    qsort(pts, n, 0x10, NCmpPosX);
     k = 2;
     {
         CTX ctx;
         hull = (qword *)Alloc(0x800);
-        func_001AE5A0(hull, pts, 0x20);
+        CopyAb__FPvT0Ui(hull, pts, 0x20);
         for (i = 2; i < n; i++) {
             hull[k++] = pts[i];
             while (k >= 3) {
@@ -61,6 +61,6 @@ extern "C" void func_001BDBF0(P *p, int n, qword *pts)
             LBL2:;
         }
         { int cMax = 32; p->c = (k > cMax - 1) ? cMax : k; }
-        func_001AE5A0(p->a, hull, p->c << 4);
+        CopyAb__FPvT0Ui(p->a, hull, p->c << 4);
     }
 }

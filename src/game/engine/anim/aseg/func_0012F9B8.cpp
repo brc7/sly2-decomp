@@ -26,7 +26,7 @@ extern char D_002DE578[];
 P *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
 float GGetDifficulty(void *);
-void func_00131A00(P *, float);
+void SetAsegaSpeed__FP5ASEGAf(P *, float);
 void AppendDlEntry__FP2DLPv(void *, void *);
 void FramePtr_Assign(P *, int);
 void func_0012FE58(struct T *, int, struct E60 *, int *, int *);
@@ -39,7 +39,7 @@ void SetAsegaHandsOff(P *, int);
 void HandleAsegaEvent(P *, struct EV *);
 void func_00230CF0(P *, int);
 void HandleAsegaEventsFF(P *);
-void func_00130EB0(P *);
+void UpdateAsegaIeaCur__FP5ASEGA(P *);
 }
 static inline float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 static inline float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
@@ -72,7 +72,7 @@ extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, 
     {
         p->g4C = GClamp(GEval(&pt->poly, GGetDifficulty(D_002DE578)), pt->g90, pt->g94);
     }
-    func_00131A00(p, g1);
+    SetAsegaSpeed__FP5ASEGAf(p, g1);
     AppendDlEntry__FP2DLPv(D_003E1218, p);
     AppendDlEntry__FP2DLPv(&pt->dl50, p);
     ((void (*)(P *))p->pvt[1].pfn)((P *)((char *)p + p->pvt[1].d));
@@ -132,7 +132,7 @@ extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, 
             p->x50 = pt->xA0;
         HandleAsegaEventsFF(p);
     } else {
-        func_00130EB0(p);
+        UpdateAsegaIeaCur__FP5ASEGA(p);
     }
     ((void (*)(P *, int, int, int, int, int))p->pvt[3].pfn)((P *)((char *)p + p->pvt[3].d), 2, 0, 0, 0, 0);
 }

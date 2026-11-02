@@ -1,7 +1,7 @@
 struct A { int pad[2]; int a, b, c, d; };
 struct S { int n0; int a, b, c, d; int n14; int n18; };
 int snd_InitMovieSound(int a, int b, int c, int d, int e, int f);
-void func_001B2A80(struct S *p);
+void Reset__15CQueueOutputIop(struct S *p);
 /** @sly2-annot addr=0x1B29D0
  * Purpose: Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8),
  *   Reset
@@ -24,6 +24,6 @@ int CQueueOutputIop_Init(struct S *p, struct A *pa)
     }
     if (p->n14 < 0)
         return 0;
-    func_001B2A80(p);
+    Reset__15CQueueOutputIop(p);
     return 1;
 }

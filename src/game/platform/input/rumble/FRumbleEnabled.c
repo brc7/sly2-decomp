@@ -3,7 +3,7 @@ extern int D_002C2D8C;
 extern void *D_003E0FD8;
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(CRef *pref, void *a, char *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1D55B8
  * Purpose: Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8
  * Info: proposed name FRumbleEnabled (T1); TU rumble
@@ -25,7 +25,7 @@ int FRumbleEnabled(void) {
         int n;
         RefGetGlobalSaveVar(&ref, D_003E0FD8, D_003D4A60);
         n = ref.tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         return n ^ 1;
     }
     }

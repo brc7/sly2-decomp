@@ -2,8 +2,8 @@
 M2C_UNK ClearFrameBuffers__Fv();                    /* extern */
 M2C_UNK FlushCache(M2C_UNK);                        /* extern */
 M2C_UNK SyncVBlank__Fv();                           /* extern */
-M2C_UNK func_00240460(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
-M2C_UNK func_00240A40(M2C_UNK *, s32);              /* extern */
+M2C_UNK sceGsResetGraph(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
+M2C_UNK sceGsSwapDBuff(M2C_UNK *, s32);              /* extern */
 M2C_UNK sceGsSetHalfOffset(M2C_UNK *, M2C_UNK, M2C_UNK, s16); /* extern */
 extern s32 D_002BE594;
 extern M2C_UNK D_002DEB80;
@@ -29,7 +29,7 @@ void GS_Interrupt__Fi(void) {
     ClearFrameBuffers__Fv();
     SyncVBlank__Fv();
     D_002DFB5C = 0;
-    func_00240460(0, 1, 2, 1);
+    sceGsResetGraph(0, 1, 2, 1);
     temp_v1 = ((u32) *(u32 *)0x12001000 >> 0xD) & 1;
     D_002DEDBC = 0;
     D_002BE594 = 0;
@@ -44,5 +44,5 @@ void GS_Interrupt__Fi(void) {
     FlushCache(0);
     temp_a1 = D_002DEDB0 + 1;
     D_002DEDB0 = temp_a1;
-    func_00240A40(&D_002DEB80, temp_a1);
+    sceGsSwapDBuff(&D_002DEB80, temp_a1);
 }

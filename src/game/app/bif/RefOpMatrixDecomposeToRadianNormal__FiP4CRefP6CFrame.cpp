@@ -37,7 +37,7 @@ struct SPN {
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
-extern "C" void func_0011BCF8(void *pv, float *pg, void *pvec);
+extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec);
 extern "C" CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 /** @sly2-annot addr=0x123118
  * Purpose: Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad
@@ -54,7 +54,7 @@ CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *ar
     sp->SetNext(PvNewPair());
     CRef *pref = &sp->pnext.p->ref;
     pref->SetTag(0x1A);
-    func_0011BCF8(aref[0].u.pv, &g.g, pref->u.pv);
+    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(aref[0].u.pv, &g.g, pref->u.pv);
     sp->ref = g.g;
     return CRef(sp.p);
 }

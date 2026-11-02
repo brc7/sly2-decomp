@@ -5,7 +5,7 @@ void func_00143FF8(struct P *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void ReleaseSma(void *p);
-void func_001305B8(void *o, struct P *p, int a, void *b, float f, float g);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *o, struct P *p, int a, void *b, float f, float g);
 void ReleaseAsega(void *p);
 void ReplaceSma(void *o, struct P *p, int n, int a, void *b);
 /** @sly2-annot addr=0x143EE0
@@ -27,7 +27,7 @@ void func_00143EE0(struct P *p, int oid, int a, int b)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
         p->vt[88].pfn((char *)p + p->vt[88].d, b);
         ReleaseSma(p->m1034);
-        func_001305B8(o, p, a, p->m1030, 0.0f, 1.0f);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, p, a, p->m1030, 0.0f, 1.0f);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
         p->vt[88].pfn((char *)p + p->vt[88].d, b);
         ReleaseAsega(p->m1030);

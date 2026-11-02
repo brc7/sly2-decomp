@@ -2,7 +2,7 @@ typedef struct QW { int a[4]; } QW;
 struct O { char pad[0xFC]; int c; QW a[1]; };
 struct S { char pad[0x3A4]; int n; char p2[0xF64 - 0x3A8]; struct O *o; };
 QW *PdteFindDetectorTarget(struct O *o);
-void func_001AE5A0(void *dst, void *src, int cb);
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 /** @sly2-annot addr=0x208860
  * Purpose: Remove a non-generated detector entry (compact)
  * Info: proposed name RemoveStepguardDetectTarget (T2); TU stepguard
@@ -19,6 +19,6 @@ void func_00208860(struct S *p)
         int i;
         o->c = c - 1;
         i = pq - o->a;
-        func_001AE5A0(pq, pq + 1, (p->o->c - i) * 16);
+        CopyAb__FPvT0Ui(pq, pq + 1, (p->o->c - i) * 16);
     }
 }

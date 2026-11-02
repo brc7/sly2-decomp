@@ -3,9 +3,9 @@ extern char D_002D4220[];
 int CbDemuxed__5CMpegi(struct S *p, int n);
 void Update__10CMpegAudio(void *p);
 void func_002333B4(void *p, int c, int n);
-void func_0013D7D0(void *p, int n, void *b);
-void func_0013D818(void *p, int n);
-void func_0013D6A8(void *p, int n, void *b);
+void CbFill__10CByteQueueiPUc(void *p, int n, void *b);
+void FreeDrain__10CByteQueuei(void *p, int n);
+void CbDrain__10CByteQueueiP12CQueueOutput(void *p, int n, void *b);
 /** @sly2-annot addr=0x1B33F0
  * Purpose: decode callback: feed IPU from video queue
  * Info: proposed name FMpegDecodeVideo (T1); TU mpeg
@@ -19,13 +19,13 @@ int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, struct S *
         int v = CbDemuxed__5CMpegi(p, 1);
         if (v == 2) {
             func_002333B4(buf, 0, 0x40);
-            func_0013D7D0(p->x160, 0x40 - p->x174 % 32, buf);
+            CbFill__10CByteQueueiPUc(p->x160, 0x40 - p->x174 % 32, buf);
             break;
         }
         if (v == 1) Update__10CMpegAudio(p->x180);
     }
     buf[0] = D_002D4220;
-    func_0013D818(p->x160, 0);
-    func_0013D6A8(p->x160, 0, buf);
+    FreeDrain__10CByteQueuei(p->x160, 0);
+    CbDrain__10CByteQueueiP12CQueueOutput(p->x160, 0, buf);
     return 1;
 }

@@ -6,7 +6,7 @@ void *PdteFindDetectorTarget(void *a, void *b);
 void SetDetectorTargetState(void *a, void *b, int c);
 qword func_001A62E8(void *p);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-int func_0014CC58(int z, qword a, qword b, int i, int j, int k);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
 extern char D_003DD490[];
 extern float D_002BF638;
@@ -47,7 +47,7 @@ void func_00192A28(P *p)
         struct { char c; FRAME frame; int i, j; } x;
 
         IntersectSwBoundingBox(D_003DD490, a, b, (void *)func_00154568, o, &x.i, &x.j);
-        if (!func_0014CC58(0, a, b, x.i, x.j, 0)) continue;
+        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, x.i, x.j, 0)) continue;
         SetDetectorTargetState(o->xf64, e, 0);
     }
 }

@@ -36,7 +36,7 @@ extern "C" {
 void PostSoLoad(S *);
 M3 *func_001A6318(S *);
 void func_0016EF00(CONFIG *, int);
-void func_001AE5A0(void *, const void *, unsigned);   /* memcpy */
+void CopyAb__FPvT0Ui(void *, const void *, unsigned);   /* memcpy */
 void *func_001AE1D0(AL *);                            /* allocate (size, align) */
 void FindShapeClosestPoint(void *, qword, void *, qword *, qword *, float *, float *);
 M3 *BuildOrthonormalMatrixZ(M3 *, qword, qword);
@@ -108,7 +108,7 @@ void func_001E9858(S *p)
                 E *e = &node->entries[j];
                 int next = j + 1;
                 int k = 0;
-                func_001AE5A0(vertices, e->vertices, e->n * 16);
+                CopyAb__FPvT0Ui(vertices, e->vertices, e->n * 16);
                 w.phase.request.cb = e->n * 16;
                 phase->request.align = 16;
                 U *out = (U *)func_001AE1D0(&phase->request);

@@ -13,7 +13,7 @@ extern "C" {
 qword func_001A62E8(void *p);
 qword ConvertXfVec(int a, int b, qword v);
 void SetActPositionGoal(void *p, qword q);
-qword func_0011F088(qword a, qword b, float g, float *p, int n);
+qword PosSmooth(qword a, qword b, float g, float *p, int n);
 void UpdateJtHangIkGoals__FP2JT(P *p);
 }
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword a, qword b);
@@ -54,5 +54,5 @@ void UpdateJtHangIkGoals__FP2JT(P *p)
     qword q = ConvertXfVec(0, p->x19C0->xA0, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0, q), func_0011B500(D_002A2DA0, D_002BF594));
     SetActPositionGoal(p->x1A00, func_0011BFF0(&m));
-    p->x1960 = func_0011F088(p->x1960, D_002A2DD0, D_002DDED4, D_002BF598, 0);
+    p->x1960 = PosSmooth(p->x1960, D_002A2DD0, D_002DDED4, D_002BF598, 0);
 }

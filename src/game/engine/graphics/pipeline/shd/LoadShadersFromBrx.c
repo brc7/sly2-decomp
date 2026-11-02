@@ -9,7 +9,7 @@ extern void *D_003DCFA8[16];
 extern char D_003E1590[];
 void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *);
 void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *);
-int func_00117C20(void *);
+int U16Read__18CBinaryInputStream(void *);
 void *func_001AE378(struct MSG *);
 void *func_001AE2A0(struct MSG *);
 void *func_001ED7A8(int, void *);
@@ -38,13 +38,13 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
     void *pv;
     LoadColorTablesFromBrx__FP18CBinaryInputStream(pbis);
     LoadBitmapsFromBrx__FP18CBinaryInputStream(pbis);
-    D_003DD000 = func_00117C20(pbis);
+    D_003DD000 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DD000 * 4;
     msg.nKind = 0x10;
     D_003DD004 = func_001AE378(&msg);
     for (i = 0; i < D_003DD000; i++)
         D_003DD004[i] = func_001ED7A8(0, pbis);
-    D_003DCFE8 = func_00117C20(pbis);
+    D_003DCFE8 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DCFE8 * 0x2C;
     msg.nKind = 0x10;
     D_003DCFEC = func_001AE378(&msg);

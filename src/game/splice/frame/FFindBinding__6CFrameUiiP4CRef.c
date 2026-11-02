@@ -1,4 +1,4 @@
-int func_00127DB8(void *a, void *b, void *c, void *d);
+int PrefFindBinding__6CFrameUii(void *a, void *b, void *c, void *d);
 void func_00129658(void *a, int b);
 /** @sly2-annot addr=0x127D78
  * Purpose: PrefFindBinding wrapper: copies binding into *pref, returns found
@@ -11,7 +11,7 @@ void func_00129658(void *a, int b);
  * @end-sly2-annot */
 int FFindBinding__6CFrameUiiP4CRef(void *a, void *b, void *c, void *d)
 {
-    int v = func_00127DB8(a, b, c, d);
+    int v = PrefFindBinding__6CFrameUii(a, b, c, d);
     if (v) {
         if (d)
             func_00129658(d, v);

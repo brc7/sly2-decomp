@@ -14,9 +14,9 @@ struct X {
 };
 struct K { uint x0, x4, x8; char pad[0x34 - 0xC]; uint x34, x38, x3C; };
 struct CBinaryAsyncStream;
-extern "C" CBinaryAsyncStream *func_00132570(CBinaryAsyncStream *, int, void *);
-extern "C" void func_001325B8(CBinaryAsyncStream *, int);
-struct CBinaryAsyncStream { char pad[0x30]; CBinaryAsyncStream(int cb, void *pv) __asm__("func_00132570"); ~CBinaryAsyncStream(); };
+extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *, int, void *);
+extern "C" void _$_18CBinaryAsyncStream(CBinaryAsyncStream *, int);
+struct CBinaryAsyncStream { char pad[0x30]; CBinaryAsyncStream(int cb, void *pv) __asm__("__18CBinaryAsyncStreamPv"); ~CBinaryAsyncStream(); };
 struct SLOT;
 struct G { int x0, x4, x8, xC; float x10, x14; char pad[0xFD50 - 0x18]; SLOT *xFD50; };
 struct CLOCK;
@@ -37,13 +37,13 @@ int func_00132600(CBinaryAsyncStream *ps, X *px);
 void CMpeg_Start(P *p, CBinaryAsyncStream *ps);
 int sceMpegIsEnd(MPEG *p);
 void MarkClockTick(CLOCK *p, int k);
-void func_001871C0(JOY *p);
+void UpdateJoy__FP3JOY(JOY *p);
 void UpdateSave__FP4SAVE(G *g);
 uint GrfHandleJoyBtn(JOY *p, uint k);
-void func_0014BA38(void);
+void UpdateCd__Fv(void);
 void Update__5CMpeg(P *p);
 void Finish__5CMpeg(P *p);
-void func_00132688(CBinaryAsyncStream *ps);
+void Close__18CBinaryAsyncStream(CBinaryAsyncStream *ps);
 }
 
 inline bool X::FSet(K *k)
@@ -117,7 +117,7 @@ extern "C" void Execute__5CMpegPv(P *p, K *k)
         while (!sceMpegIsEnd(&p->x118)) {
             int f;
             MarkClockTick(&D_002DDED0, 1);
-            func_001871C0(&D_002DFC00);
+            UpdateJoy__FP3JOY(&D_002DFC00);
             if (!D_002E65E0.xFD50) UpdateSave__FP4SAVE(&D_002E65E0);
             f = 0;
             if (FMatch(k, &D_002A3968) || FMatch(k, &D_002A39A8)) f = D_002F68F8 != 0;
@@ -131,14 +131,14 @@ extern "C" void Execute__5CMpegPv(P *p, K *k)
                 }
             }
             if (x.x8 == 2) {
-                func_0014BA38();
+                UpdateCd__Fv();
                 if (D_002BD4C0 != 3) break;
             }
             Update__5CMpeg(p);
         }
         if (FMatch(k, &D_002A39A8)) D_002F68F8 = 1;
         Finish__5CMpeg(p);
-        func_00132688(&strm);
+        Close__18CBinaryAsyncStream(&strm);
     }
     p->x110 = 0;
 }

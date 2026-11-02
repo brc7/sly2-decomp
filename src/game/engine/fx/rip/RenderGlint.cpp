@@ -23,7 +23,7 @@ extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0;
 extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2];
 extern const qword D_002A2DA0,D_002A2DC0;
 extern "C" {
-void func_001CE980(RIP *);
+void RemoveRip__FP3RIP(RIP *);
 int FInsideCmFrustum(CAMERA *,qword,qword);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 func_0011B500(qword,float);
@@ -64,7 +64,7 @@ extern "C" void RenderGlint(RIP *p)
     float time=(D_002DDED0.time-p->start)/p->duration;
     float distance=Length(direction)*0.001f;
     float size=Evaluate(p->size,time)*Clamp(Evaluate(D_002C1FB0,distance),D_002C1FC0[0],D_002C1FC0[1]);
-    if(!FInsideCmFrustum(&D_002DDF40,Scale(direction,VU_FLOAT(-1.0f)),BcG(size*100.0f))){func_001CE980(p);return;}
+    if(!FInsideCmFrustum(&D_002DDF40,Scale(direction,VU_FLOAT(-1.0f)),BcG(size*100.0f))){RemoveRip__FP3RIP(p);return;}
     /* opacity clamp; the result shares lo's register, hi is loaded before the compare */
     float opacity=D_002BBB60[0];
     float hi=D_002BBB60[1];

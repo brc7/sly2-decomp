@@ -9,7 +9,7 @@ int func_00158958(DZG *, DZ *);
 void FillDzgDz(DZG *, int, DZ *, int);
 void RemoveDlEntry__FP2DLPv(DL *, void *);
 void AppendDlEntry__FP2DLPv(DL *, void *);
-void func_0011A770(DZG *, DZ *);
+void EnforceDzgDz__FP3DZGP2DZ(DZG *, DZ *);
 }
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -49,7 +49,7 @@ void SolveDzg(DZG *pdzg, int a, int b, XP **ppxp, int *pn, SO ***pppso)
             pdzg->c3C++;
         }
     }
-    func_0011A770(pdzg, 0);
+    EnforceDzgDz__FP3DZGP2DZ(pdzg, 0);
     D_002DD2FC = dli.m_pdliNext;
     for (;;) {
         DZ *pdzBest = 0;
@@ -64,6 +64,6 @@ void SolveDzg(DZG *pdzg, int a, int b, XP **ppxp, int *pn, SO ***pppso)
             break;
         if (!pdzBest->f18)
             FillDzgDz(pdzg, a, pdzBest, func_00158958(pdzg, pdzBest));
-        func_0011A770(pdzg, pdzBest);
+        EnforceDzgDz__FP3DZGP2DZ(pdzg, pdzBest);
     }
 }

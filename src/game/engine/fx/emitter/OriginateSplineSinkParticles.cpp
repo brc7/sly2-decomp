@@ -16,7 +16,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, BUF *pb);
-int func_0011D4D0(float g1, float g2, float gEps);
+int FFloatsNear__Ffff(float g1, float g2, float gEps);
 void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
 void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb);
@@ -71,7 +71,7 @@ void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
         float tNow = D_002DDED0.t;
         float t = ptimes->at[i] - tNow;
         int k = palo->pemitb->k18;
-        if (!func_0011D4D0(t, tPrev, 0.0001f)) {
+        if (!FFloatsNear__Ffff(t, tPrev, 0.0001f)) {
             M4 mT;
             tPrev = t;
             LoadIdentityMatrix4(pv, 0, &m, t, 0);

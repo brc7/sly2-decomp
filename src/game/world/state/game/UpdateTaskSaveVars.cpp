@@ -1,11 +1,11 @@
-extern "C" {void *func_001291A8(void*,const void*);void func_00129EC8(void*);}
+extern "C" {void *func_001291A8(void*,const void*);void Decref__4CRef(void*);}
 struct CRef {
  int tag;
  union {int n;float g;};
  CRef(int x){tag=0x15;n=x;}
  CRef(bool x){tag=0x17;n=x;}
  CRef(const CRef&r){func_001291A8(this,&r);}
- ~CRef(){func_00129EC8(this);}
+ ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
 struct S{char pad[0x54];int state;char pad58[0xC];int a,b;char pad6C[0x10];void*next;char pad80[0x48];OPT c,d,e,f,h;int fF0,fF4;};

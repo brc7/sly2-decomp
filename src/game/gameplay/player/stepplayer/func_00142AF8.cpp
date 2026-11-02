@@ -29,7 +29,7 @@ extern GS D_003DD490;
 void func_00142880(P *p);
 void SetStepplayerLeanTarget(P *p, int n, S *ps);
 void HeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
-int func_0011D910(void *p, float g);
+int FCheckLm__FP2LMf(void *p, float g);
 void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
 qword func_001A62E8(void *p);
@@ -113,7 +113,7 @@ void func_00142AF8(P *p)
                 HeroInteractDistance(p, ps, &p->p10F8, &g1, &g2);
                 if (g1 > ps->gE8)
                     continue;
-                if (!func_0011D910(ps->rng, g2))
+                if (!FCheckLm__FP2LMf(ps->rng, g2))
                     continue;
                 if (nBest < ps->nF4 || (ps->nF4 == nBest && g1 < gBest)) {
                     psBest = ps;

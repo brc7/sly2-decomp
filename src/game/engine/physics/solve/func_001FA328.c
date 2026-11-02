@@ -4,7 +4,7 @@ struct LO;
 struct B {char padA0[0xA0];struct LO *parent;char padA4[0xC];union V velocity;};
 struct P {char pad58[0x58];struct B *b58,*b5C;char pad60[0x88];void *data;char padEC[4];union V force0,force1;};
 extern qword D_002A2DD0;
-int func_0011D4D0(float,float,float);
+int FFloatsNear__Ffff(float,float,float);
 void SlotUnsettle(struct P *,struct B *);
 qword ConvertXfVec(struct LO *,struct LO *,qword);
 void func_001F4BF8(struct P *);
@@ -14,9 +14,9 @@ static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
 static __inline__ int Near(qword value,qword reference)
 {
     int same=0;
-    if(func_0011D4D0(X(reference),X(value),0.0001f) &&
-       func_0011D4D0(Y(reference),Y(value),0.0001f) &&
-       func_0011D4D0(Z(reference),Z(value),0.0001f))same=1;
+    if(FFloatsNear__Ffff(X(reference),X(value),0.0001f) &&
+       FFloatsNear__Ffff(Y(reference),Y(value),0.0001f) &&
+       FFloatsNear__Ffff(Z(reference),Z(value),0.0001f))same=1;
     return same;
 }
 static __inline__ void AddTo(union V *out,qword q)

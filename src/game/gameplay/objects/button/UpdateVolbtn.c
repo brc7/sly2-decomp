@@ -14,12 +14,12 @@ void UpdateLo(struct P *);
 void SetVolbtnButtons(struct P *, int);
 struct CTX *STACKSCOPE_ctor(struct CTX *);
 void STACKSCOPE_ctor_1AE4A0(struct CTX *, int);
-void func_001AE5A0(void *, void *, int);
+void CopyAb__FPvT0Ui(void *, void *, int);
 int CploFindSwObjectsByClass(struct G *, int, int, int, int, void **);
 int func_001A61A0(void *);
 qword func_001A62E8(void *);
 int FCheckVolPoint(struct P *, qword);
-void func_002338C0(void *, int, int, int (*)(const void *, const void *));
+void qsort(void *, int, int, int (*)(const void *, const void *));
 int func_00149420(const void *, const void *);
 
 /** @sly2-annot addr=0x149440
@@ -46,12 +46,12 @@ void UpdateVolbtn(struct P *p)
         int j;
         int cSel;
         STACKSCOPE_ctor(&ctx);
-        func_001AE5A0(apo, p->a28C, p->c288 * 4);
+        CopyAb__FPvT0Ui(apo, p->a28C, p->c288 * 4);
         c = p->c288;
         for (; i < p->c2AC; i++)
             c += CploFindSwObjectsByClass(&D_003DD490, 0x505, p->a2B0[i], 0, 0x40 - c, &apo[c]);
         if (p->c288 == 0 && p->c2AC == 0) {
-            func_001AE5A0(&apo[c], D_003DD490.apo, D_003DD490.c * 4);
+            CopyAb__FPvT0Ui(&apo[c], D_003DD490.apo, D_003DD490.c * 4);
             c += D_003DD490.c;
         }
         p->x1D8 = 0;
@@ -70,7 +70,7 @@ void UpdateVolbtn(struct P *p)
         } while (++j < c);
         if (p->x2C8) {
             int fChanged = 0;
-            func_002338C0(apo, c, 4, func_00149420);
+            qsort(apo, c, 4, func_00149420);
             if (p->c2C0 != cSel) {
                 fChanged = 1;
             } else {
@@ -97,7 +97,7 @@ void UpdateVolbtn(struct P *p)
             if (fChanged) {
                 struct VTE *e;
                 p->c2C0 = cSel;
-                func_001AE5A0(p->p2C4, apoSel, cSel * 4);
+                CopyAb__FPvT0Ui(p->p2C4, apoSel, cSel * 4);
                 e = &p->vt[3];
                 ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 9, 0, 0, 0, 0);
             }

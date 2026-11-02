@@ -3,7 +3,7 @@
 
 M2C_UNK CopyAb__FPvT0Ui(s32, s32, s32);             /* extern */
 s32 func_001AE318(void *, s32, s32);                /* extern */
-void func_001179F0(void *arg0);                     /* static */
+void Decompress__18CBinaryInputStream(void *arg0);                     /* static */
 extern M2C_UNK D_002BBAF0;
 extern M2C_UNK D_002BBB10;
 extern M2C_UNK D_002BBB20;

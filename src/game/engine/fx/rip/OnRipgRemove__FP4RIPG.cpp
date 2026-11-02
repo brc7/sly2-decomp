@@ -6,7 +6,7 @@ struct RIPG { char pad[0x10]; int x10; char p1[0xEC - 0x14]; void *xEC; char p2[
 struct SW { char pad[0x403C]; char pool[0x30]; RIPG *x406C; };
 extern SW D_003DD490;
 extern "C" {
-void func_001CE980(RIP *prip);
+void RemoveRip__FP3RIP(RIP *prip);
 void RemoveSoHierarchy(RIPG *p);
 void RemoveSwAaobrObject(SW *psw, void *pv);
 void SnipLo(RIPG *p);
@@ -41,7 +41,7 @@ void OnRipgRemove(RIPG *pripg)
     RIP *prip;
     SW *psw;
     InitDli(&dli, &pripg->dl);
-    while ((prip = (RIP *)PvNextDli(&dli)) != 0) func_001CE980(prip);
+    while ((prip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(prip);
     psw = &D_003DD490;
     if (pripg == psw->x406C) psw->x406C = 0;
     RemoveSoHierarchy(pripg);

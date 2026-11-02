@@ -16,7 +16,7 @@ qword func_001A62E8(LO *plo);
 MAT3 *func_001A6318(LO *plo);
 void LoadIdentityMatrix4(void *p, int n, MAT4 *pm, int k, float g);
 MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2);
-void func_0011BCF8(MAT3 *pm, float *pg, qword *pv);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MAT3 *pm, float *pg, qword *pv);
 void LaunchMatch__FP5MATCH(S *p);
 }
 static inline qword Bc(float g)
@@ -49,7 +49,7 @@ void LaunchMatch__FP5MATCH(S *p)
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(d) : "j"(d), "j"(s1), "j"(p->a), "j"(s2));
     p->v = d;
     m = MulMatrix3Matrix3(&m4, &p->mat);
-    func_0011BCF8(&m, &p->rad, &p->axis);
+    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&m, &p->rad, &p->axis);
     if (0.0f < p->rad)
         p->rad += 6.28318548f;
     else

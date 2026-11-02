@@ -13,9 +13,9 @@ extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
 extern "C" void UpdateSo(P*);
 extern "C" qword func_001A62E8(P*);
-extern "C" float func_002458F0(float,float);
+extern "C" float atan2f(float,float);
 extern "C" float RadNormalize__Ff(float);
-extern "C" float func_0011CFE0(float,float);
+extern "C" float GLimitAbs__Fff(float,float);
 extern "C" M3 func_0011B500(qword,float);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float X(qword v){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
@@ -46,10 +46,10 @@ extern "C" void func_001801B8(P*p){
  qword position;
  position=func_001A62E8(p->target);
  qword displacement=Sub(position,func_001A62E8(p));
- float desired=func_002458F0(Y(displacement),X(displacement));
+ float desired=atan2f(Y(displacement),X(displacement));
  qword direction=((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);
- float current=func_002458F0(Y(direction),X(direction));
- float angle=func_0011CFE0(RadNormalize__Ff(desired-current),p->turnRate*D_002DDED0.dt);
+ float current=atan2f(Y(direction),X(direction));
+ float angle=GLimitAbs__Fff(RadNormalize__Ff(desired-current),p->turnRate*D_002DDED0.dt);
  rotation=func_0011B500(D_002A2DC0,angle);
  ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,Transform(rotation,direction));
  // The original reads this local matrix before initialization.

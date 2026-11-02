@@ -44,7 +44,7 @@ extern char D_00000870[];
 void STACKSCOPE_ctor(FRAME *pf);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n);
 int FIsDlEmpty__FP2DL(void *pdl);
-int func_0011A3C0(void *pdl);
+int CPvDl__FP2DL(void *pdl);
 void *func_001AE318(const AL &al);
 int func_001A61A0(LO *plo);
 qword func_001A62E8(LO *plo);
@@ -53,15 +53,15 @@ int FInsideCmFrustum(CM *pcm, qword d, VU_FLOAT r);
 int FInsideCmMrd(CM *pcm, qword d, float g, float *pg);
 void VECTOR_opAssign(void *pv, qword v);
 DMA *PrplAllocRpl(void);
-void func_001574B8(VIFS *p);
+void AddDmaCnt__4DMAS(VIFS *p);
 void func_0013A688(P *p);
-void func_00226F28(VIFS *p, ...);
-void func_00226D40(VIFS *p, int a, int b);
-void func_00227010(VIFS *p, int a, int c, void *pv, int addr, int flag);
-void func_00226CE0(VIFS *p, void *pv);
-void func_00226D10(VIFS *p);
-void func_001576F0(VIFS *p);
-void func_00157620(VIFS *p);
+void AddVifUnpack__4VIFS3UPKiPvi(VIFS *p, ...);
+void AddVifStcycl__4VIFSii(VIFS *p, int a, int b);
+void AddVifUnpackRefs__4VIFS3UPKiPviPPPv(VIFS *p, int a, int c, void *pv, int addr, int flag);
+void AddVifMscal__4VIFSPv(VIFS *p, void *pv);
+void AddVifFlush__4VIFS(VIFS *p);
+void EndDmaCnt__4DMAS(VIFS *p);
+void AddDmaRet__4DMAS(VIFS *p);
 void RenderBlipgSelf(P *p);
 }
 static inline void *PvAllocStack(int cb) { return func_001AE318(AL(cb, 0x10)); }
@@ -93,7 +93,7 @@ void RenderBlipgSelf(P *p)
     M4 *aLight;
     if (p->xE0 != 0 && FIsDlEmpty__FP2DL(&p->xE0->x11C) == 0) {
         cLight = 0;
-        aLight = (M4 *)PvAllocStack(func_0011A3C0(&p->xE0->x11C) << 6);
+        aLight = (M4 *)PvAllocStack(CPvDl__FP2DL(&p->xE0->x11C) << 6);
         M4 *pl = aLight;
         LO *plo = p->xE0->x11C;
         M3 *pmId;
@@ -165,7 +165,7 @@ void RenderBlipgSelf(P *p)
     pdma->x0 = 0xC;
     pdma->x4 = 0;
     int save = D_002DEA28.xC;
-    func_001574B8(&D_002DEA28);
+    AddDmaCnt__4DMAS(&D_002DEA28);
     for (Q *pq = p->pqFirst; pq; pq = pq->pqNext) {
         BUF *pb = &pq->abuf[pq->i];
         for (int i = 0; i < cLight; i++) {
@@ -178,24 +178,24 @@ void RenderBlipgSelf(P *p)
             int ten = 10;
             as[1] = pq->c * ten + 0x34;
             as[2] = pq->c;
-            func_00226F28(&D_002DEA28, 9, 1, as, 0, ten);
-            func_00226F28(&D_002DEA28, 0xC, 4, &aLight[i], 7);
-            func_00226D40(&D_002DEA28, 1, 10);
+            AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 9, 1, as, 0, ten);
+            AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &aLight[i], 7);
+            AddVifStcycl__4VIFSii(&D_002DEA28, 1, 10);
             if (p->x43C == 1)
-                func_00227010(&D_002DEA28, 0xC, pq->c, pb->b, as[0] + 1, 0);
-            func_00227010(&D_002DEA28, 0xC, pq->c, pb->c, as[0] + 2, 0);
-            func_00227010(&D_002DEA28, 0xC, pq->c, pb->a, as[0] + 3, 0);
-            func_00226D40(&D_002DEA28, 1, 1);
+                AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->b, as[0] + 1, 0);
+            AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->c, as[0] + 2, 0);
+            AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->a, as[0] + 3, 0);
+            AddVifStcycl__4VIFSii(&D_002DEA28, 1, 1);
             switch (p->x43C) {
-            case 0: func_00226CE0(&D_002DEA28, D_00000000); break;
-            case 1: func_00226CE0(&D_002DEA28, D_00000390); break;
-            case 2: func_00226CE0(&D_002DEA28, D_00000870); break;
+            case 0: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000000); break;
+            case 1: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000390); break;
+            case 2: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000870); break;
             }
-            func_00226D10(&D_002DEA28);
+            AddVifFlush__4VIFS(&D_002DEA28);
         }
     }
-    func_001576F0(&D_002DEA28);
-    func_00157620(&D_002DEA28);
+    EndDmaCnt__4DMAS(&D_002DEA28);
+    AddDmaRet__4DMAS(&D_002DEA28);
     pdma->x8 = save;
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }

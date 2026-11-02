@@ -1,8 +1,8 @@
 #include "m2c_prelude.h"
 M2C_UNK CopyAb__FPvT0Ui(s32, s32, s32);             /* extern */
-M2C_UNK func_00117EB0(s32, void *);                 /* extern */
+M2C_UNK ReadVector__18CBinaryInputStreamP6VECTOR(s32, void *);                 /* extern */
 M2C_UNK func_001291A8(s32, void *);                 /* extern */
-M2C_UNK func_00129EC8(s32, s32, s32);               /* static */
+M2C_UNK Decref__4CRef(s32, s32, s32);               /* static */
 M2C_UNK SetTag__4CRef4TAGK(s32, M2C_UNK);                /* static */
 extern s128 D_002A2DD0;
 extern f32 D_002A45A8;

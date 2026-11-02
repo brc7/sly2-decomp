@@ -16,8 +16,8 @@ extern "C" qword D_002A2DC0;
 extern "C" SMP D_002BF3F8,D_002BF408;
 extern "C" M4*func_001A6318(P*);
 extern "C" qword func_001A62E8(P*);
-extern "C" void func_0011C950(M3*,M3*,SMP*,M3*,qword*,float);
-extern "C" qword func_0011F088(qword,qword,SMP*,qword*,float);
+extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
+extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
 extern "C" qword ConvertAloVec(O*,O*,qword);
 extern "C" void func_001384C0(ANIM*);
 static inline qword Make(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
@@ -86,10 +86,10 @@ extern "C" void func_0018DF60(P*p){
  CLOCK*clock=&D_002DDED0;
  float factor=0.5f;
  unsigned samplePage=SmoothSamplePage();M3*receiver,*optional;SMP*sample;float smoothDt=SmoothInputs(current,clock,factor,samplePage,receiver,optional,sample);
- func_0011C950(receiver,&p->matrix,sample,optional,&direction.q,smoothDt);
+ SmoothMatrix(receiver,&p->matrix,sample,optional,&direction.q,smoothDt);
  ((void(*)(void*,qword))p->vt[36].fn)((char*)p+p->vt[36].delta,direction.q);
  U target;P*owner=NegativeTarget(m,p->offset,&negative,&scratch,&target,p);
- (void)func_0011F088(func_001A62E8(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
+ (void)PosSmooth(func_001A62E8(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
  ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,position.q);
  qword relative;
  {

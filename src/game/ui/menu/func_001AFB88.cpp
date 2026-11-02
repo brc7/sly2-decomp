@@ -1,7 +1,7 @@
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 struct CRef;
 extern "C" CRef*func_001291A8(CRef*,const CRef*);
-extern "C" void func_00129EC8(CRef*);
+extern "C" void Decref__4CRef(CRef*);
 struct CRef{
  int tag;
  union{int n;float f;};
@@ -9,7 +9,7 @@ struct CRef{
  CRef(bool x){tag=0x17;n=x;}
  CRef(float x){tag=0x16;f=x;}
  CRef(const CRef&r){func_001291A8(this,&r);}
- ~CRef(){func_00129EC8(this);}
+ ~CRef(){Decref__4CRef(this);}
 };
 struct OPT;
 struct MSG{int kind;};

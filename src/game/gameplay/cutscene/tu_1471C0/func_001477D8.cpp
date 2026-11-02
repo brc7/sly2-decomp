@@ -24,17 +24,17 @@ extern float D_002BD3F0[8];
 extern struct M4 D_002BD410;
 void func_001475C0(struct P *p);
 void func_00147410(struct P *p, int n);
-void func_001576F0(struct GIFS *pgifs);
-void func_00157500(struct GIFS *pgifs, int n, void *pv);
-void func_001574B8(struct GIFS *pgifs);
-void func_00166BD8(struct GIFS *pgifs, int a, int b, int c);
-void func_00166E90(struct GIFS *pgifs, int reg, ulong val);
+void EndDmaCnt__4DMAS(struct GIFS *pgifs);
+void AddDmaRefs__4DMASiP2QW(struct GIFS *pgifs, int n, void *pv);
+void AddDmaCnt__4DMAS(struct GIFS *pgifs);
+void AddPrimPack__4GIFSiiUl(struct GIFS *pgifs, int a, int b, int c);
+void PackAD__4GIFSll(struct GIFS *pgifs, int reg, ulong val);
 void func_0022FF40(struct M4 *pm, int n, void *p, void *q);
-qword func_0011C1A8(struct M4 *pm, qword v);
+qword __ml__FRC7MATRIX4G10VU_VECTOR4(struct M4 *pm, qword v);
 void Force__FPv(void *pv);
-void func_00166D38(struct GIFS *pgifs, float s, float t, float q);
-void func_00166C70(struct GIFS *pgifs, int rgba);
-void func_00166DA0(struct GIFS *pgifs, int x, int y, int z);
+void PackSTQ__4GIFSfff(struct GIFS *pgifs, float s, float t, float q);
+void PackRGBA__4GIFSUi(struct GIFS *pgifs, int rgba);
+void PackXYZ__4GIFSiii(struct GIFS *pgifs, int x, int y, int z);
 
 }
 
@@ -48,9 +48,9 @@ inline VU_VECTOR::VU_VECTOR(const VECTOR4 &v) { q = v.q; }
 VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v);
 static inline qword operator*(VU_FLOAT f, VU_VECTOR v)
 { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
-static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { func_00166D38(pgifs, s, t, q); }
-static inline void SetRgba(GIFS *pgifs, const int &rgba) { func_00166C70(pgifs, rgba); }
-static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z) { func_00166DA0(pgifs, x, y, z); }
+static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { PackSTQ__4GIFSfff(pgifs, s, t, q); }
+static inline void SetRgba(GIFS *pgifs, const int &rgba) { PackRGBA__4GIFSUi(pgifs, rgba); }
+static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z) { PackXYZ__4GIFSiii(pgifs, x, y, z); }
 static inline int IFix(const float &g, const int &off) { return ((int)g + off) << 4; }
 static inline float Screen(const float &g, const float &s) { return (g + 0.5f) * s + 0.5f; }
 
@@ -84,15 +84,15 @@ extern "C" void func_001477D8(struct P *p)
     if (!D_002DEA4C->x24)
         D_002DEA4C->x24 = D_002DEA34;
     struct TEX *ptex = &D_002DECD0;
-    func_001576F0(&D_002DEA00);
-    func_00157500(&D_002DEA00, 0x25, D_002DF4B0);
-    func_001574B8(&D_002DEA00);
-    func_00166BD8(&D_002DEA00, 0, 1, 0xE);
-    func_00166E90(&D_002DEA00, 0x47, 0x31001);
-    func_00166E90(&D_002DEA00, 6, ((ptex->ul10 & 0x1FF) << 5) | (((ptex->ul0 >> 16) & 0x3F) << 14) | 0x6A8000000UL);
-    func_00166E90(&D_002DEA00, 0x14, 0x61);
-    func_00166E90(&D_002DEA00, 0x3F, 0);
-    func_00166E90(&D_002DEA00, 8, 0x3800080000AUL);
+    EndDmaCnt__4DMAS(&D_002DEA00);
+    AddDmaRefs__4DMASiP2QW(&D_002DEA00, 0x25, D_002DF4B0);
+    AddDmaCnt__4DMAS(&D_002DEA00);
+    AddPrimPack__4GIFSiiUl(&D_002DEA00, 0, 1, 0xE);
+    PackAD__4GIFSll(&D_002DEA00, 0x47, 0x31001);
+    PackAD__4GIFSll(&D_002DEA00, 6, ((ptex->ul10 & 0x1FF) << 5) | (((ptex->ul0 >> 16) & 0x3F) << 14) | 0x6A8000000UL);
+    PackAD__4GIFSll(&D_002DEA00, 0x14, 0x61);
+    PackAD__4GIFSll(&D_002DEA00, 0x3F, 0);
+    PackAD__4GIFSll(&D_002DEA00, 8, 0x3800080000AUL);
     for (i = 0; i < 2; i++) {
         struct M4 m;
         func_0022FF40(&m, 0, p->p60, p->ap158[i] + 0x40);
@@ -120,7 +120,7 @@ extern "C" void func_001477D8(struct P *p)
         {
             i = state & 1;
             unsigned int j;
-            func_00166BD8(&D_002DEA00, 0x14, 3, 0x512);
+            AddPrimPack__4GIFSiiUl(&D_002DEA00, 0x14, 3, 0x512);
             stateNext = state + 1;
             for (j = 0; j < 4; j++) {
                 VECTOR4 u;

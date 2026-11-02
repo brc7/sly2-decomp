@@ -11,7 +11,7 @@ struct P {
  struct ASEG *aseg; struct ASEGA *asega[12];
  int enabled; struct ACTION *action; float parameter;
 };
-void func_001305B8(struct ASEG*,struct P*,float,float,int,struct ASEGA**);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG*,struct P*,float,float,int,struct ASEGA**);
 struct ACTION *func_0012DCA0(struct P*,struct CONTROLLER*,int,int,float,float);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char P_controller_Offset[FIELD_OFFSET(struct P,controller)==92?1:-1];
@@ -39,7 +39,7 @@ void FireMissile(struct P *p,struct LO *source,struct VECTOR *point)
  v=*point;
  p->source=source;
  p->position=v;
- func_001305B8(p->aseg,p,0.0f,1.0f,8,p->asega);
+ ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->aseg,p,0.0f,1.0f,8,p->asega);
  if(p->enabled)
   p->action=func_0012DCA0(p,p->controller,0,5,p->parameter,0.0f);
 }

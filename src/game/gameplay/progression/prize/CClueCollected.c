@@ -10,7 +10,7 @@ extern char D_003D4A60[];
 extern char D_002A7788[];
 int IlevelCur__Fv(void);
 struct { int a; int b; } *func_002109B8(int n);
-void func_001AE5A0(struct K *pk, int a, int b);
+void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
 void *FFindSaveVar(void *a, void *b, struct T *pt);
 short NFindSaveSymbol(void *a, char *s);
 unsigned int *PvFromSaveVar(void *a, void *b, void *c);
@@ -34,7 +34,7 @@ int CClueCollected(void)
     if (n == -1)
         return 0;
     c = 0;
-    func_001AE5A0(&k, func_002109B8(n)->b, 6);
+    CopyAb__FPvT0Ui(&k, func_002109B8(n)->b, 6);
     s.pk = &k;
     s.k = 3;
     FFindSaveVar(&D_003DD490.m, &s, &t);

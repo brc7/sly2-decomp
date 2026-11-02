@@ -10,12 +10,12 @@ struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int
 struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
 extern "C" {
 extern char D_002A6CB8[];
-int func_0021ECD8(char *buf, const char *fmt, ...);
+int sprintf(char *buf, const char *fmt, ...);
 int McOpen(void *p, char *name, int mode, int *ph);
 void *func_001AE318(REQUEST *pmsg);
 int func_00184D60(Y *py, X *px);
 int McWrite(void *p, int h, char *buf, int n, int *pn);
-int func_00117898(Y *py, int cb, char *buf);
+int CbRead__18CBinaryInputStreamiPv(Y *py, int cb, char *buf);
 void CStreamBis_Close(Y *py);
 int McClose(void *p, int h);
 int load_file_from_disc(void *p, const char *a, K *k, const char *b);
@@ -89,7 +89,7 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
     FRAME frame;
     char name[0x50];
     int ret;
-    func_0021ECD8(name, D_002A6CB8, a, b);
+    sprintf(name, D_002A6CB8, a, b);
     int h = -1;
     ret = McOpen(p, name, 0x202, &h);
     if (ret == 0) {
@@ -106,7 +106,7 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
             char buf[0x1000];
             int n;
             int out;
-            while ((n = func_00117898(&y, 0x1000, buf)) != 0) {
+            while ((n = CbRead__18CBinaryInputStreamiPv(&y, 0x1000, buf)) != 0) {
                 ret = McWrite(p, h, buf, n, &out);
                 if (ret)
                     goto done;

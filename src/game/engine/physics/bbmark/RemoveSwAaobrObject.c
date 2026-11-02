@@ -15,12 +15,12 @@ struct E { int f0; struct X *px; int x8; };
 struct P { char pad[0x3CD0]; int c; struct E *aae[3]; char a3CE0[0x3CF8 - 0x3CE0]; char aCF8[0x3D10 - 0x3CF8];
     char a3D10[0xC]; char a3D1C[0xC]; char a3D28[0xC]; char a3D34[0xC]; };
 struct L *PoxRemoveSw(struct P *, struct X *, struct X *);
-void func_001A7E10(struct P *, void *);
+void FreeSwXpList__FP2SWP2XP(struct P *, void *);
 void func_001F5078(struct LO *);
 void func_0011CD98(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, struct X *);
 int FFindDlEntry__FP2DLPv(void *, struct X *);
-void *func_002332B8(void *, void *, int);
+void *memmove(void *, void *, int);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
 /** @sly2-annot addr=0x1337D0
  * Purpose: Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from
@@ -42,7 +42,7 @@ void RemoveSwAaobrObject(struct P *p, struct X *px)
         if (pl->pv) {
             if (!VCALL(pl->po, 62, int (*)(void *))))
                 func_001F5078(pl->po);
-            func_001A7E10(p, pl->pv);
+            FreeSwXpList__FP2SWP2XP(p, pl->pv);
         }
         plNext = pl->pnext;
         func_0011CD98(p->aCF8, pl);
@@ -54,7 +54,7 @@ void RemoveSwAaobrObject(struct P *p, struct X *px)
     __asm__ __volatile__("");
     __asm__ __volatile__("");
     __asm__ __volatile__("");
-    func_001A7E10(p, px->pv6C);
+    FreeSwXpList__FP2SWP2XP(p, px->pv6C);
     RemoveDlEntry__FP2DLPv(p->a3D10, px);
     if (FFindDlEntry__FP2DLPv(p->a3D1C, px))
         RemoveDlEntry__FP2DLPv(p->a3D1C, px);
@@ -80,8 +80,8 @@ void RemoveSwAaobrObject(struct P *p, struct X *px)
                 break;
             peStart = pe++;
         }
-        func_002332B8(peStart, peStart + 1, ((int)(((char *)pe - (char *)peStart) * k3) >> 2) * sizeof(struct E) - sizeof(struct E));
-        func_002332B8(pe - 1, pe + 1, (p->c - ((int)(((char *)pe - (char *)ae) * k3) >> 2)) * sizeof(struct E) - sizeof(struct E));
+        memmove(peStart, peStart + 1, ((int)(((char *)pe - (char *)peStart) * k3) >> 2) * sizeof(struct E) - sizeof(struct E));
+        memmove(pe - 1, pe + 1, (p->c - ((int)(((char *)pe - (char *)ae) * k3) >> 2)) * sizeof(struct E) - sizeof(struct E));
     }
     }
     p->c -= 2;

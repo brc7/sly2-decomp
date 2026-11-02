@@ -11,7 +11,7 @@ extern struct J D_002DFC00;
 extern struct J D_002E0D00;
 extern char D_002DDFA0[];
 void ResetPoctl(struct S *p);
-void func_0011BC88(void *pv, float *pa, float *pb);
+void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pv, float *pa, float *pb);
 struct MATRIX3 LoadRotateMatrixPanTilt(float a, float b);
 void func_001C4330(struct S *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
 void UpdatePoctlPressed(struct S *p);
@@ -40,7 +40,7 @@ void UpdatePoctl(struct S *p)
         p->g20 = pj->c;
         p->g24 = pj->d;
         p->n30 = (pj->x10B4 & ~pj->x10BC) | p->x7C->x154;
-        func_0011BC88(D_002DDFA0, &a, &b);
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(D_002DDFA0, &a, &b);
         break;
     }
     p->mat = LoadRotateMatrixPanTilt(a, b);

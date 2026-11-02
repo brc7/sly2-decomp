@@ -1,9 +1,9 @@
-extern "C" {void*func_001291A8(void*,const void*);void func_00129EC8(void*);}
+extern "C" {void*func_001291A8(void*,const void*);void Decref__4CRef(void*);}
 struct CRefData{int tag;union{int n;float g;};};
 struct CRef:CRefData{
  CRef(float x){tag=0x16;g=x;}
  CRef(const CRef&r){func_001291A8(this,&r);}
- ~CRef(){func_00129EC8(this);}
+ ~CRef(){Decref__4CRef(this);}
 };
 struct OPT;
 struct H{char pad[0x9C];float start,end,elapsed;};
@@ -22,7 +22,7 @@ static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef
 static inline void SetFloat(OPT*p,float x,void*context){CRef r(x);SetPv(p,r,context);}
 struct CRefCopy:CRefData{
  CRefCopy(const CRefData&r){func_001291A8(this,&r);}
- ~CRefCopy(){func_00129EC8(this);}
+ ~CRefCopy(){Decref__4CRef(this);}
 };
 static inline void SetPrimaryFloat(OPT*p,float value,void*context){
  CRef r(value);CRefCopy arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,context);

@@ -6,14 +6,14 @@ void STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int);
 void *func_0013D1A8(struct S *);
 void RefGetGlobalSaveVar(struct CRef *, void *, void *);
-void func_00129EC8(struct CRef *);
+void Decref__4CRef(struct CRef *);
 static inline int NFromRef(void *pv)
 {
     struct CRef ref;
     int n;
     RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
     n = ref.m_n;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return n;
 }
 /** @sly2-annot addr=0x13D248

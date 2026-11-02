@@ -19,8 +19,8 @@ extern SCROLL D_003DA0C0;
 extern CLOCK D_002DDED0;
 extern const float D_002C40B8;
 extern "C" void *PchzFindSwLangstr__FP2SWi(WORLD *,int);
-extern "C" char *func_0021ED58(char *,const char *);
-extern "C" char *func_0021EDA0(char *,const char *);
+extern "C" char *strcpy(char *,const char *);
+extern "C" char *strcpy1(char *,const char *);
 extern "C" RT *func_00215BA8(RT *,char *,S *,DATA *);
 extern "C" int func_00215F40(RT *);
 extern "C" void func_00227820(void *,RT *);
@@ -53,7 +53,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         if(i>=108)*(long *)text=*(const long *)D_002A8B80;
         else D_003E1C88[i].get(text,D_003E1C88[i].context,p->owner);
     }else if(p->kind==0){
-        func_0021ED58(text,(const char *)PchzFindSwLangstr__FP2SWi(&D_003DD490,p->id));
+        strcpy(text,(const char *)PchzFindSwLangstr__FP2SWi(&D_003DD490,p->id));
     }
     if(p->kind==1 && p->id==0x2EF){
         int lines=1,ch,visible;
@@ -79,16 +79,16 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         float scale,paddingWidth,textWidth,elapsed,period,position;
         style=*data;
         func_00215BA8(&rt,text,p,&style);
-        func_0021ED58(marquee,D_002A8B88);
+        strcpy(marquee,D_002A8B88);
         func_00215CA8(&rt,marquee);
         scale=t->a[0];
         paddingWidth=CRichText_Dx(&rt)*scale;
-        func_0021EDA0(marquee,text);
+        strcpy1(marquee,text);
         func_00215CA8(&rt,marquee);
         textWidth=CRichText_Dx(&rt)*scale;
-        func_0021EDA0(marquee,D_002A8B88);
-        func_0021EDA0(marquee,text);
-        func_0021EDA0(marquee,D_002A8B88);
+        strcpy1(marquee,D_002A8B88);
+        strcpy1(marquee,text);
+        strcpy1(marquee,D_002A8B88);
         elapsed=D_002DDED0.t-D_003DA0C0.time;
         if(elapsed<D_002C40B8){
             data->fade*=elapsed/D_002C40B8;

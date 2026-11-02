@@ -1,7 +1,7 @@
 struct S { char pad[0xC4]; void *xC4; };
 extern int D_002C40A4;
-int func_00117C20(void *a);
-int func_00116918(void *heap, int cb, int k);
+int U16Read__18CBinaryInputStream(void *a);
+int PvAllocClear__FP4HEAPii(void *heap, int cb, int k);
 void LoadSpriteDescriptor(struct S *p, void *a, void *b, int n, int m);
 /** @sly2-annot addr=0x214398
  * Purpose: read sprite count, alloc (n+1)*0x40, read each descriptor
@@ -16,8 +16,8 @@ void LoadSpriteDescriptor(struct S *p, void *a, void *b, int n, int m);
 void LoadSpriteTable(struct S *p, void *a, void *b, int *pn, int *pm)
 {
     int i;
-    *pn = func_00117C20(a);
-    *pm = func_00116918(p->xC4, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
+    *pn = U16Read__18CBinaryInputStream(a);
+    *pm = PvAllocClear__FP4HEAPii(p->xC4, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
     for (i = 1; i <= *pn; i++)
         LoadSpriteDescriptor(p, a, b, *pn, *pm);
 }

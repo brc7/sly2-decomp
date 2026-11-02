@@ -4,7 +4,7 @@ struct B { char pad[0xEC]; struct C *pc; };
 struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int FBounceRip(void *p, struct A *pa, qword q0, qword q1);
-void func_001CE980(void *p);
+void RemoveRip__FP3RIP(void *p);
 /** @sly2-annot addr=0x1CFBE0
  * Purpose: SHRAPNEL FBounce: FBounceRip then remove on condition
  * Info: proposed name FBounceShrapnel (T1); TU rip
@@ -17,7 +17,7 @@ int FBounceShrapnel(void *p, struct A *pa, qword q0, qword q1)
     void *plo = pa->pb->pc->p60;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
-        func_001CE980(p);
+        RemoveRip__FP3RIP(p);
         return 1;
     }
     return FBounceRip(p, pa, q0, q1);

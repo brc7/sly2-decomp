@@ -4,7 +4,7 @@
 /* Warning: missing "jr $ra" in last block of func_00117640 (initial). */
 
 M2C_UNK CopyAb__FPvT0Ui(s32, s32, s32);             /* extern */
-M2C_UNK func_001179F0();                            /* extern */
+M2C_UNK Decompress__18CBinaryInputStream();                            /* extern */
 extern M2C_UNK D_0027A778;
 extern M2C_UNK D_0029A790;
 extern M2C_UNK D_0029A7C0;

@@ -20,7 +20,7 @@ extern "C"{
  qword func_001A62E8(P*);
  M3*func_001A6318(P*);
  void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
- float func_002458F0(float,float);
+ float atan2f(float,float);
  float RadNormalize__Ff(float);
  void func_0011B500(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
@@ -34,7 +34,7 @@ extern "C"{
  void SetBhvBusy(C*);
 }
 static inline CONTROL*Control(P*p){return (CONTROL*)((char*)p+0xFD0);}
-static inline float Angle(qword delta){qword x;int y;float fx,fy;__asm__("qmfc2.ni %0,%1":"=r"(x):"j"(delta));__asm__("prot3w %0,%1":"=r"(y):"r"(x));__asm__("mtc1 %1,%0":"=f"(fx):"r"(x));__asm__("mtc1 %1,%0":"=f"(fy):"r"(y));return func_002458F0(fy,fx);}
+static inline float Angle(qword delta){qword x;int y;float fx,fy;__asm__("qmfc2.ni %0,%1":"=r"(x):"j"(delta));__asm__("prot3w %0,%1":"=r"(y):"r"(x));__asm__("mtc1 %1,%0":"=f"(fx):"r"(x));__asm__("mtc1 %1,%0":"=f"(fy):"r"(y));return atan2f(fy,fx);}
 static inline qword HeadingInputs(C*p,U*home,qword current,P**actor){
  register qword a __asm__("vf1"),b __asm__("vf2");P*o;
  __asm__("qmtc2.ni %3,%1\n\tlw %2,%4\n\tlqc2 %0,%5":"=j"(a),"=j"(b),"=&r"(o):"r"(current),"m"(p->actor),"m"(home->q));
@@ -99,12 +99,12 @@ extern "C" void StartBhvleap(C*p){
    P*target=p->target;
    qword position=func_001A62E8(p->actor);
    FindShapeClosestPoint(target,position,0,&p->point.q,&work.temp.first.direction.q,0,&work.curve);
-   heading=func_002458F0(work.temp.first.direction.f[1],work.temp.first.direction.f[0]);
+   heading=atan2f(work.temp.first.direction.f[1],work.temp.first.direction.f[0]);
   }else{
    p->point.q=func_001A62E8(p->target);
    M3*a=func_001A6318(p->target);
    M3*b=func_001A6318(p->target);
-   heading=func_002458F0(((U*)a->r)->f[1],((U*)b->r)->f[0]);
+   heading=atan2f(((U*)a->r)->f[1],((U*)b->r)->f[0]);
   }
   if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,13)){
    active|=GrfFromSgf(0x1B);

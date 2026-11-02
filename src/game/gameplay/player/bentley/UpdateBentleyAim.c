@@ -9,7 +9,7 @@ void func_001362F8(struct P *p, int n);
 int GrfConsumePressed__5POCTLUif(void *pv, int n, float g);
 void FireBentleyDart(struct P *p, int n);
 void func_00136DC0(void *pv, int n);
-int func_001F0400(void *pv, int n);
+int IsmsFindSmOptional__FP2SM3OID(void *pv, int n);
 void SnapSma(void *pv, int n);
 /** @sly2-annot addr=0x136338
  * Purpose: Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; pad
@@ -47,7 +47,7 @@ void UpdateBentleyAim(struct P *p)
             switch (p->x13D0) {
             case 0:
                 func_00136DC0(p->a1710, 0);
-                if (p->x181C && p->x1714 != -1 && p->p1034 && func_001F0400(p->p1028, 0x17B) >= 0)
+                if (p->x181C && p->x1714 != -1 && p->p1034 && IsmsFindSmOptional__FP2SM3OID(p->p1028, 0x17B) >= 0)
                     SnapSma(p->p1034, 0x17B);
                 break;
             case 1: case 2: case 3: case 7:

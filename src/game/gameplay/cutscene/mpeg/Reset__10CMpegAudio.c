@@ -1,7 +1,7 @@
 struct S { int f0; int f4; char pad[0x28]; char x30[0x20]; char x50[0x20]; char x70[0x10]; };
 void snd_ResetMovieSound(void);
-void func_0013D580(void *p);
-void func_001B2A80(void *p);
+void Reset__10CByteQueue(void *p);
+void Reset__15CQueueOutputIop(void *p);
 /** @sly2-annot addr=0x1B3130
  * Purpose: reset byte queues and IOP queue
  * Info: proposed name CMpegAudio_Reset (T1); class CMpegAudio; TU mpeg
@@ -14,8 +14,8 @@ void Reset__10CMpegAudio(struct S *p)
         snd_ResetMovieSound();
         p->f0 = 1;
         p->f4 = -1;
-        func_0013D580(p->x30);
-        func_0013D580(p->x50);
-        func_001B2A80(p->x70);
+        Reset__10CByteQueue(p->x30);
+        Reset__10CByteQueue(p->x50);
+        Reset__15CQueueOutputIop(p->x70);
     }
 }

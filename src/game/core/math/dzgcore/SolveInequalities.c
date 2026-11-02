@@ -33,7 +33,7 @@ typedef struct DZG {
 void STACKSCOPE_ctor(FRAME *pframe);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pframe, int n);
 void *func_001AE318(MSG *pmsg);
-void func_001AE5A0(void *pvDst, void *pvSrc, unsigned int cb);
+void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 DZG *InitDzg(DZG *pdzg, int cdzsMax);
 void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
 void SolveDzgFilled(DZG *pdzg);
@@ -59,7 +59,7 @@ void SolveInequalities(int c, float *agA, float *agB, float *agX, float g)
         DZ *pdz = &dzg.adzs[i];
         pdz->g8 = g;
         pdz->ag = (float *)PvAllocMsg(&msg, c * sizeof(float), 0x10);
-        func_001AE5A0(pdz->ag, agA + i * c, c * sizeof(float));
+        CopyAb__FPvT0Ui(pdz->ag, agA + i * c, c * sizeof(float));
         pdz->g10 = agB[i];
         AppendDlEntry__FP2DLPv(&dzg.dlD, pdz);
     }

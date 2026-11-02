@@ -35,7 +35,7 @@ void UpdateJtActiveJump(void *p);
 void UpdateJtActiveHide(void *p);
 void func_001B8B70(struct P *p);
 void func_001B90B8(struct P *p);
-void func_00131A00(struct ASEGA *p,float g);
+void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *p,float g);
 void func_001B82A0(struct P *p);
 void UpdateJtActiveZap(void *p);
 int func_00133D08(struct G *pg,struct BBOX *a,struct BBOX *b);
@@ -57,7 +57,7 @@ static inline void Neg2(struct P *p, qword v)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(b));
     p->v190 = r;
     u = b;
-    func_00131A00(pl,p->pl->g1C);
+    SetAsegaSpeed__FP5ASEGAf(pl,p->pl->g1C);
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char Offset_0[FIELD_OFFSET(struct PL,g18)==24?1:-1];

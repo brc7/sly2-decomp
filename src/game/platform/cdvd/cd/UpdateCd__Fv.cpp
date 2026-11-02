@@ -12,8 +12,8 @@ int FValidCdMmode__Fv(void);
 void func_001DD6C8(void *p);
 int func_001DD780(void *p);
 void func_001DD728(void *p);
-int func_00242840(int lsn, int c, void *buf, void *mode);
-int func_0014BD30(int n);
+int sceCdRead(int lsn, int c, void *buf, void *mode);
+int FCdCompleted__Fi(int n);
 }
 static inline unsigned int UCrc(unsigned char *pb, int cb)
 {
@@ -43,12 +43,12 @@ void UpdateCd(void)
         if (func_001DD780(D_003DA4F0)) {
             int lsn = D_002A2E5C;
             lsn += 0xCA0;
-            if (FValidCdMmode__Fv() && func_00242840(lsn, 1, D_002DD680, D_002A2E50) == cds)
+            if (FValidCdMmode__Fv() && sceCdRead(lsn, 1, D_002DD680, D_002A2E50) == cds)
                 D_002BD4C0 = 2;
         }
         break;
     case 2:
-        if (func_0014BD30(0)) {
+        if (FCdCompleted__Fi(0)) {
             if (UCrc(D_002DD680, 0x800) != D_002A2E60) {
                 D_002BD4C0 = 1;
             } else {

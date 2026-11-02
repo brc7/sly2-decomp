@@ -1,7 +1,7 @@
 #include "m2c_prelude.h"
 M2C_UNK func_0011CCA8(M2C_UNK *, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
-M2C_UNK func_00166920(M2C_UNK *);                   /* extern */
-M2C_UNK func_00226C10(M2C_UNK *);                   /* extern */
+M2C_UNK __4GIFS(M2C_UNK *);                   /* extern */
+M2C_UNK __4VIFS(M2C_UNK *);                   /* extern */
 extern s32 D_002DD2E0;
 extern s32 D_002DD2E4;
 extern s32 D_002DD2E8;
@@ -32,8 +32,8 @@ void StaticInit_frm(s32 arg0, s32 arg1) {
     s32 temp_v0_6;
 
     if ((arg1 == 0xFFFF) && (arg0 != 0)) {
-        func_00166920(&D_002DEA00);
-        func_00226C10(&D_002DEA28);
+        __4GIFS(&D_002DEA00);
+        __4VIFS(&D_002DEA28);
         temp_v0 = D_002DD2E0 + 1;
         D_002DD2E0 = temp_v0;
         if (temp_v0 == 1) {

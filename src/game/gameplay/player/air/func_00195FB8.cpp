@@ -11,7 +11,7 @@ struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
-qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void func_001305B8(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -259,5 +259,5 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  case 22:clip=p->special1C8;flags=9;break;
  }
  switch(p->mode){case 0:case 2:p->actionFlag=0;break;case 18:RecalcSwOxfFilterForObject(&D_003DD490,p->actor);break;}
- if(p->mode!=-1){if(!active||active->clip!=clip){ReleaseSma(&p->actor->component);func_001305B8(clip,p->actor,blend,weight,flags,&p->actor->animation);}Notify(p->actor,90);}
+ if(p->mode!=-1){if(!active||active->clip!=clip){ReleaseSma(&p->actor->component);ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,p->actor,blend,weight,flags,&p->actor->animation);}Notify(p->actor,90);}
 }

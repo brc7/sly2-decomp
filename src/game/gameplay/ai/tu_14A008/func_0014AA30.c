@@ -15,7 +15,7 @@ struct P { char pad[0x38]; struct O *p38; };
 void *PpoHero(void *);
 qword func_001A62E8(void *);
 void FindShapeClosestPoint(struct Q *, qword, int, int, int, int, float *);
-int func_0011D910(struct RANGE *, float);
+int FCheckLm__FP2LMf(struct RANGE *, float);
 qword ConvertCmWorldToScreen(void *, qword);
 float sqrtf(float);
 
@@ -49,21 +49,21 @@ int func_0014AA30(struct P *p)
         g = ag[0] - p->p38->x5C->xF0[i];
         if (p->p38->x50 == 1)
             g = -g;
-        if (func_0011D910(&D_002BD480, g))
+        if (FCheckLm__FP2LMf(&D_002BD480, g))
             u1 = GRemap(&D_002BD480, g);
-        else if (func_0011D910(&D_002BD488, g))
+        else if (FCheckLm__FP2LMf(&D_002BD488, g))
             u1 = 1.0f - GRemap(&D_002BD488, g);
         else
             u1 = 0.0f;
         v.q = ConvertCmWorldToScreen(D_002DDF40, p->p38->x5C->xF4[i]);
-        if (func_0011D910(&D_002BD490, v.f[2]))
+        if (FCheckLm__FP2LMf(&D_002BD490, v.f[2]))
             u2 = GRemap(&D_002BD490, v.f[2]);
-        else if (func_0011D910(&D_002BD498, v.f[2]))
+        else if (FCheckLm__FP2LMf(&D_002BD498, v.f[2]))
             u2 = 1.0f - GRemap(&D_002BD498, v.f[2]);
         else
             u2 = 0.0f;
         { float l2 = v.f[0] * v.f[0] + v.f[1] * v.f[1]; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(g) : "f"(l2)); }
-        if (func_0011D910(&D_002BD4A0, g))
+        if (FCheckLm__FP2LMf(&D_002BD4A0, g))
             u3 = 1.0f - GRemap(&D_002BD4A0, g);
         else
             u3 = 0.0f;

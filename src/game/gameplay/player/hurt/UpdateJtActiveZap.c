@@ -8,9 +8,9 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BFAA0[3], D_002BFAB0[3], D_002BFAC0[];
 extern float D_002BBB60[2];
 void func_001F4BF8(struct LO *po);
-float func_00244E10(float g);
-float func_002458F0(float y, float x);
-float func_0011D2D0(void *p, int n, float a, float b, float c);
+float cosf(float g);
+float atan2f(float y, float x);
+float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 void func_00204660(struct LO *po, float g);
 int FCheckJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
@@ -47,7 +47,7 @@ void UpdateJtActiveZap(struct S *s)
         } else {
             u = 0.0f;
         }
-        w = func_00244E10((D_002DDED0.t - s->x94) * 10.0f);
+        w = cosf((D_002DDED0.t - s->x94) * 10.0f);
         a = GClamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
         s->po->xD0 = a * GClamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
     }
@@ -59,8 +59,8 @@ done:
         union { qword q; float f[4]; } v;
         float g;
         v.q = s->po->vt[33].pfn((struct LO *)((char *)s->po + s->po->vt[33].d));
-        g = func_002458F0(v.f[1], v.f[0]) + 3.1415927f;
-        func_00204660(s->po, func_0011D2D0(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
+        g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
+        func_00204660(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
         if (0.25f < D_002DDED0.t - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
         else if (FCheckJtStuck(s->po, 0, s->x8))

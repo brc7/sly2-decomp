@@ -25,7 +25,7 @@ qword func_001A62E8(void*);
 M4*func_001A6318(void*);
 qword GetXfVelocity(void*,void*,qword);
 float func_0011E290(qword,qword,qword*,qword*);
-float func_0011D1C0(float,float,float,float,SMPA*,float*);
+float GSmoothA__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
 M3 func_0011B570(qword);
 void AnticipateJtForce(P*,NODE*,qword*,qword*,DELTA*);
 extern U D_002A2DC0,D_002A2DA0,D_002A2DB0,D_002A2DD0;
@@ -110,7 +110,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(P*p){
   angular.q=QwAddScaled(angular.q,anchorBasis.r[1].q,VuFloat(amount));
  }
  float speedOut;
- float next=func_0011D1C0(distance,radial,D_002BF544-p->target->property,Addr(&D_002DDED0)->dt,&D_002BF530,&speedOut);
+ float next=GSmoothA__FffffP4SMPAPf(distance,radial,D_002BF544-p->target->property,Addr(&D_002DDED0)->dt,&D_002BF530,&speedOut);
  angular.q=QwScaleX(angular.q,VuFloat(GMinOf(D_002BF544,distance)/GMaxOf(D_002BF540,next)));
  U velocity;
  STATE state;

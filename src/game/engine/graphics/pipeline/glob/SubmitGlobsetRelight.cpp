@@ -95,7 +95,7 @@ struct G
 extern DMA D_002DEA28;
 extern G D_003DD490;
 extern "C" {
-void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
 M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float func_0011CAB0(const M3 *pmat);
@@ -172,7 +172,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
             continue;
         packet.word = entry->word;
         if (entry->flags & 0x1000)
-            func_001AE5A0(&packet.matrix, entry->matrixData + 0x14, sizeof(M4));
+            CopyAb__FPvT0Ui(&packet.matrix, entry->matrixData + 0x14, sizeof(M4));
         else
             packet.matrix = ModelMatrix(entry);
         if (entry->sphere)
@@ -186,7 +186,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
             int sphereStride = sizeof(LOCAL_SPHERE);
             LOCAL_SPHERE *sphere = (LOCAL_SPHERE *)((char *)p->spheres + i * sphereStride);
             U center;
-            func_001AE5A0(&center, &sphere->sphere.center, sizeof(V3));
+            CopyAb__FPvT0Ui(&center, &sphere->sphere.center, sizeof(V3));
             packet.sphere.q = QwTransformPos(&packet.matrix, center.q);
             packet.sphere.f[3] = func_0011CAB0((const M3 *)&packet.matrix) * sphere->sphere.radius;
         }

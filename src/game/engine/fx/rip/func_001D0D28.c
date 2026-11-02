@@ -23,7 +23,7 @@ extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClsgClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
-void func_001CEA88(OBJ *, int);
+void TouchRip__FP3RIPi(OBJ *, int);
 /** @sly2-annot addr=0x1D0D28
  * Purpose: RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself
  * Info: proposed name UpdateRipt1 (T2); TU rip
@@ -53,5 +53,5 @@ found:
         pe->x1C = p->xF4;
     }
 done:
-    func_001CEA88(p, n);
+    TouchRip__FP3RIPi(p, n);
 }

@@ -19,7 +19,7 @@ void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
 qword func_001A62E8(struct P *p);
 struct M3 *func_001A6318(struct P *p);
 void ReleaseSma(struct COMPONENT *p);
-void func_001305B8(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
@@ -117,5 +117,5 @@ void func_001B8D30(struct P *p, int st)
         return;
     }
     ReleaseSma(&p->x1034);
-    func_001305B8(o, p, 0.0f, 1.0f, n, &p->x1030);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, p, 0.0f, 1.0f, n, &p->x1030);
 }

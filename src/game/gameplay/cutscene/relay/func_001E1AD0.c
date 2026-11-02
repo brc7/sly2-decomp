@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00117968(s32, s32, s32);               /* extern */
-M2C_UNK func_00117EB0(s32, s32);                    /* extern */
+M2C_UNK Read__18CBinaryInputStreamiPv(s32, s32, s32);               /* extern */
+M2C_UNK ReadVector__18CBinaryInputStreamP6VECTOR(s32, s32);                    /* extern */
 extern s128 D_002A2DD0;
 extern f32 D_002A8124;
 extern f32 D_002A8130;

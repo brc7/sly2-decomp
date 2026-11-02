@@ -16,7 +16,7 @@ struct P {
     char pad3[0x131C - 0x1034]; float g131C; char pad4[0x13D8 - 0x1320]; int x13D8; float g13DC; char pad5[0x13E4 - 0x13E0];
     struct LINK *plink;
 };
-void func_001A7E10(void *pg, struct LINK *pl);
+void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
 void *func_001F7530(void *p, int n);
 void *func_002333B4(void *p, int c, int cb);
 void *func_001F7598(struct MSG *pmsg);
@@ -85,7 +85,7 @@ void SetMurrayFlopSubstate(struct P *p, int s)
     case 0:
         break;
     case -1:
-        func_001A7E10(D_003DD490, p->plink);
+        FreeSwXpList__FP2SWP2XP(D_003DD490, p->plink);
         p->plink = 0;
         break;
     case 1: {
@@ -127,7 +127,7 @@ void SetMurrayFlopSubstate(struct P *p, int s)
                 (void)func_001F7598(&msg);
             }
         }
-        func_001A7E10(D_003DD490, p->plink);
+        FreeSwXpList__FP2SWP2XP(D_003DD490, p->plink);
         p->plink = 0;
         {
             float *pg = func_0012F938(p->p1030->x14, 0x1A5);

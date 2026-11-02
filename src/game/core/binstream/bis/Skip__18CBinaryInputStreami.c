@@ -61,6 +61,6 @@ extern M2C_UNK D_00452170;
  * Confidence: none - unanalysed; anything inferred from the code here is a guess
  * See: docs/formats/world-file.md#1-container, docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void func_001179B8(s32 arg0, s32 arg1, s32 arg2) {
-    func_00117968(arg0, arg1, 0);
+void Skip__18CBinaryInputStreami(s32 arg0, s32 arg1, s32 arg2) {
+    Read__18CBinaryInputStreamiPv(arg0, arg1, 0);
 }

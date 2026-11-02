@@ -28,11 +28,11 @@ extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
 NODE *PvNewPair();
-int func_00117BD0(BIS *pbis);
-int func_00117DB8(BIS *pbis);
-int func_00117D50(BIS *pbis);
-float func_00117E38(BIS *pbis);
-unsigned int func_00117C80(BIS *pbis);
+int U8Read__18CBinaryInputStream(BIS *pbis);
+int S32Read__18CBinaryInputStream(BIS *pbis);
+int S16Read__18CBinaryInputStream(BIS *pbis);
+float F32Read__18CBinaryInputStream(BIS *pbis);
+unsigned int U32Read__18CBinaryInputStream(BIS *pbis);
 }
 struct SPM {
     NODE *p;
@@ -68,24 +68,24 @@ extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
  * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
  *   docs/engine/splice-scripting.md#6-source-files, docs/engine/splice-scripting.md#7-key-functions
  * @end-sly2-annot */
-SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = func_00117BD0(pbis);
+SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Read__18CBinaryInputStream(pbis);
  if (b == 0xFF) return SPN(0);
  SPN sp; NODE *pnNew = PvNewPair(); sp.Set(pnNew);
- if (D_003E1C34) { func_00117DB8(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); }
+ if (D_003E1C34) { S32Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); }
  CRef *pref = &sp->ref; int fNext = (b >> 7) & 0xFF; int tagk = b & 0x7F;
  switch (tagk) {
  case 0: case 1: case 2: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 20:
    pref->SetTag(tagk); break;
- case 21: *pref = func_00117DB8(pbis); break;
- case 22: *pref = func_00117E38(pbis); break;
- case 23: *pref = func_00117C80(pbis) != 0; break;
- case 24: *pref = (T18 *)func_00117C80(pbis); break;
- case 25: *pref = (T19 *)func_00117C80(pbis); break;
- case 33: *pref = (OBJ *)func_00117C80(pbis); break;
- case 26: pref->SetTag(0x1A); for (int i = 0; i < 3; i++) { float *pg = &pref->u.ag[i]; *pg = func_00117E38(pbis); } break;
- case 27: pref->SetTag(0x1B); for (int i = 0; i < 16; i++) { float *ag = pref->u.ag; float g = func_00117E38(pbis); ag += i; *ag = g; } break;
- case 28: pref->SetTag(0x1C); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = func_00117E38(pbis); ag += i; *ag = g; } break;
- case 29: pref->SetTag(0x1D); for (int i = 0; i < 2; i++) { float *ag = pref->u.ag; float g = func_00117E38(pbis); ag += i; *ag = g; } break;
- case 30: pref->SetTag(0x1E); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = func_00117E38(pbis); ag += i; *ag = g; } break;
+ case 21: *pref = S32Read__18CBinaryInputStream(pbis); break;
+ case 22: *pref = F32Read__18CBinaryInputStream(pbis); break;
+ case 23: *pref = U32Read__18CBinaryInputStream(pbis) != 0; break;
+ case 24: *pref = (T18 *)U32Read__18CBinaryInputStream(pbis); break;
+ case 25: *pref = (T19 *)U32Read__18CBinaryInputStream(pbis); break;
+ case 33: *pref = (OBJ *)U32Read__18CBinaryInputStream(pbis); break;
+ case 26: pref->SetTag(0x1A); for (int i = 0; i < 3; i++) { float *pg = &pref->u.ag[i]; *pg = F32Read__18CBinaryInputStream(pbis); } break;
+ case 27: pref->SetTag(0x1B); for (int i = 0; i < 16; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
+ case 28: pref->SetTag(0x1C); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
+ case 29: pref->SetTag(0x1D); for (int i = 0; i < 2; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
+ case 30: pref->SetTag(0x1E); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
  case 31: *pref = PpairSerializeIn__FP18CBinaryInputStream(pbis).p; break;
  } if (fNext) { NODE *pn = sp.p; SPN next = PpairSerializeIn__FP18CBinaryInputStream(pbis); pn->pnext = next.p; } return SPN(sp.p); }

@@ -44,14 +44,14 @@ extern "C"{
  void AnnounceTaskJob(P*);
  void WipeToWorldWarp(G*,CHECK*,int,int,int,int);
  CRef*func_001291A8(CRef*,const CRef*);
- void func_00129EC8(CRef*);
+ void Decref__4CRef(CRef*);
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
  OVERRIDE(P*p,int x,int y):context(0),object(p){if(object){oldX=object->x;object->x=x;oldY=object->y;object->y=y;}}
  ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
 };
-struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){func_00129EC8(this);}};
+struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefGetGlobalSaveVar(void*,void*);
 static inline float GetFloat(void*p,void*context){const CRef&r=RefGetGlobalSaveVar(p,context);return r.g;}
 static inline int Same(CHECK*a,CHECK*b){

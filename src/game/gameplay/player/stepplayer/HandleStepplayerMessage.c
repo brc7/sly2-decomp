@@ -32,14 +32,14 @@ int func_00224590(void *p);
 void func_002245B8(void *p);
 void ReleaseAsega(void *p);
 void ChargeGadgetMp(void *p);
-void func_001305B8(void *pa, void *p, float g, int n, float h, void *pb);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
 void func_0019F170(void *p, int n);
 void func_0019F220(void *p, int n);
 void *PloAcquireProxy(void *p, int n);
 void SetLoParent_1A58D0(void *p, int a, int b);
 void func_00156780(void *p);
 void func_001CCC88(void *p, void *q);
-void func_00131A00(void *p, float g);
+void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 void func_001CD098(void *p, void *q);
 void UnsubscribeLoObject(void *p, void *q);
 void HandleBhvstkMessage(void *p, int msg, void *pmsg);
@@ -153,7 +153,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                         F(int, p, 0x1314) = -1;
                     } else {
                         ChargeGadgetMp(p);
-                        func_001305B8(F(void *, p, 0x130C), p, 0.0f, 8, 1.0f, (char *)p + 0x1310);
+                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, p, 0x130C), p, 0.0f, 8, 1.0f, (char *)p + 0x1310);
                         F(int, p, 0x1314) = F(int, p, 0x9BC);
                     }
                 } else if (n != -1) {
@@ -192,7 +192,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
             break;
         case 0x1C7:
             if (F(int, p, 0x4C8) == 0xC) {
-                func_00131A00(F(void *, p, 0x1030), 1.0f);
+                SetAsegaSpeed__FP5ASEGAf(F(void *, p, 0x1030), 1.0f);
                 func_001CD098((char *)p + 0x900, F(void *, p, 0x4D4));
             }
             break;

@@ -4,7 +4,7 @@ struct CLAMP { ulong WMS : 2; ulong WMT : 2; ulong MINU : 10; ulong MAXU : 10; u
 struct S8 { char pad[0x24]; int c; };
 struct Y { int a; unsigned short grf; short pad; struct S8 *ps8; };
 ulong Tex0FromTexIframeCtk(struct Y *py, int i, int n);
-void func_00166E90(void *pq, int reg, ulong val);
+void PackAD__4GIFSll(void *pq, int reg, ulong val);
 void *func_002333B4(void *p, int b, int cb);
 /** @sly2-annot addr=0x1EA750
  * Purpose: Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D
@@ -19,7 +19,7 @@ void PackTexGifs(struct Y *py, int n, void *pq)
     struct CLAMP clamp;
     int i;
     for (i = py->ps8->c - 1; i >= 0; i--)
-        func_00166E90(pq, 6, Tex0FromTexIframeCtk(py, i, n));
+        PackAD__4GIFSll(pq, 6, Tex0FromTexIframeCtk(py, i, n));
     func_002333B4(&tex1, 0, 8);
     tex1.LCM = 1;
     if (n == 2) {
@@ -29,9 +29,9 @@ void PackTexGifs(struct Y *py, int n, void *pq)
         tex1.MMAG = 1;
         tex1.MMIN = 1;
     }
-    func_00166E90(pq, 0x14, *(ulong *)&tex1);
+    PackAD__4GIFSll(pq, 0x14, *(ulong *)&tex1);
     func_002333B4(&clamp, 0, 8);
     if (py->grf & 1) clamp.WMS = 1;
     if (py->grf & 2) clamp.WMT = 1;
-    func_00166E90(pq, 8, *(ulong *)&clamp);
+    PackAD__4GIFSll(pq, 8, *(ulong *)&clamp);
 }

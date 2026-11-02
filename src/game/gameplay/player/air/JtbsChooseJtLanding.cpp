@@ -1,6 +1,6 @@
 // JtbsChooseJtLanding: chooses the jump target of the player (JTAIR, the family of Lilly's jtair.c: func_0019A750 is
 // JtPlanLaunchVz). Every candidate list (D_003E13B4..D_003E142C are 12-byte DL heads) is scanned; a candidate is
-// scored with func_0011D9E0 (a 1-D minimizer over the matched GMeasureJumpRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
+// scored with MinimizeRange (a 1-D minimizer over the matched GMeasureJumpRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
 // biased by GAdjustJtLandingScore and checked for a clear path with FFindJtObstruction unless it is the forced target. The best one
 // is published in pstepplayer->pxf (+0xA8 landing time, +0xC0 position, +0xD0 velocity) and func_00195FB8 starts the
 // jump of that kind (9 shapes, 10 curves, 14 hooks, 16 meshes, 18 the partner's target, 15/11 curves, 12/13 shapes).
@@ -144,7 +144,7 @@ float DuGetShapeSearchIncrement(CURVE *pcurve);
 float UFromShapeS(CURVE *pcurve, float s);
 float SMaxShape(CURVE *pcurve);
 float SFromShapeU(CURVE *pcurve, float u);
-void func_0011D9E0(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
+void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
 float GMeasureJumpRail(void *pv, float u);
 float GMeasureJumpTargetTime(void *pv, float u);
 float GMeasureJumpPipe(void *pv, float u);
@@ -157,7 +157,7 @@ void func_00185310(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VE
 int func_00185D18(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
 void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
 qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
-float func_002458F0(float y, float x);                                 // atan2f
+float atan2f(float y, float x);                                 // atan2f
 void func_00195FB8(JTAIR *pjtair, int nKind, void *plo);
 }
 
@@ -248,7 +248,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             ctx.pcurve = pcurve;
             ctx.v = vLaunch.q;
             func_001E7410(pcurve, GMeasureJumpRail, &ctx, 0, 0, &uStart, 0);
-            func_0011D9E0(GMeasureJumpRail, &ctx, uStart, DuGetShapeSearchIncrement(pcurve), UFromShapeS(pcurve, 50.0f),
+            MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpRail, &ctx, uStart, DuGetShapeSearchIncrement(pcurve), UFromShapeS(pcurve, 50.0f),
                           UFromShapeS(pcurve, SMaxShape(pcurve) - 50.0f), &u, &g);
             if (pcurve != ploForce) {
                 if (g >= D_002BF8E0)
@@ -298,7 +298,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             ctx.v = D_002A2DD0;
             ctx.pjtair = pjtair;
             ctx.plo = phook;
-            func_0011D9E0(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, &g);
+            MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, &g);
             MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
             if (phook != ploForce) {
                 if (g >= D_002BF8E0)
@@ -332,7 +332,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             ctx.v = vLaunch.q;
             ctx.pjtair = pjtair;
             ctx.plo = pmesh;
-            func_0011D9E0(func_0019AC88, &ctx, 1.0f, 0.25f, 0.25f, 2.0f, &t, &gMesh);
+            MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AC88, &ctx, 1.0f, 0.25f, 0.25f, 2.0f, &t, &gMesh);
             if (pmesh != ploForce) {
                 if (gMesh >= D_002BF8E0)
                     continue;
@@ -400,7 +400,7 @@ LPartnerDone:
         float s, gCurve;
         pair.pjtair = pjtair;
         pair.plo = pcurve;
-        func_0011D9E0(GMeasureJumpPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(pcurve) - 50.0f, &s, &gCurve);
+        MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(pcurve) - 50.0f, &s, &gCurve);
         if (pcurve != ploForce) {
             if (D_002BF8E0 <= gCurve)
                 continue;
@@ -413,7 +413,7 @@ LPartnerDone:
         ctx.plo = pcurve;
         EvaluateShapeS(pcurve, s, &posTarget, 0);
         ctx.v = ConvertAloPos(0, pcurve, posTarget.q);
-        func_0011D9E0(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
+        MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
         if (pcurve != ploForce &&
             FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
@@ -442,7 +442,7 @@ LPartnerDone:
         ctx.v = v.q;
         ctx.pjtair = pjtair;
         ctx.plo = pshape;
-        func_0011D9E0(func_0019AAB8, &ctx, func_002458F0(dpos.f[1], dpos.f[0]) * pshape->rAngle, D_002BF914, -FLT_MAX,
+        MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AAB8, &ctx, atan2f(dpos.f[1], dpos.f[0]) * pshape->rAngle, D_002BF914, -FLT_MAX,
                       FLT_MAX, &u, &g);
         g = g * D_002BF90C;
         if (pshape != ploForce) {
@@ -481,7 +481,7 @@ LPartnerDone:
         ctx.v = v.q;
         ctx.pjtair = pjtair;
         ctx.plo = pcurve;
-        func_0011D9E0(func_0019AB38, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(pcurve) - 30.0f, &u, &g);
+        MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AB38, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(pcurve) - 30.0f, &u, &g);
         g = g * D_002BF90C;
         if (pcurve != ploForce) {
             if (g >= D_002BF8E0)

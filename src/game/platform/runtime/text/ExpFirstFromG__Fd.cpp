@@ -1,4 +1,4 @@
-extern "C" double func_00245178(double);
+extern "C" double log10(double);
 /** @sly2-annot addr=0x21E048
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -8,7 +8,7 @@ int ExpFirstFromG(double g)
 {
     int exp;
     if (g > 0.0) {
-        double l = func_00245178(g);
+        double l = log10(g);
         exp = (int)l;
         if (l < 0.0 && l != (double)exp)
             exp--;

@@ -1,5 +1,5 @@
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 /** @sly2-annot addr=0x1226B0
  * Purpose: Splice builtin "atan2": atan2f(a0,a1)
  * Info: proposed name RefOpAtan2 (T1); TU bif
@@ -16,7 +16,7 @@ CRef *RefOpAtan2__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         CRef *p = &aref[i];
         if (p->m_tagk == 0x16) ag[i] = p->u.g; else ag[i] = p->u.n;
     }
-    g = func_002458F0(ag[0], ag[1]);
+    g = atan2f(ag[0], ag[1]);
     ret->u.g = g;
     ret->m_tagk = 0x16;
     return ret;

@@ -9,7 +9,7 @@ struct SAVE {
     int n1C;
     int n20;
 };
-extern "C" void func_00243CB0(void);
+extern "C" void sceMcInit(void);
 extern "C" void InitMemcard__FP7MEMCARD(void *);
 /** @sly2-annot addr=0x1AB128
  * Purpose: sceMcInit, InitMemcard(+0xFD5C), zero SAVE header
@@ -19,7 +19,7 @@ extern "C" void InitMemcard__FP7MEMCARD(void *);
  * @end-sly2-annot */
 void InitSave(SAVE *psave, int a, int b)
 {
-    func_00243CB0();
+    sceMcInit();
     InitMemcard__FP7MEMCARD((char *)psave + 0xFD5C);
     psave->a = a;
     psave->b = b;

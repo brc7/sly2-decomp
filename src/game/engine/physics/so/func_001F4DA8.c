@@ -2,7 +2,7 @@ struct N { int pad[2]; void *p8; char pad2[0xAC - 0xC]; struct N *next; };
 struct G;
 extern struct G D_003DD490;
 void func_001F5078(void *);
-void func_001A7E10(struct G *, struct N *);
+void FreeSwXpList__FP2SWP2XP(struct G *, struct N *);
 /** @sly2-annot addr=0x1F4DA8
  * Purpose: Unlink contact nodes between pa and pb from list, free them (FreeSwXpList) and invalidate pa
  * Info: proposed name RemoveSoContactsWith (T2); TU so
@@ -28,6 +28,6 @@ loop:
     }
     if (pfree) {
         func_001F5078(pa);
-        func_001A7E10(&D_003DD490, pfree);
+        FreeSwXpList__FP2SWP2XP(&D_003DD490, pfree);
     }
 }

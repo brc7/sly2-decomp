@@ -1,5 +1,5 @@
 struct S { char pad[0x394]; int n; int a[1]; };
-void *func_002332B8(void *d, void *s, int n);
+void *memmove(void *d, void *s, int n);
 /** @sly2-annot addr=0x208728
  * Purpose: Remove cid from +0x394 list
  * Info: proposed name RemoveStepguardPreferClass (T2); TU stepguard
@@ -11,7 +11,7 @@ void func_00208728(struct S *p, int x)
     int i;
     for (i = 0; i < p->n; i++) {
         if (p->a[i] == x) {
-            func_002332B8(p->a + i, p->a + i + 1, (p->n - i) * 4 - 4);
+            memmove(p->a + i, p->a + i + 1, (p->n - i) * 4 - 4);
             p->n--;
         }
     }

@@ -6,7 +6,7 @@ typedef struct { int a, b; } V2;
 typedef struct { int a, b, c; } V3;
 CRef *SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 CRef *CRef_RefCoerceS32(CRef *ret, CRef *pref);
 CRef *CRef_RefCoerceF32(CRef *ret, CRef *pref);
 
@@ -39,9 +39,9 @@ CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
                 pt->tagk = -1;
                 CRef_RefCoerceS32(&tmp.r, &ref.r);
                 func_00129658(pt, &tmp.r);
-                func_00129EC8(&tmp.r);
+                Decref__4CRef(&tmp.r);
                 *(int *)pv = t.r.u.n;
-                func_00129EC8(pt);
+                Decref__4CRef(pt);
             }
             break;
         case 1:
@@ -53,9 +53,9 @@ CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
                 pt->tagk = -1;
                 CRef_RefCoerceF32(&tmp.r, &ref.r);
                 func_00129658(pt, &tmp.r);
-                func_00129EC8(&tmp.r);
+                Decref__4CRef(&tmp.r);
                 *(float *)pv = t.r.u.g;
-                func_00129EC8(pt);
+                Decref__4CRef(pt);
             }
             break;
         case 4:
@@ -87,6 +87,6 @@ CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
         }
     }
     SetTag__4CRef4TAGK(ret, 0x24);
-    func_00129EC8(&ref.r);
+    Decref__4CRef(&ref.r);
     return ret;
 }

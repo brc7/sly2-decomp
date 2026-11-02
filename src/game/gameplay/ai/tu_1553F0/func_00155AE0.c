@@ -19,7 +19,7 @@ void PopBhv(int *p);
 void *func_00155A68(struct X *p);
 struct ASEG *func_00205438(struct SO *pso, int id);
 qword func_001A62E8(void *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float g);
 void MeasureShape(struct ALO *p);
 void SetBhvpathShape(struct ASEG *a, struct ALO *b, int c);
@@ -72,7 +72,7 @@ void func_00155AE0(struct X *p, int k)
         pa->x3C = 0xB;
         d = Sub(func_001A62E8(p->x40), func_001A62E8(p->pso));
         {
-            float g = func_002458F0(GetY(d), GetX(d)) + 3.1415927f;
+            float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(p->pso->xFD0, g);
         }
         pa->vt[8].pfn((char *)pa + pa->vt[8].d);

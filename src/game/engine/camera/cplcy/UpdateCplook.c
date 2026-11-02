@@ -22,15 +22,15 @@ struct X {
 };
 void UpdateCplcy(struct X *p, void *pv, struct JOY *pjoy);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
-float func_0011D948(void *p, float g);
+float GLimitLm__FP2LMf(void *p, float g);
 void SetSndPitch(struct SND *p, float g);
 void func_001FB1F8(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
 void SetCmFov__FP2CMf(struct CM *p, float g);
 void RefGetGlobalSaveVar(struct CRef *, void *, void *);
-void func_00129EC8(struct CRef *);
-float func_0011CFE0(float g, float gMax);
+void Decref__4CRef(struct CRef *);
+float GLimitAbs__Fff(float g, float gMax);
 float RadNormalize__Ff(float g);
 qword PosCplookEye(struct X *p);
 qword PosCplookAnchor(struct X *p);
@@ -69,9 +69,9 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     p->g20 = x = GClamp2(x, 0.0f, 1.0f);
     if (p->g24 != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = p->p34;
-        SetSndPitch(ps, func_0011D948(D_002BBB68, __builtin_fabsf(p->g24)));
+        SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->g24)));
         ps = p->p34;
-        func_001FB1F8(ps, func_0011D948(D_002BBB60, __builtin_fabsf(p->g24) * 0.5f + 0.5f));
+        func_001FB1F8(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->g24) * 0.5f + 0.5f));
         if (p->p34->c4E > 0)
             ResumeSnd(p->p34);
     } else {
@@ -84,11 +84,11 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     gTilt = -__builtin_fabsf(pjoy->g1040) * pjoy->g1040 * D_002BD994;
     RefGetGlobalSaveVar(&ref, D_003DD490.p3B4C, D_003D4A60);
     f = ref.m_n;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     if (f)
         gTilt = -gTilt;
-    gPan = p->g18 + func_0011CFE0(gPan - p->g18, D_002BD998 * D_002DDED0.dt);
-    gTilt = p->g1C + func_0011CFE0(gTilt - p->g1C, D_002BD99C * D_002DDED0.dt);
+    gPan = p->g18 + GLimitAbs__Fff(gPan - p->g18, D_002BD998 * D_002DDED0.dt);
+    gTilt = p->g1C + GLimitAbs__Fff(gTilt - p->g1C, D_002BD99C * D_002DDED0.dt);
     dt = D_002DDED0.dt * 0.5f;
     {
         float gMin, gMax;

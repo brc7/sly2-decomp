@@ -9,7 +9,7 @@ extern int D_002BE590;
 extern int D_002BE594;
 extern DISPENV D_002DEB80[2];
 extern "C" void func_00234A50(int sid);
-extern "C" void func_00240600(DISPENV *pdisp);
+extern "C" void sceGsPutDispEnv(DISPENV *pdisp);
 void BlendDisplayOnBufferMismatch();
 /** @sly2-annot addr=0x16F468
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -36,7 +36,7 @@ int VBlankS_Interrupt(int ch)
     case 3:
         D_002DEDB0++;
         D_002DFB60 = 1;
-        func_00240600(&D_002DEB80[D_002DEDB0 & 1]);
+        sceGsPutDispEnv(&D_002DEB80[D_002DEDB0 & 1]);
         break;
     }
     asm volatile("sync\n\tei");

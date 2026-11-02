@@ -2,7 +2,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct S { char pad[0x54]; int n; char pad2[0xD8 - 0x58]; int fd8; };
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x164030
  * Purpose: State >= 2, or for an unset task (-1) the value of its save var +0xD8
  * Info: proposed name FTaskComplete (T1); TU game
@@ -16,7 +16,7 @@ int FTaskComplete(struct S *p)
         int n;
         RefGetGlobalSaveVar(&ref, &p->fd8, D_003D4A60);
         n = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         return n;
     }
     return p->n >= 2;

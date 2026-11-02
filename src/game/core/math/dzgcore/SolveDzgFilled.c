@@ -24,7 +24,7 @@ typedef struct DZG {
 extern DLI *g_pdliFirst;
 void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
-void func_0011A770(DZG *pdzg, DZ *pdz);
+void EnforceDzgDz__FP3DZGP2DZ(DZG *pdzg, DZ *pdz);
 
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -68,7 +68,7 @@ void SolveDzgFilled(DZG *pdzg)
             pdzg->n3C++;
         }
     }
-    func_0011A770(pdzg, 0);
+    EnforceDzgDz__FP3DZGP2DZ(pdzg, 0);
     g_pdliFirst = dli.pdliNext;
 
     for (;;) {
@@ -84,6 +84,6 @@ void SolveDzgFilled(DZG *pdzg)
         if (!pdzMin) {
             break;
         }
-        func_0011A770(pdzg, pdzMin);
+        EnforceDzgDz__FP3DZGP2DZ(pdzg, pdzMin);
     }
 }

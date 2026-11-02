@@ -5,7 +5,7 @@ struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po4
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword func_001A62E8(struct O *po);
 void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 /** @sly2-annot addr=0x1E4D40
  * Purpose: Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER
  *   -> pos+offset; else object pos and its matrix heading)
@@ -23,13 +23,13 @@ void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
     if (po) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             FindShapeClosestPoint(po, func_001A62E8(px), 0, &uv.q, ag, 0, 0);
-            g = func_002458F0(ag[1], ag[0]);
+            g = atan2f(ag[1], ag[0]);
         } else {
             float *p1, *p2;
             uv.q = func_001A62E8(po);
             p1 = po->vt[0x1F].pfn((char *)po + po->vt[0x1F].d);
             p2 = po->vt[0x1F].pfn((char *)po + po->vt[0x1F].d);
-            g = func_002458F0(p1[1], p2[0]);
+            g = atan2f(p1[1], p2[0]);
         }
     } else {
         uv.q = func_001A62E8(px);
@@ -40,7 +40,7 @@ void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
             float *p1, *p2;
             p1 = px->vt[0x1F].pfn((char *)px + px->vt[0x1F].d);
             p2 = px->vt[0x1F].pfn((char *)px + px->vt[0x1F].d);
-            g = func_002458F0(p1[1], p2[0]);
+            g = atan2f(p1[1], p2[0]);
         }
     }
     if (pv) *pv = uv.q;

@@ -1,13 +1,13 @@
 #include "m2c_prelude.h"
 M2C_UNK _$_18CBinaryAsyncStream(M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK func_00166920(void *, s32, s32, M2C_UNK);   /* extern */
+M2C_UNK __4GIFS(void *, s32, s32, M2C_UNK);   /* extern */
 void **func_001AE318(void *, s32, s32);             /* extern */
-M2C_UNK func_0024A9D8(s32, s32, M2C_UNK);           /* extern */
-M2C_UNK func_0024B480();                            /* extern */
-s32 func_0024B540(s32, s32, M2C_UNK);               /* extern */
+M2C_UNK sceMpegCreate(s32, s32, M2C_UNK);           /* extern */
+M2C_UNK sceMpegInit();                            /* extern */
+s32 sceMpegGetPicture(s32, s32, M2C_UNK);               /* extern */
 M2C_UNK func_0024B590(s32);                         /* extern */
-M2C_UNK func_0024B628(s32, M2C_UNK, s32 (*)(s32, s32, s32), s32); /* extern */
-M2C_UNK func_0024F790(s32, M2C_UNK, s32, s32 (*)(s32, s32, s32)); /* extern */
+M2C_UNK sceMpegAddCallback(s32, M2C_UNK, s32 (*)(s32, s32, s32), s32); /* extern */
+M2C_UNK sceMpegAddStrCallback(s32, M2C_UNK, s32, s32 (*)(s32, s32, s32)); /* extern */
 extern M2C_UNK D_002A2D30;
 extern s128 D_002A2DD0;
 extern M2C_UNK D_002A3968;

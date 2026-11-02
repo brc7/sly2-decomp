@@ -44,7 +44,7 @@ CONTACT *func_001D2DD0(P *, ENTRY *);
 qword GetXfVelocity(MOTION *, MOTION *, qword);
 void func_001FAB78(P *, qword, qword);
 qword ConvertXfVec(MOTION *, MOTION *, qword);
-float func_0011CFE0(float, float);
+float GLimitAbs__Fff(float, float);
 void func_001FAC98(P *, qword);
 M3 *func_0011B500(M3 *, qword, float);
 qword LimitVectorLength(float, qword);
@@ -147,7 +147,7 @@ extern "C" void PresetRobottankAccel(P *p)
     localVelocity.q = InverseRotate(p->secondary->local.basis, p->secondary->velocity.q);
     float acceleration = D_002C2144 * p->physics->mass * p->width / p->physics->inertia;
     torque.f[0] = torque.f[1] = 0.0f;
-    float turnImpulse = func_0011CFE0((p->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
+    float turnImpulse = GLimitAbs__Fff((p->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
     torque.f[2] = turnImpulse;
     worldTorque.q = Rotate(p->secondary->world.basis, torque.q);
     budget -= Abs(D_002C2148 * turnImpulse / acceleration);

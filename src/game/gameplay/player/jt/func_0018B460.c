@@ -14,7 +14,7 @@ extern float D_002BF380,D_002BF3A0,D_002BF3B8,D_002BF3BC;
 extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
-float func_002458F0(float,float);float func_0011D948(struct LM*,float);
+float atan2f(float,float);float GLimitLm__FP2LMf(struct LM*,float);
 struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*VECTOR_opAssign(qword*,qword);void func_0012DA30(struct DV*,qword);
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Point(const struct M4*m,const qword*a,struct SPACE**source){
@@ -58,8 +58,8 @@ void func_0018B460(struct P*p){
    __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,p->space,predictedPoint)),"i"(&D_002BF3A0));
    {register int zBits __asm__("$2");register float z __asm__("$f12"),x __asm__("$f13"),coefficient __asm__("$f0");
     __asm__("pextuw %0,$zero,%4\n\tlwc1 %3,%%lo(%6)(%5)\n\tmtc1 %0,%1\n\tmtc1 %4,%2":"=&r"(zBits),"=f"(z),"=f"(x),"=f"(coefficient):"r"(mapped),"r"(page),"i"(&D_002BF3A0):"memory");
-    heading=func_002458F0(-z,coefficient*x);}}
-  heading=func_0011D948(&D_002BF3A8,heading);
+    heading=atan2f(-z,coefficient*x);}}
+  heading=GLimitLm__FP2LMf(&D_002BF3A8,heading);
   tilt=Pack(zero,heading,zero);w.axis.q=tilt;
   LoadRotateMatrixEuler(&w.rotation,Add(p->euler,w.axis.q));
   frame=&w.transform;
@@ -87,7 +87,7 @@ void func_0018B460(struct P*p){
     }
    }
   }
-  heading=X(ConvertXfVec(p->space,relativeDestination,w.relative.q));heading=func_0011D948(&D_002BF3B0,heading);
+  heading=X(ConvertXfVec(p->space,relativeDestination,w.relative.q));heading=GLimitLm__FP2LMf(&D_002BF3B0,heading);
   axis=Pack(heading,zero,zero);w.axis.q=axis;
   {
    register qword returned __asm__("vf2")=ConvertXfVec(space,p->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");

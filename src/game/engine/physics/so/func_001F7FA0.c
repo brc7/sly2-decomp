@@ -1,6 +1,6 @@
 struct P { char pad[0xA4]; int c; void **ap; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void func_001EE678(void *, float, float);
+void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
 /** @sly2-annot addr=0x1F7FA0
  * Purpose: SetScrollerMasterSpeeds(f,g) on every SCROLLER (CID 0x8F) in SO SAA list (+0xA4)
  * Info: proposed name SetSoScrollerSpeeds (T2); TU so
@@ -13,6 +13,6 @@ void func_001F7FA0(struct P *p, float f, float g)
     int i;
     for (i = 0; i < p->c; i++) {
         void *q = p->ap[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) func_001EE678(q, f, g);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
     }
 }

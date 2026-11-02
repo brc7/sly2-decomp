@@ -65,7 +65,7 @@ extern "C" void RestoreTaskState(X *p);
 extern "C" X *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void RefSetSaveVarV(CRef *pref, CRef *parg, void *pv, int n);
-extern "C" void func_00129EC8(CRef *pref);
+extern "C" void Decref__4CRef(CRef *pref);
 extern "C" void SetTaskState(X *p, int n);
 /** @sly2-annot addr=0x165280
  * Purpose: Event 4 when g_sw flag 8: recompute tasks in topological order, make the pending task available,
@@ -100,8 +100,8 @@ extern "C" void RestoreTasksAfterLoad(SS *ps)
         ref.m_tagk = 0x15;
         ref.m_tag = nC0;
         RefSetSaveVarV(&refRet, &ref, D_002A5238, 0);
-        func_00129EC8(&refRet);
-        func_00129EC8(&ref);
+        Decref__4CRef(&refRet);
+        Decref__4CRef(&ref);
     }
     for (i = 0; i < c; i++) {
         X *pxT = apx[i];

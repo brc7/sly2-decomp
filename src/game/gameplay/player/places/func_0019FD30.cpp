@@ -7,7 +7,7 @@ typedef struct E { struct F *x0; struct S *x4; int x8; float xc; float x10; int 
 struct P { int x0; int c; int pad[2]; E ae[32]; };
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-extern "C" void *func_002332B8(void *dst, void *src, int cb);
+extern "C" void *memmove(void *dst, void *src, int cb);
 extern "C" void *func_002333B4(void *p, int v, int cb);
 /** @sly2-annot addr=0x19FD30
  * Purpose: Move-to-front insert of (object, param s) into the place table, merging entries within 50 of s
@@ -26,7 +26,7 @@ extern "C" void func_0019FD30(struct P *p, struct S *s, float g)
         if (s == e->x4 && __builtin_fabsf(g - e->x10) < 50.0f) {
             if (i != 1) {
                 E t = *e;
-                func_002332B8(&p->ae[2], &p->ae[1], (i - 1) * sizeof(E));
+                memmove(&p->ae[2], &p->ae[1], (i - 1) * sizeof(E));
                 p->ae[1] = t;
             }
             break;
@@ -35,7 +35,7 @@ extern "C" void func_0019FD30(struct P *p, struct S *s, float g)
     if (i >= p->c) {
         if ((unsigned int)p->c < 32)
             p->c++;
-        func_002332B8(&p->ae[1], &p->ae[0], p->c * sizeof(E) - sizeof(E));
+        memmove(&p->ae[1], &p->ae[0], p->c * sizeof(E) - sizeof(E));
     }
     e = &p->ae[0];
     func_002333B4(e, 0, sizeof(E));

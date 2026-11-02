@@ -1,5 +1,5 @@
 struct WRE { char pad[0x64]; float x; };
-struct WRE *func_0022C4D8(void *p, int a);
+struct WRE *PwreGetWrCircle__FP2WR4ENSK(void *p, int a);
 /** @sly2-annot addr=0x22C570
  * Purpose: 1/circle frequency (0 if 0)
  * Info: proposed name GetWrWavelength (T1); TU wr
@@ -8,7 +8,7 @@ struct WRE *func_0022C4D8(void *p, int a);
  * @end-sly2-annot */
 float GetWrWavelength(void *p)
 {
-    struct WRE *pwre = func_0022C4D8(p, 1);
+    struct WRE *pwre = PwreGetWrCircle__FP2WR4ENSK(p, 1);
     if (pwre->x == 0.0f) return 0.0f;
     return 1.0f / pwre->x;
 }

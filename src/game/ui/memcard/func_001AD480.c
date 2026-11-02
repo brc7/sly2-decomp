@@ -7,7 +7,7 @@ extern struct G D_002E65E0;
 extern struct H D_002E6550;
 extern int D_003E0FAC;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void func_00129EC8(struct CRef *);
+void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
 void func_001AD3E0(void);
 /** @sly2-annot addr=0x1AD480
@@ -23,7 +23,7 @@ void func_001AD480(struct S *s)
     float f;
     RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
     f = ref.m_tag;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     D_002E65E0.xFD58 = p;
     if (f == 0.0f)
         func_001AD3E0();

@@ -35,16 +35,16 @@ struct GROUP {int count,budget,samples;RECORD *begin,*end;};
 // Native two-word member callback, stored as {delta,index,function}.
 typedef void (OWNER::*PMF)(SPRITE *);
 extern "C" {
-int func_00117C20(BIS *);
-uint func_00117C80(BIS *);
-int func_00117BD0(BIS *);
-int func_00117D50(BIS *);
-int func_00117D00(BIS *);
-int func_00117DB8(BIS *);
-float func_00117E38(BIS *);
-void func_00117ED0(BIS *,M3 *);
-void func_00117968(BIS *,int,void *);
-void *func_00116918(HEAP *,int,int);
+int U16Read__18CBinaryInputStream(BIS *);
+uint U32Read__18CBinaryInputStream(BIS *);
+int U8Read__18CBinaryInputStream(BIS *);
+int S16Read__18CBinaryInputStream(BIS *);
+int S8Read__18CBinaryInputStream(BIS *);
+int S32Read__18CBinaryInputStream(BIS *);
+float F32Read__18CBinaryInputStream(BIS *);
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
+void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
+void *PvAllocClear__FP4HEAPii(HEAP *,int,int);
 void *func_001AE378(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
@@ -73,42 +73,42 @@ static inline void CopyXY(M23 &dst,const M3 &src){
  * @end-sly2-annot */
 extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,int,SPRITE *sprites){
  STACKSCOPE outer;M3 raw;
- int id=func_00117C20(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
- sprite->kind=func_00117C80(stream);
+ int id=U16Read__18CBinaryInputStream(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
+ sprite->kind=U32Read__18CBinaryInputStream(stream);
  switch(sprite->kind){
  case 0:case 5:default:break;
- case 4:sprite->data.index=func_00117C20(stream);break;
+ case 4:sprite->data.index=U16Read__18CBinaryInputStream(stream);break;
  case 8:
   D_002C40A4=1;
   LoadSpriteTable(owner,stream,root,&sprite->data.nested.count,&sprite->data.nested.children);
-  sprite->data.nested.wordCount=func_00117C80(stream);
-  sprite->data.nested.words=(uint *)func_00116918(owner->heap,sprite->data.nested.wordCount*4,0x13);
+  sprite->data.nested.wordCount=U32Read__18CBinaryInputStream(stream);
+  sprite->data.nested.words=(uint *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.nested.wordCount*4,0x13);
   int i;
-  for(i=0;i<sprite->data.nested.wordCount;i++)sprite->data.nested.words[i]=func_00117C80(stream);
-  sprite->data.nested.floatCount=func_00117C80(stream);
+  for(i=0;i<sprite->data.nested.wordCount;i++)sprite->data.nested.words[i]=U32Read__18CBinaryInputStream(stream);
+  sprite->data.nested.floatCount=U32Read__18CBinaryInputStream(stream);
   int j;
-  sprite->data.nested.floats=(float *)func_00116918(owner->heap,sprite->data.nested.floatCount*4,0x13);
-  for(j=0;j<sprite->data.nested.floatCount;j++)sprite->data.nested.floats[j]=func_00117E38(stream);
+  sprite->data.nested.floats=(float *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.nested.floatCount*4,0x13);
+  for(j=0;j<sprite->data.nested.floatCount;j++)sprite->data.nested.floats[j]=F32Read__18CBinaryInputStream(stream);
   D_002C40A4=0;break;
  case 3:{
-  sprite->data.shader.tag=func_00117C80(stream);sprite->data.shader.slot=func_00117C80(stream);
-  sprite->data.shader.size=func_00117E38(stream);sprite->data.shader.scale=func_00117E38(stream);sprite->data.shader.value=func_00117E38(stream);
-  sprite->data.shader.flag=func_00117D00(stream);sprite->data.shader.mode=func_00117D00(stream);
-  if(sprite->data.shader.mode==1)sprite->data.shader.id=func_00117DB8(stream);else if(sprite->data.shader.mode==0)sprite->data.shader.id=func_00117DB8(stream);
+  sprite->data.shader.tag=U32Read__18CBinaryInputStream(stream);sprite->data.shader.slot=U32Read__18CBinaryInputStream(stream);
+  sprite->data.shader.size=F32Read__18CBinaryInputStream(stream);sprite->data.shader.scale=F32Read__18CBinaryInputStream(stream);sprite->data.shader.value=F32Read__18CBinaryInputStream(stream);
+  sprite->data.shader.flag=S8Read__18CBinaryInputStream(stream);sprite->data.shader.mode=S8Read__18CBinaryInputStream(stream);
+  if(sprite->data.shader.mode==1)sprite->data.shader.id=S32Read__18CBinaryInputStream(stream);else if(sprite->data.shader.mode==0)sprite->data.shader.id=S32Read__18CBinaryInputStream(stream);
   if(sprite->data.shader.mode==1&&sprite->data.shader.id==0x2F2)sprite->data.shader.special=sprite->data.shader.mode;
   else sprite->data.shader.special=0;
   break;
  }
  case 2:{
-  func_00117ED0(stream,&raw);M3 matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
-  sprite->data.polygon.count=func_00117C20(stream);
-  sprite->data.polygon.vertices=(VERTEX *)func_00116918(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
-  func_00117968(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
+  ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
+  sprite->data.polygon.count=U16Read__18CBinaryInputStream(stream);
+  sprite->data.polygon.vertices=(VERTEX *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
+  Read__18CBinaryInputStreamiPv(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
  }
  case 6:case 7:{
   PAIR first,second;
-  first.x=func_00117D50(stream);first.y=func_00117D50(stream);second.x=func_00117D50(stream);second.y=func_00117D50(stream);
-  int texture=func_00117DB8(stream);
+  first.x=S16Read__18CBinaryInputStream(stream);first.y=S16Read__18CBinaryInputStream(stream);second.x=S16Read__18CBinaryInputStream(stream);second.y=S16Read__18CBinaryInputStream(stream);
+  int texture=S32Read__18CBinaryInputStream(stream);
   STACKSCOPE inner;GIFS gif;
   gif.AllocSw(16);gif.AddPrimPack(0,1,0xE);
   if(sprite->kind==6){sprite->data.effect.id=texture;sprite->data.effect.handle=0;gif.PackAD(0x47,0x5000F);gif.PackAD(0x42,0x80000000A8L);}
@@ -136,22 +136,22 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   break;
  }
  case 1:{
-  sprite->data.geometry.count=func_00117C20(stream);
+  sprite->data.geometry.count=U16Read__18CBinaryInputStream(stream);
   RECORD *records;GROUP *groups;int i;
   { ALLOCREQ request;
   records=(RECORD *)Acquire(&request,sprite->data.geometry.count*sizeof(RECORD),16);
   groups=(GROUP *)Acquire(&request,sprite->data.geometry.count*sizeof(GROUP),16);
   for(i=0;i<sprite->data.geometry.count;i++){
    RECORD *record=&records[i];
-   record->count=func_00117BD0(stream);record->format=func_00117BD0(stream);
-   record->kind=func_00117BD0(stream);record->id=func_00117BD0(stream);record->extra=func_00117BD0(stream);
+   record->count=U8Read__18CBinaryInputStream(stream);record->format=U8Read__18CBinaryInputStream(stream);
+   record->kind=U8Read__18CBinaryInputStream(stream);record->id=U8Read__18CBinaryInputStream(stream);record->extra=U8Read__18CBinaryInputStream(stream);
    record->budget=record->count+2;
    record->coordinates=(PAIR *)Acquire(&request,record->count*sizeof(PAIR),16);
    record->extras=(uchar *)Acquire(&request,record->count,16);
    for(int k=0;k<record->count;k++){
-    PAIR *coordinate=&record->coordinates[k];*(uint *)&record->color=func_00117C80(stream);
-    record->extras[k]=func_00117BD0(stream);
-    coordinate->x=func_00117D50(stream);coordinate->y=func_00117D50(stream);
+    PAIR *coordinate=&record->coordinates[k];*(uint *)&record->color=U32Read__18CBinaryInputStream(stream);
+    record->extras[k]=U8Read__18CBinaryInputStream(stream);
+    coordinate->x=S16Read__18CBinaryInputStream(stream);coordinate->y=S16Read__18CBinaryInputStream(stream);
    }
   }
   }

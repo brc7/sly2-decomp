@@ -20,7 +20,7 @@ extern void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*)
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(NODE*,int);
 extern int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 extern int func_00172888(ROW*,ROW*);
-extern void func_002338C0(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
+extern void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 extern qword SetVectorCylind(float,float,float);extern float GRandInRange__Fff(float,float);
 }
 struct VU_FLOAT{qword qw;};
@@ -93,7 +93,7 @@ extern "C" void func_001728B0(P*p){
  if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
  for(object=D_003E1450;object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
  lastAngle=0.0f;
- func_002338C0(w.query.row,w.query.count,sizeof(ROW),func_00172888);
+ qsort(w.query.row,w.query.count,sizeof(ROW),func_00172888);
  accepted=0;
  {
   PAIR*previous=0;

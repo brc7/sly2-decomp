@@ -21,7 +21,7 @@ int FTaskLive(struct S *p);
 void ApplyStateLoVisibility(struct S *p, int n, int c, struct E16 *a);
 void TriggerStateRsmgs(struct S *p, int n, int c, struct E24 *a, int b);
 CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 void SetLoBusyk(struct S *p, int n);
 /** @sly2-annot addr=0x1638F8
  * Purpose: TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK
@@ -71,14 +71,14 @@ void PostTaskLoad(struct S *p)
         int n;
         RefGetGlobalSaveVar(&ref, pnC8, D_003D4A60);
         n = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         p->f64 = n;
     }
     if (p->fd0) {
         int n;
         RefGetGlobalSaveVar(&ref, pnD0, D_003D4A60);
         n = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         p->f68 = n;
     }
     if (p->f78 != 0.0f || p->children.first) {

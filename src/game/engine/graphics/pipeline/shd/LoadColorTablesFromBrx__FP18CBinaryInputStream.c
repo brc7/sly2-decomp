@@ -3,7 +3,7 @@ struct E { int id; unsigned char b4; char pad[0x20 - 5]; };
 extern int D_003DCFF8;
 extern struct E *D_003DCFFC;
 extern int D_003DCF9C;
-int func_00117C20(void *pbis);
+int U16Read__18CBinaryInputStream(void *pbis);
 void *func_001AE378(struct AR *par);
 void LoadClutFromBrx(void *pbis, struct E *pe);
 /** @sly2-annot addr=0x1EAE40
@@ -21,7 +21,7 @@ void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
     int i = 0;
-    D_003DCFF8 = func_00117C20(pbis);
+    D_003DCFF8 = U16Read__18CBinaryInputStream(pbis);
     ar.cb = D_003DCFF8 * sizeof(struct E);
     ar.cbAlign = 0x10;
     D_003DCFFC = func_001AE378(&ar);

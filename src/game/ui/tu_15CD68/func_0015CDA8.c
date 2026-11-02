@@ -7,7 +7,7 @@ extern int D_002BE26C;
 extern int D_002BE270;
 struct S { char pad[0x110]; int i110; char pad2[4]; int i118; char pad3[0xC]; int n128; };
 void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 void PostWidgetLoad(struct S *p);
 void func_0015D648(struct S *p, int a, int b);
 void StartJoySelection__FP3JOY(void *p);
@@ -17,7 +17,7 @@ static inline float GFromP(void *pv)
     float g;
     RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
     g = ref.u.g;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return g;
 }
 static inline int NFromP(void *pv)
@@ -26,7 +26,7 @@ static inline int NFromP(void *pv)
     int n;
     RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
     n = ref.u.n;
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return n;
 }
 /** @sly2-annot addr=0x15CDA8

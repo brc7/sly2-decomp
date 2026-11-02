@@ -17,7 +17,7 @@ typedef struct {
 char *strcpy(char *, const char *);
 void *func_002333B4(void *, int, unsigned int);
 void ConvertPchzToSjis(char *, unsigned char *);
-int func_0021ECD8(char *, const char *, ...);
+int sprintf(char *, const char *, ...);
 int McWriteFile(void *s, char *name, void *b, int n);
 
 /** @sly2-annot addr=0x1AC008
@@ -75,6 +75,6 @@ int WriteIconSys(void *p, char *dir, char *title)
     strcpy((char *)icon.FnameView, "memcard_icon.ico");
     strcpy((char *)icon.FnameCopy, "memcard_icon.ico");
     strcpy((char *)icon.FnameDel, "memcard_icon.ico");
-    func_0021ECD8(name, "%s/%s", dir, "icon.sys");
+    sprintf(name, "%s/%s", dir, "icon.sys");
     return McWriteFile(p, name, &icon, sizeof(icon));
 }

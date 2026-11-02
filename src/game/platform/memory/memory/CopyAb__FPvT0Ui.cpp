@@ -1,6 +1,6 @@
 typedef unsigned int uint;
 typedef unsigned char uchar;
-void CopyAqw(void *pvDst, void *pvSrc, uint cqw) __asm__("func_001AE528");
+void CopyAqw(void *pvDst, void *pvSrc, uint cqw) __asm__("CopyAqw__FPvT0i");
 /** @sly2-annot addr=0x1AE5A0
  * Purpose: Byte/word memcpy
  * Info: proposed name CopyAb (EXISTING); TU memory

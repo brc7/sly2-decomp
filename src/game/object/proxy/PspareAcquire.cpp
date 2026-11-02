@@ -23,7 +23,7 @@ TREE *func_001C99D8(TREE *,int,int *);
 int func_0015E678(SW *,int,int,P *,void *,int,P **);
 STREAM *func_00118480(STREAM *);
 void func_00118500(STREAM *,void *,void *,int);
-short func_00117D50(STREAM *);
+short S16Read__18CBinaryInputStream(STREAM *);
 void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(P *,DESC *,int,STREAM *);
 void CFrame_AddParent(void *,void *);
 void FramePtr_Assign(void **,void *);
@@ -65,7 +65,7 @@ extern "C" NODE *PspareAcquire(P *p,int minimum){
   func_00118480(&stream);
   func_00118500(&stream,bind->begin,bind->end,0);
   int index;
-  while((index=func_00117D50(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}
+  while((index=S16Read__18CBinaryInputStream(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}
   if(bind->resource && !p->disabled){
    if(work.found->resource)CFrame_AddParent(bind->resource,work.found->resource);
    FramePtr_Assign(&work.found->resource,bind->resource);

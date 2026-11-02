@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void AddLasenBeam(void *p, int, float, float, float, int, int, float, float, float, int); CRef RefThunk_AddLasenBeam(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x1056A0
  * Purpose: Splice option thunk: optid 541 on CID85 (g_aeopid[455] thunkUser, returns Void, crefReq 10);
@@ -38,7 +38,7 @@ CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
     float v7;
     float v8;
     int v9;
-    CRef ref = func_00201360(10, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(10, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9);
     ref.Decref();
     ref.InitTag(0x24);
     AddLasenBeam(p, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9);

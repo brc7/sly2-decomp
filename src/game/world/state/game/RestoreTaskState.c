@@ -3,7 +3,7 @@ struct Y;
 struct X { char pad[0x54]; int n; char pad1[0x64 - 0x58]; struct X *f64; char pad2[0x7C - 0x68]; struct X *f7c; char pad3[0x94 - 0x80]; int c; struct X **apx; char pad4[0xE0 - 0x9C]; int fe0; int pad5; int fe8; };
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 void SetTaskState(struct X *p, int n);
 /** @sly2-annot addr=0x164270
  * Purpose: Reads the task's saved state and flag vars and sets the derived state (SetTaskState), handling
@@ -25,7 +25,7 @@ void RestoreTaskState(struct X *p)
         int nT;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         nT = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         n = nT;
     }
     pn = &p->fe8;
@@ -33,7 +33,7 @@ void RestoreTaskState(struct X *p)
         int nT;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         nT = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         f = nT;
     }
     if (f && p->f7c && n < 3 && n > 0) {

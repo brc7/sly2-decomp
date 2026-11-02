@@ -112,7 +112,7 @@ extern SMP D_002BC9A8;
 extern qword D_002A2DC0, D_002A2DA0;
 qword func_001A62E8(P *p);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-float func_0011CFE0(float g, float gMax);
+float GLimitAbs__Fff(float g, float gMax);
 M3 func_0011B500(qword axis, float g);
 qword LimitVectorLength(qword v, float g);
 void AddSoAcceleration(P *p, qword v);
@@ -146,7 +146,7 @@ extern "C" void func_00137248(S *s)
     float w = cz / len;
     float dgNext;
     GSmooth__FfffP3SMPPf(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);
-    float g = func_0011CFE0(dgNext - dot, D_002BC9A0 * D_002DDED0.dt);
+    float g = GLimitAbs__Fff(dgNext - dot, D_002BC9A0 * D_002DDED0.dt);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
     M3 mc;
     M3 m = func_0011B500(D_002A2DC0, w * D_002DDED0.dt);

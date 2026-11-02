@@ -23,7 +23,7 @@ extern COEF D_002C4470,D_002C4480;
 extern float D_002DDED4;
 extern "C" {
 float func_00229468(O *,O *,qword *,qword *);
-int func_0011D4D0(float,float,float);
+int FFloatsNear__Ffff(float,float,float);
 qword ApplyConstr(CONSTRAINT *,NODE *,qword);
 void AddSoAcceleration(O *,qword);
 qword func_001A62E8(O *);
@@ -34,9 +34,9 @@ void AccelSoTowardPosSpring(O *,qword,const COEF *,qword,const COEF *);
 void AccelSoTowardMatSpring(O *,const M3 *,const COEF *,qword,const COEF *);
 M4 *func_001A6318(O *);
 void TiltMatUpright(const M3 *,M3 *,M3 *);
-void func_0011BCF8(const M3 *,float *,qword *);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
 void func_001FAC98(O *,qword);
-void func_0015A2C0(O *,WATER *,float,qword,qword,float,float);
+void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(O *,WATER *,float,qword,qword,float,float);
 int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 void StopSnd(EMITTER *,float);
 void RcPtr_Assign(EMITTER **,EMITTER *);
@@ -44,7 +44,7 @@ void RcPtr_Assign(EMITTER **,EMITTER *);
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){qword v;float f;__asm__("prot3w %0,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Z(qword q){qword v;float f;__asm__("pextuw %0,$zero,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
-static inline bool Near(qword a,qword b,float epsilon){return func_0011D4D0(X(a),X(b),epsilon)&&func_0011D4D0(Y(a),Y(b),epsilon)&&func_0011D4D0(Z(a),Z(b),epsilon);}
+static inline bool Near(qword a,qword b,float epsilon){return FFloatsNear__Ffff(X(a),X(b),epsilon)&&FFloatsNear__Ffff(Y(a),Y(b),epsilon)&&FFloatsNear__Ffff(Z(a),Z(b),epsilon);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 static inline qword Get(O *o,int slot){VE *v=o->vt;return v[slot].get((char *)o+v[slot].delta);}
@@ -106,14 +106,14 @@ extern "C" void func_002297F8(O *a,O *b){
  else Zero(w.velocity,0.0f);
  if(spring!=0.0f){
   TiltMatUpright(&func_001A6318(a)->basis,&w.phase.basis,0);
-  func_0011BCF8(&w.phase.basis,&w.angle,&w.axis.vector.q);
+  DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&w.phase.basis,&w.angle,&w.axis.vector.q);
   float gain=spring*3.0f;qword k=Scalar(w.angle*gain*span);
   qword rotation=Scale(w.axis.vector.q,k);w.angularNormal.q=k;
   func_001FAC98(a,rotation);
  }
  if(0.0f<span&&span<1.0f&&0.9f<w.normal.f[2]){
   float radius=((a->state->maximum.f[0]-a->state->minimum.f[0])+(a->state->maximum.f[1]-a->state->minimum.f[1]))*0.25f;
-  func_0015A2C0(a,(WATER *)b,D_002DDED4,w.velocity.q,w.point.q,0.1f,radius);
+  WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(a,(WATER *)b,D_002DDED4,w.velocity.q,w.point.q,0.1f,radius);
  }
  else if(FIsBasicDerivedFrom__FP5BASIC3CID(a,0x32))Clear(&a->emitter);
 }

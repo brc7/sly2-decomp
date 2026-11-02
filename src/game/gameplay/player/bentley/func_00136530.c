@@ -25,7 +25,7 @@ M4 func_0022FF40(void *, void *, M4 *);
 void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword func_0011BFF0(M4 *pm);
 void ReleaseSma(void *);
-void func_001305B8(void *, struct P *, int, void *, float, float);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
 
 /** @sly2-annot addr=0x136530
  * Purpose: State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code
@@ -90,6 +90,6 @@ void func_00136530(struct P *p, int k)
         break;
     }
     ReleaseSma(&p->x1034);
-    func_001305B8(pv, p, 9, &p->x1030, 0.0f, 1.0f);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p, 9, &p->x1030, 0.0f, 1.0f);
     ((void (*)(void *))p->vt[90].f)((char *)p + p->vt[90].d);
 }

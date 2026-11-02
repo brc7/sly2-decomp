@@ -30,14 +30,14 @@ void func_00136298(struct P *);
 void func_00136040(struct P *, int);
 void func_00136530(struct P *, int);
 void SetJtthrowState(void *, int);
-int func_001F0400(void *, int);
+int IsmsFindSmOptional__FP2SM3OID(void *, int);
 int func_001430C8(struct P *);
 void func_00142868(struct P *, int);
 void func_0020BD68(struct ASEGP *);
 void SetJtModeState__FP6JTMODEi(void *, int);
 void ReleaseAsega(void *);
 void ReleaseSma(void *);
-void func_001305B8(struct ASEG *, struct P *, int, void *, float, float);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct P *, int, void *, float, float);
 void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
@@ -156,7 +156,7 @@ void SetBentleyState(struct P *p, int k)
                 anim = kOld != 7 ? 0x175 : 0x176;
             else
                 anim = 0x178;
-            if (func_001F0400(pjt, anim) < 0)
+            if (IsmsFindSmOptional__FP2SM3OID(pjt, anim) < 0)
                 anim = -1;
         }
         p->q190 = D_002A2DD0;
@@ -212,7 +212,7 @@ void SetBentleyState(struct P *p, int k)
     }
     ReleaseAsega(&p->p1030);
     ReleaseSma(&p->x1034);
-    func_001305B8(pasega, p, n, &p->p1030, g, rate);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pasega, p, n, &p->p1030, g, rate);
     ReplaceSmaEx(pjt, p, anim, n, c, &p->x1034);
     VCALL0(p, 90);
 }

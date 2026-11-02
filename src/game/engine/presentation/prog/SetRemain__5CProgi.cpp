@@ -1,4 +1,4 @@
-extern "C" void func_00170348(void);
+extern "C" void ClearFrameBuffers__Fv(void);
 class CProg {
 public:
     int m_fActive; int m_nMax; int m_nTarget; int m_nRemain; char m_f10; char pad[0x3f]; int m_cRetry;
@@ -18,7 +18,7 @@ void CProg::SetRemain(int nRemain)
         if (m_nTarget == 0) {
             m_nTarget = nRemain;
             m_nMax = nRemain << 1;
-            func_00170348();
+            ClearFrameBuffers__Fv();
         } else if (m_nRemain == nRemain) {
             m_cRetry = m_cRetry + 1;
         } else {

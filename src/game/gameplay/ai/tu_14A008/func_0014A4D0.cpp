@@ -29,7 +29,7 @@ int CploFindSwObjectsByClass(G *pg, int a, int b, void *c, int d, SO **apso);
 int NRandInRange__Fii(int a, int b);
 qword SetVectorSphere(float a, float b, float c);
 float RadBetweenVectors(qword a, qword b, void *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
 void func_0014A4D0(P *p);
 }
@@ -150,7 +150,7 @@ void func_0014A4D0(P *p)
     }
     if (FLess(Len2(v), D_002BD460)) {
         qword e = Sub(posMe, posPlayer);
-        float rad = func_002458F0(GetY(e), GetX(e));
+        float rad = atan2f(GetY(e), GetX(e));
         qword pp = func_001A62E8(pso);
         pos = Add(pp, SetVectorCylind(GRandInRange__Fff(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {

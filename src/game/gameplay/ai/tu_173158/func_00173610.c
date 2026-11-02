@@ -9,7 +9,7 @@ struct X *STACKSCOPE_ctor(struct X *x);
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n);
 int func_0020FA50(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
-int func_0014CC58(int n, qword a, qword b, int c, int d, struct Y *y);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, int d, struct Y *y);
 static __inline__ qword MAdd(qword p, qword up, float s) {
     U u;
     qword r;
@@ -40,7 +40,7 @@ int func_00173610(qword *pv, float a, float b, int k, int (*fn)(void)) {
     {
     struct Y y;
     IntersectSwBoundingBox(&D_003DD490, va, vb, fn, 0, &na, &nb);
-    if (!func_0014CC58(1, va, vb, na, nb, &y) || y.f40 == 0.0f || (!k && y.f28 < 0.7f)) {
+    if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, va, vb, na, nb, &y) || y.f40 == 0.0f || (!k && y.f28 < 0.7f)) {
         STACKSCOPE_ctor_1AE4A0(&x, 2);
         return 0;
     }

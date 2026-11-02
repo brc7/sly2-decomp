@@ -1,4 +1,4 @@
-extern "C" {void*func_001291A8(void*,const void*);void func_00129EC8(void*);}
+extern "C" {void*func_001291A8(void*,const void*);void Decref__4CRef(void*);}
 struct CRef{
  int m_tagk;
  union{int m_tag;float m_g;};
@@ -6,7 +6,7 @@ struct CRef{
  CRef(bool f){m_tagk=0x17;m_tag=f;}
  CRef(float g){m_tagk=0x16;m_g=g;}
  CRef(const CRef&r){func_001291A8(this,&r);}
- ~CRef(){func_00129EC8(this);}
+ ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
 struct S{char pad[0x7C];int n;char pad80[0x24];float g;char padA8[0x28];OPT a,b,c;};

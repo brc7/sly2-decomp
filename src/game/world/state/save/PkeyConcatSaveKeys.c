@@ -1,7 +1,7 @@
 struct MSG { int cb; int nKind; };
 typedef struct { int c; short *a; } SA;
 void *func_001AE318(struct MSG *pmsg);
-void func_001AE5A0(void *, void *, int);
+void CopyAb__FPvT0Ui(void *, void *, int);
 /** @sly2-annot addr=0x1D8CC8
  * Purpose: Allocate a new key = concatenation of two keys' id arrays
  * Info: proposed name PkeyConcatSaveKeys (T1); TU save
@@ -21,7 +21,7 @@ SA *PkeyConcatSaveKeys(SA *p1, SA *p2)
     msg.cb = c * 2;
     msg.nKind = 0x10;
     r->a = (short *)func_001AE318(&msg);
-    func_001AE5A0(r->a, p1->a, p1->c * 2);
-    func_001AE5A0(r->a + p1->c, p2->a, p2->c * 2);
+    CopyAb__FPvT0Ui(r->a, p1->a, p1->c * 2);
+    CopyAb__FPvT0Ui(r->a + p1->c, p2->a, p2->c * 2);
     return r;
 }

@@ -17,9 +17,9 @@ typedef struct S {
     int x60;
 } S;
 
-extern int func_00242810(void);
+extern int sceCdGetReadPos(void);
 extern int func_00241E88(int);
-extern int func_00242AE0(void);
+extern int sceCdGetDiskType(void);
 extern void ReadCdDirect(unsigned int isector, unsigned int csector, void *pv, int mode);
 
 static __inline__ int Min(int a, int b) { return a < b ? a : b; }
@@ -55,12 +55,12 @@ void func_001849A0(S *p)
     do {
         if (p->x44 > 0) {
 
-            int t = Min(func_00242810() + p->x4c, p->x44);
+            int t = Min(sceCdGetReadPos() + p->x4c, p->x44);
 
             if (p->x40 < t) {
                 p->x40 = t;
             } else if (func_00241E88(1) == 0) {
-                if (func_00242AE0() == 0) {
+                if (sceCdGetDiskType() == 0) {
                     int c = p->x44;
                     p->x40 = c;
                     p->x50 += c / 0x800;

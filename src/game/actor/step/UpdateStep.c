@@ -12,7 +12,7 @@ extern float D_002C3C80[3];
 extern float D_002BBB60[2];
 void UpdateSo(struct S *p);
 void UpdateStepPhys(struct S *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 float RadNormalize__Ff(float a);
 
 /** @sly2-annot addr=0x203FC0
@@ -32,7 +32,7 @@ void UpdateStep(struct S *p)
     case 0: {
         float *a = p->vt->e[31].pf((char *)p + p->vt->e[31].d);
         float *b = p->vt->e[31].pf((char *)p + p->vt->e[31].d);
-        float d = RadNormalize__Ff(p->f1A8 - func_002458F0(a[1], b[0]));
+        float d = RadNormalize__Ff(p->f1A8 - atan2f(a[1], b[0]));
         float f;
         d = __builtin_fabsf(d);
         f = D_002C3C80[0] + d * (D_002C3C80[1] + d * D_002C3C80[2]);

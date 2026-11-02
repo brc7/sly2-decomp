@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void AddRelaySound(void *p, int, int, int, int, float, float, float); CRef RefThunk_AddRelaySound(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x108F80
  * Purpose: Splice option thunk: optid 231 on RELAY (g_aeopid[680] thunkFn/thunkUser, returns Void, crefReq
@@ -35,7 +35,7 @@ CRef RefThunk_AddRelaySound(void *p, int c, void *aref)
     float v4;
     float v5;
     float v6;
-    CRef ref = func_00201360(7, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(7, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6);
     ref.Decref();
     ref.InitTag(0x24);
     AddRelaySound(p, v0, v1, v2, v3, v4, v5, v6);

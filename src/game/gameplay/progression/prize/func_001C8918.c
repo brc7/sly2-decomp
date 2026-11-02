@@ -15,7 +15,7 @@ qword ConvertXfVec(void *frame, void *p, qword q);
 qword func_001A62E8(void *p);
 qword func_0022FC48(void *frame, void *p, qword q);
 void func_002303A0(struct S *p, struct X *px, int n);
-void func_001305B8(void *clip, struct S *owner, float position, float speed, int flags, void *output);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
 static inline void Selection(const struct S*p,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(p),"m"(p->x194),"m"(p->x204));
@@ -59,7 +59,7 @@ void func_001C8918(struct S *p, int n)
         break;
     case 2:
         func_00142140(p->x190, p->a1A8[p->x194]);
-        func_001305B8(p->a1CC[p->x194], p, 0.0f, 1.0f, 0, p->x1A0);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->a1CC[p->x194], p, 0.0f, 1.0f, 0, p->x1A0);
         break;
     }
 }

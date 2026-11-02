@@ -6,7 +6,7 @@ typedef struct { char pad[0x1C]; void *x1C; } OBJ;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
 void ConvertAloMat(M3 *, int, void *, M3 *);
-void func_001CE980(OBJ *);
+void RemoveRip__FP3RIP(OBJ *);
 /** @sly2-annot addr=0x1D0BF8
  * Purpose: LEAF FBounce: CreateStuck/RemoveRip on contact
  * Info: proposed name FBounceLeaf_1D0BF8 (T3); TU rip
@@ -27,6 +27,6 @@ int func_001D0BF8(OBJ *p, S *s, qword a, qword b)
         ConvertAloMat(&m, 0, s->x4, &r->m);
         r->m = m;
     }
-    func_001CE980(p);
+    RemoveRip__FP3RIP(p);
     return 1;
 }

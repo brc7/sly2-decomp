@@ -1,5 +1,5 @@
 extern "C" char D_002C40C8[];
-extern "C" void *func_001AE5A0(void *dst, const void *src, int cb);
+extern "C" void *CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
 /** @sly2-annot addr=0x21DC70
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -15,6 +15,6 @@ int CchAchFromUl(char *ach, int cch, unsigned long ul, unsigned int radix)
     } while (ul != 0 && pch >= ach);
     int c = pchEnd - pch;
     if (c != 0 && ach < pch)
-        func_001AE5A0(ach, pch, c);
+        CopyAb__FPvT0Ui(ach, pch, c);
     return c;
 }

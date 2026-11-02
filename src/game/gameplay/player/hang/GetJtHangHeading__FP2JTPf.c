@@ -1,7 +1,7 @@
 struct VTE { short d; short pad; float *(*pfn)(void *); };
 struct O { int a, b, c; struct VTE *vt; };
 struct S { char pad[0x18C4]; struct O *o; };
-float func_002458F0(float, float);
+float atan2f(float, float);
 /** @sly2-annot addr=0x190BE0
  * Purpose: *prad = atan2(m[0].y, m[0].x) of the current hook object's (x18C4) world matrix
  * Info: proposed name GetJtHangHeading (T1); TU hang
@@ -12,5 +12,5 @@ void GetJtHangHeading__FP2JTPf(struct S *p, float *pg) {
     float *a, *b;
     { struct O *o = p->o; struct VTE *e = &o->vt[31]; a = e->pfn((char *)o + e->d); }
     { struct O *o = p->o; struct VTE *e = &o->vt[31]; b = e->pfn((char *)o + e->d); }
-    *pg = func_002458F0(a[1], b[0]);
+    *pg = atan2f(a[1], b[0]);
 }

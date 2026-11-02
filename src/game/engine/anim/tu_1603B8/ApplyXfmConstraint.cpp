@@ -9,7 +9,7 @@ struct G { char pad[0x3D58]; int counter; };
 extern G D_003DD490;
 extern "C" M4 InvertMatrix4Rigid(const M4 *m);
 extern "C" M3 InvertMatrix3Cofactor(const M3 *m);
-extern "C" void func_0011B3D0(M3 *m);
+extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *m);
 extern "C" qword *VECTOR_opAssign(qword *p,qword v);
 static inline qword Transform(const M4 &m,qword p) {
  qword r;
@@ -43,7 +43,7 @@ extern "C" void ApplyXfmConstraint(void *,S *s)
  }
  if(s->rotation) {
   m=Mul(InvertMatrix3Cofactor((M3 *)&s->dest->parent->m40),*(M3 *)&s->source->m40);
-  func_0011B3D0(&m);
+  NormalizeRotateMatrix3__FP7MATRIX3(&m);
   Dest *dest=s->dest;
   *(M3 *)&dest->m=m;
   dest->m.r[0].i[3]=0;

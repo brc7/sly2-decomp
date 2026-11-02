@@ -193,8 +193,8 @@ extern CLOCK D_002DDED0;
 extern MATRIX4 D_002A2D30;
 extern "C" {
 void SubmitGlobsetRelight(MODEL *pmodel);
-int func_001EDA20(OBJ *pobj);
-void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
+int FUpdatableSaa__FP3SAA(OBJ *pobj);
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
@@ -406,7 +406,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     for (i = 0; i < pmodel->cobj; i++)
     {
         OBJ *pobj = pmodel->apobj[i];
-        if (func_001EDA20(pobj))
+        if (FUpdatableSaa__FP3SAA(pobj))
         {
             VTENT *pvte = &pobj->pvt[8];
             pvte->pfn((char *)pobj + pvte->delta);
@@ -426,7 +426,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             continue;
         if (psub->grf & 0x1000)
         {
-            func_001AE5A0(&matModel, psub->pb + 0x14, sizeof(MATRIX4));
+            CopyAb__FPvT0Ui(&matModel, psub->pb + 0x14, sizeof(MATRIX4));
             if (pmatWorld)
                 matModel = MulMat(*pmatWorld, matModel);
         }
@@ -441,7 +441,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
                 CopyMat(mat, MulMat(*pmatWorld, mat));
             matModel = mat;
         }
-        func_001AE5A0(&posSph, psph, 12);
+        CopyAb__FPvT0Ui(&posSph, psph, 12);
         qword posSub = QwXfm(matModel, *(qword *)&posSph);
         float sRadiusSub = func_0011CAB0(&matModel) * psph->rad;
         if ((psub->grf & 7) == 2 && pshd->pmatClip)

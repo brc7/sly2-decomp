@@ -8,7 +8,7 @@ extern void *D_002C4678[2];
 extern char D_00443800[];
 extern char D_002AA1C8[];
 void snd_PrepareReturnBuffer(void *, int, int *);
-void func_0021EC18(const char *, ...);
+void printf(const char *, ...);
 void func_00234CA0(int);
 int func_00237488(void *);
 int func_00237288(void *, int, int, void *, int, void *, int, void *, void *);
@@ -19,7 +19,7 @@ void snd_SendCurrentBatch()
     snd_PrepareReturnBuffer(D_002C4678[D_002C4680], *D_002C4660[D_002C4680], D_002C4660[D_002C4680]);
     while (func_00237488(D_00443800)) {
         if (!D_002C46B8)
-            func_0021EC18(D_002AA1C8);
+            printf(D_002AA1C8);
         func_00234CA0(0);
     }
     func_00237288(D_00443800, 0x4D, 1, D_002C4660[D_002C4680], 0x1000 - D_002C4668[D_002C4680],

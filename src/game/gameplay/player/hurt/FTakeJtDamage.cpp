@@ -23,7 +23,7 @@ extern "C"{
  extern qword D_002A2DD0,D_002BFB10;
  int func_001A2358(C*,RECORD*);
  int func_00155228(void*,int);
- void func_001305B8(void*,P*,float,float,int,void**);
+ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void func_00143380(P*);
  void BroadcastGameEvent(void*,int,P*);
@@ -112,7 +112,7 @@ extern "C" int FTakeJtDamage(C*p,RECORD*input){
   if(Add32(*p->counter,delta)>0){
    if(p->mode!=1){p->mode=0;p->time=p->changed=D_002DDED0.time;}
    *p->counter=Add32(*p->counter,delta);
-   if(p->effect)func_001305B8(p->effect,p->actor,0.0f,1.0f,1,&p->output);
+   if(p->effect)ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->effect,p->actor,0.0f,1.0f,1,&p->output);
    goto sound;
   }
   register RECORD*destination __asm__("$2");__asm__("daddu %0,%1,$zero":"=r"(destination):"r"(&accepted));

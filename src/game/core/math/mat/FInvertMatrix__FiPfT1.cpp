@@ -4,7 +4,7 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 struct MSG { int cb; int nKind; };
 void *func_001AE318(MSG *pmsg);
-void func_001AE5A0(void *pvDst, void *pvSrc, int cb);
+void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 }
 class FRAME { public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } int a[4]; };
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318(pmsg); }
@@ -24,7 +24,7 @@ extern "C" int FInvertMatrix__FiPfT1(int c, int n, float *pgSrc, float *pgDst)
     MSG msg;
     float *a = (float *)PvAllocMsg(&msg, cb, 0x10);
     float gMax, g, f, t;
-    func_001AE5A0(a, pgSrc, cb);
+    CopyAb__FPvT0Ui(a, pgSrc, cb);
     for (i = 0; i < n; i++)
         for (j = 0; j < n; j++)
             pgDst[i * c + j] = (i == j) ? 1.0f : 0.0f;

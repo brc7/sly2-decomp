@@ -17,7 +17,7 @@ void STACKSCOPE_ctor_1AE4A0(void*,int);
 void*func_001AE2A0(const REQUEST&);
 void*func_001AE318(const REQUEST&);
 void*func_002333B4(void*,int,uint);
-void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
+void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
 void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
@@ -171,7 +171,7 @@ extern "C" void func_0016CF78(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int g
    mask<<=1;if(!mask){++flagCursor;mask=1;}
   }
   if(desc->count){
-   for(vertex=0;vertex<vertices;vertex++){index=indices[vertex];func_001AE5A0(weights+vertex*bones,boneWeights+index*bones,bones);}
+   for(vertex=0;vertex<vertices;vertex++){index=indices[vertex];CopyAb__FPvT0Ui(weights+vertex*bones,boneWeights+index*bones,bones);}
   }
   vifs.AddVifMscal(D_00000000);
   part++;

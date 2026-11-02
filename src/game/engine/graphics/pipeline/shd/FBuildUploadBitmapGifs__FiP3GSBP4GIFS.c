@@ -12,10 +12,10 @@ struct T1 *func_001ED5D0(int);
 struct T2 *func_001ED4E0(int);
 int IgsAllocGsb__FP3GSBi(struct BS *, int);
 void BuildClutTex2__FP4CLUTi(struct E1 *, int);
-void func_001ECAB0(struct E1 *, int, struct X *);
-void func_001ECB18(struct E2 *, int);
+void BuildClutGifs__FP4CLUTiP4GIFS(struct E1 *, int, struct X *);
+void BuildBmpTex0__FP3BMPi(struct E2 *, int);
 void BuildBmpGifs(struct E2 *, int, struct X *);
-void func_00157500(struct X *, int, int);
+void AddDmaRefs__4DMASiP2QW(struct X *, int, int);
 void func_001ED560(struct E1 *);
 void func_001ED470(struct E2 *);
 /** @sly2-annot addr=0x1ECC28
@@ -46,8 +46,8 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int k, struct BS *pbs, struct X *px)
         v = IgsAllocGsb__FP3GSBi(pbs, pe->hA);
         BuildClutTex2__FP4CLUTi(pe, v);
         if (px && pbs->n4 <= pbs->n8) {
-            func_001ECAB0(pe, v, px);
-            func_00157500(px, pe->n10, pe->nC);
+            BuildClutGifs__FP4CLUTiP4GIFS(pe, v, px);
+            AddDmaRefs__4DMASiP2QW(px, pe->n10, pe->nC);
         }
         func_001ED560(pe);
     }
@@ -68,10 +68,10 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int k, struct BS *pbs, struct X *px)
                 IgsAllocGsb__FP3GSBi(pbs, 32 - r);
         }
         v = IgsAllocGsb__FP3GSBi(pbs, pe->hE);
-        func_001ECB18(pe, v);
+        BuildBmpTex0__FP3BMPi(pe, v);
         if (px && pbs->n4 <= pbs->n8) {
             BuildBmpGifs(pe, v, px);
-            func_00157500(px, pe->n18, pe->n14);
+            AddDmaRefs__4DMASiP2QW(px, pe->n18, pe->n14);
         }
         func_001ED470(pe);
     }

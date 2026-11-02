@@ -16,7 +16,7 @@ void LeaveCritSect(CRITSECT *pcs);
 void BlendDisplayOnBufferMismatch();
 extern "C" void sceGsSetHalfOffset(void *pdraw, short x, short y, short half);
 extern "C" void func_00234CA0(int n);
-extern "C" void func_00240A40(void *pdb, int i);
+extern "C" void sceGsSwapDBuff(void *pdb, int i);
 extern "C" void sceGsSyncPath(int a, int b);
 static inline int FField() { return ((CSR *)0x12001000)->FIELD; }
 /** @sly2-annot addr=0x16F590
@@ -40,7 +40,7 @@ void SwapGsBuffers()
     sceGsSetHalfOffset((D_002DEDB0 & 1) ? D_002DEBE0 : D_002DECD0, 0x800, 0x800, D_002DEDB4);
     func_00234CA0(0);
     D_002DEDB0++;
-    func_00240A40(D_002DEB80, D_002DEDB0);
+    sceGsSwapDBuff(D_002DEB80, D_002DEDB0);
     if (D_002DEDBC == 1 || D_002DEDBC == 2)
         BlendDisplayOnBufferMismatch();
     sceGsSyncPath(0, 0);

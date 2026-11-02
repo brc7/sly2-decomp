@@ -15,17 +15,17 @@ struct CLOCK { char pad[0x3C]; float tReal; };
 extern "C" CLOCK D_002DDED0;
 
 extern "C" {
-int func_00243388(int port, int slot);
-int func_00243680(int port, int slot, int term, int offs);
-int func_002437B8(int port, int slot, int offs, int lock);
-int func_00243558(int port, int slot, int term, int offs);
+int scePadGetState_243388(int port, int slot);
+int scePadInfoMode(int port, int slot, int term, int offs);
+int scePadSetMainMode(int port, int slot, int offs, int lock);
+int scePadInfoAct(int port, int slot, int term, int offs);
 void *func_002333B4(void *pv, int b, int cb);
-int func_00243930(int port, int slot, unsigned char *pb);
-int func_00243B70(int port, int slot);
-int func_00243BD0(int port, int slot);
-int func_00243500(int port, int slot);
+int scePadSetActAlign(int port, int slot, unsigned char *pb);
+int scePadInfoPressMode(int port, int slot);
+int scePadEnterPressMode(int port, int slot);
+int scePadGetState(int port, int slot);
 int func_00187998(JOY *pjoy);
-void func_001D51B8(void *prumble);
+void UpdateRumble__FP6RUMBLE(void *prumble);
 void SetJoyJoys__FP3JOY4JOYS4JOYK(JOY *pjoy, int joys, int joyk);
 }
 
@@ -51,7 +51,7 @@ void UpdateJoy(JOY *pjoy)
     if (pjoy->joys == 0)
         return;
 
-    state = func_00243388(pjoy->nPort, pjoy->nSlot);
+    state = scePadGetState_243388(pjoy->nPort, pjoy->nSlot);
     if (state == 6 || state == 2)
 
         fReady = 1;
@@ -80,10 +80,10 @@ void UpdateJoy(JOY *pjoy)
         case 0: {
 
             int m;
-            int n = func_00243680(pjoy->nPort, pjoy->nSlot, 1, 0);
+            int n = scePadInfoMode(pjoy->nPort, pjoy->nSlot, 1, 0);
             if (n == 0)
                 break;
-            m = func_00243680(pjoy->nPort, pjoy->nSlot, 2, 0);
+            m = scePadInfoMode(pjoy->nPort, pjoy->nSlot, 2, 0);
             if (m > 0)
                 n = m;
             if (n == 4 || n == 7) {
@@ -95,7 +95,7 @@ void UpdateJoy(JOY *pjoy)
         }
         case 1:
 
-            if (func_002437B8(pjoy->nPort, pjoy->nSlot, 1, 3) == 1)
+            if (scePadSetMainMode(pjoy->nPort, pjoy->nSlot, 1, 3) == 1)
                 joys = 2;
 
             break;
@@ -103,38 +103,38 @@ void UpdateJoy(JOY *pjoy)
             unsigned char ab[6];
             int i;
 
-            x = func_00243558(pjoy->nPort, pjoy->nSlot, -1, 0);
+            x = scePadInfoAct(pjoy->nPort, pjoy->nSlot, -1, 0);
             if (x != 2 ||
 
-                func_00243558(pjoy->nPort, pjoy->nSlot, 0, 1) != 1 ||
-                func_00243558(pjoy->nPort, pjoy->nSlot, 0, 2) != 2 ||
-                func_00243558(pjoy->nPort, pjoy->nSlot, 0, 3) != 0 ||
-                func_00243558(pjoy->nPort, pjoy->nSlot, 1, 1) != 1 ||
-                func_00243558(pjoy->nPort, pjoy->nSlot, 1, 2) != 1 ||
-                func_00243558(pjoy->nPort, pjoy->nSlot, 1, 3) != 1) {
+                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 0, 1) != 1 ||
+                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 0, 2) != 2 ||
+                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 0, 3) != 0 ||
+                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 1, 1) != 1 ||
+                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 1, 2) != 1 ||
+                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 1, 3) != 1) {
                 joys = 3;
                 break;
             }
             func_002333B4(ab, 0xFF, 6);
             for (i = 0; i < x; i++)
                 ab[i] = i;
-            if (func_00243930(pjoy->nPort, pjoy->nSlot, ab) == 1)
+            if (scePadSetActAlign(pjoy->nPort, pjoy->nSlot, ab) == 1)
                 joys = 2;
             break;
 #undef x
         }
         case 3:
-            if (func_00243B70(pjoy->nPort, pjoy->nSlot) != 1) {
+            if (scePadInfoPressMode(pjoy->nPort, pjoy->nSlot) != 1) {
                 joys = 3;
                 break;
             }
-            if (func_00243BD0(pjoy->nPort, pjoy->nSlot) == 1)
+            if (scePadEnterPressMode(pjoy->nPort, pjoy->nSlot) == 1)
                 joys = x;
             break;
         }
         break;
     case 2:
-        switch (func_00243500(pjoy->nPort, pjoy->nSlot)) {
+        switch (scePadGetState(pjoy->nPort, pjoy->nSlot)) {
         case 1:
             joys = 1;
             break;
@@ -167,7 +167,7 @@ void UpdateJoy(JOY *pjoy)
     case 3:
         if (func_00187998(pjoy)) {
             if (pjoy->fRumbleEnabled && pjoy->joyk >= 3)
-                func_001D51B8(pjoy->rumble);
+                UpdateRumble__FP6RUMBLE(pjoy->rumble);
         } else {
             joys = 1;
             joyk = 0;

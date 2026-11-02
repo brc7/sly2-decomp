@@ -15,7 +15,7 @@ union REQUEST {ALLOC alloc;qword q;float f[4];};
 extern "C" {
 void PostSoLoad(S *);
 void *func_001AE2A0(ALLOC *);
-void func_001AE5A0(void *,const void *,unsigned int);
+void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 void func_0016EF00(MODEL *,int);
 void ResetTrailHistory(S *);
 extern char D_002C44F0[];
@@ -68,7 +68,7 @@ extern "C" void PostTrailLoad(S *p){
         for(node=p->model.nodes;node;node=node->next){
             for(int i=0;i<node->count;i++){
                 Batch *batch=&node->batches[i];
-                func_001AE5A0(buffer,batch->positions,batch->count*16);
+                CopyAb__FPvT0Ui(buffer,batch->positions,batch->count*16);
                 for(int n=batch->count;n>0;){
                     qword *v=BufferStart(buffer);
                     do{float dot=Dot(*v,p->axis);if(maximum<dot)maximum=dot;if(dot<minimum)minimum=dot;v++;}while(--n);
@@ -87,7 +87,7 @@ extern "C" void PostTrailLoad(S *p){
             func_0016EF00(&p->model,index);
             for(int i=0;i<node->count;i++){
                 Batch *batch=&node->batches[i];
-                func_001AE5A0(buffer,batch->positions,batch->count*16);
+                CopyAb__FPvT0Ui(buffer,batch->positions,batch->count*16);
                 Sample *out=AllocateSamples(&req,batch->count);
                 batch->samples=out;
                 int j=0;if(batch->count>0){

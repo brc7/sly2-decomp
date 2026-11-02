@@ -1,6 +1,6 @@
 struct S { char pad[0x1C4]; int x; };
 void RemoveSoHierarchy(struct S *p);
-void func_001305B8(int a, int b, int c, void *d, float f, float g);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(int a, int b, int c, void *d, float f, float g);
 /** @sly2-annot addr=0x1B0C68
  * Purpose: CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null)
  * Info: proposed name RemoveCid96Hierarchy (T2); class CID96 slot12; TU tu_1B0B78
@@ -12,5 +12,5 @@ void func_001305B8(int a, int b, int c, void *d, float f, float g);
 void func_001B0C68(struct S *p)
 {
     RemoveSoHierarchy(p);
-    func_001305B8(0, 0, 0, &p->x, 0.0f, 0.0f);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(0, 0, 0, &p->x, 0.0f, 0.0f);
 }

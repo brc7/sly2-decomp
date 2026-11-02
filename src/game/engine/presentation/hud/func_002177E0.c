@@ -18,9 +18,9 @@ static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
 static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
 
-void func_001AE528(void *,void *,int);
+void CopyAqw__FPvT0i(void *,void *,int);
 static inline void AlignTo(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
-static inline void Direct(struct R *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);func_001AE528(r->cur,source,n);r->cur+=n*16;}
+static inline void Direct(struct R *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
 /** @sly2-annot addr=0x2177E0
  * Purpose: transformed sprite parameters + direct GIF payload
  * Info: proposed name RenderSpritePicture (T2); TU hud

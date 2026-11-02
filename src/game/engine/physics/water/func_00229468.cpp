@@ -17,7 +17,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct J *pj, int k);
 int func_00229D60(void *,void *);
 int func_001F7E08(struct S *p,int (*pfn)(void *,void *),void *context,void **apv);
 int ClsgClipEdgeToObjects(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg);
-int func_0011D4D0(float a, float b, float eps);
+int FFloatsNear__Ffff(float a, float b, float eps);
 }
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -26,9 +26,9 @@ static inline float Epsilon(){register float f __asm__("$f14");__asm__ __volatil
 static inline int WordY(qword q){int r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return r;}
 static inline int WordZ(qword q){int r;__asm__("pextuw %0,$0,%1":"=r"(r):"r"(q));return r;}
 static inline float FloatWord(int word){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
-static inline int NearX(qword d,qword n,float e){return func_0011D4D0(GetX(d),GetX(n),e);}
-static inline int NearY(qword d,qword n){int y=WordY(d);float e=Epsilon();return func_0011D4D0(FloatWord(y),GetY(n),e);}
-static inline int NearZ(qword d,qword n){int z=WordZ(d);float e=Epsilon();return func_0011D4D0(FloatWord(z),GetZ(n),e);}
+static inline int NearX(qword d,qword n,float e){return FFloatsNear__Ffff(GetX(d),GetX(n),e);}
+static inline int NearY(qword d,qword n){int y=WordY(d);float e=Epsilon();return FFloatsNear__Ffff(FloatWord(y),GetY(n),e);}
+static inline int NearZ(qword d,qword n){int z=WordZ(d);float e=Epsilon();return FFloatsNear__Ffff(FloatWord(z),GetZ(n),e);}
 union VECTOR {qword q;float f[4];};
 struct WORK {
  VECTOR a,b;

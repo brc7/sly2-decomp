@@ -8,9 +8,9 @@ extern CB *D_002C4670[2];
 extern int D_00443840[];
 extern char D_00443800[];
 extern char D_002AA1C8[], D_002AA5E8[], D_002AA610[], D_002AA670[];
-void func_0021EC18(const char *, ...);
+void printf(const char *, ...);
 void *func_0023320C(void *, void *, int);
-int func_00231C48(void);
+int snd_FlushSoundCommands(void);
 void func_00234CA0(int);
 void snd_PrepareReturnBuffer(void *, int);
 int func_00237488(void *);
@@ -29,8 +29,8 @@ void snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl(int cmd, int size, unsigned char *
         snd_PrepareReturnBuffer(D_00443840, 1);
         while (func_00237488(D_00443800)) {
             if (!D_002C46B8)
-                func_0021EC18(D_002AA1C8);
-            func_00231C48();
+                printf(D_002AA1C8);
+            snd_FlushSoundCommands();
             func_00234CA0(0);
         }
         func_00237288(D_00443800, cmd, 1, 0, 0, D_00443840, 0xC, 0, 0);
@@ -41,7 +41,7 @@ void snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl(int cmd, int size, unsigned char *
     if (len % 4)
         len += 4 - len % 4;
     if (len > 0x200) {
-        func_0021EC18(D_002AA5E8);
+        printf(D_002AA5E8);
         while (1)
             ;
     }
@@ -50,13 +50,13 @@ void snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl(int cmd, int size, unsigned char *
             D_002C4684 = 0;
             held = 1;
         }
-        func_00231C48();
+        snd_FlushSoundCommands();
         if (tries == 1 && !D_002C46B8)
-            func_0021EC18(D_002AA610, D_002C4680, *D_002C4660[D_002C4680]);
+            printf(D_002AA610, D_002C4680, *D_002C4660[D_002C4680]);
         tries++;
     }
     if (tries && !D_002C46B8)
-        func_0021EC18(D_002AA670, tries);
+        printf(D_002AA670, tries);
     if (held)
         D_002C4684 = 1;
     p = (unsigned char *)D_002C4660[D_002C4680] - (D_002C4668[D_002C4680] - 0x1000);

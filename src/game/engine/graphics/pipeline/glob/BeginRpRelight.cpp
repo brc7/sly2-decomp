@@ -6,7 +6,7 @@ extern char D_0025E090[];
 extern char D_0025E668[];
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
-extern "C" void func_001AE5A0(void *pvDst, void *pvSrc, unsigned int cb);
+extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 static inline int Min(int a, int b) { return a < b ? a : b; }
 /** @sly2-annot addr=0x167FC0
  * Purpose: Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE
@@ -53,7 +53,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
             iEnd = n + Min(cActive - n, 32);
             pvifs->UnpackHelper(UPK_V4_32, (iEnd - n) * 3, n * 3 + 1, 0, &pb);
         }
-        func_001AE5A0(pb, px->amat, 0x30);
+        CopyAb__FPvT0Ui(pb, px->amat, 0x30);
         n++;
         pb = (uint *)((char *)pb + 0x30);
         if (n >= 0x100)

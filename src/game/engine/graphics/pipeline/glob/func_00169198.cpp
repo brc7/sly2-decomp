@@ -121,9 +121,9 @@ extern "C" {
 void *func_002333B4(void *pv, int b, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
 void func_001A4AD8(G *pg, int c, void **apv, SHD *pshd);
-int func_001EDA20(OBJ *pobj);
+int FUpdatableSaa__FP3SAA(OBJ *pobj);
 int func_001BEE10(ALO *palo, int n);
-void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 qword func_001A62E8(ALO *palo);
@@ -230,7 +230,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
     for (i = 0; i < pmodel->cobj; i++)
     {
         OBJ *pobj = pmodel->apobj[i];
-        if (func_001EDA20(pobj))
+        if (FUpdatableSaa__FP3SAA(pobj))
         {
             VTENT *pvte = &pobj->pvt[8];
             pvte->pfn((char *)pobj + pvte->delta);
@@ -250,7 +250,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
             continue;
         if (psub->grf & 0x1000)
         {
-            func_001AE5A0(&matModel, psub->pb + 0x14, sizeof(MATRIX4));
+            CopyAb__FPvT0Ui(&matModel, psub->pb + 0x14, sizeof(MATRIX4));
         }
         else
         {
@@ -270,7 +270,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
         else
         {
             VECTOR4 pos;
-            func_001AE5A0(&pos, &pmodel->asph[i], 12);
+            CopyAb__FPvT0Ui(&pos, &pmodel->asph[i], 12);
             dpos = QwXfm(matModel, *(qword *)&pos);
         }
         uchar *pbStart = D_002DEA28.pb;

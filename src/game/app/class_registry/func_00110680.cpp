@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void func_001D4C48(void *p, int n, void *pu); CRef func_00110680(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x110680
  * Purpose: Splice option thunk: optid 1178 on CID77 (g_aeopid[1421] thunkUser, returns Void, crefReq 2);
@@ -31,7 +31,7 @@ CRef func_00110680(void *p, int c, void *aref)
     int ak[2] = {6, 0xa};
     union { qword q; } u;
     int n;
-    CRef ref = func_00201360(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
     func_001D4C48(p, n, &u);

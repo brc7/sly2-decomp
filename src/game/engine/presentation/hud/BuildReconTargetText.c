@@ -6,7 +6,7 @@ struct X { char pad[0xF38]; struct Y *py; };
 struct X *PpoHero(struct G *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
-void func_0021ED58(char *dst, char *src);
+void strcpy(char *dst, char *src);
 /** @sly2-annot addr=0x2111F0
  * Purpose: STRINGGEN ids 0x2DF-0x2E4: langstr of recon target i (P+0x78[i]->idName F8) if i < P+0x74
  * Info: proposed name BuildReconTargetText (T1); TU hud
@@ -20,6 +20,6 @@ void BuildReconTargetText(char *dst, int i)
     if (p && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34)) {
         struct Y *y = p->py;
         if (y && i < y->c)
-            func_0021ED58(dst, PchzFindSwLangstr__FP2SWi(g, y->a[i]->xF8));
+            strcpy(dst, PchzFindSwLangstr__FP2SWi(g, y->a[i]->xF8));
     }
 }

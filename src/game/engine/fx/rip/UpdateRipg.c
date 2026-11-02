@@ -6,7 +6,7 @@ extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pf)(); };
 struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; struct VTE *vt; };
 struct RIPG { char pad[0xC]; struct VTE *vt; char p1[0x15C - 0x10]; DL dl; };
-void func_001CE9C0(struct RIP *prip);
+void AddRipRef__FP3RIP(struct RIP *prip);
 void ReleaseRip__FP3RIP(struct RIP *prip);
 int func_001A61A0(struct RIPG *p);
 int FIsDlEmpty__FP2DL(DL *pdl);
@@ -44,7 +44,7 @@ void UpdateRipg(struct RIPG *pripg)
     InitDli(&dli, &pripg->dl);
     while ((prip = (struct RIP *)PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t <= prip->tStart) continue;
-        func_001CE9C0(prip);
+        AddRipRef__FP3RIP(prip);
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
     }

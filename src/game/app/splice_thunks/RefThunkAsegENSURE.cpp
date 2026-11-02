@@ -14,8 +14,8 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void * func_00130598(void *p, int, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
+extern "C" { void * PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(void *p, int, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x101A88
  * Purpose: Splice option thunk: optid 216 on ASEG (g_aeopid[108] thunkFn, returns 0x2086, crefReq 5); unpacks
  *   5 args (0x2030, 0x100C, Float, Float, 0x100B) -> 0x2086 via RefSetArgsFromSplice then calls
@@ -33,7 +33,7 @@ CRef RefThunkAsegENSURE(void *p, int c, void *aref)
     float v2;
     float v3;
     int v4;
-    CRef ref = func_00201360(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
-    ref = func_00130598(p, v0, v1, v2, v3, v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    ref = PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(p, v0, v1, v2, v3, v4);
     return ref;
 }

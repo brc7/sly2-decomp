@@ -5,7 +5,7 @@ extern G D_003DD490;
 void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1244E8
  * Purpose: Splice builtin "find-nearest-object": like find-object with k=4
  * Info: proposed name RefOpFindNearestObject (T1); TU bif
@@ -31,6 +31,6 @@ CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
         CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, 4, a, b, plo ? plo->pv : pg->pv));
     }
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

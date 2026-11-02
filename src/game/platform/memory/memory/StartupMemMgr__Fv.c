@@ -2,7 +2,7 @@ extern char D_0047220F;
 extern void *D_002F6380, *D_002F6384, *D_002F6388, *D_002F638C;
 extern int D_002F639C;
 extern char D_002F6390;
-void func_0021F028(void *p);
+void InitCritSect__FP8CRITSECT(void *p);
 void StartupMemMgr(void) __asm__("StartupMemMgr__Fv");
 /** @sly2-annot addr=0x1AE168
  * Purpose: Init heaps: world min/mac = align16(_end), stack min/mac = 0x2000000, stack index -1, InitCritSect
@@ -16,5 +16,5 @@ void StartupMemMgr(void)
     D_002F6380 = D_002F6384 = end;
     D_002F6388 = D_002F638C = (void *)0x02000000;
     D_002F639C = -1;
-    func_0021F028(&D_002F6390);
+    InitCritSect__FP8CRITSECT(&D_002F6390);
 }

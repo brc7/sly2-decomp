@@ -19,7 +19,7 @@ int FActiveCplcy__FP5CPLCY(void *);
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
 void *func_002333B4(void *,int,unsigned int);
 qword func_001A62E8(P *);
-float func_00245000(float);
+float sinf(float);
 qword *VECTOR_opAssign(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
@@ -57,7 +57,7 @@ extern "C" void RenderStepguardSelf(P *p)
             float elapsed=D_002DDED0.time-p->start;
             float along=gain,across=gain;
             if(elapsed<0.85f){
-                float wave=func_00245000(elapsed*D_002C3D4C);
+                float wave=sinf(elapsed*D_002C3D4C);
                 float u=elapsed*1.1764705f;
                 float mix=(wave+1.0f)*0.5f;
                 float magnitude=D_002C3D50[0]+u*(D_002C3D50[1]+u*D_002C3D50[2]);

@@ -24,8 +24,8 @@ extern qword D_002A2DC0, D_002A2DD0;
 void UpdateBhvpath(P *);
 qword func_001A62E8(ACTOR *);
 MATRIX3 *func_001A6318(ACTOR *);
-void func_00131A00(void *, float);
-float func_002458F0(float, float);
+void SetAsegaSpeed__FP5ASEGAf(void *, float);
+float atan2f(float, float);
 void SetStepguardMoverRadTarget(void *, float);
 void func_0020CB28(CONTROL *, qword);
 }
@@ -164,8 +164,8 @@ extern "C" void UpdateBhvwalkpath(P *p)
         switch (pchoice->kind)
         {
         case 0:
-            func_00131A00(pchoice->control, p->rate * g);
-            SetStepguardMoverRadTarget(p->actor->control, func_002458F0(GYOfQw(dpos), GXOfQw(dpos)));
+            SetAsegaSpeed__FP5ASEGAf(pchoice->control, p->rate * g);
+            SetStepguardMoverRadTarget(p->actor->control, atan2f(GYOfQw(dpos), GXOfQw(dpos)));
             break;
         case 3:
         {
@@ -186,7 +186,7 @@ extern "C" void UpdateBhvwalkpath(P *p)
                 __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwDir) : "j"(qwLocal));
             }
             func_0020CB28(pchoice->control, QwScaleX(qwDir, vuSpeed));
-            func_00131A00(pchoice->control->animation, g);
+            SetAsegaSpeed__FP5ASEGAf(pchoice->control->animation, g);
             break;
         }
         }

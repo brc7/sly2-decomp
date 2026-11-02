@@ -1,6 +1,6 @@
 struct MSG { int cb; int nKind; };
 struct G { char pad[0x45CC]; void *p45cc; };
-int func_00117C80(void *pbis);
+int U32Read__18CBinaryInputStream(void *pbis);
 void *func_001AE2A0(struct MSG *pmsg);
 void LoadZoneBspFromBrx(void *p, int n, void *pbis);
 /** @sly2-annot addr=0x1C0EC0
@@ -14,7 +14,7 @@ void LoadZoneBspFromBrx(void *p, int n, void *pbis);
  * @end-sly2-annot */
 void LoadSwZoneBspFromBrx(struct G *p, void *pbis)
 {
-    int n = func_00117C80(pbis);
+    int n = U32Read__18CBinaryInputStream(pbis);
     if (n) {
         struct MSG msg;
         msg.cb = 0x30;

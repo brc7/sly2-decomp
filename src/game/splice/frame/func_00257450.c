@@ -3,7 +3,7 @@
 typedef struct { int ref; char pad[8]; int c; char pad2[4]; void *m; } S;
 extern char D_004520D0[];
 void func_00257250(void *, int);
-void func_00129EC8(void *); void GcBinding_Unlink(S *); void func_0011CD98(void *, S *);
+void Decref__4CRef(void *); void GcBinding_Unlink(S *); void func_0011CD98(void *, S *);
 void func_00257450(S **pp, S *n)
 {
     S *p;
@@ -12,7 +12,7 @@ void func_00257450(S **pp, S *n)
     if (p) {
         if (--p->ref == 0) {
             func_00257250(&p->m, 2);
-            func_00129EC8(&p->c);
+            Decref__4CRef(&p->c);
             GcBinding_Unlink(p);
             func_0011CD98(D_004520D0, p);
         }

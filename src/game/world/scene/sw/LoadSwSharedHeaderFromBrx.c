@@ -1,7 +1,7 @@
 extern int D_003E1C30;
 extern int D_003E1C54;
 extern int D_003E1C58;
-int func_00117DB8(void *pbis);
+int S32Read__18CBinaryInputStream(void *pbis);
 /** @sly2-annot addr=0x20F5D0
  * Purpose: Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced
  * Info: proposed name LoadSwSharedHeaderFromBrx (T1); TU sw
@@ -13,8 +13,8 @@ int func_00117DB8(void *pbis);
  * @end-sly2-annot */
 void LoadSwSharedHeaderFromBrx(int a, void *pbis)
 {
-    int x = func_00117DB8(pbis);
-    int y = func_00117DB8(pbis);
+    int x = S32Read__18CBinaryInputStream(pbis);
+    int y = S32Read__18CBinaryInputStream(pbis);
     D_003E1C30 = x;
     if (y != D_003E1C58) a = 1;
     D_003E1C54 = a;

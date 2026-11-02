@@ -14,7 +14,7 @@ int func_001ACC80(struct S *s);
 int GrfHandleJoyBtn(void *p, int n);
 void func_001AD168(struct S *s);
 void func_001ACFE0(struct S *s);
-int func_001AB088(void *p);
+int FMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *p, struct PMF pmf);
 void SetMcDialogState(struct S *s, int n);
 void ClearMcDialogState(struct S *s);
@@ -79,7 +79,7 @@ void CMemcardDialog_Update(struct S *s)
         ClearMcDialogState(s);
         return;
     case 0x13:
-        if (func_001AB088(D_002F633C))
+        if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         if (!D_002E65E0.xFD6C) {
             CreateMemcardThread(D_002F633C, D_002A6D88);
@@ -88,7 +88,7 @@ void CMemcardDialog_Update(struct S *s)
             SetMcDialogState(s, 0x14);
         return;
     case 0x16:
-        if (func_001AB088(D_002F633C))
+        if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         if (!D_002E65E0.xFD6C) {
             ClearMcDialogState(s);
@@ -97,7 +97,7 @@ void CMemcardDialog_Update(struct S *s)
         SetMcDialogState(s, 0x17);
         return;
     case 0x1A:
-        if (func_001AB088(D_002F633C))
+        if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         if (!D_002E65E0.xFD6C) {
             ClearMcDialogState(s);
@@ -117,7 +117,7 @@ void CMemcardDialog_Update(struct S *s)
             SetMcDialogState(s, 0x1D);
         return;
     case 0x21:
-        if (func_001AB088(D_002F633C))
+        if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         D_002E65E0.xFD58 = 0;
         if (!D_002E65E0.xFD6C) {

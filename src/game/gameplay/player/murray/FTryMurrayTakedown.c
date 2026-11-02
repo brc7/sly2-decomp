@@ -10,7 +10,7 @@ int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
 struct S *PbhvFindBhvstk(void *p, int n);
 qword func_001A62E8(void *p);
-int func_0011D910(void *p, float g);
+int FCheckLm__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
 void StartMurrayLiftGuard(struct P *p, void *q);
 void SetMurrayState(struct P *p, int n);
@@ -56,7 +56,7 @@ int FTryMurrayTakedown(struct P *p)
             qword d = func_001A62E8(p);
             __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
             u.q = d;
-            if (LenXY(d) < D_002C09AC && func_0011D910(D_002C09B0, GetZ(d)) && p->p10DC->xFEC)
+            if (LenXY(d) < D_002C09AC && FCheckLm__FP2LMf(D_002C09B0, GetZ(d)) && p->p10DC->xFEC)
                 f = GrfConsumePressed__5POCTLUif(p->pl, 0x20, 0.15f) != 0;
             if (f) {
                 SetBhvjuggledState(ps, 2);
@@ -65,7 +65,7 @@ int FTryMurrayTakedown(struct P *p)
             }
             d = u.q;
             g = 0;
-            if (LenXY(d) < D_002C09B8 && func_0011D910(D_002C09C0, GetZ(d)) && p->x180C)
+            if (LenXY(d) < D_002C09B8 && FCheckLm__FP2LMf(D_002C09C0, GetZ(d)) && p->x180C)
                 g = GrfConsumePressed__5POCTLUif(p->pl, 0x80, 0.15f) != 0;
     if (!g)
         goto ret0;

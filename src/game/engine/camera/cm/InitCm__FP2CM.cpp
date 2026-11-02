@@ -15,7 +15,7 @@ extern float D_002BD81C, D_002BD820, D_002BD824;
 extern qword D_002BD830;
 extern qword D_002BD840;
 void *func_002333B4(void *pv, int b, int cb);
-void func_0014DB70(CM *p);
+void RecalcCmFrustrum__FP2CM(CM *p);
 void func_0014E1A8(CM *p, qword pos, qword tgt, float da, float db);
 void CutCm__FP2CM(CM *p);
 void InitCmpart1(void *p);
@@ -54,7 +54,7 @@ extern "C" void InitCm__FP2CM(CM *p)
     pm[10] = 1.0f;
     pm[5] = 1.0f;
     pm[0] = 1.0f;
-    func_0014DB70(p);
+    RecalcCmFrustrum__FP2CM(p);
     func_0014E1A8(p, D_002BD830, D_002BD840, 0.0f, 0.0f);
     CutCm__FP2CM(p);
     p->c30C = 0;

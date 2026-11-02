@@ -17,7 +17,7 @@ struct OBJ {
 extern struct G D_003DD490;
 extern PAIR D_002A7AC0;
 void func_001F5988(void);
-void func_001A7E10(struct G *, LNK *);
+void FreeSwXpList__FP2SWP2XP(struct G *, LNK *);
 void EnsureSwCallback(struct G *, OBJ *, PAIR, int);
 /** @sly2-annot addr=0x1DEEA8
  * Purpose: LASEN vt54: drop beam contact links that reference object x and free them
@@ -45,6 +45,6 @@ void func_001DEEA8(OBJ *p, void *x)
             }
         }
     }
-    func_001A7E10(&D_003DD490, list);
+    FreeSwXpList__FP2SWP2XP(&D_003DD490, list);
     EnsureSwCallback(&D_003DD490, p, D_002A7AC0, 0);
 }

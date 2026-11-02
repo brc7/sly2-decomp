@@ -1,7 +1,7 @@
 typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword q20; qword q30; };
 qword PosCpzoomCenter(struct S *p);
-int func_0011D4D0(float a, float b, float eps);
+int FFloatsNear__Ffff(float a, float b, float eps);
 static __inline__ float GetX(qword q)
 {
     float x;
@@ -20,7 +20,7 @@ static __inline__ float GetZ(qword q)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q));
     return z;
 }
-static __inline__ int FNear(float a, float b) { return func_0011D4D0(a, b, 0.0001f); }
+static __inline__ int FNear(float a, float b) { return FFloatsNear__Ffff(a, b, 0.0001f); }
 /** @sly2-annot addr=0x150F58
  * Purpose: Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis
  * Info: proposed name FCpzoomCenterArrived (T2); TU cplcy

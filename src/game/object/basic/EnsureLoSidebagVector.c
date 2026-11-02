@@ -3,7 +3,7 @@ struct LO;
 typedef int ti128 __attribute__((mode(TI)));
 struct CRef { int m_tagk; union { int m_n; float m_g; } m_tag; };
 void RefEnsureOption(struct CRef *pref, struct LO *pbasic, int optid, struct CRef *prefValue);
-void func_00129EC8(struct CRef *);
+void Decref__4CRef(struct CRef *);
 void CRef_ctor(struct CRef *, ti128);
 /** @sly2-annot addr=0x132DE0
  * Purpose: RefEnsureOption with a vector CRef (passed by value as qword)
@@ -18,6 +18,6 @@ void EnsureLoSidebagVector(struct LO *plo, int optid, ti128 v)
     struct CRef refT;
     CRef_ctor(&ref, v);
     RefEnsureOption(&refT, plo, optid, &ref);
-    func_00129EC8(&refT);
-    func_00129EC8(&ref);
+    Decref__4CRef(&refT);
+    Decref__4CRef(&ref);
 }

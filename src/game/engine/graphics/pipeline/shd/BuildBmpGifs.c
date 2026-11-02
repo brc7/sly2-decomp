@@ -1,5 +1,5 @@
 struct BMP { char pad[8]; unsigned short w; unsigned short h; unsigned char psm; unsigned char bw; char pad2[0x18-0xE]; int cqw; };
-void func_00170650(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs);
+void BuildImageGifs__FiiiiiiP4GIFS(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs);
 /** @sly2-annot addr=0x1ECBF0
  * Purpose: BuildImageGifs for a bitmap
  * Info: proposed name BuildBmpGifs (T1); TU shd
@@ -8,5 +8,5 @@ void func_00170650(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs
  * @end-sly2-annot */
 void BuildBmpGifs(struct BMP *pbmp, int dbp, void *pgifs)
 {
-    func_00170650(dbp, pbmp->bw, pbmp->psm, pbmp->w, pbmp->h, pbmp->cqw, pgifs);
+    BuildImageGifs__FiiiiiiP4GIFS(dbp, pbmp->bw, pbmp->psm, pbmp->w, pbmp->h, pbmp->cqw, pgifs);
 }

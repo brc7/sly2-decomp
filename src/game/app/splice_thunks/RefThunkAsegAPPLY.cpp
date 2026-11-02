@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void * func_00130488(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x101910
  * Purpose: Splice option thunk: optid 214 on ASEG (g_aeopid[106] thunkFn, returns 0x2086, crefReq 4); unpacks
@@ -32,7 +32,7 @@ CRef RefThunkAsegAPPLY(void *p, int c, void *aref)
     float v1;
     float v2;
     int v3;
-    CRef ref = func_00201360(4, aref, ak, &v0, &v1, &v2, &v3);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, aref, ak, &v0, &v1, &v2, &v3);
     ref = func_00130488(p, v0, v1, v2, v3);
     return ref;
 }

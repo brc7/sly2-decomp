@@ -1,8 +1,8 @@
 struct CRef;
-extern "C" void func_00129EC8(CRef *);
+extern "C" void Decref__4CRef(CRef *);
 struct CRef {
     int m_tagk; int tag;
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 struct NODE;
 extern char D_004520A8[];

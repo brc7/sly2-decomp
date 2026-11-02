@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void StartStepplayerFollow(void *p, int n, qword q); CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10A940
  * Purpose: Splice option thunk: optid 446 on STEPPLAYER (g_aeopid[733] thunkFn, returns Void, crefReq 2);
@@ -32,7 +32,7 @@ CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref)
     int ak[2] = {0x2002, 2};
     union { qword q; } u;
     int n;
-    CRef ref = func_00201360(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
     StartStepplayerFollow(p, n, u.q);

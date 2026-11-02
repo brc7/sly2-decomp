@@ -8,7 +8,7 @@ struct P {int a,b;T*t;};
 struct G {char pad[0x3B0C];X*x;};
 extern "C" G D_003DD490;
 extern "C" void SortTasksTopologically(int*,X***);
-extern "C" void func_002338C0(void*,unsigned,unsigned,int(*)(const void*,const void*));
+extern "C" void qsort(void*,unsigned,unsigned,int(*)(const void*,const void*));
 extern "C" int func_00165C28(const void*,const void*);
 extern "C" int FTaskComplete(X*);
 struct LOCAL_LAYOUT{FRAME frame;int count;X**array;};
@@ -57,7 +57,7 @@ extern "C" void func_0019D948(P*p){
  int c;
  X**ap;
  SortTasksTopologically(&c,&ap);
- func_002338C0(ap,c,4,func_00165C28);
+ qsort(ap,c,4,func_00165C28);
  for(;i<c;i++){
   X*x=ap[i];
   if(pgLoop->x==x->x7C && x->x5C!=-1 && !FTaskComplete(x)){

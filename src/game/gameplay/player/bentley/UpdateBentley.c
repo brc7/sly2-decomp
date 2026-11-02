@@ -43,9 +43,9 @@ void FaceStepToward(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void func_001A0450(struct P *p, void *pv, int n);
 qword func_00204E38(struct P *p, struct S1030 *px, float g);
-void func_00131A00(struct S1030 *px, float g);
+void SetAsegaSpeed__FP5ASEGAf(struct S1030 *px, float g);
 float RadNormalize__Ff(float g);
-float func_0011CFE0(float g, float dg);
+float GLimitAbs__Fff(float g, float dg);
 void func_00135EB0(struct P *p);
 void UpdateJtActiveZap(void *pv);
 
@@ -174,7 +174,7 @@ void UpdateBentley(struct P *p)
             float z = 0.0f;
             if (z < p->p150->g1C) {
                 float d = RadNormalize__Ff(p->p150->g18 - p->g1A8);
-                func_00204660(p, p->g1A8 + func_0011CFE0(d, g1 * D_002BC960 * D_002DDED0.dt));
+                func_00204660(p, p->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
             }
             SetVel(p, SetVectorCylind(p->p150->g18 + 3.1415927f, g0 * LenXY(p->v1520) * p->p1030->g40, z), p->x14F0, p->x15F0);
         }
@@ -184,7 +184,7 @@ void UpdateBentley(struct P *p)
         break;
     case 11:
         PullB(p);
-        func_00131A00(p->p1030, p->p150->g1C);
+        SetAsegaSpeed__FP5ASEGAf(p->p1030, p->p150->g1C);
         func_00204660(p, p->p150->g18);
         break;
     case 14:

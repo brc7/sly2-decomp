@@ -15,7 +15,7 @@ struct OBJ {
 };
 void *func_001AE318(MSG *);
 void *func_001AE1D0(MSG *);
-void func_001AE5A0(void *, void *, int);
+void CopyAb__FPvT0Ui(void *, void *, int);
 void AddRelayBlockBegin(OBJ *, int);
 void LoadLoFromBrx(OBJ *, void *);
 static inline int Max(int a, int b) { return a < b ? b : a; }
@@ -48,6 +48,6 @@ extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
         pmsg->cb = p->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
         p->ae = (ENT *)func_001AE1D0(pmsg);
-        func_001AE5A0(p->ae, aeOld, p->c * sizeof(ENT));
+        CopyAb__FPvT0Ui(p->ae, aeOld, p->c * sizeof(ENT));
     }
 }

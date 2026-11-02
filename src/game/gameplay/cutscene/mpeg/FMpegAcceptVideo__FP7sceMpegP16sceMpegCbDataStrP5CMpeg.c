@@ -1,6 +1,6 @@
 struct M { int a, b; int n8; unsigned int nC; };
 struct S { char pad[0x160]; char x160[0x10]; unsigned int c170; };
-void func_0013D7D0(void *p, unsigned int a, int b);
+void CbFill__10CByteQueueiPUc(void *p, unsigned int a, int b);
 /** @sly2-annot addr=0x1B3388
  * Purpose: sceMpeg video stream callback: CbFill video queue
  * Info: proposed name FMpegAcceptVideo (T1); TU mpeg
@@ -10,6 +10,6 @@ void func_0013D7D0(void *p, unsigned int a, int b);
 int FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, struct M *pm, struct S *p)
 {
     if (p->c170 < pm->nC) return 0;
-    func_0013D7D0(p->x160, pm->nC, pm->n8);
+    CbFill__10CByteQueueiPUc(p->x160, pm->nC, pm->n8);
     return 1;
 }

@@ -17,7 +17,7 @@ struct X { Y *py; };
 extern "C" {
 void UpdateCplcy(X *p);
 M3 MulMatrix3Matrix3(M4 *pm, M3 *pm2);
-void func_0011BCF8(M3 *pm, float *pg, qword *pv);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, qword *pv);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext); /* GSmooth */
 M3 func_0011B500(qword v, float g);
 qword *VECTOR_opAssign(qword *p, qword v);
@@ -74,7 +74,7 @@ void UpdateCpturret(X *p)
         union { qword q; } axis;
         float rad;
         mRel = MulMatrix3Matrix3(&m, &D_002DDF40.mat);
-        func_0011BCF8(&mRel, &rad, &axis.q);
+        DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&mRel, &rad, &axis.q);
         if (rad < 0.0001f) {
             mNew = m.m3;
         } else {

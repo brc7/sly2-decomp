@@ -6,7 +6,7 @@ struct Q *PripgNew(void *pg, int n);
 void *PvAllocSlotheapClear(void *pool);
 struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
-void func_001CE9C0(struct R *r);
+void AddRipRef__FP3RIP(struct R *r);
 /** @sly2-annot addr=0x1CE888
  * Purpose: Allocate a RIP from the rip pool (D_003E1144?), construct by type, link into RIPG dlRip, AddRipRef
  * Info: proposed name PripNewRipg (T1); TU rip
@@ -25,7 +25,7 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
     r = PvtripFromRipt(pv, a);
     r->p8 = q;
     AppendDlEntry__FP2DLPv(q->dl, r);
-    func_001CE9C0(r);
+    AddRipRef__FP3RIP(r);
     return r; }
     return 0;
 }

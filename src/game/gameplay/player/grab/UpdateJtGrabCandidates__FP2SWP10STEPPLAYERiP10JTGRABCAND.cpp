@@ -45,8 +45,8 @@ extern float D_002BF710, D_002BF714;
 extern SMP D_002BF718;
 extern char D_002DEB30[];
 int CompareJtGrabCand(const void *, const void *);   // JTGRABCAND compare for qsort
-void func_002338C0(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort
-void *func_002332B8(void *dst, const void *src, uint cb);   // memmove
+void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort
+void *memmove(void *dst, const void *src, uint cb);   // memmove
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);   // GSmooth
 void FadeSoOut(LO *plo, float g);
 void BroadcastGameEvent(void *pv, int msg, LO *plo);
@@ -67,7 +67,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
     int i, j;
     JTGRABCAND *pcandOld, *pcand;
     if (ccand > 0) {
-        func_002338C0(ajtgrabcand, ccand, sizeof(JTGRABCAND), CompareJtGrabCand);
+        qsort(ajtgrabcand, ccand, sizeof(JTGRABCAND), CompareJtGrabCand);
         if (ajtgrabcand->pspot->nUnk14 != -1)
             ajtgrabcand->nPriority = 1;
     }
@@ -82,7 +82,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
                 // Not seen this frame: drop it.
                 if (pcandOld->ploUnk10)
                     FadeSoOut(pcandOld->ploUnk10, 0.5f);
-                func_002332B8(pcandOld, pcandOld + 1, (3 - i) * (int)sizeof(JTGRABCAND));
+                memmove(pcandOld, pcandOld + 1, (3 - i) * (int)sizeof(JTGRABCAND));
                 psw->cjtgrabcand--;
                 break;
             }
@@ -133,7 +133,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
                     pspot->pvt[3].v3.pfn((char *)pspot + pspot->pvt[3].v3.d, pstepplayer, &qwPos, 0, pcandOld->sParam);
                     pcandOld->ploUnk10->pvt[29].pfn((char *)pcandOld->ploUnk10 + pcandOld->ploUnk10->pvt[29].d, qwPos);
                 }
-                func_002332B8(pcand, pcand + 1, (ccand - j) * (int)sizeof(JTGRABCAND) - (int)sizeof(JTGRABCAND));
+                memmove(pcand, pcand + 1, (ccand - j) * (int)sizeof(JTGRABCAND) - (int)sizeof(JTGRABCAND));
                 ccand--;
                 break;
             }
@@ -151,5 +151,5 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
         psw->ajtgrabcand[psw->cjtgrabcand++] = *pcand;
         BroadcastGameEvent(D_002DEB30, 0x3D, pcand->plo);
     }
-    func_002338C0(ajtgrabcandOld, psw->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCand);
+    qsort(ajtgrabcandOld, psw->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCand);
 }

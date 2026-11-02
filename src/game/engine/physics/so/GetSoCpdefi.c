@@ -7,7 +7,7 @@ struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 qword GetXfVelocity(struct O *, int, qword);
 void TiltMatUpright(void *, int, struct V *);
-float func_002458F0(float, float);
+float atan2f(float, float);
 /** @sly2-annot addr=0x1F58F0
  * Purpose: SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix,
  *   sAdjust 100, grfcpd 0, tMoveLast = g_clock.t
@@ -27,5 +27,5 @@ void GetSoCpdefi(struct P *p, struct Out *po)
     ps = o->sub;
     po->q20 = GetXfVelocity(o, 0, q);
     TiltMatUpright(ps, 0, &v);
-    po->g30 = func_002458F0(-v.y, -v.x); po->g34 = 100.0f; po->n0 = 0; po->g38 = D_002DDED0.t; po->n3C = 0;
+    po->g30 = atan2f(-v.y, -v.x); po->g34 = 100.0f; po->n0 = 0; po->g38 = D_002DDED0.t; po->n3C = 0;
 }

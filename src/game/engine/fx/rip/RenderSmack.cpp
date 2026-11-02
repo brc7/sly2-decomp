@@ -9,7 +9,7 @@ extern struct CLOCK {float t,dt;} D_002DDED0;
 extern "C" {
 qword ConvertCmScreenToWorld(G*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
-void func_0011BCF8(M3*,float*,qword*);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*);
 M3 func_0011B500(qword,float);
 int FRenderRipPosMat(S*,qword,const M3&);
 void RenderSmack(S*);
@@ -31,7 +31,7 @@ void RenderSmack(S *p) {
  G *pg=&D_002DDF40;
  qword view=ConvertCmScreenToWorld(pg,p->pos);
  camera=MulMatrix3Matrix3(p->mat,pg->mat);
- func_0011BCF8(&camera,&angle,&axis.q);
+ DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&camera,&angle,&axis.q);
  float t=(D_002DDED0.t-p->start)/p->duration;
  fade=func_0011B500(axis.q,angle*t);
  spin=func_0011B500(p->spin->axis,(t+t)*3.14159274f);

@@ -4,7 +4,7 @@ struct SAI { int a; };
 struct SCROLLER { char pad[0x24]; short du; short dv; char pad2[0x34 - 0x28]; struct SAI sai; char pad3[0x50 - 0x38];
     float duSpeed; float dvSpeed; float duMax; float dvMax; float sdu; float sdv; };
 int FIsSlEmpty(struct SAI *psai);
-float func_00245A18(float x, float y);
+float fmodf(float x, float y);
 void SetSaiDuDv(struct SCROLLER *p, float du, float dv);
 /** @sly2-annot addr=0x1EE4E0
  * Purpose: SCROLLER vt8 Update
@@ -16,7 +16,7 @@ void UpdateScroller(struct SCROLLER *p)
 {
     float du, dv;
     if (FIsSlEmpty(&p->sai)) return;
-    du = func_00245A18(p->du * (1.0f / 4096.0f) + p->duSpeed * p->sdu * D_002DDED0.dt, p->duMax);
-    dv = func_00245A18(p->dv * (1.0f / 4096.0f) + p->dvSpeed * p->sdv * D_002DDED0.dt, p->dvMax);
+    du = fmodf(p->du * (1.0f / 4096.0f) + p->duSpeed * p->sdu * D_002DDED0.dt, p->duMax);
+    dv = fmodf(p->dv * (1.0f / 4096.0f) + p->dvSpeed * p->sdv * D_002DDED0.dt, p->dvMax);
     SetSaiDuDv(p, du, dv);
 }

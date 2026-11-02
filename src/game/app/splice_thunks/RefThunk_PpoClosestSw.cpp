@@ -9,7 +9,7 @@ struct CRef {
     CRef &operator=(void *pv);
 };
 extern "C" {
-CRef func_00201360(int c, void *aref, int *ak, void *an);
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
 void *PpoClosestSw(void *p, qword q);
 CRef RefThunk_PpoClosestSw(void *p, int c, void *aref);
 }
@@ -25,7 +25,7 @@ CRef RefThunk_PpoClosestSw(void *p, int c, void *aref)
 {
     union { qword q; } u;
     int k = 2;
-    CRef ref = func_00201360(1, aref, &k, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
     ref = PpoClosestSw(p, u.q);
     return ref;
 }

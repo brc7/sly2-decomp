@@ -5,8 +5,8 @@
 
 /* Warning: missing "jr $ra" in last block of func_00258008 (initial). */
 
-void func_00117968(s32, M2C_UNK, s32);           /* extern */
-M2C_UNK func_00129EC8(void *);                      /* extern */
+void Read__18CBinaryInputStreamiPv(s32, M2C_UNK, s32);           /* extern */
+M2C_UNK Decref__4CRef(void *);                      /* extern */
 s32 func_001AE318(s32 *, s32 *);                    /* extern */
 extern M2C_UNK D_002CB1F0;
 extern M2C_UNK D_002D9978;
@@ -58,5 +58,5 @@ extern M2C_UNK D_00452170;
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
 void func_002566B0(s32 arg0, s32 arg1, s32 arg2) {
-    func_00117968(arg2, 4, arg1);
+    Read__18CBinaryInputStreamiPv(arg2, 4, arg1);
 }

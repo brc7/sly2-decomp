@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { int KCalculateDetectorTarget(void *p, int, int); CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x104188
  * Purpose: Splice option thunk: optid 466 on DETECTOR (g_aeopid[347] thunkFn, returns 0x106B, crefReq 2);
@@ -30,7 +30,7 @@ CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref)
     int ak[2] = {0x2002, 0x106b};
     int v0;
     int v1;
-    CRef ref = func_00201360(2, aref, ak, &v0, &v1);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &v0, &v1);
     ref = KCalculateDetectorTarget(p, v0, v1);
     return ref;
 }

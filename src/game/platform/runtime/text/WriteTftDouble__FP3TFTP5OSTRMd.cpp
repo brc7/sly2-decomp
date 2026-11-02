@@ -2,7 +2,7 @@ struct TFT {int fLeft,fPlus,fSpace,fPrefix,fZero,fPrec0,width,precision,cbits;ch
 class OSTRM {public:int CbWrite(void *,int);};
 int CchAchFromDouble(char *,int,TFT *,double);
 extern "C" unsigned int func_0021ED28(const char *);
-extern "C" void func_0021EE30(char *);
+extern "C" void UpperizePchz__FPc(char *);
 static inline void WritePad(OSTRM *out,char ch,int count){char b=ch;while(count-- >0)if(out->CbWrite(&b,1)!=1)break;}
 /** @sly2-annot addr=0x21E4B8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -24,7 +24,7 @@ void WriteTftDouble(TFT *f,OSTRM *out,double value){
     int cPrefix=func_0021ED28(prefix);
     int cDigits=CchAchFromDouble(digits,0x1B5,f,value);
     digits[cDigits]=0;
-    if(f->fUpper)func_0021EE30(digits);
+    if(f->fUpper)UpperizePchz__FPc(digits);
     int left=0,right=0;
     int total=cPrefix+cDigits;
     if(total<f->width){

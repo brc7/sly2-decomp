@@ -19,7 +19,7 @@ struct OBJ {
 extern char D_002A79A0[];
 extern char D_002A79D0[];
 extern char D_002A79D8[];
-extern "C" int func_0021ECD8(char *, const char *, ...);
+extern "C" int sprintf(char *, const char *, ...);
 extern "C" CRef RefGetSaveVarV(const char *, ...);
 extern "C" int func_001DAE58(int);
 extern "C" int FPowerupAcquired(int);
@@ -60,7 +60,7 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
         for (i = 0; i < 0x40; i++) {
             CRef ref;
             char ach[0x20];
-            func_0021ECD8(ach, D_002A79A0, i);
+            sprintf(ach, D_002A79A0, i);
             ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
             if (ref.m_tag == 0)
                 continue;

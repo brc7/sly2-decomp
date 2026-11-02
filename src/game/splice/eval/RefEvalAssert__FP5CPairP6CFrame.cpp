@@ -17,7 +17,7 @@ struct P { char pad[0xC]; R *pr; };
 extern char D_002A43B0[];
 extern "C" {
 CRef RefEval__FP5CPairP6CFrame(Q *pq, CRef *aref);
-void func_0021EC18(char *psz);
+void printf(char *psz);
 CRef RefOpPrint__FiP4CRefP6CFrame(int n, int *p, CRef *aref);
 CRef RefEvalAssert__FP5CPairP6CFrame(P *p, CRef *aref);
 }
@@ -35,7 +35,7 @@ CRef RefEvalAssert__FP5CPairP6CFrame(P *p, CRef *aref)
     ref = RefEval__FP5CPairP6CFrame(pq, aref);
     if (ref.u.n == 0) {
         Q *pq2 = ps->pr->pq;
-        func_0021EC18(D_002A43B0);
+        printf(D_002A43B0);
         RefOpPrint__FiP4CRefP6CFrame(1, &pq2->x8, aref);
     }
     ref.Decref();

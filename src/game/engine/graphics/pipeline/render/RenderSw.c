@@ -10,7 +10,7 @@ extern char D_002DEA28[];
 void PrepareSwLights(struct G *p);
 void SubmitSwRelightAll(struct G *p);
 void func_001DAC58(void *p);
-void func_001574A0(void *p);
+void Flush__4DMAS(void *p);
 /** @sly2-annot addr=0x1CDA80
  * Purpose: SW vt8: per-frame world render entry (called from main loop)
  * Info: proposed name RenderSw (T1); class SW slot8; TU render
@@ -37,6 +37,6 @@ void RenderSw(struct G *p)
     }
     p->pi = 0;
     func_001DAC58(D_003DA0F0);
-    func_001574A0(D_002DEA00);
-    func_001574A0(D_002DEA28);
+    Flush__4DMAS(D_002DEA00);
+    Flush__4DMAS(D_002DEA28);
 }

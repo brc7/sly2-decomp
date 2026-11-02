@@ -23,7 +23,7 @@ struct Q {
     VU xE0;
     VU xF0;
 };
-int func_00138370(void *, struct SEG *, float *, float, float);
+int ImrsgLookUp__FffiP4MRSGPf(void *, struct SEG *, float *, float, float);
 void *func_002333B4(void *, int, int);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
 
@@ -94,7 +94,7 @@ void func_00138660(struct P *p, struct Q *pq)
         if (!p->x8) {
             u = tCur / pa->x74;
         } else {
-            iSeg = func_00138370(p->x8->x4, p->x8->x8, &t[0], tCur, pa->x74);
+            iSeg = ImrsgLookUp__FffiP4MRSGPf(p->x8->x4, p->x8->x8, &t[0], tCur, pa->x74);
             u = t[0] / p->x8->x8[iSeg].g4;
         }
     }

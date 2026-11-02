@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00117968(s32, void *, s32);            /* extern */
-M2C_UNK func_00129EC8(void *);                      /* extern */
+M2C_UNK Read__18CBinaryInputStreamiPv(s32, void *, s32);            /* extern */
+M2C_UNK Decref__4CRef(void *);                      /* extern */
 s32 func_001AE318(s32 *, s32, s32 *, M2C_UNK);      /* extern */
 extern s128 D_002A2DD0;
 extern f32 D_002A97A8;
@@ -46,7 +46,7 @@ extern s32 D_003E0FE0;
  *   docs/reference/functions/rendering.md#vifs-0x226c10-0x227350,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-s32 func_00226C10(s32 arg0) {
+s32 __4VIFS(s32 arg0) {
     __4DMAS(arg0);
     M2C_FIELD(arg0, s32 *, 0x10) = 1;
     M2C_FIELD(arg0, M2C_UNK **, 0x18) = &D_002CE488;

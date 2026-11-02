@@ -6,7 +6,7 @@ int FNegTftUl(TFT *,UL *);
 int CchAchFromUl(char *,int,unsigned long,unsigned int);
 int UnRadixFromChConversion(unsigned char) __asm__("UnRadixFromChConversion__Fc");
 extern "C" unsigned int func_0021ED28(const char *);
-extern "C" void func_0021EE30(char *);
+extern "C" void UpperizePchz__FPc(char *);
 static inline void WritePad(OSTRM *out,char ch,int count){char b=ch;while(count-- >0)if(out->CbWrite(&b,1)!=1)break;}
 /** @sly2-annot addr=0x21DD40
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -43,7 +43,7 @@ void WriteTftUl(TFT *f,OSTRM *out,unsigned long n){
         if(cZero<0)cZero=0;
     }
     digits[cDigits]=0;
-    if(f->fUpper){func_0021EE30(prefix);func_0021EE30(digits);}
+    if(f->fUpper){UpperizePchz__FPc(prefix);UpperizePchz__FPc(digits);}
     int total=cPrefix+cZero+cDigits;
     int left=0,right=0;
     if(total<f->width){

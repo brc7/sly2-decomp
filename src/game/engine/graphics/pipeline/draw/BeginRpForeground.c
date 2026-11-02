@@ -11,14 +11,14 @@ extern char D_002DF940[], D_002DFA80[], D_002DF800[], D_002DF010[];
 extern CM D_002DDF40;
 extern K D_002C1F00, D_002C1F10;
 extern char D_003E12B8[];
-extern void func_00157598(P *, void *);
-extern void func_001574B8(P *);
-extern void func_00226D10(P *);
-extern void func_002270C8(P *, int, void *, int);
-extern void func_00226CA8(P *, int, int);
-extern void func_00226F28(P *, int, int, void *, int);
+extern void AddDmaCall__4DMASP2QW(P *, void *);
+extern void AddDmaCnt__4DMAS(P *);
+extern void AddVifFlush__4VIFS(P *);
+extern void AddVifDirect__4VIFSiP2QWi(P *, int, void *, int);
+extern void AddVifBaseOffset__4VIFSii(P *, int, int);
+extern void AddVifUnpack__4VIFS3UPKiPvi(P *, int, int, void *, int);
 extern void func_0014F768(CM *, int, int, MATRIX4 *, MATRIX4 *);
-extern void func_001576F0(P *);
+extern void EndDmaCnt__4DMAS(P *);
 extern void BeginRpGlob(P *, void *, void *);
 /** @sly2-annot addr=0x157CF0
  * Purpose: Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010,
@@ -35,17 +35,17 @@ void BeginRpForeground(P *p, void *a1, void *a2)
     MATRIX4 m1, m2;
     if (D_003DD490.x3E38) {
         if (D_002DEA4C == D_002DEA50)
-            func_00157598(p, D_002DF940);
+            AddDmaCall__4DMASP2QW(p, D_002DF940);
         else
-            func_00157598(p, D_002DFA80);
+            AddDmaCall__4DMASP2QW(p, D_002DFA80);
     } else {
-        func_00157598(p, D_002DF800);
+        AddDmaCall__4DMASP2QW(p, D_002DF800);
     }
     p->x20 = 1;
-    func_001574B8(p);
-    func_00226D10(p);
-    func_002270C8(p, 0x25, D_002DF010, 0);
-    func_00226CA8(p, 0, 0);
+    AddDmaCnt__4DMAS(p);
+    AddVifFlush__4VIFS(p);
+    AddVifDirect__4VIFSiP2QWi(p, 0x25, D_002DF010, 0);
+    AddVifBaseOffset__4VIFSii(p, 0, 0);
     {
         CM *pcm = &D_002DDF40;
         float rNear = pcm->rNear;
@@ -56,7 +56,7 @@ void BeginRpForeground(P *p, void *a1, void *a2)
         akg[0].g = 1.0f / s;
         akg[1].k = D_002C1F10;
         akg[1].g = -r / s;
-        func_00226F28(p, 0xC, 2, akg, 0);
+        AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 2, akg, 0);
         if (D_003DD490.x3E38) {
             if (D_002DEA4C == D_002DEA50)
                 func_0014F768(pcm, 1, 0, &m1, &m2);
@@ -69,10 +69,10 @@ void BeginRpForeground(P *p, void *a1, void *a2)
             m2 = *pm2;
         }
     }
-    func_00226F28(p, 0xC, 4, &m1, 2);
-    func_00226F28(p, 0xC, 4, &m2, 6);
-    func_00226F28(p, 0xC, 1, D_003E12B8, 10);
-    func_00226CA8(p, 0x32, 0x1E7);
-    func_001576F0(p);
+    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 4, &m1, 2);
+    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 4, &m2, 6);
+    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 1, D_003E12B8, 10);
+    AddVifBaseOffset__4VIFSii(p, 0x32, 0x1E7);
+    EndDmaCnt__4DMAS(p);
     BeginRpGlob(p, a1, a2);
 }

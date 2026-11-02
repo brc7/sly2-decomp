@@ -13,10 +13,10 @@ void *PsndStartSound(int);
 void SetSndSourceLo(void *, int);
 void RcPtr_Assign(int *, void *);
 void PauseSnd(int);
-void func_0011BC88(void *, float *, float *);
+void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *, float *, float *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int, int);
 void *func_001A6318(int);
-float func_0011D948(F2 *, float);
+float GLimitLm__FP2LMf(F2 *, float);
 void SetCmNearClip__FP2CMf(struct G *, float);
 
 /** @sly2-annot addr=0x14FF38
@@ -45,7 +45,7 @@ void ActivateCplook(struct X *p)
     }
     PauseSnd(p->x34);
     pg = &D_002DDF40;
-    func_0011BC88(&pg->x60, &p->x10, &p->x14);
+    DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&pg->x60, &p->x10, &p->x14);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x0, 0x34)) {
         p->x3C = D_002BD950;
         p->x44 = D_002BD958;
@@ -54,15 +54,15 @@ void ActivateCplook(struct X *p)
         p->x44 = D_002BD970;
         p->x4C = p->x10;
         p->x50 = p->x14;
-        func_0011BC88(func_001A6318(p->x0), &p->x10, &p->x14);
-        g = func_0011D948(&D_002BD960, p->x14);
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(func_001A6318(p->x0), &p->x10, &p->x14);
+        g = GLimitLm__FP2LMf(&D_002BD960, p->x14);
         p->x14 = g;
         p->x3C.a += p->x10;
         p->x3C.b += p->x10;
         p->x44.a += g;
         p->x44.b += g;
-        p->x44.a = func_0011D948(&D_002BD960, p->x14);
-        p->x44.b = func_0011D948(&D_002BD960, p->x14);
+        p->x44.a = GLimitLm__FP2LMf(&D_002BD960, p->x14);
+        p->x44.b = GLimitLm__FP2LMf(&D_002BD960, p->x14);
     }
     p->x18 = 0;
     p->x1C = 0;

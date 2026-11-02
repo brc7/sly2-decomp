@@ -2,7 +2,7 @@
 // it predicts the arc the object would fly to the aim point. The launch point (vLaunchLocal in the hero's space) and the
 // carried object's gravity give CalculateLaunchVelocity (func_001D6848) a velocity whose elevation follows lmAim; the
 // apex and the end point after tPredict seconds bound a box for FindSwObjectsInBox (IntersectSwBoundingBox). 28 samples along the
-// arc are line-tested (func_0014CC58); at the first hit the flight time is the closest non-negative root of the vertical
+// arc are line-tested (PsoHitTestLineObjects); at the first hit the flight time is the closest non-negative root of the vertical
 // motion (CSolveQuadratic). The flight time may change by at most 3 * dt per frame; up to 30 points of the arc are written
 // back to front into the marker's ring of frames (matrix along the arc, BuildOrthonormalMatrixZ), and the four-clip / two-clip
 // blends get the distance (lmAim) and heading-error (radTurnAim) weights, rate limited by 2 * dt when fUpdateBlends.
@@ -58,12 +58,12 @@ extern "C" {
  int FPowerupAcquired(int);                       // FPowerUpAcquired
  void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***); // FindSwObjectsInBox
  int func_0021FB18(void *,SO *);
- SO *func_0014CC58(int,qword,qword,int,SO **,HIT *);
+ SO *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,SO **,HIT *);
  int CSolveQuadratic__FfffPf(float,float,float,float *);
  M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
  V *VECTOR_opAssign(V *,qword);
  void func_0021C5F8(MARKER *,qword);
- float func_002458F0(float,float);
+ float atan2f(float,float);
  float RadStepHeading(LO *);                    // JtGetFacingAngle
  float RadNormalize__Ff(float);                   // RadNormalize
  void func_001384C0(ASEGBL *);
@@ -138,7 +138,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
   t=(float)(int)i*dt;
   qword pos=PosOnArc(posLaunch,vAccel,vLaunch,t,0.5f);
   HIT hit;
-  if(func_0014CC58(1,posPrev,pos,cso,apso,&hit)){
+  if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1,posPrev,pos,cso,apso,&hit)){
    V at;
    int ct=CSolveQuadratic__FfffPf(GZOfQw(vAccel)*0.5f,GZOfQw(vLaunch),GZOfQw(posLaunch)-hit.pos.f[2],at.f);
    float tBest=0.0f,sBest=D_002A96A0;
@@ -198,7 +198,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  qword posHeroNow=func_001A62E8(pjtthrow->pstepplayer);
  V dpos;
  dpos.q=QwSub(posAim,posHeroNow);
- float rad=func_002458F0(dpos.f[1],dpos.f[0]);
+ float rad=atan2f(dpos.f[1],dpos.f[0]);
  float radHero=RadStepHeading(pjtthrow->pstepplayer);
  rad=RadNormalize__Ff(rad-radHero);
  float uTurn=GClamp(rad/pjtthrow->radTurnAim,-1.0f,1.0f)*0.5f+0.5f;

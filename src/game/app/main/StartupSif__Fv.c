@@ -5,21 +5,21 @@ extern struct E *D_004E5E38;
 extern int D_002E2058;
 extern char D_002A6A48[];
 void func_00236A60(int n);
-int func_00238F00(void);
-int func_002420F0(int n);
+int sceSifLoadFileReset(void);
+int sceCdInit(int n);
 int FValidCdMmode__Fv(void);
-void func_0014BA00(void);
-int func_00237E70(void);
-void func_0014BBB0(char *p, char *s, int n);
-int func_00239340(const char *p);
-int func_002392F0(void);
-int func_002425F0(int n);
-int func_0014BD30(int n);
-int func_00238BD0(void);
-void *func_00238C58(int cb);
+void SetCdMmode__Fv(void);
+int sceFsReset(void);
+void CdPath__FPcT0i(char *p, char *s, int n);
+int sceSifRebootIop(const char *p);
+int sceSifSyncIop(void);
+int sceCdDiskReady_2425F0(int n);
+int FCdCompleted__Fi(int n);
+int sceSifInitIopHeap(void);
+void *sceSifAllocIopHeap(int cb);
 void func_00234CA0(int n);
 int func_00234DE0(struct DMA *p, int n);
-int func_00239140(void *h, int argumentBytes, const char *arguments);
+int sceSifLoadModuleBuffer(void *h, int argumentBytes, const char *arguments);
 int sceSifFreeIopHeap(void *h);
 static inline int CopyLimit(int value)
 {
@@ -43,31 +43,31 @@ void StartupSif__Fv(void)
     int cbMax;
     void *h;
     func_00236A60(0);
-    func_00238F00();
-    func_002420F0(0);
+    sceSifLoadFileReset();
+    sceCdInit(0);
     if (!FValidCdMmode__Fv())
         while (1)
             ;
-    func_0014BA00();
-    func_00237E70();
+    SetCdMmode__Fv();
+    sceFsReset();
     if (!D_002E2058) {
-        func_0014BBB0(u.buf, D_002A6A48, 1);
-        while (!func_00239340(u.buf))
+        CdPath__FPcT0i(u.buf, D_002A6A48, 1);
+        while (!sceSifRebootIop(u.buf))
             ;
-        while (!func_002392F0())
+        while (!sceSifSyncIop())
             ;
         func_00236A60(0);
-        func_00238F00();
-        func_002420F0(0);
+        sceSifLoadFileReset();
+        sceCdInit(0);
         if (!FValidCdMmode__Fv())
             while (1)
                 ;
-        func_0014BA00();
-        func_00237E70();
+        SetCdMmode__Fv();
+        sceFsReset();
     }
-    func_002425F0(0);
-    (void)func_0014BD30(1);
-    func_00238BD0();
+    sceCdDiskReady_2425F0(0);
+    (void)FCdCompleted__Fi(1);
+    sceSifInitIopHeap();
     cbMax = 0;
     {
         struct E *p;
@@ -75,7 +75,7 @@ void StartupSif__Fv(void)
             if (p->bytes >= cbMax)
                 cbMax = p->bytes;
     }
-    h = func_00238C58(cbMax);
+    h = sceSifAllocIopHeap(cbMax);
     for (pe = D_004E5D80; pe < D_004E5E38; pe++) {
         int cb = pe->bytes;
         int off = 0;
@@ -102,7 +102,7 @@ void StartupSif__Fv(void)
             cb -= c;
             off += c;
         }
-        while (func_00239140(h, pe->argumentBytes, pe->arguments) < 0)
+        while (sceSifLoadModuleBuffer(h, pe->argumentBytes, pe->arguments) < 0)
             ;
     }
     sceSifFreeIopHeap(h);

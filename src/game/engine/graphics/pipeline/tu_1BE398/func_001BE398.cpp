@@ -20,7 +20,7 @@ struct T {
 struct X { int x0, x4, x8; };
 extern "C" {
 int IgsAllocGsb__FP3GSBi(X *px, int cb);
-uint func_001703C0(uint n);
+uint NLog2__FUi(uint n);
 }
 
 static inline int PackNext(GIFS &g, int x, int y)
@@ -71,8 +71,8 @@ extern "C" void func_001BE398(T *pt, X *px)
     pt->tex0.fields.tbw = tbw;
     pt->tex0.fields.psm = 0;
     tbp >>= 5;
-    pt->tex0.fields.tw = func_001703C0(pt->dx);
-    pt->tex0.fields.th = func_001703C0(pt->dy);
+    pt->tex0.fields.tw = NLog2__FUi(pt->dx);
+    pt->tex0.fields.th = NLog2__FUi(pt->dy);
     pt->tex0.fields.tcc = 1;
     int zbp = (px->x8 - 0x100) >> 5;
     GIFS gifs;

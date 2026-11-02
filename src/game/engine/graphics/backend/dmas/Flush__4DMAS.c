@@ -45,6 +45,6 @@ extern void *D_003E148C;
  * Confidence: none - unanalysed; anything inferred from the code here is a guess
  * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
  * @end-sly2-annot */
-void func_001574A0(void) {
+void Flush__4DMAS(void) {
 
 }

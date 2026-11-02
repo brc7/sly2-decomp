@@ -2,7 +2,7 @@ typedef struct R { int cref; char pad[8]; int xC[2]; int x14[1]; } R;
 typedef struct X { char pad[0xC]; int a[4]; R *pr; } X;
 extern char D_004520D0[], D_004520F8[];
 void func_00257250(void *, int);
-void func_00129EC8(void *);
+void Decref__4CRef(void *);
 void GcBinding_Unlink(void *);
 void GcFrame_Unlink(void *);
 void func_0011CD98(void *, void *);
@@ -25,7 +25,7 @@ void func_00257078(X *p, int flags)
     if (r) {
         if (--r->cref == 0) {
             func_00257250(r->x14, 2);
-            func_00129EC8(r->xC);
+            Decref__4CRef(r->xC);
             GcBinding_Unlink(r);
             func_0011CD98(D_004520D0, r);
         }

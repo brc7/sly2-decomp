@@ -2,8 +2,8 @@ struct CRef { int tagk; int tag; };
 struct CMD { char pad[0x10]; unsigned int c; int a[4]; };
 void func_002013D8(struct CRef *pref, void *x, int a, int b, unsigned int *pc, int *pa);
 struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
-void func_001AE5A0(void *pdst, void *psrc, int cb);
-void func_00129EC8(struct CRef *pref);
+void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb);
+void Decref__4CRef(struct CRef *pref);
 /** @sly2-annot addr=0x1E0310
  * Purpose: Splice builtin: append a RELAYCK 0x3 (WaitBlocks) command to the relay
  *   (PrelaycmdAddRelay(prelay,0x3,fAsync)) and fill its args
@@ -23,7 +23,7 @@ void AddRelayWaitBlocks(void *pq, void *x)
     {
         unsigned int n = c;
         p->c = n;
-        func_001AE5A0(&p->a, a, n * 4);
+        CopyAb__FPvT0Ui(&p->a, a, n * 4);
     }
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
 }

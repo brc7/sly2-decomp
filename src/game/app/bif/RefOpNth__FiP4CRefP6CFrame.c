@@ -3,7 +3,7 @@ typedef struct PAIR { int a; int b; CRef ref; struct PAIR *pnext; } PAIR;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x120D78
  * Purpose: Splice builtin "nth": walk list to index a1
  * Info: proposed name RefOpNth (T1); TU bif
@@ -26,6 +26,6 @@ CRef *RefOpNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         }
     }
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

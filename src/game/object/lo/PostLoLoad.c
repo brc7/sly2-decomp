@@ -6,7 +6,7 @@ struct S {
 };
 extern float D_002A6A40;
 void RunLoDeferredCallbacks(struct S *s);
-int func_00127DB8(void *p, int a, int b);
+int PrefFindBinding__6CFrameUii(void *p, int a, int b);
 void SetLoBusyk(struct S *s, int n);
 /** @sly2-annot addr=0x1A5C48
  * Purpose: LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf
@@ -22,7 +22,7 @@ void PostLoLoad(struct S *s)
     RunLoDeferredCallbacks(s);
     e = &s->vt[3];
     ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)s + e->d, 0, 1, 0, 0, 0);
-    if (s->x0 && func_00127DB8(s->x0, 1, 1)) {
+    if (s->x0 && PrefFindBinding__6CFrameUii(s->x0, 1, 1)) {
         int v;
         if (s->st == 2)
             SetLoBusyk(s, 0);

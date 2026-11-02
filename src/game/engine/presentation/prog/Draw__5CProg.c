@@ -2,16 +2,16 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned char r, g, b, a; };
 struct GS { int a[12]; };
 struct PROG { int cRetry; int nRemain; int nTarget; int nMax; char pad[0x50 - 0x10]; int x50; struct RGBA c54, c58, c5C, c60; };
-void func_00166920(struct GS *p);
-void func_00157330(struct GS *p, int n, qword *buf);
-void func_001574B8(struct GS *p);
+void __4GIFS(struct GS *p);
+void AllocStatic__4DMASiP2QW(struct GS *p, int n, qword *buf);
+void AddDmaCnt__4DMAS(struct GS *p);
 float GTrunc__Ff(float g);
 void FillScreenRect(struct RGBA *pc, struct GS *pgs, float x0, float y0, float x1, float y1);
-void func_00166968(struct GS *p);
-void func_001576B0(struct GS *p);
-void func_001576F0(struct GS *p);
-void func_00157348(struct GS *p, int a, int b);
-void func_00170278(qword *buf);
+void AddPrimEnd__4GIFS(struct GS *p);
+void AddDmaEnd__4DMAS(struct GS *p);
+void EndDmaCnt__4DMAS(struct GS *p);
+void Detach__4DMASPiPP2QW(struct GS *p, int a, int b);
+void BlastAqwGifsBothFrames__FP2QW(qword *buf);
 /** @sly2-annot addr=0x1C8DD8
  * Purpose: draw progress bar (GIF/DMA packet)
  * Info: proposed name CProg_Draw (T1); class CProg; TU prog
@@ -24,9 +24,9 @@ void Draw__5CProg(struct PROG *p)
     struct GS gs;
     struct RGBA c;
     int w, s;
-    func_00166920(&gs);
-    func_00157330(&gs, 0x400, buf);
-    func_001574B8(&gs);
+    __4GIFS(&gs);
+    AllocStatic__4DMASiP2QW(&gs, 0x400, buf);
+    AddDmaCnt__4DMAS(&gs);
     w = (int)((float)p->nTarget * 620.0f / (float)p->nRemain);
     s = (int)((float)w * ((float)(p->nTarget - p->nMax) / (float)p->nTarget));
     c = p->c54;
@@ -41,9 +41,9 @@ void Draw__5CProg(struct PROG *p)
         struct RGBA c2 = c;
         FillScreenRect(&c2, &gs, (float)(s + 10), GTrunc__Ff(412.909088f) * 1.1f, (float)(w + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
     }
-    func_00166968(&gs);
-    func_001576B0(&gs);
-    func_001576F0(&gs);
-    func_00157348(&gs, 0, 0);
-    func_00170278(buf);
+    AddPrimEnd__4GIFS(&gs);
+    AddDmaEnd__4DMAS(&gs);
+    EndDmaCnt__4DMAS(&gs);
+    Detach__4DMASPiPP2QW(&gs, 0, 0);
+    BlastAqwGifsBothFrames__FP2QW(buf);
 }

@@ -12,7 +12,7 @@ struct E { int n0; struct E4 *p4; void *p8; };
 struct A { char pad[0x1A8]; float f1A8; char pad2[0x334 - 0x1AC]; int n334; char pad3[0x35C - 0x338]; char a35C[4]; char pad4[0xF04 - 0x360]; int nF04; char pad5[0xFD0 - 0xF08]; char aFD0[4]; };
 struct S { char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; char pad3[0xC]; struct E *p40; char pad4[0xC]; int n50; char pad5[8]; int n5C; char pad6[0x20]; union { qword v; float f[4]; } v80; char pad7[0x20]; float fB0; float fB4; };
 void StartBhvanim(struct S *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 float *func_001A6318(struct A *a);
 void SetStepguardMoverRadTarget(void *p, float f);
 float RadNormalize__Ff(float f);
@@ -50,10 +50,10 @@ void StartBhvhit(struct S *p) {
         if (g > 1.0e-4f) f = p->n5C != 0x40000;
     }
     if (f) {
-        a = func_002458F0(-p->v80.f[1], -p->v80.f[0]);
+        a = atan2f(-p->v80.f[1], -p->v80.f[0]);
     } else {
         float *m = func_001A6318(p->p10);
-        a = func_002458F0(m[1], func_001A6318(p->p10)[0]);
+        a = atan2f(m[1], func_001A6318(p->p10)[0]);
     }
     SetStepguardMoverRadTarget(p->p10->aFD0, a);
     e = p->p40;

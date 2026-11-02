@@ -1,15 +1,15 @@
 #include "m2c_prelude.h"
 M2C_UNK CopyAb__FPvT0Ui(M2C_UNK *, u8 *, s32);      /* extern */
-M2C_UNK func_00117EB0(s32, s32);                    /* extern */
+M2C_UNK ReadVector__18CBinaryInputStreamP6VECTOR(s32, s32);                    /* extern */
 s32 func_0023C828(s32, u64);                        /* extern */
 s64 func_0023CDF8(s32, u64);                        /* extern */
-s32 func_0023D748(s32, s32);                        /* extern */
-s32 func_0023D7A0(s32, s32);                        /* extern */
-s32 func_0023D808(s32, s64);                        /* extern */
-s32 func_0023DD80(s32);                             /* extern */
-s32 func_0023DE38(s32);                             /* extern */
-s32 func_00245178(s32);                             /* extern */
-s64 func_002452C0(s64, s32);                        /* extern */
+s32 dpadd(s32, s32);                        /* extern */
+s32 dpsub(s32, s32);                        /* extern */
+s32 dpmul(s32, s64);                        /* extern */
+s32 litodp(s32);                             /* extern */
+s32 dptoli(s32);                             /* extern */
+s32 log10(s32);                             /* extern */
+s64 pow(s64, s32);                        /* extern */
 extern M2C_UNK D_002A3A10;
 extern M2C_UNK D_002A8B90;
 extern M2C_UNK D_002A8BA0;

@@ -6,7 +6,7 @@ struct S { struct CONTEXT *a; struct OBJECT *b; };
 void EvaluateShapeS(struct OBJECT *, float, V *, V *);
 qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
 float GMeasureJumpTargetTime(void *, float);
-void func_0011D9E0(float (*)(void *, float), void *, float, float, float, float, float *, float *);
+void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char V_Size[sizeof(V)==16?1:-1];
 typedef char T_Size[sizeof(struct T)==32?1:-1];
@@ -29,6 +29,6 @@ float GMeasureJumpPipe(struct S *s, float parameter) {
     t.a = s->a;
     t.b = b;
     t.q = ConvertAloPos(0, b, v.q);
-    func_0011D9E0(GMeasureJumpTargetTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
+    MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
     return r;
 }

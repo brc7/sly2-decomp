@@ -2,7 +2,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void SetS32__4CRefi(CRef *pref, int n);
 void SetF32__4CReff(CRef *pref, float g);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1236F8
  * Purpose: Splice builtin "abs": abs int/float
  * Info: proposed name RefOpAbs (T1); TU bif
@@ -23,6 +23,6 @@ CRef *RefOpAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         SetF32__4CReff(&ref, g);
     }
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

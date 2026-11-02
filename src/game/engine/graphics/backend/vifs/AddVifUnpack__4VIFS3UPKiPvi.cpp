@@ -1,6 +1,6 @@
 enum UPK { UPK_0 };
 struct VIFS { void AddVifUnpack(UPK upk, int c, void *pv, int iqw); };
-void func_00226E88(VIFS *pvifs, UPK upk, int c, int iqw, int *pcb, unsigned int **ppw);
+void UnpackHelper__4VIFS3UPKiiPiPPUi(VIFS *pvifs, UPK upk, int c, int iqw, int *pcb, unsigned int **ppw);
 /** @sly2-annot addr=0x226F28
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -12,7 +12,7 @@ void VIFS::AddVifUnpack(UPK upk, int c, void *pv, int iqw)
     int cb;
     unsigned int *pw;
     unsigned int *pwSrc = (unsigned int *)pv;
-    func_00226E88(this, upk, c, iqw, &cb, &pw);
+    UnpackHelper__4VIFS3UPKiiPiPPUi(this, upk, c, iqw, &cb, &pw);
     unsigned int *pwDst = pw;
     int cw = (cb + 3) >> 2;
     int cRem = cw & 3;

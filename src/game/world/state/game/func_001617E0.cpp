@@ -1,11 +1,11 @@
-extern "C" {void*func_001291A8(void*,const void*);void func_00129EC8(void*);}
+extern "C" {void*func_001291A8(void*,const void*);void Decref__4CRef(void*);}
 class CRef {
 public:
     int m_tagk;
     int m_tag;
     CRef(int n) { m_tagk = 0x15; m_tag = n; }
     CRef(const CRef &ref) { func_001291A8(this,&ref); }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 
 };
 struct O;

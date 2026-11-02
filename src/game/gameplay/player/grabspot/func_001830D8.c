@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
 extern void EvaluateShapeS(void *p, float t, VU *ppos, VU *pdir);
-extern float func_002458F0(float y, float x);
+extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
 extern qword D_002A2DA0;
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
@@ -71,6 +71,6 @@ void func_001830D8(void *p, float g, struct J *pj, qword *pv, float *pg)
             qword s = Bc(*(int *)&m);
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s));
         }
-        *pg = func_002458F0(GetY(n), GetX(n));
+        *pg = atan2f(GetY(n), GetX(n));
     }
 }

@@ -27,10 +27,10 @@ extern "C" {
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 DZG *InitDzgXp(DZG *,int,XP **,int,P **);
-void func_00158668(DZG *,DZ *,DZS *);
+void AppendDzgDz__FP3DZGP2DZ(DZG *,DZ *,DZS *);
 void func_00158988(DZG *,int);
 void ApplyDzg(DZG *,float,float);
-void func_0011A6B8(DZG *);
+void ClearDzgSolution__FP3DZG(DZG *);
 void RecalcSwXpPos(GAME *,int,XP **);
 void RecalcSwXpMovement(GAME *,int,XP **);
 float GRandInRange__Fff(float,float);
@@ -95,7 +95,7 @@ extern "C" void SolveSwGroup(GAME *game,int flags,int objectCount,P **objects,in
             row->upper=FLT_MAX;
             break;
         }
-        func_00158668(&group,row,state);
+        AppendDzgDz__FP3DZGP2DZ(&group,row,state);
     }
     float maximum;
     if(flags&4){
@@ -112,7 +112,7 @@ extern "C" void SolveSwGroup(GAME *game,int flags,int objectCount,P **objects,in
         {int j;for(j=0;j<objectCount;j++){}
         for(j=0;j<objectCount;j++)Callback(objects[j],67);}
         if(flags==4)return;
-        func_0011A6B8(&group);
+        ClearDzgSolution__FP3DZG(&group);
     }
     maximum=0.0f;
     // The else loop starts its counter from the flag (known 0 there): the game tests `flag < contactCount`.

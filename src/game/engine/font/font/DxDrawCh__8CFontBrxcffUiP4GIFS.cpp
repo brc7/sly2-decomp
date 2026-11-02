@@ -31,9 +31,9 @@ public:
 };
 extern "C" {
 GLYPH *PglyffFromCh(CFontBrx *pfont, unsigned char ch);
-void func_00166F70(GIFS *pgifs, unsigned int rgba);
-void func_00166FE8(GIFS *pgifs, int u, int v);
-void func_001670B8(GIFS *pgifs, int x, int y, int z, int f);
+void ListRGBAQ__4GIFSUif(GIFS *pgifs, unsigned int rgba);
+void ListUV__4GIFSii(GIFS *pgifs, int u, int v);
+void ListXYZF__4GIFSiiii(GIFS *pgifs, int x, int y, int z, int f);
 }
 /** @sly2-annot addr=0x15F480
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -49,11 +49,11 @@ float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgi
         float yBottom = y + (float)m_dyUnscaled * m_ryScale;
         register float zero __asm__("$f12") = 0.0f; // register pin (the 0.0f compare constant)
         if (xRight >= zero && x <= 640.0f && yBottom >= zero && y <= 492.80002f) {
-            func_00166F70(pgifs, (rgba & 0xFFFFFF) | ((((rgba >> 24) + 1) & 0x1FE) << 23));
-            func_00166FE8(pgifs, pglyph->u << 4, (dyTex - pglyph->v) << 4);
-            func_001670B8(pgifs, (int)((x * 0.8f + 1792.0f) * 16.0f), (int)((y * 0.45454547f + 1936.0f) * 16.0f), m_z, 0);
-            func_00166FE8(pgifs, (pglyph->u + pglyph->dx) << 4, (dyTex - (pglyph->v + m_dyUnscaled)) << 4);
-            func_001670B8(pgifs, (int)((xRight * 0.8f + 1792.0f) * 16.0f), (int)((yBottom * 0.45454547f + 1936.0f) * 16.0f), m_z, 0);
+            ListRGBAQ__4GIFSUif(pgifs, (rgba & 0xFFFFFF) | ((((rgba >> 24) + 1) & 0x1FE) << 23));
+            ListUV__4GIFSii(pgifs, pglyph->u << 4, (dyTex - pglyph->v) << 4);
+            ListXYZF__4GIFSiiii(pgifs, (int)((x * 0.8f + 1792.0f) * 16.0f), (int)((y * 0.45454547f + 1936.0f) * 16.0f), m_z, 0);
+            ListUV__4GIFSii(pgifs, (pglyph->u + pglyph->dx) << 4, (dyTex - (pglyph->v + m_dyUnscaled)) << 4);
+            ListXYZF__4GIFSiiii(pgifs, (int)((xRight * 0.8f + 1792.0f) * 16.0f), (int)((yBottom * 0.45454547f + 1936.0f) * 16.0f), m_z, 0);
         }
         return m_rxScale * (float)(pglyph->dx + 1);
     }

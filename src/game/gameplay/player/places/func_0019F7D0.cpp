@@ -12,7 +12,7 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 qword func_0019F3F8(O *p, Q *q, float g);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
-int func_0014CC58(int z, qword a, qword b, int i, int j, HIT *phit);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
 void FFilterSoPair(void);
 extern char D_003DD490[];
 extern float D_002BF944;
@@ -45,7 +45,7 @@ float func_0019F7D0(S *p, Q *q, int n, LO2 **apo)
         b.q = pos;
         a.f[2] += 125.0f;
         b.f[2] -= 175.0f;
-        if (!func_0014CC58(0, a.q, b.q, i0, i1, &hit) || hit.x40 == 0.0f || hit.x28 < 0.7f)
+        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit) || hit.x40 == 0.0f || hit.x28 < 0.7f)
             g = GMax(g, 2000.0f);
         else
             pos = hit.pos;
@@ -53,7 +53,7 @@ float func_0019F7D0(S *p, Q *q, int n, LO2 **apo)
         a.q = pos;
         a.f[2] += 180.0f;
         b.f[2] += 5.0f;
-        if (func_0014CC58(0, a.q, b.q, i0, i1, &hit))
+        if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit))
             g = GMax(g, 2000.0f);
         for (unsigned k = 0; k < 8; k++) {
             qword v;
@@ -62,7 +62,7 @@ float func_0019F7D0(S *p, Q *q, int n, LO2 **apo)
             a.q = v;
             a.f[2] += 50.0f;
             b.f[2] -= 30.0f;
-            if (!func_0014CC58(0, a.q, b.q, i0, i1, &hit)) {
+            if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit)) {
                 g = GMax(g, 1500.0f);
                 break;
             }

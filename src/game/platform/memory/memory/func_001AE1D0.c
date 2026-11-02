@@ -1,6 +1,6 @@
 struct MSG { int cb; int nKind; };
 extern unsigned int D_002F6384;
-void func_001AE1C8(int);
+void CheckForOutOfMemory__Fv(int);
 /** @sly2-annot addr=0x1AE1D0
  * Purpose: World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb)
  * Info: proposed name PvAllocSwImpl (T1); TU memory
@@ -14,7 +14,7 @@ void *func_001AE1D0(struct MSG *p)
     unsigned int pv;
     if (!p->cb)
         return 0;
-    func_001AE1C8(p->cb);
+    CheckForOutOfMemory__Fv(p->cb);
     pv = (D_002F6384 + (p->nKind - 1)) & -p->nKind;
     D_002F6384 = pv + ((p->cb + 15) & -16);
     return (void*)pv;

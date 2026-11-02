@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x122770
  * Purpose: Splice builtin "vector-cross-product": VU outer product (cross)
  * Info: proposed name RefOpVectorCrossProduct (T1); TU bif
@@ -19,6 +19,6 @@ CRef *RefOpVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *a
         "vopmsub.xyz %0, %2, %1" : "=j"(v) : "j"(a), "j"(b));
     CRef_ctor(&ref, v);
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

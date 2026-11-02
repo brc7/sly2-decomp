@@ -13,11 +13,11 @@ typedef struct BUF { char ab[0x250]; } __attribute__((aligned(16))) BUF;
 typedef struct Q { int x0; float x4; int x8; } Q;
 typedef struct R { char pad[0xC]; int xC; } R;
 extern R D_002DEA28;
-extern void func_0016F960(BUF *pbuf, RGBA *prgba, int n);
-extern void func_001574B8(R *);
-extern void func_002270C8(R *, int, void *, int);
-extern void func_001576F0(R *);
-extern void func_00157620(R *);
+extern void BuildClearGifs__FP2QWG4RGBAi(BUF *pbuf, RGBA *prgba, int n);
+extern void AddDmaCnt__4DMAS(R *);
+extern void AddVifDirect__4VIFSiP2QWi(R *, int, void *, int);
+extern void EndDmaCnt__4DMAS(R *);
+extern void AddDmaRet__4DMAS(R *);
 extern Q *PrplAllocRpl(void);
 }
 static inline int NLerp(float g, int a, int b)
@@ -39,7 +39,7 @@ static inline RGBA RgbaLerp(float t, RGBA a, RGBA b)
 }
 static inline void Build(BUF *pbuf, RGBA rgba)
 {
-    func_0016F960(pbuf, &rgba, 3);
+    BuildClearGifs__FP2QWG4RGBAi(pbuf, &rgba, 3);
 }
 /** @sly2-annot addr=0x15DD48
  * Purpose: Draws the timed object (1168-byte body)
@@ -84,11 +84,11 @@ extern "C" void func_0015DD48(X *p)
     {
     pr = &D_002DEA28;
     x = pr->xC;
-    func_001574B8(pr);
-    func_002270C8(pr, 0x25, pbuf, 0);
+    AddDmaCnt__4DMAS(pr);
+    AddVifDirect__4VIFSiP2QWi(pr, 0x25, pbuf, 0);
     }
-    func_001576F0(pr);
-    func_00157620(pr);
+    EndDmaCnt__4DMAS(pr);
+    AddDmaRet__4DMAS(pr);
     pq = PrplAllocRpl();
     pq->x8 = x;
     pq->x4 = -1.0f;

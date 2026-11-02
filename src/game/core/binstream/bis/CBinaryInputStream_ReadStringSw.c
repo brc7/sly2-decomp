@@ -2,8 +2,8 @@ typedef struct VTE { short d; short pad; void *(*pfn)(void *, int, int); } VTE;
 typedef struct ALLOC { VTE *pvt; } ALLOC;
 typedef struct CBinaryInputStream CBinaryInputStream;
 
-int func_00117C20(CBinaryInputStream *pbis);
-void func_00117968(CBinaryInputStream *pbis, int cb, void *pv);
+int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
+void Read__18CBinaryInputStreamiPv(CBinaryInputStream *pbis, int cb, void *pv);
 
 /** @sly2-annot addr=0x118380
  * Purpose: Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds
@@ -16,14 +16,14 @@ void func_00117968(CBinaryInputStream *pbis, int cb, void *pv);
  * @end-sly2-annot */
 void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, ALLOC *palloc, int nKind)
 {
-    int cch = func_00117C20(pbis);
+    int cch = U16Read__18CBinaryInputStream(pbis);
     char *pchz;
     if (cch == 0) {
         *ppchz = 0;
         return;
     }
     pchz = (char *)palloc->pvt[1].pfn((char *)palloc + palloc->pvt[1].d, cch + 1, nKind);
-    func_00117968(pbis, cch, pchz);
+    Read__18CBinaryInputStreamiPv(pbis, cch, pchz);
     pchz[cch] = 0;
     *ppchz = pchz;
 }

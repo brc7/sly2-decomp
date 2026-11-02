@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void AddDancerMove(void *p, int, int, int, int, int); CRef RefThunk_AddDancerMove(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10F838
  * Purpose: Splice option thunk: optid 1158 on CID68 (g_aeopid[1343] thunkUser, returns Void, crefReq 5);
@@ -33,7 +33,7 @@ CRef RefThunk_AddDancerMove(void *p, int c, void *aref)
     int v2;
     int v3;
     int v4;
-    CRef ref = func_00201360(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
     AddDancerMove(p, v0, v1, v2, v3, v4);

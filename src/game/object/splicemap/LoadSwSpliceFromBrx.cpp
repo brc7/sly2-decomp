@@ -1,11 +1,11 @@
 struct CRef;
-extern "C" void func_00129EC8(CRef *);
+extern "C" void Decref__4CRef(CRef *);
 extern "C" void func_001291A8(CRef *, const CRef *);
 struct CRef {
     int tagk; int tag;
     CRef() { tagk = -1; }
     CRef(const CRef &r) { func_001291A8(this, &r); }
-    ~CRef() { func_00129EC8(this); }
+    ~CRef() { Decref__4CRef(this); }
 };
 struct O { int cref; int pad; CRef ref; char sub[0x10]; };
 struct Pool;
@@ -22,7 +22,7 @@ struct SP {
         O *q = p;
         if (q && --q->cref == 0) {
             PairPtr_Release(q->sub, 2);
-            func_00129EC8(&q->ref);
+            Decref__4CRef(&q->ref);
             GcPair_Unlink(q);
             func_0011CD98(&D_004520A8, q);
         }
@@ -36,7 +36,7 @@ struct Q;
 extern int D_003E1C34;
 extern char D_002DD598[];
 extern "C" {
-int func_00117C80(void *);
+int U32Read__18CBinaryInputStream(void *);
 T *func_001AE2A0(SZ *);
 E *func_001AE1D0(SZ *);
 SP PpairSerializeIn__FP18CBinaryInputStream(void *);
@@ -57,7 +57,7 @@ void CGc_UpdateRecyclable(void *);
  * @end-sly2-annot */
 extern "C" void LoadSwSpliceFromBrx(G *pg, int a, void *px)
 {
-    int c = func_00117C80(px);
+    int c = U32Read__18CBinaryInputStream(px);
     int i;
     T *pt;
     if (!c) return;

@@ -1,4 +1,4 @@
-int func_002441C0(int a, int b, int c);
+int sceMcRead(int a, int b, int c);
 void McSyncResult(void *p, int r, int n, int d);
 struct S { char pad[0xFD5C]; char x[4]; };
 /** @sly2-annot addr=0x1AC850
@@ -10,5 +10,5 @@ struct S { char pad[0xFD5C]; char x[4]; };
  * @end-sly2-annot */
 void McRead(struct S *p, int a, int b, int c, int d)
 {
-    McSyncResult(p->x, func_002441C0(a, b, c), 5, d);
+    McSyncResult(p->x, sceMcRead(a, b, c), 5, d);
 }

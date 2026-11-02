@@ -8,10 +8,10 @@ extern float D_002BD374, D_002BD378;
 void UpdateBhv(struct P *p);
 qword func_001A62E8(void *p);
 void SetStepRadTargetVec(struct X *px, qword v);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
 float RadStepHeading(struct X *px);
-float func_0011CFE0(float g, float dg);
+float GLimitAbs__Fff(float g, float dg);
 void func_00204660(struct X *px, float g);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -43,10 +43,10 @@ void func_00146F18(struct P *p)
             a = func_001A62E8(D_002E1E40);
             b = func_001A62E8(p->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            g = func_002458F0(GetY(d), GetX(d));
+            g = atan2f(GetY(d), GetX(d));
             if (__builtin_fabsf(RadNormalize__Ff(g - p->g30)) < D_002BD374) {
                 gCur = RadStepHeading(p->px);
-                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(p->px, gCur + func_0011CFE0(d, k * dt)); }
+                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(p->px, gCur + GLimitAbs__Fff(d, k * dt)); }
             }
         }
         break;

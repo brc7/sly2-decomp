@@ -10,7 +10,7 @@ extern float D_002A8124;
 extern struct { float t; float dt; } D_002DDED0;
 extern struct G D_002DDF40;
 extern struct G2 D_002DDFA0;
-int func_0011D4D0(float, float, float);
+int FFloatsNear__Ffff(float, float, float);
 float RadNormalize__Ff(float);
 qword func_0011BFF0(void *);
 int FActiveCplcy__FP5CPLCY(void *);
@@ -21,7 +21,7 @@ static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int FNear(qword a, qword b)
 {
-    return func_0011D4D0(X(b), X(a), 0.0001f) && func_0011D4D0(Y(b), Y(a), 0.0001f) && func_0011D4D0(Z(b), Z(a), 0.0001f);
+    return FFloatsNear__Ffff(X(b), X(a), 0.0001f) && FFloatsNear__Ffff(Y(b), Y(a), 0.0001f) && FFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
 }
 /** @sly2-annot addr=0x1E57A0
  * Purpose: Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm),

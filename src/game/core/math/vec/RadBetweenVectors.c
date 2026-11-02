@@ -3,7 +3,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 extern qword D_002A2DA0;
 qword GetNormalVector(qword v);
-float func_002456F0(float g);
+float acosf(float g);
 static inline float Length(qword v)
 {
     qword d, one;
@@ -70,5 +70,5 @@ float RadBetweenVectors(qword a, qword b, qword *paxis)
             axis = GetNormalVector(a);
         *paxis = axis;
     }
-    return func_002456F0(Dot(a, b) / (la * lb));
+    return acosf(Dot(a, b) / (la * lb));
 }

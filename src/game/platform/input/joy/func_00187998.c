@@ -57,9 +57,9 @@ extern char D_002DDEC0[];
 extern char D_003DD490[];
 
 extern void *func_002333B4(void *pv, int b, int cb);
-extern int func_002432D0(int port, int slot, unsigned char *pb);
-extern void func_001AE5A0(void *dst, void *src, int cb);
-extern void func_00187768(JOY *p, unsigned char bX, unsigned char bY, float *px, float *py, float *pu,
+extern int scePadRead(int port, int slot, unsigned char *pb);
+extern void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
+extern void GetJoyXYDeflection__FP3JOYUcUcPfN23PUcT6PiP2LM(JOY *p, unsigned char bX, unsigned char bY, float *px, float *py, float *pu,
                           unsigned char *pbX, unsigned char *pbY, int *pf, LM *alm);
 extern void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
 extern int PpoHero(void *p);
@@ -81,7 +81,7 @@ int func_00187998(JOY *p)
     float x, y, x2, y2;
 
     func_002333B4(ab, 0, 0x40);
-    if (func_002432D0(p->nPort, p->nSlot, ab) > 0) {
+    if (scePadRead(p->nPort, p->nSlot, ab) > 0) {
         btn = ((ab[2] << 8) | ab[3]) ^ 0xFFFF;
         old = p->grfbtn;
         p->grfbtnPressed = btn & ~old & ~p->grfbtnReleased;
@@ -91,14 +91,14 @@ int func_00187998(JOY *p)
             fRet = 0;
         p->x1008 = ab[1];
         if (p->joyk == 4)
-            func_001AE5A0(p->mpbtnpb, &ab[8], 0xC);
+            CopyAb__FPvT0Ui(p->mpbtnpb, &ab[8], 0xC);
         x = p->x;
         y = p->y;
         x2 = p->x2;
         y2 = p->y2;
         if (p->joyk >= 2) {
-            func_00187768(p, ab[6], ab[7], &p->x, &p->y, &p->uDeflect, &p->bX, &p->bY, &p->fStickMoved, p->alm);
-            func_00187768(p, ab[4], ab[5], &p->x2, &p->y2, &p->uDeflect2, &p->bX2, &p->bY2, &p->fStickMoved2, p->alm2);
+            GetJoyXYDeflection__FP3JOYUcUcPfN23PUcT6PiP2LM(p, ab[6], ab[7], &p->x, &p->y, &p->uDeflect, &p->bX, &p->bY, &p->fStickMoved, p->alm);
+            GetJoyXYDeflection__FP3JOYUcUcPfN23PUcT6PiP2LM(p, ab[4], ab[5], &p->x2, &p->y2, &p->uDeflect2, &p->bX2, &p->bY2, &p->fStickMoved2, p->alm2);
         } else {
 
 

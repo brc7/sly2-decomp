@@ -7,7 +7,7 @@ struct VT { short d; short p; void (*f)(); };
 struct V { struct VT *vt; };
 struct P { int x0; struct L *pl; struct S8 *ps; struct V **apv; float g10; };
 
-extern int func_00138370(int, int, float, float, float *);
+extern int ImrsgLookUp__FffiP4MRSGPf(int, int, float, float, float *);
 
 /** @sly2-annot addr=0x138BA0
  * Purpose: Blended-channel actuator virtual (p, t, r, pa, pb): weighted sum of two scalars (e.g. twist and
@@ -31,7 +31,7 @@ void func_00138BA0(struct P *p, float t, float r, float *pa, float *pb)
     if (p->ps == 0) {
         rate = t / p->pl->g74;
     } else {
-        idx = func_00138370(p->ps->x4, (int)p->ps->ae, t, p->pl->g74, &g0);
+        idx = ImrsgLookUp__FffiP4MRSGPf(p->ps->x4, (int)p->ps->ae, t, p->pl->g74, &g0);
         pe = &p->ps->ae[idx];
         rate = g0 / pe->g4;
     }

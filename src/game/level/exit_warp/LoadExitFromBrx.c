@@ -2,7 +2,7 @@ struct M { int cb; int a; };
 struct S { char pad[0x144]; int x; int c; int *a; };
 void LoadVolFromBrx(struct S *p, void *q);
 void LoadWarpBlobFromBrx(void *q, int *p);
-int func_00117BD0(void *q);
+int U8Read__18CBinaryInputStream(void *q);
 int *func_001AE1D0(struct M *pm);
 /** @sly2-annot addr=0x2282B0
  * Purpose: LoadVolFromBrx then blob + U8 count of entries
@@ -25,7 +25,7 @@ void LoadExitFromBrx(struct S *p, void *q)
     struct M m;
     LoadVolFromBrx(p, q);
     LoadWarpBlobFromBrx(q, &p->x);
-    n = func_00117BD0(q);
+    n = U8Read__18CBinaryInputStream(q);
     m.a = 0x10;
     m.cb = n * 4;
     p->c = n;

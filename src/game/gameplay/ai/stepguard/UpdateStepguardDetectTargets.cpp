@@ -16,7 +16,7 @@ extern float D_002C3D04,D_002C3D08,D_002C3D0C;
 ulong GrfFromSgf(int);
 int CploFindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
 qword func_001A62E8(struct P *);
-void func_002338C0(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
+void qsort(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
 int NCmpGuardCandidateDist(const void *,const void *);
 int FAddStepguardDetectTarget(struct P *,struct P *,int);
 void UpdateDetectorTargets(struct MANAGER *);
@@ -106,7 +106,7 @@ void UpdateStepguardDetectTargets(struct P *p)
                 }while(++i<objectCount);
             }
         }
-        func_002338C0(candidates,candidateCount,sizeof(struct CANDIDATE),NCmpGuardCandidateDist);
+        qsort(candidates,candidateCount,sizeof(struct CANDIDATE),NCmpGuardCandidateDist);
         p->manager->count-=p->generated;
         p->generated=0;
         if(candidateCount>0){

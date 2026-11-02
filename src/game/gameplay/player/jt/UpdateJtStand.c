@@ -13,11 +13,11 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 int func_001430C8(struct S *p);
 void SetSmaMask(void *p, int n);
-float func_0011CFE0(float g, float h);
+float GLimitAbs__Fff(float g, float h);
 void func_00204660(struct S *p, float g);
 void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
 int FMatchJtXmg(struct S *p, void *pv, int n);
-int func_001F0400(void *p, int n);
+int IsmsFindSmOptional__FP2SM3OID(void *p, int n);
 void SnapSma(void *p, int n);
 /** @sly2-annot addr=0x18A0C8
  * Purpose: Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620),
@@ -36,7 +36,7 @@ void UpdateJtStand(struct S *p)
         UV u;
         e = &o->vt[34];
         u.q = ((qword (*)(void *))e->pfn)((char *)o + e->d);
-        u.v.z = func_0011CFE0(u.v.z, 10.0f);
+        u.v.z = GLimitAbs__Fff(u.v.z, 10.0f);
         func_00204660(p, p->g1a8 + u.v.z * D_002DDED0.dt);
     }
     if (p->x19f0) {
@@ -44,7 +44,7 @@ void UpdateJtStand(struct S *p)
         RebuildJtXmg(p, p->x19d4, p->x19dc, p->x19f4, 5.0f, p->x1620);
         if ((!FMatchJtXmg(p, p->x1520, p->x19f0) || !FMatchJtXmg(p, p->x1620, p->x19f4)) &&
             !p->x1514 && p->x1028) {
-            if (func_001F0400(p->x1028, 0x17C) >= 0) SnapSma(p->x1034, 0x17C);
+            if (IsmsFindSmOptional__FP2SM3OID(p->x1028, 0x17C) >= 0) SnapSma(p->x1034, 0x17C);
             p->x1514 = 1;
         }
     }

@@ -5,7 +5,7 @@ struct X { char pad[0x14]; void *p14; char pad1[0xA4 - 0x18]; float gA4; float g
 extern qword D_002A5000;
 qword func_001A62E8(void *p);
 qword PosCpzoomCenter(struct X *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 void LoadRotateMatrixPanTilt(M3 *pm, float a, float b);
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -51,7 +51,7 @@ qword PosCpzoomEye(struct X *p)
         U n;
         qword a = func_001A62E8(p->p14);
         n.q = Normalize(Sub(a, PosCpzoomCenter(p)));
-        p->gA4 = func_002458F0(n.f[1], n.f[0]);
+        p->gA4 = atan2f(n.f[1], n.f[0]);
         r = Add(PosCpzoomCenter(p), VecMul(n.q, -GFromQ(Len(D_002A5000))));
     } else {
         M3 m;

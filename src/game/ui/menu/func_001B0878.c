@@ -8,7 +8,7 @@ extern struct G2 D_002E65E0;
 extern int D_003E0FE4;
 void BroadcastGameEvent(void *p, int a, int b);
 void RefGetGlobalSaveVar(struct R *r, int a, void *b);
-void func_00129EC8(struct R *r);
+void Decref__4CRef(struct R *r);
 void SetMcDialogState(struct G1 *p, int n);
 void func_001ABD40(struct G2 *p);
 void func_001660F8(void);
@@ -29,7 +29,7 @@ void func_001B0878(struct S *p)
         D_002E6550.x4C = 1;
         RefGetGlobalSaveVar(&r, D_003E0FE4, D_003D4A60);
         v = r.tag;
-        func_00129EC8(&r);
+        Decref__4CRef(&r);
         if (v == 0) {
             SetMcDialogState(&D_002E6550, 0x22);
         } else {

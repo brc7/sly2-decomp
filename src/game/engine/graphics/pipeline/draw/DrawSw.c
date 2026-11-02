@@ -25,15 +25,15 @@ extern int D_002DE5A4;
 extern int D_002BDD20[];
 extern RPLK D_002BDD88[];
 int CprplPartitionArpl__FiP3RPLPP3RPLPiT3(int c, RPL *arpl, RPL **aprpl, int *aiFirst, int *ac);
-void func_00157598(VIFS *p, void *pv);
-void func_001574B8(VIFS *p);
-void func_002270C8(VIFS *p, int n, void *pv, int m);
-void func_00226D10(VIFS *p);
-void func_00226CA8(VIFS *p, int a, int b);
-void func_00226F28(VIFS *p, int a, int b, void *pv, int n);
+void AddDmaCall__4DMASP2QW(VIFS *p, void *pv);
+void AddDmaCnt__4DMAS(VIFS *p);
+void AddVifDirect__4VIFSiP2QWi(VIFS *p, int n, void *pv, int m);
+void AddVifFlush__4VIFS(VIFS *p);
+void AddVifBaseOffset__4VIFSii(VIFS *p, int a, int b);
+void AddVifUnpack__4VIFS3UPKiPvi(VIFS *p, int a, int b, void *pv, int n);
 void func_0014F768(CM *p, int k, void *pv, M4 *pm0, M4 *pm1);
-void func_001576F0(VIFS *p);
-void func_001574A0(void *p);
+void EndDmaCnt__4DMAS(VIFS *p);
+void Flush__4DMAS(void *p);
 void func_001EA9F0(GAME *p, int n);
 
 /** @sly2-annot addr=0x157FA0
@@ -62,19 +62,19 @@ void DrawSw(GAME *pgame)
         qword *pqw = D_002DEA28.pqw;
         g_pfrmOpen->pqw24 = pqw;
     }
-    func_00157598(&D_002DEA28, D_002DF800);
+    AddDmaCall__4DMASP2QW(&D_002DEA28, D_002DF800);
     D_002DEA28.f20 = 1;
-    func_001574B8(&D_002DEA28);
+    AddDmaCnt__4DMAS(&D_002DEA28);
     if (pgame->f3E3C || aiFirst[1] == ac[1])
-        func_002270C8(&D_002DEA28, 0x25, D_002DEDC0, 0);
+        AddVifDirect__4VIFSiP2QWi(&D_002DEA28, 0x25, D_002DEDC0, 0);
     if (D_003DD490.f3E38) {
-        func_00226D10(&D_002DEA28);
+        AddVifFlush__4VIFS(&D_002DEA28);
         if (g_pfrmOpen == &D_002DEA50)
-            func_00157598(&D_002DEA28, D_002DF940);
+            AddDmaCall__4DMASP2QW(&D_002DEA28, D_002DF940);
         else
-            func_00157598(&D_002DEA28, D_002DFA80);
+            AddDmaCall__4DMASP2QW(&D_002DEA28, D_002DFA80);
     }
-    func_00226CA8(&D_002DEA28, 0, 0);
+    AddVifBaseOffset__4VIFSii(&D_002DEA28, 0, 0);
     {
         float sNear = D_002DDF40.sNear;
         float sFar = D_002DDF40.sFar;
@@ -85,8 +85,8 @@ void DrawSw(GAME *pgame)
         v1.v = D_002C1F10;
         v1.w = -k / g;
     }
-    func_00226F28(&D_002DEA28, 0xC, 2, &v0, 0);
-    func_00226F28(&D_002DEA28, 0, 1, &D_002DE5A4, 0xD);
+    AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 2, &v0, 0);
+    AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0, 1, &D_002DE5A4, 0xD);
     D_002DE5A4 = 0;
     if (D_003DD490.f3E38) {
         if (g_pfrmOpen == &D_002DEA50)
@@ -99,11 +99,11 @@ void DrawSw(GAME *pgame)
         mat0 = *pm0;
         mat1 = *pm1;
     }
-    func_00226F28(&D_002DEA28, 0xC, 4, &mat0, 2);
-    func_00226F28(&D_002DEA28, 0xC, 4, &mat1, 6);
-    func_00226F28(&D_002DEA28, 0xC, 1, pgame->a3E28, 0xA);
-    func_00226CA8(&D_002DEA28, 0x32, 0x1E7);
-    func_001576F0(&D_002DEA28);
+    AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &mat0, 2);
+    AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &mat1, 6);
+    AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 1, pgame->a3E28, 0xA);
+    AddVifBaseOffset__4VIFSii(&D_002DEA28, 0x32, 0x1E7);
+    EndDmaCnt__4DMAS(&D_002DEA28);
     kPrev = -1;
     kindPrev = -1;
     for (i = 0; i < c; i++) {
@@ -129,8 +129,8 @@ void DrawSw(GAME *pgame)
     if (kPrev != -1)
         D_002BDD88[kPrev].pfnEnd(&D_002DEA28, kindPrev, -1);
     D_003D4A50 = 0;
-    func_001574A0(D_002DEA00);
-    func_001574A0(&D_002DEA28);
+    Flush__4DMAS(D_002DEA00);
+    Flush__4DMAS(&D_002DEA28);
     if (pgame->f3EA8) {
         pgame->f3EA8 = 0;
         func_001EA9F0(pgame, 0);

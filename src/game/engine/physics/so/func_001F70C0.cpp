@@ -11,7 +11,7 @@ extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 struct MSG {int bytes,alignment;};
 extern "C" void *func_001AE378(MSG *);
-extern "C" void func_001AE5A0(void *,const void *,unsigned int);
+extern "C" void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 extern "C" M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 extern "C" M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 extern "C" void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
@@ -41,8 +41,8 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
     request.bytes=(temporary.count+inserted)*16;allocation->alignment=16;
     qword *points=(qword *)func_001AE378(allocation);
     int pinned=source->pinnedCount;
-    func_001AE5A0(points,temporary.points,pinned*16);
-    func_001AE5A0(points+(pinned+inserted),temporary.points+pinned,(temporary.count-pinned)*16);
+    CopyAb__FPvT0Ui(points,temporary.points,pinned*16);
+    CopyAb__FPvT0Ui(points+(pinned+inserted),temporary.points+pinned,(temporary.count-pinned)*16);
     temporary.count+=inserted;temporary.points=points;
     {M4 product,inverse;__ml__FRC7MATRIX4T0(&product,(InvertMatrix4Rigid(&inverse,&space->matrix),&inverse),&source->owner->matrix);transform=product;}
     CloneGeom__FP4GEOMP7MATRIX4T0(&temporary,&transform,&dest->local);

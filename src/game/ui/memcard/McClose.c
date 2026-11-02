@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 M2C_UNK McSyncResult(s32, s32, M2C_UNK, M2C_UNK);   /* extern */
-s32 func_00244050(s32);                             /* extern */
+s32 sceMcClose(s32);                             /* extern */
 
 /** @sly2-annot addr=0x1AC808
  * Purpose: sceMcClose wrapper + sync
@@ -10,5 +10,5 @@ s32 func_00244050(s32);                             /* extern */
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 void McClose(s32 arg0, s32 arg1) {
-    McSyncResult(arg0 + 0xFD5C, func_00244050(arg1), 3, 0);
+    McSyncResult(arg0 + 0xFD5C, sceMcClose(arg1), 3, 0);
 }

@@ -163,7 +163,7 @@ extern VIEW D_002DDF40;
 extern RPL D_003B3980[0x2000];
 extern RPL *D_003D4A50;
 extern "C" {
-int func_001EDA20(OBJ *pobj);
+int FUpdatableSaa__FP3SAA(OBJ *pobj);
 void SubmitGlobsetRelight(SCENE *pscene);
 void func_001D57B8(STACK *pstack, BLOCK *pblock);
 BLOCK *func_001D57E0(STACK *pstack);
@@ -336,7 +336,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     for (i = 0; i < pscene->cobj; i++)
     {
         OBJ *pobj = pscene->apobj[i];
-        if (func_001EDA20(pobj))
+        if (FUpdatableSaa__FP3SAA(pobj))
         {
             VTENT *pvte = &pobj->pvt[8];
             pvte->pfn((char *)pobj + pvte->delta);

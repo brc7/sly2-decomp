@@ -14,7 +14,7 @@ struct CRef {
     CRef &operator=(int n);
     CRef &operator=(float g);
 };
-extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
+extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
 extern "C" { void ShowWidgetArgsFromSplice(void *p, CRef *pref); CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10DE58
  * Purpose: Splice option thunk: optid 984 on WIDGET (g_aeopid[1132] thunkFn, returns Void, crefReq 1);
@@ -28,7 +28,7 @@ CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref)
 {
     int k = 0x8010;
     CRef r;
-    CRef ref = func_00201360(1, aref, &k, &r);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &r);
     ref.Decref();
     ref.InitTag(0x24);
     ShowWidgetArgsFromSplice(p, &r);

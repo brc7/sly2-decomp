@@ -25,7 +25,7 @@ int GrfHandleJoyBtn(void *p, int n);
 int DxSelectionJoy(void *p);
 void func_0015D648(struct X *p, int a, int b);
 void RefGetGlobalSaveVar(void *pref, void *p, void *q);
-void func_00129EC8(void *pref);
+void Decref__4CRef(void *pref);
 void func_0015D880(struct X *p, int n);
 void CMpeg_QueueMovie(void *p, int n);
 void WipeToWorldWarp(struct G *pg, int a, int b, int c, int d, int e);
@@ -103,7 +103,7 @@ void func_0015CF30(struct X *p)
                 struct CRef ref;
                 RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
                 c = ref.m_n;
-                func_00129EC8(&ref);
+                Decref__4CRef(&ref);
                 if (c >= 100)
                     goto setf;
             }
@@ -184,7 +184,7 @@ void func_0015CF30(struct X *p)
                 f = 1;
                 RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
                 g = ref.m_g;
-                func_00129EC8(&ref);
+                Decref__4CRef(&ref);
                 if (g != 0.0f)
                     f = 0;
             }

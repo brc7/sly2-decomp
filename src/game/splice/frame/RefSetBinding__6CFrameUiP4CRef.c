@@ -3,7 +3,7 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
-CRef *func_00127DB8(void *a, void *b, int c);
+CRef *PrefFindBinding__6CFrameUii(void *a, void *b, int c);
 /** @sly2-annot addr=0x127CF0
  * Purpose: PrefFindBinding(sym,1) and assign; returns Void
  * Info: proposed name CFrame_RefSetBinding (T1); class CFrame; TU frame
@@ -18,7 +18,7 @@ CRef *RefSetBinding__6CFrameUiP4CRef(CRef *ret, void *a, void *b, CRef *pref)
     CRef ref;
     CRef *p;
     ref.m_tagk = -1;
-    p = func_00127DB8(a, b, 1);
+    p = PrefFindBinding__6CFrameUii(a, b, 1);
     if (p)
         func_00129658(p, pref);
     Decref__4CRef(&ref);

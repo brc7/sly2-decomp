@@ -16,14 +16,14 @@ struct MSG {int bytes,alignment;};
 extern char D_002C44F0[];
 extern "C" {
 void LoadSoXfsFromBrx(P *,void *);
-int func_00117C80(void *);
-int func_00117D50(void *);
-int func_00117DB8(void *);
-int func_00117D00(void *);
-float func_00117E38(void *);
+int U32Read__18CBinaryInputStream(void *);
+int S16Read__18CBinaryInputStream(void *);
+int S32Read__18CBinaryInputStream(void *);
+int S8Read__18CBinaryInputStream(void *);
+float F32Read__18CBinaryInputStream(void *);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEO *);
 void CBinaryInputStream_ReadBspc(void *,GEO *,TREE *);
-void func_00117ED0(void *,STATE *);
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(void *,STATE *);
 void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(DATA *,P *,void *);
 void *func_001AE2A0(MSG *);
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
@@ -51,10 +51,10 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
 {
     int i=0;E *e;
     LoadSoXfsFromBrx(p,stream);
-    int metadata=func_00117C80(stream);
+    int metadata=U32Read__18CBinaryInputStream(stream);
     LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&p->data,p,stream);
     int extra=Extra(p);
-    p->count=func_00117D50(stream);
+    p->count=S16Read__18CBinaryInputStream(stream);
     MSG request;
     request.bytes=(p->count+extra)*sizeof(E);request.alignment=16;
     p->entries=(E *)func_001AE2A0(&request);
@@ -62,21 +62,21 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
         e=&p->entries[i];
         GEO *local=&e->local;
         e->owner=p;
-        e->object=Lookup(p,func_00117D50(stream));
-        e->tag=func_00117DB8(stream);
-        int f=func_00117D00(stream);
+        e->object=Lookup(p,S16Read__18CBinaryInputStream(stream));
+        e->tag=S32Read__18CBinaryInputStream(stream);
+        int f=S8Read__18CBinaryInputStream(stream);
         e->flags.raw=(e->flags.raw&~(1UL<<48))|((ulong)(f&1)<<48);
-        f=func_00117D00(stream);
+        f=S8Read__18CBinaryInputStream(stream);
         e->flags.raw=(e->flags.raw&~(1UL<<49))|((ulong)(f&1)<<49);
-        e->radius=func_00117E38(stream);
+        e->radius=F32Read__18CBinaryInputStream(stream);
         ReadGeom__18CBinaryInputStreamP4GEOM(stream,local);
         if(!e->object){e->object=D_002C44F0;e->world=e->local;}
         else CloneGeom__FP4GEOMP7MATRIX4T0(local,0,&e->world);
         CBinaryInputStream_ReadBspc(stream,&e->world,&e->tree);
-        e->id=func_00117C80(stream);
-        e->flags.fields.state=func_00117D50(stream);
-        e->pinned=func_00117D50(stream);
-        f=func_00117D00(stream);
+        e->id=U32Read__18CBinaryInputStream(stream);
+        e->flags.fields.state=S16Read__18CBinaryInputStream(stream);
+        e->pinned=S16Read__18CBinaryInputStream(stream);
+        f=S8Read__18CBinaryInputStream(stream);
         e->flags.raw=(e->flags.raw&~(1UL<<50))|((ulong)(f&1)<<50);
     }
     for(i=p->count;i<p->count+extra;i++){e=&p->entries[i];e->flags.fields.state=-10;}
@@ -85,8 +85,8 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
         request.bytes=sizeof(STATE);request.alignment=16;
         STATE *state=(STATE *)func_001AE2A0(&request);
         p->state=state;
-        state->mass=func_00117E38(stream);
-        func_00117ED0(stream,state);
+        state->mass=F32Read__18CBinaryInputStream(stream);
+        ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,state);
         AdjustSoMomint(p,1.0f);
         Post(p);
     }

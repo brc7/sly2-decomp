@@ -8,7 +8,7 @@ float GGetDifficulty(void *p);
 float GLimitLm__FP2LMf(LM *plm, float g);
 float GAverageRhythmScore(struct S *p);
 void BroadcastGameEvent(void *p, int n, void *q);
-void *func_002332B8(void *dst, void *src, int cb);
+void *memmove(void *dst, void *src, int cb);
 static inline float GClampLm(LM *plm, float g)
 {
     if (g < plm->gMin)
@@ -48,7 +48,7 @@ void AddRhythmScore(struct S *p, int a, int b, float g)
         g *= GClamp(D_002BDBE0[0] + t * (D_002BDBE0[1] + t * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
     }
     if (p->c == 16) {
-        func_002332B8(&p->ag[0], &p->ag[1], 15 * sizeof(float));
+        memmove(&p->ag[0], &p->ag[1], 15 * sizeof(float));
         pg = &p->ag[p->c - 1];
     } else {
         pg = &p->ag[p->c++];

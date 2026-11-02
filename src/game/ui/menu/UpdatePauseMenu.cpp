@@ -11,8 +11,8 @@ struct CONTEXT{char bytes[0x5464];};
 struct BANK{char pad[0x24];CONTEXT contexts[3];char padFD50[8];CONTEXT*current;};
 struct MENU;
 extern "C" void*func_001291A8(void*,const void*);
-extern "C" void func_00129EC8(void*);
-struct CRef{int tag;union{int n;float f;};CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){func_00129EC8(this);}};
+extern "C" void Decref__4CRef(void*);
+struct CRef{int tag;union{int n;float f;};CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C"{
 void func_001D9870();
 int FWidgetAnimPlaying(POOL*,int);

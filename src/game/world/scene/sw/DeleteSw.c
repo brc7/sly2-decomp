@@ -10,8 +10,8 @@ void func_00161458(void *p);
 void func_0014D650(void *p);
 void ResetSndmgr(void *p);
 void func_001EC7E8(void);
-void func_001D53C0(void *p, int n);
-void func_001AE300(void);
+void SetRumbleRums__FP6RUMBLE4RUMS(void *p, int n);
+void FreeSw__Fv(void);
 
 /** @sly2-annot addr=0x20E068
  * Purpose: Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr,
@@ -36,7 +36,7 @@ void DeleteSw(struct S *p)
     func_0014D650(D_002DDF40);
     ResetSndmgr(D_003DD040);
     func_001EC7E8();
-    func_001D53C0(D_002E0CCC, 3);
+    SetRumbleRums__FP6RUMBLE4RUMS(D_002E0CCC, 3);
     D_002E1E40 = 0;
     D_002F7900 = 0;
     D_002DD5BC = 0;
@@ -51,5 +51,5 @@ void DeleteSw(struct S *p)
     D_003E1C4C = 0;
     D_003E1C50 = 0;
     D_003DD48C = 0;
-    func_001AE300();
+    FreeSw__Fv();
 }

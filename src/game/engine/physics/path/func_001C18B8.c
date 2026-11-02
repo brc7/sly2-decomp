@@ -1,5 +1,5 @@
 struct E { int x0; unsigned short x4; unsigned short x6; };
-void func_001AE5A0(void *dst, void *src, int cb);
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 /** @sly2-annot addr=0x1C18B8
  * Purpose: Delete the begin/end event pair of key from a sorted event array
  * Info: proposed name RemoveObstacleEvents (T2); TU path
@@ -28,6 +28,6 @@ void func_001C18B8(int n, struct E *a, int key)
             break;
         }
     }
-    func_001AE5A0(&a[iFirst], &a[iFirst] + 1, (iLast - iFirst - 1) * sizeof(struct E));
-    func_001AE5A0(&a[iLast] - 1, &a[iLast] + 1, (n - iLast - 1) * sizeof(struct E));
+    CopyAb__FPvT0Ui(&a[iFirst], &a[iFirst] + 1, (iLast - iFirst - 1) * sizeof(struct E));
+    CopyAb__FPvT0Ui(&a[iLast] - 1, &a[iLast] + 1, (n - iLast - 1) * sizeof(struct E));
 }

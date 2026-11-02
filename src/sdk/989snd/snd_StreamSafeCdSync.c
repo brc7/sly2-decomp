@@ -5,7 +5,7 @@ extern int D_002C4658;
 extern int D_00448400[];
 int func_00241E88(void);
 void func_00235078(void *, void *);
-void func_00231C48(void);
+void snd_FlushSoundCommands(void);
 
 /** @sly2-annot addr=0x232DA8
  * Purpose: 989snd API
@@ -26,7 +26,7 @@ int snd_StreamSafeCdSync(int mode)
     if (mode == 1)
         return 1;
     while (!D_002C4658) {
-        func_00231C48();
+        snd_FlushSoundCommands();
         func_00235078(D_00448400, pe);
         D_002C4658 = (D_00448400[0] == 0);
     }

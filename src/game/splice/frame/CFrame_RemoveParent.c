@@ -1,6 +1,6 @@
 typedef struct T { int a; int b; int c; void *ap[1]; } T;
 void FramePtr_Assign(void *pp, int n);
-void func_001AE5A0(void *pvDst, void *pvSrc, unsigned int cb);
+void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 /** @sly2-annot addr=0x127B70
  * Purpose: Removes a parent pointer from apframe[] (CopyAb shift, cframe--)
  * Info: proposed name CFrame_RemoveParent (T1); class CFrame; TU frame
@@ -15,7 +15,7 @@ void CFrame_RemoveParent(T *p, void *pv)
         if (p->ap[i] == pv) {
             FramePtr_Assign(&p->ap[i], 0);
             p->c--;
-            func_001AE5A0(p->ap[i], p->ap[i + 1], (p->c - i) * 4);
+            CopyAb__FPvT0Ui(p->ap[i], p->ap[i + 1], (p->c - i) * 4);
             return;
         }
     }

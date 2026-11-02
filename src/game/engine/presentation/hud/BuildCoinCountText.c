@@ -2,7 +2,7 @@ struct CRef { int tagk; int tag; };
 extern char D_003D4A60[];
 extern char D_002A8AA0[];
 void RefGetGlobalSaveVar(struct CRef *r, int *p, void *q);
-void func_00129EC8(struct CRef *r);
+void Decref__4CRef(struct CRef *r);
 void fiprintf(void *f, const char *fmt, ...);
 /** @sly2-annot addr=0x210ED8
  * Purpose: STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text
@@ -20,7 +20,7 @@ void BuildCoinCountText(void *f, int **pp)
         int v;
         RefGetGlobalSaveVar(&r, p, D_003D4A60);
         v = r.tag;
-        func_00129EC8(&r);
+        Decref__4CRef(&r);
         fiprintf(f, fmt, v);
     }
 }

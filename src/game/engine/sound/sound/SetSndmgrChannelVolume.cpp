@@ -4,7 +4,7 @@ struct P {char pad0[0x13C];float weights[8][4];int pad1BC;float outputs[4];char 
 struct LM {float low,high;};
 extern LM D_002BBB60;
 extern PMF D_002A8298,D_002A82A0;
-extern "C" float func_0011D948(LM *,float);
+extern "C" float GLimitLm__FP2LMf(LM *,float);
 extern "C" void *func_002333B4(void *,int,unsigned int);
 extern "C" void snd_SetMasterVolume(int,int);
 static inline X *ReadReceiver(X **pp)
@@ -25,7 +25,7 @@ extern "C" void SetSndmgrChannelVolume(P *p,int channel,int category,float input
     if((unsigned int)category>=8)return;
     if(channel<0)return;
     if(channel>=4)return;
-    input=func_0011D948(&D_002BBB60,input);
+    input=GLimitLm__FP2LMf(&D_002BBB60,input);
     float (*w)[4]=p->weights;
     if(p->weights[category][channel]==input)return;
     if(category==2){

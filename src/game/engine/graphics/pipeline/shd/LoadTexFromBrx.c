@@ -4,8 +4,8 @@ struct E20 { char pad[0x20]; };
 struct Z { int a; short b; unsigned char c1; unsigned char c2; int pad8; struct E28 **ap1; struct E20 **ap2; };
 extern struct E28 *D_003DCFF4;
 extern struct E20 *D_003DCFFC;
-void func_00117968(void *pbis, int cb, void *pv);
-int func_00117C20(void *pbis);
+void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
+int U16Read__18CBinaryInputStream(void *pbis);
 void *func_001AE1D0(struct AR *par);
 /** @sly2-annot addr=0x1EB1A8
  * Purpose: Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none)
@@ -18,20 +18,20 @@ void LoadTexFromBrx(void *pbis, struct Z *pz)
 {
     struct AR ar;
     int i;
-    func_00117968(pbis, 8, pz);
+    Read__18CBinaryInputStreamiPv(pbis, 8, pz);
     if (pz->c1) {
         ar.cb = pz->c1 * 4;
         ar.cbAlign = 0x10;
         pz->ap1 = func_001AE1D0(&ar);
         for (i = 0; i < pz->c1; i++)
-            pz->ap1[i] = &D_003DCFF4[func_00117C20(pbis)];
+            pz->ap1[i] = &D_003DCFF4[U16Read__18CBinaryInputStream(pbis)];
     }
     if (pz->c2) {
         ar.cb = pz->c2 * 4;
         ar.cbAlign = 0x10;
         pz->ap2 = func_001AE1D0(&ar);
         for (i = 0; i < pz->c2; i++) {
-            int k = func_00117C20(pbis);
+            int k = U16Read__18CBinaryInputStream(pbis);
             if (k == 0xFFFF) pz->ap2[i] = 0;
             else pz->ap2[i] = &D_003DCFFC[k];
         }

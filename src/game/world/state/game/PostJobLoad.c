@@ -17,7 +17,7 @@ int FJobLive(struct S *p);
 void ApplyStateLoVisibility(struct S *p, int n, int c, int a);
 void TriggerStateRsmgs(struct S *p, int n, int c, int a, int b);
 void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 void *PvFromSaveVar(void *p, void *q, void *r);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 /** @sly2-annot addr=0x162780
@@ -43,7 +43,7 @@ void PostJobLoad(struct S *p)
         int n;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         n = ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         p->f7c = n;
     }
     pn = &p->fe0;
@@ -51,7 +51,7 @@ void PostJobLoad(struct S *p)
         float g;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         g = *(float *)&ref.m_tag;
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
         p->fa4 = g;
     }
     p->fa8 = PvFromSaveVar(D_003DD490.m3a18, &p->fe8, D_003D4A60);

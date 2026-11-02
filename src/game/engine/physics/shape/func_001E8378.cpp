@@ -50,7 +50,7 @@ extern qword D_002A2DA0;
 extern qword D_002A2DC0;
 extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
-void func_001AE5A0(void *, const void *, unsigned);
+void CopyAb__FPvT0Ui(void *, const void *, unsigned);
 int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);
 void InvalidateShapeCache(PATH *);
@@ -189,8 +189,8 @@ void func_001E8378(CHAIN *p)
     VV endVel = GetXfVelocity(p->last, 0, end);
     if ((unsigned)count > 64)
         return;
-    func_001AE5A0(accP, p->position, count * 16);
-    func_001AE5A0(accV, p->velocity, count * 16);
+    CopyAb__FPvT0Ui(accP, p->position, count * 16);
+    CopyAb__FPvT0Ui(accV, p->velocity, count * 16);
     for (int pass = 0; pass < 4; pass++) {
         float w = D_002C3658[pass];
         float h = w * D_002DDED0.dt;
@@ -295,8 +295,8 @@ void func_001E8378(CHAIN *p)
         p->velocity[0].q = startVel;
         p->position[count - 1].q = end;
         p->velocity[count - 1].q = endVel;
-        func_001AE5A0(&p->position[1], &accP[1], (count - 2) * 16);
-        func_001AE5A0(&p->velocity[1], &accV[1], (count - 2) * 16);
+        CopyAb__FPvT0Ui(&p->position[1], &accP[1], (count - 2) * 16);
+        CopyAb__FPvT0Ui(&p->velocity[1], &accV[1], (count - 2) * 16);
     }
     M4 inverse;
     {

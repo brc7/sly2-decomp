@@ -13,11 +13,11 @@ struct P {
     qword *a144;
 };
 void LoadXfmXfFromBrx(struct P *, void *);
-int func_00117D00(void *);
-int func_00117C20(void *);
+int S8Read__18CBinaryInputStream(void *);
+int U16Read__18CBinaryInputStream(void *);
 void *func_001AE1D0(struct MSG *);
-void func_00117968(void *, int, void *);
-void func_00117EB0(void *, qword *);
+void Read__18CBinaryInputStreamiPv(void *, int, void *);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *, qword *);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct P *, void *);
 void MeasureShape(struct P *);
 /** @sly2-annot addr=0x1E5DF8
@@ -35,9 +35,9 @@ void LoadShapeFromBrx(struct P *p, void *pbis)
     struct MSG msg;
     int i;
     LoadXfmXfFromBrx(p, pbis);
-    p->fE0 = func_00117D00(pbis);
-    p->nE4 = func_00117D00(pbis);
-    p->c = func_00117C20(pbis);
+    p->fE0 = S8Read__18CBinaryInputStream(pbis);
+    p->nE4 = S8Read__18CBinaryInputStream(pbis);
+    p->c = U16Read__18CBinaryInputStream(pbis);
     msg.cb = p->c * 4;
     msg.nKind = 0x10;
     p->aE = func_001AE1D0(&msg);
@@ -47,9 +47,9 @@ void LoadShapeFromBrx(struct P *p, void *pbis)
     msg.cb = p->c * 16;
     msg.nKind = 0x10;
     p->aF4 = func_001AE1D0(&msg);
-    func_00117968(pbis, p->c * 4, p->aE);
+    Read__18CBinaryInputStreamiPv(pbis, p->c * 4, p->aE);
     for (i = 0; i < p->c; i++)
-        func_00117EB0(pbis, &p->aF4[i]);
+        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &p->aF4[i]);
     if (p->fE0) {
         msg.cb = p->c * 16;
         msg.nKind = 0x10;
@@ -58,9 +58,9 @@ void LoadShapeFromBrx(struct P *p, void *pbis)
         msg.nKind = 0x10;
         p->a144 = func_001AE1D0(&msg);
         for (i = 0; i < p->c; i++)
-            func_00117EB0(pbis, &p->a140[i]);
+            ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &p->a140[i]);
         for (i = 0; i < p->c; i++)
-            func_00117EB0(pbis, &p->a144[i]);
+            ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &p->a144[i]);
     }
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
     MeasureShape(p);

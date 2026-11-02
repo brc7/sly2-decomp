@@ -4,9 +4,9 @@ struct CBinaryInputStream;
 struct TRI { int aipos[3]; float sArea; };
 struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; int pad18[2]; qword v20; };
 extern "C" {
-int func_00117C20(CBinaryInputStream *pbis);
-void func_00117EB0(CBinaryInputStream *pbis, qword *pv);
-float func_00117E38(CBinaryInputStream *pbis);
+int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
+void ReadVector__18CBinaryInputStreamP6VECTOR(CBinaryInputStream *pbis, qword *pv);
+float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void *func_001AE1D0(AL *pal);
 void *func_001AE2A0(AL *pal);
 }
@@ -58,19 +58,19 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
 void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis)
 {
     int i;
-    pemitmesh->cpos = func_00117C20(pbis);
+    pemitmesh->cpos = U16Read__18CBinaryInputStream(pbis);
     pemitmesh->apos = (qword *)PvAlloc(pemitmesh->cpos * 16, 16);
     pemitmesh->anormal = (qword *)PvAllocClear(pemitmesh->cpos * 16, 16);
     for (i = 0; i < pemitmesh->cpos; i++)
-        func_00117EB0(pbis, &pemitmesh->apos[i]);
-    pemitmesh->ctri = func_00117C20(pbis);
+        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->apos[i]);
+    pemitmesh->ctri = U16Read__18CBinaryInputStream(pbis);
     pemitmesh->atri = (TRI *)PvAlloc(pemitmesh->ctri * 16, 16);
     pemitmesh->sArea = 0.0f;
     for (int itri = 0; itri < pemitmesh->ctri; itri++) {
         TRI *ptri = &pemitmesh->atri[itri];
         for (i = 0; i < 3; i++)
-            ptri->aipos[i] = func_00117C20(pbis);
-        ptri->sArea = func_00117E38(pbis);
+            ptri->aipos[i] = U16Read__18CBinaryInputStream(pbis);
+        ptri->sArea = F32Read__18CBinaryInputStream(pbis);
         pemitmesh->sArea += ptri->sArea;
         qword *apos = pemitmesh->apos;
         qword p0 = apos[ptri->aipos[0]];
@@ -80,7 +80,7 @@ void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis)
             *pn = Add(*pn, normal);
         }
     }
-    func_00117EB0(pbis, &pemitmesh->v20);
+    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->v20);
     for (i = 0; i < pemitmesh->cpos; i++)
         VNormalize(&pemitmesh->anormal[i], pemitmesh->anormal[i], D_002A2DC0);
 }

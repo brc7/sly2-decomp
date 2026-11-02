@@ -9,13 +9,13 @@ extern char D_003DD490[];
 extern char D_004520A8[];
 extern int D_0027A1D8[];
 extern int D_0027A10C[];
-int func_00127DB8(void *p, int k, int n);
+int PrefFindBinding__6CFrameUii(void *p, int k, int n);
 struct CRef *func_00200DA0(struct CRef *ret, int x, int *pn, int y);
 struct SP *func_00132ED8(struct SP *ret, struct P *p, int k, struct CRef *pref);
 void ScheduleSwSpliceCallback(void *pg, struct P *p, struct N *pn, float t);
 void EvalSpliceEventCallback(struct P *p, struct N *pn, void *p0, int z);
 void PairPtr_Release(struct SP *psp, int n);
-void func_00129EC8(struct CRef *pref);
+void Decref__4CRef(struct CRef *pref);
 void GcPair_Unlink(void *pv);
 void func_0011CD98(void *pool, void *pv);
 /** @sly2-annot addr=0x1331F8
@@ -32,7 +32,7 @@ void func_0011CD98(void *pool, void *pv);
  * @end-sly2-annot */
 void HandleBasicSpliceEvent(struct P *p, int k, int f, int x, int y, int z)
 {
-    if (p->p0 && func_00127DB8(p->p0, k, 1)) {
+    if (p->p0 && PrefFindBinding__6CFrameUii(p->p0, k, 1)) {
         struct CRef ref;
         struct SP sp;
         func_00200DA0(&ref, x, &D_0027A10C[D_0027A1D8[k]], y);
@@ -45,11 +45,11 @@ void HandleBasicSpliceEvent(struct P *p, int k, int f, int x, int y, int z)
             struct N *pt = sp.p;
             if (pt && --pt->cref == 0) {
                 PairPtr_Release(&pt->sp, 2);
-                func_00129EC8(&pt->ref);
+                Decref__4CRef(&pt->ref);
                 GcPair_Unlink(pt);
                 func_0011CD98(D_004520A8, pt);
             }
         }
-        func_00129EC8(&ref);
+        Decref__4CRef(&ref);
     }
 }

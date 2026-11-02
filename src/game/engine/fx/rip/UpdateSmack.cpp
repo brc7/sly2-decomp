@@ -11,7 +11,7 @@ struct OBJ {
     C *xF4;
     void *xF8;
 };
-extern "C" void func_001CE980(OBJ *);
+extern "C" void RemoveRip__FP3RIP(OBJ *);
 /** @sly2-annot addr=0x1D0800
  * Purpose: SMACK Update (RemoveRip when done)
  * Info: proposed name UpdateSmack (T1); TU rip
@@ -25,6 +25,6 @@ extern "C" void UpdateSmack(OBJ *p)
     if (p->x18 < D_002DDED0.t - p->x14) {
         PMF pmf = p->xF0->pmf;
         (p->xF4->*pmf)(p->xF8);
-        func_001CE980(p);
+        RemoveRip__FP3RIP(p);
     }
 }

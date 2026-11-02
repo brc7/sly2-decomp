@@ -7,7 +7,7 @@ struct VE {short delta,pad;void(*fn)(void*);};
 struct P {char padC[0xC];VE *vt;char pad10[0x48];LO *translation,*rotation;char pad60[0x88];int enabled;char padEC[4];U shift,turn;};
 extern qword D_002A2DD0;
 extern struct GAME {char pad3D58[0x3D58];int stamp;} D_003DD490;
-extern "C" int func_0011D4D0(float,float,float);
+extern "C" int FFloatsNear__Ffff(float,float,float);
 extern "C" void SlotUnsettle(P *,LO *);
 extern "C" qword ConvertXfVec(void *,LO *,qword);
 extern "C" qword *VECTOR_opAssign(qword *,qword);
@@ -16,7 +16,7 @@ extern "C" void func_001F4BF8(P *);
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
-static inline void Near(int*out,qword a,qword b){if(func_0011D4D0(X(a),X(b),0.0001f))if(func_0011D4D0(Y(a),Y(b),0.0001f))*out=func_0011D4D0(Z(a),Z(b),0.0001f)!=0;}
+static inline void Near(int*out,qword a,qword b){if(FFloatsNear__Ffff(X(a),X(b),0.0001f))if(FFloatsNear__Ffff(Y(a),Y(b),0.0001f))*out=FFloatsNear__Ffff(Z(a),Z(b),0.0001f)!=0;}
 static inline qword Add(qword a,qword b){__asm__("vadd.xyzw %0,%1,%0":"+j"(b):"j"(a));return b;}
 static inline M3 Mul(const M3&a,const M3&b) return r {
     qword a0=a.r[0],a1=a.r[1],a2=a.r[2];

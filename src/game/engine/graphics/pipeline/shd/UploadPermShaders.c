@@ -12,29 +12,29 @@ extern int D_003DCFF8;
 extern struct E1 *D_003DCFFC;
 extern int D_003DCFF0;
 extern struct E2 *D_003DCFF4;
-void func_00166920(struct DMAS *);
-void func_00226C10(struct X *);
+void __4GIFS(struct DMAS *);
+void __4VIFS(struct X *);
 struct M *STACKSCOPE_ctor(struct M *);
 void STACKSCOPE_ctor_1AE4A0(struct M *, int);
 void AllocStack__4DMASi(struct X *, int);
-void func_001574B8(struct X *);
-void func_00226D10(struct X *);
-void func_001572D0(struct DMAS *);
-void func_00157330(struct DMAS *, int, void *);
+void AddDmaCnt__4DMAS(struct X *);
+void AddVifFlush__4VIFS(struct X *);
+void Reset__4DMAS(struct DMAS *);
+void AllocStatic__4DMASiP2QW(struct DMAS *, int, void *);
 int IgsAllocGsb__FP3GSBi(struct BS *, int);
 void BuildClutTex2__FP4CLUTi(struct E1 *, int);
-void func_001ECAB0(struct E1 *, int, struct DMAS *);
-void func_001ECB18(struct E2 *, int);
+void BuildClutGifs__FP4CLUTiP4GIFS(struct E1 *, int, struct DMAS *);
+void BuildBmpTex0__FP3BMPi(struct E2 *, int);
 void BuildBmpGifs(struct E2 *, int, struct DMAS *);
-void func_00157348(struct DMAS *, int *, int *);
-void func_002270C8(struct X *, int, int, int);
-void func_00227148(struct X *, int, int, int);
-void func_00166BD8(struct DMAS *, int, int, int);
-void func_00166E90(struct DMAS *, int, int);
-void func_00166968(struct DMAS *);
-void func_001576F0(struct X *);
-void func_00157620(struct X *);
-void func_001573C0(struct X *, int, int, int *);
+void Detach__4DMASPiPP2QW(struct DMAS *, int *, int *);
+void AddVifDirect__4VIFSiP2QWi(struct X *, int, int, int);
+void AddVifDirectRefs__4VIFSiP2QWi(struct X *, int, int, int);
+void AddPrimPack__4GIFSiiUl(struct DMAS *, int, int, int);
+void PackAD__4GIFSll(struct DMAS *, int, int);
+void AddPrimEnd__4GIFS(struct DMAS *);
+void EndDmaCnt__4DMAS(struct X *);
+void AddDmaRet__4DMAS(struct X *);
+void DetachCopySw__4DMASPiPP2QWT2(struct X *, int, int, int *);
 /** @sly2-annot addr=0x1ECE58
  * Purpose: Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs
  * Info: proposed name UploadPermShaders (T1); TU shd
@@ -54,56 +54,56 @@ int UploadPermShaders(struct BS *pbs, int k)
     int result;
     int n4;
     int i, j;
-    func_00166920(&dmas);
+    __4GIFS(&dmas);
     result = 0;
-    func_00226C10(&x);
+    __4VIFS(&x);
     n4 = pbs->n4;
     STACKSCOPE_ctor(&m);
     AllocStack__4DMASi(&x, (D_003DCF9C * 3 + D_003DCF98) * 10 + 4);
-    func_001574B8(&x);
-    func_00226D10(&x);
+    AddDmaCnt__4DMAS(&x);
+    AddVifFlush__4VIFS(&x);
     for (i = 0; i < D_003DCFF8; i++) {
         struct E1 *pe = &D_003DCFFC[i];
         int v;
         if (pe->b4 != k)
             continue;
-        func_001572D0(&dmas);
-        func_00157330(&dmas, 10, ab);
+        Reset__4DMAS(&dmas);
+        AllocStatic__4DMASiP2QW(&dmas, 10, ab);
         v = IgsAllocGsb__FP3GSBi(pbs, pe->hA);
         BuildClutTex2__FP4CLUTi(pe, v);
-        func_001ECAB0(pe, v, &dmas);
+        BuildClutGifs__FP4CLUTiP4GIFS(pe, v, &dmas);
         *(ulong *)(dmas.pqw - 1) |= 0x8000;
-        func_00157348(&dmas, &cb, &pv);
-        func_002270C8(&x, cb, pv, 0);
-        func_00227148(&x, pe->n10, pe->nC, 0);
+        Detach__4DMASPiPP2QW(&dmas, &cb, &pv);
+        AddVifDirect__4VIFSiP2QWi(&x, cb, pv, 0);
+        AddVifDirectRefs__4VIFSiP2QWi(&x, pe->n10, pe->nC, 0);
     }
     for (j = 0; j < D_003DCFF0; j++) {
         struct E2 *pe = &D_003DCFF4[j];
         int v;
         if (k != pe->b4)
             continue;
-        func_001572D0(&dmas);
-        func_00157330(&dmas, 10, ab);
+        Reset__4DMAS(&dmas);
+        AllocStatic__4DMASiP2QW(&dmas, 10, ab);
         v = IgsAllocGsb__FP3GSBi(pbs, pe->hE);
-        func_001ECB18(pe, v);
+        BuildBmpTex0__FP3BMPi(pe, v);
         BuildBmpGifs(pe, v, &dmas);
         *(ulong *)(dmas.pqw - 1) |= 0x8000;
-        func_00157348(&dmas, &cb, &pv);
-        func_002270C8(&x, cb, pv, 0);
-        func_00227148(&x, pe->n18, pe->n14, 0);
+        Detach__4DMASPiPP2QW(&dmas, &cb, &pv);
+        AddVifDirect__4VIFSiP2QWi(&x, cb, pv, 0);
+        AddVifDirectRefs__4VIFSiP2QWi(&x, pe->n18, pe->n14, 0);
     }
     if (n4 < pbs->n4) {
-        func_001572D0(&dmas);
-        func_00157330(&dmas, 10, ab);
-        func_00166BD8(&dmas, 0, 1, 14);
-        func_00166E90(&dmas, 0x3F, 0);
-        func_00166968(&dmas);
-        func_00157348(&dmas, &cb, &pv);
-        func_002270C8(&x, cb, pv, 0);
-        func_00226D10(&x);
-        func_001576F0(&x);
-        func_00157620(&x);
-        func_001573C0(&x, 0, 0, &result);
+        Reset__4DMAS(&dmas);
+        AllocStatic__4DMASiP2QW(&dmas, 10, ab);
+        AddPrimPack__4GIFSiiUl(&dmas, 0, 1, 14);
+        PackAD__4GIFSll(&dmas, 0x3F, 0);
+        AddPrimEnd__4GIFS(&dmas);
+        Detach__4DMASPiPP2QW(&dmas, &cb, &pv);
+        AddVifDirect__4VIFSiP2QWi(&x, cb, pv, 0);
+        AddVifFlush__4VIFS(&x);
+        EndDmaCnt__4DMAS(&x);
+        AddDmaRet__4DMAS(&x);
+        DetachCopySw__4DMASPiPP2QWT2(&x, 0, 0, &result);
     }
     {
         int r = result;

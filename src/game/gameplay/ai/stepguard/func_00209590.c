@@ -1,7 +1,7 @@
 struct S { int k; void *pv; };
 void *func_0020C010(int cb);
 void *func_0020CA00(int cb);
-void func_001AE5A0(void *dst, void *src, int cb);
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 /** @sly2-annot addr=0x209590
  * Purpose: Deep-copy kind-2 (0x40) / kind-3 (0xD0) payloads
  * Info: proposed name CloneAnimBinding (T2); TU stepguard
@@ -14,12 +14,12 @@ void func_00209590(struct S *p)
     switch (p->k) {
     case 2:
         pv = func_0020C010(0x40);
-        func_001AE5A0(pv, p->pv, 0x40);
+        CopyAb__FPvT0Ui(pv, p->pv, 0x40);
         p->pv = pv;
         break;
     case 3:
         pv = func_0020CA00(0xD0);
-        func_001AE5A0(pv, p->pv, 0xD0);
+        CopyAb__FPvT0Ui(pv, p->pv, 0xD0);
         p->pv = pv;
         break;
     }

@@ -4,7 +4,7 @@ struct S { char pad[0x39f0]; struct N *pfirst; int f39f4; int f39f8; int pool39f
 extern char D_004520A8[];
 void RemoveSlEntry(void *, struct N *);
 void PairPtr_Release(void *, int);
-void func_00129EC8(void *);
+void Decref__4CRef(void *);
 void GcPair_Unlink(struct R *);
 void func_0011CD98(void *, void *);
 /** @sly2-annot addr=0x133130
@@ -25,7 +25,7 @@ void CancelSwSpliceCallback(struct S *p, int id) {
             pr = pn->pr;
             if (--pr->cref == 0 && pr) {
                 PairPtr_Release(&pr->f10, 2);
-                func_00129EC8(pr->ref8);
+                Decref__4CRef(pr->ref8);
                 GcPair_Unlink(pr);
                 func_0011CD98(D_004520A8, pr);
             }

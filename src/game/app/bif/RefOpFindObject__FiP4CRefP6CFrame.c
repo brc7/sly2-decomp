@@ -5,7 +5,7 @@ extern G D_003DD490;
 void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x124150
  * Purpose: Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root
  * Info: proposed name RefOpFindObject (T1); TU bif
@@ -32,6 +32,6 @@ CRef *RefOpFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, k, a, b, plo ? plo->pv : pg->pv));
     }
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

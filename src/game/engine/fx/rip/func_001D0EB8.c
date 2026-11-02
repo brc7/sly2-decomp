@@ -9,7 +9,7 @@ struct CLOCK {float time;union FLOATWORD dt;};
 extern union FLOATWORD D_002DDED4;
 void ProjectRipTransform(struct S*);
 float GRandInRange__Fff(float,float);
-int func_0011D4D0(float,float,float);
+int FFloatsNear__Ffff(float,float,float);
 void GetNormalVectors(qword,qword,qword,struct B*);
 void CalculateSinCos__FfPfT1(float,float*,float*);
 static inline const void*ClockHigh(void){register const void*page __asm__("$2");__asm__("lui %0,%%hi(D_002DDED4)":"=r"(page));return page;}
@@ -23,7 +23,7 @@ static inline qword Factors(const float*cs,float speed,float*first,float*second)
 static inline float X(qword q) {float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f;}
 static inline float Y(qword q) {float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f;}
 static inline float Z(qword q) {float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f;}
-static inline void FNear(int *pf,qword a,qword b) { if(func_0011D4D0(X(b),X(a),0.0001f)) if(func_0011D4D0(Y(b),Y(a),0.0001f)) *pf=func_0011D4D0(Z(b),Z(a),0.0001f)!=0; }
+static inline void FNear(int *pf,qword a,qword b) { if(FFloatsNear__Ffff(X(b),X(a),0.0001f)) if(FFloatsNear__Ffff(Y(b),Y(a),0.0001f)) *pf=FFloatsNear__Ffff(Z(b),Z(a),0.0001f)!=0; }
 static inline qword BcX(float f){register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(f));return value;}
 static inline qword BcYAndPublishX(float f,qword x,union U*home){
  register qword value __asm__("vf4");

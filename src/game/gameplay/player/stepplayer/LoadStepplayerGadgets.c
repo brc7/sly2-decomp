@@ -6,7 +6,7 @@ extern char D_002A4D50[];
 extern char D_002A4D58[];
 int sprintf(char *, const char *, ...);
 void RefGetSaveVarV(struct CRef *r, void *a, void *b, char *c, int d);
-void func_00129EC8(struct CRef *r);
+void Decref__4CRef(struct CRef *r);
 /** @sly2-annot addr=0x141EF8
  * Purpose: For i<3: GetSaveVar(vt103 root, 'apukCur', '%d' i) -> slot id; then vt105
  * Info: proposed name LoadStepplayerGadgets (T1); TU stepplayer
@@ -24,7 +24,7 @@ void LoadStepplayerGadgets(struct P *p)
         e = &p->vt[103];
         RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4D58, ach, 0);
         p->ae[i].id = r.tag;
-        func_00129EC8(&r);
+        Decref__4CRef(&r);
     }
     {
         struct VTE *e = &p->vt[105];

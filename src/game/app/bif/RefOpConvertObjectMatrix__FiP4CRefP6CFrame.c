@@ -4,7 +4,7 @@ typedef struct MATRIX4 { qword a[4]; } MATRIX4;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void ConvertAloMat4(MATRIX4 *pmat, int a, int b, int c);
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
-void func_00129EC8(CRef *pref);
+void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1250D8
  * Purpose: Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0
  * Info: proposed name RefOpConvertObjectMatrix (T1); TU bif
@@ -22,6 +22,6 @@ CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
     ConvertAloMat4(&mat, aref[0].m_tag, aref[1].m_tag, aref[2].m_tag);
     *pmat = mat;
     func_001291A8(ret, &ref);
-    func_00129EC8(&ref);
+    Decref__4CRef(&ref);
     return ret;
 }

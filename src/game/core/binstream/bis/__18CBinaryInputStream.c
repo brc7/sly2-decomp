@@ -4,7 +4,7 @@
 /* Warning: missing "jr $ra" in last block of func_00117640 (initial). */
 
 M2C_UNK CopyAb__FPvT0Ui(s32, s32, s32);             /* extern */
-M2C_UNK func_001179F0();                            /* extern */
+M2C_UNK Decompress__18CBinaryInputStream();                            /* extern */
 extern M2C_UNK D_0027A778;
 extern M2C_UNK D_0029A790;
 extern M2C_UNK D_0029A7C0;
@@ -65,7 +65,7 @@ extern M2C_UNK D_00452170;
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-void *func_001177A8(void *arg0) {
+void *__18CBinaryInputStream(void *arg0) {
     M2C_FIELD(arg0, s32 *, 0) = 0;
     M2C_FIELD(arg0, M2C_UNK **, 0x30) = &D_002CA5C0;
     M2C_FIELD(arg0, s32 *, 0x10) = 0;

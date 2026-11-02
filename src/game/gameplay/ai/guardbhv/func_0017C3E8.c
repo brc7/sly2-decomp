@@ -12,7 +12,7 @@ float func_0020A690(struct K *k);
 qword func_001A62E8(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float RadNormalize__Ff(float f);
-int func_0011D910(void *p, float f);
+int FCheckLm__FP2LMf(void *p, float f);
 qword func_0017BFF8(struct S *p, void *q, float f, qword v);
 void func_001C02D0(void *q, qword a, qword b, struct B *c);
 void SetBhvpathShape(struct T *t, struct B *b, int n);
@@ -56,7 +56,7 @@ void func_0017C3E8(struct S *p) {
         GetVectorCylind(dv, &out[0], &out[1], 0);
     }
     if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->f18) goto doit;
-    if (func_0011D910(p->p10->a324, out[1])) return;
+    if (FCheckLm__FP2LMf(p->p10->a324, out[1])) return;
 doit:
     {
         qword v = func_001A62E8(p->p10);

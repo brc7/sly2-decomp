@@ -23,7 +23,7 @@ extern "C" {
 void *func_002333B4(void *pv, int n, int cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, int cb);
 qword GetNormalVector(qword v);
-float func_0011CFE0(float g, float gMax);
+float GLimitAbs__Fff(float g, float gMax);
 M3 LoadRotateMatrixSinCos(VU_FLOAT s, VU_FLOAT c, qword axis);
 }
 static inline qword Len(qword a)
@@ -79,7 +79,7 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *pm, qword a, qword b)
         VU_FLOAT d;
         d.q = Dot(a, b);
         float ll = la.H() * lb.H();
-        VU_FLOAT c = func_0011CFE0(VU_FLOAT(d.G() / ll).F(), 1.0f);
+        VU_FLOAT c = GLimitAbs__Fff(VU_FLOAT(d.G() / ll).F(), 1.0f);
         float cc = c.F();
         float sn;
         /* volatile: emulates the original schedule, see header */

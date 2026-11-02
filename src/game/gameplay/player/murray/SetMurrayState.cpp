@@ -87,7 +87,7 @@ void func_001B5D30(P *, int);
 void SetJtthrowState(void *, int);
 void SetSoCnstrForce(P *, int);
 void func_0019EAB0(void *, int);
-int func_001F0400(void *, int);
+int IsmsFindSmOptional__FP2SM3OID(void *, int);
 int func_001430C8(P *);
 void func_00142868(P *, int);
 void func_0020BD68(void *);
@@ -98,7 +98,7 @@ qword func_001A62E8(P *);
 void SetStepRadTargetVec(P *, qword);
 void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
-void func_001305B8(ASEG *, P *, float, float, int, ASEGA **);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
 ENTRY *func_0012F938(ASEG *, int);
 void func_00131A90(ASEGA *, float);
@@ -166,7 +166,7 @@ extern "C" void SetMurrayState(P *p, int next)
         func_002303A0(p, p->first, 1); func_002303A0(p, p->second, 1);
         source = p->template0; p->velocity = D_002A2DD0;
         if (old != 2) { id = (old != 10) ? 0x175 : 0x176; } else id = 0x178;
-        if (func_001F0400(source, id) < 0) id = -1;
+        if (IsmsFindSmOptional__FP2SM3OID(source, id) < 0) id = -1;
         mode = func_001430C8(p); func_00142868(p, 1); break;
     case 1: clip = p->clip1; activation = Block(p, 0x1320); goto activate;
     case 14: SetJtModeState__FP6JTMODEi(Block(p, 0xF00), -1); break;
@@ -203,7 +203,7 @@ extern "C" void SetMurrayState(P *p, int next)
     {
         ASEGA **animation = &p->asega; COMPONENT **component = &p->component; float position = 0.0f;
         ReleaseAsega(animation); ReleaseSma(component);
-        func_001305B8(clip, p, position, 1.0f, flags, animation);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, p, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, p, id, flags, mode, component);
         if (clip || source) {
             if (clip) { if (duration == position) { ENTRY *e = func_0012F938(clip, 0x1AC); if (e) duration = e->value; } }

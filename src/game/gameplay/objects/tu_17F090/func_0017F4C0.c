@@ -2,7 +2,7 @@ struct R { int n0; void *p4; void *p8; int nC; };
 struct S { char pad[0x194]; void *p194; int a198[1]; };
 void ReleaseSma(void *p);
 void ReleaseAsega(void *pp);
-void func_001305B8(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
 void ReplaceSma(void *a, struct S *p, int b, int c, void *d);
 /** @sly2-annot addr=0x17F4C0
  * Purpose: Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state
@@ -15,7 +15,7 @@ void func_0017F4C0(struct S *p, struct R *r) {
     ReleaseSma(p->a198);
     ReleaseAsega(&p->p194);
     if (r) {
-        func_001305B8(r->p4, p, 0.0f, 1.0f, r->nC, &p->p194);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(r->p4, p, 0.0f, 1.0f, r->nC, &p->p194);
         ReplaceSma(r->p8, p, -1, r->nC, p->a198);
     }
 }

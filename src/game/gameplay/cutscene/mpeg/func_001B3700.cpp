@@ -41,13 +41,13 @@ struct P { char pad[0x104]; S *x104; int pad108[2]; char *x110; int pad114; int 
 extern "C" {
 extern CFont *D_002DE760;
 extern TEXT_TABLE D_003E1C20;
-void func_0015F078(CFont *pf, float sx, float sy);
+void PushScaling__5CFontff(CFont *pf, float sx, float sy);
 char *func_00210CA8(TEXT_TABLE *p, int k);
 float func_0015FEF8(CRichText *pfont, float dx);
-float func_0015FF40(CRichText *pfont);
+float DxMaxLine__9CRichText(CRichText *pfont);
 void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
-void func_0015FFD0(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
-void func_0015F0C0(CFont *pf);
+void Draw__9CRichTextP8CTextBoxT1P4GIFS(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
+void PopScaling__5CFont(CFont *pf);
 }
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -134,18 +134,18 @@ extern "C" void func_001B3700(P *p)
     if (p->x104) {
         gifs.AllocStatic(0x200, (QW *)(p->x110 + 0x41DC00));
         gifs.AddDmaCnt();
-        func_0015F078(D_002DE760, 0.8f, 0.8f);
+        PushScaling__5CFontff(D_002DE760, 0.8f, 0.8f);
         CRichText font(func_00210CA8(&D_003E1C20, p->x104->x4), D_002DE760);
         float dy = func_0015FEF8(&font, 320.0f);
-        float dx = func_0015FF40(&font);
+        float dx = DxMaxLine__9CRichText(&font);
         TB tb(320.0f - dx * 0.5f, 476.8000183f - dy, dx, dy);
         RGBA rgba;
         TB *ptb = &tb;
         ptb->jh = 1;
         rgba.word = 0x80000000;
         FillScreenRect(rgba, &gifs, tb.x, tb.y, tb.x + tb.dx, tb.y + tb.dy);
-        func_0015FFD0(&font, ptb, 0, &gifs);
-        func_0015F0C0(D_002DE760);
+        Draw__9CRichTextP8CTextBoxT1P4GIFS(&font, ptb, 0, &gifs);
+        PopScaling__5CFont(D_002DE760);
         gifs.AddPrimPack(0, 1, 0xE);
         gifs.PackAD(0x61, 0);
         gifs.AddPrimEnd();

@@ -5,11 +5,11 @@ struct LO { char pad[0xC]; struct VT *vt; char pad2[0x50 - 0x10]; int x50; };
 struct G { char pad[0x3F0C]; int x3F0C; int x3F10; };
 extern struct VT D_002CBE38[];
 extern struct G D_003DD490;
-int func_00117D50(void *pbis);
-int func_00117D00(void *pbis);
-int func_00117DB8(void *pbis);
-void func_00117968(void *pbis, int cb, void *pv);
-void func_001179B8(void *pbis, int cb);
+int S16Read__18CBinaryInputStream(void *pbis);
+int S8Read__18CBinaryInputStream(void *pbis);
+int S32Read__18CBinaryInputStream(void *pbis);
+void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
+void Skip__18CBinaryInputStreami(void *pbis, int cb);
 int IdProxy__Fii(int, int);
 int func_001C99D8(int, int, int *);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int, int);
@@ -48,21 +48,21 @@ void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(void *psw
     obj.vt = D_002CBE38;
     obj.x4 = -1;
     obj.x8 = -1;
-    c = func_00117D50(pbis);
+    c = S16Read__18CBinaryInputStream(pbis);
     for (i = 0; i < c; i++) {
-        int k = func_00117D00(pbis);
+        int k = S8Read__18CBinaryInputStream(pbis);
         struct IF *pif;
         if (k > 0)
             goto read;
         if (k < -2) {
         read:
-            func_00117968(pbis, k * 2, as);
+            Read__18CBinaryInputStreamiPv(pbis, k * 2, as);
         }
         pif = pifParent;
-        cid = func_00117D50(pbis);
-        oid = func_00117DB8(pbis);
-        n = func_00117D50(pbis);
-        cb = func_00117DB8(pbis);
+        cid = S16Read__18CBinaryInputStream(pbis);
+        oid = S32Read__18CBinaryInputStream(pbis);
+        n = S16Read__18CBinaryInputStream(pbis);
+        cb = S32Read__18CBinaryInputStream(pbis);
         if (k < -2)
             goto filter;
         if (k >= 0) {
@@ -118,6 +118,6 @@ void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(void *psw
         }
         continue;
     skip:
-        func_001179B8(pbis, cb);
+        Skip__18CBinaryInputStreami(pbis, cb);
     }
 }

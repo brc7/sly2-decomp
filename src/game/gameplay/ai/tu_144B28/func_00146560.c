@@ -6,7 +6,7 @@ struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -28,7 +28,7 @@ void func_00146560(struct P *p, struct Q *q)
         g = 1.0f;
         if (p->x30 == 0) g = 0.1f;
         q->x1C = g;
-        q->x18 = func_002458F0(GetY(d), GetX(d));
+        q->x18 = atan2f(GetY(d), GetX(d));
         if (p->x30 == 2 && D_002DDED0.t - p->x34 < 0.1f) {
             q->x30 |= 0x80;
             UpdatePoctlPressed(q);

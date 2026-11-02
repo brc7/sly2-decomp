@@ -2,7 +2,7 @@ extern char D_002DA9D0[];
 struct P { char pad[0x30]; int n30; };
 struct O { int n0; int n4; int pad8; void *pC; char pad10[0x10]; int n20; int h24; struct P *p28; int *p2C; int n30; char pad34[0xC]; };
 void *func_002333B4(void *p, int c, int n);
-void func_001305B8(int a, int b, int c, int *ph, float f, float g);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(int a, int b, int c, int *ph, float f, float g);
 void SubscribeLoObject(int h, struct O *po);
 /** @sly2-annot addr=0x20C948
  * Purpose: init CID 0x92 object (vtable 0x2DA9D0) and apply ASEG
@@ -21,7 +21,7 @@ void func_0020C948(struct P *p, int a, int b, struct O *po)
     po->n30 = b;
     po->n0 = 0;
     po->n4 = 0;
-    func_001305B8(p->n30, a, b, &po->h24, 0.0f, 1.0f);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->n30, a, b, &po->h24, 0.0f, 1.0f);
     SubscribeLoObject(po->h24, po);
     po->p2C = &p->n30;
 }

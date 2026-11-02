@@ -55,18 +55,18 @@ typedef char BINDING_indices_Offset[FIELD_OFFSET(BINDING,indices)==8?1:-1];
 typedef char LINK_second_Offset[FIELD_OFFSET(LINK,second)==2?1:-1];
 typedef char LINK_kind_Offset[FIELD_OFFSET(LINK,kind)==4?1:-1];
 extern "C"{
-char func_00117D00(STREAM*) __asm__("S8Read__18CBinaryInputStream");
-uint func_00117C80(STREAM*) __asm__("U32Read__18CBinaryInputStream");
-short func_00117D50(STREAM*) __asm__("S16Read__18CBinaryInputStream");
-int func_00117DB8(STREAM*) __asm__("S32Read__18CBinaryInputStream");
-void func_00117F18(STREAM*,M4*);
+char S8Read__18CBinaryInputStream(STREAM*) __asm__("S8Read__18CBinaryInputStream");
+uint U32Read__18CBinaryInputStream(STREAM*) __asm__("U32Read__18CBinaryInputStream");
+short S16Read__18CBinaryInputStream(STREAM*) __asm__("S16Read__18CBinaryInputStream");
+int S32Read__18CBinaryInputStream(STREAM*) __asm__("S32Read__18CBinaryInputStream");
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*);
 void*func_001AE1D0(const REQUEST&);
 void*func_001AE238(const REQUEST&,void*);
 MARK*STACKSCOPE_ctor(MARK*);
 void STACKSCOPE_ctor_1AE4A0(MARK*,int);
 BINDING*func_0016C8E0(P*,STREAM*);
 M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
-void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
+void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
 struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline void*Allocate(int bytes){return func_001AE1D0(REQUEST(bytes,16));}
@@ -83,20 +83,20 @@ static inline void*Reallocate(int bytes,void*old){return func_001AE238(REQUEST(b
  * @end-sly2-annot */
 extern "C" void LoadSubglobInstanceFromBrx(P*p,const D*sourceD,const E*sourceE,const SPHERE*sourceSphere,D*desc,E*entry,SPHERE*sphere,int groups,const int*counts,FACE**faces,STREAM*stream){
     M4 matrix;
-    (void)func_00117D00(stream);
+    (void)S8Read__18CBinaryInputStream(stream);
     *desc=*sourceD;*entry=*sourceE;
-    if(sphere){*sphere=*sourceSphere;sphere->metadata=func_00117C80(stream);}
+    if(sphere){*sphere=*sourceSphere;sphere->metadata=U32Read__18CBinaryInputStream(stream);}
     {
         SO*object=p->owner;
         VE*method=&object->vt[51];
         SO*receiver=(SO*)((char*)object+method->delta);
-        int index=func_00117D50(stream);
+        int index=S16Read__18CBinaryInputStream(stream);
         entry->transform=method->fn(receiver,index);
     }
-    if(entry->flags.word&0x1000)func_00117F18(stream,&matrix);
-    else{entry->parent=(M4*)Allocate(sizeof(M4));func_00117F18(stream,entry->parent);}
-    entry->value=func_00117DB8(stream);
-    entry->flags.bits.feature=func_00117D00(stream);
+    if(entry->flags.word&0x1000)ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&matrix);
+    else{entry->parent=(M4*)Allocate(sizeof(M4));ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,entry->parent);}
+    entry->value=S32Read__18CBinaryInputStream(stream);
+    entry->flags.bits.feature=S8Read__18CBinaryInputStream(stream);
     MARK scope;
     BINDING*binding=func_0016C8E0(p,stream);
     if(!(desc->flags&1)&&desc->kind==0){
@@ -108,7 +108,7 @@ extern "C" void LoadSubglobInstanceFromBrx(P*p,const D*sourceD,const E*sourceE,c
             M4 product,temp;
             __ml__FRC7MATRIX4T0(&temp,&entry->transform->matrix,&matrix);
             product=temp;
-            func_001AE5A0(entry->data+0x14,&product,0x40);
+            CopyAb__FPvT0Ui(entry->data+0x14,&product,0x40);
         }
         if(binding){
             for(int g=0;g<groups;g++){

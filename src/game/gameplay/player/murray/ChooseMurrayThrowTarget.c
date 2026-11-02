@@ -10,7 +10,7 @@ extern struct G D_003E0000;
 extern float D_002C0984, D_002C0988;
 qword func_001A62E8(void *p);
 int func_00184380(void *a, struct O *po);
-float func_002458F0(float y, float x);
+float atan2f(float y, float x);
 float RadStepHeading(struct P *p);
 float RadNormalize__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
@@ -53,7 +53,7 @@ void ChooseMurrayThrowTarget(struct P *p)
             continue;
         if (500.0f < GetZ2(ToGpr(d)))
             continue;
-        { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = func_002458F0(GetX(t), x); }
+        { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = atan2f(GetX(t), x); }
         if (D_002C0988 < __builtin_fabsf(RadNormalize__Ff(g - RadStepHeading(p))))
             continue;
         poBest = po;

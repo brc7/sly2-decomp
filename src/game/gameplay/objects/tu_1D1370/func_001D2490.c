@@ -16,7 +16,7 @@ extern float D_002C20D0[3];
 extern float D_002C20E0[2];
 qword func_001A62E8(void *);
 void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
-float func_002458F0(float, float);
+float atan2f(float, float);
 static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Dist2D(qword a, qword b)
@@ -91,6 +91,6 @@ void func_001D2490(OBJ *p)
     v=AddScaled(point,fallback,f);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(w) : "j"(v), "j"(pos));
     dir=NormalizeOr(w,fallback);
-    p->heading = func_002458F0(GetY(dir), GetX(dir));
+    p->heading = atan2f(GetY(dir), GetX(dir));
     p->drive = p->slip * 0.75f;
 }

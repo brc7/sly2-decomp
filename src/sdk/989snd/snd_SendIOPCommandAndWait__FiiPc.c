@@ -7,9 +7,9 @@ extern unsigned char D_0044388C[];
 extern int D_00443840[];
 extern char D_00443800[];
 extern char D_002AA5A0[], D_002AA1C8[];
-void func_0021EC18(const char *, ...);
+void printf(const char *, ...);
 void *func_0023320C(void *, void *, int);
-void func_00231C48(void);
+void snd_FlushSoundCommands(void);
 void func_00234CA0(int);
 void snd_PrepareReturnBuffer(void *, int);
 int func_00237488(void *);
@@ -26,7 +26,7 @@ int snd_SendIOPCommandAndWait__FiiPc(int cmd, int size, unsigned char *buf)
             D_00443880[i] = buf[i];
     } else {
         if ((unsigned int)(*(int *)(buf + 8) + 0xC) > 0x200) {
-            func_0021EC18(D_002AA5A0);
+            printf(D_002AA5A0);
             while (1)
                 ;
         }
@@ -35,14 +35,14 @@ int snd_SendIOPCommandAndWait__FiiPc(int cmd, int size, unsigned char *buf)
         func_0023320C(D_0044388C, *(void **)(buf + 0xC), *(int *)(buf + 8));
     }
     while (D_002C4640) {
-        func_00231C48();
+        snd_FlushSoundCommands();
         func_00234CA0(0);
     }
     snd_PrepareReturnBuffer(D_00443840, 1);
     while (func_00237488(D_00443800)) {
         if (!D_002C46B8)
-            func_0021EC18(D_002AA1C8);
-        func_00231C48();
+            printf(D_002AA1C8);
+        snd_FlushSoundCommands();
         func_00234CA0(0);
     }
     if (size)

@@ -57,7 +57,7 @@ extern "C" void SetCurrentJob(X *p);
 extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void ActivateTask(X *p);
 extern "C" void RefSetSaveVarV(CRef *pref, CRef *parg, void *pv, int n);
-extern "C" void func_00129EC8(CRef *pref);
+extern "C" void Decref__4CRef(CRef *pref);
 extern "C" int IlevelCur__Fv();
 extern "C" void *func_00210990(int n);
 extern "C" void WipeToWorldWarp(G *pg, void *p, int a, int b, int c, int d);
@@ -88,8 +88,8 @@ extern "C" void GoToTask(X *p)
         ref.m_tagk = 0x15;
         ref.m_tag = p->fC0;
         RefSetSaveVarV(&refRet, &ref, D_002A5238, 0);
-        func_00129EC8(&refRet);
-        func_00129EC8(&ref);
+        Decref__4CRef(&refRet);
+        Decref__4CRef(&ref);
     }
     int id = p->fB8 == -1 ? 0x189 : p->fB8;
     int k = 4;

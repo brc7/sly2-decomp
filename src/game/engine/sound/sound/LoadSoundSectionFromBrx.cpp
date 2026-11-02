@@ -116,7 +116,7 @@ struct SNDMGR
 };
 extern int D_002E1E54;
 extern "C" void snd_UnloadBank(void *);
-extern "C" int func_00231C48(void);
+extern "C" int snd_FlushSoundCommands(void);
 extern "C" void *func_002333B4(void *, int, uint);
 extern "C" STREAMSND *PstreamsndNew(FILEREC *, int);
 extern "C" void func_00259B48(void *, STREAMSND *);
@@ -149,7 +149,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbi
         if (psndmgr->pbank)
         {
             snd_UnloadBank(psndmgr->pbank);
-            while (func_00231C48())
+            while (snd_FlushSoundCommands())
                 ;
             psndmgr->pbank = 0;
         }

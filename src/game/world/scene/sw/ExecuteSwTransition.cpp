@@ -24,7 +24,7 @@ void func_00258248(KEY *);
 STREAM *func_001848A8(STREAM *,int,void *,int);
 int func_00184D60(STREAM *,KEY *);
 void func_00184950(STREAM *,int);
-void func_001179D8(STREAM *,int,void *);
+void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *);
 void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);
 void ResetClock(void *);
@@ -43,7 +43,7 @@ CONTEXT *PwarpFromOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
 ACTOR *PpoHero(SW *);
 ACTOR *PpoCur(SW *);
-void func_00129EC8(REF *);
+void Decref__4CRef(REF *);
 ACTOR *PloFindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
 int GetPoCtlState(ACTOR *);
@@ -58,7 +58,7 @@ void func_001A4E80(void *);
 }
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
-struct REF {int tag,value;REF(const REF &);~REF(){func_00129EC8(this);}};
+struct REF {int tag,value;REF(const REF &);~REF(){Decref__4CRef(this);}};
 extern "C" REF RefGetSaveVarV(const char *,...);
 static inline float Time(){return *(float *)D_002DDED0;}
 static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
@@ -106,7 +106,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
     func_001848A8(argument,0xD8000,D_002F7980,0);
     if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
-    func_001179D8(reader,0x4000,(void *)0x70000000);
+    SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
     DeleteSw(p);
     ResetClock(D_002DDED0);
