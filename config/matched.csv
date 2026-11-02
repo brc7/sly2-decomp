@@ -950,9 +950,9 @@ SolveDzgFilled,0x11ABF8,77,match,src/game/core/math/dzgcore/SolveDzgFilled.c
 SolveInequalities,0x11AD30,86,match,src/game/core/math/dzgcore/SolveInequalities.c
 StaticInit_dzgcore,0x11AE88,77,match,src/game/core/math/dzgcore/StaticInit_dzgcore.c
 func_0011AFC0,0x11AFC0,8,match,src/game/core/math/dzgcore/func_0011AFC0.c
-HashPchzCaseless,0x11AFE0,24,match,src/game/core/containers/tu_11AFE0/HashPchzCaseless.c
-StaticInit_tu_11AFE0,0x11B050,77,match,src/game/core/containers/tu_11AFE0/StaticInit_tu_11AFE0.c
-func_0011B188,0x11B188,8,match,src/game/core/containers/tu_11AFE0/func_0011B188.c
+HashPchzCaseless,0x11AFE0,24,match,src/game/core/containers/tu_11AFE0.cpp
+StaticInit_tu_11AFE0,0x11B050,77,match,src/game/core/containers/tu_11AFE0.cpp
+func_0011B188,0x11B188,8,match,src/game/core/containers/tu_11AFE0.cpp
 StaticInit_empty_11B1A8,0x11B1A8,77,match,src/game/core/containers/empty_11B1A8.cpp
 func_0011B2E0,0x11B2E0,8,match,src/game/core/containers/empty_11B1A8.cpp
 FInvertMatrix3,0x11B318,10,match,src/game/core/math/mat/FInvertMatrix3.c

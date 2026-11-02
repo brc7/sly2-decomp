@@ -154,7 +154,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11AFE0](../../../src/game/core/containers/tu_11AFE0/HashPchzCaseless.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
+| [0x11AFE0](../../../src/game/core/containers/tu_11AFE0.cpp) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
 
 ## mat (0x11B300-0x11CCA8)
 
