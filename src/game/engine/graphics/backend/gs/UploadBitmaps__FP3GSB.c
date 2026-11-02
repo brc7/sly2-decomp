@@ -5,7 +5,7 @@ extern int D_002DE598;
 void func_00166920(struct B *pb);
 struct MK *STACKSCOPE_ctor(struct MK *pm);
 void STACKSCOPE_ctor_1AE4A0(struct MK *pm, int n);
-void func_001572E0(struct B *pb, int n);
+void AllocStack__4DMASi(struct B *pb, int n);
 void func_001574B8(struct B *pb);
 int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int a, void *p, struct B *pb);
 void func_00166BD8(struct B *pb, int a, int b, int c);
@@ -30,7 +30,7 @@ void UploadBitmaps__FP3GSB(void *p) {
     int n;
     func_00166920(&b);
     STACKSCOPE_ctor(&mk);
-    func_001572E0(&b, ((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
+    AllocStack__4DMASi(&b, ((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     func_001574B8(&b);
     if (FBuildUploadBitmapGifs__FiP3GSBP4GIFS(1, p, &b)) {
         func_00166BD8(&b, 0, 1, 0xE);

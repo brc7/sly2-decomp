@@ -29,7 +29,7 @@ void *PsndStartSound(int);
 void SetSndSourceLo(void *,void *);
 void SetWidgetAnimPhase(X *,int,float);
 void SetWidgetState(X *,int);
-void func_00212A50(X *,int);
+void SetWidgetRequest(X *,int);
 }
 static inline void Post(X *x,int n){VT *entry=&x->vtable[49];((void (*)(void *,int))entry->function)((char *)x+entry->adjustment,n);}
 static inline void Clear(X *x){VT *entry=&x->vtable[50];((void (*)(void *))entry->function)((char *)x+entry->adjustment);}
@@ -184,8 +184,8 @@ extern "C" void SetReconSelState(P *p,int nextState)
     case -1:
         if(previous!=10){
             BroadcastGameEvent(D_002DEB30,11,0);
-            if(p->primary->shown){SetWidgetState(p->primary,1);func_00212A50(p->primary,1);}
-            if(p->secondary->shown){SetWidgetState(p->secondary,1);func_00212A50(p->secondary,1);}
+            if(p->primary->shown){SetWidgetState(p->primary,1);SetWidgetRequest(p->primary,1);}
+            if(p->secondary->shown){SetWidgetState(p->secondary,1);SetWidgetRequest(p->secondary,1);}
         }
         break;
     }

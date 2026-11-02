@@ -4,7 +4,7 @@ extern unsigned short D_002BE338[];
 /** @sly2-annot addr=0x15F8A8
  * Purpose: Binary-searches the font glyph table for a character (via remap table D_002BE338)
  * Info: proposed name PglyffFromCh (T1); TU font
- * Notes: names_v2 v1 proposed PglyffFromCh__8CFontBrxc (0.976)
+ * Notes: names_v2 v1 proposed IglyffFromCh (0.976)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#font-0x15ef00-0x1603b8
  * @end-sly2-annot */

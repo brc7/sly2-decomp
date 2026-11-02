@@ -5,7 +5,7 @@ extern struct M D_003DD490;
 extern struct CHK D_003E10D0;
 struct S { int k; int x4; struct X x; void *po; int n; };
 void SetWipeWipes(struct S *p, int k);
-void func_0020DF80(struct M *pm, struct X *px);
+void SetSwTransition(struct M *pm, struct X *px);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct M *pm, int k, int n, int z);
 static __inline__ int FSameChk(struct CHK *a, struct CHK *b)
 {
@@ -38,7 +38,7 @@ void func_0022B220(struct S *p, struct X *px, int n, int f)
         px->flags &= ~2;
     p->po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, n, 0);
     if (!p->po) {
-        func_0020DF80(&D_003DD490, px);
+        SetSwTransition(&D_003DD490, px);
         return;
     }
     p->x4 = 1;

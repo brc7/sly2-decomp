@@ -35,7 +35,7 @@ extern int D_003E0F9C;
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
-void func_00212A50(SUB *, int);
+void SetWidgetRequest(SUB *, int);
 void RefreshJobListEntries(OBJ *);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 /** @sly2-annot addr=0x1DD300
@@ -65,7 +65,7 @@ void SetJobListPage(OBJ *p, int s)
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         if (p->x24->x58 > 0)
-            func_00212A50(p->x24, 1);
+            SetWidgetRequest(p->x24, 1);
         p->x11C = s;
         p->x120 = s;
         p->x124 = s;
@@ -80,7 +80,7 @@ void SetJobListPage(OBJ *p, int s)
             p->x24->x74 = 0x4E1;
         if (p->x24->x58) {
             SetWidgetState(p->x24, 1);
-            func_00212A50(p->x24, 2);
+            SetWidgetRequest(p->x24, 2);
             VCALL(p->x24, 16);
         }
         break;
@@ -100,7 +100,7 @@ void SetJobListPage(OBJ *p, int s)
             p->x24->x74 = 0x4E4;
         if (p->x24->x58) {
             SetWidgetState(p->x24, 1);
-            func_00212A50(p->x24, 2);
+            SetWidgetRequest(p->x24, 2);
             VCALL(p->x24, 16);
         }
         break;

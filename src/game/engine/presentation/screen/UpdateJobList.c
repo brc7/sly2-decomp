@@ -15,7 +15,7 @@ typedef struct {
 void func_001DA808(OBJ *);
 int func_002127C8(void);
 void SetWidgetState(W *, int);
-void func_00212A50(W *, int);
+void SetWidgetRequest(W *, int);
 int GrfHandleJoyBtn(void *, int);
 void SetJobListPage(OBJ *, int);
 void UpdateScreenStickDir(OBJ *);
@@ -38,7 +38,7 @@ void UpdateJobList(OBJ *p)
         if (!func_002127C8())
             return;
         SetWidgetState(p->pw, 1);
-        func_00212A50(p->pw, 2);
+        SetWidgetRequest(p->pw, 2);
         p->pw->vt->a[16].pfn((char *)p->pw + p->pw->vt->a[16].d);
     }
     if (GrfHandleJoyBtn(p->x10, 0x800)) {

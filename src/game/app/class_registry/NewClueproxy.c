@@ -1,7 +1,7 @@
 #include "m2c_prelude.h"
 M2C_UNK func_001291A8(s32, s32 *);                  /* extern */
 M2C_UNK func_00129EC8(s32 *);                       /* extern */
-M2C_UNK func_0012A0B0(s32 *, M2C_UNK);              /* extern */
+M2C_UNK SetTag__4CRef4TAGK(s32 *, M2C_UNK);              /* extern */
 extern M2C_UNK D_002A3F20;
 extern M2C_UNK D_002A3F90;
 extern M2C_UNK D_002A3FA0;

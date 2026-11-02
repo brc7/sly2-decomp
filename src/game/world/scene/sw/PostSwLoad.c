@@ -20,7 +20,7 @@ void func_001957C0(struct S *p);
 void func_001D9520(void *p);
 void ProcessSwCallbacks(struct S *p);
 void func_001C1260(void *p);
-void func_0014D470(void *p);
+void SetupCm__FP2CM(void *p);
 void BroadcastGameEvent(void *p, int a, int b);
 
 /** @sly2-annot addr=0x20E740
@@ -60,6 +60,6 @@ void PostSwLoad(struct S *p)
     p->n39D8 = 0;
     p->n39D0 = 0;
     func_001C1260(p->p45CC);
-    func_0014D470(D_002DDF40);
+    SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }

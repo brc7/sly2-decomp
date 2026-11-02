@@ -5,7 +5,7 @@ CRef *func_0010D8E0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
     Decref__4CRef(&ref);
-    InitTag__4CRef(&ref, 0x24);
+    SetTag__4CRef4TAGK(&ref, 0x24);
     func_00156780(pbasic);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);

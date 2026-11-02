@@ -13,7 +13,7 @@ void SetWidgetAnimPhase(struct O *p, int n, float f);
 void func_00227788(void *p);
 void SetReconSelState(void *p, int n);
 void SetWidgetState(struct O *p, int n);
-void func_00212A50(struct O *p, int n);
+void SetWidgetRequest(struct O *p, int n);
 /** @sly2-annot addr=0x19D660
  * Purpose: Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1,
  *   starts timers/speaker labels
@@ -59,11 +59,11 @@ void func_0019D660(struct S *p, int st)
         }
         if (p->x8 && p->x8->x58) {
             SetWidgetState(p->x8, 1);
-            func_00212A50(p->x8, 1);
+            SetWidgetRequest(p->x8, 1);
         }
         if (p->x10 && p->x10->x58) {
             SetWidgetState(p->x10, 1);
-            func_00212A50(p->x10, 1);
+            SetWidgetRequest(p->x10, 1);
         }
         if (p->x14) SetReconSelState(p->x14, -1);
         break;

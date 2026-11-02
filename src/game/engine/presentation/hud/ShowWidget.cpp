@@ -6,7 +6,7 @@ struct B { char pad[0xC];
 struct S : B {
   char pad10[0x48]; int x58; char pad5c[0x14]; int x70; int x74; int x78; char pad7c[8]; void *x84;
   void A(int) __asm__("SetWidgetState");
-  void Bf(int) __asm__("func_00212A50");
+  void Bf(int) __asm__("SetWidgetRequest");
   int F(void *, int) __asm__("FSpriteHasAnim");
   void M(int) __asm__("ShowWidget");
 };

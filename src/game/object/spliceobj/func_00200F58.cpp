@@ -3,7 +3,7 @@ struct OBJ;
 struct PRM { int a; int k; int rest[8]; };
 extern "C" {
 extern char D_004520A8[];
-CRef *func_0012A0B0(CRef *pref, int tagk);
+CRef *SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void *func_002333B4(void *p, int c, int n);
 OBJ *PvNewPair(void);
 void RefGetPeopid(CRef *ret, void *b, PRM *prm);
@@ -55,7 +55,7 @@ inline SP::~SP()
 CRef *func_00200F58(CRef *ret, int c, int x, void *pb)
 {
     if (c == 0) {
-        func_0012A0B0(ret, 0);
+        SetTag__4CRef4TAGK(ret, 0);
         return ret;
     }
     PRM prm;

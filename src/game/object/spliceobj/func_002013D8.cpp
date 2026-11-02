@@ -1,6 +1,6 @@
 struct CRef;
 extern "C" {
-void func_0012A0B0(CRef *pr, int tagk);
+void SetTag__4CRef4TAGK(CRef *pr, int tagk);
 void func_001291A8(CRef *pr, const CRef *ps);
 CRef *func_00129658(CRef *pd, const CRef *ps);
 void func_00129EC8(CRef *pr);
@@ -9,7 +9,7 @@ struct CRef {
     int tagk;
     int tag;
     CRef() { tagk = -1; }
-    CRef(int k) { func_0012A0B0(this, k); }
+    CRef(int k) { SetTag__4CRef4TAGK(this, k); }
     CRef(const CRef &r) { func_001291A8(this, &r); }
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
     ~CRef() { func_00129EC8(this); }

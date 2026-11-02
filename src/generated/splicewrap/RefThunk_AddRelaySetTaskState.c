@@ -8,7 +8,7 @@ CRef *RefThunk_AddRelaySetTaskState(CRef *ret, void *pbasic, s32 cref, CRef *are
     s32 arg1_v;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
-    InitTag__4CRef(&ref, 0x24);
+    SetTag__4CRef4TAGK(&ref, 0x24);
     AddRelaySetTaskState(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);

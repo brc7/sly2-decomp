@@ -6,7 +6,7 @@ extern float D_002DDF0C;
 void RemoveSlEntry(struct H *ph, struct X *px);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
-void func_0014BF18(struct H *ph);
+void _ResetCodes(struct H *ph);
 static __inline__ void InitDli(DLI *pdli, struct H *pdl)
 {
     pdli->m_pdl = pdl;
@@ -53,7 +53,7 @@ void UpdateCodes(struct H *ph)
             SetSndSourceLo(PsndStartSound(0x34), 0);
             pxBest->pfn(pxBest->pv);
         }
-        func_0014BF18(ph);
+        _ResetCodes(ph);
         ph->gC = 0.0f;
         D_002DD2F8 = dli.m_pdliNext;
     }

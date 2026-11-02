@@ -22,7 +22,7 @@ void UpdateJtGrabInput(void *pv);
 void func_001A12F0(void *pv);
 void func_0019CC50(void *pv, int a, int b, int c);
 void FJtGrabNearestCandidate(void *pv, int a, int b);
-int func_00136A28(struct P *p, int n);
+int PgadgetBentleyFromId(struct P *p, int n);
 void UpdateJtActivePipe(void *pv);
 void func_00136118(struct P *p);
 void func_001367D8(struct P *p);
@@ -86,7 +86,7 @@ void UpdateBentleyStateMachine(struct P *p)
                 func_0019CC50(p->aF00, 0, 0, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->p150, 0x10);
-                p->x16B4 = func_00136A28(p, p->x1870);
+                p->x16B4 = PgadgetBentleyFromId(p, p->x1870);
                 SetBentleyState(p, 6);
             } else if (GrfConsumePressed__5POCTLUif(p->p150, 0x20, 0.2f)) {
                 FJtGrabNearestCandidate(&p->x4C0, 0xF8FE, 0);
@@ -106,7 +106,7 @@ void UpdateBentleyStateMachine(struct P *p)
             UpdateJtAirInput(p->a2C0);
             if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->p150, 0x10);
-                p->x16B4 = func_00136A28(p, p->x1870);
+                p->x16B4 = PgadgetBentleyFromId(p, p->x1870);
                 SetBentleyState(p, 6);
             }
             break;
@@ -128,7 +128,7 @@ void UpdateBentleyStateMachine(struct P *p)
                 FJtGrabNearestCandidate(&p->x4C0, 0xF8FE, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->p150, 0x10, 0.15f) && VCALL99(p, p->x1870)) {
                 ClearPoctlJoyPressed(p->p150, 0x10);
-                p->x16B4 = func_00136A28(p, p->x1870);
+                p->x16B4 = PgadgetBentleyFromId(p, p->x1870);
                 SetBentleyState(p, 6);
             }
             break;

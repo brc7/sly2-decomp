@@ -1,6 +1,6 @@
 struct S { int x0; int x4; int pad[4]; int x18; int x1C; int x20; char pad2[0xFD5C - 0x24]; char xFD5C[1]; };
 int func_00244570(int a, int b, int *c, int *d, int *e);
-int func_001AB098(void *p, int a, int b, int c);
+int McSyncResult(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1AC6A0
  * Purpose: sceMcGetInfo + McSyncResult
  * Info: proposed name McGetInfoSync (T2); TU memcard
@@ -13,7 +13,7 @@ int func_001AC6A0(struct S *s, int *out)
     int h;
     int r;
     h = func_00244570(s->x0, s->x4, &s->x18, &s->x1C, &s->x20);
-    r = func_001AB098(p, h, 1, 0);
+    r = McSyncResult(p, h, 1, 0);
     switch (r) {
     case 9:
         r = 0;

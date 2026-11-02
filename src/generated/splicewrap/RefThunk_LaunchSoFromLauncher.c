@@ -8,7 +8,7 @@ CRef *RefThunk_LaunchSoFromLauncher(CRef *ret, void *pbasic, s32 cref, CRef *are
     aotyp[0] = 0x2030;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
     Decref__4CRef(&ref);
-    InitTag__4CRef(&ref, 0x24);
+    SetTag__4CRef4TAGK(&ref, 0x24);
     LaunchSoFromLauncher(pbasic, arg0_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);

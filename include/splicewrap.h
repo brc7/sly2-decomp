@@ -11,7 +11,7 @@ typedef s32 OTYP;                                        /* splice argument type
  * stores each decoded argument through the trailing pointers. */
 void RefSetArgsFromSplice__FiP4CRefP4OTYPe(CRef *ret, s32 cref, CRef *aref, OTYP *aotyp, ...);
 void Decref__4CRef(CRef *pref);                          /* 0x129EC8 (inlined ~CRef) */
-void InitTag__4CRef(CRef *pref, s32 tagk);               /* 0x12A0B0 */
+void SetTag__4CRef4TAGK(CRef *pref, s32 tagk);               /* 0x12A0B0 */
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);         /* 0x1291A8 copy ctor */
 #define TAGK_Void 0x24
 #endif

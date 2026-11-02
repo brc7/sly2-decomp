@@ -84,7 +84,7 @@ extern M2C_UNK D_C0;
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 void HideWidget(s32 arg0) {
-    SetTimerTimers__FP5TIMER6TIMERS(arg0, 1);
+    SetWidgetRequest(arg0, 1);
     if (M2C_FIELD(arg0, s32 *, 0x78) == -1) {
         SetWidgetState(arg0, 1);
     }

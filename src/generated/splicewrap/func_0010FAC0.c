@@ -8,7 +8,7 @@ CRef *func_0010FAC0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     aotyp[0] = 0x207B;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
     Decref__4CRef(&ref);
-    InitTag__4CRef(&ref, 0x24);
+    SetTag__4CRef4TAGK(&ref, 0x24);
     func_0014B468(pbasic, arg0_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);

@@ -17,7 +17,7 @@ ulong GrfFromSgf(int);
 int CploFindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
 qword func_001A62E8(struct P *);
 void func_002338C0(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
-int func_002068D8(const void *,const void *);
+int NCmpGuardCandidateDist(const void *,const void *);
 int FAddStepguardDetectTarget(struct P *,struct P *,int);
 void UpdateDetectorTargets(struct MANAGER *);
 struct ENTRY *PdteFindDetectorTarget(struct MANAGER *,struct P *);
@@ -106,7 +106,7 @@ void UpdateStepguardDetectTargets(struct P *p)
                 }while(++i<objectCount);
             }
         }
-        func_002338C0(candidates,candidateCount,sizeof(struct CANDIDATE),func_002068D8);
+        func_002338C0(candidates,candidateCount,sizeof(struct CANDIDATE),NCmpGuardCandidateDist);
         p->manager->count-=p->generated;
         p->generated=0;
         if(candidateCount>0){

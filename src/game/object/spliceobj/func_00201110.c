@@ -4,7 +4,7 @@ typedef struct CREFA { CRef r; } __attribute__((aligned(16))) CREFA;
 typedef struct { qword a[3]; } M3;
 typedef struct { int a, b; } V2;
 typedef struct { int a, b, c; } V3;
-CRef *func_0012A0B0(CRef *pref, int tagk);
+CRef *SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
 void func_00129EC8(CRef *pref);
 CRef *CRef_RefCoerceS32(CRef *ret, CRef *pref);
@@ -86,7 +86,7 @@ CRef *func_00201110(CRef *ret, int c, CRef *aref, int *aotype, void **apv)
             break;
         }
     }
-    func_0012A0B0(ret, 0x24);
+    SetTag__4CRef4TAGK(ret, 0x24);
     func_00129EC8(&ref.r);
     return ret;
 }

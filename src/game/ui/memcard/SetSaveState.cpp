@@ -32,7 +32,7 @@ void SetSaveState(MC *p, int state);
 CRef Eval(int, SLOT *) __asm__("RefGetGlobalSaveVar");
 static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
 struct X { int A() __asm__("func_001AB0A0"); int B() __asm__("func_001AB0F0"); };
-void StartThread(void *, int (X::*)()) __asm__("CreateMemcardThread");
+void _iEnableDmac(void *, int (X::*)()) __asm__("CreateMemcardThread");
 
 /** @sly2-annot addr=0x1AB418
  * Purpose: SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state
@@ -65,10 +65,10 @@ void SetSaveState(MC *p, int state)
     switch (state) {
     case 0:
     case 1:
-        StartThread(&p->thr, &X::A);
+        _iEnableDmac(&p->thr, &X::A);
         break;
     case 3:
-        StartThread(&p->thr, &X::B);
+        _iEnableDmac(&p->thr, &X::B);
         break;
     case 6:
         p->pslotCur = &p->aslot[0];

@@ -12,7 +12,7 @@ int FStepplayerInJtmode();
 int func_0019C8D0(void *pv, int k);
 int func_00194558(void *pv, int k);
 int func_0019EEF0(void *pv, int k);
-struct E *func_00136A28(struct P *p, int k);
+struct E *PgadgetBentleyFromId(struct P *p, int k);
 int func_00224590(void *pv);
 int func_001CADE0(void *pv, int n);
 int FActiveCplcy__FP5CPLCY(void *pv);
@@ -63,7 +63,7 @@ int BENTLEY_FCanUseGadget(struct P *p, int k)
     inner:
         switch (k) {
         case 4: case 5: case 7: case 9: case 11: case 13: {
-            struct E *pe = func_00136A28(p, k);
+            struct E *pe = PgadgetBentleyFromId(p, k);
             if (pe->p8) {
                 if (func_00224590(pe->p8))
                     return 1;

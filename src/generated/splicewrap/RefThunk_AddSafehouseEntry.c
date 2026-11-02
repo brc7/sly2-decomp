@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void AddStepguardEffect__FP9STEPGUARD3OID3ZPK(s32, s32, s32, s32); /* extern */
+void AddSafehouseEntry(s32, s32, s32, s32); /* extern */
 extern M2C_UNK D_002A4038;
 
 CRef *RefThunk_AddSafehouseEntry(CRef *ret, void *pbasic, s32 cref, CRef *aref)
@@ -11,8 +11,8 @@ CRef *RefThunk_AddSafehouseEntry(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg2_v;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 3, aref, aotyp, &arg0_v, &arg1_v, &arg2_v);
     Decref__4CRef(&ref);
-    InitTag__4CRef(&ref, 0x24);
-    AddStepguardEffect__FP9STEPGUARD3OID3ZPK(pbasic, arg0_v, arg1_v, arg2_v);
+    SetTag__4CRef4TAGK(&ref, 0x24);
+    AddSafehouseEntry(pbasic, arg0_v, arg1_v, arg2_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

@@ -1,6 +1,6 @@
 struct G { char pad[0x40]; };
 struct S { char pad[0x14]; struct G *ag; };
-int PglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
+int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
 /** @sly2-annot addr=0x216B40
  * Purpose: GLYFF* = &glyphs[i] for i = 0x215A50(ch)
  * Info: proposed name CFontBrx_PglyffFromCh (T1); TU hud
@@ -15,6 +15,6 @@ int PglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
  * @end-sly2-annot */
 struct G *func_00216B40(struct S *p, unsigned char ch)
 {
-    int i = PglyffFromCh__8CFontBrxc(p, ch);
+    int i = IglyffFromCh__8CFontBrxc(p, ch);
     return i ? &p->ag[i] : 0;
 }

@@ -8,7 +8,7 @@ void StartupGame(void);
 void ExecuteSwTransition(void *);
 void func_001871C0(void *);
 void func_0014BA38(void);
-void func_0014D470(void *);
+void SetupCm__FP2CM(void *);
 void MarkClockTick(void *, int);
 void UpdateSw(void *);
 void func_001D9648(void *);
@@ -16,7 +16,7 @@ void func_00160828(void);
 int func_001477B0(void *);
 void RenderSw(void *);
 void DrawSw(void *);
-void func_001D9820(void *);
+void DrawUi(void *);
 void func_001477D8(void *);
 void CloseFrame__Fv(void);
 /** @sly2-annot addr=0x1A7518
@@ -38,7 +38,7 @@ void func_001A7518(int a, int b)
         ExecuteSwTransition(D_003DD490);
         func_001871C0(D_002DFC00);
         func_0014BA38();
-        func_0014D470(D_002DDF40);
+        SetupCm__FP2CM(D_002DDF40);
         MarkClockTick(D_002DDED0, 0);
         UpdateSw(D_003DD490);
         func_001D9648(D_003D9E70);
@@ -46,7 +46,7 @@ void func_001A7518(int a, int b)
         if (!D_002DD644 || func_001477B0(D_002DD644)) {
             RenderSw(D_003DD490);
             DrawSw(D_003DD490);
-            func_001D9820(D_003D9E70);
+            DrawUi(D_003D9E70);
         }
         if (D_002DD644)
             func_001477D8(D_002DD644);

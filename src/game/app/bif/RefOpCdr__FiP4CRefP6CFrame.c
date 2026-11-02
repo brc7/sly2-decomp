@@ -15,7 +15,7 @@ s32 RefOpCdr__FiP4CRefP6CFrame(s32 arg0, s32 arg1, void *arg2) {
 
     temp_a1 = M2C_FIELD(M2C_FIELD(arg2, void **, 4), void **, 0x10);
     if (temp_a1 == NULL) {
-        func_0012A0B0(arg0, 0);
+        SetTag__4CRef4TAGK(arg0, 0);
     } else {
         CRef_ctor_CPair(arg0, temp_a1);
     }

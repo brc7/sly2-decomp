@@ -87,7 +87,7 @@ void func_0015D648(s32 arg0, s32 arg1, s32 arg2) {
         M2C_FIELD(arg0, s32 *, 0x74) = -1;
         M2C_FIELD(arg0, s32 *, 0x70) = -1;
         M2C_FIELD(arg0, s32 *, 0x78) = -1;
-        SetTimerTimers__FP5TIMER6TIMERS(arg0, 1);
+        SetWidgetRequest(arg0, 1);
         SetWidgetState(arg0, 1);
         M2C_FIELD(arg0, s32 *, 0x11C) = arg1;
         M2C_FIELD(arg0, s32 *, 0x120) = arg2;

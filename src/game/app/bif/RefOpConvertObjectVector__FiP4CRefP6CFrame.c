@@ -2,7 +2,7 @@ typedef int TI __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
-void InitTag__4CRef(CRef *pref, int tagk);
+void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 TI ConvertAloVec(void *a, void *b, TI v);
 /** @sly2-annot addr=0x125060
  * Purpose: Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0
@@ -16,7 +16,7 @@ CRef *RefOpConvertObjectVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
 {
     CRef ref;
     TI *pv;
-    InitTag__4CRef(&ref, 0x1A);
+    SetTag__4CRef4TAGK(&ref, 0x1A);
     pv = ref.m_p;
     *pv = ConvertAloVec(aref[0].m_p, aref[1].m_p, *(TI *)aref[2].m_p);
     __4CRefRC4CRef(ret, &ref);

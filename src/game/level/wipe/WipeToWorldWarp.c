@@ -3,7 +3,7 @@ struct X { int flags; struct CHK chk; int a; int b; };
 struct M { char pad[0x3C40]; struct CHK chk; };
 extern char D_00443740[];
 void func_0022B220(void *p, struct X *px, int n, int f);
-void func_0020DF80(struct M *pm, struct X *px);
+void SetSwTransition(struct M *pm, struct X *px);
 static __inline__ int FSameChk(struct CHK *a, struct CHK *b)
 {
     if (a == b) return 1;
@@ -37,5 +37,5 @@ void WipeToWorldWarp(struct M *pm, struct CHK *pchk, int a, int b, int flags, in
     if (n != -1)
         func_0022B220(D_00443740, &x, n, 1);
     else
-        func_0020DF80(pm, &x);
+        SetSwTransition(pm, &x);
 }

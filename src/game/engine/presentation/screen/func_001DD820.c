@@ -1,7 +1,7 @@
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { int a, b, c; struct VTE *vt; };
 struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
-void func_001D5498(void);
+void EnsureRumbleModeDefault(void);
 /** @sly2-annot addr=0x1DD820
  * Purpose: Show the title screen (D_003DA530, widget 0x5D2) and its widget; reset rumble
  * Info: proposed name ShowTitleScreen (T2); TU screen
@@ -19,6 +19,6 @@ void func_001DD820(struct S *p) {
             struct VTE *e = &po->vt[49];
             ((void (*)(void *, int))e->pfn)((char *)po + e->d, -1);
         }
-        func_001D5498();
+        EnsureRumbleModeDefault();
     }
 }

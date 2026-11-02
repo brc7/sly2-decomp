@@ -3,7 +3,7 @@ M2C_UNK CopyAb__FPvT0Ui(s32, s32, s32);             /* extern */
 M2C_UNK func_00117EB0(s32, void *);                 /* extern */
 M2C_UNK func_001291A8(s32, void *);                 /* extern */
 M2C_UNK func_00129EC8(s32, s32, s32);               /* static */
-M2C_UNK func_0012A0B0(s32, M2C_UNK);                /* static */
+M2C_UNK SetTag__4CRef4TAGK(s32, M2C_UNK);                /* static */
 extern s128 D_002A2DD0;
 extern f32 D_002A45A8;
 extern M2C_UNK D_002CA8A0;

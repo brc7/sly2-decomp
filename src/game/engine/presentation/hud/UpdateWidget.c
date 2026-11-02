@@ -8,7 +8,7 @@ extern struct Clock D_002DDED0;
 extern float D_002DDF10;
 void UpdateLo(struct S *);
 int FWidgetAnimPlaying(struct S *,int);
-void func_00212A50(struct S *,int);
+void SetWidgetRequest(struct S *,int);
 void SetWidgetState(struct S *,int);
 void func_00218220(void *,float);
 /** @sly2-annot addr=0x212C50
@@ -30,8 +30,8 @@ void UpdateWidget(struct S *p) {
     } else if(p->update != D_002DDED0.time) {
         switch(state) {
         case 2:
-            if(!FWidgetAnimPlaying(p,p->selected)) func_00212A50(p,1);
-            if(p->duration>0.0f && p->duration<D_002DDED0.time-p->time) func_00212A50(p,1);
+            if(!FWidgetAnimPlaying(p,p->selected)) SetWidgetRequest(p,1);
+            if(p->duration>0.0f && p->duration<D_002DDED0.time-p->time) SetWidgetRequest(p,1);
             if(p->mode==1) state=p->id2==-1 ? 1:4;
             break;
         case 3:

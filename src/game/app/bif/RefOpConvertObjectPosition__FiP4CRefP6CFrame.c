@@ -2,7 +2,7 @@ typedef int TI __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
-void InitTag__4CRef(CRef *pref, int tagk);
+void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_ctor(CRef *pref, TI vec);
 TI ConvertAloPos(int a, int b, TI v);
 /** @sly2-annot addr=0x125000

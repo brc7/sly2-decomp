@@ -16,7 +16,7 @@ void func_00166920(struct DMAS *);
 void func_00226C10(struct X *);
 struct M *STACKSCOPE_ctor(struct M *);
 void STACKSCOPE_ctor_1AE4A0(struct M *, int);
-void func_001572E0(struct X *, int);
+void AllocStack__4DMASi(struct X *, int);
 void func_001574B8(struct X *);
 void func_00226D10(struct X *);
 void func_001572D0(struct DMAS *);
@@ -59,7 +59,7 @@ int UploadPermShaders(struct BS *pbs, int k)
     func_00226C10(&x);
     n4 = pbs->n4;
     STACKSCOPE_ctor(&m);
-    func_001572E0(&x, (D_003DCF9C * 3 + D_003DCF98) * 10 + 4);
+    AllocStack__4DMASi(&x, (D_003DCF9C * 3 + D_003DCF98) * 10 + 4);
     func_001574B8(&x);
     func_00226D10(&x);
     for (i = 0; i < D_003DCFF8; i++) {

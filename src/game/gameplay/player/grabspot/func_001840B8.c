@@ -1,6 +1,6 @@
 struct S { char pad[0x118]; int a; int b; };
 extern char D_003DD490[];
-void func_0020FEC0(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
 /** @sly2-annot addr=0x1840B8
  * Purpose: FAddRsmg(g_sw, &p->b, 4, &p->a, 1, ...)
  * Info: proposed name AddCid35Rsmg (T2); class CID35; TU grabspot
@@ -9,5 +9,5 @@ void func_0020FEC0(void *g, void *pb, int n, void *pa, int x, int y, int z, int 
  * @end-sly2-annot */
 void func_001840B8(struct S *p, int y, int z, int w)
 {
-    func_0020FEC0(D_003DD490, &p->b, 4, &p->a, 1, y, z, w);
+    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &p->b, 4, &p->a, 1, y, z, w);
 }

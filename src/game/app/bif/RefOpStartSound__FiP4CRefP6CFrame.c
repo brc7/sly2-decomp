@@ -1,7 +1,7 @@
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
-void InitTag__4CRef(CRef *pref, int tagk);
+void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 void CRef_ctor_BASIC(CRef *pref, void *p);

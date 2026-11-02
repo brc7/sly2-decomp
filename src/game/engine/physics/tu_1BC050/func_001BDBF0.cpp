@@ -6,7 +6,7 @@ extern "C" {
 void *func_001AE318(const AREQ &r);
 void func_002338C0(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 void func_001AE5A0(void *dst, const void *src, int cb);
-int func_001BDBC8(const void *a, const void *b);
+int NCmpPosX(const void *a, const void *b);
 }
 static inline void *Alloc(int cb) { return func_001AE318(AREQ(cb, 0x10)); }
 static inline float CrossZ(qword a, qword b, qword c)
@@ -28,7 +28,7 @@ extern "C" void func_001BDBF0(P *p, int n, qword *pts)
 {
     int i, k, t;
     qword *hull, *pv;
-    func_002338C0(pts, n, 0x10, func_001BDBC8);
+    func_002338C0(pts, n, 0x10, NCmpPosX);
     k = 2;
     {
         CTX ctx;

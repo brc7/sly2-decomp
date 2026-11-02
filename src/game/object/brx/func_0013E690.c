@@ -7,7 +7,7 @@ int func_00117C80(void *pbs);
 void CRef_ctor_CLQ(CRef *ret, float *ag);
 void CRef_ctor_LM(CRef *ret, float *ag);
 void CRef_ctor_VECTOR(CRef *ret, float *ag);
-void func_0012A0B0(CRef *ret, int tagk);
+void SetTag__4CRef4TAGK(CRef *ret, int tagk);
 /** @sly2-annot addr=0x13E690
  * Purpose: Reads one typed method-option argument into a CRef by otyp: 0 bool(U8), 1 float, 5/6 S32, 7/14..23
  *   S16, 2/9 3xF32 vectors, 10 2xF32, 0x1xxx U32, else null tag 0x24
@@ -70,7 +70,7 @@ CRef *func_0013E690(CRef *ret, int k, void *pbs)
             ret->u.n = func_00117C80(pbs);
             ret->m_tagk = 0x15;
         } else {
-            func_0012A0B0(ret, 0x24);
+            SetTag__4CRef4TAGK(ret, 0x24);
         }
         break;
     }

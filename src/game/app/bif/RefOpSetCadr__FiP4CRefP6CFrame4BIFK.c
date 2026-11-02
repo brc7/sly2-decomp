@@ -1,5 +1,5 @@
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
-void InitTag__4CRef(CRef *pref, int tagk);
+void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc);
 void PairPtr_Assign(void *p, void *q);
 /** @sly2-annot addr=0x120C48
@@ -18,6 +18,6 @@ CRef *RefOpSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, CRef *aref, i
         PairPtr_Assign(p + 0x10, aref[1].m_p);
     else
         PairPtr_Assign(p + 0x10, 0);
-    InitTag__4CRef(ret, 0x24);
+    SetTag__4CRef4TAGK(ret, 0x24);
     return ret;
 }

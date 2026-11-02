@@ -2,7 +2,7 @@ struct CRef;
 extern "C" void func_00129EC8(CRef *);
 extern "C" void func_001291A8(CRef *, const CRef *);
 extern "C" void func_00129658(CRef *, const CRef *);
-extern "C" void func_0012A0B0(CRef *, int);
+extern "C" void SetTag__4CRef4TAGK(CRef *, int);
 struct CRef {
     int tagk; int tag;
     CRef() { tagk = -1; }
@@ -46,6 +46,6 @@ extern "C" CRef LoadSpliceEntryFromBrx(void *p, Q *pq, int i)
         pq->ae[i].b = sp.p;
     }
     func_00129EC8(&r);
-    func_0012A0B0(&r, 0x24);
+    SetTag__4CRef4TAGK(&r, 0x24);
     return r;
 }

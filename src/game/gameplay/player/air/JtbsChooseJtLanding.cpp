@@ -1,7 +1,7 @@
 // JtbsChooseJtLanding: chooses the jump target of the player (JTAIR, the family of Lilly's jtair.c: func_0019A750 is
 // JtPlanLaunchVz). Every candidate list (D_003E13B4..D_003E142C are 12-byte DL heads) is scanned; a candidate is
 // scored with func_0011D9E0 (a 1-D minimizer over the matched GMeasureJumpRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
-// biased by FUN_001cf138 and checked for a clear path with FFindJtObstruction unless it is the forced target. The best one
+// biased by GAdjustJtLandingScore and checked for a clear path with FFindJtObstruction unless it is the forced target. The best one
 // is published in pstepplayer->pxf (+0xA8 landing time, +0xC0 position, +0xD0 velocity) and func_00195FB8 starts the
 // jump of that kind (9 shapes, 10 curves, 14 hooks, 16 meshes, 18 the partner's target, 15/11 curves, 12/13 shapes).
 //
@@ -133,7 +133,7 @@ qword func_0019A750(JTAIR *pjtair, int nKind);                         // JtPlan
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
                    VECTOR *ppos, VECTOR *pv);
-float FUN_001cf138(JTAIR *pjtair, void *plo, float g, float dg);
+float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
 int FFindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
 void FFilterSoPair();
@@ -218,7 +218,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             if (pshape != ploForce) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = FUN_001cf138(pjtair, pshape, g, D_002BF8E4);
+                g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8E4);
                 if (gBest <= g)
                     continue;
                 if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
@@ -253,7 +253,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             if (pcurve != ploForce) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = FUN_001cf138(pjtair, pcurve, g, D_002BF8E8);
+                g = GAdjustJtLandingScore(pjtair, pcurve, g, D_002BF8E8);
                 if (gBest <= g)
                     continue;
             }
@@ -303,7 +303,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             if (phook != ploForce) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = FUN_001cf138(pjtair, phook, g, D_002BF8EC);
+                g = GAdjustJtLandingScore(pjtair, phook, g, D_002BF8EC);
                 if (gBest <= g)
                     continue;
                 if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
@@ -336,7 +336,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             if (pmesh != ploForce) {
                 if (gMesh >= D_002BF8E0)
                     continue;
-                gMesh = FUN_001cf138(pjtair, pmesh, gMesh, D_002BF908);
+                gMesh = GAdjustJtLandingScore(pjtair, pmesh, gMesh, D_002BF908);
                 if (gBest <= gMesh)
                     continue;
             }
@@ -364,7 +364,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
         if (D_002F7900->ploPartnerTarget != ploForce) {
             if (g >= D_002BF8E0)
                 goto LPartnerDone;
-            g = FUN_001cf138(pjtair, D_002F7900, g, D_002BF904);
+            g = GAdjustJtLandingScore(pjtair, D_002F7900, g, D_002BF904);
             if (gBest <= g)
                 goto LPartnerDone;
             void *apso[2];
@@ -404,7 +404,7 @@ LPartnerDone:
         if (pcurve != ploForce) {
             if (D_002BF8E0 <= gCurve)
                 continue;
-            gCurve = FUN_001cf138(pjtair, pcurve, gCurve, D_002BF8F0);
+            gCurve = GAdjustJtLandingScore(pjtair, pcurve, gCurve, D_002BF8F0);
             if (gBest <= gCurve)
                 continue;
         }
@@ -448,7 +448,7 @@ LPartnerDone:
         if (pshape != ploForce) {
             if (g >= D_002BF8E0)
                 continue;
-            g = FUN_001cf138(pjtair, pshape, g, D_002BF8F8);
+            g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8F8);
             if (gBest <= g)
                 continue;
         }
@@ -486,7 +486,7 @@ LPartnerDone:
         if (pcurve != ploForce) {
             if (g >= D_002BF8E0)
                 continue;
-            g = FUN_001cf138(pjtair, pcurve, g, D_002BF8F4);
+            g = GAdjustJtLandingScore(pjtair, pcurve, g, D_002BF8F4);
             if (gBest <= g)
                 continue;
         }
@@ -518,7 +518,7 @@ LPartnerDone:
         if (pshape != ploForce) {
             if (g >= D_002BF8E0)
                 continue;
-            g = FUN_001cf138(pjtair, pshape, g, D_002BF8FC);
+            g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8FC);
             if (gBest <= g)
                 continue;
             if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,

@@ -5,7 +5,7 @@ M2C_UNK WaitSema(s32);                              /* extern */
 M2C_UNK func_002348B0(s32, M2C_UNK);                /* extern */
 
 /** @sly2-annot addr=0x1AB040
- * Purpose: If thread valid ChangeThreadPriority(id,1); then wait/signal sema (block until job finishes)
+ * Purpose: If thread valid iReleaseAlarm(id,1); then wait/signal sema (block until job finishes)
  * Info: proposed name SetMemcardThreadHighPrio (T1); TU memcard
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
  *   r4_17F090+verdicts_A2+names_v2-signature(verified)

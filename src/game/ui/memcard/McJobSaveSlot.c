@@ -2,7 +2,7 @@ struct S { char pad[0xFD50]; void *x; };
 extern char D_002E6550[];
 void *McJobGetInfo(struct S *s);
 void *CreateSaveDir(struct S *s);
-void *func_001AC420(struct S *s, void *x);
+void *WriteSaveSlotFile(struct S *s, void *x);
 void func_001ACC38(void *p, int n);
 /** @sly2-annot addr=0x1ABB60
  * Purpose: Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420)
@@ -14,5 +14,5 @@ void func_001ACC38(void *p, int n);
  * @end-sly2-annot */
 void *McJobSaveSlot(struct S *s)
 {
-    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = func_001AC420(s, s->x); if (p) func_001ACC38(D_002E6550, 3); return p;
+    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFile(s, s->x); if (p) func_001ACC38(D_002E6550, 3); return p;
 }

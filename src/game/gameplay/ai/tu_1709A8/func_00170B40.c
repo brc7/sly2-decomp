@@ -5,7 +5,7 @@ M2C_UNK func_00117EB0(s32, s32 *);                  /* extern */
 M2C_UNK func_00117F18(s32, M2C_UNK *);              /* extern */
 M2C_UNK func_00117F90(s32, M2C_UNK *);              /* extern */
 M2C_UNK func_00117FB0(s32, M2C_UNK *);              /* extern */
-M2C_UNK func_001572E0(M2C_UNK *, s32);              /* extern */
+M2C_UNK AllocStack__4DMASi(M2C_UNK *, s32);              /* extern */
 M2C_UNK func_001573C0(M2C_UNK *, s32 *, s32 *, s32 *); /* extern */
 s32 *func_001AE318(s32 *, s8, M2C_UNK, M2C_UNK);    /* extern */
 M2C_UNK func_00226C10(M2C_UNK *, s64, s64, s64);    /* extern */

@@ -2,7 +2,7 @@
 M2C_UNK func_00117968(s32, s32, s32);               /* extern */
 M2C_UNK func_001291A8(s32, s32 *);                  /* extern */
 M2C_UNK func_00129EC8(s32 *);                       /* extern */
-M2C_UNK func_0012A0B0(s32 *, M2C_UNK);              /* extern */
+M2C_UNK SetTag__4CRef4TAGK(s32 *, M2C_UNK);              /* extern */
 extern M2C_UNK D_00279AD0;
 extern s128 D_002A2DD0;
 extern M2C_UNK D_002A8288;

@@ -1217,7 +1217,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x127D78,func_00127D78,FFindBinding__6CFrameUiiP4CRef,hi,r1_116918+verdicts_A1+names_v2-signature(verified),match(scratch_v3:batch_02_splice)+verifier+names_v2-verified,T1,0.85,,applied,"PrefFindBinding wrapper: copies binding into *pref, returns found"
 0x127E90,func_00127E90,CFrame_CloneTo,mid,r1_116918,match(scratch_v3:batch_02_splice),T1,0.70,,applied,"New frame (0x256DD0), copies parent pointers, clones binding list via CVarb clone 0x12B0E8"
 0x127FE0,func_00127FE0,StaticInit_frame,hi,tu_map(structural)+r1_116918,match(scratch_v3:batch_02_splice),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU frame
-0x128118,_GLOBAL_$I$g_gc,_GLOBAL_$I$frame,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.85,,not batched,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
+0x128118,_GLOBAL_$I$g_gc,_GLOBAL_$I$frame,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.85,,refused: new_name '_GLOBAL_$I$frame' not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x128138,func_00128138,CGc_ctor,hi,r1_116918,match(scratch_v3:batch_02_splice),T1,0.80,,applied,Constructor of the global GC object (zeroes first field)
 0x128148,func_00128148,CGc_UpdateRecyclable,hi,r1_116918+verdicts_tu_r1r2,match(scratch_v3:batch_02_splice)+verifier,T1,0.85,,applied,Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10)
 0x1281B0,func_001281B0,MarkLiveObjects__3CGc,hi,r1_116918,match(scratch_v3:batch_02_splice),T1,0.85,,applied,"Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked"
@@ -1262,7 +1262,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x129D58,func_00129D58,CRef_RefCoerceS32,hi,r1_116918,match(scratch_v3:batch_02_splice),T1,0.85,,applied,Returns S32 copy (float truncated)
 0x129DA8,func_00129DA8,CRef_RefCoerceF32,hi,r1_116918,match(scratch_v3:batch_02_splice),T1,0.88,,applied,Returns F32 copy (int promoted); used by most numeric builtins
 0x129DF8,func_00129DF8,Incref__4CRef,hi,r1_116918,match(scratch_v3:batch_02_splice),T1,0.88,,applied,"Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p, objects vtable slot 1)"
-0x12A0B0,InitTag__4CRef,SetTag__4CRef4TAGK,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.65,,not batched,
+0x12A0B0,InitTag__4CRef,SetTag__4CRef4TAGK,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.65,,applied,
 0x12A1A0,func_0012A1A0,StaticInit_ref,hi,tu_map(structural)+r1_116918,match(scratch_v3:batch_02_splice),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU ref
 0x12A3B8,func_0012A3B8,_GLOBAL_$I$ref,hi,tu_map(structural)+r1_116918,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$ref': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x12A3D8,func_0012A3D8,PpairSerializeIn__FP18CBinaryInputStream,hi,r1_116918+parse-verified+format-doc:splice_scripts,match(scratch_v3:batch_02_splice)+parse-verified+format-doc,T1,0.97,,applied,"Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500)"
@@ -1502,7 +1502,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x136530,func_00136530,SetBentleyHoverState,lo,r2b_rest,static-only,T2,0.30,,not batched,State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code
 0x1367D8,func_001367D8,UpdateBentleyStateMisc,lo,r2b_rest,static-only,T2,0.30,,not batched,Small transition loop (state 1 returns to 0 and makes the PO current via vt79)
 0x136870,func_00136870,BENTLEY_FCanUseGadget,mid,r2b_rest,match(scratch_v3:batch_07_player),T1,0.70,,applied,BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability
-0x136A28,CbFromSaak__F4SAAK,PgadgetBentleyFromId,hi,arbitration (adopt proposal) + runtime,runtime+arbitration,EXISTING-CHANGE,0.90,,not batched,
+0x136A28,CbFromSaak__F4SAAK,PgadgetBentleyFromId,hi,arbitration (adopt proposal) + runtime,match(rename.py:batch_15_existing_name_changes_passA)+runtime+arbitration,EXISTING-CHANGE,0.90,,applied,
 0x136A90,func_00136A90,StartBentleyGadget,hi,r2b_rest+runtime,match(scratch_v3:batch_07_player)+runtime,T1,0.75,,applied,"BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget record"
 0x136C50,func_00136C50,OnBentleyGadgetsChanged,mid,r2b_rest,match(scratch_v3:batch_07_player),T1,0.50,,applied,"BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else disable"
 0x136CB0,func_00136CB0,BENTLEY_PchzSaveVarRoot,hi,r2b_rest+verdicts_followups,match(scratch_v3:batch_07_player)+verifier,T1,0.85,,applied,"BENTLEY vt103: returns ""bentley"" (save-variable namespace used for hpCur/mpCur/apukCur)"
@@ -1585,7 +1585,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x13C368,func_0013C368,BOOTY_FTakeDamage,lo,r2b_rest,static-only,T2,0.45,,not batched,"cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1"
 0x13C3B8,func_0013C3B8,AddBootyEntry,mid,r2b_rest,match(scratch_v3:batch_09_world_objects_a),T1,0.50,,applied,"Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158)"
 0x13C440,func_0013C440,ClearBootyCurEntry,lo,r2b_rest,static-only,T2,0.45,,not batched,current entry (+0x158) = 0
-0x13C448,AddAlarmAlbrk__FP5ALARM3OID,AddBootyEntryOid,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,
+0x13C448,AddAlarmAlbrk__FP5ALARM3OID,AddBootyEntryOid,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,reverted: match changed in src/game/gameplay/progression/booty/AddAlarmAlbrk__FP5ALARM3OID.cpp,
 0x13C478,func_0013C478,IdBootyCur,mid,r2b_rest,match(scratch_v3:batch_09_world_objects_a),T1,0.55,,applied,id of the current entry or -1
 0x13C490,func_0013C490,SelectBootyEntry,mid,r2b_rest,match(scratch_v3:batch_09_world_objects_a),T1,0.50,,applied,make the entry with this id current (else the first)
 0x13C4D8,func_0013C4D8,PentryBootyCur,lo,r2b_rest,static-only,T2,0.40,,not batched,returns current entry pointer
@@ -1880,7 +1880,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x14BE88,func_0014BE88,_GLOBAL_$I$cd,hi,tu_map(structural),static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$cd': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x14BEA8,func_0014BEA8,AddCode,hi,semantic_tu_docs/cheat,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.85,,applied,"If not already in the list (0x11A1B8 ≈ FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur = (current buttons D_002E0CB4 == ajbc[0])"
 0x14BF10,func_0014BF10,junk_0014BF10,hi,semantic_tu_docs/cheat,static-only,T1,0.85,,excluded: rename.py refuses plain name 'junk_0014BF10': is an address placeholder name,4-byte orphan instruction
-0x14BF18,UnmarkAll__10CSplotheap,_ResetCodes,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,Sets ijbcCur = 0 on every code
+0x14BF18,UnmarkAll__10CSplotheap,_ResetCodes,hi,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.80,,applied,Sets ijbcCur = 0 on every code
 0x14BF48,func_0014BF48,_MatchCodes,hi,semantic_tu_docs/cheat,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.85,,applied,"Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is set: for each unfinished code, advance ijbcCur if the press equa"
 0x14BFF8,func_0014BFF8,UpdateCodes,hi,semantic_tu_docs/cheat,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.85,,applied,When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc; StartSound(0x34) via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCo
 0x14C140,func_0014C140,CheatResetEpisode,lo,semantic_tu_docs/cheat,static-only,T2,0.35,,not batched,"0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1)"
@@ -1910,7 +1910,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x14D280,func_0014D280,StaticInit_clock,hi,tu_map(structural)+semantic_tu_docs/clock,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU clock
 0x14D3B8,func_0014D3B8,_GLOBAL_$I$clock,hi,tu_map(structural)+semantic_tu_docs/clock,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$clock': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x14D3D8,func_0014D3D8,CM_ctor,hi,r2_131F70,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.90,,applied,"CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera policies at +0x3A0..+0x600"
-0x14D470,StartupCm__Fv,SetupCm__FP2CM,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.90,,not batched,
+0x14D470,StartupCm__Fv,SetupCm__FP2CM,hi,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.90,,applied,
 0x14D478,func_0014D478,UpdateCmLast__FP2CM,hi,r2_131F70,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.85,,applied,"Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50 GetCpdefi into cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then p"
 0x14D650,func_0014D650,ResetCmPolicies,lo,r2_131F70+verdicts_A1,verifier,T2,0.40,,not batched,"Calls vt7 (unknown 'reset/close' slot) on every policy in acpr[], then rUnk620=0, rUnk624=10.0"
 0x14D6D8,func_0014D6D8,InitCm__FP2CM,hi,r2_131F70,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.90,,applied,"Camera init: rgba fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat, RecalcCmFrustrum, SetCmLookAt, CutCm, Init on each embedded policy, push def"
@@ -2056,7 +2056,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x153FF8,func_00153FF8,ResetDetectorTargets,lo,r3_1539A8,static-only,T2,0.45,,not batched,Clears every target state to 0 and stamps the current clock time
 0x154038,func_00154038,SetDetectorTargetStateById,mid,r3_1539A8,match(scratch_v3:batch_08_guards_ai),T1,0.50,,applied,Looks up a target by id and sets its detection state
 0x154080,func_00154080,SetDetectorTargetState,hi,r3_1539A8+verdicts_tu_r3r5,match(scratch_v3:batch_08_guards_ai)+verifier,T1,0.85,,applied,"Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and, when a pla"
-0x154158,X509v3_data_type_by_NID,GetDetectorTargetStateById,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.75,,not batched,
+0x154158,X509v3_data_type_by_NID,GetDetectorTargetStateById,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.75,,applied,
 0x154180,func_00154180,PdteFindDetectorTarget,mid,r3_1539A8,match(scratch_v3:batch_08_guards_ai),T1,0.55,,applied,Finds the target entry with a given id in the detector list (NULL for id 0)
 0x1541D8,func_001541D8,KCalculateDetectorTarget,mid,r3_1539A8,match(scratch_v3:batch_08_guards_ai),T1,0.50,,applied,"Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects hidden/disguised/invisible targets, BSP line-of-sight through all world occlude"
 0x1545F0,func_001545F0,FDetectorLineBlocked,lo,r3_1539A8,static-only,T2,0.40,,not batched,Tests whether the line from the detector eye to the target is blocked by objects (PsoHitTestLineObjects with the filter callbacks)
@@ -2112,7 +2112,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x156FE8,func_00156FE8,FLoInNoise,lo,r3b_rest,static-only,T2,0.35,,not batched,True if an LO lies within a noise's height range and radius
 0x1570A8,func_001570A8,StaticInit_noise,hi,tu_map(structural)+r3_1539A8,match(scratch_v3:batch_08_guards_ai),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU noise
 0x1571E0,func_001571E0,_GLOBAL_$I$noise,hi,tu_map(structural)+r3_1539A8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$noise': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1572E0,AllocSw__4DMASi,AllocStack__4DMASi,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.90,,not batched,
+0x1572E0,AllocSw__4DMASi,AllocStack__4DMASi,hi,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.90,,applied,
 0x1574A8,func_001574A8,junk_001574A8,hi,r3_1539A8,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_001574A8': is an address placeholder name,"Not a function: orphan epilogue fragment (addiu sp,0x30; nop; addiu sp,0x10; nop), no jr/callers"
 0x1577A0,func_001577A0,StaticInit_dmas,hi,tu_map(structural)+r3_1539A8,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU dmas
 0x1578D8,func_001578D8,_GLOBAL_$I$dmas,hi,tu_map(structural)+r3_1539A8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$dmas': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
@@ -2127,7 +2127,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1585D8,func_001585D8,InitDzgXp,hi,r3b_rest+arbitration,match(scratch_v3:batch_09_world_objects_a)+arbitration,T1,0.50,,applied,"Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row"
 0x158728,func_00158728,FillDzgDz,hi,r3b_rest+verdicts_A1,match(scratch_v3:batch_09_world_objects_a)+verifier,T1,0.70,,applied,"Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows"
 0x158958,func_00158958,PxpFromDzgDz,lo,r3b_rest,static-only,T2,0.40,,not batched,Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60)
-0x158988,SolveDzg__FP3DZGiiPP2XPPiPPP2SO,SolveDzg__FP3DZGi,hi,"arbitration (keep name, fix signature)",arbitration,EXISTING-CHANGE,0.80,,not batched,
+0x158988,SolveDzg__FP3DZGiiPP2XPPiPPP2SO,SolveDzg__FP3DZGi,hi,"arbitration (keep name, fix signature)",arbitration,EXISTING-CHANGE,0.80,,reverted: match changed in src/game/engine/physics/dzg/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp,
 0x158B20,func_00158B20,SolveDzgFric,hi,r3b_rest+verdicts_A1,match(scratch_v3:batch_09_world_objects_a)+verifier,T1,0.80,,applied,"Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scale"
 0x158E20,func_00158E20,ApplyDzg,mid,r3b_rest,match(scratch_v3:batch_09_world_objects_a),T1,0.75,,applied,Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2
 0x158FC0,func_00158FC0,StaticInit_dzg,hi,tu_map(structural)+r3_1539A8,match(scratch_v3:batch_09_world_objects_a),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU dzg
@@ -2237,7 +2237,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1623D0,func_001623D0,TriggerStateRsmgs,mid,r3b_rest,match(scratch_v3:batch_05_object_model_a),T1,0.55,,applied,Loops TriggerStateRsmg over an array of 24-byte records
 0x162448,func_00162448,InitJob,hi,r3b_rest+verdicts_tu_r3r5,match(scratch_v3:batch_05_object_model_a)+verifier,T1,0.70,,applied,"JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks"
 0x1624A8,func_001624A8,LoadJobFromBrx,hi,r3b_rest+verdicts_tu_r3r5+parse-verified,match(scratch_v3:batch_05_object_model_a)+parse-verified+verifier,T1,0.75,,applied,"JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read"
-0x162600,FUN_001e53f8,AddJobCompleteEvent,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.55,,not batched,Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives
+0x162600,FUN_001e53f8,AddJobCompleteEvent,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.55,,applied,Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives
 0x162630,func_00162630,AddJobFailEvent,lo,r3b_rest,static-only,T2,0.40,,not batched,Splice: appends a game-event id to the job list at +0x5C/+0x60 (max 32); HandleJobGameEvent calls FailJob when it arrives
 0x162660,func_00162660,SetJobCompletionWidget,lo,r3b_rest,static-only,T2,0.40,,not batched,"Splice: sets job +0xAC widget oid, +0xB0 intro label, +0xB4 outro label used by the completion sequence"
 0x162670,func_00162670,FJobLive,mid,r3b_rest,match(scratch_v3:batch_05_object_model_a),T1,0.50,,applied,"True if the job is enabled (+0x50==0), its mode (+0xF0) is not 2/3, and no world transition is in progress"
@@ -2358,7 +2358,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x16EF00,func_0016EF00,ResetGlobAttachment,lo,r3_1539A8+rendering,static-only,T2,0.25,,not batched,"Resets an attachment record (clear flag on attached object, zero vector, radius 1e6)"
 0x16EFE0,func_0016EFE0,StaticInit_glob,hi,tu_map(structural)+r3_1539A8,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU glob
 0x16F128,func_0016F128,_GLOBAL_$I$glob,hi,tu_map(structural)+r3_1539A8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$glob': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x16F148,RenderGomerSelf__FP5GOMERP2CMP2RO,InitGomer__FP5GOMER,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.85,,not batched,GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78
+0x16F148,RenderGomerSelf__FP5GOMERP2CMP2RO,InitGomer__FP5GOMER,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.85,,reverted: match changed in src/game/gameplay/ai/gomer/RenderGomerSelf__FP5GOMERP2CMP2RO.cpp,GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78
 0x16F178,func_0016F178,StaticInit_gomer,hi,tu_map(structural)+r3_1539A8,match(scratch_v3:batch_08_guards_ai),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU gomer
 0x16F2B0,func_0016F2B0,_GLOBAL_$I$gomer,hi,tu_map(structural)+r3_1539A8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$gomer': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x16FAF8,func_0016FAF8,BuildFbaGifs__FiP2QWl,mid,r3_1539A8,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.60,,applied,Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer
@@ -2367,7 +2367,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x170048,func_00170048,RebuildFrameGifs__Fv,hi,r3_1539A8+verdicts_tu_r3r5,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a buffer swap
 0x1700D0,func_001700D0,StartupGs__Fv,hi,r3_1539A8,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.90,,applied,"GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets, semaphores, VBlank/GS interrupt handlers"
 0x1703B8,func_001703B8,junk_001703B8,hi,r3_1539A8+verdicts_tu_r3r5,verifier,T1,0.90,,excluded: rename.py refuses plain name 'junk_001703B8': is an address placeholder name,"Not a function: orphan epilogue fragment (addiu sp,0x4D0; nop)"
-0x1703F8,InitZpr__FP3ZPR3ZPKP2LO,InitGsb__FP3GSBii,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.85,,not batched,
+0x1703F8,InitZpr__FP3ZPR3ZPKP2LO,InitGsb__FP3GSBii,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.85,,reverted: match changed in src/game/engine/graphics/backend/gs/InitZpr__FP3ZPR3ZPKP2LO.cpp,
 0x170448,func_00170448,IgsbBucketFromCgs__Fi,mid,r3_1539A8,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.50,,applied,"Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64"
 0x1704B8,func_001704B8,PadGsbToPage__FP3GSB,mid,r3_1539A8,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.50,,applied,Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists
 0x170548,func_00170548,IgsAllocGsb__FP3GSBi,hi,r3_1539A8+verdicts_tu_r3r5,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,"Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a 0x80 boundary if it would straddle); return"
@@ -2666,7 +2666,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x17FBE8,func_0017FBE8,HACKSHIP_TakeDamage,mid,r4b_rest+whole_game(class identity),match(scratch_v3:batch_08_guards_ai),T1,0.50,,applied,"vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and state 2 (hit) or 4 (defeated)"
 0x17FCB0,func_0017FCB0,ResetHackship,lo,r4b_rest+whole_game(class identity),static-only,T2,0.30,,not batched,Reset health and state (ResetCid47 + SetCid48State + health bar)
 0x17FD08,func_0017FD08,SetHackshipState,lo,r4b_rest+whole_game(class identity),static-only,T2,0.45,,not batched,"State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5"
-0x1800A0,UseStepguardDeathAnimation__FP9STEPGUARDi3OID,AddHackshipOidPair,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.50,,not batched,"Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230)"
+0x1800A0,UseStepguardDeathAnimation__FP9STEPGUARDi3OID,AddHackshipOidPair,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.50,,applied,"Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230)"
 0x1800D8,func_001800D8,SetHackshipEntry,lo,r4b_rest+whole_game(class identity),static-only,T2,0.35,,not batched,"Set entry i (<5) fields a,d"
 0x180100,func_00180100,UpdateHackshipHealthBar,mid,r4b_rest+whole_game(class identity),match(scratch_v3:batch_08_guards_ai),T1,0.50,,applied,Set widget anim 0x34F phase = 1 - health/max (clamped)
 0x180188,func_00180188,InitHackbullet,mid,r4b_rest+verdicts_followups+whole_game(class identity),verifier,T2,0.50,,not batched,"CID 0x4A vt7: InitCid47, field = 10"
@@ -2922,7 +2922,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x193A68,func_00193A68,GetJtRailLanding,hi,r4b_rest+verdicts_A1,match(scratch_v3:batch_07_player)+verifier,T1,0.70,,applied,For a curve (rail) target at param t: landing position offset and a velocity along the curve tangent clamped by GSmooth limits 50 from the ends
 0x193C98,func_00193C98,ClampJtGrabCurveParam,lo,r4b_rest,static-only,T2,0.30,,not batched,"Advance/clamp the grab param along the held curve object (wrap with GModPositive if closed, else clamp to [sMin,sMax]) and line-test the new point"
 0x193DE8,func_00193DE8,UpdateJtInternalXpsHide,hi,r4b_rest+verdicts_A2;verified_A+arbitration,match(scratch_v3:batch_07_player)+verifier+arbitration,T1,0.70,,applied,"Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge -> constraint along curve from velocity"
-0x1940B0,SetJtHfdk__FP2JT4HFDK,SetJtHfdk,mid,"arbitration (keep name, fix signature)",arbitration,EXISTING-CHANGE,0.75,,not batched,(existing name) Set hide/grab facing kind hfdk (+0x2C) and tHfdk=g_clock.t; kind 3 -> x34=1; 1/2 -> x34=2 if owner TN matches
+0x1940B0,SetJtHfdk__FP2JT4HFDK,SetJtHfdk,mid,"arbitration (keep name, fix signature)",arbitration,EXISTING-CHANGE,0.75,,"refused: SetJtHfdk already used in code: src/game/gameplay/player/grab/SetJtHfdk__FP2JT4HFDK.cpp (if that is this same function, r",(existing name) Set hide/grab facing kind hfdk (+0x2C) and tHfdk=g_clock.t; kind 3 -> x34=1; 1/2 -> x34=2 if owner TN matches
 0x194118,func_00194118,ResetJtGrabTnParams,lo,r4b_rest,static-only,T2,0.30,,not batched,Reset a block of TN parameters (x100..x16C) of the grab context's private TN to defaults
 0x194170,func_00194170,PresetJtAccelHide,hi,r4b_rest+verdicts_A2;verified_A+arbitration,match(scratch_v3:batch_07_player)+verifier+arbitration,T1,0.70,,applied,If grab state 3 on a curve object: smooth the velocity component along the curve direction (GSmooth D_002BF700) and AddSoVelocity
 0x1942F0,func_001942F0,RecordJtGrabPlace,lo,r4b_rest,static-only,T2,0.35,,not batched,"Per grab state, record the held spot/param into the STEPPLAYER+0x9E0 place table (0x19FD30 / 0x19FEB0) unless the object forbids it"
@@ -2967,7 +2967,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x19ABF0,func_0019ABF0,GMeasureJumpPipe,mid,r4b_rest,match(scratch_v3:batch_07_player),T1,0.65,,applied,"Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime"
 0x19AC88,func_0019AC88,GMeasureJumpPath,lo,r4b_rest,static-only,T2,0.35,,not batched,"Callback: speed-limited path length/time to a target along a Bezier path (0x185D18), min(1e6, (v0+v1)*t/2)"
 0x19AE00,func_0019AE00,FFindJtObstruction,mid,r4b_rest,match(scratch_v3:batch_07_player),T1,0.65,,applied,Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment); return hit point
-0x19B088,FUN_001cf138,GAdjustJtLandingScore,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.65,,not batched,"g + gPenalty, + D_002BF900 if candidate is the jump source"
+0x19B088,FUN_001cf138,GAdjustJtLandingScore,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.65,,applied,"g + gPenalty, + D_002BF900 if candidate is the jump source"
 0x19B0A8,func_0019B0A8,FFilterJtObstruction,lo,r4b_rest,static-only,T2,0.35,,not batched,"Obstruction filter: ignore flagged XPs, objects with flag 4 and objects in an ignore list"
 0x19B110,func_0019B110,JtbsChooseJtLanding,mid,r4b_rest,match(scratch_v3:batch_07_player),T1,0.60,,applied,"Choose the jump target/landing among all candidate lists (D_003E13B4..D_003E142C), scoring with MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScor"
 0x19C300,func_0019C300,MeasureJtJumpToTargetAtTime,mid,r4b_rest,match(scratch_v3:batch_07_player),T1,0.60,,applied,Cost of landing on target local point after duration dt in the target's predicted frame; out goal pos/velocity
@@ -3214,23 +3214,23 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1AA820,func_001AA820,StaticInit_mark,hi,tu_map(structural)+r4b_rest,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU mark
 0x1AA958,func_001AA958,_GLOBAL_$I$mark,hi,tu_map(structural)+r4b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$mark': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1AA978,func_001AA978,StartupMemcard__Fv,hi,r4_17F090+verdicts_tu_r4r6,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,"Startup-table entry: reset D_002DEB30 (0x1613F8), clear D_004425D8, InitSave(&g_save,0,0)"
-0x1AA9B8,FUN_0018b780,FillMcDirInfo,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.60,,not batched,memset + fill a save-directory info block from sceMcGetDir results
-0x1AAB48,FUN_0018b910__Fi,McResFromSyncState,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.50,,not batched,"sceMcSync state -> internal result: 0 -> 0x1D (done), >0 -> 0x1E, <0 -> 0x1F"
-0x1AAB68,FUN_0018b930__Fi,McResFromSyncCmd,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.50,,not batched,"sceMcSync cmd result -> 0x21 (0), 0x22 (1), 0x20 (-1), else 0x1F"
-0x1AABC0,FUN_0018b988,MsgFromMcError,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.60,,not batched,"(kind 1..21, sceMc error) -> message id for the UI"
+0x1AA9B8,FUN_0018b780,FillMcDirInfo,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,memset + fill a save-directory info block from sceMcGetDir results
+0x1AAB48,FUN_0018b910__Fi,McResFromSyncState,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.50,,reverted: match changed in src/game/ui/memcard/FUN_0018b910__Fi.cpp,"sceMcSync state -> internal result: 0 -> 0x1D (done), >0 -> 0x1E, <0 -> 0x1F"
+0x1AAB68,FUN_0018b930__Fi,McResFromSyncCmd,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.50,,reverted: match changed in src/game/ui/memcard/FUN_0018b930__Fi.cpp,"sceMcSync cmd result -> 0x21 (0), 0x22 (1), 0x20 (-1), else 0x1F"
+0x1AABC0,FUN_0018b988,MsgFromMcError,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,"(kind 1..21, sceMc error) -> message id for the UI"
 0x1AAED8,func_001AAED8,InitMemcard__FP7MEMCARD,hi,r4_17F090+verdicts_A2,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.75,,applied,"MEMCARD init: SemaCreate(1,1), thread id -1, prio 0x20"
 0x1AAF18,func_001AAF18,MemcardThreadMain,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.60,,applied,"Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear job, signal, ExitThread"
 0x1AAF90,func_001AAF90,CreateMemcardThread,hi,r4_17F090+verdicts_tu_r4r6+verdicts_A2,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,"Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, CreateThread+StartThread"
 0x1AB040,func_001AB040,SetMemcardThreadHighPrio__FP7MEMCARD,hi,r4_17F090+verdicts_A2+names_v2-signature(verified),match(rename.py:batch_11_render_audio_ui_a)+verifier+names_v2-verified,T1,0.60,,applied,"If thread valid ChangeThreadPriority(id,1); then wait/signal sema (block until job finishes)"
-0x1AB098,FUN_0018bc90,McSyncResult,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.60,,not batched,"Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError"
+0x1AB098,FUN_0018bc90,McSyncResult,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,"Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError"
 0x1AB1A0,func_001AB1A0,UpdateSave__FP4SAVE,hi,r4_17F090+verdicts_A2,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.80,,applied,Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0) or advance state (0x1AB418); autosave trigger with 0.3s debou
 0x1AB418,func_001AB418,SetSaveState,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.55,,applied,"SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state updates, ResetGs on load"
 0x1AB630,func_001AB630,ReloadSaveSlots,lo,r4_17F090,static-only,T2,0.45,,not batched,"If state 5 and D_003E0EA8: wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to state 6"
 0x1AB6C0,func_001AB6C0,McJobFormat,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.75,,applied,"Thread job: sceMcFormat(port,slot); result -> SAVE next state 2/3 and UI state"
-0x1AB750,FUN_0018c1e8,FOpenSaveIconFile,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.35,,not batched,"Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670"
+0x1AB750,FUN_0018c1e8,FOpenSaveIconFile,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.35,,applied,"Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670"
 0x1AB7D0,func_001AB7D0,CreateSaveDir,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.60,,applied,"mkdir /BASCUS-97316YAOTWTD!, write data file, write icon.sys (0x1AC008), copy icon from disc (load_sly_icon_from_disc)"
 0x1AB868,func_001AB868,McJobCreateSave,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.60,,applied,"Thread job: check space (sceMcGetEntSpace), delete stale, CreateSaveDir, write slot files"
-0x1ABA10,FUN_0018c420,McJobGetDir,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.60,,not batched,"Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8)"
+0x1ABA10,FUN_0018c420,McJobGetDir,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,"Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8)"
 0x1ABB10,func_001ABB10,BuildSaveFilePath,hi,r4_17F090+verdicts_tu_r4r6,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,"sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i)"
 0x1ABB60,func_001ABB60,McJobSaveSlot,hi,r4_17F090+verdicts_tu_r4r6,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,"Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420)"
 0x1ABBE0,func_001ABBE0,McJobCheckCard,lo,r4_17F090,static-only,T2,0.45,,not batched,"Thread job: card info check, set UI/SAVE state"
@@ -3238,12 +3238,12 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1ABCE8,func_001ABCE8,StartSaveJobA,lo,r4_17F090,static-only,T2,0.35,,not batched,Build GS mask (BuildMemcardGsMask) and CreateMemcardThread for a save
 0x1ABD40,func_001ABD40,StartSaveJobB,lo,r4_17F090,static-only,T2,0.35,,not batched,Same as 0x1ABCE8 with other job
 0x1ABD98,func_001ABD98,AutoSaveGame,lo,r4_17F090,static-only,T2,0.45,,not batched,If a slot is current and not in transition: eval Splice flag; if card missing show UI state 0x22 else start save job
-0x1ABE78,FUN_0018c888,ReadMcDir,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.50,,not batched,"sceMcGetDir into table, then FillMcDirInfo"
-0x1ABFC0,FUN_0018c9c0,ReadMcDirWrapper,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.35,,not batched,wrapper of 0x1ABE78
-0x1AC008,FUN_0018ca10,WriteIconSys,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.60,,not batched,"Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it"
+0x1ABE78,FUN_0018c888,ReadMcDir,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.50,,applied,"sceMcGetDir into table, then FillMcDirInfo"
+0x1ABFC0,FUN_0018c9c0,ReadMcDirWrapper,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.35,,applied,wrapper of 0x1ABE78
+0x1AC008,FUN_0018ca10,WriteIconSys,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,"Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it"
 0x1AC260,func_001AC260,load_file_from_disc,hi,r4_17F090+verdicts_A2,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.60,,applied,"Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close"
-0x1AC420,FUN_0018d2e8,WriteSaveSlotFile,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.40,,not batched,BuildSaveFilePath + McWriteFile
-0x1AC468,FUN_0018d328,WriteSaveSlotFileReset,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.35,,not batched,ResetGs then BuildSaveFilePath + McWriteFile
+0x1AC420,FUN_0018d2e8,WriteSaveSlotFile,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.40,,applied,BuildSaveFilePath + McWriteFile
+0x1AC468,FUN_0018d328,WriteSaveSlotFileReset,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.35,,applied,ResetGs then BuildSaveFilePath + McWriteFile
 0x1AC4C8,func_001AC4C8,ReadSaveSlotHeaders,lo,r4_17F090,static-only,T2,0.40,,not batched,"For each slot: BuildSaveFilePath, read dir entry, McReadFile"
 0x1AC570,func_001AC570,ResetSaveSlot,lo,r4_17F090,static-only,T2,0.35,,not batched,Thin wrapper over ResetGsIfSchemaChanged for a slot
 0x1AC598,func_001AC598,McJobGetInfo,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.55,,applied,Thread job: sceMcGetInfo + sync -> card type/free/format state
@@ -3253,7 +3253,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1AC808,func_001AC808,McClose,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.70,,applied,sceMcClose wrapper + sync
 0x1AC850,func_001AC850,McRead,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.70,,applied,sceMcRead + McSyncResult
 0x1AC8A8,func_001AC8A8,McWrite,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.70,,applied,sceMcWrite + McSyncResult
-0x1AC900,FUN_0018d368,McWriteFile,mid,arbitration (adopt proposal (draft)),arbitration,EXISTING-CHANGE,0.60,,not batched,McOpen(create) + McWrite + McClose
+0x1AC900,FUN_0018d368,McWriteFile,mid,arbitration (adopt proposal (draft)),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,McOpen(create) + McWrite + McClose
 0x1AC9A0,func_001AC9A0,McReadFile,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.65,,applied,McOpen + McRead + McClose
 0x1ACA40,func_001ACA40,McDelete,hi,r4_17F090+verdicts_tu_r4r6,match(rename.py:batch_11_render_audio_ui_a)+verifier,T1,0.85,,applied,sceMcDelete wrapper
 0x1ACA98,func_001ACA98,CMemcardDialog_ctor,mid,r4_17F090,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.50,,applied,"ctor: UI base ctor 0x1DA728, vptr 0x2D3750, id 0x52C, state x40=-1, register 0x1DA7D0"
@@ -3292,7 +3292,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1AE1D0,func_001AE1D0,PvAllocSwImpl,hi,r5_1AE130,static-only,T1,0.92,,refused: PvAllocSwImpl already used in code: src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp (if that is thi,"World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb)"
 0x1AE238,func_001AE238,PvAllocSwCopyImpl,hi,r5_1AE130,static-only,T1,0.92,,refused: PvAllocSwCopyImpl already used in code: src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp (if that is,PvAllocSwImpl then CopyAb(dst src cb)
 0x1AE2A0,func_001AE2A0,PvAllocSwClearImpl,hi,r5_1AE130,static-only,T1,0.93,,"refused: PvAllocSwClearImpl already used in code: src/game/engine/camera/tn/UpdateCptn.cpp (if that is this same function, re-run ",PvAllocSwImpl then memset 0
-0x1AE318,PvAllocSlot__FP8ALLOCREQ,PvAllocStackImpl,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.90,,not batched,Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down
+0x1AE318,PvAllocSlot__FP8ALLOCREQ,PvAllocStackImpl,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.90,,refused: PvAllocStackImpl already used in code: src/game/engine/graphics/pipeline/glob/func_0016A000.cpp (if that is this same fun,Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down
 0x1AE378,func_001AE378,PvAllocStackClearImpl,hi,r5_1AE130,static-only,T1,0.92,,refused: PvAllocStackClearImpl already used in code: src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp (if tha,PvAllocStackImpl then memset 0
 0x1AE478,func_001AE478,STACKSCOPE_ctor,hi,r5_1AE130,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.80,,applied,RAII scope ctor: InitStackImpl; returns this
 0x1AE4A0,func_001AE4A0,STACKSCOPE_ctor_1AE4A0,hi,r5_1AE130,match(rename.py:batch_11_render_audio_ui_a)+static-only,T1,0.80,,applied,RAII scope dtor: FreeStackImpl; deletes if (flags&1)
@@ -3353,7 +3353,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1B1140,func_001B1140,RenderCid96Self,mid,r5b_rest,static-only,T2,0.50,,not batched,CID 96 vt19: RenderSoSelf
 0x1B1160,func_001B1160,UpdateCid96PathFollow,lo,r5b_rest,static-only,T2,0.40,,not batched,"Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends"
 0x1B1328,func_001B1328,SetCid96State,mid,r5b_rest,static-only,T2,0.50,,not batched,"State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from nearest player with deadline, 5 hit; sound and"
-0x1B17B8,SetStepSpinRatio__FP4STEPf,SetCid96SpinRatio,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.65,,not batched,"Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C"
+0x1B17B8,SetStepSpinRatio__FP4STEPf,SetCid96SpinRatio,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.65,,reverted: match changed in src/game/gameplay/objects/tu_1B0B78/SetStepSpinRatio__FP4STEPf.cpp,"Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C"
 0x1B1818,func_001B1818,SetCid96Heading,lo,r5b_rest,static-only,T2,0.40,,not batched,Store heading and rotation matrix about up
 0x1B1868,func_001B1868,FCid96FacingHeading,lo,r5b_rest,static-only,T2,0.40,,not batched,True when facing within 1 degree of stored heading
 0x1B1900,func_001B1900,ChooseCid96StateFromPlayer,lo,r5b_rest,static-only,T2,0.35,,not batched,Look at nearest player (0x1C4AF8): flee/turn decision and heading
@@ -3554,7 +3554,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1BD718,func_001BD718,FindShapeFreePoint,lo,r5b_rest,static-only,T2,0.30,,not batched,Free point on a shape around parameter g avoiding obstacles
 0x1BD8A8,func_001BD8A8,FCnvoOverlap,hi,r5b_rest+verdicts_A2+verdicts_followups,match(scratch_v3:batch_09_world_objects_a)+verifier,T1,0.85,,applied,Two convex polygons overlap (edge clip or containment)
 0x1BDA00,func_001BDA00,PcnvoNewMerged,lo,r5b_rest,static-only,T2,0.35,,not batched,Create merged obstacle object (PloNew) holding member polygons
-0x1BDBC8,NCmpWkr__FP3WKRT0,NCmpPosX,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.55,,not batched,qsort comparator on first float (used to sort hull points by x)
+0x1BDBC8,NCmpWkr__FP3WKRT0,NCmpPosX,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.55,,applied,qsort comparator on first float (used to sort hull points by x)
 0x1BDBF0,func_001BDBF0,CposConvexHull,lo,r5b_rest,static-only,T2,0.45,,not batched,2D convex hull of points (sort + monotone chain)
 0x1BDE18,func_001BDE18,AddCid14ToMerged,lo,r5b_rest,static-only,T2,0.35,,not batched,Attach polygon to merged owner and unregister it individually
 0x1BDE80,func_001BDE80,MergeCid14Obstacles,lo,r5b_rest,static-only,T2,0.40,,not batched,Merge overlapping convex polygons into one new hull polygon
@@ -3726,7 +3726,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1C77E8,func_001C77E8,SetLootDprizes,mid,r5_1AE130,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.55,,applied,CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15)
 0x1C7988,func_001C7988,AddLootEntry,hi,r5_1AE130+arbitration,match(rename.py:batch_10_world_objects_b)+arbitration,T1,0.70,,applied,calls 0x1C7A08 stub
 0x1C7A08,func_001C7A08,Dprize_Stub7A08,lo,r5_1AE130,static-only,T2,0.15,,not batched,8-byte stub
-0x1C7A10,AddAlarmSensor__FP5ALARM3OID,AddLootEntryOid,hi,arbitration (other name),arbitration,EXISTING-CHANGE,0.85,,not batched,"Append OID to the list behind this+0x244 (count +0x1C, max 3)"
+0x1C7A10,AddAlarmSensor__FP5ALARM3OID,AddLootEntryOid,hi,arbitration (other name),arbitration,EXISTING-CHANGE,0.85,,reverted: match changed in src/game/gameplay/progression/prize/AddAlarmSensor__FP5ALARM3OID.cpp,"Append OID to the list behind this+0x244 (count +0x1C, max 3)"
 0x1C7A40,func_001C7A40,Dprize_7A40,lo,r5_1AE130,static-only,T2,0.15,,not batched,small setter
 0x1C7A58,func_001C7A58,Clue_7A58,lo,r5_1AE130,static-only,T2,0.25,,not batched,helper used by 0x1C2DC8 (calls SO 0x1F6A68/0x1F6978)
 0x1C7B18,func_001C7B18,FClueCollected,mid,r5_1AE130,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.50,,applied,query save data for bit n of 'afClue' for the current level
@@ -3842,7 +3842,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1CDDC8,func_001CDDC8,InitRipg__FP4RIPG,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.85,,applied,RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags
 0x1CDF88,func_001CDF88,ProjectRipgTransform,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.70,,applied,"RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set center/radius"
 0x1CE170,func_001CE170,UpdateRipgBounds,hi,r5_1AE130+verdicts_tu_r3r5,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.85,,applied,"RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag D_003E115C, call SO bound update 0x1F4BA8"
-0x1CE1C8,FUN_0019e420,UpdateRipg,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,not batched,"RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active"
+0x1CE1C8,FUN_0019e420,UpdateRipg,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.75,,applied,"RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active"
 0x1CE2E8,func_001CE2E8,BounceRipgRips__FP4RIPG,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.85,,applied,"Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual"
 0x1CE6C0,func_001CE6C0,FRipgUnk62,lo,r5_1AE130,static-only,T2,0.25,,not batched,RIPG vt slot 62: returns (state(+0x150) != 1)
 0x1CE6D0,func_001CE6D0,PvtripFromRipt,hi,verify_r3r5_summary,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.70,,applied,"Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's vtable (11 types, vtables 0x2D7468..0x2D7788)"
@@ -3936,7 +3936,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1D4FA0,func_001D4FA0,SetRcPickupState,mid,r5b_rest,match(scratch_v3:batch_08_guards_ai),T1,0.50,,applied,Pickup state x150 with time; SMA goal from D_002C2248[state]
 0x1D4FF8,func_001D4FF8,StaticInit_tu_1D1370,hi,tu_map(structural)+r5b_rest,match(scratch_v3:batch_08_guards_ai),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU tu_1D1370
 0x1D5130,func_001D5130,_GLOBAL_$I$tu_1D1370,hi,tu_map(structural)+r5b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$tu_1D1370': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1D5498,RumbleUnknown1__Fv,EnsureRumbleModeDefault,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.50,,not batched,If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting)
+0x1D5498,RumbleUnknown1__Fv,EnsureRumbleModeDefault,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.50,,applied,If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting)
 0x1D54B8,func_001D54B8,ResetRumbleSaveVar,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1"
 0x1D55B8,func_001D55B8,FRumbleEnabled,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8
 0x1D5650,func_001D5650,StaticInit_rumble,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU rumble
@@ -3962,7 +3962,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1D72A8,func_001D72A8,UpdateSafehouse,lo,r6_1D5150+whole_game(class identity),static-only,T2,0.35,,not batched,UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0
 0x1D7418,func_001D7418,HandleSafehouseMessage,lo,r6_1D5150+whole_game(class identity),static-only,T2,0.20,,not batched,Calls PO base 0x1C3ED8 then switch on arg -> SetCharSelectState(0/1)
 0x1D7480,func_001D7480,SetCharSelectState,lo,r6_1D5150,static-only,T2,0.35,,not batched,"Enter/leave selection state: ReplaceSma, SetSaveVar lookups ('oidPoCurrent'), StartJoySelection"
-0x1D7748,AddStepguardEffect__FP9STEPGUARD3OID3ZPK,AddSafehouseEntry,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.45,,not batched,"Append (a,b,c) triple to list at +0x18C (max 12)"
+0x1D7748,AddStepguardEffect__FP9STEPGUARD3OID3ZPK,AddSafehouseEntry,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.45,,applied,"Append (a,b,c) triple to list at +0x18C (max 12)"
 0x1D7780,func_001D7780,SetPoChoices,hi,r6_1D5150+verdicts_tu_r4r6,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.60,,applied,Fill +0x220/+0x224 from Splice list (0x2013D8) then reselect
 0x1D77D0,func_001D77D0,StepCharSelect,lo,r6_1D5150,static-only,T2,0.35,,not batched,Move SMA goal by d through SM states skipping disallowed ones (wrap)
 0x1D78D8,func_001D78D8,StaticInit_tu_1D7238,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU tu_1D7238
@@ -3998,7 +3998,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1D9520,func_001D9520,PostScreensLoad,lo,r6b_rest,static-only,T2,0.40,,not batched,"Call PostLoad (slot 12) on every global HUD screen object (D_003D9E80, D_003DA0F0, D_003DA150, D_003DA0C0, ...)"
 0x1D95B8,func_001D95B8,UpdateScreenFocus,lo,r6b_rest,static-only,T2,0.35,,not batched,"If the requested top screen (list head) differs from the current one, notify the old one (vt) and switch focus"
 0x1D9648,func_001D9648,UpdateScreens,lo,r6b_rest,static-only,T2,0.40,,not batched,Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens
-0x1D9820,UpdateRecyclable__3CGc,DrawUi,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.60,,not batched,"Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28)"
+0x1D9820,UpdateRecyclable__3CGc,DrawUi,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,"Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28)"
 0x1D9870,func_001D9870,UpdateScreen,lo,r6b_rest,static-only,T2,0.35,,not batched,slot 7 base: empty
 0x1D9878,func_001D9878,DrawScreen,lo,r6b_rest,static-only,T2,0.30,,not batched,slot 8: empty (shared by all 12 screen vtables)
 0x1D9880,func_001D9880,FScreenShown,mid,r6b_rest+top50_round,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,Return whether the screen is in the shown-screen list D_003D9E70
@@ -4120,9 +4120,9 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1DFEB8,func_001DFEB8,StopRelay,mid,r6b_rest,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.75,,applied,"If firing: clear firer/state, stop every JSG (0x1E5628), clear the alarm list, release LO busy (0x1A6CA8(p,2)), send itself msg 6"
 0x1DFFD8,func_001DFFD8,FRelayFiring,mid,r6b_rest,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.60,,applied,return fFiring (+0x74)
 0x1DFFE0,func_001DFFE0,ResetRelay,mid,r6b_rest,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.55,,applied,"StopRelay, drop all commands (crelaycmd=0), re-add BlockBegin(-1), fAppendEnd=1"
-0x1E0020,EnsureSggAlarm__FP3SGGP5ALARM,EnsureRelayAlarm,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,not batched,"Add an ALARM to the relay's alarm list (+0x84 calarm, +0x88 apalarm[8]) if absent and room"
+0x1E0020,EnsureSggAlarm__FP3SGGP5ALARM,EnsureRelayAlarm,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,reverted: match changed in src/game/gameplay/cutscene/relay/EnsureSggAlarm__FP3SGGP5ALARM.cpp,"Add an ALARM to the relay's alarm list (+0x84 calarm, +0x88 apalarm[8]) if absent and room"
 0x1E0070,func_001E0070,RemoveRelayAlarm,mid,r6b_rest,static-only,T1,0.60,,"refused: RemoveRelayAlarm already used in code: src/game/gameplay/cutscene/relay/func_001E3890.cpp (if that is this same function,",Remove an ALARM from the relay alarm list (memmove down)
-0x1E00E8,FWipingAseg__FP4ASEG,FRelayHasAlarm,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,not batched,Return whether the alarm list (+0x84/+0x88) contains x
+0x1E00E8,FWipingAseg__FP4ASEG,FRelayHasAlarm,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,refused: FRelayHasAlarm already used in code: src/game/gameplay/cutscene/relay/FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp (if tha,Return whether the alarm list (+0x84/+0x88) contains x
 0x1E0120,func_001E0120,ClearRelayAlarms,mid,r6b_rest,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.60,,applied,calarm=0
 0x1E0128,func_001E0128,GetRelaySignalContext,lo,r6b_rest,static-only,T2,0.35,,not batched,"If the signal-waiting JSG (+0x68 pjsgSignal) is on a Signal command (kind 9) return its +0x18 (ploContext), else 0"
 0x1E0158,func_001E0158,SetRelaySignalContext,lo,r6b_rest,static-only,T2,0.35,,not batched,Setter counterpart of 0x1E0128
@@ -4370,9 +4370,9 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1EE7B0,func_001EE7B0,PropagateSais,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,For every dirty SAA in D_003E159C apply its copy records and clear dirty
 0x1EE820,func_001EE820,StaticInit_shdanim,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU shdanim
 0x1EE958,func_001EE958,_GLOBAL_$I$shdanim,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$shdanim': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1EE978,junk_001B5B48,junk_001EE978,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,12-byte orphan after shdanim static stub
-0x1EE988,FUN_001b5b58,WSjisFromCh,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.55,,not batched,Map one ASCII byte to a 16-bit SJIS code via table
-0x1EEA70,FUN_001b5c40,ConvertPchzToSjis,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.55,,not batched,Convert C string (strlen) to array of u16 SJIS codes
+0x1EE978,junk_001B5B48,junk_001EE978,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,refused: new_name 'junk_001EE978' is an address placeholder name,12-byte orphan after shdanim static stub
+0x1EE988,FUN_001b5b58,WSjisFromCh,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.55,,applied,Map one ASCII byte to a 16-bit SJIS code via table
+0x1EEA70,FUN_001b5c40,ConvertPchzToSjis,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.55,,applied,Convert C string (strlen) to array of u16 SJIS codes
 0x1EEB08,func_001EEB08,StaticInit_sjis,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU sjis
 0x1EEC40,func_001EEC40,_GLOBAL_$I$sjis,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$sjis': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1EEC60,func_001EEC60,InitBhvstk,hi,r6b_rest+runtime,match(scratch_v3:batch_06_object_model_b)+runtime,T1,0.85,,applied,BHVSTK init: pbhvstk->pstep = pstep
@@ -4870,7 +4870,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x206518,func_00206518,ResetStepguardToHome,hi,r7b_guard+verdicts_followups,match(scratch_v3:batch_08_guards_ai)+verifier,T1,0.85,,applied,"STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capability bits"
 0x206748,func_00206748,ClearStepguardState,hi,r7b_guard+verdicts_followups,match(scratch_v3:batch_08_guards_ai)+verifier,T1,0.85,,applied,"STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1"
 0x206820,func_00206820,RestartStepguard,lo,r7b_guard,static-only,T2,0.25,,not batched,"vt27(0), message 0xF, vt26(0), message 0xE"
-0x2068D8,FUN_00148910__FPfT0,NCmpGuardCandidateDist,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.55,,not batched,qsort comparator on a leading float (-1 if a<b else 1)
+0x2068D8,FUN_00148910__FPfT0,NCmpGuardCandidateDist,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.55,,applied,qsort comparator on a leading float (-1 if a<b else 1)
 0x206900,func_00206900,UpdateStepguardDetectTargets,mid,r7b_guard,match(scratch_v3:batch_08_guards_ai),T1,0.55,,applied,"Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping previous stat"
 0x206D48,func_00206D48,FIsStepguardRageImmune,lo,r7b_guard,static-only,T2,0.40,,not batched,"True if the guard derives from any of cids D_002C3D10 = {0x3B,0x40,0x3D,0x3E,0x41}"
 0x206DB0,func_00206DB0,AddStepguardRageIgnoreClasses,lo,r7b_guard,static-only,T2,0.35,,not batched,Add those 5 guard cids (when present in the world) to the ignore-class list +0x3A8
@@ -5064,7 +5064,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x20D878,func_0020D878,StaticInit_stream,hi,tu_map(structural)+r7_1F8DD8,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU stream
 0x20D9B0,func_0020D9B0,_GLOBAL_$I$stream,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$stream': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x20D9D0,func_0020D9D0,SW_ctor,hi,r7_1F8DD8+runtime,match(scratch_v3:batch_06_object_model_b)+runtime,T1,0.75,,applied,"SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults"
-0x20DF80,RestoreChkmgrFromCheckpoint__FP6CHKMGR,SetSwTransition,hi,arbitration (other name) + runtime,runtime+arbitration,EXISTING-CHANGE,0.95,,not batched,fRestored=1; copy CHK record
+0x20DF80,RestoreChkmgrFromCheckpoint__FP6CHKMGR,SetSwTransition,hi,arbitration (other name) + runtime,match(rename.py:batch_15_existing_name_changes_passA)+runtime+arbitration,EXISTING-CHANGE,0.95,,applied,fRestored=1; copy CHK record
 0x20E040,func_0020E040,FSwTransitionBusy,lo,r7_1F8DD8,static-only,T2,0.25,,not batched,True if D_003E1080!=0 or D_00443740==1 (checkpoint-manager state)
 0x20E068,func_0020E068,DeleteSw,mid,r7_1F8DD8,match(scratch_v3:batch_06_object_model_b),T1,0.60,,applied,"Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw"
 0x20E180,func_0020E180,InitSwLoadBuffers,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,"Pre-load setup of the fresh SW: 3x0x4800 and 0x8000 work buffers, 0x28 header with DL, InitZpr x2, game callback(2)"
@@ -5100,7 +5100,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x20FAA0,func_0020FAA0,IntersectSwBoundingBox,mid,r7_1F8DD8,match(scratch_v3:batch_06_object_model_b),T1,0.75,,applied,"Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array"
 0x20FC60,func_0020FC60,IntersectSwBoundingSphere,hi,r7_1F8DD8+verdicts_tu_r7r8,match(scratch_v3:batch_06_object_model_b)+verifier,T1,0.85,,applied,"Same for a sphere (center, radius)"
 0x20FDC8,func_0020FDC8,UniqueSwSoList,lo,r7_1F8DD8,static-only,T2,0.35,,not batched,"Deduplicate the SOs referenced by an array (mark 0x40000000), output count + slot array"
-0x20FEC0,FAddRsmg__FP4RSMGiPii3OIDN24,FAddRsmg__FP2SWP4RSMGiPii3OIDN25,hi,"arbitration (keep name, fix signature)",arbitration,EXISTING-CHANGE,0.80,,not batched,"Add/update a (root,SM)->trigger/untrigger goal record"
+0x20FEC0,FAddRsmg__FP4RSMGiPii3OIDN24,FAddRsmg__FP2SWP4RSMGiPii3OIDN25,hi,"arbitration (keep name, fix signature)",match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.80,,applied,"Add/update a (root,SM)->trigger/untrigger goal record"
 0x20FF70,func_0020FF70,TriggerRsmg,mid,r7_1F8DD8,match(scratch_v3:batch_06_object_model_b),T1,0.60,,applied,Apply every RSMG record in an array (calls 0x20FFF0 each)
 0x20FFF0,func_0020FFF0,TriggerRsmgOne,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,"Find root object, its SM by oid, then SeekSma or SetSmaGoal to trigger/untrigger goal; optional returned SMA ref"
 0x210100,func_00210100,PAllocSwLoQueue,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,Return &array(+0x39D0)[count(+0x39D4)++] (12-byte records)
@@ -5172,7 +5172,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2128E8,func_002128E8,ShowWidget,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present
 0x2129E8,func_002129E8,HideWidget,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,WIDGET slot50: request hide; if no disappear anim go straight to state 1
 0x212A30,func_00212A30,ResetWidgetVisibleTime,lo,r7c_hud,static-only,T2,0.40,,not batched,"if state==2, state time = g_clock.t (restarts the visible-duration timeout)"
-0x212A50,SetTimerTimers__FP5TIMER6TIMERS,SetWidgetRequest,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,not batched,
+0x212A50,SetTimerTimers__FP5TIMER6TIMERS,SetWidgetRequest,mid,arbitration (adopt proposal),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.75,,applied,
 0x212A70,func_00212A70,SetWidgetState,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause"
 0x212C50,func_00212C50,UpdateWidget,hi,r7c_hud+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.90,,applied,"WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite"
 0x212E40,func_00212E40,SetWidgetAnimPhase,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,seek anim id (0x314=main) to fraction g of its length (meters)
@@ -5207,7 +5207,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2158C0,func_002158C0,ReleaseSpriteItem,lo,r7c_hud,static-only,T2,0.40,,not batched,release item payload (stop nested slot / texture ref) and reinit
 0x215960,func_00215960,QueueSpriteItem,lo,r7c_hud,static-only,T2,0.40,,not batched,"draw item: nested sprite drawn recursively, other kinds prepended to draw list"
 0x2159E0,func_002159E0,RenderSpritePayload,lo,r7c_hud,static-only,T2,0.45,,not batched,"dispatch by kind: 3 text (0x216BC8), 1 geometry (0x2174C8), else picture (0x2177E0)"
-0x215A50,PglyffFromCh__8CFontBrxc,IglyffFromCh__8CFontBrxc,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.60,,not batched,
+0x215A50,PglyffFromCh__8CFontBrxc,IglyffFromCh__8CFontBrxc,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.60,,applied,
 0x215AC0,func_00215AC0,CRichText_ctor,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,rich-text ctor from string + font + scale (offsets 1792/1936)
 0x215BA8,func_00215BA8,CRichText_ctor_215BA8,lo,r7c_hud,static-only,T2,0.45,,not batched,rich-text ctor from a sprite text element (width/height/colour)
 0x215CA8,func_00215CA8,CRichText2_Reset,mid,r7c_hud+top50_round,static-only,T2,0.50,,not batched,"Reset the HUD rich-text cursor: optional new text, pchCur=achz, font cur=base, colour cur=base, colour word 0x80000000|alpha, UpdateColor"
@@ -5290,7 +5290,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x21D618,func_0021D618,_GLOBAL_$I$target,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$target': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x21E0D8,func_0021E0D8,ChDigitFromG__Fdii,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,digit character of g at decimal position a (precision b)
 0x21EDF8,func_0021EDF8,strchr,hi,r8_21BB88+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,libc-style strchr game copy
-0x21EE28,junk_001E2210,junk_0021EE28,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,padding
+0x21EE28,junk_001E2210,junk_0021EE28,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,refused: new_name 'junk_0021EE28' is an address placeholder name,padding
 0x21EE78,func_0021EE78,StaticInit_text,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU text
 0x21EFB0,func_0021EFB0,_GLOBAL_$I$text,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$text': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x21F0C0,func_0021F0C0,LeaveCritSect__FP8CRITSECT,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.90,,applied,decrement enter count; at 0 clear owner and SignalSema
@@ -5419,7 +5419,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x228720,func_00228720,LoadWarpFromBrx,hi,verify_r7r8_summary+parse-verified,match(rename.py:batch_10_world_objects_b)+parse-verified+verifier,T1,0.75,,applied,LoadXfmFromBrx + 0x118420
 0x228750,func_00228750,TriggerWarp,hi,r8_21BB88+verdicts_A2+class_review(master_names_v2_1),match(rename.py:batch_10_world_objects_b)+verifier,T1,0.70,,applied,"WARP method (Sly 1 TriggerWarp): apply its oid pairs (+0x14C, vt38), trigger its RSMGs (+0xE0/+0xE4), apply list +0x124, reset every EXIT (SetExitExits 0), spli"
 0x2288D8,func_002288D8,SetWarpRsmg,hi,verify_r7r8+CONFLICTS#11+verdicts_tu_r7r8,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.80,,applied,"FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger"
-0x228958,MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31,AddWarpOidPair,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.50,,not batched,"if count<4 append (a,b) at 0x14C"
+0x228958,MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31,AddWarpOidPair,mid,arbitration (other name),match(rename.py:batch_15_existing_name_changes_passA)+arbitration,EXISTING-CHANGE,0.50,,applied,"if count<4 append (a,b) at 0x14C"
 0x228988,func_00228988,AddWarpOid,lo,r8_21BB88+arbitration,arbitration,T2,0.45,,not batched,if c<4 a[c++]=v
 0x2289F0,func_002289F0,StaticInit_exit_warp,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU exit_warp
 0x228B28,func_00228B28,_GLOBAL_$I$exit_warp,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$exit_warp': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
@@ -5540,7 +5540,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x232438,func_00232438,snd_PauseAllSoundsInGroup,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232468,func_00232468,snd_ContinueAllSoundsInGroup,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232498,func_00232498,snd_SoundIsStillPlaying_CB,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
-0x2324C8,junk_0x0011d3e8,junk_002324C8,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,989snd API
+0x2324C8,junk_0x0011d3e8,junk_002324C8,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,refused: new_name 'junk_002324C8' is an address placeholder name,989snd API
 0x232500,func_00232500,snd_Cmd21,lo,r8_21BB88,static-only,T2,0.35,,not batched,989snd API
 0x232520,func_00232520,snd_Cmd21_CB,lo,r8_21BB88+verdicts_A2,verifier,T2,0.35,,not batched,989snd API
 0x232568,func_00232568,snd_AutoVol,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
@@ -5602,11 +5602,11 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2347A0,func_002347A0,SetAlarm,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,252; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2347B0,func_002347B0,ReleaseAlarm,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,253; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2347C0,func_002347C0,_iEnableIntc,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-26; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2347D0,CreateThread,_iDisableIntc,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.90,,not batched,"EE kernel syscall stub: li v1,-27; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
-0x2347E0,StartThread,_iEnableDmac,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.80,,not batched,"EE kernel syscall stub: li v1,-28; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
+0x2347D0,CreateThread,_iDisableIntc,hi,sdk_names (syscall number read from ELF),match(rename.py:batch_15_existing_name_changes_passA)+static-only,EXISTING-CHANGE,0.90,,applied,"EE kernel syscall stub: li v1,-27; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
+0x2347E0,StartThread,_iEnableDmac,hi,sdk_names (syscall number read from ELF),match(rename.py:batch_15_existing_name_changes_passA)+static-only,EXISTING-CHANGE,0.80,,applied,"EE kernel syscall stub: li v1,-28; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
 0x2347F0,func_002347F0,_iDisableDmac,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-29; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234800,func_00234800,iSetAlarm,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-254; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234810,ChangeThreadPriority,iReleaseAlarm,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.80,,not batched,"EE kernel syscall stub: li v1,-255; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
+0x234810,ChangeThreadPriority,iReleaseAlarm,hi,sdk_names (syscall number read from ELF),match(rename.py:batch_15_existing_name_changes_passA)+static-only,EXISTING-CHANGE,0.80,,applied,"EE kernel syscall stub: li v1,-255; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
 0x234820,func_00234820,CreateThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,32; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234830,func_00234830,DeleteThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,33; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234840,func_00234840,StartThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,34; syscall; jr ra [libkernel klib.o (syscall stub table)]"
@@ -5620,7 +5620,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2348C0,func_002348C0,iChangeThreadPriority,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-42; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2348D0,func_002348D0,RotateThreadReadyQueue,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/topThread.c,"EE kernel syscall stub: li v1,43; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2348E0,func_002348E0,_iRotateThreadReadyQueue,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-44; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2348F0,GetThreadId,ReleaseWaitThread,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.80,,not batched,"EE kernel syscall stub: li v1,45; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
+0x2348F0,GetThreadId,ReleaseWaitThread,hi,sdk_names (syscall number read from ELF),match(rename.py:batch_15_existing_name_changes_passA)+static-only,EXISTING-CHANGE,0.80,,applied,"EE kernel syscall stub: li v1,45; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
 0x234900,func_00234900,iReleaseWaitThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-46; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234910,func_00234910,GetThreadId,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,47; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234920,func_00234920,ReferThreadStatus,hi,sdk_names,static-only,T1,0.90,,"refused: cannot verify, baseline build failed: src/sdk/libkernel/StartThread_2355E0.c","EE kernel syscall stub: li v1,48; syscall; jr ra [libkernel klib.o (syscall stub table)]"

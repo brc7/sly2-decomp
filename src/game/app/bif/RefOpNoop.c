@@ -16,6 +16,6 @@ extern M2C_UNK D_004520A8;
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 s32 RefOpNoop(s32 arg0) {
-    func_0012A0B0(arg0, 0x24);
+    SetTag__4CRef4TAGK(arg0, 0x24);
     return arg0;
 }

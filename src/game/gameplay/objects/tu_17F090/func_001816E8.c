@@ -1,6 +1,6 @@
 struct S { char pad[0x200]; int a; int b; };
 extern char D_003DD490[];
-void func_0020FEC0(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
 /** @sly2-annot addr=0x1816E8
  * Purpose: FAddRsmg on its RSMG table
  * Info: proposed name AddHacklockRsmg (T2); class HACKLOCK; TU tu_17F090
@@ -11,5 +11,5 @@ void func_0020FEC0(void *g, void *pb, int n, void *pa, int x, int y, int z, int 
  * @end-sly2-annot */
 void func_001816E8(struct S *p, int x, int y, int z, int w)
 {
-    func_0020FEC0(D_003DD490, &p->b, 4, &p->a, x, y, z, w);
+    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &p->b, 4, &p->a, x, y, z, w);
 }

@@ -28,7 +28,7 @@ void func_0014D1D0(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
-void func_00212A50(SUB *, int);
+void SetWidgetRequest(SUB *, int);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshThiefnetItems(OBJ *);
@@ -66,7 +66,7 @@ void SetThiefnetTab(OBJ *p, int s)
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         if (p->x24->x58 > 0)
-            func_00212A50(p->x24, 1);
+            SetWidgetRequest(p->x24, 1);
         p->x25C = s;
         p->x260 = s;
         p->x264 = s;
@@ -79,7 +79,7 @@ void SetThiefnetTab(OBJ *p, int s)
             SetWidgetState(p->x24, 1);
             SetWidgetState(p->x24, 2);
         } else {
-            func_00212A50(p->x24, 2);
+            SetWidgetRequest(p->x24, 2);
         }
         SetSndSourceLo(PsndStartSound(0x35), 0);
         break;
@@ -91,7 +91,7 @@ void SetThiefnetTab(OBJ *p, int s)
             SetWidgetState(p->x24, 1);
             SetWidgetState(p->x24, 2);
         } else {
-            func_00212A50(p->x24, 2);
+            SetWidgetRequest(p->x24, 2);
         }
         SetSndSourceLo(PsndStartSound(0x35), 0);
         break;
