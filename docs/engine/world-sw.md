@@ -198,8 +198,8 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 | [0x149AB8](../../src/game/world/scene/callback/EnsureSwCallback.c) | `EnsureSwCallback` | PostSwCallback unless an identical {obj, member pointer, arg} entry is already queued | 0.85 | T1 |  |
 | [0x149B58](../../src/game/world/scene/callback/ClearSwCallbacks.c) | `ClearSwCallbacks` | Remove queued callbacks matching by grf bits: 1 = object, 2 = member pointer, 4 = arg; fix tail | 0.85 | T1 |  |
 | [0x149C80](../../src/game/world/scene/callback/ProcessSwCallbacks.cpp) | `ProcessSwCallbacks` | Drain the deferred-callback list (calling each member function, repeating while new ones are posted), then run all Splice scheduled callbacks whose ti | 0.80 | T1 |  |
-| [0x1C2A78](../../src/game/platform/memory/phasemem/SetPhase__F5PHASE.c) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
-| [0x1C2BA8](../../src/game/platform/memory/phasemem/ClearPhase.c) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
+| [0x1C2A78](../../src/game/platform/memory/phasemem.cpp) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
+| [0x1C2BA8](../../src/game/platform/memory/phasemem.cpp) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
 | [0x20D9D0](../../src/game/world/scene/sw/SW_ctor.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
 | [0x20DF80](../../src/game/world/scene/sw/RestoreChkmgrFromCheckpoint__FP6CHKMGR.c) | `SetSwTransition` | fRestored=1; copy CHK record | 0.60 | existing | arbitration; replaces existing RestoreChkmgrFromCheckpoint__FP6CHKMGR |
 | [0x20E068](../../src/game/world/scene/sw/DeleteSw.c) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |

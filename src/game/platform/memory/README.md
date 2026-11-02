@@ -6,7 +6,7 @@
 | --- | --- |
 | [`heap/`](heap/) | 7 |
 | [`memory/`](memory/) | 23 |
-| [`phasemem/`](phasemem/) | 4 |
+| [`phasemem.cpp`](phasemem.cpp) | 1 |
 | [`slotheap.cpp`](slotheap.cpp) | 1 |
 | [`sprbuf/`](sprbuf/) | 5 |
 | [`tu_1147D8/`](tu_1147D8/) | 2 |
