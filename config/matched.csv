@@ -1229,8 +1229,8 @@ StaticInit_bif2,0x126030,77,match,src/game/app/bif2/StaticInit_bif2.c
 func_00126168,0x126168,8,match,src/game/app/bif2/func_00126168.c
 StaticInit_empty_126188,0x126188,77,match,src/game/splice/empty_126188.cpp
 func_001262C0,0x1262C0,8,match,src/game/splice/empty_126188.cpp
-StaticInit_empty_1262E0,0x1262E0,77,match,src/game/splice/empty_1262E0/StaticInit_empty_1262E0.c
-func_00126418,0x126418,8,match,src/game/splice/empty_1262E0/func_00126418.c
+StaticInit_empty_1262E0,0x1262E0,77,match,src/game/splice/empty_1262E0.cpp
+func_00126418,0x126418,8,match,src/game/splice/empty_1262E0.cpp
 RefEvalSymbol__FP5CPairP6CFrame,0x126438,21,match,src/game/splice/eval/RefEvalSymbol__FP5CPairP6CFrame.c
 RefEvalSet__FP5CPairP6CFrame,0x126490,44,match,src/game/splice/eval/RefEvalSet__FP5CPairP6CFrame.cpp
 RefEvalDefine__FP5CPairP6CFrame,0x126540,44,match,src/game/splice/eval/RefEvalDefine__FP5CPairP6CFrame.cpp
