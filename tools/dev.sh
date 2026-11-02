@@ -40,7 +40,7 @@ host_setup_macos() {  # host-side pieces of the Apple Silicon hybrid setup (see 
   if [ -x "$ROOT/tools/wibo-macos" ]; then echo "  ok (already there)"; else
     curl -fsSL -o "$ROOT/tools/wibo-macos" "https://github.com/decompals/wibo/releases/download/${WIBO_VERSION:-1.2.0}/wibo-macos"
     chmod +x "$ROOT/tools/wibo-macos"; echo "  downloaded tools/wibo-macos"; fi
-  echo "== macOS host: m2c checkout (m2c_macros.h for src/auto and src/splicewrap)"
+  echo "== macOS host: m2c checkout (m2c_macros.h for m2c-generated and splicewrap sources)"
   if [ -d "$HOME/m2c" ]; then echo "  ok (already there)"; else
     git clone -q https://github.com/matt-kempster/m2c "$HOME/m2c" && echo "  cloned ~/m2c"; fi
   echo "== macOS host: python rabbitizer"

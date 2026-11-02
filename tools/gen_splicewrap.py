@@ -6,7 +6,7 @@ Shape (C++):  CRef Wrapper(BASIC *pbasic, int cref, CRef *aref)
     CRef ref = RefSetArgsFromSplice(n, aref, aotyp, &a0, &a1, ...);
     <result setup + native call>;  return ref; }
 We emit C with the hidden return pointer and ctor/dtor calls explicit, reusing m2c's draft for the
-native-call part. Every output is compile-verified; matches go to src/splicewrap/NAME.c.
+native-call part. Every output is compile-verified; matches go to src/generated/splicewrap/NAME.c.
 """
 import os, re, sys, subprocess, csv, struct
 sys.path.insert(0, os.path.dirname(__file__))
@@ -178,10 +178,10 @@ def main():
     src_all = open(os.path.join(M.ROOT, 'asm', 'text.s')).read()
     names = [m.group(1) for m in re.finditer(r'glabel (\S+)\n(.*?)endlabel', src_all, re.S) if 'RefSetArgsFromSplice' in m.group(2)]
     if len(sys.argv) > 1: names = sys.argv[1:]
-    os.makedirs(os.path.join(M.ROOT, 'src', 'splicewrap'), exist_ok=True)
+    os.makedirs(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap'), exist_ok=True)
     stats = {}
     for nm in names:
-        if os.path.exists(os.path.join(M.ROOT, 'src', 'splicewrap', nm + '.c')): stats['already'] = stats.get('already', 0) + 1; continue
+        if os.path.exists(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap', nm + '.c')): stats['already'] = stats.get('already', 0) + 1; continue
         src, why = gen(nm)
         if src is None:
             stats[why] = stats.get(why, 0) + 1; continue
@@ -195,7 +195,7 @@ def main():
         key = 'match' if sc == 0 else ('cc_fail' if sc is None else 'diff')
         stats[key] = stats.get(key, 0) + 1
         if sc == 0:
-            open(os.path.join(M.ROOT, 'src', 'splicewrap', nm + '.c'), 'w').write(src)
+            open(os.path.join(M.ROOT, 'src', 'generated', 'splicewrap', nm + '.c'), 'w').write(src)
         if len(sys.argv) > 1: print(nm, key, sc)
     print(stats)
 
