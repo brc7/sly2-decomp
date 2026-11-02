@@ -50,13 +50,13 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x154A60](../../../src/game/world/state/difficulty/InitDifficulty.c) | `InitDifficulty` | Zeroes the 0x18-byte DIFFICULTY object | 0.50 | T1 |  |
-| [0x154A80](../../../src/game/world/state/difficulty/func_00154A80.c) | `ClearDifficulty` | Clears the three difficulty sample references (p8/pC/p10) | 0.35 | T2 |  |
-| [0x154A90](../../../src/game/world/state/difficulty/HandleDifficultyMessage.cpp) | `HandleDifficultyMessage` | Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the samples (rolling window of 3), 37/16/29 apply difficulty deltas from table D_002BDC00 | 0.55 | T1 |  |
-| [0x154C90](../../../src/game/world/state/difficulty/GGetDifficulty.c) | `GGetDifficulty` | Current difficulty: override value if set, else average of the last three samples | 0.55 | T1 |  |
-| [0x154D88](../../../src/game/world/state/difficulty/ChangeDifficulty.c) | `ChangeDifficulty` | Adds a delta to the current difficulty (SetDifficulty(GGetDifficulty()+d)) | 0.50 | T1 |  |
-| [0x154DC8](../../../src/game/world/state/difficulty/SetDifficulty.c) | `SetDifficulty` | Stores the difficulty clamped by the DIFFICULTY LM range (GLimitLm) into the current sample | 0.50 | T1 |  |
-| [0x155228](../../../src/game/world/state/difficulty/func_00155228.c) | `NScaleByDifficulty` | Interpolates n between two LM scale factors (g20..g24) by the current difficulty | 0.45 | T2 |  |
+| [0x154A60](../../../src/game/world/state/difficulty.cpp) | `InitDifficulty` | Zeroes the 0x18-byte DIFFICULTY object | 0.50 | T1 |  |
+| [0x154A80](../../../src/game/world/state/difficulty.cpp) | `ClearDifficulty` | Clears the three difficulty sample references (p8/pC/p10) | 0.35 | T2 |  |
+| [0x154A90](../../../src/game/world/state/difficulty.cpp) | `HandleDifficultyMessage` | Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the samples (rolling window of 3), 37/16/29 apply difficulty deltas from table D_002BDC00 | 0.55 | T1 |  |
+| [0x154C90](../../../src/game/world/state/difficulty.cpp) | `GGetDifficulty` | Current difficulty: override value if set, else average of the last three samples | 0.55 | T1 |  |
+| [0x154D88](../../../src/game/world/state/difficulty.cpp) | `ChangeDifficulty` | Adds a delta to the current difficulty (SetDifficulty(GGetDifficulty()+d)) | 0.50 | T1 |  |
+| [0x154DC8](../../../src/game/world/state/difficulty.cpp) | `SetDifficulty` | Stores the difficulty clamped by the DIFFICULTY LM range (GLimitLm) into the current sample | 0.50 | T1 |  |
+| [0x155228](../../../src/game/world/state/difficulty.cpp) | `NScaleByDifficulty` | Interpolates n between two LM scale factors (g20..g24) by the current difficulty | 0.45 | T2 |  |
 
 ## game (0x1613A8-0x166270)
 

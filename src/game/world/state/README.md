@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`difficulty/`](difficulty/) | 10 |
+| [`difficulty.cpp`](difficulty.cpp) | 1 |
 | [`game/`](game/) | 101 |
 | [`save/`](save/) | 24 |
 
