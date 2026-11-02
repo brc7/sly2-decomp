@@ -71,12 +71,12 @@ static inline void *m2c_ctor_0(void *p)
  *   stores vtable 0x2D0220 at +0xC
  * Info: proposed name NewBhvshoot (T1); TU crt0_splicewrap
  * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): NewBhv173 ->
- *   NewBhvshoot
+ *   NewBhvshoot (BHV173 = BHVSHOOT, runtime7a)
  * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
  *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
-void *NewBhv173(s32 arg0) {
+void *NewBhvshoot(s32 arg0) {
     void *temp_v0;
 
     return m2c_ctor_0(func_001AE4F8(0x40));

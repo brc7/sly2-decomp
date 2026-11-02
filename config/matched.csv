@@ -598,7 +598,7 @@ NewBhv169,0x113350,13,match,src/game/app/class_registry/NewBhv169.c
 NewBhvpatrol,0x113388,13,match,src/game/app/class_registry/NewBhvpatrol.c
 NewBhv171,0x1133C0,13,match,src/game/app/class_registry/NewBhv171.c
 NewBhvleap,0x1133F8,13,match,src/game/app/class_registry/NewBhvleap.c
-NewBhv173,0x113430,13,match,src/game/app/class_registry/NewBhv173.c
+NewBhvshoot,0x113430,13,match,src/game/app/class_registry/NewBhvshoot.c
 NewBhv174,0x113468,13,match,src/game/app/class_registry/NewBhv174.c
 NewBhv175,0x1134A0,13,match,src/game/app/class_registry/NewBhv175.c
 NewBhv176,0x1134D8,13,match,src/game/app/class_registry/NewBhv176.c
@@ -797,7 +797,7 @@ GetBhv169ClassDesc,0x1144A0,3,match,src/game/app/class_registry/GetBhv169ClassDe
 GetBhvpatrolClassDesc,0x1144B0,3,match,src/game/app/class_registry/GetBhvpatrolClassDesc.c
 GetBhv171ClassDesc,0x1144C0,3,match,src/game/app/class_registry/GetBhv171ClassDesc.c
 GetBhvleapClassDesc,0x1144D0,3,match,src/game/app/class_registry/GetBhvleapClassDesc.c
-GetBhv173ClassDesc,0x1144E0,3,match,src/game/app/class_registry/GetBhv173ClassDesc.c
+GetBhvshootClassDesc,0x1144E0,3,match,src/game/app/class_registry/GetBhvshootClassDesc.c
 GetBhv174ClassDesc,0x1144F0,3,match,src/game/app/class_registry/GetBhv174ClassDesc.c
 GetBhv175ClassDesc,0x114500,3,match,src/game/app/class_registry/GetBhv175ClassDesc.c
 GetBhv176ClassDesc,0x114510,3,match,src/game/app/class_registry/GetBhv176ClassDesc.c
@@ -6621,7 +6621,7 @@ func_00258D98,0x258D98,42,match,src/game/core/linkonce/unhomed/func_00258D98.c
 func_00258E40,0x258E40,8,match,src/game/core/linkonce/unhomed/func_00258E40.c
 func_00258E60,0x258E60,25,match,src/game/core/linkonce/unhomed/func_00258E60.c
 func_00258EC8,0x258EC8,25,match,src/game/core/linkonce/unhomed/func_00258EC8.c
-func_00258F30,0x258F30,3,match,src/game/object/basic/func_00258F30.c
+GetEmitterClassDesc_linkonce,0x258F30,3,match,src/game/object/basic/GetEmitterClassDesc_linkonce.c
 LoadExploBlipColorsFromBrx,0x258F40,60,match,src/game/engine/fx/emitter/LoadExploBlipColorsFromBrx.c
 LoadExploFromBrx,0x259030,34,match,src/game/engine/fx/emitter/LoadExploFromBrx.c
 CloneExplo,0x2590B8,13,match,src/game/engine/fx/emitter/CloneExplo.c
@@ -6645,7 +6645,7 @@ func_00259830,0x259830,42,match,src/game/core/linkonce/unhomed/func_00259830.c
 func_002598D8,0x2598D8,8,match,src/game/core/linkonce/unhomed/func_002598D8.c
 func_002598F8,0x2598F8,25,match,src/game/core/linkonce/unhomed/func_002598F8.c
 func_00259960,0x259960,25,match,src/game/core/linkonce/unhomed/func_00259960.c
-func_002599C8,0x2599C8,3,match,src/game/engine/fx/emitter/func_002599C8.c
+GetExploClassDesc_linkonce,0x2599C8,3,match,src/game/engine/fx/emitter/GetExploClassDesc_linkonce.c
 func_002599D8,0x2599D8,2,match,src/game/engine/graphics/pipeline/glob/func_002599D8.c
 func_002599E0,0x2599E0,2,match,src/game/engine/graphics/pipeline/glob/func_002599E0.c
 func_002599E8,0x2599E8,2,match,src/game/engine/graphics/pipeline/glob/func_002599E8.c
