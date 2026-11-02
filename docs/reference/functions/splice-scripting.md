@@ -330,25 +330,25 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FF7E8](../../../src/auto/func_001FF7E8.c) | `InitSwSpliceFrame` | Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88) | 0.45 | T2 |  |
-| [0x1FF828](../../../src/auto/func_001FF828.c) | `ClearSwSpliceStub` | SW+0x3A14 = 0 | 0.30 | T2 |  |
-| [0x1FF830](../../../src/auto/func_001FF830.c) | `DeleteSwSplice` | Clear root frame (0x256EE0(p,0)) and ShutdownSplice (0x12AE28) | 0.45 | T2 |  |
-| [0x1FF858](../../../src/hand/LoadSwSpliceFromBrx.cpp) | `LoadSwSpliceFromBrx` | Read the level Splice section: count, per-entry frames/CRefs (0x1FFA70) into a SW-heap table | 0.80 | T1 | parse, format-doc |
-| [0x1FFA40](../../../src/hand/func_001FFA40.c) | `PframeFromIsplice` | Splice table entry n -> frame (NULL for -1) | 0.65 | T1 | format-doc |
-| [0x1FFA70](../../../src/hand/LoadSpliceEntryFromBrx.cpp) | `LoadSpliceEntryFromBrx` | Build one splice table entry: new frame, CRef InitTag, bind | 0.65 | T1 | format-doc |
+| [0x1FF7E8](../../../src/game/object/splicemap/func_001FF7E8.c) | `InitSwSpliceFrame` | Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88) | 0.45 | T2 |  |
+| [0x1FF828](../../../src/game/object/splicemap/func_001FF828.c) | `ClearSwSpliceStub` | SW+0x3A14 = 0 | 0.30 | T2 |  |
+| [0x1FF830](../../../src/game/object/splicemap/func_001FF830.c) | `DeleteSwSplice` | Clear root frame (0x256EE0(p,0)) and ShutdownSplice (0x12AE28) | 0.45 | T2 |  |
+| [0x1FF858](../../../src/game/object/splicemap/LoadSwSpliceFromBrx.cpp) | `LoadSwSpliceFromBrx` | Read the level Splice section: count, per-entry frames/CRefs (0x1FFA70) into a SW-heap table | 0.80 | T1 | parse, format-doc |
+| [0x1FFA40](../../../src/game/object/splicemap/func_001FFA40.c) | `PframeFromIsplice` | Splice table entry n -> frame (NULL for -1) | 0.65 | T1 | format-doc |
+| [0x1FFA70](../../../src/game/object/splicemap/LoadSpliceEntryFromBrx.cpp) | `LoadSpliceEntryFromBrx` | Build one splice table entry: new frame, CRef InitTag, bind | 0.65 | T1 | format-doc |
 
 ## spliceobj (0x1FFCF8-0x201620)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FFCF8](../../../src/hand/PeopidFind.c) | `PeopidFind` | Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id; return its record | 0.85 | T1 |  |
-| [0x1FFD98](../../../src/hand/RefGetPeopid.cpp) | `RefGetPeopid` | Splice value of an object option (method, direct member or getter; by type bool/float/vector/matrix/int/clq/lm/smp) | 0.85 | T1 |  |
-| [0x200598](../../../src/hand/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
-| [0x200BA0](../../../src/hand/RefGetOption__FP5BASICi.cpp) | `RefGetOption` | Option id <=0x4D0: RefGetPeopid(PeopidFind); else sidebag binding | 0.85 | T1 | verified |
-| [0x200C28](../../../src/auto/RefSetOption__FP5BASICiP4CRef.c) | `RefSetOption__FP5BASICiP4CRef` |  |  | existing |  |
-| [0x200CA8](../../../src/auto/RefAddOption__FP5BASICiP4CRef.c) | `RefAddOption__FP5BASICiP4CRef` |  |  | existing |  |
-| [0x200D10](../../../src/auto/RefEnsureOption__FP5BASICiP4CRef.c) | `RefEnsureOption__FP5BASICiP4CRef` |  |  | existing |  |
-| [0x200DA0](../../../src/hand/func_00200DA0.cpp) | `RefSetArgListFromPvs` | Build a Splice list CRef from c (otype, pv) pairs (empty -> void) | 0.60 | T1 |  |
-| [0x200F58](../../../src/hand/func_00200F58.cpp) | `RefSetArgListFromPvsUniform` | Same as RefSetArgListFromPvs with one otype for all values | 0.35 | T2 |  |
-| [0x201360](../../../src/hand/RefSetArgsFromSplice__FiP4CRefP4OTYPe.c) | `RefSetArgsFromSplice__FiP4CRefP4OTYPe` |  |  | existing |  |
-| [0x2013D8](../../../src/hand/func_002013D8.cpp) | `RefSetArgsFromSpliceList` | Convert each element of a Splice list into dest[] via RefSetArgsFromSplice; returns void ref | 0.30 | T2 |  |
+| [0x1FFCF8](../../../src/game/object/spliceobj/PeopidFind.c) | `PeopidFind` | Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id; return its record | 0.85 | T1 |  |
+| [0x1FFD98](../../../src/game/object/spliceobj/RefGetPeopid.cpp) | `RefGetPeopid` | Splice value of an object option (method, direct member or getter; by type bool/float/vector/matrix/int/clq/lm/smp) | 0.85 | T1 |  |
+| [0x200598](../../../src/game/object/spliceobj/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
+| [0x200BA0](../../../src/game/object/spliceobj/RefGetOption__FP5BASICi.cpp) | `RefGetOption` | Option id <=0x4D0: RefGetPeopid(PeopidFind); else sidebag binding | 0.85 | T1 | verified |
+| [0x200C28](../../../src/game/object/spliceobj/RefSetOption__FP5BASICiP4CRef.c) | `RefSetOption__FP5BASICiP4CRef` |  |  | existing |  |
+| [0x200CA8](../../../src/game/object/spliceobj/RefAddOption__FP5BASICiP4CRef.c) | `RefAddOption__FP5BASICiP4CRef` |  |  | existing |  |
+| [0x200D10](../../../src/game/object/spliceobj/RefEnsureOption__FP5BASICiP4CRef.c) | `RefEnsureOption__FP5BASICiP4CRef` |  |  | existing |  |
+| [0x200DA0](../../../src/game/object/spliceobj/func_00200DA0.cpp) | `RefSetArgListFromPvs` | Build a Splice list CRef from c (otype, pv) pairs (empty -> void) | 0.60 | T1 |  |
+| [0x200F58](../../../src/game/object/spliceobj/func_00200F58.cpp) | `RefSetArgListFromPvsUniform` | Same as RefSetArgListFromPvs with one otype for all values | 0.35 | T2 |  |
+| [0x201360](../../../src/game/object/spliceobj/RefSetArgsFromSplice__FiP4CRefP4OTYPe.c) | `RefSetArgsFromSplice__FiP4CRefP4OTYPe` |  |  | existing |  |
+| [0x2013D8](../../../src/game/object/spliceobj/func_002013D8.cpp) | `RefSetArgsFromSpliceList` | Convert each element of a Splice list into dest[] via RefSetArgsFromSplice; returns void ref | 0.30 | T2 |  |

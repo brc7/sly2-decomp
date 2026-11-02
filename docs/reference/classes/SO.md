@@ -48,9 +48,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 22 | OnRemove | **override** | [`OnSoRemove`](../../../src/hand/OnSoRemove.c) | `0x1F3E00` | Freeze |
 | 23 | OnAdd | **override** | [`OnSoAdd`](../../../src/hand/OnSoAdd.c) | `0x1F3EA8` | Unfreeze |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` | VUnk23 |
-| 25 | SetIdProxy | **override** | [`SetSoIdProxy`](../../../src/hand/SetSoIdProxy.c) | `0x1CA308` | SetIdProxy |
-| 26 | ResetLoForProxy | **override** | [`ResetSoForProxy?`](../../../src/hand/func_001CB518.c) | `0x1CB518` | VUnk25 |
-| 27 | LO_VUnk27Proxy | **override** | [`SO_VUnk27Proxy?`](../../../src/hand/func_001CB5D0.cpp) | `0x1CB5D0` | VUnk26 |
+| 25 | SetIdProxy | **override** | [`SetSoIdProxy`](../../../src/game/object/proxy/SetSoIdProxy.c) | `0x1CA308` | SetIdProxy |
+| 26 | ResetLoForProxy | **override** | [`ResetSoForProxy?`](../../../src/game/object/proxy/func_001CB518.c) | `0x1CB518` | VUnk25 |
+| 27 | LO_VUnk27Proxy | **override** | [`SO_VUnk27Proxy?`](../../../src/game/object/proxy/func_001CB5D0.cpp) | `0x1CB5D0` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/hand/TranslateSoToPos.cpp) | `0x1F40A0` | TranslateToPos |
 | 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/hand/RotateSoToMat.cpp) | `0x1F42E0` | RotateToMat |
@@ -69,7 +69,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
 | 45 | LO_vt45 | inherited (LO) | `LO_vt45?` | `0x1A6EF8` | VUnk44 |
-| 46 | SetVisMask | **override** | [`SetSoVisMask`](../../../src/hand/SetSoVisMask.c) | `0x1A6DC8` | SetVisMask |
+| 46 | SetVisMask | **override** | [`SetSoVisMask`](../../../src/game/object/lo/SetSoVisMask.c) | `0x1A6DC8` | SetVisMask |
 | 47 | SetGrf | **override** | [`SetSoGrf`](../../../src/hand/SetSoGrf.c) | `0x1F2FE0` | VUnk46 |
 | 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/hand/ClearSoGrf.c) | `0x1F3078` | VUnk47 |
 | 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/hand/UpdateSoTreeBounds.cpp) | `0x1F50E0` | VUnk48 |

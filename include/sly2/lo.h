@@ -5,7 +5,7 @@
 #define SLY2_LO_H
 #include "sly2/basic.h"
 
-/* LORUN: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (28 copies in Lilly ports) */
+/* LORUN: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (28 copies in Lilly ports) */
 struct LORUN
 {
       void (*pfn)(LO *plo, void *pv);

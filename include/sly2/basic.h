@@ -90,7 +90,7 @@ struct VECTOR
     float x, y, z;
 };
 
-/* RGBA: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (13 copies in Lilly ports) */
+/* RGBA: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (13 copies in Lilly ports) */
 struct RGBA
 {
     uchar bRed;
@@ -106,25 +106,25 @@ struct RGBA
     }
 };
 
-/* VECTOR4: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (28 copies in Lilly ports) */
+/* VECTOR4: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (28 copies in Lilly ports) */
 struct VECTOR4
 {
     float x, y, z, w;
 } __attribute__((aligned(16)));
 
-/* MATRIX4: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (32 copies in Lilly ports) */
+/* MATRIX4: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (32 copies in Lilly ports) */
 struct MATRIX4
 {
 	float mat[4][4];
 } __attribute__((aligned(16)));
 
-/* MATRIX3: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (29 copies in Lilly ports) */
+/* MATRIX3: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (29 copies in Lilly ports) */
 struct MATRIX3
 {
 	float mat[3][4];
 } __attribute__((aligned(16)));
 
-/* SMP: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */
+/* SMP: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */
 struct SMP
 {
     float svFast;
@@ -132,7 +132,7 @@ struct SMP
     float dtFast;
 };
 
-/* SMPA: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (16 copies in Lilly ports) */
+/* SMPA: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (16 copies in Lilly ports) */
 struct SMPA
 {
     float svFast;
@@ -141,7 +141,7 @@ struct SMPA
     float sdvMax;
 };
 
-/* CLQ: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
+/* CLQ: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
 struct CLQ
 {
     union
@@ -154,7 +154,7 @@ struct CLQ
     };
 };
 
-/* LM: from src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
+/* LM: from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
 struct LM
 {
 	float gMin, gMax;
@@ -187,7 +187,7 @@ struct DLE
     void *prev;
 };
 
-/* CRefPtr: from src/hand/RefGetPeopid.cpp (30 copies in Lilly ports) */
+/* CRefPtr: from src/game/object/spliceobj/RefGetPeopid.cpp (30 copies in Lilly ports) */
 template <class T>
 class CRefPtr
 {
@@ -217,7 +217,7 @@ public:
     T *operator->() { return m_p; }
 };
 
-/* CGcObj: from src/hand/RefGetPeopid.cpp (4 copies in Lilly ports) */
+/* CGcObj: from src/game/object/spliceobj/RefGetPeopid.cpp (4 copies in Lilly ports) */
 template <class T>
 class CGcObj
 {
@@ -235,7 +235,7 @@ public:
     }
 };
 
-/* CFrame: from src/hand/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
+/* CFrame: from src/game/object/proxy/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
 class CFrame : public CGcObj<CFrame>
 {
 public:

@@ -422,17 +422,17 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255248](../../../src/game/splice/frame/func_00255248.c) | `GcBinding_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2553E0](../../../src/game/splice/frame/func_002553E0.c) | `GcBinding_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255438](../../../src/game/splice/sidebag/func_00255438.c) | `GcBinding_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x255588](../../../src/hand/func_00255588.c) | `GcFrame_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x255588](../../../src/game/object/splicemap/func_00255588.c) | `GcFrame_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255718](../../../src/game/splice/eval/func_00255718.c) | `GcFrame_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255770](../../../src/game/splice/eval/func_00255770.c) | `GcFrame_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2558C0](../../../src/game/splice/eval/func_002558C0.c) | `GcProc_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255A58](../../../src/game/splice/eval/func_00255A58.c) | `GcProc_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255AB0](../../../src/game/splice/ref/func_00255AB0.c) | `GcProc_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x255C00](../../../src/hand/func_00255C00.c) | `GcSidebag_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x255C00](../../../src/game/object/basic/func_00255C00.c) | `GcSidebag_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255D90](../../../src/game/splice/sidebag/func_00255D90.c) | `GcSidebag_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255DE8](../../../src/game/splice/sidebag/func_00255DE8.c) | `GcSidebag_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x255F38](../../../src/hand/func_00255F38.c) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x2560C8](../../../src/lib/func_002560C8.c) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x255F38](../../../src/game/object/spliceobj/func_00255F38.c) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x2560C8](../../../src/game/object/spliceobj/func_002560C8.c) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/game/splice/ref/func_00256120.c) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256278](../../../src/lib/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../src/game/core/linkonce/unhomed/func_00256298.c) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
@@ -471,7 +471,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256D28](../../../src/hand/__ml__FG8VU_FLOATG9VU_VECTOR.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
 | [0x256D40](../../../src/lib/func_00256D40.c) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256DD0](../../../src/game/splice/eval/func_00256DD0.c) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256EE0](../../../src/auto/func_00256EE0.c) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
+| [0x256EE0](../../../src/game/object/proxy/func_00256EE0.c) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
 | [0x256F48](../../../src/game/splice/eval/func_00256F48.c) | `PvNewProc` | allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257038](../../../src/game/splice/proc/func_00257038.c) | `ProcPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x257058](../../../src/game/splice/frame/func_00257058.c) | `FramePtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -504,7 +504,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x257FC8](../../../src/game/splice/spliceutils/func_00257FC8.c) | `GcShutdownPool6Pool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258040](../../../src/lib/func_00258040.c) | `RcPtr_Assign` | Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store | 0.60 | T1 | top50; top50 round; v2 name RcPtrAssign_00258040 |
 | [0x2580A8](../../../src/hand/func_002580A8.c) | `SidebagPtr_Assign` | refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x258178](../../../src/auto/func_00258178.c) | `GcSidebag_MakeRoot` | move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x258178](../../../src/game/object/basic/func_00258178.c) | `GcSidebag_MakeRoot` | move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x2581B8](../../../src/auto/func_002581B8.c) | `GetKind5` | virtual returning constant 5 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x2581C0](../../../src/lib/func_002581C0.c) | `RefGetGlobalSaveVar` | Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer) | 0.60 | T1 | top50 |
 | [0x258200](../../../src/lib/func_00258200.c) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
@@ -541,7 +541,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258E40](../../../src/game/core/linkonce/unhomed/func_00258E40.c) | `GetEmitterPartAKind` | return PartA variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258E60](../../../src/game/core/linkonce/unhomed/func_00258E60.c) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258EC8](../../../src/game/core/linkonce/unhomed/func_00258EC8.c) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258F30](../../../src/auto/func_00258F30.c) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x258F30](../../../src/game/object/basic/func_00258F30.c) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x258F40](../../../src/hand/func_00258F40.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x259030](../../../src/lib/func_00259030.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x2590B8](../../../src/auto/func_002590B8.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
@@ -583,7 +583,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259A48](../../../src/game/core/linkonce/unhomed/func_00259A48.c) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A70](../../../src/hand/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259A78](../../../src/game/core/linkonce/unhomed/func_00259A78.c) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A88](../../../src/auto/func_00259A88.c) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259A88](../../../src/game/object/splicemap/func_00259A88.c) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259AE8](../../../src/game/core/linkonce/unhomed/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259AF8](../../../src/auto/func_00259AF8.c) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B00](../../../src/game/core/linkonce/unhomed/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -594,8 +594,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259BB0](../../../src/lib/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C08](../../../src/hand/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../src/game/core/linkonce/unhomed/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259C18](../../../src/hand/func_00259C18.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x259CF8](../../../src/auto/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259C18](../../../src/game/object/spliceobj/func_00259C18.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x259CF8](../../../src/game/object/spliceobj/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259D18](../../../src/auto/func_00259D18.c) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259D38](../../../src/game/core/linkonce/unhomed/func_00259D38.c) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D48](../../../src/game/core/linkonce/unhomed/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
