@@ -13,7 +13,7 @@
 | [`grab/`](grab/) | 28 |
 | [`grabspot/`](grabspot/) | 74 |
 | [`hang/`](hang/) | 12 |
-| [`hnd/`](hnd/) | 4 |
+| [`hnd.cpp`](hnd.cpp) | 1 |
 | [`hurt/`](hurt/) | 28 |
 | [`jt/`](jt/) | 51 |
 | [`jtgoal/`](jtgoal/) | 6 |

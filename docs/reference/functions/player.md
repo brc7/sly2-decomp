@@ -293,8 +293,8 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x184F50](../../../src/game/gameplay/player/hnd/InitHnd.c) | `InitHnd` | CID19 (HND) vt7: InitTarget then InitGrabspot on its GRABSPOT part | 0.60 | T1 |  |
-| [0x184F98](../../../src/game/gameplay/player/hnd/func_00184F98.c) | `GetHndGrabPos` | GRABSPOT slot C: owner position + D_002BE910 in z | 0.40 | T2 |  |
+| [0x184F50](../../../src/game/gameplay/player/hnd.cpp) | `InitHnd` | CID19 (HND) vt7: InitTarget then InitGrabspot on its GRABSPOT part | 0.60 | T1 |  |
+| [0x184F98](../../../src/game/gameplay/player/hnd.cpp) | `GetHndGrabPos` | GRABSPOT slot C: owner position + D_002BE910 in z | 0.40 | T2 |  |
 
 ## tu_185130 (0x185130-0x186610)
 

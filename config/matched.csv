@@ -2980,10 +2980,10 @@ func_00184D60,0x184D60,14,match,src/game/core/binstream/tu_1848A8/func_00184D60.
 FOpenSector__18CBinaryInputStreamUiUi,0x184D98,24,match,src/game/core/binstream/tu_1848A8/FOpenSector__18CBinaryInputStreamUiUi.cpp
 StaticInit_tu_1848A8,0x184DF8,77,match,src/game/core/binstream/tu_1848A8/StaticInit_tu_1848A8.c
 func_00184F30,0x184F30,8,match,src/game/core/binstream/tu_1848A8/func_00184F30.c
-InitHnd,0x184F50,17,match,src/game/gameplay/player/hnd/InitHnd.c
-func_00184F98,0x184F98,15,match,src/game/gameplay/player/hnd/func_00184F98.c
-StaticInit_hnd,0x184FD8,77,match,src/game/gameplay/player/hnd/StaticInit_hnd.c
-func_00185110,0x185110,8,match,src/game/gameplay/player/hnd/func_00185110.c
+InitHnd,0x184F50,17,match,src/game/gameplay/player/hnd.cpp
+func_00184F98,0x184F98,15,match,src/game/gameplay/player/hnd.cpp
+StaticInit_hnd,0x184FD8,77,match,src/game/gameplay/player/hnd.cpp
+func_00185110,0x185110,8,match,src/game/gameplay/player/hnd.cpp
 func_00185130,0x185130,7,match,src/game/engine/physics/tu_185130/func_00185130.c
 func_00185150,0x185150,111,match,src/game/engine/physics/tu_185130/func_00185150.c
 func_00185310,0x185310,234,match,src/game/engine/physics/tu_185130/func_00185310.c
