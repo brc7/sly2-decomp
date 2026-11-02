@@ -22,6 +22,7 @@ public:
     CLinearHeap(int cbMax, byte *pbBase);
     virtual void *PvAlloc(int cb, int n);
     virtual void *PvRealloc(void *pv, int cb, int n);
+    virtual void Free(void *pv);                          /* no-op: a bump heap never frees (0x116B28) */
 };
 
 /* Growable array of m_cb-byte elements allocated from m_pheap */
