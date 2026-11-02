@@ -330,12 +330,12 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FF7E8](../../../src/game/object/splicemap/func_001FF7E8.c) | `InitSwSpliceFrame` | Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88) | 0.45 | T2 |  |
-| [0x1FF828](../../../src/game/object/splicemap/func_001FF828.c) | `ClearSwSpliceStub` | SW+0x3A14 = 0 | 0.30 | T2 |  |
-| [0x1FF830](../../../src/game/object/splicemap/func_001FF830.c) | `DeleteSwSplice` | Clear root frame (0x256EE0(p,0)) and ShutdownSplice (0x12AE28) | 0.45 | T2 |  |
-| [0x1FF858](../../../src/game/object/splicemap/LoadSwSpliceFromBrx.cpp) | `LoadSwSpliceFromBrx` | Read the level Splice section: count, per-entry frames/CRefs (0x1FFA70) into a SW-heap table | 0.80 | T1 | parse, format-doc |
-| [0x1FFA40](../../../src/game/object/splicemap/func_001FFA40.c) | `PframeFromIsplice` | Splice table entry n -> frame (NULL for -1) | 0.65 | T1 | format-doc |
-| [0x1FFA70](../../../src/game/object/splicemap/LoadSpliceEntryFromBrx.cpp) | `LoadSpliceEntryFromBrx` | Build one splice table entry: new frame, CRef InitTag, bind | 0.65 | T1 | format-doc |
+| [0x1FF7E8](../../../src/game/object/splicemap.cpp) | `InitSwSpliceFrame` | Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88) | 0.45 | T2 |  |
+| [0x1FF828](../../../src/game/object/splicemap.cpp) | `ClearSwSpliceStub` | SW+0x3A14 = 0 | 0.30 | T2 |  |
+| [0x1FF830](../../../src/game/object/splicemap.cpp) | `DeleteSwSplice` | Clear root frame (0x256EE0(p,0)) and ShutdownSplice (0x12AE28) | 0.45 | T2 |  |
+| [0x1FF858](../../../src/game/object/splicemap.cpp) | `LoadSwSpliceFromBrx` | Read the level Splice section: count, per-entry frames/CRefs (0x1FFA70) into a SW-heap table | 0.80 | T1 | parse, format-doc |
+| [0x1FFA40](../../../src/game/object/splicemap.cpp) | `PframeFromIsplice` | Splice table entry n -> frame (NULL for -1) | 0.65 | T1 | format-doc |
+| [0x1FFA70](../../../src/game/object/splicemap.cpp) | `LoadSpliceEntryFromBrx` | Build one splice table entry: new frame, CRef InitTag, bind | 0.65 | T1 | format-doc |
 
 ## spliceobj (0x1FFCF8-0x201620)
 

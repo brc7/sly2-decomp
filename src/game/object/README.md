@@ -10,7 +10,7 @@
 | [`find/`](find/) | 13 |
 | [`lo/`](lo/) | 74 |
 | [`proxy/`](proxy/) | 38 |
-| [`splicemap/`](splicemap/) | 10 |
+| [`splicemap.cpp`](splicemap.cpp) | 1 |
 | [`spliceobj/`](spliceobj/) | 18 |
 | [`xform/`](xform/) | 18 |
 

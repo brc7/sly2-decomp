@@ -422,7 +422,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255248](../../../src/game/splice/frame/func_00255248.c) | `GcBinding_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2553E0](../../../src/game/splice/frame/func_002553E0.c) | `GcBinding_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255438](../../../src/game/splice/sidebag/func_00255438.c) | `GcBinding_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x255588](../../../src/game/object/splicemap/func_00255588.c) | `GcFrame_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x255588](../../../src/game/object/splicemap.cpp) | `GcFrame_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255718](../../../src/game/splice/eval/func_00255718.c) | `GcFrame_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255770](../../../src/game/splice/eval/func_00255770.c) | `GcFrame_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2558C0](../../../src/game/splice/eval/func_002558C0.c) | `GcProc_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
@@ -583,7 +583,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259A48](../../../src/game/core/linkonce/unhomed/func_00259A48.c) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A70](../../../src/game/gameplay/player/grabspot/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259A78](../../../src/game/core/linkonce/unhomed/func_00259A78.c) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A88](../../../src/game/object/splicemap/func_00259A88.c) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259A88](../../../src/game/object/splicemap.cpp) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259AE8](../../../src/game/core/linkonce/unhomed/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259AF8](../../../src/game/gameplay/player/pipe/func_00259AF8.c) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B00](../../../src/game/core/linkonce/unhomed/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
