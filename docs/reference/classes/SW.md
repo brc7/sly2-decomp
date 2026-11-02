@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewSw`](../../../src/auto/NewSw.c) `0x110AB0` |
 | Descriptor getter (slot 6) | `GetSwClassDesc` `0x113A20` |
 | vtable | `D_002DC018`, 10 entries (slots 0..9; slot 0 null), 3 new, 1 overridden |
-| vtable stored by | [`SW_ctor`](../../../src/hand/SW_ctor.cpp) |
+| vtable stored by | [`SW_ctor`](../../../src/game/world/scene/sw/SW_ctor.cpp) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
