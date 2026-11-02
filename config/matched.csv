@@ -2128,9 +2128,9 @@ StaticInit_rhythm,0x153850,77,match,src/game/gameplay/objects/rhythm/StaticInit_
 func_00153988,0x153988,8,match,src/game/gameplay/objects/rhythm/func_00153988.c
 StaticInit_tu_1539A8,0x1539B0,77,match,src/game/gameplay/objects/tu_1539A8.cpp
 func_00153AE8,0x153AE8,8,match,src/game/gameplay/objects/tu_1539A8.cpp
-func_00153B08,0x153B08,61,match,src/game/gameplay/objects/tu_153B08/func_00153B08.c
-StaticInit_tu_153B08,0x153C00,77,match,src/game/gameplay/objects/tu_153B08/StaticInit_tu_153B08.c
-func_00153D38,0x153D38,8,match,src/game/gameplay/objects/tu_153B08/func_00153D38.c
+func_00153B08,0x153B08,61,match,src/game/gameplay/objects/tu_153B08.cpp
+StaticInit_tu_153B08,0x153C00,77,match,src/game/gameplay/objects/tu_153B08.cpp
+func_00153D38,0x153D38,8,match,src/game/gameplay/objects/tu_153B08.cpp
 InitDetector,0x153D58,22,match,src/game/gameplay/ai/detector/InitDetector.c
 UpdateDetector,0x153DB0,11,match,src/game/gameplay/ai/detector/UpdateDetector.c
 UpdateDetectorTargets,0x153DE0,31,match,src/game/gameplay/ai/detector/UpdateDetectorTargets.c

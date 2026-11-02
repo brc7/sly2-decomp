@@ -141,7 +141,7 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x153B08](../../../src/game/gameplay/objects/tu_153B08/func_00153B08.c) | `LoadCid122FromBrx` | Reads the base LO then a u8-counted table of {string (symbol table D_002DD590), s16, s32...} records | 0.70 | T2 | parse-code |
+| [0x153B08](../../../src/game/gameplay/objects/tu_153B08.cpp) | `LoadCid122FromBrx` | Reads the base LO then a u8-counted table of {string (symbol table D_002DD590), s16, s32...} records | 0.70 | T2 | parse-code |
 
 ## tu_15DC80 (0x15DC80-0x15E380)
 
