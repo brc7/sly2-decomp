@@ -4,7 +4,7 @@ void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 struct X { char pad[0x14]; unsigned long *px14; };
 X *func_001EC880(int);
 void __4GIFS(void *);
-void AllocStack__4DMASi(void *, int);
+void AllocSw__4DMASi(void *, int);
 void AddPrimPack__4GIFSiiUl(void *, int, int, int);
 void PackAD__4GIFSll(void *, int, unsigned long);
 void AddPrimEnd__4GIFS(void *);
@@ -31,7 +31,7 @@ void func_002155C0(P *p, Q *q)
         if (x) {
             BUF b;
             __4GIFS(&b);
-            AllocStack__4DMASi(&b, 0x10);
+            AllocSw__4DMASi(&b, 0x10);
             AddPrimPack__4GIFSiiUl(&b, 0, 1, 0xE);
             PackAD__4GIFSll(&b, 6, *x->px14);
             PackAD__4GIFSll(&b, 0x14, 0x60);

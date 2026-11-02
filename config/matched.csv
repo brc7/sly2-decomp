@@ -2207,7 +2207,7 @@ __4DMAS,0x157278,15,match,src/game/engine/graphics/backend/dmas/dmas.cpp
 Clear__4DMAS,0x1572B8,5,match,src/game/engine/graphics/backend/dmas/dmas.cpp
 Reset__4DMAS,0x1572D0,4,match,src/game/engine/graphics/backend/dmas/Reset__4DMAS.c
 Reset__4DMAS,0x1572D0,4,match,src/game/engine/graphics/backend/dmas/dmas.cpp
-AllocStack__4DMASi,0x1572E0,20,match,src/game/engine/graphics/backend/dmas/dmas.cpp
+AllocSw__4DMASi,0x1572E0,20,match,src/game/engine/graphics/backend/dmas/dmas.cpp
 AllocStatic__4DMASiP2QW,0x157330,6,match,src/game/engine/graphics/backend/dmas/AllocStatic__4DMASiP2QW.c
 AllocStatic__4DMASiP2QW,0x157330,6,match,src/game/engine/graphics/backend/dmas/dmas.cpp
 Detach__4DMASPiPP2QW,0x157348,30,match,src/game/engine/graphics/backend/dmas/dmas.cpp

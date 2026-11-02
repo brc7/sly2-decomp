@@ -2205,7 +2205,7 @@ StartupDma__Fv,0x157200,dmas
 __4DMAS,0x157278,dmas
 Clear__4DMAS,0x1572B8,dmas
 Reset__4DMAS,0x1572D0,dmas
-AllocStack__4DMASi,0x1572E0,dmas
+AllocSw__4DMASi,0x1572E0,dmas
 AllocStatic__4DMASiP2QW,0x157330,dmas
 Detach__4DMASPiPP2QW,0x157348,dmas
 DetachCopySw__4DMASPiPP2QWT2,0x1573C0,dmas

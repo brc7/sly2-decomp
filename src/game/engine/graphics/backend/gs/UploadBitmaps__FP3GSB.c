@@ -5,7 +5,7 @@ extern int D_002DE598;
 void __4GIFS(struct B *pb);
 struct MK *STACKSCOPE_ctor(struct MK *pm);
 void STACKSCOPE_ctor_1AE4A0(struct MK *pm, int n);
-void AllocStack__4DMASi(struct B *pb, int n);
+void AllocSw__4DMASi(struct B *pb, int n);
 void AddDmaCnt__4DMAS(struct B *pb);
 int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int a, void *p, struct B *pb);
 void AddPrimPack__4GIFSiiUl(struct B *pb, int a, int b, int c);
@@ -30,7 +30,7 @@ void UploadBitmaps__FP3GSB(void *p) {
     int n;
     __4GIFS(&b);
     STACKSCOPE_ctor(&mk);
-    AllocStack__4DMASi(&b, ((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
+    AllocSw__4DMASi(&b, ((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     AddDmaCnt__4DMAS(&b);
     if (FBuildUploadBitmapGifs__FiP3GSBP4GIFS(1, p, &b)) {
         AddPrimPack__4GIFSiiUl(&b, 0, 1, 0xE);

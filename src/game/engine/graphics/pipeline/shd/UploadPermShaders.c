@@ -16,7 +16,7 @@ void __4GIFS(struct DMAS *);
 void __4VIFS(struct X *);
 struct M *STACKSCOPE_ctor(struct M *);
 void STACKSCOPE_ctor_1AE4A0(struct M *, int);
-void AllocStack__4DMASi(struct X *, int);
+void AllocSw__4DMASi(struct X *, int);
 void AddDmaCnt__4DMAS(struct X *);
 void AddVifFlush__4VIFS(struct X *);
 void Reset__4DMAS(struct DMAS *);
@@ -59,7 +59,7 @@ int UploadPermShaders(struct BS *pbs, int k)
     __4VIFS(&x);
     n4 = pbs->n4;
     STACKSCOPE_ctor(&m);
-    AllocStack__4DMASi(&x, (D_003DCF9C * 3 + D_003DCF98) * 10 + 4);
+    AllocSw__4DMASi(&x, (D_003DCF9C * 3 + D_003DCF98) * 10 + 4);
     AddDmaCnt__4DMAS(&x);
     AddVifFlush__4VIFS(&x);
     for (i = 0; i < D_003DCFF8; i++) {
