@@ -9,7 +9,7 @@
 | [`eval/`](eval/) | 27 |
 | [`frame/`](frame/) | 15 |
 | [`gc/`](gc/) | 19 |
-| [`method/`](method/) | 2 |
+| [`method.cpp`](method.cpp) | 1 |
 | [`pair/`](pair/) | 3 |
 | [`proc/`](proc/) | 4 |
 | [`ref/`](ref/) | 38 |
