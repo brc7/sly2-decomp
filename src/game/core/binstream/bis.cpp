@@ -1,6 +1,6 @@
 // bis.cpp -- CBinaryInputStream (LZSS-capable binary reader over Fill()ed blocks), its readers for strings, BSP
 // trees and collision geometry, and CMemInputStream (a stream over one memory buffer).
-// TU 0x1177A8..0x118668 (37 functions, address order) plus one linkonce instance (0x2566B0).
+// TU 0x1177A8..0x118668 (33 functions, address order) plus one linkonce instance (0x2566B0).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bis
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00118648
 #include "bis.h"
