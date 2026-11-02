@@ -1,6 +1,6 @@
 struct P { char pad[0xA4]; int c; void **ap; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void func_001EDAD8(void *, float, float);
+void SetSaiDuDv(void *, float, float);
 /** @sly2-annot addr=0x1F8038
  * Purpose: 0x1EDAD8(f,g) on every CID 0x8F SAA
  * Info: proposed name SetSoSaaParams (T2); TU so
@@ -13,6 +13,6 @@ void func_001F8038(struct P *p, float f, float g)
     int i;
     for (i = 0; i < p->c; i++) {
         void *q = p->ap[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) func_001EDAD8(q, f, g);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
     }
 }

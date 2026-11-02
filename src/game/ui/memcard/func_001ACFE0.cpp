@@ -1,7 +1,7 @@
 // Game-state transition handler: switch on the new state id (x40) and run the menu/HUD hooks for it.
 // State 34 sends an option message (CRef true) to the global option object D_003E0FE4.
 //
-// Match notes: the three-argument call to func_00258200 uses the same idiom as func_0013D328 / func_001D54B8:
+// Match notes: the three-argument call to func_00258200 uses the same idiom as func_0013D328 / ResetRumbleSaveVar:
 // SetPv receives the context at the call site (evaluated before the CRef copy) but its body names
 // D_003D4A60 again after the copy. That is what puts `lui a3` after the copy ctor yet keeps a3's low half
 // ahead of the a2 setup (the scheduler boosts insns that set a register exactly once in the function).
@@ -21,12 +21,12 @@ struct S { char pad[0x40]; int x40; int x44; float x48; int x4C; };   // x40 = s
 extern "C" {
 extern char D_003DA530[], D_003D9ED0[], D_003D4A60[], D_002E65E0[];
 extern O *D_003E0FE4;
-int func_001D9880(void *p);
+int FScreenShown(void *p);
 int func_001B0160(void *p);
 void ClearMcDialogState(S *s);
 void func_001ACC38(S *s, int n);
 void func_001AF660(void *p);
-void func_001DDB08(void *p);
+void StartNewGame(void *p);
 int func_001B0108(void *p);
 void func_001AF608(void *p);
 void SetMcDialogState(S *s, int n);
@@ -48,11 +48,11 @@ void func_001ACFE0(S *s)
     case 17: case 18: case 21: case 24:
         {
             void *g = D_003DA530;
-            if (func_001D9880(g) && func_001B0160(D_003D9ED0)) {
+            if (FScreenShown(g) && func_001B0160(D_003D9ED0)) {
                 ClearMcDialogState(s);
                 func_001ACC38(s, 2);
                 func_001AF660(D_003D9ED0);
-                func_001DDB08(g);
+                StartNewGame(g);
                 break;
             }
         }

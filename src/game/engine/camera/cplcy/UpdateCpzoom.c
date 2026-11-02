@@ -19,10 +19,10 @@ struct X {
 void UpdateCplcy(struct X *p);
 float GSmooth__FfffP3SMPPf(void *p, float *pdg, float g, float gTarget, float dt);
 float func_0011D948(void *p, float g);
-void func_001FB2C0(struct SND *p, float g);
+void SetSndPitch(struct SND *p, float g);
 void func_001FB1F8(struct SND *p, float g);
-void func_001FB060(struct SND *p);
-void func_001FB018(struct SND *p);
+void ResumeSnd(struct SND *p);
+void PauseSnd(struct SND *p);
 qword func_0011F088(qword a, qword b, float g, void *p, int n);
 void LoadRotateMatrixEuler(M3 *pm, qword v);
 void func_0011C950(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
@@ -70,14 +70,14 @@ void UpdateCpzoom(struct X *p)
     }
     if (p->gB0 != 0.0f) {
         struct SND *ps = p->pC0;
-        func_001FB2C0(ps, func_0011D948(D_002BBB68, __builtin_fabsf(p->gB0)));
+        SetSndPitch(ps, func_0011D948(D_002BBB68, __builtin_fabsf(p->gB0)));
         ps = p->pC0;
         func_001FB1F8(ps, func_0011D948(D_002BBB60, __builtin_fabsf(p->gB0) * 0.5f + 0.5f));
         if (p->pC0->c4E > 0)
-            func_001FB060(p->pC0);
+            ResumeSnd(p->pC0);
     } else {
         if (p->pC0->c4E <= 0)
-            func_001FB018(p->pC0);
+            PauseSnd(p->pC0);
     }
     if (p->p40) {
         M3 m0, m30, m60, m90;

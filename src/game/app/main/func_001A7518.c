@@ -14,7 +14,7 @@ void UpdateSw(void *);
 void func_001D9648(void *);
 void func_00160828(void);
 int func_001477B0(void *);
-void func_001CDA80(void *);
+void RenderSw(void *);
 void DrawSw(void *);
 void func_001D9820(void *);
 void func_001477D8(void *);
@@ -44,7 +44,7 @@ void func_001A7518(int a, int b)
         func_001D9648(D_003D9E70);
         func_00160828();
         if (!D_002DD644 || func_001477B0(D_002DD644)) {
-            func_001CDA80(D_003DD490);
+            RenderSw(D_003DD490);
             DrawSw(D_003DD490);
             func_001D9820(D_003D9E70);
         }

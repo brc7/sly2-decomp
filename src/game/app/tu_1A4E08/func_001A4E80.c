@@ -6,8 +6,8 @@ extern struct P D_002F66B0;
 extern struct H D_002E6550;
 extern char D_003DD490[], D_002BFCA0[], D_002DEB30[];
 int func_001A4E70(struct S *s);
-void func_001B3A48(struct P *p, int n);
-void func_0022B490(void *g, void *a, int b, int c, int d, int e);
+void CMpeg_QueueMovie(struct P *p, int n);
+void WipeToWorldWarp(void *g, void *a, int b, int c, int d, int e);
 void func_001651D8(void *g, int a, int b);
 void func_001ACC38(struct H *h, int n);
 /** @sly2-annot addr=0x1A4E80
@@ -29,13 +29,13 @@ void func_001A4E80(struct S *s)
     case 0:
     case 1:
         p = &D_002F66B0;
-        func_001B3A48(p, e->x4);
+        CMpeg_QueueMovie(p, e->x4);
         if (e->x0 == 1)
             p->x108 = e->x0;
-        func_0022B490(D_003DD490, D_002BFCA0, 0x189, -1, 0, -1);
+        WipeToWorldWarp(D_003DD490, D_002BFCA0, 0x189, -1, 0, -1);
         break;
     case 2:
-        func_0022B490(D_003DD490, e->x8, e->xC, -1, e->x10, 0x30A);
+        WipeToWorldWarp(D_003DD490, e->x8, e->xC, -1, e->x10, 0x30A);
         break;
     case 3:
         func_001651D8(D_002DEB30, e->x14, e->x18);

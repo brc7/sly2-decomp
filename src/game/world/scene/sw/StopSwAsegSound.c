@@ -1,5 +1,5 @@
 struct O { char pad[0x60]; int id; };
-void func_001FB098(struct O *p, float f);
+void StopSnd(struct O *p, float f);
 void func_00258040(struct O **pp, int a);
 /** @sly2-annot addr=0x2108E8
  * Purpose: ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref
@@ -15,6 +15,6 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
         return;
     if (id != -1 && p->id != id)
         return;
-    func_001FB098(p, 0.0f);
+    StopSnd(p, 0.0f);
     func_00258040(pp, 0);
 }

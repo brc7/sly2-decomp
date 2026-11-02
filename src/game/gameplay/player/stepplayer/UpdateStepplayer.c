@@ -29,7 +29,7 @@ int FAsegaRetracted(int x);
 void func_001306A8(int *px);
 int FActiveCplcy__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
-void func_001DB490(void *p);
+void OpenGadgetMenuForHero(void *p);
 void UpdateBhvstk(int *p);
 /** @sly2-annot addr=0x1403D0
  * Purpose: STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0),
@@ -72,7 +72,7 @@ void UpdateStepplayer(struct P *p)
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & 0x108) == 0x100) {
             SetJoyBtnHandled(pg, 0x100);
-            func_001DB490(D_003DA0F0);
+            OpenGadgetMenuForHero(D_003DA0F0);
         }
     }
     if (!FJtgoalHold(pl))

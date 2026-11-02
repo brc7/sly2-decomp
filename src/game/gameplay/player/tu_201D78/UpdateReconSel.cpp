@@ -19,16 +19,16 @@ extern PLAYER *D_002E1E40;
 extern char D_002DE2E0[];
 extern "C" {
 void EndJtMode(MODEL *);
-void func_00213928(DISPLAY *,int);
+void StopWidgetAnim(DISPLAY *,int);
 void SelectReconTarget(P *);
 void func_002020C8(P *);
 int func_002022D8(P *);
 void SetReconSelState(P *,int);
 qword func_001A62E8(ACTOR *);
 qword ConvertCmWorldToScreen(CM *,qword);
-void func_00212E40(DISPLAY *,int,float);
-int func_002121E8(DISPLAY *,int);
-void func_00213B00(DISPLAY *,int);
+void SetWidgetAnimPhase(DISPLAY *,int,float);
+int FWidgetAnimPlaying(DISPLAY *,int);
+void PlayWidgetAnim(DISPLAY *,int);
 int FReconTargetDone(ACTOR *);
 int FActiveCplcy__FP5CPLCY(void *);
 int GrfConsumePressed__5POCTLUif(void *,int,float);
@@ -70,7 +70,7 @@ extern "C" void UpdateReconSel(P *p)
     if(!p->primary)return;
     if(!p->secondary)return;
     if(p->refreshPending){p->refreshPending=0;EndJtMode(p->model);}
-    if(p->choiceTime+5.0f<D_002DDED0.time)func_00213928(p->primary,0x35B);
+    if(p->choiceTime+5.0f<D_002DDED0.time)StopWidgetAnim(p->primary,0x35B);
     if(p->state<8)if(p->state>=2){
         SelectReconTarget(p);
         func_002020C8(p);
@@ -116,13 +116,13 @@ extern "C" void UpdateReconSel(P *p)
         if(!p->actor)SetReconSelState(p,2);
         else if(p->proximity<1.0f)SetReconSelState(p,4);
         else if(p->sizeGain>=1.0f-p->actor->threshold)SetReconSelState(p,7);
-        else func_00212E40(p->secondary,0x35A,p->sizeGain);
+        else SetWidgetAnimPhase(p->secondary,0x35A,p->sizeGain);
         break;
     case 6:
         if(!p->actor)SetReconSelState(p,2);
         else if(p->proximity<1.0f)SetReconSelState(p,4);
         else if(p->sizeGain>=1.0f-p->actor->threshold)SetReconSelState(p,7);
-        else func_00212E40(p->secondary,0x35A,p->sizeGain);
+        else SetWidgetAnimPhase(p->secondary,0x35A,p->sizeGain);
         break;
     case 7:
         if(p->actor){
@@ -134,7 +134,7 @@ extern "C" void UpdateReconSel(P *p)
         else SetReconSelState(p,2);
         break;
     case 8:
-        if(!func_002121E8(p->primary,0x358)){
+        if(!FWidgetAnimPlaying(p->primary,0x358)){
             int changed=0;
             if(p->actor&&p->actor->state==1&&p->proximity>=1.0f&&p->sizeGain>=1.0f-p->actor->threshold){
                 if(!p->actor->mode)SetReconSelState(p,9);
@@ -148,11 +148,11 @@ extern "C" void UpdateReconSel(P *p)
                 else{p->pending=p->primary->emptyChoice;SetReconSelState(p,2);}
                 changed=1;
             }
-            if(changed){func_00213B00(p->primary,0x35B);p->choiceTime=D_002DDED0.time;}
+            if(changed){PlayWidgetAnim(p->primary,0x35B);p->choiceTime=D_002DDED0.time;}
         }
         break;
     case 9:
-        if(!func_002121E8(p->primary,0x35C)){
+        if(!FWidgetAnimPlaying(p->primary,0x35C)){
             int ready=1;
             SetReconSelState(p,2);
             for(int i=0;i<p->count;i++){
@@ -166,10 +166,10 @@ extern "C" void UpdateReconSel(P *p)
         }
         break;
     case 10:
-        if(!func_002121E8(p->primary,0x314))SetReconSelState(p,-1);
+        if(!FWidgetAnimPlaying(p->primary,0x314))SetReconSelState(p,-1);
         break;
     case 0:
-        if(func_002121E8(p->primary,0x314))SetReconSelState(p,1);
+        if(FWidgetAnimPlaying(p->primary,0x314))SetReconSelState(p,1);
         break;
     case 1:
         func_002020C8(p);

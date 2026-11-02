@@ -11,8 +11,8 @@ extern "C" {
 void func_0015F888(FONT *pfont);
 int IgsAllocGsb__FP3GSBi(void *p, int n);
 void BuildBmpTex0__FP3BMPi(BMP *pbmp, int n);
-void func_001ECBF0(BMP *pbmp, int n, GIFS *pgifs);
-void func_001EC9D0(CLUT *pclut, int n);
+void BuildBmpGifs(BMP *pbmp, int n, GIFS *pgifs);
+void BuildClutTex2__FP4CLUTi(CLUT *pclut, int n);
 void BuildClutGifs__FP4CLUTiP4GIFS(CLUT *pclut, int n, GIFS *pgifs);
 /** @sly2-annot addr=0x15F710
  * Purpose: CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb)
@@ -41,13 +41,13 @@ void PostLoad(FONT *pfont, FD *pfd, void *p)
     BuildBmpTex0__FP3BMPi(pbmp, n);
     pfont->fl50 = pbmp->fl20;
     gifs.AllocStatic(6, pfont->aqw60);
-    func_001ECBF0(pbmp, n, &gifs);
+    BuildBmpGifs(pbmp, n, &gifs);
     gifs.Detach(&pfont->n58, &pfont->pqw5C);
     pfont->nC0 = pbmp->n18;
     pfont->nC4 = pbmp->n14;
     if (pclut) {
         n = IgsAllocGsb__FP3GSBi(p, pclut->hA);
-        func_001EC9D0(pclut, n);
+        BuildClutTex2__FP4CLUTi(pclut, n);
         pfont->fl50 |= pclut->fl18;
         gifs.AllocStatic(6, pfont->aqwD0);
         BuildClutGifs__FP4CLUTiP4GIFS(pclut, n, &gifs);

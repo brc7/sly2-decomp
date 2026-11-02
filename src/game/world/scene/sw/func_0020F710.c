@@ -5,7 +5,7 @@ struct E { int x; int pad[2]; };
 struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n4764; int n4768; };
 void *func_002333B4(void *p, int c, int n);
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
-void func_00213C68(int x, struct L *pl);
+void SetWidgetXf(int x, struct L *pl);
 int CClueCollected(void);
 int func_001C7D00(void);
 /** @sly2-annot addr=0x20F710
@@ -26,7 +26,7 @@ void func_0020F710(struct S *p)
     for (i = 0; i < 4; i++) {
         int x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
         if (x) {
-            func_00213C68(x, &l);
+            SetWidgetXf(x, &l);
             p->ae[i].x = x;
         }
     }

@@ -78,8 +78,8 @@ void SubscribeLoObject(SOURCE *, ACTOR *);
 void UnsubscribeLoObject(SOURCE *, ACTOR *);
 void func_00204F78(ACTOR *, SOURCE *, int);
 void EvaluateShapeU(SOURCE *, float, qword *, qword *);
-EFFECT *func_001FBB90(int);
-void func_001FB2F8(EFFECT *, SOURCE *);
+EFFECT *PsndStartSound(int);
+void SetSndSourceLo(EFFECT *, SOURCE *);
 void func_00258040(EFFECT **, EFFECT *);
 void FaceStepToward(ACTOR *, SOURCE *);
 void FixStepAngularVelocity(ACTOR *);
@@ -89,7 +89,7 @@ void RevokeCmPolicy(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
 void SetJtJtcs__FP2JTi(ACTOR *, int);
 void func_001CCAC0(ATTACH *, int);
 void func_001CD2C0(void *);
-void func_001FB098(EFFECT *, float);
+void StopSnd(EFFECT *, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
 void func_00194118(CONTEXT *);
 qword ConvertAloPos(void *, void *, qword);
@@ -235,8 +235,8 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             break;
         }
         case 2: {
-            EFFECT *effect = func_001FBB90(0x5C);
-            func_001FB2F8(effect, 0);
+            EFFECT *effect = PsndStartSound(0x5C);
+            SetSndSourceLo(effect, 0);
             func_00258040(&D_002E1E40->effect, effect);
             break;
         }
@@ -321,7 +321,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             break;
         case 2:
             if (D_002E1E40->effect) {
-                func_001FB098(D_002E1E40->effect, 0.0f);
+                StopSnd(D_002E1E40->effect, 0.0f);
                 func_00258040(&D_002E1E40->effect, 0);
             }
             break;

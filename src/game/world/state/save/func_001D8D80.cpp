@@ -19,13 +19,13 @@ struct GS { char pad[0x3B2C]; KEY *k[11]; };
 extern "C" {
 extern GS D_003DD490;
 extern TRIE D_003E0EA8;
-int func_001D7D30(TRIE *, char *);
-CRef func_001D7ED8(TRIE *, KEY *, char *);
+int FGsMatchesSchema(TRIE *, char *);
+CRef RefGetSaveVar(TRIE *, KEY *, char *);
 CRef func_00258200(KEY *, CRef *, char *);
 void func_002333B4(void *, int, unsigned int);
-void func_001D54B8(void);
+void ResetRumbleSaveVar(void);
 }
-static inline CRef Get(KEY *k, char *pb) { return func_001D7ED8(&D_003E0EA8, k, pb); }
+static inline CRef Get(KEY *k, char *pb) { return RefGetSaveVar(&D_003E0EA8, k, pb); }
 static inline CRef Set(KEY *k, CRef *r, char *pb) { return func_00258200(k, r, pb); }
 /** @sly2-annot addr=0x1D8D80
  * Purpose: Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars
@@ -43,14 +43,14 @@ extern "C" void func_001D8D80(char *pb, int f)
     KEY *keys[11] = { D_003DD490.k[0], D_003DD490.k[7], D_003DD490.k[10], D_003DD490.k[8], D_003DD490.k[9], D_003DD490.k[1], D_003DD490.k[2], D_003DD490.k[3], D_003DD490.k[4], D_003DD490.k[5], D_003DD490.k[6] };
     CRef aref[11];
     unsigned int i;
-    if (f && !func_001D7D30(&D_003E0EA8, pb))
+    if (f && !FGsMatchesSchema(&D_003E0EA8, pb))
         f = 0;
     if (f) {
         for (i = 0; i < 11; i++)
             aref[i] = Get(keys[i], pb);
     }
     func_002333B4(pb, 0, 0x5400);
-    func_001D54B8();
+    ResetRumbleSaveVar();
     if (f) {
         for (i = 0; i < 11; i++)
         {

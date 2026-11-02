@@ -38,8 +38,8 @@ int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int func_0021ECD8(char *, const char *, ...);
 CRef func_00258200(void *p, const CRef &ref, G *pv);
 }
-CRef func_001D8B20(const CRef &ref, const void *o, ...);
-CRef func_001D8A38(const char *, ...);
+CRef RefSetSaveVarV(const CRef &ref, const void *o, ...);
+CRef RefGetSaveVarV(const char *, ...);
 static inline void Send(void *pv, CRef ref) { func_00258200(pv, ref, &D_003D4A60); }
 struct CRefRaw { int tagk; int tag; };
 static inline void SetPv(void *pv, const CRef &r, void *)
@@ -63,7 +63,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
     MARK m;
     switch (n) {
     case 0: {
-        CRef ret = func_001D8B20(CRef(0x15, q->p194 ? IdBootyCur(q->p194) : -1), Vcall103(p), D_002A4DB0, 0);
+        CRef ret = RefSetSaveVarV(CRef(0x15, q->p194 ? IdBootyCur(q->p194) : -1), Vcall103(p), D_002A4DB0, 0);
         if (p->p11A8) {
             if (!q->p194) {
                 int dummy[2];
@@ -87,13 +87,13 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
             CRef a(0x15, -1);
             Send(pv, a);
         }
-        CRef ret = func_001D8B20(CRef(0x15, -1), Vcall103(p), D_002A4DB0, 0);
+        CRef ret = RefSetSaveVarV(CRef(0x15, -1), Vcall103(p), D_002A4DB0, 0);
         Y *py = p->p11A8->p158;
         if (py->x4 != -1) {
             char ach[32];
             func_0021ECD8(ach, D_002A4D50, py->x4);
-            ret = func_001D8A38(D_002A4DC0, D_002A4DC8, ach, 0);
-            ret = func_001D8B20(CRef(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
+            ret = RefGetSaveVarV(D_002A4DC0, D_002A4DC8, ach, 0);
+            ret = RefSetSaveVarV(CRef(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
         }
         break;
     }

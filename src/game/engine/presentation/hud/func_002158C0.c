@@ -4,7 +4,7 @@ struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
 struct T { char pad[0x58]; int x58; };
 void func_00218660(void *p, int a);
 void func_001BED18(void *p);
-void func_002156B8(struct T *t);
+void InitSpriteItem(struct T *t);
 /** @sly2-annot addr=0x2158C0
  * Purpose: release item payload (stop nested slot / texture ref) and reinit
  * Info: proposed name ReleaseSpriteItem (T2); TU hud
@@ -25,5 +25,5 @@ void func_002158C0(struct S *p, struct T *t)
         }
         break;
     }
-    func_002156B8(t);
+    InitSpriteItem(t);
 }

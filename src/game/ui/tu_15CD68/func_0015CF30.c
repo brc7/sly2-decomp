@@ -1,4 +1,4 @@
-// (Claude agent) func_0015CF30: UI menu state machine. func_002121E8 takes (p, r) with r = func_0015D5C8(p); the n12C==0 flag uses a shared "setf: f = 1" block (reorg fills both beql/bnel slots from it).
+// (Claude agent) func_0015CF30: UI menu state machine. FWidgetAnimPlaying takes (p, r) with r = func_0015D5C8(p); the n12C==0 flag uses a shared "setf: f = 1" block (reorg fills both beql/bnel slots from it).
 struct CRef { int m_tagk; int m_n; };
 struct CRefG { int m_tagk; float m_g; };
 struct X {
@@ -17,8 +17,8 @@ extern int D_002BE270;
 extern int D_002BE200[];
 extern int D_002BE278[];
 extern int D_002BE2A8[];
-void func_00212C50(struct X *p);
-int func_001D9880(void *p);
+void UpdateWidget(struct X *p);
+int FScreenShown(void *p);
 int func_0015D5C8(struct X *p);
 int DySelectionJoy(void *p);
 int GrfHandleJoyBtn(void *p, int n);
@@ -27,12 +27,12 @@ void func_0015D648(struct X *p, int a, int b);
 void func_002581C0(void *pref, void *p, void *q);
 void func_00129EC8(void *pref);
 void func_0015D880(struct X *p, int n);
-void func_001B3A48(void *p, int n);
-void func_0022B490(struct G *pg, int a, int b, int c, int d, int e);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void CMpeg_QueueMovie(void *p, int n);
+void WipeToWorldWarp(struct G *pg, int a, int b, int c, int d, int e);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 int func_0015D798(struct X *p);
-int func_002121E8(struct X *p, int n);
+int FWidgetAnimPlaying(struct X *p, int n);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, int n);
 void SetExitExits(void *p, int n);
 void func_002283D0(void *p);
@@ -40,7 +40,7 @@ int PrecWorldEntry(int n);
 
 static __inline__ void PlaySound(int n)
 {
-    func_001FB2F8(func_001FBB90(n), 0);
+    SetSndSourceLo(PsndStartSound(n), 0);
 }
 
 /** @sly2-annot addr=0x15CF30
@@ -55,12 +55,12 @@ static __inline__ void PlaySound(int n)
 void func_0015CF30(struct X *p)
 {
     int r;
-    func_00212C50(p);
-    if (func_001D9880(D_003D9ED0))
+    UpdateWidget(p);
+    if (FScreenShown(D_003D9ED0))
         return;
-    if (func_001D9880(D_002E6550))
+    if (FScreenShown(D_002E6550))
         return;
-    if (func_001D9880(D_003DA4F0))
+    if (FScreenShown(D_003DA4F0))
         return;
     r = func_0015D5C8(p);
     switch (p->n11C) {
@@ -117,8 +117,8 @@ void func_0015CF30(struct X *p)
         }
         case 1:
             if (GrfHandleJoyBtn(D_002DFC00, 0x80)) {
-                func_001B3A48(D_002F66B0, D_002BE248[p->n110]);
-                func_0022B490(&D_003DD490, 0, 0x189, -1, 0, -1);
+                CMpeg_QueueMovie(D_002F66B0, D_002BE248[p->n110]);
+                WipeToWorldWarp(&D_003DD490, 0, 0x189, -1, 0, -1);
                 PlaySound(0x34);
                 return;
             }
@@ -140,8 +140,8 @@ void func_0015CF30(struct X *p)
             float g;
             if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
                 D_002BE270 = p->n128;
-                func_001B3A48(D_002F66B0, D_002BE200[p->n128]);
-                func_0022B490(&D_003DD490, 0, 0x189, -1, 0, -1);
+                CMpeg_QueueMovie(D_002F66B0, D_002BE200[p->n128]);
+                WipeToWorldWarp(&D_003DD490, 0, 0x189, -1, 0, -1);
                 PlaySound(0x34);
                 return;
             }
@@ -169,13 +169,13 @@ void func_0015CF30(struct X *p)
         }
         case 1:
         case 2:
-            if (!func_002121E8(p, r))
+            if (!FWidgetAnimPlaying(p, r))
                 func_0015D648(p, 8, 0);
             return;
         }
         return;
     case 10:
-        if (!func_002121E8(p, r)) {
+        if (!FWidgetAnimPlaying(p, r)) {
             int f = 0;
             void *pv = D_003DD490.a3B58[p->n110];
             if (pv) {
@@ -198,13 +198,13 @@ void func_0015CF30(struct X *p)
             }
             if (!f) {
                 int s = PrecWorldEntry(p->n110);
-                func_0022B490(&D_003DD490, s, 0x189, -1, 0, 0x30A);
+                WipeToWorldWarp(&D_003DD490, s, 0x189, -1, 0, 0x30A);
             }
             func_0015D648(p, -1, -1);
         }
         return;
     default:
-        if (!func_002121E8(p, r)) {
+        if (!FWidgetAnimPlaying(p, r)) {
             int k = D_002BE278[p->n11C];
             int n = -1;
             if (k == 8 && p->n110 == 0) {

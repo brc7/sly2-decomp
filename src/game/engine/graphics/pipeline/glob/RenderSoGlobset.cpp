@@ -202,7 +202,7 @@ float func_0011CAB0(const MATRIX4 *pmat);
 qword func_00167DA0(const MATRIX4 *pmat, qword qwPos, float *psRadius);
 int FInsideCmMrd(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
-RPL *func_001CD998(void);
+RPL *PrplAllocRpl(void);
 }
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
@@ -558,7 +558,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         *(uint *)ptag |= ((int)(D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
         *(ulong *)D_002DEA28.pb = 0x60000000;
         D_002DEA28.pb += 0x10;
-        RPL *prpl = func_001CD998();
+        RPL *prpl = PrplAllocRpl();
         switch (KindOf(psub))
         {
         case 3:

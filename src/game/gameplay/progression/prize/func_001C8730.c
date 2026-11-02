@@ -9,12 +9,12 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];
-void func_001FE738(void *p);
+void StopDialog(void *p);
 void StopRelay(void *p);
 void func_001C8918(struct S *p, int n);
 void ReleaseSwLetterbox(void *p);
-void func_001DAF38(int n, int f);
-int func_001FE5F0(void *p, void *q, int f);
+void SetPowerupAcquired(int n, int f);
+int StartDialog(void *p, void *q, int f);
 void func_0020F198(void *p);
 void AcquireSwLetterbox(void *p);
 void func_0020F1A8(void *p);
@@ -31,7 +31,7 @@ void func_001C8730(struct S *p, int n)
     void *pv;
     if (n == p->x180) return;
     if (p->x1A4) {
-        func_001FE738(D_003DD040);
+        StopDialog(D_003DD040);
         p->x1A4 = 0;
     }
     if (p->x19C)
@@ -43,9 +43,9 @@ void func_001C8730(struct S *p, int n)
         break;
     case 3:
         if (p->x200 != -1)
-            func_001DAF38(p->x200, 1);
+            SetPowerupAcquired(p->x200, 1);
         if (p->x1FC)
-            p->x1A4 = func_001FE5F0(D_003DD040, p->x1FC, 1);
+            p->x1A4 = StartDialog(D_003DD040, p->x1FC, 1);
         break;
     case 0:
         if (p->x190)
@@ -62,7 +62,7 @@ void func_001C8730(struct S *p, int n)
         func_001C8918(p, 1);
         AcquireSwLetterbox(D_003DD490);
         if (p->x1F4)
-            p->x1A4 = func_001FE5F0(D_003DD040, p->x1F4, 0);
+            p->x1A4 = StartDialog(D_003DD040, p->x1F4, 0);
         break;
     case 1:
         ((void (*)(void *, int))p->vt[79].pf)((char *)p + p->vt[79].d, 1);

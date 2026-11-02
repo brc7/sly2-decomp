@@ -6,8 +6,8 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0xEC]; void *xEC; char pad1[0x138 - 0xF0]; int x138; int k; float t140; int x144; int c; int *a; int x150; int x154; float t158; float dt; };
 void UpdateLo(struct S *p);
-void func_001B3A48(void *a, int b);
-void func_0022B490(struct G *p, int a, int b, int c, int d, int e);
+void CMpeg_QueueMovie(void *a, int b);
+void WipeToWorldWarp(struct G *p, int a, int b, int c, int d, int e);
 void *PpoHero(struct G *pg);
 qword func_001A62E8(void *p);
 qword ConvertAloPos(int a, struct S *p, qword q);
@@ -32,8 +32,8 @@ void UpdateExit(struct S *p)
         if (0.0f < p->t158 && p->t158 <= D_002DDED0.t) {
             int i;
             for (i = 0; i < p->c; i++)
-                func_001B3A48(D_002F66B0, p->a[i]);
-            func_0022B490(&D_003DD490, p->x144, p->x150, -1, p->x138 ? 0x20 : 0, p->x154);
+                CMpeg_QueueMovie(D_002F66B0, p->a[i]);
+            WipeToWorldWarp(&D_003DD490, p->x144, p->x150, -1, p->x138 ? 0x20 : 0, p->x154);
             p->t158 = 0.0f;
         }
         break;

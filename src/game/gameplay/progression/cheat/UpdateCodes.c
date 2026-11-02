@@ -4,8 +4,8 @@ struct H { struct X *pxFirst; struct X *pxLast; int ibDle; float gC; };
 extern DLI *D_002DD2F8;
 extern float D_002DDF0C;
 void RemoveSlEntry(struct H *ph, struct X *px);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 void func_0014BF18(struct H *ph);
 static __inline__ void InitDli(DLI *pdli, struct H *pdl)
 {
@@ -50,7 +50,7 @@ void UpdateCodes(struct H *ph)
             }
         }
         if (pxBest) {
-            func_001FB2F8(func_001FBB90(0x34), 0);
+            SetSndSourceLo(PsndStartSound(0x34), 0);
             pxBest->pfn(pxBest->pv);
         }
         func_0014BF18(ph);

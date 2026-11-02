@@ -8,8 +8,8 @@ struct S {
 };
 struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 qword func_001A62E8(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
 struct LO *func_001CB658(struct S *p);
@@ -38,7 +38,7 @@ void SetClueDprizes(struct S *p, int n)
             m.p = p;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         } else {
-            func_001FB2F8(func_001FBB90(0x29), 0);
+            SetSndSourceLo(PsndStartSound(0x29), 0);
         }
         pg = D_003DD490;
         n = 2;

@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-s32 func_001FAF70();                                /* extern */
+s32 NewSfx();                                /* extern */
 
 /** @sly2-annot addr=0x15C650
  * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
@@ -9,7 +9,7 @@ s32 func_001FAF70();                                /* extern */
  * @end-sly2-annot */
 s32 func_0015C650(void *arg0) {
     if (M2C_FIELD(arg0, s32 *, 0xF0) == 0) {
-        M2C_FIELD(arg0, s32 *, 0xF0) = func_001FAF70();
+        M2C_FIELD(arg0, s32 *, 0xF0) = NewSfx();
     }
     return M2C_FIELD(arg0, s32 *, 0xF0);
 }

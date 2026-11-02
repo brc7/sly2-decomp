@@ -13,7 +13,7 @@ typedef struct {
 extern struct G D_003DD490;
 extern float D_002C3264;
 extern int D_002C3268[];
-int func_002132D0(void *);
+int FWidgetVisible(void *);
 Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_00258438(TXT *, float, float);
@@ -21,7 +21,7 @@ void func_00258448(TXT *, float, float);
 void func_00258458(TXT *, unsigned int *);
 void func_00258470(TXT *, int);
 void func_00258478(TXT *, int);
-FONT *func_00215AC0(FONT *, int, float);
+FONT *CRichText_ctor(FONT *, int, float);
 void func_002163B0(FONT *, TXT *, int);
 static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;}
 /** @sly2-annot addr=0x1DAC58
@@ -37,7 +37,7 @@ void func_001DAC58(OBJ *p)
     int i;
     if (p->x24 == 0)
         return;
-    if (!func_002132D0(p->x24))
+    if (!FWidgetVisible(p->x24))
         return;
     q = PpoHero(&D_003DD490);
     if (q == 0)
@@ -58,7 +58,7 @@ void func_001DAC58(OBJ *p)
                 func_00258458(&txt, rgba);
                 func_00258470(&txt, 0);
                 func_00258478(&txt, 0);
-                func_00215AC0(&font, D_002C3268[j], D_002C3264);
+                CRichText_ctor(&font, D_002C3268[j], D_002C3264);
                 {float x=pe->x;float y=pe->y;txt.y=y;txt.x=x;}
                 txt.dx = 32.0f;
                 txt.dy = 32.0f;

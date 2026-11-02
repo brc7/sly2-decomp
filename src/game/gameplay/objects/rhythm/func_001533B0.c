@@ -10,7 +10,7 @@ extern char D_003DD040[];
 extern char D_002DEB30[];
 int GrfPressedWithin__5POCTLUif(void *, int, float);
 int POCTL_FConsumePressed(void *, int);
-float func_001FE3F8(void *);
+float TMusicCur(void *);
 void func_00152390(struct O *, int, int, int);
 void BroadcastGameEvent(void *, int, struct S *);
 void AddRhythmScore(struct S *, float);
@@ -40,7 +40,7 @@ void func_001533B0(struct S *p, struct O *po)
         if (pe->n20)
             continue;
         BroadcastGameEvent(D_002DEB30, 0x35, p);
-        if (func_001FE3F8(D_003DD040) < pe->gC - p->g58) {
+        if (TMusicCur(D_003DD040) < pe->gC - p->g58) {
             func_00152390(po, -1, -1, 1);
             AddRhythmScore(p, p->g298);
             return;

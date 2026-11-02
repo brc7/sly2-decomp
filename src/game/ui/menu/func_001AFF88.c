@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 M2C_UNK SetPauseMenuState(s32, M2C_UNK);                /* extern */
-M2C_UNK func_001D8FF8(M2C_UNK *);                   /* extern */
+M2C_UNK ApplyGsSettings(M2C_UNK *);                   /* extern */
 extern M2C_UNK D_003D4A60;
 
 /** @sly2-annot addr=0x1AFF88
@@ -10,6 +10,6 @@ extern M2C_UNK D_003D4A60;
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
 void func_001AFF88(s32 arg0) {
-    func_001D8FF8(&D_003D4A60);
+    ApplyGsSettings(&D_003D4A60);
     SetPauseMenuState(arg0, 9);
 }

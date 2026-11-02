@@ -6,7 +6,7 @@ struct PINGPONG { char pad[0x1C]; int cframe; char pad1[0x34 - 0x20]; SAI sai; c
 extern "C" int FIsSlEmpty(SAI *psai);
 extern "C" float GRandInRange__Fff(float gLow, float gHigh);
 extern "C" float GModPositive__Fff(float g, float gMod);
-extern "C" void func_001EDA68(PINGPONG *p, int iframe);
+extern "C" void SetSaiIframe(PINGPONG *p, int iframe);
 /** @sly2-annot addr=0x1EDE10
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -43,5 +43,5 @@ void UpdatePingpong(PINGPONG *ppingpong, float dt)
         ppingpong->dtPauseRemaining = rand2;
     }
 
-    func_001EDA68(ppingpong, (int)ppingpong->iframe);
+    SetSaiIframe(ppingpong, (int)ppingpong->iframe);
 }

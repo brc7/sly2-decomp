@@ -7,7 +7,7 @@ extern GSDB D_002DEBD0, D_002DECC0;
 extern int D_002DE598;
 extern "C" {
 void func_0021F060(CRITSECT *p);
-void func_0021F0C0(CRITSECT *p);
+void LeaveCritSect__FP8CRITSECT(CRITSECT *p);
 void func_00234CA0(int n);
 void func_002406C0(GSDB *p);
 void func_00241728(int ch, QW *aqw);
@@ -29,5 +29,5 @@ void BlastAqwGifsBothFrames(QW *aqw)
         func_00241728(D_002DE598, aqw);
     }
     func_002417F0(D_002DE598, 0, 0);
-    func_0021F0C0(&D_002DFB40);
+    LeaveCritSect__FP8CRITSECT(&D_002DFB40);
 }

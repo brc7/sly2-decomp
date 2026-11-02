@@ -14,7 +14,7 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 extern "C" void func_001AE528(void *,void *,int);
-extern "C" struct E *func_001CD998(void);
+extern "C" struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){func_001AE528(r->cur,source,n);r->cur+=n*16;}
@@ -63,7 +63,7 @@ extern "C" void func_002163B0(struct RT *p,struct CONFIG *config,int priority){
     Align(&D_002DEA28,0);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=func_001CD998();
+    e=PrplAllocRpl();
     e->kind=0x15;e->priority=p->priority<<18;
     e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
 }

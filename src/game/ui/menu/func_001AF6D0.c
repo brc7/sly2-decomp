@@ -14,8 +14,8 @@ extern struct GS D_002DEB80;
 int DxSelectionJoy(int);
 int DySelectionJoy(int);
 float func_0011D948(void *, float);
-void func_001FEA60(struct G *, int, float, int);
-void func_00212E40(void *, int, float);
+void SetSndmgrChannelVolume(struct G *, int, float, int);
+void SetWidgetAnimPhase(void *, int, float);
 static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 /** @sly2-annot addr=0x1AF6D0
  * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (DxSelectionJoy),
@@ -33,8 +33,8 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
         if (f == 0.0f)
             return;
         g = func_0011D948(D_002BBB60, D_003DD040.x150 + f * D_002DDF10 * 1.5f);
-        func_001FEA60(&D_003DD040, 1, g, 1);
-        func_00212E40(p->x8, 0x315, g);
+        SetSndmgrChannelVolume(&D_003DD040, 1, g, 1);
+        SetWidgetAnimPhase(p->x8, 0x315, g);
         break;
     }
     case 0x68: {
@@ -43,9 +43,9 @@ void func_001AF6D0(struct S *s, struct P *p, int *pk)
         if (f == 0.0f)
             return;
         g = func_0011D948(D_002BBB60, D_003DD040.x14C + f * D_002DDF10 * 1.5f);
-        func_001FEA60(&D_003DD040, 0, g, 1);
-        func_001FEA60(&D_003DD040, 3, g, 1);
-        func_00212E40(p->x8, 0x315, g);
+        SetSndmgrChannelVolume(&D_003DD040, 0, g, 1);
+        SetSndmgrChannelVolume(&D_003DD040, 3, g, 1);
+        SetWidgetAnimPhase(p->x8, 0x315, g);
         break;
     }
     case 0x3F: {

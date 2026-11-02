@@ -6,7 +6,7 @@ struct ENTRY {char unknown0[4];uchar kind,flags;char unknown6[6];RGBA color,seco
 extern int D_003DCFE8;
 extern ENTRY *D_003DCFEC;
 extern uint D_002DE18C;
-extern "C" void func_001EA750(TEXTURE*,int,GIFS*);
+extern "C" void PackTexGifs(TEXTURE*,int,GIFS*);
 extern "C" void func_001EB960();
 static inline ulong ColorWord(const RGBA&color,const ENTRY*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->flags&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}
 static inline void Pair(GIFS&q,int first,ulong regs){q.AddPrimBulk(first,0,4,regs,0);q.AddPrimBulk(first+1,0,4,regs,0);}
@@ -46,7 +46,7 @@ void func_001EB960(){
    q.AllocStatic(p->count,p->data);
    Pair(q,0x7C,0x4F12);
    Packed(q);
-   func_001EA750(e->texture,0,&q);
+   PackTexGifs(e->texture,0,&q);
    uint capturedFlags=e->flags;
    if(capturedFlags&0x20){
     ulong test=(capturedFlags&4)?0x13001UL:0x11001UL;
@@ -77,7 +77,7 @@ void func_001EB960(){
    q.AllocStatic(p->count,p->data);
    if(e->flags&2){
     Pair(q,0x7C,0x4F12);Packed(q);
-    func_001EA750(e->texture,0,&q);
+    PackTexGifs(e->texture,0,&q);
     q.PackAD(0x47,0x71001);q.PackAD(0x42,Alpha(e));
     q.PackAD(0x3D,(ulong)D_002DE18C);
    }else{
@@ -134,7 +134,7 @@ void func_001EB960(){
   case 1:{
    GIFS q;
    q.AllocStatic(p->count,p->data);
-   Pair(q,0x7C,0x4F12);Packed(q);func_001EA750(e->texture,1,&q);
+   Pair(q,0x7C,0x4F12);Packed(q);PackTexGifs(e->texture,1,&q);
    if(e->flags&0x80){
     q.PackAD(0x47,0x77000);q.PackAD(0x42,0x54);
    }else{
@@ -142,7 +142,7 @@ void func_001EB960(){
    }
    q.PackAD(0x3D,(ulong)D_002DE18C);++p;End(q);q.Clear();
    q.AllocStatic(p->count,p->data);
-   Pair(q,0x7C,0x41F2);Packed(q);func_001EA750(e->texture,0,&q);
+   Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->texture,0,&q);
    if(e->flags&0x80){
     q.PackAD(0x47,0x57000);q.PackAD(0x42,0x58);
    }else{
@@ -154,16 +154,16 @@ void func_001EB960(){
    GIFS q;
    if(!(e->flags&0x20)){
     q.AllocStatic(p->count,p->data);++p;
-    Pair(q,0x7C,0x41F2);Packed(q);func_001EA750(e->texture,2,&q);
+    Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->texture,2,&q);
     q.PackAD(0x47,0x5000D);q.PackAD(0x42,0x40);q.PackAD(0x3D,0);
     End(q);q.Clear();
    }
    q.AllocStatic(p->count,p->data);++p;
-   Pair(q,0x7C,0x4F12);Packed(q);func_001EA750(e->texture,1,&q);
+   Pair(q,0x7C,0x4F12);Packed(q);PackTexGifs(e->texture,1,&q);
    q.PackAD(0x47,0x53001);q.PackAD(0x42,Alpha(e));q.PackAD(0x3D,(ulong)D_002DE18C);
    End(q);q.Clear();
    q.AllocStatic(p->count,p->data);
-   Pair(q,0x7C,0x41F2);Packed(q);func_001EA750(e->texture,0,&q);
+   Pair(q,0x7C,0x41F2);Packed(q);PackTexGifs(e->texture,0,&q);
    q.PackAD(0x47,0x53001);q.PackAD(0x42,0x48);q.PackAD(0x3D,0);End(q);break;
   }
   }

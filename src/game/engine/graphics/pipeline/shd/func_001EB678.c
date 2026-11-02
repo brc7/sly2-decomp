@@ -5,7 +5,7 @@ struct S3 { char pad[6]; unsigned char c6; };
 struct Src { int x0; char pad4; unsigned char b5; unsigned char b6; char pad7; struct B4 b8; char padc[0xC]; struct S3 *p18; };
 struct Dst { int x0; int x4; int x8; struct B4 bc; int c; ulong *a; };
 void *func_001AE2A0(struct MSG *);
-ulong func_001EA6C8(struct S3 *, int, int);
+ulong Tex0FromTexIframeCtk(struct S3 *, int, int);
 /** @sly2-annot addr=0x1EB678
  * Purpose: Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture)
  * Info: proposed name BuildShdTex0List (T2); TU shd
@@ -32,6 +32,6 @@ void func_001EB678(struct Src *ps, struct Dst *pd)
     for (i = 0; i < pd->c; i++)
     {
         ulong *pe = (ulong *)((i << 3) + (int)pd->a);
-        *pe = func_001EA6C8(p, i, 0);
+        *pe = Tex0FromTexIframeCtk(p, i, 0);
     }
 }

@@ -10,7 +10,7 @@ void SetPhase__F5PHASE(int n);
 void Begin__5CProg(struct B *b);
 void MarkClockTick(void *p, int n);
 void SetRemain__5CProgi(struct B *b, int n);
-void func_001C8DB8(struct B *b);
+void End__5CProg(struct B *b);
 void ClearPhase(int n);
 /** @sly2-annot addr=0x1A7970
  * Purpose: Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs),
@@ -50,6 +50,6 @@ void Startup__Fv(void)
         D_002BFCE0[i]();
     }
     SetRemain__5CProgi(&b, 0);
-    func_001C8DB8(&b);
+    End__5CProg(&b);
     ClearPhase(1);
 }

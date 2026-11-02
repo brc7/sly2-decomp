@@ -1,6 +1,6 @@
 struct S { int a; int k; };
-void func_00216BC8(struct S *p, int a, int b, int c);
-void func_002174C8(struct S *p, int a, int b, int c);
+void RenderSpriteText(struct S *p, int a, int b, int c);
+void RenderSpriteGeometry(struct S *p, int a, int b, int c);
 void func_002177E0(struct S *p, int a, int b, int c);
 /** @sly2-annot addr=0x2159E0
  * Purpose: dispatch by kind: 3 text (0x216BC8), 1 geometry (0x2174C8), else picture (0x2177E0)
@@ -12,10 +12,10 @@ void func_002159E0(struct S *p, int a, int b, int c)
 {
     switch (p->k) {
     case 3:
-        func_00216BC8(p, a, b, c);
+        RenderSpriteText(p, a, b, c);
         break;
     case 1:
-        func_002174C8(p, a, b, c);
+        RenderSpriteGeometry(p, a, b, c);
         break;
     case 6:
     case 7:

@@ -6,8 +6,8 @@ extern float D_002DDF0C;
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int func_002121C8(struct S *p);
-void func_00212C50(struct S *p);
-int func_001D9880(void *);
+void UpdateWidget(struct S *p);
+int FScreenShown(void *);
 int GrfHandleJoyBtn(void *, int);
 void DecrementSwHandsOff(struct G *, int);
 void func_00162DF8(void *);
@@ -24,9 +24,9 @@ void func_00211D38(struct S *p)
     int r = func_002121C8(p);
     if (r)
         return;
-    func_00212C50(p);
-    if (p->x58 == 2 && 0.5f < D_002DDF0C - p->x5C && !func_001D9880(D_002E6550)
-        && !func_001D9880(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
+    UpdateWidget(p);
+    if (p->x58 == 2 && 0.5f < D_002DDF0C - p->x5C && !FScreenShown(D_002E6550)
+        && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
             D_002DD318++;

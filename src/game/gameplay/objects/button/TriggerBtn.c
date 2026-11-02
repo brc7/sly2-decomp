@@ -1,8 +1,8 @@
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct P { struct O *po; char pad[0x9C - 4]; int n9C; int pad2; int nA4; };
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, void *q);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, void *q);
 void RunBtnAsegs(struct P *p, int n);
 void SetBtnButtons(struct P *p, int n);
 /** @sly2-annot addr=0x1487A0
@@ -18,7 +18,7 @@ void TriggerBtn(struct P *p)
     ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)o + e->d, 5, 0, 0, 0, 0);
     if (!p->n9C) {
         struct O *o2 = p->po;
-        func_001FB2F8(func_001FBB90(2), o2);
+        SetSndSourceLo(PsndStartSound(2), o2);
     }
     RunBtnAsegs(p, 0);
     if (!p->nA4) SetBtnButtons(p, 2);

@@ -7,10 +7,10 @@ extern struct X D_003E0EA8;
 extern const char D_002A7768[],D_002A7788[];
 int IlevelCur__Fv(void);
 int func_0021ECD8(char *buf,const char *fmt,...);
-int func_001D8720(struct HT *pt,const char *s);
+int NFindSaveSymbol(struct HT *pt,const char *s);
 struct A *func_002109B8(int h);
-struct A *func_001D8CC8(struct A *p, struct A *pa);
-static inline int Find(struct X *px, const char *s) { return func_001D8720(&px->table,s); }
+struct A *PkeyConcatSaveKeys(struct A *p, struct A *pa);
+static inline int Find(struct X *px, const char *s) { return NFindSaveSymbol(&px->table,s); }
 /** @sly2-annot addr=0x1C7B18
  * Purpose: query save data for bit n of 'afClue' for the current level
  * Info: proposed name FClueCollected (T1); TU prize
@@ -31,5 +31,5 @@ struct A *FClueCollected(int input)
     k.b = n;
     a.c = 2;
     a.pk = (short *)&k;
-    return func_001D8CC8(func_002109B8(h), &a);
+    return PkeyConcatSaveKeys(func_002109B8(h), &a);
 }

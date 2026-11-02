@@ -7,8 +7,8 @@ int NWorldCur(void);
 void func_00161868(void *p);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
 void func_001618B0(void *p);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x140338
  * Purpose: On a POCTL button press (mask 0x200, Select?): if 0x210AE0 allows, calls 0x161868/0x1618B0 on g_sw
  *   (find class 0x605 obj), plays sound 0x32, stamps g_sw+0x4754 = g_clock.t and bumps g_cm+0x4A4
@@ -21,7 +21,7 @@ void func_00140338(void)
     if (NWorldCur()) {
         func_00161868(D_003DD490);
         if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) func_001618B0(D_003DD490);
-        func_001FB2F8(func_001FBB90(0x32), 0);
+        SetSndSourceLo(PsndStartSound(0x32), 0);
         *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
         D_002DDF40.n4A4++;
     }

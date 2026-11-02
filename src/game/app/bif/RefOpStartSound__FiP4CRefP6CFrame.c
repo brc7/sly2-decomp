@@ -2,8 +2,8 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void InitTag__4CRef(CRef *pref, int tagk);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 void CRef_ctor_BASIC(CRef *pref, void *p);
 /** @sly2-annot addr=0x1251E8
  * Purpose: Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound
@@ -15,8 +15,8 @@ void CRef_ctor_BASIC(CRef *pref, void *p);
 CRef *RefOpStartSound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     int n = aref[1].m_tag;
-    void *p = func_001FBB90(aref[0].m_tag);
-    func_001FB2F8(p, n);
+    void *p = PsndStartSound(aref[0].m_tag);
+    SetSndSourceLo(p, n);
     CRef_ctor_BASIC(ret, p);
     return ret;
 }

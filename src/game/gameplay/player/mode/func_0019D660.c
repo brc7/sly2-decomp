@@ -8,11 +8,11 @@ extern char D_002DEB30[];
 extern char D_004435F0[];
 void func_0019D948(struct S *p);
 void BroadcastGameEvent(void *p, int n, int m);
-void func_00213B00(struct O *p, int n);
-void func_00212E40(struct O *p, int n, float f);
+void PlayWidgetAnim(struct O *p, int n);
+void SetWidgetAnimPhase(struct O *p, int n, float f);
 void func_00227788(void *p);
 void SetReconSelState(void *p, int n);
-void func_00212A70(struct O *p, int n);
+void SetWidgetState(struct O *p, int n);
 void func_00212A50(struct O *p, int n);
 /** @sly2-annot addr=0x19D660
  * Purpose: Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1,
@@ -34,10 +34,10 @@ void func_0019D660(struct S *p, int st)
         else BroadcastGameEvent(D_002DEB30, 7, 0);
         if (p->x8) {
             p->x8->vt[49].pfn((char *)p->x8 + p->x8->vt[49].d, -1);
-            func_00213B00(p->x8, 0x352);
-            func_00213B00(p->x8, 0x351);
-            func_00212E40(p->x8, 0x352, (p->x0->x0->x1a8 + 3.1415927f) * 0.15915494f);
-            func_00212E40(p->x8, 0x351, p->x0->x3c);
+            PlayWidgetAnim(p->x8, 0x352);
+            PlayWidgetAnim(p->x8, 0x351);
+            SetWidgetAnimPhase(p->x8, 0x352, (p->x0->x0->x1a8 + 3.1415927f) * 0.15915494f);
+            SetWidgetAnimPhase(p->x8, 0x351, p->x0->x3c);
         }
         if (p->x0->x20 == 1) {
             func_00227788(D_004435F0);
@@ -58,11 +58,11 @@ void func_0019D660(struct S *p, int st)
             else BroadcastGameEvent(D_002DEB30, 8, 0);
         }
         if (p->x8 && p->x8->x58) {
-            func_00212A70(p->x8, 1);
+            SetWidgetState(p->x8, 1);
             func_00212A50(p->x8, 1);
         }
         if (p->x10 && p->x10->x58) {
-            func_00212A70(p->x10, 1);
+            SetWidgetState(p->x10, 1);
             func_00212A50(p->x10, 1);
         }
         if (p->x14) SetReconSelState(p->x14, -1);

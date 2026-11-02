@@ -64,7 +64,7 @@ extern "C" void SortTasksTopologically(int *pc, X ***papx);
 extern "C" void RestoreTaskState(X *p);
 extern "C" X *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void SetTaskStateCascade(X *p, int n);
-extern "C" void func_001D8B20(CRef *pref, CRef *parg, void *pv, int n);
+extern "C" void RefSetSaveVarV(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void func_00129EC8(CRef *pref);
 extern "C" void SetTaskState(X *p, int n);
 /** @sly2-annot addr=0x165280
@@ -99,7 +99,7 @@ extern "C" void RestoreTasksAfterLoad(SS *ps)
         CRef ref;
         ref.m_tagk = 0x15;
         ref.m_tag = nC0;
-        func_001D8B20(&refRet, &ref, D_002A5238, 0);
+        RefSetSaveVarV(&refRet, &ref, D_002A5238, 0);
         func_00129EC8(&refRet);
         func_00129EC8(&ref);
     }

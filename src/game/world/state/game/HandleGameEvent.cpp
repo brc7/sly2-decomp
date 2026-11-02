@@ -28,7 +28,7 @@ extern "C"{
  void func_00166008();
  void func_001AB630(BANK*);
  int NWorldCur();
- void func_001D8FF8(void*);
+ void ApplyGsSettings(void*);
  void RestoreTasksAfterLoad(P*);
  LEASE*STACKSCOPE_ctor(LEASE*);
  void STACKSCOPE_ctor_1AE4A0(LEASE*,int);
@@ -42,7 +42,7 @@ extern "C"{
  void BeginJob(P*);
  void BeginTask(P*);
  void AnnounceTaskJob(P*);
- void func_0022B490(G*,CHECK*,int,int,int,int);
+ void WipeToWorldWarp(G*,CHECK*,int,int,int,int);
  CRef*func_001291A8(CRef*,const CRef*);
  void func_00129EC8(CRef*);
 }
@@ -114,7 +114,7 @@ extern "C" void HandleGameEvent(P*p,int action){
   if(NWorldCur())break;
   if(D_002E65E0.mode!=6||D_002E65E0.selected||!D_002E65E0.current)break;
   if(GetFloat(D_003DD490.primary,D_003D4A60)!=0.0f)break;
-  if(GetFloat(D_003DD490.primary,D_002E65E0.current)!=0.0f)func_001D8FF8(D_002E65E0.current);
+  if(GetFloat(D_003DD490.primary,D_002E65E0.current)!=0.0f)ApplyGsSettings(D_002E65E0.current);
   break;
  }
  case 4:RestoreTasksAfterLoad(p);break;
@@ -136,7 +136,7 @@ extern "C" void HandleGameEvent(P*p,int action){
   mark.Release();
   break;
  }
- case 16:{G*g=&D_003DD490;if(!g->first)func_0022B490(g,0,g->a,g->b,g->ready?0x20:0,0x30A);break;}
+ case 16:{G*g=&D_003DD490;if(!g->first)WipeToWorldWarp(g,0,g->a,g->b,g->ready?0x20:0,0x30A);break;}
  case 2:case 6:case 7:case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:break;
  }
 }

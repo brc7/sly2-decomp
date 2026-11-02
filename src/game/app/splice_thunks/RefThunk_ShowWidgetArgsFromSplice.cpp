@@ -15,7 +15,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void func_00212828(void *p, CRef *pref); CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref); }
+extern "C" { void ShowWidgetArgsFromSplice(void *p, CRef *pref); CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10DE58
  * Purpose: Splice option thunk: optid 984 on WIDGET (g_aeopid[1132] thunkFn, returns Void, crefReq 1);
  *   unpacks 1 args (0x8010) -> Void via RefSetArgsFromSplice then calls ShowWidgetArgsFromSplice (0x212828)
@@ -31,6 +31,6 @@ CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref)
     CRef ref = func_00201360(1, aref, &k, &r);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00212828(p, &r);
+    ShowWidgetArgsFromSplice(p, &r);
     return ref;
 }

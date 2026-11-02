@@ -15,7 +15,7 @@ int FTaskComplete(struct X *p);
 void SetLoBusyk(struct X *p, int n);
 void IncrementSwHandsOff(void *pg, int n);
 void DecrementSwHandsOff(void *pg, int n);
-void func_00213B00(struct O *po, int n);
+void PlayWidgetAnim(struct O *po, int n);
 static __inline__ void VCall50(struct O *po)
 {
     struct VTE *e = &po->vt[50];
@@ -84,13 +84,13 @@ void SetJobCompletionPhase(struct X *p, int n)
     }
     case 1:
         VCall49(p->pB8, -1);
-        func_00213B00(p->pB8, p->fB0);
+        PlayWidgetAnim(p->pB8, p->fB0);
         break;
     case 3:
         VCall49(p->pBC, -1);
         break;
     case 2:
-        func_00213B00(p->pB8, p->fB4);
+        PlayWidgetAnim(p->pB8, p->fB4);
         break;
     }
 }

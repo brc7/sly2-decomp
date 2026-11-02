@@ -52,7 +52,7 @@ M3 *func_001A6318(LO *plo);
 int FInsideCmFrustum(CM *pcm, qword d, VU_FLOAT r);
 int FInsideCmMrd(CM *pcm, qword d, float g, float *pg);
 void func_00256D18(void *pv, qword v);
-DMA *func_001CD998(void);
+DMA *PrplAllocRpl(void);
 void func_001574B8(VIFS *p);
 void func_0013A688(P *p);
 void func_00226F28(VIFS *p, ...);
@@ -161,7 +161,7 @@ void RenderBlipgSelf(P *p)
         return;
     }
     int c = 0;
-    DMA *pdma = func_001CD998();
+    DMA *pdma = PrplAllocRpl();
     pdma->x0 = 0xC;
     pdma->x4 = 0;
     int save = D_002DEA28.xC;

@@ -1,8 +1,8 @@
 struct BIG { int a[0x5408 / 4]; };
 extern struct BIG *D_002DEB4C;
 extern struct BIG D_003D4A60;
-void func_001D54B8(void);
-void func_001D8FF8(struct BIG *p);
+void ResetRumbleSaveVar(void);
+void ApplyGsSettings(struct BIG *p);
 /** @sly2-annot addr=0x166008
  * Purpose: Copies the pending GS blob (g_game+0x1C) into g_gs and applies its settings
  * Info: proposed name ApplyPendingGs (T2); TU game
@@ -14,7 +14,7 @@ void func_00166008(void)
     if (D_002DEB4C) {
         D_003D4A60 = *D_002DEB4C;
         D_002DEB4C = 0;
-        func_001D54B8();
-        func_001D8FF8(&D_003D4A60);
+        ResetRumbleSaveVar();
+        ApplyGsSettings(&D_003D4A60);
     }
 }

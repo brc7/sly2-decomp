@@ -34,7 +34,7 @@ extern "C" void UpdateTaskSaveVars(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
-extern "C" void func_001DA4B8(void *pv, int n, float g);
+extern "C" void PostNotice(void *pv, int n, float g);
 extern "C" void func_002283D0(LO *plo);
 /** @sly2-annot addr=0x163D18
  * Purpose: Makes p the current task (and pending task if it has a warp), activates its job, if live: ++count,
@@ -58,7 +58,7 @@ extern "C" void BeginTask(O *p)
         ApplyStateLoVisibility(p, 4, p->fa8, p->fac);
         TriggerStateRsmgs(p, 4, p->fb0, p->fb4, p->ff4);
         if (p->f5c != -1 && p->f60)
-            func_001DA4B8(D_003DA0C0, p->f5c, -1.0f);
+            PostNotice(D_003DA0C0, p->f5c, -1.0f);
         p->Msg(0x13, 0, 0, 0, 0);
         if (p->fc4) {
             LO *plo = p->fc4;

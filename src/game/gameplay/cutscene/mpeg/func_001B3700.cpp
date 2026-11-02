@@ -45,7 +45,7 @@ void func_0015F078(CFont *pf, float sx, float sy);
 char *func_00210CA8(TEXT_TABLE *p, int k);
 float func_0015FEF8(CRichText *pfont, float dx);
 float func_0015FF40(CRichText *pfont);
-void func_001CD5F0(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
+void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
 void func_0015FFD0(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
 void func_0015F0C0(CFont *pf);
 }
@@ -143,7 +143,7 @@ extern "C" void func_001B3700(P *p)
         TB *ptb = &tb;
         ptb->jh = 1;
         rgba.word = 0x80000000;
-        func_001CD5F0(rgba, &gifs, tb.x, tb.y, tb.x + tb.dx, tb.y + tb.dy);
+        FillScreenRect(rgba, &gifs, tb.x, tb.y, tb.x + tb.dx, tb.y + tb.dy);
         func_0015FFD0(&font, ptb, 0, &gifs);
         func_0015F0C0(D_002DE760);
         gifs.AddPrimPack(0, 1, 0xE);

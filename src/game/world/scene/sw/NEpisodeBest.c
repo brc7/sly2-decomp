@@ -1,5 +1,5 @@
 struct CRef { int tagk; int tag; };
-void func_001D8A38(struct CRef *r, char *s, int a);
+void RefGetSaveVarV(struct CRef *r, char *s, int a);
 void func_00129EC8(struct CRef *r);
 extern char D_002A8A78[];
 /** @sly2-annot addr=0x210B28
@@ -14,7 +14,7 @@ int NEpisodeBest(void)
 {
     struct CRef r;
     int v;
-    func_001D8A38(&r, D_002A8A78, 0);
+    RefGetSaveVarV(&r, D_002A8A78, 0);
     v = r.tag;
     func_00129EC8(&r);
     return v;

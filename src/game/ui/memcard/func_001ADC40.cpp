@@ -10,10 +10,10 @@ extern "C" {
  void func_00129EC8(REF*);
  void*STACKSCOPE_ctor(void*);
  void STACKSCOPE_ctor_1AE4A0(void*,int);
- void*func_001D89A8(void*,...);
- int func_001DDD40(int);
+ void*PkeyAllocSaveKey(void*,...);
+ int IdsFromWorld(int);
  void*PchzFindSwLangstr__FP2SWi(void*,int);
- int func_001D82B8(void*,void*);
+ int NCompletionPercentGs(void*,void*);
  int func_0021ECD8(char*,const char*,...);
  char*func_0021ED58(char*,const char*);
  int IdPauseTopPage(void*);
@@ -33,10 +33,10 @@ extern "C" void func_001ADC40(char*buf,int idx){
  B*pb=&D_002E6604[idx];
  if(GetG(ref,pg->primary,pb)!=0.0f){
   int frame[4];int*pf=frame;STACKSCOPE_ctor(pf);
-  void*value=func_001D89A8(D_002A6EE0,0);
+  void*value=PkeyAllocSaveKey(D_002A6EE0,0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->fallback,pb);
-  func_0021ECD8(buf,D_002A6EC8,(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,func_001DDD40(tag)),func_001D82B8(D_003DD490.object,pb));
+  func_0021ECD8(buf,D_002A6EC8,(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),NCompletionPercentGs(D_003DD490.object,pb));
   STACKSCOPE_ctor_1AE4A0(frame,2);
  }else{
   switch(IdPauseTopPage(D_003D9ED0)){

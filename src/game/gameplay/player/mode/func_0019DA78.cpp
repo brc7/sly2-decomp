@@ -7,9 +7,9 @@ struct P { struct O *x0; int x4; struct Q *x8; int xc; struct Q *x10; SELECTOR*x
 extern "C" int D_002BF920;
 extern "C" void UpdateReconSel(SELECTOR*p);
 extern "C" void func_0019D660(struct P *p, int n);
-extern "C" void func_00213B00(struct Q *q, int n);
-extern "C" void func_00213928(struct Q *q, int n);
-extern "C" void func_00212E40(struct Q *q, int n, float g);
+extern "C" void PlayWidgetAnim(struct Q *q, int n);
+extern "C" void StopWidgetAnim(struct Q *q, int n);
+extern "C" void SetWidgetAnimPhase(struct Q *q, int n, float g);
 static inline void Below(int&value,Q*q){value=0;if(!q||q->x58<2)value=1;}
 static inline void Equal(int&value,Q*q){value=0;if(!q||q->x58==2)value=1;}
 /** @sly2-annot addr=0x19DA78
@@ -55,15 +55,15 @@ extern "C" void func_0019DA78(struct P *p)
     if (p->x4) {
         int previous=p->x0->x0->x10ec;
         if(previous==4){
-            if(D_002BF920!=previous)func_00213B00(p->x8,0x353);
+            if(D_002BF920!=previous)PlayWidgetAnim(p->x8,0x353);
             if(p->x0->x0->x10ec==previous)goto store;
         }
-        if(D_002BF920==4)func_00213928(p->x8,0x353);
+        if(D_002BF920==4)StopWidgetAnim(p->x8,0x353);
 store:
         D_002BF920=p->x0->x0->x10e4;
     }
-    func_00212E40(p->x8, 0x352, (p->x0->x0->x1a8 + 3.14159265f) * 0.15915494f);
-    func_00212E40(p->x8, 0x351, p->x0->x3c);
+    SetWidgetAnimPhase(p->x8, 0x352, (p->x0->x0->x1a8 + 3.14159265f) * 0.15915494f);
+    SetWidgetAnimPhase(p->x8, 0x351, p->x0->x3c);
 }
 
 typedef char offset_Q_x58[(unsigned)&((Q*)0)->x58==88?1:-1];

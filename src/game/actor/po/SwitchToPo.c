@@ -4,7 +4,7 @@ struct G { char pad[0x3EFC]; struct LO *plo3EFC; struct LO *plo3F00; };
 struct CRef { int m_tagk; int m_tag; int pad[2]; };
 struct LO *PpoCur(struct G *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *plo, int n);
-struct CRef *func_001D8B20(struct CRef *pret, struct CRef *pref, const char *s, int n);
+struct CRef *RefSetSaveVarV(struct CRef *pret, struct CRef *pref, const char *s, int n);
 void func_00129EC8(struct CRef *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(struct G *p, int a, int b, int c);
 void func_001C48C0(struct G *p);
@@ -29,7 +29,7 @@ void SwitchToPo(struct G *p, struct LO *plo)
         struct CRef ret, ref;
         ref.m_tagk = 0x15;
         ref.m_tag = plo->oid;
-        func_001D8B20(&ret, &ref, "oidPoCurrent", 0);
+        RefSetSaveVarV(&ret, &ref, "oidPoCurrent", 0);
         func_00129EC8(&ret);
         func_00129EC8(&ref);
     }

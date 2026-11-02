@@ -26,8 +26,8 @@ struct M { int n; S *p; int pad[14]; };
 extern char D_002A7768[];
 extern char D_002A7770[];
 extern char D_002A7778[];
-CRef func_001D8A38(char *a, char *b, char *c, int n);
-CRef func_001D8B20(const CRef &r, char *a, char *b, char *c, int n);
+CRef RefGetSaveVarV(char *a, char *b, char *c, int n);
+CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n);
 extern "C" void SetLootDprizes(S *p, int n);
 /** @sly2-annot addr=0x1C77E8
  * Purpose: CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15)
@@ -46,8 +46,8 @@ void SetLootDprizes(S *p, int n)
         CRef ref;
         char buf[0x10];
         func_0021ECD8(buf, D_002A7768, p->x244->x4);
-        ref = func_001D8A38(D_002A7770, D_002A7778, buf, 0);
-        func_001D8B20(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
+        ref = RefGetSaveVarV(D_002A7770, D_002A7778, buf, 0);
+        RefSetSaveVarV(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
         LO *plo = p->x210;
         if (plo) {
             M m;

@@ -1,8 +1,8 @@
 extern struct CLOCK { float a[16]; } D_002DDED0;
 extern float D_002A7984, D_002C3254;
 struct S { char p0[0x30]; int n30; float g34; int n38; };
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x1DA950
  * Purpose: Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout
  * Info: proposed name SetScreenMode (T2); TU screen
@@ -18,12 +18,12 @@ void func_001DA950(struct S *p, int n, int m) {
         break;
     case 0:
         p->g34 = D_002A7984;
-        func_001FB2F8(func_001FBB90(0x29), 0);
+        SetSndSourceLo(PsndStartSound(0x29), 0);
         break;
     case 1:
     default:
         p->g34 = D_002DDED0.a[15] + D_002C3254;
-        func_001FB2F8(func_001FBB90(0x36), 0);
+        SetSndSourceLo(PsndStartSound(0x36), 0);
         break;
     }
 }

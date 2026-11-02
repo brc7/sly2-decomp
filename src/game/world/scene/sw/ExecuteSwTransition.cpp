@@ -31,7 +31,7 @@ void ResetClock(void *);
 void AddGrfusr__Fi(int);
 void *func_002333B4(void *,int,uint);
 SW *SW_ctor(SW *);
-int func_001B3B08(void *);
+int CMpeg_ExecuteOids(void *);
 void InitCm__FP2CM(void *);
 void func_0020E180(SW *);
 void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
@@ -48,7 +48,7 @@ ACTOR *PloFindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
 int GetPoCtlState(ACTOR *);
 int NWorldCur(void);
-void func_00212A70(WIDGET *,int);
+void SetWidgetState(WIDGET *,int);
 void UpdateCmLast__FP2CM(void *);
 void CutCm__FP2CM(void *);
 void BroadcastGameEvent(void *,int,void *);
@@ -59,7 +59,7 @@ void func_001A4E80(void *);
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
 struct REF {int tag,value;REF(const REF &);~REF(){func_00129EC8(this);}};
-extern "C" REF func_001D8A38(const char *,...);
+extern "C" REF RefGetSaveVarV(const char *,...);
 static inline float Time(){return *(float *)D_002DDED0;}
 static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
 static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
@@ -114,7 +114,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     func_002333B4(&D_003DD490,0,0x4790);
     func_002333B4(&D_003DD490,0,0x4790);
     SW_ctor(&D_003DD490);
-    if(func_001B3B08(D_002F66B0))changed=1;
+    if(CMpeg_ExecuteOids(D_002F66B0))changed=1;
     InitCm__FP2CM(D_002DDF40);
     p->current=request.header;
     *destination=request;
@@ -128,7 +128,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
         ACTOR *selected=0;
         int actorId;
-        {REF value=func_001D8A38(D_002A8A88,0);actorId=value.value;}
+        {REF value=RefGetSaveVarV(D_002A8A88,0);actorId=value.value;}
         if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(p,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
@@ -149,7 +149,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     }
     if(!NWorldCur()){
         ACTOR *actor=PpoHero(p);
-        if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)func_00212A70(actor->widget,1);
+        if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(D_002DDF40);
     CutCm__FP2CM(D_002DDF40);

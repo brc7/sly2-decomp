@@ -5,10 +5,10 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_002A97F0[];
 float func_001FCFD0(void *p, int id);
-int func_00215E30(struct Q *q);
+int CRichText_Cch(struct Q *q);
 int func_001FE848(void *p, int id);
 float func_001FE888(void *p);
-void func_00215E80(struct Q *q, int n);
+void CRichText_Trim(struct Q *q, int n);
 void func_0021EDA0(void *p, void *s);
 /** @sly2-annot addr=0x227820
  * Purpose: draws text label via blot helpers and strcpy
@@ -24,13 +24,13 @@ void func_00227820(struct P *p, struct Q *q)
     if (p->id == -1) return;
     pv = D_003DD040;
     f = func_001FCFD0(pv, p->id) - 0.5f;
-    c = func_00215E30(q);
+    c = CRichText_Cch(q);
     if (f <= 0.0f || !func_001FE848(pv, p->id))
         n = c;
     else
         n = (int)(func_001FE888(pv) / f * (float)c);
     if (n < c) {
-        func_00215E80(q, n);
+        CRichText_Trim(q, n);
         fShow = 1;
     } else {
         fShow = (int)(D_002DDED0.t * 4.0f) & 1;

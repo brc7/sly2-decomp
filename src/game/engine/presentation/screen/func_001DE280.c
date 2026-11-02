@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001DE008(M2C_UNK, M2C_UNK);            /* extern */
+M2C_UNK StaticInit_screen(M2C_UNK, M2C_UNK);            /* extern */
 
 /** @sly2-annot addr=0x1DE280
  * Purpose: compiler-generated global destructor stub (calls static init with (0,0xFFFF))
@@ -9,5 +9,5 @@ M2C_UNK func_001DE008(M2C_UNK, M2C_UNK);            /* extern */
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
 void func_001DE280(void) {
-    func_001DE008(0, 0xFFFF);
+    StaticInit_screen(0, 0xFFFF);
 }

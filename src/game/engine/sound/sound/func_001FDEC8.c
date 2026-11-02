@@ -4,7 +4,7 @@ struct Ent { short h0; short pad; int n4; };
 struct S { char pad[0x50]; float f50; int n54; struct Ent *a58; };
 struct P { char pad[0x200]; struct X *r200; char pad2[0x244 - 0x204]; int n244; float f248; float f24C; };
 extern float D_002DDF10;
-void func_001FE738(struct P *);
+void StopDialog(struct P *);
 void func_001FE0E8(struct P *, struct Ent *);
 /** @sly2-annot addr=0x1FDEC8
  * Purpose: Advance current dialog: by elapsed stream time fire lip-sync/anim events (0x1FE0E8); end ->
@@ -33,7 +33,7 @@ void func_001FDEC8(struct P *p)
         f ^= 1;
     }
     if (f) {
-        if (0.0f < (float)p->r200->ul68 / 294912000.0f || ps->f50 <= p->f24C) func_001FE738(p);
+        if (0.0f < (float)p->r200->ul68 / 294912000.0f || ps->f50 <= p->f24C) StopDialog(p);
         return;
     }
     while (p->n244 < ps->n54) {

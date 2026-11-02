@@ -5,7 +5,7 @@ extern struct Q D_002DEB30;
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, void *owner);
 void SetSwTaskPending(struct G *pg, void *p);
 void GoToTask(void *p);
-void func_0022B490(struct G *pg, int n, int a, int b, int c, int d);
+void WipeToWorldWarp(struct G *pg, int n, int a, int b, int c, int d);
 /** @sly2-annot addr=0x1651D8
  * Purpose: Finds the TASK by oid and GoToTask, else stores the oid as pending in g_game and warps to the
  *   given level
@@ -24,6 +24,6 @@ void func_001651D8(void *pv, int n, int oid)
         D_002DEB30.f10 = -1;
         D_002DEB30.f14 = -1;
         D_002DEB30.f18 = oid;
-        func_0022B490(pg, n, 0x189, -1, 8, -1);
+        WipeToWorldWarp(pg, n, 0x189, -1, 8, -1);
     }
 }

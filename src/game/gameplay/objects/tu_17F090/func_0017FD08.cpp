@@ -15,12 +15,12 @@ struct S {
     char pad4[0x248 - 0x234]; struct E a248[3]; int pade; struct O *p294; int n298; int n29C; struct O *p2A0; void *p2A4; int n2A8;
 };
 extern "C" {
-void func_00213B00(struct O *o, int n);
+void PlayWidgetAnim(struct O *o, int n);
 void UpdateHackshipHealthBar(struct S *p);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 void func_00258040(void **pp, void *q);
-void func_001FB018(void *p);
+void PauseSnd(void *p);
 void ReleaseAct(int *p);
 void func_002303A0(struct S *p, struct N *n, int k);
 void SetLoParent_1A58D0(struct S *p, int a, int b);
@@ -28,7 +28,7 @@ void SetSoCnstrForce(struct S *p, int n);
 void SetSoCnstrTorque(struct S *p, int n);
 void func_001F68A8(struct S *p, int n);
 void SetSmaGoal(void *p, int n);
-void func_001FB098(void *p, float f);
+void StopSnd(void *p, float f);
 struct M4 func_0022FF40(int a, int b, struct M4 *pm);
 int func_0012DC18(struct S *p, struct N *n, int a, int b, int c, qword v);
 qword func_0011BFF0(struct M4 *pm);
@@ -54,13 +54,13 @@ void func_0017FD08(struct S *p, int n) {
             struct O *q = p->p2A0;
             if (q) {
                 { struct VTE *e = &q->vt[0x31]; ((void (*)(void *, int))e->pfn)((char *)q + e->d, -1); }
-                func_00213B00(p->p2A0, 0x34F);
+                PlayWidgetAnim(p->p2A0, 0x34F);
                 UpdateHackshipHealthBar(p);
                 if (p->n2A8 != old) {
-                    void *r = func_001FBB90(p->n2A8);
-                    func_001FB2F8(r, 0);
+                    void *r = PsndStartSound(p->n2A8);
+                    SetSndSourceLo(r, 0);
                     func_00258040(&p->p2A4, r);
-                    func_001FB018(p->p2A4);
+                    PauseSnd(p->p2A4);
                 }
             }
         }
@@ -94,7 +94,7 @@ void func_0017FD08(struct S *p, int n) {
             if (q) { struct VTE *e = &q->vt[0x32]; ((void (*)(void *))e->pfn)((char *)q + e->d); }
             void **pp = &p->p2A4;
             if (*pp) {
-                func_001FB098(*pp, 0.0f);
+                StopSnd(*pp, 0.0f);
                 func_00258040(pp, 0);
             }
         }

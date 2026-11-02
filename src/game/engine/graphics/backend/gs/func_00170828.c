@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001ECC28(M2C_UNK, s32, M2C_UNK);       /* extern */
+M2C_UNK FBuildUploadBitmapGifs__FiP3GSBP4GIFS(M2C_UNK, s32, M2C_UNK);       /* extern */
 
 /** @sly2-annot addr=0x170828
  * Purpose: Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS)
@@ -10,5 +10,5 @@ M2C_UNK func_001ECC28(M2C_UNK, s32, M2C_UNK);       /* extern */
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 void func_00170828(s32 arg0) {
-    func_001ECC28(1, arg0, 0);
+    FBuildUploadBitmapGifs__FiP3GSBP4GIFS(1, arg0, 0);
 }

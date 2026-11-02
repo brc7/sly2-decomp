@@ -6,9 +6,9 @@ extern int D_003E0F9C;
 extern char D_003DA0C0[];
 extern char D_002DEB30[];
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct Q *q, int k);
-void func_001DA4B8(void *pv, int n, float g);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *pv, int n);
+void PostNotice(void *pv, int n, float g);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *pv, int n);
 void BroadcastGameEvent(void *pv, int n, struct P *p);
 void UpdateStepplayerBootySave(struct Q *q, int n, struct P *p);
 void SetBootyState(struct A *pa, int n);
@@ -31,8 +31,8 @@ void func_0013D020(struct P *p, struct Q *q)
     if (!pqa && !ppa)
         return;
     if (ppa && D_003E0F9C && !ppa->pi->x10) {
-        func_001DA4B8(D_003DA0C0, 0x124, 15.0f);
-        func_001FB2F8(func_001FBB90(0x36), 0);
+        PostNotice(D_003DA0C0, 0x124, 15.0f);
+        SetSndSourceLo(PsndStartSound(0x36), 0);
         return;
     }
     if (p->x190 || (pqa && pqa->pi->x14 != p->x188)) {
@@ -40,7 +40,7 @@ void func_0013D020(struct P *p, struct Q *q)
         return;
     }
     if (p->pa)
-        func_001FB2F8(func_001FBB90(0x27), 0);
+        SetSndSourceLo(PsndStartSound(0x27), 0);
     UpdateStepplayerBootySave(q, 0, p);
     if (q->pa && p->pa) {
         q->pa->p15C = p;

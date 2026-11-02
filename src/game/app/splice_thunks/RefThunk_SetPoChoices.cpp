@@ -15,7 +15,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void func_001D7780(void *p, CRef *pref); CRef RefThunk_SetPoChoices(void *p, int c, void *aref); }
+extern "C" { void SetPoChoices(void *p, CRef *pref); CRef RefThunk_SetPoChoices(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10F648
  * Purpose: Splice option thunk: optid 1154 on CID70 (g_aeopid[1339] thunkFn/thunkUser, returns Void, crefReq
  *   1); unpacks 1 args (0x8006) -> Void via RefSetArgsFromSplice then calls SetPoChoices (0x1D7780)
@@ -31,6 +31,6 @@ CRef RefThunk_SetPoChoices(void *p, int c, void *aref)
     CRef ref = func_00201360(1, aref, &k, &r);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001D7780(p, &r);
+    SetPoChoices(p, &r);
     return ref;
 }

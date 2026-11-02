@@ -21,8 +21,8 @@ struct X *PripNewRipg(void *pg, int a, int b);
 qword func_001A62E8(struct S *p);
 struct MAT *func_001A6318(struct S *p);
 void func_001C67A0(struct S *p, int n);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
@@ -54,7 +54,7 @@ void func_001C65F8(struct S *p, int n)
         } else {
             func_001C67A0(p, 0);
         }
-        func_001FB2F8(func_001FBB90(0x29), 0);
+        SetSndSourceLo(PsndStartSound(0x29), 0);
         plo = p->x210;
         if (plo) {
             struct M m;

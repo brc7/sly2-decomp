@@ -2,10 +2,10 @@
 M2C_UNK func_001A3020(M2C_UNK *);                   /* extern */
 M2C_UNK func_001ACAE8(M2C_UNK *);                   /* extern */
 M2C_UNK func_001AE928(M2C_UNK *);                   /* extern */
-M2C_UNK func_001D9968(M2C_UNK *);                   /* extern */
-M2C_UNK func_001DA2E0(M2C_UNK *);                   /* extern */
+M2C_UNK PostHudMeterLoad(M2C_UNK *);                   /* extern */
+M2C_UNK PostNoticeLoad(M2C_UNK *);                   /* extern */
 M2C_UNK func_001DA770(M2C_UNK *);                   /* extern */
-M2C_UNK func_001DCCA0(M2C_UNK *);                   /* extern */
+M2C_UNK PostJobListLoad(M2C_UNK *);                   /* extern */
 M2C_UNK func_001DD690(M2C_UNK *);                   /* extern */
 extern M2C_UNK D_002E1E60;
 extern M2C_UNK D_002E6550;
@@ -27,13 +27,13 @@ extern M2C_UNK D_003DA530;
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 void func_001D9520(void) {
-    func_001D9968(&D_003D9E80);
+    PostHudMeterLoad(&D_003D9E80);
     func_001AE928(&D_003D9ED0);
     func_001A3020(&D_002E1E60);
     func_001DA770(&D_003DA0F0);
     func_001DA770(&D_003DA150);
-    func_001DA2E0(&D_003DA0C0);
-    func_001DCCA0(&D_003DA3C0);
+    PostNoticeLoad(&D_003DA0C0);
+    PostJobListLoad(&D_003DA3C0);
     func_001ACAE8(&D_002E6550);
     func_001DA770(&D_002E65A0);
     func_001DD690(&D_003DA4F0);

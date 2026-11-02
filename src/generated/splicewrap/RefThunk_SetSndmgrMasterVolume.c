@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001FE9F8(s32, f32);                    /* extern */
+void SetSndmgrMasterVolume(s32, f32);                    /* extern */
 CRef *RefThunk_SetSndmgrMasterVolume(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
@@ -9,7 +9,7 @@ CRef *RefThunk_SetSndmgrMasterVolume(CRef *ret, void *pbasic, s32 cref, CRef *ar
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_001FE9F8(pbasic, arg0_v);
+    SetSndmgrMasterVolume(pbasic, arg0_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

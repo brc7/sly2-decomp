@@ -71,10 +71,10 @@ float GRandInRange__Fff(float lo, float hi);
 int NRandInRange__Fii(int lo, int hi);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
 void func_001FB1F8(void *p, float g);
-void func_001FB098(void *p, float g);
-void *func_001FBB90(int id);
-void func_001FB2F8(void *p, SO *pso);
-void func_001FB4F0(void *p, float a, float b);
+void StopSnd(void *p, float g);
+void *PsndStartSound(int id);
+void SetSndSourceLo(void *p, SO *pso);
+void SetSndRange(void *p, float a, float b);
 void func_00258040(void *pp, void *p);
 RIP *PripNewRipg(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb);
@@ -136,9 +136,9 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
             if (psnd->psnd) {
                 func_001FB1F8(psnd->psnd, g);
             } else {
-                void *ps = func_001FBB90(D_002BDEB0[NRandInRange__Fii(0, 3)]);
-                func_001FB2F8(ps, (SO *)psnd);
-                func_001FB4F0(ps, 100.0f, 1000.0f);
+                void *ps = PsndStartSound(D_002BDEB0[NRandInRange__Fii(0, 3)]);
+                SetSndSourceLo(ps, (SO *)psnd);
+                SetSndRange(ps, 100.0f, 1000.0f);
                 func_001FB1F8(ps, g);
                 func_00258040(pp, ps);
             }
@@ -183,7 +183,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
     } else if (psnd) {
         void **pp = &psnd->psnd;
         if (pp && *pp) {
-            func_001FB098(*pp, g);
+            StopSnd(*pp, g);
             func_00258040(pp, 0);
         }
     }

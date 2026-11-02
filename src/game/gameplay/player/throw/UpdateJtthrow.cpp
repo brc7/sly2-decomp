@@ -22,7 +22,7 @@ extern float D_002C40E0;
 extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
 extern "C" {
 qword func_001A62E8(O *);
-int func_001DAEA8(int);
+int FPowerupAcquired(int);
 qword SetVectorCylind(float,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
 float func_0011D948(RANGE *,float);
@@ -160,7 +160,7 @@ extern "C" void UpdateJtthrow(S *s){
   }
   else{
    CopyRange(w.scratch.range,s->bounds);
-   if(func_001DAEA8(0x24))w.scratch.range.hi*=D_002C40E0;
+   if(FPowerupAcquired(0x24))w.scratch.range.hi*=D_002C40E0;
    float dt=PlanarSnapshot(Sub(s->targetWorld.q,w.ownerPosition.q),w.delta,D_002DDED0.dt);
    float elevation;
    float scale;qword delta;

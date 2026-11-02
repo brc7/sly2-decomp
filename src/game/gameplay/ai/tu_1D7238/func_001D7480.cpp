@@ -29,7 +29,7 @@ void func_00162E38(SUB *);
 int CploFindSwObjectsByClass(GS *, int, int, int, int, SO **);
 void func_001433C8(SO *);
 void BindStepplayerHpMp(SO *, int);
-CRef func_001D8A38(const char *, ...);
+CRef RefGetSaveVarV(const char *, ...);
 int func_001F0400(void *, int);
 int OidFromSmIsms(void *, int);
 void func_001D77D0(OBJ *, int);
@@ -73,7 +73,7 @@ extern "C" void func_001D7480(OBJ *p, int s)
         for (int i2 = 0; i2 < n; i2++)
             VCALL(aso2[i2], 9);
         if (p->x184) {
-            int v = func_001D8A38(D_002A7878, 0).m_tag;
+            int v = RefGetSaveVarV(D_002A7878, 0).m_tag;
             if (func_001F0400(p->x184, v) == -1)
                 idx = OidFromSmIsms(p->x184, 0);
             else

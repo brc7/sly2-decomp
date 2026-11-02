@@ -37,8 +37,8 @@ qword func_001A62E8(P *);
 int func_0011D4D0(float,float,float);
 float GSmooth__FfffP3SMPPf(float,float,float,void *,float *);
 void func_001FB1F8(SOUND *,float);
-void func_001FB2C0(SOUND *,float);
-void func_001FB060(SOUND *);
+void SetSndPitch(SOUND *,float);
+void ResumeSnd(SOUND *);
 void func_001F5078(P *);
 }
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
@@ -209,8 +209,8 @@ extern "C" void UpdateRobottank(P *p)
         p->soundRate=GSmooth__FfffP3SMPPf(p->soundRate,p->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
         float rate=Clamp(p->soundRate,0.2f,1.0f);
         func_001FB1F8(p->sound,rate);
-        func_001FB2C0(p->sound,rate*0.2f);
-        if(p->sound->references>0)func_001FB060(p->sound);
+        SetSndPitch(p->sound,rate*0.2f);
+        if(p->sound->references>0)ResumeSnd(p->sound);
     }
     if(p->drive!=0.0f || p->turn!=0.0f)func_001F5078(p);
 }

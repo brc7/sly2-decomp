@@ -18,7 +18,7 @@ extern char D_002A4DB0[];
 extern "C" {
 void *PkeyFindBootySaveVar(void *p);
 CRef func_00258200(void *p, const CRef &ref, G *pv);
-CRef func_001D8B20(const CRef &ref, void *o, void *pv, int n);
+CRef RefSetSaveVarV(const CRef &ref, void *o, void *pv, int n);
 }
 /* Same SetPv form as func_0013D328: the unused dummy param makes gcc set up %hi(D_003D4A60)
    before the copy (lui in the copy-ctor jal slot). The copy is made in a raw struct with explicit
@@ -47,6 +47,6 @@ extern "C" void *func_00143AF0(LO *p, int x)
         SetPv(pv, a, &D_003D4A60);
     }
     VTE *e = &p->vt[103];
-    CRef ret = func_001D8B20(CRef(0x15, -1, 0), e->pfn((char *)p + e->d), D_002A4DB0, 0);
+    CRef ret = RefSetSaveVarV(CRef(0x15, -1, 0), e->pfn((char *)p + e->d), D_002A4DB0, 0);
     return pv;
 }

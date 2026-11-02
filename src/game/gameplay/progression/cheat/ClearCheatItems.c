@@ -1,7 +1,7 @@
 #include "m2c_prelude.h"
 s32 IGadgetSlotFromId(s32, M2C_UNK);                    /* extern */
 M2C_UNK SetStepplayerGadget(s32, s32, M2C_UNK);           /* extern */
-M2C_UNK func_001DAF38(M2C_UNK, M2C_UNK);            /* extern */
+M2C_UNK SetPowerupAcquired(M2C_UNK, M2C_UNK);            /* extern */
 extern s32 D_002E1E40;
 
 /** @sly2-annot addr=0x14C258
@@ -19,6 +19,6 @@ void ClearCheatItems(void) {
         if (temp_v0 != -1) {
             SetStepplayerGadget(D_002E1E40, temp_v0, -1);
         }
-        func_001DAF38(0x1F, 0);
+        SetPowerupAcquired(0x1F, 0);
     }
 }

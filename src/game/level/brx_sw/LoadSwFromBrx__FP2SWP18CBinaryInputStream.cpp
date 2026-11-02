@@ -9,7 +9,7 @@
 // 0x13E510 PloCloneLo, 0x14B690 PchzFidName. D_003DD040 = g_sndmgr, D_003DD490 = g_sw, D_002DDF40 = g_cm.
 // Matching notes: the alloc helpers take cbAlign as a parameter (its copy lets loop.c hoist the loop's 0x10, which reload then
 // rematerialises); the black clear colour is stored as `unsigned int`.
-// STAND-IN (same trick as LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp / func_00219400.cpp): the five spilled gcse reaching pseudos (&gsb1, &frame, &bis,
+// STAND-IN (same trick as LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp / ApplySpriteKeyPoses.cpp): the five spilled gcse reaching pseudos (&gsb1, &frame, &bis,
 // &gsb0, &frameT) get their spill slots in the order of the gcse expression hash-table size S = max_cuid/2|1. This source has
 // S = 171 after cse1; the game's slot order needs S = 201/203 (~60 more insns). `if (fNever)` is dead code (cprop folds it,
 // jump deletes it; the final code is unchanged) that only supplies those insns. What the game really had there is unknown.
@@ -28,12 +28,12 @@ int func_00117D50(BIS *pbis);
 int func_00117DB8(BIS *pbis);
 void func_00117968(BIS *pbis, int cb, void *pv);
 void func_00117988(BIS *pbis, int cb);
-void func_001C9058(void *p);
+void BeginLoadingScreen(void *p);
 void func_001C9090(void *p, void *pv);
-void func_001C9098(void *p);
-void func_001FD0E8(void *p, BIS *pbis);
-void func_001FD5E8(void *p);
-void func_001D7B88(void *p, BIS *pbis);
+void EndLoadingScreen(void *p);
+void LoadSoundSectionFromBrx(void *p, BIS *pbis);
+void PostSoundLoad(void *p);
+void LoadSaveSchemaFromBrx(void *p, BIS *pbis);
 void LoadLevelTableFromBrx(void *psw, BIS *pbis);
 void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbis);
 void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbis);
@@ -52,13 +52,13 @@ void func_001848A8(void *p, int k, void *pv, int n);
 void func_00184950(void *p, int n);
 void LoadSwSharedHeaderFromBrx(int n, BIS *pbis);
 void LoadSwSpliceFromBrx(void *psw, int n, BIS *pbis);
-void func_001EB748(void *pa, void *pb, BIS *pbis);
+void LoadShadersFromBrx(void *pa, void *pb, BIS *pbis);
 void LoadSwZoneBspFromBrx(void *psw, BIS *pbis);
 struct LO;
 struct LOL { void *pvt; int x4; int c; LO **apo; };
 LOL *CLoadCollectorArray_ctor(LOL *p);
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(int n, BIS *pbis, LOL *p);
-void func_001EC7A0(void);
+void ResetShaders(void);
 LO *PloCloneLo__FP2LOP2SO(LO *po, int n);
 extern char D_002A4BD0[];
 extern char D_003DD040[];
@@ -107,7 +107,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
     psw->cwe = func_00117D50(pbis);
     psw->awe = (WE *)AllocZ(&u.req, psw->cwe * 0x6C, 0x10);
     int h;
-    func_001C9058(&h);
+    BeginLoadingScreen(&h);
     func_001C9090(&h, D_002A4BD0);
     for (i = 0; i < psw->cwe; i++) {
         WE *pwe = &psw->awe[i];
@@ -136,8 +136,8 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         func_00117968(pbis, 0x40, psw);
         func_00117968(pbis, 0x40, psw);
     }
-    func_001FD0E8(D_003DD040, pbis);
-    func_001D7B88((char *)psw + 0x3A18, pbis);
+    LoadSoundSectionFromBrx(D_003DD040, pbis);
+    LoadSaveSchemaFromBrx((char *)psw + 0x3A18, pbis);
     LoadLevelTableFromBrx(psw, pbis);
     LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(psw, pbis);
     LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(psw, pbis);
@@ -175,7 +175,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         LoadSwSharedHeaderFromBrx(1, pbis);
         D_003E1C34 = func_00117DB8(pbis);
         LoadSwSpliceFromBrx(psw, pwe->x10, pbis);
-        func_001EB748(&zpr0, &zpr1, pbis);
+        LoadShadersFromBrx(&zpr0, &zpr1, pbis);
         LoadSwZoneBspFromBrx(psw, pbis);
         {
             FRAME frameT;
@@ -186,7 +186,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
             LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(0, pbis, (LOL *)&u.lol);
             func_00117988(pbis, 0x10);
             func_0014B690(pwe->ab1C);
-            func_001EC7A0();
+            ResetShaders();
             psw->x39E8 = 0;
             pwe->c0 = u.lol.c;
             pwe->apo = (LO **)AllocZ(&req2, pwe->c0 * pwe->c8 * 4, 0x10);
@@ -208,7 +208,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
     }
     func_001ED448();
     psw->iwe = -2;
-    func_001FD5E8(D_003DD040);
+    PostSoundLoad(D_003DD040);
     func_001C9090(&h, 0);
-    func_001C9098(&h);
+    EndLoadingScreen(&h);
 }

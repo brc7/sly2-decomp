@@ -6,7 +6,7 @@ void func_00117988(void *q, int n);
 void STACKSCOPE_ctor(struct L *pl);
 void *func_001AE318(struct M *pm);
 void func_00117968(void *q, int a, void *x);
-void func_001EA568(void *x);
+void RelocateSharedColorTables(void *x);
 void UploadBitmaps__FP3GSB(void *p);
 void STACKSCOPE_ctor_1AE4A0(struct L *pl, int n);
 void func_001179B8(void *q, int a);
@@ -34,7 +34,7 @@ void LoadSwSharedDataFromBrx(void *p, void *q)
         pm->b = 0x10;
         x = func_001AE318(pm); }
         func_00117968(q, D_003E1C30, x);
-        func_001EA568(x);
+        RelocateSharedColorTables(x);
         UploadBitmaps__FP3GSB(p);
         STACKSCOPE_ctor_1AE4A0(&l, 2);
     } else {

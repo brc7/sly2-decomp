@@ -9,7 +9,7 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_002DEB30[];
 void UpdateLo(struct S *);
-float func_001FE3F8(void *);
+float TMusicCur(void *);
 void func_00152390(int, int, int, int);
 void BroadcastGameEvent(void *, int, struct S *);
 void AddRhythmScore(struct S *, float);
@@ -30,7 +30,7 @@ void UpdateRhythmMgr(struct S *p)
     int i, j;
     struct E *pe;
     UpdateLo(p);
-    t = func_001FE3F8(D_003DD040);
+    t = TMusicCur(D_003DD040);
     switch (p->n50) {
     case 1:
         for (j = 0; j < p->c1C0; j++) {

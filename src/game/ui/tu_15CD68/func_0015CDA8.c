@@ -8,7 +8,7 @@ extern int D_002BE270;
 struct S { char pad[0x110]; int i110; char pad2[4]; int i118; char pad3[0xC]; int n128; };
 void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
-void func_002123C8(struct S *p);
+void PostWidgetLoad(struct S *p);
 void func_0015D648(struct S *p, int a, int b);
 void StartJoySelection__FP3JOY(void *p);
 static inline float GFromP(void *pv)
@@ -39,7 +39,7 @@ static inline int NFromP(void *pv)
  * @end-sly2-annot */
 void func_0015CDA8(struct S *p)
 {
-    func_002123C8(p);
+    PostWidgetLoad(p);
     p->i118 = 8;
     if (!D_002BE26C) {
         do {

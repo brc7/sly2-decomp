@@ -4,11 +4,11 @@ extern B D_003E0EA8;
 extern "C" {
 int IlevelCur__Fv(void);
 void *func_002109B8(int n);
-int func_001D8CC8(void *p, X *px);
+int PkeyConcatSaveKeys(void *p, X *px);
 int FVaultOpened(void);
-short func_001D8720(int *p, char *s);
+short NFindSaveSymbol(int *p, char *s);
 }
-inline short B::Find(char *s) { return func_001D8720(&c, s); }
+inline short B::Find(char *s) { return NFindSaveSymbol(&c, s); }
 /** @sly2-annot addr=0x1C8090
  * Purpose: query save-data flag 'fVault' for the level
  * Info: proposed name FVaultOpened (T1); TU prize
@@ -24,5 +24,5 @@ int FVaultOpened(void)
     s = D_003E0EA8.Find("fVault");
     x.c = 1;
     x.ps = &s;
-    return func_001D8CC8(func_002109B8(n), &x);
+    return PkeyConcatSaveKeys(func_002109B8(n), &x);
 }

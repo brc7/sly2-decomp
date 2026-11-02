@@ -979,7 +979,7 @@ extern "C" int FObjHasTarget(LO *plo, OID oid);
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSG *pjsg);
 extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
-extern "C" int func_001D9880(void *pv);
+extern "C" int FScreenShown(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine);
 extern "C" float func_001FE888(SNDMGR *psndmgr);
 extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr);
@@ -1409,7 +1409,7 @@ int FIsJsgCommandComplete(JSG *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StopLine:
-        fComplete = func_001D9880(D_003DA530) == 0;
+        fComplete = FScreenShown(D_003DA530) == 0;
         break;
     case RELAYCK_Line:
         fComplete = FCurrentIdMatches(&D_003DD040, prelaycmd->line.idLine) == 0;

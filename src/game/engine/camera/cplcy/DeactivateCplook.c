@@ -1,6 +1,6 @@
 struct A { void *p0; int pad[3]; float g10; float g14; int pad2[7]; void *p34; void *p38; int pad3[4]; float g4C; float g50; };
 extern char D_002DDF40[];
-void func_001FB098(void *p, float g);
+void StopSnd(void *p, float g);
 void func_00258040(void **pp, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetCmCut(void *p, float a, float b);
@@ -8,7 +8,7 @@ void DeactivateCplcy(struct A *a, int n, void *b);
 static inline void Release(void **pp, float g)
 {
     if (pp && *pp) {
-        func_001FB098(*pp, g);
+        StopSnd(*pp, g);
         func_00258040(pp, 0);
     }
 }

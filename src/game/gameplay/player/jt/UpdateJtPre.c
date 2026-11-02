@@ -34,7 +34,7 @@ void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void Up
 void func_001A0720(struct P*,void*,int,float,float);void func_0018B460(struct P*);
 void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
 qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
-int func_001DAEA8(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
+int FPowerupAcquired(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void func_00131A00(struct MODEL*,float);void func_00204660(struct P*,float);
 void DrainStepplayerMp(struct P*,float);void SetJtJts__FP2JT3JTS4JTBS(struct P*,int,int);
 float func_0011CFE0(float,float);void func_001384C0(void*);
@@ -99,7 +99,7 @@ void UpdateJtPre(struct P*p){
   case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=ConvertAloVec(0,p,phase.direction);break;
  }break;
  case 16:
-  if(func_001DAEA8(0x1C))func_0018E1E0(p);
+  if(FPowerupAcquired(0x1C))func_0018E1E0(p);
   else if(p->enabled){struct BINDING*b=func_0012FF10(p->table,p,(void*)1,1);if(b){ReadBinding(b,p->model,&phase.direction);p->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
   break;
  case 19:p->velocity=NegativeModelNative(p,&phase.scalar);break;

@@ -3,7 +3,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern int D_003E1BEC;
 void func_0014D1D0(struct CLOCK *pclock, int n, float g);
-void func_001FB098(void *p, float g);
+void StopSnd(void *p, float g);
 void func_00258040(void **pp, int n);
 void StopStepplayerGadget(struct S *p, int n);
 /** @sly2-annot addr=0x18DD78
@@ -20,7 +20,7 @@ void func_0018DD78(struct S *p, int n)
         func_0014D1D0(&D_002DDED0, 1, 1.0f);
         pp = &p->p2044;
         if (*pp) {
-            func_001FB098(*pp, 0.0f);
+            StopSnd(*pp, 0.0f);
             func_00258040(pp, 0);
         }
         D_003E1BEC = 0;

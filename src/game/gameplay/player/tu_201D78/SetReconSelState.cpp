@@ -10,13 +10,13 @@ void DecrementSwHandsOff(void *,int);
 void func_002020C8(P *);
 void RefreshReconPendingTargets(P *);
 void UpdateReconChecklist(P *);
-void func_00213928(X *,int);
-void func_00213B00(X *,int);
+void StopWidgetAnim(X *,int);
+void PlayWidgetAnim(X *,int);
 void func_00214300(X *,int);
 void func_0014D1D0(void *,int,float);
 void func_001FE5B8(void *,int,int);
 void func_0014FE28(void *);
-void *func_001FE5F0(void *,int,int);
+void *StartDialog(void *,int,int);
 void func_00147C20(void *,int,int);
 void func_002036E8(ACTOR *,int);
 void BroadcastGameEvent(void *,int,void *);
@@ -25,10 +25,10 @@ void func_002022A0(P *);
 void func_00201E88(P *);
 void func_00201F90(P *);
 void func_00201F00(P *);
-void *func_001FBB90(int);
-void func_001FB2F8(void *,void *);
-void func_00212E40(X *,int,float);
-void func_00212A70(X *,int);
+void *PsndStartSound(int);
+void SetSndSourceLo(void *,void *);
+void SetWidgetAnimPhase(X *,int,float);
+void SetWidgetState(X *,int);
 void func_00212A50(X *,int);
 }
 static inline void Post(X *x,int n){VT *entry=&x->vtable[49];((void (*)(void *,int))entry->function)((char *)x+entry->adjustment,n);}
@@ -67,41 +67,41 @@ extern "C" void SetReconSelState(P *p,int nextState)
     case 1:
         func_002020C8(p);
         RefreshReconPendingTargets(p);
-        func_00213B00(p->primary,0x35D);
-        if(p->specialCount>0)func_00213B00(p->primary,0x35E);
+        PlayWidgetAnim(p->primary,0x35D);
+        if(p->specialCount>0)PlayWidgetAnim(p->primary,0x35E);
         UpdateReconChecklist(p);
         break;
     case 4:
-        func_00213928(p->secondary,0x359);
+        StopWidgetAnim(p->secondary,0x359);
         break;
     case 5:case 6:
-        func_00213928(p->secondary,0x35A);
+        StopWidgetAnim(p->secondary,0x35A);
         break;
     case 7:
-        func_00213928(p->primary,0x356);
-        func_00213928(p->secondary,0x356);
-        func_00213928(p->secondary,0x357);
+        StopWidgetAnim(p->primary,0x356);
+        StopWidgetAnim(p->secondary,0x356);
+        StopWidgetAnim(p->secondary,0x357);
         break;
     case 8:
         Restore(*p->model,p->savedFlags);
         func_0014D1D0(D_002DDED0,0,1.0f);
         func_001FE5B8(D_003DD040,1,1);
-        func_00213928(p->primary,0x358);
+        StopWidgetAnim(p->primary,0x358);
         break;
     case 9:
         func_0014FE28(D_002DE390);
         func_00214300(p->primary,-1);
         Post(p->primary,0x310);
         if(p->resource){
-            if(p->actor->key!=-1)func_001FE5F0(D_003DD040,p->actor->key,0);
+            if(p->actor->key!=-1)StartDialog(D_003DD040,p->actor->key,0);
             func_00147C20(p->resource,0x608,p->actor->key);
         }
         func_002036E8(p->actor,1);
         BroadcastGameEvent(D_002DEB30,10,0);
         p->actor=0;
         if(func_002022D8(p)){
-            func_00213B00(p->primary,0x35D);
-            if(p->specialCount>0)func_00213B00(p->primary,0x35E);
+            PlayWidgetAnim(p->primary,0x35D);
+            if(p->specialCount>0)PlayWidgetAnim(p->primary,0x35E);
         }
         UpdateReconChecklist(p);
         break;
@@ -118,27 +118,27 @@ extern "C" void SetReconSelState(P *p,int nextState)
         BroadcastGameEvent(D_002DEB30,9,0);
         break;
     case 1:
-        func_00213928(p->primary,0x35D);
+        StopWidgetAnim(p->primary,0x35D);
         Post(p->secondary,0x339);
         break;
     case 5:
-        func_00213B00(p->secondary,0x35A);
-        func_00212E40(p->secondary,0x35A,0.0f);
+        PlayWidgetAnim(p->secondary,0x35A);
+        SetWidgetAnimPhase(p->secondary,0x35A,0.0f);
         break;
     case 6:
-        func_00213B00(p->secondary,0x35A);
-        func_00212E40(p->secondary,0x35A,0.0f);
+        PlayWidgetAnim(p->secondary,0x35A);
+        SetWidgetAnimPhase(p->secondary,0x35A,0.0f);
         break;
     case 7:
-        func_001FB2F8(func_001FBB90(0x52),0);
+        SetSndSourceLo(PsndStartSound(0x52),0);
         p->selected=p->actor->id;
-        func_00213B00(p->primary,0x356);
-        func_00213B00(p->secondary,0x356);
-        func_00213B00(p->secondary,0x357);
+        PlayWidgetAnim(p->primary,0x356);
+        PlayWidgetAnim(p->secondary,0x356);
+        PlayWidgetAnim(p->secondary,0x357);
         break;
     case 8: {
-        func_00213928(p->primary,0x35B);
-        func_00213B00(p->primary,0x358);
+        StopWidgetAnim(p->primary,0x35B);
+        PlayWidgetAnim(p->primary,0x358);
         register X **model __asm__("a1");
         register X *widget __asm__("v0");
         register int flags __asm__("a0");
@@ -168,8 +168,8 @@ extern "C" void SetReconSelState(P *p,int nextState)
     case 3:case 4:
         p->secondary->actor=p->actor;
         Post(p->secondary,0x337);
-        func_00213B00(p->secondary,0x359);
-        func_00212E40(p->secondary,0x359,0.0f);
+        PlayWidgetAnim(p->secondary,0x359);
+        SetWidgetAnimPhase(p->secondary,0x359,0.0f);
         break;
     case 2:
         Post(p->secondary,0x339);
@@ -184,8 +184,8 @@ extern "C" void SetReconSelState(P *p,int nextState)
     case -1:
         if(previous!=10){
             BroadcastGameEvent(D_002DEB30,11,0);
-            if(p->primary->shown){func_00212A70(p->primary,1);func_00212A50(p->primary,1);}
-            if(p->secondary->shown){func_00212A70(p->secondary,1);func_00212A50(p->secondary,1);}
+            if(p->primary->shown){SetWidgetState(p->primary,1);func_00212A50(p->primary,1);}
+            if(p->secondary->shown){SetWidgetState(p->secondary,1);func_00212A50(p->secondary,1);}
         }
         break;
     }

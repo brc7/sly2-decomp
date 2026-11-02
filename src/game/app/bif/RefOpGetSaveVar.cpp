@@ -13,7 +13,7 @@ extern char D_003E0EA8[];
 extern char D_003D4A60[];
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
-CRef func_001D7ED8(void *a, X *px, void *b);
+CRef RefGetSaveVar(void *a, X *px, void *b);
 CRef RefOpGetSaveVar(void *pbasic, CRef *aref);
 }
 /** @sly2-annot addr=0x125398
@@ -34,6 +34,6 @@ CRef RefOpGetSaveVar(void *pbasic, CRef *aref)
     OBJ obj;
     X x;
     FillAsFromPair(aref[0].u.pv, &x);
-    ref = func_001D7ED8(D_003E0EA8, &x, D_003D4A60);
+    ref = RefGetSaveVar(D_003E0EA8, &x, D_003D4A60);
     return ref;
 }

@@ -19,15 +19,15 @@ extern H D_003E0EA8;
 extern void *D_003E0F9C;
 extern float D_002BDC00[];
 extern char D_002A5060[], D_002A5070[], D_002A5080[], D_002A5090[];
-V *func_001D88D0(void *p, ...);
+V *PkeyNewSaveKey(void *p, ...);
 void ChangeDifficulty(S *p, float g);
 }
-CRef func_001D7ED8(H *, V *, G *);
+CRef RefGetSaveVar(H *, V *, G *);
 CRef func_00258200(V *, const CRef &, G *);
 static inline CRef RefG(float g) { CRef r; r.m_tagk = 0x16; *(float *)&r.m_tag = g; return r; }
 static inline void Set(V *k, CRef r) { func_00258200(k, r, &D_003D4A60); }
 static inline void SetG(V *k, float g) { CRef r(g); Set(k, r); }
-static inline CRef Get(V *k) { G *pg = &D_003D4A60; return func_001D7ED8(&D_003E0EA8, k, pg); }
+static inline CRef Get(V *k) { G *pg = &D_003D4A60; return RefGetSaveVar(&D_003E0EA8, k, pg); }
 
 /** @sly2-annot addr=0x154A90
  * Purpose: Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the
@@ -43,9 +43,9 @@ extern "C" void HandleDifficultyMessage(S *p, int msgk, M *pm)
     switch (msgk) {
     case 3:
         p->p14 = D_002BDC00;
-        p->p8 = func_001D88D0(D_002A5060, D_002A5070, 0);
-        p->pC = func_001D88D0(D_002A5060, D_002A5080, 0);
-        p->p10 = func_001D88D0(D_002A5060, D_002A5090, 0);
+        p->p8 = PkeyNewSaveKey(D_002A5060, D_002A5070, 0);
+        p->pC = PkeyNewSaveKey(D_002A5060, D_002A5080, 0);
+        p->p10 = PkeyNewSaveKey(D_002A5060, D_002A5090, 0);
         break;
     case 34:
         Set(p->p8, Get(p->pC));

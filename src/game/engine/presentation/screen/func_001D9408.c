@@ -6,13 +6,13 @@ typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[16]; }
 typedef struct { char pad[0xC]; VT *vt; } LO;
 extern char D_003D9E80[], D_003D9ED0[], D_002E1E60[], D_003DA0F0[], D_003DA150[], D_003DA0C0[], D_003DA3C0[];
 extern char D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
-void func_001D9B30(void *);
+void ResetHudMeter(void *);
 void func_001AE970(void *);
 void func_001A3070(void *);
-void func_001DAA48(void *);
-void func_001DB7F0(void *);
-void func_001DA320(void *);
-void func_001DCCD8(void *);
+void ResetGadgetMenu(void *);
+void ResetThiefnet(void *);
+void ResetNotice(void *);
+void ResetJobList(void *);
 void func_001ACB38(void *);
 void func_001DA7B0(void *);
 static inline void InitDli(DLI *pdli, DL *pdl)
@@ -44,13 +44,13 @@ void func_001D9408(DL *pdl)
     while ((plo = (LO *)PvNextDli(&dli)) != 0)
         plo->vt->a[11].pfn((char *)plo + plo->vt->a[11].d);
     D_002DD318 = 0;
-    func_001D9B30(D_003D9E80);
+    ResetHudMeter(D_003D9E80);
     func_001AE970(D_003D9ED0);
     func_001A3070(D_002E1E60);
-    func_001DAA48(D_003DA0F0);
-    func_001DB7F0(D_003DA150);
-    func_001DA320(D_003DA0C0);
-    func_001DCCD8(D_003DA3C0);
+    ResetGadgetMenu(D_003DA0F0);
+    ResetThiefnet(D_003DA150);
+    ResetNotice(D_003DA0C0);
+    ResetJobList(D_003DA3C0);
     func_001ACB38(D_002E6550);
     func_001DA7B0(D_002E65A0);
     func_001DA7B0(D_003DA4F0);

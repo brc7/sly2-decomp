@@ -127,7 +127,7 @@ void func_001AE5A0(void *pvDst, const void *pvSrc, uint cb);
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 qword func_001A62E8(ALO *palo);
-RPL *func_001CD998(void);
+RPL *PrplAllocRpl(void);
 }
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
@@ -340,7 +340,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
         *(uint *)ptag |= ((int)(D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
         *(ulong *)D_002DEA28.pb = 0x60000000;
         D_002DEA28.pb += 0x10;
-        RPL *prpl = func_001CD998();
+        RPL *prpl = PrplAllocRpl();
         prpl->kind = kind;
         if (psub->grf & 0x400)
             prpl->dist = pdesc->dist;

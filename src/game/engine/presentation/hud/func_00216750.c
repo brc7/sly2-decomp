@@ -16,7 +16,7 @@ int func_00215D40(struct RT *);
 float func_00216B80(void *,int);
 struct GLYPH *func_00216B40(void *,int);
 void func_00217058(struct GLYPH *,union M4 *,struct DATA *,int);
-struct E *func_001CD998(void);
+struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
@@ -84,7 +84,7 @@ void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
     Align(&D_002DEA28,0);
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
     {
-        struct E *e=func_001CD998();
+        struct E *e=PrplAllocRpl();
         e->kind=0x15;e->priority=style->priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
     }
 }

@@ -1,6 +1,6 @@
 extern char D_003DD490[];
 void *PrecWorldEntry(void *p);
-void func_0022B490(void *a, void *b, int c, int d, int e, int f);
+void WipeToWorldWarp(void *a, void *b, int c, int d, int e, int f);
 /** @sly2-annot addr=0x14C190
  * Purpose: v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1)
  * Info: proposed name CheatWarpEpisode (T2); TU cheat
@@ -11,5 +11,5 @@ void func_0014C190(void *p)
 {
     void *v = PrecWorldEntry(p);
     if (!v) v = PrecWorldEntry(0);
-    func_0022B490(D_003DD490, v, 0x189, -1, 0, -1);
+    WipeToWorldWarp(D_003DD490, v, 0x189, -1, 0, -1);
 }

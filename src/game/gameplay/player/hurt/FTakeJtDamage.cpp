@@ -31,8 +31,8 @@ extern "C"{
  void func_001A16C8(C*);
  void SetJtHurtState(C*,int);
  int CidBasic(P*);
- void*func_001FBB90(int);
- void func_001FB2F8(void*,P*);
+ void*PsndStartSound(int);
+ void SetSndSourceLo(void*,P*);
  qword func_001A62E8(P*);
  void*func_00156698(int,qword,P*);
 }
@@ -138,7 +138,7 @@ notify:
    if(Z(Vector(p->actor,33))>400.0f){
     int effect=-1;
     switch(CidBasic(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
-    P*actor=p->actor;void*created=func_001FBB90(effect);func_001FB2F8(created,actor);
+    P*actor=p->actor;void*created=PsndStartSound(effect);SetSndSourceLo(created,actor);
    }
    func_001A15B0(p,&C::Reaction);break;
   }

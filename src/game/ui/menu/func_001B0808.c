@@ -2,7 +2,7 @@ extern char D_002DEB30[];
 extern void *D_003E0F9C;
 extern char D_003DA3C0[];
 void BroadcastGameEvent(void *p, int n, void *q);
-void func_001DD300(void *p, int f);
+void SetJobListPage(void *p, int f);
 /** @sly2-annot addr=0x1B0808
  * Purpose: Game event 0x2B; 0x1DD300(screen,flag)
  * Info: proposed name PauseItemMap (T2); TU menu
@@ -12,5 +12,5 @@ void func_001DD300(void *p, int f);
 void func_001B0808(void)
 {
     BroadcastGameEvent(D_002DEB30, 0x2B, 0);
-    func_001DD300(D_003DA3C0, D_003E0F9C != 0);
+    SetJobListPage(D_003DA3C0, D_003E0F9C != 0);
 }

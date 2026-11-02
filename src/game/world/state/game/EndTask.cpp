@@ -24,7 +24,7 @@ extern "C" int FTaskLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
-extern "C" void func_001DA578(void *pv, int n);
+extern "C" void CancelNotice(void *pv, int n);
 /** @sly2-annot addr=0x163F48
  * Purpose: Clears current task; if live: event 0x24, state-5 visuals/RSMGs, stops its music, SendMessage 0x14
  * Info: proposed name EndTask (T1); TU game
@@ -39,7 +39,7 @@ extern "C" void EndTask(O *p)
         ApplyStateLoVisibility(p, 5, p->fa8, p->fac);
         TriggerStateRsmgs(p, 5, p->fb0, p->fb4, p->ff4);
         if (p->f5c != -1 && p->f60)
-            func_001DA578(D_003DA0C0, p->f5c);
+            CancelNotice(D_003DA0C0, p->f5c);
         p->Msg(0x14, 0, 0, 0, 0);
     }
 }

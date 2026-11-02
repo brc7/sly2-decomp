@@ -20,7 +20,7 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void func_00219FE0(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1);
+extern "C" void AdvanceSpriteAnim(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x217D98
  * Purpose: select initial frame/time then draw
  * Info: proposed name StartSpriteAnimAt (T2); TU hud
@@ -43,5 +43,5 @@ extern "C" void func_00217D98(S *p, int i, int z, M23 *pm, float t, RGBA c0, RGB
     } else {
         pmUse = pm;
     }
-    func_00219FE0(t, &p->af[e->h8], z, pmUse, c0, c1);
+    AdvanceSpriteAnim(t, &p->af[e->h8], z, pmUse, c0, c1);
 }

@@ -22,8 +22,8 @@ void SetActPositionGoal(void *p, qword q);
 void SetSmaGoal(void *p, int n);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 void func_001FB1F8(struct M *p, float g);
-void func_001FB060(struct M *p);
-void func_001FB018(struct M *p);
+void ResumeSnd(struct M *p);
+void PauseSnd(struct M *p);
 struct V3 { float x, y, z; };
 static __inline__ qword Make(float x, float y, float z) { qword q, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
@@ -72,9 +72,9 @@ void func_0017F930(struct S *p) {
         p->g2AC = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, p->g2AC, g, D_002DDED0.dt);
         func_001FB1F8(p->p2A4, p->g2AC);
         if (0.0f < p->g2AC) {
-            if (p->p2A4->s4E > 0) func_001FB060(p->p2A4);
+            if (p->p2A4->s4E > 0) ResumeSnd(p->p2A4);
         } else {
-            if (p->p2A4->s4E <= 0) func_001FB018(p->p2A4);
+            if (p->p2A4->s4E <= 0) PauseSnd(p->p2A4);
         }
     }
 }

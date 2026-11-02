@@ -51,7 +51,7 @@ extern CLQ D_002C44A0, D_002C44B0, D_002C44C0;
 extern LM D_002C44D0;
 extern "C" {
 void RenderSoSelf(WAYPT *pwaypt);
-int func_001DAEA8(int ipuk);
+int FPowerupAcquired(int ipuk);
 int FJobComplete(void *pcond);
 void func_0022A220(WAYPT *pwaypt);
 qword func_001A62E8(LO *plo);
@@ -140,7 +140,7 @@ extern "C" void RenderWaypt(WAYPT *pwaypt)
         break;
     case 2:
         if (D_003DD490.cUnk4764 < D_003DD490.cUnk4768 || D_003DD490.fUnk3B0C ||
-            (pwaypt->ipukReq != -1 && func_001DAEA8(pwaypt->ipukReq)) ||
+            (pwaypt->ipukReq != -1 && FPowerupAcquired(pwaypt->ipukReq)) ||
             (pwaypt->pcond && !FJobComplete(pwaypt->pcond)))
             uShow = uLabel = 0.0f;
         break;

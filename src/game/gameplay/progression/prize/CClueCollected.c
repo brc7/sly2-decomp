@@ -11,9 +11,9 @@ extern char D_002A7788[];
 int IlevelCur__Fv(void);
 struct { int a; int b; } *func_002109B8(int n);
 void func_001AE5A0(struct K *pk, int a, int b);
-void *func_001D7DA0(void *a, void *b, struct T *pt);
-short func_001D8720(void *a, char *s);
-unsigned int *func_001D7E80(void *a, void *b, void *c);
+void *FFindSaveVar(void *a, void *b, struct T *pt);
+short NFindSaveSymbol(void *a, char *s);
+unsigned int *PvFromSaveVar(void *a, void *b, void *c);
 /** @sly2-annot addr=0x1C7D08
  * Purpose: count collected clue bottles: popcount of afClue words over the level's entries
  * Info: proposed name CClueCollected (T1); TU prize
@@ -37,13 +37,13 @@ int CClueCollected(void)
     func_001AE5A0(&k, func_002109B8(n)->b, 6);
     s.pk = &k;
     s.k = 3;
-    func_001D7DA0(&D_003DD490.m, &s, &t);
+    FFindSaveVar(&D_003DD490.m, &s, &t);
     s.k = 5;
-    k.d = func_001D8720(D_003DD490.m.m8, D_002A7788);
+    k.d = NFindSaveSymbol(D_003DD490.m.m8, D_002A7788);
     for (i = t.px->h; i; i = pe->next) {
         pe = &D_003DD490.m.pe[i];
         k.c = pe->id;
-        v = *func_001D7E80(&D_003DD490.m, &s, D_003D4A60);
+        v = *PvFromSaveVar(&D_003DD490.m, &s, D_003D4A60);
         while (v) { v &= v - 1; c++; }
     }
     return c;

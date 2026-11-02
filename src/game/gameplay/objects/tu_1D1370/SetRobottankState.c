@@ -17,14 +17,14 @@ typedef struct OBJ {
     int x59C;
 } OBJ;
 extern int D_002C2208[];
-void func_00213B00(W *, int);
+void PlayWidgetAnim(W *, int);
 void UpdateRobottankHealthMeter(OBJ *);
-void *func_001FBB90(int);
-void func_001FB2F8(void *, OBJ *);
+void *PsndStartSound(int);
+void SetSndSourceLo(void *, OBJ *);
 void func_00258040(void **, void *);
-void func_001FB4F0(void *, float, float);
-void func_001FB018(void *);
-void func_001FB098(void *, float);
+void SetSndRange(void *, float, float);
+void PauseSnd(void *);
+void StopSnd(void *, float);
 void func_001D4B28(OBJ *, int);
 void SetSmaGoalIfReachable(void *, int);
 /** @sly2-annot addr=0x1D4940
@@ -47,15 +47,15 @@ void SetRobottankState(OBJ *p, int n)
         pw = p->pw;
         if (pw) {
             pw->vt->a[49].pfn((char *)pw + pw->vt->a[49].d, -1);
-            func_00213B00(p->pw, 0x34F);
+            PlayWidgetAnim(p->pw, 0x34F);
             UpdateRobottankHealthMeter(p);
         }
         if (p->x59C != -1) {
-            void *ps = func_001FBB90(p->x59C);
-            func_001FB2F8(ps, p);
+            void *ps = PsndStartSound(p->x59C);
+            SetSndSourceLo(ps, p);
             func_00258040(&p->x598, ps);
-            func_001FB4F0(p->x598, 500.0f, 1500.0f);
-            func_001FB018(p->x598);
+            SetSndRange(p->x598, 500.0f, 1500.0f);
+            PauseSnd(p->x598);
         }
         break;
     case 1:
@@ -72,7 +72,7 @@ void SetRobottankState(OBJ *p, int n)
         {
             void **pps = &p->x598;
             if (*pps) {
-                func_001FB098(*pps, 0.0f);
+                StopSnd(*pps, 0.0f);
                 func_00258040(pps, 0);
             }
         }

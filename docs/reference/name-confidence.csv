@@ -3381,37 +3381,37 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1B26C8,func_001B26C8,StaticInit_missile,hi,tu_map(structural)+r5_1AE130,match(scratch_v3:batch_09_world_objects_a),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU missile
 0x1B2800,func_001B2800,_GLOBAL_$I$missile,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$missile': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1B2820,func_001B2820,MpegStubReturn0,lo,r5_1AE130,static-only,T2,0.20,,not batched,Returns 0; result stored in CMpeg+0x104 per queued movie by ExecuteOids
-0x1B2828,func_001B2828,MpegDisplayThread,mid,r5_1AE130,static-only,T1,0.50,,not batched,"Movie display thread: wait sema, DMA the decoded frame to GS (SendDmaSyncGsFinish), RestoreGsBuffers, time window check"
-0x1B2940,func_001B2940,StartupMpeg__Fv,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,verifier,T1,0.85,,not batched,Create mpeg semaphore and start the display thread
-0x1B29D0,func_001B29D0,CQueueOutputIop_Init,mid,r5_1AE130,static-only,T1,0.75,,not batched,"Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset"
+0x1B2828,func_001B2828,MpegDisplayThread,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Movie display thread: wait sema, DMA the decoded frame to GS (SendDmaSyncGsFinish), RestoreGsBuffers, time window check"
+0x1B2940,func_001B2940,StartupMpeg__Fv,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Create mpeg semaphore and start the display thread
+0x1B29D0,func_001B29D0,CQueueOutputIop_Init,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset"
 0x1B2AA0,func_001B2AA0,CQueueOutputIop_StageInterleaved,lo,r5_1AE130,static-only,T2,0.30,,not batched,Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb) before send
-0x1B2BE0,func_001B2BE0,CQueueOutputIop_CbWrite,mid,r5_1AE130,static-only,T1,0.65,,not batched,Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written
-0x1B2DB8,func_001B2DB8,CQueueOutputIop_CbSend,mid,r5_1AE130,static-only,T1,0.65,,not batched,FlushCache + sceSifSetDma to IOP buffer at write offset; returns count
-0x1B2EB8,func_001B2EB8,CQueueOutputIop_Update,mid,r5_1AE130,static-only,T1,0.75,,not batched,Read IOP playback position and update read/write cursors
-0x1B2FD0,func_001B2FD0,FAsyncDrain__15CQueueOutputIop,hi,r5_1AE130+verdicts_A2+names_v2-signature(verified),verifier+names_v2-verified,T1,0.80,,not batched,returns 0
-0x1B2FD8,func_001B2FD8,CQueueOutputIpu_CbWrite,hi,r5_1AE130,static-only,T1,0.85,,not batched,Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes
-0x1B3038,func_001B3038,FAsyncDrain__15CQueueOutputIpu,hi,r5_1AE130+verdicts_A2+names_v2-signature(verified),verifier+names_v2-verified,T1,0.80,,not batched,returns 1
-0x1B3040,func_001B3040,Init__10CMpegAudio,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,"Stop game sound/music, allocate IOP voice resources for movie audio"
-0x1B3130,func_001B3130,Reset__10CMpegAudio,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,verifier,T1,0.85,,not batched,reset byte queues and IOP queue
-0x1B3190,func_001B3190,Close__10CMpegAudio,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,release IOP resources
-0x1B31E0,func_001B31E0,FAccept__10CMpegAudioiPUc,hi,r5_1AE130,static-only,T1,0.80,,not batched,"accept demuxed audio packet: pick stream id, init queue from header, CbFill"
-0x1B32B8,func_001B32B8,Update__10CMpegAudio,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,drain byte queue to IOP per state
-0x1B3388,func_001B3388,FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,sceMpeg video stream callback: CbFill video queue
-0x1B33C8,func_001B33C8,FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180)
-0x1B33F0,func_001B33F0,FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,verifier,T1,0.85,,not batched,decode callback: feed IPU from video queue
-0x1B34D0,func_001B34D0,FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg,mid,r5_1AE130,static-only,T1,0.75,,not batched,idle callback: spool stream + audio update
-0x1B3508,func_001B3508,FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,returns 1
-0x1B3510,func_001B3510,BuildMpegGifs,hi,r5_1AE130+verdicts_A2,verifier,T1,0.75,,not batched,build GIF packets to upload decoded RGB32 picture
+0x1B2BE0,func_001B2BE0,CQueueOutputIop_CbWrite,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written
+0x1B2DB8,func_001B2DB8,CQueueOutputIop_CbSend,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,FlushCache + sceSifSetDma to IOP buffer at write offset; returns count
+0x1B2EB8,func_001B2EB8,CQueueOutputIop_Update,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Read IOP playback position and update read/write cursors
+0x1B2FD0,func_001B2FD0,FAsyncDrain__15CQueueOutputIop,hi,r5_1AE130+verdicts_A2+names_v2-signature(verified),match(rename.py:batch_12_render_audio_ui_b)+verifier+names_v2-verified,T1,0.80,,applied,returns 0
+0x1B2FD8,func_001B2FD8,CQueueOutputIpu_CbWrite,hi,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.85,,applied,Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes
+0x1B3038,func_001B3038,FAsyncDrain__15CQueueOutputIpu,hi,r5_1AE130+verdicts_A2+names_v2-signature(verified),match(rename.py:batch_12_render_audio_ui_b)+verifier+names_v2-verified,T1,0.80,,applied,returns 1
+0x1B3040,func_001B3040,Init__10CMpegAudio,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,"Stop game sound/music, allocate IOP voice resources for movie audio"
+0x1B3130,func_001B3130,Reset__10CMpegAudio,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,reset byte queues and IOP queue
+0x1B3190,func_001B3190,Close__10CMpegAudio,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,release IOP resources
+0x1B31E0,func_001B31E0,FAccept__10CMpegAudioiPUc,hi,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.80,,applied,"accept demuxed audio packet: pick stream id, init queue from header, CbFill"
+0x1B32B8,func_001B32B8,Update__10CMpegAudio,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,drain byte queue to IOP per state
+0x1B3388,func_001B3388,FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,sceMpeg video stream callback: CbFill video queue
+0x1B33C8,func_001B33C8,FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180)
+0x1B33F0,func_001B33F0,FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,decode callback: feed IPU from video queue
+0x1B34D0,func_001B34D0,FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,idle callback: spool stream + audio update
+0x1B3508,func_001B3508,FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,returns 1
+0x1B3510,func_001B3510,BuildMpegGifs,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.75,,applied,build GIF packets to upload decoded RGB32 picture
 0x1B3700,func_001B3700,DrawMpegSubtitles,lo,r5_1AE130,static-only,T2,0.45,,not batched,Draw movie subtitle/caption text (CRichText/CFont scaling)
-0x1B3A48,func_001B3A48,CMpeg_QueueMovie,mid,r5_1AE130,static-only,T1,0.50,,not batched,Append a movie request (0x40-byte entry) to CMpeg queue (max 4) if valid
-0x1B3B08,func_001B3B08,CMpeg_ExecuteOids,mid,r5_1AE130,static-only,T1,0.75,,not batched,"Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level transition"
-0x1B3BD0,func_001B3BD0,Execute__5CMpegPv,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2+names_v2-signature(verified),verifier+names_v2-verified,T1,0.85,,not batched,"Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish"
-0x1B3EC0,func_001B3EC0,CMpeg_Start,hi,r5_1AE130,static-only,T1,0.80,,not batched,"init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks"
-0x1B4058,func_001B4058,Update__5CMpeg,hi,r5_1AE130+arbitration,arbitration,T1,0.80,,not batched,"get decoded picture, BuildMpegGifs, subtitles, signal display thread"
-0x1B4140,func_001B4140,Finish__5CMpeg,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,"audio reset/close, sceMpegReset/Delete"
-0x1B41D0,func_001B41D0,CbDemuxed__5CMpegi,hi,r5_1AE130+arbitration,arbitration,T1,0.85,,not batched,spool async stream and demux into sceMpeg (returns 2 at EOF)
+0x1B3A48,func_001B3A48,CMpeg_QueueMovie,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Append a movie request (0x40-byte entry) to CMpeg queue (max 4) if valid
+0x1B3B08,func_001B3B08,CMpeg_ExecuteOids,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level transition"
+0x1B3BD0,func_001B3BD0,Execute__5CMpegPv,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2+names_v2-signature(verified),match(rename.py:batch_12_render_audio_ui_b)+verifier+names_v2-verified,T1,0.85,,applied,"Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish"
+0x1B3EC0,func_001B3EC0,CMpeg_Start,hi,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.80,,applied,"init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks"
+0x1B4058,func_001B4058,Update__5CMpeg,hi,r5_1AE130+arbitration,match(rename.py:batch_12_render_audio_ui_b)+arbitration,T1,0.80,,applied,"get decoded picture, BuildMpegGifs, subtitles, signal display thread"
+0x1B4140,func_001B4140,Finish__5CMpeg,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,"audio reset/close, sceMpegReset/Delete"
+0x1B41D0,func_001B41D0,CbDemuxed__5CMpegi,hi,r5_1AE130+arbitration,match(rename.py:batch_12_render_audio_ui_b)+arbitration,T1,0.85,,applied,spool async stream and demux into sceMpeg (returns 2 at EOF)
 0x1B42C0,func_001B42C0,CMpeg_FActive,lo,r5_1AE130,static-only,T2,0.45,,not batched,returns stream(+0x114)!=0
-0x1B42D0,func_001B42D0,StaticInit_mpeg,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU mpeg
+0x1B42D0,func_001B42D0,StaticInit_mpeg,hi,tu_map(structural)+r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU mpeg
 0x1B4418,func_001B4418,_GLOBAL_$I$mpeg,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$mpeg': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1B4438,func_001B4438,InitMs,hi,r5_1AE130,match(scratch_v3:batch_05_object_model_a),T1,0.80,,applied,MS::Init (vt7): InitSo then clear flag bit 35 of +0x148
 0x1B4478,func_001B4478,RenderMsGlobset,mid,r5_1AE130,match(scratch_v3:batch_05_object_model_a),T1,0.75,,applied,MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638)
@@ -3563,8 +3563,8 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1BE378,func_001BE378,_GLOBAL_$I$tu_1BC050,hi,tu_map(structural)+r5b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$tu_1BC050': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1BE398,func_001BE398,InitItemRenderTargets,lo,r5b_rest,static-only,T2,0.40,,not batched,"Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots (D_003E1A78, D_003E1AA0)"
 0x1BE6F0,func_001BE6F0,SetupItemRenderView,lo,r5b_rest,static-only,T2,0.40,,not batched,"Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset, unpack)"
-0x1BE990,func_001BE990,BeginRpRenderTarget0,mid,r5b_rest+rendering,static-only,T1,0.55,,not batched,Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob
-0x1BE9E8,func_001BE9E8,BeginRpRenderTarget1,mid,r5b_rest+rendering,static-only,T1,0.55,,not batched,Pass 9 begin (kind 18): same for slot 1
+0x1BE990,func_001BE990,BeginRpRenderTarget0,mid,r5b_rest+rendering,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob
+0x1BE9E8,func_001BE9E8,BeginRpRenderTarget1,mid,r5b_rest+rendering,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Pass 9 begin (kind 18): same for slot 1
 0x1BEA40,func_001BEA40,InitCid45,mid,r5b_rest,static-only,T2,0.55,,not batched,"CID 45 vt7: InitXfm, fov/near/far defaults 1, 4, 1000"
 0x1BEA88,func_001BEA88,LoadCid45FromBrx,mid,r5b_rest+parse-verified+verdicts_followups,parse-verified+verifier,T2,0.75,,not batched,CID 45 vt14: LoadXfmFromBrx
 0x1BEAA8,func_001BEAA8,AddCid45Object,lo,r5b_rest,static-only,T2,0.30,,not batched,Append object to list
@@ -3575,7 +3575,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1BEE10,func_001BEE10,IRenderSlotTexture,lo,r5b_rest+verdicts_followups,verifier,T2,0.30,,not batched,Table lookup D_002C0BF8[slot][n] or -1
 0x1BEE60,func_001BEE60,RenderCid45Self,lo,r5b_rest,static-only,T2,0.45,,not batched,"CID 45 vt19: if it owns a slot, draw each held object's globset (0x169198)"
 0x1BEED8,func_001BEED8,FindItemPreviewObject,lo,r5b_rest,static-only,T2,0.30,,not batched,Find preview object by id (0x2AE/0x2AF relative to current player)
-0x1BEFB8,func_001BEFB8,StaticInit_tu_1BE398,hi,tu_map(structural)+r5b_rest,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU tu_1BE398
+0x1BEFB8,func_001BEFB8,StaticInit_tu_1BE398,hi,tu_map(structural)+r5b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU tu_1BE398
 0x1BF0F0,func_001BF0F0,_GLOBAL_$I$tu_1BE398,hi,tu_map(structural)+r5b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$tu_1BE398': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1BF110,func_001BF110,PcgtPointInCbspQuick,mid,r5b_rest,match(scratch_v3:batch_09_world_objects_a),T1,0.60,,applied,Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2)
 0x1BF1F8,func_001BF1F8,PcgtPointInCbspSafe,mid,r5b_rest,match(scratch_v3:batch_09_world_objects_a),T1,0.55,,applied,Tolerant BSP walk returning nearest triangle
@@ -3751,15 +3751,15 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1C8AF0,func_001C8AF0,VaultUnk8AF0,lo,r5_1AE130,static-only,T2,0.20,,not batched,calls SetVaultState
 0x1C8B68,func_001C8B68,StaticInit_prize,hi,tu_map(structural)+r5_1AE130,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU prize
 0x1C8CA0,func_001C8CA0,_GLOBAL_$I$prize,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$prize': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1C8DB8,func_001C8DB8,End__5CProg,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,verifier,T1,0.85,,not batched,clear progress state (same stores as Begin)
-0x1C8DD8,func_001C8DD8,Draw__5CProg,hi,r5_1AE130+verdicts_A2,verifier,T1,0.75,,not batched,draw progress bar (GIF/DMA packet)
-0x1C9058,func_001C9058,BeginLoadingScreen,hi,r5_1AE130+runtime,runtime,T1,0.55,,not batched,"Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and signal the loading-thread start sema"
+0x1C8DB8,func_001C8DB8,End__5CProg,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,clear progress state (same stores as Begin)
+0x1C8DD8,func_001C8DD8,Draw__5CProg,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.75,,applied,draw progress bar (GIF/DMA packet)
+0x1C9058,func_001C9058,BeginLoadingScreen,hi,r5_1AE130+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.55,,applied,"Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and signal the loading-thread start sema"
 0x1C9090,func_001C9090,UpdateLoadingScreen,lo,r5_1AE130,static-only,T2,0.25,,not batched,empty (release stub)
-0x1C9098,func_001C9098,EndLoadingScreen,mid,r5_1AE130,static-only,T1,0.50,,not batched,"signal frame-end sema, wait for loading thread to stop, clear D_002DD314"
-0x1C90D0,func_001C90D0,StartupLoadingScreen,mid,r5_1AE130,static-only,T1,0.50,,not batched,create the two semaphores and start the loading render thread (0x1C9190)
-0x1C9190,func_001C9190,LoadingScreenThread,hi,r5_1AE130+runtime,runtime,T1,0.65,,not batched,"thread: wait start sema, draw pulsing quad each frame until end sema"
+0x1C9098,func_001C9098,EndLoadingScreen,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"signal frame-end sema, wait for loading thread to stop, clear D_002DD314"
+0x1C90D0,func_001C90D0,StartupLoadingScreen,mid,r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,create the two semaphores and start the loading render thread (0x1C9190)
+0x1C9190,func_001C9190,LoadingScreenThread,hi,r5_1AE130+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.65,,applied,"thread: wait start sema, draw pulsing quad each frame until end sema"
 0x1C93E0,func_001C93E0,DrawLoadingQuad,lo,r5_1AE130,static-only,T2,0.45,,not batched,build GIF packet for the scaled/alpha quad
-0x1C9688,func_001C9688,StaticInit_prog,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU prog
+0x1C9688,func_001C9688,StaticInit_prog,hi,tu_map(structural)+r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU prog
 0x1C9920,func_001C9920,_GLOBAL_$I$prog,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$prog': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1C9940,func_001C9940,IdProxy__Fii,hi,r5_1AE130,match(scratch_v3:batch_05_object_model_a),T1,0.85,,applied,(isrc<<16)|(icopy&0xFFFF)
 0x1C9950,func_001C9950,IsrcFromIdProxy__Fi,hi,r5_1AE130,match(scratch_v3:batch_05_object_model_a),T1,0.85,,applied,idProxy>>16
@@ -3831,12 +3831,12 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1CD308,func_001CD308,SetJtHandsTargetAttached,lo,r5b_rest,static-only,T2,0.30,,not batched,SetJtHandsTarget variant that parents the object and builds pos/rot acts
 0x1CD498,func_001CD498,StaticInit_jthands,hi,tu_map(structural)+r5b_rest,match(scratch_v3:batch_07_player),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU jthands
 0x1CD5D0,func_001CD5D0,_GLOBAL_$I$jthands,hi,tu_map(structural)+r5b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$jthands': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1CD5F0,func_001CD5F0,FillScreenRect,hi,r5_1AE130+verdicts_A2,verifier,T1,0.80,,not batched,GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF)
+0x1CD5F0,func_001CD5F0,FillScreenRect,hi,r5_1AE130+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF)
 0x1CD780,func_001CD780,RenderWorldLabel,lo,r5_1AE130,static-only,T2,0.30,,not batched,"project a world-space label, fit its rect and draw text in a color"
-0x1CD998,func_001CD998,PrplAllocRpl,mid,r5_1AE130+rendering,static-only,T1,0.60,,not batched,Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB)
-0x1CD9E0,func_001CD9E0,SubmitSwRelightAll,mid,r5_1AE130+rendering,static-only,T1,0.60,,not batched,"On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's globset"
-0x1CDA80,func_001CDA80,RenderSw,hi,r5_1AE130+runtime,runtime,T1,0.85,,not batched,SW vt8: per-frame world render entry (called from main loop)
-0x1CDB78,func_001CDB78,StaticInit_render,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU render
+0x1CD998,func_001CD998,PrplAllocRpl,mid,r5_1AE130+rendering,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB)
+0x1CD9E0,func_001CD9E0,SubmitSwRelightAll,mid,r5_1AE130+rendering,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's globset"
+0x1CDA80,func_001CDA80,RenderSw,hi,r5_1AE130+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.85,,applied,SW vt8: per-frame world render entry (called from main loop)
+0x1CDB78,func_001CDB78,StaticInit_render,hi,tu_map(structural)+r5_1AE130,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU render
 0x1CDCB0,func_001CDCB0,_GLOBAL_$I$render,hi,tu_map(structural)+r5_1AE130,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$render': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1CDCD0,func_001CDCD0,PripgNew,mid,r5_1AE130,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.75,,applied,"Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world"
 0x1CDDC8,func_001CDDC8,InitRipg__FP4RIPG,hi,r5_1AE130+verdicts_tu_r3r5+verdicts_A2,match(rename.py:batch_10_world_objects_b)+verifier,T1,0.85,,applied,RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags
@@ -3937,9 +3937,9 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1D4FF8,func_001D4FF8,StaticInit_tu_1D1370,hi,tu_map(structural)+r5b_rest,match(scratch_v3:batch_08_guards_ai),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU tu_1D1370
 0x1D5130,func_001D5130,_GLOBAL_$I$tu_1D1370,hi,tu_map(structural)+r5b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$tu_1D1370': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1D5498,RumbleUnknown1__Fv,EnsureRumbleModeDefault,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.50,,not batched,If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting)
-0x1D54B8,func_001D54B8,ResetRumbleSaveVar,mid,r6_1D5150,static-only,T1,0.55,,not batched,"Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1"
-0x1D55B8,func_001D55B8,FRumbleEnabled,mid,r6_1D5150,static-only,T1,0.60,,not batched,Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8
-0x1D5650,func_001D5650,StaticInit_rumble,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU rumble
+0x1D54B8,func_001D54B8,ResetRumbleSaveVar,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1"
+0x1D55B8,func_001D55B8,FRumbleEnabled,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8
+0x1D5650,func_001D5650,StaticInit_rumble,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU rumble
 0x1D5788,func_001D5788,_GLOBAL_$I$rumble,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$rumble': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1D57A8,func_001D57A8,InitIntStack,lo,r6_1D5150,static-only,T2,0.35,,not batched,*p = 0 (empty stack)
 0x1D57B8,func_001D57B8,PushIntStack,lo,r6_1D5150,static-only,T2,0.45,,not batched,Push int on 256-entry stack if not full
@@ -3963,35 +3963,35 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1D7418,func_001D7418,HandleSafehouseMessage,lo,r6_1D5150+whole_game(class identity),static-only,T2,0.20,,not batched,Calls PO base 0x1C3ED8 then switch on arg -> SetCharSelectState(0/1)
 0x1D7480,func_001D7480,SetCharSelectState,lo,r6_1D5150,static-only,T2,0.35,,not batched,"Enter/leave selection state: ReplaceSma, SetSaveVar lookups ('oidPoCurrent'), StartJoySelection"
 0x1D7748,AddStepguardEffect__FP9STEPGUARD3OID3ZPK,AddSafehouseEntry,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.45,,not batched,"Append (a,b,c) triple to list at +0x18C (max 12)"
-0x1D7780,func_001D7780,SetPoChoices,hi,r6_1D5150+verdicts_tu_r4r6,verifier,T1,0.60,,not batched,Fill +0x220/+0x224 from Splice list (0x2013D8) then reselect
+0x1D7780,func_001D7780,SetPoChoices,hi,r6_1D5150+verdicts_tu_r4r6,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.60,,applied,Fill +0x220/+0x224 from Splice list (0x2013D8) then reselect
 0x1D77D0,func_001D77D0,StepCharSelect,lo,r6_1D5150,static-only,T2,0.35,,not batched,Move SMA goal by d through SM states skipping disallowed ones (wrap)
-0x1D78D8,func_001D78D8,StaticInit_tu_1D7238,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU tu_1D7238
+0x1D78D8,func_001D78D8,StaticInit_tu_1D7238,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU tu_1D7238
 0x1D7A10,func_001D7A10,_GLOBAL_$I$tu_1D7238,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$tu_1D7238': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1D7A30,func_001D7A30,StaticInit_empty_1D7A30,hi,tu_map(structural)+r6_1D5150,match(scratch_v3:batch_05_object_model_a),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU empty_1D7A30
 0x1D7B68,func_001D7B68,_GLOBAL_$I$empty_1D7A30,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$empty_1D7A30': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1D7B88,func_001D7B88,LoadSaveSchemaFromBrx,hi,r6_1D5150+runtime+format-doc:splice_scripts,runtime+format-doc,T1,0.90,,not batched,"Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if schema checks"
-0x1D7C80,func_001D7C80,ResetGsIfSchemaChanged,mid,r6_1D5150,static-only,T1,0.70,,not batched,Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum
-0x1D7D30,func_001D7D30,FGsMatchesSchema,mid,r6_1D5150,static-only,T1,0.75,,not batched,True if GS stored version/checksum (+0x5400/+0x5404) equal schema's
-0x1D7DA0,func_001D7DA0,FFindSaveVar,mid,r6_1D5150,static-only,T1,0.75,,not batched,Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling}) along a key of symbol ids; outputs entry + array index
-0x1D7E80,func_001D7E80,PvFromSaveVar,hi,r6_1D5150+verdicts_tu_r4r6,verifier,T1,0.85,,not batched,Address of a save var in a GS blob: pb + ib + index*size[kind]
-0x1D7ED8,func_001D7ED8,RefGetSaveVar,mid,r6_1D5150,static-only,T1,0.75,,not batched,Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...)
-0x1D80C8,func_001D80C8,RefSetSaveVar,mid,r6_1D5150,static-only,T1,0.75,,not batched,Write a CRef into a save var by kind (bitfield set/clear for packed bools)
-0x1D82B8,func_001D82B8,NCompletionPercentGs,hi,r6_1D5150+verdicts_tu_r4r6,verifier,T1,0.85,,not batched,Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set 'fVault' bool/bit; returns 0 / 100 / clamp(1..99)
+0x1D7B88,func_001D7B88,LoadSaveSchemaFromBrx,hi,r6_1D5150+runtime+format-doc:splice_scripts,match(rename.py:batch_12_render_audio_ui_b)+runtime+format-doc,T1,0.90,,applied,"Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if schema checks"
+0x1D7C80,func_001D7C80,ResetGsIfSchemaChanged,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum
+0x1D7D30,func_001D7D30,FGsMatchesSchema,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,True if GS stored version/checksum (+0x5400/+0x5404) equal schema's
+0x1D7DA0,func_001D7DA0,FFindSaveVar,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling}) along a key of symbol ids; outputs entry + array index
+0x1D7E80,func_001D7E80,PvFromSaveVar,hi,r6_1D5150+verdicts_tu_r4r6,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Address of a save var in a GS blob: pb + ib + index*size[kind]
+0x1D7ED8,func_001D7ED8,RefGetSaveVar,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...)
+0x1D80C8,func_001D80C8,RefSetSaveVar,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Write a CRef into a save var by kind (bitfield set/clear for packed bools)
+0x1D82B8,func_001D82B8,NCompletionPercentGs,hi,r6_1D5150+verdicts_tu_r4r6,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set 'fVault' bool/bit; returns 0 / 100 / clamp(1..99)
 0x1D84B0,func_001D84B0,BuildMemcardGsMask,lo,r6_1D5150,static-only,T2,0.45,,not batched,Copy D_003D4A60 into a big buffer then set flag byte at ib for every schema entry whose symbol is 'from_memcard'
-0x1D8600,func_001D8600,InitSaveSymbolTable,mid,r6_1D5150,static-only,T1,0.60,,not batched,Allocate c 16-byte hash entries for the symbol table at schema+0xD4
-0x1D8640,func_001D8640,UHashPchzCi,mid,r6_1D5150,static-only,T1,0.75,,not batched,Case-insensitive string hash h=h*33+toupper(c)
-0x1D8690,func_001D8690,AddSaveSymbol,mid,r6_1D5150,static-only,T1,0.70,,not batched,"Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the preallocated array"
-0x1D8720,func_001D8720,NFindSaveSymbol,mid,r6_1D5150,static-only,T1,0.75,,not batched,"Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent"
-0x1D87C0,func_001D87C0,BuildSaveKeyV,mid,r6_1D5150,static-only,T1,0.70,,not batched,Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols via atoi as array indices)
-0x1D88D0,func_001D88D0,PkeyNewSaveKey,mid,r6_1D5150,static-only,T1,0.55,,not batched,Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238 (realloc-like)
-0x1D89A8,func_001D89A8,PkeyAllocSaveKey,mid,r6_1D5150,static-only,T1,0.55,,not batched,Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV
-0x1D8A38,func_001D8A38,RefGetSaveVarV,hi,r6_1D5150+verdicts_tu_r4r6+runtime,runtime+verifier,T1,0.90,,not batched,"CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60"
-0x1D8B20,func_001D8B20,RefSetSaveVarV,hi,r6_1D5150+verdicts_tu_r4r6,verifier,T1,0.85,,not batched,"CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs"
-0x1D8C10,func_001D8C10,PvSaveVarV,mid,r6_1D5150,static-only,T1,0.65,,not batched,Varargs: address of a named save var inside g_gs
-0x1D8CC8,func_001D8CC8,PkeyConcatSaveKeys,mid,r6_1D5150,static-only,T1,0.65,,not batched,Allocate a new key = concatenation of two keys' id arrays
+0x1D8600,func_001D8600,InitSaveSymbolTable,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Allocate c 16-byte hash entries for the symbol table at schema+0xD4
+0x1D8640,func_001D8640,UHashPchzCi,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Case-insensitive string hash h=h*33+toupper(c)
+0x1D8690,func_001D8690,AddSaveSymbol,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the preallocated array"
+0x1D8720,func_001D8720,NFindSaveSymbol,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent"
+0x1D87C0,func_001D87C0,BuildSaveKeyV,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols via atoi as array indices)
+0x1D88D0,func_001D88D0,PkeyNewSaveKey,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238 (realloc-like)
+0x1D89A8,func_001D89A8,PkeyAllocSaveKey,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV
+0x1D8A38,func_001D8A38,RefGetSaveVarV,hi,r6_1D5150+verdicts_tu_r4r6+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime+verifier,T1,0.90,,applied,"CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60"
+0x1D8B20,func_001D8B20,RefSetSaveVarV,hi,r6_1D5150+verdicts_tu_r4r6,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs"
+0x1D8C10,func_001D8C10,PvSaveVarV,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,Varargs: address of a named save var inside g_gs
+0x1D8CC8,func_001D8CC8,PkeyConcatSaveKeys,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,Allocate a new key = concatenation of two keys' id arrays
 0x1D8D80,func_001D8D80,ResetSaveGs,mid,r6_1D5150,static-only,T2,0.60,,not batched,"Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars (keys in global +0x3B2C) across the clear"
-0x1D8FF8,func_001D8FF8,ApplyGsSettings,mid,r6_1D5150,static-only,T1,0.70,,not batched,"Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50)"
-0x1D9280,func_001D9280,StaticInit_save,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU save
+0x1D8FF8,func_001D8FF8,ApplyGsSettings,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50)"
+0x1D9280,func_001D9280,StaticInit_save,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU save
 0x1D93B8,func_001D93B8,_GLOBAL_$I$save,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$save': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1D93D8,func_001D93D8,InitScreenDl,lo,r6b_rest,static-only,T2,0.30,,not batched,"InitDl(arg, ibDle 0x14) and return it (list constructor)"
 0x1D9408,func_001D9408,ResetScreens,lo,r6b_rest,static-only,T2,0.40,,not batched,Call each global HUD screen's Reset (slot-13 implementations 0x1D9B30/0x1DAA48/0x1DB7F0/0x1DA320/0x1DCCD8/0x1DA7B0) and walk the active list
@@ -4001,70 +4001,70 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1D9820,UpdateRecyclable__3CGc,DrawUi,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.60,,not batched,"Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28)"
 0x1D9870,func_001D9870,UpdateScreen,lo,r6b_rest,static-only,T2,0.35,,not batched,slot 7 base: empty
 0x1D9878,func_001D9878,DrawScreen,lo,r6b_rest,static-only,T2,0.30,,not batched,slot 8: empty (shared by all 12 screen vtables)
-0x1D9880,func_001D9880,FScreenShown,mid,r6b_rest+top50_round,static-only,T1,0.65,,not batched,Return whether the screen is in the shown-screen list D_003D9E70
+0x1D9880,func_001D9880,FScreenShown,mid,r6b_rest+top50_round,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,Return whether the screen is in the shown-screen list D_003D9E70
 0x1D98A8,func_001D98A8,SCREEN_vt9,lo,r6b_rest,static-only,T2,0.25,,not batched,slot 9: empty
 0x1D98B0,func_001D98B0,ShowScreen,lo,r6b_rest,static-only,T2,0.45,,not batched,slot 10: move/append the screen to the active list and refocus
 0x1D9910,func_001D9910,HideScreen,lo,r6b_rest,static-only,T2,0.45,,not batched,slot 11: remove from the active list and refocus
-0x1D9968,func_001D9968,PostHudMeterLoad,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick"
-0x1D9B30,func_001D9B30,ResetHudMeter,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Reset the meter: state 0, drop widget"
-0x1D9B60,func_001D9B60,SetHudMeterState,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the character owns a power-up with a cost), 2 damage, 6/7 alternate"
-0x1D9DF8,func_001D9DF8,UpdateHudMeter,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and power change (state 4) with GSmooth, damage flash (2), special an"
-0x1DA2E0,func_001DA2E0,PostNoticeLoad,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Notice banner (global D_003DA0C0): find its widget 0x371
-0x1DA320,func_001DA320,ResetNotice,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Notice banner reset: no current/queued text, drop widget, state 0"
-0x1DA350,func_001DA350,UpdateNotice,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden) or swap to the queued text (anim 0x312); hide
-0x1DA4B8,func_001DA4B8,PostNotice,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Request a notice text n for duration g (queue behind the current one); n=-1 cancels
-0x1DA578,func_001DA578,CancelNotice,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue"
+0x1D9968,func_001D9968,PostHudMeterLoad,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick"
+0x1D9B30,func_001D9B30,ResetHudMeter,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Reset the meter: state 0, drop widget"
+0x1D9B60,func_001D9B60,SetHudMeterState,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the character owns a power-up with a cost), 2 damage, 6/7 alternate"
+0x1D9DF8,func_001D9DF8,UpdateHudMeter,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and power change (state 4) with GSmooth, damage flash (2), special an"
+0x1DA2E0,func_001DA2E0,PostNoticeLoad,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Notice banner (global D_003DA0C0): find its widget 0x371
+0x1DA320,func_001DA320,ResetNotice,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Notice banner reset: no current/queued text, drop widget, state 0"
+0x1DA350,func_001DA350,UpdateNotice,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden) or swap to the queued text (anim 0x312); hide
+0x1DA4B8,func_001DA4B8,PostNotice,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Request a notice text n for duration g (queue behind the current one); n=-1 cancels
+0x1DA578,func_001DA578,CancelNotice,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue"
 0x1DA5B0,func_001DA5B0,IdsCurNotice,lo,r9_bhv_screen,static-only,T2,0.45,,not batched,Text id being shown or queued
-0x1DA5C8,func_001DA5C8,SetNoticeState,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main anim 0x310 after a swap"
+0x1DA5C8,func_001DA5C8,SetNoticeState,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main anim 0x310 after a swap"
 0x1DA728,func_001DA728,SCREEN_ctor,lo,r6b_rest,static-only,T2,0.40,,not batched,"Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset"
 0x1DA770,func_001DA770,PostScreenLoad,lo,r6b_rest,static-only,T2,0.45,,not batched,slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5)
 0x1DA7B0,func_001DA7B0,ResetScreen,lo,r6b_rest,static-only,T2,0.45,,not batched,slot 13: drop widget pointer and reset mode
 0x1DA7D0,func_001DA7D0,ResetScreenMode,lo,r6b_rest,static-only,T2,0.35,,not batched,"state(+0x28)=-1, t=now, SetScreenMode(-1,-1)"
 0x1DA808,func_001DA808,UpdateScreenTimeout,lo,r6b_rest,static-only,T2,0.35,,not batched,Base update then close when the mode timer (+0x34) expires
-0x1DA858,func_001DA858,UpdateScreenStickDir,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1) when back under 0.5"
+0x1DA858,func_001DA858,UpdateScreenStickDir,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1) when back under 0.5"
 0x1DA950,func_001DA950,SetScreenMode,lo,r6b_rest,static-only,T2,0.35,,not batched,Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout
 0x1DA9E8,func_001DA9E8,CloseScreen,lo,r6b_rest,static-only,T2,0.30,,not batched,"SetScreenMode(-1,-1)"
-0x1DAA08,func_001DAA08,GADGETMENU_ctor,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,Gadget menu constructor (vtable 0x2D8568) for D_003DA0F0
-0x1DAA48,func_001DAA48,ResetGadgetMenu,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,Gadget menu reset (slot 13)
-0x1DAA78,func_001DAA78,ClearGadgetMenu,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Gadget menu: state -1, timestamp"
-0x1DAA90,func_001DAA90,UpdateGadgetMenu,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons (D_002C3258 = 4,1,2) assign the selected power-up to that slot (S"
+0x1DAA08,func_001DAA08,GADGETMENU_ctor,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Gadget menu constructor (vtable 0x2D8568) for D_003DA0F0
+0x1DAA48,func_001DAA48,ResetGadgetMenu,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Gadget menu reset (slot 13)
+0x1DAA78,func_001DAA78,ClearGadgetMenu,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Gadget menu: state -1, timestamp"
+0x1DAA90,func_001DAA90,UpdateGadgetMenu,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons (D_002C3258 = 4,1,2) assign the selected power-up to that slot (S"
 0x1DAC58,func_001DAC58,DrawGadgetMenuSlotLabels,lo,r9_bhv_screen,static-only,T2,0.45,,not batched,While the gadget menu widget is visible draw the button glyph (&2L / &2l / &2r) next to each power-up equipped in a slot
 0x1DAE20,func_001DAE20,PentryFindScreen,lo,r6b_rest,static-only,T2,0.30,,not batched,Find an entry (0x20 bytes) by id in the screen's item list (+0x4C/+0x50)
 0x1DAE58,func_001DAE58,FScreenItemUnlocked,lo,r6b_rest+runtime,runtime,T2,0.35,,not batched,Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold
-0x1DAEA8,func_001DAEA8,FPowerupAcquired,mid,r9_bhv_screen,static-only,T1,0.75,,not batched,Save var powerUps.mppukfAcquired[n] (has the power-up been bought)
-0x1DAF38,func_001DAF38,SetPowerupAcquired,mid,r9_bhv_screen,static-only,T1,0.75,,not batched,Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n
-0x1DB010,func_001DB010,RefreshGadgetMenuItems,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired"
-0x1DB0C8,func_001DB0C8,SetGadgetMenuStickDir,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,Gadget menu slot 14: move the selection to the selectable item lying closest along the stick direction
-0x1DB390,func_001DB390,SelectGadgetMenuItem,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,Select item key and switch each item's highlight anim (selected / acquired / unlocked)
-0x1DB490,func_001DB490,OpenGadgetMenuForHero,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Open the gadget menu page for the current hero: 0 Sly (g_pjt), 1 Bentley (D_002DD5BC), 2 Murray (D_002F7900)"
-0x1DB520,func_001DB520,SetGadgetMenuState,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 = Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0"
+0x1DAEA8,func_001DAEA8,FPowerupAcquired,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Save var powerUps.mppukfAcquired[n] (has the power-up been bought)
+0x1DAF38,func_001DAF38,SetPowerupAcquired,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n
+0x1DB010,func_001DB010,RefreshGadgetMenuItems,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired"
+0x1DB0C8,func_001DB0C8,SetGadgetMenuStickDir,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Gadget menu slot 14: move the selection to the selectable item lying closest along the stick direction
+0x1DB390,func_001DB390,SelectGadgetMenuItem,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Select item key and switch each item's highlight anim (selected / acquired / unlocked)
+0x1DB490,func_001DB490,OpenGadgetMenuForHero,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Open the gadget menu page for the current hero: 0 Sly (g_pjt), 1 Bentley (D_002DD5BC), 2 Murray (D_002F7900)"
+0x1DB520,func_001DB520,SetGadgetMenuState,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 = Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0"
 0x1DB7A8,func_001DB7A8,SCREEN378_ctor,lo,r6b_rest,static-only,T2,0.30,,not batched,"Screen subclass with vtable 0x2D84E8, widget oid 0x378, 64-entry selection table"
-0x1DB7F0,func_001DB7F0,ResetThiefnet,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,ThiefNet shop reset (slot 13)
-0x1DB820,func_001DB820,ClearThiefnet,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"ThiefNet: state -1, clear the 64-entry item list and anim handles"
-0x1DB870,func_001DB870,UpdateThiefnet,mid,r9_bhv_screen,static-only,T1,0.65,,not batched,"ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm, deduct, SetPowerupAcquired, notify players); tab 1 sell one loo"
+0x1DB7F0,func_001DB7F0,ResetThiefnet,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,ThiefNet shop reset (slot 13)
+0x1DB820,func_001DB820,ClearThiefnet,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"ThiefNet: state -1, clear the 64-entry item list and anim handles"
+0x1DB870,func_001DB870,UpdateThiefnet,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,"ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm, deduct, SetPowerupAcquired, notify players); tab 1 sell one loo"
 0x1DBBA0,func_001DBBA0,IThiefnetRowEnd,lo,r9_bhv_screen,static-only,T2,0.40,,not batched,"Index past the last visible row (scroll window D_002C35B4 rows, adjusted for scroll arrows)"
-0x1DBBE0,func_001DBBE0,SelectThiefnetItem,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Select row i (clamped), scroll the window, set current power-up/loot id"
-0x1DBD10,func_001DBD10,RefreshThiefnetItems,mid,r9_bhv_screen,static-only,T1,0.65,,not batched,Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot kinds with count > 0
-0x1DBEF0,func_001DBEF0,UpdateThiefnetWidgets,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind (0x456-0x458), cursor 0x437, popup 0x43B/0x439"
-0x1DC260,func_001DC260,SetThiefnetTab,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1 sell page (0x49B-0x49D); refresh list"
+0x1DBBE0,func_001DBBE0,SelectThiefnetItem,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Select row i (clamped), scroll the window, set current power-up/loot id"
+0x1DBD10,func_001DBD10,RefreshThiefnetItems,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot kinds with count > 0
+0x1DBEF0,func_001DBEF0,UpdateThiefnetWidgets,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind (0x456-0x458), cursor 0x437, popup 0x43B/0x439"
+0x1DC260,func_001DC260,SetThiefnetTab,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1 sell page (0x49B-0x49D); refresh list"
 0x1DC4B0,func_001DC4B0,SetThiefnetStickDir,mid,r9_bhv_screen+verdicts_followups,verifier,T2,0.55,,not batched,"ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds)"
-0x1DC598,func_001DC598,BuildGadgetMenuInfoText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Text callback for widgets 0x37A/0x37B: popup message, ""none"", or the selected power-up's name, slot button and description"
-0x1DC790,func_001DC790,BuildThiefnetPowerupNameText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Text callback rows 0x43C-0x441: power-up name of row i
+0x1DC598,func_001DC598,BuildGadgetMenuInfoText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Text callback for widgets 0x37A/0x37B: popup message, ""none"", or the selected power-up's name, slot button and description"
+0x1DC790,func_001DC790,BuildThiefnetPowerupNameText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Text callback rows 0x43C-0x441: power-up name of row i
 0x1DC820,func_001DC820,BuildThiefnetPowerupCostText,lo,r9_bhv_screen,static-only,T2,0.45,,not batched,Text callback rows 0x442-0x447: power-up cost of row i
-0x1DC890,func_001DC890,BuildThiefnetLootNameText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Text callback rows 0x448-0x44D: loot name of row i, ""%s (%d)"" when owned more than once"
+0x1DC890,func_001DC890,BuildThiefnetLootNameText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Text callback rows 0x448-0x44D: loot name of row i, ""%s (%d)"" when owned more than once"
 0x1DC9C0,func_001DC9C0,BuildThiefnetLootPriceText,lo,r9_bhv_screen,static-only,T2,0.45,,not batched,Text callback rows 0x44E-0x453: loot price of row i
 0x1DCA30,func_001DCA30,BuildThiefnetPromptText,lo,r9_bhv_screen,static-only,T2,0.45,,not batched,Text callback 0x436: popup prompt text by popup mode (-1/0/1 -> ids 0xDE/0xDF/0xE0)
-0x1DCAB0,func_001DCAB0,BuildThiefnetInfoText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Text callback 0x435: popup message, or the selected power-up's name, description and affordability (0xD9/0xDA), or the loot sell line (0xDB)"
+0x1DCAB0,func_001DCAB0,BuildThiefnetInfoText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Text callback 0x435: popup message, or the selected power-up's name, description and affordability (0xD9/0xDA), or the loot sell line (0xDB)"
 0x1DCC58,func_001DCC58,SCREEN4E0_ctor,lo,r6b_rest,static-only,T2,0.30,,not batched,"Screen subclass with vtable 0x2D8468, widget oid 0x4E0"
-0x1DCCA0,func_001DCCA0,PostJobListLoad,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Job list (D_003DA3C0, widget 0x4E0) post-load: base PostScreenLoad, widget +0xB0=1"
-0x1DCCD8,func_001DCCD8,ResetJobList,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,Job list reset (slot 13)
-0x1DCD08,func_001DCD08,ClearJobList,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Job list: state -1, timestamp, anim handles -1"
-0x1DCD30,func_001DCD30,UpdateJobList,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle jobs page <-> tasks page
-0x1DCE90,func_001DCE90,SelectJobListItem,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Select row i (clamped)
-0x1DCED8,func_001DCED8,RefreshJobListEntries,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the selected job up to the first unfinished one; keep the last 10"
-0x1DD1F8,func_001DD1F8,UpdateJobListWidgets,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via FJobComplete/FTaskComplete
-0x1DD300,func_001DD300,SetJobListPage,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off while open"
-0x1DD558,func_001DD558,SetJobListStickDir,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows"
+0x1DCCA0,func_001DCCA0,PostJobListLoad,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Job list (D_003DA3C0, widget 0x4E0) post-load: base PostScreenLoad, widget +0xB0=1"
+0x1DCCD8,func_001DCCD8,ResetJobList,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Job list reset (slot 13)
+0x1DCD08,func_001DCD08,ClearJobList,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Job list: state -1, timestamp, anim handles -1"
+0x1DCD30,func_001DCD30,UpdateJobList,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle jobs page <-> tasks page
+0x1DCE90,func_001DCE90,SelectJobListItem,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Select row i (clamped)
+0x1DCED8,func_001DCED8,RefreshJobListEntries,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the selected job up to the first unfinished one; keep the last 10"
+0x1DD1F8,func_001DD1F8,UpdateJobListWidgets,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via FJobComplete/FTaskComplete
+0x1DD300,func_001DD300,SetJobListPage,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off while open"
+0x1DD558,func_001DD558,SetJobListStickDir,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows"
 0x1DD648,func_001DD648,SCREEN52D_ctor,lo,r6b_rest,static-only,T2,0.30,,not batched,"Screen subclass with vtable 0x2D83E8, widget oid 0x52D"
 0x1DD690,func_001DD690,PostScreen52DLoad,lo,r9_bhv_screen,static-only,T2,0.40,,not batched,"Screen 0x52D (D_003DA4F0) post-load: base PostScreenLoad, widget +0xB0=1"
 0x1DD6C8,func_001DD6C8,ShowScreen52D,lo,r9_bhv_screen,static-only,T2,0.35,,not batched,Show screen 0x52D (vt10) and its widget (vt49 -1)
@@ -4073,21 +4073,21 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1DD7B8,func_001DD7B8,SetScreenState,lo,r6b_rest,static-only,T2,0.35,,not batched,"slot 14 of 0x2D83E8: if state(+0x28) changes, store it and the time"
 0x1DD7D8,func_001DD7D8,SCREEN5D2_ctor,lo,r6b_rest,static-only,T2,0.30,,not batched,"Screen subclass with vtable 0x2D8368, widget oid 0x5D2"
 0x1DD820,func_001DD820,ShowTitleScreen,lo,r9_bhv_screen,static-only,T2,0.45,,not batched,"Show the title screen (D_003DA530, widget 0x5D2) and its widget; reset rumble"
-0x1DD888,func_001DD888,HideTitleScreen,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Hide the title screen and its widget
-0x1DD8E0,func_001DD8E0,SelectLanguageItem,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,Language menu item callback: SetLanguage(item) and warp to world 0x189
-0x1DD920,func_001DD920,UpdateTitleScreen,mid,r9_bhv_screen,static-only,T1,0.60,,not batched,"Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts a new game; SELECT opens options; X opens the language list wh"
-0x1DDB08,func_001DDB08,StartNewGame,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,"Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs)"
+0x1DD888,func_001DD888,HideTitleScreen,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Hide the title screen and its widget
+0x1DD8E0,func_001DD8E0,SelectLanguageItem,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Language menu item callback: SetLanguage(item) and warp to world 0x189
+0x1DD920,func_001DD920,UpdateTitleScreen,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts a new game; SELECT opens options; X opens the language list wh"
+0x1DDB08,func_001DDB08,StartNewGame,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs)"
 0x1DDBD0,func_001DDBD0,SetTitleScreenStickDir,lo,r9_bhv_screen,static-only,T2,0.40,,not batched,Title screen slot 14: store direction and time
-0x1DDBF0,func_001DDBF0,BuildTitlePromptText,hi,r9_bhv_screen+verdicts_followups,verifier,T1,0.85,,not batched,"Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56"
-0x1DDD40,func_001DDD40,IdsFromWorld,mid,r9_bhv_screen,static-only,T1,0.55,,not batched,World index 0-8 -> episode name string id 0x6D-0x75
-0x1DDDB8,func_001DDDB8,BuildJobListWorldText,hi,r9_bhv_screen+verdicts_followups,verifier,T1,0.85,,not batched,Text callback 0x51B: current episode name
+0x1DDBF0,func_001DDBF0,BuildTitlePromptText,hi,r9_bhv_screen+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56"
+0x1DDD40,func_001DDD40,IdsFromWorld,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,World index 0-8 -> episode name string id 0x6D-0x75
+0x1DDDB8,func_001DDDB8,BuildJobListWorldText,hi,r9_bhv_screen+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Text callback 0x51B: current episode name
 0x1DDE10,func_001DDE10,BuildJobListJobDescText,lo,r9_bhv_screen,static-only,T2,0.40,,not batched,Text callback 0x51D: selected job string +0x70
 0x1DDE58,func_001DDE58,BuildJobListJobNameText,lo,r9_bhv_screen,static-only,T2,0.40,,not batched,Text callback 0x51C: selected job string +0x6C
-0x1DDEA0,func_001DDEA0,BuildJobListRowText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Text callback rows 0x51E-0x527: job name of row i
-0x1DDF00,func_001DDF00,BuildJobListTaskRowText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,Text callback rows 0x528-0x52B: task name of row i
+0x1DDEA0,func_001DDEA0,BuildJobListRowText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Text callback rows 0x51E-0x527: job name of row i
+0x1DDF00,func_001DDF00,BuildJobListTaskRowText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Text callback rows 0x528-0x52B: task name of row i
 0x1DDF60,func_001DDF60,BuildTitleText5D7,lo,r9_bhv_screen,static-only,T2,0.30,,not batched,Text callback 0x5D7: string 0x40 plus a button-glyph suffix
-0x1DDFB0,func_001DDFB0,BuildTitleCompletionText,mid,r9_bhv_screen,static-only,T1,0.50,,not batched,"Text callback 0x5D5: ""%d%%"" game completion"
-0x1DE008,func_001DE008,StaticInit_screen,hi,tu_map(structural)+r6b_rest,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU screen
+0x1DDFB0,func_001DDFB0,BuildTitleCompletionText,mid,r9_bhv_screen,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Text callback 0x5D5: ""%d%%"" game completion"
+0x1DE008,func_001DE008,StaticInit_screen,hi,tu_map(structural)+r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU screen
 0x1DE260,func_001DE260,_GLOBAL_$I$screen,hi,tu_map(structural)+r6b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$screen': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1DE280,func_001DE280,_GLOBAL_$D$screen,hi,tu_map(structural)+r6b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$D$screen': not a valid C identifier,"compiler-generated global destructor stub (calls static init with (0,0xFFFF))"
 0x1DE2A0,func_001DE2A0,InitSensor,mid,r6b_rest,match(scratch_v3:batch_08_guards_ai),T1,0.55,,applied,SENSOR::Init (vt7): InitSo; set SO grf bit 34
@@ -4308,40 +4308,40 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1EA3B0,func_001EA3B0,PrangeFind,lo,r6b_rest,static-only,T2,0.35,,not batched,"Return the {gMin,gMax} range containing g"
 0x1EA410,func_001EA410,StaticInit_shape,hi,tu_map(structural)+r6b_rest,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU shape
 0x1EA548,func_001EA548,_GLOBAL_$I$shape,hi,tu_map(structural)+r6b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$shape': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1EA568,func_001EA568,RelocateSharedColorTables,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.65,,not batched,After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entries
+0x1EA568,func_001EA568,RelocateSharedColorTables,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.65,,applied,After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entries
 0x1EA688,func_001EA688,CpassShd,lo,r6b_rest,static-only,T2,0.35,,not batched,"Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1"
-0x1EA6C8,func_001EA6C8,Tex0FromTexIframeCtk,hi,r6b_rest+format-doc:textures,format-doc,T1,0.65,,not batched,TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 | clut TEX0
-0x1EA750,func_001EA750,PackTexGifs,mid,r6b_rest,static-only,T1,0.50,,not batched,Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream
-0x1EA8A8,func_001EA8A8,LoadClutFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.80,,not batched,Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entries
+0x1EA6C8,func_001EA6C8,Tex0FromTexIframeCtk,hi,r6b_rest+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+format-doc,T1,0.65,,applied,TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 | clut TEX0
+0x1EA750,func_001EA750,PackTexGifs,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream
+0x1EA8A8,func_001EA8A8,LoadClutFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.80,,applied,Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entries
 0x1EA9F0,func_001EA9F0,BuildSwBackgroundGifs,lo,r6b_rest,static-only,T2,0.30,,not batched,Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at g_sw+0x3EA0)
 0x1EAD98,func_001EAD98,CopyClutHeader,lo,r6b_rest,static-only,T2,0.30,,not batched,"Copy a CLUT header, color-correct its colors, compute qword count"
-0x1EAE40,func_001EAE40,LoadColorTablesFromBrx__FP18CBinaryInputStream,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.85,,not batched,"Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count"
-0x1EAF50,func_001EAF50,LoadBmpFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.80,,not batched,Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
+0x1EAE40,func_001EAE40,LoadColorTablesFromBrx__FP18CBinaryInputStream,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.85,,applied,"Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count"
+0x1EAF50,func_001EAF50,LoadBmpFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.80,,applied,Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
 0x1EB050,func_001EB050,CopyBmpHeader,lo,r6b_rest,static-only,T2,0.30,,not batched,Copy a BMP header and compute qword count
-0x1EB098,func_001EB098,LoadBitmapsFromBrx__FP18CBinaryInputStream,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.85,,not batched,"Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each"
-0x1EB1A8,func_001EB1A8,LoadTexFromBrx,hi,r6b_rest+parse-verified,parse-verified,T1,0.75,,not batched,Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none)
-0x1EB2F0,func_001EB2F0,LoadShdFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.80,,not batched,"Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data"
+0x1EB098,func_001EB098,LoadBitmapsFromBrx__FP18CBinaryInputStream,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.85,,applied,"Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each"
+0x1EB1A8,func_001EB1A8,LoadTexFromBrx,hi,r6b_rest+parse-verified,match(rename.py:batch_12_render_audio_ui_b)+parse-verified,T1,0.75,,applied,Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none)
+0x1EB2F0,func_001EB2F0,LoadShdFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.80,,applied,"Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data"
 0x1EB678,func_001EB678,BuildShdTex0List,lo,r6b_rest,static-only,T2,0.35,,not batched,Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture)
-0x1EB748,func_001EB748,LoadShadersFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,parse-verified+format-doc,T1,0.80,,not batched,"Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures (0x1ECE58); build shader packets"
+0x1EB748,func_001EB748,LoadShadersFromBrx,hi,r6b_rest+parse-verified+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+parse-verified+format-doc,T1,0.80,,applied,"Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures (0x1ECE58); build shader packets"
 0x1EB960,func_001EB960,FillShaders,lo,r6b_rest,static-only,T2,0.45,,not batched,"Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind"
 0x1EC688,func_001EC688,AddShdVifUnpack,lo,r6b_rest,static-only,T2,0.25,,not batched,Emit a VIF unpack (0x226F28 kind 12) for record i; return its size
 0x1EC6D0,func_001EC6D0,AddShdVifUnpackQw,lo,r6b_rest,static-only,T2,0.25,,not batched,Variant of 0x1EC688 for a single qword from an object
 0x1EC718,func_001EC718,ApplyCopyRecord,lo,r6b_rest,static-only,T2,0.25,,not batched,"CopyAb(dst=+8, src=+4, cb=+0)"
 0x1EC740,func_001EC740,RelocateShdRefs,lo,r6b_rest,static-only,T2,0.30,,not batched,"Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew"
-0x1EC7A0,func_001EC7A0,ResetShaders,hi,r6b_rest+format-doc:textures,format-doc,T1,0.65,,not batched,Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004)
+0x1EC7A0,func_001EC7A0,ResetShaders,hi,r6b_rest+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+format-doc,T1,0.65,,applied,Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004)
 0x1EC7E8,func_001EC7E8,UnloadShaders,lo,r6b_rest,static-only,T2,0.40,,not batched,"Clear shader GS state (D_003DA790, D_003DCFA0, 0x40 bytes at D_003DCFA8)"
-0x1EC820,func_001EC820,PshdFindShader,hi,r6b_rest+format-doc:textures,format-doc,T1,0.75,,not batched,Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL
+0x1EC820,func_001EC820,PshdFindShader,hi,r6b_rest+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+format-doc,T1,0.75,,applied,Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL
 0x1EC880,func_001EC880,PfontFind,lo,r6b_rest,static-only,T2,0.30,,not batched,Find an entry by oid in linked list D_003E1590 (next +0x18)
 0x1EC8D0,func_001EC8D0,PfontFindOrDefault,lo,r6b_rest,static-only,T2,0.30,,not batched,0x1EC880(oid) or the list head
-0x1EC8F8,func_001EC8F8,PshdFromIshd,hi,r6b_rest+verdicts_followups,verifier,T1,0.85,,not batched,&D_003DCFEC[i] (stride 0x2C)
+0x1EC8F8,func_001EC8F8,PshdFromIshd,hi,r6b_rest+verdicts_followups,verifier,T1,0.85,,refused: PshdFromIshd already used in code: src/game/engine/graphics/pipeline/glob/func_0016A000.cpp (if that is this same functio,&D_003DCFEC[i] (stride 0x2C)
 0x1EC918,func_001EC918,PsaaFind,lo,r6b_rest,static-only,T2,0.35,,not batched,Find an SAA by id (+0x14) in list D_003E159C (stops at entries with a child)
-0x1EC968,func_001EC968,UpdateShaders,mid,r6b_rest,static-only,T1,0.65,,not batched,For each SAA in D_003E159C: if FUpdatableSaa call its vt8 (Update)
-0x1EC9D0,func_001EC9D0,BuildClutTex2__FP4CLUTi,hi,r6b_rest+verdicts_A2+format-doc:textures,verifier+format-doc,T1,0.90,,not batched,Fill TEX2-style CLUT fields
-0x1ECBF0,func_001ECBF0,BuildBmpGifs,mid,r6b_rest,static-only,T1,0.60,,not batched,BuildImageGifs for a bitmap
-0x1ECC28,func_001ECC28,FBuildUploadBitmapGifs__FiP3GSBP4GIFS,hi,r6b_rest+verdicts_B,verifier,T1,0.80,,not batched,Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added
-0x1ECE58,func_001ECE58,UploadPermShaders,hi,r6b_rest+format-doc:textures,format-doc,T1,0.65,,not batched,Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs
+0x1EC968,func_001EC968,UpdateShaders,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,For each SAA in D_003E159C: if FUpdatableSaa call its vt8 (Update)
+0x1EC9D0,func_001EC9D0,BuildClutTex2__FP4CLUTi,hi,r6b_rest+verdicts_A2+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+verifier+format-doc,T1,0.90,,applied,Fill TEX2-style CLUT fields
+0x1ECBF0,func_001ECBF0,BuildBmpGifs,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,BuildImageGifs for a bitmap
+0x1ECC28,func_001ECC28,FBuildUploadBitmapGifs__FiP3GSBP4GIFS,hi,r6b_rest+verdicts_B,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.80,,applied,Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added
+0x1ECE58,func_001ECE58,UploadPermShaders,hi,r6b_rest+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+format-doc,T1,0.65,,applied,Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs
 0x1ED1A8,func_001ED1A8,ColorCorrectRgba16,lo,r6b_rest,static-only,T2,0.45,,not batched,"Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (D_003E12C8)"
-0x1ED278,func_001ED278,ColorCorrectRgba,hi,r6b_rest+format-doc:textures,format-doc,T1,0.65,,not batched,If color correction enabled (D_003E12C8): RGBA -> vector -> ColorCorrectVector -> RGBA
+0x1ED278,func_001ED278,ColorCorrectRgba,hi,r6b_rest+format-doc:textures,match(rename.py:batch_12_render_audio_ui_b)+format-doc,T1,0.65,,applied,If color correction enabled (D_003E12C8): RGBA -> vector -> ColorCorrectVector -> RGBA
 0x1ED2D8,func_001ED2D8,ColorCorrectVector,lo,r6b_rest,static-only,T2,0.45,,not batched,"Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via HSV"
 0x1ED3A8,func_001ED3A8,AllocTexHashTables,lo,r6b_rest,static-only,T2,0.45,,not batched,"Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018)"
 0x1ED448,func_001ED448,ClearTexHashTables,lo,r6b_rest,static-only,T2,0.45,,not batched,Null both hash tables and counts
@@ -4349,31 +4349,31 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1ED4E0,func_001ED4E0,PbmpFindHash,lo,r6b_rest,static-only,T2,0.45,,not batched,Look up a bitmap by id in the hash
 0x1ED560,func_001ED560,AddClutHash,lo,r6b_rest,static-only,T2,0.40,,not batched,Insert into the clut hash
 0x1ED5D0,func_001ED5D0,PclutFindHash,lo,r6b_rest,static-only,T2,0.45,,not batched,Look up a clut by id
-0x1ED650,func_001ED650,StaticInit_shd,hi,tu_map(structural)+r6b_rest,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU shd
+0x1ED650,func_001ED650,StaticInit_shd,hi,tu_map(structural)+r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU shd
 0x1ED788,func_001ED788,_GLOBAL_$I$shd,hi,tu_map(structural)+r6b_rest,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$shd': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1ED7A8,func_001ED7A8,PsaaLoadFromBrx,hi,r6b_rest+parse-verified+format-doc:textures+verdicts_followups,parse-verified+verifier+format-doc,T1,0.85,,not batched,"Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read 0x20-byte SAAF and call vt7 Init(psaa, psaaf"
+0x1ED7A8,func_001ED7A8,PsaaLoadFromBrx,hi,r6b_rest+parse-verified+format-doc:textures+verdicts_followups,parse-verified+verifier+format-doc,T1,0.85,,refused: PsaaLoadFromBrx already used in code: src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinary,"Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read 0x20-byte SAAF and call vt7 Init(psaa, psaaf"
 0x1ED850,func_001ED850,PsaaClone,lo,r6b_rest,static-only,T2,0.35,,not batched,"Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the SAA list D_003E159C"
-0x1ED8E0,func_001ED8E0,InitSaa,mid,r6_1D5150,static-only,T1,0.60,,not batched,SAA (CID 0x8A) vt7 Init
+0x1ED8E0,func_001ED8E0,InitSaa,mid,r6_1D5150,static-only,T1,0.60,,refused: InitSaa already used in code: src/game/engine/graphics/pipeline/shdanim/InitShuffle__FP7SHUFFLEP4SAAF.cpp (if that is thi,SAA (CID 0x8A) vt7 Init
 0x1ED960,func_001ED960,AddSaaCopyRecord,lo,r6b_rest,static-only,T2,0.30,,not batched,"Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack (0x226E88) and apply it"
-0x1EDA50,func_001EDA50,UpdateSaa,mid,r6b_rest,static-only,T1,0.50,,not batched,SAA vt8 base: empty
-0x1EDA68,func_001EDA68,SetSaiIframe,mid,r6b_rest,static-only,T1,0.60,,not batched,"Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked"
-0x1EDAD8,func_001EDAD8,SetSaiDuDv,mid,r6b_rest,static-only,T1,0.65,,not batched,"Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked"
+0x1EDA50,func_001EDA50,UpdateSaa,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,SAA vt8 base: empty
+0x1EDA68,func_001EDA68,SetSaiIframe,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked"
+0x1EDAD8,func_001EDAD8,SetSaiDuDv,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,"Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked"
 0x1EDB80,func_001EDB80,SAA_FMatches,lo,r6b_rest,static-only,T2,0.40,,not batched,SAA vt10: *poid == psaa->+0x14
-0x1EDB98,func_001EDB98,InitLoop,hi,r6_1D5150+verdicts_tu_r4r6,verifier,T1,0.85,,not batched,LOOP vt7 Init
-0x1EDD60,func_001EDD60,InitPingpong,mid,r6_1D5150,static-only,T1,0.60,,not batched,PINGPONG vt7 Init
-0x1EE090,func_001EE090,InitEyes,mid,r6_1D5150,static-only,T1,0.60,,not batched,EYES vt7 Init
-0x1EE228,func_001EE228,UpdateEyes,mid,r6_1D5150,static-only,T1,0.60,,not batched,EYES vt8 Update
-0x1EE3B0,func_001EE3B0,SetEyesClosed,mid,r6_1D5150,static-only,T1,0.50,,not batched,Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0)
+0x1EDB98,func_001EDB98,InitLoop,hi,r6_1D5150+verdicts_tu_r4r6,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,LOOP vt7 Init
+0x1EDD60,func_001EDD60,InitPingpong,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,PINGPONG vt7 Init
+0x1EE090,func_001EE090,InitEyes,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,EYES vt7 Init
+0x1EE228,func_001EE228,UpdateEyes,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,EYES vt8 Update
+0x1EE3B0,func_001EE3B0,SetEyesClosed,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0)
 0x1EE420,func_001EE420,EYES_FMatches,lo,r6b_rest,static-only,T2,0.40,,not batched,EYES vt10: SAA::FMatches or *poid == +0x60
-0x1EE4E0,func_001EE4E0,UpdateScroller,mid,r6_1D5150,static-only,T1,0.60,,not batched,SCROLLER vt8 Update
-0x1EE688,func_001EE688,InitCircler,mid,r6_1D5150,static-only,T1,0.60,,not batched,CIRCLER vt7 Init
-0x1EE7B0,func_001EE7B0,PropagateSais,mid,r6b_rest,static-only,T1,0.60,,not batched,For every dirty SAA in D_003E159C apply its copy records and clear dirty
-0x1EE820,func_001EE820,StaticInit_shdanim,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU shdanim
+0x1EE4E0,func_001EE4E0,UpdateScroller,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,SCROLLER vt8 Update
+0x1EE688,func_001EE688,InitCircler,mid,r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,CIRCLER vt7 Init
+0x1EE7B0,func_001EE7B0,PropagateSais,mid,r6b_rest,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,For every dirty SAA in D_003E159C apply its copy records and clear dirty
+0x1EE820,func_001EE820,StaticInit_shdanim,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU shdanim
 0x1EE958,func_001EE958,_GLOBAL_$I$shdanim,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$shdanim': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1EE978,junk_001B5B48,junk_001EE978,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,12-byte orphan after shdanim static stub
 0x1EE988,FUN_001b5b58,WSjisFromCh,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.55,,not batched,Map one ASCII byte to a 16-bit SJIS code via table
 0x1EEA70,FUN_001b5c40,ConvertPchzToSjis,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.55,,not batched,Convert C string (strlen) to array of u16 SJIS codes
-0x1EEB08,func_001EEB08,StaticInit_sjis,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU sjis
+0x1EEB08,func_001EEB08,StaticInit_sjis,hi,tu_map(structural)+r6_1D5150,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU sjis
 0x1EEC40,func_001EEC40,_GLOBAL_$I$sjis,hi,tu_map(structural)+r6_1D5150,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$sjis': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1EEC60,func_001EEC60,InitBhvstk,hi,r6b_rest+runtime,match(scratch_v3:batch_06_object_model_b)+runtime,T1,0.85,,applied,BHVSTK init: pbhvstk->pstep = pstep
 0x1EEC68,func_001EEC68,CloneBhvstk,mid,r6b_rest,match(scratch_v3:batch_06_object_model_b),T1,0.65,,applied,BHVSTK clone fix-up: re-point pstep at the new step after the object copy
@@ -4652,105 +4652,105 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x1FADD0,func_001FADD0,GetSoVelocityAtPos,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Out-param wrapper of VelocityAtSoPos; zero if SO has no dynamics block (+0xE8)
 0x1FAE18,func_001FAE18,StaticInit_solve,hi,tu_map(structural)+r7_1F8DD8,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU solve
 0x1FAF50,func_001FAF50,_GLOBAL_$I$solve,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$solve': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x1FAF70,func_001FAF70,NewSfx,hi,r7_1F8DD8,static-only,T1,0.70,,not batched,"Allocate an SFX descriptor from SW heap: sfxid=-1, sFull=300, sStart=3000, uVol=1"
-0x1FAFD0,func_001FAFD0,SND_ctor,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"Base sound-instance ctor (vt 0x2D9D00, CID 0x97): vol 1, pitch-ish 1, range 300..3000"
-0x1FB018,func_001FB018,PauseSnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,"Refcounted pause: ++cPause==1 -> SetSndFlags(6,2) (request pause)"
-0x1FB060,func_001FB060,ResumeSnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,"--cPause==0 -> SetSndFlags(6,4) (request continue)"
-0x1FB098,func_001FB098,StopSnd,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,Request stop (flag 8) with fade time arg
-0x1FB0C0,func_001FB0C0,StartSnd,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused, +0x200 if positional)"
-0x1FB1F8,func_001FB1F8,SetSndVolume,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,"Clamp 0..1 (GLimitLm g_lm01) and set vol, dirty 0x10 if changed at 1/1024 resolution"
-0x1FB268,func_001FB268,SetSndPan,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"Normalize degrees mod 360; set pan, dirty 0x20"
-0x1FB2C0,func_001FB2C0,SetSndPitch,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"Set pitch (+0x18), dirty 0x40"
-0x1FB2F8,func_001FB2F8,SetSndSourceLo,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,"Attach sound to an ALO (positional), flag 0x200"
-0x1FB3F0,func_001FB3F0,SetSndSourcePos,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"Set world position (positional unless zero vector), flag 0x200"
-0x1FB4F0,func_001FB4F0,SetSndRange,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,Set full/stop distance (stop forced > full+1)
+0x1FAF70,func_001FAF70,NewSfx,hi,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"Allocate an SFX descriptor from SW heap: sfxid=-1, sFull=300, sStart=3000, uVol=1"
+0x1FAFD0,func_001FAFD0,SND_ctor,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Base sound-instance ctor (vt 0x2D9D00, CID 0x97): vol 1, pitch-ish 1, range 300..3000"
+0x1FB018,func_001FB018,PauseSnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"Refcounted pause: ++cPause==1 -> SetSndFlags(6,2) (request pause)"
+0x1FB060,func_001FB060,ResumeSnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"--cPause==0 -> SetSndFlags(6,4) (request continue)"
+0x1FB098,func_001FB098,StopSnd,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Request stop (flag 8) with fade time arg
+0x1FB0C0,func_001FB0C0,StartSnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused, +0x200 if positional)"
+0x1FB1F8,func_001FB1F8,SetSndVolume,mid,r7_1F8DD8,static-only,T1,0.70,,refused: SetSndVolume already used in code: src/game/gameplay/player/jt/SetJtJts__FP2JT3JTS4JTBS.cpp (if that is this same functio,"Clamp 0..1 (GLimitLm g_lm01) and set vol, dirty 0x10 if changed at 1/1024 resolution"
+0x1FB268,func_001FB268,SetSndPan,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Normalize degrees mod 360; set pan, dirty 0x20"
+0x1FB2C0,func_001FB2C0,SetSndPitch,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Set pitch (+0x18), dirty 0x40"
+0x1FB2F8,func_001FB2F8,SetSndSourceLo,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"Attach sound to an ALO (positional), flag 0x200"
+0x1FB3F0,func_001FB3F0,SetSndSourcePos,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Set world position (positional unless zero vector), flag 0x200"
+0x1FB4F0,func_001FB4F0,SetSndRange,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Set full/stop distance (stop forced > full+1)
 0x1FB520,func_001FB520,SetSndDoppler,lo,r7_1F8DD8,static-only,T2,0.20,,not batched,Empty stub (jr ra) taking a float; called with the fade/doppler arg in 0x210740
-0x1FB528,func_001FB528,UpdateSndPositional,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,vt16: from source ALO/pos compute distance volume and pan angle (CalculateSndVolPan); vt15 on audible<->silent transitions
-0x1FB658,func_001FB658,SetSndFlags,mid,r7_1F8DD8,static-only,T1,0.75,,not batched,"fl = (fl&~mask)|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink"
-0x1FB6A8,func_001FB6A8,AddSndToDirtyList,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"If not in SNDMGR pending DL, append and Incref"
-0x1FB710,func_001FB710,RemoveSndFromDirtyList,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"If in pending DL, remove and Decref (vt2)"
-0x1FB778,func_001FB778,CalculateSndVolPan,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees
-0x1FB8E0,func_001FB8E0,UpdateSnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,Per-frame flush of a dirty sound: positional update; start(vt9)/stop(vt10)/status(vt14)/params(vt13)/pause(vt11)/continue(vt12) by flag bits
+0x1FB528,func_001FB528,UpdateSndPositional,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,vt16: from source ALO/pos compute distance volume and pan angle (CalculateSndVolPan); vt15 on audible<->silent transitions
+0x1FB658,func_001FB658,SetSndFlags,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"fl = (fl&~mask)|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink"
+0x1FB6A8,func_001FB6A8,AddSndToDirtyList,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"If not in SNDMGR pending DL, append and Incref"
+0x1FB710,func_001FB710,RemoveSndFromDirtyList,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"If in pending DL, remove and Decref (vt2)"
+0x1FB778,func_001FB778,CalculateSndVolPan,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees
+0x1FB8E0,func_001FB8E0,UpdateSnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,Per-frame flush of a dirty sound: positional update; start(vt9)/stop(vt10)/status(vt14)/params(vt13)/pause(vt11)/continue(vt12) by flag bits
 0x1FBAF8,func_001FBAF8,OnBanksndPlayStarted,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,"989snd async callback: store voice handle (+0x40), clear busy (+0x52), Decref"
 0x1FBB30,func_001FBB30,OnBanksndStatus,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,IsStillPlaying callback: not playing -> StopSnd; else re-arm status query (0x400); Decref
-0x1FBB90,func_001FBB90,PsndStartSound,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd
-0x1FBBC8,func_001FBBC8,BANKSND_ctor,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"BANKSND ctor: SND ctor, set start flag (vt D_002D9C70 store dropped by m2c)"
-0x1FBC20,func_001FBC20,GetBanksndKind,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,vt8: kind of this sfx from SNDMGR table (2 = looping) or -1
-0x1FBC58,func_001FBC58,PlayBanksnd,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"vt9: build 989 play params (bank, sound index, vol/pan/pitch); loopers play async with handle callback, one-shots fire-and-forget; per-sfx special cases"
-0x1FBE80,func_001FBE80,StopBanksnd,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"vt10: fade-out via snd_AutoVol(h,-4,dt*240,2) if dt>0 else snd_StopSound(h)"
-0x1FBEE0,func_001FBEE0,PauseBanksnd,mid,r7_1F8DD8,static-only,T1,0.65,,not batched,vt11: snd_PauseSound(handle)
-0x1FBF00,func_001FBF00,ContinueBanksnd,mid,r7_1F8DD8,static-only,T1,0.65,,not batched,vt12: snd_ContinueSound(handle)
-0x1FBF20,func_001FBF20,ApplyBanksndParams,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40
-0x1FBFB0,func_001FBFB0,BANKSND_QueryStatus,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"vt14: if 0x400 pending, Incref and ask IOP IsStillPlaying with callback OnBanksndStatus"
+0x1FBB90,func_001FBB90,PsndStartSound,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd
+0x1FBBC8,func_001FBBC8,BANKSND_ctor,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"BANKSND ctor: SND ctor, set start flag (vt D_002D9C70 store dropped by m2c)"
+0x1FBC20,func_001FBC20,GetBanksndKind,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,vt8: kind of this sfx from SNDMGR table (2 = looping) or -1
+0x1FBC58,func_001FBC58,PlayBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"vt9: build 989 play params (bank, sound index, vol/pan/pitch); loopers play async with handle callback, one-shots fire-and-forget; per-sfx special cases"
+0x1FBE80,func_001FBE80,StopBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"vt10: fade-out via snd_AutoVol(h,-4,dt*240,2) if dt>0 else snd_StopSound(h)"
+0x1FBEE0,func_001FBEE0,PauseBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,vt11: snd_PauseSound(handle)
+0x1FBF00,func_001FBF00,ContinueBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,vt12: snd_ContinueSound(handle)
+0x1FBF20,func_001FBF20,ApplyBanksndParams,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40
+0x1FBFB0,func_001FBFB0,BANKSND_QueryStatus,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"vt14: if 0x400 pending, Incref and ask IOP IsStillPlaying with callback OnBanksndStatus"
 0x1FC018,func_001FC018,SetBanksndCulled,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,vt15: on becoming audible restart (vt7); on silence request stop (loopers keep params)
-0x1FC090,func_001FC090,IncrefBanksnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,vt1: ++cref (u16 +0x4C)
-0x1FC0A0,func_001FC0A0,DecrefBanksnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,vt2: --cref==0 -> dtor 0x258348 + free to pool
-0x1FC0F0,func_001FC0F0,PvAllocBanksnd,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,Allocate from SNDMGR 0x70-byte pool (+0x1C)
-0x1FC110,func_001FC110,FreeBanksnd,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,Free to SNDMGR 0x70-byte pool
-0x1FC138,func_001FC138,PstreamsndNew,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"new STREAMSND(SNDSTREAM*, kind) (0x3C0 bytes) or NULL"
-0x1FC190,func_001FC190,STREAMSND_ctor,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"STREAMSND ctor: SND ctor, vt D_002D9BE0, stream record + kind, 6 group volumes=1; auto-pause if its channel volume is 0 or SNDMGR paused"
-0x1FC270,func_001FC270,StartStreamsnd,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,vt7: base Start then reset play time and status mask 0xF
-0x1FC2E0,func_001FC2E0,SetStreamsndGroupVolume,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"Set volume of sub-group k<6 (clamped), dirty 0x80"
+0x1FC090,func_001FC090,IncrefBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,vt1: ++cref (u16 +0x4C)
+0x1FC0A0,func_001FC0A0,DecrefBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,vt2: --cref==0 -> dtor 0x258348 + free to pool
+0x1FC0F0,func_001FC0F0,PvAllocBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Allocate from SNDMGR 0x70-byte pool (+0x1C)
+0x1FC110,func_001FC110,FreeBanksnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,Free to SNDMGR 0x70-byte pool
+0x1FC138,func_001FC138,PstreamsndNew,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"new STREAMSND(SNDSTREAM*, kind) (0x3C0 bytes) or NULL"
+0x1FC190,func_001FC190,STREAMSND_ctor,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"STREAMSND ctor: SND ctor, vt D_002D9BE0, stream record + kind, 6 group volumes=1; auto-pause if its channel volume is 0 or SNDMGR paused"
+0x1FC270,func_001FC270,StartStreamsnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,vt7: base Start then reset play time and status mask 0xF
+0x1FC2E0,func_001FC2E0,SetStreamsndGroupVolume,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Set volume of sub-group k<6 (clamped), dirty 0x80"
 0x1FC380,func_001FC380,SetStreamsndGroupPan,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,"Set pan of sub-group k<6, dirty 0x100"
 0x1FC408,func_001FC408,AddStreamsndGroupSource,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,"Append (object, volume, range) to sub-group k (max 8 per group); positional flag 0x200"
 0x1FC4F8,func_001FC4F8,GetStreamsndKind,lo,r7_1F8DD8+verdicts_tu_r7r8,verifier,T2,0.45,,not batched,vt8: 2 if looping flag 4 else 1
-0x1FC510,func_001FC510,PlayStreamsnd,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,"vt9: resolve stream file key, send start to SUKR IOP module with vol/pan"
+0x1FC510,func_001FC510,PlayStreamsnd,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"vt9: resolve stream file key, send start to SUKR IOP module with vol/pan"
 0x1FC698,func_001FC698,StopStreamsnd,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,vt10: RPC 'SUKR'(0x524B5553) cmd 2 for stream id
 0x1FC6D0,func_001FC6D0,PauseStreamsnd,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,vt11: SUKR cmd 3
 0x1FC708,func_001FC708,ContinueStreamsnd,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,vt12: SUKR cmd 4
-0x1FC740,func_001FC740,ApplyStreamsndParams,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"vt13: SUKR cmd 5 vol/pan/pitch, then per-group params"
+0x1FC740,func_001FC740,ApplyStreamsndParams,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"vt13: SUKR cmd 5 vol/pan/pitch, then per-group params"
 0x1FC878,func_001FC878,STREAMSND_QueryStatus,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,vt14: async SUKR cmd 7/8 status queries with callbacks 0x1FCC30/0x1FBB30; accumulate paused time
 0x1FC9A8,func_001FC9A8,SetStreamsndCulled,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,vt15: no-op (streams are not culled)
-0x1FC9B0,func_001FC9B0,UpdateStreamsndPositional,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,"vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan"
+0x1FC9B0,func_001FC9B0,UpdateStreamsndPositional,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan"
 0x1FCBA8,func_001FCBA8,OnStreamsndStarted,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,SUKR start callback: store stream handle or stop on failure; Decref
-0x1FCC30,func_001FCC30,OnStreamsndStatus,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,SUKR status callback (cmd 7)
-0x1FCC90,func_001FCC90,IncrefStreamsnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,vt1: ++cref (u16 +0x4C)
-0x1FCCA0,func_001FCCA0,DecrefStreamsnd,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,vt2: --cref==0 -> dtor + free to 0x3C0 pool
-0x1FCCF0,func_001FCCF0,PvAllocStreamsnd,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,Allocate from SNDMGR 0x3C0 pool (+0x34)
-0x1FCD10,func_001FCD10,FreeStreamsnd,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,Free to SNDMGR 0x3C0 pool
-0x1FCD38,func_001FCD38,SNDMGR_ctor,mid,r7_1F8DD8,static-only,T1,0.60,,not batched,"Sound-manager ctor (global g_sndmgr D_003DD040): pools 0x70x128 and 0x3C0x16, pending DL, music stack, volume curve fit"
-0x1FCEA0,func_001FCEA0,StartupSound,mid,r7_1F8DD8,static-only,T1,0.70,,not batched,"snd_StartSoundSystem, SUKR init (cmd 0), all channel/category volumes = 1, record start clock"
+0x1FCC30,func_001FCC30,OnStreamsndStatus,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,SUKR status callback (cmd 7)
+0x1FCC90,func_001FCC90,IncrefStreamsnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,vt1: ++cref (u16 +0x4C)
+0x1FCCA0,func_001FCCA0,DecrefStreamsnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,vt2: --cref==0 -> dtor + free to 0x3C0 pool
+0x1FCCF0,func_001FCCF0,PvAllocStreamsnd,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Allocate from SNDMGR 0x3C0 pool (+0x34)
+0x1FCD10,func_001FCD10,FreeStreamsnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Free to SNDMGR 0x3C0 pool
+0x1FCD38,func_001FCD38,SNDMGR_ctor,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"Sound-manager ctor (global g_sndmgr D_003DD040): pools 0x70x128 and 0x3C0x16, pending DL, music stack, volume curve fit"
+0x1FCEA0,func_001FCEA0,StartupSound,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"snd_StartSoundSystem, SUKR init (cmd 0), all channel/category volumes = 1, record start clock"
 0x1FCF70,func_001FCF70,OnSndmgrQueryB,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,"Async callback: store result (+b), clear busy"
 0x1FCF88,func_001FCF88,OnSndmgrQueryC,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,Async callback for SUKR cmd 0xC (0x1FDBA8)
 0x1FCFA0,func_001FCFA0,PsndstreamFindDialog,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Find SNDSTREAM by id in one stream list
 0x1FCFD0,func_001FCFD0,GDialogStreamParam,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,"Float field +0x50 of a stream record found by id, else 0"
 0x1FCFF8,func_001FCFF8,PsndstreamFindMusic,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Find SNDSTREAM by id (music list)
-0x1FD028,func_001FD028,PsndFromSfxid,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,sfxid -> SNDMGR sound entry via aisnd index table (NULL if unmapped)
-0x1FD070,func_001FD070,IsndFromPsnd,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,Index of a sound entry (ptr - base)/4
+0x1FD028,func_001FD028,PsndFromSfxid,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,sfxid -> SNDMGR sound entry via aisnd index table (NULL if unmapped)
+0x1FD070,func_001FD070,IsndFromPsnd,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Index of a sound entry (ptr - base)/4
 0x1FD080,func_001FD080,ChannelFromPsndstream,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,"1 if record is in list A, 0 if it is the ambience record, else 2: picks volume channel"
 0x1FD0C0,func_001FD0C0,OidDialogSmRole,lo,r7_1F8DD8+verdicts_tu_r7r8,verifier,T2,0.30,,not batched,Table D_002C3C40[n] for n<6 (else -1): SM oid for dialog speaker role n
-0x1FD0E8,func_001FD0E8,LoadSoundSectionFromBrx,hi,r7_1F8DD8+verdicts_tu_r7r8+format-doc:audio,verifier+format-doc,T1,0.90,,not batched,"Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose file records"
-0x1FD5E8,func_001FD5E8,PostSoundLoad,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"Load bank if needed, snd_ResolveBankXREFS, mark looping sounds (kind 2) via snd_IsSoundALooper"
-0x1FD700,func_001FD700,ResetSndmgr,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"Stop all sounds/streams (989 cmd 0x18, SUKR cmd 10), flush, clear state, free dirty list, reset volumes"
-0x1FD830,func_001FD830,UpdateSndmgr,mid,r7_1F8DD8,static-only,T1,0.75,,not batched,"Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 989 commands"
+0x1FD0E8,func_001FD0E8,LoadSoundSectionFromBrx,hi,r7_1F8DD8+verdicts_tu_r7r8+format-doc:audio,match(rename.py:batch_12_render_audio_ui_b)+verifier+format-doc,T1,0.90,,applied,"Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose file records"
+0x1FD5E8,func_001FD5E8,PostSoundLoad,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Load bank if needed, snd_ResolveBankXREFS, mark looping sounds (kind 2) via snd_IsSoundALooper"
+0x1FD700,func_001FD700,ResetSndmgr,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Stop all sounds/streams (989 cmd 0x18, SUKR cmd 10), flush, clear state, free dirty list, reset volumes"
+0x1FD830,func_001FD830,UpdateSndmgr,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 989 commands"
 0x1FDA48,func_001FDA48,UpdateSndmgrListener,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,"Poll SUKR cmd 0xB; when player (STEPPLAYER 0x34) exists and +0x70>0.5, track a listener object"
 0x1FDBA8,func_001FDBA8,PollSndmgrStatus,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,Issue SUKR cmd 0xC once (busy flag) with callback
 0x1FDC08,func_001FDC08,UpdateSndmgrMusicMix,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,Pick music layer (0 calm/1/2 action) from player state and smooth 3 group weights into the music STREAMSND
 0x1FDEC0,func_001FDEC0,UpdateSndmgrStub,lo,r7_1F8DD8,static-only,T2,0.20,,not batched,Empty per-frame hook (jr ra)
 0x1FDEC8,func_001FDEC8,UpdateDialog,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,Advance current dialog: by elapsed stream time fire lip-sync/anim events (0x1FE0E8); end -> StopDialog
 0x1FE0E8,func_001FE0E8,ApplyDialogEvent,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,"Event k: role 3 -> 0x1F80D0(gesture,g); else SetSmaGoal(role SM, state)"
-0x1FE150,func_001FE150,PushMusic,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"Start music id: stop current top, reuse or create STREAMSND kind 4 with player-object sources, push on 8-deep music stack"
+0x1FE150,func_001FE150,PushMusic,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Start music id: stop current top, reuse or create STREAMSND kind 4 with player-object sources, push on 8-deep music stack"
 0x1FE310,func_001FE310,StopMusic,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,"Stop music id if playing (0x1FE478 lookup), StopSnd"
-0x1FE3F8,func_001FE3F8,TMusicCur,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,Play time of top music stream in seconds (ticks/294912000)
+0x1FE3F8,func_001FE3F8,TMusicCur,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Play time of top music stream in seconds (ticks/294912000)
 0x1FE478,func_001FE478,FindMusic,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Ref to a music STREAMSND on the stack matching id
 0x1FE5B8,func_001FE5B8,SetSndmgrFlag,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Set/clear bits in SNDMGR flags
 0x1FE5E0,func_001FE5E0,FSndmgrMuted,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,+0x68 == 3
-0x1FE5F0,func_001FE5F0,StartDialog,mid,r7_1F8DD8,static-only,T1,0.55,,not batched,"Stop current dialog, create dialog STREAMSND kind 0, notify subtitles (0x227728), bind the speaker object SMs for 6 lip-sync roles"
-0x1FE738,func_001FE738,StopDialog,hi,r7_1F8DD8+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,"Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state"
+0x1FE5F0,func_001FE5F0,StartDialog,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Stop current dialog, create dialog STREAMSND kind 0, notify subtitles (0x227728), bind the speaker object SMs for 6 lip-sync roles"
+0x1FE738,func_001FE738,StopDialog,hi,r7_1F8DD8+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state"
 0x1FE848,func_001FE848,FDialogPlaying,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,True if dialog (optionally of given id) is playing
 0x1FE888,func_001FE888,TDialogCur,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Current dialog play time (or cached time while starting)
 0x1FE990,func_001FE990,IambFind,lo,r7_1F8DD8,static-only,T2,0.30,,not batched,Index of id in a small int table (-1)
-0x1FE9C8,func_001FE9C8,SetSndmgrPlaybackMode,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,snd_SetPlaybackMode(mode) if changed (mono/stereo option)
-0x1FE9F8,func_001FE9F8,SetSndmgrMasterVolume,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"Clamp and send master volume (snd_SetMasterVolume(0x10,..))"
-0x1FEA60,func_001FEA60,SetSndmgrChannelVolume,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,"Set weight[category<8][channel<4], recompute channel output and send snd_SetMasterVolume; update live streams"
-0x1FEDF0,func_001FEDF0,ResetSndmgrVolumes,mid,r7_1F8DD8,static-only,T1,0.50,,not batched,Master=1 and all weights=1 (except category 1)
+0x1FE9C8,func_001FE9C8,SetSndmgrPlaybackMode,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,snd_SetPlaybackMode(mode) if changed (mono/stereo option)
+0x1FE9F8,func_001FE9F8,SetSndmgrMasterVolume,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Clamp and send master volume (snd_SetMasterVolume(0x10,..))"
+0x1FEA60,func_001FEA60,SetSndmgrChannelVolume,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"Set weight[category<8][channel<4], recompute channel output and send snd_SetMasterVolume; update live streams"
+0x1FEDF0,func_001FEDF0,ResetSndmgrVolumes,mid,r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,Master=1 and all weights=1 (except category 1)
 0x1FEE90,func_001FEE90,IncrementSndmgrCount5C,lo,r7_1F8DD8,static-only,T2,0.25,,not batched,++SNDMGR+0x5C
 0x1FEEA0,func_001FEEA0,DecrementSndmgrCount5C,lo,r7_1F8DD8,static-only,T2,0.25,,not batched,--SNDMGR+0x5C
 0x1FEEB0,func_001FEEB0,IncrementSndmgrCount60,lo,r7_1F8DD8,static-only,T2,0.25,,not batched,++SNDMGR+0x60
 0x1FEEC0,func_001FEEC0,DecrementSndmgrCount60,lo,r7_1F8DD8,static-only,T2,0.25,,not batched,--SNDMGR+0x60
 0x1FEED0,func_001FEED0,PlayBanksndVariant,lo,r7_1F8DD8+verdicts_tu_r7r8,verifier,T2,0.25,,not batched,"Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice"
 0x1FF108,func_001FF108,SetAmbienceGroup,lo,r7_1F8DD8,static-only,T2,0.40,,not batched,Splice: set volume/pan of ambience sub-group selected by id
-0x1FF188,func_001FF188,StaticInit_sound,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU sound
+0x1FF188,func_001FF188,StaticInit_sound,hi,tu_map(structural)+r7_1F8DD8,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU sound
 0x1FF378,func_001FF378,_GLOBAL_$I$sound,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$sound': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x1FF398,func_001FF398,_GLOBAL_$D$sound,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$D$sound': not a valid C identifier,"compiler-generated global destructor stub (calls static init with (0,0xFFFF))"
 0x1FF3B8,func_001FF3B8,InitCid39,mid,r7_1F8DD8,static-only,T2,0.60,,not batched,CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70)
@@ -4782,7 +4782,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2014C8,func_002014C8,StaticInit_spliceobj,hi,tu_map(structural)+r7_1F8DD8,match(scratch_v3:batch_02_splice),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU spliceobj
 0x201600,func_00201600,_GLOBAL_$I$spliceobj,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$spliceobj': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x201998,func_00201998,SwapSprBuf,lo,r7_1F8DD8,static-only,T2,0.45,,not batched,"sceDmaSync on the transfer channel, flip double-buffer index D_002C3C5C, mark new buffer state 2"
-0x2019F0,func_002019F0,StaticInit_sprbuf,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU sprbuf
+0x2019F0,func_002019F0,StaticInit_sprbuf,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,"refused: cannot verify, baseline build failed: src/game/platform/memory/sprbuf/func_002019F0.cpp",compiler-generated __static_initialization_and_destruction_0 of TU sprbuf
 0x201D58,func_00201D58,_GLOBAL_$I$sprbuf,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$sprbuf': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x201D78,func_00201D78,InitReconSel,mid,r7c_hud,match(scratch_v3:batch_06_object_model_b),T1,0.55,,applied,"recon selector init: owner, origin = screen centre (320,246.4), state -1"
 0x201DC8,func_00201DC8,PostReconSelLoad,mid,r7c_hud,match(scratch_v3:batch_06_object_model_b),T1,0.55,,applied,find widgets 0x362/0x365 (JT only) and LO 0x602; collect all CID 0x2E targets (max 16)
@@ -5133,23 +5133,23 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x210CF0,func_00210CF0,StaticInit_sw,hi,tu_map(structural)+r7_1F8DD8,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU sw
 0x210E70,func_00210E70,_GLOBAL_$I$sw,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$sw': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x210E90,func_00210E90,_GLOBAL_$D$sw,hi,tu_map(structural)+r7_1F8DD8,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$D$sw': not a valid C identifier,"compiler-generated global destructor stub (calls static init with (0,0xFFFF))"
-0x210EB0,func_00210EB0,BuildContextText,mid,r7c_hud,static-only,T1,0.75,,not batched,"STRINGGEN getter: strcpy(pchz, context)"
+0x210EB0,func_00210EB0,BuildContextText,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"STRINGGEN getter: strcpy(pchz, context)"
 0x210ED0,func_00210ED0,junk_00210ED0,hi,r7c_hud,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00210ED0': is an address placeholder name,"not a function: addiu sp,0x10; nop"
-0x210ED8,func_00210ED8,BuildCoinCountText,hi,r7c_hud,static-only,T1,0.85,,not batched,"STRINGGEN id 0x2CF: sprintf(""%d"", saved var loot.ccoin) = HUD coin counter text"
-0x210F50,func_00210F50,BuildClueCountText,hi,r7c_hud+runtime-corrected,static-only,T1,0.80,,not batched,"STRINGGEN id 0x2D0: sprintf(""%d/%d"", SW+0x4764, SW+0x4768) = clue bottles collected/total"
-0x210F80,func_00210F80,BuildTimerText,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,"STRINGGEN id 0x2D1: countdown ""%d:%02d"" of max(0, SW+0x476C - g_clock.t)"
+0x210ED8,func_00210ED8,BuildCoinCountText,hi,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.85,,applied,"STRINGGEN id 0x2CF: sprintf(""%d"", saved var loot.ccoin) = HUD coin counter text"
+0x210F50,func_00210F50,BuildClueCountText,hi,r7c_hud+runtime-corrected,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.80,,applied,"STRINGGEN id 0x2D0: sprintf(""%d/%d"", SW+0x4764, SW+0x4768) = clue bottles collected/total"
+0x210F80,func_00210F80,BuildTimerText,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"STRINGGEN id 0x2D1: countdown ""%d:%02d"" of max(0, SW+0x476C - g_clock.t)"
 0x210FE0,func_00210FE0,BuildBinocReadoutText,lo,r7c_hud,static-only,T2,0.45,,not batched,"STRINGGEN id 0x2DC: per-character readout from STEPPLAYER F20/F3C: JT ""x%d"", BENTLEY ""x%5.3f"", MURRAY ""Far""/""Near""/""YIKES"""
-0x211148,func_00211148,BuildReconSelectionText,mid,r7c_hud,static-only,T1,0.50,,not batched,"STRINGGEN ids 0x2DD/0x2DE: text of recon selector selected id (ctx 0 -> 0x202730, P+0xBC) or pending caption (ctx 1 -> 0x2026F8, P+0xC0)"
-0x2111F0,func_002111F0,BuildReconTargetText,mid,r7c_hud,static-only,T1,0.50,,not batched,STRINGGEN ids 0x2DF-0x2E4: langstr of recon target i (P+0x78[i]->idName F8) if i < P+0x74
+0x211148,func_00211148,BuildReconSelectionText,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"STRINGGEN ids 0x2DD/0x2DE: text of recon selector selected id (ctx 0 -> 0x202730, P+0xBC) or pending caption (ctx 1 -> 0x2026F8, P+0xC0)"
+0x2111F0,func_002111F0,BuildReconTargetText,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,STRINGGEN ids 0x2DF-0x2E4: langstr of recon target i (P+0x78[i]->idName F8) if i < P+0x74
 0x211298,func_00211298,BuildMenuCarouselText,lo,r7c_hud,static-only,T2,0.35,,not batched,STRINGGEN ids 0x2D2-0x2DB: name of entry (k + sel - 3) mod n of the current menu page D_003D9EDC[D_003D9EF4]
-0x211348,func_00211348,BuildWidgetArgText,mid,r7c_hud,static-only,T1,0.70,,not batched,STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC)
+0x211348,func_00211348,BuildWidgetArgText,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC)
 0x211390,func_00211390,BuildSubtitleText,lo,r7c_hud,static-only,T2,0.45,,not batched,STRINGGEN id 0x2EF: subtitle/speaker text from global D_004435F0 via 0x2277D0
 0x2113B8,func_002113B8,BuildSubtitleFlagsText,lo,r7c_hud,static-only,T2,0.30,,not batched,"STRINGGEN id 0x2F0: 0x227940(&D_004435F0,pchz) (r8: one char per set flag bit)"
-0x2113E0,func_002113E0,BuildTickerText,mid,r7c_hud,static-only,T1,0.55,,not batched,STRINGGEN id 0x2F1: langstr(D_003DA0D8) = message of the scrolling ticker D_003DA0C0
+0x2113E0,func_002113E0,BuildTickerText,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,STRINGGEN id 0x2F1: langstr(D_003DA0D8) = message of the scrolling ticker D_003DA0C0
 0x211420,func_00211420,BuildOperatedObjectText,lo,r7c_hud,static-only,T2,0.30,,not batched,STRINGGEN id 0x2F4: name of the object the player operates in mode x4C8==0xC (cid 0x5E table D_002C3288 / cid 0x5C field / player x1318)
 0x211528,func_00211528,StartupScreen,lo,r7c_hud,static-only,T2,0.35,,not batched,startup-table entry: builds the static GIF register packets used by sprite/HUD rendering
-0x211A80,func_00211A80,BeginRpHud,hi,r7c_hud+rendering+verdicts_followups,verifier,T1,0.85,,not batched,Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state
-0x211C10,func_00211C10,EndRpHud,mid,r7c_hud+rendering,static-only,T1,0.55,,not batched,"Pass 5 end: MSCAL 0xC0, FLUSHA"
+0x211A80,func_00211A80,BeginRpHud,hi,r7c_hud+rendering+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state
+0x211C10,func_00211C10,EndRpHud,mid,r7c_hud+rendering,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"Pass 5 end: MSCAL 0xC0, FLUSHA"
 0x211C58,func_00211C58,WIDGET130_ctor,mid,r7c_hud,static-only,T2,0.70,,not batched,ctor of CID 0x82: WIDGET ctor then 4 ids and +0x120 = -1
 0x211CA8,func_00211CA8,ShowWidget127,mid,r7c_hud,static-only,T2,0.50,,not batched,"CID 0x7F slot49 override: if idle, ShowWidget + IncrementSwHandsOff + play anim 0x33A"
 0x211D08,func_00211D08,InitWidget127,mid,r7c_hud,static-only,T2,0.60,,not batched,"CID 0x7F Init (slot7): InitLo, +0xB0 = 1"
@@ -5159,84 +5159,84 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x211E98,func_00211E98,AddWidget129OidB,mid,r7c_hud,static-only,T2,0.50,,not batched,"CID 0x81: append oid to list B (+0x194, max 16)"
 0x211EC0,func_00211EC0,PostWidget129Load,mid,r7c_hud,static-only,T2,0.65,,not batched,CID 0x81 PostLoad: PostWidgetLoad then resolve both oid lists to LOs (PloFindSwObject grffso 5)
 0x211F90,func_00211F90,UpdateWidget129,mid,r7c_hud+runtime,runtime,T2,0.65,,not batched,"CID 0x81 Update: counts finished/active objects, writes counts into ""Widget Item 0/1/2"" (doneB,totalB,remainingB) for text ids 0x2FF..; shows while any active, "
-0x212158,func_00212158,WIDGET_ctor,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,"WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68)"
+0x212158,func_00212158,WIDGET_ctor,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68)"
 0x2121C8,func_002121C8,FWidgetIdle,lo,r7c_hud,static-only,T2,0.45,,not batched,state(+0x58)<2 && request(+0x64)<2
-0x2121E8,func_002121E8,FWidgetAnimPlaying,mid,r7c_hud,static-only,T1,0.60,,not batched,is anim id (0x314=main track) still running on its sprite
-0x212298,func_00212298,LoadWidgetFromBrx,hi,r7c_hud+parse-verified,parse-verified,T1,0.90,,not batched,"WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width, height, fFont; immediate or deferred sprite load"
-0x2123C8,func_002123C8,PostWidgetLoad,hi,r7c_hud,static-only,T1,0.85,,not batched,"WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag, busy 1, set LO flags 0x102"
-0x2124F0,func_002124F0,LoadWidgetSprites,mid,r7c_hud,static-only,T1,0.55,,not batched,deferred (streamed) sprite file load when a widget leaves state 0
-0x212780,func_00212780,UnloadWidgetSprites,mid,r7c_hud,static-only,T1,0.50,,not batched,state 0 entry: drop sprite tables and lists
+0x2121E8,func_002121E8,FWidgetAnimPlaying,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,is anim id (0x314=main track) still running on its sprite
+0x212298,func_00212298,LoadWidgetFromBrx,hi,r7c_hud+parse-verified,match(rename.py:batch_12_render_audio_ui_b)+parse-verified,T1,0.90,,applied,"WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width, height, fFont; immediate or deferred sprite load"
+0x2123C8,func_002123C8,PostWidgetLoad,hi,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.85,,applied,"WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag, busy 1, set LO flags 0x102"
+0x2124F0,func_002124F0,LoadWidgetSprites,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,deferred (streamed) sprite file load when a widget leaves state 0
+0x212780,func_00212780,UnloadWidgetSprites,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,state 0 entry: drop sprite tables and lists
 0x2127C8,func_002127C8,FWidgetLoadsIdle,lo,r7c_hud,static-only,T2,0.35,,not batched,true when no deferred widget load (list D_003E106C) is younger than 2 frames
-0x212828,func_00212828,ShowWidgetArgsFromSplice,mid,r7c_hud,static-only,T1,0.50,,not batched,copy Splice list into +0xCC ids (max 10) then ShowWidget(-1)
-0x212880,func_00212880,ShowWidgetArgs,mid,r7c_hud,static-only,T1,0.55,,not batched,copy n ids into +0xCC (max 10) then ShowWidget(-1)
-0x2128E8,func_002128E8,ShowWidget,mid,r7c_hud,static-only,T1,0.70,,not batched,WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present
-0x2129E8,func_002129E8,HideWidget,mid,r7c_hud,static-only,T1,0.70,,not batched,WIDGET slot50: request hide; if no disappear anim go straight to state 1
+0x212828,func_00212828,ShowWidgetArgsFromSplice,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,copy Splice list into +0xCC ids (max 10) then ShowWidget(-1)
+0x212880,func_00212880,ShowWidgetArgs,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,copy n ids into +0xCC (max 10) then ShowWidget(-1)
+0x2128E8,func_002128E8,ShowWidget,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present
+0x2129E8,func_002129E8,HideWidget,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,WIDGET slot50: request hide; if no disappear anim go straight to state 1
 0x212A30,func_00212A30,ResetWidgetVisibleTime,lo,r7c_hud,static-only,T2,0.40,,not batched,"if state==2, state time = g_clock.t (restarts the visible-duration timeout)"
 0x212A50,SetTimerTimers__FP5TIMER6TIMERS,SetWidgetRequest,mid,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.75,,not batched,
-0x212A70,func_00212A70,SetWidgetState,mid,r7c_hud,static-only,T1,0.75,,not batched,"state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause"
-0x212C50,func_00212C50,UpdateWidget,hi,r7c_hud+runtime,runtime,T1,0.90,,not batched,"WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite"
-0x212E40,func_00212E40,SetWidgetAnimPhase,mid,r7c_hud,static-only,T1,0.60,,not batched,seek anim id (0x314=main) to fraction g of its length (meters)
+0x212A70,func_00212A70,SetWidgetState,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause"
+0x212C50,func_00212C50,UpdateWidget,hi,r7c_hud+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.90,,applied,"WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite"
+0x212E40,func_00212E40,SetWidgetAnimPhase,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,seek anim id (0x314=main) to fraction g of its length (meters)
 0x212F78,func_00212F78,junk_00212F78,hi,r7c_hud,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00212F78': is an address placeholder name,padding
 0x212F80,func_00212F80,SetWidgetAnimTime,lo,r7c_hud,static-only,T2,0.45,,not batched,like SetWidgetAnimPhase but absolute time
 0x2130B8,func_002130B8,junk_002130B8,hi,r7c_hud,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_002130B8': is an address placeholder name,padding
-0x2130C0,func_002130C0,QueueWidgetRenderSetup,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,DMA packet with render init payloads (frame/mask GIF data) before widget sprites
-0x2132D0,func_002132D0,FWidgetVisible,mid,r7c_hud,static-only,T1,0.60,,not batched,main anim active and not obscured by a higher-priority exclusive widget
-0x213300,func_00213300,RenderWidget,hi,r7c_hud,static-only,T1,0.80,,not batched,WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets
-0x2137F0,func_002137F0,FWidgetObscured,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,some widget in exclusive list D_003E1060 has higher priority (+0x0? field a)
-0x213830,func_00213830,StartWidgetMainAnim,mid,r7c_hud,static-only,T1,0.50,,not batched,"start anim id on main sprite (+0x84), slot21(1), join exclusive list if flag, +0x7C = id"
-0x213898,func_00213898,StopWidgetMainAnim,mid,r7c_hud,static-only,T1,0.50,,not batched,"stop main sprite, leave exclusive list, slot21(0), slot3(6), +0x7C=-1"
-0x213928,func_00213928,StopWidgetAnim,mid,r7c_hud,static-only,T1,0.60,,not batched,reset the sprite holding anim id back to its rest anim
+0x2130C0,func_002130C0,QueueWidgetRenderSetup,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,DMA packet with render init payloads (frame/mask GIF data) before widget sprites
+0x2132D0,func_002132D0,FWidgetVisible,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,main anim active and not obscured by a higher-priority exclusive widget
+0x213300,func_00213300,RenderWidget,hi,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.80,,applied,WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets
+0x2137F0,func_002137F0,FWidgetObscured,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,some widget in exclusive list D_003E1060 has higher priority (+0x0? field a)
+0x213830,func_00213830,StartWidgetMainAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"start anim id on main sprite (+0x84), slot21(1), join exclusive list if flag, +0x7C = id"
+0x213898,func_00213898,StopWidgetMainAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"stop main sprite, leave exclusive list, slot21(0), slot3(6), +0x7C=-1"
+0x213928,func_00213928,StopWidgetAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,reset the sprite holding anim id back to its rest anim
 0x213A08,func_00213A08,PlayWidgetAnimsArg,lo,r7c_hud,static-only,T2,0.35,,not batched,start every sprite holding anim id with argument x
-0x213B00,func_00213B00,PlayWidgetAnim,mid,r7c_hud,static-only,T1,0.65,,not batched,find sprite owning anim id and start it (restart in place if instanced)
+0x213B00,func_00213B00,PlayWidgetAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.65,,applied,find sprite owning anim id and start it (restart in place if instanced)
 0x213BD8,func_00213BD8,PlayWidgetAnimArg,lo,r7c_hud,static-only,T2,0.40,,not batched,start first anim id match with argument x
-0x213C68,func_00213C68,SetWidgetXf,mid,r7c_hud,static-only,T1,0.55,,not batched,set widget 2D transform override (alloc 0x20 M23 at +0xF8)
-0x213CD8,func_00213CD8,SetWidgetAnimXf,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,set M23 transform of the sprite that holds anim id
-0x213DB0,func_00213DB0,SwitchWidgetAnim,mid,r7c_hud,static-only,T1,0.55,,not batched,"stop old *pid, play new id, store"
+0x213C68,func_00213C68,SetWidgetXf,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,set widget 2D transform override (alloc 0x20 M23 at +0xF8)
+0x213CD8,func_00213CD8,SetWidgetAnimXf,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,set M23 transform of the sprite that holds anim id
+0x213DB0,func_00213DB0,SwitchWidgetAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,"stop old *pid, play new id, store"
 0x213E20,func_00213E20,FFindSpriteItemPose,lo,r7c_hud,static-only,T2,0.40,,not batched,recursive search of nested sprite k: return its M23 and colours
 0x213F70,func_00213F70,RestartNestedSprite,lo,r7c_hud,static-only,T2,0.40,,not batched,recursively find nested-sprite item k and restart it at anim z
 0x214100,func_00214100,RestartNestedSpriteArg,lo,r7c_hud,static-only,T2,0.35,,not batched,as RestartNestedSprite with extra argument
-0x2142B0,func_002142B0,FSpriteHasAnim,mid,r7c_hud,static-only,T1,0.55,,not batched,id in sprite anim list
+0x2142B0,func_002142B0,FSpriteHasAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.55,,applied,id in sprite anim list
 0x214300,func_00214300,SetWidgetExclusive,lo,r7c_hud,static-only,T2,0.45,,not batched,flag +0xA8; value 0 = in exclusive list D_003E1060 (suppresses lower-priority widgets)
-0x214398,func_00214398,LoadSpriteTable,hi,r7c_hud+parse-verified,parse-verified,T1,0.75,,not batched,"read sprite count, alloc (n+1)*0x40, read each descriptor"
-0x214460,func_00214460,LoadSpriteGroups,hi,r7c_hud+parse-verified,parse-verified,T1,0.75,,not batched,"deserialize sprite groups, reusable frames and animation keys"
-0x2149D8,func_002149D8,LoadSpriteDescriptor,hi,r7c_hud+parse-verified,parse-verified,T1,0.75,,not batched,"read one sprite descriptor (kinds 1 geometry,2 polygon,3 shader,4 index,6/7 picture,8 nested) and build packets"
+0x214398,func_00214398,LoadSpriteTable,hi,r7c_hud+parse-verified,match(rename.py:batch_12_render_audio_ui_b)+parse-verified,T1,0.75,,applied,"read sprite count, alloc (n+1)*0x40, read each descriptor"
+0x214460,func_00214460,LoadSpriteGroups,hi,r7c_hud+parse-verified,match(rename.py:batch_12_render_audio_ui_b)+parse-verified,T1,0.75,,applied,"deserialize sprite groups, reusable frames and animation keys"
+0x2149D8,func_002149D8,LoadSpriteDescriptor,hi,r7c_hud+parse-verified,match(rename.py:batch_12_render_audio_ui_b)+parse-verified,T1,0.75,,applied,"read one sprite descriptor (kinds 1 geometry,2 polygon,3 shader,4 index,6/7 picture,8 nested) and build packets"
 0x2155C0,func_002155C0,BuildSpritePictureTexPacket,lo,r7c_hud,static-only,T2,0.35,,not batched,kind-7 picture callback: GIF TEX0/TEXA packet for the texture of q->x10
-0x2156B8,func_002156B8,InitSpriteItem,mid,r7c_hud,static-only,T1,0.50,,not batched,"item defaults: colours 0x7F7F7F7F/0xFFFFFFFF, identity M23, ids -1"
+0x2156B8,func_002156B8,InitSpriteItem,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"item defaults: colours 0x7F7F7F7F/0xFFFFFFFF, identity M23, ids -1"
 0x215730,func_00215730,SetSpriteItemSource,lo,r7c_hud,static-only,T2,0.35,,not batched,bind item to payload by kind (4 nested sprite: start anim 0x314)
 0x215850,func_00215850,UpdateSpriteItem,lo,r7c_hud,static-only,T2,0.40,,not batched,"forward frame update (time, M23, colours) to nested sprite"
 0x2158C0,func_002158C0,ReleaseSpriteItem,lo,r7c_hud,static-only,T2,0.40,,not batched,release item payload (stop nested slot / texture ref) and reinit
 0x215960,func_00215960,QueueSpriteItem,lo,r7c_hud,static-only,T2,0.40,,not batched,"draw item: nested sprite drawn recursively, other kinds prepended to draw list"
 0x2159E0,func_002159E0,RenderSpritePayload,lo,r7c_hud,static-only,T2,0.45,,not batched,"dispatch by kind: 3 text (0x216BC8), 1 geometry (0x2174C8), else picture (0x2177E0)"
 0x215A50,PglyffFromCh__8CFontBrxc,IglyffFromCh__8CFontBrxc,mid,arbitration (other name),arbitration,EXISTING-CHANGE,0.60,,not batched,
-0x215AC0,func_00215AC0,CRichText_ctor,mid,r7c_hud,static-only,T1,0.50,,not batched,rich-text ctor from string + font + scale (offsets 1792/1936)
+0x215AC0,func_00215AC0,CRichText_ctor,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,rich-text ctor from string + font + scale (offsets 1792/1936)
 0x215BA8,func_00215BA8,CRichText_ctor_215BA8,lo,r7c_hud,static-only,T2,0.45,,not batched,rich-text ctor from a sprite text element (width/height/colour)
 0x215CA8,func_00215CA8,CRichText2_Reset,mid,r7c_hud+top50_round,static-only,T2,0.50,,not batched,"Reset the HUD rich-text cursor: optional new text, pchCur=achz, font cur=base, colour cur=base, colour word 0x80000000|alpha, UpdateColor"
 0x215D00,func_00215D00,CRichText2_SetBaseColor,mid,r7c_hud+verdicts_followups+top50_round(CRichText2 class split),verifier,T2,0.85,,not batched,set base and current colour
 0x215D40,func_00215D40,CRichText2_ChNext,mid,r7c_hud+top50_round(CRichText2 class split),static-only,T2,0.70,,not batched,"next printable char, processing &-escape codes"
-0x215E30,func_00215E30,CRichText_Cch,mid,r7c_hud,static-only,T1,0.75,,not batched,count characters
-0x215E80,func_00215E80,CRichText_Trim,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,truncate after n chars
-0x215ED8,func_00215ED8,CRichText_Dx,mid,r7c_hud,static-only,T1,0.70,,not batched,sum of glyph widths * scale
+0x215E30,func_00215E30,CRichText_Cch,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,count characters
+0x215E80,func_00215E80,CRichText_Trim,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,truncate after n chars
+0x215ED8,func_00215ED8,CRichText_Dx,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,sum of glyph widths * scale
 0x215F40,func_00215F40,CRichText2_ClineWrap,mid,r7c_hud+top50_round(CRichText2 class split),static-only,T2,0.55,,not batched,"count lines, inserting newlines when width exceeded"
 0x2160D8,func_002160D8,CRichText_UpdateColor,lo,r7c_hud,static-only,T2,0.35,,not batched,convert current RGBA to clamped float colours
 0x2161C8,func_002161C8,CRichText2_DxMaxLine,mid,r7c_hud+top50_round(CRichText2 class split),static-only,T2,0.70,,not batched,widest line
-0x216260,func_00216260,CRichText_GetExtents,mid,r7c_hud,static-only,T1,0.70,,not batched,"dx = DxMaxLine, dy = lines*lineheight"
+0x216260,func_00216260,CRichText_GetExtents,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.70,,applied,"dx = DxMaxLine, dy = lines*lineheight"
 0x2162D8,func_002162D8,BuildRichTextMatrix,lo,r7c_hud,static-only,T2,0.40,,not batched,"glyph matrix from 2x3 transform (0.8 / 0.4545 pixel scales, GS offset 786432)"
 0x2163B0,func_002163B0,CRichText2_Draw,mid,r7c_hud+top50_round(CRichText2 class split),static-only,T2,0.50,,not batched,configure box/alignment/colour and queue rich text
 0x2166B0,func_002166B0,CRichText_DrawXf,lo,r7c_hud,static-only,T2,0.40,,not batched,"draw at a sprite transform (font scale, line height)"
 0x216750,func_00216750,CRichText_DrawGlyphs,lo,r7c_hud,static-only,T2,0.45,,not batched,"align, clip and queue glyphs with colours"
-0x216B40,func_00216B40,PglyffFromCh__8CFontBrxc,hi,r7c_hud+arbitration,arbitration,T1,0.60,,not batched,GLYFF* = &glyphs[i] for i = 0x215A50(ch)
+0x216B40,func_00216B40,PglyffFromCh__8CFontBrxc,hi,r7c_hud+arbitration,arbitration,T1,0.60,,refused: PglyffFromCh__8CFontBrxc already names 0x215A50 in config,GLYFF* = &glyphs[i] for i = 0x215A50(ch)
 0x216B80,func_00216B80,CFontBrx_DxFromCh_216B80,lo,r7c_hud,static-only,T3,0.65,,not batched,width of glyph for ch (widths[i-1])
-0x216BC8,func_00216BC8,RenderSpriteText,mid,r7c_hud,static-only,T1,0.60,,not batched,"sprite text: STRINGGEN text (kind 1, 108-entry table D_003E1C88) or langstr (kind 0); subtitle (0x2EF) and ticker (0x2F1) special cases"
+0x216BC8,func_00216BC8,RenderSpriteText,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.60,,applied,"sprite text: STRINGGEN text (kind 1, 108-entry table D_003E1C88) or langstr (kind 0); subtitle (0x2EF) and ticker (0x2F1) special cases"
 0x217058,func_00217058,BuildGlyphPacket,lo,r7c_hud,static-only,T2,0.35,,not batched,matrix/parameter DMA packet ending in a call tag
 0x217298,func_00217298,QueueSpriteVuProgram,lo,r7c_hud,static-only,T2,0.40,,not batched,queue VU microprogram pair for render mode
-0x2174C8,func_002174C8,RenderSpriteGeometry,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,transformed sprite parameters with optional fade
+0x2174C8,func_002174C8,RenderSpriteGeometry,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,transformed sprite parameters with optional fade
 0x2177E0,func_002177E0,RenderSpritePicture,lo,r7c_hud,static-only,T2,0.40,,not batched,transformed sprite parameters + direct GIF payload
 0x217B98,func_00217B98,junk_00217B98,hi,r7c_hud,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00217B98': is an address placeholder name,padding
 0x217BA0,func_00217BA0,StartSpriteAnimById,lo,r7c_hud,static-only,T2,0.45,,not batched,find anim index by id (0x314 -> 0) and start
 0x217C20,func_00217C20,StartSpriteAnim,lo,r7c_hud,static-only,T2,0.45,,not batched,"stop if instanced, start anim i at t=0 with default colours"
 0x217CA8,func_00217CA8,StartSpriteAnimSlot,lo,r7c_hud,static-only,T2,0.35,,not batched,start anim k in a reuse slot
 0x217D98,func_00217D98,StartSpriteAnimAt,lo,r7c_hud,static-only,T2,0.40,,not batched,select initial frame/time then draw
-0x217EF8,func_00217EF8,IFreeSpriteSlot,mid,r7c_hud,static-only,T1,0.50,,not batched,first reuse slot with h<0
+0x217EF8,func_00217EF8,IFreeSpriteSlot,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,first reuse slot with h<0
 0x217F38,func_00217F38,ResetSpriteSlotItems,lo,r7c_hud,static-only,T2,0.45,,not batched,reinit / release every item of slot i
 0x217FB8,func_00217FB8,SetSpriteDefaultPhase,lo,r7c_hud,static-only,T2,0.40,,not batched,phase seek of default anim
 0x217FE0,func_00217FE0,SetSpriteAnimPhase,lo,r7c_hud,static-only,T2,0.45,,not batched,"clamp g to [0,1], seek anim to g*duration"
@@ -5248,18 +5248,18 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2185F8,func_002185F8,DrawSpriteSlot,lo,r7c_hud,static-only,T2,0.35,,not batched,draw items of a slot
 0x218638,func_00218638,StopSprite,lo,r7c_hud,static-only,T2,0.40,,not batched,stop slot 0
 0x218660,func_00218660,StopSpriteSlot,lo,r7c_hud,static-only,T2,0.45,,not batched,stop slot sounds (StopSnd) and reset its items
-0x218710,func_00218710,FSpriteAnimActive,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,h!=0 && !done
+0x218710,func_00218710,FSpriteAnimActive,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,h!=0 && !done
 0x218738,func_00218738,GetSpriteMainState,lo,r7c_hud,static-only,T2,0.25,,not batched,returns pt(+8)->x10
 0x218748,func_00218748,FinishSpriteSoundEvent,lo,r7c_hud,static-only,T2,0.30,,not batched,mark entry done and stop/pause its sound
-0x218790,func_00218790,CombineSpriteColors,mid,r7c_hud,static-only,T1,0.50,,not batched,combine parent/child additive and multiplicative RGBA
+0x218790,func_00218790,CombineSpriteColors,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,combine parent/child additive and multiplicative RGBA
 0x2188B0,func_002188B0,InterpolateSpriteSlot,lo,r7c_hud,static-only,T2,0.40,,not batched,update reusable sprite entries at cached time
 0x2190F8,func_002190F8,FinishSpriteSoundEvents,lo,r7c_hud,static-only,T2,0.30,,not batched,for action bytes ==7 call 0x218748
-0x219190,func_00219190,HandleSpriteKeyEvents,mid,r7c_hud,static-only,T1,0.50,,not batched,"sprite key actions: start/stop sound, StartDialog/StopDialog"
-0x219348,func_00219348,ResetSpriteKeyItems,hi,r7c_hud+verdicts_followups,verifier,T1,0.85,,not batched,reset items referenced by a key
-0x219400,func_00219400,ApplySpriteKeyPoses,mid,r7c_hud,static-only,T1,0.50,,not batched,apply one animation key poses to items
-0x219FE0,func_00219FE0,AdvanceSpriteAnim,mid,r7c_hud,static-only,T1,0.50,,not batched,advance sprite animation to slot time and redraw changed items
+0x219190,func_00219190,HandleSpriteKeyEvents,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,"sprite key actions: start/stop sound, StartDialog/StopDialog"
+0x219348,func_00219348,ResetSpriteKeyItems,hi,r7c_hud+verdicts_followups,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,reset items referenced by a key
+0x219400,func_00219400,ApplySpriteKeyPoses,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,apply one animation key poses to items
+0x219FE0,func_00219FE0,AdvanceSpriteAnim,mid,r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,advance sprite animation to slot time and redraw changed items
 0x21A998,func_0021A998,DrawSpriteItems,lo,r7c_hud,static-only,T2,0.40,,not batched,queue items in reverse order
-0x21AA60,func_0021AA60,StaticInit_hud,hi,tu_map(structural)+r7c_hud,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU hud
+0x21AA60,func_0021AA60,StaticInit_hud,hi,tu_map(structural)+r7c_hud,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU hud
 0x21BB68,func_0021BB68,_GLOBAL_$I$hud,hi,tu_map(structural)+r7c_hud,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$hud': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x21BB88,func_0021BB88,InitTrail,mid,r8_21BB88,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.60,,applied,"Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0"
 0x21BBD0,func_0021BBD0,Cid105_slot11,lo,r8_21BB88,static-only,T2,0.45,,not batched,"calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08)"
@@ -5288,15 +5288,15 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x21D498,func_0021D498,CloneCid21,mid,r8_21BB88+verdicts_tu_r7r8,verifier,T2,0.85,,not batched,same as CloneTarget for cid 0x15 (preserve DLE at 0xE0)
 0x21D4E0,func_0021D4E0,StaticInit_target,hi,tu_map(structural)+r8_21BB88,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU target
 0x21D618,func_0021D618,_GLOBAL_$I$target,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$target': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x21E0D8,func_0021E0D8,ChDigitFromG__Fdii,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.85,,not batched,digit character of g at decimal position a (precision b)
-0x21EDF8,func_0021EDF8,strchr,hi,r8_21BB88+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,libc-style strchr game copy
+0x21E0D8,func_0021E0D8,ChDigitFromG__Fdii,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,digit character of g at decimal position a (precision b)
+0x21EDF8,func_0021EDF8,strchr,hi,r8_21BB88+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,libc-style strchr game copy
 0x21EE28,junk_001E2210,junk_0021EE28,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,padding
-0x21EE78,func_0021EE78,StaticInit_text,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU text
+0x21EE78,func_0021EE78,StaticInit_text,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU text
 0x21EFB0,func_0021EFB0,_GLOBAL_$I$text,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$text': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x21F0C0,func_0021F0C0,LeaveCritSect__FP8CRITSECT,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,decrement enter count; at 0 clear owner and SignalSema
+0x21F0C0,func_0021F0C0,LeaveCritSect__FP8CRITSECT,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.90,,applied,decrement enter count; at 0 clear owner and SignalSema
 0x21F0F8,func_0021F0F8,junk_0021F0F8,hi,r8_21BB88,static-only,T1,0.60,,excluded: rename.py refuses plain name 'junk_0021F0F8': is an address placeholder name,"8 bytes, unreferenced, addiu-sp pattern = alignment junk"
-0x21F100,func_0021F100,StartupThread__Fv,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,"creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5"
-0x21F188,func_0021F188,StaticInit_thread,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU thread
+0x21F100,func_0021F100,StartupThread__Fv,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.90,,applied,"creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5"
+0x21F188,func_0021F188,StaticInit_thread,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU thread
 0x21F2C0,func_0021F2C0,_GLOBAL_$I$thread,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$thread': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x21F2E0,func_0021F2E0,InitThrow,hi,r8_21BB88+verdicts_tu_r7r8,match(scratch_v3:batch_07_player)+verifier,T1,0.60,,applied,"JTTHROW defaults: owner=a, state -1, 500/1500 ranges, 1.5, 1000, launch vectors (0,0,25),(1000,0,0),(42,-73,-50)"
 0x21F388,func_0021F388,PostJtthrowLoad,mid,r8_21BB88,match(scratch_v3:batch_07_player),T1,0.50,,applied,"EnsureAsegBlendDynamic x3: 2-clip, 4-clip and 2-clip aim blends (ablB/ablC)"
@@ -5382,7 +5382,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x226AB8,func_00226AB8,StaticInit_empty_226AB8,hi,tu_map(structural)+r8_21BB88,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU empty_226AB8
 0x226BF0,func_00226BF0,_GLOBAL_$I$empty_226AB8,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$empty_226AB8': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x226E08,func_00226E08,junk_00226E08,hi,r8_21BB88,static-only,T1,0.60,,excluded: rename.py refuses plain name 'junk_00226E08': is an address placeholder name,padding between VIFS methods
-0x2271F8,func_002271F8,StaticInit_vifs,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU vifs
+0x2271F8,func_002271F8,StaticInit_vifs,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU vifs
 0x227330,func_00227330,_GLOBAL_$I$vifs,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$vifs': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x227350,func_00227350,InitCid5,mid,r8_21BB88+verdicts_tu_r7r8,verifier,T2,0.60,,not batched,InitXfm; state 0x110 = -1
 0x227380,func_00227380,LoadCid5ZoneFromBrx,mid,r8_21BB88+parse-verified,parse-verified,T2,0.75,,not batched,"XFM XF read 0x231768, U32, ReadGeom, ReadBspc, LoadOptionsFromBrx"
@@ -5447,19 +5447,19 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x22AEE8,func_0022AEE8,StaticInit_waypoint,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_10_world_objects_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU waypoint
 0x22B020,func_0022B020,_GLOBAL_$I$waypoint,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$waypoint': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x22B040,func_0022B040,junk_0022B040,hi,r8_21BB88,static-only,T1,0.60,,excluded: rename.py refuses plain name 'junk_0022B040': is an address placeholder name,12 bytes addiu-sp junk
-0x22B050,func_0022B050,InitWipe,hi,r8_21BB88+verdicts_tu_r7r8,verifier,T1,0.85,,not batched,"wipes fields, state -1, SetWipeWipes(0)"
-0x22B090,func_0022B090,SetWipeWipes,mid,r8_21BB88,static-only,T1,0.50,,not batched,state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint)
-0x22B198,func_0022B198,UpdateWipe,hi,r8_21BB88+runtime,runtime,T1,0.55,,not batched,"advances wipe state machine (1->3, 2->0 when sprite done)"
+0x22B050,func_0022B050,InitWipe,hi,r8_21BB88+verdicts_tu_r7r8,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,"wipes fields, state -1, SetWipeWipes(0)"
+0x22B090,func_0022B090,SetWipeWipes,mid,r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.50,,applied,state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint)
+0x22B198,func_0022B198,UpdateWipe,hi,r8_21BB88+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.55,,applied,"advances wipe state machine (1->3, 2->0 when sprite done)"
 0x22B220,func_0022B220,ActivateWipe,lo,r8_21BB88,static-only,T2,0.40,,not batched,"starts a transition to a level/warp, comparing checkpoints"
-0x22B490,func_0022B490,WipeToWorldWarp,hi,r8_21BB88+top50_round+runtime,runtime,T1,0.80,,not batched,"Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark ""same level"" (flags|=2); if wipek != -1 ActivateWipe(g"
-0x22B5C0,func_0022B5C0,StaticInit_wipe,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU wipe
+0x22B490,func_0022B490,WipeToWorldWarp,hi,r8_21BB88+top50_round+runtime,match(rename.py:batch_12_render_audio_ui_b)+runtime,T1,0.80,,applied,"Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark ""same level"" (flags|=2); if wipek != -1 ActivateWipe(g"
+0x22B5C0,func_0022B5C0,StaticInit_wipe,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU wipe
 0x22B700,func_0022B700,_GLOBAL_$I$wipe,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$wipe': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x22B720,func_0022B720,InitWr,mid,r8_21BB88,static-only,T1,0.75,,not batched,"InitLo; -1 fields, g=-1.0, busyk, grf"
+0x22B720,func_0022B720,InitWr,mid,r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.75,,applied,"InitLo; -1 fields, g=-1.0, busyk, grf"
 0x22B7A0,func_0022B7A0,AddWrEntry,lo,r8_21BB88,static-only,T2,0.30,,not batched,append arg1 to DL at wr+0x8F0 and set arg1->wr
-0x22B7D8,func_0022B7D8,UpdateWrStateVectors__FP2WR,hi,r8_21BB88+verdicts_A2+names_v2-signature(verified),verifier+names_v2-verified,T1,0.75,,not batched,per WRBG vertex weights + state vectors
+0x22B7D8,func_0022B7D8,UpdateWrStateVectors__FP2WR,hi,r8_21BB88+verdicts_A2+names_v2-signature(verified),match(rename.py:batch_12_render_audio_ui_b)+verifier+names_v2-verified,T1,0.75,,applied,per WRBG vertex weights + state vectors
 0x22BE00,func_0022BE00,junk_0022BE00,hi,r8_21BB88,static-only,T1,0.60,,excluded: rename.py refuses plain name 'junk_0022BE00': is an address placeholder name,4 bytes
-0x22C570,func_0022C570,GetWrWavelength,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.85,,not batched,1/circle frequency (0 if 0)
-0x22C6C0,func_0022C6C0,StaticInit_wr,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,not batched,compiler-generated __static_initialization_and_destruction_0 of TU wr
+0x22C570,func_0022C570,GetWrWavelength,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_12_render_audio_ui_b)+verifier,T1,0.85,,applied,1/circle frequency (0 if 0)
+0x22C6C0,func_0022C6C0,StaticInit_wr,hi,tu_map(structural)+r8_21BB88,match(rename.py:batch_12_render_audio_ui_b)+static-only,T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU wr
 0x22C7F8,func_0022C7F8,_GLOBAL_$I$wr,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$wr': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
 0x22C818,func_0022C818,InitXfValueRef,lo,r8_21BB88,static-only,T2,0.25,,not batched,"b=1.0, a=0, pa=&a, pb=&b"
 0x22C840,func_0022C840,WakeXfSlot,lo,r8_21BB88,static-only,T2,0.30,,not batched,for active roles marks the owning SO awake

@@ -8,8 +8,8 @@ void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 void func_001D8D80(struct B *b, int n);
 void func_00165E38(struct B *b);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, int n);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x1AD250
  * Purpose: Menu action slot i: if slot empty (Splice eval) make it current and start (0x1D8D80, 0x165E38)
  *   else error sound 0x36
@@ -30,7 +30,7 @@ void func_001AD250(struct S *s)
         func_001D8D80(p, 1);
         func_00165E38(D_002E65E0.xFD50);
     } else {
-        func_001FB2F8(func_001FBB90(0x36), 0);
+        SetSndSourceLo(PsndStartSound(0x36), 0);
         if (s)
             s->x1C |= 2;
     }

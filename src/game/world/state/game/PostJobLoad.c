@@ -18,7 +18,7 @@ void ApplyStateLoVisibility(struct S *p, int n, int c, int a);
 void TriggerStateRsmgs(struct S *p, int n, int c, int a, int b);
 void func_002581C0(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
-void *func_001D7E80(void *p, void *q, void *r);
+void *PvFromSaveVar(void *p, void *q, void *r);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 /** @sly2-annot addr=0x162780
  * Purpose: JOB PostLoad: if not current and live apply 'inactive' (state 5) visibility/RSMGs; restore start
@@ -54,7 +54,7 @@ void PostJobLoad(struct S *p)
         func_00129EC8(&ref);
         p->fa4 = g;
     }
-    p->fa8 = func_001D7E80(D_003DD490.m3a18, &p->fe8, D_003D4A60);
+    p->fa8 = PvFromSaveVar(D_003DD490.m3a18, &p->fe8, D_003D4A60);
     if (p->fac != -1)
         p->fb8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, p->fac, 0);
     p->fbc = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);

@@ -7,7 +7,7 @@ extern void *D_002BE2F8[];
 extern char D_002A5160[];
 void func_002581C0(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
-int func_001DAEA8(void *p);
+int FPowerupAcquired(void *p);
 void func_0021ECD8(char *pch, char *fmt, ...);
 /** @sly2-annot addr=0x15D8F8
  * Purpose: Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is
@@ -29,7 +29,7 @@ void FormatEpisodePercent(char *pch)
         n = ref.m_tag;
         func_00129EC8(&ref);
         n = n * 95 / 100;
-        if (func_001DAEA8(D_002BE2F8[pg->px->i]))
+        if (FPowerupAcquired(D_002BE2F8[pg->px->i]))
             n += 5;
         func_0021ECD8(pch, D_002A5160, n);
     }

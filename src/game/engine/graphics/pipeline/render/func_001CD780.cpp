@@ -18,8 +18,8 @@ extern LM D_002C1F28;
 extern int D_002C1F30,D_002C1F34;
 extern "C" qword ConvertCmWorldToScreen(CM *,qword);
 extern "C" float func_0011D948(LM *,float);
-extern "C" RT *func_00215AC0(RT *,const char *,float);
-extern "C" void func_00216260(RT *,float *,float *);
+extern "C" RT *CRichText_ctor(RT *,const char *,float);
+extern "C" void CRichText_GetExtents(RT *,float *,float *);
 extern "C" void func_002163B0(RT *,CONFIG *,int);
 static inline float SavedHeight(float value){register float height __asm__("$f20");__asm__("mov.s %0,%1":"=f"(height):"f"(value));return height;}
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
@@ -39,10 +39,10 @@ extern "C" void func_001CD780(qword position,const char *text,const RGBA *unused
     float depth=Z(screen);
     if(depth<camera->nearDepth)return;
     float scale=func_0011D948(&D_002C1F28,height*(D_002C1F20/(camera->sx*depth)));
-    RT rt;func_00215AC0(&rt,text,scale);
+    RT rt;CRichText_ctor(&rt,text,scale);
     CONFIG config;
     float w,h;
-    func_00216260(&rt,&w,&h);
+    CRichText_GetExtents(&rt,&w,&h);
     float x=(X(screen)*0.5f+0.5f)*640.0f;
     float y=(0.5f-Y(screen)*0.5f)*492.8000183f;
     int marginX=D_002C1F30,marginY=D_002C1F34;

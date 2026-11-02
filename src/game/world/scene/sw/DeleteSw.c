@@ -8,7 +8,7 @@ void func_001D9408(void *p);
 void func_001FF830(struct S *p);
 void func_00161458(void *p);
 void func_0014D650(void *p);
-void func_001FD700(void *p);
+void ResetSndmgr(void *p);
 void func_001EC7E8(void);
 void func_001D53C0(void *p, int n);
 void func_001AE300(void);
@@ -34,7 +34,7 @@ void DeleteSw(struct S *p)
     func_001FF830(p);
     func_00161458(pv);
     func_0014D650(D_002DDF40);
-    func_001FD700(D_003DD040);
+    ResetSndmgr(D_003DD040);
     func_001EC7E8();
     func_001D53C0(D_002E0CCC, 3);
     D_002E1E40 = 0;

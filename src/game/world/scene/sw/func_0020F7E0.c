@@ -5,10 +5,10 @@ struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float t
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
-int func_002132D0(struct O *po);
+int FWidgetVisible(struct O *po);
 float func_0011D1C0(float a, float b, float c, void *p, float *pv, float dt);
-void *func_001FBB90(int n);
-void func_001FB2F8(void *p, void *source);
+void *PsndStartSound(int n);
+void SetSndSourceLo(void *p, void *source);
 
 /** @sly2-annot addr=0x20F7E0
  * Purpose: Per-frame: smooth the 4 HUD elements; while a countdown (SW+0x476C - t) runs play tick/tock sfx
@@ -28,7 +28,7 @@ void func_0020F7E0(struct S *p)
     for (i = 0; i < 4; i++) {
         struct E *e = &p->ae[i];
         struct O *o = e->po;
-        if (!o || !func_002132D0(o)) {
+        if (!o || !FWidgetVisible(o)) {
             e->f = 1;
             continue;
         }
@@ -46,7 +46,7 @@ void func_0020F7E0(struct S *p)
             d = (0.0f > d) ? 0.0f : d;
             n = (int)d;
             if (n != p->n4770) {
-                func_001FB2F8(func_001FBB90((n & 1) ? 0x30 : 0x31), 0);
+                SetSndSourceLo(PsndStartSound((n & 1) ? 0x30 : 0x31), 0);
                 p->n4770 = n;
             }
         }

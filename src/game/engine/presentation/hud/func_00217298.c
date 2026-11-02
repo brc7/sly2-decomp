@@ -6,7 +6,7 @@ struct S {char pad[0xA4];int priority;};
 struct E {int kind;float priority;uint address;int pad;};
 extern struct R D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
-struct E *func_001CD998(void);
+struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Mscal(struct R *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -36,6 +36,6 @@ void func_00217298(struct S *p,int mode,float priority){
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;
     D_002DEA28.cur+=16;
-    e=func_001CD998();
+    e=PrplAllocRpl();
     e->kind=0x15;e->priority=priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->pad=0;
 }

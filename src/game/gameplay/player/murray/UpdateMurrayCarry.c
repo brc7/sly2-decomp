@@ -15,7 +15,7 @@ void SetMurrayState(struct P *p, int n);
 int GrfPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
 int GrfConsumePressed__5POCTLUif(struct PL *pl, int k, float g);
 void ClearPoctlJoyPressed(struct PL *pl, int k);
-int func_001DAEA8(int n);
+int FPowerupAcquired(int n);
 void func_00195A00(void *p, int a, int b, int c);
 void func_0019CC50(void *p, int a, int b, int c);
 void SetMurrayCarrySubstate(struct P *p, int n);
@@ -56,7 +56,7 @@ void UpdateMurrayCarry(struct P *p)
                 DetachMurrayCarried(p);
                 p->p13F0 = 0;
                 SetMurrayState(p, 0);
-            } else if (GrfPressedWithin__5POCTLUif(p->pl, 0x40, 0.1f) && func_001DAEA8(0x12)) {
+            } else if (GrfPressedWithin__5POCTLUif(p->pl, 0x40, 0.1f) && FPowerupAcquired(0x12)) {
                 ClearPoctlJoyPressed(p->pl, 0x40);
                 func_00195A00(p->x2C0, 0xF, 0, 0);
             } else if (GrfConsumePressed__5POCTLUif(p->pl, 0xA0, 0.0f)) {
@@ -72,7 +72,7 @@ void UpdateMurrayCarry(struct P *p)
                 struct PL*pl=CopyPL(source);
                 float g=source->g1C;
                 if (p->x1458 == 0 ? 0.1f < g : 0.0f < g) {
-                    if ((pl->x30 & 8) && func_001DAEA8(0x12))
+                    if ((pl->x30 & 8) && FPowerupAcquired(0x12))
                         SetMurrayCarrySubstate(p, 2);
                     else
                         SetMurrayCarrySubstate(p, 1);

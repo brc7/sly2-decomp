@@ -8,7 +8,7 @@ struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]
 struct S { char pad[0x84]; A *aa; };
 extern "C" void func_00218660(A *pa, int i);
 extern "C" void ClearSle(int *p);
-extern "C" int func_00217EF8(A *pa);
+extern "C" int IFreeSpriteSlot(A *pa);
 extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 /** @sly2-annot addr=0x214100
  * Purpose: as RestartNestedSprite with extra argument
@@ -37,7 +37,7 @@ extern "C" int func_00214100(S *p, int k, int z, int x, int c, Y *ay)
             if(x != y->x64) continue;
             func_00218660(&p->aa[k], oldframe);
             ClearSle(&y->x68);
-            y->x58 = func_00217EF8(&p->aa[k]);
+            y->x58 = IFreeSpriteSlot(&p->aa[k]);
             func_00217D98(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }

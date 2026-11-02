@@ -8,7 +8,7 @@ struct Ref {
     ~Ref() { if (px) px->pvt->a[2].pfn((char *)px + px->pvt->a[2].d); }
 };
 extern "C" void func_001FE478(Ref *, P *, int);
-extern "C" void func_001FB098(X *, float);
+extern "C" void StopSnd(X *, float);
 extern "C" void func_00259B48(Ref *, void *);
 /** @sly2-annot addr=0x1FE310
  * Purpose: Stop music id if playing (0x1FE478 lookup), StopSnd
@@ -24,7 +24,7 @@ extern "C" void func_001FE310(P *p, int n)
         int f = 0;
         if (!r.px->n40) { f = r.px->c52 || (r.px->fl & 1); f ^= 1; }
         if (!f) {
-            func_001FB098(r.px, 0.0f);
+            StopSnd(r.px, 0.0f);
             func_00259B48(&r, p->s.c > 0 ? *(p->s.a + p->s.c - 1) : 0);
             if (r.px) r.px->pvt->a[7].pfn((char *)r.px + r.px->pvt->a[7].d);
         }

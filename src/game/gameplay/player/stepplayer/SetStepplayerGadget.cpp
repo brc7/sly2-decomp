@@ -16,7 +16,7 @@ extern char D_002A4D58[];
 void SetGadgetSlotState(P *p, E *pe, int n);
 int func_0021ECD8(char *pch, const char *fmt, ...);
 }
-CRef func_001D8B20(const CRef &ref, void *o, const char *fmt, ...);
+CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...);
 /** @sly2-annot addr=0x141FC8
  * Purpose: Assign gadget id to slot i (<3): stop old, clear duplicates in other slots, write all to save var
  *   apukCur[%d], then vt105
@@ -43,7 +43,7 @@ extern "C" void SetStepplayerGadget(P *p, unsigned int i, int id)
             }
             func_0021ECD8(ach, D_002A4D50, j);
             VTE *e = &p->vt[103];
-            func_001D8B20(CRef(0x15, p->ae[j].id), e->pfn((char *)p + e->d), D_002A4D58, ach, 0);
+            RefSetSaveVarV(CRef(0x15, p->ae[j].id), e->pfn((char *)p + e->d), D_002A4D58, ach, 0);
         }
         VTE *e = &p->vt[105];
         ((void (*)(void *))e->pfn)((char *)p + e->d);

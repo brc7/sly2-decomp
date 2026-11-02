@@ -8,11 +8,11 @@ extern char D_003DA530[];
 extern char D_002A3828[];
 CRef *func_002581C0(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
-int func_001D9880(void *p);
-void func_001D54B8(void);
-void func_001DD888(void *p);
+int FScreenShown(void *p);
+void ResetRumbleSaveVar(void);
+void HideTitleScreen(void *p);
 void *PrecWorldEntry(int n);
-void func_0022B490(struct G *pg, void *p, int a, int b, int c, int d);
+void WipeToWorldWarp(struct G *pg, void *p, int a, int b, int c, int d);
 /** @sly2-annot addr=0x165E38
  * Purpose: Starts play from a save-slot GS: new game -> first task oid 0x62F in world entry 0; else the saved
  *   episode (or hub level D_002A3828 if it is 100%)
@@ -32,9 +32,9 @@ void func_00165E38(void *pv)
     func_002581C0(&ref, D_003DD490.f3b1c, pv);
     g = *(float *)&ref.m_tag;
     func_00129EC8(&ref);
-    if (func_001D9880(D_003DA530) && g == 0.0f) {
-        func_001D54B8();
-        func_001DD888(D_003DA530);
+    if (FScreenShown(D_003DA530) && g == 0.0f) {
+        ResetRumbleSaveVar();
+        HideTitleScreen(D_003DA530);
         return;
     }
     if (g == 0.0f) {
@@ -42,7 +42,7 @@ void func_00165E38(void *pv)
         D_002DEB30.f10 = -1;
         D_002DEB30.f14 = -1;
         D_002DEB30.f18 = 0x62F;
-        func_0022B490(&D_003DD490, PrecWorldEntry(0), 0x189, -1, 0x48, -1);
+        WipeToWorldWarp(&D_003DD490, PrecWorldEntry(0), 0x189, -1, 0x48, -1);
         return;
     }
     {
@@ -68,5 +68,5 @@ void func_00165E38(void *pv)
         ps = D_002A3828;
         __asm__ __volatile__("" : : "r"(n)); /* allocation-only: keeps n live past the compare */
     }
-    func_0022B490(&D_003DD490, ps, 0x189, -1, 0x40, -1);
+    WipeToWorldWarp(&D_003DD490, ps, 0x189, -1, 0x40, -1);
 }

@@ -12,17 +12,17 @@ void func_00187E08(PAD *, int);
 int func_001B0290(int);
 int FIsDlEmpty__FP2DL(void *);
 void UpdatePauseMenu(void *);
-void func_001DB870(void *);
-void func_001DAA90(void *);
+void UpdateThiefnet(void *);
+void UpdateGadgetMenu(void *);
 void UpdateCodes(void *);
-void func_0022B198(void *);
-void func_001D9DF8(void *);
-void func_001DA350(void *);
-void func_001DCD30(void *);
+void UpdateWipe(void *);
+void UpdateHudMeter(void *);
+void UpdateNotice(void *);
+void UpdateJobList(void *);
 void CMemcardDialog_Update(void *);
 void func_001ADEE8(void *);
 void func_001DA808(void *);
-void func_001DD920(void *);
+void UpdateTitleScreen(void *);
 /** @sly2-annot addr=0x1D9648
  * Purpose: Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD
  *   screens
@@ -54,15 +54,15 @@ void func_001D9648(void *pdl)
             func_001B0290(0);
     }
     UpdatePauseMenu(D_003D9ED0);
-    func_001DB870(D_003DA150);
-    func_001DAA90(D_003DA0F0);
+    UpdateThiefnet(D_003DA150);
+    UpdateGadgetMenu(D_003DA0F0);
     UpdateCodes(D_002DDEC0);
-    func_0022B198(D_00443740);
-    func_001D9DF8(D_003D9E80);
-    func_001DA350(D_003DA0C0);
-    func_001DCD30(D_003DA3C0);
+    UpdateWipe(D_00443740);
+    UpdateHudMeter(D_003D9E80);
+    UpdateNotice(D_003DA0C0);
+    UpdateJobList(D_003DA3C0);
     CMemcardDialog_Update(D_002E6550);
     func_001ADEE8(D_002E65A0);
     func_001DA808(D_003DA4F0);
-    func_001DD920(D_003DA530);
+    UpdateTitleScreen(D_003DA530);
 }

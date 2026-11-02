@@ -2,7 +2,7 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
 void *func_001EC918(int id);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void func_001F80D0(void *p, float f);
-void func_001EE3B0(void *p, float f);
+void SetEyesClosed(void *p, float f);
 /** @sly2-annot addr=0x210678
  * Purpose: ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f)
  * Info: proposed name HandleSwAsegEvent20 (T2); TU sw
@@ -27,5 +27,5 @@ void func_00210678(void *pv, int id1, int id2, float f)
     if (p1)
         func_001F80D0(p1, f);
     if (p2)
-        func_001EE3B0(p2, f);
+        SetEyesClosed(p2, f);
 }

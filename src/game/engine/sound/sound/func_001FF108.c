@@ -1,7 +1,7 @@
 struct G { char pad[0x228]; void *p228; };
 extern struct G D_003DD040;
 int func_001FE990(struct G *);
-void func_001FC2E0(void *, int, float);
+void SetStreamsndGroupVolume(void *, int, float);
 void func_001FC380(void *, int, int);
 /** @sly2-annot addr=0x1FF108
  * Purpose: Splice: set volume/pan of ambience sub-group selected by id
@@ -13,6 +13,6 @@ void func_001FF108(int a, int b, int c, float g)
 {
     int r = func_001FE990(&D_003DD040);
     void *p = D_003DD040.p228;
-    func_001FC2E0(p, r, g);
+    SetStreamsndGroupVolume(p, r, g);
     func_001FC380(p, r, c);
 }

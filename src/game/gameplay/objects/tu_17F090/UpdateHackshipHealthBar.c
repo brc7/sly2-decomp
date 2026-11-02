@@ -1,5 +1,5 @@
 struct S { char pad[0x180]; int c; int n; char p1[0x118]; void *p2a0; };
-void func_00212E40(void *p, int n, float g);
+void SetWidgetAnimPhase(void *p, int n, float g);
 /** @sly2-annot addr=0x180100
  * Purpose: Set widget anim 0x34F phase = 1 - health/max (clamped)
  * Info: proposed name UpdateHackshipHealthBar (T1); class HACKSHIP; TU tu_17F090
@@ -17,6 +17,6 @@ void UpdateHackshipHealthBar(struct S *p)
         g = 1.0f - (float)n / (float)p->c;
         if (g < 0.0f) g = 0.0f;
         else if (g > 1.0f) g = 1.0f;
-        func_00212E40(p->p2a0, 0x34F, g);
+        SetWidgetAnimPhase(p->p2a0, 0x34F, g);
     }
 }

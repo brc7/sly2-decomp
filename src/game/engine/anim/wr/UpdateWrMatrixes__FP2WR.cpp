@@ -14,7 +14,7 @@ struct CLOCK {float t,dt;};
 extern CLOCK D_002DDED0;
 extern "C" {
 void UpdateLo(WR *);
-void func_0022B7D8(WR *);
+void UpdateWrStateVectors__FP2WR(WR *);
 float RadNormalize__Ff(float);
 void CalculateSinCos__FfPfT1(float,float *,float *);
 float func_0022BF70(ONZ *);
@@ -39,7 +39,7 @@ static inline qword Rotate(const M3 &m,qword v){__asm__("vmulax.xyz ACC,%1,%0x\n
 void UpdateWrMatrixes(WR *p){
  UpdateLo(p);
  if(D_002DDED0.t==p->time)return;
- if(p->source)func_0022B7D8(p);
+ if(p->source)UpdateWrStateVectors__FP2WR(p);
  for(int i=0;i<p->count;i++){
   WRE *entry=&p->entries[i];
   M4 *matrix=&p->matrices[entry->index];

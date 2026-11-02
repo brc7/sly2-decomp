@@ -9,11 +9,11 @@ extern float D_002C3EA0[3];
 extern float D_002C3EB0[2];
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
-struct M *func_001FBB90(int);
-void func_001FB2F8(struct M *, struct O *);
-void func_001FB4F0(struct M *, float, float);
+struct M *PsndStartSound(int);
+void SetSndSourceLo(struct M *, struct O *);
+void SetSndRange(struct M *, float, float);
 void func_001FB1F8(struct M *, float);
-void func_001FB2C0(struct M *, float);
+void SetSndPitch(struct M *, float);
 void func_001FB520(struct M *, float);
 void func_00258040(struct M **, struct M *);
 static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
@@ -41,11 +41,11 @@ void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id
         offset += f;
     }
     offset += p->offset;
-    m = func_001FBB90(id);
-    func_001FB2F8(m, o);
-    func_001FB4F0(m, (float)x, (float)y);
+    m = PsndStartSound(id);
+    SetSndSourceLo(m, o);
+    SetSndRange(m, (float)x, (float)y);
     func_001FB1F8(m, scale);
-    func_001FB2C0(m, offset);
+    SetSndPitch(m, offset);
     func_001FB520(m, fade);
     if (m->vt->kind((char *)m + m->vt->d) == 2)
         func_00258040(out, m);

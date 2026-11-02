@@ -11,7 +11,7 @@ extern M D_002C00E8[];
 extern M D_002F65D0[];
 extern char D_002BFD38[];
 int func_0020E040(G *g);
-int func_001D9880(void *p);
+int FScreenShown(void *p);
 char *PpoHero(G *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
@@ -36,7 +36,7 @@ int func_001B0290(X *px)
 
     if (!D_003D9ED0.x20) return 0;
     if (func_0020E040(&D_003DD490)) return 0;
-    if (func_001D9880(D_002E6550)) return 0;
+    if (FScreenShown(D_002E6550)) return 0;
     pl = PpoHero(&D_003DD490);
     if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!func_002127C8()) return 0;

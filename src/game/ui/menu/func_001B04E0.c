@@ -4,7 +4,7 @@ struct S { char pad[0x1C]; int x1C; };
 extern struct E D_002BFEC8[11], D_002F6470[];
 extern char D_003DA530[], D_002BFD38[];
 extern struct G D_003D9ED0;
-int func_001D9880(void *p);
+int FScreenShown(void *p);
 void func_001AF390(struct G *g, int n, struct E *pe);
 void func_001AF4D8(struct G *g, int n, struct E *pe, int a, void *b);
 /** @sly2-annot addr=0x1B04E0
@@ -23,8 +23,8 @@ void func_001B04E0(struct S *p)
         int ok = 1;
         switch (src->kind) {
         case 0x3D: break;
-        case 0x3C: ok = func_001D9880(D_003DA530) != 0; break;
-        case 0x3E: ok = func_001D9880(D_003DA530) == 0; break;
+        case 0x3C: ok = FScreenShown(D_003DA530) != 0; break;
+        case 0x3E: ok = FScreenShown(D_003DA530) == 0; break;
         }
         if (ok) *dst++ = *src;
     }

@@ -1,7 +1,7 @@
 struct S { int f0; void *f4; char pad[0x24 - 8]; void *f24; };
 extern void *D_002DE594;
 extern void *D_002DE598;
-void func_001EE7B0(struct S *p, int f);
+void PropagateSais(struct S *p, int f);
 void RebuildFrameGifs__Fv(void);
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(void *pch, void *pqw);
 /** @sly2-annot addr=0x160C80
@@ -14,7 +14,7 @@ void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(void *pch, void *pqw);
  * @end-sly2-annot */
 void RenderFrame__FP3FRMi(struct S *p, int f)
 {
-    func_001EE7B0(p, f);
+    PropagateSais(p, f);
     RebuildFrameGifs__Fv();
     SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE594, p->f24);
     if (f)

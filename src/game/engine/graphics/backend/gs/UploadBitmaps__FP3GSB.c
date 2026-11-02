@@ -7,7 +7,7 @@ struct MK *STACKSCOPE_ctor(struct MK *pm);
 void STACKSCOPE_ctor_1AE4A0(struct MK *pm, int n);
 void func_001572E0(struct B *pb, int n);
 void func_001574B8(struct B *pb);
-int func_001ECC28(int a, void *p, struct B *pb);
+int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int a, void *p, struct B *pb);
 void func_00166BD8(struct B *pb, int a, int b, int c);
 void func_00166E90(struct B *pb, int a, int b);
 void func_00166968(struct B *pb);
@@ -32,7 +32,7 @@ void UploadBitmaps__FP3GSB(void *p) {
     STACKSCOPE_ctor(&mk);
     func_001572E0(&b, ((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     func_001574B8(&b);
-    if (func_001ECC28(1, p, &b)) {
+    if (FBuildUploadBitmapGifs__FiP3GSBP4GIFS(1, p, &b)) {
         func_00166BD8(&b, 0, 1, 0xE);
         func_00166E90(&b, 0x3F, 0);
         func_00166E90(&b, 0x61, 0);

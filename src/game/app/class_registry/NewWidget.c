@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 s32 func_001AE4F8(M2C_UNK);                         /* extern */
-M2C_UNK func_00212158(s32);                         /* extern */
+M2C_UNK WIDGET_ctor(s32);                         /* extern */
 
 /** @sly2-annot addr=0x112BE8
  * Purpose: pfnNew factory for WIDGET (cid 126): allocates 0x110 bytes (operator new 0x1AE4F8), calls ctor
@@ -11,5 +11,5 @@ M2C_UNK func_00212158(s32);                         /* extern */
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 void NewWidget(void) {
-    func_00212158(func_001AE4F8(0x110));
+    WIDGET_ctor(func_001AE4F8(0x110));
 }

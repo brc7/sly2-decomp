@@ -10,8 +10,8 @@ typedef struct {
 typedef struct { int c; ENT *ae; char ht[1]; } OBJ;
 extern BIG D_003D4A60;
 extern char D_002A78F8[];
-int func_001D8720(void *, char *);
-static inline int NFind(OBJ *ph, char *pch) { return func_001D8720(ph->ht, pch); }
+int NFindSaveSymbol(void *, char *);
+static inline int NFind(OBJ *ph, char *pch) { return NFindSaveSymbol(ph->ht, pch); }
 /** @sly2-annot addr=0x1D84B0
  * Purpose: Copy D_003D4A60 into a big buffer then set flag byte at ib for every schema entry whose symbol is
  *   'from_memcard'

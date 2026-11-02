@@ -13,8 +13,8 @@ extern float D_003E1BEC;
 extern void BroadcastGameEvent(void *p, int n, void *pv);
 extern void ChargeGadgetMp(void *p, int n);
 extern void func_0014D1D0(void *p, int n, float g);
-extern void *func_001FBB90(int n);
-extern void func_001FB2F8(void *p, int n);
+extern void *PsndStartSound(int n);
+extern void SetSndSourceLo(void *p, int n);
 extern void func_00258040(void *p, void *pv);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00195FB8(void *p, int a, int b);
@@ -47,8 +47,8 @@ void UseJtGadget(char *p, int n)
         ChargeGadgetMp(p, n);
         func_0014D1D0(D_002DDED0, 1, D_002BF3EC);
         D_003E1BEC = -1.0f;
-        pv = func_001FBB90(0x67);
-        func_001FB2F8(pv, 0);
+        pv = PsndStartSound(0x67);
+        SetSndSourceLo(pv, 0);
         func_00258040(A(0x2044), pv);
         break;
     }
@@ -57,8 +57,8 @@ void UseJtGadget(char *p, int n)
         ChargeGadgetMp(p, n);
         func_0014D1D0(D_002DDED0, 1, D_002BF3F0);
         D_003E1BEC = 0.7f;
-        pv = func_001FBB90(0x66);
-        func_001FB2F8(pv, 0);
+        pv = PsndStartSound(0x66);
+        SetSndSourceLo(pv, 0);
         func_00258040(A(0x2044), pv);
         break;
     }

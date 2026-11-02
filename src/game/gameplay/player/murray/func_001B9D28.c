@@ -2,7 +2,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
 struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
-int func_001DAEA8(int n);
+int FPowerupAcquired(int n);
 void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
 /** @sly2-annot addr=0x1B9D28
  * Purpose: If power-up 0x11 owned: position effect object (vt29) at given point and play its anim
@@ -12,7 +12,7 @@ void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
  * @end-sly2-annot */
 void func_001B9D28(struct P *p, qword q)
 {
-    if (func_001DAEA8(0x11)) {
+    if (FPowerupAcquired(0x11)) {
         struct O *po = p->po;
         if (!((po->f28 >> 60) & 1)) {
             struct VTE *e = &po->vt[29];

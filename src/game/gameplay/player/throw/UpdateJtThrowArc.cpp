@@ -55,7 +55,7 @@ extern "C" {
  qword ConvertAloPos(LO *,LO *,qword);         // ConvertLoPos
  qword func_001A62E8(LO *);                    // PosLoWorld
  qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
- int func_001DAEA8(int);                       // FPowerUpAcquired
+ int FPowerupAcquired(int);                       // FPowerUpAcquired
  void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***); // FindSwObjectsInBox
  int func_0021FB18(void *,SO *);
  SO *func_0014CC58(int,qword,qword,int,SO **,HIT *);
@@ -119,7 +119,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  float tApex=GMax(-GZOfQw(vLaunch)/GZOfQw(vAccel),0.0f);
  qword posApex=PosOnArc(posLaunch,vAccel,vLaunch,tApex,0.5f);
  float t;
- if(func_001DAEA8(0x24))t=D_002C40E4*pjtthrow->tPredict;
+ if(FPowerupAcquired(0x24))t=D_002C40E4*pjtthrow->tPredict;
  else t=pjtthrow->tPredict;
  qword posEnd=PosOnArc(posLaunch,vAccel,vLaunch,t,0.5f);
  STACKSCOPE stackscope;

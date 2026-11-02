@@ -23,10 +23,10 @@ struct X {
 void UpdateCplcy(struct X *p, void *pv, struct JOY *pjoy);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
 float func_0011D948(void *p, float g);
-void func_001FB2C0(struct SND *p, float g);
+void SetSndPitch(struct SND *p, float g);
 void func_001FB1F8(struct SND *p, float g);
-void func_001FB060(struct SND *p);
-void func_001FB018(struct SND *p);
+void ResumeSnd(struct SND *p);
+void PauseSnd(struct SND *p);
 void SetCmFov__FP2CMf(struct CM *p, float g);
 void func_002581C0(struct CRef *, void *, void *);
 void func_00129EC8(struct CRef *);
@@ -69,14 +69,14 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     p->g20 = x = GClamp2(x, 0.0f, 1.0f);
     if (p->g24 != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = p->p34;
-        func_001FB2C0(ps, func_0011D948(D_002BBB68, __builtin_fabsf(p->g24)));
+        SetSndPitch(ps, func_0011D948(D_002BBB68, __builtin_fabsf(p->g24)));
         ps = p->p34;
         func_001FB1F8(ps, func_0011D948(D_002BBB60, __builtin_fabsf(p->g24) * 0.5f + 0.5f));
         if (p->p34->c4E > 0)
-            func_001FB060(p->p34);
+            ResumeSnd(p->p34);
     } else {
         if (p->p34->c4E <= 0)
-            func_001FB018(p->p34);
+            PauseSnd(p->p34);
     }
     u = 1.0f - p->g20;
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->g2C + u * p->g30);

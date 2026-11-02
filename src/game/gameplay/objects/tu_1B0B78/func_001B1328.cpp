@@ -18,7 +18,7 @@ extern "C"{
  void func_001B1818(P*,float);void func_001B17B8(P*,float);
  qword func_001A62E8(P*);void FindShapeClosestPoint(PATH*,qword,void*,U*,U*,float*,float*);
  float DuGetShapeSearchIncrement(PATH*);float SMaxShape(PATH*);P*PpoClosestSw(void*,qword);
- EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,SOURCE*);void func_001FB3F0(EFFECT*,qword);
+ EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,SOURCE*);void SetSndSourcePos(EFFECT*,qword);
  qword ConvertAloPos(P*,P*,qword);void func_00154E10(void*,qword,int,int,P*);
  void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);
 }
@@ -111,7 +111,7 @@ extern "C" void func_001B1328(P*p,int next){
   w.velocity.q=velocity;SetVelocity(p,velocity);SetMode(p);break;
  }
  case 5:{
-  EFFECT*e=func_001FBB90(0x14);func_001FB2F8(e,0);func_001FB3F0(e,func_001A62E8(p));
+  EFFECT*e=PsndStartSound(0x14);SetSndSourceLo(e,0);SetSndSourcePos(e,func_001A62E8(p));
   func_00154E10(D_002DE578,ConvertAloPos(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
  }
  }

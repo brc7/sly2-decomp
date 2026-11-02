@@ -1,4 +1,4 @@
-void func_001DAF38(void *p, int n);
+void SetPowerupAcquired(void *p, int n);
 void func_0019F0A8(void *p);
 extern char D_003DD490[];
 /** @sly2-annot addr=0x14C2B0
@@ -12,6 +12,6 @@ extern char D_003DD490[];
  * @end-sly2-annot */
 void CheatGiveGadget(void *p)
 {
-    func_001DAF38(p, 1);
+    SetPowerupAcquired(p, 1);
     func_0019F0A8(D_003DD490);
 }

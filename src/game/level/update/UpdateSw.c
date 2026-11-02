@@ -23,9 +23,9 @@ void UpdateAsega(void *pv);
 void func_00156728(void *pv);
 void SolveSw(struct S *p);
 void func_001BE1E8(void);
-void func_001EC968(void);
+void UpdateShaders(void);
 void UpdateSave__FP4SAVE(void *pv);
-void func_001FD830(void *pv);
+void UpdateSndmgr(void *pv);
 void UpdateCmLast__FP2CM(void *pv);
 void func_0020F7E0(struct S *p);
 void CGc_UpdateRecyclable(void *pv);
@@ -83,12 +83,12 @@ void UpdateSw(struct S *p)
         ProcessSwCallbacks(p);
         SolveSw(p);
         func_001BE1E8();
-        func_001EC968();
+        UpdateShaders();
         ProcessSwCallbacks(p);
         D_002DD2FC = dli.m_pdliNext;
     }
     UpdateSave__FP4SAVE(D_002E65E0);
-    func_001FD830(D_003DD040);
+    UpdateSndmgr(D_003DD040);
     if (0.0f < D_002DDED0.g10)
         UpdateCmLast__FP2CM(D_002DDF40);
     func_0020F7E0(p);

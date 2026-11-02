@@ -9,7 +9,7 @@ extern float D_002DDF10;
 struct PLAYER *PpoCur(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
-void func_001FC2E0(struct REF *,int,float);
+void SetStreamsndGroupVolume(struct REF *,int,float);
 static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
 /** @sly2-annot addr=0x1FDC08
  * Purpose: Pick music layer (0 calm/1/2 action) from player state and smooth 3 group weights into the music
@@ -56,7 +56,7 @@ norm:
         float gain=Sqrt((1.0f-selectedSquare)/sum);
         for(i=0;i<3;i++)if(i!=p->selected)p->weights[i]*=gain;
     }
-    if(ref){func_001FC2E0(ref,0,p->weights[0]);func_001FC2E0(ref,1,p->weights[1]);func_001FC2E0(ref,2,p->weights[2]);}
+    if(ref){SetStreamsndGroupVolume(ref,0,p->weights[0]);SetStreamsndGroupVolume(ref,1,p->weights[1]);SetStreamsndGroupVolume(ref,2,p->weights[2]);}
 }
 
 }

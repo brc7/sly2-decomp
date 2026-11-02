@@ -6,7 +6,7 @@ struct LOOP { char pad[0x1C]; int cframe; char pad1[0x34 - 0x20]; SAI sai; char 
 extern "C" int FIsSlEmpty(SAI *psai);
 extern "C" float GRandInRange__Fff(float gLow, float gHigh);
 extern "C" float GModPositive__Fff(float g, float gMod);
-extern "C" void func_001EDA68(LOOP *p, int iframe);
+extern "C" void SetSaiIframe(LOOP *p, int iframe);
 /** @sly2-annot addr=0x1EDC40
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -39,5 +39,5 @@ void UpdateLoop(LOOP *ploop, float dt)
     }
 
     ploop->iframe = GModPositive__Fff(ploop->iframe, (float)ploop->cframe);
-    func_001EDA68(ploop, (int)ploop->iframe);
+    SetSaiIframe(ploop, (int)ploop->iframe);
 }

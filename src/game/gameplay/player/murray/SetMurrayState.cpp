@@ -92,7 +92,7 @@ int func_001430C8(P *);
 void func_00142868(P *, int);
 void func_0020BD68(void *);
 void SetJtModeState__FP6JTMODEi(void *, int);
-int func_001DAEA8(int);
+int FPowerupAcquired(int);
 void ChooseMurrayThrowTarget(P *);
 qword func_001A62E8(P *);
 void SetStepRadTargetVec(P *, qword);
@@ -178,7 +178,7 @@ extern "C" void SetMurrayState(P *p, int next)
         p->velocity = D_002A2DD0; SetMurrayLiftSubstate(p, 0); break;
     case 7: {
         ASEG *a = p->extra7;
-        if (a && func_001DAEA8(0x11)) clip = p->extra7; else clip = p->clip7;
+        if (a && FPowerupAcquired(0x11)) clip = p->extra7; else clip = p->clip7;
         { register qword zero __asm__("$3") = D_002A2DD0.q; p->velocity.q = zero; }   // pin: the zero vector goes through $v1 here
         ChooseMurrayThrowTarget(p);
         U point = p->goal; qword current = func_001A62E8(p);

@@ -70,12 +70,12 @@ extern "C"{
 extern CLOCK D_002DDED0;extern int D_002BF448[];extern float D_002BF430,D_002BF434,D_002BF438,D_002BF43C,D_002BF440;
 extern void*D_002E1E44;extern void*D_002E1E48;
 void HideSoPart(P*,ACTION*);void func_001F4BF8(P*);void func_001CCAC0(void*,int);
-EFFECT*func_001FBB90(int);void func_001FB2F8(EFFECT*,void*);void func_001FB3F0(EFFECT*,qword);
+EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(P*,BLEND*,ASEG*);int func_001F0400(SM*,int);void SnapSma(COMPONENT*,int);
 void func_001305B8(ASEG*,P*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
 }
-static __inline__ void Emit(P*p,int id){if(id!=-1){EFFECT*effect=func_001FBB90(id);func_001FB2F8(effect,0);func_001FB3F0(effect,func_001A62E8(p));}}
+static __inline__ void Emit(P*p,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,func_001A62E8(p));}}
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static __inline__ void Link(NODE*p,NODE*other){VE&v=p->vt[38];((void(*)(void*,NODE*))v.fn)((char*)p+v.delta,other);}
 static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((char*)p+v.delta);}

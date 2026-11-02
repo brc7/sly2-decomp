@@ -28,12 +28,12 @@ extern qword func_00256D28(qword a, qword b);
 extern void func_00256D18(qword *pv, qword a);
 extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITR *pr);
 extern qword ConvertAloPos(int x, int y, qword v);
-extern void *func_001FBB90(int id);
-extern void func_001FB2F8(void *p, void *pso);
-extern void func_001FB3F0(void *p, qword v);
-extern void func_001FB4F0(void *p, float a, float b);
+extern void *PsndStartSound(int id);
+extern void SetSndSourceLo(void *p, void *pso);
+extern void SetSndSourcePos(void *p, qword v);
+extern void SetSndRange(void *p, float a, float b);
 extern void func_001FB1F8(void *p, float g);
-extern void func_001FB2C0(void *p, float g);
+extern void SetSndPitch(void *p, float g);
 
 /** @sly2-annot addr=0x15C690
  * Purpose: EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position
@@ -153,11 +153,11 @@ void FireExplsExplso(EMITTER *p, EMITO *po)
             pos.q = v;
         }
         pos.q = ConvertAloPos(emitp.x0, 0, pos.q);
-        ps = func_001FBB90(p->psnd->id);
-        func_001FB2F8(ps, 0);
-        func_001FB3F0(ps, pos.q);
-        func_001FB4F0(ps, p->psnd->g4, p->psnd->g8);
+        ps = PsndStartSound(p->psnd->id);
+        SetSndSourceLo(ps, 0);
+        SetSndSourcePos(ps, pos.q);
+        SetSndRange(ps, p->psnd->g4, p->psnd->g8);
         func_001FB1F8(ps, p->psnd->gC);
-        func_001FB2C0(ps, p->psnd->g10);
+        SetSndPitch(ps, p->psnd->g10);
     }
 }

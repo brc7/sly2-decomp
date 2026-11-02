@@ -18,7 +18,7 @@ extern void func_001574B8(R *);
 extern void func_002270C8(R *, int, void *, int);
 extern void func_001576F0(R *);
 extern void func_00157620(R *);
-extern Q *func_001CD998(void);
+extern Q *PrplAllocRpl(void);
 }
 static inline int NLerp(float g, int a, int b)
 {
@@ -89,7 +89,7 @@ extern "C" void func_0015DD48(X *p)
     }
     func_001576F0(pr);
     func_00157620(pr);
-    pq = func_001CD998();
+    pq = PrplAllocRpl();
     pq->x8 = x;
     pq->x4 = -1.0f;
     switch (p->k6C) {

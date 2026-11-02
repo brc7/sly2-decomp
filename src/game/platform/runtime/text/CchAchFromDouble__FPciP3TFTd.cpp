@@ -3,7 +3,7 @@ extern "C" {
 char *func_0021ED58(char *,const char *);
 unsigned int func_0021ED28(const char *);
 int func_0021E048(double);
-unsigned char func_0021E0D8(double,int,int);
+unsigned char ChDigitFromG__Fdii(double,int,int);
 double func_002452C0(double,double);
 extern char D_002A94F0[],D_002A94F8[];
 extern char D_002C40C8[];
@@ -34,11 +34,11 @@ int CchAchFromDouble(char *buffer,int capacity,TFT *f,double value){
     if(scientific){count=1;digit=exponent;}
     else if(exponent>=0){count=exponent+1;digit=exponent;}
     else {count=1;digit=0;}
-    while(count-- >0)*p++=func_0021E0D8(rounded,exponent,digit--);
+    while(count-- >0)*p++=ChDigitFromG__Fdii(rounded,exponent,digit--);
     if(!f->fPrec0){
         *p++='.';
         count=f->precision;
-        while(count-- >0)*p++=func_0021E0D8(rounded,exponent,digit--);
+        while(count-- >0)*p++=ChDigitFromG__Fdii(rounded,exponent,digit--);
         if(f->conversion=='g'){
             while(p>buffer && ((unsigned char *)p)[-1]=='0')--p;
             if(p>buffer && ((unsigned char *)p)[-1]=='.')--p;

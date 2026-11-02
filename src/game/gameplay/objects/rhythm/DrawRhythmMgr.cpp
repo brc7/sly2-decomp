@@ -41,9 +41,9 @@ extern KEY D_002BDB70[4];
 extern const SZ D_002A5018;
 extern qword D_002BDBC0, D_002BDBD0;
 void RenderLoSelf(P *p);
-float func_001FE3F8(void *p);
-FONT *func_00215AC0(FONT *pf, const char *sz, float scale);
-float func_00215ED8(FONT *pf);
+float TMusicCur(void *p);
+FONT *CRichText_ctor(FONT *pf, const char *sz, float scale);
+float CRichText_Dx(FONT *pf);
 void func_002163B0(FONT *pf, TB *ptb, int grf);
 void EvaluateBezierPos(float dt, float t, float dtScale, qword p0, qword v0, qword p1, qword v1, qword *ppos, qword *pvel, qword *pacc);
 void DrawRhythmMgr(P *p);
@@ -61,28 +61,28 @@ static inline float GMax(float a, float b) { return a < b ? b : a; }
 void DrawRhythmMgr(P *p)
 {
     RenderLoSelf(p);
-    float t = func_001FE3F8(D_003DD040);
+    float t = TMusicCur(D_003DD040);
     if (p->state < 3) if (p->state > 0) if (p->c != 0) {
         FONT fontA;
-        func_00215AC0(&fontA, "&2?&.", D_002BDB58);
+        CRichText_ctor(&fontA, "&2?&.", D_002BDB58);
         FONT fontB;
-        func_00215AC0(&fontB, "&2m&.", D_002BDB5C);
+        CRichText_ctor(&fontB, "&2m&.", D_002BDB5C);
         TB tb;
         union { RGBA rgba; SZ s; } u;
         tb.Init(0.0f, 0.0f, 640.0f, 448.0f * 1.1f, 0xFF808080, &u.rgba);
         {
         u.s = D_002A5018;
         FONT fontBig;
-        func_00215AC0(&fontBig, u.s.a, D_002BDB50);
-        float dxBig = func_00215ED8(&fontBig);
+        CRichText_ctor(&fontBig, u.s.a, D_002BDB50);
+        float dxBig = CRichText_Dx(&fontBig);
         float dyBig = fontBig.dy;
         FONT fontSmall;
-        func_00215AC0(&fontSmall, u.s.a, D_002BDB54);
-        float dxSmall = func_00215ED8(&fontSmall);
+        CRichText_ctor(&fontSmall, u.s.a, D_002BDB54);
+        float dxSmall = CRichText_Dx(&fontSmall);
         float dySmall = fontSmall.dy;
-        float dxA = func_00215ED8(&fontA);
+        float dxA = CRichText_Dx(&fontA);
         float dyA = fontA.dy;
-        float dxB = func_00215ED8(&fontB);
+        float dxB = CRichText_Dx(&fontB);
         float dyB = fontB.dy;
         int i;
         for (i = 0; i < p->c; i++) {
@@ -107,7 +107,7 @@ void DrawRhythmMgr(P *p)
                     u.s.a[3] = '&';
                     u.s.a[4] = '.';
                     u.s.a[5] = 0;
-                    func_00215AC0(&fontBig, u.s.a, scale);
+                    CRichText_ctor(&fontBig, u.s.a, scale);
                     tb.x = x;
                     tb.y = y;
                     func_002163B0(&fontBig, &tb, 0xC);
