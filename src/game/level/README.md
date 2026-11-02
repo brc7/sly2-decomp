@@ -7,7 +7,7 @@
 | [`brx_sw.cpp`](brx_sw.cpp) | 1 |
 | [`empty_1FF690.cpp`](empty_1FF690.cpp) | 1 |
 | [`empty_226AB8.cpp`](empty_226AB8.cpp) | 1 |
-| [`exit_warp/`](exit_warp/) | 22 |
+| [`exit_warp.cpp`](exit_warp.cpp) | 1 |
 | [`update.cpp`](update.cpp) | 1 |
 | [`wipe.cpp`](wipe.cpp) | 1 |
 

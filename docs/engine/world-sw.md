@@ -225,15 +225,15 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 | [0x210A88](../../src/game/world/scene/sw/IlevelCur__Fv.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
 | [0x210B98](../../src/game/world/scene/sw/PrecWorldEntry.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
 | [0x226550](../../src/game/level/update.cpp) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
-| [0x228140](../../src/game/level/exit_warp/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
-| [0x228250](../../src/game/level/exit_warp/LoadWarpBlobFromBrx.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
-| [0x2282B0](../../src/game/level/exit_warp/LoadExitFromBrx.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
-| [0x228538](../../src/game/level/exit_warp/UpdateExit.c) | `UpdateExit` | UpdateLo then player inside test (BSP) and trigger handling | 0.70 | T1 | verified |
-| [0x228720](../../src/game/level/exit_warp/LoadWarpFromBrx.c) | `LoadWarpFromBrx` | LoadXfmFromBrx + 0x118420 | 0.75 | T1 | parse |
-| [0x228750](../../src/game/level/exit_warp/TriggerWarp.c) | `TeleportSwPlayer` | finds warp by oid/context and places the player there \| WARP method (uses WARP RSMG +0xE0/+0xE4, list +0x124, pairs +0x14C, then resets all EXITs); Sl | 0.45 | T2 | verified, pending-fix |
-| [0x2288D8](../../src/game/level/exit_warp/SetWarpRsmg.c) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
-| [0x228958](../../src/game/level/exit_warp/AddWarpOidPair.c) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
-| [0x228988](../../src/game/level/exit_warp/func_00228988.c) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
+| [0x228140](../../src/game/level/exit_warp.cpp) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
+| [0x228250](../../src/game/level/exit_warp.cpp) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
+| [0x2282B0](../../src/game/level/exit_warp.cpp) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
+| [0x228538](../../src/game/level/exit_warp.cpp) | `UpdateExit` | UpdateLo then player inside test (BSP) and trigger handling | 0.70 | T1 | verified |
+| [0x228720](../../src/game/level/exit_warp.cpp) | `LoadWarpFromBrx` | LoadXfmFromBrx + 0x118420 | 0.75 | T1 | parse |
+| [0x228750](../../src/game/level/exit_warp.cpp) | `TeleportSwPlayer` | finds warp by oid/context and places the player there \| WARP method (uses WARP RSMG +0xE0/+0xE4, list +0x124, pairs +0x14C, then resets all EXITs); Sl | 0.45 | T2 | verified, pending-fix |
+| [0x2288D8](../../src/game/level/exit_warp.cpp) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
+| [0x228958](../../src/game/level/exit_warp.cpp) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
+| [0x228988](../../src/game/level/exit_warp.cpp) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
 | [0x22B050](../../src/game/level/wipe.cpp) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
 | [0x22B490](../../src/game/level/wipe.cpp) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 Acti | 0.75 | T1 | top50 |
 
