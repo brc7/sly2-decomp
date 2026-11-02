@@ -19,16 +19,16 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x15CD68](../../../src/hand/func_0015CD68.c) | `InitWidget131` | LO::Init, four ids = -1, registers itself as the singleton D_003E1C04 | 0.75 | T2 |  |
-| [0x15CDA8](../../../src/hand/func_0015CDA8.c) | `PostWidget131Load` | WIDGET PostLoad (0x2123C8) then picks the first empty slot index from g_sw arrays | 0.65 | T2 |  |
-| [0x15CF30](../../../src/hand/func_0015CF30.c) | `UpdateWidget131` | Per-frame update of the WIDGET131 HUD element | 0.65 | T2 |  |
-| [0x15D5C8](../../../src/hand/func_0015D5C8.c) | `OidWidget131Label` | Label id for the widget's current mode/sub-mode from tables D_002BE080/D_002BE1B8 (-1 if none) | 0.35 | T2 |  |
-| [0x15D648](../../../src/auto/func_0015D648.c) | `SetWidget131Mode` | Switches the episode-menu widget mode (autosave on leaving mode 0, restores the selection on 4/6), resets labels and shows the new label (vt49) | 0.40 | T2 |  |
-| [0x15D798](../../../src/hand/func_0015D798.c) | `CEpisodeMenuItems` | Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus 1 if under 100% | 0.35 | T2 |  |
-| [0x15D880](../../../src/auto/func_0015D880.c) | `SetWidget131Highlight` | Plays label 0x5BD/0x5BE when the highlight flag changes | 0.35 | T2 |  |
-| [0x15D8F8](../../../src/hand/func_0015D8F8.c) | `FormatEpisodePercent` | Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is set) | 0.50 | T1 |  |
-| [0x15D9C0](../../../src/hand/func_0015D9C0.c) | `FormatEpisodePlayTime` | Text callback: '%01d:%02d' hours:minutes of the selected episode's play time | 0.50 | T1 |  |
-| [0x15DA88](../../../src/hand/func_0015DA88.c) | `SetEpisodeMenuPageText` | Text callback: string 0x77 or 0x78 depending on the parity of the widget's page | 0.30 | T2 |  |
+| [0x15CD68](../../../src/game/ui/tu_15CD68/func_0015CD68.c) | `InitWidget131` | LO::Init, four ids = -1, registers itself as the singleton D_003E1C04 | 0.75 | T2 |  |
+| [0x15CDA8](../../../src/game/ui/tu_15CD68/func_0015CDA8.c) | `PostWidget131Load` | WIDGET PostLoad (0x2123C8) then picks the first empty slot index from g_sw arrays | 0.65 | T2 |  |
+| [0x15CF30](../../../src/game/ui/tu_15CD68/func_0015CF30.c) | `UpdateWidget131` | Per-frame update of the WIDGET131 HUD element | 0.65 | T2 |  |
+| [0x15D5C8](../../../src/game/ui/tu_15CD68/func_0015D5C8.c) | `OidWidget131Label` | Label id for the widget's current mode/sub-mode from tables D_002BE080/D_002BE1B8 (-1 if none) | 0.35 | T2 |  |
+| [0x15D648](../../../src/game/ui/tu_15CD68/func_0015D648.c) | `SetWidget131Mode` | Switches the episode-menu widget mode (autosave on leaving mode 0, restores the selection on 4/6), resets labels and shows the new label (vt49) | 0.40 | T2 |  |
+| [0x15D798](../../../src/game/ui/tu_15CD68/func_0015D798.c) | `CEpisodeMenuItems` | Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus 1 if under 100% | 0.35 | T2 |  |
+| [0x15D880](../../../src/game/ui/tu_15CD68/func_0015D880.c) | `SetWidget131Highlight` | Plays label 0x5BD/0x5BE when the highlight flag changes | 0.35 | T2 |  |
+| [0x15D8F8](../../../src/game/ui/tu_15CD68/func_0015D8F8.c) | `FormatEpisodePercent` | Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is set) | 0.50 | T1 |  |
+| [0x15D9C0](../../../src/game/ui/tu_15CD68/func_0015D9C0.c) | `FormatEpisodePlayTime` | Text callback: '%01d:%02d' hours:minutes of the selected episode's play time | 0.50 | T1 |  |
+| [0x15DA88](../../../src/game/ui/tu_15CD68/func_0015DA88.c) | `SetEpisodeMenuPageText` | Text callback: string 0x77 or 0x78 depending on the parity of the widget's page | 0.30 | T2 |  |
 
 ## font (0x15EF00-0x1603B8)
 
@@ -81,42 +81,42 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1AE928](../../../src/auto/func_001AE928.c) | `InitPauseMenu` | Find menu widget object (oid 0x370) into +0x20; state 0, selection -1 | 0.45 | T2 |  |
-| [0x1AE970](../../../src/auto/func_001AE970.c) | `ResetPauseMenu` | Pop to root (0x1AF660), state 0, drop widget | 0.40 | T2 |  |
-| [0x1AE9A8](../../../src/auto/func_001AE9A8.c) | `PAUSEMENU_vt9` | Screen base vt9 (0x1D98A8) then reset joystick selection repeat if flag | 0.30 | T2 |  |
-| [0x1AE9E8](../../../src/hand/func_001AE9E8.c) | `ShowPausemenu` | Screen base show (0x1D98B0), clock rate 0 (pause), IncrementSwHandsOff, BroadcastGameEvent 0x28 | 0.55 | T1 |  |
-| [0x1AEA40](../../../src/hand/func_001AEA40.c) | `HidePausemenu` | Screen base hide (0x1D9910), clock rate 1, DecrementSwHandsOff, BroadcastGameEvent 0x2C | 0.55 | T1 |  |
-| [0x1AEAA8](../../../src/hand/func_001AEAA8.c) | `SetPauseMenuState` | Pause menu state machine (+0x1E8, 0..11): exit actions (move selection on 5/6, close on 0) then entry actions that play widget anims of the current page (text ids 0x331..0x335, slider 0x315 for volume items) | 0.60 | T1 | top50 |
-| [0x1AEEE0](../../../src/hand/func_001AEEE0.cpp) | `UpdatePauseMenu` | Screen vt7: per-frame menu input (DySelectionJoy, GrfHandleJoyBtn), item activation callbacks, volume/video item handling, save-slot pages | 0.50 | T1 |  |
-| [0x1AF388](../../../src/auto/func_001AF388.c) | `PAUSEMENU_vt8` | empty | 0.30 | T2 |  |
-| [0x1AF390](../../../src/hand/func_001AF390.c) | `ReplacePauseMenuPage` | Replace top page with item array af[n] (run item init callbacks), state 3 | 0.40 | T2 |  |
-| [0x1AF490](../../../src/hand/func_001AF490.c) | `PausePageBack` | In state 7: state 3 and select previous page | 0.35 | T2 |  |
-| [0x1AF4D8](../../../src/hand/func_001AF4D8.c) | `PushPauseMenuPage` | Push page (items, count, widget, title) onto menu stack x24, run item init callbacks, state 1 | 0.45 | T2 |  |
-| [0x1AF608](../../../src/hand/func_001AF608.c) | `PopPauseMenuPage` | In state 7: state 2, pop page if it is a save page | 0.40 | T2 |  |
-| [0x1AF660](../../../src/auto/func_001AF660.c) | `PopPauseMenuToRoot` | In state 7: keep only root page, state 8 | 0.40 | T2 |  |
-| [0x1AF6A0](../../../src/auto/func_001AF6A0.c) | `PauseMenuState11` | In state 7 -> state 11 | 0.25 | T2 |  |
-| [0x1AF6D0](../../../src/hand/func_001AF6D0.c) | `AdjustPauseVolumeItem` | Volume slider items 0x67/0x68 (music/sfx): left/right changes value (DxSelectionJoy), SetSndmgrChannelVolume, update meter | 0.45 | T2 |  |
-| [0x1AF9C8](../../../src/hand/func_001AF9C8.cpp) | `PauseItemTextVideo` | Item text callback: choose string for video items 76-78 from option values | 0.30 | T2 |  |
-| [0x1AFB88](../../../src/hand/func_001AFB88.cpp) | `ActivatePauseVideoItem` | Apply option item (msg kinds 103..): set option values (CRef setters) and ApplyGsSettings | 0.40 | T2 |  |
-| [0x1AFF88](../../../src/auto/func_001AFF88.c) | `ResetPauseVideoOptions` | 0x1D8FF8(options) then state 9 | 0.35 | T2 |  |
-| [0x1AFFC0](../../../src/hand/func_001AFFC0.c) | `CyclePauseOptionItem` | Item callback: cycle value through its list and apply | 0.40 | T2 |  |
-| [0x1B0078](../../../src/hand/func_001B0078.c) | `IdPauseTopPage` | Id of current top page (0x1E/0x1F/0x19 for the three save/load pages) or -1 | 0.85 | T1 | verified |
-| [0x1B0108](../../../src/hand/func_001B0108.c) | `FPauseSavePage` | Top page is one of the save/load pages | 0.40 | T2 |  |
-| [0x1B0160](../../../src/hand/func_001B0160.c) | `FPauseLoadPageA` | Top (or pending) page is D_002BFDA8 | 0.30 | T2 |  |
-| [0x1B01E8](../../../src/hand/func_001B01E8.c) | `FPauseLoadPageB` | Top (or pending) page is D_002BFE08 | 0.30 | T2 |  |
-| [0x1B0270](../../../src/auto/func_001B0270.c) | `PauseItemPopToRoot` | Item callback wrapper of PopPauseMenuToRoot | 0.30 | T2 |  |
-| [0x1B0290](../../../src/hand/func_001B0290.c) | `FOpenPauseMenu` | If allowed (not transitioning, no dialog), build the 7-item root page filtered by availability and push it | 0.45 | T2 |  |
-| [0x1B04E0](../../../src/hand/func_001B04E0.c) | `OpenPauseOptionsPage` | Build 11-item options page (filtered) and push or replace | 0.40 | T2 |  |
-| [0x1B0668](../../../src/auto/func_001B0668.c) | `PauseItemBack` | Item callback wrapper of PausePageBack | 0.30 | T2 |  |
-| [0x1B0688](../../../src/hand/func_001B0688.c) | `PauseItemPushPage` | Item callback wrapper of PushPauseMenuPage | 0.30 | T2 |  |
-| [0x1B06D8](../../../src/auto/func_001B06D8.c) | `PauseItemReplacePage` | Item callback wrapper of ReplacePauseMenuPage | 0.30 | T2 |  |
-| [0x1B0720](../../../src/auto/func_001B0720.c) | `PauseItemState11` | Item callback wrapper of 0x1AF6A0 | 0.25 | T2 |  |
-| [0x1B0740](../../../src/hand/func_001B0740.c) | `OpenPauseCharacterPage` | Game event 0x29; push page for the current player class (JT 0x35 / BENTLEY 0x37 / MURRAY 0x36) | 0.40 | T2 |  |
-| [0x1B0808](../../../src/hand/func_001B0808.c) | `PauseItemMap` | Game event 0x2B; 0x1DD300(screen,flag) | 0.25 | T2 |  |
-| [0x1B0848](../../../src/hand/func_001B0848.c) | `PauseItemTextQuit` | Text id 0x47 or 0x46 depending on flag | 0.25 | T2 |  |
-| [0x1B0878](../../../src/hand/func_001B0878.c) | `PauseItemSaveQuit` | Game events 0x2D/0x2E; save via memcard dialog states 0x22/0x1A (StartSaveJobB) or ResetGameSeq | 0.35 | T2 |  |
-| [0x1B0970](../../../src/hand/func_001B0970.c) | `PauseItemRestartJob` | Game event 0x2A; FailJob(current job) | 0.35 | T2 |  |
-| [0x1B09A8](../../../src/hand/func_001B09A8.c) | `PauseItemReturnToHideout` | WipeToWorldWarp(...,0x189) and fail current job | 0.85 | T1 | verified |
+| [0x1AE928](../../../src/game/ui/menu/func_001AE928.c) | `InitPauseMenu` | Find menu widget object (oid 0x370) into +0x20; state 0, selection -1 | 0.45 | T2 |  |
+| [0x1AE970](../../../src/game/ui/menu/func_001AE970.c) | `ResetPauseMenu` | Pop to root (0x1AF660), state 0, drop widget | 0.40 | T2 |  |
+| [0x1AE9A8](../../../src/game/ui/menu/func_001AE9A8.c) | `PAUSEMENU_vt9` | Screen base vt9 (0x1D98A8) then reset joystick selection repeat if flag | 0.30 | T2 |  |
+| [0x1AE9E8](../../../src/game/ui/menu/func_001AE9E8.c) | `ShowPausemenu` | Screen base show (0x1D98B0), clock rate 0 (pause), IncrementSwHandsOff, BroadcastGameEvent 0x28 | 0.55 | T1 |  |
+| [0x1AEA40](../../../src/game/ui/menu/func_001AEA40.c) | `HidePausemenu` | Screen base hide (0x1D9910), clock rate 1, DecrementSwHandsOff, BroadcastGameEvent 0x2C | 0.55 | T1 |  |
+| [0x1AEAA8](../../../src/game/ui/menu/func_001AEAA8.c) | `SetPauseMenuState` | Pause menu state machine (+0x1E8, 0..11): exit actions (move selection on 5/6, close on 0) then entry actions that play widget anims of the current page (text ids 0x331..0x335, slider 0x315 for volume items) | 0.60 | T1 | top50 |
+| [0x1AEEE0](../../../src/game/ui/menu/func_001AEEE0.cpp) | `UpdatePauseMenu` | Screen vt7: per-frame menu input (DySelectionJoy, GrfHandleJoyBtn), item activation callbacks, volume/video item handling, save-slot pages | 0.50 | T1 |  |
+| [0x1AF388](../../../src/game/ui/menu/func_001AF388.c) | `PAUSEMENU_vt8` | empty | 0.30 | T2 |  |
+| [0x1AF390](../../../src/game/ui/menu/func_001AF390.c) | `ReplacePauseMenuPage` | Replace top page with item array af[n] (run item init callbacks), state 3 | 0.40 | T2 |  |
+| [0x1AF490](../../../src/game/ui/menu/func_001AF490.c) | `PausePageBack` | In state 7: state 3 and select previous page | 0.35 | T2 |  |
+| [0x1AF4D8](../../../src/game/ui/menu/func_001AF4D8.c) | `PushPauseMenuPage` | Push page (items, count, widget, title) onto menu stack x24, run item init callbacks, state 1 | 0.45 | T2 |  |
+| [0x1AF608](../../../src/game/ui/menu/func_001AF608.c) | `PopPauseMenuPage` | In state 7: state 2, pop page if it is a save page | 0.40 | T2 |  |
+| [0x1AF660](../../../src/game/ui/menu/func_001AF660.c) | `PopPauseMenuToRoot` | In state 7: keep only root page, state 8 | 0.40 | T2 |  |
+| [0x1AF6A0](../../../src/game/ui/menu/func_001AF6A0.c) | `PauseMenuState11` | In state 7 -> state 11 | 0.25 | T2 |  |
+| [0x1AF6D0](../../../src/game/ui/menu/func_001AF6D0.c) | `AdjustPauseVolumeItem` | Volume slider items 0x67/0x68 (music/sfx): left/right changes value (DxSelectionJoy), SetSndmgrChannelVolume, update meter | 0.45 | T2 |  |
+| [0x1AF9C8](../../../src/game/ui/menu/func_001AF9C8.cpp) | `PauseItemTextVideo` | Item text callback: choose string for video items 76-78 from option values | 0.30 | T2 |  |
+| [0x1AFB88](../../../src/game/ui/menu/func_001AFB88.cpp) | `ActivatePauseVideoItem` | Apply option item (msg kinds 103..): set option values (CRef setters) and ApplyGsSettings | 0.40 | T2 |  |
+| [0x1AFF88](../../../src/game/ui/menu/func_001AFF88.c) | `ResetPauseVideoOptions` | 0x1D8FF8(options) then state 9 | 0.35 | T2 |  |
+| [0x1AFFC0](../../../src/game/ui/menu/func_001AFFC0.c) | `CyclePauseOptionItem` | Item callback: cycle value through its list and apply | 0.40 | T2 |  |
+| [0x1B0078](../../../src/game/ui/menu/func_001B0078.c) | `IdPauseTopPage` | Id of current top page (0x1E/0x1F/0x19 for the three save/load pages) or -1 | 0.85 | T1 | verified |
+| [0x1B0108](../../../src/game/ui/menu/func_001B0108.c) | `FPauseSavePage` | Top page is one of the save/load pages | 0.40 | T2 |  |
+| [0x1B0160](../../../src/game/ui/menu/func_001B0160.c) | `FPauseLoadPageA` | Top (or pending) page is D_002BFDA8 | 0.30 | T2 |  |
+| [0x1B01E8](../../../src/game/ui/menu/func_001B01E8.c) | `FPauseLoadPageB` | Top (or pending) page is D_002BFE08 | 0.30 | T2 |  |
+| [0x1B0270](../../../src/game/ui/menu/func_001B0270.c) | `PauseItemPopToRoot` | Item callback wrapper of PopPauseMenuToRoot | 0.30 | T2 |  |
+| [0x1B0290](../../../src/game/ui/menu/func_001B0290.c) | `FOpenPauseMenu` | If allowed (not transitioning, no dialog), build the 7-item root page filtered by availability and push it | 0.45 | T2 |  |
+| [0x1B04E0](../../../src/game/ui/menu/func_001B04E0.c) | `OpenPauseOptionsPage` | Build 11-item options page (filtered) and push or replace | 0.40 | T2 |  |
+| [0x1B0668](../../../src/game/ui/menu/func_001B0668.c) | `PauseItemBack` | Item callback wrapper of PausePageBack | 0.30 | T2 |  |
+| [0x1B0688](../../../src/game/ui/menu/func_001B0688.c) | `PauseItemPushPage` | Item callback wrapper of PushPauseMenuPage | 0.30 | T2 |  |
+| [0x1B06D8](../../../src/game/ui/menu/func_001B06D8.c) | `PauseItemReplacePage` | Item callback wrapper of ReplacePauseMenuPage | 0.30 | T2 |  |
+| [0x1B0720](../../../src/game/ui/menu/func_001B0720.c) | `PauseItemState11` | Item callback wrapper of 0x1AF6A0 | 0.25 | T2 |  |
+| [0x1B0740](../../../src/game/ui/menu/func_001B0740.c) | `OpenPauseCharacterPage` | Game event 0x29; push page for the current player class (JT 0x35 / BENTLEY 0x37 / MURRAY 0x36) | 0.40 | T2 |  |
+| [0x1B0808](../../../src/game/ui/menu/func_001B0808.c) | `PauseItemMap` | Game event 0x2B; 0x1DD300(screen,flag) | 0.25 | T2 |  |
+| [0x1B0848](../../../src/game/ui/menu/func_001B0848.c) | `PauseItemTextQuit` | Text id 0x47 or 0x46 depending on flag | 0.25 | T2 |  |
+| [0x1B0878](../../../src/game/ui/menu/func_001B0878.c) | `PauseItemSaveQuit` | Game events 0x2D/0x2E; save via memcard dialog states 0x22/0x1A (StartSaveJobB) or ResetGameSeq | 0.35 | T2 |  |
+| [0x1B0970](../../../src/game/ui/menu/func_001B0970.c) | `PauseItemRestartJob` | Game event 0x2A; FailJob(current job) | 0.35 | T2 |  |
+| [0x1B09A8](../../../src/game/ui/menu/func_001B09A8.c) | `PauseItemReturnToHideout` | WipeToWorldWarp(...,0x189) and fail current job | 0.85 | T1 | verified |
 
 ## prog (0x1C8CC0-0x1C9940)
 
