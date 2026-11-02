@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x0 over BHVANIM |
 | Descriptor | `D_002BB740` (record 158 of D_002BAAE8; cid range 158..159) |
-| Factory (`pfnNew`) | [`NewBhvidle`](../../../src/auto/NewBhvidle.c) `0x1130E8` |
+| Factory (`pfnNew`) | [`NewBhvidle`](../../../src/game/app/class_registry/NewBhvidle.c) `0x1130E8` |
 | Descriptor getter (slot 6) | `GetBhvidleClassDesc` `0x1143F0` |
 | vtable | `D_002D0A30`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvidle`](../../../src/auto/NewBhvidle.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvidle`](../../../src/game/app/class_registry/NewBhvidle.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV158`, proposed `BHVIDLE` (confidence 0.6), guard flag `2 (default)`. stand idle anim (BHVANIM default flag 2); flag 1 = hands-off pose
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvidleClassDesc`](../../../src/auto/GetBhvidleClassDesc.c) | `0x1143F0` |
+| 6 | Pclassinfo | **override** | [`GetBhvidleClassDesc`](../../../src/game/app/class_registry/GetBhvidleClassDesc.c) | `0x1143F0` |
 | 7 | Init | **override** | [`InitBhvidle`](../../../src/game/gameplay/ai/guardbhv/InitBhvidle.c) | `0x174FC8` |
 | 8 | Start | **override** | [`StartBhvidle`](../../../src/game/gameplay/ai/guardbhv/StartBhvidle.c) | `0x174FF8` |
 | 9 | Close | **override** | [`CloseBhvidle`](../../../src/game/gameplay/ai/guardbhv/CloseBhvidle.c) | `0x175090` |

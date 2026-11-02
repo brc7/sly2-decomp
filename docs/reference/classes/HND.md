@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x140 (320 bytes), +0x40 over TARGET |
 | Descriptor | `D_002BAC64` (record 19 of D_002BAAE8; cid range 19..20) |
-| Factory (`pfnNew`) | [`NewHnd`](../../../src/hand/NewHnd.cpp) `0x110EC0` |
+| Factory (`pfnNew`) | [`NewHnd`](../../../src/game/app/class_registry/NewHnd.cpp) `0x110EC0` |
 | Descriptor getter (slot 6) | `GetHndClassDesc` `0x113B40` |
 | vtable | `D_002D2978`, 51 entries (slots 0..50; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewHnd`](../../../src/hand/NewHnd.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHnd`](../../../src/game/app/class_registry/NewHnd.cpp) (vptr +0xC) |
 | Level instances | 74 objects in 12 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetHndClassDesc`](../../../src/auto/GetHndClassDesc.c) | `0x113B40` |
+| 6 | Pclassinfo | **override** | [`GetHndClassDesc`](../../../src/game/app/class_registry/GetHndClassDesc.c) | `0x113B40` |
 | 7 | Init | **override** | [`InitHnd`](../../../src/game/gameplay/player/hnd/InitHnd.c) | `0x184F50` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

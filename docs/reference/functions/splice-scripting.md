@@ -19,189 +19,189 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11F440](../../../src/hand/RefOpAdd__FiP4CRefP6CFrame.cpp) | `RefOpAdd` | Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion) | 0.93 | T1 |  |
-| [0x11F6D0](../../../src/hand/RefOpSub__FiP4CRefP6CFrame.cpp) | `RefOpSub` | Splice builtin "-": n-ary subtract, same shape as + | 0.93 | T1 |  |
-| [0x11F960](../../../src/hand/RefOpMult__FiP4CRefP6CFrame.cpp) | `RefOpMult` | Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU) | 0.93 | T1 |  |
-| [0x11FEC8](../../../src/hand/RefOpDiv__FiP4CRefP6CFrame.cpp) | `RefOpDiv` | Splice builtin "/": n-ary divide incl. int-matrix path | 0.93 | T1 |  |
-| [0x1202D0](../../../src/auto/RefOpPrint__FiP4CRefP6CFrame.c) | `RefOpPrint` | Splice builtin "print": returns Void (tag 0x24): print compiled out | 0.93 | T1 |  |
-| [0x120300](../../../src/auto/RefOpPrintFrame__FiP4CRefP6CFrame.c) | `RefOpPrintFrame` | Splice builtin "print-frame": returns Void | 0.93 | T1 |  |
-| [0x120330](../../../src/hand/RefOpPrintSidebag__FiP4CRefP6CFrame.c) | `RefOpPrintSidebag` | Splice builtin "print-sidebag": returns Void (local CRef then InitTag 0x24) | 0.93 | T1 |  |
-| [0x120370](../../../src/hand/RefOpIntEqual__FiP4CRefP6CFrame.c) | `RefOpIntEqual` | Splice builtin "=": bool(tag0==tag1 payload ints equal) | 0.93 | T1 | verified |
-| [0x120398](../../../src/hand/RefCmp__FP4CRef4CMPK.c) | `RefCmp` | Numeric compare of aref[0],aref[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool | 0.92 | T1 | verified |
-| [0x120488](../../../src/auto/RefOpL__FiP4CRefP6CFrame.c) | `RefOpL` | Splice builtin "<": RefCmp(aref,0) < | 0.93 | T1 | verified |
-| [0x1204B8](../../../src/auto/RefOpLE__FiP4CRefP6CFrame.c) | `RefOpLE` | Splice builtin "<=": RefCmp(aref,1) <= | 0.93 | T1 | verified |
-| [0x1204E8](../../../src/auto/RefOpG__FiP4CRefP6CFrame.c) | `RefOpG` | Splice builtin ">": RefCmp(aref,2) > | 0.93 | T1 | verified |
-| [0x120518](../../../src/auto/RefOpGE__FiP4CRefP6CFrame.c) | `RefOpGE` | Splice builtin ">=": RefCmp(aref,3) >= | 0.93 | T1 | verified |
-| [0x120548](../../../src/hand/RefOpEqv__FiP4CRefP6CFrame.cpp) | `RefOpEqv` | Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare | 0.93 | T1 | verified |
-| [0x1205B8](../../../src/hand/RefEqualHelper__FP4CRefT0.cpp) | `RefEqualHelper` | Recursive structural equality (lists, vectors, matrices) -> Bool | 0.90 | T1 | verified |
-| [0x1207F0](../../../src/auto/RefOpEqual__FiP4CRefP6CFrame.c) | `RefOpEqual` | Splice builtin "equal?": calls RefEqualHelper (recursive) | 0.93 | T1 | verified |
-| [0x120820](../../../src/hand/RefOpIsBoolean__FiP4CRefP6CFrame.c) | `RefOpIsBoolean` | Splice builtin "boolean?": tag==0x17 | 0.93 | T1 |  |
-| [0x120840](../../../src/hand/RefOpIsNum__FiP4CRefP6CFrame.c) | `RefOpIsNum` | Splice builtin "number?": tag==0x15\|\|0x16 | 0.93 | T1 |  |
-| [0x120860](../../../src/hand/RefOpIsFloat__FiP4CRefP6CFrame.c) | `RefOpIsFloat` | Splice builtin "float?": tag==0x16 (F32) | 0.93 | T1 |  |
-| [0x120880](../../../src/hand/RefOpIsInteger__FiP4CRefP6CFrame.c) | `RefOpIsInteger` | Splice builtin "integer?": tag==0x15 (S32) | 0.93 | T1 |  |
-| [0x1208A0](../../../src/hand/RefOpIsSymbol__FiP4CRefP6CFrame.c) | `RefOpIsSymbol` | Splice builtin "symbol?": tag==0x18 | 0.93 | T1 | verified |
-| [0x1208C0](../../../src/hand/RefOpIsVector__FiP4CRefP6CFrame.c) | `RefOpIsVector` | Splice builtin "vector?": tag==0x1A | 0.93 | T1 |  |
-| [0x1208E0](../../../src/hand/RefOpIsMatrix__FiP4CRefP6CFrame.c) | `RefOpIsMatrix` | Splice builtin "matrix?": tag==0x1B | 0.93 | T1 |  |
-| [0x120900](../../../src/hand/RefOpIsClq__FiP4CRefP6CFrame.c) | `RefOpIsClq` | Splice builtin "clq?": tag==0x1C | 0.93 | T1 |  |
-| [0x120920](../../../src/hand/RefOpIsLm__FiP4CRefP6CFrame.c) | `RefOpIsLm` | Splice builtin "lm?": tag==0x1D | 0.93 | T1 |  |
-| [0x120940](../../../src/hand/RefOpIsSmp__FiP4CRefP6CFrame.c) | `RefOpIsSmp` | Splice builtin "smp?": tag==0x1E | 0.93 | T1 |  |
-| [0x120960](../../../src/hand/RefOpIsList__FiP4CRefP6CFrame.cpp) | `RefOpIsList` | Splice builtin "list?": tag==0x1F\|\|tag==0 | 0.93 | T1 |  |
-| [0x120990](../../../src/hand/RefOpIsNull__FiP4CRefP6CFrame.c) | `RefOpIsNull` | Splice builtin "null?": tag==0 | 0.93 | T1 |  |
-| [0x1209B0](../../../src/hand/RefOpIsObject__FiP4CRefP6CFrame.c) | `RefOpIsObject` | Splice builtin "object?": tag==0x21 | 0.93 | T1 |  |
-| [0x1209D0](../../../src/auto/RefOpIsNullObj__FiP4CRefP6CFrame.c) | `RefOpIsNullObj` | Splice builtin "null-obj?": tag==0x21 && ptr==NULL | 0.93 | T1 |  |
-| [0x120A00](../../../src/hand/RefOpIsMethod__FiP4CRefP6CFrame.c) | `RefOpIsMethod` | Splice builtin "method?": tag==0x22 | 0.93 | T1 |  |
-| [0x120A20](../../../src/hand/RefOpIsProcedure__FiP4CRefP6CFrame.cpp) | `RefOpIsProcedure` | Splice builtin "procedure?": tag==0x20\|\|0x19 | 0.93 | T1 | verified |
-| [0x120A58](../../../src/hand/RefOpAreNear__FiP4CRefP6CFrame.c) | `RefOpAreNear` | Splice builtin "near?": FFloatsNear(a,b,eps) | 0.93 | T1 | verified |
-| [0x120AE0](../../../src/auto/RefOpNot__FiP4CRefP6CFrame.c) | `RefOpNot` | Splice builtin "not": true iff arg is Bool false | 0.93 | T1 |  |
-| [0x120B08](../../../src/hand/RefOpCons__FiP4CRefP6CFrame.cpp) | `RefOpCons` | Splice builtin "cons": new pair node (ref=a0, next=a1 if list) | 0.93 | T1 | verified |
-| [0x120BD0](../../../src/auto/RefOpCar__FiP4CRefP6CFrame.c) | `RefOpCar` | Splice builtin "car": copy of node->ref | 0.93 | T1 |  |
-| [0x120C00](../../../src/auto/RefOpCdr__FiP4CRefP6CFrame.c) | `RefOpCdr` | Splice builtin "cdr": CRef(node->pnext) or Nil | 0.93 | T1 |  |
-| [0x120C48](../../../src/hand/RefOpSetCadr__FiP4CRefP6CFrame4BIFK.c) | `RefOpSetCadr` | Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void | 0.90 | T1 |  |
-| [0x120CC8](../../../src/hand/RefOpSetCar__FiP4CRefP6CFrame.c) | `RefOpSetCar` | Splice builtin "set-car!": RefOpSetCadr(...,0x23) | 0.93 | T1 | verified |
-| [0x120CF8](../../../src/hand/RefOpSetCdr__FiP4CRefP6CFrame.c) | `RefOpSetCdr` | Splice builtin "set-cdr!": RefOpSetCadr(...,0x24) | 0.93 | T1 | verified |
-| [0x120D28](../../../src/auto/RefOpLength__FiP4CRefP6CFrame.c) | `RefOpLength` | Splice builtin "length": count of list nodes -> S32 | 0.93 | T1 |  |
-| [0x120D78](../../../src/hand/RefOpNth__FiP4CRefP6CFrame.c) | `RefOpNth` | Splice builtin "nth": walk list to index a1 | 0.93 | T1 |  |
-| [0x120E10](../../../src/hand/RefOpIsMember__FiP4CRefP6CFrame.cpp) | `RefOpIsMember` | Splice builtin "member?": loop calling RefOpEqual on each element | 0.93 | T1 | verified |
-| [0x120F80](../../../src/auto/RefOpList__FiP4CRefP6CFrame.c) | `RefOpList` | Splice builtin "list": returns the arg list itself (varargs) | 0.93 | T1 | verified |
-| [0x120FB0](../../../src/hand/RefOpShuffle.cpp) | `RefOpShuffle` | Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element changes; Nil entry pins tail | 0.45 | T2 |  |
-| [0x1212F8](../../../src/hand/RefOpAppend__FiP4CRefP6CFrame.cpp) | `RefOpAppend` | Splice builtin "append": concatenates list args (copies all but last) | 0.93 | T1 | verified |
-| [0x121578](../../../src/hand/func_00121578.cpp) | `SpnNewApplyList2` | Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for map/filter/for-each | 0.45 | T2 |  |
-| [0x121710](../../../src/hand/RefOpMap__FiP4CRefP6CFrame.cpp) | `RefOpMap` | Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results | 0.93 | T1 | verified |
-| [0x121938](../../../src/hand/RefOpFilter__FiP4CRefP6CFrame.cpp) | `RefOpFilter` | Splice builtin "filter": same, keeps elems where result true | 0.93 | T1 | verified |
-| [0x121C20](../../../src/hand/RefOpForEach__FiP4CRefP6CFrame.cpp) | `RefOpForEach` | Splice builtin "for-each": same, discards results | 0.93 | T1 |  |
-| [0x121D20](../../../src/hand/RefOpEval__FiP4CRefP6CFrame.cpp) | `RefOpEval` | Splice builtin "eval": wraps arg in list and applies 0x127838 | 0.93 | T1 |  |
-| [0x121DD8](../../../src/hand/RefOpVector__FiP4CRefP6CFrame.cpp) | `RefOpVector` | Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs) | 0.85 | T1 |  |
-| [0x121F00](../../../src/hand/RefOpMatrix__FiP4CRefP6CFrame.cpp) | `RefOpMatrix` | Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based | 0.93 | T1 | verified |
-| [0x1220B8](../../../src/hand/RefOpClq__FiP4CRefP6CFrame.c) | `RefOpClq` | Splice builtin "clq": 3 floats -> tag 0x1C | 0.93 | T1 | verified |
-| [0x122168](../../../src/hand/RefOpLm__FiP4CRefP6CFrame.c) | `RefOpLm` | Splice builtin "lm": 2 floats -> tag 0x1D | 0.93 | T1 | verified |
-| [0x122218](../../../src/hand/RefOpSmp__FiP4CRefP6CFrame.c) | `RefOpSmp` | Splice builtin "smp": 3 floats -> tag 0x1E | 0.93 | T1 |  |
-| [0x1222C8](../../../src/hand/RefOpGetElement__FiP4CRefP6CFrame.c) | `RefOpGetElement` | Splice builtin "get-element": element of vector/matrix by index list | 0.93 | T1 |  |
-| [0x1223C0](../../../src/hand/RefOpRandom__FiP4CRefP6CFrame.cpp) | `RefOpRandom` | Splice builtin "random": NRandInRange for ints else GRandInRange | 0.93 | T1 |  |
-| [0x1224A8](../../../src/hand/RefUfo__FP4CRef4UFOK.c) | `RefUfo` | Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7) | 0.90 | T1 |  |
-| [0x122530](../../../src/auto/RefOpSqrt__FiP4CRefP6CFrame.c) | `RefOpSqrt` | Splice builtin "sqrt": RefUfo(arg,0) | 0.93 | T1 | verified |
-| [0x122560](../../../src/auto/RefOpSin__FiP4CRefP6CFrame.c) | `RefOpSin` | Splice builtin "sin": RefUfo(arg,1) | 0.93 | T1 | verified |
-| [0x122590](../../../src/auto/RefOpCos__FiP4CRefP6CFrame.c) | `RefOpCos` | Splice builtin "cos": RefUfo(arg,2) | 0.93 | T1 | verified |
-| [0x1225C0](../../../src/auto/RefOpTan__FiP4CRefP6CFrame.c) | `RefOpTan` | Splice builtin "tan": RefUfo(arg,3) | 0.93 | T1 | verified |
-| [0x1225F0](../../../src/auto/RefOpAsin__FiP4CRefP6CFrame.c) | `RefOpAsin` | Splice builtin "asin": RefUfo(arg,4) | 0.93 | T1 | verified |
-| [0x122620](../../../src/auto/RefOpAcos__FiP4CRefP6CFrame.c) | `RefOpAcos` | Splice builtin "acos": RefUfo(arg,5) | 0.93 | T1 | verified |
-| [0x122650](../../../src/auto/RefOpAtan__FiP4CRefP6CFrame.c) | `RefOpAtan` | Splice builtin "atan": RefUfo(arg,6) | 0.93 | T1 | verified |
-| [0x122680](../../../src/auto/RefOpRadNormalize__FiP4CRefP6CFrame.c) | `RefOpRadNormalize` | Splice builtin "rad-normalize": RefUfo(arg,7) | 0.93 | T1 | verified |
-| [0x1226B0](../../../src/hand/RefOpAtan2__FiP4CRefP6CFrame.c) | `RefOpAtan2` | Splice builtin "atan2": atan2f(a0,a1) | 0.93 | T1 |  |
-| [0x122730](../../../src/hand/RefOpVectorDotProduct__FiP4CRefP6CFrame.c) | `RefOpVectorDotProduct` | Splice builtin "vector-dot-product": VU dot xyz | 0.93 | T1 |  |
-| [0x122770](../../../src/hand/RefOpVectorCrossProduct__FiP4CRefP6CFrame.c) | `RefOpVectorCrossProduct` | Splice builtin "vector-cross-product": VU outer product (cross) | 0.93 | T1 |  |
-| [0x1227D0](../../../src/hand/RefOpVectorLth__FiP4CRefP6CFrame.c) | `RefOpVectorLth` | Splice builtin "vector-lth": VU length | 0.93 | T1 |  |
-| [0x122810](../../../src/hand/RefOpVectorDistance__FiP4CRefP6CFrame.cpp) | `RefOpVectorDistance` | Splice builtin "vector-distance": distance to a1 or origin | 0.93 | T1 |  |
-| [0x1228F0](../../../src/hand/RefOpVectorDistanceSquared__FiP4CRefP6CFrame.cpp) | `RefOpVectorDistanceSquared` | Splice builtin "vector-distance-squared": squared distance | 0.93 | T1 | verified |
-| [0x1229B8](../../../src/hand/RefOpVectorNormalize__FiP4CRefP6CFrame.cpp) | `RefOpVectorNormalize` | Splice builtin "vector-normalize": normalize with 1e-4 guard/default | 0.93 | T1 |  |
-| [0x122B08](../../../src/hand/RefOpVectorProjectNormal__FiP4CRefP6CFrame.c) | `RefOpVectorProjectNormal` | Splice builtin "vector-project-normal": (a.b)b | 0.93 | T1 |  |
-| [0x122B70](../../../src/hand/RefOpVectorProjectTangent__FiP4CRefP6CFrame.c) | `RefOpVectorProjectTangent` | Splice builtin "vector-project-tangent": a-(a.b)b | 0.93 | T1 |  |
-| [0x122BE0](../../../src/hand/RefOpVectorBallisticVelocity__FiP4CRefP6CFrame.cpp) | `RefOpVectorBallisticVelocity` | Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with gravity (0,0,-1750) or object xfm | 0.93 | T1 |  |
-| [0x122CE0](../../../src/hand/RefOpVectorRadianNormal__FiP4CRefP6CFrame.cpp) | `RefOpVectorRadianNormal` | Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0 | 0.93 | T1 |  |
-| [0x122DE0](../../../src/hand/RefOpMatrixTranspose__FiP4CRefP6CFrame.c) | `RefOpMatrixTranspose` | Splice builtin "matrix-transpose": 0x11C1D8 | 0.93 | T1 | verified |
-| [0x122E40](../../../src/auto/RefOpMatrixInvert__FiP4CRefP6CFrame.c) | `RefOpMatrixInvert` | Splice builtin "matrix-invert": 0x11C2F0 | 0.93 | T1 |  |
-| [0x122EA0](../../../src/auto/RefOpMatrixCalculateDmat__FiP4CRefP6CFrame.c) | `RefOpMatrixCalculateDmat` | Splice builtin "matrix-calculate-dmat": 0x11C3D0 (CalculateDmat) | 0.93 | T1 |  |
-| [0x122F00](../../../src/hand/RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame.cpp) | `RefOpMatrixInterpolateRotate` | Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500) | 0.93 | T1 |  |
-| [0x123038](../../../src/auto/RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame.c) | `RefOpMatrixDecomposeToTranslate` | Splice builtin "matrix-decompose-to-translate": translation column -> vector | 0.93 | T1 |  |
-| [0x123080](../../../src/auto/RefOpMatrixDecomposeToRotate__FiP4CRefP6CFrame.c) | `RefOpMatrixDecomposeToRotate` | Splice builtin "matrix-decompose-to-rotate": rotation part -> matrix | 0.93 | T1 |  |
-| [0x1230C8](../../../src/hand/RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame.c) | `RefOpMatrixDecomposeToEuler` | Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler | 0.93 | T1 |  |
-| [0x123118](../../../src/hand/RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame.cpp) | `RefOpMatrixDecomposeToRadianNormal` | Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad | 0.93 | T1 | verified |
-| [0x123208](../../../src/hand/RefOpMatrixLookAt__FiP4CRefP6CFrame.cpp) | `RefOpMatrixLookAt` | Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default D_002A2DC0 | 0.93 | T1 |  |
-| [0x1232D0](../../../src/hand/RefOpMatrixTiltUpright__FiP4CRefP6CFrame.cpp) | `RefOpMatrixTiltUpright` | Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright | 0.93 | T1 |  |
-| [0x123380](../../../src/hand/RefOpClqEvaluate__FiP4CRefP6CFrame.c) | `RefOpClqEvaluate` | Splice builtin "clq-evaluate": a0+t(a1+t a2) | 0.93 | T1 |  |
-| [0x1233F0](../../../src/hand/RefOpClqEvaluateLm__FiP4CRefP6CFrame.c) | `RefOpClqEvaluateLm` | Splice builtin "clq-evaluate-lm": clq eval clamped to lm | 0.93 | T1 |  |
-| [0x123498](../../../src/hand/RefOpClqFit__FiP4CRefP6CFrame.cpp) | `RefOpClqFit` | Splice builtin "clq-fit": FitClq | 0.93 | T1 | verified |
-| [0x1235A8](../../../src/hand/RefOpLmLimit__FiP4CRefP6CFrame.c) | `RefOpLmLimit` | Splice builtin "lm-limit": GLimitLm | 0.93 | T1 |  |
-| [0x123608](../../../src/hand/RefOpLmCheck__FiP4CRefP6CFrame.c) | `RefOpLmCheck` | Splice builtin "lm-check?": FCheckLm | 0.93 | T1 |  |
-| [0x123668](../../../src/hand/RefOpFloor__FiP4CRefP6CFrame.c) | `RefOpFloor` | Splice builtin "floor": (int)g | 0.93 | T1 |  |
-| [0x123688](../../../src/hand/RefOpCeiling__FiP4CRefP6CFrame.c) | `RefOpCeiling` | Splice builtin "ceiling": (int)(g+1) | 0.93 | T1 | verified |
-| [0x1236B0](../../../src/hand/RefOpRound__FiP4CRefP6CFrame.c) | `RefOpRound` | Splice builtin "round": (int)(g+0.5) | 0.93 | T1 |  |
-| [0x1236D8](../../../src/hand/RefOpTruncate__FiP4CRefP6CFrame.c) | `RefOpTruncate` | Splice builtin "truncate": (int)g | 0.93 | T1 |  |
-| [0x1236F8](../../../src/hand/RefOpAbs__FiP4CRefP6CFrame.c) | `RefOpAbs` | Splice builtin "abs": abs int/float | 0.93 | T1 | verified |
-| [0x123788](../../../src/hand/RefOpMaximum__FiP4CRefP6CFrame.cpp) | `RefOpMaximum` | Splice builtin "max": max over varargs | 0.93 | T1 |  |
-| [0x1238B0](../../../src/hand/RefOpMinimum__FiP4CRefP6CFrame.cpp) | `RefOpMinimum` | Splice builtin "min": min over varargs | 0.93 | T1 |  |
-| [0x1239D8](../../../src/hand/RefOpModulo__FiP4CRefP6CFrame.c) | `RefOpModulo` | Splice builtin "modulo": int % | 0.93 | T1 |  |
-| [0x123A08](../../../src/hand/RefOpCurrentTime__FiP4CRefP6CFrame.c) | `RefOpCurrentTime` | Splice builtin "current-time": F32 = g_clock.t (D_002DDED0) | 0.85 | T1 |  |
-| [0x123A28](../../../src/auto/RefOpCurrentLevel.c) | `RefOpGetLoadFilterCur` | S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by FMatchLoadFilter | 0.30 | T2 |  |
-| [0x123A60](../../../src/auto/RefOpCurrentEpisode.c) | `RefOpGetLoadFilterMappedA` | S32 = table D_003E1C48[cur] (0x210A98) or -1 | 0.25 | T2 |  |
-| [0x123A98](../../../src/auto/RefOpCurrentWorld.c) | `RefOpGetLoadFilterMappedB` | S32 = table D_003E1C44[cur] (0x210AE0) or -1 | 0.25 | T2 |  |
-| [0x123AD0](../../../src/auto/RefOpFindCurrentJob.c) | `RefOpFindPlayerObject0` | CRef(BASIC*) of g_sw slot D_003E0F9C | 0.30 | T2 |  |
-| [0x123B00](../../../src/auto/RefOpFindCurrentTask.c) | `RefOpFindPlayerObject1` | CRef(BASIC*) of D_003E0FA0 | 0.30 | T2 |  |
-| [0x123B30](../../../src/auto/RefOpFindPendingTask.c) | `RefOpFindPlayerObject2` | CRef(BASIC*) of D_003E0FA4 | 0.30 | T2 |  |
-| [0x123B60](../../../src/auto/RefOpGetDifficulty.c) | `RefOpGetFloat103` | F32 = 0x154C90(&D_002DE578): D_003E0F9C->pg value or average of 3 Splice values | 0.20 | T2 |  |
-| [0x123BA0](../../../src/auto/func_00123BA0.c) | `RefOpGetStub104` | S32 = 0x210B68() which always returns 0 | 0.20 | T2 |  |
-| [0x123BD8](../../../src/hand/RefOpScheduleCallback__FiP4CRefP6CFrame.cpp) | `RefOpScheduleCallback` | Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32 handle | 0.85 | T1 |  |
-| [0x123DD8](../../../src/auto/RefOpCancelCallback.c) | `RefOpCancelCallback` | Cancels a scheduled callback by handle: 0x133130(g_sw, id) unlinks and frees; returns Void | 0.70 | T1 |  |
-| [0x123E18](../../../src/hand/RefOpDeferObjectUpdate__FiP4CRefP6CFrame.c) | `RefOpDeferObjectUpdate` | Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt | 0.85 | T1 |  |
-| [0x123EB0](../../../src/hand/RefOpObjectOption__FiP4CRefP6CFrame4BIFK.cpp) | `RefOpObjectOption` | Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F -> RefAddOption/RefEnsureOption/RefSetOption/RefGetOption | 0.95 | T1 | verified |
-| [0x123FB8](../../../src/hand/RefOpAddO__FiP4CRefP6CFrame.c) | `RefOpAddO` | Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption | 0.93 | T1 | verified |
-| [0x123FE8](../../../src/hand/RefOpEnsureO__FiP4CRefP6CFrame.c) | `RefOpEnsureO` | Splice builtin "ensureo": op 0x6D RefEnsureOption | 0.93 | T1 | verified |
-| [0x124018](../../../src/hand/RefOpSetO__FiP4CRefP6CFrame.c) | `RefOpSetO` | Splice builtin "seto!": op 0x6E RefSetOption | 0.93 | T1 | verified |
-| [0x124048](../../../src/hand/RefOpGetO__FiP4CRefP6CFrame.c) | `RefOpGetO` | Splice builtin "geto": op 0x6F RefGetOption | 0.93 | T1 | verified |
-| [0x124078](../../../src/hand/RefPairFromAplo__FiPP2LO.cpp) | `RefPairFromAplo` | Builds a Splice list of CRef(BASIC*) from an LO* array | 0.92 | T1 |  |
-| [0x124150](../../../src/hand/RefOpFindObject__FiP4CRefP6CFrame.c) | `RefOpFindObject` | Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root | 0.85 | T1 |  |
-| [0x1241E8](../../../src/hand/RefOpFindObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindObjects` | Splice builtin "find-objects": 0x15E678 + RefPairFromAplo | 0.85 | T1 |  |
-| [0x1242B8](../../../src/hand/RefOpFindObjectsFromOids.cpp) | `RefOpFindObjectsFromOids` | Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object) | 0.45 | T2 |  |
-| [0x1244E8](../../../src/hand/RefOpFindNearestObject__FiP4CRefP6CFrame.c) | `RefOpFindNearestObject` | Splice builtin "find-nearest-object": like find-object with k=4 | 0.85 | T1 |  |
-| [0x124578](../../../src/hand/RefOpFindNearestObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindNearestObjects` | Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo | 0.85 | T1 | verified |
-| [0x124640](../../../src/hand/RefOpFindWorldObject__FiP4CRefP6CFrame.c) | `RefOpFindWorldObject` | Splice builtin "find-world-object": CRef(BASIC*) of &D_003DD490 (g_sw) | 0.60 | T1 |  |
-| [0x124690](../../../src/hand/RefOpFindSoundObject.c) | `RefOpFindSoundObject` | CRef(BASIC*) of static object D_003DD040 (the object LoadSwFromBrx passes to 0x1FD0E8 sound-section loader) | 0.30 | T2 |  |
-| [0x1246E0](../../../src/hand/RefOpFindCameraObject__FiP4CRefP6CFrame.c) | `RefOpFindCameraObject` | Splice builtin "find-camera-object": CRef(BASIC*) of &D_002DDF40 (g_cm) | 0.93 | T1 |  |
-| [0x124730](../../../src/hand/RefOpFindClassObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindClassObjects` | Splice builtin "find-class-objects": 0x15E9C8 by class + RefPairFromAplo | 0.93 | T1 |  |
-| [0x1247D8](../../../src/hand/RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame.cpp) | `RefOpFindObjectsInBoundingBox` | Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter | 0.93 | T1 |  |
-| [0x1248B0](../../../src/hand/RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame.cpp) | `RefOpFindObjectsInBoundingSphere` | Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8 | 0.93 | T1 |  |
-| [0x1249A8](../../../src/hand/RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame.cpp) | `RefOpHitTestObjectsImpl` | Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C returns first hit | 0.88 | T1 |  |
-| [0x124F00](../../../src/hand/RefOpHitTestObjects__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjects` | Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal) | 0.85 | T1 | verified |
-| [0x124F80](../../../src/hand/RefOpHitTestObjectsFirst__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjectsFirst` | Splice builtin "hit-test-objects-first": Impl(0x7C) -> first hit | 0.85 | T1 |  |
-| [0x125000](../../../src/hand/RefOpConvertObjectPosition__FiP4CRefP6CFrame.c) | `RefOpConvertObjectPosition` | Splice builtin "convert-object-position": ConvertAloPos 0x1A6F00 | 0.85 | T1 |  |
-| [0x125060](../../../src/hand/RefOpConvertObjectVector__FiP4CRefP6CFrame.c) | `RefOpConvertObjectVector` | Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0 | 0.85 | T1 | verified |
-| [0x1250D8](../../../src/hand/RefOpConvertObjectMatrix__FiP4CRefP6CFrame.c) | `RefOpConvertObjectMatrix` | Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0 | 0.85 | T1 |  |
-| [0x125168](../../../src/hand/RefOpNearClipCenter__FiP4CRefP6CFrame.c) | `RefOpNearClipCenter` | Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix | 0.85 | T1 |  |
-| [0x1251E8](../../../src/hand/RefOpStartSound__FiP4CRefP6CFrame.c) | `RefOpStartSound` | Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound | 0.85 | T1 |  |
-| [0x125248](../../../src/hand/RefOpStartRumble__FiP4CRefP6CFrame.c) | `RefOpStartRumble` | Splice builtin "start-rumble": TriggerJoyRumbleRumk-like 0x187E28 | 0.85 | T1 |  |
-| [0x1252D0](../../../src/hand/FillAsFromPair.c) | `FillAsFromPair` | Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements (save-var path) | 0.65 | T1 | format-doc |
-| [0x125398](../../../src/hand/RefOpGetSaveVar.cpp) | `RefOpGetSaveVar` | Converts path list to U16 array (0x1252D0) and returns RefGetSaveVar(D_003E0EA8,..) | 0.65 | T1 | format-doc |
-| [0x125450](../../../src/hand/RefOpSetSaveVar.cpp) | `RefOpSetSaveVar` | Path list + value -> RefSetSaveVar 0x1D80C8 | 0.60 | T1 |  |
-| [0x125510](../../../src/hand/RefOpFindBindingOrNoop.cpp) | `RefOpFindBindingOrNoop` | Looks up a symbol in the calling object frame chain (CFrame::PrefFindBinding(sym,1)); if unbound returns Bifk 0x86 (slot 134 no-op builtin) | 0.35 | T2 |  |
-| [0x1255C0](../../../src/auto/RefOpNoop.c) | `RefOpNoop` | Varargs builtin that returns Void | 0.50 | T1 | verified |
-| [0x1255F0](../../../src/auto/RefOpBitAnd.c) | `RefOpBitAnd` | Bitwise AND of all S32 list args (init -1) | 0.60 | T1 |  |
-| [0x125640](../../../src/auto/RefOpBitOr.c) | `RefOpBitOr` | Bitwise OR of all S32 list args (init 0) | 0.60 | T1 |  |
-| [0x125690](../../../src/hand/func_00125690.c) | `RefOpFindGameObject` | CRef(BASIC*) of static object D_003DA0C0 (used by save TU 0x1D94B0) | 0.25 | T2 |  |
-| [0x1256E0](../../../src/hand/RefOpIsPowerUpAcquired.c) | `RefOpIsPowerUpAcquired` | Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8 | 0.65 | T1 |  |
-| [0x125738](../../../src/hand/RefOpSetPowerUpAcquired.c) | `RefOpSetPowerUpAcquired` | Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set) | 0.65 | T1 |  |
+| [0x11F440](../../../src/game/app/bif/RefOpAdd__FiP4CRefP6CFrame.cpp) | `RefOpAdd` | Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion) | 0.93 | T1 |  |
+| [0x11F6D0](../../../src/game/app/bif/RefOpSub__FiP4CRefP6CFrame.cpp) | `RefOpSub` | Splice builtin "-": n-ary subtract, same shape as + | 0.93 | T1 |  |
+| [0x11F960](../../../src/game/app/bif/RefOpMult__FiP4CRefP6CFrame.cpp) | `RefOpMult` | Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU) | 0.93 | T1 |  |
+| [0x11FEC8](../../../src/game/app/bif/RefOpDiv__FiP4CRefP6CFrame.cpp) | `RefOpDiv` | Splice builtin "/": n-ary divide incl. int-matrix path | 0.93 | T1 |  |
+| [0x1202D0](../../../src/game/app/bif/RefOpPrint__FiP4CRefP6CFrame.c) | `RefOpPrint` | Splice builtin "print": returns Void (tag 0x24): print compiled out | 0.93 | T1 |  |
+| [0x120300](../../../src/game/app/bif/RefOpPrintFrame__FiP4CRefP6CFrame.c) | `RefOpPrintFrame` | Splice builtin "print-frame": returns Void | 0.93 | T1 |  |
+| [0x120330](../../../src/game/app/bif/RefOpPrintSidebag__FiP4CRefP6CFrame.c) | `RefOpPrintSidebag` | Splice builtin "print-sidebag": returns Void (local CRef then InitTag 0x24) | 0.93 | T1 |  |
+| [0x120370](../../../src/game/app/bif/RefOpIntEqual__FiP4CRefP6CFrame.c) | `RefOpIntEqual` | Splice builtin "=": bool(tag0==tag1 payload ints equal) | 0.93 | T1 | verified |
+| [0x120398](../../../src/game/app/bif/RefCmp__FP4CRef4CMPK.c) | `RefCmp` | Numeric compare of aref[0],aref[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool | 0.92 | T1 | verified |
+| [0x120488](../../../src/game/app/bif/RefOpL__FiP4CRefP6CFrame.c) | `RefOpL` | Splice builtin "<": RefCmp(aref,0) < | 0.93 | T1 | verified |
+| [0x1204B8](../../../src/game/app/bif/RefOpLE__FiP4CRefP6CFrame.c) | `RefOpLE` | Splice builtin "<=": RefCmp(aref,1) <= | 0.93 | T1 | verified |
+| [0x1204E8](../../../src/game/app/bif/RefOpG__FiP4CRefP6CFrame.c) | `RefOpG` | Splice builtin ">": RefCmp(aref,2) > | 0.93 | T1 | verified |
+| [0x120518](../../../src/game/app/bif/RefOpGE__FiP4CRefP6CFrame.c) | `RefOpGE` | Splice builtin ">=": RefCmp(aref,3) >= | 0.93 | T1 | verified |
+| [0x120548](../../../src/game/app/bif/RefOpEqv__FiP4CRefP6CFrame.cpp) | `RefOpEqv` | Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare | 0.93 | T1 | verified |
+| [0x1205B8](../../../src/game/app/bif/RefEqualHelper__FP4CRefT0.cpp) | `RefEqualHelper` | Recursive structural equality (lists, vectors, matrices) -> Bool | 0.90 | T1 | verified |
+| [0x1207F0](../../../src/game/app/bif/RefOpEqual__FiP4CRefP6CFrame.c) | `RefOpEqual` | Splice builtin "equal?": calls RefEqualHelper (recursive) | 0.93 | T1 | verified |
+| [0x120820](../../../src/game/app/bif/RefOpIsBoolean__FiP4CRefP6CFrame.c) | `RefOpIsBoolean` | Splice builtin "boolean?": tag==0x17 | 0.93 | T1 |  |
+| [0x120840](../../../src/game/app/bif/RefOpIsNum__FiP4CRefP6CFrame.c) | `RefOpIsNum` | Splice builtin "number?": tag==0x15\|\|0x16 | 0.93 | T1 |  |
+| [0x120860](../../../src/game/app/bif/RefOpIsFloat__FiP4CRefP6CFrame.c) | `RefOpIsFloat` | Splice builtin "float?": tag==0x16 (F32) | 0.93 | T1 |  |
+| [0x120880](../../../src/game/app/bif/RefOpIsInteger__FiP4CRefP6CFrame.c) | `RefOpIsInteger` | Splice builtin "integer?": tag==0x15 (S32) | 0.93 | T1 |  |
+| [0x1208A0](../../../src/game/app/bif/RefOpIsSymbol__FiP4CRefP6CFrame.c) | `RefOpIsSymbol` | Splice builtin "symbol?": tag==0x18 | 0.93 | T1 | verified |
+| [0x1208C0](../../../src/game/app/bif/RefOpIsVector__FiP4CRefP6CFrame.c) | `RefOpIsVector` | Splice builtin "vector?": tag==0x1A | 0.93 | T1 |  |
+| [0x1208E0](../../../src/game/app/bif/RefOpIsMatrix__FiP4CRefP6CFrame.c) | `RefOpIsMatrix` | Splice builtin "matrix?": tag==0x1B | 0.93 | T1 |  |
+| [0x120900](../../../src/game/app/bif/RefOpIsClq__FiP4CRefP6CFrame.c) | `RefOpIsClq` | Splice builtin "clq?": tag==0x1C | 0.93 | T1 |  |
+| [0x120920](../../../src/game/app/bif/RefOpIsLm__FiP4CRefP6CFrame.c) | `RefOpIsLm` | Splice builtin "lm?": tag==0x1D | 0.93 | T1 |  |
+| [0x120940](../../../src/game/app/bif/RefOpIsSmp__FiP4CRefP6CFrame.c) | `RefOpIsSmp` | Splice builtin "smp?": tag==0x1E | 0.93 | T1 |  |
+| [0x120960](../../../src/game/app/bif/RefOpIsList__FiP4CRefP6CFrame.cpp) | `RefOpIsList` | Splice builtin "list?": tag==0x1F\|\|tag==0 | 0.93 | T1 |  |
+| [0x120990](../../../src/game/app/bif/RefOpIsNull__FiP4CRefP6CFrame.c) | `RefOpIsNull` | Splice builtin "null?": tag==0 | 0.93 | T1 |  |
+| [0x1209B0](../../../src/game/app/bif/RefOpIsObject__FiP4CRefP6CFrame.c) | `RefOpIsObject` | Splice builtin "object?": tag==0x21 | 0.93 | T1 |  |
+| [0x1209D0](../../../src/game/app/bif/RefOpIsNullObj__FiP4CRefP6CFrame.c) | `RefOpIsNullObj` | Splice builtin "null-obj?": tag==0x21 && ptr==NULL | 0.93 | T1 |  |
+| [0x120A00](../../../src/game/app/bif/RefOpIsMethod__FiP4CRefP6CFrame.c) | `RefOpIsMethod` | Splice builtin "method?": tag==0x22 | 0.93 | T1 |  |
+| [0x120A20](../../../src/game/app/bif/RefOpIsProcedure__FiP4CRefP6CFrame.cpp) | `RefOpIsProcedure` | Splice builtin "procedure?": tag==0x20\|\|0x19 | 0.93 | T1 | verified |
+| [0x120A58](../../../src/game/app/bif/RefOpAreNear__FiP4CRefP6CFrame.c) | `RefOpAreNear` | Splice builtin "near?": FFloatsNear(a,b,eps) | 0.93 | T1 | verified |
+| [0x120AE0](../../../src/game/app/bif/RefOpNot__FiP4CRefP6CFrame.c) | `RefOpNot` | Splice builtin "not": true iff arg is Bool false | 0.93 | T1 |  |
+| [0x120B08](../../../src/game/app/bif/RefOpCons__FiP4CRefP6CFrame.cpp) | `RefOpCons` | Splice builtin "cons": new pair node (ref=a0, next=a1 if list) | 0.93 | T1 | verified |
+| [0x120BD0](../../../src/game/app/bif/RefOpCar__FiP4CRefP6CFrame.c) | `RefOpCar` | Splice builtin "car": copy of node->ref | 0.93 | T1 |  |
+| [0x120C00](../../../src/game/app/bif/RefOpCdr__FiP4CRefP6CFrame.c) | `RefOpCdr` | Splice builtin "cdr": CRef(node->pnext) or Nil | 0.93 | T1 |  |
+| [0x120C48](../../../src/game/app/bif/RefOpSetCadr__FiP4CRefP6CFrame4BIFK.c) | `RefOpSetCadr` | Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void | 0.90 | T1 |  |
+| [0x120CC8](../../../src/game/app/bif/RefOpSetCar__FiP4CRefP6CFrame.c) | `RefOpSetCar` | Splice builtin "set-car!": RefOpSetCadr(...,0x23) | 0.93 | T1 | verified |
+| [0x120CF8](../../../src/game/app/bif/RefOpSetCdr__FiP4CRefP6CFrame.c) | `RefOpSetCdr` | Splice builtin "set-cdr!": RefOpSetCadr(...,0x24) | 0.93 | T1 | verified |
+| [0x120D28](../../../src/game/app/bif/RefOpLength__FiP4CRefP6CFrame.c) | `RefOpLength` | Splice builtin "length": count of list nodes -> S32 | 0.93 | T1 |  |
+| [0x120D78](../../../src/game/app/bif/RefOpNth__FiP4CRefP6CFrame.c) | `RefOpNth` | Splice builtin "nth": walk list to index a1 | 0.93 | T1 |  |
+| [0x120E10](../../../src/game/app/bif/RefOpIsMember__FiP4CRefP6CFrame.cpp) | `RefOpIsMember` | Splice builtin "member?": loop calling RefOpEqual on each element | 0.93 | T1 | verified |
+| [0x120F80](../../../src/game/app/bif/RefOpList__FiP4CRefP6CFrame.c) | `RefOpList` | Splice builtin "list": returns the arg list itself (varargs) | 0.93 | T1 | verified |
+| [0x120FB0](../../../src/game/app/bif/RefOpShuffle.cpp) | `RefOpShuffle` | Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element changes; Nil entry pins tail | 0.45 | T2 |  |
+| [0x1212F8](../../../src/game/app/bif/RefOpAppend__FiP4CRefP6CFrame.cpp) | `RefOpAppend` | Splice builtin "append": concatenates list args (copies all but last) | 0.93 | T1 | verified |
+| [0x121578](../../../src/game/app/bif/func_00121578.cpp) | `SpnNewApplyList2` | Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for map/filter/for-each | 0.45 | T2 |  |
+| [0x121710](../../../src/game/app/bif/RefOpMap__FiP4CRefP6CFrame.cpp) | `RefOpMap` | Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results | 0.93 | T1 | verified |
+| [0x121938](../../../src/game/app/bif/RefOpFilter__FiP4CRefP6CFrame.cpp) | `RefOpFilter` | Splice builtin "filter": same, keeps elems where result true | 0.93 | T1 | verified |
+| [0x121C20](../../../src/game/app/bif/RefOpForEach__FiP4CRefP6CFrame.cpp) | `RefOpForEach` | Splice builtin "for-each": same, discards results | 0.93 | T1 |  |
+| [0x121D20](../../../src/game/app/bif/RefOpEval__FiP4CRefP6CFrame.cpp) | `RefOpEval` | Splice builtin "eval": wraps arg in list and applies 0x127838 | 0.93 | T1 |  |
+| [0x121DD8](../../../src/game/app/bif/RefOpVector__FiP4CRefP6CFrame.cpp) | `RefOpVector` | Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs) | 0.85 | T1 |  |
+| [0x121F00](../../../src/game/app/bif/RefOpMatrix__FiP4CRefP6CFrame.cpp) | `RefOpMatrix` | Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based | 0.93 | T1 | verified |
+| [0x1220B8](../../../src/game/app/bif/RefOpClq__FiP4CRefP6CFrame.c) | `RefOpClq` | Splice builtin "clq": 3 floats -> tag 0x1C | 0.93 | T1 | verified |
+| [0x122168](../../../src/game/app/bif/RefOpLm__FiP4CRefP6CFrame.c) | `RefOpLm` | Splice builtin "lm": 2 floats -> tag 0x1D | 0.93 | T1 | verified |
+| [0x122218](../../../src/game/app/bif/RefOpSmp__FiP4CRefP6CFrame.c) | `RefOpSmp` | Splice builtin "smp": 3 floats -> tag 0x1E | 0.93 | T1 |  |
+| [0x1222C8](../../../src/game/app/bif/RefOpGetElement__FiP4CRefP6CFrame.c) | `RefOpGetElement` | Splice builtin "get-element": element of vector/matrix by index list | 0.93 | T1 |  |
+| [0x1223C0](../../../src/game/app/bif/RefOpRandom__FiP4CRefP6CFrame.cpp) | `RefOpRandom` | Splice builtin "random": NRandInRange for ints else GRandInRange | 0.93 | T1 |  |
+| [0x1224A8](../../../src/game/app/bif/RefUfo__FP4CRef4UFOK.c) | `RefUfo` | Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7) | 0.90 | T1 |  |
+| [0x122530](../../../src/game/app/bif/RefOpSqrt__FiP4CRefP6CFrame.c) | `RefOpSqrt` | Splice builtin "sqrt": RefUfo(arg,0) | 0.93 | T1 | verified |
+| [0x122560](../../../src/game/app/bif/RefOpSin__FiP4CRefP6CFrame.c) | `RefOpSin` | Splice builtin "sin": RefUfo(arg,1) | 0.93 | T1 | verified |
+| [0x122590](../../../src/game/app/bif/RefOpCos__FiP4CRefP6CFrame.c) | `RefOpCos` | Splice builtin "cos": RefUfo(arg,2) | 0.93 | T1 | verified |
+| [0x1225C0](../../../src/game/app/bif/RefOpTan__FiP4CRefP6CFrame.c) | `RefOpTan` | Splice builtin "tan": RefUfo(arg,3) | 0.93 | T1 | verified |
+| [0x1225F0](../../../src/game/app/bif/RefOpAsin__FiP4CRefP6CFrame.c) | `RefOpAsin` | Splice builtin "asin": RefUfo(arg,4) | 0.93 | T1 | verified |
+| [0x122620](../../../src/game/app/bif/RefOpAcos__FiP4CRefP6CFrame.c) | `RefOpAcos` | Splice builtin "acos": RefUfo(arg,5) | 0.93 | T1 | verified |
+| [0x122650](../../../src/game/app/bif/RefOpAtan__FiP4CRefP6CFrame.c) | `RefOpAtan` | Splice builtin "atan": RefUfo(arg,6) | 0.93 | T1 | verified |
+| [0x122680](../../../src/game/app/bif/RefOpRadNormalize__FiP4CRefP6CFrame.c) | `RefOpRadNormalize` | Splice builtin "rad-normalize": RefUfo(arg,7) | 0.93 | T1 | verified |
+| [0x1226B0](../../../src/game/app/bif/RefOpAtan2__FiP4CRefP6CFrame.c) | `RefOpAtan2` | Splice builtin "atan2": atan2f(a0,a1) | 0.93 | T1 |  |
+| [0x122730](../../../src/game/app/bif/RefOpVectorDotProduct__FiP4CRefP6CFrame.c) | `RefOpVectorDotProduct` | Splice builtin "vector-dot-product": VU dot xyz | 0.93 | T1 |  |
+| [0x122770](../../../src/game/app/bif/RefOpVectorCrossProduct__FiP4CRefP6CFrame.c) | `RefOpVectorCrossProduct` | Splice builtin "vector-cross-product": VU outer product (cross) | 0.93 | T1 |  |
+| [0x1227D0](../../../src/game/app/bif/RefOpVectorLth__FiP4CRefP6CFrame.c) | `RefOpVectorLth` | Splice builtin "vector-lth": VU length | 0.93 | T1 |  |
+| [0x122810](../../../src/game/app/bif/RefOpVectorDistance__FiP4CRefP6CFrame.cpp) | `RefOpVectorDistance` | Splice builtin "vector-distance": distance to a1 or origin | 0.93 | T1 |  |
+| [0x1228F0](../../../src/game/app/bif/RefOpVectorDistanceSquared__FiP4CRefP6CFrame.cpp) | `RefOpVectorDistanceSquared` | Splice builtin "vector-distance-squared": squared distance | 0.93 | T1 | verified |
+| [0x1229B8](../../../src/game/app/bif/RefOpVectorNormalize__FiP4CRefP6CFrame.cpp) | `RefOpVectorNormalize` | Splice builtin "vector-normalize": normalize with 1e-4 guard/default | 0.93 | T1 |  |
+| [0x122B08](../../../src/game/app/bif/RefOpVectorProjectNormal__FiP4CRefP6CFrame.c) | `RefOpVectorProjectNormal` | Splice builtin "vector-project-normal": (a.b)b | 0.93 | T1 |  |
+| [0x122B70](../../../src/game/app/bif/RefOpVectorProjectTangent__FiP4CRefP6CFrame.c) | `RefOpVectorProjectTangent` | Splice builtin "vector-project-tangent": a-(a.b)b | 0.93 | T1 |  |
+| [0x122BE0](../../../src/game/app/bif/RefOpVectorBallisticVelocity__FiP4CRefP6CFrame.cpp) | `RefOpVectorBallisticVelocity` | Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with gravity (0,0,-1750) or object xfm | 0.93 | T1 |  |
+| [0x122CE0](../../../src/game/app/bif/RefOpVectorRadianNormal__FiP4CRefP6CFrame.cpp) | `RefOpVectorRadianNormal` | Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0 | 0.93 | T1 |  |
+| [0x122DE0](../../../src/game/app/bif/RefOpMatrixTranspose__FiP4CRefP6CFrame.c) | `RefOpMatrixTranspose` | Splice builtin "matrix-transpose": 0x11C1D8 | 0.93 | T1 | verified |
+| [0x122E40](../../../src/game/app/bif/RefOpMatrixInvert__FiP4CRefP6CFrame.c) | `RefOpMatrixInvert` | Splice builtin "matrix-invert": 0x11C2F0 | 0.93 | T1 |  |
+| [0x122EA0](../../../src/game/app/bif/RefOpMatrixCalculateDmat__FiP4CRefP6CFrame.c) | `RefOpMatrixCalculateDmat` | Splice builtin "matrix-calculate-dmat": 0x11C3D0 (CalculateDmat) | 0.93 | T1 |  |
+| [0x122F00](../../../src/game/app/bif/RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame.cpp) | `RefOpMatrixInterpolateRotate` | Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500) | 0.93 | T1 |  |
+| [0x123038](../../../src/game/app/bif/RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame.c) | `RefOpMatrixDecomposeToTranslate` | Splice builtin "matrix-decompose-to-translate": translation column -> vector | 0.93 | T1 |  |
+| [0x123080](../../../src/game/app/bif/RefOpMatrixDecomposeToRotate__FiP4CRefP6CFrame.c) | `RefOpMatrixDecomposeToRotate` | Splice builtin "matrix-decompose-to-rotate": rotation part -> matrix | 0.93 | T1 |  |
+| [0x1230C8](../../../src/game/app/bif/RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame.c) | `RefOpMatrixDecomposeToEuler` | Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler | 0.93 | T1 |  |
+| [0x123118](../../../src/game/app/bif/RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame.cpp) | `RefOpMatrixDecomposeToRadianNormal` | Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad | 0.93 | T1 | verified |
+| [0x123208](../../../src/game/app/bif/RefOpMatrixLookAt__FiP4CRefP6CFrame.cpp) | `RefOpMatrixLookAt` | Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default D_002A2DC0 | 0.93 | T1 |  |
+| [0x1232D0](../../../src/game/app/bif/RefOpMatrixTiltUpright__FiP4CRefP6CFrame.cpp) | `RefOpMatrixTiltUpright` | Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright | 0.93 | T1 |  |
+| [0x123380](../../../src/game/app/bif/RefOpClqEvaluate__FiP4CRefP6CFrame.c) | `RefOpClqEvaluate` | Splice builtin "clq-evaluate": a0+t(a1+t a2) | 0.93 | T1 |  |
+| [0x1233F0](../../../src/game/app/bif/RefOpClqEvaluateLm__FiP4CRefP6CFrame.c) | `RefOpClqEvaluateLm` | Splice builtin "clq-evaluate-lm": clq eval clamped to lm | 0.93 | T1 |  |
+| [0x123498](../../../src/game/app/bif/RefOpClqFit__FiP4CRefP6CFrame.cpp) | `RefOpClqFit` | Splice builtin "clq-fit": FitClq | 0.93 | T1 | verified |
+| [0x1235A8](../../../src/game/app/bif/RefOpLmLimit__FiP4CRefP6CFrame.c) | `RefOpLmLimit` | Splice builtin "lm-limit": GLimitLm | 0.93 | T1 |  |
+| [0x123608](../../../src/game/app/bif/RefOpLmCheck__FiP4CRefP6CFrame.c) | `RefOpLmCheck` | Splice builtin "lm-check?": FCheckLm | 0.93 | T1 |  |
+| [0x123668](../../../src/game/app/bif/RefOpFloor__FiP4CRefP6CFrame.c) | `RefOpFloor` | Splice builtin "floor": (int)g | 0.93 | T1 |  |
+| [0x123688](../../../src/game/app/bif/RefOpCeiling__FiP4CRefP6CFrame.c) | `RefOpCeiling` | Splice builtin "ceiling": (int)(g+1) | 0.93 | T1 | verified |
+| [0x1236B0](../../../src/game/app/bif/RefOpRound__FiP4CRefP6CFrame.c) | `RefOpRound` | Splice builtin "round": (int)(g+0.5) | 0.93 | T1 |  |
+| [0x1236D8](../../../src/game/app/bif/RefOpTruncate__FiP4CRefP6CFrame.c) | `RefOpTruncate` | Splice builtin "truncate": (int)g | 0.93 | T1 |  |
+| [0x1236F8](../../../src/game/app/bif/RefOpAbs__FiP4CRefP6CFrame.c) | `RefOpAbs` | Splice builtin "abs": abs int/float | 0.93 | T1 | verified |
+| [0x123788](../../../src/game/app/bif/RefOpMaximum__FiP4CRefP6CFrame.cpp) | `RefOpMaximum` | Splice builtin "max": max over varargs | 0.93 | T1 |  |
+| [0x1238B0](../../../src/game/app/bif/RefOpMinimum__FiP4CRefP6CFrame.cpp) | `RefOpMinimum` | Splice builtin "min": min over varargs | 0.93 | T1 |  |
+| [0x1239D8](../../../src/game/app/bif/RefOpModulo__FiP4CRefP6CFrame.c) | `RefOpModulo` | Splice builtin "modulo": int % | 0.93 | T1 |  |
+| [0x123A08](../../../src/game/app/bif/RefOpCurrentTime__FiP4CRefP6CFrame.c) | `RefOpCurrentTime` | Splice builtin "current-time": F32 = g_clock.t (D_002DDED0) | 0.85 | T1 |  |
+| [0x123A28](../../../src/game/app/bif/RefOpCurrentLevel.c) | `RefOpGetLoadFilterCur` | S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by FMatchLoadFilter | 0.30 | T2 |  |
+| [0x123A60](../../../src/game/app/bif/RefOpCurrentEpisode.c) | `RefOpGetLoadFilterMappedA` | S32 = table D_003E1C48[cur] (0x210A98) or -1 | 0.25 | T2 |  |
+| [0x123A98](../../../src/game/app/bif/RefOpCurrentWorld.c) | `RefOpGetLoadFilterMappedB` | S32 = table D_003E1C44[cur] (0x210AE0) or -1 | 0.25 | T2 |  |
+| [0x123AD0](../../../src/game/app/bif/RefOpFindCurrentJob.c) | `RefOpFindPlayerObject0` | CRef(BASIC*) of g_sw slot D_003E0F9C | 0.30 | T2 |  |
+| [0x123B00](../../../src/game/app/bif/RefOpFindCurrentTask.c) | `RefOpFindPlayerObject1` | CRef(BASIC*) of D_003E0FA0 | 0.30 | T2 |  |
+| [0x123B30](../../../src/game/app/bif/RefOpFindPendingTask.c) | `RefOpFindPlayerObject2` | CRef(BASIC*) of D_003E0FA4 | 0.30 | T2 |  |
+| [0x123B60](../../../src/game/app/bif/RefOpGetDifficulty.c) | `RefOpGetFloat103` | F32 = 0x154C90(&D_002DE578): D_003E0F9C->pg value or average of 3 Splice values | 0.20 | T2 |  |
+| [0x123BA0](../../../src/game/app/bif/func_00123BA0.c) | `RefOpGetStub104` | S32 = 0x210B68() which always returns 0 | 0.20 | T2 |  |
+| [0x123BD8](../../../src/game/app/bif/RefOpScheduleCallback__FiP4CRefP6CFrame.cpp) | `RefOpScheduleCallback` | Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32 handle | 0.85 | T1 |  |
+| [0x123DD8](../../../src/game/app/bif/RefOpCancelCallback.c) | `RefOpCancelCallback` | Cancels a scheduled callback by handle: 0x133130(g_sw, id) unlinks and frees; returns Void | 0.70 | T1 |  |
+| [0x123E18](../../../src/game/app/bif/RefOpDeferObjectUpdate__FiP4CRefP6CFrame.c) | `RefOpDeferObjectUpdate` | Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt | 0.85 | T1 |  |
+| [0x123EB0](../../../src/game/app/bif/RefOpObjectOption__FiP4CRefP6CFrame4BIFK.cpp) | `RefOpObjectOption` | Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F -> RefAddOption/RefEnsureOption/RefSetOption/RefGetOption | 0.95 | T1 | verified |
+| [0x123FB8](../../../src/game/app/bif/RefOpAddO__FiP4CRefP6CFrame.c) | `RefOpAddO` | Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption | 0.93 | T1 | verified |
+| [0x123FE8](../../../src/game/app/bif/RefOpEnsureO__FiP4CRefP6CFrame.c) | `RefOpEnsureO` | Splice builtin "ensureo": op 0x6D RefEnsureOption | 0.93 | T1 | verified |
+| [0x124018](../../../src/game/app/bif/RefOpSetO__FiP4CRefP6CFrame.c) | `RefOpSetO` | Splice builtin "seto!": op 0x6E RefSetOption | 0.93 | T1 | verified |
+| [0x124048](../../../src/game/app/bif/RefOpGetO__FiP4CRefP6CFrame.c) | `RefOpGetO` | Splice builtin "geto": op 0x6F RefGetOption | 0.93 | T1 | verified |
+| [0x124078](../../../src/game/app/bif/RefPairFromAplo__FiPP2LO.cpp) | `RefPairFromAplo` | Builds a Splice list of CRef(BASIC*) from an LO* array | 0.92 | T1 |  |
+| [0x124150](../../../src/game/app/bif/RefOpFindObject__FiP4CRefP6CFrame.c) | `RefOpFindObject` | Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root | 0.85 | T1 |  |
+| [0x1241E8](../../../src/game/app/bif/RefOpFindObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindObjects` | Splice builtin "find-objects": 0x15E678 + RefPairFromAplo | 0.85 | T1 |  |
+| [0x1242B8](../../../src/game/app/bif/RefOpFindObjectsFromOids.cpp) | `RefOpFindObjectsFromOids` | Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object) | 0.45 | T2 |  |
+| [0x1244E8](../../../src/game/app/bif/RefOpFindNearestObject__FiP4CRefP6CFrame.c) | `RefOpFindNearestObject` | Splice builtin "find-nearest-object": like find-object with k=4 | 0.85 | T1 |  |
+| [0x124578](../../../src/game/app/bif/RefOpFindNearestObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindNearestObjects` | Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo | 0.85 | T1 | verified |
+| [0x124640](../../../src/game/app/bif/RefOpFindWorldObject__FiP4CRefP6CFrame.c) | `RefOpFindWorldObject` | Splice builtin "find-world-object": CRef(BASIC*) of &D_003DD490 (g_sw) | 0.60 | T1 |  |
+| [0x124690](../../../src/game/app/bif/RefOpFindSoundObject.c) | `RefOpFindSoundObject` | CRef(BASIC*) of static object D_003DD040 (the object LoadSwFromBrx passes to 0x1FD0E8 sound-section loader) | 0.30 | T2 |  |
+| [0x1246E0](../../../src/game/app/bif/RefOpFindCameraObject__FiP4CRefP6CFrame.c) | `RefOpFindCameraObject` | Splice builtin "find-camera-object": CRef(BASIC*) of &D_002DDF40 (g_cm) | 0.93 | T1 |  |
+| [0x124730](../../../src/game/app/bif/RefOpFindClassObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindClassObjects` | Splice builtin "find-class-objects": 0x15E9C8 by class + RefPairFromAplo | 0.93 | T1 |  |
+| [0x1247D8](../../../src/game/app/bif/RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame.cpp) | `RefOpFindObjectsInBoundingBox` | Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter | 0.93 | T1 |  |
+| [0x1248B0](../../../src/game/app/bif/RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame.cpp) | `RefOpFindObjectsInBoundingSphere` | Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8 | 0.93 | T1 |  |
+| [0x1249A8](../../../src/game/app/bif/RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame.cpp) | `RefOpHitTestObjectsImpl` | Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C returns first hit | 0.88 | T1 |  |
+| [0x124F00](../../../src/game/app/bif/RefOpHitTestObjects__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjects` | Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal) | 0.85 | T1 | verified |
+| [0x124F80](../../../src/game/app/bif/RefOpHitTestObjectsFirst__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjectsFirst` | Splice builtin "hit-test-objects-first": Impl(0x7C) -> first hit | 0.85 | T1 |  |
+| [0x125000](../../../src/game/app/bif/RefOpConvertObjectPosition__FiP4CRefP6CFrame.c) | `RefOpConvertObjectPosition` | Splice builtin "convert-object-position": ConvertAloPos 0x1A6F00 | 0.85 | T1 |  |
+| [0x125060](../../../src/game/app/bif/RefOpConvertObjectVector__FiP4CRefP6CFrame.c) | `RefOpConvertObjectVector` | Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0 | 0.85 | T1 | verified |
+| [0x1250D8](../../../src/game/app/bif/RefOpConvertObjectMatrix__FiP4CRefP6CFrame.c) | `RefOpConvertObjectMatrix` | Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0 | 0.85 | T1 |  |
+| [0x125168](../../../src/game/app/bif/RefOpNearClipCenter__FiP4CRefP6CFrame.c) | `RefOpNearClipCenter` | Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix | 0.85 | T1 |  |
+| [0x1251E8](../../../src/game/app/bif/RefOpStartSound__FiP4CRefP6CFrame.c) | `RefOpStartSound` | Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound | 0.85 | T1 |  |
+| [0x125248](../../../src/game/app/bif/RefOpStartRumble__FiP4CRefP6CFrame.c) | `RefOpStartRumble` | Splice builtin "start-rumble": TriggerJoyRumbleRumk-like 0x187E28 | 0.85 | T1 |  |
+| [0x1252D0](../../../src/game/app/bif/FillAsFromPair.c) | `FillAsFromPair` | Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements (save-var path) | 0.65 | T1 | format-doc |
+| [0x125398](../../../src/game/app/bif/RefOpGetSaveVar.cpp) | `RefOpGetSaveVar` | Converts path list to U16 array (0x1252D0) and returns RefGetSaveVar(D_003E0EA8,..) | 0.65 | T1 | format-doc |
+| [0x125450](../../../src/game/app/bif/RefOpSetSaveVar.cpp) | `RefOpSetSaveVar` | Path list + value -> RefSetSaveVar 0x1D80C8 | 0.60 | T1 |  |
+| [0x125510](../../../src/game/app/bif/RefOpFindBindingOrNoop.cpp) | `RefOpFindBindingOrNoop` | Looks up a symbol in the calling object frame chain (CFrame::PrefFindBinding(sym,1)); if unbound returns Bifk 0x86 (slot 134 no-op builtin) | 0.35 | T2 |  |
+| [0x1255C0](../../../src/game/app/bif/RefOpNoop.c) | `RefOpNoop` | Varargs builtin that returns Void | 0.50 | T1 | verified |
+| [0x1255F0](../../../src/game/app/bif/RefOpBitAnd.c) | `RefOpBitAnd` | Bitwise AND of all S32 list args (init -1) | 0.60 | T1 |  |
+| [0x125640](../../../src/game/app/bif/RefOpBitOr.c) | `RefOpBitOr` | Bitwise OR of all S32 list args (init 0) | 0.60 | T1 |  |
+| [0x125690](../../../src/game/app/bif/func_00125690.c) | `RefOpFindGameObject` | CRef(BASIC*) of static object D_003DA0C0 (used by save TU 0x1D94B0) | 0.25 | T2 |  |
+| [0x1256E0](../../../src/game/app/bif/RefOpIsPowerUpAcquired.c) | `RefOpIsPowerUpAcquired` | Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8 | 0.65 | T1 |  |
+| [0x125738](../../../src/game/app/bif/RefOpSetPowerUpAcquired.c) | `RefOpSetPowerUpAcquired` | Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set) | 0.65 | T1 |  |
 
 ## bif2 (0x1258F0-0x126188)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1258F0](../../../src/hand/func_001258F0.c) | `RefOpStub140` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125930](../../../src/hand/func_00125930.c) | `RefOpStub141` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125970](../../../src/hand/func_00125970.c) | `RefOpStub142` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x1259B0](../../../src/hand/func_001259B0.c) | `RefOpStub143` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x1259F0](../../../src/hand/func_001259F0.c) | `RefOpStub144` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125A30](../../../src/hand/func_00125A30.c) | `RefOpStub145` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125A70](../../../src/hand/func_00125A70.c) | `RefOpStub146` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125AB0](../../../src/hand/func_00125AB0.c) | `RefOpStub147` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125AF0](../../../src/hand/func_00125AF0.c) | `RefOpStub148` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125B30](../../../src/hand/func_00125B30.c) | `RefOpStub149` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125B70](../../../src/hand/func_00125B70.c) | `RefOpStub150` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125BB0](../../../src/hand/func_00125BB0.c) | `RefOpStub151` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125BF0](../../../src/hand/func_00125BF0.c) | `RefOpStub152` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125C30](../../../src/hand/func_00125C30.c) | `RefOpStub153` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125C70](../../../src/hand/func_00125C70.c) | `RefOpStub154` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125CB0](../../../src/hand/func_00125CB0.c) | `RefOpStub155` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125CF0](../../../src/hand/func_00125CF0.c) | `RefOpStub156` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125D30](../../../src/hand/func_00125D30.c) | `RefOpStub157` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125D70](../../../src/hand/func_00125D70.c) | `RefOpStub158` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125DB0](../../../src/hand/func_00125DB0.c) | `RefOpStub159` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125DF0](../../../src/hand/func_00125DF0.c) | `RefOpStub160` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125E30](../../../src/hand/func_00125E30.c) | `RefOpStub161` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125E70](../../../src/hand/func_00125E70.c) | `RefOpStub162` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125EB0](../../../src/hand/func_00125EB0.c) | `RefOpStub163` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125EF0](../../../src/hand/func_00125EF0.c) | `RefOpStub164` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125F30](../../../src/hand/func_00125F30.c) | `RefOpStub165` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125F70](../../../src/hand/func_00125F70.c) | `RefOpStub166` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125FB0](../../../src/hand/func_00125FB0.c) | `RefOpStub167` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125FF0](../../../src/hand/func_00125FF0.c) | `RefOpStub168` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x1258F0](../../../src/game/app/bif2/func_001258F0.c) | `RefOpStub140` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125930](../../../src/game/app/bif2/func_00125930.c) | `RefOpStub141` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125970](../../../src/game/app/bif2/func_00125970.c) | `RefOpStub142` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x1259B0](../../../src/game/app/bif2/func_001259B0.c) | `RefOpStub143` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x1259F0](../../../src/game/app/bif2/func_001259F0.c) | `RefOpStub144` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125A30](../../../src/game/app/bif2/func_00125A30.c) | `RefOpStub145` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125A70](../../../src/game/app/bif2/func_00125A70.c) | `RefOpStub146` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125AB0](../../../src/game/app/bif2/func_00125AB0.c) | `RefOpStub147` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125AF0](../../../src/game/app/bif2/func_00125AF0.c) | `RefOpStub148` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125B30](../../../src/game/app/bif2/func_00125B30.c) | `RefOpStub149` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125B70](../../../src/game/app/bif2/func_00125B70.c) | `RefOpStub150` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125BB0](../../../src/game/app/bif2/func_00125BB0.c) | `RefOpStub151` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125BF0](../../../src/game/app/bif2/func_00125BF0.c) | `RefOpStub152` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125C30](../../../src/game/app/bif2/func_00125C30.c) | `RefOpStub153` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125C70](../../../src/game/app/bif2/func_00125C70.c) | `RefOpStub154` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125CB0](../../../src/game/app/bif2/func_00125CB0.c) | `RefOpStub155` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125CF0](../../../src/game/app/bif2/func_00125CF0.c) | `RefOpStub156` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125D30](../../../src/game/app/bif2/func_00125D30.c) | `RefOpStub157` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125D70](../../../src/game/app/bif2/func_00125D70.c) | `RefOpStub158` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125DB0](../../../src/game/app/bif2/func_00125DB0.c) | `RefOpStub159` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125DF0](../../../src/game/app/bif2/func_00125DF0.c) | `RefOpStub160` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125E30](../../../src/game/app/bif2/func_00125E30.c) | `RefOpStub161` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125E70](../../../src/game/app/bif2/func_00125E70.c) | `RefOpStub162` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125EB0](../../../src/game/app/bif2/func_00125EB0.c) | `RefOpStub163` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125EF0](../../../src/game/app/bif2/func_00125EF0.c) | `RefOpStub164` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125F30](../../../src/game/app/bif2/func_00125F30.c) | `RefOpStub165` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125F70](../../../src/game/app/bif2/func_00125F70.c) | `RefOpStub166` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125FB0](../../../src/game/app/bif2/func_00125FB0.c) | `RefOpStub167` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125FF0](../../../src/game/app/bif2/func_00125FF0.c) | `RefOpStub168` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
 
 ## eval (0x126438-0x127B18)
 

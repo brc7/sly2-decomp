@@ -12,10 +12,10 @@
 | Descendants | 43 classes (CID 156..198) |
 | Instance size (`cb`) | 0x30 (48 bytes), +0x20 over BASIC |
 | Descriptor | `D_002BB704` (record 155 of D_002BAAE8; cid range 155..199) |
-| Factory (`pfnNew`) | [`NewBhv`](../../../src/auto/NewBhv.c) `0x113028` |
+| Factory (`pfnNew`) | [`NewBhv`](../../../src/game/app/class_registry/NewBhv.c) `0x113028` |
 | Descriptor getter (slot 6) | `GetBhvClassDesc` `0x1143C0` |
 | vtable | `D_002D9480`, 15 entries (slots 0..14; slot 0 null), 8 new, 1 overridden |
-| vtable stored by | [`NewBhv`](../../../src/auto/NewBhv.c) (vptr +0xC) |
+| vtable stored by | [`NewBhv`](../../../src/game/app/class_registry/NewBhv.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175 (medium, 2 exclusive identical slots) — [hidden-types A1](../hidden-types.md#a1)
@@ -32,7 +32,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetBhvClassDesc`](../../../src/auto/GetBhvClassDesc.c) | `0x1143C0` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetBhvClassDesc`](../../../src/game/app/class_registry/GetBhvClassDesc.c) | `0x1143C0` | Pclassinfo |
 | 7 | Init | **new** | [`InitBhv`](../../../src/game/gameplay/ai/bhvstk/InitBhv.c) | `0x1EEF68` | OnPush |
 | 8 | Start | **new** | [`StartBhv`](../../../src/game/gameplay/ai/bhvstk/StartBhv.c) | `0x1EEF70` | Start |
 | 9 | Close | **new** | [`CloseBhv`](../../../src/game/gameplay/ai/bhvstk/CloseBhv.c) | `0x1EEF78` | VSlot9 |

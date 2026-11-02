@@ -68,11 +68,11 @@ Totals on this page: EXISTING 12, T1 31, T2 5.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A7518](../../../src/hand/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
-| [0x1A7630](../../../src/hand/func_001A7630.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuffer for each embedded IRX in table D_004E5D80..D_004E5E38 | 0.90 | T1 | verified |
-| [0x1A7890](../../../src/auto/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
-| [0x1A7900](../../../src/auto/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
-| [0x1A7970](../../../src/hand/func_001A7970.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "0813.0032"/"america" | 0.95 | T1 | verified |
+| [0x1A7518](../../../src/game/app/main/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
+| [0x1A7630](../../../src/game/app/main/func_001A7630.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuffer for each embedded IRX in table D_004E5D80..D_004E5E38 | 0.90 | T1 | verified |
+| [0x1A7890](../../../src/game/app/main/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
+| [0x1A7900](../../../src/game/app/main/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
+| [0x1A7970](../../../src/game/app/main/func_001A7970.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "0813.0032"/"america" | 0.95 | T1 | verified |
 
 ## rumble (0x1D5150-0x1D57A8)
 

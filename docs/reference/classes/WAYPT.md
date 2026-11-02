@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0x40 over SO |
 | Descriptor | `D_002BB344` (record 107 of D_002BAAE8; cid range 107..108) |
-| Factory (`pfnNew`) | [`NewWaypt`](../../../src/hand/NewWaypt.cpp) `0x112738` |
+| Factory (`pfnNew`) | [`NewWaypt`](../../../src/game/app/class_registry/NewWaypt.cpp) `0x112738` |
 | Descriptor getter (slot 6) | `GetWayptClassDesc` `0x1140C0` |
 | vtable | `D_002DCC98`, 76 entries (slots 0..75; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewWaypt`](../../../src/hand/NewWaypt.cpp) (vptr +0xC) |
+| vtable stored by | [`NewWaypt`](../../../src/game/app/class_registry/NewWaypt.cpp) (vptr +0xC) |
 | Level instances | 55 objects in 14 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWayptClassDesc`](../../../src/auto/GetWayptClassDesc.c) | `0x1140C0` |
+| 6 | Pclassinfo | **override** | [`GetWayptClassDesc`](../../../src/game/app/class_registry/GetWayptClassDesc.c) | `0x1140C0` |
 | 7 | Init | **override** | [`InitWaypt?`](../../../src/game/gameplay/progression/waypoint/func_00229EF0.c) | `0x229EF0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

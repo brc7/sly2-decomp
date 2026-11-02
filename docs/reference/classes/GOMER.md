@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAF5C` (record 57 of D_002BAAE8; cid range 57..58) |
-| Factory (`pfnNew`) | [`NewGomer`](../../../src/auto/NewGomer.c) `0x1117A8` |
+| Factory (`pfnNew`) | [`NewGomer`](../../../src/game/app/class_registry/NewGomer.c) `0x1117A8` |
 | Descriptor getter (slot 6) | `GetGomerClassDesc` `0x113DA0` |
 | vtable | `D_002CF520`, 90 entries (slots 0..89; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewGomer`](../../../src/auto/NewGomer.c) (vptr +0xC) |
+| vtable stored by | [`NewGomer`](../../../src/game/app/class_registry/NewGomer.c) (vptr +0xC) |
 | Level instances | 66 objects in 34 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
-| 6 | Pclassinfo | **override** | [`GetGomerClassDesc`](../../../src/auto/GetGomerClassDesc.c) | `0x113DA0` |
+| 6 | Pclassinfo | **override** | [`GetGomerClassDesc`](../../../src/game/app/class_registry/GetGomerClassDesc.c) | `0x113DA0` |
 | 7 | Init | **override** | [`RenderGomerSelf__FP5GOMERP2CMP2RO`](../../../src/game/gameplay/ai/gomer/RenderGomerSelf__FP5GOMERP2CMP2RO.cpp) | `0x16F148` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

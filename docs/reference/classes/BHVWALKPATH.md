@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xF0 (240 bytes), +0x30 over BHVPATH |
 | Descriptor | `D_002BB7F4` (record 167 of D_002BAAE8; cid range 167..168) |
-| Factory (`pfnNew`) | [`NewBhvwalkpath`](../../../src/auto/NewBhvwalkpath.c) `0x1132E0` |
+| Factory (`pfnNew`) | [`NewBhvwalkpath`](../../../src/game/app/class_registry/NewBhvwalkpath.c) `0x1132E0` |
 | Descriptor getter (slot 6) | `GetBhvwalkpathClassDesc` `0x114480` |
 | vtable | `D_002D06A0`, 16 entries (slots 0..15; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewBhvwalkpath`](../../../src/auto/NewBhvwalkpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvwalkpath`](../../../src/game/app/class_registry/NewBhvwalkpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV167`, proposed `BHVWALKPATH` (confidence 0.6), guard flag `-`. path follow with walk/idle anim children and stuck timer
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvwalkpathClassDesc`](../../../src/auto/GetBhvwalkpathClassDesc.c) | `0x114480` |
+| 6 | Pclassinfo | **override** | [`GetBhvwalkpathClassDesc`](../../../src/game/app/class_registry/GetBhvwalkpathClassDesc.c) | `0x114480` |
 | 7 | Init | **override** | [`InitBhvwalkpath`](../../../src/game/gameplay/ai/guardbhv/InitBhvwalkpath.c) | `0x178E98` |
 | 8 | Start | inherited (BHVPATH) | `StartBhvpath` | `0x177EF0` |
 | 9 | Close | inherited (BHV) | `CloseBhv` | `0x1EEF78` |

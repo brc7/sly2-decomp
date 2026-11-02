@@ -11,10 +11,10 @@
 | Children | [HACKSHIP](HACKSHIP.md), [HACKENEMY](HACKENEMY.md), [HACKBULLET](HACKBULLET.md), [HACKLOCK](HACKLOCK.md), [HACKWALL](HACKWALL.md) |
 | Instance size (`cb`) | 0x1C0 (448 bytes), +0x40 over PO |
 | Descriptor | `D_002BB074` (record 71 of D_002BAAE8; cid range 71..77) |
-| Factory (`pfnNew`) | [`NewHack`](../../../src/hand/NewHack.cpp) `0x111B70` |
+| Factory (`pfnNew`) | [`NewHack`](../../../src/game/app/class_registry/NewHack.cpp) `0x111B70` |
 | Descriptor getter (slot 6) | `GetHackClassDesc` `0x113E80` |
 | vtable | `D_002D1878`, 84 entries (slots 0..83; slot 0 null), 2 new, 7 overridden |
-| vtable stored by | [`NewHack`](../../../src/hand/NewHack.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHack`](../../../src/game/app/class_registry/NewHack.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetHackClassDesc`](../../../src/auto/GetHackClassDesc.c) | `0x113E80` |
+| 6 | Pclassinfo | **override** | [`GetHackClassDesc`](../../../src/game/app/class_registry/GetHackClassDesc.c) | `0x113E80` |
 | 7 | Init | **override** | [`InitHack?`](../../../src/game/gameplay/objects/tu_17F090/func_0017F090.c) | `0x17F090` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

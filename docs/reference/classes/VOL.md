@@ -12,10 +12,10 @@
 | Descendants | 5 classes (CID 23..27) |
 | Instance size (`cb`) | 0x130 (304 bytes), +0x50 over XFM |
 | Descriptor | `D_002BACA0` (record 22 of D_002BAAE8; cid range 22..28) |
-| Factory (`pfnNew`) | [`NewVol`](../../../src/auto/NewVol.c) `0x110F78` |
+| Factory (`pfnNew`) | [`NewVol`](../../../src/game/app/class_registry/NewVol.c) `0x110F78` |
 | Descriptor getter (slot 6) | `GetVolClassDesc` `0x113B70` |
 | vtable | `D_002DC3B0`, 51 entries (slots 0..50; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewVol`](../../../src/auto/NewVol.c) (vptr +0xC) |
+| vtable stored by | [`NewVol`](../../../src/game/app/class_registry/NewVol.c) (vptr +0xC) |
 | Level instances | 399 objects in 40 of 43 world files |
 
 ## Virtual table
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetVolClassDesc`](../../../src/auto/GetVolClassDesc.c) | `0x113B70` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetVolClassDesc`](../../../src/game/app/class_registry/GetVolClassDesc.c) | `0x113B70` | Pclassinfo |
 | 7 | Init | inherited (XFM) | `InitXfm` | `0x231100` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

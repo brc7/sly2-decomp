@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x60 (96 bytes), +0x30 over BHV |
 | Descriptor | `D_002BB7CC` (record 165 of D_002BAAE8; cid range 165..166) |
-| Factory (`pfnNew`) | [`NewBhvcombat`](../../../src/auto/NewBhvcombat.c) `0x113270` |
+| Factory (`pfnNew`) | [`NewBhvcombat`](../../../src/game/app/class_registry/NewBhvcombat.c) `0x113270` |
 | Descriptor getter (slot 6) | `GetBhvcombatClassDesc` `0x114460` |
 | vtable | `D_002D05A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvcombat`](../../../src/auto/NewBhvcombat.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvcombat`](../../../src/game/app/class_registry/NewBhvcombat.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV165`, proposed `BHVCOMBAT` (confidence 0.65), guard flag `0x1D`. engage a target: pursue (BHVGOTO run 0x1C), melee, ranged, circle, give up (anim 0xD), hands-off
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvcombatClassDesc`](../../../src/auto/GetBhvcombatClassDesc.c) | `0x114460` |
+| 6 | Pclassinfo | **override** | [`GetBhvcombatClassDesc`](../../../src/game/app/class_registry/GetBhvcombatClassDesc.c) | `0x114460` |
 | 7 | Init | **override** | [`InitBhvcombat`](../../../src/game/gameplay/ai/guardbhv/InitBhvcombat.c) | `0x175758` |
 | 8 | Start | **override** | [`StartBhvcombat`](../../../src/game/gameplay/ai/guardbhv/StartBhvcombat.c) | `0x175790` |
 | 9 | Close | **override** | [`CloseBhvcombat`](../../../src/game/gameplay/ai/guardbhv/CloseBhvcombat.c) | `0x1757D0` |

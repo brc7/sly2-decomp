@@ -11,7 +11,7 @@
 | Children | [WIDGET127](WIDGET127.md), [WIDGET128](WIDGET128.md), [WIDGET129](WIDGET129.md), [WIDGET130](WIDGET130.md), [WIDGET131](WIDGET131.md) |
 | Instance size (`cb`) | 0x110 (272 bytes), +0xC0 over LO |
 | Descriptor | `D_002BB4C0` (record 126 of D_002BAAE8; cid range 126..132) |
-| Factory (`pfnNew`) | [`NewWidget`](../../../src/auto/NewWidget.c) `0x112BE8` |
+| Factory (`pfnNew`) | [`NewWidget`](../../../src/game/app/class_registry/NewWidget.c) `0x112BE8` |
 | Descriptor getter (slot 6) | `GetWidgetClassDesc` `0x1141F0` |
 | vtable | `D_002DAF30`, 51 entries (slots 0..50; slot 0 null), 2 new, 5 overridden |
 | vtable stored by | [`WIDGET_ctor?`](../../../src/game/engine/presentation/hud/func_00212158.c) (vptr +0xC) |
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWidgetClassDesc`](../../../src/auto/GetWidgetClassDesc.c) | `0x1141F0` |
+| 6 | Pclassinfo | **override** | [`GetWidgetClassDesc`](../../../src/game/app/class_registry/GetWidgetClassDesc.c) | `0x1141F0` |
 | 7 | Init | inherited (LO) | `InitLo` | `0x1A5270` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

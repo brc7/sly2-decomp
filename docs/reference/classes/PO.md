@@ -12,10 +12,10 @@
 | Descendants | 28 classes (CID 51..78) |
 | Instance size (`cb`) | 0x180 (384 bytes), +0x30 over SO |
 | Descriptor | `D_002BAED0` (record 50 of D_002BAAE8; cid range 50..79) |
-| Factory (`pfnNew`) | [`NewPo`](../../../src/hand/NewPo.cpp) `0x111628` |
+| Factory (`pfnNew`) | [`NewPo`](../../../src/game/app/class_registry/NewPo.cpp) `0x111628` |
 | Descriptor getter (slot 6) | `GetPoClassDesc` `0x113D30` |
 | vtable | `D_002D5898`, 82 entries (slots 0..81; slot 0 null), 6 new, 5 overridden |
-| vtable stored by | [`NewPo`](../../../src/hand/NewPo.cpp) (vptr +0xC) |
+| vtable stored by | [`NewPo`](../../../src/game/app/class_registry/NewPo.cpp) (vptr +0xC) |
 | Level instances | 12 objects in 12 of 43 world files |
 
 ## Virtual table
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandlePoMessage`](../../../src/game/actor/po/HandlePoMessage.c) | `0x1C3E20` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetPoClassDesc`](../../../src/auto/GetPoClassDesc.c) | `0x113D30` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetPoClassDesc`](../../../src/game/app/class_registry/GetPoClassDesc.c) | `0x113D30` | Pclassinfo |
 | 7 | Init | **override** | [`InitPo`](../../../src/game/actor/po/InitPo.c) | `0x1C3D70` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

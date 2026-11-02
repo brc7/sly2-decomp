@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x460 (1120 bytes), +0x380 over XFM |
 | Descriptor | `D_002BAD18` (record 28 of D_002BAAE8; cid range 28..29) |
-| Factory (`pfnNew`) | [`NewBlipg`](../../../src/hand/NewBlipg.cpp) `0x1110D8` |
+| Factory (`pfnNew`) | [`NewBlipg`](../../../src/game/app/class_registry/NewBlipg.cpp) `0x1110D8` |
 | Descriptor getter (slot 6) | `GetBlipgClassDesc` `0x113BD0` |
 | vtable | `D_002CB5D8`, 52 entries (slots 0..51; slot 0 null), 1 new, 7 overridden |
-| vtable stored by | [`NewBlipg`](../../../src/hand/NewBlipg.cpp) (vptr +0xC), [`PblipgNew`](../../../src/game/engine/fx/blip/PblipgNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBlipg`](../../../src/game/app/class_registry/NewBlipg.cpp) (vptr +0xC), [`PblipgNew`](../../../src/game/engine/fx/blip/PblipgNew.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBlipgClassDesc`](../../../src/auto/GetBlipgClassDesc.c) | `0x113BD0` |
+| 6 | Pclassinfo | **override** | [`GetBlipgClassDesc`](../../../src/game/app/class_registry/GetBlipgClassDesc.c) | `0x113BD0` |
 | 7 | Init | **override** | [`InitBlipg__FP5BLIPG`](../../../src/game/engine/fx/blip/InitBlipg__FP5BLIPG.c) | `0x1391C8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

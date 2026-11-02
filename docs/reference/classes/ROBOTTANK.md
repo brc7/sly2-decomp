@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x5D0 (1488 bytes), +0x450 over PO |
 | Descriptor | `D_002BB0EC` (record 77 of D_002BAAE8; cid range 77..78) |
-| Factory (`pfnNew`) | [`NewRobottank`](../../../src/hand/NewRobottank.cpp) `0x111D88` |
+| Factory (`pfnNew`) | [`NewRobottank`](../../../src/game/app/class_registry/NewRobottank.cpp) `0x111D88` |
 | Descriptor getter (slot 6) | `GetRobottankClassDesc` `0x113EE0` |
 | vtable | `D_002D7CA8`, 82 entries (slots 0..81; slot 0 null), 0 new, 14 overridden |
-| vtable stored by | [`NewRobottank`](../../../src/hand/NewRobottank.cpp) (vptr +0xC) |
+| vtable stored by | [`NewRobottank`](../../../src/game/app/class_registry/NewRobottank.cpp) (vptr +0xC) |
 | Level instances | 1 objects in 1 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetRobottankClassDesc`](../../../src/auto/GetRobottankClassDesc.c) | `0x113EE0` |
+| 6 | Pclassinfo | **override** | [`GetRobottankClassDesc`](../../../src/game/app/class_registry/GetRobottankClassDesc.c) | `0x113EE0` |
 | 7 | Init | **override** | [`InitRobottank`](../../../src/game/gameplay/objects/tu_1D1370/InitRobottank.c) | `0x1D1370` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

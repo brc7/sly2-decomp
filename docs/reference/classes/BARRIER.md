@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x180 (384 bytes), +0x30 over SO |
 | Descriptor | `D_002BB1A0` (record 86 of D_002BAAE8; cid range 86..87) |
-| Factory (`pfnNew`) | [`NewBarrier`](../../../src/hand/NewBarrier.cpp) `0x112050` |
+| Factory (`pfnNew`) | [`NewBarrier`](../../../src/game/app/class_registry/NewBarrier.cpp) `0x112050` |
 | Descriptor getter (slot 6) | `GetBarrierClassDesc` `0x113F70` |
 | vtable | `D_002CAF88`, 76 entries (slots 0..75; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBarrier`](../../../src/hand/NewBarrier.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBarrier`](../../../src/game/app/class_registry/NewBarrier.cpp) (vptr +0xC) |
 | Level instances | 109 objects in 23 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBarrierClassDesc`](../../../src/auto/GetBarrierClassDesc.c) | `0x113F70` |
+| 6 | Pclassinfo | **override** | [`GetBarrierClassDesc`](../../../src/game/app/class_registry/GetBarrierClassDesc.c) | `0x113F70` |
 | 7 | Init | **override** | [`InitBarrier`](../../../src/game/gameplay/objects/barrier/InitBarrier.c) | `0x1320C8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

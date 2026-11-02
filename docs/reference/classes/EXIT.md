@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0x60 over VOL |
 | Descriptor | `D_002BACF0` (record 26 of D_002BAAE8; cid range 26..27) |
-| Factory (`pfnNew`) | [`NewExit`](../../../src/auto/NewExit.c) `0x111058` |
+| Factory (`pfnNew`) | [`NewExit`](../../../src/game/app/class_registry/NewExit.c) `0x111058` |
 | Descriptor getter (slot 6) | `GetExitClassDesc` `0x113BB0` |
 | vtable | `D_002DC6F0`, 51 entries (slots 0..50; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewExit`](../../../src/auto/NewExit.c) (vptr +0xC) |
+| vtable stored by | [`NewExit`](../../../src/game/app/class_registry/NewExit.c) (vptr +0xC) |
 | Level instances | 370 objects in 43 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetExitClassDesc`](../../../src/auto/GetExitClassDesc.c) | `0x113BB0` |
+| 6 | Pclassinfo | **override** | [`GetExitClassDesc`](../../../src/game/app/class_registry/GetExitClassDesc.c) | `0x113BB0` |
 | 7 | Init | **override** | [`InitExit?`](../../../src/game/level/exit_warp/func_002281E8.c) | `0x2281E8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

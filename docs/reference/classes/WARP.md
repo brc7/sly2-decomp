@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x180 (384 bytes), +0xA0 over XFM |
 | Descriptor | `D_002BAE30` (record 42 of D_002BAAE8; cid range 42..43) |
-| Factory (`pfnNew`) | [`NewWarp`](../../../src/auto/NewWarp.c) `0x111438` |
+| Factory (`pfnNew`) | [`NewWarp`](../../../src/game/app/class_registry/NewWarp.c) `0x111438` |
 | Descriptor getter (slot 6) | `GetWarpClassDesc` `0x113CB0` |
 | vtable | `D_002DC550`, 51 entries (slots 0..50; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewWarp`](../../../src/auto/NewWarp.c) (vptr +0xC) |
+| vtable stored by | [`NewWarp`](../../../src/game/app/class_registry/NewWarp.c) (vptr +0xC) |
 | Level instances | 282 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWarpClassDesc`](../../../src/auto/GetWarpClassDesc.c) | `0x113CB0` |
+| 6 | Pclassinfo | **override** | [`GetWarpClassDesc`](../../../src/game/app/class_registry/GetWarpClassDesc.c) | `0x113CB0` |
 | 7 | Init | inherited (XFM) | `InitXfm` | `0x231100` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

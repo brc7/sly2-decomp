@@ -12,10 +12,10 @@
 | Descendants | 131 classes (CID 3..133) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x40 over BASIC |
 | Descriptor | `D_002BAB10` (record 2 of D_002BAAE8; cid range 2..134) |
-| Factory (`pfnNew`) | [`NewLo`](../../../src/auto/NewLo.c) `0x110AD8` |
+| Factory (`pfnNew`) | [`NewLo`](../../../src/game/app/class_registry/NewLo.c) `0x110AD8` |
 | Descriptor getter (slot 6) | `GetLoClassDesc` `0x113A30` |
 | vtable | `D_002D3540`, 49 entries (slots 0..48; slot 0 null), 42 new, 2 overridden |
-| vtable stored by | [`NewLo`](../../../src/auto/NewLo.c) (vptr +0xC) |
+| vtable stored by | [`NewLo`](../../../src/game/app/class_registry/NewLo.c) (vptr +0xC) |
 | Level instances | 178 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | **override** | [`HandleLoSpliceEvent`](../../../src/game/object/lo/HandleLoSpliceEvent.c) | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetLoClassDesc`](../../../src/auto/GetLoClassDesc.c) | `0x113A30` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetLoClassDesc`](../../../src/game/app/class_registry/GetLoClassDesc.c) | `0x113A30` | Pclassinfo |
 | 7 | Init | **new** | [`InitLo`](../../../src/game/object/lo/InitLo.c) | `0x1A5270` | Init |
 | 8 | Add | **new** | [`AddLo`](../../../src/game/object/lo/AddLo.c) | `0x1A5478` | Add |
 | 9 | Remove | **new** | [`RemoveLo`](../../../src/game/object/lo/RemoveLo.c) | `0x1A5630` | Remove |

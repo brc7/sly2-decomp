@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x220 (544 bytes), +0x110 over WIDGET |
 | Descriptor | `D_002BB4FC` (record 129 of D_002BAAE8; cid range 129..130) |
-| Factory (`pfnNew`) | [`NewWidget129`](../../../src/auto/NewWidget129.c) `0x112C90` |
+| Factory (`pfnNew`) | [`NewWidget129`](../../../src/game/app/class_registry/NewWidget129.c) `0x112C90` |
 | Descriptor getter (slot 6) | `GetWidget129ClassDesc` `0x114220` |
 | vtable | `D_002DAD90`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewWidget129`](../../../src/auto/NewWidget129.c) (vptr +0xC) |
+| vtable stored by | [`NewWidget129`](../../../src/game/app/class_registry/NewWidget129.c) (vptr +0xC) |
 | Level instances | 212 objects in 41 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWidget129ClassDesc`](../../../src/auto/GetWidget129ClassDesc.c) | `0x114220` |
+| 6 | Pclassinfo | **override** | [`GetWidget129ClassDesc`](../../../src/game/app/class_registry/GetWidget129ClassDesc.c) | `0x114220` |
 | 7 | Init | inherited (LO) | `InitLo` | `0x1A5270` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x80 (128 bytes), +0x30 over SAA |
 | Descriptor | `D_002BB600` (record 142 of D_002BAAE8; cid range 142..143) |
-| Factory (`pfnNew`) | [`NewEyes`](../../../src/auto/NewEyes.c) `0x112EB0` |
+| Factory (`pfnNew`) | [`NewEyes`](../../../src/game/app/class_registry/NewEyes.c) `0x112EB0` |
 | Descriptor getter (slot 6) | `GetEyesClassDesc` `0x1142F0` |
 | vtable | `D_002D92A0`, 11 entries (slots 0..10; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewEyes`](../../../src/auto/NewEyes.c) (vptr +0xC) |
+| vtable stored by | [`NewEyes`](../../../src/game/app/class_registry/NewEyes.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetEyesClassDesc`](../../../src/auto/GetEyesClassDesc.c) | `0x1142F0` |
+| 6 | Pclassinfo | **override** | [`GetEyesClassDesc`](../../../src/game/app/class_registry/GetEyesClassDesc.c) | `0x1142F0` |
 | 7 | InitSaa | **override** | [`InitEyes?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE090.c) | `0x1EE090` |
 | 8 | UpdateSaa | **override** | [`UpdateEyes?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE228.cpp) | `0x1EE228` |
 | 9 | UCompleteSaa__FP3SAA | inherited (SAA) | `UCompleteSaa__FP3SAA` | `0x1EDA58` |

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x80 (128 bytes), +0x30 over LO |
 | Descriptor | `D_002BB394` (record 111 of D_002BAAE8; cid range 111..112) |
-| Factory (`pfnNew`) | [`NewSm`](../../../src/auto/NewSm.c) `0x112858` |
+| Factory (`pfnNew`) | [`NewSm`](../../../src/game/app/class_registry/NewSm.c) `0x112858` |
 | Descriptor getter (slot 6) | `GetSmClassDesc` `0x114100` |
 | vtable | `D_002D97A8`, 49 entries (slots 0..48; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewSm`](../../../src/auto/NewSm.c) (vptr +0xC) |
+| vtable stored by | [`NewSm`](../../../src/game/app/class_registry/NewSm.c) (vptr +0xC) |
 | Level instances | 2603 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetSmClassDesc`](../../../src/auto/GetSmClassDesc.c) | `0x114100` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetSmClassDesc`](../../../src/game/app/class_registry/GetSmClassDesc.c) | `0x114100` | Pclassinfo |
 | 7 | Init | **override** | [`InitSm`](../../../src/game/engine/anim/sm/InitSm.c) | `0x1EFA90` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

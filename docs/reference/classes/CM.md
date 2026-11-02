@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x630 (1584 bytes), +0x620 over BASIC |
 | Descriptor | `D_002BB574` (record 135 of D_002BAAE8; cid range 135..136) |
-| Factory (`pfnNew`) | [`NewCm`](../../../src/auto/NewCm.c) `0x112DA8` |
+| Factory (`pfnNew`) | [`NewCm`](../../../src/game/app/class_registry/NewCm.c) `0x112DA8` |
 | Descriptor getter (slot 6) | `GetCmClassDesc` `0x114280` |
 | vtable | `D_002CA4D0`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
 | vtable stored by | [`CM_ctor?`](../../../src/game/engine/camera/cm/func_0014D3D8.c) (vptr +0xC) |
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetCmClassDesc`](../../../src/auto/GetCmClassDesc.c) | `0x114280` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetCmClassDesc`](../../../src/game/app/class_registry/GetCmClassDesc.c) | `0x114280` | Pclassinfo |
 
 ## Fields
 

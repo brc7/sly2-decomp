@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1E0 (480 bytes), +0x60 over PO |
 | Descriptor | `D_002BB04C` (record 69 of D_002BAAE8; cid range 69..70) |
-| Factory (`pfnNew`) | [`NewTurret`](../../../src/hand/NewTurret.cpp) `0x111AC0` |
+| Factory (`pfnNew`) | [`NewTurret`](../../../src/game/app/class_registry/NewTurret.cpp) `0x111AC0` |
 | Descriptor getter (slot 6) | `GetTurretClassDesc` `0x113E60` |
 | vtable | `D_002DBD80`, 82 entries (slots 0..81; slot 0 null), 0 new, 7 overridden |
-| vtable stored by | [`NewTurret`](../../../src/hand/NewTurret.cpp) (vptr +0xC) |
+| vtable stored by | [`NewTurret`](../../../src/game/app/class_registry/NewTurret.cpp) (vptr +0xC) |
 | Level instances | 6 objects in 6 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetTurretClassDesc`](../../../src/auto/GetTurretClassDesc.c) | `0x113E60` |
+| 6 | Pclassinfo | **override** | [`GetTurretClassDesc`](../../../src/game/app/class_registry/GetTurretClassDesc.c) | `0x113E60` |
 | 7 | Init | **override** | [`InitTurret`](../../../src/game/gameplay/objects/turret/InitTurret.c) | `0x2259D8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

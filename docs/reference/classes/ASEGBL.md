@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xE0 (224 bytes), +0x20 over ASEG |
 | Descriptor | `D_002BB380` (record 110 of D_002BAAE8; cid range 110..111) |
-| Factory (`pfnNew`) | [`NewAsegbl`](../../../src/auto/NewAsegbl.c) `0x112820` |
+| Factory (`pfnNew`) | [`NewAsegbl`](../../../src/game/app/class_registry/NewAsegbl.c) `0x112820` |
 | Descriptor getter (slot 6) | `GetAsegblClassDesc` `0x1140F0` |
 | vtable | `D_002CA300`, 49 entries (slots 0..48; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewAsegbl`](../../../src/auto/NewAsegbl.c) (vptr +0xC) |
+| vtable stored by | [`NewAsegbl`](../../../src/game/app/class_registry/NewAsegbl.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetAsegblClassDesc`](../../../src/auto/GetAsegblClassDesc.c) | `0x1140F0` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetAsegblClassDesc`](../../../src/game/app/class_registry/GetAsegblClassDesc.c) | `0x1140F0` | Pclassinfo |
 | 7 | Init | inherited (ASEG) | `InitAseg` | `0x12F248` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

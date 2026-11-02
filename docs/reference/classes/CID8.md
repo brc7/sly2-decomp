@@ -11,10 +11,10 @@
 | Children | [CID9](CID9.md) |
 | Instance size (`cb`) | 0x100 (256 bytes), +0x20 over XFM |
 | Descriptor | `D_002BAB88` (record 8 of D_002BAAE8; cid range 8..10) |
-| Factory (`pfnNew`) | [`NewCid8`](../../../src/auto/NewCid8.c) `0x110C28` |
+| Factory (`pfnNew`) | [`NewCid8`](../../../src/game/app/class_registry/NewCid8.c) `0x110C28` |
 | Descriptor getter (slot 6) | `GetCid8ClassDesc` `0x113A90` |
 | vtable | `D_002D2CB8`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewCid8`](../../../src/auto/NewCid8.c) (vptr +0xC) |
+| vtable stored by | [`NewCid8`](../../../src/game/app/class_registry/NewCid8.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetCid8ClassDesc`](../../../src/auto/GetCid8ClassDesc.c) | `0x113A90` |
+| 6 | Pclassinfo | **override** | [`GetCid8ClassDesc`](../../../src/game/app/class_registry/GetCid8ClassDesc.c) | `0x113A90` |
 | 7 | Init | **override** | [`InitCid8?`](../../../src/game/engine/physics/tu_185130/func_00185130.c) | `0x185130` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

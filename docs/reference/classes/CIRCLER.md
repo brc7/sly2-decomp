@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x60 (96 bytes), +0x10 over SAA |
 | Descriptor | `D_002BB628` (record 144 of D_002BAAE8; cid range 144..145) |
-| Factory (`pfnNew`) | [`NewCircler`](../../../src/auto/NewCircler.c) `0x112F20` |
+| Factory (`pfnNew`) | [`NewCircler`](../../../src/game/app/class_registry/NewCircler.c) `0x112F20` |
 | Descriptor getter (slot 6) | `GetCirclerClassDesc` `0x114310` |
 | vtable | `D_002D91E0`, 11 entries (slots 0..10; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewCircler`](../../../src/auto/NewCircler.c) (vptr +0xC) |
+| vtable stored by | [`NewCircler`](../../../src/game/app/class_registry/NewCircler.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetCirclerClassDesc`](../../../src/auto/GetCirclerClassDesc.c) | `0x114310` |
+| 6 | Pclassinfo | **override** | [`GetCirclerClassDesc`](../../../src/game/app/class_registry/GetCirclerClassDesc.c) | `0x114310` |
 | 7 | InitSaa | **override** | [`InitCircler?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE688.c) | `0x1EE688` |
 | 8 | UpdateSaa | **override** | [`UpdateCircler__FP7CIRCLERf`](../../../src/game/engine/graphics/pipeline/shdanim/UpdateCircler__FP7CIRCLERf.cpp) | `0x1EE6D8` |
 | 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteCircler__FP7CIRCLER`](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteCircler__FP7CIRCLER.cpp) | `0x1EE768` |

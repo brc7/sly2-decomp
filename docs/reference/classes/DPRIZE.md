@@ -27,7 +27,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleDprizeMessage?`](../../../src/game/gameplay/progression/prize/func_001C5098.c) | `0x1C5098` |
-| 6 | Pclassinfo | **override** | [`GetDprizeClassDesc`](../../../src/auto/GetDprizeClassDesc.c) | `0x113FB0` |
+| 6 | Pclassinfo | **override** | [`GetDprizeClassDesc`](../../../src/game/app/class_registry/GetDprizeClassDesc.c) | `0x113FB0` |
 | 7 | Init | **override** | [`InitDprize?`](../../../src/game/gameplay/progression/prize/func_001C4E50.c) | `0x1C4E50` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

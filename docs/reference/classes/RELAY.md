@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xB0 (176 bytes), +0x60 over LO |
 | Descriptor | `D_002BB3D0` (record 114 of D_002BAAE8; cid range 114..115) |
-| Factory (`pfnNew`) | [`NewRelay`](../../../src/auto/NewRelay.c) `0x112900` |
+| Factory (`pfnNew`) | [`NewRelay`](../../../src/game/app/class_registry/NewRelay.c) `0x112900` |
 | Descriptor getter (slot 6) | `GetRelayClassDesc` `0x114130` |
 | vtable | `D_002D8C48`, 49 entries (slots 0..48; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewRelay`](../../../src/auto/NewRelay.c) (vptr +0xC) |
+| vtable stored by | [`NewRelay`](../../../src/game/app/class_registry/NewRelay.c) (vptr +0xC) |
 | Level instances | 3871 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetRelayClassDesc`](../../../src/auto/GetRelayClassDesc.c) | `0x114130` |
+| 6 | Pclassinfo | **override** | [`GetRelayClassDesc`](../../../src/game/app/class_registry/GetRelayClassDesc.c) | `0x114130` |
 | 7 | Init | **override** | [`InitRelay?`](../../../src/game/gameplay/cutscene/relay/func_001DFAD8.c) | `0x1DFAD8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x900 (2304 bytes), +0x8B0 over LO |
 | Descriptor | `D_002BB3E4` (record 115 of D_002BAAE8; cid range 115..116) |
-| Factory (`pfnNew`) | [`NewWr`](../../../src/auto/NewWr.c) `0x112938` |
+| Factory (`pfnNew`) | [`NewWr`](../../../src/game/app/class_registry/NewWr.c) `0x112938` |
 | Descriptor getter (slot 6) | `GetWrClassDesc` `0x114140` |
 | vtable | `D_002DCF00`, 49 entries (slots 0..48; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewWr`](../../../src/auto/NewWr.c) (vptr +0xC) |
+| vtable stored by | [`NewWr`](../../../src/game/app/class_registry/NewWr.c) (vptr +0xC) |
 | Level instances | 49 objects in 20 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWrClassDesc`](../../../src/auto/GetWrClassDesc.c) | `0x114140` |
+| 6 | Pclassinfo | **override** | [`GetWrClassDesc`](../../../src/game/app/class_registry/GetWrClassDesc.c) | `0x114140` |
 | 7 | Init | **override** | [`InitWr?`](../../../src/game/engine/anim/wr/func_0022B720.c) | `0x22B720` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

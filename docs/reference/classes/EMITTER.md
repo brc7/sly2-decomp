@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x160 (352 bytes), +0x80 over XFM |
 | Descriptor | `D_002BAD2C` (record 29 of D_002BAAE8; cid range 29..30) |
-| Factory (`pfnNew`) | [`NewEmitter`](../../../src/auto/NewEmitter.c) `0x111138` |
+| Factory (`pfnNew`) | [`NewEmitter`](../../../src/game/app/class_registry/NewEmitter.c) `0x111138` |
 | Descriptor getter (slot 6) | `GetEmitterClassDesc` `0x113BE0` |
 | vtables | 2 tables report this class: `D_002CEB78` (51), `D_002CED18` (51) (see [hidden types B1](../hidden-types.md#b1-registered-getters-returned-by-more-than-one-vtable)). Slot table below: canonical 0x2CEB78 (the table whose slot 6 is the registered getter; the others use a duplicate getter copy) |
 | Level instances | 6230 objects in 42 of 43 world files |
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleEmitterMessage__FP7EMITTER5MSGIDPv`](../../../src/game/engine/fx/emitter/HandleEmitterMessage__FP7EMITTER5MSGIDPv.cpp) | `0x1599A8` |
-| 6 | Pclassinfo | **override** | [`GetEmitterClassDesc`](../../../src/auto/GetEmitterClassDesc.c) | `0x113BE0` |
+| 6 | Pclassinfo | **override** | [`GetEmitterClassDesc`](../../../src/game/app/class_registry/GetEmitterClassDesc.c) | `0x113BE0` |
 | 7 | Init | **override** | [`InitEmitter`](../../../src/game/engine/fx/emitter/InitEmitter.c) | `0x1591B0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

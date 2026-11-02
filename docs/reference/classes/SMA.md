@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x40 over BASIC |
 | Descriptor | `D_002BB588` (record 136 of D_002BAAE8; cid range 136..137) |
-| Factory (`pfnNew`) | [`NewSma`](../../../src/auto/NewSma.c) `0x112DD0` |
+| Factory (`pfnNew`) | [`NewSma`](../../../src/game/app/class_registry/NewSma.c) `0x112DD0` |
 | Descriptor getter (slot 6) | `GetSmaClassDesc` `0x114290` |
 | vtable | `D_002D9768`, 7 entries (slots 0..6; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`ApplySmCore`](../../../src/game/engine/anim/sm/ApplySmCore.cpp), [`NewSma`](../../../src/auto/NewSma.c) (vptr +0xC) |
+| vtable stored by | [`ApplySmCore`](../../../src/game/engine/anim/sm/ApplySmCore.cpp), [`NewSma`](../../../src/game/app/class_registry/NewSma.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | **override** | [`NotifySma?`](../../../src/game/engine/anim/sm/func_001F0FD8.cpp) | `0x1F0FD8` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandleSmaMessage`](../../../src/game/engine/anim/sm/HandleSmaMessage.cpp) | `0x1F1078` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetSmaClassDesc`](../../../src/auto/GetSmaClassDesc.c) | `0x114290` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetSmaClassDesc`](../../../src/game/app/class_registry/GetSmaClassDesc.c) | `0x114290` | Pclassinfo |
 
 ## Fields
 

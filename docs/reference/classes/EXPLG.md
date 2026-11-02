@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xF0 (240 bytes), +0x10 over EXPL |
 | Descriptor | `D_002BAD54` (record 31 of D_002BAAE8; cid range 31..32) |
-| Factory (`pfnNew`) | [`NewExplg`](../../../src/auto/NewExplg.c) `0x111170` |
+| Factory (`pfnNew`) | [`NewExplg`](../../../src/game/app/class_registry/NewExplg.c) `0x111170` |
 | Descriptor getter (slot 6) | `GetExplgClassDesc` `0x113C00` |
 | vtable | `D_002CE828`, 52 entries (slots 0..51; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewExplg`](../../../src/auto/NewExplg.c) (vptr +0xC) |
+| vtable stored by | [`NewExplg`](../../../src/game/app/class_registry/NewExplg.c) (vptr +0xC) |
 | Level instances | 1958 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetExplgClassDesc`](../../../src/auto/GetExplgClassDesc.c) | `0x113C00` |
+| 6 | Pclassinfo | **override** | [`GetExplgClassDesc`](../../../src/game/app/class_registry/GetExplgClassDesc.c) | `0x113C00` |
 | 7 | Init | inherited (XFM) | `InitXfm` | `0x231100` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

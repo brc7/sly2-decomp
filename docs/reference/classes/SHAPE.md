@@ -11,10 +11,10 @@
 | Children | [PIPE](PIPE.md), [CID12](CID12.md), [RAIL](RAIL.md), [CID14](CID14.md) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0xB0 over XFM |
 | Descriptor | `D_002BABB0` (record 10 of D_002BAAE8; cid range 10..15) |
-| Factory (`pfnNew`) | [`NewShape`](../../../src/auto/NewShape.c) `0x110C98` |
+| Factory (`pfnNew`) | [`NewShape`](../../../src/game/app/class_registry/NewShape.c) `0x110C98` |
 | Descriptor getter (slot 6) | `GetShapeClassDesc` `0x113AB0` |
 | vtable | `D_002D9040`, 51 entries (slots 0..50; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewShape`](../../../src/auto/NewShape.c) (vptr +0xC) |
+| vtable stored by | [`NewShape`](../../../src/game/app/class_registry/NewShape.c) (vptr +0xC) |
 | Level instances | 3140 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetShapeClassDesc`](../../../src/auto/GetShapeClassDesc.c) | `0x113AB0` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetShapeClassDesc`](../../../src/game/app/class_registry/GetShapeClassDesc.c) | `0x113AB0` | Pclassinfo |
 | 7 | Init | **override** | [`InitShape`](../../../src/game/engine/physics/shape/InitShape.c) | `0x1E5D80` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

@@ -416,9 +416,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x254F00](../../../src/lib/func_00254F00.c) | `GcPair_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x2550A0](../../../src/lib/func_002550A0.c) | `GcPair_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x2550F8](../../../src/hand/func_002550F8.c) | `GcPair_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x254F00](../../../src/game/app/bif/func_00254F00.c) | `GcPair_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x2550A0](../../../src/game/app/bif/func_002550A0.c) | `GcPair_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x2550F8](../../../src/game/app/bif/func_002550F8.c) | `GcPair_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255248](../../../src/game/splice/frame/func_00255248.c) | `GcBinding_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2553E0](../../../src/game/splice/frame/func_002553E0.c) | `GcBinding_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255438](../../../src/game/splice/sidebag/func_00255438.c) | `GcBinding_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
@@ -444,9 +444,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256318](../../../src/game/core/linkonce/unhomed/func_00256318.c) | `GetSoOptS14` | return s16@0x14 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256328](../../../src/game/engine/physics/so/func_00256328.c) | `SetSoOptI18` | set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256350](../../../src/game/core/linkonce/unhomed/func_00256350.c) | `GetSoOptI18` | return int@0x18 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256360](../../../src/hand/func_00256360.c) | `STEPGUARD_ctor` | inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x2563E8](../../../src/auto/func_002563E8.c) | `JT_ctor` | inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x256440](../../../src/auto/func_00256440.c) | `MURRAY_ctor` | inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)] | 0.60 | T1 |  |
+| [0x256360](../../../src/game/app/class_registry/func_00256360.c) | `STEPGUARD_ctor` | inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)] | 0.60 | T1 |  |
+| [0x2563E8](../../../src/game/app/class_registry/func_002563E8.c) | `JT_ctor` | inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)] | 0.60 | T1 |  |
+| [0x256440](../../../src/game/app/class_registry/func_00256440.c) | `MURRAY_ctor` | inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x2564A8](../../../src/game/core/math/bsp/func_002564A8.c) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2564B8](../../../src/game/core/math/bsp/func_002564B8.c) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
 | [0x2564C0](../../../src/game/engine/physics/mark/func_002564C0.c) | `Identity_002564C0` | return arg (inline cast/accessor) [game linkonce (inline/template)] | 0.15 | T2 |  |
@@ -462,14 +462,14 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2568C0](../../../src/game/core/containers/tu_119BC8/func_002568C0.c) | `CHash_Resize` | rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x2569F8](../../../src/game/core/containers/tu_119BC8/func_002569F8.c) | `CHash_Insert` | insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x256AF0](../../../src/game/core/containers/tu_119BC8/func_00256AF0.c) | `CHashIndex_Add` | insert (hash(px), index of px) into owner hash [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256B48](../../../src/hand/func_00256B48.c) | `PvNewPair` | allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256C38](../../../src/auto/func_00256C38.c) | `PairPtr_ctor` | CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release | 0.55 | T2 | top50; top50 round; v2 name PairPtr_Init |
-| [0x256C58](../../../src/lib/func_00256C58.c) | `PairPtr_Assign` | refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256CE8](../../../src/hand/__8VU_FLOATf.cpp) | `__8VU_FLOATf` |  |  | existing |  |
-| [0x256D08](../../../src/auto/__9VU_VECTORRC6VECTOR.c) | `__9VU_VECTORRC6VECTOR` |  |  | existing |  |
+| [0x256B48](../../../src/game/app/bif/func_00256B48.c) | `PvNewPair` | allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x256C38](../../../src/game/app/bif/func_00256C38.c) | `PairPtr_ctor` | CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release | 0.55 | T2 | top50; top50 round; v2 name PairPtr_Init |
+| [0x256C58](../../../src/game/app/bif/func_00256C58.c) | `PairPtr_Assign` | refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x256CE8](../../../src/game/app/bif/__8VU_FLOATf.cpp) | `__8VU_FLOATf` |  |  | existing |  |
+| [0x256D08](../../../src/game/app/bif/__9VU_VECTORRC6VECTOR.c) | `__9VU_VECTORRC6VECTOR` |  |  | existing |  |
 | [0x256D18](../../../src/game/engine/anim/xf/func_00256D18.c) | `VECTOR_opAssign` | VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it | 0.60 | T1 | top50 |
-| [0x256D28](../../../src/hand/__ml__FG8VU_FLOATG9VU_VECTOR.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
-| [0x256D40](../../../src/lib/func_00256D40.c) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x256D28](../../../src/game/app/bif/__ml__FG8VU_FLOATG9VU_VECTOR.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
+| [0x256D40](../../../src/game/app/bif/func_00256D40.c) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256DD0](../../../src/game/splice/eval/func_00256DD0.c) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256EE0](../../../src/game/object/proxy/func_00256EE0.c) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
 | [0x256F48](../../../src/game/splice/eval/func_00256F48.c) | `PvNewProc` | allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |

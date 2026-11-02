@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x300 (768 bytes), +0x1B0 over SO |
 | Descriptor | `D_002BB164` (record 83 of D_002BAAE8; cid range 83..84) |
-| Factory (`pfnNew`) | [`NewButton`](../../../src/hand/NewButton.cpp) `0x111FA0` |
+| Factory (`pfnNew`) | [`NewButton`](../../../src/game/app/class_registry/NewButton.cpp) `0x111FA0` |
 | Descriptor getter (slot 6) | `GetButtonClassDesc` `0x113F40` |
 | vtable | `D_002CC950`, 76 entries (slots 0..75; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewButton`](../../../src/hand/NewButton.cpp) (vptr +0xC) |
+| vtable stored by | [`NewButton`](../../../src/game/app/class_registry/NewButton.cpp) (vptr +0xC) |
 | Level instances | 92 objects in 30 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetButtonClassDesc`](../../../src/auto/GetButtonClassDesc.c) | `0x113F40` |
+| 6 | Pclassinfo | **override** | [`GetButtonClassDesc`](../../../src/game/app/class_registry/GetButtonClassDesc.c) | `0x113F40` |
 | 7 | Init | **override** | [`InitButton`](../../../src/game/gameplay/objects/button/InitButton.c) | `0x148BB0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

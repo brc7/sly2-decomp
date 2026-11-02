@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xA0 (160 bytes), +0x70 over BHV |
 | Descriptor | `D_002BBA10` (record 194 of D_002BAAE8; cid range 194..195) |
-| Factory (`pfnNew`) | [`NewBhvfollow`](../../../src/auto/NewBhvfollow.c) `0x1138F8` |
+| Factory (`pfnNew`) | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) `0x1138F8` |
 | Descriptor getter (slot 6) | `GetBhvfollowClassDesc` `0x114630` |
 | vtable | `D_002CC3C0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvfollow`](../../../src/auto/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvfollowClassDesc`](../../../src/auto/GetBhvfollowClassDesc.c) | `0x114630` |
+| 6 | Pclassinfo | **override** | [`GetBhvfollowClassDesc`](../../../src/game/app/class_registry/GetBhvfollowClassDesc.c) | `0x114630` |
 | 7 | Init | **override** | [`InitBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/InitBhvfollow.c) | `0x145010` |
 | 8 | Start | **override** | [`StartBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/StartBhvfollow.c) | `0x145080` |
 | 9 | Close | **override** | [`CloseBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/CloseBhvfollow.c) | `0x1450B0` |

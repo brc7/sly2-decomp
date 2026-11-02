@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1020 (4128 bytes), +0x10 over STEPGUARD |
 | Descriptor | `D_002BAFAC` (record 61 of D_002BAAE8; cid range 61..62) |
-| Factory (`pfnNew`) | [`NewRajan`](../../../src/auto/NewRajan.c) `0x1118A8` |
+| Factory (`pfnNew`) | [`NewRajan`](../../../src/game/app/class_registry/NewRajan.c) `0x1118A8` |
 | Descriptor getter (slot 6) | `GetRajanClassDesc` `0x113DE0` |
 | vtable | `D_002D7188`, 91 entries (slots 0..90; slot 0 null), 1 new, 3 overridden |
-| vtable stored by | [`NewRajan`](../../../src/auto/NewRajan.c) (vptr +0xC) |
+| vtable stored by | [`NewRajan`](../../../src/game/app/class_registry/NewRajan.c) (vptr +0xC) |
 | Level instances | 3 objects in 3 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
-| 6 | Pclassinfo | **override** | [`GetRajanClassDesc`](../../../src/auto/GetRajanClassDesc.c) | `0x113DE0` |
+| 6 | Pclassinfo | **override** | [`GetRajanClassDesc`](../../../src/game/app/class_registry/GetRajanClassDesc.c) | `0x113DE0` |
 | 7 | Init | **override** | [`InitRajan?`](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBEB0.c) | `0x1CBEB0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | **new** | [`HandleBasicSpliceEvent`](../../../src/game/object/basic/HandleBasicSpliceEvent.c) | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | **new** | [`SendLoMessage`](../../../src/game/object/basic/SendLoMessage.c) | `0x133508` | SendMessage |
 | 5 | HandleMessage | **new** | [`HandleBasicMessage`](../../../src/game/object/basic/HandleBasicMessage.c) | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **new** | [`GetBasicClassDesc`](../../../src/auto/GetBasicClassDesc.c) | `0x113A10` | Pclassinfo |
+| 6 | Pclassinfo | **new** | [`GetBasicClassDesc`](../../../src/game/app/class_registry/GetBasicClassDesc.c) | `0x113A10` | Pclassinfo |
 
 ## Fields
 

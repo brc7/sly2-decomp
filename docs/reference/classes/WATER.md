@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0x40 over SO |
 | Descriptor | `D_002BB1DC` (record 89 of D_002BAAE8; cid range 89..90) |
-| Factory (`pfnNew`) | [`NewWater`](../../../src/hand/NewWater.cpp) `0x112160` |
+| Factory (`pfnNew`) | [`NewWater`](../../../src/game/app/class_registry/NewWater.cpp) `0x112160` |
 | Descriptor getter (slot 6) | `GetWaterClassDesc` `0x113FA0` |
 | vtable | `D_002DCA30`, 76 entries (slots 0..75; slot 0 null), 0 new, 10 overridden |
-| vtable stored by | [`NewWater`](../../../src/hand/NewWater.cpp) (vptr +0xC) |
+| vtable stored by | [`NewWater`](../../../src/game/app/class_registry/NewWater.cpp) (vptr +0xC) |
 | Level instances | 58 objects in 17 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleWaterMessage?`](../../../src/game/engine/physics/water/func_00229370.c) | `0x229370` |
-| 6 | Pclassinfo | **override** | [`GetWaterClassDesc`](../../../src/auto/GetWaterClassDesc.c) | `0x113FA0` |
+| 6 | Pclassinfo | **override** | [`GetWaterClassDesc`](../../../src/game/app/class_registry/GetWaterClassDesc.c) | `0x113FA0` |
 | 7 | Init | **override** | [`InitWater?`](../../../src/game/engine/physics/water/func_00228B48.c) | `0x228B48` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

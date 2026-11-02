@@ -11,10 +11,10 @@
 | Children | [CID25](CID25.md) |
 | Instance size (`cb`) | 0x2D0 (720 bytes), +0x1A0 over VOL |
 | Descriptor | `D_002BACC8` (record 24 of D_002BAAE8; cid range 24..26) |
-| Factory (`pfnNew`) | [`NewVolbtn`](../../../src/auto/NewVolbtn.c) `0x110FE8` |
+| Factory (`pfnNew`) | [`NewVolbtn`](../../../src/game/app/class_registry/NewVolbtn.c) `0x110FE8` |
 | Descriptor getter (slot 6) | `GetVolbtnClassDesc` `0x113B90` |
 | vtable | `D_002CC7B0`, 51 entries (slots 0..50; slot 0 null), 0 new, 7 overridden |
-| vtable stored by | [`NewVolbtn`](../../../src/auto/NewVolbtn.c) (vptr +0xC) |
+| vtable stored by | [`NewVolbtn`](../../../src/game/app/class_registry/NewVolbtn.c) (vptr +0xC) |
 | Level instances | 482 objects in 39 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetVolbtnClassDesc`](../../../src/auto/GetVolbtnClassDesc.c) | `0x113B90` |
+| 6 | Pclassinfo | **override** | [`GetVolbtnClassDesc`](../../../src/game/app/class_registry/GetVolbtnClassDesc.c) | `0x113B90` |
 | 7 | Init | **override** | [`InitVolbtn`](../../../src/game/gameplay/objects/button/InitVolbtn.c) | `0x1492F0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

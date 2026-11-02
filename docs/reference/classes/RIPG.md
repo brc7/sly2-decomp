@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1B0 (432 bytes), +0x60 over SO |
 | Descriptor | `D_002BB1B4` (record 87 of D_002BAAE8; cid range 87..88) |
-| Factory (`pfnNew`) | [`NewRipg`](../../../src/hand/NewRipg.cpp) `0x1120A8` |
+| Factory (`pfnNew`) | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) `0x1120A8` |
 | Descriptor getter (slot 6) | `GetRipgClassDesc` `0x113F80` |
 | vtable | `D_002D77D8`, 76 entries (slots 0..75; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewRipg`](../../../src/hand/NewRipg.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/func_001CDCD0.c) (vptr +0xC) |
+| vtable stored by | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/func_001CDCD0.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetRipgClassDesc`](../../../src/auto/GetRipgClassDesc.c) | `0x113F80` |
+| 6 | Pclassinfo | **override** | [`GetRipgClassDesc`](../../../src/game/app/class_registry/GetRipgClassDesc.c) | `0x113F80` |
 | 7 | Init | **override** | [`InitRipg?`](../../../src/game/engine/fx/rip/func_001CDDC8.c) | `0x1CDDC8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

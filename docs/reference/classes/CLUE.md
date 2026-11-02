@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x230 (560 bytes), +0x0 over DPRIZE |
 | Descriptor | `D_002BB254` (record 95 of D_002BAAE8; cid range 95..96) |
-| Factory (`pfnNew`) | [`NewClue`](../../../src/hand/NewClue.cpp) `0x112318` |
+| Factory (`pfnNew`) | [`NewClue`](../../../src/game/app/class_registry/NewClue.cpp) `0x112318` |
 | Descriptor getter (slot 6) | `GetClueClassDesc` `0x114000` |
 | vtable | `D_002D5F68`, 77 entries (slots 0..76; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewClue`](../../../src/hand/NewClue.cpp) (vptr +0xC) |
+| vtable stored by | [`NewClue`](../../../src/game/app/class_registry/NewClue.cpp) (vptr +0xC) |
 | Level instances | 8 objects in 8 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (DPRIZE) | `HandleDprizeMessage?` | `0x1C5098` |
-| 6 | Pclassinfo | **override** | [`GetClueClassDesc`](../../../src/auto/GetClueClassDesc.c) | `0x114000` |
+| 6 | Pclassinfo | **override** | [`GetClueClassDesc`](../../../src/game/app/class_registry/GetClueClassDesc.c) | `0x114000` |
 | 7 | Init | **override** | [`InitClue?`](../../../src/game/gameplay/progression/prize/func_001C7E38.c) | `0x1C7E38` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

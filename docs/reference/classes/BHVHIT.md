@@ -11,10 +11,10 @@
 | Children | [BHV161](BHV161.md), [BHV162](BHV162.md), [BHVKO](BHVKO.md) |
 | Instance size (`cb`) | 0xC0 (192 bytes), +0x70 over BHVANIM |
 | Descriptor | `D_002BB768` (record 160 of D_002BAAE8; cid range 160..164) |
-| Factory (`pfnNew`) | [`NewBhvhit`](../../../src/auto/NewBhvhit.c) `0x113158` |
+| Factory (`pfnNew`) | [`NewBhvhit`](../../../src/game/app/class_registry/NewBhvhit.c) `0x113158` |
 | Descriptor getter (slot 6) | `GetBhvhitClassDesc` `0x114410` |
 | vtable | `D_002D09B0`, 15 entries (slots 0..14; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewBhvhit`](../../../src/auto/NewBhvhit.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvhit`](../../../src/game/app/class_registry/NewBhvhit.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV160`, proposed `BHVHIT` (confidence 0.6), guard flag `param`. damage reaction base (knock-back, pain noise, jolt)
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvhitClassDesc`](../../../src/auto/GetBhvhitClassDesc.c) | `0x114410` |
+| 6 | Pclassinfo | **override** | [`GetBhvhitClassDesc`](../../../src/game/app/class_registry/GetBhvhitClassDesc.c) | `0x114410` |
 | 7 | Init | inherited (BHVANIM) | `InitBhvanim` | `0x174920` |
 | 8 | Start | **override** | [`StartBhvhit`](../../../src/game/gameplay/ai/guardbhv/StartBhvhit.c) | `0x179328` |
 | 9 | Close | **override** | [`CloseBhvhit`](../../../src/game/gameplay/ai/guardbhv/CloseBhvhit.c) | `0x179598` |

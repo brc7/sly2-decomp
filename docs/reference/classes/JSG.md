@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xB0 (176 bytes), +0xA0 over BASIC |
 | Descriptor | `D_002BB6DC` (record 153 of D_002BAAE8; cid range 153..154) |
-| Factory (`pfnNew`) | [`NewJsg`](../../../src/auto/NewJsg.c) `0x112FB8` |
+| Factory (`pfnNew`) | [`NewJsg`](../../../src/game/app/class_registry/NewJsg.c) `0x112FB8` |
 | Descriptor getter (slot 6) | `GetJsgClassDesc` `0x1143A0` |
 | vtable | `D_002C94A0`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`AddRobottankWeapon?`](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B90.cpp) (vptr +0xC), [`CloneRobottank`](../../../src/game/gameplay/objects/tu_1D1370/CloneRobottank.cpp), [`NewJsg`](../../../src/auto/NewJsg.c) (vptr +0xC) |
+| vtable stored by | [`AddRobottankWeapon?`](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B90.cpp) (vptr +0xC), [`CloneRobottank`](../../../src/game/gameplay/objects/tu_1D1370/CloneRobottank.cpp), [`NewJsg`](../../../src/game/app/class_registry/NewJsg.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetJsgClassDesc`](../../../src/auto/GetJsgClassDesc.c) | `0x1143A0` |
+| 6 | Pclassinfo | **override** | [`GetJsgClassDesc`](../../../src/game/app/class_registry/GetJsgClassDesc.c) | `0x1143A0` |
 
 ## Fields
 

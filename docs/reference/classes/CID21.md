@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x100 (256 bytes), +0x20 over XFM |
 | Descriptor | `D_002BAC8C` (record 21 of D_002BAAE8; cid range 21..22) |
-| Factory (`pfnNew`) | [`NewCid21`](../../../src/auto/NewCid21.c) `0x110F40` |
+| Factory (`pfnNew`) | [`NewCid21`](../../../src/game/app/class_registry/NewCid21.c) `0x110F40` |
 | Descriptor getter (slot 6) | `GetCid21ClassDesc` `0x113B60` |
 | vtable | `D_002DB378`, 51 entries (slots 0..50; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewCid21`](../../../src/auto/NewCid21.c) (vptr +0xC) |
+| vtable stored by | [`NewCid21`](../../../src/game/app/class_registry/NewCid21.c) (vptr +0xC) |
 | Level instances | 5 objects in 2 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetCid21ClassDesc`](../../../src/auto/GetCid21ClassDesc.c) | `0x113B60` |
+| 6 | Pclassinfo | **override** | [`GetCid21ClassDesc`](../../../src/game/app/class_registry/GetCid21ClassDesc.c) | `0x113B60` |
 | 7 | Init | **override** | [`InitCid21?`](../../../src/game/gameplay/objects/target/func_0021D3D8.c) | `0x21D3D8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

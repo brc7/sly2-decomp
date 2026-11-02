@@ -49,7 +49,7 @@ The startup table, in order `[C:static]` for the table, names `[H r4 main.md]` w
 
 ## 2. The frame loop (exact order)
 
-From the matched `main` body (`src/hand/func_001A7518.c`) `[C:static]`; callee names `[H r4 main.md]` unless tagged:
+From the matched `main` body (`src/game/app/main/func_001A7518.c`) `[C:static]`; callee names `[H r4 main.md]` unless tagged:
 
 ```
 for (;;) {

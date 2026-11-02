@@ -55,13 +55,13 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A4E08](../../../src/hand/func_001A4E08.c) | `StartBootSequence` | Reset the step queue (count 0, cursor 0), queue a movie (D_002A3868), a memcard step (5), a world warp to D_002A38A8 oid 0x189, then run the first step | 0.35 | T2 |  |
-| [0x1A4E70](../../../src/auto/func_001A4E70.c) | `FBootSequencePending` | cursor (+0x1C4) < count | 0.40 | T2 |  |
-| [0x1A4E80](../../../src/hand/func_001A4E80.c) | `RunNextBootStep` | Pop the next queued step and run it: movie (CMpeg::QueueMovie), world warp (WipeToWorldWarp), task (StartTaskByOid), memcard UI phase (SetMcUiPhase); recurses for instant steps | 0.40 | T2 |  |
-| [0x1A4FB0](../../../src/hand/func_001A4FB0.c) | `PbootstepAdd` | Append a zeroed step of kind k to the 16-entry queue (overflow returns dummy D_002E1E68) | 0.35 | T2 |  |
-| [0x1A5020](../../../src/hand/func_001A5020.c) | `AddBootMovie` | If valid, queue kind 0 with movie pointer | 0.30 | T2 |  |
-| [0x1A5078](../../../src/hand/func_001A5078.c) | `AddBootWorldWarp` | Queue kind 2 {so, oid, flag} | 0.30 | T2 |  |
-| [0x1A50F8](../../../src/auto/func_001A50F8.c) | `AddBootMemcardStep` | Queue kind 5 | 0.30 | T2 |  |
+| [0x1A4E08](../../../src/game/app/tu_1A4E08/func_001A4E08.c) | `StartBootSequence` | Reset the step queue (count 0, cursor 0), queue a movie (D_002A3868), a memcard step (5), a world warp to D_002A38A8 oid 0x189, then run the first step | 0.35 | T2 |  |
+| [0x1A4E70](../../../src/game/app/tu_1A4E08/func_001A4E70.c) | `FBootSequencePending` | cursor (+0x1C4) < count | 0.40 | T2 |  |
+| [0x1A4E80](../../../src/game/app/tu_1A4E08/func_001A4E80.c) | `RunNextBootStep` | Pop the next queued step and run it: movie (CMpeg::QueueMovie), world warp (WipeToWorldWarp), task (StartTaskByOid), memcard UI phase (SetMcUiPhase); recurses for instant steps | 0.40 | T2 |  |
+| [0x1A4FB0](../../../src/game/app/tu_1A4E08/func_001A4FB0.c) | `PbootstepAdd` | Append a zeroed step of kind k to the 16-entry queue (overflow returns dummy D_002E1E68) | 0.35 | T2 |  |
+| [0x1A5020](../../../src/game/app/tu_1A4E08/func_001A5020.c) | `AddBootMovie` | If valid, queue kind 0 with movie pointer | 0.30 | T2 |  |
+| [0x1A5078](../../../src/game/app/tu_1A4E08/func_001A5078.c) | `AddBootWorldWarp` | Queue kind 2 {so, oid, flag} | 0.30 | T2 |  |
+| [0x1A50F8](../../../src/game/app/tu_1A4E08/func_001A50F8.c) | `AddBootMemcardStep` | Queue kind 5 | 0.30 | T2 |  |
 
 ## phasemem (0x1C2A78-0x1C2D20)
 

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x130 (304 bytes), +0x50 over XFM |
 | Descriptor | `D_002BAC3C` (record 17 of D_002BAAE8; cid range 17..18) |
-| Factory (`pfnNew`) | [`NewPathzone`](../../../src/auto/NewPathzone.c) `0x110E50` |
+| Factory (`pfnNew`) | [`NewPathzone`](../../../src/game/app/class_registry/NewPathzone.c) `0x110E50` |
 | Descriptor getter (slot 6) | `GetPathzoneClassDesc` `0x113B20` |
 | vtable | `D_002D52B0`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewPathzone`](../../../src/auto/NewPathzone.c) (vptr +0xC) |
+| vtable stored by | [`NewPathzone`](../../../src/game/app/class_registry/NewPathzone.c) (vptr +0xC) |
 | Level instances | 986 objects in 40 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetPathzoneClassDesc`](../../../src/auto/GetPathzoneClassDesc.c) | `0x113B20` |
+| 6 | Pclassinfo | **override** | [`GetPathzoneClassDesc`](../../../src/game/app/class_registry/GetPathzoneClassDesc.c) | `0x113B20` |
 | 7 | Init | **override** | [`InitPathzone`](../../../src/game/engine/physics/path/InitPathzone.c) | `0x1C0378` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

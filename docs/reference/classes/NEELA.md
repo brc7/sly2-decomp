@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x10A0 (4256 bytes), +0x90 over STEPGUARD |
 | Descriptor | `D_002BAF98` (record 60 of D_002BAAE8; cid range 60..61) |
-| Factory (`pfnNew`) | [`NewNeela`](../../../src/auto/NewNeela.c) `0x111868` |
+| Factory (`pfnNew`) | [`NewNeela`](../../../src/game/app/class_registry/NewNeela.c) `0x111868` |
 | Descriptor getter (slot 6) | `GetNeelaClassDesc` `0x113DD0` |
 | vtable | `D_002D4820`, 90 entries (slots 0..89; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewNeela`](../../../src/auto/NewNeela.c) (vptr +0xC) |
+| vtable stored by | [`NewNeela`](../../../src/game/app/class_registry/NewNeela.c) (vptr +0xC) |
 | Level instances | 9 objects in 9 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
-| 6 | Pclassinfo | **override** | [`GetNeelaClassDesc`](../../../src/auto/GetNeelaClassDesc.c) | `0x113DD0` |
+| 6 | Pclassinfo | **override** | [`GetNeelaClassDesc`](../../../src/game/app/class_registry/GetNeelaClassDesc.c) | `0x113DD0` |
 | 7 | Init | **override** | [`InitNeela`](../../../src/game/gameplay/ai/tu_1B9F80/InitNeela.c) | `0x1B9F80` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
