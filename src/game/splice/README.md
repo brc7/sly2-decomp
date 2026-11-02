@@ -11,7 +11,7 @@
 | [`gc/`](gc/) | 19 |
 | [`method.cpp`](method.cpp) | 1 |
 | [`pair.cpp`](pair.cpp) | 1 |
-| [`proc/`](proc/) | 4 |
+| [`proc.cpp`](proc.cpp) | 1 |
 | [`ref/`](ref/) | 38 |
 | [`serialize/`](serialize/) | 3 |
 | [`sidebag/`](sidebag/) | 12 |

@@ -1272,9 +1272,9 @@ func_00128C98,0x128C98,8,match,src/game/splice/method.cpp
 CPair_CloneTo,0x128CB8,88,match,src/game/splice/pair.cpp
 StaticInit_pair,0x128E18,77,match,src/game/splice/pair.cpp
 func_00128F50,0x128F50,8,match,src/game/splice/pair.cpp
-CProc_CloneTo,0x128F70,56,match,src/game/splice/proc/CProc_CloneTo.cpp
-StaticInit_proc,0x129050,77,match,src/game/splice/proc/StaticInit_proc.c
-func_00129188,0x129188,8,match,src/game/splice/proc/func_00129188.c
+CProc_CloneTo,0x128F70,56,match,src/game/splice/proc.cpp
+StaticInit_proc,0x129050,77,match,src/game/splice/proc.cpp
+func_00129188,0x129188,8,match,src/game/splice/proc.cpp
 func_001291A8,0x1291A8,14,match,src/game/splice/ref/func_001291A8.c
 CRef_ctor_VECTOR,0x1291E0,26,match,src/game/splice/ref/CRef_ctor_VECTOR.c
 CRef_ctor,0x129248,25,match,src/game/splice/ref/CRef_ctor.c
@@ -6553,7 +6553,7 @@ PairPtr_Release,0x256D40,35,match,src/game/app/bif/PairPtr_Release.c
 PvNewFrame,0x256DD0,67,match,src/game/splice/eval/PvNewFrame.c
 FramePtr_Assign,0x256EE0,25,match,src/game/object/proxy/FramePtr_Assign.c
 PvNewProc,0x256F48,59,match,src/game/splice/eval/PvNewProc.c
-func_00257038,0x257038,7,match,src/game/splice/proc/func_00257038.c
+func_00257038,0x257038,7,match,src/game/splice/proc.cpp
 func_00257058,0x257058,7,match,src/game/splice/frame/func_00257058.c
 func_00257078,0x257078,52,match,src/game/splice/eval/func_00257078.c
 func_00257148,0x257148,65,match,src/game/splice/ref/func_00257148.c

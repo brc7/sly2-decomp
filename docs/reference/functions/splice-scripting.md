@@ -258,7 +258,7 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128F70](../../../src/game/splice/proc/CProc_CloneTo.cpp) | `CProc_CloneTo` | New proc (0x256F48) copying frame pointer and param/body lists | 0.75 | T1 |  |
+| [0x128F70](../../../src/game/splice/proc.cpppp) | `CProc_CloneTo` | New proc (0x256F48) copying frame pointer and param/body lists | 0.75 | T1 |  |
 
 ## ref (0x1291A8-0x12A3D8)
 

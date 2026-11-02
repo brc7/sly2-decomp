@@ -473,7 +473,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256DD0](../../../src/game/splice/eval/func_00256DD0.c) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256EE0](../../../src/game/object/proxy/func_00256EE0.c) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
 | [0x256F48](../../../src/game/splice/eval/func_00256F48.c) | `PvNewProc` | allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257038](../../../src/game/splice/proc/func_00257038.c) | `ProcPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x257038](../../../src/game/splice/proc.cpp) | `ProcPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x257058](../../../src/game/splice/frame/func_00257058.c) | `FramePtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x257078](../../../src/game/splice/eval/func_00257078.c) | `CFrame_dtor` | CFrame destructor (gcc 2.95 deleting form with __in_chrg): release binding list ref, release the 4 parent frame refs, unlink from the GC frame list, operator delete to pool D_004520F8 when flags&1 | 0.55 | T2 | top50; top50 round; v2 name DeleteFrame |
 | [0x257148](../../../src/game/splice/ref/func_00257148.c) | `DeleteProc` | CProc destructor body: release arg/body pairs and frame, unlink, free [game linkonce (inline/template)] | 0.40 | T2 |  |
