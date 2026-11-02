@@ -1537,8 +1537,8 @@ func_00134310,0x134310,4,match,src/game/engine/physics/bbmark/func_00134310.c
 RecalcSwOxfFilterForObject,0x134320,30,match,src/game/engine/physics/bbmark/RecalcSwOxfFilterForObject.c
 StaticInit_bbmark,0x134398,77,match,src/game/engine/physics/bbmark/StaticInit_bbmark.c
 func_001344D0,0x1344D0,8,match,src/game/engine/physics/bbmark/func_001344D0.c
-StaticInit_empty_1344F0,0x1344F0,77,match,src/game/gameplay/player/empty_1344F0/StaticInit_empty_1344F0.c
-func_00134628,0x134628,8,match,src/game/gameplay/player/empty_1344F0/func_00134628.c
+StaticInit_empty_1344F0,0x1344F0,77,match,src/game/gameplay/player/empty_1344F0.cpp
+func_00134628,0x134628,8,match,src/game/gameplay/player/empty_1344F0.cpp
 InitBentley,0x134648,73,match,src/game/gameplay/player/bentley/InitBentley.c
 LoadBentleyFromBrx,0x134770,14,match,src/game/gameplay/player/bentley/LoadBentleyFromBrx.c
 PostBentleyLoad,0x1347A8,42,match,src/game/gameplay/player/bentley/PostBentleyLoad.c
