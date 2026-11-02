@@ -154,6 +154,35 @@ def compare(name, words, rel, verbose=True):
             lines.append(f'{mark} {addr + 4*i:08X}  {disasm(a, addr+4*i) if a is not None else "-":40s} | {disasm(b, addr+4*i) if b is not None else "-"}')
     return score, (f'{name} @0x{addr:06X}: {("MATCH*" if lenient_hits else "MATCH") if not diffs else f"{len(diffs)}/{n} instructions differ ({score:.1%}); aligned {aligned}"}', lines)
 
+# GCC 2.95's code generation depends on the input file's path string: in rare functions the stack-slot
+# assignment changes with the name the compiler is given (an artefact of its internal memory layout; e.g.
+# func_001D3450 matches as "src/hand/func_001D3450.cpp" or "src/x/func_001D3450.cpp" but not as
+# "src/handx/func_001D3450.cpp" or as an absolute path). So the compiler always sees a repo-relative path,
+# never an absolute one, and files that were matched under an earlier name are compiled under that name
+# (tools/layout/compile_paths.csv: current repo-relative path -> path it was verified as). This makes
+# results independent of where the checkout lives and of later moves.
+_COMPILE_AS = None
+def _compile_as(src):
+    global _COMPILE_AS
+    if _COMPILE_AS is None:
+        _COMPILE_AS = {}
+        mp = os.path.join(ROOT, 'tools', 'layout', 'compile_paths.csv')
+        if os.path.exists(mp):
+            for row in csv.DictReader(open(mp, newline='')):
+                _COMPILE_AS[row['path']] = row['compile_as']
+    rel = os.path.relpath(os.path.abspath(src), ROOT).replace(os.sep, '/')
+    return _COMPILE_AS.get(rel, rel)
+
+def _stage_input(src):
+    """Copy src into a fresh temp tree at its compile-as path; return (cwd, relative path to pass)."""
+    as_rel = _compile_as(src)
+    d = tempfile.mkdtemp(prefix='sly2cc_')
+    dst = os.path.join(d, *as_rel.split('/'))
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    import shutil as _sh
+    _sh.copyfile(src, dst)
+    return d, as_rel
+
 def compile_src(src):
     out = tempfile.mktemp(suffix='.o')
     flags = CFLAGS
@@ -169,6 +198,7 @@ def compile_src(src):
     except OSError:
         head = ''
     import re as _re
+    src_cwd, src_arg = _stage_input(src)
     native = False
     m = _re.search(r'SLY2_CC:\s*(\S+)', head)
     if m and os.path.exists(os.path.join(ROOT, m.group(1), 'bin', 'ee-gcc')):
@@ -197,9 +227,10 @@ def compile_src(src):
         import gnu_reorder
         s_out = out + '.s'
         import wibo_cc; real = wibo_cc.default_wibo()
-        scmd = ([] if native else [real]) + [cc, '-S'] + INCLUDES + [x for x in flags] + (['-fno-delayed-branch'] if asm_mode == 'gnu-reorder' else []) + [src, '-o', s_out]
+        scmd = ([] if native else [real]) + [cc, '-S'] + INCLUDES + [x for x in flags] + (['-fno-delayed-branch'] if asm_mode == 'gnu-reorder' else []) + [src_arg, '-o', s_out]
         if native: scmd = [x for x in scmd if x != '-mvu0-use-vf0-vf31']
-        p = subprocess.run(scmd, capture_output=True, text=True, cwd=ROOT, timeout=300)
+        p = subprocess.run(scmd, capture_output=True, text=True, cwd=src_cwd, timeout=300)
+        import shutil as _sh; _sh.rmtree(src_cwd, ignore_errors=True)
         if not p.returncode and os.path.exists(s_out) and _re.search(r'SLY2_SAVES:\s*sd\b', head):
             # Sony's SDK compiler saved/restored registers with 64-bit sd/ld (in 16-byte slots); the ee-gcc we have
             # emits 128-bit sq/lq there.  Emulate that compiler difference at assembly time (SDK C code has no
@@ -212,10 +243,11 @@ def compile_src(src):
         if p.returncode or not os.path.exists(s_out) or gnu_reorder.assemble(s_out, out, ROOT, asm_mode, divnop=bool(_re.search(r'SLY2_DIVNOP', head)), noloopfix=bool(_re.search(r'SLY2_NOLOOPFIX', head))):
             print(p.stdout + p.stderr); sys.exit(1)
         return out
-    cmd = ([] if native else WIBO_CMD) + [cc, '-c'] + INCLUDES + flags + [src, '-o', out]
+    cmd = ([] if native else WIBO_CMD) + [cc, '-c'] + INCLUDES + flags + [src_arg, '-o', out]
     if native:
         cmd = [x for x in cmd if x != '-mvu0-use-vf0-vf31']
-    p = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT, timeout=300)
+    p = subprocess.run(cmd, capture_output=True, text=True, cwd=src_cwd, timeout=300)
+    import shutil as _sh; _sh.rmtree(src_cwd, ignore_errors=True)
     if p.returncode != 0 or not os.path.exists(out):
         print(p.stdout + p.stderr); sys.exit(1)
     return out
