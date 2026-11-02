@@ -909,10 +909,10 @@ SetPlane,0x1193C0,3,match,src/game/core/math/bsp/SetPlane.c
 func_001193D8,0x1193D8,44,match,src/game/core/math/bsp/func_001193D8.cpp
 StaticInit_bsp,0x119488,77,match,src/game/core/math/bsp/StaticInit_bsp.c
 func_001195C0,0x1195C0,8,match,src/game/core/math/bsp/func_001195C0.c
-CroutDecomp__FiPfT1,0x1195E0,198,match,src/game/core/math/crout/CroutDecomp__FiPfT1.cpp
-CroutSolve__FiPfN21,0x1198F8,91,match,src/game/core/math/crout/CroutSolve__FiPfN21.cpp
-StaticInit_crout,0x119A68,77,match,src/game/core/math/crout/StaticInit_crout.c
-func_00119BA0,0x119BA0,8,match,src/game/core/math/crout/func_00119BA0.c
+CroutDecomp__FiPfT1,0x1195E0,198,match,src/game/core/math/crout.cpp
+CroutSolve__FiPfN21,0x1198F8,91,match,src/game/core/math/crout.cpp
+StaticInit_crout,0x119A68,77,match,src/game/core/math/crout.cpp
+func_00119BA0,0x119BA0,8,match,src/game/core/math/crout.cpp
 func_00119BC8,0x119BC8,2,match,src/game/core/containers/tu_119BC8/func_00119BC8.c
 func_00119BD0,0x119BD0,14,match,src/game/core/containers/tu_119BC8/func_00119BD0.c
 func_00119C08,0x119C08,10,match,src/game/core/containers/tu_119BC8/func_00119C08.c

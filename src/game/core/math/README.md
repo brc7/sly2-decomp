@@ -6,7 +6,7 @@
 | --- | --- |
 | [`bez/`](bez/) | 5 |
 | [`bsp/`](bsp/) | 14 |
-| [`crout/`](crout/) | 4 |
+| [`crout.cpp`](crout.cpp) | 1 |
 | [`dzgcore/`](dzgcore/) | 7 |
 | [`mat/`](mat/) | 33 |
 | [`util/`](util/) | 28 |

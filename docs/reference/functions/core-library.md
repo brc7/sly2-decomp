@@ -105,8 +105,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1195E0](../../../src/game/core/math/crout/CroutDecomp__FiPfT1.cpp) | `CroutDecomp__FiPfT1` |  |  | existing |  |
-| [0x1198F8](../../../src/game/core/math/crout/CroutSolve__FiPfN21.cpp) | `CroutSolve__FiPfN21` |  |  | existing |  |
+| [0x1195E0](../../../src/game/core/math/crout.cpppp) | `CroutDecomp__FiPfT1` |  |  | existing |  |
+| [0x1198F8](../../../src/game/core/math/crout.cpppp) | `CroutSolve__FiPfN21` |  |  | existing |  |
 
 ## tu_119BC8 (0x119BC8-0x119DA0)
 
