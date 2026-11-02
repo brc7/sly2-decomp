@@ -11,7 +11,7 @@
 | [`missile/`](missile/) | 16 |
 | [`rhythm/`](rhythm/) | 35 |
 | [`sensor/`](sensor/) | 21 |
-| [`target/`](target/) | 11 |
+| [`target.cpp`](target.cpp) | 1 |
 | [`tu_14C548.cpp`](tu_14C548.cpp) | 1 |
 | [`tu_1539A8.cpp`](tu_1539A8.cpp) | 1 |
 | [`tu_153B08.cpp`](tu_153B08.cpp) | 1 |

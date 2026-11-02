@@ -103,13 +103,13 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x1FF438](../../src/game/gameplay/objects/tu_1FF3B8/func_001FF438.c) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |
 | [0x1FF470](../../src/game/gameplay/objects/tu_1FF3B8/func_001FF470.c) | `OnCid39Remove` | vt22: remove from SW update array (0x1A6150) and from DL D_003E13D8 | 0.85 | T2 | verified, arbitration |
 | [0x1FF4A8](../../src/game/gameplay/objects/tu_1FF3B8/func_001FF4A8.c) | `CloneCid39` | Clone: XFM clone (0x2311B0) preserving a key field | 0.80 | T2 | verified |
-| [0x21D278](../../src/game/gameplay/objects/target/InitTarget.c) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
-| [0x21D320](../../src/game/gameplay/objects/target/OnTargetRemove.c) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D358](../../src/game/gameplay/objects/target/OnTargetAdd.c) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D390](../../src/game/gameplay/objects/target/CloneTarget.c) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
-| [0x21D428](../../src/game/gameplay/objects/target/func_0021D428.c) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
-| [0x21D460](../../src/game/gameplay/objects/target/func_0021D460.c) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
-| [0x21D498](../../src/game/gameplay/objects/target/func_0021D498.c) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
+| [0x21D278](../../src/game/gameplay/objects/target.cpp) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
+| [0x21D320](../../src/game/gameplay/objects/target.cpp) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D358](../../src/game/gameplay/objects/target.cpp) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D390](../../src/game/gameplay/objects/target.cpp) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
+| [0x21D428](../../src/game/gameplay/objects/target.cpp) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
+| [0x21D460](../../src/game/gameplay/objects/target.cpp) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
+| [0x21D498](../../src/game/gameplay/objects/target.cpp) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
 | [0x223F70](../../src/game/gameplay/objects/tu_223F70/func_00223F70.c) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
 | [0x223FE0](../../src/game/gameplay/objects/tu_223F70/func_00223FE0.c) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
 | [0x224380](../../src/game/gameplay/objects/tu_223F70/func_00224380.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |

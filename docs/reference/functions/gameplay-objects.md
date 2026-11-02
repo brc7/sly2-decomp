@@ -410,15 +410,15 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21D278](../../../src/game/gameplay/objects/target/InitTarget.c) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
-| [0x21D2C8](../../../src/game/gameplay/objects/target/PostTargetLoad.c) | `PostTargetLoad` | PostLoLoad then if sBusy(0x38)==1e10: sBusy = sRadiusTarget + const D_002C40C0 | 0.60 | T1 |  |
-| [0x21D320](../../../src/game/gameplay/objects/target/OnTargetRemove.c) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D358](../../../src/game/gameplay/objects/target/OnTargetAdd.c) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D390](../../../src/game/gameplay/objects/target/CloneTarget.c) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
-| [0x21D3D8](../../../src/game/gameplay/objects/target/func_0021D3D8.c) | `InitCid21` | InitXfm; 0xE8=2000, 0xEC=-800, 0xF0=800, 0xF4=1 | 0.40 | T2 |  |
-| [0x21D428](../../../src/game/gameplay/objects/target/func_0021D428.c) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
-| [0x21D460](../../../src/game/gameplay/objects/target/func_0021D460.c) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
-| [0x21D498](../../../src/game/gameplay/objects/target/func_0021D498.c) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
+| [0x21D278](../../../src/game/gameplay/objects/target.cpp) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
+| [0x21D2C8](../../../src/game/gameplay/objects/target.cpp) | `PostTargetLoad` | PostLoLoad then if sBusy(0x38)==1e10: sBusy = sRadiusTarget + const D_002C40C0 | 0.60 | T1 |  |
+| [0x21D320](../../../src/game/gameplay/objects/target.cpp) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D358](../../../src/game/gameplay/objects/target.cpp) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D390](../../../src/game/gameplay/objects/target.cpp) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
+| [0x21D3D8](../../../src/game/gameplay/objects/target.cpp) | `InitCid21` | InitXfm; 0xE8=2000, 0xEC=-800, 0xF0=800, 0xF4=1 | 0.40 | T2 |  |
+| [0x21D428](../../../src/game/gameplay/objects/target.cpp) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
+| [0x21D460](../../../src/game/gameplay/objects/target.cpp) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
+| [0x21D498](../../../src/game/gameplay/objects/target.cpp) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
 
 ## tu_223F70 (0x223F70-0x2259D8)
 
