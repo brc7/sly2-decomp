@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`bif/`](bif/) | 161 |
-| [`bif2/`](bif2/) | 31 |
+| [`bif2.cpp`](bif2.cpp) | 1 |
 | [`class_registry/`](class_registry/) | 424 |
 | [`main/`](main/) | 7 |
 | [`splice_thunks/`](splice_thunks/) | 31 |

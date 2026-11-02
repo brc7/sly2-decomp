@@ -173,35 +173,35 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1258F0](../../../src/game/app/bif2/func_001258F0.c) | `RefOpStub140` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125930](../../../src/game/app/bif2/func_00125930.c) | `RefOpStub141` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125970](../../../src/game/app/bif2/func_00125970.c) | `RefOpStub142` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x1259B0](../../../src/game/app/bif2/func_001259B0.c) | `RefOpStub143` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x1259F0](../../../src/game/app/bif2/func_001259F0.c) | `RefOpStub144` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125A30](../../../src/game/app/bif2/func_00125A30.c) | `RefOpStub145` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125A70](../../../src/game/app/bif2/func_00125A70.c) | `RefOpStub146` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125AB0](../../../src/game/app/bif2/func_00125AB0.c) | `RefOpStub147` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125AF0](../../../src/game/app/bif2/func_00125AF0.c) | `RefOpStub148` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125B30](../../../src/game/app/bif2/func_00125B30.c) | `RefOpStub149` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125B70](../../../src/game/app/bif2/func_00125B70.c) | `RefOpStub150` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125BB0](../../../src/game/app/bif2/func_00125BB0.c) | `RefOpStub151` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125BF0](../../../src/game/app/bif2/func_00125BF0.c) | `RefOpStub152` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125C30](../../../src/game/app/bif2/func_00125C30.c) | `RefOpStub153` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125C70](../../../src/game/app/bif2/func_00125C70.c) | `RefOpStub154` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125CB0](../../../src/game/app/bif2/func_00125CB0.c) | `RefOpStub155` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125CF0](../../../src/game/app/bif2/func_00125CF0.c) | `RefOpStub156` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125D30](../../../src/game/app/bif2/func_00125D30.c) | `RefOpStub157` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125D70](../../../src/game/app/bif2/func_00125D70.c) | `RefOpStub158` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125DB0](../../../src/game/app/bif2/func_00125DB0.c) | `RefOpStub159` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125DF0](../../../src/game/app/bif2/func_00125DF0.c) | `RefOpStub160` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125E30](../../../src/game/app/bif2/func_00125E30.c) | `RefOpStub161` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125E70](../../../src/game/app/bif2/func_00125E70.c) | `RefOpStub162` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125EB0](../../../src/game/app/bif2/func_00125EB0.c) | `RefOpStub163` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125EF0](../../../src/game/app/bif2/func_00125EF0.c) | `RefOpStub164` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125F30](../../../src/game/app/bif2/func_00125F30.c) | `RefOpStub165` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
-| [0x125F70](../../../src/game/app/bif2/func_00125F70.c) | `RefOpStub166` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125FB0](../../../src/game/app/bif2/func_00125FB0.c) | `RefOpStub167` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
-| [0x125FF0](../../../src/game/app/bif2/func_00125FF0.c) | `RefOpStub168` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x1258F0](../../../src/game/app/bif2.cpp) | `RefOpStub140` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125930](../../../src/game/app/bif2.cpp) | `RefOpStub141` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125970](../../../src/game/app/bif2.cpp) | `RefOpStub142` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x1259B0](../../../src/game/app/bif2.cpp) | `RefOpStub143` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x1259F0](../../../src/game/app/bif2.cpp) | `RefOpStub144` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125A30](../../../src/game/app/bif2.cpp) | `RefOpStub145` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125A70](../../../src/game/app/bif2.cpp) | `RefOpStub146` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125AB0](../../../src/game/app/bif2.cpp) | `RefOpStub147` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125AF0](../../../src/game/app/bif2.cpp) | `RefOpStub148` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125B30](../../../src/game/app/bif2.cpp) | `RefOpStub149` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125B70](../../../src/game/app/bif2.cpp) | `RefOpStub150` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125BB0](../../../src/game/app/bif2.cpp) | `RefOpStub151` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125BF0](../../../src/game/app/bif2.cpp) | `RefOpStub152` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125C30](../../../src/game/app/bif2.cpp) | `RefOpStub153` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125C70](../../../src/game/app/bif2.cpp) | `RefOpStub154` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125CB0](../../../src/game/app/bif2.cpp) | `RefOpStub155` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125CF0](../../../src/game/app/bif2.cpp) | `RefOpStub156` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125D30](../../../src/game/app/bif2.cpp) | `RefOpStub157` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125D70](../../../src/game/app/bif2.cpp) | `RefOpStub158` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125DB0](../../../src/game/app/bif2.cpp) | `RefOpStub159` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125DF0](../../../src/game/app/bif2.cpp) | `RefOpStub160` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125E30](../../../src/game/app/bif2.cpp) | `RefOpStub161` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125E70](../../../src/game/app/bif2.cpp) | `RefOpStub162` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125EB0](../../../src/game/app/bif2.cpp) | `RefOpStub163` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125EF0](../../../src/game/app/bif2.cpp) | `RefOpStub164` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125F30](../../../src/game/app/bif2.cpp) | `RefOpStub165` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 | verified |
+| [0x125F70](../../../src/game/app/bif2.cpp) | `RefOpStub166` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125FB0](../../../src/game/app/bif2.cpp) | `RefOpStub167` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
+| [0x125FF0](../../../src/game/app/bif2.cpp) | `RefOpStub168` | Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs | 0.40 | T2 |  |
 
 ## eval (0x126438-0x127B18)
 
