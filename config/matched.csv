@@ -1472,8 +1472,8 @@ func_00131CD8,0x131CD8,36,match,src/game/engine/anim/asega/func_00131CD8.c
 GetActsegGoal,0x131D68,43,match,src/game/engine/anim/asega/GetActsegGoal.cpp
 StaticInit_asega,0x131E18,77,match,src/game/engine/anim/asega/StaticInit_asega.c
 func_00131F50,0x131F50,8,match,src/game/engine/anim/asega/func_00131F50.c
-StaticInit_empty_131F70,0x131F70,77,match,src/game/engine/anim/empty_131F70/StaticInit_empty_131F70.c
-func_001320A8,0x1320A8,8,match,src/game/engine/anim/empty_131F70/func_001320A8.c
+StaticInit_empty_131F70,0x131F70,77,match,src/game/engine/anim/empty_131F70.cpp
+func_001320A8,0x1320A8,8,match,src/game/engine/anim/empty_131F70.cpp
 InitBarrier,0x1320C8,14,match,src/game/gameplay/objects/barrier/InitBarrier.c
 PostBarrierLoad,0x132100,15,match,src/game/gameplay/objects/barrier/PostBarrierLoad.c
 FIgnoreBarrierIntersection,0x132140,61,match,src/game/gameplay/objects/barrier/FIgnoreBarrierIntersection.c
