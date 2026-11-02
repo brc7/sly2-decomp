@@ -7,7 +7,7 @@
 | [`empty_126188.cpp`](empty_126188.cpp) | 1 |
 | [`empty_1262E0.cpp`](empty_1262E0.cpp) | 1 |
 | [`eval/`](eval/) | 27 |
-| [`frame/`](frame/) | 15 |
+| [`frame.cpp`](frame.cpp) | 1 |
 | [`gc/`](gc/) | 19 |
 | [`method.cpp`](method.cpp) | 1 |
 | [`pair.cpp`](pair.cpp) | 1 |

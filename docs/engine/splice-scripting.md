@@ -176,8 +176,8 @@ Compared with Sly 1's 125-entry table (which gives the Splice spellings) `[H r1 
 | [0x126F78](../../src/game/splice/eval/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
 | [0x1272E0](../../src/game/splice/eval/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
 | [0x127838](../../src/game/splice/eval/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
-| [0x127CF0](../../src/game/splice/frame/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
-| [0x127D78](../../src/game/splice/frame/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
+| [0x127CF0](../../src/game/splice/frame.cpp) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
+| [0x127D78](../../src/game/splice/frame.cpp) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
 | [0x128148](../../src/game/splice/gc/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
 | [0x129248](../../src/game/splice/ref/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
 | [0x129518](../../src/game/splice/ref/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |

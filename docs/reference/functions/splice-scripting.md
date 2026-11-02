@@ -229,14 +229,14 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x127B18](../../../src/game/splice/frame/CFrame_SetSingleParent.c) | `CFrame_SetSingleParent` | cframe(+8)=1; apframe[0] (+0xC, refcounting pointer assign 0x256EE0) = parent | 0.75 | T1 |  |
-| [0x127B40](../../../src/game/splice/frame/CFrame_AddParent.c) | `CFrame_AddParent` | apframe[cframe++] = parent | 0.75 | T1 |  |
-| [0x127B70](../../../src/game/splice/frame/CFrame_RemoveParent.c) | `CFrame_RemoveParent` | Removes a parent pointer from apframe[] (CopyAb shift, cframe--) | 0.50 | T1 |  |
-| [0x127C00](../../../src/game/splice/frame/CFrame_RefAddBinding.cpp) | `CFrame_RefAddBinding` | Prepends a new BINDING {sym, ref} (pool alloc 0x257340) to the frame binding list; returns Void | 0.88 | T1 |  |
-| [0x127CF0](../../../src/game/splice/frame/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
-| [0x127D78](../../../src/game/splice/frame/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
-| [0x127DB8](../../../src/game/splice/frame/PrefFindBinding__6CFrameUii.cpp) | `PrefFindBinding__6CFrameUii` |  |  | existing |  |
-| [0x127E90](../../../src/game/splice/frame/CFrame_CloneTo.cpp) | `CFrame_CloneTo` | New frame (0x256DD0), copies parent pointers, clones binding list via CVarb clone 0x12B0E8 | 0.70 | T1 |  |
+| [0x127B18](../../../src/game/splice/frame.cpp) | `CFrame_SetSingleParent` | cframe(+8)=1; apframe[0] (+0xC, refcounting pointer assign 0x256EE0) = parent | 0.75 | T1 |  |
+| [0x127B40](../../../src/game/splice/frame.cpp) | `CFrame_AddParent` | apframe[cframe++] = parent | 0.75 | T1 |  |
+| [0x127B70](../../../src/game/splice/frame.cpp) | `CFrame_RemoveParent` | Removes a parent pointer from apframe[] (CopyAb shift, cframe--) | 0.50 | T1 |  |
+| [0x127C00](../../../src/game/splice/frame.cpp) | `CFrame_RefAddBinding` | Prepends a new BINDING {sym, ref} (pool alloc 0x257340) to the frame binding list; returns Void | 0.88 | T1 |  |
+| [0x127CF0](../../../src/game/splice/frame.cpp) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
+| [0x127D78](../../../src/game/splice/frame.cpp) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
+| [0x127DB8](../../../src/game/splice/frame.cpp) | `PrefFindBinding__6CFrameUii` |  |  | existing |  |
+| [0x127E90](../../../src/game/splice/frame.cpp) | `CFrame_CloneTo` | New frame (0x256DD0), copies parent pointers, clones binding list via CVarb clone 0x12B0E8 | 0.70 | T1 |  |
 
 ## gc (0x128138-0x128B60)
 
