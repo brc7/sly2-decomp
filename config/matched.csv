@@ -920,8 +920,8 @@ StaticInit_tu_119BC8,0x119C48,77,match,src/game/core/containers/tu_119BC8/Static
 func_00119D80,0x119D80,8,match,src/game/core/containers/tu_119BC8/func_00119D80.c
 StaticInit_empty_119DA0,0x119DA0,77,match,src/game/core/containers/empty_119DA0.cpp
 func_00119ED8,0x119ED8,8,match,src/game/core/containers/empty_119DA0.cpp
-StaticInit_empty_119EF8,0x119EF8,77,match,src/game/core/containers/empty_119EF8/StaticInit_empty_119EF8.c
-func_0011A030,0x11A030,8,match,src/game/core/containers/empty_119EF8/func_0011A030.c
+StaticInit_empty_119EF8,0x119EF8,77,match,src/game/core/containers/empty_119EF8.cpp
+func_0011A030,0x11A030,8,match,src/game/core/containers/empty_119EF8.cpp
 func_0011A050,0x11A050,2,match,src/game/core/containers/dl/func_0011A050.c
 ClearSle,0x11A058,2,match,src/game/core/containers/dl/ClearSle.c
 ClearSl,0x11A060,3,match,src/game/core/containers/dl/ClearSl.c
