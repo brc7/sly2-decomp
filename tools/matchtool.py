@@ -95,6 +95,22 @@ def obj_functions(path):
             out[s['name']] = (words, rel)
     return out
 
+def apply_aliases(src, fns):
+    """Per-TU symbol aliases for compiler-generated local functions whose object names are not unique or depend on the
+    source path, e.g. in a real TU:
+      // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_letterbox
+      // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$letterbox          (trailing * matches any suffix)
+    The right-hand name is then looked up in config/symbol_addrs.txt like any other symbol."""
+    try:
+        head = open(src, errors='ignore').read(4000)
+    except OSError:
+        return fns
+    for a, b in re.findall(r'SLY2_ALIAS:\s*(\S+?)=(\S+)', head):
+        for n in list(fns):
+            if n == a or (a.endswith('*') and n.startswith(a[:-1])):
+                fns[b] = fns.pop(n)
+    return fns
+
 # R_MIPS_26=4 (jal/j), HI16=5, LO16=6, GPREL16=7, LITERAL=8, GOT16=9, PC16=10, CALL16=11
 def mask(word, rtype):
     if rtype == 4: return word & 0xFC000000
@@ -226,7 +242,7 @@ def main():
         a, s = load_functions()[sys.argv[2]]
         for i, w in enumerate(target_words(a, s)): print(f'{a+4*i:08X}  {disasm(w, a+4*i)}')
         return
-    obj = compile_src(sys.argv[2]); fns = obj_functions(obj)
+    obj = compile_src(sys.argv[2]); fns = apply_aliases(sys.argv[2], obj_functions(obj))
     want = sys.argv[3:] or list(fns)
     for f in want:
         if f not in fns: print(f'{f}: not in object'); continue

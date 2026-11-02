@@ -32,7 +32,7 @@ def compile_any(src):
             of = M.compile_src(src)
         except SystemExit:
             return None
-        fns = M.obj_functions(of); os.remove(of)
+        fns = M.apply_aliases(src, M.obj_functions(of)); os.remove(of)
         return fns
     t = tempfile.mkdtemp(); of = os.path.join(t, 'f.o')
     if src.endswith('.c'):
@@ -42,7 +42,7 @@ def compile_any(src):
     p = subprocess.run(M.WIBO_CMD + [M.CC, '-c'] + M.INCLUDES + flags + [os.path.relpath(src, M.ROOT), '-o', of], capture_output=True, text=True, cwd=M.ROOT, timeout=120)   # relative path, as matchtool.py compiles it (a few files depend on the source path)
     if not os.path.exists(of):
         shutil.rmtree(t, ignore_errors=True); return None
-    fns = M.obj_functions(of); shutil.rmtree(t, ignore_errors=True)
+    fns = M.apply_aliases(src, M.obj_functions(of)); shutil.rmtree(t, ignore_errors=True)
     return fns
 
 def one(src):
