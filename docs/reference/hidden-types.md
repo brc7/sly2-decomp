@@ -89,13 +89,13 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA550` | 4 | 1=`PvAlloc__11CLinearHeapii`, 2=`PvRealloc__11CLinearHeapPvii`, 3=`Free__11CLinearHeapPv` | [`__11CLinearHeapiPUc`](../../src/game/platform/memory/heap/heap.cpp) (+0x0) | — |
+| `0x2CA550` | 4 | 1=`PvAlloc__11CLinearHeapii`, 2=`PvRealloc__11CLinearHeapPvii`, 3=`Free__11CLinearHeapPv` | [`__11CLinearHeapiPUc`](../../src/game/platform/memory/heap.cpp) (+0x0) | — |
 
 #### B2.3 SwHeap
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap/StaticInit_heap.c) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud/func_0021AA60.cpp) | — |
+| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud/func_0021AA60.cpp) | — |
 
 #### B2.4 CBinaryInputStream / MemInputStream
 

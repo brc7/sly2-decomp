@@ -19,16 +19,16 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x116918](../../../src/game/platform/memory/heap/heap.cpp) | `PvAllocClear__FP4HEAPii` |  |  | existing |  |
-| [0x116970](../../../src/game/platform/memory/heap/heap.cpp) | `PvAllocCopy__FP4HEAPiPvi` |  |  | existing |  |
-| [0x1169D8](../../../src/game/platform/memory/heap/heap.cpp) | `PchzAllocCopy__FP4HEAPPci` |  |  | existing |  |
-| [0x116A30](../../../src/game/platform/memory/heap/CSwHeap_PvAlloc.c) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
-| [0x116A58](../../../src/game/platform/memory/heap/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
-| [0x116A90](../../../src/game/platform/memory/heap/CSwHeap_Free.c) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
-| [0x116A98](../../../src/game/platform/memory/heap/heap.cpp) | `__11CLinearHeapiPUc` |  |  | existing |  |
-| [0x116AB8](../../../src/game/platform/memory/heap/heap.cpp) | `PvAlloc__11CLinearHeapii` |  |  | existing |  |
-| [0x116AF8](../../../src/game/platform/memory/heap/heap.cpp) | `PvRealloc__11CLinearHeapPvii` |  |  | existing |  |
-| [0x116B28](../../../src/game/platform/memory/heap/Free__11CLinearHeapPv.c) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
+| [0x116918](../../../src/game/platform/memory/heap.cpp) | `PvAllocClear__FP4HEAPii` |  |  | existing |  |
+| [0x116970](../../../src/game/platform/memory/heap.cpp) | `PvAllocCopy__FP4HEAPiPvi` |  |  | existing |  |
+| [0x1169D8](../../../src/game/platform/memory/heap.cpp) | `PchzAllocCopy__FP4HEAPPci` |  |  | existing |  |
+| [0x116A30](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
+| [0x116A58](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
+| [0x116A90](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
+| [0x116A98](../../../src/game/platform/memory/heap.cpp) | `__11CLinearHeapiPUc` |  |  | existing |  |
+| [0x116AB8](../../../src/game/platform/memory/heap.cpp) | `PvAlloc__11CLinearHeapii` |  |  | existing |  |
+| [0x116AF8](../../../src/game/platform/memory/heap.cpp) | `PvRealloc__11CLinearHeapPvii` |  |  | existing |  |
+| [0x116B28](../../../src/game/platform/memory/heap.cpp) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
 
 ## dynarray (0x116CA0-0x117030)
 
@@ -38,8 +38,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x116CC0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
 | [0x116CE0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
 | [0x116D00](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
-| [0x116D28](../../../src/game/platform/memory/heap/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
-| [0x116D70](../../../src/game/platform/memory/heap/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
+| [0x116D28](../../../src/game/platform/memory/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
+| [0x116D70](../../../src/game/platform/memory/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
 | [0x116E30](../../../src/game/core/containers/dynarray.cpp) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
 
 ## bez (0x117030-0x1177A8)
