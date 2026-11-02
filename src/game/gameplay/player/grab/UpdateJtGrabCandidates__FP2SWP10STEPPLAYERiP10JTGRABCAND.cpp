@@ -1,5 +1,5 @@
 // MATCH (w3lane3, 2026-10-25): UpdateJtGrabCandidates = UpdateJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand)
-// (name and structures from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp, the GatherJtGrabCandidates port that calls it).
+// (name and structures from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp, the GatherJtGrabCandidates port that calls it).
 // Merges this frame's sorted grab candidates into the four the world keeps (SW::ajtgrabcand): an old candidate
 // whose object is found again takes the new distance and smooths its parameter towards the new one (wrapping
 // around the spot's range), one that is gone is dropped, and the remaining new ones are linked and appended.

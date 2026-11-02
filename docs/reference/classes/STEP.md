@@ -114,7 +114,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/step.h` (`struct STEP : PO`). STEP: from src/hand/JtChooseGroundState.cpp (15 copies in Lilly ports)
+From `include/sly2/step.h` (`struct STEP : PO`). STEP: from src/game/gameplay/player/jt/JtChooseGroundState.cpp (15 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 2 header asserts agree, 0 disagree. Size from header: 0x2C0.
 

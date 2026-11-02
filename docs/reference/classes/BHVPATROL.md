@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvpatrol`](../../../src/auto/NewBhvpatrol.c) `0x113388` |
 | Descriptor getter (slot 6) | `GetBhvpatrolClassDesc` `0x1144B0` |
 | vtable | `D_002D0520`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpatrol`](../../../src/auto/NewBhvpatrol.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvpatrol`](../../../src/auto/NewBhvpatrol.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV170`, proposed `BHVPATROL` (confidence 0.75), guard flag `0x1E`. patrol: walk the guard route script (BHV169) / pause idle for random times
@@ -31,10 +31,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvpatrolClassDesc`](../../../src/auto/GetBhvpatrolClassDesc.c) | `0x1144B0` |
-| 7 | Init | **override** | [`InitBhvpatrol`](../../../src/hand/InitBhvpatrol.c) | `0x179A58` |
-| 8 | Start | **override** | [`StartBhvpatrol`](../../../src/hand/StartBhvpatrol.c) | `0x179AA0` |
-| 9 | Close | **override** | [`CloseBhvpatrol`](../../../src/auto/CloseBhvpatrol.c) | `0x179B60` |
-| 10 | Update | **override** | [`UpdateBhvpatrol`](../../../src/hand/UpdateBhvpatrol.c) | `0x179BA0` |
+| 7 | Init | **override** | [`InitBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrol.c) | `0x179A58` |
+| 8 | Start | **override** | [`StartBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrol.c) | `0x179AA0` |
+| 9 | Close | **override** | [`CloseBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrol.c) | `0x179B60` |
+| 10 | Update | **override** | [`UpdateBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpatrol.c) | `0x179BA0` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |

@@ -195,10 +195,10 @@ From [devtools/save_editor](../guides/devtools.md#save_editor) (73 save states; 
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13BE58](../../src/hand/LoadBootyFromBrx.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
-| [0x13C448](../../src/hand/AddAlarmAlbrk__FP5ALARM3OID.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
-| [0x13CFD8](../../src/hand/func_0013CFD8.c) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
-| [0x13D248](../../src/hand/NBootyContainerKind.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
+| [0x13BE58](../../src/game/gameplay/progression/booty/LoadBootyFromBrx.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
+| [0x13C448](../../src/game/gameplay/progression/booty/AddAlarmAlbrk__FP5ALARM3OID.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
+| [0x13CFD8](../../src/game/gameplay/progression/booty/func_0013CFD8.c) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
+| [0x13D248](../../src/game/gameplay/progression/booty/NBootyContainerKind.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
 | [0x1613A8](../../src/game/world/state/game/StartupGame.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
 | [0x1613F8](../../src/game/world/state/game/InitGame.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D | 0.55 | T1 | verified |
 | [0x161478](../../src/game/world/state/game/UpdateGameTimers.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); add | 0.75 | T1 |  |
@@ -223,26 +223,26 @@ From [devtools/save_editor](../guides/devtools.md#save_editor) (73 save states; 
 | [0x1643B0](../../src/game/world/state/game/UpdateTaskSaveVars.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
 | [0x1657A8](../../src/game/world/state/game/AnnounceTaskJob.c) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
 | [0x165B40](../../src/game/world/state/game/RecomputeTaskState.c) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
-| [0x1C4E50](../../src/hand/func_001C4E50.c) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
-| [0x1C4EF8](../../src/auto/func_001C4EF8.c) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
-| [0x1C4F60](../../src/hand/func_001C4F60.c) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |
-| [0x1C5148](../../src/hand/func_001C5148.cpp) | `ProjectDprizeTransform` | DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base) | 0.75 | T1 |  |
-| [0x1C55E0](../../src/hand/func_001C55E0.cpp) | `CheckDprizeBounce` | query nearby solids (0x20FAA0) and resolve deepest contact (bounce) | 0.70 | T1 |  |
-| [0x1C5E48](../../src/hand/func_001C5E48.cpp) | `UpdateDprize` | DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect | 0.80 | T1 |  |
-| [0x1C5FA0](../../src/hand/func_001C5FA0.cpp) | `RenderDprizeSelf` | DPRIZE vt19 RenderSelf (bob/spin then SO render) | 0.85 | T1 | verified |
-| [0x1C60B8](../../src/hand/func_001C60B8.c) | `SetDprizeDprizes` | DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps) | 0.85 | T1 | verified |
-| [0x1C68F0](../../src/hand/func_001C68F0.c) | `SetMedicineDprizes` | CID 93 setter (uses PpoCur - gives to current character) | 0.35 | T2 | verified, whole-game |
-| [0x1C6AB0](../../src/auto/func_001C6AB0.c) | `OnMedicineSmackDone` | 8-byte helper | 0.60 | T1 | verified, whole-game |
-| [0x1C6B28](../../src/hand/func_001C6B28.c) | `SetKeyDprizes` | CID 92 setter (sound on collect) | 0.35 | T2 | verified, whole-game |
-| [0x1C6BD0](../../src/hand/func_001C6BD0.c) | `LaunchSprayedDprize` | re-parent spawned prize (0x1A58D0) and init motion | 0.60 | T1 | verified |
-| [0x1C6CE8](../../src/hand/func_001C6CE8.c) | `PdprizeNewSpray` | make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo) | 0.50 | T1 | runtime |
-| [0x1C76D0](../../src/hand/func_001C76D0.c) | `LoadLootFromBrx` | CID 94 LoadFromBrx (base + copies table on stack heap) | 0.75 | T1 | parse, verified |
-| [0x1C7988](../../src/auto/func_001C7988.c) | `AddLootEntry` | calls 0x1C7A08 stub | 0.70 | T1 | arbitration |
-| [0x1C7A10](../../src/hand/AddAlarmSensor__FP5ALARM3OID.cpp) | `AddLootEntryOid` | Append OID to the list behind this+0x244 (count +0x1C, max 3) | 0.85 | existing | arbitration; replaces existing AddAlarmSensor__FP5ALARM3OID |
-| [0x1C7EA8](../../src/hand/func_001C7EA8.c) | `ClueVt27` | CID 95 vt27 | 0.30 | T2 | verified |
-| [0x1C8350](../../src/hand/func_001C8350.c) | `UpdateVault` | CID 78 vt16: per-state update (input / open) | 0.45 | T2 | verified |
-| [0x1C8730](../../src/hand/func_001C8730.c) | `SetVaultState` | state transition (camera/sound/hands-off) | 0.35 | T2 | verified |
-| [0x22A908](../../src/hand/func_0022A908.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
+| [0x1C4E50](../../src/game/gameplay/progression/prize/func_001C4E50.c) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
+| [0x1C4EF8](../../src/game/gameplay/progression/prize/func_001C4EF8.c) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
+| [0x1C4F60](../../src/game/gameplay/progression/prize/func_001C4F60.c) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |
+| [0x1C5148](../../src/game/gameplay/progression/prize/func_001C5148.cpp) | `ProjectDprizeTransform` | DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base) | 0.75 | T1 |  |
+| [0x1C55E0](../../src/game/gameplay/progression/prize/func_001C55E0.cpp) | `CheckDprizeBounce` | query nearby solids (0x20FAA0) and resolve deepest contact (bounce) | 0.70 | T1 |  |
+| [0x1C5E48](../../src/game/gameplay/progression/prize/func_001C5E48.cpp) | `UpdateDprize` | DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect | 0.80 | T1 |  |
+| [0x1C5FA0](../../src/game/gameplay/progression/prize/func_001C5FA0.cpp) | `RenderDprizeSelf` | DPRIZE vt19 RenderSelf (bob/spin then SO render) | 0.85 | T1 | verified |
+| [0x1C60B8](../../src/game/gameplay/progression/prize/func_001C60B8.c) | `SetDprizeDprizes` | DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps) | 0.85 | T1 | verified |
+| [0x1C68F0](../../src/game/gameplay/progression/prize/func_001C68F0.c) | `SetMedicineDprizes` | CID 93 setter (uses PpoCur - gives to current character) | 0.35 | T2 | verified, whole-game |
+| [0x1C6AB0](../../src/game/gameplay/progression/prize/func_001C6AB0.c) | `OnMedicineSmackDone` | 8-byte helper | 0.60 | T1 | verified, whole-game |
+| [0x1C6B28](../../src/game/gameplay/progression/prize/func_001C6B28.c) | `SetKeyDprizes` | CID 92 setter (sound on collect) | 0.35 | T2 | verified, whole-game |
+| [0x1C6BD0](../../src/game/gameplay/progression/prize/func_001C6BD0.c) | `LaunchSprayedDprize` | re-parent spawned prize (0x1A58D0) and init motion | 0.60 | T1 | verified |
+| [0x1C6CE8](../../src/game/gameplay/progression/prize/func_001C6CE8.c) | `PdprizeNewSpray` | make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo) | 0.50 | T1 | runtime |
+| [0x1C76D0](../../src/game/gameplay/progression/prize/func_001C76D0.c) | `LoadLootFromBrx` | CID 94 LoadFromBrx (base + copies table on stack heap) | 0.75 | T1 | parse, verified |
+| [0x1C7988](../../src/game/gameplay/progression/prize/func_001C7988.c) | `AddLootEntry` | calls 0x1C7A08 stub | 0.70 | T1 | arbitration |
+| [0x1C7A10](../../src/game/gameplay/progression/prize/AddAlarmSensor__FP5ALARM3OID.cpp) | `AddLootEntryOid` | Append OID to the list behind this+0x244 (count +0x1C, max 3) | 0.85 | existing | arbitration; replaces existing AddAlarmSensor__FP5ALARM3OID |
+| [0x1C7EA8](../../src/game/gameplay/progression/prize/func_001C7EA8.c) | `ClueVt27` | CID 95 vt27 | 0.30 | T2 | verified |
+| [0x1C8350](../../src/game/gameplay/progression/prize/func_001C8350.c) | `UpdateVault` | CID 78 vt16: per-state update (input / open) | 0.45 | T2 | verified |
+| [0x1C8730](../../src/game/gameplay/progression/prize/func_001C8730.c) | `SetVaultState` | state transition (camera/sound/hands-off) | 0.35 | T2 | verified |
+| [0x22A908](../../src/game/gameplay/progression/waypoint/func_0022A908.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
 
 Selected 48 of 193 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/game-progression.md](../reference/functions/game-progression.md).
 

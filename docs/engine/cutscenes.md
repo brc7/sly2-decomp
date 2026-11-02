@@ -82,50 +82,50 @@ From `devtools/cutscene_player/docs/relay_commands.txt`, checked against RELAY 0
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B2940](../../src/hand/func_001B2940.c) | `StartupMpeg` | Create mpeg semaphore and start the display thread | 0.85 | T1 | verified |
-| [0x1B29D0](../../src/hand/func_001B29D0.c) | `CQueueOutputIop_Init` | Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset | 0.75 | T1 |  |
-| [0x1B2EB8](../../src/hand/func_001B2EB8.c) | `CQueueOutputIop_Update` | Read IOP playback position and update read/write cursors | 0.75 | T1 |  |
-| [0x1B2FD0](../../src/auto/func_001B2FD0.c) | `CQueueOutputIop_FAsyncDrain` | returns 0 | 0.80 | T1 | verified |
-| [0x1B2FD8](../../src/hand/func_001B2FD8.c) | `CQueueOutputIpu_CbWrite` | Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes | 0.85 | T1 |  |
-| [0x1B3038](../../src/auto/func_001B3038.c) | `CQueueOutputIpu_FAsyncDrain` | returns 1 | 0.80 | T1 | verified |
-| [0x1B3040](../../src/hand/func_001B3040.c) | `CMpegAudio_Init` | Stop game sound/music, allocate IOP voice resources for movie audio | 0.80 | T1 | verified |
-| [0x1B3130](../../src/hand/func_001B3130.c) | `CMpegAudio_Reset` | reset byte queues and IOP queue | 0.85 | T1 | verified |
-| [0x1B3190](../../src/hand/func_001B3190.c) | `CMpegAudio_Close` | release IOP resources | 0.80 | T1 | verified |
-| [0x1B31E0](../../src/hand/func_001B31E0.c) | `CMpegAudio_FAccept` | accept demuxed audio packet: pick stream id, init queue from header, CbFill | 0.80 | T1 |  |
-| [0x1B32B8](../../src/hand/func_001B32B8.c) | `CMpegAudio_Update` | drain byte queue to IOP per state | 0.80 | T1 | verified |
-| [0x1B3388](../../src/hand/func_001B3388.c) | `FMpegAcceptVideo` | sceMpeg video stream callback: CbFill video queue | 0.80 | T1 | verified |
-| [0x1B33C8](../../src/auto/func_001B33C8.c) | `FMpegAcceptAudio` | audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180) | 0.80 | T1 | verified |
-| [0x1B33F0](../../src/hand/func_001B33F0.c) | `FMpegDecodeVideo` | decode callback: feed IPU from video queue | 0.85 | T1 | verified |
-| [0x1B34D0](../../src/hand/func_001B34D0.c) | `FMpegDecoderIdle` | idle callback: spool stream + audio update | 0.75 | T1 |  |
-| [0x1B3508](../../src/auto/func_001B3508.c) | `FMpegDecoderError` | returns 1 | 0.80 | T1 | verified |
-| [0x1B3510](../../src/hand/func_001B3510.cpp) | `BuildMpegGifs` | build GIF packets to upload decoded RGB32 picture | 0.75 | T1 | verified |
-| [0x1B3B08](../../src/hand/func_001B3B08.cpp) | `CMpeg_ExecuteOids` | Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level transition | 0.75 | T1 |  |
-| [0x1B3BD0](../../src/hand/func_001B3BD0.cpp) | `CMpeg_Execute` | Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish | 0.85 | T1 | verified |
-| [0x1B3EC0](../../src/hand/func_001B3EC0.c) | `CMpeg_Start` | init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks | 0.80 | T1 |  |
-| [0x1B4058](../../src/hand/func_001B4058.c) | `CMpeg_Update` | get decoded picture, BuildMpegGifs, subtitles, signal display thread | 0.80 | T1 | arbitration |
-| [0x1B4140](../../src/hand/func_001B4140.c) | `CMpeg_Finish` | audio reset/close, sceMpegReset/Delete | 0.80 | T1 | verified |
-| [0x1B41D0](../../src/hand/func_001B41D0.c) | `CMpeg_CbDemuxed` | spool async stream and demux into sceMpeg (returns 2 at EOF) | 0.85 | T1 | arbitration |
-| [0x1DFAD8](../../src/hand/func_001DFAD8.c) | `InitRelay` | RELAY::Init (vt7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4) | 0.85 | T1 | verified |
-| [0x1DFB10](../../src/hand/func_001DFB10.cpp) | `LoadRelayFromBrx` | RELAY::LoadFromBrx (vt14): build commands into a 0xA000-byte temp buffer (0x200 x 0x50), start with BlockBegin(-1), fAppendEnd=1, LoadLoFromBrx (the o | 0.80 | T1 | parse |
-| [0x1DFBF8](../../src/hand/func_001DFBF8.c) | `CloneRelay` | RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own copy of the command array | 0.70 | T1 |  |
-| [0x1DFC50](../../src/hand/func_001DFC50.c) | `UpdateRelay` | RELAY::Update (vt16): UpdateLo; while firing advance tFired (real-time dt if grf 0x100), UpdateJsg on every running script; StopRelay when none remain | 0.80 | T1 |  |
-| [0x1DFD58](../../src/hand/func_001DFD58.c) | `FireRelay` | Start the relay (if not already firing): ploFirer=arg, fFiring=1, send itself msg 5, append BlockEnd if fAppendEnd, spawn a JSG for the top block (Pjs | 0.75 | T1 |  |
-| [0x1DFEB8](../../src/hand/func_001DFEB8.c) | `StopRelay` | If firing: clear firer/state, stop every JSG (0x1E5628), clear the alarm list, release LO busy (0x1A6CA8(p,2)), send itself msg 6 | 0.75 | T1 |  |
-| [0x1E0020](../../src/hand/EnsureSggAlarm__FP3SGGP5ALARM.cpp) | `EnsureRelayAlarm` | Add an ALARM to the relay's alarm list (+0x84 calarm, +0x88 apalarm[8]) if absent and room | 0.75 | existing | arbitration; replaces existing EnsureSggAlarm__FP3SGGP5ALARM |
-| [0x1E00E8](../../src/hand/FWipingAseg__FP4ASEG.c) | `FRelayHasAlarm` | Return whether the alarm list (+0x84/+0x88) contains x | 0.75 | existing | arbitration; replaces existing FWipingAseg__FP4ASEG |
-| [0x1E01F8](../../src/hand/func_001E01F8.c) | `PrelaycmdAddRelay` | Append a zeroed 0x50-byte RELAYCMD {relayck, fAsync} to the relay (limit crelaycmdMax or 0x200); on overflow return a scratch command D_003DA740 | 0.75 | T1 |  |
-| [0x1E0290](../../src/auto/func_001E0290.c) | `AddRelayBlockBegin` | Splice builtin: append a RELAYCK 0x0 (BlockBegin) command to the relay (PrelaycmdAddRelay(prelay,0x0,fAsync)) and fill its args | 0.85 | T1 | verified |
-| [0x1E0450](../../src/auto/func_001E0450.c) | `AddRelaySetCtlState` | Splice builtin: append a RELAYCK 0x7 (SetCtlState) command to the relay (PrelaycmdAddRelay(prelay,0x7,fAsync)) and fill its args | 0.85 | T1 | verified |
-| [0x1E06F0](../../src/auto/func_001E06F0.c) | `AddRelayHandsOff` | Splice builtin: append a RELAYCK 0x12 (HandsOff) command to the relay (PrelaycmdAddRelay(prelay,0x12,fAsync)) and fill its args | 0.85 | T1 | verified |
-| [0x1E0B40](../../src/hand/func_001E0B40.c) | `AddRelayFace` | Splice builtin: append a RELAYCK 0x23 (Face) command to the relay (PrelaycmdAddRelay(prelay,0x23,fAsync)) and fill its args | 0.85 | T1 | verified |
-| [0x1E0ED8](../../src/auto/func_001E0ED8.c) | `AddRelayAddObject` | Splice builtin: append a RELAYCK 0x2C (AddObject) command to the relay (PrelaycmdAddRelay(prelay,0x2C,fAsync)) and fill its args | 0.85 | T1 | verified |
-| [0x1E1710](../../src/auto/func_001E1710.c) | `AddRelayUnk49` | Splice builtin: append a RELAYCK 0x49 (Unk49) command to the relay (PrelaycmdAddRelay(prelay,0x49,fAsync)) and fill its args | 0.50 | T2 | verified |
-| [0x1E1B58](../../src/auto/func_001E1B58.c) | `AddJsgRef` | cref++ (+0x10) | 0.70 | T1 |  |
-| [0x1E1B68](../../src/auto/func_001E1B68.c) | `ReleaseJsg` | --cref; at 0 release sound ref, destruct and free to the JSG slot heap D_003E1560 | 0.70 | T1 |  |
-| [0x1E1C40](../../src/hand/func_001E1C40.cpp) | `UpdateJsg` | Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command is fAsync or complete (FIsJsgComma | 0.80 | T1 |  |
-| [0x1E1D48](../../src/hand/func_001E1D48.c) | `ReleaseJsgJtIfComplete` | If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release it (SetJsgJt(p,0,0)) | 0.75 | T1 |  |
-| [0x1E1E30](../../src/hand/func_001E1E30.cpp) | `NextJsgCommand` | Advance the script to the next command and execute it by kind | 0.90 | T1 |  |
-| [0x1E3890](../../src/hand/func_001E3890.cpp) | `FIsJsgCommandComplete` | Whether the given command has finished, by kind | 0.90 | T1 |  |
+| [0x1B2940](../../src/game/gameplay/cutscene/mpeg/func_001B2940.c) | `StartupMpeg` | Create mpeg semaphore and start the display thread | 0.85 | T1 | verified |
+| [0x1B29D0](../../src/game/gameplay/cutscene/mpeg/func_001B29D0.c) | `CQueueOutputIop_Init` | Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset | 0.75 | T1 |  |
+| [0x1B2EB8](../../src/game/gameplay/cutscene/mpeg/func_001B2EB8.c) | `CQueueOutputIop_Update` | Read IOP playback position and update read/write cursors | 0.75 | T1 |  |
+| [0x1B2FD0](../../src/game/gameplay/cutscene/mpeg/func_001B2FD0.c) | `CQueueOutputIop_FAsyncDrain` | returns 0 | 0.80 | T1 | verified |
+| [0x1B2FD8](../../src/game/gameplay/cutscene/mpeg/func_001B2FD8.c) | `CQueueOutputIpu_CbWrite` | Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes | 0.85 | T1 |  |
+| [0x1B3038](../../src/game/gameplay/cutscene/mpeg/func_001B3038.c) | `CQueueOutputIpu_FAsyncDrain` | returns 1 | 0.80 | T1 | verified |
+| [0x1B3040](../../src/game/gameplay/cutscene/mpeg/func_001B3040.c) | `CMpegAudio_Init` | Stop game sound/music, allocate IOP voice resources for movie audio | 0.80 | T1 | verified |
+| [0x1B3130](../../src/game/gameplay/cutscene/mpeg/func_001B3130.c) | `CMpegAudio_Reset` | reset byte queues and IOP queue | 0.85 | T1 | verified |
+| [0x1B3190](../../src/game/gameplay/cutscene/mpeg/func_001B3190.c) | `CMpegAudio_Close` | release IOP resources | 0.80 | T1 | verified |
+| [0x1B31E0](../../src/game/gameplay/cutscene/mpeg/func_001B31E0.c) | `CMpegAudio_FAccept` | accept demuxed audio packet: pick stream id, init queue from header, CbFill | 0.80 | T1 |  |
+| [0x1B32B8](../../src/game/gameplay/cutscene/mpeg/func_001B32B8.c) | `CMpegAudio_Update` | drain byte queue to IOP per state | 0.80 | T1 | verified |
+| [0x1B3388](../../src/game/gameplay/cutscene/mpeg/func_001B3388.c) | `FMpegAcceptVideo` | sceMpeg video stream callback: CbFill video queue | 0.80 | T1 | verified |
+| [0x1B33C8](../../src/game/gameplay/cutscene/mpeg/func_001B33C8.c) | `FMpegAcceptAudio` | audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180) | 0.80 | T1 | verified |
+| [0x1B33F0](../../src/game/gameplay/cutscene/mpeg/func_001B33F0.c) | `FMpegDecodeVideo` | decode callback: feed IPU from video queue | 0.85 | T1 | verified |
+| [0x1B34D0](../../src/game/gameplay/cutscene/mpeg/func_001B34D0.c) | `FMpegDecoderIdle` | idle callback: spool stream + audio update | 0.75 | T1 |  |
+| [0x1B3508](../../src/game/gameplay/cutscene/mpeg/func_001B3508.c) | `FMpegDecoderError` | returns 1 | 0.80 | T1 | verified |
+| [0x1B3510](../../src/game/gameplay/cutscene/mpeg/func_001B3510.cpp) | `BuildMpegGifs` | build GIF packets to upload decoded RGB32 picture | 0.75 | T1 | verified |
+| [0x1B3B08](../../src/game/gameplay/cutscene/mpeg/func_001B3B08.cpp) | `CMpeg_ExecuteOids` | Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level transition | 0.75 | T1 |  |
+| [0x1B3BD0](../../src/game/gameplay/cutscene/mpeg/func_001B3BD0.cpp) | `CMpeg_Execute` | Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish | 0.85 | T1 | verified |
+| [0x1B3EC0](../../src/game/gameplay/cutscene/mpeg/func_001B3EC0.c) | `CMpeg_Start` | init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks | 0.80 | T1 |  |
+| [0x1B4058](../../src/game/gameplay/cutscene/mpeg/func_001B4058.c) | `CMpeg_Update` | get decoded picture, BuildMpegGifs, subtitles, signal display thread | 0.80 | T1 | arbitration |
+| [0x1B4140](../../src/game/gameplay/cutscene/mpeg/func_001B4140.c) | `CMpeg_Finish` | audio reset/close, sceMpegReset/Delete | 0.80 | T1 | verified |
+| [0x1B41D0](../../src/game/gameplay/cutscene/mpeg/func_001B41D0.c) | `CMpeg_CbDemuxed` | spool async stream and demux into sceMpeg (returns 2 at EOF) | 0.85 | T1 | arbitration |
+| [0x1DFAD8](../../src/game/gameplay/cutscene/relay/func_001DFAD8.c) | `InitRelay` | RELAY::Init (vt7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4) | 0.85 | T1 | verified |
+| [0x1DFB10](../../src/game/gameplay/cutscene/relay/func_001DFB10.cpp) | `LoadRelayFromBrx` | RELAY::LoadFromBrx (vt14): build commands into a 0xA000-byte temp buffer (0x200 x 0x50), start with BlockBegin(-1), fAppendEnd=1, LoadLoFromBrx (the o | 0.80 | T1 | parse |
+| [0x1DFBF8](../../src/game/gameplay/cutscene/relay/func_001DFBF8.c) | `CloneRelay` | RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own copy of the command array | 0.70 | T1 |  |
+| [0x1DFC50](../../src/game/gameplay/cutscene/relay/func_001DFC50.c) | `UpdateRelay` | RELAY::Update (vt16): UpdateLo; while firing advance tFired (real-time dt if grf 0x100), UpdateJsg on every running script; StopRelay when none remain | 0.80 | T1 |  |
+| [0x1DFD58](../../src/game/gameplay/cutscene/relay/func_001DFD58.c) | `FireRelay` | Start the relay (if not already firing): ploFirer=arg, fFiring=1, send itself msg 5, append BlockEnd if fAppendEnd, spawn a JSG for the top block (Pjs | 0.75 | T1 |  |
+| [0x1DFEB8](../../src/game/gameplay/cutscene/relay/func_001DFEB8.c) | `StopRelay` | If firing: clear firer/state, stop every JSG (0x1E5628), clear the alarm list, release LO busy (0x1A6CA8(p,2)), send itself msg 6 | 0.75 | T1 |  |
+| [0x1E0020](../../src/game/gameplay/cutscene/relay/EnsureSggAlarm__FP3SGGP5ALARM.cpp) | `EnsureRelayAlarm` | Add an ALARM to the relay's alarm list (+0x84 calarm, +0x88 apalarm[8]) if absent and room | 0.75 | existing | arbitration; replaces existing EnsureSggAlarm__FP3SGGP5ALARM |
+| [0x1E00E8](../../src/game/gameplay/cutscene/relay/FWipingAseg__FP4ASEG.c) | `FRelayHasAlarm` | Return whether the alarm list (+0x84/+0x88) contains x | 0.75 | existing | arbitration; replaces existing FWipingAseg__FP4ASEG |
+| [0x1E01F8](../../src/game/gameplay/cutscene/relay/func_001E01F8.c) | `PrelaycmdAddRelay` | Append a zeroed 0x50-byte RELAYCMD {relayck, fAsync} to the relay (limit crelaycmdMax or 0x200); on overflow return a scratch command D_003DA740 | 0.75 | T1 |  |
+| [0x1E0290](../../src/game/gameplay/cutscene/relay/func_001E0290.c) | `AddRelayBlockBegin` | Splice builtin: append a RELAYCK 0x0 (BlockBegin) command to the relay (PrelaycmdAddRelay(prelay,0x0,fAsync)) and fill its args | 0.85 | T1 | verified |
+| [0x1E0450](../../src/game/gameplay/cutscene/relay/func_001E0450.c) | `AddRelaySetCtlState` | Splice builtin: append a RELAYCK 0x7 (SetCtlState) command to the relay (PrelaycmdAddRelay(prelay,0x7,fAsync)) and fill its args | 0.85 | T1 | verified |
+| [0x1E06F0](../../src/game/gameplay/cutscene/relay/func_001E06F0.c) | `AddRelayHandsOff` | Splice builtin: append a RELAYCK 0x12 (HandsOff) command to the relay (PrelaycmdAddRelay(prelay,0x12,fAsync)) and fill its args | 0.85 | T1 | verified |
+| [0x1E0B40](../../src/game/gameplay/cutscene/relay/func_001E0B40.c) | `AddRelayFace` | Splice builtin: append a RELAYCK 0x23 (Face) command to the relay (PrelaycmdAddRelay(prelay,0x23,fAsync)) and fill its args | 0.85 | T1 | verified |
+| [0x1E0ED8](../../src/game/gameplay/cutscene/relay/func_001E0ED8.c) | `AddRelayAddObject` | Splice builtin: append a RELAYCK 0x2C (AddObject) command to the relay (PrelaycmdAddRelay(prelay,0x2C,fAsync)) and fill its args | 0.85 | T1 | verified |
+| [0x1E1710](../../src/game/gameplay/cutscene/relay/func_001E1710.c) | `AddRelayUnk49` | Splice builtin: append a RELAYCK 0x49 (Unk49) command to the relay (PrelaycmdAddRelay(prelay,0x49,fAsync)) and fill its args | 0.50 | T2 | verified |
+| [0x1E1B58](../../src/game/gameplay/cutscene/relay/func_001E1B58.c) | `AddJsgRef` | cref++ (+0x10) | 0.70 | T1 |  |
+| [0x1E1B68](../../src/game/gameplay/cutscene/relay/func_001E1B68.c) | `ReleaseJsg` | --cref; at 0 release sound ref, destruct and free to the JSG slot heap D_003E1560 | 0.70 | T1 |  |
+| [0x1E1C40](../../src/game/gameplay/cutscene/relay/func_001E1C40.cpp) | `UpdateJsg` | Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command is fAsync or complete (FIsJsgComma | 0.80 | T1 |  |
+| [0x1E1D48](../../src/game/gameplay/cutscene/relay/func_001E1D48.c) | `ReleaseJsgJtIfComplete` | If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release it (SetJsgJt(p,0,0)) | 0.75 | T1 |  |
+| [0x1E1E30](../../src/game/gameplay/cutscene/relay/func_001E1E30.cpp) | `NextJsgCommand` | Advance the script to the next command and execute it by kind | 0.90 | T1 |  |
+| [0x1E3890](../../src/game/gameplay/cutscene/relay/func_001E3890.cpp) | `FIsJsgCommandComplete` | Whether the given command has finished, by kind | 0.90 | T1 |  |
 
 Selected 44 of 180 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/cutscenes.md](../reference/functions/cutscenes.md).
 

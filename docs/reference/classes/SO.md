@@ -102,7 +102,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/so.h` (`struct SO : LO`). SO: from src/hand/JtChooseGroundState.cpp (23 copies in Lilly ports)
+From `include/sly2/so.h` (`struct SO : LO`). SO: from src/game/gameplay/player/jt/JtChooseGroundState.cpp (23 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 4 header asserts agree, 0 disagree. Size from header: 0x150.
 

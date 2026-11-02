@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvrail`](../../../src/auto/NewBhvrail.c) `0x113698` |
 | Descriptor getter (slot 6) | `GetBhvrailClassDesc` `0x114590` |
 | vtable | `D_002D0020`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvrail`](../../../src/auto/NewBhvrail.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvrail`](../../../src/auto/NewBhvrail.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV184`, proposed `BHVRAIL` (confidence 0.6), guard flag `0x1B`. walk along an attached RAIL to an end
@@ -31,10 +31,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvrailClassDesc`](../../../src/auto/GetBhvrailClassDesc.c) | `0x114590` |
-| 7 | Init | **override** | [`InitBhvrail`](../../../src/hand/InitBhvrail.c) | `0x17CAC8` |
-| 8 | Start | **override** | [`StartBhvrail`](../../../src/auto/StartBhvrail.c) | `0x17CB10` |
-| 9 | Close | **override** | [`CloseBhvrail`](../../../src/auto/CloseBhvrail.c) | `0x17CB40` |
-| 10 | Update | **override** | [`UpdateBhvrail`](../../../src/hand/UpdateBhvrail.c) | `0x17CB80` |
+| 7 | Init | **override** | [`InitBhvrail`](../../../src/game/gameplay/ai/guardbhv/InitBhvrail.c) | `0x17CAC8` |
+| 8 | Start | **override** | [`StartBhvrail`](../../../src/game/gameplay/ai/guardbhv/StartBhvrail.c) | `0x17CB10` |
+| 9 | Close | **override** | [`CloseBhvrail`](../../../src/game/gameplay/ai/guardbhv/CloseBhvrail.c) | `0x17CB40` |
+| 10 | Update | **override** | [`UpdateBhvrail`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvrail.c) | `0x17CB80` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |

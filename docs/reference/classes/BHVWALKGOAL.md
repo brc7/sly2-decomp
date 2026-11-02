@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvwalkgoal`](../../../src/auto/NewBhvwalkgoal.c) `0x113318` |
 | Descriptor getter (slot 6) | `GetBhvwalkgoalClassDesc` `0x114490` |
 | vtable | `D_002CC4C0`, 16 entries (slots 0..15; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvwalkgoal`](../../../src/auto/NewBhvwalkgoal.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvwalkgoal`](../../../src/auto/NewBhvwalkgoal.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV168`, proposed `?FOLLOW` (confidence (other TU)), guard flag `-`. player-side follow leader (Lilly pctlLeader)
@@ -31,14 +31,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvwalkgoalClassDesc`](../../../src/auto/GetBhvwalkgoalClassDesc.c) | `0x114490` |
-| 7 | Init | **override** | [`InitBhvwalkgoal`](../../../src/auto/InitBhvwalkgoal.c) | `0x144B28` |
-| 8 | Start | **override** | [`StartBhvwalkgoal`](../../../src/auto/StartBhvwalkgoal.c) | `0x144B58` |
+| 7 | Init | **override** | [`InitBhvwalkgoal`](../../../src/game/gameplay/ai/tu_144B28/InitBhvwalkgoal.c) | `0x144B28` |
+| 8 | Start | **override** | [`StartBhvwalkgoal`](../../../src/game/gameplay/ai/tu_144B28/StartBhvwalkgoal.c) | `0x144B58` |
 | 9 | Close | inherited (BHV) | `CloseBhv` | `0x1EEF78` |
-| 10 | Update | **override** | [`UpdateBhvwalkgoal`](../../../src/auto/UpdateBhvwalkgoal.c) | `0x144B90` |
+| 10 | Update | **override** | [`UpdateBhvwalkgoal`](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvwalkgoal.c) | `0x144B90` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |
-| 14 | UpdateInput | **override** | [`UpdateBhvwalkgoalPoctl`](../../../src/hand/UpdateBhvwalkgoalPoctl.c) | `0x144BC8` |
+| 14 | UpdateInput | **override** | [`UpdateBhvwalkgoalPoctl`](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvwalkgoalPoctl.c) | `0x144BC8` |
 | 15 | SetState | inherited (BHVPATH) | `SetBhvpathState` | `0x178CD8` |
 
 ## Fields

@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetHackshipClassDesc`](../../../src/auto/GetHackshipClassDesc.c) | `0x113E90` |
-| 7 | Init | **override** | [`InitHackship`](../../../src/auto/InitHackship.c) | `0x17F6F8` |
+| 7 | Init | **override** | [`InitHackship`](../../../src/game/gameplay/objects/tu_17F090/InitHackship.c) | `0x17F6F8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
-| 12 | RemoveHierarchy | **override** | [`RemoveHackshipHierarchy?`](../../../src/auto/func_0017F740.c) | `0x17F740` |
+| 12 | RemoveHierarchy | **override** | [`RemoveHackshipHierarchy?`](../../../src/game/gameplay/objects/tu_17F090/func_0017F740.c) | `0x17F740` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostHackshipLoad?`](../../../src/hand/func_0017F850.c) | `0x17F850` |
-| 16 | Update | **override** | [`UpdateHackship?`](../../../src/hand/func_0017F930.c) | `0x17F930` |
+| 15 | PostLoad | **override** | [`PostHackshipLoad?`](../../../src/game/gameplay/objects/tu_17F090/func_0017F850.c) | `0x17F850` |
+| 16 | Update | **override** | [`UpdateHackship?`](../../../src/game/gameplay/objects/tu_17F090/func_0017F930.c) | `0x17F930` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -92,20 +92,20 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetHackshipAccel?`](../../../src/hand/func_0017FB50.cpp) | `0x17FB50` |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetHackshipAccel?`](../../../src/game/gameplay/objects/tu_17F090/func_0017FB50.cpp) | `0x17FB50` |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`HACKSHIP_TakeDamage`](../../../src/hand/HACKSHIP_TakeDamage.c) | `0x17FBE8` |
+| 75 | FZprHasField44 | **override** | [`HACKSHIP_TakeDamage`](../../../src/game/gameplay/objects/tu_17F090/HACKSHIP_TakeDamage.c) | `0x17FBE8` |
 | 76 | FInvulnerablePo | inherited (PO) | `FInvulnerablePo` | `0x1C3E90` |
 | 77 | JthsCurrentPo | inherited (PO) | `JthsCurrentPo` | `0x1C3ED0` |
-| 78 | OnPoActive | **override** | [`OnHackshipActive?`](../../../src/hand/func_0017F8C8.c) | `0x17F8C8` |
+| 78 | OnPoActive | **override** | [`OnHackshipActive?`](../../../src/game/gameplay/objects/tu_17F090/func_0017F8C8.c) | `0x17F8C8` |
 | 79 | SetPoCtlState | inherited (PO) | `SetPoCtlState` | `0x1C3ED8` |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |
 | 82 | HACK_Die | inherited (HACK) | `HACK_Die?` | `0x17F5F8` |
-| 83 | ResetHack | **override** | [`ResetHackship?`](../../../src/auto/func_0017FCB0.c) | `0x17FCB0` |
+| 83 | ResetHack | **override** | [`ResetHackship?`](../../../src/game/gameplay/objects/tu_17F090/func_0017FCB0.c) | `0x17FCB0` |
 
 ## Fields
 

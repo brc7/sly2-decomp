@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetPipeClassDesc`](../../../src/auto/GetPipeClassDesc.c) | `0x113AC0` |
-| 7 | Init | **override** | [`InitPipe`](../../../src/hand/InitPipe.c) | `0x1C3390` |
+| 7 | Init | **override** | [`InitPipe`](../../../src/game/gameplay/player/pipe/InitPipe.c) | `0x1C3390` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
@@ -37,15 +37,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (SHAPE) | `LoadShapeFromBrx` | `0x1E5DF8` |
-| 15 | PostLoad | **override** | [`PostPipeLoad`](../../../src/hand/PostPipeLoad.c) | `0x1C3458` |
+| 15 | PostLoad | **override** | [`PostPipeLoad`](../../../src/game/gameplay/player/pipe/PostPipeLoad.c) | `0x1C3458` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SHAPE) | `UpdateShapeXfWorld?` | `0x1E6340` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
-| 22 | OnRemove | **override** | [`OnPipeRemove`](../../../src/auto/OnPipeRemove.c) | `0x1C3420` |
-| 23 | OnAdd | **override** | [`OnPipeAdd`](../../../src/auto/OnPipeAdd.c) | `0x1C33E8` |
+| 22 | OnRemove | **override** | [`OnPipeRemove`](../../../src/game/gameplay/player/pipe/OnPipeRemove.c) | `0x1C3420` |
+| 23 | OnAdd | **override** | [`OnPipeAdd`](../../../src/game/gameplay/player/pipe/OnPipeAdd.c) | `0x1C33E8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`ClonePipe`](../../../src/hand/ClonePipe.c) | `0x1C34B8` |
+| 41 | Clone | **override** | [`ClonePipe`](../../../src/game/gameplay/player/pipe/ClonePipe.c) | `0x1C34B8` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

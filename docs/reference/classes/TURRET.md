@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetTurretClassDesc`](../../../src/auto/GetTurretClassDesc.c) | `0x113E60` |
-| 7 | Init | **override** | [`InitTurret`](../../../src/hand/InitTurret.c) | `0x2259D8` |
+| 7 | Init | **override** | [`InitTurret`](../../../src/game/gameplay/objects/turret/InitTurret.c) | `0x2259D8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostTurretLoad`](../../../src/hand/PostTurretLoad.c) | `0x225AA8` |
-| 16 | Update | **override** | [`UpdateTurret`](../../../src/auto/UpdateTurret.c) | `0x225B60` |
+| 15 | PostLoad | **override** | [`PostTurretLoad`](../../../src/game/gameplay/objects/turret/PostTurretLoad.c) | `0x225AA8` |
+| 16 | Update | **override** | [`UpdateTurret`](../../../src/game/gameplay/objects/turret/UpdateTurret.c) | `0x225B60` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (SO) | `MatchSoXf?` | `0x1F49C8` |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` |
-| 41 | Clone | **override** | [`CloneTurret`](../../../src/auto/CloneTurret.c) | `0x225A68` |
+| 41 | Clone | **override** | [`CloneTurret`](../../../src/game/gameplay/objects/turret/CloneTurret.c) | `0x225A68` |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |
@@ -83,7 +83,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
-| 61 | FIgnoreSoIntersection | **override** | [`FFilterTurret?`](../../../src/hand/func_00226310.c) | `0x226310` |
+| 61 | FIgnoreSoIntersection | **override** | [`FFilterTurret?`](../../../src/game/gameplay/objects/turret/func_00226310.c) | `0x226310` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |
@@ -100,7 +100,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 75 | FZprHasField44 | inherited (SO) | `FZprHasField44?` | `0x1F7588` |
 | 76 | FInvulnerablePo | inherited (PO) | `FInvulnerablePo` | `0x1C3E90` |
 | 77 | JthsCurrentPo | inherited (PO) | `JthsCurrentPo` | `0x1C3ED0` |
-| 78 | OnPoActive | **override** | [`OnTurretActive`](../../../src/hand/OnTurretActive.c) | `0x225AE8` |
+| 78 | OnPoActive | **override** | [`OnTurretActive`](../../../src/game/gameplay/objects/turret/OnTurretActive.c) | `0x225AE8` |
 | 79 | SetPoCtlState | inherited (PO) | `SetPoCtlState` | `0x1C3ED8` |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |

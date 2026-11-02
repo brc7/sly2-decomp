@@ -15,7 +15,7 @@
 | Factory (`pfnNew`) | [`NewBhvanim`](../../../src/auto/NewBhvanim.c) `0x1130B0` |
 | Descriptor getter (slot 6) | `GetBhvanimClassDesc` `0x1143E0` |
 | vtable | `D_002D0AB0`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvanim`](../../../src/auto/NewBhvanim.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvanim`](../../../src/auto/NewBhvanim.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175 (medium, 2 exclusive identical slots) — [hidden-types A1](../hidden-types.md#a1)
@@ -35,13 +35,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvanimClassDesc`](../../../src/auto/GetBhvanimClassDesc.c) | `0x1143E0` |
-| 7 | Init | **override** | [`InitBhvanim`](../../../src/hand/InitBhvanim.c) | `0x174920` |
-| 8 | Start | **override** | [`StartBhvanim`](../../../src/hand/StartBhvanim.c) | `0x174950` |
-| 9 | Close | **override** | [`CloseBhvanim`](../../../src/auto/CloseBhvanim.c) | `0x174B28` |
-| 10 | Update | **override** | [`UpdateBhvanim`](../../../src/hand/UpdateBhvanim.c) | `0x174B68` |
-| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/hand/UpdateBhvanimMotion.c) | `0x174F08` |
-| 12 | GrfGroundProbe | **override** | [`BHVANIM_GrfGroundProbe`](../../../src/hand/BHVANIM_GrfGroundProbe.c) | `0x174EA0` |
-| 13 | FHandleMessage | **override** | [`BHVANIM_FHandleMessage`](../../../src/hand/BHVANIM_FHandleMessage.c) | `0x174BD0` |
+| 7 | Init | **override** | [`InitBhvanim`](../../../src/game/gameplay/ai/guardbhv/InitBhvanim.c) | `0x174920` |
+| 8 | Start | **override** | [`StartBhvanim`](../../../src/game/gameplay/ai/guardbhv/StartBhvanim.c) | `0x174950` |
+| 9 | Close | **override** | [`CloseBhvanim`](../../../src/game/gameplay/ai/guardbhv/CloseBhvanim.c) | `0x174B28` |
+| 10 | Update | **override** | [`UpdateBhvanim`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanim.c) | `0x174B68` |
+| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) | `0x174F08` |
+| 12 | GrfGroundProbe | **override** | [`BHVANIM_GrfGroundProbe`](../../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) | `0x174EA0` |
+| 13 | FHandleMessage | **override** | [`BHVANIM_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) | `0x174BD0` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

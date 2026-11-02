@@ -187,9 +187,9 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A0300](../../../src/hand/func_001A0300.c) | `PostLoadDirBlend` | For 8 directional clips measure root velocity (clip displacement / duration via key lookup 0x12FF10) and build the 8-entry blend (0x137A30 cbBl 0x20) | 0.40 | T2 |  |
-| [0x1A0450](../../../src/hand/func_001A0450.c) | `UpdateDirBlend` | Choose/blend directional clip weights from the movement vector and update the animation request | 0.40 | T2 |  |
-| [0x1A0720](../../../src/hand/func_001A0720.c) | `UpdateJtDirAccel` | Update directional acceleration and side state from heading/magnitude | 0.30 | T2 |  |
+| [0x1A0300](../../../src/game/gameplay/player/dirblend/func_001A0300.c) | `PostLoadDirBlend` | For 8 directional clips measure root velocity (clip displacement / duration via key lookup 0x12FF10) and build the 8-entry blend (0x137A30 cbBl 0x20) | 0.40 | T2 |  |
+| [0x1A0450](../../../src/game/gameplay/player/dirblend/func_001A0450.c) | `UpdateDirBlend` | Choose/blend directional clip weights from the movement vector and update the animation request | 0.40 | T2 |  |
+| [0x1A0720](../../../src/game/gameplay/player/dirblend/func_001A0720.c) | `UpdateJtDirAccel` | Update directional acceleration and side state from heading/magnitude | 0.30 | T2 |  |
 
 ## sm (0x1EFA90-0x1F1768)
 
@@ -241,35 +241,35 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x20B840](../../../src/hand/InitGait.c) | `InitGait` | GAIT init: stepplayer, sfxidStep, gVolWalk 0.6, gVolRun 1.0 | 0.70 | T1 |  |
-| [0x20B868](../../../src/hand/PostJtLoadGait.cpp) | `PostJtLoadGait` | GAIT PostLoad: foot markers, root velocity per clip, dynamic blend | 0.65 | T1 |  |
-| [0x20BAD8](../../../src/hand/func_0020BAD8.c) | `VRootGait` | weighted root velocity of the two clips | 0.45 | T2 |  |
-| [0x20BB48](../../../src/auto/func_0020BB48.c) | `PxGaitBlend` | returns pasegbl(+4)->x50 | 0.25 | T2 |  |
-| [0x20BB58](../../../src/hand/UpdateGaitBlend.c) | `UpdateGaitBlend` | set walk/run weights, reblend, write root velocity | 0.50 | T1 |  |
-| [0x20BC08](../../../src/hand/UpdateGaitFootsteps.c) | `UpdateGaitFootsteps` | footstep sfx when a foot goes down; volume lerp walk/run; range 500/2000 | 0.60 | T1 |  |
-| [0x20BD68](../../../src/hand/func_0020BD68.c) | `ResetGaitFeet` | afFootDown[0..1] = 0 | 0.45 | T2 |  |
-| [0x20BD78](../../../src/auto/func_0020BD78.c) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
-| [0x20BD88](../../../src/hand/func_0020BD88.c) | `PostAsegArcLoad` | arc timing from ASEG labels 0x22/0x23/0x24, planar distance, curvature | 0.40 | T2 |  |
-| [0x20BF80](../../../src/auto/StartLeap.c) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
-| [0x20C010](../../../src/auto/func_0020C010.c) | `PvAllocLeap` | alloc from slotheap D_003E1AD8 | 0.45 | T2 |  |
-| [0x20C030](../../../src/auto/func_0020C030.c) | `FreeLeap` | free to slotheap D_003E1AD8 | 0.45 | T2 |  |
-| [0x20C058](../../../src/hand/LEAP_ctor.c) | `LEAP_ctor` | CID 0x91 ctor (vtable 0x2DAA10) | 0.55 | T1 |  |
-| [0x20C080](../../../src/hand/func_0020C080.c) | `StopLeap` | if not finished: state 4, clear anim job | 0.45 | T2 |  |
-| [0x20C0D8](../../../src/auto/FLeapDone.c) | `FLeapDone` | state == 4 | 0.50 | T1 |  |
-| [0x20C0E8](../../../src/hand/UpdateLeap.c) | `UpdateLeap` | leap state machine 1..3 | 0.50 | T1 |  |
-| [0x20C290](../../../src/hand/HandleLeapMessage.c) | `HandleLeapMessage` | CID 0x91 slot5: ASEG label 0x22 -> launch (state 1) | 0.55 | T1 |  |
-| [0x20C2F8](../../../src/hand/SetLeapState.cpp) | `SetLeapState` | 0 start anim; 1 launch (ballistic DtBallisticMax or flightTime), constraint; 2/3 seek; 4 land | 0.55 | T1 |  |
-| [0x20C6F8](../../../src/hand/func_0020C6F8.c) | `SetLeapTarget` | update target / constraint target | 0.45 | T2 |  |
-| [0x20C760](../../../src/hand/func_0020C760.c) | `ReleaseLeapConstraint` | drop constraint, clear LO flag bit 26 | 0.45 | T2 |  |
-| [0x20C7D8](../../../src/auto/func_0020C7D8.c) | `InvalidateDirAnims` | fInit (+0xC0) = 0 | 0.40 | T2 |  |
-| [0x20C7E0](../../../src/hand/func_0020C7E0.c) | `InitDirAnims` | 4 directional ASEGs: root velocity and speed | 0.45 | T2 |  |
-| [0x20C948](../../../src/hand/func_0020C948.c) | `StartDirAnim` | init CID 0x92 object (vtable 0x2DA9D0) and apply ASEG | 0.40 | T2 |  |
-| [0x20CA00](../../../src/auto/func_0020CA00.c) | `PvAllocDirAnim` | alloc from slotheap D_003E1AF0 | 0.40 | T2 |  |
-| [0x20CA20](../../../src/auto/func_0020CA20.c) | `FreeDirAnim` | free to slotheap D_003E1AF0 | 0.40 | T2 |  |
-| [0x20CA48](../../../src/hand/func_0020CA48.c) | `StopDirAnim` | clear anim job if active | 0.40 | T2 |  |
-| [0x20CA98](../../../src/auto/func_0020CA98.c) | `FDirAnimStopped` | job +0x24 == 0 | 0.40 | T2 |  |
-| [0x20CAA8](../../../src/hand/func_0020CAA8.c) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |
-| [0x20CB28](../../../src/hand/func_0020CB28.cpp) | `SelectDirAnim` | choose best of 4 directional anims vs desired direction | 0.50 | T2 |  |
+| [0x20B840](../../../src/game/gameplay/player/tu_20B840/InitGait.c) | `InitGait` | GAIT init: stepplayer, sfxidStep, gVolWalk 0.6, gVolRun 1.0 | 0.70 | T1 |  |
+| [0x20B868](../../../src/game/gameplay/player/tu_20B840/PostJtLoadGait.cpp) | `PostJtLoadGait` | GAIT PostLoad: foot markers, root velocity per clip, dynamic blend | 0.65 | T1 |  |
+| [0x20BAD8](../../../src/game/gameplay/player/tu_20B840/func_0020BAD8.c) | `VRootGait` | weighted root velocity of the two clips | 0.45 | T2 |  |
+| [0x20BB48](../../../src/game/gameplay/player/tu_20B840/func_0020BB48.c) | `PxGaitBlend` | returns pasegbl(+4)->x50 | 0.25 | T2 |  |
+| [0x20BB58](../../../src/game/gameplay/player/tu_20B840/UpdateGaitBlend.c) | `UpdateGaitBlend` | set walk/run weights, reblend, write root velocity | 0.50 | T1 |  |
+| [0x20BC08](../../../src/game/gameplay/player/tu_20B840/UpdateGaitFootsteps.c) | `UpdateGaitFootsteps` | footstep sfx when a foot goes down; volume lerp walk/run; range 500/2000 | 0.60 | T1 |  |
+| [0x20BD68](../../../src/game/gameplay/player/tu_20B840/func_0020BD68.c) | `ResetGaitFeet` | afFootDown[0..1] = 0 | 0.45 | T2 |  |
+| [0x20BD78](../../../src/game/gameplay/player/tu_20B840/func_0020BD78.c) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
+| [0x20BD88](../../../src/game/gameplay/player/tu_20B840/func_0020BD88.c) | `PostAsegArcLoad` | arc timing from ASEG labels 0x22/0x23/0x24, planar distance, curvature | 0.40 | T2 |  |
+| [0x20BF80](../../../src/game/gameplay/player/tu_20B840/StartLeap.c) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
+| [0x20C010](../../../src/game/gameplay/player/tu_20B840/func_0020C010.c) | `PvAllocLeap` | alloc from slotheap D_003E1AD8 | 0.45 | T2 |  |
+| [0x20C030](../../../src/game/gameplay/player/tu_20B840/func_0020C030.c) | `FreeLeap` | free to slotheap D_003E1AD8 | 0.45 | T2 |  |
+| [0x20C058](../../../src/game/gameplay/player/tu_20B840/LEAP_ctor.c) | `LEAP_ctor` | CID 0x91 ctor (vtable 0x2DAA10) | 0.55 | T1 |  |
+| [0x20C080](../../../src/game/gameplay/player/tu_20B840/func_0020C080.c) | `StopLeap` | if not finished: state 4, clear anim job | 0.45 | T2 |  |
+| [0x20C0D8](../../../src/game/gameplay/player/tu_20B840/FLeapDone.c) | `FLeapDone` | state == 4 | 0.50 | T1 |  |
+| [0x20C0E8](../../../src/game/gameplay/player/tu_20B840/UpdateLeap.c) | `UpdateLeap` | leap state machine 1..3 | 0.50 | T1 |  |
+| [0x20C290](../../../src/game/gameplay/player/tu_20B840/HandleLeapMessage.c) | `HandleLeapMessage` | CID 0x91 slot5: ASEG label 0x22 -> launch (state 1) | 0.55 | T1 |  |
+| [0x20C2F8](../../../src/game/gameplay/player/tu_20B840/SetLeapState.cpp) | `SetLeapState` | 0 start anim; 1 launch (ballistic DtBallisticMax or flightTime), constraint; 2/3 seek; 4 land | 0.55 | T1 |  |
+| [0x20C6F8](../../../src/game/gameplay/player/tu_20B840/func_0020C6F8.c) | `SetLeapTarget` | update target / constraint target | 0.45 | T2 |  |
+| [0x20C760](../../../src/game/gameplay/player/tu_20B840/func_0020C760.c) | `ReleaseLeapConstraint` | drop constraint, clear LO flag bit 26 | 0.45 | T2 |  |
+| [0x20C7D8](../../../src/game/gameplay/player/tu_20B840/func_0020C7D8.c) | `InvalidateDirAnims` | fInit (+0xC0) = 0 | 0.40 | T2 |  |
+| [0x20C7E0](../../../src/game/gameplay/player/tu_20B840/func_0020C7E0.c) | `InitDirAnims` | 4 directional ASEGs: root velocity and speed | 0.45 | T2 |  |
+| [0x20C948](../../../src/game/gameplay/player/tu_20B840/func_0020C948.c) | `StartDirAnim` | init CID 0x92 object (vtable 0x2DA9D0) and apply ASEG | 0.40 | T2 |  |
+| [0x20CA00](../../../src/game/gameplay/player/tu_20B840/func_0020CA00.c) | `PvAllocDirAnim` | alloc from slotheap D_003E1AF0 | 0.40 | T2 |  |
+| [0x20CA20](../../../src/game/gameplay/player/tu_20B840/func_0020CA20.c) | `FreeDirAnim` | free to slotheap D_003E1AF0 | 0.40 | T2 |  |
+| [0x20CA48](../../../src/game/gameplay/player/tu_20B840/func_0020CA48.c) | `StopDirAnim` | clear anim job if active | 0.40 | T2 |  |
+| [0x20CA98](../../../src/game/gameplay/player/tu_20B840/func_0020CA98.c) | `FDirAnimStopped` | job +0x24 == 0 | 0.40 | T2 |  |
+| [0x20CAA8](../../../src/game/gameplay/player/tu_20B840/func_0020CAA8.c) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |
+| [0x20CB28](../../../src/game/gameplay/player/tu_20B840/func_0020CB28.cpp) | `SelectDirAnim` | choose best of 4 directional anims vs desired direction | 0.50 | T2 |  |
 
 ## tail (0x21C820-0x21D278)
 

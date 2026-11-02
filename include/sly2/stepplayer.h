@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/step.h"
 
-/* ZPR: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* ZPR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct ZPR
 {
       LO *ploSource;
@@ -25,21 +25,21 @@ struct ZPR
       undefined4 unk_0x58[2];
 };
 
-/* MRSG: from src/hand/HeroInteractDistance.cpp (17 copies in Lilly ports) */
+/* MRSG: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct MRSG
 {
     float t;
     float dt;
 };
 
-/* BL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* BL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BL
 {
       float gWeight;
       ASEG *paseg;
 };
 
-/* BLGAIT: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* BLGAIT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BLGAIT : public BL
 {
       char abUnk08[8];
@@ -48,7 +48,7 @@ struct BLGAIT : public BL
       MRSG amrsgFoot1[2];
 };
 
-/* GAIT: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* GAIT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct GAIT
 {
       STEPPLAYER *pstepplayer;
@@ -62,20 +62,20 @@ struct GAIT
       char abUnkA4[0xc];
 };
 
-/* BLDIR: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* BLDIR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLDIR : public BL
 {
       char abUnk08[8];
       qword vRoot;
 };
 
-/* BLLEAN: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* BLLEAN: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLLEAN : public BL
 {
       char abUnk08[4];
 };
 
-/* JTPLACE: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPLACE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACE
 {
       LO *plo;
@@ -85,7 +85,7 @@ struct JTPLACE
       qword qwPos;
 };
 
-/* JTPLACES: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPLACES: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACES
 {
       STEPPLAYER *pstepplayer;
@@ -94,7 +94,7 @@ struct JTPLACES
       JTPLACE aplace[32];
 };
 
-/* JTMODEHUD: from src/hand/SetJtModeState__FP6JTMODEi.cpp (15 copies in Lilly ports) */
+/* JTMODEHUD: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (15 copies in Lilly ports) */
 struct JTMODEHUD
 {
       JTMODE *pjtmode;
@@ -108,7 +108,7 @@ struct JTMODEHUD
     void SetWidgetCur(struct WIDGET *pwidget);
 };
 
-/* JTMODE: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTMODE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTMODE
 {
       STEPPLAYER *pstepplayer;
@@ -126,7 +126,7 @@ struct JTMODE
       undefined4 unk_0x48[2];
 };
 
-/* JTHANDBL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* JTHANDBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDBL
 {
       float uWeight;
@@ -136,7 +136,7 @@ struct JTHANDBL
       struct SHAPE *pshapeB;
 };
 
-/* JTHANDS: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* JTHANDS: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDS
 {
       SO *pso;
@@ -161,7 +161,7 @@ struct JTHANDS
       undefined4 unk_0xac;
 };
 
-/* JTGRAB: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTGRAB: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGRAB
 {
       STEPPLAYER *pstepplayer;
@@ -212,7 +212,7 @@ struct JTGRAB
       undefined4 unk_0x510[(0x520 - 0x510) / 4];
 };
 
-/* JTPIPEBL: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPIPEBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPEBL
 {
       float gWeight;
@@ -221,7 +221,7 @@ struct JTPIPEBL
       float gSpeed;
 };
 
-/* JTPIPE: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPIPE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPE
 {
       struct STEPPLAYER *pstepplayer;
@@ -243,7 +243,7 @@ struct JTPIPE
       struct ASEG *pasegTurn;
 };
 
-/* JTAIRBL: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTAIRBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIRBL
 {
       float gWeight;
@@ -251,7 +251,7 @@ struct JTAIRBL
       undefined4 unk_0x08;
 };
 
-/* JTAIR: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTAIR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIR
 {
       STEPPLAYER *pstepplayer;
@@ -321,12 +321,12 @@ struct JTAIR
       undefined4 unk_0x1f4[(0x200 - 0x1f4) / 4];
 };
 
-/* HURTEND: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* HURTEND: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct HURTEND
 {
 };
 
-/* JTHURT: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTHURT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTHURT
 {
       struct STEPPLAYER *pstepplayer;
@@ -345,7 +345,7 @@ struct JTHURT
       struct ASEGA *pasegaUnk10c;
 };
 
-/* GADGETSLOT: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* GADGETSLOT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct GADGETSLOT
 {
       int idGadget;
@@ -353,7 +353,7 @@ struct GADGETSLOT
       float tState;
 };
 
-/* JTGOAL: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTGOAL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGOAL
 {
       STEPPLAYER *pstepplayer;
@@ -365,7 +365,7 @@ struct JTGOAL
       undefined4 unk_0x2c;
 };
 
-/* JTTHROW: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTTHROW: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTTHROW
 {
       struct STEPPLAYER *pstepplayer;
@@ -405,7 +405,7 @@ struct JTTHROW
       undefined4 unk_0x134[(0x140 - 0x134) / 4];
 };
 
-/* STEPPLAYER: from src/hand/UpdateJtAirInput.cpp (15 copies in Lilly ports) */
+/* STEPPLAYER: from src/game/gameplay/player/air/UpdateJtAirInput.cpp (15 copies in Lilly ports) */
 struct STEPPLAYER : public STEP
 {
       JTAIR jtair;

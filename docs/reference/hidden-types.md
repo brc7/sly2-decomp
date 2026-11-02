@@ -16,8 +16,8 @@ HYPOTHESIS: an unregistered class `BHV → ? → {BHVANIM, BHVLEAP, BHV175}`. 2 
 
 | Slot | Role | Shared implementation | Parent has | Exclusive |
 |---|---|---|---|---|
-| 12 | GrfGroundProbe | [`BHVANIM_GrfGroundProbe`](../../src/hand/BHVANIM_GrfGroundProbe.c) `0x174EA0` | `BHV_GrfGroundProbe?` | yes |
-| 13 | FHandleMessage | [`BHVANIM_FHandleMessage`](../../src/hand/BHVANIM_FHandleMessage.c) `0x174BD0` | `BHV_FHandleMessage` | yes |
+| 12 | GrfGroundProbe | [`BHVANIM_GrfGroundProbe`](../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) `0x174EA0` | `BHV_GrfGroundProbe?` | yes |
+| 13 | FHandleMessage | [`BHVANIM_FHandleMessage`](../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) `0x174BD0` | `BHV_FHandleMessage` | yes |
 
 <a id="a2"></a>
 ### A2. Under [BHV](classes/BHV.md): {[BHVANIM](classes/BHVANIM.md), [BHVLEAP](classes/BHVLEAP.md), [BHV175](classes/BHV175.md), [BHVJUGGLED](classes/BHVJUGGLED.md)} — medium
@@ -27,7 +27,7 @@ HYPOTHESIS: an unregistered class `BHV → ? → {BHVANIM, BHVLEAP, BHV175, BHVJ
 
 | Slot | Role | Shared implementation | Parent has | Exclusive |
 |---|---|---|---|---|
-| 11 | UpdateMotion | [`UpdateBhvanimMotion`](../../src/hand/UpdateBhvanimMotion.c) `0x174F08` | `UpdateBhvMotion` | yes |
+| 11 | UpdateMotion | [`UpdateBhvanimMotion`](../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) `0x174F08` | `UpdateBhvMotion` | yes |
 
 ## B. Vtables and descriptor-like tables not claimed by a registered class
 
@@ -51,7 +51,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | `0x2D85E8` (abstract: has `__pure_virtual`) | 15 | 7=`UpdateScreenTimeout?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`__pure_virtual` | [`SCREEN_ctor?`](../../src/game/engine/presentation/screen/func_001DA728.c) (+0xC) |
 | `0x2D8668` | 12 | 7=`UpdateHudMeter?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?` | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/func_001DE008.c) (+0xC) |
 | `0x2D86D0` | 12 | 7=`UpdateScreen?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?` | (no lui/addiu reference: never stored by code) |
-| `0x2D8C08` | 7 |  | [`PjsgNew?`](../../src/hand/func_001E5AE0.c) (+0xC) |
+| `0x2D8C08` | 7 |  | [`PjsgNew?`](../../src/game/gameplay/cutscene/relay/func_001E5AE0.c) (+0xC) |
 
 #### [EMITTER](classes/EMITTER.md) (CID 29): 2 vtables
 
@@ -191,13 +191,13 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2D4220` | 3 | 1=`CQueueOutputIpu_CbWrite?`, 2=`CQueueOutputIpu_FAsyncDrain?` | [`FMpegDecodeVideo?`](../../src/hand/func_001B33F0.c) (+0x0) | — |
+| `0x2D4220` | 3 | 1=`CQueueOutputIpu_CbWrite?`, 2=`CQueueOutputIpu_FAsyncDrain?` | [`FMpegDecodeVideo?`](../../src/game/gameplay/cutscene/mpeg/func_001B33F0.c) (+0x0) | — |
 
 #### B2.15 QueueOutputIop
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2D4240` | 3 | 1=`CQueueOutputIop_CbWrite?`, 2=`CQueueOutputIop_FAsyncDrain?` | [`StaticInit_mpeg?`](../../src/auto/func_001B42D0.c) (+0x68A0) | — |
+| `0x2D4240` | 3 | 1=`CQueueOutputIop_CbWrite?`, 2=`CQueueOutputIop_FAsyncDrain?` | [`StaticInit_mpeg?`](../../src/game/gameplay/cutscene/mpeg/func_001B42D0.c) (+0x68A0) | — |
 
 #### B2.16 RIP / MATCH
 
@@ -374,7 +374,7 @@ Registered class names that occur in mangled symbols (confirms the spelling as S
 | `BHV156` | BHV | `guard.h` | 0 | BHV156 (CID 0x9C, cb 0xB0): root of every guard's behaviour stack; its mode drives calm/search/combat |
 | `CMBASE` | BASIC | `cm.h` | 0 | CMBASE: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
 | `CMPART2` | CPLCY | `cm.h` | 1 | CMPART2: from src/game/engine/camera/tn/func_00221DD8.cpp (6 copies in Lilly ports) |
-| `CPCAMBLEND` | CPLCY | `cm.h` | 1 | CPCAMBLEND: from src/hand/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) |
+| `CPCAMBLEND` | CPLCY | `cm.h` | 1 | CPCAMBLEND: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) |
 | `CPLCY` | CPLCYDATA | `cm.h` | 1 | CPLCY: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
 
 ## D. Code that stores more than one vtable
@@ -396,7 +396,7 @@ Functions that load (lui/addiu) two or more distinct vtable addresses and store 
 | [`CM_ctor?`](../../src/game/engine/camera/cm/func_0014D3D8.c) | `0x2CA4D0` CM +0xC, `0x2CD378` (unclaimed) +0xC |
 | [`PvtripFromRipt?`](../../src/game/engine/fx/rip/func_001CE6D0.c) | `0x2D7738` (unclaimed) +?, `0x2D76E8` (unclaimed) +?, `0x2D7698` (unclaimed) +?, `0x2D7648` (unclaimed) +?, `0x2D75F8` (unclaimed) +?, `0x2D75A8` (unclaimed) +?, `0x2D74B8` (unclaimed) +?, `0x2D7558` (unclaimed) +?, `0x2D7508` (unclaimed) +?, `0x2D7788` (unclaimed) +0xEC, `0x2D7468` (unclaimed) +0xEC |
 | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/func_001DE008.c) | `0x2D8668` BASIC +0xC, `0x2D37D0` BASIC +0xC, `0x2CA490` CID154 +0xC |
-| [`PbhvNew`](../../src/hand/PbhvNew.c) | `0x2D04A0` BHVGUARD +0xC, `0x2D0AB0` BHVANIM +?, `0x2D0A30` BHVIDLE +?, `0x2D07B0` BHVSTRIKE +?, `0x2D0930` BHV161 +?, `0x2D0830` BHV162 +?, `0x2D08B0` BHVKO +?, `0x2D0620` BHVATTACK +?, `0x2D05A0` BHVCOMBAT +?, `0x2D06A0` BHVWALKPATH +?, `0x2CF7F8` BHV169 +?, `0x2D0520` BHVPATROL +?, `0x2CFA10` BHV171 +?, `0x2D4AF8` BHV174 +? … |
+| [`PbhvNew`](../../src/game/gameplay/ai/bhvstk/PbhvNew.c) | `0x2D04A0` BHVGUARD +0xC, `0x2D0AB0` BHVANIM +?, `0x2D0A30` BHVIDLE +?, `0x2D07B0` BHVSTRIKE +?, `0x2D0930` BHV161 +?, `0x2D0830` BHV162 +?, `0x2D08B0` BHVKO +?, `0x2D0620` BHVATTACK +?, `0x2D05A0` BHVCOMBAT +?, `0x2D06A0` BHVWALKPATH +?, `0x2CF7F8` BHV169 +?, `0x2D0520` BHVPATROL +?, `0x2CFA10` BHV171 +?, `0x2D4AF8` BHV174 +? … |
 | [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf/LoadSoXfsFromBrx.cpp) | `0x2CA820` (unclaimed) +0x18, `0x2CA7E0` (unclaimed) +0x18, `0x2CA7A0` (unclaimed) +0x18, `0x2CA6A0` (unclaimed) +0x18 |
 | [`STEPGUARD_ctor?`](../../src/hand/func_00256360.c) | `0x2D9978` SO +?, `0x2CB1F0` BASIC +?, `0x2DA568` STEPGUARD +0xC, `0x2DA9D0` CID146 +0xC |
 

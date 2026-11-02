@@ -27,9 +27,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleCarmelitaMessage?`](../../../src/auto/func_0014B218.c) | `0x14B218` |
+| 5 | HandleMessage | **override** | [`HandleCarmelitaMessage?`](../../../src/game/gameplay/ai/tu_14A008/func_0014B218.c) | `0x14B218` |
 | 6 | Pclassinfo | **override** | [`GetCarmelitaClassDesc`](../../../src/auto/GetCarmelitaClassDesc.c) | `0x113E00` |
-| 7 | Init | **override** | [`InitCarmelita?`](../../../src/hand/func_0014B1A0.c) | `0x14B1A0` |
+| 7 | Init | **override** | [`InitCarmelita?`](../../../src/game/gameplay/ai/tu_14A008/func_0014B1A0.c) | `0x14B1A0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,7 +37,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (STEPGUARD) | `RemoveStepguardHierarchy` | `0x2064D8` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (STEP) | `LoadStepFromBrx` | `0x2039C0` |
-| 15 | PostLoad | **override** | [`PostCarmelitaLoad?`](../../../src/auto/func_0014B1D8.c) | `0x14B1D8` |
+| 15 | PostLoad | **override** | [`PostCarmelitaLoad?`](../../../src/game/gameplay/ai/tu_14A008/func_0014B1D8.c) | `0x14B1D8` |
 | 16 | Update | inherited (STEPGUARD) | `UpdateStepguard` | `0x207350` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
@@ -108,9 +108,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 83 | AddStepDialogSmRefs | inherited (STEP) | `AddStepDialogSmRefs?` | `0x205478` |
 | 84 | RemoveStepDialogSmRefs | inherited (STEP) | `RemoveStepDialogSmRefs?` | `0x205588` |
 | 85 | GrfStepGroundProbe | inherited (STEPGUARD) | `GrfStepguardGroundProbe?` | `0x20B090` |
-| 86 | FStepVt86 | **override** | [`Carmelita_VUnk86?`](../../../src/auto/func_0014B460.c) | `0x14B460` |
+| 86 | FStepVt86 | **override** | [`Carmelita_VUnk86?`](../../../src/game/gameplay/ai/tu_14A008/func_0014B460.c) | `0x14B460` |
 | 87 | StepVt87Nop | inherited (STEPGUARD) | `SetStepguardPlayable?` | `0x1F1F38` |
-| 88 | PloChooseStepguardTarget | **override** | [`Carmelita_VUnk88?`](../../../src/hand/func_0014B290.c) | `0x14B290` |
+| 88 | PloChooseStepguardTarget | **override** | [`Carmelita_VUnk88?`](../../../src/game/gameplay/ai/tu_14A008/func_0014B290.c) | `0x14B290` |
 | 89 | FStepguardSenseStimulus | inherited (STEPGUARD) | `FStepguardSenseStimulus` | `0x208BE0` |
 
 ## Fields

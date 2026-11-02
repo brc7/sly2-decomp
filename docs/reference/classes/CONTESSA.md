@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
 | 6 | Pclassinfo | **override** | [`GetContessaClassDesc`](../../../src/auto/GetContessaClassDesc.c) | `0x113E10` |
-| 7 | Init | **override** | [`InitContessa?`](../../../src/hand/func_0014FAC8.c) | `0x14FAC8` |
+| 7 | Init | **override** | [`InitContessa?`](../../../src/game/gameplay/ai/tu_14FAC8/func_0014FAC8.c) | `0x14FAC8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -38,7 +38,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (STEP) | `LoadStepFromBrx` | `0x2039C0` |
 | 15 | PostLoad | inherited (STEPGUARD) | `PostStepguardLoad` | `0x2061D8` |
-| 16 | Update | **override** | [`UpdateContessa?`](../../../src/auto/func_0014FAF8.c) | `0x14FAF8` |
+| 16 | Update | **override** | [`UpdateContessa?`](../../../src/game/gameplay/ai/tu_14FAC8/func_0014FAF8.c) | `0x14FAF8` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (STEPGUARD) | `RenderStepguardSelf` | `0x207690` |

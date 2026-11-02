@@ -5,7 +5,7 @@
 #define SLY2_SW_H
 #include "sly2/basic.h"
 
-/* JTGRABCAND: from src/hand/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp (8 copies in Lilly ports) */
+/* JTGRABCAND: from src/game/gameplay/player/grab/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp (8 copies in Lilly ports) */
 struct JTGRABCAND
 {
       LO *plo;
@@ -19,7 +19,7 @@ struct JTGRABCAND
       qword qwPos;
 };
 
-/* SLOTHEAP: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (9 copies in Lilly ports) */
+/* SLOTHEAP: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (9 copies in Lilly ports) */
 struct SLOTHEAP
 {
       int cb;
@@ -30,13 +30,13 @@ struct SLOTHEAP
       byte *ab;
 };
 
-/* FILEREC: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (8 copies in Lilly ports) */
+/* FILEREC: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (8 copies in Lilly ports) */
 struct FILEREC
 {
       uint aw[16];
 };
 
-/* SVNHASH: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
+/* SVNHASH: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct SVNHASH
 {
       SVN *apsvn[0x35];
@@ -44,7 +44,7 @@ struct SVNHASH
       SVN *asvn;
 };
 
-/* SAVEVARS: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
+/* SAVEVARS: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct SAVEVARS
 {
       int crec;
@@ -52,7 +52,7 @@ struct SAVEVARS
       SVNHASH hash;
 };
 
-/* HUDSTACK: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
+/* HUDSTACK: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct HUDSTACK
 {
       struct WIDGET *pwidget;
@@ -60,7 +60,7 @@ struct HUDSTACK
       int fSnap;
 };
 
-/* SW: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
+/* SW: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct SW : public BASIC
 {
       DL dlChild;

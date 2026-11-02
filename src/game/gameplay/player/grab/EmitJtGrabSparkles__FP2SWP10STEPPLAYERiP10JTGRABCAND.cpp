@@ -1,5 +1,5 @@
 // EmitJtGrabSparkles = EmitJtGrabSparkles(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand)
-// (name and JTGRABCAND layout from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp / UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND.cpp; psw is unused).
+// (name and JTGRABCAND layout from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp / UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND.cpp; psw is unused).
 // For every grab candidate that has a spot, emits a random number of sparkles (emitter rate * dt, the fraction
 // rounded up with that probability): each one samples a position and velocity from the grab spot, scales the
 // velocity, picks a birth time in the past and optionally pushes the position along the velocity. At most ten are

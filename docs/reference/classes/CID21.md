@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid21ClassDesc`](../../../src/auto/GetCid21ClassDesc.c) | `0x113B60` |
-| 7 | Init | **override** | [`InitCid21?`](../../../src/hand/func_0021D3D8.c) | `0x21D3D8` |
+| 7 | Init | **override** | [`InitCid21?`](../../../src/game/gameplay/objects/target/func_0021D3D8.c) | `0x21D3D8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
@@ -44,8 +44,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
-| 22 | OnRemove | **override** | [`OnCid21Remove?`](../../../src/auto/func_0021D428.c) | `0x21D428` |
-| 23 | OnAdd | **override** | [`OnCid21Add?`](../../../src/auto/func_0021D460.c) | `0x21D460` |
+| 22 | OnRemove | **override** | [`OnCid21Remove?`](../../../src/game/gameplay/objects/target/func_0021D428.c) | `0x21D428` |
+| 23 | OnAdd | **override** | [`OnCid21Add?`](../../../src/game/gameplay/objects/target/func_0021D460.c) | `0x21D460` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneCid21?`](../../../src/hand/func_0021D498.c) | `0x21D498` |
+| 41 | Clone | **override** | [`CloneCid21?`](../../../src/game/gameplay/objects/target/func_0021D498.c) | `0x21D498` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

@@ -27,18 +27,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
-| 5 | HandleMessage | **override** | [`HandleMurrayMessage`](../../../src/hand/HandleMurrayMessage.c) | `0x1B68B8` | HandleMessage |
+| 5 | HandleMessage | **override** | [`HandleMurrayMessage`](../../../src/game/gameplay/player/murray/HandleMurrayMessage.c) | `0x1B68B8` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetMurrayClassDesc`](../../../src/auto/GetMurrayClassDesc.c) | `0x113D70` | Pclassinfo |
-| 7 | Init | **override** | [`InitMurray`](../../../src/hand/InitMurray.c) | `0x1B4728` | Init |
+| 7 | Init | **override** | [`InitMurray`](../../../src/game/gameplay/player/murray/InitMurray.c) | `0x1B4728` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` | SetParent |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (STEPPLAYER) | `RemoveHierarchyStepplayer?` | `0x141928` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadMurrayFromBrx`](../../../src/hand/LoadMurrayFromBrx.c) | `0x1B4888` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostMurrayLoad`](../../../src/hand/PostMurrayLoad.c) | `0x1B49E0` | VUnk14 |
-| 16 | Update | **override** | [`UpdateMurray`](../../../src/hand/UpdateMurray.c) | `0x1B50B0` | VUnk15 |
+| 14 | LoadFromBrx | **override** | [`LoadMurrayFromBrx`](../../../src/game/gameplay/player/murray/LoadMurrayFromBrx.c) | `0x1B4888` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostMurrayLoad`](../../../src/game/gameplay/player/murray/PostMurrayLoad.c) | `0x1B49E0` | VUnk14 |
+| 16 | Update | **override** | [`UpdateMurray`](../../../src/game/gameplay/player/murray/UpdateMurray.c) | `0x1B50B0` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | inherited (STEPPLAYER) | `RenderStepplayerSelf` | `0x1425B0` | RenderSelf |
@@ -72,18 +72,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` | VUnk46 |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` | VUnk47 |
 | 49 | UpdateSoTreeBounds | inherited (SO) | `UpdateSoTreeBounds` | `0x1F50E0` | VUnk48 |
-| 50 | GetSoCpdefi | **override** | [`GetMurrayCpdefi`](../../../src/hand/GetMurrayCpdefi.c) | `0x1B6728` | GetCpdefi |
+| 50 | GetSoCpdefi | **override** | [`GetMurrayCpdefi`](../../../src/game/gameplay/player/murray/GetMurrayCpdefi.c) | `0x1B6728` | GetCpdefi |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` | PxfFromIxf |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` | CloneXfRef |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` | VUnk52 |
 | 54 | SO_vt54_Nop | inherited (STEP) | `OnStepSoContactFreed` | `0x204C60` | VUnk53 |
-| 55 | SO_vt55_Nop | **override** | [`AdjustMurrayNewXp`](../../../src/hand/AdjustMurrayNewXp.cpp) | `0x1B9130` | AdjustNewXp |
+| 55 | SO_vt55_Nop | **override** | [`AdjustMurrayNewXp`](../../../src/game/gameplay/player/murray/AdjustMurrayNewXp.cpp) | `0x1B9130` | AdjustNewXp |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` | VUnk55 |
 | 57 | SO_vt57_Nop | inherited (STEP) | `AdjustStepXpVelocity` | `0x2044B0` | VUnk56 |
 | 58 | ScheduleSoTouchEvents | inherited (STEPPLAYER) | `STEPPLAYER_VUnk57?` | `0x140D70` | VUnk57 |
 | 59 | SO_vt59_Nop | inherited (STEPPLAYER) | `STEPPLAYER_VUnk58?` | `0x140D00` | VUnk58 |
 | 60 | SO_vt60_Nop | inherited (STEP) | `AddStepCustomXps` | `0x204AC8` | VUnk59 |
-| 61 | FIgnoreSoIntersection | **override** | [`MURRAY_FIgnoreIntersection`](../../../src/hand/MURRAY_FIgnoreIntersection.c) | `0x1B8450` | FIgnoreIntersection |
+| 61 | FIgnoreSoIntersection | **override** | [`MURRAY_FIgnoreIntersection`](../../../src/game/gameplay/player/murray/MURRAY_FIgnoreIntersection.c) | `0x1B8450` | FIgnoreIntersection |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` | VUnk61 |
 | 63 | SO_vt63_Ret0 | inherited (STEP) | `FStepVt63?` | `0x204248` | CpartExtra |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` | InitPhys |
@@ -92,13 +92,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` | VUnk66 |
 | 68 | ApplySoContactImpulse | inherited (STEPPLAYER) | `STEPPLAYER_VUnk67?` | `0x140DB0` | VUnk67 |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` | VUnk68 |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetMurrayAccel`](../../../src/hand/PresetMurrayAccel.c) | `0x1B67F8` | VUnk69 |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetMurrayAccel`](../../../src/game/gameplay/player/murray/PresetMurrayAccel.c) | `0x1B67F8` | VUnk69 |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` | VUnk70 |
 | 72 |  | inherited (STEPPLAYER) | `ResolveStepplayerXaContact?` | `0x1A28B0` | VUnk71 |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` | ProcessSoZapContacts |
 | 75 | FZprHasField44 | inherited (STEPPLAYER) | `STEPPLAYER_FTakeDamage` | `0x140F50` | FTakeDamage |
-| 76 | FInvulnerablePo | **override** | [`MURRAY_vt76?`](../../../src/hand/func_001B83B8.c) | `0x1B83B8` | FInvulnerable |
+| 76 | FInvulnerablePo | **override** | [`MURRAY_vt76?`](../../../src/game/gameplay/player/murray/func_001B83B8.c) | `0x1B83B8` | FInvulnerable |
 | 77 | JthsCurrentPo | inherited (STEPPLAYER) | `JthsCurrent__10STEPPLAYER` | `0x140F70` | JthsCurrent |
 | 78 | OnPoActive | inherited (STEPPLAYER) | `OnStepplayerActive` | `0x144480` | OnActive |
 | 79 | SetPoCtlState | inherited (STEPPLAYER) | `SetStepplayerCtlState` | `0x1406E8` | SetCtlState |
@@ -107,31 +107,31 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 82 | AddStepAxisXps | inherited (STEPPLAYER) | `STEPPLAYER_VUnk81?` | `0x140C30` | VUnk81 |
 | 83 | AddStepDialogSmRefs | inherited (STEPPLAYER) | `STEPPLAYER_VUnk82?` | `0x1442D0` | VUnk82 |
 | 84 | RemoveStepDialogSmRefs | inherited (STEPPLAYER) | `STEPPLAYER_VUnk83?` | `0x144338` | VUnk83 |
-| 85 | GrfStepGroundProbe | **override** | [`MURRAY_vt85?`](../../../src/hand/func_001B8368.c) | `0x1B8368` | VUnk84 |
+| 85 | GrfStepGroundProbe | **override** | [`MURRAY_vt85?`](../../../src/game/gameplay/player/murray/func_001B8368.c) | `0x1B8368` | VUnk84 |
 | 86 | FStepVt86 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk85?` | `0x144418` | VUnk85 |
-| 87 | StepVt87Nop | **override** | [`SetMurrayPlayable?`](../../../src/hand/func_001B81B8.c) | `0x1B81B8` | VUnk86 |
-| 88 | SetJtPlayerState (pure in STEPPLAYER) | **override** | [`SetMurrayPlayerState`](../../../src/hand/SetMurrayPlayerState.c) | `0x1B7E40` | VUnk87 |
-| 89 | GetJtPlayerState (pure in STEPPLAYER) | **override** | [`GetMurrayPlayerState`](../../../src/hand/GetMurrayPlayerState.c) | `0x1B7F90` | VUnk88 |
-| 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`ApplyMurrayStateStepParams?`](../../../src/hand/func_001B8008.c) | `0x1B8008` | VUnk89 |
-| 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`MURRAY_vt91?`](../../../src/auto/func_001B80F0.c) | `0x1B80F0` | VUnk90 |
-| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`MURRAY_vt92?`](../../../src/auto/func_001B80F8.c) | `0x1B80F8` | VUnk91 |
+| 87 | StepVt87Nop | **override** | [`SetMurrayPlayable?`](../../../src/game/gameplay/player/murray/func_001B81B8.c) | `0x1B81B8` | VUnk86 |
+| 88 | SetJtPlayerState (pure in STEPPLAYER) | **override** | [`SetMurrayPlayerState`](../../../src/game/gameplay/player/murray/SetMurrayPlayerState.c) | `0x1B7E40` | VUnk87 |
+| 89 | GetJtPlayerState (pure in STEPPLAYER) | **override** | [`GetMurrayPlayerState`](../../../src/game/gameplay/player/murray/GetMurrayPlayerState.c) | `0x1B7F90` | VUnk88 |
+| 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`ApplyMurrayStateStepParams?`](../../../src/game/gameplay/player/murray/func_001B8008.c) | `0x1B8008` | VUnk89 |
+| 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`MURRAY_vt91?`](../../../src/game/gameplay/player/murray/func_001B80F0.c) | `0x1B80F0` | VUnk90 |
+| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`MURRAY_vt92?`](../../../src/game/gameplay/player/murray/func_001B80F8.c) | `0x1B80F8` | VUnk91 |
 | 93 | OnStepplayerHeroDied | inherited (STEPPLAYER) | `OnStepplayerHeroDied` | `0x140EB0` | OnHeroDied |
-| 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`MURRAY_vt94?`](../../../src/hand/func_001B8180.c) | `0x1B8180` | VUnk93 |
+| 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`MURRAY_vt94?`](../../../src/game/gameplay/player/murray/func_001B8180.c) | `0x1B8180` | VUnk93 |
 | 95 | SetStepplayerPlayerInteractMode | inherited (STEPPLAYER) | `SetStepplayerPlayerInteractMode` | `0x140678` | SetPlayerInteractMode |
-| 96 | GetStepplayerStunHold | **override** | [`MURRAY_vt96?`](../../../src/hand/func_001B9B70.c) | `0x1B9B70` | GetStunHold |
+| 96 | GetStepplayerStunHold | **override** | [`MURRAY_vt96?`](../../../src/game/gameplay/player/murray/func_001B9B70.c) | `0x1B9B70` | GetStunHold |
 | 97 | GetStepplayerCmFocusPos | inherited (STEPPLAYER) | `GetStepplayerCmFocusPos` | `0x141588` | GetCmFocusPos |
-| 98 | STEPPLAYER_VUnk97 | **override** | [`MURRAY_vt98?`](../../../src/hand/func_001B8100.c) | `0x1B8100` | VUnk97 |
-| 99 | FCanUseGadget__10STEPPLAYERi | **override** | [`FCanUseGadget__6MURRAYi`](../../../src/hand/FCanUseGadget__6MURRAYi.c) | `0x1B98A0` | FCanUseGadget |
-| 100 | StartStepplayerGadget | **override** | [`UseMurrayGadget`](../../../src/hand/UseMurrayGadget.c) | `0x1B9A08` | StartGadget |
+| 98 | STEPPLAYER_VUnk97 | **override** | [`MURRAY_vt98?`](../../../src/game/gameplay/player/murray/func_001B8100.c) | `0x1B8100` | VUnk97 |
+| 99 | FCanUseGadget__10STEPPLAYERi | **override** | [`FCanUseGadget__6MURRAYi`](../../../src/game/gameplay/player/murray/FCanUseGadget__6MURRAYi.c) | `0x1B98A0` | FCanUseGadget |
+| 100 | StartStepplayerGadget | **override** | [`UseMurrayGadget`](../../../src/game/gameplay/player/murray/UseMurrayGadget.c) | `0x1B9A08` | StartGadget |
 | 101 | UpdateStepplayerGadget | inherited (STEPPLAYER) | `UpdateStepplayerGadget` | `0x141DD0` | VSlot101 |
 | 102 | StopStepplayerGadget | inherited (STEPPLAYER) | `StopStepplayerGadget` | `0x141E28` | VSlot102 |
-| 103 | JT_vt103 (pure in STEPPLAYER) | **override** | [`MURRAY_PchName`](../../../src/auto/MURRAY_PchName.c) | `0x1B9B60` | VSlot103 |
+| 103 | JT_vt103 (pure in STEPPLAYER) | **override** | [`MURRAY_PchName`](../../../src/game/gameplay/player/murray/MURRAY_PchName.c) | `0x1B9B60` | VSlot103 |
 | 104 | STEPPLAYER_VUnk104 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk104?` | `0x141E30` | VSlot104 |
 | 105 | OnStepplayerGadgetsChanged | inherited (STEPPLAYER) | `OnStepplayerGadgetsChanged?` | `0x141E70` | VSlot105 |
 
 ## Fields
 
-From `include/sly2/players.h` (`struct MURRAY : STEPPLAYER`). MURRAY: from src/hand/UpdateJtAirInput.cpp (3 copies in Lilly ports)
+From `include/sly2/players.h` (`struct MURRAY : STEPPLAYER`). MURRAY: from src/game/gameplay/player/air/UpdateJtAirInput.cpp (3 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 1 header asserts agree, 0 disagree. Size from header: 0x1B00.
 

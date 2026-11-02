@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetHackbulletClassDesc`](../../../src/auto/GetHackbulletClassDesc.c) | `0x113EB0` |
-| 7 | Init | **override** | [`InitHackbullet?`](../../../src/hand/func_00180188.c) | `0x180188` |
+| 7 | Init | **override** | [`InitHackbullet?`](../../../src/game/gameplay/objects/tu_17F090/func_00180188.c) | `0x180188` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -38,7 +38,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
 | 15 | PostLoad | inherited (HACK) | `PostHackLoad?` | `0x17F138` |
-| 16 | Update | **override** | [`UpdateHackbullet?`](../../../src/hand/func_001801B8.cpp) | `0x1801B8` |
+| 16 | Update | **override** | [`UpdateHackbullet?`](../../../src/game/gameplay/objects/tu_17F090/func_001801B8.cpp) | `0x1801B8` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -77,13 +77,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |
 | 54 | SO_vt54_Nop | inherited (SO) | `SO_vt54_Nop?` | `0x1F5988` |
-| 55 | SO_vt55_Nop | **override** | [`AdjustHackbulletXp?`](../../../src/hand/func_001803E0.c) | `0x1803E0` |
+| 55 | SO_vt55_Nop | **override** | [`AdjustHackbulletXp?`](../../../src/game/gameplay/objects/tu_17F090/func_001803E0.c) | `0x1803E0` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
-| 61 | FIgnoreSoIntersection | **override** | [`HACKBULLET_FIgnoreIntersection?`](../../../src/hand/func_001803A8.c) | `0x1803A8` |
+| 61 | FIgnoreSoIntersection | **override** | [`HACKBULLET_FIgnoreIntersection?`](../../../src/game/gameplay/objects/tu_17F090/func_001803A8.c) | `0x1803A8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |

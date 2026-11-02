@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvko`](../../../src/auto/NewBhvko.c) `0x113200` |
 | Descriptor getter (slot 6) | `GetBhvkoClassDesc` `0x114440` |
 | vtable | `D_002D08B0`, 15 entries (slots 0..14; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewBhvko`](../../../src/auto/NewBhvko.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvko`](../../../src/auto/NewBhvko.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV163`, proposed `BHVKO` (confidence 0.65), guard flag `7`. knocked out: dead flag +0x330, event 0x17/0x18, drops coins from the loot list
@@ -31,9 +31,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvkoClassDesc`](../../../src/auto/GetBhvkoClassDesc.c) | `0x114440` |
-| 7 | Init | **override** | [`InitBhvko`](../../../src/hand/InitBhvko.c) | `0x179868` |
-| 8 | Start | **override** | [`StartBhvko`](../../../src/hand/StartBhvko.c) | `0x179898` |
-| 9 | Close | **override** | [`CloseBhvko`](../../../src/auto/CloseBhvko.c) | `0x179A20` |
+| 7 | Init | **override** | [`InitBhvko`](../../../src/game/gameplay/ai/guardbhv/InitBhvko.c) | `0x179868` |
+| 8 | Start | **override** | [`StartBhvko`](../../../src/game/gameplay/ai/guardbhv/StartBhvko.c) | `0x179898` |
+| 9 | Close | **override** | [`CloseBhvko`](../../../src/game/gameplay/ai/guardbhv/CloseBhvko.c) | `0x179A20` |
 | 10 | Update | inherited (BHVHIT) | `UpdateBhvhit` | `0x1795E8` |
 | 11 | UpdateMotion | inherited (BHVANIM) | `UpdateBhvanimMotion` | `0x174F08` |
 | 12 | GrfGroundProbe | inherited (BHVANIM) | `BHVANIM_GrfGroundProbe` | `0x174EA0` |

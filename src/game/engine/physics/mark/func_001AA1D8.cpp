@@ -34,7 +34,7 @@ struct SO {
 };
 struct STACKSCOPE { STACKSCOPE(); ~STACKSCOPE(); };
 // ach[2] is never touched; it only places the scope at sp+2 (target `addiu v0,sp,2`), the same shape as the
-// accepted src/hand/func_00192A28.cpp (struct { char c; FRAME frame; int i, j; }). Judgment call: see notes/1A0000.md (T1866).
+// accepted src/game/gameplay/player/grab/func_00192A28.cpp (struct { char c; FRAME frame; int i, j; }). Judgment call: see notes/1A0000.md (T1866).
 struct SCOPE2 { char ach[2]; STACKSCOPE scope; };
 struct CNODE { int c; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };

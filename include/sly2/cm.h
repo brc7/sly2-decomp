@@ -58,7 +58,7 @@ struct CPLOOK : public CPLCY
       int cEnter;
 };
 
-/* CPZOOM: from src/hand/func_001E1E30.cpp (6 copies in Lilly ports) */
+/* CPZOOM: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (6 copies in Lilly ports) */
 struct CPZOOM : public CPLCY
 {
       LO *ploOwner;
@@ -114,7 +114,7 @@ struct CPTWOSHOT : public CPLCY
       LO *ploHero;
 };
 
-/* CPCAMBLEND: from src/hand/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) */
+/* CPCAMBLEND: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) */
 struct CPCAMBLEND : public CPLCY
 {
       CAMMOVE *pcammove;

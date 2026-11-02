@@ -36,8 +36,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
 | 12 | RemoveHierarchy | inherited (STEPGUARD) | `RemoveStepguardHierarchy` | `0x2064D8` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadDimitriFromBrx`](../../../src/hand/LoadDimitriFromBrx.c) | `0x1553F0` |
-| 15 | PostLoad | **override** | [`PostDimitriLoad`](../../../src/hand/PostDimitriLoad.c) | `0x155450` |
+| 14 | LoadFromBrx | **override** | [`LoadDimitriFromBrx`](../../../src/game/gameplay/ai/tu_1553F0/LoadDimitriFromBrx.c) | `0x1553F0` |
+| 15 | PostLoad | **override** | [`PostDimitriLoad`](../../../src/game/gameplay/ai/tu_1553F0/PostDimitriLoad.c) | `0x155450` |
 | 16 | Update | inherited (STEPGUARD) | `UpdateStepguard` | `0x207350` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |

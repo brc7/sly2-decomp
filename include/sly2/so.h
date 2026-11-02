@@ -7,7 +7,7 @@
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 
-/* GLOB: from src/hand/HeroInteractDistance.cpp (7 copies in Lilly ports) */
+/* GLOB: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (7 copies in Lilly ports) */
 struct GLOB
 {
       OID oid;
@@ -37,7 +37,7 @@ struct GLOB
       struct POSE *ppose;
 };
 
-/* SUBGLOB: from src/hand/HeroInteractDistance.cpp (8 copies in Lilly ports) */
+/* SUBGLOB: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (8 copies in Lilly ports) */
 struct SUBGLOB
 {
       char bUnk00;
@@ -50,7 +50,7 @@ struct SUBGLOB
       int cqw;
 };
 
-/* POSE: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+/* POSE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct POSE
 {
       VECTOR pos;
@@ -65,13 +65,13 @@ struct POSE
       undefined4 unk_0x1c;
 };
 
-/* POSESET: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+/* POSESET: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct POSESET
 {
     POSE apose[4];
 };
 
-/* GLOBSET: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+/* GLOBSET: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct GLOBSET
 {
       SO *pso;
@@ -107,14 +107,14 @@ struct GLOBSET
       void *pbatchrecsFirst;
 };
 
-/* CONSTR: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+/* CONSTR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct CONSTR
 {
       qword vecNormal;
       int nKind;
 };
 
-/* SOPHYS: from src/hand/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+/* SOPHYS: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct SOPHYS
 {
       MATRIX3 momintLocal;
@@ -130,7 +130,7 @@ struct SOPHYS
       struct REGENT *pregent;
 };
 
-/* SO: from src/hand/JtChooseGroundState.cpp (23 copies in Lilly ports) */
+/* SO: from src/game/gameplay/player/jt/JtChooseGroundState.cpp (23 copies in Lilly ports) */
 struct SO : public LO
 {
       int cxf;
@@ -262,7 +262,7 @@ struct SOTREE
                ulong unk_0x70 : 59;
 };
 
-/* XF: from src/hand/RebuildJtXmg.cpp (8 copies in Lilly ports) */
+/* XF: from src/game/gameplay/player/jt/RebuildJtXmg.cpp (8 copies in Lilly ports) */
 struct XF
 {
       MATRIX4 mat;
@@ -288,7 +288,7 @@ struct XF
       qword qwUnkF0;
 };
 
-/* XA: from src/hand/SetJtJts__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
+/* XA: from src/game/gameplay/player/jt/SetJtJts__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
 struct XA
 {
       uint32_t   _pad_409    [ 1 ] ;

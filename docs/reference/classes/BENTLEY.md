@@ -27,18 +27,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
-| 5 | HandleMessage | **override** | [`HandleBentleyMessage`](../../../src/hand/HandleBentleyMessage.c) | `0x135AD8` | HandleMessage |
+| 5 | HandleMessage | **override** | [`HandleBentleyMessage`](../../../src/game/gameplay/player/bentley/HandleBentleyMessage.c) | `0x135AD8` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetBentleyClassDesc`](../../../src/auto/GetBentleyClassDesc.c) | `0x113D80` | Pclassinfo |
-| 7 | Init | **override** | [`InitBentley`](../../../src/hand/InitBentley.c) | `0x134648` | Init |
+| 7 | Init | **override** | [`InitBentley`](../../../src/game/gameplay/player/bentley/InitBentley.c) | `0x134648` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` | SetParent |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (STEPPLAYER) | `RemoveHierarchyStepplayer?` | `0x141928` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadBentleyFromBrx`](../../../src/auto/LoadBentleyFromBrx.c) | `0x134770` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostBentleyLoad`](../../../src/hand/PostBentleyLoad.c) | `0x1347A8` | VUnk14 |
-| 16 | Update | **override** | [`UpdateBentley`](../../../src/hand/UpdateBentley.c) | `0x134DA8` | VUnk15 |
+| 14 | LoadFromBrx | **override** | [`LoadBentleyFromBrx`](../../../src/game/gameplay/player/bentley/LoadBentleyFromBrx.c) | `0x134770` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostBentleyLoad`](../../../src/game/gameplay/player/bentley/PostBentleyLoad.c) | `0x1347A8` | VUnk14 |
+| 16 | Update | **override** | [`UpdateBentley`](../../../src/game/gameplay/player/bentley/UpdateBentley.c) | `0x134DA8` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | inherited (STEPPLAYER) | `RenderStepplayerSelf` | `0x1425B0` | RenderSelf |
@@ -72,12 +72,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` | VUnk46 |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` | VUnk47 |
 | 49 | UpdateSoTreeBounds | inherited (SO) | `UpdateSoTreeBounds` | `0x1F50E0` | VUnk48 |
-| 50 | GetSoCpdefi | **override** | [`GetBentleyCpdefi`](../../../src/auto/GetBentleyCpdefi.c) | `0x1358A8` | GetCpdefi |
+| 50 | GetSoCpdefi | **override** | [`GetBentleyCpdefi`](../../../src/game/gameplay/player/bentley/GetBentleyCpdefi.c) | `0x1358A8` | GetCpdefi |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` | PxfFromIxf |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` | CloneXfRef |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` | VUnk52 |
 | 54 | SO_vt54_Nop | inherited (STEP) | `OnStepSoContactFreed` | `0x204C60` | VUnk53 |
-| 55 | SO_vt55_Nop | **override** | [`BENTLEY_VUnk54?`](../../../src/hand/func_00135A48.c) | `0x135A48` | AdjustNewXp |
+| 55 | SO_vt55_Nop | **override** | [`BENTLEY_VUnk54?`](../../../src/game/gameplay/player/bentley/func_00135A48.c) | `0x135A48` | AdjustNewXp |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` | VUnk55 |
 | 57 | SO_vt57_Nop | inherited (STEP) | `AdjustStepXpVelocity` | `0x2044B0` | VUnk56 |
 | 58 | ScheduleSoTouchEvents | inherited (STEPPLAYER) | `STEPPLAYER_VUnk57?` | `0x140D70` | VUnk57 |
@@ -92,13 +92,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` | VUnk66 |
 | 68 | ApplySoContactImpulse | inherited (STEPPLAYER) | `STEPPLAYER_VUnk67?` | `0x140DB0` | VUnk67 |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` | VUnk68 |
-| 70 | ApplySoPendingVelocity | **override** | [`BENTLEY_VUnk69?`](../../../src/hand/func_00135940.c) | `0x135940` | VUnk69 |
+| 70 | ApplySoPendingVelocity | **override** | [`BENTLEY_VUnk69?`](../../../src/game/gameplay/player/bentley/func_00135940.c) | `0x135940` | VUnk69 |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` | VUnk70 |
 | 72 |  | inherited (STEPPLAYER) | `ResolveStepplayerXaContact?` | `0x1A28B0` | VUnk71 |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` | ProcessSoZapContacts |
 | 75 | FZprHasField44 | inherited (STEPPLAYER) | `STEPPLAYER_FTakeDamage` | `0x140F50` | FTakeDamage |
-| 76 | FInvulnerablePo | **override** | [`BENTLEY_FInvulnerable`](../../../src/hand/BENTLEY_FInvulnerable.c) | `0x135F78` | FInvulnerable |
+| 76 | FInvulnerablePo | **override** | [`BENTLEY_FInvulnerable`](../../../src/game/gameplay/player/bentley/BENTLEY_FInvulnerable.c) | `0x135F78` | FInvulnerable |
 | 77 | JthsCurrentPo | inherited (STEPPLAYER) | `JthsCurrent__10STEPPLAYER` | `0x140F70` | JthsCurrent |
 | 78 | OnPoActive | inherited (STEPPLAYER) | `OnStepplayerActive` | `0x144480` | OnActive |
 | 79 | SetPoCtlState | inherited (STEPPLAYER) | `SetStepplayerCtlState` | `0x1406E8` | SetCtlState |
@@ -107,31 +107,31 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 82 | AddStepAxisXps | inherited (STEPPLAYER) | `STEPPLAYER_VUnk81?` | `0x140C30` | VUnk81 |
 | 83 | AddStepDialogSmRefs | inherited (STEPPLAYER) | `STEPPLAYER_VUnk82?` | `0x1442D0` | VUnk82 |
 | 84 | RemoveStepDialogSmRefs | inherited (STEPPLAYER) | `STEPPLAYER_VUnk83?` | `0x144338` | VUnk83 |
-| 85 | GrfStepGroundProbe | **override** | [`BENTLEY_VUnk84?`](../../../src/hand/func_00136CC0.c) | `0x136CC0` | VUnk84 |
+| 85 | GrfStepGroundProbe | **override** | [`BENTLEY_VUnk84?`](../../../src/game/gameplay/player/bentley/func_00136CC0.c) | `0x136CC0` | VUnk84 |
 | 86 | FStepVt86 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk85?` | `0x144418` | VUnk85 |
 | 87 | StepVt87Nop | inherited (STEP) | `StepVt87Nop?` | `0x205D10` | VUnk86 |
-| 88 | SetJtPlayerState (pure in STEPPLAYER) | **override** | [`SetBentleyPlayerState`](../../../src/hand/SetBentleyPlayerState.c) | `0x135C20` | VUnk87 |
-| 89 | GetJtPlayerState (pure in STEPPLAYER) | **override** | [`BENTLEY_PlayerStateCur`](../../../src/hand/BENTLEY_PlayerStateCur.c) | `0x135D08` | VUnk88 |
-| 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk89?`](../../../src/hand/func_00135D80.c) | `0x135D80` | VUnk89 |
-| 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk90?`](../../../src/auto/func_00135E30.c) | `0x135E30` | VUnk90 |
-| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk91?`](../../../src/auto/func_00135E38.c) | `0x135E38` | VUnk91 |
+| 88 | SetJtPlayerState (pure in STEPPLAYER) | **override** | [`SetBentleyPlayerState`](../../../src/game/gameplay/player/bentley/SetBentleyPlayerState.c) | `0x135C20` | VUnk87 |
+| 89 | GetJtPlayerState (pure in STEPPLAYER) | **override** | [`BENTLEY_PlayerStateCur`](../../../src/game/gameplay/player/bentley/BENTLEY_PlayerStateCur.c) | `0x135D08` | VUnk88 |
+| 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk89?`](../../../src/game/gameplay/player/bentley/func_00135D80.c) | `0x135D80` | VUnk89 |
+| 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk90?`](../../../src/game/gameplay/player/bentley/func_00135E30.c) | `0x135E30` | VUnk90 |
+| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk91?`](../../../src/game/gameplay/player/bentley/func_00135E38.c) | `0x135E38` | VUnk91 |
 | 93 | OnStepplayerHeroDied | inherited (STEPPLAYER) | `OnStepplayerHeroDied` | `0x140EB0` | OnHeroDied |
-| 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk93?`](../../../src/hand/func_00135FF0.c) | `0x135FF0` | VUnk93 |
+| 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`BENTLEY_VUnk93?`](../../../src/game/gameplay/player/bentley/func_00135FF0.c) | `0x135FF0` | VUnk93 |
 | 95 | SetStepplayerPlayerInteractMode | inherited (STEPPLAYER) | `SetStepplayerPlayerInteractMode` | `0x140678` | SetPlayerInteractMode |
 | 96 | GetStepplayerStunHold | inherited (STEPPLAYER) | `GetStepplayerStunHold` | `0x143220` | GetStunHold |
 | 97 | GetStepplayerCmFocusPos | inherited (STEPPLAYER) | `GetStepplayerCmFocusPos` | `0x141588` | GetCmFocusPos |
-| 98 | STEPPLAYER_VUnk97 | **override** | [`BENTLEY_VUnk97?`](../../../src/hand/func_00135E40.c) | `0x135E40` | VUnk97 |
-| 99 | FCanUseGadget__10STEPPLAYERi | **override** | [`BENTLEY_FCanUseGadget`](../../../src/hand/BENTLEY_FCanUseGadget.c) | `0x136870` | FCanUseGadget |
-| 100 | StartStepplayerGadget | **override** | [`StartBentleyGadget`](../../../src/hand/StartBentleyGadget.c) | `0x136A90` | StartGadget |
+| 98 | STEPPLAYER_VUnk97 | **override** | [`BENTLEY_VUnk97?`](../../../src/game/gameplay/player/bentley/func_00135E40.c) | `0x135E40` | VUnk97 |
+| 99 | FCanUseGadget__10STEPPLAYERi | **override** | [`BENTLEY_FCanUseGadget`](../../../src/game/gameplay/player/bentley/BENTLEY_FCanUseGadget.c) | `0x136870` | FCanUseGadget |
+| 100 | StartStepplayerGadget | **override** | [`StartBentleyGadget`](../../../src/game/gameplay/player/bentley/StartBentleyGadget.c) | `0x136A90` | StartGadget |
 | 101 | UpdateStepplayerGadget | inherited (STEPPLAYER) | `UpdateStepplayerGadget` | `0x141DD0` | VSlot101 |
 | 102 | StopStepplayerGadget | inherited (STEPPLAYER) | `StopStepplayerGadget` | `0x141E28` | VSlot102 |
-| 103 | JT_vt103 (pure in STEPPLAYER) | **override** | [`BENTLEY_PchzSaveVarRoot`](../../../src/auto/BENTLEY_PchzSaveVarRoot.c) | `0x136CB0` | VSlot103 |
+| 103 | JT_vt103 (pure in STEPPLAYER) | **override** | [`BENTLEY_PchzSaveVarRoot`](../../../src/game/gameplay/player/bentley/BENTLEY_PchzSaveVarRoot.c) | `0x136CB0` | VSlot103 |
 | 104 | STEPPLAYER_VUnk104 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk104?` | `0x141E30` | VSlot104 |
-| 105 | OnStepplayerGadgetsChanged | **override** | [`OnBentleyGadgetsChanged`](../../../src/auto/OnBentleyGadgetsChanged.c) | `0x136C50` | VSlot105 |
+| 105 | OnStepplayerGadgetsChanged | **override** | [`OnBentleyGadgetsChanged`](../../../src/game/gameplay/player/bentley/OnBentleyGadgetsChanged.c) | `0x136C50` | VSlot105 |
 
 ## Fields
 
-From `include/sly2/players.h` (`struct BENTLEY : STEPPLAYER`). BENTLEY: from src/hand/func_001E1E30.cpp (2 copies in Lilly ports)
+From `include/sly2/players.h` (`struct BENTLEY : STEPPLAYER`). BENTLEY: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (2 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 1 header asserts agree, 0 disagree. Size from header: 0x1880.
 

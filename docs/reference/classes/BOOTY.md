@@ -27,21 +27,21 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleBootyMessage`](../../../src/hand/HandleBootyMessage.c) | `0x13C1B8` |
+| 5 | HandleMessage | **override** | [`HandleBootyMessage`](../../../src/game/gameplay/progression/booty/HandleBootyMessage.c) | `0x13C1B8` |
 | 6 | Pclassinfo | **override** | [`GetBootyClassDesc`](../../../src/auto/GetBootyClassDesc.c) | `0x114080` |
-| 7 | Init | **override** | [`InitBooty`](../../../src/hand/InitBooty.c) | `0x13BDF0` |
+| 7 | Init | **override** | [`InitBooty`](../../../src/game/gameplay/progression/booty/InitBooty.c) | `0x13BDF0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadBootyFromBrx`](../../../src/hand/LoadBootyFromBrx.c) | `0x13BE58` |
-| 15 | PostLoad | **override** | [`PostBootyLoad`](../../../src/auto/PostBootyLoad.c) | `0x13BF00` |
-| 16 | Update | **override** | [`UpdateBooty`](../../../src/auto/UpdateBooty.c) | `0x13BF50` |
+| 14 | LoadFromBrx | **override** | [`LoadBootyFromBrx`](../../../src/game/gameplay/progression/booty/LoadBootyFromBrx.c) | `0x13BE58` |
+| 15 | PostLoad | **override** | [`PostBootyLoad`](../../../src/game/gameplay/progression/booty/PostBootyLoad.c) | `0x13BF00` |
+| 16 | Update | **override** | [`UpdateBooty`](../../../src/game/gameplay/progression/booty/UpdateBooty.c) | `0x13BF50` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderBootySelf`](../../../src/hand/RenderBootySelf.c) | `0x13C000` |
+| 19 | RenderSelf | **override** | [`RenderBootySelf`](../../../src/game/gameplay/progression/booty/RenderBootySelf.c) | `0x13C000` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
@@ -49,7 +49,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
 | 26 | ResetLoForProxy | inherited (SO) | `ResetSoForProxy?` | `0x1CB518` |
-| 27 | LO_VUnk27Proxy | **override** | [`BOOTY_VUnk26?`](../../../src/auto/func_0013BF30.c) | `0x13BF30` |
+| 27 | LO_VUnk27Proxy | **override** | [`BOOTY_VUnk26?`](../../../src/game/gameplay/progression/booty/func_0013BF30.c) | `0x13BF30` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
 | 30 | RotateToMat | inherited (SO) | `RotateSoToMat` | `0x1F42E0` |
@@ -77,13 +77,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |
 | 54 | SO_vt54_Nop | inherited (SO) | `SO_vt54_Nop?` | `0x1F5988` |
-| 55 | SO_vt55_Nop | **override** | [`AdjustBootyNewXp`](../../../src/hand/AdjustBootyNewXp.c) | `0x13C2D8` |
+| 55 | SO_vt55_Nop | **override** | [`AdjustBootyNewXp`](../../../src/game/gameplay/progression/booty/AdjustBootyNewXp.c) | `0x13C2D8` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
-| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreBootyIntersection`](../../../src/hand/FIgnoreBootyIntersection.c) | `0x13C278` |
+| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreBootyIntersection`](../../../src/game/gameplay/progression/booty/FIgnoreBootyIntersection.c) | `0x13C278` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |
@@ -97,7 +97,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`BOOTY_FTakeDamage?`](../../../src/auto/func_0013C368.c) | `0x13C368` |
+| 75 | FZprHasField44 | **override** | [`BOOTY_FTakeDamage?`](../../../src/game/gameplay/progression/booty/func_0013C368.c) | `0x13C368` |
 
 ## Fields
 

@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvguard`](../../../src/hand/NewBhvguard.cpp) `0x113060` |
 | Descriptor getter (slot 6) | `GetBhvguardClassDesc` `0x1143D0` |
 | vtable | `D_002D04A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvguard`](../../../src/hand/NewBhvguard.cpp) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvguard`](../../../src/hand/NewBhvguard.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV156`, proposed `BHVGUARD` (confidence 0.7), guard flag `-`. root guard brain: mode selector (patrol, search, alert, combat, script, damage, held/thrown, sleep, escort, target list, stalk, relocate)
@@ -31,13 +31,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvguardClassDesc`](../../../src/auto/GetBhvguardClassDesc.c) | `0x1143D0` |
-| 7 | Init | **override** | [`InitBhvguard`](../../../src/hand/InitBhvguard.c) | `0x1766D8` |
-| 8 | Start | **override** | [`StartBhvguard`](../../../src/hand/StartBhvguard.c) | `0x176708` |
+| 7 | Init | **override** | [`InitBhvguard`](../../../src/game/gameplay/ai/guardbhv/InitBhvguard.c) | `0x1766D8` |
+| 8 | Start | **override** | [`StartBhvguard`](../../../src/game/gameplay/ai/guardbhv/StartBhvguard.c) | `0x176708` |
 | 9 | Close | inherited (BHV) | `CloseBhv` | `0x1EEF78` |
-| 10 | Update | **override** | [`UpdateBhvguard`](../../../src/hand/UpdateBhvguard.cpp) | `0x177618` |
+| 10 | Update | **override** | [`UpdateBhvguard`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvguard.cpp) | `0x177618` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
-| 13 | FHandleMessage | **override** | [`BHVGUARD_FHandleMessage`](../../../src/hand/BHVGUARD_FHandleMessage.cpp) | `0x176BE8` |
+| 13 | FHandleMessage | **override** | [`BHVGUARD_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVGUARD_FHandleMessage.cpp) | `0x176BE8` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvpatrolpath`](../../../src/auto/NewBhvpatrolpath.c) `0x113888` |
 | Descriptor getter (slot 6) | `GetBhvpatrolpathClassDesc` `0x114610` |
 | vtable | `D_002CFDA0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpatrolpath`](../../../src/auto/NewBhvpatrolpath.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvpatrolpath`](../../../src/auto/NewBhvpatrolpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV192`, proposed `BHVPATROLPATH` (confidence 0.6), guard flag `0x2E`. walk along a path SHAPE via BHVGOTO goals
@@ -31,10 +31,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvpatrolpathClassDesc`](../../../src/auto/GetBhvpatrolpathClassDesc.c) | `0x114610` |
-| 7 | Init | **override** | [`InitBhvpatrolpath`](../../../src/auto/InitBhvpatrolpath.c) | `0x17EB48` |
-| 8 | Start | **override** | [`StartBhvpatrolpath`](../../../src/hand/StartBhvpatrolpath.c) | `0x17EB88` |
-| 9 | Close | **override** | [`CloseBhvpatrolpath`](../../../src/auto/CloseBhvpatrolpath.c) | `0x17EC80` |
-| 10 | Update | **override** | [`UpdateBhvpatrolpath`](../../../src/auto/UpdateBhvpatrolpath.c) | `0x17ECB0` |
+| 7 | Init | **override** | [`InitBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrolpath.c) | `0x17EB48` |
+| 8 | Start | **override** | [`StartBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrolpath.c) | `0x17EB88` |
+| 9 | Close | **override** | [`CloseBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrolpath.c) | `0x17EC80` |
+| 10 | Update | **override** | [`UpdateBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpatrolpath.c) | `0x17ECB0` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |

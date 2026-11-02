@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* EA: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* EA: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct EA
 {
       float tLocal;
@@ -28,7 +28,7 @@ struct EA
     };
 };
 
-/* ASEGSTART: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* ASEGSTART: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGSTART
 {
       float tLocal;
@@ -36,7 +36,7 @@ struct ASEGSTART
       GRFAPL grfapl;
 };
 
-/* ASEG: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* ASEG: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEG : public LO
 {
       DL dlAsega;
@@ -62,7 +62,7 @@ struct ASEG : public LO
 };
 typedef char assert_ASEG_size[sizeof(ASEG) == 0xC0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* ASEGBL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* ASEGBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGBL : public ASEG
 {
       int cbBl;
@@ -82,7 +82,7 @@ struct SND
       undefined4 unk_0x00[3];
 };
 
-/* SMA: from src/hand/RebuildJtXmg.cpp (3 copies in Lilly ports) */
+/* SMA: from src/game/gameplay/player/jt/RebuildJtXmg.cpp (3 copies in Lilly ports) */
 struct SMA : public BASIC
 {
       int cref;
@@ -102,7 +102,7 @@ struct SMA : public BASIC
 };
 typedef char assert_SMA_size[sizeof(SMA) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* ASEGA: from src/hand/RebuildJtXmg.cpp (6 copies in Lilly ports) */
+/* ASEGA: from src/game/gameplay/player/jt/RebuildJtXmg.cpp (6 copies in Lilly ports) */
 struct ASEGA : public BASIC
 {
       int cref;             /* +0x10 [S] reference count (ASEGA is refcounted) */

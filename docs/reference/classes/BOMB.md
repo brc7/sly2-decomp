@@ -28,9 +28,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleBombMessage`](../../../src/hand/HandleBombMessage.c) | `0x13AAE8` |
+| 5 | HandleMessage | **override** | [`HandleBombMessage`](../../../src/game/gameplay/objects/bomb/HandleBombMessage.c) | `0x13AAE8` |
 | 6 | Pclassinfo | **override** | [`GetBombClassDesc`](../../../src/auto/GetBombClassDesc.c) | `0x113F00` |
-| 7 | Init | **override** | [`InitBomb`](../../../src/hand/InitBomb.c) | `0x13A9E8` |
+| 7 | Init | **override** | [`InitBomb`](../../../src/game/gameplay/objects/bomb/InitBomb.c) | `0x13A9E8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -38,8 +38,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostBombLoad`](../../../src/hand/PostBombLoad.c) | `0x13AAA0` |
-| 16 | Update | **override** | [`UpdateBomb`](../../../src/hand/UpdateBomb.c) | `0x13AB58` |
+| 15 | PostLoad | **override** | [`PostBombLoad`](../../../src/game/gameplay/objects/bomb/PostBombLoad.c) | `0x13AAA0` |
+| 16 | Update | **override** | [`UpdateBomb`](../../../src/game/gameplay/objects/bomb/UpdateBomb.c) | `0x13AB58` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -49,7 +49,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 23 | OnAdd | inherited (SO) | `OnSoAdd` | `0x1F3EA8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`ResetBomb`](../../../src/hand/ResetBomb.c) | `0x13BB80` |
+| 26 | ResetLoForProxy | **override** | [`ResetBomb`](../../../src/game/gameplay/objects/bomb/ResetBomb.c) | `0x13BB80` |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
@@ -81,10 +81,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 55 | SO_vt55_Nop | inherited (SO) | `SO_vt55_Nop?` | `0x1F4FB0` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
-| 58 | ScheduleSoTouchEvents | **override** | [`BOMB_VUnk57?`](../../../src/hand/func_0013AEB0.c) | `0x13AEB0` |
+| 58 | ScheduleSoTouchEvents | **override** | [`BOMB_VUnk57?`](../../../src/game/gameplay/objects/bomb/func_0013AEB0.c) | `0x13AEB0` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
-| 60 | SO_vt60_Nop | **override** | [`AddBombCustomXps`](../../../src/hand/AddBombCustomXps.c) | `0x13ADE8` |
-| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreBombIntersection`](../../../src/auto/FIgnoreBombIntersection.c) | `0x13BBF8` |
+| 60 | SO_vt60_Nop | **override** | [`AddBombCustomXps`](../../../src/game/gameplay/objects/bomb/AddBombCustomXps.c) | `0x13ADE8` |
+| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreBombIntersection`](../../../src/game/gameplay/objects/bomb/FIgnoreBombIntersection.c) | `0x13BBF8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |
@@ -98,9 +98,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`FAbsorbBombWkr`](../../../src/hand/FAbsorbBombWkr.c) | `0x13B2F0` |
-| 76 | CloneBomb | **new** | [`CloneBomb?`](../../../src/auto/func_0013AA70.c) | `0x13AA70` |
-| 77 | ApplyBombThrow | **new** | [`ApplyBombThrow`](../../../src/hand/ApplyBombThrow.c) | `0x13B250` |
+| 75 | FZprHasField44 | **override** | [`FAbsorbBombWkr`](../../../src/game/gameplay/objects/bomb/FAbsorbBombWkr.c) | `0x13B2F0` |
+| 76 | CloneBomb | **new** | [`CloneBomb?`](../../../src/game/gameplay/objects/bomb/func_0013AA70.c) | `0x13AA70` |
+| 77 | ApplyBombThrow | **new** | [`ApplyBombThrow`](../../../src/game/gameplay/objects/bomb/ApplyBombThrow.c) | `0x13B250` |
 
 ## Fields
 

@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBarrierClassDesc`](../../../src/auto/GetBarrierClassDesc.c) | `0x113F70` |
-| 7 | Init | **override** | [`InitBarrier`](../../../src/hand/InitBarrier.c) | `0x1320C8` |
+| 7 | Init | **override** | [`InitBarrier`](../../../src/game/gameplay/objects/barrier/InitBarrier.c) | `0x1320C8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,7 +37,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostBarrierLoad`](../../../src/hand/PostBarrierLoad.c) | `0x132100` |
+| 15 | PostLoad | **override** | [`PostBarrierLoad`](../../../src/game/gameplay/objects/barrier/PostBarrierLoad.c) | `0x132100` |
 | 16 | Update | inherited (SO) | `UpdateSo` | `0x1F36E0` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
@@ -77,13 +77,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |
 | 54 | SO_vt54_Nop | inherited (SO) | `SO_vt54_Nop?` | `0x1F5988` |
-| 55 | SO_vt55_Nop | **override** | [`NotifyBarrierImpact`](../../../src/hand/NotifyBarrierImpact.c) | `0x132238` |
+| 55 | SO_vt55_Nop | **override** | [`NotifyBarrierImpact`](../../../src/game/gameplay/objects/barrier/NotifyBarrierImpact.c) | `0x132238` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
-| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreBarrierIntersection`](../../../src/hand/FIgnoreBarrierIntersection.c) | `0x132140` |
+| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreBarrierIntersection`](../../../src/game/gameplay/objects/barrier/FIgnoreBarrierIntersection.c) | `0x132140` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |

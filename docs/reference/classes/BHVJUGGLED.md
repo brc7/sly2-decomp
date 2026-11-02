@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvjuggled`](../../../src/auto/NewBhvjuggled.c) `0x113510` |
 | Descriptor getter (slot 6) | `GetBhvjuggledClassDesc` `0x114520` |
 | vtable | `D_002D03A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvjuggled`](../../../src/auto/NewBhvjuggled.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvjuggled`](../../../src/auto/NewBhvjuggled.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175, BHVJUGGLED (medium, 1 exclusive identical slots) — [hidden-types A2](../hidden-types.md#a2)
@@ -33,13 +33,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvjuggledClassDesc`](../../../src/auto/GetBhvjuggledClassDesc.c) | `0x114520` |
-| 7 | Init | **override** | [`InitBhvjuggled`](../../../src/auto/InitBhvjuggled.c) | `0x17A9D0` |
-| 8 | Start | **override** | [`StartBhvjuggled`](../../../src/hand/StartBhvjuggled.c) | `0x17AA08` |
-| 9 | Close | **override** | [`CloseBhvjuggled`](../../../src/auto/CloseBhvjuggled.c) | `0x17B178` |
-| 10 | Update | **override** | [`UpdateBhvjuggled`](../../../src/hand/UpdateBhvjuggled.c) | `0x17AC90` |
-| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/hand/UpdateBhvanimMotion.c) | `0x174F08` |
-| 12 | GrfGroundProbe | **override** | [`BHVJUGGLED_GrfGroundProbe`](../../../src/hand/BHVJUGGLED_GrfGroundProbe.c) | `0x17B578` |
-| 13 | FHandleMessage | **override** | [`BHVJUGGLED_FHandleMessage`](../../../src/hand/BHVJUGGLED_FHandleMessage.c) | `0x17AF30` |
+| 7 | Init | **override** | [`InitBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/InitBhvjuggled.c) | `0x17A9D0` |
+| 8 | Start | **override** | [`StartBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/StartBhvjuggled.c) | `0x17AA08` |
+| 9 | Close | **override** | [`CloseBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/CloseBhvjuggled.c) | `0x17B178` |
+| 10 | Update | **override** | [`UpdateBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvjuggled.c) | `0x17AC90` |
+| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) | `0x174F08` |
+| 12 | GrfGroundProbe | **override** | [`BHVJUGGLED_GrfGroundProbe`](../../../src/game/gameplay/ai/guardbhv/BHVJUGGLED_GrfGroundProbe.c) | `0x17B578` |
+| 13 | FHandleMessage | **override** | [`BHVJUGGLED_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVJUGGLED_FHandleMessage.c) | `0x17AF30` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

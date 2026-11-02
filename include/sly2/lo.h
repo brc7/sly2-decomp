@@ -13,7 +13,7 @@ struct LORUN
       LORUN *plorunNext;
 };
 
-/* LOROOT: from src/hand/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+/* LOROOT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct LOROOT
 {
       LO *plo;
@@ -21,7 +21,7 @@ struct LOROOT
       DLE dleBusy;
 };
 
-/* LO: from src/hand/SetJtModeState__FP6JTMODEi.cpp (27 copies in Lilly ports) */
+/* LO: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (27 copies in Lilly ports) */
 struct LO : public BASIC
 {
       SO *psoParent;

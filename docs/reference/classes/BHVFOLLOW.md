@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvfollow`](../../../src/auto/NewBhvfollow.c) `0x1138F8` |
 | Descriptor getter (slot 6) | `GetBhvfollowClassDesc` `0x114630` |
 | vtable | `D_002CC3C0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvfollow`](../../../src/auto/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvfollow`](../../../src/auto/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -29,10 +29,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvfollowClassDesc`](../../../src/auto/GetBhvfollowClassDesc.c) | `0x114630` |
-| 7 | Init | **override** | [`InitBhvfollow`](../../../src/hand/InitBhvfollow.c) | `0x145010` |
-| 8 | Start | **override** | [`StartBhvfollow`](../../../src/auto/StartBhvfollow.c) | `0x145080` |
-| 9 | Close | **override** | [`CloseBhvfollow`](../../../src/auto/CloseBhvfollow.c) | `0x1450B0` |
-| 10 | Update | **override** | [`UpdateBhvfollow`](../../../src/hand/UpdateBhvfollow.c) | `0x1453F0` |
+| 7 | Init | **override** | [`InitBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/InitBhvfollow.c) | `0x145010` |
+| 8 | Start | **override** | [`StartBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/StartBhvfollow.c) | `0x145080` |
+| 9 | Close | **override** | [`CloseBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/CloseBhvfollow.c) | `0x1450B0` |
+| 10 | Update | **override** | [`UpdateBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvfollow.c) | `0x1453F0` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |

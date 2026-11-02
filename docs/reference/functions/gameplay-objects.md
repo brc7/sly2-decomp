@@ -19,442 +19,442 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1320C8](../../../src/hand/InitBarrier.c) | `InitBarrier` | BARRIER vt7 Init: InitSo then set an SO flag bit (grf \|= 1<<34) | 0.85 | T1 | verified |
-| [0x132100](../../../src/hand/PostBarrierLoad.c) | `PostBarrierLoad` | BARRIER vt15 PostLoad: PostSoLoad, then if it has physics (+0xE8) register it with g_sw (0x134320, pairs with every other registered SO) | 0.70 | T1 |  |
-| [0x132140](../../../src/hand/FIgnoreBarrierIntersection.c) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
-| [0x132238](../../../src/hand/NotifyBarrierImpact.c) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
-| [0x132298](../../../src/hand/SendBarrierImpactMessages.c) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice impact event) | 0.60 | T1 | verified |
-| [0x1323C8](../../../src/hand/AddBarrierObject__FP7BARRIER3OID.cpp) | `AddBarrierObject__FP7BARRIER3OID` |  |  | existing |  |
-| [0x1323F0](../../../src/hand/AddBarrierClass__FP7BARRIER3CID.cpp) | `AddBarrierClass__FP7BARRIER3CID` |  |  | existing |  |
+| [0x1320C8](../../../src/game/gameplay/objects/barrier/InitBarrier.c) | `InitBarrier` | BARRIER vt7 Init: InitSo then set an SO flag bit (grf \|= 1<<34) | 0.85 | T1 | verified |
+| [0x132100](../../../src/game/gameplay/objects/barrier/PostBarrierLoad.c) | `PostBarrierLoad` | BARRIER vt15 PostLoad: PostSoLoad, then if it has physics (+0xE8) register it with g_sw (0x134320, pairs with every other registered SO) | 0.70 | T1 |  |
+| [0x132140](../../../src/game/gameplay/objects/barrier/FIgnoreBarrierIntersection.c) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
+| [0x132238](../../../src/game/gameplay/objects/barrier/NotifyBarrierImpact.c) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
+| [0x132298](../../../src/game/gameplay/objects/barrier/SendBarrierImpactMessages.c) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice impact event) | 0.60 | T1 | verified |
+| [0x1323C8](../../../src/game/gameplay/objects/barrier/AddBarrierObject__FP7BARRIER3OID.cpp) | `AddBarrierObject__FP7BARRIER3OID` |  |  | existing |  |
+| [0x1323F0](../../../src/game/gameplay/objects/barrier/AddBarrierClass__FP7BARRIER3CID.cpp) | `AddBarrierClass__FP7BARRIER3CID` |  |  | existing |  |
 
 ## bomb (0x13A9E8-0x13BDF0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13A9E8](../../../src/hand/InitBomb.c) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
-| [0x13AA70](../../../src/auto/func_0013AA70.c) | `CloneBomb` | BOMB vt76: SO Clone then reset owner to self (0x13BC60) | 0.45 | T2 |  |
-| [0x13AAA0](../../../src/hand/PostBombLoad.c) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
-| [0x13AAE8](../../../src/hand/HandleBombMessage.c) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
-| [0x13AB58](../../../src/hand/UpdateBomb.c) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
-| [0x13AC18](../../../src/hand/UpdateBombCustomXps.c) | `UpdateBombCustomXps` | Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100 | 0.70 | T1 |  |
-| [0x13ADE8](../../../src/hand/AddBombCustomXps.c) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
-| [0x13AEB0](../../../src/hand/func_0013AEB0.c) | `BOMB_VUnk57` | BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds 0/1/2) | 0.40 | T2 |  |
-| [0x13B1C8](../../../src/hand/func_0013B1C8.c) | `FBombChainHasNoExcludedClass` | 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1 | 0.30 | T2 |  |
-| [0x13B250](../../../src/hand/ApplyBombThrow.c) | `ApplyBombThrow` | BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event 0x1B | 0.70 | T1 |  |
-| [0x13B2F0](../../../src/hand/FAbsorbBombWkr.c) | `FAbsorbBombWkr` | BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal | 0.55 | T1 |  |
-| [0x13B428](../../../src/hand/PrepareBombDetonation.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
-| [0x13B5C8](../../../src/hand/PrimeBomb__FP4BOMBf.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
-| [0x13B5E8](../../../src/hand/func_0013B5E8.c) | `CollectBombVictims` | Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of sight, sorted/uniqued | 0.50 | T2 |  |
-| [0x13B7A0](../../../src/auto/func_0013B7A0.c) | `CompareBombVictims` | qsort comparator (pointer difference / element size) | 0.35 | T2 |  |
-| [0x13B7B8](../../../src/hand/func_0013B7B8.c) | `SortUniqueBombVictims` | qsort then remove duplicates in place | 0.45 | T2 |  |
-| [0x13B860](../../../src/hand/DetonateBomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
-| [0x13BB80](../../../src/hand/ResetBomb.c) | `ResetBomb` | BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent | 0.40 | T2 |  |
-| [0x13BBF8](../../../src/auto/FIgnoreBombIntersection.c) | `FIgnoreBombIntersection` | BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root | 0.60 | T1 |  |
-| [0x13BC60](../../../src/auto/func_0013BC60.c) | `SetBombOwner` | Set owner (+0x200) and RecalcSwOxfFilterForObject if changed | 0.50 | T2 |  |
+| [0x13A9E8](../../../src/game/gameplay/objects/bomb/InitBomb.c) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
+| [0x13AA70](../../../src/game/gameplay/objects/bomb/func_0013AA70.c) | `CloneBomb` | BOMB vt76: SO Clone then reset owner to self (0x13BC60) | 0.45 | T2 |  |
+| [0x13AAA0](../../../src/game/gameplay/objects/bomb/PostBombLoad.c) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
+| [0x13AAE8](../../../src/game/gameplay/objects/bomb/HandleBombMessage.c) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
+| [0x13AB58](../../../src/game/gameplay/objects/bomb/UpdateBomb.c) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
+| [0x13AC18](../../../src/game/gameplay/objects/bomb/UpdateBombCustomXps.c) | `UpdateBombCustomXps` | Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100 | 0.70 | T1 |  |
+| [0x13ADE8](../../../src/game/gameplay/objects/bomb/AddBombCustomXps.c) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
+| [0x13AEB0](../../../src/game/gameplay/objects/bomb/func_0013AEB0.c) | `BOMB_VUnk57` | BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds 0/1/2) | 0.40 | T2 |  |
+| [0x13B1C8](../../../src/game/gameplay/objects/bomb/func_0013B1C8.c) | `FBombChainHasNoExcludedClass` | 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1 | 0.30 | T2 |  |
+| [0x13B250](../../../src/game/gameplay/objects/bomb/ApplyBombThrow.c) | `ApplyBombThrow` | BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event 0x1B | 0.70 | T1 |  |
+| [0x13B2F0](../../../src/game/gameplay/objects/bomb/FAbsorbBombWkr.c) | `FAbsorbBombWkr` | BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal | 0.55 | T1 |  |
+| [0x13B428](../../../src/game/gameplay/objects/bomb/PrepareBombDetonation.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
+| [0x13B5C8](../../../src/game/gameplay/objects/bomb/PrimeBomb__FP4BOMBf.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
+| [0x13B5E8](../../../src/game/gameplay/objects/bomb/func_0013B5E8.c) | `CollectBombVictims` | Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of sight, sorted/uniqued | 0.50 | T2 |  |
+| [0x13B7A0](../../../src/game/gameplay/objects/bomb/func_0013B7A0.c) | `CompareBombVictims` | qsort comparator (pointer difference / element size) | 0.35 | T2 |  |
+| [0x13B7B8](../../../src/game/gameplay/objects/bomb/func_0013B7B8.c) | `SortUniqueBombVictims` | qsort then remove duplicates in place | 0.45 | T2 |  |
+| [0x13B860](../../../src/game/gameplay/objects/bomb/DetonateBomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
+| [0x13BB80](../../../src/game/gameplay/objects/bomb/ResetBomb.c) | `ResetBomb` | BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent | 0.40 | T2 |  |
+| [0x13BBF8](../../../src/game/gameplay/objects/bomb/FIgnoreBombIntersection.c) | `FIgnoreBombIntersection` | BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root | 0.60 | T1 |  |
+| [0x13BC60](../../../src/game/gameplay/objects/bomb/func_0013BC60.c) | `SetBombOwner` | Set owner (+0x200) and RecalcSwOxfFilterForObject if changed | 0.50 | T2 |  |
 
 ## button (0x148620-0x149A50)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x148620](../../../src/hand/FAddAshOid.c) | `FAddAshOid` | Append {oid, x} to an ASH list (max 8) | 0.60 | T1 |  |
-| [0x148668](../../../src/hand/PostAshLoad.c) | `PostAshLoad` | Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs | 0.60 | T1 |  |
-| [0x148718](../../../src/auto/InitBtn.c) | `InitBtn` | BTN defaults: state -1, rates 1.0 | 0.65 | T1 |  |
-| [0x148738](../../../src/auto/LoadBtn.c) | `LoadBtn` | BTN owner = palo | 0.55 | T1 |  |
-| [0x148740](../../../src/hand/PostBtnLoad.c) | `PostBtnLoad` | PostAshLoad for the on and off ASH lists | 0.65 | T1 |  |
-| [0x1487A0](../../../src/hand/TriggerBtn.c) | `TriggerBtn` | Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers | 0.70 | T1 |  |
-| [0x148860](../../../src/hand/UntriggerBtn.c) | `UntriggerBtn` | Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1)) | 0.70 | T1 |  |
-| [0x1488D8](../../../src/hand/RunBtnAsegs.c) | `RunBtnAsegs` | Apply/seek every aseg in ASH list i on its object | 0.65 | T1 |  |
-| [0x148A78](../../../src/hand/SetBtnButtons.c) | `SetBtnButtons` | BTN state change; 0->1 triggers, any->0 untriggers; stamps time | 0.65 | T1 |  |
-| [0x148AF8](../../../src/auto/AddBtnAseg.c) | `AddBtnAseg` | FAddAshOid on the 'on' list (+4) | 0.65 | T1 |  |
-| [0x148B18](../../../src/auto/AddBtnOffAseg.c) | `AddBtnOffAseg` | FAddAshOid on the 'off' list (+0x48) | 0.65 | T1 |  |
-| [0x148B38](../../../src/hand/SetBtnRsmg.c) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
-| [0x148B78](../../../src/hand/func_00148B78.c) | `AddBtnEventListener` | Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30 | 0.30 | T2 |  |
-| [0x148BB0](../../../src/hand/InitButton.c) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
-| [0x148C08](../../../src/auto/LoadButtonFromBrx.c) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
-| [0x148C38](../../../src/auto/PostButtonLoad.c) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
-| [0x148C70](../../../src/auto/CloneButton.c) | `CloneButton` | vt41: SO Clone then btn owner = self | 0.65 | T1 |  |
-| [0x148C98](../../../src/hand/UpdateButton.c) | `UpdateButton` | vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.) | 0.70 | T1 |  |
-| [0x148F20](../../../src/hand/FAbsorbButtonWkr.c) | `FAbsorbButtonWkr` | vt75: zap/hit by an allowed object presses the button (by btnt mode) | 0.60 | T1 |  |
-| [0x149010](../../../src/auto/func_00149010.c) | `UpdateButtonPlayerPush` | if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button | 0.30 | T2 |  |
-| [0x1490A0](../../../src/auto/SetButtonButtons.c) | `SetButtonButtons` | SetBtnButtons(+0x150, n) | 0.70 | T1 |  |
-| [0x1490C0](../../../src/auto/TriggerButton.c) | `TriggerButton` | TriggerBtn(+0x150) | 0.60 | T1 |  |
-| [0x1490E0](../../../src/auto/UntriggerButton.c) | `UntriggerButton` | UntriggerBtn(+0x150) | 0.60 | T1 |  |
-| [0x149100](../../../src/hand/FCheckButtonObject.c) | `FCheckButtonObject` | Is the object allowed to push (push oid/cid lists vs no-push lists) | 0.65 | T1 |  |
-| [0x1491E0](../../../src/auto/AddButtonAseg.c) | `AddButtonAseg` | AddBtnAseg(+0x150, oid) | 0.65 | T1 |  |
-| [0x149200](../../../src/auto/AddButtonOffAseg.c) | `AddButtonOffAseg` | AddBtnOffAseg(+0x150, oid) | 0.65 | T1 |  |
-| [0x149220](../../../src/hand/AddButtonPushObject.c) | `AddButtonPushObject` | append oid to push list (max 8) | 0.55 | T1 |  |
-| [0x149248](../../../src/hand/func_00149248.c) | `AddButtonPushClass` | append to second list (max 8) | 0.45 | T2 |  |
-| [0x149270](../../../src/auto/SetButtonRsmg.c) | `SetButtonRsmg` | SetBtnRsmg(+0x150,...) | 0.75 | T1 |  |
-| [0x149290](../../../src/auto/func_00149290.c) | `AddButtonEventListener` | 0x148B78 on +0x150 | 0.30 | T2 |  |
-| [0x1492B0](../../../src/hand/func_001492B0.c) | `RemoveButtonHierarchy` | cid 0x53 vt12: base RemoveSoHierarchy; if pressed, reset buttons to 0 | 0.45 | T2 |  |
-| [0x1492F0](../../../src/hand/InitVolbtn.c) | `InitVolbtn` | cid 0x18/0x19 vt7: base init, InitBtn | 0.75 | T1 |  |
-| [0x149358](../../../src/hand/LoadVolbtnFromBrx.c) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
-| [0x149398](../../../src/hand/PostVolbtnLoad.c) | `PostVolbtnLoad` | vt15: base, PostBtnLoad | 0.70 | T1 |  |
-| [0x1493F8](../../../src/auto/CloneVolbtn.c) | `CloneVolbtn` | vt41 | 0.60 | T1 |  |
-| [0x149420](../../../src/auto/func_00149420.c) | `CompareVolbtnObjects` | qsort comparator (difference / 0x14) | 0.30 | T2 |  |
-| [0x149440](../../../src/hand/UpdateVolbtn.c) | `UpdateVolbtn` | vt16: volume button - objects inside the volume trigger/untrigger | 0.70 | T1 |  |
-| [0x149718](../../../src/auto/SetVolbtnButtons.c) | `SetVolbtnButtons` | SetBtnButtons on the volbtn's BTN | 0.65 | T1 |  |
-| [0x149738](../../../src/auto/TriggerVolbtn.c) | `TriggerVolbtn` | TriggerBtn | 0.55 | T1 |  |
-| [0x149758](../../../src/auto/UntriggerVolbtn.c) | `UntriggerVolbtn` | UntriggerBtn | 0.55 | T1 |  |
-| [0x149778](../../../src/auto/AddVolbtnAseg.c) | `AddVolbtnAseg` | AddBtnAseg | 0.65 | T1 |  |
-| [0x149798](../../../src/auto/AddVolbtnOffAseg.c) | `AddVolbtnOffAseg` | AddBtnOffAseg | 0.65 | T1 |  |
-| [0x1497B8](../../../src/hand/AddVolbtnPushObject.c) | `AddVolbtnPushObject` | append to push list (max 8) | 0.55 | T1 |  |
-| [0x1497E0](../../../src/hand/func_001497E0.c) | `AddVolbtnList4` | append to a 4-entry list | 0.30 | T2 |  |
-| [0x149808](../../../src/auto/SetVolbtnRsmg.c) | `SetVolbtnRsmg` | SetBtnRsmg | 0.75 | T1 |  |
-| [0x149828](../../../src/auto/func_00149828.c) | `AddVolbtnEventListener` | 0x148B78 | 0.30 | T2 |  |
-| [0x149848](../../../src/auto/func_00149848.c) | `RefGetVolbtnPushState` | build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002) | 0.30 | T2 |  |
-| [0x149880](../../../src/hand/func_00149880.c) | `RemoveVolbtnHierarchy` | vt12: base, untrigger if pressed | 0.45 | T2 |  |
+| [0x148620](../../../src/game/gameplay/objects/button/FAddAshOid.c) | `FAddAshOid` | Append {oid, x} to an ASH list (max 8) | 0.60 | T1 |  |
+| [0x148668](../../../src/game/gameplay/objects/button/PostAshLoad.c) | `PostAshLoad` | Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs | 0.60 | T1 |  |
+| [0x148718](../../../src/game/gameplay/objects/button/InitBtn.c) | `InitBtn` | BTN defaults: state -1, rates 1.0 | 0.65 | T1 |  |
+| [0x148738](../../../src/game/gameplay/objects/button/LoadBtn.c) | `LoadBtn` | BTN owner = palo | 0.55 | T1 |  |
+| [0x148740](../../../src/game/gameplay/objects/button/PostBtnLoad.c) | `PostBtnLoad` | PostAshLoad for the on and off ASH lists | 0.65 | T1 |  |
+| [0x1487A0](../../../src/game/gameplay/objects/button/TriggerBtn.c) | `TriggerBtn` | Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers | 0.70 | T1 |  |
+| [0x148860](../../../src/game/gameplay/objects/button/UntriggerBtn.c) | `UntriggerBtn` | Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1)) | 0.70 | T1 |  |
+| [0x1488D8](../../../src/game/gameplay/objects/button/RunBtnAsegs.c) | `RunBtnAsegs` | Apply/seek every aseg in ASH list i on its object | 0.65 | T1 |  |
+| [0x148A78](../../../src/game/gameplay/objects/button/SetBtnButtons.c) | `SetBtnButtons` | BTN state change; 0->1 triggers, any->0 untriggers; stamps time | 0.65 | T1 |  |
+| [0x148AF8](../../../src/game/gameplay/objects/button/AddBtnAseg.c) | `AddBtnAseg` | FAddAshOid on the 'on' list (+4) | 0.65 | T1 |  |
+| [0x148B18](../../../src/game/gameplay/objects/button/AddBtnOffAseg.c) | `AddBtnOffAseg` | FAddAshOid on the 'off' list (+0x48) | 0.65 | T1 |  |
+| [0x148B38](../../../src/game/gameplay/objects/button/SetBtnRsmg.c) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
+| [0x148B78](../../../src/game/gameplay/objects/button/func_00148B78.c) | `AddBtnEventListener` | Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30 | 0.30 | T2 |  |
+| [0x148BB0](../../../src/game/gameplay/objects/button/InitButton.c) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
+| [0x148C08](../../../src/game/gameplay/objects/button/LoadButtonFromBrx.c) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
+| [0x148C38](../../../src/game/gameplay/objects/button/PostButtonLoad.c) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
+| [0x148C70](../../../src/game/gameplay/objects/button/CloneButton.c) | `CloneButton` | vt41: SO Clone then btn owner = self | 0.65 | T1 |  |
+| [0x148C98](../../../src/game/gameplay/objects/button/UpdateButton.c) | `UpdateButton` | vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.) | 0.70 | T1 |  |
+| [0x148F20](../../../src/game/gameplay/objects/button/FAbsorbButtonWkr.c) | `FAbsorbButtonWkr` | vt75: zap/hit by an allowed object presses the button (by btnt mode) | 0.60 | T1 |  |
+| [0x149010](../../../src/game/gameplay/objects/button/func_00149010.c) | `UpdateButtonPlayerPush` | if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button | 0.30 | T2 |  |
+| [0x1490A0](../../../src/game/gameplay/objects/button/SetButtonButtons.c) | `SetButtonButtons` | SetBtnButtons(+0x150, n) | 0.70 | T1 |  |
+| [0x1490C0](../../../src/game/gameplay/objects/button/TriggerButton.c) | `TriggerButton` | TriggerBtn(+0x150) | 0.60 | T1 |  |
+| [0x1490E0](../../../src/game/gameplay/objects/button/UntriggerButton.c) | `UntriggerButton` | UntriggerBtn(+0x150) | 0.60 | T1 |  |
+| [0x149100](../../../src/game/gameplay/objects/button/FCheckButtonObject.c) | `FCheckButtonObject` | Is the object allowed to push (push oid/cid lists vs no-push lists) | 0.65 | T1 |  |
+| [0x1491E0](../../../src/game/gameplay/objects/button/AddButtonAseg.c) | `AddButtonAseg` | AddBtnAseg(+0x150, oid) | 0.65 | T1 |  |
+| [0x149200](../../../src/game/gameplay/objects/button/AddButtonOffAseg.c) | `AddButtonOffAseg` | AddBtnOffAseg(+0x150, oid) | 0.65 | T1 |  |
+| [0x149220](../../../src/game/gameplay/objects/button/AddButtonPushObject.c) | `AddButtonPushObject` | append oid to push list (max 8) | 0.55 | T1 |  |
+| [0x149248](../../../src/game/gameplay/objects/button/func_00149248.c) | `AddButtonPushClass` | append to second list (max 8) | 0.45 | T2 |  |
+| [0x149270](../../../src/game/gameplay/objects/button/SetButtonRsmg.c) | `SetButtonRsmg` | SetBtnRsmg(+0x150,...) | 0.75 | T1 |  |
+| [0x149290](../../../src/game/gameplay/objects/button/func_00149290.c) | `AddButtonEventListener` | 0x148B78 on +0x150 | 0.30 | T2 |  |
+| [0x1492B0](../../../src/game/gameplay/objects/button/func_001492B0.c) | `RemoveButtonHierarchy` | cid 0x53 vt12: base RemoveSoHierarchy; if pressed, reset buttons to 0 | 0.45 | T2 |  |
+| [0x1492F0](../../../src/game/gameplay/objects/button/InitVolbtn.c) | `InitVolbtn` | cid 0x18/0x19 vt7: base init, InitBtn | 0.75 | T1 |  |
+| [0x149358](../../../src/game/gameplay/objects/button/LoadVolbtnFromBrx.c) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
+| [0x149398](../../../src/game/gameplay/objects/button/PostVolbtnLoad.c) | `PostVolbtnLoad` | vt15: base, PostBtnLoad | 0.70 | T1 |  |
+| [0x1493F8](../../../src/game/gameplay/objects/button/CloneVolbtn.c) | `CloneVolbtn` | vt41 | 0.60 | T1 |  |
+| [0x149420](../../../src/game/gameplay/objects/button/func_00149420.c) | `CompareVolbtnObjects` | qsort comparator (difference / 0x14) | 0.30 | T2 |  |
+| [0x149440](../../../src/game/gameplay/objects/button/UpdateVolbtn.c) | `UpdateVolbtn` | vt16: volume button - objects inside the volume trigger/untrigger | 0.70 | T1 |  |
+| [0x149718](../../../src/game/gameplay/objects/button/SetVolbtnButtons.c) | `SetVolbtnButtons` | SetBtnButtons on the volbtn's BTN | 0.65 | T1 |  |
+| [0x149738](../../../src/game/gameplay/objects/button/TriggerVolbtn.c) | `TriggerVolbtn` | TriggerBtn | 0.55 | T1 |  |
+| [0x149758](../../../src/game/gameplay/objects/button/UntriggerVolbtn.c) | `UntriggerVolbtn` | UntriggerBtn | 0.55 | T1 |  |
+| [0x149778](../../../src/game/gameplay/objects/button/AddVolbtnAseg.c) | `AddVolbtnAseg` | AddBtnAseg | 0.65 | T1 |  |
+| [0x149798](../../../src/game/gameplay/objects/button/AddVolbtnOffAseg.c) | `AddVolbtnOffAseg` | AddBtnOffAseg | 0.65 | T1 |  |
+| [0x1497B8](../../../src/game/gameplay/objects/button/AddVolbtnPushObject.c) | `AddVolbtnPushObject` | append to push list (max 8) | 0.55 | T1 |  |
+| [0x1497E0](../../../src/game/gameplay/objects/button/func_001497E0.c) | `AddVolbtnList4` | append to a 4-entry list | 0.30 | T2 |  |
+| [0x149808](../../../src/game/gameplay/objects/button/SetVolbtnRsmg.c) | `SetVolbtnRsmg` | SetBtnRsmg | 0.75 | T1 |  |
+| [0x149828](../../../src/game/gameplay/objects/button/func_00149828.c) | `AddVolbtnEventListener` | 0x148B78 | 0.30 | T2 |  |
+| [0x149848](../../../src/game/gameplay/objects/button/func_00149848.c) | `RefGetVolbtnPushState` | build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002) | 0.30 | T2 |  |
+| [0x149880](../../../src/game/gameplay/objects/button/func_00149880.c) | `RemoveVolbtnHierarchy` | vt12: base, untrigger if pressed | 0.45 | T2 |  |
 
 ## rhythm (0x1520C8-0x1539A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1520C8](../../../src/auto/func_001520C8.c) | `RemoveHierarchyDancer` | cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)) | 0.35 | T2 |  |
-| [0x152100](../../../src/hand/func_00152100.c) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
-| [0x152148](../../../src/hand/func_00152148.c) | `UpdateDancer` | cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg | 0.45 | T2 |  |
-| [0x152250](../../../src/hand/func_00152250.c) | `HandleDancerMessage` | cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived velocity via vt35 | 0.40 | T2 |  |
-| [0x152350](../../../src/auto/GetDancerCpdefi.c) | `GetDancerCpdefi` | cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees) | 0.70 | T1 |  |
-| [0x152390](../../../src/hand/func_00152390.c) | `PlayDancerMove` | Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally rebind result, stop asegs (0x2303A0 x2) and apply entry's aseg j | 0.35 | T2 |  |
-| [0x1524A0](../../../src/hand/ApplyDancerAseg.c) | `ApplyDancerAseg` | ApplyAsegCur(paseg, this, 0, 1, grf\|1, &this->pasega408) | 0.60 | T1 |  |
-| [0x1524D8](../../../src/hand/AddDancerMove.c) | `AddDancerMove` | Append move entry {a,b,c,d,e} (max 8) at +0x2C4 | 0.50 | T1 |  |
-| [0x152520](../../../src/auto/func_00152520.c) | `PloFindDancerMoveObject` | PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9 | 0.30 | T2 |  |
-| [0x152578](../../../src/hand/func_00152578.c) | `BindDancerMoves` | Resolve every move entry's 3 oids to objects via 0x152520 | 0.45 | T2 |  |
-| [0x152628](../../../src/hand/func_00152628.c) | `IGradeFromOid` | Map oid 0x626/0x627/0x628 -> 0/1/2 (else -1) | 0.40 | T2 |  |
-| [0x152680](../../../src/hand/func_00152680.c) | `OidFromIGrade` | Map 0/1/2 -> oid 0x626/0x627/0x628 | 0.40 | T2 |  |
-| [0x1526D8](../../../src/hand/InitRhythmMgr.c) | `InitRhythmMgr` | cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows 0.4/0.4, 8-sample average, grade thresholds | 0.50 | T1 |  |
-| [0x1527C8](../../../src/hand/func_001527C8.c) | `PostLoadRhythmMgr` | cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with 0x149A50 | 0.40 | T2 |  |
-| [0x152810](../../../src/hand/func_00152810.c) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
-| [0x152970](../../../src/hand/UpdateRhythmMgr.c) | `UpdateRhythmMgr` | cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades | 0.50 | T1 |  |
-| [0x152B58](../../../src/hand/func_00152B58.c) | `UpdateRhythmMgrGrades` | Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score | 0.40 | T2 |  |
-| [0x152C58](../../../src/hand/DrawRhythmMgr.cpp) | `DrawRhythmMgr` | Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions, highlights the expected one, animates a hint marker | 0.50 | T1 |  |
-| [0x153128](../../../src/auto/SetRhythmMgrState.c) | `SetRhythmMgrState` | Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 = Decrement; stamps time, resets cue index | 0.55 | T1 |  |
-| [0x1531A8](../../../src/hand/func_001531A8.c) | `SetRhythmMgrPrompts` | Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at y=468.8; then SetRhythmMgrState(q) | 0.40 | T2 |  |
-| [0x1532D8](../../../src/hand/func_001532D8.c) | `PushRhythmMgrCue` | Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0 | 0.35 | T2 |  |
-| [0x1533B0](../../../src/hand/func_001533B0.c) | `JudgeRhythmPress` | Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C | 0.40 | T2 |  |
-| [0x1535A0](../../../src/hand/GRhythmTimingScore.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
-| [0x153640](../../../src/hand/AddRhythmScore.c) | `AddRhythmScore` | Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute average (+0x284); post msg 0x36 | 0.50 | T1 |  |
-| [0x153760](../../../src/hand/GAverageRhythmScore.c) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
-| [0x153800](../../../src/hand/ResetRhythmScore.c) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
-| [0x153810](../../../src/auto/func_00153810.c) | `AddRhythmMgrGrade` | Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8 | 0.40 | T2 |  |
+| [0x1520C8](../../../src/game/gameplay/objects/rhythm/func_001520C8.c) | `RemoveHierarchyDancer` | cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)) | 0.35 | T2 |  |
+| [0x152100](../../../src/game/gameplay/objects/rhythm/func_00152100.c) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
+| [0x152148](../../../src/game/gameplay/objects/rhythm/func_00152148.c) | `UpdateDancer` | cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg | 0.45 | T2 |  |
+| [0x152250](../../../src/game/gameplay/objects/rhythm/func_00152250.c) | `HandleDancerMessage` | cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived velocity via vt35 | 0.40 | T2 |  |
+| [0x152350](../../../src/game/gameplay/objects/rhythm/GetDancerCpdefi.c) | `GetDancerCpdefi` | cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees) | 0.70 | T1 |  |
+| [0x152390](../../../src/game/gameplay/objects/rhythm/func_00152390.c) | `PlayDancerMove` | Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally rebind result, stop asegs (0x2303A0 x2) and apply entry's aseg j | 0.35 | T2 |  |
+| [0x1524A0](../../../src/game/gameplay/objects/rhythm/ApplyDancerAseg.c) | `ApplyDancerAseg` | ApplyAsegCur(paseg, this, 0, 1, grf\|1, &this->pasega408) | 0.60 | T1 |  |
+| [0x1524D8](../../../src/game/gameplay/objects/rhythm/AddDancerMove.c) | `AddDancerMove` | Append move entry {a,b,c,d,e} (max 8) at +0x2C4 | 0.50 | T1 |  |
+| [0x152520](../../../src/game/gameplay/objects/rhythm/func_00152520.c) | `PloFindDancerMoveObject` | PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9 | 0.30 | T2 |  |
+| [0x152578](../../../src/game/gameplay/objects/rhythm/func_00152578.c) | `BindDancerMoves` | Resolve every move entry's 3 oids to objects via 0x152520 | 0.45 | T2 |  |
+| [0x152628](../../../src/game/gameplay/objects/rhythm/func_00152628.c) | `IGradeFromOid` | Map oid 0x626/0x627/0x628 -> 0/1/2 (else -1) | 0.40 | T2 |  |
+| [0x152680](../../../src/game/gameplay/objects/rhythm/func_00152680.c) | `OidFromIGrade` | Map 0/1/2 -> oid 0x626/0x627/0x628 | 0.40 | T2 |  |
+| [0x1526D8](../../../src/game/gameplay/objects/rhythm/InitRhythmMgr.c) | `InitRhythmMgr` | cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows 0.4/0.4, 8-sample average, grade thresholds | 0.50 | T1 |  |
+| [0x1527C8](../../../src/game/gameplay/objects/rhythm/func_001527C8.c) | `PostLoadRhythmMgr` | cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with 0x149A50 | 0.40 | T2 |  |
+| [0x152810](../../../src/game/gameplay/objects/rhythm/func_00152810.c) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
+| [0x152970](../../../src/game/gameplay/objects/rhythm/UpdateRhythmMgr.c) | `UpdateRhythmMgr` | cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades | 0.50 | T1 |  |
+| [0x152B58](../../../src/game/gameplay/objects/rhythm/func_00152B58.c) | `UpdateRhythmMgrGrades` | Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score | 0.40 | T2 |  |
+| [0x152C58](../../../src/game/gameplay/objects/rhythm/DrawRhythmMgr.cpp) | `DrawRhythmMgr` | Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions, highlights the expected one, animates a hint marker | 0.50 | T1 |  |
+| [0x153128](../../../src/game/gameplay/objects/rhythm/SetRhythmMgrState.c) | `SetRhythmMgrState` | Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 = Decrement; stamps time, resets cue index | 0.55 | T1 |  |
+| [0x1531A8](../../../src/game/gameplay/objects/rhythm/func_001531A8.c) | `SetRhythmMgrPrompts` | Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at y=468.8; then SetRhythmMgrState(q) | 0.40 | T2 |  |
+| [0x1532D8](../../../src/game/gameplay/objects/rhythm/func_001532D8.c) | `PushRhythmMgrCue` | Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0 | 0.35 | T2 |  |
+| [0x1533B0](../../../src/game/gameplay/objects/rhythm/func_001533B0.c) | `JudgeRhythmPress` | Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C | 0.40 | T2 |  |
+| [0x1535A0](../../../src/game/gameplay/objects/rhythm/GRhythmTimingScore.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
+| [0x153640](../../../src/game/gameplay/objects/rhythm/AddRhythmScore.c) | `AddRhythmScore` | Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute average (+0x284); post msg 0x36 | 0.50 | T1 |  |
+| [0x153760](../../../src/game/gameplay/objects/rhythm/GAverageRhythmScore.c) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
+| [0x153800](../../../src/game/gameplay/objects/rhythm/ResetRhythmScore.c) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
+| [0x153810](../../../src/game/gameplay/objects/rhythm/func_00153810.c) | `AddRhythmMgrGrade` | Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8 | 0.40 | T2 |  |
 
 ## tu_153B08 (0x153B08-0x153D58)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x153B08](../../../src/hand/func_00153B08.c) | `LoadCid122FromBrx` | Reads the base LO then a u8-counted table of {string (symbol table D_002DD590), s16, s32...} records | 0.70 | T2 | parse-code |
+| [0x153B08](../../../src/game/gameplay/objects/tu_153B08/func_00153B08.c) | `LoadCid122FromBrx` | Reads the base LO then a u8-counted table of {string (symbol table D_002DD590), s16, s32...} records | 0.70 | T2 | parse-code |
 
 ## tu_15DC80 (0x15DC80-0x15E380)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x15DC80](../../../src/hand/func_0015DC80.c) | `InitCid116` | LO::Init, register for update, flags 0xA | 0.75 | T2 |  |
-| [0x15DCD8](../../../src/auto/func_0015DCD8.c) | `UpdateCid116` | LO::Update; when clock time - t68 exceeds the sum of three durations (5C+60+64) calls vtable slot (+0x48/0x4C) to expire itself | 0.65 | T2 |  |
-| [0x15DD48](../../../src/hand/func_0015DD48.cpp) | `RenderCid116Self` | Draws the timed object (1168-byte body) | 0.60 | T2 |  |
+| [0x15DC80](../../../src/game/gameplay/objects/tu_15DC80/func_0015DC80.c) | `InitCid116` | LO::Init, register for update, flags 0xA | 0.75 | T2 |  |
+| [0x15DCD8](../../../src/game/gameplay/objects/tu_15DC80/func_0015DCD8.c) | `UpdateCid116` | LO::Update; when clock time - t68 exceeds the sum of three durations (5C+60+64) calls vtable slot (+0x48/0x4C) to expire itself | 0.65 | T2 |  |
+| [0x15DD48](../../../src/game/gameplay/objects/tu_15DC80/func_0015DD48.cpp) | `RenderCid116Self` | Draws the timed object (1168-byte body) | 0.60 | T2 |  |
 
 ## tu_17F090 (0x17F090-0x182C70)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x17F090](../../../src/hand/func_0017F090.c) | `InitCid71` | CID 0x47 vt7: InitSo, max health x180=10, two default vectors, grf | 0.60 | T2 |  |
-| [0x17F110](../../../src/auto/func_0017F110.c) | `RemoveCid71Hierarchy` | vt12: RemoveSoHierarchy then clear dying flag x18C | 0.55 | T2 |  |
-| [0x17F138](../../../src/hand/func_0017F138.c) | `PostCid71Load` | vt15: PostSoLoad then own vt83 | 0.55 | T2 |  |
-| [0x17F170](../../../src/auto/func_0017F170.c) | `CID71_vt26` | vt26: SO base then health x184 = max x180 (reset) | 0.35 | T2 |  |
-| [0x17F1A0](../../../src/auto/func_0017F1A0.c) | `AdjustCid71Xp` | vt55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust) | 0.30 | T2 |  |
-| [0x17F1D0](../../../src/hand/func_0017F1D0.c) | `CID71_TakeDamage` | vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain, limited) through constraint and SetVelocity | 0.55 | T2 |  |
-| [0x17F3E0](../../../src/hand/func_0017F3E0.c) | `InitCid47Entries` | Set n=-1 on c entries | 0.40 | T2 |  |
-| [0x17F408](../../../src/auto/func_0017F408.c) | `BindCid47Entries` | Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D | 0.35 | T2 |  |
-| [0x17F4C0](../../../src/hand/func_0017F4C0.c) | `StartCid47Anim` | Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state | 0.40 | T2 |  |
-| [0x17F550](../../../src/hand/func_0017F550.c) | `FCid47AnimDone` | True when the current ASEGA retracted or the SM reached its end state | 0.40 | T2 |  |
-| [0x17F5B0](../../../src/hand/func_0017F5B0.c) | `StartCid47Dying` | Once: set dying flag x18C and PostSwCallback(D_002A5630, n) | 0.40 | T2 |  |
-| [0x17F5F8](../../../src/hand/func_0017F5F8.c) | `CID71_Die` | vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190, then vt9 Remove | 0.50 | T2 |  |
-| [0x17F6B0](../../../src/hand/func_0017F6B0.c) | `ResetCid71` | Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638) | 0.40 | T2 | verified |
-| [0x17F6F8](../../../src/auto/InitHackship.c) | `InitHackship` | CID 0x48 vt7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1 | 0.55 | T1 | whole-game |
-| [0x17F740](../../../src/auto/func_0017F740.c) | `RemoveHackshipHierarchy` | vt12: base then state change via SetCid48State | 0.40 | T2 | whole-game |
-| [0x17F770](../../../src/hand/func_0017F770.c) | `BindHackshipParts` | Look up child XFs / objects for entries and create vector actuators | 0.30 | T2 | whole-game |
-| [0x17F850](../../../src/hand/func_0017F850.c) | `PostHackshipLoad` | vt15: PostCid47Load, bind entries and parts | 0.45 | T2 | whole-game |
-| [0x17F8C8](../../../src/hand/func_0017F8C8.c) | `OnHackshipActive` | vt78: base then SetCid48State | 0.35 | T2 | whole-game |
-| [0x17F930](../../../src/hand/func_0017F930.c) | `UpdateHackship` | vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals | 0.45 | T2 | whole-game |
-| [0x17FB50](../../../src/hand/func_0017FB50.cpp) | `PresetHackshipAccel` | vt70 override | 0.35 | T2 | whole-game |
-| [0x17FBE8](../../../src/hand/HACKSHIP_TakeDamage.c) | `HACKSHIP_TakeDamage` | vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and state 2 (hit) or 4 (defeated) | 0.50 | T1 | whole-game |
-| [0x17FCB0](../../../src/auto/func_0017FCB0.c) | `ResetHackship` | Reset health and state (ResetCid47 + SetCid48State + health bar) | 0.30 | T2 | whole-game |
-| [0x17FD08](../../../src/hand/func_0017FD08.cpp) | `SetHackshipState` | State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5 | 0.45 | T2 | whole-game |
-| [0x1800A0](../../../src/auto/UseStepguardDeathAnimation__FP9STEPGUARDi3OID.c) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
-| [0x1800D8](../../../src/hand/func_001800D8.c) | `SetHackshipEntry` | Set entry i (<5) fields a,d | 0.35 | T2 | whole-game |
-| [0x180100](../../../src/hand/UpdateHackshipHealthBar.c) | `UpdateHackshipHealthBar` | Set widget anim 0x34F phase = 1 - health/max (clamped) | 0.50 | T1 | whole-game |
-| [0x180188](../../../src/hand/func_00180188.c) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |
-| [0x1801B8](../../../src/hand/func_001801B8.cpp) | `UpdateHackbullet` | vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn rate | 0.40 | T2 | whole-game |
-| [0x1803A8](../../../src/hand/func_001803A8.c) | `HACKBULLET_FIgnoreIntersection` | vt61 override | 0.30 | T2 | whole-game |
-| [0x1803E0](../../../src/hand/func_001803E0.c) | `AdjustHackbulletXp` | vt55: CID47::AdjustXp then start dying on contact | 0.30 | T2 | whole-game |
-| [0x180478](../../../src/hand/func_00180478.c) | `SetHackbulletMode` | Set mode field and recalc object filters (RecalcSwOxfFilterForObject) | 0.30 | T2 | whole-game |
-| [0x180500](../../../src/hand/InitHackenemy.c) | `InitHackenemy` | CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries | 0.50 | T1 | whole-game |
-| [0x180598](../../../src/auto/func_00180598.c) | `RemoveHackenemyHierarchy` | vt12: CID47 RemoveHierarchy + SetCid49State | 0.40 | T2 | whole-game |
-| [0x1805C8](../../../src/hand/func_001805C8.c) | `PostHackenemyLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
-| [0x180638](../../../src/auto/func_00180638.c) | `HACKENEMY_vt26` | vt26: base + SetCid49State | 0.30 | T2 | whole-game |
-| [0x180668](../../../src/hand/func_00180668.cpp) | `UpdateHackenemy` | vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion | 0.40 | T2 | whole-game |
-| [0x180EE8](../../../src/hand/func_00180EE8.cpp) | `PresetHackenemyAccel` | vt70 override | 0.30 | T2 | whole-game |
-| [0x180FF0](../../../src/hand/func_00180FF0.c) | `AdjustHackenemyXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
-| [0x181060](../../../src/hand/func_00181060.cpp) | `HandleHackenemyMessage` | vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step | 0.45 | T2 | whole-game |
-| [0x1811B8](../../../src/hand/func_001811B8.c) | `HACKENEMY_TakeDamage` | vt75: CID47::TakeDamage + state change | 0.40 | T2 | whole-game |
-| [0x181238](../../../src/auto/func_00181238.c) | `ResetHackenemy` | Reset health and state | 0.30 | T2 | whole-game |
-| [0x181268](../../../src/hand/func_00181268.c) | `SetHackenemyState` | State switch; from -1 reset health; start state clip (StartCid47Anim) | 0.40 | T2 | whole-game |
-| [0x181308](../../../src/hand/func_00181308.c) | `SetHackenemyEntry` | Set entry i (<5) | 0.30 | T2 | whole-game |
-| [0x181330](../../../src/hand/func_00181330.c) | `SetHackenemyEntryVectors` | Set two 8-byte fields of entry i | 0.30 | T2 | whole-game |
-| [0x181378](../../../src/hand/func_00181378.c) | `SetHackenemyEntryVectors2` | Twin setter | 0.30 | T2 | whole-game |
-| [0x1813C0](../../../src/auto/func_001813C0.c) | `SetHackenemyScale` | Scale default vector D_002BE870 by g into x378.. | 0.30 | T2 | whole-game |
-| [0x1813F0](../../../src/auto/func_001813F0.c) | `SetHackenemyRange` | x384 = g * D_002BE87C | 0.30 | T2 | whole-game |
-| [0x181408](../../../src/auto/InitHacklock.c) | `InitHacklock` | CID 0x4B vt7: InitCid47 + 3 entries | 0.50 | T1 | whole-game |
-| [0x181440](../../../src/auto/func_00181440.c) | `PostHacklockLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
-| [0x181478](../../../src/hand/func_00181478.c) | `UpdateHacklock` | vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression | 0.40 | T2 | whole-game |
-| [0x181598](../../../src/hand/func_00181598.c) | `ResetHacklock` | Reset health + state | 0.30 | T2 | whole-game |
-| [0x1815E8](../../../src/auto/func_001815E8.c) | `SetHacklockState` | State switch; drives the CID 0x48 singleton (SetCid48State) and game events | 0.35 | T2 | whole-game |
-| [0x1816C0](../../../src/hand/func_001816C0.c) | `SetHacklockEntry` | Set entry i (<3) | 0.30 | T2 | whole-game |
-| [0x1816E8](../../../src/hand/func_001816E8.c) | `AddHacklockRsmg` | FAddRsmg on its RSMG table | 0.30 | T2 | whole-game |
-| [0x181728](../../../src/hand/func_00181728.c) | `TriggerHackshipFromHacklock` | SetCid48State(singleton x1C8, 1) and own vt call | 0.30 | T2 | whole-game |
-| [0x181780](../../../src/hand/func_00181780.c) | `TriggerHacklockRsmg` | TriggerRsmg on its table | 0.30 | T2 | whole-game |
-| [0x1817E8](../../../src/hand/InitHackwall.c) | `InitHackwall` | CID 0x4C vt7: InitCid47, grf | 0.50 | T1 | whole-game |
-| [0x181840](../../../src/hand/func_00181840.c) | `PostHackwallLoad` | vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load | 0.40 | T2 | whole-game |
-| [0x1819E0](../../../src/hand/func_001819E0.c) | `ResetHackwall` | Reset all segments | 0.30 | T2 | whole-game |
-| [0x181A90](../../../src/hand/func_00181A90.c) | `ResetHackwallSegment` | Reset one segment's pieces along its shape | 0.30 | T2 | whole-game |
-| [0x181B60](../../../src/hand/func_00181B60.c) | `LayoutHackwallPieces` | Distribute pieces along the segment shape length (SMaxShape) | 0.30 | T2 | whole-game |
-| [0x181CB0](../../../src/hand/func_00181CB0.c) | `UpdateHackwallPieces` | Per-frame piece placement along shape | 0.30 | T2 | whole-game |
-| [0x181E10](../../../src/auto/func_00181E10.c) | `UpdateHackwallSegments` | Iterate segments and advance their states | 0.30 | T2 | whole-game |
-| [0x181EB0](../../../src/hand/func_00181EB0.c) | `SetHackwallSegmentState` | Segment state switch: move between DLs, game event, relayout | 0.35 | T2 | whole-game |
-| [0x181F60](../../../src/hand/func_00181F60.c) | `UpdateHackwall` | vt16: UpdateSo, per-segment shape tracking and random effects | 0.35 | T2 | verified, whole-game |
-| [0x1821C0](../../../src/hand/func_001821C0.cpp) | `RenderHackwallSelf` | vt19: RenderSoSelf then draw each segment piece with its own matrix | 0.40 | T2 | whole-game |
-| [0x1823C8](../../../src/hand/func_001823C8.c) | `AddHackwallXps` | vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49 | 0.40 | T2 | whole-game |
-| [0x182700](../../../src/hand/func_00182700.c) | `AdjustHackwallXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
-| [0x182778](../../../src/auto/func_00182778.c) | `HACKWALL_vt63` | vt63: 8-byte override | 0.25 | T2 | whole-game |
-| [0x182780](../../../src/hand/func_00182780.c) | `HACKWALL_vt49` | vt49 override | 0.25 | T2 | whole-game |
-| [0x182810](../../../src/hand/func_00182810.c) | `PsegFindHackwall` | Nearest segment record to a world position | 0.35 | T2 | whole-game |
-| [0x1828A8](../../../src/hand/func_001828A8.c) | `HACKWALL_TakeDamage` | vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state change | 0.40 | T2 | whole-game |
-| [0x1829D8](../../../src/hand/func_001829D8.c) | `HACKWALL_Die` | vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change | 0.40 | T2 | whole-game |
-| [0x182AB8](../../../src/hand/func_00182AB8.c) | `AddHackwallSegment` | Append a segment record (max 4) {a,b,c,g} | 0.30 | T2 | whole-game |
+| [0x17F090](../../../src/game/gameplay/objects/tu_17F090/func_0017F090.c) | `InitCid71` | CID 0x47 vt7: InitSo, max health x180=10, two default vectors, grf | 0.60 | T2 |  |
+| [0x17F110](../../../src/game/gameplay/objects/tu_17F090/func_0017F110.c) | `RemoveCid71Hierarchy` | vt12: RemoveSoHierarchy then clear dying flag x18C | 0.55 | T2 |  |
+| [0x17F138](../../../src/game/gameplay/objects/tu_17F090/func_0017F138.c) | `PostCid71Load` | vt15: PostSoLoad then own vt83 | 0.55 | T2 |  |
+| [0x17F170](../../../src/game/gameplay/objects/tu_17F090/func_0017F170.c) | `CID71_vt26` | vt26: SO base then health x184 = max x180 (reset) | 0.35 | T2 |  |
+| [0x17F1A0](../../../src/game/gameplay/objects/tu_17F090/func_0017F1A0.c) | `AdjustCid71Xp` | vt55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust) | 0.30 | T2 |  |
+| [0x17F1D0](../../../src/game/gameplay/objects/tu_17F090/func_0017F1D0.c) | `CID71_TakeDamage` | vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain, limited) through constraint and SetVelocity | 0.55 | T2 |  |
+| [0x17F3E0](../../../src/game/gameplay/objects/tu_17F090/func_0017F3E0.c) | `InitCid47Entries` | Set n=-1 on c entries | 0.40 | T2 |  |
+| [0x17F408](../../../src/game/gameplay/objects/tu_17F090/func_0017F408.c) | `BindCid47Entries` | Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D | 0.35 | T2 |  |
+| [0x17F4C0](../../../src/game/gameplay/objects/tu_17F090/func_0017F4C0.c) | `StartCid47Anim` | Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state | 0.40 | T2 |  |
+| [0x17F550](../../../src/game/gameplay/objects/tu_17F090/func_0017F550.c) | `FCid47AnimDone` | True when the current ASEGA retracted or the SM reached its end state | 0.40 | T2 |  |
+| [0x17F5B0](../../../src/game/gameplay/objects/tu_17F090/func_0017F5B0.c) | `StartCid47Dying` | Once: set dying flag x18C and PostSwCallback(D_002A5630, n) | 0.40 | T2 |  |
+| [0x17F5F8](../../../src/game/gameplay/objects/tu_17F090/func_0017F5F8.c) | `CID71_Die` | vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190, then vt9 Remove | 0.50 | T2 |  |
+| [0x17F6B0](../../../src/game/gameplay/objects/tu_17F090/func_0017F6B0.c) | `ResetCid71` | Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638) | 0.40 | T2 | verified |
+| [0x17F6F8](../../../src/game/gameplay/objects/tu_17F090/InitHackship.c) | `InitHackship` | CID 0x48 vt7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1 | 0.55 | T1 | whole-game |
+| [0x17F740](../../../src/game/gameplay/objects/tu_17F090/func_0017F740.c) | `RemoveHackshipHierarchy` | vt12: base then state change via SetCid48State | 0.40 | T2 | whole-game |
+| [0x17F770](../../../src/game/gameplay/objects/tu_17F090/func_0017F770.c) | `BindHackshipParts` | Look up child XFs / objects for entries and create vector actuators | 0.30 | T2 | whole-game |
+| [0x17F850](../../../src/game/gameplay/objects/tu_17F090/func_0017F850.c) | `PostHackshipLoad` | vt15: PostCid47Load, bind entries and parts | 0.45 | T2 | whole-game |
+| [0x17F8C8](../../../src/game/gameplay/objects/tu_17F090/func_0017F8C8.c) | `OnHackshipActive` | vt78: base then SetCid48State | 0.35 | T2 | whole-game |
+| [0x17F930](../../../src/game/gameplay/objects/tu_17F090/func_0017F930.c) | `UpdateHackship` | vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals | 0.45 | T2 | whole-game |
+| [0x17FB50](../../../src/game/gameplay/objects/tu_17F090/func_0017FB50.cpp) | `PresetHackshipAccel` | vt70 override | 0.35 | T2 | whole-game |
+| [0x17FBE8](../../../src/game/gameplay/objects/tu_17F090/HACKSHIP_TakeDamage.c) | `HACKSHIP_TakeDamage` | vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and state 2 (hit) or 4 (defeated) | 0.50 | T1 | whole-game |
+| [0x17FCB0](../../../src/game/gameplay/objects/tu_17F090/func_0017FCB0.c) | `ResetHackship` | Reset health and state (ResetCid47 + SetCid48State + health bar) | 0.30 | T2 | whole-game |
+| [0x17FD08](../../../src/game/gameplay/objects/tu_17F090/func_0017FD08.cpp) | `SetHackshipState` | State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5 | 0.45 | T2 | whole-game |
+| [0x1800A0](../../../src/game/gameplay/objects/tu_17F090/UseStepguardDeathAnimation__FP9STEPGUARDi3OID.c) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
+| [0x1800D8](../../../src/game/gameplay/objects/tu_17F090/func_001800D8.c) | `SetHackshipEntry` | Set entry i (<5) fields a,d | 0.35 | T2 | whole-game |
+| [0x180100](../../../src/game/gameplay/objects/tu_17F090/UpdateHackshipHealthBar.c) | `UpdateHackshipHealthBar` | Set widget anim 0x34F phase = 1 - health/max (clamped) | 0.50 | T1 | whole-game |
+| [0x180188](../../../src/game/gameplay/objects/tu_17F090/func_00180188.c) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |
+| [0x1801B8](../../../src/game/gameplay/objects/tu_17F090/func_001801B8.cpp) | `UpdateHackbullet` | vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn rate | 0.40 | T2 | whole-game |
+| [0x1803A8](../../../src/game/gameplay/objects/tu_17F090/func_001803A8.c) | `HACKBULLET_FIgnoreIntersection` | vt61 override | 0.30 | T2 | whole-game |
+| [0x1803E0](../../../src/game/gameplay/objects/tu_17F090/func_001803E0.c) | `AdjustHackbulletXp` | vt55: CID47::AdjustXp then start dying on contact | 0.30 | T2 | whole-game |
+| [0x180478](../../../src/game/gameplay/objects/tu_17F090/func_00180478.c) | `SetHackbulletMode` | Set mode field and recalc object filters (RecalcSwOxfFilterForObject) | 0.30 | T2 | whole-game |
+| [0x180500](../../../src/game/gameplay/objects/tu_17F090/InitHackenemy.c) | `InitHackenemy` | CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries | 0.50 | T1 | whole-game |
+| [0x180598](../../../src/game/gameplay/objects/tu_17F090/func_00180598.c) | `RemoveHackenemyHierarchy` | vt12: CID47 RemoveHierarchy + SetCid49State | 0.40 | T2 | whole-game |
+| [0x1805C8](../../../src/game/gameplay/objects/tu_17F090/func_001805C8.c) | `PostHackenemyLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
+| [0x180638](../../../src/game/gameplay/objects/tu_17F090/func_00180638.c) | `HACKENEMY_vt26` | vt26: base + SetCid49State | 0.30 | T2 | whole-game |
+| [0x180668](../../../src/game/gameplay/objects/tu_17F090/func_00180668.cpp) | `UpdateHackenemy` | vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion | 0.40 | T2 | whole-game |
+| [0x180EE8](../../../src/game/gameplay/objects/tu_17F090/func_00180EE8.cpp) | `PresetHackenemyAccel` | vt70 override | 0.30 | T2 | whole-game |
+| [0x180FF0](../../../src/game/gameplay/objects/tu_17F090/func_00180FF0.c) | `AdjustHackenemyXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
+| [0x181060](../../../src/game/gameplay/objects/tu_17F090/func_00181060.cpp) | `HandleHackenemyMessage` | vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step | 0.45 | T2 | whole-game |
+| [0x1811B8](../../../src/game/gameplay/objects/tu_17F090/func_001811B8.c) | `HACKENEMY_TakeDamage` | vt75: CID47::TakeDamage + state change | 0.40 | T2 | whole-game |
+| [0x181238](../../../src/game/gameplay/objects/tu_17F090/func_00181238.c) | `ResetHackenemy` | Reset health and state | 0.30 | T2 | whole-game |
+| [0x181268](../../../src/game/gameplay/objects/tu_17F090/func_00181268.c) | `SetHackenemyState` | State switch; from -1 reset health; start state clip (StartCid47Anim) | 0.40 | T2 | whole-game |
+| [0x181308](../../../src/game/gameplay/objects/tu_17F090/func_00181308.c) | `SetHackenemyEntry` | Set entry i (<5) | 0.30 | T2 | whole-game |
+| [0x181330](../../../src/game/gameplay/objects/tu_17F090/func_00181330.c) | `SetHackenemyEntryVectors` | Set two 8-byte fields of entry i | 0.30 | T2 | whole-game |
+| [0x181378](../../../src/game/gameplay/objects/tu_17F090/func_00181378.c) | `SetHackenemyEntryVectors2` | Twin setter | 0.30 | T2 | whole-game |
+| [0x1813C0](../../../src/game/gameplay/objects/tu_17F090/func_001813C0.c) | `SetHackenemyScale` | Scale default vector D_002BE870 by g into x378.. | 0.30 | T2 | whole-game |
+| [0x1813F0](../../../src/game/gameplay/objects/tu_17F090/func_001813F0.c) | `SetHackenemyRange` | x384 = g * D_002BE87C | 0.30 | T2 | whole-game |
+| [0x181408](../../../src/game/gameplay/objects/tu_17F090/InitHacklock.c) | `InitHacklock` | CID 0x4B vt7: InitCid47 + 3 entries | 0.50 | T1 | whole-game |
+| [0x181440](../../../src/game/gameplay/objects/tu_17F090/func_00181440.c) | `PostHacklockLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
+| [0x181478](../../../src/game/gameplay/objects/tu_17F090/func_00181478.c) | `UpdateHacklock` | vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression | 0.40 | T2 | whole-game |
+| [0x181598](../../../src/game/gameplay/objects/tu_17F090/func_00181598.c) | `ResetHacklock` | Reset health + state | 0.30 | T2 | whole-game |
+| [0x1815E8](../../../src/game/gameplay/objects/tu_17F090/func_001815E8.c) | `SetHacklockState` | State switch; drives the CID 0x48 singleton (SetCid48State) and game events | 0.35 | T2 | whole-game |
+| [0x1816C0](../../../src/game/gameplay/objects/tu_17F090/func_001816C0.c) | `SetHacklockEntry` | Set entry i (<3) | 0.30 | T2 | whole-game |
+| [0x1816E8](../../../src/game/gameplay/objects/tu_17F090/func_001816E8.c) | `AddHacklockRsmg` | FAddRsmg on its RSMG table | 0.30 | T2 | whole-game |
+| [0x181728](../../../src/game/gameplay/objects/tu_17F090/func_00181728.c) | `TriggerHackshipFromHacklock` | SetCid48State(singleton x1C8, 1) and own vt call | 0.30 | T2 | whole-game |
+| [0x181780](../../../src/game/gameplay/objects/tu_17F090/func_00181780.c) | `TriggerHacklockRsmg` | TriggerRsmg on its table | 0.30 | T2 | whole-game |
+| [0x1817E8](../../../src/game/gameplay/objects/tu_17F090/InitHackwall.c) | `InitHackwall` | CID 0x4C vt7: InitCid47, grf | 0.50 | T1 | whole-game |
+| [0x181840](../../../src/game/gameplay/objects/tu_17F090/func_00181840.c) | `PostHackwallLoad` | vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load | 0.40 | T2 | whole-game |
+| [0x1819E0](../../../src/game/gameplay/objects/tu_17F090/func_001819E0.c) | `ResetHackwall` | Reset all segments | 0.30 | T2 | whole-game |
+| [0x181A90](../../../src/game/gameplay/objects/tu_17F090/func_00181A90.c) | `ResetHackwallSegment` | Reset one segment's pieces along its shape | 0.30 | T2 | whole-game |
+| [0x181B60](../../../src/game/gameplay/objects/tu_17F090/func_00181B60.c) | `LayoutHackwallPieces` | Distribute pieces along the segment shape length (SMaxShape) | 0.30 | T2 | whole-game |
+| [0x181CB0](../../../src/game/gameplay/objects/tu_17F090/func_00181CB0.c) | `UpdateHackwallPieces` | Per-frame piece placement along shape | 0.30 | T2 | whole-game |
+| [0x181E10](../../../src/game/gameplay/objects/tu_17F090/func_00181E10.c) | `UpdateHackwallSegments` | Iterate segments and advance their states | 0.30 | T2 | whole-game |
+| [0x181EB0](../../../src/game/gameplay/objects/tu_17F090/func_00181EB0.c) | `SetHackwallSegmentState` | Segment state switch: move between DLs, game event, relayout | 0.35 | T2 | whole-game |
+| [0x181F60](../../../src/game/gameplay/objects/tu_17F090/func_00181F60.c) | `UpdateHackwall` | vt16: UpdateSo, per-segment shape tracking and random effects | 0.35 | T2 | verified, whole-game |
+| [0x1821C0](../../../src/game/gameplay/objects/tu_17F090/func_001821C0.cpp) | `RenderHackwallSelf` | vt19: RenderSoSelf then draw each segment piece with its own matrix | 0.40 | T2 | whole-game |
+| [0x1823C8](../../../src/game/gameplay/objects/tu_17F090/func_001823C8.c) | `AddHackwallXps` | vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49 | 0.40 | T2 | whole-game |
+| [0x182700](../../../src/game/gameplay/objects/tu_17F090/func_00182700.c) | `AdjustHackwallXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
+| [0x182778](../../../src/game/gameplay/objects/tu_17F090/func_00182778.c) | `HACKWALL_vt63` | vt63: 8-byte override | 0.25 | T2 | whole-game |
+| [0x182780](../../../src/game/gameplay/objects/tu_17F090/func_00182780.c) | `HACKWALL_vt49` | vt49 override | 0.25 | T2 | whole-game |
+| [0x182810](../../../src/game/gameplay/objects/tu_17F090/func_00182810.c) | `PsegFindHackwall` | Nearest segment record to a world position | 0.35 | T2 | whole-game |
+| [0x1828A8](../../../src/game/gameplay/objects/tu_17F090/func_001828A8.c) | `HACKWALL_TakeDamage` | vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state change | 0.40 | T2 | whole-game |
+| [0x1829D8](../../../src/game/gameplay/objects/tu_17F090/func_001829D8.c) | `HACKWALL_Die` | vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change | 0.40 | T2 | whole-game |
+| [0x182AB8](../../../src/game/gameplay/objects/tu_17F090/func_00182AB8.c) | `AddHackwallSegment` | Append a segment record (max 4) {a,b,c,g} | 0.30 | T2 | whole-game |
 
 ## tu_1B0B78 (0x1B0B78-0x1B1DB8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B0B78](../../../src/hand/func_001B0B78.c) | `InitCid96` | CID 96 vt7 Init: InitSo + defaults | 0.60 | T2 |  |
-| [0x1B0C68](../../../src/hand/func_001B0C68.c) | `RemoveCid96Hierarchy` | CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null) | 0.50 | T2 |  |
-| [0x1B0CA8](../../../src/auto/func_001B0CA8.c) | `LoadCid96FromBrx` | CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects | 0.65 | T2 | parse-code |
-| [0x1B0D08](../../../src/auto/func_001B0D08.c) | `PostCid96Load` | CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset | 0.65 | T2 |  |
-| [0x1B0D60](../../../src/auto/func_001B0D60.c) | `Cid96_VUnk26Proxy` | CID 96 vt26: proxy base then reset | 0.40 | T2 |  |
-| [0x1B0D90](../../../src/hand/func_001B0D90.c) | `ResetCid96` | Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle | 0.45 | T2 |  |
-| [0x1B0E28](../../../src/hand/func_001B0E28.c) | `UpdateCid96` | CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following | 0.60 | T2 |  |
-| [0x1B0F88](../../../src/hand/func_001B0F88.c) | `HandleCid96Zap` | vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked object x1C8 | 0.40 | T2 |  |
-| [0x1B1030](../../../src/hand/func_001B1030.c) | `UpdateCid96XfWorld` | CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17 | 0.35 | T2 |  |
-| [0x1B10B0](../../../src/auto/func_001B10B0.c) | `PresetCid96Accel` | CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position | 0.50 | T2 |  |
-| [0x1B10D0](../../../src/hand/func_001B10D0.c) | `HandleCid96Message` | CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4 | 0.60 | T2 |  |
-| [0x1B1140](../../../src/auto/func_001B1140.c) | `RenderCid96Self` | CID 96 vt19: RenderSoSelf | 0.50 | T2 |  |
-| [0x1B1160](../../../src/hand/func_001B1160.c) | `UpdateCid96PathFollow` | Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends | 0.40 | T2 |  |
-| [0x1B1328](../../../src/hand/func_001B1328.cpp) | `SetCid96State` | State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from nearest player with deadline, 5 hit; sound and ASEG per state | 0.50 | T2 |  |
-| [0x1B17B8](../../../src/hand/SetStepSpinRatio__FP4STEPf.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
-| [0x1B1818](../../../src/hand/func_001B1818.c) | `SetCid96Heading` | Store heading and rotation matrix about up | 0.40 | T2 |  |
-| [0x1B1868](../../../src/hand/func_001B1868.c) | `FCid96FacingHeading` | True when facing within 1 degree of stored heading | 0.40 | T2 |  |
-| [0x1B1900](../../../src/hand/func_001B1900.c) | `ChooseCid96StateFromPlayer` | Look at nearest player (0x1C4AF8): flee/turn decision and heading | 0.35 | T2 |  |
-| [0x1B1A38](../../../src/hand/func_001B1A38.c) | `GetAsegSpeedForObject` | Root-motion speed of a clip for this object (displacement / duration) | 0.35 | T2 |  |
-| [0x1B1B10](../../../src/auto/func_001B1B10.c) | `FValidCid96Link` | index < 6 | 0.30 | T2 |  |
-| [0x1B1B18](../../../src/hand/func_001B1B18.c) | `SetCid96Link` | Set link slot n (not 2/5) id and optional value | 0.30 | T2 |  |
-| [0x1B1B98](../../../src/auto/func_001B1B98.c) | `PloFindCid96Link` | PloFindSwObject by id and call its vt (slot 9) | 0.30 | T2 |  |
-| [0x1B1BF0](../../../src/hand/func_001B1BF0.c) | `ResolveCid96Links` | Resolve the 6 link ids into object pointers | 0.35 | T2 |  |
+| [0x1B0B78](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0B78.c) | `InitCid96` | CID 96 vt7 Init: InitSo + defaults | 0.60 | T2 |  |
+| [0x1B0C68](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0C68.c) | `RemoveCid96Hierarchy` | CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null) | 0.50 | T2 |  |
+| [0x1B0CA8](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0CA8.c) | `LoadCid96FromBrx` | CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects | 0.65 | T2 | parse-code |
+| [0x1B0D08](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D08.c) | `PostCid96Load` | CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset | 0.65 | T2 |  |
+| [0x1B0D60](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D60.c) | `Cid96_VUnk26Proxy` | CID 96 vt26: proxy base then reset | 0.40 | T2 |  |
+| [0x1B0D90](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D90.c) | `ResetCid96` | Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle | 0.45 | T2 |  |
+| [0x1B0E28](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0E28.c) | `UpdateCid96` | CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following | 0.60 | T2 |  |
+| [0x1B0F88](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0F88.c) | `HandleCid96Zap` | vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked object x1C8 | 0.40 | T2 |  |
+| [0x1B1030](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1030.c) | `UpdateCid96XfWorld` | CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17 | 0.35 | T2 |  |
+| [0x1B10B0](../../../src/game/gameplay/objects/tu_1B0B78/func_001B10B0.c) | `PresetCid96Accel` | CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position | 0.50 | T2 |  |
+| [0x1B10D0](../../../src/game/gameplay/objects/tu_1B0B78/func_001B10D0.c) | `HandleCid96Message` | CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4 | 0.60 | T2 |  |
+| [0x1B1140](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1140.c) | `RenderCid96Self` | CID 96 vt19: RenderSoSelf | 0.50 | T2 |  |
+| [0x1B1160](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1160.c) | `UpdateCid96PathFollow` | Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends | 0.40 | T2 |  |
+| [0x1B1328](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1328.cpp) | `SetCid96State` | State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from nearest player with deadline, 5 hit; sound and ASEG per state | 0.50 | T2 |  |
+| [0x1B17B8](../../../src/game/gameplay/objects/tu_1B0B78/SetStepSpinRatio__FP4STEPf.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
+| [0x1B1818](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1818.c) | `SetCid96Heading` | Store heading and rotation matrix about up | 0.40 | T2 |  |
+| [0x1B1868](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1868.c) | `FCid96FacingHeading` | True when facing within 1 degree of stored heading | 0.40 | T2 |  |
+| [0x1B1900](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1900.c) | `ChooseCid96StateFromPlayer` | Look at nearest player (0x1C4AF8): flee/turn decision and heading | 0.35 | T2 |  |
+| [0x1B1A38](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1A38.c) | `GetAsegSpeedForObject` | Root-motion speed of a clip for this object (displacement / duration) | 0.35 | T2 |  |
+| [0x1B1B10](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1B10.c) | `FValidCid96Link` | index < 6 | 0.30 | T2 |  |
+| [0x1B1B18](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1B18.c) | `SetCid96Link` | Set link slot n (not 2/5) id and optional value | 0.30 | T2 |  |
+| [0x1B1B98](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1B98.c) | `PloFindCid96Link` | PloFindSwObject by id and call its vt (slot 9) | 0.30 | T2 |  |
+| [0x1B1BF0](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1BF0.c) | `ResolveCid96Links` | Resolve the 6 link ids into object pointers | 0.35 | T2 |  |
 
 ## missile (0x1B1DB8-0x1B2820)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B1DB8](../../../src/auto/InitMissile__FP7MISSILE.c) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
-| [0x1B1E00](../../../src/auto/LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream.c) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
-| [0x1B1E38](../../../src/hand/OnMissileRemove__FP7MISSILE.c) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
-| [0x1B1E88](../../../src/hand/FireMissile.c) | `FireMissile` | MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action | 0.80 | T1 |  |
-| [0x1B1F10](../../../src/auto/func_001B1F10.c) | `ExplodeMissile` | MISSILE vt77: BOMB base (0x13B250) then retract asega at +0x268 | 0.35 | T2 |  |
-| [0x1B1F40](../../../src/hand/FIgnoreMissileIntersection__FP7MISSILEP2SO.c) | `FIgnoreMissileIntersection` | MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list +0x250 | 0.80 | T1 | verified |
-| [0x1B2020](../../../src/hand/func_001B2020.c) | `AddMissileSpecialObject` | Append OID to MISSILE list +0x23C (max 4, count +0x238) | 0.35 | T2 |  |
-| [0x1B2048](../../../src/hand/func_001B2048.c) | `AddMissileSpecialClass` | Append CID to MISSILE list +0x250 (max 4, count +0x24C) | 0.35 | T2 |  |
-| [0x1B2070](../../../src/auto/InitAccmiss__FP7ACCMISS.c) | `InitAccmiss` | ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0 | 0.85 | T1 |  |
-| [0x1B20B8](../../../src/hand/PresetAccmissAccel.cpp) | `PresetAccmissAccel` | ACCMISS vt70: smooth speed toward svTarget (GSmooth) and add the velocity change via AddSoVelocity | 0.70 | T1 |  |
-| [0x1B21F0](../../../src/auto/InitSplmiss.c) | `InitSplmiss` | CID-82 missile Init: InitMissile; +0x274=1500 | 0.50 | T1 |  |
-| [0x1B2228](../../../src/hand/FireSplmiss.cpp) | `FireSplmiss` | CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch velocity | 0.55 | T1 |  |
-| [0x1B2398](../../../src/hand/func_001B2398.c) | `PosMissileTarget` | Target position in world: transform stored target pos by source LO's world matrix (predicted dt), or raw pos if no source | 0.45 | T2 |  |
-| [0x1B2468](../../../src/hand/func_001B2468.cpp) | `PresetSplmissAccel` | CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278) | 0.45 | T2 |  |
+| [0x1B1DB8](../../../src/game/gameplay/objects/missile/InitMissile__FP7MISSILE.c) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
+| [0x1B1E00](../../../src/game/gameplay/objects/missile/LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream.c) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
+| [0x1B1E38](../../../src/game/gameplay/objects/missile/OnMissileRemove__FP7MISSILE.c) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
+| [0x1B1E88](../../../src/game/gameplay/objects/missile/FireMissile.c) | `FireMissile` | MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action | 0.80 | T1 |  |
+| [0x1B1F10](../../../src/game/gameplay/objects/missile/func_001B1F10.c) | `ExplodeMissile` | MISSILE vt77: BOMB base (0x13B250) then retract asega at +0x268 | 0.35 | T2 |  |
+| [0x1B1F40](../../../src/game/gameplay/objects/missile/FIgnoreMissileIntersection__FP7MISSILEP2SO.c) | `FIgnoreMissileIntersection` | MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list +0x250 | 0.80 | T1 | verified |
+| [0x1B2020](../../../src/game/gameplay/objects/missile/func_001B2020.c) | `AddMissileSpecialObject` | Append OID to MISSILE list +0x23C (max 4, count +0x238) | 0.35 | T2 |  |
+| [0x1B2048](../../../src/game/gameplay/objects/missile/func_001B2048.c) | `AddMissileSpecialClass` | Append CID to MISSILE list +0x250 (max 4, count +0x24C) | 0.35 | T2 |  |
+| [0x1B2070](../../../src/game/gameplay/objects/missile/InitAccmiss__FP7ACCMISS.c) | `InitAccmiss` | ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0 | 0.85 | T1 |  |
+| [0x1B20B8](../../../src/game/gameplay/objects/missile/PresetAccmissAccel.cpp) | `PresetAccmissAccel` | ACCMISS vt70: smooth speed toward svTarget (GSmooth) and add the velocity change via AddSoVelocity | 0.70 | T1 |  |
+| [0x1B21F0](../../../src/game/gameplay/objects/missile/InitSplmiss.c) | `InitSplmiss` | CID-82 missile Init: InitMissile; +0x274=1500 | 0.50 | T1 |  |
+| [0x1B2228](../../../src/game/gameplay/objects/missile/FireSplmiss.cpp) | `FireSplmiss` | CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch velocity | 0.55 | T1 |  |
+| [0x1B2398](../../../src/game/gameplay/objects/missile/func_001B2398.c) | `PosMissileTarget` | Target position in world: transform stored target pos by source LO's world matrix (predicted dt), or raw pos if no source | 0.45 | T2 |  |
+| [0x1B2468](../../../src/game/gameplay/objects/missile/func_001B2468.cpp) | `PresetSplmissAccel` | CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278) | 0.45 | T2 |  |
 
 ## tu_1BAB50 (0x1BAB50-0x1BC050)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1BAB50](../../../src/auto/func_001BAB50.c) | `InitCid98` | CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0) | 0.60 | T2 |  |
-| [0x1BABA0](../../../src/hand/func_001BABA0.cpp) | `LoadCid98FromBrx` | CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to counts | 0.75 | T2 | parse |
-| [0x1BAD80](../../../src/auto/func_001BAD80.c) | `OnCid98Remove` | CID 98 vt22: FreezeSo then RemoveDlEntry from class list D_003E1450 | 0.85 | T2 | arbitration |
-| [0x1BADB8](../../../src/auto/func_001BADB8.c) | `OnCid98Add` | CID 98 vt23: UnfreezeSo then AppendDlEntry to D_003E1450 | 0.85 | T2 | arbitration |
-| [0x1BADF0](../../../src/hand/func_001BADF0.c) | `FCid98AcceptZap` | Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8) | 0.40 | T2 |  |
-| [0x1BAED8](../../../src/hand/func_001BAED8.cpp) | `ScheduleCid98Reaction` | Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React) | 0.45 | T2 |  |
-| [0x1BAF18](../../../src/hand/func_001BAF18.c) | `SetCid98Stage` | Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage | 0.45 | T2 |  |
-| [0x1BB250](../../../src/hand/func_001BB250.c) | `ScheduleCid98TouchEvents` | CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98 objects | 0.45 | T2 | verified |
-| [0x1BB400](../../../src/hand/func_001BB400.c) | `ReactCid98` | Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648), stimulus 0x156B98, BroadcastGameEvent, advance stage | 0.45 | T2 |  |
-| [0x1BB648](../../../src/hand/func_001BB648.c) | `RunCid98StageActions` | Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10, spawn 0x161F48 | 0.45 | T2 |  |
-| [0x1BB918](../../../src/auto/func_001BB918.c) | `AddCid98TriggerClass` | Append (class, flag) to trigger list (max 8) | 0.35 | T2 |  |
-| [0x1BB950](../../../src/hand/func_001BB950.c) | `AddCid98Stage` | Append stage id with action buffer (max 32) | 0.35 | T2 |  |
-| [0x1BB9B8](../../../src/hand/func_001BB9B8.c) | `InitCid98PreStage` | Init stage -1 with action buffer | 0.30 | T2 |  |
-| [0x1BBA18](../../../src/hand/func_001BBA18.c) | `SetCid98StageParam` | Set a field of the current stage record (D_002A76B8 key) | 0.25 | T2 |  |
-| [0x1BBA60](../../../src/auto/func_001BBA60.c) | `AddCid98Action6` | Record action kind 6 with arg | 0.30 | T2 |  |
-| [0x1BBA90](../../../src/auto/func_001BBA90.c) | `AddCid98Action7` | Record action kind 7 | 0.30 | T2 |  |
-| [0x1BBAC0](../../../src/auto/func_001BBAC0.c) | `AddCid98Action8` | Record action kind 8 | 0.30 | T2 |  |
-| [0x1BBAF0](../../../src/auto/func_001BBAF0.c) | `AddCid98Action9` | Record action kind 9 | 0.30 | T2 |  |
-| [0x1BBB20](../../../src/auto/func_001BBB20.c) | `AddCid98Action10` | Record action kind 10 | 0.30 | T2 |  |
-| [0x1BBB50](../../../src/auto/func_001BBB50.c) | `AddCid98Action11` | Record action kind 11 | 0.30 | T2 |  |
-| [0x1BBB80](../../../src/auto/func_001BBB80.c) | `AddCid98Action0` | Record action kind 0 | 0.30 | T2 |  |
-| [0x1BBBB0](../../../src/auto/func_001BBBB0.c) | `AddCid98ShowGlobs` | Outside stage recording: ShowSoGlobsById now; else record action 2 | 0.35 | T2 |  |
-| [0x1BBC08](../../../src/auto/func_001BBC08.c) | `AddCid98ShowParts` | Same for ShowSoPartsById (action 4) | 0.35 | T2 |  |
-| [0x1BBC60](../../../src/auto/func_001BBC60.c) | `AddCid98Action1` | Record action 1 (default arg = own id) | 0.30 | T2 |  |
-| [0x1BBC98](../../../src/auto/func_001BBC98.c) | `AddCid98HideGlobs` | HideSoGlobsById now or record action 3 | 0.35 | T2 |  |
-| [0x1BBCF0](../../../src/auto/func_001BBCF0.c) | `AddCid98HideParts` | HideSoPartsById now or record action 5 | 0.35 | T2 |  |
-| [0x1BBD48](../../../src/hand/func_001BBD48.c) | `AddCid98Action12` | Record action 12 with a two-int payload | 0.30 | T2 |  |
-| [0x1BBDB0](../../../src/hand/func_001BBDB0.c) | `PactionAddCid98` | Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it | 0.45 | T2 | top50 |
-| [0x1BBE18](../../../src/auto/func_001BBE18.c) | `FCid98StageValid` | current stage index valid (0..count-1 or -1) | 0.40 | T2 |  |
-| [0x1BBE48](../../../src/auto/func_001BBE48.c) | `FCid98Done` | !FCid98StageValid | 0.35 | T2 |  |
-| [0x1BBE68](../../../src/auto/func_001BBE68.c) | `PstageCurCid98` | Current stage record or NULL | 0.40 | T2 |  |
-| [0x1BBEA8](../../../src/hand/func_001BBEA8.c) | `Cid98_VUnk26Proxy` | CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints | 0.40 | T2 |  |
+| [0x1BAB50](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAB50.c) | `InitCid98` | CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0) | 0.60 | T2 |  |
+| [0x1BABA0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BABA0.cpp) | `LoadCid98FromBrx` | CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to counts | 0.75 | T2 | parse |
+| [0x1BAD80](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAD80.c) | `OnCid98Remove` | CID 98 vt22: FreezeSo then RemoveDlEntry from class list D_003E1450 | 0.85 | T2 | arbitration |
+| [0x1BADB8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BADB8.c) | `OnCid98Add` | CID 98 vt23: UnfreezeSo then AppendDlEntry to D_003E1450 | 0.85 | T2 | arbitration |
+| [0x1BADF0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BADF0.c) | `FCid98AcceptZap` | Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8) | 0.40 | T2 |  |
+| [0x1BAED8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAED8.cpp) | `ScheduleCid98Reaction` | Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React) | 0.45 | T2 |  |
+| [0x1BAF18](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAF18.c) | `SetCid98Stage` | Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage | 0.45 | T2 |  |
+| [0x1BB250](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB250.c) | `ScheduleCid98TouchEvents` | CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98 objects | 0.45 | T2 | verified |
+| [0x1BB400](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB400.c) | `ReactCid98` | Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648), stimulus 0x156B98, BroadcastGameEvent, advance stage | 0.45 | T2 |  |
+| [0x1BB648](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB648.c) | `RunCid98StageActions` | Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10, spawn 0x161F48 | 0.45 | T2 |  |
+| [0x1BB918](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB918.c) | `AddCid98TriggerClass` | Append (class, flag) to trigger list (max 8) | 0.35 | T2 |  |
+| [0x1BB950](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB950.c) | `AddCid98Stage` | Append stage id with action buffer (max 32) | 0.35 | T2 |  |
+| [0x1BB9B8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB9B8.c) | `InitCid98PreStage` | Init stage -1 with action buffer | 0.30 | T2 |  |
+| [0x1BBA18](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBA18.c) | `SetCid98StageParam` | Set a field of the current stage record (D_002A76B8 key) | 0.25 | T2 |  |
+| [0x1BBA60](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBA60.c) | `AddCid98Action6` | Record action kind 6 with arg | 0.30 | T2 |  |
+| [0x1BBA90](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBA90.c) | `AddCid98Action7` | Record action kind 7 | 0.30 | T2 |  |
+| [0x1BBAC0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBAC0.c) | `AddCid98Action8` | Record action kind 8 | 0.30 | T2 |  |
+| [0x1BBAF0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBAF0.c) | `AddCid98Action9` | Record action kind 9 | 0.30 | T2 |  |
+| [0x1BBB20](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBB20.c) | `AddCid98Action10` | Record action kind 10 | 0.30 | T2 |  |
+| [0x1BBB50](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBB50.c) | `AddCid98Action11` | Record action kind 11 | 0.30 | T2 |  |
+| [0x1BBB80](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBB80.c) | `AddCid98Action0` | Record action kind 0 | 0.30 | T2 |  |
+| [0x1BBBB0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBBB0.c) | `AddCid98ShowGlobs` | Outside stage recording: ShowSoGlobsById now; else record action 2 | 0.35 | T2 |  |
+| [0x1BBC08](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBC08.c) | `AddCid98ShowParts` | Same for ShowSoPartsById (action 4) | 0.35 | T2 |  |
+| [0x1BBC60](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBC60.c) | `AddCid98Action1` | Record action 1 (default arg = own id) | 0.30 | T2 |  |
+| [0x1BBC98](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBC98.c) | `AddCid98HideGlobs` | HideSoGlobsById now or record action 3 | 0.35 | T2 |  |
+| [0x1BBCF0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBCF0.c) | `AddCid98HideParts` | HideSoPartsById now or record action 5 | 0.35 | T2 |  |
+| [0x1BBD48](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBD48.c) | `AddCid98Action12` | Record action 12 with a two-int payload | 0.30 | T2 |  |
+| [0x1BBDB0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBDB0.c) | `PactionAddCid98` | Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it | 0.45 | T2 | top50 |
+| [0x1BBE18](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBE18.c) | `FCid98StageValid` | current stage index valid (0..count-1 or -1) | 0.40 | T2 |  |
+| [0x1BBE48](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBE48.c) | `FCid98Done` | !FCid98StageValid | 0.35 | T2 |  |
+| [0x1BBE68](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBE68.c) | `PstageCurCid98` | Current stage record or NULL | 0.40 | T2 |  |
+| [0x1BBEA8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBEA8.c) | `Cid98_VUnk26Proxy` | CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints | 0.40 | T2 |  |
 
 ## tu_1C2D20 (0x1C2D20-0x1C3390)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C2D20](../../../src/hand/func_001C2D20.c) | `PostCid99Load` | CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding | 0.60 | T2 |  |
-| [0x1C2D70](../../../src/hand/func_001C2D70.c) | `RenderCid99Self` | CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel) | 0.50 | T2 |  |
-| [0x1C2DB8](../../../src/hand/func_001C2DB8.c) | `ClearCid99Loot` | Clear held loot pointer(s) | 0.40 | T2 |  |
-| [0x1C2DC8](../../../src/hand/func_001C2DC8.c) | `StageCid99Loot` | Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A) state 2 else vt9; find attach XF; returns status 0-3 | 0.45 | T2 |  |
-| [0x1C2EF0](../../../src/hand/func_001C2EF0.cpp) | `LaunchCid99LootAtPlayer` | Launch count loot objects (first held, rest from proxy pool) toward random points around the player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay | 0.55 | T2 |  |
+| [0x1C2D20](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2D20.c) | `PostCid99Load` | CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding | 0.60 | T2 |  |
+| [0x1C2D70](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2D70.c) | `RenderCid99Self` | CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel) | 0.50 | T2 |  |
+| [0x1C2DB8](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2DB8.c) | `ClearCid99Loot` | Clear held loot pointer(s) | 0.40 | T2 |  |
+| [0x1C2DC8](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2DC8.c) | `StageCid99Loot` | Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A) state 2 else vt9; find attach XF; returns status 0-3 | 0.45 | T2 |  |
+| [0x1C2EF0](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2EF0.cpp) | `LaunchCid99LootAtPlayer` | Launch count loot objects (first held, rest from proxy pool) toward random points around the player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay | 0.55 | T2 |  |
 
 ## tu_1D1370 (0x1D1370-0x1D5150)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D1370](../../../src/hand/InitRobottank.c) | `InitRobottank` | CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1 | 0.75 | T1 | whole-game |
-| [0x1D1410](../../../src/hand/CloneRobottank.cpp) | `CloneRobottank` | CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30, copy 0x9C bytes) | 0.70 | T1 | whole-game |
-| [0x1D14C0](../../../src/auto/ResetRobottankHealth.c) | `ResetRobottankHealth` | health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0) | 0.50 | T1 | whole-game |
-| [0x1D1518](../../../src/hand/PostRobottankLoad.cpp) | `PostRobottankLoad` | CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop unresolved  | 0.75 | T1 | whole-game |
-| [0x1D1910](../../../src/auto/func_001D1910.c) | `Robottank_VUnk26Proxy` | CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth | 0.40 | T2 | whole-game |
-| [0x1D1940](../../../src/auto/OnRobottankActive.c) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
-| [0x1D19A8](../../../src/hand/UpdateRobottank.cpp) | `UpdateRobottank` | CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound v | 0.75 | T1 | whole-game |
-| [0x1D2150](../../../src/hand/ReadRobottankInput.c) | `ReadRobottankInput` | Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires (SMA goal 0x68) or held-flag variant (0x67) | 0.50 | T1 | whole-game |
-| [0x1D2240](../../../src/hand/func_001D2240.c) | `PweaponReadyRobottank` | First weapon with enough ammo whose state is not 4 | 0.40 | T2 | whole-game |
-| [0x1D22D0](../../../src/hand/func_001D22D0.c) | `FindRobottankPickup` | Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass | 0.45 | T2 | whole-game |
-| [0x1D2420](../../../src/hand/func_001D2420.c) | `ResetRobottankWheelHeights` | Clear x5B0 and set every wheel record's z to the car's height | 0.30 | T2 | whole-game |
-| [0x1D2490](../../../src/hand/func_001D2490.c) | `SteerRobottankAlongPath` | Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive | 0.35 | T2 | whole-game |
-| [0x1D2610](../../../src/hand/UpdateRobottankAi.cpp) | `UpdateRobottankAi` | Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2 pursue, 3 back away), steering, fire weapons when aim error is small | 0.60 | T1 | whole-game |
-| [0x1D2DD0](../../../src/auto/func_001D2DD0.c) | `PxpBestRobottankWheel` | Return the contact in an XP list with the largest +0x90 value (deepest) | 0.35 | T2 | whole-game |
-| [0x1D2E18](../../../src/hand/PresetRobottankAccel.cpp) | `PresetRobottankAccel` | CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive within traction budget | 0.65 | T1 | whole-game |
-| [0x1D3450](../../../src/hand/func_001D3450.cpp) | `AddRobottankWheelXps` | Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18) | 0.55 | T1 | whole-game |
-| [0x1D3E48](../../../src/hand/AddRobottankCustomXps.c) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
-| [0x1D3F30](../../../src/hand/func_001D3F30.c) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
-| [0x1D3FA8](../../../src/hand/func_001D3FA8.c) | `PweaponFindRobottank` | Find weapon record by id | 0.40 | T2 | whole-game |
-| [0x1D3FF0](../../../src/hand/func_001D3FF0.c) | `CollectRobottankPickup` | Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup state 2 | 0.45 | T2 | whole-game |
-| [0x1D4050](../../../src/hand/AdjustRobottankNewXp.c) | `AdjustRobottankNewXp` | CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID 0x6C pickup schedules CollectRcCarPickup | 0.55 | T1 | whole-game |
-| [0x1D4178](../../../src/hand/UpdateRobottankBounds.c) | `UpdateRobottankBounds` | CID 77 vt49: SO tree bounds then extend by each wheel sphere | 0.50 | T1 | whole-game |
-| [0x1D41F8](../../../src/hand/RenderRobottankSelf.cpp) | `RenderRobottankSelf` | CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then RenderSoSelf | 0.60 | T1 | whole-game |
-| [0x1D4568](../../../src/hand/func_001D4568.cpp) | `HandleRobottankZap` | CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or sender-relative knock-back impulse | 0.45 | T2 | whole-game |
-| [0x1D4940](../../../src/hand/SetRobottankState.c) | `SetRobottankState` | Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5); drives body SMA goal from D_002C2208[state] | 0.50 | T1 | whole-game |
-| [0x1D4B28](../../../src/auto/func_001D4B28.c) | `SetRobottankTactic` | Set AI tactic x188 with timestamp x18C | 0.40 | T2 | whole-game |
-| [0x1D4B48](../../../src/hand/func_001D4B48.c) | `AddRobottankWheel` | Append wheel record (id, radius, ...) if fewer than 8 | 0.35 | T2 | whole-game |
-| [0x1D4B90](../../../src/hand/func_001D4B90.cpp) | `AddRobottankWeapon` | Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8 | 0.40 | T2 | whole-game |
-| [0x1D4C48](../../../src/hand/func_001D4C48.c) | `AddRobottankAttachment` | Append (id, data) record if fewer than 4 | 0.30 | T2 | whole-game |
-| [0x1D4C88](../../../src/hand/UpdateRobottankHealthMeter.c) | `UpdateRobottankHealthMeter` | Set meter value 0x34F = health/max (inverted if x564) | 0.50 | T1 | whole-game |
-| [0x1D4CE0](../../../src/hand/func_001D4CE0.c) | `SetRobottankAmmo` | Set ammo slot i (count, max) | 0.30 | T2 | whole-game |
-| [0x1D4D00](../../../src/auto/func_001D4D00.c) | `GetRobottankSlotValue` | Get field +0x574 of 12-byte slot i | 0.25 | T2 | whole-game |
-| [0x1D4D18](../../../src/auto/func_001D4D18.c) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
-| [0x1D4D30](../../../src/hand/func_001D4D30.c) | `InitRobottankWeapon` | Weapon record defaults (owner, default vectors D_002C2218..) | 0.40 | T2 | whole-game |
-| [0x1D4DE0](../../../src/auto/func_001D4DE0.c) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
-| [0x1D4E08](../../../src/hand/func_001D4E08.c) | `FRobottankWeaponHasAmmo` | ammo of the weapon's slot >= its cost | 0.45 | T2 | whole-game |
-| [0x1D4E30](../../../src/hand/func_001D4E30.c) | `UseRobottankWeaponAmmo` | Subtract weapon cost from its slot, clamp 0 | 0.40 | T2 | whole-game |
-| [0x1D4E68](../../../src/hand/InitRcPickup.c) | `InitRcPickup` | CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1 | 0.60 | T1 |  |
-| [0x1D4EC8](../../../src/hand/PostRcPickupLoad.c) | `PostRcPickupLoad` | CID 108 vt15: PostSoLoad, SMA binding, state 0 | 0.60 | T1 |  |
-| [0x1D4F10](../../../src/auto/func_001D4F10.c) | `RcPickup_VUnk26Proxy` | CID 108 vt26: proxy base then state -1 -> 0 (respawn) | 0.40 | T2 |  |
-| [0x1D4F50](../../../src/hand/UpdateRcPickup.c) | `UpdateRcPickup` | CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3 | 0.55 | T1 |  |
-| [0x1D4FA0](../../../src/hand/SetRcPickupState.c) | `SetRcPickupState` | Pickup state x150 with time; SMA goal from D_002C2248[state] | 0.50 | T1 |  |
+| [0x1D1370](../../../src/game/gameplay/objects/tu_1D1370/InitRobottank.c) | `InitRobottank` | CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1 | 0.75 | T1 | whole-game |
+| [0x1D1410](../../../src/game/gameplay/objects/tu_1D1370/CloneRobottank.cpp) | `CloneRobottank` | CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30, copy 0x9C bytes) | 0.70 | T1 | whole-game |
+| [0x1D14C0](../../../src/game/gameplay/objects/tu_1D1370/ResetRobottankHealth.c) | `ResetRobottankHealth` | health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0) | 0.50 | T1 | whole-game |
+| [0x1D1518](../../../src/game/gameplay/objects/tu_1D1370/PostRobottankLoad.cpp) | `PostRobottankLoad` | CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop unresolved  | 0.75 | T1 | whole-game |
+| [0x1D1910](../../../src/game/gameplay/objects/tu_1D1370/func_001D1910.c) | `Robottank_VUnk26Proxy` | CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth | 0.40 | T2 | whole-game |
+| [0x1D1940](../../../src/game/gameplay/objects/tu_1D1370/OnRobottankActive.c) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
+| [0x1D19A8](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottank.cpp) | `UpdateRobottank` | CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound v | 0.75 | T1 | whole-game |
+| [0x1D2150](../../../src/game/gameplay/objects/tu_1D1370/ReadRobottankInput.c) | `ReadRobottankInput` | Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires (SMA goal 0x68) or held-flag variant (0x67) | 0.50 | T1 | whole-game |
+| [0x1D2240](../../../src/game/gameplay/objects/tu_1D1370/func_001D2240.c) | `PweaponReadyRobottank` | First weapon with enough ammo whose state is not 4 | 0.40 | T2 | whole-game |
+| [0x1D22D0](../../../src/game/gameplay/objects/tu_1D1370/func_001D22D0.c) | `FindRobottankPickup` | Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass | 0.45 | T2 | whole-game |
+| [0x1D2420](../../../src/game/gameplay/objects/tu_1D1370/func_001D2420.c) | `ResetRobottankWheelHeights` | Clear x5B0 and set every wheel record's z to the car's height | 0.30 | T2 | whole-game |
+| [0x1D2490](../../../src/game/gameplay/objects/tu_1D1370/func_001D2490.c) | `SteerRobottankAlongPath` | Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive | 0.35 | T2 | whole-game |
+| [0x1D2610](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankAi.cpp) | `UpdateRobottankAi` | Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2 pursue, 3 back away), steering, fire weapons when aim error is small | 0.60 | T1 | whole-game |
+| [0x1D2DD0](../../../src/game/gameplay/objects/tu_1D1370/func_001D2DD0.c) | `PxpBestRobottankWheel` | Return the contact in an XP list with the largest +0x90 value (deepest) | 0.35 | T2 | whole-game |
+| [0x1D2E18](../../../src/game/gameplay/objects/tu_1D1370/PresetRobottankAccel.cpp) | `PresetRobottankAccel` | CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive within traction budget | 0.65 | T1 | whole-game |
+| [0x1D3450](../../../src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp) | `AddRobottankWheelXps` | Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18) | 0.55 | T1 | whole-game |
+| [0x1D3E48](../../../src/game/gameplay/objects/tu_1D1370/AddRobottankCustomXps.c) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
+| [0x1D3F30](../../../src/game/gameplay/objects/tu_1D1370/func_001D3F30.c) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
+| [0x1D3FA8](../../../src/game/gameplay/objects/tu_1D1370/func_001D3FA8.c) | `PweaponFindRobottank` | Find weapon record by id | 0.40 | T2 | whole-game |
+| [0x1D3FF0](../../../src/game/gameplay/objects/tu_1D1370/func_001D3FF0.c) | `CollectRobottankPickup` | Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup state 2 | 0.45 | T2 | whole-game |
+| [0x1D4050](../../../src/game/gameplay/objects/tu_1D1370/AdjustRobottankNewXp.c) | `AdjustRobottankNewXp` | CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID 0x6C pickup schedules CollectRcCarPickup | 0.55 | T1 | whole-game |
+| [0x1D4178](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankBounds.c) | `UpdateRobottankBounds` | CID 77 vt49: SO tree bounds then extend by each wheel sphere | 0.50 | T1 | whole-game |
+| [0x1D41F8](../../../src/game/gameplay/objects/tu_1D1370/RenderRobottankSelf.cpp) | `RenderRobottankSelf` | CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then RenderSoSelf | 0.60 | T1 | whole-game |
+| [0x1D4568](../../../src/game/gameplay/objects/tu_1D1370/func_001D4568.cpp) | `HandleRobottankZap` | CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or sender-relative knock-back impulse | 0.45 | T2 | whole-game |
+| [0x1D4940](../../../src/game/gameplay/objects/tu_1D1370/SetRobottankState.c) | `SetRobottankState` | Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5); drives body SMA goal from D_002C2208[state] | 0.50 | T1 | whole-game |
+| [0x1D4B28](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B28.c) | `SetRobottankTactic` | Set AI tactic x188 with timestamp x18C | 0.40 | T2 | whole-game |
+| [0x1D4B48](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B48.c) | `AddRobottankWheel` | Append wheel record (id, radius, ...) if fewer than 8 | 0.35 | T2 | whole-game |
+| [0x1D4B90](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B90.cpp) | `AddRobottankWeapon` | Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8 | 0.40 | T2 | whole-game |
+| [0x1D4C48](../../../src/game/gameplay/objects/tu_1D1370/func_001D4C48.c) | `AddRobottankAttachment` | Append (id, data) record if fewer than 4 | 0.30 | T2 | whole-game |
+| [0x1D4C88](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankHealthMeter.c) | `UpdateRobottankHealthMeter` | Set meter value 0x34F = health/max (inverted if x564) | 0.50 | T1 | whole-game |
+| [0x1D4CE0](../../../src/game/gameplay/objects/tu_1D1370/func_001D4CE0.c) | `SetRobottankAmmo` | Set ammo slot i (count, max) | 0.30 | T2 | whole-game |
+| [0x1D4D00](../../../src/game/gameplay/objects/tu_1D1370/func_001D4D00.c) | `GetRobottankSlotValue` | Get field +0x574 of 12-byte slot i | 0.25 | T2 | whole-game |
+| [0x1D4D18](../../../src/game/gameplay/objects/tu_1D1370/func_001D4D18.c) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
+| [0x1D4D30](../../../src/game/gameplay/objects/tu_1D1370/func_001D4D30.c) | `InitRobottankWeapon` | Weapon record defaults (owner, default vectors D_002C2218..) | 0.40 | T2 | whole-game |
+| [0x1D4DE0](../../../src/game/gameplay/objects/tu_1D1370/func_001D4DE0.c) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
+| [0x1D4E08](../../../src/game/gameplay/objects/tu_1D1370/func_001D4E08.c) | `FRobottankWeaponHasAmmo` | ammo of the weapon's slot >= its cost | 0.45 | T2 | whole-game |
+| [0x1D4E30](../../../src/game/gameplay/objects/tu_1D1370/func_001D4E30.c) | `UseRobottankWeaponAmmo` | Subtract weapon cost from its slot, clamp 0 | 0.40 | T2 | whole-game |
+| [0x1D4E68](../../../src/game/gameplay/objects/tu_1D1370/InitRcPickup.c) | `InitRcPickup` | CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1 | 0.60 | T1 |  |
+| [0x1D4EC8](../../../src/game/gameplay/objects/tu_1D1370/PostRcPickupLoad.c) | `PostRcPickupLoad` | CID 108 vt15: PostSoLoad, SMA binding, state 0 | 0.60 | T1 |  |
+| [0x1D4F10](../../../src/game/gameplay/objects/tu_1D1370/func_001D4F10.c) | `RcPickup_VUnk26Proxy` | CID 108 vt26: proxy base then state -1 -> 0 (respawn) | 0.40 | T2 |  |
+| [0x1D4F50](../../../src/game/gameplay/objects/tu_1D1370/UpdateRcPickup.c) | `UpdateRcPickup` | CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3 | 0.55 | T1 |  |
+| [0x1D4FA0](../../../src/game/gameplay/objects/tu_1D1370/SetRcPickupState.c) | `SetRcPickupState` | Pickup state x150 with time; SMA goal from D_002C2248[state] | 0.50 | T1 |  |
 
 ## sensor (0x1DE2A0-0x1DFAD8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1DE2A0](../../../src/hand/InitSensor.c) | `InitSensor` | SENSOR::Init (vt7): InitSo; set SO grf bit 34 | 0.55 | T1 |  |
-| [0x1DE2D8](../../../src/hand/FIgnoreSensorIntersection.c) | `FIgnoreSensorIntersection` | SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7, FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore | 0.55 | T1 |  |
-| [0x1DE3B0](../../../src/hand/AddSensorNoTriggerClass.c) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
-| [0x1DE3D8](../../../src/hand/AddSensorNoTriggerObject.c) | `AddSensorNoTriggerObject` | Append an oid to the no-trigger object list (+0x150, max 7) | 0.55 | T1 |  |
-| [0x1DE400](../../../src/hand/func_001DE400.c) | `InitLasen` | LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8 | 0.45 | T2 |  |
-| [0x1DE478](../../../src/hand/LoadLasenFromBrx.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
-| [0x1DE518](../../../src/hand/CloneLasen.c) | `CloneLasen` | LASEN::Clone (vt41): Clone__2SO then private copy of the beam array | 0.50 | T1 |  |
-| [0x1DE568](../../../src/auto/PostLasenLoad.c) | `PostLasenLoad` | LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0), initial zap pass (0x1DF260) | 0.50 | T1 |  |
-| [0x1DE5A8](../../../src/hand/func_001DE5A8.c) | `LASEN_PtreeNew` | LASEN vt53: SO::PtreeNew then set tree flag 0x20 | 0.40 | T2 |  |
-| [0x1DE5D8](../../../src/hand/func_001DE5D8.cpp) | `BuildLasenBeams` | (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion profile) and the beams' bounding box as the SO's single part | 0.45 | T2 |  |
-| [0x1DEDB0](../../../src/hand/func_001DEDB0.c) | `BindLasenAnims` | For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key | 0.35 | T2 |  |
-| [0x1DEEA8](../../../src/hand/func_001DEEA8.c) | `RemoveLasenContacts` | LASEN vt54: drop beam contact links that reference object x and free them | 0.35 | T2 |  |
-| [0x1DEF98](../../../src/hand/GetLasenBeamEnds.c) | `GetLasenBeamEnds` | World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their distance | 0.50 | T1 |  |
-| [0x1DF0A0](../../../src/hand/func_001DF0A0.cpp) | `UpdateLasenContacts` | LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap | 0.35 | T2 |  |
-| [0x1DF260](../../../src/hand/ZapLasenBeams.c) | `ZapLasenBeams` | For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped (InflictZap kind 0x1000, -10) and the visible length is cut to it | 0.50 | T1 |  |
-| [0x1DF3A0](../../../src/auto/UpdateLasen.c) | `UpdateLasen` | LASEN::Update (vt16): UpdateSo then move path endpoints | 0.50 | T1 |  |
-| [0x1DF3D0](../../../src/hand/func_001DF3D0.c) | `MoveLasenEndpoints` | Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark the tree dirty, recompute length | 0.45 | T2 |  |
-| [0x1DF5B0](../../../src/hand/RenderLasenSelf.cpp) | `RenderLasenSelf` | LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix) | 0.50 | T1 |  |
-| [0x1DF908](../../../src/hand/AddLasenBeam.c) | `AddLasenBeam` | Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40) | 0.50 | T1 |  |
+| [0x1DE2A0](../../../src/game/gameplay/objects/sensor/InitSensor.c) | `InitSensor` | SENSOR::Init (vt7): InitSo; set SO grf bit 34 | 0.55 | T1 |  |
+| [0x1DE2D8](../../../src/game/gameplay/objects/sensor/FIgnoreSensorIntersection.c) | `FIgnoreSensorIntersection` | SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7, FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore | 0.55 | T1 |  |
+| [0x1DE3B0](../../../src/game/gameplay/objects/sensor/AddSensorNoTriggerClass.c) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
+| [0x1DE3D8](../../../src/game/gameplay/objects/sensor/AddSensorNoTriggerObject.c) | `AddSensorNoTriggerObject` | Append an oid to the no-trigger object list (+0x150, max 7) | 0.55 | T1 |  |
+| [0x1DE400](../../../src/game/gameplay/objects/sensor/func_001DE400.c) | `InitLasen` | LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8 | 0.45 | T2 |  |
+| [0x1DE478](../../../src/game/gameplay/objects/sensor/LoadLasenFromBrx.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
+| [0x1DE518](../../../src/game/gameplay/objects/sensor/CloneLasen.c) | `CloneLasen` | LASEN::Clone (vt41): Clone__2SO then private copy of the beam array | 0.50 | T1 |  |
+| [0x1DE568](../../../src/game/gameplay/objects/sensor/PostLasenLoad.c) | `PostLasenLoad` | LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0), initial zap pass (0x1DF260) | 0.50 | T1 |  |
+| [0x1DE5A8](../../../src/game/gameplay/objects/sensor/func_001DE5A8.c) | `LASEN_PtreeNew` | LASEN vt53: SO::PtreeNew then set tree flag 0x20 | 0.40 | T2 |  |
+| [0x1DE5D8](../../../src/game/gameplay/objects/sensor/func_001DE5D8.cpp) | `BuildLasenBeams` | (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion profile) and the beams' bounding box as the SO's single part | 0.45 | T2 |  |
+| [0x1DEDB0](../../../src/game/gameplay/objects/sensor/func_001DEDB0.c) | `BindLasenAnims` | For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key | 0.35 | T2 |  |
+| [0x1DEEA8](../../../src/game/gameplay/objects/sensor/func_001DEEA8.c) | `RemoveLasenContacts` | LASEN vt54: drop beam contact links that reference object x and free them | 0.35 | T2 |  |
+| [0x1DEF98](../../../src/game/gameplay/objects/sensor/GetLasenBeamEnds.c) | `GetLasenBeamEnds` | World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their distance | 0.50 | T1 |  |
+| [0x1DF0A0](../../../src/game/gameplay/objects/sensor/func_001DF0A0.cpp) | `UpdateLasenContacts` | LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap | 0.35 | T2 |  |
+| [0x1DF260](../../../src/game/gameplay/objects/sensor/ZapLasenBeams.c) | `ZapLasenBeams` | For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped (InflictZap kind 0x1000, -10) and the visible length is cut to it | 0.50 | T1 |  |
+| [0x1DF3A0](../../../src/game/gameplay/objects/sensor/UpdateLasen.c) | `UpdateLasen` | LASEN::Update (vt16): UpdateSo then move path endpoints | 0.50 | T1 |  |
+| [0x1DF3D0](../../../src/game/gameplay/objects/sensor/func_001DF3D0.c) | `MoveLasenEndpoints` | Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark the tree dirty, recompute length | 0.45 | T2 |  |
+| [0x1DF5B0](../../../src/game/gameplay/objects/sensor/RenderLasenSelf.cpp) | `RenderLasenSelf` | LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix) | 0.50 | T1 |  |
+| [0x1DF908](../../../src/game/gameplay/objects/sensor/AddLasenBeam.c) | `AddLasenBeam` | Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40) | 0.50 | T1 |  |
 
 ## tu_1FF3B8 (0x1FF3B8-0x1FF690)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FF3B8](../../../src/auto/func_001FF3B8.c) | `InitCid39` | CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70) | 0.60 | T2 |  |
-| [0x1FF3E8](../../../src/hand/func_001FF3E8.c) | `PostCid39Load` | vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58 | 0.55 | T2 |  |
-| [0x1FF438](../../../src/auto/func_001FF438.c) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |
-| [0x1FF470](../../../src/auto/func_001FF470.c) | `OnCid39Remove` | vt22: remove from SW update array (0x1A6150) and from DL D_003E13D8 | 0.85 | T2 | verified, arbitration |
-| [0x1FF4A8](../../../src/hand/func_001FF4A8.c) | `CloneCid39` | Clone: XFM clone (0x2311B0) preserving a key field | 0.80 | T2 | verified |
-| [0x1FF4F0](../../../src/hand/func_001FF4F0.c) | `GetCid27VecToLo` | *pv = PosLoWorld(a) - p->pos when pv non-NULL | 0.25 | T2 |  |
+| [0x1FF3B8](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF3B8.c) | `InitCid39` | CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70) | 0.60 | T2 |  |
+| [0x1FF3E8](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF3E8.c) | `PostCid39Load` | vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58 | 0.55 | T2 |  |
+| [0x1FF438](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF438.c) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |
+| [0x1FF470](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF470.c) | `OnCid39Remove` | vt22: remove from SW update array (0x1A6150) and from DL D_003E13D8 | 0.85 | T2 | verified, arbitration |
+| [0x1FF4A8](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF4A8.c) | `CloneCid39` | Clone: XFM clone (0x2311B0) preserving a key field | 0.80 | T2 | verified |
+| [0x1FF4F0](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF4F0.c) | `GetCid27VecToLo` | *pv = PosLoWorld(a) - p->pos when pv non-NULL | 0.25 | T2 |  |
 
 ## target (0x21D278-0x21D638)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21D278](../../../src/auto/InitTarget.c) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
-| [0x21D2C8](../../../src/hand/PostTargetLoad.c) | `PostTargetLoad` | PostLoLoad then if sBusy(0x38)==1e10: sBusy = sRadiusTarget + const D_002C40C0 | 0.60 | T1 |  |
-| [0x21D320](../../../src/auto/OnTargetRemove.c) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D358](../../../src/auto/OnTargetAdd.c) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D390](../../../src/hand/CloneTarget.c) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
-| [0x21D3D8](../../../src/hand/func_0021D3D8.c) | `InitCid21` | InitXfm; 0xE8=2000, 0xEC=-800, 0xF0=800, 0xF4=1 | 0.40 | T2 |  |
-| [0x21D428](../../../src/auto/func_0021D428.c) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
-| [0x21D460](../../../src/auto/func_0021D460.c) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
-| [0x21D498](../../../src/hand/func_0021D498.c) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
+| [0x21D278](../../../src/game/gameplay/objects/target/InitTarget.c) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
+| [0x21D2C8](../../../src/game/gameplay/objects/target/PostTargetLoad.c) | `PostTargetLoad` | PostLoLoad then if sBusy(0x38)==1e10: sBusy = sRadiusTarget + const D_002C40C0 | 0.60 | T1 |  |
+| [0x21D320](../../../src/game/gameplay/objects/target/OnTargetRemove.c) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D358](../../../src/game/gameplay/objects/target/OnTargetAdd.c) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D390](../../../src/game/gameplay/objects/target/CloneTarget.c) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
+| [0x21D3D8](../../../src/game/gameplay/objects/target/func_0021D3D8.c) | `InitCid21` | InitXfm; 0xE8=2000, 0xEC=-800, 0xF0=800, 0xF4=1 | 0.40 | T2 |  |
+| [0x21D428](../../../src/game/gameplay/objects/target/func_0021D428.c) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
+| [0x21D460](../../../src/game/gameplay/objects/target/func_0021D460.c) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
+| [0x21D498](../../../src/game/gameplay/objects/target/func_0021D498.c) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
 
 ## tu_223F70 (0x223F70-0x2259D8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x223F70](../../../src/hand/func_00223F70.c) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
-| [0x223FE0](../../../src/auto/func_00223FE0.c) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
-| [0x224028](../../../src/hand/func_00224028.c) | `AddCid100Hierarchy` | SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal) | 0.40 | T2 |  |
-| [0x224068](../../../src/hand/func_00224068.c) | `RemoveCid100Hierarchy` | SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8 | 0.40 | T2 |  |
-| [0x2240B0](../../../src/hand/func_002240B0.c) | `UpdateCid100` | SO update (0x1F36E0); in state 1 with link calls 0x224258; distance check to target pt | 0.45 | T2 |  |
-| [0x2241D8](../../../src/hand/func_002241D8.c) | `HandleCid100Message` | base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3) | 0.50 | T2 |  |
-| [0x224380](../../../src/hand/func_00224380.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
-| [0x224508](../../../src/hand/func_00224508.c) | `FCid100ChainFree` | returns 0 if any node in list has one of 4 flags D_002C42E8 | 0.30 | T2 |  |
-| [0x224590](../../../src/hand/func_00224590.c) | `FCid100Active` | returns state in {1,2} | 0.40 | T2 |  |
-| [0x224610](../../../src/hand/func_00224610.c) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
-| [0x224638](../../../src/hand/func_00224638.c) | `FCid100StateBlocks` | state table predicate (4 with flag; 5,7,9,11,13,26,37,41) | 0.30 | T2 |  |
-| [0x224688](../../../src/auto/func_00224688.c) | `FCid100State11` | returns field 0x15C == 11 | 0.40 | T2 |  |
-| [0x224698](../../../src/hand/func_00224698.cpp) | `OrientCid100ToTarget` | turns linked active object toward target in horizontal plane | 0.30 | T2 |  |
-| [0x224820](../../../src/hand/func_00224820.cpp) | `ProbeCid100Hit` | traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*) | 0.40 | T2 |  |
-| [0x224BF8](../../../src/hand/func_00224BF8.c) | `SweepCid100Probes` | builds probe sphere set and calls 0x224820 per probe | 0.30 | T2 |  |
-| [0x224EC8](../../../src/hand/func_00224EC8.cpp) | `SetCid100State` | actor controller state transitions | 0.35 | T2 |  |
-| [0x2252E0](../../../src/auto/func_002252E0.c) | `InitCid102` | calls InitCid100 | 0.55 | T2 |  |
-| [0x225300](../../../src/hand/func_00225300.cpp) | `UpdateCid102` | state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3 | 0.45 | T2 |  |
-| [0x225660](../../../src/hand/func_00225660.cpp) | `SenseCid102` | change selection state and prepare nearest eligible actor | 0.30 | T2 |  |
+| [0x223F70](../../../src/game/gameplay/objects/tu_223F70/func_00223F70.c) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
+| [0x223FE0](../../../src/game/gameplay/objects/tu_223F70/func_00223FE0.c) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
+| [0x224028](../../../src/game/gameplay/objects/tu_223F70/func_00224028.c) | `AddCid100Hierarchy` | SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal) | 0.40 | T2 |  |
+| [0x224068](../../../src/game/gameplay/objects/tu_223F70/func_00224068.c) | `RemoveCid100Hierarchy` | SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8 | 0.40 | T2 |  |
+| [0x2240B0](../../../src/game/gameplay/objects/tu_223F70/func_002240B0.c) | `UpdateCid100` | SO update (0x1F36E0); in state 1 with link calls 0x224258; distance check to target pt | 0.45 | T2 |  |
+| [0x2241D8](../../../src/game/gameplay/objects/tu_223F70/func_002241D8.c) | `HandleCid100Message` | base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3) | 0.50 | T2 |  |
+| [0x224380](../../../src/game/gameplay/objects/tu_223F70/func_00224380.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
+| [0x224508](../../../src/game/gameplay/objects/tu_223F70/func_00224508.c) | `FCid100ChainFree` | returns 0 if any node in list has one of 4 flags D_002C42E8 | 0.30 | T2 |  |
+| [0x224590](../../../src/game/gameplay/objects/tu_223F70/func_00224590.c) | `FCid100Active` | returns state in {1,2} | 0.40 | T2 |  |
+| [0x224610](../../../src/game/gameplay/objects/tu_223F70/func_00224610.c) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
+| [0x224638](../../../src/game/gameplay/objects/tu_223F70/func_00224638.c) | `FCid100StateBlocks` | state table predicate (4 with flag; 5,7,9,11,13,26,37,41) | 0.30 | T2 |  |
+| [0x224688](../../../src/game/gameplay/objects/tu_223F70/func_00224688.c) | `FCid100State11` | returns field 0x15C == 11 | 0.40 | T2 |  |
+| [0x224698](../../../src/game/gameplay/objects/tu_223F70/func_00224698.cpp) | `OrientCid100ToTarget` | turns linked active object toward target in horizontal plane | 0.30 | T2 |  |
+| [0x224820](../../../src/game/gameplay/objects/tu_223F70/func_00224820.cpp) | `ProbeCid100Hit` | traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*) | 0.40 | T2 |  |
+| [0x224BF8](../../../src/game/gameplay/objects/tu_223F70/func_00224BF8.c) | `SweepCid100Probes` | builds probe sphere set and calls 0x224820 per probe | 0.30 | T2 |  |
+| [0x224EC8](../../../src/game/gameplay/objects/tu_223F70/func_00224EC8.cpp) | `SetCid100State` | actor controller state transitions | 0.35 | T2 |  |
+| [0x2252E0](../../../src/game/gameplay/objects/tu_223F70/func_002252E0.c) | `InitCid102` | calls InitCid100 | 0.55 | T2 |  |
+| [0x225300](../../../src/game/gameplay/objects/tu_223F70/func_00225300.cpp) | `UpdateCid102` | state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3 | 0.45 | T2 |  |
+| [0x225660](../../../src/game/gameplay/objects/tu_223F70/func_00225660.cpp) | `SenseCid102` | change selection state and prepare nearest eligible actor | 0.30 | T2 |  |
 
 ## turret (0x2259D8-0x226550)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x2259D8](../../../src/hand/InitTurret.c) | `InitTurret` | InitPo; lmPan=(-1.5,1.5), lmTilt=(-0.7,0.7), defaults, self pointer | 0.75 | T1 |  |
-| [0x225A68](../../../src/auto/CloneTurret.c) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
-| [0x225AA8](../../../src/hand/PostTurretLoad.c) | `PostTurretLoad` | PostSoLoad then pending state -> 0x226370(p,1) | 0.60 | T1 |  |
-| [0x225AE8](../../../src/hand/OnTurretActive.c) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
-| [0x225B60](../../../src/auto/UpdateTurret.c) | `UpdateTurret` | SO update then aim (0x225BA0), zoom (0x225E98), fire (0x226250) | 0.70 | T1 |  |
-| [0x225BA0](../../../src/hand/UpdateTurretAim.cpp) | `UpdateTurretAim` | pan/tilt toward target or from stick, limited by lmPan/lmTilt | 0.50 | T1 |  |
-| [0x225E98](../../../src/hand/func_00225E98.cpp) | `UpdateTurretZoom` | zoom from target bounds or controller | 0.40 | T2 |  |
-| [0x226250](../../../src/hand/func_00226250.c) | `FireTurret` | on fire button (0x1C4700 mask 0xFF) spawn projectile (0x1CB250/0x1D6B00) and send splice event 5 | 0.45 | T2 |  |
-| [0x226310](../../../src/hand/func_00226310.c) | `FFilterTurret` | base filter 0x1F4FC8; add flag when other matches own target kind | 0.35 | T2 |  |
-| [0x226370](../../../src/hand/func_00226370.c) | `SetTurretActiveState` | state change; on enable builds a target vector and calls 0x12DC18/0x12E460 | 0.30 | T2 |  |
+| [0x2259D8](../../../src/game/gameplay/objects/turret/InitTurret.c) | `InitTurret` | InitPo; lmPan=(-1.5,1.5), lmTilt=(-0.7,0.7), defaults, self pointer | 0.75 | T1 |  |
+| [0x225A68](../../../src/game/gameplay/objects/turret/CloneTurret.c) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
+| [0x225AA8](../../../src/game/gameplay/objects/turret/PostTurretLoad.c) | `PostTurretLoad` | PostSoLoad then pending state -> 0x226370(p,1) | 0.60 | T1 |  |
+| [0x225AE8](../../../src/game/gameplay/objects/turret/OnTurretActive.c) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
+| [0x225B60](../../../src/game/gameplay/objects/turret/UpdateTurret.c) | `UpdateTurret` | SO update then aim (0x225BA0), zoom (0x225E98), fire (0x226250) | 0.70 | T1 |  |
+| [0x225BA0](../../../src/game/gameplay/objects/turret/UpdateTurretAim.cpp) | `UpdateTurretAim` | pan/tilt toward target or from stick, limited by lmPan/lmTilt | 0.50 | T1 |  |
+| [0x225E98](../../../src/game/gameplay/objects/turret/func_00225E98.cpp) | `UpdateTurretZoom` | zoom from target bounds or controller | 0.40 | T2 |  |
+| [0x226250](../../../src/game/gameplay/objects/turret/func_00226250.c) | `FireTurret` | on fire button (0x1C4700 mask 0xFF) spawn projectile (0x1CB250/0x1D6B00) and send splice event 5 | 0.45 | T2 |  |
+| [0x226310](../../../src/game/gameplay/objects/turret/func_00226310.c) | `FFilterTurret` | base filter 0x1F4FC8; add flag when other matches own target kind | 0.35 | T2 |  |
+| [0x226370](../../../src/game/gameplay/objects/turret/func_00226370.c) | `SetTurretActiveState` | state change; on enable builds a target vector and calls 0x12DC18/0x12E460 | 0.30 | T2 |  |

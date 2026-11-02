@@ -19,17 +19,17 @@ Totals on this page: EXISTING 12, T1 31, T2 5.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14BEA8](../../../src/hand/func_0014BEA8.c) | `AddCode` | If not already in the list (0x11A1B8 ≈ FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur = (current buttons D_002E0CB4 == ajbc[0]) | 0.85 | T1 |  |
-| [0x14BF18](../../../src/auto/UnmarkAll__10CSplotheap.c) | `_ResetCodes` | Sets ijbcCur = 0 on every code | 0.80 | existing | arbitration; replaces existing UnmarkAll__10CSplotheap |
-| [0x14BF48](../../../src/hand/func_0014BF48.c) | `_MatchCodes` | Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is set: for each unfinished code, advance ijbcCur if the press equals ajbc[ijbcCur], else reset to 0. Then tCheck = g_clock.tUn | 0.85 | T1 |  |
-| [0x14BFF8](../../../src/hand/func_0014BFF8.c) | `UpdateCodes` | When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc; StartSound(0x34) via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCodes; tCheck = 0 | 0.85 | T1 |  |
-| [0x14C140](../../../src/hand/func_0014C140.c) | `CheatResetEpisode` | 0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1) | 0.35 | T2 |  |
-| [0x14C190](../../../src/hand/func_0014C190.c) | `CheatWarpEpisode` | v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1) | 0.45 | T2 |  |
-| [0x14C1F0](../../../src/hand/func_0014C1F0.c) | `CheatSetFlag` | *pf = 1 | 0.70 | T1 |  |
-| [0x14C200](../../../src/auto/func_0014C200.c) | `CheatBuyItem1F` | If 0x1D82B8(&D_003E0EA8, ...) ≥ 100, 0x1DAF38(0x1F, 1); else play error sound 0x3E | 0.65 | T2 |  |
-| [0x14C258](../../../src/auto/func_0014C258.c) | `ClearCheatItems` | If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0) | 0.65 | T1 |  |
-| [0x14C2B0](../../../src/hand/func_0014C2B0.c) | `CheatGiveGadget` | 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh) | 0.65 | T1 |  |
-| [0x14C2D8](../../../src/auto/func_0014C2D8.c) | `StartupCodes` | InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0 | 0.85 | T1 |  |
+| [0x14BEA8](../../../src/game/gameplay/progression/cheat/func_0014BEA8.c) | `AddCode` | If not already in the list (0x11A1B8 ≈ FFindDlEntry), append it (AppendDlEntry 0x11A070); ijbcCur = (current buttons D_002E0CB4 == ajbc[0]) | 0.85 | T1 |  |
+| [0x14BF18](../../../src/game/gameplay/progression/cheat/UnmarkAll__10CSplotheap.c) | `_ResetCodes` | Sets ijbcCur = 0 on every code | 0.80 | existing | arbitration; replaces existing UnmarkAll__10CSplotheap |
+| [0x14BF48](../../../src/game/gameplay/progression/cheat/func_0014BF48.c) | `_MatchCodes` | Only for g_joy (D_002DFC00), on a new non-zero press (joy+0x10B4), and only while D_003DA0B8 is set: for each unfinished code, advance ijbcCur if the press equals ajbc[ijbcCur], else reset to 0. Then tCheck = g_clock.tUn | 0.85 | T1 |  |
+| [0x14BFF8](../../../src/game/gameplay/progression/cheat/func_0014BFF8.c) | `UpdateCodes` | When tCheck has passed: drop codes flagged fRemove; pick the completed code with the largest cjbc; StartSound(0x34) via 0x1FBB90/0x1FB2F8; pfn(nParam); _ResetCodes; tCheck = 0 | 0.85 | T1 |  |
+| [0x14C140](../../../src/game/gameplay/progression/cheat/func_0014C140.c) | `CheatResetEpisode` | 0x1FE9F8(D_003DD040, 0.0) then 0x22B490(g_sw, NULL, 0x189, -1, nParam, -1) | 0.35 | T2 |  |
+| [0x14C190](../../../src/game/gameplay/progression/cheat/func_0014C190.c) | `CheatWarpEpisode` | v = 0x210B98(iep) ?: 0x210B98(0), then 0x22B490(g_sw, v, 0x189, -1, 0, -1) | 0.45 | T2 |  |
+| [0x14C1F0](../../../src/game/gameplay/progression/cheat/func_0014C1F0.c) | `CheatSetFlag` | *pf = 1 | 0.70 | T1 |  |
+| [0x14C200](../../../src/game/gameplay/progression/cheat/func_0014C200.c) | `CheatBuyItem1F` | If 0x1D82B8(&D_003E0EA8, ...) ≥ 100, 0x1DAF38(0x1F, 1); else play error sound 0x3E | 0.65 | T2 |  |
+| [0x14C258](../../../src/game/gameplay/progression/cheat/func_0014C258.c) | `ClearCheatItems` | If D_002E1E40: find item 0x1F in it (0x141E78), remove it (0x141FC8), then 0x1DAF38(0x1F, 0) | 0.65 | T1 |  |
+| [0x14C2B0](../../../src/game/gameplay/progression/cheat/func_0014C2B0.c) | `CheatGiveGadget` | 0x1DAF38(nParam, 1); 0x19F0A8(g_sw) (refresh) | 0.65 | T1 |  |
+| [0x14C2D8](../../../src/game/gameplay/progression/cheat/func_0014C2D8.c) | `StartupCodes` | InitDl(pdl, 0x18) (DLE at CODE+0x18), then AddCode for the 15 records 0x2BD4E0..0x2BD7F0 | 0.85 | T1 |  |
 
 ## clock (0x14CFE0-0x14D3D8)
 

@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (DPRIZE) | `HandleDprizeMessage?` | `0x1C5098` |
 | 6 | Pclassinfo | **override** | [`GetClueClassDesc`](../../../src/auto/GetClueClassDesc.c) | `0x114000` |
-| 7 | Init | **override** | [`InitClue?`](../../../src/auto/func_001C7E38.c) | `0x1C7E38` |
+| 7 | Init | **override** | [`InitClue?`](../../../src/game/gameplay/progression/prize/func_001C7E38.c) | `0x1C7E38` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -48,8 +48,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 23 | OnAdd | inherited (SO) | `OnSoAdd` | `0x1F3EA8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`ClueVt26?`](../../../src/hand/func_001C7E68.c) | `0x1C7E68` |
-| 27 | LO_VUnk27Proxy | **override** | [`ClueVt27?`](../../../src/hand/func_001C7EA8.c) | `0x1C7EA8` |
+| 26 | ResetLoForProxy | **override** | [`ClueVt26?`](../../../src/game/gameplay/progression/prize/func_001C7E68.c) | `0x1C7E68` |
+| 27 | LO_VUnk27Proxy | **override** | [`ClueVt27?`](../../../src/game/gameplay/progression/prize/func_001C7EA8.c) | `0x1C7EA8` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
 | 30 | RotateToMat | inherited (SO) | `RotateSoToMat` | `0x1F42E0` |
@@ -98,7 +98,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
 | 75 | FZprHasField44 | inherited (DPRIZE) | `DPRIZE_VUnk75?` | `0x1C5DF0` |
-| 76 | SetDprizeDprizes | **override** | [`SetClueDprizes?`](../../../src/hand/func_001C7EE8.c) | `0x1C7EE8` |
+| 76 | SetDprizeDprizes | **override** | [`SetClueDprizes?`](../../../src/game/gameplay/progression/prize/func_001C7EE8.c) | `0x1C7EE8` |
 
 ## Fields
 

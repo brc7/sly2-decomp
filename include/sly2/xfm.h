@@ -26,7 +26,7 @@ struct BSPC
       BSP *absp;
 };
 
-/* XFM: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
+/* XFM: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct XFM : public LO
 {
       XF *pxfParent;
@@ -43,7 +43,7 @@ struct XFM : public LO
 typedef char assert_XFM_size[sizeof(XFM) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_XFM_matWorld[SLY2_OFFSETOF(XFM, matWorld) == 0xA0 ? 1 : -1];   /* translation at +0xD0 (CONFIRMED runtime) */
 
-/* SHAPE: from src/hand/UpdateJtLean__FP2JT.cpp (3 copies in Lilly ports) */
+/* SHAPE: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (3 copies in Lilly ports) */
 struct SHAPE : public XFM
 {
       CRVK crvk;
@@ -65,7 +65,7 @@ struct SHAPE : public XFM
 };
 typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* TARGET: from src/hand/UpdateJtLean__FP2JT.cpp (5 copies in Lilly ports) */
+/* TARGET: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (5 copies in Lilly ports) */
 struct TARGET : public XFM
 {
       DLE dleTarget;
@@ -77,7 +77,7 @@ struct TARGET : public XFM
 };
 typedef char assert_TARGET_size[sizeof(TARGET) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* VOL: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp */
+/* VOL: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp */
 struct VOL : public XFM
 {
       BSPC bspc;
@@ -89,7 +89,7 @@ struct VOL : public XFM
 };
 typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* PROXY: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (3 copies in Lilly ports) */
+/* PROXY: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (3 copies in Lilly ports) */
 struct PROXY : public XFM
 {
       PROXYSRC *psrc;

@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBarrelClassDesc`](../../../src/auto/GetBarrelClassDesc.c) | `0x113F90` |
-| 7 | Init | **override** | [`InitBarrel`](../../../src/auto/InitBarrel.c) | `0x183900` |
+| 7 | Init | **override** | [`InitBarrel`](../../../src/game/gameplay/player/grabspot/InitBarrel.c) | `0x183900` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -44,11 +44,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
-| 22 | OnRemove | **override** | [`OnBarrelRemove`](../../../src/auto/OnBarrelRemove.c) | `0x1839D0` |
-| 23 | OnAdd | **override** | [`OnBarrelAdd`](../../../src/auto/OnBarrelAdd.c) | `0x183998` |
+| 22 | OnRemove | **override** | [`OnBarrelRemove`](../../../src/game/gameplay/player/grabspot/OnBarrelRemove.c) | `0x1839D0` |
+| 23 | OnAdd | **override** | [`OnBarrelAdd`](../../../src/game/gameplay/player/grabspot/OnBarrelAdd.c) | `0x183998` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`BARREL_vt26?`](../../../src/auto/func_00183970.c) | `0x183970` |
+| 26 | ResetLoForProxy | **override** | [`BARREL_vt26?`](../../../src/game/gameplay/player/grabspot/func_00183970.c) | `0x183970` |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (SO) | `MatchSoXf?` | `0x1F49C8` |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` |
-| 41 | Clone | **override** | [`CloneBarrel`](../../../src/hand/CloneBarrel.c) | `0x183A08` |
+| 41 | Clone | **override** | [`CloneBarrel`](../../../src/game/gameplay/player/grabspot/CloneBarrel.c) | `0x183A08` |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |
@@ -83,7 +83,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
-| 61 | FIgnoreSoIntersection | **override** | [`BARREL_FIgnoreIntersection?`](../../../src/auto/func_00183A50.c) | `0x183A50` |
+| 61 | FIgnoreSoIntersection | **override** | [`BARREL_FIgnoreIntersection?`](../../../src/game/gameplay/player/grabspot/func_00183A50.c) | `0x183A50` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |
@@ -92,12 +92,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetBarrelAccel?`](../../../src/hand/func_00183B00.c) | `0x183B00` |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetBarrelAccel?`](../../../src/game/gameplay/player/grabspot/func_00183B00.c) | `0x183B00` |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`HandleBarrelZap?`](../../../src/hand/func_00183E08.c) | `0x183E08` |
+| 75 | FZprHasField44 | **override** | [`HandleBarrelZap?`](../../../src/game/gameplay/player/grabspot/func_00183E08.c) | `0x183E08` |
 
 ## Fields
 

@@ -35,7 +35,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/sw.h` (`struct SW : BASIC`). SW: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports)
+From `include/sly2/sw.h` (`struct SW : BASIC`). SW: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 18 header asserts agree, 0 disagree. Size from header: 0x4790.
 

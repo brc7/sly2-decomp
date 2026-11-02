@@ -7,7 +7,7 @@
 #include "sly2/aseg.h"
 #include "sly2/stepplayer.h"
 
-/* XMG: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
+/* XMG: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct XMG
 {
       ASEG *paseg;
@@ -22,7 +22,7 @@ struct XMG
       undefined4 unk_0x60[(0x100 - 0x60) / 4];
 };
 
-/* JTANIM: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
+/* JTANIM: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JTANIM
 {
       ASEGA *pasega;
@@ -40,7 +40,7 @@ struct JTANIM
       qword dposHang;
 };
 
-/* JTPOCKET: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
+/* JTPOCKET: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JTPOCKET
 {
       int idGadget;
@@ -48,7 +48,7 @@ struct JTPOCKET
       CID100 *pcid100;
 };
 
-/* JT: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
+/* JT: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JT : public STEPPLAYER
 {
       undefined4 unk_0x1320[0xb0 / 4];

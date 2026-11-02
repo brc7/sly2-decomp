@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetHndClassDesc`](../../../src/auto/GetHndClassDesc.c) | `0x113B40` |
-| 7 | Init | **override** | [`InitHnd`](../../../src/auto/InitHnd.c) | `0x184F50` |
+| 7 | Init | **override** | [`InitHnd`](../../../src/game/gameplay/player/hnd/InitHnd.c) | `0x184F50` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |

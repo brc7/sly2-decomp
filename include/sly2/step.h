@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/po.h"
 
-/* BHV: from src/hand/func_001E1E30.cpp (9 copies in Lilly ports) */
+/* BHV: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (9 copies in Lilly ports) */
 struct BHV : public BASIC
 {
       STEP *pstep;          /* +0x10 [R] owner STEP (== the guard/partner whose bhvstk holds it, all states) */
@@ -26,7 +26,7 @@ struct BHV : public BASIC
 };
 typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* BHVSTK: from src/hand/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* BHVSTK: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BHVSTK
 {
       STEP *pstep;          /* +0x00 [R] owner (STEP+0x26C) */
@@ -35,7 +35,7 @@ struct BHVSTK
 };
 
 
-/* STEP: from src/hand/JtChooseGroundState.cpp (15 copies in Lilly ports) */
+/* STEP: from src/game/gameplay/player/jt/JtChooseGroundState.cpp (15 copies in Lilly ports) */
 struct STEP : public PO
 {
       float gUnk180;

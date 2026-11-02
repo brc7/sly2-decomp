@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (DPRIZE) | `HandleDprizeMessage?` | `0x1C5098` |
 | 6 | Pclassinfo | **override** | [`GetKeyClassDesc`](../../../src/auto/GetKeyClassDesc.c) | `0x113FD0` |
-| 7 | Init | **override** | [`InitKey?`](../../../src/hand/func_001C6AB8.c) | `0x1C6AB8` |
+| 7 | Init | **override** | [`InitKey?`](../../../src/game/gameplay/progression/prize/func_001C6AB8.c) | `0x1C6AB8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -98,7 +98,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
 | 75 | FZprHasField44 | inherited (DPRIZE) | `DPRIZE_VUnk75?` | `0x1C5DF0` |
-| 76 | SetDprizeDprizes | **override** | [`SetKeyDprizes?`](../../../src/hand/func_001C6B28.c) | `0x1C6B28` |
+| 76 | SetDprizeDprizes | **override** | [`SetKeyDprizes?`](../../../src/game/gameplay/progression/prize/func_001C6B28.c) | `0x1C6B28` |
 
 ## Fields
 

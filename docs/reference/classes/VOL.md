@@ -77,7 +77,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/xfm.h` (`struct VOL : XFM`). VOL: from src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp
+From `include/sly2/xfm.h` (`struct VOL : XFM`). VOL: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 1 header asserts agree, 0 disagree. Size from header: 0x130.
 

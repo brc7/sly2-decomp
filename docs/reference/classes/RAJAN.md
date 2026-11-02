@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
 | 6 | Pclassinfo | **override** | [`GetRajanClassDesc`](../../../src/auto/GetRajanClassDesc.c) | `0x113DE0` |
-| 7 | Init | **override** | [`InitRajan?`](../../../src/hand/func_001CBEB0.c) | `0x1CBEB0` |
+| 7 | Init | **override** | [`InitRajan?`](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBEB0.c) | `0x1CBEB0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -111,8 +111,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 86 | FStepVt86 | inherited (STEPGUARD) | `FLethalStepguardZap?` | `0x207530` |
 | 87 | StepVt87Nop | inherited (STEPGUARD) | `SetStepguardPlayable?` | `0x1F1F38` |
 | 88 | PloChooseStepguardTarget | inherited (STEPGUARD) | `PloChooseStepguardTarget` | `0x2082D0` |
-| 89 | FStepguardSenseStimulus | **override** | [`Rajan_FSenseStimulus?`](../../../src/hand/func_001CBEE0.c) | `0x1CBEE0` |
-| 90 | SetRajanCameraFocus | **new** | [`SetRajanCameraFocus?`](../../../src/hand/func_001CBF90.c) | `0x1CBF90` |
+| 89 | FStepguardSenseStimulus | **override** | [`Rajan_FSenseStimulus?`](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBEE0.c) | `0x1CBEE0` |
+| 90 | SetRajanCameraFocus | **new** | [`SetRajanCameraFocus?`](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBF90.c) | `0x1CBF90` |
 
 ## Fields
 

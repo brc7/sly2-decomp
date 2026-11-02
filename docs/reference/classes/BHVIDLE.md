@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvidle`](../../../src/auto/NewBhvidle.c) `0x1130E8` |
 | Descriptor getter (slot 6) | `GetBhvidleClassDesc` `0x1143F0` |
 | vtable | `D_002D0A30`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvidle`](../../../src/auto/NewBhvidle.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvidle`](../../../src/auto/NewBhvidle.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV158`, proposed `BHVIDLE` (confidence 0.6), guard flag `2 (default)`. stand idle anim (BHVANIM default flag 2); flag 1 = hands-off pose
@@ -31,13 +31,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvidleClassDesc`](../../../src/auto/GetBhvidleClassDesc.c) | `0x1143F0` |
-| 7 | Init | **override** | [`InitBhvidle`](../../../src/hand/InitBhvidle.c) | `0x174FC8` |
-| 8 | Start | **override** | [`StartBhvidle`](../../../src/hand/StartBhvidle.c) | `0x174FF8` |
-| 9 | Close | **override** | [`CloseBhvidle`](../../../src/hand/CloseBhvidle.c) | `0x175090` |
+| 7 | Init | **override** | [`InitBhvidle`](../../../src/game/gameplay/ai/guardbhv/InitBhvidle.c) | `0x174FC8` |
+| 8 | Start | **override** | [`StartBhvidle`](../../../src/game/gameplay/ai/guardbhv/StartBhvidle.c) | `0x174FF8` |
+| 9 | Close | **override** | [`CloseBhvidle`](../../../src/game/gameplay/ai/guardbhv/CloseBhvidle.c) | `0x175090` |
 | 10 | Update | inherited (BHVANIM) | `UpdateBhvanim` | `0x174B68` |
 | 11 | UpdateMotion | inherited (BHVANIM) | `UpdateBhvanimMotion` | `0x174F08` |
 | 12 | GrfGroundProbe | inherited (BHVANIM) | `BHVANIM_GrfGroundProbe` | `0x174EA0` |
-| 13 | FHandleMessage | **override** | [`BHVIDLE_FHandleMessage`](../../../src/hand/BHVIDLE_FHandleMessage.c) | `0x1750E0` |
+| 13 | FHandleMessage | **override** | [`BHVIDLE_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVIDLE_FHandleMessage.c) | `0x1750E0` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

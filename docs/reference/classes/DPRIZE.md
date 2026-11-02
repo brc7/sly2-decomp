@@ -26,21 +26,21 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleDprizeMessage?`](../../../src/hand/func_001C5098.c) | `0x1C5098` |
+| 5 | HandleMessage | **override** | [`HandleDprizeMessage?`](../../../src/game/gameplay/progression/prize/func_001C5098.c) | `0x1C5098` |
 | 6 | Pclassinfo | **override** | [`GetDprizeClassDesc`](../../../src/auto/GetDprizeClassDesc.c) | `0x113FB0` |
-| 7 | Init | **override** | [`InitDprize?`](../../../src/hand/func_001C4E50.c) | `0x1C4E50` |
+| 7 | Init | **override** | [`InitDprize?`](../../../src/game/gameplay/progression/prize/func_001C4E50.c) | `0x1C4E50` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadDprizeFromBrx?`](../../../src/auto/func_001C4EF8.c) | `0x1C4EF8` |
-| 15 | PostLoad | **override** | [`PostDprizeLoad?`](../../../src/hand/func_001C4F60.c) | `0x1C4F60` |
-| 16 | Update | **override** | [`UpdateDprize?`](../../../src/hand/func_001C5E48.cpp) | `0x1C5E48` |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`ProjectDprizeTransform?`](../../../src/hand/func_001C5148.cpp) | `0x1C5148` |
+| 14 | LoadFromBrx | **override** | [`LoadDprizeFromBrx?`](../../../src/game/gameplay/progression/prize/func_001C4EF8.c) | `0x1C4EF8` |
+| 15 | PostLoad | **override** | [`PostDprizeLoad?`](../../../src/game/gameplay/progression/prize/func_001C4F60.c) | `0x1C4F60` |
+| 16 | Update | **override** | [`UpdateDprize?`](../../../src/game/gameplay/progression/prize/func_001C5E48.cpp) | `0x1C5E48` |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`ProjectDprizeTransform?`](../../../src/game/gameplay/progression/prize/func_001C5148.cpp) | `0x1C5148` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderDprizeSelf?`](../../../src/hand/func_001C5FA0.cpp) | `0x1C5FA0` |
+| 19 | RenderSelf | **override** | [`RenderDprizeSelf?`](../../../src/game/gameplay/progression/prize/func_001C5FA0.cpp) | `0x1C5FA0` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
@@ -96,8 +96,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`DPRIZE_VUnk75?`](../../../src/hand/func_001C5DF0.c) | `0x1C5DF0` |
-| 76 | SetDprizeDprizes | **new** | [`SetDprizeDprizes?`](../../../src/hand/func_001C60B8.c) | `0x1C60B8` |
+| 75 | FZprHasField44 | **override** | [`DPRIZE_VUnk75?`](../../../src/game/gameplay/progression/prize/func_001C5DF0.c) | `0x1C5DF0` |
+| 76 | SetDprizeDprizes | **new** | [`SetDprizeDprizes?`](../../../src/game/gameplay/progression/prize/func_001C60B8.c) | `0x1C60B8` |
 
 ## Fields
 

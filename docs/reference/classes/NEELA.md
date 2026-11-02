@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
 | 6 | Pclassinfo | **override** | [`GetNeelaClassDesc`](../../../src/auto/GetNeelaClassDesc.c) | `0x113DD0` |
-| 7 | Init | **override** | [`InitNeela`](../../../src/auto/InitNeela.c) | `0x1B9F80` |
+| 7 | Init | **override** | [`InitNeela`](../../../src/game/gameplay/ai/tu_1B9F80/InitNeela.c) | `0x1B9F80` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (STEPGUARD) | `RemoveStepguardHierarchy` | `0x2064D8` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (STEP) | `LoadStepFromBrx` | `0x2039C0` |
-| 15 | PostLoad | **override** | [`PostNeelaLoad`](../../../src/hand/PostNeelaLoad.c) | `0x1BA018` |
-| 16 | Update | **override** | [`UpdateNeela`](../../../src/hand/UpdateNeela.cpp) | `0x1BA128` |
+| 15 | PostLoad | **override** | [`PostNeelaLoad`](../../../src/game/gameplay/ai/tu_1B9F80/PostNeelaLoad.c) | `0x1BA018` |
+| 16 | Update | **override** | [`UpdateNeela`](../../../src/game/gameplay/ai/tu_1B9F80/UpdateNeela.cpp) | `0x1BA128` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (STEPGUARD) | `RenderStepguardSelf` | `0x207690` |
@@ -48,7 +48,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 23 | OnAdd | inherited (STEPGUARD) | `OnStepguardAdd` | `0x2079E0` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`Neela_VUnk26Proxy?`](../../../src/hand/func_001BA0B8.c) | `0x1BA0B8` |
+| 26 | ResetLoForProxy | **override** | [`Neela_VUnk26Proxy?`](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA0B8.c) | `0x1BA0B8` |
 | 27 | LO_VUnk27Proxy | inherited (STEPGUARD) | `ClearStepguardState` | `0x206748` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (STEP) | `TranslateStepToPos` | `0x2041C0` |

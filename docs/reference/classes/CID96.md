@@ -27,28 +27,28 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleCid96Message?`](../../../src/hand/func_001B10D0.c) | `0x1B10D0` |
+| 5 | HandleMessage | **override** | [`HandleCid96Message?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B10D0.c) | `0x1B10D0` |
 | 6 | Pclassinfo | **override** | [`GetCid96ClassDesc`](../../../src/auto/GetCid96ClassDesc.c) | `0x114010` |
-| 7 | Init | **override** | [`InitCid96?`](../../../src/hand/func_001B0B78.c) | `0x1B0B78` |
+| 7 | Init | **override** | [`InitCid96?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0B78.c) | `0x1B0B78` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
-| 12 | RemoveHierarchy | **override** | [`RemoveCid96Hierarchy?`](../../../src/hand/func_001B0C68.c) | `0x1B0C68` |
+| 12 | RemoveHierarchy | **override** | [`RemoveCid96Hierarchy?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0C68.c) | `0x1B0C68` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadCid96FromBrx?`](../../../src/auto/func_001B0CA8.c) | `0x1B0CA8` |
-| 15 | PostLoad | **override** | [`PostCid96Load?`](../../../src/auto/func_001B0D08.c) | `0x1B0D08` |
-| 16 | Update | **override** | [`UpdateCid96?`](../../../src/hand/func_001B0E28.c) | `0x1B0E28` |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateCid96XfWorld?`](../../../src/hand/func_001B1030.c) | `0x1B1030` |
+| 14 | LoadFromBrx | **override** | [`LoadCid96FromBrx?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0CA8.c) | `0x1B0CA8` |
+| 15 | PostLoad | **override** | [`PostCid96Load?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D08.c) | `0x1B0D08` |
+| 16 | Update | **override** | [`UpdateCid96?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0E28.c) | `0x1B0E28` |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateCid96XfWorld?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1030.c) | `0x1B1030` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderCid96Self?`](../../../src/auto/func_001B1140.c) | `0x1B1140` |
+| 19 | RenderSelf | **override** | [`RenderCid96Self?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1140.c) | `0x1B1140` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
 | 23 | OnAdd | inherited (SO) | `OnSoAdd` | `0x1F3EA8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`Cid96_VUnk26Proxy?`](../../../src/auto/func_001B0D60.c) | `0x1B0D60` |
+| 26 | ResetLoForProxy | **override** | [`Cid96_VUnk26Proxy?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D60.c) | `0x1B0D60` |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
@@ -92,12 +92,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetCid96Accel?`](../../../src/auto/func_001B10B0.c) | `0x1B10B0` |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetCid96Accel?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B10B0.c) | `0x1B10B0` |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`HandleCid96Zap?`](../../../src/hand/func_001B0F88.c) | `0x1B0F88` |
+| 75 | FZprHasField44 | **override** | [`HandleCid96Zap?`](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0F88.c) | `0x1B0F88` |
 
 ## Fields
 

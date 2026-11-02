@@ -37,7 +37,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
-| 15 | PostLoad | **override** | [`PostClueproxyLoad?`](../../../src/hand/func_001C8030.c) | `0x1C8030` |
+| 15 | PostLoad | **override** | [`PostClueproxyLoad?`](../../../src/game/gameplay/progression/prize/func_001C8030.c) | `0x1C8030` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |

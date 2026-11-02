@@ -29,14 +29,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid98ClassDesc`](../../../src/auto/GetCid98ClassDesc.c) | `0x114030` |
-| 7 | Init | **override** | [`InitCid98?`](../../../src/auto/func_001BAB50.c) | `0x1BAB50` |
+| 7 | Init | **override** | [`InitCid98?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAB50.c) | `0x1BAB50` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadCid98FromBrx?`](../../../src/hand/func_001BABA0.cpp) | `0x1BABA0` |
+| 14 | LoadFromBrx | **override** | [`LoadCid98FromBrx?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BABA0.cpp) | `0x1BABA0` |
 | 15 | PostLoad | inherited (SO) | `PostSoLoad` | `0x1F36A8` |
 | 16 | Update | inherited (SO) | `UpdateSo` | `0x1F36E0` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
@@ -44,11 +44,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
-| 22 | OnRemove | **override** | [`OnCid98Remove?`](../../../src/auto/func_001BAD80.c) | `0x1BAD80` |
-| 23 | OnAdd | **override** | [`OnCid98Add?`](../../../src/auto/func_001BADB8.c) | `0x1BADB8` |
+| 22 | OnRemove | **override** | [`OnCid98Remove?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAD80.c) | `0x1BAD80` |
+| 23 | OnAdd | **override** | [`OnCid98Add?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BADB8.c) | `0x1BADB8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`Cid98_VUnk26Proxy?`](../../../src/hand/func_001BBEA8.c) | `0x1BBEA8` |
+| 26 | ResetLoForProxy | **override** | [`Cid98_VUnk26Proxy?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBEA8.c) | `0x1BBEA8` |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
@@ -80,7 +80,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 55 | SO_vt55_Nop | inherited (SO) | `SO_vt55_Nop?` | `0x1F4FB0` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
-| 58 | ScheduleSoTouchEvents | **override** | [`ScheduleCid98TouchEvents?`](../../../src/hand/func_001BB250.c) | `0x1BB250` |
+| 58 | ScheduleSoTouchEvents | **override** | [`ScheduleCid98TouchEvents?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB250.c) | `0x1BB250` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
 | 61 | FIgnoreSoIntersection | inherited (SO) | `FIgnoreSoIntersection` | `0x1F4FC8` |
@@ -97,7 +97,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`FCid98AcceptZap?`](../../../src/hand/func_001BADF0.c) | `0x1BADF0` |
+| 75 | FZprHasField44 | **override** | [`FCid98AcceptZap?`](../../../src/game/gameplay/objects/tu_1BAB50/func_001BADF0.c) | `0x1BADF0` |
 
 ## Fields
 

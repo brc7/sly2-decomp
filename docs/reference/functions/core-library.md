@@ -437,7 +437,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256278](../../../src/game/engine/camera/cm/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../src/game/core/linkonce/unhomed/func_00256298.c) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../src/game/core/linkonce/unhomed/func_002562A0.c) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2562A8](../../../src/hand/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
+| [0x2562A8](../../../src/game/gameplay/ai/guardbhv/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
 | [0x2562B8](../../../src/game/engine/physics/so/func_002562B8.c) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562E0](../../../src/game/core/linkonce/unhomed/func_002562E0.c) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562F0](../../../src/game/engine/physics/so/func_002562F0.c) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
@@ -512,12 +512,12 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258280](../../../src/game/core/linkonce/unhomed/func_00258280.c) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x258290](../../../src/game/engine/camera/cm/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x258348](../../../src/game/engine/presentation/screen/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258438](../../../src/hand/func_00258438.c) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258448](../../../src/hand/func_00258448.c) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258458](../../../src/hand/func_00258458.c) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258470](../../../src/auto/func_00258470.c) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x258478](../../../src/auto/func_00258478.c) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x258480](../../../src/hand/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
+| [0x258438](../../../src/game/gameplay/objects/rhythm/func_00258438.c) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258448](../../../src/game/gameplay/objects/rhythm/func_00258448.c) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258458](../../../src/game/gameplay/objects/rhythm/func_00258458.c) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258470](../../../src/game/gameplay/objects/rhythm/func_00258470.c) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x258478](../../../src/game/gameplay/objects/rhythm/func_00258478.c) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x258480](../../../src/game/gameplay/ai/tu_1553F0/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
 | [0x2584A8](../../../src/game/engine/fx/emitter/func_002584A8.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258598](../../../src/game/engine/fx/emitter/func_00258598.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258620](../../../src/game/engine/fx/emitter/func_00258620.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
@@ -569,30 +569,30 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2599D8](../../../src/game/engine/graphics/pipeline/glob/func_002599D8.c) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E0](../../../src/game/engine/graphics/pipeline/glob/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E8](../../../src/game/engine/graphics/pipeline/glob/func_002599E8.c) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599F0](../../../src/auto/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2599F0](../../../src/game/gameplay/player/grabspot/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599F8](../../../src/game/core/linkonce/unhomed/func_002599F8.c) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A00](../../../src/auto/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A00](../../../src/game/gameplay/player/grabspot/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A08](../../../src/game/core/linkonce/unhomed/func_00259A08.c) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A10](../../../src/auto/func_00259A10.c) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A10](../../../src/game/gameplay/player/grabspot/func_00259A10.c) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A18](../../../src/game/core/linkonce/unhomed/func_00259A18.c) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A20](../../../src/auto/func_00259A20.c) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A20](../../../src/game/gameplay/player/grabspot/func_00259A20.c) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A28](../../../src/game/core/linkonce/unhomed/func_00259A28.c) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A30](../../../src/auto/func_00259A30.c) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A30](../../../src/game/gameplay/player/grabspot/func_00259A30.c) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A38](../../../src/game/core/linkonce/unhomed/func_00259A38.c) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A40](../../../src/auto/func_00259A40.c) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A40](../../../src/game/gameplay/player/grabspot/func_00259A40.c) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A48](../../../src/game/core/linkonce/unhomed/func_00259A48.c) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A70](../../../src/hand/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259A70](../../../src/game/gameplay/player/grabspot/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259A78](../../../src/game/core/linkonce/unhomed/func_00259A78.c) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A88](../../../src/game/object/splicemap/func_00259A88.c) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259AE8](../../../src/game/core/linkonce/unhomed/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259AF8](../../../src/auto/func_00259AF8.c) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259AF8](../../../src/game/gameplay/player/pipe/func_00259AF8.c) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B00](../../../src/game/core/linkonce/unhomed/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259B08](../../../src/auto/func_00259B08.c) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259B08](../../../src/game/gameplay/player/rail/func_00259B08.c) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B10](../../../src/game/core/linkonce/unhomed/func_00259B10.c) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B20](../../../src/game/core/linkonce/unhomed/func_00259B20.c) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259B48](../../../src/game/engine/sound/sound/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x259BB0](../../../src/game/engine/sound/sound/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259C08](../../../src/hand/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259C08](../../../src/game/gameplay/player/grabspot/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../src/game/core/linkonce/unhomed/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/game/object/spliceobj/func_00259C18.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x259CF8](../../../src/game/object/spliceobj/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |

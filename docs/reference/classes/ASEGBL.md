@@ -74,7 +74,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/aseg.h` (`struct ASEGBL : ASEG`). ASEGBL: from src/hand/HeroInteractDistance.cpp (16 copies in Lilly ports)
+From `include/sly2/aseg.h` (`struct ASEGBL : ASEG`). ASEGBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 1 header asserts agree, 0 disagree. Size from header: 0xE0.
 

@@ -77,7 +77,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/xfm.h` (`struct XFM : LO`). XFM: from src/hand/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports)
+From `include/sly2/xfm.h` (`struct XFM : LO`). XFM: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 2 header asserts agree, 0 disagree. Size from header: 0xE0.
 

@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetRobottankClassDesc`](../../../src/auto/GetRobottankClassDesc.c) | `0x113EE0` |
-| 7 | Init | **override** | [`InitRobottank`](../../../src/hand/InitRobottank.c) | `0x1D1370` |
+| 7 | Init | **override** | [`InitRobottank`](../../../src/game/gameplay/objects/tu_1D1370/InitRobottank.c) | `0x1D1370` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,18 +37,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostRobottankLoad`](../../../src/hand/PostRobottankLoad.cpp) | `0x1D1518` |
-| 16 | Update | **override** | [`UpdateRobottank`](../../../src/hand/UpdateRobottank.cpp) | `0x1D19A8` |
+| 15 | PostLoad | **override** | [`PostRobottankLoad`](../../../src/game/gameplay/objects/tu_1D1370/PostRobottankLoad.cpp) | `0x1D1518` |
+| 16 | Update | **override** | [`UpdateRobottank`](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottank.cpp) | `0x1D19A8` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderRobottankSelf`](../../../src/hand/RenderRobottankSelf.cpp) | `0x1D41F8` |
+| 19 | RenderSelf | **override** | [`RenderRobottankSelf`](../../../src/game/gameplay/objects/tu_1D1370/RenderRobottankSelf.cpp) | `0x1D41F8` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
 | 23 | OnAdd | inherited (SO) | `OnSoAdd` | `0x1F3EA8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`Robottank_VUnk26Proxy?`](../../../src/auto/func_001D1910.c) | `0x1D1910` |
+| 26 | ResetLoForProxy | **override** | [`Robottank_VUnk26Proxy?`](../../../src/game/gameplay/objects/tu_1D1370/func_001D1910.c) | `0x1D1910` |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (SO) | `MatchSoXf?` | `0x1F49C8` |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` |
-| 41 | Clone | **override** | [`CloneRobottank`](../../../src/hand/CloneRobottank.cpp) | `0x1D1410` |
+| 41 | Clone | **override** | [`CloneRobottank`](../../../src/game/gameplay/objects/tu_1D1370/CloneRobottank.cpp) | `0x1D1410` |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |
@@ -71,18 +71,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (SO) | `SetSoVisMask` | `0x1A6DC8` |
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` |
-| 49 | UpdateSoTreeBounds | **override** | [`UpdateRobottankBounds`](../../../src/hand/UpdateRobottankBounds.c) | `0x1D4178` |
+| 49 | UpdateSoTreeBounds | **override** | [`UpdateRobottankBounds`](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankBounds.c) | `0x1D4178` |
 | 50 | GetSoCpdefi | inherited (SO) | `GetSoCpdefi` | `0x1F58F0` |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |
-| 54 | SO_vt54_Nop | **override** | [`Robottank_vt54?`](../../../src/hand/func_001D3F30.c) | `0x1D3F30` |
-| 55 | SO_vt55_Nop | **override** | [`AdjustRobottankNewXp`](../../../src/hand/AdjustRobottankNewXp.c) | `0x1D4050` |
+| 54 | SO_vt54_Nop | **override** | [`Robottank_vt54?`](../../../src/game/gameplay/objects/tu_1D1370/func_001D3F30.c) | `0x1D3F30` |
+| 55 | SO_vt55_Nop | **override** | [`AdjustRobottankNewXp`](../../../src/game/gameplay/objects/tu_1D1370/AdjustRobottankNewXp.c) | `0x1D4050` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
-| 60 | SO_vt60_Nop | **override** | [`AddRobottankCustomXps`](../../../src/hand/AddRobottankCustomXps.c) | `0x1D3E48` |
+| 60 | SO_vt60_Nop | **override** | [`AddRobottankCustomXps`](../../../src/game/gameplay/objects/tu_1D1370/AddRobottankCustomXps.c) | `0x1D3E48` |
 | 61 | FIgnoreSoIntersection | inherited (SO) | `FIgnoreSoIntersection` | `0x1F4FC8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
@@ -92,15 +92,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetRobottankAccel`](../../../src/hand/PresetRobottankAccel.cpp) | `0x1D2E18` |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetRobottankAccel`](../../../src/game/gameplay/objects/tu_1D1370/PresetRobottankAccel.cpp) | `0x1D2E18` |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`HandleRobottankZap?`](../../../src/hand/func_001D4568.cpp) | `0x1D4568` |
+| 75 | FZprHasField44 | **override** | [`HandleRobottankZap?`](../../../src/game/gameplay/objects/tu_1D1370/func_001D4568.cpp) | `0x1D4568` |
 | 76 | FInvulnerablePo | inherited (PO) | `FInvulnerablePo` | `0x1C3E90` |
 | 77 | JthsCurrentPo | inherited (PO) | `JthsCurrentPo` | `0x1C3ED0` |
-| 78 | OnPoActive | **override** | [`OnRobottankActive`](../../../src/auto/OnRobottankActive.c) | `0x1D1940` |
+| 78 | OnPoActive | **override** | [`OnRobottankActive`](../../../src/game/gameplay/objects/tu_1D1370/OnRobottankActive.c) | `0x1D1940` |
 | 79 | SetPoCtlState | inherited (PO) | `SetPoCtlState` | `0x1C3ED8` |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |

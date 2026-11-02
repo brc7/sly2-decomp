@@ -2,7 +2,7 @@
 // velocity toward the next point, avoidance of other bodies (loop), integration and collision clamp.
 // Built on lilly15 (aligned 11, T1686). What finished it (each measured, see notes/170000.md):
 //  - accel = VecCombo(VU_FLOAT(&D_002BE658), vGoal - p->v, VU_FLOAT(&D_002BE65C), next - p->pos): the game's own
-//    VecCombo (0x258480, matched as src/hand/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) inlined with by-value params and
+//    VecCombo (0x258480, matched as src/game/gameplay/ai/tu_1553F0/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) inlined with by-value params and
 //    the weight evaluated first. No "memory" clobber is needed; the old QwBlendF(dv, w1, dp, w2) order could not give
 //    the target lqc2 p->v / lui / lw / vsub / qmtc2 / lqc2 p->pos / sqc2 / lui schedule.
 //  - dpos = QwSub(posActor, posOther) (plain, not the VSub VV wrapper): the posActor/pctx spill slots 0x90/0xA0.

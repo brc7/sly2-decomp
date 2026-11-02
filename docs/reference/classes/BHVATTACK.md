@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvattack`](../../../src/auto/NewBhvattack.c) `0x113238` |
 | Descriptor getter (slot 6) | `GetBhvattackClassDesc` `0x114450` |
 | vtable | `D_002D0620`, 15 entries (slots 0..14; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewBhvattack`](../../../src/auto/NewBhvattack.c) (vptr +0xC), [`PbhvNew`](../../../src/hand/PbhvNew.c) |
+| vtable stored by | [`NewBhvattack`](../../../src/auto/NewBhvattack.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV164`, proposed `BHVATTACK` (confidence 0.6), guard flag `0x18`. perform one chosen attack: strike then follow-through on confirmed hit (msg 0xB)
@@ -31,13 +31,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvattackClassDesc`](../../../src/auto/GetBhvattackClassDesc.c) | `0x114450` |
-| 7 | Init | **override** | [`InitBhvattack`](../../../src/hand/InitBhvattack.c) | `0x1753D8` |
-| 8 | Start | **override** | [`StartBhvattack`](../../../src/auto/StartBhvattack.c) | `0x175410` |
-| 9 | Close | **override** | [`CloseBhvattack`](../../../src/auto/CloseBhvattack.c) | `0x175448` |
-| 10 | Update | **override** | [`UpdateBhvattack`](../../../src/hand/UpdateBhvattack.c) | `0x175600` |
+| 7 | Init | **override** | [`InitBhvattack`](../../../src/game/gameplay/ai/guardbhv/InitBhvattack.c) | `0x1753D8` |
+| 8 | Start | **override** | [`StartBhvattack`](../../../src/game/gameplay/ai/guardbhv/StartBhvattack.c) | `0x175410` |
+| 9 | Close | **override** | [`CloseBhvattack`](../../../src/game/gameplay/ai/guardbhv/CloseBhvattack.c) | `0x175448` |
+| 10 | Update | **override** | [`UpdateBhvattack`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvattack.c) | `0x175600` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
-| 13 | FHandleMessage | **override** | [`BHVATTACK_FHandleMessage`](../../../src/auto/BHVATTACK_FHandleMessage.c) | `0x1756C0` |
+| 13 | FHandleMessage | **override** | [`BHVATTACK_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVATTACK_FHandleMessage.c) | `0x1756C0` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields
