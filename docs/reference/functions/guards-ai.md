@@ -115,7 +115,7 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x16F148](../../../src/game/gameplay/ai/gomer.cpppp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |
+| [0x16F148](../../../src/game/gameplay/ai/gomer.cpp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |
 
 ## tu_1709A8 (0x1709A8-0x171F58)
 

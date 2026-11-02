@@ -149,7 +149,7 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 |---|---|---|---|---|---|
 | [0x15DC80](../../../src/game/gameplay/objects/tu_15DC80.cpp) | `InitCid116` | LO::Init, register for update, flags 0xA | 0.75 | T2 |  |
 | [0x15DCD8](../../../src/game/gameplay/objects/tu_15DC80.cpp) | `UpdateCid116` | LO::Update; when clock time - t68 exceeds the sum of three durations (5C+60+64) calls vtable slot (+0x48/0x4C) to expire itself | 0.65 | T2 |  |
-| [0x15DD48](../../../src/game/gameplay/objects/tu_15DC80.cpppp) | `RenderCid116Self` | Draws the timed object (1168-byte body) | 0.60 | T2 |  |
+| [0x15DD48](../../../src/game/gameplay/objects/tu_15DC80.cpp) | `RenderCid116Self` | Draws the timed object (1168-byte body) | 0.60 | T2 |  |
 
 ## tu_17F090 (0x17F090-0x182C70)
 

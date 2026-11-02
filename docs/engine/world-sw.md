@@ -180,7 +180,7 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13DA18](../../src/game/level/brx_sw.cpppp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
+| [0x13DA18](../../src/game/level/brx_sw.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
 | [0x13DF80](../../src/game/level/brx_sw.cpp) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
 | [0x13E0E0](../../src/game/level/brx_sw.cpp) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
 | [0x13E368](../../src/game/object/brx/PchzFindSwLangstr__FP2SWi.c) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |

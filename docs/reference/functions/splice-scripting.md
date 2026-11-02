@@ -252,13 +252,13 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128CB8](../../../src/game/splice/pair.cpppp) | `CPair_CloneTo` | Deep-copies a list: new nodes (0x256B48) with RefClone of each element | 0.75 | T1 |  |
+| [0x128CB8](../../../src/game/splice/pair.cpp) | `CPair_CloneTo` | Deep-copies a list: new nodes (0x256B48) with RefClone of each element | 0.75 | T1 |  |
 
 ## proc (0x128F70-0x1291A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128F70](../../../src/game/splice/proc.cpppp) | `CProc_CloneTo` | New proc (0x256F48) copying frame pointer and param/body lists | 0.75 | T1 |  |
+| [0x128F70](../../../src/game/splice/proc.cpp) | `CProc_CloneTo` | New proc (0x256F48) copying frame pointer and param/body lists | 0.75 | T1 |  |
 
 ## ref (0x1291A8-0x12A3D8)
 
@@ -324,7 +324,7 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12B0E8](../../../src/game/splice/varb.cpppp) | `CVarb_CloneTo` | Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone | 0.70 | T1 |  |
+| [0x12B0E8](../../../src/game/splice/varb.cpp) | `CVarb_CloneTo` | Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone | 0.70 | T1 |  |
 
 ## splicemap (0x1FF7E8-0x1FFCF8)
 

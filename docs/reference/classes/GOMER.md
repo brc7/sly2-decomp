@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
 | 6 | Pclassinfo | **override** | [`GetGomerClassDesc`](../../../src/game/app/class_registry/GetGomerClassDesc.c) | `0x113DA0` |
-| 7 | Init | **override** | [`RenderGomerSelf__FP5GOMERP2CMP2RO`](../../../src/game/gameplay/ai/gomer.cpppp) | `0x16F148` |
+| 7 | Init | **override** | [`RenderGomerSelf__FP5GOMERP2CMP2RO`](../../../src/game/gameplay/ai/gomer.cpp) | `0x16F148` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
