@@ -10,7 +10,7 @@ extern "C" {
 S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
 void AppendDlEntry__FP2DLPv(void *, S *);
-void func_00256EE0(S *, int);
+void FramePtr_Assign(S *, int);
 int FSmaRetracted(S *);
 int func_001F0438(P *, int);
 void NotifySmaSpliceOnEnterState(S *, int, int);
@@ -46,7 +46,7 @@ extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
     AppendDlEntry__FP2DLPv(p->dl68, ps);
     ps->pvt->a[1].pfn((char *)ps + ps->pvt->a[1].d);
     Lock l(p);
-    func_00256EE0(ps, p->n0);
+    FramePtr_Assign(ps, p->n0);
     ps->pvt->a3.pfn((char *)ps + ps->pvt->a3.d, 2, 0, 0, 0, 0);
     if (FSmaRetracted(ps)) return;
     if (b != -1) {

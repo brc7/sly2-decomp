@@ -4,7 +4,7 @@ struct T { int n0; char pad[0x4C]; int n50; };
 struct U { int n0; int n4; };
 struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; struct T *pt; int n34; int n38; int pad3; int n40; struct U *pu; int pad4; int n4C; };
 void PopBhv(void *p);
-void func_00256EE0(struct S *p, int n);
+void FramePtr_Assign(struct S *p, int n);
 void func_002580A8(void *p, int n);
 /** @sly2-annot addr=0x171258
  * Purpose: Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new
@@ -18,7 +18,7 @@ void func_00171258(struct S *p, struct T *t, int a, struct U *u) {
     if (p->pt) {
         PopBhv(p->a18);
         p->vt[3].pfn((char *)p + p->vt[3].d, 3, 0, 0, 0, 0);
-        func_00256EE0(p, 0);
+        FramePtr_Assign(p, 0);
         func_002580A8(p->a4, 0);
         p->n34 = 0;
         p->n38 = 0;
@@ -27,7 +27,7 @@ void func_00171258(struct S *p, struct T *t, int a, struct U *u) {
     }
     p->pt = t;
     if (!t) return;
-    func_00256EE0(p, t->n0);
+    FramePtr_Assign(p, t->n0);
     p->vt[3].pfn((char *)p + p->vt[3].d, 2, 0, 0, 0, 0);
     p->n4C = a;
     if (!u || !u->n0) {

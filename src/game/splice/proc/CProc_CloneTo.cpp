@@ -22,7 +22,7 @@ struct SPO {
     O *operator->() { return p; }
 };
 extern "C" {
-O *func_00256F48();
+O *PvNewProc();
 SPO CProc_CloneTo(O *poSrc, X *px);
 }
 /** @sly2-annot addr=0x128F70
@@ -37,7 +37,7 @@ SPO CProc_CloneTo(O *poSrc, X *px);
 SPO CProc_CloneTo(O *poSrc, X *px)
 {
     SPO sp;
-    sp.Set(func_00256F48());
+    sp.Set(PvNewProc());
     if (px)
         sp->spx = px;
     else

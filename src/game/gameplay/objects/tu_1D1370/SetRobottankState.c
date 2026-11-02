@@ -21,7 +21,7 @@ void PlayWidgetAnim(W *, int);
 void UpdateRobottankHealthMeter(OBJ *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, OBJ *);
-void func_00258040(void **, void *);
+void RcPtr_Assign(void **, void *);
 void SetSndRange(void *, float, float);
 void PauseSnd(void *);
 void StopSnd(void *, float);
@@ -53,7 +53,7 @@ void SetRobottankState(OBJ *p, int n)
         if (p->x59C != -1) {
             void *ps = PsndStartSound(p->x59C);
             SetSndSourceLo(ps, p);
-            func_00258040(&p->x598, ps);
+            RcPtr_Assign(&p->x598, ps);
             SetSndRange(p->x598, 500.0f, 1500.0f);
             PauseSnd(p->x598);
         }
@@ -73,7 +73,7 @@ void SetRobottankState(OBJ *p, int n)
             void **pps = &p->x598;
             if (*pps) {
                 StopSnd(*pps, 0.0f);
-                func_00258040(pps, 0);
+                RcPtr_Assign(pps, 0);
             }
         }
         break;

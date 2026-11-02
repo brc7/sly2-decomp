@@ -15,7 +15,7 @@ void SetSndRange(struct M *, float, float);
 void func_001FB1F8(struct M *, float);
 void SetSndPitch(struct M *, float);
 void func_001FB520(struct M *, float);
-void func_00258040(struct M **, struct M *);
+void RcPtr_Assign(struct M **, struct M *);
 static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
 /** @sly2-annot addr=0x210740
  * Purpose: ASEG event 0: start sfx at source object (optionally by oid) with range/vol/pitch; continuous ones
@@ -48,5 +48,5 @@ void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id
     SetSndPitch(m, offset);
     func_001FB520(m, fade);
     if (m->vt->kind((char *)m + m->vt->d) == 2)
-        func_00258040(out, m);
+        RcPtr_Assign(out, m);
 }

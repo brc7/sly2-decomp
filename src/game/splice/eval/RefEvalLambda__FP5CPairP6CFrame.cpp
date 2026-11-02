@@ -27,7 +27,7 @@ struct Q { char pad[8]; int f; Y *py; Q *pnext; };
 struct R { char pad[0x10]; Q *pq; };
 struct P { char pad[0xC]; R *pr; };
 extern "C" {
-O *func_00256F48();
+O *PvNewProc();
 CRef RefEvalLambda__FP5CPairP6CFrame(P *p, X *px);
 }
 /** @sly2-annot addr=0x127068
@@ -41,7 +41,7 @@ CRef RefEvalLambda__FP5CPairP6CFrame(P *p, X *px)
 {
     Q *pq = p->pr->pq;
     Y *py = (Y *)pq->pnext;
-    SPO sp(func_00256F48());
+    SPO sp(PvNewProc());
     sp->spx = px;
     if (pq->f == 0)
         sp->spy14 = 0;

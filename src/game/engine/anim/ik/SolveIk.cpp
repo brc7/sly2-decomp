@@ -18,7 +18,7 @@ inline void*operator new(unsigned int,void*p){return p;}
 struct GAME{char pad[0x3D58];int stamp;};extern "C" GAME D_003DD490;
 extern "C" float func_002456F0(float);
 extern "C" M3 func_0011B500(qword,float);
-extern "C" qword*func_00256D18(qword*,qword);
+extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" float RadBetweenVectors(qword,qword,qword*);
 extern "C" qword ConvertXfVec(void*,void*,qword);
 static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__("$4")=q->current;register qword odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
@@ -57,7 +57,7 @@ extern "C" void SolveIk(void*context,REQUEST*request){
  __asm__("lqc2 $vf2,%4\n\tvmulax.xyz $ACC,%0,$vf2x\n\tvmadday.xyz $ACC,%2,$vf2y\n\tvmaddz.xyz %0,%3,$vf2z\n\tsqc2 %0,%1"
   :"+j"(r0),"=m"(w.row[5].q):"j"(r1),"j"(r2),"m"(rest->r[2].q):"vf2");
  w.row[8].q=r0;
- (void)func_00256D18(translationOutput,translation);
+ (void)VECTOR_opAssign(translationOutput,translation);
  register U*axis __asm__("$6");register M3*alignedReturn __asm__("$18"),*twistedReturn __asm__("$19");
  register qword firstRow __asm__("$3"),secondRow __asm__("$2");register float one __asm__("$f0");
  __asm__("lq %0,0x30(%4)\n\taddiu %1,%4,0x30\n\tli.s %2,1.0\n\taddiu %3,%4,0x90"

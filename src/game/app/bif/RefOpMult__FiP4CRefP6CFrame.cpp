@@ -29,7 +29,7 @@ struct VU_FLOAT_F {
 struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f); };
 struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v); };
 qword operator*(VU_FLOAT_X f, VU_VECTOR v);
-extern "C" qword *func_00256D18(VECTOR *p, qword v);
+extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
 MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -171,7 +171,7 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *aref)
                 ref.InitTag(0x1C);
                 VECTOR *pvec = (VECTOR *)ref.u.pv;
                 VECTOR *pvSrc = (VECTOR *)pr->u.pv;
-                func_00256D18(pvec, VU_FLOAT_X(g) * VU_VECTOR(*pvSrc));
+                VECTOR_opAssign(pvec, VU_FLOAT_X(g) * VU_VECTOR(*pvSrc));
                 break;
             }
             case 0x1D: {
@@ -208,12 +208,12 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *aref)
             switch (pr->m_tagk) {
             case 0x15: {
                 VECTOR *pvec = (VECTOR *)ref.u.pv;
-                func_00256D18(pvec, VU_FLOAT_X((float)pr->u.n) * VU_VECTOR(*pvec));
+                VECTOR_opAssign(pvec, VU_FLOAT_X((float)pr->u.n) * VU_VECTOR(*pvec));
                 break;
             }
             case 0x16: {
                 VECTOR *pvec = (VECTOR *)ref.u.pv;
-                func_00256D18(pvec, VU_FLOAT_X(pr->u.g) * VU_VECTOR(*pvec));
+                VECTOR_opAssign(pvec, VU_FLOAT_X(pr->u.g) * VU_VECTOR(*pvec));
                 break;
             }
             }

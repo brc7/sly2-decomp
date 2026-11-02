@@ -7,7 +7,7 @@ struct M4 { VU r[4]; M4(Init mode) { if(mode==Zero)func_002333B4(this,0,0x40); }
 extern "C" M3 D_002A2D00;
 struct S { char pad[0x60]; void *p60; char pad1[0x160 - 0x64]; float x, y, z; };
 extern "C" qword ConvertAloPos(int a, struct S *p, qword q);
-extern "C" VU *func_00256D18(VU *pv, qword q);
+extern "C" VU *VECTOR_opAssign(VU *pv, qword q);
 
 extern "C" void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
 extern "C" qword func_0011BFB8(M4 *pm);
@@ -27,7 +27,7 @@ extern "C" void CalculateWaterCurrent(struct S *p, qword v, qword *ppos, qword *
     q.f[2] = 0.0f;
     pmI = &D_002A2D00;
     pm = &m1;
-    func_00256D18(&m1.r[3], q.q);
+    VECTOR_opAssign(&m1.r[3], q.q);
     pm->r[0].q = pmI->r[0];
     pm->r[1].q = pmI->r[1];
     pm->r[2].q = pmI->r[2];

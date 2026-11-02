@@ -20,11 +20,11 @@ struct TB {
     RGBA color;
     int jh;
     int jv;
-    void SetPos(float x, float y) __asm__("func_00258438");
-    void SetSize(float dx, float dy) __asm__("func_00258448");
-    void SetColor(RGBA *prgba) __asm__("func_00258458");
-    void SetHorizontalJust(int j) __asm__("func_00258470");
-    void SetVerticalJust(int j) __asm__("func_00258478");
+    void SetPos(float x, float y) __asm__("CTextBox_SetPos");
+    void SetSize(float dx, float dy) __asm__("CTextBox_SetSize");
+    void SetColor(RGBA *prgba) __asm__("CTextBox_SetTextColor");
+    void SetHorizontalJust(int j) __asm__("CTextBox_SetHorizontalJust");
+    void SetVerticalJust(int j) __asm__("CTextBox_SetVerticalJust");
     TB(float x, float y, float dx, float dy, uint word = 0xFFC0C0C0) {
         SetPos(x, y);
         SetSize(dx, dy);

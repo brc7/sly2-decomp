@@ -29,7 +29,7 @@ int func_001AB398(char *, char *);
 void func_001D8D80(SLOT *, int);
 void SetSaveState(MC *p, int state);
 }
-CRef Eval(int, SLOT *) __asm__("func_002581C0");
+CRef Eval(int, SLOT *) __asm__("RefGetGlobalSaveVar");
 static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
 struct X { int A() __asm__("func_001AB0A0"); int B() __asm__("func_001AB0F0"); };
 void StartThread(void *, int (X::*)()) __asm__("CreateMemcardThread");

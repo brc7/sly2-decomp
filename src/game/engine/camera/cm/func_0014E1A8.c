@@ -5,11 +5,11 @@ typedef struct { M3 m; V4 pos; } M4;
 struct CM { char pad[0x60]; M4 mat; };
 void GetVectorSphere(qword v, float *a, float *b, int c);
 M3 LoadRotateMatrixPanTilt(float a, float b);
-void func_00256D18(V4 *p, qword v);
+void VECTOR_opAssign(V4 *p, qword v);
 void UpdateCmMat4__FP2CM(struct CM *p);
 static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 {
-    func_00256D18(&pm->pos, pos);
+    VECTOR_opAssign(&pm->pos, pos);
     pm->m = m;
     pm->m.r[1].w = 0;
     pm->m.r[2].w = 0;

@@ -8,7 +8,7 @@ struct NODE;
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
+void GcPair_Unlink(void *pv);
 }
 struct SPM {
     NODE *p;
@@ -19,7 +19,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct O { int cref; };
 extern "C" void func_00257078(O *, int);
@@ -30,7 +30,7 @@ struct SP {
 };
 struct OSP { O *p; };
 extern "C" {
-int func_00256DD0(void);
+int PvNewFrame(void);
 SP func_00257058(int);
 void EvalSpliceEventCallback(void *pv, NODE *pn, O *po, int n);
 }
@@ -100,7 +100,7 @@ void ProcessSwCallbacks(MGR *p)
         if (posp) {
             EvalSpliceEventCallback(posp, pev->pnode, posp->p, 0);
         } else {
-            int x = func_00256DD0();
+            int x = PvNewFrame();
             SP sp = func_00257058(x);
             EvalSpliceEventCallback(p, pev->pnode, sp.p, 0);
         }

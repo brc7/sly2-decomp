@@ -13,7 +13,7 @@ extern "C" qword ConvertXfVec(void *,OWNER *,qword);
 extern "C" int func_0011D4D0(float,float,float);
 extern qword D_002A2DD0;
 extern "C" void func_001F4BF8(P *);
-extern "C" qword *func_00256D18(qword *,qword);
+extern "C" qword *VECTOR_opAssign(qword *,qword);
 extern "C" M3 *func_0011B570(M3 *,qword);
 static inline M3 BuildRotation(qword vector) return matrix {func_0011B570(&matrix,vector);}
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
@@ -84,7 +84,7 @@ extern "C" void func_001F9E70(P *input)
                 qword point;qword *positionAddress=PointAddress(position,&point);
                 qword delta;float halfDt=HalfAndDelta(D_002DDED0.dt,0.5f,shift,&delta);
                 qword k=Scalar(halfDt,&scalar);
-                func_00256D18(positionAddress,AddScaled(point,delta,k));
+                VECTOR_opAssign(positionAddress,AddScaled(point,delta,k));
                 position->position.f[3]=1.0f;
                 position->stamp=++D_003DD490.stamp;
             }

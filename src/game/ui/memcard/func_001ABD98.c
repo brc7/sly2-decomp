@@ -8,7 +8,7 @@ extern int D_002DEB4C;
 extern char D_003D4A60[], D_002E65A0[];
 int func_0020E040(struct G *g);
 int NWorldCur(void);
-void func_002581C0(struct CRef *ret, int a, void *b);
+void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
 void func_001ABCE8(struct S *s);
@@ -36,7 +36,7 @@ void func_001ABD98(struct S *s, int force)
         return;
     if (!NWorldCur() && !force)
         return;
-    func_002581C0(&ref, g->x3B54, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, g->x3B54, D_003D4A60);
     t = ref.m_tag;
     func_00129EC8(&ref);
     if (!t) {

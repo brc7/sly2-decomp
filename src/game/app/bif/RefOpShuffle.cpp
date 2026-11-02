@@ -14,8 +14,8 @@ struct CRef {
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 int NRandInRange__Fii(int nLo, int nHi);
 }
 struct SPM {
@@ -28,7 +28,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -87,7 +87,7 @@ CRef RefOpShuffle(void *pbasic, CRef *aref)
     SPM *psp = pspHead;
     int i;
     for (i = 0; i < c; i++) {
-        *psp = func_00256B48();
+        *psp = PvNewPair();
         NODE *pnNew = psp->p;
         pnNew->ref = *apref[i];
         psp = &pnNew->pnext;
@@ -102,7 +102,7 @@ CRef RefOpShuffle(void *pbasic, CRef *aref)
         }
         if (spRes.p != pnLast) {
             SPN sp;
-            NODE *pnNew = func_00256B48();
+            NODE *pnNew = PvNewPair();
             sp.Set(pnNew);
             sp->ref = CRef(0);
             InsertAfter(&pnLast->pnext, sp);

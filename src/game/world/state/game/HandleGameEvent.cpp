@@ -52,8 +52,8 @@ struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
  ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
 };
 struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){func_00129EC8(this);}};
-extern "C" CRef func_002581C0(void*,void*);
-static inline float GetFloat(void*p,void*context){const CRef&r=func_002581C0(p,context);return r.g;}
+extern "C" CRef RefGetGlobalSaveVar(void*,void*);
+static inline float GetFloat(void*p,void*context){const CRef&r=RefGetGlobalSaveVar(p,context);return r.g;}
 static inline int Same(CHECK*a,CHECK*b){
  if(a==b)return 1;
  if(!a||!b)return 0;

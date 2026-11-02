@@ -17,7 +17,7 @@ extern "C" char *func_0021ED58(char *, const char *);
 extern "C" char *func_0021EDA0(char *, const char *);
 extern "C" int CLanguagesRegion(void);
 char *PchzFindSwLangstr__FP2SWi(G *, int);
-CRef func_002581C0(void *, void *);
+CRef RefGetGlobalSaveVar(void *, void *);
 /** @sly2-annot addr=0x1DDBF0
  * Purpose: Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids
  *   5/6/8/0x56
@@ -36,7 +36,7 @@ extern "C" void BuildTitlePromptText(char *pch)
     g = 0.0f;
     pv = D_002E65E0.xFD54;
     if (pv) {
-        CRef ref = func_002581C0(D_003DD490.x3B1C, pv);
+        CRef ref = RefGetGlobalSaveVar(D_003DD490.x3B1C, pv);
         g = ref.m_g;
     }
     {

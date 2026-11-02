@@ -21,7 +21,7 @@ struct SPF {
     void operator=(FRAME *pf);
 };
 extern "C" {
-FRAME *func_00256DD0();
+FRAME *PvNewFrame();
 CRef RefEval__FP5CPairP6CFrame(NODE *p, FRAME *pframe);
 CRef CFrame_RefAddBinding(FRAME *pframe, int sym, CRef *pref);
 void CFrame_SetSingleParent(FRAME *pframe, FRAME *pframeParent);
@@ -42,7 +42,7 @@ CRef RefEvalLet__FP5CPairP6CFrame(P *p, FRAME *pframe)
     NODE *pargs = p->pv->pargs;
     NODE *pn;
     if (pargs->ref.m_tagk == 0x1F) {
-        FRAME *pfNew = func_00256DD0();
+        FRAME *pfNew = PvNewFrame();
         spf = pfNew;
         for (pn = (NODE *)pargs->ref.u.pv; pn; pn = pn->pnext) {
             NODE *pb = (NODE *)pn->ref.u.pv;

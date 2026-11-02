@@ -17,15 +17,15 @@ extern GS D_003DD490;
 extern char D_003DD040[];
 extern int D_003DD050;
 extern GSR D_002DEB80;
-CRef func_002581C0(KEY *, char *);
+CRef RefGetGlobalSaveVar(KEY *, char *);
 int CLanguagesRegion(void);
 void SetLanguage(int);
 void SetSndmgrPlaybackMode(void *, int);
 void SetSndmgrChannelVolume(void *, int, int, float);
 unsigned int func_0023E1C8(float);
 }
-static inline int GetInt(KEY *k, char *pb) { return func_002581C0(k, pb).m_tag; }
-static inline float GetFloat(KEY *k, char *pb) { return func_002581C0(k, pb).m_g; }
+static inline int GetInt(KEY *k, char *pb) { return RefGetGlobalSaveVar(k, pb).m_tag; }
+static inline float GetFloat(KEY *k, char *pb) { return RefGetGlobalSaveVar(k, pb).m_g; }
 /** @sly2-annot addr=0x1D8FF8
  * Purpose: Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at
  *   D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50)

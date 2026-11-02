@@ -32,7 +32,7 @@ OBJ *PacNewKind(int id);
 OBJ *PacNewKind2(int id);
 void func_0012FE58(X *px, void *p, ENT *pent, int *pa, void **ppb);
 qword func_0022CA18(void *pa, void *pb);
-void func_00256EE0(X *px, int n);
+void FramePtr_Assign(X *px, int n);
 void func_001384C0(X *px);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, X **ppx);
 }
@@ -148,7 +148,7 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, EL
         pxNew->x6C = pxFirst->x6C;
         pxNew->g78 = pxFirst->g78;
         pxNew->xD4 = -1;
-        if (pxName) func_00256EE0(pxNew, pxName->x0);
+        if (pxName) FramePtr_Assign(pxNew, pxName->x0);
         pe = aelem;
         for (i = 0; i < c; i++) {
             pe->g = (pe->px == pxFirst) ? 1.0f : 0.0f;

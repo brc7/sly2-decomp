@@ -4,7 +4,7 @@ struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464];
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
 extern int D_003E0FAC;
-void func_002581C0(struct CRef *ret, int a, void *b);
+void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 void func_001D8D80(struct B *b, int n);
 void func_00165E38(struct B *b);
@@ -22,7 +22,7 @@ void func_001AD250(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    func_002581C0(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
     f = ref.m_tag;
     func_00129EC8(&ref);
     if (f == 0.0f) {

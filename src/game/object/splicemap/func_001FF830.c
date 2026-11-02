@@ -46,6 +46,6 @@ extern M2C_UNK D_00452170;
  *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
 void func_001FF830(s32 arg0, s32 arg1) {
-    func_00256EE0(arg0, 0);
+    FramePtr_Assign(arg0, 0);
     ShutdownSplice();
 }

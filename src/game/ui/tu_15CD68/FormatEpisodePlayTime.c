@@ -4,7 +4,7 @@ struct G { char pad[0x3B58]; void *ap[9]; char pad2[0x4774 - 0x3B7C]; struct X *
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A5168[];
-void func_002581C0(CRef *pref, void *p, void *q);
+void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 float func_00245A18(float a, float b);
 void func_0021ECD8(char *pch, char *fmt, ...);
@@ -22,7 +22,7 @@ void FormatEpisodePlayTime(char *pch)
         CRef ref;
         float g;
         int h, m;
-        func_002581C0(&ref, p, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, p, D_003D4A60);
         g = ref.m_g;
         func_00129EC8(&ref);
         h = (int)(g / 3600.0f);

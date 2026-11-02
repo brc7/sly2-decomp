@@ -23,7 +23,7 @@ CONTACT*func_001D2DD0(P*,ENTRY*);
 float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
 float RadNormalize__Ff(float);
 M3*func_0011B500(M3*,qword,float);
-qword*func_00256D18(qword*,qword);
+qword*VECTOR_opAssign(qword*,qword);
 void UpdateSoXfWorldMatrices(P*);
 void RenderSoSelf(P*);
 }
@@ -78,7 +78,7 @@ extern "C" void RenderRobottankSelf(P*p){
   e->angle=RadNormalize__Ff(e->angle+e->speed*dt);
   basis=Mul(Rotation(D_002A2DC0,e->tilt),Rotation(D_002A2DB0,e->angle));
   NODE*node=e->node;
-  func_00256D18(&node->matrix.position.q,point.q);
+  VECTOR_opAssign(&node->matrix.position.q,point.q);
   node->matrix.basis=basis;
   node->matrix.position.f[3]=1.0f;
   node->matrix.basis.r[1].f[3]=0.0f;

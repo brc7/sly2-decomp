@@ -3,7 +3,7 @@ extern char *D_00452110[4];
 extern char D_00452120[];
 extern N *D_002DD2B0, *D_002DD2B8;
 extern unsigned int D_002DD598[1];
-void func_00255AB0(N *);
+void GcProc_Unlink(N *);
 void func_0011CD98(void *, void *);
 
 static inline N *Ptr(unsigned idx, unsigned pg)
@@ -40,7 +40,7 @@ void func_00257948(void)
         N *next = Next(cur);
         p = next;
         if (cur->mark != D_002DD598[0]) {
-            func_00255AB0(cur);
+            GcProc_Unlink(cur);
             func_0011CD98(D_00452120, cur);
         }
     }

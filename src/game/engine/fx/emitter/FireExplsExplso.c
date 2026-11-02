@@ -25,7 +25,7 @@ typedef union V4 { qword q; float a[4]; } V4;
 extern V4 func_00256CE8(float g);
 extern V4 func_00256D08(qword *pv);
 extern qword func_00256D28(qword a, qword b);
-extern void func_00256D18(qword *pv, qword a);
+extern void VECTOR_opAssign(qword *pv, qword a);
 extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITR *pr);
 extern qword ConvertAloPos(int x, int y, qword v);
 extern void *PsndStartSound(int id);
@@ -88,7 +88,7 @@ void FireExplsExplso(EMITTER *p, EMITO *po)
         b.g50 *= gs;
         b.g54 *= gs;
         { float h = 0.5f; g = (h < g) ? g : h; }
-        func_00256D18(b.vE0, func_00256D28(func_00256CE8(g).q, func_00256D08(b.vE0).q));
+        VECTOR_opAssign(b.vE0, func_00256D28(func_00256CE8(g).q, func_00256D08(b.vE0).q));
     }
     if (b.x4 == 1) {
         if (po->grf & 0x10)

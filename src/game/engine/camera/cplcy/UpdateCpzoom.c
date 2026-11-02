@@ -28,7 +28,7 @@ void LoadRotateMatrixEuler(M3 *pm, qword v);
 void func_0011C950(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
 qword func_0011BFF0(M3 *pm);
 float func_0011D2D0(void *p, int n, float a, float b, float c);
-qword *func_00256D18(qword *p, qword v);
+qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
 void SetCmFov__FP2CMf(struct CM *p, float g);
 void func_0011BC88(M4 *pm, float *pa, float *pb);
@@ -93,7 +93,7 @@ void UpdateCpzoom(struct X *p)
         p->g70 = func_0011D2D0(D_002BD9E8, 0, p->g70, p->gA0, D_002DDED0.dt);
         {
         M4 *pm4 = &m4;
-        func_00256D18(&pm4->q.r[3], p->q50);
+        VECTOR_opAssign(&pm4->q.r[3], p->q50);
         pm4->q.r[0] = m60.r[0];
         pm4->q.r[1] = m60.r[1];
         pm4->q.r[2] = m60.r[2];

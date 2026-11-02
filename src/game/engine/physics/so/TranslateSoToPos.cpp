@@ -11,7 +11,7 @@ struct VTE { short d; short p; void (*pfn)(void *); };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct LO *p58; char pad3[0x60 - 0x5C]; struct LO *p60; char pad4[0xE8 - 0x64]; struct E *pe; };
 struct SW { char pad[0x3D58]; int n3D58; };
 extern struct SW D_003DD490;
-qword *func_00256D18(qword *, qword);
+qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *);
 void *func_002333B4(void *, int, int);
@@ -37,7 +37,7 @@ void TranslateSoToPos(struct P *p, qword v)
     register M4 *presult __asm__("$18");
     if (!p->p58) return;
     basis = &p->p60->m40.s.m3;
-    func_00256D18(&m0.s.r3, v);
+    VECTOR_opAssign(&m0.s.r3, v);
     m0.s.m3 = *basis;
     m0.f[1][3] = 0.0f;
     m0.f[2][3] = 0.0f;
@@ -67,7 +67,7 @@ void TranslateSoToPos(struct P *p, qword v)
     __ml__FRC7MATRIX4T0(&m100, world, &m1C0);
     plo = p->p58;
     mC0 = m100;
-    func_00256D18(&plo->v30.q, mC0.r[3]);
+    VECTOR_opAssign(&plo->v30.q, mC0.r[3]);
     plo->v30.f[3] = 1.0f;
     { int stamp=++D_003DD490.n3D58;p->p58->nA4=stamp; }
     p->pvt[18].pfn((char *)p + p->pvt[18].d);

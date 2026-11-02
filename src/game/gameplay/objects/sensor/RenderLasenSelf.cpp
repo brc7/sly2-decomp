@@ -44,7 +44,7 @@ void GetLasenBeamEnds(P *, ENTRY *, qword *, float *);
 void func_001A5FB8(void *, qword, qword, float, float);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 M4 LoadMatrixFromPosRotScale(qword, const M3 *, const U *);
-qword *func_00256D18(qword *, qword);
+qword *VECTOR_opAssign(qword *, qword);
 void func_001A5EE8(void *, const M4 *, float, float);
 }
 static inline qword Subtract(qword a, qword b)
@@ -139,7 +139,7 @@ extern "C" void RenderLasenSelf(P *p)
                     matrix = LoadMatrixFromPosRotScale(points[j].q, &basis, &scale);
                 } else {
                     M4 *pm = &matrix;
-                    func_00256D18(&matrix.rows[3].q, points[j].q);
+                    VECTOR_opAssign(&matrix.rows[3].q, points[j].q);
                     matrix.rows[0] = basis.rows[0]; pm->rows[1] = basis.rows[1]; pm->rows[2] = basis.rows[2];
                     matrix.rows[0].bits[3] = matrix.rows[1].bits[3] = matrix.rows[2].bits[3] = 0;
                     pm->rows[3].f[3] = 1.0f;

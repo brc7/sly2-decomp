@@ -23,9 +23,9 @@ V *PkeyNewSaveKey(void *p, ...);
 void ChangeDifficulty(S *p, float g);
 }
 CRef RefGetSaveVar(H *, V *, G *);
-CRef func_00258200(V *, const CRef &, G *);
+CRef RefSetGlobalSaveVar(V *, const CRef &, G *);
 static inline CRef RefG(float g) { CRef r; r.m_tagk = 0x16; *(float *)&r.m_tag = g; return r; }
-static inline void Set(V *k, CRef r) { func_00258200(k, r, &D_003D4A60); }
+static inline void Set(V *k, CRef r) { RefSetGlobalSaveVar(k, r, &D_003D4A60); }
 static inline void SetG(V *k, float g) { CRef r(g); Set(k, r); }
 static inline CRef Get(V *k) { G *pg = &D_003D4A60; return RefGetSaveVar(&D_003E0EA8, k, pg); }
 

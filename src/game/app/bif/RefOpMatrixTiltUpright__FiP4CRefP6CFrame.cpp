@@ -15,7 +15,7 @@ struct MATRIX4 { VECTOR mat[3]; VECTOR pos; };
 struct XF { char pad[0x30]; qword pos; };
 extern "C" {
 void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat);
-VECTOR *func_00256D18(VECTOR *pv, qword q);
+VECTOR *VECTOR_opAssign(VECTOR *pv, qword q);
 CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
 /** @sly2-annot addr=0x1232D0
@@ -30,7 +30,7 @@ CRef RefOpMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
     TiltMatUpright((XF *)aref[0].u.pv, 0, &mat);
     CRef ref(0x1B);
     MATRIX4 *pmat = (MATRIX4 *)ref.u.pv;
-    func_00256D18(&pmat->pos, ((XF *)aref[0].u.pv)->pos);
+    VECTOR_opAssign(&pmat->pos, ((XF *)aref[0].u.pv)->pos);
     *(MATRIX3 *)pmat = mat;
     pmat->mat[2].w = 0.0f;
     pmat->mat[1].w = 0.0f;

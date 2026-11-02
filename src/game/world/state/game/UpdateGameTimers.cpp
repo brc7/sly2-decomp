@@ -13,19 +13,19 @@ extern G D_003DD490;
 extern CLOCK D_002DDED0;
 extern int D_002E0C20;
 extern char D_003D4A60[],D_002DE578[];
-extern "C" CRef func_002581C0(OPT*,void*);
-extern "C" CRef func_00258200(OPT*,const CRefData&,void*);
+extern "C" CRef RefGetGlobalSaveVar(OPT*,void*);
+extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRefData&,void*);
 extern "C" int NWorldCur();
 extern "C" void ChangeDifficulty(void*,float);
-static inline float GetFloat(OPT*p,void*context){const CRef&r=func_002581C0(p,context);return r.g;}
-static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef&ret=func_00258200(p,arg,context);}
+static inline float GetFloat(OPT*p,void*context){const CRef&r=RefGetGlobalSaveVar(p,context);return r.g;}
+static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,context);}
 static inline void SetFloat(OPT*p,float x,void*context){CRef r(x);SetPv(p,r,context);}
 struct CRefCopy:CRefData{
  CRefCopy(const CRefData&r){func_001291A8(this,&r);}
  ~CRefCopy(){func_00129EC8(this);}
 };
 static inline void SetPrimaryFloat(OPT*p,float value,void*context){
- CRef r(value);CRefCopy arg(r);const CRef&ret=func_00258200(p,arg,context);
+ CRef r(value);CRefCopy arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,context);
 }
 /** @sly2-annot addr=0x161478
  * Purpose: Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's

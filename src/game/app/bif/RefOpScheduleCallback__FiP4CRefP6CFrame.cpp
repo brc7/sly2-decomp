@@ -23,8 +23,8 @@ extern CLOCK D_002DDED0;
 struct R { char pad[0xC]; int n; };
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 CRef CRef_RefCoerceF32(CRef *pref);
 R *ScheduleSwSpliceCallback(G *pg, int n, NODE *pnode, float t);
 }
@@ -39,7 +39,7 @@ struct NODE {
     CRef ref;
     SPM pnext;
     void SetNext(NODE *pn) { pnext = pn; }
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -55,4 +55,4 @@ extern "C" CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref);
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)aref[1].u.pv; NODE *pnNew = func_00256B48(); sp.Set(pnNew); sp->ref = func_00256B48(); NODE *pn = sp->ref.u.pnode; pn->ref = pobj; if (c >= 3) { NODE *pnT = pn; for (NODE *pw = aref[2].u.pnode; pw; pw = pw->pnext.p) { pnT->SetNext(func_00256B48()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = func_00256B48(); NODE *pc = pref->u.pnode; pc->ref.SetTag(0x12); pc->SetNext(func_00256B48()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(aref).u.g); res = pr->n; return res; }
+CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)aref[1].u.pv; NODE *pnNew = PvNewPair(); sp.Set(pnNew); sp->ref = PvNewPair(); NODE *pn = sp->ref.u.pnode; pn->ref = pobj; if (c >= 3) { NODE *pnT = pn; for (NODE *pw = aref[2].u.pnode; pw; pw = pw->pnext.p) { pnT->SetNext(PvNewPair()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = PvNewPair(); NODE *pc = pref->u.pnode; pc->ref.SetTag(0x12); pc->SetNext(PvNewPair()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(aref).u.g); res = pr->n; return res; }

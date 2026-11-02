@@ -57,7 +57,7 @@ void func_0022A220(WAYPT *pwaypt);
 qword func_001A62E8(LO *plo);
 void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
 MATRIX4 *func_001A6318(SO *pso);
-VECTOR *func_00256D18(VECTOR *pv, qword qw);
+VECTOR *VECTOR_opAssign(VECTOR *pv, qword qw);
 void func_001A5EE8(SO *pso, MATRIX4 *pmat, float a, float b);
 void func_001A5FB8(SO *pso, qword pos0, qword pos1, float s, float a);
 char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
@@ -166,7 +166,7 @@ extern "C" void RenderWaypt(WAYPT *pwaypt)
     {
         MATRIX3 matScaled = *(MATRIX3 *)func_001A6318(pwaypt->psoMarker) * VuFloat(rScale);
         MATRIX4 *pmat = &mat;
-        func_00256D18(&mat.pos, posEnd);
+        VECTOR_opAssign(&mat.pos, posEnd);
         *(MATRIX3 *)pmat = matScaled;
         mat.mat[2].w = 0.0f;
         mat.mat[1].w = 0.0f;
@@ -180,7 +180,7 @@ extern "C" void RenderWaypt(WAYPT *pwaypt)
     {
         MATRIX3 matScaled = *(MATRIX3 *)func_001A6318(pwaypt->psoBase) * VuFloat(rScale);
         MATRIX4 *pmat = &mat;
-        func_00256D18(&mat.pos, pos);
+        VECTOR_opAssign(&mat.pos, pos);
         *(MATRIX3 *)pmat = matScaled;
         mat.mat[2].w = 0.0f;
         mat.mat[1].w = 0.0f;

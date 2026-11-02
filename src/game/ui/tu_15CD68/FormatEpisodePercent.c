@@ -5,7 +5,7 @@ extern struct G D_003DD490;
 extern char D_003D4A60[];
 extern void *D_002BE2F8[];
 extern char D_002A5160[];
-void func_002581C0(CRef *pref, void *p, void *q);
+void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 int FPowerupAcquired(void *p);
 void func_0021ECD8(char *pch, char *fmt, ...);
@@ -25,7 +25,7 @@ void FormatEpisodePercent(char *pch)
     if (pg->px && (p = pg->ap[pg->px->i]) != 0) {
         CRef ref;
         int n;
-        func_002581C0(&ref, p, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, p, D_003D4A60);
         n = ref.m_tag;
         func_00129EC8(&ref);
         n = n * 95 / 100;

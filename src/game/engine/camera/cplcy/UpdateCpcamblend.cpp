@@ -15,7 +15,7 @@ struct PATH { struct K *pk0; struct K *pk1; float dt; int pad; int ik; };
 struct X { char pad[0x10]; struct PATH *ppath; };
 void UpdateCplcy(struct X *p);
 void LoadRotateMatrixEuler(M3 *pm, qword v);
-qword *func_00256D18(qword *p, qword v);
+qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
 void SetCmFov__FP2CMf(struct CM *p, float g);
 
@@ -82,7 +82,7 @@ extern "C" void UpdateCpcamblend(struct X *p)
         M4 *pm4;
         LoadRotateMatrixEuler(&m3, rot.q);
         pm4 = &m4;
-        func_00256D18(&pm4->q.r[3], pos.q);
+        VECTOR_opAssign(&pm4->q.r[3], pos.q);
         pm4->q.r[0] = m3.r[0];
         pm4->q.r[1] = m3.r[1];
         pm4->q.r[2] = m3.r[2];

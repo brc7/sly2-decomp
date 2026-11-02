@@ -16,8 +16,8 @@ struct NODE;
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 }
 struct SPM {
     NODE *p;
@@ -29,7 +29,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -58,8 +58,8 @@ extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
  * @end-sly2-annot */
 CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref) { CRef res; if (aref[0].m_tagk == 0) return aref[0];
  void *pv = aref[1].u.pv; SW *psw; if (aref[2].m_tagk != 0) psw = ((OW *)aref[2].u.pv)->psw; else psw = (SW *)pv;
- SPN spRes; NODE *pnR = func_00256B48(); spRes.Set(pnR);
- NODE *pTail; NODE *pn = (NODE *)aref[0].u.pv; while (pn) { SPN spNew; NODE *pnNew = func_00256B48(); spNew.Set(pnNew);
+ SPN spRes; NODE *pnR = PvNewPair(); spRes.Set(pnR);
+ NODE *pTail; NODE *pn = (NODE *)aref[0].u.pv; while (pn) { SPN spNew; NODE *pnNew = PvNewPair(); spNew.Set(pnNew);
    int n = pn->ref.u.n; spNew->ref = PloFindSwObject_15E958(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C);
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    NODE *p = spNew.p; pn = pn->pnext.p; pTail = p; } int unused[4]; res = CRef((NODE *)spRes->ref.u.pv); return res; }

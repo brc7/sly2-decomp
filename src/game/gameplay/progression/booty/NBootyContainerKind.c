@@ -5,13 +5,13 @@ extern char D_003D4A60[];
 void STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int);
 void *func_0013D1A8(struct S *);
-void func_002581C0(struct CRef *, void *, void *);
+void RefGetGlobalSaveVar(struct CRef *, void *, void *);
 void func_00129EC8(struct CRef *);
 static inline int NFromRef(void *pv)
 {
     struct CRef ref;
     int n;
-    func_002581C0(&ref, pv, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
     n = ref.m_n;
     func_00129EC8(&ref);
     return n;

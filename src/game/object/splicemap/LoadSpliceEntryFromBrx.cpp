@@ -20,7 +20,7 @@ struct SP {
 struct E { int a; O *b; };
 struct Q { int pad[2]; E *ae; };
 extern "C" {
-int func_00256DD0(void);
+int PvNewFrame(void);
 SP func_00257058(int);
 void func_00259A88(O *);
 CRef RefEval__FP5CPairP6CFrame(int, O *);
@@ -37,7 +37,7 @@ extern "C" CRef LoadSpliceEntryFromBrx(void *p, Q *pq, int i)
 {
     CRef r;
     if (pq->ae[i].a && !pq->ae[i].b) {
-        int x = func_00256DD0();
+        int x = PvNewFrame();
         SP sp = func_00257058(x);
         func_00259A88(sp.p);
         sp.p->n24 = 1;

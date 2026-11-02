@@ -6,12 +6,12 @@ struct CM {char pad40[0x40];float sx,sy,unknown,nearDepth;char pad50[0x10];qword
 struct LM {float low,high;};
 struct RT {const char *text;char *current;void *font,*baseFont,*alternateFont;RGBA color,baseColor,alternateColor;char pad20[0x20];qword color0,color1;int changed;float cameraX,cameraY,offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG;
-extern "C" void func_00258438(CONFIG *,float,float);
-extern "C" void func_00258448(CONFIG *,float,float);
-extern "C" void func_00258458(CONFIG *,const RGBA *);
-extern "C" void func_00258470(CONFIG *,int);
-extern "C" void func_00258478(CONFIG *,int);
-struct CONFIG {float x,y,width,height;RGBA color;int hAlign,vAlign;CONFIG(uint bits=0xFF808080){func_00258438(this,0.0f,0.0f);func_00258448(this,640.0f,492.8000183f);RGBA gray(bits);func_00258458(this,&gray);func_00258470(this,0);func_00258478(this,0);}};
+extern "C" void CTextBox_SetPos(CONFIG *,float,float);
+extern "C" void CTextBox_SetSize(CONFIG *,float,float);
+extern "C" void CTextBox_SetTextColor(CONFIG *,const RGBA *);
+extern "C" void CTextBox_SetHorizontalJust(CONFIG *,int);
+extern "C" void CTextBox_SetVerticalJust(CONFIG *,int);
+struct CONFIG {float x,y,width,height;RGBA color;int hAlign,vAlign;CONFIG(uint bits=0xFF808080){CTextBox_SetPos(this,0.0f,0.0f);CTextBox_SetSize(this,640.0f,492.8000183f);RGBA gray(bits);CTextBox_SetTextColor(this,&gray);CTextBox_SetHorizontalJust(this,0);CTextBox_SetVerticalJust(this,0);}};
 extern CM D_002DDF40;
 extern float D_002C1F20;
 extern LM D_002C1F28;

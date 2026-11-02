@@ -15,7 +15,7 @@ extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLO
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
 float func_002458F0(float,float);float func_0011D948(struct LM*,float);
-struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*func_00256D18(qword*,qword);void func_0012DA30(struct DV*,qword);
+struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*VECTOR_opAssign(qword*,qword);void func_0012DA30(struct DV*,qword);
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Point(const struct M4*m,const qword*a,struct SPACE**source){
  register qword r __asm__("vf6"),row0 __asm__("vf5")=m->r[0].q;register struct SPACE*sourceValue __asm__("$4");const int nullSource=0;
@@ -63,7 +63,7 @@ void func_0018B460(struct P*p){
   tilt=Pack(zero,heading,zero);w.axis.q=tilt;
   LoadRotateMatrixEuler(&w.rotation,Add(p->euler,w.axis.q));
   frame=&w.transform;
-  func_00256D18(&frame->r[3].q,p->position);
+  VECTOR_opAssign(&frame->r[3].q,p->position);
   {
    register qword row0 __asm__("$3"),row1 __asm__("$2"),mappedVector __asm__("vf6");
    __asm__("lq %2,%5\n\tqmtc2.ni %8,%4\n\tlq %3,%6\n\tsq %2,%0\n\tsq %3,0x10(%7)"

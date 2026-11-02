@@ -61,7 +61,7 @@ extern "C" {
  SO *func_0014CC58(int,qword,qword,int,SO **,HIT *);
  int CSolveQuadratic__FfffPf(float,float,float,float *);
  M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
- V *func_00256D18(V *,qword);
+ V *VECTOR_opAssign(V *,qword);
  void func_0021C5F8(MARKER *,qword);
  float func_002458F0(float,float);
  float RadStepHeading(LO *);                    // JtGetFacingAngle
@@ -179,7 +179,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
     qword dpos=QwSub(pos,posBefore);
     BuildOrthonormalMatrixZ(&matRot,dpos,D_002A2DC0.q);
     M4 *pmat=&mat;
-    func_00256D18(&mat.position,pos);
+    VECTOR_opAssign(&mat.position,pos);
     pmat->basis=matRot;
     posBefore=pos;
     mat.basis.r[2].n[3]=0;

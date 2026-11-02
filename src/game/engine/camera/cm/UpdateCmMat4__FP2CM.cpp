@@ -11,7 +11,7 @@
 //     tan(y) * 18.1, each also stored transposed (x, y, z of the four normals = agFrustumXyz / agFrustumWideXyz, the VU0 cull microprogram's vf10-vf12);
 //  4. UpdateCmVisZone picks the vis zone the camera is in.
 // How it matches: the jolt's float is moved into a GPR once (VuFloatOfFloat is CSEd) and spilled across the calls; the shake matrix is built in
-// matEye (rotation rows from LoadRotateMatrix, the position row through func_00256D18, w column last) and multiplied in place (a temp + copy); the
+// matEye (rotation rows from LoadRotateMatrix, the position row through VECTOR_opAssign, w column last) and multiplied in place (a temp + copy); the
 // frustum copy loops index the four planes with separate pointers; the wide copy continues at agFrustumXyz[4 * i] (agFrustumWideXyz directly follows
 // agFrustumXyz) with the first loop's counter, so loop.c, not gcse, makes its start address (a plain pcm->agFrustumWideXyz is hoisted into an s register
 // by PRE); the pointers of the wide planes are the PRE-hoisted copies the game has before the first BuildFrustrum call.
@@ -65,7 +65,7 @@ extern qword D_002BD880;
 extern qword D_002BD890;
 extern qword D_002BD8A0;
 extern qword D_002A2DE0;
-extern float *func_00256D18(float *pg, qword qw);
+extern float *VECTOR_opAssign(float *pg, qword qw);
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
@@ -112,7 +112,7 @@ void UpdateCmMat4(CM *pcm)
         float gJolt = sinf(dtJolt * D_002BD854) * gEnv;
         {
             MATRIX3 matRot = LoadRotateMatrix(QwMulX(D_002BD880, VuFloatOfFloat(gJolt)));
-            func_00256D18(matEye.mat[3], QwMulX(D_002BD870, VuFloatOfFloat(gJolt)));
+            VECTOR_opAssign(matEye.mat[3], QwMulX(D_002BD870, VuFloatOfFloat(gJolt)));
             *(MATRIX3 *)&matEye = matRot;
         }
         matEye.mat[3][3] = 1.0f;

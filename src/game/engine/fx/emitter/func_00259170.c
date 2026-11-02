@@ -10,7 +10,7 @@ void PostLoLoad(SO *p);
 void *func_002333B4(void *p, int c, int n);
 int func_00233178(const void *a, const void *b, int n);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, SO *p);
-void func_002590F0(SO *p, int f);
+void PemitbEnsureExplo(SO *p, int f);
 void *func_001AE238(AREQ *preq, void *pv);
 /** @sly2-annot addr=0x259170
  * Purpose: EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)]
@@ -64,7 +64,7 @@ void func_00259170(SO *p)
     if (p->px->x8 == 0)
         p->px->x8 = D_002CE4B8;
     if (func_00233178(p->px->x8, a, 0x14)) {
-        func_002590F0(p, 1);
+        PemitbEnsureExplo(p, 1);
         preq = &req;
         req.cb = 0x14;
         preq->cbAlign = 0x10;

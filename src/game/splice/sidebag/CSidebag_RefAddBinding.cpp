@@ -13,8 +13,8 @@ struct BINDING;
 extern char D_004520D0[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_00255438(void *pv);
-BINDING *func_00257340();
+void GcBinding_Unlink(void *pv);
+BINDING *PvNewBinding();
 }
 struct SPM {
     BINDING *p;
@@ -27,7 +27,7 @@ struct BINDING {
     int sym;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_00255438(pv); func_0011CD98(D_004520D0, pv); }
+    void operator delete(void *pv) { GcBinding_Unlink(pv); func_0011CD98(D_004520D0, pv); }
 };
 struct SPB {
     BINDING *p;
@@ -50,7 +50,7 @@ CRef CSidebag_RefAddBinding(FRAME *pframe, int sym, CRef *pref)
 {
     SPM *ppbFirst = &pframe->pbinding;
     SPB sp;
-    sp.Set(func_00257340());
+    sp.Set(PvNewBinding());
     sp->sym = sym;
     sp->ref = *pref;
     sp->pnext = ppbFirst->p;

@@ -28,7 +28,7 @@ void *func_002333B4(void *, int, int);
 float GGetDifficulty(void *);
 void func_00131A00(P *, float);
 void AppendDlEntry__FP2DLPv(void *, void *);
-void func_00256EE0(P *, int);
+void FramePtr_Assign(P *, int);
 void func_0012FE58(struct T *, int, struct E60 *, int *, int *);
 void func_001F8668(int, long);
 void *func_0012E1F0(unsigned int);
@@ -77,7 +77,7 @@ extern "C" void func_0012F9B8(struct T *pt, int x, int grf, float g0, float g1, 
     AppendDlEntry__FP2DLPv(&pt->dl50, p);
     ((void (*)(P *))p->pvt[1].pfn)((P *)((char *)p + p->pvt[1].d));
     G g(p);
-    func_00256EE0(p, pt->x0);
+    FramePtr_Assign(p, pt->x0);
     if (pp)
         *pp = p;
     for (i = 0; i < pt->x5C; i++) {

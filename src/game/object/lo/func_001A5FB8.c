@@ -3,7 +3,7 @@ typedef union { qword q; float f[4]; int i[4]; } U;
 struct M4 { U r[4]; };
 struct CAMERA { char pad[0x90]; qword pos; };
 extern struct CAMERA D_002DDF40;
-qword *func_00256D18(qword *p, qword v);
+qword *VECTOR_opAssign(qword *p, qword v);
 void func_001A5EE8(void *p, struct M4 *m, float a, float b);
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b)); return r; }
 static inline qword Cross(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a),"j"(b)); return r; }
@@ -42,7 +42,7 @@ void func_001A5FB8(void *p,qword a,qword b,float width,float scale)
   k=Broadcast(0.01f);
   uk.q=k;
   z.q=Scale(d,k);
-  func_00256D18(&m.r[3].q,a);
+  VECTOR_opAssign(&m.r[3].q,a);
   pm->r[0].q=x.q;
   pm->r[1].q=y.q;
   pm->r[2].q=z.q;

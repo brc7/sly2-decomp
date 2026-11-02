@@ -1,7 +1,7 @@
 typedef struct T { char pad[0xE4]; int c; int pad2; void **ap; } T;
 void OnLoRemove(T *p);
 void StopSnd(void *pv, float g);
-void func_00258040(void **pp, int n);
+void RcPtr_Assign(void **pp, int n);
 /** @sly2-annot addr=0x12EDE8
  * Purpose: slot 22: LO::Freeze then StopSnd
  * Info: proposed name OnCid43Remove (T2); class CID43 slot22; TU amb
@@ -19,7 +19,7 @@ void func_0012EDE8(T *p)
         void **pp = (void **)((i << 2) + (int)p->ap);
         if (pp && *pp) {
             StopSnd(*pp, 0.0f);
-            func_00258040(pp, 0);
+            RcPtr_Assign(pp, 0);
         }
     }
 }

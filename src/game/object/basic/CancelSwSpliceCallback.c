@@ -3,9 +3,9 @@ struct N { int f0; int f4; struct R *pr; int id; struct N *pnext; };
 struct S { char pad[0x39f0]; struct N *pfirst; int f39f4; int f39f8; int pool39fc; };
 extern char D_004520A8[];
 void RemoveSlEntry(void *, struct N *);
-void func_00256D40(void *, int);
+void PairPtr_Release(void *, int);
 void func_00129EC8(void *);
-void func_002550F8(struct R *);
+void GcPair_Unlink(struct R *);
 void func_0011CD98(void *, void *);
 /** @sly2-annot addr=0x133130
  * Purpose: Remove the scheduled callback with given id and free its node
@@ -24,9 +24,9 @@ void CancelSwSpliceCallback(struct S *p, int id) {
             RemoveSlEntry(&p->pfirst, pn);
             pr = pn->pr;
             if (--pr->cref == 0 && pr) {
-                func_00256D40(&pr->f10, 2);
+                PairPtr_Release(&pr->f10, 2);
                 func_00129EC8(pr->ref8);
-                func_002550F8(pr);
+                GcPair_Unlink(pr);
                 func_0011CD98(D_004520A8, pr);
             }
             func_0011CD98(&p->pool39fc, pn);

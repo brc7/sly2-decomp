@@ -15,7 +15,7 @@ void RemoveDlEntry__FP2DLPv(void *, struct P *);
 void func_00230100(void *, void *, struct L1 *);
 void func_0012E210(struct L1 *);
 void func_0012CE70(struct L2 *);
-void func_00258040(void *, int);
+void RcPtr_Assign(void *, int);
 void SendLoMessage(struct P *, int, struct P *);
 static __inline__ void End(struct G *pg) { struct P *po = pg->p; ((void (*)(void *))po->vt[2].pfn)((char *)po + po->vt[2].d); }
 /** @sly2-annot addr=0x130B18
@@ -59,7 +59,7 @@ void func_00130B18(struct P *p)
             func_0012CE70(pl2);
         }
         p->pl2 = 0;
-        func_00258040(p->a5C, 0);
+        RcPtr_Assign(p->a5C, 0);
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 3, 0, 0, 0, 0);
         if (p->x18)
             ((void (*)(void *, int, struct P *))p->x18->vt[5].pfn)((char *)p->x18 + p->x18->vt[5].d, 2, p);

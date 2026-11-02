@@ -11,7 +11,7 @@ struct X {
 void ActivateCplcy(struct X *p);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, int);
-void func_00258040(int *, void *);
+void RcPtr_Assign(int *, void *);
 void PauseSnd(int);
 void func_0011BC88(void *, float *, float *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int, int);
@@ -37,11 +37,11 @@ void ActivateCplook(struct X *p)
     ActivateCplcy(p);
     pv = PsndStartSound(0x26);
     SetSndSourceLo(pv, 0);
-    func_00258040(&p->x34, pv);
+    RcPtr_Assign(&p->x34, pv);
     {
         void *pv2 = PsndStartSound(0x25);
         SetSndSourceLo(pv2, 0);
-        func_00258040(&p->x38, pv2);
+        RcPtr_Assign(&p->x38, pv2);
     }
     PauseSnd(p->x34);
     pg = &D_002DDF40;

@@ -24,7 +24,7 @@ int DySelectionJoy(void *p);
 int GrfHandleJoyBtn(void *p, int n);
 int DxSelectionJoy(void *p);
 void func_0015D648(struct X *p, int a, int b);
-void func_002581C0(void *pref, void *p, void *q);
+void RefGetGlobalSaveVar(void *pref, void *p, void *q);
 void func_00129EC8(void *pref);
 void func_0015D880(struct X *p, int n);
 void CMpeg_QueueMovie(void *p, int n);
@@ -101,7 +101,7 @@ void func_0015CF30(struct X *p)
             void *pv = D_003DD490.a3B7C[p->n110];
             if (pv) {
                 struct CRef ref;
-                func_002581C0(&ref, pv, D_003D4A60);
+                RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
                 c = ref.m_n;
                 func_00129EC8(&ref);
                 if (c >= 100)
@@ -182,7 +182,7 @@ void func_0015CF30(struct X *p)
                 struct CRefG ref;
                 float g;
                 f = 1;
-                func_002581C0(&ref, pv, D_003D4A60);
+                RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
                 g = ref.m_g;
                 func_00129EC8(&ref);
                 if (g != 0.0f)

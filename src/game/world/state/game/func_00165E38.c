@@ -6,7 +6,7 @@ extern struct Q D_002DEB30;
 extern void *D_002DEB4C;
 extern char D_003DA530[];
 extern char D_002A3828[];
-CRef *func_002581C0(CRef *pref, void *a, void *b);
+CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
 int FScreenShown(void *p);
 void ResetRumbleSaveVar(void);
@@ -29,7 +29,7 @@ void func_00165E38(void *pv)
     register int n __asm__("$16"); /* register pin: n lives in s0 in the target */
     void *ps;
     void *prop;
-    func_002581C0(&ref, D_003DD490.f3b1c, pv);
+    RefGetGlobalSaveVar(&ref, D_003DD490.f3b1c, pv);
     g = *(float *)&ref.m_tag;
     func_00129EC8(&ref);
     if (FScreenShown(D_003DA530) && g == 0.0f) {
@@ -51,7 +51,7 @@ void func_00165E38(void *pv)
         D_002DEB30.f10 = -1;
         D_002DEB30.f14 = -1;
         D_002DEB30.f18 = -1;
-        func_002581C0(&ref, pg->f3b28, pv);
+        RefGetGlobalSaveVar(&ref, pg->f3b28, pv);
     }
     __asm__ __volatile__(""); /* ordering-only: ends the -1 constant's dependence chain at the call */
     n = ref.m_tag;
@@ -60,7 +60,7 @@ void func_00165E38(void *pv)
     prop = D_003DD490.a3b7c[n];
     n = 0;
     if (prop) {
-        func_002581C0(&ref, prop, pv);
+        RefGetGlobalSaveVar(&ref, prop, pv);
         n = ref.m_tag;
         func_00129EC8(&ref);
     }

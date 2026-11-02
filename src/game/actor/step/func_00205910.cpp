@@ -45,7 +45,7 @@ MATRIX3 func_0011B500(qword,float);
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");
 MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 qword func_001A62E8(P *);
-qword *func_00256D18(qword *,qword);
+qword *VECTOR_opAssign(qword *,qword);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 void IntersectSwBoundingSphere(GAME *,qword,float,int (*)(void *,void *),void *,int *,void ***);
@@ -85,7 +85,7 @@ static inline MATRIX3 operator*(const MATRIX3 &matL,const MATRIX3 &matR) return 
 static inline MATRIX3 Rotation(qword axis,float angle) return r {func_0011B500r(&r,axis,angle);}
 static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 {
-    func_00256D18((qword *)pm->mat[3],pos);
+    VECTOR_opAssign((qword *)pm->mat[3],pos);
     *(MATRIX3 *)pm=rot;
     pm->mat[3][3]=1.0f;
     pm->mat[2][3]=0;pm->mat[1][3]=0;pm->mat[0][3]=0;

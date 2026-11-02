@@ -10,8 +10,8 @@ public:
 };
 struct O;
 extern char D_003D4A60[];
-extern "C" CRef func_00258200(O *, const CRef &, void *);
-static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=func_00258200(pv,arg,D_003D4A60);}
+extern "C" CRef RefSetGlobalSaveVar(O *, const CRef &, void *);
+static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60);}
 struct G { char pad[0x3B20]; O *f3b20; };
 extern G D_003DD490;
 extern "C" void func_00161868(G *pg);

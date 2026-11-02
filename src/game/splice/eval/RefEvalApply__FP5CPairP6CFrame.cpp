@@ -16,8 +16,8 @@ struct CRef {
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 }
 struct SPM {
     NODE *p;
@@ -29,7 +29,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -74,7 +74,7 @@ struct LAMBDA {
 };
 extern BIF D_002BBB90[];
 extern "C" {
-FRAME *func_00256DD0();
+FRAME *PvNewFrame();
 CRef RefEval__FP5CPairP6CFrame(NODE *p, FRAME *pframe);
 CRef CFrame_RefAddBinding(FRAME *pframe, int sym, CRef *pref);
 void CFrame_SetSingleParent(FRAME *pframe, FRAME *pframeParent);
@@ -127,7 +127,7 @@ CRef RefEvalApply__FP5CPairP6CFrame(NODE *p, FRAME *pframe)
         SPN spLast;
         SPN spList;
         while (spCur.p) {
-            SPN spNew(func_00256B48());
+            SPN spNew(PvNewPair());
             spNew->ref = RefEval__FP5CPairP6CFrame(spCur.p, pframe);
             if (spLast.p) {
                 spLast->pnext = spNew.p;
@@ -150,7 +150,7 @@ CRef RefEvalApply__FP5CPairP6CFrame(NODE *p, FRAME *pframe)
         ref = pbif->pfn(c, aref, pframe);
         break;
     case 0x20: {
-        SPF spf(func_00256DD0());
+        SPF spf(PvNewFrame());
     int dummy[2];
         CFrame_SetSingleParent(spf.p, plambda->pframe);
         NODE *pparam = plambda->pparams;

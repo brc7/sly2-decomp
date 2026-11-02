@@ -11,7 +11,7 @@ extern struct G D_003DD490;
 qword func_00190C58(struct P *p);
 qword func_001A62E8(void *p);
 qword ConvertXfVec(int n, void *p, qword q);
-void func_00256D18(qword *pq, qword q);
+void VECTOR_opAssign(qword *pq, qword q);
 void __ml__FRC7MATRIX4T0(struct MATRIX4 *pm, void *p, struct T *t);
 void SolveIk(struct P *p, int n);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -36,7 +36,7 @@ void func_00190D10(struct P *p)
     d = VSub(a, b);
     a = ConvertXfVec(0, p->x19c4->xa0, d);
     t = p->x19c4;
-    func_00256D18(&t->x30, VAdd(t->x30, a));
+    VECTOR_opAssign(&t->x30, VAdd(t->x30, a));
     ((float *)&t->x30)[3] = 1.0f;
     n = ++D_003DD490.x3d58;
     p->x19c4->xa4 = n;

@@ -9,7 +9,7 @@ extern struct GD D_003DD490;
 extern struct B D_002E6604[];
 int func_001B0108(struct G *g);
 int IdPauseTopPage(struct G *g);
-void func_002581C0(struct CRef *ret, int a, void *b);
+void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
 char *func_0021ED58(char *d, const char *s);
@@ -31,7 +31,7 @@ void func_001ADA20(char *buf)
     gd = &D_003DD490;
     {
     struct E *e = &D_003D9EDC[g->x24];
-    func_002581C0(&ref, gd->x3B1C, &D_002E6604[e->x14]);
+    RefGetGlobalSaveVar(&ref, gd->x3B1C, &D_002E6604[e->x14]);
     }
     f = ref.m_tag;
     func_00129EC8(&ref);

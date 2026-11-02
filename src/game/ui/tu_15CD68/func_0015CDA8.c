@@ -6,7 +6,7 @@ extern char D_002DFC00[];
 extern int D_002BE26C;
 extern int D_002BE270;
 struct S { char pad[0x110]; int i110; char pad2[4]; int i118; char pad3[0xC]; int n128; };
-void func_002581C0(CRef *pref, void *p, void *q);
+void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 void PostWidgetLoad(struct S *p);
 void func_0015D648(struct S *p, int a, int b);
@@ -15,7 +15,7 @@ static inline float GFromP(void *pv)
 {
     CRef ref;
     float g;
-    func_002581C0(&ref, pv, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
     g = ref.u.g;
     func_00129EC8(&ref);
     return g;
@@ -24,7 +24,7 @@ static inline int NFromP(void *pv)
 {
     CRef ref;
     int n;
-    func_002581C0(&ref, pv, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
     n = ref.u.n;
     func_00129EC8(&ref);
     return n;

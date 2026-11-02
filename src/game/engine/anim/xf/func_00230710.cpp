@@ -23,7 +23,7 @@ void func_0022CC00(M4 *pm, O *po, qword v);
 M4 *func_0022CCD0(M4 *pm, O *pa, const M4 *basis, qword v);
 M3 *func_0011B570(M3 *, qword);
 qword func_0022CA18(O *pa, const M4 *matrix);
-qword *func_00256D18(qword *, qword);
+qword *VECTOR_opAssign(qword *, qword);
 void *func_002333B4(void *, int, int);
 void func_00230710(O *po, M4 *pm, M4 *pm2, float g);
 }
@@ -46,7 +46,7 @@ static inline M3 MulM3(const M3 &a, const M3 &b) return m
 }
 static inline void SetM4(M4 *pm, const M3 &mat, qword pos)
 {
-    func_00256D18(&pm->r[3], pos);
+    VECTOR_opAssign(&pm->r[3], pos);
     qword r0 = mat.r[0], r1 = mat.r[1], r2 = mat.r[2];
     pm->r[1] = r1; pm->r[2] = r2; pm->r[0] = r0;
     pm->m[3][3] = 1.0f;

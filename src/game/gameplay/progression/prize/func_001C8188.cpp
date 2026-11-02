@@ -17,11 +17,11 @@ struct CRef {
 extern char D_003D4A60[];
 extern char D_002E65E0[];
 
-extern "C" CRef func_00258200(void *pv, const CRef &ref, void *p);
+extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 struct RAW { int m_tagk; int m_tag; };
-extern "C" RAW *func_002581C0(RAW *pr, void *pv, void *p);
-static inline int NFromPv(void *pv,RAW &ref) { int n; func_002581C0(&ref,pv,D_003D4A60);n=ref.m_tag;func_00129EC8(&ref);return n; }
-static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=func_00258200(pv,arg,D_003D4A60); }
+extern "C" RAW *RefGetGlobalSaveVar(RAW *pr, void *pv, void *p);
+static inline int NFromPv(void *pv,RAW &ref) { int n; RefGetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;func_00129EC8(&ref);return n; }
+static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60); }
 extern "C" void func_001C8188(int f);
 /** @sly2-annot addr=0x1C8188
  * Purpose: set fVault and commit (0x1ABD98 memcard/save)

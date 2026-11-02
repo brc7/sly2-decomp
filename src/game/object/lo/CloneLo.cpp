@@ -56,12 +56,12 @@ extern G D_003DD490;
 void CGc_UpdateRecyclable(void*);
 void func_00257250(void*,int);
 void func_00129EC8(void*);
-void func_00255438(void*);
-void func_00255DE8(void*);
+void GcBinding_Unlink(void*);
+void GcSidebag_Unlink(void*);
 void func_0011CD98(void*,void*);
 void func_00257078(ROOT*,int);
 void func_002580A8(FIELD**,FIELD*);
-void func_00256EE0(ROOT**,ROOT*);
+void FramePtr_Assign(ROOT**,ROOT*);
 int func_00258178(FIELD*);
 int func_00259A88(ROOT*);
 RF CSidebag_CloneTo(FIELD*,P*);
@@ -73,7 +73,7 @@ void func_0011A070(void*,NODE*);
 void*PdlFromSwPxrOid(G*,int);
 void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
-struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);func_00129EC8(b->cref);func_00255438(b);func_0011CD98(D_004520D0,b);}func_00255DE8(f);func_0011CD98(D_00452148,f);}}};
+struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);func_00129EC8(b->cref);GcBinding_Unlink(b);func_0011CD98(D_004520D0,b);}GcSidebag_Unlink(f);func_0011CD98(D_00452148,f);}}};
 struct RR{ROOT*p;RR(){}RR(const RR&r):p(r.p){if(p)++p->refs;}~RR(){ROOT*r=p;if(r&&!--r->refs)func_00257078(r,3);}};
 typedef char FieldRefSize[sizeof(RF)==4?1:-1];
 typedef char RootRefSize[sizeof(RR)==4?1:-1];
@@ -95,7 +95,7 @@ extern "C" void CloneLo(P*p,const P*source){
         (void)func_00258178(p->field);
     }
     if(source->root){
-        {RR r=CFrame_CloneTo(source->root,p);func_00256EE0(&p->root,r.p);}
+        {RR r=CFrame_CloneTo(source->root,p);FramePtr_Assign(&p->root,r.p);}
         (void)func_00259A88(p->root);
     }
     p->scale=source->scale;

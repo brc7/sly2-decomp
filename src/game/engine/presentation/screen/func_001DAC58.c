@@ -16,11 +16,11 @@ extern int D_002C3268[];
 int FWidgetVisible(void *);
 Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void func_00258438(TXT *, float, float);
-void func_00258448(TXT *, float, float);
-void func_00258458(TXT *, unsigned int *);
-void func_00258470(TXT *, int);
-void func_00258478(TXT *, int);
+void CTextBox_SetPos(TXT *, float, float);
+void CTextBox_SetSize(TXT *, float, float);
+void CTextBox_SetTextColor(TXT *, unsigned int *);
+void CTextBox_SetHorizontalJust(TXT *, int);
+void CTextBox_SetVerticalJust(TXT *, int);
 FONT *CRichText_ctor(FONT *, int, float);
 void func_002163B0(FONT *, TXT *, int);
 static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;}
@@ -52,12 +52,12 @@ void func_001DAC58(OBJ *p)
                 TXT txt;
                 unsigned int rgba[2];
                 FONT font;
-                {float z=Zero();func_00258438(&txt,z,z);}
-                func_00258448(&txt, 640.0f, 448.0f * 1.1f);
+                {float z=Zero();CTextBox_SetPos(&txt,z,z);}
+                CTextBox_SetSize(&txt, 640.0f, 448.0f * 1.1f);
                 rgba[0] = 0xFF808080;
-                func_00258458(&txt, rgba);
-                func_00258470(&txt, 0);
-                func_00258478(&txt, 0);
+                CTextBox_SetTextColor(&txt, rgba);
+                CTextBox_SetHorizontalJust(&txt, 0);
+                CTextBox_SetVerticalJust(&txt, 0);
                 CRichText_ctor(&font, D_002C3268[j], D_002C3264);
                 {float x=pe->x;float y=pe->y;txt.y=y;txt.x=x;}
                 txt.dx = 32.0f;

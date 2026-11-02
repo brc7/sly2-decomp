@@ -30,7 +30,7 @@ extern "C"{
 extern U D_002A2DC0;extern M3 D_002DDFA0;extern CLOCK D_002DDED0;extern PARAMS D_002BE920,D_002BE930,D_002BE940;
 qword func_001A62E8(P*);M4*func_001A6318(P*);
 void func_00185310(void*,qword,TRIREF*,TRIREF*,qword*,qword*);
-M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*func_00256D18(qword*,qword);
+M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
 void func_0011C950(M4*,M3*,PARAMS*,M3*,qword*,float);
 void func_0011F088(qword,qword,PARAMS*,qword*,float);
 void func_001856B8(void*,LIST*);void func_001856C0(void*,LIST*,int,U*,PARAMS*,float);
@@ -59,8 +59,8 @@ static inline qword QwRotateVecAt(const M3*m,const qword*pv){qword r;__asm__("vm
 static inline qword QwRotateVecJ(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(v),"j"(v),"j"(m->r[1].q));return r;}static inline qword QwRotateVec(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
 static inline qword QwTransformPos(M4*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(v));return r;}
 static inline qword QwCombo(qword a,qword b,VU_FLOAT ka,VU_FLOAT kb){qword r;__asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x":"=j"(r):"j"(a),"j"(b),"j"(ka.qw),"j"(kb.qw));return r;}
-static inline void BuildM4L(const M3&m,const qword&pos,M4*d){func_00256D18(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
-static inline void BuildM4(M4*d,const M3&m,const qword&pos){func_00256D18(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
+static inline void BuildM4L(const M3&m,const qword&pos,M4*d){VECTOR_opAssign(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
+static inline void BuildM4(M4*d,const M3&m,const qword&pos){VECTOR_opAssign(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
 static inline M3 operator*(const M3&a,const M3&b) return r{
  r.r[2].q=QwRotateVec(&a,b.r[2].q);r.r[0].q=QwRotateVec(&a,b.r[0].q);r.r[1].q=QwRotateVec(&a,b.r[1].q);
 }

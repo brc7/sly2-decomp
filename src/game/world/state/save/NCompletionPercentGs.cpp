@@ -19,11 +19,11 @@ struct G { char pad[0x3B7C]; void *apv[9]; };
 extern G D_003DD490;
 extern int D_002C2DC0[];
 extern char D_002A78F0[];
-CRef func_002581C0(void *, unsigned char *);
+CRef RefGetGlobalSaveVar(void *, unsigned char *);
 extern "C" int NFindSaveSymbol(void *, char *);
 static inline int NGet(void *pv, unsigned char *pb)
 {
-    CRef ref = func_002581C0(pv, pb);
+    CRef ref = RefGetGlobalSaveVar(pv, pb);
     return ref.m_tag;
 }
 static inline int Clamp(int n, int lo, int hi)

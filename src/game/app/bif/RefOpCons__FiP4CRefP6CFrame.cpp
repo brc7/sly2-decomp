@@ -14,8 +14,8 @@ struct NODE;
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 }
 struct SPM {
     NODE *p;
@@ -27,7 +27,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -46,7 +46,7 @@ extern "C" CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     SPN sp;
-    sp.Set(func_00256B48());
+    sp.Set(PvNewPair());
     sp->ref = aref[0];
     CRef *pref = &aref[1];
     if (pref->m_tagk == 0x1F)

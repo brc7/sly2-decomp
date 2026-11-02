@@ -19,7 +19,7 @@ void PlayWidgetAnim(struct O *o, int n);
 void UpdateHackshipHealthBar(struct S *p);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
-void func_00258040(void **pp, void *q);
+void RcPtr_Assign(void **pp, void *q);
 void PauseSnd(void *p);
 void ReleaseAct(int *p);
 void func_002303A0(struct S *p, struct N *n, int k);
@@ -59,7 +59,7 @@ void func_0017FD08(struct S *p, int n) {
                 if (p->n2A8 != old) {
                     void *r = PsndStartSound(p->n2A8);
                     SetSndSourceLo(r, 0);
-                    func_00258040(&p->p2A4, r);
+                    RcPtr_Assign(&p->p2A4, r);
                     PauseSnd(p->p2A4);
                 }
             }
@@ -95,7 +95,7 @@ void func_0017FD08(struct S *p, int n) {
             void **pp = &p->p2A4;
             if (*pp) {
                 StopSnd(*pp, 0.0f);
-                func_00258040(pp, 0);
+                RcPtr_Assign(pp, 0);
             }
         }
         break;

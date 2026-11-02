@@ -11,8 +11,8 @@ struct O { int cref; int pad; CRef ref; char sub[0x10]; };
 struct Pool;
 extern Pool D_004520A8;
 extern "C" {
-void func_00256D40(void *, int);
-void func_002550F8(O *);
+void PairPtr_Release(void *, int);
+void GcPair_Unlink(O *);
 void func_0011CD98(Pool *, O *);
 }
 struct SP {
@@ -21,9 +21,9 @@ struct SP {
     ~SP() {
         O *q = p;
         if (q && --q->cref == 0) {
-            func_00256D40(q->sub, 2);
+            PairPtr_Release(q->sub, 2);
             func_00129EC8(&q->ref);
-            func_002550F8(q);
+            GcPair_Unlink(q);
             func_0011CD98(&D_004520A8, q);
         }
     }

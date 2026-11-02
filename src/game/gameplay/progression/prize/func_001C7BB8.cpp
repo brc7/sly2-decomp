@@ -7,8 +7,8 @@ void *FClueCollected(void *p);
 class FRAME { int a[4]; public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct CRef { int m_tagk; int m_tag; };
 extern char D_003D4A60[];
-extern "C" void func_002581C0(CRef *pref, void *pv, void *p);
-static inline int NFromPv(void *pv) { CRef ref; int n; func_002581C0(&ref, pv, D_003D4A60); n = ref.m_tag; func_00129EC8(&ref); return n; }
+extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; func_00129EC8(&ref); return n; }
 extern "C" int func_001C7BB8(void *p);
 /** @sly2-annot addr=0x1C7BB8
  * Purpose: wrapper of FClueCollected

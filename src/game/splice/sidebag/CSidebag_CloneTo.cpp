@@ -3,8 +3,8 @@ extern char D_004520D0[];
 extern char D_00452148[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_00255438(void *pv);
-void func_00255DE8(void *pv);
+void GcBinding_Unlink(void *pv);
+void GcSidebag_Unlink(void *pv);
 }
 struct CRef { int m_tagk; int m_tag; void Decref(); ~CRef() { Decref(); } };
 struct SPM {
@@ -17,7 +17,7 @@ struct BINDING {
     int sym;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_00255438(pv); func_0011CD98(D_004520D0, pv); }
+    void operator delete(void *pv) { GcBinding_Unlink(pv); func_0011CD98(D_004520D0, pv); }
 };
 struct SPB {
     BINDING *p;
@@ -31,7 +31,7 @@ struct SB {
     int x4;
     SPB pbinding;
     void SetBinding(BINDING *pb) { pbinding = pb; }
-    void operator delete(void *pv) { func_00255DE8(pv); func_0011CD98(D_00452148, pv); }
+    void operator delete(void *pv) { GcSidebag_Unlink(pv); func_0011CD98(D_00452148, pv); }
 };
 struct SPS {
     SB *p;
@@ -43,7 +43,7 @@ struct SPS {
     SB *operator->() { return p; }
 };
 extern "C" {
-SB *func_00257D80();
+SB *PvNewSidebag();
 SPB CVarb_CloneTo(BINDING *pb, void *p, void *q);
 SPS CSidebag_CloneTo(SB *psbSrc, void *q);
 }
@@ -57,7 +57,7 @@ SPS CSidebag_CloneTo(SB *psbSrc, void *q);
 SPS CSidebag_CloneTo(SB *psbSrc, void *q)
 {
     SPS sp;
-    sp.Set(func_00257D80());
+    sp.Set(PvNewSidebag());
     if (psbSrc->pbinding.p)
         sp->SetBinding(CVarb_CloneTo(psbSrc->pbinding.p, 0, q).p);
     return SPS(sp.p);

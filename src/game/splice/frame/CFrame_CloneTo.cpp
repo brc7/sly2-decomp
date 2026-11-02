@@ -11,8 +11,8 @@ struct W;
 extern char D_004520D0[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_00255438(void *pv);
-W *func_00257340();
+void GcBinding_Unlink(void *pv);
+W *PvNewBinding();
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 struct SPM {
@@ -27,7 +27,7 @@ struct W {
     CRef ref;
     SPM pnext;
     void SetNext(W *pw) { pnext = pw; }
-    void operator delete(void *pv) { func_00255438(pv); func_0011CD98(D_004520D0, pv); }
+    void operator delete(void *pv) { GcBinding_Unlink(pv); func_0011CD98(D_004520D0, pv); }
 };
 struct SPW {
     W *p;
@@ -61,7 +61,7 @@ struct SPO {
     O *operator->() { return p; }
 };
 extern "C" {
-O *func_00256DD0();
+O *PvNewFrame();
 SPO CFrame_CloneTo(O *src, void *a);
 }
 /** @sly2-annot addr=0x127E90
@@ -75,7 +75,7 @@ SPO CFrame_CloneTo(O *src, void *a)
 {
     SPO sp;
     int i;
-    sp.Set(func_00256DD0());
+    sp.Set(PvNewFrame());
     sp->c = src->c;
     for (i = 0; i < src->c; i++)
         (*(SPZ *)((int)(i * 4) + (int)sp.p + 0xC)) = src->apz[i].p;

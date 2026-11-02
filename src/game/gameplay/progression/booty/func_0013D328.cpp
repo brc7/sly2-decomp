@@ -19,9 +19,9 @@ extern "C" {
 void SetBootyState(void *, int);
 O *func_0013D1A8(S *);
 void func_0013CF38(S *, int);
-CRef func_00258200(O *, const CRef &, void *);
+CRef RefSetGlobalSaveVar(O *, const CRef &, void *);
 }
-static inline void SetPv(O *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = func_00258200(pv, arg, D_003D4A60); }
+static inline void SetPv(O *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60); }
 /** @sly2-annot addr=0x13D328
  * Purpose: Splice: reset current booty, save kind n, and spawn if n != -1
  * Info: proposed name SetBootyContainerKind (T2); TU booty

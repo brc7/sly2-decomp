@@ -15,7 +15,7 @@ extern void ChargeGadgetMp(void *p, int n);
 extern void func_0014D1D0(void *p, int n, float g);
 extern void *PsndStartSound(int n);
 extern void SetSndSourceLo(void *p, int n);
-extern void func_00258040(void *p, void *pv);
+extern void RcPtr_Assign(void *p, void *pv);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00195FB8(void *p, int a, int b);
 extern REC *PgadrecFromJtGadget(void *p, int n);
@@ -49,7 +49,7 @@ void UseJtGadget(char *p, int n)
         D_003E1BEC = -1.0f;
         pv = PsndStartSound(0x67);
         SetSndSourceLo(pv, 0);
-        func_00258040(A(0x2044), pv);
+        RcPtr_Assign(A(0x2044), pv);
         break;
     }
     case 0x2A: {
@@ -59,7 +59,7 @@ void UseJtGadget(char *p, int n)
         D_003E1BEC = 0.7f;
         pv = PsndStartSound(0x66);
         SetSndSourceLo(pv, 0);
-        func_00258040(A(0x2044), pv);
+        RcPtr_Assign(A(0x2044), pv);
         break;
     }
     case 0x21:

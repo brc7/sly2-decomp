@@ -21,7 +21,7 @@ void SetActPositionGoal(void *,qword);
 void func_00129EC8(void *);
 }
 struct CRef {int kind,value;CRef(const CRef &) __asm__("func_001291A8");~CRef(){func_00129EC8(this);}};
-extern "C" CRef func_002581C0(int,void *);
+extern "C" CRef RefGetGlobalSaveVar(int,void *);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Make(float x,float y,float z) {
     qword q,t;
@@ -62,7 +62,7 @@ extern "C" void UpdateTurretAim(S *p){
             float cubeY=y*y;
             cubeY=cubeY*y;
             float ay=cubeY*accel;
-            if(!func_002581C0(D_003E0FE0,D_003D4A60).value)ay=-ay;
+            if(!RefGetGlobalSaveVar(D_003E0FE0,D_003D4A60).value)ay=-ay;
             if(ay*p->vyaw<=0.0f)p->vyaw=0.0f;
             CLOCK *clock=&D_002DDED0;
             const float *damping=D_002C4408;

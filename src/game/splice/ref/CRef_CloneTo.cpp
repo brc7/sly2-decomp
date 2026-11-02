@@ -3,7 +3,7 @@ struct NODE; struct O;
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
+void GcPair_Unlink(void *pv);
 }
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -31,7 +31,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;

@@ -7,7 +7,7 @@ struct A { char pad[0xA4]; float gA4; float gA8; int nAC; int nB0; float gB4; fl
 void ActivateCplcy(struct A *a, int n);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
-void func_00258040(void **pp, void *p);
+void RcPtr_Assign(void **pp, void *p);
 void PauseSnd(void *p);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pmat, float *pa, float *pb);
 void SetCmNearClip__FP2CMf(struct G *pg, float g);
@@ -28,10 +28,10 @@ void ActivateCpzoom(struct A *a, int n)
     ActivateCplcy(a, n);
     p = PsndStartSound(0x26);
     SetSndSourceLo(p, 0);
-    func_00258040(&a->pC0, p);
+    RcPtr_Assign(&a->pC0, p);
     p = PsndStartSound(0x25);
     SetSndSourceLo(p, 0);
-    func_00258040(&a->pC4, p);
+    RcPtr_Assign(&a->pC4, p);
     PauseSnd(a->pC0);
     __asm__ __volatile__("" ::: "$6"); /* a2 is dead here: delays the a2 setup like the original */
     pg = &D_002DDF40;

@@ -39,7 +39,7 @@ extern SW D_003DD490;
 extern float D_002C0D4C;
 extern qword D_002A2DC0;
 void func_001F3980(P *);
-qword *func_00256D18(qword *, qword);
+qword *VECTOR_opAssign(qword *, qword);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 M3 LoadRotateMatrixEuler(qword);
 }
@@ -126,7 +126,7 @@ extern "C" void ProjectDprizeTransform(P *p)
     qword newPosition = Advance(p->coordinate, p->velocity, VU_FLOAT(D_002DDED0.dt.bits));
     CHANNEL *channel = p->position;
     p->coordinate = newPosition;
-    func_00256D18(&channel->position, newPosition);
+    VECTOR_opAssign(&channel->position, newPosition);
     *(float *)((char *)channel + 0x3C) = 1.0f;
     p->position->velocity = p->velocity;
     { int stamp = ++D_003DD490.stamp; p->position->stamp = stamp; }
@@ -156,7 +156,7 @@ extern "C" void ProjectDprizeTransform(P *p)
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
                 channel = p->position;
-                func_00256D18(&channel->position, Add(channel->position, RotateVec(frame, position.q)));
+                VECTOR_opAssign(&channel->position, Add(channel->position, RotateVec(frame, position.q)));
                 *(float *)((char *)channel + 0x3C) = 1.0f;
                 CHANNEL *current = p->position;
                 current->velocity = Add(current->velocity, RotateVec(frame, velocity.q));

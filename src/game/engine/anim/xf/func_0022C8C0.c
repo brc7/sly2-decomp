@@ -7,7 +7,7 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r
 struct S { M4 m; char pad[0x94 - 0x40]; int k; };
 void *func_0023320C(void *d, void *s, int n);
 M3 *LoadRotateMatrixEuler(M3 *pm, qword v);
-VU *func_00256D18(VU *pv, qword q);
+VU *VECTOR_opAssign(VU *pv, qword q);
 /** @sly2-annot addr=0x22C8C0
  * Purpose: switch on kind: rotation/position override applied to matrix
  * Info: proposed name ApplyXfOverride (T2); TU xf
@@ -33,7 +33,7 @@ M4 *func_0022C8C0(M4 *pm, struct S *p, qword v)
     case 6: case 7: {
         M3 m;
         LoadRotateMatrixEuler(&m, v);
-        func_00256D18(&pm->r[3], p->m.r[3].q);
+        VECTOR_opAssign(&pm->r[3], p->m.r[3].q);
         pm->r[0]=m.r[0];
         pm->r[1]=m.r[1];
         pm->r[2]=m.r[2];

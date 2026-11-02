@@ -13,7 +13,7 @@ extern "C" {
 S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
 void AppendDlEntry__FP2DLPv(void *, S *);
-void func_00256EE0(S *, int);
+void FramePtr_Assign(S *, int);
 }
 struct Lock {
     S *p;
@@ -45,7 +45,7 @@ extern "C" void func_00156548(P *p, qword q, int b, S **pps)
     AppendDlEntry__FP2DLPv(D_003DD490.dl, ps);
     ps->pvt->a[1].pfn((char *)ps + ps->pvt->a[1].d);
     Lock l(ps);
-    func_00256EE0(ps, p->n0);
+    FramePtr_Assign(ps, p->n0);
     if (pps) *pps = ps;
     ps->pvt->a3.pfn((char *)ps + ps->pvt->a3.d, 2, 0, 0, 0, 0);
 }

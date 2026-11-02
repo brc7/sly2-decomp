@@ -26,8 +26,8 @@ extern char D_004520A8[];
 extern int D_003E1C34;
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 int func_00117BD0(BIS *pbis);
 int func_00117DB8(BIS *pbis);
 int func_00117D50(BIS *pbis);
@@ -44,7 +44,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -70,7 +70,7 @@ extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
  * @end-sly2-annot */
 SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = func_00117BD0(pbis);
  if (b == 0xFF) return SPN(0);
- SPN sp; NODE *pnNew = func_00256B48(); sp.Set(pnNew);
+ SPN sp; NODE *pnNew = PvNewPair(); sp.Set(pnNew);
  if (D_003E1C34) { func_00117DB8(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); func_00117D50(pbis); }
  CRef *pref = &sp->ref; int fNext = (b >> 7) & 0xFF; int tagk = b & 0x7F;
  switch (tagk) {

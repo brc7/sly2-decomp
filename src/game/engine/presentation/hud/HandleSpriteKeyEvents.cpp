@@ -11,11 +11,11 @@ extern char D_003DD040[];
 extern "C" struct M *PsndStartSound(int id);
 extern "C" void SetSndSourceLo(struct M *, struct O *);
 extern "C" void StopSnd(struct M *, float);
-extern "C" void func_00258040(struct M **pp, struct M *m);
+extern "C" void RcPtr_Assign(struct M **pp, struct M *m);
 extern "C" void *StartDialog(void *p,int a,int b);
 extern "C" void StopDialog(void *p);
 static inline M *SlotSound(M *const &slot){register M *value asm("$4");asm("lw %0,0(%1)":"=r"(value):"r"(&slot),"m"(slot));return value;}
-static inline void Stop(M **pp){if(pp){M *sound=SlotSound(*pp);if(sound){StopSnd(sound,0.0f);func_00258040(pp,0);}}}
+static inline void Stop(M **pp){if(pp){M *sound=SlotSound(*pp);if(sound){StopSnd(sound,0.0f);RcPtr_Assign(pp,0);}}}
 static inline unsigned int Presence(M *const &slot){register unsigned int value asm("$3");__asm__("lw %0,%1":"=r"(value):"m"(slot));return value;}
 static inline int EntryOffset(int index,int stride){int value;__asm__("mult %0,%1,%2":"=r"(value):"r"(index),"r"(stride):"hi","lo");return value;}
 static inline int ActionKind(const A &action){register int value asm("$3");asm("lw %0,%1":"=r"(value):"m"(action.kind));return value;}
@@ -43,7 +43,7 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
             struct M *m=PsndStartSound(a->id);
             SetSndSourceLo(m,0);
             if(m->vt->kind((char *)m+m->vt->d)==2)
-                func_00258040(&((E *)(createOffset+(int)p->r->ae))->pm,m);
+                RcPtr_Assign(&((E *)(createOffset+(int)p->r->ae))->pm,m);
             break;
         }
         case 1: {

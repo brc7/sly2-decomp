@@ -39,7 +39,7 @@ void func_001FAC98(O *,qword);
 void func_0015A2C0(O *,WATER *,float,qword,qword,float,float);
 int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 void StopSnd(EMITTER *,float);
-void func_00258040(EMITTER **,EMITTER *);
+void RcPtr_Assign(EMITTER **,EMITTER *);
 }
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){qword v;float f;__asm__("prot3w %0,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
@@ -56,7 +56,7 @@ static inline qword NegativeAngular(qword angular,float sign,qword &scalar){qwor
 #define GAIN2(G,amount,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*amount*friction;}
 #define GAIN1(G,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*friction;}
 static inline void Zero(V &v,float zero){v.f[0]=v.f[1]=v.f[2]=zero;}
-static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitter,0.0f);func_00258040(emitter,0);}}
+static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitter,0.0f);RcPtr_Assign(emitter,0);}}
 /** @sly2-annot addr=0x2297F8
  * Purpose: resolves one contact between two physics objects incl. water splash
  * Info: class SO slot72; TU water

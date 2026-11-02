@@ -5,7 +5,7 @@ extern char D_003D4A60[];
 extern int D_002BE26C;
 extern int D_002BE2D0[];
 struct S { char pad[0x118]; int i; };
-void func_002581C0(CRef *pref, void *p, void *q);
+void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
 /** @sly2-annot addr=0x15D798
  * Purpose: Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus
@@ -26,14 +26,14 @@ int func_0015D798(struct S *p)
     n = D_002BE2D0[p->i];
     pA = D_003DD490.apA[p->i];
     pB = D_003DD490.apB[p->i];
-    func_002581C0(&ref, pA, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, pA, D_003D4A60);
     g = ref.u.g;
     func_00129EC8(&ref);
     if (g == 0.0f) {
         n -= 2;
     } else {
         int c;
-        func_002581C0(&ref, pB, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, pB, D_003D4A60);
         c = ref.u.n;
         func_00129EC8(&ref);
         if (c <= 99)

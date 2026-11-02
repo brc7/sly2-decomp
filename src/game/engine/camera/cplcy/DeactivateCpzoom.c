@@ -1,14 +1,14 @@
 struct A { int pad[4]; int n10; int n14; float g18; char pad2[0x40 - 0x1C]; int n40; char pad3[0xC0 - 0x44]; void *pC0; void *pC4; };
 extern char D_002DDF40[];
 void StopSnd(void *p, float g);
-void func_00258040(void **pp, int n);
+void RcPtr_Assign(void **pp, int n);
 void CutCm__FP2CM(void *p);
 void DeactivateCplcy(struct A *a, int n, void *b);
 static inline void Release(void **pp, float g)
 {
     if (pp && *pp) {
         StopSnd(*pp, g);
-        func_00258040(pp, 0);
+        RcPtr_Assign(pp, 0);
     }
 }
 /** @sly2-annot addr=0x151130

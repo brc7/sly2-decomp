@@ -7,7 +7,7 @@ extern struct G1 D_002E6550;
 extern struct G2 D_002E65E0;
 extern int D_003E0FE4;
 void BroadcastGameEvent(void *p, int a, int b);
-void func_002581C0(struct R *r, int a, void *b);
+void RefGetGlobalSaveVar(struct R *r, int a, void *b);
 void func_00129EC8(struct R *r);
 void SetMcDialogState(struct G1 *p, int n);
 void func_001ABD40(struct G2 *p);
@@ -27,7 +27,7 @@ void func_001B0878(struct S *p)
         struct R r;
         int v;
         D_002E6550.x4C = 1;
-        func_002581C0(&r, D_003E0FE4, D_003D4A60);
+        RefGetGlobalSaveVar(&r, D_003E0FE4, D_003D4A60);
         v = r.tag;
         func_00129EC8(&r);
         if (v == 0) {

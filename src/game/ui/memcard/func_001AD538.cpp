@@ -16,7 +16,7 @@ extern struct E D_003D9EDC[];
 void func_001ACC38(void *p, int n);
 int IdPauseTopPage(void *g);
 }
-CRef Eval(int a, void *b) __asm__("func_002581C0");
+CRef Eval(int a, void *b) __asm__("RefGetGlobalSaveVar");
 static inline float F(int x, void *pb) { return Eval(x, pb).m_tag; }
 /** @sly2-annot addr=0x1AD538
  * Purpose: Menu hook: eval 3 slots' Splice values and update entries

@@ -13,8 +13,8 @@ struct CRef {
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 }
 struct SPM {
     NODE *p;
@@ -27,7 +27,7 @@ struct NODE {
     CRef ref;
     SPM pnext;
     void SetNext(NODE *pn) { pnext = pn; }
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -51,21 +51,21 @@ extern "C" SPN func_00121578(CRef **ppref1, CRef **ppref2);
 SPN func_00121578(CRef **ppref1, CRef **ppref2)
 {
     SPN sp;
-    sp.Set(func_00256B48());
-    sp->ref = func_00256B48();
+    sp.Set(PvNewPair());
+    sp->ref = PvNewPair();
     NODE *pn1 = (NODE *)sp->ref.u.pv;
     CRef *pref1 = &pn1->ref;
-    *pref1 = func_00256B48();
-    pn1->SetNext(func_00256B48());
+    *pref1 = PvNewPair();
+    pn1->SetNext(PvNewPair());
     NODE *pn2 = (NODE *)pref1->u.pv;
     pn2->ref.SetTag(0x12);
-    pn2->SetNext(func_00256B48());
+    pn2->SetNext(PvNewPair());
     *ppref1 = &pn2->pnext.p->ref;
     CRef *pref2 = &pn1->pnext.p->ref;
-    *pref2 = func_00256B48();
+    *pref2 = PvNewPair();
     NODE *pn3 = (NODE *)pref2->u.pv;
     pn3->ref.SetTag(0x12);
-    pn3->SetNext(func_00256B48());
+    pn3->SetNext(PvNewPair());
     *ppref2 = &pn3->pnext.p->ref;
     return SPN(sp.p);
 }

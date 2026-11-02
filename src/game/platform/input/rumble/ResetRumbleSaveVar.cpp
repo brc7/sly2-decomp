@@ -18,16 +18,16 @@ struct CRef {
     ~CRef() { func_00129EC8(this); }
 };
 extern char D_003D4A60[];
-extern "C" CRef func_00258200(void *pv, const CRef &ref, void *p);
+extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 static inline void SetPv(void *pv, const RAW &r, void *)
 {
     CRef arg(r);
-    const CRef &ret = func_00258200(pv, arg, D_003D4A60);
+    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
 }
 static inline void SetPv2(void *pv, const RAW &r)
 {
     CRef arg(r);
-    const CRef &ret = func_00258200(pv, arg, D_003D4A60);
+    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
 }
 /** @sly2-annot addr=0x1D54B8
  * Purpose: Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1

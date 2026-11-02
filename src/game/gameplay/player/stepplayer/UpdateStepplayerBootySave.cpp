@@ -36,17 +36,17 @@ BL *func_002109B8(int);
 int func_00233178(const void *a, const void *b, int n);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int func_0021ECD8(char *, const char *, ...);
-CRef func_00258200(void *p, const CRef &ref, G *pv);
+CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 }
 CRef RefSetSaveVarV(const CRef &ref, const void *o, ...);
 CRef RefGetSaveVarV(const char *, ...);
-static inline void Send(void *pv, CRef ref) { func_00258200(pv, ref, &D_003D4A60); }
+static inline void Send(void *pv, CRef ref) { RefSetGlobalSaveVar(pv, ref, &D_003D4A60); }
 struct CRefRaw { int tagk; int tag; };
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRefRaw arg;
     func_001291A8((CRef *)&arg, &r);
-    func_00258200(pv, *(CRef *)&arg, &D_003D4A60);
+    RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     func_00129EC8((CRef *)&arg);
 }
 static inline void *Vcall103(LO *p) { VTE *e = &p->vt[103]; return e->pfn((char *)p + e->d); }

@@ -59,7 +59,7 @@ struct VU_FLOAT { qword q; VU_FLOAT(float g) { __asm__("mfc1 %0,%1" : "=r"(q) : 
 
 extern "C" {
 qword ConvertAloPos(OWNER *, OWNER *, qword);
-qword *func_00256D18(qword *, qword);
+qword *VECTOR_opAssign(qword *, qword);
 M4 InvertMatrix4Rigid(const M4 *);
 void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
 void *func_002333B4(void *, int, uint);
@@ -119,7 +119,7 @@ static inline qword Lerp(qword a, const VU_FLOATQ &sa, qword b, const VU_FLOATQ 
 /* through a pointer: sp-based r[0] store, pointer-based for the rest, as in the target */
 static inline void BuildFrame(M4 *pm, const M4 *src, qword pos)
 {
-    func_00256D18(&pm->r[3].q, pos);
+    VECTOR_opAssign(&pm->r[3].q, pos);
     pm->r[0].q = src->r[0].q;
     pm->r[1].q = src->r[1].q;
     pm->r[2].q = src->r[2].q;

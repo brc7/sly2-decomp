@@ -75,7 +75,7 @@ void StopSnd(void *p, float g);
 void *PsndStartSound(int id);
 void SetSndSourceLo(void *p, SO *pso);
 void SetSndRange(void *p, float a, float b);
-void func_00258040(void *pp, void *p);
+void RcPtr_Assign(void *pp, void *p);
 RIP *PripNewRipg(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb);
 void func_0015BE28(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
@@ -140,7 +140,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
                 SetSndSourceLo(ps, (SO *)psnd);
                 SetSndRange(ps, 100.0f, 1000.0f);
                 func_001FB1F8(ps, g);
-                func_00258040(pp, ps);
+                RcPtr_Assign(pp, ps);
             }
         }
         if (!fWake) {
@@ -184,7 +184,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
         void **pp = &psnd->psnd;
         if (pp && *pp) {
             StopSnd(*pp, g);
-            func_00258040(pp, 0);
+            RcPtr_Assign(pp, 0);
         }
     }
 }

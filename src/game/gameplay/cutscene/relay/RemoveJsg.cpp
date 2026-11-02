@@ -25,7 +25,7 @@ void SetJsgTunnel(P *p, void *po);
 void func_001E5000(P *p, int a);
 void func_001E50E0(P *p, int a, int b);
 void StopSnd(void *pv, float g);
-void func_00258040(void **ppv, int n);
+void RcPtr_Assign(void **ppv, int n);
 void func_001E5A98(P *p, int n);
 void RemoveJsg(P *p);
 }
@@ -58,7 +58,7 @@ void RemoveJsg(P *p)
     func_001E50E0(p, 0, 0);
     if (*ppv) {
         StopSnd(*ppv, 0.0f);
-        func_00258040(ppv, 0);
+        RcPtr_Assign(ppv, 0);
     }
     if (p->x9C) func_001E5A98(p, 1);
     p->vt[2].pfn((char *)p + p->vt[2].d);

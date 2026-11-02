@@ -17,12 +17,12 @@ struct CRef {
 };
 extern char D_003D4A60[];
 extern int D_003E1BF4;
-extern "C" CRef func_00258200(void *pv, const CRef &ref, void *p);
+extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 /* Copy the reference into the setter's value argument. */
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRef arg(r);
-    const CRef &ret = func_00258200(pv, arg, D_003D4A60);
+    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
 }
 /** @sly2-annot addr=0x1C7C30
  * Purpose: set clue bit / count

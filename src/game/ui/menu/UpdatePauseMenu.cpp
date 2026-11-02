@@ -26,13 +26,13 @@ void func_001AFF88(P*,ITEM*);
 void func_001AFB88(P*,ITEM*);
 void func_001AF6D0(P*,GROUP*,ITEM*);
 int IdPauseTopPage(P*);
-CRef func_002581C0(OPT*,CONTEXT*);
+CRef RefGetGlobalSaveVar(OPT*,CONTEXT*);
 void SetMcDialogState(MENU*,int);
 extern OPT*D_003E0FAC;
 extern CONTEXT D_002E6604[];
 extern MENU D_002E6550;
 }
-static inline float Value(OPT*key,CONTEXT*context){CRef result=func_002581C0(key,context);return result.f;}
+static inline float Value(OPT*key,CONTEXT*context){CRef result=RefGetGlobalSaveVar(key,context);return result.f;}
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char ITEM_Size[sizeof(ITEM)==32?1:-1];

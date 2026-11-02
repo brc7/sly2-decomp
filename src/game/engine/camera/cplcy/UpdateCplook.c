@@ -28,7 +28,7 @@ void func_001FB1F8(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
 void SetCmFov__FP2CMf(struct CM *p, float g);
-void func_002581C0(struct CRef *, void *, void *);
+void RefGetGlobalSaveVar(struct CRef *, void *, void *);
 void func_00129EC8(struct CRef *);
 float func_0011CFE0(float g, float gMax);
 float RadNormalize__Ff(float g);
@@ -82,7 +82,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->g2C + u * p->g30);
     gPan = -__builtin_fabsf(pjoy->g103C) * pjoy->g103C * D_002BD990;
     gTilt = -__builtin_fabsf(pjoy->g1040) * pjoy->g1040 * D_002BD994;
-    func_002581C0(&ref, D_003DD490.p3B4C, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, D_003DD490.p3B4C, D_003D4A60);
     f = ref.m_n;
     func_00129EC8(&ref);
     if (f)

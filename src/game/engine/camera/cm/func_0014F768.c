@@ -3,7 +3,7 @@ typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x60]; M3 mat; qword pos; char pad2[0x100 - 0xA0]; char m100[0x520]; float x620; };
-void func_00256D18(qword *p, qword v);
+void VECTOR_opAssign(qword *p, qword v);
 void func_0014D8F8(M4 *pm, void *pv, int n);
 static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 {
@@ -34,7 +34,7 @@ void func_0014F768(struct CM *p, int k, void *pv, int n, M4 *pm)
     }
     __asm__("qmtc2.ni %1, %0" : "=j"(g.q) : "r"(f));
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r.q) : "j"(p->pos), "j"(p->mat.r[1]), "j"(g.q));
-    func_00256D18(&pm->r[3], r.q);
+    VECTOR_opAssign(&pm->r[3], r.q);
     LoadM4(pm, &p->mat);
     func_0014D8F8(pm, pv ? pv : p->m100, n);
 }

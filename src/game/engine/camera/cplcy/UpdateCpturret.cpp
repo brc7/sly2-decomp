@@ -20,7 +20,7 @@ M3 MulMatrix3Matrix3(M4 *pm, M3 *pm2);
 void func_0011BCF8(M3 *pm, float *pg, qword *pv);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext); /* GSmooth */
 M3 func_0011B500(qword v, float g);
-qword *func_00256D18(qword *p, qword v);
+qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(CM *p, M4 *m);
 void SetCmFov__FP2CMf(CM *p, float g);
 void UpdateCpturret(X *p);
@@ -88,7 +88,7 @@ void UpdateCpturret(X *p)
             pos = m.q.r[3];
         else
             pos = AddScaled(m.q.r[3], d, VU_FLOAT(GSmooth__FfffP3SMPPf(dist, 0.0f, D_002DDED0.dt, D_002BDAC0, 0) / dist));
-        func_00256D18(&m.q.r[3], pos);
+        VECTOR_opAssign(&m.q.r[3], pos);
         m.m3 = mNew;
         m.af[3][3] = 1.0f;
         m.af[2][3] = 0.0f;

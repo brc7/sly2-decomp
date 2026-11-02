@@ -11,9 +11,9 @@ struct CRef{
 struct OPT{int kind,value;};
 struct S{char pad[0x7C];int n;char pad80[0x24];float g;char padA8[0x28];OPT a,b,c;};
 extern char D_003D4A60[];
-extern "C" CRef func_00258200(OPT*,const CRef&,void*);
+extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int FJobComplete(S*);
-static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=func_00258200(p,arg,D_003D4A60);}
+static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,D_003D4A60);}
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
 /** @sly2-annot addr=0x163460

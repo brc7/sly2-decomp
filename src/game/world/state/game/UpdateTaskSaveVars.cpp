@@ -10,10 +10,10 @@ struct CRef {
 struct OPT{int kind,value;};
 struct S{char pad[0x54];int state;char pad58[0xC];int a,b;char pad6C[0x10];void*next;char pad80[0x48];OPT c,d,e,f,h;int fF0,fF4;};
 extern char D_003D4A60[];
-extern "C" CRef func_00258200(OPT*,const CRef&,void*);
+extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int FTaskComplete(S*);
 extern "C" void UpdateJobSaveVars(void*);
-static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=func_00258200(p,arg,D_003D4A60);}
+static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,D_003D4A60);}
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 /** @sly2-annot addr=0x1643B0
  * Purpose: Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes

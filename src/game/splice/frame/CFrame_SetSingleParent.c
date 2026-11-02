@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00256EE0(void *);                      /* extern */
+M2C_UNK FramePtr_Assign(void *);                      /* extern */
 
 /** @sly2-annot addr=0x127B18
  * Purpose: cframe(+8)=1; apframe[0] (+0xC, refcounting pointer assign 0x256EE0) = parent
@@ -12,5 +12,5 @@ M2C_UNK func_00256EE0(void *);                      /* extern */
  * @end-sly2-annot */
 void CFrame_SetSingleParent(void *arg0) {
     M2C_FIELD(arg0, s32 *, 8) = 1;
-    func_00256EE0(arg0 + 0xC);
+    FramePtr_Assign(arg0 + 0xC);
 }

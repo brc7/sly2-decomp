@@ -17,8 +17,8 @@ struct CRef {
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 }
 struct SPM {
     NODE *p;
@@ -30,7 +30,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -92,13 +92,13 @@ extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CR
                 if (ClsgClipEdgeToObject(pso, *prefFrom->u.pq, *prefTo->u.pq, 1, &hit) <= 0)
                     continue;
                 {
-                    SPN spLo(func_00256B48());
-                    SPN spPos(func_00256B48());
+                    SPN spLo(PvNewPair());
+                    SPN spPos(PvNewPair());
                     spLo->ref = plo;
                     spLo->pnext = spPos.p;
                     if (pv == 0x7B) {
-                        SPN spNormal(func_00256B48());
-                        SPN spItem(func_00256B48());
+                        SPN spNormal(PvNewPair());
+                        SPN spItem(PvNewPair());
                         spPos->ref = &hit.pos;
                         spPos->pnext = spNormal.p;
                         spNormal->ref = &hit.normal;

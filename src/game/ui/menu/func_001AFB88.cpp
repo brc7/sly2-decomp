@@ -26,10 +26,10 @@ typedef char CRefFloat[FIELD_OFFSET(CRef,f)==4?1:-1];
 typedef char MessageKind[FIELD_OFFSET(MSG,kind)==0?1:-1];
 typedef char GameFirst[FIELD_OFFSET(GAME,first)==0x3B40?1:-1];
 typedef char GameSecond[FIELD_OFFSET(GAME,second)==0x3B44?1:-1];
-extern "C" CRef func_00258200(OPT*,const CRef&,void*);
+extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" void SetPauseMenuState(void*,int);
 extern "C" void ApplyGsSettings(void*);
-static inline void SetPv(OPT*key,CRef r,void*context){func_00258200(key,r,context);}
+static inline void SetPv(OPT*key,CRef r,void*context){RefSetGlobalSaveVar(key,r,context);}
 static inline void SetInt(OPT*key,int x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}

@@ -6,7 +6,7 @@ extern "C" {
  extern G D_003DD490;
  extern B D_002E6604[];
  extern char D_003D9ED0[],D_002A6EE0[],D_002A6EC8[];
- void*func_002581C0(REF*,void*,void*);
+ void*RefGetGlobalSaveVar(REF*,void*,void*);
  void func_00129EC8(REF*);
  void*STACKSCOPE_ctor(void*);
  void STACKSCOPE_ctor_1AE4A0(void*,int);
@@ -19,8 +19,8 @@ extern "C" {
  int IdPauseTopPage(void*);
 }
 struct FRAME{FRAME()__asm__("STACKSCOPE_ctor");~FRAME(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-static inline float GetG(REF&r,void*a,B*b){func_002581C0(&r,a,b);float g=r.g;func_00129EC8(&r);return g;}
-static inline int GetN(REF&r,void*a,B*b){func_002581C0(&r,a,b);int n=r.n;func_00129EC8(&r);return n;}
+static inline float GetG(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);float g=r.g;func_00129EC8(&r);return g;}
+static inline int GetN(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);int n=r.n;func_00129EC8(&r);return n;}
 /** @sly2-annot addr=0x1ADC40
  * Purpose: Per-slot text (0x5CF..0x5D1, arg=slot): episode best key + completion %
  * Info: proposed name TextSaveSlotSummary (T2); TU memcard

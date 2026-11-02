@@ -6,7 +6,7 @@ struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
 extern int D_003E0FAC;
-void func_002581C0(struct CRef *ret, int a, void *b);
+void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
 void func_001AD3E0(void);
@@ -21,7 +21,7 @@ void func_001AD480(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    func_002581C0(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
     f = ref.m_tag;
     func_00129EC8(&ref);
     D_002E65E0.xFD58 = p;

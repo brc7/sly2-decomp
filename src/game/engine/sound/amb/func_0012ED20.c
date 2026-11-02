@@ -7,7 +7,7 @@ void SetSndSourceLo(void *p, T *t);
 void SetSndRange(void *p, float a, float b);
 void func_001FB1F8(void *p, float c);
 void SetSndPitch(void *p, float d);
-void func_00258040(H *pp, void *p);
+void RcPtr_Assign(H *pp, void *p);
 /** @sly2-annot addr=0x12ED20
  * Purpose: slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange)
  * Info: proposed name OnCid43Add (T2); class CID43 slot23; TU amb
@@ -27,6 +27,6 @@ void func_0012ED20(T *t)
         SetSndRange(p, prec->a, prec->b);
         func_001FB1F8(p, prec->c);
         SetSndPitch(p, prec->d);
-        func_00258040((H *)(i * 4 + (int)t->ap), p);
+        RcPtr_Assign((H *)(i * 4 + (int)t->ap), p);
     }
 }

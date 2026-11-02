@@ -17,7 +17,7 @@ extern "C" G D_003D4A60;
 extern char D_002A4DB0[];
 extern "C" {
 void *PkeyFindBootySaveVar(void *p);
-CRef func_00258200(void *p, const CRef &ref, G *pv);
+CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 CRef RefSetSaveVarV(const CRef &ref, void *o, void *pv, int n);
 }
 /* Same SetPv form as func_0013D328: the unused dummy param makes gcc set up %hi(D_003D4A60)
@@ -29,7 +29,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     CRefRaw arg;
     func_001291A8((CRef *)&arg, &r);
     {
-        const CRef &ret = func_00258200(pv, *(CRef *)&arg, &D_003D4A60);
+        const CRef &ret = RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     }
     func_00129EC8((CRef *)&arg);
 }

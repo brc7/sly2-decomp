@@ -19,7 +19,7 @@ extern "C" {
 void UpdateCplcy(X *p);
 qword func_001A62E8(ALO *p);
 M3 *LoadLookAtMatrix(M3 *pm, qword v);
-qword *func_00256D18(qword *p, qword v);
+qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(CM *p, M4 *m);
 void SetCmFov__FP2CMf(CM *p, float g);
 void UpdateCptwoshot(X *p);
@@ -98,7 +98,7 @@ void UpdateCptwoshot(X *p)
         M3 m3;
         LoadLookAtMatrix(&m3, Sub(pos.q, pos2.q));
         M4 *pm4 = &m4;
-        func_00256D18(&pm4->q.r[3], pos2.q);
+        VECTOR_opAssign(&pm4->q.r[3], pos2.q);
         pm4->q.r[0] = m3.r[0];
         pm4->q.r[1] = m3.r[1];
         pm4->q.r[2] = m3.r[2];

@@ -4,7 +4,7 @@ extern struct CLOCK D_002DDED0;
 extern int D_003E1BEC;
 void func_0014D1D0(struct CLOCK *pclock, int n, float g);
 void StopSnd(void *p, float g);
-void func_00258040(void **pp, int n);
+void RcPtr_Assign(void **pp, int n);
 void StopStepplayerGadget(struct S *p, int n);
 /** @sly2-annot addr=0x18DD78
  * Purpose: JT vt102: for gadget 0x1D/0x2A restore clock rate 1.0, stop sound x2044; else base 0x141E28
@@ -21,7 +21,7 @@ void func_0018DD78(struct S *p, int n)
         pp = &p->p2044;
         if (*pp) {
             StopSnd(*pp, 0.0f);
-            func_00258040(pp, 0);
+            RcPtr_Assign(pp, 0);
         }
         D_003E1BEC = 0;
     } else {

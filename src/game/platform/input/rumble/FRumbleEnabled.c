@@ -2,7 +2,7 @@ typedef struct CRef { int tagk; int tag; } CRef;
 extern int D_002C2D8C;
 extern void *D_003E0FD8;
 extern char D_003D4A60[];
-void func_002581C0(CRef *pref, void *a, char *b);
+void RefGetGlobalSaveVar(CRef *pref, void *a, char *b);
 void func_00129EC8(CRef *pref);
 /** @sly2-annot addr=0x1D55B8
  * Purpose: Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8
@@ -23,7 +23,7 @@ int FRumbleEnabled(void) {
     default: {
         CRef ref;
         int n;
-        func_002581C0(&ref, D_003E0FD8, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, D_003E0FD8, D_003D4A60);
         n = ref.tag;
         func_00129EC8(&ref);
         return n ^ 1;

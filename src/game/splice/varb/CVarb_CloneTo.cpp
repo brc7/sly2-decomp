@@ -11,8 +11,8 @@ struct W;
 extern char D_004520D0[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_00255438(void *pv);
-W *func_00257340();
+void GcBinding_Unlink(void *pv);
+W *PvNewBinding();
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 struct SPM {
@@ -27,7 +27,7 @@ struct W {
     CRef ref;
     SPM pnext;
     void SetNext(W *pw) { pnext = pw; }
-    void operator delete(void *pv) { func_00255438(pv); func_0011CD98(D_004520D0, pv); }
+    void operator delete(void *pv) { GcBinding_Unlink(pv); func_0011CD98(D_004520D0, pv); }
 };
 struct SPW {
     W *p;
@@ -51,7 +51,7 @@ extern "C" SPW CVarb_CloneTo(W *src, void *a, void *b);
 SPW CVarb_CloneTo(W *src, void *a, void *b)
 {
     SPW sp;
-    sp.Set(func_00257340());
+    sp.Set(PvNewBinding());
     sp->x8 = src->x8;
     sp->ref = CRef_CloneTo(&src->ref, a, b);
     if (src->pnext.p)

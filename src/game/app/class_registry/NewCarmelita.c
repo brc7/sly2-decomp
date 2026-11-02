@@ -1,11 +1,11 @@
 #include "m2c_prelude.h"
 void *func_001AE4F8(M2C_UNK);                       /* extern */
-M2C_UNK func_00256360(void *);                      /* extern */
+M2C_UNK STEPGUARD_ctor(void *);                      /* extern */
 extern M2C_UNK D_002CCBB8;
 
 /** @sly2-annot addr=0x111928
  * Purpose: pfnNew factory for CID63 (cid 63): allocates 0x1020 bytes (operator new 0x1AE4F8), calls ctor
- *   func_00256360
+ *   STEPGUARD_ctor
  * Info: proposed name NewCarmelita (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid63 -> NewCarmelita
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -16,7 +16,7 @@ void *NewCarmelita(void) {
     void *temp_v0;
 
     temp_v0 = func_001AE4F8(0x1020);
-    func_00256360(temp_v0);
+    STEPGUARD_ctor(temp_v0);
     M2C_FIELD(temp_v0, M2C_UNK **, 0xC) = &D_002CCBB8;
     return temp_v0;
 }

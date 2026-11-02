@@ -1,7 +1,7 @@
 struct S { char pad[0x174]; void *p174; };
 void HandleBasicMessage(struct S *p, int n);
 void StopSnd(void *p, float g);
-void func_00258040(void **pp, int n);
+void RcPtr_Assign(void **pp, int n);
 /** @sly2-annot addr=0x1C3E20
  * Purpose: PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound
  *   at +0x174 and release it
@@ -19,7 +19,7 @@ void HandlePoMessage(struct S *p, int n)
         void **pp = &p->p174;
         if (pp && *pp) {
             StopSnd(*pp, 0.0f);
-            func_00258040(pp, 0);
+            RcPtr_Assign(pp, 0);
         }
     }
 }

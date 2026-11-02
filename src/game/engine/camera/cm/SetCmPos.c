@@ -1,7 +1,7 @@
 typedef int qword __attribute__((mode(TI)));
 typedef union { struct { qword r[4]; } q; float af[4][4]; } M4;
 struct CM { char pad[0x60]; M4 mat; };
-qword *func_00256D18(qword *p, qword v);
+qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
 /** @sly2-annot addr=0x14F3C8
  * Purpose: Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4
@@ -13,7 +13,7 @@ void SetCmMat4(struct CM *p, M4 *m);
 void SetCmPos(struct CM *p, qword pos)
 {
     M4 m = p->mat;
-    func_00256D18(&m.q.r[3], pos);
+    VECTOR_opAssign(&m.q.r[3], pos);
     m.af[3][3] = 1.0f;
     SetCmMat4(p, &m);
 }

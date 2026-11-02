@@ -20,7 +20,7 @@ int FIsCurrentTask(struct S *p);
 int FTaskLive(struct S *p);
 void ApplyStateLoVisibility(struct S *p, int n, int c, struct E16 *a);
 void TriggerStateRsmgs(struct S *p, int n, int c, struct E24 *a, int b);
-CRef *func_002581C0(CRef *pref, void *a, void *b);
+CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
 void func_00129EC8(CRef *pref);
 void SetLoBusyk(struct S *p, int n);
 /** @sly2-annot addr=0x1638F8
@@ -69,14 +69,14 @@ void PostTaskLoad(struct S *p)
     }
     if (p->fc8) {
         int n;
-        func_002581C0(&ref, pnC8, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, pnC8, D_003D4A60);
         n = ref.m_tag;
         func_00129EC8(&ref);
         p->f64 = n;
     }
     if (p->fd0) {
         int n;
-        func_002581C0(&ref, pnD0, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, pnD0, D_003D4A60);
         n = ref.m_tag;
         func_00129EC8(&ref);
         p->f68 = n;

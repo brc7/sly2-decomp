@@ -4,8 +4,8 @@ extern SLOTHEAP D_00452170, D_00452188, D_004521A0, D_004521B8, D_004521D0, D_00
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *psh, void *pv);
-void func_002550F8(void *pv);
-void func_00256120(void *pv);
+void GcPair_Unlink(void *pv);
+void GcPool6_Unlink(void *pv);
 }
 struct NODE;
 struct SPM { NODE *p; ~SPM(); };
@@ -26,12 +26,12 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct O20 { int cref; ~O20(); };
 struct O22 {
     int cref;
-    ~O22() { func_00256120(this); }
+    ~O22() { GcPool6_Unlink(this); }
     void operator delete(void *pv) { func_0011CD98(&D_00452170, pv); }
 };
 /** @sly2-annot addr=0x129EC8
@@ -94,7 +94,7 @@ void CRef::Decref()
     case 0x22: {
         O22 *p = (O22 *)m_pv;
         if (--p->cref == 0 && p) {
-            func_00256120(p);
+            GcPool6_Unlink(p);
             func_0011CD98(&D_00452170, p);
         }
         break;

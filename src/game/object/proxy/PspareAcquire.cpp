@@ -26,7 +26,7 @@ void func_00118500(STREAM *,void *,void *,int);
 short func_00117D50(STREAM *);
 void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(P *,DESC *,int,STREAM *);
 void CFrame_AddParent(void *,void *);
-void func_00256EE0(void **,void *);
+void FramePtr_Assign(void **,void *);
 void CMemInputStream_ctor(STREAM *,int);
 }
 static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.delta);}
@@ -68,7 +68,7 @@ extern "C" NODE *PspareAcquire(P *p,int minimum){
   while((index=func_00117D50(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}
   if(bind->resource && !p->disabled){
    if(work.found->resource)CFrame_AddParent(bind->resource,work.found->resource);
-   func_00256EE0(&work.found->resource,bind->resource);
+   FramePtr_Assign(&work.found->resource,bind->resource);
   }
   CMemInputStream_ctor(&stream,2);
  }

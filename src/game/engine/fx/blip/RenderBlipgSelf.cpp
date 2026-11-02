@@ -51,7 +51,7 @@ qword func_001A62E8(LO *plo);
 M3 *func_001A6318(LO *plo);
 int FInsideCmFrustum(CM *pcm, qword d, VU_FLOAT r);
 int FInsideCmMrd(CM *pcm, qword d, float g, float *pg);
-void func_00256D18(void *pv, qword v);
+void VECTOR_opAssign(void *pv, qword v);
 DMA *PrplAllocRpl(void);
 void func_001574B8(VIFS *p);
 void func_0013A688(P *p);
@@ -130,7 +130,7 @@ void RenderBlipgSelf(P *p)
             float g;
             if (!FInsideCmMrd(&D_002DDF40, d, plo->g38, &g))
                 goto next;
-            func_00256D18(&pl->x30, pos);
+            VECTOR_opAssign(&pl->x30, pos);
             cLight++;
             pl->r[0] = mat.r[0];
             pl->r[1] = mat.r[1];

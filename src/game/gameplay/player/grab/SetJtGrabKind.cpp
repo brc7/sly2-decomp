@@ -80,7 +80,7 @@ void func_00204F78(ACTOR *, SOURCE *, int);
 void EvaluateShapeU(SOURCE *, float, qword *, qword *);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
-void func_00258040(EFFECT **, EFFECT *);
+void RcPtr_Assign(EFFECT **, EFFECT *);
 void FaceStepToward(ACTOR *, SOURCE *);
 void FixStepAngularVelocity(ACTOR *);
 void SetStepRadTargetVec(ACTOR *, qword);
@@ -237,7 +237,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         case 2: {
             EFFECT *effect = PsndStartSound(0x5C);
             SetSndSourceLo(effect, 0);
-            func_00258040(&D_002E1E40->effect, effect);
+            RcPtr_Assign(&D_002E1E40->effect, effect);
             break;
         }
         case 11:
@@ -322,7 +322,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         case 2:
             if (D_002E1E40->effect) {
                 StopSnd(D_002E1E40->effect, 0.0f);
-                func_00258040(&D_002E1E40->effect, 0);
+                RcPtr_Assign(&D_002E1E40->effect, 0);
             }
             break;
         }

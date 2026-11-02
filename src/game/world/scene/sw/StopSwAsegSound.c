@@ -1,6 +1,6 @@
 struct O { char pad[0x60]; int id; };
 void StopSnd(struct O *p, float f);
-void func_00258040(struct O **pp, int a);
+void RcPtr_Assign(struct O **pp, int a);
 /** @sly2-annot addr=0x2108E8
  * Purpose: ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref
  * Info: proposed name StopSwAsegSound (T1); TU sw
@@ -16,5 +16,5 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
     if (id != -1 && p->id != id)
         return;
     StopSnd(p, 0.0f);
-    func_00258040(pp, 0);
+    RcPtr_Assign(pp, 0);
 }

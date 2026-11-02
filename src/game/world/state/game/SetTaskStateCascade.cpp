@@ -29,8 +29,8 @@ struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
     ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
 };
 struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){func_00129EC8(this);}};
-extern "C" CRef func_00258200(void*,const CRef&,void*);
-static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=func_00258200(object,arg,D_003D4A60);}
+extern "C" CRef RefSetGlobalSaveVar(void*,const CRef&,void*);
+static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=RefSetGlobalSaveVar(object,arg,D_003D4A60);}
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}
 /** @sly2-annot addr=0x164DF0
  * Purpose: Main task state change: propagates to collected successors, sets the state, updates the episode

@@ -10,7 +10,7 @@ extern struct GAME {char pad3D58[0x3D58];int stamp;} D_003DD490;
 extern "C" int func_0011D4D0(float,float,float);
 extern "C" void SlotUnsettle(P *,LO *);
 extern "C" qword ConvertXfVec(void *,LO *,qword);
-extern "C" qword *func_00256D18(qword *,qword);
+extern "C" qword *VECTOR_opAssign(qword *,qword);
 extern "C" M3 func_0011B570(qword);
 extern "C" void func_001F4BF8(P *);
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
@@ -43,7 +43,7 @@ extern "C" void func_001FA528(P*p)
             changed=1;
             qword shift=Consume(p,object,p->shift);
             p->shift.i[0]=0;
-            func_00256D18(&object->position.q,Add(object->position.q,shift));
+            VECTOR_opAssign(&object->position.q,Add(object->position.q,shift));
             object->position.f[3]=1.0f;
             object->stamp=++D_003DD490.stamp;
         }

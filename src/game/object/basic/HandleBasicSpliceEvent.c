@@ -14,9 +14,9 @@ struct CRef *func_00200DA0(struct CRef *ret, int x, int *pn, int y);
 struct SP *func_00132ED8(struct SP *ret, struct P *p, int k, struct CRef *pref);
 void ScheduleSwSpliceCallback(void *pg, struct P *p, struct N *pn, float t);
 void EvalSpliceEventCallback(struct P *p, struct N *pn, void *p0, int z);
-void func_00256D40(struct SP *psp, int n);
+void PairPtr_Release(struct SP *psp, int n);
 void func_00129EC8(struct CRef *pref);
-void func_002550F8(void *pv);
+void GcPair_Unlink(void *pv);
 void func_0011CD98(void *pool, void *pv);
 /** @sly2-annot addr=0x1331F8
  * Purpose: BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and
@@ -44,9 +44,9 @@ void HandleBasicSpliceEvent(struct P *p, int k, int f, int x, int y, int z)
         {
             struct N *pt = sp.p;
             if (pt && --pt->cref == 0) {
-                func_00256D40(&pt->sp, 2);
+                PairPtr_Release(&pt->sp, 2);
                 func_00129EC8(&pt->ref);
-                func_002550F8(pt);
+                GcPair_Unlink(pt);
                 func_0011CD98(D_004520A8, pt);
             }
         }

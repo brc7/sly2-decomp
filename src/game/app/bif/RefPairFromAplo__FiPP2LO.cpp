@@ -14,8 +14,8 @@ struct CRef {
 struct O;
 struct NODE { int cref; int pad; CRef ref; NODE *pnext; };
 extern "C" {
-NODE *func_00256B48();
-void func_00256C58(NODE **pp, NODE *p);
+NODE *PvNewPair();
+void PairPtr_Assign(NODE **pp, NODE *p);
 CRef RefPairFromAplo__FiPP2LO(int c, O **apo);
 }
 /** @sly2-annot addr=0x124078
@@ -32,9 +32,9 @@ CRef RefPairFromAplo__FiPP2LO(int c, O **apo)
     NODE *pprev = 0;
     int i;
     for (i = 0; i < c; i++) {
-        NODE *p = func_00256B48();
+        NODE *p = PvNewPair();
         if (pprev)
-            func_00256C58(&pprev->pnext, p);
+            PairPtr_Assign(&pprev->pnext, p);
         else
             ref = p;
         p->ref = apo[i];

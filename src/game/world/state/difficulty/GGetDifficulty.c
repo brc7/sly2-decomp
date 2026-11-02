@@ -3,9 +3,9 @@ extern char D_003D4A60[];
 struct X { char pad[0xA8]; float *pg; };
 extern struct X *D_003E0F9C;
 struct S { int pad[2]; void *p8; void *pC; void *p10; };
-void func_002581C0(CRef *pref, void *p, void *q);
+void RefGetGlobalSaveVar(CRef *pref, void *p, void *q);
 void func_00129EC8(CRef *pref);
-static inline float GGet(void *p) { CRef ref; float g; func_002581C0(&ref, p, D_003D4A60); g = ref.m_g; func_00129EC8(&ref); return g; }
+static inline float GGet(void *p) { CRef ref; float g; RefGetGlobalSaveVar(&ref, p, D_003D4A60); g = ref.m_g; func_00129EC8(&ref); return g; }
 /** @sly2-annot addr=0x154C90
  * Purpose: Current difficulty: override value if set, else average of the last three samples
  * Info: proposed name GGetDifficulty (T1); TU difficulty

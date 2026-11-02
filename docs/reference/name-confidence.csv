@@ -5845,24 +5845,24 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x254620,func_00254620,_skipStartCode,lo,sdk_names,static-only,T2,0.30,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libmpeg/_extensionAndUserData.c, s","flush 32 bits (skip start code) via 0x2544C0(d,0x20) [libmpeg init.o]"
 0x254ED8,func_00254ED8,reg_frame,hi,sdk_names,static-only,T1,0.85,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/collect2/func_00254ED8.c,"__register_frame_info_table(__FRAME_TABLE__, &object) [collect2 ctor/frame table]"
 0x254EF0,func_00254EF0,dereg_frame,hi,sdk_names,static-only,T1,0.85,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/collect2/func_00254EF0.c,__deregister_frame_info(__FRAME_TABLE__) [collect2 ctor/frame table]
-0x254F00,func_00254F00,GcPair_PushFront,mid,sdk_names,static-only,T1,0.50,,not batched,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
-0x2550A0,func_002550A0,GcPair_InitNode,mid,sdk_names,static-only,T1,0.50,,not batched,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
-0x2550F8,func_002550F8,GcPair_Unlink,mid,sdk_names,static-only,T1,0.50,,not batched,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
-0x255248,func_00255248,GcBinding_PushFront,mid,sdk_names,static-only,T1,0.50,,not batched,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
-0x2553E0,func_002553E0,GcBinding_InitNode,mid,sdk_names,static-only,T1,0.50,,not batched,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
-0x255438,func_00255438,GcBinding_Unlink,mid,sdk_names,static-only,T1,0.50,,not batched,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
-0x255588,func_00255588,GcFrame_PushFront,mid,sdk_names,static-only,T1,0.50,,not batched,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
-0x255718,func_00255718,GcFrame_InitNode,mid,sdk_names,static-only,T1,0.50,,not batched,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
-0x255770,func_00255770,GcFrame_Unlink,mid,sdk_names,static-only,T1,0.50,,not batched,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
-0x2558C0,func_002558C0,GcProc_PushFront,mid,sdk_names,static-only,T1,0.50,,not batched,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
-0x255A58,func_00255A58,GcProc_InitNode,mid,sdk_names,static-only,T1,0.50,,not batched,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
-0x255AB0,func_00255AB0,GcProc_Unlink,mid,sdk_names,static-only,T1,0.50,,not batched,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
-0x255C00,func_00255C00,GcSidebag_PushFront,mid,sdk_names,static-only,T1,0.50,,not batched,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
-0x255D90,func_00255D90,GcSidebag_InitNode,mid,sdk_names,static-only,T1,0.50,,not batched,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
-0x255DE8,func_00255DE8,GcSidebag_Unlink,mid,sdk_names,static-only,T1,0.50,,not batched,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
-0x255F38,func_00255F38,GcPool6_PushFront,mid,sdk_names,static-only,T1,0.50,,not batched,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
-0x2560C8,func_002560C8,GcPool6_InitNode,mid,sdk_names,static-only,T1,0.50,,not batched,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
-0x256120,func_00256120,GcPool6_Unlink,mid,sdk_names,static-only,T1,0.50,,not batched,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
+0x254F00,func_00254F00,GcPair_PushFront,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
+0x2550A0,func_002550A0,GcPair_InitNode,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
+0x2550F8,func_002550F8,GcPair_Unlink,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
+0x255248,func_00255248,GcBinding_PushFront,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
+0x2553E0,func_002553E0,GcBinding_InitNode,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
+0x255438,func_00255438,GcBinding_Unlink,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
+0x255588,func_00255588,GcFrame_PushFront,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
+0x255718,func_00255718,GcFrame_InitNode,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
+0x255770,func_00255770,GcFrame_Unlink,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
+0x2558C0,func_002558C0,GcProc_PushFront,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
+0x255A58,func_00255A58,GcProc_InitNode,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
+0x255AB0,func_00255AB0,GcProc_Unlink,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
+0x255C00,func_00255C00,GcSidebag_PushFront,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
+0x255D90,func_00255D90,GcSidebag_InitNode,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
+0x255DE8,func_00255DE8,GcSidebag_Unlink,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
+0x255F38,func_00255F38,GcPool6_PushFront,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)]"
+0x2560C8,func_002560C8,GcPool6_InitNode,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)]"
+0x256120,func_00256120,GcPool6_Unlink,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
 0x256270,func_00256270,junk_00256270,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00256270': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
 0x256278,func_00256278,SetCmMat_thunk,lo,sdk_names,static-only,T2,0.30,,not batched,virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)]
 0x256298,func_00256298,CmIface_GetQw90,lo,sdk_names,static-only,T2,0.20,,not batched,return qword at +0x90 [game linkonce (inline/template)]
@@ -5874,9 +5874,9 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x256318,func_00256318,GetSoOptS14,lo,sdk_names,static-only,T2,0.25,,not batched,return s16@0x14 [game linkonce (inline/template)]
 0x256328,func_00256328,SetSoOptI18,lo,sdk_names,static-only,T2,0.25,,not batched,set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)]
 0x256350,func_00256350,GetSoOptI18,lo,sdk_names,static-only,T2,0.25,,not batched,return int@0x18 [game linkonce (inline/template)]
-0x256360,func_00256360,STEPGUARD_ctor,mid,sdk_names,static-only,T1,0.60,,not batched,"inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)]"
-0x2563E8,func_002563E8,JT_ctor,mid,sdk_names,static-only,T1,0.60,,not batched,inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)]
-0x256440,func_00256440,MURRAY_ctor,mid,sdk_names,static-only,T1,0.60,,not batched,inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)]
+0x256360,func_00256360,STEPGUARD_ctor,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,"inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)]"
+0x2563E8,func_002563E8,JT_ctor,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)]
+0x256440,func_00256440,MURRAY_ctor,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)]
 0x256498,func_00256498,junk_00256498,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00256498': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x2564A8,func_002564A8,VECTOR4_opAssign,lo,sdk_names,static-only,T2,0.30,,not batched,*p = qword v; return p [game linkonce (inline/template)]
 0x2564B8,func_002564B8,Identity_002564B8,lo,sdk_names+top50_round,static-only,T2,0.15,,not batched,return arg0 (out-of-line inline accessor/cast in the linkonce block)
@@ -5895,21 +5895,21 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2568C0,func_002568C0,CHash_Resize,lo,sdk_names,static-only,T2,0.35,,not batched,rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)]
 0x2569F8,func_002569F8,CHash_Insert,lo,sdk_names,static-only,T2,0.35,,not batched,"insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)]"
 0x256AF0,func_00256AF0,CHashIndex_Add,lo,sdk_names,static-only,T2,0.25,,not batched,"insert (hash(px), index of px) into owner hash [game linkonce (inline/template)]"
-0x256B48,func_00256B48,PvNewPair,mid,sdk_names,static-only,T1,0.50,,not batched,"allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
+0x256B48,func_00256B48,PvNewPair,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
 0x256C38,func_00256C38,PairPtr_ctor,mid,sdk_names+top50_round,static-only,T2,0.55,,not batched,"CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release"
-0x256C58,func_00256C58,PairPtr_Assign,mid,sdk_names,static-only,T1,0.50,,not batched,"refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)]"
-0x256D18,func_00256D18,VECTOR_opAssign,mid,sdk_names+top50_round,static-only,T1,0.60,,not batched,VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it
-0x256D40,func_00256D40,PairPtr_Release,mid,sdk_names,static-only,T1,0.50,,not batched,release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)]
-0x256DD0,func_00256DD0,PvNewFrame,mid,sdk_names,static-only,T1,0.50,,not batched,"allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
-0x256EE0,func_00256EE0,FramePtr_Assign,mid,sdk_names+top50_round,static-only,T1,0.60,,not batched,"Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store"
-0x256F48,func_00256F48,PvNewProc,mid,sdk_names,static-only,T1,0.50,,not batched,"allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
+0x256C58,func_00256C58,PairPtr_Assign,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)]"
+0x256D18,func_00256D18,VECTOR_opAssign,mid,sdk_names+top50_round,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it
+0x256D40,func_00256D40,PairPtr_Release,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)]
+0x256DD0,func_00256DD0,PvNewFrame,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
+0x256EE0,func_00256EE0,FramePtr_Assign,mid,sdk_names+top50_round,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,"Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store"
+0x256F48,func_00256F48,PvNewProc,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
 0x257038,func_00257038,ProcPtr_Init,lo,sdk_names,static-only,T2,0.25,,not batched,refptr store with incref [game linkonce (inline/template)]
 0x257058,func_00257058,FramePtr_Init,lo,sdk_names,static-only,T2,0.30,,not batched,refptr store with incref [game linkonce (inline/template)]
 0x257078,func_00257078,CFrame_dtor,mid,sdk_names+top50_round,static-only,T2,0.55,,not batched,"CFrame destructor (gcc 2.95 deleting form with __in_chrg): release binding list ref, release the 4 parent frame refs, unlink from the GC frame list, operator de"
 0x257148,func_00257148,DeleteProc,lo,sdk_names,static-only,T2,0.40,,not batched,"CProc destructor body: release arg/body pairs and frame, unlink, free [game linkonce (inline/template)]"
 0x257250,func_00257250,BindingPtr_Release,lo,sdk_names+top50_round,static-only,T2,0.45,,not batched,"Release a CBinding ref-pointer: decref; at 0 release next binding (recursive), destroy the CRef (0x129EC8), unlink from GC list, free to pool D_004520D0; flags&"
 0x2572E0,func_002572E0,FramePtr_Release,lo,sdk_names,static-only,T2,0.45,,not batched,"release CFrame refptr (DeleteFrame when 0), flags&1 -> delete [game linkonce (inline/template)]"
-0x257340,func_00257340,PvNewBinding,mid,sdk_names,static-only,T1,0.50,,not batched,"allocate Binding node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
+0x257340,func_00257340,PvNewBinding,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"allocate Binding node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
 0x257430,func_00257430,BindingPtr_Init,lo,sdk_names,static-only,T2,0.25,,not batched,refptr store with incref [game linkonce (inline/template)]
 0x257450,func_00257450,BindingPtr_Assign,lo,sdk_names,static-only,T2,0.45,,not batched,refptr assign for binding list [game linkonce (inline/template)]
 0x2574E0,func_002574E0,GcCollectNop0,lo,sdk_names,static-only,T2,0.20,,not batched,empty per-pool hook called by CGc_Collect [game linkonce (inline/template)]
@@ -5924,36 +5924,36 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x257948,func_00257948,GcSweepProcs,lo,sdk_names,static-only,T2,0.45,,not batched,"GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]"
 0x257AB0,func_00257AB0,GcSweepSidebags,lo,sdk_names,static-only,T2,0.45,,not batched,"GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]"
 0x257C18,func_00257C18,GcSweepPool6s,lo,sdk_names,static-only,T2,0.45,,not batched,"GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)]"
-0x257D80,func_00257D80,PvNewSidebag,mid,sdk_names,static-only,T1,0.50,,not batched,"allocate Sidebag node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
+0x257D80,func_00257D80,PvNewSidebag,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"allocate Sidebag node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
 0x257E68,func_00257E68,SidebagPtr_Init,lo,sdk_names,static-only,T2,0.25,,not batched,refptr store with incref [game linkonce (inline/template)]
-0x257E88,func_00257E88,GcShutdownPairPool,mid,sdk_names,static-only,T1,0.50,,not batched,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
-0x257EC8,func_00257EC8,GcShutdownFramePool,mid,sdk_names,static-only,T1,0.50,,not batched,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
-0x257F08,func_00257F08,GcShutdownBindingPool,mid,sdk_names,static-only,T1,0.50,,not batched,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
-0x257F48,func_00257F48,GcShutdownProcPool,mid,sdk_names,static-only,T1,0.50,,not batched,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
-0x257F88,func_00257F88,GcShutdownSidebagPool,mid,sdk_names,static-only,T1,0.50,,not batched,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
-0x257FC8,func_00257FC8,GcShutdownPool6Pool,mid,sdk_names,static-only,T1,0.50,,not batched,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
+0x257E88,func_00257E88,GcShutdownPairPool,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
+0x257EC8,func_00257EC8,GcShutdownFramePool,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
+0x257F08,func_00257F08,GcShutdownBindingPool,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
+0x257F48,func_00257F48,GcShutdownProcPool,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
+0x257F88,func_00257F88,GcShutdownSidebagPool,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
+0x257FC8,func_00257FC8,GcShutdownPool6Pool,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,zero list heads/count and ResetSlotheap [game linkonce (inline/template)]
 0x258008,func_00258008,junk_00258008,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00258008': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
-0x258040,func_00258040,RcPtr_Assign,mid,sdk_names+top50_round,static-only,T1,0.60,,not batched,"Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store"
+0x258040,func_00258040,RcPtr_Assign,mid,sdk_names+top50_round,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,"Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store"
 0x2580A8,func_002580A8,SidebagPtr_Assign,lo,sdk_names,static-only,T2,0.45,,not batched,"refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)]"
 0x258178,func_00258178,GcSidebag_MakeRoot,lo,sdk_names,static-only,T2,0.45,,not batched,"move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)]"
 0x2581B8,func_002581B8,GetKind5,lo,sdk_names,static-only,T2,0.15,,not batched,virtual returning constant 5 [game linkonce (inline/template)]
-0x2581C0,func_002581C0,RefGetGlobalSaveVar,mid,sdk_names+top50_round,static-only,T1,0.60,,not batched,"Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer)"
-0x258200,func_00258200,RefSetGlobalSaveVar,mid,sdk_names+top50_round,static-only,T1,0.60,,not batched,"Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref)"
+0x2581C0,func_002581C0,RefGetGlobalSaveVar,mid,sdk_names+top50_round,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,"Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer)"
+0x258200,func_00258200,RefSetGlobalSaveVar,mid,sdk_names+top50_round,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,"Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref)"
 0x258240,func_00258240,junk_00258240,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00258240': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
 0x258248,func_00258248,InitFileKey,lo,sdk_names,static-only,T2,0.30,,not batched,"memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)]"
 0x258280,func_00258280,GetPtrE00Value,lo,sdk_names,static-only,T2,0.15,,not batched,return *(p->xE00) [game linkonce (inline/template)]
 0x258290,func_00258290,CM_dtor,lo,sdk_names,static-only,T2,0.35,,not batched,release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)]
 0x258348,func_00258348,BASIC_dtor,lo,sdk_names,static-only,T2,0.30,,not batched,base destructor: release binding/sidebag refs [game linkonce (inline/template)]
-0x258438,func_00258438,CTextBox_SetPos,mid,sdk_names,static-only,T1,0.55,,not batched,p->x=x; p->y=y [game linkonce (inline/template)]
-0x258448,func_00258448,CTextBox_SetSize,mid,sdk_names,static-only,T1,0.55,,not batched,p->dx=dx; p->dy=dy [game linkonce (inline/template)]
-0x258458,func_00258458,CTextBox_SetTextColor,mid,sdk_names,static-only,T1,0.55,,not batched,p->rgba = *c [game linkonce (inline/template)]
-0x258470,func_00258470,CTextBox_SetHorizontalJust,mid,sdk_names,static-only,T1,0.50,,not batched,p->x14 = jh [game linkonce (inline/template)]
-0x258478,func_00258478,CTextBox_SetVerticalJust,mid,sdk_names,static-only,T1,0.50,,not batched,p->x18 = jv [game linkonce (inline/template)]
+0x258438,func_00258438,CTextBox_SetPos,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.55,,applied,p->x=x; p->y=y [game linkonce (inline/template)]
+0x258448,func_00258448,CTextBox_SetSize,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.55,,applied,p->dx=dx; p->dy=dy [game linkonce (inline/template)]
+0x258458,func_00258458,CTextBox_SetTextColor,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.55,,applied,p->rgba = *c [game linkonce (inline/template)]
+0x258470,func_00258470,CTextBox_SetHorizontalJust,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,p->x14 = jh [game linkonce (inline/template)]
+0x258478,func_00258478,CTextBox_SetVerticalJust,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,p->x18 = jv [game linkonce (inline/template)]
 0x2584A0,func_002584A0,junk_002584A0,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_002584A0': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
-0x2584A8,func_002584A8,LoadEmitblipColorsFromBrx,hi,sdk_names+parse-verified,parse-verified,T1,0.75,,not batched,read count + RGBA list into EMITB [game linkonce (inline/template)]
-0x258598,func_00258598,LoadEmitterFromBrx,hi,sdk_names+parse-verified,parse-verified,T1,0.75,,not batched,"EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)]"
-0x258620,func_00258620,CloneEmitter,mid,sdk_names,static-only,T1,0.55,,not batched,EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)]
-0x258658,func_00258658,PemitbEnsureEmitter,mid,sdk_names,static-only,T1,0.55,,not batched,copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)]
+0x2584A8,func_002584A8,LoadEmitblipColorsFromBrx,hi,sdk_names+parse-verified,match(rename.py:batch_14_linkonce)+parse-verified,T1,0.75,,applied,read count + RGBA list into EMITB [game linkonce (inline/template)]
+0x258598,func_00258598,LoadEmitterFromBrx,hi,sdk_names+parse-verified,match(rename.py:batch_14_linkonce)+parse-verified,T1,0.75,,applied,"EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)]"
+0x258620,func_00258620,CloneEmitter,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.55,,applied,EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)]
+0x258658,func_00258658,PemitbEnsureEmitter,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.55,,applied,copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)]
 0x2586D8,func_002586D8,BindEmitter,lo,sdk_names,static-only,T2,0.40,,not batched,resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)]
 0x258898,func_00258898,PemitbEmitterPartAEnsure,lo,sdk_names,static-only,T2,0.30,,not batched,ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)]
 0x258920,func_00258920,PemitbEmitterPartBEnsure,lo,sdk_names,static-only,T2,0.30,,not batched,ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)]
@@ -5974,10 +5974,10 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x258E60,func_00258E60,PvEmitterPartAEnsureKind2,lo,sdk_names,static-only,T2,0.30,,not batched,ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)]
 0x258EC8,func_00258EC8,PvEmitterPartAEnsureKind1,lo,sdk_names,static-only,T2,0.30,,not batched,ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)]
 0x258F30,func_00258F30,EMITTER_PvOptionDefaults,lo,sdk_names,static-only,T2,0.20,,not batched,virtual returning static data &D_002BAD2C [game linkonce (inline/template)]
-0x258F40,func_00258F40,LoadExploBlipColorsFromBrx,hi,sdk_names+parse-verified,parse-verified,T1,0.75,,not batched,EXPLO twin of 0x2584A8 [game linkonce (inline/template)]
-0x259030,func_00259030,LoadExploFromBrx,hi,sdk_names+parse-verified,parse-verified,T1,0.75,,not batched,EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)]
-0x2590B8,func_002590B8,CloneExplo,mid,sdk_names,static-only,T1,0.55,,not batched,EXPLO/EXPLS vt41 [game linkonce (inline/template)]
-0x2590F0,func_002590F0,PemitbEnsureExplo,mid,sdk_names,static-only,T1,0.60,,not batched,copy-on-write EMITB of an EXPLO [game linkonce (inline/template)]
+0x258F40,func_00258F40,LoadExploBlipColorsFromBrx,hi,sdk_names+parse-verified,match(rename.py:batch_14_linkonce)+parse-verified,T1,0.75,,applied,EXPLO twin of 0x2584A8 [game linkonce (inline/template)]
+0x259030,func_00259030,LoadExploFromBrx,hi,sdk_names+parse-verified,match(rename.py:batch_14_linkonce)+parse-verified,T1,0.75,,applied,EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)]
+0x2590B8,func_002590B8,CloneExplo,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.55,,applied,EXPLO/EXPLS vt41 [game linkonce (inline/template)]
+0x2590F0,func_002590F0,PemitbEnsureExplo,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.60,,applied,copy-on-write EMITB of an EXPLO [game linkonce (inline/template)]
 0x259170,func_00259170,BindExplo,lo,sdk_names,static-only,T2,0.40,,not batched,EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)]
 0x259330,func_00259330,PemitbExploPartAEnsure,lo,sdk_names,static-only,T2,0.30,,not batched,ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)]
 0x2593B8,func_002593B8,PemitbExploPartBEnsure,lo,sdk_names,static-only,T2,0.30,,not batched,ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)]
@@ -6027,7 +6027,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x259BB0,func_00259BB0,RcPtrInit_00259BB0,lo,sdk_names,static-only,T2,0.30,,not batched,intrusive ptr store with AddRef (no release) [game linkonce (inline/template)]
 0x259C08,func_00259C08,Identity64_00259C08,lo,sdk_names,static-only,T2,0.15,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/game/gameplay/player/grabspot/func_00259C08.c,return arg (64-bit) [game linkonce (inline/template)]
 0x259C10,func_00259C10,PvOptBase_PlusE0_00259C10,lo,sdk_names,static-only,T2,0.30,,not batched,option-record base accessor: return this+0xE0 [game linkonce (inline/template)]
-0x259C18,func_00259C18,PvNewPool6,mid,sdk_names,static-only,T1,0.50,,not batched,"allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
+0x259C18,func_00259C18,PvNewPool6,mid,sdk_names,match(rename.py:batch_14_linkonce)+static-only,T1,0.50,,applied,"allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)]"
 0x259CF8,func_00259CF8,Pool6Ptr_Init,lo,sdk_names,static-only,T2,0.20,,not batched,refptr store with incref [game linkonce (inline/template)]
 0x259D18,func_00259D18,SetStepRadTarget_thunk,lo,sdk_names,static-only,T2,0.30,,not batched,virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)]
 0x259D38,func_00259D38,SetF64_E8,lo,sdk_names,static-only,T2,0.15,,not batched,p->xF64->xE8 = v [game linkonce (inline/template)]

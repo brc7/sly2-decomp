@@ -24,7 +24,7 @@ void ReleaseAct(JOB **);
 float func_0012F990(MOTION *,int);
 void func_001300B8(MOTION *,float,float,LO *,SPACE *,SPACE *,M4 *,M4 *);
 qword func_001A62E8(LO *);
-qword *func_00256D18(qword *,qword);
+qword *VECTOR_opAssign(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 LO *func_001CCA40(LO *,LO *);
 M4 ConvertAloMat4(LO *,LO *,const M4 *);
@@ -73,7 +73,7 @@ extern "C" void func_001CCC88(P *input,LO *other){
  LO *owner=p->owner;
  M4 *start=&work.start;M3 *basis=&owner->basis;register M4*product __asm__("$21");
  qword location=func_001A62E8(owner);
- func_00256D18(TranslationSlot(work),location);
+ VECTOR_opAssign(TranslationSlot(work),location);
  {
  register qword firstRow __asm__("$2");register M4*intermediate __asm__("$16");register float homogeneous __asm__("$f0");
  __asm__("lq %0,%2\n\taddiu %1,%3,0x140":"=&r"(firstRow),"=r"(product):"m"(owner->basis.rows[0]),"r"(&work));

@@ -15,8 +15,8 @@ struct NODE;
 extern char D_004520A8[];
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void func_002550F8(void *pv);
-NODE *func_00256B48();
+void GcPair_Unlink(void *pv);
+NODE *PvNewPair();
 }
 struct SPM {
     NODE *p;
@@ -28,7 +28,7 @@ struct NODE {
     int x4;
     CRef ref;
     SPM pnext;
-    void operator delete(void *pv) { func_002550F8(pv); func_0011CD98(D_004520A8, pv); }
+    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(D_004520A8, pv); }
 };
 struct SPN {
     NODE *p;
@@ -49,8 +49,8 @@ extern "C" CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefC
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { if (aref[1].m_tagk == 0) return aref[1];
- SPN spRes; spRes.Set(func_00256B48());
+ SPN spRes; spRes.Set(PvNewPair());
  SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
- *pa = aref[0]; NODE *pTail; NODE *pn; pn = (NODE *)aref[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; NODE *pnNew = func_00256B48(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
+ *pa = aref[0]; NODE *pTail; NODE *pn; pn = (NODE *)aref[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; NODE *pnNew = PvNewPair(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    NODE *p = spNew.p; pn = pn->pnext.p; pTail = p; } return CRef((NODE *)spRes->ref.u.pv); }
