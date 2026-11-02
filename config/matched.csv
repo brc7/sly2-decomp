@@ -4653,10 +4653,10 @@ PbhvNew,0x1EF138,365,match,src/game/gameplay/ai/bhvstk/PbhvNew.c
 CbBhvMax,0x1EF6F0,2,match,src/game/gameplay/ai/bhvstk/CbBhvMax.c
 StaticInit_bhvstk,0x1EF6F8,77,match,src/game/gameplay/ai/bhvstk/StaticInit_bhvstk.c
 func_001EF830,0x1EF830,8,match,src/game/gameplay/ai/bhvstk/func_001EF830.c
-PostSkyLoad,0x1EF850,29,match,src/game/engine/graphics/pipeline/sky/PostSkyLoad.c
-UpdateSky,0x1EF8C8,27,match,src/game/engine/graphics/pipeline/sky/UpdateSky.c
-StaticInit_sky,0x1EF938,77,match,src/game/engine/graphics/pipeline/sky/StaticInit_sky.c
-func_001EFA70,0x1EFA70,8,match,src/game/engine/graphics/pipeline/sky/func_001EFA70.c
+PostSkyLoad,0x1EF850,29,match,src/game/engine/graphics/pipeline/sky.cpp
+UpdateSky,0x1EF8C8,27,match,src/game/engine/graphics/pipeline/sky.cpp
+StaticInit_sky,0x1EF938,77,match,src/game/engine/graphics/pipeline/sky.cpp
+func_001EFA70,0x1EFA70,8,match,src/game/engine/graphics/pipeline/sky.cpp
 InitSm,0x1EFA90,12,match,src/game/engine/anim/sm/InitSm.c
 LoadSmFromBrx__FP2SMP18CBinaryInputStream,0x1EFAC0,386,match,src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp
 PostSmLoad__FP2SM,0x1F00C8,23,match,src/game/engine/anim/sm/PostSmLoad__FP2SM.cpp

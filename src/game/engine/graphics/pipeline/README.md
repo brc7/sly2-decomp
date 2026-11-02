@@ -11,7 +11,7 @@
 | [`render/`](render/) | 7 |
 | [`shd/`](shd/) | 45 |
 | [`shdanim/`](shdanim/) | 33 |
-| [`sky/`](sky/) | 4 |
+| [`sky.cpp`](sky.cpp) | 1 |
 | [`tu_1BE398/`](tu_1BE398/) | 16 |
 | [`tu_1D57A8/`](tu_1D57A8/) | 10 |
 | [`vis.cpp`](vis.cpp) | 1 |

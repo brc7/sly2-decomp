@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostSkyLoad?`](../../../src/game/engine/graphics/pipeline/sky/func_001EF850.c) | `0x1EF850` |
-| 16 | Update | **override** | [`UpdateSky?`](../../../src/game/engine/graphics/pipeline/sky/func_001EF8C8.c) | `0x1EF8C8` |
+| 15 | PostLoad | **override** | [`PostSkyLoad?`](../../../src/game/engine/graphics/pipeline/sky.cpp) | `0x1EF850` |
+| 16 | Update | **override** | [`UpdateSky?`](../../../src/game/engine/graphics/pipeline/sky.cpp) | `0x1EF8C8` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |

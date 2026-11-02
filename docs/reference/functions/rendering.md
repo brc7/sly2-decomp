@@ -332,8 +332,8 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EF850](../../../src/game/engine/graphics/pipeline/sky/func_001EF850.c) | `PostSkyLoad` | SKY (CID 0x61) vt15: PostSoLoad, busyk 1, grf\|=2, clear +0x148 bit35 (never in sphere tree) | 0.70 | T1 |  |
-| [0x1EF8C8](../../../src/game/engine/graphics/pipeline/sky/func_001EF8C8.c) | `UpdateSky` | SKY vt16: UpdateSo, then TranslateToPos(camera pos D_002DDFA0, keeping own Z unless fFollowZ +0x150) | 0.85 | T1 | verified |
+| [0x1EF850](../../../src/game/engine/graphics/pipeline/sky.cpp) | `PostSkyLoad` | SKY (CID 0x61) vt15: PostSoLoad, busyk 1, grf\|=2, clear +0x148 bit35 (never in sphere tree) | 0.70 | T1 |  |
+| [0x1EF8C8](../../../src/game/engine/graphics/pipeline/sky.cpp) | `UpdateSky` | SKY vt16: UpdateSo, then TranslateToPos(camera pos D_002DDFA0, keeping own Z unless fFollowZ +0x150) | 0.85 | T1 | verified |
 
 ## vifs (0x226C10-0x227350)
 

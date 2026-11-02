@@ -336,7 +336,7 @@ Shader sketches for all of the above: `vu_microcode/pseudo_shaders.glsl`.
 | [0x1ECE58](../../src/game/engine/graphics/pipeline/shd/func_001ECE58.c) | `UploadPermShaders` | Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs | 0.65 | T1 | format-doc |
 | [0x1ED7A8](../../src/game/engine/graphics/pipeline/shdanim/func_001ED7A8.c) | `PsaaLoadFromBrx` | Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read 0x20-byte SAAF and call vt7 Init(p | 0.85 | T1 | parse, verified, format-doc |
 | [0x1EDB98](../../src/game/engine/graphics/pipeline/shdanim/func_001EDB98.c) | `InitLoop` | LOOP vt7 Init | 0.85 | T1 | verified |
-| [0x1EF8C8](../../src/game/engine/graphics/pipeline/sky/func_001EF8C8.c) | `UpdateSky` | SKY vt16: UpdateSo, then TranslateToPos(camera pos D_002DDFA0, keeping own Z unless fFollowZ +0x150) | 0.85 | T1 | verified |
+| [0x1EF8C8](../../src/game/engine/graphics/pipeline/sky.cpp) | `UpdateSky` | SKY vt16: UpdateSo, then TranslateToPos(camera pos D_002DDFA0, keeping own Z unless fFollowZ +0x150) | 0.85 | T1 | verified |
 | [0x227350](../../src/game/engine/graphics/pipeline/vis.cpp) | `InitCid5` | InitXfm; state 0x110 = -1 | 0.60 | T2 | verified |
 | [0x227380](../../src/game/engine/graphics/pipeline/vis.cpp) | `LoadCid5ZoneFromBrx` | XFM XF read 0x231768, U32, ReadGeom, ReadBspc, LoadOptionsFromBrx | 0.75 | T2 | parse |
 
