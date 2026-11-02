@@ -2,10 +2,13 @@
  * 0x11CCA8..0x11CF60) and the engine-wide slot pools that every game TU instantiates. */
 #ifndef SLY2_SLOTHEAP_H
 #define SLY2_SLOTHEAP_H
-#include "sly2/basic.h"
+#include "common.h"   /* byte; deliberately not sly2/basic.h, so every TU can include this header without
+                         pulling in (and colliding with) the shared type names */
 
-/* SLOT (a free slot: its first word links to the next free slot) stays forward-declared in basic.h: several
- * unmerged files still define it privately. Define it here once those files are merged. */
+struct SLOT;
+
+/* SLOT (a free slot: its first word links to the next free slot) stays forward-declared: several unmerged files
+ * still define it privately. Define it here once those files are merged. */
 
 /* Layout CONFIRMED by match of every slotheap function (offsets 0x0..0x14); moved here unchanged from sw.h. */
 struct SLOTHEAP

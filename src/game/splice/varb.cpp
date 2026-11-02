@@ -9,6 +9,8 @@
 // before CVarb::operator delete names the second pool, or that pool is instantiated (and initialized) first.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
+struct CVarb;
+
 extern "C" {
 void GcBinding_Unlink(void *pv);
 CVarb *PvNewBinding();
