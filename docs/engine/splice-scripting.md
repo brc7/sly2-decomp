@@ -172,10 +172,10 @@ Compared with Sly 1's 125-entry table (which gives the Splice spellings) `[H r1 
 | [0x124578](../../src/game/app/bif/RefOpFindNearestObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindNearestObjects` | Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo | 0.85 | T1 | verified |
 | [0x124F00](../../src/game/app/bif/RefOpHitTestObjects__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjects` | Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal) | 0.85 | T1 | verified |
 | [0x125060](../../src/game/app/bif/RefOpConvertObjectVector__FiP4CRefP6CFrame.c) | `RefOpConvertObjectVector` | Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0 | 0.85 | T1 | verified |
-| [0x126490](../../src/game/splice/eval/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
-| [0x126F78](../../src/game/splice/eval/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
-| [0x1272E0](../../src/game/splice/eval/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
-| [0x127838](../../src/game/splice/eval/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
+| [0x126490](../../src/game/splice/eval.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
+| [0x126F78](../../src/game/splice/eval.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
+| [0x1272E0](../../src/game/splice/eval.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
+| [0x127838](../../src/game/splice/eval.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
 | [0x127CF0](../../src/game/splice/frame.cpp) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
 | [0x127D78](../../src/game/splice/frame.cpp) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
 | [0x128148](../../src/game/splice/gc.cpp) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |

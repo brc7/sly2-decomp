@@ -207,23 +207,23 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x126438](../../../src/game/splice/eval/RefEvalSymbol__FP5CPairP6CFrame.c) | `RefEvalSymbol` | Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it | 0.88 | T1 |  |
-| [0x126490](../../../src/game/splice/eval/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
-| [0x126540](../../../src/game/splice/eval/RefEvalDefine__FP5CPairP6CFrame.cpp) | `RefEvalDefine` | (define sym expr): evaluate, CFrame::RefAddBinding (0x127C00) | 0.90 | T1 |  |
-| [0x1265F0](../../../src/game/splice/eval/RefEvalAssert__FP5CPairP6CFrame.cpp) | `RefEvalAssert` | (assert expr ...): evaluates; if false prints message (printf) ; returns Void | 0.88 | T1 |  |
-| [0x1266C8](../../../src/game/splice/eval/func_001266C8.cpp) | `RefEvalForm6` | New Sly2 special form 6: evaluates its first operand if present, else Void | 0.30 | T2 |  |
-| [0x126758](../../../src/game/splice/eval/RefEvalIf__FP5CPairP6CFrame.cpp) | `RefEvalIf` | (if c then [else]) | 0.93 | T1 |  |
-| [0x126840](../../../src/game/splice/eval/RefEvalOr__FP5CPairP6CFrame.cpp) | `RefEvalOr` | (or ...): first non-false value, else #f | 0.93 | T1 |  |
-| [0x126928](../../../src/game/splice/eval/RefEvalAnd__FP5CPairP6CFrame.cpp) | `RefEvalAnd` | (and ...): stops at first #f, else last value | 0.93 | T1 |  |
-| [0x126A18](../../../src/game/splice/eval/RefEvalCond__FP5CPairP6CFrame.cpp) | `RefEvalCond` | (cond clauses...) with else (tag 0xB) | 0.93 | T1 |  |
-| [0x126BA0](../../../src/game/splice/eval/RefEvalCase__FP5CPairP6CFrame.cpp) | `RefEvalCase` | (case key clauses...): compares via RefOpEqv 0x120548, else clause | 0.92 | T1 |  |
-| [0x126DB8](../../../src/game/splice/eval/RefEvalLet__FP5CPairP6CFrame.cpp) | `RefEvalLet` | (let ((sym val)...) body): new CFrame (0x256DD0), RefAddBinding each, then body | 0.92 | T1 |  |
-| [0x126F78](../../../src/game/splice/eval/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
-| [0x127068](../../../src/game/splice/eval/RefEvalLambda__FP5CPairP6CFrame.cpp) | `RefEvalLambda` | (lambda args body): allocates CProc (0x256F48) capturing the frame, args and body | 0.88 | T1 |  |
-| [0x127190](../../../src/game/splice/eval/RefEvalLambdaBody__FP5CPairP6CFrame.c) | `RefEvalLambdaBody` | Evaluates each body expression of a proc in order, returns the last | 0.75 | T1 |  |
-| [0x127228](../../../src/game/splice/eval/RefEvalBegin__FP5CPairP6CFrame.cpp) | `RefEvalBegin` | (begin ...): evaluate all, return last (Void if empty) | 0.93 | T1 |  |
-| [0x1272E0](../../../src/game/splice/eval/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then calls | 0.93 | T1 |  |
-| [0x127838](../../../src/game/splice/eval/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns datum | 0.95 | T1 |  |
+| [0x126438](../../../src/game/splice/eval.cpp) | `RefEvalSymbol` | Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it | 0.88 | T1 |  |
+| [0x126490](../../../src/game/splice/eval.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
+| [0x126540](../../../src/game/splice/eval.cpp) | `RefEvalDefine` | (define sym expr): evaluate, CFrame::RefAddBinding (0x127C00) | 0.90 | T1 |  |
+| [0x1265F0](../../../src/game/splice/eval.cpp) | `RefEvalAssert` | (assert expr ...): evaluates; if false prints message (printf) ; returns Void | 0.88 | T1 |  |
+| [0x1266C8](../../../src/game/splice/eval.cpp) | `RefEvalForm6` | New Sly2 special form 6: evaluates its first operand if present, else Void | 0.30 | T2 |  |
+| [0x126758](../../../src/game/splice/eval.cpp) | `RefEvalIf` | (if c then [else]) | 0.93 | T1 |  |
+| [0x126840](../../../src/game/splice/eval.cpp) | `RefEvalOr` | (or ...): first non-false value, else #f | 0.93 | T1 |  |
+| [0x126928](../../../src/game/splice/eval.cpp) | `RefEvalAnd` | (and ...): stops at first #f, else last value | 0.93 | T1 |  |
+| [0x126A18](../../../src/game/splice/eval.cpp) | `RefEvalCond` | (cond clauses...) with else (tag 0xB) | 0.93 | T1 |  |
+| [0x126BA0](../../../src/game/splice/eval.cpp) | `RefEvalCase` | (case key clauses...): compares via RefOpEqv 0x120548, else clause | 0.92 | T1 |  |
+| [0x126DB8](../../../src/game/splice/eval.cpp) | `RefEvalLet` | (let ((sym val)...) body): new CFrame (0x256DD0), RefAddBinding each, then body | 0.92 | T1 |  |
+| [0x126F78](../../../src/game/splice/eval.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
+| [0x127068](../../../src/game/splice/eval.cpp) | `RefEvalLambda` | (lambda args body): allocates CProc (0x256F48) capturing the frame, args and body | 0.88 | T1 |  |
+| [0x127190](../../../src/game/splice/eval.cpp) | `RefEvalLambdaBody` | Evaluates each body expression of a proc in order, returns the last | 0.75 | T1 |  |
+| [0x127228](../../../src/game/splice/eval.cpp) | `RefEvalBegin` | (begin ...): evaluate all, return last (Void if empty) | 0.93 | T1 |  |
+| [0x1272E0](../../../src/game/splice/eval.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then calls | 0.93 | T1 |  |
+| [0x127838](../../../src/game/splice/eval.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns datum | 0.95 | T1 |  |
 
 ## frame (0x127B18-0x128138)
 
