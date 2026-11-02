@@ -1421,8 +1421,8 @@ func_0012EEE0,0x12EEE0,23,match,src/game/engine/sound/amb/func_0012EEE0.c
 func_0012EF40,0x12EF40,21,match,src/game/engine/sound/amb/func_0012EF40.c
 StaticInit_amb,0x12EF98,77,match,src/game/engine/sound/amb/StaticInit_amb.c
 func_0012F0D0,0x12F0D0,8,match,src/game/engine/sound/amb/func_0012F0D0.c
-StaticInit_empty_12F0F0,0x12F0F0,77,match,src/game/engine/anim/empty_12F0F0/StaticInit_empty_12F0F0.c
-func_0012F228,0x12F228,8,match,src/game/engine/anim/empty_12F0F0/func_0012F228.c
+StaticInit_empty_12F0F0,0x12F0F0,77,match,src/game/engine/anim/empty_12F0F0.cpp
+func_0012F228,0x12F228,8,match,src/game/engine/anim/empty_12F0F0.cpp
 InitAseg,0x12F248,24,match,src/game/engine/anim/aseg/InitAseg.c
 LoadAsegFromBrx,0x12F2A8,185,match,src/game/engine/anim/aseg/LoadAsegFromBrx.cpp
 LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA,0x12F590,203,match,src/game/engine/anim/aseg/LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA.cpp
