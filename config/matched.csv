@@ -5666,8 +5666,8 @@ UpdateSw,0x226550,156,match,src/game/level/update/UpdateSw.c
 UpdateSwObjects,0x2267C0,104,match,src/game/level/update/UpdateSwObjects.c
 StaticInit_update,0x226960,77,match,src/game/level/update/StaticInit_update.c
 func_00226A98,0x226A98,8,match,src/game/level/update/func_00226A98.c
-StaticInit_empty_226AB8,0x226AB8,77,match,src/game/level/empty_226AB8/StaticInit_empty_226AB8.c
-func_00226BF0,0x226BF0,8,match,src/game/level/empty_226AB8/func_00226BF0.c
+StaticInit_empty_226AB8,0x226AB8,77,match,src/game/level/empty_226AB8.cpp
+func_00226BF0,0x226BF0,8,match,src/game/level/empty_226AB8.cpp
 __4VIFS,0x226C10,17,match,src/game/engine/graphics/backend/vifs/__4VIFS.c
 __4VIFS,0x226C10,17,match,src/game/engine/graphics/backend/vifs/vifs.cpp
 Align__4VIFSi,0x226C58,20,match,src/game/engine/graphics/backend/vifs/vifs.cpp
