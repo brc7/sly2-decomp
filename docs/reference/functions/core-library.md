@@ -54,37 +54,37 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1177A8](../../../src/game/core/binstream/bis/func_001177A8.c) | `__18CBinaryInputStream` |  |  | existing |  |
-| [0x1177F0](../../../src/game/core/binstream/bis/bis.cpp) | `Close__18CBinaryInputStream` |  |  | existing |  |
-| [0x117810](../../../src/game/core/binstream/bis/bis.cpp) | `Refill__18CBinaryInputStream` |  |  | existing |  |
-| [0x117898](../../../src/game/core/binstream/bis/bis.cpp) | `CbRead__18CBinaryInputStreamiPv` |  |  | existing |  |
-| [0x117968](../../../src/game/core/binstream/bis/func_00117968.c) | `Read__18CBinaryInputStreamiPv` |  |  | existing |  |
-| [0x117988](../../../src/game/core/binstream/bis/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
-| [0x1179B8](../../../src/game/core/binstream/bis/func_001179B8.c) | `Skip__18CBinaryInputStreami` |  |  | existing |  |
-| [0x1179D8](../../../src/game/core/binstream/bis/func_001179D8.c) | `SetDecompress__18CBinaryInputStreamiPUc` |  |  | existing |  |
-| [0x1179F0](../../../src/game/core/binstream/bis/bis.cpp) | `Decompress__18CBinaryInputStream` |  |  | existing |  |
-| [0x117BD0](../../../src/game/core/binstream/bis/bis.cpp) | `U8Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117C20](../../../src/game/core/binstream/bis/bis.cpp) | `U16Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117C80](../../../src/game/core/binstream/bis/bis.cpp) | `U32Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117D00](../../../src/game/core/binstream/bis/bis.cpp) | `S8Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117D50](../../../src/game/core/binstream/bis/bis.cpp) | `S16Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117DB8](../../../src/game/core/binstream/bis/bis.cpp) | `S32Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117E38](../../../src/game/core/binstream/bis/bis.cpp) | `F32Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117EB0](../../../src/game/core/binstream/bis/func_00117EB0.c) | `ReadVector__18CBinaryInputStreamP6VECTOR` |  |  | existing |  |
-| [0x117ED0](../../../src/game/core/binstream/bis/func_00117ED0.c) | `ReadMatrix__18CBinaryInputStreamP7MATRIX3` |  |  | existing |  |
-| [0x117F18](../../../src/game/core/binstream/bis/bis.cpp) | `ReadMatrix4__18CBinaryInputStreamP7MATRIX4` |  |  | existing |  |
-| [0x117F70](../../../src/game/core/binstream/bis/func_00117F70.c) | `ReadVector4__18CBinaryInputStreamP7VECTOR4` |  |  | existing |  |
-| [0x117F90](../../../src/game/core/binstream/bis/func_00117F90.c) | `ReadCb12__18CBinaryInputStreamPv` |  |  | existing |  |
-| [0x117FB0](../../../src/game/core/binstream/bis/func_00117FB0.c) | `ReadCb8__18CBinaryInputStreamPv` |  |  | existing |  |
-| [0x117FD0](../../../src/game/core/binstream/bis/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
-| [0x118220](../../../src/game/core/binstream/bis/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
-| [0x118380](../../../src/game/core/binstream/bis/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
-| [0x118420](../../../src/game/core/binstream/bis/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
-| [0x118458](../../../src/game/core/binstream/bis/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
-| [0x118480](../../../src/game/core/binstream/bis/func_00118480.c) | `CMemInputStream_ctor_118480` | Constructor of a CBinaryInputStream subclass: base ctor then vptr = 0x2CA5A0 | 0.45 | T2 |  |
-| [0x1184B8](../../../src/game/core/binstream/bis/CMemInputStream_ctor.c) | `CMemInputStream_ctor` | Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1 | 0.60 | T1 |  |
-| [0x1184E8](../../../src/game/core/binstream/bis/func_001184E8.c) | `CMemInputStream_Refill` | vtable slot 1 override: hands the stored buffer (+0x34 ptr, +0x38 cb) to the read cursor once, then empties it | 0.45 | T2 |  |
-| [0x118500](../../../src/game/core/binstream/bis/func_00118500.c) | `CMemInputStream_SetBuffer` | Stores buffer pointer/size (+0x34/+0x38) and +0 state | 0.45 | T2 |  |
+| [0x1177A8](../../../src/game/core/binstream/bis.cpp) | `__18CBinaryInputStream` |  |  | existing |  |
+| [0x1177F0](../../../src/game/core/binstream/bis.cpp) | `Close__18CBinaryInputStream` |  |  | existing |  |
+| [0x117810](../../../src/game/core/binstream/bis.cpp) | `Refill__18CBinaryInputStream` |  |  | existing |  |
+| [0x117898](../../../src/game/core/binstream/bis.cpp) | `CbRead__18CBinaryInputStreamiPv` |  |  | existing |  |
+| [0x117968](../../../src/game/core/binstream/bis.cpp) | `Read__18CBinaryInputStreamiPv` |  |  | existing |  |
+| [0x117988](../../../src/game/core/binstream/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
+| [0x1179B8](../../../src/game/core/binstream/bis.cpp) | `Skip__18CBinaryInputStreami` |  |  | existing |  |
+| [0x1179D8](../../../src/game/core/binstream/bis.cpp) | `SetDecompress__18CBinaryInputStreamiPUc` |  |  | existing |  |
+| [0x1179F0](../../../src/game/core/binstream/bis.cpp) | `Decompress__18CBinaryInputStream` |  |  | existing |  |
+| [0x117BD0](../../../src/game/core/binstream/bis.cpp) | `U8Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117C20](../../../src/game/core/binstream/bis.cpp) | `U16Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117C80](../../../src/game/core/binstream/bis.cpp) | `U32Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117D00](../../../src/game/core/binstream/bis.cpp) | `S8Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117D50](../../../src/game/core/binstream/bis.cpp) | `S16Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117DB8](../../../src/game/core/binstream/bis.cpp) | `S32Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117E38](../../../src/game/core/binstream/bis.cpp) | `F32Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117EB0](../../../src/game/core/binstream/bis.cpp) | `ReadVector__18CBinaryInputStreamP6VECTOR` |  |  | existing |  |
+| [0x117ED0](../../../src/game/core/binstream/bis.cpp) | `ReadMatrix__18CBinaryInputStreamP7MATRIX3` |  |  | existing |  |
+| [0x117F18](../../../src/game/core/binstream/bis.cpp) | `ReadMatrix4__18CBinaryInputStreamP7MATRIX4` |  |  | existing |  |
+| [0x117F70](../../../src/game/core/binstream/bis.cpp) | `ReadVector4__18CBinaryInputStreamP7VECTOR4` |  |  | existing |  |
+| [0x117F90](../../../src/game/core/binstream/bis.cpp) | `ReadCb12__18CBinaryInputStreamPv` |  |  | existing |  |
+| [0x117FB0](../../../src/game/core/binstream/bis.cpp) | `ReadCb8__18CBinaryInputStreamPv` |  |  | existing |  |
+| [0x117FD0](../../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
+| [0x118220](../../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
+| [0x118380](../../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
+| [0x118420](../../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
+| [0x118458](../../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
+| [0x118480](../../../src/game/core/binstream/bis.cpp) | `CMemInputStream_ctor_118480` | Constructor of a CBinaryInputStream subclass: base ctor then vptr = 0x2CA5A0 | 0.45 | T2 |  |
+| [0x1184B8](../../../src/game/core/binstream/bis.cpp) | `CMemInputStream_ctor` | Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1 | 0.60 | T1 |  |
+| [0x1184E8](../../../src/game/core/binstream/bis.cpp) | `CMemInputStream_Refill` | vtable slot 1 override: hands the stored buffer (+0x34 ptr, +0x38 cb) to the read cursor once, then empties it | 0.45 | T2 |  |
+| [0x118500](../../../src/game/core/binstream/bis.cpp) | `CMemInputStream_SetBuffer` | Stores buffer pointer/size (+0x34/+0x38) and +0 state | 0.45 | T2 |  |
 
 ## bsp (0x118668-0x1195E0)
 
@@ -455,7 +455,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256588](../../../src/game/core/containers/tu_119BC8/func_00256588.c) | `BroadcastToList` | for each node in list call node->vt[2\](pv) [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2565E0](../../../src/game/core/containers/tu_119BC8/func_002565E0.c) | `CDynArrayV_AppendNew` | grow array by 1, call vt init on new element, return it [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256658](../../../src/game/core/containers/tu_119BC8/func_00256658.c) | `CDynArrayV_Clear` | free array and destroy list nodes via vt [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2566B0](../../../src/game/core/binstream/bis/func_002566B0.c) | `LoadS32FromBis_vt` | virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2566B0](../../../src/game/core/binstream/bis.cpp) | `LoadS32FromBis_vt` | virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2566D8](../../../src/game/core/containers/tu_119BC8/func_002566D8.cpp) | `LoadListFromBrx_vt` | virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2567D0](../../../src/game/core/containers/tu_119BC8/func_002567D0.c) | `CHash_Clear` | free all chained entries and bucket array through allocator vt[3] [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x2568A0](../../../src/game/core/containers/tu_119BC8/func_002568A0.c) | `CHash_ClearAt14` | CHash_Clear(this+0x14) [game linkonce (inline/template)] | 0.25 | T2 |  |

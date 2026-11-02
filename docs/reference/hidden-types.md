@@ -101,8 +101,8 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA5A0` | 3 | 1=`CMemInputStream_Refill?`, 2=`Close__18CBinaryInputStream` | [`CMemInputStream_ctor_118480?`](../../src/game/core/binstream/bis/func_00118480.c) (+0x30), [`CMemInputStream_ctor`](../../src/game/core/binstream/bis/CMemInputStream_ctor.c) (+0x30) | — |
-| `0x2CA5C0` | 3 | 1=`__pure_virtual`, 2=`Close__18CBinaryInputStream` | [`__18CBinaryInputStream`](../../src/game/core/binstream/bis/func_001177A8.c) (+0x30) | — |
+| `0x2CA5A0` | 3 | 1=`CMemInputStream_Refill?`, 2=`Close__18CBinaryInputStream` | [`CMemInputStream_ctor_118480?`](../../src/game/core/binstream/bis.cpp) (+0x30), [`CMemInputStream_ctor`](../../src/game/core/binstream/bis.cpp) (+0x30) | — |
+| `0x2CA5C0` | 3 | 1=`__pure_virtual`, 2=`Close__18CBinaryInputStream` | [`__18CBinaryInputStream`](../../src/game/core/binstream/bis.cpp) (+0x30) | — |
 
 #### B2.5 DynArrayV / Unk2CA5E0
 

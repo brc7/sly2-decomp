@@ -29,12 +29,12 @@ The "london" text at the start of `london` is really `abandon_icon` (see section
 |---|---|---|
 | Location | One extent per file: `lba = (aw0^aw13)+0xCA0`, `size = aw1^aw15` (section 2) | confirmed: the world loader `func_0020E890` builds the FLOC this way |
 | Compression | The whole file is LZSS, with no header and no stored length | confirmed: `func_001179D8` SetDecompress is called before `func_0013DA18` |
-| LZSS | Flag byte, LSB first, bit=1 means a literal. A reference is u16 `v`: ring index `v & 0x1FFF` (absolute index in an 8 KB ring; write cursor = output position mod 0x2000), length `(v>>13)+3` | confirmed: `CBinaryInputStream::Decompress` 0x1179F0 (`src/game/core/binstream/bis/bis.cpp`). Byte-identical to SlyTools `sly_decompress.hpp`. Both samples decode to clean, fully parseable data |
+| LZSS | Flag byte, LSB first, bit=1 means a literal. A reference is u16 `v`: ring index `v & 0x1FFF` (absolute index in an 8 KB ring; write cursor = output position mod 0x2000), length `(v>>13)+3` | confirmed: `CBinaryInputStream::Decompress` 0x1179F0 (`src/game/core/binstream/bis.cpp`). Byte-identical to SlyTools `sly_decompress.hpp`. Both samples decode to clean, fully parseable data |
 | Initial ring | On PS2 the ring is the scratchpad (`0x70000000`), which is not cleared. Tools zero-fill it | code. Both samples parse fine with zero-fill, but no check proves that no early reference points into unwritten ring slots |
 | Endianness | Little-endian throughout | confirmed (`bis.cpp` U16Read/U32Read/S32Read) |
 | Align(n) | Aligns the **absolute offset in the decompressed stream**. The read pointer walks a 0x2000-byte window that starts at an aligned address, and pending bytes are moved to the window start on every refill | code (`bis.cpp` Align + Decompress); confirmed at the head/object boundary (section 9) |
 
-Reader primitives (`include/bis.h`, `src/game/core/binstream/bis/bis.cpp`):
+Reader primitives (`include/bis.h`, `src/game/core/binstream/bis.cpp`):
 
 | Name | Address | Reads |
 |---|---|---|

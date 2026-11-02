@@ -32,7 +32,7 @@ Fix: 0x11C168 is `operator*(MATRIX4, MATRIX4)`, not MultiplyMatrix4Vector `[C:ve
 
 ## 4. Binary input streams and CD
 
-- `CBinaryInputStream` (`src/game/core/binstream/bis/bis.cpp`, 0x1177A8): base `CBinaryStreamBase` with vptr at +0x30 (`Fill()`, `Close()`); readers U8/U16/U32/S8/S16/S32/F32,
+- `CBinaryInputStream` (`src/game/core/binstream/bis.cpp`, 0x1177A8): base `CBinaryStreamBase` with vptr at +0x30 (`Fill()`, `Close()`); readers U8/U16/U32/S8/S16/S32/F32,
   vectors/matrices, `Align`, `Skip`, `Read`, string16; LZSS decompression into a window (`SetDecompress` 0x1179D8, `Decompress` 0x1179F0) `[C:static]`.
   API names carried over from Sly 1, layout not `[C:static layouts.md]`.
 - A CD-backed stream subclass (TU 0x1848A8, vtable D_002D2918; class name coined CStreamBis) is used for all world/file loads; `FOpenSector` 0x184D98 `[H r4b bisstream.md]`.
@@ -83,12 +83,12 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 |---|---|---|---|---|---|
 | [0x116A58](../../src/game/platform/memory/heap.cpp) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
 | [0x117120](../../src/game/core/math/bez/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
-| [0x117988](../../src/game/core/binstream/bis/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
-| [0x117FD0](../../src/game/core/binstream/bis/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
-| [0x118220](../../src/game/core/binstream/bis/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
-| [0x118380](../../src/game/core/binstream/bis/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
-| [0x118420](../../src/game/core/binstream/bis/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
-| [0x118458](../../src/game/core/binstream/bis/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
+| [0x117988](../../src/game/core/binstream/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
+| [0x117FD0](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
+| [0x118220](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
+| [0x118380](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
+| [0x118420](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
+| [0x118458](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
 | [0x118668](../../src/game/core/math/bsp/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
 | [0x118A88](../../src/game/core/math/bsp/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
 | [0x119308](../../src/game/core/math/bsp/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
