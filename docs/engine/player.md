@@ -379,17 +379,17 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x1C33E8](../../src/auto/OnPipeAdd.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
 | [0x1C3420](../../src/auto/OnPipeRemove.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
 | [0x1C34B8](../../src/hand/ClonePipe.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
-| [0x1C3DC8](../../src/hand/LoadPoFromBrx.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
-| [0x1C3E20](../../src/hand/HandlePoMessage.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
-| [0x1C40F8](../../src/auto/FIsPoActive.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
-| [0x1C4228](../../src/hand/AddPoHpMp.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
-| [0x1C4280](../../src/hand/POCTL_ctor.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
-| [0x1C42E8](../../src/hand/ResetPoctl.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
-| [0x1C4468](../../src/hand/UpdatePoctl.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), buil | 0.85 | T1 | verified |
-| [0x1C4660](../../src/hand/GrfPressedWithin__5POCTLUif.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
-| [0x1C46C0](../../src/auto/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
-| [0x1C4840](../../src/auto/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
-| [0x1C4A48](../../src/auto/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
+| [0x1C3DC8](../../src/game/actor/po/LoadPoFromBrx.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
+| [0x1C3E20](../../src/game/actor/po/HandlePoMessage.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
+| [0x1C40F8](../../src/game/actor/po/FIsPoActive.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
+| [0x1C4228](../../src/game/actor/po/AddPoHpMp.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
+| [0x1C4280](../../src/game/actor/po/POCTL_ctor.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
+| [0x1C42E8](../../src/game/actor/po/ResetPoctl.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
+| [0x1C4468](../../src/game/actor/po/UpdatePoctl.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), buil | 0.85 | T1 | verified |
+| [0x1C4660](../../src/game/actor/po/GrfPressedWithin__5POCTLUif.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
+| [0x1C46C0](../../src/game/actor/po/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
+| [0x1C4840](../../src/game/actor/po/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
+| [0x1C4A48](../../src/game/actor/po/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
 | [0x1CB9B0](../../src/auto/func_001CB9B0.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
 | [0x1CB9E8](../../src/auto/func_001CB9E8.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
 | [0x1CBA20](../../src/hand/func_001CBA20.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |

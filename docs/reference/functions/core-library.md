@@ -521,7 +521,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2584A8](../../../src/game/engine/fx/emitter/func_002584A8.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258598](../../../src/game/engine/fx/emitter/func_00258598.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258620](../../../src/game/engine/fx/emitter/func_00258620.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258658](../../../src/lib/func_00258658.c) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258658](../../../src/game/actor/po/func_00258658.c) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x2586D8](../../../src/game/engine/fx/emitter/func_002586D8.c) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x258898](../../../src/game/core/linkonce/unhomed/func_00258898.c) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258920](../../../src/game/core/linkonce/unhomed/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -596,7 +596,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259C10](../../../src/game/core/linkonce/unhomed/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/game/object/spliceobj/func_00259C18.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x259CF8](../../../src/game/object/spliceobj/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259D18](../../../src/auto/func_00259D18.c) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259D18](../../../src/game/actor/step/func_00259D18.c) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259D38](../../../src/game/core/linkonce/unhomed/func_00259D38.c) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D48](../../../src/game/core/linkonce/unhomed/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D60](../../../src/game/core/linkonce/unhomed/func_00259D60.c) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
