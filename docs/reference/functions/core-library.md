@@ -291,9 +291,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14B660](../../../src/game/platform/cdvd/tu_14B660/func_0014B660.c) | `SetCdModeDefault` | D_002BD4C0 = 3 | 0.30 | T2 |  |
-| [0x14B670](../../../src/game/platform/cdvd/tu_14B660/func_0014B670.c) | `CbFileRecord` | size (+4) of a file record if kind (+8) == 2 else 0 | 0.35 | T2 |  |
-| [0x14B690](../../../src/game/platform/cdvd/tu_14B660/func_0014B690.c) | `PchzFromFid` | returns the constant string 'fid:#unknown' (retail stub of a file-id name lookup) | 0.35 | T2 |  |
+| [0x14B660](../../../src/game/platform/cdvd/tu_14B660.cpp) | `SetCdModeDefault` | D_002BD4C0 = 3 | 0.30 | T2 |  |
+| [0x14B670](../../../src/game/platform/cdvd/tu_14B660.cpp) | `CbFileRecord` | size (+4) of a file record if kind (+8) == 2 else 0 | 0.35 | T2 |  |
+| [0x14B690](../../../src/game/platform/cdvd/tu_14B660.cpp) | `PchzFromFid` | returns the constant string 'fid:#unknown' (retail stub of a file-id name lookup) | 0.35 | T2 |  |
 
 ## cd (0x14B7F8-0x14BEA8)
 

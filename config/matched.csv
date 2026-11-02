@@ -1943,11 +1943,11 @@ func_0014B460,0x14B460,2,match,src/game/gameplay/ai/tu_14A008/func_0014B460.c
 func_0014B468,0x14B468,39,match,src/game/gameplay/ai/tu_14A008/func_0014B468.c
 StaticInit_tu_14A008,0x14B508,77,match,src/game/gameplay/ai/tu_14A008/StaticInit_tu_14A008.c
 func_0014B640,0x14B640,8,match,src/game/gameplay/ai/tu_14A008/func_0014B640.c
-func_0014B660,0x14B660,4,match,src/game/platform/cdvd/tu_14B660/func_0014B660.c
-func_0014B670,0x14B670,7,match,src/game/platform/cdvd/tu_14B660/func_0014B670.c
-func_0014B690,0x14B690,3,match,src/game/platform/cdvd/tu_14B660/func_0014B690.c
-StaticInit_tu_14B660,0x14B6A0,77,match,src/game/platform/cdvd/tu_14B660/StaticInit_tu_14B660.c
-func_0014B7D8,0x14B7D8,8,match,src/game/platform/cdvd/tu_14B660/func_0014B7D8.c
+func_0014B660,0x14B660,4,match,src/game/platform/cdvd/tu_14B660.cpp
+func_0014B670,0x14B670,7,match,src/game/platform/cdvd/tu_14B660.cpp
+func_0014B690,0x14B690,3,match,src/game/platform/cdvd/tu_14B660.cpp
+StaticInit_tu_14B660,0x14B6A0,77,match,src/game/platform/cdvd/tu_14B660.cpp
+func_0014B7D8,0x14B7D8,8,match,src/game/platform/cdvd/tu_14B660.cpp
 CpchzTokenizePath__FPc,0x14B7F8,111,match,src/game/platform/cdvd/cd/CpchzTokenizePath__FPc.cpp
 FValidCdMmode__Fv,0x14B9C0,15,match,src/game/platform/cdvd/cd/FValidCdMmode__Fv.c
 SetCdMmode__Fv,0x14BA00,11,match,src/game/platform/cdvd/cd/SetCdMmode__Fv.c
