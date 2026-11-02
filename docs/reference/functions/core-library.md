@@ -262,17 +262,17 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x132570](../../../src/game/core/binstream/bas/__18CBinaryAsyncStreamPv.c) | `__18CBinaryAsyncStreamPv` |  |  | existing |  |
-| [0x1325B8](../../../src/game/core/binstream/bas/_$_18CBinaryAsyncStream.cpp) | `_$_18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132600](../../../src/game/core/binstream/bas/func_00132600.c) | `FOpenBasFromCdFile` | If the file record kind (+8) == 2 open the async stream on its sector range (FOpenSector(+0,+4)), else 0 | 0.35 | T2 |  |
-| [0x132640](../../../src/game/core/binstream/bas/FOpenSector__18CBinaryAsyncStreamUiUi.c) | `FOpenSector__18CBinaryAsyncStreamUiUi` |  |  | existing |  |
-| [0x132688](../../../src/game/core/binstream/bas/Close__18CBinaryAsyncStream.c) | `Close__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132710](../../../src/game/core/binstream/bas/StartSpooling__18CBinaryAsyncStream.c) | `StartSpooling__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x1327D0](../../../src/game/core/binstream/bas/FSpooling__18CBinaryAsyncStream.c) | `FSpooling__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x1327E0](../../../src/game/core/binstream/bas/FSpoolingComplete__18CBinaryAsyncStream.cpp) | `FSpoolingComplete__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x1328A8](../../../src/game/core/binstream/bas/FinishSpooling__18CBinaryAsyncStream.cpp) | `FinishSpooling__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132930](../../../src/game/core/binstream/bas/Spool__18CBinaryAsyncStream.c) | `Spool__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132998](../../../src/game/core/binstream/bas/Skip__18CBinaryAsyncStreami.c) | `Skip__18CBinaryAsyncStreami` |  |  | existing |  |
+| [0x132570](../../../src/game/core/binstream/bas.cpp) | `__18CBinaryAsyncStreamPv` |  |  | existing |  |
+| [0x1325B8](../../../src/game/core/binstream/bas.cpp) | `_$_18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132600](../../../src/game/core/binstream/bas.cpp) | `FOpenBasFromCdFile` | If the file record kind (+8) == 2 open the async stream on its sector range (FOpenSector(+0,+4)), else 0 | 0.35 | T2 |  |
+| [0x132640](../../../src/game/core/binstream/bas.cpp) | `FOpenSector__18CBinaryAsyncStreamUiUi` |  |  | existing |  |
+| [0x132688](../../../src/game/core/binstream/bas.cpp) | `Close__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132710](../../../src/game/core/binstream/bas.cpp) | `StartSpooling__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x1327D0](../../../src/game/core/binstream/bas.cpp) | `FSpooling__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x1327E0](../../../src/game/core/binstream/bas.cpp) | `FSpoolingComplete__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x1328A8](../../../src/game/core/binstream/bas.cpp) | `FinishSpooling__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132930](../../../src/game/core/binstream/bas.cpp) | `Spool__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132998](../../../src/game/core/binstream/bas.cpp) | `Skip__18CBinaryAsyncStreami` |  |  | existing |  |
 
 ## bq (0x13D558-0x13DA18)
 
