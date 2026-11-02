@@ -108,6 +108,14 @@ the other Splice node kinds (frames, procs, method records...).
 | compile error: conflicting declarations of the same `extern "C"` function | two `.c` files declared one callee with different parameter types (C allowed it) | one prototype with the real types; callers cast if needed | tu_19F0A8 (SetStepguardSpecial), brx_sw (CBinaryInputStream readers) |
 | compile error: `redefinition of struct RGBA` (or CLOCK, DL...) | a TU-private type collides with a shared header | include only what the TU uses (slotheap.h deliberately does not include basic.h); a private type whose inline members shape codegen (tu_15DC80's `RGBA() {}`) stays private, under its own name if the TU also needs the shared header (brx_sw renamed its POD copy `RGBAPOD`) | brx_sw, tu_15DC80 |
 | an m2c body calls `UpdateLo()` / `UpdateStepguard()` with no arguments | m2c could not see that `a0`/`f12` are passed through unchanged | give the function the real parameters and pass them on (`UpdateStepguard(pguard, dt)`); no instructions change | tu_14FAC8, tu_15DC80 |
+| a `.c` caller passing an 8-byte struct by value is ~19 instructions off as C++: target loads it straight into `a2` with `ldl/ldr`, ours builds a stack temporary (B4, caller side) | as above: g++ copies a by-value class argument through a temporary | declare the parameter `long` and pass the 8 bytes read through a packed view: `struct LONGU { long l; } __attribute__((packed));` ... `EnsureSwCallback(psw, p, ((LONGU *)&D_002A4790)->l, 0)`; the packed (alignment 1) read is what gives `ldl/ldr` (an `aligned(4)` long typedef gives a plain `ld`) | barrier (NotifyBarrierImpact) |
+| a `.c` function calling through a table of `{pfnBegin, pfnEnd}` structs is ~30 instructions off as C++: target materialises `table+4` for `pfnEnd` apart, ours reuses the hoisted table base and loads at +4 | the C and C++ front ends build different RTL for `a[i].field` | declare the table as an array of pairs, `PFN D_002BDD88[][2]`, and call through `D_002BDD88[k][1]` | draw (DrawSw) |
+| a 1-bit bit-field test (`p->f == 0`) is far off as C++ (71 and 83 of ~200 instructions): target `ld; dsrl32 28; andi 1`, ours an AND with a 64-bit mask built by `ori; dsll32` | g++ folds the comparison into a mask test; the C front end extracts the bit. Changing the field's declared type does not help | compare `(int)p->f == 0` | find (MatchSwObject, CploFindSwObjectsByClass) |
+| an m2c body is a few instructions off by scheduling: a global float load hoisted above stores into the object | the global (`D_002DDF0C`) is really a field of a struct (`CLOCK` at `D_002DDED0` + 0x3C); a scalar memory reference can be moved across struct stores, an in-struct one cannot | read it as the struct field (sly2/basic.h `CLOCK::tReal`, or a TU-local view) | tu_15CD68 (func_0015D648 4 off, func_0015D880 12 off) |
+| a hand-passed CRef result (`RefGet...(&ref, ...); n = ref.tag; Decref__4CRef(&ref); return n ^ 1;`) is off as C++ when written `CRef ref = RefGet...(); return ref.u.n ^ 1;` (the xor is computed before the destructor call) | the destructor runs after the return value is computed | read the value in an inner block: `int n; { CRef ref = RefGet...(); n = ref.u.n; } return n ^ 1;`. Hand-passed CRef results otherwise become plain by-value calls (difficulty, tu_15CD68, tu_1D7238 all matched) | rumble (FRumbleEnabled) |
+| the same count field is compared signed in one function (`slt`, `blez`) and unsigned in another (`sltiu`) | the per-function files typed it differently | declare it once and cast at the odd use (`(unsigned int)p->c < 4`) | barrier, tu_1A4E08, tu_1D7238 |
+| `StaticInit_<tu>` is 80 instructions: a `jal` to an Init function before the six pool blocks | a file-scope object of the TU with a constructor (wipe: `D_00443740`, constructed by `InitWipe`) | define the object in the merged file with an inline constructor that calls the init function (`struct WIPE { ... WIPE() { InitWipe(this); } }; WIPE D_00443740;`), directly before `SLY2_INSTANTIATE_SLOT_POOLS()` | wipe |
+| an m2c constructor stores 1 instruction off around `(x + 0x3F) & ~0x3F` | unsigned arithmetic schedules the mask differently | compute on `(int)pv` | bas |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -120,7 +128,28 @@ Other observations:
 - When rewriting doc links, match `\.(cpp|c)` in that order: `(c|cpp)` stops at `.c` and leaves `pp` behind (fixed
   in a follow-up commit of wave 1). Run `python3 -I tools/docs/linkcheck.py` after each merge.
 - Not hit yet: inline methods or class definitions that become visible in the merged TU and change a function's
-  codegen (pilot blocker B6, gifs/vifs), and the path-hash quirk below.
+  codegen (pilot blocker B6, gifs/vifs; vifs also has an older multi-function `vifs.cpp` whose AddVifUnpack copy does
+  not match, see "Not merged").
+- Wave 2 (asm-free TUs up to 21 functions, plus three small asm TUs): of about 110 per-function files, the only
+  C-vs-C++ codegen differences were the rows above (draw, barrier, find, rumble, bas); everything else matched on the
+  first compile once types were unified. Most of the work is unifying the per-file views of one object into one type.
+- `.c` callers that passed a hidden result pointer by hand (`RgbaFromSpeakerCid(&c, k)`, `RefGetGlobalSaveVar(&ref,
+  ...)`) become by-value calls in C++ and match: g++ uses the same hidden-pointer convention for a returned non-POD
+  class (tu_2275B8, difficulty).
+- Defining a class's first virtual function in the merged file makes it the class's key TU: g++ then also emits
+  `__tf...` typeinfo functions and out-of-line copies of the class's inline members (bq:
+  `__17CQueueInputMemoryPUci`). They have no address in the binary (the code exists nowhere there) and show as
+  extras, not mismatches; `-fno-rtti` would drop the `__tf` ones but not the constructor copy. Left as is.
+- A per-function `.c` that defines a mangled name as a C symbol (`InitDl__FP2DLi`, `PloFindSwObject__FP2SWi3OIDP2LO`)
+  becomes the C++ function that mangles to it; its parameter types must then carry the exact names (`SW`, `OID`,
+  `LO`, `CID`), so a TU-private view of LO is called `LO` (find). The same applies to callee declarations: a callee
+  whose symbol is plain must be declared `extern "C"`, and one whose symbol is mangled must be declared with the types
+  it names; a literal-mangled name declared outside `extern "C"` (`CRef RefEval__FP5CPairP6CFrame(...)`) gets mangled
+  twice. Wave 2 fixed three such slips in a follow-up commit; check every prototype against config/functions.csv.
+- A function whose current symbol has the wrong signature (bas: the constructor `__18CBinaryAsyncStreamPv` takes two
+  arguments) stays a C-linkage function under that symbol until it is renamed.
+- Drafting tool hazard: never `git stash`/`stash pop` between finalising a TU and committing it. `stash pop` restores
+  the files but not the index, so the commit took only the new `.cpp` (wave 2's draw commit had to be rebuilt).
 
 ## Path-hash quirk (asm functions)
 
@@ -128,8 +157,37 @@ GCC 2.95 hashes the source file name and the line number into the gcse ordering 
 functions that ordering decides stack-slot numbering, so the match depends on (sum of path bytes, line) mod 287.
 A merge changes both the path and the line of every function. If a merged function that contains inline asm misses
 only by a few stack offsets, pin the name with `#line N "<repo-relative path>"` and keep the asm helper in the line
-window that matches (example: `src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp`). None of the wave-1 TUs
-contain asm, so it did not come up yet.
+window that matches (example: `src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp`).
+
+What wave 2 measured (on func_001D3450, by changing only its `#line 13 "<path>"` pin; MATCH unless noted):
+
+| pin | result |
+|---|---|
+| original | MATCH |
+| same path with two digits swapped (same byte sum) | MATCH |
+| same path with one digit +5 (byte sum +5) | MATCH |
+| line 23 (+10) | MATCH |
+| line 53 (+40) | 64/637 instructions differ |
+| `"a.cpp"`, line 13 | 5/637 differ |
+
+So the input is (byte sum of the presumed file name, line of the asm text), with a window of roughly 30 lines; the
+name that counts is the one `#line` sets, not the real file. The line is that of the asm statement itself, i.e. of the
+inline helper that contains it (VU_FLOAT at line 57 there), not of the function that uses it.
+
+Recipe for merging a sensitive function: directly before the asm helper's definition in the merged file write
+`#line <line the helper had in the per-function file> "<per-function file's pinned path>"` (func_001D3450: `#line 57
+"src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp"` before `struct VU_FLOAT`), and directly after it
+`#line <real next line> "<merged path>"` so diagnostics point at the merged file again. That reproduces (sum, line)
+for the asm exactly, wherever the helper ends up in the merged file.
+A cheaper equivalent is any (name, line) pair whose sum lands in the same window, but the verbatim pin is easier to
+review. Helpers shared by several functions of the TU are defined once, so a sensitive function constrains where that
+shared helper sits.
+
+In practice it is rare: the three asm TUs of wave 2 (sjis: register-pinned `addu`/`sll` helpers; sky: a `pextuw`
+helper; tu_1603B8: VU0 macro-mode asm with `"j"` operands) merged with no pin, and UpdateSky and ApplyXfmConstraint
+still matched under eight different `#line` pins each. Only functions where gcse PRE creates pseudos from an asm (and
+those pseudos then get stack slots) are sensitive. tu_1D1370 (44 functions), which holds the one known case, was not
+merged yet.
 
 ## Linkonce instances
 
@@ -171,6 +229,39 @@ Total wave 1: 39 TUs (18 of them pool-only), 137 functions. After the wave, `JOB
 6,662/6,662 functions and 350,068/350,068 instructions, matched.csv unchanged by the run (the merge commits had already
 pointed its sources at the merged files).
 
+Wave 2 (asm-free TUs of 7..21 functions, smallest first, then three small asm TUs):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| draw | engine/graphics/pipeline/draw.cpp | 7 | real VIFS class (include/vifs.h); pass table as `PFN[][2]` |
+| dynarray | core/containers/dynarray.cpp | 7 | 4 m2c memcmp wrappers |
+| thread | platform/thread/thread.cpp | 7 | private CRITSECT |
+| language | core/locale/language.cpp | 8 | three GetRegionLanguages prototypes unified |
+| tu_2275B8 | engine/sound/tu_2275B8.cpp | 8 | speaker labels; hidden RGBA result pointer becomes a by-value call |
+| wipe | level/wipe.cpp | 8 | 80-instruction StaticInit: global `WIPE D_00443740` constructed via InitWipe; FILEREC/SW from sly2/sw.h |
+| barrier | gameplay/objects/barrier.cpp | 9 | B4 caller side solved (packed long) |
+| tu_1A4E08 | app/tu_1A4E08.cpp | 9 | 16-step queue; signed/unsigned count |
+| amb | engine/sound/amb.cpp | 10 | `AMB : XFM` |
+| bq | core/containers/bq.cpp | 10 | key-TU extras (`__tf`, out-of-line ctor) |
+| difficulty | world/state/difficulty.cpp | 10 | CRef by value (sly2/cref.h); SW::ploJobCur |
+| splicemap | object/splicemap.cpp | 10 | two counted pointers; SPLCS defined; 2 linkonce GC helpers |
+| tu_1D7238 | gameplay/ai/tu_1D7238.cpp | 10 | safehouse select object; callee types for mangled names |
+| rumble | platform/input/rumble.cpp | 11 | CRef read in an inner block (destructor order) |
+| target | gameplay/objects/target.cpp | 11 | sly2/xfm.h TARGET; private `CID21 : XFM` |
+| tu_15CD68 | ui/tu_15CD68.cpp | 12 | clock as struct field fixes two m2c bodies |
+| cheat | gameplay/progression/cheat.cpp | 13 | CODE/CODES; SL iterator SLI |
+| find | object/find.cpp | 13 | `(int)p->f == 0`; private LO view named LO |
+| bas | core/binstream/bas.cpp | 13 | 10 m2c rewritten; constructor keeps its (void *) symbol |
+| sjis | engine/font/sjis.cpp | 4 | asm (register-pinned helpers), no pin needed |
+| sky | engine/graphics/pipeline/sky.cpp | 4 | asm (`pextuw`), no pin needed |
+| tu_1603B8 | engine/anim/tu_1603B8.cpp | 4 | VU0 asm, no pin needed |
+| dl | core/containers/dl.cpp | 21 | sly2/basic.h SL/DL, sly2/dli.h DLI |
+
+Total wave 2: 23 TUs, 219 functions (plus a follow-up commit fixing three callee declarations). After the wave,
+`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by
+the run. The same 333 SDK/asm sources as in wave 1 do not build in this Linux environment and are carried over
+(one wibo compile of an SDK file hung and had to be killed; it is among them).
+
 ## Not merged (and why)
 
 | TU | why |
@@ -179,3 +270,11 @@ pointed its sources at the merged files).
 | callback | EnsureSwCallback passes an 8-byte struct by value (B4, see the table); the other 5 functions merge fine |
 | sprbuf | its static initializer (SPRBUF array + pools) is currently emulated with an asm-labelled hack under `SLY2_ASM: gnu-reorder-db`, which this Linux environment cannot build; needs a real spelling and a Mac to verify |
 | tu_119BC8 | 16 functions, 13 of them linkonce hash-table/dynarray instances with mixed per-file flags, an m2c body and a register pin; worth a session of its own |
+| vifs (wave 2) | already has a multi-function `vifs.cpp` plus per-function copies of two of its functions (`__4VIFS.c`, `AddVifUnpack__4VIFS3UPKiPvi.cpp`); matched.csv lists both sources and the `vifs.cpp` AddVifUnpack scores 0.279 (B6: some inline/class context in the shared file changes it). Needs the B6 investigation first |
+| heap, dmas, bis (wave 2) | same shape as vifs: an existing multi-function file and duplicate matched.csv rows; not attempted (the scratch helper assumes one function per file) |
+| frame (wave 2) | 15 functions incl. 5 linkonce GC helpers; three different spellings of the BINDING/CFrame counted pointers (inline `operator delete`, `SPM`/`SPB`/`SPW`/`SPO`) and two files with `SLY2_CC/SLY2_CFLAGS` overrides; needs a unification pass of its own |
+| exit_warp, gc, save, eval, bif2, splice_thunks (wave 2) | next in size order; not reached in the wave-2 budget. exit_warp holds two classes (EXIT, WARP) with ~15 per-file views each |
+
+B4 note: barrier's caller-side trick (pass a packed `long`) has not been tried on callback's EnsureSwCallback, which is
+the callee side (it spills the incoming register); HYPOTHESIS: declaring that parameter `long` and copying it into a
+local struct through the same packed view might reproduce the spill.
