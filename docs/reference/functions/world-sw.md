@@ -46,10 +46,10 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x149A50](../../../src/game/world/scene/callback/PostSwCallback.c) | `PostSwCallback` | Append a deferred callback {object, pointer-to-member, arg} from pool g_sw+0x3C90 to the SW callback list (+0x3CA8) | 0.85 | T1 |  |
-| [0x149AB8](../../../src/game/world/scene/callback/EnsureSwCallback.c) | `EnsureSwCallback` | PostSwCallback unless an identical {obj, member pointer, arg} entry is already queued | 0.85 | T1 |  |
-| [0x149B58](../../../src/game/world/scene/callback/ClearSwCallbacks.c) | `ClearSwCallbacks` | Remove queued callbacks matching by grf bits: 1 = object, 2 = member pointer, 4 = arg; fix tail | 0.85 | T1 |  |
-| [0x149C80](../../../src/game/world/scene/callback/ProcessSwCallbacks.cpp) | `ProcessSwCallbacks` | Drain the deferred-callback list (calling each member function, repeating while new ones are posted), then run all Splice scheduled callbacks whose time has come (EvalSpliceEventCallback) and free them | 0.80 | T1 |  |
+| [0x149A50](../../../src/game/world/scene/callback.cpp) | `PostSwCallback` | Append a deferred callback {object, pointer-to-member, arg} from pool g_sw+0x3C90 to the SW callback list (+0x3CA8) | 0.85 | T1 |  |
+| [0x149AB8](../../../src/game/world/scene/callback.cpp) | `EnsureSwCallback` | PostSwCallback unless an identical {obj, member pointer, arg} entry is already queued | 0.85 | T1 |  |
+| [0x149B58](../../../src/game/world/scene/callback.cpp) | `ClearSwCallbacks` | Remove queued callbacks matching by grf bits: 1 = object, 2 = member pointer, 4 = arg; fix tail | 0.85 | T1 |  |
+| [0x149C80](../../../src/game/world/scene/callback.cpp) | `ProcessSwCallbacks` | Drain the deferred-callback list (calling each member function, repeating while new ones are posted), then run all Splice scheduled callbacks whose time has come (EvalSpliceEventCallback) and free them | 0.80 | T1 |  |
 
 ## tu_1A4E08 (0x1A4E08-0x1A5270)
 
