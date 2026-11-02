@@ -21,6 +21,5 @@ Known gaps:
   v3 tables (or to `docs/reference/name-confidence.csv`), running
   `gen.py` would downgrade names in the generated pages. Don't run it
   yet.
-- `docs/reference/functions/*.md` links to pre-rename source paths
-  (`src/hand/func_*.c`); `linkcheck.py` reports 2,534 broken links. The
-  restructure step regenerates them.
+- Source paths in generated pages must follow the current tree; after
+  regenerating, run `linkcheck.py` (0 broken after the restructure).

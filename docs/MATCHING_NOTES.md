@@ -11,18 +11,19 @@ Project root: `/home/claude/decomp`. Always run tools from the root.
 
 ## Your loop
 1. `python3 tools/worklist.py LO HI [MAXINSTR]` — unmatched functions in your hex address range, smallest first.
-   Re-run it now and then: other processes add matches to `src/auto/` and you must skip those.
+   Re-run it now and then: other processes add matches and you must skip those.
 2. `python3 tools/show.py NAME` — target disassembly, the best m2c draft (if any), and Sly 1 reference C if known.
    `python3 tools/matchtool.py target NAME` prints just the target asm.
-3. Write `src/hand/NAME.c` (or `.cpp`, see below) and check it:
-   `python3 tools/matchtool.py check src/hand/NAME.c NAME`
+3. Write `NAME.c` (or `.cpp`, see below) in the directory of the function's translation unit
+   (`src/game/.../<unit>/`; look the unit up in `tools/layout/units.csv`) and check it:
+   `python3 tools/matchtool.py check src/game/.../<unit>/NAME.c NAME`
    It prints `MATCH` or a side-by-side diff (`!!` marks differing lines; left = target, right = yours).
    Relocated operands (addresses of calls/globals) are masked, so `jal func_X` matches any symbol.
 4. Iterate until MATCH. If after a real effort (~10–15 attempts) it still differs, move the best attempt to
    `build/hand_wip/NAME.c` (create the dir), note the remaining diff in your notes file, and move on.
-   **Only matching files may stay in `src/hand/`.**
+   **Only matching files may stay under `src/`.**
 5. Never run `tools/progress.py`, `automatch*.py`, `quickfix.py`, or edit anything in `tools/`, `include/`,
-   `config/`, `src/P2/`, `src/auto/`. Other agents work at the same time. Write only `src/hand/*`,
+   `config/`, or files you did not create. Other agents work at the same time. Write only your own new files under `src/game/`,
    `build/hand_wip/*`, and your notes file `notes/<your-range>.md`.
 
 ## Compiler facts
@@ -59,7 +60,7 @@ Project root: `/home/claude/decomp`. Always run tools from the root.
 - Allocation: func_001AE4F8 = operator new / alloc(cb). memcpy = func_0023320C, memset = func_002333B4:
   declare them under their func_ names (a prototype named memcpy/memset becomes a builtin).
 - CRef = {int m_tagk; int m_tag}; tagk 0x15 int, 0x16 float, 0x17 bool, 0x24 void. func_00129EC8 = ~CRef,
-  func_001291A8 = CRef copy ctor. Splice wrappers: see src/splicewrap/ and notes/120000.md.
+  func_001291A8 = CRef copy ctor. Splice wrappers: see src/generated/splicewrap/ and notes/120000.md.
 - DL list {pvFirst, pvLast, ibDle}, DLE {pvNext, pvPrev}; DLI iterator {pdl, ppv, ibDle, pdliNext},
   g_pdliFirst = D_002DD2FC (notes/130000.md has inline InitDli/PvNextDli that match).
 - g_clock = D_002DDED0 {float t; float dt; ...} (notes/140000.md). Big game-state global D_003DD490.

@@ -8,7 +8,7 @@ build higher-level structures such as RELAY sequences ([cutscenes](cutscenes.md)
 
 | Part | Where | Notes | Tag |
 |---|---|---|---|
-| Native binding thunks | 0x1002A8-0x110A28, `src/splicewrap/` (~400) | convert script args (`RefSetArgsFromSplice` 0x201360) and call an engine function | [C:static] |
+| Native binding thunks | 0x1002A8-0x110A28, `src/generated/splicewrap/` (~400) | convert script args (`RefSetArgsFromSplice` 0x201360) and call an engine function | [C:static] |
 | Builtins (BIF) | bif.cpp 0x11F440-0x1258F0 | 169-entry table D_002BBB90 | [C:verified] |
 | Nil-stub builtins | 0x1258F0-0x126188 | 29 byte-identical builtins returning Nil (slots 140-168): compiled-out dev builtins? | [H r1 bif.md] |
 | Evaluator | eval.cpp 0x126438-0x127B18 | Sly 1 eval.cpp one-to-one | [C:verified] |

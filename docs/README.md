@@ -97,7 +97,7 @@ Notes on the tags:
 - Offsets are written `+0x18` (bytes from the start of the object).
 - `vtN` / "slot N" = C++ virtual slot N. gcc 2.95 vtable entries are 8 bytes `{s16 delta; s16 pad; void *pfn}`;
   slot 0 is a null header, so slot N's function pointer is at `vtable + 8*N + 4` `[C:runtime]`.
-- Function tables link each address to its source file (`src/hand/...` or `src/auto/...`).
+- Function tables link each address to its source file (under `src/game/`, `src/sdk/` or `src/generated/`).
 
 ## How to contribute
 

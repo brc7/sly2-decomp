@@ -11,7 +11,7 @@ bash tools/setup_all.sh "/path/to/Sly 2 - Band of Thieves (USA).iso"
 ```
 This downloads every compiler and tool the build uses into `tools/` (they are third-party programs, so they are
 fetched from decomp.me / GitHub rather than stored in this repo), installs the Python packages and the 32-bit C library
-the PS2 compilers need, extracts `disc/SCUS_973.16` from **your own** disc image, and writes the disassembly. Then `python3 tools/matchtool.py check src/P2/bis.cpp` should print MATCH lines.
+the PS2 compilers need, extracts `disc/SCUS_973.16` from **your own** disc image, and writes the disassembly. Then `python3 tools/matchtool.py check src/game/core/binstream/bis/bis.cpp` should print MATCH lines.
 **Already set up?** From your existing clone just run (no ISO needed, since you already have `disc/SCUS_973.16`):
 ```
 git pull
@@ -55,7 +55,7 @@ python3 -m splat split config/sly2.yaml      # writes asm/ (used by tools/show.p
 ## 5. Check it works
 ```
 export PYTHONPATH=<path to rabbitizer etc.>
-python3 tools/matchtool.py check src/P2/bis.cpp      # every function should print MATCH
+python3 tools/matchtool.py check src/game/core/binstream/bis/bis.cpp      # every function should print MATCH
 python3 tools/progress.py                            # rebuilds config/matched.csv and prints totals
 ```
 
