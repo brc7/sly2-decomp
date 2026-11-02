@@ -3128,6 +3128,7 @@ CRichText_Cch = 0x215E30; // type:func
 CRichText_Trim = 0x215E80; // type:func
 CRichText_Dx = 0x215ED8; // type:func
 CRichText_GetExtents = 0x216260; // type:func
+PglyffFromCh__8CFontBrxc = 0x216B40; // type:func
 RenderSpriteText = 0x216BC8; // type:func
 RenderSpriteGeometry = 0x2174C8; // type:func
 IFreeSpriteSlot = 0x217EF8; // type:func

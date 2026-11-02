@@ -13,7 +13,7 @@ int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
  *   sources: r7c_hud+arbitration
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-struct G *func_00216B40(struct S *p, unsigned char ch)
+struct G *PglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch)
 {
     int i = IglyffFromCh__8CFontBrxc(p, ch);
     return i ? &p->ag[i] : 0;

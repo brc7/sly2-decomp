@@ -14,7 +14,7 @@ void *func_002333B4(void *,int,int);
 void func_00215CA8(struct RT *,char *);
 int func_00215D40(struct RT *);
 float func_00216B80(void *,int);
-struct GLYPH *func_00216B40(void *,int);
+struct GLYPH *PglyffFromCh__8CFontBrxc(void *,int);
 void func_00217058(struct GLYPH *,union M4 *,struct DATA *,int);
 struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
@@ -67,7 +67,7 @@ void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
                     }
                     newLine=0;
                 }
-                glyph=func_00216B40(p->font,ch);
+                glyph=PglyffFromCh__8CFontBrxc(p->font,ch);
                 if(glyph){
                     int visible=Visible(matrix,&D_002C40A8);
                     if(glyph->data && visible){

@@ -5485,7 +5485,7 @@ func_002162D8,0x2162D8,54,match,src/game/engine/presentation/hud/func_002162D8.c
 func_002163B0,0x2163B0,191,match,src/game/engine/presentation/hud/func_002163B0.cpp
 func_002166B0,0x2166B0,39,match,src/game/engine/presentation/hud/func_002166B0.c
 func_00216750,0x216750,251,match,src/game/engine/presentation/hud/func_00216750.c
-func_00216B40,0x216B40,16,match,src/game/engine/presentation/hud/func_00216B40.c
+PglyffFromCh__8CFontBrxc,0x216B40,16,match,src/game/engine/presentation/hud/PglyffFromCh__8CFontBrxc.c
 func_00216B80,0x216B80,17,match,src/game/engine/presentation/hud/func_00216B80.c
 RenderSpriteText,0x216BC8,292,match,src/game/engine/presentation/hud/RenderSpriteText.cpp
 func_00217058,0x217058,144,match,src/game/engine/presentation/hud/func_00217058.c
