@@ -93,12 +93,12 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x118A88](../../src/game/core/math/bsp/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
 | [0x119308](../../src/game/core/math/bsp/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
 | [0x1193C0](../../src/game/core/math/bsp/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
-| [0x11A060](../../src/game/core/containers/dl/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A070](../../src/game/core/containers/dl/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
-| [0x11A1B8](../../src/game/core/containers/dl/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
-| [0x11A200](../../src/game/core/containers/dl/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A210](../../src/game/core/containers/dl/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
-| [0x11A250](../../src/game/core/containers/dl/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
+| [0x11A060](../../src/game/core/containers/dl.cpp) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A070](../../src/game/core/containers/dl.cpp) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
+| [0x11A1B8](../../src/game/core/containers/dl.cpp) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
+| [0x11A200](../../src/game/core/containers/dl.cpp) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A210](../../src/game/core/containers/dl.cpp) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
+| [0x11A250](../../src/game/core/containers/dl.cpp) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
 | [0x11A550](../../src/game/core/math/dzgcore/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
 | [0x11ABF8](../../src/game/core/math/dzgcore/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
 | [0x11AFE0](../../src/game/core/containers/tu_11AFE0.cpp) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |

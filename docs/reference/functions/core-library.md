@@ -120,25 +120,25 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11A050](../../../src/game/core/containers/dl/func_0011A050.c) | `InitSl` | Singly linked list init: stores ibNext at +8 | 0.70 | T1 |  |
-| [0x11A058](../../../src/game/core/containers/dl/ClearSle.c) | `ClearSle` | Clears a singly-linked entry (next = NULL) | 0.55 | T1 |  |
-| [0x11A060](../../../src/game/core/containers/dl/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A070](../../../src/game/core/containers/dl/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
-| [0x11A098](../../../src/game/core/containers/dl/PrependSlEntry.c) | `PrependSlEntry` | Prepend to singly linked list | 0.75 | T1 |  |
-| [0x11A0C0](../../../src/game/core/containers/dl/InsertSlEntryAfter.c) | `InsertSlEntryAfter` | Insert after pvPrev (NULL -> prepend, last -> append) | 0.65 | T1 |  |
-| [0x11A118](../../../src/game/core/containers/dl/RemoveSlEntry.c) | `RemoveSlEntry` | Unlink entry (linear search for predecessor) and fix up active iterators | 0.70 | T1 |  |
-| [0x11A1B8](../../../src/game/core/containers/dl/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
-| [0x11A1E8](../../../src/game/core/containers/dl/FIsSlEmpty.c) | `FIsSlEmpty` | pvFirst == NULL | 0.65 | T1 |  |
-| [0x11A1F8](../../../src/game/core/containers/dl/InitDl__FP2DLi.c) | `InitDl` | DL init: ibDle at +8 | 0.85 | T1 |  |
-| [0x11A200](../../../src/game/core/containers/dl/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A210](../../../src/game/core/containers/dl/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
-| [0x11A220](../../../src/game/core/containers/dl/AppendDlEntry__FP2DLPv.c) | `AppendDlEntry` | Append to doubly linked list | 0.92 | T1 |  |
-| [0x11A250](../../../src/game/core/containers/dl/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
-| [0x11A280](../../../src/game/core/containers/dl/InsertDlEntryBefore__FP2DLPvT1.c) | `InsertDlEntryBefore` | Insert before pvNext (NULL -> append, first -> prepend) | 0.88 | T1 |  |
-| [0x11A2E8](../../../src/game/core/containers/dl/RemoveDlEntry__FP2DLPv.c) | `RemoveDlEntry` | Unlink and fix up iterators on g_pdliFirst chain | 0.92 | T1 |  |
-| [0x11A380](../../../src/game/core/containers/dl/FFindDlEntry__FP2DLPv.c) | `FFindDlEntry` | True if pv is linked (next or tail) | 0.85 | T1 |  |
-| [0x11A3B0](../../../src/game/core/containers/dl/FIsDlEmpty__FP2DL.c) | `FIsDlEmpty` | pvFirst == NULL | 0.85 | T1 |  |
-| [0x11A3C0](../../../src/game/core/containers/dl/CPvDl__FP2DL.cpp) | `CPvDl__FP2DL` |  |  | existing |  |
+| [0x11A050](../../../src/game/core/containers/dl.cpp) | `InitSl` | Singly linked list init: stores ibNext at +8 | 0.70 | T1 |  |
+| [0x11A058](../../../src/game/core/containers/dl.cpp) | `ClearSle` | Clears a singly-linked entry (next = NULL) | 0.55 | T1 |  |
+| [0x11A060](../../../src/game/core/containers/dl.cpp) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A070](../../../src/game/core/containers/dl.cpp) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
+| [0x11A098](../../../src/game/core/containers/dl.cpp) | `PrependSlEntry` | Prepend to singly linked list | 0.75 | T1 |  |
+| [0x11A0C0](../../../src/game/core/containers/dl.cpp) | `InsertSlEntryAfter` | Insert after pvPrev (NULL -> prepend, last -> append) | 0.65 | T1 |  |
+| [0x11A118](../../../src/game/core/containers/dl.cpp) | `RemoveSlEntry` | Unlink entry (linear search for predecessor) and fix up active iterators | 0.70 | T1 |  |
+| [0x11A1B8](../../../src/game/core/containers/dl.cpp) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
+| [0x11A1E8](../../../src/game/core/containers/dl.cpp) | `FIsSlEmpty` | pvFirst == NULL | 0.65 | T1 |  |
+| [0x11A1F8](../../../src/game/core/containers/dl.cpp) | `InitDl` | DL init: ibDle at +8 | 0.85 | T1 |  |
+| [0x11A200](../../../src/game/core/containers/dl.cpp) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A210](../../../src/game/core/containers/dl.cpp) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
+| [0x11A220](../../../src/game/core/containers/dl.cpp) | `AppendDlEntry` | Append to doubly linked list | 0.92 | T1 |  |
+| [0x11A250](../../../src/game/core/containers/dl.cpp) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
+| [0x11A280](../../../src/game/core/containers/dl.cpp) | `InsertDlEntryBefore` | Insert before pvNext (NULL -> append, first -> prepend) | 0.88 | T1 |  |
+| [0x11A2E8](../../../src/game/core/containers/dl.cpp) | `RemoveDlEntry` | Unlink and fix up iterators on g_pdliFirst chain | 0.92 | T1 |  |
+| [0x11A380](../../../src/game/core/containers/dl.cpp) | `FFindDlEntry` | True if pv is linked (next or tail) | 0.85 | T1 |  |
+| [0x11A3B0](../../../src/game/core/containers/dl.cpp) | `FIsDlEmpty` | pvFirst == NULL | 0.85 | T1 |  |
+| [0x11A3C0](../../../src/game/core/containers/dl.cpp) | `CPvDl__FP2DL` |  |  | existing |  |
 
 ## dzgcore (0x11A550-0x11AFE0)
 

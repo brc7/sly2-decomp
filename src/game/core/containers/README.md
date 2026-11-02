@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`bq.cpp`](bq.cpp) | 1 |
-| [`dl/`](dl/) | 21 |
+| [`dl.cpp`](dl.cpp) | 1 |
 | [`dynarray.cpp`](dynarray.cpp) | 1 |
 | [`empty_119DA0.cpp`](empty_119DA0.cpp) | 1 |
 | [`empty_119EF8.cpp`](empty_119EF8.cpp) | 1 |
