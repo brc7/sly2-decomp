@@ -196,11 +196,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11CCA8](../../../src/game/platform/memory/slotheap/func_0011CCA8.c) | `InitSlotheap` | Initialises a fixed-size slot pool {cb, c, nKind/align, pvFree=NULL}; storage allocated lazily on first alloc | 0.60 | T1 |  |
-| [0x11CCC0](../../../src/game/platform/memory/slotheap/PvAllocSlotheapClear.c) | `PvAllocSlotheapClear` | Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first use), increments count, memsets to 0 | 0.60 | T1 |  |
-| [0x11CD98](../../../src/game/platform/memory/slotheap/func_0011CD98.c) | `FreeSlotheapPv` | Pushes a slot back on the free list, count-- | 0.75 | T1 |  |
-| [0x11CDB8](../../../src/game/platform/memory/slotheap/ResetSlotheap.c) | `ResetSlotheap` | Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates | 0.60 | T1 | top50 |
-| [0x11CDD8](../../../src/game/platform/memory/slotheap/func_0011CDD8.c) | `PrimeSlotheap` | Allocates and immediately frees one slot (forces the block allocation now) | 0.40 | T2 |  |
+| [0x11CCA8](../../../src/game/platform/memory/slotheap.cpp) | `InitSlotheap` | Initialises a fixed-size slot pool {cb, c, nKind/align, pvFree=NULL}; storage allocated lazily on first alloc | 0.60 | T1 |  |
+| [0x11CCC0](../../../src/game/platform/memory/slotheap.cpp) | `PvAllocSlotheapClear` | Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first use), increments count, memsets to 0 | 0.60 | T1 |  |
+| [0x11CD98](../../../src/game/platform/memory/slotheap.cpp) | `FreeSlotheapPv` | Pushes a slot back on the free list, count-- | 0.75 | T1 |  |
+| [0x11CDB8](../../../src/game/platform/memory/slotheap.cpp) | `ResetSlotheap` | Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates | 0.60 | T1 | top50 |
+| [0x11CDD8](../../../src/game/platform/memory/slotheap.cpp) | `PrimeSlotheap` | Allocates and immediately frees one slot (forces the block allocation now) | 0.40 | T2 |  |
 
 ## util (0x11CF60-0x11E198)
 
