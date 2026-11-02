@@ -312,8 +312,8 @@ Shader sketches for all of the above: `vu_microcode/pseudo_shaders.glsl`.
 | [0x1A3518](../../src/auto/func_001A3518.c) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
 | [0x1A3968](../../src/hand/func_001A3968.c) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
 | [0x1A4258](../../src/hand/func_001A4258.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
-| [0x1B4438](../../src/hand/func_001B4438.c) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
-| [0x1B4478](../../src/hand/func_001B4478.c) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
+| [0x1B4438](../../src/hand/InitMs.c) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
+| [0x1B4478](../../src/hand/RenderMsGlobset.c) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
 | [0x1BEA88](../../src/auto/func_001BEA88.c) | `LoadCid45FromBrx` | CID 45 vt14: LoadXfmFromBrx | 0.75 | T2 | parse, verified |
 | [0x1BEE10](../../src/hand/func_001BEE10.c) | `IRenderSlotTexture` | Table lookup D_002C0BF8[slot][n] or -1 | 0.30 | T2 | verified |
 | [0x1CD5F0](../../src/hand/func_001CD5F0.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |

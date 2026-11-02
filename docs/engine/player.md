@@ -315,86 +315,86 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x134770](../../src/auto/func_00134770.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
-| [0x1357C0](../../src/hand/func_001357C0.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb | 0.45 | T2 |  |
-| [0x135AD8](../../src/hand/func_00135AD8.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
+| [0x134770](../../src/auto/LoadBentleyFromBrx.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
+| [0x1357C0](../../src/hand/FireBentleyDart.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb | 0.45 | T2 |  |
+| [0x135AD8](../../src/hand/HandleBentleyMessage.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
 | [0x136A28](../../src/hand/CbFromSaak__F4SAAK.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
-| [0x136CB0](../../src/auto/func_00136CB0.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
-| [0x13FF70](../../src/hand/func_0013FF70.c) | `InitStepplayer` | STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x | 0.85 | T1 | verified |
-| [0x1403D0](../../src/hand/func_001403D0.c) | `UpdateStepplayer` | STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0), interact-target pick 0x142AF8, gadget/menu button han | 0.65 | T1 |  |
-| [0x140F90](../../src/hand/func_00140F90.c) | `HandleStepplayerMessage` | STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds 0x15E/0x161/0x162/0x27B/0x27C/0x1C7/0x1C8, msgs 4/5/1/11) then forwards to 0x1EED78/0x1C3E | 0.85 | T1 | verified |
-| [0x141A50](../../src/hand/func_00141A50.c) | `UpdateStepplayerGadgets` | Per frame for the 3 gadget slots (+0x1180, buttons D_002C3258 = 4,1,2): on press check vt99 FCanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - e | 0.75 | T1 | runtime |
-| [0x141CD0](../../src/hand/func_00141CD0.c) | `ChargeGadgetMp` | If id != -1 subtract the gadget's MP cost (D_002BCD00[id].d) from MpCur; stamp tGadgetUsed (+0x1304) | 0.75 | T1 | runtime |
-| [0x142540](../../src/hand/func_00142540.c) | `StartStepplayerFollow` | Splice: clear message list, and if a then create behaviour 0xC2 (0x205438) with params and run its vt8 \| runtime6: Splice optid 446 on STEPPLAYER: cle | 0.30 | T2 | pending-fix; pending fix; v2 name StartStepplayerBhvC2 |
-| [0x1440D0](../../src/hand/func_001440D0.c) | `BindStepplayerHpMp` | Bind hp/mp to save vars hpCur/mpCur under vt103 root (+0xE00, +0x12FC); if unset or forced, reset to max | 0.80 | T1 | runtime |
-| [0x144480](../../src/hand/func_00144480.c) | `OnStepplayerActive` | vt78: PO OnPoActive, then vt105; when deactivated stop +0x1310 action and +0x1314=-1 | 0.80 | T1 | runtime |
-| [0x144638](../../src/auto/func_00144638.c) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
+| [0x136CB0](../../src/auto/BENTLEY_PchzSaveVarRoot.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
+| [0x13FF70](../../src/hand/InitStepplayer.c) | `InitStepplayer` | STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x | 0.85 | T1 | verified |
+| [0x1403D0](../../src/hand/UpdateStepplayer.c) | `UpdateStepplayer` | STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0), interact-target pick 0x142AF8, gadget/menu button han | 0.65 | T1 |  |
+| [0x140F90](../../src/hand/HandleStepplayerMessage.c) | `HandleStepplayerMessage` | STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds 0x15E/0x161/0x162/0x27B/0x27C/0x1C7/0x1C8, msgs 4/5/1/11) then forwards to 0x1EED78/0x1C3E | 0.85 | T1 | verified |
+| [0x141A50](../../src/hand/UpdateStepplayerGadgets.c) | `UpdateStepplayerGadgets` | Per frame for the 3 gadget slots (+0x1180, buttons D_002C3258 = 4,1,2): on press check vt99 FCanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - e | 0.75 | T1 | runtime |
+| [0x141CD0](../../src/hand/ChargeGadgetMp.c) | `ChargeGadgetMp` | If id != -1 subtract the gadget's MP cost (D_002BCD00[id].d) from MpCur; stamp tGadgetUsed (+0x1304) | 0.75 | T1 | runtime |
+| [0x142540](../../src/hand/StartStepplayerFollow.c) | `StartStepplayerFollow` | Splice: clear message list, and if a then create behaviour 0xC2 (0x205438) with params and run its vt8 \| runtime6: Splice optid 446 on STEPPLAYER: cle | 0.30 | T2 | pending-fix; pending fix; v2 name StartStepplayerBhvC2 |
+| [0x1440D0](../../src/hand/BindStepplayerHpMp.c) | `BindStepplayerHpMp` | Bind hp/mp to save vars hpCur/mpCur under vt103 root (+0xE00, +0x12FC); if unset or forced, reset to max | 0.80 | T1 | runtime |
+| [0x144480](../../src/hand/OnStepplayerActive.c) | `OnStepplayerActive` | vt78: PO OnPoActive, then vt105; when deactivated stop +0x1310 action and +0x1314=-1 | 0.80 | T1 | runtime |
+| [0x144638](../../src/auto/InitJtgoal.c) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
 | [0x146298](../../src/auto/func_00146298.c) | `FBhv196Idle` | state == -1 | 0.85 | T2 | verified |
-| [0x182CC0](../../src/auto/func_00182CC0.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
+| [0x182CC0](../../src/auto/GRABSPOT_FGetGrabRange.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
 | [0x182EB8](../../src/auto/func_00182EB8.c) | `OnCid12Add` | vt23: LO Unfreeze + append to grab list D_003E13F0 | 0.85 | T2 | arbitration |
 | [0x182EF0](../../src/auto/func_00182EF0.c) | `OnCid12Remove` | vt22: LO Freeze + remove from D_003E13F0 | 0.85 | T2 | arbitration |
 | [0x183370](../../src/auto/func_00183370.c) | `OnCid34Add` | vt23: Unfreeze + append to its grab list | 0.85 | T2 | arbitration |
 | [0x1833A8](../../src/auto/func_001833A8.c) | `OnCid34Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
 | [0x1836F8](../../src/auto/func_001836F8.c) | `OnCid38Add` | vt23: Unfreeze + append to grab list | 0.85 | T2 | arbitration |
 | [0x183730](../../src/auto/func_00183730.c) | `OnCid38Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
-| [0x183998](../../src/auto/func_00183998.c) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
-| [0x1839D0](../../src/auto/func_001839D0.c) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
+| [0x183998](../../src/auto/OnBarrelAdd.c) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
+| [0x1839D0](../../src/auto/OnBarrelRemove.c) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
 | [0x183FB8](../../src/auto/func_00183FB8.c) | `OnCid35Add` | vt23 (shared with CID 0x24): Unfreeze + list | 0.85 | T2 | arbitration |
 | [0x183FF0](../../src/auto/func_00183FF0.c) | `OnCid35Remove` | vt22 (shared with 0x24/0x25): Freeze + list | 0.85 | T2 | arbitration |
 | [0x1844A0](../../src/auto/func_001844A0.c) | `OnCid27Add` | vt23: Unfreeze + append to D_003E1438 | 0.85 | T2 | arbitration |
 | [0x1844D8](../../src/auto/func_001844D8.c) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
 | [0x185150](../../src/hand/func_00185150.c) | `LoadCid8FromBrx` | CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw, LoadOptionsFromBrx | 0.75 | T2 | parse, verified |
-| [0x188488](../../src/hand/func_00188488.c) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD | 0.90 | T1 | runtime, verified |
-| [0x1885B8](../../src/hand/func_001885B8.c) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
-| [0x188F20](../../src/hand/func_00188F20.c) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |
-| [0x189C40](../../src/hand/func_00189C40.cpp) | `RebuildJtXmg` | Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical probe line) | 0.85 | T1 | verified |
-| [0x18BCE0](../../src/hand/func_0018BCE0.c) | `UpdateJt` | JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand, feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLe | 0.80 | T1 |  |
-| [0x18C250](../../src/hand/func_0018C250.cpp) | `SetJtJts` | Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state | 0.95 | T1 | runtime, verified |
-| [0x18D760](../../src/hand/func_0018D760.cpp) | `JT_FCanUseGadget` | Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket item) | 0.90 | T1 | verified |
-| [0x18F688](../../src/hand/func_0018F688.c) | `ChooseJtRushTarget` | ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2), FixStepAngularVelocity | 0.85 | T1 | verified |
-| [0x191A10](../../src/hand/func_00191A10.cpp) | `UpdateJtActiveHide` | Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind, SetJtHfdk, curve param clamp (0x193C98), commit anim | 0.75 | T1 | verified, arbitration |
-| [0x193A68](../../src/hand/func_00193A68.c) | `GetJtRailLanding` | For a curve (rail) target at param t: landing position offset and a velocity along the curve tangent clamped by GSmooth limits 50 from the ends | 0.70 | T1 | verified |
-| [0x193DE8](../../src/hand/func_00193DE8.c) | `UpdateJtInternalXpsHide` | Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge -> constraint along curve from velocity | 0.70 | T1 | verified, arbitration |
+| [0x188488](../../src/hand/InitJt.c) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD | 0.90 | T1 | runtime, verified |
+| [0x1885B8](../../src/hand/LoadJtFromBrx.c) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
+| [0x188F20](../../src/hand/HandleJtMessage.c) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |
+| [0x189C40](../../src/hand/RebuildJtXmg.cpp) | `RebuildJtXmg` | Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical probe line) | 0.85 | T1 | verified |
+| [0x18BCE0](../../src/hand/UpdateJt.c) | `UpdateJt` | JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand, feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLe | 0.80 | T1 |  |
+| [0x18C250](../../src/hand/SetJtJts__FP2JT3JTS4JTBS.cpp) | `SetJtJts` | Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state | 0.95 | T1 | runtime, verified |
+| [0x18D760](../../src/hand/FCanUseGadget__2JTi.cpp) | `JT_FCanUseGadget` | Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket item) | 0.90 | T1 | verified |
+| [0x18F688](../../src/hand/ChooseJtRushTarget__FP2JT.c) | `ChooseJtRushTarget` | ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2), FixStepAngularVelocity | 0.85 | T1 | verified |
+| [0x191A10](../../src/hand/UpdateJtActiveHide.cpp) | `UpdateJtActiveHide` | Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind, SetJtHfdk, curve param clamp (0x193C98), commit anim | 0.75 | T1 | verified, arbitration |
+| [0x193A68](../../src/hand/GetJtRailLanding.c) | `GetJtRailLanding` | For a curve (rail) target at param t: landing position offset and a velocity along the curve tangent clamped by GSmooth limits 50 from the ends | 0.70 | T1 | verified |
+| [0x193DE8](../../src/hand/UpdateJtInternalXpsHide.c) | `UpdateJtInternalXpsHide` | Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge -> constraint along curve from velocity | 0.70 | T1 | verified, arbitration |
 | [0x1940B0](../../src/hand/SetJtHfdk__FP2JT4HFDK.cpp) | `SetJtHfdk` | (existing name) Set hide/grab facing kind hfdk (+0x2C) and tHfdk=g_clock.t; kind 3 -> x34=1; 1/2 -> x34=2 if owner TN matches | 0.75 | existing | arbitration; replaces existing SetJtHfdk__FP2JT4HFDK |
-| [0x194170](../../src/hand/func_00194170.c) | `PresetJtAccelHide` | If grab state 3 on a curve object: smooth the velocity component along the curve direction (GSmooth D_002BF700) and AddSoVelocity | 0.70 | T1 | verified, arbitration |
-| [0x194F48](../../src/hand/func_00194F48.c) | `CompareJtGrabCand` | qsort comparator: -1 if a->g < b->g else 1 | 0.85 | T1 | verified |
-| [0x1956D0](../../src/hand/func_001956D0.c) | `PloAcquireJtGrabMarker` | Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with identity rotation and zero velocity | 0.85 | T1 | verified |
+| [0x194170](../../src/hand/PresetJtAccelHide.c) | `PresetJtAccelHide` | If grab state 3 on a curve object: smooth the velocity component along the curve direction (GSmooth D_002BF700) and AddSoVelocity | 0.70 | T1 | verified, arbitration |
+| [0x194F48](../../src/hand/CompareJtGrabCand.c) | `CompareJtGrabCand` | qsort comparator: -1 if a->g < b->g else 1 | 0.85 | T1 | verified |
+| [0x1956D0](../../src/hand/PloAcquireJtGrabMarker.c) | `PloAcquireJtGrabMarker` | Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with identity rotation and zero velocity | 0.85 | T1 | verified |
 | [0x195A00](../../src/hand/func_00195A00.cpp) | `SetJtAirJump` | Start a flight of kind nKind (n2 = directional clip, plo = object): reset record unless double jump (6), launch velocity from JtPlanLaunchVz, push alo | 0.80 | T1 | runtime |
 | [0x1999D0](../../src/hand/func_001999D0.cpp) | `FCheckJtEdgeGrab` | Contact direction vs a shape feature: vertex -> sum FCheckJtSingleEdge over edges at the point (CpedgeFromGeomPoint, max 64) + BSP clip test; edge ->  | 0.70 | T1 | verified |
-| [0x199D48](../../src/hand/func_00199D48.c) | `PxpFindJtBestEdge` | Pick the best supporting ledge contact of the player (walk contact groups, FCheckJtEdgeGrab, BSP point test), returning side and normal | 0.70 | T1 | verified |
-| [0x19CA20](../../src/auto/func_0019CA20.c) | `RemoveJmtHierarchy` | JMT vt12: RemoveLoHierarchy then remove from g_dlJmt | 0.75 | T1 | verified |
-| [0x19DF70](../../src/hand/func_0019DF70.cpp) | `PresetJtAccelPipe` | Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4 | 0.85 | T1 | verified |
-| [0x19E950](../../src/hand/func_0019E950.c) | `UpdateJtInternalXpsPipe` | Add the pipe constraint: evaluate curve at s, vt82(7, curve, pos, tangent, local point) | 0.85 | T1 | verified |
-| [0x19F120](../../src/auto/func_0019F120.c) | `UpdateSwGuardOverride` | Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s, clear it (0x19F170(psw,0)) | 0.85 | T1 | verified |
-| [0x19F590](../../src/hand/func_0019F590.c) | `ReturnJtToSafePlace` | Put the player back at a safe place (best recorded place if none given): ballistic launch toward it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding | 0.55 | T1 | runtime |
-| [0x1A0B40](../../src/hand/func_001A0B40.cpp) | `SetJtHurtState` | Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit direction, retract/apply hit clips, death states 8..12 | 0.85 | T1 | runtime, verified |
-| [0x1B4888](../../src/hand/func_001B4888.c) | `LoadMurrayFromBrx` | MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0 hand/grip records looking up child XFs 0x200-0x205 (PxfF | 0.80 | T1 | parse |
-| [0x1B4AA0](../../src/hand/func_001B4AA0.cpp) | `UpdateMurrayStateMachine` | Per-frame input-driven state machine (loops until state stable): idle/move -> jump (Cross 0x40), lift (Circle 0x20), punch (Square 0x80), alt attack ( | 0.70 | T1 | runtime-corrected, runtime |
-| [0x1B6078](../../src/hand/func_001B6078.cpp) | `SetMurrayState` | Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity reset, component state), shared ApplyAsegCur/compone | 0.65 | T1 | runtime |
-| [0x1B7050](../../src/hand/func_001B7050.c) | `StartMurrayLiftGuard` | Same as 0x1B7000 with clip kind 1 (alternate lift clip x1444) | 0.85 | T1 | runtime, verified |
-| [0x1B8450](../../src/hand/func_001B8450.c) | `MURRAY_FIgnoreIntersection` | MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently released one x1430, or defers to JTTHROW filter in stat | 0.85 | T1 | verified |
-| [0x1B8988](../../src/hand/func_001B8988.c) | `UpdateMurrayAttack` | State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement cancel | 0.85 | T1 | runtime, verified |
-| [0x1B92F8](../../src/hand/func_001B92F8.c) | `UpdateMurrayLift` | State 4: wait for grab event (x1448), abort if object gone; after attach go to carry (state 5) when anim ends | 0.85 | T1 | runtime, verified |
-| [0x1C3390](../../src/hand/func_001C3390.c) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
-| [0x1C33E8](../../src/auto/func_001C33E8.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C3420](../../src/auto/func_001C3420.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C34B8](../../src/hand/func_001C34B8.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
-| [0x1C3DC8](../../src/hand/func_001C3DC8.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
-| [0x1C3E20](../../src/hand/func_001C3E20.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
-| [0x1C40F8](../../src/auto/func_001C40F8.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
-| [0x1C4228](../../src/hand/func_001C4228.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
-| [0x1C4280](../../src/hand/func_001C4280.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
-| [0x1C42E8](../../src/hand/func_001C42E8.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
-| [0x1C4468](../../src/hand/func_001C4468.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), buil | 0.85 | T1 | verified |
-| [0x1C4660](../../src/hand/func_001C4660.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
-| [0x1C46C0](../../src/auto/func_001C46C0.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
-| [0x1C4840](../../src/auto/func_001C4840.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
-| [0x1C4A48](../../src/auto/func_001C4A48.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
+| [0x199D48](../../src/hand/PxpFindJtBestEdge__FP2JTPiP6VECTOR.c) | `PxpFindJtBestEdge` | Pick the best supporting ledge contact of the player (walk contact groups, FCheckJtEdgeGrab, BSP point test), returning side and normal | 0.70 | T1 | verified |
+| [0x19CA20](../../src/auto/RemoveJmtHierarchy.c) | `RemoveJmtHierarchy` | JMT vt12: RemoveLoHierarchy then remove from g_dlJmt | 0.75 | T1 | verified |
+| [0x19DF70](../../src/hand/PresetJtAccelPipe.cpp) | `PresetJtAccelPipe` | Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4 | 0.85 | T1 | verified |
+| [0x19E950](../../src/hand/UpdateJtInternalXpsPipe.c) | `UpdateJtInternalXpsPipe` | Add the pipe constraint: evaluate curve at s, vt82(7, curve, pos, tangent, local point) | 0.85 | T1 | verified |
+| [0x19F120](../../src/auto/UpdateSwGuardOverride.c) | `UpdateSwGuardOverride` | Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s, clear it (0x19F170(psw,0)) | 0.85 | T1 | verified |
+| [0x19F590](../../src/hand/ReturnJtToSafePlace.c) | `ReturnJtToSafePlace` | Put the player back at a safe place (best recorded place if none given): ballistic launch toward it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding | 0.55 | T1 | runtime |
+| [0x1A0B40](../../src/hand/SetJtHurtState.cpp) | `SetJtHurtState` | Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit direction, retract/apply hit clips, death states 8..12 | 0.85 | T1 | runtime, verified |
+| [0x1B4888](../../src/hand/LoadMurrayFromBrx.c) | `LoadMurrayFromBrx` | MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0 hand/grip records looking up child XFs 0x200-0x205 (PxfF | 0.80 | T1 | parse |
+| [0x1B4AA0](../../src/hand/UpdateMurrayStateMachine.cpp) | `UpdateMurrayStateMachine` | Per-frame input-driven state machine (loops until state stable): idle/move -> jump (Cross 0x40), lift (Circle 0x20), punch (Square 0x80), alt attack ( | 0.70 | T1 | runtime-corrected, runtime |
+| [0x1B6078](../../src/hand/SetMurrayState.cpp) | `SetMurrayState` | Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity reset, component state), shared ApplyAsegCur/compone | 0.65 | T1 | runtime |
+| [0x1B7050](../../src/hand/StartMurrayLiftGuard.c) | `StartMurrayLiftGuard` | Same as 0x1B7000 with clip kind 1 (alternate lift clip x1444) | 0.85 | T1 | runtime, verified |
+| [0x1B8450](../../src/hand/MURRAY_FIgnoreIntersection.c) | `MURRAY_FIgnoreIntersection` | MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently released one x1430, or defers to JTTHROW filter in stat | 0.85 | T1 | verified |
+| [0x1B8988](../../src/hand/UpdateMurrayAttack.c) | `UpdateMurrayAttack` | State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement cancel | 0.85 | T1 | runtime, verified |
+| [0x1B92F8](../../src/hand/UpdateMurrayLift.c) | `UpdateMurrayLift` | State 4: wait for grab event (x1448), abort if object gone; after attach go to carry (state 5) when anim ends | 0.85 | T1 | runtime, verified |
+| [0x1C3390](../../src/hand/InitPipe.c) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
+| [0x1C33E8](../../src/auto/OnPipeAdd.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C3420](../../src/auto/OnPipeRemove.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C34B8](../../src/hand/ClonePipe.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
+| [0x1C3DC8](../../src/hand/LoadPoFromBrx.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
+| [0x1C3E20](../../src/hand/HandlePoMessage.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
+| [0x1C40F8](../../src/auto/FIsPoActive.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
+| [0x1C4228](../../src/hand/AddPoHpMp.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
+| [0x1C4280](../../src/hand/POCTL_ctor.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
+| [0x1C42E8](../../src/hand/ResetPoctl.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
+| [0x1C4468](../../src/hand/UpdatePoctl.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), buil | 0.85 | T1 | verified |
+| [0x1C4660](../../src/hand/GrfPressedWithin__5POCTLUif.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
+| [0x1C46C0](../../src/auto/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
+| [0x1C4840](../../src/auto/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
+| [0x1C4A48](../../src/auto/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
 | [0x1CB9B0](../../src/auto/func_001CB9B0.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
 | [0x1CB9E8](../../src/auto/func_001CB9E8.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
 | [0x1CBA20](../../src/hand/func_001CBA20.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
-| [0x202378](../../src/hand/func_00202378.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
-| [0x2035A8](../../src/hand/func_002035A8.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
+| [0x202378](../../src/hand/UpdateReconTargetVisibility.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
+| [0x2035A8](../../src/hand/LoadReconTargetFromBrx.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
 
 Selected 80 of 641 named functions (T1 with confidence >= 0.8, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/player.md](../reference/functions/player.md).
 

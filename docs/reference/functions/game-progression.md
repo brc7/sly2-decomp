@@ -19,143 +19,143 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13BDF0](../../../src/hand/func_0013BDF0.c) | `InitBooty` | cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit | 0.60 | T1 |  |
-| [0x13BE58](../../../src/hand/func_0013BE58.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
-| [0x13BF00](../../../src/auto/func_0013BF00.c) | `PostBootyLoad` | cid 0x67 vt15: PostSoLoad then SetBootyState(0) | 0.60 | T1 |  |
+| [0x13BDF0](../../../src/hand/InitBooty.c) | `InitBooty` | cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit | 0.60 | T1 |  |
+| [0x13BE58](../../../src/hand/LoadBootyFromBrx.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
+| [0x13BF00](../../../src/auto/PostBootyLoad.c) | `PostBootyLoad` | cid 0x67 vt15: PostSoLoad then SetBootyState(0) | 0.60 | T1 |  |
 | [0x13BF30](../../../src/auto/func_0013BF30.c) | `BOOTY_VUnk26` | cid 0x67 vt27: SetBootyState(0) | 0.35 | T2 |  |
-| [0x13BF50](../../../src/auto/func_0013BF50.c) | `UpdateBooty` | cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop (DropStepplayerBooty) once the level timer D_003E1BFC passes | 0.55 | T1 |  |
-| [0x13C000](../../../src/hand/func_0013C000.c) | `RenderBootySelf` | cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw normally | 0.50 | T1 |  |
-| [0x13C1B8](../../../src/hand/func_0013C1B8.c) | `HandleBootyMessage` | cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3) | 0.55 | T1 |  |
-| [0x13C278](../../../src/hand/func_0013C278.c) | `FIgnoreBootyIntersection` | cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base | 0.55 | T1 |  |
-| [0x13C2D8](../../../src/hand/func_0013C2D8.c) | `AdjustBootyNewXp` | cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58 | 0.50 | T1 |  |
+| [0x13BF50](../../../src/auto/UpdateBooty.c) | `UpdateBooty` | cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop (DropStepplayerBooty) once the level timer D_003E1BFC passes | 0.55 | T1 |  |
+| [0x13C000](../../../src/hand/RenderBootySelf.c) | `RenderBootySelf` | cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw normally | 0.50 | T1 |  |
+| [0x13C1B8](../../../src/hand/HandleBootyMessage.c) | `HandleBootyMessage` | cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3) | 0.55 | T1 |  |
+| [0x13C278](../../../src/hand/FIgnoreBootyIntersection.c) | `FIgnoreBootyIntersection` | cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base | 0.55 | T1 |  |
+| [0x13C2D8](../../../src/hand/AdjustBootyNewXp.c) | `AdjustBootyNewXp` | cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58 | 0.50 | T1 |  |
 | [0x13C368](../../../src/auto/func_0013C368.c) | `BOOTY_FTakeDamage` | cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1 | 0.45 | T2 |  |
-| [0x13C3B8](../../../src/auto/func_0013C3B8.c) | `AddBootyEntry` | Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158) | 0.50 | T1 |  |
+| [0x13C3B8](../../../src/auto/AddBootyEntry.c) | `AddBootyEntry` | Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158) | 0.50 | T1 |  |
 | [0x13C440](../../../src/auto/func_0013C440.c) | `ClearBootyCurEntry` | current entry (+0x158) = 0 | 0.45 | T2 |  |
 | [0x13C448](../../../src/hand/AddAlarmAlbrk__FP5ALARM3OID.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
-| [0x13C478](../../../src/auto/func_0013C478.c) | `IdBootyCur` | id of the current entry or -1 | 0.55 | T1 |  |
-| [0x13C490](../../../src/hand/func_0013C490.c) | `SelectBootyEntry` | make the entry with this id current (else the first) | 0.50 | T1 |  |
+| [0x13C478](../../../src/auto/IdBootyCur.c) | `IdBootyCur` | id of the current entry or -1 | 0.55 | T1 |  |
+| [0x13C490](../../../src/hand/SelectBootyEntry.c) | `SelectBootyEntry` | make the entry with this id current (else the first) | 0.50 | T1 |  |
 | [0x13C4D8](../../../src/auto/func_0013C4D8.c) | `PentryBootyCur` | returns current entry pointer | 0.40 | T2 |  |
 | [0x13C4E0](../../../src/auto/func_0013C4E0.c) | `ReturnDroppedBooty` | If dropped: reset to 0 and, if its container is still in world, put it back there (state 1) | 0.45 | T2 |  |
-| [0x13C560](../../../src/hand/func_0013C560.c) | `SetBootyState` | State machine for the booty object (-1..6): register/unregister with g_sw+0x4638 manager, leave/enter actions (feature flags, ripples, events 0x2F, player +0x11A8 link, sounds) | 0.60 | T1 |  |
+| [0x13C560](../../../src/hand/SetBootyState.c) | `SetBootyState` | State machine for the booty object (-1..6): register/unregister with g_sw+0x4638 manager, leave/enter actions (feature flags, ripples, events 0x2F, player +0x11A8 link, sounds) | 0.60 | T1 |  |
 | [0x13CEB8](../../../src/auto/func_0013CEB8.c) | `InitBootyContainer` | cid 0x25 vt7: base init 0x183F08, default kind 0x2BC, -1, 15.0 | 0.40 | T2 |  |
 | [0x13CEF8](../../../src/hand/func_0013CEF8.c) | `PostBootyContainerLoad` | cid 0x25 vt15: base 0x183F50, unique id from a g_sw counter | 0.40 | T2 |  |
 | [0x13CF38](../../../src/hand/func_0013CF38.c) | `SpawnBootyInContainer` | If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its entry, link and set state 1 | 0.40 | T2 |  |
 | [0x13CFD8](../../../src/hand/func_0013CFD8.c) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
 | [0x13D020](../../../src/hand/func_0013D020.c) | `OnBootyContainerTouched` | cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27 | 0.40 | T2 |  |
 | [0x13D1A8](../../../src/hand/func_0013D1A8.cpp) | `PkeyBootyContainerSave` | Build the save key for this container (level entry + two symbols + id) | 0.35 | T2 |  |
-| [0x13D248](../../../src/hand/func_0013D248.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
+| [0x13D248](../../../src/hand/NBootyContainerKind.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
 | [0x13D328](../../../src/hand/func_0013D328.cpp) | `SetBootyContainerKind` | Splice: reset current booty, save kind n, and spawn if n != -1 | 0.35 | T2 |  |
 
 ## difficulty (0x154A60-0x1553F0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x154A60](../../../src/auto/func_00154A60.c) | `InitDifficulty` | Zeroes the 0x18-byte DIFFICULTY object | 0.50 | T1 |  |
+| [0x154A60](../../../src/auto/InitDifficulty.c) | `InitDifficulty` | Zeroes the 0x18-byte DIFFICULTY object | 0.50 | T1 |  |
 | [0x154A80](../../../src/hand/func_00154A80.c) | `ClearDifficulty` | Clears the three difficulty sample references (p8/pC/p10) | 0.35 | T2 |  |
-| [0x154A90](../../../src/hand/func_00154A90.cpp) | `HandleDifficultyMessage` | Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the samples (rolling window of 3), 37/16/29 apply difficulty deltas from table D_002BDC00 | 0.55 | T1 |  |
-| [0x154C90](../../../src/hand/func_00154C90.c) | `GGetDifficulty` | Current difficulty: override value if set, else average of the last three samples | 0.55 | T1 |  |
-| [0x154D88](../../../src/auto/func_00154D88.c) | `ChangeDifficulty` | Adds a delta to the current difficulty (SetDifficulty(GGetDifficulty()+d)) | 0.50 | T1 |  |
-| [0x154DC8](../../../src/hand/func_00154DC8.c) | `SetDifficulty` | Stores the difficulty clamped by the DIFFICULTY LM range (GLimitLm) into the current sample | 0.50 | T1 |  |
+| [0x154A90](../../../src/hand/HandleDifficultyMessage.cpp) | `HandleDifficultyMessage` | Game-event handler of the difficulty system: event 3 binds three saved sample slots, 34 shifts the samples (rolling window of 3), 37/16/29 apply difficulty deltas from table D_002BDC00 | 0.55 | T1 |  |
+| [0x154C90](../../../src/hand/GGetDifficulty.c) | `GGetDifficulty` | Current difficulty: override value if set, else average of the last three samples | 0.55 | T1 |  |
+| [0x154D88](../../../src/auto/ChangeDifficulty.c) | `ChangeDifficulty` | Adds a delta to the current difficulty (SetDifficulty(GGetDifficulty()+d)) | 0.50 | T1 |  |
+| [0x154DC8](../../../src/hand/SetDifficulty.c) | `SetDifficulty` | Stores the difficulty clamped by the DIFFICULTY LM range (GLimitLm) into the current sample | 0.50 | T1 |  |
 | [0x155228](../../../src/hand/func_00155228.c) | `NScaleByDifficulty` | Interpolates n between two LM scale factors (g20..g24) by the current difficulty | 0.45 | T2 |  |
 
 ## game (0x1613A8-0x166270)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1613A8](../../../src/auto/func_001613A8.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
-| [0x1613F8](../../../src/hand/func_001613F8.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D_002E1E00=0 | 0.55 | T1 | verified |
+| [0x1613A8](../../../src/auto/StartupGame.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
+| [0x1613F8](../../../src/hand/InitGame.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D_002E1E00=0 | 0.55 | T1 | verified |
 | [0x161458](../../../src/auto/func_00161458.c) | `ClearGameDifficulty` | Clears the difficulty samples of the global difficulty object (ClearDifficulty(&D_002DE578)) | 0.45 | T2 |  |
-| [0x161478](../../../src/hand/func_00161478.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); adds dt to the current JOB's elapsed time and eases difficulty (ChangeDif | 0.75 | T1 |  |
-| [0x161660](../../../src/hand/func_00161660.cpp) | `NEpisodePercentComplete` | Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state 3)/count, clamped to 1..99 unless 0 or all | 0.65 | T1 |  |
+| [0x161478](../../../src/hand/UpdateGameTimers.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); adds dt to the current JOB's elapsed time and eases difficulty (ChangeDif | 0.75 | T1 |  |
+| [0x161660](../../../src/hand/NEpisodePercentComplete.cpp) | `NEpisodePercentComplete` | Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state 3)/count, clamped to 1..99 unless 0 or all | 0.65 | T1 |  |
 | [0x161798](../../../src/hand/func_00161798.c) | `CPrize91Get` | Reads the int save var at g_sw+0x3B20 (a collectible counter) | 0.35 | T2 |  |
 | [0x1617E0](../../../src/hand/func_001617E0.cpp) | `SetCPrize91` | Writes int n into save var g_sw+0x3B20 and refreshes its HUD widget (ShowGameWidget3BAC) | 0.35 | T2 |  |
 | [0x161868](../../../src/auto/func_00161868.c) | `ShowSwWidget3BAC` | If the HUD widget g_sw+0x3BAC exists: widget vt49 Show(-1) and 0x212A30 (restart its timer) | 0.40 | T2 |  |
 | [0x1618B0](../../../src/auto/func_001618B0.c) | `ShowSwWidget3BB8` | Same as 0x161868 for the HUD widget g_sw+0x3BB8 | 0.40 | T2 |  |
 | [0x1618F8](../../../src/hand/func_001618F8.c) | `ShowSwWidget3BC4Timed` | Shows HUD widget g_sw+0x3BC4 (clears +0x8C, vt49 Show(-1)) and sets its hide time g_sw+0x476C = now + dt | 0.40 | T2 | verified |
 | [0x161958](../../../src/hand/func_00161958.c) | `HideSwWidget3BC4` | Hides HUD widget g_sw+0x3BC4 (vt50 = WIDGET hide 0x2129E8) and clears g_sw+0x476C | 0.40 | T2 |  |
-| [0x1619A0](../../../src/hand/func_001619A0.c) | `BroadcastGameEvent` | Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list g_sw+0x3B00) of the current job (SendTaskGameEvent), then the current job (HandleJobGameEvent) | 0.85 | T1 | verified |
-| [0x161A58](../../../src/hand/func_00161A58.cpp) | `HandleGameEvent` | g_game handler: ev1 (world teardown) per-STEPPLAYER widget save in one level; ev3 reset/apply pending GS + reload save slots; ev4 RestoreTasksAfterLoad; ev5 re-resolve current job/task/pending task from saved oids, recom | 0.60 | T1 |  |
+| [0x1619A0](../../../src/hand/BroadcastGameEvent.c) | `BroadcastGameEvent` | Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list g_sw+0x3B00) of the current job (SendTaskGameEvent), then the current job (HandleJobGameEvent) | 0.85 | T1 | verified |
+| [0x161A58](../../../src/hand/HandleGameEvent.cpp) | `HandleGameEvent` | g_game handler: ev1 (world teardown) per-STEPPLAYER widget save in one level; ev3 reset/apply pending GS + reload save slots; ev4 RestoreTasksAfterLoad; ev5 re-resolve current job/task/pending task from saved oids, recom | 0.60 | T1 |  |
 | [0x161F10](../../../src/hand/func_00161F10.c) | `FAddPair` | Appends (a,b) to a bounded pair array if *pc<cMax; first arg unused (callers pass &g_game) | 0.45 | T2 |  |
-| [0x161F48](../../../src/hand/func_00161F48.c) | `ApplyTaskStates` | For each (oid,state) pair finds the TASK (PloFindSwObject grffso 0x105) and requests that state (RequestTaskState) | 0.60 | T1 |  |
-| [0x161FC8](../../../src/hand/func_00161FC8.c) | `GrfFromState` | 1<<state, 0 for -1 | 0.85 | T1 | verified |
-| [0x161FF0](../../../src/hand/func_00161FF0.c) | `GrfFromStates` | ORs GrfFromState over an index array | 0.55 | T1 |  |
+| [0x161F48](../../../src/hand/ApplyTaskStates.c) | `ApplyTaskStates` | For each (oid,state) pair finds the TASK (PloFindSwObject grffso 0x105) and requests that state (RequestTaskState) | 0.60 | T1 |  |
+| [0x161FC8](../../../src/hand/GrfFromState.c) | `GrfFromState` | 1<<state, 0 for -1 | 0.85 | T1 | verified |
+| [0x161FF0](../../../src/hand/GrfFromStates.c) | `GrfFromStates` | ORs GrfFromState over an index array | 0.55 | T1 |  |
 | [0x162050](../../../src/hand/func_00162050.c) | `GrfStatesFromSplice` | Converts a Splice list argument (otyp 0x1050, max 6) of state numbers into a state bit mask | 0.45 | T2 |  |
-| [0x1620B0](../../../src/hand/func_001620B0.cpp) | `ApplyStateLoVisibility` | For a job/task state change: for each {oidLo, oidContext, grfStates, level} record whose mask covers the state group (0-3 or 4-5) and level matches, AddLo (vt8) if the state bit is set else RemoveLo (vt9) | 0.60 | T1 |  |
-| [0x162250](../../../src/hand/func_00162250.c) | `TriggerStateRsmg` | For one {state, oidRoot, oidSm, oidGoal, fOnLoadOnly, level} record matching the new state: find the SM's SMA and SeekSma/SetSmaGoal to oidGoal (default goal oids 0x612..0x615 for states 0..3) | 0.55 | T1 |  |
-| [0x1623D0](../../../src/hand/func_001623D0.c) | `TriggerStateRsmgs` | Loops TriggerStateRsmg over an array of 24-byte records | 0.55 | T1 |  |
-| [0x162448](../../../src/auto/func_00162448.c) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
-| [0x1624A8](../../../src/hand/func_001624A8.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
+| [0x1620B0](../../../src/hand/ApplyStateLoVisibility.cpp) | `ApplyStateLoVisibility` | For a job/task state change: for each {oidLo, oidContext, grfStates, level} record whose mask covers the state group (0-3 or 4-5) and level matches, AddLo (vt8) if the state bit is set else RemoveLo (vt9) | 0.60 | T1 |  |
+| [0x162250](../../../src/hand/TriggerStateRsmg.c) | `TriggerStateRsmg` | For one {state, oidRoot, oidSm, oidGoal, fOnLoadOnly, level} record matching the new state: find the SM's SMA and SeekSma/SetSmaGoal to oidGoal (default goal oids 0x612..0x615 for states 0..3) | 0.55 | T1 |  |
+| [0x1623D0](../../../src/hand/TriggerStateRsmgs.c) | `TriggerStateRsmgs` | Loops TriggerStateRsmg over an array of 24-byte records | 0.55 | T1 |  |
+| [0x162448](../../../src/auto/InitJob.c) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
+| [0x1624A8](../../../src/hand/LoadJobFromBrx.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
 | [0x162600](../../../src/hand/FUN_001e53f8.c) | `AddJobCompleteEvent` | Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives | 0.55 | existing | arbitration; replaces existing FUN_001e53f8 |
 | [0x162630](../../../src/hand/func_00162630.c) | `AddJobFailEvent` | Splice: appends a game-event id to the job list at +0x5C/+0x60 (max 32); HandleJobGameEvent calls FailJob when it arrives | 0.40 | T2 |  |
 | [0x162660](../../../src/hand/func_00162660.c) | `SetJobCompletionWidget` | Splice: sets job +0xAC widget oid, +0xB0 intro label, +0xB4 outro label used by the completion sequence | 0.40 | T2 |  |
-| [0x162670](../../../src/hand/func_00162670.c) | `FJobLive` | True if the job is enabled (+0x50==0), its mode (+0xF0) is not 2/3, and no world transition is in progress | 0.50 | T1 |  |
+| [0x162670](../../../src/hand/FJobLive.c) | `FJobLive` | True if the job is enabled (+0x50==0), its mode (+0xF0) is not 2/3, and no world transition is in progress | 0.50 | T1 |  |
 | [0x1626C0](../../../src/hand/func_001626C0.c) | `AddJobStateLo` | Splice: appends a {oidLo, oidContext, GrfFromState(state), level} visibility record to the job | 0.45 | T2 |  |
 | [0x162728](../../../src/hand/func_00162728.c) | `AddJobStateRsmg` | Splice: appends a 24-byte {state, oidRoot, oidSm, oidGoal, 0, level} RSMG record to the job | 0.45 | T2 |  |
-| [0x162780](../../../src/hand/func_00162780.c) | `PostJobLoad` | JOB PostLoad: if not current and live apply 'inactive' (state 5) visibility/RSMGs; restore start count and elapsed time from save vars; resolve a save var; find its completion widget (+0xAC) and the shared widget oid 0x3 | 0.65 | T1 |  |
+| [0x162780](../../../src/hand/PostJobLoad.c) | `PostJobLoad` | JOB PostLoad: if not current and live apply 'inactive' (state 5) visibility/RSMGs; restore start count and elapsed time from save vars; resolve a save var; find its completion widget (+0xAC) and the shared widget oid 0x3 | 0.65 | T1 |  |
 | [0x1628B0](../../../src/auto/func_001628B0.c) | `JobNop` | Empty function referenced from the property table at 0x2B8994 (no-op setter/ensure) | 0.30 | T2 |  |
-| [0x1628B8](../../../src/auto/func_001628B8.c) | `SetCurrentJob` | If p is not the current job: end the current one (EndCurrentJob) and begin p (BeginJob) | 0.60 | T1 |  |
-| [0x162908](../../../src/auto/func_00162908.c) | `EndCurrentJob` | If p is the current job, EndJob(p) | 0.85 | T1 | verified |
-| [0x162940](../../../src/hand/func_00162940.c) | `ResetJobTasks` | Clears each child task's start count (+0x64) and refreshes its save vars, zeroes the job's count, refreshes job save vars | 0.50 | T1 |  |
-| [0x1629A0](../../../src/hand/func_001629A0.cpp) | `BeginJob` | Makes p the current job; if live: ++count, save vars, event 0x21, state-4 visibility/RSMGs, SendMessage 0x13 | 0.60 | T1 |  |
-| [0x162A60](../../../src/hand/func_00162A60.cpp) | `EndJob` | Clears current job (and pending task if it belonged to p); resets the warp target when in the job's world entry; if live: event 0x22, state-5 visibility/RSMGs, SendMessage 0x14 | 0.60 | T1 |  |
-| [0x162BB8](../../../src/hand/func_00162BB8.cpp) | `HandleJobGameEvent` | Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (-> 0x162DD0) and fail-event list (-> FailJob); if not live, event 0x10 restarts it (RestartJob) | 0.60 | T1 | verified |
-| [0x162CD0](../../../src/auto/func_00162CD0.c) | `OnJobTaskComplete` | Called when a task of the job reaches state>=2: start task -> ActivateJob, end task -> CompleteJob, task with a pending-warp (+0xB8!=-1) -> set pending task | 0.55 | T1 |  |
-| [0x162D50](../../../src/auto/func_00162D50.c) | `ActivateJob` | Unless already current: event 0x1C, refresh current player if it is a STEPPLAYER (0x143380), SetCurrentJob | 0.55 | T1 |  |
+| [0x1628B8](../../../src/auto/SetCurrentJob.c) | `SetCurrentJob` | If p is not the current job: end the current one (EndCurrentJob) and begin p (BeginJob) | 0.60 | T1 |  |
+| [0x162908](../../../src/auto/EndCurrentJob.c) | `EndCurrentJob` | If p is the current job, EndJob(p) | 0.85 | T1 | verified |
+| [0x162940](../../../src/hand/ResetJobTasks.c) | `ResetJobTasks` | Clears each child task's start count (+0x64) and refreshes its save vars, zeroes the job's count, refreshes job save vars | 0.50 | T1 |  |
+| [0x1629A0](../../../src/hand/BeginJob.cpp) | `BeginJob` | Makes p the current job; if live: ++count, save vars, event 0x21, state-4 visibility/RSMGs, SendMessage 0x13 | 0.60 | T1 |  |
+| [0x162A60](../../../src/hand/EndJob.cpp) | `EndJob` | Clears current job (and pending task if it belonged to p); resets the warp target when in the job's world entry; if live: event 0x22, state-5 visibility/RSMGs, SendMessage 0x14 | 0.60 | T1 |  |
+| [0x162BB8](../../../src/hand/HandleJobGameEvent.cpp) | `HandleJobGameEvent` | Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (-> 0x162DD0) and fail-event list (-> FailJob); if not live, event 0x10 restarts it (RestartJob) | 0.60 | T1 | verified |
+| [0x162CD0](../../../src/auto/OnJobTaskComplete.c) | `OnJobTaskComplete` | Called when a task of the job reaches state>=2: start task -> ActivateJob, end task -> CompleteJob, task with a pending-warp (+0xB8!=-1) -> set pending task | 0.55 | T1 |  |
+| [0x162D50](../../../src/auto/ActivateJob.c) | `ActivateJob` | Unless already current: event 0x1C, refresh current player if it is a STEPPLAYER (0x143380), SetCurrentJob | 0.55 | T1 |  |
 | [0x162DD0](../../../src/auto/func_00162DD0.c) | `SignalJobCompleteEvent` | Broadcasts game event 0x1D for the job | 0.35 | T2 |  |
 | [0x162DF8](../../../src/auto/func_00162DF8.c) | `RestartJob` | GoToTask on the pending task g_sw+0x3B14, else on the job's start task (+0x64) | 0.45 | T2 |  |
 | [0x162E38](../../../src/hand/func_00162E38.c) | `FailJob` | Records the job to abort (g_sw+0x3B18) and, unless a transition is busy, wipes back to the current world entry at default warp oid 0x189 | 0.45 | T2 |  |
-| [0x162EA0](../../../src/hand/func_00162EA0.c) | `AbortJob` | Resets the job's tasks, sets its start task back to available, ends the current task if it belongs, event 0x1F, EndCurrentJob | 0.50 | T1 |  |
-| [0x162F10](../../../src/auto/func_00162F10.c) | `CompleteJob` | If the job has a completion widget run the completion sequence (phase 1), else FinishJob + ContinueAfterJob | 0.50 | T1 |  |
-| [0x162F60](../../../src/hand/func_00162F60.c) | `FinishJob` | Unless +0x78: set the end task complete (3); event 0x20; EndCurrentJob; unless +0x78 autosave (AutoSaveGame 0x1ABD98) | 0.50 | T1 |  |
+| [0x162EA0](../../../src/hand/AbortJob.c) | `AbortJob` | Resets the job's tasks, sets its start task back to available, ends the current task if it belongs, event 0x1F, EndCurrentJob | 0.50 | T1 |  |
+| [0x162F10](../../../src/auto/CompleteJob.c) | `CompleteJob` | If the job has a completion widget run the completion sequence (phase 1), else FinishJob + ContinueAfterJob | 0.50 | T1 |  |
+| [0x162F60](../../../src/hand/FinishJob.c) | `FinishJob` | Unless +0x78: set the end task complete (3); event 0x20; EndCurrentJob; unless +0x78 autosave (AutoSaveGame 0x1ABD98) | 0.50 | T1 |  |
 | [0x162FD0](../../../src/hand/func_00162FD0.c) | `ContinueAfterJob` | After a job: step the game sequence queue if non-empty; else activate the next task (+0xC0) or trigger the warp LO (+0xCC, 0x2283D0) | 0.45 | T2 |  |
-| [0x163078](../../../src/hand/func_00163078.c) | `UpdateJob` | JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when the widget label finishes | 0.60 | T1 |  |
-| [0x163170](../../../src/hand/func_00163170.c) | `SetJobCompletionPhase` | Sets completion phase (0 none,1 intro,2 outro,3 shared widget): entering from 0 finds the next task, busy-flags the LO and increments hands-off; phase 0 hides widgets and decrements hands-off | 0.55 | T1 |  |
-| [0x1633E8](../../../src/auto/func_001633E8.c) | `FIsCurrentJob` | p == g_sw+0x3B0C (current job) | 0.85 | T1 | verified |
-| [0x163400](../../../src/auto/func_00163400.c) | `FJobComplete` | True if the job's end task (+0x68) is complete (FTaskComplete) | 0.55 | T1 |  |
+| [0x163078](../../../src/hand/UpdateJob.c) | `UpdateJob` | JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when the widget label finishes | 0.60 | T1 |  |
+| [0x163170](../../../src/hand/SetJobCompletionPhase.c) | `SetJobCompletionPhase` | Sets completion phase (0 none,1 intro,2 outro,3 shared widget): entering from 0 finds the next task, busy-flags the LO and increments hands-off; phase 0 hides widgets and decrements hands-off | 0.55 | T1 |  |
+| [0x1633E8](../../../src/auto/FIsCurrentJob.c) | `FIsCurrentJob` | p == g_sw+0x3B0C (current job) | 0.85 | T1 | verified |
+| [0x163400](../../../src/auto/FJobComplete.c) | `FJobComplete` | True if the job's end task (+0x68) is complete (FTaskComplete) | 0.55 | T1 |  |
 | [0x163430](../../../src/hand/func_00163430.c) | `NJobState` | Job state from its tasks: start-task state if <2, else max(end-task state,1) | 0.45 | T2 |  |
-| [0x163460](../../../src/hand/func_00163460.cpp) | `UpdateJobSaveVars` | Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs (+0xD0/+0xD8/+0xE0) | 0.50 | T1 |  |
-| [0x1635A0](../../../src/hand/func_001635A0.c) | `InitTask` | TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC | 0.70 | T1 |  |
-| [0x1635F8](../../../src/hand/func_001635F8.cpp) | `LoadTaskFromBrx` | TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and successors (+0x9C) | 0.75 | T1 | parse |
-| [0x1637E8](../../../src/hand/func_001637E8.c) | `FTaskLive` | Task counterpart of FJobLive (mode at +0xF4) | 0.50 | T1 |  |
+| [0x163460](../../../src/hand/UpdateJobSaveVars.cpp) | `UpdateJobSaveVars` | Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs (+0xD0/+0xD8/+0xE0) | 0.50 | T1 |  |
+| [0x1635A0](../../../src/hand/InitTask.c) | `InitTask` | TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC | 0.70 | T1 |  |
+| [0x1635F8](../../../src/hand/LoadTaskFromBrx.cpp) | `LoadTaskFromBrx` | TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and successors (+0x9C) | 0.75 | T1 | parse |
+| [0x1637E8](../../../src/hand/FTaskLive.c) | `FTaskLive` | Task counterpart of FJobLive (mode at +0xF4) | 0.50 | T1 |  |
 | [0x163838](../../../src/hand/func_00163838.c) | `AddTaskStateLo` | Splice: appends a visibility record (state mask from a Splice list) to the task | 0.45 | T2 |  |
 | [0x1638A0](../../../src/hand/func_001638A0.c) | `AddTaskStateRsmg` | Splice: appends an RSMG record to the task | 0.45 | T2 |  |
-| [0x1638F8](../../../src/hand/func_001638F8.c) | `PostTaskLoad` | TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK pointers, apply inactive visuals if live, restore two save vars, busy-flag it if timed or it has a marker LO (+0x80) | 0.65 | T1 |  |
-| [0x163B48](../../../src/hand/func_00163B48.c) | `UpdateTask` | TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO (+0x80, AddLo) only while available and no job is current, else removes it | 0.60 | T1 |  |
-| [0x163C28](../../../src/hand/func_00163C28.cpp) | `ActivateTask` | Unless already current: end the current task (with source override) and BeginTask(p) | 0.55 | T1 |  |
-| [0x163CE0](../../../src/auto/func_00163CE0.c) | `DeactivateTask` | If p is the current task, EndTask(p) | 0.55 | T1 |  |
-| [0x163D18](../../../src/hand/func_00163D18.cpp) | `BeginTask` | Makes p the current task (and pending task if it has a warp), activates its job, if live: ++count, event 0x23, state-4 visuals, starts its music (+0x5C, 0x1DA4B8), SendMessage 0x13, triggers LO +0xC4 | 0.60 | T1 |  |
+| [0x1638F8](../../../src/hand/PostTaskLoad.c) | `PostTaskLoad` | TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK pointers, apply inactive visuals if live, restore two save vars, busy-flag it if timed or it has a marker LO (+0x80) | 0.65 | T1 |  |
+| [0x163B48](../../../src/hand/UpdateTask.c) | `UpdateTask` | TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO (+0x80, AddLo) only while available and no job is current, else removes it | 0.60 | T1 |  |
+| [0x163C28](../../../src/hand/ActivateTask.cpp) | `ActivateTask` | Unless already current: end the current task (with source override) and BeginTask(p) | 0.55 | T1 |  |
+| [0x163CE0](../../../src/auto/DeactivateTask.c) | `DeactivateTask` | If p is the current task, EndTask(p) | 0.55 | T1 |  |
+| [0x163D18](../../../src/hand/BeginTask.cpp) | `BeginTask` | Makes p the current task (and pending task if it has a warp), activates its job, if live: ++count, event 0x23, state-4 visuals, starts its music (+0x5C, 0x1DA4B8), SendMessage 0x13, triggers LO +0xC4 | 0.60 | T1 |  |
 | [0x163E88](../../../src/hand/func_00163E88.cpp) | `RejectTaskState` | Refused state change: event 0x27 (arg in g_game+8), SendMessage 0x12(n) to the task and to its job | 0.45 | T2 |  |
-| [0x163F48](../../../src/hand/func_00163F48.cpp) | `EndTask` | Clears current task; if live: event 0x24, state-5 visuals/RSMGs, stops its music, SendMessage 0x14 | 0.60 | T1 |  |
-| [0x164018](../../../src/auto/func_00164018.c) | `FIsCurrentTask` | p == g_sw+0x3B10 | 0.70 | T1 |  |
-| [0x164030](../../../src/hand/func_00164030.c) | `FTaskComplete` | State >= 2, or for an unset task (-1) the value of its save var +0xD8 | 0.60 | T1 |  |
-| [0x164098](../../../src/hand/func_00164098.c) | `OidFromTaskState` | Maps task state 0..3 to oid 0x612..0x615 (the default SM goal per state), else -1 | 0.60 | T1 | verified |
-| [0x164100](../../../src/hand/func_00164100.cpp) | `VisitTaskTopo` | Topological visit: records depth, counts visits, emits the task once all prerequisites are visited and recurses into successors | 0.50 | T1 |  |
-| [0x164270](../../../src/hand/func_00164270.c) | `RestoreTaskState` | Reads the task's saved state and flag vars and sets the derived state (SetTaskState), handling start tasks of jobs | 0.50 | T1 |  |
-| [0x1643B0](../../../src/hand/func_001643B0.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
-| [0x1645D0](../../../src/hand/func_001645D0.c) | `FTaskPrereqsMet` | True if every prerequisite is complete (>=2) or available-and-optional | 0.60 | T1 |  |
-| [0x164640](../../../src/hand/func_00164640.cpp) | `RequestTaskState` | Validated state request (4=activate, 5=deactivate, 0..3 only by +1 steps or prerequisites met), else RejectTaskState | 0.60 | T1 |  |
-| [0x164858](../../../src/hand/func_00164858.cpp) | `ForceTaskState` | Unvalidated counterpart of RequestTaskState | 0.50 | T1 |  |
-| [0x1649D0](../../../src/hand/func_001649D0.c) | `UpdateCurrentJob` | Picks the job whose start task is complete and end task is not, and switches the current job to it | 0.55 | T1 |  |
+| [0x163F48](../../../src/hand/EndTask.cpp) | `EndTask` | Clears current task; if live: event 0x24, state-5 visuals/RSMGs, stops its music, SendMessage 0x14 | 0.60 | T1 |  |
+| [0x164018](../../../src/auto/FIsCurrentTask.c) | `FIsCurrentTask` | p == g_sw+0x3B10 | 0.70 | T1 |  |
+| [0x164030](../../../src/hand/FTaskComplete.c) | `FTaskComplete` | State >= 2, or for an unset task (-1) the value of its save var +0xD8 | 0.60 | T1 |  |
+| [0x164098](../../../src/hand/OidFromTaskState.c) | `OidFromTaskState` | Maps task state 0..3 to oid 0x612..0x615 (the default SM goal per state), else -1 | 0.60 | T1 | verified |
+| [0x164100](../../../src/hand/VisitTaskTopo.cpp) | `VisitTaskTopo` | Topological visit: records depth, counts visits, emits the task once all prerequisites are visited and recurses into successors | 0.50 | T1 |  |
+| [0x164270](../../../src/hand/RestoreTaskState.c) | `RestoreTaskState` | Reads the task's saved state and flag vars and sets the derived state (SetTaskState), handling start tasks of jobs | 0.50 | T1 |  |
+| [0x1643B0](../../../src/hand/UpdateTaskSaveVars.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
+| [0x1645D0](../../../src/hand/FTaskPrereqsMet.c) | `FTaskPrereqsMet` | True if every prerequisite is complete (>=2) or available-and-optional | 0.60 | T1 |  |
+| [0x164640](../../../src/hand/RequestTaskState.cpp) | `RequestTaskState` | Validated state request (4=activate, 5=deactivate, 0..3 only by +1 steps or prerequisites met), else RejectTaskState | 0.60 | T1 |  |
+| [0x164858](../../../src/hand/ForceTaskState.cpp) | `ForceTaskState` | Unvalidated counterpart of RequestTaskState | 0.50 | T1 |  |
+| [0x1649D0](../../../src/hand/UpdateCurrentJob.c) | `UpdateCurrentJob` | Picks the job whose start task is complete and end task is not, and switches the current job to it | 0.55 | T1 |  |
 | [0x164AA8](../../../src/hand/func_00164AA8.cpp) | `ForceTaskState0` | Splice wrapper target: ForceTaskState(p,0) then UpdateCurrentJob | 0.40 | T2 |  |
 | [0x164B38](../../../src/hand/func_00164B38.cpp) | `ForceTaskState1` | ForceTaskState(p,1) then UpdateCurrentJob | 0.40 | T2 |  |
 | [0x164BC8](../../../src/hand/func_00164BC8.cpp) | `ForceTaskState2` | ForceTaskState(p,2) then UpdateCurrentJob | 0.40 | T2 |  |
 | [0x164C58](../../../src/hand/func_00164C58.cpp) | `ForceTaskState3` | ForceTaskState(p,3) then UpdateCurrentJob | 0.40 | T2 |  |
-| [0x164CE8](../../../src/hand/func_00164CE8.c) | `CollectTaskCascade` | Collects successors whose state must be raised to n (state 2 becomes 3 across jobs) | 0.50 | T1 |  |
-| [0x164DF0](../../../src/hand/func_00164DF0.cpp) | `SetTaskStateCascade` | Main task state change: propagates to collected successors, sets the state, updates the episode percent save var, handles job start/end tasks, autosaves | 0.60 | T1 |  |
+| [0x164CE8](../../../src/hand/CollectTaskCascade.c) | `CollectTaskCascade` | Collects successors whose state must be raised to n (state 2 becomes 3 across jobs) | 0.50 | T1 |  |
+| [0x164DF0](../../../src/hand/SetTaskStateCascade.cpp) | `SetTaskStateCascade` | Main task state change: propagates to collected successors, sets the state, updates the episode percent save var, handles job start/end tasks, autosaves | 0.60 | T1 |  |
 | [0x165118](../../../src/hand/func_00165118.cpp) | `SendTaskTimeout` | If live, SendMessage 0x17(n) | 0.40 | T2 |  |
-| [0x165170](../../../src/hand/func_00165170.cpp) | `SendTaskGameEvent` | If live, SendMessage 0x11(event, arg) | 0.50 | T1 |  |
+| [0x165170](../../../src/hand/SendTaskGameEvent.cpp) | `SendTaskGameEvent` | If live, SendMessage 0x11(event, arg) | 0.50 | T1 |  |
 | [0x1651D8](../../../src/hand/func_001651D8.c) | `StartTaskByOid` | Finds the TASK by oid and GoToTask, else stores the oid as pending in g_game and warps to the given level | 0.45 | T2 |  |
-| [0x165280](../../../src/hand/func_00165280.cpp) | `RestoreTasksAfterLoad` | Event 4 when g_sw flag 8: recompute tasks in topological order, make the pending task available, set oidPoCurrent from it, set the warp oid, flag 8->4 | 0.50 | T1 |  |
-| [0x165538](../../../src/hand/func_00165538.cpp) | `GoToTask` | Switches the current job to the task's job, makes the task available and current, sets oidPoCurrent (+0xC0, which character), wipes to the task's level and warp (+0xBC/+0xB8) | 0.55 | T1 |  |
-| [0x1657A8](../../../src/auto/func_001657A8.c) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
-| [0x1657D0](../../../src/hand/func_001657D0.cpp) | `SetTaskState` | Low-level task state set: events 0x26/0x25, maintains the available-task list g_sw+0x3B00, counts, save vars, SendMessage 0x16/0x15, follow-up activate/deactivate | 0.60 | T1 |  |
-| [0x165A60](../../../src/hand/func_00165A60.cpp) | `SetTaskStatePropagate` | SetTaskState then recompute each successor | 0.50 | T1 |  |
-| [0x165B40](../../../src/hand/func_00165B40.c) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
+| [0x165280](../../../src/hand/RestoreTasksAfterLoad.cpp) | `RestoreTasksAfterLoad` | Event 4 when g_sw flag 8: recompute tasks in topological order, make the pending task available, set oidPoCurrent from it, set the warp oid, flag 8->4 | 0.50 | T1 |  |
+| [0x165538](../../../src/hand/GoToTask.cpp) | `GoToTask` | Switches the current job to the task's job, makes the task available and current, sets oidPoCurrent (+0xC0, which character), wipes to the task's level and warp (+0xBC/+0xB8) | 0.55 | T1 |  |
+| [0x1657A8](../../../src/auto/AnnounceTaskJob.c) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
+| [0x1657D0](../../../src/hand/SetTaskState.cpp) | `SetTaskState` | Low-level task state set: events 0x26/0x25, maintains the available-task list g_sw+0x3B00, counts, save vars, SendMessage 0x16/0x15, follow-up activate/deactivate | 0.60 | T1 |  |
+| [0x165A60](../../../src/hand/SetTaskStatePropagate.cpp) | `SetTaskStatePropagate` | SetTaskState then recompute each successor | 0.50 | T1 |  |
+| [0x165B40](../../../src/hand/RecomputeTaskState.c) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
 | [0x165C28](../../../src/hand/func_00165C28.c) | `CompareTasks` | Sort comparator: depth (+0x104), job oid, +0x100, task oid | 0.35 | T2 |  |
-| [0x165C98](../../../src/hand/func_00165C98.cpp) | `SortTasksTopologically` | Returns all TASKs in prerequisite order (VisitTaskTopo from every root) | 0.50 | T1 |  |
-| [0x165DC0](../../../src/auto/func_00165DC0.c) | `SetSwJobCur` | Stores the current job in g_sw+0x3B0C and its oid in g_game+0x10 | 0.60 | T1 |  |
-| [0x165DE8](../../../src/auto/func_00165DE8.c) | `SetSwTaskCur` | Stores the current task in g_sw+0x3B10 and its oid in g_game+0x14 | 0.60 | T1 |  |
-| [0x165E10](../../../src/auto/func_00165E10.c) | `SetSwTaskPending` | Stores the pending task in g_sw+0x3B14 and its oid in g_game+0x18 | 0.55 | T1 |  |
+| [0x165C98](../../../src/hand/SortTasksTopologically.cpp) | `SortTasksTopologically` | Returns all TASKs in prerequisite order (VisitTaskTopo from every root) | 0.50 | T1 |  |
+| [0x165DC0](../../../src/auto/SetSwJobCur.c) | `SetSwJobCur` | Stores the current job in g_sw+0x3B0C and its oid in g_game+0x10 | 0.60 | T1 |  |
+| [0x165DE8](../../../src/auto/SetSwTaskCur.c) | `SetSwTaskCur` | Stores the current task in g_sw+0x3B10 and its oid in g_game+0x14 | 0.60 | T1 |  |
+| [0x165E10](../../../src/auto/SetSwTaskPending.c) | `SetSwTaskPending` | Stores the pending task in g_sw+0x3B14 and its oid in g_game+0x18 | 0.55 | T1 |  |
 | [0x165E38](../../../src/hand/func_00165E38.c) | `PlayGameFromGs` | Starts play from a save-slot GS: new game -> first task oid 0x62F in world entry 0; else the saved episode (or hub level D_002A3828 if it is 100%) | 0.45 | T2 |  |
 | [0x166008](../../../src/hand/func_00166008.c) | `ApplyPendingGs` | Copies the pending GS blob (g_game+0x1C) into g_gs and applies its settings | 0.45 | T2 |  |
 | [0x1660F8](../../../src/auto/func_001660F8.c) | `ResetGameSeq` | Re-initialises the game sequence queue D_002E1E88 | 0.35 | T2 |  |

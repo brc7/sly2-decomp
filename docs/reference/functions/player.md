@@ -19,40 +19,40 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x134648](../../../src/hand/func_00134648.c) | `InitBentley` | BENTLEY vt7: InitStepplayer then Bentley defaults (camera offsets 45/125, two 0x20B840 sub-objects at +0x1320/+0x1600, gadget slot kinds 7/9/11 ...) | 0.85 | T1 |  |
-| [0x134770](../../../src/auto/func_00134770.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
-| [0x1347A8](../../../src/hand/func_001347A8.c) | `PostBentleyLoad` | BENTLEY vt15: PostLoadStepplayer, find child SO 0xB, bind anim blends, init crosshair/aim helper (0x136D28), AttachStepplayerToStartMarker(0x16), SetBentleyState(0) | 0.80 | T1 |  |
-| [0x134850](../../../src/hand/func_00134850.c) | `UpdateBentleyStateMachine` | Per-frame transitions of the Bentley state (+0x13D0) driven by component states, then sub-machines 0x136118/0x136338/0x1367D8 | 0.45 | T2 |  |
+| [0x134648](../../../src/hand/InitBentley.c) | `InitBentley` | BENTLEY vt7: InitStepplayer then Bentley defaults (camera offsets 45/125, two 0x20B840 sub-objects at +0x1320/+0x1600, gadget slot kinds 7/9/11 ...) | 0.85 | T1 |  |
+| [0x134770](../../../src/auto/LoadBentleyFromBrx.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
+| [0x1347A8](../../../src/hand/PostBentleyLoad.c) | `PostBentleyLoad` | BENTLEY vt15: PostLoadStepplayer, find child SO 0xB, bind anim blends, init crosshair/aim helper (0x136D28), AttachStepplayerToStartMarker(0x16), SetBentleyState(0) | 0.80 | T1 |  |
+| [0x134850](../../../src/hand/UpdateBentleyStateMachine.c) | `UpdateBentleyStateMachine` | Per-frame transitions of the Bentley state (+0x13D0) driven by component states, then sub-machines 0x136118/0x136338/0x1367D8 | 0.45 | T2 |  |
 | [0x134D30](../../../src/hand/func_00134D30.c) | `UpdateBentleyJtmode` | While in jtmode: on button mask 0x4F0 in mode 1/kind 0 call 0x19CCE8, then update jtmode 0x19D330 | 0.40 | T2 |  |
-| [0x134DA8](../../../src/hand/func_00134DA8.c) | `UpdateBentley` | BENTLEY vt16: UpdateStepplayer, then (if in world) Bentley state machine and per-state actions | 0.80 | T1 |  |
-| [0x135248](../../../src/hand/func_00135248.c) | `SetBentleyState` | Bentley state change (+0x13D0): exit/enter actions, animations (asega), component state changes | 0.60 | T1 |  |
+| [0x134DA8](../../../src/hand/UpdateBentley.c) | `UpdateBentley` | BENTLEY vt16: UpdateStepplayer, then (if in world) Bentley state machine and per-state actions | 0.80 | T1 |  |
+| [0x135248](../../../src/hand/SetBentleyState.c) | `SetBentleyState` | Bentley state change (+0x13D0): exit/enter actions, animations (asega), component state changes | 0.60 | T1 |  |
 | [0x1356E8](../../../src/hand/func_001356E8.c) | `UpdateBentleyAimPoint` | Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox + PsoHitTestLineObjects); store hit (or far point) at +0x16F0 | 0.50 | T2 |  |
-| [0x1357C0](../../../src/hand/func_001357C0.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb(4.0), mark fired | 0.45 | T2 |  |
-| [0x1358A8](../../../src/auto/func_001358A8.c) | `GetBentleyCpdefi` | BENTLEY vt50: GetStepplayerCpdefi plus per-state tweaks (pipe 13 -> 0x19EA00, state 5 sets flag) | 0.75 | T1 |  |
+| [0x1357C0](../../../src/hand/FireBentleyDart.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb(4.0), mark fired | 0.45 | T2 |  |
+| [0x1358A8](../../../src/auto/GetBentleyCpdefi.c) | `GetBentleyCpdefi` | BENTLEY vt50: GetStepplayerCpdefi plus per-state tweaks (pipe 13 -> 0x19EA00, state 5 sets flag) | 0.75 | T1 |  |
 | [0x135940](../../../src/hand/func_00135940.c) | `BENTLEY_VUnk69` | BENTLEY vt70: state-dependent physics preset (pipe/jtair/jtgrab/jthurt components; state 6 sub 2 applies drag via 0x1FAC30) | 0.45 | T2 |  |
 | [0x135A48](../../../src/hand/func_00135A48.c) | `BENTLEY_VUnk54` | BENTLEY vt55: per-state contact hook (hurt 0x1A2100, pipe 0x19E9C8, else STEP base 0x204250) | 0.40 | T2 |  |
-| [0x135AD8](../../../src/hand/func_00135AD8.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
-| [0x135C20](../../../src/hand/func_00135C20.c) | `SetBentleyPlayerState` | BENTLEY vt88: map generic player state 0..8 to Bentley states (0,2,3,4,9,10,11,12,13) via SetBentleyState | 0.60 | T1 |  |
-| [0x135D08](../../../src/hand/func_00135D08.c) | `BENTLEY_PlayerStateCur` | BENTLEY vt89: inverse map Bentley state -> generic 0..8 (else -1) | 0.60 | T1 |  |
+| [0x135AD8](../../../src/hand/HandleBentleyMessage.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
+| [0x135C20](../../../src/hand/SetBentleyPlayerState.c) | `SetBentleyPlayerState` | BENTLEY vt88: map generic player state 0..8 to Bentley states (0,2,3,4,9,10,11,12,13) via SetBentleyState | 0.60 | T1 |  |
+| [0x135D08](../../../src/hand/BENTLEY_PlayerStateCur.c) | `BENTLEY_PlayerStateCur` | BENTLEY vt89: inverse map Bentley state -> generic 0..8 (else -1) | 0.60 | T1 |  |
 | [0x135D80](../../../src/hand/func_00135D80.c) | `BENTLEY_VUnk89` | BENTLEY vt90: ask the active component (jtair/jtgrab/jthurt) for an animation/feature id, default +0x268, then STEP 0x203D00 | 0.40 | T2 |  |
 | [0x135E30](../../../src/auto/func_00135E30.c) | `BENTLEY_VUnk90` | BENTLEY vt91: empty | 0.30 | T2 |  |
 | [0x135E38](../../../src/auto/func_00135E38.c) | `BENTLEY_VUnk91` | BENTLEY vt92: returns 0 | 0.30 | T2 |  |
 | [0x135E40](../../../src/hand/func_00135E40.c) | `BENTLEY_VUnk97` | BENTLEY vt98: STEPPLAYER::VUnk97, else 1 in states 1/5/14, -1 otherwise | 0.40 | T2 |  |
 | [0x135EB0](../../../src/hand/func_00135EB0.c) | `UpdateBentleyPlaces` | Per state: remember standing places (jtplaces 0x19FEB0) when on solid ground, or grab/pipe updates | 0.35 | T2 |  |
-| [0x135F78](../../../src/hand/func_00135F78.c) | `BENTLEY_FInvulnerable` | BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::FInvulnerable | 0.65 | T1 |  |
+| [0x135F78](../../../src/hand/BENTLEY_FInvulnerable.c) | `BENTLEY_FInvulnerable` | BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::FInvulnerable | 0.65 | T1 |  |
 | [0x135FF0](../../../src/hand/func_00135FF0.c) | `BENTLEY_VUnk93` | BENTLEY vt94: 1 in states 0/1/5/7 else 0 | 0.35 | T2 |  |
 | [0x136040](../../../src/hand/func_00136040.c) | `SetBentleySubState16B0` | Set +0x16B0 sub-state and play the matching aseg | 0.35 | T2 |  |
 | [0x136118](../../../src/hand/func_00136118.c) | `UpdateBentleySubState16B0` | Sub-state machine on +0x16B0 | 0.30 | T2 |  |
 | [0x136298](../../../src/auto/func_00136298.c) | `ReleaseBentleyHeldObject` | Release object at +0x186C back to its manager | 0.30 | T2 |  |
 | [0x1362F8](../../../src/auto/func_001362F8.c) | `SetBentleyAimState` | Set +0x16BC aim state with timestamp; state 0 stops crosshair helper (0x136F48(-1)) | 0.40 | T2 |  |
-| [0x136338](../../../src/hand/func_00136338.c) | `UpdateBentleyAim` | Aim state machine (+0x16BC): button 8 enters aim, times out, fires | 0.40 | T2 |  |
+| [0x136338](../../../src/hand/UpdateBentleyAim.c) | `UpdateBentleyAim` | Aim state machine (+0x16BC): button 8 enters aim, times out, fires | 0.40 | T2 |  |
 | [0x136530](../../../src/hand/func_00136530.c) | `SetBentleyHoverState` | State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code | 0.30 | T2 |  |
 | [0x1367D8](../../../src/hand/func_001367D8.c) | `UpdateBentleyStateMisc` | Small transition loop (state 1 returns to 0 and makes the PO current via vt79) | 0.30 | T2 |  |
-| [0x136870](../../../src/hand/func_00136870.c) | `BENTLEY_FCanUseGadget` | BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability | 0.70 | T1 |  |
+| [0x136870](../../../src/hand/BENTLEY_FCanUseGadget.c) | `BENTLEY_FCanUseGadget` | BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability | 0.70 | T1 |  |
 | [0x136A28](../../../src/hand/CbFromSaak__F4SAAK.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
-| [0x136A90](../../../src/hand/func_00136A90.c) | `StartBentleyGadget` | BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget record | 0.70 | T1 |  |
-| [0x136C50](../../../src/auto/func_00136C50.c) | `OnBentleyGadgetsChanged` | BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else disable | 0.50 | T1 |  |
-| [0x136CB0](../../../src/auto/func_00136CB0.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
+| [0x136A90](../../../src/hand/StartBentleyGadget.c) | `StartBentleyGadget` | BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget record | 0.70 | T1 |  |
+| [0x136C50](../../../src/auto/OnBentleyGadgetsChanged.c) | `OnBentleyGadgetsChanged` | BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else disable | 0.50 | T1 |  |
+| [0x136CB0](../../../src/auto/BENTLEY_PchzSaveVarRoot.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
 | [0x136CC0](../../../src/hand/func_00136CC0.c) | `BENTLEY_VUnk84` | BENTLEY vt85: per-state mode code, else STEPPLAYER::VUnk84 | 0.35 | T2 |  |
 | [0x136D28](../../../src/hand/func_00136D28.c) | `InitBentleyCrosshair` | Init 6 blended animation slots (EnsureAsegBlendDynamic) for an aim helper struct at +0x1710 | 0.40 | T2 |  |
 | [0x136DC0](../../../src/hand/func_00136DC0.c) | `UpdateBentleyCrosshair` | Aim-helper update: on button 0x80 and FCanUseGadget(2) restart | 0.35 | T2 |  |
@@ -70,44 +70,44 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13FF70](../../../src/hand/func_0013FF70.c) | `InitStepplayer` | STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x103C=20.0 ...) | 0.85 | T1 | verified |
-| [0x1400B8](../../../src/hand/func_001400B8.c) | `PostLoadStepplayer` | STEPPLAYER vt15: base 0x203A38 then each component's post-load (0x1959C0, 0x1910F8, 0x19F3F0, 0x1A1098, 0x19CC30, 0x21F388, 0x19DE58), allocations, registers a callback (0x149A50) | 0.60 | T1 |  |
+| [0x13FF70](../../../src/hand/InitStepplayer.c) | `InitStepplayer` | STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x103C=20.0 ...) | 0.85 | T1 | verified |
+| [0x1400B8](../../../src/hand/PostLoadStepplayer.c) | `PostLoadStepplayer` | STEPPLAYER vt15: base 0x203A38 then each component's post-load (0x1959C0, 0x1910F8, 0x19F3F0, 0x1A1098, 0x19CC30, 0x21F388, 0x19DE58), allocations, registers a callback (0x149A50) | 0.60 | T1 |  |
 | [0x140338](../../../src/hand/func_00140338.c) | `AcknowledgeStepplayerHint` | On a POCTL button press (mask 0x200, Select?): if 0x210AE0 allows, calls 0x161868/0x1618B0 on g_sw (find class 0x605 obj), plays sound 0x32, stamps g_sw+0x4754 = g_clock.t and bumps g_cm+0x4A4 | 0.30 | T2 |  |
-| [0x1403D0](../../../src/hand/func_001403D0.c) | `UpdateStepplayer` | STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0), interact-target pick 0x142AF8, gadget/menu button handling when the default camera policy is active (FActiveCplcy(g_cm+0x3A | 0.65 | T1 |  |
-| [0x140558](../../../src/hand/func_00140558.c) | `UpdateStepplayerInteractCandidates` | Unless +0x10E0 set, scans guard list D_003E1444 with GuardEvalInteractMode 0x208E70 and picks nearest guard and best-mode guard, then calls vt95 SetPlayerInteractMode(n0,pso0,n1,pso1) | 0.60 | T1 |  |
-| [0x140678](../../../src/hand/func_00140678.c) | `SetStepplayerPlayerInteractMode` | vt95: store interact kind/target/mode/fight target (+0x10E8..+0x10F0); if target changed release the old target's mark (0x1431D0) | 0.75 | T1 |  |
-| [0x1406E8](../../../src/hand/func_001406E8.c) | `SetStepplayerCtlState` | vt79: PO SetPoCtlState, then 0x1F82B8(p, n==1?0:-1, 0); on becoming current (n==1) clear the message list +0x26C (0x1EECD0) | 0.80 | T1 |  |
+| [0x1403D0](../../../src/hand/UpdateStepplayer.c) | `UpdateStepplayer` | STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0), interact-target pick 0x142AF8, gadget/menu button handling when the default camera policy is active (FActiveCplcy(g_cm+0x3A | 0.65 | T1 |  |
+| [0x140558](../../../src/hand/UpdateStepplayerInteractCandidates.c) | `UpdateStepplayerInteractCandidates` | Unless +0x10E0 set, scans guard list D_003E1444 with GuardEvalInteractMode 0x208E70 and picks nearest guard and best-mode guard, then calls vt95 SetPlayerInteractMode(n0,pso0,n1,pso1) | 0.60 | T1 |  |
+| [0x140678](../../../src/hand/SetStepplayerPlayerInteractMode.c) | `SetStepplayerPlayerInteractMode` | vt95: store interact kind/target/mode/fight target (+0x10E8..+0x10F0); if target changed release the old target's mark (0x1431D0) | 0.75 | T1 |  |
+| [0x1406E8](../../../src/hand/SetStepplayerCtlState.c) | `SetStepplayerCtlState` | vt79: PO SetPoCtlState, then 0x1F82B8(p, n==1?0:-1, 0); on becoming current (n==1) clear the message list +0x26C (0x1EECD0) | 0.80 | T1 |  |
 | [0x140750](../../../src/hand/func_00140750.c) | `UpdateStepplayerHideBlend` | If +0x10C4 (a shadow/hide volume set) exists: smooth +0x10CC toward 1/0 by 0x1409E8 result, derive +0x10C8 state (-1/0/1), combine with vt98, smooth +0x10D0 and at 1.0 register with 0x156548 | 0.35 | T2 |  |
 | [0x1409B8](../../../src/auto/func_001409B8.c) | `STEPPLAYER_VUnk97` | vt98: returns 0 normally, -1 while the world is hands-off (FSwHandsOff g_sw) | 0.40 | T2 |  |
 | [0x1409E8](../../../src/hand/func_001409E8.c) | `NStepplayerHideTest` | Returns 2 if in jtmode<3 or no query from 0x156698; else 1 if any guard (D_003E1444) answers vt89(query) or any D_003E1468 entry 0x156FE8 matches, 0 otherwise; guard states 0x1D/0xB force 2 | 0.30 | T2 |  |
-| [0x140AF8](../../../src/hand/func_00140AF8.c) | `FStepplayerNearInteractTarget` | True when interact mode (+0x10EC)==4 and kind!=3 and the target (+0x10E8) is within an xy distance (larger if target has class 0x3A) and a z window, widened when fX | 0.50 | T1 |  |
+| [0x140AF8](../../../src/hand/FStepplayerNearInteractTarget.c) | `FStepplayerNearInteractTarget` | True when interact mode (+0x10EC)==4 and kind!=3 and the target (+0x10E8) is within an xy distance (larger if target has class 0x3A) and a z window, widened when fX | 0.50 | T1 |  |
 | [0x140C30](../../../src/hand/func_00140C30.c) | `STEPPLAYER_VUnk81` | vt82 (STEP VUnk81(grf,plo,qw..)): if other LO not in world (bit60 of +0x28) reset jtair (0x195A00 state 0), else call STEP base 0x205008 with v - pos | 0.35 | T2 |  |
-| [0x140C88](../../../src/auto/func_00140C88.c) | `SetStepplayerTnOverride` | If PO is the current player, swap the camera TN override at +0x1024: deactivate old (SetTnTnsOverride(old,0)), store, activate new | 0.55 | T1 |  |
+| [0x140C88](../../../src/auto/SetStepplayerTnOverride.c) | `SetStepplayerTnOverride` | If PO is the current player, swap the camera TN override at +0x1024: deactivate old (SetTnTnsOverride(old,0)), store, activate new | 0.55 | T1 |  |
 | [0x140D00](../../../src/hand/func_00140D00.c) | `STEPPLAYER_VUnk58` | vt59: SO base 0x1F4FA8 then per active component (jtair +0x2C0, jtgrab +0x4C0, jtpipe +0xF50 with state!=-1) call its update hook (0x1991A0, UpdateJtInternalXpsHide 0x193DE8, 0x19E950) | 0.40 | T2 |  |
 | [0x140D70](../../../src/auto/func_00140D70.c) | `STEPPLAYER_VUnk57` | vt58: STEP base 0x204768, then jtair hook 0x199298 if jtair state != -1 | 0.40 | T2 |  |
 | [0x140DB0](../../../src/hand/func_00140DB0.c) | `STEPPLAYER_VUnk67` | vt68 (SO VUnk67 contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900 and the player is not controlled or is pushing (0x144068), scale the contact velocity by 0.01 before calling base 0x1FAD00 | 0.45 | T2 |  |
-| [0x140EB0](../../../src/auto/func_00140EB0.c) | `OnStepplayerHeroDied` | vt93: broadcast game event 0x10 on D_002DEB30 with the player | 0.70 | T1 |  |
-| [0x140ED8](../../../src/hand/func_00140ED8.c) | `STEPPLAYER_FInvulnerable` | vt76: invulnerable if jtmode state==1, jtair state 0x15, the D_003D4A54 PO is current, else jthurt check 0x1A2230(zpk) | 0.75 | T1 |  |
-| [0x140F50](../../../src/auto/func_00140F50.c) | `STEPPLAYER_FTakeDamage` | vt75: forwards to the hurt component (+0xDF0) 0x1A19A0 | 0.70 | T1 |  |
-| [0x140F70](../../../src/auto/func_00140F70.c) | `STEPPLAYER_JthsCurrent` | vt77: returns the hurt component's state (0x1A23C0 on +0xDF0) | 0.75 | T1 |  |
-| [0x140F90](../../../src/hand/func_00140F90.c) | `HandleStepplayerMessage` | STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds 0x15E/0x161/0x162/0x27B/0x27C/0x1C7/0x1C8, msgs 4/5/1/11) then forwards to 0x1EED78/0x1C3E20 | 0.85 | T1 | verified |
-| [0x141588](../../../src/hand/func_00141588.c) | `GetStepplayerCmFocusPos` | vt97: camera focus point = pipe hand pos if on pipe, else world pos with z from jump start/ground height + 0x1048 offset (or smoothed +0x104C when the camera follows this player) | 0.70 | T1 |  |
-| [0x141640](../../../src/hand/func_00141640.c) | `GetStepplayerCpdefi` | STEPPLAYER vt50 GetCpdefi: base 0x1F58F0, then camera focus height (posBase.z) clamped/smoothed by mode (+0x434, state 0x16); uses g_cm.nCut/psoAdjust | 0.75 | T1 |  |
+| [0x140EB0](../../../src/auto/OnStepplayerHeroDied.c) | `OnStepplayerHeroDied` | vt93: broadcast game event 0x10 on D_002DEB30 with the player | 0.70 | T1 |  |
+| [0x140ED8](../../../src/hand/STEPPLAYER_FInvulnerable.c) | `STEPPLAYER_FInvulnerable` | vt76: invulnerable if jtmode state==1, jtair state 0x15, the D_003D4A54 PO is current, else jthurt check 0x1A2230(zpk) | 0.75 | T1 |  |
+| [0x140F50](../../../src/auto/STEPPLAYER_FTakeDamage.c) | `STEPPLAYER_FTakeDamage` | vt75: forwards to the hurt component (+0xDF0) 0x1A19A0 | 0.70 | T1 |  |
+| [0x140F70](../../../src/auto/JthsCurrent__10STEPPLAYER.c) | `STEPPLAYER_JthsCurrent` | vt77: returns the hurt component's state (0x1A23C0 on +0xDF0) | 0.75 | T1 |  |
+| [0x140F90](../../../src/hand/HandleStepplayerMessage.c) | `HandleStepplayerMessage` | STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds 0x15E/0x161/0x162/0x27B/0x27C/0x1C7/0x1C8, msgs 4/5/1/11) then forwards to 0x1EED78/0x1C3E20 | 0.85 | T1 | verified |
+| [0x141588](../../../src/hand/GetStepplayerCmFocusPos.c) | `GetStepplayerCmFocusPos` | vt97: camera focus point = pipe hand pos if on pipe, else world pos with z from jump start/ground height + 0x1048 offset (or smoothed +0x104C when the camera follows this player) | 0.70 | T1 |  |
+| [0x141640](../../../src/hand/GetStepplayerCpdefi.c) | `GetStepplayerCpdefi` | STEPPLAYER vt50 GetCpdefi: base 0x1F58F0, then camera focus height (posBase.z) clamped/smoothed by mode (+0x434, state 0x16); uses g_cm.nCut/psoAdjust | 0.75 | T1 |  |
 | [0x141928](../../../src/auto/func_00141928.c) | `RemoveHierarchyStepplayer` | STEPPLAYER vt12: base 0x1F2D48 then stops two actions (0x130658 x2) and 0x1EECD0 | 0.45 | T2 |  |
 | [0x141968](../../../src/hand/func_00141968.c) | `LaunchStepplayer` | Splice: compute ballistic velocity from pos(+dz) toward target (0x1D6848 with g,h), SetVelocity (vt35), and if not hurt put jtair into launched state 8 with apex params | 0.45 | T2 |  |
-| [0x141A50](../../../src/hand/func_00141A50.c) | `UpdateStepplayerGadgets` | Per frame for the 3 gadget slots (+0x1180, buttons D_002C3258 = 4,1,2): on press check vt99 FCanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - error sound 0x2E or start; while held call vt101, release -> stop | 0.75 | T1 | runtime |
-| [0x141C00](../../../src/auto/func_00141C00.c) | `STEPPLAYER_FCanUseGadget` | vt99 default: returns 0 (no gadgets usable) | 0.85 | T1 |  |
-| [0x141C08](../../../src/auto/func_00141C08.c) | `SetGadgetSlotState` | Change a gadget slot's state: leaving 1 calls vt102 (stop gadget); stamps tState; state 1/2 call vt100 StartGadget (2 = one-shot, returns to 0) | 0.65 | T1 |  |
-| [0x141CD0](../../../src/hand/func_00141CD0.c) | `ChargeGadgetMp` | If id != -1 subtract the gadget's MP cost (D_002BCD00[id].d) from MpCur; stamp tGadgetUsed (+0x1304) | 0.75 | T1 | runtime |
-| [0x141D38](../../../src/auto/func_00141D38.c) | `StartStepplayerGadget` | vt100: gadgets 14/21/23 -> store id in jtgrab +0x9BC and jtgrab state 0xB; gadget 12 -> charge MP and jtair state 0x11 | 0.70 | T1 |  |
-| [0x141DD0](../../../src/hand/func_00141DD0.c) | `UpdateStepplayerGadget` | vt101: while a gadget is held, drain MP at a per-second rate for gadgets 0x1D and 0x2A (DrainMp 0x1441E8) | 0.55 | T1 |  |
-| [0x141E28](../../../src/auto/func_00141E28.c) | `StopStepplayerGadget` | vt102: default empty (called when a held gadget slot leaves state 1) | 0.50 | T1 |  |
+| [0x141A50](../../../src/hand/UpdateStepplayerGadgets.c) | `UpdateStepplayerGadgets` | Per frame for the 3 gadget slots (+0x1180, buttons D_002C3258 = 4,1,2): on press check vt99 FCanUseGadget and MP cost (D_002BCD00[id].xC vs MpCur) - error sound 0x2E or start; while held call vt101, release -> stop | 0.75 | T1 | runtime |
+| [0x141C00](../../../src/auto/FCanUseGadget__10STEPPLAYERi.c) | `STEPPLAYER_FCanUseGadget` | vt99 default: returns 0 (no gadgets usable) | 0.85 | T1 |  |
+| [0x141C08](../../../src/auto/SetGadgetSlotState.c) | `SetGadgetSlotState` | Change a gadget slot's state: leaving 1 calls vt102 (stop gadget); stamps tState; state 1/2 call vt100 StartGadget (2 = one-shot, returns to 0) | 0.65 | T1 |  |
+| [0x141CD0](../../../src/hand/ChargeGadgetMp.c) | `ChargeGadgetMp` | If id != -1 subtract the gadget's MP cost (D_002BCD00[id].d) from MpCur; stamp tGadgetUsed (+0x1304) | 0.75 | T1 | runtime |
+| [0x141D38](../../../src/auto/StartStepplayerGadget.c) | `StartStepplayerGadget` | vt100: gadgets 14/21/23 -> store id in jtgrab +0x9BC and jtgrab state 0xB; gadget 12 -> charge MP and jtair state 0x11 | 0.70 | T1 |  |
+| [0x141DD0](../../../src/hand/UpdateStepplayerGadget.c) | `UpdateStepplayerGadget` | vt101: while a gadget is held, drain MP at a per-second rate for gadgets 0x1D and 0x2A (DrainMp 0x1441E8) | 0.55 | T1 |  |
+| [0x141E28](../../../src/auto/StopStepplayerGadget.c) | `StopStepplayerGadget` | vt102: default empty (called when a held gadget slot leaves state 1) | 0.50 | T1 |  |
 | [0x141E30](../../../src/hand/func_00141E30.c) | `STEPPLAYER_VUnk104` | vt104: fire Splice event 0x1A on itself via vt3 HandleSpliceEvent | 0.30 | T2 |  |
 | [0x141E70](../../../src/auto/func_00141E70.c) | `OnStepplayerGadgetsChanged` | vt105: default empty; called after the gadget slot assignment changes or load (BENTLEY override toggles feature 0x24D when gadget 0xC equipped) | 0.45 | T2 |  |
-| [0x141E78](../../../src/hand/func_00141E78.c) | `IGadgetSlotFromId` | Index (0..2) of the gadget slot holding id, else -1 | 0.60 | T1 |  |
-| [0x141EA8](../../../src/hand/func_00141EA8.c) | `GrfbtnGadget` | Button mask (D_002C3258) of every slot holding gadget id | 0.60 | T1 |  |
-| [0x141EF8](../../../src/hand/func_00141EF8.c) | `LoadStepplayerGadgets` | For i<3: GetSaveVar(vt103 root, 'apukCur', '%d' i) -> slot id; then vt105 | 0.70 | T1 |  |
-| [0x141FC8](../../../src/hand/func_00141FC8.cpp) | `SetStepplayerGadget` | Assign gadget id to slot i (<3): stop old, clear duplicates in other slots, write all to save var apukCur[%d], then vt105 | 0.70 | T1 |  |
+| [0x141E78](../../../src/hand/IGadgetSlotFromId.c) | `IGadgetSlotFromId` | Index (0..2) of the gadget slot holding id, else -1 | 0.60 | T1 |  |
+| [0x141EA8](../../../src/hand/GrfbtnGadget.c) | `GrfbtnGadget` | Button mask (D_002C3258) of every slot holding gadget id | 0.60 | T1 |  |
+| [0x141EF8](../../../src/hand/LoadStepplayerGadgets.c) | `LoadStepplayerGadgets` | For i<3: GetSaveVar(vt103 root, 'apukCur', '%d' i) -> slot id; then vt105 | 0.70 | T1 |  |
+| [0x141FC8](../../../src/hand/SetStepplayerGadget.cpp) | `SetStepplayerGadget` | Assign gadget id to slot i (<3): stop old, clear duplicates in other slots, write all to save var apukCur[%d], then vt105 | 0.70 | T1 |  |
 | [0x142140](../../../src/auto/func_00142140.c) | `SetStepplayerGrabTarget` | Splice: if obj put jtgrab into state 5 with it (0x1928F8), else if jtgrab state is 5 call vt88(0) (generic state 0) | 0.35 | T2 |  |
 | [0x1421A0](../../../src/auto/func_001421A0.c) | `SetStepplayerGrabTargetEx` | Splice: clears grab (0x142140(p,0)) then sets/clears an object at +0x900 (0x1CD098 / 0x1CD2C0) | 0.30 | T2 |  |
 | [0x1421F8](../../../src/auto/func_001421F8.c) | `SetStepplayerGrabTargetAlt` | Splice: jtgrab state 5 with obj and 0x1CD308(+0x900,obj); else leave state 5 via vt88(0) | 0.30 | T2 |  |
@@ -119,82 +119,82 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x1424D0](../../../src/auto/func_001424D0.c) | `FStepplayerNotGrabState9` | Splice predicate: jtgrab state (+0x4C8) != 9 | 0.35 | T2 |  |
 | [0x1424E0](../../../src/auto/func_001424E0.c) | `StartStepplayerGrabC` | Set jtgrab +0x9CC (default +0x9C8), enter jtgrab state 0xC, store +0x1318 | 0.30 | T2 |  |
 | [0x142530](../../../src/auto/func_00142530.c) | `FStepplayerNotGrabStateC` | Splice predicate: jtgrab state != 0xC | 0.35 | T2 |  |
-| [0x142540](../../../src/hand/func_00142540.c) | `StartStepplayerFollow` | Splice: clear message list, and if a then create behaviour 0xC2 (0x205438) with params and run its vt8 \| runtime6: Splice optid 446 on STEPPLAYER: clear stack, push BHV194 (follow leader +0x30, params +0x40/+0x44), Start | 0.30 | T2 | pending-fix; pending fix; v2 name StartStepplayerBhvC2 |
-| [0x1425B0](../../../src/hand/func_001425B0.c) | `RenderStepplayerSelf` | vt19: if visible (grfvis & D_002DDF54) render via 0x1F3C10; smooth two scale factors (+0x10D4/+0x10D8) toward per-grab-state targets and draw shadow 0x168638 | 0.50 | T1 |  |
+| [0x142540](../../../src/hand/StartStepplayerFollow.c) | `StartStepplayerFollow` | Splice: clear message list, and if a then create behaviour 0xC2 (0x205438) with params and run its vt8 \| runtime6: Splice optid 446 on STEPPLAYER: clear stack, push BHV194 (follow leader +0x30, params +0x40/+0x44), Start | 0.30 | T2 | pending-fix; pending fix; v2 name StartStepplayerBhvC2 |
+| [0x1425B0](../../../src/hand/RenderStepplayerSelf.c) | `RenderStepplayerSelf` | vt19: if visible (grfvis & D_002DDF54) render via 0x1F3C10; smooth two scale factors (+0x10D4/+0x10D8) toward per-grab-state targets and draw shadow 0x168638 | 0.50 | T1 |  |
 | [0x1426E8](../../../src/hand/func_001426E8.c) | `AttachStepplayerToStartMarker` | Find child SO x (0x1F4C58 kind 6), compute relative matrix, create an actor/ACT (0x12DC18) at +0x10F4 and start it | 0.35 | T2 |  |
-| [0x1427C8](../../../src/auto/func_001427C8.c) | `SetStepplayerLeanTarget` | Set ploLean (+0x10F8) / nLeanKind (+0x10FC); on a new target with idle timer armed set +0x1148=1 and reset +0x1100 | 0.55 | T1 |  |
-| [0x142830](../../../src/hand/func_00142830.c) | `ForceStepplayerLeanTarget` | Splice: SetStepplayerLeanTarget then +0x1100=1 (locked) | 0.50 | T1 |  |
+| [0x1427C8](../../../src/auto/SetStepplayerLeanTarget.c) | `SetStepplayerLeanTarget` | Set ploLean (+0x10F8) / nLeanKind (+0x10FC); on a new target with idle timer armed set +0x1148=1 and reset +0x1100 | 0.55 | T1 |  |
+| [0x142830](../../../src/hand/ForceStepplayerLeanTarget.c) | `ForceStepplayerLeanTarget` | Splice: SetStepplayerLeanTarget then +0x1100=1 (locked) | 0.50 | T1 |  |
 | [0x142860](../../../src/auto/func_00142860.c) | `UnlockStepplayerLeanTarget` | +0x1100 = 0 | 0.40 | T2 |  |
 | [0x142868](../../../src/hand/func_00142868.c) | `InitIdleTimer` | Set kind a and t = FLT_MAX | 0.35 | T2 |  |
 | [0x142880](../../../src/hand/func_00142880.c) | `ScheduleIdleTimer` | tNext = now + GRandInRange(min,max) choosing range set by flag | 0.40 | T2 |  |
-| [0x1428D8](../../../src/hand/func_001428D8.cpp) | `HeroInteractDistance` | Distance score of an object for interact picking: xy distance + CLQ biases (hysteresis for current target, stick-direction bonus), optional height delta | 0.60 | T1 |  |
+| [0x1428D8](../../../src/hand/HeroInteractDistance.cpp) | `HeroInteractDistance` | Distance score of an object for interact picking: xy distance + CLQ biases (hysteresis for current target, stick-direction bonus), optional height delta | 0.60 | T1 |  |
 | [0x142AF8](../../../src/hand/func_00142AF8.cpp) | `PickHeroInteractTarget` | Per-frame interact/lean target pick: ranks candidates with HeroInteractDistance (3 calls, &hero->ploLean) | 0.45 | T2 |  |
 | [0x143090](../../../src/hand/func_00143090.c) | `SetStepplayerIdleParams` | Copy three 8-byte pairs into the struct | 0.25 | T2 |  |
 | [0x1430C8](../../../src/hand/func_001430C8.c) | `GrfStepplayerLean` | From lean target direction (atan2 in local space, quadrants) and nLeanKind return a bitmask (8, 0x10<<n, 0x100<<n, 0x1000) | 0.45 | T2 |  |
 | [0x1431D0](../../../src/auto/func_001431D0.c) | `ReleaseInteractTargetMark` | If +0x10DC target has behaviour 0xB1 pointing at the player, clear its +0x60 | 0.40 | T2 |  |
-| [0x143220](../../../src/hand/func_00143220.c) | `GetStepplayerStunHold` | vt96: velocity minus vertical part -> dir; pos = pos + dir*dt; radii 150/75 | 0.60 | T1 |  |
+| [0x143220](../../../src/hand/GetStepplayerStunHold.c) | `GetStepplayerStunHold` | vt96: velocity minus vertical part -> dir; pos = pos + dir*dt; radii 150/75 | 0.60 | T1 |  |
 | [0x1432E0](../../../src/hand/func_001432E0.c) | `SpawnStepplayerBootyMarker` | If carrying booty id n not already shown: release old, clone template D_003E1AC8 (0x1CB250), set its id, owner (+0x160), states 6 then 4 | 0.45 | T2 |  |
 | [0x143380](../../../src/auto/func_00143380.c) | `DropStepplayerBooty` | If carrying booty (+0x11A8): booty save handling case 2, set its state 5 | 0.45 | T2 |  |
 | [0x1433C8](../../../src/auto/func_001433C8.c) | `DeliverStepplayerBooty` | If carrying booty: booty save case 1 (clear oidBooty, increment loot.mplootkc[kind]), set its state 0 | 0.40 | T2 |  |
-| [0x143410](../../../src/hand/func_00143410.cpp) | `PkeyFindBootySaveVar` | Search save trie episode.level.booty.aoidAssembly[0..14] for an entry equal to oid; return an allocated copy of its key | 0.55 | T1 |  |
-| [0x143678](../../../src/hand/func_00143678.cpp) | `UpdateStepplayerBootySave` | Booty save-state transitions: 0 = picked up (oidBooty=id, mark assembly slot), 1 = delivered (clear, loot count++), 2 = dropped/restore | 0.50 | T1 |  |
+| [0x143410](../../../src/hand/PkeyFindBootySaveVar.cpp) | `PkeyFindBootySaveVar` | Search save trie episode.level.booty.aoidAssembly[0..14] for an entry equal to oid; return an allocated copy of its key | 0.55 | T1 |  |
+| [0x143678](../../../src/hand/UpdateStepplayerBootySave.cpp) | `UpdateStepplayerBootySave` | Booty save-state transitions: 0 = picked up (oidBooty=id, mark assembly slot), 1 = delivered (clear, loot count++), 2 = dropped/restore | 0.50 | T1 |  |
 | [0x143AF0](../../../src/hand/func_00143AF0.cpp) | `ClearStepplayerBootySave` | Mark the assembly save slot for booty x and set oidBooty=-1 | 0.40 | T2 |  |
 | [0x143BD8](../../../src/hand/func_00143BD8.c) | `RestoreStepplayerBooty` | On load: read oidBooty; if set either clear it (flag D_003E1084&0x40) or respawn the carried booty marker | 0.45 | T2 |  |
 | [0x143C78](../../../src/hand/func_00143C78.c) | `STEPPLAYER_VUnk84` | vt85: returns a mode code from component states (0 if +0x204, 4 in grab 3/4, 1 in air, 7 standing/hurt-idle, 1 in hurt 4/7/8/12) | 0.35 | T2 |  |
-| [0x143CF8](../../../src/auto/func_00143CF8.c) | `TranslateStepplayerToPos` | vt29: base 0x2041C0 then clear jtplaces count (+0x9E4) | 0.50 | T1 |  |
+| [0x143CF8](../../../src/auto/TranslateStepplayerToPos.c) | `TranslateStepplayerToPos` | vt29: base 0x2041C0 then clear jtplaces count (+0x9E4) | 0.50 | T1 |  |
 | [0x143D20](../../../src/hand/func_00143D20.c) | `FStepplayerWillLand` | Predict height after dt under gravity; if <=0 test ground 0x173610 at pos | 0.30 | T2 |  |
 | [0x143DE8](../../../src/hand/func_00143DE8.c) | `SetStepplayerRide` | Set object at +0x1084: old one gets vt2, leaves grab states 5/6 via vt88(0); new one gets vt1, message list cleared, jtmode reset | 0.35 | T2 |  |
 | [0x143EE0](../../../src/hand/func_00143EE0.c) | `PlayStepplayerScriptAnim` | oid -1 stops; else find object: class 0x6D -> vt88(b) and ApplyAsegCur(o,p,a,+0x1030); class 0x6F -> vt88(b) and SMA start 0x1F1448 into +0x1034 | 0.45 | T2 |  |
 | [0x143FF8](../../../src/auto/func_00143FF8.c) | `StopStepplayerScriptAnim` | If generic state is 5 or 6 (0x144038) call vt88(0) | 0.40 | T2 |  |
 | [0x144038](../../../src/auto/func_00144038.c) | `FStepplayerInScriptState` | vt89 GetPlayerState in {5,6} | 0.40 | T2 |  |
 | [0x144068](../../../src/auto/func_00144068.c) | `FStepplayerPushing` | True if c270>0 (STEP behaviour stack) or ride object +0x1084 set | 0.35 | T2 |  |
-| [0x144090](../../../src/auto/func_00144090.c) | `STEPPLAYER_FCanBeHealed` | vt80: PO FCanPoBeHealed and hurt state != 2 | 0.70 | T1 |  |
-| [0x1440D0](../../../src/hand/func_001440D0.c) | `BindStepplayerHpMp` | Bind hp/mp to save vars hpCur/mpCur under vt103 root (+0xE00, +0x12FC); if unset or forced, reset to max | 0.80 | T1 | runtime |
-| [0x144188](../../../src/auto/func_00144188.c) | `SetStepplayerHp` | *php = min(n, nHpMax) | 0.70 | T1 |  |
-| [0x1441A0](../../../src/hand/func_001441A0.c) | `MpStepplayerCur` | Current MP (*pmpCur or mpMax if unbound) | 0.70 | T1 |  |
-| [0x1441C0](../../../src/auto/func_001441C0.c) | `SetStepplayerMp` | *pmpCur = min(n, mpMax) | 0.70 | T1 |  |
-| [0x1441E8](../../../src/hand/func_001441E8.c) | `DrainStepplayerMp` | Accumulate rate*dt in gMpFrac (+0x1308) and subtract whole units from MP (floored at 0) | 0.60 | T1 |  |
-| [0x144268](../../../src/hand/func_00144268.c) | `AddStepplayerHpMp` | vt81: PO base then hp += dhp, mp += dmp (clamped) | 0.75 | T1 |  |
+| [0x144090](../../../src/auto/FCanBeHealed__10STEPPLAYER.c) | `STEPPLAYER_FCanBeHealed` | vt80: PO FCanPoBeHealed and hurt state != 2 | 0.70 | T1 |  |
+| [0x1440D0](../../../src/hand/BindStepplayerHpMp.c) | `BindStepplayerHpMp` | Bind hp/mp to save vars hpCur/mpCur under vt103 root (+0xE00, +0x12FC); if unset or forced, reset to max | 0.80 | T1 | runtime |
+| [0x144188](../../../src/auto/SetStepplayerHp.c) | `SetStepplayerHp` | *php = min(n, nHpMax) | 0.70 | T1 |  |
+| [0x1441A0](../../../src/hand/MpStepplayerCur.c) | `MpStepplayerCur` | Current MP (*pmpCur or mpMax if unbound) | 0.70 | T1 |  |
+| [0x1441C0](../../../src/auto/SetStepplayerMp.c) | `SetStepplayerMp` | *pmpCur = min(n, mpMax) | 0.70 | T1 |  |
+| [0x1441E8](../../../src/hand/DrainStepplayerMp.c) | `DrainStepplayerMp` | Accumulate rate*dt in gMpFrac (+0x1308) and subtract whole units from MP (floored at 0) | 0.60 | T1 |  |
+| [0x144268](../../../src/hand/AddStepplayerHpMp.c) | `AddStepplayerHpMp` | vt81: PO base then hp += dhp, mp += dmp (clamped) | 0.75 | T1 |  |
 | [0x1442D0](../../../src/hand/func_001442D0.c) | `STEPPLAYER_VUnk82` | vt83 (STEP VUnk82(grf,fCount)): base 0x205478; when counting and +0x12F4 goes 0->1 play script anim 0x60B and reset jtmode | 0.35 | T2 |  |
 | [0x144338](../../../src/hand/func_00144338.c) | `STEPPLAYER_VUnk83` | vt84 (STEP VUnk83(grf,fCount)): base 0x205588; when +0x12F4 drops to 0 stop the script anim | 0.35 | T2 |  |
-| [0x144388](../../../src/hand/func_00144388.c) | `STEPPLAYER_FIgnoreIntersection` | vt61: SO base then let jtthrow (0x220498) and jtgrab hands (+0x900, 0x1CC9A8) adjust the result | 0.60 | T1 |  |
-| [0x1443D8](../../../src/auto/func_001443D8.c) | `FStepplayerInJtmode` | Return jtmode.nState (+0xF04) in 0..2 (unsigned compare; -1 = no jt mode) | 0.65 | T1 | top50 |
+| [0x144388](../../../src/hand/FIgnoreIntersection__10STEPPLAYERP2SO.c) | `STEPPLAYER_FIgnoreIntersection` | vt61: SO base then let jtthrow (0x220498) and jtgrab hands (+0x900, 0x1CC9A8) adjust the result | 0.60 | T1 |  |
+| [0x1443D8](../../../src/auto/FStepplayerInJtmode.c) | `FStepplayerInJtmode` | Return jtmode.nState (+0xF04) in 0..2 (unsigned compare; -1 = no jt mode) | 0.65 | T1 | top50 |
 | [0x1443E8](../../../src/auto/func_001443E8.c) | `FStepplayerJtmodeKind0` | jtmode +0xF20 == 0 | 0.30 | T2 |  |
 | [0x1443F8](../../../src/auto/func_001443F8.c) | `FStepplayerJtmodeKind1` | jtmode +0xF20 == 1 | 0.30 | T2 |  |
 | [0x144408](../../../src/auto/func_00144408.c) | `FStepplayerJtmodeKind2` | jtmode +0xF20 == 2 | 0.30 | T2 |  |
 | [0x144418](../../../src/hand/func_00144418.c) | `STEPPLAYER_VUnk85` | vt86 (STEP VUnk85(ZPR*)->int): 0 if damage below hp max or zap kind in {0,1,0x80000,0x100000}, else 1 | 0.35 | T2 |  |
-| [0x144480](../../../src/hand/func_00144480.c) | `OnStepplayerActive` | vt78: PO OnPoActive, then vt105; when deactivated stop +0x1310 action and +0x1314=-1 | 0.80 | T1 | runtime |
+| [0x144480](../../../src/hand/OnStepplayerActive.c) | `OnStepplayerActive` | vt78: PO OnPoActive, then vt105; when deactivated stop +0x1310 action and +0x1314=-1 | 0.80 | T1 | runtime |
 
 ## jtgoal (0x144638-0x144B28)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x144638](../../../src/auto/func_00144638.c) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
-| [0x144640](../../../src/hand/func_00144640.c) | `UpdateJtgoal` | Anti-stuck for scripted walk-to-goal: every D_002BD2D0 s while the player is pushed (behaviour stack/ride), if hands-off nudge blocking guards (event 0x17, 0x1F7BF8); if distance to qwGoal did not shrink enough, snap goa | 0.60 | T1 |  |
-| [0x1448F0](../../../src/hand/func_001448F0.c) | `SetJtgoal` | Set goal position unless holding or already within D_002BD2D8: store qwGoal, sDist = distance from player, tCheck = now + interval | 0.65 | T1 |  |
-| [0x1449C8](../../../src/auto/func_001449C8.c) | `FJtgoalHold` | returns fHold (+0x28) | 0.60 | T1 |  |
+| [0x144638](../../../src/auto/InitJtgoal.c) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
+| [0x144640](../../../src/hand/UpdateJtgoal.c) | `UpdateJtgoal` | Anti-stuck for scripted walk-to-goal: every D_002BD2D0 s while the player is pushed (behaviour stack/ride), if hands-off nudge blocking guards (event 0x17, 0x1F7BF8); if distance to qwGoal did not shrink enough, snap goa | 0.60 | T1 |  |
+| [0x1448F0](../../../src/hand/SetJtgoal.c) | `SetJtgoal` | Set goal position unless holding or already within D_002BD2D8: store qwGoal, sDist = distance from player, tCheck = now + interval | 0.65 | T1 |  |
+| [0x1449C8](../../../src/auto/FJtgoalHold.c) | `FJtgoalHold` | returns fHold (+0x28) | 0.60 | T1 |  |
 
 ## tu_144B28 (0x144B28-0x1471C0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x144B28](../../../src/auto/func_00144B28.c) | `InitBhv168` | BHV168 slot 7: BHV166 base (0x177E80), speed scale +0xD0 = 1 | 0.45 | T2 |  |
-| [0x144B58](../../../src/auto/func_00144B58.c) | `StartBhv168` | BHV168 slot 8: base, then SetJtgoal(owner+0xFD0, goal +0x80) | 0.45 | T2 |  |
-| [0x144B90](../../../src/auto/func_00144B90.c) | `UpdateBhv168Goal` | BHV168 slot 10: BHV166 update (0x1789F8), then refresh SetJtgoal | 0.40 | T2 |  |
-| [0x144BC8](../../../src/hand/func_00144BC8.c) | `Bhv168_VUnk14` | BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ of xy distance, scaled by +0xD0) and heading toward the goal | 0.40 | T2 |  |
+| [0x144B28](../../../src/auto/InitBhvwalkgoal.c) | `InitBhv168` | BHV168 slot 7: BHV166 base (0x177E80), speed scale +0xD0 = 1 | 0.45 | T2 |  |
+| [0x144B58](../../../src/auto/StartBhvwalkgoal.c) | `StartBhv168` | BHV168 slot 8: base, then SetJtgoal(owner+0xFD0, goal +0x80) | 0.45 | T2 |  |
+| [0x144B90](../../../src/auto/UpdateBhvwalkgoal.c) | `UpdateBhv168Goal` | BHV168 slot 10: BHV166 update (0x1789F8), then refresh SetJtgoal | 0.40 | T2 |  |
+| [0x144BC8](../../../src/hand/UpdateBhvwalkgoalPoctl.c) | `Bhv168_VUnk14` | BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ of xy distance, scaled by +0xD0) and heading toward the goal | 0.40 | T2 |  |
 | [0x144E20](../../../src/auto/func_00144E20.c) | `InitBhv193` | BHV193 slot 7: base, defaults 40.0 / 1 / 1.0 | 0.40 | T2 |  |
 | [0x144E68](../../../src/hand/func_00144E68.c) | `StartBhv193` | BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it | 0.40 | T2 |  |
 | [0x144EE8](../../../src/hand/func_00144EE8.c) | `FBhv193Done` | true if the child behaviour finished (0x178D00) or its state == 2 | 0.30 | T2 |  |
 | [0x144F48](../../../src/hand/func_00144F48.c) | `SetBhv193Goal` | store goal; build a path (straight or via nav graph 0x1C02D0) into the child's route | 0.35 | T2 |  |
-| [0x145010](../../../src/hand/func_00145010.c) | `InitBhv194` | BHV194 slot 7: base, state -1, follow distances 0.25/250/350/1.0/1.2 | 0.40 | T2 |  |
-| [0x145080](../../../src/auto/func_00145080.c) | `StartBhv194` | BHV194 slot 8: SetBhv194State(0) | 0.40 | T2 |  |
-| [0x1450B0](../../../src/auto/func_001450B0.c) | `CloseBhv194` | BHV194 slot 9: SetBhv194State(-1) | 0.40 | T2 |  |
+| [0x145010](../../../src/hand/InitBhvfollow.c) | `InitBhv194` | BHV194 slot 7: base, state -1, follow distances 0.25/250/350/1.0/1.2 | 0.40 | T2 |  |
+| [0x145080](../../../src/auto/StartBhvfollow.c) | `StartBhv194` | BHV194 slot 8: SetBhv194State(0) | 0.40 | T2 |  |
+| [0x1450B0](../../../src/auto/CloseBhvfollow.c) | `CloseBhv194` | BHV194 slot 9: SetBhv194State(-1) | 0.40 | T2 |  |
 | [0x1450E0](../../../src/hand/func_001450E0.c) | `PsoBhv194PickTarget` | Pick the nearest SO of several guard-state classes around the followed object | 0.30 | T2 |  |
-| [0x1453F0](../../../src/hand/func_001453F0.c) | `UpdateBhv194` | BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when far | 0.40 | T2 |  |
+| [0x1453F0](../../../src/hand/UpdateBhvfollow.c) | `UpdateBhv194` | BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when far | 0.40 | T2 |  |
 | [0x1457A8](../../../src/hand/func_001457A8.cpp) | `UpdateBhv194FollowPos` | compute follow target position behind the leader (uses its facing if STEP) | 0.30 | T2 |  |
 | [0x1459C0](../../../src/hand/func_001459C0.c) | `FBhv194LeaderOnNewGround` | checks the leader's ground object vs own | 0.25 | T2 |  |
 | [0x145AA8](../../../src/auto/func_00145AA8.c) | `PsoBhv194LeaderGround` | leader's ground/standing object if any | 0.25 | T2 |  |
-| [0x145B18](../../../src/hand/func_00145B18.c) | `SetBhv194State` | state change; state 0 pushes a BHV168 walk-to-goal child | 0.40 | T2 |  |
+| [0x145B18](../../../src/hand/SetBhvfollowState.c) | `SetBhv194State` | state change; state 0 pushes a BHV168 walk-to-goal child | 0.40 | T2 |  |
 | [0x145CD0](../../../src/hand/func_00145CD0.c) | `InitBhv195` | BHV195 slot 7: base, state -1 | 0.40 | T2 |  |
 | [0x145D00](../../../src/hand/func_00145D00.c) | `StartBhv195` | BHV195 slot 8: state 0, SetPlayerInteractMode(4, target, 4, target), set owner +0x10E0 bit 1 | 0.40 | T2 |  |
 | [0x145D68](../../../src/auto/func_00145D68.c) | `CloseBhv195` | BHV195 slot 9: clear owner +0x10E0 bit 1 | 0.40 | T2 |  |
@@ -224,8 +224,8 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x182C70](../../../src/hand/func_00182C70.c) | `InitGrabspot` | Init the GRABSPOT mix-in sub-object: x14=-1, sBusy-like g=D_002A5680, player mask 7, owner (vt6) busyk 3 | 0.60 | T1 |  |
-| [0x182CC0](../../../src/auto/func_00182CC0.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
+| [0x182C70](../../../src/hand/InitGrabspot.c) | `InitGrabspot` | Init the GRABSPOT mix-in sub-object: x14=-1, sBusy-like g=D_002A5680, player mask 7, owner (vt6) busyk 3 | 0.60 | T1 |  |
+| [0x182CC0](../../../src/auto/GRABSPOT_FGetGrabRange.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
 | [0x182CC8](../../../src/hand/func_00182CC8.c) | `GetGrabspotClosestParam` | Default: *pparam = 0 | 0.35 | T2 |  |
 | [0x182CD0](../../../src/auto/func_00182CD0.c) | `GetGrabspotGrabPos` | Default no-op | 0.35 | T2 |  |
 | [0x182CD8](../../../src/hand/func_00182CD8.c) | `GetGrabspotPosNear` | Call slot B (closest param) then slot C (pos at that param) | 0.35 | T2 |  |
@@ -256,11 +256,11 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x183768](../../../src/hand/func_00183768.c) | `PostCid38Load` | vt15: PostLoLoad, TN override off, default radius D_002BE8C8 | 0.55 | T2 |  |
 | [0x1837D0](../../../src/hand/func_001837D0.c) | `CloneCid38` | vt41: CloneXfm keeping own field | 0.55 | T2 |  |
 | [0x183818](../../../src/hand/func_00183818.c) | `GetCid38GrabPos` | Hold position/heading from the object matrix (offset by player radius unless x10C) | 0.35 | T2 |  |
-| [0x183900](../../../src/auto/func_00183900.c) | `InitCid88` | CID88 vt7: InitSo, InitGrabspot(+0x150), state 0, radius 300, flag x18C=1, zap response mask | 0.55 | T2 |  |
+| [0x183900](../../../src/auto/InitBarrel.c) | `InitCid88` | CID88 vt7: InitSo, InitGrabspot(+0x150), state 0, radius 300, flag x18C=1, zap response mask | 0.55 | T2 |  |
 | [0x183970](../../../src/auto/func_00183970.c) | `CID88_vt26` | vt26: SO slot 26 base then state x17C=0 | 0.30 | T2 |  |
-| [0x183998](../../../src/auto/func_00183998.c) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
-| [0x1839D0](../../../src/auto/func_001839D0.c) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
-| [0x183A08](../../../src/hand/func_00183A08.c) | `CloneCid88` | vt41: SO Clone keeping own field | 0.55 | T2 |  |
+| [0x183998](../../../src/auto/OnBarrelAdd.c) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
+| [0x1839D0](../../../src/auto/OnBarrelRemove.c) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
+| [0x183A08](../../../src/hand/CloneBarrel.c) | `CloneCid88` | vt41: SO Clone keeping own field | 0.55 | T2 |  |
 | [0x183A50](../../../src/auto/func_00183A50.c) | `CID88_FIgnoreIntersection` | vt61: SO base, and ignore a STEPPLAYER that is holding this object (grab state 1 on it) | 0.35 | T2 |  |
 | [0x183B00](../../../src/hand/func_00183B00.c) | `PresetCid88Accel` | vt70: pending velocity, and while free (x18C, state 0) spring the object upright | 0.40 | T2 |  |
 | [0x183B80](../../../src/hand/func_00183B80.cpp) | `SetCid88State` | Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent), constraint force/torque, part flags | 0.40 | T2 |  |
@@ -287,13 +287,13 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x1844D8](../../../src/auto/func_001844D8.c) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
 | [0x184510](../../../src/hand/func_00184510.c) | `GetCid27GrabPos` | Hold position (debug flag D_002DFB84 uses child x15C pos + offset) | 0.30 | T2 |  |
 | [0x1845A0](../../../src/hand/func_001845A0.c) | `GetCid27SparklePos` | Random point on a disc around its point | 0.30 | T2 | verified |
-| [0x184670](../../../src/hand/func_00184670.c) | `PgrabspotFromLo` | Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0, CID12 +0x190, ...) or NULL | 0.65 | T1 |  |
+| [0x184670](../../../src/hand/PgrabspotFromLo.c) | `PgrabspotFromLo` | Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0, CID12 +0x190, ...) or NULL | 0.65 | T1 |  |
 
 ## hnd (0x184F50-0x185130)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x184F50](../../../src/auto/func_00184F50.c) | `InitHnd` | CID19 (HND) vt7: InitTarget then InitGrabspot on its GRABSPOT part | 0.60 | T1 |  |
+| [0x184F50](../../../src/auto/InitHnd.c) | `InitHnd` | CID19 (HND) vt7: InitTarget then InitGrabspot on its GRABSPOT part | 0.60 | T1 |  |
 | [0x184F98](../../../src/hand/func_00184F98.c) | `GetHndGrabPos` | GRABSPOT slot C: owner position + D_002BE910 in z | 0.40 | T2 |  |
 
 ## tu_185130 (0x185130-0x186610)
@@ -318,43 +318,43 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x188488](../../../src/hand/func_00188488.c) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt D_002E1E40=pjt | 0.90 | T1 | runtime, verified |
-| [0x1885B8](../../../src/hand/func_001885B8.c) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
-| [0x188608](../../../src/hand/func_00188608.c) | `PostJtLoad` | JT vt15 PostLoad: base 0x1400B8, BindLoOidTable, look up ~10 named child ALOs/actuators (0x1F4C58 by id+kind) into x10B8/x19C0..x19E0, sub-object postloads (0x1A0300, 0x18F908), build blend/aseg tables, SM applies | 0.80 | T1 |  |
+| [0x188488](../../../src/hand/InitJt.c) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt D_002E1E40=pjt | 0.90 | T1 | runtime, verified |
+| [0x1885B8](../../../src/hand/LoadJtFromBrx.c) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
+| [0x188608](../../../src/hand/PostJtLoad.c) | `PostJtLoad` | JT vt15 PostLoad: base 0x1400B8, BindLoOidTable, look up ~10 named child ALOs/actuators (0x1F4C58 by id+kind) into x10B8/x19C0..x19E0, sub-object postloads (0x1A0300, 0x18F908), build blend/aseg tables, SM applies | 0.80 | T1 |  |
 | [0x188960](../../../src/hand/func_00188960.cpp) | `PresetJtAccel` | JT vt70: base accel (SO 0x1F9B20 for jts 3/8 else STEP 0x204108), then per-jts sub-handler: 3->0x1903B8, 8->0x19DF70(+0xF50), 2 jump->0x196DF8(+0x2C0), 4->0x1A1148(+0xDF0), 7->0x194170(+0x4C0), 6->0x137248(+0x1FF0), 14/2 | 0.40 | T2 |  |
 | [0x188CC8](../../../src/hand/func_00188CC8.c) | `AdjustJtXp` | JT vt55 (p, XP-like pa, pv): base STEP 0x204250, jts 8 -> 0x19E9C8, jts 7 friction-like scale g94 = clamp(\|v.xy\|/g88+0.5, 0.5,1.5) | 0.30 | T2 |  |
 | [0x188E78](../../../src/hand/func_00188E78.c) | `AdjustJtXpVelocity` | JT vt57 (p, entries, i): base STEP 0x2044B0; if entry's object is self, v30 -= angvel x (pos - PosLoWorld) | 0.35 | T2 |  |
-| [0x188F20](../../../src/hand/func_00188F20.c) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |
-| [0x189458](../../../src/auto/func_00189458.c) | `JT_FFaceTarget` | JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1 | 0.60 | T1 | verified |
+| [0x188F20](../../../src/hand/HandleJtMessage.c) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |
+| [0x189458](../../../src/auto/JT_FFaceTarget.c) | `JT_FFaceTarget` | JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1 | 0.60 | T1 | verified |
 | [0x189488](../../../src/hand/func_00189488.c) | `JT_vt98` | JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1 | 0.25 | T2 |  |
 | [0x1894F8](../../../src/hand/func_001894F8.c) | `JT_vt94` | JT vt94 (pure virtual in STEPPLAYER): 1 for jts 0,1,5,10,12,24 | 0.25 | T2 |  |
 | [0x189530](../../../src/hand/func_00189530.c) | `SetJtPlayable` | JT vt87 (p,f): base STEP 0x205D10, then vt21(!f) on three attached sub-objects | 0.30 | T2 | verified |
-| [0x189618](../../../src/hand/func_00189618.cpp) | `UpdateJtLean` | Body lean actuators x19E4/E8/EC from velocity of the floor object / curve he stands on; last step of UpdateJt | 0.70 | T1 |  |
-| [0x189C40](../../../src/hand/func_00189C40.cpp) | `RebuildJtXmg` | Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical probe line) | 0.85 | T1 | verified |
-| [0x189EC8](../../../src/hand/func_00189EC8.cpp) | `FMatchJtXmg` | Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target | 0.70 | T1 |  |
-| [0x18A0C8](../../../src/hand/func_0018A0C8.c) | `UpdateJtStand` | Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620), FMatchJtXmg | 0.70 | T1 |  |
-| [0x18A238](../../../src/auto/func_0018A238.c) | `RenderJtSelf` | JT vt19: if jts==3 render extra (0x190D10) then STEPPLAYER render 0x1425B0 | 0.50 | T1 |  |
+| [0x189618](../../../src/hand/UpdateJtLean__FP2JT.cpp) | `UpdateJtLean` | Body lean actuators x19E4/E8/EC from velocity of the floor object / curve he stands on; last step of UpdateJt | 0.70 | T1 |  |
+| [0x189C40](../../../src/hand/RebuildJtXmg.cpp) | `RebuildJtXmg` | Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical probe line) | 0.85 | T1 | verified |
+| [0x189EC8](../../../src/hand/FMatchJtXmg.cpp) | `FMatchJtXmg` | Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target | 0.70 | T1 |  |
+| [0x18A0C8](../../../src/hand/UpdateJtStand.c) | `UpdateJtStand` | Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620), FMatchJtXmg | 0.70 | T1 |  |
+| [0x18A238](../../../src/auto/RenderJtSelf.c) | `RenderJtSelf` | JT vt19: if jts==3 render extra (0x190D10) then STEPPLAYER render 0x1425B0 | 0.50 | T1 |  |
 | [0x18A278](../../../src/hand/func_0018A278.c) | `JT_vt17` | JT vt17: cache PosLoWorld of x19A4 child, call SO vt17 0x1F3980, record self/child positions when x18D8==0 | 0.30 | T2 |  |
 | [0x18A2E0](../../../src/hand/func_0018A2E0.c) | `JT_vt49` | JT vt49: SO 0x1F50E0 then 0x1F5480(pjt, q[i], g) for each extra entry | 0.30 | T2 |  |
 | [0x18A350](../../../src/hand/func_0018A350.c) | `GetJtCameraTarget` | JT vt97 (p, out): target pos; jts 3 -> z of x18C4 obj -175, jts 0x16 -> -100, jts 0x15 own pos; default STEPPLAYER 0x141588 | 0.30 | T2 |  |
 | [0x18A428](../../../src/hand/func_0018A428.c) | `JT_vt50` | JT vt50 (p, int *pgrf): stamp x? with g_clock.t while moving, base 0x141640, jts 8 sub, jts 3/5/6 -> *pgrf\|=1 | 0.30 | T2 |  |
-| [0x18A8C8](../../../src/hand/func_0018A8C8.cpp) | `JtChooseGroundState` | Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor | 0.65 | T1 | runtime |
+| [0x18A8C8](../../../src/hand/JtChooseGroundState.cpp) | `JtChooseGroundState` | Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor | 0.65 | T1 | runtime |
 | [0x18B2C0](../../../src/hand/func_0018B2C0.c) | `UpdateJtModeInput` | If player can act (0x1443D8) and POCTL button 0x410/0x4F0 pressed toggle JTMODE at x0F00 (0x19CCE8), then update it (0x19D330) | 0.40 | T2 |  |
 | [0x18B348](../../../src/hand/func_0018B348.c) | `CacheJtRestPose` | From clip label 0x167 sample positions of 3 child XFs into x1BE0..x1C20 | 0.30 | T2 | verified |
 | [0x18B460](../../../src/hand/func_0018B460.c) | `UpdateJtAttachCorrection` | jts 11 handler: attachment correction, decays inactive responses | 0.30 | T2 |  |
-| [0x18B7E8](../../../src/hand/func_0018B7E8.c) | `UpdateJtPre` | Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input, JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files | 0.55 | T1 |  |
-| [0x18BCE0](../../../src/hand/func_0018BCE0.c) | `UpdateJt` | JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand, feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLean last | 0.80 | T1 |  |
+| [0x18B7E8](../../../src/hand/UpdateJtPre.c) | `UpdateJtPre` | Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input, JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files | 0.55 | T1 |  |
+| [0x18BCE0](../../../src/hand/UpdateJt.c) | `UpdateJt` | JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand, feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLean last | 0.80 | T1 |  |
 | [0x18C060](../../../src/hand/func_0018C060.c) | `JT_vt90` | JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass to 0x203D00 | 0.30 | T2 |  |
 | [0x18C120](../../../src/auto/func_0018C120.c) | `EnableJtLeanActs` | (pjt,f): enable/disable 5 actuators x19E4..x19F4 (0x12CFE0/0x12D020) | 0.35 | T2 |  |
-| [0x18C250](../../../src/hand/func_0018C250.cpp) | `SetJtJts` | Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state | 0.95 | T1 | runtime, verified |
+| [0x18C250](../../../src/hand/SetJtJts__FP2JT3JTS4JTBS.cpp) | `SetJtJts` | Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state | 0.95 | T1 | runtime, verified |
 | [0x18D500](../../../src/hand/func_0018D500.c) | `JT_vt106` | JT vt106: 0 if jts==1 or 0x14FD50(D_002DE2E0) else 1 | 0.25 | T2 |  |
 | [0x18D548](../../../src/auto/func_0018D548.c) | `JT_vt91` | JT vt91: calls 0x18E540(pjt,-1) (first fn of next TU) | 0.30 | T2 |  |
-| [0x18D568](../../../src/hand/func_0018D568.c) | `SetJtPlayerState` | JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8) | 0.55 | T1 |  |
-| [0x18D620](../../../src/hand/func_0018D620.c) | `GetJtPlayerState` | JT vt89: inverse map jts -> generic state 0..8 or -1 | 0.55 | T1 |  |
+| [0x18D568](../../../src/hand/SetJtPlayerState.c) | `SetJtPlayerState` | JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8) | 0.55 | T1 |  |
+| [0x18D620](../../../src/hand/GetJtPlayerState.c) | `GetJtPlayerState` | JT vt89: inverse map jts -> generic state 0..8 or -1 | 0.55 | T1 |  |
 | [0x18D698](../../../src/auto/func_0018D698.c) | `SetGadgetRecObject` | (owner, rec, obj): release rec->obj (0x133448), store new and register (0x1333C0) | 0.35 | T2 |  |
-| [0x18D6F8](../../../src/hand/func_0018D6F8.c) | `PgadrecFromJtGadget` | Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4) | 0.50 | T1 |  |
-| [0x18D760](../../../src/hand/func_0018D760.cpp) | `JT_FCanUseGadget` | Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket item) | 0.90 | T1 | verified |
-| [0x18DA48](../../../src/hand/func_0018DA48.c) | `UseJtGadget` | JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66), states via SetJtJts (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records | 0.55 | T1 |  |
+| [0x18D6F8](../../../src/hand/PgadrecFromJtGadget.c) | `PgadrecFromJtGadget` | Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4) | 0.50 | T1 |  |
+| [0x18D760](../../../src/hand/FCanUseGadget__2JTi.cpp) | `JT_FCanUseGadget` | Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket item) | 0.90 | T1 | verified |
+| [0x18DA48](../../../src/hand/UseJtGadget.c) | `UseJtGadget` | JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66), states via SetJtJts (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records | 0.55 | T1 |  |
 | [0x18DD78](../../../src/hand/func_0018DD78.c) | `EndJtGadget` | JT vt102: for gadget 0x1D/0x2A restore clock rate 1.0, stop sound x2044; else base 0x141E28 | 0.45 | T2 |  |
 | [0x18DE08](../../../src/auto/func_0018DE08.c) | `JT_vt103` | JT vt103: return static descriptor &D_002A5EF0 | 0.30 | T2 |  |
 | [0x18DE18](../../../src/auto/func_0018DE18.c) | `SetJtGrabObject` | (pjt,obj): obj -> x9C0=1 and set grab sub-state kind 6 on x4C0 (0x1928F8); null -> release if kind 6 | 0.25 | T2 |  |
@@ -370,122 +370,122 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x18E540](../../../src/hand/func_0018E540.cpp) | `SetJtJtcs` | Set Sly's cane state (x18D8): exit old (remove sweep effect unless continuing, stop reach track), state 3 resolves to fore/back sweep 4/5 or 6/7, enter new (blend clip, contact deadline, sounds), continue ASEGA if transi | 0.90 | T1 |  |
-| [0x18ED70](../../../src/auto/func_0018ED70.c) | `UpdateJtCane` | If jtcs (x18D8)==0 (reach) run the reach tracker 0x1CC2E8 on JT+0x17D0 | 0.60 | T1 |  |
-| [0x18ED98](../../../src/hand/func_0018ED98.c) | `FJtSweepBack` | Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target behind) -> 1 | 0.50 | T1 |  |
+| [0x18E540](../../../src/hand/SetJtJtcs__FP2JTi.cpp) | `SetJtJtcs` | Set Sly's cane state (x18D8): exit old (remove sweep effect unless continuing, stop reach track), state 3 resolves to fore/back sweep 4/5 or 6/7, enter new (blend clip, contact deadline, sounds), continue ASEGA if transi | 0.90 | T1 |  |
+| [0x18ED70](../../../src/auto/UpdateJtCane__FP2JT.c) | `UpdateJtCane` | If jtcs (x18D8)==0 (reach) run the reach tracker 0x1CC2E8 on JT+0x17D0 | 0.60 | T1 |  |
+| [0x18ED98](../../../src/hand/FJtSweepBack.c) | `FJtSweepBack` | Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target behind) -> 1 | 0.50 | T1 |  |
 | [0x18EE38](../../../src/hand/func_0018EE38.c) | `JtcsChooseJtAttack` | Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1 points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground; +1 alternates fore/bac | 0.45 | T2 |  |
 | [0x18F050](../../../src/hand/func_0018F050.c) | `JtcsChooseJtSweep` | Return the next sweep jtcs: toggle 0x16<->0x17, else 0x17 if FJtSweepBack else 0x16 | 0.45 | T2 |  |
-| [0x18F0A8](../../../src/hand/func_0018F0A8.c) | `UpdateJtActiveCane` | Per-frame cane input: per-jts allow list (3/21/22 hang states: square(0x80) launches jump via SetJtAirJump; sidestep sub-cases), then buffered button 0x10/0x80 within 0.35 s restarts SetJtJtcs with JtcsChooseJtSweep/Atta | 0.75 | T1 |  |
-| [0x18F2B0](../../../src/hand/func_0018F2B0.cpp) | `ChooseJtAttackTarget` | Search the target list D_003E13B4 (flags&mask) for the best TARGET within 300 of Sly's projected position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta | 0.80 | T1 |  |
-| [0x18F560](../../../src/hand/func_0018F560.c) | `ChooseJtSweepTarget` | ChooseJtAttackTarget(grf 2, dt 0.15, drad 3.15 if jts==0 else 1.6), blend u=clamp((z+50)/110) into the two sweep BLs, reblend, face the target when standing | 0.85 | T1 |  |
-| [0x18F688](../../../src/hand/func_0018F688.c) | `ChooseJtRushTarget` | ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2), FixStepAngularVelocity | 0.85 | T1 | verified |
-| [0x18F740](../../../src/hand/func_0018F740.c) | `ChooseJtSmashTarget` | ChooseJtAttackTarget(grf 4, 0.25, 3.15) and face target | 0.85 | T1 |  |
+| [0x18F0A8](../../../src/hand/UpdateJtActiveCane__FP2JT.c) | `UpdateJtActiveCane` | Per-frame cane input: per-jts allow list (3/21/22 hang states: square(0x80) launches jump via SetJtAirJump; sidestep sub-cases), then buffered button 0x10/0x80 within 0.35 s restarts SetJtJtcs with JtcsChooseJtSweep/Atta | 0.75 | T1 |  |
+| [0x18F2B0](../../../src/hand/ChooseJtAttackTarget.cpp) | `ChooseJtAttackTarget` | Search the target list D_003E13B4 (flags&mask) for the best TARGET within 300 of Sly's projected position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta | 0.80 | T1 |  |
+| [0x18F560](../../../src/hand/ChooseJtSweepTarget.c) | `ChooseJtSweepTarget` | ChooseJtAttackTarget(grf 2, dt 0.15, drad 3.15 if jts==0 else 1.6), blend u=clamp((z+50)/110) into the two sweep BLs, reblend, face the target when standing | 0.85 | T1 |  |
+| [0x18F688](../../../src/hand/ChooseJtRushTarget__FP2JT.c) | `ChooseJtRushTarget` | ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2), FixStepAngularVelocity | 0.85 | T1 | verified |
+| [0x18F740](../../../src/hand/ChooseJtSmashTarget__FP2JT.c) | `ChooseJtSmashTarget` | ChooseJtAttackTarget(grf 4, 0.25, 3.15) and face target | 0.85 | T1 |  |
 
 ## hang (0x18F908-0x191090)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x18F908](../../../src/hand/func_0018F908.c) | `PostJtLoadSwing` | Create the 3-entry dynamic swing ASEG blend (0x137A30 with cbBl 0xC, cbl 3) for the BL array and return it via out pointer | 0.75 | T1 |  |
-| [0x18F958](../../../src/hand/func_0018F958.cpp) | `AnticipateJtForce` | Solve a 3x3 system (CroutDecomp/CroutSolve) of per-axis impulse responses of Sly and the hang object (DvFromSoImpulse/DwFromSoImpulse, vt69) to get the force pair giving the requested velocity | 0.75 | T1 |  |
-| [0x18FC60](../../../src/hand/func_0018FC60.cpp) | `CalculateJtHangAccel` | Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle, LoadRotateMatrix) and call AnticipateJtForce | 0.75 | T1 |  |
-| [0x1903B8](../../../src/hand/func_001903B8.cpp) | `PresetJtAccelHang` | Add the hang force, then accelerate Sly's orientation toward tilt (toward hook) * spin(radTarget) with AccelSoTowardMat | 0.80 | T1 |  |
-| [0x1904E0](../../../src/hand/func_001904E0.c) | `AddJtExternalAccelerations` | Callback: AddSoVelocity/AddSoAngularVelocity of the stored force pair to the hang target SO | 0.65 | T1 |  |
-| [0x190520](../../../src/hand/func_00190520.cpp) | `UpdateJtActiveHang` | Per-frame active hang: heading from GetJtHangHeading (flipped +pi), stick near/far detection (60/120 deg), swing anim weights, jump-off/drop via SetJtJts, CalculateJtHangAccel | 0.70 | T1 |  |
-| [0x190BE0](../../../src/hand/func_00190BE0.c) | `GetJtHangHeading` | *prad = atan2(m[0].y, m[0].x) of the current hook object's (x18C4) world matrix | 0.85 | T1 |  |
+| [0x18F908](../../../src/hand/PostJtLoadSwing.c) | `PostJtLoadSwing` | Create the 3-entry dynamic swing ASEG blend (0x137A30 with cbBl 0xC, cbl 3) for the BL array and return it via out pointer | 0.75 | T1 |  |
+| [0x18F958](../../../src/hand/AnticipateJtForce.cpp) | `AnticipateJtForce` | Solve a 3x3 system (CroutDecomp/CroutSolve) of per-axis impulse responses of Sly and the hang object (DvFromSoImpulse/DwFromSoImpulse, vt69) to get the force pair giving the requested velocity | 0.75 | T1 |  |
+| [0x18FC60](../../../src/hand/CalculateJtHangAccel__FP2JT.cpp) | `CalculateJtHangAccel` | Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle, LoadRotateMatrix) and call AnticipateJtForce | 0.75 | T1 |  |
+| [0x1903B8](../../../src/hand/PresetJtAccelHang__FP2JT.cpp) | `PresetJtAccelHang` | Add the hang force, then accelerate Sly's orientation toward tilt (toward hook) * spin(radTarget) with AccelSoTowardMat | 0.80 | T1 |  |
+| [0x1904E0](../../../src/hand/AddJtExternalAccelerations.c) | `AddJtExternalAccelerations` | Callback: AddSoVelocity/AddSoAngularVelocity of the stored force pair to the hang target SO | 0.65 | T1 |  |
+| [0x190520](../../../src/hand/UpdateJtActiveHang__FP2JT.cpp) | `UpdateJtActiveHang` | Per-frame active hang: heading from GetJtHangHeading (flipped +pi), stick near/far detection (60/120 deg), swing anim weights, jump-off/drop via SetJtJts, CalculateJtHangAccel | 0.70 | T1 |  |
+| [0x190BE0](../../../src/hand/GetJtHangHeading__FP2JTPf.c) | `GetJtHangHeading` | *prad = atan2(m[0].y, m[0].x) of the current hook object's (x18C4) world matrix | 0.85 | T1 |  |
 | [0x190C58](../../../src/hand/func_00190C58.c) | `PosJtHangHandle` | Return hook pos + normalize(hook pos - hand XF x19CC pos) * hook radius (x134) | 0.45 | T2 |  |
 | [0x190D10](../../../src/hand/func_00190D10.c) | `RenderJtHangIk` | Render-time fix-up while hanging: move child XF x19C4 so the hand reaches PosJtHangHandle(+x1960 offset), bump g_sw xf stamp, rebuild its matrix, then vt18 | 0.40 | T2 |  |
-| [0x190E18](../../../src/hand/func_00190E18.cpp) | `UpdateJtHangIkGoals` | Orient hand toward the hook (rotate-vectors * fixed wrist angle D_002BF594), set actuator x1A00 from Euler angles, smooth the x1960 hand offset toward zero | 0.55 | T1 |  |
+| [0x190E18](../../../src/hand/UpdateJtHangIkGoals__FP2JT.cpp) | `UpdateJtHangIkGoals` | Orient hand toward the hook (rotate-vectors * fixed wrist angle D_002BF594), set actuator x1A00 from Euler angles, smooth the x1960 hand offset toward zero | 0.55 | T1 |  |
 
 ## grab (0x191090-0x195950)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x191090](../../../src/auto/func_00191090.c) | `InitJtGrab` | Init the STEPPLAYER+0x4C0 grab/action context: owner, nState=-1, nKind=-1, x4FC=-1, init two blend/actuator blocks (+0x180,+0x240, 0x20B840 id 0x6F) and the reach tracker at +0x440 | 0.65 | T1 |  |
-| [0x1910F8](../../../src/hand/func_001910F8.c) | `PostLoadJtGrab` | PostLoad of the grab context: PloNew(CID 0xF TN, oid 0x148) as its private TN (SetTnTnsOverride 0), reset TN params (0x194118), two place tables (0x1A0300), blend blocks, 3-entry swing blend (0x137A30 cbBl 0xC), reach tr | 0.65 | T1 | runtime |
-| [0x1911A8](../../../src/hand/func_001911A8.cpp) | `UpdateJtGrabInput` | Per-frame input for the current grab action: X (0x40) jumps off via SetJtAirJump kinds 7/1, button 0x400 enters JTMODE, actions 8/9/10/11/12 finish on anim end or stick input, action 5 targets a class-11 object, action 8 | 0.60 | T1 | runtime |
-| [0x191A10](../../../src/hand/func_00191A10.cpp) | `UpdateJtActiveHide` | Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind, SetJtHfdk, curve param clamp (0x193C98), commit animation/axis weights | 0.75 | T1 | verified, arbitration |
-| [0x1928F8](../../../src/hand/func_001928F8.c) | `SetJtGrabState` | Start a grab action: SetJtGrabKind(-1), store nState/tEnter/plo/pspot, owner vt88 SetPlayerState(2) (=jts 7), then map nState to initial kind (6 = Sly cane reach: SetJtJtcs(0)+UpdateJtCane; 5/9 reach tracker; 8 -> kind 7 | 0.60 | T1 | runtime |
+| [0x191090](../../../src/auto/InitJtGrab.c) | `InitJtGrab` | Init the STEPPLAYER+0x4C0 grab/action context: owner, nState=-1, nKind=-1, x4FC=-1, init two blend/actuator blocks (+0x180,+0x240, 0x20B840 id 0x6F) and the reach tracker at +0x440 | 0.65 | T1 |  |
+| [0x1910F8](../../../src/hand/PostLoadJtGrab.c) | `PostLoadJtGrab` | PostLoad of the grab context: PloNew(CID 0xF TN, oid 0x148) as its private TN (SetTnTnsOverride 0), reset TN params (0x194118), two place tables (0x1A0300), blend blocks, 3-entry swing blend (0x137A30 cbBl 0xC), reach tr | 0.65 | T1 | runtime |
+| [0x1911A8](../../../src/hand/UpdateJtGrabInput.cpp) | `UpdateJtGrabInput` | Per-frame input for the current grab action: X (0x40) jumps off via SetJtAirJump kinds 7/1, button 0x400 enters JTMODE, actions 8/9/10/11/12 finish on anim end or stick input, action 5 targets a class-11 object, action 8 | 0.60 | T1 | runtime |
+| [0x191A10](../../../src/hand/UpdateJtActiveHide.cpp) | `UpdateJtActiveHide` | Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind, SetJtHfdk, curve param clamp (0x193C98), commit animation/axis weights | 0.75 | T1 | verified, arbitration |
+| [0x1928F8](../../../src/hand/SetJtGrabState.c) | `SetJtGrabState` | Start a grab action: SetJtGrabKind(-1), store nState/tEnter/plo/pspot, owner vt88 SetPlayerState(2) (=jts 7), then map nState to initial kind (6 = Sly cane reach: SetJtJtcs(0)+UpdateJtCane; 5/9 reach tracker; 8 -> kind 7 | 0.60 | T1 | runtime |
 | [0x192A28](../../../src/hand/func_00192A28.cpp) | `ClearJtDetectionOutOfSight` | For each detector-owning object in list D_003E1444 that currently tracks the player: if farther than D_002BF638 or line of sight blocked (IntersectSwBoundingBox + PsoHitTestLineObjects) reset its detector state (SetDetec | 0.35 | T2 |  |
-| [0x192BD8](../../../src/hand/func_00192BD8.cpp) | `SetJtGrabKind` | Set the sub-step (nKind, +0xC) of the grab context: leave old (per-kind/per-state cleanup), enter new (anim clip, script, flags, blend; TN params via 0x194118) | 0.50 | T1 |  |
-| [0x1938C0](../../../src/hand/func_001938C0.c) | `FJtGrabNearestCandidate` | Walk the sorted g_sw grab-candidate array (dist < D_002BF660); map class to grab state (HND 0x13/PIPE? 0xB -> 6 for Sly g_pjt else 5; CID27 0x1B -> 8; CID12/CID34 -> 0; CID38 -> its field; CID35 -> 7) and SetJtGrabState  | 0.55 | T1 | runtime |
-| [0x193A68](../../../src/hand/func_00193A68.c) | `GetJtRailLanding` | For a curve (rail) target at param t: landing position offset and a velocity along the curve tangent clamped by GSmooth limits 50 from the ends | 0.70 | T1 | verified |
+| [0x192BD8](../../../src/hand/SetJtGrabKind.cpp) | `SetJtGrabKind` | Set the sub-step (nKind, +0xC) of the grab context: leave old (per-kind/per-state cleanup), enter new (anim clip, script, flags, blend; TN params via 0x194118) | 0.50 | T1 |  |
+| [0x1938C0](../../../src/hand/FJtGrabNearestCandidate.c) | `FJtGrabNearestCandidate` | Walk the sorted g_sw grab-candidate array (dist < D_002BF660); map class to grab state (HND 0x13/PIPE? 0xB -> 6 for Sly g_pjt else 5; CID27 0x1B -> 8; CID12/CID34 -> 0; CID38 -> its field; CID35 -> 7) and SetJtGrabState  | 0.55 | T1 | runtime |
+| [0x193A68](../../../src/hand/GetJtRailLanding.c) | `GetJtRailLanding` | For a curve (rail) target at param t: landing position offset and a velocity along the curve tangent clamped by GSmooth limits 50 from the ends | 0.70 | T1 | verified |
 | [0x193C98](../../../src/hand/func_00193C98.c) | `ClampJtGrabCurveParam` | Advance/clamp the grab param along the held curve object (wrap with GModPositive if closed, else clamp to [sMin,sMax]) and line-test the new point | 0.30 | T2 |  |
-| [0x193DE8](../../../src/hand/func_00193DE8.c) | `UpdateJtInternalXpsHide` | Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge -> constraint along curve from velocity | 0.70 | T1 | verified, arbitration |
+| [0x193DE8](../../../src/hand/UpdateJtInternalXpsHide.c) | `UpdateJtInternalXpsHide` | Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge -> constraint along curve from velocity | 0.70 | T1 | verified, arbitration |
 | [0x1940B0](../../../src/hand/SetJtHfdk__FP2JT4HFDK.cpp) | `SetJtHfdk` | (existing name) Set hide/grab facing kind hfdk (+0x2C) and tHfdk=g_clock.t; kind 3 -> x34=1; 1/2 -> x34=2 if owner TN matches | 0.75 | existing | arbitration; replaces existing SetJtHfdk__FP2JT4HFDK |
 | [0x194118](../../../src/hand/func_00194118.c) | `ResetJtGrabTnParams` | Reset a block of TN parameters (x100..x16C) of the grab context's private TN to defaults | 0.30 | T2 |  |
-| [0x194170](../../../src/hand/func_00194170.c) | `PresetJtAccelHide` | If grab state 3 on a curve object: smooth the velocity component along the curve direction (GSmooth D_002BF700) and AddSoVelocity | 0.70 | T1 | verified, arbitration |
+| [0x194170](../../../src/hand/PresetJtAccelHide.c) | `PresetJtAccelHide` | If grab state 3 on a curve object: smooth the velocity component along the curve direction (GSmooth D_002BF700) and AddSoVelocity | 0.70 | T1 | verified, arbitration |
 | [0x1942F0](../../../src/hand/func_001942F0.c) | `RecordJtGrabPlace` | Per grab state, record the held spot/param into the STEPPLAYER+0x9E0 place table (0x19FD30 / 0x19FEB0) unless the object forbids it | 0.35 | T2 |  |
 | [0x1944C8](../../../src/hand/func_001944C8.c) | `PactadjFromJtGrab` | Return the state-specific actuator/adjust record for the grab kind (x54/x58/x60/x64) and a flag | 0.30 | T2 |  |
 | [0x194558](../../../src/hand/func_00194558.c) | `FJtGrabAllowsGadget` | Can the player use gadget/action k while in this grab kind (k==3 special; kinds 1/8/11/12 forbid; 3/4 allow 1,2,0x1F) | 0.45 | T2 |  |
 | [0x194640](../../../src/hand/func_00194640.c) | `FJtGrabBusy` | True for grab kind 0xC, or kind 8 when helper says so | 0.30 | T2 |  |
-| [0x194688](../../../src/hand/func_00194688.cpp) | `AddJtGrabCandidate` | Test one grab spot against the player and insert it into the sorted candidate array (priority, distance, one per group); skips held/just-released objects, mask mismatch, beyond sBusy or 1000 | 0.75 | T1 |  |
-| [0x194A40](../../../src/hand/func_00194A40.cpp) | `GatherJtGrabCandidates` | Every frame collect the player's grab candidates from the world grab lists selected by grf (HND, PIPE, CID27, HSHAPE, CID34/38/35, RAIL, CID39), refine the best 4, drive the hint box text | 0.80 | T1 |  |
-| [0x194F48](../../../src/hand/func_00194F48.c) | `CompareJtGrabCand` | qsort comparator: -1 if a->g < b->g else 1 | 0.85 | T1 | verified |
-| [0x194F70](../../../src/hand/func_00194F70.cpp) | `UpdateJtGrabCandidates` | Refine the best grab candidates (param/position on the spot, timers) | 0.70 | T1 |  |
-| [0x195368](../../../src/hand/func_00195368.cpp) | `EmitJtGrabSparkles` | For every candidate spawn/refresh the grab sparkle marker effect | 0.60 | T1 |  |
+| [0x194688](../../../src/hand/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp) | `AddJtGrabCandidate` | Test one grab spot against the player and insert it into the sorted candidate array (priority, distance, one per group); skips held/just-released objects, mask mismatch, beyond sBusy or 1000 | 0.75 | T1 |  |
+| [0x194A40](../../../src/hand/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp) | `GatherJtGrabCandidates` | Every frame collect the player's grab candidates from the world grab lists selected by grf (HND, PIPE, CID27, HSHAPE, CID34/38/35, RAIL, CID39), refine the best 4, drive the hint box text | 0.80 | T1 |  |
+| [0x194F48](../../../src/hand/CompareJtGrabCand.c) | `CompareJtGrabCand` | qsort comparator: -1 if a->g < b->g else 1 | 0.85 | T1 | verified |
+| [0x194F70](../../../src/hand/UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND.cpp) | `UpdateJtGrabCandidates` | Refine the best grab candidates (param/position on the spot, timers) | 0.70 | T1 |  |
+| [0x195368](../../../src/hand/EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND.cpp) | `EmitJtGrabSparkles` | For every candidate spawn/refresh the grab sparkle marker effect | 0.60 | T1 |  |
 | [0x195608](../../../src/hand/func_00195608.c) | `SetSwGrabMarkerProxy` | Splice entry: for candidate with id, acquire a new marker proxy (0x1956D0) and replace (vt9 Remove) the old one | 0.35 | T2 |  |
-| [0x1956D0](../../../src/hand/func_001956D0.c) | `PloAcquireJtGrabMarker` | Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with identity rotation and zero velocity | 0.85 | T1 | verified |
+| [0x1956D0](../../../src/hand/PloAcquireJtGrabMarker.c) | `PloAcquireJtGrabMarker` | Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with identity rotation and zero velocity | 0.85 | T1 | verified |
 | [0x1957C0](../../../src/auto/func_001957C0.c) | `PostSwLoadGrabMarker` | g_sw+0x4744 = PloFindSwObject(g_sw, 0x405, oid 0x624) | 0.40 | T2 |  |
 
 ## air (0x195950-0x19CBF8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x195950](../../../src/hand/func_00195950.c) | `InitJtAir` | Init the STEPPLAYER+0x2C0 air/jump context (owner, kind -1, sub-state -1, default tuning D_002BF740...) | 0.60 | T1 |  |
-| [0x1959C0](../../../src/hand/func_001959C0.c) | `PostLoadJtAir` | Create the 5-entry dynamic jump ASEG blend (0x137A30 cbBl 0xC, 5 entries) | 0.55 | T1 |  |
+| [0x195950](../../../src/hand/InitJtAir.c) | `InitJtAir` | Init the STEPPLAYER+0x2C0 air/jump context (owner, kind -1, sub-state -1, default tuning D_002BF740...) | 0.60 | T1 |  |
+| [0x1959C0](../../../src/hand/PostLoadJtAir.c) | `PostLoadJtAir` | Create the 5-entry dynamic jump ASEG blend (0x137A30 cbBl 0xC, 5 entries) | 0.55 | T1 |  |
 | [0x195A00](../../../src/hand/func_00195A00.cpp) | `SetJtAirJump` | Start a flight of kind nKind (n2 = directional clip, plo = object): reset record unless double jump (6), launch velocity from JtPlanLaunchVz, push along facing for 3/0xE, wall run 0x11 adds 400 up, then SetJtAirState | 0.80 | T1 | runtime |
 | [0x195FB8](../../../src/hand/func_00195FB8.cpp) | `SetJtAirState` | Set the air context sub-state: leave old / enter new (clips, cane state via SetJtJtcs, landing target, velocities, SM flags) | 0.60 | T1 |  |
 | [0x196928](../../../src/hand/func_00196928.c) | `DtBallisticMax` | Largest non-negative time from two quadratic root sets (projectile z(t) reaching low/high bounds) and two cone terms | 0.30 | T2 |  |
 | [0x196AA8](../../../src/hand/func_00196AA8.cpp) | `ProjectJtVelocityOnContacts` | Collect up to 64 contact normals (flipped when Sly is not the owner), SolveInequalities and return the residual direction used to slide along contacts | 0.35 | T2 |  |
-| [0x196DF8](../../../src/hand/func_00196DF8.cpp) | `PresetJtAccelJump` | Air acceleration: spin toward target matrix (GSmooth), steer with stick (AccelSoTowardPosSpring), limit horizontal speed, contact slide via 0x196AA8 | 0.70 | T1 |  |
+| [0x196DF8](../../../src/hand/PresetJtAccelJump.cpp) | `PresetJtAccelJump` | Air acceleration: spin toward target matrix (GSmooth), steer with stick (AccelSoTowardPosSpring), limit horizontal speed, contact slide via 0x196AA8 | 0.70 | T1 |  |
 | [0x197370](../../../src/hand/func_00197370.c) | `StartJtAirTurn` | Set x30=1 and start a turn/flip clip chosen from the heading difference (atan2, RadNormalize) via ApplyAsegCur | 0.30 | T2 |  |
 | [0x1974C8](../../../src/hand/func_001974C8.c) | `PvFirstNonNull` | Walk a linked list and return the first non-null payload | 0.20 | T2 |  |
-| [0x197500](../../../src/hand/func_00197500.cpp) | `UpdateJtAirInput` | Per-frame air input: double jump, glide/hover (Murray/Sly sheet D_002F7900), throws (SetJtthrowState), grabs (SetJtGrabState / 0x19C688), JtbsChooseJtLanding, edge grabs via PxpFindJtBestEdge | 0.65 | T1 | runtime |
-| [0x197F98](../../../src/hand/func_00197F98.cpp) | `UpdateJtActiveJump` | jts 2 per-frame update on +0x2C0: stick combo timers, jump-target intercept search over D_003E13E4/D_003E1420 (JMT list), goal prediction, heading per mode, basic move | 0.55 | T1 |  |
+| [0x197500](../../../src/hand/UpdateJtAirInput.cpp) | `UpdateJtAirInput` | Per-frame air input: double jump, glide/hover (Murray/Sly sheet D_002F7900), throws (SetJtthrowState), grabs (SetJtGrabState / 0x19C688), JtbsChooseJtLanding, edge grabs via PxpFindJtBestEdge | 0.65 | T1 | runtime |
+| [0x197F98](../../../src/hand/UpdateJtActiveJump.cpp) | `UpdateJtActiveJump` | jts 2 per-frame update on +0x2C0: stick combo timers, jump-target intercept search over D_003E13E4/D_003E1420 (JMT list), goal prediction, heading per mode, basic move | 0.55 | T1 |  |
 | [0x1991A0](../../../src/hand/func_001991A0.c) | `AddJtWallRunXps` | If air kind 0x11 (wall run) build a constraint frame against the wall (GetNormalVectors) and add it | 0.30 | T2 |  |
 | [0x199298](../../../src/hand/func_00199298.cpp) | `FreeJtWallRunXps` | If kind 0x11, free the wall-run XP list (FreeSwXpList) | 0.30 | T2 |  |
 | [0x199408](../../../src/hand/FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR.cpp) | `FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR` | (existing) For an edge between a walkable (n.z>0.7) and a wall face (n.z<0.55) compute the grab direction | 0.85 | existing |  |
 | [0x1995D8](../../../src/hand/func_001995D8.cpp) | `BuildJtEdgeProbeArc` | Generate paired arc sample points (9 rotations of 15 deg) and transform them to world | 0.30 | T2 |  |
-| [0x1997D8](../../../src/hand/func_001997D8.cpp) | `FCheckJtEdgeNormal` | Sweep 11 probe segments around the edge point against every layer's shapes; true if >=2 hit (valid ledge normal) | 0.55 | T1 | verified |
+| [0x1997D8](../../../src/hand/FCheckJtEdgeNormal.cpp) | `FCheckJtEdgeNormal` | Sweep 11 probe segments around the edge point against every layer's shapes; true if >=2 hit (valid ledge normal) | 0.55 | T1 | verified |
 | [0x1999D0](../../../src/hand/func_001999D0.cpp) | `FCheckJtEdgeGrab` | Contact direction vs a shape feature: vertex -> sum FCheckJtSingleEdge over edges at the point (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then FCheckJtEdgeNormal | 0.70 | T1 | verified |
-| [0x199D48](../../../src/hand/func_00199D48.c) | `PxpFindJtBestEdge` | Pick the best supporting ledge contact of the player (walk contact groups, FCheckJtEdgeGrab, BSP point test), returning side and normal | 0.70 | T1 | verified |
-| [0x19A098](../../../src/hand/func_0019A098.cpp) | `FCheckJtStuck` | Return true if Sly is wedged: at most once per second and >=1 s after state change, solve contact normals against gravity (SolveInequalities) and test residual z > -0.1 | 0.80 | T1 |  |
-| [0x19A400](../../../src/hand/func_0019A400.c) | `FTimeJtJumpToTarget` | Solve 0.5 g t^2 + dvz t + dz = 0 (CSolveQuadratic) for the landing time; fail if no positive root | 0.60 | T1 |  |
-| [0x19A4A0](../../../src/hand/func_0019A4A0.c) | `MeasureJtJumpToTarget` | Predict a jump from Sly's pos/velocity to a target point on (moving) object: time, cost g, predicted pos/velocity | 0.70 | T1 |  |
+| [0x199D48](../../../src/hand/PxpFindJtBestEdge__FP2JTPiP6VECTOR.c) | `PxpFindJtBestEdge` | Pick the best supporting ledge contact of the player (walk contact groups, FCheckJtEdgeGrab, BSP point test), returning side and normal | 0.70 | T1 | verified |
+| [0x19A098](../../../src/hand/FCheckJtStuck.cpp) | `FCheckJtStuck` | Return true if Sly is wedged: at most once per second and >=1 s after state change, solve contact normals against gravity (SolveInequalities) and test residual z > -0.1 | 0.80 | T1 |  |
+| [0x19A400](../../../src/hand/FTimeJtJumpToTarget.c) | `FTimeJtJumpToTarget` | Solve 0.5 g t^2 + dvz t + dz = 0 (CSolveQuadratic) for the landing time; fail if no positive root | 0.60 | T1 |  |
+| [0x19A4A0](../../../src/hand/MeasureJtJumpToTarget.c) | `MeasureJtJumpToTarget` | Predict a jump from Sly's pos/velocity to a target point on (moving) object: time, cost g, predicted pos/velocity | 0.70 | T1 |  |
 | [0x19A750](../../../src/hand/func_0019A750.cpp) | `JtPlanLaunchVz` | Launch velocity for a flight kind: z raised to the per-kind value (215/1200/250/500 apex, 700/900/800 constants, bounce, double jump solved with CSolveQuadratic) | 0.70 | T1 |  |
-| [0x19AA58](../../../src/hand/func_0019AA58.c) | `GMeasureJumpRail` | MinimizeRange callback: GetJtRailLanding at u then MeasureJtJumpToTarget cost | 0.75 | T1 |  |
+| [0x19AA58](../../../src/hand/GMeasureJumpRail.c) | `GMeasureJumpRail` | MinimizeRange callback: GetJtRailLanding at u then MeasureJtJumpToTarget cost | 0.75 | T1 |  |
 | [0x19AAB8](../../../src/hand/func_0019AAB8.cpp) | `GMeasureJumpHpnt` | MinimizeRange callback: object vfunc gives target pos at u, then MeasureJtJumpToTarget cost | 0.45 | T2 |  |
 | [0x19AB38](../../../src/hand/func_0019AB38.cpp) | `GMeasureJumpToHshape` | Same as 0x19AAB8 for the other hide-shape class | 0.45 | T2 | verified |
-| [0x19ABB8](../../../src/hand/func_0019ABB8.c) | `GMeasureJumpTargetTime` | MinimizeRange callback over time: MeasureJtJumpToTargetAtTime(dt) cost | 0.65 | T1 |  |
-| [0x19ABF0](../../../src/hand/func_0019ABF0.c) | `GMeasureJumpPipe` | Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime | 0.65 | T1 |  |
+| [0x19ABB8](../../../src/hand/GMeasureJumpTargetTime.c) | `GMeasureJumpTargetTime` | MinimizeRange callback over time: MeasureJtJumpToTargetAtTime(dt) cost | 0.65 | T1 |  |
+| [0x19ABF0](../../../src/hand/GMeasureJumpPipe.c) | `GMeasureJumpPipe` | Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime | 0.65 | T1 |  |
 | [0x19AC88](../../../src/hand/func_0019AC88.c) | `GMeasureJumpPath` | Callback: speed-limited path length/time to a target along a Bezier path (0x185D18), min(1e6, (v0+v1)*t/2) | 0.35 | T2 |  |
-| [0x19AE00](../../../src/hand/func_0019AE00.cpp) | `FFindJtObstruction` | Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment); return hit point | 0.65 | T1 |  |
+| [0x19AE00](../../../src/hand/FFindJtObstruction.cpp) | `FFindJtObstruction` | Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment); return hit point | 0.65 | T1 |  |
 | [0x19B088](../../../src/auto/FUN_001cf138.c) | `GAdjustJtLandingScore` | g + gPenalty, + D_002BF900 if candidate is the jump source | 0.65 | existing | arbitration; replaces existing FUN_001cf138 |
 | [0x19B0A8](../../../src/hand/func_0019B0A8.c) | `FFilterJtObstruction` | Obstruction filter: ignore flagged XPs, objects with flag 4 and objects in an ignore list | 0.35 | T2 |  |
-| [0x19B110](../../../src/hand/func_0019B110.cpp) | `JtbsChooseJtLanding` | Choose the jump target/landing among all candidate lists (D_003E13B4..D_003E142C), scoring with MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then SetJtAirState | 0.60 | T1 |  |
-| [0x19C300](../../../src/hand/func_0019C300.cpp) | `MeasureJtJumpToTargetAtTime` | Cost of landing on target local point after duration dt in the target's predicted frame; out goal pos/velocity | 0.60 | T1 |  |
+| [0x19B110](../../../src/hand/JtbsChooseJtLanding.cpp) | `JtbsChooseJtLanding` | Choose the jump target/landing among all candidate lists (D_003E13B4..D_003E142C), scoring with MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then SetJtAirState | 0.60 | T1 |  |
+| [0x19C300](../../../src/hand/MeasureJtJumpToTargetAtTime.cpp) | `MeasureJtJumpToTargetAtTime` | Cost of landing on target local point after duration dt in the target's predicted frame; out goal pos/velocity | 0.60 | T1 |  |
 | [0x19C688](../../../src/hand/func_0019C688.c) | `GrabJtAirTarget` | On landing on a grab target, switch per air kind (6,11,12,13,...) to SetJtGrabState with the target's GRABSPOT sub-object (+0x150/+0x190/+0xE0) or SetJtJts | 0.40 | T2 |  |
 | [0x19C828](../../../src/auto/func_0019C828.c) | `LandJtAir` | Kind 0x11 (wall run) -> SetJtAirJump(3); else SetJtAirState(4) | 0.35 | T2 |  |
 | [0x19C870](../../../src/hand/func_0019C870.c) | `PactadjFromJtAir` | Return the state-specific record for the air kind (rail kinds 0xB-0xD use owner x520, wall run x0C4, else x0C0) | 0.30 | T2 |  |
 | [0x19C8B0](../../../src/auto/func_0019C8B0.c) | `AddJtAirCpdefiFlags` | If x28 set, *pgrf | 0.30 | T2 |  |
 | [0x19C8D0](../../../src/hand/func_0019C8D0.c) | `FJtAirAllowsGadget` | Can gadget/action k be used in the current air sub-state | 0.40 | T2 |  |
-| [0x19C9B8](../../../src/auto/func_0019C9B8.c) | `InitJmt` | JMT vt7 Init: InitXfm then sRadius(+0xE8)=100 | 0.75 | T1 |  |
-| [0x19C9E8](../../../src/auto/func_0019C9E8.c) | `AddJmtHierarchy` | JMT vt11: AddLoHierarchy then append to g_dlJmt D_003E1420 | 0.75 | T1 |  |
-| [0x19CA20](../../../src/auto/func_0019CA20.c) | `RemoveJmtHierarchy` | JMT vt12: RemoveLoHierarchy then remove from g_dlJmt | 0.75 | T1 | verified |
-| [0x19CA58](../../../src/hand/func_0019CA58.c) | `CloneJmt` | JMT vt41 Clone: CloneXfm keeping own DLE | 0.75 | T1 |  |
+| [0x19C9B8](../../../src/auto/InitJmt.c) | `InitJmt` | JMT vt7 Init: InitXfm then sRadius(+0xE8)=100 | 0.75 | T1 |  |
+| [0x19C9E8](../../../src/auto/AddJmtHierarchy.c) | `AddJmtHierarchy` | JMT vt11: AddLoHierarchy then append to g_dlJmt D_003E1420 | 0.75 | T1 |  |
+| [0x19CA20](../../../src/auto/RemoveJmtHierarchy.c) | `RemoveJmtHierarchy` | JMT vt12: RemoveLoHierarchy then remove from g_dlJmt | 0.75 | T1 | verified |
+| [0x19CA58](../../../src/hand/CloneJmt.c) | `CloneJmt` | JMT vt41 Clone: CloneXfm keeping own DLE | 0.75 | T1 |  |
 
 ## mode (0x19CBF8-0x19DE10)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19CBF8](../../../src/auto/func_0019CBF8.c) | `InitJtMode` | Init the STEPPLAYER+0xF00 look/recon mode context: owner, state -1, requested kind -1, then its HUD (0x19D4D0) | 0.60 | T1 |  |
-| [0x19CC30](../../../src/auto/func_0019CC30.c) | `PostLoadJtMode` | PostLoad: bind the mode HUD widgets (0x19D540) | 0.55 | T1 |  |
+| [0x19CBF8](../../../src/auto/InitJtMode.c) | `InitJtMode` | Init the STEPPLAYER+0xF00 look/recon mode context: owner, state -1, requested kind -1, then its HUD (0x19D4D0) | 0.60 | T1 |  |
+| [0x19CC30](../../../src/auto/PostLoadJtMode.c) | `PostLoadJtMode` | PostLoad: bind the mode HUD widgets (0x19D540) | 0.55 | T1 |  |
 | [0x19CC50](../../../src/auto/func_0019CC50.c) | `StartJtMode` | Request the look/recon mode of kind n: if running and switching to kind 1, end (2) and reset (-1) first; store kind (+0x20) and enter state 0 | 0.55 | T1 | runtime |
-| [0x19CCE8](../../../src/hand/func_0019CCE8.c) | `EndJtMode` | Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10 | 0.50 | T1 |  |
-| [0x19CD38](../../../src/hand/func_0019CD38.cpp) | `SetJtModeState` | Leave/enter mode states -1 off, 0 starting, 1 running (push CPLOOK prio 7 for kinds 0/2, recon camera prio 8 for kind 1, stop hero, duck sound buses 0/1 to 0.6), 2 ending; HUD follows | 0.75 | T1 |  |
-| [0x19D330](../../../src/hand/func_0019D330.c) | `UpdateJtMode` | Per-frame mode state machine: 0 waits for start clip then 1, 1 turns toward look direction, 2 waits for end clip then -1; updates HUD (0x19DA78) | 0.55 | T1 |  |
-| [0x19D4D0](../../../src/auto/func_0019D4D0.c) | `InitJtModeHud` | Init mode HUD sub-record: owner, state -1; for JT (CID 0x35) bind the widget at JT+0x1D40 (0x201D78) | 0.50 | T1 | runtime |
-| [0x19D540](../../../src/hand/func_0019D540.c) | `PostLoadJtModeHud` | Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36 0x361/...) via PloFindSwObject | 0.50 | T1 |  |
+| [0x19CCE8](../../../src/hand/EndJtMode.c) | `EndJtMode` | Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10 | 0.50 | T1 |  |
+| [0x19CD38](../../../src/hand/SetJtModeState__FP6JTMODEi.cpp) | `SetJtModeState` | Leave/enter mode states -1 off, 0 starting, 1 running (push CPLOOK prio 7 for kinds 0/2, recon camera prio 8 for kind 1, stop hero, duck sound buses 0/1 to 0.6), 2 ending; HUD follows | 0.75 | T1 |  |
+| [0x19D330](../../../src/hand/UpdateJtMode.c) | `UpdateJtMode` | Per-frame mode state machine: 0 waits for start clip then 1, 1 turns toward look direction, 2 waits for end clip then -1; updates HUD (0x19DA78) | 0.55 | T1 |  |
+| [0x19D4D0](../../../src/auto/InitJtModeHud.c) | `InitJtModeHud` | Init mode HUD sub-record: owner, state -1; for JT (CID 0x35) bind the widget at JT+0x1D40 (0x201D78) | 0.50 | T1 | runtime |
+| [0x19D540](../../../src/hand/PostLoadJtModeHud.c) | `PostLoadJtModeHud` | Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36 0x361/...) via PloFindSwObject | 0.50 | T1 |  |
 | [0x19D660](../../../src/hand/func_0019D660.c) | `SetJtModeHudState` | Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1, starts timers/speaker labels | 0.45 | T2 |  |
 | [0x19D948](../../../src/hand/func_0019D948.cpp) | `GatherJtModeHudTags` | Collect and qsort a list of world tag ids (g_sw game record x6C...) for the HUD | 0.30 | T2 |  |
 | [0x19DA78](../../../src/hand/func_0019DA78.cpp) | `UpdateJtModeHud` | Per-frame HUD update for the mode state (widget update 0x202D38, timers) | 0.40 | T2 |  |
@@ -495,12 +495,12 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19DE10](../../../src/auto/func_0019DE10.c) | `InitJtPipe` | Init the STEPPLAYER+0xF50 pipe context (owner, state -1, tuning 45/40 ...) | 0.55 | T1 |  |
-| [0x19DE58](../../../src/hand/func_0019DE58.c) | `PostJtLoadPipe` | For the 2 climb clips measure their per-cycle climb speed (0x12FF10 key lookup) then build the climb blend (EnsureAsegBlendDynamic 0x137A30) | 0.65 | T1 |  |
-| [0x19DF70](../../../src/hand/func_0019DF70.cpp) | `PresetJtAccelPipe` | Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4 | 0.85 | T1 | verified |
+| [0x19DE10](../../../src/auto/InitJtPipe.c) | `InitJtPipe` | Init the STEPPLAYER+0xF50 pipe context (owner, state -1, tuning 45/40 ...) | 0.55 | T1 |  |
+| [0x19DE58](../../../src/hand/PostJtLoadPipe.c) | `PostJtLoadPipe` | For the 2 climb clips measure their per-cycle climb speed (0x12FF10 key lookup) then build the climb blend (EnsureAsegBlendDynamic 0x137A30) | 0.65 | T1 |  |
+| [0x19DF70](../../../src/hand/PresetJtAccelPipe.cpp) | `PresetJtAccelPipe` | Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4 | 0.85 | T1 | verified |
 | [0x19E110](../../../src/hand/func_0019E110.c) | `GetJtPipeSRange` | Allowed s range on the pipe curve: unbounded if closed, else [sMin+35 or +100, sMax-100] | 0.45 | T2 |  |
-| [0x19E1E0](../../../src/hand/func_0019E1E0.cpp) | `UpdateJtActivePipe` | Per-frame pipe climbing: smooth offset, X jumps off (SetJtAirJump 2), 0x400 starts JtMode, climb up/down/spin along curve within GetJtPipeSRange, sounds | 0.65 | T1 |  |
-| [0x19E950](../../../src/hand/func_0019E950.c) | `UpdateJtInternalXpsPipe` | Add the pipe constraint: evaluate curve at s, vt82(7, curve, pos, tangent, local point) | 0.85 | T1 | verified |
+| [0x19E1E0](../../../src/hand/UpdateJtActivePipe.cpp) | `UpdateJtActivePipe` | Per-frame pipe climbing: smooth offset, X jumps off (SetJtAirJump 2), 0x400 starts JtMode, climb up/down/spin along curve within GetJtPipeSRange, sounds | 0.65 | T1 |  |
+| [0x19E950](../../../src/hand/UpdateJtInternalXpsPipe.c) | `UpdateJtInternalXpsPipe` | Add the pipe constraint: evaluate curve at s, vt82(7, curve, pos, tangent, local point) | 0.85 | T1 | verified |
 | [0x19E9C8](../../../src/hand/func_0019E9C8.c) | `ResetJtPipeAdjust` | Clear two fields (+0x94/+0x98) of the adjust record | 0.30 | T2 |  |
 | [0x19E9D8](../../../src/hand/func_0019E9D8.c) | `GetJtPipePos` | Evaluate the pipe curve at the current s into out | 0.35 | T2 |  |
 | [0x19EA00](../../../src/hand/func_0019EA00.c) | `GetJtPipeVelocity` | Curve tangent at s scaled by climb speed (+0x14) into out | 0.35 | T2 |  |
@@ -514,7 +514,7 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x19F0A8](../../../src/hand/func_0019F0A8.c) | `NotifySwStepplayers` | For every STEPPLAYER (CID 0x34, up to 8) call its vt104 | 0.30 | T2 |  |
-| [0x19F120](../../../src/auto/func_0019F120.c) | `UpdateSwGuardOverride` | Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s, clear it (0x19F170(psw,0)) | 0.85 | T1 | verified |
+| [0x19F120](../../../src/auto/UpdateSwGuardOverride.c) | `UpdateSwGuardOverride` | Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s, clear it (0x19F170(psw,0)) | 0.85 | T1 | verified |
 | [0x19F170](../../../src/hand/func_0019F170.c) | `SetSwGuardOverride` | Set/clear the override flag with timestamp and put every STEPGUARD (CID 0x38, max 32) into guard state 0xE, or back to -1 if it was in 0xE | 0.35 | T2 |  |
 | [0x19F220](../../../src/hand/func_0019F220.c) | `SetSwGuardsState` | Put every STEPGUARD into guard state x via 0x207030 | 0.35 | T2 |  |
 
@@ -522,35 +522,35 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19F3E8](../../../src/auto/func_0019F3E8.c) | `InitJtPlaces` | Init the STEPPLAYER+0x9E0 safe-place table: store owner | 0.55 | T1 |  |
-| [0x19F3F0](../../../src/auto/func_0019F3F0.c) | `PostLoadJtPlaces` | Empty PostLoad of the place table | 0.50 | T1 |  |
+| [0x19F3E8](../../../src/auto/InitJtPlaces.c) | `InitJtPlaces` | Init the STEPPLAYER+0x9E0 safe-place table: store owner | 0.55 | T1 |  |
+| [0x19F3F0](../../../src/auto/PostLoadJtPlaces.c) | `PostLoadJtPlaces` | Empty PostLoad of the place table | 0.50 | T1 |  |
 | [0x19F3F8](../../../src/hand/func_0019F3F8.c) | `PosFromJtPlace` | World position of a recorded place (object-local pos via ConvertXfPos, or stored world pos) | 0.45 | T2 |  |
 | [0x19F540](../../../src/hand/func_0019F540.c) | `ReturnJtToPos` | Build a place record from a world position and call ReturnJtToSafePlace with it | 0.40 | T2 |  |
-| [0x19F590](../../../src/hand/func_0019F590.c) | `ReturnJtToSafePlace` | Put the player back at a safe place (best recorded place if none given): ballistic launch toward it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not the active player | 0.55 | T1 | runtime |
+| [0x19F590](../../../src/hand/ReturnJtToSafePlace.c) | `ReturnJtToSafePlace` | Put the player back at a safe place (best recorded place if none given): ballistic launch toward it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not the active player | 0.55 | T1 | runtime |
 | [0x19F7D0](../../../src/hand/func_0019F7D0.cpp) | `ScoreJtPlace` | Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects | 0.40 | T2 |  |
 | [0x19FAF8](../../../src/hand/func_0019FAF8.c) | `ChooseJtSafePlace` | Pick the best recorded place (ScoreJtPlace against up to 16 STEP objects CID 0x33) | 0.45 | T2 |  |
-| [0x19FC30](../../../src/hand/func_0019FC30.c) | `UpdateJtPlaces` | Each frame, when standing on stable ground (jts in a ground list, floor normal z>0.7, not flagged) record the floor object/pos; grab and pipe states record their spot (RecordJtGrabPlace/RecordJtPipePlace) | 0.50 | T1 |  |
+| [0x19FC30](../../../src/hand/UpdateJtPlaces.c) | `UpdateJtPlaces` | Each frame, when standing on stable ground (jts in a ground list, floor normal z>0.7, not flagged) record the floor object/pos; grab and pipe states record their spot (RecordJtGrabPlace/RecordJtPipePlace) | 0.50 | T1 |  |
 | [0x19FD30](../../../src/hand/func_0019FD30.cpp) | `AddJtPlaceOnCurve` | Move-to-front insert of (object, param s) into the place table, merging entries within 50 of s | 0.40 | T2 |  |
 | [0x19FEB0](../../../src/hand/func_0019FEB0.c) | `AddJtPlaceAtPos` | Move-to-front insert of (object, position) merging entries within 50 units | 0.40 | T2 |  |
 | [0x1A0048](../../../src/hand/func_001A0048.c) | `RemoveJtPlacesOf` | Compact the place table removing entries that reference the given object(s) | 0.45 | T2 |  |
-| [0x1A00D0](../../../src/hand/func_001A00D0.c) | `RemoveSwPlacesOf` | Purge a removed object from the place tables of Sly (g_pjt D_002E1E40), D_002DD5BC and D_002F7900 (the other two player globals, presumably Bentley/Murray) | 0.50 | T1 |  |
+| [0x1A00D0](../../../src/hand/RemoveSwPlacesOf.c) | `RemoveSwPlacesOf` | Purge a removed object from the place tables of Sly (g_pjt D_002E1E40), D_002DD5BC and D_002F7900 (the other two player globals, presumably Bentley/Murray) | 0.50 | T1 |  |
 
 ## hurt (0x1A0B18-0x1A2BD0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A0B18](../../../src/hand/func_001A0B18.c) | `InitJtHurt` | Init the STEPPLAYER+0xDF0 hurt/zap context: owner, state -1, x90=-1, x9C=2.0, count 0x28 | 0.60 | T1 | runtime |
-| [0x1A0B40](../../../src/hand/func_001A0B40.cpp) | `SetJtHurtState` | Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit direction, retract/apply hit clips, death states 8..12 | 0.85 | T1 | runtime, verified |
+| [0x1A0B18](../../../src/hand/InitJtHurt.c) | `InitJtHurt` | Init the STEPPLAYER+0xDF0 hurt/zap context: owner, state -1, x90=-1, x9C=2.0, count 0x28 | 0.60 | T1 | runtime |
+| [0x1A0B40](../../../src/hand/SetJtHurtState.cpp) | `SetJtHurtState` | Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit direction, retract/apply hit clips, death states 8..12 | 0.85 | T1 | runtime, verified |
 | [0x1A1098](../../../src/hand/func_001A1098.c) | `PostLoadJtHurt` | Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs (PxfFindSo) | 0.45 | T2 |  |
-| [0x1A1148](../../../src/hand/func_001A1148.cpp) | `PresetJtAccelZap` | Hurt-state acceleration: in knockback states add velocity / spring toward target velocity (AccelSoTowardPosSpring) | 0.60 | T1 |  |
+| [0x1A1148](../../../src/hand/PresetJtAccelZap.cpp) | `PresetJtAccelZap` | Hurt-state acceleration: in knockback states add velocity / spring toward target velocity (AccelSoTowardPosSpring) | 0.60 | T1 |  |
 | [0x1A12F0](../../../src/hand/func_001A12F0.c) | `UpdateJtHurtInput` | When the owner's current ASEGA (x1030) has retracted, run the pending post-hurt callback (0x1A15D0); loop while state changes | 0.40 | T2 |  |
-| [0x1A1358](../../../src/hand/func_001A1358.c) | `UpdateJtActiveZap` | jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, FCheckJtStuck escape | 0.50 | T1 |  |
+| [0x1A1358](../../../src/hand/UpdateJtActiveZap.c) | `UpdateJtActiveZap` | jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, FCheckJtStuck escape | 0.50 | T1 |  |
 | [0x1A15B0](../../../src/hand/func_001A15B0.c) | `SetJtHurtCallback` | Store a pointer-to-member callback (pmf) to run when the hurt animation ends | 0.45 | T2 |  |
-| [0x1A15D0](../../../src/hand/func_001A15D0.c) | `RunJtHurtCallback` | Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a safe place, others SetJtAirJump | 0.50 | T1 |  |
-| [0x1A16A8](../../../src/auto/func_001A16A8.c) | `ReturnJtToSafePlaceCb` | Callback thunk: ReturnJtToSafePlace(owner, NULL) | 0.65 | T1 | runtime |
+| [0x1A15D0](../../../src/hand/RunJtHurtCallback.c) | `RunJtHurtCallback` | Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a safe place, others SetJtAirJump | 0.50 | T1 |  |
+| [0x1A16A8](../../../src/auto/ReturnJtToSafePlaceCb.c) | `ReturnJtToSafePlaceCb` | Callback thunk: ReturnJtToSafePlace(owner, NULL) | 0.65 | T1 | runtime |
 | [0x1A16C8](../../../src/hand/func_001A16C8.c) | `GetJtKnockbackVelocity` | Select/blend the knockback velocity by damage kind flags (0x200/0x8000/...) and source direction, limited length; then SetJtHurtState | 0.35 | T2 |  |
-| [0x1A19A0](../../../src/hand/func_001A19A0.cpp) | `FTakeJtDamage` | Apply a damage record to the player: owner vt86 veto, flag filters, damage scaled by difficulty (NScaleByDifficulty), health counter, game event broadcast, hit clip, sound, knockback, callback | 0.50 | T1 | runtime |
-| [0x1A1F68](../../../src/auto/func_001A1F68.c) | `JtHurtEndCb` | Callback: health>0 -> SetJtHurtState(0) else 8 (dead) | 0.65 | T1 | runtime |
+| [0x1A19A0](../../../src/hand/FTakeJtDamage.cpp) | `FTakeJtDamage` | Apply a damage record to the player: owner vt86 veto, flag filters, damage scaled by difficulty (NScaleByDifficulty), health counter, game event broadcast, hit clip, sound, knockback, callback | 0.50 | T1 | runtime |
+| [0x1A1F68](../../../src/auto/JtHurtEndCb.c) | `JtHurtEndCb` | Callback: health>0 -> SetJtHurtState(0) else 8 (dead) | 0.65 | T1 | runtime |
 | [0x1A1FA8](../../../src/hand/func_001A1FA8.c) | `JtHurtFallCb` | Callback: if alive return to safe place when the hazard object has flag bit 33, else SetJtAirJump(11); dead -> state | 0.30 | T2 |  |
 | [0x1A2028](../../../src/hand/func_001A2028.c) | `JtHurtShockCb` | Callback: sound 0x6A, SetJtHurtState(6), chain next callback D_002A6790 | 0.30 | T2 |  |
 | [0x1A2080](../../../src/hand/func_001A2080.c) | `JtHurtFallCb2` | Same body as 0x1A1FA8 for another hazard kind | 0.25 | T2 |  |
@@ -570,37 +570,37 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B4728](../../../src/hand/func_001B4728.c) | `InitMurray` | MURRAY vt7 Init: STEPPLAYER Init, defaults (x220=50, state fields -1, throw range 1500/3500), 4 locomotion blends (0x20B840 x1320/1460/1540/1630), JTTHROW at +0x1910, sets g_pmurray D_002F7900=this | 0.85 | T1 |  |
-| [0x1B4888](../../../src/hand/func_001B4888.c) | `LoadMurrayFromBrx` | MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0 hand/grip records looking up child XFs 0x200-0x205 (PxfFindSo), caches grip XFs at x15F0..x15FC | 0.80 | T1 | parse |
-| [0x1B49E0](../../../src/hand/func_001B49E0.c) | `PostMurrayLoad` | MURRAY vt15: STEPPLAYER PostLoad, post-load the 4 locomotion blends, strafe direction table (0x1A0300 x16F0/x17F0), JTTHROW blends (0x21F388), optional attached effect (x1ACC), then SetMurrayState(0) | 0.80 | T1 |  |
-| [0x1B4AA0](../../../src/hand/func_001B4AA0.cpp) | `UpdateMurrayStateMachine` | Per-frame input-driven state machine (loops until state stable): idle/move -> jump (Cross 0x40), lift (Circle 0x20), punch (Square 0x80), alt attack (0x10), gadget (0x400 + FCanUseGadget(3)), strafe (0x140AF8); dispatche | 0.70 | T1 | runtime-corrected, runtime |
+| [0x1B4728](../../../src/hand/InitMurray.c) | `InitMurray` | MURRAY vt7 Init: STEPPLAYER Init, defaults (x220=50, state fields -1, throw range 1500/3500), 4 locomotion blends (0x20B840 x1320/1460/1540/1630), JTTHROW at +0x1910, sets g_pmurray D_002F7900=this | 0.85 | T1 |  |
+| [0x1B4888](../../../src/hand/LoadMurrayFromBrx.c) | `LoadMurrayFromBrx` | MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0 hand/grip records looking up child XFs 0x200-0x205 (PxfFindSo), caches grip XFs at x15F0..x15FC | 0.80 | T1 | parse |
+| [0x1B49E0](../../../src/hand/PostMurrayLoad.c) | `PostMurrayLoad` | MURRAY vt15: STEPPLAYER PostLoad, post-load the 4 locomotion blends, strafe direction table (0x1A0300 x16F0/x17F0), JTTHROW blends (0x21F388), optional attached effect (x1ACC), then SetMurrayState(0) | 0.80 | T1 |  |
+| [0x1B4AA0](../../../src/hand/UpdateMurrayStateMachine.cpp) | `UpdateMurrayStateMachine` | Per-frame input-driven state machine (loops until state stable): idle/move -> jump (Cross 0x40), lift (Circle 0x20), punch (Square 0x80), alt attack (0x10), gadget (0x400 + FCanUseGadget(3)), strafe (0x140AF8); dispatche | 0.70 | T1 | runtime-corrected, runtime |
 | [0x1B5038](../../../src/hand/func_001B5038.c) | `UpdateMurrayF00Input` | If STEPPLAYER component +0xF00 is active (0x1443D8: xF04<3): in its mode 1 any face button (0x4F0) cancels it (0x19CCE8); always ticks it (0x19D330) | 0.30 | T2 |  |
-| [0x1B50B0](../../../src/hand/func_001B50B0.c) | `UpdateMurray` | MURRAY vt16 Update: STEPPLAYER Update, gather grab candidates (0x194A40 g_sw,p,0xF8FA), state machine, per-state locomotion (blends x1320/x1540 driven by stick), root-motion velocities, ground effects, clears recently-th | 0.80 | T1 |  |
-| [0x1B5380](../../../src/hand/func_001B5380.c) | `UpdateMurrayCarry` | State 5 (carrying object x13F0): drop if object no longer active; Cross+powerup 0x12 -> jump; 0xA0 -> throw (state 7); 0x10 -> state 8 toss; 0x400 gadget; else choose carry substate stand/walk/run from stick | 0.60 | T1 | runtime-corrected, runtime |
-| [0x1B5658](../../../src/hand/func_001B5658.c) | `SetMurrayCarrySubstate` | Switch carry substate x1458 (0 stand,1 walk via blend x1460,2 run clip x151C); restarts animation with ApplyAsegCur and component | 0.50 | T1 |  |
+| [0x1B50B0](../../../src/hand/UpdateMurray.c) | `UpdateMurray` | MURRAY vt16 Update: STEPPLAYER Update, gather grab candidates (0x194A40 g_sw,p,0xF8FA), state machine, per-state locomotion (blends x1320/x1540 driven by stick), root-motion velocities, ground effects, clears recently-th | 0.80 | T1 |  |
+| [0x1B5380](../../../src/hand/UpdateMurrayCarry.c) | `UpdateMurrayCarry` | State 5 (carrying object x13F0): drop if object no longer active; Cross+powerup 0x12 -> jump; 0xA0 -> throw (state 7); 0x10 -> state 8 toss; 0x400 gadget; else choose carry substate stand/walk/run from stick | 0.60 | T1 | runtime-corrected, runtime |
+| [0x1B5658](../../../src/hand/SetMurrayCarrySubstate.c) | `SetMurrayCarrySubstate` | Switch carry substate x1458 (0 stand,1 walk via blend x1460,2 run clip x151C); restarts animation with ApplyAsegCur and component | 0.50 | T1 |  |
 | [0x1B5820](../../../src/hand/func_001B5820.c) | `UpdateMurrayStruggle` | State 6 (scripted SMA struggle): only when Murray is current PO and not hands-off; face-button mashing (0xF0) decrements counter; picks next SMA state 0x1CA..0x1D0 from tables D_002C0908/D_002C0948[x1534] and drives both | 0.40 | T2 |  |
 | [0x1B5990](../../../src/hand/func_001B5990.cpp) | `UpdateMurrayStrafe` | State 9 (locked onto nearby target x10DC): exits if R1-flag 8 or target lost (0x140AF8); allows jump/takedown/lift/punch/gadget; substate 2 moves along 8-way directional blend (0x1A0450) facing the target (0x2046F0) | 0.45 | T2 |  |
 | [0x1B5D30](../../../src/hand/func_001B5D30.c) | `SetMurrayStrafeSubstate` | Switch strafe substate x17F4 (0 stand, 1 blend x1630, 2 clip x17F0), restart animation | 0.45 | T2 |  |
-| [0x1B5E98](../../../src/hand/func_001B5E98.c) | `ChooseMurrayThrowTarget` | Pick throw goal v1420: nearest object with flag 0x10000 (not the carried one) within range g1410*k, >150 away, <500 above, inside a facing cone; else a point g1410 ahead | 0.55 | T1 |  |
-| [0x1B6078](../../../src/hand/func_001B6078.cpp) | `SetMurrayState` | Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity reset, component state), shared ApplyAsegCur/component restart, then vt90 | 0.65 | T1 | runtime |
-| [0x1B6728](../../../src/hand/func_001B6728.c) | `GetMurrayCpdefi` | MURRAY vt50: stamp x1080 while moving, base GetStepplayerCpdefi 0x141640, then set flag bit 1 for flop/strafe/power/takedown states and defer to JTTHROW / +0xF50 component | 0.60 | T1 |  |
-| [0x1B67F8](../../../src/hand/func_001B67F8.c) | `PresetMurrayAccel` | MURRAY vt70: base accel (SO 0x1F9B20 for state 20 else STEP 0x204108), then per-state component accel (jump +0x2C0, 13 +0x4C0, 14 +0xDF0, 20 +0xF50, flop 0x1B6CC0) | 0.55 | T1 |  |
-| [0x1B68B8](../../../src/hand/func_001B68B8.c) | `HandleMurrayMessage` | MURRAY vt5: base HandleStepplayerMessage; msg 9 (anim events from own ASEGA): 0x1A4 flop dive, 0x1A5/0x1C8 stimulus, 0x1EB release thrown object, 0x1C6/0x1C7 lift events, 0x240-0x242 attack window flags; msg 10 from SMA  | 0.80 | T1 |  |
+| [0x1B5E98](../../../src/hand/ChooseMurrayThrowTarget.c) | `ChooseMurrayThrowTarget` | Pick throw goal v1420: nearest object with flag 0x10000 (not the carried one) within range g1410*k, >150 away, <500 above, inside a facing cone; else a point g1410 ahead | 0.55 | T1 |  |
+| [0x1B6078](../../../src/hand/SetMurrayState.cpp) | `SetMurrayState` | Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity reset, component state), shared ApplyAsegCur/component restart, then vt90 | 0.65 | T1 | runtime |
+| [0x1B6728](../../../src/hand/GetMurrayCpdefi.c) | `GetMurrayCpdefi` | MURRAY vt50: stamp x1080 while moving, base GetStepplayerCpdefi 0x141640, then set flag bit 1 for flop/strafe/power/takedown states and defer to JTTHROW / +0xF50 component | 0.60 | T1 |  |
+| [0x1B67F8](../../../src/hand/PresetMurrayAccel.c) | `PresetMurrayAccel` | MURRAY vt70: base accel (SO 0x1F9B20 for state 20 else STEP 0x204108), then per-state component accel (jump +0x2C0, 13 +0x4C0, 14 +0xDF0, 20 +0xF50, flop 0x1B6CC0) | 0.55 | T1 |  |
+| [0x1B68B8](../../../src/hand/HandleMurrayMessage.c) | `HandleMurrayMessage` | MURRAY vt5: base HandleStepplayerMessage; msg 9 (anim events from own ASEGA): 0x1A4 flop dive, 0x1A5/0x1C8 stimulus, 0x1EB release thrown object, 0x1C6/0x1C7 lift events, 0x240-0x242 attack window flags; msg 10 from SMA  | 0.80 | T1 |  |
 | [0x1B6BA8](../../../src/hand/func_001B6BA8.c) | `UpdateMurrayFlop` | State 3 (air slam): end when anim done; substate 1 waits for landing (0x19A098) then impact substate 2; steer velocity from stick | 0.45 | T2 |  |
 | [0x1B6CC0](../../../src/hand/func_001B6CC0.cpp) | `PresetMurrayFlopAccel` | State-3 accel helper: substate 0 cancel ground velocity, substate 1 add horizontal correction toward desired velocity (AddSoVelocity) | 0.40 | T2 |  |
-| [0x1B6DA8](../../../src/hand/func_001B6DA8.c) | `SetMurrayFlopSubstate` | Flop substates: 1 = dive (sets downward velocity via vt35), 2 = impact: zap every contact link (InflictZap kind 4 damage -20), free contact list, play landing ASEG event 0x1A5; -1 cleanup | 0.50 | T1 |  |
-| [0x1B7000](../../../src/hand/func_001B7000.c) | `StartMurrayLiftGrabspot` | If lift allowed (x13EC): carried target = grabspot, clip kind 0, SetMurrayState(4), face it | 0.55 | T1 | runtime-corrected, runtime |
-| [0x1B7050](../../../src/hand/func_001B7050.c) | `StartMurrayLiftGuard` | Same as 0x1B7000 with clip kind 1 (alternate lift clip x1444) | 0.85 | T1 | runtime, verified |
-| [0x1B70A0](../../../src/hand/func_001B70A0.c) | `FTryMurrayTakedown` | If target x10DC is a stunned guard (0x209A68(..,0x17)) within reach and 0xA0 pressed: Circle lifts the guard (0x17B1A8 + StartMurrayLiftGuard), Square does finishing attack (state 11 kind 4) | 0.65 | T1 | runtime |
+| [0x1B6DA8](../../../src/hand/SetMurrayFlopSubstate.c) | `SetMurrayFlopSubstate` | Flop substates: 1 = dive (sets downward velocity via vt35), 2 = impact: zap every contact link (InflictZap kind 4 damage -20), free contact list, play landing ASEG event 0x1A5; -1 cleanup | 0.50 | T1 |  |
+| [0x1B7000](../../../src/hand/StartMurrayLiftGrabspot.c) | `StartMurrayLiftGrabspot` | If lift allowed (x13EC): carried target = grabspot, clip kind 0, SetMurrayState(4), face it | 0.55 | T1 | runtime-corrected, runtime |
+| [0x1B7050](../../../src/hand/StartMurrayLiftGuard.c) | `StartMurrayLiftGuard` | Same as 0x1B7000 with clip kind 1 (alternate lift clip x1444) | 0.85 | T1 | runtime, verified |
+| [0x1B70A0](../../../src/hand/FTryMurrayTakedown.c) | `FTryMurrayTakedown` | If target x10DC is a stunned guard (0x209A68(..,0x17)) within reach and 0xA0 pressed: Circle lifts the guard (0x17B1A8 + StartMurrayLiftGuard), Square does finishing attack (state 11 kind 4) | 0.65 | T1 | runtime |
 | [0x1B72B0](../../../src/hand/func_001B72B0.cpp) | `GetMurrayGripFrame` | Rotation and position of the carried object relative to the owner's two grip nodes (with optional pose chain) | 0.35 | T2 |  |
 | [0x1B7700](../../../src/hand/func_001B7700.c) | `CalcMurrayLiftLaunch` | Compute start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 ballistic solve (CSolveQuadratic) so the object reaches the hands at the grab event time | 0.35 | T2 |  |
-| [0x1B7970](../../../src/hand/func_001B7970.c) | `ThrowMurrayCarried` | Release (anim event 0x1EB in state 7): detach carried object, give it VecToReachPosInDt velocity toward v1420 at speed g1414, SetSoZapMode 2 | 0.55 | T1 |  |
+| [0x1B7970](../../../src/hand/ThrowMurrayCarried.c) | `ThrowMurrayCarried` | Release (anim event 0x1EB in state 7): detach carried object, give it VecToReachPosInDt velocity toward v1420 at speed g1414, SetSoZapMode 2 | 0.55 | T1 |  |
 | [0x1B7A78](../../../src/hand/func_001B7A78.c) | `ThrowMurrayAt` | Splice-callable: SetMurrayState(7) and override the throw goal with the given object's position, facing it | 0.40 | T2 |  |
 | [0x1B7AE8](../../../src/hand/func_001B7AE8.c) | `TossMurrayCarried` | Release in state 8: detach, velocity = fixed local vector D_002C09D0, zero angular velocity, SetSoZapMode 3 | 0.40 | T2 |  |
-| [0x1B7BA8](../../../src/hand/func_001B7BA8.c) | `DropMurrayCarried` | Abort carrying (on forced state change): detach the carried/lifted object and set its velocity per current state | 0.50 | T1 |  |
-| [0x1B7D20](../../../src/hand/func_001B7D20.c) | `DetachMurrayCarried` | Free the 12 grip constraints (0x12E460), notify object (vt3 msg 6), restore its XF roles, SetSoTreeFlag2(0), SetLoParent(0,0xF); remember it as recently released (x1430, time) | 0.55 | T1 |  |
-| [0x1B7E40](../../../src/hand/func_001B7E40.c) | `SetMurrayPlayerState` | MURRAY vt88: map generic player state 0..8 to Murray states (0->carry 5 or idle 0, 1->jump 2, 2->13, 3->14, 4->16, 5..8->17..20), dropping carried object where needed | 0.55 | T1 |  |
-| [0x1B7F90](../../../src/hand/func_001B7F90.c) | `GetMurrayPlayerState` | MURRAY vt89: Murray state -> generic player state 0..8 or -1 | 0.60 | T1 | runtime |
+| [0x1B7BA8](../../../src/hand/DropMurrayCarried.c) | `DropMurrayCarried` | Abort carrying (on forced state change): detach the carried/lifted object and set its velocity per current state | 0.50 | T1 |  |
+| [0x1B7D20](../../../src/hand/DetachMurrayCarried.c) | `DetachMurrayCarried` | Free the 12 grip constraints (0x12E460), notify object (vt3 msg 6), restore its XF roles, SetSoTreeFlag2(0), SetLoParent(0,0xF); remember it as recently released (x1430, time) | 0.55 | T1 |  |
+| [0x1B7E40](../../../src/hand/SetMurrayPlayerState.c) | `SetMurrayPlayerState` | MURRAY vt88: map generic player state 0..8 to Murray states (0->carry 5 or idle 0, 1->jump 2, 2->13, 3->14, 4->16, 5..8->17..20), dropping carried object where needed | 0.55 | T1 |  |
+| [0x1B7F90](../../../src/hand/GetMurrayPlayerState.c) | `GetMurrayPlayerState` | MURRAY vt89: Murray state -> generic player state 0..8 or -1 | 0.60 | T1 | runtime |
 | [0x1B8008](../../../src/hand/func_001B8008.c) | `ApplyMurrayStateStepParams` | MURRAY vt90: choose the per-state STEP parameter block (component-supplied for 2/13/14, carry table x1AB0, default x268) and apply it (0x203D00) | 0.35 | T2 |  |
 | [0x1B80F0](../../../src/auto/func_001B80F0.c) | `MURRAY_vt91` | MURRAY vt91: empty | 0.30 | T2 |  |
 | [0x1B80F8](../../../src/auto/func_001B80F8.c) | `MURRAY_vt92` | MURRAY vt92: returns 0 | 0.30 | T2 |  |
@@ -610,24 +610,24 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x1B82A0](../../../src/hand/func_001B82A0.c) | `UpdateMurrayGroundEffects` | Per-frame: on flat ground (normal z>0.7, material flag clear) call 0x19FEB0 on +0x9E0; component hooks for states 13/20 | 0.25 | T2 |  |
 | [0x1B8368](../../../src/hand/func_001B8368.c) | `MURRAY_vt85` | MURRAY vt85: 0 if x204 set, mode 1 or state 20, else base 0x143C78 | 0.25 | T2 |  |
 | [0x1B83B8](../../../src/hand/func_001B83B8.c) | `MURRAY_vt76` | MURRAY vt76(k): true for state 15, state 20 with k==0x4000, component 13 check, else base 0x140ED8 | 0.25 | T2 |  |
-| [0x1B8450](../../../src/hand/func_001B8450.c) | `MURRAY_FIgnoreIntersection` | MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently released one x1430, or defers to JTTHROW filter in state 15 | 0.85 | T1 | verified |
-| [0x1B84E0](../../../src/auto/func_001B84E0.c) | `FMurrayCanAttack` | True if no attack overlay running and no attack substate, else the combo-window flag x1820 (anim event 0x242) | 0.50 | T1 |  |
-| [0x1B8508](../../../src/hand/func_001B8508.c) | `StartMurrayPunch` | Square attack: SetMurrayState(11) and SetMurrayAttack kind 0/1 (alternating hand, chosen by side of target) | 0.50 | T1 |  |
-| [0x1B85D0](../../../src/hand/func_001B85D0.c) | `StartMurrayAltAttack` | 0x10-button attack (needs clips x1804/x1808): state 11 with kind 2/3 | 0.60 | T1 | runtime |
-| [0x1B86B0](../../../src/hand/func_001B86B0.c) | `SetMurrayAttack` | Attack substate x1810 (clip ap17FC[k]): reset event flags, auto-face target within cone, start clip, predict root-motion end position v1830 | 0.65 | T1 | runtime |
+| [0x1B8450](../../../src/hand/MURRAY_FIgnoreIntersection.c) | `MURRAY_FIgnoreIntersection` | MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently released one x1430, or defers to JTTHROW filter in state 15 | 0.85 | T1 | verified |
+| [0x1B84E0](../../../src/auto/FMurrayCanAttack.c) | `FMurrayCanAttack` | True if no attack overlay running and no attack substate, else the combo-window flag x1820 (anim event 0x242) | 0.50 | T1 |  |
+| [0x1B8508](../../../src/hand/StartMurrayPunch.c) | `StartMurrayPunch` | Square attack: SetMurrayState(11) and SetMurrayAttack kind 0/1 (alternating hand, chosen by side of target) | 0.50 | T1 |  |
+| [0x1B85D0](../../../src/hand/StartMurrayAltAttack.c) | `StartMurrayAltAttack` | 0x10-button attack (needs clips x1804/x1808): state 11 with kind 2/3 | 0.60 | T1 | runtime |
+| [0x1B86B0](../../../src/hand/SetMurrayAttack.c) | `SetMurrayAttack` | Attack substate x1810 (clip ap17FC[k]): reset event flags, auto-face target within cone, start clip, predict root-motion end position v1830 | 0.65 | T1 | runtime |
 | [0x1B8938](../../../src/hand/func_001B8938.c) | `CancelMurrayAttack` | Fade the attack overlay (0x131B60), clear it and return to idle | 0.45 | T2 |  |
-| [0x1B8988](../../../src/hand/func_001B8988.c) | `UpdateMurrayAttack` | State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement cancel | 0.85 | T1 | runtime, verified |
+| [0x1B8988](../../../src/hand/UpdateMurrayAttack.c) | `UpdateMurrayAttack` | State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement cancel | 0.85 | T1 | runtime, verified |
 | [0x1B8B70](../../../src/hand/func_001B8B70.c) | `UpdateMurrayAttackVelocity` | State 11 velocity: animation root motion, blended toward stick direction between anim params 0x240..0x242; face target in mode 4 | 0.40 | T2 |  |
 | [0x1B8D30](../../../src/hand/func_001B8D30.c) | `SetMurrayPowerSubstate` | State 12 (gadget 20 power move) substates: 0 wind-up clip, 1 clip, 2 spawn/launch script object (0x20BF80) in front, 3 recover; -1 cleanup | 0.40 | T2 |  |
 | [0x1B8EC0](../../../src/hand/func_001B8EC0.c) | `UpdateMurrayPower` | State 12 update: advance substates on anim end, contact trigger x1908 (set in AdjustMurrayNewXp) or timeout | 0.40 | T2 |  |
 | [0x1B90B8](../../../src/hand/func_001B90B8.c) | `UpdateMurrayPowerVelocity` | State 12 substates 1/3: velocity from animation root motion | 0.35 | T2 |  |
-| [0x1B9130](../../../src/hand/func_001B9130.cpp) | `AdjustMurrayNewXp` | MURRAY vt55(pxp,i): STEP base 0x204250; per-state contact handling (power-move contact trigger, flop impact registration 0x1A9FE0, components 14/20) | 0.45 | T2 |  |
-| [0x1B92F8](../../../src/hand/func_001B92F8.c) | `UpdateMurrayLift` | State 4: wait for grab event (x1448), abort if object gone; after attach go to carry (state 5) when anim ends | 0.85 | T1 | runtime, verified |
-| [0x1B93E8](../../../src/hand/func_001B93E8.cpp) | `SetMurrayLiftSubstate` | Lift substates: 1 = launch object toward hands (constraints 0x12DE58/0x12DC18, SetVelocity), 2 = attach object to grip nodes (SetLoParent, stretch constraints), failure detaches; toggles proxy active | 0.50 | T1 |  |
+| [0x1B9130](../../../src/hand/AdjustMurrayNewXp.cpp) | `AdjustMurrayNewXp` | MURRAY vt55(pxp,i): STEP base 0x204250; per-state contact handling (power-move contact trigger, flop impact registration 0x1A9FE0, components 14/20) | 0.45 | T2 |  |
+| [0x1B92F8](../../../src/hand/UpdateMurrayLift.c) | `UpdateMurrayLift` | State 4: wait for grab event (x1448), abort if object gone; after attach go to carry (state 5) when anim ends | 0.85 | T1 | runtime, verified |
+| [0x1B93E8](../../../src/hand/SetMurrayLiftSubstate.cpp) | `SetMurrayLiftSubstate` | Lift substates: 1 = launch object toward hands (constraints 0x12DE58/0x12DC18, SetVelocity), 2 = attach object to grip nodes (SetLoParent, stretch constraints), failure detaches; toggles proxy active | 0.50 | T1 |  |
 | [0x1B9880](../../../src/auto/func_001B9880.c) | `EnterMurrayThrowAim` | SetMurrayState(15): JTTHROW-controlled aim/throw mode | 0.35 | T2 |  |
-| [0x1B98A0](../../../src/hand/func_001B98A0.c) | `MURRAY_FCanUseGadget` | MURRAY vt99: can gadget/power k be used in the current state (per-state allow lists, components 2/13/20) | 0.80 | T1 |  |
-| [0x1B9A08](../../../src/hand/func_001B9A08.c) | `UseMurrayGadget` | MURRAY vt100(k): BroadcastGameEvent(0x3C,k) then per power: 20 power move (state 12), 19 alt toss (state 8), 22 alt flop (state 3), 16 state 21, 15/21 component +0x4C0; default base 0x141D38 | 0.65 | T1 | runtime |
-| [0x1B9B60](../../../src/auto/func_001B9B60.c) | `MURRAY_PchName` | MURRAY vt103: returns the string \murray\" (D_002A75E0)" | 0.50 | T1 |  |
+| [0x1B98A0](../../../src/hand/FCanUseGadget__6MURRAYi.c) | `MURRAY_FCanUseGadget` | MURRAY vt99: can gadget/power k be used in the current state (per-state allow lists, components 2/13/20) | 0.80 | T1 |  |
+| [0x1B9A08](../../../src/hand/UseMurrayGadget.c) | `UseMurrayGadget` | MURRAY vt100(k): BroadcastGameEvent(0x3C,k) then per power: 20 power move (state 12), 19 alt toss (state 8), 22 alt flop (state 3), 16 state 21, 15/21 component +0x4C0; default base 0x141D38 | 0.65 | T1 | runtime |
+| [0x1B9B60](../../../src/auto/MURRAY_PchName.c) | `MURRAY_PchName` | MURRAY vt103: returns the string \murray\" (D_002A75E0)" | 0.50 | T1 |  |
 | [0x1B9B70](../../../src/hand/func_001B9B70.c) | `MURRAY_vt96` | MURRAY vt96(out): base 0x143220; for attack sets out->n=1 and target pos = predicted attack end v1830; free-move states n=1; out->g=200 | 0.30 | T2 |  |
 | [0x1B9C00](../../../src/hand/func_001B9C00.c) | `StartMurrayStruggle` | Enter state 6 with partner SMA pv and table index m; optionally set/skip both SMAs to state n | 0.40 | T2 |  |
 | [0x1B9D00](../../../src/auto/func_001B9D00.c) | `StartMurrayFlop` | Splice-callable: clear alternate flag x13E8 and SetMurrayState(3) | 0.40 | T2 |  |
@@ -638,12 +638,12 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C3390](../../../src/hand/func_001C3390.c) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
-| [0x1C33E8](../../../src/auto/func_001C33E8.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C3420](../../../src/auto/func_001C3420.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C3458](../../../src/hand/func_001C3458.c) | `PostPipeLoad` | PIPE vt15: base PostLoad + default length | 0.80 | T1 |  |
-| [0x1C34B8](../../../src/hand/func_001C34B8.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
-| [0x1C3500](../../../src/hand/func_001C3500.cpp) | `GetPipeGoalMat` | Orientation basis for a position `distance` along the pipe path (searching samples until tangent agrees) | 0.50 | T1 |  |
+| [0x1C3390](../../../src/hand/InitPipe.c) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
+| [0x1C33E8](../../../src/auto/OnPipeAdd.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C3420](../../../src/auto/OnPipeRemove.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C3458](../../../src/hand/PostPipeLoad.c) | `PostPipeLoad` | PIPE vt15: base PostLoad + default length | 0.80 | T1 |  |
+| [0x1C34B8](../../../src/hand/ClonePipe.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
+| [0x1C3500](../../../src/hand/GetPipeGoalMat.cpp) | `GetPipeGoalMat` | Orientation basis for a position `distance` along the pipe path (searching samples until tangent agrees) | 0.50 | T1 |  |
 | [0x1C3958](../../../src/hand/func_001C3958.c) | `PIPE_ClampGrabDistance` | GRABSPOT iface: closest distance clamped | 0.35 | T2 |  |
 | [0x1C3A08](../../../src/hand/func_001C3A08.c) | `GetPipeGrabPosMat` | GRABSPOT iface: basis + position at distance | 0.30 | T2 |  |
 | [0x1C3A88](../../../src/hand/func_001C3A88.c) | `GetPipeGrabMat` | GRABSPOT iface: orientation at distance | 0.30 | T2 |  |
@@ -654,40 +654,40 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C3D70](../../../src/hand/func_001C3D70.c) | `InitPo` | PO::Init (vt slot 7): InitSo; pzi.fCollectEnabled(+0x15C)=1; pzi.paloCollect(+0x168)=this; set flag 2 in grfUnk40 | 0.88 | T1 |  |
-| [0x1C3DC8](../../../src/hand/func_001C3DC8.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
-| [0x1C3DF8](../../../src/auto/func_001C3DF8.c) | `ClonePo` | PO::Clone (vt slot 41): base clone 0x1F6068 then pzi.paloCollect(+0x168)=this | 0.75 | T1 |  |
-| [0x1C3E20](../../../src/hand/func_001C3E20.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
-| [0x1C3E90](../../../src/hand/func_001C3E90.c) | `FInvulnerablePo` | PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off (FSwHandsOff(&g_sw)) | 0.90 | T1 |  |
-| [0x1C3ED0](../../../src/auto/func_001C3ED0.c) | `JthsCurrentPo` | PO virtual slot 77: returns 0 (JTHS_Normal) | 0.75 | T1 |  |
-| [0x1C3ED8](../../../src/hand/func_001C3ED8.c) | `SetPoCtlState` | PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16) and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)), 0/-1 drop it; then  | 0.80 | T1 |  |
-| [0x1C3FF0](../../../src/hand/func_001C3FF0.c) | `OnPoActive` | PO virtual slot 78 (Lilly OnActive(int)): if PO has its own camera TN (+0x16C) (de)activate it, else SetCmPolicy / RevokeCmPolicy on g_cm | 0.85 | T1 |  |
-| [0x1C4080](../../../src/auto/func_001C4080.c) | `GetPoCtlState` | Returns pctl->nState (+0x80) or -1 if PO has no POCTL | 0.60 | T1 |  |
+| [0x1C3D70](../../../src/hand/InitPo.c) | `InitPo` | PO::Init (vt slot 7): InitSo; pzi.fCollectEnabled(+0x15C)=1; pzi.paloCollect(+0x168)=this; set flag 2 in grfUnk40 | 0.88 | T1 |  |
+| [0x1C3DC8](../../../src/hand/LoadPoFromBrx.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
+| [0x1C3DF8](../../../src/auto/ClonePo.c) | `ClonePo` | PO::Clone (vt slot 41): base clone 0x1F6068 then pzi.paloCollect(+0x168)=this | 0.75 | T1 |  |
+| [0x1C3E20](../../../src/hand/HandlePoMessage.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
+| [0x1C3E90](../../../src/hand/FInvulnerablePo.c) | `FInvulnerablePo` | PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off (FSwHandsOff(&g_sw)) | 0.90 | T1 |  |
+| [0x1C3ED0](../../../src/auto/JthsCurrentPo.c) | `JthsCurrentPo` | PO virtual slot 77: returns 0 (JTHS_Normal) | 0.75 | T1 |  |
+| [0x1C3ED8](../../../src/hand/SetPoCtlState.c) | `SetPoCtlState` | PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16) and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)), 0/-1 drop it; then  | 0.80 | T1 |  |
+| [0x1C3FF0](../../../src/hand/OnPoActive.c) | `OnPoActive` | PO virtual slot 78 (Lilly OnActive(int)): if PO has its own camera TN (+0x16C) (de)activate it, else SetCmPolicy / RevokeCmPolicy on g_cm | 0.85 | T1 |  |
+| [0x1C4080](../../../src/auto/GetPoCtlState.c) | `GetPoCtlState` | Returns pctl->nState (+0x80) or -1 if PO has no POCTL | 0.60 | T1 |  |
 | [0x1C4098](../../../src/auto/func_001C4098.c) | `FPlayablePo` | True if GetPoCtlState != -1 | 0.45 | T2 |  |
-| [0x1C40C0](../../../src/auto/func_001C40C0.c) | `FIsPoCur` | True if PO == g_sw current PO (+0x3EFC) | 0.50 | T1 |  |
-| [0x1C40F8](../../../src/auto/func_001C40F8.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
-| [0x1C4130](../../../src/auto/func_001C4130.c) | `SetPoTnCam` | Set PO camera TN (+0x16C, Lilly ptnCam): deactivate old TN, store new, tn+0x128=-1, unparent (0x1A58D0(tn,0,0)), activate it if this PO is the effective current | 0.55 | T1 |  |
-| [0x1C41B8](../../../src/hand/func_001C41B8.cpp) | `FCanPoBeHealed` | PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and returns the answer | 0.55 | T1 |  |
-| [0x1C4228](../../../src/hand/func_001C4228.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
-| [0x1C4280](../../../src/hand/func_001C4280.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
-| [0x1C42E8](../../../src/hand/func_001C42E8.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
+| [0x1C40C0](../../../src/auto/FIsPoCur.c) | `FIsPoCur` | True if PO == g_sw current PO (+0x3EFC) | 0.50 | T1 |  |
+| [0x1C40F8](../../../src/auto/FIsPoActive.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
+| [0x1C4130](../../../src/auto/SetPoTnCam.c) | `SetPoTnCam` | Set PO camera TN (+0x16C, Lilly ptnCam): deactivate old TN, store new, tn+0x128=-1, unparent (0x1A58D0(tn,0,0)), activate it if this PO is the effective current | 0.55 | T1 |  |
+| [0x1C41B8](../../../src/hand/FCanPoBeHealed.cpp) | `FCanPoBeHealed` | PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and returns the answer | 0.55 | T1 |  |
+| [0x1C4228](../../../src/hand/AddPoHpMp.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
+| [0x1C4280](../../../src/hand/POCTL_ctor.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
+| [0x1C42E8](../../../src/hand/ResetPoctl.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
 | [0x1C4330](../../../src/hand/func_001C4330.c) | `ConvertPoctlStick` | Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays 0.2); below hold radius keeps previous angle | 0.45 | T2 |  |
-| [0x1C4468](../../../src/hand/func_001C4468.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), build matPanTilt from camera, polar sticks, update press times | 0.85 | T1 | verified |
-| [0x1C45A8](../../../src/hand/func_001C45A8.c) | `UpdatePoctlPressed` | Record g_clock.t into atPressed[i] for newly pressed buttons, and per-stick direction timestamps (atLeftStick/atRightStick) | 0.60 | T1 |  |
-| [0x1C4640](../../../src/auto/func_001C4640.c) | `SetPoctlStateValue` | nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as presses | 0.70 | T1 |  |
-| [0x1C4660](../../../src/hand/func_001C4660.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
-| [0x1C46C0](../../../src/auto/func_001C46C0.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
-| [0x1C4700](../../../src/hand/func_001C4700.c) | `POCTL_FConsumePressed` | GrfConsumePressed(grf 0.0) != 0 | 0.50 | T1 |  |
-| [0x1C4728](../../../src/auto/func_001C4728.c) | `POCTL_FButtonDown` | (grfbtn(+0x30) & grf) != 0 (held test) | 0.50 | T1 |  |
-| [0x1C4738](../../../src/hand/func_001C4738.c) | `ClearPoctlJoyPressed` | Set atPressed[i] = -FLT_MAX for every bit in grf | 0.85 | T1 |  |
+| [0x1C4468](../../../src/hand/UpdatePoctl.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), build matPanTilt from camera, polar sticks, update press times | 0.85 | T1 | verified |
+| [0x1C45A8](../../../src/hand/UpdatePoctlPressed.c) | `UpdatePoctlPressed` | Record g_clock.t into atPressed[i] for newly pressed buttons, and per-stick direction timestamps (atLeftStick/atRightStick) | 0.60 | T1 |  |
+| [0x1C4640](../../../src/auto/SetPoctlStateValue.c) | `SetPoctlStateValue` | nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as presses | 0.70 | T1 |  |
+| [0x1C4660](../../../src/hand/GrfPressedWithin__5POCTLUif.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
+| [0x1C46C0](../../../src/auto/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
+| [0x1C4700](../../../src/hand/POCTL_FConsumePressed.c) | `POCTL_FConsumePressed` | GrfConsumePressed(grf 0.0) != 0 | 0.50 | T1 |  |
+| [0x1C4728](../../../src/auto/POCTL_FButtonDown.c) | `POCTL_FButtonDown` | (grfbtn(+0x30) & grf) != 0 (held test) | 0.50 | T1 |  |
+| [0x1C4738](../../../src/hand/ClearPoctlJoyPressed.c) | `ClearPoctlJoyPressed` | Set atPressed[i] = -FLT_MAX for every bit in grf | 0.85 | T1 |  |
 | [0x1C4768](../../../src/hand/func_001C4768.c) | `POCTL_VecLateral` | Transform a direction into matPanTilt frame, take (-y,z,0), normalize (fallback D_002A2DB0) | 0.35 | T2 |  |
-| [0x1C4840](../../../src/auto/func_001C4840.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
+| [0x1C4840](../../../src/auto/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
 | [0x1C4848](../../../src/hand/func_001C4848.c) | `AddSwPoFollower` | Append LO to SW 4-entry list (+0x4778) and give its sidebag/record (0x258658) a 0x14-byte block | 0.35 | T2 | verified |
 | [0x1C48C0](../../../src/hand/func_001C48C0.c) | `UpdateSwPoFollowers` | For each LO in SW+0x4778 list: store current PO into its record and re-parent it to the current PO (0x1A58D0) | 0.40 | T2 | verified |
-| [0x1C4940](../../../src/hand/func_001C4940.c) | `SwitchToPo` | Make PO current: OnActive(0) on old effective PO, set SW+0x3EFC, OnActive(1) on new; if STEPPLAYER set Splice var "oidPoCurrent"; update grab candidates and followers | 0.75 | T1 |  |
-| [0x1C4A48](../../../src/auto/func_001C4A48.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
+| [0x1C4940](../../../src/hand/SwitchToPo.c) | `SwitchToPo` | Make PO current: OnActive(0) on old effective PO, set SW+0x3EFC, OnActive(1) on new; if STEPPLAYER set Splice var "oidPoCurrent"; update grab candidates and followers | 0.75 | T1 |  |
+| [0x1C4A48](../../../src/auto/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
 | [0x1C4A60](../../../src/hand/func_001C4A60.c) | `SetSwPoOverride` | Set override PO (SW+0x3F00) with OnActive(0/1) on old/new effective PO | 0.40 | T2 |  |
-| [0x1C4AF8](../../../src/hand/func_001C4AF8.c) | `PpoClosestSw` | Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60 | 0.50 | T1 |  |
+| [0x1C4AF8](../../../src/hand/PpoClosestSw.c) | `PpoClosestSw` | Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60 | 0.50 | T1 |  |
 | [0x1C4BD8](../../../src/hand/func_001C4BD8.c) | `CppziCur` | Fill up to cMax PZI pointers: current PO's pzi (+0x15C) or default pzi D_002C0D18, plus other in-world STEPPLAYERs from table D_002C0D28 passing check 0xC2; returns count | 0.45 | T2 |  |
 
 ## rail (0x1CB908-0x1CBEB0)
@@ -713,8 +713,8 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 | [0x1CC1F8](../../../src/hand/func_001CC1F8.c) | `ClosestPointOnJtHandsCurveB` | Same for the B curves (chain top XF) | 0.40 | T2 | verified |
 | [0x1CC288](../../../src/hand/func_001CC288.c) | `GJtHandsCurveA` | Parameter callback for curve A (used by FindShapeClosestPointFromS) | 0.30 | T2 |  |
 | [0x1CC2B8](../../../src/hand/func_001CC2B8.c) | `GJtHandsCurveB` | Parameter callback for curve B | 0.30 | T2 |  |
-| [0x1CC2E8](../../../src/hand/func_001CC2E8.cpp) | `UpdateJtHands` | Fit the hand curves to the grab target: find best clip parameter, seek/reblend the hold clips, set actor position goal and step turn target | 0.50 | T1 |  |
-| [0x1CC5E8](../../../src/hand/func_001CC5E8.cpp) | `InitJtHands` | Build hands record: hand-frame matrix, sampled A/B curves per hold clip (PredictAsegEffect), blend | 0.85 | T1 |  |
+| [0x1CC2E8](../../../src/hand/UpdateJtHands.cpp) | `UpdateJtHands` | Fit the hand curves to the grab target: find best clip parameter, seek/reblend the hold clips, set actor position goal and step turn target | 0.50 | T1 |  |
+| [0x1CC5E8](../../../src/hand/InitJtHands__FP7JTHANDSP2SOPP5ASEGA.cpp) | `InitJtHands` | Build hands record: hand-frame matrix, sampled A/B curves per hold clip (PredictAsegEffect), blend | 0.85 | T1 |  |
 | [0x1CC9A8](../../../src/auto/func_001CC9A8.c) | `GrfJtHandsIgnoreIntersection` | If hands hold an object (state 1) add ignore bits for its tree | 0.35 | T2 |  |
 | [0x1CCA20](../../../src/auto/func_001CCA20.c) | `UpdateJtHandsCallback` | SW callback wrapper calling UpdateJtHands | 0.35 | T2 |  |
 | [0x1CCA40](../../../src/hand/func_001CCA40.c) | `PloFindJtHandsTarget` | First nearby object of class 0x14 whose flags match the hands' grf | 0.40 | T2 |  |
@@ -741,42 +741,42 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x201D78](../../../src/hand/func_00201D78.c) | `InitReconSel` | recon selector init: owner, origin = screen centre (320,246.4), state -1 | 0.55 | T1 |  |
-| [0x201DC8](../../../src/hand/func_00201DC8.c) | `PostReconSelLoad` | find widgets 0x362/0x365 (JT only) and LO 0x602; collect all CID 0x2E targets (max 16) | 0.55 | T1 |  |
+| [0x201D78](../../../src/hand/InitReconSel.c) | `InitReconSel` | recon selector init: owner, origin = screen centre (320,246.4), state -1 | 0.55 | T1 |  |
+| [0x201DC8](../../../src/hand/PostReconSelLoad.c) | `PostReconSelLoad` | find widgets 0x362/0x365 (JT only) and LO 0x602; collect all CID 0x2E targets (max 16) | 0.55 | T1 |  |
 | [0x201E88](../../../src/hand/func_00201E88.c) | `ResetReconTargets` | vt slot 9 on each target companion object (+0x100) | 0.30 | T2 |  |
 | [0x201F00](../../../src/hand/func_00201F00.cpp) | `NotifyReconTargets` | vt slot 8 on companion of each visible target | 0.30 | T2 |  |
 | [0x201F90](../../../src/hand/func_00201F90.c) | `UpdateReconSelInVolume` | flag +0xB8 = origin inside any class-0x19 VOL (FCheckVolPoint) | 0.40 | T2 |  |
-| [0x202030](../../../src/hand/func_00202030.c) | `RefreshReconPendingTargets` | pending list (+0x74/+0x78, max 5): targets with name id and task state 1/2 | 0.50 | T1 |  |
+| [0x202030](../../../src/hand/RefreshReconPendingTargets.c) | `RefreshReconPendingTargets` | pending list (+0x74/+0x78, max 5): targets with name id and task state 1/2 | 0.50 | T1 |  |
 | [0x2020C8](../../../src/hand/func_002020C8.c) | `FadeReconTargetMarkers` | fade marker SO in/out (0.25 s) by camera distance vs radius | 0.45 | T2 |  |
-| [0x2021F8](../../../src/hand/func_002021F8.c) | `UpdateReconChecklist` | per pending target play 0x33A (done) or 0x33B on widget +0xAC | 0.50 | T1 |  |
+| [0x2021F8](../../../src/hand/UpdateReconChecklist.c) | `UpdateReconChecklist` | per pending target play 0x33A (done) or 0x33B on widget +0xAC | 0.50 | T1 |  |
 | [0x2022A0](../../../src/hand/func_002022A0.c) | `ClearReconTargetMarks` | target +0x108 = 0 | 0.35 | T2 |  |
 | [0x2022D8](../../../src/hand/func_002022D8.c) | `FReconSelAvailable` | in-volume flag or any visible target | 0.40 | T2 |  |
 | [0x202350](../../../src/hand/func_00202350.c) | `FFilterReconOccluder` | filter callback for IntersectSwBoundingBox | 0.35 | T2 |  |
-| [0x202378](../../../src/hand/func_00202378.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
-| [0x202540](../../../src/hand/func_00202540.c) | `SelectReconTarget` | choose closest unblocked target in frustum; on change SetReconSelState(2) | 0.55 | T1 |  |
-| [0x2026F8](../../../src/hand/func_002026F8.c) | `PchzReconPending` | langstr of P+0xC0 | 0.50 | T1 |  |
-| [0x202730](../../../src/hand/func_00202730.c) | `PchzReconSelected` | langstr of P+0xBC | 0.50 | T1 |  |
-| [0x202768](../../../src/hand/func_00202768.cpp) | `SetReconSelState` | state machine -1..10; 8 = snapshot (clock & sound paused, player flags 0x102), 9 = photo taken (StartDialog, BroadcastGameEvent 10, mark target done) | 0.60 | T1 |  |
-| [0x202D38](../../../src/hand/func_00202D38.cpp) | `UpdateReconSel` | per frame: project target head to screen, proximity to centre / size gain, drive states, shutter on button 10 (250 when locked) | 0.60 | T1 |  |
-| [0x203568](../../../src/hand/func_00203568.c) | `InitReconTarget` | CID 0x2E Init: InitXfm, ids -1/-2 | 0.65 | T1 |  |
-| [0x2035A8](../../../src/hand/func_002035A8.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
-| [0x203638](../../../src/auto/func_00203638.c) | `PostReconTargetLoad` | CID 0x2E PostLoad: PostLoLoad + register with task +0xEC | 0.65 | T1 |  |
-| [0x203670](../../../src/hand/func_00203670.c) | `HandleReconTargetMessage` | CID 0x2E HandleMessage: on msg 0x11 refresh player recon list and checklist | 0.60 | T1 |  |
+| [0x202378](../../../src/hand/UpdateReconTargetVisibility.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
+| [0x202540](../../../src/hand/SelectReconTarget.c) | `SelectReconTarget` | choose closest unblocked target in frustum; on change SetReconSelState(2) | 0.55 | T1 |  |
+| [0x2026F8](../../../src/hand/PchzReconPending.c) | `PchzReconPending` | langstr of P+0xC0 | 0.50 | T1 |  |
+| [0x202730](../../../src/hand/PchzReconSelected.c) | `PchzReconSelected` | langstr of P+0xBC | 0.50 | T1 |  |
+| [0x202768](../../../src/hand/SetReconSelState.cpp) | `SetReconSelState` | state machine -1..10; 8 = snapshot (clock & sound paused, player flags 0x102), 9 = photo taken (StartDialog, BroadcastGameEvent 10, mark target done) | 0.60 | T1 |  |
+| [0x202D38](../../../src/hand/UpdateReconSel.cpp) | `UpdateReconSel` | per frame: project target head to screen, proximity to centre / size gain, drive states, shutter on button 10 (250 when locked) | 0.60 | T1 |  |
+| [0x203568](../../../src/hand/InitReconTarget.c) | `InitReconTarget` | CID 0x2E Init: InitXfm, ids -1/-2 | 0.65 | T1 |  |
+| [0x2035A8](../../../src/hand/LoadReconTargetFromBrx.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
+| [0x203638](../../../src/auto/PostReconTargetLoad.c) | `PostReconTargetLoad` | CID 0x2E PostLoad: PostLoLoad + register with task +0xEC | 0.65 | T1 |  |
+| [0x203670](../../../src/hand/HandleReconTargetMessage.c) | `HandleReconTargetMessage` | CID 0x2E HandleMessage: on msg 0x11 refresh player recon list and checklist | 0.60 | T1 |  |
 | [0x2036E8](../../../src/hand/func_002036E8.c) | `SetReconTargetDone` | mark target photographed (task +0xEC or local flag) | 0.45 | T2 |  |
-| [0x203758](../../../src/hand/func_00203758.c) | `FReconTargetDone` | task done ? or local flag | 0.50 | T1 |  |
-| [0x203790](../../../src/hand/func_00203790.c) | `FReconTargetSelectable` | visible and task state 1 | 0.50 | T1 |  |
+| [0x203758](../../../src/hand/FReconTargetDone.c) | `FReconTargetDone` | task done ? or local flag | 0.50 | T1 |  |
+| [0x203790](../../../src/hand/FReconTargetSelectable.c) | `FReconTargetSelectable` | visible and task state 1 | 0.50 | T1 |  |
 
 ## throw (0x21F2E0-0x220D40)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21F2E0](../../../src/hand/func_0021F2E0.c) | `InitThrow` | JTTHROW defaults: owner=a, state -1, 500/1500 ranges, 1.5, 1000, launch vectors (0,0,25),(1000,0,0),(42,-73,-50) | 0.60 | T1 | verified |
-| [0x21F388](../../../src/hand/func_0021F388.c) | `PostJtthrowLoad` | EnsureAsegBlendDynamic x3: 2-clip, 4-clip and 2-clip aim blends (ablB/ablC) | 0.50 | T1 |  |
-| [0x21F418](../../../src/hand/func_0021F418.cpp) | `UpdateJtthrow` | per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70), state transitions (0x2206C8) | 0.50 | T1 |  |
+| [0x21F2E0](../../../src/hand/InitThrow.c) | `InitThrow` | JTTHROW defaults: owner=a, state -1, 500/1500 ranges, 1.5, 1000, launch vectors (0,0,25),(1000,0,0),(42,-73,-50) | 0.60 | T1 | verified |
+| [0x21F388](../../../src/hand/PostJtthrowLoad.c) | `PostJtthrowLoad` | EnsureAsegBlendDynamic x3: 2-clip, 4-clip and 2-clip aim blends (ablB/ablC) | 0.50 | T1 |  |
+| [0x21F418](../../../src/hand/UpdateJtthrow.cpp) | `UpdateJtthrow` | per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70), state transitions (0x2206C8) | 0.50 | T1 |  |
 | [0x21FB18](../../../src/hand/func_0021FB18.c) | `FFilterJtthrowArcObject` | FindSwObjectsInBox filter: reject objects with flag 0x59 else default filter 0x20F948 | 0.45 | T2 |  |
-| [0x21FB70](../../../src/hand/func_0021FB70.cpp) | `UpdateJtThrowArc` | predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the aim marker ring, updates aim blends | 0.75 | T1 |  |
+| [0x21FB70](../../../src/hand/UpdateJtThrowArc.cpp) | `UpdateJtThrowArc` | predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the aim marker ring, updates aim blends | 0.75 | T1 |  |
 | [0x220388](../../../src/hand/func_00220388.cpp) | `UpdateJtthrowHoldPos` | vector-state update of hold point for states 4..6 (gain D_002C4108, normalize) | 0.30 | T2 |  |
 | [0x220498](../../../src/auto/func_00220498.c) | `AdjustJtthrowGrfsp` | if q is the carried object and state>=3 (or player in jts 0x12) return 0x134310(flags,3) else flags | 0.30 | T2 |  |
 | [0x220508](../../../src/hand/func_00220508.c) | `StartJtthrowFlight` | for states 4..6: store launch/target points, flight time = distance / speed, start time = now, active=1 | 0.40 | T2 |  |
 | [0x2205A8](../../../src/hand/func_002205A8.c) | `ReleaseJtthrowObject` | detaches carried object (SetLoParent(0,3) / no-gravity reset) and gives it linear (vt35 SetVelocity) and angular (vt36) velocity; removes arc marker (vt9) | 0.45 | T2 |  |
-| [0x2206C8](../../../src/hand/func_002206C8.cpp) | `SetJtthrowState` | state transitions of the carry/throw controller and selection of the matching animation (0x1305B8) | 0.50 | T1 |  |
+| [0x2206C8](../../../src/hand/SetJtthrowState.cpp) | `SetJtthrowState` | state transitions of the carry/throw controller and selection of the matching animation (0x1305B8) | 0.50 | T1 |  |

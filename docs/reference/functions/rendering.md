@@ -198,8 +198,8 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B4438](../../../src/hand/func_001B4438.c) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
-| [0x1B4478](../../../src/hand/func_001B4478.c) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
+| [0x1B4438](../../../src/hand/InitMs.c) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
+| [0x1B4478](../../../src/hand/RenderMsGlobset.c) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
 | [0x1B44D8](../../../src/hand/func_001B44D8.c) | `CollectMsGlobs` | Gather pointers to all visible entries across a global linked list D_003E0714 (count +0xE0, array +0xE4) into a stack-heap array | 0.35 | T2 |  |
 
 ## tu_1BE398 (0x1BE398-0x1BF110)
@@ -238,7 +238,7 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 | [0x1D57A8](../../../src/auto/func_001D57A8.c) | `InitIntStack` | *p = 0 (empty stack) | 0.35 | T2 |  |
 | [0x1D57B8](../../../src/hand/func_001D57B8.c) | `PushIntStack` | Push int on 256-entry stack if not full | 0.45 | T2 |  |
 | [0x1D57E0](../../../src/hand/func_001D57E0.c) | `PopIntStack` | Pop int (0 if empty) | 0.45 | T2 |  |
-| [0x1D5808](../../../src/hand/func_001D5808.cpp) | `CullSceneRenderList` | Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and queue meshes/packets/deferred blocks | 0.50 | T1 |  |
+| [0x1D5808](../../../src/hand/CullSceneRenderList.cpp) | `CullSceneRenderList` | Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and queue meshes/packets/deferred blocks | 0.50 | T1 |  |
 | [0x1D6310](../../../src/hand/func_001D6310.c) | `RemoveLoFromSphereTree` | Unregister LO from world sphere tree: mark node entry free (fl\|=0xF<<32), +0x140=-1, +0x144=0, clear grf 0x80 | 0.45 | T2 |  |
 | [0x1D6378](../../../src/hand/func_001D6378.c) | `AddLoToSphereTree` | Insert LO's world bounding sphere (vt31 matrix * +0x90, radius +0xA0*scale) into world 4-ary sphere tree (g_sw+?), store entry +0x144, set grf 0x80 | 0.45 | T2 |  |
 | [0x1D6480](../../../src/hand/func_001D6480.c) | `PsphnodeNew` | Allocate 0x80-byte node of 4 sphere entries (kinds = -1) | 0.40 | T2 |  |

@@ -26,7 +26,7 @@ Totals on this page: EXISTING 3, T1 104, T2 30.
 | [0x12E738](../../../src/auto/func_0012E738.c) | `CID44_Slot43` | slot 43: 8-byte stub | 0.25 | T2 |  |
 | [0x12E740](../../../src/auto/func_0012E740.c) | `CID44_Slot44` | slot 44: 16-byte accessor | 0.25 | T2 |  |
 | [0x12E750](../../../src/auto/func_0012E750.c) | `CID44_Slot45` | slot 45: 16-byte accessor | 0.25 | T2 |  |
-| [0x12E760](../../../src/auto/func_0012E760.c) | `CPCAMERA_ctor` | Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) | 0.60 | T1 | verified |
+| [0x12E760](../../../src/auto/CPCAMERA_ctor.c) | `CPCAMERA_ctor` | Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) | 0.60 | T1 | verified |
 | [0x12E798](../../../src/hand/func_0012E798.c) | `ActivateCpcamera` | CPLCY::Activate (0x14FCC8) then SetCmFov | 0.40 | T2 |  |
 | [0x12E7F0](../../../src/auto/func_0012E7F0.c) | `DeactivateCpcamera` | CutCm (0x14D8C0) then CPLCY::Deactivate | 0.40 | T2 |  |
 | [0x12E858](../../../src/hand/func_0012E858.c) | `UpdateCpcamera` | Per-frame camera computation for this policy (positions, atanf -> SetCmFov) | 0.35 | T2 |  |

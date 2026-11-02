@@ -127,66 +127,66 @@ Compared with Sly 1's 125-entry table (which gives the Splice spellings) `[H r1 
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x120370](../../src/hand/func_00120370.c) | `RefOpIntEqual` | Splice builtin "=": bool(tag0==tag1 payload ints equal) | 0.93 | T1 | verified |
-| [0x120398](../../src/hand/func_00120398.c) | `RefCmp` | Numeric compare of aref[0],aref[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool | 0.92 | T1 | verified |
-| [0x120488](../../src/auto/func_00120488.c) | `RefOpL` | Splice builtin "<": RefCmp(aref,0) < | 0.93 | T1 | verified |
-| [0x1204B8](../../src/auto/func_001204B8.c) | `RefOpLE` | Splice builtin "<=": RefCmp(aref,1) <= | 0.93 | T1 | verified |
-| [0x1204E8](../../src/auto/func_001204E8.c) | `RefOpG` | Splice builtin ">": RefCmp(aref,2) > | 0.93 | T1 | verified |
-| [0x120518](../../src/auto/func_00120518.c) | `RefOpGE` | Splice builtin ">=": RefCmp(aref,3) >= | 0.93 | T1 | verified |
-| [0x120548](../../src/hand/func_00120548.cpp) | `RefOpEqv` | Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare | 0.93 | T1 | verified |
-| [0x1205B8](../../src/hand/func_001205B8.cpp) | `RefEqualHelper` | Recursive structural equality (lists, vectors, matrices) -> Bool | 0.90 | T1 | verified |
-| [0x1207F0](../../src/auto/func_001207F0.c) | `RefOpEqual` | Splice builtin "equal?": calls RefEqualHelper (recursive) | 0.93 | T1 | verified |
-| [0x1208A0](../../src/hand/func_001208A0.c) | `RefOpIsSymbol` | Splice builtin "symbol?": tag==0x18 | 0.93 | T1 | verified |
-| [0x120A20](../../src/hand/func_00120A20.cpp) | `RefOpIsProcedure` | Splice builtin "procedure?": tag==0x20\|\|0x19 | 0.93 | T1 | verified |
-| [0x120A58](../../src/hand/func_00120A58.c) | `RefOpAreNear` | Splice builtin "near?": FFloatsNear(a,b,eps) | 0.93 | T1 | verified |
-| [0x120B08](../../src/hand/func_00120B08.cpp) | `RefOpCons` | Splice builtin "cons": new pair node (ref=a0, next=a1 if list) | 0.93 | T1 | verified |
-| [0x120CC8](../../src/hand/func_00120CC8.c) | `RefOpSetCar` | Splice builtin "set-car!": RefOpSetCadr(...,0x23) | 0.93 | T1 | verified |
-| [0x120CF8](../../src/hand/func_00120CF8.c) | `RefOpSetCdr` | Splice builtin "set-cdr!": RefOpSetCadr(...,0x24) | 0.93 | T1 | verified |
-| [0x120E10](../../src/hand/func_00120E10.cpp) | `RefOpIsMember` | Splice builtin "member?": loop calling RefOpEqual on each element | 0.93 | T1 | verified |
-| [0x120F80](../../src/auto/func_00120F80.c) | `RefOpList` | Splice builtin "list": returns the arg list itself (varargs) | 0.93 | T1 | verified |
-| [0x1212F8](../../src/hand/func_001212F8.cpp) | `RefOpAppend` | Splice builtin "append": concatenates list args (copies all but last) | 0.93 | T1 | verified |
-| [0x121710](../../src/hand/func_00121710.cpp) | `RefOpMap` | Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results | 0.93 | T1 | verified |
-| [0x121938](../../src/hand/func_00121938.cpp) | `RefOpFilter` | Splice builtin "filter": same, keeps elems where result true | 0.93 | T1 | verified |
-| [0x121F00](../../src/hand/func_00121F00.cpp) | `RefOpMatrix` | Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based | 0.93 | T1 | verified |
-| [0x1220B8](../../src/hand/func_001220B8.c) | `RefOpClq` | Splice builtin "clq": 3 floats -> tag 0x1C | 0.93 | T1 | verified |
-| [0x122168](../../src/hand/func_00122168.c) | `RefOpLm` | Splice builtin "lm": 2 floats -> tag 0x1D | 0.93 | T1 | verified |
-| [0x122530](../../src/auto/func_00122530.c) | `RefOpSqrt` | Splice builtin "sqrt": RefUfo(arg,0) | 0.93 | T1 | verified |
-| [0x122560](../../src/auto/func_00122560.c) | `RefOpSin` | Splice builtin "sin": RefUfo(arg,1) | 0.93 | T1 | verified |
-| [0x122590](../../src/auto/func_00122590.c) | `RefOpCos` | Splice builtin "cos": RefUfo(arg,2) | 0.93 | T1 | verified |
-| [0x1225C0](../../src/auto/func_001225C0.c) | `RefOpTan` | Splice builtin "tan": RefUfo(arg,3) | 0.93 | T1 | verified |
-| [0x1225F0](../../src/auto/func_001225F0.c) | `RefOpAsin` | Splice builtin "asin": RefUfo(arg,4) | 0.93 | T1 | verified |
-| [0x122620](../../src/auto/func_00122620.c) | `RefOpAcos` | Splice builtin "acos": RefUfo(arg,5) | 0.93 | T1 | verified |
-| [0x122650](../../src/auto/func_00122650.c) | `RefOpAtan` | Splice builtin "atan": RefUfo(arg,6) | 0.93 | T1 | verified |
-| [0x122680](../../src/auto/func_00122680.c) | `RefOpRadNormalize` | Splice builtin "rad-normalize": RefUfo(arg,7) | 0.93 | T1 | verified |
-| [0x1228F0](../../src/hand/func_001228F0.cpp) | `RefOpVectorDistanceSquared` | Splice builtin "vector-distance-squared": squared distance | 0.93 | T1 | verified |
-| [0x122DE0](../../src/hand/func_00122DE0.c) | `RefOpMatrixTranspose` | Splice builtin "matrix-transpose": 0x11C1D8 | 0.93 | T1 | verified |
-| [0x123118](../../src/hand/func_00123118.cpp) | `RefOpMatrixDecomposeToRadianNormal` | Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad | 0.93 | T1 | verified |
-| [0x123498](../../src/hand/func_00123498.cpp) | `RefOpClqFit` | Splice builtin "clq-fit": FitClq | 0.93 | T1 | verified |
-| [0x123688](../../src/hand/func_00123688.c) | `RefOpCeiling` | Splice builtin "ceiling": (int)(g+1) | 0.93 | T1 | verified |
-| [0x1236F8](../../src/hand/func_001236F8.c) | `RefOpAbs` | Splice builtin "abs": abs int/float | 0.93 | T1 | verified |
-| [0x123EB0](../../src/hand/func_00123EB0.cpp) | `RefOpObjectOption` | Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F -> RefAddOption/RefEnsureOption/RefSetOption/RefGetOption | 0.95 | T1 | verified |
-| [0x123FB8](../../src/hand/func_00123FB8.c) | `RefOpAddO` | Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption | 0.93 | T1 | verified |
-| [0x123FE8](../../src/hand/func_00123FE8.c) | `RefOpEnsureO` | Splice builtin "ensureo": op 0x6D RefEnsureOption | 0.93 | T1 | verified |
-| [0x124018](../../src/hand/func_00124018.c) | `RefOpSetO` | Splice builtin "seto!": op 0x6E RefSetOption | 0.93 | T1 | verified |
-| [0x124048](../../src/hand/func_00124048.c) | `RefOpGetO` | Splice builtin "geto": op 0x6F RefGetOption | 0.93 | T1 | verified |
-| [0x124578](../../src/hand/func_00124578.cpp) | `RefOpFindNearestObjects` | Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo | 0.85 | T1 | verified |
-| [0x124F00](../../src/hand/func_00124F00.cpp) | `RefOpHitTestObjects` | Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal) | 0.85 | T1 | verified |
-| [0x125060](../../src/hand/func_00125060.c) | `RefOpConvertObjectVector` | Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0 | 0.85 | T1 | verified |
-| [0x126490](../../src/hand/func_00126490.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
-| [0x126F78](../../src/hand/func_00126F78.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
-| [0x1272E0](../../src/hand/func_001272E0.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
-| [0x127838](../../src/hand/func_00127838.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
-| [0x127CF0](../../src/hand/func_00127CF0.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
-| [0x127D78](../../src/hand/func_00127D78.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
-| [0x128148](../../src/auto/func_00128148.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
-| [0x129248](../../src/hand/func_00129248.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
-| [0x129518](../../src/hand/func_00129518.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
-| [0x129558](../../src/hand/func_00129558.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
-| [0x129598](../../src/hand/func_00129598.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
-| [0x129618](../../src/hand/func_00129618.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
-| [0x129808](../../src/hand/func_00129808.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
-| [0x12A3D8](../../src/hand/func_0012A3D8.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
-| [0x200598](../../src/hand/func_00200598.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
+| [0x120370](../../src/hand/RefOpIntEqual__FiP4CRefP6CFrame.c) | `RefOpIntEqual` | Splice builtin "=": bool(tag0==tag1 payload ints equal) | 0.93 | T1 | verified |
+| [0x120398](../../src/hand/RefCmp__FP4CRef4CMPK.c) | `RefCmp` | Numeric compare of aref[0],aref[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool | 0.92 | T1 | verified |
+| [0x120488](../../src/auto/RefOpL__FiP4CRefP6CFrame.c) | `RefOpL` | Splice builtin "<": RefCmp(aref,0) < | 0.93 | T1 | verified |
+| [0x1204B8](../../src/auto/RefOpLE__FiP4CRefP6CFrame.c) | `RefOpLE` | Splice builtin "<=": RefCmp(aref,1) <= | 0.93 | T1 | verified |
+| [0x1204E8](../../src/auto/RefOpG__FiP4CRefP6CFrame.c) | `RefOpG` | Splice builtin ">": RefCmp(aref,2) > | 0.93 | T1 | verified |
+| [0x120518](../../src/auto/RefOpGE__FiP4CRefP6CFrame.c) | `RefOpGE` | Splice builtin ">=": RefCmp(aref,3) >= | 0.93 | T1 | verified |
+| [0x120548](../../src/hand/RefOpEqv__FiP4CRefP6CFrame.cpp) | `RefOpEqv` | Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare | 0.93 | T1 | verified |
+| [0x1205B8](../../src/hand/RefEqualHelper__FP4CRefT0.cpp) | `RefEqualHelper` | Recursive structural equality (lists, vectors, matrices) -> Bool | 0.90 | T1 | verified |
+| [0x1207F0](../../src/auto/RefOpEqual__FiP4CRefP6CFrame.c) | `RefOpEqual` | Splice builtin "equal?": calls RefEqualHelper (recursive) | 0.93 | T1 | verified |
+| [0x1208A0](../../src/hand/RefOpIsSymbol__FiP4CRefP6CFrame.c) | `RefOpIsSymbol` | Splice builtin "symbol?": tag==0x18 | 0.93 | T1 | verified |
+| [0x120A20](../../src/hand/RefOpIsProcedure__FiP4CRefP6CFrame.cpp) | `RefOpIsProcedure` | Splice builtin "procedure?": tag==0x20\|\|0x19 | 0.93 | T1 | verified |
+| [0x120A58](../../src/hand/RefOpAreNear__FiP4CRefP6CFrame.c) | `RefOpAreNear` | Splice builtin "near?": FFloatsNear(a,b,eps) | 0.93 | T1 | verified |
+| [0x120B08](../../src/hand/RefOpCons__FiP4CRefP6CFrame.cpp) | `RefOpCons` | Splice builtin "cons": new pair node (ref=a0, next=a1 if list) | 0.93 | T1 | verified |
+| [0x120CC8](../../src/hand/RefOpSetCar__FiP4CRefP6CFrame.c) | `RefOpSetCar` | Splice builtin "set-car!": RefOpSetCadr(...,0x23) | 0.93 | T1 | verified |
+| [0x120CF8](../../src/hand/RefOpSetCdr__FiP4CRefP6CFrame.c) | `RefOpSetCdr` | Splice builtin "set-cdr!": RefOpSetCadr(...,0x24) | 0.93 | T1 | verified |
+| [0x120E10](../../src/hand/RefOpIsMember__FiP4CRefP6CFrame.cpp) | `RefOpIsMember` | Splice builtin "member?": loop calling RefOpEqual on each element | 0.93 | T1 | verified |
+| [0x120F80](../../src/auto/RefOpList__FiP4CRefP6CFrame.c) | `RefOpList` | Splice builtin "list": returns the arg list itself (varargs) | 0.93 | T1 | verified |
+| [0x1212F8](../../src/hand/RefOpAppend__FiP4CRefP6CFrame.cpp) | `RefOpAppend` | Splice builtin "append": concatenates list args (copies all but last) | 0.93 | T1 | verified |
+| [0x121710](../../src/hand/RefOpMap__FiP4CRefP6CFrame.cpp) | `RefOpMap` | Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results | 0.93 | T1 | verified |
+| [0x121938](../../src/hand/RefOpFilter__FiP4CRefP6CFrame.cpp) | `RefOpFilter` | Splice builtin "filter": same, keeps elems where result true | 0.93 | T1 | verified |
+| [0x121F00](../../src/hand/RefOpMatrix__FiP4CRefP6CFrame.cpp) | `RefOpMatrix` | Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based | 0.93 | T1 | verified |
+| [0x1220B8](../../src/hand/RefOpClq__FiP4CRefP6CFrame.c) | `RefOpClq` | Splice builtin "clq": 3 floats -> tag 0x1C | 0.93 | T1 | verified |
+| [0x122168](../../src/hand/RefOpLm__FiP4CRefP6CFrame.c) | `RefOpLm` | Splice builtin "lm": 2 floats -> tag 0x1D | 0.93 | T1 | verified |
+| [0x122530](../../src/auto/RefOpSqrt__FiP4CRefP6CFrame.c) | `RefOpSqrt` | Splice builtin "sqrt": RefUfo(arg,0) | 0.93 | T1 | verified |
+| [0x122560](../../src/auto/RefOpSin__FiP4CRefP6CFrame.c) | `RefOpSin` | Splice builtin "sin": RefUfo(arg,1) | 0.93 | T1 | verified |
+| [0x122590](../../src/auto/RefOpCos__FiP4CRefP6CFrame.c) | `RefOpCos` | Splice builtin "cos": RefUfo(arg,2) | 0.93 | T1 | verified |
+| [0x1225C0](../../src/auto/RefOpTan__FiP4CRefP6CFrame.c) | `RefOpTan` | Splice builtin "tan": RefUfo(arg,3) | 0.93 | T1 | verified |
+| [0x1225F0](../../src/auto/RefOpAsin__FiP4CRefP6CFrame.c) | `RefOpAsin` | Splice builtin "asin": RefUfo(arg,4) | 0.93 | T1 | verified |
+| [0x122620](../../src/auto/RefOpAcos__FiP4CRefP6CFrame.c) | `RefOpAcos` | Splice builtin "acos": RefUfo(arg,5) | 0.93 | T1 | verified |
+| [0x122650](../../src/auto/RefOpAtan__FiP4CRefP6CFrame.c) | `RefOpAtan` | Splice builtin "atan": RefUfo(arg,6) | 0.93 | T1 | verified |
+| [0x122680](../../src/auto/RefOpRadNormalize__FiP4CRefP6CFrame.c) | `RefOpRadNormalize` | Splice builtin "rad-normalize": RefUfo(arg,7) | 0.93 | T1 | verified |
+| [0x1228F0](../../src/hand/RefOpVectorDistanceSquared__FiP4CRefP6CFrame.cpp) | `RefOpVectorDistanceSquared` | Splice builtin "vector-distance-squared": squared distance | 0.93 | T1 | verified |
+| [0x122DE0](../../src/hand/RefOpMatrixTranspose__FiP4CRefP6CFrame.c) | `RefOpMatrixTranspose` | Splice builtin "matrix-transpose": 0x11C1D8 | 0.93 | T1 | verified |
+| [0x123118](../../src/hand/RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame.cpp) | `RefOpMatrixDecomposeToRadianNormal` | Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad | 0.93 | T1 | verified |
+| [0x123498](../../src/hand/RefOpClqFit__FiP4CRefP6CFrame.cpp) | `RefOpClqFit` | Splice builtin "clq-fit": FitClq | 0.93 | T1 | verified |
+| [0x123688](../../src/hand/RefOpCeiling__FiP4CRefP6CFrame.c) | `RefOpCeiling` | Splice builtin "ceiling": (int)(g+1) | 0.93 | T1 | verified |
+| [0x1236F8](../../src/hand/RefOpAbs__FiP4CRefP6CFrame.c) | `RefOpAbs` | Splice builtin "abs": abs int/float | 0.93 | T1 | verified |
+| [0x123EB0](../../src/hand/RefOpObjectOption__FiP4CRefP6CFrame4BIFK.cpp) | `RefOpObjectOption` | Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F -> RefAddOption/RefEnsureOption/RefSetOption/RefGetOption | 0.95 | T1 | verified |
+| [0x123FB8](../../src/hand/RefOpAddO__FiP4CRefP6CFrame.c) | `RefOpAddO` | Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption | 0.93 | T1 | verified |
+| [0x123FE8](../../src/hand/RefOpEnsureO__FiP4CRefP6CFrame.c) | `RefOpEnsureO` | Splice builtin "ensureo": op 0x6D RefEnsureOption | 0.93 | T1 | verified |
+| [0x124018](../../src/hand/RefOpSetO__FiP4CRefP6CFrame.c) | `RefOpSetO` | Splice builtin "seto!": op 0x6E RefSetOption | 0.93 | T1 | verified |
+| [0x124048](../../src/hand/RefOpGetO__FiP4CRefP6CFrame.c) | `RefOpGetO` | Splice builtin "geto": op 0x6F RefGetOption | 0.93 | T1 | verified |
+| [0x124578](../../src/hand/RefOpFindNearestObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindNearestObjects` | Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo | 0.85 | T1 | verified |
+| [0x124F00](../../src/hand/RefOpHitTestObjects__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjects` | Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal) | 0.85 | T1 | verified |
+| [0x125060](../../src/hand/RefOpConvertObjectVector__FiP4CRefP6CFrame.c) | `RefOpConvertObjectVector` | Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0 | 0.85 | T1 | verified |
+| [0x126490](../../src/hand/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
+| [0x126F78](../../src/hand/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
+| [0x1272E0](../../src/hand/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
+| [0x127838](../../src/hand/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
+| [0x127CF0](../../src/hand/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
+| [0x127D78](../../src/hand/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
+| [0x128148](../../src/auto/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
+| [0x129248](../../src/hand/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
+| [0x129518](../../src/hand/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
+| [0x129558](../../src/hand/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
+| [0x129598](../../src/hand/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
+| [0x129618](../../src/hand/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
+| [0x129808](../../src/hand/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
+| [0x12A3D8](../../src/hand/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
+| [0x200598](../../src/hand/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
 
 Selected 60 of 268 named functions (T1 with confidence >= 0.85, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/splice-scripting.md](../reference/functions/splice-scripting.md).
 

@@ -3,7 +3,7 @@
 // SLY2_ASM: gnu-reorder-db
 /* libmpeg _getRef0 (0x2505B0): queues one motion-compensation request (luma block a[k], chroma block b[k]) on the
    current reference set d->refs[d->cur] and picks its copy routines (fnA/fnB) by half-pel flags; n++.
-   Callers: _getAllRefs (src/lib/_getAllRefs.c), which names the parameters.
+   Callers: _getAllRefs (src/sdk/libmpeg/_getAllRefs.c), which names the parameters.
    Field types matter for matching: the picture pointers (top/bot/base/p1/p2/addr) are pointers and the rest ints, so
    type-based aliasing lets the scheduler move the pointer stores past the int stores (store order frac/addr vs top/bot). */
 typedef struct {

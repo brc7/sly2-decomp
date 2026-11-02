@@ -180,51 +180,51 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13DA18](../../src/hand/func_0013DA18.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
-| [0x13DF80](../../src/hand/func_0013DF80.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
-| [0x13E0E0](../../src/hand/func_0013E0E0.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
-| [0x13E368](../../src/hand/func_0013E368.c) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |
-| [0x13E3C8](../../src/hand/func_0013E3C8.c) | `PloNew` | Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from isplice; append to SW oid and cid hash lists; vt7 In | 0.97 | T1 | runtime |
-| [0x13E510](../../src/hand/func_0013E510.c) | `PloCloneLo` | Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for SO also clones children via PloCloneLo) | 0.93 | T1 | parse |
-| [0x13E590](../../src/hand/func_0013E590.c) | `PostLoadOidField` | LORUN callback: *(OID-resolved LO*)(plo + ib) = PloFindSwObject(g_sw, 4, oid, plo) | 0.85 | T1 |  |
-| [0x13E5E0](../../src/hand/func_0013E5E0.cpp) | `PostLoadOidSetter` | LORUN callback: finds object by oid (PloFindSwObject mode 4) and calls the stored pointer-to-member setter with it | 0.85 | T1 |  |
+| [0x13DA18](../../src/hand/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
+| [0x13DF80](../../src/hand/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
+| [0x13E0E0](../../src/hand/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
+| [0x13E368](../../src/hand/PchzFindSwLangstr__FP2SWi.c) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |
+| [0x13E3C8](../../src/hand/PloNew__F3CIDP2SO3OIDi.c) | `PloNew` | Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from isplice; append to SW oid and cid hash lists; vt7 In | 0.97 | T1 | runtime |
+| [0x13E510](../../src/hand/PloCloneLo__FP2LOP2SO.c) | `PloCloneLo` | Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for SO also clones children via PloCloneLo) | 0.93 | T1 | parse |
+| [0x13E590](../../src/hand/PostLoadOidField__FP2LOPv.c) | `PostLoadOidField` | LORUN callback: *(OID-resolved LO*)(plo + ib) = PloFindSwObject(g_sw, 4, oid, plo) | 0.85 | T1 |  |
+| [0x13E5E0](../../src/hand/PostLoadOidSetter__FP2LOPv.cpp) | `PostLoadOidSetter` | LORUN callback: finds object by oid (PloFindSwObject mode 4) and calls the stored pointer-to-member setter with it | 0.85 | T1 |  |
 | [0x13E690](../../src/hand/func_0013E690.c) | `RefFromBrx` | Reads one typed method-option argument into a CRef by otyp: 0 bool(U8), 1 float, 5/6 S32, 7/14..23 S16, 2/9 3xF32 vectors, 10 2xF32, 0x1xxx U32, else  | 0.90 | T1 | parse |
-| [0x13E818](../../src/hand/func_0013E818.cpp) | `LoadOptionFromBrx` | Reads one option value and applies it via g_aeopid record (method/field/setter forms; oid refs deferred to LORUN) | 0.97 | T1 | parse |
-| [0x13F810](../../src/hand/func_0013F810.c) | `LoadOptionsFromBrx` | Loop: S16 eopid until <0; LoadOptionFromBrx(pv, &g_aeopid[eopid] (D_002AC880 stride 0x28), grf & 0x2580, pbis) | 0.97 | T1 | parse |
-| [0x13F888](../../src/auto/func_0013F888.c) | `CLoadCollectorArray_ctor` | CLoadCollectorArray ctor: vptr(+0)=D_002CBE50, cMax=c=0, a=0 | 0.88 | T1 |  |
-| [0x13F8A8](../../src/hand/func_0013F8A8.c) | `CLoadCollectorArray_Add` | Append c LO* to growable array (capacity doubles, min 32, PvAllocStack 0x1AE318 + CopyAb) | 0.85 | T1 |  |
-| [0x13FB40](../../src/hand/func_0013FB40.c) | `LoadSwObjectsFromBrx` | Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload via vt14 LoadFromBrx}, proxies (FIsCidDerivedFrom(cid | 0.97 | T1 | parse |
-| [0x149A50](../../src/hand/func_00149A50.c) | `PostSwCallback` | Append a deferred callback {object, pointer-to-member, arg} from pool g_sw+0x3C90 to the SW callback list (+0x3CA8) | 0.85 | T1 |  |
-| [0x149AB8](../../src/hand/func_00149AB8.c) | `EnsureSwCallback` | PostSwCallback unless an identical {obj, member pointer, arg} entry is already queued | 0.85 | T1 |  |
-| [0x149B58](../../src/hand/func_00149B58.c) | `ClearSwCallbacks` | Remove queued callbacks matching by grf bits: 1 = object, 2 = member pointer, 4 = arg; fix tail | 0.85 | T1 |  |
-| [0x149C80](../../src/hand/func_00149C80.cpp) | `ProcessSwCallbacks` | Drain the deferred-callback list (calling each member function, repeating while new ones are posted), then run all Splice scheduled callbacks whose ti | 0.80 | T1 |  |
-| [0x1C2A78](../../src/hand/func_001C2A78.c) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
-| [0x1C2BA8](../../src/auto/func_001C2BA8.c) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
-| [0x20D9D0](../../src/hand/func_0020D9D0.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
+| [0x13E818](../../src/hand/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp) | `LoadOptionFromBrx` | Reads one option value and applies it via g_aeopid record (method/field/setter forms; oid refs deferred to LORUN) | 0.97 | T1 | parse |
+| [0x13F810](../../src/hand/LoadOptionsFromBrx__FPvP18CBinaryInputStream.c) | `LoadOptionsFromBrx` | Loop: S16 eopid until <0; LoadOptionFromBrx(pv, &g_aeopid[eopid] (D_002AC880 stride 0x28), grf & 0x2580, pbis) | 0.97 | T1 | parse |
+| [0x13F888](../../src/auto/CLoadCollectorArray_ctor.c) | `CLoadCollectorArray_ctor` | CLoadCollectorArray ctor: vptr(+0)=D_002CBE50, cMax=c=0, a=0 | 0.88 | T1 |  |
+| [0x13F8A8](../../src/hand/Add__19CLoadCollectorArrayiPP2LO.c) | `CLoadCollectorArray_Add` | Append c LO* to growable array (capacity doubles, min 32, PvAllocStack 0x1AE318 + CopyAb) | 0.85 | T1 |  |
+| [0x13FB40](../../src/hand/LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector.c) | `LoadSwObjectsFromBrx` | Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload via vt14 LoadFromBrx}, proxies (FIsCidDerivedFrom(cid | 0.97 | T1 | parse |
+| [0x149A50](../../src/hand/PostSwCallback.c) | `PostSwCallback` | Append a deferred callback {object, pointer-to-member, arg} from pool g_sw+0x3C90 to the SW callback list (+0x3CA8) | 0.85 | T1 |  |
+| [0x149AB8](../../src/hand/EnsureSwCallback.c) | `EnsureSwCallback` | PostSwCallback unless an identical {obj, member pointer, arg} entry is already queued | 0.85 | T1 |  |
+| [0x149B58](../../src/hand/ClearSwCallbacks.c) | `ClearSwCallbacks` | Remove queued callbacks matching by grf bits: 1 = object, 2 = member pointer, 4 = arg; fix tail | 0.85 | T1 |  |
+| [0x149C80](../../src/hand/ProcessSwCallbacks.cpp) | `ProcessSwCallbacks` | Drain the deferred-callback list (calling each member function, repeating while new ones are posted), then run all Splice scheduled callbacks whose ti | 0.80 | T1 |  |
+| [0x1C2A78](../../src/hand/SetPhase__F5PHASE.c) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
+| [0x1C2BA8](../../src/auto/ClearPhase.c) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
+| [0x20D9D0](../../src/hand/SW_ctor.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
 | [0x20DF80](../../src/hand/RestoreChkmgrFromCheckpoint__FP6CHKMGR.c) | `SetSwTransition` | fRestored=1; copy CHK record | 0.60 | existing | arbitration; replaces existing RestoreChkmgrFromCheckpoint__FP6CHKMGR |
-| [0x20E068](../../src/hand/func_0020E068.c) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |
-| [0x20E3C0](../../src/hand/func_0020E3C0.cpp) | `ResolveSwSaveVars` | Look up save-variable paths the game reads (language, sound flags, job/world, per-world dt/percent_complete), store current language/job/world, raise  | 0.85 | T1 | verified |
-| [0x20E740](../../src/hand/func_0020E740.c) | `PostSwLoad` | After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15) until queue empty, StartupCm-like camera reset, gam | 0.55 | T1 |  |
-| [0x20E890](../../src/hand/func_0020E890.cpp) | `ExecuteSwTransition` | Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw, InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore che | 0.55 | T1 |  |
-| [0x20EFC0](../../src/hand/func_0020EFC0.c) | `IncrementSwHandsOff` | ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84 | 0.85 | T1 |  |
-| [0x20F030](../../src/hand/func_0020F030.c) | `DecrementSwHandsOff` | --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84 | 0.80 | T1 |  |
-| [0x20F0B0](../../src/auto/func_0020F0B0.c) | `FSwHandsOff` | SW+0x3D78 > 0 | 0.85 | T1 | verified |
+| [0x20E068](../../src/hand/DeleteSw.c) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |
+| [0x20E3C0](../../src/hand/ResolveSwSaveVars__FP2SW.cpp) | `ResolveSwSaveVars` | Look up save-variable paths the game reads (language, sound flags, job/world, per-world dt/percent_complete), store current language/job/world, raise  | 0.85 | T1 | verified |
+| [0x20E740](../../src/hand/PostSwLoad.c) | `PostSwLoad` | After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15) until queue empty, StartupCm-like camera reset, gam | 0.55 | T1 |  |
+| [0x20E890](../../src/hand/ExecuteSwTransition.cpp) | `ExecuteSwTransition` | Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw, InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore che | 0.55 | T1 |  |
+| [0x20EFC0](../../src/hand/IncrementSwHandsOff.c) | `IncrementSwHandsOff` | ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84 | 0.85 | T1 |  |
+| [0x20F030](../../src/hand/DecrementSwHandsOff.c) | `DecrementSwHandsOff` | --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84 | 0.80 | T1 |  |
+| [0x20F0B0](../../src/auto/FSwHandsOff.c) | `FSwHandsOff` | SW+0x3D78 > 0 | 0.85 | T1 | verified |
 | [0x20F0C0](../../src/auto/func_0020F0C0.c) | `IncrementSwNoPause` | ++SW+0x3D7C (first -> AddGrfusr(4)) \| runtime6: SW+0x3D7C is the no-pause counter (SetJsgHandsOff, JT mode kind 1); Lilly jtmode.c name | 0.30 | T2 | verified, pending-fix; pending fix; v2 name IncrementSwUsrLock |
-| [0x20F160](../../src/auto/func_0020F160.c) | `ReleaseSwLetterbox` | --SW+0x3D80; last -> 0x1A30D0 (vt50 hide) | 0.85 | T1 | verified |
+| [0x20F160](../../src/auto/ReleaseSwLetterbox.c) | `ReleaseSwLetterbox` | --SW+0x3D80; last -> 0x1A30D0 (vt50 hide) | 0.85 | T1 | verified |
 | [0x20F1B8](../../src/auto/func_0020F1B8.c) | `FSwInputLock` | SW+0x3D84 > 0 | 0.30 | T2 | verified |
-| [0x20F2F8](../../src/auto/func_0020F2F8.c) | `SetSwIllum` | Store midtone +0x3E20 (ctor default 90) and UpdateSwIllum | 0.85 | T1 | verified |
-| [0x20F318](../../src/hand/func_0020F318.cpp) | `LoadLevelTableFromBrx` | Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry  | 0.85 | T1 |  |
-| [0x20F5D0](../../src/hand/func_0020F5D0.c) | `LoadSwSharedHeaderFromBrx` | Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced | 0.90 | T1 | parse, verified |
-| [0x20F640](../../src/hand/func_0020F640.c) | `LoadSwSharedDataFromBrx` | If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip it and reuse (0x170828) | 0.75 | T1 | parse |
-| [0x20F948](../../src/hand/func_0020F948.c) | `FFilterSoPair` | Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3 | 0.85 | T1 | verified |
-| [0x20FAA0](../../src/hand/func_0020FAA0.c) | `IntersectSwBoundingBox` | Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array | 0.75 | T1 |  |
-| [0x20FC60](../../src/hand/func_0020FC60.c) | `IntersectSwBoundingSphere` | Same for a sphere (center, radius) | 0.85 | T1 | verified |
+| [0x20F2F8](../../src/auto/SetSwIllum.c) | `SetSwIllum` | Store midtone +0x3E20 (ctor default 90) and UpdateSwIllum | 0.85 | T1 | verified |
+| [0x20F318](../../src/hand/LoadLevelTableFromBrx.cpp) | `LoadLevelTableFromBrx` | Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry  | 0.85 | T1 |  |
+| [0x20F5D0](../../src/hand/LoadSwSharedHeaderFromBrx.c) | `LoadSwSharedHeaderFromBrx` | Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced | 0.90 | T1 | parse, verified |
+| [0x20F640](../../src/hand/LoadSwSharedDataFromBrx.c) | `LoadSwSharedDataFromBrx` | If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip it and reuse (0x170828) | 0.75 | T1 | parse |
+| [0x20F948](../../src/hand/FFilterSoPair.c) | `FFilterSoPair` | Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3 | 0.85 | T1 | verified |
+| [0x20FAA0](../../src/hand/IntersectSwBoundingBox.c) | `IntersectSwBoundingBox` | Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array | 0.75 | T1 |  |
+| [0x20FC60](../../src/hand/IntersectSwBoundingSphere.c) | `IntersectSwBoundingSphere` | Same for a sphere (center, radius) | 0.85 | T1 | verified |
 | [0x20FEC0](../../src/hand/FAddRsmg__FP4RSMGiPii3OIDN24.c) | `FAddRsmg__FP2SWP4RSMGiPii3OIDN25` | Add/update a (root,SM)->trigger/untrigger goal record | 0.80 | existing | verified, arbitration; replaces existing FAddRsmg__FP4RSMGiPii3OIDN24 |
 | [0x2102A0](../../src/hand/func_002102A0.cpp) | `RefreshSwObjects` | 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038) | 0.25 | T2 | runtime-corrected |
-| [0x2108E8](../../src/hand/func_002108E8.c) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
-| [0x210A88](../../src/auto/func_00210A88.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
-| [0x210B98](../../src/auto/func_00210B98.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
-| [0x226550](../../src/hand/func_00226550.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
+| [0x2108E8](../../src/hand/StopSwAsegSound.c) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
+| [0x210A88](../../src/auto/IlevelCur__Fv.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
+| [0x210B98](../../src/auto/PrecWorldEntry.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
+| [0x226550](../../src/hand/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
 | [0x228140](../../src/hand/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
 | [0x228250](../../src/hand/func_00228250.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
 | [0x2282B0](../../src/hand/func_002282B0.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |

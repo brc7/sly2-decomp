@@ -19,7 +19,7 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14A008](../../../src/hand/func_0014A008.c) | `LoadRouteFromBrx` | cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill it via 0x14A178), copy used part to the heap | 0.75 | T1 | parse |
+| [0x14A008](../../../src/hand/LoadRouteFromBrx.c) | `LoadRouteFromBrx` | cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill it via 0x14A178), copy used part to the heap | 0.75 | T1 | parse |
 | [0x14A0A8](../../../src/hand/func_0014A0A8.c) | `PostRouteLoad` | vt15: PostLoLoad, build a path/curve object (0x1E94B0 kind 0x62C) from the points | 0.35 | T2 |  |
 | [0x14A178](../../../src/auto/func_0014A178.c) | `AddRoutePoint` | Splice: append {a, b, -1?} (max 256, 12 bytes) | 0.35 | T2 |  |
 | [0x14A1B0](../../../src/hand/func_0014A1B0.c) | `InitBhv182` | BHV182 slot 7: base, start music/stream cue (0x1FEE90 on D_003DD040), guard flag 0x24, indices -1 | 0.40 | T2 |  |
@@ -50,26 +50,26 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x153D58](../../../src/hand/func_00153D58.c) | `InitDetector` | XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2 | 0.75 | T1 | verified |
-| [0x153DB0](../../../src/auto/func_00153DB0.c) | `UpdateDetector` | LO::Update (0x1A5E28) then class update 0x153DE0 | 0.65 | T1 |  |
-| [0x153DE0](../../../src/hand/func_00153DE0.c) | `UpdateDetectorTargets` | Re-evaluates every tracked target of a detector: new state = 0x1541D8(target, old state), applied via 0x154080 | 0.55 | T1 |  |
+| [0x153D58](../../../src/hand/InitDetector.c) | `InitDetector` | XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2 | 0.75 | T1 | verified |
+| [0x153DB0](../../../src/auto/UpdateDetector.c) | `UpdateDetector` | LO::Update (0x1A5E28) then class update 0x153DE0 | 0.65 | T1 |  |
+| [0x153DE0](../../../src/hand/UpdateDetectorTargets.c) | `UpdateDetectorTargets` | Re-evaluates every tracked target of a detector: new state = 0x1541D8(target, old state), applied via 0x154080 | 0.55 | T1 |  |
 | [0x153E60](../../../src/hand/func_00153E60.c) | `PosDetectorEye` | Returns the detector eye position: own position, or its parent position (+80 units up if the parent is a STEPGUARD-family object, cid test 0x38) | 0.45 | T2 |  |
-| [0x153F18](../../../src/auto/func_00153F18.c) | `AddDetectorTarget` | Adds an object id to the detector target list (max 8, entries of 16 bytes at +0x100, count at +0xFC) with state 0 | 0.55 | T1 |  |
-| [0x153F80](../../../src/hand/func_00153F80.c) | `RemoveDetectorTarget` | Removes a target from the detector list (state forced to 0 first, array compacted) | 0.55 | T1 |  |
+| [0x153F18](../../../src/auto/AddDetectorTarget.c) | `AddDetectorTarget` | Adds an object id to the detector target list (max 8, entries of 16 bytes at +0x100, count at +0xFC) with state 0 | 0.55 | T1 |  |
+| [0x153F80](../../../src/hand/RemoveDetectorTarget.c) | `RemoveDetectorTarget` | Removes a target from the detector list (state forced to 0 first, array compacted) | 0.55 | T1 |  |
 | [0x153FF8](../../../src/hand/func_00153FF8.c) | `ResetDetectorTargets` | Clears every target state to 0 and stamps the current clock time | 0.45 | T2 |  |
-| [0x154038](../../../src/auto/func_00154038.c) | `SetDetectorTargetStateById` | Looks up a target by id and sets its detection state | 0.50 | T1 |  |
-| [0x154080](../../../src/hand/func_00154080.c) | `SetDetectorTargetState` | Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and, when a player-class object becomes detected (state 1), broadcasts game | 0.85 | T1 | verified |
+| [0x154038](../../../src/auto/SetDetectorTargetStateById.c) | `SetDetectorTargetStateById` | Looks up a target by id and sets its detection state | 0.50 | T1 |  |
+| [0x154080](../../../src/hand/SetDetectorTargetState.c) | `SetDetectorTargetState` | Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and, when a player-class object becomes detected (state 1), broadcasts game | 0.85 | T1 | verified |
 | [0x154158](../../../src/hand/X509v3_data_type_by_NID.c) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
-| [0x154180](../../../src/hand/func_00154180.c) | `PdteFindDetectorTarget` | Finds the target entry with a given id in the detector list (NULL for id 0) | 0.55 | T1 |  |
-| [0x1541D8](../../../src/hand/func_001541D8.c) | `KCalculateDetectorTarget` | Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes (0x227C90) and optional line test (0 | 0.50 | T1 |  |
+| [0x154180](../../../src/hand/PdteFindDetectorTarget.c) | `PdteFindDetectorTarget` | Finds the target entry with a given id in the detector list (NULL for id 0) | 0.55 | T1 |  |
+| [0x1541D8](../../../src/hand/KCalculateDetectorTarget.c) | `KCalculateDetectorTarget` | Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes (0x227C90) and optional line test (0 | 0.50 | T1 |  |
 | [0x1545F0](../../../src/hand/func_001545F0.cpp) | `FDetectorLineBlocked` | Tests whether the line from the detector eye to the target is blocked by objects (PsoHitTestLineObjects with the filter callbacks) | 0.40 | T2 |  |
 
 ## tu_1553F0 (0x1553F0-0x1564E8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1553F0](../../../src/hand/func_001553F0.c) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
-| [0x155450](../../../src/hand/func_00155450.c) | `PostDimitriLoad` | STEPGUARD PostLoad then resolves the 4 oids of each route record | 0.60 | T1 | verified, whole-game |
+| [0x1553F0](../../../src/hand/LoadDimitriFromBrx.c) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
+| [0x155450](../../../src/hand/PostDimitriLoad.c) | `PostDimitriLoad` | STEPGUARD PostLoad then resolves the 4 oids of each route record | 0.60 | T1 | verified, whole-game |
 | [0x155530](../../../src/hand/func_00155530.c) | `AddDimitriRoute` | Appends a route record of 4 oids | 0.40 | T2 | whole-game |
 | [0x155560](../../../src/hand/func_00155560.c) | `InitBhv180` | BHV180 slot 7: base, guard flag 0x22, state -1 | 0.35 | T2 |  |
 | [0x155598](../../../src/auto/func_00155598.c) | `CloseBhv180` | BHV180 slot 9: state -1, clear flag 0x22, 0x208540(guard,0) | 0.30 | T2 |  |
@@ -100,7 +100,7 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x156898](../../../src/hand/func_00156898.c) | `SRadiusNoise` | Current radius: template radius, grown by a quadratic over the template's ramp time | 0.40 | T2 |  |
 | [0x156918](../../../src/hand/func_00156918.c) | `FPosInNoise` | True if a position is within the noise's height range and current radius | 0.40 | T2 |  |
 | [0x1569B8](../../../src/hand/func_001569B8.c) | `CreateSwNoiseTemplates` | Creates the seven cid 0x75 noise templates (oids 0x2C2..0x2C8) into SW+0x4020[7] | 0.45 | T2 |  |
-| [0x156B98](../../../src/hand/func_00156B98.c) | `EmitSwNoise` | Emit a noise from one of the two SW noise templates (k=0 -> SW+0x4020, 1 -> +0x4024) at pos | 0.60 | T1 | top50 |
+| [0x156B98](../../../src/hand/EmitSwNoise.c) | `EmitSwNoise` | Emit a noise from one of the two SW noise templates (k=0 -> SW+0x4020, 1 -> +0x4024) at pos | 0.60 | T1 | top50 |
 | [0x156BE0](../../../src/hand/func_00156BE0.c) | `ReplaceHeldNoise` | Removes and releases the held noise, then creates a new one and increfs it | 0.40 | T2 |  |
 | [0x156C80](../../../src/hand/func_00156C80.c) | `ReplaceHeldSwNoise` | ReplaceHeldNoise using SW template 0 or 1 | 0.30 | T2 |  |
 | [0x156CC8](../../../src/hand/func_00156CC8.c) | `InitCid47` | XFM::Init then 0x1A6CA8(p,0), flag 2 | 0.75 | T2 |  |
@@ -209,88 +209,88 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x174898](../../../src/hand/func_00174898.c) | `PstepguardFromLo` | Return the STEPGUARD that owns an object: the object's LOROOT if it is a STEPGUARD, else (for cid 0x4F children) the root of its +0x200 owner; NULL otherwise | 0.60 | T1 |  |
-| [0x174920](../../../src/hand/func_00174920.c) | `InitBhvanim` | BHVANIM Init: base Init, state=-1, flag(+0x3C)=0 (shared by BHV160) | 0.80 | T1 | runtime |
-| [0x174950](../../../src/hand/func_00174950.c) | `StartBhvanim` | BHVANIM Start: raise guard flag +0x3C (AddStepguardSgf), pick anim binding for the current flags (PanimbindCur), enter state 0 (playing) or 1 (none -> done) | 0.80 | T1 | runtime |
-| [0x1749C0](../../../src/hand/func_001749C0.c) | `SetBhvanimState` | BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when flag 9), 1 = ClearBhvBusy, save walk phase, StopAnimBinding, release mover | 0.75 | T1 | runtime |
-| [0x174B28](../../../src/auto/func_00174B28.c) | `CloseBhvanim` | BHVANIM Close: base Close, state 1 (stop anim), lower flag +0x3C | 0.80 | T1 | runtime |
-| [0x174B68](../../../src/hand/func_00174B68.c) | `UpdateBhvanim` | BHVANIM Update: finish (state 1) when the anim binding is done | 0.80 | T1 | runtime |
-| [0x174BD0](../../../src/hand/func_00174BD0.c) | `BHVANIM_FHandleMessage` | BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation, 0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35 rumble/camera jolt on hit | 0.80 | T1 | runtime |
-| [0x174EA0](../../../src/hand/func_00174EA0.c) | `BHVANIM_GrfGroundProbe` | BHVANIM ground-probe flags: when the binding drives a kind-2 payload use its mode (7 for modes 0/3/4 else 1), else base | 0.60 | T1 | runtime |
-| [0x174F08](../../../src/hand/func_00174F08.c) | `UpdateBhvanimMotion` | BHVANIM motion: drive guard velocity from the anim root motion (DriveStepguardFromAnim) while playing, else zero; face +0x38 look-at object | 0.75 | T1 | runtime |
-| [0x174FB8](../../../src/auto/func_00174FB8.c) | `FBhvanimDone` | BHVANIM state == 1 (animation finished) | 0.80 | T1 | runtime |
-| [0x174FC8](../../../src/hand/func_00174FC8.c) | `InitBhvidle` | BHVIDLE Init: BHVANIM Init with default flag 2 (stand/idle) | 0.70 | T1 | runtime |
-| [0x174FF8](../../../src/hand/func_00174FF8.c) | `StartBhvidle` | BHVIDLE Start: BHVANIM Start; if flag 1 (hands-off) also cancel attack and reset detector targets; set XF roles | 0.65 | T1 | runtime |
-| [0x175090](../../../src/hand/func_00175090.c) | `CloseBhvidle` | BHVIDLE Close: BHVANIM Close and restore XF roles | 0.65 | T1 | runtime |
-| [0x1750E0](../../../src/hand/func_001750E0.c) | `BHVIDLE_FHandleMessage` | BHVIDLE message handler: ASEG events 0x29/0x2A toggle ground flag and XF role, else BHVANIM handler | 0.65 | T1 | runtime |
-| [0x1751C0](../../../src/hand/func_001751C0.c) | `InitBhvstrike` | BHVSTRIKE Init: BHVANIM Init with flag 3 (attacking; flag 3 broadcasts game event 0x14) | 0.90 | T1 | runtime, verified |
-| [0x1751F0](../../../src/auto/func_001751F0.c) | `StartBhvstrike` | BHVSTRIKE Start: mark guard engaged-busy (+0xF3C=1), BHVANIM Start; enable leap payload when the binding is kind 2 | 0.55 | T1 | runtime |
-| [0x175258](../../../src/hand/func_00175258.c) | `UpdateBhvstrike` | BHVSTRIKE Update: BHVANIM update; while leap enabled keep the leap target on the victim | 0.55 | T1 | runtime |
-| [0x1752C0](../../../src/hand/func_001752C0.c) | `CloseBhvstrike` | BHVSTRIKE Close: BHVANIM Close and clear engaged-busy +0xF3C | 0.55 | T1 | runtime |
-| [0x1752F0](../../../src/hand/func_001752F0.c) | `BHVSTRIKE_FHandleMessage` | BHVSTRIKE message handler: ASEG events 0x2D/0x2E open/close the hit window (+0xF3C), 0x30 releases the leap; else BHVANIM | 0.55 | T1 | runtime |
-| [0x1753D8](../../../src/hand/func_001753D8.c) | `InitBhvattack` | BHVATTACK Init: raise flag 0x18 (attack in progress), state -1 | 0.65 | T1 | runtime |
-| [0x175410](../../../src/auto/func_00175410.c) | `StartBhvattack` | BHVATTACK Start: state 0 (strike) and set busy | 0.65 | T1 | runtime |
-| [0x175448](../../../src/auto/func_00175448.c) | `CloseBhvattack` | BHVATTACK Close: end strike, lower flag 0x18 | 0.65 | T1 | runtime |
-| [0x175488](../../../src/hand/func_00175488.c) | `SetBhvattackState` | BHVATTACK state switch: 0 = subscribe to victim, push BHVSTRIKE with the chosen attack entry and aim; 1 = push BHVANIM flag 4 (follow-through after a confirmed hit); -1 = clear busy | 0.65 | T1 | runtime |
-| [0x175600](../../../src/hand/func_00175600.c) | `UpdateBhvattack` | BHVATTACK Update: after the strike, go to follow-through if the victim confirmed the hit (+0x40), else finish | 0.65 | T1 | runtime |
-| [0x1756C0](../../../src/auto/func_001756C0.c) | `BHVATTACK_FHandleMessage` | BHVATTACK message handler: msg 0xB from the victim naming this guard = hit landed (+0x40=1) | 0.65 | T1 | runtime |
-| [0x175748](../../../src/auto/func_00175748.c) | `FBhvattackDone` | BHVATTACK state == -1 | 0.70 | T1 | runtime |
-| [0x175758](../../../src/hand/func_00175758.c) | `InitBhvcombat` | BHVCOMBAT Init: raise flag 0x1D (engaged/alerted), state -1 | 0.70 | T1 | runtime |
-| [0x175790](../../../src/auto/func_00175790.c) | `StartBhvcombat` | BHVCOMBAT Start: state 3 (pursue) and SetStepguardTarget(target +0x30) | 0.70 | T1 | runtime |
-| [0x1757D0](../../../src/auto/func_001757D0.c) | `CloseBhvcombat` | BHVCOMBAT Close: state -1, lower flag 0x1D | 0.70 | T1 | runtime |
-| [0x175810](../../../src/auto/func_00175810.c) | `FBhvcombatDone` | BHVCOMBAT state == -1 (target lost/given up) | 0.70 | T1 | runtime |
+| [0x174898](../../../src/hand/PstepguardFromLo.c) | `PstepguardFromLo` | Return the STEPGUARD that owns an object: the object's LOROOT if it is a STEPGUARD, else (for cid 0x4F children) the root of its +0x200 owner; NULL otherwise | 0.60 | T1 |  |
+| [0x174920](../../../src/hand/InitBhvanim.c) | `InitBhvanim` | BHVANIM Init: base Init, state=-1, flag(+0x3C)=0 (shared by BHV160) | 0.80 | T1 | runtime |
+| [0x174950](../../../src/hand/StartBhvanim.c) | `StartBhvanim` | BHVANIM Start: raise guard flag +0x3C (AddStepguardSgf), pick anim binding for the current flags (PanimbindCur), enter state 0 (playing) or 1 (none -> done) | 0.80 | T1 | runtime |
+| [0x1749C0](../../../src/hand/SetBhvanimState.c) | `SetBhvanimState` | BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when flag 9), 1 = ClearBhvBusy, save walk phase, StopAnimBinding, release mover | 0.75 | T1 | runtime |
+| [0x174B28](../../../src/auto/CloseBhvanim.c) | `CloseBhvanim` | BHVANIM Close: base Close, state 1 (stop anim), lower flag +0x3C | 0.80 | T1 | runtime |
+| [0x174B68](../../../src/hand/UpdateBhvanim.c) | `UpdateBhvanim` | BHVANIM Update: finish (state 1) when the anim binding is done | 0.80 | T1 | runtime |
+| [0x174BD0](../../../src/hand/BHVANIM_FHandleMessage.c) | `BHVANIM_FHandleMessage` | BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation, 0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35 rumble/camera jolt on hit | 0.80 | T1 | runtime |
+| [0x174EA0](../../../src/hand/BHVANIM_GrfGroundProbe.c) | `BHVANIM_GrfGroundProbe` | BHVANIM ground-probe flags: when the binding drives a kind-2 payload use its mode (7 for modes 0/3/4 else 1), else base | 0.60 | T1 | runtime |
+| [0x174F08](../../../src/hand/UpdateBhvanimMotion.c) | `UpdateBhvanimMotion` | BHVANIM motion: drive guard velocity from the anim root motion (DriveStepguardFromAnim) while playing, else zero; face +0x38 look-at object | 0.75 | T1 | runtime |
+| [0x174FB8](../../../src/auto/FBhvanimDone.c) | `FBhvanimDone` | BHVANIM state == 1 (animation finished) | 0.80 | T1 | runtime |
+| [0x174FC8](../../../src/hand/InitBhvidle.c) | `InitBhvidle` | BHVIDLE Init: BHVANIM Init with default flag 2 (stand/idle) | 0.70 | T1 | runtime |
+| [0x174FF8](../../../src/hand/StartBhvidle.c) | `StartBhvidle` | BHVIDLE Start: BHVANIM Start; if flag 1 (hands-off) also cancel attack and reset detector targets; set XF roles | 0.65 | T1 | runtime |
+| [0x175090](../../../src/hand/CloseBhvidle.c) | `CloseBhvidle` | BHVIDLE Close: BHVANIM Close and restore XF roles | 0.65 | T1 | runtime |
+| [0x1750E0](../../../src/hand/BHVIDLE_FHandleMessage.c) | `BHVIDLE_FHandleMessage` | BHVIDLE message handler: ASEG events 0x29/0x2A toggle ground flag and XF role, else BHVANIM handler | 0.65 | T1 | runtime |
+| [0x1751C0](../../../src/hand/InitBhvstrike.c) | `InitBhvstrike` | BHVSTRIKE Init: BHVANIM Init with flag 3 (attacking; flag 3 broadcasts game event 0x14) | 0.90 | T1 | runtime, verified |
+| [0x1751F0](../../../src/auto/StartBhvstrike.c) | `StartBhvstrike` | BHVSTRIKE Start: mark guard engaged-busy (+0xF3C=1), BHVANIM Start; enable leap payload when the binding is kind 2 | 0.55 | T1 | runtime |
+| [0x175258](../../../src/hand/UpdateBhvstrike.c) | `UpdateBhvstrike` | BHVSTRIKE Update: BHVANIM update; while leap enabled keep the leap target on the victim | 0.55 | T1 | runtime |
+| [0x1752C0](../../../src/hand/CloseBhvstrike.c) | `CloseBhvstrike` | BHVSTRIKE Close: BHVANIM Close and clear engaged-busy +0xF3C | 0.55 | T1 | runtime |
+| [0x1752F0](../../../src/hand/BHVSTRIKE_FHandleMessage.c) | `BHVSTRIKE_FHandleMessage` | BHVSTRIKE message handler: ASEG events 0x2D/0x2E open/close the hit window (+0xF3C), 0x30 releases the leap; else BHVANIM | 0.55 | T1 | runtime |
+| [0x1753D8](../../../src/hand/InitBhvattack.c) | `InitBhvattack` | BHVATTACK Init: raise flag 0x18 (attack in progress), state -1 | 0.65 | T1 | runtime |
+| [0x175410](../../../src/auto/StartBhvattack.c) | `StartBhvattack` | BHVATTACK Start: state 0 (strike) and set busy | 0.65 | T1 | runtime |
+| [0x175448](../../../src/auto/CloseBhvattack.c) | `CloseBhvattack` | BHVATTACK Close: end strike, lower flag 0x18 | 0.65 | T1 | runtime |
+| [0x175488](../../../src/hand/SetBhvattackState.c) | `SetBhvattackState` | BHVATTACK state switch: 0 = subscribe to victim, push BHVSTRIKE with the chosen attack entry and aim; 1 = push BHVANIM flag 4 (follow-through after a confirmed hit); -1 = clear busy | 0.65 | T1 | runtime |
+| [0x175600](../../../src/hand/UpdateBhvattack.c) | `UpdateBhvattack` | BHVATTACK Update: after the strike, go to follow-through if the victim confirmed the hit (+0x40), else finish | 0.65 | T1 | runtime |
+| [0x1756C0](../../../src/auto/BHVATTACK_FHandleMessage.c) | `BHVATTACK_FHandleMessage` | BHVATTACK message handler: msg 0xB from the victim naming this guard = hit landed (+0x40=1) | 0.65 | T1 | runtime |
+| [0x175748](../../../src/auto/FBhvattackDone.c) | `FBhvattackDone` | BHVATTACK state == -1 | 0.70 | T1 | runtime |
+| [0x175758](../../../src/hand/InitBhvcombat.c) | `InitBhvcombat` | BHVCOMBAT Init: raise flag 0x1D (engaged/alerted), state -1 | 0.70 | T1 | runtime |
+| [0x175790](../../../src/auto/StartBhvcombat.c) | `StartBhvcombat` | BHVCOMBAT Start: state 3 (pursue) and SetStepguardTarget(target +0x30) | 0.70 | T1 | runtime |
+| [0x1757D0](../../../src/auto/CloseBhvcombat.c) | `CloseBhvcombat` | BHVCOMBAT Close: state -1, lower flag 0x1D | 0.70 | T1 | runtime |
+| [0x175810](../../../src/auto/FBhvcombatDone.c) | `FBhvcombatDone` | BHVCOMBAT state == -1 (target lost/given up) | 0.70 | T1 | runtime |
 | [0x175820](../../../src/hand/func_00175820.c) | `FAttackLosIgnoreSo` | Line-of-sight filter for attack checks: ignore flagged SOs, cid 0x62 objects (when entry asks) and any STEP | 0.45 | T2 |  |
-| [0x1758A0](../../../src/hand/func_001758A0.cpp) | `PentryChooseStepguardAttack` | Pick the first enabled attack entry whose range/height/angle/LOS accept the target, confirm via Splice event 0x18, then start it (SetStepguardAttack) and mark the target record attacking | 0.85 | T1 | verified |
-| [0x175D00](../../../src/hand/func_00175D00.c) | `FBhvcombatCanShoot` | Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging, on pipe, special JT sta | 0.50 | T1 | runtime |
-| [0x175FF0](../../../src/auto/func_00175FF0.c) | `FBhvcombatChooseAttack` | Try PentryChooseStepguardAttack for the target; on failure push the attack cooldown +0xF04 forward | 0.60 | T1 | runtime |
-| [0x176060](../../../src/hand/func_00176060.c) | `FBhvcombatLostTarget` | Target lost: not hit-confirmed and the shared target record is stale (FTargetRecordStale) | 0.55 | T1 | runtime |
-| [0x176098](../../../src/hand/func_00176098.c) | `UpdateBhvcombat` | BHVCOMBAT Update: state machine 0 close/3 pursue -> 1 melee attack / 2 ranged / 4 give up / 5 hands-off; re-goals the pursuit when the target moves >threshold or changes path zone; emits a stimulus to alert other guards | 0.70 | T1 | runtime |
-| [0x176458](../../../src/hand/func_00176458.c) | `SetBhvcombatState` | BHVCOMBAT state switch: 0 push BHVCIRCLE, 1 push BHVATTACK with entry, 2 push BHVSHOOT, 3 push BHVGOTO toward target with run flag 0x1C, 4 push BHVANIM flag 0xD (lost him) and drop target, 5 push BHVIDLE flag 1; leaving  | 0.65 | T1 | runtime |
-| [0x1766D8](../../../src/hand/func_001766D8.c) | `InitBhvguard` | BHVGUARD Init: state kind -1 | 0.75 | T1 | runtime |
-| [0x176708](../../../src/hand/func_00176708.c) | `StartBhvguard` | BHVGUARD Start: enter mode 0 (immediately becomes patrol) | 0.75 | T1 | runtime |
-| [0x176750](../../../src/hand/func_00176750.c) | `SetBhvguardMode` | BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the mode: 1 patrol, 2 search(stimulus), 3 alert anim(0xB), 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, 9/10/11 hurt/knockd | 0.75 | T1 | runtime |
-| [0x176B80](../../../src/hand/func_00176B80.c) | `InflictBhvguardZap` | Inflict a zap of kind 0x40000 and amount a on the guard from source b | 0.50 | T1 | runtime |
-| [0x176BE8](../../../src/hand/func_00176BE8.cpp) | `BHVGUARD_FHandleMessage` | BHVGUARD message handler: msg 12 (zap/damage) -> choose hurt/knockdown/KO by zap kind, reaction tables +0x8D0/+0xA70/+0xC10 and hit points; special zaps 0x80000 sleep, 0x200000 grab (held), 0x1000000/0x2000000 shrink/rag | 0.90 | T1 | runtime-corrected, runtime, verified |
-| [0x177618](../../../src/hand/func_00177618.cpp) | `UpdateBhvguard` | BHVGUARD Update: top-level guard AI: patrol -> (stimulus) search -> (target) alert anim -> combat; returns to patrol when the child finishes; script/escort/target-list modes | 0.75 | T1 | runtime |
-| [0x177BA0](../../../src/hand/func_00177BA0.c) | `ResumeBhvguard` | Pick the mode to resume after an interrupting mode ends: flee (cid 0x3B), stalk hero (special 0x15), target list, BHV174, combat/stalk on current target, investigate own position after being hit, else patrol | 0.60 | T1 | runtime |
-| [0x177D20](../../../src/auto/func_00177D20.c) | `FBhvguardHasTargetList` | Guard has designated targets (+0xF94 or +0xFA8 count nonzero) | 0.50 | T1 | runtime |
-| [0x177D48](../../../src/hand/func_00177D48.c) | `FBhvguardEscortActive` | Escort object at guard +0xF68 exists and is in the world (bit 60) | 0.50 | T1 | runtime |
+| [0x1758A0](../../../src/hand/PentryChooseStepguardAttack.cpp) | `PentryChooseStepguardAttack` | Pick the first enabled attack entry whose range/height/angle/LOS accept the target, confirm via Splice event 0x18, then start it (SetStepguardAttack) and mark the target record attacking | 0.85 | T1 | verified |
+| [0x175D00](../../../src/hand/FBhvcombatCanShoot.c) | `FBhvcombatCanShoot` | Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging, on pipe, special JT sta | 0.50 | T1 | runtime |
+| [0x175FF0](../../../src/auto/FBhvcombatChooseAttack.c) | `FBhvcombatChooseAttack` | Try PentryChooseStepguardAttack for the target; on failure push the attack cooldown +0xF04 forward | 0.60 | T1 | runtime |
+| [0x176060](../../../src/hand/FBhvcombatLostTarget.c) | `FBhvcombatLostTarget` | Target lost: not hit-confirmed and the shared target record is stale (FTargetRecordStale) | 0.55 | T1 | runtime |
+| [0x176098](../../../src/hand/UpdateBhvcombat.c) | `UpdateBhvcombat` | BHVCOMBAT Update: state machine 0 close/3 pursue -> 1 melee attack / 2 ranged / 4 give up / 5 hands-off; re-goals the pursuit when the target moves >threshold or changes path zone; emits a stimulus to alert other guards | 0.70 | T1 | runtime |
+| [0x176458](../../../src/hand/SetBhvcombatState.c) | `SetBhvcombatState` | BHVCOMBAT state switch: 0 push BHVCIRCLE, 1 push BHVATTACK with entry, 2 push BHVSHOOT, 3 push BHVGOTO toward target with run flag 0x1C, 4 push BHVANIM flag 0xD (lost him) and drop target, 5 push BHVIDLE flag 1; leaving  | 0.65 | T1 | runtime |
+| [0x1766D8](../../../src/hand/InitBhvguard.c) | `InitBhvguard` | BHVGUARD Init: state kind -1 | 0.75 | T1 | runtime |
+| [0x176708](../../../src/hand/StartBhvguard.c) | `StartBhvguard` | BHVGUARD Start: enter mode 0 (immediately becomes patrol) | 0.75 | T1 | runtime |
+| [0x176750](../../../src/hand/SetBhvguardMode.c) | `SetBhvguardMode` | BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the mode: 1 patrol, 2 search(stimulus), 3 alert anim(0xB), 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, 9/10/11 hurt/knockd | 0.75 | T1 | runtime |
+| [0x176B80](../../../src/hand/InflictBhvguardZap.c) | `InflictBhvguardZap` | Inflict a zap of kind 0x40000 and amount a on the guard from source b | 0.50 | T1 | runtime |
+| [0x176BE8](../../../src/hand/BHVGUARD_FHandleMessage.cpp) | `BHVGUARD_FHandleMessage` | BHVGUARD message handler: msg 12 (zap/damage) -> choose hurt/knockdown/KO by zap kind, reaction tables +0x8D0/+0xA70/+0xC10 and hit points; special zaps 0x80000 sleep, 0x200000 grab (held), 0x1000000/0x2000000 shrink/rag | 0.90 | T1 | runtime-corrected, runtime, verified |
+| [0x177618](../../../src/hand/UpdateBhvguard.cpp) | `UpdateBhvguard` | BHVGUARD Update: top-level guard AI: patrol -> (stimulus) search -> (target) alert anim -> combat; returns to patrol when the child finishes; script/escort/target-list modes | 0.75 | T1 | runtime |
+| [0x177BA0](../../../src/hand/ResumeBhvguard.c) | `ResumeBhvguard` | Pick the mode to resume after an interrupting mode ends: flee (cid 0x3B), stalk hero (special 0x15), target list, BHV174, combat/stalk on current target, investigate own position after being hit, else patrol | 0.60 | T1 | runtime |
+| [0x177D20](../../../src/auto/FBhvguardHasTargetList.c) | `FBhvguardHasTargetList` | Guard has designated targets (+0xF94 or +0xFA8 count nonzero) | 0.50 | T1 | runtime |
+| [0x177D48](../../../src/hand/FBhvguardEscortActive.c) | `FBhvguardEscortActive` | Escort object at guard +0xF68 exists and is in the world (bit 60) | 0.50 | T1 | runtime |
 | [0x177D70](../../../src/auto/func_00177D70.c) | `FBhvguardUseNeelaBhv` | Guard is cid 0x3C and +0x108C is set | 0.45 | T2 | runtime, whole-game |
-| [0x177DC0](../../../src/hand/func_00177DC0.c) | `FBhvguardModeSame` | Compare two mode records (kind plus the kind's key field) | 0.90 | T1 | runtime, verified |
-| [0x177E80](../../../src/hand/func_00177E80.c) | `InitBhvpath` | BHVPATH Init: no path, default speeds/radii, state -1 | 0.70 | T1 |  |
-| [0x177EF0](../../../src/hand/func_00177EF0.c) | `StartBhvpath` | BHVPATH Start: remember start pos, clamp radii from speed, SetState(0) | 0.70 | T1 |  |
-| [0x177F78](../../../src/hand/func_00177F78.cpp) | `StepBhvpathAlongShape` | Curve follower step: closest point on the path SHAPE, steer toward the next point, avoid other bodies, integrate and clamp to collision | 0.55 | T1 |  |
-| [0x1789F8](../../../src/hand/func_001789F8.c) | `UpdateBhvpath` | BHVPATH Update: follow the path; detect blockers on the shape (FindShapeFreePoint) and switch move/wait/end states (3 = end reached) | 0.70 | T1 |  |
-| [0x178CD8](../../../src/auto/func_00178CD8.c) | `SetBhvpathState` | BHVPATH SetState(n): store state +0x4C and time | 0.70 | T1 |  |
-| [0x178D00](../../../src/hand/func_00178D00.c) | `FBhvpathAtEnd` | Path end is defined (+0x3C) and the guard is within +0x64 of the end point +0xB0 | 0.55 | T1 |  |
-| [0x178D80](../../../src/auto/func_00178D80.c) | `FBhvpathFinished` | BHVPATH state == 3 | 0.60 | T1 |  |
-| [0x178D90](../../../src/hand/func_00178D90.c) | `SetBhvpathShape` | Set the SHAPE to follow and direction: find the start parameter (closest point) and, for open shapes, the end point | 0.85 | T1 | verified |
-| [0x178E98](../../../src/hand/func_00178E98.c) | `InitBhvwalkpath` | BHVWALKPATH Init: BHVPATH Init, anim flag 9 (walk), rate 1 | 0.65 | T1 | runtime |
-| [0x178EE0](../../../src/hand/func_00178EE0.cpp) | `UpdateBhvwalkpath` | BHVWALKPATH Update: BHVPATH update, then set walk-anim speed and mover heading toward the target point; stuck timer when not moving | 0.90 | T1 | runtime, verified |
-| [0x1791C8](../../../src/hand/func_001791C8.c) | `SetBhvwalkpathState` | BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped states push BHVIDLE | 0.65 | T1 | runtime |
-| [0x1792E8](../../../src/hand/func_001792E8.c) | `FBhvwalkpathStuck` | Walking and the stuck timer +0xE0 ran out | 0.55 | T1 | runtime |
-| [0x179328](../../../src/hand/func_00179328.c) | `StartBhvhit` | BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain noise, rumble/zap-mode timers | 0.60 | T1 |  |
-| [0x179598](../../../src/hand/func_00179598.c) | `CloseBhvhit` | BHVHIT Close: BHVANIM Close, release the held noise | 0.60 | T1 |  |
-| [0x1795E8](../../../src/hand/func_001795E8.c) | `UpdateBhvhit` | BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode change | 0.60 | T1 | verified |
+| [0x177DC0](../../../src/hand/FBhvguardModeSame.c) | `FBhvguardModeSame` | Compare two mode records (kind plus the kind's key field) | 0.90 | T1 | runtime, verified |
+| [0x177E80](../../../src/hand/InitBhvpath.c) | `InitBhvpath` | BHVPATH Init: no path, default speeds/radii, state -1 | 0.70 | T1 |  |
+| [0x177EF0](../../../src/hand/StartBhvpath.c) | `StartBhvpath` | BHVPATH Start: remember start pos, clamp radii from speed, SetState(0) | 0.70 | T1 |  |
+| [0x177F78](../../../src/hand/StepBhvpathAlongShape.cpp) | `StepBhvpathAlongShape` | Curve follower step: closest point on the path SHAPE, steer toward the next point, avoid other bodies, integrate and clamp to collision | 0.55 | T1 |  |
+| [0x1789F8](../../../src/hand/UpdateBhvpath.c) | `UpdateBhvpath` | BHVPATH Update: follow the path; detect blockers on the shape (FindShapeFreePoint) and switch move/wait/end states (3 = end reached) | 0.70 | T1 |  |
+| [0x178CD8](../../../src/auto/SetBhvpathState.c) | `SetBhvpathState` | BHVPATH SetState(n): store state +0x4C and time | 0.70 | T1 |  |
+| [0x178D00](../../../src/hand/FBhvpathAtEnd.c) | `FBhvpathAtEnd` | Path end is defined (+0x3C) and the guard is within +0x64 of the end point +0xB0 | 0.55 | T1 |  |
+| [0x178D80](../../../src/auto/FBhvpathFinished.c) | `FBhvpathFinished` | BHVPATH state == 3 | 0.60 | T1 |  |
+| [0x178D90](../../../src/hand/SetBhvpathShape.c) | `SetBhvpathShape` | Set the SHAPE to follow and direction: find the start parameter (closest point) and, for open shapes, the end point | 0.85 | T1 | verified |
+| [0x178E98](../../../src/hand/InitBhvwalkpath.c) | `InitBhvwalkpath` | BHVWALKPATH Init: BHVPATH Init, anim flag 9 (walk), rate 1 | 0.65 | T1 | runtime |
+| [0x178EE0](../../../src/hand/UpdateBhvwalkpath.cpp) | `UpdateBhvwalkpath` | BHVWALKPATH Update: BHVPATH update, then set walk-anim speed and mover heading toward the target point; stuck timer when not moving | 0.90 | T1 | runtime, verified |
+| [0x1791C8](../../../src/hand/SetBhvwalkpathState.c) | `SetBhvwalkpathState` | BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped states push BHVIDLE | 0.65 | T1 | runtime |
+| [0x1792E8](../../../src/hand/FBhvwalkpathStuck.c) | `FBhvwalkpathStuck` | Walking and the stuck timer +0xE0 ran out | 0.55 | T1 | runtime |
+| [0x179328](../../../src/hand/StartBhvhit.c) | `StartBhvhit` | BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain noise, rumble/zap-mode timers | 0.60 | T1 |  |
+| [0x179598](../../../src/hand/CloseBhvhit.c) | `CloseBhvhit` | BHVHIT Close: BHVANIM Close, release the held noise | 0.60 | T1 |  |
+| [0x1795E8](../../../src/hand/UpdateBhvhit.c) | `UpdateBhvhit` | BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode change | 0.60 | T1 | verified |
 | [0x1796A0](../../../src/hand/func_001796A0.c) | `InitBhv161` | BHVHURT Init: BHVHIT Init with flag 5 (damaged) | 0.50 | T2 |  |
 | [0x1796D0](../../../src/hand/func_001796D0.c) | `StartBhv161` | BHVHURT Start: reaction entry from table +0xA70 by zap kind, BHVHIT Start, broadcast game event 0x15, mark detector target | 0.50 | T2 |  |
 | [0x179750](../../../src/hand/func_00179750.c) | `InitBhv162` | BHVKNOCKDOWN Init: BHVHIT Init with flag 6 | 0.45 | T2 |  |
 | [0x179780](../../../src/hand/func_00179780.c) | `StartBhv162` | BHVKNOCKDOWN Start: entry from table +0x8D0, BHVHIT Start, event 0x15, start helper +0xFEC | 0.45 | T2 | verified |
 | [0x179820](../../../src/hand/func_00179820.c) | `CloseBhv162` | BHVKNOCKDOWN Close: BHVHIT Close and close helper +0xFEC | 0.45 | T2 |  |
-| [0x179868](../../../src/hand/func_00179868.c) | `InitBhvko` | BHVKO Init: BHVHIT Init with flag 7 (dead/KO) | 0.70 | T1 | runtime |
-| [0x179898](../../../src/hand/func_00179898.c) | `StartBhvko` | BHVKO Start: entry from table +0xC10, BHVHIT Start; first time: mark KO (+0x330), broadcast 0x18 (by hero) or 0x17, drop coins from the loot list, reset detector | 0.70 | T1 | runtime |
-| [0x179A20](../../../src/auto/func_00179A20.c) | `CloseBhvko` | BHVKO Close: BHVHIT Close and refresh world filter | 0.70 | T1 | runtime |
-| [0x179A58](../../../src/hand/func_00179A58.c) | `InitBhvpatrol` | BHVPATROL Init: raise flag 0x1E (patrolling), timers off | 0.80 | T1 | runtime |
-| [0x179AA0](../../../src/hand/func_00179AA0.c) | `StartBhvpatrol` | BHVPATROL Start: take the patrol script (+0x2E8, or +0x2EC with capability 2); resume at nearest script point; walk (0) or stand (2) or hands-off (3) | 0.80 | T1 | runtime |
-| [0x179B60](../../../src/auto/func_00179B60.c) | `CloseBhvpatrol` | BHVPATROL Close: stop, lower flag 0x1E | 0.80 | T1 | runtime |
-| [0x179BA0](../../../src/hand/func_00179BA0.c) | `UpdateBhvpatrol` | BHVPATROL Update: alternate walking the script for a random time and standing idle for a random time; stand forever when the script ends; hands-off pause | 0.80 | T1 | runtime |
-| [0x179D30](../../../src/hand/func_00179D30.c) | `SetBhvpatrolState` | BHVPATROL state switch: 0 push BHV169 script runner on the route (saves resume point), 1/2 push BHVIDLE, 3 push BHVIDLE flag 1 | 0.75 | T1 | runtime |
-| [0x179E80](../../../src/hand/func_00179E80.c) | `ArmBhvpatrolWalkTimer` | Arm the walk-duration timer from the guard range +0x2CC..+0x2D0 (FLT_MAX = forever) | 0.65 | T1 | runtime |
-| [0x179EF8](../../../src/hand/func_00179EF8.c) | `ArmBhvpatrolPauseTimer` | Arm the pause timer from +0x2D4..+0x2D8 | 0.65 | T1 | runtime |
-| [0x179F70](../../../src/hand/func_00179F70.c) | `InitBhvleap` | BHVLEAP Init: BHVANIM Init with flag 0xF (leaping) | 0.70 | T1 | runtime |
-| [0x179FA0](../../../src/hand/func_00179FA0.cpp) | `StartBhvleap` | BHVLEAP Start: aim at point/object +0x50/+0x58; if it is a rail/pipe/CID39/CID19 (kind 3) set attach flag 0x1B/0x27/0x29/0x28 for anim choice and build attach basis; start leap anim and SetLeapTarget; busy | 0.70 | T1 | runtime |
-| [0x17A3D0](../../../src/auto/func_0017A3D0.c) | `CloseBhvleap` | BHVLEAP Close: BHVANIM Close, clear busy | 0.70 | T1 | runtime |
-| [0x17A400](../../../src/hand/func_0017A400.c) | `UpdateBhvleap` | BHVLEAP Update: BHVANIM update; after the jump phase lock heading to the attach basis | 0.70 | T1 | runtime |
+| [0x179868](../../../src/hand/InitBhvko.c) | `InitBhvko` | BHVKO Init: BHVHIT Init with flag 7 (dead/KO) | 0.70 | T1 | runtime |
+| [0x179898](../../../src/hand/StartBhvko.c) | `StartBhvko` | BHVKO Start: entry from table +0xC10, BHVHIT Start; first time: mark KO (+0x330), broadcast 0x18 (by hero) or 0x17, drop coins from the loot list, reset detector | 0.70 | T1 | runtime |
+| [0x179A20](../../../src/auto/CloseBhvko.c) | `CloseBhvko` | BHVKO Close: BHVHIT Close and refresh world filter | 0.70 | T1 | runtime |
+| [0x179A58](../../../src/hand/InitBhvpatrol.c) | `InitBhvpatrol` | BHVPATROL Init: raise flag 0x1E (patrolling), timers off | 0.80 | T1 | runtime |
+| [0x179AA0](../../../src/hand/StartBhvpatrol.c) | `StartBhvpatrol` | BHVPATROL Start: take the patrol script (+0x2E8, or +0x2EC with capability 2); resume at nearest script point; walk (0) or stand (2) or hands-off (3) | 0.80 | T1 | runtime |
+| [0x179B60](../../../src/auto/CloseBhvpatrol.c) | `CloseBhvpatrol` | BHVPATROL Close: stop, lower flag 0x1E | 0.80 | T1 | runtime |
+| [0x179BA0](../../../src/hand/UpdateBhvpatrol.c) | `UpdateBhvpatrol` | BHVPATROL Update: alternate walking the script for a random time and standing idle for a random time; stand forever when the script ends; hands-off pause | 0.80 | T1 | runtime |
+| [0x179D30](../../../src/hand/SetBhvpatrolState.c) | `SetBhvpatrolState` | BHVPATROL state switch: 0 push BHV169 script runner on the route (saves resume point), 1/2 push BHVIDLE, 3 push BHVIDLE flag 1 | 0.75 | T1 | runtime |
+| [0x179E80](../../../src/hand/ArmBhvpatrolWalkTimer.c) | `ArmBhvpatrolWalkTimer` | Arm the walk-duration timer from the guard range +0x2CC..+0x2D0 (FLT_MAX = forever) | 0.65 | T1 | runtime |
+| [0x179EF8](../../../src/hand/ArmBhvpatrolPauseTimer.c) | `ArmBhvpatrolPauseTimer` | Arm the pause timer from +0x2D4..+0x2D8 | 0.65 | T1 | runtime |
+| [0x179F70](../../../src/hand/InitBhvleap.c) | `InitBhvleap` | BHVLEAP Init: BHVANIM Init with flag 0xF (leaping) | 0.70 | T1 | runtime |
+| [0x179FA0](../../../src/hand/StartBhvleap.cpp) | `StartBhvleap` | BHVLEAP Start: aim at point/object +0x50/+0x58; if it is a rail/pipe/CID39/CID19 (kind 3) set attach flag 0x1B/0x27/0x29/0x28 for anim choice and build attach basis; start leap anim and SetLeapTarget; busy | 0.70 | T1 | runtime |
+| [0x17A3D0](../../../src/auto/CloseBhvleap.c) | `CloseBhvleap` | BHVLEAP Close: BHVANIM Close, clear busy | 0.70 | T1 | runtime |
+| [0x17A400](../../../src/hand/UpdateBhvleap.c) | `UpdateBhvleap` | BHVLEAP Update: BHVANIM update; after the jump phase lock heading to the attach basis | 0.70 | T1 | runtime |
 | [0x17A468](../../../src/hand/func_0017A468.c) | `AdjustBhvleapAttachPoint` | Offset the leap landing point by the guard's attach-point offset in the attach basis | 0.45 | T2 | runtime |
 | [0x17A4B0](../../../src/auto/func_0017A4B0.c) | `InitBhv175` | BHVSLEEP Init: BHVANIM Init with flag 0x10, sub-state -1 | 0.40 | T2 |  |
 | [0x17A4E8](../../../src/hand/func_0017A4E8.c) | `StartBhv175` | BHVSLEEP Start: BHVANIM Start, sub-state 0 (SM goal 0x44, random duration +0xE7C..E80), reset detector, hold a noise | 0.40 | T2 |  |
@@ -303,22 +303,22 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x17A7F8](../../../src/hand/func_0017A7F8.c) | `UpdateBhv176` | BHVTHROWN Update: end when landed (+0x208) in states 2/3; emit yelling noise periodically while airborne | 0.45 | T2 |  |
 | [0x17A8C8](../../../src/hand/func_0017A8C8.c) | `SetBhv176State` | BHV176 (thrown/stunned guard) state switch: push BHVANIM (cid 0x9D) with anim flag 18/19/20/21/19 for states 0-4, airborne flag step+0x32C for states 0-1; -1 clears busy | 0.45 | T2 | top50 |
 | [0x17A9C0](../../../src/auto/func_0017A9C0.c) | `FBhv176Done` | state == -1 | 0.50 | T2 |  |
-| [0x17A9D0](../../../src/auto/func_0017A9D0.c) | `InitBhvjuggled` | BHVHELD Init: BHVANIM Init with flag 0x17 (carriable/held) | 0.55 | T1 | runtime |
-| [0x17AA08](../../../src/hand/func_0017AA08.c) | `StartBhvjuggled` | BHVHELD Start: BHVANIM Start, cancel attack, detach, state 0 (attached to the holder's hold point), busy | 0.55 | T1 | runtime |
+| [0x17A9D0](../../../src/auto/InitBhvjuggled.c) | `InitBhvjuggled` | BHVHELD Init: BHVANIM Init with flag 0x17 (carriable/held) | 0.55 | T1 | runtime |
+| [0x17AA08](../../../src/hand/StartBhvjuggled.c) | `StartBhvjuggled` | BHVHELD Start: BHVANIM Start, cancel attack, detach, state 0 (attached to the holder's hold point), busy | 0.55 | T1 | runtime |
 | [0x17AA78](../../../src/hand/func_0017AA78.c) | `CalcBhvjuggledHoldPoint` | Compute hold point and direction from the holder's request (vt96) relative to the guard | 0.45 | T2 | runtime |
 | [0x17ABC8](../../../src/hand/func_0017ABC8.c) | `UpdateBhvjuggledHoldAct` | Re-query the holder and update the attach ACT target | 0.45 | T2 | runtime |
-| [0x17AC90](../../../src/hand/func_0017AC90.c) | `UpdateBhvjuggled` | BHVHELD Update: held/carried states 0-1, released/fall states 2-3 (landed via +0x208), prediction states 4-5 | 0.55 | T1 | runtime |
-| [0x17AF30](../../../src/hand/func_0017AF30.c) | `BHVJUGGLED_FHandleMessage` | BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held = extra hit (seek labels, spawn effect, raise hit value +0x33C, noise) | 0.55 | T1 | runtime |
-| [0x17B178](../../../src/auto/func_0017B178.c) | `CloseBhvjuggled` | BHVHELD Close: state -1 (restore mass), BHVANIM Close | 0.55 | T1 | runtime |
-| [0x17B1A8](../../../src/hand/func_0017B1A8.cpp) | `SetBhvjuggledState` | BHVHELD state switch: attach ACT to holder (PactNewE), release ACT/XF roles, mass change, anim label seeks 0x3C/0x173 | 0.50 | T1 | runtime |
-| [0x17B578](../../../src/hand/func_0017B578.c) | `BHVJUGGLED_GrfGroundProbe` | BHVHELD ground-probe flags: 7 when landed (state 3) else 1 | 0.55 | T1 | runtime |
-| [0x17B590](../../../src/hand/func_0017B590.c) | `InitBhv173` | BHVSHOOT Init: state -1 | 0.40 | T2 |  |
-| [0x17B5C0](../../../src/auto/func_0017B5C0.c) | `StartBhv173` | BHVSHOOT Start: state 0 | 0.40 | T2 | verified |
-| [0x17B5F0](../../../src/auto/func_0017B5F0.c) | `CloseBhv173` | BHVSHOOT Close: state -1 | 0.40 | T2 |  |
-| [0x17B620](../../../src/auto/func_0017B620.c) | `UpdateBhv173` | BHVSHOOT Update: finish when the anim child is done | 0.40 | T2 |  |
-| [0x17B690](../../../src/hand/func_0017B690.c) | `BHV173_FHandleMessage` | BHVSHOOT message handler: ASEG events 0x31/0x32 open/close the firing window (+0xF60) | 0.40 | T2 |  |
-| [0x17B750](../../../src/hand/func_0017B750.c) | `SetBhv173State` | BHVSHOOT state: 0 = push BHVANIM flag 0x11 aimed at target and set +0xF60 | 0.45 | T2 |  |
-| [0x17B7F8](../../../src/auto/func_0017B7F8.c) | `FBhv173Done` | state == -1 | 0.50 | T2 |  |
+| [0x17AC90](../../../src/hand/UpdateBhvjuggled.c) | `UpdateBhvjuggled` | BHVHELD Update: held/carried states 0-1, released/fall states 2-3 (landed via +0x208), prediction states 4-5 | 0.55 | T1 | runtime |
+| [0x17AF30](../../../src/hand/BHVJUGGLED_FHandleMessage.c) | `BHVJUGGLED_FHandleMessage` | BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held = extra hit (seek labels, spawn effect, raise hit value +0x33C, noise) | 0.55 | T1 | runtime |
+| [0x17B178](../../../src/auto/CloseBhvjuggled.c) | `CloseBhvjuggled` | BHVHELD Close: state -1 (restore mass), BHVANIM Close | 0.55 | T1 | runtime |
+| [0x17B1A8](../../../src/hand/SetBhvjuggledState.cpp) | `SetBhvjuggledState` | BHVHELD state switch: attach ACT to holder (PactNewE), release ACT/XF roles, mass change, anim label seeks 0x3C/0x173 | 0.50 | T1 | runtime |
+| [0x17B578](../../../src/hand/BHVJUGGLED_GrfGroundProbe.c) | `BHVJUGGLED_GrfGroundProbe` | BHVHELD ground-probe flags: 7 when landed (state 3) else 1 | 0.55 | T1 | runtime |
+| [0x17B590](../../../src/hand/InitBhvshoot.c) | `InitBhv173` | BHVSHOOT Init: state -1 | 0.40 | T2 |  |
+| [0x17B5C0](../../../src/auto/StartBhvshoot.c) | `StartBhv173` | BHVSHOOT Start: state 0 | 0.40 | T2 | verified |
+| [0x17B5F0](../../../src/auto/CloseBhvshoot.c) | `CloseBhv173` | BHVSHOOT Close: state -1 | 0.40 | T2 |  |
+| [0x17B620](../../../src/auto/UpdateBhvshoot.c) | `UpdateBhv173` | BHVSHOOT Update: finish when the anim child is done | 0.40 | T2 |  |
+| [0x17B690](../../../src/hand/BHVSHOOT_FHandleMessage.c) | `BHV173_FHandleMessage` | BHVSHOOT message handler: ASEG events 0x31/0x32 open/close the firing window (+0xF60) | 0.40 | T2 |  |
+| [0x17B750](../../../src/hand/SetBhvshootState.c) | `SetBhv173State` | BHVSHOOT state: 0 = push BHVANIM flag 0x11 aimed at target and set +0xF60 | 0.45 | T2 |  |
+| [0x17B7F8](../../../src/auto/FBhvshootDone.c) | `FBhv173Done` | state == -1 | 0.50 | T2 |  |
 | [0x17B808](../../../src/hand/func_0017B808.c) | `InitBhv178` | BHVTARGETS Init: raise flag 0x20, state -1 | 0.35 | T2 |  |
 | [0x17B840](../../../src/auto/func_0017B840.c) | `StartBhv178` | BHVTARGETS Start: state 0 | 0.35 | T2 | verified |
 | [0x17B870](../../../src/auto/func_0017B870.c) | `CloseBhv178` | BHVTARGETS Close: state -1, lower flag 0x20 | 0.35 | T2 |  |
@@ -336,37 +336,37 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x17C6A0](../../../src/auto/func_0017C6A0.c) | `StartBhv183` | BHVESCORT Start: state 0 | 0.50 | T2 |  |
 | [0x17C6D0](../../../src/hand/func_0017C6D0.c) | `UpdateBhv183` | BHVESCORT Update: follow object +0x30 at local offset +0x40: walk when <700, run (state 1) when >1000, re-goal after the object moves 250 | 0.50 | T2 |  |
 | [0x17C928](../../../src/hand/func_0017C928.c) | `SetBhv183State` | BHVESCORT state: 0 push BHVGOTO to the offset point, 1 push BHVGOTO with run flag 0x1C to the object, 2 idle hands-off | 0.85 | T2 | verified |
-| [0x17CAC8](../../../src/hand/func_0017CAC8.c) | `InitBhvrail` | BHVRAIL Init: raise flag 0x1B (on rail), state -1 | 0.60 | T1 |  |
-| [0x17CB10](../../../src/auto/func_0017CB10.c) | `StartBhvrail` | BHVRAIL Start: state 0 | 0.60 | T1 |  |
-| [0x17CB40](../../../src/auto/func_0017CB40.c) | `CloseBhvrail` | BHVRAIL Close: state -1, lower flag 0x1B | 0.60 | T1 |  |
-| [0x17CB80](../../../src/hand/func_0017CB80.c) | `UpdateBhvrail` | BHVRAIL Update: walk along the attached rail shape (+0xF84, param +0xF88) toward the goal parameter; stand on arrival | 0.60 | T1 |  |
-| [0x17CD00](../../../src/hand/func_0017CD00.c) | `SetBhvrailState` | BHVRAIL state: 0 push BHVANIM flag 9 (walk), 1 flag 2 (stand) | 0.55 | T1 |  |
-| [0x17CDB8](../../../src/hand/func_0017CDB8.c) | `SetBhvrailGoal` | Goal = rail max or min parameter; set direction and walk | 0.50 | T1 |  |
-| [0x17CE30](../../../src/hand/func_0017CE30.c) | `FBhvrailArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
-| [0x17CE68](../../../src/auto/func_0017CE68.c) | `InitBhvpipe` | BHVPIPE Init: raise flag 0x27 (on pipe), state -1 | 0.60 | T1 |  |
-| [0x17CEA0](../../../src/auto/func_0017CEA0.c) | `StartBhvpipe` | BHVPIPE Start: state 0 | 0.60 | T1 |  |
-| [0x17CED0](../../../src/auto/func_0017CED0.c) | `CloseBhvpipe` | BHVPIPE Close: state -1, lower flag 0x27 | 0.60 | T1 |  |
-| [0x17CF10](../../../src/hand/func_0017CF10.c) | `UpdateBhvpipe` | BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal matrix | 0.60 | T1 |  |
-| [0x17D058](../../../src/hand/func_0017D058.c) | `SetBhvpipeState` | BHVPIPE state: 0 BHVANIM flag 9, 1 flag 2 | 0.55 | T1 |  |
-| [0x17D110](../../../src/hand/func_0017D110.c) | `SetBhvpipeGoal` | Goal = pipe max or min parameter | 0.50 | T1 |  |
-| [0x17D188](../../../src/hand/func_0017D188.c) | `FBhvpipeArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
+| [0x17CAC8](../../../src/hand/InitBhvrail.c) | `InitBhvrail` | BHVRAIL Init: raise flag 0x1B (on rail), state -1 | 0.60 | T1 |  |
+| [0x17CB10](../../../src/auto/StartBhvrail.c) | `StartBhvrail` | BHVRAIL Start: state 0 | 0.60 | T1 |  |
+| [0x17CB40](../../../src/auto/CloseBhvrail.c) | `CloseBhvrail` | BHVRAIL Close: state -1, lower flag 0x1B | 0.60 | T1 |  |
+| [0x17CB80](../../../src/hand/UpdateBhvrail.c) | `UpdateBhvrail` | BHVRAIL Update: walk along the attached rail shape (+0xF84, param +0xF88) toward the goal parameter; stand on arrival | 0.60 | T1 |  |
+| [0x17CD00](../../../src/hand/SetBhvrailState.c) | `SetBhvrailState` | BHVRAIL state: 0 push BHVANIM flag 9 (walk), 1 flag 2 (stand) | 0.55 | T1 |  |
+| [0x17CDB8](../../../src/hand/SetBhvrailGoal.c) | `SetBhvrailGoal` | Goal = rail max or min parameter; set direction and walk | 0.50 | T1 |  |
+| [0x17CE30](../../../src/hand/FBhvrailArrived.c) | `FBhvrailArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
+| [0x17CE68](../../../src/auto/InitBhvpipe.c) | `InitBhvpipe` | BHVPIPE Init: raise flag 0x27 (on pipe), state -1 | 0.60 | T1 |  |
+| [0x17CEA0](../../../src/auto/StartBhvpipe.c) | `StartBhvpipe` | BHVPIPE Start: state 0 | 0.60 | T1 |  |
+| [0x17CED0](../../../src/auto/CloseBhvpipe.c) | `CloseBhvpipe` | BHVPIPE Close: state -1, lower flag 0x27 | 0.60 | T1 |  |
+| [0x17CF10](../../../src/hand/UpdateBhvpipe.c) | `UpdateBhvpipe` | BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal matrix | 0.60 | T1 |  |
+| [0x17D058](../../../src/hand/SetBhvpipeState.c) | `SetBhvpipeState` | BHVPIPE state: 0 BHVANIM flag 9, 1 flag 2 | 0.55 | T1 |  |
+| [0x17D110](../../../src/hand/SetBhvpipeGoal.c) | `SetBhvpipeGoal` | Goal = pipe max or min parameter | 0.50 | T1 |  |
+| [0x17D188](../../../src/hand/FBhvpipeArrived.c) | `FBhvpipeArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
 | [0x17D1C0](../../../src/auto/func_0017D1C0.c) | `InitBhv187` | BHVATTACH19 Init: raise flag 0x28 | 0.40 | T2 |  |
 | [0x17D1F0](../../../src/hand/func_0017D1F0.c) | `StartBhv187` | BHVATTACH19 Start: push BHVANIM flag 2 and align to the attach object's frame | 0.40 | T2 |  |
 | [0x17D280](../../../src/auto/func_0017D280.c) | `CloseBhv187` | BHVATTACH19 Close: lower flag 0x28 | 0.40 | T2 |  |
 | [0x17D2B0](../../../src/auto/func_0017D2B0.c) | `InitBhv188` | BHVATTACH39 Init: raise flag 0x29 | 0.40 | T2 |  |
 | [0x17D2E0](../../../src/hand/func_0017D2E0.c) | `StartBhv188` | BHVATTACH39 Start: push BHVANIM flag 2 | 0.40 | T2 |  |
 | [0x17D330](../../../src/auto/func_0017D330.c) | `CloseBhv188` | BHVATTACH39 Close: lower flag 0x29 | 0.40 | T2 |  |
-| [0x17D360](../../../src/hand/func_0017D360.c) | `InitBhvgoto` | BHVGOTO Init: flag param +0x38=-1, state -1, path-graph version stamp | 0.80 | T1 | runtime |
-| [0x17D3B0](../../../src/auto/func_0017D3B0.c) | `StartBhvgoto` | BHVGOTO Start: raise the caller-chosen flag (e.g. 0x1C run), stand, plan the route | 0.80 | T1 | runtime |
-| [0x17D408](../../../src/auto/func_0017D408.c) | `CloseBhvgoto` | BHVGOTO Close: state -1, lower its flag | 0.80 | T1 | runtime |
-| [0x17D450](../../../src/hand/func_0017D450.c) | `SetBhvgotoState` | BHVGOTO state: 4 stand (BHVIDLE), 1/2 walk path (BHVWALKPATH, run anim 8 when allowed), 3 traverse pathlink (BHVPATHLINK), 5 relocate (BHVRELOCATE) | 0.70 | T1 | runtime |
-| [0x17D608](../../../src/hand/func_0017D608.cpp) | `FSnapPosToSurfaceAbove` | Cast a line 5000 up; on hit move the position to the hit and return 1 | 0.70 | T1 |  |
-| [0x17D6C8](../../../src/hand/func_0017D6C8.c) | `UpdateBhvgoto` | BHVGOTO Update: re-plan when stale or the path graph changed; at a pathlink start traverse it; stuck -> relocate | 0.80 | T1 | runtime |
-| [0x17D8A8](../../../src/hand/func_0017D8A8.c) | `FindBhvgotoRoute` | Route the goal through path zones: same zone direct, else FindPathlinkRoute (optionally allowing partial routes) else stop at closest reachable point | 0.65 | T1 | runtime |
-| [0x17DA28](../../../src/hand/func_0017DA28.c) | `PlanBhvgoto` | Plan: route, build the path curve to the next waypoint/pathlink (or a straight 2-point shape) and pick the state | 0.65 | T1 | runtime |
-| [0x17DCB8](../../../src/auto/func_0017DCB8.c) | `FBhvgotoArrived` | Walking direct (state 1) and at the path end | 0.65 | T1 | runtime |
-| [0x17DCF8](../../../src/hand/func_0017DCF8.c) | `FBhvgotoPathFinished` | Walking (states 1-2) and the walk path finished | 0.55 | T1 | runtime |
-| [0x17DD38](../../../src/hand/func_0017DD38.c) | `SetBhvgotoGoal` | Set the goal (16-byte header + position) and re-plan | 0.70 | T1 | runtime |
+| [0x17D360](../../../src/hand/InitBhvgoto.c) | `InitBhvgoto` | BHVGOTO Init: flag param +0x38=-1, state -1, path-graph version stamp | 0.80 | T1 | runtime |
+| [0x17D3B0](../../../src/auto/StartBhvgoto.c) | `StartBhvgoto` | BHVGOTO Start: raise the caller-chosen flag (e.g. 0x1C run), stand, plan the route | 0.80 | T1 | runtime |
+| [0x17D408](../../../src/auto/CloseBhvgoto.c) | `CloseBhvgoto` | BHVGOTO Close: state -1, lower its flag | 0.80 | T1 | runtime |
+| [0x17D450](../../../src/hand/SetBhvgotoState.c) | `SetBhvgotoState` | BHVGOTO state: 4 stand (BHVIDLE), 1/2 walk path (BHVWALKPATH, run anim 8 when allowed), 3 traverse pathlink (BHVPATHLINK), 5 relocate (BHVRELOCATE) | 0.70 | T1 | runtime |
+| [0x17D608](../../../src/hand/FSnapPosToSurfaceAbove.cpp) | `FSnapPosToSurfaceAbove` | Cast a line 5000 up; on hit move the position to the hit and return 1 | 0.70 | T1 |  |
+| [0x17D6C8](../../../src/hand/UpdateBhvgoto.c) | `UpdateBhvgoto` | BHVGOTO Update: re-plan when stale or the path graph changed; at a pathlink start traverse it; stuck -> relocate | 0.80 | T1 | runtime |
+| [0x17D8A8](../../../src/hand/FindBhvgotoRoute.c) | `FindBhvgotoRoute` | Route the goal through path zones: same zone direct, else FindPathlinkRoute (optionally allowing partial routes) else stop at closest reachable point | 0.65 | T1 | runtime |
+| [0x17DA28](../../../src/hand/PlanBhvgoto.c) | `PlanBhvgoto` | Plan: route, build the path curve to the next waypoint/pathlink (or a straight 2-point shape) and pick the state | 0.65 | T1 | runtime |
+| [0x17DCB8](../../../src/auto/FBhvgotoArrived.c) | `FBhvgotoArrived` | Walking direct (state 1) and at the path end | 0.65 | T1 | runtime |
+| [0x17DCF8](../../../src/hand/FBhvgotoPathFinished.c) | `FBhvgotoPathFinished` | Walking (states 1-2) and the walk path finished | 0.55 | T1 | runtime |
+| [0x17DD38](../../../src/hand/SetBhvgotoGoal.c) | `SetBhvgotoGoal` | Set the goal (16-byte header + position) and re-plan | 0.70 | T1 | runtime |
 | [0x17DD70](../../../src/hand/func_0017DD70.c) | `InitBhv189` | BHVSTALK Init: raise flag 0x2B, state -1 | 0.85 | T2 | verified |
 | [0x17DDA8](../../../src/auto/func_0017DDA8.c) | `StartBhv189` | BHVSTALK Start: state 0 (alert anim at target) and set target | 0.35 | T2 |  |
 | [0x17DDE8](../../../src/hand/func_0017DDE8.c) | `CloseBhv189` | BHVSTALK Close: state -1, reset detector, clear target, lower flag 0x2B | 0.35 | T2 |  |
@@ -374,38 +374,38 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x17DE50](../../../src/hand/func_0017DE50.c) | `UpdateBhv189` | BHVSTALK Update: after the alert anim run near the forced-class target and keep re-positioning; leave when the delay expires and the target is no longer forced | 0.35 | T2 |  |
 | [0x17E0E0](../../../src/hand/func_0017E0E0.cpp) | `RegoalBhv189` | Pick the farthest free point among 16 directions around the target and send BHVGOTO there | 0.40 | T2 |  |
 | [0x17E278](../../../src/hand/func_0017E278.c) | `SetBhv189State` | BHVSTALK state: 0 BHVANIM flag 0xB at target, 1 BHVGOTO with run flag 0x1C, 2 idle hands-off | 0.45 | T2 |  |
-| [0x17E3A0](../../../src/auto/func_0017E3A0.c) | `InitBhvpathlink` | BHVPATHLINK Init: raise flag 0x2C, state -1 | 0.75 | T1 | runtime |
-| [0x17E3D8](../../../src/auto/func_0017E3D8.c) | `StartBhvpathlink` | BHVPATHLINK Start: busy, begin the first link segment | 0.75 | T1 | runtime |
-| [0x17E410](../../../src/auto/func_0017E410.c) | `CloseBhvpathlink` | BHVPATHLINK Close: stop, clear busy, lower flag 0x2C | 0.75 | T1 | runtime |
-| [0x17E458](../../../src/hand/func_0017E458.c) | `UpdateBhvpathlink` | BHVPATHLINK Update: per segment: kind 0 walk (timeout), kind 1 leap; advance when at the segment end; final relocation step | 0.75 | T1 | runtime |
-| [0x17E570](../../../src/auto/func_0017E570.c) | `FBhvpathlinkDone` | state == -1 | 0.60 | T1 | runtime |
-| [0x17E580](../../../src/auto/func_0017E580.c) | `AdvanceBhvpathlink` | Next segment of the pathlink (+0x34 < count +0x50) or finish and clear busy | 0.60 | T1 | runtime |
-| [0x17E5F0](../../../src/hand/func_0017E5F0.c) | `FBhvpathlinkAtSegmentEnd` | Within 25 of the current segment endpoint | 0.55 | T1 | runtime |
-| [0x17E628](../../../src/hand/func_0017E628.c) | `PushBhvpathlinkLeap` | Push BHVLEAP to the current segment endpoint | 0.60 | T1 | runtime |
-| [0x17E6B0](../../../src/hand/func_0017E6B0.c) | `SetBhvpathlinkState` | BHVPATHLINK state: 0 walk segment (2-point shape, BHVWALKPATH, timeout) or leap, 1 relocate (BHVRELOCATE) | 0.60 | T1 | runtime |
+| [0x17E3A0](../../../src/auto/InitBhvpathlink.c) | `InitBhvpathlink` | BHVPATHLINK Init: raise flag 0x2C, state -1 | 0.75 | T1 | runtime |
+| [0x17E3D8](../../../src/auto/StartBhvpathlink.c) | `StartBhvpathlink` | BHVPATHLINK Start: busy, begin the first link segment | 0.75 | T1 | runtime |
+| [0x17E410](../../../src/auto/CloseBhvpathlink.c) | `CloseBhvpathlink` | BHVPATHLINK Close: stop, clear busy, lower flag 0x2C | 0.75 | T1 | runtime |
+| [0x17E458](../../../src/hand/UpdateBhvpathlink.c) | `UpdateBhvpathlink` | BHVPATHLINK Update: per segment: kind 0 walk (timeout), kind 1 leap; advance when at the segment end; final relocation step | 0.75 | T1 | runtime |
+| [0x17E570](../../../src/auto/FBhvpathlinkDone.c) | `FBhvpathlinkDone` | state == -1 | 0.60 | T1 | runtime |
+| [0x17E580](../../../src/auto/AdvanceBhvpathlink.c) | `AdvanceBhvpathlink` | Next segment of the pathlink (+0x34 < count +0x50) or finish and clear busy | 0.60 | T1 | runtime |
+| [0x17E5F0](../../../src/hand/FBhvpathlinkAtSegmentEnd.c) | `FBhvpathlinkAtSegmentEnd` | Within 25 of the current segment endpoint | 0.55 | T1 | runtime |
+| [0x17E628](../../../src/hand/PushBhvpathlinkLeap.c) | `PushBhvpathlinkLeap` | Push BHVLEAP to the current segment endpoint | 0.60 | T1 | runtime |
+| [0x17E6B0](../../../src/hand/SetBhvpathlinkState.c) | `SetBhvpathlinkState` | BHVPATHLINK state: 0 walk segment (2-point shape, BHVWALKPATH, timeout) or leap, 1 relocate (BHVRELOCATE) | 0.60 | T1 | runtime |
 | [0x17E888](../../../src/auto/func_0017E888.c) | `InitBhv191` | BHVRELOCATE Init: raise flag 0x2D | 0.85 | T2 | verified |
 | [0x17E8B8](../../../src/auto/func_0017E8B8.c) | `StartBhv191` | BHVRELOCATE Start: go to the point | 0.50 | T2 |  |
 | [0x17E8E8](../../../src/auto/func_0017E8E8.c) | `CloseBhv191` | BHVRELOCATE Close: lower flag 0x2D | 0.50 | T2 |  |
 | [0x17E918](../../../src/hand/func_0017E918.c) | `UpdateBhv191` | BHVRELOCATE Update: retry until within 25 of the point | 0.50 | T2 |  |
 | [0x17E9B0](../../../src/hand/func_0017E9B0.c) | `GoBhv191` | Snap the point to ground (or the surface above); leap there (capability bit 0) or teleport (detach, set position, zero velocities) | 0.50 | T2 |  |
 | [0x17EAE8](../../../src/hand/func_0017EAE8.c) | `FBhv191Done` | Leap finished (if leaping) and within 25 of the point | 0.55 | T2 |  |
-| [0x17EB48](../../../src/auto/func_0017EB48.c) | `InitBhvpatrolpath` | BHVPATROLPATH Init: raise flag 0x2E, param -1 | 0.90 | T1 | runtime, verified |
-| [0x17EB88](../../../src/hand/func_0017EB88.c) | `StartBhvpatrolpath` | BHVPATROLPATH Start: closest parameter on the path shape, push BHVGOTO, first goal | 0.65 | T1 | runtime |
-| [0x17EC80](../../../src/auto/func_0017EC80.c) | `CloseBhvpatrolpath` | BHVPATROLPATH Close: lower flag 0x2E | 0.65 | T1 | runtime |
-| [0x17ECB0](../../../src/auto/func_0017ECB0.c) | `UpdateBhvpatrolpath` | BHVPATROLPATH Update: on arrival advance the goal along the shape | 0.65 | T1 | runtime |
-| [0x17ECF0](../../../src/hand/func_0017ECF0.c) | `AdvanceBhvpatrolpathGoal` | Step the shape parameter by a class-dependent distance in the travel direction (clamp/wrap, skip invalid ranges) and send it to BHVGOTO | 0.55 | T1 | runtime |
-| [0x17EE78](../../../src/hand/func_0017EE78.c) | `FBhvpatrolpathDone` | At the end of an open shape and arrived | 0.55 | T1 | runtime |
-| [0x17EEB8](../../../src/hand/func_0017EEB8.c) | `FBhvpatrolpathAtEnd` | Open shape and parameter within tolerance of its end | 0.55 | T1 | runtime |
+| [0x17EB48](../../../src/auto/InitBhvpatrolpath.c) | `InitBhvpatrolpath` | BHVPATROLPATH Init: raise flag 0x2E, param -1 | 0.90 | T1 | runtime, verified |
+| [0x17EB88](../../../src/hand/StartBhvpatrolpath.c) | `StartBhvpatrolpath` | BHVPATROLPATH Start: closest parameter on the path shape, push BHVGOTO, first goal | 0.65 | T1 | runtime |
+| [0x17EC80](../../../src/auto/CloseBhvpatrolpath.c) | `CloseBhvpatrolpath` | BHVPATROLPATH Close: lower flag 0x2E | 0.65 | T1 | runtime |
+| [0x17ECB0](../../../src/auto/UpdateBhvpatrolpath.c) | `UpdateBhvpatrolpath` | BHVPATROLPATH Update: on arrival advance the goal along the shape | 0.65 | T1 | runtime |
+| [0x17ECF0](../../../src/hand/AdvanceBhvpatrolpathGoal.c) | `AdvanceBhvpatrolpathGoal` | Step the shape parameter by a class-dependent distance in the travel direction (clamp/wrap, skip invalid ranges) and send it to BHVGOTO | 0.55 | T1 | runtime |
+| [0x17EE78](../../../src/hand/FBhvpatrolpathDone.c) | `FBhvpatrolpathDone` | At the end of an open shape and arrived | 0.55 | T1 | runtime |
+| [0x17EEB8](../../../src/hand/FBhvpatrolpathAtEnd.c) | `FBhvpatrolpathAtEnd` | Open shape and parameter within tolerance of its end | 0.55 | T1 | runtime |
 
 ## tu_1B9F80 (0x1B9F80-0x1BAB50)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B9F80](../../../src/auto/func_001B9F80.c) | `InitNeela` | CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags | 0.60 | T1 | whole-game |
-| [0x1BA018](../../../src/hand/func_001BA018.c) | `PostNeelaLoad` | CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for the held prop, SetSoMass 0.25 | 0.60 | T1 | whole-game |
+| [0x1B9F80](../../../src/auto/InitNeela.c) | `InitNeela` | CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags | 0.60 | T1 | whole-game |
+| [0x1BA018](../../../src/hand/PostNeelaLoad.c) | `PostNeelaLoad` | CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for the held prop, SetSoMass 0.25 | 0.60 | T1 | whole-game |
 | [0x1BA0B8](../../../src/hand/func_001BA0B8.c) | `Neela_VUnk26Proxy` | CID 60 vt26: ResetStepguardToHome then vt9 on attached prop | 0.40 | T2 | whole-game |
 | [0x1BA100](../../../src/auto/func_001BA100.c) | `FFilterCid98` | Box-query filter: object class == 0x62 (CID 98) | 0.45 | T2 |  |
-| [0x1BA128](../../../src/hand/func_001BA128.cpp) | `UpdateNeela` | CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends | 0.55 | T1 | whole-game |
+| [0x1BA128](../../../src/hand/UpdateNeela.cpp) | `UpdateNeela` | CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends | 0.55 | T1 | whole-game |
 | [0x1BA408](../../../src/hand/func_001BA408.c) | `SetNeelaState` | State 1 starts prop animation (0x12F9B8), constraint to target (0x12DC18), behaviour 0x9E target, speed x4; leaving restores | 0.45 | T2 | whole-game |
 | [0x1BA560](../../../src/auto/func_001BA560.c) | `InitBhv174` | BHV174 s7: base, state -1, AddStepguardSgf(0x25) | 0.50 | T2 |  |
 | [0x1BA598](../../../src/auto/func_001BA598.c) | `StartBhv174` | BHV174 s8: StartBhv then state 0 | 0.50 | T2 |  |
@@ -425,29 +425,29 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EEC60](../../../src/auto/func_001EEC60.c) | `InitBhvstk` | BHVSTK init: pbhvstk->pstep = pstep | 0.85 | T1 | runtime |
-| [0x1EEC68](../../../src/auto/func_001EEC68.c) | `CloneBhvstk` | BHVSTK clone fix-up: re-point pstep at the new step after the object copy | 0.65 | T1 |  |
-| [0x1EEC70](../../../src/hand/func_001EEC70.c) | `PostBhvstkLoad` | Allocate the 8 BHV slots (CbBhvMax()=0xF0 bytes each, align 0x10) from the world heap into apbhv[0..7] | 0.75 | T1 |  |
-| [0x1EECD0](../../../src/hand/func_001EECD0.c) | `ClearBhvstk` | Pop every behaviour: if cpbhv>0 pop apbhv[0] (which pops everything stacked above it), then cpbhv=0 | 0.85 | T1 |  |
-| [0x1EED10](../../../src/hand/func_001EED10.c) | `UpdateBhvstk` | Call BHV vt10 (Update) on every stacked behaviour, top (last pushed) first | 0.80 | T1 |  |
-| [0x1EED78](../../../src/hand/func_001EED78.c) | `HandleBhvstkMessage` | Offer a step message (msgid,pv) to the behaviours, top first, until one's vt13 returns nonzero (consumed) | 0.85 | T1 |  |
-| [0x1EEE00](../../../src/hand/func_001EEE00.c) | `PbhvPushBhvstk` | Push a new behaviour of class cid: take slot apbhv[cpbhv++], memset CbBhvMax, construct via PbhvNew, set pstep and pbhvPrev (prev->pbhvNext=new), call vt7 (Init); returns it | 0.85 | T1 |  |
-| [0x1EEED0](../../../src/auto/func_001EEED0.c) | `DecrementBhvstk` | --pbhvstk->cpbhv | 0.55 | T1 |  |
-| [0x1EEEE0](../../../src/hand/func_001EEEE0.c) | `PbhvFindBhvstk` | Return the first stacked behaviour (bottom first) derived from cid, else NULL | 0.85 | T1 |  |
-| [0x1EEF68](../../../src/auto/func_001EEF68.c) | `InitBhv` | BHV vt7 base: empty. Called by PbhvPushBhvstk right after construction | 0.70 | T1 |  |
-| [0x1EEF70](../../../src/auto/func_001EEF70.c) | `StartBhv` | BHV vt8 base: empty. Start/activate the behaviour with default parameters (callers that push without a specific setter call it) | 0.85 | T1 |  |
-| [0x1EEF78](../../../src/auto/func_001EEF78.c) | `CloseBhv` | BHV vt9 base: pop whatever is stacked above (PopBhv(&this->pbhvNext)) | 0.60 | T1 |  |
-| [0x1EEF98](../../../src/auto/func_001EEF98.c) | `UpdateBhv` | BHV vt10 base: empty per-frame update | 0.70 | T1 |  |
+| [0x1EEC60](../../../src/auto/InitBhvstk.c) | `InitBhvstk` | BHVSTK init: pbhvstk->pstep = pstep | 0.85 | T1 | runtime |
+| [0x1EEC68](../../../src/auto/CloneBhvstk.c) | `CloneBhvstk` | BHVSTK clone fix-up: re-point pstep at the new step after the object copy | 0.65 | T1 |  |
+| [0x1EEC70](../../../src/hand/PostBhvstkLoad.c) | `PostBhvstkLoad` | Allocate the 8 BHV slots (CbBhvMax()=0xF0 bytes each, align 0x10) from the world heap into apbhv[0..7] | 0.75 | T1 |  |
+| [0x1EECD0](../../../src/hand/ClearBhvstk__FP6BHVSTK.c) | `ClearBhvstk` | Pop every behaviour: if cpbhv>0 pop apbhv[0] (which pops everything stacked above it), then cpbhv=0 | 0.85 | T1 |  |
+| [0x1EED10](../../../src/hand/UpdateBhvstk.c) | `UpdateBhvstk` | Call BHV vt10 (Update) on every stacked behaviour, top (last pushed) first | 0.80 | T1 |  |
+| [0x1EED78](../../../src/hand/HandleBhvstkMessage.c) | `HandleBhvstkMessage` | Offer a step message (msgid,pv) to the behaviours, top first, until one's vt13 returns nonzero (consumed) | 0.85 | T1 |  |
+| [0x1EEE00](../../../src/hand/PbhvPushBhvstk.c) | `PbhvPushBhvstk` | Push a new behaviour of class cid: take slot apbhv[cpbhv++], memset CbBhvMax, construct via PbhvNew, set pstep and pbhvPrev (prev->pbhvNext=new), call vt7 (Init); returns it | 0.85 | T1 |  |
+| [0x1EEED0](../../../src/auto/DecrementBhvstk.c) | `DecrementBhvstk` | --pbhvstk->cpbhv | 0.55 | T1 |  |
+| [0x1EEEE0](../../../src/hand/PbhvFindBhvstk.c) | `PbhvFindBhvstk` | Return the first stacked behaviour (bottom first) derived from cid, else NULL | 0.85 | T1 |  |
+| [0x1EEF68](../../../src/auto/InitBhv.c) | `InitBhv` | BHV vt7 base: empty. Called by PbhvPushBhvstk right after construction | 0.70 | T1 |  |
+| [0x1EEF70](../../../src/auto/StartBhv.c) | `StartBhv` | BHV vt8 base: empty. Start/activate the behaviour with default parameters (callers that push without a specific setter call it) | 0.85 | T1 |  |
+| [0x1EEF78](../../../src/auto/CloseBhv.c) | `CloseBhv` | BHV vt9 base: pop whatever is stacked above (PopBhv(&this->pbhvNext)) | 0.60 | T1 |  |
+| [0x1EEF98](../../../src/auto/UpdateBhv.c) | `UpdateBhv` | BHV vt10 base: empty per-frame update | 0.70 | T1 |  |
 | [0x1EEFA0](../../../src/auto/func_001EEFA0.c) | `BHV_GrfGroundProbe` | BHV vt12 base: return pstep->+0x204 ? 0 : 7 -- the step's ground/collision flag mask (bit0 snap to ground, bit1 alt probe point, bit2 count in solver contacts) | 0.40 | T2 |  |
-| [0x1EEFB8](../../../src/auto/func_001EEFB8.c) | `UpdateBhvMotion` | BHV vt11 base: empty. Per-frame motion update for the behaviour that currently owns the step's motion controller (STEPGUARD +0xFD0) | 0.70 | T1 |  |
-| [0x1EEFC0](../../../src/auto/func_001EEFC0.c) | `SetBhvBusy` | If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b IncrementStepguardBusy); increment cBusyAbove on every pbhvPrev below | 0.85 | T1 | runtime |
-| [0x1EF038](../../../src/auto/func_001EF038.c) | `ClearBhvBusy` | Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below) | 0.85 | T1 | runtime |
-| [0x1EF0A8](../../../src/auto/func_001EF0A8.c) | `FBhvBusyAbove` | Return cBusyAbove>0 (a behaviour higher on the stack is busy) | 0.60 | T1 |  |
-| [0x1EF0B8](../../../src/auto/func_001EF0B8.c) | `BHV_FHandleMessage` | BHV vt13 base: return 0 (message not consumed) | 0.75 | T1 |  |
+| [0x1EEFB8](../../../src/auto/UpdateBhvMotion.c) | `UpdateBhvMotion` | BHV vt11 base: empty. Per-frame motion update for the behaviour that currently owns the step's motion controller (STEPGUARD +0xFD0) | 0.70 | T1 |  |
+| [0x1EEFC0](../../../src/auto/SetBhvBusy.c) | `SetBhvBusy` | If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b IncrementStepguardBusy); increment cBusyAbove on every pbhvPrev below | 0.85 | T1 | runtime |
+| [0x1EF038](../../../src/auto/ClearBhvBusy.c) | `ClearBhvBusy` | Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below) | 0.85 | T1 | runtime |
+| [0x1EF0A8](../../../src/auto/FBhvBusyAbove.c) | `FBhvBusyAbove` | Return cBusyAbove>0 (a behaviour higher on the stack is busy) | 0.60 | T1 |  |
+| [0x1EF0B8](../../../src/auto/BHV_FHandleMessage.c) | `BHV_FHandleMessage` | BHV vt13 base: return 0 (message not consumed) | 0.75 | T1 |  |
 | [0x1EF0C0](../../../src/auto/func_001EF0C0.c) | `UpdateBhvInput` | BHV vt14 base: on the record passed (JT/STEPPLAYER +0x150 input/joy record): +0x1C=0, +0x18=pstep->+0x1A8 | 0.40 | T2 |  |
-| [0x1EF0D8](../../../src/hand/func_001EF0D8.c) | `PopBhv` | Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot | 0.85 | T1 | verified |
-| [0x1EF138](../../../src/hand/func_001EF138.c) | `PbhvNew` | Placement factory: switch(cid 0x9C..0xC6) memset size, set BASIC header + vtable for that BHV subclass | 0.75 | T1 |  |
-| [0x1EF6F0](../../../src/auto/func_001EF6F0.c) | `CbBhvMax` | return 0xF0: slot size for any BHV (largest subclass, BHV167 = 0xF0) | 0.60 | T1 |  |
+| [0x1EF0D8](../../../src/hand/PopBhv.c) | `PopBhv` | Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot | 0.85 | T1 | verified |
+| [0x1EF138](../../../src/hand/PbhvNew.c) | `PbhvNew` | Placement factory: switch(cid 0x9C..0xC6) memset size, set BASIC header + vtable for that BHV subclass | 0.75 | T1 |  |
+| [0x1EF6F0](../../../src/auto/CbBhvMax.c) | `CbBhvMax` | return 0xF0: slot size for any BHV (largest subclass, BHV167 = 0xF0) | 0.60 | T1 |  |
 
 ## pickpocket (0x1F1768-0x1F2108)
 
@@ -467,40 +467,40 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x203948](../../../src/hand/func_00203948.c) | `InitStep` | STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius 0x220=30, 0x214=-50, InitBhvstk(+0x26C,this) | 0.85 | T1 |  |
-| [0x2039C0](../../../src/auto/func_002039C0.c) | `LoadStepFromBrx` | STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300 | 0.85 | T1 | parse |
-| [0x203A08](../../../src/auto/func_00203A08.c) | `CloneStep` | STEP vt41 Clone: ClonePo then re-point the BHVSTK owner (+0x26C) at the clone | 0.80 | T1 |  |
-| [0x203A38](../../../src/hand/func_00203A38.c) | `PostStepLoad` | STEP vt15: PostSoLoad, alloc 0x294, attach two child objects (oids +0x58/+0x5C), find phys SOPART by oid +0x264 -> CloneStepPhys + hide it, allocate the 8 BHV slots | 0.80 | T1 |  |
-| [0x203AD0](../../../src/auto/func_00203AD0.c) | `RenderStepSelf` | STEP vt19 RenderSelf: just RenderSoSelf | 0.75 | T1 |  |
+| [0x203948](../../../src/hand/InitStep.c) | `InitStep` | STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius 0x220=30, 0x214=-50, InitBhvstk(+0x26C,this) | 0.85 | T1 |  |
+| [0x2039C0](../../../src/auto/LoadStepFromBrx.c) | `LoadStepFromBrx` | STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300 | 0.85 | T1 | parse |
+| [0x203A08](../../../src/auto/CloneStep.c) | `CloneStep` | STEP vt41 Clone: ClonePo then re-point the BHVSTK owner (+0x26C) at the clone | 0.80 | T1 |  |
+| [0x203A38](../../../src/hand/PostStepLoad.c) | `PostStepLoad` | STEP vt15: PostSoLoad, alloc 0x294, attach two child objects (oids +0x58/+0x5C), find phys SOPART by oid +0x264 -> CloneStepPhys + hide it, allocate the 8 BHV slots | 0.80 | T1 |  |
+| [0x203AD0](../../../src/auto/RenderStepSelf.c) | `RenderStepSelf` | STEP vt19 RenderSelf: just RenderSoSelf | 0.75 | T1 |  |
 | [0x203AF0](../../../src/hand/func_00203AF0.c) | `CloneStepPhys` | Build the step's collision part from a mesh part: new SOPART (+0xE4[+0xE0++]), copy geometry, min height -> +0x210, append 2 extra points (base point and base+up*0x214) whose world ptrs go to +0x218/+0x21C | 0.45 | T2 |  |
 | [0x203CB8](../../../src/auto/func_00203CB8.c) | `SetStepPhysByOid` | Find SOPART by oid (0x1F6030) then SetStepPhys(this,part,f) | 0.35 | T2 |  |
-| [0x203D00](../../../src/hand/func_00203D00.c) | `SetStepPhys` | Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts) | 0.60 | T1 |  |
-| [0x203E08](../../../src/hand/func_00203E08.c) | `UpdateStepPhys` | Per point: smooth the body shape toward the phys shape with GSmooth(old,new,dt,s_smpPhys D_002C3C68) and store (new-old)/dt as point velocity | 0.80 | T1 |  |
+| [0x203D00](../../../src/hand/SetStepPhys.c) | `SetStepPhys` | Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts) | 0.60 | T1 |  |
+| [0x203E08](../../../src/hand/UpdateStepPhys.c) | `UpdateStepPhys` | Per point: smooth the body shape toward the phys shape with GSmooth(old,new,dt,s_smpPhys D_002C3C68) and store (new-old)/dt as point velocity | 0.80 | T1 |  |
 | [0x203FA0](../../../src/auto/func_00203FA0.c) | `SetStepFNoBase` | Option setter for STEP+0x204 (bool); setting it clears the ground contact +0x208 | 0.40 | T2 |  |
-| [0x203FC0](../../../src/hand/func_00203FC0.c) | `UpdateStep` | STEP vt16: UpdateSo, UpdateStepPhys, then turn-rate speed factor +0x180 (CLQ D_002C3C80 of \|radTarget-heading\| clamped 0..1, or 1), stamp +0x20C while grounded | 0.85 | T1 |  |
+| [0x203FC0](../../../src/hand/UpdateStep.c) | `UpdateStep` | STEP vt16: UpdateSo, UpdateStepPhys, then turn-rate speed factor +0x180 (CLQ D_002C3C80 of \|radTarget-heading\| clamped 0..1, or 1), stamp +0x20C while grounded | 0.85 | T1 |  |
 | [0x2040F8](../../../src/auto/func_002040F8.c) | `GrfStepGroundProbe` | STEP vt85: ground-probe flags for AddStepCustomXps: 0 if +0x204 else 7 (1 probe, 2 use top point, 4 ...) | 0.40 | T2 |  |
-| [0x204108](../../../src/hand/func_00204108.c) | `PresetStepAccel` | STEP vt70: base accel (0x1F9B20) then steering: mode +0x1A4==0 accelerate toward matTarget with smpSpin (0x1F59A0), mode 1 angular force from desired w +0x1E0 | 0.55 | T1 |  |
-| [0x2041C0](../../../src/auto/func_002041C0.c) | `TranslateStepToPos` | STEP vt29: TranslateSoToPos then refresh world base position +0x230 from local +0x240 | 0.60 | T1 |  |
-| [0x2041F8](../../../src/auto/func_002041F8.c) | `RotateStepToMat` | STEP vt30: RotateSoToMat then radTarget = current heading (SetStepRadTarget) and POCTL+0x18 = heading | 0.75 | T1 |  |
+| [0x204108](../../../src/hand/PresetStepAccel.c) | `PresetStepAccel` | STEP vt70: base accel (0x1F9B20) then steering: mode +0x1A4==0 accelerate toward matTarget with smpSpin (0x1F59A0), mode 1 angular force from desired w +0x1E0 | 0.55 | T1 |  |
+| [0x2041C0](../../../src/auto/TranslateStepToPos.c) | `TranslateStepToPos` | STEP vt29: TranslateSoToPos then refresh world base position +0x230 from local +0x240 | 0.60 | T1 |  |
+| [0x2041F8](../../../src/auto/RotateStepToMat.c) | `RotateStepToMat` | STEP vt30: RotateSoToMat then radTarget = current heading (SetStepRadTarget) and POCTL+0x18 = heading | 0.75 | T1 |  |
 | [0x204248](../../../src/auto/func_00204248.c) | `FStepVt63` | STEP vt63: returns 1 | 0.20 | T2 |  |
-| [0x204250](../../../src/hand/func_00204250.c) | `AdjustStepNewXp` | STEP vt55: new contact setup: reset friction/response; kind 14 (base) gets mu D_002C3C90 when normal.z>0.7 and force limits mass*-4500..9000; side contacts add a horizontal kind-10 contact | 0.60 | T1 |  |
-| [0x2044B0](../../../src/hand/func_002044B0.cpp) | `AdjustStepXpVelocity` | STEP vt57: for base contacts (kind 0xE) smooth closing speed (GSmooth D_002C3C98/D_002C3CA8) limited by dt*9000/-4500 and add the desired tangential velocity matTarget*v190*g180 | 0.60 | T1 |  |
+| [0x204250](../../../src/hand/AdjustStepNewXp.c) | `AdjustStepNewXp` | STEP vt55: new contact setup: reset friction/response; kind 14 (base) gets mu D_002C3C90 when normal.z>0.7 and force limits mass*-4500..9000; side contacts add a horizontal kind-10 contact | 0.60 | T1 |  |
+| [0x2044B0](../../../src/hand/AdjustStepXpVelocity.cpp) | `AdjustStepXpVelocity` | STEP vt57: for base contacts (kind 0xE) smooth closing speed (GSmooth D_002C3C98/D_002C3CA8) limited by dt*9000/-4500 and add the desired tangential velocity matTarget*v190*g180 | 0.60 | T1 |  |
 | [0x204660](../../../src/hand/func_00204660.c) | `SetStepRadTarget` | Set desired heading radTarget (+0x1A8) and rebuild matTarget (+0x1B0) = LoadRotateMatrixRad(Z, rad) | 0.60 | T1 |  |
-| [0x2046B0](../../../src/hand/func_002046B0.c) | `SetStepRadTargetVec` | SetStepRadTarget(atan2(v.y, v.x)) for a direction vector | 0.50 | T1 |  |
-| [0x2046F0](../../../src/hand/func_002046F0.c) | `FaceStepToward` | Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this)) | 0.50 | T1 |  |
-| [0x204740](../../../src/auto/func_00204740.c) | `RadStepHeading` | Current heading = atan2(xf.mat[0][1], xf.mat[0][0]) | 0.55 | T1 |  |
+| [0x2046B0](../../../src/hand/SetStepRadTargetVec.c) | `SetStepRadTargetVec` | SetStepRadTarget(atan2(v.y, v.x)) for a direction vector | 0.50 | T1 |  |
+| [0x2046F0](../../../src/hand/FaceStepToward.c) | `FaceStepToward` | Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this)) | 0.50 | T1 |  |
+| [0x204740](../../../src/auto/RadStepHeading.c) | `RadStepHeading` | Current heading = atan2(xf.mat[0][1], xf.mat[0][0]) | 0.55 | T1 |  |
 | [0x204768](../../../src/hand/func_00204768.c) | `AdjustStepXps` | STEP vt58: base 0x1F4F10, then keep only the best (lowest distance) kind-14 base contact as +0x208 (stamp +0x20C, pos +0x230) and free the other base contacts | 0.40 | T2 |  |
 | [0x2048C8](../../../src/hand/func_002048C8.c) | `FStepFloorNearby` | BFS over mesh polygon adjacency (max 32) from a hit polygon: true if a reachable neighbour within the step height window has normal.z>0.7 | 0.40 | T2 |  |
-| [0x204AC8](../../../src/hand/func_00204AC8.c) | `AddStepCustomXps` | STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a kind-0xE base contact with floor or hit normal | 0.50 | T1 |  |
-| [0x204C60](../../../src/auto/func_00204C60.c) | `OnStepSoContactFreed` | STEP vt54: base no-op then drop the cached ground contact +0x208 if it is the freed one | 0.85 | T1 | verified |
-| [0x204CA8](../../../src/hand/func_00204CA8.c) | `FixStepAngularVelocity` | RadSmooth(heading, radTarget, 0, &smpSpin, &w.z) then SetAngularVelocity (vt36) | 0.80 | T1 |  |
+| [0x204AC8](../../../src/hand/AddStepCustomXps.c) | `AddStepCustomXps` | STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a kind-0xE base contact with floor or hit normal | 0.50 | T1 |  |
+| [0x204C60](../../../src/auto/OnStepSoContactFreed.c) | `OnStepSoContactFreed` | STEP vt54: base no-op then drop the cached ground contact +0x208 if it is the freed one | 0.85 | T1 | verified |
+| [0x204CA8](../../../src/hand/FixStepAngularVelocity.c) | `FixStepAngularVelocity` | RadSmooth(heading, radTarget, 0, &smpSpin, &w.z) then SetAngularVelocity (vt36) | 0.80 | T1 |  |
 | [0x204D48](../../../src/hand/func_00204D48.c) | `SetStepSpinRatio` | smpSpin = default D_002C3CB8 with svFast/svSlow *r and dtFast /sqrt(r); store r at +0x1F0 | 0.85 | T1 | verified |
 | [0x204DA8](../../../src/hand/func_00204DA8.cpp) | `SetStepGravityRatio` | Clamp r>=0.1, SetSoMass(m*rOld/r), scale gravity vector by r/rOld, store rGravity +0x260 | 0.90 | T1 |  |
 | [0x204E38](../../../src/hand/func_00204E38.c) | `VecStepAsegaTranslation` | If the ASEGA is live: find its translation channel for this object (PchnFindAseg kind 1, checked) and evaluate it (channel vt3) at t with the ASEGA effective speed (+0x40); else zero vector | 0.50 | T2 | top50 |
 | [0x204ED8](../../../src/hand/func_00204ED8.c) | `VecStepAsegaRotation` | Same as 0x204E38 for channel kind 6 (rotation) | 0.30 | T2 |  |
 | [0x204F78](../../../src/hand/func_00204F78.c) | `LinkStepAttachment` | Find the SO with an attachment record up plo's parent chain and link/unlink (0x133A38 g_sw, f?1:2) this step's attachment with it, then 0x1F4BF8 | 0.30 | T2 |  |
-| [0x205008](../../../src/hand/func_00205008.cpp) | `AddStepAxisXps` | STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir) for a point, per grf bits, into the link list shared with plo's zap target | 0.50 | T1 |  |
-| [0x2052E0](../../../src/hand/func_002052E0.c) | `MatchStepXf` | STEP vt38: copy pose of another object (vt31 matrix) incl. offset -+0x240 (TranslateToPos/RotateToMat), reset velocities; else SO::MatchXf | 0.85 | T1 | verified |
+| [0x205008](../../../src/hand/AddStepAxisXps.cpp) | `AddStepAxisXps` | STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir) for a point, per grf bits, into the link list shared with plo's zap target | 0.50 | T1 |  |
+| [0x2052E0](../../../src/hand/MatchStepXf.c) | `MatchStepXf` | STEP vt38: copy pose of another object (vt31 matrix) incl. offset -+0x240 (TranslateToPos/RotateToMat), reset velocities; else SO::MatchXf | 0.85 | T1 | verified |
 | [0x205438](../../../src/auto/func_00205438.c) | `PbhvPushStep` | Push a new behaviour of class cid on the step's BHVSTK (+0x26C) and Init it (0x1EEE00) | 0.60 | T1 |  |
 | [0x205458](../../../src/auto/func_00205458.c) | `PbhvFindStep` | Find the behaviour of class cid in the step's BHVSTK (0x1EEEE0, FIsBasicDerivedFrom) | 0.60 | T1 |  |
 | [0x205478](../../../src/hand/func_00205478.c) | `AddStepDialogSmRefs` | STEP vt83: for each set bit i<6 of mask, ++refcount +0x2A0[i]; on first ref ensure an SMA of the dialog-role SM (OidDialogSmRole 0x1FD0C0) on this step | 0.40 | T2 |  |
@@ -515,40 +515,40 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x205E70](../../../src/auto/func_00205E70.c) | `EnsureStepguardManager` | Create the global guard-manager singleton (cid 0x7D, oid 0x656) into D_003DD48C once | 0.55 | T1 |  |
-| [0x205EB8](../../../src/hand/func_00205EB8.c) | `InitStepguard` | STEPGUARD vt7 Init: InitStep, ensure guard manager, create the vision detector (PloNew cid 0x10 oid 0x288 -> +0xF64), default ranges/angles (+-45deg, +-75deg, 300/800/1200/3000...), HP 0x338.., masks, release anim/zap ta | 0.85 | T1 |  |
-| [0x206100](../../../src/auto/func_00206100.c) | `CloneStepguard` | STEPGUARD vt41: CloneStep keeping own detector, re-own mover, copy detector state through its vt (slot 41), deep-copy bindings (0x208250) | 0.80 | T1 |  |
+| [0x205E70](../../../src/auto/EnsureStepguardManager.c) | `EnsureStepguardManager` | Create the global guard-manager singleton (cid 0x7D, oid 0x656) into D_003DD48C once | 0.55 | T1 |  |
+| [0x205EB8](../../../src/hand/InitStepguard.c) | `InitStepguard` | STEPGUARD vt7 Init: InitStep, ensure guard manager, create the vision detector (PloNew cid 0x10 oid 0x288 -> +0xF64), default ranges/angles (+-45deg, +-75deg, 300/800/1200/3000...), HP 0x338.., masks, release anim/zap ta | 0.85 | T1 |  |
+| [0x206100](../../../src/auto/CloneStepguard.c) | `CloneStepguard` | STEPGUARD vt41: CloneStep keeping own detector, re-own mover, copy detector state through its vt (slot 41), deep-copy bindings (0x208250) | 0.80 | T1 |  |
 | [0x206170](../../../src/hand/func_00206170.cpp) | `StepguardResetOptionFn` | vt26(0) then send message 0xE (arg 0) to self: script-callable 'reset to home' action | 0.25 | T2 |  |
-| [0x2061D8](../../../src/hand/func_002061D8.c) | `PostStepguardLoad` | STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children, resolve anim bindings (0x2080F0) and attack oids (0x20AAA8), create the two helper components +0x498/+0x49C (next TU 0x20CE28/0x | 0.80 | T1 |  |
-| [0x206378](../../../src/auto/func_00206378.c) | `PdetectorGetStepguard` | Return the guard's vision detector (+0xF64) | 0.50 | T1 |  |
-| [0x206380](../../../src/hand/func_00206380.c) | `FIgnoreStepguardIntersection` | STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177 (stunned/carried, cid 0xB1) states 0/4/5 vs its holder group | 0.60 | T1 |  |
+| [0x2061D8](../../../src/hand/PostStepguardLoad.c) | `PostStepguardLoad` | STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children, resolve anim bindings (0x2080F0) and attack oids (0x20AAA8), create the two helper components +0x498/+0x49C (next TU 0x20CE28/0x | 0.80 | T1 |  |
+| [0x206378](../../../src/auto/PdetectorGetStepguard.c) | `PdetectorGetStepguard` | Return the guard's vision detector (+0xF64) | 0.50 | T1 |  |
+| [0x206380](../../../src/hand/FIgnoreStepguardIntersection.c) | `FIgnoreStepguardIntersection` | STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177 (stunned/carried, cid 0xB1) states 0/4/5 vs its holder group | 0.60 | T1 |  |
 | [0x206458](../../../src/auto/func_00206458.c) | `GetStepguardHitPoints` | Splice getter: (+0x338 - 1)/10 clamped >= 0 (max hit count) | 0.40 | T2 | runtime-corrected |
 | [0x206488](../../../src/auto/func_00206488.c) | `SetStepguardHitPoints` | Splice setter: +0x338 = (n+1)*10 | 0.40 | T2 |  |
 | [0x2064A0](../../../src/auto/func_002064A0.c) | `GetStepguardHitPoints2` | Splice getter for +0x33C: max(v-1,0)+1 | 0.30 | T2 |  |
-| [0x2064C0](../../../src/auto/func_002064C0.c) | `SetStepguardHpLevel` | Splice setter: +0x33C = (n+1)*10 | 0.60 | T1 | runtime |
-| [0x2064D8](../../../src/auto/func_002064D8.c) | `RemoveStepguardHierarchy` | STEPGUARD vt12: base, clear target (0x208540(0)), clear BHV stack, retract held ASEGA +0x34C | 0.60 | T1 |  |
-| [0x206518](../../../src/hand/func_00206518.c) | `ResetStepguardToHome` | STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capability bits +0xFE8 from anim bindings for flags 9/8/0xF/0x11, add the 4 | 0.85 | T1 | verified |
-| [0x206748](../../../src/hand/func_00206748.c) | `ClearStepguardState` | STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1 | 0.85 | T1 | verified |
+| [0x2064C0](../../../src/auto/SetStepguardHpLevel.c) | `SetStepguardHpLevel` | Splice setter: +0x33C = (n+1)*10 | 0.60 | T1 | runtime |
+| [0x2064D8](../../../src/auto/RemoveStepguardHierarchy.c) | `RemoveStepguardHierarchy` | STEPGUARD vt12: base, clear target (0x208540(0)), clear BHV stack, retract held ASEGA +0x34C | 0.60 | T1 |  |
+| [0x206518](../../../src/hand/ResetStepguardToHome.c) | `ResetStepguardToHome` | STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capability bits +0xFE8 from anim bindings for flags 9/8/0xF/0x11, add the 4 | 0.85 | T1 | verified |
+| [0x206748](../../../src/hand/ClearStepguardState.c) | `ClearStepguardState` | STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1 | 0.85 | T1 | verified |
 | [0x206820](../../../src/hand/func_00206820.c) | `RestartStepguard` | vt27(0), message 0xF, vt26(0), message 0xE | 0.25 | T2 |  |
 | [0x2068D8](../../../src/auto/FUN_00148910__FPfT0.c) | `NCmpGuardCandidateDist` | qsort comparator on a leading float (-1 if a<b else 1) | 0.55 | existing | verified, arbitration; replaces existing FUN_00148910__FPfT0 |
-| [0x206900](../../../src/hand/func_00206900.cpp) | `UpdateStepguardDetectTargets` | Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping previous state; UpdateDetectorTargets; update shared target record from d | 0.55 | T1 |  |
+| [0x206900](../../../src/hand/UpdateStepguardDetectTargets.cpp) | `UpdateStepguardDetectTargets` | Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping previous state; UpdateDetectorTargets; update shared target record from d | 0.55 | T1 |  |
 | [0x206D48](../../../src/hand/func_00206D48.c) | `FIsStepguardRageImmune` | True if the guard derives from any of cids D_002C3D10 = {0x3B,0x40,0x3D,0x3E,0x41} | 0.40 | T2 |  |
 | [0x206DB0](../../../src/hand/func_00206DB0.c) | `AddStepguardRageIgnoreClasses` | Add those 5 guard cids (when present in the world) to the ignore-class list +0x3A8 | 0.35 | T2 |  |
 | [0x206E50](../../../src/hand/func_00206E50.c) | `RemoveStepguardRageIgnoreClasses` | Remove the 5 guard cids from +0x3A8 | 0.35 | T2 |  |
 | [0x206EB0](../../../src/hand/func_00206EB0.c) | `FCanSetStepguardSpecial` | Whether special state k is allowed: -1 always; never while dead (flag 7) or BHV169 busy; 8/0xD/0xE yes; 0x15 not for cids 0x3E/0x42/0x43; 0x22/0x25 not for rage-immune; 0xB only for plain guards | 0.45 | T2 |  |
-| [0x207030](../../../src/hand/func_00207030.c) | `SetStepguardSpecial` | Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage (target other guards: prefer cid 0x38, ignore 5 cids), 0x15 (BHV156 s | 0.50 | T1 |  |
-| [0x207288](../../../src/hand/func_00207288.c) | `UpdateStepguardSpecial` | End the special state after D_002C3D40 = 10 s (8/0xD), 30 s (0x22/0x25), 5 s (0x15) | 0.50 | T1 |  |
-| [0x207350](../../../src/hand/func_00207350.c) | `UpdateStepguard` | STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets, finish attack anim, aim, pickpocket, update components, BHV stack (0x1EED10), mover, release finished ASEGA, track base posit | 0.85 | T1 |  |
-| [0x207468](../../../src/hand/func_00207468.c) | `FTakeStepguardDamage` | STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid 0x4F), or base says no; then forward the zap to the BHV stack (message 0xC) | 0.50 | T1 |  |
+| [0x207030](../../../src/hand/SetStepguardSpecial.c) | `SetStepguardSpecial` | Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage (target other guards: prefer cid 0x38, ignore 5 cids), 0x15 (BHV156 s | 0.50 | T1 |  |
+| [0x207288](../../../src/hand/UpdateStepguardSpecial.c) | `UpdateStepguardSpecial` | End the special state after D_002C3D40 = 10 s (8/0xD), 30 s (0x22/0x25), 5 s (0x15) | 0.50 | T1 |  |
+| [0x207350](../../../src/hand/UpdateStepguard.c) | `UpdateStepguard` | STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets, finish attack anim, aim, pickpocket, update components, BHV stack (0x1EED10), mover, release finished ASEGA, track base posit | 0.85 | T1 |  |
+| [0x207468](../../../src/hand/FTakeStepguardDamage.c) | `FTakeStepguardDamage` | STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid 0x4F), or base says no; then forward the zap to the BHV stack (message 0xC) | 0.50 | T1 |  |
 | [0x207530](../../../src/hand/func_00207530.c) | `FLethalStepguardZap` | STEPGUARD vt86: true if zap damage >= +0x338 and zap kind not in {0,1,0x80000,0x100000} | 0.40 | T2 |  |
-| [0x207598](../../../src/hand/func_00207598.c) | `FInvulnerableStepguard` | STEPGUARD vt76: +0x32C or +0x298 set, or flag 0x2A | 0.55 | T1 |  |
-| [0x2075D0](../../../src/hand/func_002075D0.c) | `HandleStepguardMessage` | STEPGUARD vt5: HandlePoMessage; msgs 4/5 attach/detach an object on component +0x49C; forward every message to the BHV stack (0x1EED78) | 0.75 | T1 |  |
-| [0x207690](../../../src/hand/func_00207690.cpp) | `RenderStepguardSelf` | STEPGUARD vt19: draw the globset; when the camera policy is active, apply a 0.85 s squash/stretch pulse after +0x360 (pivot +0x240) and distance-based scale | 0.75 | T1 |  |
-| [0x2079A0](../../../src/hand/func_002079A0.c) | `OnStepguardRemove` | STEPGUARD vt22: base (0x1F3E00), unlink from global guard list D_003E1444, stamp +0xFF8 | 0.85 | T1 | arbitration |
-| [0x2079E0](../../../src/hand/func_002079E0.c) | `OnStepguardAdd` | STEPGUARD vt23: base (0x1F3EA8), append to guard list D_003E1444, +0xFF8 = FLT_MAX | 0.85 | T1 | arbitration |
-| [0x207A20](../../../src/hand/func_00207A20.c) | `GrfFromSgf` | Bit mask of guard flag n (1<<n, 0 for -1) | 0.85 | T1 | runtime |
-| [0x207A40](../../../src/hand/func_00207A40.c) | `GrfFromSgfArray` | OR of GrfFromSgf over an array | 0.50 | T1 |  |
-| [0x207AA0](../../../src/hand/func_00207AA0.c) | `CsgfFromGrf` | List the set flag numbers (46..0) of a mask into an array, return count | 0.50 | T1 |  |
+| [0x207598](../../../src/hand/FInvulnerableStepguard.c) | `FInvulnerableStepguard` | STEPGUARD vt76: +0x32C or +0x298 set, or flag 0x2A | 0.55 | T1 |  |
+| [0x2075D0](../../../src/hand/HandleStepguardMessage.c) | `HandleStepguardMessage` | STEPGUARD vt5: HandlePoMessage; msgs 4/5 attach/detach an object on component +0x49C; forward every message to the BHV stack (0x1EED78) | 0.75 | T1 |  |
+| [0x207690](../../../src/hand/RenderStepguardSelf.cpp) | `RenderStepguardSelf` | STEPGUARD vt19: draw the globset; when the camera policy is active, apply a 0.85 s squash/stretch pulse after +0x360 (pivot +0x240) and distance-based scale | 0.75 | T1 |  |
+| [0x2079A0](../../../src/hand/OnStepguardRemove.c) | `OnStepguardRemove` | STEPGUARD vt22: base (0x1F3E00), unlink from global guard list D_003E1444, stamp +0xFF8 | 0.85 | T1 | arbitration |
+| [0x2079E0](../../../src/hand/OnStepguardAdd.c) | `OnStepguardAdd` | STEPGUARD vt23: base (0x1F3EA8), append to guard list D_003E1444, +0xFF8 = FLT_MAX | 0.85 | T1 | arbitration |
+| [0x207A20](../../../src/hand/GrfFromSgf.c) | `GrfFromSgf` | Bit mask of guard flag n (1<<n, 0 for -1) | 0.85 | T1 | runtime |
+| [0x207A40](../../../src/hand/GrfFromSgfArray.c) | `GrfFromSgfArray` | OR of GrfFromSgf over an array | 0.50 | T1 |  |
+| [0x207AA0](../../../src/hand/CsgfFromGrf.c) | `CsgfFromGrf` | List the set flag numbers (46..0) of a mask into an array, return count | 0.50 | T1 |  |
 | [0x207B10](../../../src/hand/func_00207B10.c) | `GrfFromSpliceSgfList` | Convert a Splice list argument of guard-flag enums (type 0x1010) to a mask | 0.45 | T2 |  |
 | [0x207B70](../../../src/auto/func_00207B70.c) | `SetStepguardAnimBinding` | Splice: ensure the anim binding for a flag set and set its oid/arg (+4/+0xC) | 0.40 | T2 |  |
 | [0x207BC8](../../../src/auto/func_00207BC8.c) | `SetStepguardAnimBindingResolve` | Same as 0x207B70 then resolve it (0x209130) | 0.40 | T2 |  |
@@ -563,17 +563,17 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x208038](../../../src/hand/func_00208038.c) | `SetStepguardZapReactionsA70` | 0x207EB8 on table +0xA70 | 0.30 | T2 |  |
 | [0x208058](../../../src/hand/func_00208058.c) | `SetStepguardZapReactionsA70Resolve` | 0x207F50 on table +0xA70 | 0.30 | T2 |  |
 | [0x208078](../../../src/hand/func_00208078.c) | `SetStepguardZapReactions8D0` | 0x207EB8 on table +0x8D0 | 0.30 | T2 | verified |
-| [0x2080A0](../../../src/auto/func_002080A0.c) | `ResolveZapReactions` | Resolve all 26 entries of a table (0x209130) | 0.85 | T1 | verified |
-| [0x2080F0](../../../src/auto/func_002080F0.c) | `ResolveStepguardAnimBindings` | Resolve all anim bindings (+0x4C0 count, +0x4D0 entries) and the 3 zap tables | 0.50 | T1 |  |
+| [0x2080A0](../../../src/auto/ResolveZapReactions.c) | `ResolveZapReactions` | Resolve all 26 entries of a table (0x209130) | 0.85 | T1 | verified |
+| [0x2080F0](../../../src/auto/ResolveStepguardAnimBindings.c) | `ResolveStepguardAnimBindings` | Resolve all anim bindings (+0x4C0 count, +0x4D0 entries) and the 3 zap tables | 0.50 | T1 |  |
 | [0x208178](../../../src/auto/func_00208178.c) | `ReleaseZapReactions` | Release all 26 entries of a table (0x2090D0) | 0.45 | T2 |  |
 | [0x2081C8](../../../src/auto/func_002081C8.c) | `ReleaseStepguardZapReactions` | Release the 3 zap tables | 0.45 | T2 |  |
 | [0x208208](../../../src/hand/func_00208208.c) | `CloneZapReactions` | Deep-copy all 26 entries (0x209590) | 0.45 | T2 |  |
-| [0x208250](../../../src/auto/func_00208250.c) | `CloneStepguardAnimBindings` | Deep-copy anim bindings and zap tables after a clone | 0.50 | T1 |  |
-| [0x2082D0](../../../src/hand/func_002082D0.cpp) | `PloChooseStepguardTarget` | STEPGUARD vt88: keep forced target +0x390 if in world; else among detector entries pick: forced classes (+0x3C0) first, skip ignored classes (+0x3A8), prefer classes +0x394, hysteresis for current target (+0x38C, CLQ -40 | 0.50 | T1 |  |
+| [0x208250](../../../src/auto/CloneStepguardAnimBindings.c) | `CloneStepguardAnimBindings` | Deep-copy anim bindings and zap tables after a clone | 0.50 | T1 |  |
+| [0x2082D0](../../../src/hand/PloChooseStepguardTarget.cpp) | `PloChooseStepguardTarget` | STEPGUARD vt88: keep forced target +0x390 if in world; else among detector entries pick: forced classes (+0x3C0) first, skip ignored classes (+0x3A8), prefer classes +0x394, hysteresis for current target (+0x38C, CLQ -40 | 0.50 | T1 |  |
 | [0x208538](../../../src/auto/func_00208538.c) | `SetStepguardForcedTarget` | Splice setter: +0x390 = plo (option getter reads +0x38C) | 0.45 | T2 | verified |
-| [0x208540](../../../src/auto/func_00208540.c) | `SetStepguardTarget` | Change current target +0x38C: leave the old target's shared engagement record +0x3CC, join the new one's (EnsureGlobalById 0x1F8278 / 0x20A730) | 0.55 | T1 |  |
+| [0x208540](../../../src/auto/SetStepguardTarget.c) | `SetStepguardTarget` | Change current target +0x38C: leave the old target's shared engagement record +0x3CC, join the new one's (EnsureGlobalById 0x1F8278 / 0x20A730) | 0.55 | T1 |  |
 | [0x2085B0](../../../src/auto/func_002085B0.c) | `FAddStepguardDetectTargetBack` | 0x2085D0(this,plo,0) | 0.30 | T2 |  |
-| [0x2085D0](../../../src/hand/func_002085D0.cpp) | `FAddStepguardDetectTarget` | Insert plo into the detector target list (8 max): fFront appends; else inserts before the generated tail (+0x3A4), evicting the oldest generated entry when full | 0.50 | T1 |  |
+| [0x2085D0](../../../src/hand/FAddStepguardDetectTarget.cpp) | `FAddStepguardDetectTarget` | Insert plo into the detector target list (8 max): fFront appends; else inserts before the generated tail (+0x3A4), evicting the oldest generated entry when full | 0.50 | T1 |  |
 | [0x208700](../../../src/hand/func_00208700.c) | `AddStepguardPreferClass` | Append cid to +0x394 list (max 3) | 0.40 | T2 |  |
 | [0x208728](../../../src/hand/func_00208728.c) | `RemoveStepguardPreferClass` | Remove cid from +0x394 list | 0.40 | T2 |  |
 | [0x2087C8](../../../src/auto/func_002087C8.c) | `ClearStepguardGeneratedTargets` | Drop generated detector entries and clear prefer list | 0.30 | T2 |  |
@@ -589,15 +589,15 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x208B30](../../../src/auto/func_00208B30.c) | `ClearStepguardForceClasses` | +0x3C0 count = 0 | 0.35 | T2 |  |
 | [0x208B38](../../../src/hand/func_00208B38.c) | `FStepguardForceClass` | plo derives from a cid in +0x3C0 | 0.35 | T2 |  |
 | [0x208BB0](../../../src/hand/func_00208BB0.c) | `GRandStepguardDelay` | GRandInRange(5,7) | 0.30 | T2 |  |
-| [0x208BE0](../../../src/hand/func_00208BE0.cpp) | `FStepguardSenseStimulus` | STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >= +0xE68, not own; kind 0 radius test (0x156918), kind 1 inner volume of detector + clear line (PsoHitTestLineObjects) | 0.50 | T1 |  |
-| [0x208D70](../../../src/hand/func_00208D70.c) | `FStepguardSensesEnabled` | +0xE64 unless any of flags {0xB,0x1D,7,5,6,0x10,1,0x16,0x2A} is set | 0.50 | T1 |  |
-| [0x208E70](../../../src/hand/func_00208E70.c) | `GuardEvalInteractMode` | Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM +0x370/+0x368), 1 in range (d<=+0x388, dz in LM +0x380), 0 | 0.55 | T1 |  |
+| [0x208BE0](../../../src/hand/FStepguardSenseStimulus.cpp) | `FStepguardSenseStimulus` | STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >= +0xE68, not own; kind 0 radius test (0x156918), kind 1 inner volume of detector + clear line (PsoHitTestLineObjects) | 0.50 | T1 |  |
+| [0x208D70](../../../src/hand/FStepguardSensesEnabled.c) | `FStepguardSensesEnabled` | +0xE64 unless any of flags {0xB,0x1D,7,5,6,0x10,1,0x16,0x2A} is set | 0.50 | T1 |  |
+| [0x208E70](../../../src/hand/GuardEvalInteractMode.c) | `GuardEvalInteractMode` | Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM +0x370/+0x368), 1 in range (d<=+0x388, dz in LM +0x380), 0 | 0.55 | T1 |  |
 | [0x209098](../../../src/hand/func_00209098.c) | `FStepguardHandsOff` | +0xFC8 or FSwInputLock(g_sw) | 0.35 | T2 |  |
-| [0x2090D0](../../../src/auto/func_002090D0.c) | `ReleaseAnimBinding` | Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1) | 0.85 | T1 | verified |
-| [0x209130](../../../src/hand/func_00209130.c) | `ResolveAnimBinding` | Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else -1 | 0.50 | T1 |  |
-| [0x209278](../../../src/hand/func_00209278.c) | `StartAnimBinding` | Start the bound animation: ASEG apply (ApplyAsegOvr 0x12F9B8), SM -> SMA (0x1F0198), kind 2 at +0xDB0, kind 3 at +0xE20 | 0.50 | T1 |  |
-| [0x209360](../../../src/hand/func_00209360.c) | `StopAnimBinding` | Stop/release the running instance per kind (RetractAsega, RetractSma, ...) and Decref | 0.50 | T1 |  |
-| [0x209430](../../../src/hand/func_00209430.c) | `FAnimBindingDone` | True if the running instance finished/retracted (or none) | 0.50 | T1 |  |
+| [0x2090D0](../../../src/auto/ReleaseAnimBinding.c) | `ReleaseAnimBinding` | Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1) | 0.85 | T1 | verified |
+| [0x209130](../../../src/hand/ResolveAnimBinding.c) | `ResolveAnimBinding` | Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else -1 | 0.50 | T1 |  |
+| [0x209278](../../../src/hand/StartAnimBinding.c) | `StartAnimBinding` | Start the bound animation: ASEG apply (ApplyAsegOvr 0x12F9B8), SM -> SMA (0x1F0198), kind 2 at +0xDB0, kind 3 at +0xE20 | 0.50 | T1 |  |
+| [0x209360](../../../src/hand/StopAnimBinding.c) | `StopAnimBinding` | Stop/release the running instance per kind (RetractAsega, RetractSma, ...) and Decref | 0.50 | T1 |  |
+| [0x209430](../../../src/hand/FAnimBindingDone.c) | `FAnimBindingDone` | True if the running instance finished/retracted (or none) | 0.50 | T1 |  |
 | [0x209518](../../../src/hand/func_00209518.c) | `PasegaFromAnimBinding` | Return the animation instance pointer for a binding kind | 0.35 | T2 |  |
 | [0x209590](../../../src/hand/func_00209590.c) | `CloneAnimBinding` | Deep-copy kind-2 (0x40) / kind-3 (0xD0) payloads | 0.45 | T2 |  |
 | [0x209618](../../../src/hand/func_00209618.c) | `DriveStepguardFromAnim` | Set desired velocity +0x190 (= -translation*scale) and angular +0x1E0 from the binding's ASEG/object (VecStepAsegaTranslation/Rotation) | 0.40 | T2 |  |
@@ -606,19 +606,19 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x209778](../../../src/hand/func_00209778.c) | `ClearStepguardMover` | zero mover words 0..2 | 0.35 | T2 |  |
 | [0x209788](../../../src/auto/func_00209788.c) | `SetStepguardMoverDriver` | mover[0] = driver object | 0.35 | T2 |  |
 | [0x209790](../../../src/auto/func_00209790.c) | `ResetStepguardMover` | clear driver/lock, zero owner's desired velocity +0x190, 0x1F5078 | 0.35 | T2 |  |
-| [0x2097C8](../../../src/auto/func_002097C8.c) | `LockStepguardMover` | mover[1] = 1 (heading locked) | 0.85 | T1 | verified |
+| [0x2097C8](../../../src/auto/LockStepguardMover.c) | `LockStepguardMover` | mover[1] = 1 (heading locked) | 0.85 | T1 | verified |
 | [0x2097D8](../../../src/auto/func_002097D8.c) | `UnlockStepguardMover` | mover[1] = 0 | 0.35 | T2 |  |
 | [0x2097E0](../../../src/hand/func_002097E0.c) | `UpdateStepguardMover` | call driver vt11 | 0.35 | T2 |  |
-| [0x209818](../../../src/auto/func_00209818.c) | `SetStepguardMoverRadTarget` | unless locked, SetStepRadTarget(owner, rad) | 0.85 | T1 | verified |
+| [0x209818](../../../src/auto/SetStepguardMoverRadTarget.c) | `SetStepguardMoverRadTarget` | unless locked, SetStepRadTarget(owner, rad) | 0.85 | T1 | verified |
 | [0x209840](../../../src/auto/func_00209840.c) | `SetStepguardMoverMatTarget` | unless locked, copy a 3x3 into owner's matTarget +0x1B0 | 0.40 | T2 |  |
-| [0x209870](../../../src/auto/func_00209870.c) | `SetStepguardGrfsgf` | Store flag word +0x2C0 and re-evaluate pickpocket state (0x1F1900) | 0.50 | T1 |  |
-| [0x209890](../../../src/hand/func_00209890.c) | `AddStepguardSgf` | Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98 (3->0x14, 0xC->0x16) | 0.85 | T1 | runtime |
-| [0x209970](../../../src/hand/func_00209970.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
-| [0x2099F0](../../../src/hand/func_002099F0.c) | `FGrfHasSgf` | (grf & bit n) != 0 | 0.50 | T1 |  |
+| [0x209870](../../../src/auto/SetStepguardGrfsgf.c) | `SetStepguardGrfsgf` | Store flag word +0x2C0 and re-evaluate pickpocket state (0x1F1900) | 0.50 | T1 |  |
+| [0x209890](../../../src/hand/AddStepguardSgf.c) | `AddStepguardSgf` | Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98 (3->0x14, 0xC->0x16) | 0.85 | T1 | runtime |
+| [0x209970](../../../src/hand/RemoveStepguardSgf.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
+| [0x2099F0](../../../src/hand/FGrfHasSgf.c) | `FGrfHasSgf` | (grf & bit n) != 0 | 0.50 | T1 |  |
 | [0x209A28](../../../src/hand/func_00209A28.c) | `CsgfMatch` | popcount(a) if a is a subset of b, else 0 | 0.45 | T2 |  |
-| [0x209A68](../../../src/auto/func_00209A68.c) | `FStepguardHasSgf` | flag n set in +0x2C0 | 0.60 | T1 |  |
+| [0x209A68](../../../src/auto/FStepguardHasSgf.c) | `FStepguardHasSgf` | flag n set in +0x2C0 | 0.60 | T1 |  |
 | [0x209A88](../../../src/hand/func_00209A88.c) | `RefGetStepguardSgfs` | Splice getter: list of set flags | 0.45 | T2 |  |
-| [0x209AD0](../../../src/hand/func_00209AD0.c) | `PanimbindBest` | Binding whose flag set is the largest subset of mask and contains its lowest flag | 0.50 | T1 |  |
+| [0x209AD0](../../../src/hand/PanimbindBest.c) | `PanimbindBest` | Binding whose flag set is the largest subset of mask and contains its lowest flag | 0.50 | T1 |  |
 | [0x209BC0](../../../src/hand/func_00209BC0.c) | `PanimbindCur` | PanimbindBest for the current flags | 0.45 | T2 |  |
 | [0x209BE0](../../../src/hand/func_00209BE0.c) | `PanimbindFind` | Binding with exactly this flag set | 0.45 | T2 |  |
 | [0x209C18](../../../src/hand/func_00209C18.c) | `PanimbindEnsure` | Find or append binding for a flag set, released | 0.45 | T2 |  |
@@ -639,7 +639,7 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x20A5F8](../../../src/auto/func_0020A5F8.c) | `InitTargetRecord` | Init a shared per-target engagement record (0xAC): target +0xC, 1.0, 2.0, -1s, append to D_003E145C | 0.45 | T2 |  |
 | [0x20A658](../../../src/hand/func_0020A658.c) | `IguardFindTargetRecord` | Index of guard in the record's guard list (+0x28 count, +0x2C) | 0.35 | T2 |  |
 | [0x20A690](../../../src/hand/func_0020A690.c) | `RadTargetRecordFacing` | Heading reference: camera (kind 0) or target facing (kind 1) | 0.35 | T2 |  |
-| [0x20A730](../../../src/auto/func_0020A730.c) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
+| [0x20A730](../../../src/auto/AddTargetRecordGuard.c) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
 | [0x20A790](../../../src/auto/func_0020A790.c) | `RemoveTargetRecordGuard` | Remove guard from record | 0.40 | T2 |  |
 | [0x20A7E0](../../../src/hand/func_0020A7E0.c) | `FTargetRecordStale` | time since record stamp > D_002C3DB4 | 0.30 | T2 |  |
 | [0x20A818](../../../src/hand/func_0020A818.cpp) | `FTargetRecordAllowsGuard` | Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires guard ready or inside camera frustum within heading tolerance of the camera | 0.40 | T2 |  |
@@ -665,7 +665,7 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x20B140](../../../src/hand/func_0020B140.c) | `EmitStepguardStimulus` | Emit a stimulus (NewNoise 0x156548 from template +0xE60 or world default) at the guard, aimed at q (kind 4), +0xF44 = now + D_002C3DB8 | 0.35 | T2 |  |
 | [0x20B210](../../../src/hand/func_0020B210.c) | `DetachStepguard` | Unlink attachment (LinkStepAttachment f=0) and clear +0xF80/+0xF84 | 0.40 | T2 |  |
 | [0x20B2A8](../../../src/hand/func_0020B2A8.c) | `AttachStepguard` | Attach to object by class: CID11 pipe?, CID13 rail?, CID19 (k124==3), CID39 -> +0xF80 kind 0..3 | 0.40 | T2 |  |
-| [0x20B3D0](../../../src/hand/func_0020B3D0.c) | `JthsCurrentStepguard` | STEPGUARD vt77: 2 (dead) if flag 7, 1 (damaged) if flags 5/6, else 0 | 0.50 | T1 |  |
+| [0x20B3D0](../../../src/hand/JthsCurrentStepguard.c) | `JthsCurrentStepguard` | STEPGUARD vt77: 2 (dead) if flag 7, 1 (damaged) if flags 5/6, else 0 | 0.50 | T1 |  |
 | [0x20B438](../../../src/auto/func_0020B438.c) | `IncrementStepguardBusy` | ++ +0xFFC; first makes it busy (SetLoBusyk 1) | 0.35 | T2 |  |
 | [0x20B478](../../../src/auto/func_0020B478.c) | `DecrementStepguardBusy` | -- +0xFFC; at 0 SetLoBusyk 0 | 0.35 | T2 |  |
 | [0x20B4A8](../../../src/hand/func_0020B4A8.c) | `InitCid125GuardMgr` | cid 0x7D vt7: InitLo, flag 2, register for update | 0.50 | T2 |  |
@@ -683,7 +683,7 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 | [0x20D020](../../../src/hand/func_0020D020.c) | `FGuardStuck` | 5 probe offsets D_002C3E00 around guard all blocked | 0.30 | T2 |  |
 | [0x20D108](../../../src/hand/func_0020D108.c) | `SetStuckWatchState` | state 2 -> InflictZap 0x4000 | 0.35 | T2 |  |
 | [0x20D178](../../../src/auto/func_0020D178.c) | `DisableStuckWatch` | enabled = 0, state 0 | 0.35 | T2 |  |
-| [0x20D1A0](../../../src/auto/func_0020D1A0.c) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
+| [0x20D1A0](../../../src/auto/EnableStuckWatch.c) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
 | [0x20D1B0](../../../src/hand/func_0020D1B0.c) | `InitHazardWatch` | po, state -1, enabled | 0.35 | T2 |  |
 | [0x20D1C8](../../../src/hand/func_0020D1C8.c) | `ResetHazardWatch` | state 0 | 0.35 | T2 |  |
 | [0x20D1F8](../../../src/hand/func_0020D1F8.c) | `UpdateHazardWatch` | inside hazard object (vt73) while falling for > D_002C3E58 s -> zap with hazard params | 0.35 | T2 |  |

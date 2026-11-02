@@ -195,34 +195,34 @@ From [devtools/save_editor](../guides/devtools.md#save_editor) (73 save states; 
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13BE58](../../src/hand/func_0013BE58.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
+| [0x13BE58](../../src/hand/LoadBootyFromBrx.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
 | [0x13C448](../../src/hand/AddAlarmAlbrk__FP5ALARM3OID.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
 | [0x13CFD8](../../src/hand/func_0013CFD8.c) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
-| [0x13D248](../../src/hand/func_0013D248.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
-| [0x1613A8](../../src/auto/func_001613A8.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
-| [0x1613F8](../../src/hand/func_001613F8.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D | 0.55 | T1 | verified |
-| [0x161478](../../src/hand/func_00161478.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); add | 0.75 | T1 |  |
-| [0x161660](../../src/hand/func_00161660.cpp) | `NEpisodePercentComplete` | Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state 3)/count, clamped to 1..99 unless 0 or all | 0.65 | T1 |  |
+| [0x13D248](../../src/hand/NBootyContainerKind.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
+| [0x1613A8](../../src/auto/StartupGame.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
+| [0x1613F8](../../src/hand/InitGame.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D | 0.55 | T1 | verified |
+| [0x161478](../../src/hand/UpdateGameTimers.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); add | 0.75 | T1 |  |
+| [0x161660](../../src/hand/NEpisodePercentComplete.cpp) | `NEpisodePercentComplete` | Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state 3)/count, clamped to 1..99 unless 0 or all | 0.65 | T1 |  |
 | [0x1618F8](../../src/hand/func_001618F8.c) | `ShowSwWidget3BC4Timed` | Shows HUD widget g_sw+0x3BC4 (clears +0x8C, vt49 Show(-1)) and sets its hide time g_sw+0x476C = now + dt | 0.40 | T2 | verified |
-| [0x1619A0](../../src/hand/func_001619A0.c) | `BroadcastGameEvent` | Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list g_sw+0x3B00) of the current job (SendTaskGameEvent), then the | 0.85 | T1 | verified |
-| [0x161FC8](../../src/hand/func_00161FC8.c) | `GrfFromState` | 1<<state, 0 for -1 | 0.85 | T1 | verified |
-| [0x162448](../../src/auto/func_00162448.c) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
-| [0x1624A8](../../src/hand/func_001624A8.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
+| [0x1619A0](../../src/hand/BroadcastGameEvent.c) | `BroadcastGameEvent` | Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list g_sw+0x3B00) of the current job (SendTaskGameEvent), then the | 0.85 | T1 | verified |
+| [0x161FC8](../../src/hand/GrfFromState.c) | `GrfFromState` | 1<<state, 0 for -1 | 0.85 | T1 | verified |
+| [0x162448](../../src/auto/InitJob.c) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
+| [0x1624A8](../../src/hand/LoadJobFromBrx.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
 | [0x162600](../../src/hand/FUN_001e53f8.c) | `AddJobCompleteEvent` | Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives | 0.55 | existing | arbitration; replaces existing FUN_001e53f8 |
-| [0x162908](../../src/auto/func_00162908.c) | `EndCurrentJob` | If p is the current job, EndJob(p) | 0.85 | T1 | verified |
-| [0x162BB8](../../src/hand/func_00162BB8.cpp) | `HandleJobGameEvent` | Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (-> 0x162DD0) and fail-event list (-> FailJob); if not live, | 0.60 | T1 | verified |
-| [0x163078](../../src/hand/func_00163078.c) | `UpdateJob` | JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when the widget label finishes | 0.60 | T1 |  |
-| [0x1633E8](../../src/auto/func_001633E8.c) | `FIsCurrentJob` | p == g_sw+0x3B0C (current job) | 0.85 | T1 | verified |
-| [0x163460](../../src/hand/func_00163460.cpp) | `UpdateJobSaveVars` | Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs (+0xD0/+0xD8/+0xE0) | 0.50 | T1 |  |
-| [0x1635A0](../../src/hand/func_001635A0.c) | `InitTask` | TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC | 0.70 | T1 |  |
-| [0x1635F8](../../src/hand/func_001635F8.cpp) | `LoadTaskFromBrx` | TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and successors (+0x9C) | 0.75 | T1 | parse |
-| [0x1638F8](../../src/hand/func_001638F8.c) | `PostTaskLoad` | TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK pointers, apply inactive visuals if live, restore two sa | 0.65 | T1 |  |
-| [0x163B48](../../src/hand/func_00163B48.c) | `UpdateTask` | TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO (+0x80, AddLo) only while available and no job is curren | 0.60 | T1 |  |
-| [0x164018](../../src/auto/func_00164018.c) | `FIsCurrentTask` | p == g_sw+0x3B10 | 0.70 | T1 |  |
-| [0x164098](../../src/hand/func_00164098.c) | `OidFromTaskState` | Maps task state 0..3 to oid 0x612..0x615 (the default SM goal per state), else -1 | 0.60 | T1 | verified |
-| [0x1643B0](../../src/hand/func_001643B0.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
-| [0x1657A8](../../src/auto/func_001657A8.c) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
-| [0x165B40](../../src/hand/func_00165B40.c) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
+| [0x162908](../../src/auto/EndCurrentJob.c) | `EndCurrentJob` | If p is the current job, EndJob(p) | 0.85 | T1 | verified |
+| [0x162BB8](../../src/hand/HandleJobGameEvent.cpp) | `HandleJobGameEvent` | Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (-> 0x162DD0) and fail-event list (-> FailJob); if not live, | 0.60 | T1 | verified |
+| [0x163078](../../src/hand/UpdateJob.c) | `UpdateJob` | JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when the widget label finishes | 0.60 | T1 |  |
+| [0x1633E8](../../src/auto/FIsCurrentJob.c) | `FIsCurrentJob` | p == g_sw+0x3B0C (current job) | 0.85 | T1 | verified |
+| [0x163460](../../src/hand/UpdateJobSaveVars.cpp) | `UpdateJobSaveVars` | Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs (+0xD0/+0xD8/+0xE0) | 0.50 | T1 |  |
+| [0x1635A0](../../src/hand/InitTask.c) | `InitTask` | TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC | 0.70 | T1 |  |
+| [0x1635F8](../../src/hand/LoadTaskFromBrx.cpp) | `LoadTaskFromBrx` | TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and successors (+0x9C) | 0.75 | T1 | parse |
+| [0x1638F8](../../src/hand/PostTaskLoad.c) | `PostTaskLoad` | TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK pointers, apply inactive visuals if live, restore two sa | 0.65 | T1 |  |
+| [0x163B48](../../src/hand/UpdateTask.c) | `UpdateTask` | TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO (+0x80, AddLo) only while available and no job is curren | 0.60 | T1 |  |
+| [0x164018](../../src/auto/FIsCurrentTask.c) | `FIsCurrentTask` | p == g_sw+0x3B10 | 0.70 | T1 |  |
+| [0x164098](../../src/hand/OidFromTaskState.c) | `OidFromTaskState` | Maps task state 0..3 to oid 0x612..0x615 (the default SM goal per state), else -1 | 0.60 | T1 | verified |
+| [0x1643B0](../../src/hand/UpdateTaskSaveVars.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
+| [0x1657A8](../../src/auto/AnnounceTaskJob.c) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
+| [0x165B40](../../src/hand/RecomputeTaskState.c) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
 | [0x1C4E50](../../src/hand/func_001C4E50.c) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
 | [0x1C4EF8](../../src/auto/func_001C4EF8.c) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
 | [0x1C4F60](../../src/hand/func_001C4F60.c) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |

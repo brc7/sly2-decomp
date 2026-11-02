@@ -109,13 +109,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 85 | GrfStepGroundProbe | **override** | [`STEPPLAYER_VUnk84?`](../../../src/hand/func_00143C78.c) | `0x143C78` | VUnk84 |
 | 86 | FStepVt86 | **override** | [`STEPPLAYER_VUnk85?`](../../../src/hand/func_00144418.c) | `0x144418` | VUnk85 |
 | 87 | StepVt87Nop | inherited (STEP) | `StepVt87Nop?` | `0x205D10` | VUnk86 |
-| 88 | SetJtPlayerState (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VUnk87 |
-| 89 | GetJtPlayerState (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VUnk88 |
-| 90 | JT_vt90 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VUnk89 |
-| 91 | JT_vt91 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VUnk90 |
-| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VUnk91 |
+| 88 | SetJtPlayerState (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VUnk87 |
+| 89 | GetJtPlayerState (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VUnk88 |
+| 90 | JT_vt90 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VUnk89 |
+| 91 | JT_vt91 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VUnk90 |
+| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VUnk91 |
 | 93 | OnStepplayerHeroDied | **new** | [`OnStepplayerHeroDied`](../../../src/auto/OnStepplayerHeroDied.c) | `0x140EB0` | OnHeroDied |
-| 94 | JT_vt94 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VUnk93 |
+| 94 | JT_vt94 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VUnk93 |
 | 95 | SetStepplayerPlayerInteractMode | **new** | [`SetStepplayerPlayerInteractMode`](../../../src/hand/SetStepplayerPlayerInteractMode.c) | `0x140678` | SetPlayerInteractMode |
 | 96 | GetStepplayerStunHold | **new** | [`GetStepplayerStunHold`](../../../src/hand/GetStepplayerStunHold.c) | `0x143220` | GetStunHold |
 | 97 | GetStepplayerCmFocusPos | **new** | [`GetStepplayerCmFocusPos`](../../../src/hand/GetStepplayerCmFocusPos.c) | `0x141588` | GetCmFocusPos |
@@ -124,7 +124,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 100 | StartStepplayerGadget | **new** | [`StartStepplayerGadget`](../../../src/auto/StartStepplayerGadget.c) | `0x141D38` | StartGadget |
 | 101 | UpdateStepplayerGadget | **new** | [`UpdateStepplayerGadget`](../../../src/hand/UpdateStepplayerGadget.c) | `0x141DD0` | VSlot101 |
 | 102 | StopStepplayerGadget | **new** | [`StopStepplayerGadget`](../../../src/auto/StopStepplayerGadget.c) | `0x141E28` | VSlot102 |
-| 103 | JT_vt103 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/lib/__pure_virtual.c) | `0x23C820` | VSlot103 |
+| 103 | JT_vt103 (pure in STEPPLAYER) | **new** | [`__pure_virtual`](../../../src/sdk/libgcc/__pure_virtual.c) | `0x23C820` | VSlot103 |
 | 104 | STEPPLAYER_VUnk104 | **new** | [`STEPPLAYER_VUnk104?`](../../../src/hand/func_00141E30.c) | `0x141E30` | VSlot104 |
 | 105 | OnStepplayerGadgetsChanged | **new** | [`OnStepplayerGadgetsChanged?`](../../../src/auto/func_00141E70.c) | `0x141E70` | VSlot105 |
 

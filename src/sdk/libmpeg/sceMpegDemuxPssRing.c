@@ -21,7 +21,7 @@ typedef struct {
     int size;
 } BS;
 typedef struct { unsigned int extension, low, high, hasSystemHeader; } HEADER;
-typedef struct {            /* as in src/lib/_PES_packet.c */
+typedef struct {            /* as in src/sdk/libmpeg/_PES_packet.c */
     unsigned long id;
     int len;
     int scrambling;

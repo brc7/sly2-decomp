@@ -22,13 +22,13 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x116918](../../../src/P2/heap.cpp) | `PvAllocClear__FP4HEAPii` |  |  | existing |  |
 | [0x116970](../../../src/P2/heap.cpp) | `PvAllocCopy__FP4HEAPiPvi` |  |  | existing |  |
 | [0x1169D8](../../../src/P2/heap.cpp) | `PchzAllocCopy__FP4HEAPPci` |  |  | existing |  |
-| [0x116A30](../../../src/hand/func_00116A30.c) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
-| [0x116A58](../../../src/auto/func_00116A58.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
-| [0x116A90](../../../src/auto/func_00116A90.c) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
+| [0x116A30](../../../src/hand/CSwHeap_PvAlloc.c) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
+| [0x116A58](../../../src/auto/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
+| [0x116A90](../../../src/auto/CSwHeap_Free.c) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
 | [0x116A98](../../../src/P2/heap.cpp) | `__11CLinearHeapiPUc` |  |  | existing |  |
 | [0x116AB8](../../../src/P2/heap.cpp) | `PvAlloc__11CLinearHeapii` |  |  | existing |  |
 | [0x116AF8](../../../src/P2/heap.cpp) | `PvRealloc__11CLinearHeapPvii` |  |  | existing |  |
-| [0x116B28](../../../src/auto/func_00116B28.c) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
+| [0x116B28](../../../src/auto/Free__11CLinearHeapPv.c) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
 
 ## dynarray (0x116CA0-0x117030)
 
@@ -40,15 +40,15 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x116D00](../../../src/auto/func_00116D00.c) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
 | [0x116D28](../../../src/P2/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
 | [0x116D70](../../../src/P2/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
-| [0x116E30](../../../src/hand/func_00116E30.c) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
+| [0x116E30](../../../src/hand/CDynArray_Append.c) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
 
 ## bez (0x117030-0x1177A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x117030](../../../src/hand/func_00117030.c) | `EvaluateBezierFloat` | Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at time t; writes value and slope | 0.75 | T1 |  |
-| [0x117120](../../../src/hand/func_00117120.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
-| [0x117308](../../../src/hand/func_00117308.cpp) | `EvaluateBezierMat` | Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular velocity | 0.75 | T1 |  |
+| [0x117030](../../../src/hand/EvaluateBezierFloat.c) | `EvaluateBezierFloat` | Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at time t; writes value and slope | 0.75 | T1 |  |
+| [0x117120](../../../src/hand/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
+| [0x117308](../../../src/hand/EvaluateBezierMat.cpp) | `EvaluateBezierMat` | Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular velocity | 0.75 | T1 |  |
 
 ## bis (0x1177A8-0x118668)
 
@@ -76,13 +76,13 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x117F70](../../../src/auto/func_00117F70.c) | `ReadVector4__18CBinaryInputStreamP7VECTOR4` |  |  | existing |  |
 | [0x117F90](../../../src/auto/func_00117F90.c) | `ReadCb12__18CBinaryInputStreamPv` |  |  | existing |  |
 | [0x117FB0](../../../src/auto/func_00117FB0.c) | `ReadCb8__18CBinaryInputStreamPv` |  |  | existing |  |
-| [0x117FD0](../../../src/hand/func_00117FD0.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
-| [0x118220](../../../src/hand/func_00118220.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
-| [0x118380](../../../src/hand/func_00118380.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
-| [0x118420](../../../src/auto/func_00118420.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
-| [0x118458](../../../src/auto/func_00118458.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
+| [0x117FD0](../../../src/hand/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
+| [0x118220](../../../src/hand/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
+| [0x118380](../../../src/hand/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
+| [0x118420](../../../src/auto/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
+| [0x118458](../../../src/auto/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
 | [0x118480](../../../src/auto/func_00118480.c) | `CMemInputStream_ctor_118480` | Constructor of a CBinaryInputStream subclass: base ctor then vptr = 0x2CA5A0 | 0.45 | T2 |  |
-| [0x1184B8](../../../src/auto/func_001184B8.c) | `CMemInputStream_ctor` | Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1 | 0.60 | T1 |  |
+| [0x1184B8](../../../src/auto/CMemInputStream_ctor.c) | `CMemInputStream_ctor` | Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1 | 0.60 | T1 |  |
 | [0x1184E8](../../../src/auto/func_001184E8.c) | `CMemInputStream_Refill` | vtable slot 1 override: hands the stored buffer (+0x34 ptr, +0x38 cb) to the read cursor once, then empties it | 0.45 | T2 |  |
 | [0x118500](../../../src/hand/func_00118500.c) | `CMemInputStream_SetBuffer` | Stores buffer pointer/size (+0x34/+0x38) and +0 state | 0.45 | T2 |  |
 
@@ -93,12 +93,12 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x118668](../../../src/hand/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
 | [0x118A88](../../../src/hand/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
 | [0x118D08](../../../src/hand/func_00118D08.cpp) | `FClassifyPolyBsp` | Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points, recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf) | 0.35 | T2 |  |
-| [0x118FB0](../../../src/hand/func_00118FB0.cpp) | `PbspPointInBspQuick` | Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the leaf node | 0.65 | T1 |  |
+| [0x118FB0](../../../src/hand/PbspPointInBspQuick.cpp) | `PbspPointInBspQuick` | Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the leaf node | 0.65 | T1 |  |
 | [0x119090](../../../src/hand/func_00119090.cpp) | `PbspPointInBsp` | Point location with on-plane case: if \|dist\|<=1e-4 try both children recursively | 0.60 | T1 |  |
 | [0x1191E8](../../../src/hand/func_001191E8.c) | `CloneBspc` | Copies a BSPC from one GEOM to another, rebasing internal node/plane pointers | 0.75 | T1 |  |
-| [0x119308](../../../src/hand/func_00119308.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
-| [0x119390](../../../src/hand/func_00119390.c) | `InitPlaneFromNormalPos` | Plane from normal and a point on it (d = n.pos), VU asm | 0.50 | T1 |  |
-| [0x1193C0](../../../src/auto/func_001193C0.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
+| [0x119308](../../../src/hand/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
+| [0x119390](../../../src/hand/InitPlaneFromNormalPos.c) | `InitPlaneFromNormalPos` | Plane from normal and a point on it (d = n.pos), VU asm | 0.50 | T1 |  |
+| [0x1193C0](../../../src/auto/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
 | [0x1193D8](../../../src/hand/func_001193D8.cpp) | `ConvertPlane` | Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d) | 0.45 | T2 |  |
 
 ## crout (0x1195E0-0x119BC8)
@@ -121,74 +121,74 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x11A050](../../../src/auto/func_0011A050.c) | `InitSl` | Singly linked list init: stores ibNext at +8 | 0.70 | T1 |  |
-| [0x11A058](../../../src/auto/func_0011A058.c) | `ClearSle` | Clears a singly-linked entry (next = NULL) | 0.55 | T1 |  |
-| [0x11A060](../../../src/hand/func_0011A060.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A058](../../../src/auto/ClearSle.c) | `ClearSle` | Clears a singly-linked entry (next = NULL) | 0.55 | T1 |  |
+| [0x11A060](../../../src/hand/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
 | [0x11A070](../../../src/hand/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
-| [0x11A098](../../../src/hand/func_0011A098.c) | `PrependSlEntry` | Prepend to singly linked list | 0.75 | T1 |  |
-| [0x11A0C0](../../../src/hand/func_0011A0C0.c) | `InsertSlEntryAfter` | Insert after pvPrev (NULL -> prepend, last -> append) | 0.65 | T1 |  |
-| [0x11A118](../../../src/hand/func_0011A118.c) | `RemoveSlEntry` | Unlink entry (linear search for predecessor) and fix up active iterators | 0.70 | T1 |  |
-| [0x11A1B8](../../../src/hand/func_0011A1B8.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
-| [0x11A1E8](../../../src/auto/func_0011A1E8.c) | `FIsSlEmpty` | pvFirst == NULL | 0.65 | T1 |  |
-| [0x11A1F8](../../../src/auto/func_0011A1F8.c) | `InitDl` | DL init: ibDle at +8 | 0.85 | T1 |  |
-| [0x11A200](../../../src/hand/func_0011A200.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A210](../../../src/hand/func_0011A210.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
-| [0x11A220](../../../src/hand/func_0011A220.c) | `AppendDlEntry` | Append to doubly linked list | 0.92 | T1 |  |
-| [0x11A250](../../../src/hand/func_0011A250.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
-| [0x11A280](../../../src/hand/func_0011A280.c) | `InsertDlEntryBefore` | Insert before pvNext (NULL -> append, first -> prepend) | 0.88 | T1 |  |
-| [0x11A2E8](../../../src/hand/func_0011A2E8.c) | `RemoveDlEntry` | Unlink and fix up iterators on g_pdliFirst chain | 0.92 | T1 |  |
-| [0x11A380](../../../src/hand/func_0011A380.c) | `FFindDlEntry` | True if pv is linked (next or tail) | 0.85 | T1 |  |
-| [0x11A3B0](../../../src/auto/func_0011A3B0.c) | `FIsDlEmpty` | pvFirst == NULL | 0.85 | T1 |  |
+| [0x11A098](../../../src/hand/PrependSlEntry.c) | `PrependSlEntry` | Prepend to singly linked list | 0.75 | T1 |  |
+| [0x11A0C0](../../../src/hand/InsertSlEntryAfter.c) | `InsertSlEntryAfter` | Insert after pvPrev (NULL -> prepend, last -> append) | 0.65 | T1 |  |
+| [0x11A118](../../../src/hand/RemoveSlEntry.c) | `RemoveSlEntry` | Unlink entry (linear search for predecessor) and fix up active iterators | 0.70 | T1 |  |
+| [0x11A1B8](../../../src/hand/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
+| [0x11A1E8](../../../src/auto/FIsSlEmpty.c) | `FIsSlEmpty` | pvFirst == NULL | 0.65 | T1 |  |
+| [0x11A1F8](../../../src/auto/InitDl__FP2DLi.c) | `InitDl` | DL init: ibDle at +8 | 0.85 | T1 |  |
+| [0x11A200](../../../src/hand/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A210](../../../src/hand/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
+| [0x11A220](../../../src/hand/AppendDlEntry__FP2DLPv.c) | `AppendDlEntry` | Append to doubly linked list | 0.92 | T1 |  |
+| [0x11A250](../../../src/hand/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
+| [0x11A280](../../../src/hand/InsertDlEntryBefore__FP2DLPvT1.c) | `InsertDlEntryBefore` | Insert before pvNext (NULL -> append, first -> prepend) | 0.88 | T1 |  |
+| [0x11A2E8](../../../src/hand/RemoveDlEntry__FP2DLPv.c) | `RemoveDlEntry` | Unlink and fix up iterators on g_pdliFirst chain | 0.92 | T1 |  |
+| [0x11A380](../../../src/hand/FFindDlEntry__FP2DLPv.c) | `FFindDlEntry` | True if pv is linked (next or tail) | 0.85 | T1 |  |
+| [0x11A3B0](../../../src/auto/FIsDlEmpty__FP2DL.c) | `FIsDlEmpty` | pvFirst == NULL | 0.85 | T1 |  |
 | [0x11A3C0](../../../src/hand/CPvDl__FP2DL.cpp) | `CPvDl__FP2DL` |  |  | existing |  |
 
 ## dzgcore (0x11A550-0x11AFE0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11A550](../../../src/hand/func_0011A550.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
+| [0x11A550](../../../src/hand/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
 | [0x11A6B8](../../../src/hand/ClearDzgSolution__FP3DZG.cpp) | `ClearDzgSolution__FP3DZG` |  |  | existing |  |
 | [0x11A770](../../../src/hand/EnforceDzgDz__FP3DZGP2DZ.cpp) | `EnforceDzgDz__FP3DZGP2DZ` |  |  | existing |  |
-| [0x11ABF8](../../../src/hand/func_0011ABF8.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
-| [0x11AD30](../../../src/hand/func_0011AD30.c) | `SolveInequalities` | Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln | 0.85 | T1 |  |
+| [0x11ABF8](../../../src/hand/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
+| [0x11AD30](../../../src/hand/SolveInequalities.c) | `SolveInequalities` | Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln | 0.85 | T1 |  |
 
 ## tu_11AFE0 (0x11AFE0-0x11B1A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11AFE0](../../../src/hand/func_0011AFE0.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
+| [0x11AFE0](../../../src/hand/HashPchzCaseless.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
 
 ## mat (0x11B300-0x11CCA8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11B318](../../../src/auto/func_0011B318.c) | `FInvertMatrix3` | FInvertMatrix(stride 4, n 3, src, dst) | 0.85 | T1 |  |
-| [0x11B340](../../../src/hand/func_0011B340.c) | `InvertMatrix3Cofactor` | 3x3 inverse by cofactors (row cross products / determinant) returned by value | 0.50 | T1 |  |
+| [0x11B318](../../../src/auto/FInvertMatrix3.c) | `FInvertMatrix3` | FInvertMatrix(stride 4, n 3, src, dst) | 0.85 | T1 |  |
+| [0x11B340](../../../src/hand/InvertMatrix3Cofactor.c) | `InvertMatrix3Cofactor` | 3x3 inverse by cofactors (row cross products / determinant) returned by value | 0.50 | T1 |  |
 | [0x11B3D0](../../../src/hand/NormalizeRotateMatrix3__FP7MATRIX3.cpp) | `NormalizeRotateMatrix3__FP7MATRIX3` |  |  | existing |  |
-| [0x11B480](../../../src/hand/func_0011B480.c) | `LoadRotateMatrixSinCos` | Rotation matrix about an axis from (sin, cos) | 0.55 | T1 |  |
+| [0x11B480](../../../src/hand/LoadRotateMatrixSinCos.c) | `LoadRotateMatrixSinCos` | Rotation matrix about an axis from (sin, cos) | 0.55 | T1 |  |
 | [0x11B500](../../../src/hand/func_0011B500.c) | `LoadRotateMatrixRad` | Rotation matrix for angle rad about axis (CalculateSinCos 0x11D608 + 0x11B480) | 0.85 | T1 |  |
 | [0x11B570](../../../src/hand/func_0011B570.c) | `LoadRotateMatrix` | Rotation matrix from a rotation vector (angle = \|v\|, axis = v/\|v\|) | 0.75 | T1 |  |
-| [0x11B628](../../../src/hand/func_0011B628.c) | `LoadRotateMatrixEuler` | Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products) | 0.85 | T1 |  |
-| [0x11B720](../../../src/hand/func_0011B720.c) | `LoadRotateMatrixPanTilt` | R = Rz(pan) * Ry(-tilt) | 0.85 | T1 |  |
-| [0x11B7E0](../../../src/hand/func_0011B7E0.c) | `LoadLookAtMatrix` | BuildOrthonormalMatrixZ(dir, default up) | 0.75 | T1 |  |
-| [0x11B830](../../../src/hand/func_0011B830.c) | `BuildOrthonormalMatrixZ` | Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback 0x11E390) | 0.75 | T1 |  |
-| [0x11B938](../../../src/hand/func_0011B938.c) | `TiltMatUpright` | Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted matrix | 0.75 | T1 |  |
-| [0x11BA08](../../../src/hand/func_0011BA08.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
-| [0x11BC00](../../../src/hand/func_0011BC00.c) | `MulMatrix3Matrix3` | 3x3 matrix product into *pm (VU rows) | 0.50 | T1 |  |
+| [0x11B628](../../../src/hand/LoadRotateMatrixEuler.c) | `LoadRotateMatrixEuler` | Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products) | 0.85 | T1 |  |
+| [0x11B720](../../../src/hand/LoadRotateMatrixPanTilt.c) | `LoadRotateMatrixPanTilt` | R = Rz(pan) * Ry(-tilt) | 0.85 | T1 |  |
+| [0x11B7E0](../../../src/hand/LoadLookAtMatrix.c) | `LoadLookAtMatrix` | BuildOrthonormalMatrixZ(dir, default up) | 0.75 | T1 |  |
+| [0x11B830](../../../src/hand/BuildOrthonormalMatrixZ.c) | `BuildOrthonormalMatrixZ` | Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback 0x11E390) | 0.75 | T1 |  |
+| [0x11B938](../../../src/hand/TiltMatUpright.c) | `TiltMatUpright` | Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted matrix | 0.75 | T1 |  |
+| [0x11BA08](../../../src/hand/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
+| [0x11BC00](../../../src/hand/MulMatrix3Matrix3.c) | `MulMatrix3Matrix3` | 3x3 matrix product into *pm (VU rows) | 0.50 | T1 |  |
 | [0x11BC88](../../../src/hand/DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1.cpp) | `DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1` |  |  | existing |  |
 | [0x11BCF8](../../../src/hand/DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR.cpp) | `DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR` |  |  | existing |  |
 | [0x11BFB8](../../../src/hand/func_0011BFB8.c) | `DecomposeRotateMatrixVector` | DecomposeRotateMatrixRad then returns rad*normal as a vector | 0.45 | T2 |  |
 | [0x11BFF0](../../../src/hand/func_0011BFF0.c) | `DecomposeRotateMatrixEuler` | Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock branch) | 0.80 | T1 |  |
 | [0x11C128](../../../src/hand/__ml__FRC7MATRIX4G8VU_FLOAT.cpp) | `__ml__FRC7MATRIX4G8VU_FLOAT` |  |  | existing |  |
-| [0x11C168](../../../src/hand/func_0011C168.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
+| [0x11C168](../../../src/hand/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
 | [0x11C1A8](../../../src/hand/__ml__FRC7MATRIX4G10VU_VECTOR4.c) | `__ml__FRC7MATRIX4G10VU_VECTOR4` |  |  | existing |  |
-| [0x11C1D8](../../../src/auto/func_0011C1D8.c) | `TransposeMatrix4` | Transpose (0x11C8E8 with 4,4) | 0.85 | T1 |  |
-| [0x11C210](../../../src/hand/func_0011C210.c) | `LoadMatrixFromPosRotScale` | 4x4 from 3x3 rotation with per-row scale vector plus position | 0.75 | T1 |  |
-| [0x11C288](../../../src/hand/func_0011C288.c) | `LoadMatrixFromPosRotScalar` | 4x4 from 3x3 rotation uniformly scaled by g plus position | 0.50 | T1 |  |
+| [0x11C1D8](../../../src/auto/TransposeMatrix4.c) | `TransposeMatrix4` | Transpose (0x11C8E8 with 4,4) | 0.85 | T1 |  |
+| [0x11C210](../../../src/hand/LoadMatrixFromPosRotScale.c) | `LoadMatrixFromPosRotScale` | 4x4 from 3x3 rotation with per-row scale vector plus position | 0.75 | T1 |  |
+| [0x11C288](../../../src/hand/LoadMatrixFromPosRotScalar.c) | `LoadMatrixFromPosRotScalar` | 4x4 from 3x3 rotation uniformly scaled by g plus position | 0.50 | T1 |  |
 | [0x11C2F0](../../../src/auto/func_0011C2F0.c) | `FInvertMatrix4` | FInvertMatrix(4,4,src,dst) | 0.85 | T1 |  |
-| [0x11C318](../../../src/hand/func_0011C318.c) | `InvertMatrix4Rigid` | Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value | 0.50 | T1 |  |
-| [0x11C3D0](../../../src/hand/func_0011C3D0.c) | `CalculateDmat4` | dmat = inverse(a) * b | 0.75 | T1 |  |
+| [0x11C318](../../../src/hand/InvertMatrix4Rigid.c) | `InvertMatrix4Rigid` | Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value | 0.50 | T1 |  |
+| [0x11C3D0](../../../src/hand/CalculateDmat4.c) | `CalculateDmat4` | dmat = inverse(a) * b | 0.75 | T1 |  |
 | [0x11C448](../../../src/hand/BuildSimpleProjectionMatrix__FffffffP7MATRIX4.cpp) | `BuildSimpleProjectionMatrix__FffffffP7MATRIX4` |  |  | existing |  |
 | [0x11C500](../../../src/hand/FInvertMatrix__FiPfT1.cpp) | `FInvertMatrix__FiPfT1` |  |  | existing |  |
-| [0x11C8E8](../../../src/hand/func_0011C8E8.c) | `TransposeMatrix` | Generic c x c transpose with stride | 0.55 | T1 |  |
+| [0x11C8E8](../../../src/hand/TransposeMatrix.c) | `TransposeMatrix` | Generic c x c transpose with stride | 0.55 | T1 |  |
 | [0x11C950](../../../src/hand/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
 | [0x11CAB0](../../../src/hand/func_0011CAB0.c) | `SMaxRowMatrix3` | Largest row length (max of the three row dot products, then sqrt) | 0.40 | T2 |  |
 
@@ -197,66 +197,66 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x11CCA8](../../../src/auto/func_0011CCA8.c) | `InitSlotheap` | Initialises a fixed-size slot pool {cb, c, nKind/align, pvFree=NULL}; storage allocated lazily on first alloc | 0.60 | T1 |  |
-| [0x11CCC0](../../../src/hand/func_0011CCC0.c) | `PvAllocSlotheapClear` | Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first use), increments count, memsets to 0 | 0.60 | T1 |  |
+| [0x11CCC0](../../../src/hand/PvAllocSlotheapClear.c) | `PvAllocSlotheapClear` | Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first use), increments count, memsets to 0 | 0.60 | T1 |  |
 | [0x11CD98](../../../src/auto/func_0011CD98.c) | `FreeSlotheapPv` | Pushes a slot back on the free list, count-- | 0.75 | T1 |  |
-| [0x11CDB8](../../../src/hand/func_0011CDB8.c) | `ResetSlotheap` | Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates | 0.60 | T1 | top50 |
+| [0x11CDB8](../../../src/hand/ResetSlotheap.c) | `ResetSlotheap` | Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates | 0.60 | T1 | top50 |
 | [0x11CDD8](../../../src/auto/func_0011CDD8.c) | `PrimeSlotheap` | Allocates and immediately frees one slot (forces the block allocation now) | 0.40 | T2 |  |
 
 ## util (0x11CF60-0x11E198)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11CF60](../../../src/hand/func_0011CF60.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
+| [0x11CF60](../../../src/hand/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
 | [0x11CFE0](../../../src/hand/GLimitAbs__Fff.cpp) | `GLimitAbs__Fff` |  |  | existing |  |
-| [0x11D018](../../../src/hand/func_0011D018.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
+| [0x11D018](../../../src/hand/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
 | [0x11D1C0](../../../src/hand/GSmoothA__FffffP4SMPAPf.cpp) | `GSmoothA__FffffP4SMPAPf` |  |  | existing |  |
 | [0x11D2D0](../../../src/hand/RadSmooth__FfffP3SMPPf.cpp) | `RadSmooth__FfffP3SMPPf` |  |  | existing |  |
 | [0x11D340](../../../src/hand/RadSmoothA__FffffP4SMPAPf.cpp) | `RadSmoothA__FffffP4SMPAPf` |  |  | existing |  |
-| [0x11D3C0](../../../src/auto/func_0011D3C0.c) | `NRand` | rand() % 905010707 | 0.50 | T1 |  |
-| [0x11D3F8](../../../src/hand/func_0011D3F8.c) | `NRandInRange` | Uniform int in [nLow, nHi] | 0.85 | T1 |  |
-| [0x11D448](../../../src/hand/func_0011D448.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
+| [0x11D3C0](../../../src/auto/NRand.c) | `NRand` | rand() % 905010707 | 0.50 | T1 |  |
+| [0x11D3F8](../../../src/hand/NRandInRange__Fii.c) | `NRandInRange` | Uniform int in [nLow, nHi] | 0.85 | T1 |  |
+| [0x11D448](../../../src/hand/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
 | [0x11D4D0](../../../src/hand/FFloatsNear__Ffff.cpp) | `FFloatsNear__Ffff` |  |  | existing |  |
-| [0x11D508](../../../src/hand/func_0011D508.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
+| [0x11D508](../../../src/hand/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
 | [0x11D5B0](../../../src/auto/PrescaleClq__FP3CLQffT0.c) | `PrescaleClq__FP3CLQffT0` |  |  | existing |  |
-| [0x11D608](../../../src/hand/func_0011D608.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
+| [0x11D608](../../../src/hand/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
 | [0x11D740](../../../src/hand/GTrunc__Fd.cpp) | `GTrunc__Fd` |  |  | existing |  |
-| [0x11D7F0](../../../src/hand/func_0011D7F0.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
-| [0x11D898](../../../src/hand/func_0011D898.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
+| [0x11D7F0](../../../src/hand/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
+| [0x11D898](../../../src/hand/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
 | [0x11D8D8](../../../src/auto/FitClq__FffffP3CLQ.c) | `FitClq__FffffP3CLQ` |  |  | existing |  |
 | [0x11D910](../../../src/auto/FCheckLm__FP2LMf.c) | `FCheckLm__FP2LMf` |  |  | existing |  |
 | [0x11D948](../../../src/hand/GLimitLm__FP2LMf.cpp) | `GLimitLm__FP2LMf` |  |  | existing |  |
-| [0x11D978](../../../src/hand/func_0011D978.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
-| [0x11D9D8](../../../src/auto/func_0011D9D8.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
+| [0x11D978](../../../src/hand/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
+| [0x11D9D8](../../../src/auto/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
 | [0x11D9E0](../../../src/hand/MinimizeRange__FPFPvf_fPvffffPfT6.cpp) | `MinimizeRange__FPFPvf_fPvffffPfT6` |  |  | existing |  |
 | [0x11DCD8](../../../src/hand/func_0011DCD8.c) | `ConvertRgbaToVector` | RGBA bytes -> floats /255 | 0.45 | T2 |  |
-| [0x11DD30](../../../src/hand/func_0011DD30.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
-| [0x11DD90](../../../src/hand/func_0011DD90.c) | `ConvertUserRgbToUserHsv` | RGB -> HSV (floorf), clamps | 0.70 | T1 |  |
+| [0x11DD30](../../../src/hand/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
+| [0x11DD90](../../../src/hand/ConvertUserRgbToUserHsv.c) | `ConvertUserRgbToUserHsv` | RGB -> HSV (floorf), clamps | 0.70 | T1 |  |
 | [0x11DFA0](../../../src/hand/ConvertUserHsvToUserRgb__FP6VECTORT0.cpp) | `ConvertUserHsvToUserRgb__FP6VECTORT0` |  |  | existing |  |
 
 ## vec (0x11E198-0x11F440)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11E1A0](../../../src/hand/func_0011E1A0.c) | `SetVectorCylind` | Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value | 0.75 | T1 |  |
-| [0x11E208](../../../src/hand/func_0011E208.c) | `SetVectorSphere` | Vector from spherical (pan, tilt, r) | 0.75 | T1 |  |
+| [0x11E1A0](../../../src/hand/SetVectorCylind.c) | `SetVectorCylind` | Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value | 0.75 | T1 |  |
+| [0x11E208](../../../src/hand/SetVectorSphere.c) | `SetVectorSphere` | Vector from spherical (pan, tilt, r) | 0.75 | T1 |  |
 | [0x11E290](../../../src/hand/func_0011E290.c) | `SProjectVector` | Scalar projection of a on b; optionally returns parallel and perpendicular components | 0.55 | T1 |  |
-| [0x11E2D8](../../../src/hand/func_0011E2D8.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
-| [0x11E390](../../../src/hand/func_0011E390.c) | `GetNormalVector` | A unit vector perpendicular to v (picks smallest component axis) | 0.70 | T1 |  |
-| [0x11E4B0](../../../src/hand/func_0011E4B0.c) | `RadBetweenVectors` | Angle between two vectors (acosf) and optional normalised rotation axis | 0.80 | T1 |  |
-| [0x11E630](../../../src/hand/func_0011E630.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
-| [0x11E7C8](../../../src/hand/func_0011E7C8.c) | `FindClosestPointBetweenLineSegments` | Closest points between two segments (clamped line solution) | 0.60 | T1 |  |
-| [0x11E958](../../../src/hand/func_0011E958.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
-| [0x11E9F8](../../../src/hand/func_0011E9F8.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
+| [0x11E2D8](../../../src/hand/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
+| [0x11E390](../../../src/hand/GetNormalVector.c) | `GetNormalVector` | A unit vector perpendicular to v (picks smallest component axis) | 0.70 | T1 |  |
+| [0x11E4B0](../../../src/hand/RadBetweenVectors.c) | `RadBetweenVectors` | Angle between two vectors (acosf) and optional normalised rotation axis | 0.80 | T1 |  |
+| [0x11E630](../../../src/hand/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
+| [0x11E7C8](../../../src/hand/FindClosestPointBetweenLineSegments.c) | `FindClosestPointBetweenLineSegments` | Closest points between two segments (clamped line solution) | 0.60 | T1 |  |
+| [0x11E958](../../../src/hand/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
+| [0x11E9F8](../../../src/hand/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
 | [0x11EA60](../../../src/hand/func_0011EA60.c) | `FClipLineToTriangle` | Vector geometry helper (edge cross products and dot readbacks against a triangle/segment) | 0.30 | T2 |  |
-| [0x11EBB0](../../../src/hand/func_0011EBB0.c) | `FIntersectRayTriangle` | Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v) | 0.60 | T1 |  |
-| [0x11ED40](../../../src/hand/func_0011ED40.c) | `FindClosestPointOnLine` | Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance | 0.65 | T1 | top50; top50 round; v2 name ClosestPointOnSegment |
-| [0x11EE08](../../../src/hand/func_0011EE08.c) | `FindClosestPointOnLineSegment` | Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t, distance | 0.80 | T1 | top50; top50 round; v2 name ClosestPointOnSegmentT |
-| [0x11EF08](../../../src/hand/func_0011EF08.c) | `GetVectorCylind` | Inverse of SetVectorCylind: angle, radius, z of v | 0.55 | T1 |  |
-| [0x11EFB0](../../../src/hand/func_0011EFB0.c) | `GetVectorSphere` | Inverse of SetVectorSphere: pan, tilt, length of v | 0.55 | T1 |  |
+| [0x11EBB0](../../../src/hand/FIntersectRayTriangle.c) | `FIntersectRayTriangle` | Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v) | 0.60 | T1 |  |
+| [0x11ED40](../../../src/hand/FindClosestPointOnLine.c) | `FindClosestPointOnLine` | Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance | 0.65 | T1 | top50; top50 round; v2 name ClosestPointOnSegment |
+| [0x11EE08](../../../src/hand/FindClosestPointOnLineSegment.c) | `FindClosestPointOnLineSegment` | Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t, distance | 0.80 | T1 | top50; top50 round; v2 name ClosestPointOnSegmentT |
+| [0x11EF08](../../../src/hand/GetVectorCylind.c) | `GetVectorCylind` | Inverse of SetVectorCylind: angle, radius, z of v | 0.55 | T1 |  |
+| [0x11EFB0](../../../src/hand/GetVectorSphere.c) | `GetVectorSphere` | Inverse of SetVectorSphere: pan, tilt, length of v | 0.55 | T1 |  |
 | [0x11F088](../../../src/hand/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
 | [0x11F198](../../../src/hand/func_0011F198.c) | `RadBetweenVectorsSafe` | Returns an angle-like float between a and b, 0 if either is shorter than 1e-4 | 0.30 | T2 |  |
-| [0x11F288](../../../src/hand/func_0011F288.c) | `VecMinArray` | Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0) | 0.55 | T1 |  |
-| [0x11F2B8](../../../src/hand/func_0011F2B8.c) | `VecMaxArray` | Component-wise maximum over c vectors | 0.50 | T1 |  |
+| [0x11F288](../../../src/hand/VecMinArray.c) | `VecMinArray` | Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0) | 0.55 | T1 |  |
+| [0x11F2B8](../../../src/hand/VecMaxArray.c) | `VecMaxArray` | Component-wise maximum over c vectors | 0.50 | T1 |  |
 
 ## bas (0x132570-0x132B00)
 
@@ -278,14 +278,14 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13D558](../../../src/auto/func_0013D558.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
+| [0x13D558](../../../src/auto/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
 | [0x13D580](../../../src/hand/Reset__10CByteQueue.cpp) | `Reset__10CByteQueue` |  |  | existing |  |
 | [0x13D5A0](../../../src/hand/CbFill__10CByteQueueiP11CQueueInput.cpp) | `CbFill__10CByteQueueiP11CQueueInput` |  |  | existing |  |
 | [0x13D6A8](../../../src/hand/CbDrain__10CByteQueueiP12CQueueOutput.cpp) | `CbDrain__10CByteQueueiP12CQueueOutput` |  |  | existing |  |
 | [0x13D7D0](../../../src/hand/CbFill__10CByteQueueiPUc.cpp) | `CbFill__10CByteQueueiPUc` |  |  | existing |  |
 | [0x13D818](../../../src/auto/FreeDrain__10CByteQueuei.c) | `FreeDrain__10CByteQueuei` |  |  | existing |  |
-| [0x13D850](../../../src/auto/func_0013D850.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
-| [0x13D8B8](../../../src/auto/func_0013D8B8.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
+| [0x13D850](../../../src/auto/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
+| [0x13D8B8](../../../src/auto/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
 
 ## tu_14B660 (0x14B660-0x14B7F8)
 
@@ -312,13 +312,13 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1585D8](../../../src/hand/func_001585D8.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
+| [0x1585D8](../../../src/hand/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
 | [0x158668](../../../src/hand/AppendDzgDz__FP3DZGP2DZ.c) | `AppendDzgDz__FP3DZGP2DZ` |  |  | existing |  |
-| [0x158728](../../../src/hand/func_00158728.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows | 0.70 | T1 | verified |
+| [0x158728](../../../src/hand/FillDzgDz.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows | 0.70 | T1 | verified |
 | [0x158958](../../../src/auto/func_00158958.c) | `PxpFromDzgDz` | Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60) | 0.40 | T2 |  |
 | [0x158988](../../../src/hand/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
-| [0x158B20](../../../src/hand/func_00158B20.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz | 0.80 | T1 | verified |
-| [0x158E20](../../../src/hand/func_00158E20.cpp) | `ApplyDzg` | Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2 | 0.75 | T1 |  |
+| [0x158B20](../../../src/hand/SolveDzgFric.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz | 0.80 | T1 | verified |
+| [0x158E20](../../../src/hand/ApplyDzg.cpp) | `ApplyDzg` | Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2 | 0.75 | T1 |  |
 
 ## tu_1848A8 (0x1848A8-0x184F50)
 
@@ -328,8 +328,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x184950](../../../src/auto/func_00184950.c) | `CStreamBis_ctor` | Destructor: reset vptr, Close (0x184CF0), delete if flag&1 | 0.45 | T2 |  |
 | [0x1849A0](../../../src/hand/func_001849A0.c) | `CStreamBis_RefillCd` | Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling (0x14BC78) | 0.45 | T2 |  |
 | [0x184C60](../../../src/auto/func_00184C60.c) | `CStreamBis_RefillFile` | Refill from host file: sceRead(fd x3C, buf, cb) | 0.45 | T2 |  |
-| [0x184CA0](../../../src/hand/func_00184CA0.c) | `CStreamBis_Refill` | Virtual Refill: host file if fd>=0, CD if sector stream active, else empty | 0.50 | T1 |  |
-| [0x184CF0](../../../src/auto/func_00184CF0.c) | `CStreamBis_Close` | Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close | 0.50 | T1 |  |
+| [0x184CA0](../../../src/hand/CStreamBis_Refill.c) | `CStreamBis_Refill` | Virtual Refill: host file if fd>=0, CD if sector stream active, else empty | 0.50 | T1 |  |
+| [0x184CF0](../../../src/auto/CStreamBis_Close.c) | `CStreamBis_Close` | Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close | 0.50 | T1 |  |
 | [0x184D60](../../../src/auto/func_00184D60.c) | `FOpenStreamFileRec` | If the file record kind is 2 (disc sector), FOpenSector(rec sector, size) | 0.35 | T2 |  |
 | [0x184D98](../../../src/hand/FOpenSector__18CBinaryInputStreamUiUi.cpp) | `FOpenSector__18CBinaryInputStreamUiUi` |  |  | existing |  |
 

@@ -19,17 +19,17 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1336F0](../../../src/hand/func_001336F0.c) | `AddSwAaobrObject` | Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints on each of 3 axes to the sweep arrays (count += 2) | 0.75 | T1 |  |
-| [0x1337D0](../../../src/hand/func_001337D0.c) | `RemoveSwAaobrObject` | Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from SW lists and delete its endpoints from the 3 axis arrays | 0.75 | T1 |  |
-| [0x133A38](../../../src/hand/func_00133A38.c) | `UpdateSwPox` | Create or destroy the OX pair between two OXAs: k=1 force on, 2 force off, 0 keep current; pair if forced or overlapping (0x133D08); on removal call vt54 on both and free XP list | 0.70 | T1 |  |
-| [0x133C68](../../../src/auto/func_00133C68.c) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
-| [0x133CB8](../../../src/hand/func_00133CB8.c) | `PoxRemoveSw` | Unlink and return the OX whose other matches | 0.75 | T1 |  |
+| [0x1336F0](../../../src/hand/AddSwAaobrObject.c) | `AddSwAaobrObject` | Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints on each of 3 axes to the sweep arrays (count += 2) | 0.75 | T1 |  |
+| [0x1337D0](../../../src/hand/RemoveSwAaobrObject.c) | `RemoveSwAaobrObject` | Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from SW lists and delete its endpoints from the 3 axis arrays | 0.75 | T1 |  |
+| [0x133A38](../../../src/hand/UpdateSwPox.c) | `UpdateSwPox` | Create or destroy the OX pair between two OXAs: k=1 force on, 2 force off, 0 keep current; pair if forced or overlapping (0x133D08); on removal call vt54 on both and free XP list | 0.70 | T1 |  |
+| [0x133C68](../../../src/auto/PoxAddSw.c) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
+| [0x133CB8](../../../src/hand/PoxRemoveSw.c) | `PoxRemoveSw` | Unlink and return the OX whose other matches | 0.75 | T1 |  |
 | [0x133D08](../../../src/hand/func_00133D08.c) | `FSwShouldPairObjects` | AABB overlap on 3 axes, then both objects' FIgnoreIntersection (vt61) combined by max; pair unless result is 1 or 3 | 0.50 | T2 |  |
-| [0x133E30](../../../src/hand/func_00133E30.c) | `FlushSwBoundsUpdates` | While a queue is non-empty call vt49 (UpdateSoTreeBounds) on its head object | 0.50 | T1 |  |
-| [0x133E80](../../../src/hand/func_00133E80.c) | `UpdateSwAaox` | If dirty: insertion-sort the 3 endpoint arrays; when a min/max pair crosses call UpdateSwPox(..,0) (sweep and prune) | 0.75 | T1 |  |
-| [0x134040](../../../src/hand/func_00134040.c) | `RecalcSwXpAll` | Per solver step: flush bounds, sort, then walk objects and their pairs building contact (XP) lists into a stack array of up to 0x300 objects | 0.60 | T1 |  |
+| [0x133E30](../../../src/hand/FlushSwBoundsUpdates.c) | `FlushSwBoundsUpdates` | While a queue is non-empty call vt49 (UpdateSoTreeBounds) on its head object | 0.50 | T1 |  |
+| [0x133E80](../../../src/hand/UpdateSwAaox.c) | `UpdateSwAaox` | If dirty: insertion-sort the 3 endpoint arrays; when a min/max pair crosses call UpdateSwPox(..,0) (sweep and prune) | 0.75 | T1 |  |
+| [0x134040](../../../src/hand/RecalcSwXpAll.c) | `RecalcSwXpAll` | Per solver step: flush bounds, sort, then walk objects and their pairs building contact (XP) lists into a stack array of up to 0x300 objects | 0.60 | T1 |  |
 | [0x134310](../../../src/auto/func_00134310.c) | `NMax` | return max(a,b) for ints; used to merge FIgnore*Intersection results | 0.50 | T2 | top50; top50 round; v2 name NMaxIgnore |
-| [0x134320](../../../src/hand/func_00134320.c) | `RecalcSwOxfFilterForObject` | If the object has a broadphase node (+0xEC): refresh (0x1F4BF8) and UpdateSwPox against every other node | 0.75 | T1 |  |
+| [0x134320](../../../src/hand/RecalcSwOxfFilterForObject.c) | `RecalcSwOxfFilterForObject` | If the object has a broadphase node (+0xEC): refresh (0x1F4BF8) and UpdateSwPox against every other node | 0.75 | T1 |  |
 
 ## clip (0x14C6A0-0x14CFE0)
 
@@ -89,8 +89,8 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1BC2F8](../../../src/hand/func_001BC2F8.c) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
 | [0x1BC530](../../../src/hand/func_001BC530.c) | `IWrapCid14Point` | Wrap point index into [0, c-1) (closed polygon) | 0.35 | T2 |  |
 | [0x1BC570](../../../src/hand/func_001BC570.c) | `PostCid14Load` | CID 14 vt15: PostLoLoad, classify polygon, reverse/measure when needed | 0.55 | T2 |  |
-| [0x1BC688](../../../src/hand/func_001BC688.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
-| [0x1BC9F0](../../../src/hand/func_001BC9F0.c) | `FPosInCnvo` | Point inside all planes of the convex volume | 0.50 | T1 |  |
+| [0x1BC688](../../../src/hand/ClsgClipEdgeToCnvo.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
+| [0x1BC9F0](../../../src/hand/FPosInCnvo.c) | `FPosInCnvo` | Point inside all planes of the convex volume | 0.50 | T1 |  |
 | [0x1BCAC0](../../../src/hand/func_001BCAC0.c) | `FindCid14PathzoneSpan` | Walk polygon edges against the pathzone (FClipPathzone) to find valid span | 0.30 | T2 |  |
 | [0x1BCCE0](../../../src/hand/func_001BCCE0.c) | `ClipShapeToPathzone` | Find valid parameter range of a shape inside the pathzone (returns status) | 0.30 | T2 |  |
 | [0x1BCF18](../../../src/hand/func_001BCF18.c) | `FFindShapePointInPathzone` | Search along shape for a point inside the pathzone | 0.30 | T2 |  |
@@ -101,7 +101,7 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1BD400](../../../src/hand/func_001BD400.c) | `BuildCnvoPlanes` | (Re)build edge planes of the polygon in world space when its transform changed | 0.45 | T2 |  |
 | [0x1BD560](../../../src/hand/func_001BD560.c) | `FindShapeFreeRange` | Step along a shape until it leaves obstacles | 0.30 | T2 |  |
 | [0x1BD718](../../../src/hand/func_001BD718.c) | `FindShapeFreePoint` | Free point on a shape around parameter g avoiding obstacles | 0.30 | T2 |  |
-| [0x1BD8A8](../../../src/hand/func_001BD8A8.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
+| [0x1BD8A8](../../../src/hand/FCnvoOverlap.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
 | [0x1BDA00](../../../src/hand/func_001BDA00.c) | `PcnvoNewMerged` | Create merged obstacle object (PloNew) holding member polygons | 0.35 | T2 |  |
 | [0x1BDBC8](../../../src/auto/NCmpWkr__FP3WKRT0.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
 | [0x1BDBF0](../../../src/hand/func_001BDBF0.cpp) | `CposConvexHull` | 2D convex hull of points (sort + monotone chain) | 0.45 | T2 |  |
@@ -113,33 +113,33 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1BF110](../../../src/hand/func_001BF110.c) | `PcgtPointInCbspQuick` | Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2) | 0.60 | T1 |  |
-| [0x1BF1F8](../../../src/hand/func_001BF1F8.c) | `PcgtPointInCbspSafe` | Tolerant BSP walk returning nearest triangle | 0.55 | T1 |  |
-| [0x1BF398](../../../src/hand/func_001BF398.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
-| [0x1BF3D8](../../../src/hand/func_001BF3D8.cpp) | `ClsgClipEdgeToCbsp` | Clip segment against the pathzone BSP, writing crossed leaf spans (LSG rows 96 B) | 0.75 | T1 |  |
-| [0x1BF900](../../../src/hand/func_001BF900.c) | `FClipEdgeToCbsp` | True if the segment leaves the walkable area (no span or span not [0,1]) | 0.70 | T1 |  |
-| [0x1BF970](../../../src/auto/func_001BF970.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
-| [0x1BF980](../../../src/hand/func_001BF980.cpp) | `FindPathAStar` | A* over the pathzone vertex graph | 0.75 | T1 |  |
-| [0x1BFC18](../../../src/hand/func_001BFC18.c) | `SimplifyApcgvNeighbor` | Drop intermediate path vertices with clear line of sight (FClipEdgeToCbsp) | 0.70 | T1 |  |
-| [0x1BFDB0](../../../src/hand/func_001BFDB0.cpp) | `ClosestPointOnCgt` | Closest point of a navigation triangle to p (edge clamp or vertical projection) | 0.50 | T1 |  |
-| [0x1BFF28](../../../src/hand/func_001BFF28.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
+| [0x1BF110](../../../src/hand/PcgtPointInCbspQuick.c) | `PcgtPointInCbspQuick` | Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2) | 0.60 | T1 |  |
+| [0x1BF1F8](../../../src/hand/PcgtPointInCbspSafe.c) | `PcgtPointInCbspSafe` | Tolerant BSP walk returning nearest triangle | 0.55 | T1 |  |
+| [0x1BF398](../../../src/hand/CbskFromG__Ff.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
+| [0x1BF3D8](../../../src/hand/ClsgClipEdgeToCbsp.cpp) | `ClsgClipEdgeToCbsp` | Clip segment against the pathzone BSP, writing crossed leaf spans (LSG rows 96 B) | 0.75 | T1 |  |
+| [0x1BF900](../../../src/hand/FClipEdgeToCbsp.c) | `FClipEdgeToCbsp` | True if the segment leaves the walkable area (no span or span not [0,1]) | 0.70 | T1 |  |
+| [0x1BF970](../../../src/auto/IcgvFromPcgv__FP2CGP3CGV.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
+| [0x1BF980](../../../src/hand/FindPathAStar.cpp) | `FindPathAStar` | A* over the pathzone vertex graph | 0.75 | T1 |  |
+| [0x1BFC18](../../../src/hand/SimplifyApcgvNeighbor.c) | `SimplifyApcgvNeighbor` | Drop intermediate path vertices with clear line of sight (FClipEdgeToCbsp) | 0.70 | T1 |  |
+| [0x1BFDB0](../../../src/hand/ClosestPointOnCgt.cpp) | `ClosestPointOnCgt` | Closest point of a navigation triangle to p (edge clamp or vertical projection) | 0.50 | T1 |  |
+| [0x1BFF28](../../../src/hand/CposFindPath.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
 | [0x1C02D0](../../../src/hand/func_001C02D0.c) | `FFindPathzonePathCurve` | CposFindPath on pathzone+0xE0 (max 16 points) into a path/curve object and rebuild it (0x1E6180); false if <2 points | 0.45 | T2 |  |
-| [0x1C0320](../../../src/hand/func_001C0320.c) | `FindClosestPointInCg` | PcgtPointInCbspSafe then ClosestPointOnCgt; returns found | 0.65 | T1 |  |
-| [0x1C0378](../../../src/auto/func_001C0378.c) | `InitPathzone` | CID 17 vt7: InitXfm, ids -1, init DL | 0.75 | T1 |  |
-| [0x1C03C0](../../../src/hand/func_001C03C0.c) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
-| [0x1C0648](../../../src/hand/func_001C0648.c) | `InitDefaultPathzoneCg` | Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables D_002C0C10/D_002C0C90) covering everything | 0.50 | T1 |  |
-| [0x1C0880](../../../src/hand/func_001C0880.c) | `HookupCg` | Compute edge costs (XY distance between vertices) | 0.70 | T1 |  |
-| [0x1C0920](../../../src/auto/func_001C0920.c) | `FPosInPathzone` | PcgtPointInCbspQuick(+0xE0) != 0 | 0.50 | T1 |  |
-| [0x1C0940](../../../src/auto/func_001C0940.c) | `FindPathzoneClosestPoint` | FindClosestPointInCg on pathzone+0xE0 | 0.70 | T1 |  |
-| [0x1C0960](../../../src/auto/func_001C0960.c) | `ClsgClipPathzone` | ClsgClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
-| [0x1C0980](../../../src/auto/func_001C0980.c) | `FClipPathzone` | FClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
+| [0x1C0320](../../../src/hand/FindClosestPointInCg.c) | `FindClosestPointInCg` | PcgtPointInCbspSafe then ClosestPointOnCgt; returns found | 0.65 | T1 |  |
+| [0x1C0378](../../../src/auto/InitPathzone.c) | `InitPathzone` | CID 17 vt7: InitXfm, ids -1, init DL | 0.75 | T1 |  |
+| [0x1C03C0](../../../src/hand/LoadPathzoneFromBrx.c) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
+| [0x1C0648](../../../src/hand/InitDefaultPathzoneCg.c) | `InitDefaultPathzoneCg` | Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables D_002C0C10/D_002C0C90) covering everything | 0.50 | T1 |  |
+| [0x1C0880](../../../src/hand/HookupCg.c) | `HookupCg` | Compute edge costs (XY distance between vertices) | 0.70 | T1 |  |
+| [0x1C0920](../../../src/auto/FPosInPathzone.c) | `FPosInPathzone` | PcgtPointInCbspQuick(+0xE0) != 0 | 0.50 | T1 |  |
+| [0x1C0940](../../../src/auto/FindPathzoneClosestPoint.c) | `FindPathzoneClosestPoint` | FindClosestPointInCg on pathzone+0xE0 | 0.70 | T1 |  |
+| [0x1C0960](../../../src/auto/ClsgClipPathzone.c) | `ClsgClipPathzone` | ClsgClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
+| [0x1C0980](../../../src/auto/FClipPathzone.c) | `FClipPathzone` | FClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
 | [0x1C09A0](../../../src/hand/func_001C09A0.c) | `FPosFreeInPathzone` | Point inside pathzone and not inside any registered obstacle (0x1C1700 query + 0x1BC9F0 test) | 0.40 | T2 |  |
 | [0x1C0A40](../../../src/hand/func_001C0A40.c) | `PloClipPathzoneSegment` | Clip segment to pathzone then against obstacles (0x1BC688), returns blocker | 0.35 | T2 |  |
 | [0x1C0B50](../../../src/hand/func_001C0B50.c) | `FindPathzoneClosestFreePoint` | Closest point to pos inside the pathzone and outside obstacles | 0.35 | T2 |  |
-| [0x1C0D70](../../../src/hand/func_001C0D70.c) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
-| [0x1C0EC0](../../../src/hand/func_001C0EC0.c) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
-| [0x1C0F30](../../../src/hand/func_001C0F30.c) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
-| [0x1C10C8](../../../src/hand/func_001C10C8.c) | `PostLoadSwPathzones` | If no zone BSP: create default pathzone (PloNew cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then bind zones | 0.50 | T1 |  |
+| [0x1C0D70](../../../src/hand/PpathzoneFromPos.c) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
+| [0x1C0EC0](../../../src/hand/LoadSwZoneBspFromBrx.c) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
+| [0x1C0F30](../../../src/hand/LoadZoneBspFromBrx.c) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
+| [0x1C10C8](../../../src/hand/PostLoadSwPathzones.c) | `PostLoadSwPathzones` | If no zone BSP: create default pathzone (PloNew cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then bind zones | 0.50 | T1 |  |
 | [0x1C1138](../../../src/hand/func_001C1138.c) | `BindSwPathzones` | Resolve leaf zone ids to PATHZONE objects (index at +0x124), collect all CID 124 path links (index at +0x150) | 0.45 | T2 |  |
 | [0x1C1260](../../../src/hand/func_001C1260.c) | `BuildPathzoneLinkLists` | Bucket path links by the zone of their first endpoint | 0.40 | T2 |  |
 | [0x1C1440](../../../src/auto/func_001C1440.c) | `InitObstacleQueryCursor` | Reset a 0x40-byte sweep cursor for the zone obstacle lists | 0.35 | T2 |  |
@@ -154,13 +154,13 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1C1EC0](../../../src/hand/func_001C1EC0.c) | `PosPathlinkEndpoint` | Position of a path endpoint record: closest point on its shape (+0), else its object position (+4), else stored vector (+0x10) | 0.50 | T2 | top50 |
 | [0x1C1F28](../../../src/hand/func_001C1F28.c) | `PosPathlinkEndpointCenter` | Endpoint position using shape midpoint | 0.35 | T2 |  |
 | [0x1C1FA0](../../../src/hand/func_001C1FA0.c) | `FNearPathlinkEndpoint` | Object within radius of the endpoint (class 0x40 always true) | 0.30 | T2 |  |
-| [0x1C2048](../../../src/hand/func_001C2048.c) | `InitPathlink` | CID 124 vt7: InitLo | 0.55 | T1 |  |
-| [0x1C2078](../../../src/hand/func_001C2078.c) | `AddPathlinkHierarchy` | CID 124 vt11: AddLoHierarchy then bump world nav version | 0.50 | T1 |  |
-| [0x1C20B0](../../../src/hand/func_001C20B0.c) | `RemovePathlinkHierarchy` | CID 124 vt12: RemoveLoHierarchy then bump world nav version | 0.50 | T1 |  |
+| [0x1C2048](../../../src/hand/InitPathlink.c) | `InitPathlink` | CID 124 vt7: InitLo | 0.55 | T1 |  |
+| [0x1C2078](../../../src/hand/AddPathlinkHierarchy.c) | `AddPathlinkHierarchy` | CID 124 vt11: AddLoHierarchy then bump world nav version | 0.50 | T1 |  |
+| [0x1C20B0](../../../src/hand/RemovePathlinkHierarchy.c) | `RemovePathlinkHierarchy` | CID 124 vt12: RemoveLoHierarchy then bump world nav version | 0.50 | T1 |  |
 | [0x1C20E8](../../../src/hand/func_001C20E8.c) | `AddPathlinkEndpointObject` | Append endpoint (shape if class 10 else LO), max 6 | 0.35 | T2 |  |
 | [0x1C2148](../../../src/hand/func_001C2148.c) | `AddPathlinkEndpointPos` | Append fixed endpoint vector, max 6 | 0.35 | T2 |  |
-| [0x1C2170](../../../src/hand/func_001C2170.c) | `PostPathlinkLoad` | CID 124 vt15: PostLoLoad, cache first/last endpoint positions and their pathzones | 0.55 | T1 |  |
-| [0x1C21D8](../../../src/hand/func_001C21D8.cpp) | `FindPathlinkRoute` | A* over pathzones connected by path links, from actor to goal | 0.50 | T1 |  |
+| [0x1C2170](../../../src/hand/PostPathlinkLoad.c) | `PostPathlinkLoad` | CID 124 vt15: PostLoLoad, cache first/last endpoint positions and their pathzones | 0.55 | T1 |  |
+| [0x1C21D8](../../../src/hand/FindPathlinkRoute.cpp) | `FindPathlinkRoute` | A* over pathzones connected by path links, from actor to goal | 0.50 | T1 |  |
 | [0x1C26E0](../../../src/hand/func_001C26E0.c) | `FPathlinkAllowed` | May this actor traverse the link | 0.35 | T2 |  |
 
 ## tu_1D6848 (0x1D6848-0x1D7238)
@@ -170,53 +170,53 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1D6848](../../../src/hand/func_001D6848.c) | `VecLaunchBallistic` | Launch velocity from start to end at elevation angle g under gravity acc (sin/cos/tan/atan2) | 0.45 | T2 |  |
 | [0x1D69F0](../../../src/hand/func_001D69F0.c) | `VecToReachPosInDt` | Velocity that moves a->b in dt under vertical acceleration acc | 0.40 | T2 |  |
 | [0x1D6A90](../../../src/hand/func_001D6A90.c) | `InitLauncher` | LO-subclass Init: InitLo then offset (0,0,0), up (0,1,0), coeffs 0.5 and D_002A7874 | 0.35 | T2 |  |
-| [0x1D6B00](../../../src/hand/func_001D6B00.cpp) | `LaunchSoFromLauncher` | Launch an object from a launcher: predicted aim point, class-dependent velocity (0x50/0x51/0x52 CIDs), random spin | 0.50 | T1 |  |
+| [0x1D6B00](../../../src/hand/LaunchSoFromLauncher.cpp) | `LaunchSoFromLauncher` | Launch an object from a launcher: predicted aim point, class-dependent velocity (0x50/0x51/0x52 CIDs), random spin | 0.50 | T1 |  |
 
 ## shape (0x1E5D80-0x1EA568)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1E5D80](../../../src/auto/func_001E5D80.c) | `InitShape` | SHAPE::Init (vt7): InitXfm; cached segment(+0x148)=-1; +0x178=1 | 0.70 | T1 |  |
-| [0x1E5DB8](../../../src/hand/func_001E5DB8.c) | `CloneShape` | SHAPE::Clone (vt41): CloneXfm; if a chain was attached (+0x17C) rebuild it | 0.65 | T1 |  |
-| [0x1E5DF8](../../../src/hand/func_001E5DF8.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for curves), options; then MeasureShape | 0.80 | T1 | parse |
-| [0x1E5FC8](../../../src/hand/func_001E5FC8.c) | `CacheShapeSegment` | Cache 11 Hermite samples of curve segment i (transformed by the shape matrix) and their cumulative lengths (+0x14C), segment id +0x148 | 0.50 | T1 |  |
-| [0x1E6180](../../../src/hand/func_001E6180.c) | `MeasureShape` | Recompute the cumulative-distance array (+0xF0) from the world-space points (linear) or per-segment cached lengths (curve); invalidate cache; resync chain | 0.50 | T1 |  |
-| [0x1E6330](../../../src/auto/func_001E6330.c) | `InvalidateShapeCache` | +0x178=0, cached segment=-1 | 0.50 | T1 |  |
+| [0x1E5D80](../../../src/auto/InitShape.c) | `InitShape` | SHAPE::Init (vt7): InitXfm; cached segment(+0x148)=-1; +0x178=1 | 0.70 | T1 |  |
+| [0x1E5DB8](../../../src/hand/CloneShape.c) | `CloneShape` | SHAPE::Clone (vt41): CloneXfm; if a chain was attached (+0x17C) rebuild it | 0.65 | T1 |  |
+| [0x1E5DF8](../../../src/hand/LoadShapeFromBrx.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for curves), options; then MeasureShape | 0.80 | T1 | parse |
+| [0x1E5FC8](../../../src/hand/CacheShapeSegment.c) | `CacheShapeSegment` | Cache 11 Hermite samples of curve segment i (transformed by the shape matrix) and their cumulative lengths (+0x14C), segment id +0x148 | 0.50 | T1 |  |
+| [0x1E6180](../../../src/hand/MeasureShape.c) | `MeasureShape` | Recompute the cumulative-distance array (+0xF0) from the world-space points (linear) or per-segment cached lengths (curve); invalidate cache; resync chain | 0.50 | T1 |  |
+| [0x1E6330](../../../src/auto/InvalidateShapeCache.c) | `InvalidateShapeCache` | +0x178=0, cached segment=-1 | 0.50 | T1 |  |
 | [0x1E6340](../../../src/hand/func_001E6340.c) | `UpdateShapeXfWorld` | SHAPE vt17: if a chain is attached step its simulation (mode 0/3 -> 0x1E8378, 1/2 -> 0x1E9090) else LO vt17 | 0.35 | T2 |  |
-| [0x1E63C0](../../../src/hand/func_001E63C0.c) | `SFromShapeU` | Arc length at parameter u (interpolated from the distance table, with per-segment sub-samples for curves) | 0.60 | T1 |  |
-| [0x1E64C8](../../../src/hand/func_001E64C8.c) | `UFromShapeS` | Parameter u at arc length s (inverse of SFromShapeU) | 0.60 | T1 |  |
-| [0x1E6610](../../../src/auto/func_001E6610.c) | `UMinShape` | return times[0] (+0xEC) | 0.55 | T1 |  |
-| [0x1E6620](../../../src/auto/func_001E6620.c) | `SMinShape` | return dists[0] (+0xF0) | 0.55 | T1 |  |
-| [0x1E6630](../../../src/auto/func_001E6630.c) | `UMaxShape` | return times[c-1] | 0.60 | T1 |  |
-| [0x1E6648](../../../src/auto/func_001E6648.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
-| [0x1E6660](../../../src/hand/func_001E6660.c) | `UWrapShape` | If closed, wrap u into [times[0],times[c-1]] (GModPositive) | 0.50 | T1 |  |
-| [0x1E66C8](../../../src/hand/func_001E66C8.c) | `SWrapShape` | If closed, wrap s into [0,length] | 0.50 | T1 |  |
-| [0x1E6728](../../../src/hand/func_001E6728.c) | `SClampShape` | Closed: SWrapShape; open: clamp s to [SMin,SMax] | 0.50 | T1 |  |
-| [0x1E67B8](../../../src/hand/func_001E67B8.c) | `EvaluateShapeU` | Position and tangent at parameter u (linear lerp or Hermite via 0x117120), in world space | 0.55 | T1 |  |
+| [0x1E63C0](../../../src/hand/SFromShapeU.c) | `SFromShapeU` | Arc length at parameter u (interpolated from the distance table, with per-segment sub-samples for curves) | 0.60 | T1 |  |
+| [0x1E64C8](../../../src/hand/UFromShapeS.c) | `UFromShapeS` | Parameter u at arc length s (inverse of SFromShapeU) | 0.60 | T1 |  |
+| [0x1E6610](../../../src/auto/UMinShape.c) | `UMinShape` | return times[0] (+0xEC) | 0.55 | T1 |  |
+| [0x1E6620](../../../src/auto/SMinShape.c) | `SMinShape` | return dists[0] (+0xF0) | 0.55 | T1 |  |
+| [0x1E6630](../../../src/auto/UMaxShape.c) | `UMaxShape` | return times[c-1] | 0.60 | T1 |  |
+| [0x1E6648](../../../src/auto/SMaxShape.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
+| [0x1E6660](../../../src/hand/UWrapShape.c) | `UWrapShape` | If closed, wrap u into [times[0],times[c-1]] (GModPositive) | 0.50 | T1 |  |
+| [0x1E66C8](../../../src/hand/SWrapShape.c) | `SWrapShape` | If closed, wrap s into [0,length] | 0.50 | T1 |  |
+| [0x1E6728](../../../src/hand/SClampShape.c) | `SClampShape` | Closed: SWrapShape; open: clamp s to [SMin,SMax] | 0.50 | T1 |  |
+| [0x1E67B8](../../../src/hand/EvaluateShapeU.c) | `EvaluateShapeU` | Position and tangent at parameter u (linear lerp or Hermite via 0x117120), in world space | 0.55 | T1 |  |
 | [0x1E69A0](../../../src/hand/func_001E69A0.c) | `GDistShapeU` | Minimizer callback: squared distance from a query point (in a space) to EvaluateShapeU(u) | 0.40 | T2 |  |
 | [0x1E6A30](../../../src/hand/func_001E6A30.cpp) | `FindShapeClosestPointLinearFromU` | Closest point on a linear shape, walking segments from a start parameter | 0.45 | T2 |  |
 | [0x1E6DB8](../../../src/hand/func_001E6DB8.c) | `FindShapeClosestPointCurveFromU` | Closest point on a curved shape by MinimizeRange around a start parameter (step = segment/10) | 0.45 | T2 |  |
-| [0x1E6ED8](../../../src/auto/func_001E6ED8.c) | `FindShapeClosestPointFromU` | Dispatch on mode to the linear/curve closest-point search | 0.50 | T1 |  |
-| [0x1E6F10](../../../src/auto/func_001E6F10.c) | `EvaluateShapeS` | EvaluateShapeU(UFromShapeS(s)) | 0.55 | T1 |  |
-| [0x1E6F60](../../../src/hand/func_001E6F60.cpp) | `FindShapeClosestPoint` | Global closest point on the shape to a position (segment scan, or nearest vertex then refine); outputs pos, dir, u, s | 0.55 | T1 |  |
-| [0x1E7380](../../../src/hand/func_001E7380.c) | `FindShapeClosestPointFromS` | FindShapeClosestPointFromU(shape, pos, ..., UFromShapeS(shape, s)) | 0.75 | T1 | top50 |
+| [0x1E6ED8](../../../src/auto/FindShapeClosestPointFromU.c) | `FindShapeClosestPointFromU` | Dispatch on mode to the linear/curve closest-point search | 0.50 | T1 |  |
+| [0x1E6F10](../../../src/auto/EvaluateShapeS.c) | `EvaluateShapeS` | EvaluateShapeU(UFromShapeS(s)) | 0.55 | T1 |  |
+| [0x1E6F60](../../../src/hand/FindShapeClosestPoint.cpp) | `FindShapeClosestPoint` | Global closest point on the shape to a position (segment scan, or nearest vertex then refine); outputs pos, dir, u, s | 0.55 | T1 |  |
+| [0x1E7380](../../../src/hand/FindShapeClosestPointFromS.c) | `FindShapeClosestPointFromS` | FindShapeClosestPointFromU(shape, pos, ..., UFromShapeS(shape, s)) | 0.75 | T1 | top50 |
 | [0x1E7410](../../../src/hand/func_001E7410.c) | `FindShapeBestVertex` | Pick the vertex parameter minimizing a callback; evaluate pos/dir and s there | 0.40 | T2 |  |
-| [0x1E7538](../../../src/hand/func_001E7538.c) | `IsegFindShapeU` | Segment index containing u (searching from hint +0x178), with offset and segment span outputs | 0.50 | T1 |  |
-| [0x1E7668](../../../src/hand/func_001E7668.c) | `IsegFindShapeS` | Segment index containing s | 0.50 | T1 |  |
+| [0x1E7538](../../../src/hand/IsegFindShapeU.c) | `IsegFindShapeU` | Segment index containing u (searching from hint +0x178), with offset and segment span outputs | 0.50 | T1 |  |
+| [0x1E7668](../../../src/hand/IsegFindShapeS.c) | `IsegFindShapeS` | Segment index containing s | 0.50 | T1 |  |
 | [0x1E77B0](../../../src/hand/func_001E77B0.c) | `PosFindShapeClosest` | Return only the closest point of FindShapeClosestPoint | 0.45 | T2 |  |
-| [0x1E77E8](../../../src/hand/func_001E77E8.c) | `DuGetShapeSearchIncrement` | (uMax-uMin)/(count*10) | 0.60 | T1 |  |
+| [0x1E77E8](../../../src/hand/DuGetShapeSearchIncrement.c) | `DuGetShapeSearchIncrement` | (uMax-uMin)/(count*10) | 0.60 | T1 |  |
 | [0x1E7840](../../../src/hand/func_001E7840.c) | `PchainEnsureShape` | Create (0x90 bytes, 0x1E81C0) the shape's chain if missing, measure, set LO busy flags; f==1 re-arms an existing one; returns it | 0.45 | T2 |  |
 | [0x1E7930](../../../src/hand/func_001E7930.c) | `SetShapeChainStartObject` | Chain end 0 follows object (or shape start) | 0.40 | T2 |  |
 | [0x1E7968](../../../src/hand/func_001E7968.c) | `SetShapeChainEndObject` | Chain end 1 follows object (or shape end) | 0.40 | T2 |  |
 | [0x1E79A0](../../../src/hand/func_001E79A0.c) | `SGetShapeChainLength` | Last entry of the chain's sample array (0 if no points) | 0.30 | T2 |  |
 | [0x1E79F0](../../../src/hand/func_001E79F0.c) | `AddShapeChainSample` | Ensure chain then append sample 0x1E95B0(chain,g) | 0.35 | T2 |  |
-| [0x1E7A28](../../../src/hand/func_001E7A28.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
+| [0x1E7A28](../../../src/hand/SetShapeChainMode.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
 | [0x1E7B38](../../../src/hand/func_001E7B38.c) | `DsShape` | b-a, wrapped to the shorter way round on closed shapes | 0.45 | T2 |  |
 | [0x1E7BB8](../../../src/hand/func_001E7BB8.c) | `GetShapeBounds` | World AABB of the transformed points and curve controls | 0.45 | T2 |  |
 | [0x1E7D90](../../../src/hand/func_001E7D90.c) | `UpdateShapeBoundingSphere` | Bounding radius from transformed vertices and Bezier controls (after UpdateXfmMatWorld) | 0.35 | T2 |  |
 | [0x1E7FF0](../../../src/auto/func_001E7FF0.c) | `GetShapeChainMode` | chain ? chain->+0x4C : -1 | 0.40 | T2 |  |
-| [0x1E8008](../../../src/hand/func_001E8008.c) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
-| [0x1E81C0](../../../src/hand/func_001E81C0.c) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
+| [0x1E8008](../../../src/hand/SRandomShapeRange.c) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
+| [0x1E81C0](../../../src/hand/InitChain.c) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
 | [0x1E8378](../../../src/hand/func_001E8378.cpp) | `StepChainRk4` | One RK4-style step of the spring rope chain | 0.35 | T2 |  |
 | [0x1E9090](../../../src/hand/func_001E9090.cpp) | `StepChain` | One integration step of the rope chain (Verlet-like with distance constraints, pinned ends) | 0.40 | T2 |  |
 | [0x1E93F0](../../../src/hand/func_001E93F0.c) | `SetChainEndObject` | Attach chain end i to object (its matrix via vt32) or to the shape's start/end point | 0.40 | T2 |  |
@@ -235,56 +235,56 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1F2108](../../../src/hand/func_001F2108.c) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from parent, +0x140=-1 | 0.85 | T1 | verified |
-| [0x1F21B8](../../../src/hand/func_001F21B8.cpp) | `SetSoParent` | SO vt10: compute old world matrix / velocities (vt33/vt34), LO::SetParent, re-point XF parents into new parent, rebind contacts and bounds (0x1F2468/0x1F26A8), refresh phys flag | 0.70 | T1 |  |
-| [0x1F2468](../../../src/hand/func_001F2468.c) | `ReleaseSoBoundsHierarchy` | Drop the shared bounds record (+0x134, refcounted, pool D_003E12D4) of this SO and all SO children | 0.50 | T1 |  |
-| [0x1F2500](../../../src/hand/func_001F2500.c) | `EnsureSoBounds` | Attach SO to the bounds record (+0x134) of its root (alloc from pool if none), then grow record low/high radius by radius+distance from root origin per flag bits 32/33 of +0xD0 | 0.50 | T1 |  |
+| [0x1F2108](../../../src/hand/InitSo.c) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from parent, +0x140=-1 | 0.85 | T1 | verified |
+| [0x1F21B8](../../../src/hand/SetSoParent.cpp) | `SetSoParent` | SO vt10: compute old world matrix / velocities (vt33/vt34), LO::SetParent, re-point XF parents into new parent, rebind contacts and bounds (0x1F2468/0x1F26A8), refresh phys flag | 0.70 | T1 |  |
+| [0x1F2468](../../../src/hand/ReleaseSoBoundsHierarchy.c) | `ReleaseSoBoundsHierarchy` | Drop the shared bounds record (+0x134, refcounted, pool D_003E12D4) of this SO and all SO children | 0.50 | T1 |  |
+| [0x1F2500](../../../src/hand/EnsureSoBounds.c) | `EnsureSoBounds` | Attach SO to the bounds record (+0x134) of its root (alloc from pool if none), then grow record low/high radius by radius+distance from root origin per flag bits 32/33 of +0xD0 | 0.50 | T1 |  |
 | [0x1F2688](../../../src/auto/func_001F2688.c) | `SetSoBoundsScale` | Store float at +0x13C and mirror it into the shared bounds record if this SO owns it | 0.30 | T2 |  |
-| [0x1F26A8](../../../src/hand/func_001F26A8.c) | `EnsureSoBoundsHierarchy` | EnsureSoBounds on this SO and recursively on SO children | 0.50 | T1 |  |
+| [0x1F26A8](../../../src/hand/EnsureSoBoundsHierarchy.c) | `EnsureSoBoundsHierarchy` | EnsureSoBounds on this SO and recursively on SO children | 0.50 | T1 |  |
 | [0x1F2718](../../../src/hand/func_001F2718.c) | `SetSoField148_20` | Set 4-bit field +0x148 bits 20-23 | 0.20 | T2 | verified |
 | [0x1F2740](../../../src/hand/func_001F2740.c) | `GetSoField148_20` | Get 4-bit field +0x148 bits 20-23 | 0.20 | T2 |  |
-| [0x1F2758](../../../src/hand/func_001F2758.c) | `GetSoIgnoreLocked` | Return bit 34 of +0xD0 (fIgnoreLocked) | 0.75 | T1 |  |
+| [0x1F2758](../../../src/hand/GetSoIgnoreLocked.c) | `GetSoIgnoreLocked` | Return bit 34 of +0xD0 (fIgnoreLocked) | 0.75 | T1 |  |
 | [0x1F2768](../../../src/hand/SetSoIgnoreLocked__FP2SOi.cpp) | `SetSoIgnoreLocked__FP2SOi` | Set +0xD0 bit34 (fIgnoreLocked) | 0.85 | existing | verified |
-| [0x1F2798](../../../src/hand/func_001F2798.c) | `PsoFindPhysRoot` | Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag +0x148 bit34; returns last visited | 0.85 | T1 | verified |
+| [0x1F2798](../../../src/hand/PsoFindPhysRoot.c) | `PsoFindPhysRoot` | Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag +0x148 bit34; returns last visited | 0.85 | T1 | verified |
 | [0x1F27F0](../../../src/auto/func_001F27F0.c) | `EnsureSoTree` | Ensure the SO has a contact-tree record (+0xEC): take the phys root's, creating it via vt53 and registering with g_sw (0x134320) | 0.45 | T2 |  |
-| [0x1F2870](../../../src/hand/func_001F2870.c) | `AddSoPartToTree` | Add one SOPART to the tree record's part DL (+0x34): copy XF matrix/stamp, mark tree dirty (0x1F4BF8), UpdateSoPartGeom, invalidate if not fixed | 0.50 | T1 |  |
-| [0x1F2930](../../../src/hand/func_001F2930.c) | `RemoveSoPartFromTree` | Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if no own parts remain | 0.50 | T1 |  |
-| [0x1F2A60](../../../src/hand/func_001F2A60.cpp) | `ShowSoPart` | If part hidden (fl bit50): clear it and, when SO in world, AddSoPartToTree | 0.85 | T1 | verified |
-| [0x1F2AD0](../../../src/hand/func_001F2AD0.c) | `HideSoPart` | Set part hidden bit50 and, when in world, RemoveSoPartFromTree | 0.50 | T1 |  |
-| [0x1F2B20](../../../src/hand/func_001F2B20.c) | `AddSoParts` | AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride) | 0.85 | T1 | verified |
-| [0x1F2BA8](../../../src/hand/func_001F2BA8.c) | `RemoveSoParts` | RemoveSoPartFromTree for every visible SOPART | 0.55 | T1 |  |
-| [0x1F2C30](../../../src/hand/func_001F2C30.c) | `AddSoHierarchy` | SO vt11: AddLoHierarchy, 0x22FAA0, AddSoParts, set grf 0x14, register region (if SOPHYS region record), recurse vt11 on children | 0.65 | T1 |  |
-| [0x1F2D48](../../../src/hand/func_001F2D48.c) | `RemoveSoHierarchy` | SO vt12: RemoveLoHierarchy, RemoveSoParts, reset fade (+0x130=0, +0x12C=1), unregister region callback, recurse vt12 on children | 0.65 | T1 |  |
-| [0x1F2E78](../../../src/hand/func_001F2E78.c) | `UpdateSoLoroot` | SO vt13: UpdateLoroot, recurse to children; if the SO has parts and its root changed, re-add parts to the new tree | 0.50 | T1 |  |
-| [0x1F2FE0](../../../src/hand/func_001F2FE0.c) | `SetSoGrf` | SO vt47: grf(+0x40 tagged word) \|= f, then vt47 on each child | 0.50 | T1 |  |
-| [0x1F3078](../../../src/hand/func_001F3078.c) | `ClearSoGrf` | SO vt48 (new): grf &= ~f, then vt48 on each child | 0.50 | T1 |  |
+| [0x1F2870](../../../src/hand/AddSoPartToTree.c) | `AddSoPartToTree` | Add one SOPART to the tree record's part DL (+0x34): copy XF matrix/stamp, mark tree dirty (0x1F4BF8), UpdateSoPartGeom, invalidate if not fixed | 0.50 | T1 |  |
+| [0x1F2930](../../../src/hand/RemoveSoPartFromTree.c) | `RemoveSoPartFromTree` | Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if no own parts remain | 0.50 | T1 |  |
+| [0x1F2A60](../../../src/hand/ShowSoPart.cpp) | `ShowSoPart` | If part hidden (fl bit50): clear it and, when SO in world, AddSoPartToTree | 0.85 | T1 | verified |
+| [0x1F2AD0](../../../src/hand/HideSoPart.c) | `HideSoPart` | Set part hidden bit50 and, when in world, RemoveSoPartFromTree | 0.50 | T1 |  |
+| [0x1F2B20](../../../src/hand/AddSoParts.c) | `AddSoParts` | AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride) | 0.85 | T1 | verified |
+| [0x1F2BA8](../../../src/hand/RemoveSoParts.c) | `RemoveSoParts` | RemoveSoPartFromTree for every visible SOPART | 0.55 | T1 |  |
+| [0x1F2C30](../../../src/hand/AddSoHierarchy.c) | `AddSoHierarchy` | SO vt11: AddLoHierarchy, 0x22FAA0, AddSoParts, set grf 0x14, register region (if SOPHYS region record), recurse vt11 on children | 0.65 | T1 |  |
+| [0x1F2D48](../../../src/hand/RemoveSoHierarchy.c) | `RemoveSoHierarchy` | SO vt12: RemoveLoHierarchy, RemoveSoParts, reset fade (+0x130=0, +0x12C=1), unregister region callback, recurse vt12 on children | 0.65 | T1 |  |
+| [0x1F2E78](../../../src/hand/UpdateSoLoroot.c) | `UpdateSoLoroot` | SO vt13: UpdateLoroot, recurse to children; if the SO has parts and its root changed, re-add parts to the new tree | 0.50 | T1 |  |
+| [0x1F2FE0](../../../src/hand/SetSoGrf.c) | `SetSoGrf` | SO vt47: grf(+0x40 tagged word) \|= f, then vt47 on each child | 0.50 | T1 |  |
+| [0x1F3078](../../../src/hand/ClearSoGrf.c) | `ClearSoGrf` | SO vt48 (new): grf &= ~f, then vt48 on each child | 0.50 | T1 |  |
 | [0x1F3118](../../../src/hand/func_001F3118.cpp) | `SetSoSBusy` | SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root in g_sw (0x147E88), push smaller value to children | 0.45 | T2 |  |
-| [0x1F31E0](../../../src/hand/func_001F31E0.cpp) | `LoadSoFromBrx` | SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...), physics block (matrix, mass), options, bounds | 0.90 | T1 | parse, verified |
+| [0x1F31E0](../../../src/hand/LoadSoFromBrx.cpp) | `LoadSoFromBrx` | SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...), physics block (matrix, mass), options, bounds | 0.90 | T1 | parse, verified |
 | [0x1F3590](../../../src/auto/func_001F3590.c) | `ResetSoPhys` | SO vt64: SOPHYS gravity vector (+0x80) = (0,0,-1750), both XF modes (+0xA0/+0xC0) = 3 (fixed) | 0.35 | T2 |  |
-| [0x1F35C8](../../../src/auto/func_001F35C8.c) | `SetSoMass` | Scale SOPHYS mass (+0xD0) to new value and scale inertia via 0x1F35F8 | 0.55 | T1 |  |
-| [0x1F35F8](../../../src/hand/func_001F35F8.c) | `AdjustSoMomint` | Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular) | 0.85 | T1 | verified |
-| [0x1F36A8](../../../src/auto/func_001F36A8.c) | `PostSoLoad` | SO vt15: PostLoLoad, 0x22FAA0, globset post-load (0x167B68 on +0x80) | 0.70 | T1 |  |
-| [0x1F36E0](../../../src/hand/func_001F36E0.c) | `UpdateSo` | SO vt16: UpdateLo; refresh region from position; advance fade alpha +0x12C by rate +0x130*dt, removing (vt9) at 0 | 0.70 | T1 |  |
+| [0x1F35C8](../../../src/auto/SetSoMass.c) | `SetSoMass` | Scale SOPHYS mass (+0xD0) to new value and scale inertia via 0x1F35F8 | 0.55 | T1 |  |
+| [0x1F35F8](../../../src/hand/AdjustSoMomint.c) | `AdjustSoMomint` | Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular) | 0.85 | T1 | verified |
+| [0x1F36A8](../../../src/auto/PostSoLoad.c) | `PostSoLoad` | SO vt15: PostLoLoad, 0x22FAA0, globset post-load (0x167B68 on +0x80) | 0.70 | T1 |  |
+| [0x1F36E0](../../../src/hand/UpdateSo.c) | `UpdateSo` | SO vt16: UpdateLo; refresh region from position; advance fade alpha +0x12C by rate +0x130*dt, removing (vt9) at 0 | 0.70 | T1 |  |
 | [0x1F37C8](../../../src/hand/func_001F37C8.c) | `SetSoPhysRegion` | Move the SOPHYS region link (+0xDC) from its current region DL (+0x118) to region q | 0.45 | T2 |  |
 | [0x1F3868](../../../src/hand/func_001F3868.c) | `UpdateSoPhysRegionCallback` | Deferred callback: SetSoPhysRegion(so, region at PosLoWorld) | 0.45 | T2 |  |
-| [0x1F38A8](../../../src/auto/func_001F38A8.c) | `UpdateSoPartGeom` | If part stamp != XF stamp: transform local geom to world (0x1664A0), copy stamp, mark tree dirty | 0.60 | T1 |  |
-| [0x1F3900](../../../src/hand/func_001F3900.c) | `UpdateSoPartMatrices` | Copy each visible part's XF world matrix (+0x40) and stamp (+0xA4) into the part | 0.50 | T1 |  |
+| [0x1F38A8](../../../src/auto/UpdateSoPartGeom.c) | `UpdateSoPartGeom` | If part stamp != XF stamp: transform local geom to world (0x1664A0), copy stamp, mark tree dirty | 0.60 | T1 |  |
+| [0x1F3900](../../../src/hand/UpdateSoPartMatrices.c) | `UpdateSoPartMatrices` | Copy each visible part's XF world matrix (+0x40) and stamp (+0xA4) into the part | 0.50 | T1 |  |
 | [0x1F3980](../../../src/hand/func_001F3980.c) | `UpdateSoXfWorld` | SO vt17: refresh part matrices, step soft-mesh parts (0x1F6EF8), sync XF positions into SOPHYS, vt70 if XF kinds 1/2, UpdateSoSlots, UpdateSoPartGeom | 0.35 | T2 |  |
 | [0x1F3B28](../../../src/hand/func_001F3B28.c) | `SetSoFlag8` | SO vt21: set/clear grf bit 8; when enabling and +0x148 bit35 and in world -> register (0x1D6378); disabling -> unregister | 0.30 | T2 |  |
 | [0x1F3C10](../../../src/hand/func_001F3C10.c) | `RefreshSoBoundsLighting` | If bounds record (+0x134) stamp != g_sw+0x3D60, recompute via 0x1A4478 and store stamp | 0.25 | T2 |  |
-| [0x1F3C70](../../../src/auto/func_001F3C70.c) | `RenderSoSelf` | SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha +0x12C | 0.85 | T1 | verified |
+| [0x1F3C70](../../../src/auto/RenderSoSelf.c) | `RenderSoSelf` | SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha +0x12C | 0.85 | T1 | verified |
 | [0x1F3CC8](../../../src/hand/func_001F3CC8.c) | `RenderSoAll` | SO vt20: draw globset with explicit params and recurse vt20 to children | 0.30 | T2 |  |
-| [0x1F3E00](../../../src/hand/func_001F3E00.c) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
-| [0x1F3EA8](../../../src/hand/func_001F3EA8.c) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
-| [0x1F3FA0](../../../src/auto/func_001F3FA0.c) | `SO_PmatWorld` | SO vt31: &pxfRoot(+0x60)->matWorld (+0x40) | 0.60 | T1 |  |
+| [0x1F3E00](../../../src/hand/OnSoRemove.c) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
+| [0x1F3EA8](../../../src/hand/OnSoAdd.c) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
+| [0x1F3FA0](../../../src/auto/SO_PmatWorld.c) | `SO_PmatWorld` | SO vt31: &pxfRoot(+0x60)->matWorld (+0x40) | 0.60 | T1 |  |
 | [0x1F3FB0](../../../src/hand/func_001F3FB0.c) | `SO_PxfLocal` | SO vt32: optional identity into M4 out, return +0x60 | 0.45 | T2 |  |
 | [0x1F4010](../../../src/hand/func_001F4010.c) | `ApplySoProxy` | SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820 | 0.45 | T2 |  |
-| [0x1F40A0](../../../src/hand/func_001F40A0.cpp) | `TranslateSoToPos` | SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part matrices, region | 0.60 | T1 |  |
-| [0x1F42E0](../../../src/hand/func_001F42E0.cpp) | `RotateSoToMat` | SO vt30: set rotation XF matrix from world matrix (parent-normalized), bump stamp, vt18, free contacts, refresh | 0.60 | T1 |  |
-| [0x1F4440](../../../src/hand/func_001F4440.c) | `GetSoVelocity` | SO vt33: velocity of position XF (kind 1) in world space, else zero | 0.60 | T1 |  |
-| [0x1F4488](../../../src/hand/func_001F4488.c) | `SetSoVelocity` | SO vt35: set position-XF velocity so world velocity = v (minus current), refresh, mark phys | 0.60 | T1 |  |
-| [0x1F4558](../../../src/hand/func_001F4558.cpp) | `GetSoAngularVelocity` | SO vt34: world angular velocity of rotation XF (kind 6), zero otherwise | 0.90 | T1 | verified |
-| [0x1F46D8](../../../src/hand/func_001F46D8.cpp) | `SetSoAngularVelocity` | SO vt36: set rotation-XF (kind 6) angular velocity from world w | 0.60 | T1 |  |
+| [0x1F40A0](../../../src/hand/TranslateSoToPos.cpp) | `TranslateSoToPos` | SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part matrices, region | 0.60 | T1 |  |
+| [0x1F42E0](../../../src/hand/RotateSoToMat.cpp) | `RotateSoToMat` | SO vt30: set rotation XF matrix from world matrix (parent-normalized), bump stamp, vt18, free contacts, refresh | 0.60 | T1 |  |
+| [0x1F4440](../../../src/hand/GetSoVelocity.c) | `GetSoVelocity` | SO vt33: velocity of position XF (kind 1) in world space, else zero | 0.60 | T1 |  |
+| [0x1F4488](../../../src/hand/SetSoVelocity.c) | `SetSoVelocity` | SO vt35: set position-XF velocity so world velocity = v (minus current), refresh, mark phys | 0.60 | T1 |  |
+| [0x1F4558](../../../src/hand/GetSoAngularVelocity.cpp) | `GetSoAngularVelocity` | SO vt34: world angular velocity of rotation XF (kind 6), zero otherwise | 0.90 | T1 | verified |
+| [0x1F46D8](../../../src/hand/SetSoAngularVelocity.cpp) | `SetSoAngularVelocity` | SO vt36: set rotation-XF (kind 6) angular velocity from world w | 0.60 | T1 |  |
 | [0x1F4848](../../../src/auto/func_001F4848.c) | `GetSoPosXfVelocityLocal` | Convert position XF velocity (+0xB0) between XF spaces (0x22FCC8) - result discarded by m2c | 0.30 | T2 |  |
 | [0x1F4870](../../../src/auto/func_001F4870.c) | `GetSoRotXfVelocityLocal` | Same for rotation XF (+0x5C) | 0.30 | T2 |  |
 | [0x1F4898](../../../src/hand/func_001F4898.c) | `SetSoPosXfVelocityLocal` | Set position XF velocity from a vector given in root XF space, refresh, mark phys | 0.40 | T2 |  |
@@ -294,7 +294,7 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F4B58](../../../src/auto/func_001F4B58.c) | `MarkSoTreeBoundsDirty` | Set tree flag bit0 and add tree to dirty list D_003E11B8 | 0.40 | T2 |  |
 | [0x1F4BA8](../../../src/hand/func_001F4BA8.c) | `ClearSoTreeBoundsDirty` | Clear tree flag bit0 and remove from D_003E11B8 | 0.40 | T2 |  |
 | [0x1F4BF8](../../../src/auto/func_001F4BF8.c) | `InvalidateSoAaox` | After an SO moved/changed bounds: MarkSoTreeBoundsDirty, then flag its broadphase OXA (+0xEC, flag x70 bit1) dirty once and queue it on D_003E11C4 so UpdateSwAaox re-sorts its sweep endpoints | 0.55 | T2 | top50; top50 round; v2 name MarkSoTreeDirty |
-| [0x1F4C58](../../../src/hand/func_001F4C58.c) | `PxfFindSo` | Find XF in SO XF array (+0x50/+0x54, 0x100 stride) matching (+0x9C, +0x94) ids | 0.50 | T1 |  |
+| [0x1F4C58](../../../src/hand/PxfFindSo.c) | `PxfFindSo` | Find XF in SO XF array (+0x50/+0x54, 0x100 stride) matching (+0x9C, +0x94) ids | 0.50 | T1 |  |
 | [0x1F4CA0](../../../src/hand/func_001F4CA0.c) | `CloneXfRef` | SO vt52: re-point an XF* from base SO's XF block to the clone's (also via parent) | 0.85 | T1 | verified |
 | [0x1F4D50](../../../src/auto/func_001F4D50.c) | `ClearSoTreeDirty` | Inverse of MarkSoTreeDirty (clear bits 0/1, remove from both lists) | 0.40 | T2 |  |
 | [0x1F4DA8](../../../src/hand/func_001F4DA8.c) | `RemoveSoContactsWith` | Unlink contact nodes between pa and pb from list, free them (FreeSwXpList) and invalidate pa | 0.35 | T2 |  |
@@ -304,29 +304,29 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F4FB0](../../../src/auto/func_001F4FB0.c) | `SO_vt55_Nop` | SO vt55 default no-op | 0.30 | T2 |  |
 | [0x1F4FB8](../../../src/auto/func_001F4FB8.c) | `SO_vt56_Nop` | SO vt56 default no-op | 0.30 | T2 |  |
 | [0x1F4FC0](../../../src/auto/func_001F4FC0.c) | `SO_vt57_Nop` | SO vt57 default no-op | 0.30 | T2 |  |
-| [0x1F4FC8](../../../src/hand/func_001F4FC8.c) | `FIgnoreSoIntersection` | SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed | 0.85 | T1 | verified |
+| [0x1F4FC8](../../../src/hand/FIgnoreSoIntersection.c) | `FIgnoreSoIntersection` | SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed | 0.85 | T1 | verified |
 | [0x1F5040](../../../src/auto/func_001F5040.c) | `FIsSoFixed` | SO vt62: true if no SOPHYS or both XF modes (+0xA0/+0xC0) == 3 | 0.45 | T2 |  |
 | [0x1F5078](../../../src/auto/func_001F5078.c) | `WakeSo` | If the SO is in the broadphase (+0xEC): SetSoGrf(4) (vt47, the awake flag also set by SlotSetRole/WakeXfSlot) and, if +0xE8, un-settle its position and rotation XF slots (SlotUnsettle 0x230598) | 0.45 | T2 | top50; top50 round; v2 name InvalidateSoPhys |
-| [0x1F50E0](../../../src/hand/func_001F50E0.cpp) | `UpdateSoTreeBounds` | SO vt49: rebuild tree record AABB and bounding sphere from visible parts, set g_sw+0x3CCC, clear dirty | 0.70 | T1 |  |
-| [0x1F5480](../../../src/hand/func_001F5480.c) | `ExtendSoTreeBounds` | Grow tree AABB/radius to include sphere (c,r) | 0.55 | T1 |  |
+| [0x1F50E0](../../../src/hand/UpdateSoTreeBounds.cpp) | `UpdateSoTreeBounds` | SO vt49: rebuild tree record AABB and bounding sphere from visible parts, set g_sw+0x3CCC, clear dirty | 0.70 | T1 |  |
+| [0x1F5480](../../../src/hand/ExtendSoTreeBounds.c) | `ExtendSoTreeBounds` | Grow tree AABB/radius to include sphere (c,r) | 0.55 | T1 |  |
 | [0x1F5510](../../../src/hand/func_001F5510.c) | `GetSoCnstrAxis` | Constraint table lookup: mode D_002C3C20[i], axis D_002C3BA0[i] transformed by matrix and normalized | 0.35 | T2 |  |
 | [0x1F55C8](../../../src/hand/func_001F55C8.c) | `RebuildSoPhysHook` | After physics-root change: regroup contact trees of SOs whose phys root changed, re-register | 0.45 | T2 |  |
 | [0x1F56F8](../../../src/auto/func_001F56F8.c) | `SO_PtreeNew` | SO vt53: create tree record via g_sw (0x1336F0) | 0.40 | T2 |  |
-| [0x1F5720](../../../src/auto/func_001F5720.c) | `SetSoCnstrForce` | Set translation constraint from CNSTR: make pos XF dynamic if needed, store axis/mode in SOPHYS+0xB0, rebuild phys hook | 0.60 | T1 |  |
-| [0x1F57C0](../../../src/auto/func_001F57C0.c) | `SetSoCnstrTorque` | Same for rotation XF into SOPHYS+0x90 | 0.85 | T1 | verified |
-| [0x1F5860](../../../src/hand/func_001F5860.c) | `GetSoDvGravity` | SOPHYS+0x80 (gravity vector) or zero | 0.85 | T1 | verified |
-| [0x1F5880](../../../src/hand/func_001F5880.c) | `SetSoDvGravity` | Make pos XF dynamic if needed and store gravity vector, invalidate | 0.50 | T1 |  |
-| [0x1F58F0](../../../src/hand/func_001F58F0.c) | `GetSoCpdefi` | SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix, sAdjust 100, grfcpd 0, tMoveLast = g_clock.t | 0.85 | T1 |  |
+| [0x1F5720](../../../src/auto/SetSoCnstrForce.c) | `SetSoCnstrForce` | Set translation constraint from CNSTR: make pos XF dynamic if needed, store axis/mode in SOPHYS+0xB0, rebuild phys hook | 0.60 | T1 |  |
+| [0x1F57C0](../../../src/auto/SetSoCnstrTorque.c) | `SetSoCnstrTorque` | Same for rotation XF into SOPHYS+0x90 | 0.85 | T1 | verified |
+| [0x1F5860](../../../src/hand/GetSoDvGravity.c) | `GetSoDvGravity` | SOPHYS+0x80 (gravity vector) or zero | 0.85 | T1 | verified |
+| [0x1F5880](../../../src/hand/SetSoDvGravity.c) | `SetSoDvGravity` | Make pos XF dynamic if needed and store gravity vector, invalidate | 0.50 | T1 |  |
+| [0x1F58F0](../../../src/hand/GetSoCpdefi.c) | `GetSoCpdefi` | SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix, sAdjust 100, grfcpd 0, tMoveLast = g_clock.t | 0.85 | T1 |  |
 | [0x1F5988](../../../src/auto/func_001F5988.c) | `SO_vt54_Nop` | SO vt54 default no-op (contact notify) | 0.30 | T2 |  |
 | [0x1F5990](../../../src/auto/func_001F5990.c) | `SO_vt60_Nop` | SO vt60 default no-op | 0.30 | T2 |  |
 | [0x1F5998](../../../src/auto/func_001F5998.c) | `SO_vt63_Ret0` | SO vt63 default: return 0 | 0.30 | T2 |  |
 | [0x1F59A0](../../../src/hand/func_001F59A0.cpp) | `AccelSoTowardMatBounded` | Angular braking + bounded angular-velocity correction toward an orientation (coef top speed / accel) | 0.40 | T2 |  |
-| [0x1F5C30](../../../src/hand/func_001F5C30.cpp) | `AccelSoTowardMatSpring` | Spring torque toward orientation (quadratic CLQ on angle) and toward target angular velocity (clamped 1/dt) | 0.55 | T1 |  |
-| [0x1F5E10](../../../src/hand/func_001F5E10.c) | `AccelSoTowardPosSpring` | Spring force toward position (CLQ on distance) and toward target velocity (clamped 1/dt) | 0.60 | T1 |  |
+| [0x1F5C30](../../../src/hand/AccelSoTowardMatSpring.cpp) | `AccelSoTowardMatSpring` | Spring torque toward orientation (quadratic CLQ on angle) and toward target angular velocity (clamped 1/dt) | 0.55 | T1 |  |
+| [0x1F5E10](../../../src/hand/AccelSoTowardPosSpring.c) | `AccelSoTowardPosSpring` | Spring force toward position (CLQ on distance) and toward target velocity (clamped 1/dt) | 0.60 | T1 |  |
 | [0x1F5FF8](../../../src/hand/func_001F5FF8.c) | `PglobFindSo` | Find glob (globset +0xB8 array, 0x28 stride) by oid | 0.45 | T2 |  |
-| [0x1F6030](../../../src/hand/func_001F6030.c) | `PsopartFindSo` | Find SOPART by oid (+0x0C) | 0.55 | T1 |  |
-| [0x1F6068](../../../src/hand/func_001F6068.cpp) | `CloneSo` | SO vt41 Clone: copy XF block, model, parts, physics for a clone | 0.90 | T1 | verified |
-| [0x1F66F0](../../../src/hand/func_001F66F0.c) | `CloneSoHierarchy` | SO vt40: vt41 Clone then PloCloneLo each non-removed child | 0.85 | T1 | verified |
+| [0x1F6030](../../../src/hand/PsopartFindSo.c) | `PsopartFindSo` | Find SOPART by oid (+0x0C) | 0.55 | T1 |  |
+| [0x1F6068](../../../src/hand/CloneSo.cpp) | `CloneSo` | SO vt41 Clone: copy XF block, model, parts, physics for a clone | 0.90 | T1 | verified |
+| [0x1F66F0](../../../src/hand/CloneSoHierarchy.c) | `CloneSoHierarchy` | SO vt40: vt41 Clone then PloCloneLo each non-removed child | 0.85 | T1 | verified |
 | [0x1F6788](../../../src/hand/func_001F6788.c) | `PsmaFindByOidAndSm` | Search list D_003E1218 for node with n==oid and (m==-1 or owner->n==m) | 0.30 | T2 |  |
 | [0x1F67E0](../../../src/hand/func_001F67E0.c) | `PsmaFindLive` | Same search over D_003E126C (SMA live list per sm.md) | 0.35 | T2 |  |
 | [0x1F6838](../../../src/hand/func_001F6838.c) | `FSoTreeFlag2` | Bit 2 of tree flags (+0x70), 1 if no tree | 0.25 | T2 |  |
@@ -334,10 +334,10 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F68A8](../../../src/hand/func_001F68A8.c) | `SetSoPartsFlag48` | Set bit48 of every SOPART flag word | 0.30 | T2 |  |
 | [0x1F6918](../../../src/hand/func_001F6918.c) | `SetSoFlag26` | Set +0x148 bit26 and refresh contacts (0x134320) | 0.25 | T2 |  |
 | [0x1F6960](../../../src/hand/func_001F6960.c) | `GetSoFlag26` | Get +0x148 bit26 | 0.25 | T2 |  |
-| [0x1F6978](../../../src/hand/func_001F6978.c) | `ShowSoGlobsById` | For every glob with id k: clear hidden flag 0x800 and clear the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
-| [0x1F69F8](../../../src/hand/func_001F69F8.c) | `HideSoGlobsById` | For every glob with id k: set hidden flag 0x800 and set the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
+| [0x1F6978](../../../src/hand/ShowSoGlobsById.c) | `ShowSoGlobsById` | For every glob with id k: clear hidden flag 0x800 and clear the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
+| [0x1F69F8](../../../src/hand/HideSoGlobsById.c) | `HideSoGlobsById` | For every glob with id k: set hidden flag 0x800 and set the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
 | [0x1F6A68](../../../src/hand/func_001F6A68.c) | `HideSoAllGlobs` | Hide every glob and its linked part | 0.40 | T2 |  |
-| [0x1F6AC8](../../../src/hand/func_001F6AC8.c) | `ShowSoPartsById` | ShowSoPart for parts whose id (+0xC) == k | 0.85 | T1 | verified |
+| [0x1F6AC8](../../../src/hand/ShowSoPartsById.c) | `ShowSoPartsById` | ShowSoPart for parts whose id (+0xC) == k | 0.85 | T1 | verified |
 | [0x1F6B48](../../../src/hand/func_001F6B48.c) | `HideSoPartsById` | HideSoPart for parts whose id == k | 0.45 | T2 |  |
 | [0x1F6BC8](../../../src/hand/func_001F6BC8.c) | `SetSoPartsField18ById` | Set SOPART +0x18 (grfzpk) for parts with id n | 0.25 | T2 |  |
 | [0x1F6C08](../../../src/hand/func_001F6C08.cpp) | `EnsureSoPartMesh` | Build a soft-mesh scratch record (velocities, accelerations, oriented triangles) for a part once | 0.45 | T2 |  |
@@ -348,9 +348,9 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F7530](../../../src/hand/func_001F7530.c) | `PloFindZapResponder` | First LO in chain whose zap response for grfzpk is nonzero | 0.30 | T2 |  |
 | [0x1F7588](../../../src/auto/func_001F7588.c) | `FZprHasField44` | return arg1->+0x44 != 0 | 0.20 | T2 |  |
 | [0x1F7598](../../../src/hand/func_001F7598.c) | `PsoInflictZap` | Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time and, if damaging (grfzp | 0.55 | T2 | top50; top50 round; v2 name InflictZap |
-| [0x1F77C0](../../../src/hand/func_001F77C0.c) | `ExpireSwZapRecords` | Drop zap-history entries older than 0.25 s from g_sw list | 0.85 | T1 | verified |
+| [0x1F77C0](../../../src/hand/ExpireSwZapRecords.c) | `ExpireSwZapRecords` | Drop zap-history entries older than 0.25 s from g_sw list | 0.85 | T1 | verified |
 | [0x1F78A0](../../../src/hand/func_001F78A0.c) | `IzpkFromGrfzpk` | Index of lowest set bit among 26 zap kinds | 0.40 | T2 |  |
-| [0x1F78D8](../../../src/hand/func_001F78D8.c) | `GrfzpdFromSoGrfzpk` | OR of per-kind response bytes SO+0x110[26] selected by grfzpk | 0.85 | T1 | verified |
+| [0x1F78D8](../../../src/hand/GrfzpdFromSoGrfzpk.c) | `GrfzpdFromSoGrfzpk` | OR of per-kind response bytes SO+0x110[26] selected by grfzpk | 0.85 | T1 | verified |
 | [0x1F7918](../../../src/hand/func_001F7918.c) | `SetSoZapResponse` | Set SO+0x110[i]=b for each kind bit in grfzpk | 0.40 | T2 |  |
 | [0x1F7950](../../../src/hand/func_001F7950.c) | `SoTouchZapCallback` | Deferred callback: process contact zaps (vt74) then emit self zap depending on zap mode (+0x148 bits 24-25) | 0.30 | T2 |  |
 | [0x1F7A68](../../../src/hand/func_001F7A68.c) | `SetSoZapMode` | Set SO zap mode (+0x148 bits 24-25, 0..3): mode 2 turns parts with zap kind 0 into 0x10000 (damaging) with the SO damage byte; modes 0/1/3 turn them back with dhp -10 | 0.50 | T2 | top50 |
@@ -361,10 +361,10 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F7B88](../../../src/auto/func_001F7B88.c) | `GetSoDhp1` | return -(+0x149 byte) | 0.30 | T2 |  |
 | [0x1F7B98](../../../src/auto/func_001F7B98.c) | `EnsureSoInSwList187` | If SO not found in g_sw list 0x187 (0x15E938) add it (0x13E3C8) | 0.25 | T2 |  |
 | [0x1F7BF0](../../../src/auto/func_001F7BF0.c) | `PsophysFromSo` | return +0xE8 | 0.30 | T2 |  |
-| [0x1F7BF8](../../../src/hand/func_001F7BF8.c) | `FadeSoOut` | dur<=0: rate 0, alpha 0 (removes); else rate -1/dur | 0.55 | T1 |  |
-| [0x1F7C68](../../../src/hand/func_001F7C68.c) | `FadeSoIn` | dur<=0: rate 0, alpha 1; else re-Add if removed (alpha 0) and rate 1/dur | 0.55 | T1 |  |
-| [0x1F7D10](../../../src/auto/func_001F7D10.c) | `SetSoAlpha` | alpha<=0: Remove (vt9) unless class 0x69; else Add (vt8); store +0x12C | 0.50 | T1 |  |
-| [0x1F7D90](../../../src/hand/func_001F7D90.c) | `SetSoFadeRate` | If rate != 0: Add (vt8) and set grf bit 2; store +0x130 | 0.85 | T1 | verified |
+| [0x1F7BF8](../../../src/hand/FadeSoOut.c) | `FadeSoOut` | dur<=0: rate 0, alpha 0 (removes); else rate -1/dur | 0.55 | T1 |  |
+| [0x1F7C68](../../../src/hand/FadeSoIn.c) | `FadeSoIn` | dur<=0: rate 0, alpha 1; else re-Add if removed (alpha 0) and rate 1/dur | 0.55 | T1 |  |
+| [0x1F7D10](../../../src/auto/SetSoAlpha.c) | `SetSoAlpha` | alpha<=0: Remove (vt9) unless class 0x69; else Add (vt8); store +0x12C | 0.50 | T1 |  |
+| [0x1F7D90](../../../src/hand/SetSoFadeRate.c) | `SetSoFadeRate` | If rate != 0: Add (vt8) and set grf bit 2; store +0x130 | 0.85 | T1 | verified |
 | [0x1F7E08](../../../src/hand/func_001F7E08.c) | `CsopartCollectSo` | Collect parts passing optional predicate into array, return count | 0.40 | T2 |  |
 | [0x1F7EC8](../../../src/hand/func_001F7EC8.c) | `SetSoField148_16` | Set 4-bit field +0x148 bits 16-19 | 0.20 | T2 |  |
 | [0x1F7EF0](../../../src/hand/func_001F7EF0.c) | `GetSoField148_16` | Get 4-bit field +0x148 bits 16-19 | 0.20 | T2 |  |
@@ -374,7 +374,7 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F7FA0](../../../src/hand/func_001F7FA0.c) | `SetSoScrollerSpeeds` | SetScrollerMasterSpeeds(f,g) on every SCROLLER (CID 0x8F) in SO SAA list (+0xA4) | 0.45 | T2 |  |
 | [0x1F8038](../../../src/hand/func_001F8038.c) | `SetSoSaaParams` | 0x1EDAD8(f,g) on every CID 0x8F SAA | 0.35 | T2 |  |
 | [0x1F80D0](../../../src/hand/func_001F80D0.c) | `SetSoEyesClosed` | SetEyesClosed(f) on EYES (CID 0x8E) SAAs, recursively through SO children | 0.45 | T2 |  |
-| [0x1F8198](../../../src/hand/func_001F8198.c) | `PsaaFindSoOid` | Find SAA in +0xA4 list with +0x18 == n | 0.85 | T1 | verified |
+| [0x1F8198](../../../src/hand/PsaaFindSoOid.c) | `PsaaFindSoOid` | Find SAA in +0xA4 list with +0x18 == n | 0.85 | T1 | verified |
 | [0x1F81E0](../../../src/hand/func_001F81E0.c) | `SetSoAnimIndex` | +0xB4 = -(index of n in +0xB0 list + 3), or 0 | 0.20 | T2 |  |
 | [0x1F8238](../../../src/auto/func_001F8238.c) | `ClearSoB4` | +0xB4 = 0 | 0.20 | T2 |  |
 | [0x1F8240](../../../src/hand/func_001F8240.c) | `PxxFindGlobalById` | Search D_003E145C list by id | 0.20 | T2 |  |
@@ -388,12 +388,12 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F8470](../../../src/auto/func_001F8470.c) | `SetSoPhysParam4` | record.g4 = f | 0.25 | T2 | verified |
 | [0x1F84A0](../../../src/hand/func_001F84A0.c) | `GetSoPhysParam4` | record.g4 or 0 | 0.25 | T2 |  |
 | [0x1F84D0](../../../src/hand/SetSoIceable__FP2SOi.cpp) | `SetSoIceable__FP2SOi` | Set +0x148 bit33 (fIceable) | 0.85 | existing |  |
-| [0x1F8500](../../../src/hand/func_001F8500.c) | `GetSoIceable` | Return +0x148 bit33 | 0.75 | T1 |  |
+| [0x1F8500](../../../src/hand/GetSoIceable.c) | `GetSoIceable` | Return +0x148 bit33 | 0.75 | T1 |  |
 | [0x1F8510](../../../src/hand/func_001F8510.c) | `PxfhNewSo` | Create a 0x30 handle object (pool D_003E15CC, vtable 0x2CA2C0 = CID 0x95) for the XF matching (oid,kind) | 0.30 | T2 |  |
 | [0x1F85E0](../../../src/hand/func_001F85E0.c) | `PsoparthNewSo` | Create a 0x30 handle object (vtable 0x2CA280 = CID 0x96) for the SOPART with given oid | 0.30 | T2 |  |
 | [0x1F8668](../../../src/hand/func_001F8668.c) | `SetSoFlag35Hierarchy` | Set +0x148 bit35 recursively; when g_sw+0x3E5C and enabling register (0x1D6378) | 0.30 | T2 |  |
 | [0x1F8730](../../../src/auto/func_001F8730.c) | `IncrefXfh` | cref(+0x10)++ | 0.40 | T2 |  |
-| [0x1F8740](../../../src/auto/func_001F8740.c) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
+| [0x1F8740](../../../src/auto/DecrefXfh.c) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
 | [0x1F87A0](../../../src/hand/func_001F87A0.c) | `GetXfhParamAC` | XF u16 +0xAC * 0.001 | 0.20 | T2 |  |
 | [0x1F87C8](../../../src/hand/func_001F87C8.c) | `SetXfhParamAC` | XF +0xAC = g*1000, refresh XF kind | 0.20 | T2 |  |
 | [0x1F8808](../../../src/hand/func_001F8808.c) | `GetXfhParamAE` | XF u16 +0xAE * 0.001 | 0.20 | T2 |  |
@@ -412,25 +412,25 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1F8DD8](../../../src/hand/func_001F8DD8.c) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
-| [0x1F8E90](../../../src/hand/func_001F8E90.c) | `BuildContactGroup` | Flood-fill: mark SO (fl\|=0x8000000), append to group array, recurse through touching contacts | 0.60 | T1 |  |
+| [0x1F8DD8](../../../src/hand/SolveSw.c) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
+| [0x1F8E90](../../../src/hand/BuildContactGroup.c) | `BuildContactGroup` | Flood-fill: mark SO (fl\|=0x8000000), append to group array, recurse through touching contacts | 0.60 | T1 |  |
 | [0x1F8F80](../../../src/hand/func_001F8F80.c) | `SolveSwContactGroups` | For each dynamic root LO in the SW list: build its contact group (BuildContactGroup) and solve it (0x1F9240) | 0.40 | T2 |  |
-| [0x1F90D0](../../../src/hand/func_001F90D0.c) | `CpxpBuildXpArray` | Collect the contact points (XP) of a group of SOs into an array (max cMax), marking objects 0x10000000; returns count | 0.60 | T1 |  |
+| [0x1F90D0](../../../src/hand/CpxpBuildXpArray.c) | `CpxpBuildXpArray` | Collect the contact points (XP) of a group of SOs into an array (max cMax), marking objects 0x10000000; returns count | 0.60 | T1 |  |
 | [0x1F9240](../../../src/hand/func_001F9240.c) | `SplitSwGroup` | Builds XP array for a group then runs SolveSwGroup in one or two passes depending on flags (1 resting, 4 position pass) | 0.35 | T2 |  |
-| [0x1F9410](../../../src/hand/func_001F9410.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
+| [0x1F9410](../../../src/hand/SolveSwGroup.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
 | [0x1F9B20](../../../src/hand/func_001F9B20.c) | `ApplySoPendingVelocity` | If SO has nonzero pending velocity (pe+0x80) and not locked (kind!=3), constrain it (0x1FA810) and add via 0x1FAC30; then 0x229798 if +0x138 | 0.30 | T2 |  |
 | [0x1F9C48](../../../src/hand/func_001F9C48.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
 | [0x1F9E70](../../../src/hand/func_001F9E70.cpp) | `ApplySoForcesXf` | Applies two queued force/torque vectors to an SO transform (rotation build 0x11B570, normalize); no direct callers (vtable/callback) | 0.20 | T2 |  |
 | [0x1FA328](../../../src/hand/func_001FA328.c) | `ProjectSoForce` | If SO has data and nonzero force0, project/apply it through 0x230598/0x22FCC8; no direct callers | 0.20 | T2 |  |
 | [0x1FA528](../../../src/hand/func_001FA528.cpp) | `ApplySoQueuedMotion` | Apply queued translation and rotation (shift/turn) to SO then refresh changed objects | 0.30 | T2 |  |
-| [0x1FA810](../../../src/hand/func_001FA810.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
-| [0x1FA970](../../../src/hand/func_001FA970.c) | `ApplyConstr_1FA970` | Same CT switch without the object transform | 0.50 | T1 |  |
+| [0x1FA810](../../../src/hand/ApplyConstr.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
+| [0x1FA970](../../../src/hand/ApplyConstr_1FA970.c) | `ApplyConstr_1FA970` | Same CT switch without the object transform | 0.50 | T1 |  |
 | [0x1FAA00](../../../src/hand/func_001FAA00.c) | `DvFromSoImpulse` | Linear velocity change = impulse / mass, constrained by force constraint | 0.35 | T2 |  |
 | [0x1FAA48](../../../src/hand/func_001FAA48.c) | `DwFromSoImpulse` | Angular velocity change: (pos - PosLoWorld) x impulse through inverse inertia (0x1FAA98) | 0.35 | T2 |  |
 | [0x1FAA98](../../../src/hand/func_001FAA98.c) | `ApplySoInverseInertia` | Transform torque into body frame, apply inertia tensor, back to world, constrain by torque constraint | 0.30 | T2 |  |
 | [0x1FAB48](../../../src/hand/func_001FAB48.c) | `VelocityAtSoPos` | v + w x (pos - center): velocity of a point of the SO | 0.40 | T2 |  |
 | [0x1FAB78](../../../src/hand/func_001FAB78.c) | `ApplySoImpulse` | Apply impulse at a point: add DvFromSoImpulse to linear and DwFromSoImpulse to angular velocity | 0.45 | T2 |  |
-| [0x1FAC30](../../../src/hand/func_001FAC30.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
+| [0x1FAC30](../../../src/hand/AddSoAcceleration.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
 | [0x1FAC98](../../../src/hand/func_001FAC98.c) | `AddSoAngularVelocity` | Twin of 0x1FAC30 (identical shape, other field per callers) | 0.25 | T2 |  |
 | [0x1FAD00](../../../src/hand/func_001FAD00.c) | `ApplySoContactImpulse` | Applies an impulse derived from a contact record (v40) when SO has dynamics data | 0.20 | T2 |  |
 | [0x1FADD0](../../../src/hand/func_001FADD0.c) | `GetSoVelocityAtPos` | Out-param wrapper of VelocityAtSoPos; zero if SO has no dynamics block (+0xE8) | 0.40 | T2 |  |
@@ -439,8 +439,8 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x227BB8](../../../src/hand/func_00227BB8.c) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
-| [0x227C90](../../../src/hand/func_00227C90.c) | `FCheckVolPoint` | reject by bounding sphere then BSP point test (0x118FB0) in local space | 0.60 | T1 |  |
+| [0x227BB8](../../../src/hand/LoadVolFromBrx.c) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
+| [0x227C90](../../../src/hand/FCheckVolPoint.c) | `FCheckVolPoint` | reject by bounding sphere then BSP point test (0x118FB0) in local space | 0.60 | T1 |  |
 | [0x227D20](../../../src/hand/func_00227D20.c) | `FCheckVolSphere` | radius<=1 -> point test else BSP prune with radius (0x118A88) | 0.40 | T2 |  |
 | [0x227E20](../../../src/auto/func_00227E20.c) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
 | [0x227E58](../../../src/auto/func_00227E58.c) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |

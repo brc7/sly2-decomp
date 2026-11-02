@@ -100,35 +100,35 @@ the Sly 2 989snd.irx (in SCUS_973.16 at file offset 0x21ED80) was **not** disass
 | [0x1FD830](../../src/hand/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 98 | 0.75 | T1 |  |
 | [0x1FE738](../../src/hand/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
 | [0x1FEED0](../../src/hand/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
-| [0x2275B8](../../src/hand/func_002275B8.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
-| [0x2319E8](../../src/hand/func_002319E8.c) | `snd_StartSoundSystem` | 989snd API | 0.90 | T1 | verified |
-| [0x231E90](../../src/lib/func_00231E90.c) | `snd_GotReturns` | 989snd API | 0.90 | T1 | verified |
-| [0x231F38](../../src/lib/func_00231F38.c) | `snd_PrepareReturnBuffer` | 989snd API | 0.80 | T1 |  |
-| [0x231FB0](../../src/lib/func_00231FB0.c) | `snd_BankLoadByLoc` | 989snd API | 0.90 | T1 | verified |
-| [0x232188](../../src/lib/func_00232188.c) | `snd_ResolveBankXREFS` | 989snd API | 0.90 | T1 | verified |
-| [0x2321B8](../../src/lib/func_002321B8.c) | `snd_UnloadBank` | 989snd API | 0.90 | T1 | verified |
-| [0x2321E8](../../src/lib/func_002321E8.c) | `snd_SetMasterVolume` | 989snd API | 0.90 | T1 | verified |
-| [0x232220](../../src/lib/func_00232220.c) | `snd_GetMasterVolume` | 989snd API | 0.90 | T1 | verified |
-| [0x232250](../../src/lib/func_00232250.c) | `snd_SetPlaybackMode` | 989snd API | 0.90 | T1 | verified |
-| [0x2322A0](../../src/lib/func_002322A0.c) | `snd_IsSoundALooper` | 989snd API | 0.80 | T1 |  |
-| [0x232350](../../src/lib/func_00232350.c) | `snd_StopSound` | 989snd API | 0.90 | T1 | verified |
-| [0x2323A8](../../src/lib/func_002323A8.c) | `snd_PauseSound` | 989snd API | 0.90 | T1 | verified |
-| [0x2323D8](../../src/lib/func_002323D8.c) | `snd_ContinueSound` | 989snd API | 0.90 | T1 | verified |
-| [0x232408](../../src/lib/func_00232408.c) | `snd_StopAllStreams` | 989snd API | 0.75 | T1 |  |
-| [0x232438](../../src/lib/func_00232438.c) | `snd_PauseAllSoundsInGroup` | 989snd API | 0.90 | T1 | verified |
-| [0x232468](../../src/lib/func_00232468.c) | `snd_ContinueAllSoundsInGroup` | 989snd API | 0.90 | T1 | verified |
-| [0x232498](../../src/lib/func_00232498.c) | `snd_SoundIsStillPlaying_CB` | 989snd API | 0.90 | T1 | verified |
-| [0x232520](../../src/lib/func_00232520.c) | `snd_Cmd21_CB` | 989snd API | 0.35 | T2 | verified |
-| [0x232568](../../src/lib/func_00232568.c) | `snd_AutoVol` | 989snd API | 0.90 | T1 | verified |
-| [0x2325E0](../../src/lib/func_002325E0.c) | `snd_SendIOPCommandAndWait` | 989snd API | 0.90 | T1 | verified |
-| [0x232838](../../src/lib/func_00232838.c) | `snd_SendIOPCommandNoWait` | 989snd API | 0.90 | T1 | verified |
-| [0x232BB8](../../src/lib/func_00232BB8.c) | `snd_PostMessage` | 989snd API | 0.90 | T1 | verified |
-| [0x232D80](../../src/lib/func_00232D80.c) | `snd_StreamSafeCheckCDIdle` | 989snd API | 0.90 | T1 | verified |
-| [0x232DA8](../../src/hand/func_00232DA8.c) | `snd_StreamSafeCdSync` | 989snd API | 0.85 | T1 | verified |
-| [0x232F28](../../src/auto/func_00232F28.c) | `snd_ResetMovieSound` | 989snd API | 0.90 | T1 | verified |
-| [0x232F60](../../src/auto/func_00232F60.c) | `snd_CloseMovieSound` | 989snd API | 0.90 | T1 | verified |
-| [0x232F88](../../src/lib/func_00232F88.c) | `snd_StartMovieSound` | 989snd API | 0.90 | T1 | verified |
-| [0x232FC0](../../src/auto/func_00232FC0.c) | `snd_GetTransStatus` | 989snd API | 0.90 | T1 | verified |
+| [0x2275B8](../../src/hand/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
+| [0x2319E8](../../src/sdk/989snd/func_002319E8.c) | `snd_StartSoundSystem` | 989snd API | 0.90 | T1 | verified |
+| [0x231E90](../../src/sdk/989snd/func_00231E90.c) | `snd_GotReturns` | 989snd API | 0.90 | T1 | verified |
+| [0x231F38](../../src/sdk/989snd/func_00231F38.c) | `snd_PrepareReturnBuffer` | 989snd API | 0.80 | T1 |  |
+| [0x231FB0](../../src/sdk/989snd/func_00231FB0.c) | `snd_BankLoadByLoc` | 989snd API | 0.90 | T1 | verified |
+| [0x232188](../../src/sdk/989snd/func_00232188.c) | `snd_ResolveBankXREFS` | 989snd API | 0.90 | T1 | verified |
+| [0x2321B8](../../src/sdk/989snd/func_002321B8.c) | `snd_UnloadBank` | 989snd API | 0.90 | T1 | verified |
+| [0x2321E8](../../src/sdk/989snd/func_002321E8.c) | `snd_SetMasterVolume` | 989snd API | 0.90 | T1 | verified |
+| [0x232220](../../src/sdk/989snd/func_00232220.c) | `snd_GetMasterVolume` | 989snd API | 0.90 | T1 | verified |
+| [0x232250](../../src/sdk/989snd/func_00232250.c) | `snd_SetPlaybackMode` | 989snd API | 0.90 | T1 | verified |
+| [0x2322A0](../../src/sdk/989snd/func_002322A0.c) | `snd_IsSoundALooper` | 989snd API | 0.80 | T1 |  |
+| [0x232350](../../src/sdk/989snd/func_00232350.c) | `snd_StopSound` | 989snd API | 0.90 | T1 | verified |
+| [0x2323A8](../../src/sdk/989snd/func_002323A8.c) | `snd_PauseSound` | 989snd API | 0.90 | T1 | verified |
+| [0x2323D8](../../src/sdk/989snd/func_002323D8.c) | `snd_ContinueSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232408](../../src/sdk/989snd/func_00232408.c) | `snd_StopAllStreams` | 989snd API | 0.75 | T1 |  |
+| [0x232438](../../src/sdk/989snd/func_00232438.c) | `snd_PauseAllSoundsInGroup` | 989snd API | 0.90 | T1 | verified |
+| [0x232468](../../src/sdk/989snd/func_00232468.c) | `snd_ContinueAllSoundsInGroup` | 989snd API | 0.90 | T1 | verified |
+| [0x232498](../../src/sdk/989snd/func_00232498.c) | `snd_SoundIsStillPlaying_CB` | 989snd API | 0.90 | T1 | verified |
+| [0x232520](../../src/sdk/989snd/func_00232520.c) | `snd_Cmd21_CB` | 989snd API | 0.35 | T2 | verified |
+| [0x232568](../../src/sdk/989snd/func_00232568.c) | `snd_AutoVol` | 989snd API | 0.90 | T1 | verified |
+| [0x2325E0](../../src/sdk/989snd/func_002325E0.c) | `snd_SendIOPCommandAndWait` | 989snd API | 0.90 | T1 | verified |
+| [0x232838](../../src/sdk/989snd/func_00232838.c) | `snd_SendIOPCommandNoWait` | 989snd API | 0.90 | T1 | verified |
+| [0x232BB8](../../src/sdk/989snd/func_00232BB8.c) | `snd_PostMessage` | 989snd API | 0.90 | T1 | verified |
+| [0x232D80](../../src/sdk/989snd/func_00232D80.c) | `snd_StreamSafeCheckCDIdle` | 989snd API | 0.90 | T1 | verified |
+| [0x232DA8](../../src/sdk/989snd/func_00232DA8.c) | `snd_StreamSafeCdSync` | 989snd API | 0.85 | T1 | verified |
+| [0x232F28](../../src/sdk/989snd/func_00232F28.c) | `snd_ResetMovieSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232F60](../../src/sdk/989snd/func_00232F60.c) | `snd_CloseMovieSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232F88](../../src/sdk/989snd/func_00232F88.c) | `snd_StartMovieSound` | 989snd API | 0.90 | T1 | verified |
+| [0x232FC0](../../src/sdk/989snd/func_00232FC0.c) | `snd_GetTransStatus` | 989snd API | 0.90 | T1 | verified |
 
 Selected 44 of 139 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/sound.md](../reference/functions/sound.md).
 

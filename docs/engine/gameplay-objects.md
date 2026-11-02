@@ -56,57 +56,57 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1320C8](../../src/hand/func_001320C8.c) | `InitBarrier` | BARRIER vt7 Init: InitSo then set an SO flag bit (grf \|= 1<<34) | 0.85 | T1 | verified |
-| [0x132140](../../src/hand/func_00132140.c) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
-| [0x132238](../../src/hand/func_00132238.c) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
-| [0x132298](../../src/hand/func_00132298.c) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice  | 0.60 | T1 | verified |
-| [0x13A9E8](../../src/hand/func_0013A9E8.c) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
-| [0x13AAA0](../../src/hand/func_0013AAA0.c) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
-| [0x13AAE8](../../src/hand/func_0013AAE8.c) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
-| [0x13AB58](../../src/hand/func_0013AB58.c) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
-| [0x13ADE8](../../src/hand/func_0013ADE8.c) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
-| [0x13B428](../../src/hand/func_0013B428.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
-| [0x13B5C8](../../src/hand/func_0013B5C8.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
-| [0x13B860](../../src/hand/func_0013B860.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
-| [0x148B38](../../src/hand/func_00148B38.c) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
-| [0x148BB0](../../src/hand/func_00148BB0.c) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
-| [0x148C08](../../src/auto/func_00148C08.c) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
-| [0x148C38](../../src/auto/func_00148C38.c) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
-| [0x149358](../../src/hand/func_00149358.c) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
+| [0x1320C8](../../src/hand/InitBarrier.c) | `InitBarrier` | BARRIER vt7 Init: InitSo then set an SO flag bit (grf \|= 1<<34) | 0.85 | T1 | verified |
+| [0x132140](../../src/hand/FIgnoreBarrierIntersection.c) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
+| [0x132238](../../src/hand/NotifyBarrierImpact.c) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
+| [0x132298](../../src/hand/SendBarrierImpactMessages.c) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice  | 0.60 | T1 | verified |
+| [0x13A9E8](../../src/hand/InitBomb.c) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
+| [0x13AAA0](../../src/hand/PostBombLoad.c) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
+| [0x13AAE8](../../src/hand/HandleBombMessage.c) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
+| [0x13AB58](../../src/hand/UpdateBomb.c) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
+| [0x13ADE8](../../src/hand/AddBombCustomXps.c) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
+| [0x13B428](../../src/hand/PrepareBombDetonation.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
+| [0x13B5C8](../../src/hand/PrimeBomb__FP4BOMBf.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
+| [0x13B860](../../src/hand/DetonateBomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
+| [0x148B38](../../src/hand/SetBtnRsmg.c) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
+| [0x148BB0](../../src/hand/InitButton.c) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
+| [0x148C08](../../src/auto/LoadButtonFromBrx.c) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
+| [0x148C38](../../src/auto/PostButtonLoad.c) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
+| [0x149358](../../src/hand/LoadVolbtnFromBrx.c) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
 | [0x152100](../../src/hand/func_00152100.c) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
 | [0x152810](../../src/hand/func_00152810.c) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
-| [0x1535A0](../../src/hand/func_001535A0.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
-| [0x153760](../../src/hand/func_00153760.c) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
-| [0x153800](../../src/hand/func_00153800.c) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
+| [0x1535A0](../../src/hand/GRhythmTimingScore.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
+| [0x153760](../../src/hand/GAverageRhythmScore.c) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
+| [0x153800](../../src/hand/ResetRhythmScore.c) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
 | [0x17F6B0](../../src/hand/func_0017F6B0.c) | `ResetCid71` | Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638) | 0.40 | T2 | verified |
 | [0x1800A0](../../src/auto/UseStepguardDeathAnimation__FP9STEPGUARDi3OID.c) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
 | [0x180188](../../src/hand/func_00180188.c) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |
 | [0x181F60](../../src/hand/func_00181F60.c) | `UpdateHackwall` | vt16: UpdateSo, per-segment shape tracking and random effects | 0.35 | T2 | verified, whole-game |
 | [0x1B17B8](../../src/hand/SetStepSpinRatio__FP4STEPf.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
-| [0x1B1DB8](../../src/auto/func_001B1DB8.c) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
-| [0x1B1E00](../../src/auto/func_001B1E00.c) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
-| [0x1B1E38](../../src/hand/func_001B1E38.c) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
-| [0x1B1E88](../../src/hand/func_001B1E88.c) | `FireMissile` | MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action | 0.80 | T1 |  |
-| [0x1B1F40](../../src/hand/func_001B1F40.c) | `FIgnoreMissileIntersection` | MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list +0x250 | 0.80 | T1 | verified |
-| [0x1B2070](../../src/auto/func_001B2070.c) | `InitAccmiss` | ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0 | 0.85 | T1 |  |
+| [0x1B1DB8](../../src/auto/InitMissile__FP7MISSILE.c) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
+| [0x1B1E00](../../src/auto/LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream.c) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
+| [0x1B1E38](../../src/hand/OnMissileRemove__FP7MISSILE.c) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
+| [0x1B1E88](../../src/hand/FireMissile.c) | `FireMissile` | MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action | 0.80 | T1 |  |
+| [0x1B1F40](../../src/hand/FIgnoreMissileIntersection__FP7MISSILEP2SO.c) | `FIgnoreMissileIntersection` | MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list +0x250 | 0.80 | T1 | verified |
+| [0x1B2070](../../src/auto/InitAccmiss__FP7ACCMISS.c) | `InitAccmiss` | ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0 | 0.85 | T1 |  |
 | [0x1BABA0](../../src/hand/func_001BABA0.cpp) | `LoadCid98FromBrx` | CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to counts | 0.75 | T2 | parse |
 | [0x1BAD80](../../src/auto/func_001BAD80.c) | `OnCid98Remove` | CID 98 vt22: FreezeSo then RemoveDlEntry from class list D_003E1450 | 0.85 | T2 | arbitration |
 | [0x1BADB8](../../src/auto/func_001BADB8.c) | `OnCid98Add` | CID 98 vt23: UnfreezeSo then AppendDlEntry to D_003E1450 | 0.85 | T2 | arbitration |
 | [0x1BB250](../../src/hand/func_001BB250.c) | `ScheduleCid98TouchEvents` | CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98 objects | 0.45 | T2 | verified |
-| [0x1D1940](../../src/auto/func_001D1940.c) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
-| [0x1D3E48](../../src/hand/func_001D3E48.c) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
+| [0x1D1940](../../src/auto/OnRobottankActive.c) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
+| [0x1D3E48](../../src/hand/AddRobottankCustomXps.c) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
 | [0x1D3F30](../../src/hand/func_001D3F30.c) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
 | [0x1D4D18](../../src/auto/func_001D4D18.c) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
 | [0x1D4DE0](../../src/auto/func_001D4DE0.c) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
-| [0x1DE3B0](../../src/hand/func_001DE3B0.c) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
-| [0x1DE478](../../src/hand/func_001DE478.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
+| [0x1DE3B0](../../src/hand/AddSensorNoTriggerClass.c) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
+| [0x1DE478](../../src/hand/LoadLasenFromBrx.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
 | [0x1FF438](../../src/auto/func_001FF438.c) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |
 | [0x1FF470](../../src/auto/func_001FF470.c) | `OnCid39Remove` | vt22: remove from SW update array (0x1A6150) and from DL D_003E13D8 | 0.85 | T2 | verified, arbitration |
 | [0x1FF4A8](../../src/hand/func_001FF4A8.c) | `CloneCid39` | Clone: XFM clone (0x2311B0) preserving a key field | 0.80 | T2 | verified |
-| [0x21D278](../../src/auto/func_0021D278.c) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
-| [0x21D320](../../src/auto/func_0021D320.c) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D358](../../src/auto/func_0021D358.c) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
-| [0x21D390](../../src/hand/func_0021D390.c) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
+| [0x21D278](../../src/auto/InitTarget.c) | `InitTarget` | InitXfm; grftak=0x17E; sRadiusTarget=25.0; +0xF4=-1; SetLoBusyk(3) | 0.85 | T1 | verified |
+| [0x21D320](../../src/auto/OnTargetRemove.c) | `OnTargetRemove` | OnLoRemove then RemoveDlEntry(&g_dlTarget D_003E13B4, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D358](../../src/auto/OnTargetAdd.c) | `OnTargetAdd` | OnLoAdd then AppendDlEntry(&g_dlTarget, this) | 0.85 | T1 | verified, arbitration |
+| [0x21D390](../../src/hand/CloneTarget.c) | `CloneTarget` | saves the 8-byte DLE at 0xE0, CloneXfm (0x2311B0), restores DLE | 0.85 | T1 | verified |
 | [0x21D428](../../src/auto/func_0021D428.c) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
 | [0x21D460](../../src/auto/func_0021D460.c) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
 | [0x21D498](../../src/hand/func_0021D498.c) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
@@ -114,8 +114,8 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x223FE0](../../src/auto/func_00223FE0.c) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
 | [0x224380](../../src/hand/func_00224380.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
 | [0x224610](../../src/hand/func_00224610.c) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
-| [0x225A68](../../src/auto/func_00225A68.c) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
-| [0x225AE8](../../src/hand/func_00225AE8.c) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
+| [0x225A68](../../src/auto/CloneTurret.c) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
+| [0x225AE8](../../src/hand/OnTurretActive.c) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
 
 Selected 60 of 359 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/gameplay-objects.md](../reference/functions/gameplay-objects.md).
 

@@ -59,7 +59,7 @@ In the Paris hub save states the stack held CMPART1 plus 1-3 CPTN entries (TN oi
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12E760](../../src/auto/func_0012E760.c) | `CPCAMERA_ctor` | Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) | 0.60 | T1 | verified |
+| [0x12E760](../../src/auto/CPCAMERA_ctor.c) | `CPCAMERA_ctor` | Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) | 0.60 | T1 | verified |
 | [0x14D3D8](../../src/auto/func_0014D3D8.c) | `CM_ctor` | CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera policies at +0x3A0..+0x600 | 0.90 | T1 |  |
 | [0x14D470](../../src/auto/StartupCm__Fv.c) | `SetupCm__FP2CM` |  | 0.90 | existing | arbitration; replaces existing StartupCm__Fv |
 | [0x14D478](../../src/hand/func_0014D478.c) | `UpdateCmLast` | Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50 GetCpdefi into cm+0x270, ResetCmAdjust/AdjustCmCpde | 0.85 | T1 |  |

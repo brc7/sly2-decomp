@@ -100,17 +100,17 @@ the memcard worker (`MemcardThreadMain` 0x1AAF18), and an MPEG display thread `[
 | [0x14D1D0](../../src/hand/func_0014D1D0.c) | `SetClockRate` | slot[islot] = r; RecalcClockRate() | 0.70 | T1 |  |
 | [0x14D1F8](../../src/hand/func_0014D1F8.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
 | [0x14D240](../../src/hand/func_0014D240.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
-| [0x187030](../../src/auto/func_00187030.c) | `StartupJoy` | UpdateGrfjoytFromGrfusr, scePadInit(0), InitJoy(&g_joy D_002DFC00, 0, 0), then init D_002DDEC0 (0x14C2D8) | 0.90 | T1 |  |
-| [0x187078](../../src/auto/func_00187078.c) | `AddGrfusr` | g_grfusr (D_002DFBC4) | 0.90 | T1 | verified |
-| [0x1870A0](../../src/auto/func_001870A0.c) | `RemoveGrfusr` | g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr | 0.90 | T1 | verified |
-| [0x1870D0](../../src/hand/func_001870D0.c) | `UpdateGrfjoytFromGrfusr` | g_grfjoyt (D_002DFBC0) = 5/0/5/4/7 from grfusr bits 0x10/0xC/1/2; if not bit 2 reset D_002E0CBC=0xFFFF | 0.85 | T1 |  |
-| [0x187150](../../src/hand/func_00187150.c) | `InitJoy` | SetJoyJoys(searching), store port/slot, scePadPortOpen, enable rumble, gain 1.0 | 0.85 | T1 |  |
-| [0x1875B8](../../src/hand/func_001875B8.c) | `SetJoyJoys` | Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4 changes, reset button state when state changes to/fr | 0.75 | T1 | verified |
-| [0x187DE0](../../src/auto/func_00187DE0.c) | `SetJoyBtnHandled` | Clear mask from pressed (x10B8) and add held&mask to handled (x10BC) | 0.75 | T1 |  |
-| [0x187E28](../../src/auto/func_00187E28.c) | `TriggerJoyRumbleRumk` | If rumble enabled and pad is a ready dualshock (joys>=3, joyk==3) TriggerRumbleRumk on the JOY's RUMBLE | 0.80 | T1 | verified |
-| [0x187E78](../../src/hand/func_00187E78.c) | `StartJoySelection` | Reset the menu selection repeat state (two fields = 0) | 0.55 | T1 | verified |
-| [0x187E88](../../src/hand/func_00187E88.c) | `DxSelectionJoy` | Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8, | 0.70 | T1 |  |
-| [0x1880D8](../../src/hand/func_001880D8.c) | `DySelectionJoy` | Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick | 0.70 | T1 |  |
+| [0x187030](../../src/auto/StartupJoy__Fv.c) | `StartupJoy` | UpdateGrfjoytFromGrfusr, scePadInit(0), InitJoy(&g_joy D_002DFC00, 0, 0), then init D_002DDEC0 (0x14C2D8) | 0.90 | T1 |  |
+| [0x187078](../../src/auto/AddGrfusr__Fi.c) | `AddGrfusr` | g_grfusr (D_002DFBC4) | 0.90 | T1 | verified |
+| [0x1870A0](../../src/auto/RemoveGrfusr__Fi.c) | `RemoveGrfusr` | g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr | 0.90 | T1 | verified |
+| [0x1870D0](../../src/hand/UpdateGrfjoytFromGrfusr__Fv.c) | `UpdateGrfjoytFromGrfusr` | g_grfjoyt (D_002DFBC0) = 5/0/5/4/7 from grfusr bits 0x10/0xC/1/2; if not bit 2 reset D_002E0CBC=0xFFFF | 0.85 | T1 |  |
+| [0x187150](../../src/hand/InitJoy__FP3JOYii.c) | `InitJoy` | SetJoyJoys(searching), store port/slot, scePadPortOpen, enable rumble, gain 1.0 | 0.85 | T1 |  |
+| [0x1875B8](../../src/hand/SetJoyJoys__FP3JOY4JOYS4JOYK.c) | `SetJoyJoys` | Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4 changes, reset button state when state changes to/fr | 0.75 | T1 | verified |
+| [0x187DE0](../../src/auto/SetJoyBtnHandled.c) | `SetJoyBtnHandled` | Clear mask from pressed (x10B8) and add held&mask to handled (x10BC) | 0.75 | T1 |  |
+| [0x187E28](../../src/auto/TriggerJoyRumbleRumk__FP3JOY4RUMKf.c) | `TriggerJoyRumbleRumk` | If rumble enabled and pad is a ready dualshock (joys>=3, joyk==3) TriggerRumbleRumk on the JOY's RUMBLE | 0.80 | T1 | verified |
+| [0x187E78](../../src/hand/StartJoySelection__FP3JOY.c) | `StartJoySelection` | Reset the menu selection repeat state (two fields = 0) | 0.55 | T1 | verified |
+| [0x187E88](../../src/hand/DxSelectionJoy.c) | `DxSelectionJoy` | Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8, | 0.70 | T1 |  |
+| [0x1880D8](../../src/hand/DySelectionJoy.c) | `DySelectionJoy` | Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick | 0.70 | T1 |  |
 | [0x1A7518](../../src/hand/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
 | [0x1A7630](../../src/hand/func_001A7630.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuff | 0.90 | T1 | verified |
 | [0x1A7890](../../src/auto/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |

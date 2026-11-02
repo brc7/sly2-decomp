@@ -56,31 +56,31 @@ BLIPG (CID 0x1C) particle groups (smoke, sparkles), Sly 1 blip.c; slots 2 Delete
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x138F08](../../src/hand/func_00138F08.cpp) | `BuildBlipAqwGifs` | Build static blip GIF packet for blend mode n | 0.90 | T1 | verified |
-| [0x138FC0](../../src/auto/func_00138FC0.c) | `StartupBlips` | Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600)) | 0.85 | T1 | verified |
-| [0x138FF8](../../src/hand/func_00138FF8.c) | `PblipNew` | Allocate a BLIP (+spline block) and append to the blipg list | 0.85 | T1 | verified |
-| [0x139098](../../src/auto/func_00139098.c) | `RemoveBlip` | Move blip from its group list to the pending-free list | 0.85 | T1 | verified |
-| [0x1390D8](../../src/hand/func_001390D8.c) | `PblipgNew` | Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11 AddHierarchy, vt15 PostLoad | 0.80 | T1 |  |
-| [0x1391C8](../../src/hand/func_001391C8.c) | `InitBlipg` | BLIPG vt7 Init | 0.85 | T1 | verified |
-| [0x139250](../../src/hand/func_00139250.c) | `OnBlipgRemove` | BLIPG vt12: remove all blips, base remove, queue group for freeing | 0.85 | T1 | verified |
-| [0x139AB8](../../src/hand/func_00139AB8.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
-| [0x139DC0](../../src/hand/func_00139DC0.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
-| [0x13A1E8](../../src/hand/func_0013A1E8.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
+| [0x138F08](../../src/hand/BuildBlipAqwGifs__FiPP2QW.cpp) | `BuildBlipAqwGifs` | Build static blip GIF packet for blend mode n | 0.90 | T1 | verified |
+| [0x138FC0](../../src/auto/StartupBlips__Fv.c) | `StartupBlips` | Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600)) | 0.85 | T1 | verified |
+| [0x138FF8](../../src/hand/PblipNew.c) | `PblipNew` | Allocate a BLIP (+spline block) and append to the blipg list | 0.85 | T1 | verified |
+| [0x139098](../../src/auto/RemoveBlip__FP4BLIP.c) | `RemoveBlip` | Move blip from its group list to the pending-free list | 0.85 | T1 | verified |
+| [0x1390D8](../../src/hand/PblipgNew.c) | `PblipgNew` | Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11 AddHierarchy, vt15 PostLoad | 0.80 | T1 |  |
+| [0x1391C8](../../src/hand/InitBlipg__FP5BLIPG.c) | `InitBlipg` | BLIPG vt7 Init | 0.85 | T1 | verified |
+| [0x139250](../../src/hand/OnBlipgRemove__FP5BLIPG.c) | `OnBlipgRemove` | BLIPG vt12: remove all blips, base remove, queue group for freeing | 0.85 | T1 | verified |
+| [0x139AB8](../../src/hand/ProjectBlipgTransformAccel.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
+| [0x139DC0](../../src/hand/ProjectBlipgTransform.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
+| [0x13A1E8](../../src/hand/RenderBlipgSelf.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
 | [0x159118](../../src/hand/func_00159118.c) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
-| [0x1591B0](../../src/hand/func_001591B0.c) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
+| [0x1591B0](../../src/hand/InitEmitter.c) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
 | [0x159240](../../src/hand/LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
-| [0x15A808](../../src/hand/func_0015A808.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
-| [0x15AD48](../../src/hand/func_0015AD48.c) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
-| [0x15B0C8](../../src/hand/func_0015B0C8.c) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
-| [0x15B1B0](../../src/hand/func_0015B1B0.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
-| [0x15B428](../../src/hand/func_0015B428.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
-| [0x15B7E8](../../src/hand/func_0015B7E8.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
-| [0x15BD20](../../src/hand/func_0015BD20.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
+| [0x15A808](../../src/hand/ChooseEmitoPos__FP5EMITOiiP6VECTORT3.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
+| [0x15AD48](../../src/hand/ConvertEmitoPosVec__FP5EMITOP6VECTORT1.c) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
+| [0x15B0C8](../../src/hand/ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7.c) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
+| [0x15B1B0](../../src/hand/EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
+| [0x15B428](../../src/hand/EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
+| [0x15B7E8](../../src/hand/OriginateParticles__FiP5EMITBP7EMITGEN.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
+| [0x15BD20](../../src/hand/EmitParticles__FiP5EMITBP5EMITG.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
 | [0x15C150](../../src/hand/func_0015C150.c) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
-| [0x15C198](../../src/hand/func_0015C198.c) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
-| [0x15C1E0](../../src/auto/func_0015C1E0.c) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
-| [0x15C1E8](../../src/hand/func_0015C1E8.c) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
-| [0x15C628](../../src/hand/func_0015C628.c) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
+| [0x15C198](../../src/hand/ExplodeExplParams.c) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
+| [0x15C1E0](../../src/auto/ExplodeExplExplso__FP4EXPLP6EXPLSO.c) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
+| [0x15C1E8](../../src/hand/LoadExplgFromBrx.c) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
+| [0x15C628](../../src/hand/ExplodeExplsExplso.c) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
 | [0x1CDCD0](../../src/hand/func_001CDCD0.c) | `PripgNew` | Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world | 0.75 | T1 |  |
 | [0x1CDDC8](../../src/hand/func_001CDDC8.c) | `InitRipg` | RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags | 0.85 | T1 | verified |
 | [0x1CDE70](../../src/auto/SetRipgEmitb__FP4RIPGP5EMITB.c) | `SetRipgEmitb__FP4RIPGP5EMITB` | copy emitb rate into RIPG | 0.90 | existing | verified |
