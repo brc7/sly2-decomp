@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`hud/`](hud/) | 124 |
-| [`letterbox/`](letterbox/) | 6 |
+| [`letterbox.cpp`](letterbox.cpp) | 1 |
 | [`prog/`](prog/) | 13 |
 | [`screen/`](screen/) | 98 |
 

@@ -72,10 +72,10 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A3020](../../../src/game/engine/presentation/letterbox/func_001A3020.c) | `InitLetterboxTimer` | Find object oid 0x373 (kind 0x405) into *p and SetTimerTimers(1) | 0.35 | T2 |  |
-| [0x1A3070](../../../src/game/engine/presentation/letterbox/func_001A3070.c) | `ClearLetterbox` | *p = 0 | 0.30 | T2 |  |
-| [0x1A3078](../../../src/game/engine/presentation/letterbox/func_001A3078.c) | `ShowLetterbox` | If a letterbox object exists, speaker label/sound D_004435F0 and call its vt49 (show) | 0.50 | T1 |  |
-| [0x1A30D0](../../../src/game/engine/presentation/letterbox/func_001A30D0.c) | `HideLetterbox` | Call the letterbox object's vt50 (hide) | 0.50 | T1 |  |
+| [0x1A3020](../../../src/game/engine/presentation/letterbox.cpp) | `InitLetterboxTimer` | Find object oid 0x373 (kind 0x405) into *p and SetTimerTimers(1) | 0.35 | T2 |  |
+| [0x1A3070](../../../src/game/engine/presentation/letterbox.cpp) | `ClearLetterbox` | *p = 0 | 0.30 | T2 |  |
+| [0x1A3078](../../../src/game/engine/presentation/letterbox.cpp) | `ShowLetterbox` | If a letterbox object exists, speaker label/sound D_004435F0 and call its vt49 (show) | 0.50 | T1 |  |
+| [0x1A30D0](../../../src/game/engine/presentation/letterbox.cpp) | `HideLetterbox` | Call the letterbox object's vt50 (hide) | 0.50 | T1 |  |
 
 ## menu (0x1AE928-0x1B0B78)
 
