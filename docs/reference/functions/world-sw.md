@@ -67,8 +67,8 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C2A78](../../../src/hand/SetPhase__F5PHASE.c) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
-| [0x1C2BA8](../../../src/auto/ClearPhase.c) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
+| [0x1C2A78](../../../src/game/platform/memory/phasemem/SetPhase__F5PHASE.c) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
+| [0x1C2BA8](../../../src/game/platform/memory/phasemem/ClearPhase.c) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
 
 ## sw (0x20D9D0-0x210EB0)
 

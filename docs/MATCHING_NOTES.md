@@ -116,7 +116,7 @@ real names you are confident about (from Sly 1 counterparts, strings, vtables), 
 - tools/asfix.py now pads `L: b L` (while(1);) and short loops that start with a `jal` (call + empty delay slot)
   to 6 instructions like the original. Re-verified: no regressions. If you see one extra nop before a short
   backward branch, report it in your notes with the function name.
-- `_start` (crt0) is hand-written asm in the original; it is kept as a top-level `__asm__` block in src/hand/_start.c.
+- `_start` (crt0) is hand-written asm in the original; it is kept as a top-level `__asm__` block in src/game/platform/boot/crt0/_start.c.
 
 ## Toolchain fixes (round 6) — IMPORTANT, supersedes earlier "nop before div" advice
 - The build now inserts the two nops Sly 2's assembler put before div.s / sqrt.s / rsqrt.s / vdiv / vsqrt / vrsqrt

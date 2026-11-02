@@ -81,7 +81,7 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x116A58](../../src/auto/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
+| [0x116A58](../../src/game/platform/memory/heap/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
 | [0x117120](../../src/hand/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
 | [0x117988](../../src/P2/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
 | [0x117FD0](../../src/hand/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
@@ -123,20 +123,20 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x13D558](../../src/auto/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
 | [0x13D850](../../src/auto/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
 | [0x13D8B8](../../src/auto/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
-| [0x14B9C0](../../src/auto/func_0014B9C0.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
-| [0x14BC78](../../src/hand/func_0014BC78.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
+| [0x14B9C0](../../src/game/platform/cdvd/cd/func_0014B9C0.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
+| [0x14BC78](../../src/game/platform/cdvd/cd/func_0014BC78.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
 | [0x1585D8](../../src/hand/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
 | [0x158728](../../src/hand/FillDzgDz.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing row | 0.70 | T1 | verified |
 | [0x158988](../../src/hand/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
 | [0x158B20](../../src/hand/SolveDzgFric.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction | 0.80 | T1 | verified |
-| [0x1AE1C8](../../src/auto/CheckForOutOfMemory__Fv.c) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
-| [0x1AE2A0](../../src/hand/func_001AE2A0.c) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
-| [0x1AE318](../../src/auto/func_001AE318.c) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
-| [0x1AE4F8](../../src/hand/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
-| [0x21E0D8](../../src/hand/func_0021E0D8.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
-| [0x21EDF8](../../src/hand/func_0021EDF8.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
-| [0x21F0C0](../../src/auto/func_0021F0C0.c) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
-| [0x21F100](../../src/hand/func_0021F100.c) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
+| [0x1AE1C8](../../src/game/platform/memory/memory/CheckForOutOfMemory__Fv.c) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
+| [0x1AE2A0](../../src/game/platform/memory/memory/func_001AE2A0.c) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
+| [0x1AE318](../../src/game/platform/memory/memory/func_001AE318.c) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
+| [0x1AE4F8](../../src/game/platform/memory/memory/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
+| [0x21E0D8](../../src/game/platform/runtime/text/func_0021E0D8.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
+| [0x21EDF8](../../src/game/platform/runtime/text/func_0021EDF8.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
+| [0x21F0C0](../../src/game/platform/thread/thread/func_0021F0C0.c) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
+| [0x21F100](../../src/game/platform/thread/thread/func_0021F100.c) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
 | [0x2584A8](../../src/hand/func_002584A8.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258598](../../src/lib/func_00258598.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258F40](../../src/hand/func_00258F40.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |

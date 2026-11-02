@@ -19,16 +19,16 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x116918](../../../src/P2/heap.cpp) | `PvAllocClear__FP4HEAPii` |  |  | existing |  |
-| [0x116970](../../../src/P2/heap.cpp) | `PvAllocCopy__FP4HEAPiPvi` |  |  | existing |  |
-| [0x1169D8](../../../src/P2/heap.cpp) | `PchzAllocCopy__FP4HEAPPci` |  |  | existing |  |
-| [0x116A30](../../../src/hand/CSwHeap_PvAlloc.c) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
-| [0x116A58](../../../src/auto/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
-| [0x116A90](../../../src/auto/CSwHeap_Free.c) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
-| [0x116A98](../../../src/P2/heap.cpp) | `__11CLinearHeapiPUc` |  |  | existing |  |
-| [0x116AB8](../../../src/P2/heap.cpp) | `PvAlloc__11CLinearHeapii` |  |  | existing |  |
-| [0x116AF8](../../../src/P2/heap.cpp) | `PvRealloc__11CLinearHeapPvii` |  |  | existing |  |
-| [0x116B28](../../../src/auto/Free__11CLinearHeapPv.c) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
+| [0x116918](../../../src/game/platform/memory/heap/heap.cpp) | `PvAllocClear__FP4HEAPii` |  |  | existing |  |
+| [0x116970](../../../src/game/platform/memory/heap/heap.cpp) | `PvAllocCopy__FP4HEAPiPvi` |  |  | existing |  |
+| [0x1169D8](../../../src/game/platform/memory/heap/heap.cpp) | `PchzAllocCopy__FP4HEAPPci` |  |  | existing |  |
+| [0x116A30](../../../src/game/platform/memory/heap/CSwHeap_PvAlloc.c) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
+| [0x116A58](../../../src/game/platform/memory/heap/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
+| [0x116A90](../../../src/game/platform/memory/heap/CSwHeap_Free.c) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
+| [0x116A98](../../../src/game/platform/memory/heap/heap.cpp) | `__11CLinearHeapiPUc` |  |  | existing |  |
+| [0x116AB8](../../../src/game/platform/memory/heap/heap.cpp) | `PvAlloc__11CLinearHeapii` |  |  | existing |  |
+| [0x116AF8](../../../src/game/platform/memory/heap/heap.cpp) | `PvRealloc__11CLinearHeapPvii` |  |  | existing |  |
+| [0x116B28](../../../src/game/platform/memory/heap/Free__11CLinearHeapPv.c) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
 
 ## dynarray (0x116CA0-0x117030)
 
@@ -38,8 +38,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x116CC0](../../../src/auto/func_00116CC0.c) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
 | [0x116CE0](../../../src/auto/func_00116CE0.c) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
 | [0x116D00](../../../src/auto/func_00116D00.c) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
-| [0x116D28](../../../src/P2/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
-| [0x116D70](../../../src/P2/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
+| [0x116D28](../../../src/game/platform/memory/heap/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
+| [0x116D70](../../../src/game/platform/memory/heap/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
 | [0x116E30](../../../src/hand/CDynArray_Append.c) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
 
 ## bez (0x117030-0x1177A8)
@@ -196,11 +196,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11CCA8](../../../src/auto/func_0011CCA8.c) | `InitSlotheap` | Initialises a fixed-size slot pool {cb, c, nKind/align, pvFree=NULL}; storage allocated lazily on first alloc | 0.60 | T1 |  |
-| [0x11CCC0](../../../src/hand/PvAllocSlotheapClear.c) | `PvAllocSlotheapClear` | Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first use), increments count, memsets to 0 | 0.60 | T1 |  |
-| [0x11CD98](../../../src/auto/func_0011CD98.c) | `FreeSlotheapPv` | Pushes a slot back on the free list, count-- | 0.75 | T1 |  |
-| [0x11CDB8](../../../src/hand/ResetSlotheap.c) | `ResetSlotheap` | Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates | 0.60 | T1 | top50 |
-| [0x11CDD8](../../../src/auto/func_0011CDD8.c) | `PrimeSlotheap` | Allocates and immediately frees one slot (forces the block allocation now) | 0.40 | T2 |  |
+| [0x11CCA8](../../../src/game/platform/memory/slotheap/func_0011CCA8.c) | `InitSlotheap` | Initialises a fixed-size slot pool {cb, c, nKind/align, pvFree=NULL}; storage allocated lazily on first alloc | 0.60 | T1 |  |
+| [0x11CCC0](../../../src/game/platform/memory/slotheap/PvAllocSlotheapClear.c) | `PvAllocSlotheapClear` | Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first use), increments count, memsets to 0 | 0.60 | T1 |  |
+| [0x11CD98](../../../src/game/platform/memory/slotheap/func_0011CD98.c) | `FreeSlotheapPv` | Pushes a slot back on the free list, count-- | 0.75 | T1 |  |
+| [0x11CDB8](../../../src/game/platform/memory/slotheap/ResetSlotheap.c) | `ResetSlotheap` | Clear a slot heap (+0xC count, +0x10 free list, +0x14 block) so it re-allocates | 0.60 | T1 | top50 |
+| [0x11CDD8](../../../src/game/platform/memory/slotheap/func_0011CDD8.c) | `PrimeSlotheap` | Allocates and immediately frees one slot (forces the block allocation now) | 0.40 | T2 |  |
 
 ## util (0x11CF60-0x11E198)
 
@@ -291,22 +291,22 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14B660](../../../src/auto/func_0014B660.c) | `SetCdModeDefault` | D_002BD4C0 = 3 | 0.30 | T2 |  |
-| [0x14B670](../../../src/auto/func_0014B670.c) | `CbFileRecord` | size (+4) of a file record if kind (+8) == 2 else 0 | 0.35 | T2 |  |
-| [0x14B690](../../../src/auto/func_0014B690.c) | `PchzFromFid` | returns the constant string 'fid:#unknown' (retail stub of a file-id name lookup) | 0.35 | T2 |  |
+| [0x14B660](../../../src/game/platform/cdvd/tu_14B660/func_0014B660.c) | `SetCdModeDefault` | D_002BD4C0 = 3 | 0.30 | T2 |  |
+| [0x14B670](../../../src/game/platform/cdvd/tu_14B660/func_0014B670.c) | `CbFileRecord` | size (+4) of a file record if kind (+8) == 2 else 0 | 0.35 | T2 |  |
+| [0x14B690](../../../src/game/platform/cdvd/tu_14B660/func_0014B690.c) | `PchzFromFid` | returns the constant string 'fid:#unknown' (retail stub of a file-id name lookup) | 0.35 | T2 |  |
 
 ## cd (0x14B7F8-0x14BEA8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14B7F8](../../../src/hand/CpchzTokenizePath__FPc.cpp) | `CpchzTokenizePath__FPc` |  |  | existing |  |
-| [0x14B9C0](../../../src/auto/func_0014B9C0.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
-| [0x14BA00](../../../src/auto/SetCdMmode__Fv.c) | `SetCdMmode__Fv` |  |  | existing |  |
-| [0x14BA30](../../../src/auto/StartupCd__Fv.c) | `StartupCd__Fv` |  |  | existing |  |
-| [0x14BA38](../../../src/hand/UpdateCd__Fv.cpp) | `UpdateCd__Fv` |  |  | existing |  |
-| [0x14BBB0](../../../src/hand/CdPath__FPcT0i.cpp) | `CdPath__FPcT0i` |  |  | existing |  |
-| [0x14BC78](../../../src/hand/func_0014BC78.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
-| [0x14BD30](../../../src/auto/FCdCompleted__Fi.c) | `FCdCompleted__Fi` |  |  | existing |  |
+| [0x14B7F8](../../../src/game/platform/cdvd/cd/CpchzTokenizePath__FPc.cpp) | `CpchzTokenizePath__FPc` |  |  | existing |  |
+| [0x14B9C0](../../../src/game/platform/cdvd/cd/func_0014B9C0.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
+| [0x14BA00](../../../src/game/platform/cdvd/cd/SetCdMmode__Fv.c) | `SetCdMmode__Fv` |  |  | existing |  |
+| [0x14BA30](../../../src/game/platform/cdvd/cd/StartupCd__Fv.c) | `StartupCd__Fv` |  |  | existing |  |
+| [0x14BA38](../../../src/game/platform/cdvd/cd/UpdateCd__Fv.cpp) | `UpdateCd__Fv` |  |  | existing |  |
+| [0x14BBB0](../../../src/game/platform/cdvd/cd/CdPath__FPcT0i.cpp) | `CdPath__FPcT0i` |  |  | existing |  |
+| [0x14BC78](../../../src/game/platform/cdvd/cd/func_0014BC78.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
+| [0x14BD30](../../../src/game/platform/cdvd/cd/FCdCompleted__Fi.c) | `FCdCompleted__Fi` |  |  | existing |  |
 
 ## dzg (0x1585D8-0x159118)
 
@@ -337,80 +337,80 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1AE150](../../../src/auto/func_001AE150.c) | `CbFreeMem` | Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388) | 0.55 | T1 |  |
-| [0x1AE168](../../../src/hand/StartupMemMgr__Fv.c) | `StartupMemMgr__Fv` | Init heaps: world min/mac = align16(_end), stack min/mac = 0x2000000, stack index -1, InitCritSect | 0.98 | existing |  |
-| [0x1AE1C8](../../../src/auto/CheckForOutOfMemory__Fv.c) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
-| [0x1AE1D0](../../../src/hand/func_001AE1D0.c) | `PvAllocSwImpl` | World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb) | 0.92 | T1 |  |
-| [0x1AE238](../../../src/hand/func_001AE238.c) | `PvAllocSwCopyImpl` | PvAllocSwImpl then CopyAb(dst src cb) | 0.92 | T1 |  |
-| [0x1AE2A0](../../../src/hand/func_001AE2A0.c) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
-| [0x1AE300](../../../src/auto/FreeSw__Fv.c) | `FreeSw__Fv` | Reset world heap top to world heap min (level unload) | 0.97 | existing |  |
-| [0x1AE318](../../../src/auto/func_001AE318.c) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
-| [0x1AE378](../../../src/hand/func_001AE378.c) | `PvAllocStackClearImpl` | PvAllocStackImpl then memset 0 | 0.92 | T1 |  |
-| [0x1AE3D8](../../../src/hand/InitStackImpl__Fv.cpp) | `InitStackImpl__Fv` | EnterCritSect and push stack-heap mark | 0.97 | existing |  |
-| [0x1AE428](../../../src/hand/FreeStackImpl__Fv.cpp) | `FreeStackImpl__Fv` | Pop stack-heap mark and LeaveCritSect | 0.97 | existing |  |
-| [0x1AE478](../../../src/auto/func_001AE478.c) | `STACKSCOPE_ctor` | RAII scope ctor: InitStackImpl; returns this | 0.80 | T1 |  |
-| [0x1AE4A0](../../../src/auto/func_001AE4A0.c) | `STACKSCOPE_ctor_1AE4A0` | RAII scope dtor: FreeStackImpl; deletes if (flags&1) | 0.80 | T1 |  |
-| [0x1AE4E8](../../../src/auto/malloc.c) | `malloc` | Returns NULL (libc malloc disabled) | 0.97 | existing |  |
-| [0x1AE4F0](../../../src/auto/free.c) | `free` | No-op | 0.97 | existing |  |
-| [0x1AE4F8](../../../src/hand/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
-| [0x1AE520](../../../src/auto/__builtin_delete.c) | `__builtin_delete` | operator delete no-op | 0.97 | existing |  |
-| [0x1AE528](../../../src/hand/CopyAqw__FPvT0i.cpp) | `CopyAqw__FPvT0i` | Quadword copy (remainder then 4x unrolled) | 0.95 | existing |  |
-| [0x1AE5A0](../../../src/hand/CopyAb__FPvT0Ui.cpp) | `CopyAb` | Byte/word memcpy | 0.95 | existing |  |
+| [0x1AE150](../../../src/game/platform/memory/memory/func_001AE150.c) | `CbFreeMem` | Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388) | 0.55 | T1 |  |
+| [0x1AE168](../../../src/game/platform/memory/memory/StartupMemMgr__Fv.c) | `StartupMemMgr__Fv` | Init heaps: world min/mac = align16(_end), stack min/mac = 0x2000000, stack index -1, InitCritSect | 0.98 | existing |  |
+| [0x1AE1C8](../../../src/game/platform/memory/memory/CheckForOutOfMemory__Fv.c) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
+| [0x1AE1D0](../../../src/game/platform/memory/memory/func_001AE1D0.c) | `PvAllocSwImpl` | World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb) | 0.92 | T1 |  |
+| [0x1AE238](../../../src/game/platform/memory/memory/func_001AE238.c) | `PvAllocSwCopyImpl` | PvAllocSwImpl then CopyAb(dst src cb) | 0.92 | T1 |  |
+| [0x1AE2A0](../../../src/game/platform/memory/memory/func_001AE2A0.c) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
+| [0x1AE300](../../../src/game/platform/memory/memory/FreeSw__Fv.c) | `FreeSw__Fv` | Reset world heap top to world heap min (level unload) | 0.97 | existing |  |
+| [0x1AE318](../../../src/game/platform/memory/memory/func_001AE318.c) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
+| [0x1AE378](../../../src/game/platform/memory/memory/func_001AE378.c) | `PvAllocStackClearImpl` | PvAllocStackImpl then memset 0 | 0.92 | T1 |  |
+| [0x1AE3D8](../../../src/game/platform/memory/memory/InitStackImpl__Fv.cpp) | `InitStackImpl__Fv` | EnterCritSect and push stack-heap mark | 0.97 | existing |  |
+| [0x1AE428](../../../src/game/platform/memory/memory/FreeStackImpl__Fv.cpp) | `FreeStackImpl__Fv` | Pop stack-heap mark and LeaveCritSect | 0.97 | existing |  |
+| [0x1AE478](../../../src/game/platform/memory/memory/func_001AE478.c) | `STACKSCOPE_ctor` | RAII scope ctor: InitStackImpl; returns this | 0.80 | T1 |  |
+| [0x1AE4A0](../../../src/game/platform/memory/memory/func_001AE4A0.c) | `STACKSCOPE_ctor_1AE4A0` | RAII scope dtor: FreeStackImpl; deletes if (flags&1) | 0.80 | T1 |  |
+| [0x1AE4E8](../../../src/game/platform/memory/memory/malloc.c) | `malloc` | Returns NULL (libc malloc disabled) | 0.97 | existing |  |
+| [0x1AE4F0](../../../src/game/platform/memory/memory/free.c) | `free` | No-op | 0.97 | existing |  |
+| [0x1AE4F8](../../../src/game/platform/memory/memory/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
+| [0x1AE520](../../../src/game/platform/memory/memory/__builtin_delete.c) | `__builtin_delete` | operator delete no-op | 0.97 | existing |  |
+| [0x1AE528](../../../src/game/platform/memory/memory/CopyAqw__FPvT0i.cpp) | `CopyAqw__FPvT0i` | Quadword copy (remainder then 4x unrolled) | 0.95 | existing |  |
+| [0x1AE5A0](../../../src/game/platform/memory/memory/CopyAb__FPvT0Ui.cpp) | `CopyAb` | Byte/word memcpy | 0.95 | existing |  |
 
 ## sprbuf (0x201620-0x201D78)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x201620](../../../src/hand/LoadSprBuf__Fie.cpp) | `LoadSprBuf__Fie` |  |  | existing |  |
-| [0x2017A0](../../../src/hand/SaveSprBuf__FPve.cpp) | `SaveSprBuf__FPve` |  |  | existing |  |
-| [0x201998](../../../src/hand/func_00201998.c) | `SwapSprBuf` | sceDmaSync on the transfer channel, flip double-buffer index D_002C3C5C, mark new buffer state 2 | 0.45 | T2 |  |
+| [0x201620](../../../src/game/platform/memory/sprbuf/LoadSprBuf__Fie.cpp) | `LoadSprBuf__Fie` |  |  | existing |  |
+| [0x2017A0](../../../src/game/platform/memory/sprbuf/SaveSprBuf__FPve.cpp) | `SaveSprBuf__FPve` |  |  | existing |  |
+| [0x201998](../../../src/game/platform/memory/sprbuf/func_00201998.c) | `SwapSprBuf` | sceDmaSync on the transfer channel, flip double-buffer index D_002C3C5C, mark new buffer state 2 | 0.45 | T2 |  |
 
 ## stream (0x20D5D0-0x20D9D0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x20D5D0](../../../src/auto/__5OSTRMi.c) | `__5OSTRMi` |  |  | existing |  |
-| [0x20D5F0](../../../src/auto/__5OSTRMPvi.c) | `__5OSTRMPvi` |  |  | existing |  |
-| [0x20D618](../../../src/hand/_$_5OSTRM.cpp) | `_$_5OSTRM` |  |  | existing |  |
-| [0x20D660](../../../src/hand/CbWrite__5OSTRMPvi.cpp) | `CbWrite__5OSTRMPvi` |  |  | existing |  |
-| [0x20D798](../../../src/hand/Flush__5OSTRM.cpp) | `Flush__5OSTRM` |  |  | existing |  |
+| [0x20D5D0](../../../src/game/platform/runtime/stream/__5OSTRMi.c) | `__5OSTRMi` |  |  | existing |  |
+| [0x20D5F0](../../../src/game/platform/runtime/stream/__5OSTRMPvi.c) | `__5OSTRMPvi` |  |  | existing |  |
+| [0x20D618](../../../src/game/platform/runtime/stream/_$_5OSTRM.cpp) | `_$_5OSTRM` |  |  | existing |  |
+| [0x20D660](../../../src/game/platform/runtime/stream/CbWrite__5OSTRMPvi.cpp) | `CbWrite__5OSTRMPvi` |  |  | existing |  |
+| [0x20D798](../../../src/game/platform/runtime/stream/Flush__5OSTRM.cpp) | `Flush__5OSTRM` |  |  | existing |  |
 
 ## text (0x21D638-0x21EFD0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21D638](../../../src/hand/CchParsePchzInt__FPcPi.cpp) | `CchParsePchzInt__FPcPi` |  |  | existing |  |
-| [0x21D6B0](../../../src/hand/CchParsePchzTft__FPcP3TFTPPc.cpp) | `CchParsePchzTft__FPcP3TFTPPc` |  |  | existing |  |
-| [0x21D9F0](../../../src/hand/WriteTftPchz__FP3TFTP5OSTRMPc.cpp) | `WriteTftPchz__FP3TFTP5OSTRMPc` |  |  | existing |  |
-| [0x21DB38](../../../src/hand/FNegTftUl__FP3TFTP2UL.cpp) | `FNegTftUl__FP3TFTP2UL` |  |  | existing |  |
-| [0x21DC18](../../../src/hand/UnRadixFromChConversion__Fc.c) | `UnRadixFromChConversion__Fc` |  |  | existing |  |
-| [0x21DC70](../../../src/hand/CchAchFromUl__FPciUlUi.cpp) | `CchAchFromUl__FPciUlUi` |  |  | existing |  |
-| [0x21DD40](../../../src/hand/WriteTftUl__FP3TFTP5OSTRMUl.cpp) | `WriteTftUl__FP3TFTP5OSTRMUl` |  |  | existing |  |
-| [0x21E048](../../../src/hand/ExpFirstFromG__Fd.cpp) | `ExpFirstFromG__Fd` |  |  | existing |  |
-| [0x21E0D8](../../../src/hand/func_0021E0D8.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
-| [0x21E1B0](../../../src/hand/CchAchFromDouble__FPciP3TFTd.cpp) | `CchAchFromDouble__FPciP3TFTd` |  |  | existing |  |
-| [0x21E4B8](../../../src/hand/WriteTftDouble__FP3TFTP5OSTRMd.cpp) | `WriteTftDouble__FP3TFTP5OSTRMd` |  |  | existing |  |
-| [0x21E718](../../../src/hand/WriteTft__FP3TFTP5OSTRMPPcPci.cpp) | `WriteTft__FP3TFTP5OSTRMPPcPci` |  |  | existing |  |
-| [0x21EAC8](../../../src/hand/CchOstrmPrintf__FP5OSTRMPcT1.cpp) | `CchOstrmPrintf__FP5OSTRMPcT1` |  |  | existing |  |
-| [0x21EBB8](../../../src/hand/vprintf.c) | `vprintf` |  |  | existing |  |
-| [0x21EC18](../../../src/hand/kprintf.c) | `printf` |  |  | existing |  |
-| [0x21EC60](../../../src/hand/s1_vsprintf.c) | `vsprintf` |  |  | existing |  |
-| [0x21ECD8](../../../src/hand/fiprintf.c) | `sprintf` |  |  | existing |  |
-| [0x21ED28](../../../src/auto/strlen.c) | `strlen` |  |  | existing |  |
-| [0x21ED58](../../../src/auto/strcpy.c) | `strcpy` |  |  | existing |  |
-| [0x21EDA0](../../../src/hand/strcpy1.c) | `strcpy1` |  |  | existing |  |
-| [0x21EDF8](../../../src/hand/func_0021EDF8.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
-| [0x21EE30](../../../src/hand/UpperizePchz__FPc.c) | `UpperizePchz__FPc` |  |  | existing |  |
+| [0x21D638](../../../src/game/platform/runtime/text/CchParsePchzInt__FPcPi.cpp) | `CchParsePchzInt__FPcPi` |  |  | existing |  |
+| [0x21D6B0](../../../src/game/platform/runtime/text/CchParsePchzTft__FPcP3TFTPPc.cpp) | `CchParsePchzTft__FPcP3TFTPPc` |  |  | existing |  |
+| [0x21D9F0](../../../src/game/platform/runtime/text/WriteTftPchz__FP3TFTP5OSTRMPc.cpp) | `WriteTftPchz__FP3TFTP5OSTRMPc` |  |  | existing |  |
+| [0x21DB38](../../../src/game/platform/runtime/text/FNegTftUl__FP3TFTP2UL.cpp) | `FNegTftUl__FP3TFTP2UL` |  |  | existing |  |
+| [0x21DC18](../../../src/game/platform/runtime/text/UnRadixFromChConversion__Fc.c) | `UnRadixFromChConversion__Fc` |  |  | existing |  |
+| [0x21DC70](../../../src/game/platform/runtime/text/CchAchFromUl__FPciUlUi.cpp) | `CchAchFromUl__FPciUlUi` |  |  | existing |  |
+| [0x21DD40](../../../src/game/platform/runtime/text/WriteTftUl__FP3TFTP5OSTRMUl.cpp) | `WriteTftUl__FP3TFTP5OSTRMUl` |  |  | existing |  |
+| [0x21E048](../../../src/game/platform/runtime/text/ExpFirstFromG__Fd.cpp) | `ExpFirstFromG__Fd` |  |  | existing |  |
+| [0x21E0D8](../../../src/game/platform/runtime/text/func_0021E0D8.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
+| [0x21E1B0](../../../src/game/platform/runtime/text/CchAchFromDouble__FPciP3TFTd.cpp) | `CchAchFromDouble__FPciP3TFTd` |  |  | existing |  |
+| [0x21E4B8](../../../src/game/platform/runtime/text/WriteTftDouble__FP3TFTP5OSTRMd.cpp) | `WriteTftDouble__FP3TFTP5OSTRMd` |  |  | existing |  |
+| [0x21E718](../../../src/game/platform/runtime/text/WriteTft__FP3TFTP5OSTRMPPcPci.cpp) | `WriteTft__FP3TFTP5OSTRMPPcPci` |  |  | existing |  |
+| [0x21EAC8](../../../src/game/platform/runtime/text/CchOstrmPrintf__FP5OSTRMPcT1.cpp) | `CchOstrmPrintf__FP5OSTRMPcT1` |  |  | existing |  |
+| [0x21EBB8](../../../src/game/platform/runtime/text/vprintf.c) | `vprintf` |  |  | existing |  |
+| [0x21EC18](../../../src/game/platform/runtime/text/kprintf.c) | `printf` |  |  | existing |  |
+| [0x21EC60](../../../src/game/platform/runtime/text/s1_vsprintf.c) | `vsprintf` |  |  | existing |  |
+| [0x21ECD8](../../../src/game/platform/runtime/text/fiprintf.c) | `sprintf` |  |  | existing |  |
+| [0x21ED28](../../../src/game/platform/runtime/text/strlen.c) | `strlen` |  |  | existing |  |
+| [0x21ED58](../../../src/game/platform/runtime/text/strcpy.c) | `strcpy` |  |  | existing |  |
+| [0x21EDA0](../../../src/game/platform/runtime/text/strcpy1.c) | `strcpy1` |  |  | existing |  |
+| [0x21EDF8](../../../src/game/platform/runtime/text/func_0021EDF8.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
+| [0x21EE30](../../../src/game/platform/runtime/text/UpperizePchz__FPc.c) | `UpperizePchz__FPc` |  |  | existing |  |
 
 ## thread (0x21EFD0-0x21F2E0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21EFD0](../../../src/hand/SemaCreate__Fii.c) | `SemaCreate__Fii` |  |  | existing |  |
-| [0x21F028](../../../src/auto/InitCritSect__FP8CRITSECT.c) | `InitCritSect__FP8CRITSECT` |  |  | existing |  |
-| [0x21F060](../../../src/hand/EnterCritSect__FP8CRITSECT.cpp) | `EnterCritSect__FP8CRITSECT` |  |  | existing |  |
-| [0x21F0C0](../../../src/auto/func_0021F0C0.c) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
-| [0x21F100](../../../src/hand/func_0021F100.c) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
+| [0x21EFD0](../../../src/game/platform/thread/thread/SemaCreate__Fii.c) | `SemaCreate__Fii` |  |  | existing |  |
+| [0x21F028](../../../src/game/platform/thread/thread/InitCritSect__FP8CRITSECT.c) | `InitCritSect__FP8CRITSECT` |  |  | existing |  |
+| [0x21F060](../../../src/game/platform/thread/thread/EnterCritSect__FP8CRITSECT.cpp) | `EnterCritSect__FP8CRITSECT` |  |  | existing |  |
+| [0x21F0C0](../../../src/game/platform/thread/thread/func_0021F0C0.c) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
+| [0x21F100](../../../src/game/platform/thread/thread/func_0021F100.c) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
 
 ## game_linkonce (0x254F00-0x259DE4)
 
@@ -527,7 +527,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258920](../../../src/lib/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589A8](../../../src/auto/func_002589A8.c) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589F0](../../../src/auto/func_002589F0.c) | `GetEmitterEmitbField4` | return pemitb->field4 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258A00](../../../src/hand/func_00258A00.c) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
+| [0x258A00](../../../src/game/platform/memory/memory/func_00258A00.c) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
 | [0x258AB8](../../../src/auto/func_00258AB8.c) | `GetEmitterEmitoKind` | return EMITO kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258AC8](../../../src/auto/func_00258AC8.c) | `PemitoEmitterEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258B00](../../../src/auto/func_00258B00.c) | `PemitoEmitterEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -551,7 +551,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2593B8](../../../src/lib/func_002593B8.c) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259440](../../../src/auto/func_00259440.c) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259488](../../../src/auto/func_00259488.c) | `GetExploEmitbField4` | return pemitb->field4 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259498](../../../src/hand/func_00259498.c) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
+| [0x259498](../../../src/game/platform/memory/memory/func_00259498.c) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
 | [0x259550](../../../src/auto/func_00259550.c) | `GetExploEmitoKind` | return EMITO kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259560](../../../src/auto/func_00259560.c) | `PemitoExploEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259598](../../../src/auto/func_00259598.c) | `PemitoExploEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |

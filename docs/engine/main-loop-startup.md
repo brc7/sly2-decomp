@@ -100,28 +100,28 @@ the memcard worker (`MemcardThreadMain` 0x1AAF18), and an MPEG display thread `[
 | [0x14D1D0](../../src/hand/func_0014D1D0.c) | `SetClockRate` | slot[islot] = r; RecalcClockRate() | 0.70 | T1 |  |
 | [0x14D1F8](../../src/hand/func_0014D1F8.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
 | [0x14D240](../../src/hand/func_0014D240.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
-| [0x187030](../../src/auto/StartupJoy__Fv.c) | `StartupJoy` | UpdateGrfjoytFromGrfusr, scePadInit(0), InitJoy(&g_joy D_002DFC00, 0, 0), then init D_002DDEC0 (0x14C2D8) | 0.90 | T1 |  |
-| [0x187078](../../src/auto/AddGrfusr__Fi.c) | `AddGrfusr` | g_grfusr (D_002DFBC4) | 0.90 | T1 | verified |
-| [0x1870A0](../../src/auto/RemoveGrfusr__Fi.c) | `RemoveGrfusr` | g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr | 0.90 | T1 | verified |
-| [0x1870D0](../../src/hand/UpdateGrfjoytFromGrfusr__Fv.c) | `UpdateGrfjoytFromGrfusr` | g_grfjoyt (D_002DFBC0) = 5/0/5/4/7 from grfusr bits 0x10/0xC/1/2; if not bit 2 reset D_002E0CBC=0xFFFF | 0.85 | T1 |  |
-| [0x187150](../../src/hand/InitJoy__FP3JOYii.c) | `InitJoy` | SetJoyJoys(searching), store port/slot, scePadPortOpen, enable rumble, gain 1.0 | 0.85 | T1 |  |
-| [0x1875B8](../../src/hand/SetJoyJoys__FP3JOY4JOYS4JOYK.c) | `SetJoyJoys` | Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4 changes, reset button state when state changes to/fr | 0.75 | T1 | verified |
-| [0x187DE0](../../src/auto/SetJoyBtnHandled.c) | `SetJoyBtnHandled` | Clear mask from pressed (x10B8) and add held&mask to handled (x10BC) | 0.75 | T1 |  |
-| [0x187E28](../../src/auto/TriggerJoyRumbleRumk__FP3JOY4RUMKf.c) | `TriggerJoyRumbleRumk` | If rumble enabled and pad is a ready dualshock (joys>=3, joyk==3) TriggerRumbleRumk on the JOY's RUMBLE | 0.80 | T1 | verified |
-| [0x187E78](../../src/hand/StartJoySelection__FP3JOY.c) | `StartJoySelection` | Reset the menu selection repeat state (two fields = 0) | 0.55 | T1 | verified |
-| [0x187E88](../../src/hand/DxSelectionJoy.c) | `DxSelectionJoy` | Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8, | 0.70 | T1 |  |
-| [0x1880D8](../../src/hand/DySelectionJoy.c) | `DySelectionJoy` | Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick | 0.70 | T1 |  |
+| [0x187030](../../src/game/platform/input/joy/StartupJoy__Fv.c) | `StartupJoy` | UpdateGrfjoytFromGrfusr, scePadInit(0), InitJoy(&g_joy D_002DFC00, 0, 0), then init D_002DDEC0 (0x14C2D8) | 0.90 | T1 |  |
+| [0x187078](../../src/game/platform/input/joy/AddGrfusr__Fi.c) | `AddGrfusr` | g_grfusr (D_002DFBC4) | 0.90 | T1 | verified |
+| [0x1870A0](../../src/game/platform/input/joy/RemoveGrfusr__Fi.c) | `RemoveGrfusr` | g_grfusr &= ~mask; UpdateGrfjoytFromGrfusr | 0.90 | T1 | verified |
+| [0x1870D0](../../src/game/platform/input/joy/UpdateGrfjoytFromGrfusr__Fv.c) | `UpdateGrfjoytFromGrfusr` | g_grfjoyt (D_002DFBC0) = 5/0/5/4/7 from grfusr bits 0x10/0xC/1/2; if not bit 2 reset D_002E0CBC=0xFFFF | 0.85 | T1 |  |
+| [0x187150](../../src/game/platform/input/joy/InitJoy__FP3JOYii.c) | `InitJoy` | SetJoyJoys(searching), store port/slot, scePadPortOpen, enable rumble, gain 1.0 | 0.85 | T1 |  |
+| [0x1875B8](../../src/game/platform/input/joy/SetJoyJoys__FP3JOY4JOYS4JOYK.c) | `SetJoyJoys` | Change pad state/kind: InitRumble when kind becomes >=3 (dualshock), clear analog block on kind 4 changes, reset button state when state changes to/fr | 0.75 | T1 | verified |
+| [0x187DE0](../../src/game/platform/input/joy/SetJoyBtnHandled.c) | `SetJoyBtnHandled` | Clear mask from pressed (x10B8) and add held&mask to handled (x10BC) | 0.75 | T1 |  |
+| [0x187E28](../../src/game/platform/input/joy/TriggerJoyRumbleRumk__FP3JOY4RUMKf.c) | `TriggerJoyRumbleRumk` | If rumble enabled and pad is a ready dualshock (joys>=3, joyk==3) TriggerRumbleRumk on the JOY's RUMBLE | 0.80 | T1 | verified |
+| [0x187E78](../../src/game/platform/input/joy/StartJoySelection__FP3JOY.c) | `StartJoySelection` | Reset the menu selection repeat state (two fields = 0) | 0.55 | T1 | verified |
+| [0x187E88](../../src/game/platform/input/joy/DxSelectionJoy.c) | `DxSelectionJoy` | Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8, | 0.70 | T1 |  |
+| [0x1880D8](../../src/game/platform/input/joy/DySelectionJoy.c) | `DySelectionJoy` | Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick | 0.70 | T1 |  |
 | [0x1A7518](../../src/hand/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
 | [0x1A7630](../../src/hand/func_001A7630.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuff | 0.90 | T1 | verified |
 | [0x1A7890](../../src/auto/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
 | [0x1A7900](../../src/auto/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
 | [0x1A7970](../../src/hand/func_001A7970.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "08 | 0.95 | T1 | verified |
-| [0x1D5150](../../src/auto/InitRumble__FP6RUMBLEii.c) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
-| [0x1D51B8](../../src/hand/UpdateRumble__FP6RUMBLE.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
-| [0x1D5310](../../src/hand/TriggerRumbleRumk__FP6RUMBLE4RUMKf.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
-| [0x1D5468](../../src/hand/StopRumbleActuators__FP6RUMBLE.cpp) | `StopRumbleActuators__FP6RUMBLE` | Zero both motors | 0.90 | existing | verified |
-| [0x1D5498](../../src/auto/RumbleUnknown1__Fv.c) | `EnsureRumbleModeDefault` | If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting) | 0.50 | existing | arbitration; replaces existing RumbleUnknown1__Fv |
-| [0x1D55B8](../../src/hand/func_001D55B8.c) | `FRumbleEnabled` | Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8 | 0.60 | T1 |  |
+| [0x1D5150](../../src/game/platform/input/rumble/InitRumble__FP6RUMBLEii.c) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
+| [0x1D51B8](../../src/game/platform/input/rumble/UpdateRumble__FP6RUMBLE.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
+| [0x1D5310](../../src/game/platform/input/rumble/TriggerRumbleRumk__FP6RUMBLE4RUMKf.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
+| [0x1D5468](../../src/game/platform/input/rumble/StopRumbleActuators__FP6RUMBLE.cpp) | `StopRumbleActuators__FP6RUMBLE` | Zero both motors | 0.90 | existing | verified |
+| [0x1D5498](../../src/game/platform/input/rumble/RumbleUnknown1__Fv.c) | `EnsureRumbleModeDefault` | If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting) | 0.50 | existing | arbitration; replaces existing RumbleUnknown1__Fv |
+| [0x1D55B8](../../src/game/platform/input/rumble/func_001D55B8.c) | `FRumbleEnabled` | Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8 | 0.60 | T1 |  |
 
 Selected 36 of 48 named functions (T1 with confidence >= 0.6, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/main-loop-startup.md](../reference/functions/main-loop-startup.md).
 

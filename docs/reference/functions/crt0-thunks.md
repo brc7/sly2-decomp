@@ -19,7 +19,7 @@ Totals on this page: EXISTING 1, T1 583, T2 238.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x100008](../../../src/hand/_start.c) | `_start` |  |  | existing |  |
+| [0x100008](../../../src/game/platform/boot/crt0/_start.c) | `_start` |  |  | existing |  |
 | [0x100228](../../../src/hand/RefThunkBasicDERIVED_FROMQ.cpp) | `RefThunkBasicDERIVED_FROMQ` | Splice option thunk (just BEFORE the requested span): optid 3 on BASIC (g_aeopid[2] thunkFn, returns Bool, crefReq 1); unpacks 1 arg (Cid) and returns FIsBasicDerivedFrom(pbasic, cid) via CRef_SetBool | 0.90 | T1 | table |
 | [0x1002A8](../../../src/generated/splicewrap/RefThunkBasicCUSTOM_BOOL_PROPERTY.c) | `RefThunkBasicCUSTOM_BOOL_PROPERTY` | Splice option thunk: optid 4 on BASIC (g_aeopid[3] thunkFn/thunkUser, returns Void, crefReq 2); unpacks 2 args (Basic?, Bool) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagBool (0x132BC8) | 0.85 | T1 | table |
 | [0x100350](../../../src/generated/splicewrap/RefThunkBasicCUSTOM_INT_PROPERTY.c) | `RefThunkBasicCUSTOM_INT_PROPERTY` | Splice option thunk: optid 5 on BASIC (g_aeopid[4] thunkFn/thunkUser, returns Void, crefReq 2); unpacks 2 args (Basic?, Int) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagInt (0x132C20) | 0.85 | T1 | table |
