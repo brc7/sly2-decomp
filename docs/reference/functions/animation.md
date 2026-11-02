@@ -94,14 +94,14 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12EB48](../../../src/game/engine/sound/amb/func_0012EB48.c) | `InitCid43` | slot 7 of class cid 0x2B (XFM child, 0x100 B): InitXfm + SetLoBusyk | 0.55 | T2 |  |
-| [0x12EB78](../../../src/game/engine/sound/amb/func_0012EB78.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
-| [0x12EC50](../../../src/game/engine/sound/amb/func_0012EC50.c) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
-| [0x12ED20](../../../src/game/engine/sound/amb/func_0012ED20.c) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
-| [0x12EDE8](../../../src/game/engine/sound/amb/func_0012EDE8.c) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
-| [0x12EE78](../../../src/game/engine/sound/amb/func_0012EE78.c) | `Cid43Callback` | Callback in a 4-entry table (0x2AD86C..) forwarding to 0x12EEE0 | 0.30 | T2 |  |
-| [0x12EEE0](../../../src/game/engine/sound/amb/func_0012EEE0.c) | `SetCid43SoundParam` | Script-settable parameter of the ambient sound object | 0.30 | T2 |  |
-| [0x12EF40](../../../src/game/engine/sound/amb/func_0012EF40.c) | `Cid43Unk` | Small helper, no callers (proposal PtargetEnsureAlo rejected) | 0.20 | T2 |  |
+| [0x12EB48](../../../src/game/engine/sound/amb.cpp) | `InitCid43` | slot 7 of class cid 0x2B (XFM child, 0x100 B): InitXfm + SetLoBusyk | 0.55 | T2 |  |
+| [0x12EB78](../../../src/game/engine/sound/amb.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
+| [0x12EC50](../../../src/game/engine/sound/amb.cpp) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
+| [0x12ED20](../../../src/game/engine/sound/amb.cpp) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
+| [0x12EDE8](../../../src/game/engine/sound/amb.cpp) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
+| [0x12EE78](../../../src/game/engine/sound/amb.cpp) | `Cid43Callback` | Callback in a 4-entry table (0x2AD86C..) forwarding to 0x12EEE0 | 0.30 | T2 |  |
+| [0x12EEE0](../../../src/game/engine/sound/amb.cpp) | `SetCid43SoundParam` | Script-settable parameter of the ambient sound object | 0.30 | T2 |  |
+| [0x12EF40](../../../src/game/engine/sound/amb.cpp) | `Cid43Unk` | Small helper, no callers (proposal PtargetEnsureAlo rejected) | 0.20 | T2 |  |
 
 ## aseg (0x12F248-0x1308A8)
 

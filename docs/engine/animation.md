@@ -110,10 +110,10 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x12DD28](../../src/game/engine/anim/act/func_0012DD28.c) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
 | [0x12DDB0](../../src/game/engine/anim/act/func_0012DDB0.c) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
 | [0x12E3F0](../../src/game/engine/anim/act/func_0012E3F0.c) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
-| [0x12EB78](../../src/game/engine/sound/amb/func_0012EB78.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
-| [0x12EC50](../../src/game/engine/sound/amb/func_0012EC50.c) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
-| [0x12ED20](../../src/game/engine/sound/amb/func_0012ED20.c) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
-| [0x12EDE8](../../src/game/engine/sound/amb/func_0012EDE8.c) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
+| [0x12EB78](../../src/game/engine/sound/amb.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
+| [0x12EC50](../../src/game/engine/sound/amb.cpp) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
+| [0x12ED20](../../src/game/engine/sound/amb.cpp) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
+| [0x12EDE8](../../src/game/engine/sound/amb.cpp) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
 | [0x12F248](../../src/game/engine/anim/aseg/InitAseg.c) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
 | [0x12F2A8](../../src/game/engine/anim/aseg/LoadAsegFromBrx.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
 | [0x12F590](../../src/game/engine/anim/aseg/LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |

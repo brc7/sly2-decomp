@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`amb/`](amb/) | 10 |
+| [`amb.cpp`](amb.cpp) | 1 |
 | [`sound/`](sound/) | 103 |
 | [`tu_2275B8.cpp`](tu_2275B8.cpp) | 1 |
 

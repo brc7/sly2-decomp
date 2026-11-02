@@ -29,23 +29,23 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid43ClassDesc`](../../../src/game/app/class_registry/GetCid43ClassDesc.c) | `0x113CC0` |
-| 7 | Init | **override** | [`InitCid43?`](../../../src/game/engine/sound/amb/func_0012EB48.c) | `0x12EB48` |
+| 7 | Init | **override** | [`InitCid43?`](../../../src/game/engine/sound/amb.cpp) | `0x12EB48` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadCid43FromBrx?`](../../../src/game/engine/sound/amb/func_0012EB78.cpp) | `0x12EB78` |
-| 15 | PostLoad | **override** | [`PostCid43Load?`](../../../src/game/engine/sound/amb/func_0012EC50.c) | `0x12EC50` |
+| 14 | LoadFromBrx | **override** | [`LoadCid43FromBrx?`](../../../src/game/engine/sound/amb.cpp) | `0x12EB78` |
+| 15 | PostLoad | **override** | [`PostCid43Load?`](../../../src/game/engine/sound/amb.cpp) | `0x12EC50` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
-| 22 | OnRemove | **override** | [`OnCid43Remove?`](../../../src/game/engine/sound/amb/func_0012EDE8.c) | `0x12EDE8` |
-| 23 | OnAdd | **override** | [`OnCid43Add?`](../../../src/game/engine/sound/amb/func_0012ED20.c) | `0x12ED20` |
+| 22 | OnRemove | **override** | [`OnCid43Remove?`](../../../src/game/engine/sound/amb.cpp) | `0x12EDE8` |
+| 23 | OnAdd | **override** | [`OnCid43Add?`](../../../src/game/engine/sound/amb.cpp) | `0x12ED20` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` |
