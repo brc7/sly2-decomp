@@ -4,7 +4,7 @@ extern char D_002E65E0[];
 extern int D_004425D8[];
 void func_00234A60(int);
 void func_00234A40(int);
-void func_00234860(void);
+void ExitDeleteThread(void);
 void *func_002333B4(void *, int, unsigned int);
 /** @sly2-annot addr=0x1AAF18
  * Purpose: Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear
@@ -23,5 +23,5 @@ void MemcardThreadMain(struct S *s)
     s->x4 = -1;
     D_004425D8[0] = -1;
     func_00234A40(s->x0);
-    func_00234860();
+    ExitDeleteThread();
 }

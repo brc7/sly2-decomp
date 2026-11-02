@@ -2,7 +2,7 @@ struct P { char pad[0x1BC]; float g; };
 struct S;
 extern struct S D_002BBB60;
 float func_0011D948(struct S *, float);
-void func_002321E8(int, int);
+void snd_SetMasterVolume(int, int);
 /** @sly2-annot addr=0x1FE9F8
  * Purpose: Clamp and send master volume (snd_SetMasterVolume(0x10,..))
  * Info: proposed name SetSndmgrMasterVolume (T1); TU sound
@@ -16,6 +16,6 @@ void SetSndmgrMasterVolume(struct P *p, float x)
     int n = (int)(g * 1024.0f);
     if ((int)(p->g * 1024.0f) != n) {
         p->g = g;
-        func_002321E8(0x10, n);
+        snd_SetMasterVolume(0x10, n);
     }
 }

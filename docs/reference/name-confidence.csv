@@ -5514,50 +5514,50 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2317E0,func_002317E0,LoadXfmChildObjectsFromBrx,hi,r8_21BB88+parse-verified,match(scratch_v3:batch_06_object_model_b)+parse-verified,T1,0.75,,applied,"pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37)"
 0x231890,func_00231890,StaticInit_xform,hi,tu_map(structural)+r8_21BB88,match(scratch_v3:batch_06_object_model_b),T1,0.95,,applied,compiler-generated __static_initialization_and_destruction_0 of TU xform
 0x2319C8,func_002319C8,_GLOBAL_$I$xform,hi,tu_map(structural)+r8_21BB88,static-only,T1,0.95,,excluded: rename.py refuses plain name '_GLOBAL_$I$xform': not a valid C identifier,"compiler-generated global constructor stub (calls static init with (1,0xFFFF))"
-0x2319E8,func_002319E8,snd_StartSoundSystem,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x2319E8,func_002319E8,snd_StartSoundSystem,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x231E78,func_00231E78,junk_00231E78,hi,r8_21BB88,static-only,T1,0.80,,excluded: rename.py refuses plain name 'junk_00231E78': is an address placeholder name,989snd API
-0x231E90,func_00231E90,snd_GotReturns__Fv,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x231F38,func_00231F38,snd_PrepareReturnBuffer,hi,r8_21BB88,static-only,T1,0.80,,not batched,989snd API
+0x231E90,func_00231E90,snd_GotReturns__Fv,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x231F38,func_00231F38,snd_PrepareReturnBuffer,hi,r8_21BB88,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,989snd API
 0x231FA0,func_00231FA0,junk_00231FA0,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00231FA0': is an address placeholder name,989snd API
-0x231FB0,func_00231FB0,snd_BankLoadByLoc,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x231FB0,func_00231FB0,snd_BankLoadByLoc,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232168,func_00232168,junk_00232168,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00232168': is an address placeholder name,989snd API
-0x232188,func_00232188,snd_ResolveBankXREFS,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x2321B8,func_002321B8,snd_UnloadBank,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x2321E8,func_002321E8,snd_SetMasterVolume,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232220,func_00232220,snd_GetMasterVolume,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x232188,func_00232188,snd_ResolveBankXREFS,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x2321B8,func_002321B8,snd_UnloadBank,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x2321E8,func_002321E8,snd_SetMasterVolume,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232220,func_00232220,snd_GetMasterVolume,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232248,func_00232248,junk_00232248,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00232248': is an address placeholder name,989snd API
-0x232250,func_00232250,snd_SetPlaybackMode,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x232250,func_00232250,snd_SetPlaybackMode,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232280,func_00232280,junk_00232280,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00232280': is an address placeholder name,989snd API
-0x2322A0,func_002322A0,snd_IsSoundALooper,hi,r8_21BB88,static-only,T1,0.80,,not batched,989snd API
+0x2322A0,func_002322A0,snd_IsSoundALooper,hi,r8_21BB88,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,989snd API
 0x2322D0,func_002322D0,junk_002322D0,hi,r8_21BB88+verdicts_tu_r7r8,verifier,T1,0.85,,excluded: rename.py refuses plain name 'junk_002322D0': is an address placeholder name,989snd API
 0x2322F0,func_002322F0,snd_Cmd5C,lo,r8+CONFLICTS#12,static-only,T2,0.30,,not batched,989snd API
 0x232320,func_00232320,snd_Cmd5C_CB,lo,r8_21BB88,static-only,T2,0.30,,not batched,989snd API
-0x232350,func_00232350,snd_StopSound,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x232350,func_00232350,snd_StopSound,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232380,func_00232380,junk_00232380,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00232380': is an address placeholder name,989snd API
-0x2323A8,func_002323A8,snd_PauseSound,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x2323D8,func_002323D8,snd_ContinueSound,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232408,func_00232408,snd_StopAllStreams,hi,verify_A2_summary,verifier,T1,0.75,,not batched,989snd API
-0x232438,func_00232438,snd_PauseAllSoundsInGroup,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232468,func_00232468,snd_ContinueAllSoundsInGroup,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232498,func_00232498,snd_SoundIsStillPlaying_CB,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x2323A8,func_002323A8,snd_PauseSound,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x2323D8,func_002323D8,snd_ContinueSound,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232408,func_00232408,snd_StopAllStreams,hi,verify_A2_summary,match(rename.py:batch_13_sdk)+verifier,T1,0.75,,applied,989snd API
+0x232438,func_00232438,snd_PauseAllSoundsInGroup,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232468,func_00232468,snd_ContinueAllSoundsInGroup,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232498,func_00232498,snd_SoundIsStillPlaying_CB,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x2324C8,junk_0x0011d3e8,junk_002324C8,hi,arbitration (adopt proposal),arbitration,EXISTING-CHANGE,0.80,,not batched,989snd API
 0x232500,func_00232500,snd_Cmd21,lo,r8_21BB88,static-only,T2,0.35,,not batched,989snd API
 0x232520,func_00232520,snd_Cmd21_CB,lo,r8_21BB88+verdicts_A2,verifier,T2,0.35,,not batched,989snd API
-0x232568,func_00232568,snd_AutoVol,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x232568,func_00232568,snd_AutoVol,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x2325A8,func_002325A8,junk_002325A8,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_002325A8': is an address placeholder name,989snd API
-0x2325E0,func_002325E0,snd_SendIOPCommandAndWait__FiiPc,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232838,func_00232838,snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232BB8,func_00232BB8,snd_PostMessage__Fv,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x2325E0,func_002325E0,snd_SendIOPCommandAndWait__FiiPc,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232838,func_00232838,snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232BB8,func_00232BB8,snd_PostMessage__Fv,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232D40,func_00232D40,junk_00232D40,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00232D40': is an address placeholder name,989snd API
-0x232D80,func_00232D80,snd_StreamSafeCheckCDIdle,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232DA8,func_00232DA8,snd_StreamSafeCdSync,hi,r8_21BB88+verdicts_A2,verifier,T1,0.85,,not batched,989snd API
+0x232D80,func_00232D80,snd_StreamSafeCheckCDIdle,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232DA8,func_00232DA8,snd_StreamSafeCdSync,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.85,,applied,989snd API
 0x232E68,func_00232E68,junk_00232E68,hi,r8_21BB88+verdicts_tu_r7r8,verifier,T1,0.85,,excluded: rename.py refuses plain name 'junk_00232E68': is an address placeholder name,989snd API
-0x232EE8,func_00232EE8,snd_InitMovieSound,mid,r8_21BB88,static-only,T1,0.60,,not batched,989snd API
-0x232F28,func_00232F28,snd_ResetMovieSound,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x232EE8,func_00232EE8,snd_InitMovieSound,mid,r8_21BB88,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,989snd API
+0x232F28,func_00232F28,snd_ResetMovieSound,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232F50,func_00232F50,junk_00232F50,hi,r8_21BB88,static-only,T1,0.70,,excluded: rename.py refuses plain name 'junk_00232F50': is an address placeholder name,989snd API
-0x232F60,func_00232F60,snd_CloseMovieSound,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232F88,func_00232F88,snd_StartMovieSound,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
-0x232FC0,func_00232FC0,snd_GetTransStatus,hi,r8_21BB88+verdicts_A2,verifier,T1,0.90,,not batched,989snd API
+0x232F60,func_00232F60,snd_CloseMovieSound,hi,r8_21BB88+verdicts_tu_r7r8+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232F88,func_00232F88,snd_StartMovieSound,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
+0x232FC0,func_00232FC0,snd_GetTransStatus,hi,r8_21BB88+verdicts_A2,match(rename.py:batch_13_sdk)+verifier,T1,0.90,,applied,989snd API
 0x232FE8,func_00232FE8,snd_Cmd5A,lo,r8_21BB88,static-only,T2,0.30,,not batched,989snd API
 0x233018,func_00233018,snd_Cmd5B,lo,sdk_names,static-only,T2,0.40,,not batched,989snd: AndWait IOP command 0x5B with no data; returns IOP movie-audio position (used by CQueueOutputIop_Update as pos*blocksize) [989snd]
 0x233040,func_00233040,junk_00233040,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00233040': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
@@ -5566,32 +5566,32 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x2330D0,func_002330D0,snd_Cmd4C_CB,lo,sdk_names,static-only,T2,0.40,,not batched,989snd: NoWait command 0x4C with completion callback + user data [989snd]
 0x233120,func_00233120,junk_00233120,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00233120': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x233130,func_00233130,snd_Cmd68_CB,lo,sdk_names,static-only,T2,0.35,,not batched,"989snd: NoWait command 0x68 {module, func, cb data, ptr} + callback; payload size = 12 + n bytes [989snd]"
-0x233470,func_00233470,strncmp,hi,sdk_names,static-only,T1,0.95,,not batched,"newlib R5900 strncmp (MMI 8/16-byte compare, hand asm) [libc strncmp.o]"
+0x233470,func_00233470,strncmp,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.95,,applied,"newlib R5900 strncmp (MMI 8/16-byte compare, hand asm) [libc strncmp.o]"
 0x233638,func_00233638,strncpy,hi,sdk_names,static-only,T1,0.95,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmc/sceMcGetEntSpace.c,"newlib R5900 strncpy (MMI, hand asm) [libc strncpy.o]"
-0x233828,func_00233828,exit,hi,sdk_names,static-only,T1,0.95,,not batched,"newlib exit: run atexit list (_impure_ptr->_atexit), __cleanup, then _exit [libc exit.o]"
-0x2342D0,func_002342D0,strcasecmp,hi,sdk_names,static-only,T1,0.95,,not batched,newlib strcasecmp via tolower [libc strcasecmp.o]
-0x234350,func_00234350,_strtol_r,hi,sdk_names,static-only,T1,0.95,,not batched,newlib _strtol_r (64-bit long on EE) [libc strtol.o]
-0x234580,func_00234580,strtol,hi,sdk_names,static-only,T1,0.95,,not batched,"newlib strtol: _strtol_r(_impure_ptr,...) [libc strtol.o]"
-0x2345B8,func_002345B8,tolower,hi,sdk_names,static-only,T1,0.90,,not batched,newlib tolower (ctype _U bit -> +0x20) [libc tolower.o]
-0x234600,func_00234600,FullReset,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,0; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234610,func_00234610,ResetEE,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,1; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234620,func_00234620,SetGsCrt,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,2; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234630,func_00234630,RFU003,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,3; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x233828,func_00233828,exit,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.95,,applied,"newlib exit: run atexit list (_impure_ptr->_atexit), __cleanup, then _exit [libc exit.o]"
+0x2342D0,func_002342D0,strcasecmp,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.95,,applied,newlib strcasecmp via tolower [libc strcasecmp.o]
+0x234350,func_00234350,_strtol_r,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.95,,applied,newlib _strtol_r (64-bit long on EE) [libc strtol.o]
+0x234580,func_00234580,strtol,hi,sdk_names,static-only,T1,0.95,,"refused: strtol already used in code: src/sdk/libc/atoi.c (if that is this same function, re-run with --allow-existing-uses)","newlib strtol: _strtol_r(_impure_ptr,...) [libc strtol.o]"
+0x2345B8,func_002345B8,tolower,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,newlib tolower (ctype _U bit -> +0x20) [libc tolower.o]
+0x234600,func_00234600,FullReset,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,0; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234610,func_00234610,ResetEE,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,1; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234620,func_00234620,SetGsCrt,hi,sdk_names,static-only,T1,0.90,,"refused: SetGsCrt already used in code: src/sdk/libgraph/sceGsResetGraph.c (if that is this same function, re-run with --allow-exi","EE kernel syscall stub: li v1,2; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234630,func_00234630,RFU003,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,3; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234640,func_00234640,_Exit,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/func_002398D0.c,"EE kernel syscall stub: li v1,4; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234650,func_00234650,RFU005,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,5; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234660,func_00234660,_LoadExecPS2,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,6; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234670,func_00234670,_ExecPS2,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,7; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234680,func_00234680,RFU008,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,8; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234690,func_00234690,RFU009,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,9; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2346A0,func_002346A0,AddSbusIntcHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,10; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2346B0,func_002346B0,RemoveSbusIntcHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,11; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2346C0,func_002346C0,Interrupt2Iop,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,12; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2346D0,func_002346D0,SetVTLBRefillHandler,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,13; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2346E0,func_002346E0,SetVCommonHandler,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,14; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2346F0,func_002346F0,SetVInterruptHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,15; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234700,func_00234700,AddIntcHandler,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,16; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234650,func_00234650,RFU005,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,5; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234660,func_00234660,_LoadExecPS2,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,6; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234670,func_00234670,_ExecPS2,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,7; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234680,func_00234680,RFU008,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,8; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234690,func_00234690,RFU009,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,9; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2346A0,func_002346A0,AddSbusIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,10; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2346B0,func_002346B0,RemoveSbusIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,11; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2346C0,func_002346C0,Interrupt2Iop,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,12; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2346D0,func_002346D0,SetVTLBRefillHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,13; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2346E0,func_002346E0,SetVCommonHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,14; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2346F0,func_002346F0,SetVInterruptHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,15; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234700,func_00234700,AddIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,16; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234710,func_00234710,AddIntcHandler2,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/InitTimer.c,"EE kernel syscall stub: li v1,16; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234720,func_00234720,RemoveIntcHandler,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,17; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234720,func_00234720,RemoveIntcHandler,hi,sdk_names,static-only,T1,0.90,,"refused: RemoveIntcHandler already used in code: src/sdk/libgraph/sceGsResetGraph.c (if that is this same function, re-run with --","EE kernel syscall stub: li v1,17; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234730,func_00234730,AddDmacHandler,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/sceSifInitCmd.c,"EE kernel syscall stub: li v1,18; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234740,func_00234740,AddDmacHandler2,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/_sceMpegCscStoreRefImage.c,"EE kernel syscall stub: li v1,18; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234750,func_00234750,RemoveDmacHandler,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/_sceMpegCscStoreRefImage.c,"EE kernel syscall stub: li v1,19; syscall; jr ra [libkernel klib.o (syscall stub table)]"
@@ -5599,114 +5599,114 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x234770,func_00234770,_DisableIntc,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/func_00235110.c,"EE kernel syscall stub: li v1,21; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234780,func_00234780,_EnableDmac,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/func_00235248.c,"EE kernel syscall stub: li v1,22; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234790,func_00234790,_DisableDmac,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/func_002351E0.c,"EE kernel syscall stub: li v1,23; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2347A0,func_002347A0,SetAlarm,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,252; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2347B0,func_002347B0,ReleaseAlarm,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,253; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2347C0,func_002347C0,_iEnableIntc,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-26; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2347A0,func_002347A0,SetAlarm,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,252; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2347B0,func_002347B0,ReleaseAlarm,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,253; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2347C0,func_002347C0,_iEnableIntc,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-26; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2347D0,CreateThread,_iDisableIntc,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.90,,not batched,"EE kernel syscall stub: li v1,-27; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
 0x2347E0,StartThread,_iEnableDmac,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.80,,not batched,"EE kernel syscall stub: li v1,-28; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
-0x2347F0,func_002347F0,_iDisableDmac,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-29; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234800,func_00234800,iSetAlarm,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-254; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2347F0,func_002347F0,_iDisableDmac,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-29; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234800,func_00234800,iSetAlarm,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-254; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234810,ChangeThreadPriority,iReleaseAlarm,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.80,,not batched,"EE kernel syscall stub: li v1,-255; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
 0x234820,func_00234820,CreateThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,32; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234830,func_00234830,DeleteThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,33; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234830,func_00234830,DeleteThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,33; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234840,func_00234840,StartThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,34; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234850,func_00234850,ExitThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,35; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234860,func_00234860,ExitDeleteThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,36; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234870,func_00234870,TerminateThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,37; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234880,func_00234880,iTerminateThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-38; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234890,func_00234890,DisableDispatchThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,39; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2348A0,func_002348A0,EnableDispatchThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,40; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234850,func_00234850,ExitThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,35; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234860,func_00234860,ExitDeleteThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,36; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234870,func_00234870,TerminateThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,37; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234880,func_00234880,iTerminateThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-38; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234890,func_00234890,DisableDispatchThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,39; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2348A0,func_002348A0,EnableDispatchThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,40; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2348B0,func_002348B0,ChangeThreadPriority,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,41; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2348C0,func_002348C0,iChangeThreadPriority,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-42; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2348C0,func_002348C0,iChangeThreadPriority,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-42; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2348D0,func_002348D0,RotateThreadReadyQueue,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/topThread.c,"EE kernel syscall stub: li v1,43; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2348E0,func_002348E0,_iRotateThreadReadyQueue,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-44; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2348E0,func_002348E0,_iRotateThreadReadyQueue,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-44; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x2348F0,GetThreadId,ReleaseWaitThread,hi,sdk_names (syscall number read from ELF),static-only,EXISTING-CHANGE,0.80,,not batched,"EE kernel syscall stub: li v1,45; syscall; jr ra [CORRECTION: current name is wrong for this syscall number]"
-0x234900,func_00234900,iReleaseWaitThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-46; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234900,func_00234900,iReleaseWaitThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-46; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234910,func_00234910,GetThreadId,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,47; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234920,func_00234920,ReferThreadStatus,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,48; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234930,func_00234930,iReferThreadStatus,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-49; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234940,func_00234940,SleepThread,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,50; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234920,func_00234920,ReferThreadStatus,hi,sdk_names,static-only,T1,0.90,,"refused: cannot verify, baseline build failed: src/sdk/libkernel/StartThread_2355E0.c","EE kernel syscall stub: li v1,48; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234930,func_00234930,iReferThreadStatus,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-49; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234940,func_00234940,SleepThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,50; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234950,func_00234950,WakeupThread,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/topThread.c,"EE kernel syscall stub: li v1,51; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234960,func_00234960,_iWakeupThread,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/iWakeupThread.c,"EE kernel syscall stub: li v1,-52; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234970,func_00234970,CancelWakeupThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,53; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234980,func_00234980,iCancelWakeupThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-54; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234970,func_00234970,CancelWakeupThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,53; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234980,func_00234980,iCancelWakeupThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-54; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234990,func_00234990,SuspendThread,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/topThread.c,"EE kernel syscall stub: li v1,55; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2349A0,func_002349A0,_iSuspendThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-56; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2349B0,func_002349B0,ResumeThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,57; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2349C0,func_002349C0,iResumeThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-58; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2349D0,func_002349D0,JoinThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,59; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2349E0,func_002349E0,SetupThread,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,60; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x2349F0,func_002349F0,SetupHeap,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,61; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234A00,func_00234A00,EndOfHeap,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,62; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234A10,func_00234A10,RFU063,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,63; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2349A0,func_002349A0,_iSuspendThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-56; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2349B0,func_002349B0,ResumeThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,57; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2349C0,func_002349C0,iResumeThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-58; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2349D0,func_002349D0,JoinThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,59; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2349E0,func_002349E0,SetupThread,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,60; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x2349F0,func_002349F0,SetupHeap,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,61; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234A00,func_00234A00,EndOfHeap,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,62; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234A10,func_00234A10,RFU063,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,63; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234A30,func_00234A30,DeleteSema,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 8 file(s) this machine cannot build: src/sdk/libkernel/InitThread.c, src/lib/cdvd","EE kernel syscall stub: li v1,65; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234A50,func_00234A50,iSignalSema,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 6 file(s) this machine cannot build: src/sdk/libkernel/_sceFs_Rcv_Intr.c, src/lib","EE kernel syscall stub: li v1,-67; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234A70,func_00234A70,PollSema,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 8 file(s) this machine cannot build: src/sdk/libcdvd/_sceCd_ncmd_prechk.c, src/","EE kernel syscall stub: li v1,69; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234A80,func_00234A80,iPollSema,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-70; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234A90,func_00234A90,ReferSemaStatus,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,71; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234AA0,func_00234AA0,iReferSemaStatus,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-72; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234AB0,func_00234AB0,RFU073,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,73; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234A80,func_00234A80,iPollSema,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-70; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234A90,func_00234A90,ReferSemaStatus,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,71; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234AA0,func_00234AA0,iReferSemaStatus,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-72; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234AB0,func_00234AB0,RFU073,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,73; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234AC0,func_00234AC0,SetOsdConfigParam,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/PatchIsNeeded.c,"EE kernel syscall stub: li v1,74; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234AD0,func_00234AD0,GetOsdConfigParam,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libkernel/PatchIsNeeded.c, src/lib/s","EE kernel syscall stub: li v1,75; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234AE0,func_00234AE0,GetGsHParam,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,76; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234AF0,func_00234AF0,GetGsVParam,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,77; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B00,func_00234B00,SetGsHParam,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,78; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B10,func_00234B10,SetGsVParam,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,79; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B20,func_00234B20,CreateEventFlag,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,80; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B30,func_00234B30,DeleteEventFlag,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,81; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B40,func_00234B40,SetEventFlag,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,82; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B50,func_00234B50,iSetEventFlag,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-83; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B60,func_00234B60,ClearEventFlag,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,84; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B70,func_00234B70,iClearEventFlag,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,-85; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B80,func_00234B80,WaitEventFlag,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,86; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234B90,func_00234B90,PollEventFlag,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,87; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234BA0,func_00234BA0,iPollEventFlag,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,-88; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234BB0,func_00234BB0,ReferEventFlagStatus,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,89; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234BC0,func_00234BC0,iReferEventFlagStatus,mid,sdk_names,static-only,T1,0.60,,not batched,"EE kernel syscall stub: li v1,-90; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234BD0,func_00234BD0,GetEntryAddress,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,91; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234BE0,func_00234BE0,EnableIntcHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,92; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234BF0,func_00234BF0,iEnableIntcHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-92; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C00,func_00234C00,DisableIntcHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,93; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C10,func_00234C10,iDisableIntcHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-93; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C20,func_00234C20,EnableDmacHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,94; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C30,func_00234C30,iEnableDmacHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-94; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C40,func_00234C40,DisableDmacHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,95; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C50,func_00234C50,iDisableDmacHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-95; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C60,func_00234C60,KSeg0,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,96; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C70,func_00234C70,EnableCache,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,97; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C80,func_00234C80,DisableCache,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,98; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234C90,func_00234C90,GetCop0,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,99; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234CB0,func_00234CB0,CpuConfig,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,102; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234CC0,func_00234CC0,iGetCop0,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-103; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234CD0,func_00234CD0,iFlushCache,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-104; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234CE0,func_00234CE0,iCpuConfig,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-106; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234AE0,func_00234AE0,GetGsHParam,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,76; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234AF0,func_00234AF0,GetGsVParam,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,77; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B00,func_00234B00,SetGsHParam,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,78; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B10,func_00234B10,SetGsVParam,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,79; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B20,func_00234B20,CreateEventFlag,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,80; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B30,func_00234B30,DeleteEventFlag,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,81; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B40,func_00234B40,SetEventFlag,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,82; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B50,func_00234B50,iSetEventFlag,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-83; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B60,func_00234B60,ClearEventFlag,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,84; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B70,func_00234B70,iClearEventFlag,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,-85; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B80,func_00234B80,WaitEventFlag,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,86; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234B90,func_00234B90,PollEventFlag,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,87; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234BA0,func_00234BA0,iPollEventFlag,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,-88; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234BB0,func_00234BB0,ReferEventFlagStatus,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,89; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234BC0,func_00234BC0,iReferEventFlagStatus,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.60,,applied,"EE kernel syscall stub: li v1,-90; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234BD0,func_00234BD0,GetEntryAddress,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,91; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234BE0,func_00234BE0,EnableIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,92; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234BF0,func_00234BF0,iEnableIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-92; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C00,func_00234C00,DisableIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,93; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C10,func_00234C10,iDisableIntcHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-93; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C20,func_00234C20,EnableDmacHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,94; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C30,func_00234C30,iEnableDmacHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-94; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C40,func_00234C40,DisableDmacHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,95; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C50,func_00234C50,iDisableDmacHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-95; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C60,func_00234C60,KSeg0,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,96; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C70,func_00234C70,EnableCache,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,97; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C80,func_00234C80,DisableCache,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,98; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234C90,func_00234C90,GetCop0,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,99; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234CB0,func_00234CB0,CpuConfig,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,102; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234CC0,func_00234CC0,iGetCop0,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-103; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234CD0,func_00234CD0,iFlushCache,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-104; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234CE0,func_00234CE0,iCpuConfig,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-106; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234CF0,func_00234CF0,sceSifStopDma,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/sceSifResetIop.c,"EE kernel syscall stub: li v1,107; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234D00,func_00234D00,SetCPUTimerHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,108; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234D10,func_00234D10,SetCPUTimer,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,109; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234D00,func_00234D00,SetCPUTimerHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,108; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234D10,func_00234D10,SetCPUTimer,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,109; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234D20,func_00234D20,SetOsdConfigParam2,mid,sdk_names,static-only,T2,0.80,,not batched,"EE kernel syscall stub: li v1,110; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234D30,func_00234D30,GetOsdConfigParam2,mid,sdk_names,static-only,T2,0.90,,not batched,"EE kernel syscall stub: li v1,111; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234D40,func_00234D40,GsGetIMR,hi,sdk_names,static-only,T1,0.80,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libgraph/func_00240AA0.c,"EE kernel syscall stub: li v1,112; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234D50,func_00234D50,iGsGetIMR,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-112; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234D50,func_00234D50,iGsGetIMR,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-112; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234D60,func_00234D60,GsPutIMR,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libgraph/func_00240AA0.c,"EE kernel syscall stub: li v1,113; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234D70,func_00234D70,iGsPutIMR,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,-113; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234D80,func_00234D80,SetPgifHandler,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,114; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234D90,func_00234D90,SetVSyncFlag,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,115; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234DA0,func_00234DA0,SetSyscall,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,116; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234DB0,func_00234DB0,_print,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,117; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234D70,func_00234D70,iGsPutIMR,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,-113; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234D80,func_00234D80,SetPgifHandler,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,114; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234D90,func_00234D90,SetVSyncFlag,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,115; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234DA0,func_00234DA0,SetSyscall,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,116; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234DB0,func_00234DB0,_print,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,117; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234DC0,func_00234DC0,sceSifDmaStat,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libpad/_send_to_iop.c,"EE kernel syscall stub: li v1,118; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234DD0,func_00234DD0,isceSifDmaStat,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,-118; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234DD0,func_00234DD0,isceSifDmaStat,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.90,,applied,"EE kernel syscall stub: li v1,-118; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234DE0,func_00234DE0,sceSifSetDma,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 3 file(s) this machine cannot build: src/sdk/libkernel/_sceSifSendCmd.c, src/lib/","EE kernel syscall stub: li v1,119; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234DF0,func_00234DF0,isceSifSetDma,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/_sceSifSendCmd.c,"EE kernel syscall stub: li v1,-119; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234E00,func_00234E00,sceSifSetDChain,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/sceSifInitCmd.c,"EE kernel syscall stub: li v1,120; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234E10,func_00234E10,isceSifSetDChain,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/_sceSifCmdIntrHdlr.c,"EE kernel syscall stub: li v1,-120; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234E20,func_00234E20,sceSifSetReg,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 3 file(s) this machine cannot build: src/sdk/libkernel/sceSifInitCmd.c, src/lib/s","EE kernel syscall stub: li v1,121; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234E30,func_00234E30,sceSifGetReg,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 3 file(s) this machine cannot build: src/sdk/libkernel/sceSifInitCmd.c, src/lib/s","EE kernel syscall stub: li v1,122; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234E40,func_00234E40,_ExecOSD,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,123; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234E50,func_00234E50,Deci2Call,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,124; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234E60,func_00234E60,PSMode,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,125; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234E70,func_00234E70,MachineType,hi,sdk_names,static-only,T1,0.80,,not batched,"EE kernel syscall stub: li v1,126; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234E80,func_00234E80,GetMemorySize,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,127; syscall; jr ra [libkernel klib.o (syscall stub table)]"
-0x234E90,func_00234E90,_InitTLB,hi,sdk_names,static-only,T1,0.90,,not batched,"EE kernel syscall stub: li v1,130; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234E40,func_00234E40,_ExecOSD,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,123; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234E50,func_00234E50,Deci2Call,hi,sdk_names,static-only,T1,0.90,,"refused: Deci2Call already used in code: src/sdk/libkernel/kputs.c (if that is this same function, re-run with --allow-existing-us","EE kernel syscall stub: li v1,124; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234E60,func_00234E60,PSMode,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,125; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234E70,func_00234E70,MachineType,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,"EE kernel syscall stub: li v1,126; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234E80,func_00234E80,GetMemorySize,hi,sdk_names,static-only,T1,0.90,,"refused: GetMemorySize already used in code: src/sdk/libkernel/InitTLB.c (if that is this same function, re-run with --allow-exist","EE kernel syscall stub: li v1,127; syscall; jr ra [libkernel klib.o (syscall stub table)]"
+0x234E90,func_00234E90,_InitTLB,hi,sdk_names,static-only,T1,0.90,,"refused: _InitTLB already used in code: src/sdk/libkernel/InitTLB.c (if that is this same function, re-run with --allow-existing-u","EE kernel syscall stub: li v1,130; syscall; jr ra [libkernel klib.o (syscall stub table)]"
 0x234F48,func_00234F48,SyncDCache,hi,sdk_names,static-only,T1,0.95,,"deferred: code reference/definition in 3 file(s) this machine cannot build: src/sdk/libpad/_send_to_iop.c, src/lib/fu","write back D-cache range (DI, _sceSDC(start&~63,end&~63), EI) [libkernel cache.o]"
 0x234FC8,func_00234FC8,junk_00234FC8,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00234FC8': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
 0x235078,func_00235078,InvalidDCache,hi,sdk_names,static-only,T1,0.95,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/func_00235078.c,"invalidate D-cache range (DI, _sceIDC, EI) [libkernel cache.o]"
@@ -5731,7 +5731,7 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x237DE0,func_00237DE0,_fs_version,hi,sdk_names,static-only,T1,0.80,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libkernel/func_00237DE0.c, src/lib/s",compare filestub/IOP fileio version strings (memcmp x3) [libkernel filestub.o]
 0x2382B0,func_002382B0,junk_002382B0,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_002382B0': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x238CC8,func_00238CC8,sceSifFreeSysMemory,mid,sdk_names,static-only,T1,0.75,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libkernel/func_00238CC8.c,IOP heap RPC #2 free(addr); returns result [libkernel iopheap.o]
-0x238D40,func_00238D40,sceSifFreeIopHeap,mid,sdk_names,static-only,T1,0.75,,not batched,wrapper -> sceSifFreeSysMemory [libkernel iopheap.o]
+0x238D40,func_00238D40,sceSifFreeIopHeap,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.75,,applied,wrapper -> sceSifFreeSysMemory [libkernel iopheap.o]
 0x238D60,func_00238D60,junk_00238D60,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00238D60': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x238E70,func_00238E70,_lf_version,hi,sdk_names,static-only,T1,0.80,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libkernel/_sceSifLoadModuleBuffer.c,",loadfile version check (memcmp x3) [libkernel eeloadfile.o]
 0x239160,func_00239160,junk_00239160,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00239160': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
@@ -5785,13 +5785,13 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x23E780,func_0023E780,__get_eh_table_language,hi,sdk_names,static-only,T1,0.85,,"excluded: rename.py refuses plain name '__get_eh_table_language': contains ""__"" (reserved, and indistinguishab",return table->lang.language (+4) [libgcc exception]
 0x23EB40,func_0023EB40,__unwinding_cleanup,hi,sdk_names,static-only,T1,0.80,,"excluded: rename.py refuses plain name '__unwinding_cleanup': contains ""__"" (reserved, and indistinguishable f",empty debugger hook [libgcc exception]
 0x2401C8,func_002401C8,__errno,hi,sdk_names,static-only,T1,0.85,,"excluded: rename.py refuses plain name '__errno': contains ""__"" (reserved, and indistinguishable from a mangle",newlib __errno: returns &_impure_ptr->_errno (_errno at +0) [libc errno.o]
-0x2401D8,func_002401D8,strcmp,hi,sdk_names,static-only,T1,0.95,,not batched,"newlib R5900 strcmp (MMI, hand asm) [libc strcmp.o]"
+0x2401D8,func_002401D8,strcmp,hi,sdk_names,static-only,T1,0.95,,"refused: strcmp already used in code: src/sdk/libgcc/__throw_type_match.c (if that is this same function, re-run with --allow-exis","newlib R5900 strcmp (MMI, hand asm) [libc strcmp.o]"
 0x240328,func_00240328,abort,hi,sdk_names,static-only,T1,0.80,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libgcc/__deregister_frame_info.c,",abort: _exit(1) (noreturn); called by __default_terminate [libc abort.o]
-0x2403D8,func_002403D8,sceGsSyncPath,mid,sdk_names,static-only,T1,0.65,,not batched,wait until VIF0/VIF1/GIF/VU0/VU1 idle; returns 0 (mode/timeout unused here) [libgraph]
-0x2405F0,func_002405F0,sceGsGetGParam,hi,sdk_names,static-only,T1,0.85,,not batched,return &gs param block (D_002C66F0) [libgraph graph001.o]
+0x2403D8,func_002403D8,sceGsSyncPath,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.65,,applied,wait until VIF0/VIF1/GIF/VU0/VU1 idle; returns 0 (mode/timeout unused here) [libgraph]
+0x2405F0,func_002405F0,sceGsGetGParam,hi,sdk_names,static-only,T1,0.85,,"refused: sceGsGetGParam already used in code: src/sdk/libgraph/sceGsPutDispEnv.c (if that is this same function, re-run with --all",return &gs param block (D_002C66F0) [libgraph graph001.o]
 0x240AA0,func_00240AA0,sceGsPutIMR,hi,sdk_names,static-only,T1,0.85,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libgraph/func_00240AA0.c,old=GsGetIMR(); GsPutIMR(v); return old [libgraph]
-0x240AE0,func_00240AE0,sceGsSetHalfOffset,hi,sdk_names,static-only,T1,0.85,,not batched,"set XYOFFSET from scissor centre, +8 (half pixel) when half!=0 [libgraph]"
-0x240B68,func_00240B68,sceGsGetIMR,hi,sdk_names,static-only,T1,0.80,,not batched,return GsGetIMR() [libgraph]
+0x240AE0,func_00240AE0,sceGsSetHalfOffset,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.85,,applied,"set XYOFFSET from scissor centre, +8 (half pixel) when half!=0 [libgraph]"
+0x240B68,func_00240B68,sceGsGetIMR,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.80,,applied,return GsGetIMR() [libgraph]
 0x240C28,func_00240C28,_GetGsDxDyOffset,mid,sdk_names,static-only,T1,0.70,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libgraph/sceGsSetDefDispEnv.c,"file-local copy of syscall 128 stub (li v1,128; syscall) [libkernel libgraph (checkModelVersion object)]"
 0x2413D8,func_002413D8,junk_002413D8,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_002413D8': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x241720,func_00241720,junk_00241720,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_00241720': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
@@ -5818,23 +5818,23 @@ address,old,new,tier,evidence_source,verified_by,master_tier,confidence,marker,s
 0x24A0C0,func_0024A0C0,isnanf,hi,sdk_names,static-only,T1,0.95,,"deferred: code reference/definition in 6 file(s) this machine cannot build: src/sdk/libm/acosf.c, src/sdk/libm/asinf.c, ",float isnan [libm sf_isnan.o]
 0x24A0E8,func_0024A0E8,scalbnf,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libm/__ieee754_powf.c, src/lib/",float scalbn [libm sf_scalbn.o]
 0x24A738,func_0024A738,copysign,hi,sdk_names,static-only,T1,0.90,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libm/func_00249EE0.c,double copysign [libm s_copysign.o]
-0x24A780,func_0024A780,copysignf,hi,sdk_names,static-only,T1,0.95,,not batched,float copysign [libm sf_copysign.o]
+0x24A780,func_0024A780,copysignf,hi,sdk_names,static-only,T1,0.95,,"refused: cannot verify, baseline build failed: src/sdk/libm/func_0024A0E8.c",float copysign [libm sf_copysign.o]
 0x24A8C0,func_0024A8C0,junk_0024A8C0,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024A8C0': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
-0x24B530,func_0024B530,sceMpegDelete,mid,sdk_names,static-only,T1,0.75,,not batched,return 1 [libmpeg mpeg.o]
+0x24B530,func_0024B530,sceMpegDelete,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.75,,applied,return 1 [libmpeg mpeg.o]
 0x24B538,func_0024B538,junk_0024B538,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024B538': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x24B588,func_0024B588,junk_0024B588,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024B588': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
-0x24B610,func_0024B610,sceMpegIsEnd,mid,sdk_names,static-only,T1,0.70,,not batched,return mp->sys->isEnd [libmpeg mpeg.o]
+0x24B610,func_0024B610,sceMpegIsEnd,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.70,,applied,return mp->sys->isEnd [libmpeg mpeg.o]
 0x24B620,func_0024B620,junk_0024B620,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024B620': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
 0x24B660,func_0024B660,junk_0024B660,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024B660': is an address placeholder name,"not a function: orphan instructions, no return (config/junk.csv) [padding/scrap]"
 0x24B800,func_0024B800,junk_0024B800,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024B800': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
 0x24B8F8,func_0024B8F8,_alalcInit,mid,sdk_names,static-only,T1,0.75,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libmpeg/func_0024B8F8.c, src/lib/s","aligned allocator init {base,size,cur=base,dyn=base} [libmpeg mpeg.o]"
 0x24B910,func_0024B910,_alalcSetDynamic,mid,sdk_names,static-only,T1,0.70,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/sceMpegCreate.c,mark current position as dynamic start [libmpeg mpeg.o]
-0x24B920,func_0024B920,_alalcFree,mid,sdk_names,static-only,T1,0.70,,not batched,reset current to dynamic start [libmpeg mpeg.o]
+0x24B920,func_0024B920,_alalcFree,mid,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.70,,applied,reset current to dynamic start [libmpeg mpeg.o]
 0x24B930,func_0024B930,_alalcAlloc,hi,sdk_names,static-only,T1,0.80,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/sceMpegCreate.c,"aligned bump alloc; error ""work area size is too small"" [libmpeg mpeg.o]"
 0x24B9A0,func_0024B9A0,_defStopDMA,hi,sdk_names,static-only,T1,0.85,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/sceMpegCreate.c,default stop-DMA callback: sceIpuStopDMA(sys+0x68) [libmpeg defhandler.o]
 0x24B9C8,func_0024B9C8,_defRestartDMA,hi,sdk_names,static-only,T1,0.85,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/sceMpegCreate.c,default restart-DMA callback: sceIpuRestartDMA [libmpeg defhandler.o]
 0x24CD68,func_0024CD68,junk_0024CD68,hi,sdk_names,static-only,T1,0.90,,excluded: rename.py refuses plain name 'junk_0024CD68': is an address placeholder name,not a function: dead-code scrap (config/junk.csv) [padding/scrap]
-0x24F770,func_0024F770,sceMpegDemuxPss,hi,sdk_names,static-only,T1,0.85,,not batched,"sceMpegDemuxPssRing(mp,pss,size,0,-1) [libmpeg]"
+0x24F770,func_0024F770,sceMpegDemuxPss,hi,sdk_names,match(rename.py:batch_13_sdk)+static-only,T1,0.85,,applied,"sceMpegDemuxPssRing(mp,pss,size,0,-1) [libmpeg]"
 0x24F8C0,func_0024F8C0,_ErrMessage,hi,sdk_names,static-only,T1,0.85,,deferred: code reference/definition in 1 file(s) this machine cannot build: src/sdk/libmpeg/func_0024F8C0.c,"scePrintf(""[MPEG ERROR]%s\n"", msg) [libmpeg init.o]"
 0x252390,func_00252390,_sceMpegFlushBits,lo,sdk_names,static-only,T2,0.30,,"deferred: code reference/definition in 3 file(s) this machine cannot build: src/sdk/libmpeg/_decMB0.c, src/lib/_sceMpe",thin wrapper of _sceMpegFlushBuf (IPU FDEC n bits) used by _decMB0/_sceMpegMbAddressIncrement [libmpeg mpc.o]
 0x254090,func_00254090,_sequenceScalableExtension,hi,sdk_names,static-only,T1,0.90,,"deferred: code reference/definition in 2 file(s) this machine cannot build: src/sdk/libmpeg/_extensionAndUserData.c, s","error ""_sequenceScalableExtension() is not implemented"" [libmpeg init.o]"

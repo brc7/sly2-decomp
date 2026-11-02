@@ -1,5 +1,5 @@
 struct DL { void *pvFirst; void *pvLast; int ibDle; };
-extern "C" void func_00234700(int n, int (*pfn)(), int m);
+extern "C" void AddIntcHandler(int n, int (*pfn)(), int m);
 extern "C" void func_00235178(int n);
 extern "C" void InitDl__FP2DLi(DL *pdl, int ib);
 extern "C" void func_002355E0(int n, int m);
@@ -20,7 +20,7 @@ extern int D_004425D4;
  * @end-sly2-annot */
 extern "C" void StartupFrame__Fv()
 {
-    func_00234700(5, VU1_Interrupt, 0);
+    AddIntcHandler(5, VU1_Interrupt, 0);
     func_00235178(5);
     D_002DEB18 = SemaCreate(0, 2);
     D_002DEB1C = SemaCreate(2, 2);

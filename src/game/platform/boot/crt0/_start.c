@@ -141,7 +141,7 @@ __asm__(
     "lw $4, 0($2)\n"
     "jal func_001A7518\n"
     "addiu $5, $2, 4\n"
-    "j func_00233828\n"
+    "j exit\n"
     "daddu $4, $2, $0\n"
     ".end _start\n"
     ".set at\n"

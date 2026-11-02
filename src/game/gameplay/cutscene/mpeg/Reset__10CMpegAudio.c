@@ -1,5 +1,5 @@
 struct S { int f0; int f4; char pad[0x28]; char x30[0x20]; char x50[0x20]; char x70[0x10]; };
-void func_00232F28(void);
+void snd_ResetMovieSound(void);
 void func_0013D580(void *p);
 void func_001B2A80(void *p);
 /** @sly2-annot addr=0x1B3130
@@ -11,7 +11,7 @@ void func_001B2A80(void *p);
 void Reset__10CMpegAudio(struct S *p)
 {
     if (p->f0) {
-        func_00232F28();
+        snd_ResetMovieSound();
         p->f0 = 1;
         p->f4 = -1;
         func_0013D580(p->x30);

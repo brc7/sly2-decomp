@@ -1,5 +1,5 @@
 void StoreRelightColors(int n);
-void func_00234CD0(int n);
+void iFlushCache(int n);
 /** @sly2-annot addr=0x167F78
  * Purpose: INTC VIF1/VU1 interrupt handler: reads back VU1 data memory results (colour conversion), clears
  *   the VIF1 stall (VIF1_FBRST=8), returns -1
@@ -11,7 +11,7 @@ void func_00234CD0(int n);
 int VU1_Interrupt(void)
 {
     StoreRelightColors(0x1100C320);
-    func_00234CD0(0);
+    iFlushCache(0);
     *(volatile int *)0x10003C10 = 8;
     asm volatile("sync\n\tei");
     return -1;

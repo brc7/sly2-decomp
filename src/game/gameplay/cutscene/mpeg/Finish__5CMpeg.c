@@ -3,7 +3,7 @@ extern int D_002DEDBC;
 void Reset__10CMpegAudio(int *pn);
 void Close__10CMpegAudio(int *pn);
 int func_0024B590(int *pn);
-int func_0024B530(int *pn);
+int sceMpegDelete(int *pn);
 /** @sly2-annot addr=0x1B4140
  * Purpose: audio reset/close, sceMpegReset/Delete
  * Info: proposed name CMpeg_Finish (T1); class CMpeg; TU mpeg
@@ -17,7 +17,7 @@ void Finish__5CMpeg(struct P *p)
     Reset__10CMpegAudio(p->a180);
     Close__10CMpegAudio(p->a180);
     func_0024B590(p->a118);
-    func_0024B530(p->a118);
+    sceMpegDelete(p->a118);
     while (p->n240)
         __asm__ __volatile__("");
     D_002DEDBC = 3;

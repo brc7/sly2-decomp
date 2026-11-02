@@ -4,7 +4,7 @@ M2C_UNK FlushCache(M2C_UNK);                        /* extern */
 M2C_UNK SyncVBlank__Fv();                           /* extern */
 M2C_UNK func_00240460(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK); /* extern */
 M2C_UNK func_00240A40(M2C_UNK *, s32);              /* extern */
-M2C_UNK func_00240AE0(M2C_UNK *, M2C_UNK, M2C_UNK, s16); /* extern */
+M2C_UNK sceGsSetHalfOffset(M2C_UNK *, M2C_UNK, M2C_UNK, s16); /* extern */
 extern s32 D_002BE594;
 extern M2C_UNK D_002DEB80;
 extern M2C_UNK D_002DEBE0;
@@ -40,7 +40,7 @@ void GS_Interrupt__Fi(void) {
     } else {
         var_a0 = &D_002DECD0;
     }
-    func_00240AE0(var_a0, 0x800, 0x800, (s16) D_002DEDB4);
+    sceGsSetHalfOffset(var_a0, 0x800, 0x800, (s16) D_002DEDB4);
     FlushCache(0);
     temp_a1 = D_002DEDB0 + 1;
     D_002DEDB0 = temp_a1;

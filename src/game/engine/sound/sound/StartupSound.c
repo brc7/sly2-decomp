@@ -2,7 +2,7 @@ struct G { char pad[0x13C]; float a[8][4]; float g1BC; float b[4]; char pad2[0x1
 extern struct G D_003DD040;
 struct CLOCK;
 extern struct CLOCK D_002DDED0;
-void func_002319E8(int);
+void snd_StartSoundSystem(int);
 int func_00233048(int, int, int, int, int, int, int);
 long TickNow(struct CLOCK *);
 /** @sly2-annot addr=0x1FCEA0
@@ -16,7 +16,7 @@ void StartupSound(void)
 {
     int i, j;
     long t;
-    func_002319E8(2);
+    snd_StartSoundSystem(2);
     (void)func_00233048(0x524B5553, 0, 0, 0, 0, 0, 0);
     D_003DD040.g1BC = 1.0f;
     for (i = 0; i < 4; i++) {

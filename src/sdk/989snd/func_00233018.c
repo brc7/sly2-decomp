@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_002325E0(M2C_UNK, M2C_UNK, M2C_UNK);   /* extern */
+M2C_UNK snd_SendIOPCommandAndWait__FiiPc(M2C_UNK, M2C_UNK, M2C_UNK);   /* extern */
 
 /** @sly2-annot addr=0x233018
  * Purpose: 989snd: AndWait IOP command 0x5B with no data; returns IOP movie-audio position (used by
@@ -11,5 +11,5 @@ M2C_UNK func_002325E0(M2C_UNK, M2C_UNK, M2C_UNK);   /* extern */
  * See: docs/reference/functions/sdk-libraries.md#sdk_libs-0x233000-0x254f00
  * @end-sly2-annot */
 void func_00233018(void) {
-    func_002325E0(0x5B, 0, 0);
+    snd_SendIOPCommandAndWait__FiiPc(0x5B, 0, 0);
 }

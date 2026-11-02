@@ -7,7 +7,7 @@ struct P {
 };
 extern qword D_002A2DD0;
 extern char D_004435F0[];
-void func_00232408(void);
+void snd_StopAllStreams(void);
 void func_00233048(int, int, int, int, int, int, int);
 int func_00231C48(void);
 void func_00156BE0(int, qword, int, void *);
@@ -26,7 +26,7 @@ void ResetSndmgrVolumes(struct P *);
  * @end-sly2-annot */
 void ResetSndmgr(struct P *p)
 {
-    func_00232408();
+    snd_StopAllStreams();
     func_00233048(0x524B5553, 10, 0, 0, 0, 0, 0);
     while (func_00231C48())
         ;

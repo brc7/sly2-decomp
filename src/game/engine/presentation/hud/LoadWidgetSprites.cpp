@@ -18,7 +18,7 @@ extern "C" int func_00184D60(BIS *,KEY *);
 extern "C" void func_001179D8(BIS *,int,void *);
 extern "C" unsigned char func_00117BD0(BIS *);
 extern "C" unsigned short func_00117C20(BIS *);
-extern "C" int func_00233470(const void *,const void *,unsigned int);
+extern "C" int strncmp(const void *,const void *,unsigned int);
 extern "C" void SetWidgetState(S *,int);
 extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
 extern "C" void LoadSpriteGroups(S *,BIS *,S *);
@@ -80,7 +80,7 @@ extern "C" void LoadWidgetSprites(S *p) {
     work.tmp.magic[2]=func_00117BD0(bs);
     work.tmp.magic[3]=func_00117BD0(bs);
     version=func_00117C20(bs);
-    if(!func_00233470(work.tmp.magic,D_002A8AE8,4)&&version==6)goto load;
+    if(!strncmp(work.tmp.magic,D_002A8AE8,4)&&version==6)goto load;
 fail:
     func_00184950(bs,2);
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);

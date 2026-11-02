@@ -12,15 +12,15 @@ extern long D_002C46A8;
 extern CB D_002C4690;
 extern int D_00443840[];
 extern unsigned int D_00448480;
-int func_00231E90(void);
+int snd_GotReturns__Fv(void);
 void func_00234CA0(int);
 void snd_SendCurrentBatch__Fv(void);
-int func_00232DA8(int);
+int snd_StreamSafeCdSync(int);
 
 int snd_FlushSoundCommands(void)
 {
     int i;
-    if (D_002C4640 && func_00231E90()) {
+    if (D_002C4640 && snd_GotReturns__Fv()) {
         if (D_002C465C) {
             if (D_002C46A4)
                 D_002C46A4(D_00443840[1], D_002C46A8);
@@ -53,7 +53,7 @@ int snd_FlushSoundCommands(void)
             snd_SendCurrentBatch__Fv();
     }
     if (D_002C4654) {
-        func_00232DA8(1);
+        snd_StreamSafeCdSync(1);
         if (D_002C4658) {
             D_002C4654 = 0;
             D_002C4658 = 0;

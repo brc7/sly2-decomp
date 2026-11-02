@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00234350(s32, s32, s32, s32);          /* extern */
+M2C_UNK _strtol_r(s32, s32, s32, s32);          /* extern */
 extern s32 D_002C49D4;
 
 /** @sly2-annot addr=0x234580
@@ -9,5 +9,5 @@ extern s32 D_002C49D4;
  * See: docs/reference/functions/sdk-libraries.md#sdk_libs-0x233000-0x254f00
  * @end-sly2-annot */
 void func_00234580(s32 arg0, s32 arg1, s32 arg2) {
-    func_00234350(D_002C49D4, arg0, arg1, arg2);
+    _strtol_r(D_002C49D4, arg0, arg1, arg2);
 }

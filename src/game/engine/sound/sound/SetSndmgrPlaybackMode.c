@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_00232250(s32);                         /* extern */
+M2C_UNK snd_SetPlaybackMode(s32);                         /* extern */
 
 /** @sly2-annot addr=0x1FE9C8
  * Purpose: snd_SetPlaybackMode(mode) if changed (mono/stereo option)
@@ -10,6 +10,6 @@ M2C_UNK func_00232250(s32);                         /* extern */
 void SetSndmgrPlaybackMode(void *arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0x104) != arg1) {
         M2C_FIELD(arg0, s32 *, 0x104) = arg1;
-        func_00232250(arg1);
+        snd_SetPlaybackMode(arg1);
     }
 }

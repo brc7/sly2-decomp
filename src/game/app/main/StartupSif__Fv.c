@@ -20,7 +20,7 @@ void *func_00238C58(int cb);
 void func_00234CA0(int n);
 int func_00234DE0(struct DMA *p, int n);
 int func_00239140(void *h, int argumentBytes, const char *arguments);
-int func_00238D40(void *h);
+int sceSifFreeIopHeap(void *h);
 static inline int CopyLimit(int value)
 {
     int copy;
@@ -105,7 +105,7 @@ void StartupSif__Fv(void)
         while (func_00239140(h, pe->argumentBytes, pe->arguments) < 0)
             ;
     }
-    func_00238D40(h);
+    sceSifFreeIopHeap(h);
 }
 
 typedef char offset_0_bytes[(unsigned)&((struct E*)0)->bytes==0?1:-1];

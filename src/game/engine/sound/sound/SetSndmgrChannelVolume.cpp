@@ -6,7 +6,7 @@ extern LM D_002BBB60;
 extern PMF D_002A8298,D_002A82A0;
 extern "C" float func_0011D948(LM *,float);
 extern "C" void *func_002333B4(void *,int,unsigned int);
-extern "C" void func_002321E8(int,int);
+extern "C" void snd_SetMasterVolume(int,int);
 static inline X *ReadReceiver(X **pp)
 {
     register X *receiver __asm__("$4");
@@ -47,7 +47,7 @@ extern "C" void SetSndmgrChannelVolume(P *p,int channel,int category,float input
     int next=(int)(input*1024.0f);
     if((int)(p->outputs[channel]*1024.0f)!=next){
         p->outputs[channel]=input;
-        func_002321E8(channel,next);
+        snd_SetMasterVolume(channel,next);
     }
 }
 

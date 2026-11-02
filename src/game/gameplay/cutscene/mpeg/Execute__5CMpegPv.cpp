@@ -35,7 +35,7 @@ extern JOY D_002DFC00;
 void *func_001AE378(const AREQ &r);
 int func_00132600(CBinaryAsyncStream *ps, X *px);
 void CMpeg_Start(P *p, CBinaryAsyncStream *ps);
-int func_0024B610(MPEG *p);
+int sceMpegIsEnd(MPEG *p);
 void MarkClockTick(CLOCK *p, int k);
 void func_001871C0(JOY *p);
 void UpdateSave__FP4SAVE(G *g);
@@ -114,7 +114,7 @@ extern "C" void Execute__5CMpegPv(P *p, K *k)
     bool ok = x.FSet(k);
     if (ok && func_00132600(&strm, &x)) {
         CMpeg_Start(p, &strm);
-        while (!func_0024B610(&p->x118)) {
+        while (!sceMpegIsEnd(&p->x118)) {
             int f;
             MarkClockTick(&D_002DDED0, 1);
             func_001871C0(&D_002DFC00);

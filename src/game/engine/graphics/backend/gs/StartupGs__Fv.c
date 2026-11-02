@@ -12,7 +12,7 @@ void RebuildFrameGifs__Fv(void);
 int func_0021EFD0(int a, int b);
 void func_0016F468(void);
 void func_0016F868(void);
-void func_00234700(int a, void (*pfn)(void), int b);
+void AddIntcHandler(int a, void (*pfn)(void), int b);
 void func_00235178(int a);
 void func_0016F788(void);
 /** @sly2-annot addr=0x1700D0
@@ -47,9 +47,9 @@ void StartupGs__Fv(void) {
     RebuildFrameGifs__Fv();
     D_002DFB4C = func_0021EFD0(0, 1);
     D_002DFB50 = func_0021EFD0(0, 1);
-    func_00234700(2, func_0016F468, 0);
+    AddIntcHandler(2, func_0016F468, 0);
     func_00235178(2);
-    func_00234700(0, func_0016F868, 0);
+    AddIntcHandler(0, func_0016F868, 0);
     func_00235178(0);
     func_0016F788();
     *(volatile int *)0x10003010 = 0;

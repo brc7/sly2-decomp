@@ -1,7 +1,7 @@
 struct S { int a; char pad[0x9C]; int xa0; int xa4; };
-void func_00232F60(void);
-void func_002321E8(int n, int v);
-void func_00232468(unsigned int m);
+void snd_CloseMovieSound(void);
+void snd_SetMasterVolume(int n, int v);
+void snd_ContinueAllSoundsInGroup(unsigned int m);
 /** @sly2-annot addr=0x1B3190
  * Purpose: release IOP resources
  * Info: proposed name CMpegAudio_Close (T1); class CMpegAudio; TU mpeg
@@ -11,8 +11,8 @@ void func_00232468(unsigned int m);
 void Close__10CMpegAudio(struct S *p)
 {
     p->a = 0;
-    func_00232F60();
-    func_002321E8(2, p->xa0);
-    func_002321E8(0x10, p->xa4);
-    func_00232468(0xFFFFFFFF);
+    snd_CloseMovieSound();
+    snd_SetMasterVolume(2, p->xa0);
+    snd_SetMasterVolume(0x10, p->xa4);
+    snd_ContinueAllSoundsInGroup(0xFFFFFFFF);
 }

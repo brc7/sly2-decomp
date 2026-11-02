@@ -2,9 +2,9 @@ struct K { int n0; int n4; int n8; char bC; char pad[0x110 - 0xD]; };
 struct X { int n0; int n4; char pad[0x34 - 8]; int n34; int n38; int n3C; };
 struct P { char pad[0xA8]; struct X xA8; char pad2[0xE8 - 0xA8 - sizeof(struct X)]; int pE8; char pad3[0xF8 - 0xEC]; int nF8; int *aFC; };
 void func_00258248(struct K *);
-int func_00231FB0(int, int);
-void func_00232188(void);
-int func_002322A0(int, int);
+int snd_BankLoadByLoc(int, int);
+void snd_ResolveBankXREFS(void);
+int snd_IsSoundALooper(int, int);
 static inline int FSet(struct K *pk, struct X *px)
 {
     if (!px) return 0;
@@ -33,11 +33,11 @@ void PostSoundLoad(struct P *p)
         struct K k;
         k.n8 = 2;
         func_00258248(&k);
-        if (FSet(&k, &p->xA8) && k.n8 == 2) p->pE8 = func_00231FB0(k.n0, 0);
-        func_00232188();
+        if (FSet(&k, &p->xA8) && k.n8 == 2) p->pE8 = snd_BankLoadByLoc(k.n0, 0);
+        snd_ResolveBankXREFS();
     }
     for (i = 0; i < p->nF8; i++) {
         if (p->aFC[i] == 2) continue;
-        if (func_002322A0(p->pE8, i)) p->aFC[i] = 2;
+        if (snd_IsSoundALooper(p->pE8, i)) p->aFC[i] = 2;
     }
 }

@@ -14,10 +14,10 @@ void SyncVBlank();
 void EnterCritSect(CRITSECT *pcs);
 void LeaveCritSect(CRITSECT *pcs);
 void BlendDisplayOnBufferMismatch();
-extern "C" void func_00240AE0(void *pdraw, short x, short y, short half);
+extern "C" void sceGsSetHalfOffset(void *pdraw, short x, short y, short half);
 extern "C" void func_00234CA0(int n);
 extern "C" void func_00240A40(void *pdb, int i);
-extern "C" void func_002403D8(int a, int b);
+extern "C" void sceGsSyncPath(int a, int b);
 static inline int FField() { return ((CSR *)0x12001000)->FIELD; }
 /** @sly2-annot addr=0x16F590
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -37,12 +37,12 @@ void SwapGsBuffers()
         D_002DEDB4 = FField() == 0;
     }
     EnterCritSect(&D_002DFB40);
-    func_00240AE0((D_002DEDB0 & 1) ? D_002DEBE0 : D_002DECD0, 0x800, 0x800, D_002DEDB4);
+    sceGsSetHalfOffset((D_002DEDB0 & 1) ? D_002DEBE0 : D_002DECD0, 0x800, 0x800, D_002DEDB4);
     func_00234CA0(0);
     D_002DEDB0++;
     func_00240A40(D_002DEB80, D_002DEDB0);
     if (D_002DEDBC == 1 || D_002DEDBC == 2)
         BlendDisplayOnBufferMismatch();
-    func_002403D8(0, 0);
+    sceGsSyncPath(0, 0);
     LeaveCritSect(&D_002DFB40);
 }
