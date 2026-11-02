@@ -56,13 +56,13 @@ extern "C" {
 void *memset(void *pv, int c, unsigned int cb);
 SVKEY *PkeyNewSaveKey(void *p, ...);
 CRef RefGetGlobalSaveVar(SVKEY *pkey, SVSET *psvset);
+CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
+CRef RefSetGlobalSaveVar(SVKEY *pkey, const CRef &ref, SVSET *psvset);
 float GGetDifficulty(DIFFICULTY *pdifficulty);
 void SetDifficulty(DIFFICULTY *pdifficulty, float g);
 void ChangeDifficulty(DIFFICULTY *pdifficulty, float dg);
 void SprayDprizes(SW *psw, int cid, qword posMat, void *plo, int c);
 }
-CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
-CRef RefSetGlobalSaveVar(SVKEY *pkey, const CRef &ref, SVSET *psvset);
 float GLimitLm(LM *plm, float g);
 int NRandInRange(int nMin, int nMax);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);

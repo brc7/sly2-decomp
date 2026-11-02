@@ -105,7 +105,7 @@ void func_00259A88(FRAMEV *pframe);
 void GcFrame_Unlink(FRAMEV *pframe);
 void GcFrame_PushFront(FRAMEV *pframe, FRAMEV **ppframeHead);
 }
-CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
+extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
 
 /** @sly2-annot addr=0x1FF7E8
  * Purpose: Create a root CFrame (0x256DD0), install it (0x256EE0), Incref (0x259A88)

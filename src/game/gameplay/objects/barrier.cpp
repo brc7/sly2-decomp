@@ -58,7 +58,7 @@ void func_001F4FB0(BARRIER *pso);
 void EnsureSwCallback(void *psw, void *pv, long k, int n);
 }
 int FIsBasicDerivedFrom(struct BASIC *pbasic, CID cid);
-void *PrefFindBinding__6CFrameUii(void *pframe, int a, int b);
+extern "C" void *PrefFindBinding__6CFrameUii(void *pframe, int a, int b);
 
 /** @sly2-annot addr=0x1320C8
  * Purpose: BARRIER vt7 Init: InitSo then set an SO flag bit (grf |= 1<<34)
