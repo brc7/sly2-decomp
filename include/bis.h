@@ -5,6 +5,8 @@
 #include "common.h"
 #include "mat.h"
 
+struct GEOM;
+
 class CBinaryInputStream
 {
 public:
@@ -46,6 +48,7 @@ public:
     void ReadVector4(VECTOR4 *pvec);
     void ReadCb12(void *pv);
     void ReadCb8(void *pv);
+    void ReadGeom(GEOM *pgeom);    /* 0x117FD0 */
 };
 
 extern "C" void CopyAb(void *pvDst, void *pvSrc, uint cb);
