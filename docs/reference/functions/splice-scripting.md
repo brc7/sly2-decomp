@@ -264,39 +264,39 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1291A8](../../../src/game/splice/ref/func_001291A8.c) | `__4CRefRC4CRef` |  |  | existing |  |
-| [0x1291E0](../../../src/game/splice/ref/CRef_ctor_VECTOR.c) | `CRef_ctor_VECTOR` | Constructor: tag 0x1A, allocates refcounted VECTOR box from pool D_00452188 (0x11CCC0) and copies *pv | 0.80 | T1 |  |
-| [0x129248](../../../src/game/splice/ref/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
-| [0x1292B0](../../../src/game/splice/ref/CRef_ctor_MATRIX4.c) | `CRef_ctor_MATRIX4` | Constructor: tag 0x1B, MATRIX4 box (pool D_004521A0, cref at +0x40) | 0.80 | T1 |  |
-| [0x129330](../../../src/game/splice/ref/CRef_ctor_CLQ.c) | `CRef_ctor_CLQ` | Constructor: tag 0x1C (CLQ, 16 B box, pool D_004521B8) | 0.75 | T1 |  |
-| [0x129398](../../../src/game/splice/ref/CRef_ctor_LM.c) | `CRef_ctor_LM` | Constructor: tag 0x1D (LM, 8 B box, pool D_004521D0) | 0.75 | T1 |  |
-| [0x129408](../../../src/game/splice/ref/CRef_ctor_SMP.c) | `CRef_ctor_SMP` | Constructor: tag 0x1E (SMP, 12 B box, pool D_004521E8) | 0.75 | T1 |  |
-| [0x129480](../../../src/game/splice/ref/CRef_ctor_CPair.c) | `CRef_ctor_CPair` | Constructor: tag 0x1F, stores node pointer and increments its refcount | 0.80 | T1 |  |
-| [0x1294A0](../../../src/game/splice/ref/CRef_ctor_CProc.c) | `CRef_ctor_CProc` | Constructor: tag 0x20 (proc), increments refcount | 0.75 | T1 |  |
-| [0x1294C0](../../../src/game/splice/ref/CRef_ctor_BASIC.c) | `CRef_ctor_BASIC` | Constructor: tag 0x21; calls the object's vtable slot 1 (Incref) if non-null | 0.80 | T1 |  |
-| [0x129518](../../../src/game/splice/ref/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
-| [0x129558](../../../src/game/splice/ref/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
-| [0x129598](../../../src/game/splice/ref/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
-| [0x1295D8](../../../src/game/splice/ref/CRef_SetSymid.c) | `CRef_SetSymid` | Decref then tag 0x18 | 0.85 | T1 |  |
-| [0x129618](../../../src/game/splice/ref/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
-| [0x129658](../../../src/game/splice/ref/__as__4CRefRC4CRef.c) | `__as__4CRefRC4CRef` |  |  | existing |  |
-| [0x1296A8](../../../src/game/splice/ref/CRef_SetVector.c) | `CRef_SetVector` | Decref, tag 0x1A, new box, copy *pv | 0.85 | T1 |  |
-| [0x129718](../../../src/game/splice/ref/CRef_SetVector_VU_VECTOR.c) | `CRef_SetVector_VU_VECTOR` | Same as SetVector but vector passed by value | 0.60 | T1 |  |
-| [0x129780](../../../src/game/splice/ref/CRef_SetMatrix.c) | `CRef_SetMatrix` | Decref, tag 0x1B, new box, copy | 0.85 | T1 |  |
-| [0x129808](../../../src/game/splice/ref/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
-| [0x129878](../../../src/game/splice/ref/CRef_SetLm.c) | `CRef_SetLm` | Decref, tag 0x1D | 0.85 | T1 |  |
-| [0x1298F0](../../../src/game/splice/ref/CRef_SetSmp.c) | `CRef_SetSmp` | Decref, tag 0x1E | 0.85 | T1 |  |
-| [0x129970](../../../src/game/splice/ref/CRef_SetPair.c) | `CRef_SetPair` | Incref new node, Decref old, tag 0x1F | 0.85 | T1 |  |
-| [0x1299C0](../../../src/game/splice/ref/CRef_SetProc.c) | `CRef_SetProc` | Incref, Decref, tag 0x20 | 0.85 | T1 |  |
-| [0x129A10](../../../src/game/splice/ref/CRef_SetBasic.c) | `CRef_SetBasic` | Object vtable Incref (slot 1), Decref old, tag 0x21 | 0.85 | T1 |  |
-| [0x129A70](../../../src/game/splice/ref/CRef_SetMethod.c) | `CRef_SetMethod` | Incref, Decref, tag 0x22 | 0.85 | T1 |  |
-| [0x129AC0](../../../src/game/splice/ref/__eq__4CRefRC4CRef.cpp) | `__eq__4CRefRC4CRef` |  |  | existing |  |
-| [0x129BC8](../../../src/game/splice/ref/CRef_CloneTo.cpp) | `CRef_CloneTo` | Deep copy: boxes re-allocated, pairs cloned via 0x128CB8, procs via 0x128F70, objects re-referenced | 0.65 | T1 |  |
-| [0x129D58](../../../src/game/splice/ref/CRef_RefCoerceS32.c) | `CRef_RefCoerceS32` | Returns S32 copy (float truncated) | 0.85 | T1 |  |
-| [0x129DA8](../../../src/game/splice/ref/CRef_RefCoerceF32.c) | `CRef_RefCoerceF32` | Returns F32 copy (int promoted); used by most numeric builtins | 0.88 | T1 |  |
-| [0x129DF8](../../../src/game/splice/ref/Incref__4CRef.c) | `CRef_Incref` | Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p, objects vtable slot 1) | 0.88 | T1 |  |
-| [0x129EC8](../../../src/game/splice/ref/Decref__4CRef.cpp) | `Decref__4CRef` |  |  | existing |  |
-| [0x12A0B0](../../../src/game/splice/ref/SetTag__4CRef4TAGK.c) | `SetTag__4CRef4TAGK` |  | 0.65 | existing | arbitration; replaces existing InitTag__4CRef |
+| [0x1291A8](../../../src/game/splice/ref.cpp) | `__4CRefRC4CRef` |  |  | existing |  |
+| [0x1291E0](../../../src/game/splice/ref.cpp) | `CRef_ctor_VECTOR` | Constructor: tag 0x1A, allocates refcounted VECTOR box from pool D_00452188 (0x11CCC0) and copies *pv | 0.80 | T1 |  |
+| [0x129248](../../../src/game/splice/ref.cpp) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
+| [0x1292B0](../../../src/game/splice/ref.cpp) | `CRef_ctor_MATRIX4` | Constructor: tag 0x1B, MATRIX4 box (pool D_004521A0, cref at +0x40) | 0.80 | T1 |  |
+| [0x129330](../../../src/game/splice/ref.cpp) | `CRef_ctor_CLQ` | Constructor: tag 0x1C (CLQ, 16 B box, pool D_004521B8) | 0.75 | T1 |  |
+| [0x129398](../../../src/game/splice/ref.cpp) | `CRef_ctor_LM` | Constructor: tag 0x1D (LM, 8 B box, pool D_004521D0) | 0.75 | T1 |  |
+| [0x129408](../../../src/game/splice/ref.cpp) | `CRef_ctor_SMP` | Constructor: tag 0x1E (SMP, 12 B box, pool D_004521E8) | 0.75 | T1 |  |
+| [0x129480](../../../src/game/splice/ref.cpp) | `CRef_ctor_CPair` | Constructor: tag 0x1F, stores node pointer and increments its refcount | 0.80 | T1 |  |
+| [0x1294A0](../../../src/game/splice/ref.cpp) | `CRef_ctor_CProc` | Constructor: tag 0x20 (proc), increments refcount | 0.75 | T1 |  |
+| [0x1294C0](../../../src/game/splice/ref.cpp) | `CRef_ctor_BASIC` | Constructor: tag 0x21; calls the object's vtable slot 1 (Incref) if non-null | 0.80 | T1 |  |
+| [0x129518](../../../src/game/splice/ref.cpp) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
+| [0x129558](../../../src/game/splice/ref.cpp) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
+| [0x129598](../../../src/game/splice/ref.cpp) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
+| [0x1295D8](../../../src/game/splice/ref.cpp) | `CRef_SetSymid` | Decref then tag 0x18 | 0.85 | T1 |  |
+| [0x129618](../../../src/game/splice/ref.cpp) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
+| [0x129658](../../../src/game/splice/ref.cpp) | `__as__4CRefRC4CRef` |  |  | existing |  |
+| [0x1296A8](../../../src/game/splice/ref.cpp) | `CRef_SetVector` | Decref, tag 0x1A, new box, copy *pv | 0.85 | T1 |  |
+| [0x129718](../../../src/game/splice/ref.cpp) | `CRef_SetVector_VU_VECTOR` | Same as SetVector but vector passed by value | 0.60 | T1 |  |
+| [0x129780](../../../src/game/splice/ref.cpp) | `CRef_SetMatrix` | Decref, tag 0x1B, new box, copy | 0.85 | T1 |  |
+| [0x129808](../../../src/game/splice/ref.cpp) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
+| [0x129878](../../../src/game/splice/ref.cpp) | `CRef_SetLm` | Decref, tag 0x1D | 0.85 | T1 |  |
+| [0x1298F0](../../../src/game/splice/ref.cpp) | `CRef_SetSmp` | Decref, tag 0x1E | 0.85 | T1 |  |
+| [0x129970](../../../src/game/splice/ref.cpp) | `CRef_SetPair` | Incref new node, Decref old, tag 0x1F | 0.85 | T1 |  |
+| [0x1299C0](../../../src/game/splice/ref.cpp) | `CRef_SetProc` | Incref, Decref, tag 0x20 | 0.85 | T1 |  |
+| [0x129A10](../../../src/game/splice/ref.cpp) | `CRef_SetBasic` | Object vtable Incref (slot 1), Decref old, tag 0x21 | 0.85 | T1 |  |
+| [0x129A70](../../../src/game/splice/ref.cpp) | `CRef_SetMethod` | Incref, Decref, tag 0x22 | 0.85 | T1 |  |
+| [0x129AC0](../../../src/game/splice/ref.cpp) | `__eq__4CRefRC4CRef` |  |  | existing |  |
+| [0x129BC8](../../../src/game/splice/ref.cpp) | `CRef_CloneTo` | Deep copy: boxes re-allocated, pairs cloned via 0x128CB8, procs via 0x128F70, objects re-referenced | 0.65 | T1 |  |
+| [0x129D58](../../../src/game/splice/ref.cpp) | `CRef_RefCoerceS32` | Returns S32 copy (float truncated) | 0.85 | T1 |  |
+| [0x129DA8](../../../src/game/splice/ref.cpp) | `CRef_RefCoerceF32` | Returns F32 copy (int promoted); used by most numeric builtins | 0.88 | T1 |  |
+| [0x129DF8](../../../src/game/splice/ref.cpp) | `CRef_Incref` | Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p, objects vtable slot 1) | 0.88 | T1 |  |
+| [0x129EC8](../../../src/game/splice/ref.cpp) | `Decref__4CRef` |  |  | existing |  |
+| [0x12A0B0](../../../src/game/splice/ref.cpp) | `SetTag__4CRef4TAGK` |  | 0.65 | existing | arbitration; replaces existing InitTag__4CRef |
 
 ## serialize (0x12A3D8-0x12A980)
 

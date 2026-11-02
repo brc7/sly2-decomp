@@ -179,12 +179,12 @@ Compared with Sly 1's 125-entry table (which gives the Splice spellings) `[H r1 
 | [0x127CF0](../../src/game/splice/frame.cpp) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
 | [0x127D78](../../src/game/splice/frame.cpp) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
 | [0x128148](../../src/game/splice/gc.cpp) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
-| [0x129248](../../src/game/splice/ref/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
-| [0x129518](../../src/game/splice/ref/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
-| [0x129558](../../src/game/splice/ref/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
-| [0x129598](../../src/game/splice/ref/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
-| [0x129618](../../src/game/splice/ref/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
-| [0x129808](../../src/game/splice/ref/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
+| [0x129248](../../src/game/splice/ref.cpp) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
+| [0x129518](../../src/game/splice/ref.cpp) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
+| [0x129558](../../src/game/splice/ref.cpp) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
+| [0x129598](../../src/game/splice/ref.cpp) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
+| [0x129618](../../src/game/splice/ref.cpp) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
+| [0x129808](../../src/game/splice/ref.cpp) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
 | [0x12A3D8](../../src/game/splice/serialize/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
 | [0x200598](../../src/game/object/spliceobj/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
 
