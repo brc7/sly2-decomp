@@ -10,7 +10,7 @@
 | [`frame/`](frame/) | 15 |
 | [`gc/`](gc/) | 19 |
 | [`method.cpp`](method.cpp) | 1 |
-| [`pair/`](pair/) | 3 |
+| [`pair.cpp`](pair.cpp) | 1 |
 | [`proc/`](proc/) | 4 |
 | [`ref/`](ref/) | 38 |
 | [`serialize/`](serialize/) | 3 |

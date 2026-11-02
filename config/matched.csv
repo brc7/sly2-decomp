@@ -1269,9 +1269,9 @@ StaticInit_gc,0x128A00,80,match,src/game/splice/gc/StaticInit_gc.c
 func_00128B40,0x128B40,8,match,src/game/splice/gc/func_00128B40.c
 StaticInit_method,0x128B60,77,match,src/game/splice/method.cpp
 func_00128C98,0x128C98,8,match,src/game/splice/method.cpp
-CPair_CloneTo,0x128CB8,88,match,src/game/splice/pair/CPair_CloneTo.cpp
-StaticInit_pair,0x128E18,77,match,src/game/splice/pair/StaticInit_pair.c
-func_00128F50,0x128F50,8,match,src/game/splice/pair/func_00128F50.c
+CPair_CloneTo,0x128CB8,88,match,src/game/splice/pair.cpp
+StaticInit_pair,0x128E18,77,match,src/game/splice/pair.cpp
+func_00128F50,0x128F50,8,match,src/game/splice/pair.cpp
 CProc_CloneTo,0x128F70,56,match,src/game/splice/proc/CProc_CloneTo.cpp
 StaticInit_proc,0x129050,77,match,src/game/splice/proc/StaticInit_proc.c
 func_00129188,0x129188,8,match,src/game/splice/proc/func_00129188.c

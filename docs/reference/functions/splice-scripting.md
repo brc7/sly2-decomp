@@ -252,7 +252,7 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128CB8](../../../src/game/splice/pair/CPair_CloneTo.cpp) | `CPair_CloneTo` | Deep-copies a list: new nodes (0x256B48) with RefClone of each element | 0.75 | T1 |  |
+| [0x128CB8](../../../src/game/splice/pair.cpppp) | `CPair_CloneTo` | Deep-copies a list: new nodes (0x256B48) with RefClone of each element | 0.75 | T1 |  |
 
 ## proc (0x128F70-0x1291A8)
 
