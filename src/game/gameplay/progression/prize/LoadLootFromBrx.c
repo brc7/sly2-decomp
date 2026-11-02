@@ -1,10 +1,10 @@
 struct H { int a, b, c, d; };
 struct AL { int cb; int cbAlign; int pad[2]; };
 struct S { char p0[0x23C]; int x23C; void *x240; };
-struct H *func_001AE478(struct H *ph);
+struct H *STACKSCOPE_ctor(struct H *ph);
 void *func_001AE318(struct AL *pal);
 void *func_001AE238(struct AL *pal, void *pv);
-void func_001AE4A0(struct H *ph, int n);
+void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n);
 void LoadDprizeFromBrx(struct S *p, void *pv);
 void func_001C7A08(struct S *p);
 /** @sly2-annot addr=0x1C76D0
@@ -22,7 +22,7 @@ void LoadLootFromBrx(struct S *p, void *pv)
     struct H h;
     struct AL al;
     struct AL *pal;
-    func_001AE478(&h);
+    STACKSCOPE_ctor(&h);
     pal = &al;
     pal->cb = 0x580;
     pal->cbAlign = 0x10;
@@ -32,5 +32,5 @@ void LoadLootFromBrx(struct S *p, void *pv)
     pal->cb = p->x23C * 0x2C;
     pal->cbAlign = 0x10;
     p->x240 = func_001AE238(pal, p->x240);
-    func_001AE4A0(&h, 2);
+    STACKSCOPE_ctor_1AE4A0(&h, 2);
 }

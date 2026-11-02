@@ -11,11 +11,11 @@ union V {qword q;float f[4];};
 struct LO {char padE4[0xE4];float radius;char padE8[0x20];int state;};
 struct P {char pad20[0x20];qword position;};
 struct QUERY {int count;LO **objects;};
-// Stack-scope object (sp+0): func_001AE478 opens it, func_001AE4A0(this,2) frees the stack memory taken since.
+// Stack-scope object (sp+0): STACKSCOPE_ctor opens it, STACKSCOPE_ctor_1AE4A0(this,2) frees the stack memory taken since.
 struct FRAME;
-extern "C" FRAME *func_001AE478(FRAME *);
-extern "C" void func_001AE4A0(FRAME *,int);
-struct FRAME {FRAME(){func_001AE478(this);}~FRAME(){func_001AE4A0(this,2);}};
+extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+struct FRAME {FRAME(){STACKSCOPE_ctor(this);}~FRAME(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 extern "C" qword func_001A62E8(LO *);
 extern "C" int func_00202350(void *,LO *);
 extern "C" void IntersectSwBoundingBox(void *,qword,qword,int (*)(void *,LO *),void *,int *,LO ***);

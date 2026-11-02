@@ -19,7 +19,7 @@ struct T {
 };
 struct X { int x0, x4, x8; };
 extern "C" {
-int func_00170548(X *px, int cb);
+int IgsAllocGsb__FP3GSBi(X *px, int cb);
 uint func_001703C0(uint n);
 }
 
@@ -66,7 +66,7 @@ extern "C" void func_001BE398(T *pt, X *px)
     pt->dx = 0x80;
     pt->dy = 0x80;
     int tbw = pt->dx / divisor;
-    int tbp = func_00170548(px, 0x100);
+    int tbp = IgsAllocGsb__FP3GSBi(px, 0x100);
     pt->tex0.fields.tbp0 = tbp;
     pt->tex0.fields.tbw = tbw;
     pt->tex0.fields.psm = 0;

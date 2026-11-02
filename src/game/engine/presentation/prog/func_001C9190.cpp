@@ -28,13 +28,13 @@ extern "C" int func_00234A40(int);
 extern "C" int func_00234A90(int,SEMA *);
 extern "C" float func_00245000(float);
 extern "C" void func_001C93E0(GIFS *,M2 *,float);
-extern "C" void func_00160A98(void);
-extern "C" void func_0014D0B8(CLOCK *,int);
+extern "C" void CloseFrame__Fv(void);
+extern "C" void MarkClockTick(CLOCK *,int);
 void OpenFrame(void);
 static inline void Clamp(float *value,const float *bounds){float low=bounds[0],high=bounds[1];if(*value<low)*value=low;else if(high<*value)*value=high;}
 static inline void BeginFrame()
 {
-    func_0014D0B8(&D_002DDED0,1);
+    MarkClockTick(&D_002DDED0,1);
     OpenFrame();
     uchar *pb=D_002DEA28.m_pb;
     D_002DEA4C->packet=pb;
@@ -70,10 +70,10 @@ extern "C" void func_001C9190(void *)
             float alpha=D_002C10C0[0]+t*(D_002C10C0[1]+t*D_002C10C0[2]);
             Clamp(&alpha,D_002BBB60);
             func_001C93E0(&D_002DEA00,&matrix,alpha);
-            func_00160A98();D_002BE538++;
+            CloseFrame__Fv();D_002BE538++;
         }
         do{D_002DEA4C->flags&=-2;}while(0);
-        func_00160A98();D_002BE538++;
+        CloseFrame__Fv();D_002BE538++;
         do {func_00234A90(D_002DEB18,&status);}while(status.count==0);
         func_00234A60(D_003D3A40);
         func_00234A40(D_003D3A44);

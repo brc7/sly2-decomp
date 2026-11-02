@@ -65,5 +65,5 @@ extern s32 D_004425D8;
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 void load_sly_icon_from_disc(s32 arg0, s32 arg1) {
-    func_001AC260(arg0, arg1, (s32) &D_002A38E8, (s32) &D_002A6CA0);
+    load_file_from_disc(arg0, arg1, (s32) &D_002A38E8, (s32) &D_002A6CA0);
 }

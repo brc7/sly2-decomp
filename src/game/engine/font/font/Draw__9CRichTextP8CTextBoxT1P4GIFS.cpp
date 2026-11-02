@@ -26,10 +26,10 @@ void func_0015F970(CRichText *p);
 int func_0015F9D0(CRichText *p);
 float func_0015F0F0(CFont *pfont, int ch);
 void func_0015F9A8(CRichText *p, RGBA *prgba);
-void func_0015F220(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
+void SetupDraw(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
 void func_0015F3E8(CFont *pfont, GIFS *pgifs);
 float func_0015F480(CFont *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs);
-void func_0015F000(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
+void CleanupDraw(CFont *pfont, CTextBox *ptb, GIFS *pgifs);
 }
 /** @sly2-annot addr=0x15FFD0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -91,7 +91,7 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
             fNewLine = 0;
         }
         if (!pfontSetup) {
-            func_0015F220(m_pfontCur, ptbClip, pgifs);
+            SetupDraw(m_pfontCur, ptbClip, pgifs);
             pfontSetup = m_pfontCur;
         } else if (m_fDirty) {
             func_0015F3E8(m_pfontCur, pgifs);
@@ -99,5 +99,5 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
         }
         x += func_0015F480(m_pfontCur, ch, x, y, m_rgbaCur, pgifs);
     }
-    func_0015F000(m_pfontCur, ptbClip, pgifs);
+    CleanupDraw(m_pfontCur, ptbClip, pgifs);
 }

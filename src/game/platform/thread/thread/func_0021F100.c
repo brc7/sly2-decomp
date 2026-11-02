@@ -5,7 +5,7 @@ struct ThreadParam {
 extern int D_004425D0[2];
 extern char D_004425F0[];
 extern char D_002E5270[];
-void func_00160B70(void *);
+void FrameRenderLoop__FPv(void *);
 int func_00234910(void);
 void func_002348B0(int tid, int prio);
 void *func_002333B4(void *p, int c, int n);
@@ -29,6 +29,6 @@ void func_0021F100(void)
     tp.stack = D_004425F0;
     tp.initPriority = 2;
     tp.gpReg = D_002E5270;
-    tp.entry = func_00160B70;
+    tp.entry = FrameRenderLoop__FPv;
     ptid[1] = func_00234820(&tp);
 }

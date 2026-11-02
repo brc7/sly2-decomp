@@ -32,11 +32,11 @@ struct FRAME { int a[4]; };
 extern "C" {
 extern DLI *D_002DD2FC; /* innermost active list iterator */
 extern CLOCK D_002DDED0;
-FRAME *func_001AE478(FRAME *);
-void func_001AE4A0(FRAME *, int);
+FRAME *STACKSCOPE_ctor(FRAME *);
+void STACKSCOPE_ctor_1AE4A0(FRAME *, int);
 void *func_001AE318(const REQ *);
 int func_00118A88(void *, int, qword, float, int *, ENTRY **);
-int func_0014C6D8(SHAPE *, ENTRY *, qword, qword, int, XP *);
+int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int FIsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(P *);
@@ -70,7 +70,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                 if ((shape->flags & (1UL << 48)) && !special) continue;
                 {
                     FRAME frame;
-                    func_001AE478(&frame);
+                    STACKSCOPE_ctor(&frame);
                     PHASE phase;
                     XP contacts[4];
                     int remaining;
@@ -82,7 +82,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                         SetAlign(&phase.request, 16);
                         entries = (ENTRY *)func_001AE318(&phase.request);
                         if (func_00118A88(shape->tree, 0x7FFFFFFF, Origin(p->state), p->state->radius, &remaining, &entries) != 2) {
-                            func_001AE4A0(&frame, 2);
+                            STACKSCOPE_ctor_1AE4A0(&frame, 2);
                             continue;
                         }
                         entries--;
@@ -91,7 +91,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                     RIP *rip;
                     for (rip = (RIP *)Next(&phase.rip); rip; rip = (RIP *)Next(&phase.rip)) {
                         if (D_002DDED0.t <= rip->start) continue;
-                        int count = func_0014C6D8(shape, entries, rip->extra, rip->position, 4, contacts);
+                        int count = ClsgClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
                         int i = 0;
                         if (i < count) do {
                             XP *hit = &contacts[i];
@@ -100,7 +100,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                         } while (i < count);
                     }
                     D_002DD2FC = phase.rip.outer;
-                    func_001AE4A0(&frame, 2);
+                    STACKSCOPE_ctor_1AE4A0(&frame, 2);
                 }
             }
             D_002DD2FC = shapes.outer;

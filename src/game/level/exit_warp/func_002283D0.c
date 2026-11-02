@@ -10,7 +10,7 @@ extern struct CLOCK D_002DDED0;
 void SetExitExits(struct S *p, int k);
 struct S *PexitDefault(struct G *pg);
 void ApplyTaskStates(void *a, int b, void *c, struct S *p);
-void func_0014E4C8(void *a, int b, int c, void *d, int e, int f);
+void RevokeCmPolicy(void *a, int b, int c, void *d, int e, int f);
 /** @sly2-annot addr=0x2283D0
  * Purpose: state 3 handling: find default, heading, revoke cm policy
  * Info: proposed name UpdateWarpTriggered (T2); TU exit_warp
@@ -30,8 +30,8 @@ void func_002283D0(struct S *p)
         return;
     }
     ApplyTaskStates(D_002DEB30, p->x164, p->a168, p);
-    func_0014E4C8(D_002DDF40, 2, -1, D_002DDF40 + 0x450, 0, 0);
-    func_0014E4C8(D_002DDF40, 2, -1, D_002DDF40 + 0x520, 0, 0);
+    RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x450, 0, 0);
+    RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x520, 0, 0);
     SetExitExits(p, 4);
     p->t = D_002DDED0.t + p->dt;
     p->vt[3].pfn((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);

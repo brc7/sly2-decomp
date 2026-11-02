@@ -8,7 +8,7 @@ extern struct E D_003D9EDC[];
 extern struct GD D_003DD490;
 extern struct B D_002E6604[];
 int func_001B0108(struct G *g);
-int func_001B0078(struct G *g);
+int IdPauseTopPage(struct G *g);
 void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
@@ -35,7 +35,7 @@ void func_001ADA20(char *buf)
     }
     f = ref.m_tag;
     func_00129EC8(&ref);
-    switch (func_001B0078(g)) {
+    switch (IdPauseTopPage(g)) {
     case 0x1E:
         if (f != 0.0f)
             func_0021ED58(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));

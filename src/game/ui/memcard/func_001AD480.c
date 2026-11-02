@@ -8,7 +8,7 @@ extern struct H D_002E6550;
 extern int D_003E0FAC;
 void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
-void func_001ACB58(struct H *h, int n);
+void SetMcDialogState(struct H *h, int n);
 void func_001AD3E0(void);
 /** @sly2-annot addr=0x1AD480
  * Purpose: Menu action slot i (group 3): confirm overwrite or SaveToSlot
@@ -28,7 +28,7 @@ void func_001AD480(struct S *s)
     if (f == 0.0f)
         func_001AD3E0();
     else
-        func_001ACB58(&D_002E6550, 0x1C);
+        SetMcDialogState(&D_002E6550, 0x1C);
     if (s)
         s->x1C |= 2;
 }

@@ -9,14 +9,14 @@ struct S { char pad[0xE0]; int c; };
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
 extern "C" {
-MARK *func_001AE478(MARK *pm);
-void func_001AE4A0(MARK *pm, int n);
+MARK *STACKSCOPE_ctor(MARK *pm);
+void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
 qword func_001A62E8(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct J *pj, int k);
 int func_00229D60(void *,void *);
 int func_001F7E08(struct S *p,int (*pfn)(void *,void *),void *context,void **apv);
-int func_0014CDB0(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg);
+int ClsgClipEdgeToObjects(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg);
 int func_0011D4D0(float a, float b, float eps);
 }
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -57,7 +57,7 @@ extern "C" float func_00229468(struct S *p, struct J *pj, qword *ppos, qword *pn
         work.a.f[2] = pj->px->g8;
     }
     work.b.f[2] = pj->px->g18;
-    func_001AE478(&work.mark);
+    STACKSCOPE_ctor(&work.mark);
     {
         MSG *pm = &work.msg;
         pm->cb = p->c * 4;
@@ -65,10 +65,10 @@ extern "C" float func_00229468(struct S *p, struct J *pj, qword *ppos, qword *pn
         apv = (void **)func_001AE318(pm);
     }
     c = func_001F7E08(p, func_00229D60, 0, apv);
-    if (!func_0014CDB0(work.a.q, work.b.q, c, apv, 0x10, work.alsg)) {
+    if (!ClsgClipEdgeToObjects(work.a.q, work.b.q, c, apv, 0x10, work.alsg)) {
         if (pnormal)
             *pnormal = D_002A2DC0;
-        func_001AE4A0(&work.mark, 2);
+        STACKSCOPE_ctor_1AE4A0(&work.mark, 2);
         return 0.0f;
     }
     if (ppos)
@@ -86,6 +86,6 @@ extern "C" float func_00229468(struct S *p, struct J *pj, qword *ppos, qword *pn
             *pnormal = D_002A2DC0;
     }
     g = work.alsg[0].g44 - work.alsg[0].g40;
-    func_001AE4A0(&work.mark, 2);
+    STACKSCOPE_ctor_1AE4A0(&work.mark, 2);
     return g;
 }

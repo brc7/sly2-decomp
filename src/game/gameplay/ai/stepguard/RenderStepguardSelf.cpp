@@ -15,8 +15,8 @@ extern float D_002C3D4C;
 extern float D_002C3D50[3],D_002C3D60[2],D_002BBB60[2];
 extern "C" {
 void func_001F3C10(P *);
-int func_0014FD50(void *);
-void func_00168638(EFFECT *,const M4 *,void *,float,float);
+int FActiveCplcy__FP5CPLCY(void *);
+void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
 void *func_002333B4(void *,int,unsigned int);
 qword func_001A62E8(P *);
 float func_00245000(float);
@@ -41,8 +41,8 @@ extern "C" void RenderStepguardSelf(P *p)
     CAMERA *camera=&D_002DDF40;
     if(p->flags.bytes[5]&camera->mask){
         func_001F3C10(p);
-        if(!func_0014FD50((char *)camera+0x3B0)){
-            func_00168638((EFFECT *)((char *)p+0x80),0,p->material,p->opacity,p->opacity);
+        if(!FActiveCplcy__FP5CPLCY((char *)camera+0x3B0)){
+            RenderSoGlobset((EFFECT *)((char *)p+0x80),0,p->material,p->opacity,p->opacity);
         }else{
             func_002333B4(&local,0,sizeof(M4));
             local.rows[3].f[3]=1.0f;
@@ -87,7 +87,7 @@ extern "C" void RenderStepguardSelf(P *p)
             M4 *inversePointer=&inverse;
             InvertMatrix4Rigid(inversePointer,basisPointer);
             __ml__FRC7MATRIX4T0(matrixPointer,productPointer,inversePointer);
-            func_00168638((EFFECT *)((char *)p+0x80),matrixPointer,p->material,p->opacity,p->opacity);
+            RenderSoGlobset((EFFECT *)((char *)p+0x80),matrixPointer,p->material,p->opacity,p->opacity);
         }
     }
 }

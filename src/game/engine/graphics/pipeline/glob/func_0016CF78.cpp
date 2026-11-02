@@ -12,8 +12,8 @@ struct OBJECT{char pad[0x1C];int count;void*segments;};
 struct HEADER{ushort flags,base,vertices,pad6,pad8,padA,padC,padE,weight,end,segments[2],bones[4];};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}void*Allocate();void*AllocateZero();};
 extern "C"{
-void*func_001AE478(void*);
-void func_001AE4A0(void*,int);
+void*STACKSCOPE_ctor(void*);
+void STACKSCOPE_ctor_1AE4A0(void*,int);
 void*func_001AE2A0(const REQUEST&);
 void*func_001AE318(const REQUEST&);
 void*func_002333B4(void*,int,uint);
@@ -29,8 +29,8 @@ extern uint D_002BE540[];
 extern UPK D_002BE558[];
 extern char D_00000000[],D_00001910[],D_00001A68[];
 }
-struct MARK{MARK(){func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
-struct LEASE{LEASE(){func_001AE478(this);}void Release(){func_001AE4A0(this,2);}};
+struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
+struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 inline void*REQUEST::Allocate(){return func_001AE318(*this);}
 inline void*REQUEST::AllocateZero(){return func_001AE2A0(*this);}
 static inline void*Allocate(int bytes){return REQUEST(bytes,16).Allocate();}

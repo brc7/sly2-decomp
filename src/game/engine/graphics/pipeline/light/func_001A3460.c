@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001A3968(void *);                      /* extern */
+M2C_UNK RebuildLight(void *);                      /* extern */
 M2C_UNK func_001A5E80();                            /* extern */
 
 /** @sly2-annot addr=0x1A3460
@@ -20,6 +20,6 @@ void func_001A3460(void *arg0) {
     }
     if (M2C_FIELD(arg0, s32 *, 0xE4) < var_v1) {
         M2C_FIELD(arg0, s32 *, 0xE4) = var_v1;
-        func_001A3968(arg0);
+        RebuildLight(arg0);
     }
 }

@@ -84,8 +84,8 @@ void func_00258040(EFFECT **, EFFECT *);
 void FaceStepToward(ACTOR *, SOURCE *);
 void FixStepAngularVelocity(ACTOR *);
 void SetStepRadTargetVec(ACTOR *, qword);
-void func_0014E328(MANAGER *, int, CAMERA *, ACTOR *, void *);
-void func_0014E4C8(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
+void SetCmPolicy(MANAGER *, int, CAMERA *, ACTOR *, void *);
+void RevokeCmPolicy(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
 void SetJtJtcs__FP2JTi(ACTOR *, int);
 void func_001CCAC0(ATTACH *, int);
 void func_001CD2C0(void *);
@@ -265,13 +265,13 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                 SetVector(p->pactor, 35, D_002A2DD0);
                 SetVector(p->pactor, 36, D_002A2DD0);
             }
-            func_0014E328(&D_002DDF40, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), p->pactor, p->pactor->anchor);
+            SetCmPolicy(&D_002DDF40, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), p->pactor, p->pactor->anchor);
         }
         break;
     case 9:
     case 10:
         if (!(Less(step, 11) && !Less(step, 9)))
-            func_0014E4C8(&D_002DDF40, 2, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), 0, 0);
+            RevokeCmPolicy(&D_002DDF40, 2, 10, (CAMERA *)((char *)&D_002DDF40 + 0x4C0), 0, 0);
         break;
     }
 

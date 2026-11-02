@@ -27,7 +27,7 @@ void func_00140750(struct P *p);
 void func_00142AF8(struct P *p);
 int FAsegaRetracted(int x);
 void func_001306A8(int *px);
-int func_0014FD50(void *p);
+int FActiveCplcy__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
 void func_001DB490(void *p);
 void UpdateBhvstk(int *p);
@@ -68,7 +68,7 @@ void UpdateStepplayer(struct P *p)
     func_00142AF8(p);
     if (p->xEFC && FAsegaRetracted(p->xEFC))
         func_001306A8(&p->xEFC);
-    if (!func_0014FD50(D_002DE2E0) && p->x150->x80 == 1 && GrfPressedWithin__5POCTLUif(p->x150, 0.0f, 0x100)) {
+    if (!FActiveCplcy__FP5CPLCY(D_002DE2E0) && p->x150->x80 == 1 && GrfPressedWithin__5POCTLUif(p->x150, 0.0f, 0x100)) {
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & 0x108) == 0x100) {
             SetJoyBtnHandled(pg, 0x100);

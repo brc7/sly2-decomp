@@ -1,4 +1,4 @@
-/* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (func_0014C6A0) vs every SO of each LO in list aref[0].
+/* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClsgClipEdgeToObject) vs every SO of each LO in list aref[0].
    pv==0x7B returns a list of (lo pos normal) for all hits, else (lo normal) of the first hit (the original stores &hit.normal there). */
 typedef int qword __attribute__((mode(TI)));
 struct NODE;
@@ -56,7 +56,7 @@ struct HIT {
     qword normal;
     int pad[16];
 };
-extern "C" int func_0014C6A0(SO *pso, qword pos0, qword pos1, int f, HIT *phit);
+extern "C" int ClsgClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT *phit);
 
 /* Script builtin: ray-cast segment aref[1]->aref[2] against every SO of each LO in list aref[0].
    pv == 0x7B: return list of (lo pos normal) for all hits; otherwise return (lo normal) of the first hit. */
@@ -89,7 +89,7 @@ extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CR
                 HIT hit;
                 if (pso->grf & (1UL << 50))
                     continue;
-                if (func_0014C6A0(pso, *prefFrom->u.pq, *prefTo->u.pq, 1, &hit) <= 0)
+                if (ClsgClipEdgeToObject(pso, *prefFrom->u.pq, *prefTo->u.pq, 1, &hit) <= 0)
                     continue;
                 {
                     SPN spLo(func_00256B48());

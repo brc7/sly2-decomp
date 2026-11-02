@@ -16,7 +16,7 @@ void *PpoHero(void *);
 qword func_001A62E8(void *);
 void FindShapeClosestPoint(struct Q *, qword, int, int, int, int, float *);
 int func_0011D910(struct RANGE *, float);
-qword func_0014F308(void *, qword);
+qword ConvertCmWorldToScreen(void *, qword);
 float sqrtf(float);
 
 static inline float GRemap(struct RANGE *pr, float g)
@@ -55,7 +55,7 @@ int func_0014AA30(struct P *p)
             u1 = 1.0f - GRemap(&D_002BD488, g);
         else
             u1 = 0.0f;
-        v.q = func_0014F308(D_002DDF40, p->p38->x5C->xF4[i]);
+        v.q = ConvertCmWorldToScreen(D_002DDF40, p->p38->x5C->xF4[i]);
         if (func_0011D910(&D_002BD490, v.f[2]))
             u2 = GRemap(&D_002BD490, v.f[2]);
         else if (func_0011D910(&D_002BD498, v.f[2]))

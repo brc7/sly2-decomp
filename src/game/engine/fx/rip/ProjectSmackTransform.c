@@ -16,7 +16,7 @@ typedef struct {
     qword x100;
 } OBJ;
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
-qword func_0014F268(void *, qword);
+qword ConvertCmScreenToWorld(void *, qword);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x1D05A0
  * Purpose: SMACK Project
@@ -29,5 +29,5 @@ void ProjectSmackTransform(OBJ *p)
 {
     EvaluateBezierPos(GMax(p->x14 + p->x18 - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->x100, p->x90, p->xF0->a, p->xF0->b, &p->x100, &p->x90, 0);
     p->x80 = p->x70;
-    p->x70 = func_0014F268(D_002DDF40, p->x100);
+    p->x70 = ConvertCmScreenToWorld(D_002DDF40, p->x100);
 }

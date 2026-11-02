@@ -24,21 +24,21 @@ struct FRAME;
 extern CLOCK D_002DDED0;
 extern GAME D_003DD490;
 extern "C" {
-FRAME *func_001AE478(FRAME *);
-void func_001AE4A0(FRAME *,int);
+FRAME *STACKSCOPE_ctor(FRAME *);
+void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 DZG *InitDzgXp(DZG *,int,XP **,int,P **);
 void func_00158668(DZG *,DZ *,DZS *);
 void func_00158988(DZG *,int);
 void ApplyDzg(DZG *,float,float);
 void func_0011A6B8(DZG *);
-void func_001A7E60(GAME *,int,XP **);
-void func_001A7FC0(GAME *,int,XP **);
+void RecalcSwXpPos(GAME *,int,XP **);
+void RecalcSwXpMovement(GAME *,int,XP **);
 float GRandInRange__Fff(float,float);
 void SolveDzgFric(DZG *,int);
 void func_001F9C48(P *);
 }
 // Stack frame mark: ctor 0x1AE478, dtor 0x1AE4A0 (called with the 2.95 in-charge flag 2).
-struct FRAME {FRAME(){func_001AE478(this);}~FRAME(){func_001AE4A0(this,2);}};
+struct FRAME {FRAME(){STACKSCOPE_ctor(this);}~FRAME(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 
 #define FLT_MAX 3.40282347e+38f
 
@@ -119,8 +119,8 @@ extern "C" void SolveSwGroup(GAME *game,int flags,int objectCount,P **objects,in
     int fResting=flags&1;
     int j=fResting;
     if(fResting){
-        func_001A7E60(game,contactCount,contacts);
-        func_001A7FC0(game,contactCount,contacts);
+        RecalcSwXpPos(game,contactCount,contacts);
+        RecalcSwXpMovement(game,contactCount,contacts);
         int n;for(n=0;n<contactCount;n++){
             contact=contacts[n];
             row=&group.rows[n];
@@ -154,8 +154,8 @@ extern "C" void SolveSwGroup(GAME *game,int flags,int objectCount,P **objects,in
         }
         if(k>=objectCount){
             for(k=0;k<objectCount;k++)func_001F9C48(objects[k]);
-            func_001A7E60(&D_003DD490,contactCount,contacts);
-            func_001A7FC0(&D_003DD490,contactCount,contacts);
+            RecalcSwXpPos(&D_003DD490,contactCount,contacts);
+            RecalcSwXpMovement(&D_003DD490,contactCount,contacts);
         }
     }else{
         for(k=0;k<objectCount;k++)Callback(objects[k],66);

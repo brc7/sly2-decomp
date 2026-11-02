@@ -1,6 +1,6 @@
 // func_001DF0A0: for every segment entry of p, find where the segment's two endpoints hit the request (first
-// func_0014C6A0, else the shape test FIsBasicDerivedFrom + func_00205670) and add a kind-10 contact there with PxpAdd
-// (func_001A7C18), then post the OBJ::Notify (ZapLasenBeams) message through EnsureSwCallback.
+// ClsgClipEdgeToObject, else the shape test FIsBasicDerivedFrom + func_00205670) and add a kind-10 contact there with PxpAdd
+// (PxpAdd), then post the OBJ::Notify (ZapLasenBeams) message through EnsureSwCallback.
 // What mattered (w3lane2):
 //  - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
 //    the empty base stub func_001F5990 (no code, but the call's argument uses fix the prologue schedule);
@@ -30,10 +30,10 @@ typedef void (OBJ::*PMF)();
 extern "C" {
 void func_001F5990(OBJ *, REQUEST *, int, int, int, CONTACT **);
 void GetLasenBeamEnds(OBJ *, ENDPOINT *, qword *, float *);
-int func_0014C6A0(REQUEST *, qword, qword, int, HIT *);
+int ClsgClipEdgeToObject(REQUEST *, qword, qword, int, HIT *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int func_00205670(void *, qword, qword, qword *);
-void func_001A7C18(G *, void *, REQUEST *, qword, qword, int, int, int, CONTACT **, float);   // PxpAdd
+void PxpAdd(G *, void *, REQUEST *, qword, qword, int, int, int, CONTACT **, float);   // PxpAdd
 void EnsureSwCallback(G *, OBJ *, PMF, int);
 }
 
@@ -88,7 +88,7 @@ extern "C" void func_001DF0A0(OBJ *p, REQUEST *q, int a2, int a3, int a4, CONTAC
         HIT hit;
         int found = 0;
         GetLasenBeamEnds(p, e->endpoint, seg, 0);
-        if (!func_0014C6A0(q, seg[0], seg[1], 1, &hit)) {
+        if (!ClsgClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
             void *so = *q->x4->x14;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x33))
                 found = func_00205670(so, seg[0], seg[1], &pos.q);
@@ -100,7 +100,7 @@ extern "C" void func_001DF0A0(OBJ *p, REQUEST *q, int a2, int a3, int a4, CONTAC
             float dist = Scalar(Len(Sub(seg[0], pos.q)));
             qword dir = Sub(seg[1], seg[0]);
             dir = Div(dir, Len(dir));
-            func_001A7C18(&D_003DD490, p->shape, q, pos.q, dir, 10, *(int *)&dist, 0, &e->head, 0.0f);
+            PxpAdd(&D_003DD490, p->shape, q, pos.q, dir, 10, *(int *)&dist, 0, &e->head, 0.0f);
             EnsureSwCallback(&D_003DD490, p, &OBJ::Notify, 0);
         }
     }

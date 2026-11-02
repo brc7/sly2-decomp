@@ -13,7 +13,7 @@ void func_001FF828(struct S *p);
 void InitSwProxySpares(struct S *p);
 void func_0020F710(struct S *p);
 void func_001569B8(struct S *p);
-void func_001A3260(struct S *p);
+void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
 void func_00210940(struct S *p);
 void func_001957C0(struct S *p);
@@ -45,7 +45,7 @@ void PostSwLoad(struct S *p)
     InitSwProxySpares(p);
     func_0020F710(p);
     func_001569B8(p);
-    func_001A3260(p);
+    EnsureSwDefaultLight(p);
     PostLoadSwPathzones(p);
     func_00210940(p);
     func_001957C0(p);

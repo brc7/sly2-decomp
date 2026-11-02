@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_0014D3D8(s32);                         /* extern */
+M2C_UNK CM_ctor(s32);                         /* extern */
 s32 func_001AE4F8(M2C_UNK);                         /* extern */
 
 /** @sly2-annot addr=0x112DA8
@@ -10,5 +10,5 @@ s32 func_001AE4F8(M2C_UNK);                         /* extern */
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 void NewCm(void) {
-    func_0014D3D8(func_001AE4F8(0x630));
+    CM_ctor(func_001AE4F8(0x630));
 }

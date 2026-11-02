@@ -10,9 +10,9 @@ qword func_001A62E8(struct SO *pso);
 M3 *func_001A6318(struct SO *pso);
 void func_0014E1A8(void *pcm, qword a, qword b, float g, float h);
 void func_00256D18(qword *p, qword v);
-void func_0014E168(void *pcm, M4 *pm);
+void SetCmMat4(void *pcm, M4 *pm);
 float func_00244B68(float g);
-void func_0014F5A0(void *pcm, float g);
+void SetCmFov__FP2CMf(void *pcm, float g);
 static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 {
     pm->r[0] = pmat->r[0];
@@ -61,11 +61,11 @@ void func_0012E858(struct P *p)
         ((int *)&m4.r[1])[3] = 0;
         ((int *)&m4.r[0])[3] = 0;
         ((float *)&pm->r[3])[3] = 1.0f;
-        func_0014E168(D_002DDF40, pm);
+        SetCmMat4(D_002DDF40, pm);
     }
     if (pso->x12C > 0) {
         float g = func_00244B68(17.995901107788086f / pso->g128);
         g = GClamp(g + g, 0.01f, 3.0f);
-        func_0014F5A0(D_002DDF40, g);
+        SetCmFov__FP2CMf(D_002DDF40, g);
     }
 }

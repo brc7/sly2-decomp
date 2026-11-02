@@ -45,6 +45,6 @@ extern s32 D_003E0FE4;
  * @end-sly2-annot */
 void func_001AF6A0(s32 arg0, s32 arg1) {
     if (M2C_FIELD(arg0, s32 *, 0x1E8) == 7) {
-        func_001AEAA8(arg0, 0xB);
+        SetPauseMenuState(arg0, 0xB);
     }
 }

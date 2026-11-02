@@ -18,8 +18,8 @@ extern char D_003DD040[];
 extern int D_003DD050;
 extern GSR D_002DEB80;
 CRef func_002581C0(KEY *, char *);
-int func_001A2C98(void);
-void func_001A2BD0(int);
+int CLanguagesRegion(void);
+void SetLanguage(int);
 void func_001FE9C8(void *, int);
 void func_001FEA60(void *, int, int, float);
 unsigned int func_0023E1C8(float);
@@ -37,8 +37,8 @@ static inline float GetFloat(KEY *k, char *pb) { return func_002581C0(k, pb).m_g
  * @end-sly2-annot */
 extern "C" void func_001D8FF8(char *pb)
 {
-    if (D_003DD490.k[0] && func_001A2C98() >= 2)
-        func_001A2BD0(GetInt(D_003DD490.k[0], pb));
+    if (D_003DD490.k[0] && CLanguagesRegion() >= 2)
+        SetLanguage(GetInt(D_003DD490.k[0], pb));
     if (D_003DD490.k[1])
         func_001FE9C8(D_003DD040, GetInt(D_003DD490.k[1], pb));
     if (D_003DD490.k[2])

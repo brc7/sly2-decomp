@@ -1,7 +1,7 @@
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
-void func_001AE478(void *p);
-void func_001AE4A0(void *p, int n);
+void STACKSCOPE_ctor(void *p);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 struct HIT;
 int func_0014CC58(int z, qword a, qword b, int i, int j, HIT *phit);

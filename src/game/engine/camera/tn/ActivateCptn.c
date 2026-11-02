@@ -11,17 +11,17 @@ extern char D_002C4120[];
 extern float D_002C41DC;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-void func_0014FCC8(struct S *p, void *pj, struct T *pt);
+void ActivateCplcy(struct S *p, void *pj, struct T *pt);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pj, int k);
 int FIsCidDerivedFrom(int a, int b);
 void func_00220D40(void *pe);
-void func_0014E968(struct G *pg, void *pj, void *pq);
+void GetCmCpdefi(struct G *pg, void *pj, void *pq);
 void func_00220DD8(void *pe, void *pa, qword *pb, struct T *pt);
 void FindShapeClosestPoint(void *p, qword q, int a, qword *pq, int b, int c, void *pv);
 void func_00221CE8(struct S *p, void *pq);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 qword SetVectorSphere(float a, float b, float c);
-void func_0014D8C0(struct G *pg);
+void CutCm__FP2CM(struct G *pg);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x221A18
@@ -37,7 +37,7 @@ void ActivateCptn(struct S *p, void *pj, struct T *pt)
     qword q50;
     qword q60;
     qword a;
-    func_0014FCC8(p, pj, pt);
+    ActivateCplcy(p, pj, pt);
     p->pt = pt;
     if (!pt) {
         p->pe = D_002C4120;
@@ -53,7 +53,7 @@ void ActivateCptn(struct S *p, void *pj, struct T *pt)
     }
     p->x38 = 1;
     func_00220D40(p->pe);
-    func_0014E968(&D_002DDF40, pj, &q0);
+    GetCmCpdefi(&D_002DDF40, pj, &q0);
     func_00220DD8(p->pe, &q0, &q50, 0);
     if (p->pt) {
         struct T *ptT = p->pt;
@@ -70,7 +70,7 @@ void ActivateCptn(struct S *p, void *pj, struct T *pt)
     p->g24 = ((struct R *)p->pe)->g5C;
     p->x34 = 0;
     if (p->pt && p->pt->x184)
-        func_0014D8C0(&D_002DDF40);
+        CutCm__FP2CM(&D_002DDF40);
     p->g80 = D_002DDED0.t;
     p->g60 = D_002DDED0.t;
     p->g48 = D_002DDED0.t - D_002C41DC;

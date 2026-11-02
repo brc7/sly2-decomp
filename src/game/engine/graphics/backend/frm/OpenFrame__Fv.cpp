@@ -28,7 +28,7 @@ extern int D_002DDF54;
 extern QW D_002DF740[];
 extern "C" void SetPhase__F5PHASE(int phase);
 extern "C" void func_00234A60(int sid);
-extern "C" void func_00160CE0(FR *pfr);
+extern "C" void ClearPendingFrame__FP3FRM(FR *pfr);
 /** @sly2-annot addr=0x160828
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Info: proposed name OpenFrame__Fv (EXISTING); TU frm
@@ -44,7 +44,7 @@ void OpenFrame()
     D_002DEA4C = &D_002DEA50[D_002DEB10++];
     if (D_002DEB10 >= 2)
         D_002DEB10 = 0;
-    func_00160CE0(D_002DEA4C);
+    ClearPendingFrame__FP3FRM(D_002DEA4C);
     D_002DEA4C->n4C = D_002DDF54;
     D_002DEA4C->n30 = 1;
     D_002DEA4C->n2C = 0;

@@ -14,7 +14,7 @@ extern int D_002DFBC0;
 extern char D_002DFC00[];
 extern char D_002E0D00[];
 void UpdateSo(OBJ *);
-int func_0014FD50(void *);
+int FActiveCplcy__FP5CPLCY(void *);
 int DxSelectionJoy(void *);
 int GrfHandleJoyBtn(void *, int);
 void *func_001F07E8(void *);
@@ -45,7 +45,7 @@ void func_001D72A8(OBJ *p)
         return;
     if (p->x188 == 0)
         return;
-    if (func_0014FD50(D_002DE2E0))
+    if (FActiveCplcy__FP5CPLCY(D_002DE2E0))
         return;
     if (D_002DFBC0 & 2)
         pad = D_002DFC00;

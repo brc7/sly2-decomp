@@ -11,15 +11,15 @@ int GrfHandleJoyBtn(PAD *, int);
 void func_00187E08(PAD *, int);
 int func_001B0290(int);
 int FIsDlEmpty__FP2DL(void *);
-void func_001AEEE0(void *);
+void UpdatePauseMenu(void *);
 void func_001DB870(void *);
 void func_001DAA90(void *);
-void func_0014BFF8(void *);
+void UpdateCodes(void *);
 void func_0022B198(void *);
 void func_001D9DF8(void *);
 void func_001DA350(void *);
 void func_001DCD30(void *);
-void func_001ACCC8(void *);
+void CMemcardDialog_Update(void *);
 void func_001ADEE8(void *);
 void func_001DA808(void *);
 void func_001DD920(void *);
@@ -53,15 +53,15 @@ void func_001D9648(void *pdl)
         if (r && f)
             func_001B0290(0);
     }
-    func_001AEEE0(D_003D9ED0);
+    UpdatePauseMenu(D_003D9ED0);
     func_001DB870(D_003DA150);
     func_001DAA90(D_003DA0F0);
-    func_0014BFF8(D_002DDEC0);
+    UpdateCodes(D_002DDEC0);
     func_0022B198(D_00443740);
     func_001D9DF8(D_003D9E80);
     func_001DA350(D_003DA0C0);
     func_001DCD30(D_003DA3C0);
-    func_001ACCC8(D_002E6550);
+    CMemcardDialog_Update(D_002E6550);
     func_001ADEE8(D_002E65A0);
     func_001DA808(D_003DA4F0);
     func_001DD920(D_003DA530);

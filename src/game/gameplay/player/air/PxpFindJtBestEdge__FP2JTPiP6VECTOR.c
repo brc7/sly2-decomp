@@ -55,7 +55,7 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 extern int func_00144068(LO *);
 extern int func_001999D0(P *,SHAPE *,qword,int,void *,U *);
-extern void func_001A7FC0(void *,int,CONTACT **);
+extern void RecalcSwXpMovement(void *,int,CONTACT **);
 extern BSPNODE *PbspPointInBspQuick(BSPNODE *,BSPNODE *,qword);
 static inline qword Scalar(float f)
 {
@@ -129,7 +129,7 @@ CONTACT *PxpFindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
             }
             if (!func_001999D0(p,shape,InputPosition(contact,side),contact->kind,info,&direction)) continue;
             if ((p->self->ec->flags&2) || (shape->owner->ec->flags&2))
-                func_001A7FC0(D_003DD490,1,&contact);
+                RecalcSwXpMovement(D_003DD490,1,&contact);
             if (0.0f < D_002C3C60[side]*contact->difference.f[2]) continue;
             {
                 qword back; qword lift; qword value; U *selected;

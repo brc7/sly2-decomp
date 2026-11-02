@@ -12,19 +12,19 @@ extern CAMERA D_002DDF40;
 extern WORLD D_003DD490;
 extern float D_002A9700;
 extern "C" {
-void *func_001AE478(void *);
-void func_001AE4A0(void *,int);
+void *STACKSCOPE_ctor(void *);
+void STACKSCOPE_ctor_1AE4A0(void *,int);
 qword func_001A62E8(void *);
-int func_0014F030(void *,SO *);
+int FFilterCamera(void *,SO *);
 void IntersectSwBoundingBox(WORLD *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***);
-qword func_0014EB70(int,SO **,qword,float);
-int func_0014EA08(int count,SO **objects,qword origin,qword endpoint,float gap,float *low,float *high);
+qword FindCmClosestClearPos(int,SO **,qword,float);
+int FFindCmClearInterval(int count,SO **objects,qword origin,qword endpoint,float gap,float *low,float *high);
 float GDistPlanePos(void *,qword,qword,N *);
-qword func_0014EDA0(CAMERA *,int,SO **,float (*)(void *,qword,qword,N *),qword,qword,float,float);
+qword SquishCmEye(CAMERA *,int,SO **,float (*)(void *,qword,qword,N *),qword,qword,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
 qword SetVectorCylind(float,float,float);
 }
-struct MARK {MARK(){(void)func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
+struct MARK {MARK(){(void)STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct WORK {V minimum,maximum,origin,candidate;MARK mark;V offset,rayEnd,best,scalar;int count;SO **objects;float low,high,phase,radius,height;};
 static inline qword Min(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Max(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -51,10 +51,10 @@ extern "C" void func_00223A70(S *p,qword begin,qword end,qword *out){
     float one=1.0f;
     w.minimum.q=Min(begin,Min(end,func_001A62E8(object)));
     w.maximum.q=Max(begin,Max(end,func_001A62E8(object)));
-    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,func_0014F030,0,&w.count,&w.objects);
+    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,FFilterCamera,0,&w.count,&w.objects);
     int count=w.count; SO **objects=w.objects;
-    w.origin.q=func_0014EB70(count,objects,func_001A62E8(object),500.0f);
-    func_0014EA08(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
+    w.origin.q=FindCmClosestClearPos(count,objects,func_001A62E8(object),500.0f);
+    FFindCmClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
     if(w.high<one){
         float angle=initialAngle;
         p->state=4;
@@ -65,7 +65,7 @@ extern "C" void func_00223A70(S *p,qword begin,qword end,qword *out){
             qword off=SetVectorCylind(w.phase+angle,w.radius,w.height);
             w.offset.q=off;
             w.rayEnd.q=Add(begin,off);
-            func_0014EA08(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
+            FFindCmClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
             float cost=(1.25f-w.high)*(Abs(angle)+0.47123894f);
             if(cost<bestCost){
                 float left=1.0f-w.high;
@@ -81,8 +81,8 @@ extern "C" void func_00223A70(S *p,qword begin,qword end,qword *out){
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
-    final=ToVF(func_0014EDA0(&D_002DDF40,w.count,w.objects,GDistPlanePos,w.candidate.q,w.candidate.q,D_002DDF40.radius,D_002DDF40.radius));
-    func_0014EA08(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
+    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GDistPlanePos,w.candidate.q,w.candidate.q,D_002DDF40.radius,D_002DDF40.radius));
+    FFindCmClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;
         qword left=ScalarHome(w.offset,1.0f-u);

@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/aseg.h"
 
-/* CPDEFI: from src/game/engine/camera/cm/func_0014DC58.cpp (12 copies in Lilly ports) */
+/* CPDEFI: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (12 copies in Lilly ports) */
 struct CPDEFI
 {
       int grfcpd;
@@ -22,7 +22,7 @@ struct CPDEFI
       VECTOR4 posAdjust;
 };
 
-/* CPLCYDATA: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPLCYDATA: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLCYDATA
 {
     void *pvHero;
@@ -30,14 +30,14 @@ struct CPLCYDATA
     float sNearClipSaved;
 };
 
-/* CPLCY: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPLCY: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLCY : public CPLCYDATA
 {
     virtual void Init();
     int FIsTop();   /* from FCanUseGadget__2JTi.cpp */
 };
 
-/* CPLOOK: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPLOOK: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLOOK : public CPLCY
 {
       float radPan;
@@ -96,18 +96,18 @@ struct CPZOOM : public CPLCY
     int FAtTargetZoom();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 
-/* CPTURRET: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPTURRET: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPTURRET : public CPLCY
 {
 };
 
-/* CPCAMERA: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPCAMERA: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPCAMERA : public CPLCY
 {
       CID44 *pcamera;
 };
 
-/* CPTWOSHOT: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPTWOSHOT: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPTWOSHOT : public CPLCY
 {
       LO *ploOwner;
@@ -121,7 +121,7 @@ struct CPCAMBLEND : public CPLCY
     virtual void Enter(void *pvHero, void *pvOwner);
 };
 
-/* CPHANG: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPHANG: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPHANG : public CPLCY
 {
       XF *pxfCam;
@@ -132,7 +132,7 @@ struct CPHANG : public CPLCY
       VECTOR4 vecVel;
 };
 
-/* CPR: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CPR: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPR
 {
     CPP cpp;
@@ -141,7 +141,7 @@ struct CPR
     void *pv;
 };
 
-/* CMPART1: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CMPART1: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CMPART1 : public CPLCY
 {
 };
@@ -183,12 +183,12 @@ struct CMPART2 : public CPLCY
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCptn");
 };
 
-/* CMBASE: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CMBASE: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CMBASE : public BASIC
 {
 };
 
-/* CM: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
+/* CM: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CM : public CMBASE
 {
       struct VISZONE *pzonVis;

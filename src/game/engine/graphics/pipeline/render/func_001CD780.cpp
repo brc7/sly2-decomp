@@ -16,7 +16,7 @@ extern CM D_002DDF40;
 extern float D_002C1F20;
 extern LM D_002C1F28;
 extern int D_002C1F30,D_002C1F34;
-extern "C" qword func_0014F308(CM *,qword);
+extern "C" qword ConvertCmWorldToScreen(CM *,qword);
 extern "C" float func_0011D948(LM *,float);
 extern "C" RT *func_00215AC0(RT *,const char *,float);
 extern "C" void func_00216260(RT *,float *,float *);
@@ -35,7 +35,7 @@ extern "C" void func_001CD780(qword position,const char *text,const RGBA *unused
 {
     float height=SavedHeight(inputHeight);
     CM *camera=&D_002DDF40;
-    qword screen=func_0014F308(camera,position);
+    qword screen=ConvertCmWorldToScreen(camera,position);
     float depth=Z(screen);
     if(depth<camera->nearDepth)return;
     float scale=func_0011D948(&D_002C1F28,height*(D_002C1F20/(camera->sx*depth)));

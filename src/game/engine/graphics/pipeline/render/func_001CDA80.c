@@ -7,7 +7,7 @@ extern void *D_003D4A50;
 extern char D_003DA0F0[];
 extern char D_002DEA00[];
 extern char D_002DEA28[];
-void func_001A3EE8(struct G *p);
+void PrepareSwLights(struct G *p);
 void func_001CD9E0(struct G *p);
 void func_001DAC58(void *p);
 void func_001574A0(void *p);
@@ -22,7 +22,7 @@ void func_001574A0(void *p);
 void func_001CDA80(struct G *p)
 {
     int i;
-    func_001A3EE8(p);
+    PrepareSwLights(p);
     p->x3D60++;
     D_003D4A50 = D_003B3980;
     if (p->x3D5C != p->x3D64) {

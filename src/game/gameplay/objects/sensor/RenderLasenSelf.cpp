@@ -1,6 +1,6 @@
 // RenderLasenSelf (w2lane4, wave 2): per-frame render of a "connector" (a chain of links drawn between pairs of points).
 // After the generic update (RenderSoSelf) and a camera visibility test of the connector's bounding sphere
-// (func_0014F850), each link is queried for its two end points and its length (GetLasenBeamEnds). A link longer than its
+// (FInsideCmFrustum), each link is queried for its two end points and its length (GetLasenBeamEnds). A link longer than its
 // maximum is pulled back toward the first point, then the line object, the stretched middle object and the two end caps
 // (func_001A5FB8 / func_001A5EE8) are placed along the segment, in a basis built from the segment direction (BuildOrthonormalMatrixZ).
 // Matching notes (all found by reading the sched1/local-alloc/reload dumps):
@@ -39,7 +39,7 @@ struct VU_FLOAT {
 };
 extern "C" {
 void RenderSoSelf(P *);
-int func_0014F850(CAMERA *, qword, VU_FLOAT);
+int FInsideCmFrustum(CAMERA *, qword, VU_FLOAT);
 void GetLasenBeamEnds(P *, ENTRY *, qword *, float *);
 void func_001A5FB8(void *, qword, qword, float, float);
 M3 BuildOrthonormalMatrixZ(qword, qword);
@@ -97,7 +97,7 @@ extern "C" void RenderLasenSelf(P *p)
     qword boundPosition = bound->position.q;
     VU_FLOAT radius(&bound->radius, 0);
     qword relativePosition = Subtract(boundPosition, cam->position.q);
-    if (!func_0014F850(cam, relativePosition, radius)) return;
+    if (!FInsideCmFrustum(cam, relativePosition, radius)) return;
     U points[2];
     M3 basis;
     float dist;

@@ -1,7 +1,7 @@
 struct FRAME;
-extern "C" FRAME*func_001AE478(FRAME*);
-extern "C" void func_001AE4A0(FRAME*,int);
-struct FRAME {FRAME(){(void)func_001AE478(this);}~FRAME(){func_001AE4A0(this,2);}};
+extern "C" FRAME*STACKSCOPE_ctor(FRAME*);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int);
+struct FRAME {FRAME(){(void)STACKSCOPE_ctor(this);}~FRAME(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct X {char pad0[0x5C];int x5C;char pad1[0x6C-0x60];int x6C;char pad2[0x7C-0x70];X*x7C;};
 struct T {char pad[0xCC];int tags[2];};
 struct P {int a,b;T*t;};

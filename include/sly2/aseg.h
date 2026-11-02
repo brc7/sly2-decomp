@@ -76,7 +76,7 @@ struct ASEGBL : public ASEG
 };
 typedef char assert_ASEGBL_size[sizeof(ASEGBL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* SND: from src/game/engine/camera/cm/func_0014DC58.cpp (13 copies in Lilly ports) */
+/* SND: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (13 copies in Lilly ports) */
 struct SND
 {
       undefined4 unk_0x00[3];

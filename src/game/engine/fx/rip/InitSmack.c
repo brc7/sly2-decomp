@@ -25,7 +25,7 @@ extern char D_002DDF40[];
 extern float D_002C2000;
 extern qword D_002BBB50;
 void InitRip(OBJ *, qword);
-qword func_0014F308(void *, qword);
+qword ConvertCmWorldToScreen(void *, qword);
 float GRandInRange__Fff(float, float);
 /** @sly2-annot addr=0x1D04E8
  * Purpose: SMACK (RIPT 9) Init
@@ -40,7 +40,7 @@ void InitSmack(OBJ *p, qword q)
     float x, y;
     InitRip(p, q);
     d = p->xF0;
-    p->x100 = func_0014F308(D_002DDF40, q);
+    p->x100 = ConvertCmWorldToScreen(D_002DDF40, q);
     x = GRandInRange__Fff(d->x20[0], d->x30[0]);
     y = GRandInRange__Fff(d->x20[1], d->x30[1]);
     {

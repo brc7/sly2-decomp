@@ -1,12 +1,12 @@
 extern "C" {
-void *func_001AE478(void *p);
-void func_001AE4A0(void *p, int n);
+void *STACKSCOPE_ctor(void *p);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void func_00129EC8(void *p);
 void *func_001291A8(void *p, const void *q);
 void *FVaultOpened(void);
 void func_001ABD98(void *p, int n);
 }
-class FRAME { public: FRAME() { func_001AE478(this); } ~FRAME() { func_001AE4A0(this, 2); } };
+class FRAME { public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct CRef {
     int m_tagk; int m_tag;
     CRef() {}

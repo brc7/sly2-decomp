@@ -16,7 +16,7 @@ extern qword D_002A2DC0;   // g_normalZ
 extern "C" {
 SO *PsoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
-void func_001A7C18(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
+void PxpAdd(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
 }
 static inline qword Sub(const qword &a, const qword &b) {
     qword r;
@@ -72,10 +72,10 @@ extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword 
     M3 mat = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
     qword posLocal = Rotate(mat, Sub(pos, posOther));
     if ((grf & 1) || ((grf & 8) && X(posLocal) < 0.0001f))
-        func_001A7C18(D_003DD490, pso->psopart, psopartOther, pos, mat.r[0], X(posLocal), (grf & 1) ? 11 : 10, 0, 0, ppxpFirst);
+        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[0], X(posLocal), (grf & 1) ? 11 : 10, 0, 0, ppxpFirst);
     if ((grf & 2) || ((grf & 0x10) && Y(posLocal) < 0.0001f))
-        func_001A7C18(D_003DD490, pso->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (grf & 2) ? 11 : 10, 0, 0, ppxpFirst);
+        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[1], Y(posLocal), (grf & 2) ? 11 : 10, 0, 0, ppxpFirst);
     if ((grf & 4) || ((grf & 0x20) && Z(posLocal) < 0.0001f))
-        func_001A7C18(D_003DD490, pso->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (grf & 4) ? 11 : 14, 0, 0, ppxpFirst);
+        PxpAdd(D_003DD490, pso->psopart, psopartOther, pos, mat.r[2], Z(posLocal), (grf & 4) ? 11 : 14, 0, 0, ppxpFirst);
     *ppxpOut = *ppxpFirst;
 }

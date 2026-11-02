@@ -1,7 +1,7 @@
 extern char D_0025AFA0[], D_0025B870[], D_002DF800[];
 extern char D_004421A0[], D_004424B0[], D_004424D0[], D_004424F0[], D_00442520[], D_004425A0[], D_00442560[], D_00442240[];
 extern char D_000000C0[], D_00000100[];
-void func_00160918(void *, void *, void *);
+void EnsureVu1Code__FP4VIFSPvT1(void *, void *, void *);
 void func_001574B8(void *);
 void func_00226D10(void *);
 void func_00157598(void *, void *);
@@ -22,7 +22,7 @@ void func_001576F0(void *);
  * @end-sly2-annot */
 void func_00211A80(void *p)
 {
-    func_00160918(p, D_0025AFA0, D_0025B870);
+    EnsureVu1Code__FP4VIFSPvT1(p, D_0025AFA0, D_0025B870);
     func_001574B8(p);
     func_00226D10(p);
     func_00157598(p, D_002DF800);

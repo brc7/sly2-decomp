@@ -47,7 +47,7 @@ extern "C" {
 void func_001A3F78(WORLD *world, qword pos, int capacity, RESULT *results);
 void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 qword *func_00256D18(qword *p, qword v);
-int func_001A4258(qword pos, float radius, int csphere, SPHERE *asphere);
+int FSphereHitsSpheres(qword pos, float radius, int csphere, SPHERE *asphere);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); } };
 static inline qword Zero() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
@@ -204,7 +204,7 @@ extern "C" void func_001A4478(WORLD *world, M4 *transform, P *p)
             spheres[1].radius = p->limit * extent / dist;
             spheres[2].pos = AddScaled(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].radius = 0;
-            packet.kind = func_001A4258(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
+            packet.kind = FSphereHitsSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
             {
                 uchar *pb = D_002DEA28.m_pb;
                 p->pbBasis = pb;

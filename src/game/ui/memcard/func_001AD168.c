@@ -3,8 +3,8 @@ struct S { char pad[0x40]; int x40; };
 extern struct PMF D_002A6E88, D_002A6D88, D_002A6E90;
 extern char D_002F633C[];
 void func_001AD3E0(void);
-void func_001AAF90(void *t, struct PMF pmf);
-void func_001ACB58(struct S *s, int n);
+void CreateMemcardThread(void *t, struct PMF pmf);
+void SetMcDialogState(struct S *s, int n);
 /** @sly2-annot addr=0x1AD168
  * Purpose: Confirm path: 0x1AD3E0 or CreateMemcardThread
  * Info: proposed name McDialogConfirm (T2); TU memcard
@@ -18,16 +18,16 @@ void func_001AD168(struct S *s)
         func_001AD3E0();
         break;
     case 0x12:
-        func_001AAF90(D_002F633C, D_002A6E88);
-        func_001ACB58(s, 0x13);
+        CreateMemcardThread(D_002F633C, D_002A6E88);
+        SetMcDialogState(s, 0x13);
         break;
     case 0x15:
-        func_001AAF90(D_002F633C, D_002A6D88);
-        func_001ACB58(s, 0x16);
+        CreateMemcardThread(D_002F633C, D_002A6D88);
+        SetMcDialogState(s, 0x16);
         break;
     case 0x20:
-        func_001AAF90(D_002F633C, D_002A6E90);
-        func_001ACB58(s, 0x21);
+        CreateMemcardThread(D_002F633C, D_002A6E90);
+        SetMcDialogState(s, 0x21);
         break;
     }
 }

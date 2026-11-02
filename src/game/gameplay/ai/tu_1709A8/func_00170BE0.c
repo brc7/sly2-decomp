@@ -102,7 +102,7 @@ extern M2C_UNK D_738;
 extern M2C_UNK D_7F0;
 
 /*
-Decompilation failure in function func_00168638:
+Decompilation failure in function RenderSoGlobset:
 
 Found jr instruction at chunk.s line 733, but the corresponding jump table is not provided.
 

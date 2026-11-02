@@ -4,8 +4,8 @@ struct R { char pad[0x124]; int x124; };
 struct Q { char pad[0x124]; struct R *x124; int x128; };
 struct B { int c; int *p; };
 struct S { char pad[0x10]; int c10; int p14[2]; struct B *x1C; int c20; struct Q **a24; };
-int func_001AE478(struct H *p);
-void func_001AE4A0(struct H *p, int n);
+int STACKSCOPE_ctor(struct H *p);
+void STACKSCOPE_ctor_1AE4A0(struct H *p, int n);
 int *func_001AE378(struct A *pa);
 void *func_001AE1D0(struct A *pa);
 static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return func_001AE378(pa); }
@@ -22,7 +22,7 @@ void func_001C1260(struct S *p)
     struct A a;
     int *ac;
     int i, j, k;
-    func_001AE478(&h);
+    STACKSCOPE_ctor(&h);
     a.cb = p->c10 * 4;
     ac = Alloc1(&a);
     for (i = 0; i < p->c20; i++) {
@@ -45,5 +45,5 @@ void func_001C1260(struct S *p)
             pb->p[pb->c++] = k;
         }
     }
-    func_001AE4A0(&h, 2);
+    STACKSCOPE_ctor_1AE4A0(&h, 2);
 }

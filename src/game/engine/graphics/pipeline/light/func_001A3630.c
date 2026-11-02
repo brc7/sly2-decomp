@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001A3968();                            /* extern */
+M2C_UNK RebuildLight();                            /* extern */
 
 /** @sly2-annot addr=0x1A3630
  * Purpose: Store float x154 (deg, clamped >=30 in RebuildLight) and rebuild
@@ -9,5 +9,5 @@ M2C_UNK func_001A3968();                            /* extern */
  * @end-sly2-annot */
 void func_001A3630(void *arg0, f32 fparg0) {
     M2C_FIELD(arg0, f32 *, 0x154) = fparg0;
-    func_001A3968();
+    RebuildLight();
 }

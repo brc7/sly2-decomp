@@ -24,8 +24,8 @@ void func_002577E0(void);
 void func_00257948(void);
 void func_00257AB0(void);
 void func_00257C18(void);
-void func_001AE478(CTX *);
-void func_001AE4A0(CTX *, int);
+void STACKSCOPE_ctor(CTX *);
+void STACKSCOPE_ctor_1AE4A0(CTX *, int);
 void *func_001AE318(MSG *);
 void func_001285D8(GC *, void *);
 void MarkLiveObjects__3CGc(GC *);
@@ -80,7 +80,7 @@ void Collect__3CGc(GC *pgc)
     func_002574F8();
     func_00257500();
     func_00257508();
-    func_001AE478(&ctx);
+    STACKSCOPE_ctor(&ctx);
     InitStack(&pgc->cFrame, (void ***)&pgc->apFrame, D_00452108);
     InitStack(&pgc->cNode, (void ***)&pgc->apNode, D_004520B8);
     pgc->apClo = (void **)AllocA(D_00452130);
@@ -123,5 +123,5 @@ void Collect__3CGc(GC *pgc)
     func_00257948();
     func_00257AB0();
     func_00257C18();
-    func_001AE4A0(&ctx, 2);
+    STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }

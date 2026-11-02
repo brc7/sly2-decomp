@@ -15,7 +15,7 @@ extern qword D_002A2DA0;extern int D_003DD490;
 extern void func_001F5990(P*,REQUEST*,int,int,int,CONTACT**);
 extern qword*func_002564B8(qword*);
 extern int func_0014C748(qword,float,qword,qword,int,SEGMENT*);
-extern void func_001A7C18(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
+extern void PxpAdd(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
 
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword Broadcast(float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
@@ -66,7 +66,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
    distance=Planar(&w.direction);
    if(distance<radius){
     w.newEndpoint.q=Broadcast(-q->radius);
-    func_001A7C18(&D_003DD490,&p->contacts[p->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
+    PxpAdd(&D_003DD490,&p->contacts[p->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
    }else{
     int j;
     for(j=q->start;j<q->count;j++){
@@ -79,7 +79,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
       result=MAdd2(point,plane,w.scale.q);
       func_002564B8(&w.dot.q);func_002564B8(&w.one.q);
       distance=Distance(&w.dot,&w.one,plane,point)-q->radius;
-      func_001A7C18(&D_003DD490,&p->contacts[p->contactCount-1],q,result,plane,10,n,0,out,distance);
+      PxpAdd(&D_003DD490,&p->contacts[p->contactCount-1],q,result,plane,10,n,0,out,distance);
       break;
      }
     }

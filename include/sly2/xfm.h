@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* GEOM: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (10 copies in Lilly ports) */
+/* GEOM: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (10 copies in Lilly ports) */
 struct GEOM
 {
       int cpos;
@@ -17,7 +17,7 @@ struct GEOM
       EDGE *aedge;
 };
 
-/* BSPC: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (10 copies in Lilly ports) */
+/* BSPC: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (10 copies in Lilly ports) */
 struct BSPC
 {
       int cbsp;

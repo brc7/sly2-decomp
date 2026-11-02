@@ -46,8 +46,8 @@ MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");
 MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 qword func_001A62E8(P *);
 qword *func_00256D18(qword *,qword);
-FRAME *func_001AE478(FRAME *);
-void func_001AE4A0(FRAME *,int);
+FRAME *STACKSCOPE_ctor(FRAME *);
+void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 void IntersectSwBoundingSphere(GAME *,qword,float,int (*)(void *,void *),void *,int *,void ***);
 int func_0020FA50(void *,void *);
 int func_00173610(qword *,float,float,int,void *);
@@ -110,7 +110,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
     for(int i=0;i<pointCount;i++){float length=GLength(localPoints[i]);radius=(radius>length)?radius:length;}
     FRAME storage;
     FRAME *frame=&storage;
-    func_001AE478(frame);
+    STACKSCOPE_ctor(frame);
     int nearbyCount;void **nearby;
     IntersectSwBoundingSphere(&D_003DD490,*(qword *)matCur.mat[3],radius,func_0020FA50,p->attachment,&nearbyCount,&nearby);
     U points[3];
@@ -142,7 +142,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
         matCur.mat[2][3]=0;matCur.mat[1][3]=0;matCur.mat[0][3]=0;
     }
     p->basis=*(MATRIX3 *)&matCur;
-    func_001AE4A0(frame,2);
+    STACKSCOPE_ctor_1AE4A0(frame,2);
     GCSE_PAD10
     GCSE_PAD10
     GCSE_PAD10

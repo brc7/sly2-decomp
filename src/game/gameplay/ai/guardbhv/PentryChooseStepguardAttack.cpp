@@ -1,7 +1,7 @@
 // PentryChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
-// FRAME with out-of-line ctor/dtor (func_001AE478 / func_001AE4A0(this, 2)), CRef(bool) with inline dtor
+// FRAME with out-of-line ctor/dtor (STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2)), CRef(bool) with inline dtor
 // (func_00129EC8), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
@@ -36,7 +36,7 @@ struct P {
     char padFC0[4];
     SCALE *scale;
 };
-struct FRAME { int n; FRAME(); ~FRAME(); }; /* out-of-line ctor/dtor: func_001AE478 / func_001AE4A0(this, 2) */
+struct FRAME { int n; FRAME(); ~FRAME(); }; /* out-of-line ctor/dtor: STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2) */
 struct LSG { U point; char rest[0x50]; };
 struct LOS { U start, end; LSG hit; };
 extern "C" void func_00129EC8(void *);

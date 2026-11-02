@@ -24,8 +24,8 @@ int func_0011D910(void *p, float f);
 float RadNormalize__Ff(float f);
 qword *func_001A6318(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
-void func_001AE478(struct X *x);
-void func_001AE4A0(struct X *x, int n);
+void STACKSCOPE_ctor(struct X *x);
+void STACKSCOPE_ctor_1AE4A0(struct X *x, int n);
 int func_0020FA10(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
 struct R *func_0014CC58(int n, qword a, qword b, int c, int d, struct Y *y);
@@ -99,14 +99,14 @@ int FBhvcombatCanShoot(struct S *p) {
     }
     {
         struct R *r;
-        func_001AE478(&x);
+        STACKSCOPE_ctor(&x);
         IntersectSwBoundingBox(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
         r = func_0014CC58(0, pa, pb, na, nb, &y);
         if (r && r->p4->p14->p0 != p->p30) {
-            func_001AE4A0(&x, 2);
+            STACKSCOPE_ctor_1AE4A0(&x, 2);
             return 0;
         }
-        func_001AE4A0(&x, 2);
+        STACKSCOPE_ctor_1AE4A0(&x, 2);
         return 1;
     }
 }

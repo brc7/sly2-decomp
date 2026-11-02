@@ -4,7 +4,7 @@ struct CLOCK;
 extern struct CLOCK D_002DDED0;
 void func_002319E8(int);
 int func_00233048(int, int, int, int, int, int, int);
-long func_0014D240(struct CLOCK *);
+long TickNow(struct CLOCK *);
 /** @sly2-annot addr=0x1FCEA0
  * Purpose: snd_StartSoundSystem, SUKR init (cmd 0), all channel/category volumes = 1, record start clock
  * Info: proposed name StartupSound (T1); TU sound
@@ -23,7 +23,7 @@ void func_001FCEA0(void)
         D_003DD040.b[i] = 1.0f;
         for (j = 0; j < 8; j++) D_003DD040.a[j][i] = 1.0f;
     }
-    t = func_0014D240(&D_002DDED0);
+    t = TickNow(&D_002DDED0);
     D_003DD040.l1F0 = t;
     D_003DD040.l1F8 = t;
 }

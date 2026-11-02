@@ -61,7 +61,7 @@ extern int func_002432D0(int port, int slot, unsigned char *pb);
 extern void func_001AE5A0(void *dst, void *src, int cb);
 extern void func_00187768(JOY *p, unsigned char bX, unsigned char bY, float *px, float *py, float *pu,
                           unsigned char *pbX, unsigned char *pbY, int *pf, LM *alm);
-extern void func_0014BF48(void *p, JOY *pjoy, int grfbtn);
+extern void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
 extern int PpoHero(void *p);
 extern void BroadcastGameEvent(SND *p, int n, int a);
 
@@ -134,7 +134,7 @@ int func_00187998(JOY *p)
         p->dy = (p->y - y) / D_002DDED0.x40;
         p->dx2 = (p->x2 - x2) / D_002DDED0.x40;
         p->dy2 = (p->y2 - y2) / D_002DDED0.x40;
-        func_0014BF48(D_002DDEC0, p, old & 0xFFFF);
+        _MatchCodes(D_002DDEC0, p, old & 0xFFFF);
         p->tRead = D_002DDED0.tReal;
         if (p->grfbtn != 0 || p->uDeflect != 0.0f || p->uDeflect2 != 0.0f) {
 

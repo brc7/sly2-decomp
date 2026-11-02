@@ -2,7 +2,7 @@ struct O { char pad[0x12F0]; int x12f0; };
 struct S { struct O *p; };
 extern int D_002DFBC0;
 extern char D_002DE2E0[];
-int func_0014FD50(void *);
+int FActiveCplcy__FP5CPLCY(void *);
 /** @sly2-annot addr=0x19EEF0
  * Purpose: Gadget check while on a pipe: only k==3, allowed if owner flag x12F0 and global flag and no active
  *   camera policy
@@ -13,7 +13,7 @@ int func_0014FD50(void *);
 int func_0019EEF0(struct S *p, int k) {
     if (k == 3) {
         int r = 0;
-        if (p->p->x12f0 && (D_002DFBC0 & 2)) r = !func_0014FD50(D_002DE2E0);
+        if (p->p->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(D_002DE2E0);
         return r;
     }
     return 0;

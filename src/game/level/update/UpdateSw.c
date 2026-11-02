@@ -24,9 +24,9 @@ void func_00156728(void *pv);
 void SolveSw(struct S *p);
 void func_001BE1E8(void);
 void func_001EC968(void);
-void func_001AB1A0(void *pv);
+void UpdateSave__FP4SAVE(void *pv);
 void func_001FD830(void *pv);
-void func_0014D478(void *pv);
+void UpdateCmLast__FP2CM(void *pv);
 void func_0020F7E0(struct S *p);
 void CGc_UpdateRecyclable(void *pv);
 static inline void InitDli(DLI *pdli, DL *pdl)
@@ -87,10 +87,10 @@ void UpdateSw(struct S *p)
         ProcessSwCallbacks(p);
         D_002DD2FC = dli.m_pdliNext;
     }
-    func_001AB1A0(D_002E65E0);
+    UpdateSave__FP4SAVE(D_002E65E0);
     func_001FD830(D_003DD040);
     if (0.0f < D_002DDED0.g10)
-        func_0014D478(D_002DDF40);
+        UpdateCmLast__FP2CM(D_002DDF40);
     func_0020F7E0(p);
     CGc_UpdateRecyclable(D_002DD598);
 }

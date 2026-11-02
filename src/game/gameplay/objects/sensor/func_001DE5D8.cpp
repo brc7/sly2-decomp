@@ -2,7 +2,7 @@
 // an endpoint names an object: a path (shape test 10) becomes a moving endpoint with a 1/2/6-segment motion profile
 // (mode 8 / 0 / 16, the last a trapezoidal accelerate-cruise-decelerate profile), shape 3/0x30 objects and missing
 // objects become fixed points. All points (or the whole transformed path) are accumulated into a min/max box that
-// becomes p's single bound (func_00166270 copies it to world space). Fresh rewrite (wave-4 lane 9).
+// becomes p's single bound (CloneGeom copies it to world space). Fresh rewrite (wave-4 lane 9).
 // What mattered:
 //  - Min/Max take VU_VECTOR (const qword & conversion) parameters as in func_001DF0A0: the extra RTL copies keep the
 //    endpoint loop large enough that loop.c does not hoist 1.0f and 16 out of it;
@@ -81,7 +81,7 @@ void *func_002333B4(void *, int, int);
 qword func_001A62E8(void *);
 qword func_0022FC48(void *, void *, qword);
 void *func_001AE2A0(MSG *);
-void func_00166270(GEO *, const M4 *, GEO *);
+void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *, const M4 *, GEO *);
 void AddSoParts(P *);
 }
 
@@ -281,7 +281,7 @@ extern "C" void func_001DE5D8(P *p)
         request.alignment = 16;
         request.bytes = 2 * sizeof(qword);
         bound->local.points = (U *)func_001AE2A0(&request);
-        func_00166270(&bound->local, 0, &bound->world);
+        CloneGeom__FP4GEOMP7MATRIX4T0(&bound->local, 0, &bound->world);
         bound->world.points[0].q = minimum;
         bound->world.points[1].q = maximum;
         { U *out = bound->local.points; out[0].q = func_0022FC48(0, p->space, minimum); }

@@ -30,8 +30,8 @@ extern "C"{
  int NWorldCur();
  void func_001D8FF8(void*);
  void RestoreTasksAfterLoad(P*);
- LEASE*func_001AE478(LEASE*);
- void func_001AE4A0(LEASE*,int);
+ LEASE*STACKSCOPE_ctor(LEASE*);
+ void STACKSCOPE_ctor_1AE4A0(LEASE*,int);
  void SortTasksTopologically(int*,P***);
  void RestoreTaskState(P*);
  void UpdateTaskSaveVars(P*);
@@ -46,7 +46,7 @@ extern "C"{
  CRef*func_001291A8(CRef*,const CRef*);
  void func_00129EC8(CRef*);
 }
-struct LEASE{LEASE(){func_001AE478(this);}void Release(){func_001AE4A0(this,2);}};
+struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
  OVERRIDE(P*p,int x,int y):context(0),object(p){if(object){oldX=object->x;object->x=x;oldY=object->y;object->y=y;}}
  ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}

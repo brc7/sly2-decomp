@@ -19,7 +19,7 @@ struct P *PpoHero(struct G *g);
 qword func_0019F3F8(struct P *p, E *e, float g);
 float func_00196928(qword a, qword b, float c, float d, float e, float f);
 void SetStepRadTargetVec(struct P *p, qword q);
-void func_0014D8C0(struct D *d);
+void CutCm__FP2CM(struct D *d);
 void func_00195A00(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int a, int b);
 void func_00148300(struct G *g, int a);
@@ -51,7 +51,7 @@ void ReturnJtToSafePlace(struct P *p, E *q)
                 p->x9e4 = save;
                 SetStepRadTargetVec(p, D_002DDF40.x60);
                 ((void (*)(void *, void *))p->vt[30].pfn)((char *)p + p->vt[30].d, p->x1b0);
-                func_0014D8C0(&D_002DDF40);
+                CutCm__FP2CM(&D_002DDF40);
                 func_00195A00(p->x2c0, 0xB, 0, 0);
                 if (e.x4) {
                     if (FIsBasicDerivedFrom__FP5BASIC3CID(e.x0, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.x0, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.x0, 0xD) ||

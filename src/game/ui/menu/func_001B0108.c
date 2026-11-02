@@ -1,4 +1,4 @@
-int func_001B0078(void);
+int IdPauseTopPage(void);
 /** @sly2-annot addr=0x1B0108
  * Purpose: Top page is one of the save/load pages
  * Info: proposed name FPauseSavePage (T2); TU menu
@@ -7,7 +7,7 @@ int func_001B0078(void);
  * @end-sly2-annot */
 int func_001B0108(void)
 {
-    switch (func_001B0078()) {
+    switch (IdPauseTopPage()) {
     case 0x19: case 0x1E: case 0x1F:
         return 1;
     }

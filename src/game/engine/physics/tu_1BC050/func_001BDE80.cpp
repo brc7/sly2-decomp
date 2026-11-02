@@ -11,9 +11,9 @@
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct CTX;
-extern "C" CTX*func_001AE478(CTX*);
-extern "C" void func_001AE4A0(CTX*,int);
-struct CTX { CTX(){(void)func_001AE478(this);}~CTX(){func_001AE4A0(this,2);} };
+extern "C" CTX*STACKSCOPE_ctor(CTX*);
+extern "C" void STACKSCOPE_ctor_1AE4A0(CTX*,int);
+struct CTX { CTX(){(void)STACKSCOPE_ctor(this);}~CTX(){STACKSCOPE_ctor_1AE4A0(this,2);} };
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DL { void *pvFirst; void *pvLast; int ibDle; };
 struct DLI { DL *pdl; void **ppv; int ibDle; DLI *pdliNext; };

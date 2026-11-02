@@ -1,5 +1,5 @@
 // func_001A87F0: for each of `count` vertices of mesh A's point table, pick the best-ranked contact plane from the vertex's
-// surface list (heads[i], NODEs chained through ->next), then emit contacts through func_001A7C18:
+// surface list (heads[i], NODEs chained through ->next), then emit contacts through PxpAdd:
 //   - kind 1: the vertex itself (position = points.data[indices[i]]) with the best plane's normal and the vertex's own plane distance;
 //   - kind 2: every other list vertex of the same chain that lies closer to the best plane than the vertex does.
 // A surface is ranked by the smallest signed distance (dot(normal.xyz, p.xyz) - normal.w) from its plane to the vertex (orig) and to
@@ -13,7 +13,7 @@
 //    lowest-numbered pseudo of its equivalence class, so loops over `n` (declared after `head`) test `head` and loops over `m` test `m`.
 //  - `pt` is read before `nn` is constructed, so it is live across the ctor call (callee-saved GPR) which also decides the s0/s1 split between n and m.
 //  - `plane` is read before the `flags & 8` test, which lets reorg fill the bnez delay slot from before.
-//  - func_001A7C18 takes its float in the middle of the argument list (EABI: float args go to $f12 either way); the position only matters for the order gcc
+//  - PxpAdd takes its float in the middle of the argument list (EABI: float args go to $f12 either way); the position only matters for the order gcc
 //    evaluates the arguments in.
 //  - PlaneDist takes the plane as a VU_VECTOR4 by value: the by-value class parameter adds a few TImode copies that survive cse1 (and vanish at
 //    register allocation), which makes gcse's expression table 77 buckets instead of 73. PRE numbers its reaching registers in hash-bucket order, so
@@ -36,7 +36,7 @@ struct EDGE { unsigned short ends[2]; };
 struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
 extern "C" {
 extern float D_002A6AD0;
-void func_001A7C18(W *, A *, B *, qword, float, qword, int, int, int, XP **);
+void PxpAdd(W *, A *, B *, qword, float, qword, int, int, int, XP **);
 }
 
 /* signed distance of pos from plane: dot(plane.xyz, pos.xyz) - plane.w, via VU0 macro mode */
@@ -93,14 +93,14 @@ extern "C" void func_001A87F0(W *w, A *a, B *b, int count, int *indices, NODE **
         for (n = head; n; n = n->next) n->surface->flags &= ~8;
         VECTOR normal;
         normal.q = bestNormal;
-        func_001A7C18(w, a, b, position, bestOrig, normal.q, 1, (int)&a->points.data[index], (int)best, out);
+        PxpAdd(w, a, b, position, bestOrig, normal.q, 1, (int)&a->points.data[index], (int)best, out);
         for (m = head; m; m = m->next) {
             d = PlaneDist(bestNormal, m->point);
             if (d < bestOrig) {
                 qword pt = m->point;
                 VECTOR nn;
                 nn.q = bestNormal;
-                func_001A7C18(w, a, b, pt, d, nn.q, 2, (int)m->edge, (int)best, out);
+                PxpAdd(w, a, b, pt, d, nn.q, 2, (int)m->edge, (int)best, out);
             }
         }
     }

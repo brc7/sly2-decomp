@@ -21,7 +21,7 @@ typedef struct {
 } OBJ;
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
-int func_0014C6A0(void *, qword, qword, int, HIT *);
+int ClsgClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
 void func_001CEA88(OBJ *, int);
 /** @sly2-annot addr=0x1D0D28
@@ -40,7 +40,7 @@ void func_001D0D28(OBJ *p, int n)
         goto done;
     hit.pos = p->x70;
     for (i = 0; i < p->q->c; i++) {
-        if (func_0014C6A0(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
+        if (ClsgClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
             goto found;
     }
 found:

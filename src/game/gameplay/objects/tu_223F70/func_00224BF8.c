@@ -10,8 +10,8 @@ extern struct G D_003DD490;
 extern int D_002C4368[11];
 extern float D_002C4338[11];
 void func_0020FA10();
-MARK *func_001AE478(MARK *pm);
-void func_001AE4A0(MARK *pm, int n);
+MARK *STACKSCOPE_ctor(MARK *pm);
+void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n);
 void IntersectSwBoundingSphere(struct G *pg, qword pos, void (*pfn)(), void *pv, float r, int *pc, struct A ***papa);
 qword SetVectorSphere(float a, float b, float c);
 qword LimitVectorLength(qword v, float r);
@@ -34,7 +34,7 @@ void func_00224BF8(struct S *p, int a, int b, qword pos, float r)
     struct A **apa;
     int cx;
     int i, j, k, m;
-    func_001AE478(&mark);
+    STACKSCOPE_ctor(&mark);
     IntersectSwBoundingSphere(&D_003DD490, pos, func_0020FA10, p->xEC, r, &c, &apa);
     cx = 0;
     for (i = 0; i < sizeof(D_002C4368) / sizeof(D_002C4368[0]); i++) {
@@ -50,5 +50,5 @@ void func_00224BF8(struct S *p, int a, int b, qword pos, float r)
     for (m = 0; m < cx; m++)
         func_001F7598(&ax[m]);
     func_00156698(D_003DD490.x402C, pos, p)->x54 = 1;
-    func_001AE4A0(&mark, 2);
+    STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }

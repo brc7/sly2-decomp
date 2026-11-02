@@ -10,7 +10,7 @@ struct S { char pad[0xC]; struct VTE *vt; char pad10[0x1DC-0x10]; float radius; 
 struct Q { int enabled,pad4; float radius; struct SO *so; };
 extern float D_002C0D7C;
 qword func_001A62E8(void *);
-int func_001A93C8(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
+int CsbiIntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
 static inline void Trigger(struct S *p)
 {
     struct VTE *m=&p->vt[76];
@@ -69,7 +69,7 @@ int FCheckDprizeCollect(struct S *p,struct Q *q)
             }
         } else {
             qword here=func_001A62E8(p);
-            if(func_001A93C8(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
+            if(CsbiIntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
                 Trigger(p);
                 return 1;
             }

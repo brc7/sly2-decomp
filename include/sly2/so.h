@@ -205,7 +205,7 @@ typedef char assert_SO_pxfRoot[SLY2_OFFSETOF(SO, pxfRoot) == 0x60 ? 1 : -1];   /
 typedef char assert_SO_dlChild[SLY2_OFFSETOF(SO, dlChild) == 0x64 ? 1 : -1];   /* child DL at SO+0x64 (CONFIRMED runtime) */
 typedef char assert_SO_gUnk13c[SLY2_OFFSETOF(SO, gUnk13c) == 0x13C ? 1 : -1];   /* holds 400.0f (CONFIRMED runtime) */
 
-/* LVO: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (9 copies in Lilly ports) */
+/* LVO: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct LVO
 {
     VECTOR *mpiposvLocal;
@@ -213,7 +213,7 @@ struct LVO
     SURFX *mpisurfsurfx;
 };
 
-/* SOPART: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (9 copies in Lilly ports) */
+/* SOPART: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct SOPART
 {
       XF *pxf;
@@ -238,7 +238,7 @@ struct SOPART
       int nStampWorld;
 };
 
-/* SOTREE: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (3 copies in Lilly ports) */
+/* SOTREE: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (3 copies in Lilly ports) */
 struct SOTREE
 {
       qword qwMin;

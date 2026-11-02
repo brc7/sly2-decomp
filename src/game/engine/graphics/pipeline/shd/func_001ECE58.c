@@ -14,14 +14,14 @@ extern int D_003DCFF0;
 extern struct E2 *D_003DCFF4;
 void func_00166920(struct DMAS *);
 void func_00226C10(struct X *);
-struct M *func_001AE478(struct M *);
-void func_001AE4A0(struct M *, int);
+struct M *STACKSCOPE_ctor(struct M *);
+void STACKSCOPE_ctor_1AE4A0(struct M *, int);
 void func_001572E0(struct X *, int);
 void func_001574B8(struct X *);
 void func_00226D10(struct X *);
 void func_001572D0(struct DMAS *);
 void func_00157330(struct DMAS *, int, void *);
-int func_00170548(struct BS *, int);
+int IgsAllocGsb__FP3GSBi(struct BS *, int);
 void func_001EC9D0(struct E1 *, int);
 void func_001ECAB0(struct E1 *, int, struct DMAS *);
 void func_001ECB18(struct E2 *, int);
@@ -58,7 +58,7 @@ int func_001ECE58(struct BS *pbs, int k)
     result = 0;
     func_00226C10(&x);
     n4 = pbs->n4;
-    func_001AE478(&m);
+    STACKSCOPE_ctor(&m);
     func_001572E0(&x, (D_003DCF9C * 3 + D_003DCF98) * 10 + 4);
     func_001574B8(&x);
     func_00226D10(&x);
@@ -69,7 +69,7 @@ int func_001ECE58(struct BS *pbs, int k)
             continue;
         func_001572D0(&dmas);
         func_00157330(&dmas, 10, ab);
-        v = func_00170548(pbs, pe->hA);
+        v = IgsAllocGsb__FP3GSBi(pbs, pe->hA);
         func_001EC9D0(pe, v);
         func_001ECAB0(pe, v, &dmas);
         *(ulong *)(dmas.pqw - 1) |= 0x8000;
@@ -84,7 +84,7 @@ int func_001ECE58(struct BS *pbs, int k)
             continue;
         func_001572D0(&dmas);
         func_00157330(&dmas, 10, ab);
-        v = func_00170548(pbs, pe->hE);
+        v = IgsAllocGsb__FP3GSBi(pbs, pe->hE);
         func_001ECB18(pe, v);
         func_001ECBF0(pe, v, &dmas);
         *(ulong *)(dmas.pqw - 1) |= 0x8000;
@@ -107,7 +107,7 @@ int func_001ECE58(struct BS *pbs, int k)
     }
     {
         int r = result;
-        func_001AE4A0(&m, 2);
+        STACKSCOPE_ctor_1AE4A0(&m, 2);
         return r;
     }
 }

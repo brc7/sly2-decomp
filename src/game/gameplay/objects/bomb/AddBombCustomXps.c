@@ -7,7 +7,7 @@ struct S { int x0; struct O *po; };
 struct G { int x; };
 extern struct G D_003DD490;
 void func_001F5990(struct P *p, struct S *ps, int a2, int a3, int a4, int a5);
-void func_001A7C18(struct G *pg, int n, struct S *ps, qword a, qword b, int k, int x, int y, float g, int z);
+void PxpAdd(struct G *pg, int n, struct S *ps, qword a, qword b, int k, int x, int y, float g, int z);
 /** @sly2-annot addr=0x13ADE8
  * Purpose: BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd
  *   type 9)
@@ -23,7 +23,7 @@ void AddBombCustomXps(struct P *p, struct S *ps, int a2, int a3, int a4, int a5)
         struct E *pe;
         for (pe = p->ae; pe < p->ae + p->n; pe++) {
             if (pe->id == ps->po->pq->id) {
-                func_001A7C18(&D_003DD490, p->xE4, ps, pe->a, pe->b, 9, 0, 0, pe->g, a5);
+                PxpAdd(&D_003DD490, p->xE4, ps, pe->a, pe->b, 9, 0, 0, pe->g, a5);
                 return;
             }
         }

@@ -8,7 +8,7 @@ int func_0019C8D0(void *p, int k);
 int func_00194558(void *p, int k);
 int func_0019EEF0(void *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int func_0014FD50(void *p);
+int FActiveCplcy__FP5CPLCY(void *p);
 /** @sly2-annot addr=0x1B98A0
  * Purpose: MURRAY vt99: can gadget/power k be used in the current state (per-state allow lists, components
  *   2/13/20)
@@ -42,7 +42,7 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
     case 3:
     {
         int r = 0;
-        if (p->x12F0 && (D_002DFBC0 & 2)) r = !func_0014FD50(D_002DE2E0);
+        if (p->x12F0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(D_002DE2E0);
         return r;
     }
     case 22:

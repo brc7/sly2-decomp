@@ -4,7 +4,7 @@
 //   so only vf18 is a register variable: its `vmove vf3, vf18` must be a compiler move, because reorg never puts an asm in a delay
 //   slot). Each input asm writes a dummy "j" token that the vcallms reads, which keeps the loads before it without ordering them.
 //   What placed each instruction of the cull setup (target `lw g; lw r; qmtc2 g,vf14; sq g; qmtc2 r,vf16; lw w; lqc2 vf15; sq r; ...`):
-//   (1) gain read by an asm `lw` (VU_FLOATM, as func_00168638): it reads the view-base register that the radius `lw` then
+//   (1) gain read by an asm `lw` (VU_FLOATM, as RenderSoGlobset): it reads the view-base register that the radius `lw` then
 //       overwrites, so the radius load waits a cycle and the gain home `sq` issues after the gain qmtc2.
 //   (2) duplicate allocation-only "r" inputs on the gain (x4) and radius (x2) qmtc2 asms: local-alloc ranks quantities by
 //       floor_log2(refs)*refs*size/life, so the gain gets v0 and the radius v1 (word a0), as in the target.
@@ -164,7 +164,7 @@ extern RPL D_003B3980[0x2000];
 extern RPL *D_003D4A50;
 extern "C" {
 int func_001EDA20(OBJ *pobj);
-void func_001681F8(SCENE *pscene);
+void SubmitGlobsetRelight(SCENE *pscene);
 void func_001D57B8(STACK *pstack, BLOCK *pblock);
 BLOCK *func_001D57E0(STACK *pstack);
 M4 __ml__FRC7MATRIX4T0(const M4 &matA, const M4 &matB);
@@ -176,7 +176,7 @@ struct VU_FLOAT
     // empty asm: only moves the word into the qword's GPR (no instruction)
     VU_FLOAT(int n) { __asm__("" : "=r"(q) : "0"(n)); }
 };
-// the float loaded by an asm `lw` straight into the qword's register (as func_00168638's VU_FLOATM)
+// the float loaded by an asm `lw` straight into the qword's register (as RenderSoGlobset's VU_FLOATM)
 struct VU_FLOATM
 {
     qword q;
@@ -344,7 +344,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     }
     G *pg = &D_003DD490;
     if (pscene->nStamp != pg->nStamp)
-        func_001681F8(pscene);
+        SubmitGlobsetRelight(pscene);
     int cDeferred = 0;
     func_001D57B8(pstack, pscene->pblockRoot);
     int grfChannels = D_002DDF40.grfChannels;

@@ -7,7 +7,7 @@ struct Camera { char pad[0x90]; qword position; };
 extern Camera D_002DDF40;
 extern "C" {
 qword func_001A62E8(Actor *);
-int func_0014F850(Camera *,qword,qword);
+int FInsideCmFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
 float func_0020A690(P *);
 float RadNormalize__Ff(float);
@@ -47,7 +47,7 @@ extern "C" int func_0020A818(P*p,Actor*a)
         __asm__("sq %2,%0\n\tla %1,%3":"=m"(position0.q),"=r"(camera):"r"(returned),"i"(&D_002DDF40));
         qword threshold,point;
         PlaneArguments(&threshold,&point,&scalar,0.0f,&camera->position,&position0.q);
-        if(!func_0014F850(camera,point,threshold))goto fail;
+        if(!FInsideCmFrustum(camera,point,threshold))goto fail;
         qword other;other=func_001A62E8(p->target);
         GetVectorCylind(Sub(position0.q,other),&angle[0],0,0);
         if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[0]-func_0020A690(p)))){fail:return 0;}

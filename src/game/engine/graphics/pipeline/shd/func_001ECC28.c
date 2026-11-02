@@ -10,7 +10,7 @@ extern int D_003DCFF0;
 extern struct E2 *D_003DCFF4;
 struct T1 *func_001ED5D0(int);
 struct T2 *func_001ED4E0(int);
-int func_00170548(struct BS *, int);
+int IgsAllocGsb__FP3GSBi(struct BS *, int);
 void func_001EC9D0(struct E1 *, int);
 void func_001ECAB0(struct E1 *, int, struct X *);
 void func_001ECB18(struct E2 *, int);
@@ -43,7 +43,7 @@ int func_001ECC28(int k, struct BS *pbs, struct X *px)
             pe->l18 = pt->l18;
             continue;
         }
-        v = func_00170548(pbs, pe->hA);
+        v = IgsAllocGsb__FP3GSBi(pbs, pe->hA);
         func_001EC9D0(pe, v);
         if (px && pbs->n4 <= pbs->n8) {
             func_001ECAB0(pe, v, px);
@@ -65,9 +65,9 @@ int func_001ECC28(int k, struct BS *pbs, struct X *px)
         if (!pe->bC) {
             int r = pbs->n4 & 0x1F;
             if (r)
-                func_00170548(pbs, 32 - r);
+                IgsAllocGsb__FP3GSBi(pbs, 32 - r);
         }
-        v = func_00170548(pbs, pe->hE);
+        v = IgsAllocGsb__FP3GSBi(pbs, pe->hE);
         func_001ECB18(pe, v);
         if (px && pbs->n4 <= pbs->n8) {
             func_001ECBF0(pe, v, px);

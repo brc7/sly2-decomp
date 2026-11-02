@@ -1,6 +1,6 @@
 // func_001EA000 (lane 5): matched. Samples an object's path over [tStart, tEnd] and collects the time segments where
 // func_001E9F50 finds a valid position into ps->aseg10 (func_001BD560 == 3 means "no bound found", so tStart/tEnd are
-// used), intersects them with ps->aseg through func_0014C9F8 and fixes up a wrap-around pair at the end.
+// used), intersects them with ps->aseg through ClsgMergeAlsg and fixes up a wrap-around pair at the end.
 // Notes for whoever touches this again:
 //  - `pseg` (the aseg10 pointer used by the wrap-around fix-up) must be assigned after the copy loops, outside the block
 //    that uses it, so cse does not fold pseg[0] into 0x10(ps); gcse then keeps it as a separate spilled copy.
@@ -32,7 +32,7 @@ void EvaluateShapeS(struct O *, float, qword *, qword *);
 void *func_001E9F50(qword);
 int func_001BD560(void *, struct O *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int);
-int func_0014C9F8(int, struct X *, int, struct X *, int, struct X *, int);
+int ClsgMergeAlsg(int, struct X *, int, struct X *, int, struct X *, int);
 
 /** @sly2-annot addr=0x1EA000
  * Purpose: Sample the path over [t0,t1] and collect valid parameter ranges, intersect with existing ones
@@ -116,7 +116,7 @@ void func_001EA000(struct S *ps)
         ay[j].b = aseg[j].b;
     }
     pseg = ps->aseg10;
-    n = func_0014C9F8(cseg, ay, c, ax, 0x10, ay, 0);
+    n = ClsgMergeAlsg(cseg, ay, c, ax, 0x10, ay, 0);
     for (k = 0; k < n; k++) {
         aseg[k].a = ay[k].a;
         aseg[k].b = ay[k].b;

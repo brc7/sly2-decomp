@@ -25,12 +25,12 @@ void func_002020C8(P *);
 int func_002022D8(P *);
 void SetReconSelState(P *,int);
 qword func_001A62E8(ACTOR *);
-qword func_0014F308(CM *,qword);
+qword ConvertCmWorldToScreen(CM *,qword);
 void func_00212E40(DISPLAY *,int,float);
 int func_002121E8(DISPLAY *,int);
 void func_00213B00(DISPLAY *,int);
 int FReconTargetDone(ACTOR *);
-int func_0014FD50(void *);
+int FActiveCplcy__FP5CPLCY(void *);
 int GrfConsumePressed__5POCTLUif(void *,int,float);
 }
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -80,8 +80,8 @@ extern "C" void UpdateReconSel(P *p)
         qword world=func_001A62E8(p->actor);
         VU_FLOAT offset=VuFloatFromMemWord(*(int *)&p->actor->headOffset);
         qword head=QwAdd(world,QwScaleX(QwUp(&D_002DDF40.mat),offset.qw));
-        qword base=func_0014F308(&D_002DDF40,world);
-        qword top=func_0014F308(&D_002DDF40,head);
+        qword base=ConvertCmWorldToScreen(&D_002DDF40,world);
+        qword top=ConvertCmWorldToScreen(&D_002DDF40,head);
         VU_FLOAT screen=ScreenFromProjected(base);
         float distance=GXOfQw(QwLengthXY(QwSub(screen.qw,p->origin)));
         VU_FLOAT screenTop=ScreenFromProjected(top);
@@ -179,10 +179,10 @@ extern "C" void UpdateReconSel(P *p)
     if(p->model->state!=1){
         switch(p->state){
         case 2:case 3:case 4:case 5:case 6:
-            if(!func_0014FD50(D_002DE2E0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,10,0.0f))SetReconSelState(p,8);
+            if(!FActiveCplcy__FP5CPLCY(D_002DE2E0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,10,0.0f))SetReconSelState(p,8);
             break;
         case 7:
-            if(!func_0014FD50(D_002DE2E0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,250,0.0f))SetReconSelState(p,8);
+            if(!FActiveCplcy__FP5CPLCY(D_002DE2E0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,250,0.0f))SetReconSelState(p,8);
             break;
         }
     }

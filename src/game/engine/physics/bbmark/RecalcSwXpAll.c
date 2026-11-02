@@ -8,10 +8,10 @@ struct P { char pad[0x3D34]; struct X *pxFirst; };
 struct C { int a[4]; };
 void FlushSwBoundsUpdates(struct P *p);
 void UpdateSwAaox(struct P *p);
-struct C *func_001AE478(struct C *);
-void func_001AE4A0(struct C *, int);
+struct C *STACKSCOPE_ctor(struct C *);
+void STACKSCOPE_ctor_1AE4A0(struct C *, int);
 void func_001A7E10(struct P *, void *);
-void *func_001AA1D8(struct P *, struct X *, struct X *);
+void *AddSoXps(struct P *, struct X *, struct X *);
 void func_001F5078(struct LO *);
 void RemoveDlEntry__FP2DLPv(void *, struct X *);
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
@@ -34,7 +34,7 @@ void RecalcSwXpAll(struct P *p)
     int i;
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    func_001AE478(&ctx);
+    STACKSCOPE_ctor(&ctx);
     for (px = p->pxFirst; px; px = px->pnext) {
         unsigned long grf = px->grf;
         struct L *pl;
@@ -62,7 +62,7 @@ void RecalcSwXpAll(struct P *p)
             VCALL(px2->plo, 54, void (*)(void *, struct LO *)), px->plo);
             pv = pl->pv;
             func_001A7E10(p, pv);
-            { void *pvNew = func_001AA1D8(p, px, px2); pl->pv = pvNew; pl->pother->pv = pvNew; }
+            { void *pvNew = AddSoXps(p, px, px2); pl->pv = pvNew; pl->pother->pv = pvNew; }
             if (pv || pl->pv) {
                 if (!VCALL(px->plo, 62, int (*)(void *))))
                     func_001F5078(px->plo);
@@ -85,5 +85,5 @@ void RecalcSwXpAll(struct P *p)
         px->grf &= ~8L;
         VCALL(px->plo, 58, void (*)(void *)));
     }
-    func_001AE4A0(&ctx, 2);
+    STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }

@@ -1,9 +1,9 @@
 // ~CBinaryAsyncStream() is the out-of-line g++ dtor _$_18CBinaryAsyncStream (0x1325B8); calling it (rather than an inline wrapper) keeps `this` in $s6.
 typedef unsigned int uint;
 struct CTX;
-extern "C" CTX *func_001AE478(CTX *);
-extern "C" void func_001AE4A0(CTX *, int);
-struct CTX { CTX() __asm__("func_001AE478"); ~CTX() { func_001AE4A0(this, 2); } };
+extern "C" CTX *STACKSCOPE_ctor(CTX *);
+extern "C" void STACKSCOPE_ctor_1AE4A0(CTX *, int);
+struct CTX { CTX() __asm__("STACKSCOPE_ctor"); ~CTX() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct K;
 struct X {
@@ -36,9 +36,9 @@ void *func_001AE378(const AREQ &r);
 int func_00132600(CBinaryAsyncStream *ps, X *px);
 void func_001B3EC0(P *p, CBinaryAsyncStream *ps);
 int func_0024B610(MPEG *p);
-void func_0014D0B8(CLOCK *p, int k);
+void MarkClockTick(CLOCK *p, int k);
 void func_001871C0(JOY *p);
-void func_001AB1A0(G *g);
+void UpdateSave__FP4SAVE(G *g);
 uint GrfHandleJoyBtn(JOY *p, uint k);
 void func_0014BA38(void);
 void func_001B4058(P *p);
@@ -116,9 +116,9 @@ extern "C" void func_001B3BD0(P *p, K *k)
         func_001B3EC0(p, &strm);
         while (!func_0024B610(&p->x118)) {
             int f;
-            func_0014D0B8(&D_002DDED0, 1);
+            MarkClockTick(&D_002DDED0, 1);
             func_001871C0(&D_002DFC00);
-            if (!D_002E65E0.xFD50) func_001AB1A0(&D_002E65E0);
+            if (!D_002E65E0.xFD50) UpdateSave__FP4SAVE(&D_002E65E0);
             f = 0;
             if (FMatch(k, &D_002A3968) || FMatch(k, &D_002A39A8)) f = D_002F68F8 != 0;
             if (D_002C0268) f = 1;

@@ -16,9 +16,9 @@ extern char D_002A8A88[];
 extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900;
 extern SW D_003DD490;
 extern "C" {
-void func_00160E68(int);
-FRAME *func_001AE478(FRAME *);
-void func_001AE4A0(FRAME *,int);
+void FlushFrames__Fi(int);
+FRAME *STACKSCOPE_ctor(FRAME *);
+void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 void SetPhase__F5PHASE(int);
 void func_00258248(KEY *);
 STREAM *func_001848A8(STREAM *,int,void *,int);
@@ -27,18 +27,18 @@ void func_00184950(STREAM *,int);
 void func_001179D8(STREAM *,int,void *);
 void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);
-void func_0014D068(void *);
+void ResetClock(void *);
 void AddGrfusr__Fi(int);
 void *func_002333B4(void *,int,uint);
 SW *SW_ctor(SW *);
 int func_001B3B08(void *);
-void func_0014D6D8(void *);
+void InitCm__FP2CM(void *);
 void func_0020E180(SW *);
 void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
 void CStreamBis_Close(STREAM *);
 void PostSwLoad(SW *);
 void func_001618F8(SW *,float);
-void func_0014C258(void);
+void ClearCheatItems(void);
 CONTEXT *PwarpFromOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
 ACTOR *PpoHero(SW *);
@@ -49,8 +49,8 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
 int GetPoCtlState(ACTOR *);
 int NWorldCur(void);
 void func_00212A70(WIDGET *,int);
-void func_0014D478(void *);
-void func_0014D8C0(void *);
+void UpdateCmLast__FP2CM(void *);
+void CutCm__FP2CM(void *);
 void BroadcastGameEvent(void *,int,void *);
 void ClearPhase(int);
 void func_0022B420(void *);
@@ -82,7 +82,7 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
 extern "C" void ExecuteSwTransition(SW *p)
 {
     if(!p->pending)return;
-    func_00160E68(1);
+    FlushFrames__Fi(1);
     REQUEST request=p->request;
     REQUEST *destination=&p->request;
     p->pending=0;
@@ -91,38 +91,38 @@ extern "C" void ExecuteSwTransition(SW *p)
     else{float remaining=p->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
     FRAME frame;
     FRAME *scope=&frame;
-    func_001AE478(scope);
+    STACKSCOPE_ctor(scope);
     SetPhase__F5PHASE(2);
     KEY key;
     KEY *keyPointer=&key;
     keyPointer->kind=2;
     func_00258248(keyPointer);
     int hasFile=NonZero(request.header.words[1]^request.header.words[15]);
-    if(hasFile&&!SetKey(&key,&request.header)){func_001AE4A0(scope,2);return;}
+    if(hasFile&&!SetKey(&key,&request.header)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     HEADER *current=&p->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
     STREAM stream;
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
     func_001848A8(argument,0xD8000,D_002F7980,0);
-    if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);func_001AE4A0(scope,2);return;}
+    if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     func_001179D8(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
     DeleteSw(p);
-    func_0014D068(D_002DDED0);
+    ResetClock(D_002DDED0);
     AddGrfusr__Fi(8);
     func_002333B4(&D_003DD490,0,0x4790);
     func_002333B4(&D_003DD490,0,0x4790);
     SW_ctor(&D_003DD490);
     if(func_001B3B08(D_002F66B0))changed=1;
-    func_0014D6D8(D_002DDF40);
+    InitCm__FP2CM(D_002DDF40);
     p->current=request.header;
     *destination=request;
     func_0020E180(p);
     if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);CStreamBis_Close(reader);}
     PostSwLoad(p);
     if(resume>0.0f)func_001618F8(p,resume);
-    if(changed||(p->request.flags&0x40))func_0014C258();
+    if(changed||(p->request.flags&0x40))ClearCheatItems();
     CONTEXT *context=PwarpFromOid(p,p->request.objectId,p->request.objectKey);
     if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
     if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
@@ -151,12 +151,12 @@ extern "C" void ExecuteSwTransition(SW *p)
         ACTOR *actor=PpoHero(p);
         if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)func_00212A70(actor->widget,1);
     }
-    func_0014D478(D_002DDF40);
-    func_0014D8C0(D_002DDF40);
+    UpdateCmLast__FP2CM(D_002DDF40);
+    CutCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30,5,0);
     ClearPhase(2);
     func_0022B420(D_00443740);
     if(!hasFile)func_001A4E80(D_002E1E88);
     func_00184950(reader,2);
-    func_001AE4A0(scope,2);
+    STACKSCOPE_ctor_1AE4A0(scope,2);
 }

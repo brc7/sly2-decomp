@@ -30,7 +30,7 @@ public:
     float DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs);
 };
 extern "C" {
-GLYPH *func_0015F8A8(CFontBrx *pfont, unsigned char ch);
+GLYPH *PglyffFromCh(CFontBrx *pfont, unsigned char ch);
 void func_00166F70(GIFS *pgifs, unsigned int rgba);
 void func_00166FE8(GIFS *pgifs, int u, int v);
 void func_001670B8(GIFS *pgifs, int x, int y, int z, int f);
@@ -42,7 +42,7 @@ void func_001670B8(GIFS *pgifs, int x, int y, int z, int f);
  * @end-sly2-annot */
 float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
 {
-    GLYPH *pglyph = func_0015F8A8(this, ch);
+    GLYPH *pglyph = PglyffFromCh(this, ch);
     if (pglyph) {
         int dyTex = 1 << m_tex0.TH;
         float xRight = x + (float)pglyph->dx * m_rxScale;

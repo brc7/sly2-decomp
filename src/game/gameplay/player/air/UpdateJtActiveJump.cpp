@@ -5,7 +5,7 @@
 // velocity (modes 0-5, 7).
 // Two allocation/frame probes (no register pins):
 //  1. `EMPTY e;` (user-declared dtor) in the default arm = the target's never-touched object at sp+0x70 (a <=4 byte non-BLK slot made
-//     at its declaration; every later offset and the 0x250 frame depend on it). Same situation as FindPathlinkRoute / func_001AA1D8: the
+//     at its declaration; every later offset and the 0x250 frame depend on it). Same situation as FindPathlinkRoute / AddSoXps: the
 //     real object is unknown.
 //  2. FloatUse(vel.f[2], actor): empty asm giving the `actor` pseudo of the post-search Make argument a 3rd reference, so local-alloc
 //     gives it v0 and the physics pointer v1 like the target (physics = 2 refs over a shorter life would otherwise be allocated first).

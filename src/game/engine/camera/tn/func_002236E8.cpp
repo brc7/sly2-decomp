@@ -5,7 +5,7 @@
 // tested against the camera hulls (FFindCmClearInterval). The first visible point resets tLastSeen; when the hero
 // has been hidden for more than D_002C4114 (2.0) seconds the camera cuts (CutCm).
 // MATCH notes (Lilly's agent, T1578): STACKSCOPE needs its real out-of-line ctor/dtor (an inline wrapper calling
-// func_001AE478 makes gcc keep hi(g_clock) in $fp). Loop 1 keeps a pointer to the current sample and loop 2 starts
+// STACKSCOPE_ctor makes gcc keep hi(g_clock) in $fp). Loop 1 keeps a pointer to the current sample and loop 2 starts
 // from `pqw -= 4`: loop.c emits the pointer's final value after loop 1 and cse2 folds the rewind to sp+0x30, which
 // is why the game sets the loop-2 pointer in the STACKSCOPE constructor's delay slot. Any `&aqw[3]` written after
 // loop 1 is hoisted above loop 1 by gcse's PRE instead.
@@ -32,12 +32,12 @@ extern qword D_002A2DA0;
 extern qword D_002C4290[5];
 extern "C" {
 qword func_001A62E8(LO *plo);
-int func_0014F030(void *pv, SO *pso);
+int FFilterCamera(void *pv, SO *pso);
 void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
-qword func_0014F308(CM *pcm, qword pos);
-qword func_0014F268(CM *pcm, qword ndc);
-int func_0014EA08(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
-void func_0014D8C0(CM *pcm);
+qword ConvertCmWorldToScreen(CM *pcm, qword pos);
+qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
+int FFindCmClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
+void CutCm__FP2CM(CM *pcm);
 }
 struct STACKSCOPE {
     STACKSCOPE();  // 0x1AE478
@@ -160,19 +160,19 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
     STACKSCOPE scope;
     int cpso;
     SOPART **apso;
-    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], func_0014F030, 0, &cpso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], FFilterCamera, 0, &cpso, &apso);
     for (i = 0; i < 5; i++, pqw++)
     {
-        aqw[2] = func_0014F308(&D_002DDF40, *pqw);
+        aqw[2] = ConvertCmWorldToScreen(&D_002DDF40, *pqw);
         ((VECTOR4 *)&aqw[2])->z = D_002DDF40.sNearClip;
-        aqw[2] = func_0014F268(&D_002DDF40, aqw[2]);
+        aqw[2] = ConvertCmScreenToWorld(&D_002DDF40, aqw[2]);
         float uExit;
-        if (func_0014EA08(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
+        if (FFindCmClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
         {
             pcmpart->tLastSeen = D_002DDED0.t;
             break;
         }
     }
     if (D_002DDED0.t - pcmpart->tLastSeen > D_002C4114)
-        func_0014D8C0(&D_002DDF40);
+        CutCm__FP2CM(&D_002DDF40);
 }

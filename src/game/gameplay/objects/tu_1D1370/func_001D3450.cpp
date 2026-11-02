@@ -6,7 +6,7 @@
 //     piece give support points;
 //  3. two support passes pair points by surface, find the deepest tangency of the wheel circle with each support plane,
 //     and post the best one as a kind-10 contact (PxpAdd 0x1A7C18).
-// Names follow Lilly's func_001A93C8 port (SURF/EDGE/BSP/LSG/GEOM/STACKSCOPE/PvAllocStack). Notes: notes/190000-1F0000_lanes.md.
+// Names follow Lilly's CsbiIntersectSphereBsp port (SURF/EDGE/BSP/LSG/GEOM/STACKSCOPE/PvAllocStack). Notes: notes/190000-1F0000_lanes.md.
 /* #line: gcc 2.95 hashes the file name into the gcse order of asm expressions (see VU_FLOAT below). Pinning it
    to the repo path makes the output independent of the path/cwd the compiler is run with. Keep it accurate. */
 #line 13 "src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp"
@@ -37,8 +37,8 @@ struct SOPART { char pad0[0x90]; GEOM geomWorld; };
 struct SUPPORT { qword pos; SURF *apsurf[2]; int fUsed; int pad; };
 struct SWALLOC { int cb; int cbAlign; };
 struct STACKSCOPE;
-extern "C" STACKSCOPE *func_001AE478(STACKSCOPE *);
-extern "C" void func_001AE4A0(STACKSCOPE *, int);
+extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
+extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
 struct STACKSCOPE { STACKSCOPE(); ~STACKSCOPE(); };
 struct VTE { short delta, pad; M4 *(*pfn)(void *); };
 struct SHAPE;
@@ -67,7 +67,7 @@ void *func_001AE318(SWALLOC *);
 int func_00118A88(BSP *, BSP *, qword, float, int *, BSP **);
 int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);
 qword func_001193D8(M4 *, qword);
-void func_001A7C18(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
+void PxpAdd(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
 }
 
 static inline M4 *GetMatrix(OWNER *p) { return p->vt[31].pfn((char *)p + p->vt[31].delta); }
@@ -341,6 +341,6 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
         qword world = Transform(frame, bestPoint).q;
         VECTOR normal;
         normal.q = plane;
-        func_001A7C18(&D_003DD490, owner->shape, ppart, world, normal.q, 10, 0, 0, ppcontact, best);
+        PxpAdd(&D_003DD490, owner->shape, ppart, world, normal.q, 10, 0, 0, ppcontact, best);
     }
 }

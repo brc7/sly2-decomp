@@ -13,7 +13,7 @@ extern struct SRC D_003E12F4;
 extern int D_002C3680[];
 extern int D_002DE598;
 void func_0011DFA0(const float *, VEC3 *);
-int func_00170548(void *, int);
+int IgsAllocGsb__FP3GSBi(void *, int);
 void func_00166920(GIFS *);
 void func_00157330(GIFS *, int, void *);
 void func_001574B8(GIFS *);
@@ -104,7 +104,7 @@ void func_001EA9F0(O *p, void *pbs)
     qword aqw[0x80];
     qword *x;
     if (pbs)
-        p->tex0 = ((ulong)func_00170548(pbs, 4) << 37) | 0x2000000001B00000L;
+        p->tex0 = ((ulong)IgsAllocGsb__FP3GSBi(pbs, 4) << 37) | 0x2000000001B00000L;
     func_00166920(&dmas);
     func_00157330(&dmas, 0x80, aqw);
     func_001574B8(&dmas);

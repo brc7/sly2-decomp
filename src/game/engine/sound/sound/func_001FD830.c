@@ -7,7 +7,7 @@ struct CLOCK { float t; float dt; char pad[0x40 - 8]; float f40; };
 extern struct CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
-long func_0014D240(struct CLOCK *);
+long TickNow(struct CLOCK *);
 void func_001FDA48(struct P *);
 void func_001FDBA8(struct P *);
 void func_001FB060(struct X *);
@@ -35,7 +35,7 @@ void func_001FD830(struct P *p)
     struct K k;
     struct Q *q;
     p->l1F8 = p->l1F0;
-    p->l1F0 = func_0014D240(&D_002DDED0);
+    p->l1F0 = TickNow(&D_002DDED0);
     func_001FDA48(p);
     func_001FDBA8(p);
     top = p->c > 0 ? *(p->a + p->c - 1) : 0;

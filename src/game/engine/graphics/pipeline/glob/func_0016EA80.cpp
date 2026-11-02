@@ -53,7 +53,7 @@ extern int D_003DA790;
 extern LINK D_003DA798[];
 void*func_001AE238(REQUEST*,void*);
 SO*func_001ED850(SO*);
-void func_00169EB8(D*,E*,int,void*,int,void*,void*);
+void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*);
 void func_001AE5A0(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 void ClearSle(int*);
 void PrependSlEntry(void*,LINK*);
@@ -100,7 +100,7 @@ extern "C" void func_0016EA80(P*p,SO*owner,STREAM*stream){
                 old=data=entry->object->vectors;
                 if(cloned){entry->object->vectors=Copy(count*16,data);data=entry->object->vectors;}
             }
-            func_00169EB8(descriptor,entry,descriptor->words,entry->data,count,data,old);
+            CopyRelocateDmaChain(descriptor,entry,descriptor->words,entry->data,count,data,old);
         }
         if(entry->object){
             bytes=count*16;

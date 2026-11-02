@@ -7,7 +7,7 @@ extern int D_003E0FE4;
 extern char D_003D4A60[];
 void func_002581C0(struct CRef *ret, int a, void *b);
 void func_00129EC8(struct CRef *);
-void func_001ACB58(struct H *h, int n);
+void SetMcDialogState(struct H *h, int n);
 void func_001ABD40(struct G *g);
 /** @sly2-annot addr=0x1AD3E0
  * Purpose: Eval slot, set dialog state, start save job (0x1ABD40)
@@ -27,9 +27,9 @@ void func_001AD3E0(void)
     t = ref.m_tag;
     func_00129EC8(&ref);
     if (!t) {
-        func_001ACB58(h, 0x22);
+        SetMcDialogState(h, 0x22);
     } else {
-        func_001ACB58(h, 0x1A);
+        SetMcDialogState(h, 0x1A);
         func_001ABD40(g);
     }
 }

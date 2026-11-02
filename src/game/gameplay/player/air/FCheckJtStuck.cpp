@@ -14,12 +14,12 @@ extern "C"{
 extern CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 extern float D_002A656C;
-MARK*func_001AE478(MARK*);
-void func_001AE4A0(MARK*,int);
+MARK*STACKSCOPE_ctor(MARK*);
+void STACKSCOPE_ctor_1AE4A0(MARK*,int);
 void*func_001AE318(REQUEST*);
 void SolveInequalities(int,float*,float*,float*,float);
 }
-struct MARK{MARK(){func_001AE478(this);}~MARK(){func_001AE4A0(this,2);}};
+struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(v),"j"(k));return q;}
 static inline qword Copy(qword v){qword q;__asm__("vmove.xyzw %0,%1":"=j"(q):"j"(v));return q;}

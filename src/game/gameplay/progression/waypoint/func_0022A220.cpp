@@ -29,10 +29,10 @@ void InitPlaneFromPositions(UQ *, qword, qword, qword);
 void InitPlaneFromNormalPos(UQ *, qword, qword);
 UQ *func_002564C0(UQ *);
 UQ *func_002564B8(UQ *);
-FRAME *func_001AE478(FRAME *);
-void func_001AE4A0(FRAME *, int);
+FRAME *STACKSCOPE_ctor(FRAME *);
+void STACKSCOPE_ctor_1AE4A0(FRAME *, int);
 void *func_001AE318(REQ *);
-int func_0014F030(void *, O *);
+int FFilterCamera(void *, O *);
 void IntersectSwBoundingBox(WORLD *, qword, qword, int (*)(void *, O *), void *, int *, O ***);
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
@@ -192,7 +192,7 @@ extern "C" void func_0022A220(O *po)
         InitPlaneFromNormalPos(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
     }
     ipso = 0;
-    func_001AE478(&frame);
+    STACKSCOPE_ctor(&frame);
     REQ *preq = (REQ *)&tmp;
     preq->cb = 0x10000;
     preq->align = 16;
@@ -200,7 +200,7 @@ extern "C" void func_0022A220(O *po)
     qword k2 = QI(D_002C4490);
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
-                  func_0014F030, 0, &cpso, &apso);
+                  FFilterCamera, 0, &cpso, &apso);
     qword dpos = Sub(posSrc, posCam);
     int nso = cpso;
     float sMax = ZOfN(dpos, nso) / LenXYFN(dpos, nso);
@@ -211,7 +211,7 @@ extern "C" void func_0022A220(O *po)
         ppface = apface;
         TREE *ptree = &pso->tree;
         int res = func_00118D08(ptree->anode, ptree->anode + ptree->cnode, 4, corner, &cface, &ppface);
-        switch (res) { case 0: func_001AE4A0(&frame, 2); return; case 1: continue; case 2: break; }
+        switch (res) { case 0: STACKSCOPE_ctor_1AE4A0(&frame, 2); return; case 1: continue; case 2: break; }
         c = ppface - apface;
         UQ d[6][2];
         for (j = 0; j < c; ) {
@@ -265,5 +265,5 @@ extern "C" void func_0022A220(O *po)
     }
     po->fHit = 1;
     po->dz = (sMax - sBase) * LenXY(Sub(posCam, posSrc));
-    func_001AE4A0(&frame, 2);
+    STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }

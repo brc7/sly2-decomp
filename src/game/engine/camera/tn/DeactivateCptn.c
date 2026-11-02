@@ -66,5 +66,5 @@ extern M2C_UNK D_004425F0;
 void DeactivateCptn(s32 arg0) {
     M2C_FIELD(arg0, s32 *, 0x10) = 0;
     M2C_FIELD(arg0, s32 *, 0x14) = 0;
-    func_0014FCE8(arg0);
+    DeactivateCplcy(arg0);
 }

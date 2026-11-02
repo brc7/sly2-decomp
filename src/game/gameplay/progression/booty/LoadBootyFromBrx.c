@@ -1,12 +1,12 @@
 struct R { int cb; int cbAlign; };
 struct C { int a[4]; };
 struct S { char pad[0x150]; int c; void *pv; };
-struct C *func_001AE478(struct C *);
+struct C *STACKSCOPE_ctor(struct C *);
 void *func_001AE378(struct R *);
 void LoadSoFromBrx(struct S *, void *);
 void func_0013C440(struct S *);
 void *func_001AE238(struct R *, void *);
-void func_001AE4A0(struct C *, int);
+void STACKSCOPE_ctor_1AE4A0(struct C *, int);
 static inline struct R *SetReq(struct R *pr, int cb, int cbAlign) { pr->cb = cb; pr->cbAlign = cbAlign; return pr; }
 /** @sly2-annot addr=0x13BE58
  * Purpose: cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used
@@ -21,10 +21,10 @@ static inline struct R *SetReq(struct R *pr, int cb, int cbAlign) { pr->cb = cb;
 void LoadBootyFromBrx(struct S *p, void *a) {
     struct C ctx;
     struct R req;
-    func_001AE478(&ctx);
+    STACKSCOPE_ctor(&ctx);
     p->pv = func_001AE378(SetReq(&req, 0x580, 0x10));
     LoadSoFromBrx(p, a);
     func_0013C440(p);
     p->pv = func_001AE238(SetReq(&req, p->c * 0x2c, 0x10), p->pv);
-    func_001AE4A0(&ctx, 2);
+    STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }

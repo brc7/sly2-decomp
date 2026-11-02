@@ -1,5 +1,5 @@
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
-   side-facing kinds add a horizontal response contact (kind 10) through func_001A7C18. */
+   side-facing kinds add a horizontal response contact (kind 10) through PxpAdd. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
@@ -10,7 +10,7 @@ extern char D_003DD490[];
 extern qword D_002A2DA0;
 extern float D_002C3C60[], D_002C3C90;
 void func_001F4FB0(void);
-void func_001A7C18(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
+void PxpAdd(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
 
 /* The endpoint positions are passed by address (like C++ const VECTOR & operands): the address
    then comes out as offset + x, and the second read of the other position is a reload. */
@@ -106,6 +106,6 @@ void AdjustStepNewXp(struct P *p, struct XP *x, int side)
         diff.q = Sub(&x->ae[side].pos, &x->ae[1 - side].pos);
         d = Dot(diff.q, dir.q);
         point.q = AddScaled(&x->ae[1 - side].pos, dir.q, d);
-        func_001A7C18(D_003DD490, p->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
+        PxpAdd(D_003DD490, p->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
     }
 }

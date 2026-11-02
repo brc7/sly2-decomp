@@ -11,7 +11,7 @@ void TriggerRsmg(struct G *pg, int a, void *b, struct S *p, int c);
 void ApplyTaskStates(void *a, int b, void *c, struct S *p);
 int CploFindSwObjectsByClass(struct G *pg, int a, int b, int c, int n, struct O **apo);
 void SetExitExits(struct O *po, int k);
-void func_0014D8C0(void *p);
+void CutCm__FP2CM(void *p);
 /** @sly2-annot addr=0x228750
  * Purpose: WARP method (Sly 1 TriggerWarp): apply its oid pairs (+0x14C, vt38), trigger its RSMGs
  *   (+0xE0/+0xE4), apply list +0x124, reset every EXIT (SetExitExits 0), splice event 5
@@ -41,6 +41,6 @@ void TriggerWarp(struct S *p)
     for (j = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, apo) - 1; j >= 0; j--) {
         if (apo[j]->k != 2) SetExitExits(apo[j], 0);
     }
-    func_0014D8C0(D_002DDF40);
+    CutCm__FP2CM(D_002DDF40);
     p->vt[3].pfn((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
 }

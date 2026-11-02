@@ -4,7 +4,7 @@ extern char D_003E0EA8[];
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void func_001D54B8(struct S *p);
 void func_001D84B0(void *p, int n);
-void func_001AAF90(void *p, struct K k);
+void CreateMemcardThread(void *p, struct K k);
 /** @sly2-annot addr=0x1ABCE8
  * Purpose: Build GS mask (BuildMemcardGsMask) and CreateMemcardThread for a save
  * Info: proposed name StartSaveJobA (T2); TU memcard
@@ -15,5 +15,5 @@ void func_001ABCE8(struct S *p)
 {
     func_001D54B8(p);
     func_001D84B0(D_003E0EA8, p->xfd50);
-    func_001AAF90(p->xfd5c, D_002A6C88);
+    CreateMemcardThread(p->xfd5c, D_002A6C88);
 }

@@ -15,7 +15,7 @@ int func_0019EEF0(void *pv, int k);
 struct E *func_00136A28(struct P *p, int k);
 int func_00224590(void *pv);
 int func_001CADE0(void *pv, int n);
-int func_0014FD50(void *pv);
+int FActiveCplcy__FP5CPLCY(void *pv);
 /** @sly2-annot addr=0x136870
  * Purpose: BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability
  * Info: proposed name BENTLEY_FCanUseGadget (T1); class BENTLEY slot99; TU bentley
@@ -81,7 +81,7 @@ int BENTLEY_FCanUseGadget(struct P *p, int k)
         case 3: {
             int r = 0;
             if (p->x12F0 && (D_002DFBC0 & 2))
-                r = func_0014FD50(D_002DE2E0) == 0;
+                r = FActiveCplcy__FP5CPLCY(D_002DE2E0) == 0;
             return r;
         }
         case 1: case 2: case 8: case 10: case 12: case 14:

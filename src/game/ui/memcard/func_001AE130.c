@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001ADF98(M2C_UNK, M2C_UNK);            /* extern */
+M2C_UNK StaticInit_memcard(M2C_UNK, M2C_UNK);            /* extern */
 
 /** @sly2-annot addr=0x1AE130
  * Purpose: compiler-generated global destructor stub (calls static init with (0,0xFFFF))
@@ -9,5 +9,5 @@ M2C_UNK func_001ADF98(M2C_UNK, M2C_UNK);            /* extern */
  *   docs/engine/save-memcard.md#4-source-files
  * @end-sly2-annot */
 void func_001AE130(void) {
-    func_001ADF98(0, 0xFFFF);
+    StaticInit_memcard(0, 0xFFFF);
 }

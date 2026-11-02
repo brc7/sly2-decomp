@@ -38,7 +38,7 @@ void StartSpooling__18CBinaryAsyncStream(s32 arg0) {
             sceRead(M2C_FIELD(arg0, s32 *, 4), temp_a2_2, temp_a3);
             return;
         case 1:
-            func_0014BC78(M2C_FIELD(arg0, s32 *, 8), (s32) ((u32) (temp_a3 + 0x7FF) >> 0xB), temp_a2_2, 1);
+            ReadCdDirect(M2C_FIELD(arg0, s32 *, 8), (s32) ((u32) (temp_a3 + 0x7FF) >> 0xB), temp_a2_2, 1);
             break;
         }
     }

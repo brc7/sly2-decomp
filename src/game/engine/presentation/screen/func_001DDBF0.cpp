@@ -15,7 +15,7 @@ extern I D_002E65E0;
 extern char D_002A7A70[];
 extern "C" char *func_0021ED58(char *, const char *);
 extern "C" char *func_0021EDA0(char *, const char *);
-extern "C" int func_001A2C98(void);
+extern "C" int CLanguagesRegion(void);
 char *PchzFindSwLangstr__FP2SWi(G *, int);
 CRef func_002581C0(void *, void *);
 /** @sly2-annot addr=0x1DDBF0
@@ -45,7 +45,7 @@ extern "C" void func_001DDBF0(char *pch)
     }
     func_0021EDA0(pch, D_002A7A70);
     func_0021EDA0(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 8));
-    if (func_001A2C98() >= 2) {
+    if (CLanguagesRegion() >= 2) {
         func_0021EDA0(pch, D_002A7A70);
         func_0021EDA0(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 0x56));
     }

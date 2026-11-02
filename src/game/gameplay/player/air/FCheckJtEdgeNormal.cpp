@@ -30,12 +30,12 @@ extern "C" {
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 qword *func_00256D18(qword *pq, qword q);
 void func_001995D8(struct P *p, const M4 *pm, int n, U *apt);
-int func_0014C6A0(struct S0 *s, qword a, qword b, int n, HIT *ph);
+int ClsgClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
 }
 
 static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *h)
 {
-    return func_0014C6A0(s, *a, *b, 1, h);
+    return ClsgClipEdgeToObject(s, *a, *b, 1, h);
 }
 
 /** @sly2-annot addr=0x1997D8

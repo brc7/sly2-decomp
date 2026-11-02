@@ -6,7 +6,7 @@ struct S{char pad[0x80];float planar;int edge,range,occlusion;};
 struct LSG;
 extern "C" CM D_002DDF40;
 extern "C" float D_002BE5B8,D_002BE5BC,D_002BE5C0,D_002BE5C4,D_002BE5C8;
-extern "C" qword func_0014F308(CM*,qword);
+extern "C" qword ConvertCmWorldToScreen(CM*,qword);
 extern "C" int func_00173588(qword,float);
 extern "C" void*PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,void**,LSG*);
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%1,%2":"=j"(a):"0"(a),"j"(b));return a;}
@@ -34,7 +34,7 @@ extern "C" int func_00173768(S*p,qword pos,int count,void**objects,float distanc
  qword cpu,point,vector;ReadInputs(camera,position,cpu,point,vector);qword delta=Sub(point,vector);origin.q=cpu;difference.q=delta;
  distance*=D_002BE5B8;
  if(distance<Len3(difference.q,difference))return 0;
- qword screen=func_0014F308(camera,LoadCpu(position));
+ qword screen=ConvertCmWorldToScreen(camera,LoadCpu(position));
  register float zLimit asm("$f1")=D_002BE5BC;
  if(Z(screen)<zLimit)return 0;
  if(!func_00173588(screen,D_002BE5C0))return 0;

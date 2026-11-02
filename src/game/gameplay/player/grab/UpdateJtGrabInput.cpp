@@ -28,7 +28,7 @@ struct SO {
     char pad0[0xC]; VTE *vt; ulong flags; char pad18[0x6C - 0x18]; int cbsp; char pad70[4]; BSP *absp;
     char pad78[0x90 - 0x78]; GEOM geomWorld;
 };
-// Line segment hit (0x60 bytes, as in func_001A93C8)
+// Line segment hit (0x60 bytes, as in CsbiIntersectSphereBsp)
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *apsurf[2]; void *pedge; int iiposSwap; LSG *plsgNext; };
 struct ACTOR {
     char pad0[0xC]; VTE *vt; char pad10[0xEC - 0x10]; void *pvFilter; char padF0[0x150 - 0xF0]; JOY *pjoy;
@@ -62,13 +62,13 @@ void *func_001AE318(SWALLOC *);                         // stack allocation in t
 qword func_001A62E8(ACTOR *);                           // world position
 int FFilterSoPair(void *, SO *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
-int func_0014C6A0(SO *, qword, qword, int, LSG *);      // line test against an object
+int ClsgClipEdgeToObject(SO *, qword, qword, int, LSG *);      // line test against an object
 void UpdateSoPartGeom(SO *);
 qword VecMinArray(int, qword *);                      // min of points
 qword VecMaxArray(int, qword *);                      // max of points
-void func_001A9B28(SW *, SO *, SO *, int, BSP *, XP **);
+void MarkSoContactsSphereBsp(SW *, SO *, SO *, int, BSP *, XP **);
 int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
-void func_001A8B50(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
+void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
 void func_001CD098(ATTACH *, ACTOR *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
 int func_001423A0(ACTOR *);
@@ -118,7 +118,7 @@ static inline void ProbeGround(CONTEXT *p)
     SO **apso;
     IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, FFilterSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++) {
-        int clsg = func_0014C6A0(apso[i], posBase, posEnd, 8, alsg);
+        int clsg = ClsgClipEdgeToObject(apso[i], posBase, posEnd, 8, alsg);
         LSG *plsg = alsg;
         for (int j = 0; j < clsg; j++)
             if (plsg[j].au[0] != 0.0f)
@@ -142,14 +142,14 @@ static inline void ProbeGround(CONTEXT *p)
         SO *pso = apso[i];
         XP *pxp = 0;
         if (pso->flags & (1UL << 49)) {
-            func_001A9B28(&D_003DD490, pso, psoSelf, 0, 0, &pxp);
+            MarkSoContactsSphereBsp(&D_003DD490, pso, psoSelf, 0, 0, &pxp);
         } else {
             int cbspLeft = cbspMax;
             BSP *pbsp = absp;
             if (func_00118A88(pso->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
                 int cbsp = pbsp - absp;
                 pbsp--;
-                func_001A8B50(&D_003DD490, psoSelf, pso, cbsp, pso->absp, pbsp, &pxp);
+                MarkSoContactsBspBsp(&D_003DD490, psoSelf, pso, cbsp, pso->absp, pbsp, &pxp);
             }
         }
         if (pxp) {

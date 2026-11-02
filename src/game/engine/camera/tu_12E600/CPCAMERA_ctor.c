@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_0014FCA8();                            /* extern */
+M2C_UNK CPLCY_ctor();                            /* extern */
 extern M2C_UNK D_002CAB90;
 
 /** @sly2-annot addr=0x12E760
@@ -13,7 +13,7 @@ extern M2C_UNK D_002CAB90;
  *   docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
  * @end-sly2-annot */
 void *CPCAMERA_ctor(void *arg0) {
-    func_0014FCA8();
+    CPLCY_ctor();
     M2C_FIELD(arg0, M2C_UNK **, 0xC) = &D_002CAB90;
     return arg0;
 }

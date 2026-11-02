@@ -18,7 +18,7 @@ void AddSoParts(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 void func_001F70C0(struct M *m, void *p, int k, struct Q *q);
 void func_001F6C08(struct Q *q);
-void func_001664A0(void *a, void *b, void *c);
+void UpdateGeomWorld(void *a, void *b, void *c);
 
 /** @sly2-annot addr=0x203AF0
  * Purpose: Build the step's collision part from a mesh part: new SOPART (+0xE4[+0xE0++]), copy geometry, min
@@ -67,7 +67,7 @@ void func_00203AF0(struct S *p, struct M *m)
      slot[1]=r;}}}
     if (fl)
         ((qword *)p->pq->p7C)[c + 2] = D_002A2DD0;
-    func_001664A0(p->pq->p0->a40, p->pq->a78, p->pq->a90);
+    UpdateGeomWorld(p->pq->p0->a40, p->pq->a78, p->pq->a90);
     p->p218 = p->pq->p94 + c * 16;
     p->p21C = p->pq->p94 + (c * 16 + 0x10);
     if ((int)(p->fl28 >> 60) & 1)

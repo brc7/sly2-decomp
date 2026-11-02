@@ -23,14 +23,14 @@ extern qword D_002A2DA0;       // (1, 0, 0, 0)
 extern "C" {
 TRI *PcgtPointInCbspSafe(G *, BSP *, qword, int);
 qword ClosestPointOnCgt(TRI *, qword);
-void func_001AE478(void *);
-void func_001AE4A0(void *, int);
+void STACKSCOPE_ctor(void *);
+void STACKSCOPE_ctor_1AE4A0(void *, int);
 void *func_001AE318(AREQ *);
 void FindPathAStar(G *, V *, V *, int, int *, V **);
 void SimplifyApcgvNeighbor(G *, int *, V **);
 int CposFindPath(G *, qword, qword, int, U *);
 }
-struct MARK { MARK() { func_001AE478(this); } ~MARK() { func_001AE4A0(this, 2); } };
+struct MARK { MARK() { STACKSCOPE_ctor(this); } ~MARK() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 // the unused second output keeps gcse from hoisting the qmtc2 out of the loops (not single_set)
 static inline qword ToVF(qword v) { qword r; int dummy; __asm__("qmtc2.ni %2,%0" : "=j"(r), "=r"(dummy) : "r"(v)); return r; }
 static inline int Dist2DI(qword a, qword b)

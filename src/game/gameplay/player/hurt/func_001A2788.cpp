@@ -10,7 +10,7 @@ extern qword D_002A2DD0;
 qword func_001A62E8(void *p);
 void *func_001AE318(MSG *pmsg);
 int func_001F7E08(L *pl, void *pfn, int n, void *pv);
-int func_0014CDB0(qword a, qword b, int n, void *pv, int c, HIT *phit);
+int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void func_00229D60(void);
 int func_001A2788(O *po, L *pl, qword *pv);
 }
@@ -41,7 +41,7 @@ int func_001A2788(O *po, L *pl, qword *pv)
     pmsg->nKind = 0x10;
     void *pbuf = func_001AE318(pmsg);
     int n = func_001F7E08(pl, (void *)func_00229D60, 0, pbuf);
-    if (!func_0014CDB0(a.q, b.q, n, pbuf, 0x10, &hit))
+    if (!ClsgClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
         return 0;
     qword r;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(hit.pos), "j"(off.q));

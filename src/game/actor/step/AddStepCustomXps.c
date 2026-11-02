@@ -10,9 +10,9 @@ extern char D_003DD490[];
 void func_001F5990(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
-int func_0014C6D8(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
+int ClsgClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
 int func_002048C8(struct S *p, qword v, struct X *x, int n);
-void func_001A7C18(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
+void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
 
 /** @sly2-annot addr=0x204AC8
  * Purpose: STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a
@@ -34,7 +34,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x->p4->pec->p60, 0x33))
         return;
     pos = func_001A62E8(p);
-    if (func_0014C6D8(x, a4, pos, *((fl & 2) ? p->p21C : p->p218), 1, &hit) <= 0)
+    if (ClsgClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? p->p21C : p->p218), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
         if (fl & 8)
@@ -50,6 +50,6 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*p->p218), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        func_001A7C18(D_003DD490, p->p258, x, *p->p218, n, 0xE, 0, 0, a5, f);
+        PxpAdd(D_003DD490, p->p258, x, *p->p218, n, 0xE, 0, 0, a5, f);
     }
 }

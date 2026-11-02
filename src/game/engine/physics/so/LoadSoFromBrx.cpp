@@ -24,9 +24,9 @@ float func_00117E38(void *);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEO *);
 void CBinaryInputStream_ReadBspc(void *,GEO *,TREE *);
 void func_00117ED0(void *,STATE *);
-void func_00167320(DATA *,P *,void *);
+void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(DATA *,P *,void *);
 void *func_001AE2A0(MSG *);
-void func_00166270(GEO *,const M4 *,GEO *);
+void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
 void AddSoParts(P *);
 void AdjustSoMomint(P *,float);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(P *,void *);
@@ -52,7 +52,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
     int i=0;E *e;
     LoadSoXfsFromBrx(p,stream);
     int metadata=func_00117C80(stream);
-    func_00167320(&p->data,p,stream);
+    LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&p->data,p,stream);
     int extra=Extra(p);
     p->count=func_00117D50(stream);
     MSG request;
@@ -71,7 +71,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
         e->radius=func_00117E38(stream);
         ReadGeom__18CBinaryInputStreamP4GEOM(stream,local);
         if(!e->object){e->object=D_002C44F0;e->world=e->local;}
-        else func_00166270(local,0,&e->world);
+        else CloneGeom__FP4GEOMP7MATRIX4T0(local,0,&e->world);
         CBinaryInputStream_ReadBspc(stream,&e->world,&e->tree);
         e->id=func_00117C80(stream);
         e->flags.fields.state=func_00117D50(stream);

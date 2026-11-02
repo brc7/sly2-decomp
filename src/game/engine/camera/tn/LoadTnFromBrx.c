@@ -5,8 +5,8 @@ struct S { char pad[0xE4]; char aE4[0x18]; char aFC[0x10]; struct O *p10C; int c
 void LoadXfmXfFromBrx(struct S *p, void *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pv);
 void CBinaryInputStream_ReadBspc(void *pbis, void *pv, void *pv2);
-MARK *func_001AE478(MARK *pm);
-void func_001AE4A0(MARK *pm, int n);
+MARK *STACKSCOPE_ctor(MARK *pm);
+void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n);
 void *func_001AE318(MSG *pmsg);
 void *func_001AE238(MSG *pmsg, void *pv);
 void func_00221818(struct S *p, int id);
@@ -32,7 +32,7 @@ void LoadTnFromBrx(struct S *p, void *pbis)
     LoadXfmXfFromBrx(p, pbis);
     ReadGeom__18CBinaryInputStreamP4GEOM(pbis, p->aE4);
     CBinaryInputStream_ReadBspc(pbis, p->aE4, p->aFC);
-    func_001AE478(&mark);
+    STACKSCOPE_ctor(&mark);
     {
         MSG *pm = &msg;
         pm->cb = 0x240;
@@ -62,5 +62,5 @@ void LoadTnFromBrx(struct S *p, void *pbis)
         break;
     }
     if (!p->p10C) p->flags &= ~2;
-    func_001AE4A0(&mark, 2);
+    STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }

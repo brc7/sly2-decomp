@@ -3,8 +3,8 @@ extern qword D_002A2DD0;
 struct MK { int a[4]; };
 struct AI { int cb; int align; };
 struct S { char pad[0x50]; int c50; void *p54; char pad2[0x94 - 0x58]; void *p94; int c98; void *p9C; };
-struct MK *func_001AE478(struct MK *pm);
-void func_001AE4A0(struct MK *pm, int n);
+struct MK *STACKSCOPE_ctor(struct MK *pm);
+void STACKSCOPE_ctor_1AE4A0(struct MK *pm, int n);
 void *func_001AE378(struct AI *pa);
 void *func_001AE318(struct AI *pa);
 void *func_001AE238(struct AI *pa, void *pv);
@@ -24,7 +24,7 @@ static inline struct AI *SetAi(struct AI *pa, int cb, int align) { pa->cb = cb; 
 void func_001731B8(struct S *p, void *pv) {
     struct MK mk;
     struct AI ai;
-    func_001AE478(&mk);
+    STACKSCOPE_ctor(&mk);
     p->p54 = func_001AE378(SetAi(&ai, 0xE00, 0x10));
     p->p9C = func_001AE318(SetAi(&ai, 0x100, 0x10));
     p->p94 = func_001AE318(SetAi(&ai, 0x20, 0x10));
@@ -32,5 +32,5 @@ void func_001731B8(struct S *p, void *pv) {
     LoadLoFromBrx(p, pv);
     p->p54 = func_001AE238(SetAi(&ai, p->c50 * 0x1C, 0x10), p->p54);
     { void *pv9C = func_001AE238(SetAi(&ai, p->c98 << 4, 0x10), p->p9C); void *pv94 = p->p94; p->p9C = pv9C; p->p94 = func_001AE238(SetAi(&ai, 0x20, 0x10), pv94); }
-    func_001AE4A0(&mk, 2);
+    STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }

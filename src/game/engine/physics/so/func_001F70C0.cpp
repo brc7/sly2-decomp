@@ -7,14 +7,14 @@ struct GEO {int count;qword *points;int planeCount;void *planes;int x10,x14;};
 struct TREE {int count,flag,unused;void *nodes;};
 struct P {LO *owner;int flags;float radius;int material;char pad10[0xC];int pinnedCount;char pad20[0x48];TREE tree;GEO local,world;};
 struct FRAME {int pad[4];};
-extern "C" FRAME *func_001AE478(FRAME *);
-extern "C" void func_001AE4A0(FRAME *,int);
+extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
 struct MSG {int bytes,alignment;};
 extern "C" void *func_001AE378(MSG *);
 extern "C" void func_001AE5A0(void *,const void *,unsigned int);
 extern "C" M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 extern "C" M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
-extern "C" void func_00166270(GEO *,const M4 *,GEO *);
+extern "C" void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
 extern "C" void func_001191E8(TREE *,GEO *,TREE *,GEO *);
 
 static inline float SquaredLength(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
@@ -31,7 +31,7 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
     M4 transform;
     GEO temporary;
     FRAME frame;
-    func_001AE478(&frame); /* explicit begin/end calls (POD frame), not a ctor/dtor class: that reorders the argument copies. */
+    STACKSCOPE_ctor(&frame); /* explicit begin/end calls (POD frame), not a ctor/dtor class: that reorders the argument copies. */
     MSG request;MSG *allocation=&request;
     float maximum=0.0f;
     dest->owner=space;dest->flags=source->flags;dest->material=source->material;dest->pinnedCount=source->pinnedCount;
@@ -45,8 +45,8 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
     func_001AE5A0(points+(pinned+inserted),temporary.points+pinned,(temporary.count-pinned)*16);
     temporary.count+=inserted;temporary.points=points;
     {M4 product,inverse;__ml__FRC7MATRIX4T0(&product,(InvertMatrix4Rigid(&inverse,&space->matrix),&inverse),&source->owner->matrix);transform=product;}
-    func_00166270(&temporary,&transform,&dest->local);
-    func_00166270(&dest->local,&space->matrix,&dest->world);
+    CloneGeom__FP4GEOMP7MATRIX4T0(&temporary,&transform,&dest->local);
+    CloneGeom__FP4GEOMP7MATRIX4T0(&dest->local,&space->matrix,&dest->world);
     func_001191E8(&source->tree,&source->world,&dest->tree,&dest->world);
-    func_001AE4A0(&frame,2);
+    STACKSCOPE_ctor_1AE4A0(&frame,2);
 }

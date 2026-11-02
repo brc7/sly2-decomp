@@ -2,7 +2,7 @@ struct F { int pad[5]; void (*pfn)(struct F *); int pad2[2]; };
 struct E { int n; struct F *af; int x8; int xC; int x10; int x14; int x18; };
 struct S { int pad[3]; struct E a[1]; };
 struct S1 { char pad[0x1EC]; int x1EC; };
-void func_001AEAA8(struct S *s, int n);
+void SetPauseMenuState(struct S *s, int n);
 void *func_002333B4(void *p, int c, unsigned int n);
 /** @sly2-annot addr=0x1AF390
  * Purpose: Replace top page with item array af[n] (run item init callbacks), state 3
@@ -16,7 +16,7 @@ void func_001AF390(struct S *s, int n, struct F *af)
     int k;
     struct E *e;
     int i;
-    func_001AEAA8(s, 3);
+    SetPauseMenuState(s, 3);
     k = s->a[0].x18;
     if (k > 0) {
         e = &s->a[k];

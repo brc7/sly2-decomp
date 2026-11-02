@@ -12,8 +12,8 @@ struct P {
 };
 void UpdateLo(struct P *);
 void SetVolbtnButtons(struct P *, int);
-struct CTX *func_001AE478(struct CTX *);
-void func_001AE4A0(struct CTX *, int);
+struct CTX *STACKSCOPE_ctor(struct CTX *);
+void STACKSCOPE_ctor_1AE4A0(struct CTX *, int);
 void func_001AE5A0(void *, void *, int);
 int CploFindSwObjectsByClass(struct G *, int, int, int, int, void **);
 int func_001A61A0(void *);
@@ -45,7 +45,7 @@ void UpdateVolbtn(struct P *p)
         int c;
         int j;
         int cSel;
-        func_001AE478(&ctx);
+        STACKSCOPE_ctor(&ctx);
         func_001AE5A0(apo, p->a28C, p->c288 * 4);
         c = p->c288;
         for (; i < p->c2AC; i++)
@@ -103,6 +103,6 @@ void UpdateVolbtn(struct P *p)
             }
         }
         SetVolbtnButtons(p, fFound);
-        func_001AE4A0(&ctx, 2);
+        STACKSCOPE_ctor_1AE4A0(&ctx, 2);
     }
 }

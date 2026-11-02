@@ -13,9 +13,9 @@ extern struct G2 D_002DDFA0;
 int func_0011D4D0(float, float, float);
 float RadNormalize__Ff(float);
 qword func_0011BFF0(void *);
-int func_0014FD50(void *);
-void func_0014E4C8(void *, int, int, void *, int, int);
-void func_0014E328(void *, int, void *, int, void *);
+int FActiveCplcy__FP5CPLCY(void *);
+void RevokeCmPolicy(void *, int, int, void *, int, int);
+void SetCmPolicy(void *, int, void *, int, void *);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
@@ -71,7 +71,7 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
     }
     if (p->sub.f8C == 0.0f)
         p->sub.f8C = D_002A8124;
-    if (func_0014FD50(D_002DDF40.m500))
-        func_0014E4C8(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
-    func_0014E328(&D_002DDF40, 10, D_002DDF40.m500, 0, &p->sub);
+    if (FActiveCplcy__FP5CPLCY(D_002DDF40.m500))
+        RevokeCmPolicy(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
+    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &p->sub);
 }

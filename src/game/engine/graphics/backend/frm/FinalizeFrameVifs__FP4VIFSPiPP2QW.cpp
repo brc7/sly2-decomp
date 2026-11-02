@@ -1,6 +1,6 @@
 #include "vifs.h"
 #include "gifs.h"
-extern "C" void func_00160918(VIFS *pvifs, void *pvStart, void *pvEnd);
+extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern char D_0025E680[];
 extern char D_00262320[];
 /** @sly2-annot addr=0x160940
@@ -20,7 +20,7 @@ void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw)
     pvifs->AddVifFlush();
     pvifs->AddVifGifs(&gifs);
     pvifs->EndDmaCnt();
-    func_00160918(pvifs, D_0025E680, D_00262320);
+    EnsureVu1Code__FP4VIFSPvT1(pvifs, D_0025E680, D_00262320);
     pvifs->AddDmaEnd();
     pvifs->Detach(pcqw, paqw);
 }

@@ -10,8 +10,8 @@ extern struct CAMERA D_002DDF40;
 extern const float D_002A8550;
 int FReconTargetSelectable(struct O*);
 qword func_001A62E8(struct O*);
-int func_0014F850(struct CAMERA*,qword,qword);
-int func_0014F898(struct CAMERA*,qword,float,float*);
+int FInsideCmFrustum(struct CAMERA*,qword,qword);
+int FInsideCmMrd(struct CAMERA*,qword,float,float*);
 void UpdateReconTargetVisibility(struct P*,struct O*);
 void SetReconSelState(struct P*,int);
 static inline void PlaneArguments(qword *eye,qword *threshold,qword *point,qword scalar,const qword *camera,const qword *position) {
@@ -61,8 +61,8 @@ void SelectReconTarget(struct P*p)
    camera=&D_002DDF40;
    radius.q=ScalarBits(&o->radius);
    PlaneArguments(&eye,&threshold,&point,radius.q,&camera->position,&position.q);
-   if(!func_0014F850(camera,PlaneDelta(point,eye),threshold))continue;
-   if(!func_0014F898(camera,func_001A62E8(o),o->height,&screen.f[0]))continue;
+   if(!FInsideCmFrustum(camera,PlaneDelta(point,eye),threshold))continue;
+   if(!FInsideCmMrd(camera,func_001A62E8(o),o->height,&screen.f[0]))continue;
    distance=LengthXY(SubSecond(position.q,camera->position));
    if(distance<minimum){
      UpdateReconTargetVisibility(p,o);

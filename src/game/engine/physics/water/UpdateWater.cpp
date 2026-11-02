@@ -41,8 +41,8 @@ extern WORLD D_003DD490;
 extern qword D_002A2DC0,D_002A2DD0;
 
 void UpdateSo(O *);
-MARK *func_001AE478(MARK *);
-void func_001AE4A0(MARK *,int);
+MARK *STACKSCOPE_ctor(MARK *);
+void STACKSCOPE_ctor_1AE4A0(MARK *,int);
 void *func_001AE318(const REQ *);
 int func_00229D60(void *,COLL *);
 int func_001F7E08(O *,int (*)(void *,COLL *),void *,COLL **);
@@ -51,7 +51,7 @@ int func_00230380(int);
 float func_00229468(O *,O *,qword *,qword *);
 N *func_002296A0(WORLD *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
-int func_0014CDB0(qword,qword,int,COLL **,int,LSG *);
+int ClsgClipEdgeToObjects(qword,qword,int,COLL **,int,LSG *);
 void *func_001FBB90(int);
 void func_001FB2F8(void *,O *);
 void func_001FB4F0(void *,float,float);
@@ -81,7 +81,7 @@ extern "C" void UpdateWater(O *p){
  if(!p->count)return;
  work.request=&work.scratch.request;work.head=&p->first;
  for(n=*work.head;n;n=n->next)n->object->flags|=0x80000000L;
- func_001AE478(&work.mark);
+ STACKSCOPE_ctor(&work.mark);
  {register int size __asm__("$3")=p->count;register int alignment __asm__("$2")=16;register REQ*req __asm__("$4")=work.request;size*=4;work.scratch.request.size=size;Fields(req)->alignment=alignment;
  objects=(COLL **)func_001AE318(req);}
  work.count=func_001F7E08(p,func_00229D60,0,objects);
@@ -105,7 +105,7 @@ extern "C" void UpdateWater(O *p){
    if(FIsBasicDerivedFrom__FP5BASIC3CID(o,0x33))dz=o->height;
    else dz=o->state->minimum.f[2]-c->source->position.f[2];
    work.start.f[2]+=dz;work.end.f[2]+=dz;
-   if(func_0014CDB0(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
+   if(ClsgClipEdgeToObjects(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
     qword normal;
     float fall=Min(-work.scratch.velocity.f[2],600.0f)*(1.0f/600.0f);
     float radius=((o->state->maximum.f[0]-o->state->minimum.f[0])+(o->state->maximum.f[1]-o->state->minimum.f[1]))*0.5f;
@@ -131,5 +131,5 @@ extern "C" void UpdateWater(O *p){
    Signal(o,o->flags&0x80000000L?5:4,(PAIR *)work.request);
   }
  }
- func_00228D20(p,work.head);func_001AE4A0(&work.mark,2);
+ func_00228D20(p,work.head);STACKSCOPE_ctor_1AE4A0(&work.mark,2);
 }

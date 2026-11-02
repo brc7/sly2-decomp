@@ -9,7 +9,7 @@ extern int D_003E0FE4;
 void BroadcastGameEvent(void *p, int a, int b);
 void func_002581C0(struct R *r, int a, void *b);
 void func_00129EC8(struct R *r);
-void func_001ACB58(struct G1 *p, int n);
+void SetMcDialogState(struct G1 *p, int n);
 void func_001ABD40(struct G2 *p);
 void func_001660F8(void);
 /** @sly2-annot addr=0x1B0878
@@ -31,9 +31,9 @@ void func_001B0878(struct S *p)
         v = r.tag;
         func_00129EC8(&r);
         if (v == 0) {
-            func_001ACB58(&D_002E6550, 0x22);
+            SetMcDialogState(&D_002E6550, 0x22);
         } else {
-            func_001ACB58(&D_002E6550, 0x1A);
+            SetMcDialogState(&D_002E6550, 0x1A);
             func_001ABD40(&D_002E65E0);
         }
     } else {

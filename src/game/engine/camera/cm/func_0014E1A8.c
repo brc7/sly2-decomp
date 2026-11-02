@@ -6,7 +6,7 @@ struct CM { char pad[0x60]; M4 mat; };
 void GetVectorSphere(qword v, float *a, float *b, int c);
 M3 LoadRotateMatrixPanTilt(float a, float b);
 void func_00256D18(V4 *p, qword v);
-void func_0014DC58(struct CM *p);
+void UpdateCmMat4__FP2CM(struct CM *p);
 static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 {
     func_00256D18(&pm->pos, pos);
@@ -31,5 +31,5 @@ void func_0014E1A8(struct CM *p, qword pos, qword tgt, float da, float db)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(tgt), "j"(pos));
     GetVectorSphere(d, &a, &b, 0);
     LoadM4(&p->mat, LoadRotateMatrixPanTilt(a + da, b + db), pos);
-    func_0014DC58(p);
+    UpdateCmMat4__FP2CM(p);
 }

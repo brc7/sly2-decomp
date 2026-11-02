@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_0014F5A0(M2C_UNK *, f32);              /* extern */
+M2C_UNK SetCmFov__FP2CMf(M2C_UNK *, f32);              /* extern */
 extern M2C_UNK D_002DDF40;
 
 /** @sly2-annot addr=0x14FE28
@@ -10,5 +10,5 @@ extern M2C_UNK D_002DDF40;
 void func_0014FE28(void *arg0) {
     M2C_FIELD(arg0, s32 *, 0x20) = 0;
     M2C_FIELD(arg0, s32 *, 0x24) = 0;
-    func_0014F5A0(&D_002DDF40, M2C_FIELD(arg0, f32 *, 0x2C));
+    SetCmFov__FP2CMf(&D_002DDF40, M2C_FIELD(arg0, f32 *, 0x2C));
 }

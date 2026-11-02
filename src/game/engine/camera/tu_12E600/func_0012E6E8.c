@@ -1,6 +1,6 @@
 extern char D_002DDF40[];
 void RemoveLoHierarchy(void *p);
-void func_0014E4C8(void *a, int b, int c, void *d, int e, void *f);
+void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
 typedef struct T { char pad[0x124]; int f; } T;
 /** @sly2-annot addr=0x12E6E8
  * Purpose: slot 12: RemoveLoHierarchy (0x1A5848) + RevokeCmPolicy (0x14E4C8)
@@ -14,5 +14,5 @@ void func_0012E6E8(T *t)
 {
     RemoveLoHierarchy(t);
     if (t->f)
-        func_0014E4C8(D_002DDF40, 15, 10, D_002DDF40 + 0x4A8, 0, t);
+        RevokeCmPolicy(D_002DDF40, 15, 10, D_002DDF40 + 0x4A8, 0, t);
 }

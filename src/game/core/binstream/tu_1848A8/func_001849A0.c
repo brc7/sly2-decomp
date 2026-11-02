@@ -20,7 +20,7 @@ typedef struct S {
 extern int func_00242810(void);
 extern int func_00241E88(int);
 extern int func_00242AE0(void);
-extern void func_0014BC78(unsigned int isector, unsigned int csector, void *pv, int mode);
+extern void ReadCdDirect(unsigned int isector, unsigned int csector, void *pv, int mode);
 
 static __inline__ int Min(int a, int b) { return a < b ? a : b; }
 /** @sly2-annot addr=0x1849A0
@@ -75,7 +75,7 @@ void func_001849A0(S *p)
                     unsigned int count = ((p->x44 - c + 0x7FF) & -0x800) >> 11;
                     unsigned int sector = p->x50 + c / 0x800;
                     p->x4c = c;
-                    func_0014BC78(sector, count, buffer, mode);
+                    ReadCdDirect(sector, count, buffer, mode);
                 }
             }
         }
@@ -91,7 +91,7 @@ void func_001849A0(S *p)
                 unsigned int sector = p->x50;
                 char *buffer = p->abSpool + p->x60 * cbuf;
                 p->x58++;
-                func_0014BC78(sector, ((c + 0x7FF) & -0x800) >> 11, buffer, 0);
+                ReadCdDirect(sector, ((c + 0x7FF) & -0x800) >> 11, buffer, 0);
             }
         }
 

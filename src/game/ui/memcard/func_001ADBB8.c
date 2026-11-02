@@ -1,5 +1,5 @@
 extern char D_003D9ED0[], D_003DD490[], D_002A6EB8[];
-int func_001B0078(void *p);
+int IdPauseTopPage(void *p);
 void *PchzFindSwLangstr__FP2SWi(void *p, int n);
 void func_0021ED58(void *s, void *q);
 void func_0021EDA0(void *s, void *q);
@@ -11,7 +11,7 @@ void func_0021EDA0(void *s, void *q);
  * @end-sly2-annot */
 void func_001ADBB8(void *s)
 {
-    switch (func_001B0078(D_003D9ED0)) {
+    switch (IdPauseTopPage(D_003D9ED0)) {
     case 0x19:
     case 0x1E:
     case 0x1F:

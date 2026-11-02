@@ -1,5 +1,5 @@
 #include "gifs.h"
-extern "C" void func_0016D698(int n, GIFS *pgifs, short **pps);
+extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
 /** @sly2-annot addr=0x16D6C8
  * Purpose: Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected
  *   by grf bits
@@ -11,7 +11,7 @@ extern "C" void func_0016D698(int n, GIFS *pgifs, short **pps);
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
 {
     pgifs->AddPrimPack(0x200, 1, 0xE);
-    func_0016D698((grf & 4) ? 4 : 5, pgifs, pps);
+    AddFramePatch((grf & 4) ? 4 : 5, pgifs, pps);
     if (grf & 0x200) {
         pgifs->PackAD(0x4D, 0x3FFF02000000L);
     } else if (grf & 0x100) {
@@ -27,7 +27,7 @@ extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
         if (grf & 0x10000) msk &= 0xFFFFBFFF;
         pgifs->PackAD(0x4D, ((ulong)msk << 32) | 0x2000000);
     }
-    func_0016D698((grf & 1) ? 6 : 7, pgifs, pps);
+    AddFramePatch((grf & 1) ? 6 : 7, pgifs, pps);
     pgifs->PackAD(7, 0xEA8200000L);
     pgifs->PackAD(0x15, 1);
     pgifs->PackAD(0x3F, 0);

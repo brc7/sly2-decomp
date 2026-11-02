@@ -9,8 +9,8 @@ extern G D_002DDF40;
 extern struct CLOCK { float t,dt; } D_002DDED0;
 extern struct LIMIT { float lo,hi; } D_002BBB60;
 extern "C" {
-int func_0014F850(G*,qword,qword);
-int func_0014F898(G*,qword,float,float*);
+int FInsideCmFrustum(G*,qword,qword);
+int FInsideCmMrd(G*,qword,float,float*);
 M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void func_001A5EE8(LO*,const M4&,float,float);
 int FRenderRipPosMat(S*,qword,const M3&);
@@ -37,8 +37,8 @@ int FRenderRipPosMat(S*p,qword pos,const M3&mat)
     float size=Poly(&p->size,t);
     G *pg=&D_002DDF40;
     __asm__("vsub.xyzw %0,%1,%2":"=j"(delta):"j"(pos),"j"(pg->pos));
-    if(!func_0014F850(pg,delta,BcG(size*100.0f)))return 1;
-    if(!func_0014F898(pg,delta,p->lo->radius,&proj))return 0;
+    if(!FInsideCmFrustum(pg,delta,BcG(size*100.0f)))return 1;
+    if(!FInsideCmMrd(pg,delta,p->lo->radius,&proj))return 0;
     if(alpha<0.0001f && size<0.0001f)return 1;
     M4 m;
     M4 tmp=LoadMatrixFromPosRotScalar(pos,mat,size);

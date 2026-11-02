@@ -13,7 +13,7 @@ extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
 void func_001F3C10(struct P *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
-void func_00168638(void *p, int n, int m, float a, float b);
+void RenderSoGlobset(void *p, int n, int m, float a, float b);
 /** @sly2-annot addr=0x1425B0
  * Purpose: vt19: if visible (grfvis & D_002DDF54) render via 0x1F3C10; smooth two scale factors
  *   (+0x10D4/+0x10D8) toward per-grab-state targets and draw shadow 0x168638
@@ -41,5 +41,5 @@ void RenderStepplayerSelf(struct P *p)
         p->py0->g = p->g10D4;
         p->py1->g = p->g10D4;
     }
-    func_00168638(p->m80, 0, p->x134, p->g12C * p->g10D4, p->g12C * p->g10D8);
+    RenderSoGlobset(p->m80, 0, p->x134, p->g12C * p->g10D4, p->g12C * p->g10D8);
 }

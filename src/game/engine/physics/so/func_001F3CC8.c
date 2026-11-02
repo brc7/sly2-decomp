@@ -5,7 +5,7 @@ struct P { char pad[0x64]; struct O *pFirst; char pad2[0x70 - 0x68]; struct O *p
 struct G;
 extern struct G D_003DD490;
 void func_001A4478(struct G *, int, struct B *);
-void func_00168638(void *, int, float, float, struct B *);
+void RenderSoGlobset(void *, int, float, float, struct B *);
 /** @sly2-annot addr=0x1F3CC8
  * Purpose: SO vt20: draw globset with explicit params and recurse vt20 to children
  * Info: proposed name RenderSoAll (T2); class SO slot20; TU so
@@ -23,7 +23,7 @@ void func_001F3CC8(struct P *p, int a, struct B *pb, float f1, float f2)
         pb = &b;
         func_001A4478(&D_003DD490, a, &b);
     }
-    func_00168638(p->x80, a, f1, f2, pb);
+    RenderSoGlobset(p->x80, a, f1, f2, pb);
     for (po = p->pFirst; po != p->pEnd; po = po->pNext)
         po->pvt[20].pfn((char *)po + po->pvt[20].d, a, f1, f2, pb);
 }

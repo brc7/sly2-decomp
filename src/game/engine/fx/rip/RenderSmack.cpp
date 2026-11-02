@@ -7,7 +7,7 @@ struct S {char pad[0x14];float start,duration;char pad1C[0x40-0x1C];M3 mat;char 
 extern G D_002DDF40;
 extern struct CLOCK {float t,dt;} D_002DDED0;
 extern "C" {
-qword func_0014F268(G*,qword);
+qword ConvertCmScreenToWorld(G*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
 void func_0011BCF8(M3*,float*,qword*);
 M3 func_0011B500(qword,float);
@@ -29,7 +29,7 @@ void RenderSmack(S *p) {
  M3 camera,fade,spin,render;
  U axis;float angle;
  G *pg=&D_002DDF40;
- qword view=func_0014F268(pg,p->pos);
+ qword view=ConvertCmScreenToWorld(pg,p->pos);
  camera=MulMatrix3Matrix3(p->mat,pg->mat);
  func_0011BCF8(&camera,&angle,&axis.q);
  float t=(D_002DDED0.t-p->start)/p->duration;

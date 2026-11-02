@@ -6,8 +6,8 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { int a[3]; struct VTE *vt; int pad[6]; unsigned long fl; };
 struct DA { int n0; int cMax; int c; struct O **a; };
 struct S { char pad[0xE0]; int c; struct O **apo; };
-void func_001AE478(struct C *);
-void func_001AE4A0(struct C *, int);
+void STACKSCOPE_ctor(struct C *);
+void STACKSCOPE_ctor_1AE4A0(struct C *, int);
 void LoadXfmFromBrx(struct S *p, void *q);
 void CLoadCollectorArray_ctor(struct DA *pda);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);
@@ -28,7 +28,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
     MSG msg;
     int i;
     LoadXfmFromBrx(p, q);
-    func_001AE478(&ctx);
+    STACKSCOPE_ctor(&ctx);
     CLoadCollectorArray_ctor(&da);
     LoadXfmChildObjectsFromBrx(p, q, &da);
     p->apo = PvAllocMsg(&msg, da.c * 4, 0x10);
@@ -42,5 +42,5 @@ void LoadExplgFromBrx(struct S *p, void *q)
             p->apo[p->c++] = o;
         }
     }
-    func_001AE4A0(&ctx, 2);
+    STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }

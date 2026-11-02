@@ -6,8 +6,8 @@ struct B{LO*lo;char pad4[0xC];unsigned long flags;char pad18[8];M4 m;char pad60[
 struct HIT{qword p;char pad10[0x30];float time;int x44,x48,tag;char pad50[0x10];};
 struct W;struct C;
 extern "C" M4 InvertMatrix4Rigid(const M4*);
-extern "C" int func_0014C6A0(B*,qword,qword,int,HIT*);
-extern "C" void func_001A7C18(W*,A*,B*,qword,qword,int,int,int,C**,float);
+extern "C" int ClsgClipEdgeToObject(B*,qword,qword,int,HIT*);
+extern "C" void PxpAdd(W*,A*,B*,qword,qword,int,int,int,C**,float);
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
 static inline qword Transform(const M4*m,qword p){__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=j"(p):"j"(m->r[0]),"j"(m->r[1]),"0"(p),"j"(m->r[2]),"j"(m->r[3]));return p;}
 static inline qword SubN(qword a,qword b){register qword r __asm__("vf1");__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -39,7 +39,7 @@ extern "C" void func_001A9D38(W*w,A*a,B*b,C**out){
   qword pos=TransformNew(&a->m,a->vertices[i]);
   if(b->oldGeneration!=b->generation)pos=Transform(&b->lo->m,Transform(&InvertMatrix4Rigid(&b->m),pos));
   qword dest=a->probes[i];
-  int count=func_0014C6A0(b,pos,dest,2,hits);
+  int count=ClsgClipEdgeToObject(b,pos,dest,2,hits);
   if(count){
    int skip=hits[0].time==0.0f;
    if(skip<count){
@@ -50,7 +50,7 @@ extern "C" void func_001A9D38(W*w,A*a,B*b,C**out){
     if(a->flags&(1UL<<49)){float d=Dot(Sub(a->lo->m.r[3],hit),dir)-a->radius;if(d<g)g=d;}
     int kind=(b->flags&(1UL<<49))?9:8;
     int tag=(b->flags&(1UL<<49))?0:hits[0].tag;
-    func_001A7C18(w,a,b,hit,dir,kind,tag,0,out,g);
+    PxpAdd(w,a,b,hit,dir,kind,tag,0,out,g);
    }
   }
  }

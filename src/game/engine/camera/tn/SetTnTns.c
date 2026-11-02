@@ -4,8 +4,8 @@ struct S { int x0, x4, x8; struct VTE *vt; char pad[0xE0 - 0x10]; void *pE0; cha
 extern char D_002DDF40[];
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-void func_0014E328(void *a, int b, void *c, void *d, struct S *p);
-void func_0014E4C8(void *a, int b, int c, int d, int e, struct S *p);
+void SetCmPolicy(void *a, int b, void *c, void *d, struct S *p);
+void RevokeCmPolicy(void *a, int b, int c, int d, int e, struct S *p);
 /** @sly2-annot addr=0x221178
  * Purpose: tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out ->
  *   RevokeCmPolicy(8) + event 6; store tns and tTns=g_clock.t
@@ -19,11 +19,11 @@ void SetTnTns(struct S *p, int k)
     if (k == p->k) return;
     switch (k) {
     case 1:
-        func_0014E328(D_002DDF40, p->x128 + 2, D_002DDF40 + 0x3B0, p->pE0, p);
+        SetCmPolicy(D_002DDF40, p->x128 + 2, D_002DDF40 + 0x3B0, p->pE0, p);
         p->vt[3].pfn((char *)p + p->vt[3].d, 5, 1, 0, 0, 0);
         break;
     case 0:
-        func_0014E4C8(D_002DDF40, 8, -1, 0, 0, p);
+        RevokeCmPolicy(D_002DDF40, 8, -1, 0, 0, p);
         p->vt[3].pfn((char *)p + p->vt[3].d, 6, 1, 0, 0, 0);
         break;
     }
