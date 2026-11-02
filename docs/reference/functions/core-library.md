@@ -38,8 +38,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x116CC0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
 | [0x116CE0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
 | [0x116D00](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
-| [0x116D28](../../../src/game/platform/memory/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
-| [0x116D70](../../../src/game/platform/memory/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
+| [0x116D28](../../../src/game/core/containers/dynarray.cpp) | `Free__9CDynArray` |  |  | existing |  |
+| [0x116D70](../../../src/game/core/containers/dynarray.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
 | [0x116E30](../../../src/game/core/containers/dynarray.cpp) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
 
 ## bez (0x117030-0x1177A8)
