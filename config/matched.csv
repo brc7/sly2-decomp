@@ -4205,8 +4205,8 @@ SetPoChoices,0x1D7780,19,match,src/game/gameplay/ai/tu_1D7238/SetPoChoices.c
 func_001D77D0,0x1D77D0,66,match,src/game/gameplay/ai/tu_1D7238/func_001D77D0.c
 StaticInit_tu_1D7238,0x1D78D8,77,match,src/game/gameplay/ai/tu_1D7238/StaticInit_tu_1D7238.c
 func_001D7A10,0x1D7A10,8,match,src/game/gameplay/ai/tu_1D7238/func_001D7A10.c
-StaticInit_empty_1D7A30,0x1D7A30,77,match,src/game/gameplay/objects/empty_1D7A30/StaticInit_empty_1D7A30.c
-func_001D7B68,0x1D7B68,8,match,src/game/gameplay/objects/empty_1D7A30/func_001D7B68.c
+StaticInit_empty_1D7A30,0x1D7A30,77,match,src/game/gameplay/objects/empty_1D7A30.cpp
+func_001D7B68,0x1D7B68,8,match,src/game/gameplay/objects/empty_1D7A30.cpp
 LoadSaveSchemaFromBrx,0x1D7B88,61,match,src/game/world/state/save/LoadSaveSchemaFromBrx.c
 ResetGsIfSchemaChanged,0x1D7C80,43,match,src/game/world/state/save/ResetGsIfSchemaChanged.c
 FGsMatchesSchema,0x1D7D30,28,match,src/game/world/state/save/FGsMatchesSchema.c

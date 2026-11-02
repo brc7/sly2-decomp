@@ -7,7 +7,7 @@
 | [`barrier/`](barrier/) | 9 |
 | [`bomb/`](bomb/) | 22 |
 | [`button/`](button/) | 50 |
-| [`empty_1D7A30/`](empty_1D7A30/) | 2 |
+| [`empty_1D7A30.cpp`](empty_1D7A30.cpp) | 1 |
 | [`missile/`](missile/) | 16 |
 | [`rhythm/`](rhythm/) | 35 |
 | [`sensor/`](sensor/) | 21 |
