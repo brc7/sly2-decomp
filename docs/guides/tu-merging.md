@@ -56,6 +56,29 @@ list of merged TUs. Read it before merging a TU; add to it when you hit somethin
 A scratch helper that does steps 1, 2, 4 and 5 mechanically was used for this wave (not in the repo, by policy); it is
 about 100 lines of Python around `tools/matchtool.py`'s `compile_src`, `obj_functions`, `apply_aliases` and `compare`.
 
+### TUs with an older multi-function file (wave 3)
+
+Five TU directories (heap, dmas, bis, vifs, gifs) held a hand-written multi-function `<tu>.cpp` from before the
+restructure next to per-function files, some of which duplicated functions of that file; matched.csv then had two
+rows for each duplicated function (one per source). What worked for all five:
+
+1. Check the `@sly2-annot` blocks of the multi-function file for `TU <other>`: heap.cpp also held
+   `Free__9CDynArray` and `Reserve__9CDynArrayi`, which lie inside TU dynarray. Move such functions into their own
+   TU's merged file first, in a separate commit (and fix the doc links of those functions by hand afterwards: the
+   finalize step rewrites every link to the old file, so they pointed at the wrong merged file for one commit).
+2. Take the multi-function file as the base (its bodies are already C++ against the shared headers), split it at the
+   annotation blocks and put the pieces in address order (none of the five was in order).
+3. For a function defined in both places keep the copy that matches; when both match, keep the multi-function
+   file's. Add the functions that only have per-function files, rewritten against the base file's types.
+4. After finalizing, drop the duplicate matched.csv rows (same name, address and new source; keep the `match` row
+   when the old non-matching copy left a row with a score).
+
+Neither of the two "does not match inside the TU" cases was inline/class context (B6). vifs' `AddVifUnpack(UPK,
+int, void *, int)` in vifs.cpp (0.279) was a different draft of the body (a count-down copy loop and a quad loop that
+stored as it loaded); the per-function body, with its `UnpackHelper__4VIFS...` call written as a member call, matches
+inside the TU. gifs' `AddPrimPack` in gifs.cpp (0.757) lacked the per-function copy's register pin
+(`register QW *pqw __asm__("$3")`); the pinned body matches inside the TU.
+
 ## The generated static initializer (StaticInit_<tu> and _GLOBAL_$I$)
 
 Almost every game TU ends with a 77-instruction `StaticInit_<tu>` (g++'s `__static_initialization_and_destruction_0`)
@@ -116,6 +139,14 @@ the other Splice node kinds (frames, procs, method records...).
 | the same count field is compared signed in one function (`slt`, `blez`) and unsigned in another (`sltiu`) | the per-function files typed it differently | declare it once and cast at the odd use (`(unsigned int)p->c < 4`) | barrier, tu_1A4E08, tu_1D7238 |
 | `StaticInit_<tu>` is 80 instructions: a `jal` to an Init function before the six pool blocks | a file-scope object of the TU with a constructor (wipe: `D_00443740`, constructed by `InitWipe`) | define the object in the merged file with an inline constructor that calls the init function (`struct WIPE { ... WIPE() { InitWipe(this); } }; WIPE D_00443740;`), directly before `SLY2_INSTANTIATE_SLOT_POOLS()` | wipe |
 | an m2c constructor stores 1 instruction off around `(x + 0x3F) & ~0x3F` | unsigned arithmetic schedules the mask differently | compute on `(int)pv` | bas |
+| `StaticInit_<tu>` is 84 instructions: two stores (a vtable address and -1) into a global before the pool blocks | the inlined constructor of a file-scope polymorphic object whose virtuals still have C names (heap: the level heap D_002DD590, vtable D_002CA578) | a POD view with an inline constructor that stores the vtable address by hand, defined before `SLY2_INSTANTIATE_SLOT_POOLS()`; the C-named virtuals take it as a plain pointer | heap |
+| `StaticInit_<tu>` is 80 instructions and calls a C-named constructor | g_gc's constructor is CGc_ctor | the wipe pattern: `CGc() { CGc_ctor(this); }` and `CGc D_002DD598;` | gc |
+| a function of the multi-function file scores well below 1.0 while its per-function copy matches | the multi-function file has a different draft body (vifs) or lacks a register pin (gifs) | use the per-function body inside the TU | vifs, gifs |
+| a counted-pointer caller differs by a register swap (3 of 84) | the pointer type's out-of-line `operator=` declared returning `SPZ &`; the per-function file declared it `void` | declare it `void operator=(CFrame *)` | frame (CFrame_CloneTo) |
+| an indexed counted-pointer store `apframe[c] = p` is far off (12 of 13, 82 of 84) | the original computes `(c * 4 + this) + 0xC`; `apframe[c]` computes `(this + 0xC) + c * 4` | keep the per-function spelling `*(SPZ *)((int)(c * 4) + (int)pframe + 0xC) = p` (HYPOTHESIS: an inline accessor of the original) | frame (AddParent, CloneTo) |
+| a pool allocator is 57 of 59 off: our code keeps the pool address in a saved register, the target rematerializes it (`lui`/`addiu`) at each use | a local `SLOTHEAP *p = &CSlotPool<..>::s_pool.slotheap` | name `CSlotPool<CB, C>::s_pool.slotheap` in every expression | frame (PvNewBinding) |
+| six per-pool instances of one helper are 67 of 90 off when written as one `static inline` function taking the pool's globals as arguments | the arguments become pseudos that are hoisted into saved registers; the original instances name the globals directly | a macro that expands the body per pool, and one small inline per pool for the (index, page) -> node lookup (`GC_DEFINE_HANDLE`) | gc (six sweeps, Collect) |
+| an initialisation of two members is 2 x 7 off: the count is cleared before the array pointer is stored | members stored directly may be reordered; the original stored through pointers (`InitStack(&c, &ap, n)`) | keep the pointer-taking inline helper | gc (Collect) |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -128,8 +159,8 @@ Other observations:
 - When rewriting doc links, match `\.(cpp|c)` in that order: `(c|cpp)` stops at `.c` and leaves `pp` behind (fixed
   in a follow-up commit of wave 1). Run `python3 -I tools/docs/linkcheck.py` after each merge.
 - Not hit yet: inline methods or class definitions that become visible in the merged TU and change a function's
-  codegen (pilot blocker B6, gifs/vifs; vifs also has an older multi-function `vifs.cpp` whose AddVifUnpack copy does
-  not match, see "Not merged").
+  codegen (pilot blocker B6). The gifs/vifs cases suspected of it were draft-body and register-pin differences
+  (wave 3, see "TUs with an older multi-function file").
 - Wave 2 (asm-free TUs up to 21 functions, plus three small asm TUs): of about 110 per-function files, the only
   C-vs-C++ codegen differences were the rows above (draw, barrier, find, rumble, bas); everything else matched on the
   first compile once types were unified. Most of the work is unifying the per-file views of one object into one type.
@@ -148,6 +179,19 @@ Other observations:
   twice. Wave 2 fixed three such slips in a follow-up commit; check every prototype against config/functions.csv.
 - A function whose current symbol has the wrong signature (bas: the constructor `__18CBinaryAsyncStreamPv` takes two
   arguments) stays a C-linkage function under that symbol until it is renamed.
+- Wave 3: the `SLY2_CC`/`SLY2_CFLAGS` overrides of frame's GcBinding_InitNode and func_00257450 were not needed in
+  the merged file either (as in spliceutils).
+- Pool layout (HYPOTHESIS, wave 3): the GC code addresses a block table of four pointers 0x10 bytes before each
+  pool's SLOTHEAP (0x452098, 0x4520C0, 0x4520E8, 0x452110, 0x452138, 0x452160 for the six pools), which suggests
+  the pool object is `{ void *apvBlock[4]; SLOTHEAP slotheap; }` (0x28 bytes, matching the pool spacing).
+  include/sly2/slotheap.h is unchanged; check against the pool code before changing it.
+- `_GLOBAL_$I$` stubs named after a global (`_GLOBAL_$I$g_dro`, `_GLOBAL_$I$g_gc`): g++ names the stub after the
+  first global the original file defined; the `_GLOBAL_$I$*` alias handles them like the `func_` ones.
+- Finalize hazards (wave 3): (1) never edit a file inside the TU directory in place while experimenting; `git rm`
+  then refuses, and the scratch finalize had already rewritten matched.csv (vifs needed a second commit,
+  bb97924b). The scratch helper now runs `git rm` first. (2) For a TU with duplicate rows, count the functions
+  after removing the duplicates: the bis commit subject says 43 (rows) instead of 34 (functions); the header was
+  corrected in a follow-up commit.
 - Drafting tool hazard: never `git stash`/`stash pop` between finalising a TU and committing it. `stash pop` restores
   the files but not the index, so the commit took only the new `.cpp` (wave 2's draw commit had to be rebuilt).
 
@@ -262,6 +306,26 @@ Total wave 2: 23 TUs, 219 functions (plus a follow-up commit fixing three callee
 the run. The same 333 SDK/asm sources as in wave 1 do not build in this Linux environment and are carried over
 (one wibo compile of an SDK file hung and had to be killed; it is among them).
 
+Wave 3 (the older multi-function files, frame, then asm-free TUs by size):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| heap | platform/memory/heap.cpp | 12 | 84-instruction StaticInit (level heap object, hand-stored vtable); 2 dynarray functions moved out first |
+| dmas | engine/graphics/backend/dmas.cpp | 20 | multi-function file kept, put in address order; 8 duplicate rows dropped |
+| bis | core/binstream/bis.cpp | 34 | 9 duplicate rows dropped; ReadGeom as member (bis.h); CMemInputStream POD view; linkonce 0x2566B0 |
+| vifs | engine/graphics/backend/vifs.cpp | 19 | AddVifUnpack: per-function body (not B6); two commits (c0b79d74, bb97924b) |
+| gifs | engine/graphics/backend/gifs.cpp | 21 | AddPrimPack: per-function body with the `$3` pin (not B6) |
+| frame | splice/frame.cpp | 15 | CFrame/CVarb/SPM/SPZ/SPW/SPO unified; `void operator=`; raw parent-store address; 5 linkonce |
+| gc | splice/gc.cpp | 19 | g_gc ctor in StaticInit; per-pool sweep macro; 12 linkonce |
+| bif2 | app/bif2.cpp | 31 | 29 Nil-returning builtin stubs |
+
+Total wave 3: 8 TUs, 171 functions (plus dynarray grown from 7 to 9 functions, two header extensions: heap.h
+CLinearHeap::Free, bis.h CBinaryInputStream::ReadGeom). No duplicate matched.csv rows remain.
+After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions. The run
+changed matched.csv only in the line endings of the two dynarray rows edited by hand with `sed` (the file has CRLF
+rows; `sed` dropped the `\r`), committed as is. The same 333 SDK/asm sources do not build here; two wibo compiles of
+SDK files hung and were killed (a leftover from an earlier run among them).
+
 ## Not merged (and why)
 
 | TU | why |
@@ -270,10 +334,10 @@ the run. The same 333 SDK/asm sources as in wave 1 do not build in this Linux en
 | callback | EnsureSwCallback passes an 8-byte struct by value (B4, see the table); the other 5 functions merge fine |
 | sprbuf | its static initializer (SPRBUF array + pools) is currently emulated with an asm-labelled hack under `SLY2_ASM: gnu-reorder-db`, which this Linux environment cannot build; needs a real spelling and a Mac to verify |
 | tu_119BC8 | 16 functions, 13 of them linkonce hash-table/dynarray instances with mixed per-file flags, an m2c body and a register pin; worth a session of its own |
-| vifs (wave 2) | already has a multi-function `vifs.cpp` plus per-function copies of two of its functions (`__4VIFS.c`, `AddVifUnpack__4VIFS3UPKiPvi.cpp`); matched.csv lists both sources and the `vifs.cpp` AddVifUnpack scores 0.279 (B6: some inline/class context in the shared file changes it). Needs the B6 investigation first |
-| heap, dmas, bis (wave 2) | same shape as vifs: an existing multi-function file and duplicate matched.csv rows; not attempted (the scratch helper assumes one function per file) |
-| frame (wave 2) | 15 functions incl. 5 linkonce GC helpers; three different spellings of the BINDING/CFrame counted pointers (inline `operator delete`, `SPM`/`SPB`/`SPW`/`SPO`) and two files with `SLY2_CC/SLY2_CFLAGS` overrides; needs a unification pass of its own |
-| exit_warp, gc, save, eval, bif2, splice_thunks (wave 2) | next in size order; not reached in the wave-2 budget. exit_warp holds two classes (EXIT, WARP) with ~15 per-file views each |
+| exit_warp | 22 functions over two classes (EXIT : VOL, WARP : XFM) whose per-file views call virtuals through hand-made vtable-entry structs (slots 3 and 38); needs the real LO/XFM/VOL classes from sly2/lo.h and sly2/xfm.h and the slot numbering checked first. Not attempted in wave 3 |
+| save | 24 functions; RefGetSaveVar/RefSetSaveVar need CRef assignment overloads for VECTOR/CLQ/LM/SMP values that sly2/cref.h lacks, and sly2/basic.h's VECTOR is 12 bytes while the save data uses a 16-byte stride (a private aligned VECTOR would collide with basic.h). Needs a cref.h extension design first. Not attempted in wave 3 |
+| splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
+| eval, ref (wave 3) | next in size order (27 and 38 functions); eval has 17 per-file CRef spellings and two `SLY2_CC` files; not reached |
 
 B4 note: barrier's caller-side trick (pass a packed `long`) has not been tried on callback's EnsureSwCallback, which is
 the callee side (it spills the incoming register); HYPOTHESIS: declaring that parameter `long` and copying it into a
