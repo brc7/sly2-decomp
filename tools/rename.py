@@ -28,6 +28,9 @@ Identifiers that merely contain OLD (func_00117120_x) are never touched; they ar
 Besides the current name, the address placeholder (func_XXXXXXXX / D_XXXXXXXX) is also swept, so re-running a rename
 for an already-named address finishes references left behind by earlier partial renames.
 Every file whose code changes is rebuilt with tools/matchtool.py before and after; per-address results must be equal.
+For a function, the file that matches it (config/matched.csv source) is always rebuilt, and the rename is refused
+unless that file defines it under one of the swept names (a C++ member spelled AllocSw, not AllocSw__4DMASi, needs a
+hand edit). matchtool checks every function of a file, so a merged TU is verified whole.
 """
 import argparse, csv, datetime, difflib, io, json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -484,8 +487,19 @@ class Engine:
                 for o, kc in counts.items():
                     for k, v in kc.items(): c[k] = c.get(k, 0) + v
                 r.files[p] = c
-            # which files must be rebuilt: any code/string edit, any file rename; headers -> their includers
-            ver = set()
+            # the file that matches this address (matched.csv source) must hold a definition spelled with one of the
+            # swept names, or the rename would leave it emitting the old symbol (round 2: DMAS::AllocSw in dmas.cpp)
+            defsrc = self.def_sources(r.addr) if r.kind == 'func' else []
+            if r.kind == 'func':
+                if not defsrc:
+                    self._refuse(r, f'no config/matched.csv source for 0x{r.addr:06X}; cannot locate the definition'); continue
+                bad = [p for p in defsrc if p not in R.files or not self._defines_any(R.files[p], r.aliases)]
+                if bad:
+                    self._refuse(r, f'the definition in {bad[0]} is not spelled {" or ".join(r.aliases)} (e.g. a C++ '
+                                    'member or s1_ label); rename it by hand'); continue
+            # which files must be rebuilt: any code/string edit, any file rename; headers -> their includers;
+            # always the defining file (a whole merged TU: every function of it is compared by address)
+            ver = set(defsrc)
             for p, c in r.files.items():
                 if c.get('code') or c.get('string') or p in r.defining: ver.add(p)
             for h in [p for p in ver if not p.endswith(('.c', '.cpp'))]:
@@ -514,6 +528,24 @@ class Engine:
         return bool(decl.search(text)) and not re.search(r'%s\s*\(\s*"(?!(%s)")' % (A, _alts(aliases)),
                                                          ''.join(m.group(0) for m in re.finditer(
                                                              r'(?<![%s])%s\s*\([^;{]*?\)\s*%s\s*\([^)]*\)' % (IDC, re.escape(name), A), text, re.S)))
+
+    def def_sources(self, addr):
+        """Source files that config/matched.csv (as of the start of the run) gives for this address."""
+        out = []
+        for line in self.orig_cfg['matched.csv'].splitlines()[1:]:
+            p = line.rstrip('\r').split(',')
+            if len(p) >= 5 and p[4] and re.fullmatch(r'0x[0-9A-Fa-f]+', p[1]) and int(p[1], 16) == addr:
+                out.append(p[4])
+        return sorted(set(out))
+
+    def _defines_any(self, text, aliases):
+        """_defines, or a definition through an asm name: `__asm__("OLD")` on a declaration, or an `OLD:` label in
+        an asm string."""
+        if self._defines(text, aliases): return True
+        alts = _alts(aliases)
+        if re.search(r'(?:__asm__|__asm|asm)\s*\(\s*"(%s)"\s*\)' % alts, text): return True
+        lab = re.compile(r'(?<![%s])(%s)\s*:(?!:)' % (IDC, alts))
+        return any(kind == 'string' and lab.search(text[a:b]) for kind, a, b in segments(text))
 
     def _defines(self, text, aliases):
         """True if text has a file-scope function definition of one of the aliases (brace depth 0, balanced
