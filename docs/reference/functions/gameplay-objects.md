@@ -56,54 +56,54 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x148620](../../../src/game/gameplay/objects/button/FAddAshOid.c) | `FAddAshOid` | Append {oid, x} to an ASH list (max 8) | 0.60 | T1 |  |
-| [0x148668](../../../src/game/gameplay/objects/button/PostAshLoad.c) | `PostAshLoad` | Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs | 0.60 | T1 |  |
-| [0x148718](../../../src/game/gameplay/objects/button/InitBtn.c) | `InitBtn` | BTN defaults: state -1, rates 1.0 | 0.65 | T1 |  |
-| [0x148738](../../../src/game/gameplay/objects/button/LoadBtn.c) | `LoadBtn` | BTN owner = palo | 0.55 | T1 |  |
-| [0x148740](../../../src/game/gameplay/objects/button/PostBtnLoad.c) | `PostBtnLoad` | PostAshLoad for the on and off ASH lists | 0.65 | T1 |  |
-| [0x1487A0](../../../src/game/gameplay/objects/button/TriggerBtn.c) | `TriggerBtn` | Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers | 0.70 | T1 |  |
-| [0x148860](../../../src/game/gameplay/objects/button/UntriggerBtn.c) | `UntriggerBtn` | Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1)) | 0.70 | T1 |  |
-| [0x1488D8](../../../src/game/gameplay/objects/button/RunBtnAsegs.c) | `RunBtnAsegs` | Apply/seek every aseg in ASH list i on its object | 0.65 | T1 |  |
-| [0x148A78](../../../src/game/gameplay/objects/button/SetBtnButtons.c) | `SetBtnButtons` | BTN state change; 0->1 triggers, any->0 untriggers; stamps time | 0.65 | T1 |  |
-| [0x148AF8](../../../src/game/gameplay/objects/button/AddBtnAseg.c) | `AddBtnAseg` | FAddAshOid on the 'on' list (+4) | 0.65 | T1 |  |
-| [0x148B18](../../../src/game/gameplay/objects/button/AddBtnOffAseg.c) | `AddBtnOffAseg` | FAddAshOid on the 'off' list (+0x48) | 0.65 | T1 |  |
-| [0x148B38](../../../src/game/gameplay/objects/button/SetBtnRsmg.c) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
-| [0x148B78](../../../src/game/gameplay/objects/button/func_00148B78.c) | `AddBtnEventListener` | Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30 | 0.30 | T2 |  |
-| [0x148BB0](../../../src/game/gameplay/objects/button/InitButton.c) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
-| [0x148C08](../../../src/game/gameplay/objects/button/LoadButtonFromBrx.c) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
-| [0x148C38](../../../src/game/gameplay/objects/button/PostButtonLoad.c) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
-| [0x148C70](../../../src/game/gameplay/objects/button/CloneButton.c) | `CloneButton` | vt41: SO Clone then btn owner = self | 0.65 | T1 |  |
-| [0x148C98](../../../src/game/gameplay/objects/button/UpdateButton.c) | `UpdateButton` | vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.) | 0.70 | T1 |  |
-| [0x148F20](../../../src/game/gameplay/objects/button/FAbsorbButtonWkr.c) | `FAbsorbButtonWkr` | vt75: zap/hit by an allowed object presses the button (by btnt mode) | 0.60 | T1 |  |
-| [0x149010](../../../src/game/gameplay/objects/button/func_00149010.c) | `UpdateButtonPlayerPush` | if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button | 0.30 | T2 |  |
-| [0x1490A0](../../../src/game/gameplay/objects/button/SetButtonButtons.c) | `SetButtonButtons` | SetBtnButtons(+0x150, n) | 0.70 | T1 |  |
-| [0x1490C0](../../../src/game/gameplay/objects/button/TriggerButton.c) | `TriggerButton` | TriggerBtn(+0x150) | 0.60 | T1 |  |
-| [0x1490E0](../../../src/game/gameplay/objects/button/UntriggerButton.c) | `UntriggerButton` | UntriggerBtn(+0x150) | 0.60 | T1 |  |
-| [0x149100](../../../src/game/gameplay/objects/button/FCheckButtonObject.c) | `FCheckButtonObject` | Is the object allowed to push (push oid/cid lists vs no-push lists) | 0.65 | T1 |  |
-| [0x1491E0](../../../src/game/gameplay/objects/button/AddButtonAseg.c) | `AddButtonAseg` | AddBtnAseg(+0x150, oid) | 0.65 | T1 |  |
-| [0x149200](../../../src/game/gameplay/objects/button/AddButtonOffAseg.c) | `AddButtonOffAseg` | AddBtnOffAseg(+0x150, oid) | 0.65 | T1 |  |
-| [0x149220](../../../src/game/gameplay/objects/button/AddButtonPushObject.c) | `AddButtonPushObject` | append oid to push list (max 8) | 0.55 | T1 |  |
-| [0x149248](../../../src/game/gameplay/objects/button/func_00149248.c) | `AddButtonPushClass` | append to second list (max 8) | 0.45 | T2 |  |
-| [0x149270](../../../src/game/gameplay/objects/button/SetButtonRsmg.c) | `SetButtonRsmg` | SetBtnRsmg(+0x150,...) | 0.75 | T1 |  |
-| [0x149290](../../../src/game/gameplay/objects/button/func_00149290.c) | `AddButtonEventListener` | 0x148B78 on +0x150 | 0.30 | T2 |  |
-| [0x1492B0](../../../src/game/gameplay/objects/button/func_001492B0.c) | `RemoveButtonHierarchy` | cid 0x53 vt12: base RemoveSoHierarchy; if pressed, reset buttons to 0 | 0.45 | T2 |  |
-| [0x1492F0](../../../src/game/gameplay/objects/button/InitVolbtn.c) | `InitVolbtn` | cid 0x18/0x19 vt7: base init, InitBtn | 0.75 | T1 |  |
-| [0x149358](../../../src/game/gameplay/objects/button/LoadVolbtnFromBrx.c) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
-| [0x149398](../../../src/game/gameplay/objects/button/PostVolbtnLoad.c) | `PostVolbtnLoad` | vt15: base, PostBtnLoad | 0.70 | T1 |  |
-| [0x1493F8](../../../src/game/gameplay/objects/button/CloneVolbtn.c) | `CloneVolbtn` | vt41 | 0.60 | T1 |  |
-| [0x149420](../../../src/game/gameplay/objects/button/func_00149420.c) | `CompareVolbtnObjects` | qsort comparator (difference / 0x14) | 0.30 | T2 |  |
-| [0x149440](../../../src/game/gameplay/objects/button/UpdateVolbtn.c) | `UpdateVolbtn` | vt16: volume button - objects inside the volume trigger/untrigger | 0.70 | T1 |  |
-| [0x149718](../../../src/game/gameplay/objects/button/SetVolbtnButtons.c) | `SetVolbtnButtons` | SetBtnButtons on the volbtn's BTN | 0.65 | T1 |  |
-| [0x149738](../../../src/game/gameplay/objects/button/TriggerVolbtn.c) | `TriggerVolbtn` | TriggerBtn | 0.55 | T1 |  |
-| [0x149758](../../../src/game/gameplay/objects/button/UntriggerVolbtn.c) | `UntriggerVolbtn` | UntriggerBtn | 0.55 | T1 |  |
-| [0x149778](../../../src/game/gameplay/objects/button/AddVolbtnAseg.c) | `AddVolbtnAseg` | AddBtnAseg | 0.65 | T1 |  |
-| [0x149798](../../../src/game/gameplay/objects/button/AddVolbtnOffAseg.c) | `AddVolbtnOffAseg` | AddBtnOffAseg | 0.65 | T1 |  |
-| [0x1497B8](../../../src/game/gameplay/objects/button/AddVolbtnPushObject.c) | `AddVolbtnPushObject` | append to push list (max 8) | 0.55 | T1 |  |
-| [0x1497E0](../../../src/game/gameplay/objects/button/func_001497E0.c) | `AddVolbtnList4` | append to a 4-entry list | 0.30 | T2 |  |
-| [0x149808](../../../src/game/gameplay/objects/button/SetVolbtnRsmg.c) | `SetVolbtnRsmg` | SetBtnRsmg | 0.75 | T1 |  |
-| [0x149828](../../../src/game/gameplay/objects/button/func_00149828.c) | `AddVolbtnEventListener` | 0x148B78 | 0.30 | T2 |  |
-| [0x149848](../../../src/game/gameplay/objects/button/func_00149848.c) | `RefGetVolbtnPushState` | build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002) | 0.30 | T2 |  |
-| [0x149880](../../../src/game/gameplay/objects/button/func_00149880.c) | `RemoveVolbtnHierarchy` | vt12: base, untrigger if pressed | 0.45 | T2 |  |
+| [0x148620](../../../src/game/gameplay/objects/button.cpp) | `FAddAshOid` | Append {oid, x} to an ASH list (max 8) | 0.60 | T1 |  |
+| [0x148668](../../../src/game/gameplay/objects/button.cpp) | `PostAshLoad` | Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs | 0.60 | T1 |  |
+| [0x148718](../../../src/game/gameplay/objects/button.cpp) | `InitBtn` | BTN defaults: state -1, rates 1.0 | 0.65 | T1 |  |
+| [0x148738](../../../src/game/gameplay/objects/button.cpp) | `LoadBtn` | BTN owner = palo | 0.55 | T1 |  |
+| [0x148740](../../../src/game/gameplay/objects/button.cpp) | `PostBtnLoad` | PostAshLoad for the on and off ASH lists | 0.65 | T1 |  |
+| [0x1487A0](../../../src/game/gameplay/objects/button.cpp) | `TriggerBtn` | Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers | 0.70 | T1 |  |
+| [0x148860](../../../src/game/gameplay/objects/button.cpp) | `UntriggerBtn` | Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1)) | 0.70 | T1 |  |
+| [0x1488D8](../../../src/game/gameplay/objects/button.cpp) | `RunBtnAsegs` | Apply/seek every aseg in ASH list i on its object | 0.65 | T1 |  |
+| [0x148A78](../../../src/game/gameplay/objects/button.cpp) | `SetBtnButtons` | BTN state change; 0->1 triggers, any->0 untriggers; stamps time | 0.65 | T1 |  |
+| [0x148AF8](../../../src/game/gameplay/objects/button.cpp) | `AddBtnAseg` | FAddAshOid on the 'on' list (+4) | 0.65 | T1 |  |
+| [0x148B18](../../../src/game/gameplay/objects/button.cpp) | `AddBtnOffAseg` | FAddAshOid on the 'off' list (+0x48) | 0.65 | T1 |  |
+| [0x148B38](../../../src/game/gameplay/objects/button.cpp) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
+| [0x148B78](../../../src/game/gameplay/objects/button.cpp) | `AddBtnEventListener` | Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30 | 0.30 | T2 |  |
+| [0x148BB0](../../../src/game/gameplay/objects/button.cpp) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
+| [0x148C08](../../../src/game/gameplay/objects/button.cpp) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
+| [0x148C38](../../../src/game/gameplay/objects/button.cpp) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
+| [0x148C70](../../../src/game/gameplay/objects/button.cpp) | `CloneButton` | vt41: SO Clone then btn owner = self | 0.65 | T1 |  |
+| [0x148C98](../../../src/game/gameplay/objects/button.cpp) | `UpdateButton` | vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.) | 0.70 | T1 |  |
+| [0x148F20](../../../src/game/gameplay/objects/button.cpp) | `FAbsorbButtonWkr` | vt75: zap/hit by an allowed object presses the button (by btnt mode) | 0.60 | T1 |  |
+| [0x149010](../../../src/game/gameplay/objects/button.cpp) | `UpdateButtonPlayerPush` | if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button | 0.30 | T2 |  |
+| [0x1490A0](../../../src/game/gameplay/objects/button.cpp) | `SetButtonButtons` | SetBtnButtons(+0x150, n) | 0.70 | T1 |  |
+| [0x1490C0](../../../src/game/gameplay/objects/button.cpp) | `TriggerButton` | TriggerBtn(+0x150) | 0.60 | T1 |  |
+| [0x1490E0](../../../src/game/gameplay/objects/button.cpp) | `UntriggerButton` | UntriggerBtn(+0x150) | 0.60 | T1 |  |
+| [0x149100](../../../src/game/gameplay/objects/button.cpp) | `FCheckButtonObject` | Is the object allowed to push (push oid/cid lists vs no-push lists) | 0.65 | T1 |  |
+| [0x1491E0](../../../src/game/gameplay/objects/button.cpp) | `AddButtonAseg` | AddBtnAseg(+0x150, oid) | 0.65 | T1 |  |
+| [0x149200](../../../src/game/gameplay/objects/button.cpp) | `AddButtonOffAseg` | AddBtnOffAseg(+0x150, oid) | 0.65 | T1 |  |
+| [0x149220](../../../src/game/gameplay/objects/button.cpp) | `AddButtonPushObject` | append oid to push list (max 8) | 0.55 | T1 |  |
+| [0x149248](../../../src/game/gameplay/objects/button.cpp) | `AddButtonPushClass` | append to second list (max 8) | 0.45 | T2 |  |
+| [0x149270](../../../src/game/gameplay/objects/button.cpp) | `SetButtonRsmg` | SetBtnRsmg(+0x150,...) | 0.75 | T1 |  |
+| [0x149290](../../../src/game/gameplay/objects/button.cpp) | `AddButtonEventListener` | 0x148B78 on +0x150 | 0.30 | T2 |  |
+| [0x1492B0](../../../src/game/gameplay/objects/button.cpp) | `RemoveButtonHierarchy` | cid 0x53 vt12: base RemoveSoHierarchy; if pressed, reset buttons to 0 | 0.45 | T2 |  |
+| [0x1492F0](../../../src/game/gameplay/objects/button.cpp) | `InitVolbtn` | cid 0x18/0x19 vt7: base init, InitBtn | 0.75 | T1 |  |
+| [0x149358](../../../src/game/gameplay/objects/button.cpp) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
+| [0x149398](../../../src/game/gameplay/objects/button.cpp) | `PostVolbtnLoad` | vt15: base, PostBtnLoad | 0.70 | T1 |  |
+| [0x1493F8](../../../src/game/gameplay/objects/button.cpp) | `CloneVolbtn` | vt41 | 0.60 | T1 |  |
+| [0x149420](../../../src/game/gameplay/objects/button.cpp) | `CompareVolbtnObjects` | qsort comparator (difference / 0x14) | 0.30 | T2 |  |
+| [0x149440](../../../src/game/gameplay/objects/button.cpp) | `UpdateVolbtn` | vt16: volume button - objects inside the volume trigger/untrigger | 0.70 | T1 |  |
+| [0x149718](../../../src/game/gameplay/objects/button.cpp) | `SetVolbtnButtons` | SetBtnButtons on the volbtn's BTN | 0.65 | T1 |  |
+| [0x149738](../../../src/game/gameplay/objects/button.cpp) | `TriggerVolbtn` | TriggerBtn | 0.55 | T1 |  |
+| [0x149758](../../../src/game/gameplay/objects/button.cpp) | `UntriggerVolbtn` | UntriggerBtn | 0.55 | T1 |  |
+| [0x149778](../../../src/game/gameplay/objects/button.cpp) | `AddVolbtnAseg` | AddBtnAseg | 0.65 | T1 |  |
+| [0x149798](../../../src/game/gameplay/objects/button.cpp) | `AddVolbtnOffAseg` | AddBtnOffAseg | 0.65 | T1 |  |
+| [0x1497B8](../../../src/game/gameplay/objects/button.cpp) | `AddVolbtnPushObject` | append to push list (max 8) | 0.55 | T1 |  |
+| [0x1497E0](../../../src/game/gameplay/objects/button.cpp) | `AddVolbtnList4` | append to a 4-entry list | 0.30 | T2 |  |
+| [0x149808](../../../src/game/gameplay/objects/button.cpp) | `SetVolbtnRsmg` | SetBtnRsmg | 0.75 | T1 |  |
+| [0x149828](../../../src/game/gameplay/objects/button.cpp) | `AddVolbtnEventListener` | 0x148B78 | 0.30 | T2 |  |
+| [0x149848](../../../src/game/gameplay/objects/button.cpp) | `RefGetVolbtnPushState` | build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002) | 0.30 | T2 |  |
+| [0x149880](../../../src/game/gameplay/objects/button.cpp) | `RemoveVolbtnHierarchy` | vt12: base, untrigger if pressed | 0.45 | T2 |  |
 
 ## rhythm (0x1520C8-0x1539A8)
 

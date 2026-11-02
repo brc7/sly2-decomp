@@ -68,11 +68,11 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x13B428](../../src/game/gameplay/objects/bomb/PrepareBombDetonation.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
 | [0x13B5C8](../../src/game/gameplay/objects/bomb/PrimeBomb__FP4BOMBf.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
 | [0x13B860](../../src/game/gameplay/objects/bomb/DetonateBomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
-| [0x148B38](../../src/game/gameplay/objects/button/SetBtnRsmg.c) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
-| [0x148BB0](../../src/game/gameplay/objects/button/InitButton.c) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
-| [0x148C08](../../src/game/gameplay/objects/button/LoadButtonFromBrx.c) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
-| [0x148C38](../../src/game/gameplay/objects/button/PostButtonLoad.c) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
-| [0x149358](../../src/game/gameplay/objects/button/LoadVolbtnFromBrx.c) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
+| [0x148B38](../../src/game/gameplay/objects/button.cpp) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
+| [0x148BB0](../../src/game/gameplay/objects/button.cpp) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
+| [0x148C08](../../src/game/gameplay/objects/button.cpp) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
+| [0x148C38](../../src/game/gameplay/objects/button.cpp) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
+| [0x149358](../../src/game/gameplay/objects/button.cpp) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
 | [0x152100](../../src/game/gameplay/objects/rhythm/func_00152100.c) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
 | [0x152810](../../src/game/gameplay/objects/rhythm/func_00152810.c) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
 | [0x1535A0](../../src/game/gameplay/objects/rhythm/GRhythmTimingScore.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |

@@ -6,7 +6,7 @@
 | --- | --- |
 | [`barrier.cpp`](barrier.cpp) | 1 |
 | [`bomb/`](bomb/) | 22 |
-| [`button/`](button/) | 50 |
+| [`button.cpp`](button.cpp) | 1 |
 | [`empty_1D7A30.cpp`](empty_1D7A30.cpp) | 1 |
 | [`missile/`](missile/) | 16 |
 | [`rhythm/`](rhythm/) | 35 |

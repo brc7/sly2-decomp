@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetVolbtnClassDesc`](../../../src/game/app/class_registry/GetVolbtnClassDesc.c) | `0x113B90` |
-| 7 | Init | **override** | [`InitVolbtn`](../../../src/game/gameplay/objects/button/InitVolbtn.c) | `0x1492F0` |
+| 7 | Init | **override** | [`InitVolbtn`](../../../src/game/gameplay/objects/button.cpp) | `0x1492F0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
-| 12 | RemoveHierarchy | **override** | [`RemoveVolbtnHierarchy?`](../../../src/game/gameplay/objects/button/func_00149880.c) | `0x149880` |
+| 12 | RemoveHierarchy | **override** | [`RemoveVolbtnHierarchy?`](../../../src/game/gameplay/objects/button.cpp) | `0x149880` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadVolbtnFromBrx`](../../../src/game/gameplay/objects/button/LoadVolbtnFromBrx.c) | `0x149358` |
-| 15 | PostLoad | **override** | [`PostVolbtnLoad`](../../../src/game/gameplay/objects/button/PostVolbtnLoad.c) | `0x149398` |
-| 16 | Update | **override** | [`UpdateVolbtn`](../../../src/game/gameplay/objects/button/UpdateVolbtn.c) | `0x149440` |
+| 14 | LoadFromBrx | **override** | [`LoadVolbtnFromBrx`](../../../src/game/gameplay/objects/button.cpp) | `0x149358` |
+| 15 | PostLoad | **override** | [`PostVolbtnLoad`](../../../src/game/gameplay/objects/button.cpp) | `0x149398` |
+| 16 | Update | **override** | [`UpdateVolbtn`](../../../src/game/gameplay/objects/button.cpp) | `0x149440` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneVolbtn`](../../../src/game/gameplay/objects/button/CloneVolbtn.c) | `0x1493F8` |
+| 41 | Clone | **override** | [`CloneVolbtn`](../../../src/game/gameplay/objects/button.cpp) | `0x1493F8` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |
