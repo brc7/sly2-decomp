@@ -3629,11 +3629,11 @@ CbDemuxed__5CMpegi,0x1B41D0,59,match,src/game/gameplay/cutscene/mpeg/CbDemuxed__
 func_001B42C0,0x1B42C0,3,match,src/game/gameplay/cutscene/mpeg/func_001B42C0.c
 StaticInit_mpeg,0x1B42D0,81,match,src/game/gameplay/cutscene/mpeg/StaticInit_mpeg.c
 func_001B4418,0x1B4418,8,match,src/game/gameplay/cutscene/mpeg/func_001B4418.c
-InitMs,0x1B4438,16,match,src/game/engine/graphics/pipeline/ms/InitMs.c
-RenderMsGlobset,0x1B4478,24,match,src/game/engine/graphics/pipeline/ms/RenderMsGlobset.c
-func_001B44D8,0x1B44D8,62,match,src/game/engine/graphics/pipeline/ms/func_001B44D8.c
-StaticInit_ms,0x1B45D0,77,match,src/game/engine/graphics/pipeline/ms/StaticInit_ms.c
-func_001B4708,0x1B4708,8,match,src/game/engine/graphics/pipeline/ms/func_001B4708.c
+InitMs,0x1B4438,16,match,src/game/engine/graphics/pipeline/ms.cpp
+RenderMsGlobset,0x1B4478,24,match,src/game/engine/graphics/pipeline/ms.cpp
+func_001B44D8,0x1B44D8,62,match,src/game/engine/graphics/pipeline/ms.cpp
+StaticInit_ms,0x1B45D0,77,match,src/game/engine/graphics/pipeline/ms.cpp
+func_001B4708,0x1B4708,8,match,src/game/engine/graphics/pipeline/ms.cpp
 InitMurray,0x1B4728,88,match,src/game/gameplay/player/murray/InitMurray.c
 LoadMurrayFromBrx,0x1B4888,86,match,src/game/gameplay/player/murray/LoadMurrayFromBrx.c
 PostMurrayLoad,0x1B49E0,47,match,src/game/gameplay/player/murray/PostMurrayLoad.c

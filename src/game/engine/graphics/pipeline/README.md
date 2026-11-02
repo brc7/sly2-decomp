@@ -7,7 +7,7 @@
 | [`draw/`](draw/) | 7 |
 | [`glob/`](glob/) | 42 |
 | [`light/`](light/) | 32 |
-| [`ms/`](ms/) | 5 |
+| [`ms.cpp`](ms.cpp) | 1 |
 | [`render/`](render/) | 7 |
 | [`shd/`](shd/) | 45 |
 | [`shdanim/`](shdanim/) | 33 |

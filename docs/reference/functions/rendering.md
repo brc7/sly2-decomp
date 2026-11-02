@@ -198,9 +198,9 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B4438](../../../src/game/engine/graphics/pipeline/ms/InitMs.c) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
-| [0x1B4478](../../../src/game/engine/graphics/pipeline/ms/RenderMsGlobset.c) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
-| [0x1B44D8](../../../src/game/engine/graphics/pipeline/ms/func_001B44D8.c) | `CollectMsGlobs` | Gather pointers to all visible entries across a global linked list D_003E0714 (count +0xE0, array +0xE4) into a stack-heap array | 0.35 | T2 |  |
+| [0x1B4438](../../../src/game/engine/graphics/pipeline/ms.cpp) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
+| [0x1B4478](../../../src/game/engine/graphics/pipeline/ms.cpp) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
+| [0x1B44D8](../../../src/game/engine/graphics/pipeline/ms.cpp) | `CollectMsGlobs` | Gather pointers to all visible entries across a global linked list D_003E0714 (count +0xE0, array +0xE4) into a stack-heap array | 0.35 | T2 |  |
 
 ## tu_1BE398 (0x1BE398-0x1BF110)
 
