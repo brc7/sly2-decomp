@@ -317,8 +317,8 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12AE18](../../../src/game/splice/spliceutils/StartupSplice.c) | `StartupSplice` | Sets Splice-active flag D_002DD5B8 = 1 | 0.50 | T1 | verified |
-| [0x12AE28](../../../src/game/splice/spliceutils/ShutdownSplice.c) | `ShutdownSplice` | Clears D_002DD5B8 and shuts down/reset the 6 splice splotheaps (0x257E88..0x257FC8) + 0x11CDB8 | 0.55 | T1 |  |
+| [0x12AE18](../../../src/game/splice/spliceutils.cpp) | `StartupSplice` | Sets Splice-active flag D_002DD5B8 = 1 | 0.50 | T1 | verified |
+| [0x12AE28](../../../src/game/splice/spliceutils.cpp) | `ShutdownSplice` | Clears D_002DD5B8 and shuts down/reset the 6 splice splotheaps (0x257E88..0x257FC8) + 0x11CDB8 | 0.55 | T1 |  |
 
 ## varb (0x12B0E8-0x12B3B0)
 

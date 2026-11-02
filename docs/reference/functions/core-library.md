@@ -496,12 +496,12 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x257C18](../../../src/game/splice/gc/func_00257C18.c) | `GcSweepPool6s` | GC sweep of one pool (walk list, free unmarked nodes) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x257D80](../../../src/game/splice/sidebag/func_00257D80.c) | `PvNewSidebag` | allocate Sidebag node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257E68](../../../src/game/splice/sidebag/func_00257E68.c) | `SidebagPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x257E88](../../../src/game/splice/spliceutils/func_00257E88.c) | `GcShutdownPairPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257EC8](../../../src/game/splice/spliceutils/func_00257EC8.c) | `GcShutdownFramePool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257F08](../../../src/game/splice/spliceutils/func_00257F08.c) | `GcShutdownBindingPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257F48](../../../src/game/splice/spliceutils/func_00257F48.c) | `GcShutdownProcPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257F88](../../../src/game/splice/spliceutils/func_00257F88.c) | `GcShutdownSidebagPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257FC8](../../../src/game/splice/spliceutils/func_00257FC8.c) | `GcShutdownPool6Pool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x257E88](../../../src/game/splice/spliceutils.cpp) | `GcShutdownPairPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x257EC8](../../../src/game/splice/spliceutils.cpp) | `GcShutdownFramePool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x257F08](../../../src/game/splice/spliceutils.cpp) | `GcShutdownBindingPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x257F48](../../../src/game/splice/spliceutils.cpp) | `GcShutdownProcPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x257F88](../../../src/game/splice/spliceutils.cpp) | `GcShutdownSidebagPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x257FC8](../../../src/game/splice/spliceutils.cpp) | `GcShutdownPool6Pool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258040](../../../src/game/engine/camera/cplcy/func_00258040.c) | `RcPtr_Assign` | Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store | 0.60 | T1 | top50; top50 round; v2 name RcPtrAssign_00258040 |
 | [0x2580A8](../../../src/game/engine/anim/asega/func_002580A8.c) | `SidebagPtr_Assign` | refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x258178](../../../src/game/object/basic/func_00258178.c) | `GcSidebag_MakeRoot` | move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
