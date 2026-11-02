@@ -417,9 +417,9 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CBEB0](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBEB0.c) | `InitRajan` | CID 61 vt7: InitStepguard + one field | 0.55 | T1 | whole-game |
-| [0x1CBEE0](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBEE0.c) | `Rajan_FSenseStimulus` | CID 61 vt89: for stimulus 0x246 temporarily double the sense range/arc, then STEPGUARD FStepguardSenseStimulus 0x208BE0 | 0.45 | T2 | whole-game |
-| [0x1CBF90](../../../src/game/gameplay/ai/tu_1CBEB0/func_001CBF90.c) | `SetRajanCameraFocus` | Toggle camera policy 6 framing g_pmurray (D_002F7900) and this guard (SetCmPolicy/RevokeCmPolicy) | 0.40 | T2 | whole-game |
+| [0x1CBEB0](../../../src/game/gameplay/ai/tu_1CBEB0.cpp) | `InitRajan` | CID 61 vt7: InitStepguard + one field | 0.55 | T1 | whole-game |
+| [0x1CBEE0](../../../src/game/gameplay/ai/tu_1CBEB0.cpp) | `Rajan_FSenseStimulus` | CID 61 vt89: for stimulus 0x246 temporarily double the sense range/arc, then STEPGUARD FStepguardSenseStimulus 0x208BE0 | 0.45 | T2 | whole-game |
+| [0x1CBF90](../../../src/game/gameplay/ai/tu_1CBEB0.cpp) | `SetRajanCameraFocus` | Toggle camera policy 6 framing g_pmurray (D_002F7900) and this guard (SetCmPolicy/RevokeCmPolicy) | 0.40 | T2 | whole-game |
 
 ## bhvstk (0x1EEC60-0x1EF850)
 

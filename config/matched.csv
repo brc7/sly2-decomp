@@ -4031,11 +4031,11 @@ func_001CBB58,0x1CBB58,19,match,src/game/gameplay/player/rail/func_001CBB58.c
 func_001CBBA8,0x1CBBA8,108,match,src/game/gameplay/player/rail/func_001CBBA8.cpp
 StaticInit_rail,0x1CBD58,77,match,src/game/gameplay/player/rail/StaticInit_rail.c
 func_001CBE90,0x1CBE90,8,match,src/game/gameplay/player/rail/func_001CBE90.c
-InitRajan,0x1CBEB0,11,match,src/game/gameplay/ai/tu_1CBEB0/InitRajan.c
-func_001CBEE0,0x1CBEE0,44,match,src/game/gameplay/ai/tu_1CBEB0/func_001CBEE0.c
-func_001CBF90,0x1CBF90,28,match,src/game/gameplay/ai/tu_1CBEB0/func_001CBF90.c
-StaticInit_tu_1CBEB0,0x1CC000,77,match,src/game/gameplay/ai/tu_1CBEB0/StaticInit_tu_1CBEB0.c
-func_001CC138,0x1CC138,8,match,src/game/gameplay/ai/tu_1CBEB0/func_001CC138.c
+InitRajan,0x1CBEB0,11,match,src/game/gameplay/ai/tu_1CBEB0.cpp
+func_001CBEE0,0x1CBEE0,44,match,src/game/gameplay/ai/tu_1CBEB0.cpp
+func_001CBF90,0x1CBF90,28,match,src/game/gameplay/ai/tu_1CBEB0.cpp
+StaticInit_tu_1CBEB0,0x1CC000,77,match,src/game/gameplay/ai/tu_1CBEB0.cpp
+func_001CC138,0x1CC138,8,match,src/game/gameplay/ai/tu_1CBEB0.cpp
 func_001CC158,0x1CC158,4,match,src/game/gameplay/player/jthands/func_001CC158.c
 func_001CC168,0x1CC168,36,match,src/game/gameplay/player/jthands/func_001CC168.c
 func_001CC1F8,0x1CC1F8,36,match,src/game/gameplay/player/jthands/func_001CC1F8.c
