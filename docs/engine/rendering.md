@@ -219,7 +219,7 @@ is the remaining end-to-end check of the face-sign convention.
   depth `[H]` (strong). PORT: keep every texture resident; honour the Z clears.
 - Shader animations (SAA family CID 0x8A-0x90: LOOP, PINGPONG, SHUFFLE, EYES, SCROLLER, CIRCLER) switch bitmap frames / CLUTs (`UpdateShaders` from UpdateSw).
   If they rewrite CLUTs, palette lookup in the shader is simpler than pre-expanded RGBA.
-- `InitGsb` 0x1703F8 (was `InitZpr`), `AllocStack__4DMASi` 0x1572E0 (was `AllocSw`) (arbitration). DMA/VIF/GIF builder classes are in `src/game/engine/graphics/backend/dmas/dmas.cpp`,
+- `InitGsb` 0x1703F8 (was `InitZpr`), `AllocStack__4DMASi` 0x1572E0 (was `AllocSw`) (arbitration). DMA/VIF/GIF builder classes are in `src/game/engine/graphics/backend/dmas.cpp`,
   `vifs.cpp`, `gifs.cpp` (typed); `g_vifs` D_002DEA28, `g_gifs` D_002DEA00.
 
 ## 10. Models: GLOBSET at render time `[C:static]`
@@ -274,7 +274,7 @@ Shader sketches for all of the above: `vu_microcode/pseudo_shaders.glsl`.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1572E0](../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `AllocStack__4DMASi` |  | 0.90 | existing | arbitration; replaces existing AllocSw__4DMASi |
+| [0x1572E0](../../src/game/engine/graphics/backend/dmas.cpp) | `AllocStack__4DMASi` |  | 0.90 | existing | arbitration; replaces existing AllocSw__4DMASi |
 | [0x157AE0](../../src/game/engine/graphics/pipeline/draw.cpp) | `CprplPartitionArpl` | Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some buckets, returns end index | 0.80 | T1 | verified |
 | [0x157FA0](../../src/game/engine/graphics/pipeline/draw.cpp) | `DrawSw` | Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls the pass table begin/end hooks D_00 | 0.70 | T1 |  |
 | [0x1607A0](../../src/game/engine/graphics/backend/frm/func_001607A0.cpp) | `StartupFrame` | Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears the two deferred-release DLs, sta | 0.85 | T1 |  |

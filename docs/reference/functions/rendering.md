@@ -19,24 +19,24 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x157200](../../../src/game/engine/graphics/backend/dmas/StartupDma__Fv.c) | `StartupDma__Fv` |  |  | existing |  |
-| [0x157278](../../../src/game/engine/graphics/backend/dmas/__4DMAS.c) | `__4DMAS` |  |  | existing |  |
-| [0x1572B8](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `Clear__4DMAS` |  |  | existing |  |
-| [0x1572D0](../../../src/game/engine/graphics/backend/dmas/Reset__4DMAS.c) | `Reset__4DMAS` |  |  | existing |  |
-| [0x1572E0](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `AllocStack__4DMASi` |  | 0.90 | existing | arbitration; replaces existing AllocSw__4DMASi |
-| [0x157330](../../../src/game/engine/graphics/backend/dmas/AllocStatic__4DMASiP2QW.c) | `AllocStatic__4DMASiP2QW` |  |  | existing |  |
-| [0x157348](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `Detach__4DMASPiPP2QW` |  |  | existing |  |
-| [0x1573C0](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `DetachCopySw__4DMASPiPP2QWT2` |  |  | existing |  |
-| [0x1573F8](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `DetachCopySw__4DMASP4HEAPPiPP2QWT3` |  |  | existing |  |
-| [0x1574A0](../../../src/game/engine/graphics/backend/dmas/func_001574A0.c) | `Flush__4DMAS` |  |  | existing |  |
-| [0x1574B8](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `AddDmaCnt__4DMAS` |  |  | existing |  |
-| [0x157500](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `AddDmaRefs__4DMASiP2QW` |  |  | existing |  |
-| [0x157598](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `AddDmaCall__4DMASP2QW` |  |  | existing |  |
-| [0x157620](../../../src/game/engine/graphics/backend/dmas/AddDmaRet__4DMAS.c) | `AddDmaRet__4DMAS` |  |  | existing |  |
-| [0x157660](../../../src/game/engine/graphics/backend/dmas/AddDmaBulk__4DMASiP2QW.c) | `AddDmaBulk__4DMASiP2QW` |  |  | existing |  |
-| [0x1576B0](../../../src/game/engine/graphics/backend/dmas/AddDmaEnd__4DMAS.c) | `AddDmaEnd__4DMAS` |  |  | existing |  |
-| [0x1576F0](../../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `EndDmaCnt__4DMAS` |  |  | existing |  |
-| [0x157798](../../../src/game/engine/graphics/backend/dmas/EndPrim__4DMASi.c) | `EndPrim__4DMASi` |  |  | existing |  |
+| [0x157200](../../../src/game/engine/graphics/backend/dmas.cpp) | `StartupDma__Fv` |  |  | existing |  |
+| [0x157278](../../../src/game/engine/graphics/backend/dmas.cpp) | `__4DMAS` |  |  | existing |  |
+| [0x1572B8](../../../src/game/engine/graphics/backend/dmas.cpp) | `Clear__4DMAS` |  |  | existing |  |
+| [0x1572D0](../../../src/game/engine/graphics/backend/dmas.cpp) | `Reset__4DMAS` |  |  | existing |  |
+| [0x1572E0](../../../src/game/engine/graphics/backend/dmas.cpp) | `AllocStack__4DMASi` |  | 0.90 | existing | arbitration; replaces existing AllocSw__4DMASi |
+| [0x157330](../../../src/game/engine/graphics/backend/dmas.cpp) | `AllocStatic__4DMASiP2QW` |  |  | existing |  |
+| [0x157348](../../../src/game/engine/graphics/backend/dmas.cpp) | `Detach__4DMASPiPP2QW` |  |  | existing |  |
+| [0x1573C0](../../../src/game/engine/graphics/backend/dmas.cpp) | `DetachCopySw__4DMASPiPP2QWT2` |  |  | existing |  |
+| [0x1573F8](../../../src/game/engine/graphics/backend/dmas.cpp) | `DetachCopySw__4DMASP4HEAPPiPP2QWT3` |  |  | existing |  |
+| [0x1574A0](../../../src/game/engine/graphics/backend/dmas.cpp) | `Flush__4DMAS` |  |  | existing |  |
+| [0x1574B8](../../../src/game/engine/graphics/backend/dmas.cpp) | `AddDmaCnt__4DMAS` |  |  | existing |  |
+| [0x157500](../../../src/game/engine/graphics/backend/dmas.cpp) | `AddDmaRefs__4DMASiP2QW` |  |  | existing |  |
+| [0x157598](../../../src/game/engine/graphics/backend/dmas.cpp) | `AddDmaCall__4DMASP2QW` |  |  | existing |  |
+| [0x157620](../../../src/game/engine/graphics/backend/dmas.cpp) | `AddDmaRet__4DMAS` |  |  | existing |  |
+| [0x157660](../../../src/game/engine/graphics/backend/dmas.cpp) | `AddDmaBulk__4DMASiP2QW` |  |  | existing |  |
+| [0x1576B0](../../../src/game/engine/graphics/backend/dmas.cpp) | `AddDmaEnd__4DMAS` |  |  | existing |  |
+| [0x1576F0](../../../src/game/engine/graphics/backend/dmas.cpp) | `EndDmaCnt__4DMAS` |  |  | existing |  |
+| [0x157798](../../../src/game/engine/graphics/backend/dmas.cpp) | `EndPrim__4DMASi` |  |  | existing |  |
 
 ## draw (0x157A50-0x1585D8)
 
