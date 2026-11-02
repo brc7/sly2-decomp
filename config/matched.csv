@@ -4624,10 +4624,10 @@ UCompleteCircler__FP7CIRCLER,0x1EE768,17,match,src/game/engine/graphics/pipeline
 PropagateSais,0x1EE7B0,28,match,src/game/engine/graphics/pipeline/shdanim/PropagateSais.c
 StaticInit_shdanim,0x1EE820,77,match,src/game/engine/graphics/pipeline/shdanim/StaticInit_shdanim.c
 func_001EE958,0x1EE958,8,match,src/game/engine/graphics/pipeline/shdanim/func_001EE958.c
-WSjisFromCh,0x1EE988,58,match,src/game/engine/font/sjis/WSjisFromCh.c
-ConvertPchzToSjis,0x1EEA70,38,match,src/game/engine/font/sjis/ConvertPchzToSjis.c
-StaticInit_sjis,0x1EEB08,77,match,src/game/engine/font/sjis/StaticInit_sjis.c
-func_001EEC40,0x1EEC40,8,match,src/game/engine/font/sjis/func_001EEC40.c
+WSjisFromCh,0x1EE988,58,match,src/game/engine/font/sjis.cpp
+ConvertPchzToSjis,0x1EEA70,38,match,src/game/engine/font/sjis.cpp
+StaticInit_sjis,0x1EEB08,77,match,src/game/engine/font/sjis.cpp
+func_001EEC40,0x1EEC40,8,match,src/game/engine/font/sjis.cpp
 InitBhvstk,0x1EEC60,2,match,src/game/gameplay/ai/bhvstk/InitBhvstk.c
 CloneBhvstk,0x1EEC68,2,match,src/game/gameplay/ai/bhvstk/CloneBhvstk.c
 PostBhvstkLoad,0x1EEC70,24,match,src/game/gameplay/ai/bhvstk/PostBhvstkLoad.c

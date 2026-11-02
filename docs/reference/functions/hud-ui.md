@@ -237,8 +237,8 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EE988](../../../src/game/engine/font/sjis/FUN_001b5b58.c) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
-| [0x1EEA70](../../../src/game/engine/font/sjis/FUN_001b5c40.c) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
+| [0x1EE988](../../../src/game/engine/font/sjis.cpp) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
+| [0x1EEA70](../../../src/game/engine/font/sjis.cpp) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
 
 ## hud (0x210EB0-0x21BB88)
 

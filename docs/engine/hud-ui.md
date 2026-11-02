@@ -94,8 +94,8 @@ sprite text elements of kind 1 look up their id here, kind 0 uses a plain locali
 | [0x1DD780](../../src/game/engine/presentation/screen/func_001DD780.c) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
 | [0x1DDBF0](../../src/game/engine/presentation/screen/func_001DDBF0.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
 | [0x1DDDB8](../../src/game/engine/presentation/screen/func_001DDDB8.c) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
-| [0x1EE988](../../src/game/engine/font/sjis/FUN_001b5b58.c) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
-| [0x1EEA70](../../src/game/engine/font/sjis/FUN_001b5c40.c) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
+| [0x1EE988](../../src/game/engine/font/sjis.cpp) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
+| [0x1EEA70](../../src/game/engine/font/sjis.cpp) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
 | [0x210EB0](../../src/game/engine/presentation/hud/func_00210EB0.c) | `BuildContextText` | STRINGGEN getter: strcpy(pchz, context) | 0.75 | T1 |  |
 | [0x210ED8](../../src/game/engine/presentation/hud/func_00210ED8.c) | `BuildCoinCountText` | STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text | 0.85 | T1 |  |
 | [0x210F50](../../src/game/engine/presentation/hud/func_00210F50.c) | `BuildClueCountText` | STRINGGEN id 0x2D0: sprintf("%d/%d", SW+0x4764, SW+0x4768) = clue bottles collected/total | 0.80 | T1 | runtime-corrected |
