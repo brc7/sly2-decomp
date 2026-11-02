@@ -1971,8 +1971,8 @@ CheatGiveGadget,0x14C2B0,10,match,src/game/gameplay/progression/cheat/CheatGiveG
 StartupCodes,0x14C2D8,70,match,src/game/gameplay/progression/cheat/StartupCodes.c
 StaticInit_cheat,0x14C3F0,77,match,src/game/gameplay/progression/cheat/StaticInit_cheat.c
 func_0014C528,0x14C528,8,match,src/game/gameplay/progression/cheat/func_0014C528.c
-StaticInit_tu_14C548,0x14C548,77,match,src/game/gameplay/objects/tu_14C548/StaticInit_tu_14C548.c
-func_0014C680,0x14C680,8,match,src/game/gameplay/objects/tu_14C548/func_0014C680.c
+StaticInit_tu_14C548,0x14C548,77,match,src/game/gameplay/objects/tu_14C548.cpp
+func_0014C680,0x14C680,8,match,src/game/gameplay/objects/tu_14C548.cpp
 ClsgClipEdgeToObject,0x14C6A0,14,match,src/game/engine/physics/clip/ClsgClipEdgeToObject.c
 ClsgClipEdgeToObjectPruned,0x14C6D8,28,match,src/game/engine/physics/clip/ClsgClipEdgeToObjectPruned.c
 func_0014C748,0x14C748,172,match,src/game/engine/physics/clip/func_0014C748.cpp
