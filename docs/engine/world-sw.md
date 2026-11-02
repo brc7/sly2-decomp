@@ -180,9 +180,9 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13DA18](../../src/hand/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
-| [0x13DF80](../../src/hand/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
-| [0x13E0E0](../../src/hand/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
+| [0x13DA18](../../src/game/level/brx_sw/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
+| [0x13DF80](../../src/game/level/brx_sw/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
+| [0x13E0E0](../../src/game/level/brx_sw/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
 | [0x13E368](../../src/game/object/brx/PchzFindSwLangstr__FP2SWi.c) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |
 | [0x13E3C8](../../src/game/object/brx/PloNew__F3CIDP2SO3OIDi.c) | `PloNew` | Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from isplice; append to SW oid and cid hash lists; vt7 In | 0.97 | T1 | runtime |
 | [0x13E510](../../src/game/object/brx/PloCloneLo__FP2LOP2SO.c) | `PloCloneLo` | Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for SO also clones children via PloCloneLo) | 0.93 | T1 | parse |
@@ -224,18 +224,18 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 | [0x2108E8](../../src/game/world/scene/sw/StopSwAsegSound.c) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
 | [0x210A88](../../src/game/world/scene/sw/IlevelCur__Fv.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
 | [0x210B98](../../src/game/world/scene/sw/PrecWorldEntry.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
-| [0x226550](../../src/hand/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
-| [0x228140](../../src/hand/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
-| [0x228250](../../src/hand/func_00228250.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
-| [0x2282B0](../../src/hand/func_002282B0.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
-| [0x228538](../../src/hand/func_00228538.c) | `UpdateExit` | UpdateLo then player inside test (BSP) and trigger handling | 0.70 | T1 | verified |
-| [0x228720](../../src/hand/func_00228720.c) | `LoadWarpFromBrx` | LoadXfmFromBrx + 0x118420 | 0.75 | T1 | parse |
-| [0x228750](../../src/hand/func_00228750.c) | `TeleportSwPlayer` | finds warp by oid/context and places the player there \| WARP method (uses WARP RSMG +0xE0/+0xE4, list +0x124, pairs +0x14C, then resets all EXITs); Sl | 0.45 | T2 | verified, pending-fix |
-| [0x2288D8](../../src/hand/func_002288D8.c) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
-| [0x228958](../../src/auto/MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31.c) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
-| [0x228988](../../src/hand/func_00228988.c) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
-| [0x22B050](../../src/auto/func_0022B050.c) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
-| [0x22B490](../../src/hand/func_0022B490.c) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 Acti | 0.75 | T1 | top50 |
+| [0x226550](../../src/game/level/update/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
+| [0x228140](../../src/game/level/exit_warp/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
+| [0x228250](../../src/game/level/exit_warp/func_00228250.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
+| [0x2282B0](../../src/game/level/exit_warp/func_002282B0.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
+| [0x228538](../../src/game/level/exit_warp/func_00228538.c) | `UpdateExit` | UpdateLo then player inside test (BSP) and trigger handling | 0.70 | T1 | verified |
+| [0x228720](../../src/game/level/exit_warp/func_00228720.c) | `LoadWarpFromBrx` | LoadXfmFromBrx + 0x118420 | 0.75 | T1 | parse |
+| [0x228750](../../src/game/level/exit_warp/func_00228750.c) | `TeleportSwPlayer` | finds warp by oid/context and places the player there \| WARP method (uses WARP RSMG +0xE0/+0xE4, list +0x124, pairs +0x14C, then resets all EXITs); Sl | 0.45 | T2 | verified, pending-fix |
+| [0x2288D8](../../src/game/level/exit_warp/func_002288D8.c) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
+| [0x228958](../../src/game/level/exit_warp/MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31.c) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
+| [0x228988](../../src/game/level/exit_warp/func_00228988.c) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
+| [0x22B050](../../src/game/level/wipe/func_0022B050.c) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
+| [0x22B490](../../src/game/level/wipe/func_0022B490.c) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 Acti | 0.75 | T1 | top50 |
 
 Selected 56 of 117 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/world-sw.md](../reference/functions/world-sw.md).
 

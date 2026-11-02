@@ -19,9 +19,9 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13DA18](../../../src/hand/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader/texture blob+object list, cloned ccopy-1 times | 0.97 | T1 | parse |
-| [0x13DF80](../../../src/hand/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640/+0x4644) | 0.80 | T1 |  |
-| [0x13E0E0](../../../src/hand/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (cleaf x 0x20) | 0.75 | T1 |  |
+| [0x13DA18](../../../src/game/level/brx_sw/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader/texture blob+object list, cloned ccopy-1 times | 0.97 | T1 | parse |
+| [0x13DF80](../../../src/game/level/brx_sw/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640/+0x4644) | 0.80 | T1 |  |
+| [0x13E0E0](../../../src/game/level/brx_sw/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (cleaf x 0x20) | 0.75 | T1 |  |
 
 ## brx (0x13E368-0x13FF70)
 
@@ -143,36 +143,36 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x226550](../../../src/hand/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
-| [0x2267C0](../../../src/hand/UpdateSwObjects.c) | `UpdateSwObjects` | iterates the SW object DL (0x3D88) calling each object update / asega 0x130918 | 0.60 | T1 |  |
+| [0x226550](../../../src/game/level/update/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
+| [0x2267C0](../../../src/game/level/update/UpdateSwObjects.c) | `UpdateSwObjects` | iterates the SW object DL (0x3D88) calling each object update / asega 0x130918 | 0.60 | T1 |  |
 
 ## exit_warp (0x227FE8-0x228B48)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x227FE8](../../../src/hand/func_00227FE8.c) | `PwarpFromOid` | finds warp by oid (0x15E938) else falls back over all cid 0x1A objects \| purpose fix: the class lookup falls back to cid 0x2A (WARP) alias list +0x16C, not 0x1A | 0.50 | T1 | pending-fix |
-| [0x2280D0](../../../src/hand/func_002280D0.c) | `PexitDefault` | returns last cid 0x1A object with fDefault set \| returns the EXIT (0x1A) whose +0x130 (fDefault) is set; was PwarpDefault | 0.45 | T2 | pending-fix; pending fix; v2 name PwarpDefault |
-| [0x228140](../../../src/hand/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
-| [0x228170](../../../src/hand/func_00228170.c) | `TriggerCid41` | player (0x1C4840) vt38(this) then splice event 5 \| TRIGGER (optid 235) of CID41: MatchStepXf(current player, this) then Splice event 5 = in-level teleport destination | 0.25 | T2 | pending-fix; pending fix; v2 name func_00228170 |
-| [0x2281E8](../../../src/hand/func_002281E8.c) | `InitExit` | InitXfm; 0x?=0x189, -1; busyk 0; grf\|=2 \| EXIT slot 7 (sets +0x150 = 0x189 oidWarp, +0x154 = -1); was InitWarp | 0.50 | T1 | pending-fix; pending fix; v2 name InitWarp |
-| [0x228250](../../../src/hand/func_00228250.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
-| [0x2282B0](../../../src/hand/func_002282B0.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
-| [0x228358](../../../src/auto/func_00228358.c) | `SetExitExits` | state change; state 4 -> busyk 1, IncrementSwHandsOff(g_sw,3), g_sw+0x3C84 = this; time stamp \| Sly 1 name; holds the hands-off state, g_sw+0x3C84 = this; was SetWarpState | 0.45 | T2 | pending-fix; pending fix; v2 name SetWarpState |
-| [0x2283D0](../../../src/hand/func_002283D0.c) | `UpdateWarpTriggered` | state 3 handling: find default, heading, revoke cm policy | 0.30 | T2 |  |
-| [0x2284E0](../../../src/hand/func_002284E0.c) | `AddExitRsmg` | 0x161F10(D_002DEB30, p+0x168, 4, p+0x164, c, d) - add to 4-slot list \| optid 527 on EXIT; fields +0x164/+0x168 inside the 0x190-byte EXIT; was AddWarpRsmgSm | 0.25 | T2 | pending-fix; pending fix; v2 name AddWarpRsmgSm |
-| [0x228538](../../../src/hand/func_00228538.c) | `UpdateExit` | UpdateLo then player inside test (BSP) and trigger handling | 0.70 | T1 | verified |
-| [0x228720](../../../src/hand/func_00228720.c) | `LoadWarpFromBrx` | LoadXfmFromBrx + 0x118420 | 0.75 | T1 | parse |
-| [0x228750](../../../src/hand/func_00228750.c) | `TeleportSwPlayer` | finds warp by oid/context and places the player there \| WARP method (uses WARP RSMG +0xE0/+0xE4, list +0x124, pairs +0x14C, then resets all EXITs); Sly 1 candidate name TriggerWarp | 0.45 | T2 | verified, pending-fix |
-| [0x2288D8](../../../src/hand/func_002288D8.c) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
-| [0x228958](../../../src/auto/MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31.c) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
-| [0x228988](../../../src/hand/func_00228988.c) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
+| [0x227FE8](../../../src/game/level/exit_warp/func_00227FE8.c) | `PwarpFromOid` | finds warp by oid (0x15E938) else falls back over all cid 0x1A objects \| purpose fix: the class lookup falls back to cid 0x2A (WARP) alias list +0x16C, not 0x1A | 0.50 | T1 | pending-fix |
+| [0x2280D0](../../../src/game/level/exit_warp/func_002280D0.c) | `PexitDefault` | returns last cid 0x1A object with fDefault set \| returns the EXIT (0x1A) whose +0x130 (fDefault) is set; was PwarpDefault | 0.45 | T2 | pending-fix; pending fix; v2 name PwarpDefault |
+| [0x228140](../../../src/game/level/exit_warp/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
+| [0x228170](../../../src/game/level/exit_warp/func_00228170.c) | `TriggerCid41` | player (0x1C4840) vt38(this) then splice event 5 \| TRIGGER (optid 235) of CID41: MatchStepXf(current player, this) then Splice event 5 = in-level teleport destination | 0.25 | T2 | pending-fix; pending fix; v2 name func_00228170 |
+| [0x2281E8](../../../src/game/level/exit_warp/func_002281E8.c) | `InitExit` | InitXfm; 0x?=0x189, -1; busyk 0; grf\|=2 \| EXIT slot 7 (sets +0x150 = 0x189 oidWarp, +0x154 = -1); was InitWarp | 0.50 | T1 | pending-fix; pending fix; v2 name InitWarp |
+| [0x228250](../../../src/game/level/exit_warp/func_00228250.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
+| [0x2282B0](../../../src/game/level/exit_warp/func_002282B0.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
+| [0x228358](../../../src/game/level/exit_warp/func_00228358.c) | `SetExitExits` | state change; state 4 -> busyk 1, IncrementSwHandsOff(g_sw,3), g_sw+0x3C84 = this; time stamp \| Sly 1 name; holds the hands-off state, g_sw+0x3C84 = this; was SetWarpState | 0.45 | T2 | pending-fix; pending fix; v2 name SetWarpState |
+| [0x2283D0](../../../src/game/level/exit_warp/func_002283D0.c) | `UpdateWarpTriggered` | state 3 handling: find default, heading, revoke cm policy | 0.30 | T2 |  |
+| [0x2284E0](../../../src/game/level/exit_warp/func_002284E0.c) | `AddExitRsmg` | 0x161F10(D_002DEB30, p+0x168, 4, p+0x164, c, d) - add to 4-slot list \| optid 527 on EXIT; fields +0x164/+0x168 inside the 0x190-byte EXIT; was AddWarpRsmgSm | 0.25 | T2 | pending-fix; pending fix; v2 name AddWarpRsmgSm |
+| [0x228538](../../../src/game/level/exit_warp/func_00228538.c) | `UpdateExit` | UpdateLo then player inside test (BSP) and trigger handling | 0.70 | T1 | verified |
+| [0x228720](../../../src/game/level/exit_warp/func_00228720.c) | `LoadWarpFromBrx` | LoadXfmFromBrx + 0x118420 | 0.75 | T1 | parse |
+| [0x228750](../../../src/game/level/exit_warp/func_00228750.c) | `TeleportSwPlayer` | finds warp by oid/context and places the player there \| WARP method (uses WARP RSMG +0xE0/+0xE4, list +0x124, pairs +0x14C, then resets all EXITs); Sly 1 candidate name TriggerWarp | 0.45 | T2 | verified, pending-fix |
+| [0x2288D8](../../../src/game/level/exit_warp/func_002288D8.c) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
+| [0x228958](../../../src/game/level/exit_warp/MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31.c) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
+| [0x228988](../../../src/game/level/exit_warp/func_00228988.c) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
 
 ## wipe (0x22B040-0x22B720)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x22B050](../../../src/auto/func_0022B050.c) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
-| [0x22B090](../../../src/hand/func_0022B090.c) | `SetWipeWipes` | state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint) | 0.50 | T1 |  |
-| [0x22B198](../../../src/hand/func_0022B198.c) | `UpdateWipe` | advances wipe state machine (1->3, 2->0 when sprite done) | 0.50 | T1 |  |
-| [0x22B220](../../../src/hand/func_0022B220.c) | `ActivateWipe` | starts a transition to a level/warp, comparing checkpoints | 0.40 | T2 |  |
-| [0x22B490](../../../src/hand/func_0022B490.c) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 ActivateWipe(g_wipe,&trans,wipek,1) else SetSwTransition directly | 0.75 | T1 | top50 |
+| [0x22B050](../../../src/game/level/wipe/func_0022B050.c) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
+| [0x22B090](../../../src/game/level/wipe/func_0022B090.c) | `SetWipeWipes` | state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint) | 0.50 | T1 |  |
+| [0x22B198](../../../src/game/level/wipe/func_0022B198.c) | `UpdateWipe` | advances wipe state machine (1->3, 2->0 when sprite done) | 0.50 | T1 |  |
+| [0x22B220](../../../src/game/level/wipe/func_0022B220.c) | `ActivateWipe` | starts a transition to a level/warp, comparing checkpoints | 0.40 | T2 |  |
+| [0x22B490](../../../src/game/level/wipe/func_0022B490.c) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 ActivateWipe(g_wipe,&trans,wipek,1) else SetSwTransition directly | 0.75 | T1 | top50 |

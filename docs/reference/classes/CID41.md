@@ -36,7 +36,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadCid41FromBrx?`](../../../src/hand/func_00228140.c) | `0x228140` |
+| 14 | LoadFromBrx | **override** | [`LoadCid41FromBrx?`](../../../src/game/level/exit_warp/func_00228140.c) | `0x228140` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
