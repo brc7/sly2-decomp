@@ -70,8 +70,13 @@ The object names of these two functions cannot be bound through `config/symbol_a
 bytes of the file rename them before comparison (matchtool and progress.py; a trailing `*` matches any suffix).
 Alias them to the names config already has (`StaticInit_<tu>` and the stub's current name, usually `func_XXXXXXXX`).
 
-TUs whose static initializer is not the standard 77 instructions (e.g. `tu_1147D8` 185, `tu_114AE0` 1926) have
-file-scope objects of their own; they need their own spelling and were not attempted in wave 1.
+TUs whose static initializer is not the standard 77 instructions have statics of their own. Read the target: if it
+is the six pool blocks followed by more blocks of the same shape (`if (++sentry == 1) InitSlotheap(&obj, cb, c, 16)`),
+the extra objects are template statics too. spliceutils (133 instructions) has five more slot heaps, 0x18 apart
+(0x452188..0x4521E8); a TU-private `template <int CB, int C> struct CSpliceHeap { SLOTHEAP slotheap; ctor; static
+CSpliceHeap s_heap; }` with five explicit instantiations after `SLY2_INSTANTIATE_SLOT_POOLS()` matched, and the code
+that used the raw `D_004521xx` addresses now names `CSpliceHeap<CB, C>::s_heap`. Other shapes (`tu_1147D8` 185,
+`tu_114AE0` 1926, sprbuf's SPRBUF array with a dynamic initializer) need their own spelling; not done in wave 1.
 
 ### Pool order
 
@@ -97,11 +102,25 @@ the other Splice node kinds (frames, procs, method records...).
 | 4 instructions differ in StaticInit (two `li a1`/`li a2` pairs swapped) | a pool named in code before the explicit instantiation | `SLY2_INSTANTIATE_SLOT_POOLS()` right after the includes | varb |
 | a caller is ~40 instructions short around a `delete` | the per-function file had a class-specific `operator delete` that a hand-filtered draft lost | concatenate the files verbatim first; never filter lines when drafting | pair (drafting mistake) |
 | field access through a raw offset (`*(ulong *)((char *)p + 0x148) &= ~(1UL << 35)`) | — | the header bitfield (`SO::fUnk35`) gives the same `ld/and/sd` | ms |
+| a `.c` body is 2-3 instructions off as C++ around a bit test: target `andi 1; bnez`, ours `xori 1; andi 1; beqz` | in C++ `!` yields `bool`, so `!(x & 1)` is computed, not branched on | write `(x & 1) == 0` | tu_15DC80 (func_0015E1D8) |
+| a `.c` function that passes an 8-byte struct by value differs: target spills the incoming `a2` (`sd a2,0(sp)`) and reloads it for the call (`ld a2,0(sp)`); ours copies it through a stack temporary with `ldl/ldr/sdl/sdr` and has a bigger frame | g++ 2.95 copies every by-value class argument into a temporary (pilot blocker B4) | not solved. Tried: an `aligned(8)` copy of the type for the parameter (keeps it in a register: 39/40 differ); punning the parameter as `long` (30/39 differ). Leave the TU unmerged | callback (EnsureSwCallback; PostSwCallback and ClearSwCallbacks, which only receive the struct, match as C++) |
+| shared-base stores (`lui; addiu; sw 0/4/8/C(base)`) where the target has one `lui` per store | the target's four words are separate globals, not one struct | keep separate `extern int D_...` declarations | spliceutils (GcShutdown*Pool) |
+| compile error: conflicting declarations of the same `extern "C"` function | two `.c` files declared one callee with different parameter types (C allowed it) | one prototype with the real types; callers cast if needed | tu_19F0A8 (SetStepguardSpecial), brx_sw (CBinaryInputStream readers) |
+| compile error: `redefinition of struct RGBA` (or CLOCK, DL...) | a TU-private type collides with a shared header | include only what the TU uses (slotheap.h deliberately does not include basic.h); a private type whose inline members shape codegen (tu_15DC80's `RGBA() {}`) stays private, under its own name if the TU also needs the shared header (brx_sw renamed its POD copy `RGBAPOD`) | brx_sw, tu_15DC80 |
+| an m2c body calls `UpdateLo()` / `UpdateStepguard()` with no arguments | m2c could not see that `a0`/`f12` are passed through unchanged | give the function the real parameters and pass them on (`UpdateStepguard(pguard, dt)`); no instructions change | tu_14FAC8, tu_15DC80 |
 
-Not hit yet but expected (from MATCHING_NOTES.md and the pilot): a `.c` function that passes an 8-byte struct by value
-compiles differently as C++ (pilot blocker B4: copied through a stack temporary); inline methods or class definitions
-that become visible in the merged TU can change a function's codegen (pilot blocker B6, gifs/vifs); and the
-path-hash quirk below.
+Other observations:
+- `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
+  structs that are passed on, and the `!`/bool difference above.
+- Six linkonce helpers carried `// SLY2_CC:`/`// SLY2_CFLAGS: -O2 -G0` overrides in their own files; in the merged
+  `.cpp` they match with the default C++ flags, so the overrides were not needed (spliceutils). Check this rather than
+  copying overrides into a merged file (a file-level override would apply to every function of the TU).
+- Per-function gcse stand-ins (brx_sw's dead `if (fNever)` block that sizes the gcse hash table) survive the merge:
+  that table size is per function, not per file.
+- When rewriting doc links, match `\.(cpp|c)` in that order: `(c|cpp)` stops at `.c` and leaves `pp` behind (fixed
+  in a follow-up commit of wave 1). Run `python3 -I tools/docs/linkcheck.py` after each merge.
+- Not hit yet: inline methods or class definitions that become visible in the merged TU and change a function's
+  codegen (pilot blocker B6, gifs/vifs), and the path-hash quirk below.
 
 ## Path-hash quirk (asm functions)
 
@@ -134,9 +153,29 @@ is a separate step.
 | pair | splice/pair.cpp | 3 | sly2/cref.h; delete into pool 0 |
 | varb | splice/varb.cpp | 4 | delete into pool 1 (pool order!); linkonce 0x257430 |
 | proc | splice/proc.cpp | 4 | linkonce 0x257038 |
+| tu_153B08 | gameplay/objects/tu_153B08.cpp | 3 | `.c` as C++ |
+| hnd | gameplay/player/hnd.cpp | 4 | `HND : TARGET`; m2c rewritten |
+| tu_14FAC8 | gameplay/ai/tu_14FAC8.cpp | 4 | guard subclass view; m2c rewritten (implicit args) |
+| spliceutils | splice/spliceutils.cpp | 10 | non-standard StaticInit (CSpliceHeap); 6 linkonce pool helpers |
+| phasemem | platform/memory/phasemem.cpp | 4 | `SetPhase__F5PHASE` as `SetPhase(PHASE)` |
+| crout | core/math/crout.cpp | 4 | already C++ |
+| update | level/update.cpp | 4 | new sly2/dli.h; one SW view for both functions |
+| tu_14B660 | platform/cdvd/tu_14B660.cpp | 5 | 3 m2c rewritten |
+| tu_1CBEB0 | gameplay/ai/tu_1CBEB0.cpp | 5 | `RAJAN : STEPGUARD` (+0x1010 field confirms it) |
+| brx_sw | level/brx_sw.cpp | 5 | gcse stand-in survives; private `RGBAPOD` |
+| vis | engine/graphics/pipeline/vis.cpp | 6 | `VIS : XFM` |
+| tu_19F0A8 | gameplay/player/tu_19F0A8.cpp | 6 | conflicting `.c` prototypes unified |
+| tu_15DC80 | gameplay/objects/tu_15DC80.cpp | 6 | `!(x & 1)` vs `== 0`; private RGBA with ctor |
+
+Total wave 1: 39 TUs (18 of them pool-only), 137 functions. After the wave, `JOBS=2 python3 tools/progress.py`:
+6,662/6,662 functions and 350,068/350,068 instructions, matched.csv unchanged by the run (the merge commits had already
+pointed its sources at the merged files).
 
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
 | tu_1147D8, tu_114AE0 | non-standard static initializer (185 / 1926 instructions): file-scope objects to model first |
+| callback | EnsureSwCallback passes an 8-byte struct by value (B4, see the table); the other 5 functions merge fine |
+| sprbuf | its static initializer (SPRBUF array + pools) is currently emulated with an asm-labelled hack under `SLY2_ASM: gnu-reorder-db`, which this Linux environment cannot build; needs a real spelling and a Mac to verify |
+| tu_119BC8 | 16 functions, 13 of them linkonce hash-table/dynarray instances with mixed per-file flags, an m2c body and a register pin; worth a session of its own |
