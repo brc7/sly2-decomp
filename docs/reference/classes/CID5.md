@@ -29,14 +29,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid5ClassDesc`](../../../src/game/app/class_registry/GetCid5ClassDesc.c) | `0x113A60` |
-| 7 | Init | **override** | [`InitCid5?`](../../../src/game/engine/graphics/pipeline/vis/func_00227350.c) | `0x227350` |
+| 7 | Init | **override** | [`InitCid5?`](../../../src/game/engine/graphics/pipeline/vis.cpp) | `0x227350` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadCid5ZoneFromBrx?`](../../../src/game/engine/graphics/pipeline/vis/func_00227380.c) | `0x227380` |
+| 14 | LoadFromBrx | **override** | [`LoadCid5ZoneFromBrx?`](../../../src/game/engine/graphics/pipeline/vis.cpp) | `0x227380` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |

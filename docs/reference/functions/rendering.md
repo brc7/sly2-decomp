@@ -361,7 +361,7 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x227350](../../../src/game/engine/graphics/pipeline/vis/func_00227350.c) | `InitCid5` | InitXfm; state 0x110 = -1 | 0.60 | T2 | verified |
-| [0x227380](../../../src/game/engine/graphics/pipeline/vis/func_00227380.c) | `LoadCid5ZoneFromBrx` | XFM XF read 0x231768, U32, ReadGeom, ReadBspc, LoadOptionsFromBrx | 0.75 | T2 | parse |
-| [0x2273F0](../../../src/game/engine/graphics/pipeline/vis/func_002273F0.c) | `UpdateCid5ZoneInside` | BSP point test of a world position (converted to local) -> SetCid5ZoneInside | 0.40 | T2 |  |
-| [0x227440](../../../src/game/engine/graphics/pipeline/vis/func_00227440.c) | `SetCid5ZoneInside` | if changed: store flag 0x110, time 0x114 = g_clock.t | 0.40 | T2 |  |
+| [0x227350](../../../src/game/engine/graphics/pipeline/vis.cpp) | `InitCid5` | InitXfm; state 0x110 = -1 | 0.60 | T2 | verified |
+| [0x227380](../../../src/game/engine/graphics/pipeline/vis.cpp) | `LoadCid5ZoneFromBrx` | XFM XF read 0x231768, U32, ReadGeom, ReadBspc, LoadOptionsFromBrx | 0.75 | T2 | parse |
+| [0x2273F0](../../../src/game/engine/graphics/pipeline/vis.cpp) | `UpdateCid5ZoneInside` | BSP point test of a world position (converted to local) -> SetCid5ZoneInside | 0.40 | T2 |  |
+| [0x227440](../../../src/game/engine/graphics/pipeline/vis.cpp) | `SetCid5ZoneInside` | if changed: store flag 0x110, time 0x114 = g_clock.t | 0.40 | T2 |  |
