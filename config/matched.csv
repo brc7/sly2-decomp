@@ -2346,10 +2346,10 @@ DxMaxLine__9CRichText,0x15FF40,35,match,src/game/engine/font/font/DxMaxLine__9CR
 Draw__9CRichTextP8CTextBoxT1P4GIFS,0x15FFD0,164,match,src/game/engine/font/font/Draw__9CRichTextP8CTextBoxT1P4GIFS.cpp
 StaticInit_font,0x160260,77,match,src/game/engine/font/font/StaticInit_font.c
 func_00160398,0x160398,8,match,src/game/engine/font/font/func_00160398.c
-LoadXfmConstraintsFromBrx,0x1603B8,76,match,src/game/engine/anim/tu_1603B8/LoadXfmConstraintsFromBrx.cpp
-ApplyXfmConstraint,0x1604E8,87,match,src/game/engine/anim/tu_1603B8/ApplyXfmConstraint.cpp
-StaticInit_tu_1603B8,0x160648,77,match,src/game/engine/anim/tu_1603B8/StaticInit_tu_1603B8.c
-func_00160780,0x160780,8,match,src/game/engine/anim/tu_1603B8/func_00160780.c
+LoadXfmConstraintsFromBrx,0x1603B8,76,match,src/game/engine/anim/tu_1603B8.cpp
+ApplyXfmConstraint,0x1604E8,87,match,src/game/engine/anim/tu_1603B8.cpp
+StaticInit_tu_1603B8,0x160648,77,match,src/game/engine/anim/tu_1603B8.cpp
+func_00160780,0x160780,8,match,src/game/engine/anim/tu_1603B8.cpp
 StartupFrame__Fv,0x1607A0,34,match,src/game/engine/graphics/backend/frm/StartupFrame__Fv.cpp
 OpenFrame__Fv,0x160828,59,match,src/game/engine/graphics/backend/frm/OpenFrame__Fv.cpp
 EnsureVu1Code__FP4VIFSPvT1,0x160918,10,match,src/game/engine/graphics/backend/frm/EnsureVu1Code__FP4VIFSPvT1.cpp
