@@ -2531,9 +2531,9 @@ func_0016EA80,0x16EA80,287,match,src/game/engine/graphics/pipeline/glob/func_001
 func_0016EF00,0x16EF00,55,match,src/game/engine/graphics/pipeline/glob/func_0016EF00.c
 StaticInit_glob,0x16EFE0,81,match,src/game/engine/graphics/pipeline/glob/StaticInit_glob.c
 func_0016F128,0x16F128,8,match,src/game/engine/graphics/pipeline/glob/func_0016F128.c
-RenderGomerSelf__FP5GOMERP2CMP2RO,0x16F148,11,match,src/game/gameplay/ai/gomer/RenderGomerSelf__FP5GOMERP2CMP2RO.cpp
-StaticInit_gomer,0x16F178,77,match,src/game/gameplay/ai/gomer/StaticInit_gomer.c
-func_0016F2B0,0x16F2B0,8,match,src/game/gameplay/ai/gomer/func_0016F2B0.c
+RenderGomerSelf__FP5GOMERP2CMP2RO,0x16F148,11,match,src/game/gameplay/ai/gomer.cpp
+StaticInit_gomer,0x16F178,77,match,src/game/gameplay/ai/gomer.cpp
+func_0016F2B0,0x16F2B0,8,match,src/game/gameplay/ai/gomer.cpp
 BlendDisplayOnBufferMismatch__Fv,0x16F2D0,101,match,src/game/engine/graphics/backend/gs/BlendDisplayOnBufferMismatch__Fv.c
 VBlankS_Interrupt__Fi,0x16F468,61,match,src/game/engine/graphics/backend/gs/VBlankS_Interrupt__Fi.cpp
 SyncVBlank__Fv,0x16F560,11,match,src/game/engine/graphics/backend/gs/SyncVBlank__Fv.cpp

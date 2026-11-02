@@ -227,7 +227,7 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x154158](../../src/game/gameplay/ai/detector/X509v3_data_type_by_NID.c) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
 | [0x1553F0](../../src/game/gameplay/ai/tu_1553F0/LoadDimitriFromBrx.c) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
 | [0x1559F8](../../src/game/gameplay/ai/tu_1553F0/func_001559F8.c) | `CloseBhv181` | BHV181 slot 9 | 0.80 | T2 | verified |
-| [0x16F148](../../src/game/gameplay/ai/gomer/RenderGomerSelf__FP5GOMERP2CMP2RO.cpp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |
+| [0x16F148](../../src/game/gameplay/ai/gomer.cpppp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |
 | [0x1709F8](../../src/game/gameplay/ai/tu_1709A8/func_001709F8.c) | `InitCid113` | cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18) | 0.75 | T2 | verified |
 | [0x171CF8](../../src/game/gameplay/ai/tu_1709A8/func_00171CF8.c) | `StartGuardScript` | Sets the guard's BHV156 to mode 5 with the given script | 0.40 | T2 |  |
 | [0x173158](../../src/game/gameplay/ai/tu_173158/func_00173158.c) | `InitCid119` | cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s | 0.75 | T2 | verified |

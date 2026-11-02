@@ -6,7 +6,7 @@
 | --- | --- |
 | [`bhvstk/`](bhvstk/) | 25 |
 | [`detector/`](detector/) | 19 |
-| [`gomer/`](gomer/) | 3 |
+| [`gomer.cpp`](gomer.cpp) | 1 |
 | [`guardbhv/`](guardbhv/) | 190 |
 | [`noise/`](noise/) | 23 |
 | [`pickpocket/`](pickpocket/) | 11 |
