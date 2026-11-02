@@ -339,23 +339,23 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x226C10](../../../src/game/engine/graphics/backend/vifs/func_00226C10.c) | `__4VIFS` |  |  | existing |  |
-| [0x226C58](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `Align__4VIFSi` |  |  | existing |  |
-| [0x226CA8](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifBaseOffset__4VIFSii` |  |  | existing |  |
-| [0x226CE0](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifMscal__4VIFSPv` |  |  | existing |  |
-| [0x226D10](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifFlush__4VIFS` |  |  | existing |  |
-| [0x226D28](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifFlusha__4VIFS` |  |  | existing |  |
-| [0x226D40](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifStcycl__4VIFSii` |  |  | existing |  |
-| [0x226D68](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifStrow__4VIFSP2QW` |  |  | existing |  |
-| [0x226DD0](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifStmask__4VIFSUi` |  |  | existing |  |
-| [0x226E10](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `CbUnpackSetup__4VIFS3UPKii` |  |  | existing |  |
-| [0x226E88](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `UnpackHelper__4VIFS3UPKiiPiPPUi` |  |  | existing |  |
-| [0x226F28](../../../src/game/engine/graphics/backend/vifs/AddVifUnpack__4VIFS3UPKiPvi.cpp) | `AddVifUnpack__4VIFS3UPKiPvi` |  |  | existing |  |
-| [0x226FD0](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifUnpack__4VIFS3UPKiP18CBinaryInputStreami` |  |  | existing |  |
-| [0x227010](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifUnpackRefs__4VIFS3UPKiPviPPPv` |  |  | existing |  |
-| [0x2270C8](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifDirect__4VIFSiP2QWi` |  |  | existing |  |
-| [0x227148](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifDirectRefs__4VIFSiP2QWi` |  |  | existing |  |
-| [0x2271C8](../../../src/game/engine/graphics/backend/vifs/vifs.cpp) | `AddVifGifs__4VIFSP4GIFS` |  |  | existing |  |
+| [0x226C10](../../../src/game/engine/graphics/backend/vifs.cpp) | `__4VIFS` |  |  | existing |  |
+| [0x226C58](../../../src/game/engine/graphics/backend/vifs.cpp) | `Align__4VIFSi` |  |  | existing |  |
+| [0x226CA8](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifBaseOffset__4VIFSii` |  |  | existing |  |
+| [0x226CE0](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifMscal__4VIFSPv` |  |  | existing |  |
+| [0x226D10](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifFlush__4VIFS` |  |  | existing |  |
+| [0x226D28](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifFlusha__4VIFS` |  |  | existing |  |
+| [0x226D40](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifStcycl__4VIFSii` |  |  | existing |  |
+| [0x226D68](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifStrow__4VIFSP2QW` |  |  | existing |  |
+| [0x226DD0](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifStmask__4VIFSUi` |  |  | existing |  |
+| [0x226E10](../../../src/game/engine/graphics/backend/vifs.cpp) | `CbUnpackSetup__4VIFS3UPKii` |  |  | existing |  |
+| [0x226E88](../../../src/game/engine/graphics/backend/vifs.cpp) | `UnpackHelper__4VIFS3UPKiiPiPPUi` |  |  | existing |  |
+| [0x226F28](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifUnpack__4VIFS3UPKiPvi` |  |  | existing |  |
+| [0x226FD0](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifUnpack__4VIFS3UPKiP18CBinaryInputStreami` |  |  | existing |  |
+| [0x227010](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifUnpackRefs__4VIFS3UPKiPviPPPv` |  |  | existing |  |
+| [0x2270C8](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifDirect__4VIFSiP2QWi` |  |  | existing |  |
+| [0x227148](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifDirectRefs__4VIFSiP2QWi` |  |  | existing |  |
+| [0x2271C8](../../../src/game/engine/graphics/backend/vifs.cpp) | `AddVifGifs__4VIFSP4GIFS` |  |  | existing |  |
 
 ## vis (0x227350-0x2275B8)
 
