@@ -2042,10 +2042,10 @@ FInsideCmMrd,0x14F898,37,match,src/game/engine/camera/cm/FInsideCmMrd.c
 StaticInit_cm,0x14F930,86,match,src/game/engine/camera/cm/StaticInit_cm.c
 func_0014FA88,0x14FA88,8,match,src/game/engine/camera/cm/func_0014FA88.c
 func_0014FAA8,0x14FAA8,8,match,src/game/engine/camera/cm/func_0014FAA8.c
-func_0014FAC8,0x14FAC8,11,match,src/game/gameplay/ai/tu_14FAC8/func_0014FAC8.c
-func_0014FAF8,0x14FAF8,22,match,src/game/gameplay/ai/tu_14FAC8/func_0014FAF8.c
-StaticInit_tu_14FAC8,0x14FB50,77,match,src/game/gameplay/ai/tu_14FAC8/StaticInit_tu_14FAC8.c
-func_0014FC88,0x14FC88,8,match,src/game/gameplay/ai/tu_14FAC8/func_0014FC88.c
+func_0014FAC8,0x14FAC8,11,match,src/game/gameplay/ai/tu_14FAC8.cpp
+func_0014FAF8,0x14FAF8,22,match,src/game/gameplay/ai/tu_14FAC8.cpp
+StaticInit_tu_14FAC8,0x14FB50,77,match,src/game/gameplay/ai/tu_14FAC8.cpp
+func_0014FC88,0x14FC88,8,match,src/game/gameplay/ai/tu_14FAC8.cpp
 CPLCY_ctor,0x14FCA8,5,match,src/game/engine/camera/cplcy/CPLCY_ctor.c
 InitCplcy,0x14FCC0,2,match,src/game/engine/camera/cplcy/InitCplcy.c
 ActivateCplcy,0x14FCC8,8,match,src/game/engine/camera/cplcy/ActivateCplcy.c

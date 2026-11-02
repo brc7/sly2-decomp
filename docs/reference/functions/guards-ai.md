@@ -43,8 +43,8 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14FAC8](../../../src/game/gameplay/ai/tu_14FAC8/func_0014FAC8.c) | `InitContessa` | vt7 Init override of guard class cid 0x40: base STEPGUARD Init (0x205EB8) then +0x4A4 = 1 | 0.45 | T2 | whole-game |
-| [0x14FAF8](../../../src/game/gameplay/ai/tu_14FAC8/func_0014FAF8.c) | `UpdateContessa` | vt16 override of cid 0x40: base slot-16 (0x207350) then, if +0xF80 == -1 and +0x208 != 0, 0x205910(this, D_002BD940, 3, D_002BD910) | 0.35 | T2 | whole-game |
+| [0x14FAC8](../../../src/game/gameplay/ai/tu_14FAC8.cpp) | `InitContessa` | vt7 Init override of guard class cid 0x40: base STEPGUARD Init (0x205EB8) then +0x4A4 = 1 | 0.45 | T2 | whole-game |
+| [0x14FAF8](../../../src/game/gameplay/ai/tu_14FAC8.cpp) | `UpdateContessa` | vt16 override of cid 0x40: base slot-16 (0x207350) then, if +0xF80 == -1 and +0x208 != 0, 0x205910(this, D_002BD940, 3, D_002BD910) | 0.35 | T2 | whole-game |
 
 ## detector (0x153D58-0x154A60)
 
