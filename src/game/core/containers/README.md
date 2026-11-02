@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`bq/`](bq/) | 10 |
+| [`bq.cpp`](bq.cpp) | 1 |
 | [`dl/`](dl/) | 21 |
 | [`dynarray.cpp`](dynarray.cpp) | 1 |
 | [`empty_119DA0.cpp`](empty_119DA0.cpp) | 1 |

@@ -278,14 +278,14 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13D558](../../../src/game/core/containers/bq/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
-| [0x13D580](../../../src/game/core/containers/bq/Reset__10CByteQueue.cpp) | `Reset__10CByteQueue` |  |  | existing |  |
-| [0x13D5A0](../../../src/game/core/containers/bq/CbFill__10CByteQueueiP11CQueueInput.cpp) | `CbFill__10CByteQueueiP11CQueueInput` |  |  | existing |  |
-| [0x13D6A8](../../../src/game/core/containers/bq/CbDrain__10CByteQueueiP12CQueueOutput.cpp) | `CbDrain__10CByteQueueiP12CQueueOutput` |  |  | existing |  |
-| [0x13D7D0](../../../src/game/core/containers/bq/CbFill__10CByteQueueiPUc.cpp) | `CbFill__10CByteQueueiPUc` |  |  | existing |  |
-| [0x13D818](../../../src/game/core/containers/bq/FreeDrain__10CByteQueuei.c) | `FreeDrain__10CByteQueuei` |  |  | existing |  |
-| [0x13D850](../../../src/game/core/containers/bq/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
-| [0x13D8B8](../../../src/game/core/containers/bq/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
+| [0x13D558](../../../src/game/core/containers/bq.cpp) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
+| [0x13D580](../../../src/game/core/containers/bq.cpp) | `Reset__10CByteQueue` |  |  | existing |  |
+| [0x13D5A0](../../../src/game/core/containers/bq.cpp) | `CbFill__10CByteQueueiP11CQueueInput` |  |  | existing |  |
+| [0x13D6A8](../../../src/game/core/containers/bq.cpp) | `CbDrain__10CByteQueueiP12CQueueOutput` |  |  | existing |  |
+| [0x13D7D0](../../../src/game/core/containers/bq.cpp) | `CbFill__10CByteQueueiPUc` |  |  | existing |  |
+| [0x13D818](../../../src/game/core/containers/bq.cpp) | `FreeDrain__10CByteQueuei` |  |  | existing |  |
+| [0x13D850](../../../src/game/core/containers/bq.cpp) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
+| [0x13D8B8](../../../src/game/core/containers/bq.cpp) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
 
 ## tu_14B660 (0x14B660-0x14B7F8)
 

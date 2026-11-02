@@ -120,9 +120,9 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x11E958](../../src/game/core/math/vec/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
 | [0x11E9F8](../../src/game/core/math/vec/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
 | [0x11F088](../../src/game/core/math/vec/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
-| [0x13D558](../../src/game/core/containers/bq/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
-| [0x13D850](../../src/game/core/containers/bq/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
-| [0x13D8B8](../../src/game/core/containers/bq/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
+| [0x13D558](../../src/game/core/containers/bq.cpp) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
+| [0x13D850](../../src/game/core/containers/bq.cpp) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
+| [0x13D8B8](../../src/game/core/containers/bq.cpp) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
 | [0x14B9C0](../../src/game/platform/cdvd/cd/func_0014B9C0.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
 | [0x14BC78](../../src/game/platform/cdvd/cd/func_0014BC78.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
 | [0x1585D8](../../src/game/engine/physics/dzg/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
