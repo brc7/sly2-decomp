@@ -6,6 +6,9 @@
 #ifndef SLY2_CREF_H
 #define SLY2_CREF_H
 
+struct CPair;
+struct CProc;
+
 struct CRef
 {
       int m_tagk;
@@ -19,10 +22,14 @@ struct CRef
       CRef() { m_tagk = -1; }
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
+      CRef(CProc *pproc);                 /* a procedure value (eval: RefEvalLambda) */
       ~CRef() { Decref(); }
       CRef &operator=(const CRef &r);
+      CRef &operator=(bool f);            /* a boolean (tag 0x17) */
+      CRef &operator=(CPair *ppair);      /* a list (tag 0x1F) */
       void Decref();
       void InitTag(int tagk);
+      void SetNil() { Decref(); InitTag(0); }
 };
 typedef char assert_CRef_size[sizeof(CRef) == 8 ? 1 : -1];
 
