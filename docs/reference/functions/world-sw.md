@@ -171,8 +171,8 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x22B050](../../../src/game/level/wipe/func_0022B050.c) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
-| [0x22B090](../../../src/game/level/wipe/func_0022B090.c) | `SetWipeWipes` | state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint) | 0.50 | T1 |  |
-| [0x22B198](../../../src/game/level/wipe/func_0022B198.c) | `UpdateWipe` | advances wipe state machine (1->3, 2->0 when sprite done) | 0.50 | T1 |  |
-| [0x22B220](../../../src/game/level/wipe/func_0022B220.c) | `ActivateWipe` | starts a transition to a level/warp, comparing checkpoints | 0.40 | T2 |  |
-| [0x22B490](../../../src/game/level/wipe/func_0022B490.c) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 ActivateWipe(g_wipe,&trans,wipek,1) else SetSwTransition directly | 0.75 | T1 | top50 |
+| [0x22B050](../../../src/game/level/wipe.cpp) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
+| [0x22B090](../../../src/game/level/wipe.cpp) | `SetWipeWipes` | state change with memset of transition data and checkpoint restore (RestoreChkmgrFromCheckpoint) | 0.50 | T1 |  |
+| [0x22B198](../../../src/game/level/wipe.cpp) | `UpdateWipe` | advances wipe state machine (1->3, 2->0 when sprite done) | 0.50 | T1 |  |
+| [0x22B220](../../../src/game/level/wipe.cpp) | `ActivateWipe` | starts a transition to a level/warp, comparing checkpoints | 0.40 | T2 |  |
+| [0x22B490](../../../src/game/level/wipe.cpp) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 ActivateWipe(g_wipe,&trans,wipek,1) else SetSwTransition directly | 0.75 | T1 | top50 |

@@ -234,8 +234,8 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 | [0x2288D8](../../src/game/level/exit_warp/func_002288D8.c) | `SetWarpRsmg` | FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger | 0.80 | T1 | verified |
 | [0x228958](../../src/game/level/exit_warp/MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31.c) | `AddWarpOidPair` | if count<4 append (a,b) at 0x14C | 0.50 | existing | arbitration; replaces existing MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31 |
 | [0x228988](../../src/game/level/exit_warp/func_00228988.c) | `AddWarpOid` | if c<4 a[c++]=v | 0.45 | T2 | arbitration |
-| [0x22B050](../../src/game/level/wipe/func_0022B050.c) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
-| [0x22B490](../../src/game/level/wipe/func_0022B490.c) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 Acti | 0.75 | T1 | top50 |
+| [0x22B050](../../src/game/level/wipe.cpp) | `InitWipe` | wipes fields, state -1, SetWipeWipes(0) | 0.85 | T1 | verified |
+| [0x22B490](../../src/game/level/wipe.cpp) | `WipeToWorldWarp` | Request a level transition: build a TRANS {flags, CHK of target level (default current), warp args}; mark "same level" (flags\|=2); if wipek != -1 Acti | 0.75 | T1 | top50 |
 
 Selected 56 of 117 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/world-sw.md](../reference/functions/world-sw.md).
 
