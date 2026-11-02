@@ -68,25 +68,25 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x166920](../../../src/game/engine/graphics/backend/gifs/func_00166920.c) | `__4GIFS` |  |  | existing |  |
-| [0x166968](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `AddPrimEnd__4GIFS` |  |  | existing |  |
-| [0x1669E0](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `EndPrim__4GIFSi` |  |  | existing |  |
-| [0x166A50](../../../src/game/engine/graphics/backend/gifs/CheckReg__4GIFSii.c) | `CheckReg__4GIFSii` |  |  | existing |  |
-| [0x166A60](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `AddGifTag__4GIFSiiiUlUi` |  |  | existing |  |
-| [0x166B10](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `AddPrimBulk__4GIFSiiiUlPP2QW` |  |  | existing |  |
-| [0x166BD8](../../../src/game/engine/graphics/backend/gifs/AddPrimPack__4GIFSiiUl.cpp) | `AddPrimPack__4GIFSiiUl` |  |  | existing |  |
-| [0x166C70](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `PackRGBA__4GIFSUi` |  |  | existing |  |
-| [0x166CE0](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `PackUV__4GIFSii` |  |  | existing |  |
-| [0x166D38](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `PackSTQ__4GIFSfff` |  |  | existing |  |
-| [0x166DA0](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `PackXYZ__4GIFSiii` |  |  | existing |  |
-| [0x166E08](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `PackXYZF__4GIFSiiii` |  |  | existing |  |
-| [0x166E90](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `PackAD__4GIFSll` |  |  | existing |  |
-| [0x166EF0](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `AddPrimList__4GIFSiUl` |  |  | existing |  |
-| [0x166F70](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `ListRGBAQ__4GIFSUif` |  |  | existing |  |
-| [0x166FE8](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `ListUV__4GIFSii` |  |  | existing |  |
-| [0x167048](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `ListXYZ__4GIFSiii` |  |  | existing |  |
-| [0x1670B8](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `ListXYZF__4GIFSiiii` |  |  | existing |  |
-| [0x167150](../../../src/game/engine/graphics/backend/gifs/gifs.cpp) | `AddImage__4GIFSi` |  |  | existing |  |
+| [0x166920](../../../src/game/engine/graphics/backend/gifs.cpp) | `__4GIFS` |  |  | existing |  |
+| [0x166968](../../../src/game/engine/graphics/backend/gifs.cpp) | `AddPrimEnd__4GIFS` |  |  | existing |  |
+| [0x1669E0](../../../src/game/engine/graphics/backend/gifs.cpp) | `EndPrim__4GIFSi` |  |  | existing |  |
+| [0x166A50](../../../src/game/engine/graphics/backend/gifs.cpp) | `CheckReg__4GIFSii` |  |  | existing |  |
+| [0x166A60](../../../src/game/engine/graphics/backend/gifs.cpp) | `AddGifTag__4GIFSiiiUlUi` |  |  | existing |  |
+| [0x166B10](../../../src/game/engine/graphics/backend/gifs.cpp) | `AddPrimBulk__4GIFSiiiUlPP2QW` |  |  | existing |  |
+| [0x166BD8](../../../src/game/engine/graphics/backend/gifs.cpp) | `AddPrimPack__4GIFSiiUl` |  |  | existing |  |
+| [0x166C70](../../../src/game/engine/graphics/backend/gifs.cpp) | `PackRGBA__4GIFSUi` |  |  | existing |  |
+| [0x166CE0](../../../src/game/engine/graphics/backend/gifs.cpp) | `PackUV__4GIFSii` |  |  | existing |  |
+| [0x166D38](../../../src/game/engine/graphics/backend/gifs.cpp) | `PackSTQ__4GIFSfff` |  |  | existing |  |
+| [0x166DA0](../../../src/game/engine/graphics/backend/gifs.cpp) | `PackXYZ__4GIFSiii` |  |  | existing |  |
+| [0x166E08](../../../src/game/engine/graphics/backend/gifs.cpp) | `PackXYZF__4GIFSiiii` |  |  | existing |  |
+| [0x166E90](../../../src/game/engine/graphics/backend/gifs.cpp) | `PackAD__4GIFSll` |  |  | existing |  |
+| [0x166EF0](../../../src/game/engine/graphics/backend/gifs.cpp) | `AddPrimList__4GIFSiUl` |  |  | existing |  |
+| [0x166F70](../../../src/game/engine/graphics/backend/gifs.cpp) | `ListRGBAQ__4GIFSUif` |  |  | existing |  |
+| [0x166FE8](../../../src/game/engine/graphics/backend/gifs.cpp) | `ListUV__4GIFSii` |  |  | existing |  |
+| [0x167048](../../../src/game/engine/graphics/backend/gifs.cpp) | `ListXYZ__4GIFSiii` |  |  | existing |  |
+| [0x1670B8](../../../src/game/engine/graphics/backend/gifs.cpp) | `ListXYZF__4GIFSiiii` |  |  | existing |  |
+| [0x167150](../../../src/game/engine/graphics/backend/gifs.cpp) | `AddImage__4GIFSi` |  |  | existing |  |
 
 ## glob (0x167310-0x16F148)
 

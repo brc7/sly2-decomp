@@ -7,7 +7,7 @@
 | [`dmas.cpp`](dmas.cpp) | 1 |
 | [`empty_1578F8.cpp`](empty_1578F8.cpp) | 1 |
 | [`frm/`](frm/) | 13 |
-| [`gifs/`](gifs/) | 6 |
+| [`gifs.cpp`](gifs.cpp) | 1 |
 | [`gs/`](gs/) | 26 |
 | [`vifs.cpp`](vifs.cpp) | 1 |
 
