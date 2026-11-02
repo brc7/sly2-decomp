@@ -3,6 +3,8 @@
 This tree documents how the Sly 2: Band of Thieves engine (NTSC-U `SCUS_973.16`) works, as recovered from the
 matching decompilation in this repo. It is written for two readers:
 
+Start with [architecture.md](architecture.md) for how the source tree is organised.
+
 - an engineer who knows software well but is new to the PS2 and to decompilation;
 - agents (human or LLM) who need to find their way around ~6,600 functions, most of which still have
   address-based names (`func_XXXXXXXX`).

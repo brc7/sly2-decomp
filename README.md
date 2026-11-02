@@ -32,6 +32,7 @@ them is checked against the original (relocation-aware check).
 - `config/functions.csv` — every function's address/size; `config/symbol_addrs.txt` — names;
   `config/matched.csv` — verified match list (generated); `config/junk.csv` — dead-code scraps between functions
   (not functions); `config/progress_history.csv` — data for the graph
+- `docs/architecture.md` — how `src/` is organised: layers, subsystems, one directory per original source file
 - `docs/MATCHING_NOTES.md` — compiler facts and the matching techniques used
 
 ## Tools
