@@ -8,11 +8,11 @@ public:
     ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
 };
 extern "C" {
-void func_001E1E30(P *p);
-int func_001E5778(P *p);
-void func_001E1D48(P *p);
-int func_001E3890(P *p, E *pe);
-void func_001E5628(P *p);
+void NextJsgCommand__FP3JSG(P *p);
+int FJsgRemoved(P *p);
+void ReleaseJsgJtIfComplete(P *p);
+int FIsJsgCommandComplete__FP3JSGP8RELAYCMD(P *p, E *pe);
+void RemoveJsg(P *p);
 void func_001E1C40(P *p);
 }
 /** @sly2-annot addr=0x1E1C40
@@ -29,14 +29,14 @@ void func_001E1C40(P *p)
     LOCK lock(p);
     if (!p->peCur) {
         p->peCur = p->peFirst;
-        func_001E1E30(p);
-        if (func_001E5778(p)) return;
+        NextJsgCommand__FP3JSG(p);
+        if (FJsgRemoved(p)) return;
     }
-    while (p->peCur <= p->peMax && (p->peCur->n4 || func_001E3890(p, p->peCur))) {
-        func_001E1D48(p);
-        func_001E1E30(p);
-        if (func_001E5778(p)) return;
+    while (p->peCur <= p->peMax && (p->peCur->n4 || FIsJsgCommandComplete__FP3JSGP8RELAYCMD(p, p->peCur))) {
+        ReleaseJsgJtIfComplete(p);
+        NextJsgCommand__FP3JSG(p);
+        if (FJsgRemoved(p)) return;
     }
-    func_001E1D48(p);
-    if (p->peCur > p->peMax) func_001E5628(p);
+    ReleaseJsgJtIfComplete(p);
+    if (p->peCur > p->peMax) RemoveJsg(p);
 }

@@ -11,7 +11,7 @@ extern char D_003DD490[];
 extern float GGetDifficulty(void *p);
 extern int NRandInRange__Fii(int a, int b);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-extern void func_001C6FD8(void *p, int k, qword q, void *pv, int n);
+extern void SprayDprizes(void *p, int k, qword q, void *pv, int n);
 static inline int NLerp(float g, int a, int b)
 {
     if (a == b)
@@ -51,7 +51,7 @@ void func_00154E10(S *p, qword q, int n, int dn, void *pv)
             n = NRandInRange__Fii(p->p14->x18, p->p14->x1C);
     }
     if (n > 0)
-        func_001C6FD8(D_003DD490, 0x5B, q, pv, n);
+        SprayDprizes(D_003DD490, 0x5B, q, pv, n);
     if (p->x4 <= 0)
-        func_001C6FD8(D_003DD490, 0x5D, q, pv, 1);
+        SprayDprizes(D_003DD490, 0x5D, q, pv, 1);
 }

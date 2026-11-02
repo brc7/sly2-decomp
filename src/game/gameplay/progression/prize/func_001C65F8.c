@@ -17,7 +17,7 @@ extern char D_003DD490[];
 extern char D_002C0DA0[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
-struct X *func_001CE888(void *pg, int a, int b);
+struct X *PripNewRipg(void *pg, int a, int b);
 qword func_001A62E8(struct S *p);
 struct MAT *func_001A6318(struct S *p);
 void func_001C67A0(struct S *p, int n);
@@ -25,7 +25,7 @@ void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
-void func_001C60B8(struct S *p, int n);
+void SetDprizeDprizes(struct S *p, int n);
 /** @sly2-annot addr=0x1C65F8
  * Purpose: CID 91 state setter: on collect play sound, emit rip, award (0x1C67A0)
  * Info: proposed name SetDprize91Dprizes (T2); class COIN slot76; TU prize
@@ -40,7 +40,7 @@ void func_001C65F8(struct S *p, int n)
         p->x238 = GRandInRange__Fff(p->x230, p->x234);
         break;
     case 1: {
-        struct X *px = func_001CE888(D_003DD490, 9, 0);
+        struct X *px = PripNewRipg(D_003DD490, 9, 0);
         struct LO *plo;
         if (px) {
             struct VTE *e;
@@ -69,5 +69,5 @@ void func_001C65F8(struct S *p, int n)
         break;
     }
     }
-    func_001C60B8(p, n);
+    SetDprizeDprizes(p, n);
 }

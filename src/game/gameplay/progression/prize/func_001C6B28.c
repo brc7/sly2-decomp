@@ -3,7 +3,7 @@ struct LO { char pad[0xC]; struct VTE *vt; char pad2[0x150 - 0x10]; int x150; ch
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void RequestTaskState(void *p, int n, struct LO *plo);
-void func_001C60B8(struct LO *p, int n);
+void SetDprizeDprizes(struct LO *p, int n);
 /** @sly2-annot addr=0x1C6B28
  * Purpose: CID 92 setter (sound on collect)
  * Info: proposed name SetKeyDprizes (T2); class KEY slot76; TU prize
@@ -22,5 +22,5 @@ void func_001C6B28(struct LO *p, int n)
         n = 2;
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
     }
-    func_001C60B8(p, n);
+    SetDprizeDprizes(p, n);
 }

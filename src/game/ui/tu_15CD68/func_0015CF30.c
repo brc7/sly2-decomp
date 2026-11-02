@@ -34,7 +34,7 @@ void func_001FB2F8(void *p, int n);
 int func_0015D798(struct X *p);
 int func_002121E8(struct X *p, int n);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, int n);
-void func_00228358(void *p, int n);
+void SetExitExits(void *p, int n);
 void func_002283D0(void *p);
 int PrecWorldEntry(int n);
 
@@ -191,7 +191,7 @@ void func_0015CF30(struct X *p)
             if (f) {
                 void *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE2A8[p->n110], 0);
                 if (po) {
-                    func_00228358(po, 3);
+                    SetExitExits(po, 3);
                     func_002283D0(po);
                 } else
                     f = 0;

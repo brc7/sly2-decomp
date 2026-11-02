@@ -22,7 +22,7 @@ typedef struct {
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int func_0014C6A0(void *, qword, qword, int, HIT *);
-EMIT *func_001CE888(struct G *, int, int);
+EMIT *PripNewRipg(struct G *, int, int);
 void func_001CEA88(OBJ *, int);
 /** @sly2-annot addr=0x1D0D28
  * Purpose: RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself
@@ -44,7 +44,7 @@ void func_001D0D28(OBJ *p, int n)
             goto found;
     }
 found:
-    pe = func_001CE888(&D_003DD490, 7, 0);
+    pe = PripNewRipg(&D_003DD490, 7, 0);
     if (pe) {
         pe->vt->a[1].pfn((char *)pe + pe->vt->a[1].d, 40.0f, hit.pos, 0);
         pe->x18 = 0.75f;

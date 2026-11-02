@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 M2C_UNK RemoveDlEntry__FP2DLPv(s32, void *);                 /* extern */
-M2C_UNK func_001CE9D0(void *);                      /* extern */
+M2C_UNK ReleaseRip__FP3RIP(void *);                      /* extern */
 
 /** @sly2-annot addr=0x1CE980
  * Purpose: unlink from RIPG dl + ReleaseRip
@@ -10,5 +10,5 @@ M2C_UNK func_001CE9D0(void *);                      /* extern */
  * @end-sly2-annot */
 void RemoveRip__FP3RIP(void *arg0) {
     RemoveDlEntry__FP2DLPv(M2C_FIELD(arg0, s32 *, 8) + 0x15C, arg0);
-    func_001CE9D0(arg0);
+    ReleaseRip__FP3RIP(arg0);
 }

@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001CE920();                            /* extern */
+M2C_UNK InitRip();                            /* extern */
 extern s128 D_002C1F40;
 
 /** @sly2-annot addr=0x1D0CA8
@@ -10,7 +10,7 @@ extern s128 D_002C1F40;
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
 void func_001D0CA8(void *arg0) {
-    func_001CE920();
+    InitRip();
     M2C_FIELD(arg0, f32 *, 0x18) = 5.0f;
     M2C_FIELD(arg0, s128 *, 0xA0) = (s128) D_002C1F40;
 }

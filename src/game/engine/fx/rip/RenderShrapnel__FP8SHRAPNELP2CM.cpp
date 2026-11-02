@@ -6,7 +6,7 @@ struct M3 {qword rows[3];};
 struct SHRAPNEL {char pad40[0x40];M3 matrix;qword position;char pad80[0x70];F depth;};
 struct CM;
 extern qword D_002A2DC0;
-extern "C" int func_001CF338(SHRAPNEL *,qword,const M3 &);
+extern "C" int FRenderRipPosMat(SHRAPNEL *,qword,const M3 &);
 static inline qword AddScaled(qword p,qword a,qword k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(p):"j"(a),"j"(k));return p;}
 static inline SHRAPNEL* Receiver(SHRAPNEL*input){register SHRAPNEL*p __asm__("$3");__asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));return p;}
 static inline const qword* AxisAddress(void){register const qword*p __asm__("$2");__asm__("lui %0,%%hi(%1)\n\taddiu %0,%0,%%lo(%1)":"=r"(p):"i"(&D_002A2DC0));return p;}
@@ -29,7 +29,7 @@ void RenderShrapnel(SHRAPNEL *input,CM *){
     qword k=Depth(p);
     point.q=AddScaled(p->position,Axis(AxisAddress()),k);
     scalar.q=k;
-    func_001CF338(p,point.q,*MatrixAddress(p));
+    FRenderRipPosMat(p,point.q,*MatrixAddress(p));
 }
 
 typedef char layout_render_0[(sizeof(qword)==16)?1:-1];

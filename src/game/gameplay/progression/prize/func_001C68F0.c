@@ -17,16 +17,16 @@ extern char D_003DD490[];
 extern char D_002C0E10[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
-struct X *func_001CE888(void *pg, int a, int b);
+struct X *PripNewRipg(void *pg, int a, int b);
 struct LO *PpoHero(void *pg);
 qword func_001A62E8(struct S *p);
 struct MAT *func_001A6318(struct S *p);
-void func_001C6AB0(struct S *p, int n);
+void OnMedicineSmackDone(struct S *p, int n);
 void *func_001FBB90(int n);
 void func_001FB2F8(void *p, int n);
 void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
-void func_001C60B8(struct S *p, int n);
+void SetDprizeDprizes(struct S *p, int n);
 /** @sly2-annot addr=0x1C68F0
  * Purpose: CID 93 setter (uses PpoCur - gives to current character)
  * Info: proposed name SetMedicineDprizes (T2); class MEDICINE slot76; TU prize
@@ -51,7 +51,7 @@ void func_001C68F0(struct S *p, int n)
             n = p->x150;
             break;
         }
-        px = func_001CE888(D_003DD490, 9, 0);
+        px = PripNewRipg(D_003DD490, 9, 0);
         if (px) {
             struct VTE *e;
             px->xF4 = p;
@@ -62,7 +62,7 @@ void func_001C68F0(struct S *p, int n)
             px->x1C = p;
             px->mat = *func_001A6318(p);
         } else {
-            func_001C6AB0(p, 0);
+            OnMedicineSmackDone(p, 0);
         }
         ((void (*)(void *, int, int))q->vt[81].pf)((char *)q + q->vt[81].d, p->x23C, p->x240);
         plo = p->x210;
@@ -77,5 +77,5 @@ void func_001C68F0(struct S *p, int n)
         break;
     }
     }
-    func_001C60B8(p, n);
+    SetDprizeDprizes(p, n);
 }

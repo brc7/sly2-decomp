@@ -27,7 +27,7 @@ int func_0011D4D0(float,float,float);
 qword ApplyConstr(CONSTRAINT *,NODE *,qword);
 void AddSoAcceleration(O *,qword);
 qword func_001A62E8(O *);
-void func_00228C18(O *,qword,qword *,qword *);
+void CalculateWaterCurrent(O *,qword,qword *,qword *);
 float func_0011E290(qword,qword,qword *,qword *);
 int func_00230380(int);
 void AccelSoTowardPosSpring(O *,qword,const COEF *,qword,const COEF *);
@@ -80,7 +80,7 @@ extern "C" void func_002297F8(O *a,O *b){
   AddSoAcceleration(a,ApplyConstr(&a->physics->constraint,a->motion,Scale(a->physics->direction.q,k)));
  }
  if(friction!=0.0f){
-  func_00228C18(b,func_001A62E8(a),&w.velocity.q,&w.phase.vectors[0].q);
+  CalculateWaterCurrent(b,func_001A62E8(a),&w.velocity.q,&w.phase.vectors[0].q);
   qword linear=Get(a,33);qword relative=Sub(w.velocity.q,linear);
   float dot=func_0011E290(relative,w.normal.q,&w.phase.vectors[1].q,&w.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;

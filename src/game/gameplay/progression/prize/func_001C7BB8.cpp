@@ -2,7 +2,7 @@ extern "C" {
 void func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
 void func_00129EC8(void *p);
-void *func_001C7B18(void *p);
+void *FClueCollected(void *p);
 }
 class FRAME { int a[4]; public: FRAME() { func_001AE478(this); } ~FRAME() { func_001AE4A0(this, 2); } };
 struct CRef { int m_tagk; int m_tag; };
@@ -19,7 +19,7 @@ extern "C" int func_001C7BB8(void *p);
 int func_001C7BB8(void *p)
 {
     FRAME frame;
-    void *pv = func_001C7B18(p);
+    void *pv = FClueCollected(p);
     if (!pv) return 0;
     return NFromPv(pv);
 }

@@ -58,7 +58,7 @@ struct CPLOOK : public CPLCY
       int cEnter;
 };
 
-/* CPZOOM: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (6 copies in Lilly ports) */
+/* CPZOOM: from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (6 copies in Lilly ports) */
 struct CPZOOM : public CPLCY
 {
       LO *ploOwner;
@@ -91,9 +91,9 @@ struct CPZOOM : public CPLCY
     void SetFocus(LO *plo);
     void SetPose(qword pos, qword eul, float radFov);
     void SetZoom(float u);
-    int FAtTargetFocus();   /* from func_001E3890.cpp */
-    int FAtTargetEye();   /* from func_001E3890.cpp */
-    int FAtTargetZoom();   /* from func_001E3890.cpp */
+    int FAtTargetFocus();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetEye();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetZoom();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 
 /* CPTURRET: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */
@@ -146,7 +146,7 @@ struct CMPART1 : public CPLCY
 {
 };
 
-/* CMPART2: from src/game/engine/camera/tn/func_00221DD8.cpp (6 copies in Lilly ports) */
+/* CMPART2: from src/game/engine/camera/tn/UpdateCptn.cpp (6 copies in Lilly ports) */
 struct CMPART2 : public CPLCY
 {
       TN *ptn;
@@ -180,7 +180,7 @@ struct CMPART2 : public CPLCY
       float dradPanLook;
       float dradTiltLook;
       uint32_t   _pad_510    [ 3 ] ;
-    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("func_00221DD8");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCptn");
 };
 
 /* CMBASE: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) */

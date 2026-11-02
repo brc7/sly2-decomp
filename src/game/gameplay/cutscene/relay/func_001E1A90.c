@@ -24,7 +24,7 @@ extern M2C_UNK D_003E1560;
 void func_001E1A90(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     void *temp_v0;
 
-    temp_v0 = func_001E01F8(arg0, 0x58, arg3);
+    temp_v0 = PrelaycmdAddRelay(arg0, 0x58, arg3);
     M2C_FIELD(temp_v0, s32 *, 0x10) = arg1;
     M2C_FIELD(temp_v0, s32 *, 0x14) = arg2;
 }

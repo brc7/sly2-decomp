@@ -1,9 +1,9 @@
-// func_001C6DE8: find a landing point on the objects below/above `point` (used three times by func_001C6FD8, which sits
+// func_001C6DE8: find a landing point on the objects below/above `point` (used three times by SprayDprizes, which sits
 // right after it in the same file and shares its FRAME / VU_FLOAT / VV / AddScaled idioms). Casts a line from point up to
 // point + axis * gMax and, failing that, down to point + axis * gMin, against `apcand` (fetched with IntersectSwBoundingBox when the
 // caller passed none); returns the hit position, or point itself when gMin >= 0 and nothing above was found.
 // Matching notes (wave 4, lane 1):
-//  * FRAME is a plain RAII local with out-of-line ctor/dtor (as in func_001C6FD8); g++ emits the three `dtor(this, 2)` calls
+//  * FRAME is a plain RAII local with out-of-line ctor/dtor (as in SprayDprizes); g++ emits the three `dtor(this, 2)` calls
 //    and cross-jumping rebuilds the target's shared tails. Parameters are used directly (their homes are 0x80/0x84).
 //  * The game loads IntersectSwBoundingBox's third argument (posMax) into $a2 BEFORE the `apcand == 0` test: that load is the last insn
 //    of block 0, so reorg puts it in the bnez delay slot, and its write of $a2 gives the `sw a2,0x84` home store one more
@@ -28,7 +28,7 @@ struct VU_FLOAT {
 };
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 extern "C" {
-int func_001C5570(void *, CANDIDATE *);
+int FFilterDprizeObjects(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 CANDIDATE *PsoHitTestLineObjects(int, qword, qword, int, CANDIDATE **, LSG *)
     __asm__("PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG");
@@ -58,7 +58,7 @@ extern "C" int func_001C6DE8(float gMin, float gMax, float gThreshold, qword poi
     qword posMin = AddScaled(point, VU_FLOAT(gMin), D_002A2DC0);
     register qword posMaxArg __asm__("$6") = posMax;   // pin: the game loads this $a2 argument before the test (see top)
     if (!apcand)
-        IntersectSwBoundingBox(D_003DD490, point, posMaxArg, func_001C5570, 0, &ccand, &apcand);
+        IntersectSwBoundingBox(D_003DD490, point, posMaxArg, FFilterDprizeObjects, 0, &ccand, &apcand);
     if (gMax > 0) {
         if (PsoHitTestLineObjects(0, point, posMax, ccand, apcand, &lsg) && lsg.t == 0) {
             if (lsg.u == 1 || lsg.normalB.f[2] < gThreshold)

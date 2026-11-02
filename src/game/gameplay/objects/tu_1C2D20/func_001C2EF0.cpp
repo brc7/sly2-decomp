@@ -3,7 +3,7 @@
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
 // offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
 // horizontal part of the start->target direction and the up axis, and func_001D69F0 computes the launch velocity.
-// Class 0x5A objects are launched through func_001C6BD0 with an index-scaled delay; others are reset, parented to the
+// Class 0x5A objects are launched through LaunchSprayedDprize with an index-scaled delay; others are reset, parented to the
 // source and given the velocity through virtual calls.  func_001C2DB8 cleans up the owner on every exit.
 // Matching notes:
 //  * `game` is a plain local set before the loop: the address is then a spilled constant that reload rematerializes
@@ -31,7 +31,7 @@ qword SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 qword func_001D69F0(qword, qword, qword, float);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *, int);
-void func_001C6BD0(SO *, qword, qword, float, float);
+void LaunchSprayedDprize(SO *, qword, qword, float, float);
 SO *PloAcquireProxy(void *, int);
 void func_001C2DB8(OWNER *);
 }
@@ -121,7 +121,7 @@ extern "C" SO *func_001C2EF0(OWNER *p, int count)
                 lifetime = (float)i * D_002C0CEC;
             else
                 lifetime = D_002A76E8;
-            func_001C6BD0(node, p->source->position, velocity, (float)i * D_002C0CE8, lifetime);
+            LaunchSprayedDprize(node, p->source->position, velocity, (float)i * D_002C0CE8, lifetime);
         } else {
             Reset(node);
             SetParent(node, p->source);

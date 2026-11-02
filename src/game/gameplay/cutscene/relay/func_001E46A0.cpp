@@ -18,7 +18,7 @@ float func_002458F0(float,float);
 float SMaxShape(PATH*),UMaxShape(PATH*);
 float RadNormalize__Ff(float);
 ACTOR *func_001E1DB8(P*,int);
-void func_001E4D40(P*,ACTOR*,qword*,float*);
+void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void func_00204660(ACTOR*,float);
 void EvaluateShapeU(PATH*,float,qword*,qword*);
 qword func_001A62E8(ACTOR*);
@@ -128,7 +128,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
  case 0x23:{
   ACTOR *target=func_001E1DB8(p,param->value.id);
   if(!target)goto stopped;
-  func_001E4D40(p,target,0,&work.heading);
+  GetJsgTargetPosHeading(p,target,0,&work.heading);
   func_00204660(actor,work.heading);out->heading=work.heading;
   goto stopped;
  }
@@ -151,7 +151,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
    }else if(p->previousMotion<actor->motionTime)reverse=1;
    if(reverse)out->heading=RadNormalize__Ff(out->heading+3.1415927f);
   }else{
-   func_001E4D40(p,target,&work.from.q,0);
+   GetJsgTargetPosHeading(p,target,&work.from.q,0);
    work.first=work.from.q;
    TargetDisplacement(work.to,work.first,func_001A62E8(actor));
    out->heading=func_002458F0(work.to.f[1],work.to.f[0]);
@@ -169,7 +169,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   out->speed=__builtin_fabsf(param->value.gain);
   ACTOR *target=func_001E1DB8(p,param->target);
   if(!target||actor->active==-1||actor->mode!=8)break;
-  func_001E4D40(p,target,&work.from.q,0);
+  GetJsgTargetPosHeading(p,target,&work.from.q,0);
   {register qword captured __asm__("$3")=work.from.q;work.second=captured;}
   {
    qword actorPosition=func_001A62E8(actor);

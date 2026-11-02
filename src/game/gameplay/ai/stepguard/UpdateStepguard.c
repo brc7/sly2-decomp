@@ -16,7 +16,7 @@ void UpdateStepguardDetectTargets(struct S *p);
 int FAnimBindingDone(void *pc);
 void func_0020AB68(struct S *p, struct O *po, int n, qword v);
 void func_0020ACC0(struct S *p);
-void func_001F1CF8(struct S *p);
+void StageStepguardLoot(struct S *p);
 void func_0020CE70(void *p);
 void func_0020D1F8(void *p);
 void UpdateBhvstk(void *p);
@@ -47,7 +47,7 @@ void UpdateStepguard(struct S *p)
     if (p->hF0C)
         func_0020ACC0(p);
     if (p->n48C)
-        func_001F1CF8(p);
+        StageStepguardLoot(p);
     func_0020CE70(p->p498);
     func_0020D1F8(p->p49C);
     UpdateBhvstk(p->x26C);

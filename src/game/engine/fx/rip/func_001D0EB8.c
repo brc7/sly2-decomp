@@ -7,7 +7,7 @@ extern qword D_002A2DD0,D_002A2DA0,D_002A2DC0;
 union FLOATWORD {float value;int bits;};
 struct CLOCK {float time;union FLOATWORD dt;};
 extern union FLOATWORD D_002DDED4;
-void func_001CF0A0(struct S*);
+void ProjectRipTransform(struct S*);
 float GRandInRange__Fff(float,float);
 int func_0011D4D0(float,float,float);
 void GetNormalVectors(qword,qword,qword,struct B*);
@@ -70,7 +70,7 @@ static inline void BasisArguments(qword normal,struct B*destination,qword*argume
 void func_001D0EB8(struct S*p) {
     int near=0,choose=0;
     float roll;
-    func_001CF0A0(p);
+    ProjectRipTransform(p);
     roll=GRandInRange__Fff(0.0f,1.0f);
     FNear(&near,p->vel,D_002A2DD0);
     if(!near&&roll<0.3f) choose=1;

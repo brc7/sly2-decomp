@@ -3,7 +3,7 @@ void *func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
 void func_00129EC8(void *p);
 void *func_001291A8(void *p, const void *q);
-void *func_001C8090(void);
+void *FVaultOpened(void);
 void func_001ABD98(void *p, int n);
 }
 class FRAME { public: FRAME() { func_001AE478(this); } ~FRAME() { func_001AE4A0(this, 2); } };
@@ -32,7 +32,7 @@ extern "C" void func_001C8188(int f);
 void func_001C8188(int f)
 {
     FRAME frame; RAW ref;
-    void *pv = func_001C8090();
+    void *pv = FVaultOpened();
     if (!pv) return;
     if (f) {
         if (NFromPv(pv,ref) == 0)

@@ -6,7 +6,7 @@ struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n47
 void *func_002333B4(void *p, int c, int n);
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void func_00213C68(int x, struct L *pl);
-int func_001C7D08(void);
+int CClueCollected(void);
 int func_001C7D00(void);
 /** @sly2-annot addr=0x20F710
  * Purpose: Find 4 HUD objects (kind 0x405, OIDs 0x371/0x36D/0x36E/0x36F), init them, record two counters
@@ -30,6 +30,6 @@ void func_0020F710(struct S *p)
             p->ae[i].x = x;
         }
     }
-    p->n4764 = func_001C7D08();
+    p->n4764 = CClueCollected();
     p->n4768 = func_001C7D00();
 }

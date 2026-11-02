@@ -13,7 +13,7 @@ extern char D_002DEB30[];
 struct OID *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct OID *po);
 void func_00130598(struct SO *pso, struct OID *po, int n, int x, float g, float h);
 void TriggerRsmg(void *g, int a, void *b, struct OID *po, int f);
-void func_001DFD58(void *p, int a);
+void FireRelay(void *p, int a);
 void ApplyTaskStates(void *g, int a, void *b, struct OID *po);
 /** @sly2-annot addr=0x1488D8
  * Purpose: Apply/seek every aseg in ASH list i on its object
@@ -45,7 +45,7 @@ void RunBtnAsegs(struct P *p, int i)
     }
     TriggerRsmg(D_003DD490, p->xB0, p->mB4, p->po, i == 0);
     if (i == 0) {
-        if (p->pAC) func_001DFD58(p->pAC, p->xA8);
+        if (p->pAC) FireRelay(p->pAC, p->xA8);
         ApplyTaskStates(D_002DEB30, p->x134, p->m138, p->po);
     }
 }

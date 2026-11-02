@@ -1,6 +1,6 @@
 struct S { char pad[0x15C]; int f; };
 void AddSoHierarchy(struct S *p);
-void func_0021BC08(struct S *p);
+void ResetTrailHistory(struct S *p);
 /** @sly2-annot addr=0x21BBD0
  * Purpose: calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08)
  * Info: proposed name Cid105_slot11 (T2); class CID105 slot11; TU trail
@@ -12,5 +12,5 @@ void func_0021BBD0(struct S *p)
 {
     AddSoHierarchy(p);
     if (p->f)
-        func_0021BC08(p);
+        ResetTrailHistory(p);
 }

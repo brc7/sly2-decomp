@@ -22,7 +22,7 @@ void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *, void *, float);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, void *, void *);
 int CidBasic(void *);
 void func_0012F9B8(void *, int, int, int, float, float);
-void func_001DFD58(void *, int);
+void FireRelay(void *, int);
 void func_00130D30(struct P *, int, float, float);
 void func_00130B18(struct P *);
 void SetAsegaHandsOff(struct P *, int);
@@ -83,7 +83,7 @@ extern "C" void HandleAsegaEvent(struct P *p, struct EV *pev)
                 func_0012F9B8(po, 0, 0, 0, 0.0f, 1.0f);
                 break;
             case 0x72:
-                func_001DFD58(po, 0);
+                FireRelay(po, 0);
                 break;
             }
         }

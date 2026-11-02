@@ -20,7 +20,7 @@ int GrfHandleJoyBtn(void *, int);
 void *func_001F07E8(void *);
 OBJ *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, OBJ *);
 void func_001DC260(void *, int);
-void func_001DFD58(OBJ *, int);
+void FireRelay(OBJ *, int);
 void func_001D77D0(OBJ *, int);
 /** @sly2-annot addr=0x1D72A8
  * Purpose: UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0
@@ -70,7 +70,7 @@ void func_001D72A8(OBJ *p)
             }
             q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->n, p);
             if (q) {
-                func_001DFD58(q, 0);
+                FireRelay(q, 0);
                 return;
             }
         }

@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 void *PpoHero(M2C_UNK *);                     /* extern */
-M2C_UNK func_00221268(s32, M2C_UNK);                /* extern */
+M2C_UNK SetTnTnsOverride(s32, M2C_UNK);                /* extern */
 extern M2C_UNK D_003DD490;
 
 /** @sly2-annot addr=0x140C88
@@ -18,11 +18,11 @@ void SetStepplayerTnOverride(s32 arg0, s32 arg1) {
     if (temp_v0 == arg0) {
         temp_a0 = M2C_FIELD(temp_v0, s32 *, 0x1024);
         if (temp_a0 != 0) {
-            func_00221268(temp_a0, 0);
+            SetTnTnsOverride(temp_a0, 0);
         }
         M2C_FIELD(temp_v0, s32 *, 0x1024) = arg1;
         if (arg1 != 0) {
-            func_00221268(arg1, 1);
+            SetTnTnsOverride(arg1, 1);
         }
     }
 }

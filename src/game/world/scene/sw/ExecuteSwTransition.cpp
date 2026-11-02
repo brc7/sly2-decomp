@@ -39,8 +39,8 @@ void CStreamBis_Close(STREAM *);
 void PostSwLoad(SW *);
 void func_001618F8(SW *,float);
 void func_0014C258(void);
-CONTEXT *func_00227FE8(SW *,int,int);
-void func_00228750(CONTEXT *);
+CONTEXT *PwarpFromOid(SW *,int,int);
+void TriggerWarp(CONTEXT *);
 ACTOR *PpoHero(SW *);
 ACTOR *PpoCur(SW *);
 void func_00129EC8(REF *);
@@ -123,8 +123,8 @@ extern "C" void ExecuteSwTransition(SW *p)
     PostSwLoad(p);
     if(resume>0.0f)func_001618F8(p,resume);
     if(changed||(p->request.flags&0x40))func_0014C258();
-    CONTEXT *context=func_00227FE8(p,p->request.objectId,p->request.objectKey);
-    if(context){func_00228750(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
+    CONTEXT *context=PwarpFromOid(p,p->request.objectId,p->request.objectKey);
+    if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
     if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
         ACTOR *selected=0;
         int actorId;

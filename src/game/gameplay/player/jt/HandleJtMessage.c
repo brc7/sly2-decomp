@@ -20,7 +20,7 @@ extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00131B10(void *a, void *p, int c);
 extern void func_00131B60(void *a, void *p, int c, void *d);
 extern qword func_001A62E8(void *p);
-extern void *func_001F1E20(void *a, qword q);
+extern void *PickpocketStepguard(void *a, qword q);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
 extern void func_001424E0(void *p, int oid, void *pv, int n);
@@ -106,7 +106,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 break;
             case 0x167:
                 if (F(void *, 0x10DC) && F(int, 0x1BD4)) {
-                    void *po = func_001F1E20(F(void *, 0x10DC), func_001A62E8(p));
+                    void *po = PickpocketStepguard(F(void *, 0x10DC), func_001A62E8(p));
                     if (po && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5B) && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5D)) {
                         int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
                         F(void *, 0x1BCC) = po;

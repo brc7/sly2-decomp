@@ -10,7 +10,7 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];
 void func_001FE738(void *p);
-void func_001DFEB8(void *p);
+void StopRelay(void *p);
 void func_001C8918(struct S *p, int n);
 void ReleaseSwLetterbox(void *p);
 void func_001DAF38(int n, int f);
@@ -18,7 +18,7 @@ int func_001FE5F0(void *p, void *q, int f);
 void func_0020F198(void *p);
 void AcquireSwLetterbox(void *p);
 void func_0020F1A8(void *p);
-void func_001DFD58(void *p, struct LO *q);
+void FireRelay(void *p, struct LO *q);
 /** @sly2-annot addr=0x1C8730
  * Purpose: state transition (camera/sound/hands-off)
  * Info: proposed name SetVaultState (T2); TU prize
@@ -35,7 +35,7 @@ void func_001C8730(struct S *p, int n)
         p->x1A4 = 0;
     }
     if (p->x19C)
-        func_001DFEB8(p->x19C);
+        StopRelay(p->x19C);
     switch (p->x180) {
     case 2:
         func_001C8918(p, -1);
@@ -81,5 +81,5 @@ void func_001C8730(struct S *p, int n)
     pv = p->a20C[p->x180];
     p->x19C = pv;
     if (pv)
-        func_001DFD58(pv, p->x190);
+        FireRelay(pv, p->x190);
 }

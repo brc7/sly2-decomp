@@ -122,7 +122,7 @@ extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C;
 extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void func_0011A050(DL *,int);
-extern "C" int func_001CF5C8(void);
+extern "C" int CbMaxRip(void);
 extern "C" void *func_002333B4(void *,int,unsigned int);
 /** @sly2-annot addr=0x20D9D0
  * Purpose: SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV
@@ -151,7 +151,7 @@ extern "C" SW *SW_ctor(SW *p)
     func_0011CCA8(&p->pool3E44,0x30,0x40,0x10);
     func_0011CCA8(&p->pool4008,0x60,0x40,0x10);
     func_0011CCA8(&p->pool403C,0x1b0,0x10,0x10);
-    int chosen=func_001CF5C8();
+    int chosen=CbMaxRip();
     chosen=chosen?chosen:0xF0;
     func_0011CCA8(&p->pool4054,chosen,0x80,0x10);
     func_0011CCA8(&p->pool4070,0x460,0x28,0x10);

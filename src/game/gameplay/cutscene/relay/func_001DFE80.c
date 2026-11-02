@@ -1,6 +1,6 @@
 #include "m2c_prelude.h"
 s32 PpoHero(M2C_UNK *);                       /* extern */
-M2C_UNK func_001DFD58(s32, s32);                    /* extern */
+M2C_UNK FireRelay(s32, s32);                    /* extern */
 extern M2C_UNK D_003DD490;
 
 /** @sly2-annot addr=0x1DFE80
@@ -10,5 +10,5 @@ extern M2C_UNK D_003DD490;
  * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
 void func_001DFE80(s32 arg0) {
-    func_001DFD58(arg0, PpoHero(&D_003DD490));
+    FireRelay(arg0, PpoHero(&D_003DD490));
 }

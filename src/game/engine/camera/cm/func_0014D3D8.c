@@ -7,7 +7,7 @@ M2C_UNK func_00150728(void *);                      /* extern */
 M2C_UNK func_00151208(void *);                      /* extern */
 M2C_UNK func_00151610(void *);                      /* extern */
 M2C_UNK func_001518C8(void *);                      /* extern */
-M2C_UNK func_00221990(void *);                      /* extern */
+M2C_UNK CPTN_ctor(void *);                      /* extern */
 extern M2C_UNK D_002CA4D0;
 extern M2C_UNK D_002CD378;
 
@@ -28,7 +28,7 @@ void *func_0014D3D8(void *arg0) {
     M2C_FIELD(arg0, s32 *, 4) = 0;
     M2C_FIELD(arg0, M2C_UNK **, 0xC) = &D_002CA4D0;
     func_0014FD68(arg0 + 0x3A0);
-    func_00221990(arg0 + 0x3B0);
+    CPTN_ctor(arg0 + 0x3B0);
     func_0014FDE0(arg0 + 0x450);
     CPCAMERA_ctor(arg0 + 0x4A8);
     func_00151208(arg0 + 0x4C0);

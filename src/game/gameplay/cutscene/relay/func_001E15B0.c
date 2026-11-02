@@ -10,7 +10,7 @@
 void func_001E15B0(s32 arg0, s32 arg1, s32 arg2) {
     void *temp_v0;
 
-    temp_v0 = func_001E01F8(arg0, 0x43, 0);
+    temp_v0 = PrelaycmdAddRelay(arg0, 0x43, 0);
     M2C_FIELD(temp_v0, s32 *, 0x10) = arg1;
     M2C_FIELD(temp_v0, s32 *, 0x14) = arg2;
 }

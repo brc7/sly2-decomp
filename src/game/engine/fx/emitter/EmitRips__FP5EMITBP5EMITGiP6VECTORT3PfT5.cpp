@@ -47,10 +47,10 @@ public:
 struct EMITX { int x0; SO **ppso; void *p8; };
 extern "C" {
 extern char D_003DD490[];
-SO *func_001CDCD0(void *p, int n);
+SO *PripgNew(void *p, int n);
 void func_001CDE70(SO *pso, EMITTER *pemit);
 void SubscribeLoObject(SO *pso, void *p);
-PART *func_001CE888(void *p, int n, SO *pso);
+PART *PripNewRipg(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTER *pemit);
 MATRIX3 *func_001A6318(void *p);
@@ -72,7 +72,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTER *pemit, EMITX *
     if (px && px->ppso)
         pso = *px->ppso;
     if (!pso) {
-        pso = func_001CDCD0(D_003DD490, pemit->xC4);
+        pso = PripgNew(D_003DD490, pemit->xC4);
         if (!pso)
             return;
         if (px && px->ppso)
@@ -83,7 +83,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTER *pemit, EMITX *
     }
     if (!pso)
         return;
-    for (i = 0; i < c && (ppart = func_001CE888(D_003DD490, pemit->xC0, pso)) != 0; i++) {
+    for (i = 0; i < c && (ppart = PripNewRipg(D_003DD490, pemit->xC0, pso)) != 0; i++) {
         ppart->Set(apos[i], GRandInRange__Fff(pemit->gD8, pemit->gDC), pemit->pshd->x10);
         if (pemit->gE4 != 0.0f || pemit->gE8 != 0.0f) {
             ppart->x24 = pemit->gE4;

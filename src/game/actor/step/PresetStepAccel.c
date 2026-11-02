@@ -1,4 +1,4 @@
-/* (Claude agent) clock dt word loaded via ClockPage/ClockWord asm (same form as src/game/engine/fx/rip/func_001CF0A0.cpp, lw into the lui register); volatile on the lw keeps it after the v1E0 lqc2. */
+/* (Claude agent) clock dt word loaded via ClockPage/ClockWord asm (same form as src/game/engine/fx/rip/ProjectRipTransform.cpp, lw into the lui register); volatile on the lw keeps it after the v1E0 lqc2. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { float x,y,z; } VECTOR3;

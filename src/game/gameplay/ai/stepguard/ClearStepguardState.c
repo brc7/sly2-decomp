@@ -13,7 +13,7 @@ void func_0020B210(struct S *p);
 void *func_002333B4(void *p, int c, int n);
 void SetStepguardTarget(struct S *p, int n);
 void func_002088E0(struct S *p);
-void func_001F17F8(struct S *p, int a);
+void SetStepguardPickpocketState(struct S *p, int a);
 void SetStepguardSpecial(struct S *p, int n);
 /** @sly2-annot addr=0x206748
  * Purpose: STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state
@@ -51,6 +51,6 @@ void ClearStepguardState(struct S *p)
     p->n4A0 = one;
     p->fFF4 = D_002A8610;
     p->n1000 = D_002C3CF0;
-    func_001F17F8(p, -1);
+    SetStepguardPickpocketState(p, -1);
     SetStepguardSpecial(p, -1);
 }

@@ -24,8 +24,8 @@ void func_00204660(struct S *p, float f);
 unsigned long GrfFromSgf(int n);
 void *PanimbindBest(struct S *p, unsigned long m);
 void func_00153EF8(struct F64 *pf, struct S *p, int n);
-void func_001F1A40(struct S *p);
-void func_001F1CF8(struct S *p);
+void GenerateStepguardLoot(struct S *p);
+void StageStepguardLoot(struct S *p);
 struct O *func_00205438(struct S *p, int n);
 void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
 
@@ -75,8 +75,8 @@ void ResetStepguardToHome(struct S *p)
     func_00153EF8(p->pF64, p, D_002DD5BC);
     func_00153EF8(p->pF64, p, D_002DD648);
     if (p->n494) {
-        func_001F1A40(p);
-        func_001F1CF8(p);
+        GenerateStepguardLoot(p);
+        StageStepguardLoot(p);
     }
     if (p->pFEC)
         p->pFEC->vt[9].pf((char *)p->pFEC + p->pFEC->vt[9].d);

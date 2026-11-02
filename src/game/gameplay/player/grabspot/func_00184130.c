@@ -3,7 +3,7 @@ struct S { char pad[0xC]; struct VTE *vt; char p1[0xFC]; int x10c; char p2[4]; v
 extern char D_003DD490[], D_002DEB30[];
 void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
 void ApplyTaskStates(void *g, int a, int *pb, struct S *p);
-void func_001DFD58(void *p, int n);
+void FireRelay(void *p, int n);
 /** @sly2-annot addr=0x184130
  * Purpose: Set state x10C, send message 6, TriggerRsmg, ApplyTaskStates, FireRelay
  * Info: proposed name TriggerCid35 (T2); class CID35 slot51; TU grabspot
@@ -23,5 +23,5 @@ void func_00184130(struct S *p, int n)
     ApplyTaskStates(D_002DEB30, p->x15c, &p->x160, p);
     e = &p->vt[3];
     ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 5, 0, 0, 0, 0);
-    if (p->x114) func_001DFD58(p->x114, n);
+    if (p->x114) FireRelay(p->x114, n);
 }

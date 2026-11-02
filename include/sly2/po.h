@@ -33,7 +33,7 @@ struct POCTL : public BASIC
     void ClearJoyPressed(int grf);
     uint GrfPressedWithin(uint grf, float dt);
     uint GrfConsumePressed(uint grf, float dt);
-    int FConsumePressed(uint grf);   /* from func_001E3890.cpp */
+    int FConsumePressed(uint grf);   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

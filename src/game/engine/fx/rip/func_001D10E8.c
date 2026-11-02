@@ -41,7 +41,7 @@ extern M2C_UNK D_003E1144;
 extern M2C_UNK D_003E14E4;
 
 /*
-Decompilation failure in function func_001CE6D0:
+Decompilation failure in function PvtripFromRipt:
 
 Found jr instruction at chunk.s line 21, but the corresponding jump table is not provided.
 

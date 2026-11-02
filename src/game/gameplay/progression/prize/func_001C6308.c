@@ -18,7 +18,7 @@ extern float D_002C0D90;
 extern struct G D_003DD490;
 qword ConvertAloVec(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
-struct Q *func_001CE888(struct G *,void *,void *);
+struct Q *PripNewRipg(struct G *,void *,void *);
 qword func_001A62E8(void *);
 static inline float Dot(qword a,qword b)
 {
@@ -57,7 +57,7 @@ void func_001C6308(struct S *p)
                 if(Dot(direction,D_002DDF40.a)<0)emitter=p->left;
                 else emitter=p->right;
                 if(!emitter)goto changed;
-                q=func_001CE888(&D_003DD490,(void *)4,0);
+                q=PripNewRipg(&D_003DD490,(void *)4,0);
                 if(!q)goto changed;
                 p->last=D_002DDED0.t;
                 {

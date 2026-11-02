@@ -15,7 +15,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" CRef func_00201360(int c, void *aref, int *ak, ...);
-extern "C" { void func_001E1488(void *p, qword, qword, float); CRef RefThunk_AddRelayTweenTarget(void *p, int c, void *aref); }
+extern "C" { void AddRelayTweenTarget(void *p, qword, qword, float); CRef RefThunk_AddRelayTweenTarget(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x1095E8
  * Purpose: Splice option thunk: optid 684 on RELAY (g_aeopid[689] thunkFn/thunkUser, returns Void, crefReq
  *   3); unpacks 3 args (Vector, Vector, Float) -> Void via RefSetArgsFromSplice then calls
@@ -34,6 +34,6 @@ CRef RefThunk_AddRelayTweenTarget(void *p, int c, void *aref)
     CRef ref = func_00201360(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_001E1488(p, v0.q, v1.q, v2);
+    AddRelayTweenTarget(p, v0.q, v1.q, v2);
     return ref;
 }

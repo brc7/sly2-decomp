@@ -22,5 +22,5 @@ extern M2C_UNK D_003E1560;
  * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
 void func_001E1A60(s32 arg0, s32 arg1) {
-    M2C_FIELD(func_001E01F8(arg0, 0x57, 1), s32 *, 0x10) = arg1;
+    M2C_FIELD(PrelaycmdAddRelay(arg0, 0x57, 1), s32 *, 0x10) = arg1;
 }

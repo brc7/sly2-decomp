@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001E1458(s32, s32, s32);               /* extern */
+void AddRelayTweenAimObj(s32, s32, s32);               /* extern */
 CRef *RefThunk_AddRelayTweenAimObj(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 6, 0 };
@@ -9,7 +9,7 @@ CRef *RefThunk_AddRelayTweenAimObj(CRef *ret, void *pbasic, s32 cref, CRef *aref
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     InitTag__4CRef(&ref, 0x24);
-    func_001E1458(pbasic, arg0_v, arg1_v);
+    AddRelayTweenAimObj(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

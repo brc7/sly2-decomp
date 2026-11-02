@@ -17,7 +17,7 @@ struct P {
 struct CLOCK { float t,dt; };
 extern struct CLOCK D_002DDED0;
 int func_001A2788(struct P *p,void *o,qword *pos);
-void func_00228C18(void *o,qword pos,qword *dir,qword *v);
+void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
 void func_002297F8(struct P *p,void *o);
 qword func_001A62E8(struct P *p);
 float func_0011D1C0(float pos,float vel,float target,float dt,struct SMP *s,float *result);
@@ -51,7 +51,7 @@ void func_001A28B0(struct P *p,void *o)
  case 3:case 10:
   if(!func_001A2788(p,o,&pos.q)) break;
   local.q=Mul(&p->m1B0,&p->v190);
-  func_00228C18(o,pos.q,&dir.q,&v50.q);
+  CalculateWaterCurrent(o,pos.q,&dir.q,&v50.q);
   v=GetVel(p);
   vel.q=v;
   v=Add(v,local.q);

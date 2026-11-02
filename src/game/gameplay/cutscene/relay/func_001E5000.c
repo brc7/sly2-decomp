@@ -4,7 +4,7 @@ struct P { char pad[0x24]; struct X *p24; char pad2[0x74 - 0x28]; void *p74; };
 extern qword D_002A2DD0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword func_001A62E8(struct X *);
-void func_001E4D40(struct P *, void *, qword *, int);
+void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
 /** @sly2-annot addr=0x1E5000
  * Purpose: Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
  *   +0x1044/+0x1060/+0x1070)
@@ -33,7 +33,7 @@ void func_001E5000(struct P *p, void *pv)
     if (!pv) return;
     if (px) {
         px->n1044 = 1;
-        func_001E4D40(p, pv, &px->v1060, 0);
+        GetJsgTargetPosHeading(p, pv, &px->v1060, 0);
         ((float *)&px->v1060)[2] += px->f1048;
         px->v1070 = D_002A2DD0;
     }

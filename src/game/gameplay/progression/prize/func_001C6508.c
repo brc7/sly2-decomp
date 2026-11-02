@@ -1,5 +1,5 @@
 struct S { char pad[0x1A0]; float a1A0; char p1[0x1D0 - 0x1A4]; float a1D0, a1D4, a1D8, a1DC, a1E0, a1E4; char p2[0x230 - 0x1E8]; float a230, a234; };
-void func_001C4E50(struct S *p);
+void InitDprize(struct S *p);
 /** @sly2-annot addr=0x1C6508
  * Purpose: CID 91 Init (sprayable pickup; coin?)
  * Info: proposed name InitDprize91 (T2); class COIN slot7; TU prize
@@ -8,7 +8,7 @@ void func_001C4E50(struct S *p);
  * @end-sly2-annot */
 void func_001C6508(struct S *p)
 {
-    func_001C4E50(p);
+    InitDprize(p);
     p->a1D8 = 45.0f;
     p->a1DC = 65.0f;
     p->a1D0 = 250.0f;

@@ -1,6 +1,6 @@
 struct S { char pad[0x180]; int x180; char p1[0x198 - 0x184]; int x198; void *x19C; char p2[0x1F0 - 0x1A0]; int x1F0; };
 void UpdateSo(struct S *p);
-int func_001DFFD8(void *p);
+int FRelayFiring(void *p);
 void func_001C8730(struct S *p, int n);
 void func_001C84D8(struct S *p);
 void func_001C8188(int f);
@@ -19,11 +19,11 @@ void func_001C8350(struct S *p)
         s = p->x180;
         switch (s) {
         case 1:
-            if (!p->x19C || !func_001DFFD8(p->x19C))
+            if (!p->x19C || !FRelayFiring(p->x19C))
                 func_001C8730(p, 2);
             break;
         case 2:
-            if (!p->x19C || !func_001DFFD8(p->x19C)) {
+            if (!p->x19C || !FRelayFiring(p->x19C)) {
                 if (p->x198 == p->x1F0)
                     func_001C8730(p, 3);
                 else
@@ -33,11 +33,11 @@ void func_001C8350(struct S *p)
             }
             break;
         case 4:
-            if (!p->x19C || !func_001DFFD8(p->x19C))
+            if (!p->x19C || !FRelayFiring(p->x19C))
                 func_001C8730(p, 0);
             break;
         case 3:
-            if (!p->x19C || !func_001DFFD8(p->x19C)) {
+            if (!p->x19C || !FRelayFiring(p->x19C)) {
                 func_001C8188(1);
                 func_001C8730(p, 5);
             }

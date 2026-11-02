@@ -19,7 +19,7 @@ int func_0014F030(void *,SO *);
 void IntersectSwBoundingBox(WORLD *,qword,qword,int (*)(void *,SO *),void *,int *,SO ***);
 qword func_0014EB70(int,SO **,qword,float);
 int func_0014EA08(int count,SO **objects,qword origin,qword endpoint,float gap,float *low,float *high);
-float func_00223A10(void *,qword,qword,N *);
+float GDistPlanePos(void *,qword,qword,N *);
 qword func_0014EDA0(CAMERA *,int,SO **,float (*)(void *,qword,qword,N *),qword,qword,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
 qword SetVectorCylind(float,float,float);
@@ -81,7 +81,7 @@ extern "C" void func_00223A70(S *p,qword begin,qword end,qword *out){
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
-    final=ToVF(func_0014EDA0(&D_002DDF40,w.count,w.objects,func_00223A10,w.candidate.q,w.candidate.q,D_002DDF40.radius,D_002DDF40.radius));
+    final=ToVF(func_0014EDA0(&D_002DDF40,w.count,w.objects,GDistPlanePos,w.candidate.q,w.candidate.q,D_002DDF40.radius,D_002DDF40.radius));
     func_0014EA08(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;

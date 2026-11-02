@@ -101,7 +101,7 @@ struct PROXY : public XFM
 };
 typedef char assert_PROXY_size[sizeof(PROXY) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* TN: from src/game/engine/camera/tn/func_00221DD8.cpp */
+/* TN: from src/game/engine/camera/tn/UpdateCptn.cpp */
 struct TN : public XFM
 {
       LO *ploHero;

@@ -76,7 +76,7 @@ void *func_001FBB90(int id);
 void func_001FB2F8(void *p, SO *pso);
 void func_001FB4F0(void *p, float a, float b);
 void func_00258040(void *pp, void *p);
-RIP *func_001CE888(void *p, int k, int x);
+RIP *PripNewRipg(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb);
 void func_0015BE28(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
 }
@@ -155,7 +155,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
             }
         }
         if (fWake && pwater->px17C) {
-            RIP *prip = func_001CE888(D_003DD490, 7, 0);
+            RIP *prip = PripNewRipg(D_003DD490, 7, 0);
             if (prip) {
                 EVT *pe = &prip->pvt->a[1];
                 pe->pfn((char *)prip + pe->d, gScale, v, 0);

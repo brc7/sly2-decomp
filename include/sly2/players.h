@@ -91,14 +91,14 @@ struct MURRAY : public STEPPLAYER
 };
 typedef char assert_MURRAY_size[sizeof(MURRAY) == 0x1B00 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* BTBLEND: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (2 copies in Lilly ports) */
+/* BTBLEND: from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (2 copies in Lilly ports) */
 struct BTBLEND
 {
       JTAIRBL abl[2];
       struct ASEGBL *pasegbl;
 };
 
-/* BTBLENDS: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (2 copies in Lilly ports) */
+/* BTBLENDS: from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (2 copies in Lilly ports) */
 struct BTBLENDS
 {
       struct BENTLEY *pbentley;
@@ -110,7 +110,7 @@ struct BTBLENDS
       BTBLEND abtblend[6];
 };
 
-/* BENTLEY: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (2 copies in Lilly ports) */
+/* BENTLEY: from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (2 copies in Lilly ports) */
 struct BENTLEY : public STEPPLAYER
 {
       undefined4 unk_0x1320[(0x13d0 - 0x1320) / 4];

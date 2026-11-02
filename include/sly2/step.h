@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/po.h"
 
-/* BHV: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (9 copies in Lilly ports) */
+/* BHV: from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (9 copies in Lilly ports) */
 struct BHV : public BASIC
 {
       STEP *pstep;          /* +0x10 [R] owner STEP (== the guard/partner whose bhvstk holds it, all states) */

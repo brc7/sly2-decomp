@@ -13,7 +13,7 @@ extern LM D_002C1F78;
 extern float D_002C1F80[3];
 extern LM D_002BBB60;
 float GRandInRange__Fff(float gMin, float gMax);
-void func_001CE9B8(SHRAPNEL *psh, EMITB *pemitb);
+void PostRipEmit(SHRAPNEL *psh, EMITB *pemitb);
 }
 static inline float GClamp(float g, float lo, float hi)
 {
@@ -42,7 +42,7 @@ void PostShrapnelEmit(SHRAPNEL *psh, EMITB *pemitb)
 {
     float len, g;
     int i;
-    func_001CE9B8(psh, pemitb);
+    PostRipEmit(psh, pemitb);
     float gain=GRandInRange__Fff(D_002C1F78.gMin,D_002C1F78.gMax);
     float life=psh->g18*gain;
     qword lengthValue=VLen(psh->v);

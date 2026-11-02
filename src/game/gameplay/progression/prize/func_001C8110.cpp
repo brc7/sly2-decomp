@@ -2,7 +2,7 @@ extern "C" {
 void func_001AE478(void *p);
 void func_001AE4A0(void *p, int n);
 void func_00129EC8(void *p);
-void *func_001C8090(void);
+void *FVaultOpened(void);
 }
 class FRAME { int a[4]; public: FRAME() { func_001AE478(this); } ~FRAME() { func_001AE4A0(this, 2); } };
 struct CRef { int m_tagk; int m_tag; };
@@ -19,7 +19,7 @@ extern "C" int func_001C8110(void);
 int func_001C8110(void)
 {
     FRAME frame;
-    void *pv = func_001C8090();
+    void *pv = FVaultOpened();
     if (!pv) return 0;
     return NFromPv(pv);
 }

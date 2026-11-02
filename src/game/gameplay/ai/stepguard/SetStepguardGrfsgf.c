@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_001F1900();                            /* extern */
+M2C_UNK UpdateStepguardPickpocket();                            /* extern */
 
 /** @sly2-annot addr=0x209870
  * Purpose: Store flag word +0x2C0 and re-evaluate pickpocket state (0x1F1900)
@@ -9,5 +9,5 @@ M2C_UNK func_001F1900();                            /* extern */
  * @end-sly2-annot */
 void SetStepguardGrfsgf(void *arg0, s64 arg1) {
     M2C_FIELD(arg0, s64 *, 0x2C0) = arg1;
-    func_001F1900();
+    UpdateStepguardPickpocket();
 }

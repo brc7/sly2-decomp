@@ -1,6 +1,6 @@
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *func_001E01F8(void *pq, int kind, int b);
+struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
 /** @sly2-annot addr=0x1E16C0
  * Purpose: Splice builtin: append a RELAYCK 0x48 (Unk48) command to the relay
  *   (PrelaycmdAddRelay(prelay,0x48,fAsync)) and fill its args
@@ -11,6 +11,6 @@ struct CMD *func_001E01F8(void *pq, int kind, int b);
  * @end-sly2-annot */
 void func_001E16C0(void *pq, int a, int b, int c)
 {
-    struct CMD *p = func_001E01F8(pq, 0x48, 1);
+    struct CMD *p = PrelaycmdAddRelay(pq, 0x48, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }

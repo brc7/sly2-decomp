@@ -35,7 +35,7 @@ void AddXfAct(S *,E *,JOB *);
 void UpdateSoXfWorldMatrices(S *);
 void LoadSoIkFromBrx(S *,void *);
 void func_001603B8(S *,void *);
-void func_0021C888(S *,void *);
+void LoadSoChainsFromBrx(S *,void *);
 }
 static inline J1 *CreateJ1(){J1 *j;j=(J1 *)func_0012E1F0(sizeof(J1));j->h.vt=D_002CA820;j->h.kind=1;j->selector=2;return j;}
 static inline J2 *CreateJ2(){J2 *j;j=(J2 *)func_0012E1F0(sizeof(J2));j->h.kind=2;j->h.vt=D_002CA7E0;return j;}
@@ -92,7 +92,7 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
  UpdateSoXfWorldMatrices(p);
  LoadSoIkFromBrx(p,stream);
  func_001603B8(p,stream);
- func_0021C888(p,stream);
+ LoadSoChainsFromBrx(p,stream);
  p->a=Lookup(p,func_00117D50(stream));p->b=Lookup(p,func_00117D50(stream));p->c=Lookup(p,func_00117D50(stream));
  if(p->count>0)ClearFlag(p);
 }
