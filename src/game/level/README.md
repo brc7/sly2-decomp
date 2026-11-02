@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`brx_sw/`](brx_sw/) | 5 |
+| [`brx_sw.cpp`](brx_sw.cpp) | 1 |
 | [`empty_1FF690.cpp`](empty_1FF690.cpp) | 1 |
 | [`empty_226AB8.cpp`](empty_226AB8.cpp) | 1 |
 | [`exit_warp/`](exit_warp/) | 22 |

@@ -1681,11 +1681,11 @@ CbRead__17CQueueInputMemoryiPv,0x13D850,26,match,src/game/core/containers/bq/CbR
 CbRead__15CQueueInputFileiPv,0x13D8B8,2,match,src/game/core/containers/bq/CbRead__15CQueueInputFileiPv.c
 StaticInit_bq,0x13D8C0,77,match,src/game/core/containers/bq/StaticInit_bq.c
 func_0013D9F8,0x13D9F8,8,match,src/game/core/containers/bq/func_0013D9F8.c
-LoadSwFromBrx__FP2SWP18CBinaryInputStream,0x13DA18,345,match,src/game/level/brx_sw/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp
-LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream,0x13DF80,87,match,src/game/level/brx_sw/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c
-LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream,0x13E0E0,75,match,src/game/level/brx_sw/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c
-StaticInit_brx_sw,0x13E210,77,match,src/game/level/brx_sw/StaticInit_brx_sw.c
-func_0013E348,0x13E348,8,match,src/game/level/brx_sw/func_0013E348.c
+LoadSwFromBrx__FP2SWP18CBinaryInputStream,0x13DA18,345,match,src/game/level/brx_sw.cpp
+LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream,0x13DF80,87,match,src/game/level/brx_sw.cpp
+LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream,0x13E0E0,75,match,src/game/level/brx_sw.cpp
+StaticInit_brx_sw,0x13E210,77,match,src/game/level/brx_sw.cpp
+func_0013E348,0x13E348,8,match,src/game/level/brx_sw.cpp
 PchzFindSwLangstr__FP2SWi,0x13E368,24,match,src/game/object/brx/PchzFindSwLangstr__FP2SWi.c
 PloNew__F3CIDP2SO3OIDi,0x13E3C8,82,match,src/game/object/brx/PloNew__F3CIDP2SO3OIDi.c
 PloCloneLo__FP2LOP2SO,0x13E510,32,match,src/game/object/brx/PloCloneLo__FP2LOP2SO.c

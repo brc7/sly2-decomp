@@ -180,9 +180,9 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13DA18](../../src/game/level/brx_sw/LoadSwFromBrx__FP2SWP18CBinaryInputStream.cpp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
-| [0x13DF80](../../src/game/level/brx_sw/LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
-| [0x13E0E0](../../src/game/level/brx_sw/LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream.c) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
+| [0x13DA18](../../src/game/level/brx_sw.cpppp) | `LoadSwFromBrx` | Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells, g_sw/g_cm options, then per proxy source: refs+shader | 0.97 | T1 | parse |
+| [0x13DF80](../../src/game/level/brx_sw.cpp) | `LoadSwLangstrsFromBrx` | Reads localized string table: U8 clang + lang ids, S16 c x {S16 id; clang x string16}; keeps the g_nLang (D_002E1E54) string into SW.alangstr (+0x4640 | 0.80 | T1 |  |
+| [0x13E0E0](../../src/game/level/brx_sw.cpp) | `LoadSwCellsFromBrx` | Reads cell BSP: U16 c x {VECTOR4 plane; S16 front; S16 back}; negative child = new leaf index; allocs SW.acell (+0x455C, 0x20 each) and SW.aleaf (clea | 0.75 | T1 |  |
 | [0x13E368](../../src/game/object/brx/PchzFindSwLangstr__FP2SWi.c) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |
 | [0x13E3C8](../../src/game/object/brx/PloNew__F3CIDP2SO3OIDi.c) | `PloNew` | Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from isplice; append to SW oid and cid hash lists; vt7 In | 0.97 | T1 | runtime |
 | [0x13E510](../../src/game/object/brx/PloCloneLo__FP2LOP2SO.c) | `PloCloneLo` | Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for SO also clones children via PloCloneLo) | 0.93 | T1 | parse |
