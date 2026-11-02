@@ -6,6 +6,19 @@ from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(__file__))
 import matchtool as M
 
+_M2C_MARK = '#include "m2c_prelude.h"'
+_m2c_cache = {}
+def is_m2c(relpath):
+    """A source is raw/fixed m2c output iff it includes m2c_prelude.h (layout independent; every file in
+    the old src/auto/ does and no other file does, so this reproduces the old path-based split exactly)."""
+    if relpath not in _m2c_cache:
+        try:
+            with open(os.path.join(M.ROOT, relpath), errors='ignore') as f:
+                _m2c_cache[relpath] = _M2C_MARK in f.read()
+        except OSError:
+            _m2c_cache[relpath] = '/auto/' in relpath   # file gone: fall back to the old rule
+    return _m2c_cache[relpath]
+
 CACHE = os.path.join(M.ROOT, 'build', 'progress_cache.json')
 B = os.path.join(M.ROOT, 'tools/compilers/bundle/ee-gcc2.95.3-136/lib/gcc-lib/ee/2.95.3')
 
@@ -91,11 +104,25 @@ def main():
             prev.setdefault(r['source'], []).append((r['name'], r['addr'], int(r['n_instr']), r['status'], r['source']))
     except OSError:
         pass
+    # Layout independence: if a file this machine cannot build was MOVED since matched.csv was written, its
+    # previous results are found under the old path, but only when exactly one stale path (no longer on disk)
+    # has the same file name. Anything ambiguous is left unresolved (and reported as not verified).
+    stale_by_base = {}
+    for p in prev:
+        if p not in live:
+            stale_by_base.setdefault(os.path.basename(p), []).append(p)
+    def prev_for(r):
+        if r in prev:
+            return prev[r]
+        cand = stale_by_base.get(os.path.basename(r), [])
+        if len(cand) == 1:
+            return [row[:4] + (r,) for row in prev[cand[0]]]
+        return []
     for src in srcs:
         res = cache[rel(src)]['res']
         if res is None:
             broken.append(src)
-            rows.extend(prev.get(os.path.relpath(src, M.ROOT).replace(os.sep, '/'), []))
+            rows.extend(prev_for(rel(src)))
             continue
         for name, score in res:
             a, s = funcs[name]
@@ -108,11 +135,12 @@ def main():
         if r[3] == 'match' and int(r[1], 16) in real: seen.setdefault(r[1], r)
     mf = len(seen); mi = sum(r[2] for r in seen.values())
     print(f'matched functions: {mf}/{total_f} ({mf/total_f:.2%})   instructions: {mi}/{total_i} ({mi/total_i:.2%})')
-    print(f'  hand-written (src/P2 etc): {sum(1 for r in seen.values() if "/auto/" not in r[4])}, auto/fixed m2c (src/auto): {sum(1 for r in seen.values() if "/auto/" in r[4])}')
+    n_m2c = sum(1 for r in seen.values() if is_m2c(r[4]))
+    print(f'  hand-written: {len(seen) - n_m2c}, auto/fixed m2c: {n_m2c}')
     for b in broken[:20]: print('  BUILD FAILED (previous results kept, NOT verified):', rel(b))
     if len(broken) > 20: print(f'  ... and {len(broken) - 20} more')
     if broken:
-        nf = sum(len(prev.get(rel(b), [])) for b in broken)
+        nf = sum(len(prev_for(rel(b))) for b in broken)
         print(f'WARNING: {len(broken)} source files did not build in any environment yet; their {nf} function results '
               f'are carried over from the committed config/matched.csv and were NOT verified. '
               f'Totals above include them. (On Apple Silicon run both: natively AND `tools/dev.sh progress`.)')
