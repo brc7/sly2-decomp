@@ -6,7 +6,7 @@
 | --- | --- |
 | [`bq/`](bq/) | 10 |
 | [`dl/`](dl/) | 21 |
-| [`dynarray/`](dynarray/) | 7 |
+| [`dynarray.cpp`](dynarray.cpp) | 1 |
 | [`empty_119DA0.cpp`](empty_119DA0.cpp) | 1 |
 | [`empty_119EF8.cpp`](empty_119EF8.cpp) | 1 |
 | [`empty_11B1A8.cpp`](empty_11B1A8.cpp) | 1 |

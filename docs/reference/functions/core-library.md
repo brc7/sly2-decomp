@@ -34,13 +34,13 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x116CA0](../../../src/game/core/containers/dynarray/func_00116CA0.c) | `NCmpAb4` | memcmp(a,b,4) (tail-returns result) | 0.40 | T2 |  |
-| [0x116CC0](../../../src/game/core/containers/dynarray/func_00116CC0.c) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
-| [0x116CE0](../../../src/game/core/containers/dynarray/func_00116CE0.c) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
-| [0x116D00](../../../src/game/core/containers/dynarray/func_00116D00.c) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
+| [0x116CA0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb4` | memcmp(a,b,4) (tail-returns result) | 0.40 | T2 |  |
+| [0x116CC0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
+| [0x116CE0](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
+| [0x116D00](../../../src/game/core/containers/dynarray.cpp) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
 | [0x116D28](../../../src/game/platform/memory/heap/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
 | [0x116D70](../../../src/game/platform/memory/heap/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
-| [0x116E30](../../../src/game/core/containers/dynarray/CDynArray_Append.c) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
+| [0x116E30](../../../src/game/core/containers/dynarray.cpp) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
 
 ## bez (0x117030-0x1177A8)
 
