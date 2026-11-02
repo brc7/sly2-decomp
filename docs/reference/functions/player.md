@@ -728,14 +728,14 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D7238](../../../src/game/gameplay/ai/tu_1D7238/func_001D7238.c) | `InitSafehouse` | PO subclass Init: InitPo then store self in global D_003D4A54 | 0.35 | T2 | whole-game |
-| [0x1D7268](../../../src/game/gameplay/ai/tu_1D7238/func_001D7268.c) | `PostSafehouseLoad` | PostSoLoad then vt79(0) | 0.30 | T2 | whole-game |
-| [0x1D72A8](../../../src/game/gameplay/ai/tu_1D7238/func_001D72A8.c) | `UpdateSafehouse` | UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0 | 0.35 | T2 | whole-game |
-| [0x1D7418](../../../src/game/gameplay/ai/tu_1D7238/func_001D7418.c) | `HandleSafehouseMessage` | Calls PO base 0x1C3ED8 then switch on arg -> SetCharSelectState(0/1) | 0.20 | T2 | whole-game |
-| [0x1D7480](../../../src/game/gameplay/ai/tu_1D7238/func_001D7480.cpp) | `SetCharSelectState` | Enter/leave selection state: ReplaceSma, SetSaveVar lookups ('oidPoCurrent'), StartJoySelection | 0.35 | T2 |  |
-| [0x1D7748](../../../src/game/gameplay/ai/tu_1D7238/AddStepguardEffect__FP9STEPGUARD3OID3ZPK.c) | `AddSafehouseEntry` | Append (a,b,c) triple to list at +0x18C (max 12) | 0.45 | existing | arbitration; replaces existing AddStepguardEffect__FP9STEPGUARD3OID3ZPK |
-| [0x1D7780](../../../src/game/gameplay/ai/tu_1D7238/func_001D7780.c) | `SetPoChoices` | Fill +0x220/+0x224 from Splice list (0x2013D8) then reselect | 0.60 | T1 | verified |
-| [0x1D77D0](../../../src/game/gameplay/ai/tu_1D7238/func_001D77D0.c) | `StepCharSelect` | Move SMA goal by d through SM states skipping disallowed ones (wrap) | 0.35 | T2 |  |
+| [0x1D7238](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `InitSafehouse` | PO subclass Init: InitPo then store self in global D_003D4A54 | 0.35 | T2 | whole-game |
+| [0x1D7268](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `PostSafehouseLoad` | PostSoLoad then vt79(0) | 0.30 | T2 | whole-game |
+| [0x1D72A8](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `UpdateSafehouse` | UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0 | 0.35 | T2 | whole-game |
+| [0x1D7418](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `HandleSafehouseMessage` | Calls PO base 0x1C3ED8 then switch on arg -> SetCharSelectState(0/1) | 0.20 | T2 | whole-game |
+| [0x1D7480](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `SetCharSelectState` | Enter/leave selection state: ReplaceSma, SetSaveVar lookups ('oidPoCurrent'), StartJoySelection | 0.35 | T2 |  |
+| [0x1D7748](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `AddSafehouseEntry` | Append (a,b,c) triple to list at +0x18C (max 12) | 0.45 | existing | arbitration; replaces existing AddStepguardEffect__FP9STEPGUARD3OID3ZPK |
+| [0x1D7780](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `SetPoChoices` | Fill +0x220/+0x224 from Splice list (0x2013D8) then reselect | 0.60 | T1 | verified |
+| [0x1D77D0](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `StepCharSelect` | Move SMA goal by d through SM states skipping disallowed ones (wrap) | 0.35 | T2 |  |
 
 ## tu_201D78 (0x201D78-0x203948)
 

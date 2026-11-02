@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetSafehouseClassDesc`](../../../src/game/app/class_registry/GetSafehouseClassDesc.c) | `0x113E70` |
-| 7 | Init | **override** | [`InitSafehouse?`](../../../src/game/gameplay/ai/tu_1D7238/func_001D7238.c) | `0x1D7238` |
+| 7 | Init | **override** | [`InitSafehouse?`](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `0x1D7238` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostSafehouseLoad?`](../../../src/game/gameplay/ai/tu_1D7238/func_001D7268.c) | `0x1D7268` |
-| 16 | Update | **override** | [`UpdateSafehouse?`](../../../src/game/gameplay/ai/tu_1D7238/func_001D72A8.c) | `0x1D72A8` |
+| 15 | PostLoad | **override** | [`PostSafehouseLoad?`](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `0x1D7268` |
+| 16 | Update | **override** | [`UpdateSafehouse?`](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `0x1D72A8` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -101,7 +101,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 76 | FInvulnerablePo | inherited (PO) | `FInvulnerablePo` | `0x1C3E90` |
 | 77 | JthsCurrentPo | inherited (PO) | `JthsCurrentPo` | `0x1C3ED0` |
 | 78 | OnPoActive | inherited (PO) | `OnPoActive` | `0x1C3FF0` |
-| 79 | SetPoCtlState | **override** | [`HandleSafehouseMessage?`](../../../src/game/gameplay/ai/tu_1D7238/func_001D7418.c) | `0x1D7418` |
+| 79 | SetPoCtlState | **override** | [`HandleSafehouseMessage?`](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `0x1D7418` |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |
 
