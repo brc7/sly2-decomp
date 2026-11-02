@@ -3514,8 +3514,8 @@ CopyAqw__FPvT0i,0x1AE528,29,match,src/game/platform/memory/memory/CopyAqw__FPvT0
 CopyAb__FPvT0Ui,0x1AE5A0,54,match,src/game/platform/memory/memory/CopyAb__FPvT0Ui.cpp
 StaticInit_memory,0x1AE678,77,match,src/game/platform/memory/memory/StaticInit_memory.c
 func_001AE7B0,0x1AE7B0,8,match,src/game/platform/memory/memory/func_001AE7B0.c
-StaticInit_empty_1AE7D0,0x1AE7D0,77,match,src/game/ui/empty_1AE7D0/StaticInit_empty_1AE7D0.c
-func_001AE908,0x1AE908,8,match,src/game/ui/empty_1AE7D0/func_001AE908.c
+StaticInit_empty_1AE7D0,0x1AE7D0,77,match,src/game/ui/empty_1AE7D0.cpp
+func_001AE908,0x1AE908,8,match,src/game/ui/empty_1AE7D0.cpp
 func_001AE928,0x1AE928,18,match,src/game/ui/menu/func_001AE928.c
 func_001AE970,0x1AE970,13,match,src/game/ui/menu/func_001AE970.c
 func_001AE9A8,0x1AE9A8,16,match,src/game/ui/menu/func_001AE9A8.c

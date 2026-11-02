@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`empty_1AE7D0/`](empty_1AE7D0/) | 2 |
+| [`empty_1AE7D0.cpp`](empty_1AE7D0.cpp) | 1 |
 | [`memcard/`](memcard/) | 81 |
 | [`menu/`](menu/) | 38 |
 | [`tu_15CD68/`](tu_15CD68/) | 12 |
