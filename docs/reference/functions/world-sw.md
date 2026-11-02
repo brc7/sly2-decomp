@@ -143,8 +143,8 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x226550](../../../src/game/level/update/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
-| [0x2267C0](../../../src/game/level/update/UpdateSwObjects.c) | `UpdateSwObjects` | iterates the SW object DL (0x3D88) calling each object update / asega 0x130918 | 0.60 | T1 |  |
+| [0x226550](../../../src/game/level/update.cpp) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
+| [0x2267C0](../../../src/game/level/update.cpp) | `UpdateSwObjects` | iterates the SW object DL (0x3D88) calling each object update / asega 0x130918 | 0.60 | T1 |  |
 
 ## exit_warp (0x227FE8-0x228B48)
 

@@ -224,7 +224,7 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 | [0x2108E8](../../src/game/world/scene/sw/StopSwAsegSound.c) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
 | [0x210A88](../../src/game/world/scene/sw/IlevelCur__Fv.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
 | [0x210B98](../../src/game/world/scene/sw/PrecWorldEntry.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
-| [0x226550](../../src/game/level/update/UpdateSw.c) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
+| [0x226550](../../src/game/level/update.cpp) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
 | [0x228140](../../src/game/level/exit_warp/func_00228140.c) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
 | [0x228250](../../src/game/level/exit_warp/func_00228250.c) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
 | [0x2282B0](../../src/game/level/exit_warp/func_002282B0.c) | `LoadExitFromBrx` | LoadVolFromBrx then blob + U8 count of entries | 0.85 | T1 | parse, verified |
