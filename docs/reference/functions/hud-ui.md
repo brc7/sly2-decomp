@@ -19,16 +19,16 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x15CD68](../../../src/game/ui/tu_15CD68/func_0015CD68.c) | `InitWidget131` | LO::Init, four ids = -1, registers itself as the singleton D_003E1C04 | 0.75 | T2 |  |
-| [0x15CDA8](../../../src/game/ui/tu_15CD68/func_0015CDA8.c) | `PostWidget131Load` | WIDGET PostLoad (0x2123C8) then picks the first empty slot index from g_sw arrays | 0.65 | T2 |  |
-| [0x15CF30](../../../src/game/ui/tu_15CD68/func_0015CF30.c) | `UpdateWidget131` | Per-frame update of the WIDGET131 HUD element | 0.65 | T2 |  |
-| [0x15D5C8](../../../src/game/ui/tu_15CD68/func_0015D5C8.c) | `OidWidget131Label` | Label id for the widget's current mode/sub-mode from tables D_002BE080/D_002BE1B8 (-1 if none) | 0.35 | T2 |  |
-| [0x15D648](../../../src/game/ui/tu_15CD68/func_0015D648.c) | `SetWidget131Mode` | Switches the episode-menu widget mode (autosave on leaving mode 0, restores the selection on 4/6), resets labels and shows the new label (vt49) | 0.40 | T2 |  |
-| [0x15D798](../../../src/game/ui/tu_15CD68/func_0015D798.c) | `CEpisodeMenuItems` | Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus 1 if under 100% | 0.35 | T2 |  |
-| [0x15D880](../../../src/game/ui/tu_15CD68/func_0015D880.c) | `SetWidget131Highlight` | Plays label 0x5BD/0x5BE when the highlight flag changes | 0.35 | T2 |  |
-| [0x15D8F8](../../../src/game/ui/tu_15CD68/func_0015D8F8.c) | `FormatEpisodePercent` | Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is set) | 0.50 | T1 |  |
-| [0x15D9C0](../../../src/game/ui/tu_15CD68/func_0015D9C0.c) | `FormatEpisodePlayTime` | Text callback: '%01d:%02d' hours:minutes of the selected episode's play time | 0.50 | T1 |  |
-| [0x15DA88](../../../src/game/ui/tu_15CD68/func_0015DA88.c) | `SetEpisodeMenuPageText` | Text callback: string 0x77 or 0x78 depending on the parity of the widget's page | 0.30 | T2 |  |
+| [0x15CD68](../../../src/game/ui/tu_15CD68.cpp) | `InitWidget131` | LO::Init, four ids = -1, registers itself as the singleton D_003E1C04 | 0.75 | T2 |  |
+| [0x15CDA8](../../../src/game/ui/tu_15CD68.cpp) | `PostWidget131Load` | WIDGET PostLoad (0x2123C8) then picks the first empty slot index from g_sw arrays | 0.65 | T2 |  |
+| [0x15CF30](../../../src/game/ui/tu_15CD68.cpp) | `UpdateWidget131` | Per-frame update of the WIDGET131 HUD element | 0.65 | T2 |  |
+| [0x15D5C8](../../../src/game/ui/tu_15CD68.cpp) | `OidWidget131Label` | Label id for the widget's current mode/sub-mode from tables D_002BE080/D_002BE1B8 (-1 if none) | 0.35 | T2 |  |
+| [0x15D648](../../../src/game/ui/tu_15CD68.cpp) | `SetWidget131Mode` | Switches the episode-menu widget mode (autosave on leaving mode 0, restores the selection on 4/6), resets labels and shows the new label (vt49) | 0.40 | T2 |  |
+| [0x15D798](../../../src/game/ui/tu_15CD68.cpp) | `CEpisodeMenuItems` | Number of menu items for the selected episode: table value minus 2 if never played (time 0), minus 1 if under 100% | 0.35 | T2 |  |
+| [0x15D880](../../../src/game/ui/tu_15CD68.cpp) | `SetWidget131Highlight` | Plays label 0x5BD/0x5BE when the highlight flag changes | 0.35 | T2 |  |
+| [0x15D8F8](../../../src/game/ui/tu_15CD68.cpp) | `FormatEpisodePercent` | Text callback: '%d%%' of the selected episode's percent (95% scale, +5 if a per-episode flag is set) | 0.50 | T1 |  |
+| [0x15D9C0](../../../src/game/ui/tu_15CD68.cpp) | `FormatEpisodePlayTime` | Text callback: '%01d:%02d' hours:minutes of the selected episode's play time | 0.50 | T1 |  |
+| [0x15DA88](../../../src/game/ui/tu_15CD68.cpp) | `SetEpisodeMenuPageText` | Text callback: string 0x77 or 0x78 depending on the parity of the widget's page | 0.30 | T2 |  |
 
 ## font (0x15EF00-0x1603B8)
 

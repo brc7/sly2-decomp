@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetWidget131ClassDesc`](../../../src/game/app/class_registry/GetWidget131ClassDesc.c) | `0x114240` |
-| 7 | Init | **override** | [`InitWidget131?`](../../../src/game/ui/tu_15CD68/func_0015CD68.c) | `0x15CD68` |
+| 7 | Init | **override** | [`InitWidget131?`](../../../src/game/ui/tu_15CD68.cpp) | `0x15CD68` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` |
@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (WIDGET) | `LoadWidgetFromBrx?` | `0x212298` |
-| 15 | PostLoad | **override** | [`PostWidget131Load?`](../../../src/game/ui/tu_15CD68/func_0015CDA8.c) | `0x15CDA8` |
-| 16 | Update | **override** | [`UpdateWidget131?`](../../../src/game/ui/tu_15CD68/func_0015CF30.c) | `0x15CF30` |
+| 15 | PostLoad | **override** | [`PostWidget131Load?`](../../../src/game/ui/tu_15CD68.cpp) | `0x15CDA8` |
+| 16 | Update | **override** | [`UpdateWidget131?`](../../../src/game/ui/tu_15CD68.cpp) | `0x15CF30` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (WIDGET) | `RenderWidget?` | `0x213300` |
