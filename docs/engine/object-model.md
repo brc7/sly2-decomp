@@ -189,15 +189,15 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
 | [0x133590](../../src/game/object/basic/HandleBasicMessage.c) | `HandleBasicMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | T1 |  |
 | [0x147F40](../../src/game/object/busy/UpdateSwBusyList.c) | `UpdateSwBusyList` | Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current player, and move them between busy/idle lists | 0.85 | T1 | runtime |
 | [0x148300](../../src/game/object/busy/func_00148300.c) | `UpdateLoBusy` | Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it | 0.40 | T2 |  |
-| [0x15E380](../../src/game/object/find/PdlFromSwOid.c) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.85 | T1 | runtime |
-| [0x15E3A8](../../src/game/object/find/PdlFromSwCid.c) | `PdlFromSwCid` | Returns the per-class object DL of the SW (SW+0x3038 + 8*cid) | 0.85 | T1 | runtime-corrected, runtime |
-| [0x15E3C0](../../src/game/object/find/PdlFromSwPxrOid.c) | `PdlFromSwPxrOid` | Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash) | 0.60 | T1 | verified |
-| [0x15E650](../../src/game/object/find/CploFindSwObjects_15E650.c) | `CploFindSwObjects_15E650` | Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra arg 0) | 0.80 | T1 |  |
-| [0x15E678](../../src/game/object/find/func_0015E678.c) | `CploFindSwObjects` | Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter between ploContext and cploMax | 0.85 | T1 | verified |
-| [0x15E938](../../src/game/object/find/PloFindSwObject__FP2SWi3OIDP2LO.c) | `PloFindSwObject` | Returns the first LO matching grffso/oid relative to a context LO (or NULL) | 0.90 | T1 |  |
-| [0x15E988](../../src/game/object/find/FIsCidDerivedFrom.c) | `FIsCidDerivedFrom` | Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches cidAncestor | 0.85 | T1 | verified |
-| [0x15E9C8](../../src/game/object/find/CploFindSwObjectsByClass.c) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | T1 | verified |
-| [0x15ED78](../../src/game/object/find/PloFindSwObjectByClass__FP2SWi3CIDP2LO.c) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | T1 |  |
+| [0x15E380](../../src/game/object/find.cpp) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.85 | T1 | runtime |
+| [0x15E3A8](../../src/game/object/find.cpp) | `PdlFromSwCid` | Returns the per-class object DL of the SW (SW+0x3038 + 8*cid) | 0.85 | T1 | runtime-corrected, runtime |
+| [0x15E3C0](../../src/game/object/find.cpp) | `PdlFromSwPxrOid` | Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash) | 0.60 | T1 | verified |
+| [0x15E650](../../src/game/object/find.cpp) | `CploFindSwObjects_15E650` | Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra arg 0) | 0.80 | T1 |  |
+| [0x15E678](../../src/game/object/find.cpp) | `CploFindSwObjects` | Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter between ploContext and cploMax | 0.85 | T1 | verified |
+| [0x15E938](../../src/game/object/find.cpp) | `PloFindSwObject` | Returns the first LO matching grffso/oid relative to a context LO (or NULL) | 0.90 | T1 |  |
+| [0x15E988](../../src/game/object/find.cpp) | `FIsCidDerivedFrom` | Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches cidAncestor | 0.85 | T1 | verified |
+| [0x15E9C8](../../src/game/object/find.cpp) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | T1 | verified |
+| [0x15ED78](../../src/game/object/find.cpp) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | T1 |  |
 | [0x1603B8](../../src/game/engine/anim/tu_1603B8/func_001603B8.cpp) | `LoadXfmConstraintsFromBrx` | Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from the BRX stream, links each dest to its record and sw | 0.75 | T1 | parse |
 | [0x1A5270](../../src/game/object/lo/InitLo.c) | `InitLo` | LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21 | 0.95 | T1 | runtime, verified |
 | [0x1A53E0](../../src/game/object/lo/FreeLoroot.c) | `FreeLoroot` | Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool g_sw+0x398C, clear x14 | 0.85 | T1 | verified |

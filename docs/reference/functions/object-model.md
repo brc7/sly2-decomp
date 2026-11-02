@@ -60,17 +60,17 @@ Totals on this page: T1 113, T2 53.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x15E380](../../../src/game/object/find/PdlFromSwOid.c) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.85 | T1 | runtime |
-| [0x15E3A8](../../../src/game/object/find/PdlFromSwCid.c) | `PdlFromSwCid` | Returns the per-class object DL of the SW (SW+0x3038 + 8*cid) | 0.85 | T1 | runtime-corrected, runtime |
-| [0x15E3C0](../../../src/game/object/find/PdlFromSwPxrOid.c) | `PdlFromSwPxrOid` | Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash) | 0.60 | T1 | verified |
-| [0x15E3E8](../../../src/game/object/find/MatchSwObject.c) | `MatchSwObject` | Tests one candidate LO against the search flags/context and records it in the result array (best-distance logic) | 0.70 | T1 |  |
-| [0x15E650](../../../src/game/object/find/CploFindSwObjects_15E650.c) | `CploFindSwObjects_15E650` | Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra arg 0) | 0.80 | T1 |  |
-| [0x15E678](../../../src/game/object/find/func_0015E678.c) | `CploFindSwObjects` | Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter between ploContext and cploMax | 0.85 | T1 | verified |
-| [0x15E938](../../../src/game/object/find/PloFindSwObject__FP2SWi3OIDP2LO.c) | `PloFindSwObject` | Returns the first LO matching grffso/oid relative to a context LO (or NULL) | 0.90 | T1 |  |
-| [0x15E958](../../../src/game/object/find/PloFindSwObject_15E958.c) | `PloFindSwObject_15E958` | PloFindSwObject overload with the extra Sly 2 parameter: CploFindSwObjects(grffso\|0x200, ..., 1, &plo) | 0.65 | T1 |  |
-| [0x15E988](../../../src/game/object/find/FIsCidDerivedFrom.c) | `FIsCidDerivedFrom` | Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches cidAncestor | 0.85 | T1 | verified |
-| [0x15E9C8](../../../src/game/object/find/CploFindSwObjectsByClass.c) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | T1 | verified |
-| [0x15ED78](../../../src/game/object/find/PloFindSwObjectByClass__FP2SWi3CIDP2LO.c) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | T1 |  |
+| [0x15E380](../../../src/game/object/find.cpp) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.85 | T1 | runtime |
+| [0x15E3A8](../../../src/game/object/find.cpp) | `PdlFromSwCid` | Returns the per-class object DL of the SW (SW+0x3038 + 8*cid) | 0.85 | T1 | runtime-corrected, runtime |
+| [0x15E3C0](../../../src/game/object/find.cpp) | `PdlFromSwPxrOid` | Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash) | 0.60 | T1 | verified |
+| [0x15E3E8](../../../src/game/object/find.cpp) | `MatchSwObject` | Tests one candidate LO against the search flags/context and records it in the result array (best-distance logic) | 0.70 | T1 |  |
+| [0x15E650](../../../src/game/object/find.cpp) | `CploFindSwObjects_15E650` | Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra arg 0) | 0.80 | T1 |  |
+| [0x15E678](../../../src/game/object/find.cpp) | `CploFindSwObjects` | Core object search over the oid hash buckets (and second table), with an extra Sly 2 parameter between ploContext and cploMax | 0.85 | T1 | verified |
+| [0x15E938](../../../src/game/object/find.cpp) | `PloFindSwObject` | Returns the first LO matching grffso/oid relative to a context LO (or NULL) | 0.90 | T1 |  |
+| [0x15E958](../../../src/game/object/find.cpp) | `PloFindSwObject_15E958` | PloFindSwObject overload with the extra Sly 2 parameter: CploFindSwObjects(grffso\|0x200, ..., 1, &plo) | 0.65 | T1 |  |
+| [0x15E988](../../../src/game/object/find.cpp) | `FIsCidDerivedFrom` | Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches cidAncestor | 0.85 | T1 | verified |
+| [0x15E9C8](../../../src/game/object/find.cpp) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | T1 | verified |
+| [0x15ED78](../../../src/game/object/find.cpp) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | T1 |  |
 
 ## tu_1603B8 (0x1603B8-0x1607A0)
 
