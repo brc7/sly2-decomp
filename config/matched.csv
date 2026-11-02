@@ -5018,8 +5018,8 @@ func_001FF4A8,0x1FF4A8,18,match,src/game/gameplay/objects/tu_1FF3B8/func_001FF4A
 func_001FF4F0,0x1FF4F0,18,match,src/game/gameplay/objects/tu_1FF3B8/func_001FF4F0.c
 StaticInit_tu_1FF3B8,0x1FF538,77,match,src/game/gameplay/objects/tu_1FF3B8/StaticInit_tu_1FF3B8.c
 func_001FF670,0x1FF670,8,match,src/game/gameplay/objects/tu_1FF3B8/func_001FF670.c
-StaticInit_empty_1FF690,0x1FF690,77,match,src/game/level/empty_1FF690/StaticInit_empty_1FF690.c
-func_001FF7C8,0x1FF7C8,8,match,src/game/level/empty_1FF690/func_001FF7C8.c
+StaticInit_empty_1FF690,0x1FF690,77,match,src/game/level/empty_1FF690.cpp
+func_001FF7C8,0x1FF7C8,8,match,src/game/level/empty_1FF690.cpp
 func_001FF7E8,0x1FF7E8,16,match,src/game/object/splicemap/func_001FF7E8.c
 func_001FF828,0x1FF828,2,match,src/game/object/splicemap/func_001FF828.c
 func_001FF830,0x1FF830,9,match,src/game/object/splicemap/func_001FF830.c
