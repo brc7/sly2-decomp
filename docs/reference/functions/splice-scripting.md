@@ -324,7 +324,7 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12B0E8](../../../src/game/splice/varb/CVarb_CloneTo.cpp) | `CVarb_CloneTo` | Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone | 0.70 | T1 |  |
+| [0x12B0E8](../../../src/game/splice/varb.cpppp) | `CVarb_CloneTo` | Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone | 0.70 | T1 |  |
 
 ## splicemap (0x1FF7E8-0x1FFCF8)
 

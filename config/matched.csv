@@ -1323,9 +1323,9 @@ StartupSplice,0x12AE18,4,match,src/game/splice/spliceutils/StartupSplice.c
 ShutdownSplice,0x12AE28,33,match,src/game/splice/spliceutils/ShutdownSplice.c
 StaticInit_spliceutils,0x12AEB0,133,match,src/game/splice/spliceutils/StaticInit_spliceutils.c
 func_0012B0C8,0x12B0C8,8,match,src/game/splice/spliceutils/func_0012B0C8.c
-CVarb_CloneTo,0x12B0E8,91,match,src/game/splice/varb/CVarb_CloneTo.cpp
-StaticInit_varb,0x12B258,77,match,src/game/splice/varb/StaticInit_varb.c
-func_0012B390,0x12B390,8,match,src/game/splice/varb/func_0012B390.c
+CVarb_CloneTo,0x12B0E8,91,match,src/game/splice/varb.cpp
+StaticInit_varb,0x12B258,77,match,src/game/splice/varb.cpp
+func_0012B390,0x12B390,8,match,src/game/splice/varb.cpp
 PacNewKind,0x12B3B0,80,match,src/game/engine/anim/act/PacNewKind.cpp
 func_0012B4F0,0x12B4F0,2,match,src/game/engine/anim/act/func_0012B4F0.c
 LoadAcConstFromBrx,0x12B4F8,9,match,src/game/engine/anim/act/LoadAcConstFromBrx.c
@@ -6560,7 +6560,7 @@ func_00257148,0x257148,65,match,src/game/splice/ref/func_00257148.c
 func_00257250,0x257250,35,match,src/game/splice/sidebag/func_00257250.c
 func_002572E0,0x2572E0,24,match,src/game/splice/eval/func_002572E0.c
 PvNewBinding,0x257340,59,match,src/game/splice/frame/PvNewBinding.c
-func_00257430,0x257430,7,match,src/game/splice/varb/func_00257430.c
+func_00257430,0x257430,7,match,src/game/splice/varb.cpp
 func_00257450,0x257450,36,match,src/game/splice/frame/func_00257450.c
 func_002574E0,0x2574E0,2,match,src/game/splice/gc/func_002574E0.c
 func_002574E8,0x2574E8,2,match,src/game/splice/gc/func_002574E8.c

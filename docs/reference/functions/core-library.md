@@ -480,7 +480,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x257250](../../../src/game/splice/sidebag/func_00257250.c) | `BindingPtr_Release` | Release a CBinding ref-pointer: decref; at 0 release next binding (recursive), destroy the CRef (0x129EC8), unlink from GC list, free to pool D_004520D0; flags&1 -> operator delete of the holder | 0.45 | T2 | top50 |
 | [0x2572E0](../../../src/game/splice/eval/func_002572E0.c) | `FramePtr_Release` | release CFrame refptr (DeleteFrame when 0), flags&1 -> delete [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x257340](../../../src/game/splice/frame/func_00257340.c) | `PvNewBinding` | allocate Binding node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x257430](../../../src/game/splice/varb/func_00257430.c) | `BindingPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x257430](../../../src/game/splice/varb.cpp) | `BindingPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x257450](../../../src/game/splice/frame/func_00257450.c) | `BindingPtr_Assign` | refptr assign for binding list [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x2574E0](../../../src/game/splice/gc/func_002574E0.c) | `GcCollectNop0` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2574E8](../../../src/game/splice/gc/func_002574E8.c) | `GcCollectNop1` | empty per-pool hook called by CGc_Collect [game linkonce (inline/template)] | 0.20 | T2 |  |
