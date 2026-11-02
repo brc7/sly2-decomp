@@ -42,11 +42,11 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x157A50](../../../src/game/engine/graphics/pipeline/draw/NCmpPrplReverseZ__FPP3RPLT0.cpp) | `NCmpPrplReverseZ__FPP3RPLT0` |  |  | existing |  |
-| [0x157A98](../../../src/game/engine/graphics/pipeline/draw/func_00157A98.c) | `NCmpPrplZ` | qsort comparator: RPLs by ascending z, ties by address (front-to-back order) | 0.70 | T1 |  |
-| [0x157AE0](../../../src/game/engine/graphics/pipeline/draw/func_00157AE0.c) | `CprplPartitionArpl` | Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some buckets, returns end index | 0.80 | T1 | verified |
-| [0x157CF0](../../../src/game/engine/graphics/pipeline/draw/func_00157CF0.c) | `BeginRpForeground` | Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010, re-upload camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob | 0.70 | T1 |  |
-| [0x157FA0](../../../src/game/engine/graphics/pipeline/draw/func_00157FA0.c) | `DrawSw` | Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL tags; flushes VIFS | 0.70 | T1 |  |
+| [0x157A50](../../../src/game/engine/graphics/pipeline/draw.cpp) | `NCmpPrplReverseZ__FPP3RPLT0` |  |  | existing |  |
+| [0x157A98](../../../src/game/engine/graphics/pipeline/draw.cpp) | `NCmpPrplZ` | qsort comparator: RPLs by ascending z, ties by address (front-to-back order) | 0.70 | T1 |  |
+| [0x157AE0](../../../src/game/engine/graphics/pipeline/draw.cpp) | `CprplPartitionArpl` | Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some buckets, returns end index | 0.80 | T1 | verified |
+| [0x157CF0](../../../src/game/engine/graphics/pipeline/draw.cpp) | `BeginRpForeground` | Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010, re-upload camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob | 0.70 | T1 |  |
+| [0x157FA0](../../../src/game/engine/graphics/pipeline/draw.cpp) | `DrawSw` | Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL tags; flushes VIFS | 0.70 | T1 |  |
 
 ## frm (0x1607A0-0x1613A8)
 

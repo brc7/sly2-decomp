@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`draw/`](draw/) | 7 |
+| [`draw.cpp`](draw.cpp) | 1 |
 | [`glob/`](glob/) | 42 |
 | [`light/`](light/) | 32 |
 | [`ms.cpp`](ms.cpp) | 1 |

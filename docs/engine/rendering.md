@@ -43,7 +43,7 @@ kind from record bits 44-49), `RenderBlipgSelf` 0x13A1E8 (12), `RenderCid74Self`
 (no pausing widget); k 3/4 -> 22/23 if foreground, else k when alpha == 1, else 5 (from 3) / 6 (from 4); k 5/6 -> 23 if fFg; 9 -> 24; 10 -> 25.
 Render-to-texture slots remap through `g_ampkindRtt` D_002C0BF8 (k 3,4,15,18,22 -> 15; 5,6,16,19,23 -> 16; 9,17,20,24 -> 17; slot 1 uses 18/19/20).
 
-## 3. DrawSw: sort, prologue and pass dispatch (`src/game/engine/graphics/pipeline/draw/func_00157FA0.c`) `[C:static]`
+## 3. DrawSw: sort, prologue and pass dispatch (`src/game/engine/graphics/pipeline/draw.cpp`) `[C:static]`
 
 1. `CprplPartitionArpl` 0x157AE0: counting sort into 26 buckets; far-to-near qsort (`NCmpPrplReverseZ`) on buckets 5, 6, 10, 1, 2, 25; near-to-far on 21; others keep submission order.
 2. CALL the frame-context packet D_002DF800; if SW+0x3E3C (force clear) or bucket 1 empty, DIRECT the colour+Z clear `g_aqwClearColorZ` D_002DEDC0.
@@ -275,8 +275,8 @@ Shader sketches for all of the above: `vu_microcode/pseudo_shaders.glsl`.
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x1572E0](../../src/game/engine/graphics/backend/dmas/dmas.cpp) | `AllocStack__4DMASi` |  | 0.90 | existing | arbitration; replaces existing AllocSw__4DMASi |
-| [0x157AE0](../../src/game/engine/graphics/pipeline/draw/func_00157AE0.c) | `CprplPartitionArpl` | Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some buckets, returns end index | 0.80 | T1 | verified |
-| [0x157FA0](../../src/game/engine/graphics/pipeline/draw/func_00157FA0.c) | `DrawSw` | Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls the pass table begin/end hooks D_00 | 0.70 | T1 |  |
+| [0x157AE0](../../src/game/engine/graphics/pipeline/draw.cpp) | `CprplPartitionArpl` | Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some buckets, returns end index | 0.80 | T1 | verified |
+| [0x157FA0](../../src/game/engine/graphics/pipeline/draw.cpp) | `DrawSw` | Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls the pass table begin/end hooks D_00 | 0.70 | T1 |  |
 | [0x1607A0](../../src/game/engine/graphics/backend/frm/func_001607A0.cpp) | `StartupFrame` | Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears the two deferred-release DLs, sta | 0.85 | T1 |  |
 | [0x160918](../../src/game/engine/graphics/backend/frm/func_00160918.cpp) | `EnsureVu1Code` | Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd) | 0.85 | T1 | verified |
 | [0x160A98](../../src/game/engine/graphics/backend/frm/func_00160A98.cpp) | `CloseFrame` | Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two deferred-release DLs into the frame, clears g_pfrmOpen and sign | 0.85 | T1 |  |
