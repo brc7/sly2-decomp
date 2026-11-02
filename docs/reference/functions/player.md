@@ -513,10 +513,10 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19F0A8](../../../src/game/gameplay/player/tu_19F0A8/func_0019F0A8.c) | `NotifySwStepplayers` | For every STEPPLAYER (CID 0x34, up to 8) call its vt104 | 0.30 | T2 |  |
-| [0x19F120](../../../src/game/gameplay/player/tu_19F0A8/UpdateSwGuardOverride.c) | `UpdateSwGuardOverride` | Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s, clear it (0x19F170(psw,0)) | 0.85 | T1 | verified |
-| [0x19F170](../../../src/game/gameplay/player/tu_19F0A8/func_0019F170.c) | `SetSwGuardOverride` | Set/clear the override flag with timestamp and put every STEPGUARD (CID 0x38, max 32) into guard state 0xE, or back to -1 if it was in 0xE | 0.35 | T2 |  |
-| [0x19F220](../../../src/game/gameplay/player/tu_19F0A8/func_0019F220.c) | `SetSwGuardsState` | Put every STEPGUARD into guard state x via 0x207030 | 0.35 | T2 |  |
+| [0x19F0A8](../../../src/game/gameplay/player/tu_19F0A8.cpp) | `NotifySwStepplayers` | For every STEPPLAYER (CID 0x34, up to 8) call its vt104 | 0.30 | T2 |  |
+| [0x19F120](../../../src/game/gameplay/player/tu_19F0A8.cpp) | `UpdateSwGuardOverride` | Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s, clear it (0x19F170(psw,0)) | 0.85 | T1 | verified |
+| [0x19F170](../../../src/game/gameplay/player/tu_19F0A8.cpp) | `SetSwGuardOverride` | Set/clear the override flag with timestamp and put every STEPGUARD (CID 0x38, max 32) into guard state 0xE, or back to -1 if it was in 0xE | 0.35 | T2 |  |
+| [0x19F220](../../../src/game/gameplay/player/tu_19F0A8.cpp) | `SetSwGuardsState` | Put every STEPGUARD into guard state x via 0x207030 | 0.35 | T2 |  |
 
 ## places (0x19F3E8-0x1A0300)
 

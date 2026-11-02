@@ -26,7 +26,7 @@
 | [`rail/`](rail/) | 12 |
 | [`stepplayer/`](stepplayer/) | 96 |
 | [`throw/`](throw/) | 12 |
-| [`tu_19F0A8/`](tu_19F0A8/) | 6 |
+| [`tu_19F0A8.cpp`](tu_19F0A8.cpp) | 1 |
 | [`tu_201D78/`](tu_201D78/) | 26 |
 | [`tu_20B840/`](tu_20B840/) | 31 |
 
