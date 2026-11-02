@@ -100,25 +100,25 @@ Totals on this page: EXISTING 17, T1 46, T2 35.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D7B88](../../../src/game/world/state/save/LoadSaveSchemaFromBrx.c) | `LoadSaveSchemaFromBrx` | Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if schema checksum changed | 0.90 | T1 | runtime, format-doc |
-| [0x1D7C80](../../../src/game/world/state/save/ResetGsIfSchemaChanged.c) | `ResetGsIfSchemaChanged` | Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum | 0.70 | T1 |  |
-| [0x1D7D30](../../../src/game/world/state/save/FGsMatchesSchema.c) | `FGsMatchesSchema` | True if GS stored version/checksum (+0x5400/+0x5404) equal schema's | 0.75 | T1 |  |
-| [0x1D7DA0](../../../src/game/world/state/save/FFindSaveVar.c) | `FFindSaveVar` | Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling}) along a key of symbol ids; outputs entry + array index | 0.75 | T1 |  |
-| [0x1D7E80](../../../src/game/world/state/save/PvFromSaveVar.c) | `PvFromSaveVar` | Address of a save var in a GS blob: pb + ib + index*size[kind] | 0.85 | T1 | verified |
-| [0x1D7ED8](../../../src/game/world/state/save/RefGetSaveVar.cpp) | `RefGetSaveVar` | Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...) | 0.75 | T1 |  |
-| [0x1D80C8](../../../src/game/world/state/save/RefSetSaveVar.cpp) | `RefSetSaveVar` | Write a CRef into a save var by kind (bitfield set/clear for packed bools) | 0.75 | T1 |  |
-| [0x1D82B8](../../../src/game/world/state/save/NCompletionPercentGs.cpp) | `NCompletionPercentGs` | Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set 'fVault' bool/bit; returns 0 / 100 / clamp(1..99) | 0.85 | T1 | verified |
-| [0x1D84B0](../../../src/game/world/state/save/func_001D84B0.c) | `BuildMemcardGsMask` | Copy D_003D4A60 into a big buffer then set flag byte at ib for every schema entry whose symbol is 'from_memcard' | 0.45 | T2 |  |
-| [0x1D8600](../../../src/game/world/state/save/InitSaveSymbolTable.c) | `InitSaveSymbolTable` | Allocate c 16-byte hash entries for the symbol table at schema+0xD4 | 0.60 | T1 |  |
-| [0x1D8640](../../../src/game/world/state/save/UHashPchzCi.c) | `UHashPchzCi` | Case-insensitive string hash h=h*33+toupper(c) | 0.75 | T1 |  |
-| [0x1D8690](../../../src/game/world/state/save/AddSaveSymbol.c) | `AddSaveSymbol` | Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the preallocated array | 0.70 | T1 |  |
-| [0x1D8720](../../../src/game/world/state/save/NFindSaveSymbol.c) | `NFindSaveSymbol` | Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent | 0.75 | T1 |  |
-| [0x1D87C0](../../../src/game/world/state/save/BuildSaveKeyV.c) | `BuildSaveKeyV` | Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols via atoi as array indices) | 0.70 | T1 |  |
-| [0x1D88D0](../../../src/game/world/state/save/PkeyNewSaveKey.cpp) | `PkeyNewSaveKey` | Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238 (realloc-like) | 0.55 | T1 |  |
-| [0x1D89A8](../../../src/game/world/state/save/PkeyAllocSaveKey.c) | `PkeyAllocSaveKey` | Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV | 0.55 | T1 |  |
-| [0x1D8A38](../../../src/game/world/state/save/RefGetSaveVarV.cpp) | `RefGetSaveVarV` | CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60 | 0.90 | T1 | runtime, verified |
-| [0x1D8B20](../../../src/game/world/state/save/RefSetSaveVarV.cpp) | `RefSetSaveVarV` | CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs | 0.85 | T1 | verified |
-| [0x1D8C10](../../../src/game/world/state/save/PvSaveVarV.c) | `PvSaveVarV` | Varargs: address of a named save var inside g_gs | 0.65 | T1 |  |
-| [0x1D8CC8](../../../src/game/world/state/save/PkeyConcatSaveKeys.c) | `PkeyConcatSaveKeys` | Allocate a new key = concatenation of two keys' id arrays | 0.65 | T1 |  |
-| [0x1D8D80](../../../src/game/world/state/save/func_001D8D80.cpp) | `ResetSaveGs` | Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars (keys in global +0x3B2C) across the clear | 0.60 | T2 |  |
-| [0x1D8FF8](../../../src/game/world/state/save/ApplyGsSettings.cpp) | `ApplyGsSettings` | Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50) | 0.70 | T1 |  |
+| [0x1D7B88](../../../src/game/world/state/save.cpp) | `LoadSaveSchemaFromBrx` | Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if schema checksum changed | 0.90 | T1 | runtime, format-doc |
+| [0x1D7C80](../../../src/game/world/state/save.cpp) | `ResetGsIfSchemaChanged` | Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum | 0.70 | T1 |  |
+| [0x1D7D30](../../../src/game/world/state/save.cpp) | `FGsMatchesSchema` | True if GS stored version/checksum (+0x5400/+0x5404) equal schema's | 0.75 | T1 |  |
+| [0x1D7DA0](../../../src/game/world/state/save.cpp) | `FFindSaveVar` | Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling}) along a key of symbol ids; outputs entry + array index | 0.75 | T1 |  |
+| [0x1D7E80](../../../src/game/world/state/save.cpp) | `PvFromSaveVar` | Address of a save var in a GS blob: pb + ib + index*size[kind] | 0.85 | T1 | verified |
+| [0x1D7ED8](../../../src/game/world/state/save.cpp) | `RefGetSaveVar` | Read a save var as a Splice CRef: switch on kind (int/float/bool or bitfield/vector/qw/v2/v3...) | 0.75 | T1 |  |
+| [0x1D80C8](../../../src/game/world/state/save.cpp) | `RefSetSaveVar` | Write a CRef into a save var by kind (bitfield set/clear for packed bools) | 0.75 | T1 |  |
+| [0x1D82B8](../../../src/game/world/state/save.cpp) | `NCompletionPercentGs` | Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set 'fVault' bool/bit; returns 0 / 100 / clamp(1..99) | 0.85 | T1 | verified |
+| [0x1D84B0](../../../src/game/world/state/save.cpp) | `BuildMemcardGsMask` | Copy D_003D4A60 into a big buffer then set flag byte at ib for every schema entry whose symbol is 'from_memcard' | 0.45 | T2 |  |
+| [0x1D8600](../../../src/game/world/state/save.cpp) | `InitSaveSymbolTable` | Allocate c 16-byte hash entries for the symbol table at schema+0xD4 | 0.60 | T1 |  |
+| [0x1D8640](../../../src/game/world/state/save.cpp) | `UHashPchzCi` | Case-insensitive string hash h=h*33+toupper(c) | 0.75 | T1 |  |
+| [0x1D8690](../../../src/game/world/state/save.cpp) | `AddSaveSymbol` | Insert (name,id) into 53-bucket chained hash table, taking entries from the end of the preallocated array | 0.70 | T1 |  |
+| [0x1D8720](../../../src/game/world/state/save.cpp) | `NFindSaveSymbol` | Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent | 0.75 | T1 |  |
+| [0x1D87C0](../../../src/game/world/state/save.cpp) | `BuildSaveKeyV` | Turn a NULL-terminated varargs list of strings into a key (short array of symbol ids; non-symbols via atoi as array indices) | 0.70 | T1 |  |
+| [0x1D88D0](../../../src/game/world/state/save.cpp) | `PkeyNewSaveKey` | Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238 (realloc-like) | 0.55 | T1 |  |
+| [0x1D89A8](../../../src/game/world/state/save.cpp) | `PkeyAllocSaveKey` | Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV | 0.55 | T1 |  |
+| [0x1D8A38](../../../src/game/world/state/save.cpp) | `RefGetSaveVarV` | CRef GetSaveVar(const char *name, ...): build key on stack frame and read from g_gs D_003D4A60 | 0.90 | T1 | runtime, verified |
+| [0x1D8B20](../../../src/game/world/state/save.cpp) | `RefSetSaveVarV` | CRef SetSaveVar(const CRef &val, const char *name, ...) into g_gs | 0.85 | T1 | verified |
+| [0x1D8C10](../../../src/game/world/state/save.cpp) | `PvSaveVarV` | Varargs: address of a named save var inside g_gs | 0.65 | T1 |  |
+| [0x1D8CC8](../../../src/game/world/state/save.cpp) | `PkeyConcatSaveKeys` | Allocate a new key = concatenation of two keys' id arrays | 0.65 | T1 |  |
+| [0x1D8D80](../../../src/game/world/state/save.cpp) | `ResetSaveGs` | Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars (keys in global +0x3B2C) across the clear | 0.60 | T2 |  |
+| [0x1D8FF8](../../../src/game/world/state/save.cpp) | `ApplyGsSettings` | Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at D_003DD050, screen X/Y offset (GS DISPLAY DX=g+636, DY=g+50) | 0.70 | T1 |  |
