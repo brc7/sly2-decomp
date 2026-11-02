@@ -3,7 +3,7 @@
 // vertex contacts of both sides; then every free LSG of side 0 either follows the func_001A86B8 edge path of side 1 (closest points of the
 // two edges via func_0011EA60, kind 3) or, when no side-1 LSG shares a surface with its edge, contacts the nearer endpoint against the
 // farther plane (kind 1). With no new contact and one side empty, a kind-13 contact at the shape position is added.
-// LSG / EDGE / SURF layouts and names as in Lilly's matched ClsgClipEdgeToBsp port (src/hand/func_00118668.cpp).
+// LSG / EDGE / SURF layouts and names as in Lilly's matched ClsgClipEdgeToBsp port (src/game/core/math/bsp/func_00118668.cpp).
 // How it matched (w4lane4 -> w5lane2):
 //  - Separate Sly-1-style local arrays (one frame base each, shared by gcse with the call arguments); the side-1 loop indexes &aalsg[1][i].
 //  - Lilly's QwMix(VuFloat(1 - t), a, VuFloat(t), b) lerps reproduce the dead VU_FLOAT stores at 0x6900.

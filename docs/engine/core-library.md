@@ -32,7 +32,7 @@ Fix: 0x11C168 is `operator*(MATRIX4, MATRIX4)`, not MultiplyMatrix4Vector `[C:ve
 
 ## 4. Binary input streams and CD
 
-- `CBinaryInputStream` (`src/P2/bis.cpp`, 0x1177A8): base `CBinaryStreamBase` with vptr at +0x30 (`Fill()`, `Close()`); readers U8/U16/U32/S8/S16/S32/F32,
+- `CBinaryInputStream` (`src/game/core/binstream/bis/bis.cpp`, 0x1177A8): base `CBinaryStreamBase` with vptr at +0x30 (`Fill()`, `Close()`); readers U8/U16/U32/S8/S16/S32/F32,
   vectors/matrices, `Align`, `Skip`, `Read`, string16; LZSS decompression into a window (`SetDecompress` 0x1179D8, `Decompress` 0x1179F0) `[C:static]`.
   API names carried over from Sly 1, layout not `[C:static layouts.md]`.
 - A CD-backed stream subclass (TU 0x1848A8, vtable D_002D2918; class name coined CStreamBis) is used for all world/file loads; `FOpenSector` 0x184D98 `[H r4b bisstream.md]`.
@@ -82,47 +82,47 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x116A58](../../src/game/platform/memory/heap/CSwHeap_PvRealloc.c) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
-| [0x117120](../../src/hand/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
-| [0x117988](../../src/P2/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
-| [0x117FD0](../../src/hand/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
-| [0x118220](../../src/hand/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
-| [0x118380](../../src/hand/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
-| [0x118420](../../src/auto/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
-| [0x118458](../../src/auto/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
-| [0x118668](../../src/hand/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
-| [0x118A88](../../src/hand/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
-| [0x119308](../../src/hand/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
-| [0x1193C0](../../src/auto/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
-| [0x11A060](../../src/hand/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A070](../../src/hand/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
-| [0x11A1B8](../../src/hand/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
-| [0x11A200](../../src/hand/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A210](../../src/hand/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
-| [0x11A250](../../src/hand/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
-| [0x11A550](../../src/hand/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
-| [0x11ABF8](../../src/hand/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
-| [0x11AFE0](../../src/hand/HashPchzCaseless.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
-| [0x11BA08](../../src/hand/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
-| [0x11C168](../../src/hand/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
-| [0x11C950](../../src/hand/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
-| [0x11CF60](../../src/hand/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
-| [0x11D018](../../src/hand/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
-| [0x11D448](../../src/hand/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
-| [0x11D508](../../src/hand/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
-| [0x11D608](../../src/hand/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
-| [0x11D7F0](../../src/hand/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
-| [0x11D898](../../src/hand/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
-| [0x11D978](../../src/hand/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
-| [0x11D9D8](../../src/auto/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
-| [0x11DD30](../../src/hand/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
-| [0x11E2D8](../../src/hand/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
-| [0x11E630](../../src/hand/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
-| [0x11E958](../../src/hand/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
-| [0x11E9F8](../../src/hand/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
-| [0x11F088](../../src/hand/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
-| [0x13D558](../../src/auto/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
-| [0x13D850](../../src/auto/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
-| [0x13D8B8](../../src/auto/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
+| [0x117120](../../src/game/core/math/bez/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
+| [0x117988](../../src/game/core/binstream/bis/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
+| [0x117FD0](../../src/game/core/binstream/bis/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
+| [0x118220](../../src/game/core/binstream/bis/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
+| [0x118380](../../src/game/core/binstream/bis/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
+| [0x118420](../../src/game/core/binstream/bis/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
+| [0x118458](../../src/game/core/binstream/bis/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
+| [0x118668](../../src/game/core/math/bsp/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
+| [0x118A88](../../src/game/core/math/bsp/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
+| [0x119308](../../src/game/core/math/bsp/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
+| [0x1193C0](../../src/game/core/math/bsp/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
+| [0x11A060](../../src/game/core/containers/dl/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A070](../../src/game/core/containers/dl/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
+| [0x11A1B8](../../src/game/core/containers/dl/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
+| [0x11A200](../../src/game/core/containers/dl/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A210](../../src/game/core/containers/dl/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
+| [0x11A250](../../src/game/core/containers/dl/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
+| [0x11A550](../../src/game/core/math/dzgcore/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
+| [0x11ABF8](../../src/game/core/math/dzgcore/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
+| [0x11AFE0](../../src/game/core/containers/tu_11AFE0/HashPchzCaseless.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
+| [0x11BA08](../../src/game/core/math/mat/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
+| [0x11C168](../../src/game/core/math/mat/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
+| [0x11C950](../../src/game/core/math/mat/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
+| [0x11CF60](../../src/game/core/math/util/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
+| [0x11D018](../../src/game/core/math/util/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
+| [0x11D448](../../src/game/core/math/util/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
+| [0x11D508](../../src/game/core/math/util/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
+| [0x11D608](../../src/game/core/math/util/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
+| [0x11D7F0](../../src/game/core/math/util/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
+| [0x11D898](../../src/game/core/math/util/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
+| [0x11D978](../../src/game/core/math/util/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
+| [0x11D9D8](../../src/game/core/math/util/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
+| [0x11DD30](../../src/game/core/math/util/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
+| [0x11E2D8](../../src/game/core/math/vec/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
+| [0x11E630](../../src/game/core/math/vec/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
+| [0x11E958](../../src/game/core/math/vec/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
+| [0x11E9F8](../../src/game/core/math/vec/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
+| [0x11F088](../../src/game/core/math/vec/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
+| [0x13D558](../../src/game/core/containers/bq/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
+| [0x13D850](../../src/game/core/containers/bq/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
+| [0x13D8B8](../../src/game/core/containers/bq/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
 | [0x14B9C0](../../src/game/platform/cdvd/cd/func_0014B9C0.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
 | [0x14BC78](../../src/game/platform/cdvd/cd/func_0014BC78.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
 | [0x1585D8](../../src/hand/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |

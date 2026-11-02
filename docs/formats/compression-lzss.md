@@ -1,7 +1,7 @@
 # Compression: whole-file LZSS
 
 World files and sprite/texture files are compressed as a whole with a simple LZSS; FMVs and the memory-card icon are raw.
-`CBinaryInputStream::Decompress` 0x1179F0 (`src/P2/bis.cpp`) decodes it into an 8 KB window; `SetDecompress` 0x1179D8 enables it before
+`CBinaryInputStream::Decompress` 0x1179F0 (`src/game/core/binstream/bis/bis.cpp`) decodes it into an 8 KB window; `SetDecompress` 0x1179D8 enables it before
 `LoadSwFromBrx` `[C:static]`. The algorithm is byte-for-byte the one in SlyTools `sly_decompress.hpp` `[C:verified]` (a fast decoder and a literal
 transcription agree on 30 random streams; both sample worlds decode to fully parseable data: 9,969,830 -> 17,420,982 and 1,949,759 -> 4,084,599 bytes).
 

@@ -84,7 +84,7 @@ enum JOYK { };
 enum FTND { FTND_Forward = 1, FTND_Reverse = 2 };
 enum TNS { };
 
-/* VECTOR: from src/hand/PosSmooth.cpp (34 copies in Lilly ports) */
+/* VECTOR: from src/game/core/math/vec/PosSmooth.cpp (34 copies in Lilly ports) */
 struct VECTOR
 {
     float x, y, z;

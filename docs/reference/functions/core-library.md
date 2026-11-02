@@ -34,163 +34,163 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x116CA0](../../../src/auto/func_00116CA0.c) | `NCmpAb4` | memcmp(a,b,4) (tail-returns result) | 0.40 | T2 |  |
-| [0x116CC0](../../../src/auto/func_00116CC0.c) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
-| [0x116CE0](../../../src/auto/func_00116CE0.c) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
-| [0x116D00](../../../src/auto/func_00116D00.c) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
+| [0x116CA0](../../../src/game/core/containers/dynarray/func_00116CA0.c) | `NCmpAb4` | memcmp(a,b,4) (tail-returns result) | 0.40 | T2 |  |
+| [0x116CC0](../../../src/game/core/containers/dynarray/func_00116CC0.c) | `NCmpAb8` | memcmp(a,b,8) | 0.40 | T2 |  |
+| [0x116CE0](../../../src/game/core/containers/dynarray/func_00116CE0.c) | `NCmpAb12` | memcmp(a,b,12) | 0.40 | T2 |  |
+| [0x116D00](../../../src/game/core/containers/dynarray/func_00116D00.c) | `NCmpAb16` | memcmp(a,b,16) | 0.40 | T2 |  |
 | [0x116D28](../../../src/game/platform/memory/heap/heap.cpp) | `Free__9CDynArray` |  |  | existing |  |
 | [0x116D70](../../../src/game/platform/memory/heap/heap.cpp) | `Reserve__9CDynArrayi` |  |  | existing |  |
-| [0x116E30](../../../src/hand/CDynArray_Append.c) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
+| [0x116E30](../../../src/game/core/containers/dynarray/CDynArray_Append.c) | `CDynArray_Append` | Reserve(c+n) then copy n elements of cb bytes at the end; c += n | 0.60 | T1 |  |
 
 ## bez (0x117030-0x1177A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x117030](../../../src/hand/EvaluateBezierFloat.c) | `EvaluateBezierFloat` | Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at time t; writes value and slope | 0.75 | T1 |  |
-| [0x117120](../../../src/hand/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
-| [0x117308](../../../src/hand/EvaluateBezierMat.cpp) | `EvaluateBezierMat` | Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular velocity | 0.75 | T1 |  |
+| [0x117030](../../../src/game/core/math/bez/EvaluateBezierFloat.c) | `EvaluateBezierFloat` | Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at time t; writes value and slope | 0.75 | T1 |  |
+| [0x117120](../../../src/game/core/math/bez/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
+| [0x117308](../../../src/game/core/math/bez/EvaluateBezierMat.cpp) | `EvaluateBezierMat` | Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular velocity | 0.75 | T1 |  |
 
 ## bis (0x1177A8-0x118668)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1177A8](../../../src/auto/func_001177A8.c) | `__18CBinaryInputStream` |  |  | existing |  |
-| [0x1177F0](../../../src/P2/bis.cpp) | `Close__18CBinaryInputStream` |  |  | existing |  |
-| [0x117810](../../../src/P2/bis.cpp) | `Refill__18CBinaryInputStream` |  |  | existing |  |
-| [0x117898](../../../src/P2/bis.cpp) | `CbRead__18CBinaryInputStreamiPv` |  |  | existing |  |
-| [0x117968](../../../src/auto/func_00117968.c) | `Read__18CBinaryInputStreamiPv` |  |  | existing |  |
-| [0x117988](../../../src/P2/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
-| [0x1179B8](../../../src/auto/func_001179B8.c) | `Skip__18CBinaryInputStreami` |  |  | existing |  |
-| [0x1179D8](../../../src/auto/func_001179D8.c) | `SetDecompress__18CBinaryInputStreamiPUc` |  |  | existing |  |
-| [0x1179F0](../../../src/P2/bis.cpp) | `Decompress__18CBinaryInputStream` |  |  | existing |  |
-| [0x117BD0](../../../src/P2/bis.cpp) | `U8Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117C20](../../../src/P2/bis.cpp) | `U16Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117C80](../../../src/P2/bis.cpp) | `U32Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117D00](../../../src/P2/bis.cpp) | `S8Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117D50](../../../src/P2/bis.cpp) | `S16Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117DB8](../../../src/P2/bis.cpp) | `S32Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117E38](../../../src/P2/bis.cpp) | `F32Read__18CBinaryInputStream` |  |  | existing |  |
-| [0x117EB0](../../../src/auto/func_00117EB0.c) | `ReadVector__18CBinaryInputStreamP6VECTOR` |  |  | existing |  |
-| [0x117ED0](../../../src/auto/func_00117ED0.c) | `ReadMatrix__18CBinaryInputStreamP7MATRIX3` |  |  | existing |  |
-| [0x117F18](../../../src/P2/bis.cpp) | `ReadMatrix4__18CBinaryInputStreamP7MATRIX4` |  |  | existing |  |
-| [0x117F70](../../../src/auto/func_00117F70.c) | `ReadVector4__18CBinaryInputStreamP7VECTOR4` |  |  | existing |  |
-| [0x117F90](../../../src/auto/func_00117F90.c) | `ReadCb12__18CBinaryInputStreamPv` |  |  | existing |  |
-| [0x117FB0](../../../src/auto/func_00117FB0.c) | `ReadCb8__18CBinaryInputStreamPv` |  |  | existing |  |
-| [0x117FD0](../../../src/hand/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
-| [0x118220](../../../src/hand/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
-| [0x118380](../../../src/hand/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
-| [0x118420](../../../src/auto/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
-| [0x118458](../../../src/auto/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
-| [0x118480](../../../src/auto/func_00118480.c) | `CMemInputStream_ctor_118480` | Constructor of a CBinaryInputStream subclass: base ctor then vptr = 0x2CA5A0 | 0.45 | T2 |  |
-| [0x1184B8](../../../src/auto/CMemInputStream_ctor.c) | `CMemInputStream_ctor` | Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1 | 0.60 | T1 |  |
-| [0x1184E8](../../../src/auto/func_001184E8.c) | `CMemInputStream_Refill` | vtable slot 1 override: hands the stored buffer (+0x34 ptr, +0x38 cb) to the read cursor once, then empties it | 0.45 | T2 |  |
-| [0x118500](../../../src/hand/func_00118500.c) | `CMemInputStream_SetBuffer` | Stores buffer pointer/size (+0x34/+0x38) and +0 state | 0.45 | T2 |  |
+| [0x1177A8](../../../src/game/core/binstream/bis/func_001177A8.c) | `__18CBinaryInputStream` |  |  | existing |  |
+| [0x1177F0](../../../src/game/core/binstream/bis/bis.cpp) | `Close__18CBinaryInputStream` |  |  | existing |  |
+| [0x117810](../../../src/game/core/binstream/bis/bis.cpp) | `Refill__18CBinaryInputStream` |  |  | existing |  |
+| [0x117898](../../../src/game/core/binstream/bis/bis.cpp) | `CbRead__18CBinaryInputStreamiPv` |  |  | existing |  |
+| [0x117968](../../../src/game/core/binstream/bis/func_00117968.c) | `Read__18CBinaryInputStreamiPv` |  |  | existing |  |
+| [0x117988](../../../src/game/core/binstream/bis/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
+| [0x1179B8](../../../src/game/core/binstream/bis/func_001179B8.c) | `Skip__18CBinaryInputStreami` |  |  | existing |  |
+| [0x1179D8](../../../src/game/core/binstream/bis/func_001179D8.c) | `SetDecompress__18CBinaryInputStreamiPUc` |  |  | existing |  |
+| [0x1179F0](../../../src/game/core/binstream/bis/bis.cpp) | `Decompress__18CBinaryInputStream` |  |  | existing |  |
+| [0x117BD0](../../../src/game/core/binstream/bis/bis.cpp) | `U8Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117C20](../../../src/game/core/binstream/bis/bis.cpp) | `U16Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117C80](../../../src/game/core/binstream/bis/bis.cpp) | `U32Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117D00](../../../src/game/core/binstream/bis/bis.cpp) | `S8Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117D50](../../../src/game/core/binstream/bis/bis.cpp) | `S16Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117DB8](../../../src/game/core/binstream/bis/bis.cpp) | `S32Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117E38](../../../src/game/core/binstream/bis/bis.cpp) | `F32Read__18CBinaryInputStream` |  |  | existing |  |
+| [0x117EB0](../../../src/game/core/binstream/bis/func_00117EB0.c) | `ReadVector__18CBinaryInputStreamP6VECTOR` |  |  | existing |  |
+| [0x117ED0](../../../src/game/core/binstream/bis/func_00117ED0.c) | `ReadMatrix__18CBinaryInputStreamP7MATRIX3` |  |  | existing |  |
+| [0x117F18](../../../src/game/core/binstream/bis/bis.cpp) | `ReadMatrix4__18CBinaryInputStreamP7MATRIX4` |  |  | existing |  |
+| [0x117F70](../../../src/game/core/binstream/bis/func_00117F70.c) | `ReadVector4__18CBinaryInputStreamP7VECTOR4` |  |  | existing |  |
+| [0x117F90](../../../src/game/core/binstream/bis/func_00117F90.c) | `ReadCb12__18CBinaryInputStreamPv` |  |  | existing |  |
+| [0x117FB0](../../../src/game/core/binstream/bis/func_00117FB0.c) | `ReadCb8__18CBinaryInputStreamPv` |  |  | existing |  |
+| [0x117FD0](../../../src/game/core/binstream/bis/ReadGeom__18CBinaryInputStreamP4GEOM.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
+| [0x118220](../../../src/game/core/binstream/bis/CBinaryInputStream_ReadBspc.c) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
+| [0x118380](../../../src/game/core/binstream/bis/CBinaryInputStream_ReadStringSw.c) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
+| [0x118420](../../../src/game/core/binstream/bis/CBinaryInputStream_SkipStringSw.c) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
+| [0x118458](../../../src/game/core/binstream/bis/CBinaryInputStream_ReadCb64.c) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
+| [0x118480](../../../src/game/core/binstream/bis/func_00118480.c) | `CMemInputStream_ctor_118480` | Constructor of a CBinaryInputStream subclass: base ctor then vptr = 0x2CA5A0 | 0.45 | T2 |  |
+| [0x1184B8](../../../src/game/core/binstream/bis/CMemInputStream_ctor.c) | `CMemInputStream_ctor` | Deleting destructor: resets vptr, operator delete (0x1AE520) if flag&1 | 0.60 | T1 |  |
+| [0x1184E8](../../../src/game/core/binstream/bis/func_001184E8.c) | `CMemInputStream_Refill` | vtable slot 1 override: hands the stored buffer (+0x34 ptr, +0x38 cb) to the read cursor once, then empties it | 0.45 | T2 |  |
+| [0x118500](../../../src/game/core/binstream/bis/func_00118500.c) | `CMemInputStream_SetBuffer` | Stores buffer pointer/size (+0x34/+0x38) and +0 state | 0.45 | T2 |  |
 
 ## bsp (0x118668-0x1195E0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x118668](../../../src/hand/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
-| [0x118A88](../../../src/hand/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
-| [0x118D08](../../../src/hand/func_00118D08.cpp) | `FClassifyPolyBsp` | Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points, recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf) | 0.35 | T2 |  |
-| [0x118FB0](../../../src/hand/PbspPointInBspQuick.cpp) | `PbspPointInBspQuick` | Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the leaf node | 0.65 | T1 |  |
-| [0x119090](../../../src/hand/func_00119090.cpp) | `PbspPointInBsp` | Point location with on-plane case: if \|dist\|<=1e-4 try both children recursively | 0.60 | T1 |  |
-| [0x1191E8](../../../src/hand/func_001191E8.c) | `CloneBspc` | Copies a BSPC from one GEOM to another, rebasing internal node/plane pointers | 0.75 | T1 |  |
-| [0x119308](../../../src/hand/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
-| [0x119390](../../../src/hand/InitPlaneFromNormalPos.c) | `InitPlaneFromNormalPos` | Plane from normal and a point on it (d = n.pos), VU asm | 0.50 | T1 |  |
-| [0x1193C0](../../../src/auto/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
-| [0x1193D8](../../../src/hand/func_001193D8.cpp) | `ConvertPlane` | Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d) | 0.45 | T2 |  |
+| [0x118668](../../../src/game/core/math/bsp/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
+| [0x118A88](../../../src/game/core/math/bsp/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
+| [0x118D08](../../../src/game/core/math/bsp/func_00118D08.cpp) | `FClassifyPolyBsp` | Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points, recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf) | 0.35 | T2 |  |
+| [0x118FB0](../../../src/game/core/math/bsp/PbspPointInBspQuick.cpp) | `PbspPointInBspQuick` | Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the leaf node | 0.65 | T1 |  |
+| [0x119090](../../../src/game/core/math/bsp/func_00119090.cpp) | `PbspPointInBsp` | Point location with on-plane case: if \|dist\|<=1e-4 try both children recursively | 0.60 | T1 |  |
+| [0x1191E8](../../../src/game/core/math/bsp/func_001191E8.c) | `CloneBspc` | Copies a BSPC from one GEOM to another, rebasing internal node/plane pointers | 0.75 | T1 |  |
+| [0x119308](../../../src/game/core/math/bsp/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
+| [0x119390](../../../src/game/core/math/bsp/InitPlaneFromNormalPos.c) | `InitPlaneFromNormalPos` | Plane from normal and a point on it (d = n.pos), VU asm | 0.50 | T1 |  |
+| [0x1193C0](../../../src/game/core/math/bsp/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
+| [0x1193D8](../../../src/game/core/math/bsp/func_001193D8.cpp) | `ConvertPlane` | Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d) | 0.45 | T2 |  |
 
 ## crout (0x1195E0-0x119BC8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1195E0](../../../src/hand/CroutDecomp__FiPfT1.cpp) | `CroutDecomp__FiPfT1` |  |  | existing |  |
-| [0x1198F8](../../../src/hand/CroutSolve__FiPfN21.cpp) | `CroutSolve__FiPfN21` |  |  | existing |  |
+| [0x1195E0](../../../src/game/core/math/crout/CroutDecomp__FiPfT1.cpp) | `CroutDecomp__FiPfT1` |  |  | existing |  |
+| [0x1198F8](../../../src/game/core/math/crout/CroutSolve__FiPfN21.cpp) | `CroutSolve__FiPfN21` |  |  | existing |  |
 
 ## tu_119BC8 (0x119BC8-0x119DA0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x119BC8](../../../src/hand/func_00119BC8.c) | `PvKeyFromPtr` | Returns *p (key-extraction callback passed by the class below) | 0.30 | T2 |  |
-| [0x119BD0](../../../src/auto/func_00119BD0.c) | `CUnk2CA5E0_Init` | vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn 0x119BC8 | 0.25 | T2 |  |
-| [0x119C08](../../../src/hand/func_00119C08.c) | `CUnk2CA5E0_ReadString` | vtable slot 4: ReadStringSw(pbis, ppchz, this->pheap->palloc, kind 7) | 0.30 | T2 |  |
+| [0x119BC8](../../../src/game/core/containers/tu_119BC8/func_00119BC8.c) | `PvKeyFromPtr` | Returns *p (key-extraction callback passed by the class below) | 0.30 | T2 |  |
+| [0x119BD0](../../../src/game/core/containers/tu_119BC8/func_00119BD0.c) | `CUnk2CA5E0_Init` | vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn 0x119BC8 | 0.25 | T2 |  |
+| [0x119C08](../../../src/game/core/containers/tu_119BC8/func_00119C08.c) | `CUnk2CA5E0_ReadString` | vtable slot 4: ReadStringSw(pbis, ppchz, this->pheap->palloc, kind 7) | 0.30 | T2 |  |
 
 ## dl (0x11A050-0x11A550)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11A050](../../../src/auto/func_0011A050.c) | `InitSl` | Singly linked list init: stores ibNext at +8 | 0.70 | T1 |  |
-| [0x11A058](../../../src/auto/ClearSle.c) | `ClearSle` | Clears a singly-linked entry (next = NULL) | 0.55 | T1 |  |
-| [0x11A060](../../../src/hand/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A070](../../../src/hand/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
-| [0x11A098](../../../src/hand/PrependSlEntry.c) | `PrependSlEntry` | Prepend to singly linked list | 0.75 | T1 |  |
-| [0x11A0C0](../../../src/hand/InsertSlEntryAfter.c) | `InsertSlEntryAfter` | Insert after pvPrev (NULL -> prepend, last -> append) | 0.65 | T1 |  |
-| [0x11A118](../../../src/hand/RemoveSlEntry.c) | `RemoveSlEntry` | Unlink entry (linear search for predecessor) and fix up active iterators | 0.70 | T1 |  |
-| [0x11A1B8](../../../src/hand/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
-| [0x11A1E8](../../../src/auto/FIsSlEmpty.c) | `FIsSlEmpty` | pvFirst == NULL | 0.65 | T1 |  |
-| [0x11A1F8](../../../src/auto/InitDl__FP2DLi.c) | `InitDl` | DL init: ibDle at +8 | 0.85 | T1 |  |
-| [0x11A200](../../../src/hand/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
-| [0x11A210](../../../src/hand/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
-| [0x11A220](../../../src/hand/AppendDlEntry__FP2DLPv.c) | `AppendDlEntry` | Append to doubly linked list | 0.92 | T1 |  |
-| [0x11A250](../../../src/hand/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
-| [0x11A280](../../../src/hand/InsertDlEntryBefore__FP2DLPvT1.c) | `InsertDlEntryBefore` | Insert before pvNext (NULL -> append, first -> prepend) | 0.88 | T1 |  |
-| [0x11A2E8](../../../src/hand/RemoveDlEntry__FP2DLPv.c) | `RemoveDlEntry` | Unlink and fix up iterators on g_pdliFirst chain | 0.92 | T1 |  |
-| [0x11A380](../../../src/hand/FFindDlEntry__FP2DLPv.c) | `FFindDlEntry` | True if pv is linked (next or tail) | 0.85 | T1 |  |
-| [0x11A3B0](../../../src/auto/FIsDlEmpty__FP2DL.c) | `FIsDlEmpty` | pvFirst == NULL | 0.85 | T1 |  |
-| [0x11A3C0](../../../src/hand/CPvDl__FP2DL.cpp) | `CPvDl__FP2DL` |  |  | existing |  |
+| [0x11A050](../../../src/game/core/containers/dl/func_0011A050.c) | `InitSl` | Singly linked list init: stores ibNext at +8 | 0.70 | T1 |  |
+| [0x11A058](../../../src/game/core/containers/dl/ClearSle.c) | `ClearSle` | Clears a singly-linked entry (next = NULL) | 0.55 | T1 |  |
+| [0x11A060](../../../src/game/core/containers/dl/ClearSl.c) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A070](../../../src/game/core/containers/dl/func_0011A070.c) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
+| [0x11A098](../../../src/game/core/containers/dl/PrependSlEntry.c) | `PrependSlEntry` | Prepend to singly linked list | 0.75 | T1 |  |
+| [0x11A0C0](../../../src/game/core/containers/dl/InsertSlEntryAfter.c) | `InsertSlEntryAfter` | Insert after pvPrev (NULL -> prepend, last -> append) | 0.65 | T1 |  |
+| [0x11A118](../../../src/game/core/containers/dl/RemoveSlEntry.c) | `RemoveSlEntry` | Unlink entry (linear search for predecessor) and fix up active iterators | 0.70 | T1 |  |
+| [0x11A1B8](../../../src/game/core/containers/dl/FFindSlEntry.c) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |
+| [0x11A1E8](../../../src/game/core/containers/dl/FIsSlEmpty.c) | `FIsSlEmpty` | pvFirst == NULL | 0.65 | T1 |  |
+| [0x11A1F8](../../../src/game/core/containers/dl/InitDl__FP2DLi.c) | `InitDl` | DL init: ibDle at +8 | 0.85 | T1 |  |
+| [0x11A200](../../../src/game/core/containers/dl/ClearDl__FP2DL.c) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
+| [0x11A210](../../../src/game/core/containers/dl/ClearDle__FP3DLE.c) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
+| [0x11A220](../../../src/game/core/containers/dl/AppendDlEntry__FP2DLPv.c) | `AppendDlEntry` | Append to doubly linked list | 0.92 | T1 |  |
+| [0x11A250](../../../src/game/core/containers/dl/PrependDlEntry__FP2DLPv.c) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
+| [0x11A280](../../../src/game/core/containers/dl/InsertDlEntryBefore__FP2DLPvT1.c) | `InsertDlEntryBefore` | Insert before pvNext (NULL -> append, first -> prepend) | 0.88 | T1 |  |
+| [0x11A2E8](../../../src/game/core/containers/dl/RemoveDlEntry__FP2DLPv.c) | `RemoveDlEntry` | Unlink and fix up iterators on g_pdliFirst chain | 0.92 | T1 |  |
+| [0x11A380](../../../src/game/core/containers/dl/FFindDlEntry__FP2DLPv.c) | `FFindDlEntry` | True if pv is linked (next or tail) | 0.85 | T1 |  |
+| [0x11A3B0](../../../src/game/core/containers/dl/FIsDlEmpty__FP2DL.c) | `FIsDlEmpty` | pvFirst == NULL | 0.85 | T1 |  |
+| [0x11A3C0](../../../src/game/core/containers/dl/CPvDl__FP2DL.cpp) | `CPvDl__FP2DL` |  |  | existing |  |
 
 ## dzgcore (0x11A550-0x11AFE0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11A550](../../../src/hand/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
-| [0x11A6B8](../../../src/hand/ClearDzgSolution__FP3DZG.cpp) | `ClearDzgSolution__FP3DZG` |  |  | existing |  |
-| [0x11A770](../../../src/hand/EnforceDzgDz__FP3DZGP2DZ.cpp) | `EnforceDzgDz__FP3DZGP2DZ` |  |  | existing |  |
-| [0x11ABF8](../../../src/hand/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
-| [0x11AD30](../../../src/hand/SolveInequalities.c) | `SolveInequalities` | Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln | 0.85 | T1 |  |
+| [0x11A550](../../../src/game/core/math/dzgcore/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
+| [0x11A6B8](../../../src/game/core/math/dzgcore/ClearDzgSolution__FP3DZG.cpp) | `ClearDzgSolution__FP3DZG` |  |  | existing |  |
+| [0x11A770](../../../src/game/core/math/dzgcore/EnforceDzgDz__FP3DZGP2DZ.cpp) | `EnforceDzgDz__FP3DZGP2DZ` |  |  | existing |  |
+| [0x11ABF8](../../../src/game/core/math/dzgcore/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
+| [0x11AD30](../../../src/game/core/math/dzgcore/SolveInequalities.c) | `SolveInequalities` | Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln | 0.85 | T1 |  |
 
 ## tu_11AFE0 (0x11AFE0-0x11B1A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11AFE0](../../../src/hand/HashPchzCaseless.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
+| [0x11AFE0](../../../src/game/core/containers/tu_11AFE0/HashPchzCaseless.c) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
 
 ## mat (0x11B300-0x11CCA8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11B318](../../../src/auto/FInvertMatrix3.c) | `FInvertMatrix3` | FInvertMatrix(stride 4, n 3, src, dst) | 0.85 | T1 |  |
-| [0x11B340](../../../src/hand/InvertMatrix3Cofactor.c) | `InvertMatrix3Cofactor` | 3x3 inverse by cofactors (row cross products / determinant) returned by value | 0.50 | T1 |  |
-| [0x11B3D0](../../../src/hand/NormalizeRotateMatrix3__FP7MATRIX3.cpp) | `NormalizeRotateMatrix3__FP7MATRIX3` |  |  | existing |  |
-| [0x11B480](../../../src/hand/LoadRotateMatrixSinCos.c) | `LoadRotateMatrixSinCos` | Rotation matrix about an axis from (sin, cos) | 0.55 | T1 |  |
-| [0x11B500](../../../src/hand/func_0011B500.c) | `LoadRotateMatrixRad` | Rotation matrix for angle rad about axis (CalculateSinCos 0x11D608 + 0x11B480) | 0.85 | T1 |  |
-| [0x11B570](../../../src/hand/func_0011B570.c) | `LoadRotateMatrix` | Rotation matrix from a rotation vector (angle = \|v\|, axis = v/\|v\|) | 0.75 | T1 |  |
-| [0x11B628](../../../src/hand/LoadRotateMatrixEuler.c) | `LoadRotateMatrixEuler` | Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products) | 0.85 | T1 |  |
-| [0x11B720](../../../src/hand/LoadRotateMatrixPanTilt.c) | `LoadRotateMatrixPanTilt` | R = Rz(pan) * Ry(-tilt) | 0.85 | T1 |  |
-| [0x11B7E0](../../../src/hand/LoadLookAtMatrix.c) | `LoadLookAtMatrix` | BuildOrthonormalMatrixZ(dir, default up) | 0.75 | T1 |  |
-| [0x11B830](../../../src/hand/BuildOrthonormalMatrixZ.c) | `BuildOrthonormalMatrixZ` | Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback 0x11E390) | 0.75 | T1 |  |
-| [0x11B938](../../../src/hand/TiltMatUpright.c) | `TiltMatUpright` | Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted matrix | 0.75 | T1 |  |
-| [0x11BA08](../../../src/hand/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
-| [0x11BC00](../../../src/hand/MulMatrix3Matrix3.c) | `MulMatrix3Matrix3` | 3x3 matrix product into *pm (VU rows) | 0.50 | T1 |  |
-| [0x11BC88](../../../src/hand/DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1.cpp) | `DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1` |  |  | existing |  |
-| [0x11BCF8](../../../src/hand/DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR.cpp) | `DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR` |  |  | existing |  |
-| [0x11BFB8](../../../src/hand/func_0011BFB8.c) | `DecomposeRotateMatrixVector` | DecomposeRotateMatrixRad then returns rad*normal as a vector | 0.45 | T2 |  |
-| [0x11BFF0](../../../src/hand/func_0011BFF0.c) | `DecomposeRotateMatrixEuler` | Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock branch) | 0.80 | T1 |  |
-| [0x11C128](../../../src/hand/__ml__FRC7MATRIX4G8VU_FLOAT.cpp) | `__ml__FRC7MATRIX4G8VU_FLOAT` |  |  | existing |  |
-| [0x11C168](../../../src/hand/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
-| [0x11C1A8](../../../src/hand/__ml__FRC7MATRIX4G10VU_VECTOR4.c) | `__ml__FRC7MATRIX4G10VU_VECTOR4` |  |  | existing |  |
-| [0x11C1D8](../../../src/auto/TransposeMatrix4.c) | `TransposeMatrix4` | Transpose (0x11C8E8 with 4,4) | 0.85 | T1 |  |
-| [0x11C210](../../../src/hand/LoadMatrixFromPosRotScale.c) | `LoadMatrixFromPosRotScale` | 4x4 from 3x3 rotation with per-row scale vector plus position | 0.75 | T1 |  |
-| [0x11C288](../../../src/hand/LoadMatrixFromPosRotScalar.c) | `LoadMatrixFromPosRotScalar` | 4x4 from 3x3 rotation uniformly scaled by g plus position | 0.50 | T1 |  |
-| [0x11C2F0](../../../src/auto/func_0011C2F0.c) | `FInvertMatrix4` | FInvertMatrix(4,4,src,dst) | 0.85 | T1 |  |
-| [0x11C318](../../../src/hand/InvertMatrix4Rigid.c) | `InvertMatrix4Rigid` | Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value | 0.50 | T1 |  |
-| [0x11C3D0](../../../src/hand/CalculateDmat4.c) | `CalculateDmat4` | dmat = inverse(a) * b | 0.75 | T1 |  |
-| [0x11C448](../../../src/hand/BuildSimpleProjectionMatrix__FffffffP7MATRIX4.cpp) | `BuildSimpleProjectionMatrix__FffffffP7MATRIX4` |  |  | existing |  |
-| [0x11C500](../../../src/hand/FInvertMatrix__FiPfT1.cpp) | `FInvertMatrix__FiPfT1` |  |  | existing |  |
-| [0x11C8E8](../../../src/hand/TransposeMatrix.c) | `TransposeMatrix` | Generic c x c transpose with stride | 0.55 | T1 |  |
-| [0x11C950](../../../src/hand/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
-| [0x11CAB0](../../../src/hand/func_0011CAB0.c) | `SMaxRowMatrix3` | Largest row length (max of the three row dot products, then sqrt) | 0.40 | T2 |  |
+| [0x11B318](../../../src/game/core/math/mat/FInvertMatrix3.c) | `FInvertMatrix3` | FInvertMatrix(stride 4, n 3, src, dst) | 0.85 | T1 |  |
+| [0x11B340](../../../src/game/core/math/mat/InvertMatrix3Cofactor.c) | `InvertMatrix3Cofactor` | 3x3 inverse by cofactors (row cross products / determinant) returned by value | 0.50 | T1 |  |
+| [0x11B3D0](../../../src/game/core/math/mat/NormalizeRotateMatrix3__FP7MATRIX3.cpp) | `NormalizeRotateMatrix3__FP7MATRIX3` |  |  | existing |  |
+| [0x11B480](../../../src/game/core/math/mat/LoadRotateMatrixSinCos.c) | `LoadRotateMatrixSinCos` | Rotation matrix about an axis from (sin, cos) | 0.55 | T1 |  |
+| [0x11B500](../../../src/game/core/math/mat/func_0011B500.c) | `LoadRotateMatrixRad` | Rotation matrix for angle rad about axis (CalculateSinCos 0x11D608 + 0x11B480) | 0.85 | T1 |  |
+| [0x11B570](../../../src/game/core/math/mat/func_0011B570.c) | `LoadRotateMatrix` | Rotation matrix from a rotation vector (angle = \|v\|, axis = v/\|v\|) | 0.75 | T1 |  |
+| [0x11B628](../../../src/game/core/math/mat/LoadRotateMatrixEuler.c) | `LoadRotateMatrixEuler` | Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products) | 0.85 | T1 |  |
+| [0x11B720](../../../src/game/core/math/mat/LoadRotateMatrixPanTilt.c) | `LoadRotateMatrixPanTilt` | R = Rz(pan) * Ry(-tilt) | 0.85 | T1 |  |
+| [0x11B7E0](../../../src/game/core/math/mat/LoadLookAtMatrix.c) | `LoadLookAtMatrix` | BuildOrthonormalMatrixZ(dir, default up) | 0.75 | T1 |  |
+| [0x11B830](../../../src/game/core/math/mat/BuildOrthonormalMatrixZ.c) | `BuildOrthonormalMatrixZ` | Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback 0x11E390) | 0.75 | T1 |  |
+| [0x11B938](../../../src/game/core/math/mat/TiltMatUpright.c) | `TiltMatUpright` | Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted matrix | 0.75 | T1 |  |
+| [0x11BA08](../../../src/game/core/math/mat/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
+| [0x11BC00](../../../src/game/core/math/mat/MulMatrix3Matrix3.c) | `MulMatrix3Matrix3` | 3x3 matrix product into *pm (VU rows) | 0.50 | T1 |  |
+| [0x11BC88](../../../src/game/core/math/mat/DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1.cpp) | `DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1` |  |  | existing |  |
+| [0x11BCF8](../../../src/game/core/math/mat/DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR.cpp) | `DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR` |  |  | existing |  |
+| [0x11BFB8](../../../src/game/core/math/mat/func_0011BFB8.c) | `DecomposeRotateMatrixVector` | DecomposeRotateMatrixRad then returns rad*normal as a vector | 0.45 | T2 |  |
+| [0x11BFF0](../../../src/game/core/math/mat/func_0011BFF0.c) | `DecomposeRotateMatrixEuler` | Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock branch) | 0.80 | T1 |  |
+| [0x11C128](../../../src/game/core/math/mat/__ml__FRC7MATRIX4G8VU_FLOAT.cpp) | `__ml__FRC7MATRIX4G8VU_FLOAT` |  |  | existing |  |
+| [0x11C168](../../../src/game/core/math/mat/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
+| [0x11C1A8](../../../src/game/core/math/mat/__ml__FRC7MATRIX4G10VU_VECTOR4.c) | `__ml__FRC7MATRIX4G10VU_VECTOR4` |  |  | existing |  |
+| [0x11C1D8](../../../src/game/core/math/mat/TransposeMatrix4.c) | `TransposeMatrix4` | Transpose (0x11C8E8 with 4,4) | 0.85 | T1 |  |
+| [0x11C210](../../../src/game/core/math/mat/LoadMatrixFromPosRotScale.c) | `LoadMatrixFromPosRotScale` | 4x4 from 3x3 rotation with per-row scale vector plus position | 0.75 | T1 |  |
+| [0x11C288](../../../src/game/core/math/mat/LoadMatrixFromPosRotScalar.c) | `LoadMatrixFromPosRotScalar` | 4x4 from 3x3 rotation uniformly scaled by g plus position | 0.50 | T1 |  |
+| [0x11C2F0](../../../src/game/core/math/mat/func_0011C2F0.c) | `FInvertMatrix4` | FInvertMatrix(4,4,src,dst) | 0.85 | T1 |  |
+| [0x11C318](../../../src/game/core/math/mat/InvertMatrix4Rigid.c) | `InvertMatrix4Rigid` | Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value | 0.50 | T1 |  |
+| [0x11C3D0](../../../src/game/core/math/mat/CalculateDmat4.c) | `CalculateDmat4` | dmat = inverse(a) * b | 0.75 | T1 |  |
+| [0x11C448](../../../src/game/core/math/mat/BuildSimpleProjectionMatrix__FffffffP7MATRIX4.cpp) | `BuildSimpleProjectionMatrix__FffffffP7MATRIX4` |  |  | existing |  |
+| [0x11C500](../../../src/game/core/math/mat/FInvertMatrix__FiPfT1.cpp) | `FInvertMatrix__FiPfT1` |  |  | existing |  |
+| [0x11C8E8](../../../src/game/core/math/mat/TransposeMatrix.c) | `TransposeMatrix` | Generic c x c transpose with stride | 0.55 | T1 |  |
+| [0x11C950](../../../src/game/core/math/mat/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
+| [0x11CAB0](../../../src/game/core/math/mat/func_0011CAB0.c) | `SMaxRowMatrix3` | Largest row length (max of the three row dot products, then sqrt) | 0.40 | T2 |  |
 
 ## slotheap (0x11CCA8-0x11CF60)
 
@@ -206,86 +206,86 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11CF60](../../../src/hand/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
-| [0x11CFE0](../../../src/hand/GLimitAbs__Fff.cpp) | `GLimitAbs__Fff` |  |  | existing |  |
-| [0x11D018](../../../src/hand/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
-| [0x11D1C0](../../../src/hand/GSmoothA__FffffP4SMPAPf.cpp) | `GSmoothA__FffffP4SMPAPf` |  |  | existing |  |
-| [0x11D2D0](../../../src/hand/RadSmooth__FfffP3SMPPf.cpp) | `RadSmooth__FfffP3SMPPf` |  |  | existing |  |
-| [0x11D340](../../../src/hand/RadSmoothA__FffffP4SMPAPf.cpp) | `RadSmoothA__FffffP4SMPAPf` |  |  | existing |  |
-| [0x11D3C0](../../../src/auto/NRand.c) | `NRand` | rand() % 905010707 | 0.50 | T1 |  |
-| [0x11D3F8](../../../src/hand/NRandInRange__Fii.c) | `NRandInRange` | Uniform int in [nLow, nHi] | 0.85 | T1 |  |
-| [0x11D448](../../../src/hand/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
-| [0x11D4D0](../../../src/hand/FFloatsNear__Ffff.cpp) | `FFloatsNear__Ffff` |  |  | existing |  |
-| [0x11D508](../../../src/hand/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
-| [0x11D5B0](../../../src/auto/PrescaleClq__FP3CLQffT0.c) | `PrescaleClq__FP3CLQffT0` |  |  | existing |  |
-| [0x11D608](../../../src/hand/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
-| [0x11D740](../../../src/hand/GTrunc__Fd.cpp) | `GTrunc__Fd` |  |  | existing |  |
-| [0x11D7F0](../../../src/hand/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
-| [0x11D898](../../../src/hand/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
-| [0x11D8D8](../../../src/auto/FitClq__FffffP3CLQ.c) | `FitClq__FffffP3CLQ` |  |  | existing |  |
-| [0x11D910](../../../src/auto/FCheckLm__FP2LMf.c) | `FCheckLm__FP2LMf` |  |  | existing |  |
-| [0x11D948](../../../src/hand/GLimitLm__FP2LMf.cpp) | `GLimitLm__FP2LMf` |  |  | existing |  |
-| [0x11D978](../../../src/hand/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
-| [0x11D9D8](../../../src/auto/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
-| [0x11D9E0](../../../src/hand/MinimizeRange__FPFPvf_fPvffffPfT6.cpp) | `MinimizeRange__FPFPvf_fPvffffPfT6` |  |  | existing |  |
-| [0x11DCD8](../../../src/hand/func_0011DCD8.c) | `ConvertRgbaToVector` | RGBA bytes -> floats /255 | 0.45 | T2 |  |
-| [0x11DD30](../../../src/hand/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
-| [0x11DD90](../../../src/hand/ConvertUserRgbToUserHsv.c) | `ConvertUserRgbToUserHsv` | RGB -> HSV (floorf), clamps | 0.70 | T1 |  |
-| [0x11DFA0](../../../src/hand/ConvertUserHsvToUserRgb__FP6VECTORT0.cpp) | `ConvertUserHsvToUserRgb__FP6VECTORT0` |  |  | existing |  |
+| [0x11CF60](../../../src/game/core/math/util/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
+| [0x11CFE0](../../../src/game/core/math/util/GLimitAbs__Fff.cpp) | `GLimitAbs__Fff` |  |  | existing |  |
+| [0x11D018](../../../src/game/core/math/util/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
+| [0x11D1C0](../../../src/game/core/math/util/GSmoothA__FffffP4SMPAPf.cpp) | `GSmoothA__FffffP4SMPAPf` |  |  | existing |  |
+| [0x11D2D0](../../../src/game/core/math/util/RadSmooth__FfffP3SMPPf.cpp) | `RadSmooth__FfffP3SMPPf` |  |  | existing |  |
+| [0x11D340](../../../src/game/core/math/util/RadSmoothA__FffffP4SMPAPf.cpp) | `RadSmoothA__FffffP4SMPAPf` |  |  | existing |  |
+| [0x11D3C0](../../../src/game/core/math/util/NRand.c) | `NRand` | rand() % 905010707 | 0.50 | T1 |  |
+| [0x11D3F8](../../../src/game/core/math/util/NRandInRange__Fii.c) | `NRandInRange` | Uniform int in [nLow, nHi] | 0.85 | T1 |  |
+| [0x11D448](../../../src/game/core/math/util/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
+| [0x11D4D0](../../../src/game/core/math/util/FFloatsNear__Ffff.cpp) | `FFloatsNear__Ffff` |  |  | existing |  |
+| [0x11D508](../../../src/game/core/math/util/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
+| [0x11D5B0](../../../src/game/core/math/util/PrescaleClq__FP3CLQffT0.c) | `PrescaleClq__FP3CLQffT0` |  |  | existing |  |
+| [0x11D608](../../../src/game/core/math/util/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
+| [0x11D740](../../../src/game/core/math/util/GTrunc__Fd.cpp) | `GTrunc__Fd` |  |  | existing |  |
+| [0x11D7F0](../../../src/game/core/math/util/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
+| [0x11D898](../../../src/game/core/math/util/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
+| [0x11D8D8](../../../src/game/core/math/util/FitClq__FffffP3CLQ.c) | `FitClq__FffffP3CLQ` |  |  | existing |  |
+| [0x11D910](../../../src/game/core/math/util/FCheckLm__FP2LMf.c) | `FCheckLm__FP2LMf` |  |  | existing |  |
+| [0x11D948](../../../src/game/core/math/util/GLimitLm__FP2LMf.cpp) | `GLimitLm__FP2LMf` |  |  | existing |  |
+| [0x11D978](../../../src/game/core/math/util/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
+| [0x11D9D8](../../../src/game/core/math/util/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
+| [0x11D9E0](../../../src/game/core/math/util/MinimizeRange__FPFPvf_fPvffffPfT6.cpp) | `MinimizeRange__FPFPvf_fPvffffPfT6` |  |  | existing |  |
+| [0x11DCD8](../../../src/game/core/math/util/func_0011DCD8.c) | `ConvertRgbaToVector` | RGBA bytes -> floats /255 | 0.45 | T2 |  |
+| [0x11DD30](../../../src/game/core/math/util/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
+| [0x11DD90](../../../src/game/core/math/util/ConvertUserRgbToUserHsv.c) | `ConvertUserRgbToUserHsv` | RGB -> HSV (floorf), clamps | 0.70 | T1 |  |
+| [0x11DFA0](../../../src/game/core/math/util/ConvertUserHsvToUserRgb__FP6VECTORT0.cpp) | `ConvertUserHsvToUserRgb__FP6VECTORT0` |  |  | existing |  |
 
 ## vec (0x11E198-0x11F440)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11E1A0](../../../src/hand/SetVectorCylind.c) | `SetVectorCylind` | Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value | 0.75 | T1 |  |
-| [0x11E208](../../../src/hand/SetVectorSphere.c) | `SetVectorSphere` | Vector from spherical (pan, tilt, r) | 0.75 | T1 |  |
-| [0x11E290](../../../src/hand/func_0011E290.c) | `SProjectVector` | Scalar projection of a on b; optionally returns parallel and perpendicular components | 0.55 | T1 |  |
-| [0x11E2D8](../../../src/hand/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
-| [0x11E390](../../../src/hand/GetNormalVector.c) | `GetNormalVector` | A unit vector perpendicular to v (picks smallest component axis) | 0.70 | T1 |  |
-| [0x11E4B0](../../../src/hand/RadBetweenVectors.c) | `RadBetweenVectors` | Angle between two vectors (acosf) and optional normalised rotation axis | 0.80 | T1 |  |
-| [0x11E630](../../../src/hand/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
-| [0x11E7C8](../../../src/hand/FindClosestPointBetweenLineSegments.c) | `FindClosestPointBetweenLineSegments` | Closest points between two segments (clamped line solution) | 0.60 | T1 |  |
-| [0x11E958](../../../src/hand/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
-| [0x11E9F8](../../../src/hand/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
-| [0x11EA60](../../../src/hand/func_0011EA60.c) | `FClipLineToTriangle` | Vector geometry helper (edge cross products and dot readbacks against a triangle/segment) | 0.30 | T2 |  |
-| [0x11EBB0](../../../src/hand/FIntersectRayTriangle.c) | `FIntersectRayTriangle` | Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v) | 0.60 | T1 |  |
-| [0x11ED40](../../../src/hand/FindClosestPointOnLine.c) | `FindClosestPointOnLine` | Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance | 0.65 | T1 | top50; top50 round; v2 name ClosestPointOnSegment |
-| [0x11EE08](../../../src/hand/FindClosestPointOnLineSegment.c) | `FindClosestPointOnLineSegment` | Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t, distance | 0.80 | T1 | top50; top50 round; v2 name ClosestPointOnSegmentT |
-| [0x11EF08](../../../src/hand/GetVectorCylind.c) | `GetVectorCylind` | Inverse of SetVectorCylind: angle, radius, z of v | 0.55 | T1 |  |
-| [0x11EFB0](../../../src/hand/GetVectorSphere.c) | `GetVectorSphere` | Inverse of SetVectorSphere: pan, tilt, length of v | 0.55 | T1 |  |
-| [0x11F088](../../../src/hand/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
-| [0x11F198](../../../src/hand/func_0011F198.c) | `RadBetweenVectorsSafe` | Returns an angle-like float between a and b, 0 if either is shorter than 1e-4 | 0.30 | T2 |  |
-| [0x11F288](../../../src/hand/VecMinArray.c) | `VecMinArray` | Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0) | 0.55 | T1 |  |
-| [0x11F2B8](../../../src/hand/VecMaxArray.c) | `VecMaxArray` | Component-wise maximum over c vectors | 0.50 | T1 |  |
+| [0x11E1A0](../../../src/game/core/math/vec/SetVectorCylind.c) | `SetVectorCylind` | Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value | 0.75 | T1 |  |
+| [0x11E208](../../../src/game/core/math/vec/SetVectorSphere.c) | `SetVectorSphere` | Vector from spherical (pan, tilt, r) | 0.75 | T1 |  |
+| [0x11E290](../../../src/game/core/math/vec/func_0011E290.c) | `SProjectVector` | Scalar projection of a on b; optionally returns parallel and perpendicular components | 0.55 | T1 |  |
+| [0x11E2D8](../../../src/game/core/math/vec/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
+| [0x11E390](../../../src/game/core/math/vec/GetNormalVector.c) | `GetNormalVector` | A unit vector perpendicular to v (picks smallest component axis) | 0.70 | T1 |  |
+| [0x11E4B0](../../../src/game/core/math/vec/RadBetweenVectors.c) | `RadBetweenVectors` | Angle between two vectors (acosf) and optional normalised rotation axis | 0.80 | T1 |  |
+| [0x11E630](../../../src/game/core/math/vec/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
+| [0x11E7C8](../../../src/game/core/math/vec/FindClosestPointBetweenLineSegments.c) | `FindClosestPointBetweenLineSegments` | Closest points between two segments (clamped line solution) | 0.60 | T1 |  |
+| [0x11E958](../../../src/game/core/math/vec/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
+| [0x11E9F8](../../../src/game/core/math/vec/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
+| [0x11EA60](../../../src/game/core/math/vec/func_0011EA60.c) | `FClipLineToTriangle` | Vector geometry helper (edge cross products and dot readbacks against a triangle/segment) | 0.30 | T2 |  |
+| [0x11EBB0](../../../src/game/core/math/vec/FIntersectRayTriangle.c) | `FIntersectRayTriangle` | Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v) | 0.60 | T1 |  |
+| [0x11ED40](../../../src/game/core/math/vec/FindClosestPointOnLine.c) | `FindClosestPointOnLine` | Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance | 0.65 | T1 | top50; top50 round; v2 name ClosestPointOnSegment |
+| [0x11EE08](../../../src/game/core/math/vec/FindClosestPointOnLineSegment.c) | `FindClosestPointOnLineSegment` | Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t, distance | 0.80 | T1 | top50; top50 round; v2 name ClosestPointOnSegmentT |
+| [0x11EF08](../../../src/game/core/math/vec/GetVectorCylind.c) | `GetVectorCylind` | Inverse of SetVectorCylind: angle, radius, z of v | 0.55 | T1 |  |
+| [0x11EFB0](../../../src/game/core/math/vec/GetVectorSphere.c) | `GetVectorSphere` | Inverse of SetVectorSphere: pan, tilt, length of v | 0.55 | T1 |  |
+| [0x11F088](../../../src/game/core/math/vec/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
+| [0x11F198](../../../src/game/core/math/vec/func_0011F198.c) | `RadBetweenVectorsSafe` | Returns an angle-like float between a and b, 0 if either is shorter than 1e-4 | 0.30 | T2 |  |
+| [0x11F288](../../../src/game/core/math/vec/VecMinArray.c) | `VecMinArray` | Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0) | 0.55 | T1 |  |
+| [0x11F2B8](../../../src/game/core/math/vec/VecMaxArray.c) | `VecMaxArray` | Component-wise maximum over c vectors | 0.50 | T1 |  |
 
 ## bas (0x132570-0x132B00)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x132570](../../../src/auto/__18CBinaryAsyncStreamPv.c) | `__18CBinaryAsyncStreamPv` |  |  | existing |  |
-| [0x1325B8](../../../src/hand/_$_18CBinaryAsyncStream.cpp) | `_$_18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132600](../../../src/auto/func_00132600.c) | `FOpenBasFromCdFile` | If the file record kind (+8) == 2 open the async stream on its sector range (FOpenSector(+0,+4)), else 0 | 0.35 | T2 |  |
-| [0x132640](../../../src/auto/FOpenSector__18CBinaryAsyncStreamUiUi.c) | `FOpenSector__18CBinaryAsyncStreamUiUi` |  |  | existing |  |
-| [0x132688](../../../src/auto/Close__18CBinaryAsyncStream.c) | `Close__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132710](../../../src/auto/StartSpooling__18CBinaryAsyncStream.c) | `StartSpooling__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x1327D0](../../../src/auto/FSpooling__18CBinaryAsyncStream.c) | `FSpooling__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x1327E0](../../../src/hand/FSpoolingComplete__18CBinaryAsyncStream.cpp) | `FSpoolingComplete__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x1328A8](../../../src/hand/FinishSpooling__18CBinaryAsyncStream.cpp) | `FinishSpooling__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132930](../../../src/auto/Spool__18CBinaryAsyncStream.c) | `Spool__18CBinaryAsyncStream` |  |  | existing |  |
-| [0x132998](../../../src/auto/Skip__18CBinaryAsyncStreami.c) | `Skip__18CBinaryAsyncStreami` |  |  | existing |  |
+| [0x132570](../../../src/game/core/binstream/bas/__18CBinaryAsyncStreamPv.c) | `__18CBinaryAsyncStreamPv` |  |  | existing |  |
+| [0x1325B8](../../../src/game/core/binstream/bas/_$_18CBinaryAsyncStream.cpp) | `_$_18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132600](../../../src/game/core/binstream/bas/func_00132600.c) | `FOpenBasFromCdFile` | If the file record kind (+8) == 2 open the async stream on its sector range (FOpenSector(+0,+4)), else 0 | 0.35 | T2 |  |
+| [0x132640](../../../src/game/core/binstream/bas/FOpenSector__18CBinaryAsyncStreamUiUi.c) | `FOpenSector__18CBinaryAsyncStreamUiUi` |  |  | existing |  |
+| [0x132688](../../../src/game/core/binstream/bas/Close__18CBinaryAsyncStream.c) | `Close__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132710](../../../src/game/core/binstream/bas/StartSpooling__18CBinaryAsyncStream.c) | `StartSpooling__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x1327D0](../../../src/game/core/binstream/bas/FSpooling__18CBinaryAsyncStream.c) | `FSpooling__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x1327E0](../../../src/game/core/binstream/bas/FSpoolingComplete__18CBinaryAsyncStream.cpp) | `FSpoolingComplete__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x1328A8](../../../src/game/core/binstream/bas/FinishSpooling__18CBinaryAsyncStream.cpp) | `FinishSpooling__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132930](../../../src/game/core/binstream/bas/Spool__18CBinaryAsyncStream.c) | `Spool__18CBinaryAsyncStream` |  |  | existing |  |
+| [0x132998](../../../src/game/core/binstream/bas/Skip__18CBinaryAsyncStreami.c) | `Skip__18CBinaryAsyncStreami` |  |  | existing |  |
 
 ## bq (0x13D558-0x13DA18)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13D558](../../../src/auto/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
-| [0x13D580](../../../src/hand/Reset__10CByteQueue.cpp) | `Reset__10CByteQueue` |  |  | existing |  |
-| [0x13D5A0](../../../src/hand/CbFill__10CByteQueueiP11CQueueInput.cpp) | `CbFill__10CByteQueueiP11CQueueInput` |  |  | existing |  |
-| [0x13D6A8](../../../src/hand/CbDrain__10CByteQueueiP12CQueueOutput.cpp) | `CbDrain__10CByteQueueiP12CQueueOutput` |  |  | existing |  |
-| [0x13D7D0](../../../src/hand/CbFill__10CByteQueueiPUc.cpp) | `CbFill__10CByteQueueiPUc` |  |  | existing |  |
-| [0x13D818](../../../src/auto/FreeDrain__10CByteQueuei.c) | `FreeDrain__10CByteQueuei` |  |  | existing |  |
-| [0x13D850](../../../src/auto/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
-| [0x13D8B8](../../../src/auto/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
+| [0x13D558](../../../src/game/core/containers/bq/Init__10CByteQueueiPv.c) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
+| [0x13D580](../../../src/game/core/containers/bq/Reset__10CByteQueue.cpp) | `Reset__10CByteQueue` |  |  | existing |  |
+| [0x13D5A0](../../../src/game/core/containers/bq/CbFill__10CByteQueueiP11CQueueInput.cpp) | `CbFill__10CByteQueueiP11CQueueInput` |  |  | existing |  |
+| [0x13D6A8](../../../src/game/core/containers/bq/CbDrain__10CByteQueueiP12CQueueOutput.cpp) | `CbDrain__10CByteQueueiP12CQueueOutput` |  |  | existing |  |
+| [0x13D7D0](../../../src/game/core/containers/bq/CbFill__10CByteQueueiPUc.cpp) | `CbFill__10CByteQueueiPUc` |  |  | existing |  |
+| [0x13D818](../../../src/game/core/containers/bq/FreeDrain__10CByteQueuei.c) | `FreeDrain__10CByteQueuei` |  |  | existing |  |
+| [0x13D850](../../../src/game/core/containers/bq/CbRead__17CQueueInputMemoryiPv.c) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
+| [0x13D8B8](../../../src/game/core/containers/bq/CbRead__15CQueueInputFileiPv.c) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |
 
 ## tu_14B660 (0x14B660-0x14B7F8)
 
@@ -324,14 +324,14 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1848A8](../../../src/hand/func_001848A8.c) | `CStreamBis_ctor_1848A8` | Constructor of a CBinaryInputStream subclass: base ctor 0x1177A8, vptr D_002D2918, grf, 64-byte-aligned spool buffer from (cb, pv) | 0.40 | T2 |  |
-| [0x184950](../../../src/auto/func_00184950.c) | `CStreamBis_ctor` | Destructor: reset vptr, Close (0x184CF0), delete if flag&1 | 0.45 | T2 |  |
-| [0x1849A0](../../../src/hand/func_001849A0.c) | `CStreamBis_RefillCd` | Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling (0x14BC78) | 0.45 | T2 |  |
-| [0x184C60](../../../src/auto/func_00184C60.c) | `CStreamBis_RefillFile` | Refill from host file: sceRead(fd x3C, buf, cb) | 0.45 | T2 |  |
-| [0x184CA0](../../../src/hand/CStreamBis_Refill.c) | `CStreamBis_Refill` | Virtual Refill: host file if fd>=0, CD if sector stream active, else empty | 0.50 | T1 |  |
-| [0x184CF0](../../../src/auto/CStreamBis_Close.c) | `CStreamBis_Close` | Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close | 0.50 | T1 |  |
-| [0x184D60](../../../src/auto/func_00184D60.c) | `FOpenStreamFileRec` | If the file record kind is 2 (disc sector), FOpenSector(rec sector, size) | 0.35 | T2 |  |
-| [0x184D98](../../../src/hand/FOpenSector__18CBinaryInputStreamUiUi.cpp) | `FOpenSector__18CBinaryInputStreamUiUi` |  |  | existing |  |
+| [0x1848A8](../../../src/game/core/binstream/tu_1848A8/func_001848A8.c) | `CStreamBis_ctor_1848A8` | Constructor of a CBinaryInputStream subclass: base ctor 0x1177A8, vptr D_002D2918, grf, 64-byte-aligned spool buffer from (cb, pv) | 0.40 | T2 |  |
+| [0x184950](../../../src/game/core/binstream/tu_1848A8/func_00184950.c) | `CStreamBis_ctor` | Destructor: reset vptr, Close (0x184CF0), delete if flag&1 | 0.45 | T2 |  |
+| [0x1849A0](../../../src/game/core/binstream/tu_1848A8/func_001849A0.c) | `CStreamBis_RefillCd` | Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling (0x14BC78) | 0.45 | T2 |  |
+| [0x184C60](../../../src/game/core/binstream/tu_1848A8/func_00184C60.c) | `CStreamBis_RefillFile` | Refill from host file: sceRead(fd x3C, buf, cb) | 0.45 | T2 |  |
+| [0x184CA0](../../../src/game/core/binstream/tu_1848A8/CStreamBis_Refill.c) | `CStreamBis_Refill` | Virtual Refill: host file if fd>=0, CD if sector stream active, else empty | 0.50 | T1 |  |
+| [0x184CF0](../../../src/game/core/binstream/tu_1848A8/CStreamBis_Close.c) | `CStreamBis_Close` | Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close | 0.50 | T1 |  |
+| [0x184D60](../../../src/game/core/binstream/tu_1848A8/func_00184D60.c) | `FOpenStreamFileRec` | If the file record kind is 2 (disc sector), FOpenSector(rec sector, size) | 0.35 | T2 |  |
+| [0x184D98](../../../src/game/core/binstream/tu_1848A8/FOpenSector__18CBinaryInputStreamUiUi.cpp) | `FOpenSector__18CBinaryInputStreamUiUi` |  |  | existing |  |
 
 ## memory (0x1AE150-0x1AE7D0)
 
@@ -435,33 +435,33 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2560C8](../../../src/lib/func_002560C8.c) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/hand/func_00256120.c) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256278](../../../src/lib/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x256298](../../../src/auto/func_00256298.c) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2562A0](../../../src/auto/func_002562A0.c) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x256298](../../../src/game/core/linkonce/unhomed/func_00256298.c) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2562A0](../../../src/game/core/linkonce/unhomed/func_002562A0.c) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/hand/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
 | [0x2562B8](../../../src/auto/func_002562B8.c) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2562E0](../../../src/auto/func_002562E0.c) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2562E0](../../../src/game/core/linkonce/unhomed/func_002562E0.c) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562F0](../../../src/auto/func_002562F0.c) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256318](../../../src/auto/func_00256318.c) | `GetSoOptS14` | return s16@0x14 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256318](../../../src/game/core/linkonce/unhomed/func_00256318.c) | `GetSoOptS14` | return s16@0x14 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256328](../../../src/auto/func_00256328.c) | `SetSoOptI18` | set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256350](../../../src/auto/func_00256350.c) | `GetSoOptI18` | return int@0x18 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256350](../../../src/game/core/linkonce/unhomed/func_00256350.c) | `GetSoOptI18` | return int@0x18 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256360](../../../src/hand/func_00256360.c) | `STEPGUARD_ctor` | inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x2563E8](../../../src/auto/func_002563E8.c) | `JT_ctor` | inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x256440](../../../src/auto/func_00256440.c) | `MURRAY_ctor` | inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x2564A8](../../../src/hand/func_002564A8.c) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2564B8](../../../src/auto/func_002564B8.c) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
+| [0x2564A8](../../../src/game/core/math/bsp/func_002564A8.c) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2564B8](../../../src/game/core/math/bsp/func_002564B8.c) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
 | [0x2564C0](../../../src/auto/func_002564C0.c) | `Identity_002564C0` | return arg (inline cast/accessor) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x2564E0](../../../src/lib/func_002564E0.c) | `CUnk2CA5E0_Attach` | a->owner=b; append a to b->list (+4); a->x24=b->x0 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256528](../../../src/lib/func_00256528.c) | `CUnk2CA5E0_Attach2` | variant with extra arg c, list at +0x28 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256588](../../../src/hand/func_00256588.c) | `BroadcastToList` | for each node in list call node->vt[2\](pv) [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2565E0](../../../src/lib/func_002565E0.c) | `CDynArrayV_AppendNew` | grow array by 1, call vt init on new element, return it [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256658](../../../src/auto/func_00256658.c) | `CDynArrayV_Clear` | free array and destroy list nodes via vt [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2566B0](../../../src/auto/func_002566B0.c) | `LoadS32FromBis_vt` | virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2566D8](../../../src/hand/func_002566D8.cpp) | `LoadListFromBrx_vt` | virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2567D0](../../../src/hand/func_002567D0.c) | `CHash_Clear` | free all chained entries and bucket array through allocator vt[3] [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x2568A0](../../../src/auto/func_002568A0.c) | `CHash_ClearAt14` | CHash_Clear(this+0x14) [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2568C0](../../../src/hand/func_002568C0.c) | `CHash_Resize` | rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x2569F8](../../../src/hand/func_002569F8.c) | `CHash_Insert` | insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x256AF0](../../../src/hand/func_00256AF0.c) | `CHashIndex_Add` | insert (hash(px), index of px) into owner hash [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2564E0](../../../src/game/core/containers/tu_119BC8/func_002564E0.c) | `CUnk2CA5E0_Attach` | a->owner=b; append a to b->list (+4); a->x24=b->x0 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256528](../../../src/game/core/containers/tu_119BC8/func_00256528.c) | `CUnk2CA5E0_Attach2` | variant with extra arg c, list at +0x28 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256588](../../../src/game/core/containers/tu_119BC8/func_00256588.c) | `BroadcastToList` | for each node in list call node->vt[2\](pv) [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2565E0](../../../src/game/core/containers/tu_119BC8/func_002565E0.c) | `CDynArrayV_AppendNew` | grow array by 1, call vt init on new element, return it [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256658](../../../src/game/core/containers/tu_119BC8/func_00256658.c) | `CDynArrayV_Clear` | free array and destroy list nodes via vt [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2566B0](../../../src/game/core/binstream/bis/func_002566B0.c) | `LoadS32FromBis_vt` | virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2566D8](../../../src/game/core/containers/tu_119BC8/func_002566D8.cpp) | `LoadListFromBrx_vt` | virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2567D0](../../../src/game/core/containers/tu_119BC8/func_002567D0.c) | `CHash_Clear` | free all chained entries and bucket array through allocator vt[3] [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x2568A0](../../../src/game/core/containers/tu_119BC8/func_002568A0.c) | `CHash_ClearAt14` | CHash_Clear(this+0x14) [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2568C0](../../../src/game/core/containers/tu_119BC8/func_002568C0.c) | `CHash_Resize` | rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x2569F8](../../../src/game/core/containers/tu_119BC8/func_002569F8.c) | `CHash_Insert` | insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x256AF0](../../../src/game/core/containers/tu_119BC8/func_00256AF0.c) | `CHashIndex_Add` | insert (hash(px), index of px) into owner hash [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256B48](../../../src/hand/func_00256B48.c) | `PvNewPair` | allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256C38](../../../src/auto/func_00256C38.c) | `PairPtr_ctor` | CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release | 0.55 | T2 | top50; top50 round; v2 name PairPtr_Init |
 | [0x256C58](../../../src/lib/func_00256C58.c) | `PairPtr_Assign` | refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)] | 0.50 | T1 |  |
@@ -509,7 +509,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2581C0](../../../src/lib/func_002581C0.c) | `RefGetGlobalSaveVar` | Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer) | 0.60 | T1 | top50 |
 | [0x258200](../../../src/lib/func_00258200.c) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
 | [0x258248](../../../src/auto/func_00258248.c) | `InitFileKey` | memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258280](../../../src/auto/func_00258280.c) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x258280](../../../src/game/core/linkonce/unhomed/func_00258280.c) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x258290](../../../src/lib/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x258348](../../../src/hand/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258438](../../../src/hand/func_00258438.c) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
@@ -523,84 +523,84 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258620](../../../src/auto/func_00258620.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258658](../../../src/lib/func_00258658.c) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x2586D8](../../../src/hand/func_002586D8.c) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
-| [0x258898](../../../src/lib/func_00258898.c) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258920](../../../src/lib/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2589A8](../../../src/auto/func_002589A8.c) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2589F0](../../../src/auto/func_002589F0.c) | `GetEmitterEmitbField4` | return pemitb->field4 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258898](../../../src/game/core/linkonce/unhomed/func_00258898.c) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258920](../../../src/game/core/linkonce/unhomed/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2589A8](../../../src/game/core/linkonce/unhomed/func_002589A8.c) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2589F0](../../../src/game/core/linkonce/unhomed/func_002589F0.c) | `GetEmitterEmitbField4` | return pemitb->field4 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258A00](../../../src/game/platform/memory/memory/func_00258A00.c) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
-| [0x258AB8](../../../src/auto/func_00258AB8.c) | `GetEmitterEmitoKind` | return EMITO kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258AC8](../../../src/auto/func_00258AC8.c) | `PemitoEmitterEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258B00](../../../src/auto/func_00258B00.c) | `PemitoEmitterEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258B38](../../../src/auto/func_00258B38.c) | `PemitoEmitterEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258B70](../../../src/lib/func_00258B70.c) | `SetEmitterPartBKind` | set PartB variant kind (2,3,8..) with defaults (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258C40](../../../src/lib/func_00258C40.c) | `GetEmitterPartBKind` | return PartB variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258C60](../../../src/lib/func_00258C60.c) | `PvEmitterPartBEnsureKind2` | ensure PartB variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258CC8](../../../src/lib/func_00258CC8.c) | `PvEmitterPartBEnsureKind3` | ensure PartB variant 3 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258D30](../../../src/lib/func_00258D30.c) | `PvEmitterPartBEnsureKind8` | ensure PartB variant 8 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258D98](../../../src/lib/func_00258D98.c) | `SetEmitterPartAKind` | set PartA variant kind (1,2) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258E40](../../../src/lib/func_00258E40.c) | `GetEmitterPartAKind` | return PartA variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258E60](../../../src/lib/func_00258E60.c) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258EC8](../../../src/lib/func_00258EC8.c) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258AB8](../../../src/game/core/linkonce/unhomed/func_00258AB8.c) | `GetEmitterEmitoKind` | return EMITO kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258AC8](../../../src/game/core/linkonce/unhomed/func_00258AC8.c) | `PemitoEmitterEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258B00](../../../src/game/core/linkonce/unhomed/func_00258B00.c) | `PemitoEmitterEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258B38](../../../src/game/core/linkonce/unhomed/func_00258B38.c) | `PemitoEmitterEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258B70](../../../src/game/core/linkonce/unhomed/func_00258B70.c) | `SetEmitterPartBKind` | set PartB variant kind (2,3,8..) with defaults (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258C40](../../../src/game/core/linkonce/unhomed/func_00258C40.c) | `GetEmitterPartBKind` | return PartB variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258C60](../../../src/game/core/linkonce/unhomed/func_00258C60.c) | `PvEmitterPartBEnsureKind2` | ensure PartB variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258CC8](../../../src/game/core/linkonce/unhomed/func_00258CC8.c) | `PvEmitterPartBEnsureKind3` | ensure PartB variant 3 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258D30](../../../src/game/core/linkonce/unhomed/func_00258D30.c) | `PvEmitterPartBEnsureKind8` | ensure PartB variant 8 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258D98](../../../src/game/core/linkonce/unhomed/func_00258D98.c) | `SetEmitterPartAKind` | set PartA variant kind (1,2) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258E40](../../../src/game/core/linkonce/unhomed/func_00258E40.c) | `GetEmitterPartAKind` | return PartA variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258E60](../../../src/game/core/linkonce/unhomed/func_00258E60.c) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258EC8](../../../src/game/core/linkonce/unhomed/func_00258EC8.c) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258F30](../../../src/auto/func_00258F30.c) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x258F40](../../../src/hand/func_00258F40.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x259030](../../../src/lib/func_00259030.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x2590B8](../../../src/auto/func_002590B8.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x2590F0](../../../src/lib/func_002590F0.c) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x259170](../../../src/hand/func_00259170.c) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
-| [0x259330](../../../src/lib/func_00259330.c) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2593B8](../../../src/lib/func_002593B8.c) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259440](../../../src/auto/func_00259440.c) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259488](../../../src/auto/func_00259488.c) | `GetExploEmitbField4` | return pemitb->field4 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259330](../../../src/game/core/linkonce/unhomed/func_00259330.c) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2593B8](../../../src/game/core/linkonce/unhomed/func_002593B8.c) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259440](../../../src/game/core/linkonce/unhomed/func_00259440.c) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259488](../../../src/game/core/linkonce/unhomed/func_00259488.c) | `GetExploEmitbField4` | return pemitb->field4 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259498](../../../src/game/platform/memory/memory/func_00259498.c) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
-| [0x259550](../../../src/auto/func_00259550.c) | `GetExploEmitoKind` | return EMITO kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259560](../../../src/auto/func_00259560.c) | `PemitoExploEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259598](../../../src/auto/func_00259598.c) | `PemitoExploEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2595D0](../../../src/auto/func_002595D0.c) | `PemitoExploEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259608](../../../src/lib/func_00259608.c) | `SetExploPartBKind` | set PartB variant kind (2,3,8..) with defaults (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2596D8](../../../src/lib/func_002596D8.c) | `GetExploPartBKind` | return PartB variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2596F8](../../../src/lib/func_002596F8.c) | `PvExploPartBEnsureKind2` | ensure PartB variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259760](../../../src/lib/func_00259760.c) | `PvExploPartBEnsureKind3` | ensure PartB variant 3 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2597C8](../../../src/lib/func_002597C8.c) | `PvExploPartBEnsureKind8` | ensure PartB variant 8 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259830](../../../src/lib/func_00259830.c) | `SetExploPartAKind` | set PartA variant kind (1,2) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2598D8](../../../src/lib/func_002598D8.c) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2598F8](../../../src/lib/func_002598F8.c) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259960](../../../src/lib/func_00259960.c) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259550](../../../src/game/core/linkonce/unhomed/func_00259550.c) | `GetExploEmitoKind` | return EMITO kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259560](../../../src/game/core/linkonce/unhomed/func_00259560.c) | `PemitoExploEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259598](../../../src/game/core/linkonce/unhomed/func_00259598.c) | `PemitoExploEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2595D0](../../../src/game/core/linkonce/unhomed/func_002595D0.c) | `PemitoExploEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259608](../../../src/game/core/linkonce/unhomed/func_00259608.c) | `SetExploPartBKind` | set PartB variant kind (2,3,8..) with defaults (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2596D8](../../../src/game/core/linkonce/unhomed/func_002596D8.c) | `GetExploPartBKind` | return PartB variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2596F8](../../../src/game/core/linkonce/unhomed/func_002596F8.c) | `PvExploPartBEnsureKind2` | ensure PartB variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259760](../../../src/game/core/linkonce/unhomed/func_00259760.c) | `PvExploPartBEnsureKind3` | ensure PartB variant 3 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2597C8](../../../src/game/core/linkonce/unhomed/func_002597C8.c) | `PvExploPartBEnsureKind8` | ensure PartB variant 8 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259830](../../../src/game/core/linkonce/unhomed/func_00259830.c) | `SetExploPartAKind` | set PartA variant kind (1,2) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2598D8](../../../src/game/core/linkonce/unhomed/func_002598D8.c) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2598F8](../../../src/game/core/linkonce/unhomed/func_002598F8.c) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259960](../../../src/game/core/linkonce/unhomed/func_00259960.c) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599C8](../../../src/auto/func_002599C8.c) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599D8](../../../src/auto/func_002599D8.c) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E0](../../../src/auto/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E8](../../../src/auto/func_002599E8.c) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599F0](../../../src/auto/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2599F8](../../../src/auto/func_002599F8.c) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599F8](../../../src/game/core/linkonce/unhomed/func_002599F8.c) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A00](../../../src/auto/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A08](../../../src/auto/func_00259A08.c) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A08](../../../src/game/core/linkonce/unhomed/func_00259A08.c) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A10](../../../src/auto/func_00259A10.c) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A18](../../../src/auto/func_00259A18.c) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A18](../../../src/game/core/linkonce/unhomed/func_00259A18.c) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A20](../../../src/auto/func_00259A20.c) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A28](../../../src/auto/func_00259A28.c) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A28](../../../src/game/core/linkonce/unhomed/func_00259A28.c) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A30](../../../src/auto/func_00259A30.c) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A38](../../../src/auto/func_00259A38.c) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A38](../../../src/game/core/linkonce/unhomed/func_00259A38.c) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A40](../../../src/auto/func_00259A40.c) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A48](../../../src/auto/func_00259A48.c) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A48](../../../src/game/core/linkonce/unhomed/func_00259A48.c) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A70](../../../src/hand/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259A78](../../../src/auto/func_00259A78.c) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A78](../../../src/game/core/linkonce/unhomed/func_00259A78.c) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A88](../../../src/auto/func_00259A88.c) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x259AE8](../../../src/hand/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259AE8](../../../src/game/core/linkonce/unhomed/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259AF8](../../../src/auto/func_00259AF8.c) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259B00](../../../src/auto/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259B00](../../../src/game/core/linkonce/unhomed/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B08](../../../src/auto/func_00259B08.c) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259B10](../../../src/auto/func_00259B10.c) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259B20](../../../src/hand/func_00259B20.c) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259B10](../../../src/game/core/linkonce/unhomed/func_00259B10.c) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259B20](../../../src/game/core/linkonce/unhomed/func_00259B20.c) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259B48](../../../src/lib/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x259BB0](../../../src/lib/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C08](../../../src/hand/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259C10](../../../src/auto/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259C10](../../../src/game/core/linkonce/unhomed/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/hand/func_00259C18.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x259CF8](../../../src/auto/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259D18](../../../src/auto/func_00259D18.c) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259D38](../../../src/auto/func_00259D38.c) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D48](../../../src/auto/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D60](../../../src/hand/func_00259D60.c) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D70](../../../src/auto/func_00259D70.c) | `GetF64_EC` | return p->xF64->xEC [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D38](../../../src/game/core/linkonce/unhomed/func_00259D38.c) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D48](../../../src/game/core/linkonce/unhomed/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D60](../../../src/game/core/linkonce/unhomed/func_00259D60.c) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D70](../../../src/game/core/linkonce/unhomed/func_00259D70.c) | `GetF64_EC` | return p->xF64->xEC [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D98](../../../src/hand/func_00259D98.c) | `VU_VECTOR_GetX` | float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259DA8](../../../src/hand/func_00259DA8.c) | `VU_VECTOR_GetY` | float lane 1 (prot3w then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259DC0](../../../src/hand/func_00259DC0.c) | `VU_VECTOR_GetZ` | float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |

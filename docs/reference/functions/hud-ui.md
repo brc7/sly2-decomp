@@ -61,12 +61,12 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A2BD0](../../../src/hand/func_001A2BD0.c) | `SetLanguage` | Set current language D_002E1E54 = n, or for -1 the first language of the current region | 0.60 | T1 |  |
-| [0x1A2C20](../../../src/auto/func_001A2C20.c) | `SetRegion` | Set region index D_002E1E58 (-1 -> 0) | 0.55 | T1 |  |
-| [0x1A2C48](../../../src/hand/func_001A2C48.c) | `GetRegionLanguages` | Out count and pointer to the language index list of the current region (index clamped to <7) | 0.55 | T1 |  |
-| [0x1A2C98](../../../src/hand/func_001A2C98.c) | `CLanguagesRegion` | Return number of languages available in the region | 0.50 | T1 |  |
-| [0x1A2CC0](../../../src/hand/func_001A2CC0.c) | `FourccFromLanguage` | Map language index 0..13 to the 4CC 'FK$x' with x = e f i g s d p a h n w j k c (English, French, Italian, German, Spanish, Dutch, Portuguese, ..., Japanese, Korean, Chinese) | 0.60 | T1 |  |
-| [0x1A2DA0](../../../src/hand/func_001A2DA0.c) | `SetLanguageFromSystem` | Map the PS2 system language (sceScf code: 0 ja,1 en,2 fr,3 es,4 de,5 it,6 nl,7 pt) to a game language index and select it if the region offers it, else region default | 0.60 | T1 |  |
+| [0x1A2BD0](../../../src/game/core/locale/language/func_001A2BD0.c) | `SetLanguage` | Set current language D_002E1E54 = n, or for -1 the first language of the current region | 0.60 | T1 |  |
+| [0x1A2C20](../../../src/game/core/locale/language/func_001A2C20.c) | `SetRegion` | Set region index D_002E1E58 (-1 -> 0) | 0.55 | T1 |  |
+| [0x1A2C48](../../../src/game/core/locale/language/func_001A2C48.c) | `GetRegionLanguages` | Out count and pointer to the language index list of the current region (index clamped to <7) | 0.55 | T1 |  |
+| [0x1A2C98](../../../src/game/core/locale/language/func_001A2C98.c) | `CLanguagesRegion` | Return number of languages available in the region | 0.50 | T1 |  |
+| [0x1A2CC0](../../../src/game/core/locale/language/func_001A2CC0.c) | `FourccFromLanguage` | Map language index 0..13 to the 4CC 'FK$x' with x = e f i g s d p a h n w j k c (English, French, Italian, German, Spanish, Dutch, Portuguese, ..., Japanese, Korean, Chinese) | 0.60 | T1 |  |
+| [0x1A2DA0](../../../src/game/core/locale/language/func_001A2DA0.c) | `SetLanguageFromSystem` | Map the PS2 system language (sceScf code: 0 ja,1 en,2 fr,3 es,4 de,5 it,6 nl,7 pt) to a game language index and select it if the region offers it, else region default | 0.60 | T1 |  |
 
 ## letterbox (0x1A3020-0x1A3260)
 

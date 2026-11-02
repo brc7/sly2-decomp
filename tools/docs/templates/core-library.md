@@ -32,7 +32,7 @@ Fix: 0x11C168 is `operator*(MATRIX4, MATRIX4)`, not MultiplyMatrix4Vector `[C:ve
 
 ## 4. Binary input streams and CD
 
-- `CBinaryInputStream` (`src/P2/bis.cpp`, 0x1177A8): base `CBinaryStreamBase` with vptr at +0x30 (`Fill()`, `Close()`); readers U8/U16/U32/S8/S16/S32/F32,
+- `CBinaryInputStream` (`src/game/core/binstream/bis/bis.cpp`, 0x1177A8): base `CBinaryStreamBase` with vptr at +0x30 (`Fill()`, `Close()`); readers U8/U16/U32/S8/S16/S32/F32,
   vectors/matrices, `Align`, `Skip`, `Read`, string16; LZSS decompression into a window (`SetDecompress` 0x1179D8, `Decompress` 0x1179F0) `[C:static]`.
   API names carried over from Sly 1, layout not `[C:static layouts.md]`.
 - A CD-backed stream subclass (TU 0x1848A8, vtable D_002D2918; class name coined CStreamBis) is used for all world/file loads; `FOpenSector` 0x184D98 `[H r4b bisstream.md]`.

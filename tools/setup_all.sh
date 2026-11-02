@@ -87,4 +87,4 @@ echo "  already there: ${#HAVE[@]} item(s)"
 if [ ${#ADDED[@]} -gt 0 ]; then echo "  added now:"; printf '    %s\n' "${ADDED[@]}"; else echo "  added now: nothing - you were fully set up"; fi
 if [ ${#MISSING[@]} -gt 0 ]; then echo "  still missing:"; printf '    %s\n' "${MISSING[@]}"; fi
 echo
-echo "Done. Check it works:  python3 tools/matchtool.py check src/P2/bis.cpp   (every function should say MATCH)"
+echo "Done. Check it works:  python3 tools/matchtool.py check src/game/core/binstream/bis/bis.cpp   (every function should say MATCH)"
