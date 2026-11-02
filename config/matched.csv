@@ -845,8 +845,8 @@ func_00116CA0,0x116CA0,7,match,src/game/core/containers/dynarray.cpp
 func_00116CC0,0x116CC0,7,match,src/game/core/containers/dynarray.cpp
 func_00116CE0,0x116CE0,7,match,src/game/core/containers/dynarray.cpp
 func_00116D00,0x116D00,7,match,src/game/core/containers/dynarray.cpp
-Free__9CDynArray,0x116D28,18,match,src/game/platform/memory/heap/heap.cpp
-Reserve__9CDynArrayi,0x116D70,47,match,src/game/platform/memory/heap/heap.cpp
+Free__9CDynArray,0x116D28,18,match,src/game/core/containers/dynarray.cpp
+Reserve__9CDynArrayi,0x116D70,47,match,src/game/core/containers/dynarray.cpp
 CDynArray_Append,0x116E30,29,match,src/game/core/containers/dynarray.cpp
 StaticInit_dynarray,0x116ED8,77,match,src/game/core/containers/dynarray.cpp
 func_00117010,0x117010,8,match,src/game/core/containers/dynarray.cpp
