@@ -116,12 +116,12 @@ the memcard worker (`MemcardThreadMain` 0x1AAF18), and an MPEG display thread `[
 | [0x1A7890](../../src/game/app/main/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
 | [0x1A7900](../../src/game/app/main/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
 | [0x1A7970](../../src/game/app/main/func_001A7970.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "08 | 0.95 | T1 | verified |
-| [0x1D5150](../../src/game/platform/input/rumble/InitRumble__FP6RUMBLEii.c) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
-| [0x1D51B8](../../src/game/platform/input/rumble/UpdateRumble__FP6RUMBLE.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
-| [0x1D5310](../../src/game/platform/input/rumble/TriggerRumbleRumk__FP6RUMBLE4RUMKf.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
-| [0x1D5468](../../src/game/platform/input/rumble/StopRumbleActuators__FP6RUMBLE.cpp) | `StopRumbleActuators__FP6RUMBLE` | Zero both motors | 0.90 | existing | verified |
-| [0x1D5498](../../src/game/platform/input/rumble/RumbleUnknown1__Fv.c) | `EnsureRumbleModeDefault` | If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting) | 0.50 | existing | arbitration; replaces existing RumbleUnknown1__Fv |
-| [0x1D55B8](../../src/game/platform/input/rumble/func_001D55B8.c) | `FRumbleEnabled` | Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8 | 0.60 | T1 |  |
+| [0x1D5150](../../src/game/platform/input/rumble.cpp) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
+| [0x1D51B8](../../src/game/platform/input/rumble.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
+| [0x1D5310](../../src/game/platform/input/rumble.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
+| [0x1D5468](../../src/game/platform/input/rumble.cpp) | `StopRumbleActuators__FP6RUMBLE` | Zero both motors | 0.90 | existing | verified |
+| [0x1D5498](../../src/game/platform/input/rumble.cpp) | `EnsureRumbleModeDefault` | If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting) | 0.50 | existing | arbitration; replaces existing RumbleUnknown1__Fv |
+| [0x1D55B8](../../src/game/platform/input/rumble.cpp) | `FRumbleEnabled` | Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8 | 0.60 | T1 |  |
 
 Selected 36 of 48 named functions (T1 with confidence >= 0.6, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/main-loop-startup.md](../reference/functions/main-loop-startup.md).
 

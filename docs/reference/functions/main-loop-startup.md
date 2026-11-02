@@ -78,12 +78,12 @@ Totals on this page: EXISTING 12, T1 31, T2 5.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D5150](../../../src/game/platform/input/rumble/InitRumble__FP6RUMBLEii.c) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
-| [0x1D51B8](../../../src/game/platform/input/rumble/UpdateRumble__FP6RUMBLE.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
-| [0x1D5310](../../../src/game/platform/input/rumble/TriggerRumbleRumk__FP6RUMBLE4RUMKf.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
-| [0x1D5340](../../../src/game/platform/input/rumble/TriggerRumbleRumpat__FP6RUMBLEP6RUMPATf.c) | `TriggerRumbleRumpat__FP6RUMBLEP6RUMPATf` | Start a rumble pattern for dt if pad active and FRumbleEnabled | 0.90 | existing |  |
-| [0x1D53C0](../../../src/game/platform/input/rumble/SetRumbleRums__FP6RUMBLE4RUMS.cpp) | `SetRumbleRums__FP6RUMBLE4RUMS` | Rumble state machine transition (scePadSetActDirect) | 0.90 | existing |  |
-| [0x1D5468](../../../src/game/platform/input/rumble/StopRumbleActuators__FP6RUMBLE.cpp) | `StopRumbleActuators__FP6RUMBLE` | Zero both motors | 0.90 | existing | verified |
-| [0x1D5498](../../../src/game/platform/input/rumble/RumbleUnknown1__Fv.c) | `EnsureRumbleModeDefault` | If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting) | 0.50 | existing | arbitration; replaces existing RumbleUnknown1__Fv |
-| [0x1D54B8](../../../src/game/platform/input/rumble/func_001D54B8.cpp) | `ResetRumbleSaveVar` | Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1 | 0.55 | T1 |  |
-| [0x1D55B8](../../../src/game/platform/input/rumble/func_001D55B8.c) | `FRumbleEnabled` | Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8 | 0.60 | T1 |  |
+| [0x1D5150](../../../src/game/platform/input/rumble.cpp) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
+| [0x1D51B8](../../../src/game/platform/input/rumble.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
+| [0x1D5310](../../../src/game/platform/input/rumble.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
+| [0x1D5340](../../../src/game/platform/input/rumble.cpp) | `TriggerRumbleRumpat__FP6RUMBLEP6RUMPATf` | Start a rumble pattern for dt if pad active and FRumbleEnabled | 0.90 | existing |  |
+| [0x1D53C0](../../../src/game/platform/input/rumble.cpp) | `SetRumbleRums__FP6RUMBLE4RUMS` | Rumble state machine transition (scePadSetActDirect) | 0.90 | existing |  |
+| [0x1D5468](../../../src/game/platform/input/rumble.cpp) | `StopRumbleActuators__FP6RUMBLE` | Zero both motors | 0.90 | existing | verified |
+| [0x1D5498](../../../src/game/platform/input/rumble.cpp) | `EnsureRumbleModeDefault` | If rumble mode D_002C2D8C == 0 set it to 1 (follow save setting) | 0.50 | existing | arbitration; replaces existing RumbleUnknown1__Fv |
+| [0x1D54B8](../../../src/game/platform/input/rumble.cpp) | `ResetRumbleSaveVar` | Mode 2: store save var (g_sw keys+0x1C, D_003E0FD8) = 0; mode 3: = 1 | 0.55 | T1 |  |
+| [0x1D55B8](../../../src/game/platform/input/rumble.cpp) | `FRumbleEnabled` | Mode 2 -> 1; 0/3 -> 0; else !save var D_003E0FD8 | 0.60 | T1 |  |
