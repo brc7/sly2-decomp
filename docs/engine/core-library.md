@@ -135,8 +135,8 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x1AE4F8](../../src/game/platform/memory/memory/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
 | [0x21E0D8](../../src/game/platform/runtime/text/func_0021E0D8.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
 | [0x21EDF8](../../src/game/platform/runtime/text/func_0021EDF8.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
-| [0x21F0C0](../../src/game/platform/thread/thread/func_0021F0C0.c) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
-| [0x21F100](../../src/game/platform/thread/thread/func_0021F100.c) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
+| [0x21F0C0](../../src/game/platform/thread/thread.cpp) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
+| [0x21F100](../../src/game/platform/thread/thread.cpp) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
 | [0x2584A8](../../src/game/engine/fx/emitter/func_002584A8.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258598](../../src/game/engine/fx/emitter/func_00258598.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258F40](../../src/game/engine/fx/emitter/func_00258F40.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |

@@ -406,11 +406,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21EFD0](../../../src/game/platform/thread/thread/SemaCreate__Fii.c) | `SemaCreate__Fii` |  |  | existing |  |
-| [0x21F028](../../../src/game/platform/thread/thread/InitCritSect__FP8CRITSECT.c) | `InitCritSect__FP8CRITSECT` |  |  | existing |  |
-| [0x21F060](../../../src/game/platform/thread/thread/EnterCritSect__FP8CRITSECT.cpp) | `EnterCritSect__FP8CRITSECT` |  |  | existing |  |
-| [0x21F0C0](../../../src/game/platform/thread/thread/func_0021F0C0.c) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
-| [0x21F100](../../../src/game/platform/thread/thread/func_0021F100.c) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
+| [0x21EFD0](../../../src/game/platform/thread/thread.cpp) | `SemaCreate__Fii` |  |  | existing |  |
+| [0x21F028](../../../src/game/platform/thread/thread.cpp) | `InitCritSect__FP8CRITSECT` |  |  | existing |  |
+| [0x21F060](../../../src/game/platform/thread/thread.cpp) | `EnterCritSect__FP8CRITSECT` |  |  | existing |  |
+| [0x21F0C0](../../../src/game/platform/thread/thread.cpp) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
+| [0x21F100](../../../src/game/platform/thread/thread.cpp) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
 
 ## game_linkonce (0x254F00-0x259DE4)
 
