@@ -2229,8 +2229,8 @@ EndPrim__4DMASi,0x157798,2,match,src/game/engine/graphics/backend/dmas/EndPrim__
 EndPrim__4DMASi,0x157798,2,match,src/game/engine/graphics/backend/dmas/dmas.cpp
 StaticInit_dmas,0x1577A0,77,match,src/game/engine/graphics/backend/dmas/StaticInit_dmas.c
 func_001578D8,0x1578D8,8,match,src/game/engine/graphics/backend/dmas/func_001578D8.c
-StaticInit_empty_1578F8,0x1578F8,77,match,src/game/engine/graphics/backend/empty_1578F8/StaticInit_empty_1578F8.c
-func_00157A30,0x157A30,8,match,src/game/engine/graphics/backend/empty_1578F8/func_00157A30.c
+StaticInit_empty_1578F8,0x1578F8,77,match,src/game/engine/graphics/backend/empty_1578F8.cpp
+func_00157A30,0x157A30,8,match,src/game/engine/graphics/backend/empty_1578F8.cpp
 NCmpPrplReverseZ__FPP3RPLT0,0x157A50,18,match,src/game/engine/graphics/pipeline/draw/NCmpPrplReverseZ__FPP3RPLT0.cpp
 NCmpPrplZ__FPP3RPLT0,0x157A98,18,match,src/game/engine/graphics/pipeline/draw/NCmpPrplZ__FPP3RPLT0.c
 CprplPartitionArpl__FiP3RPLPP3RPLPiT3,0x157AE0,131,match,src/game/engine/graphics/pipeline/draw/CprplPartitionArpl__FiP3RPLPP3RPLPiT3.c
