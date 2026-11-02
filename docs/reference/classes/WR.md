@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetWrClassDesc`](../../../src/auto/GetWrClassDesc.c) | `0x114140` |
-| 7 | Init | **override** | [`InitWr?`](../../../src/hand/func_0022B720.c) | `0x22B720` |
+| 7 | Init | **override** | [`InitWr?`](../../../src/game/engine/anim/wr/func_0022B720.c) | `0x22B720` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` |
@@ -38,7 +38,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (LO) | `LoadLoFromBrx` | `0x1A5C28` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
-| 16 | Update | **override** | [`UpdateWrMatrixes__FP2WR`](../../../src/hand/UpdateWrMatrixes__FP2WR.cpp) | `0x22C028` |
+| 16 | Update | **override** | [`UpdateWrMatrixes__FP2WR`](../../../src/game/engine/anim/wr/UpdateWrMatrixes__FP2WR.cpp) | `0x22C028` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |

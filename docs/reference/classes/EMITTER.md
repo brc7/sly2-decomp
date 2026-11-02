@@ -28,18 +28,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleEmitterMessage__FP7EMITTER5MSGIDPv`](../../../src/hand/HandleEmitterMessage__FP7EMITTER5MSGIDPv.cpp) | `0x1599A8` |
+| 5 | HandleMessage | **override** | [`HandleEmitterMessage__FP7EMITTER5MSGIDPv`](../../../src/game/engine/fx/emitter/HandleEmitterMessage__FP7EMITTER5MSGIDPv.cpp) | `0x1599A8` |
 | 6 | Pclassinfo | **override** | [`GetEmitterClassDesc`](../../../src/auto/GetEmitterClassDesc.c) | `0x113BE0` |
-| 7 | Init | **override** | [`InitEmitter`](../../../src/hand/InitEmitter.c) | `0x1591B0` |
+| 7 | Init | **override** | [`InitEmitter`](../../../src/game/engine/fx/emitter/InitEmitter.c) | `0x1591B0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadEmitterFromBrx?`](../../../src/lib/func_00258598.c) | `0x258598` |
-| 15 | PostLoad | **override** | [`PostEmitterLoad__FP7EMITTER`](../../../src/hand/PostEmitterLoad__FP7EMITTER.c) | `0x159500` |
-| 16 | Update | **override** | [`UpdateEmitter__FP7EMITTERf`](../../../src/hand/UpdateEmitter__FP7EMITTERf.cpp) | `0x159C80` |
+| 14 | LoadFromBrx | **override** | [`LoadEmitterFromBrx?`](../../../src/game/engine/fx/emitter/func_00258598.c) | `0x258598` |
+| 15 | PostLoad | **override** | [`PostEmitterLoad__FP7EMITTER`](../../../src/game/engine/fx/emitter/PostEmitterLoad__FP7EMITTER.c) | `0x159500` |
+| 16 | Update | **override** | [`UpdateEmitter__FP7EMITTERf`](../../../src/game/engine/fx/emitter/UpdateEmitter__FP7EMITTERf.cpp) | `0x159C80` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
@@ -64,7 +64,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneEmitter?`](../../../src/auto/func_00258620.c) | `0x258620` |
+| 41 | Clone | **override** | [`CloneEmitter?`](../../../src/game/engine/fx/emitter/func_00258620.c) | `0x258620` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

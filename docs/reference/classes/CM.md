@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewCm`](../../../src/auto/NewCm.c) `0x112DA8` |
 | Descriptor getter (slot 6) | `GetCmClassDesc` `0x114280` |
 | vtable | `D_002CA4D0`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`CM_ctor?`](../../../src/auto/func_0014D3D8.c) (vptr +0xC) |
+| vtable stored by | [`CM_ctor?`](../../../src/game/engine/camera/cm/func_0014D3D8.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -32,7 +32,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/cm.h` (`struct CM : CMBASE`). CM: from src/hand/func_0014DC58.cpp (6 copies in Lilly ports)
+From `include/sly2/cm.h` (`struct CM : CMBASE`). CM: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 9 header asserts agree, 0 disagree. Size from header: 0x630.
 

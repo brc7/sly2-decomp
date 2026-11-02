@@ -27,7 +27,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleExplsMessage`](../../../src/hand/HandleExplsMessage.c) | `0x15C5C8` |
+| 5 | HandleMessage | **override** | [`HandleExplsMessage`](../../../src/game/engine/fx/emitter/HandleExplsMessage.c) | `0x15C5C8` |
 | 6 | Pclassinfo | **override** | [`GetExplsClassDesc`](../../../src/auto/GetExplsClassDesc.c) | `0x113C20` |
 | 7 | Init | inherited (XFM) | `InitXfm` | `0x231100` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
@@ -73,8 +73,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |
 | 49 | XFM_PxfFromId | inherited (XFM) | `XFM_PxfFromId?` | `0x22D750` |
 | 50 |  | inherited (XFM) | `func_00231220` | `0x231220` |
-| 51 | ExplodeExplExplso__FP4EXPLP6EXPLSO | **override** | [`ExplodeExplsExplso`](../../../src/hand/ExplodeExplsExplso.c) | `0x15C628` |
-| 52 | FireExplsExplso | **new** | [`FireExplsExplso`](../../../src/hand/FireExplsExplso.c) | `0x15C690` |
+| 51 | ExplodeExplExplso__FP4EXPLP6EXPLSO | **override** | [`ExplodeExplsExplso`](../../../src/game/engine/fx/emitter/ExplodeExplsExplso.c) | `0x15C628` |
+| 52 | FireExplsExplso | **new** | [`FireExplsExplso`](../../../src/game/engine/fx/emitter/FireExplsExplso.c) | `0x15C690` |
 
 ## Fields
 

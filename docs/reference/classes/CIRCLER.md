@@ -29,9 +29,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCirclerClassDesc`](../../../src/auto/GetCirclerClassDesc.c) | `0x114310` |
-| 7 | InitSaa | **override** | [`InitCircler?`](../../../src/auto/func_001EE688.c) | `0x1EE688` |
-| 8 | UpdateSaa | **override** | [`UpdateCircler__FP7CIRCLERf`](../../../src/hand/UpdateCircler__FP7CIRCLERf.cpp) | `0x1EE6D8` |
-| 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteCircler__FP7CIRCLER`](../../../src/hand/UCompleteCircler__FP7CIRCLER.cpp) | `0x1EE768` |
+| 7 | InitSaa | **override** | [`InitCircler?`](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE688.c) | `0x1EE688` |
+| 8 | UpdateSaa | **override** | [`UpdateCircler__FP7CIRCLERf`](../../../src/game/engine/graphics/pipeline/shdanim/UpdateCircler__FP7CIRCLERf.cpp) | `0x1EE6D8` |
+| 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteCircler__FP7CIRCLER`](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteCircler__FP7CIRCLER.cpp) | `0x1EE768` |
 | 10 | SAA_FMatches | inherited (SAA) | `SAA_FMatches?` | `0x1EDB80` |
 
 ## Fields

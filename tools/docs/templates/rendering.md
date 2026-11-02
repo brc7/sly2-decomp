@@ -43,7 +43,7 @@ kind from record bits 44-49), `RenderBlipgSelf` 0x13A1E8 (12), `RenderCid74Self`
 (no pausing widget); k 3/4 -> 22/23 if foreground, else k when alpha == 1, else 5 (from 3) / 6 (from 4); k 5/6 -> 23 if fFg; 9 -> 24; 10 -> 25.
 Render-to-texture slots remap through `g_ampkindRtt` D_002C0BF8 (k 3,4,15,18,22 -> 15; 5,6,16,19,23 -> 16; 9,17,20,24 -> 17; slot 1 uses 18/19/20).
 
-## 3. DrawSw: sort, prologue and pass dispatch (`src/hand/func_00157FA0.c`) `[C:static]`
+## 3. DrawSw: sort, prologue and pass dispatch (`src/game/engine/graphics/pipeline/draw/func_00157FA0.c`) `[C:static]`
 
 1. `CprplPartitionArpl` 0x157AE0: counting sort into 26 buckets; far-to-near qsort (`NCmpPrplReverseZ`) on buckets 5, 6, 10, 1, 2, 25; near-to-far on 21; others keep submission order.
 2. CALL the frame-context packet D_002DF800; if SW+0x3E3C (force clear) or bucket 1 empty, DIRECT the colour+Z clear `g_aqwClearColorZ` D_002DEDC0.
@@ -219,7 +219,7 @@ is the remaining end-to-end check of the face-sign convention.
   depth `[H]` (strong). PORT: keep every texture resident; honour the Z clears.
 - Shader animations (SAA family CID 0x8A-0x90: LOOP, PINGPONG, SHUFFLE, EYES, SCROLLER, CIRCLER) switch bitmap frames / CLUTs (`UpdateShaders` from UpdateSw).
   If they rewrite CLUTs, palette lookup in the shader is simpler than pre-expanded RGBA.
-- `InitGsb` 0x1703F8 (was `InitZpr`), `AllocStack__4DMASi` 0x1572E0 (was `AllocSw`) (arbitration). DMA/VIF/GIF builder classes are in `src/P2/dmas.cpp`,
+- `InitGsb` 0x1703F8 (was `InitZpr`), `AllocStack__4DMASi` 0x1572E0 (was `AllocSw`) (arbitration). DMA/VIF/GIF builder classes are in `src/game/engine/graphics/backend/dmas/dmas.cpp`,
   `vifs.cpp`, `gifs.cpp` (typed); `g_vifs` D_002DEA28, `g_gifs` D_002DEA00.
 
 ## 10. Models: GLOBSET at render time `[C:static]`

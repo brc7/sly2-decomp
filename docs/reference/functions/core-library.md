@@ -312,13 +312,13 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1585D8](../../../src/hand/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
-| [0x158668](../../../src/hand/AppendDzgDz__FP3DZGP2DZ.c) | `AppendDzgDz__FP3DZGP2DZ` |  |  | existing |  |
-| [0x158728](../../../src/hand/FillDzgDz.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows | 0.70 | T1 | verified |
-| [0x158958](../../../src/auto/func_00158958.c) | `PxpFromDzgDz` | Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60) | 0.40 | T2 |  |
-| [0x158988](../../../src/hand/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
-| [0x158B20](../../../src/hand/SolveDzgFric.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz | 0.80 | T1 | verified |
-| [0x158E20](../../../src/hand/ApplyDzg.cpp) | `ApplyDzg` | Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2 | 0.75 | T1 |  |
+| [0x1585D8](../../../src/game/engine/physics/dzg/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
+| [0x158668](../../../src/game/engine/physics/dzg/AppendDzgDz__FP3DZGP2DZ.c) | `AppendDzgDz__FP3DZGP2DZ` |  |  | existing |  |
+| [0x158728](../../../src/game/engine/physics/dzg/FillDzgDz.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows | 0.70 | T1 | verified |
+| [0x158958](../../../src/game/engine/physics/dzg/func_00158958.c) | `PxpFromDzgDz` | Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60) | 0.40 | T2 |  |
+| [0x158988](../../../src/game/engine/physics/dzg/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
+| [0x158B20](../../../src/game/engine/physics/dzg/SolveDzgFric.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz | 0.80 | T1 | verified |
+| [0x158E20](../../../src/game/engine/physics/dzg/ApplyDzg.cpp) | `ApplyDzg` | Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2 | 0.75 | T1 |  |
 
 ## tu_1848A8 (0x1848A8-0x184F50)
 
@@ -434,22 +434,22 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255F38](../../../src/game/object/spliceobj/func_00255F38.c) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2560C8](../../../src/game/object/spliceobj/func_002560C8.c) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/game/splice/ref/func_00256120.c) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256278](../../../src/lib/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x256278](../../../src/game/engine/camera/cm/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../src/game/core/linkonce/unhomed/func_00256298.c) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../src/game/core/linkonce/unhomed/func_002562A0.c) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/hand/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
-| [0x2562B8](../../../src/auto/func_002562B8.c) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2562B8](../../../src/game/engine/physics/so/func_002562B8.c) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562E0](../../../src/game/core/linkonce/unhomed/func_002562E0.c) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2562F0](../../../src/auto/func_002562F0.c) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2562F0](../../../src/game/engine/physics/so/func_002562F0.c) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256318](../../../src/game/core/linkonce/unhomed/func_00256318.c) | `GetSoOptS14` | return s16@0x14 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256328](../../../src/auto/func_00256328.c) | `SetSoOptI18` | set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256328](../../../src/game/engine/physics/so/func_00256328.c) | `SetSoOptI18` | set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256350](../../../src/game/core/linkonce/unhomed/func_00256350.c) | `GetSoOptI18` | return int@0x18 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256360](../../../src/hand/func_00256360.c) | `STEPGUARD_ctor` | inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x2563E8](../../../src/auto/func_002563E8.c) | `JT_ctor` | inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x256440](../../../src/auto/func_00256440.c) | `MURRAY_ctor` | inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x2564A8](../../../src/game/core/math/bsp/func_002564A8.c) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2564B8](../../../src/game/core/math/bsp/func_002564B8.c) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
-| [0x2564C0](../../../src/auto/func_002564C0.c) | `Identity_002564C0` | return arg (inline cast/accessor) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x2564C0](../../../src/game/engine/physics/mark/func_002564C0.c) | `Identity_002564C0` | return arg (inline cast/accessor) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x2564E0](../../../src/game/core/containers/tu_119BC8/func_002564E0.c) | `CUnk2CA5E0_Attach` | a->owner=b; append a to b->list (+4); a->x24=b->x0 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256528](../../../src/game/core/containers/tu_119BC8/func_00256528.c) | `CUnk2CA5E0_Attach2` | variant with extra arg c, list at +0x28 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256588](../../../src/game/core/containers/tu_119BC8/func_00256588.c) | `BroadcastToList` | for each node in list call node->vt[2\](pv) [game linkonce (inline/template)] | 0.25 | T2 |  |
@@ -467,7 +467,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256C58](../../../src/lib/func_00256C58.c) | `PairPtr_Assign` | refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256CE8](../../../src/hand/__8VU_FLOATf.cpp) | `__8VU_FLOATf` |  |  | existing |  |
 | [0x256D08](../../../src/auto/__9VU_VECTORRC6VECTOR.c) | `__9VU_VECTORRC6VECTOR` |  |  | existing |  |
-| [0x256D18](../../../src/hand/func_00256D18.c) | `VECTOR_opAssign` | VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it | 0.60 | T1 | top50 |
+| [0x256D18](../../../src/game/engine/anim/xf/func_00256D18.c) | `VECTOR_opAssign` | VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it | 0.60 | T1 | top50 |
 | [0x256D28](../../../src/hand/__ml__FG8VU_FLOATG9VU_VECTOR.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
 | [0x256D40](../../../src/lib/func_00256D40.c) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256DD0](../../../src/game/splice/eval/func_00256DD0.c) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
@@ -502,27 +502,27 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x257F48](../../../src/game/splice/spliceutils/func_00257F48.c) | `GcShutdownProcPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257F88](../../../src/game/splice/spliceutils/func_00257F88.c) | `GcShutdownSidebagPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257FC8](../../../src/game/splice/spliceutils/func_00257FC8.c) | `GcShutdownPool6Pool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x258040](../../../src/lib/func_00258040.c) | `RcPtr_Assign` | Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store | 0.60 | T1 | top50; top50 round; v2 name RcPtrAssign_00258040 |
-| [0x2580A8](../../../src/hand/func_002580A8.c) | `SidebagPtr_Assign` | refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x258040](../../../src/game/engine/camera/cplcy/func_00258040.c) | `RcPtr_Assign` | Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store | 0.60 | T1 | top50; top50 round; v2 name RcPtrAssign_00258040 |
+| [0x2580A8](../../../src/game/engine/anim/asega/func_002580A8.c) | `SidebagPtr_Assign` | refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x258178](../../../src/game/object/basic/func_00258178.c) | `GcSidebag_MakeRoot` | move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x2581B8](../../../src/auto/func_002581B8.c) | `GetKind5` | virtual returning constant 5 [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x2581B8](../../../src/game/engine/anim/blend/func_002581B8.c) | `GetKind5` | virtual returning constant 5 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x2581C0](../../../src/game/world/state/game/func_002581C0.c) | `RefGetGlobalSaveVar` | Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer) | 0.60 | T1 | top50 |
 | [0x258200](../../../src/game/world/state/game/func_00258200.c) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
 | [0x258248](../../../src/auto/func_00258248.c) | `InitFileKey` | memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258280](../../../src/game/core/linkonce/unhomed/func_00258280.c) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x258290](../../../src/lib/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x258348](../../../src/hand/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258290](../../../src/game/engine/camera/cm/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x258348](../../../src/game/engine/presentation/screen/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258438](../../../src/hand/func_00258438.c) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258448](../../../src/hand/func_00258448.c) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258458](../../../src/hand/func_00258458.c) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258470](../../../src/auto/func_00258470.c) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258478](../../../src/auto/func_00258478.c) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258480](../../../src/hand/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
-| [0x2584A8](../../../src/hand/func_002584A8.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258598](../../../src/lib/func_00258598.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258620](../../../src/auto/func_00258620.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x2584A8](../../../src/game/engine/fx/emitter/func_002584A8.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258598](../../../src/game/engine/fx/emitter/func_00258598.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258620](../../../src/game/engine/fx/emitter/func_00258620.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258658](../../../src/lib/func_00258658.c) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x2586D8](../../../src/hand/func_002586D8.c) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
+| [0x2586D8](../../../src/game/engine/fx/emitter/func_002586D8.c) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x258898](../../../src/game/core/linkonce/unhomed/func_00258898.c) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258920](../../../src/game/core/linkonce/unhomed/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589A8](../../../src/game/core/linkonce/unhomed/func_002589A8.c) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -542,11 +542,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258E60](../../../src/game/core/linkonce/unhomed/func_00258E60.c) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258EC8](../../../src/game/core/linkonce/unhomed/func_00258EC8.c) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258F30](../../../src/game/object/basic/func_00258F30.c) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x258F40](../../../src/hand/func_00258F40.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x259030](../../../src/lib/func_00259030.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x2590B8](../../../src/auto/func_002590B8.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x2590F0](../../../src/lib/func_002590F0.c) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x259170](../../../src/hand/func_00259170.c) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
+| [0x258F40](../../../src/game/engine/fx/emitter/func_00258F40.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x259030](../../../src/game/engine/fx/emitter/func_00259030.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x2590B8](../../../src/game/engine/fx/emitter/func_002590B8.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x2590F0](../../../src/game/engine/fx/emitter/func_002590F0.c) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
+| [0x259170](../../../src/game/engine/fx/emitter/func_00259170.c) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x259330](../../../src/game/core/linkonce/unhomed/func_00259330.c) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2593B8](../../../src/game/core/linkonce/unhomed/func_002593B8.c) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259440](../../../src/game/core/linkonce/unhomed/func_00259440.c) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -565,10 +565,10 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2598D8](../../../src/game/core/linkonce/unhomed/func_002598D8.c) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2598F8](../../../src/game/core/linkonce/unhomed/func_002598F8.c) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259960](../../../src/game/core/linkonce/unhomed/func_00259960.c) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599C8](../../../src/auto/func_002599C8.c) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2599D8](../../../src/auto/func_002599D8.c) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599E0](../../../src/auto/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599E8](../../../src/auto/func_002599E8.c) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599C8](../../../src/game/engine/fx/emitter/func_002599C8.c) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2599D8](../../../src/game/engine/graphics/pipeline/glob/func_002599D8.c) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599E0](../../../src/game/engine/graphics/pipeline/glob/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599E8](../../../src/game/engine/graphics/pipeline/glob/func_002599E8.c) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599F0](../../../src/auto/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599F8](../../../src/game/core/linkonce/unhomed/func_002599F8.c) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A00](../../../src/auto/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
@@ -590,8 +590,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259B08](../../../src/auto/func_00259B08.c) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B10](../../../src/game/core/linkonce/unhomed/func_00259B10.c) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B20](../../../src/game/core/linkonce/unhomed/func_00259B20.c) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259B48](../../../src/lib/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x259BB0](../../../src/lib/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259B48](../../../src/game/engine/sound/sound/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x259BB0](../../../src/game/engine/sound/sound/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C08](../../../src/hand/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../src/game/core/linkonce/unhomed/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/game/object/spliceobj/func_00259C18.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
@@ -601,6 +601,6 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259D48](../../../src/game/core/linkonce/unhomed/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D60](../../../src/game/core/linkonce/unhomed/func_00259D60.c) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D70](../../../src/game/core/linkonce/unhomed/func_00259D70.c) | `GetF64_EC` | return p->xF64->xEC [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D98](../../../src/hand/func_00259D98.c) | `VU_VECTOR_GetX` | float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x259DA8](../../../src/hand/func_00259DA8.c) | `VU_VECTOR_GetY` | float lane 1 (prot3w then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x259DC0](../../../src/hand/func_00259DC0.c) | `VU_VECTOR_GetZ` | float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259D98](../../../src/game/engine/fx/trail/func_00259D98.c) | `VU_VECTOR_GetX` | float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259DA8](../../../src/game/engine/fx/trail/func_00259DA8.c) | `VU_VECTOR_GetY` | float lane 1 (prot3w then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259DC0](../../../src/game/engine/fx/trail/func_00259DC0.c) | `VU_VECTOR_GetZ` | float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |

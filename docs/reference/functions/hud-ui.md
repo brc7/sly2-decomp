@@ -34,28 +34,28 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x15EF00](../../../src/hand/func_0015EF00.c) | `StartupFont` | Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer D_002DE760 = font[0] | 0.70 | T1 |  |
-| [0x15EF30](../../../src/hand/func_0015EF30.c) | `PostFontsLoad` | InitGsb(gsb,0x1000,0x1800) then sets up the two built-in CFontBrx fonts into that GS memory (0x15F710) | 0.55 | T1 |  |
-| [0x15EFA0](../../../src/hand/func_0015EFA0.c) | `PfontFromCh` | Maps a font-escape character (table D_002BE328, 2 entries) to one of the two registered fonts | 0.45 | T2 |  |
-| [0x15F000](../../../src/hand/func_0015F000.cpp) | `CleanupDraw` | If requested, restores a full-screen SCISSOR_1 (0..511 x 0..223) after text drawing | 0.50 | T1 |  |
-| [0x15F078](../../../src/hand/PushScaling__5CFontff.cpp) | `PushScaling__5CFontff` |  |  | existing |  |
-| [0x15F0C0](../../../src/auto/PopScaling__5CFont.c) | `PopScaling__5CFont` |  |  | existing |  |
-| [0x15F0F0](../../../src/hand/DxFromCh__8CFontBrxc.cpp) | `DxFromCh__8CFontBrxc` |  |  | existing |  |
-| [0x15F148](../../../src/auto/func_0015F148.c) | `FEnsureLoaded` | Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs, emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed | 0.70 | T1 |  |
-| [0x15F220](../../../src/hand/func_0015F220.c) | `SetupDraw` | CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then the sprite prim list setup | 0.65 | T1 |  |
-| [0x15F3E8](../../../src/hand/SwitchTex0__8CFontBrxP4GIFS.cpp) | `SwitchTex0__8CFontBrxP4GIFS` |  |  | existing |  |
-| [0x15F480](../../../src/hand/DxDrawCh__8CFontBrxcffUiP4GIFS.cpp) | `DxDrawCh__8CFontBrxcffUiP4GIFS` |  |  | existing |  |
-| [0x15F710](../../../src/hand/func_0015F710.cpp) | `PostLoad` | CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb) and builds TEX0/CLUT upload GIFs for its bitmap | 0.60 | T1 |  |
-| [0x15F888](../../../src/hand/func_0015F888.c) | `RegisterFont` | Stores the font in the font table D_002DE9F0[font->id] | 0.40 | T2 |  |
-| [0x15F8A8](../../../src/hand/func_0015F8A8.c) | `PglyffFromCh` | Binary-searches the font glyph table for a character (via remap table D_002BE338) | 0.80 | T1 |  |
-| [0x15F928](../../../src/auto/__9CRichTextPcP5CFont.c) | `__9CRichTextPcP5CFont` |  |  | existing |  |
-| [0x15F970](../../../src/hand/Reset__9CRichText.cpp) | `Reset__9CRichText` |  |  | existing |  |
-| [0x15F9A8](../../../src/hand/SetBaseColor__9CRichTextP4RGBA.cpp) | `SetBaseColor__9CRichTextP4RGBA` |  |  | existing |  |
-| [0x15F9D0](../../../src/hand/ChNext__9CRichText.cpp) | `ChNext__9CRichText` |  |  | existing |  |
-| [0x15FD68](../../../src/hand/ClineWrap__9CRichTextf.cpp) | `ClineWrap__9CRichTextf` |  |  | existing |  |
-| [0x15FEF8](../../../src/hand/FUN_0015e1b0.c) | `FUN_0015e1b0` |  |  | existing |  |
-| [0x15FF40](../../../src/hand/DxMaxLine__9CRichText.cpp) | `DxMaxLine__9CRichText` |  |  | existing |  |
-| [0x15FFD0](../../../src/hand/Draw__9CRichTextP8CTextBoxT1P4GIFS.cpp) | `Draw__9CRichTextP8CTextBoxT1P4GIFS` |  |  | existing |  |
+| [0x15EF00](../../../src/game/engine/font/font/func_0015EF00.c) | `StartupFont` | Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer D_002DE760 = font[0] | 0.70 | T1 |  |
+| [0x15EF30](../../../src/game/engine/font/font/func_0015EF30.c) | `PostFontsLoad` | InitGsb(gsb,0x1000,0x1800) then sets up the two built-in CFontBrx fonts into that GS memory (0x15F710) | 0.55 | T1 |  |
+| [0x15EFA0](../../../src/game/engine/font/font/func_0015EFA0.c) | `PfontFromCh` | Maps a font-escape character (table D_002BE328, 2 entries) to one of the two registered fonts | 0.45 | T2 |  |
+| [0x15F000](../../../src/game/engine/font/font/func_0015F000.cpp) | `CleanupDraw` | If requested, restores a full-screen SCISSOR_1 (0..511 x 0..223) after text drawing | 0.50 | T1 |  |
+| [0x15F078](../../../src/game/engine/font/font/PushScaling__5CFontff.cpp) | `PushScaling__5CFontff` |  |  | existing |  |
+| [0x15F0C0](../../../src/game/engine/font/font/PopScaling__5CFont.c) | `PopScaling__5CFont` |  |  | existing |  |
+| [0x15F0F0](../../../src/game/engine/font/font/DxFromCh__8CFontBrxc.cpp) | `DxFromCh__8CFontBrxc` |  |  | existing |  |
+| [0x15F148](../../../src/game/engine/font/font/func_0015F148.c) | `FEnsureLoaded` | Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs, emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed | 0.70 | T1 |  |
+| [0x15F220](../../../src/game/engine/font/font/func_0015F220.c) | `SetupDraw` | CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then the sprite prim list setup | 0.65 | T1 |  |
+| [0x15F3E8](../../../src/game/engine/font/font/SwitchTex0__8CFontBrxP4GIFS.cpp) | `SwitchTex0__8CFontBrxP4GIFS` |  |  | existing |  |
+| [0x15F480](../../../src/game/engine/font/font/DxDrawCh__8CFontBrxcffUiP4GIFS.cpp) | `DxDrawCh__8CFontBrxcffUiP4GIFS` |  |  | existing |  |
+| [0x15F710](../../../src/game/engine/font/font/func_0015F710.cpp) | `PostLoad` | CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb) and builds TEX0/CLUT upload GIFs for its bitmap | 0.60 | T1 |  |
+| [0x15F888](../../../src/game/engine/font/font/func_0015F888.c) | `RegisterFont` | Stores the font in the font table D_002DE9F0[font->id] | 0.40 | T2 |  |
+| [0x15F8A8](../../../src/game/engine/font/font/func_0015F8A8.c) | `PglyffFromCh` | Binary-searches the font glyph table for a character (via remap table D_002BE338) | 0.80 | T1 |  |
+| [0x15F928](../../../src/game/engine/font/font/__9CRichTextPcP5CFont.c) | `__9CRichTextPcP5CFont` |  |  | existing |  |
+| [0x15F970](../../../src/game/engine/font/font/Reset__9CRichText.cpp) | `Reset__9CRichText` |  |  | existing |  |
+| [0x15F9A8](../../../src/game/engine/font/font/SetBaseColor__9CRichTextP4RGBA.cpp) | `SetBaseColor__9CRichTextP4RGBA` |  |  | existing |  |
+| [0x15F9D0](../../../src/game/engine/font/font/ChNext__9CRichText.cpp) | `ChNext__9CRichText` |  |  | existing |  |
+| [0x15FD68](../../../src/game/engine/font/font/ClineWrap__9CRichTextf.cpp) | `ClineWrap__9CRichTextf` |  |  | existing |  |
+| [0x15FEF8](../../../src/game/engine/font/font/FUN_0015e1b0.c) | `FUN_0015e1b0` |  |  | existing |  |
+| [0x15FF40](../../../src/game/engine/font/font/DxMaxLine__9CRichText.cpp) | `DxMaxLine__9CRichText` |  |  | existing |  |
+| [0x15FFD0](../../../src/game/engine/font/font/Draw__9CRichTextP8CTextBoxT1P4GIFS.cpp) | `Draw__9CRichTextP8CTextBoxT1P4GIFS` |  |  | existing |  |
 
 ## language (0x1A2BD0-0x1A3020)
 
@@ -72,10 +72,10 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A3020](../../../src/auto/func_001A3020.c) | `InitLetterboxTimer` | Find object oid 0x373 (kind 0x405) into *p and SetTimerTimers(1) | 0.35 | T2 |  |
-| [0x1A3070](../../../src/auto/func_001A3070.c) | `ClearLetterbox` | *p = 0 | 0.30 | T2 |  |
-| [0x1A3078](../../../src/hand/func_001A3078.c) | `ShowLetterbox` | If a letterbox object exists, speaker label/sound D_004435F0 and call its vt49 (show) | 0.50 | T1 |  |
-| [0x1A30D0](../../../src/hand/func_001A30D0.c) | `HideLetterbox` | Call the letterbox object's vt50 (hide) | 0.50 | T1 |  |
+| [0x1A3020](../../../src/game/engine/presentation/letterbox/func_001A3020.c) | `InitLetterboxTimer` | Find object oid 0x373 (kind 0x405) into *p and SetTimerTimers(1) | 0.35 | T2 |  |
+| [0x1A3070](../../../src/game/engine/presentation/letterbox/func_001A3070.c) | `ClearLetterbox` | *p = 0 | 0.30 | T2 |  |
+| [0x1A3078](../../../src/game/engine/presentation/letterbox/func_001A3078.c) | `ShowLetterbox` | If a letterbox object exists, speaker label/sound D_004435F0 and call its vt49 (show) | 0.50 | T1 |  |
+| [0x1A30D0](../../../src/game/engine/presentation/letterbox/func_001A30D0.c) | `HideLetterbox` | Call the letterbox object's vt50 (hide) | 0.50 | T1 |  |
 
 ## menu (0x1AE928-0x1B0B78)
 
@@ -122,247 +122,247 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C8CC0](../../../src/hand/__5CProgP4RGBAN31.cpp) | `__5CProgP4RGBAN31` | CProg ctor (4 colors) | 0.90 | existing |  |
-| [0x1C8D20](../../../src/hand/Begin__5CProg.cpp) | `Begin__5CProg` | reset progress | 0.90 | existing |  |
-| [0x1C8D40](../../../src/hand/SetRemain__5CProgi.cpp) | `SetRemain__5CProgi` | update remaining count | 0.90 | existing |  |
-| [0x1C8DB8](../../../src/hand/func_001C8DB8.c) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
-| [0x1C8DD8](../../../src/hand/func_001C8DD8.c) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
-| [0x1C9058](../../../src/hand/func_001C9058.c) | `BeginLoadingScreen` | Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and signal the loading-thread start sema | 0.50 | T1 |  |
-| [0x1C9090](../../../src/auto/func_001C9090.c) | `UpdateLoadingScreen` | empty (release stub) | 0.25 | T2 |  |
-| [0x1C9098](../../../src/auto/func_001C9098.c) | `EndLoadingScreen` | signal frame-end sema, wait for loading thread to stop, clear D_002DD314 | 0.50 | T1 |  |
-| [0x1C90D0](../../../src/hand/func_001C90D0.c) | `StartupLoadingScreen` | create the two semaphores and start the loading render thread (0x1C9190) | 0.50 | T1 |  |
-| [0x1C9190](../../../src/hand/func_001C9190.cpp) | `LoadingScreenThread` | thread: wait start sema, draw pulsing quad each frame until end sema | 0.60 | T1 |  |
-| [0x1C93E0](../../../src/hand/func_001C93E0.cpp) | `DrawLoadingQuad` | build GIF packet for the scaled/alpha quad | 0.45 | T2 |  |
+| [0x1C8CC0](../../../src/game/engine/presentation/prog/__5CProgP4RGBAN31.cpp) | `__5CProgP4RGBAN31` | CProg ctor (4 colors) | 0.90 | existing |  |
+| [0x1C8D20](../../../src/game/engine/presentation/prog/Begin__5CProg.cpp) | `Begin__5CProg` | reset progress | 0.90 | existing |  |
+| [0x1C8D40](../../../src/game/engine/presentation/prog/SetRemain__5CProgi.cpp) | `SetRemain__5CProgi` | update remaining count | 0.90 | existing |  |
+| [0x1C8DB8](../../../src/game/engine/presentation/prog/func_001C8DB8.c) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
+| [0x1C8DD8](../../../src/game/engine/presentation/prog/func_001C8DD8.c) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
+| [0x1C9058](../../../src/game/engine/presentation/prog/func_001C9058.c) | `BeginLoadingScreen` | Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and signal the loading-thread start sema | 0.50 | T1 |  |
+| [0x1C9090](../../../src/game/engine/presentation/prog/func_001C9090.c) | `UpdateLoadingScreen` | empty (release stub) | 0.25 | T2 |  |
+| [0x1C9098](../../../src/game/engine/presentation/prog/func_001C9098.c) | `EndLoadingScreen` | signal frame-end sema, wait for loading thread to stop, clear D_002DD314 | 0.50 | T1 |  |
+| [0x1C90D0](../../../src/game/engine/presentation/prog/func_001C90D0.c) | `StartupLoadingScreen` | create the two semaphores and start the loading render thread (0x1C9190) | 0.50 | T1 |  |
+| [0x1C9190](../../../src/game/engine/presentation/prog/func_001C9190.cpp) | `LoadingScreenThread` | thread: wait start sema, draw pulsing quad each frame until end sema | 0.60 | T1 |  |
+| [0x1C93E0](../../../src/game/engine/presentation/prog/func_001C93E0.cpp) | `DrawLoadingQuad` | build GIF packet for the scaled/alpha quad | 0.45 | T2 |  |
 
 ## screen (0x1D93D8-0x1DE2A0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D93D8](../../../src/auto/func_001D93D8.c) | `InitScreenDl` | InitDl(arg, ibDle 0x14) and return it (list constructor) | 0.30 | T2 |  |
-| [0x1D9408](../../../src/hand/func_001D9408.c) | `ResetScreens` | Call each global HUD screen's Reset (slot-13 implementations 0x1D9B30/0x1DAA48/0x1DB7F0/0x1DA320/0x1DCCD8/0x1DA7B0) and walk the active list | 0.40 | T2 |  |
-| [0x1D9520](../../../src/auto/func_001D9520.c) | `PostScreensLoad` | Call PostLoad (slot 12) on every global HUD screen object (D_003D9E80, D_003DA0F0, D_003DA150, D_003DA0C0, ...) | 0.40 | T2 |  |
-| [0x1D95B8](../../../src/hand/func_001D95B8.c) | `UpdateScreenFocus` | If the requested top screen (list head) differs from the current one, notify the old one (vt) and switch focus | 0.35 | T2 |  |
-| [0x1D9648](../../../src/hand/func_001D9648.c) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
-| [0x1D9820](../../../src/auto/UpdateRecyclable__3CGc.c) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
-| [0x1D9870](../../../src/auto/func_001D9870.c) | `UpdateScreen` | slot 7 base: empty | 0.35 | T2 |  |
-| [0x1D9878](../../../src/auto/func_001D9878.c) | `DrawScreen` | slot 8: empty (shared by all 12 screen vtables) | 0.30 | T2 |  |
-| [0x1D9880](../../../src/auto/func_001D9880.c) | `FScreenShown` | Return whether the screen is in the shown-screen list D_003D9E70 | 0.65 | T1 | top50 |
-| [0x1D98A8](../../../src/auto/func_001D98A8.c) | `SCREEN_vt9` | slot 9: empty | 0.25 | T2 |  |
-| [0x1D98B0](../../../src/auto/func_001D98B0.c) | `ShowScreen` | slot 10: move/append the screen to the active list and refocus | 0.45 | T2 |  |
-| [0x1D9910](../../../src/auto/func_001D9910.c) | `HideScreen` | slot 11: remove from the active list and refocus | 0.45 | T2 |  |
-| [0x1D9968](../../../src/hand/func_001D9968.c) | `PostHudMeterLoad` | Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly 0x33D-341, Murray 0x342-346, Be | 0.60 | T1 |  |
-| [0x1D9B30](../../../src/auto/func_001D9B30.c) | `ResetHudMeter` | Reset the meter: state 0, drop widget | 0.55 | T1 |  |
-| [0x1D9B60](../../../src/hand/func_001D9B60.c) | `SetHudMeterState` | Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the character owns a power-up with a cost), 2 damage, 6/7 alternate anims | 0.55 | T1 |  |
-| [0x1D9DF8](../../../src/hand/func_001D9DF8.c) | `UpdateHudMeter` | Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and power change (state 4) with GSmooth, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1, empty at 0 hp | 0.60 | T1 |  |
-| [0x1DA2E0](../../../src/auto/func_001DA2E0.c) | `PostNoticeLoad` | Notice banner (global D_003DA0C0): find its widget 0x371 | 0.50 | T1 |  |
-| [0x1DA320](../../../src/auto/func_001DA320.c) | `ResetNotice` | Notice banner reset: no current/queued text, drop widget, state 0 | 0.50 | T1 |  |
-| [0x1DA350](../../../src/hand/func_001DA350.c) | `UpdateNotice` | Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden) or swap to the queued text (anim 0x312); hide | 0.50 | T1 |  |
-| [0x1DA4B8](../../../src/hand/func_001DA4B8.c) | `PostNotice` | Request a notice text n for duration g (queue behind the current one); n=-1 cancels | 0.50 | T1 |  |
-| [0x1DA578](../../../src/hand/func_001DA578.c) | `CancelNotice` | Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue | 0.50 | T1 |  |
-| [0x1DA5B0](../../../src/auto/func_001DA5B0.c) | `IdsCurNotice` | Text id being shown or queued | 0.45 | T2 |  |
-| [0x1DA5C8](../../../src/hand/func_001DA5C8.c) | `SetNoticeState` | Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main anim 0x310 after a swap | 0.50 | T1 |  |
-| [0x1DA728](../../../src/hand/func_001DA728.c) | `SCREEN_ctor` | Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset | 0.40 | T2 |  |
-| [0x1DA770](../../../src/auto/func_001DA770.c) | `PostScreenLoad` | slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5) | 0.45 | T2 |  |
-| [0x1DA7B0](../../../src/auto/func_001DA7B0.c) | `ResetScreen` | slot 13: drop widget pointer and reset mode | 0.45 | T2 |  |
-| [0x1DA7D0](../../../src/auto/func_001DA7D0.c) | `ResetScreenMode` | state(+0x28)=-1, t=now, SetScreenMode(-1,-1) | 0.35 | T2 |  |
-| [0x1DA808](../../../src/hand/func_001DA808.c) | `UpdateScreenTimeout` | Base update then close when the mode timer (+0x34) expires | 0.35 | T2 |  |
-| [0x1DA858](../../../src/hand/func_001DA858.c) | `UpdateScreenStickDir` | Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1) when back under 0.5 | 0.55 | T1 |  |
-| [0x1DA950](../../../src/hand/func_001DA950.c) | `SetScreenMode` | Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout | 0.35 | T2 |  |
-| [0x1DA9E8](../../../src/auto/func_001DA9E8.c) | `CloseScreen` | SetScreenMode(-1,-1) | 0.30 | T2 |  |
-| [0x1DAA08](../../../src/auto/func_001DAA08.c) | `GADGETMENU_ctor` | Gadget menu constructor (vtable 0x2D8568) for D_003DA0F0 | 0.55 | T1 |  |
-| [0x1DAA48](../../../src/auto/func_001DAA48.c) | `ResetGadgetMenu` | Gadget menu reset (slot 13) | 0.55 | T1 |  |
-| [0x1DAA78](../../../src/auto/func_001DAA78.c) | `ClearGadgetMenu` | Gadget menu: state -1, timestamp | 0.50 | T1 |  |
-| [0x1DAA90](../../../src/hand/func_001DAA90.c) | `UpdateGadgetMenu` | Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons (D_002C3258 = 4,1,2) assign the selected power-up to that slot (SetStepplayerGadget) when owned, else error message 0x32/0x33 | 0.60 | T1 |  |
-| [0x1DAC58](../../../src/hand/func_001DAC58.c) | `DrawGadgetMenuSlotLabels` | While the gadget menu widget is visible draw the button glyph (&2L / &2l / &2r) next to each power-up equipped in a slot | 0.45 | T2 |  |
-| [0x1DAE20](../../../src/hand/func_001DAE20.c) | `PentryFindScreen` | Find an entry (0x20 bytes) by id in the screen's item list (+0x4C/+0x50) | 0.30 | T2 |  |
-| [0x1DAE58](../../../src/hand/func_001DAE58.c) | `FScreenItemUnlocked` | Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold | 0.30 | T2 |  |
-| [0x1DAEA8](../../../src/hand/func_001DAEA8.c) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
-| [0x1DAF38](../../../src/hand/func_001DAF38.cpp) | `SetPowerupAcquired` | Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n | 0.75 | T1 |  |
-| [0x1DB010](../../../src/auto/func_001DB010.c) | `RefreshGadgetMenuItems` | Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired | 0.60 | T1 |  |
-| [0x1DB0C8](../../../src/hand/func_001DB0C8.cpp) | `SetGadgetMenuStickDir` | Gadget menu slot 14: move the selection to the selectable item lying closest along the stick direction | 0.60 | T1 |  |
-| [0x1DB390](../../../src/hand/func_001DB390.c) | `SelectGadgetMenuItem` | Select item key and switch each item's highlight anim (selected / acquired / unlocked) | 0.55 | T1 |  |
-| [0x1DB490](../../../src/auto/func_001DB490.c) | `OpenGadgetMenuForHero` | Open the gadget menu page for the current hero: 0 Sly (g_pjt), 1 Bentley (D_002DD5BC), 2 Murray (D_002F7900) | 0.55 | T1 |  |
-| [0x1DB520](../../../src/hand/func_001DB520.c) | `SetGadgetMenuState` | Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 = Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0x377, 8); close restores clock | 0.60 | T1 |  |
-| [0x1DB7A8](../../../src/hand/func_001DB7A8.c) | `SCREEN378_ctor` | Screen subclass with vtable 0x2D84E8, widget oid 0x378, 64-entry selection table | 0.30 | T2 |  |
-| [0x1DB7F0](../../../src/auto/func_001DB7F0.c) | `ResetThiefnet` | ThiefNet shop reset (slot 13) | 0.60 | T1 |  |
-| [0x1DB820](../../../src/hand/func_001DB820.c) | `ClearThiefnet` | ThiefNet: state -1, clear the 64-entry item list and anim handles | 0.55 | T1 |  |
-| [0x1DB870](../../../src/hand/func_001DB870.cpp) | `UpdateThiefnet` | ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm, deduct, SetPowerupAcquired, notify players); tab 1 sell one loot item (loot.mplootkc[i]-1, add its price to coins); tab swi | 0.65 | T1 |  |
-| [0x1DBBA0](../../../src/hand/func_001DBBA0.c) | `IThiefnetRowEnd` | Index past the last visible row (scroll window D_002C35B4 rows, adjusted for scroll arrows) | 0.40 | T2 |  |
-| [0x1DBBE0](../../../src/hand/func_001DBBE0.c) | `SelectThiefnetItem` | Select row i (clamped), scroll the window, set current power-up/loot id | 0.55 | T1 |  |
-| [0x1DBD10](../../../src/hand/func_001DBD10.cpp) | `RefreshThiefnetItems` | Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot kinds with count > 0 | 0.65 | T1 |  |
-| [0x1DBEF0](../../../src/hand/func_001DBEF0.c) | `UpdateThiefnetWidgets` | Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind (0x456-0x458), cursor 0x437, popup 0x43B/0x439 | 0.50 | T1 |  |
-| [0x1DC260](../../../src/hand/func_001DC260.c) | `SetThiefnetTab` | ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1 sell page (0x49B-0x49D); refresh list | 0.60 | T1 |  |
-| [0x1DC4B0](../../../src/hand/func_001DC4B0.c) | `SetThiefnetStickDir` | ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds) | 0.55 | T2 | verified |
-| [0x1DC598](../../../src/hand/func_001DC598.c) | `BuildGadgetMenuInfoText` | Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name, slot button and description | 0.50 | T1 |  |
-| [0x1DC790](../../../src/hand/func_001DC790.c) | `BuildThiefnetPowerupNameText` | Text callback rows 0x43C-0x441: power-up name of row i | 0.50 | T1 |  |
-| [0x1DC820](../../../src/hand/func_001DC820.c) | `BuildThiefnetPowerupCostText` | Text callback rows 0x442-0x447: power-up cost of row i | 0.45 | T2 |  |
-| [0x1DC890](../../../src/hand/func_001DC890.cpp) | `BuildThiefnetLootNameText` | Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once | 0.50 | T1 |  |
-| [0x1DC9C0](../../../src/hand/func_001DC9C0.c) | `BuildThiefnetLootPriceText` | Text callback rows 0x44E-0x453: loot price of row i | 0.45 | T2 |  |
-| [0x1DCA30](../../../src/hand/func_001DCA30.c) | `BuildThiefnetPromptText` | Text callback 0x436: popup prompt text by popup mode (-1/0/1 -> ids 0xDE/0xDF/0xE0) | 0.45 | T2 |  |
-| [0x1DCAB0](../../../src/hand/func_001DCAB0.c) | `BuildThiefnetInfoText` | Text callback 0x435: popup message, or the selected power-up's name, description and affordability (0xD9/0xDA), or the loot sell line (0xDB) | 0.50 | T1 |  |
-| [0x1DCC58](../../../src/hand/func_001DCC58.c) | `SCREEN4E0_ctor` | Screen subclass with vtable 0x2D8468, widget oid 0x4E0 | 0.30 | T2 |  |
-| [0x1DCCA0](../../../src/auto/func_001DCCA0.c) | `PostJobListLoad` | Job list (D_003DA3C0, widget 0x4E0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.55 | T1 |  |
-| [0x1DCCD8](../../../src/auto/func_001DCCD8.c) | `ResetJobList` | Job list reset (slot 13) | 0.55 | T1 |  |
-| [0x1DCD08](../../../src/hand/func_001DCD08.c) | `ClearJobList` | Job list: state -1, timestamp, anim handles -1 | 0.50 | T1 |  |
-| [0x1DCD30](../../../src/hand/func_001DCD30.c) | `UpdateJobList` | Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle jobs page <-> tasks page | 0.60 | T1 |  |
-| [0x1DCE90](../../../src/hand/func_001DCE90.c) | `SelectJobListItem` | Select row i (clamped) | 0.50 | T1 |  |
-| [0x1DCED8](../../../src/hand/func_001DCED8.cpp) | `RefreshJobListEntries` | Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the selected job up to the first unfinished one; keep the last 10/4 | 0.60 | T1 |  |
-| [0x1DD1F8](../../../src/hand/func_001DD1F8.c) | `UpdateJobListWidgets` | Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via FJobComplete/FTaskComplete | 0.55 | T1 |  |
-| [0x1DD300](../../../src/hand/func_001DD300.c) | `SetJobListPage` | Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off while open | 0.60 | T1 |  |
-| [0x1DD558](../../../src/hand/func_001DD558.c) | `SetJobListStickDir` | Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows | 0.55 | T1 |  |
-| [0x1DD648](../../../src/hand/func_001DD648.c) | `SCREEN52D_ctor` | Screen subclass with vtable 0x2D83E8, widget oid 0x52D | 0.30 | T2 |  |
-| [0x1DD690](../../../src/auto/func_001DD690.c) | `PostScreen52DLoad` | Screen 0x52D (D_003DA4F0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.40 | T2 |  |
-| [0x1DD6C8](../../../src/hand/func_001DD6C8.c) | `ShowScreen52D` | Show screen 0x52D (vt10) and its widget (vt49 -1) | 0.35 | T2 |  |
-| [0x1DD728](../../../src/hand/func_001DD728.c) | `HideScreen52D` | Hide screen 0x52D (vt11) and its widget (vt50) | 0.35 | T2 |  |
-| [0x1DD780](../../../src/hand/func_001DD780.c) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
-| [0x1DD7B8](../../../src/auto/func_001DD7B8.c) | `SetScreenState` | slot 14 of 0x2D83E8: if state(+0x28) changes, store it and the time | 0.35 | T2 |  |
-| [0x1DD7D8](../../../src/hand/func_001DD7D8.c) | `SCREEN5D2_ctor` | Screen subclass with vtable 0x2D8368, widget oid 0x5D2 | 0.30 | T2 |  |
-| [0x1DD820](../../../src/hand/func_001DD820.c) | `ShowTitleScreen` | Show the title screen (D_003DA530, widget 0x5D2) and its widget; reset rumble | 0.45 | T2 |  |
-| [0x1DD888](../../../src/hand/func_001DD888.c) | `HideTitleScreen` | Hide the title screen and its widget | 0.50 | T1 |  |
-| [0x1DD8E0](../../../src/hand/func_001DD8E0.c) | `SelectLanguageItem` | Language menu item callback: SetLanguage(item) and warp to world 0x189 | 0.55 | T1 |  |
-| [0x1DD920](../../../src/hand/func_001DD920.c) | `UpdateTitleScreen` | Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts a new game; SELECT opens options; X opens the language list when the region has several languages | 0.60 | T1 |  |
-| [0x1DDB08](../../../src/hand/func_001DDB08.cpp) | `StartNewGame` | Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs) | 0.55 | T1 |  |
-| [0x1DDBD0](../../../src/auto/func_001DDBD0.c) | `SetTitleScreenStickDir` | Title screen slot 14: store direction and time | 0.40 | T2 |  |
-| [0x1DDBF0](../../../src/hand/func_001DDBF0.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
-| [0x1DDD40](../../../src/hand/func_001DDD40.c) | `IdsFromWorld` | World index 0-8 -> episode name string id 0x6D-0x75 | 0.55 | T1 |  |
-| [0x1DDDB8](../../../src/auto/func_001DDDB8.c) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
-| [0x1DDE10](../../../src/auto/func_001DDE10.c) | `BuildJobListJobDescText` | Text callback 0x51D: selected job string +0x70 | 0.40 | T2 |  |
-| [0x1DDE58](../../../src/auto/func_001DDE58.c) | `BuildJobListJobNameText` | Text callback 0x51C: selected job string +0x6C | 0.40 | T2 |  |
-| [0x1DDEA0](../../../src/hand/func_001DDEA0.c) | `BuildJobListRowText` | Text callback rows 0x51E-0x527: job name of row i | 0.50 | T1 |  |
-| [0x1DDF00](../../../src/hand/func_001DDF00.c) | `BuildJobListTaskRowText` | Text callback rows 0x528-0x52B: task name of row i | 0.50 | T1 |  |
-| [0x1DDF60](../../../src/auto/func_001DDF60.c) | `BuildTitleText5D7` | Text callback 0x5D7: string 0x40 plus a button-glyph suffix | 0.30 | T2 |  |
-| [0x1DDFB0](../../../src/auto/func_001DDFB0.c) | `BuildTitleCompletionText` | Text callback 0x5D5: "%d%%" game completion | 0.50 | T1 |  |
+| [0x1D93D8](../../../src/game/engine/presentation/screen/func_001D93D8.c) | `InitScreenDl` | InitDl(arg, ibDle 0x14) and return it (list constructor) | 0.30 | T2 |  |
+| [0x1D9408](../../../src/game/engine/presentation/screen/func_001D9408.c) | `ResetScreens` | Call each global HUD screen's Reset (slot-13 implementations 0x1D9B30/0x1DAA48/0x1DB7F0/0x1DA320/0x1DCCD8/0x1DA7B0) and walk the active list | 0.40 | T2 |  |
+| [0x1D9520](../../../src/game/engine/presentation/screen/func_001D9520.c) | `PostScreensLoad` | Call PostLoad (slot 12) on every global HUD screen object (D_003D9E80, D_003DA0F0, D_003DA150, D_003DA0C0, ...) | 0.40 | T2 |  |
+| [0x1D95B8](../../../src/game/engine/presentation/screen/func_001D95B8.c) | `UpdateScreenFocus` | If the requested top screen (list head) differs from the current one, notify the old one (vt) and switch focus | 0.35 | T2 |  |
+| [0x1D9648](../../../src/game/engine/presentation/screen/func_001D9648.c) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
+| [0x1D9820](../../../src/game/engine/presentation/screen/UpdateRecyclable__3CGc.c) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
+| [0x1D9870](../../../src/game/engine/presentation/screen/func_001D9870.c) | `UpdateScreen` | slot 7 base: empty | 0.35 | T2 |  |
+| [0x1D9878](../../../src/game/engine/presentation/screen/func_001D9878.c) | `DrawScreen` | slot 8: empty (shared by all 12 screen vtables) | 0.30 | T2 |  |
+| [0x1D9880](../../../src/game/engine/presentation/screen/func_001D9880.c) | `FScreenShown` | Return whether the screen is in the shown-screen list D_003D9E70 | 0.65 | T1 | top50 |
+| [0x1D98A8](../../../src/game/engine/presentation/screen/func_001D98A8.c) | `SCREEN_vt9` | slot 9: empty | 0.25 | T2 |  |
+| [0x1D98B0](../../../src/game/engine/presentation/screen/func_001D98B0.c) | `ShowScreen` | slot 10: move/append the screen to the active list and refocus | 0.45 | T2 |  |
+| [0x1D9910](../../../src/game/engine/presentation/screen/func_001D9910.c) | `HideScreen` | slot 11: remove from the active list and refocus | 0.45 | T2 |  |
+| [0x1D9968](../../../src/game/engine/presentation/screen/func_001D9968.c) | `PostHudMeterLoad` | Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly 0x33D-341, Murray 0x342-346, Be | 0.60 | T1 |  |
+| [0x1D9B30](../../../src/game/engine/presentation/screen/func_001D9B30.c) | `ResetHudMeter` | Reset the meter: state 0, drop widget | 0.55 | T1 |  |
+| [0x1D9B60](../../../src/game/engine/presentation/screen/func_001D9B60.c) | `SetHudMeterState` | Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the character owns a power-up with a cost), 2 damage, 6/7 alternate anims | 0.55 | T1 |  |
+| [0x1D9DF8](../../../src/game/engine/presentation/screen/func_001D9DF8.c) | `UpdateHudMeter` | Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and power change (state 4) with GSmooth, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1, empty at 0 hp | 0.60 | T1 |  |
+| [0x1DA2E0](../../../src/game/engine/presentation/screen/func_001DA2E0.c) | `PostNoticeLoad` | Notice banner (global D_003DA0C0): find its widget 0x371 | 0.50 | T1 |  |
+| [0x1DA320](../../../src/game/engine/presentation/screen/func_001DA320.c) | `ResetNotice` | Notice banner reset: no current/queued text, drop widget, state 0 | 0.50 | T1 |  |
+| [0x1DA350](../../../src/game/engine/presentation/screen/func_001DA350.c) | `UpdateNotice` | Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden) or swap to the queued text (anim 0x312); hide | 0.50 | T1 |  |
+| [0x1DA4B8](../../../src/game/engine/presentation/screen/func_001DA4B8.c) | `PostNotice` | Request a notice text n for duration g (queue behind the current one); n=-1 cancels | 0.50 | T1 |  |
+| [0x1DA578](../../../src/game/engine/presentation/screen/func_001DA578.c) | `CancelNotice` | Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue | 0.50 | T1 |  |
+| [0x1DA5B0](../../../src/game/engine/presentation/screen/func_001DA5B0.c) | `IdsCurNotice` | Text id being shown or queued | 0.45 | T2 |  |
+| [0x1DA5C8](../../../src/game/engine/presentation/screen/func_001DA5C8.c) | `SetNoticeState` | Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main anim 0x310 after a swap | 0.50 | T1 |  |
+| [0x1DA728](../../../src/game/engine/presentation/screen/func_001DA728.c) | `SCREEN_ctor` | Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset | 0.40 | T2 |  |
+| [0x1DA770](../../../src/game/engine/presentation/screen/func_001DA770.c) | `PostScreenLoad` | slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5) | 0.45 | T2 |  |
+| [0x1DA7B0](../../../src/game/engine/presentation/screen/func_001DA7B0.c) | `ResetScreen` | slot 13: drop widget pointer and reset mode | 0.45 | T2 |  |
+| [0x1DA7D0](../../../src/game/engine/presentation/screen/func_001DA7D0.c) | `ResetScreenMode` | state(+0x28)=-1, t=now, SetScreenMode(-1,-1) | 0.35 | T2 |  |
+| [0x1DA808](../../../src/game/engine/presentation/screen/func_001DA808.c) | `UpdateScreenTimeout` | Base update then close when the mode timer (+0x34) expires | 0.35 | T2 |  |
+| [0x1DA858](../../../src/game/engine/presentation/screen/func_001DA858.c) | `UpdateScreenStickDir` | Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1) when back under 0.5 | 0.55 | T1 |  |
+| [0x1DA950](../../../src/game/engine/presentation/screen/func_001DA950.c) | `SetScreenMode` | Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout | 0.35 | T2 |  |
+| [0x1DA9E8](../../../src/game/engine/presentation/screen/func_001DA9E8.c) | `CloseScreen` | SetScreenMode(-1,-1) | 0.30 | T2 |  |
+| [0x1DAA08](../../../src/game/engine/presentation/screen/func_001DAA08.c) | `GADGETMENU_ctor` | Gadget menu constructor (vtable 0x2D8568) for D_003DA0F0 | 0.55 | T1 |  |
+| [0x1DAA48](../../../src/game/engine/presentation/screen/func_001DAA48.c) | `ResetGadgetMenu` | Gadget menu reset (slot 13) | 0.55 | T1 |  |
+| [0x1DAA78](../../../src/game/engine/presentation/screen/func_001DAA78.c) | `ClearGadgetMenu` | Gadget menu: state -1, timestamp | 0.50 | T1 |  |
+| [0x1DAA90](../../../src/game/engine/presentation/screen/func_001DAA90.c) | `UpdateGadgetMenu` | Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons (D_002C3258 = 4,1,2) assign the selected power-up to that slot (SetStepplayerGadget) when owned, else error message 0x32/0x33 | 0.60 | T1 |  |
+| [0x1DAC58](../../../src/game/engine/presentation/screen/func_001DAC58.c) | `DrawGadgetMenuSlotLabels` | While the gadget menu widget is visible draw the button glyph (&2L / &2l / &2r) next to each power-up equipped in a slot | 0.45 | T2 |  |
+| [0x1DAE20](../../../src/game/engine/presentation/screen/func_001DAE20.c) | `PentryFindScreen` | Find an entry (0x20 bytes) by id in the screen's item list (+0x4C/+0x50) | 0.30 | T2 |  |
+| [0x1DAE58](../../../src/game/engine/presentation/screen/func_001DAE58.c) | `FScreenItemUnlocked` | Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold | 0.30 | T2 |  |
+| [0x1DAEA8](../../../src/game/engine/presentation/screen/func_001DAEA8.c) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
+| [0x1DAF38](../../../src/game/engine/presentation/screen/func_001DAF38.cpp) | `SetPowerupAcquired` | Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n | 0.75 | T1 |  |
+| [0x1DB010](../../../src/game/engine/presentation/screen/func_001DB010.c) | `RefreshGadgetMenuItems` | Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired | 0.60 | T1 |  |
+| [0x1DB0C8](../../../src/game/engine/presentation/screen/func_001DB0C8.cpp) | `SetGadgetMenuStickDir` | Gadget menu slot 14: move the selection to the selectable item lying closest along the stick direction | 0.60 | T1 |  |
+| [0x1DB390](../../../src/game/engine/presentation/screen/func_001DB390.c) | `SelectGadgetMenuItem` | Select item key and switch each item's highlight anim (selected / acquired / unlocked) | 0.55 | T1 |  |
+| [0x1DB490](../../../src/game/engine/presentation/screen/func_001DB490.c) | `OpenGadgetMenuForHero` | Open the gadget menu page for the current hero: 0 Sly (g_pjt), 1 Bentley (D_002DD5BC), 2 Murray (D_002F7900) | 0.55 | T1 |  |
+| [0x1DB520](../../../src/game/engine/presentation/screen/func_001DB520.c) | `SetGadgetMenuState` | Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 = Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0x377, 8); close restores clock | 0.60 | T1 |  |
+| [0x1DB7A8](../../../src/game/engine/presentation/screen/func_001DB7A8.c) | `SCREEN378_ctor` | Screen subclass with vtable 0x2D84E8, widget oid 0x378, 64-entry selection table | 0.30 | T2 |  |
+| [0x1DB7F0](../../../src/game/engine/presentation/screen/func_001DB7F0.c) | `ResetThiefnet` | ThiefNet shop reset (slot 13) | 0.60 | T1 |  |
+| [0x1DB820](../../../src/game/engine/presentation/screen/func_001DB820.c) | `ClearThiefnet` | ThiefNet: state -1, clear the 64-entry item list and anim handles | 0.55 | T1 |  |
+| [0x1DB870](../../../src/game/engine/presentation/screen/func_001DB870.cpp) | `UpdateThiefnet` | ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm, deduct, SetPowerupAcquired, notify players); tab 1 sell one loot item (loot.mplootkc[i]-1, add its price to coins); tab swi | 0.65 | T1 |  |
+| [0x1DBBA0](../../../src/game/engine/presentation/screen/func_001DBBA0.c) | `IThiefnetRowEnd` | Index past the last visible row (scroll window D_002C35B4 rows, adjusted for scroll arrows) | 0.40 | T2 |  |
+| [0x1DBBE0](../../../src/game/engine/presentation/screen/func_001DBBE0.c) | `SelectThiefnetItem` | Select row i (clamped), scroll the window, set current power-up/loot id | 0.55 | T1 |  |
+| [0x1DBD10](../../../src/game/engine/presentation/screen/func_001DBD10.cpp) | `RefreshThiefnetItems` | Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot kinds with count > 0 | 0.65 | T1 |  |
+| [0x1DBEF0](../../../src/game/engine/presentation/screen/func_001DBEF0.c) | `UpdateThiefnetWidgets` | Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind (0x456-0x458), cursor 0x437, popup 0x43B/0x439 | 0.50 | T1 |  |
+| [0x1DC260](../../../src/game/engine/presentation/screen/func_001DC260.c) | `SetThiefnetTab` | ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1 sell page (0x49B-0x49D); refresh list | 0.60 | T1 |  |
+| [0x1DC4B0](../../../src/game/engine/presentation/screen/func_001DC4B0.c) | `SetThiefnetStickDir` | ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds) | 0.55 | T2 | verified |
+| [0x1DC598](../../../src/game/engine/presentation/screen/func_001DC598.c) | `BuildGadgetMenuInfoText` | Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name, slot button and description | 0.50 | T1 |  |
+| [0x1DC790](../../../src/game/engine/presentation/screen/func_001DC790.c) | `BuildThiefnetPowerupNameText` | Text callback rows 0x43C-0x441: power-up name of row i | 0.50 | T1 |  |
+| [0x1DC820](../../../src/game/engine/presentation/screen/func_001DC820.c) | `BuildThiefnetPowerupCostText` | Text callback rows 0x442-0x447: power-up cost of row i | 0.45 | T2 |  |
+| [0x1DC890](../../../src/game/engine/presentation/screen/func_001DC890.cpp) | `BuildThiefnetLootNameText` | Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once | 0.50 | T1 |  |
+| [0x1DC9C0](../../../src/game/engine/presentation/screen/func_001DC9C0.c) | `BuildThiefnetLootPriceText` | Text callback rows 0x44E-0x453: loot price of row i | 0.45 | T2 |  |
+| [0x1DCA30](../../../src/game/engine/presentation/screen/func_001DCA30.c) | `BuildThiefnetPromptText` | Text callback 0x436: popup prompt text by popup mode (-1/0/1 -> ids 0xDE/0xDF/0xE0) | 0.45 | T2 |  |
+| [0x1DCAB0](../../../src/game/engine/presentation/screen/func_001DCAB0.c) | `BuildThiefnetInfoText` | Text callback 0x435: popup message, or the selected power-up's name, description and affordability (0xD9/0xDA), or the loot sell line (0xDB) | 0.50 | T1 |  |
+| [0x1DCC58](../../../src/game/engine/presentation/screen/func_001DCC58.c) | `SCREEN4E0_ctor` | Screen subclass with vtable 0x2D8468, widget oid 0x4E0 | 0.30 | T2 |  |
+| [0x1DCCA0](../../../src/game/engine/presentation/screen/func_001DCCA0.c) | `PostJobListLoad` | Job list (D_003DA3C0, widget 0x4E0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.55 | T1 |  |
+| [0x1DCCD8](../../../src/game/engine/presentation/screen/func_001DCCD8.c) | `ResetJobList` | Job list reset (slot 13) | 0.55 | T1 |  |
+| [0x1DCD08](../../../src/game/engine/presentation/screen/func_001DCD08.c) | `ClearJobList` | Job list: state -1, timestamp, anim handles -1 | 0.50 | T1 |  |
+| [0x1DCD30](../../../src/game/engine/presentation/screen/func_001DCD30.c) | `UpdateJobList` | Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle jobs page <-> tasks page | 0.60 | T1 |  |
+| [0x1DCE90](../../../src/game/engine/presentation/screen/func_001DCE90.c) | `SelectJobListItem` | Select row i (clamped) | 0.50 | T1 |  |
+| [0x1DCED8](../../../src/game/engine/presentation/screen/func_001DCED8.cpp) | `RefreshJobListEntries` | Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the selected job up to the first unfinished one; keep the last 10/4 | 0.60 | T1 |  |
+| [0x1DD1F8](../../../src/game/engine/presentation/screen/func_001DD1F8.c) | `UpdateJobListWidgets` | Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via FJobComplete/FTaskComplete | 0.55 | T1 |  |
+| [0x1DD300](../../../src/game/engine/presentation/screen/func_001DD300.c) | `SetJobListPage` | Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off while open | 0.60 | T1 |  |
+| [0x1DD558](../../../src/game/engine/presentation/screen/func_001DD558.c) | `SetJobListStickDir` | Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows | 0.55 | T1 |  |
+| [0x1DD648](../../../src/game/engine/presentation/screen/func_001DD648.c) | `SCREEN52D_ctor` | Screen subclass with vtable 0x2D83E8, widget oid 0x52D | 0.30 | T2 |  |
+| [0x1DD690](../../../src/game/engine/presentation/screen/func_001DD690.c) | `PostScreen52DLoad` | Screen 0x52D (D_003DA4F0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.40 | T2 |  |
+| [0x1DD6C8](../../../src/game/engine/presentation/screen/func_001DD6C8.c) | `ShowScreen52D` | Show screen 0x52D (vt10) and its widget (vt49 -1) | 0.35 | T2 |  |
+| [0x1DD728](../../../src/game/engine/presentation/screen/func_001DD728.c) | `HideScreen52D` | Hide screen 0x52D (vt11) and its widget (vt50) | 0.35 | T2 |  |
+| [0x1DD780](../../../src/game/engine/presentation/screen/func_001DD780.c) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
+| [0x1DD7B8](../../../src/game/engine/presentation/screen/func_001DD7B8.c) | `SetScreenState` | slot 14 of 0x2D83E8: if state(+0x28) changes, store it and the time | 0.35 | T2 |  |
+| [0x1DD7D8](../../../src/game/engine/presentation/screen/func_001DD7D8.c) | `SCREEN5D2_ctor` | Screen subclass with vtable 0x2D8368, widget oid 0x5D2 | 0.30 | T2 |  |
+| [0x1DD820](../../../src/game/engine/presentation/screen/func_001DD820.c) | `ShowTitleScreen` | Show the title screen (D_003DA530, widget 0x5D2) and its widget; reset rumble | 0.45 | T2 |  |
+| [0x1DD888](../../../src/game/engine/presentation/screen/func_001DD888.c) | `HideTitleScreen` | Hide the title screen and its widget | 0.50 | T1 |  |
+| [0x1DD8E0](../../../src/game/engine/presentation/screen/func_001DD8E0.c) | `SelectLanguageItem` | Language menu item callback: SetLanguage(item) and warp to world 0x189 | 0.55 | T1 |  |
+| [0x1DD920](../../../src/game/engine/presentation/screen/func_001DD920.c) | `UpdateTitleScreen` | Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts a new game; SELECT opens options; X opens the language list when the region has several languages | 0.60 | T1 |  |
+| [0x1DDB08](../../../src/game/engine/presentation/screen/func_001DDB08.cpp) | `StartNewGame` | Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs) | 0.55 | T1 |  |
+| [0x1DDBD0](../../../src/game/engine/presentation/screen/func_001DDBD0.c) | `SetTitleScreenStickDir` | Title screen slot 14: store direction and time | 0.40 | T2 |  |
+| [0x1DDBF0](../../../src/game/engine/presentation/screen/func_001DDBF0.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
+| [0x1DDD40](../../../src/game/engine/presentation/screen/func_001DDD40.c) | `IdsFromWorld` | World index 0-8 -> episode name string id 0x6D-0x75 | 0.55 | T1 |  |
+| [0x1DDDB8](../../../src/game/engine/presentation/screen/func_001DDDB8.c) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
+| [0x1DDE10](../../../src/game/engine/presentation/screen/func_001DDE10.c) | `BuildJobListJobDescText` | Text callback 0x51D: selected job string +0x70 | 0.40 | T2 |  |
+| [0x1DDE58](../../../src/game/engine/presentation/screen/func_001DDE58.c) | `BuildJobListJobNameText` | Text callback 0x51C: selected job string +0x6C | 0.40 | T2 |  |
+| [0x1DDEA0](../../../src/game/engine/presentation/screen/func_001DDEA0.c) | `BuildJobListRowText` | Text callback rows 0x51E-0x527: job name of row i | 0.50 | T1 |  |
+| [0x1DDF00](../../../src/game/engine/presentation/screen/func_001DDF00.c) | `BuildJobListTaskRowText` | Text callback rows 0x528-0x52B: task name of row i | 0.50 | T1 |  |
+| [0x1DDF60](../../../src/game/engine/presentation/screen/func_001DDF60.c) | `BuildTitleText5D7` | Text callback 0x5D7: string 0x40 plus a button-glyph suffix | 0.30 | T2 |  |
+| [0x1DDFB0](../../../src/game/engine/presentation/screen/func_001DDFB0.c) | `BuildTitleCompletionText` | Text callback 0x5D5: "%d%%" game completion | 0.50 | T1 |  |
 
 ## sjis (0x1EE988-0x1EEC60)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EE988](../../../src/hand/FUN_001b5b58.c) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
-| [0x1EEA70](../../../src/hand/FUN_001b5c40.c) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
+| [0x1EE988](../../../src/game/engine/font/sjis/FUN_001b5b58.c) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
+| [0x1EEA70](../../../src/game/engine/font/sjis/FUN_001b5c40.c) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
 
 ## hud (0x210EB0-0x21BB88)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x210EB0](../../../src/auto/func_00210EB0.c) | `BuildContextText` | STRINGGEN getter: strcpy(pchz, context) | 0.75 | T1 |  |
-| [0x210ED8](../../../src/hand/func_00210ED8.c) | `BuildCoinCountText` | STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text | 0.85 | T1 |  |
-| [0x210F50](../../../src/hand/func_00210F50.c) | `BuildClueCountText` | STRINGGEN id 0x2D0: sprintf("%d/%d", SW+0x4764, SW+0x4768) = clue bottles collected/total | 0.80 | T1 | runtime-corrected |
-| [0x210F80](../../../src/hand/func_00210F80.c) | `BuildTimerText` | STRINGGEN id 0x2D1: countdown "%d:%02d" of max(0, SW+0x476C - g_clock.t) | 0.85 | T1 | verified |
-| [0x210FE0](../../../src/hand/func_00210FE0.c) | `BuildBinocReadoutText` | STRINGGEN id 0x2DC: per-character readout from STEPPLAYER F20/F3C: JT "x%d", BENTLEY "x%5.3f", MURRAY "Far"/"Near"/"YIKES" | 0.45 | T2 |  |
-| [0x211148](../../../src/auto/func_00211148.c) | `BuildReconSelectionText` | STRINGGEN ids 0x2DD/0x2DE: text of recon selector selected id (ctx 0 -> 0x202730, P+0xBC) or pending caption (ctx 1 -> 0x2026F8, P+0xC0) | 0.50 | T1 |  |
-| [0x2111F0](../../../src/hand/func_002111F0.c) | `BuildReconTargetText` | STRINGGEN ids 0x2DF-0x2E4: langstr of recon target i (P+0x78[i]->idName F8) if i < P+0x74 | 0.50 | T1 |  |
-| [0x211298](../../../src/hand/func_00211298.c) | `BuildMenuCarouselText` | STRINGGEN ids 0x2D2-0x2DB: name of entry (k + sel - 3) mod n of the current menu page D_003D9EDC[D_003D9EF4] | 0.35 | T2 |  |
-| [0x211348](../../../src/hand/func_00211348.c) | `BuildWidgetArgText` | STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC) | 0.70 | T1 |  |
-| [0x211390](../../../src/auto/func_00211390.c) | `BuildSubtitleText` | STRINGGEN id 0x2EF: subtitle/speaker text from global D_004435F0 via 0x2277D0 | 0.45 | T2 |  |
-| [0x2113B8](../../../src/auto/func_002113B8.c) | `BuildSubtitleFlagsText` | STRINGGEN id 0x2F0: 0x227940(&D_004435F0,pchz) (r8: one char per set flag bit) | 0.30 | T2 |  |
-| [0x2113E0](../../../src/auto/func_002113E0.c) | `BuildTickerText` | STRINGGEN id 0x2F1: langstr(D_003DA0D8) = message of the scrolling ticker D_003DA0C0 | 0.55 | T1 |  |
-| [0x211420](../../../src/hand/func_00211420.c) | `BuildOperatedObjectText` | STRINGGEN id 0x2F4: name of the object the player operates in mode x4C8==0xC (cid 0x5E table D_002C3288 / cid 0x5C field / player x1318) | 0.30 | T2 |  |
-| [0x211528](../../../src/hand/func_00211528.cpp) | `StartupScreen` | startup-table entry: builds the static GIF register packets used by sprite/HUD rendering | 0.35 | T2 |  |
-| [0x211A80](../../../src/hand/func_00211A80.c) | `BeginRpHud` | Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state | 0.85 | T1 | verified |
-| [0x211C10](../../../src/auto/func_00211C10.c) | `EndRpHud` | Pass 5 end: MSCAL 0xC0, FLUSHA | 0.55 | T1 |  |
-| [0x211C58](../../../src/hand/func_00211C58.cpp) | `WIDGET130_ctor` | ctor of CID 0x82: WIDGET ctor then 4 ids and +0x120 = -1 | 0.70 | T2 |  |
-| [0x211CA8](../../../src/hand/func_00211CA8.c) | `ShowWidget127` | CID 0x7F slot49 override: if idle, ShowWidget + IncrementSwHandsOff + play anim 0x33A | 0.50 | T2 |  |
-| [0x211D08](../../../src/hand/func_00211D08.c) | `InitWidget127` | CID 0x7F Init (slot7): InitLo, +0xB0 = 1 | 0.60 | T2 |  |
-| [0x211D38](../../../src/hand/func_00211D38.c) | `UpdateWidget127` | CID 0x7F Update: modal box; after 0.5 s visible and button mask 0xF0 pressed -> DecrementSwHandsOff, optional resume via SW+0x3B0C, HideWidget | 0.55 | T2 |  |
-| [0x211E40](../../../src/hand/func_00211E40.c) | `InitWidget128` | CID 0x80 Init: InitLo, +0xB0 = 1 | 0.60 | T2 |  |
-| [0x211E70](../../../src/hand/func_00211E70.c) | `AddWidget129OidA` | CID 0x81: append oid to list A (+0x110, max 16) | 0.50 | T2 |  |
-| [0x211E98](../../../src/hand/func_00211E98.c) | `AddWidget129OidB` | CID 0x81: append oid to list B (+0x194, max 16) | 0.50 | T2 |  |
-| [0x211EC0](../../../src/hand/func_00211EC0.c) | `PostWidget129Load` | CID 0x81 PostLoad: PostWidgetLoad then resolve both oid lists to LOs (PloFindSwObject grffso 5) | 0.65 | T2 |  |
-| [0x211F90](../../../src/hand/func_00211F90.c) | `UpdateWidget129` | CID 0x81 Update: counts finished/active objects, writes counts into "Widget Item 0/1/2" (doneB,totalB,remainingB) for text ids 0x2FF..; shows while any active, hides when all done | 0.60 | T2 |  |
-| [0x212158](../../../src/hand/func_00212158.c) | `WIDGET_ctor` | WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68) | 0.85 | T1 | verified |
-| [0x2121C8](../../../src/auto/func_002121C8.c) | `FWidgetIdle` | state(+0x58)<2 && request(+0x64)<2 | 0.45 | T2 |  |
-| [0x2121E8](../../../src/hand/func_002121E8.c) | `FWidgetAnimPlaying` | is anim id (0x314=main track) still running on its sprite | 0.60 | T1 |  |
-| [0x212298](../../../src/hand/func_00212298.c) | `LoadWidgetFromBrx` | WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width, height, fFont; immediate or deferred sprite load | 0.90 | T1 | parse |
-| [0x2123C8](../../../src/hand/func_002123C8.c) | `PostWidgetLoad` | WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag, busy 1, set LO flags 0x102 | 0.85 | T1 |  |
-| [0x2124F0](../../../src/hand/func_002124F0.cpp) | `LoadWidgetSprites` | deferred (streamed) sprite file load when a widget leaves state 0 | 0.55 | T1 |  |
-| [0x212780](../../../src/hand/func_00212780.c) | `UnloadWidgetSprites` | state 0 entry: drop sprite tables and lists | 0.50 | T1 |  |
-| [0x2127C8](../../../src/hand/func_002127C8.c) | `FWidgetLoadsIdle` | true when no deferred widget load (list D_003E106C) is younger than 2 frames | 0.35 | T2 |  |
-| [0x212828](../../../src/hand/func_00212828.c) | `ShowWidgetArgsFromSplice` | copy Splice list into +0xCC ids (max 10) then ShowWidget(-1) | 0.50 | T1 |  |
-| [0x212880](../../../src/hand/func_00212880.c) | `ShowWidgetArgs` | copy n ids into +0xCC (max 10) then ShowWidget(-1) | 0.55 | T1 |  |
-| [0x2128E8](../../../src/hand/func_002128E8.cpp) | `ShowWidget` | WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present | 0.70 | T1 |  |
-| [0x2129E8](../../../src/auto/func_002129E8.c) | `HideWidget` | WIDGET slot50: request hide; if no disappear anim go straight to state 1 | 0.70 | T1 |  |
-| [0x212A30](../../../src/auto/func_00212A30.c) | `ResetWidgetVisibleTime` | if state==2, state time = g_clock.t (restarts the visible-duration timeout) | 0.40 | T2 |  |
-| [0x212A50](../../../src/auto/SetTimerTimers__FP5TIMER6TIMERS.c) | `SetWidgetRequest` |  | 0.75 | existing | arbitration; replaces existing SetTimerTimers__FP5TIMER6TIMERS |
-| [0x212A70](../../../src/hand/func_00212A70.c) | `SetWidgetState` | state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause | 0.75 | T1 |  |
-| [0x212C50](../../../src/hand/func_00212C50.c) | `UpdateWidget` | WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite | 0.90 | T1 | runtime |
-| [0x212E40](../../../src/hand/func_00212E40.c) | `SetWidgetAnimPhase` | seek anim id (0x314=main) to fraction g of its length (meters) | 0.60 | T1 |  |
-| [0x212F80](../../../src/hand/func_00212F80.c) | `SetWidgetAnimTime` | like SetWidgetAnimPhase but absolute time | 0.45 | T2 |  |
-| [0x2130C0](../../../src/hand/func_002130C0.c) | `QueueWidgetRenderSetup` | DMA packet with render init payloads (frame/mask GIF data) before widget sprites | 0.85 | T1 | verified |
-| [0x2132D0](../../../src/auto/func_002132D0.c) | `FWidgetVisible` | main anim active and not obscured by a higher-priority exclusive widget | 0.60 | T1 |  |
-| [0x213300](../../../src/hand/func_00213300.cpp) | `RenderWidget` | WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets | 0.80 | T1 |  |
-| [0x2137F0](../../../src/hand/func_002137F0.c) | `FWidgetObscured` | some widget in exclusive list D_003E1060 has higher priority (+0x0? field a) | 0.85 | T1 | verified |
-| [0x213830](../../../src/hand/func_00213830.c) | `StartWidgetMainAnim` | start anim id on main sprite (+0x84), slot21(1), join exclusive list if flag, +0x7C = id | 0.50 | T1 |  |
-| [0x213898](../../../src/hand/func_00213898.cpp) | `StopWidgetMainAnim` | stop main sprite, leave exclusive list, slot21(0), slot3(6), +0x7C=-1 | 0.50 | T1 |  |
-| [0x213928](../../../src/hand/func_00213928.c) | `StopWidgetAnim` | reset the sprite holding anim id back to its rest anim | 0.60 | T1 |  |
-| [0x213A08](../../../src/hand/func_00213A08.c) | `PlayWidgetAnimsArg` | start every sprite holding anim id with argument x | 0.35 | T2 |  |
-| [0x213B00](../../../src/hand/func_00213B00.c) | `PlayWidgetAnim` | find sprite owning anim id and start it (restart in place if instanced) | 0.65 | T1 |  |
-| [0x213BD8](../../../src/hand/func_00213BD8.c) | `PlayWidgetAnimArg` | start first anim id match with argument x | 0.40 | T2 |  |
-| [0x213C68](../../../src/hand/func_00213C68.c) | `SetWidgetXf` | set widget 2D transform override (alloc 0x20 M23 at +0xF8) | 0.55 | T1 |  |
-| [0x213CD8](../../../src/hand/func_00213CD8.cpp) | `SetWidgetAnimXf` | set M23 transform of the sprite that holds anim id | 0.85 | T1 | verified |
-| [0x213DB0](../../../src/hand/func_00213DB0.c) | `SwitchWidgetAnim` | stop old *pid, play new id, store | 0.55 | T1 |  |
-| [0x213E20](../../../src/hand/func_00213E20.c) | `FFindSpriteItemPose` | recursive search of nested sprite k: return its M23 and colours | 0.40 | T2 |  |
-| [0x213F70](../../../src/hand/func_00213F70.cpp) | `RestartNestedSprite` | recursively find nested-sprite item k and restart it at anim z | 0.40 | T2 |  |
-| [0x214100](../../../src/hand/func_00214100.cpp) | `RestartNestedSpriteArg` | as RestartNestedSprite with extra argument | 0.35 | T2 |  |
-| [0x2142B0](../../../src/hand/func_002142B0.c) | `FSpriteHasAnim` | id in sprite anim list | 0.55 | T1 |  |
-| [0x214300](../../../src/auto/func_00214300.c) | `SetWidgetExclusive` | flag +0xA8; value 0 = in exclusive list D_003E1060 (suppresses lower-priority widgets) | 0.45 | T2 |  |
-| [0x214398](../../../src/hand/func_00214398.c) | `LoadSpriteTable` | read sprite count, alloc (n+1)*0x40, read each descriptor | 0.75 | T1 | parse |
-| [0x214460](../../../src/hand/func_00214460.cpp) | `LoadSpriteGroups` | deserialize sprite groups, reusable frames and animation keys | 0.75 | T1 | parse |
-| [0x2149D8](../../../src/hand/func_002149D8.cpp) | `LoadSpriteDescriptor` | read one sprite descriptor (kinds 1 geometry,2 polygon,3 shader,4 index,6/7 picture,8 nested) and build packets | 0.75 | T1 | parse |
-| [0x2155C0](../../../src/hand/func_002155C0.cpp) | `BuildSpritePictureTexPacket` | kind-7 picture callback: GIF TEX0/TEXA packet for the texture of q->x10 | 0.35 | T2 |  |
-| [0x2156B8](../../../src/hand/func_002156B8.cpp) | `InitSpriteItem` | item defaults: colours 0x7F7F7F7F/0xFFFFFFFF, identity M23, ids -1 | 0.50 | T1 |  |
-| [0x215730](../../../src/hand/func_00215730.cpp) | `SetSpriteItemSource` | bind item to payload by kind (4 nested sprite: start anim 0x314) | 0.35 | T2 |  |
-| [0x215850](../../../src/hand/func_00215850.cpp) | `UpdateSpriteItem` | forward frame update (time, M23, colours) to nested sprite | 0.40 | T2 |  |
-| [0x2158C0](../../../src/hand/func_002158C0.c) | `ReleaseSpriteItem` | release item payload (stop nested slot / texture ref) and reinit | 0.40 | T2 |  |
-| [0x215960](../../../src/hand/func_00215960.c) | `QueueSpriteItem` | draw item: nested sprite drawn recursively, other kinds prepended to draw list | 0.40 | T2 |  |
-| [0x2159E0](../../../src/hand/func_002159E0.c) | `RenderSpritePayload` | dispatch by kind: 3 text (0x216BC8), 1 geometry (0x2174C8), else picture (0x2177E0) | 0.45 | T2 |  |
-| [0x215A50](../../../src/hand/PglyffFromCh__8CFontBrxc.c) | `IglyffFromCh__8CFontBrxc` |  | 0.60 | existing | arbitration; replaces existing PglyffFromCh__8CFontBrxc |
-| [0x215AC0](../../../src/hand/func_00215AC0.cpp) | `CRichText_ctor` | rich-text ctor from string + font + scale (offsets 1792/1936) | 0.50 | T1 |  |
-| [0x215BA8](../../../src/hand/func_00215BA8.cpp) | `CRichText_ctor_215BA8` | rich-text ctor from a sprite text element (width/height/colour) | 0.45 | T2 |  |
-| [0x215CA8](../../../src/hand/func_00215CA8.c) | `CRichText2_Reset` | Reset the HUD rich-text cursor: optional new text, pchCur=achz, font cur=base, colour cur=base, colour word 0x80000000\|alpha, UpdateColor | 0.50 | T2 | top50; top50 round; v2 name CRichText_Reset_215CA8 |
-| [0x215D00](../../../src/hand/func_00215D00.c) | `CRichText_SetBaseColor_215D00` | set base and current colour | 0.85 | T3 | verified |
-| [0x215D40](../../../src/hand/func_00215D40.c) | `CRichText_ChNext_215D40` | next printable char, processing &-escape codes | 0.70 | T3 |  |
-| [0x215E30](../../../src/hand/func_00215E30.c) | `CRichText_Cch` | count characters | 0.75 | T1 |  |
-| [0x215E80](../../../src/hand/func_00215E80.c) | `CRichText_Trim` | truncate after n chars | 0.85 | T1 | verified |
-| [0x215ED8](../../../src/hand/func_00215ED8.c) | `CRichText_Dx` | sum of glyph widths * scale | 0.70 | T1 |  |
-| [0x215F40](../../../src/hand/func_00215F40.cpp) | `CRichText_ClineWrap_215F40` | count lines, inserting newlines when width exceeded | 0.55 | T3 |  |
-| [0x2160D8](../../../src/hand/func_002160D8.c) | `CRichText_UpdateColor` | convert current RGBA to clamped float colours | 0.35 | T2 |  |
-| [0x2161C8](../../../src/hand/func_002161C8.c) | `CRichText_DxMaxLine_2161C8` | widest line | 0.70 | T3 |  |
-| [0x216260](../../../src/hand/func_00216260.c) | `CRichText_GetExtents` | dx = DxMaxLine, dy = lines*lineheight | 0.70 | T1 |  |
-| [0x2162D8](../../../src/hand/func_002162D8.c) | `BuildRichTextMatrix` | glyph matrix from 2x3 transform (0.8 / 0.4545 pixel scales, GS offset 786432) | 0.40 | T2 |  |
-| [0x2163B0](../../../src/hand/func_002163B0.cpp) | `CRichText_Draw_2163B0` | configure box/alignment/colour and queue rich text | 0.50 | T3 |  |
-| [0x2166B0](../../../src/hand/func_002166B0.c) | `CRichText_DrawXf` | draw at a sprite transform (font scale, line height) | 0.40 | T2 |  |
-| [0x216750](../../../src/hand/func_00216750.c) | `CRichText_DrawGlyphs` | align, clip and queue glyphs with colours | 0.45 | T2 |  |
-| [0x216B40](../../../src/hand/func_00216B40.c) | `CFontBrx_PglyffFromCh` | GLYFF* = &glyphs[i] for i = 0x215A50(ch) | 0.60 | T1 | arbitration |
-| [0x216B80](../../../src/hand/func_00216B80.c) | `CFontBrx_DxFromCh_216B80` | width of glyph for ch (widths[i-1]) | 0.65 | T3 |  |
-| [0x216BC8](../../../src/hand/func_00216BC8.cpp) | `RenderSpriteText` | sprite text: STRINGGEN text (kind 1, 108-entry table D_003E1C88) or langstr (kind 0); subtitle (0x2EF) and ticker (0x2F1) special cases | 0.60 | T1 |  |
-| [0x217058](../../../src/hand/func_00217058.c) | `BuildGlyphPacket` | matrix/parameter DMA packet ending in a call tag | 0.35 | T2 |  |
-| [0x217298](../../../src/hand/func_00217298.c) | `QueueSpriteVuProgram` | queue VU microprogram pair for render mode | 0.40 | T2 |  |
-| [0x2174C8](../../../src/hand/func_002174C8.c) | `RenderSpriteGeometry` | transformed sprite parameters with optional fade | 0.85 | T1 | verified |
-| [0x2177E0](../../../src/hand/func_002177E0.c) | `RenderSpritePicture` | transformed sprite parameters + direct GIF payload | 0.40 | T2 |  |
-| [0x217BA0](../../../src/hand/func_00217BA0.c) | `StartSpriteAnimById` | find anim index by id (0x314 -> 0) and start | 0.45 | T2 |  |
-| [0x217C20](../../../src/hand/func_00217C20.cpp) | `StartSpriteAnim` | stop if instanced, start anim i at t=0 with default colours | 0.45 | T2 |  |
-| [0x217CA8](../../../src/hand/func_00217CA8.cpp) | `StartSpriteAnimSlot` | start anim k in a reuse slot | 0.35 | T2 |  |
-| [0x217D98](../../../src/hand/func_00217D98.cpp) | `StartSpriteAnimAt` | select initial frame/time then draw | 0.40 | T2 |  |
-| [0x217EF8](../../../src/hand/func_00217EF8.c) | `IFreeSpriteSlot` | first reuse slot with h<0 | 0.50 | T1 |  |
-| [0x217F38](../../../src/hand/func_00217F38.c) | `ResetSpriteSlotItems` | reinit / release every item of slot i | 0.45 | T2 |  |
-| [0x217FB8](../../../src/hand/func_00217FB8.c) | `SetSpriteDefaultPhase` | phase seek of default anim | 0.40 | T2 |  |
-| [0x217FE0](../../../src/hand/func_00217FE0.c) | `SetSpriteAnimPhase` | clamp g to [0,1], seek anim to g*duration | 0.45 | T2 |  |
-| [0x218038](../../../src/hand/func_00218038.c) | `SetSpriteDefaultTime` | time seek of default anim | 0.35 | T2 |  |
-| [0x218060](../../../src/hand/func_00218060.cpp) | `SetSpriteAnimTime` | refresh reused sprite at t=0 then at clamped time | 0.40 | T2 |  |
-| [0x218220](../../../src/hand/func_00218220.cpp) | `AdvanceWidgetSprite` | advance main sprite by dt; world-anchored position via PosLoWorld + ConvertCmWorldToScreen | 0.45 | T2 |  |
-| [0x2183E8](../../../src/hand/func_002183E8.cpp) | `UpdateSpriteSlot` | forward update to 0x2188B0 or 0x219FE0 | 0.35 | T2 |  |
-| [0x2185D0](../../../src/auto/func_002185D0.c) | `DrawSprite` | draw sprite (slot 0) | 0.40 | T2 |  |
-| [0x2185F8](../../../src/auto/func_002185F8.c) | `DrawSpriteSlot` | draw items of a slot | 0.35 | T2 |  |
-| [0x218638](../../../src/auto/func_00218638.c) | `StopSprite` | stop slot 0 | 0.40 | T2 |  |
-| [0x218660](../../../src/hand/func_00218660.c) | `StopSpriteSlot` | stop slot sounds (StopSnd) and reset its items | 0.45 | T2 |  |
-| [0x218710](../../../src/hand/func_00218710.c) | `FSpriteAnimActive` | h!=0 && !done | 0.85 | T1 | verified |
-| [0x218738](../../../src/auto/func_00218738.c) | `GetSpriteMainState` | returns pt(+8)->x10 | 0.25 | T2 |  |
-| [0x218748](../../../src/hand/func_00218748.c) | `FinishSpriteSoundEvent` | mark entry done and stop/pause its sound | 0.30 | T2 |  |
-| [0x218790](../../../src/hand/func_00218790.c) | `CombineSpriteColors` | combine parent/child additive and multiplicative RGBA | 0.50 | T1 |  |
-| [0x2188B0](../../../src/hand/func_002188B0.cpp) | `InterpolateSpriteSlot` | update reusable sprite entries at cached time | 0.40 | T2 |  |
-| [0x2190F8](../../../src/hand/func_002190F8.c) | `FinishSpriteSoundEvents` | for action bytes ==7 call 0x218748 | 0.30 | T2 |  |
-| [0x219190](../../../src/hand/func_00219190.cpp) | `HandleSpriteKeyEvents` | sprite key actions: start/stop sound, StartDialog/StopDialog | 0.50 | T1 |  |
-| [0x219348](../../../src/hand/func_00219348.c) | `ResetSpriteKeyItems` | reset items referenced by a key | 0.85 | T1 | verified |
-| [0x219400](../../../src/hand/func_00219400.cpp) | `ApplySpriteKeyPoses` | apply one animation key poses to items | 0.50 | T1 |  |
-| [0x219FE0](../../../src/hand/func_00219FE0.cpp) | `AdvanceSpriteAnim` | advance sprite animation to slot time and redraw changed items | 0.50 | T1 |  |
-| [0x21A998](../../../src/hand/func_0021A998.c) | `DrawSpriteItems` | queue items in reverse order | 0.40 | T2 |  |
+| [0x210EB0](../../../src/game/engine/presentation/hud/func_00210EB0.c) | `BuildContextText` | STRINGGEN getter: strcpy(pchz, context) | 0.75 | T1 |  |
+| [0x210ED8](../../../src/game/engine/presentation/hud/func_00210ED8.c) | `BuildCoinCountText` | STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text | 0.85 | T1 |  |
+| [0x210F50](../../../src/game/engine/presentation/hud/func_00210F50.c) | `BuildClueCountText` | STRINGGEN id 0x2D0: sprintf("%d/%d", SW+0x4764, SW+0x4768) = clue bottles collected/total | 0.80 | T1 | runtime-corrected |
+| [0x210F80](../../../src/game/engine/presentation/hud/func_00210F80.c) | `BuildTimerText` | STRINGGEN id 0x2D1: countdown "%d:%02d" of max(0, SW+0x476C - g_clock.t) | 0.85 | T1 | verified |
+| [0x210FE0](../../../src/game/engine/presentation/hud/func_00210FE0.c) | `BuildBinocReadoutText` | STRINGGEN id 0x2DC: per-character readout from STEPPLAYER F20/F3C: JT "x%d", BENTLEY "x%5.3f", MURRAY "Far"/"Near"/"YIKES" | 0.45 | T2 |  |
+| [0x211148](../../../src/game/engine/presentation/hud/func_00211148.c) | `BuildReconSelectionText` | STRINGGEN ids 0x2DD/0x2DE: text of recon selector selected id (ctx 0 -> 0x202730, P+0xBC) or pending caption (ctx 1 -> 0x2026F8, P+0xC0) | 0.50 | T1 |  |
+| [0x2111F0](../../../src/game/engine/presentation/hud/func_002111F0.c) | `BuildReconTargetText` | STRINGGEN ids 0x2DF-0x2E4: langstr of recon target i (P+0x78[i]->idName F8) if i < P+0x74 | 0.50 | T1 |  |
+| [0x211298](../../../src/game/engine/presentation/hud/func_00211298.c) | `BuildMenuCarouselText` | STRINGGEN ids 0x2D2-0x2DB: name of entry (k + sel - 3) mod n of the current menu page D_003D9EDC[D_003D9EF4] | 0.35 | T2 |  |
+| [0x211348](../../../src/game/engine/presentation/hud/func_00211348.c) | `BuildWidgetArgText` | STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC) | 0.70 | T1 |  |
+| [0x211390](../../../src/game/engine/presentation/hud/func_00211390.c) | `BuildSubtitleText` | STRINGGEN id 0x2EF: subtitle/speaker text from global D_004435F0 via 0x2277D0 | 0.45 | T2 |  |
+| [0x2113B8](../../../src/game/engine/presentation/hud/func_002113B8.c) | `BuildSubtitleFlagsText` | STRINGGEN id 0x2F0: 0x227940(&D_004435F0,pchz) (r8: one char per set flag bit) | 0.30 | T2 |  |
+| [0x2113E0](../../../src/game/engine/presentation/hud/func_002113E0.c) | `BuildTickerText` | STRINGGEN id 0x2F1: langstr(D_003DA0D8) = message of the scrolling ticker D_003DA0C0 | 0.55 | T1 |  |
+| [0x211420](../../../src/game/engine/presentation/hud/func_00211420.c) | `BuildOperatedObjectText` | STRINGGEN id 0x2F4: name of the object the player operates in mode x4C8==0xC (cid 0x5E table D_002C3288 / cid 0x5C field / player x1318) | 0.30 | T2 |  |
+| [0x211528](../../../src/game/engine/presentation/hud/func_00211528.cpp) | `StartupScreen` | startup-table entry: builds the static GIF register packets used by sprite/HUD rendering | 0.35 | T2 |  |
+| [0x211A80](../../../src/game/engine/presentation/hud/func_00211A80.c) | `BeginRpHud` | Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state | 0.85 | T1 | verified |
+| [0x211C10](../../../src/game/engine/presentation/hud/func_00211C10.c) | `EndRpHud` | Pass 5 end: MSCAL 0xC0, FLUSHA | 0.55 | T1 |  |
+| [0x211C58](../../../src/game/engine/presentation/hud/func_00211C58.cpp) | `WIDGET130_ctor` | ctor of CID 0x82: WIDGET ctor then 4 ids and +0x120 = -1 | 0.70 | T2 |  |
+| [0x211CA8](../../../src/game/engine/presentation/hud/func_00211CA8.c) | `ShowWidget127` | CID 0x7F slot49 override: if idle, ShowWidget + IncrementSwHandsOff + play anim 0x33A | 0.50 | T2 |  |
+| [0x211D08](../../../src/game/engine/presentation/hud/func_00211D08.c) | `InitWidget127` | CID 0x7F Init (slot7): InitLo, +0xB0 = 1 | 0.60 | T2 |  |
+| [0x211D38](../../../src/game/engine/presentation/hud/func_00211D38.c) | `UpdateWidget127` | CID 0x7F Update: modal box; after 0.5 s visible and button mask 0xF0 pressed -> DecrementSwHandsOff, optional resume via SW+0x3B0C, HideWidget | 0.55 | T2 |  |
+| [0x211E40](../../../src/game/engine/presentation/hud/func_00211E40.c) | `InitWidget128` | CID 0x80 Init: InitLo, +0xB0 = 1 | 0.60 | T2 |  |
+| [0x211E70](../../../src/game/engine/presentation/hud/func_00211E70.c) | `AddWidget129OidA` | CID 0x81: append oid to list A (+0x110, max 16) | 0.50 | T2 |  |
+| [0x211E98](../../../src/game/engine/presentation/hud/func_00211E98.c) | `AddWidget129OidB` | CID 0x81: append oid to list B (+0x194, max 16) | 0.50 | T2 |  |
+| [0x211EC0](../../../src/game/engine/presentation/hud/func_00211EC0.c) | `PostWidget129Load` | CID 0x81 PostLoad: PostWidgetLoad then resolve both oid lists to LOs (PloFindSwObject grffso 5) | 0.65 | T2 |  |
+| [0x211F90](../../../src/game/engine/presentation/hud/func_00211F90.c) | `UpdateWidget129` | CID 0x81 Update: counts finished/active objects, writes counts into "Widget Item 0/1/2" (doneB,totalB,remainingB) for text ids 0x2FF..; shows while any active, hides when all done | 0.60 | T2 |  |
+| [0x212158](../../../src/game/engine/presentation/hud/func_00212158.c) | `WIDGET_ctor` | WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68) | 0.85 | T1 | verified |
+| [0x2121C8](../../../src/game/engine/presentation/hud/func_002121C8.c) | `FWidgetIdle` | state(+0x58)<2 && request(+0x64)<2 | 0.45 | T2 |  |
+| [0x2121E8](../../../src/game/engine/presentation/hud/func_002121E8.c) | `FWidgetAnimPlaying` | is anim id (0x314=main track) still running on its sprite | 0.60 | T1 |  |
+| [0x212298](../../../src/game/engine/presentation/hud/func_00212298.c) | `LoadWidgetFromBrx` | WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width, height, fFont; immediate or deferred sprite load | 0.90 | T1 | parse |
+| [0x2123C8](../../../src/game/engine/presentation/hud/func_002123C8.c) | `PostWidgetLoad` | WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag, busy 1, set LO flags 0x102 | 0.85 | T1 |  |
+| [0x2124F0](../../../src/game/engine/presentation/hud/func_002124F0.cpp) | `LoadWidgetSprites` | deferred (streamed) sprite file load when a widget leaves state 0 | 0.55 | T1 |  |
+| [0x212780](../../../src/game/engine/presentation/hud/func_00212780.c) | `UnloadWidgetSprites` | state 0 entry: drop sprite tables and lists | 0.50 | T1 |  |
+| [0x2127C8](../../../src/game/engine/presentation/hud/func_002127C8.c) | `FWidgetLoadsIdle` | true when no deferred widget load (list D_003E106C) is younger than 2 frames | 0.35 | T2 |  |
+| [0x212828](../../../src/game/engine/presentation/hud/func_00212828.c) | `ShowWidgetArgsFromSplice` | copy Splice list into +0xCC ids (max 10) then ShowWidget(-1) | 0.50 | T1 |  |
+| [0x212880](../../../src/game/engine/presentation/hud/func_00212880.c) | `ShowWidgetArgs` | copy n ids into +0xCC (max 10) then ShowWidget(-1) | 0.55 | T1 |  |
+| [0x2128E8](../../../src/game/engine/presentation/hud/func_002128E8.cpp) | `ShowWidget` | WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present | 0.70 | T1 |  |
+| [0x2129E8](../../../src/game/engine/presentation/hud/func_002129E8.c) | `HideWidget` | WIDGET slot50: request hide; if no disappear anim go straight to state 1 | 0.70 | T1 |  |
+| [0x212A30](../../../src/game/engine/presentation/hud/func_00212A30.c) | `ResetWidgetVisibleTime` | if state==2, state time = g_clock.t (restarts the visible-duration timeout) | 0.40 | T2 |  |
+| [0x212A50](../../../src/game/engine/presentation/hud/SetTimerTimers__FP5TIMER6TIMERS.c) | `SetWidgetRequest` |  | 0.75 | existing | arbitration; replaces existing SetTimerTimers__FP5TIMER6TIMERS |
+| [0x212A70](../../../src/game/engine/presentation/hud/func_00212A70.c) | `SetWidgetState` | state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause | 0.75 | T1 |  |
+| [0x212C50](../../../src/game/engine/presentation/hud/func_00212C50.c) | `UpdateWidget` | WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite | 0.90 | T1 | runtime |
+| [0x212E40](../../../src/game/engine/presentation/hud/func_00212E40.c) | `SetWidgetAnimPhase` | seek anim id (0x314=main) to fraction g of its length (meters) | 0.60 | T1 |  |
+| [0x212F80](../../../src/game/engine/presentation/hud/func_00212F80.c) | `SetWidgetAnimTime` | like SetWidgetAnimPhase but absolute time | 0.45 | T2 |  |
+| [0x2130C0](../../../src/game/engine/presentation/hud/func_002130C0.c) | `QueueWidgetRenderSetup` | DMA packet with render init payloads (frame/mask GIF data) before widget sprites | 0.85 | T1 | verified |
+| [0x2132D0](../../../src/game/engine/presentation/hud/func_002132D0.c) | `FWidgetVisible` | main anim active and not obscured by a higher-priority exclusive widget | 0.60 | T1 |  |
+| [0x213300](../../../src/game/engine/presentation/hud/func_00213300.cpp) | `RenderWidget` | WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets | 0.80 | T1 |  |
+| [0x2137F0](../../../src/game/engine/presentation/hud/func_002137F0.c) | `FWidgetObscured` | some widget in exclusive list D_003E1060 has higher priority (+0x0? field a) | 0.85 | T1 | verified |
+| [0x213830](../../../src/game/engine/presentation/hud/func_00213830.c) | `StartWidgetMainAnim` | start anim id on main sprite (+0x84), slot21(1), join exclusive list if flag, +0x7C = id | 0.50 | T1 |  |
+| [0x213898](../../../src/game/engine/presentation/hud/func_00213898.cpp) | `StopWidgetMainAnim` | stop main sprite, leave exclusive list, slot21(0), slot3(6), +0x7C=-1 | 0.50 | T1 |  |
+| [0x213928](../../../src/game/engine/presentation/hud/func_00213928.c) | `StopWidgetAnim` | reset the sprite holding anim id back to its rest anim | 0.60 | T1 |  |
+| [0x213A08](../../../src/game/engine/presentation/hud/func_00213A08.c) | `PlayWidgetAnimsArg` | start every sprite holding anim id with argument x | 0.35 | T2 |  |
+| [0x213B00](../../../src/game/engine/presentation/hud/func_00213B00.c) | `PlayWidgetAnim` | find sprite owning anim id and start it (restart in place if instanced) | 0.65 | T1 |  |
+| [0x213BD8](../../../src/game/engine/presentation/hud/func_00213BD8.c) | `PlayWidgetAnimArg` | start first anim id match with argument x | 0.40 | T2 |  |
+| [0x213C68](../../../src/game/engine/presentation/hud/func_00213C68.c) | `SetWidgetXf` | set widget 2D transform override (alloc 0x20 M23 at +0xF8) | 0.55 | T1 |  |
+| [0x213CD8](../../../src/game/engine/presentation/hud/func_00213CD8.cpp) | `SetWidgetAnimXf` | set M23 transform of the sprite that holds anim id | 0.85 | T1 | verified |
+| [0x213DB0](../../../src/game/engine/presentation/hud/func_00213DB0.c) | `SwitchWidgetAnim` | stop old *pid, play new id, store | 0.55 | T1 |  |
+| [0x213E20](../../../src/game/engine/presentation/hud/func_00213E20.c) | `FFindSpriteItemPose` | recursive search of nested sprite k: return its M23 and colours | 0.40 | T2 |  |
+| [0x213F70](../../../src/game/engine/presentation/hud/func_00213F70.cpp) | `RestartNestedSprite` | recursively find nested-sprite item k and restart it at anim z | 0.40 | T2 |  |
+| [0x214100](../../../src/game/engine/presentation/hud/func_00214100.cpp) | `RestartNestedSpriteArg` | as RestartNestedSprite with extra argument | 0.35 | T2 |  |
+| [0x2142B0](../../../src/game/engine/presentation/hud/func_002142B0.c) | `FSpriteHasAnim` | id in sprite anim list | 0.55 | T1 |  |
+| [0x214300](../../../src/game/engine/presentation/hud/func_00214300.c) | `SetWidgetExclusive` | flag +0xA8; value 0 = in exclusive list D_003E1060 (suppresses lower-priority widgets) | 0.45 | T2 |  |
+| [0x214398](../../../src/game/engine/presentation/hud/func_00214398.c) | `LoadSpriteTable` | read sprite count, alloc (n+1)*0x40, read each descriptor | 0.75 | T1 | parse |
+| [0x214460](../../../src/game/engine/presentation/hud/func_00214460.cpp) | `LoadSpriteGroups` | deserialize sprite groups, reusable frames and animation keys | 0.75 | T1 | parse |
+| [0x2149D8](../../../src/game/engine/presentation/hud/func_002149D8.cpp) | `LoadSpriteDescriptor` | read one sprite descriptor (kinds 1 geometry,2 polygon,3 shader,4 index,6/7 picture,8 nested) and build packets | 0.75 | T1 | parse |
+| [0x2155C0](../../../src/game/engine/presentation/hud/func_002155C0.cpp) | `BuildSpritePictureTexPacket` | kind-7 picture callback: GIF TEX0/TEXA packet for the texture of q->x10 | 0.35 | T2 |  |
+| [0x2156B8](../../../src/game/engine/presentation/hud/func_002156B8.cpp) | `InitSpriteItem` | item defaults: colours 0x7F7F7F7F/0xFFFFFFFF, identity M23, ids -1 | 0.50 | T1 |  |
+| [0x215730](../../../src/game/engine/presentation/hud/func_00215730.cpp) | `SetSpriteItemSource` | bind item to payload by kind (4 nested sprite: start anim 0x314) | 0.35 | T2 |  |
+| [0x215850](../../../src/game/engine/presentation/hud/func_00215850.cpp) | `UpdateSpriteItem` | forward frame update (time, M23, colours) to nested sprite | 0.40 | T2 |  |
+| [0x2158C0](../../../src/game/engine/presentation/hud/func_002158C0.c) | `ReleaseSpriteItem` | release item payload (stop nested slot / texture ref) and reinit | 0.40 | T2 |  |
+| [0x215960](../../../src/game/engine/presentation/hud/func_00215960.c) | `QueueSpriteItem` | draw item: nested sprite drawn recursively, other kinds prepended to draw list | 0.40 | T2 |  |
+| [0x2159E0](../../../src/game/engine/presentation/hud/func_002159E0.c) | `RenderSpritePayload` | dispatch by kind: 3 text (0x216BC8), 1 geometry (0x2174C8), else picture (0x2177E0) | 0.45 | T2 |  |
+| [0x215A50](../../../src/game/engine/presentation/hud/PglyffFromCh__8CFontBrxc.c) | `IglyffFromCh__8CFontBrxc` |  | 0.60 | existing | arbitration; replaces existing PglyffFromCh__8CFontBrxc |
+| [0x215AC0](../../../src/game/engine/presentation/hud/func_00215AC0.cpp) | `CRichText_ctor` | rich-text ctor from string + font + scale (offsets 1792/1936) | 0.50 | T1 |  |
+| [0x215BA8](../../../src/game/engine/presentation/hud/func_00215BA8.cpp) | `CRichText_ctor_215BA8` | rich-text ctor from a sprite text element (width/height/colour) | 0.45 | T2 |  |
+| [0x215CA8](../../../src/game/engine/presentation/hud/func_00215CA8.c) | `CRichText2_Reset` | Reset the HUD rich-text cursor: optional new text, pchCur=achz, font cur=base, colour cur=base, colour word 0x80000000\|alpha, UpdateColor | 0.50 | T2 | top50; top50 round; v2 name CRichText_Reset_215CA8 |
+| [0x215D00](../../../src/game/engine/presentation/hud/func_00215D00.c) | `CRichText_SetBaseColor_215D00` | set base and current colour | 0.85 | T3 | verified |
+| [0x215D40](../../../src/game/engine/presentation/hud/func_00215D40.c) | `CRichText_ChNext_215D40` | next printable char, processing &-escape codes | 0.70 | T3 |  |
+| [0x215E30](../../../src/game/engine/presentation/hud/func_00215E30.c) | `CRichText_Cch` | count characters | 0.75 | T1 |  |
+| [0x215E80](../../../src/game/engine/presentation/hud/func_00215E80.c) | `CRichText_Trim` | truncate after n chars | 0.85 | T1 | verified |
+| [0x215ED8](../../../src/game/engine/presentation/hud/func_00215ED8.c) | `CRichText_Dx` | sum of glyph widths * scale | 0.70 | T1 |  |
+| [0x215F40](../../../src/game/engine/presentation/hud/func_00215F40.cpp) | `CRichText_ClineWrap_215F40` | count lines, inserting newlines when width exceeded | 0.55 | T3 |  |
+| [0x2160D8](../../../src/game/engine/presentation/hud/func_002160D8.c) | `CRichText_UpdateColor` | convert current RGBA to clamped float colours | 0.35 | T2 |  |
+| [0x2161C8](../../../src/game/engine/presentation/hud/func_002161C8.c) | `CRichText_DxMaxLine_2161C8` | widest line | 0.70 | T3 |  |
+| [0x216260](../../../src/game/engine/presentation/hud/func_00216260.c) | `CRichText_GetExtents` | dx = DxMaxLine, dy = lines*lineheight | 0.70 | T1 |  |
+| [0x2162D8](../../../src/game/engine/presentation/hud/func_002162D8.c) | `BuildRichTextMatrix` | glyph matrix from 2x3 transform (0.8 / 0.4545 pixel scales, GS offset 786432) | 0.40 | T2 |  |
+| [0x2163B0](../../../src/game/engine/presentation/hud/func_002163B0.cpp) | `CRichText_Draw_2163B0` | configure box/alignment/colour and queue rich text | 0.50 | T3 |  |
+| [0x2166B0](../../../src/game/engine/presentation/hud/func_002166B0.c) | `CRichText_DrawXf` | draw at a sprite transform (font scale, line height) | 0.40 | T2 |  |
+| [0x216750](../../../src/game/engine/presentation/hud/func_00216750.c) | `CRichText_DrawGlyphs` | align, clip and queue glyphs with colours | 0.45 | T2 |  |
+| [0x216B40](../../../src/game/engine/presentation/hud/func_00216B40.c) | `CFontBrx_PglyffFromCh` | GLYFF* = &glyphs[i] for i = 0x215A50(ch) | 0.60 | T1 | arbitration |
+| [0x216B80](../../../src/game/engine/presentation/hud/func_00216B80.c) | `CFontBrx_DxFromCh_216B80` | width of glyph for ch (widths[i-1]) | 0.65 | T3 |  |
+| [0x216BC8](../../../src/game/engine/presentation/hud/func_00216BC8.cpp) | `RenderSpriteText` | sprite text: STRINGGEN text (kind 1, 108-entry table D_003E1C88) or langstr (kind 0); subtitle (0x2EF) and ticker (0x2F1) special cases | 0.60 | T1 |  |
+| [0x217058](../../../src/game/engine/presentation/hud/func_00217058.c) | `BuildGlyphPacket` | matrix/parameter DMA packet ending in a call tag | 0.35 | T2 |  |
+| [0x217298](../../../src/game/engine/presentation/hud/func_00217298.c) | `QueueSpriteVuProgram` | queue VU microprogram pair for render mode | 0.40 | T2 |  |
+| [0x2174C8](../../../src/game/engine/presentation/hud/func_002174C8.c) | `RenderSpriteGeometry` | transformed sprite parameters with optional fade | 0.85 | T1 | verified |
+| [0x2177E0](../../../src/game/engine/presentation/hud/func_002177E0.c) | `RenderSpritePicture` | transformed sprite parameters + direct GIF payload | 0.40 | T2 |  |
+| [0x217BA0](../../../src/game/engine/presentation/hud/func_00217BA0.c) | `StartSpriteAnimById` | find anim index by id (0x314 -> 0) and start | 0.45 | T2 |  |
+| [0x217C20](../../../src/game/engine/presentation/hud/func_00217C20.cpp) | `StartSpriteAnim` | stop if instanced, start anim i at t=0 with default colours | 0.45 | T2 |  |
+| [0x217CA8](../../../src/game/engine/presentation/hud/func_00217CA8.cpp) | `StartSpriteAnimSlot` | start anim k in a reuse slot | 0.35 | T2 |  |
+| [0x217D98](../../../src/game/engine/presentation/hud/func_00217D98.cpp) | `StartSpriteAnimAt` | select initial frame/time then draw | 0.40 | T2 |  |
+| [0x217EF8](../../../src/game/engine/presentation/hud/func_00217EF8.c) | `IFreeSpriteSlot` | first reuse slot with h<0 | 0.50 | T1 |  |
+| [0x217F38](../../../src/game/engine/presentation/hud/func_00217F38.c) | `ResetSpriteSlotItems` | reinit / release every item of slot i | 0.45 | T2 |  |
+| [0x217FB8](../../../src/game/engine/presentation/hud/func_00217FB8.c) | `SetSpriteDefaultPhase` | phase seek of default anim | 0.40 | T2 |  |
+| [0x217FE0](../../../src/game/engine/presentation/hud/func_00217FE0.c) | `SetSpriteAnimPhase` | clamp g to [0,1], seek anim to g*duration | 0.45 | T2 |  |
+| [0x218038](../../../src/game/engine/presentation/hud/func_00218038.c) | `SetSpriteDefaultTime` | time seek of default anim | 0.35 | T2 |  |
+| [0x218060](../../../src/game/engine/presentation/hud/func_00218060.cpp) | `SetSpriteAnimTime` | refresh reused sprite at t=0 then at clamped time | 0.40 | T2 |  |
+| [0x218220](../../../src/game/engine/presentation/hud/func_00218220.cpp) | `AdvanceWidgetSprite` | advance main sprite by dt; world-anchored position via PosLoWorld + ConvertCmWorldToScreen | 0.45 | T2 |  |
+| [0x2183E8](../../../src/game/engine/presentation/hud/func_002183E8.cpp) | `UpdateSpriteSlot` | forward update to 0x2188B0 or 0x219FE0 | 0.35 | T2 |  |
+| [0x2185D0](../../../src/game/engine/presentation/hud/func_002185D0.c) | `DrawSprite` | draw sprite (slot 0) | 0.40 | T2 |  |
+| [0x2185F8](../../../src/game/engine/presentation/hud/func_002185F8.c) | `DrawSpriteSlot` | draw items of a slot | 0.35 | T2 |  |
+| [0x218638](../../../src/game/engine/presentation/hud/func_00218638.c) | `StopSprite` | stop slot 0 | 0.40 | T2 |  |
+| [0x218660](../../../src/game/engine/presentation/hud/func_00218660.c) | `StopSpriteSlot` | stop slot sounds (StopSnd) and reset its items | 0.45 | T2 |  |
+| [0x218710](../../../src/game/engine/presentation/hud/func_00218710.c) | `FSpriteAnimActive` | h!=0 && !done | 0.85 | T1 | verified |
+| [0x218738](../../../src/game/engine/presentation/hud/func_00218738.c) | `GetSpriteMainState` | returns pt(+8)->x10 | 0.25 | T2 |  |
+| [0x218748](../../../src/game/engine/presentation/hud/func_00218748.c) | `FinishSpriteSoundEvent` | mark entry done and stop/pause its sound | 0.30 | T2 |  |
+| [0x218790](../../../src/game/engine/presentation/hud/func_00218790.c) | `CombineSpriteColors` | combine parent/child additive and multiplicative RGBA | 0.50 | T1 |  |
+| [0x2188B0](../../../src/game/engine/presentation/hud/func_002188B0.cpp) | `InterpolateSpriteSlot` | update reusable sprite entries at cached time | 0.40 | T2 |  |
+| [0x2190F8](../../../src/game/engine/presentation/hud/func_002190F8.c) | `FinishSpriteSoundEvents` | for action bytes ==7 call 0x218748 | 0.30 | T2 |  |
+| [0x219190](../../../src/game/engine/presentation/hud/func_00219190.cpp) | `HandleSpriteKeyEvents` | sprite key actions: start/stop sound, StartDialog/StopDialog | 0.50 | T1 |  |
+| [0x219348](../../../src/game/engine/presentation/hud/func_00219348.c) | `ResetSpriteKeyItems` | reset items referenced by a key | 0.85 | T1 | verified |
+| [0x219400](../../../src/game/engine/presentation/hud/func_00219400.cpp) | `ApplySpriteKeyPoses` | apply one animation key poses to items | 0.50 | T1 |  |
+| [0x219FE0](../../../src/game/engine/presentation/hud/func_00219FE0.cpp) | `AdvanceSpriteAnim` | advance sprite animation to slot time and redraw changed items | 0.50 | T1 |  |
+| [0x21A998](../../../src/game/engine/presentation/hud/func_0021A998.c) | `DrawSpriteItems` | queue items in reverse order | 0.40 | T2 |  |

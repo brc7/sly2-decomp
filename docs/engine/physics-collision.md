@@ -95,76 +95,76 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x133C68](../../src/auto/PoxAddSw.c) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
-| [0x14C6A0](../../src/hand/func_0014C6A0.c) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
-| [0x14C9F8](../../src/hand/func_0014C9F8.c) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
-| [0x166270](../../src/hand/func_00166270.c) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recom | 0.85 | T1 | verified |
-| [0x1A7C18](../../src/hand/func_001A7C18.c) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *pp | 0.75 | T1 | verified |
-| [0x1A7E60](../../src/hand/func_001A7E60.c) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
-| [0x1A7FC0](../../src/hand/func_001A7FC0.c) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
-| [0x1A86B8](../../src/hand/func_001A86B8.c) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
-| [0x1A8B50](../../src/hand/func_001A8B50.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (k | 0.85 | T1 | verified |
-| [0x1BC088](../../src/hand/func_001BC088.c) | `LoadCid14FromBrx` | CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1) | 0.75 | T2 | parse |
-| [0x1BC278](../../src/hand/func_001BC278.c) | `SgnTurnXY` | Sign of 2D cross product of (a-b),(b-c) with epsilon | 0.45 | T2 | verified |
-| [0x1BC2F8](../../src/hand/func_001BC2F8.c) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
-| [0x1BC688](../../src/hand/ClsgClipEdgeToCnvo.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
-| [0x1BD218](../../src/hand/func_001BD218.c) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
-| [0x1BD8A8](../../src/hand/FCnvoOverlap.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
-| [0x1BDBC8](../../src/auto/NCmpWkr__FP3WKRT0.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
-| [0x1BF398](../../src/hand/CbskFromG__Ff.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
-| [0x1BF970](../../src/auto/IcgvFromPcgv__FP2CGP3CGV.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
-| [0x1BFF28](../../src/hand/CposFindPath.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
-| [0x1C03C0](../../src/hand/LoadPathzoneFromBrx.c) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
-| [0x1C0D70](../../src/hand/PpathzoneFromPos.c) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
-| [0x1C0EC0](../../src/hand/LoadSwZoneBspFromBrx.c) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
-| [0x1C0F30](../../src/hand/LoadZoneBspFromBrx.c) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
-| [0x1E5DF8](../../src/hand/LoadShapeFromBrx.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for c | 0.80 | T1 | parse |
-| [0x1E6648](../../src/auto/SMaxShape.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
-| [0x1E7A28](../../src/hand/SetShapeChainMode.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
-| [0x1E8008](../../src/hand/SRandomShapeRange.c) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
-| [0x1E81C0](../../src/hand/InitChain.c) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
-| [0x1E9858](../../src/hand/func_001E9858.cpp) | `PostCid106Load` | CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local basis, distance along path) | 0.35 | T2 | verified |
-| [0x1F2108](../../src/hand/InitSo.c) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from  | 0.85 | T1 | verified |
-| [0x1F2718](../../src/hand/func_001F2718.c) | `SetSoField148_20` | Set 4-bit field +0x148 bits 20-23 | 0.20 | T2 | verified |
-| [0x1F2768](../../src/hand/SetSoIgnoreLocked__FP2SOi.cpp) | `SetSoIgnoreLocked__FP2SOi` | Set +0xD0 bit34 (fIgnoreLocked) | 0.85 | existing | verified |
-| [0x1F2798](../../src/hand/PsoFindPhysRoot.c) | `PsoFindPhysRoot` | Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag +0x148 bit34; returns last visited | 0.85 | T1 | verified |
-| [0x1F2A60](../../src/hand/ShowSoPart.cpp) | `ShowSoPart` | If part hidden (fl bit50): clear it and, when SO in world, AddSoPartToTree | 0.85 | T1 | verified |
-| [0x1F2B20](../../src/hand/AddSoParts.c) | `AddSoParts` | AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride) | 0.85 | T1 | verified |
-| [0x1F31E0](../../src/hand/LoadSoFromBrx.cpp) | `LoadSoFromBrx` | SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...), physics block (matrix, mass), options, bounds | 0.90 | T1 | parse, verified |
-| [0x1F35F8](../../src/hand/AdjustSoMomint.c) | `AdjustSoMomint` | Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular) | 0.85 | T1 | verified |
-| [0x1F3C70](../../src/auto/RenderSoSelf.c) | `RenderSoSelf` | SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha +0x12C | 0.85 | T1 | verified |
-| [0x1F3E00](../../src/hand/OnSoRemove.c) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
-| [0x1F3EA8](../../src/hand/OnSoAdd.c) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
-| [0x1F4558](../../src/hand/GetSoAngularVelocity.cpp) | `GetSoAngularVelocity` | SO vt34: world angular velocity of rotation XF (kind 6), zero otherwise | 0.90 | T1 | verified |
-| [0x1F4CA0](../../src/hand/func_001F4CA0.c) | `CloneXfRef` | SO vt52: re-point an XF* from base SO's XF block to the clone's (also via parent) | 0.85 | T1 | verified |
-| [0x1F4FC8](../../src/hand/FIgnoreSoIntersection.c) | `FIgnoreSoIntersection` | SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed | 0.85 | T1 | verified |
-| [0x1F57C0](../../src/auto/SetSoCnstrTorque.c) | `SetSoCnstrTorque` | Same for rotation XF into SOPHYS+0x90 | 0.85 | T1 | verified |
-| [0x1F5860](../../src/hand/GetSoDvGravity.c) | `GetSoDvGravity` | SOPHYS+0x80 (gravity vector) or zero | 0.85 | T1 | verified |
-| [0x1F58F0](../../src/hand/GetSoCpdefi.c) | `GetSoCpdefi` | SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix, sAdjust 100, grfcpd 0, tMoveLast = g_clock.t | 0.85 | T1 |  |
-| [0x1F6068](../../src/hand/CloneSo.cpp) | `CloneSo` | SO vt41 Clone: copy XF block, model, parts, physics for a clone | 0.90 | T1 | verified |
-| [0x1F66F0](../../src/hand/CloneSoHierarchy.c) | `CloneSoHierarchy` | SO vt40: vt41 Clone then PloCloneLo each non-removed child | 0.85 | T1 | verified |
-| [0x1F6AC8](../../src/hand/ShowSoPartsById.c) | `ShowSoPartsById` | ShowSoPart for parts whose id (+0xC) == k | 0.85 | T1 | verified |
-| [0x1F7598](../../src/hand/func_001F7598.c) | `PsoInflictZap` | Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, a | 0.55 | T2 | top50; top50 round; v2 name InflictZap |
-| [0x1F77C0](../../src/hand/ExpireSwZapRecords.c) | `ExpireSwZapRecords` | Drop zap-history entries older than 0.25 s from g_sw list | 0.85 | T1 | verified |
-| [0x1F78D8](../../src/hand/GrfzpdFromSoGrfzpk.c) | `GrfzpdFromSoGrfzpk` | OR of per-kind response bytes SO+0x110[26] selected by grfzpk | 0.85 | T1 | verified |
-| [0x1F7D90](../../src/hand/SetSoFadeRate.c) | `SetSoFadeRate` | If rate != 0: Add (vt8) and set grf bit 2; store +0x130 | 0.85 | T1 | verified |
-| [0x1F8198](../../src/hand/PsaaFindSoOid.c) | `PsaaFindSoOid` | Find SAA in +0xA4 list with +0x18 == n | 0.85 | T1 | verified |
-| [0x1F82B8](../../src/hand/func_001F82B8.c) | `SetSoSideRecordParams` | Ensure object then set x and optional 8-byte key | 0.45 | T2 | verified |
-| [0x1F8470](../../src/auto/func_001F8470.c) | `SetSoPhysParam4` | record.g4 = f | 0.25 | T2 | verified |
-| [0x1F8740](../../src/auto/DecrefXfh.c) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
-| [0x1F8870](../../src/hand/func_001F8870.c) | `GetXfhParamAC2` | duplicate of 0x1F87A0 (different vtable) | 0.15 | T2 | verified |
-| [0x1F8DD8](../../src/hand/SolveSw.c) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
-| [0x1F9410](../../src/hand/SolveSwGroup.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
-| [0x1F9C48](../../src/hand/func_001F9C48.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
-| [0x1FA810](../../src/hand/ApplyConstr.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
-| [0x1FAC30](../../src/hand/AddSoAcceleration.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
-| [0x227BB8](../../src/hand/LoadVolFromBrx.c) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
-| [0x227E20](../../src/auto/func_00227E20.c) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
-| [0x227E58](../../src/auto/func_00227E58.c) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
-| [0x228D20](../../src/hand/func_00228D20.c) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
-| [0x229710](../../src/auto/func_00229710.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
-| [0x229738](../../src/hand/func_00229738.c) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
-| [0x2297F0](../../src/auto/func_002297F0.c) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |
+| [0x133C68](../../src/game/engine/physics/bbmark/PoxAddSw.c) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
+| [0x14C6A0](../../src/game/engine/physics/clip/func_0014C6A0.c) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
+| [0x14C9F8](../../src/game/engine/physics/clip/func_0014C9F8.c) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
+| [0x166270](../../src/game/engine/physics/geom/func_00166270.c) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recom | 0.85 | T1 | verified |
+| [0x1A7C18](../../src/game/engine/physics/mark/func_001A7C18.c) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *pp | 0.75 | T1 | verified |
+| [0x1A7E60](../../src/game/engine/physics/mark/func_001A7E60.c) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
+| [0x1A7FC0](../../src/game/engine/physics/mark/func_001A7FC0.c) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
+| [0x1A86B8](../../src/game/engine/physics/mark/func_001A86B8.c) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
+| [0x1A8B50](../../src/game/engine/physics/mark/func_001A8B50.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (k | 0.85 | T1 | verified |
+| [0x1BC088](../../src/game/engine/physics/tu_1BC050/func_001BC088.c) | `LoadCid14FromBrx` | CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1) | 0.75 | T2 | parse |
+| [0x1BC278](../../src/game/engine/physics/tu_1BC050/func_001BC278.c) | `SgnTurnXY` | Sign of 2D cross product of (a-b),(b-c) with epsilon | 0.45 | T2 | verified |
+| [0x1BC2F8](../../src/game/engine/physics/tu_1BC050/func_001BC2F8.c) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
+| [0x1BC688](../../src/game/engine/physics/tu_1BC050/ClsgClipEdgeToCnvo.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
+| [0x1BD218](../../src/game/engine/physics/tu_1BC050/func_001BD218.c) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
+| [0x1BD8A8](../../src/game/engine/physics/tu_1BC050/FCnvoOverlap.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
+| [0x1BDBC8](../../src/game/engine/physics/tu_1BC050/NCmpWkr__FP3WKRT0.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
+| [0x1BF398](../../src/game/engine/physics/path/CbskFromG__Ff.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
+| [0x1BF970](../../src/game/engine/physics/path/IcgvFromPcgv__FP2CGP3CGV.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
+| [0x1BFF28](../../src/game/engine/physics/path/CposFindPath.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
+| [0x1C03C0](../../src/game/engine/physics/path/LoadPathzoneFromBrx.c) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
+| [0x1C0D70](../../src/game/engine/physics/path/PpathzoneFromPos.c) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
+| [0x1C0EC0](../../src/game/engine/physics/path/LoadSwZoneBspFromBrx.c) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
+| [0x1C0F30](../../src/game/engine/physics/path/LoadZoneBspFromBrx.c) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
+| [0x1E5DF8](../../src/game/engine/physics/shape/LoadShapeFromBrx.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for c | 0.80 | T1 | parse |
+| [0x1E6648](../../src/game/engine/physics/shape/SMaxShape.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
+| [0x1E7A28](../../src/game/engine/physics/shape/SetShapeChainMode.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
+| [0x1E8008](../../src/game/engine/physics/shape/SRandomShapeRange.c) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
+| [0x1E81C0](../../src/game/engine/physics/shape/InitChain.c) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
+| [0x1E9858](../../src/game/engine/physics/shape/func_001E9858.cpp) | `PostCid106Load` | CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local basis, distance along path) | 0.35 | T2 | verified |
+| [0x1F2108](../../src/game/engine/physics/so/InitSo.c) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from  | 0.85 | T1 | verified |
+| [0x1F2718](../../src/game/engine/physics/so/func_001F2718.c) | `SetSoField148_20` | Set 4-bit field +0x148 bits 20-23 | 0.20 | T2 | verified |
+| [0x1F2768](../../src/game/engine/physics/so/SetSoIgnoreLocked__FP2SOi.cpp) | `SetSoIgnoreLocked__FP2SOi` | Set +0xD0 bit34 (fIgnoreLocked) | 0.85 | existing | verified |
+| [0x1F2798](../../src/game/engine/physics/so/PsoFindPhysRoot.c) | `PsoFindPhysRoot` | Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag +0x148 bit34; returns last visited | 0.85 | T1 | verified |
+| [0x1F2A60](../../src/game/engine/physics/so/ShowSoPart.cpp) | `ShowSoPart` | If part hidden (fl bit50): clear it and, when SO in world, AddSoPartToTree | 0.85 | T1 | verified |
+| [0x1F2B20](../../src/game/engine/physics/so/AddSoParts.c) | `AddSoParts` | AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride) | 0.85 | T1 | verified |
+| [0x1F31E0](../../src/game/engine/physics/so/LoadSoFromBrx.cpp) | `LoadSoFromBrx` | SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...), physics block (matrix, mass), options, bounds | 0.90 | T1 | parse, verified |
+| [0x1F35F8](../../src/game/engine/physics/so/AdjustSoMomint.c) | `AdjustSoMomint` | Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular) | 0.85 | T1 | verified |
+| [0x1F3C70](../../src/game/engine/physics/so/RenderSoSelf.c) | `RenderSoSelf` | SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha +0x12C | 0.85 | T1 | verified |
+| [0x1F3E00](../../src/game/engine/physics/so/OnSoRemove.c) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
+| [0x1F3EA8](../../src/game/engine/physics/so/OnSoAdd.c) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
+| [0x1F4558](../../src/game/engine/physics/so/GetSoAngularVelocity.cpp) | `GetSoAngularVelocity` | SO vt34: world angular velocity of rotation XF (kind 6), zero otherwise | 0.90 | T1 | verified |
+| [0x1F4CA0](../../src/game/engine/physics/so/func_001F4CA0.c) | `CloneXfRef` | SO vt52: re-point an XF* from base SO's XF block to the clone's (also via parent) | 0.85 | T1 | verified |
+| [0x1F4FC8](../../src/game/engine/physics/so/FIgnoreSoIntersection.c) | `FIgnoreSoIntersection` | SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed | 0.85 | T1 | verified |
+| [0x1F57C0](../../src/game/engine/physics/so/SetSoCnstrTorque.c) | `SetSoCnstrTorque` | Same for rotation XF into SOPHYS+0x90 | 0.85 | T1 | verified |
+| [0x1F5860](../../src/game/engine/physics/so/GetSoDvGravity.c) | `GetSoDvGravity` | SOPHYS+0x80 (gravity vector) or zero | 0.85 | T1 | verified |
+| [0x1F58F0](../../src/game/engine/physics/so/GetSoCpdefi.c) | `GetSoCpdefi` | SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix, sAdjust 100, grfcpd 0, tMoveLast = g_clock.t | 0.85 | T1 |  |
+| [0x1F6068](../../src/game/engine/physics/so/CloneSo.cpp) | `CloneSo` | SO vt41 Clone: copy XF block, model, parts, physics for a clone | 0.90 | T1 | verified |
+| [0x1F66F0](../../src/game/engine/physics/so/CloneSoHierarchy.c) | `CloneSoHierarchy` | SO vt40: vt41 Clone then PloCloneLo each non-removed child | 0.85 | T1 | verified |
+| [0x1F6AC8](../../src/game/engine/physics/so/ShowSoPartsById.c) | `ShowSoPartsById` | ShowSoPart for parts whose id (+0xC) == k | 0.85 | T1 | verified |
+| [0x1F7598](../../src/game/engine/physics/so/func_001F7598.c) | `PsoInflictZap` | Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, a | 0.55 | T2 | top50; top50 round; v2 name InflictZap |
+| [0x1F77C0](../../src/game/engine/physics/so/ExpireSwZapRecords.c) | `ExpireSwZapRecords` | Drop zap-history entries older than 0.25 s from g_sw list | 0.85 | T1 | verified |
+| [0x1F78D8](../../src/game/engine/physics/so/GrfzpdFromSoGrfzpk.c) | `GrfzpdFromSoGrfzpk` | OR of per-kind response bytes SO+0x110[26] selected by grfzpk | 0.85 | T1 | verified |
+| [0x1F7D90](../../src/game/engine/physics/so/SetSoFadeRate.c) | `SetSoFadeRate` | If rate != 0: Add (vt8) and set grf bit 2; store +0x130 | 0.85 | T1 | verified |
+| [0x1F8198](../../src/game/engine/physics/so/PsaaFindSoOid.c) | `PsaaFindSoOid` | Find SAA in +0xA4 list with +0x18 == n | 0.85 | T1 | verified |
+| [0x1F82B8](../../src/game/engine/physics/so/func_001F82B8.c) | `SetSoSideRecordParams` | Ensure object then set x and optional 8-byte key | 0.45 | T2 | verified |
+| [0x1F8470](../../src/game/engine/physics/so/func_001F8470.c) | `SetSoPhysParam4` | record.g4 = f | 0.25 | T2 | verified |
+| [0x1F8740](../../src/game/engine/physics/so/DecrefXfh.c) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
+| [0x1F8870](../../src/game/engine/physics/so/func_001F8870.c) | `GetXfhParamAC2` | duplicate of 0x1F87A0 (different vtable) | 0.15 | T2 | verified |
+| [0x1F8DD8](../../src/game/engine/physics/solve/SolveSw.c) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
+| [0x1F9410](../../src/game/engine/physics/solve/SolveSwGroup.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
+| [0x1F9C48](../../src/game/engine/physics/solve/func_001F9C48.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
+| [0x1FA810](../../src/game/engine/physics/solve/ApplyConstr.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
+| [0x1FAC30](../../src/game/engine/physics/solve/AddSoAcceleration.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
+| [0x227BB8](../../src/game/engine/physics/vol/LoadVolFromBrx.c) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
+| [0x227E20](../../src/game/engine/physics/vol/func_00227E20.c) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
+| [0x227E58](../../src/game/engine/physics/vol/func_00227E58.c) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
+| [0x228D20](../../src/game/engine/physics/water/func_00228D20.c) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
+| [0x229710](../../src/game/engine/physics/water/func_00229710.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
+| [0x229738](../../src/game/engine/physics/water/func_00229738.c) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
+| [0x2297F0](../../src/game/engine/physics/water/func_002297F0.c) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |
 
 Selected 70 of 389 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/physics-collision.md](../reference/functions/physics-collision.md).
 

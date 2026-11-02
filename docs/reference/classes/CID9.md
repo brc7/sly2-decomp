@@ -29,15 +29,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid9ClassDesc`](../../../src/auto/GetCid9ClassDesc.c) | `0x113AA0` |
-| 7 | Init | **override** | [`InitCid9?`](../../../src/hand/func_00185BF8.c) | `0x185BF8` |
+| 7 | Init | **override** | [`InitCid9?`](../../../src/game/engine/physics/tu_185130/func_00185BF8.c) | `0x185BF8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
-| 11 | AddHierarchy | **override** | [`AddCid9Hierarchy?`](../../../src/auto/func_00185C28.c) | `0x185C28` |
-| 12 | RemoveHierarchy | **override** | [`RemoveCid9Hierarchy?`](../../../src/auto/func_00185C60.c) | `0x185C60` |
+| 11 | AddHierarchy | **override** | [`AddCid9Hierarchy?`](../../../src/game/engine/physics/tu_185130/func_00185C28.c) | `0x185C28` |
+| 12 | RemoveHierarchy | **override** | [`RemoveCid9Hierarchy?`](../../../src/game/engine/physics/tu_185130/func_00185C60.c) | `0x185C60` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (CID8) | `LoadCid8FromBrx?` | `0x185150` |
-| 15 | PostLoad | **override** | [`PostCid9Load?`](../../../src/auto/func_00185CE0.c) | `0x185CE0` |
+| 15 | PostLoad | **override** | [`PostCid9Load?`](../../../src/game/engine/physics/tu_185130/func_00185CE0.c) | `0x185CE0` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneCid9?`](../../../src/hand/func_00185C98.c) | `0x185C98` |
+| 41 | Clone | **override** | [`CloneCid9?`](../../../src/game/engine/physics/tu_185130/func_00185C98.c) | `0x185C98` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

@@ -247,7 +247,7 @@ FPU compare/branch used to be off by one nop, recheck it: func_001E7538 matched 
 In a function that already uses inline VU asm, an extra *unused* operand on an existing asm statement (e.g. listing
 `"j"(dv)` twice) is accepted the same way register pins are. It emits no instructions and only changes the
 register-allocation heuristics. Say so in a comment on that line. Don't add new asm statements just for this.
-First example: src/hand/func_0012DA30.c.
+First example: src/game/engine/anim/act/func_0012DA30.c.
 
 ## Float vs. int parameter order is invisible in the callee (2026-10-16)
 In the EE EABI, float arguments go in $f12.. and integer/pointer arguments go in $a0.., each counted separately. So

@@ -29,8 +29,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetShuffleClassDesc`](../../../src/auto/GetShuffleClassDesc.c) | `0x1142E0` |
-| 7 | InitSaa | **override** | [`InitShuffle__FP7SHUFFLEP4SAAF`](../../../src/hand/InitShuffle__FP7SHUFFLEP4SAAF.cpp) | `0x1EDFA0` |
-| 8 | UpdateSaa | **override** | [`UpdateShuffle__FP7SHUFFLEf`](../../../src/hand/UpdateShuffle__FP7SHUFFLEf.cpp) | `0x1EDFE0` |
+| 7 | InitSaa | **override** | [`InitShuffle__FP7SHUFFLEP4SAAF`](../../../src/game/engine/graphics/pipeline/shdanim/InitShuffle__FP7SHUFFLEP4SAAF.cpp) | `0x1EDFA0` |
+| 8 | UpdateSaa | **override** | [`UpdateShuffle__FP7SHUFFLEf`](../../../src/game/engine/graphics/pipeline/shdanim/UpdateShuffle__FP7SHUFFLEf.cpp) | `0x1EDFE0` |
 | 9 | UCompleteSaa__FP3SAA | inherited (SAA) | `UCompleteSaa__FP3SAA` | `0x1EDA58` |
 | 10 | SAA_FMatches | inherited (SAA) | `SAA_FMatches?` | `0x1EDB80` |
 

@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBlipg`](../../../src/hand/NewBlipg.cpp) `0x1110D8` |
 | Descriptor getter (slot 6) | `GetBlipgClassDesc` `0x113BD0` |
 | vtable | `D_002CB5D8`, 52 entries (slots 0..51; slot 0 null), 1 new, 7 overridden |
-| vtable stored by | [`NewBlipg`](../../../src/hand/NewBlipg.cpp) (vptr +0xC), [`PblipgNew`](../../../src/hand/PblipgNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBlipg`](../../../src/hand/NewBlipg.cpp) (vptr +0xC), [`PblipgNew`](../../../src/game/engine/fx/blip/PblipgNew.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -24,24 +24,24 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | Slot | Role | Status | Implementation | Address |
 |---|---|---|---|---|
 | 1 | Incref-style hook | inherited (BASIC) | `BASIC_VUnk00?` | `0x132B00` |
-| 2 | Decref-style hook | **override** | [`DeleteBlipg?`](../../../src/hand/func_00139318.c) | `0x139318` |
+| 2 | Decref-style hook | **override** | [`DeleteBlipg?`](../../../src/game/engine/fx/blip/func_00139318.c) | `0x139318` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBlipgClassDesc`](../../../src/auto/GetBlipgClassDesc.c) | `0x113BD0` |
-| 7 | Init | **override** | [`InitBlipg__FP5BLIPG`](../../../src/hand/InitBlipg__FP5BLIPG.c) | `0x1391C8` |
+| 7 | Init | **override** | [`InitBlipg__FP5BLIPG`](../../../src/game/engine/fx/blip/InitBlipg__FP5BLIPG.c) | `0x1391C8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
-| 12 | RemoveHierarchy | **override** | [`OnBlipgRemove__FP5BLIPG`](../../../src/hand/OnBlipgRemove__FP5BLIPG.c) | `0x139250` |
+| 12 | RemoveHierarchy | **override** | [`OnBlipgRemove__FP5BLIPG`](../../../src/game/engine/fx/blip/OnBlipgRemove__FP5BLIPG.c) | `0x139250` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
-| 16 | Update | **override** | [`UpdateBlipg`](../../../src/auto/UpdateBlipg.c) | `0x1398E0` |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`ProjectBlipgTransform`](../../../src/hand/ProjectBlipgTransform.cpp) | `0x139DC0` |
+| 16 | Update | **override** | [`UpdateBlipg`](../../../src/game/engine/fx/blip/UpdateBlipg.c) | `0x1398E0` |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`ProjectBlipgTransform`](../../../src/game/engine/fx/blip/ProjectBlipgTransform.cpp) | `0x139DC0` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
-| 19 | RenderSelf | **override** | [`RenderBlipgSelf`](../../../src/hand/RenderBlipgSelf.cpp) | `0x13A1E8` |
+| 19 | RenderSelf | **override** | [`RenderBlipgSelf`](../../../src/game/engine/fx/blip/RenderBlipgSelf.cpp) | `0x13A1E8` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
 | 22 | OnRemove | inherited (LO) | `OnLoRemove` | `0x1A6150` |
@@ -73,7 +73,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |
 | 49 | XFM_PxfFromId | inherited (XFM) | `XFM_PxfFromId?` | `0x22D750` |
 | 50 |  | inherited (XFM) | `func_00231220` | `0x231220` |
-| 51 | SubscribeBlipgObject | **new** | [`SubscribeBlipgObject`](../../../src/auto/SubscribeBlipgObject.c) | `0x139900` |
+| 51 | SubscribeBlipgObject | **new** | [`SubscribeBlipgObject`](../../../src/game/engine/fx/blip/SubscribeBlipgObject.c) | `0x139900` |
 
 ## Fields
 

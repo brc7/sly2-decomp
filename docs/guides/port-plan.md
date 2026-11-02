@@ -374,7 +374,7 @@ code we choose to nativize:
 
 ### 7.3 Prerequisite decomp work (small, and mostly done)
 1. **Port-facing typed headers** (`include/port/`) for ~30 engine structs the HLE layers read: FRM, DMAS/VIFS/GIFS
-   (already typed: `src/P2/dmas.cpp`, `vifs.cpp`, `gifs.cpp`), RPL, the pass table record, GLOBSET/SUB/batch header,
+   (already typed: `src/game/engine/graphics/backend/dmas/dmas.cpp`, `vifs.cpp`, `gifs.cpp`), RPL, the pass table record, GLOBSET/SUB/batch header,
    LIGHT, BMP/CLUT records, SND/SNDMGR, JOY, CLOCK, SAVE/MEMCARD, FILEREC, CMpeg. Each gets
    `static_assert(offsetof(...))`. **Compile the same headers in the matching build** (ee-gcc) so offsets are proven
    on both compilers.

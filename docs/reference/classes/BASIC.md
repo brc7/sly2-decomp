@@ -34,7 +34,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/basic.h` (`struct BASIC`). BASIC: from src/hand/func_00167320.cpp (29 copies in Lilly ports)
+From `include/sly2/basic.h` (`struct BASIC`). BASIC: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (29 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword; vptr moved after own fields (EE GCC 2.9x rule)); 1 header asserts agree, 0 disagree. Size from header: 0x10.
 

@@ -343,7 +343,7 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x183FF0](../../src/auto/func_00183FF0.c) | `OnCid35Remove` | vt22 (shared with 0x24/0x25): Freeze + list | 0.85 | T2 | arbitration |
 | [0x1844A0](../../src/auto/func_001844A0.c) | `OnCid27Add` | vt23: Unfreeze + append to D_003E1438 | 0.85 | T2 | arbitration |
 | [0x1844D8](../../src/auto/func_001844D8.c) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
-| [0x185150](../../src/hand/func_00185150.c) | `LoadCid8FromBrx` | CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw, LoadOptionsFromBrx | 0.75 | T2 | parse, verified |
+| [0x185150](../../src/game/engine/physics/tu_185130/func_00185150.c) | `LoadCid8FromBrx` | CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw, LoadOptionsFromBrx | 0.75 | T2 | parse, verified |
 | [0x188488](../../src/hand/InitJt.c) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD | 0.90 | T1 | runtime, verified |
 | [0x1885B8](../../src/hand/LoadJtFromBrx.c) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
 | [0x188F20](../../src/hand/HandleJtMessage.c) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |

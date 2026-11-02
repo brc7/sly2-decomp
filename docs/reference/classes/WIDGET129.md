@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (WIDGET) | `LoadWidgetFromBrx?` | `0x212298` |
-| 15 | PostLoad | **override** | [`PostWidget129Load?`](../../../src/hand/func_00211EC0.c) | `0x211EC0` |
-| 16 | Update | **override** | [`UpdateWidget129?`](../../../src/hand/func_00211F90.c) | `0x211F90` |
+| 15 | PostLoad | **override** | [`PostWidget129Load?`](../../../src/game/engine/presentation/hud/func_00211EC0.c) | `0x211EC0` |
+| 16 | Update | **override** | [`UpdateWidget129?`](../../../src/game/engine/presentation/hud/func_00211F90.c) | `0x211F90` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (WIDGET) | `RenderWidget?` | `0x213300` |

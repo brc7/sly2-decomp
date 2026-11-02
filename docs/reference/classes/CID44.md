@@ -29,15 +29,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid44ClassDesc`](../../../src/auto/GetCid44ClassDesc.c) | `0x113CD0` |
-| 7 | Init | **override** | [`InitCid44?`](../../../src/auto/func_0012E600.c) | `0x12E600` |
+| 7 | Init | **override** | [`InitCid44?`](../../../src/game/engine/camera/tu_12E600/func_0012E600.c) | `0x12E600` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
-| 11 | AddHierarchy | **override** | [`AddCid44Hierarchy?`](../../../src/hand/func_0012E6A0.c) | `0x12E6A0` |
-| 12 | RemoveHierarchy | **override** | [`RemoveCid44Hierarchy?`](../../../src/hand/func_0012E6E8.c) | `0x12E6E8` |
+| 11 | AddHierarchy | **override** | [`AddCid44Hierarchy?`](../../../src/game/engine/camera/tu_12E600/func_0012E6A0.c) | `0x12E6A0` |
+| 12 | RemoveHierarchy | **override** | [`RemoveCid44Hierarchy?`](../../../src/game/engine/camera/tu_12E600/func_0012E6E8.c) | `0x12E6E8` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
-| 15 | PostLoad | **override** | [`PostCid44Load?`](../../../src/hand/func_0012E648.c) | `0x12E648` |
+| 15 | PostLoad | **override** | [`PostCid44Load?`](../../../src/game/engine/camera/tu_12E600/func_0012E648.c) | `0x12E648` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
@@ -65,9 +65,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
 | 41 | Clone | inherited (XFM) | `CloneXfm` | `0x2311B0` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
-| 43 | LO_vt43 | **override** | [`CID44_Slot43?`](../../../src/auto/func_0012E738.c) | `0x12E738` |
-| 44 | LO_vt44 | **override** | [`CID44_Slot44?`](../../../src/auto/func_0012E740.c) | `0x12E740` |
-| 45 | LO_vt45 | **override** | [`CID44_Slot45?`](../../../src/auto/func_0012E750.c) | `0x12E750` |
+| 43 | LO_vt43 | **override** | [`CID44_Slot43?`](../../../src/game/engine/camera/tu_12E600/func_0012E738.c) | `0x12E738` |
+| 44 | LO_vt44 | **override** | [`CID44_Slot44?`](../../../src/game/engine/camera/tu_12E600/func_0012E740.c) | `0x12E740` |
+| 45 | LO_vt45 | **override** | [`CID44_Slot45?`](../../../src/game/engine/camera/tu_12E600/func_0012E750.c) | `0x12E750` |
 | 46 | SetVisMask | inherited (LO) | `SetLoVisMask?` | `0x1A6DC0` |
 | 47 | SetGrf | inherited (LO) | `SetLoGrf?` | `0x1A66C8` |
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |

@@ -97,7 +97,7 @@ typedef char assert_LO_sleOid[SLY2_OFFSETOF(LO, sleOid) == 0x1C ? 1 : -1];   /* 
 typedef char assert_LO_sleCid[SLY2_OFFSETOF(LO, sleCid) == 0x20 ? 1 : -1];   /* per-class SL ibNext 0x20 (CONFIRMED runtime) */
 typedef char assert_LO_dleChild[SLY2_OFFSETOF(LO, dleChild) == 0x24 ? 1 : -1];   /* child DL ibDle 0x24 (CONFIRMED runtime) */
 
-/* PXR: from src/hand/func_00167320.cpp (26 copies in Lilly ports) */
+/* PXR: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (26 copies in Lilly ports) */
 struct PXR
 {
       int idProxy;

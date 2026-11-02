@@ -44,8 +44,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
-| 22 | OnRemove | **override** | [`OnCid23Remove?`](../../../src/auto/func_00227E58.c) | `0x227E58` |
-| 23 | OnAdd | **override** | [`OnCid23Add?`](../../../src/auto/func_00227E20.c) | `0x227E20` |
+| 22 | OnRemove | **override** | [`OnCid23Remove?`](../../../src/game/engine/physics/vol/func_00227E58.c) | `0x227E58` |
+| 23 | OnAdd | **override** | [`OnCid23Add?`](../../../src/game/engine/physics/vol/func_00227E20.c) | `0x227E20` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` |

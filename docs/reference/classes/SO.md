@@ -15,7 +15,7 @@
 | Factory (`pfnNew`) | [`NewSo`](../../../src/hand/NewSo.cpp) `0x111588` |
 | Descriptor getter (slot 6) | `GetSoClassDesc` `0x113D10` |
 | vtable | `D_002D9978`, 76 entries (slots 0..75; slot 0 null), 27 new, 36 overridden |
-| vtable stored by | [`JT_ctor?`](../../../src/auto/func_002563E8.c) (vptr +0xC), [`MURRAY_ctor?`](../../../src/auto/func_00256440.c) (vptr +0xC), [`NewAccmiss`](../../../src/hand/NewAccmiss.cpp) (vptr +0xC), [`NewBarrel`](../../../src/hand/NewBarrel.cpp) (vptr +0xC), [`NewBarrier`](../../../src/hand/NewBarrier.cpp) (vptr +0xC), [`NewBentley`](../../../src/hand/NewBentley.cpp) (vptr +0xC), [`NewBomb`](../../../src/hand/NewBomb.cpp) (vptr +0xC), [`NewBooty`](../../../src/hand/NewBooty.cpp) (vptr +0xC), [`NewButton`](../../../src/hand/NewButton.cpp) (vptr +0xC), [`NewCid100`](../../../src/hand/NewCid100.cpp) (vptr +0xC), [`NewCid101`](../../../src/hand/NewCid101.cpp) (vptr +0xC), [`NewCid102`](../../../src/hand/NewCid102.cpp) (vptr +0xC), [`NewCid104`](../../../src/hand/NewCid104.cpp) (vptr +0xC), [`NewCid105`](../../../src/hand/NewCid105.cpp) (vptr +0xC), [`NewCid106`](../../../src/hand/NewCid106.cpp) (vptr +0xC), [`NewCid108`](../../../src/hand/NewCid108.cpp) (vptr +0xC), [`NewCid82`](../../../src/hand/NewCid82.cpp) (vptr +0xC), [`NewCid96`](../../../src/hand/NewCid96.cpp) (vptr +0xC), [`NewCid98`](../../../src/hand/NewCid98.cpp) (vptr +0xC), [`NewCid99`](../../../src/hand/NewCid99.cpp) (vptr +0xC), [`NewClue`](../../../src/hand/NewClue.cpp) (vptr +0xC), [`NewCoin`](../../../src/hand/NewCoin.cpp) (vptr +0xC), [`NewDancer`](../../../src/hand/NewDancer.cpp) (vptr +0xC), [`NewHack`](../../../src/hand/NewHack.cpp) (vptr +0xC), [`NewHackbullet`](../../../src/hand/NewHackbullet.cpp) (vptr +0xC), [`NewHackenemy`](../../../src/hand/NewHackenemy.cpp) (vptr +0xC), [`NewHacklock`](../../../src/hand/NewHacklock.cpp) (vptr +0xC), [`NewHackship`](../../../src/hand/NewHackship.cpp) (vptr +0xC), [`NewHackwall`](../../../src/hand/NewHackwall.cpp) (vptr +0xC), [`NewKey`](../../../src/hand/NewKey.cpp) (vptr +0xC), [`NewLasen`](../../../src/hand/NewLasen.cpp) (vptr +0xC), [`NewLoot`](../../../src/hand/NewLoot.cpp) (vptr +0xC), [`NewMedicine`](../../../src/hand/NewMedicine.cpp) (vptr +0xC), [`NewMissile`](../../../src/hand/NewMissile.cpp) (vptr +0xC), [`NewMs`](../../../src/hand/NewMs.cpp) (vptr +0xC), [`NewPo`](../../../src/hand/NewPo.cpp) (vptr +0xC), [`NewRipg`](../../../src/hand/NewRipg.cpp) (vptr +0xC), [`NewRobottank`](../../../src/hand/NewRobottank.cpp) (vptr +0xC), [`NewSafehouse`](../../../src/hand/NewSafehouse.cpp) (vptr +0xC), [`NewSky`](../../../src/hand/NewSky.cpp) (vptr +0xC), [`NewSo`](../../../src/hand/NewSo.cpp) (vptr +0xC), [`NewStep`](../../../src/hand/NewStep.cpp) (vptr +0xC), [`NewTurret`](../../../src/hand/NewTurret.cpp) (vptr +0xC), [`NewVault`](../../../src/hand/NewVault.cpp) (vptr +0xC), [`NewWater`](../../../src/hand/NewWater.cpp) (vptr +0xC), [`NewWaypt`](../../../src/hand/NewWaypt.cpp) (vptr +0xC), [`PripgNew?`](../../../src/hand/func_001CDCD0.c) (vptr +0xC), [`STEPGUARD_ctor?`](../../../src/hand/func_00256360.c) |
+| vtable stored by | [`JT_ctor?`](../../../src/auto/func_002563E8.c) (vptr +0xC), [`MURRAY_ctor?`](../../../src/auto/func_00256440.c) (vptr +0xC), [`NewAccmiss`](../../../src/hand/NewAccmiss.cpp) (vptr +0xC), [`NewBarrel`](../../../src/hand/NewBarrel.cpp) (vptr +0xC), [`NewBarrier`](../../../src/hand/NewBarrier.cpp) (vptr +0xC), [`NewBentley`](../../../src/hand/NewBentley.cpp) (vptr +0xC), [`NewBomb`](../../../src/hand/NewBomb.cpp) (vptr +0xC), [`NewBooty`](../../../src/hand/NewBooty.cpp) (vptr +0xC), [`NewButton`](../../../src/hand/NewButton.cpp) (vptr +0xC), [`NewCid100`](../../../src/hand/NewCid100.cpp) (vptr +0xC), [`NewCid101`](../../../src/hand/NewCid101.cpp) (vptr +0xC), [`NewCid102`](../../../src/hand/NewCid102.cpp) (vptr +0xC), [`NewCid104`](../../../src/hand/NewCid104.cpp) (vptr +0xC), [`NewCid105`](../../../src/hand/NewCid105.cpp) (vptr +0xC), [`NewCid106`](../../../src/hand/NewCid106.cpp) (vptr +0xC), [`NewCid108`](../../../src/hand/NewCid108.cpp) (vptr +0xC), [`NewCid82`](../../../src/hand/NewCid82.cpp) (vptr +0xC), [`NewCid96`](../../../src/hand/NewCid96.cpp) (vptr +0xC), [`NewCid98`](../../../src/hand/NewCid98.cpp) (vptr +0xC), [`NewCid99`](../../../src/hand/NewCid99.cpp) (vptr +0xC), [`NewClue`](../../../src/hand/NewClue.cpp) (vptr +0xC), [`NewCoin`](../../../src/hand/NewCoin.cpp) (vptr +0xC), [`NewDancer`](../../../src/hand/NewDancer.cpp) (vptr +0xC), [`NewHack`](../../../src/hand/NewHack.cpp) (vptr +0xC), [`NewHackbullet`](../../../src/hand/NewHackbullet.cpp) (vptr +0xC), [`NewHackenemy`](../../../src/hand/NewHackenemy.cpp) (vptr +0xC), [`NewHacklock`](../../../src/hand/NewHacklock.cpp) (vptr +0xC), [`NewHackship`](../../../src/hand/NewHackship.cpp) (vptr +0xC), [`NewHackwall`](../../../src/hand/NewHackwall.cpp) (vptr +0xC), [`NewKey`](../../../src/hand/NewKey.cpp) (vptr +0xC), [`NewLasen`](../../../src/hand/NewLasen.cpp) (vptr +0xC), [`NewLoot`](../../../src/hand/NewLoot.cpp) (vptr +0xC), [`NewMedicine`](../../../src/hand/NewMedicine.cpp) (vptr +0xC), [`NewMissile`](../../../src/hand/NewMissile.cpp) (vptr +0xC), [`NewMs`](../../../src/hand/NewMs.cpp) (vptr +0xC), [`NewPo`](../../../src/hand/NewPo.cpp) (vptr +0xC), [`NewRipg`](../../../src/hand/NewRipg.cpp) (vptr +0xC), [`NewRobottank`](../../../src/hand/NewRobottank.cpp) (vptr +0xC), [`NewSafehouse`](../../../src/hand/NewSafehouse.cpp) (vptr +0xC), [`NewSky`](../../../src/hand/NewSky.cpp) (vptr +0xC), [`NewSo`](../../../src/hand/NewSo.cpp) (vptr +0xC), [`NewStep`](../../../src/hand/NewStep.cpp) (vptr +0xC), [`NewTurret`](../../../src/hand/NewTurret.cpp) (vptr +0xC), [`NewVault`](../../../src/hand/NewVault.cpp) (vptr +0xC), [`NewWater`](../../../src/hand/NewWater.cpp) (vptr +0xC), [`NewWaypt`](../../../src/hand/NewWaypt.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/func_001CDCD0.c) (vptr +0xC), [`STEPGUARD_ctor?`](../../../src/hand/func_00256360.c) |
 | Level instances | 8723 objects in 43 of 43 world files |
 
 ## Virtual table
@@ -30,75 +30,75 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetSoClassDesc`](../../../src/auto/GetSoClassDesc.c) | `0x113D10` | Pclassinfo |
-| 7 | Init | **override** | [`InitSo`](../../../src/hand/InitSo.c) | `0x1F2108` | Init |
+| 7 | Init | **override** | [`InitSo`](../../../src/game/engine/physics/so/InitSo.c) | `0x1F2108` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
-| 10 | SetParent | **override** | [`SetSoParent`](../../../src/hand/SetSoParent.cpp) | `0x1F21B8` | SetParent |
-| 11 | AddHierarchy | **override** | [`AddSoHierarchy`](../../../src/hand/AddSoHierarchy.c) | `0x1F2C30` | AddHierarchy |
-| 12 | RemoveHierarchy | **override** | [`RemoveSoHierarchy`](../../../src/hand/RemoveSoHierarchy.c) | `0x1F2D48` | RemoveHierarchy |
-| 13 | UpdateLoroot | **override** | [`UpdateSoLoroot`](../../../src/hand/UpdateSoLoroot.c) | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadSoFromBrx`](../../../src/hand/LoadSoFromBrx.cpp) | `0x1F31E0` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostSoLoad`](../../../src/auto/PostSoLoad.c) | `0x1F36A8` | VUnk14 |
-| 16 | Update | **override** | [`UpdateSo`](../../../src/hand/UpdateSo.c) | `0x1F36E0` | VUnk15 |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateSoXfWorld?`](../../../src/hand/func_001F3980.c) | `0x1F3980` | VUnk16 |
-| 18 | UpdateLoXfWorldHierarchy | **override** | [`UpdateSoXfWorldHierarchy`](../../../src/hand/UpdateSoXfWorldHierarchy.c) | `0x22FBE0` | UpdateXfWorldHierarchy |
-| 19 | RenderSelf | **override** | [`RenderSoSelf`](../../../src/auto/RenderSoSelf.c) | `0x1F3C70` | RenderSelf |
-| 20 | RenderLoAll | **override** | [`RenderSoAll?`](../../../src/hand/func_001F3CC8.c) | `0x1F3CC8` | VUnk19 |
-| 21 | SetLoFlag8 | **override** | [`SetSoFlag8?`](../../../src/hand/func_001F3B28.c) | `0x1F3B28` | VUnk20 |
-| 22 | OnRemove | **override** | [`OnSoRemove`](../../../src/hand/OnSoRemove.c) | `0x1F3E00` | Freeze |
-| 23 | OnAdd | **override** | [`OnSoAdd`](../../../src/hand/OnSoAdd.c) | `0x1F3EA8` | Unfreeze |
+| 10 | SetParent | **override** | [`SetSoParent`](../../../src/game/engine/physics/so/SetSoParent.cpp) | `0x1F21B8` | SetParent |
+| 11 | AddHierarchy | **override** | [`AddSoHierarchy`](../../../src/game/engine/physics/so/AddSoHierarchy.c) | `0x1F2C30` | AddHierarchy |
+| 12 | RemoveHierarchy | **override** | [`RemoveSoHierarchy`](../../../src/game/engine/physics/so/RemoveSoHierarchy.c) | `0x1F2D48` | RemoveHierarchy |
+| 13 | UpdateLoroot | **override** | [`UpdateSoLoroot`](../../../src/game/engine/physics/so/UpdateSoLoroot.c) | `0x1F2E78` | UpdateLoroot |
+| 14 | LoadFromBrx | **override** | [`LoadSoFromBrx`](../../../src/game/engine/physics/so/LoadSoFromBrx.cpp) | `0x1F31E0` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostSoLoad`](../../../src/game/engine/physics/so/PostSoLoad.c) | `0x1F36A8` | VUnk14 |
+| 16 | Update | **override** | [`UpdateSo`](../../../src/game/engine/physics/so/UpdateSo.c) | `0x1F36E0` | VUnk15 |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateSoXfWorld?`](../../../src/game/engine/physics/so/func_001F3980.c) | `0x1F3980` | VUnk16 |
+| 18 | UpdateLoXfWorldHierarchy | **override** | [`UpdateSoXfWorldHierarchy`](../../../src/game/engine/anim/xf/UpdateSoXfWorldHierarchy.c) | `0x22FBE0` | UpdateXfWorldHierarchy |
+| 19 | RenderSelf | **override** | [`RenderSoSelf`](../../../src/game/engine/physics/so/RenderSoSelf.c) | `0x1F3C70` | RenderSelf |
+| 20 | RenderLoAll | **override** | [`RenderSoAll?`](../../../src/game/engine/physics/so/func_001F3CC8.c) | `0x1F3CC8` | VUnk19 |
+| 21 | SetLoFlag8 | **override** | [`SetSoFlag8?`](../../../src/game/engine/physics/so/func_001F3B28.c) | `0x1F3B28` | VUnk20 |
+| 22 | OnRemove | **override** | [`OnSoRemove`](../../../src/game/engine/physics/so/OnSoRemove.c) | `0x1F3E00` | Freeze |
+| 23 | OnAdd | **override** | [`OnSoAdd`](../../../src/game/engine/physics/so/OnSoAdd.c) | `0x1F3EA8` | Unfreeze |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` | VUnk23 |
 | 25 | SetIdProxy | **override** | [`SetSoIdProxy`](../../../src/game/object/proxy/SetSoIdProxy.c) | `0x1CA308` | SetIdProxy |
 | 26 | ResetLoForProxy | **override** | [`ResetSoForProxy?`](../../../src/game/object/proxy/func_001CB518.c) | `0x1CB518` | VUnk25 |
 | 27 | LO_VUnk27Proxy | **override** | [`SO_VUnk27Proxy?`](../../../src/game/object/proxy/func_001CB5D0.cpp) | `0x1CB5D0` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
-| 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/hand/TranslateSoToPos.cpp) | `0x1F40A0` | TranslateToPos |
-| 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/hand/RotateSoToMat.cpp) | `0x1F42E0` | RotateToMat |
-| 31 | PmatWorld | **override** | [`SO_PmatWorld`](../../../src/auto/SO_PmatWorld.c) | `0x1F3FA0` | PmatWorld |
-| 32 | LO_PxfLocal | **override** | [`SO_PxfLocal?`](../../../src/hand/func_001F3FB0.c) | `0x1F3FB0` | PxfLocal |
-| 33 | GetVelocity | **override** | [`GetSoVelocity`](../../../src/hand/GetSoVelocity.c) | `0x1F4440` | GetVelocity |
-| 34 | GetAngularVelocity | **override** | [`GetSoAngularVelocity`](../../../src/hand/GetSoAngularVelocity.cpp) | `0x1F4558` | GetAngularVelocity |
-| 35 | SetVelocity | **override** | [`SetSoVelocity`](../../../src/hand/SetSoVelocity.c) | `0x1F4488` | SetVelocity |
-| 36 | SetAngularVelocity | **override** | [`SetSoAngularVelocity`](../../../src/hand/SetSoAngularVelocity.cpp) | `0x1F46D8` | SetAngularVelocity |
-| 37 | ApplyLoProxyHierarchy | **override** | [`ApplySoProxy?`](../../../src/hand/func_001F4010.c) | `0x1F4010` | ApplyProxy |
-| 38 | MatchLoXf | **override** | [`MatchSoXf?`](../../../src/hand/func_001F49C8.cpp) | `0x1F49C8` | VUnk37 |
-| 39 | SetLoXf | **override** | [`SetSoXf?`](../../../src/hand/func_001F4A80.cpp) | `0x1F4A80` | VUnk38 |
-| 40 | CloneHierarchy | **override** | [`CloneSoHierarchy`](../../../src/hand/CloneSoHierarchy.c) | `0x1F66F0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneSo`](../../../src/hand/CloneSo.cpp) | `0x1F6068` | Clone |
-| 42 | SetLoSBusy | **override** | [`SetSoSBusy?`](../../../src/hand/func_001F3118.cpp) | `0x1F3118` | VUnk41 |
+| 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/game/engine/physics/so/TranslateSoToPos.cpp) | `0x1F40A0` | TranslateToPos |
+| 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/game/engine/physics/so/RotateSoToMat.cpp) | `0x1F42E0` | RotateToMat |
+| 31 | PmatWorld | **override** | [`SO_PmatWorld`](../../../src/game/engine/physics/so/SO_PmatWorld.c) | `0x1F3FA0` | PmatWorld |
+| 32 | LO_PxfLocal | **override** | [`SO_PxfLocal?`](../../../src/game/engine/physics/so/func_001F3FB0.c) | `0x1F3FB0` | PxfLocal |
+| 33 | GetVelocity | **override** | [`GetSoVelocity`](../../../src/game/engine/physics/so/GetSoVelocity.c) | `0x1F4440` | GetVelocity |
+| 34 | GetAngularVelocity | **override** | [`GetSoAngularVelocity`](../../../src/game/engine/physics/so/GetSoAngularVelocity.cpp) | `0x1F4558` | GetAngularVelocity |
+| 35 | SetVelocity | **override** | [`SetSoVelocity`](../../../src/game/engine/physics/so/SetSoVelocity.c) | `0x1F4488` | SetVelocity |
+| 36 | SetAngularVelocity | **override** | [`SetSoAngularVelocity`](../../../src/game/engine/physics/so/SetSoAngularVelocity.cpp) | `0x1F46D8` | SetAngularVelocity |
+| 37 | ApplyLoProxyHierarchy | **override** | [`ApplySoProxy?`](../../../src/game/engine/physics/so/func_001F4010.c) | `0x1F4010` | ApplyProxy |
+| 38 | MatchLoXf | **override** | [`MatchSoXf?`](../../../src/game/engine/physics/so/func_001F49C8.cpp) | `0x1F49C8` | VUnk37 |
+| 39 | SetLoXf | **override** | [`SetSoXf?`](../../../src/game/engine/physics/so/func_001F4A80.cpp) | `0x1F4A80` | VUnk38 |
+| 40 | CloneHierarchy | **override** | [`CloneSoHierarchy`](../../../src/game/engine/physics/so/CloneSoHierarchy.c) | `0x1F66F0` | CloneHierarchy |
+| 41 | Clone | **override** | [`CloneSo`](../../../src/game/engine/physics/so/CloneSo.cpp) | `0x1F6068` | Clone |
+| 42 | SetLoSBusy | **override** | [`SetSoSBusy?`](../../../src/game/engine/physics/so/func_001F3118.cpp) | `0x1F3118` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
 | 45 | LO_vt45 | inherited (LO) | `LO_vt45?` | `0x1A6EF8` | VUnk44 |
 | 46 | SetVisMask | **override** | [`SetSoVisMask`](../../../src/game/object/lo/SetSoVisMask.c) | `0x1A6DC8` | SetVisMask |
-| 47 | SetGrf | **override** | [`SetSoGrf`](../../../src/hand/SetSoGrf.c) | `0x1F2FE0` | VUnk46 |
-| 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/hand/ClearSoGrf.c) | `0x1F3078` | VUnk47 |
-| 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/hand/UpdateSoTreeBounds.cpp) | `0x1F50E0` | VUnk48 |
-| 50 | GetSoCpdefi | **new** | [`GetSoCpdefi`](../../../src/hand/GetSoCpdefi.c) | `0x1F58F0` | GetCpdefi |
-| 51 | SO_PxfFromId | **new** | [`SO_PxfFromId?`](../../../src/auto/func_0022D778.c) | `0x22D778` | PxfFromIxf |
-| 52 | CloneXfRef | **new** | [`CloneXfRef?`](../../../src/hand/func_001F4CA0.c) | `0x1F4CA0` | CloneXfRef |
-| 53 | SO_PtreeNew | **new** | [`SO_PtreeNew?`](../../../src/auto/func_001F56F8.c) | `0x1F56F8` | VUnk52 |
-| 54 | SO_vt54_Nop | **new** | [`SO_vt54_Nop?`](../../../src/auto/func_001F5988.c) | `0x1F5988` | VUnk53 |
-| 55 | SO_vt55_Nop | **new** | [`SO_vt55_Nop?`](../../../src/auto/func_001F4FB0.c) | `0x1F4FB0` | AdjustNewXp |
-| 56 | SO_vt56_Nop | **new** | [`SO_vt56_Nop?`](../../../src/auto/func_001F4FB8.c) | `0x1F4FB8` | VUnk55 |
-| 57 | SO_vt57_Nop | **new** | [`SO_vt57_Nop?`](../../../src/auto/func_001F4FC0.c) | `0x1F4FC0` | VUnk56 |
-| 58 | ScheduleSoTouchEvents | **new** | [`ScheduleSoTouchEvents?`](../../../src/hand/func_001F4F10.c) | `0x1F4F10` | VUnk57 |
-| 59 | SO_vt59_Nop | **new** | [`SO_vt59_Nop?`](../../../src/auto/func_001F4FA8.c) | `0x1F4FA8` | VUnk58 |
-| 60 | SO_vt60_Nop | **new** | [`SO_vt60_Nop?`](../../../src/auto/func_001F5990.c) | `0x1F5990` | VUnk59 |
-| 61 | FIgnoreSoIntersection | **new** | [`FIgnoreSoIntersection`](../../../src/hand/FIgnoreSoIntersection.c) | `0x1F4FC8` | FIgnoreIntersection |
-| 62 | FIsSoFixed | **new** | [`FIsSoFixed?`](../../../src/auto/func_001F5040.c) | `0x1F5040` | VUnk61 |
-| 63 | SO_vt63_Ret0 | **new** | [`SO_vt63_Ret0?`](../../../src/auto/func_001F5998.c) | `0x1F5998` | CpartExtra |
-| 64 | ResetSoPhys | **new** | [`ResetSoPhys?`](../../../src/auto/func_001F3590.c) | `0x1F3590` | InitPhys |
-| 65 | ApplySoForcesXf | **new** | [`ApplySoForcesXf?`](../../../src/hand/func_001F9E70.cpp) | `0x1F9E70` | VUnk64 |
-| 66 | ProjectSoForce | **new** | [`ProjectSoForce?`](../../../src/hand/func_001FA328.c) | `0x1FA328` | VUnk65 |
-| 67 | ApplySoQueuedMotion | **new** | [`ApplySoQueuedMotion?`](../../../src/hand/func_001FA528.cpp) | `0x1FA528` | VUnk66 |
-| 68 | ApplySoContactImpulse | **new** | [`ApplySoContactImpulse?`](../../../src/hand/func_001FAD00.c) | `0x1FAD00` | VUnk67 |
-| 69 | GetSoVelocityAtPos | **new** | [`GetSoVelocityAtPos?`](../../../src/hand/func_001FADD0.c) | `0x1FADD0` | VUnk68 |
-| 70 | ApplySoPendingVelocity | **new** | [`ApplySoPendingVelocity?`](../../../src/hand/func_001F9B20.c) | `0x1F9B20` | VUnk69 |
-| 71 | AddSoExternalAccelerations | **new** | [`AddSoExternalAccelerations?`](../../../src/auto/func_002297F0.c) | `0x2297F0` | VUnk70 |
-| 72 |  | **new** | [`func_002297F8`](../../../src/hand/func_002297F8.cpp) | `0x2297F8` | VUnk71 |
-| 73 | FPosInSo | **new** | [`FPosInSo?`](../../../src/hand/func_001F72F8.c) | `0x1F72F8` | VUnk72 |
-| 74 | InflictSoContactZaps | **new** | [`InflictSoContactZaps?`](../../../src/hand/func_001F7410.c) | `0x1F7410` | ProcessSoZapContacts |
-| 75 | FZprHasField44 | **new** | [`FZprHasField44?`](../../../src/auto/func_001F7588.c) | `0x1F7588` | FTakeDamage |
+| 47 | SetGrf | **override** | [`SetSoGrf`](../../../src/game/engine/physics/so/SetSoGrf.c) | `0x1F2FE0` | VUnk46 |
+| 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/game/engine/physics/so/ClearSoGrf.c) | `0x1F3078` | VUnk47 |
+| 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/game/engine/physics/so/UpdateSoTreeBounds.cpp) | `0x1F50E0` | VUnk48 |
+| 50 | GetSoCpdefi | **new** | [`GetSoCpdefi`](../../../src/game/engine/physics/so/GetSoCpdefi.c) | `0x1F58F0` | GetCpdefi |
+| 51 | SO_PxfFromId | **new** | [`SO_PxfFromId?`](../../../src/game/engine/anim/xf/func_0022D778.c) | `0x22D778` | PxfFromIxf |
+| 52 | CloneXfRef | **new** | [`CloneXfRef?`](../../../src/game/engine/physics/so/func_001F4CA0.c) | `0x1F4CA0` | CloneXfRef |
+| 53 | SO_PtreeNew | **new** | [`SO_PtreeNew?`](../../../src/game/engine/physics/so/func_001F56F8.c) | `0x1F56F8` | VUnk52 |
+| 54 | SO_vt54_Nop | **new** | [`SO_vt54_Nop?`](../../../src/game/engine/physics/so/func_001F5988.c) | `0x1F5988` | VUnk53 |
+| 55 | SO_vt55_Nop | **new** | [`SO_vt55_Nop?`](../../../src/game/engine/physics/so/func_001F4FB0.c) | `0x1F4FB0` | AdjustNewXp |
+| 56 | SO_vt56_Nop | **new** | [`SO_vt56_Nop?`](../../../src/game/engine/physics/so/func_001F4FB8.c) | `0x1F4FB8` | VUnk55 |
+| 57 | SO_vt57_Nop | **new** | [`SO_vt57_Nop?`](../../../src/game/engine/physics/so/func_001F4FC0.c) | `0x1F4FC0` | VUnk56 |
+| 58 | ScheduleSoTouchEvents | **new** | [`ScheduleSoTouchEvents?`](../../../src/game/engine/physics/so/func_001F4F10.c) | `0x1F4F10` | VUnk57 |
+| 59 | SO_vt59_Nop | **new** | [`SO_vt59_Nop?`](../../../src/game/engine/physics/so/func_001F4FA8.c) | `0x1F4FA8` | VUnk58 |
+| 60 | SO_vt60_Nop | **new** | [`SO_vt60_Nop?`](../../../src/game/engine/physics/so/func_001F5990.c) | `0x1F5990` | VUnk59 |
+| 61 | FIgnoreSoIntersection | **new** | [`FIgnoreSoIntersection`](../../../src/game/engine/physics/so/FIgnoreSoIntersection.c) | `0x1F4FC8` | FIgnoreIntersection |
+| 62 | FIsSoFixed | **new** | [`FIsSoFixed?`](../../../src/game/engine/physics/so/func_001F5040.c) | `0x1F5040` | VUnk61 |
+| 63 | SO_vt63_Ret0 | **new** | [`SO_vt63_Ret0?`](../../../src/game/engine/physics/so/func_001F5998.c) | `0x1F5998` | CpartExtra |
+| 64 | ResetSoPhys | **new** | [`ResetSoPhys?`](../../../src/game/engine/physics/so/func_001F3590.c) | `0x1F3590` | InitPhys |
+| 65 | ApplySoForcesXf | **new** | [`ApplySoForcesXf?`](../../../src/game/engine/physics/solve/func_001F9E70.cpp) | `0x1F9E70` | VUnk64 |
+| 66 | ProjectSoForce | **new** | [`ProjectSoForce?`](../../../src/game/engine/physics/solve/func_001FA328.c) | `0x1FA328` | VUnk65 |
+| 67 | ApplySoQueuedMotion | **new** | [`ApplySoQueuedMotion?`](../../../src/game/engine/physics/solve/func_001FA528.cpp) | `0x1FA528` | VUnk66 |
+| 68 | ApplySoContactImpulse | **new** | [`ApplySoContactImpulse?`](../../../src/game/engine/physics/solve/func_001FAD00.c) | `0x1FAD00` | VUnk67 |
+| 69 | GetSoVelocityAtPos | **new** | [`GetSoVelocityAtPos?`](../../../src/game/engine/physics/solve/func_001FADD0.c) | `0x1FADD0` | VUnk68 |
+| 70 | ApplySoPendingVelocity | **new** | [`ApplySoPendingVelocity?`](../../../src/game/engine/physics/solve/func_001F9B20.c) | `0x1F9B20` | VUnk69 |
+| 71 | AddSoExternalAccelerations | **new** | [`AddSoExternalAccelerations?`](../../../src/game/engine/physics/water/func_002297F0.c) | `0x2297F0` | VUnk70 |
+| 72 |  | **new** | [`func_002297F8`](../../../src/game/engine/physics/water/func_002297F8.cpp) | `0x2297F8` | VUnk71 |
+| 73 | FPosInSo | **new** | [`FPosInSo?`](../../../src/game/engine/physics/so/func_001F72F8.c) | `0x1F72F8` | VUnk72 |
+| 74 | InflictSoContactZaps | **new** | [`InflictSoContactZaps?`](../../../src/game/engine/physics/so/func_001F7410.c) | `0x1F7410` | ProcessSoZapContacts |
+| 75 | FZprHasField44 | **new** | [`FZprHasField44?`](../../../src/game/engine/physics/so/func_001F7588.c) | `0x1F7588` | FTakeDamage |
 
 ## Fields
 

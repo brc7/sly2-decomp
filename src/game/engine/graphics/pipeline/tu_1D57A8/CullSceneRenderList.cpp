@@ -283,7 +283,7 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
-// VIFS::AddVifUnpack's copy (src/P2/vifs.cpp): the odd words one at a time, then whole quadwords.
+// VIFS::AddVifUnpack's copy (src/game/engine/graphics/backend/vifs/vifs.cpp): the odd words one at a time, then whole quadwords.
 static inline void CopyWords(uint *punDst, const uint *punSrc, int cun)
 {
     int cunOdd = cun & 3;

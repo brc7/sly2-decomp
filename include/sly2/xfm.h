@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* GEOM: from src/hand/func_00167320.cpp (10 copies in Lilly ports) */
+/* GEOM: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (10 copies in Lilly ports) */
 struct GEOM
 {
       int cpos;
@@ -17,7 +17,7 @@ struct GEOM
       EDGE *aedge;
 };
 
-/* BSPC: from src/hand/func_00167320.cpp (10 copies in Lilly ports) */
+/* BSPC: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (10 copies in Lilly ports) */
 struct BSPC
 {
       int cbsp;
@@ -101,7 +101,7 @@ struct PROXY : public XFM
 };
 typedef char assert_PROXY_size[sizeof(PROXY) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* TN: from src/hand/func_00221DD8.cpp */
+/* TN: from src/game/engine/camera/tn/func_00221DD8.cpp */
 struct TN : public XFM
 {
       LO *ploHero;

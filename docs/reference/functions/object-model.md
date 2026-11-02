@@ -76,8 +76,8 @@ Totals on this page: T1 113, T2 53.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1603B8](../../../src/hand/func_001603B8.cpp) | `LoadXfmConstraintsFromBrx` | Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from the BRX stream, links each dest to its record and switches the dest transform mode (0x2303A0(...,0xF)) | 0.75 | T1 | parse |
-| [0x1604E8](../../../src/hand/func_001604E8.cpp) | `ApplyXfmConstraint` | Applies one transform constraint: dest local position/rotation = inverse(dest parent world) x source world, re-orthonormalizes, bumps the SW stamp counter | 0.50 | T1 |  |
+| [0x1603B8](../../../src/game/engine/anim/tu_1603B8/func_001603B8.cpp) | `LoadXfmConstraintsFromBrx` | Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from the BRX stream, links each dest to its record and switches the dest transform mode (0x2303A0(...,0xF)) | 0.75 | T1 | parse |
+| [0x1604E8](../../../src/game/engine/anim/tu_1603B8/func_001604E8.cpp) | `ApplyXfmConstraint` | Applies one transform constraint: dest local position/rotation = inverse(dest parent world) x source world, re-orthonormalizes, bumps the SW stamp counter | 0.50 | T1 |  |
 
 ## lo (0x1A5270-0x1A7518)
 

@@ -94,66 +94,66 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12B3B0](../../src/hand/PacNewKind.cpp) | `PacNewKind` | Factory: new animation-curve object of kind 0..5 (six C++ curve classes) | 0.75 | T1 | parse |
-| [0x12B4F8](../../src/auto/LoadAcConstFromBrx.c) | `LoadAcConstFromBrx` | Reads a fixed-size constant record (Read) | 0.75 | T1 | parse |
-| [0x12B5E0](../../src/hand/LoadAcVecAFromBrx.c) | `LoadAcVecAFromBrx` | Reads U16 key count and VECTOR keys (with tangents) into a heap array | 0.75 | T1 | parse |
-| [0x12BA98](../../src/hand/LoadAcVecBFromBrx.c) | `LoadAcVecBFromBrx` | Second vector-keyed curve class: load | 0.75 | T1 | parse |
-| [0x12BB70](../../src/hand/func_0012BB70.c) | `AcVecB_IkeyFind` | Key segment search | 0.35 | T2 | verified |
-| [0x12BF30](../../src/hand/LoadAcFloatAFromBrx.c) | `LoadAcFloatAFromBrx` | Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors | 0.75 | T1 | parse |
-| [0x12C570](../../src/hand/LoadAcFloatBFromBrx.c) | `LoadAcFloatBFromBrx` | Second scalar curve class: load | 0.75 | T1 | parse |
-| [0x12CB98](../../src/hand/PacNewKind2.cpp) | `PacNewKind2` | Factory: new object of kind 0..2 (second curve family) | 0.75 | T1 | parse |
-| [0x12CC68](../../src/auto/LoadAcFloatConstFromBrx.c) | `LoadAcFloatConstFromBrx` | Reads one F32 | 0.75 | T1 | parse |
-| [0x12CCB8](../../src/hand/LoadAcFloatKeysFromBrx.c) | `LoadAcFloatKeysFromBrx` | U16 count + F32 keys | 0.75 | T1 | parse |
-| [0x12CF20](../../src/auto/func_0012CF20.c) | `ACT_Stub3` | 8-byte shared virtual (no-op) | 0.25 | T2 | verified |
-| [0x12D220](../../src/hand/UpdateActLookAt.c) | `UpdateActLookAt` | Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt (CalculateVectorPanTilt) | 0.85 | T1 | verified |
-| [0x12DCA0](../../src/hand/func_0012DCA0.c) | `PactNewB` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DD28](../../src/hand/func_0012DD28.c) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DDB0](../../src/hand/func_0012DDB0.c) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12E3F0](../../src/auto/func_0012E3F0.c) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
-| [0x12EB78](../../src/hand/func_0012EB78.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
-| [0x12EC50](../../src/hand/func_0012EC50.c) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
-| [0x12ED20](../../src/hand/func_0012ED20.c) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
-| [0x12EDE8](../../src/hand/func_0012EDE8.c) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
-| [0x12F248](../../src/auto/InitAseg.c) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
-| [0x12F2A8](../../src/hand/LoadAsegFromBrx.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
-| [0x12F590](../../src/hand/LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |
-| [0x130010](../../src/hand/func_00130010.c) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
-| [0x130488](../../src/hand/func_00130488.c) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
-| [0x1305B8](../../src/hand/ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
-| [0x130B18](../../src/hand/func_00130B18.c) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
-| [0x130D30](../../src/hand/func_00130D30.c) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
-| [0x131290](../../src/hand/HandleAsegaEvent.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |
-| [0x131990](../../src/auto/SetAsegaHandsOff.c) | `SetAsegaHandsOff` | Toggles the ASEGA's hands-off flag (+0x58) with Increment/DecrementSwHandsOff | 0.85 | T1 |  |
-| [0x131A20](../../src/auto/SetAsegaMasterSpeed.c) | `SetAsegaMasterSpeed` | +0x48 = g; effective speed +0x40 = speed*master*k | 0.85 | T1 |  |
-| [0x131A90](../../src/hand/func_00131A90.c) | `SetAsegaChannelWeight` | For channels of kind 7 that are live: kick blend state 9 and store g | 0.30 | T2 | verified |
-| [0x131D68](../../src/hand/GetActsegGoal.cpp) | `GetActsegGoal` | Per-frame channel time wrap (0x1317D8) and virtual update | 0.80 | T1 | verified |
-| [0x137A30](../../src/hand/EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL.cpp) | `EnsureAsegBlendDynamic` | Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables | 0.90 | T1 | verified |
-| [0x1383F0](../../src/hand/SetAsegblDominantBl.c) | `SetAsegblDominantBl` | When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping of every live ACT on the blended aseg channels | 0.85 | T1 | verified |
-| [0x1384C0](../../src/hand/func_001384C0.c) | `ReblendAsegbl` | Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc), rescale times; mirror times from a linked asegbl (+0 | 0.85 | T1 | verified |
-| [0x138970](../../src/hand/EvaluateBlendChnPosVel.c) | `EvaluateBlendChnPosVel` | Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's position/rotation at time t (MRSG-mapped) | 0.60 | T1 | verified |
-| [0x186670](../../src/hand/LoadSoIkFromBrx.c) | `LoadSoIkFromBrx` | Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930), create actuators (PactNewC); set SO flag bit 36 | 0.75 | T1 | parse |
-| [0x1EFAC0](../../src/hand/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp) | `LoadSmFromBrx` | Reads csms (U8) states {oid, oidNext}, csmt (U8) transitions {from, to (via IsmsFindSmRequired), grfsmt, grfsmtBreak, gProbability}, then builds table | 0.90 | T1 | parse, verified |
-| [0x1F00C8](../../src/hand/PostSmLoad__FP2SM.cpp) | `PostSmLoad__FP2SM` | PostLoLoad; if a pending apply record exists, find its root ALO by OID and PsmaApplySm | 0.85 | existing |  |
-| [0x1F0380](../../src/hand/func_001F0380.c) | `PsmaApplySm` | Wrapper returning the SMA (kind 4) | 0.85 | T1 |  |
-| [0x1F0438](../../src/auto/func_001F0438.c) | `IsmsFindSmRequired` | Optional lookup clamped to ≥0 (28 B) | 0.85 | T1 |  |
-| [0x1F04F8](../../src/hand/OidFromSmIsms.c) | `OidFromSmIsms` | asms[isms].oid, or -1 if out of range | 0.85 | T1 |  |
-| [0x1F0528](../../src/auto/IncrefSma.c) | `IncrefSma` | cref(+0x10)++ | 0.85 | T1 |  |
-| [0x1F0538](../../src/auto/DecrefSma.c) | `DecrefSma` | --cref; at 0: dtor, clear, unlink, free to pool D_003E1278 | 0.85 | T1 |  |
-| [0x1F0598](../../src/hand/func_001F0598.c) | `RetractSma` | If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send message 3, Decref | 0.85 | T1 |  |
-| [0x1F0660](../../src/hand/SetSmaGoal.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a trans | 0.85 | T1 |  |
-| [0x1F07C8](../../src/auto/GetSmaGoal.c) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
-| [0x1F07E8](../../src/auto/func_001F07E8.c) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
+| [0x12B3B0](../../src/game/engine/anim/act/PacNewKind.cpp) | `PacNewKind` | Factory: new animation-curve object of kind 0..5 (six C++ curve classes) | 0.75 | T1 | parse |
+| [0x12B4F8](../../src/game/engine/anim/act/LoadAcConstFromBrx.c) | `LoadAcConstFromBrx` | Reads a fixed-size constant record (Read) | 0.75 | T1 | parse |
+| [0x12B5E0](../../src/game/engine/anim/act/LoadAcVecAFromBrx.c) | `LoadAcVecAFromBrx` | Reads U16 key count and VECTOR keys (with tangents) into a heap array | 0.75 | T1 | parse |
+| [0x12BA98](../../src/game/engine/anim/act/LoadAcVecBFromBrx.c) | `LoadAcVecBFromBrx` | Second vector-keyed curve class: load | 0.75 | T1 | parse |
+| [0x12BB70](../../src/game/engine/anim/act/func_0012BB70.c) | `AcVecB_IkeyFind` | Key segment search | 0.35 | T2 | verified |
+| [0x12BF30](../../src/game/engine/anim/act/LoadAcFloatAFromBrx.c) | `LoadAcFloatAFromBrx` | Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors | 0.75 | T1 | parse |
+| [0x12C570](../../src/game/engine/anim/act/LoadAcFloatBFromBrx.c) | `LoadAcFloatBFromBrx` | Second scalar curve class: load | 0.75 | T1 | parse |
+| [0x12CB98](../../src/game/engine/anim/act/PacNewKind2.cpp) | `PacNewKind2` | Factory: new object of kind 0..2 (second curve family) | 0.75 | T1 | parse |
+| [0x12CC68](../../src/game/engine/anim/act/LoadAcFloatConstFromBrx.c) | `LoadAcFloatConstFromBrx` | Reads one F32 | 0.75 | T1 | parse |
+| [0x12CCB8](../../src/game/engine/anim/act/LoadAcFloatKeysFromBrx.c) | `LoadAcFloatKeysFromBrx` | U16 count + F32 keys | 0.75 | T1 | parse |
+| [0x12CF20](../../src/game/engine/anim/act/func_0012CF20.c) | `ACT_Stub3` | 8-byte shared virtual (no-op) | 0.25 | T2 | verified |
+| [0x12D220](../../src/game/engine/anim/act/UpdateActLookAt.c) | `UpdateActLookAt` | Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt (CalculateVectorPanTilt) | 0.85 | T1 | verified |
+| [0x12DCA0](../../src/game/engine/anim/act/func_0012DCA0.c) | `PactNewB` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DD28](../../src/game/engine/anim/act/func_0012DD28.c) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DDB0](../../src/game/engine/anim/act/func_0012DDB0.c) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12E3F0](../../src/game/engine/anim/act/func_0012E3F0.c) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
+| [0x12EB78](../../src/game/engine/sound/amb/func_0012EB78.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
+| [0x12EC50](../../src/game/engine/sound/amb/func_0012EC50.c) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
+| [0x12ED20](../../src/game/engine/sound/amb/func_0012ED20.c) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
+| [0x12EDE8](../../src/game/engine/sound/amb/func_0012EDE8.c) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
+| [0x12F248](../../src/game/engine/anim/aseg/InitAseg.c) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
+| [0x12F2A8](../../src/game/engine/anim/aseg/LoadAsegFromBrx.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
+| [0x12F590](../../src/game/engine/anim/aseg/LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |
+| [0x130010](../../src/game/engine/anim/aseg/func_00130010.c) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
+| [0x130488](../../src/game/engine/anim/aseg/func_00130488.c) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
+| [0x1305B8](../../src/game/engine/anim/aseg/ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
+| [0x130B18](../../src/game/engine/anim/asega/func_00130B18.c) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
+| [0x130D30](../../src/game/engine/anim/asega/func_00130D30.c) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
+| [0x131290](../../src/game/engine/anim/asega/HandleAsegaEvent.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |
+| [0x131990](../../src/game/engine/anim/asega/SetAsegaHandsOff.c) | `SetAsegaHandsOff` | Toggles the ASEGA's hands-off flag (+0x58) with Increment/DecrementSwHandsOff | 0.85 | T1 |  |
+| [0x131A20](../../src/game/engine/anim/asega/SetAsegaMasterSpeed.c) | `SetAsegaMasterSpeed` | +0x48 = g; effective speed +0x40 = speed*master*k | 0.85 | T1 |  |
+| [0x131A90](../../src/game/engine/anim/asega/func_00131A90.c) | `SetAsegaChannelWeight` | For channels of kind 7 that are live: kick blend state 9 and store g | 0.30 | T2 | verified |
+| [0x131D68](../../src/game/engine/anim/asega/GetActsegGoal.cpp) | `GetActsegGoal` | Per-frame channel time wrap (0x1317D8) and virtual update | 0.80 | T1 | verified |
+| [0x137A30](../../src/game/engine/anim/blend/EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL.cpp) | `EnsureAsegBlendDynamic` | Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables | 0.90 | T1 | verified |
+| [0x1383F0](../../src/game/engine/anim/blend/SetAsegblDominantBl.c) | `SetAsegblDominantBl` | When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping of every live ACT on the blended aseg channels | 0.85 | T1 | verified |
+| [0x1384C0](../../src/game/engine/anim/blend/func_001384C0.c) | `ReblendAsegbl` | Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc), rescale times; mirror times from a linked asegbl (+0 | 0.85 | T1 | verified |
+| [0x138970](../../src/game/engine/anim/blend/EvaluateBlendChnPosVel.c) | `EvaluateBlendChnPosVel` | Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's position/rotation at time t (MRSG-mapped) | 0.60 | T1 | verified |
+| [0x186670](../../src/game/engine/anim/ik/LoadSoIkFromBrx.c) | `LoadSoIkFromBrx` | Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930), create actuators (PactNewC); set SO flag bit 36 | 0.75 | T1 | parse |
+| [0x1EFAC0](../../src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp) | `LoadSmFromBrx` | Reads csms (U8) states {oid, oidNext}, csmt (U8) transitions {from, to (via IsmsFindSmRequired), grfsmt, grfsmtBreak, gProbability}, then builds table | 0.90 | T1 | parse, verified |
+| [0x1F00C8](../../src/game/engine/anim/sm/PostSmLoad__FP2SM.cpp) | `PostSmLoad__FP2SM` | PostLoLoad; if a pending apply record exists, find its root ALO by OID and PsmaApplySm | 0.85 | existing |  |
+| [0x1F0380](../../src/game/engine/anim/sm/func_001F0380.c) | `PsmaApplySm` | Wrapper returning the SMA (kind 4) | 0.85 | T1 |  |
+| [0x1F0438](../../src/game/engine/anim/sm/func_001F0438.c) | `IsmsFindSmRequired` | Optional lookup clamped to ≥0 (28 B) | 0.85 | T1 |  |
+| [0x1F04F8](../../src/game/engine/anim/sm/OidFromSmIsms.c) | `OidFromSmIsms` | asms[isms].oid, or -1 if out of range | 0.85 | T1 |  |
+| [0x1F0528](../../src/game/engine/anim/sm/IncrefSma.c) | `IncrefSma` | cref(+0x10)++ | 0.85 | T1 |  |
+| [0x1F0538](../../src/game/engine/anim/sm/DecrefSma.c) | `DecrefSma` | --cref; at 0: dtor, clear, unlink, free to pool D_003E1278 | 0.85 | T1 |  |
+| [0x1F0598](../../src/game/engine/anim/sm/func_001F0598.c) | `RetractSma` | If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send message 3, Decref | 0.85 | T1 |  |
+| [0x1F0660](../../src/game/engine/anim/sm/SetSmaGoal.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a trans | 0.85 | T1 |  |
+| [0x1F07C8](../../src/game/engine/anim/sm/GetSmaGoal.c) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
+| [0x1F07E8](../../src/game/engine/anim/sm/func_001F07E8.c) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
 | [0x20BD78](../../src/auto/func_0020BD78.c) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
 | [0x20BF80](../../src/auto/StartLeap.c) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
 | [0x20CAA8](../../src/hand/func_0020CAA8.c) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |
-| [0x21C888](../../src/hand/func_0021C888.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_0 | 0.90 | T1 | parse, verified |
-| [0x22B7D8](../../src/hand/func_0022B7D8.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
-| [0x22C570](../../src/hand/func_0022C570.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
-| [0x22D348](../../src/hand/GetXfVelocity.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
-| [0x22D7A0](../../src/hand/LoadSoXfsFromBrx.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
-| [0x22FCC8](../../src/hand/ConvertXfVec.c) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |
-| [0x230380](../../src/lib/func_00230380.c) | `FXfRoleVelocity` | role predicate {1,2,3} | 0.30 | T2 | verified |
-| [0x230598](../../src/lib/SlotUnsettle.c) | `SlotUnsettle` | Move an XF slot from an at-rest role to its moving counterpart (3->1, 6/10->7, 12->11, 19->18) via SlotSetRole | 0.70 | T1 | verified, top50; top50 round; v2 name StopXfMotion |
+| [0x21C888](../../src/game/engine/anim/tail/func_0021C888.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_0 | 0.90 | T1 | parse, verified |
+| [0x22B7D8](../../src/game/engine/anim/wr/func_0022B7D8.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
+| [0x22C570](../../src/game/engine/anim/wr/func_0022C570.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
+| [0x22D348](../../src/game/engine/anim/xf/GetXfVelocity.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
+| [0x22D7A0](../../src/game/engine/anim/xf/LoadSoXfsFromBrx.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
+| [0x22FCC8](../../src/game/engine/anim/xf/ConvertXfVec.c) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |
+| [0x230380](../../src/game/engine/anim/xf/func_00230380.c) | `FXfRoleVelocity` | role predicate {1,2,3} | 0.30 | T2 | verified |
+| [0x230598](../../src/game/engine/anim/xf/SlotUnsettle.c) | `SlotUnsettle` | Move an XF slot from an at-rest role to its moving counterpart (3->1, 6/10->7, 12->11, 19->18) via SlotSetRole | 0.70 | T1 | verified, top50; top50 round; v2 name StopXfMotion |
 
 Selected 60 of 267 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/animation.md](../reference/functions/animation.md).
 

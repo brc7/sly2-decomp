@@ -37,7 +37,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadVolFromBrx`](../../../src/hand/LoadVolFromBrx.c) | `0x227BB8` | LoadFromBrx |
+| 14 | LoadFromBrx | **override** | [`LoadVolFromBrx`](../../../src/game/engine/physics/vol/LoadVolFromBrx.c) | `0x227BB8` | LoadFromBrx |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` | VUnk14 |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` | VUnk16 |

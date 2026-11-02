@@ -76,7 +76,7 @@ struct ASEGBL : public ASEG
 };
 typedef char assert_ASEGBL_size[sizeof(ASEGBL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* SND: from src/hand/func_0014DC58.cpp (13 copies in Lilly ports) */
+/* SND: from src/game/engine/camera/cm/func_0014DC58.cpp (13 copies in Lilly ports) */
 struct SND
 {
       undefined4 unk_0x00[3];
@@ -133,7 +133,7 @@ typedef char assert_ASEGA_svtMaster[SLY2_OFFSETOF(ASEGA, svtMaster) == 0x48 ? 1 
 typedef char assert_ASEG_svtMaster[SLY2_OFFSETOF(ASEG, svtMaster) == 0x78 ? 1 : -1];   /* ApplyAseg copies it (CONFIRMED code+runtime) */
 typedef char assert_ASEG_tMax[SLY2_OFFSETOF(ASEG, tMax) == 0x74 ? 1 : -1];   /* clip 0x11D tMax 0.833 (anim_lab, CONFIRMED parse) */
 
-/* SM: from src/hand/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp */
+/* SM: from src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp */
 struct SM : public LO
 {
       int csms;

@@ -19,115 +19,115 @@ Totals on this page: EXISTING 2, T1 88, T2 49.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FAF70](../../../src/hand/func_001FAF70.c) | `NewSfx` | Allocate an SFX descriptor from SW heap: sfxid=-1, sFull=300, sStart=3000, uVol=1 | 0.70 | T1 |  |
-| [0x1FAFD0](../../../src/hand/func_001FAFD0.c) | `SND_ctor` | Base sound-instance ctor (vt 0x2D9D00, CID 0x97): vol 1, pitch-ish 1, range 300..3000 | 0.60 | T1 |  |
-| [0x1FB018](../../../src/hand/func_001FB018.c) | `PauseSnd` | Refcounted pause: ++cPause==1 -> SetSndFlags(6,2) (request pause) | 0.70 | T1 |  |
-| [0x1FB060](../../../src/hand/func_001FB060.c) | `ResumeSnd` | --cPause==0 -> SetSndFlags(6,4) (request continue) | 0.70 | T1 |  |
-| [0x1FB098](../../../src/auto/func_001FB098.c) | `StopSnd` | Request stop (flag 8) with fade time arg | 0.85 | T1 | verified |
-| [0x1FB0C0](../../../src/hand/func_001FB0C0.c) | `StartSnd` | vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused, +0x200 if positional) | 0.60 | T1 |  |
-| [0x1FB1F8](../../../src/hand/func_001FB1F8.c) | `SetSndVolume` | Clamp 0..1 (GLimitLm g_lm01) and set vol, dirty 0x10 if changed at 1/1024 resolution | 0.70 | T1 |  |
-| [0x1FB268](../../../src/auto/func_001FB268.c) | `SetSndPan` | Normalize degrees mod 360; set pan, dirty 0x20 | 0.55 | T1 |  |
-| [0x1FB2C0](../../../src/auto/func_001FB2C0.c) | `SetSndPitch` | Set pitch (+0x18), dirty 0x40 | 0.55 | T1 |  |
-| [0x1FB2F8](../../../src/hand/func_001FB2F8.c) | `SetSndSourceLo` | Attach sound to an ALO (positional), flag 0x200 | 0.85 | T1 | verified |
-| [0x1FB3F0](../../../src/hand/func_001FB3F0.c) | `SetSndSourcePos` | Set world position (positional unless zero vector), flag 0x200 | 0.55 | T1 |  |
-| [0x1FB4F0](../../../src/hand/func_001FB4F0.c) | `SetSndRange` | Set full/stop distance (stop forced > full+1) | 0.50 | T1 |  |
-| [0x1FB520](../../../src/auto/func_001FB520.c) | `SetSndDoppler` | Empty stub (jr ra) taking a float; called with the fade/doppler arg in 0x210740 | 0.20 | T2 |  |
-| [0x1FB528](../../../src/hand/func_001FB528.c) | `UpdateSndPositional` | vt16: from source ALO/pos compute distance volume and pan angle (CalculateSndVolPan); vt15 on audible<->silent transitions | 0.55 | T1 |  |
-| [0x1FB658](../../../src/hand/func_001FB658.c) | `SetSndFlags` | fl = (fl&~mask)\|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink | 0.75 | T1 |  |
-| [0x1FB6A8](../../../src/auto/func_001FB6A8.c) | `AddSndToDirtyList` | If not in SNDMGR pending DL, append and Incref | 0.60 | T1 |  |
-| [0x1FB710](../../../src/hand/func_001FB710.c) | `RemoveSndFromDirtyList` | If in pending DL, remove and Decref (vt2) | 0.60 | T1 |  |
-| [0x1FB778](../../../src/hand/func_001FB778.c) | `CalculateSndVolPan` | Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees | 0.85 | T1 | verified |
-| [0x1FB8E0](../../../src/hand/func_001FB8E0.cpp) | `UpdateSnd` | Per-frame flush of a dirty sound: positional update; start(vt9)/stop(vt10)/status(vt14)/params(vt13)/pause(vt11)/continue(vt12) by flag bits | 0.70 | T1 |  |
-| [0x1FBAF8](../../../src/hand/func_001FBAF8.c) | `OnBanksndPlayStarted` | 989snd async callback: store voice handle (+0x40), clear busy (+0x52), Decref | 0.45 | T2 |  |
-| [0x1FBB30](../../../src/hand/func_001FBB30.c) | `OnBanksndStatus` | IsStillPlaying callback: not playing -> StopSnd; else re-arm status query (0x400); Decref | 0.45 | T2 |  |
-| [0x1FBB90](../../../src/auto/func_001FBB90.c) | `PsndStartSound` | Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd | 0.60 | T1 |  |
-| [0x1FBBC8](../../../src/auto/func_001FBBC8.c) | `BANKSND_ctor` | BANKSND ctor: SND ctor, set start flag (vt D_002D9C70 store dropped by m2c) | 0.50 | T1 |  |
-| [0x1FBC20](../../../src/auto/func_001FBC20.c) | `GetBanksndKind` | vt8: kind of this sfx from SNDMGR table (2 = looping) or -1 | 0.50 | T1 |  |
-| [0x1FBC58](../../../src/hand/func_001FBC58.c) | `PlayBanksnd` | vt9: build 989 play params (bank, sound index, vol/pan/pitch); loopers play async with handle callback, one-shots fire-and-forget; per-sfx special cases | 0.60 | T1 |  |
-| [0x1FBE80](../../../src/hand/func_001FBE80.c) | `StopBanksnd` | vt10: fade-out via snd_AutoVol(h,-4,dt*240,2) if dt>0 else snd_StopSound(h) | 0.60 | T1 |  |
-| [0x1FBEE0](../../../src/auto/func_001FBEE0.c) | `PauseBanksnd` | vt11: snd_PauseSound(handle) | 0.65 | T1 |  |
-| [0x1FBF00](../../../src/auto/func_001FBF00.c) | `ContinueBanksnd` | vt12: snd_ContinueSound(handle) | 0.65 | T1 |  |
-| [0x1FBF20](../../../src/hand/func_001FBF20.c) | `ApplyBanksndParams` | vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40 | 0.55 | T1 |  |
-| [0x1FBFB0](../../../src/hand/func_001FBFB0.c) | `BANKSND_QueryStatus` | vt14: if 0x400 pending, Incref and ask IOP IsStillPlaying with callback OnBanksndStatus | 0.50 | T1 |  |
-| [0x1FC018](../../../src/hand/func_001FC018.c) | `SetBanksndCulled` | vt15: on becoming audible restart (vt7); on silence request stop (loopers keep params) | 0.40 | T2 |  |
-| [0x1FC090](../../../src/auto/func_001FC090.c) | `IncrefBanksnd` | vt1: ++cref (u16 +0x4C) | 0.70 | T1 |  |
-| [0x1FC0A0](../../../src/hand/func_001FC0A0.c) | `DecrefBanksnd` | vt2: --cref==0 -> dtor 0x258348 + free to pool | 0.70 | T1 |  |
-| [0x1FC0F0](../../../src/auto/func_001FC0F0.c) | `PvAllocBanksnd` | Allocate from SNDMGR 0x70-byte pool (+0x1C) | 0.55 | T1 |  |
-| [0x1FC110](../../../src/auto/func_001FC110.c) | `FreeBanksnd` | Free to SNDMGR 0x70-byte pool | 0.55 | T1 |  |
-| [0x1FC138](../../../src/hand/func_001FC138.cpp) | `PstreamsndNew` | new STREAMSND(SNDSTREAM*, kind) (0x3C0 bytes) or NULL | 0.55 | T1 |  |
-| [0x1FC190](../../../src/hand/func_001FC190.c) | `STREAMSND_ctor` | STREAMSND ctor: SND ctor, vt D_002D9BE0, stream record + kind, 6 group volumes=1; auto-pause if its channel volume is 0 or SNDMGR paused | 0.55 | T1 |  |
-| [0x1FC270](../../../src/hand/func_001FC270.c) | `StartStreamsnd` | vt7: base Start then reset play time and status mask 0xF | 0.50 | T1 |  |
-| [0x1FC2E0](../../../src/hand/func_001FC2E0.c) | `SetStreamsndGroupVolume` | Set volume of sub-group k<6 (clamped), dirty 0x80 | 0.50 | T1 |  |
-| [0x1FC380](../../../src/hand/func_001FC380.c) | `SetStreamsndGroupPan` | Set pan of sub-group k<6, dirty 0x100 | 0.45 | T2 |  |
-| [0x1FC408](../../../src/hand/func_001FC408.c) | `AddStreamsndGroupSource` | Append (object, volume, range) to sub-group k (max 8 per group); positional flag 0x200 | 0.45 | T2 |  |
-| [0x1FC4F8](../../../src/hand/func_001FC4F8.c) | `GetStreamsndKind` | vt8: 2 if looping flag 4 else 1 | 0.45 | T2 | verified |
-| [0x1FC510](../../../src/hand/func_001FC510.c) | `PlayStreamsnd` | vt9: resolve stream file key, send start to SUKR IOP module with vol/pan | 0.85 | T1 | verified |
-| [0x1FC698](../../../src/auto/func_001FC698.c) | `StopStreamsnd` | vt10: RPC 'SUKR'(0x524B5553) cmd 2 for stream id | 0.40 | T2 |  |
-| [0x1FC6D0](../../../src/auto/func_001FC6D0.c) | `PauseStreamsnd` | vt11: SUKR cmd 3 | 0.40 | T2 |  |
-| [0x1FC708](../../../src/auto/func_001FC708.c) | `ContinueStreamsnd` | vt12: SUKR cmd 4 | 0.40 | T2 |  |
-| [0x1FC740](../../../src/hand/func_001FC740.c) | `ApplyStreamsndParams` | vt13: SUKR cmd 5 vol/pan/pitch, then per-group params | 0.50 | T1 |  |
-| [0x1FC878](../../../src/hand/func_001FC878.c) | `STREAMSND_QueryStatus` | vt14: async SUKR cmd 7/8 status queries with callbacks 0x1FCC30/0x1FBB30; accumulate paused time | 0.45 | T2 |  |
-| [0x1FC9A8](../../../src/auto/func_001FC9A8.c) | `SetStreamsndCulled` | vt15: no-op (streams are not culled) | 0.40 | T2 |  |
-| [0x1FC9B0](../../../src/hand/func_001FC9B0.c) | `UpdateStreamsndPositional` | vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan | 0.85 | T1 | verified |
-| [0x1FCBA8](../../../src/hand/func_001FCBA8.c) | `OnStreamsndStarted` | SUKR start callback: store stream handle or stop on failure; Decref | 0.40 | T2 |  |
-| [0x1FCC30](../../../src/hand/func_001FCC30.c) | `OnStreamsndStatus` | SUKR status callback (cmd 7) | 0.85 | T1 | verified |
-| [0x1FCC90](../../../src/auto/func_001FCC90.c) | `IncrefStreamsnd` | vt1: ++cref (u16 +0x4C) | 0.70 | T1 |  |
-| [0x1FCCA0](../../../src/hand/func_001FCCA0.c) | `DecrefStreamsnd` | vt2: --cref==0 -> dtor + free to 0x3C0 pool | 0.70 | T1 |  |
-| [0x1FCCF0](../../../src/auto/func_001FCCF0.c) | `PvAllocStreamsnd` | Allocate from SNDMGR 0x3C0 pool (+0x34) | 0.85 | T1 | verified |
-| [0x1FCD10](../../../src/auto/func_001FCD10.c) | `FreeStreamsnd` | Free to SNDMGR 0x3C0 pool | 0.50 | T1 |  |
-| [0x1FCD38](../../../src/hand/func_001FCD38.c) | `SNDMGR_ctor` | Sound-manager ctor (global g_sndmgr D_003DD040): pools 0x70x128 and 0x3C0x16, pending DL, music stack, volume curve fit | 0.60 | T1 |  |
-| [0x1FCEA0](../../../src/hand/func_001FCEA0.c) | `StartupSound` | snd_StartSoundSystem, SUKR init (cmd 0), all channel/category volumes = 1, record start clock | 0.70 | T1 |  |
-| [0x1FCF70](../../../src/hand/func_001FCF70.c) | `OnSndmgrQueryB` | Async callback: store result (+b), clear busy | 0.30 | T2 |  |
-| [0x1FCF88](../../../src/hand/func_001FCF88.c) | `OnSndmgrQueryC` | Async callback for SUKR cmd 0xC (0x1FDBA8) | 0.30 | T2 |  |
-| [0x1FCFA0](../../../src/hand/func_001FCFA0.c) | `PsndstreamFindDialog` | Find SNDSTREAM by id in one stream list | 0.40 | T2 |  |
-| [0x1FCFD0](../../../src/auto/func_001FCFD0.c) | `GDialogStreamParam` | Float field +0x50 of a stream record found by id, else 0 | 0.30 | T2 |  |
-| [0x1FCFF8](../../../src/hand/func_001FCFF8.c) | `PsndstreamFindMusic` | Find SNDSTREAM by id (music list) | 0.40 | T2 |  |
-| [0x1FD028](../../../src/hand/func_001FD028.c) | `PsndFromSfxid` | sfxid -> SNDMGR sound entry via aisnd index table (NULL if unmapped) | 0.50 | T1 |  |
-| [0x1FD070](../../../src/auto/func_001FD070.c) | `IsndFromPsnd` | Index of a sound entry (ptr - base)/4 | 0.50 | T1 |  |
-| [0x1FD080](../../../src/hand/func_001FD080.c) | `ChannelFromPsndstream` | 1 if record is in list A, 0 if it is the ambience record, else 2: picks volume channel | 0.30 | T2 |  |
-| [0x1FD0C0](../../../src/hand/func_001FD0C0.c) | `OidDialogSmRole` | Table D_002C3C40[n] for n<6 (else -1): SM oid for dialog speaker role n | 0.30 | T2 | verified |
-| [0x1FD0E8](../../../src/hand/func_001FD0E8.cpp) | `LoadSoundSectionFromBrx` | Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose file records | 0.90 | T1 | verified, format-doc |
-| [0x1FD5E8](../../../src/hand/func_001FD5E8.c) | `PostSoundLoad` | Load bank if needed, snd_ResolveBankXREFS, mark looping sounds (kind 2) via snd_IsSoundALooper | 0.50 | T1 |  |
-| [0x1FD700](../../../src/hand/func_001FD700.c) | `ResetSndmgr` | Stop all sounds/streams (989 cmd 0x18, SUKR cmd 10), flush, clear state, free dirty list, reset volumes | 0.55 | T1 |  |
-| [0x1FD830](../../../src/hand/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 989 commands | 0.75 | T1 |  |
-| [0x1FDA48](../../../src/hand/func_001FDA48.c) | `UpdateSndmgrListener` | Poll SUKR cmd 0xB; when player (STEPPLAYER 0x34) exists and +0x70>0.5, track a listener object | 0.30 | T2 |  |
-| [0x1FDBA8](../../../src/hand/func_001FDBA8.c) | `PollSndmgrStatus` | Issue SUKR cmd 0xC once (busy flag) with callback | 0.30 | T2 |  |
-| [0x1FDC08](../../../src/hand/func_001FDC08.cpp) | `UpdateSndmgrMusicMix` | Pick music layer (0 calm/1/2 action) from player state and smooth 3 group weights into the music STREAMSND | 0.45 | T2 |  |
-| [0x1FDEC0](../../../src/auto/func_001FDEC0.c) | `UpdateSndmgrStub` | Empty per-frame hook (jr ra) | 0.20 | T2 |  |
-| [0x1FDEC8](../../../src/hand/func_001FDEC8.c) | `UpdateDialog` | Advance current dialog: by elapsed stream time fire lip-sync/anim events (0x1FE0E8); end -> StopDialog | 0.45 | T2 |  |
-| [0x1FE0E8](../../../src/hand/func_001FE0E8.c) | `ApplyDialogEvent` | Event k: role 3 -> 0x1F80D0(gesture,g); else SetSmaGoal(role SM, state) | 0.45 | T2 |  |
-| [0x1FE150](../../../src/hand/func_001FE150.cpp) | `PushMusic` | Start music id: stop current top, reuse or create STREAMSND kind 4 with player-object sources, push on 8-deep music stack | 0.50 | T1 |  |
-| [0x1FE310](../../../src/hand/func_001FE310.cpp) | `StopMusic` | Stop music id if playing (0x1FE478 lookup), StopSnd | 0.40 | T2 |  |
-| [0x1FE3F8](../../../src/hand/func_001FE3F8.c) | `TMusicCur` | Play time of top music stream in seconds (ticks/294912000) | 0.50 | T1 |  |
-| [0x1FE478](../../../src/hand/func_001FE478.cpp) | `FindMusic` | Ref to a music STREAMSND on the stack matching id | 0.40 | T2 |  |
-| [0x1FE5B8](../../../src/hand/func_001FE5B8.c) | `SetSndmgrFlag` | Set/clear bits in SNDMGR flags | 0.40 | T2 |  |
-| [0x1FE5E0](../../../src/auto/func_001FE5E0.c) | `FSndmgrMuted` | +0x68 == 3 | 0.30 | T2 |  |
-| [0x1FE5F0](../../../src/hand/func_001FE5F0.cpp) | `StartDialog` | Stop current dialog, create dialog STREAMSND kind 0, notify subtitles (0x227728), bind the speaker object SMs for 6 lip-sync roles | 0.55 | T1 |  |
-| [0x1FE738](../../../src/hand/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
-| [0x1FE848](../../../src/hand/func_001FE848.c) | `FDialogPlaying` | True if dialog (optionally of given id) is playing | 0.45 | T2 |  |
-| [0x1FE888](../../../src/hand/func_001FE888.c) | `TDialogCur` | Current dialog play time (or cached time while starting) | 0.40 | T2 |  |
-| [0x1FE990](../../../src/hand/func_001FE990.c) | `IambFind` | Index of id in a small int table (-1) | 0.30 | T2 |  |
-| [0x1FE9C8](../../../src/auto/func_001FE9C8.c) | `SetSndmgrPlaybackMode` | snd_SetPlaybackMode(mode) if changed (mono/stereo option) | 0.50 | T1 |  |
-| [0x1FE9F8](../../../src/hand/func_001FE9F8.c) | `SetSndmgrMasterVolume` | Clamp and send master volume (snd_SetMasterVolume(0x10,..)) | 0.50 | T1 |  |
-| [0x1FEA60](../../../src/hand/func_001FEA60.cpp) | `SetSndmgrChannelVolume` | Set weight[category<8][channel<4], recompute channel output and send snd_SetMasterVolume; update live streams | 0.50 | T1 |  |
-| [0x1FEDF0](../../../src/hand/func_001FEDF0.c) | `ResetSndmgrVolumes` | Master=1 and all weights=1 (except category 1) | 0.50 | T1 |  |
-| [0x1FEE90](../../../src/auto/func_001FEE90.c) | `IncrementSndmgrCount5C` | ++SNDMGR+0x5C | 0.25 | T2 |  |
-| [0x1FEEA0](../../../src/auto/func_001FEEA0.c) | `DecrementSndmgrCount5C` | --SNDMGR+0x5C | 0.25 | T2 |  |
-| [0x1FEEB0](../../../src/auto/func_001FEEB0.c) | `IncrementSndmgrCount60` | ++SNDMGR+0x60 | 0.25 | T2 |  |
-| [0x1FEEC0](../../../src/auto/func_001FEEC0.c) | `DecrementSndmgrCount60` | --SNDMGR+0x60 | 0.25 | T2 |  |
-| [0x1FEED0](../../../src/hand/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
-| [0x1FF108](../../../src/hand/func_001FF108.c) | `SetAmbienceGroup` | Splice: set volume/pan of ambience sub-group selected by id | 0.40 | T2 |  |
+| [0x1FAF70](../../../src/game/engine/sound/sound/func_001FAF70.c) | `NewSfx` | Allocate an SFX descriptor from SW heap: sfxid=-1, sFull=300, sStart=3000, uVol=1 | 0.70 | T1 |  |
+| [0x1FAFD0](../../../src/game/engine/sound/sound/func_001FAFD0.c) | `SND_ctor` | Base sound-instance ctor (vt 0x2D9D00, CID 0x97): vol 1, pitch-ish 1, range 300..3000 | 0.60 | T1 |  |
+| [0x1FB018](../../../src/game/engine/sound/sound/func_001FB018.c) | `PauseSnd` | Refcounted pause: ++cPause==1 -> SetSndFlags(6,2) (request pause) | 0.70 | T1 |  |
+| [0x1FB060](../../../src/game/engine/sound/sound/func_001FB060.c) | `ResumeSnd` | --cPause==0 -> SetSndFlags(6,4) (request continue) | 0.70 | T1 |  |
+| [0x1FB098](../../../src/game/engine/sound/sound/func_001FB098.c) | `StopSnd` | Request stop (flag 8) with fade time arg | 0.85 | T1 | verified |
+| [0x1FB0C0](../../../src/game/engine/sound/sound/func_001FB0C0.c) | `StartSnd` | vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused, +0x200 if positional) | 0.60 | T1 |  |
+| [0x1FB1F8](../../../src/game/engine/sound/sound/func_001FB1F8.c) | `SetSndVolume` | Clamp 0..1 (GLimitLm g_lm01) and set vol, dirty 0x10 if changed at 1/1024 resolution | 0.70 | T1 |  |
+| [0x1FB268](../../../src/game/engine/sound/sound/func_001FB268.c) | `SetSndPan` | Normalize degrees mod 360; set pan, dirty 0x20 | 0.55 | T1 |  |
+| [0x1FB2C0](../../../src/game/engine/sound/sound/func_001FB2C0.c) | `SetSndPitch` | Set pitch (+0x18), dirty 0x40 | 0.55 | T1 |  |
+| [0x1FB2F8](../../../src/game/engine/sound/sound/func_001FB2F8.c) | `SetSndSourceLo` | Attach sound to an ALO (positional), flag 0x200 | 0.85 | T1 | verified |
+| [0x1FB3F0](../../../src/game/engine/sound/sound/func_001FB3F0.c) | `SetSndSourcePos` | Set world position (positional unless zero vector), flag 0x200 | 0.55 | T1 |  |
+| [0x1FB4F0](../../../src/game/engine/sound/sound/func_001FB4F0.c) | `SetSndRange` | Set full/stop distance (stop forced > full+1) | 0.50 | T1 |  |
+| [0x1FB520](../../../src/game/engine/sound/sound/func_001FB520.c) | `SetSndDoppler` | Empty stub (jr ra) taking a float; called with the fade/doppler arg in 0x210740 | 0.20 | T2 |  |
+| [0x1FB528](../../../src/game/engine/sound/sound/func_001FB528.c) | `UpdateSndPositional` | vt16: from source ALO/pos compute distance volume and pan angle (CalculateSndVolPan); vt15 on audible<->silent transitions | 0.55 | T1 |  |
+| [0x1FB658](../../../src/game/engine/sound/sound/func_001FB658.c) | `SetSndFlags` | fl = (fl&~mask)\|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink | 0.75 | T1 |  |
+| [0x1FB6A8](../../../src/game/engine/sound/sound/func_001FB6A8.c) | `AddSndToDirtyList` | If not in SNDMGR pending DL, append and Incref | 0.60 | T1 |  |
+| [0x1FB710](../../../src/game/engine/sound/sound/func_001FB710.c) | `RemoveSndFromDirtyList` | If in pending DL, remove and Decref (vt2) | 0.60 | T1 |  |
+| [0x1FB778](../../../src/game/engine/sound/sound/func_001FB778.c) | `CalculateSndVolPan` | Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees | 0.85 | T1 | verified |
+| [0x1FB8E0](../../../src/game/engine/sound/sound/func_001FB8E0.cpp) | `UpdateSnd` | Per-frame flush of a dirty sound: positional update; start(vt9)/stop(vt10)/status(vt14)/params(vt13)/pause(vt11)/continue(vt12) by flag bits | 0.70 | T1 |  |
+| [0x1FBAF8](../../../src/game/engine/sound/sound/func_001FBAF8.c) | `OnBanksndPlayStarted` | 989snd async callback: store voice handle (+0x40), clear busy (+0x52), Decref | 0.45 | T2 |  |
+| [0x1FBB30](../../../src/game/engine/sound/sound/func_001FBB30.c) | `OnBanksndStatus` | IsStillPlaying callback: not playing -> StopSnd; else re-arm status query (0x400); Decref | 0.45 | T2 |  |
+| [0x1FBB90](../../../src/game/engine/sound/sound/func_001FBB90.c) | `PsndStartSound` | Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd | 0.60 | T1 |  |
+| [0x1FBBC8](../../../src/game/engine/sound/sound/func_001FBBC8.c) | `BANKSND_ctor` | BANKSND ctor: SND ctor, set start flag (vt D_002D9C70 store dropped by m2c) | 0.50 | T1 |  |
+| [0x1FBC20](../../../src/game/engine/sound/sound/func_001FBC20.c) | `GetBanksndKind` | vt8: kind of this sfx from SNDMGR table (2 = looping) or -1 | 0.50 | T1 |  |
+| [0x1FBC58](../../../src/game/engine/sound/sound/func_001FBC58.c) | `PlayBanksnd` | vt9: build 989 play params (bank, sound index, vol/pan/pitch); loopers play async with handle callback, one-shots fire-and-forget; per-sfx special cases | 0.60 | T1 |  |
+| [0x1FBE80](../../../src/game/engine/sound/sound/func_001FBE80.c) | `StopBanksnd` | vt10: fade-out via snd_AutoVol(h,-4,dt*240,2) if dt>0 else snd_StopSound(h) | 0.60 | T1 |  |
+| [0x1FBEE0](../../../src/game/engine/sound/sound/func_001FBEE0.c) | `PauseBanksnd` | vt11: snd_PauseSound(handle) | 0.65 | T1 |  |
+| [0x1FBF00](../../../src/game/engine/sound/sound/func_001FBF00.c) | `ContinueBanksnd` | vt12: snd_ContinueSound(handle) | 0.65 | T1 |  |
+| [0x1FBF20](../../../src/game/engine/sound/sound/func_001FBF20.c) | `ApplyBanksndParams` | vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40 | 0.55 | T1 |  |
+| [0x1FBFB0](../../../src/game/engine/sound/sound/func_001FBFB0.c) | `BANKSND_QueryStatus` | vt14: if 0x400 pending, Incref and ask IOP IsStillPlaying with callback OnBanksndStatus | 0.50 | T1 |  |
+| [0x1FC018](../../../src/game/engine/sound/sound/func_001FC018.c) | `SetBanksndCulled` | vt15: on becoming audible restart (vt7); on silence request stop (loopers keep params) | 0.40 | T2 |  |
+| [0x1FC090](../../../src/game/engine/sound/sound/func_001FC090.c) | `IncrefBanksnd` | vt1: ++cref (u16 +0x4C) | 0.70 | T1 |  |
+| [0x1FC0A0](../../../src/game/engine/sound/sound/func_001FC0A0.c) | `DecrefBanksnd` | vt2: --cref==0 -> dtor 0x258348 + free to pool | 0.70 | T1 |  |
+| [0x1FC0F0](../../../src/game/engine/sound/sound/func_001FC0F0.c) | `PvAllocBanksnd` | Allocate from SNDMGR 0x70-byte pool (+0x1C) | 0.55 | T1 |  |
+| [0x1FC110](../../../src/game/engine/sound/sound/func_001FC110.c) | `FreeBanksnd` | Free to SNDMGR 0x70-byte pool | 0.55 | T1 |  |
+| [0x1FC138](../../../src/game/engine/sound/sound/func_001FC138.cpp) | `PstreamsndNew` | new STREAMSND(SNDSTREAM*, kind) (0x3C0 bytes) or NULL | 0.55 | T1 |  |
+| [0x1FC190](../../../src/game/engine/sound/sound/func_001FC190.c) | `STREAMSND_ctor` | STREAMSND ctor: SND ctor, vt D_002D9BE0, stream record + kind, 6 group volumes=1; auto-pause if its channel volume is 0 or SNDMGR paused | 0.55 | T1 |  |
+| [0x1FC270](../../../src/game/engine/sound/sound/func_001FC270.c) | `StartStreamsnd` | vt7: base Start then reset play time and status mask 0xF | 0.50 | T1 |  |
+| [0x1FC2E0](../../../src/game/engine/sound/sound/func_001FC2E0.c) | `SetStreamsndGroupVolume` | Set volume of sub-group k<6 (clamped), dirty 0x80 | 0.50 | T1 |  |
+| [0x1FC380](../../../src/game/engine/sound/sound/func_001FC380.c) | `SetStreamsndGroupPan` | Set pan of sub-group k<6, dirty 0x100 | 0.45 | T2 |  |
+| [0x1FC408](../../../src/game/engine/sound/sound/func_001FC408.c) | `AddStreamsndGroupSource` | Append (object, volume, range) to sub-group k (max 8 per group); positional flag 0x200 | 0.45 | T2 |  |
+| [0x1FC4F8](../../../src/game/engine/sound/sound/func_001FC4F8.c) | `GetStreamsndKind` | vt8: 2 if looping flag 4 else 1 | 0.45 | T2 | verified |
+| [0x1FC510](../../../src/game/engine/sound/sound/func_001FC510.c) | `PlayStreamsnd` | vt9: resolve stream file key, send start to SUKR IOP module with vol/pan | 0.85 | T1 | verified |
+| [0x1FC698](../../../src/game/engine/sound/sound/func_001FC698.c) | `StopStreamsnd` | vt10: RPC 'SUKR'(0x524B5553) cmd 2 for stream id | 0.40 | T2 |  |
+| [0x1FC6D0](../../../src/game/engine/sound/sound/func_001FC6D0.c) | `PauseStreamsnd` | vt11: SUKR cmd 3 | 0.40 | T2 |  |
+| [0x1FC708](../../../src/game/engine/sound/sound/func_001FC708.c) | `ContinueStreamsnd` | vt12: SUKR cmd 4 | 0.40 | T2 |  |
+| [0x1FC740](../../../src/game/engine/sound/sound/func_001FC740.c) | `ApplyStreamsndParams` | vt13: SUKR cmd 5 vol/pan/pitch, then per-group params | 0.50 | T1 |  |
+| [0x1FC878](../../../src/game/engine/sound/sound/func_001FC878.c) | `STREAMSND_QueryStatus` | vt14: async SUKR cmd 7/8 status queries with callbacks 0x1FCC30/0x1FBB30; accumulate paused time | 0.45 | T2 |  |
+| [0x1FC9A8](../../../src/game/engine/sound/sound/func_001FC9A8.c) | `SetStreamsndCulled` | vt15: no-op (streams are not culled) | 0.40 | T2 |  |
+| [0x1FC9B0](../../../src/game/engine/sound/sound/func_001FC9B0.c) | `UpdateStreamsndPositional` | vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan | 0.85 | T1 | verified |
+| [0x1FCBA8](../../../src/game/engine/sound/sound/func_001FCBA8.c) | `OnStreamsndStarted` | SUKR start callback: store stream handle or stop on failure; Decref | 0.40 | T2 |  |
+| [0x1FCC30](../../../src/game/engine/sound/sound/func_001FCC30.c) | `OnStreamsndStatus` | SUKR status callback (cmd 7) | 0.85 | T1 | verified |
+| [0x1FCC90](../../../src/game/engine/sound/sound/func_001FCC90.c) | `IncrefStreamsnd` | vt1: ++cref (u16 +0x4C) | 0.70 | T1 |  |
+| [0x1FCCA0](../../../src/game/engine/sound/sound/func_001FCCA0.c) | `DecrefStreamsnd` | vt2: --cref==0 -> dtor + free to 0x3C0 pool | 0.70 | T1 |  |
+| [0x1FCCF0](../../../src/game/engine/sound/sound/func_001FCCF0.c) | `PvAllocStreamsnd` | Allocate from SNDMGR 0x3C0 pool (+0x34) | 0.85 | T1 | verified |
+| [0x1FCD10](../../../src/game/engine/sound/sound/func_001FCD10.c) | `FreeStreamsnd` | Free to SNDMGR 0x3C0 pool | 0.50 | T1 |  |
+| [0x1FCD38](../../../src/game/engine/sound/sound/func_001FCD38.c) | `SNDMGR_ctor` | Sound-manager ctor (global g_sndmgr D_003DD040): pools 0x70x128 and 0x3C0x16, pending DL, music stack, volume curve fit | 0.60 | T1 |  |
+| [0x1FCEA0](../../../src/game/engine/sound/sound/func_001FCEA0.c) | `StartupSound` | snd_StartSoundSystem, SUKR init (cmd 0), all channel/category volumes = 1, record start clock | 0.70 | T1 |  |
+| [0x1FCF70](../../../src/game/engine/sound/sound/func_001FCF70.c) | `OnSndmgrQueryB` | Async callback: store result (+b), clear busy | 0.30 | T2 |  |
+| [0x1FCF88](../../../src/game/engine/sound/sound/func_001FCF88.c) | `OnSndmgrQueryC` | Async callback for SUKR cmd 0xC (0x1FDBA8) | 0.30 | T2 |  |
+| [0x1FCFA0](../../../src/game/engine/sound/sound/func_001FCFA0.c) | `PsndstreamFindDialog` | Find SNDSTREAM by id in one stream list | 0.40 | T2 |  |
+| [0x1FCFD0](../../../src/game/engine/sound/sound/func_001FCFD0.c) | `GDialogStreamParam` | Float field +0x50 of a stream record found by id, else 0 | 0.30 | T2 |  |
+| [0x1FCFF8](../../../src/game/engine/sound/sound/func_001FCFF8.c) | `PsndstreamFindMusic` | Find SNDSTREAM by id (music list) | 0.40 | T2 |  |
+| [0x1FD028](../../../src/game/engine/sound/sound/func_001FD028.c) | `PsndFromSfxid` | sfxid -> SNDMGR sound entry via aisnd index table (NULL if unmapped) | 0.50 | T1 |  |
+| [0x1FD070](../../../src/game/engine/sound/sound/func_001FD070.c) | `IsndFromPsnd` | Index of a sound entry (ptr - base)/4 | 0.50 | T1 |  |
+| [0x1FD080](../../../src/game/engine/sound/sound/func_001FD080.c) | `ChannelFromPsndstream` | 1 if record is in list A, 0 if it is the ambience record, else 2: picks volume channel | 0.30 | T2 |  |
+| [0x1FD0C0](../../../src/game/engine/sound/sound/func_001FD0C0.c) | `OidDialogSmRole` | Table D_002C3C40[n] for n<6 (else -1): SM oid for dialog speaker role n | 0.30 | T2 | verified |
+| [0x1FD0E8](../../../src/game/engine/sound/sound/func_001FD0E8.cpp) | `LoadSoundSectionFromBrx` | Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose file records | 0.90 | T1 | verified, format-doc |
+| [0x1FD5E8](../../../src/game/engine/sound/sound/func_001FD5E8.c) | `PostSoundLoad` | Load bank if needed, snd_ResolveBankXREFS, mark looping sounds (kind 2) via snd_IsSoundALooper | 0.50 | T1 |  |
+| [0x1FD700](../../../src/game/engine/sound/sound/func_001FD700.c) | `ResetSndmgr` | Stop all sounds/streams (989 cmd 0x18, SUKR cmd 10), flush, clear state, free dirty list, reset volumes | 0.55 | T1 |  |
+| [0x1FD830](../../../src/game/engine/sound/sound/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 989 commands | 0.75 | T1 |  |
+| [0x1FDA48](../../../src/game/engine/sound/sound/func_001FDA48.c) | `UpdateSndmgrListener` | Poll SUKR cmd 0xB; when player (STEPPLAYER 0x34) exists and +0x70>0.5, track a listener object | 0.30 | T2 |  |
+| [0x1FDBA8](../../../src/game/engine/sound/sound/func_001FDBA8.c) | `PollSndmgrStatus` | Issue SUKR cmd 0xC once (busy flag) with callback | 0.30 | T2 |  |
+| [0x1FDC08](../../../src/game/engine/sound/sound/func_001FDC08.cpp) | `UpdateSndmgrMusicMix` | Pick music layer (0 calm/1/2 action) from player state and smooth 3 group weights into the music STREAMSND | 0.45 | T2 |  |
+| [0x1FDEC0](../../../src/game/engine/sound/sound/func_001FDEC0.c) | `UpdateSndmgrStub` | Empty per-frame hook (jr ra) | 0.20 | T2 |  |
+| [0x1FDEC8](../../../src/game/engine/sound/sound/func_001FDEC8.c) | `UpdateDialog` | Advance current dialog: by elapsed stream time fire lip-sync/anim events (0x1FE0E8); end -> StopDialog | 0.45 | T2 |  |
+| [0x1FE0E8](../../../src/game/engine/sound/sound/func_001FE0E8.c) | `ApplyDialogEvent` | Event k: role 3 -> 0x1F80D0(gesture,g); else SetSmaGoal(role SM, state) | 0.45 | T2 |  |
+| [0x1FE150](../../../src/game/engine/sound/sound/func_001FE150.cpp) | `PushMusic` | Start music id: stop current top, reuse or create STREAMSND kind 4 with player-object sources, push on 8-deep music stack | 0.50 | T1 |  |
+| [0x1FE310](../../../src/game/engine/sound/sound/func_001FE310.cpp) | `StopMusic` | Stop music id if playing (0x1FE478 lookup), StopSnd | 0.40 | T2 |  |
+| [0x1FE3F8](../../../src/game/engine/sound/sound/func_001FE3F8.c) | `TMusicCur` | Play time of top music stream in seconds (ticks/294912000) | 0.50 | T1 |  |
+| [0x1FE478](../../../src/game/engine/sound/sound/func_001FE478.cpp) | `FindMusic` | Ref to a music STREAMSND on the stack matching id | 0.40 | T2 |  |
+| [0x1FE5B8](../../../src/game/engine/sound/sound/func_001FE5B8.c) | `SetSndmgrFlag` | Set/clear bits in SNDMGR flags | 0.40 | T2 |  |
+| [0x1FE5E0](../../../src/game/engine/sound/sound/func_001FE5E0.c) | `FSndmgrMuted` | +0x68 == 3 | 0.30 | T2 |  |
+| [0x1FE5F0](../../../src/game/engine/sound/sound/func_001FE5F0.cpp) | `StartDialog` | Stop current dialog, create dialog STREAMSND kind 0, notify subtitles (0x227728), bind the speaker object SMs for 6 lip-sync roles | 0.55 | T1 |  |
+| [0x1FE738](../../../src/game/engine/sound/sound/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
+| [0x1FE848](../../../src/game/engine/sound/sound/func_001FE848.c) | `FDialogPlaying` | True if dialog (optionally of given id) is playing | 0.45 | T2 |  |
+| [0x1FE888](../../../src/game/engine/sound/sound/func_001FE888.c) | `TDialogCur` | Current dialog play time (or cached time while starting) | 0.40 | T2 |  |
+| [0x1FE990](../../../src/game/engine/sound/sound/func_001FE990.c) | `IambFind` | Index of id in a small int table (-1) | 0.30 | T2 |  |
+| [0x1FE9C8](../../../src/game/engine/sound/sound/func_001FE9C8.c) | `SetSndmgrPlaybackMode` | snd_SetPlaybackMode(mode) if changed (mono/stereo option) | 0.50 | T1 |  |
+| [0x1FE9F8](../../../src/game/engine/sound/sound/func_001FE9F8.c) | `SetSndmgrMasterVolume` | Clamp and send master volume (snd_SetMasterVolume(0x10,..)) | 0.50 | T1 |  |
+| [0x1FEA60](../../../src/game/engine/sound/sound/func_001FEA60.cpp) | `SetSndmgrChannelVolume` | Set weight[category<8][channel<4], recompute channel output and send snd_SetMasterVolume; update live streams | 0.50 | T1 |  |
+| [0x1FEDF0](../../../src/game/engine/sound/sound/func_001FEDF0.c) | `ResetSndmgrVolumes` | Master=1 and all weights=1 (except category 1) | 0.50 | T1 |  |
+| [0x1FEE90](../../../src/game/engine/sound/sound/func_001FEE90.c) | `IncrementSndmgrCount5C` | ++SNDMGR+0x5C | 0.25 | T2 |  |
+| [0x1FEEA0](../../../src/game/engine/sound/sound/func_001FEEA0.c) | `DecrementSndmgrCount5C` | --SNDMGR+0x5C | 0.25 | T2 |  |
+| [0x1FEEB0](../../../src/game/engine/sound/sound/func_001FEEB0.c) | `IncrementSndmgrCount60` | ++SNDMGR+0x60 | 0.25 | T2 |  |
+| [0x1FEEC0](../../../src/game/engine/sound/sound/func_001FEEC0.c) | `DecrementSndmgrCount60` | --SNDMGR+0x60 | 0.25 | T2 |  |
+| [0x1FEED0](../../../src/game/engine/sound/sound/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
+| [0x1FF108](../../../src/game/engine/sound/sound/func_001FF108.c) | `SetAmbienceGroup` | Splice: set volume/pan of ambience sub-group selected by id | 0.40 | T2 |  |
 
 ## tu_2275B8 (0x2275B8-0x227BB8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x2275B8](../../../src/hand/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
-| [0x227728](../../../src/hand/func_00227728.c) | `SetSpeaker` | reset then kind=k, colour from kind | 0.30 | T2 |  |
-| [0x227788](../../../src/hand/func_00227788.c) | `InitSpeakerLabel` | kind=-1, default colour, flag 0 | 0.30 | T2 |  |
-| [0x2277D0](../../../src/auto/func_002277D0.c) | `GetOidName` | oid -1 -> empty string else strcpy(name of oid via 0x13E368(g_sw,oid)) | 0.45 | T2 |  |
-| [0x227820](../../../src/hand/func_00227820.c) | `RenderSpeakerText` | draws text label via blot helpers and strcpy | 0.30 | T2 |  |
-| [0x227940](../../../src/hand/func_00227940.c) | `FlagsToPchz` | appends one char per set bit from a 16-entry {mask,ch} table D_002A97F8 via sprintf | 0.40 | T2 |  |
+| [0x2275B8](../../../src/game/engine/sound/tu_2275B8/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
+| [0x227728](../../../src/game/engine/sound/tu_2275B8/func_00227728.c) | `SetSpeaker` | reset then kind=k, colour from kind | 0.30 | T2 |  |
+| [0x227788](../../../src/game/engine/sound/tu_2275B8/func_00227788.c) | `InitSpeakerLabel` | kind=-1, default colour, flag 0 | 0.30 | T2 |  |
+| [0x2277D0](../../../src/game/engine/sound/tu_2275B8/func_002277D0.c) | `GetOidName` | oid -1 -> empty string else strcpy(name of oid via 0x13E368(g_sw,oid)) | 0.45 | T2 |  |
+| [0x227820](../../../src/game/engine/sound/tu_2275B8/func_00227820.c) | `RenderSpeakerText` | draws text label via blot helpers and strcpy | 0.30 | T2 |  |
+| [0x227940](../../../src/game/engine/sound/tu_2275B8/func_00227940.c) | `FlagsToPchz` | appends one char per set bit from a 16-entry {mask,ch} table D_002A97F8 via sprintf | 0.40 | T2 |  |
 
 ## 989snd (0x2319E8-0x233000)
 

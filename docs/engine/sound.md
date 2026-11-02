@@ -85,22 +85,22 @@ the Sly 2 989snd.irx (in SCUS_973.16 at file offset 0x21ED80) was **not** disass
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FB098](../../src/auto/func_001FB098.c) | `StopSnd` | Request stop (flag 8) with fade time arg | 0.85 | T1 | verified |
-| [0x1FB2F8](../../src/hand/func_001FB2F8.c) | `SetSndSourceLo` | Attach sound to an ALO (positional), flag 0x200 | 0.85 | T1 | verified |
-| [0x1FB658](../../src/hand/func_001FB658.c) | `SetSndFlags` | fl = (fl&~mask)\|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink | 0.75 | T1 |  |
-| [0x1FB778](../../src/hand/func_001FB778.c) | `CalculateSndVolPan` | Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees | 0.85 | T1 | verified |
-| [0x1FBB90](../../src/auto/func_001FBB90.c) | `PsndStartSound` | Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd | 0.60 | T1 |  |
-| [0x1FC4F8](../../src/hand/func_001FC4F8.c) | `GetStreamsndKind` | vt8: 2 if looping flag 4 else 1 | 0.45 | T2 | verified |
-| [0x1FC510](../../src/hand/func_001FC510.c) | `PlayStreamsnd` | vt9: resolve stream file key, send start to SUKR IOP module with vol/pan | 0.85 | T1 | verified |
-| [0x1FC9B0](../../src/hand/func_001FC9B0.c) | `UpdateStreamsndPositional` | vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan | 0.85 | T1 | verified |
-| [0x1FCC30](../../src/hand/func_001FCC30.c) | `OnStreamsndStatus` | SUKR status callback (cmd 7) | 0.85 | T1 | verified |
-| [0x1FCCF0](../../src/auto/func_001FCCF0.c) | `PvAllocStreamsnd` | Allocate from SNDMGR 0x3C0 pool (+0x34) | 0.85 | T1 | verified |
-| [0x1FD0C0](../../src/hand/func_001FD0C0.c) | `OidDialogSmRole` | Table D_002C3C40[n] for n<6 (else -1): SM oid for dialog speaker role n | 0.30 | T2 | verified |
-| [0x1FD0E8](../../src/hand/func_001FD0E8.cpp) | `LoadSoundSectionFromBrx` | Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose fi | 0.90 | T1 | verified, format-doc |
-| [0x1FD830](../../src/hand/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 98 | 0.75 | T1 |  |
-| [0x1FE738](../../src/hand/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
-| [0x1FEED0](../../src/hand/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
-| [0x2275B8](../../src/hand/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
+| [0x1FB098](../../src/game/engine/sound/sound/func_001FB098.c) | `StopSnd` | Request stop (flag 8) with fade time arg | 0.85 | T1 | verified |
+| [0x1FB2F8](../../src/game/engine/sound/sound/func_001FB2F8.c) | `SetSndSourceLo` | Attach sound to an ALO (positional), flag 0x200 | 0.85 | T1 | verified |
+| [0x1FB658](../../src/game/engine/sound/sound/func_001FB658.c) | `SetSndFlags` | fl = (fl&~mask)\|(val&mask); nonzero -> link into SNDMGR dirty list, zero -> unlink | 0.75 | T1 |  |
+| [0x1FB778](../../src/game/engine/sound/sound/func_001FB778.c) | `CalculateSndVolPan` | Distance from ear (player PosLoWorld or camera) -> volume via (sStop-d)/(sStop-sFull) clamped; atan2 -> pan degrees | 0.85 | T1 | verified |
+| [0x1FBB90](../../src/game/engine/sound/sound/func_001FBB90.c) | `PsndStartSound` | Allocate a BANKSND (0x70) from SNDMGR pool and construct it with sfxid; it starts on next UpdateSnd | 0.60 | T1 |  |
+| [0x1FC4F8](../../src/game/engine/sound/sound/func_001FC4F8.c) | `GetStreamsndKind` | vt8: 2 if looping flag 4 else 1 | 0.45 | T2 | verified |
+| [0x1FC510](../../src/game/engine/sound/sound/func_001FC510.c) | `PlayStreamsnd` | vt9: resolve stream file key, send start to SUKR IOP module with vol/pan | 0.85 | T1 | verified |
+| [0x1FC9B0](../../src/game/engine/sound/sound/func_001FC9B0.c) | `UpdateStreamsndPositional` | vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan | 0.85 | T1 | verified |
+| [0x1FCC30](../../src/game/engine/sound/sound/func_001FCC30.c) | `OnStreamsndStatus` | SUKR status callback (cmd 7) | 0.85 | T1 | verified |
+| [0x1FCCF0](../../src/game/engine/sound/sound/func_001FCCF0.c) | `PvAllocStreamsnd` | Allocate from SNDMGR 0x3C0 pool (+0x34) | 0.85 | T1 | verified |
+| [0x1FD0C0](../../src/game/engine/sound/sound/func_001FD0C0.c) | `OidDialogSmRole` | Table D_002C3C40[n] for n<6 (else -1): SM oid for dialog speaker role n | 0.30 | T2 | verified |
+| [0x1FD0E8](../../src/game/engine/sound/sound/func_001FD0E8.cpp) | `LoadSoundSectionFromBrx` | Read level sound section: bank file record, per-sound kinds, sfxid->index table, ambience stream, dialogue/music stream records per language, loose fi | 0.90 | T1 | verified, format-doc |
+| [0x1FD830](../../src/game/engine/sound/sound/func_001FD830.c) | `UpdateSndmgr` | Per-frame: clock, IOP status polls, global pause on game state 3, music mix, dialog lip-sync, master fades, UpdateSnd on every pending sound, flush 98 | 0.75 | T1 |  |
+| [0x1FE738](../../src/game/engine/sound/sound/func_001FE738.c) | `StopDialog` | Flush remaining dialog events, set role-5 SM to 0x611, stop stream, reset dialog state | 0.85 | T1 | verified |
+| [0x1FEED0](../../src/game/engine/sound/sound/func_001FEED0.c) | `PlayBanksndVariant` | Special sfx handling after play: table-driven (7x6, 25) level selection; may stop voice | 0.25 | T2 | verified |
+| [0x2275B8](../../src/game/engine/sound/tu_2275B8/RgbaFromSpeakerCid.cpp) | `RgbaFromSpeakerCid` | kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F | 0.85 | T1 | verified |
 | [0x2319E8](../../src/sdk/989snd/func_002319E8.c) | `snd_StartSoundSystem` | 989snd API | 0.90 | T1 | verified |
 | [0x231E90](../../src/sdk/989snd/func_00231E90.c) | `snd_GotReturns` | 989snd API | 0.90 | T1 | verified |
 | [0x231F38](../../src/sdk/989snd/func_00231F38.c) | `snd_PrepareReturnBuffer` | 989snd API | 0.80 | T1 |  |

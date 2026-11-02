@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | (none: not created by PloNew) |
 | Descriptor getter (slot 6) | `GetAsegaClassDesc` `0x114270` |
 | vtable | `D_002CAF48`, 7 entries (slots 0..6; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`ApplyAseg?`](../../../src/hand/func_0012F9B8.cpp) (vptr +0xC) |
+| vtable stored by | [`ApplyAseg?`](../../../src/game/engine/anim/aseg/func_0012F9B8.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -23,10 +23,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 | Slot | Role | Status | Implementation | Address | Header decl |
 |---|---|---|---|---|---|
-| 1 | Incref-style hook | **override** | [`IncrefAsega`](../../../src/auto/IncrefAsega.c) | `0x1308A8` | VUnk00 |
-| 2 | Decref-style hook | **override** | [`DecrefAsega`](../../../src/auto/DecrefAsega.c) | `0x1308B8` | VUnk01 |
+| 1 | Incref-style hook | **override** | [`IncrefAsega`](../../../src/game/engine/anim/asega/IncrefAsega.c) | `0x1308A8` | VUnk00 |
+| 2 | Decref-style hook | **override** | [`DecrefAsega`](../../../src/game/engine/anim/asega/DecrefAsega.c) | `0x1308B8` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
-| 4 | SendMessage | **override** | [`NotifyAsega?`](../../../src/hand/func_00131738.c) | `0x131738` | SendMessage |
+| 4 | SendMessage | **override** | [`NotifyAsega?`](../../../src/game/engine/anim/asega/func_00131738.c) | `0x131738` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetAsegaClassDesc`](../../../src/auto/GetAsegaClassDesc.c) | `0x114270` | Pclassinfo |
 

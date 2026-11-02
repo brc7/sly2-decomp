@@ -247,7 +247,7 @@ public:
     void AddParent(CFrame *pframeParent);   /* from LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp */
 };
 
-/* BASIC: from src/hand/func_00167320.cpp (29 copies in Lilly ports) */
+/* BASIC: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (29 copies in Lilly ports) */
 struct BASIC
 {
       CRefPtr<CFrame> pframe;
@@ -262,7 +262,7 @@ struct BASIC
 };
 typedef char assert_BASIC_size[sizeof(BASIC) == 0x10 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* CLASSINFO: from src/hand/func_0014DC58.cpp (19 copies in Lilly ports) */
+/* CLASSINFO: from src/game/engine/camera/cm/func_0014DC58.cpp (19 copies in Lilly ports) */
 struct CLASSINFO
 {
       CLASSINFO *pclassinfoSuper;
@@ -271,7 +271,7 @@ struct CLASSINFO
       int cb;
 };
 
-/* CLOCK: from src/hand/func_0014DC58.cpp (15 copies in Lilly ports).
+/* CLOCK: from src/game/engine/camera/cm/func_0014DC58.cpp (15 copies in Lilly ports).
    One global instance: g_clock = D_002DDED0 (CONFIRMED runtime: ram_inspector/slygame G_CLOCK).
    Tags: [R] runtime-confirmed meaning (save-state RAM, runtime* FINDINGS / devtools), [S] static (matched code / Sly 1
    name, not checked at runtime), [H] hypothesis. */
@@ -306,7 +306,7 @@ typedef char assert_CLOCK_art[SLY2_OFFSETOF(CLOCK, art) == 0x18 ? 1 : -1];     /
 typedef char assert_CLOCK_tReal[SLY2_OFFSETOF(CLOCK, tReal) == 0x3C ? 1 : -1]; /* CONFIRMED runtime + match (DxSelectionJoy reads +0x3C) */
 typedef char assert_CLOCK_dtReal[SLY2_OFFSETOF(CLOCK, dtReal) == 0x40 ? 1 : -1]; /* CONFIRMED runtime */
 
-/* SL: from src/hand/func_00167320.cpp (27 copies in Lilly ports) */
+/* SL: from src/game/engine/graphics/pipeline/glob/func_00167320.cpp (27 copies in Lilly ports) */
 struct SL
 {
     void *head;

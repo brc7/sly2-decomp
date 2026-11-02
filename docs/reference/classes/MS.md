@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetMsClassDesc`](../../../src/auto/GetMsClassDesc.c) | `0x113D20` |
-| 7 | Init | **override** | [`InitMs`](../../../src/hand/InitMs.c) | `0x1B4438` |
+| 7 | Init | **override** | [`InitMs`](../../../src/game/engine/graphics/pipeline/ms/InitMs.c) | `0x1B4438` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -41,7 +41,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 16 | Update | inherited (SO) | `UpdateSo` | `0x1F36E0` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderMsGlobset`](../../../src/hand/RenderMsGlobset.c) | `0x1B4478` |
+| 19 | RenderSelf | **override** | [`RenderMsGlobset`](../../../src/game/engine/graphics/pipeline/ms/RenderMsGlobset.c) | `0x1B4478` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |

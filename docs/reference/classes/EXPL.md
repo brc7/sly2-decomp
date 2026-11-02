@@ -73,7 +73,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |
 | 49 | XFM_PxfFromId | inherited (XFM) | `XFM_PxfFromId?` | `0x22D750` |
 | 50 |  | inherited (XFM) | `func_00231220` | `0x231220` |
-| 51 | ExplodeExplExplso__FP4EXPLP6EXPLSO | **new** | [`ExplodeExplExplso__FP4EXPLP6EXPLSO`](../../../src/auto/ExplodeExplExplso__FP4EXPLP6EXPLSO.c) | `0x15C1E0` |
+| 51 | ExplodeExplExplso__FP4EXPLP6EXPLSO | **new** | [`ExplodeExplExplso__FP4EXPLP6EXPLSO`](../../../src/game/engine/fx/emitter/ExplodeExplExplso__FP4EXPLP6EXPLSO.c) | `0x15C1E0` |
 
 ## Fields
 
