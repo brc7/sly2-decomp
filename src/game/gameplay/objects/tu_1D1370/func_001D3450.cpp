@@ -7,6 +7,9 @@
 //  3. two support passes pair points by surface, find the deepest tangency of the wheel circle with each support plane,
 //     and post the best one as a kind-10 contact (PxpAdd 0x1A7C18).
 // Names follow Lilly's func_001A93C8 port (SURF/EDGE/BSP/LSG/GEOM/STACKSCOPE/PvAllocStack). Notes: notes/190000-1F0000_lanes.md.
+/* #line: gcc 2.95 hashes the file name into the gcse order of asm expressions (see VU_FLOAT below). Pinning it
+   to the repo path makes the output independent of the path/cwd the compiler is run with. Keep it accurate. */
+#line 13 "src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp"
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned short ushort;
@@ -46,6 +49,12 @@ struct GAME;
 extern GAME D_003DD490;
 extern const qword D_002A2DC0;
 extern const qword D_002C2150[5];
+/* VU_FLOAT's mfc1 is partially redundant in the ray pass, so gcse PRE hoists the radius/height conversions to the
+   top of the function as two new pseudos; PRE numbers its pseudos in expression-hash-bucket order, and that number
+   order is the spill-slot order (i+1 at 0xFD8 < the two conversion qwords at 0xFE0/0xFF0 < &asupport at 0x1000). An asm's
+   hash adds the bytes of its source file name and its line, so: the #line above pins the name, and this asm must stay
+   within about lines 37..67 (here line 57: buckets 273/276 of 287, after i+1 at 252, before the wrap). */
+struct VU_FLOAT { qword q; VU_FLOAT(float g) { __asm__("mfc1 %0,%1" : "=r"(q) : "f"(g)); } };
 /* -FLT_MAX / FLT_MAX below are constant-pool literals (0x2A7838/0x2A783C), not globals: their REG_EQUAL sets order f24/f26 */
 
 extern "C" {
@@ -134,8 +143,6 @@ static inline qword Pack(float x, float y, float z)
 }
 static inline float Clamp(float v, float low, float high) { if (v < low) return low; else if (high < v) return high; else return v; }
 static inline float Min(float a, float b) { return b < a ? b : a; }
-/* keep VU_FLOAT's mfc1 on this line: gcse hashes asm line numbers, which orders the PRE spill slots (0xFD0..0x1000) */
-struct VU_FLOAT { qword q; VU_FLOAT(float g) { __asm__("mfc1 %0,%1" : "=r"(q) : "f"(g)); } };
 static inline VU_VECTOR Scale(const qword &a, const VU_FLOAT &s) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s.q)); return VU_VECTOR(r); }
 static inline VU_VECTOR BlendStart(const qword &a, const VU_FLOAT &sa, const qword &b, const VU_FLOAT &sb)   /* "j"(sb.q) twice: height qword VU-class -> spilled */
 {
