@@ -13,12 +13,6 @@ stays and a header-only remedy.
   (a unit holding only compiler-generated stubs) are units not yet named.
   Each leaf will later collapse into a single `.cpp`.
 - Every directory has a `README.md` with its layer and responsibility.
-- `python3 tools/layout/check_layout.py` derives each unit's subsystem from
-  where its files live and checks it against the dependency graph
-  (extracted once from the binary, `tools/layout/deps.csv`), the layer
-  table (`layers.csv`) and the allowlist of known couplings
-  (`layering_allow.csv`). It fails on a split unit or on any new upward
-  dependency or cycle. Run it after moving files.
 - How the graph was built, the alternatives tried and the per-unit
   placement rationale are in the design record
   (`research/layout/LAYOUT.md`, outside the repo).
@@ -41,7 +35,7 @@ stays and a header-only remedy.
 | L11 | `game/app` | composition root: main loop, boot sequence, class registry/factories, Splice built-ins and binding thunks |
 | L11 | `generated` | tool-generated Splice wrappers |
 
-Rules (checked by `scripts/check_layering.py`):
+Rules:
 1. A file may call / reference / include only its own layer or lower layers ("downward"). Edge kinds counted: call, tail call, virtual
    call (slot attributed to the class that introduces it), function-pointer load, function-pointer table entry, data reference to a
    global defined elsewhere, vtable inheritance (0.25 per inherited slot).
@@ -49,9 +43,10 @@ Rules (checked by `scripts/check_layering.py`):
    (section 7). Inside a subsystem anything goes (TUs of one subsystem may be mutually dependent).
 3. `src/sdk/<lib>` and `src/generated/splicewrap` keep their draft locations. No `.c/.cpp` outside `src/{game,sdk,generated}`.
 4. Every TU has its own leaf directory (it later collapses into `<tu>.cpp`). File stem = linker symbol. No directory contains two
-   names differing only by case (checked: 0 collisions; the old SetPoCtlState/SetPoctlState pair is already renamed in main).
-5. New code goes where `layout_map.csv` / `where.py` say; an edge not in `layering_allow.csv` fails CI.
-6. Naming reflects layering: all children of a directory are in the same layer (checked; the only exception is `src/game/` itself).
+   names differing only by case (the old SetPoCtlState/SetPoctlState pair was renamed for this).
+5. A new function goes in its translation unit's directory (`tools/layout/units.csv` maps every function to its unit). A new
+   upward dependency should be avoided; if one is unavoidable, add it to the table in section 3 with the reason.
+6. Naming reflects layering: all children of a directory are in the same layer (the only exception is `src/game/` itself).
    No two directories share a name except a subsystem and its main TU leaf (`memory/memory`, `sound/sound`, `font/font`,
    `thread/thread`) and the `game` TU (`world/state/game`) - TU leaf names are the tu-map labels and are kept.
    Max depth under `src/game` = 4 directories (`engine/graphics/pipeline/<tu>/`); every leaf directory is one TU, with one
@@ -154,7 +149,7 @@ src/
 | REGISTRY | 1 | 1 | Class descriptor table D_002BAAE8 / factories live in the crt0-block registry; FIsBasicDerivedFrom (basic) and PloNew (brx) read it. Header fix: declare the descriptor record type and an extern for the table in object/; only the definition stays in app/. |
 
 All upward subsystem pairs with weight >= 3 (54 of 134; the other 80 pairs total 112 weight, mostly single vtable slots
-or one call each; all are in `layering_allow.csv` and `analysis.json`):
+or one call each; all are listed in the design record, research/layout/):
 
 | # | from (layer) | to (layer) | weight | main TU pairs | category |
 |---|---|---|---|---|---|
