@@ -57,6 +57,27 @@ template <int CB, int C> CSlotPool<CB, C> CSlotPool<CB, C>::s_pool;
       template CSlotPool<0x1C, 0x800> CSlotPool<0x1C, 0x800>::s_pool; \
       template CSlotPool<0xC, 0xC8> CSlotPool<0xC, 0xC8>::s_pool; \
       template CSlotPool<0x14, 0x100> CSlotPool<0x14, 0x100>::s_pool;
+/* Five more slot heaps, for the payloads of Splice values (CRef tags 0x1A..0x1E, splice/ref.cpp): vectors (0x20 x
+   0x100), matrices (0x50 x 0x100), clqs (0x20 x 0x40), lms (0xC x 0x40) and smps (0x10 x 0x20), each payload followed
+   by its reference count. Template statics like the pools: a TU that names them instantiates all five right after
+   SLY2_INSTANTIATE_SLOT_POOLS(), and its static initializer then grows from 77 to 133 instructions (CONFIRMED by
+   match: spliceutils, ref; HYPOTHESIS: the template shape and name). Their objects are 0x18 apart
+   (0x452188..0x4521E8), i.e. a bare SLOTHEAP. */
+template <int CB, int C>
+struct CSpliceHeap
+{
+      SLOTHEAP slotheap;
+      CSpliceHeap() { func_0011CCA8(&slotheap, CB, C, 16); }
+      static CSpliceHeap s_heap;
+};
+template <int CB, int C> CSpliceHeap<CB, C> CSpliceHeap<CB, C>::s_heap;
+
+#define SLY2_INSTANTIATE_SPLICE_HEAPS() \
+      template CSpliceHeap<0x20, 0x100> CSpliceHeap<0x20, 0x100>::s_heap; \
+      template CSpliceHeap<0x50, 0x100> CSpliceHeap<0x50, 0x100>::s_heap; \
+      template CSpliceHeap<0x20, 0x40> CSpliceHeap<0x20, 0x40>::s_heap; \
+      template CSpliceHeap<0xC, 0x40> CSpliceHeap<0xC, 0x40>::s_heap; \
+      template CSpliceHeap<0x10, 0x20> CSpliceHeap<0x10, 0x20>::s_heap;
 #endif
 
 #endif
