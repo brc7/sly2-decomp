@@ -172,20 +172,20 @@ Compared with Sly 1's 125-entry table (which gives the Splice spellings) `[H r1 
 | [0x124578](../../src/hand/RefOpFindNearestObjects__FiP4CRefP6CFrame.cpp) | `RefOpFindNearestObjects` | Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo | 0.85 | T1 | verified |
 | [0x124F00](../../src/hand/RefOpHitTestObjects__FiP4CRefP6CFrame.cpp) | `RefOpHitTestObjects` | Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal) | 0.85 | T1 | verified |
 | [0x125060](../../src/hand/RefOpConvertObjectVector__FiP4CRefP6CFrame.c) | `RefOpConvertObjectVector` | Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0 | 0.85 | T1 | verified |
-| [0x126490](../../src/hand/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
-| [0x126F78](../../src/hand/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
-| [0x1272E0](../../src/hand/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
-| [0x127838](../../src/hand/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
-| [0x127CF0](../../src/hand/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
-| [0x127D78](../../src/hand/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
-| [0x128148](../../src/auto/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
-| [0x129248](../../src/hand/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
-| [0x129518](../../src/hand/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
-| [0x129558](../../src/hand/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
-| [0x129598](../../src/hand/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
-| [0x129618](../../src/hand/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
-| [0x129808](../../src/hand/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
-| [0x12A3D8](../../src/hand/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
+| [0x126490](../../src/game/splice/eval/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
+| [0x126F78](../../src/game/splice/eval/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
+| [0x1272E0](../../src/game/splice/eval/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then  | 0.93 | T1 |  |
+| [0x127838](../../src/game/splice/eval/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns da | 0.95 | T1 |  |
+| [0x127CF0](../../src/game/splice/frame/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
+| [0x127D78](../../src/game/splice/frame/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
+| [0x128148](../../src/game/splice/gc/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
+| [0x129248](../../src/game/splice/ref/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
+| [0x129518](../../src/game/splice/ref/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
+| [0x129558](../../src/game/splice/ref/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
+| [0x129598](../../src/game/splice/ref/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
+| [0x129618](../../src/game/splice/ref/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
+| [0x129808](../../src/game/splice/ref/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
+| [0x12A3D8](../../src/game/splice/serialize/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
 | [0x200598](../../src/hand/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
 
 Selected 60 of 268 named functions (T1 with confidence >= 0.85, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/splice-scripting.md](../reference/functions/splice-scripting.md).

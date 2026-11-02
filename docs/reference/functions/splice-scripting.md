@@ -207,124 +207,124 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x126438](../../../src/hand/RefEvalSymbol__FP5CPairP6CFrame.c) | `RefEvalSymbol` | Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it | 0.88 | T1 |  |
-| [0x126490](../../../src/hand/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
-| [0x126540](../../../src/hand/RefEvalDefine__FP5CPairP6CFrame.cpp) | `RefEvalDefine` | (define sym expr): evaluate, CFrame::RefAddBinding (0x127C00) | 0.90 | T1 |  |
-| [0x1265F0](../../../src/hand/RefEvalAssert__FP5CPairP6CFrame.cpp) | `RefEvalAssert` | (assert expr ...): evaluates; if false prints message (printf) ; returns Void | 0.88 | T1 |  |
-| [0x1266C8](../../../src/hand/func_001266C8.cpp) | `RefEvalForm6` | New Sly2 special form 6: evaluates its first operand if present, else Void | 0.30 | T2 |  |
-| [0x126758](../../../src/hand/RefEvalIf__FP5CPairP6CFrame.cpp) | `RefEvalIf` | (if c then [else]) | 0.93 | T1 |  |
-| [0x126840](../../../src/hand/RefEvalOr__FP5CPairP6CFrame.cpp) | `RefEvalOr` | (or ...): first non-false value, else #f | 0.93 | T1 |  |
-| [0x126928](../../../src/hand/RefEvalAnd__FP5CPairP6CFrame.cpp) | `RefEvalAnd` | (and ...): stops at first #f, else last value | 0.93 | T1 |  |
-| [0x126A18](../../../src/hand/RefEvalCond__FP5CPairP6CFrame.cpp) | `RefEvalCond` | (cond clauses...) with else (tag 0xB) | 0.93 | T1 |  |
-| [0x126BA0](../../../src/hand/RefEvalCase__FP5CPairP6CFrame.cpp) | `RefEvalCase` | (case key clauses...): compares via RefOpEqv 0x120548, else clause | 0.92 | T1 |  |
-| [0x126DB8](../../../src/hand/RefEvalLet__FP5CPairP6CFrame.cpp) | `RefEvalLet` | (let ((sym val)...) body): new CFrame (0x256DD0), RefAddBinding each, then body | 0.92 | T1 |  |
-| [0x126F78](../../../src/hand/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
-| [0x127068](../../../src/hand/RefEvalLambda__FP5CPairP6CFrame.cpp) | `RefEvalLambda` | (lambda args body): allocates CProc (0x256F48) capturing the frame, args and body | 0.88 | T1 |  |
-| [0x127190](../../../src/hand/RefEvalLambdaBody__FP5CPairP6CFrame.c) | `RefEvalLambdaBody` | Evaluates each body expression of a proc in order, returns the last | 0.75 | T1 |  |
-| [0x127228](../../../src/hand/RefEvalBegin__FP5CPairP6CFrame.cpp) | `RefEvalBegin` | (begin ...): evaluate all, return last (Void if empty) | 0.93 | T1 |  |
-| [0x1272E0](../../../src/hand/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then calls | 0.93 | T1 |  |
-| [0x127838](../../../src/hand/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns datum | 0.95 | T1 |  |
+| [0x126438](../../../src/game/splice/eval/RefEvalSymbol__FP5CPairP6CFrame.c) | `RefEvalSymbol` | Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it | 0.88 | T1 |  |
+| [0x126490](../../../src/game/splice/eval/RefEvalSet__FP5CPairP6CFrame.cpp) | `RefEvalSet` | (set! sym expr): evaluate expr, CFrame::RefSetBinding (0x127CF0) | 0.90 | T1 | verified |
+| [0x126540](../../../src/game/splice/eval/RefEvalDefine__FP5CPairP6CFrame.cpp) | `RefEvalDefine` | (define sym expr): evaluate, CFrame::RefAddBinding (0x127C00) | 0.90 | T1 |  |
+| [0x1265F0](../../../src/game/splice/eval/RefEvalAssert__FP5CPairP6CFrame.cpp) | `RefEvalAssert` | (assert expr ...): evaluates; if false prints message (printf) ; returns Void | 0.88 | T1 |  |
+| [0x1266C8](../../../src/game/splice/eval/func_001266C8.cpp) | `RefEvalForm6` | New Sly2 special form 6: evaluates its first operand if present, else Void | 0.30 | T2 |  |
+| [0x126758](../../../src/game/splice/eval/RefEvalIf__FP5CPairP6CFrame.cpp) | `RefEvalIf` | (if c then [else]) | 0.93 | T1 |  |
+| [0x126840](../../../src/game/splice/eval/RefEvalOr__FP5CPairP6CFrame.cpp) | `RefEvalOr` | (or ...): first non-false value, else #f | 0.93 | T1 |  |
+| [0x126928](../../../src/game/splice/eval/RefEvalAnd__FP5CPairP6CFrame.cpp) | `RefEvalAnd` | (and ...): stops at first #f, else last value | 0.93 | T1 |  |
+| [0x126A18](../../../src/game/splice/eval/RefEvalCond__FP5CPairP6CFrame.cpp) | `RefEvalCond` | (cond clauses...) with else (tag 0xB) | 0.93 | T1 |  |
+| [0x126BA0](../../../src/game/splice/eval/RefEvalCase__FP5CPairP6CFrame.cpp) | `RefEvalCase` | (case key clauses...): compares via RefOpEqv 0x120548, else clause | 0.92 | T1 |  |
+| [0x126DB8](../../../src/game/splice/eval/RefEvalLet__FP5CPairP6CFrame.cpp) | `RefEvalLet` | (let ((sym val)...) body): new CFrame (0x256DD0), RefAddBinding each, then body | 0.92 | T1 |  |
+| [0x126F78](../../../src/game/splice/eval/RefEvalWhile__FP5CPairP6CFrame.cpp) | `RefEvalWhile` | (while cond body) | 0.92 | T1 | verified |
+| [0x127068](../../../src/game/splice/eval/RefEvalLambda__FP5CPairP6CFrame.cpp) | `RefEvalLambda` | (lambda args body): allocates CProc (0x256F48) capturing the frame, args and body | 0.88 | T1 |  |
+| [0x127190](../../../src/game/splice/eval/RefEvalLambdaBody__FP5CPairP6CFrame.c) | `RefEvalLambdaBody` | Evaluates each body expression of a proc in order, returns the last | 0.75 | T1 |  |
+| [0x127228](../../../src/game/splice/eval/RefEvalBegin__FP5CPairP6CFrame.cpp) | `RefEvalBegin` | (begin ...): evaluate all, return last (Void if empty) | 0.93 | T1 |  |
+| [0x1272E0](../../../src/game/splice/eval/RefEvalApply__FP5CPairP6CFrame.cpp) | `RefEvalApply` | Function application: evaluates operator; Bifk -> D_002BBB90 table {pfn,cargMin,fRest}; Method; or lambda (new frame binding params, rest list); then calls | 0.93 | T1 |  |
+| [0x127838](../../../src/game/splice/eval/RefEval__FP5CPairP6CFrame.cpp) | `RefEval` | Core evaluator: self-evaluating atoms, symbols, special-form dispatch on head TAGK (1..18), else apply; import (17) returns Nil, quote (18) returns datum | 0.95 | T1 |  |
 
 ## frame (0x127B18-0x128138)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x127B18](../../../src/auto/CFrame_SetSingleParent.c) | `CFrame_SetSingleParent` | cframe(+8)=1; apframe[0] (+0xC, refcounting pointer assign 0x256EE0) = parent | 0.75 | T1 |  |
-| [0x127B40](../../../src/auto/CFrame_AddParent.c) | `CFrame_AddParent` | apframe[cframe++] = parent | 0.75 | T1 |  |
-| [0x127B70](../../../src/hand/CFrame_RemoveParent.c) | `CFrame_RemoveParent` | Removes a parent pointer from apframe[] (CopyAb shift, cframe--) | 0.50 | T1 |  |
-| [0x127C00](../../../src/hand/CFrame_RefAddBinding.cpp) | `CFrame_RefAddBinding` | Prepends a new BINDING {sym, ref} (pool alloc 0x257340) to the frame binding list; returns Void | 0.88 | T1 |  |
-| [0x127CF0](../../../src/hand/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
-| [0x127D78](../../../src/hand/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
-| [0x127DB8](../../../src/hand/PrefFindBinding__6CFrameUii.cpp) | `PrefFindBinding__6CFrameUii` |  |  | existing |  |
-| [0x127E90](../../../src/hand/CFrame_CloneTo.cpp) | `CFrame_CloneTo` | New frame (0x256DD0), copies parent pointers, clones binding list via CVarb clone 0x12B0E8 | 0.70 | T1 |  |
+| [0x127B18](../../../src/game/splice/frame/CFrame_SetSingleParent.c) | `CFrame_SetSingleParent` | cframe(+8)=1; apframe[0] (+0xC, refcounting pointer assign 0x256EE0) = parent | 0.75 | T1 |  |
+| [0x127B40](../../../src/game/splice/frame/CFrame_AddParent.c) | `CFrame_AddParent` | apframe[cframe++] = parent | 0.75 | T1 |  |
+| [0x127B70](../../../src/game/splice/frame/CFrame_RemoveParent.c) | `CFrame_RemoveParent` | Removes a parent pointer from apframe[] (CopyAb shift, cframe--) | 0.50 | T1 |  |
+| [0x127C00](../../../src/game/splice/frame/CFrame_RefAddBinding.cpp) | `CFrame_RefAddBinding` | Prepends a new BINDING {sym, ref} (pool alloc 0x257340) to the frame binding list; returns Void | 0.88 | T1 |  |
+| [0x127CF0](../../../src/game/splice/frame/RefSetBinding__6CFrameUiP4CRef.c) | `CFrame_RefSetBinding` | PrefFindBinding(sym,1) and assign; returns Void | 0.88 | T1 | verified |
+| [0x127D78](../../../src/game/splice/frame/FFindBinding__6CFrameUiiP4CRef.c) | `CFrame_FFindBinding` | PrefFindBinding wrapper: copies binding into *pref, returns found | 0.85 | T1 | verified |
+| [0x127DB8](../../../src/game/splice/frame/PrefFindBinding__6CFrameUii.cpp) | `PrefFindBinding__6CFrameUii` |  |  | existing |  |
+| [0x127E90](../../../src/game/splice/frame/CFrame_CloneTo.cpp) | `CFrame_CloneTo` | New frame (0x256DD0), copies parent pointers, clones binding list via CVarb clone 0x12B0E8 | 0.70 | T1 |  |
 
 ## gc (0x128138-0x128B60)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128138](../../../src/auto/CGc_ctor.c) | `CGc_ctor` | Constructor of the global GC object (zeroes first field) | 0.80 | T1 |  |
-| [0x128148](../../../src/auto/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
-| [0x1281B0](../../../src/hand/MarkLiveObjects__3CGc.c) | `CGc_MarkLiveObjects` | Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked | 0.85 | T1 |  |
-| [0x1285D8](../../../src/hand/func_001285D8.c) | `CGc_MarkRootRef` | Marks one root CRef (pair/proc/method) and pushes it on the GC stacks | 0.40 | T2 |  |
-| [0x1286E0](../../../src/hand/Collect__3CGc.c) | `CGc_Collect` | Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots (frames/sidebags/stack), MarkLiveObjects, FreeGarbage on all heaps | 0.85 | T1 |  |
+| [0x128138](../../../src/game/splice/gc/CGc_ctor.c) | `CGc_ctor` | Constructor of the global GC object (zeroes first field) | 0.80 | T1 |  |
+| [0x128148](../../../src/game/splice/gc/CGc_UpdateRecyclable.c) | `CGc_UpdateRecyclable` | Resets 6 splotheap 'recyclable' cursors (D_002DD288=D_002DD280 ... stride 0x10) | 0.85 | T1 | verified |
+| [0x1281B0](../../../src/game/splice/gc/MarkLiveObjects__3CGc.c) | `CGc_MarkLiveObjects` | Mark loop: pops frame/proc/pair stacks, marks children with current mark bit and pushes unmarked | 0.85 | T1 |  |
+| [0x1285D8](../../../src/game/splice/gc/func_001285D8.c) | `CGc_MarkRootRef` | Marks one root CRef (pair/proc/method) and pushes it on the GC stacks | 0.40 | T2 |  |
+| [0x1286E0](../../../src/game/splice/gc/Collect__3CGc.c) | `CGc_Collect` | Full collection: allocate mark stacks, UnmarkAll on 6 splotheaps, mark roots (frames/sidebags/stack), MarkLiveObjects, FreeGarbage on all heaps | 0.85 | T1 |  |
 
 ## pair (0x128CB8-0x128F70)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128CB8](../../../src/hand/CPair_CloneTo.cpp) | `CPair_CloneTo` | Deep-copies a list: new nodes (0x256B48) with RefClone of each element | 0.75 | T1 |  |
+| [0x128CB8](../../../src/game/splice/pair/CPair_CloneTo.cpp) | `CPair_CloneTo` | Deep-copies a list: new nodes (0x256B48) with RefClone of each element | 0.75 | T1 |  |
 
 ## proc (0x128F70-0x1291A8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x128F70](../../../src/hand/CProc_CloneTo.cpp) | `CProc_CloneTo` | New proc (0x256F48) copying frame pointer and param/body lists | 0.75 | T1 |  |
+| [0x128F70](../../../src/game/splice/proc/CProc_CloneTo.cpp) | `CProc_CloneTo` | New proc (0x256F48) copying frame pointer and param/body lists | 0.75 | T1 |  |
 
 ## ref (0x1291A8-0x12A3D8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1291A8](../../../src/auto/func_001291A8.c) | `__4CRefRC4CRef` |  |  | existing |  |
-| [0x1291E0](../../../src/auto/CRef_ctor_VECTOR.c) | `CRef_ctor_VECTOR` | Constructor: tag 0x1A, allocates refcounted VECTOR box from pool D_00452188 (0x11CCC0) and copies *pv | 0.80 | T1 |  |
-| [0x129248](../../../src/hand/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
-| [0x1292B0](../../../src/auto/CRef_ctor_MATRIX4.c) | `CRef_ctor_MATRIX4` | Constructor: tag 0x1B, MATRIX4 box (pool D_004521A0, cref at +0x40) | 0.80 | T1 |  |
-| [0x129330](../../../src/auto/CRef_ctor_CLQ.c) | `CRef_ctor_CLQ` | Constructor: tag 0x1C (CLQ, 16 B box, pool D_004521B8) | 0.75 | T1 |  |
-| [0x129398](../../../src/hand/CRef_ctor_LM.c) | `CRef_ctor_LM` | Constructor: tag 0x1D (LM, 8 B box, pool D_004521D0) | 0.75 | T1 |  |
-| [0x129408](../../../src/hand/CRef_ctor_SMP.c) | `CRef_ctor_SMP` | Constructor: tag 0x1E (SMP, 12 B box, pool D_004521E8) | 0.75 | T1 |  |
-| [0x129480](../../../src/hand/CRef_ctor_CPair.c) | `CRef_ctor_CPair` | Constructor: tag 0x1F, stores node pointer and increments its refcount | 0.80 | T1 |  |
-| [0x1294A0](../../../src/hand/CRef_ctor_CProc.c) | `CRef_ctor_CProc` | Constructor: tag 0x20 (proc), increments refcount | 0.75 | T1 |  |
-| [0x1294C0](../../../src/auto/CRef_ctor_BASIC.c) | `CRef_ctor_BASIC` | Constructor: tag 0x21; calls the object's vtable slot 1 (Incref) if non-null | 0.80 | T1 |  |
-| [0x129518](../../../src/hand/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
-| [0x129558](../../../src/hand/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
-| [0x129598](../../../src/hand/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
-| [0x1295D8](../../../src/hand/CRef_SetSymid.c) | `CRef_SetSymid` | Decref then tag 0x18 | 0.85 | T1 |  |
-| [0x129618](../../../src/hand/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
-| [0x129658](../../../src/auto/__as__4CRefRC4CRef.c) | `__as__4CRefRC4CRef` |  |  | existing |  |
-| [0x1296A8](../../../src/hand/CRef_SetVector.c) | `CRef_SetVector` | Decref, tag 0x1A, new box, copy *pv | 0.85 | T1 |  |
-| [0x129718](../../../src/hand/CRef_SetVector_VU_VECTOR.c) | `CRef_SetVector_VU_VECTOR` | Same as SetVector but vector passed by value | 0.60 | T1 |  |
-| [0x129780](../../../src/hand/CRef_SetMatrix.c) | `CRef_SetMatrix` | Decref, tag 0x1B, new box, copy | 0.85 | T1 |  |
-| [0x129808](../../../src/hand/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
-| [0x129878](../../../src/hand/CRef_SetLm.c) | `CRef_SetLm` | Decref, tag 0x1D | 0.85 | T1 |  |
-| [0x1298F0](../../../src/hand/CRef_SetSmp.c) | `CRef_SetSmp` | Decref, tag 0x1E | 0.85 | T1 |  |
-| [0x129970](../../../src/hand/CRef_SetPair.c) | `CRef_SetPair` | Incref new node, Decref old, tag 0x1F | 0.85 | T1 |  |
-| [0x1299C0](../../../src/hand/CRef_SetProc.c) | `CRef_SetProc` | Incref, Decref, tag 0x20 | 0.85 | T1 |  |
-| [0x129A10](../../../src/hand/CRef_SetBasic.c) | `CRef_SetBasic` | Object vtable Incref (slot 1), Decref old, tag 0x21 | 0.85 | T1 |  |
-| [0x129A70](../../../src/hand/CRef_SetMethod.c) | `CRef_SetMethod` | Incref, Decref, tag 0x22 | 0.85 | T1 |  |
-| [0x129AC0](../../../src/hand/__eq__4CRefRC4CRef.cpp) | `__eq__4CRefRC4CRef` |  |  | existing |  |
-| [0x129BC8](../../../src/hand/CRef_CloneTo.cpp) | `CRef_CloneTo` | Deep copy: boxes re-allocated, pairs cloned via 0x128CB8, procs via 0x128F70, objects re-referenced | 0.65 | T1 |  |
-| [0x129D58](../../../src/hand/CRef_RefCoerceS32.c) | `CRef_RefCoerceS32` | Returns S32 copy (float truncated) | 0.85 | T1 |  |
-| [0x129DA8](../../../src/auto/CRef_RefCoerceF32.c) | `CRef_RefCoerceF32` | Returns F32 copy (int promoted); used by most numeric builtins | 0.88 | T1 |  |
-| [0x129DF8](../../../src/hand/Incref__4CRef.c) | `CRef_Incref` | Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p, objects vtable slot 1) | 0.88 | T1 |  |
-| [0x129EC8](../../../src/hand/Decref__4CRef.cpp) | `Decref__4CRef` |  |  | existing |  |
-| [0x12A0B0](../../../src/hand/InitTag__4CRef.c) | `SetTag__4CRef4TAGK` |  | 0.65 | existing | arbitration; replaces existing InitTag__4CRef |
+| [0x1291A8](../../../src/game/splice/ref/func_001291A8.c) | `__4CRefRC4CRef` |  |  | existing |  |
+| [0x1291E0](../../../src/game/splice/ref/CRef_ctor_VECTOR.c) | `CRef_ctor_VECTOR` | Constructor: tag 0x1A, allocates refcounted VECTOR box from pool D_00452188 (0x11CCC0) and copies *pv | 0.80 | T1 |  |
+| [0x129248](../../../src/game/splice/ref/CRef_ctor.c) | `CRef_ctor` | Constructor: tag 0x1A from a vector passed by value in a qword register | 0.85 | T1 | verified |
+| [0x1292B0](../../../src/game/splice/ref/CRef_ctor_MATRIX4.c) | `CRef_ctor_MATRIX4` | Constructor: tag 0x1B, MATRIX4 box (pool D_004521A0, cref at +0x40) | 0.80 | T1 |  |
+| [0x129330](../../../src/game/splice/ref/CRef_ctor_CLQ.c) | `CRef_ctor_CLQ` | Constructor: tag 0x1C (CLQ, 16 B box, pool D_004521B8) | 0.75 | T1 |  |
+| [0x129398](../../../src/game/splice/ref/CRef_ctor_LM.c) | `CRef_ctor_LM` | Constructor: tag 0x1D (LM, 8 B box, pool D_004521D0) | 0.75 | T1 |  |
+| [0x129408](../../../src/game/splice/ref/CRef_ctor_SMP.c) | `CRef_ctor_SMP` | Constructor: tag 0x1E (SMP, 12 B box, pool D_004521E8) | 0.75 | T1 |  |
+| [0x129480](../../../src/game/splice/ref/CRef_ctor_CPair.c) | `CRef_ctor_CPair` | Constructor: tag 0x1F, stores node pointer and increments its refcount | 0.80 | T1 |  |
+| [0x1294A0](../../../src/game/splice/ref/CRef_ctor_CProc.c) | `CRef_ctor_CProc` | Constructor: tag 0x20 (proc), increments refcount | 0.75 | T1 |  |
+| [0x1294C0](../../../src/game/splice/ref/CRef_ctor_BASIC.c) | `CRef_ctor_BASIC` | Constructor: tag 0x21; calls the object's vtable slot 1 (Incref) if non-null | 0.80 | T1 |  |
+| [0x129518](../../../src/game/splice/ref/SetS32__4CRefi.c) | `CRef_SetS32` | Decref then tag 0x15 = n | 0.85 | T1 | verified |
+| [0x129558](../../../src/game/splice/ref/SetF32__4CReff.c) | `CRef_SetF32` | Decref then tag 0x16 = g | 0.85 | T1 | verified |
+| [0x129598](../../../src/game/splice/ref/CRef_SetBool.c) | `CRef_SetBool` | Decref then tag 0x17 | 0.85 | T1 | verified |
+| [0x1295D8](../../../src/game/splice/ref/CRef_SetSymid.c) | `CRef_SetSymid` | Decref then tag 0x18 | 0.85 | T1 |  |
+| [0x129618](../../../src/game/splice/ref/CRef_SetBifk.c) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
+| [0x129658](../../../src/game/splice/ref/__as__4CRefRC4CRef.c) | `__as__4CRefRC4CRef` |  |  | existing |  |
+| [0x1296A8](../../../src/game/splice/ref/CRef_SetVector.c) | `CRef_SetVector` | Decref, tag 0x1A, new box, copy *pv | 0.85 | T1 |  |
+| [0x129718](../../../src/game/splice/ref/CRef_SetVector_VU_VECTOR.c) | `CRef_SetVector_VU_VECTOR` | Same as SetVector but vector passed by value | 0.60 | T1 |  |
+| [0x129780](../../../src/game/splice/ref/CRef_SetMatrix.c) | `CRef_SetMatrix` | Decref, tag 0x1B, new box, copy | 0.85 | T1 |  |
+| [0x129808](../../../src/game/splice/ref/CRef_SetClq.c) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
+| [0x129878](../../../src/game/splice/ref/CRef_SetLm.c) | `CRef_SetLm` | Decref, tag 0x1D | 0.85 | T1 |  |
+| [0x1298F0](../../../src/game/splice/ref/CRef_SetSmp.c) | `CRef_SetSmp` | Decref, tag 0x1E | 0.85 | T1 |  |
+| [0x129970](../../../src/game/splice/ref/CRef_SetPair.c) | `CRef_SetPair` | Incref new node, Decref old, tag 0x1F | 0.85 | T1 |  |
+| [0x1299C0](../../../src/game/splice/ref/CRef_SetProc.c) | `CRef_SetProc` | Incref, Decref, tag 0x20 | 0.85 | T1 |  |
+| [0x129A10](../../../src/game/splice/ref/CRef_SetBasic.c) | `CRef_SetBasic` | Object vtable Incref (slot 1), Decref old, tag 0x21 | 0.85 | T1 |  |
+| [0x129A70](../../../src/game/splice/ref/CRef_SetMethod.c) | `CRef_SetMethod` | Incref, Decref, tag 0x22 | 0.85 | T1 |  |
+| [0x129AC0](../../../src/game/splice/ref/__eq__4CRefRC4CRef.cpp) | `__eq__4CRefRC4CRef` |  |  | existing |  |
+| [0x129BC8](../../../src/game/splice/ref/CRef_CloneTo.cpp) | `CRef_CloneTo` | Deep copy: boxes re-allocated, pairs cloned via 0x128CB8, procs via 0x128F70, objects re-referenced | 0.65 | T1 |  |
+| [0x129D58](../../../src/game/splice/ref/CRef_RefCoerceS32.c) | `CRef_RefCoerceS32` | Returns S32 copy (float truncated) | 0.85 | T1 |  |
+| [0x129DA8](../../../src/game/splice/ref/CRef_RefCoerceF32.c) | `CRef_RefCoerceF32` | Returns F32 copy (int promoted); used by most numeric builtins | 0.88 | T1 |  |
+| [0x129DF8](../../../src/game/splice/ref/Incref__4CRef.c) | `CRef_Incref` | Increments payload refcount by tag (box cref at +0x40/+0x10/+8/+0xC, pairs/procs/methods *p, objects vtable slot 1) | 0.88 | T1 |  |
+| [0x129EC8](../../../src/game/splice/ref/Decref__4CRef.cpp) | `Decref__4CRef` |  |  | existing |  |
+| [0x12A0B0](../../../src/game/splice/ref/InitTag__4CRef.c) | `SetTag__4CRef4TAGK` |  | 0.65 | existing | arbitration; replaces existing InitTag__4CRef |
 
 ## serialize (0x12A3D8-0x12A980)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12A3D8](../../../src/hand/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
+| [0x12A3D8](../../../src/game/splice/serialize/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
 
 ## sidebag (0x12A980-0x12AE18)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12A980](../../../src/hand/CSidebag_RefAddBinding.cpp) | `CSidebag_RefAddBinding` | Prepends BINDING {n, ref} to sidebag list | 0.88 | T1 |  |
-| [0x12AA70](../../../src/hand/RefSetBinding__8CSidebagiP4CRef.cpp) | `RefSetBinding__8CSidebagiP4CRef` |  |  | existing |  |
-| [0x12AB28](../../../src/hand/FFindBinding__8CSidebagiP4CRef.cpp) | `FFindBinding__8CSidebagiP4CRef` |  |  | existing |  |
-| [0x12AB78](../../../src/hand/CSidebag_CloneTo.cpp) | `CSidebag_CloneTo` | New sidebag (0x257D80) with cloned binding list (0x12B0E8) | 0.70 | T1 |  |
+| [0x12A980](../../../src/game/splice/sidebag/CSidebag_RefAddBinding.cpp) | `CSidebag_RefAddBinding` | Prepends BINDING {n, ref} to sidebag list | 0.88 | T1 |  |
+| [0x12AA70](../../../src/game/splice/sidebag/RefSetBinding__8CSidebagiP4CRef.cpp) | `RefSetBinding__8CSidebagiP4CRef` |  |  | existing |  |
+| [0x12AB28](../../../src/game/splice/sidebag/FFindBinding__8CSidebagiP4CRef.cpp) | `FFindBinding__8CSidebagiP4CRef` |  |  | existing |  |
+| [0x12AB78](../../../src/game/splice/sidebag/CSidebag_CloneTo.cpp) | `CSidebag_CloneTo` | New sidebag (0x257D80) with cloned binding list (0x12B0E8) | 0.70 | T1 |  |
 
 ## spliceutils (0x12AE18-0x12B0E8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12AE18](../../../src/auto/StartupSplice.c) | `StartupSplice` | Sets Splice-active flag D_002DD5B8 = 1 | 0.50 | T1 | verified |
-| [0x12AE28](../../../src/auto/ShutdownSplice.c) | `ShutdownSplice` | Clears D_002DD5B8 and shuts down/reset the 6 splice splotheaps (0x257E88..0x257FC8) + 0x11CDB8 | 0.55 | T1 |  |
+| [0x12AE18](../../../src/game/splice/spliceutils/StartupSplice.c) | `StartupSplice` | Sets Splice-active flag D_002DD5B8 = 1 | 0.50 | T1 | verified |
+| [0x12AE28](../../../src/game/splice/spliceutils/ShutdownSplice.c) | `ShutdownSplice` | Clears D_002DD5B8 and shuts down/reset the 6 splice splotheaps (0x257E88..0x257FC8) + 0x11CDB8 | 0.55 | T1 |  |
 
 ## varb (0x12B0E8-0x12B3B0)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12B0E8](../../../src/hand/CVarb_CloneTo.cpp) | `CVarb_CloneTo` | Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone | 0.70 | T1 |  |
+| [0x12B0E8](../../../src/game/splice/varb/CVarb_CloneTo.cpp) | `CVarb_CloneTo` | Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone | 0.70 | T1 |  |
 
 ## splicemap (0x1FF7E8-0x1FFCF8)
 
