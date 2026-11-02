@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`barrier/`](barrier/) | 9 |
+| [`barrier.cpp`](barrier.cpp) | 1 |
 | [`bomb/`](bomb/) | 22 |
 | [`button/`](button/) | 50 |
 | [`empty_1D7A30.cpp`](empty_1D7A30.cpp) | 1 |

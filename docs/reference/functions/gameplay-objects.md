@@ -19,13 +19,13 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1320C8](../../../src/game/gameplay/objects/barrier/InitBarrier.c) | `InitBarrier` | BARRIER vt7 Init: InitSo then set an SO flag bit (grf \|= 1<<34) | 0.85 | T1 | verified |
-| [0x132100](../../../src/game/gameplay/objects/barrier/PostBarrierLoad.c) | `PostBarrierLoad` | BARRIER vt15 PostLoad: PostSoLoad, then if it has physics (+0xE8) register it with g_sw (0x134320, pairs with every other registered SO) | 0.70 | T1 |  |
-| [0x132140](../../../src/game/gameplay/objects/barrier/FIgnoreBarrierIntersection.c) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
-| [0x132238](../../../src/game/gameplay/objects/barrier/NotifyBarrierImpact.c) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
-| [0x132298](../../../src/game/gameplay/objects/barrier/SendBarrierImpactMessages.c) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice impact event) | 0.60 | T1 | verified |
-| [0x1323C8](../../../src/game/gameplay/objects/barrier/AddBarrierObject__FP7BARRIER3OID.cpp) | `AddBarrierObject__FP7BARRIER3OID` |  |  | existing |  |
-| [0x1323F0](../../../src/game/gameplay/objects/barrier/AddBarrierClass__FP7BARRIER3CID.cpp) | `AddBarrierClass__FP7BARRIER3CID` |  |  | existing |  |
+| [0x1320C8](../../../src/game/gameplay/objects/barrier.cpp) | `InitBarrier` | BARRIER vt7 Init: InitSo then set an SO flag bit (grf \|= 1<<34) | 0.85 | T1 | verified |
+| [0x132100](../../../src/game/gameplay/objects/barrier.cpp) | `PostBarrierLoad` | BARRIER vt15 PostLoad: PostSoLoad, then if it has physics (+0xE8) register it with g_sw (0x134320, pairs with every other registered SO) | 0.70 | T1 |  |
+| [0x132140](../../../src/game/gameplay/objects/barrier.cpp) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
+| [0x132238](../../../src/game/gameplay/objects/barrier.cpp) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
+| [0x132298](../../../src/game/gameplay/objects/barrier.cpp) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice impact event) | 0.60 | T1 | verified |
+| [0x1323C8](../../../src/game/gameplay/objects/barrier.cpp) | `AddBarrierObject__FP7BARRIER3OID` |  |  | existing |  |
+| [0x1323F0](../../../src/game/gameplay/objects/barrier.cpp) | `AddBarrierClass__FP7BARRIER3CID` |  |  | existing |  |
 
 ## bomb (0x13A9E8-0x13BDF0)
 
