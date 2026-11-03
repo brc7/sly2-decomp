@@ -21,7 +21,7 @@
 | [`mode.cpp`](mode.cpp) | 1 |
 | [`murray/`](murray/) | 66 |
 | [`pipe.cpp`](pipe.cpp) | 1 |
-| [`pipe_jt/`](pipe_jt/) | 15 |
+| [`pipe_jt.cpp`](pipe_jt.cpp) | 1 |
 | [`places.cpp`](places.cpp) | 1 |
 | [`rail.cpp`](rail.cpp) | 1 |
 | [`stepplayer/`](stepplayer/) | 96 |

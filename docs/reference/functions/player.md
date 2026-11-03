@@ -495,19 +495,19 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19DE10](../../../src/game/gameplay/player/pipe_jt/InitJtPipe.c) | `InitJtPipe` | Init the STEPPLAYER+0xF50 pipe context (owner, state -1, tuning 45/40 ...) | 0.55 | T1 |  |
-| [0x19DE58](../../../src/game/gameplay/player/pipe_jt/PostJtLoadPipe.c) | `PostJtLoadPipe` | For the 2 climb clips measure their per-cycle climb speed (0x12FF10 key lookup) then build the climb blend (EnsureAsegBlendDynamic 0x137A30) | 0.65 | T1 |  |
-| [0x19DF70](../../../src/game/gameplay/player/pipe_jt/PresetJtAccelPipe.cpp) | `PresetJtAccelPipe` | Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4 | 0.85 | T1 | verified |
-| [0x19E110](../../../src/game/gameplay/player/pipe_jt/func_0019E110.c) | `GetJtPipeSRange` | Allowed s range on the pipe curve: unbounded if closed, else [sMin+35 or +100, sMax-100] | 0.45 | T2 |  |
-| [0x19E1E0](../../../src/game/gameplay/player/pipe_jt/UpdateJtActivePipe.cpp) | `UpdateJtActivePipe` | Per-frame pipe climbing: smooth offset, X jumps off (SetJtAirJump 2), 0x400 starts JtMode, climb up/down/spin along curve within GetJtPipeSRange, sounds | 0.65 | T1 |  |
-| [0x19E950](../../../src/game/gameplay/player/pipe_jt/UpdateJtInternalXpsPipe.c) | `UpdateJtInternalXpsPipe` | Add the pipe constraint: evaluate curve at s, vt82(7, curve, pos, tangent, local point) | 0.85 | T1 | verified |
-| [0x19E9C8](../../../src/game/gameplay/player/pipe_jt/func_0019E9C8.c) | `ResetJtPipeAdjust` | Clear two fields (+0x94/+0x98) of the adjust record | 0.30 | T2 |  |
-| [0x19E9D8](../../../src/game/gameplay/player/pipe_jt/func_0019E9D8.c) | `GetJtPipePos` | Evaluate the pipe curve at the current s into out | 0.35 | T2 |  |
-| [0x19EA00](../../../src/game/gameplay/player/pipe_jt/func_0019EA00.c) | `GetJtPipeVelocity` | Curve tangent at s scaled by climb speed (+0x14) into out | 0.35 | T2 |  |
-| [0x19EA60](../../../src/game/gameplay/player/pipe_jt/func_0019EA60.c) | `RecordJtPipePlace` | If the pipe allows, record it in the STEPPLAYER+0x9E0 place table (0x19FD30) | 0.35 | T2 |  |
-| [0x19EAA0](../../../src/game/gameplay/player/pipe_jt/func_0019EAA0.c) | `SetJtPipeVectors` | Store two vectors in the pipe context | 0.25 | T2 |  |
-| [0x19EAB0](../../../src/game/gameplay/player/pipe_jt/func_0019EAB0.cpp) | `SetJtPipeState` | Pipe sub-state switch: from -1 mount (subscribe, register, find curve s +-50), per-state clips/sounds, cane reach via SetJtJtcs | 0.55 | T1 |  |
-| [0x19EEF0](../../../src/game/gameplay/player/pipe_jt/func_0019EEF0.c) | `FJtPipeAllowsGadget` | Gadget check while on a pipe: only k==3, allowed if owner flag x12F0 and global flag and no active camera policy | 0.40 | T2 |  |
+| [0x19DE10](../../../src/game/gameplay/player/pipe_jt.cpp) | `InitJtPipe` | Init the STEPPLAYER+0xF50 pipe context (owner, state -1, tuning 45/40 ...) | 0.55 | T1 |  |
+| [0x19DE58](../../../src/game/gameplay/player/pipe_jt.cpp) | `PostJtLoadPipe` | For the 2 climb clips measure their per-cycle climb speed (0x12FF10 key lookup) then build the climb blend (EnsureAsegBlendDynamic 0x137A30) | 0.65 | T1 |  |
+| [0x19DF70](../../../src/game/gameplay/player/pipe_jt.cpp) | `PresetJtAccelPipe` | Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4 | 0.85 | T1 | verified |
+| [0x19E110](../../../src/game/gameplay/player/pipe_jt.cpp) | `GetJtPipeSRange` | Allowed s range on the pipe curve: unbounded if closed, else [sMin+35 or +100, sMax-100] | 0.45 | T2 |  |
+| [0x19E1E0](../../../src/game/gameplay/player/pipe_jt.cpp) | `UpdateJtActivePipe` | Per-frame pipe climbing: smooth offset, X jumps off (SetJtAirJump 2), 0x400 starts JtMode, climb up/down/spin along curve within GetJtPipeSRange, sounds | 0.65 | T1 |  |
+| [0x19E950](../../../src/game/gameplay/player/pipe_jt.cpp) | `UpdateJtInternalXpsPipe` | Add the pipe constraint: evaluate curve at s, vt82(7, curve, pos, tangent, local point) | 0.85 | T1 | verified |
+| [0x19E9C8](../../../src/game/gameplay/player/pipe_jt.cpp) | `ResetJtPipeAdjust` | Clear two fields (+0x94/+0x98) of the adjust record | 0.30 | T2 |  |
+| [0x19E9D8](../../../src/game/gameplay/player/pipe_jt.cpp) | `GetJtPipePos` | Evaluate the pipe curve at the current s into out | 0.35 | T2 |  |
+| [0x19EA00](../../../src/game/gameplay/player/pipe_jt.cpp) | `GetJtPipeVelocity` | Curve tangent at s scaled by climb speed (+0x14) into out | 0.35 | T2 |  |
+| [0x19EA60](../../../src/game/gameplay/player/pipe_jt.cpp) | `RecordJtPipePlace` | If the pipe allows, record it in the STEPPLAYER+0x9E0 place table (0x19FD30) | 0.35 | T2 |  |
+| [0x19EAA0](../../../src/game/gameplay/player/pipe_jt.cpp) | `SetJtPipeVectors` | Store two vectors in the pipe context | 0.25 | T2 |  |
+| [0x19EAB0](../../../src/game/gameplay/player/pipe_jt.cpp) | `SetJtPipeState` | Pipe sub-state switch: from -1 mount (subscribe, register, find curve s +-50), per-state clips/sounds, cane reach via SetJtJtcs | 0.55 | T1 |  |
+| [0x19EEF0](../../../src/game/gameplay/player/pipe_jt.cpp) | `FJtPipeAllowsGadget` | Gadget check while on a pipe: only k==3, allowed if owner flag x12F0 and global flag and no active camera policy | 0.40 | T2 |  |
 
 ## tu_19F0A8 (0x19F0A8-0x19F3E8)
 
