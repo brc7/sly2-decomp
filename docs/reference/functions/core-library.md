@@ -299,14 +299,14 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14B7F8](../../../src/game/platform/cdvd/cd/CpchzTokenizePath__FPc.cpp) | `CpchzTokenizePath__FPc` |  |  | existing |  |
-| [0x14B9C0](../../../src/game/platform/cdvd/cd/FValidCdMmode__Fv.c) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
-| [0x14BA00](../../../src/game/platform/cdvd/cd/SetCdMmode__Fv.c) | `SetCdMmode__Fv` |  |  | existing |  |
-| [0x14BA30](../../../src/game/platform/cdvd/cd/StartupCd__Fv.c) | `StartupCd__Fv` |  |  | existing |  |
-| [0x14BA38](../../../src/game/platform/cdvd/cd/UpdateCd__Fv.cpp) | `UpdateCd__Fv` |  |  | existing |  |
-| [0x14BBB0](../../../src/game/platform/cdvd/cd/CdPath__FPcT0i.cpp) | `CdPath__FPcT0i` |  |  | existing |  |
-| [0x14BC78](../../../src/game/platform/cdvd/cd/ReadCdDirect.c) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
-| [0x14BD30](../../../src/game/platform/cdvd/cd/FCdCompleted__Fi.c) | `FCdCompleted__Fi` |  |  | existing |  |
+| [0x14B7F8](../../../src/game/platform/cdvd/cd.cpp) | `CpchzTokenizePath__FPc` |  |  | existing |  |
+| [0x14B9C0](../../../src/game/platform/cdvd/cd.cpp) | `FValidCdMmode` | sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source | 1.00 | T1 | verified |
+| [0x14BA00](../../../src/game/platform/cdvd/cd.cpp) | `SetCdMmode__Fv` |  |  | existing |  |
+| [0x14BA30](../../../src/game/platform/cdvd/cd.cpp) | `StartupCd__Fv` |  |  | existing |  |
+| [0x14BA38](../../../src/game/platform/cdvd/cd.cpp) | `UpdateCd__Fv` |  |  | existing |  |
+| [0x14BBB0](../../../src/game/platform/cdvd/cd.cpp) | `CdPath__FPcT0i` |  |  | existing |  |
+| [0x14BC78](../../../src/game/platform/cdvd/cd.cpp) | `ReadCdDirect` | Loop sceCdRead until 1, else sceCdSync(0)+error, as Sly1 ReadCdDirect; Sly2 adds a 4th int arg choosing the read mode | 0.95 | T1 | verified |
+| [0x14BD30](../../../src/game/platform/cdvd/cd.cpp) | `FCdCompleted__Fi` |  |  | existing |  |
 
 ## dzg (0x1585D8-0x159118)
 
