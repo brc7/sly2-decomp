@@ -401,17 +401,17 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B9F80](../../../src/game/gameplay/ai/tu_1B9F80/InitNeela.c) | `InitNeela` | CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags | 0.60 | T1 | whole-game |
-| [0x1BA018](../../../src/game/gameplay/ai/tu_1B9F80/PostNeelaLoad.c) | `PostNeelaLoad` | CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for the held prop, SetSoMass 0.25 | 0.60 | T1 | whole-game |
-| [0x1BA0B8](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA0B8.c) | `Neela_VUnk26Proxy` | CID 60 vt26: ResetStepguardToHome then vt9 on attached prop | 0.40 | T2 | whole-game |
-| [0x1BA100](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA100.c) | `FFilterCid98` | Box-query filter: object class == 0x62 (CID 98) | 0.45 | T2 |  |
-| [0x1BA128](../../../src/game/gameplay/ai/tu_1B9F80/UpdateNeela.cpp) | `UpdateNeela` | CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends | 0.55 | T1 | whole-game |
-| [0x1BA408](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA408.c) | `SetNeelaState` | State 1 starts prop animation (0x12F9B8), constraint to target (0x12DC18), behaviour 0x9E target, speed x4; leaving restores | 0.45 | T2 | whole-game |
-| [0x1BA560](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA560.c) | `InitBhv174` | BHV174 s7: base, state -1, AddStepguardSgf(0x25) | 0.50 | T2 |  |
-| [0x1BA598](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA598.c) | `StartBhv174` | BHV174 s8: StartBhv then state 0 | 0.50 | T2 |  |
-| [0x1BA5C8](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA5C8.c) | `CloseBhv174` | BHV174 s9: state -1, CloseBhv, RemoveStepguardSgf(0x25) | 0.50 | T2 |  |
-| [0x1BA608](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA608.c) | `UpdateBhv174` | BHV174 s10: state 0 while player (g_pjt) inside volume xEC, 1 when outside, back when inside xE8, 2 after timeout; scales a behaviour parameter by distance to player | 0.50 | T2 |  |
-| [0x1BA828](../../../src/game/gameplay/ai/tu_1B9F80/func_001BA828.c) | `SetBhv174State` | BHV174 state: 0 resume script (0xA9), 1 chase player (0x9E target=g_pjt), 2 behaviour 0x9D + BroadcastGameEvent 0x33 | 0.45 | T2 |  |
+| [0x1B9F80](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `InitNeela` | CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags | 0.60 | T1 | whole-game |
+| [0x1BA018](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `PostNeelaLoad` | CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for the held prop, SetSoMass 0.25 | 0.60 | T1 | whole-game |
+| [0x1BA0B8](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `Neela_VUnk26Proxy` | CID 60 vt26: ResetStepguardToHome then vt9 on attached prop | 0.40 | T2 | whole-game |
+| [0x1BA100](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `FFilterCid98` | Box-query filter: object class == 0x62 (CID 98) | 0.45 | T2 |  |
+| [0x1BA128](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `UpdateNeela` | CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends | 0.55 | T1 | whole-game |
+| [0x1BA408](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `SetNeelaState` | State 1 starts prop animation (0x12F9B8), constraint to target (0x12DC18), behaviour 0x9E target, speed x4; leaving restores | 0.45 | T2 | whole-game |
+| [0x1BA560](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `InitBhv174` | BHV174 s7: base, state -1, AddStepguardSgf(0x25) | 0.50 | T2 |  |
+| [0x1BA598](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `StartBhv174` | BHV174 s8: StartBhv then state 0 | 0.50 | T2 |  |
+| [0x1BA5C8](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `CloseBhv174` | BHV174 s9: state -1, CloseBhv, RemoveStepguardSgf(0x25) | 0.50 | T2 |  |
+| [0x1BA608](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `UpdateBhv174` | BHV174 s10: state 0 while player (g_pjt) inside volume xEC, 1 when outside, back when inside xE8, 2 after timeout; scales a behaviour parameter by distance to player | 0.50 | T2 |  |
+| [0x1BA828](../../../src/game/gameplay/ai/tu_1B9F80.cpp) | `SetBhv174State` | BHV174 state: 0 resume script (0xA9), 1 chase player (0x9E target=g_pjt), 2 behaviour 0x9D + BroadcastGameEvent 0x33 | 0.45 | T2 |  |
 
 ## tu_1CBEB0 (0x1CBEB0-0x1CC158)
 
