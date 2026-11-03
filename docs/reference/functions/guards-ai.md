@@ -50,19 +50,19 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x153D58](../../../src/game/gameplay/ai/detector/InitDetector.c) | `InitDetector` | XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2 | 0.75 | T1 | verified |
-| [0x153DB0](../../../src/game/gameplay/ai/detector/UpdateDetector.c) | `UpdateDetector` | LO::Update (0x1A5E28) then class update 0x153DE0 | 0.65 | T1 |  |
-| [0x153DE0](../../../src/game/gameplay/ai/detector/UpdateDetectorTargets.c) | `UpdateDetectorTargets` | Re-evaluates every tracked target of a detector: new state = 0x1541D8(target, old state), applied via 0x154080 | 0.55 | T1 |  |
-| [0x153E60](../../../src/game/gameplay/ai/detector/func_00153E60.c) | `PosDetectorEye` | Returns the detector eye position: own position, or its parent position (+80 units up if the parent is a STEPGUARD-family object, cid test 0x38) | 0.45 | T2 |  |
-| [0x153F18](../../../src/game/gameplay/ai/detector/AddDetectorTarget.c) | `AddDetectorTarget` | Adds an object id to the detector target list (max 8, entries of 16 bytes at +0x100, count at +0xFC) with state 0 | 0.55 | T1 |  |
-| [0x153F80](../../../src/game/gameplay/ai/detector/RemoveDetectorTarget.c) | `RemoveDetectorTarget` | Removes a target from the detector list (state forced to 0 first, array compacted) | 0.55 | T1 |  |
-| [0x153FF8](../../../src/game/gameplay/ai/detector/func_00153FF8.c) | `ResetDetectorTargets` | Clears every target state to 0 and stamps the current clock time | 0.45 | T2 |  |
-| [0x154038](../../../src/game/gameplay/ai/detector/SetDetectorTargetStateById.c) | `SetDetectorTargetStateById` | Looks up a target by id and sets its detection state | 0.50 | T1 |  |
-| [0x154080](../../../src/game/gameplay/ai/detector/SetDetectorTargetState.c) | `SetDetectorTargetState` | Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and, when a player-class object becomes detected (state 1), broadcasts game | 0.85 | T1 | verified |
-| [0x154158](../../../src/game/gameplay/ai/detector/GetDetectorTargetStateById.c) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
-| [0x154180](../../../src/game/gameplay/ai/detector/PdteFindDetectorTarget.c) | `PdteFindDetectorTarget` | Finds the target entry with a given id in the detector list (NULL for id 0) | 0.55 | T1 |  |
-| [0x1541D8](../../../src/game/gameplay/ai/detector/KCalculateDetectorTarget.c) | `KCalculateDetectorTarget` | Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes (0x227C90) and optional line test (0 | 0.50 | T1 |  |
-| [0x1545F0](../../../src/game/gameplay/ai/detector/func_001545F0.cpp) | `FDetectorLineBlocked` | Tests whether the line from the detector eye to the target is blocked by objects (PsoHitTestLineObjects with the filter callbacks) | 0.40 | T2 |  |
+| [0x153D58](../../../src/game/gameplay/ai/detector.cpp) | `InitDetector` | XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2 | 0.75 | T1 | verified |
+| [0x153DB0](../../../src/game/gameplay/ai/detector.cpp) | `UpdateDetector` | LO::Update (0x1A5E28) then class update 0x153DE0 | 0.65 | T1 |  |
+| [0x153DE0](../../../src/game/gameplay/ai/detector.cpp) | `UpdateDetectorTargets` | Re-evaluates every tracked target of a detector: new state = 0x1541D8(target, old state), applied via 0x154080 | 0.55 | T1 |  |
+| [0x153E60](../../../src/game/gameplay/ai/detector.cpp) | `PosDetectorEye` | Returns the detector eye position: own position, or its parent position (+80 units up if the parent is a STEPGUARD-family object, cid test 0x38) | 0.45 | T2 |  |
+| [0x153F18](../../../src/game/gameplay/ai/detector.cpp) | `AddDetectorTarget` | Adds an object id to the detector target list (max 8, entries of 16 bytes at +0x100, count at +0xFC) with state 0 | 0.55 | T1 |  |
+| [0x153F80](../../../src/game/gameplay/ai/detector.cpp) | `RemoveDetectorTarget` | Removes a target from the detector list (state forced to 0 first, array compacted) | 0.55 | T1 |  |
+| [0x153FF8](../../../src/game/gameplay/ai/detector.cpp) | `ResetDetectorTargets` | Clears every target state to 0 and stamps the current clock time | 0.45 | T2 |  |
+| [0x154038](../../../src/game/gameplay/ai/detector.cpp) | `SetDetectorTargetStateById` | Looks up a target by id and sets its detection state | 0.50 | T1 |  |
+| [0x154080](../../../src/game/gameplay/ai/detector.cpp) | `SetDetectorTargetState` | Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and, when a player-class object becomes detected (state 1), broadcasts game | 0.85 | T1 | verified |
+| [0x154158](../../../src/game/gameplay/ai/detector.cpp) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
+| [0x154180](../../../src/game/gameplay/ai/detector.cpp) | `PdteFindDetectorTarget` | Finds the target entry with a given id in the detector list (NULL for id 0) | 0.55 | T1 |  |
+| [0x1541D8](../../../src/game/gameplay/ai/detector.cpp) | `KCalculateDetectorTarget` | Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes (0x227C90) and optional line test (0 | 0.50 | T1 |  |
+| [0x1545F0](../../../src/game/gameplay/ai/detector.cpp) | `FDetectorLineBlocked` | Tests whether the line from the detector eye to the target is blocked by objects (PsoHitTestLineObjects with the filter callbacks) | 0.40 | T2 |  |
 
 ## tu_1553F0 (0x1553F0-0x1564E8)
 

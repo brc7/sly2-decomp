@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetDetectorClassDesc`](../../../src/game/app/class_registry/GetDetectorClassDesc.c) | `0x113B10` |
-| 7 | Init | **override** | [`InitDetector`](../../../src/game/gameplay/ai/detector/InitDetector.c) | `0x153D58` |
+| 7 | Init | **override** | [`InitDetector`](../../../src/game/gameplay/ai/detector.cpp) | `0x153D58` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
@@ -38,7 +38,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
-| 16 | Update | **override** | [`UpdateDetector`](../../../src/game/gameplay/ai/detector/UpdateDetector.c) | `0x153DB0` |
+| 16 | Update | **override** | [`UpdateDetector`](../../../src/game/gameplay/ai/detector.cpp) | `0x153DB0` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
