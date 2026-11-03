@@ -275,10 +275,10 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21C820](../../../src/game/engine/anim/tail/func_0021C820.c) | `CloneChainAct` | clone of an XF actuator hook: base copy 0x12CF88 then copies owner field 0xA8 -> +0x1C | 0.35 | T2 |  |
-| [0x21C858](../../../src/game/engine/anim/tail/func_0021C858.c) | `RetractChainAct` | hook vt slot1: base 0x12CE98 (calls 0x2303A0 + 0x22C840 = XF act list update) then writes +0x1C back to object+0xA8 | 0.35 | T2 |  |
-| [0x21C888](../../../src/game/engine/anim/tail/LoadSoChainsFromBrx.c) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018); computes rest segments | 0.90 | T1 | parse, verified |
-| [0x21CB18](../../../src/game/engine/anim/tail/func_0021CB18.cpp) | `UpdateChainLink` | per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then aims the XF at the simulated tip | 0.70 | T1 |  |
+| [0x21C820](../../../src/game/engine/anim/tail.cpp) | `CloneChainAct` | clone of an XF actuator hook: base copy 0x12CF88 then copies owner field 0xA8 -> +0x1C | 0.35 | T2 |  |
+| [0x21C858](../../../src/game/engine/anim/tail.cpp) | `RetractChainAct` | hook vt slot1: base 0x12CE98 (calls 0x2303A0 + 0x22C840 = XF act list update) then writes +0x1C back to object+0xA8 | 0.35 | T2 |  |
+| [0x21C888](../../../src/game/engine/anim/tail.cpp) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018); computes rest segments | 0.90 | T1 | parse, verified |
+| [0x21CB18](../../../src/game/engine/anim/tail.cpp) | `UpdateChainLink` | per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then aims the XF at the simulated tip | 0.70 | T1 |  |
 
 ## wr (0x22B720-0x22C818)
 

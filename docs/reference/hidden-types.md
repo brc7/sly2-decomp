@@ -137,7 +137,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | `0x2CA860` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneAct` | (no lui/addiu reference: reached through a table or unused) | — |
 | `0x2CAF08` | 7 | 1=`AsegaChnAttach?`, 2=`AsegaChnDetach?`, 3=`ACT_Stub3?`, 4=`AsegaChnApply?`, 5=`GetActsegGoal`, 6=`CloneAct` | [`ApplyAseg?`](../../src/game/engine/anim/aseg/func_0012F9B8.cpp), [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18) | — |
 | `0x2D2E58` | 7 | 1=`RetractActik?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`ApplyActik?` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18) | — |
-| `0x2DB338` | 7 | 1=`RetractChainAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneChainAct?` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp), [`LoadSoChainsFromBrx?`](../../src/game/engine/anim/tail/LoadSoChainsFromBrx.c) (+0x18) | — |
+| `0x2DB338` | 7 | 1=`RetractChainAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneChainAct?` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp), [`LoadSoChainsFromBrx?`](../../src/game/engine/anim/tail.cpp) (+0x18) | — |
 
 #### B2.9 AC / BLEND
 

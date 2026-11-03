@@ -12,7 +12,7 @@
 | [`empty_131F70.cpp`](empty_131F70.cpp) | 1 |
 | [`ik/`](ik/) | 8 |
 | [`sm/`](sm/) | 43 |
-| [`tail/`](tail/) | 6 |
+| [`tail.cpp`](tail.cpp) | 1 |
 | [`tu_1603B8.cpp`](tu_1603B8.cpp) | 1 |
 | [`wr/`](wr/) | 20 |
 | [`xf/`](xf/) | 44 |
