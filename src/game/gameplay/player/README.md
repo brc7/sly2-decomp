@@ -7,7 +7,7 @@
 | [`air/`](air/) | 44 |
 | [`bentley/`](bentley/) | 48 |
 | [`cane/`](cane/) | 12 |
-| [`dirblend/`](dirblend/) | 5 |
+| [`dirblend.cpp`](dirblend.cpp) | 1 |
 | [`empty_1344F0.cpp`](empty_1344F0.cpp) | 1 |
 | [`empty_1378D8.cpp`](empty_1378D8.cpp) | 1 |
 | [`grab/`](grab/) | 28 |

@@ -187,9 +187,9 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A0300](../../../src/game/gameplay/player/dirblend/func_001A0300.c) | `PostLoadDirBlend` | For 8 directional clips measure root velocity (clip displacement / duration via key lookup 0x12FF10) and build the 8-entry blend (0x137A30 cbBl 0x20) | 0.40 | T2 |  |
-| [0x1A0450](../../../src/game/gameplay/player/dirblend/func_001A0450.c) | `UpdateDirBlend` | Choose/blend directional clip weights from the movement vector and update the animation request | 0.40 | T2 |  |
-| [0x1A0720](../../../src/game/gameplay/player/dirblend/func_001A0720.c) | `UpdateJtDirAccel` | Update directional acceleration and side state from heading/magnitude | 0.30 | T2 |  |
+| [0x1A0300](../../../src/game/gameplay/player/dirblend.cpp) | `PostLoadDirBlend` | For 8 directional clips measure root velocity (clip displacement / duration via key lookup 0x12FF10) and build the 8-entry blend (0x137A30 cbBl 0x20) | 0.40 | T2 |  |
+| [0x1A0450](../../../src/game/gameplay/player/dirblend.cpp) | `UpdateDirBlend` | Choose/blend directional clip weights from the movement vector and update the animation request | 0.40 | T2 |  |
+| [0x1A0720](../../../src/game/gameplay/player/dirblend.cpp) | `UpdateJtDirAccel` | Update directional acceleration and side state from heading/magnitude | 0.30 | T2 |  |
 
 ## sm (0x1EFA90-0x1F1768)
 
