@@ -115,11 +115,11 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x11D978](../../src/game/core/math/util/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
 | [0x11D9D8](../../src/game/core/math/util/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
 | [0x11DD30](../../src/game/core/math/util/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
-| [0x11E2D8](../../src/game/core/math/vec/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
-| [0x11E630](../../src/game/core/math/vec/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
-| [0x11E958](../../src/game/core/math/vec/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
-| [0x11E9F8](../../src/game/core/math/vec/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
-| [0x11F088](../../src/game/core/math/vec/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
+| [0x11E2D8](../../src/game/core/math/vec.cpp) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
+| [0x11E630](../../src/game/core/math/vec.cpp) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
+| [0x11E958](../../src/game/core/math/vec.cpp) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
+| [0x11E9F8](../../src/game/core/math/vec.cpp) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
+| [0x11F088](../../src/game/core/math/vec.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
 | [0x13D558](../../src/game/core/containers/bq.cpp) | `CByteQueue_Init` | Store buffer size (+4) and buffer (+0) then Reset | 0.92 | T1 | verified |
 | [0x13D850](../../src/game/core/containers/bq.cpp) | `CQueueInputMemory_CbRead` | Copy min(cb, remaining) bytes from memory source and advance | 0.90 | T1 | verified |
 | [0x13D8B8](../../src/game/core/containers/bq.cpp) | `CQueueInputFile_CbRead` | Stub returning 0 (file input unused in retail) | 0.75 | T1 | verified |

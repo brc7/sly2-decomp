@@ -237,26 +237,26 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11E1A0](../../../src/game/core/math/vec/SetVectorCylind.c) | `SetVectorCylind` | Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value | 0.75 | T1 |  |
-| [0x11E208](../../../src/game/core/math/vec/SetVectorSphere.c) | `SetVectorSphere` | Vector from spherical (pan, tilt, r) | 0.75 | T1 |  |
-| [0x11E290](../../../src/game/core/math/vec/func_0011E290.c) | `SProjectVector` | Scalar projection of a on b; optionally returns parallel and perpendicular components | 0.55 | T1 |  |
-| [0x11E2D8](../../../src/game/core/math/vec/GetNormalVectors.c) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
-| [0x11E390](../../../src/game/core/math/vec/GetNormalVector.c) | `GetNormalVector` | A unit vector perpendicular to v (picks smallest component axis) | 0.70 | T1 |  |
-| [0x11E4B0](../../../src/game/core/math/vec/RadBetweenVectors.c) | `RadBetweenVectors` | Angle between two vectors (acosf) and optional normalised rotation axis | 0.80 | T1 |  |
-| [0x11E630](../../../src/game/core/math/vec/FindClosestPointBetweenLines.c) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
-| [0x11E7C8](../../../src/game/core/math/vec/FindClosestPointBetweenLineSegments.c) | `FindClosestPointBetweenLineSegments` | Closest points between two segments (clamped line solution) | 0.60 | T1 |  |
-| [0x11E958](../../../src/game/core/math/vec/CalculateVectorPanTilt.c) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
-| [0x11E9F8](../../../src/game/core/math/vec/LimitVectorLength.c) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
-| [0x11EA60](../../../src/game/core/math/vec/func_0011EA60.c) | `FClipLineToTriangle` | Vector geometry helper (edge cross products and dot readbacks against a triangle/segment) | 0.30 | T2 |  |
-| [0x11EBB0](../../../src/game/core/math/vec/FIntersectRayTriangle.c) | `FIntersectRayTriangle` | Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v) | 0.60 | T1 |  |
-| [0x11ED40](../../../src/game/core/math/vec/FindClosestPointOnLine.c) | `FindClosestPointOnLine` | Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance | 0.65 | T1 | top50; top50 round; v2 name ClosestPointOnSegment |
-| [0x11EE08](../../../src/game/core/math/vec/FindClosestPointOnLineSegment.c) | `FindClosestPointOnLineSegment` | Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t, distance | 0.80 | T1 | top50; top50 round; v2 name ClosestPointOnSegmentT |
-| [0x11EF08](../../../src/game/core/math/vec/GetVectorCylind.c) | `GetVectorCylind` | Inverse of SetVectorCylind: angle, radius, z of v | 0.55 | T1 |  |
-| [0x11EFB0](../../../src/game/core/math/vec/GetVectorSphere.c) | `GetVectorSphere` | Inverse of SetVectorSphere: pan, tilt, length of v | 0.55 | T1 |  |
-| [0x11F088](../../../src/game/core/math/vec/PosSmooth.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
-| [0x11F198](../../../src/game/core/math/vec/func_0011F198.c) | `RadBetweenVectorsSafe` | Returns an angle-like float between a and b, 0 if either is shorter than 1e-4 | 0.30 | T2 |  |
-| [0x11F288](../../../src/game/core/math/vec/VecMinArray.c) | `VecMinArray` | Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0) | 0.55 | T1 |  |
-| [0x11F2B8](../../../src/game/core/math/vec/VecMaxArray.c) | `VecMaxArray` | Component-wise maximum over c vectors | 0.50 | T1 |  |
+| [0x11E1A0](../../../src/game/core/math/vec.cpp) | `SetVectorCylind` | Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value | 0.75 | T1 |  |
+| [0x11E208](../../../src/game/core/math/vec.cpp) | `SetVectorSphere` | Vector from spherical (pan, tilt, r) | 0.75 | T1 |  |
+| [0x11E290](../../../src/game/core/math/vec.cpp) | `SProjectVector` | Scalar projection of a on b; optionally returns parallel and perpendicular components | 0.55 | T1 |  |
+| [0x11E2D8](../../../src/game/core/math/vec.cpp) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
+| [0x11E390](../../../src/game/core/math/vec.cpp) | `GetNormalVector` | A unit vector perpendicular to v (picks smallest component axis) | 0.70 | T1 |  |
+| [0x11E4B0](../../../src/game/core/math/vec.cpp) | `RadBetweenVectors` | Angle between two vectors (acosf) and optional normalised rotation axis | 0.80 | T1 |  |
+| [0x11E630](../../../src/game/core/math/vec.cpp) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
+| [0x11E7C8](../../../src/game/core/math/vec.cpp) | `FindClosestPointBetweenLineSegments` | Closest points between two segments (clamped line solution) | 0.60 | T1 |  |
+| [0x11E958](../../../src/game/core/math/vec.cpp) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |
+| [0x11E9F8](../../../src/game/core/math/vec.cpp) | `LimitVectorLength` | Scales v down to length gMax if longer | 0.85 | T1 | verified |
+| [0x11EA60](../../../src/game/core/math/vec.cpp) | `FClipLineToTriangle` | Vector geometry helper (edge cross products and dot readbacks against a triangle/segment) | 0.30 | T2 |  |
+| [0x11EBB0](../../../src/game/core/math/vec.cpp) | `FIntersectRayTriangle` | Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v) | 0.60 | T1 |  |
+| [0x11ED40](../../../src/game/core/math/vec.cpp) | `FindClosestPointOnLine` | Closest point to pos on the infinite line through p0,p1 (t unclamped); optional point, t, distance | 0.65 | T1 | top50; top50 round; v2 name ClosestPointOnSegment |
+| [0x11EE08](../../../src/game/core/math/vec.cpp) | `FindClosestPointOnLineSegment` | Closest point to pos on segment p0-p1: t=clamp(dot(pos-p0,d)/dot(d,d),0,1); optional out point, t, distance | 0.80 | T1 | top50; top50 round; v2 name ClosestPointOnSegmentT |
+| [0x11EF08](../../../src/game/core/math/vec.cpp) | `GetVectorCylind` | Inverse of SetVectorCylind: angle, radius, z of v | 0.55 | T1 |  |
+| [0x11EFB0](../../../src/game/core/math/vec.cpp) | `GetVectorSphere` | Inverse of SetVectorSphere: pan, tilt, length of v | 0.55 | T1 |  |
+| [0x11F088](../../../src/game/core/math/vec.cpp) | `PosSmooth` | Smooth a position toward a target (existing name) | 0.85 | existing | arbitration |
+| [0x11F198](../../../src/game/core/math/vec.cpp) | `RadBetweenVectorsSafe` | Returns an angle-like float between a and b, 0 if either is shorter than 1e-4 | 0.30 | T2 |  |
+| [0x11F288](../../../src/game/core/math/vec.cpp) | `VecMinArray` | Component-wise minimum over c vectors (vmini, seeded with +big D_002A2DF0) | 0.55 | T1 |  |
+| [0x11F2B8](../../../src/game/core/math/vec.cpp) | `VecMaxArray` | Component-wise maximum over c vectors | 0.50 | T1 |  |
 
 ## bas (0x132570-0x132B00)
 
