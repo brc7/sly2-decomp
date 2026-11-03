@@ -25,7 +25,7 @@
 | [`places/`](places/) | 14 |
 | [`rail.cpp`](rail.cpp) | 1 |
 | [`stepplayer/`](stepplayer/) | 96 |
-| [`throw/`](throw/) | 12 |
+| [`throw.cpp`](throw.cpp) | 1 |
 | [`tu_19F0A8.cpp`](tu_19F0A8.cpp) | 1 |
 | [`tu_201D78/`](tu_201D78/) | 26 |
 | [`tu_20B840/`](tu_20B840/) | 31 |

@@ -770,13 +770,13 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21F2E0](../../../src/game/gameplay/player/throw/InitThrow.c) | `InitThrow` | JTTHROW defaults: owner=a, state -1, 500/1500 ranges, 1.5, 1000, launch vectors (0,0,25),(1000,0,0),(42,-73,-50) | 0.60 | T1 | verified |
-| [0x21F388](../../../src/game/gameplay/player/throw/PostJtthrowLoad.c) | `PostJtthrowLoad` | EnsureAsegBlendDynamic x3: 2-clip, 4-clip and 2-clip aim blends (ablB/ablC) | 0.50 | T1 |  |
-| [0x21F418](../../../src/game/gameplay/player/throw/UpdateJtthrow.cpp) | `UpdateJtthrow` | per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70), state transitions (0x2206C8) | 0.50 | T1 |  |
-| [0x21FB18](../../../src/game/gameplay/player/throw/func_0021FB18.c) | `FFilterJtthrowArcObject` | FindSwObjectsInBox filter: reject objects with flag 0x59 else default filter 0x20F948 | 0.45 | T2 |  |
-| [0x21FB70](../../../src/game/gameplay/player/throw/UpdateJtThrowArc.cpp) | `UpdateJtThrowArc` | predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the aim marker ring, updates aim blends | 0.75 | T1 |  |
-| [0x220388](../../../src/game/gameplay/player/throw/func_00220388.cpp) | `UpdateJtthrowHoldPos` | vector-state update of hold point for states 4..6 (gain D_002C4108, normalize) | 0.30 | T2 |  |
-| [0x220498](../../../src/game/gameplay/player/throw/func_00220498.c) | `AdjustJtthrowGrfsp` | if q is the carried object and state>=3 (or player in jts 0x12) return 0x134310(flags,3) else flags | 0.30 | T2 |  |
-| [0x220508](../../../src/game/gameplay/player/throw/func_00220508.c) | `StartJtthrowFlight` | for states 4..6: store launch/target points, flight time = distance / speed, start time = now, active=1 | 0.40 | T2 |  |
-| [0x2205A8](../../../src/game/gameplay/player/throw/func_002205A8.c) | `ReleaseJtthrowObject` | detaches carried object (SetLoParent(0,3) / no-gravity reset) and gives it linear (vt35 SetVelocity) and angular (vt36) velocity; removes arc marker (vt9) | 0.45 | T2 |  |
-| [0x2206C8](../../../src/game/gameplay/player/throw/SetJtthrowState.cpp) | `SetJtthrowState` | state transitions of the carry/throw controller and selection of the matching animation (0x1305B8) | 0.50 | T1 |  |
+| [0x21F2E0](../../../src/game/gameplay/player/throw.cpp) | `InitThrow` | JTTHROW defaults: owner=a, state -1, 500/1500 ranges, 1.5, 1000, launch vectors (0,0,25),(1000,0,0),(42,-73,-50) | 0.60 | T1 | verified |
+| [0x21F388](../../../src/game/gameplay/player/throw.cpp) | `PostJtthrowLoad` | EnsureAsegBlendDynamic x3: 2-clip, 4-clip and 2-clip aim blends (ablB/ablC) | 0.50 | T1 |  |
+| [0x21F418](../../../src/game/gameplay/player/throw.cpp) | `UpdateJtthrow` | per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70), state transitions (0x2206C8) | 0.50 | T1 |  |
+| [0x21FB18](../../../src/game/gameplay/player/throw.cpp) | `FFilterJtthrowArcObject` | FindSwObjectsInBox filter: reject objects with flag 0x59 else default filter 0x20F948 | 0.45 | T2 |  |
+| [0x21FB70](../../../src/game/gameplay/player/throw.cpp) | `UpdateJtThrowArc` | predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the aim marker ring, updates aim blends | 0.75 | T1 |  |
+| [0x220388](../../../src/game/gameplay/player/throw.cpp) | `UpdateJtthrowHoldPos` | vector-state update of hold point for states 4..6 (gain D_002C4108, normalize) | 0.30 | T2 |  |
+| [0x220498](../../../src/game/gameplay/player/throw.cpp) | `AdjustJtthrowGrfsp` | if q is the carried object and state>=3 (or player in jts 0x12) return 0x134310(flags,3) else flags | 0.30 | T2 |  |
+| [0x220508](../../../src/game/gameplay/player/throw.cpp) | `StartJtthrowFlight` | for states 4..6: store launch/target points, flight time = distance / speed, start time = now, active=1 | 0.40 | T2 |  |
+| [0x2205A8](../../../src/game/gameplay/player/throw.cpp) | `ReleaseJtthrowObject` | detaches carried object (SetLoParent(0,3) / no-gravity reset) and gives it linear (vt35 SetVelocity) and angular (vt36) velocity; removes arc marker (vt9) | 0.45 | T2 |  |
+| [0x2206C8](../../../src/game/gameplay/player/throw.cpp) | `SetJtthrowState` | state transitions of the carry/throw controller and selection of the matching animation (0x1305B8) | 0.50 | T1 |  |
