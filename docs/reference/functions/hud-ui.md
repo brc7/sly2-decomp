@@ -122,17 +122,17 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C8CC0](../../../src/game/engine/presentation/prog/__5CProgP4RGBAN31.cpp) | `__5CProgP4RGBAN31` | CProg ctor (4 colors) | 0.90 | existing |  |
-| [0x1C8D20](../../../src/game/engine/presentation/prog/Begin__5CProg.cpp) | `Begin__5CProg` | reset progress | 0.90 | existing |  |
-| [0x1C8D40](../../../src/game/engine/presentation/prog/SetRemain__5CProgi.cpp) | `SetRemain__5CProgi` | update remaining count | 0.90 | existing |  |
-| [0x1C8DB8](../../../src/game/engine/presentation/prog/End__5CProg.c) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
-| [0x1C8DD8](../../../src/game/engine/presentation/prog/Draw__5CProg.c) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
-| [0x1C9058](../../../src/game/engine/presentation/prog/BeginLoadingScreen.c) | `BeginLoadingScreen` | Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and signal the loading-thread start sema | 0.50 | T1 |  |
-| [0x1C9090](../../../src/game/engine/presentation/prog/func_001C9090.c) | `UpdateLoadingScreen` | empty (release stub) | 0.25 | T2 |  |
-| [0x1C9098](../../../src/game/engine/presentation/prog/EndLoadingScreen.c) | `EndLoadingScreen` | signal frame-end sema, wait for loading thread to stop, clear D_002DD314 | 0.50 | T1 |  |
-| [0x1C90D0](../../../src/game/engine/presentation/prog/StartupLoadingScreen.c) | `StartupLoadingScreen` | create the two semaphores and start the loading render thread (0x1C9190) | 0.50 | T1 |  |
-| [0x1C9190](../../../src/game/engine/presentation/prog/LoadingScreenThread.cpp) | `LoadingScreenThread` | thread: wait start sema, draw pulsing quad each frame until end sema | 0.60 | T1 |  |
-| [0x1C93E0](../../../src/game/engine/presentation/prog/func_001C93E0.cpp) | `DrawLoadingQuad` | build GIF packet for the scaled/alpha quad | 0.45 | T2 |  |
+| [0x1C8CC0](../../../src/game/engine/presentation/prog.cpp) | `__5CProgP4RGBAN31` | CProg ctor (4 colors) | 0.90 | existing |  |
+| [0x1C8D20](../../../src/game/engine/presentation/prog.cpp) | `Begin__5CProg` | reset progress | 0.90 | existing |  |
+| [0x1C8D40](../../../src/game/engine/presentation/prog.cpp) | `SetRemain__5CProgi` | update remaining count | 0.90 | existing |  |
+| [0x1C8DB8](../../../src/game/engine/presentation/prog.cpp) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
+| [0x1C8DD8](../../../src/game/engine/presentation/prog.cpp) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
+| [0x1C9058](../../../src/game/engine/presentation/prog.cpp) | `BeginLoadingScreen` | Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and signal the loading-thread start sema | 0.50 | T1 |  |
+| [0x1C9090](../../../src/game/engine/presentation/prog.cpp) | `UpdateLoadingScreen` | empty (release stub) | 0.25 | T2 |  |
+| [0x1C9098](../../../src/game/engine/presentation/prog.cpp) | `EndLoadingScreen` | signal frame-end sema, wait for loading thread to stop, clear D_002DD314 | 0.50 | T1 |  |
+| [0x1C90D0](../../../src/game/engine/presentation/prog.cpp) | `StartupLoadingScreen` | create the two semaphores and start the loading render thread (0x1C9190) | 0.50 | T1 |  |
+| [0x1C9190](../../../src/game/engine/presentation/prog.cpp) | `LoadingScreenThread` | thread: wait start sema, draw pulsing quad each frame until end sema | 0.60 | T1 |  |
+| [0x1C93E0](../../../src/game/engine/presentation/prog.cpp) | `DrawLoadingQuad` | build GIF packet for the scaled/alpha quad | 0.45 | T2 |  |
 
 ## screen (0x1D93D8-0x1DE2A0)
 

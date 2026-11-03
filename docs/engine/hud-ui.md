@@ -84,8 +84,8 @@ sprite text elements of kind 1 look up their id here, kind 0 uses a plain locali
 | [0x15F8A8](../../src/game/engine/font/font/PglyffFromCh.c) | `PglyffFromCh` | Binary-searches the font glyph table for a character (via remap table D_002BE338) | 0.80 | T1 |  |
 | [0x1B0078](../../src/game/ui/menu/IdPauseTopPage.c) | `IdPauseTopPage` | Id of current top page (0x1E/0x1F/0x19 for the three save/load pages) or -1 | 0.85 | T1 | verified |
 | [0x1B09A8](../../src/game/ui/menu/PauseItemReturnToHideout.c) | `PauseItemReturnToHideout` | WipeToWorldWarp(...,0x189) and fail current job | 0.85 | T1 | verified |
-| [0x1C8DB8](../../src/game/engine/presentation/prog/End__5CProg.c) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
-| [0x1C8DD8](../../src/game/engine/presentation/prog/Draw__5CProg.c) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
+| [0x1C8DB8](../../src/game/engine/presentation/prog.cpp) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
+| [0x1C8DD8](../../src/game/engine/presentation/prog.cpp) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
 | [0x1D9648](../../src/game/engine/presentation/screen/func_001D9648.c) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
 | [0x1D9820](../../src/game/engine/presentation/screen/DrawUi.c) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
 | [0x1DAEA8](../../src/game/engine/presentation/screen/FPowerupAcquired.c) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
