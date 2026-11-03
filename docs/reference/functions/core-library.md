@@ -337,25 +337,25 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1AE150](../../../src/game/platform/memory/memory/CbFreeMem.c) | `CbFreeMem` | Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388) | 0.55 | T1 |  |
-| [0x1AE168](../../../src/game/platform/memory/memory/StartupMemMgr__Fv.c) | `StartupMemMgr__Fv` | Init heaps: world min/mac = align16(_end), stack min/mac = 0x2000000, stack index -1, InitCritSect | 0.98 | existing |  |
-| [0x1AE1C8](../../../src/game/platform/memory/memory/CheckForOutOfMemory__Fv.c) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
-| [0x1AE1D0](../../../src/game/platform/memory/memory/func_001AE1D0.c) | `PvAllocSwImpl` | World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb) | 0.92 | T1 |  |
-| [0x1AE238](../../../src/game/platform/memory/memory/func_001AE238.c) | `PvAllocSwCopyImpl` | PvAllocSwImpl then CopyAb(dst src cb) | 0.92 | T1 |  |
-| [0x1AE2A0](../../../src/game/platform/memory/memory/func_001AE2A0.c) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
-| [0x1AE300](../../../src/game/platform/memory/memory/FreeSw__Fv.c) | `FreeSw__Fv` | Reset world heap top to world heap min (level unload) | 0.97 | existing |  |
-| [0x1AE318](../../../src/game/platform/memory/memory/func_001AE318.c) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
-| [0x1AE378](../../../src/game/platform/memory/memory/func_001AE378.c) | `PvAllocStackClearImpl` | PvAllocStackImpl then memset 0 | 0.92 | T1 |  |
-| [0x1AE3D8](../../../src/game/platform/memory/memory/InitStackImpl__Fv.cpp) | `InitStackImpl__Fv` | EnterCritSect and push stack-heap mark | 0.97 | existing |  |
-| [0x1AE428](../../../src/game/platform/memory/memory/FreeStackImpl__Fv.cpp) | `FreeStackImpl__Fv` | Pop stack-heap mark and LeaveCritSect | 0.97 | existing |  |
-| [0x1AE478](../../../src/game/platform/memory/memory/STACKSCOPE_ctor.c) | `STACKSCOPE_ctor` | RAII scope ctor: InitStackImpl; returns this | 0.80 | T1 |  |
-| [0x1AE4A0](../../../src/game/platform/memory/memory/STACKSCOPE_ctor_1AE4A0.c) | `STACKSCOPE_ctor_1AE4A0` | RAII scope dtor: FreeStackImpl; deletes if (flags&1) | 0.80 | T1 |  |
-| [0x1AE4E8](../../../src/game/platform/memory/memory/malloc.c) | `malloc` | Returns NULL (libc malloc disabled) | 0.97 | existing |  |
-| [0x1AE4F0](../../../src/game/platform/memory/memory/free.c) | `free` | No-op | 0.97 | existing |  |
-| [0x1AE4F8](../../../src/game/platform/memory/memory/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
-| [0x1AE520](../../../src/game/platform/memory/memory/__builtin_delete.c) | `__builtin_delete` | operator delete no-op | 0.97 | existing |  |
-| [0x1AE528](../../../src/game/platform/memory/memory/CopyAqw__FPvT0i.cpp) | `CopyAqw__FPvT0i` | Quadword copy (remainder then 4x unrolled) | 0.95 | existing |  |
-| [0x1AE5A0](../../../src/game/platform/memory/memory/CopyAb__FPvT0Ui.cpp) | `CopyAb` | Byte/word memcpy | 0.95 | existing |  |
+| [0x1AE150](../../../src/game/platform/memory/memory.cpp) | `CbFreeMem` | Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388) | 0.55 | T1 |  |
+| [0x1AE168](../../../src/game/platform/memory/memory.cpp) | `StartupMemMgr__Fv` | Init heaps: world min/mac = align16(_end), stack min/mac = 0x2000000, stack index -1, InitCritSect | 0.98 | existing |  |
+| [0x1AE1C8](../../../src/game/platform/memory/memory.cpp) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
+| [0x1AE1D0](../../../src/game/platform/memory/memory.cpp) | `PvAllocSwImpl` | World (level) heap bump allocator: align up D_002F6384 to req.cbAlign, advance by align16(cb) | 0.92 | T1 |  |
+| [0x1AE238](../../../src/game/platform/memory/memory.cpp) | `PvAllocSwCopyImpl` | PvAllocSwImpl then CopyAb(dst src cb) | 0.92 | T1 |  |
+| [0x1AE2A0](../../../src/game/platform/memory/memory.cpp) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
+| [0x1AE300](../../../src/game/platform/memory/memory.cpp) | `FreeSw__Fv` | Reset world heap top to world heap min (level unload) | 0.97 | existing |  |
+| [0x1AE318](../../../src/game/platform/memory/memory.cpp) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
+| [0x1AE378](../../../src/game/platform/memory/memory.cpp) | `PvAllocStackClearImpl` | PvAllocStackImpl then memset 0 | 0.92 | T1 |  |
+| [0x1AE3D8](../../../src/game/platform/memory/memory.cpp) | `InitStackImpl__Fv` | EnterCritSect and push stack-heap mark | 0.97 | existing |  |
+| [0x1AE428](../../../src/game/platform/memory/memory.cpp) | `FreeStackImpl__Fv` | Pop stack-heap mark and LeaveCritSect | 0.97 | existing |  |
+| [0x1AE478](../../../src/game/platform/memory/memory.cpp) | `STACKSCOPE_ctor` | RAII scope ctor: InitStackImpl; returns this | 0.80 | T1 |  |
+| [0x1AE4A0](../../../src/game/platform/memory/memory.cpp) | `STACKSCOPE_ctor_1AE4A0` | RAII scope dtor: FreeStackImpl; deletes if (flags&1) | 0.80 | T1 |  |
+| [0x1AE4E8](../../../src/game/platform/memory/memory.cpp) | `malloc` | Returns NULL (libc malloc disabled) | 0.97 | existing |  |
+| [0x1AE4F0](../../../src/game/platform/memory/memory.cpp) | `free` | No-op | 0.97 | existing |  |
+| [0x1AE4F8](../../../src/game/platform/memory/memory.cpp) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
+| [0x1AE520](../../../src/game/platform/memory/memory.cpp) | `__builtin_delete` | operator delete no-op | 0.97 | existing |  |
+| [0x1AE528](../../../src/game/platform/memory/memory.cpp) | `CopyAqw__FPvT0i` | Quadword copy (remainder then 4x unrolled) | 0.95 | existing |  |
+| [0x1AE5A0](../../../src/game/platform/memory/memory.cpp) | `CopyAb` | Byte/word memcpy | 0.95 | existing |  |
 
 ## sprbuf (0x201620-0x201D78)
 
@@ -527,7 +527,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258920](../../../src/game/core/linkonce/unhomed/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589A8](../../../src/game/core/linkonce/unhomed/func_002589A8.c) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589F0](../../../src/game/core/linkonce/unhomed/func_002589F0.c) | `GetEmitterEmitbField4` | return pemitb->field4 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258A00](../../../src/game/platform/memory/memory/func_00258A00.c) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
+| [0x258A00](../../../src/game/platform/memory/memory.cpp) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
 | [0x258AB8](../../../src/game/core/linkonce/unhomed/func_00258AB8.c) | `GetEmitterEmitoKind` | return EMITO kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258AC8](../../../src/game/core/linkonce/unhomed/func_00258AC8.c) | `PemitoEmitterEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258B00](../../../src/game/core/linkonce/unhomed/func_00258B00.c) | `PemitoEmitterEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -551,7 +551,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2593B8](../../../src/game/core/linkonce/unhomed/func_002593B8.c) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259440](../../../src/game/core/linkonce/unhomed/func_00259440.c) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259488](../../../src/game/core/linkonce/unhomed/func_00259488.c) | `GetExploEmitbField4` | return pemitb->field4 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259498](../../../src/game/platform/memory/memory/func_00259498.c) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
+| [0x259498](../../../src/game/platform/memory/memory.cpp) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
 | [0x259550](../../../src/game/core/linkonce/unhomed/func_00259550.c) | `GetExploEmitoKind` | return EMITO kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259560](../../../src/game/core/linkonce/unhomed/func_00259560.c) | `PemitoExploEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259598](../../../src/game/core/linkonce/unhomed/func_00259598.c) | `PemitoExploEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |

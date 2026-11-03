@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`heap.cpp`](heap.cpp) | 1 |
-| [`memory/`](memory/) | 23 |
+| [`memory.cpp`](memory.cpp) | 1 |
 | [`phasemem.cpp`](phasemem.cpp) | 1 |
 | [`slotheap.cpp`](slotheap.cpp) | 1 |
 | [`sprbuf.cpp`](sprbuf.cpp) | 1 |

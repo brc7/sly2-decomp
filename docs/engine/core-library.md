@@ -129,10 +129,10 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x158728](../../src/game/engine/physics/dzg/FillDzgDz.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing row | 0.70 | T1 | verified |
 | [0x158988](../../src/game/engine/physics/dzg/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
 | [0x158B20](../../src/game/engine/physics/dzg/SolveDzgFric.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction | 0.80 | T1 | verified |
-| [0x1AE1C8](../../src/game/platform/memory/memory/CheckForOutOfMemory__Fv.c) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
-| [0x1AE2A0](../../src/game/platform/memory/memory/func_001AE2A0.c) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
-| [0x1AE318](../../src/game/platform/memory/memory/func_001AE318.c) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
-| [0x1AE4F8](../../src/game/platform/memory/memory/func_001AE4F8.c) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
+| [0x1AE1C8](../../src/game/platform/memory/memory.cpp) | `CheckForOutOfMemory__Fv` | Empty out-of-memory hook (release build) | 0.90 | existing | verified |
+| [0x1AE2A0](../../src/game/platform/memory/memory.cpp) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
+| [0x1AE318](../../src/game/platform/memory/memory.cpp) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
+| [0x1AE4F8](../../src/game/platform/memory/memory.cpp) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
 | [0x21E0D8](../../src/game/platform/runtime/text/ChDigitFromG__Fdii.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
 | [0x21EDF8](../../src/game/platform/runtime/text/strchr.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
 | [0x21F0C0](../../src/game/platform/thread/thread.cpp) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
