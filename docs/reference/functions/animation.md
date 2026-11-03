@@ -176,12 +176,12 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x186610](../../../src/game/engine/anim/ik/func_00186610.c) | `ApplyActik` | ACT subclass override: ACT::Clone-slot base then save owner xA8 into x1C | 0.30 | T2 |  |
-| [0x186640](../../../src/game/engine/anim/ik/func_00186640.c) | `RetractActik` | ACT::Retract then restore owner xA8 from x1C | 0.30 | T2 |  |
-| [0x186670](../../../src/game/engine/anim/ik/LoadSoIkFromBrx.c) | `LoadSoIkFromBrx` | Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930), create actuators (PactNewC); set SO flag bit 36 | 0.75 | T1 | parse |
-| [0x186820](../../../src/game/engine/anim/ik/func_00186820.cpp) | `UpdateSoIkLengths` | For SOs with bit 36, update each IK node's bone lengths/distances | 0.35 | T2 |  |
-| [0x186930](../../../src/game/engine/anim/ik/func_00186930.cpp) | `InitIkChain` | Initialise an IK chain: rest lengths and bend axis from the two bone matrices (RadBetweenVectors) | 0.35 | T2 |  |
-| [0x186A50](../../../src/game/engine/anim/ik/SolveIk.cpp) | `SolveIk` | Two-bone IK solve: law-of-cosines elbow angle (acosf, clamp [-1,1]), rotate bones (LoadRotateMatrixRad), write XFs | 0.50 | T1 |  |
+| [0x186610](../../../src/game/engine/anim/ik.cpp) | `ApplyActik` | ACT subclass override: ACT::Clone-slot base then save owner xA8 into x1C | 0.30 | T2 |  |
+| [0x186640](../../../src/game/engine/anim/ik.cpp) | `RetractActik` | ACT::Retract then restore owner xA8 from x1C | 0.30 | T2 |  |
+| [0x186670](../../../src/game/engine/anim/ik.cpp) | `LoadSoIkFromBrx` | Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930), create actuators (PactNewC); set SO flag bit 36 | 0.75 | T1 | parse |
+| [0x186820](../../../src/game/engine/anim/ik.cpp) | `UpdateSoIkLengths` | For SOs with bit 36, update each IK node's bone lengths/distances | 0.35 | T2 |  |
+| [0x186930](../../../src/game/engine/anim/ik.cpp) | `InitIkChain` | Initialise an IK chain: rest lengths and bend axis from the two bone matrices (RadBetweenVectors) | 0.35 | T2 |  |
+| [0x186A50](../../../src/game/engine/anim/ik.cpp) | `SolveIk` | Two-bone IK solve: law-of-cosines elbow angle (acosf, clamp [-1,1]), rotate bones (LoadRotateMatrixRad), write XFs | 0.50 | T1 |  |
 
 ## dirblend (0x1A0300-0x1A0B18)
 
