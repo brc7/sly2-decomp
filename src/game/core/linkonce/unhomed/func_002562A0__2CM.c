@@ -5,6 +5,6 @@
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-s32 func_002562A0(s32 arg0) {
+s32 func_002562A0__2CM(s32 arg0) {
     return arg0 + 0x60;
 }

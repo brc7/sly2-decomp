@@ -5,6 +5,6 @@
  * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-s32 func_00258280(void *arg0) {
+s32 func_00258280__10STEPPLAYER(void *arg0) {
     return *M2C_FIELD(arg0, s32 **, 0xE00);
 }
