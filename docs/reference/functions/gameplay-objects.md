@@ -448,13 +448,13 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x2259D8](../../../src/game/gameplay/objects/turret/InitTurret.c) | `InitTurret` | InitPo; lmPan=(-1.5,1.5), lmTilt=(-0.7,0.7), defaults, self pointer | 0.75 | T1 |  |
-| [0x225A68](../../../src/game/gameplay/objects/turret/CloneTurret.c) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
-| [0x225AA8](../../../src/game/gameplay/objects/turret/PostTurretLoad.c) | `PostTurretLoad` | PostSoLoad then pending state -> 0x226370(p,1) | 0.60 | T1 |  |
-| [0x225AE8](../../../src/game/gameplay/objects/turret/OnTurretActive.c) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
-| [0x225B60](../../../src/game/gameplay/objects/turret/UpdateTurret.c) | `UpdateTurret` | SO update then aim (0x225BA0), zoom (0x225E98), fire (0x226250) | 0.70 | T1 |  |
-| [0x225BA0](../../../src/game/gameplay/objects/turret/UpdateTurretAim.cpp) | `UpdateTurretAim` | pan/tilt toward target or from stick, limited by lmPan/lmTilt | 0.50 | T1 |  |
-| [0x225E98](../../../src/game/gameplay/objects/turret/func_00225E98.cpp) | `UpdateTurretZoom` | zoom from target bounds or controller | 0.40 | T2 |  |
-| [0x226250](../../../src/game/gameplay/objects/turret/func_00226250.c) | `FireTurret` | on fire button (0x1C4700 mask 0xFF) spawn projectile (0x1CB250/0x1D6B00) and send splice event 5 | 0.45 | T2 |  |
-| [0x226310](../../../src/game/gameplay/objects/turret/func_00226310.c) | `FFilterTurret` | base filter 0x1F4FC8; add flag when other matches own target kind | 0.35 | T2 |  |
-| [0x226370](../../../src/game/gameplay/objects/turret/func_00226370.c) | `SetTurretActiveState` | state change; on enable builds a target vector and calls 0x12DC18/0x12E460 | 0.30 | T2 |  |
+| [0x2259D8](../../../src/game/gameplay/objects/turret.cpp) | `InitTurret` | InitPo; lmPan=(-1.5,1.5), lmTilt=(-0.7,0.7), defaults, self pointer | 0.75 | T1 |  |
+| [0x225A68](../../../src/game/gameplay/objects/turret.cpp) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
+| [0x225AA8](../../../src/game/gameplay/objects/turret.cpp) | `PostTurretLoad` | PostSoLoad then pending state -> 0x226370(p,1) | 0.60 | T1 |  |
+| [0x225AE8](../../../src/game/gameplay/objects/turret.cpp) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
+| [0x225B60](../../../src/game/gameplay/objects/turret.cpp) | `UpdateTurret` | SO update then aim (0x225BA0), zoom (0x225E98), fire (0x226250) | 0.70 | T1 |  |
+| [0x225BA0](../../../src/game/gameplay/objects/turret.cpp) | `UpdateTurretAim` | pan/tilt toward target or from stick, limited by lmPan/lmTilt | 0.50 | T1 |  |
+| [0x225E98](../../../src/game/gameplay/objects/turret.cpp) | `UpdateTurretZoom` | zoom from target bounds or controller | 0.40 | T2 |  |
+| [0x226250](../../../src/game/gameplay/objects/turret.cpp) | `FireTurret` | on fire button (0x1C4700 mask 0xFF) spawn projectile (0x1CB250/0x1D6B00) and send splice event 5 | 0.45 | T2 |  |
+| [0x226310](../../../src/game/gameplay/objects/turret.cpp) | `FFilterTurret` | base filter 0x1F4FC8; add flag when other matches own target kind | 0.35 | T2 |  |
+| [0x226370](../../../src/game/gameplay/objects/turret.cpp) | `SetTurretActiveState` | state change; on enable builds a target vector and calls 0x12DC18/0x12E460 | 0.30 | T2 |  |
