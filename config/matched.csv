@@ -825,8 +825,8 @@ GetBhv197ClassDesc,0x114660,3,match,src/game/app/class_registry/GetBhv197ClassDe
 GetBhv198ClassDesc,0x114670,3,match,src/game/app/class_registry/GetBhv198ClassDesc.c
 StaticInit_crt0_splicewrap,0x114680,77,match,src/game/app/class_registry/StaticInit_crt0_splicewrap.c
 func_001147B8,0x1147B8,8,match,src/game/app/class_registry/func_001147B8.c
-StaticInit_tu_1147D8,0x1147D8,185,match,src/game/platform/memory/tu_1147D8/StaticInit_tu_1147D8.cpp
-func_00114AC0,0x114AC0,8,match,src/game/platform/memory/tu_1147D8/func_00114AC0.c
+StaticInit_tu_1147D8,0x1147D8,185,match,src/game/platform/memory/tu_1147D8.cpp
+func_00114AC0,0x114AC0,8,match,src/game/platform/memory/tu_1147D8.cpp
 StaticInit_tu_114AE0,0x114AE0,1926,match,src/game/platform/memory/tu_114AE0/StaticInit_tu_114AE0.cpp
 func_001168F8,0x1168F8,8,match,src/game/platform/memory/tu_114AE0/func_001168F8.c
 PvAllocClear__FP4HEAPii,0x116918,21,match,src/game/platform/memory/heap.cpp
