@@ -374,7 +374,7 @@ Registered class names that occur in mangled symbols (confirms the spelling as S
 | `BHV156` | BHV | `guard.h` | 0 | BHV156 (CID 0x9C, cb 0xB0): root of every guard's behaviour stack; its mode drives calm/search/combat |
 | `CMBASE` | BASIC | `cm.h` | 0 | CMBASE: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
 | `CMPART2` | CPLCY | `cm.h` | 1 | CMPART2: from src/game/engine/camera/tn/func_00221DD8.cpp (6 copies in Lilly ports) |
-| `CPCAMBLEND` | CPLCY | `cm.h` | 1 | CPCAMBLEND: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) |
+| `CPCAMBLEND` | CPLCY | `cm.h` | 1 | CPCAMBLEND: from src/game/gameplay/player/mode.cpp (6 copies in Lilly ports) |
 | `CPLCY` | CPLCYDATA | `cm.h` | 1 | CPLCY: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
 
 ## D. Code that stores more than one vtable

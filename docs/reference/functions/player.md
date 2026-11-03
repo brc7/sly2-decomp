@@ -478,18 +478,18 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19CBF8](../../../src/game/gameplay/player/mode/InitJtMode.c) | `InitJtMode` | Init the STEPPLAYER+0xF00 look/recon mode context: owner, state -1, requested kind -1, then its HUD (0x19D4D0) | 0.60 | T1 |  |
-| [0x19CC30](../../../src/game/gameplay/player/mode/PostLoadJtMode.c) | `PostLoadJtMode` | PostLoad: bind the mode HUD widgets (0x19D540) | 0.55 | T1 |  |
-| [0x19CC50](../../../src/game/gameplay/player/mode/func_0019CC50.c) | `StartJtMode` | Request the look/recon mode of kind n: if running and switching to kind 1, end (2) and reset (-1) first; store kind (+0x20) and enter state 0 | 0.55 | T1 | runtime |
-| [0x19CCE8](../../../src/game/gameplay/player/mode/EndJtMode.c) | `EndJtMode` | Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10 | 0.50 | T1 |  |
-| [0x19CD38](../../../src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp) | `SetJtModeState` | Leave/enter mode states -1 off, 0 starting, 1 running (push CPLOOK prio 7 for kinds 0/2, recon camera prio 8 for kind 1, stop hero, duck sound buses 0/1 to 0.6), 2 ending; HUD follows | 0.75 | T1 |  |
-| [0x19D330](../../../src/game/gameplay/player/mode/UpdateJtMode.c) | `UpdateJtMode` | Per-frame mode state machine: 0 waits for start clip then 1, 1 turns toward look direction, 2 waits for end clip then -1; updates HUD (0x19DA78) | 0.55 | T1 |  |
-| [0x19D4D0](../../../src/game/gameplay/player/mode/InitJtModeHud.c) | `InitJtModeHud` | Init mode HUD sub-record: owner, state -1; for JT (CID 0x35) bind the widget at JT+0x1D40 (0x201D78) | 0.50 | T1 | runtime |
-| [0x19D540](../../../src/game/gameplay/player/mode/PostLoadJtModeHud.c) | `PostLoadJtModeHud` | Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36 0x361/...) via PloFindSwObject | 0.50 | T1 |  |
-| [0x19D660](../../../src/game/gameplay/player/mode/func_0019D660.c) | `SetJtModeHudState` | Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1, starts timers/speaker labels | 0.45 | T2 |  |
-| [0x19D948](../../../src/game/gameplay/player/mode/func_0019D948.cpp) | `GatherJtModeHudTags` | Collect and qsort a list of world tag ids (g_sw game record x6C...) for the HUD | 0.30 | T2 |  |
-| [0x19DA78](../../../src/game/gameplay/player/mode/func_0019DA78.cpp) | `UpdateJtModeHud` | Per-frame HUD update for the mode state (widget update 0x202D38, timers) | 0.40 | T2 |  |
-| [0x19DCA0](../../../src/game/gameplay/player/mode/func_0019DCA0.c) | `SetJtModeHudOverride` | Set active HUD widget to arg or default (field c) | 0.40 | T2 |  |
+| [0x19CBF8](../../../src/game/gameplay/player/mode.cpp) | `InitJtMode` | Init the STEPPLAYER+0xF00 look/recon mode context: owner, state -1, requested kind -1, then its HUD (0x19D4D0) | 0.60 | T1 |  |
+| [0x19CC30](../../../src/game/gameplay/player/mode.cpp) | `PostLoadJtMode` | PostLoad: bind the mode HUD widgets (0x19D540) | 0.55 | T1 |  |
+| [0x19CC50](../../../src/game/gameplay/player/mode.cpp) | `StartJtMode` | Request the look/recon mode of kind n: if running and switching to kind 1, end (2) and reset (-1) first; store kind (+0x20) and enter state 0 | 0.55 | T1 | runtime |
+| [0x19CCE8](../../../src/game/gameplay/player/mode.cpp) | `EndJtMode` | Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10 | 0.50 | T1 |  |
+| [0x19CD38](../../../src/game/gameplay/player/mode.cpp) | `SetJtModeState` | Leave/enter mode states -1 off, 0 starting, 1 running (push CPLOOK prio 7 for kinds 0/2, recon camera prio 8 for kind 1, stop hero, duck sound buses 0/1 to 0.6), 2 ending; HUD follows | 0.75 | T1 |  |
+| [0x19D330](../../../src/game/gameplay/player/mode.cpp) | `UpdateJtMode` | Per-frame mode state machine: 0 waits for start clip then 1, 1 turns toward look direction, 2 waits for end clip then -1; updates HUD (0x19DA78) | 0.55 | T1 |  |
+| [0x19D4D0](../../../src/game/gameplay/player/mode.cpp) | `InitJtModeHud` | Init mode HUD sub-record: owner, state -1; for JT (CID 0x35) bind the widget at JT+0x1D40 (0x201D78) | 0.50 | T1 | runtime |
+| [0x19D540](../../../src/game/gameplay/player/mode.cpp) | `PostLoadJtModeHud` | Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36 0x361/...) via PloFindSwObject | 0.50 | T1 |  |
+| [0x19D660](../../../src/game/gameplay/player/mode.cpp) | `SetJtModeHudState` | Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1, starts timers/speaker labels | 0.45 | T2 |  |
+| [0x19D948](../../../src/game/gameplay/player/mode.cpp) | `GatherJtModeHudTags` | Collect and qsort a list of world tag ids (g_sw game record x6C...) for the HUD | 0.30 | T2 |  |
+| [0x19DA78](../../../src/game/gameplay/player/mode.cpp) | `UpdateJtModeHud` | Per-frame HUD update for the mode state (widget update 0x202D38, timers) | 0.40 | T2 |  |
+| [0x19DCA0](../../../src/game/gameplay/player/mode.cpp) | `SetJtModeHudOverride` | Set active HUD widget to arg or default (field c) | 0.40 | T2 |  |
 
 ## pipe_jt (0x19DE10-0x19F0A8)
 
