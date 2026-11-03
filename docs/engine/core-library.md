@@ -99,8 +99,8 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x11A200](../../src/game/core/containers/dl.cpp) | `ClearDl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
 | [0x11A210](../../src/game/core/containers/dl.cpp) | `ClearDle` | pvNext = pvPrev = NULL | 0.85 | T1 | verified |
 | [0x11A250](../../src/game/core/containers/dl.cpp) | `PrependDlEntry` | Prepend | 0.90 | T1 | verified |
-| [0x11A550](../../src/game/core/math/dzgcore/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
-| [0x11ABF8](../../src/game/core/math/dzgcore/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
+| [0x11A550](../../src/game/core/math/dzgcore.cpp) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
+| [0x11ABF8](../../src/game/core/math/dzgcore.cpp) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
 | [0x11AFE0](../../src/game/core/containers/tu_11AFE0.cpp) | `HashPchzCaseless` | Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150) | 0.85 | T1 | verified |
 | [0x11BA08](../../src/game/core/math/mat/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
 | [0x11C168](../../src/game/core/math/mat/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |

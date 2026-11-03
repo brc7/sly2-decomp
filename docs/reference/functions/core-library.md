@@ -144,11 +144,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11A550](../../../src/game/core/math/dzgcore/InitDzg.c) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
-| [0x11A6B8](../../../src/game/core/math/dzgcore/ClearDzgSolution__FP3DZG.cpp) | `ClearDzgSolution__FP3DZG` |  |  | existing |  |
-| [0x11A770](../../../src/game/core/math/dzgcore/EnforceDzgDz__FP3DZGP2DZ.cpp) | `EnforceDzgDz__FP3DZGP2DZ` |  |  | existing |  |
-| [0x11ABF8](../../../src/game/core/math/dzgcore/SolveDzgFilled.c) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
-| [0x11AD30](../../../src/game/core/math/dzgcore/SolveInequalities.c) | `SolveInequalities` | Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln | 0.85 | T1 |  |
+| [0x11A550](../../../src/game/core/math/dzgcore.cpp) | `InitDzg` | Allocates DZ array and matrices for c constraints, inits the constraint DLs | 0.85 | T1 | verified, arbitration |
+| [0x11A6B8](../../../src/game/core/math/dzgcore.cpp) | `ClearDzgSolution__FP3DZG` |  |  | existing |  |
+| [0x11A770](../../../src/game/core/math/dzgcore.cpp) | `EnforceDzgDz__FP3DZGP2DZ` |  |  | existing |  |
+| [0x11ABF8](../../../src/game/core/math/dzgcore.cpp) | `SolveDzgFilled` | Moves equality constraints into the active list, EnforceDzgDz, then repeatedly adds the most-violated constraint | 0.60 | T1 | arbitration |
+| [0x11AD30](../../../src/game/core/math/dzgcore.cpp) | `SolveInequalities` | Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln | 0.85 | T1 |  |
 
 ## tu_11AFE0 (0x11AFE0-0x11B1A8)
 
