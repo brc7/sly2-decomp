@@ -300,19 +300,19 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x185130](../../../src/game/engine/physics/tu_185130/func_00185130.c) | `InitCid8` | CID 0x8 vt7: InitXfm | 0.50 | T2 |  |
-| [0x185150](../../../src/game/engine/physics/tu_185130/func_00185150.c) | `LoadCid8FromBrx` | CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw, LoadOptionsFromBrx | 0.75 | T2 | parse, verified |
-| [0x185310](../../../src/game/engine/physics/tu_185130/func_00185310.c) | `FindMeshClosestPoint` | Closest point/normal/triangle on the object's triangle mesh to a point (world matrix via vt31) | 0.45 | T2 |  |
-| [0x1856C0](../../../src/game/engine/physics/tu_185130/func_001856C0.cpp) | `CollectMeshContacts` | Gather contact planes of nearby mesh edges/triangles for a set of points within radius | 0.35 | T2 |  |
-| [0x185A80](../../../src/game/engine/physics/tu_185130/func_00185A80.cpp) | `SolveMeshConstraints` | SolveInequalities on contact planes to project a vector | 0.35 | T2 |  |
-| [0x185BF8](../../../src/game/engine/physics/tu_185130/func_00185BF8.c) | `InitCid9` | CID 9 vt7: InitCid8 then default radius D_002A5690 | 0.50 | T2 |  |
-| [0x185C28](../../../src/game/engine/physics/tu_185130/func_00185C28.c) | `AddCid9Hierarchy` | vt11: AddLoHierarchy + append to D_003E142C (one of the jump-target candidate lists) | 0.50 | T2 |  |
-| [0x185C60](../../../src/game/engine/physics/tu_185130/func_00185C60.c) | `RemoveCid9Hierarchy` | vt12: RemoveLoHierarchy + remove from D_003E142C | 0.50 | T2 |  |
-| [0x185C98](../../../src/game/engine/physics/tu_185130/func_00185C98.c) | `CloneCid9` | vt41: CloneXfm keeping own field | 0.50 | T2 |  |
-| [0x185CE0](../../../src/game/engine/physics/tu_185130/func_00185CE0.c) | `PostCid9Load` | vt15: PostLoLoad + SetTnTns | 0.45 | T2 |  |
-| [0x185D18](../../../src/game/engine/physics/tu_185130/func_00185D18.cpp) | `PredictMeshContact` | Project a ballistic point (pos+v t+a t^2/2) onto the mesh; out landing pos (offset along normal) and velocity | 0.40 | T2 |  |
-| [0x185E30](../../../src/game/engine/physics/tu_185130/func_00185E30.c) | `SetMeshVectors` | Store three vectors | 0.25 | T2 |  |
-| [0x185E40](../../../src/game/engine/physics/tu_185130/func_00185E40.cpp) | `UpdateJtMeshAttach` | Each frame keep Sly attached to the mesh surface: closest point, frame from normal, smoothed matrix/position, contact solve | 0.35 | T2 |  |
+| [0x185130](../../../src/game/engine/physics/tu_185130.cpp) | `InitCid8` | CID 0x8 vt7: InitXfm | 0.50 | T2 |  |
+| [0x185150](../../../src/game/engine/physics/tu_185130.cpp) | `LoadCid8FromBrx` | CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw, LoadOptionsFromBrx | 0.75 | T2 | parse, verified |
+| [0x185310](../../../src/game/engine/physics/tu_185130.cpp) | `FindMeshClosestPoint` | Closest point/normal/triangle on the object's triangle mesh to a point (world matrix via vt31) | 0.45 | T2 |  |
+| [0x1856C0](../../../src/game/engine/physics/tu_185130.cpp) | `CollectMeshContacts` | Gather contact planes of nearby mesh edges/triangles for a set of points within radius | 0.35 | T2 |  |
+| [0x185A80](../../../src/game/engine/physics/tu_185130.cpp) | `SolveMeshConstraints` | SolveInequalities on contact planes to project a vector | 0.35 | T2 |  |
+| [0x185BF8](../../../src/game/engine/physics/tu_185130.cpp) | `InitCid9` | CID 9 vt7: InitCid8 then default radius D_002A5690 | 0.50 | T2 |  |
+| [0x185C28](../../../src/game/engine/physics/tu_185130.cpp) | `AddCid9Hierarchy` | vt11: AddLoHierarchy + append to D_003E142C (one of the jump-target candidate lists) | 0.50 | T2 |  |
+| [0x185C60](../../../src/game/engine/physics/tu_185130.cpp) | `RemoveCid9Hierarchy` | vt12: RemoveLoHierarchy + remove from D_003E142C | 0.50 | T2 |  |
+| [0x185C98](../../../src/game/engine/physics/tu_185130.cpp) | `CloneCid9` | vt41: CloneXfm keeping own field | 0.50 | T2 |  |
+| [0x185CE0](../../../src/game/engine/physics/tu_185130.cpp) | `PostCid9Load` | vt15: PostLoLoad + SetTnTns | 0.45 | T2 |  |
+| [0x185D18](../../../src/game/engine/physics/tu_185130.cpp) | `PredictMeshContact` | Project a ballistic point (pos+v t+a t^2/2) onto the mesh; out landing pos (offset along normal) and velocity | 0.40 | T2 |  |
+| [0x185E30](../../../src/game/engine/physics/tu_185130.cpp) | `SetMeshVectors` | Store three vectors | 0.25 | T2 |  |
+| [0x185E40](../../../src/game/engine/physics/tu_185130.cpp) | `UpdateJtMeshAttach` | Each frame keep Sly attached to the mesh surface: closest point, frame from normal, smoothed matrix/position, contact solve | 0.35 | T2 |  |
 
 ## jt (0x188488-0x18E540)
 
