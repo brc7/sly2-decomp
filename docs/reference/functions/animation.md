@@ -284,24 +284,24 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x22B720](../../../src/game/engine/anim/wr/InitWr.c) | `InitWr` | InitLo; -1 fields, g=-1.0, busyk, grf | 0.75 | T1 |  |
-| [0x22B7A0](../../../src/game/engine/anim/wr/func_0022B7A0.c) | `AddWrEntry` | append arg1 to DL at wr+0x8F0 and set arg1->wr | 0.30 | T2 |  |
-| [0x22B7D8](../../../src/game/engine/anim/wr/UpdateWrStateVectors__FP2WR.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
-| [0x22BE08](../../../src/game/engine/anim/wr/UNoise__Fi.cpp) | `UNoise__Fi` |  |  | existing |  |
-| [0x22BE60](../../../src/game/engine/anim/wr/UNoise__Ffff.cpp) | `UNoise__Ffff` |  |  | existing |  |
-| [0x22BF40](../../../src/game/engine/anim/wr/UBias__Fff.c) | `UBias__Fff` |  |  | existing |  |
-| [0x22BF70](../../../src/game/engine/anim/wr/GFromOnz__FP3ONZ.cpp) | `GFromOnz__FP3ONZ` |  |  | existing |  |
-| [0x22C028](../../../src/game/engine/anim/wr/UpdateWrMatrixes__FP2WR.cpp) | `UpdateWrMatrixes__FP2WR` |  |  | existing |  |
-| [0x22C3B0](../../../src/game/engine/anim/wr/AddWrCircleWarp__FP2WR.cpp) | `AddWrCircleWarp__FP2WR` |  |  | existing |  |
-| [0x22C430](../../../src/game/engine/anim/wr/AddWrBendWarp__FP2WR.cpp) | `AddWrBendWarp__FP2WR` |  |  | existing |  |
-| [0x22C4A0](../../../src/game/engine/anim/wr/PwreGetWrCur__FP2WR4ENSK4WREK.c) | `PwreGetWrCur__FP2WR4ENSK4WREK` |  |  | existing |  |
-| [0x22C4D8](../../../src/game/engine/anim/wr/PwreGetWrCircle__FP2WR4ENSK.cpp) | `PwreGetWrCircle__FP2WR4ENSK` |  |  | existing |  |
-| [0x22C4F8](../../../src/game/engine/anim/wr/PwreGetWrBend__FP2WR4ENSK.cpp) | `PwreGetWrBend__FP2WR4ENSK` |  |  | existing |  |
-| [0x22C518](../../../src/game/engine/anim/wr/SetWrWavelength__FP2WRf.cpp) | `SetWrWavelength__FP2WRf` |  |  | existing |  |
-| [0x22C570](../../../src/game/engine/anim/wr/GetWrWavelength.c) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
-| [0x22C5B8](../../../src/game/engine/anim/wr/AddOnzOnze__FP3ONZffff.c) | `AddOnzOnze__FP3ONZffff` |  |  | existing |  |
-| [0x22C5F0](../../../src/game/engine/anim/wr/AddWrBendNoise__FP2WRffff.cpp) | `AddWrBendNoise__FP2WRffff` |  |  | existing |  |
-| [0x22C658](../../../src/game/engine/anim/wr/AddWrSwivelNoise__FP2WRffff.cpp) | `AddWrSwivelNoise__FP2WRffff` |  |  | existing |  |
+| [0x22B720](../../../src/game/engine/anim/wr.cpp) | `InitWr` | InitLo; -1 fields, g=-1.0, busyk, grf | 0.75 | T1 |  |
+| [0x22B7A0](../../../src/game/engine/anim/wr.cpp) | `AddWrEntry` | append arg1 to DL at wr+0x8F0 and set arg1->wr | 0.30 | T2 |  |
+| [0x22B7D8](../../../src/game/engine/anim/wr.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
+| [0x22BE08](../../../src/game/engine/anim/wr.cpp) | `UNoise__Fi` |  |  | existing |  |
+| [0x22BE60](../../../src/game/engine/anim/wr.cpp) | `UNoise__Ffff` |  |  | existing |  |
+| [0x22BF40](../../../src/game/engine/anim/wr.cpp) | `UBias__Fff` |  |  | existing |  |
+| [0x22BF70](../../../src/game/engine/anim/wr.cpp) | `GFromOnz__FP3ONZ` |  |  | existing |  |
+| [0x22C028](../../../src/game/engine/anim/wr.cpp) | `UpdateWrMatrixes__FP2WR` |  |  | existing |  |
+| [0x22C3B0](../../../src/game/engine/anim/wr.cpp) | `AddWrCircleWarp__FP2WR` |  |  | existing |  |
+| [0x22C430](../../../src/game/engine/anim/wr.cpp) | `AddWrBendWarp__FP2WR` |  |  | existing |  |
+| [0x22C4A0](../../../src/game/engine/anim/wr.cpp) | `PwreGetWrCur__FP2WR4ENSK4WREK` |  |  | existing |  |
+| [0x22C4D8](../../../src/game/engine/anim/wr.cpp) | `PwreGetWrCircle__FP2WR4ENSK` |  |  | existing |  |
+| [0x22C4F8](../../../src/game/engine/anim/wr.cpp) | `PwreGetWrBend__FP2WR4ENSK` |  |  | existing |  |
+| [0x22C518](../../../src/game/engine/anim/wr.cpp) | `SetWrWavelength__FP2WRf` |  |  | existing |  |
+| [0x22C570](../../../src/game/engine/anim/wr.cpp) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
+| [0x22C5B8](../../../src/game/engine/anim/wr.cpp) | `AddOnzOnze__FP3ONZffff` |  |  | existing |  |
+| [0x22C5F0](../../../src/game/engine/anim/wr.cpp) | `AddWrBendNoise__FP2WRffff` |  |  | existing |  |
+| [0x22C658](../../../src/game/engine/anim/wr.cpp) | `AddWrSwivelNoise__FP2WRffff` |  |  | existing |  |
 
 ## xf (0x22C818-0x231100)
 
