@@ -52,17 +52,17 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1607A0](../../../src/game/engine/graphics/backend/frm/StartupFrame__Fv.cpp) | `StartupFrame` | Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears the two deferred-release DLs, starts the render thread | 0.85 | T1 |  |
-| [0x160828](../../../src/game/engine/graphics/backend/frm/OpenFrame__Fv.cpp) | `OpenFrame__Fv` |  |  | existing |  |
-| [0x160918](../../../src/game/engine/graphics/backend/frm/EnsureVu1Code__FP4VIFSPvT1.cpp) | `EnsureVu1Code` | Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd) | 0.85 | T1 | verified |
-| [0x160940](../../../src/game/engine/graphics/backend/frm/FinalizeFrameVifs__FP4VIFSPiPP2QW.cpp) | `FinalizeFrameVifs__FP4VIFSPiPP2QW` |  |  | existing |  |
-| [0x160A20](../../../src/game/engine/graphics/backend/frm/FinalizeFrameGifs__FP4GIFSPiPP2QW.c) | `FinalizeFrameGifs__FP4GIFSPiPP2QW` |  |  | existing |  |
-| [0x160A98](../../../src/game/engine/graphics/backend/frm/CloseFrame__Fv.cpp) | `CloseFrame` | Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two deferred-release DLs into the frame, clears g_pfrmOpen and signals the render thread | 0.85 | T1 |  |
-| [0x160B70](../../../src/game/engine/graphics/backend/frm/FrameRenderLoop__FPv.cpp) | `FrameRenderLoop` | Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA VIF1 then GIF chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever | 0.90 | T1 | verified |
-| [0x160C80](../../../src/game/engine/graphics/backend/frm/RenderFrame__FP3FRMi.c) | `RenderFrame` | Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain, and GIF chain if fRenderGifs | 0.90 | T1 | verified |
-| [0x160CE0](../../../src/game/engine/graphics/backend/frm/ClearPendingFrame__FP3FRM.cpp) | `ClearPendingFrame` | Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40 | 0.75 | T1 |  |
-| [0x160E68](../../../src/game/engine/graphics/backend/frm/FlushFrames__Fi.cpp) | `FlushFrames` | Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to both buffers and clears pending frames | 0.90 | T1 |  |
-| [0x160F98](../../../src/game/engine/graphics/backend/frm/BlendPrevFrame__Fv.cpp) | `BlendPrevFrame` | Draws the other (previous) framebuffer back over the current one as 32-px textured strips with alpha 0x64/0x80 (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8 | 0.85 | T1 | verified |
+| [0x1607A0](../../../src/game/engine/graphics/backend/frm.cpp) | `StartupFrame` | Render-thread startup: installs INTC 5 (VIF1) handler 0x167F78, creates the two frame semaphores (0,2)/(2,2), clears the two deferred-release DLs, starts the render thread | 0.85 | T1 |  |
+| [0x160828](../../../src/game/engine/graphics/backend/frm.cpp) | `OpenFrame__Fv` |  |  | existing |  |
+| [0x160918](../../../src/game/engine/graphics/backend/frm.cpp) | `EnsureVu1Code` | Appends a DMA REF chain that uploads the VU1 microprogram [pvStart,pvEnd) | 0.85 | T1 | verified |
+| [0x160940](../../../src/game/engine/graphics/backend/frm.cpp) | `FinalizeFrameVifs__FP4VIFSPiPP2QW` |  |  | existing |  |
+| [0x160A20](../../../src/game/engine/graphics/backend/frm.cpp) | `FinalizeFrameGifs__FP4GIFSPiPP2QW` |  |  | existing |  |
+| [0x160A98](../../../src/game/engine/graphics/backend/frm.cpp) | `CloseFrame` | Finalizes the open frame: closes its VIF and GIF chains into g_pfrmOpen, moves the two deferred-release DLs into the frame, clears g_pfrmOpen and signals the render thread | 0.85 | T1 |  |
+| [0x160B70](../../../src/game/engine/graphics/backend/frm.cpp) | `FrameRenderLoop` | Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA VIF1 then GIF chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever | 0.90 | T1 | verified |
+| [0x160C80](../../../src/game/engine/graphics/backend/frm.cpp) | `RenderFrame` | Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain, and GIF chain if fRenderGifs | 0.90 | T1 | verified |
+| [0x160CE0](../../../src/game/engine/graphics/backend/frm.cpp) | `ClearPendingFrame` | Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO in frm->dl34 and frees the pool blocks in frm->dl40 | 0.75 | T1 |  |
+| [0x160E68](../../../src/game/engine/graphics/backend/frm.cpp) | `FlushFrames` | Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to both buffers and clears pending frames | 0.90 | T1 |  |
+| [0x160F98](../../../src/game/engine/graphics/backend/frm.cpp) | `BlendPrevFrame` | Draws the other (previous) framebuffer back over the current one as 32-px textured strips with alpha 0x64/0x80 (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8 | 0.85 | T1 | verified |
 
 ## gifs (0x166920-0x167310)
 
