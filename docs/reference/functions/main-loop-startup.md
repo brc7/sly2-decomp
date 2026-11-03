@@ -35,12 +35,12 @@ Totals on this page: EXISTING 12, T1 31, T2 5.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14CFE0](../../../src/game/core/time/clock/StartupClock.c) | `StartupClock` | Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and rDt/rDtReal to 1, calls ResetClock | 0.85 | T1 |  |
-| [0x14D068](../../../src/game/core/time/clock/ResetClock.c) | `ResetClock` | t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate | 0.65 | T1 |  |
-| [0x14D0B8](../../../src/game/core/time/clock/MarkClockTick.c) | `MarkClockTick` | dt = clamp(Δtick·1/294.912MHz, 1/60, 1/30); dtReal = dt·rDtReal, tReal += dtReal; dt40 = dt·slot[3]; if not paused, dt = dt40·rDt, t += dt, and pumps 0x161478(D_002DEB30); always t3C += dt40 | 0.85 | T1 |  |
-| [0x14D1D0](../../../src/game/core/time/clock/func_0014D1D0.c) | `SetClockRate` | slot[islot] = r; RecalcClockRate() | 0.70 | T1 |  |
-| [0x14D1F8](../../../src/game/core/time/clock/RecalcClockRate.c) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
-| [0x14D240](../../../src/game/core/time/clock/TickNow.c) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
+| [0x14CFE0](../../../src/game/core/time/clock.cpp) | `StartupClock` | Seeds the tick history from CP0 Count, g_clock.tick = TickNow(), sets all 9 rate slots and rDt/rDtReal to 1, calls ResetClock | 0.85 | T1 |  |
+| [0x14D068](../../../src/game/core/time/clock.cpp) | `ResetClock` | t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate | 0.65 | T1 |  |
+| [0x14D0B8](../../../src/game/core/time/clock.cpp) | `MarkClockTick` | dt = clamp(Δtick·1/294.912MHz, 1/60, 1/30); dtReal = dt·rDtReal, tReal += dtReal; dt40 = dt·slot[3]; if not paused, dt = dt40·rDt, t += dt, and pumps 0x161478(D_002DEB30); always t3C += dt40 | 0.85 | T1 |  |
+| [0x14D1D0](../../../src/game/core/time/clock.cpp) | `SetClockRate` | slot[islot] = r; RecalcClockRate() | 0.70 | T1 |  |
+| [0x14D1F8](../../../src/game/core/time/clock.cpp) | `RecalcClockRate` | rDt = Π slot[0..8], rDtReal = slot[8] | 0.85 | T1 |  |
+| [0x14D240](../../../src/game/core/time/clock.cpp) | `TickNow` | 64-bit tick: CP0 Count masked to 32 bits; if less than last, wrap counter++ (state at +0x50/+0x58) | 0.85 | T1 |  |
 
 ## joy (0x187030-0x188488)
 
