@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid47ClassDesc`](../../../src/game/app/class_registry/GetCid47ClassDesc.c) | `0x113D00` |
-| 7 | Init | **override** | [`InitCid47?`](../../../src/game/gameplay/ai/noise/func_00156CC8.c) | `0x156CC8` |
+| 7 | Init | **override** | [`InitCid47?`](../../../src/game/gameplay/ai/noise.cpp) | `0x156CC8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
-| 11 | AddHierarchy | **override** | [`AddCid47Hierarchy?`](../../../src/game/gameplay/ai/noise/func_00156D20.c) | `0x156D20` |
-| 12 | RemoveHierarchy | **override** | [`RemoveCid47Hierarchy?`](../../../src/game/gameplay/ai/noise/func_00156D58.c) | `0x156D58` |
+| 11 | AddHierarchy | **override** | [`AddCid47Hierarchy?`](../../../src/game/gameplay/ai/noise.cpp) | `0x156D20` |
+| 12 | RemoveHierarchy | **override** | [`RemoveCid47Hierarchy?`](../../../src/game/gameplay/ai/noise.cpp) | `0x156D58` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
-| 16 | Update | **override** | [`UpdateCid47?`](../../../src/game/gameplay/ai/noise/func_00156EB8.c) | `0x156EB8` |
+| 16 | Update | **override** | [`UpdateCid47?`](../../../src/game/gameplay/ai/noise.cpp) | `0x156EB8` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneCid47?`](../../../src/game/gameplay/ai/noise/func_00156D98.c) | `0x156D98` |
+| 41 | Clone | **override** | [`CloneCid47?`](../../../src/game/gameplay/ai/noise.cpp) | `0x156D98` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

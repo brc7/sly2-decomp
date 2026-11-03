@@ -8,7 +8,7 @@
 | [`detector.cpp`](detector.cpp) | 1 |
 | [`gomer.cpp`](gomer.cpp) | 1 |
 | [`guardbhv/`](guardbhv/) | 190 |
-| [`noise/`](noise/) | 23 |
+| [`noise.cpp`](noise.cpp) | 1 |
 | [`pickpocket.cpp`](pickpocket.cpp) | 1 |
 | [`stepguard/`](stepguard/) | 158 |
 | [`tu_144B28/`](tu_144B28/) | 43 |

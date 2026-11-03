@@ -89,27 +89,27 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1564E8](../../../src/game/gameplay/ai/noise/func_001564E8.c) | `InitCid117` | LO::Init (0x1A5270) then defaults g54/lm/g60=0.25 and flag 0x40 | 0.75 | T2 |  |
-| [0x156548](../../../src/game/gameplay/ai/noise/func_00156548.cpp) | `NewNoise` | Creates a refcounted 0x60 stimulus object (cid 0x93) at a position from a template (class 0x75), stamps time/serial, appends it to the SW list and to D_003E148C | 0.35 | T2 |  |
-| [0x156698](../../../src/game/gameplay/ai/noise/func_00156698.c) | `PnoiseNew` | NewNoise(template, pos, arg, &pnoise) and return the new noise | 0.55 | T2 | top50; top50 round; v2 name PnoiseEmit |
-| [0x1566B8](../../../src/game/gameplay/ai/noise/func_001566B8.c) | `IncrefCid147` | cid 0x93 vt1: ++refcount (+0x10) | 0.60 | T2 | verified |
-| [0x1566C8](../../../src/game/gameplay/ai/noise/func_001566C8.c) | `DecrefNoise` | cid 0x93 vt2: --refcount; at zero clears refs and frees to pool D_003E1498 | 0.45 | T2 |  |
-| [0x156728](../../../src/game/gameplay/ai/noise/func_00156728.c) | `ExpireNoise` | Removes the noise once its template lifetime (+0x60, if >=0) has elapsed | 0.35 | T2 |  |
-| [0x156780](../../../src/game/gameplay/ai/noise/func_00156780.cpp) | `RemoveNoise` | Notifies listeners (vt 0xF), unlinks the noise from the active list D_003E148C, sends message 3, releases | 0.40 | T2 |  |
-| [0x156870](../../../src/game/gameplay/ai/noise/func_00156870.c) | `FNoiseRemoved` | True if the noise is no longer in the active list | 0.40 | T2 |  |
-| [0x156898](../../../src/game/gameplay/ai/noise/func_00156898.c) | `SRadiusNoise` | Current radius: template radius, grown by a quadratic over the template's ramp time | 0.40 | T2 |  |
-| [0x156918](../../../src/game/gameplay/ai/noise/func_00156918.c) | `FPosInNoise` | True if a position is within the noise's height range and current radius | 0.40 | T2 |  |
-| [0x1569B8](../../../src/game/gameplay/ai/noise/func_001569B8.c) | `CreateSwNoiseTemplates` | Creates the seven cid 0x75 noise templates (oids 0x2C2..0x2C8) into SW+0x4020[7] | 0.45 | T2 |  |
-| [0x156B98](../../../src/game/gameplay/ai/noise/EmitSwNoise.c) | `EmitSwNoise` | Emit a noise from one of the two SW noise templates (k=0 -> SW+0x4020, 1 -> +0x4024) at pos | 0.60 | T1 | top50 |
-| [0x156BE0](../../../src/game/gameplay/ai/noise/func_00156BE0.c) | `ReplaceHeldNoise` | Removes and releases the held noise, then creates a new one and increfs it | 0.40 | T2 |  |
-| [0x156C80](../../../src/game/gameplay/ai/noise/func_00156C80.c) | `ReplaceHeldSwNoise` | ReplaceHeldNoise using SW template 0 or 1 | 0.30 | T2 |  |
-| [0x156CC8](../../../src/game/gameplay/ai/noise/func_00156CC8.c) | `InitCid47` | XFM::Init then 0x1A6CA8(p,0), flag 2 | 0.75 | T2 |  |
-| [0x156D20](../../../src/game/gameplay/ai/noise/func_00156D20.c) | `AddCid47Hierarchy` | Base add (0x1A5800) then appends this to the global class list D_003E1468 | 0.55 | T2 |  |
-| [0x156D58](../../../src/game/gameplay/ai/noise/func_00156D58.c) | `RemoveCid47Hierarchy` | Base remove (0x1A5848), 0x156DE0(p,1), unlink from D_003E1468 | 0.55 | T2 |  |
-| [0x156D98](../../../src/game/gameplay/ai/noise/func_00156D98.c) | `CloneCid47` | XFM clone (0x2311B0) preserving a 3-word key field | 0.60 | T2 |  |
-| [0x156DE0](../../../src/game/gameplay/ai/noise/func_00156DE0.c) | `DropCid47Noises` | Releases removed (or, if f, all) noises from a listener's array | 0.35 | T2 |  |
-| [0x156EB8](../../../src/game/gameplay/ai/noise/func_00156EB8.c) | `UpdateCid47` | LO::Update then 0x156DE0(p,0) and scans list D_003E148C for objects not in its own set | 0.65 | T2 |  |
-| [0x156FE8](../../../src/game/gameplay/ai/noise/func_00156FE8.c) | `FLoInNoise` | True if an LO lies within a noise's height range and radius | 0.35 | T2 |  |
+| [0x1564E8](../../../src/game/gameplay/ai/noise.cpp) | `InitCid117` | LO::Init (0x1A5270) then defaults g54/lm/g60=0.25 and flag 0x40 | 0.75 | T2 |  |
+| [0x156548](../../../src/game/gameplay/ai/noise.cpp) | `NewNoise` | Creates a refcounted 0x60 stimulus object (cid 0x93) at a position from a template (class 0x75), stamps time/serial, appends it to the SW list and to D_003E148C | 0.35 | T2 |  |
+| [0x156698](../../../src/game/gameplay/ai/noise.cpp) | `PnoiseNew` | NewNoise(template, pos, arg, &pnoise) and return the new noise | 0.55 | T2 | top50; top50 round; v2 name PnoiseEmit |
+| [0x1566B8](../../../src/game/gameplay/ai/noise.cpp) | `IncrefCid147` | cid 0x93 vt1: ++refcount (+0x10) | 0.60 | T2 | verified |
+| [0x1566C8](../../../src/game/gameplay/ai/noise.cpp) | `DecrefNoise` | cid 0x93 vt2: --refcount; at zero clears refs and frees to pool D_003E1498 | 0.45 | T2 |  |
+| [0x156728](../../../src/game/gameplay/ai/noise.cpp) | `ExpireNoise` | Removes the noise once its template lifetime (+0x60, if >=0) has elapsed | 0.35 | T2 |  |
+| [0x156780](../../../src/game/gameplay/ai/noise.cpp) | `RemoveNoise` | Notifies listeners (vt 0xF), unlinks the noise from the active list D_003E148C, sends message 3, releases | 0.40 | T2 |  |
+| [0x156870](../../../src/game/gameplay/ai/noise.cpp) | `FNoiseRemoved` | True if the noise is no longer in the active list | 0.40 | T2 |  |
+| [0x156898](../../../src/game/gameplay/ai/noise.cpp) | `SRadiusNoise` | Current radius: template radius, grown by a quadratic over the template's ramp time | 0.40 | T2 |  |
+| [0x156918](../../../src/game/gameplay/ai/noise.cpp) | `FPosInNoise` | True if a position is within the noise's height range and current radius | 0.40 | T2 |  |
+| [0x1569B8](../../../src/game/gameplay/ai/noise.cpp) | `CreateSwNoiseTemplates` | Creates the seven cid 0x75 noise templates (oids 0x2C2..0x2C8) into SW+0x4020[7] | 0.45 | T2 |  |
+| [0x156B98](../../../src/game/gameplay/ai/noise.cpp) | `EmitSwNoise` | Emit a noise from one of the two SW noise templates (k=0 -> SW+0x4020, 1 -> +0x4024) at pos | 0.60 | T1 | top50 |
+| [0x156BE0](../../../src/game/gameplay/ai/noise.cpp) | `ReplaceHeldNoise` | Removes and releases the held noise, then creates a new one and increfs it | 0.40 | T2 |  |
+| [0x156C80](../../../src/game/gameplay/ai/noise.cpp) | `ReplaceHeldSwNoise` | ReplaceHeldNoise using SW template 0 or 1 | 0.30 | T2 |  |
+| [0x156CC8](../../../src/game/gameplay/ai/noise.cpp) | `InitCid47` | XFM::Init then 0x1A6CA8(p,0), flag 2 | 0.75 | T2 |  |
+| [0x156D20](../../../src/game/gameplay/ai/noise.cpp) | `AddCid47Hierarchy` | Base add (0x1A5800) then appends this to the global class list D_003E1468 | 0.55 | T2 |  |
+| [0x156D58](../../../src/game/gameplay/ai/noise.cpp) | `RemoveCid47Hierarchy` | Base remove (0x1A5848), 0x156DE0(p,1), unlink from D_003E1468 | 0.55 | T2 |  |
+| [0x156D98](../../../src/game/gameplay/ai/noise.cpp) | `CloneCid47` | XFM clone (0x2311B0) preserving a 3-word key field | 0.60 | T2 |  |
+| [0x156DE0](../../../src/game/gameplay/ai/noise.cpp) | `DropCid47Noises` | Releases removed (or, if f, all) noises from a listener's array | 0.35 | T2 |  |
+| [0x156EB8](../../../src/game/gameplay/ai/noise.cpp) | `UpdateCid47` | LO::Update then 0x156DE0(p,0) and scans list D_003E148C for objects not in its own set | 0.65 | T2 |  |
+| [0x156FE8](../../../src/game/gameplay/ai/noise.cpp) | `FLoInNoise` | True if an LO lies within a noise's height range and radius | 0.35 | T2 |  |
 
 ## gomer (0x16F148-0x16F2D0)
 
