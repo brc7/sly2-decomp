@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`basic/`](basic/) | 31 |
-| [`brx/`](brx/) | 16 |
+| [`brx.cpp`](brx.cpp) | 1 |
 | [`busy.cpp`](busy.cpp) | 1 |
 | [`find.cpp`](find.cpp) | 1 |
 | [`lo/`](lo/) | 74 |

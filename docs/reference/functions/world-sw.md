@@ -27,20 +27,20 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13E368](../../../src/game/object/brx/PchzFindSwLangstr__FP2SWi.c) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |
-| [0x13E3C8](../../../src/game/object/brx/PloNew__F3CIDP2SO3OIDi.c) | `PloNew` | Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from isplice; append to SW oid and cid hash lists; vt7 Init; vt11 if fInWorld; vt23 if frozen-list member; record in SW load li | 0.97 | T1 | runtime |
-| [0x13E510](../../../src/game/object/brx/PloCloneLo__FP2LOP2SO.c) | `PloCloneLo` | Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for SO also clones children via PloCloneLo) | 0.93 | T1 | parse |
-| [0x13E590](../../../src/game/object/brx/PostLoadOidField__FP2LOPv.c) | `PostLoadOidField` | LORUN callback: *(OID-resolved LO*)(plo + ib) = PloFindSwObject(g_sw, 4, oid, plo) | 0.85 | T1 |  |
-| [0x13E5E0](../../../src/game/object/brx/PostLoadOidSetter__FP2LOPv.cpp) | `PostLoadOidSetter` | LORUN callback: finds object by oid (PloFindSwObject mode 4) and calls the stored pointer-to-member setter with it | 0.85 | T1 |  |
-| [0x13E690](../../../src/game/object/brx/func_0013E690.c) | `RefFromBrx` | Reads one typed method-option argument into a CRef by otyp: 0 bool(U8), 1 float, 5/6 S32, 7/14..23 S16, 2/9 3xF32 vectors, 10 2xF32, 0x1xxx U32, else null tag 0x24 | 0.90 | T1 | parse |
-| [0x13E818](../../../src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp) | `LoadOptionFromBrx` | Reads one option value and applies it via g_aeopid record (method/field/setter forms; oid refs deferred to LORUN) | 0.97 | T1 | parse |
-| [0x13F810](../../../src/game/object/brx/LoadOptionsFromBrx__FPvP18CBinaryInputStream.c) | `LoadOptionsFromBrx` | Loop: S16 eopid until <0; LoadOptionFromBrx(pv, &g_aeopid[eopid] (D_002AC880 stride 0x28), grf & 0x2580, pbis) | 0.97 | T1 | parse |
-| [0x13F888](../../../src/game/object/brx/CLoadCollectorArray_ctor.c) | `CLoadCollectorArray_ctor` | CLoadCollectorArray ctor: vptr(+0)=D_002CBE50, cMax=c=0, a=0 | 0.88 | T1 |  |
-| [0x13F8A8](../../../src/game/object/brx/Add__19CLoadCollectorArrayiPP2LO.c) | `CLoadCollectorArray_Add` | Append c LO* to growable array (capacity doubles, min 32, PvAllocStack 0x1AE318 + CopyAb) | 0.85 | T1 |  |
-| [0x13F990](../../../src/game/object/brx/func_0013F990.c) | `SetLoNUnk48Hierarchy` | Sets 4-bit LO field at +0x28 bits 48..51 (Lilly nUnk48) on plo and, if plo is an SO (cid 0x30 range), recursively on its children (+0x64 list, +0x24 next) | 0.55 | T2 |  |
-| [0x13FA30](../../../src/game/object/brx/CLoadCollectorProxy_Add.c) | `CLoadCollectorProxy_Add` | Collector used for k=-1/-2 objects: per object vt10 SetParent(0,0,0), SetLoNUnk48Hierarchy(x4), and if x8!=-1 vt25 SetIdProxy(x8,1) | 0.60 | T1 |  |
-| [0x13FAD0](../../../src/game/object/brx/FMatchLoadFilter__FiPs.c) | `FMatchLoadFilter` | True if global D_003E1110 == -1 or appears in the object's S16 filter list | 0.60 | T1 |  |
-| [0x13FB40](../../../src/game/object/brx/LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector.c) | `LoadSwObjectsFromBrx` | Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload via vt14 LoadFromBrx}, proxies (FIsCidDerivedFrom(cid,6)) via LoadProxyFromBrx, filtered objects skipped by cb | 0.97 | T1 | parse |
+| [0x13E368](../../../src/game/object/brx.cpp) | `PchzFindSwLangstr` | Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found | 0.80 | T1 |  |
+| [0x13E3C8](../../../src/game/object/brx.cpp) | `PloNew` | Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from isplice; append to SW oid and cid hash lists; vt7 Init; vt11 if fInWorld; vt23 if frozen-list member; record in SW load li | 0.97 | T1 | runtime |
+| [0x13E510](../../../src/game/object/brx.cpp) | `PloCloneLo` | Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for SO also clones children via PloCloneLo) | 0.93 | T1 | parse |
+| [0x13E590](../../../src/game/object/brx.cpp) | `PostLoadOidField` | LORUN callback: *(OID-resolved LO*)(plo + ib) = PloFindSwObject(g_sw, 4, oid, plo) | 0.85 | T1 |  |
+| [0x13E5E0](../../../src/game/object/brx.cpp) | `PostLoadOidSetter` | LORUN callback: finds object by oid (PloFindSwObject mode 4) and calls the stored pointer-to-member setter with it | 0.85 | T1 |  |
+| [0x13E690](../../../src/game/object/brx.cpp) | `RefFromBrx` | Reads one typed method-option argument into a CRef by otyp: 0 bool(U8), 1 float, 5/6 S32, 7/14..23 S16, 2/9 3xF32 vectors, 10 2xF32, 0x1xxx U32, else null tag 0x24 | 0.90 | T1 | parse |
+| [0x13E818](../../../src/game/object/brx.cpp) | `LoadOptionFromBrx` | Reads one option value and applies it via g_aeopid record (method/field/setter forms; oid refs deferred to LORUN) | 0.97 | T1 | parse |
+| [0x13F810](../../../src/game/object/brx.cpp) | `LoadOptionsFromBrx` | Loop: S16 eopid until <0; LoadOptionFromBrx(pv, &g_aeopid[eopid] (D_002AC880 stride 0x28), grf & 0x2580, pbis) | 0.97 | T1 | parse |
+| [0x13F888](../../../src/game/object/brx.cpp) | `CLoadCollectorArray_ctor` | CLoadCollectorArray ctor: vptr(+0)=D_002CBE50, cMax=c=0, a=0 | 0.88 | T1 |  |
+| [0x13F8A8](../../../src/game/object/brx.cpp) | `CLoadCollectorArray_Add` | Append c LO* to growable array (capacity doubles, min 32, PvAllocStack 0x1AE318 + CopyAb) | 0.85 | T1 |  |
+| [0x13F990](../../../src/game/object/brx.cpp) | `SetLoNUnk48Hierarchy` | Sets 4-bit LO field at +0x28 bits 48..51 (Lilly nUnk48) on plo and, if plo is an SO (cid 0x30 range), recursively on its children (+0x64 list, +0x24 next) | 0.55 | T2 |  |
+| [0x13FA30](../../../src/game/object/brx.cpp) | `CLoadCollectorProxy_Add` | Collector used for k=-1/-2 objects: per object vt10 SetParent(0,0,0), SetLoNUnk48Hierarchy(x4), and if x8!=-1 vt25 SetIdProxy(x8,1) | 0.60 | T1 |  |
+| [0x13FAD0](../../../src/game/object/brx.cpp) | `FMatchLoadFilter` | True if global D_003E1110 == -1 or appears in the object's S16 filter list | 0.60 | T1 |  |
+| [0x13FB40](../../../src/game/object/brx.cpp) | `LoadSwObjectsFromBrx` | Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload via vt14 LoadFromBrx}, proxies (FIsCidDerivedFrom(cid,6)) via LoadProxyFromBrx, filtered objects skipped by cb | 0.97 | T1 | parse |
 
 ## callback (0x149A50-0x14A008)
 
