@@ -242,7 +242,7 @@ From [devtools/save_editor](../guides/devtools.md#save_editor) (73 save states; 
 | [0x1C7EA8](../../src/game/gameplay/progression/prize/func_001C7EA8.c) | `ClueVt27` | CID 95 vt27 | 0.30 | T2 | verified |
 | [0x1C8350](../../src/game/gameplay/progression/prize/func_001C8350.c) | `UpdateVault` | CID 78 vt16: per-state update (input / open) | 0.45 | T2 | verified |
 | [0x1C8730](../../src/game/gameplay/progression/prize/func_001C8730.c) | `SetVaultState` | state transition (camera/sound/hands-off) | 0.35 | T2 | verified |
-| [0x22A908](../../src/game/gameplay/progression/waypoint/RenderWaypt.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
+| [0x22A908](../../src/game/gameplay/progression/waypoint.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
 
 Selected 48 of 193 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/game-progression.md](../reference/functions/game-progression.md).
 

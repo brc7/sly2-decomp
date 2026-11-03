@@ -227,8 +227,8 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x229EF0](../../../src/game/gameplay/progression/waypoint/InitWaypt.c) | `InitWaypt` | InitSo; 50, 300.0, ... | 0.55 | T1 |  |
-| [0x229F88](../../../src/game/gameplay/progression/waypoint/PostWayptLoad.c) | `PostWayptLoad` | SO PostLoad then clears grf bit 8 on child markers | 0.50 | T1 |  |
-| [0x22A060](../../../src/game/gameplay/progression/waypoint/UpdateWaypt.c) | `UpdateWaypt` | SO update, distance to player/visibility | 0.50 | T1 |  |
-| [0x22A220](../../../src/game/gameplay/progression/waypoint/func_0022A220.cpp) | `CalculateWayptCurtainDz` | camera->source curtain query vs BSPs, stores max slope dz | 0.45 | T2 |  |
-| [0x22A908](../../../src/game/gameplay/progression/waypoint/RenderWaypt.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
+| [0x229EF0](../../../src/game/gameplay/progression/waypoint.cpp) | `InitWaypt` | InitSo; 50, 300.0, ... | 0.55 | T1 |  |
+| [0x229F88](../../../src/game/gameplay/progression/waypoint.cpp) | `PostWayptLoad` | SO PostLoad then clears grf bit 8 on child markers | 0.50 | T1 |  |
+| [0x22A060](../../../src/game/gameplay/progression/waypoint.cpp) | `UpdateWaypt` | SO update, distance to player/visibility | 0.50 | T1 |  |
+| [0x22A220](../../../src/game/gameplay/progression/waypoint.cpp) | `CalculateWayptCurtainDz` | camera->source curtain query vs BSPs, stores max slope dz | 0.45 | T2 |  |
+| [0x22A908](../../../src/game/gameplay/progression/waypoint.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
