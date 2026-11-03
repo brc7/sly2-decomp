@@ -200,18 +200,18 @@ Totals on this page: T1 113, T2 53.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x231100](../../../src/game/object/xform/InitXfm.c) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | T1 | verified |
-| [0x231170](../../../src/game/object/xform/LoadXfmFromBrx.c) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.90 | T1 | parse, verified |
-| [0x2311B0](../../../src/game/object/xform/CloneXfm.c) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.85 | T1 | verified |
-| [0x2312A0](../../../src/game/object/xform/TranslateXfmToPos.c) | `TranslateXfmToPos` | world pos -> parent space, store in mat, invalidate | 0.60 | T1 |  |
-| [0x231300](../../../src/game/object/xform/RotateXfmToMat.c) | `RotateXfmToMat` | store rotation rows (w=0), invalidate | 0.60 | T1 |  |
-| [0x231368](../../../src/game/object/xform/UpdateXfmMatWorld.c) | `UpdateXfmMatWorld` | recompute matWorld when parent stamp newer | 0.50 | T1 |  |
-| [0x2313F0](../../../src/game/object/xform/func_002313F0.c) | `InvalidateXfm` | marks world stamp stale and flags | 0.40 | T2 |  |
-| [0x231440](../../../src/game/object/xform/XFM_PmatWorld.c) | `XFM_PmatWorld` | UpdateXfmMatWorld then return &matWorld (+0xA0) | 0.60 | T1 |  |
-| [0x231468](../../../src/game/object/xform/func_00231468.c) | `GetXfmVelocity` | velocity via GetXfVelocity of parent XF | 0.45 | T2 |  |
-| [0x2314D0](../../../src/game/object/xform/func_002314D0.c) | `GetXfmAngularVelocity` | via GetXfAngularVelocity | 0.45 | T2 |  |
-| [0x231550](../../../src/game/object/xform/func_00231550.c) | `XFM_PxfLocal` | copies local matrix out; returns parent XF or default | 0.35 | T2 |  |
-| [0x231598](../../../src/game/object/xform/func_00231598.c) | `ApplyXfmProxy` | XFM slot37 | 0.35 | T2 |  |
-| [0x2315F0](../../../src/game/object/xform/SetXfmParent.c) | `SetXfmParent` | re-parent keeping world matrix (0x1A5900) | 0.55 | T1 |  |
-| [0x231768](../../../src/game/object/xform/LoadXfmXfFromBrx.c) | `LoadXfmXfFromBrx` | S16 XF id -> pxfParent via vt49, matrix read, invalidate, vis mask | 0.75 | T1 | parse |
-| [0x2317E0](../../../src/game/object/xform/LoadXfmChildObjectsFromBrx.c) | `LoadXfmChildObjectsFromBrx` | pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37) | 0.75 | T1 | parse |
+| [0x231100](../../../src/game/object/xform.cpp) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | T1 | verified |
+| [0x231170](../../../src/game/object/xform.cpp) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.90 | T1 | parse, verified |
+| [0x2311B0](../../../src/game/object/xform.cpp) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.85 | T1 | verified |
+| [0x2312A0](../../../src/game/object/xform.cpp) | `TranslateXfmToPos` | world pos -> parent space, store in mat, invalidate | 0.60 | T1 |  |
+| [0x231300](../../../src/game/object/xform.cpp) | `RotateXfmToMat` | store rotation rows (w=0), invalidate | 0.60 | T1 |  |
+| [0x231368](../../../src/game/object/xform.cpp) | `UpdateXfmMatWorld` | recompute matWorld when parent stamp newer | 0.50 | T1 |  |
+| [0x2313F0](../../../src/game/object/xform.cpp) | `InvalidateXfm` | marks world stamp stale and flags | 0.40 | T2 |  |
+| [0x231440](../../../src/game/object/xform.cpp) | `XFM_PmatWorld` | UpdateXfmMatWorld then return &matWorld (+0xA0) | 0.60 | T1 |  |
+| [0x231468](../../../src/game/object/xform.cpp) | `GetXfmVelocity` | velocity via GetXfVelocity of parent XF | 0.45 | T2 |  |
+| [0x2314D0](../../../src/game/object/xform.cpp) | `GetXfmAngularVelocity` | via GetXfAngularVelocity | 0.45 | T2 |  |
+| [0x231550](../../../src/game/object/xform.cpp) | `XFM_PxfLocal` | copies local matrix out; returns parent XF or default | 0.35 | T2 |  |
+| [0x231598](../../../src/game/object/xform.cpp) | `ApplyXfmProxy` | XFM slot37 | 0.35 | T2 |  |
+| [0x2315F0](../../../src/game/object/xform.cpp) | `SetXfmParent` | re-parent keeping world matrix (0x1A5900) | 0.55 | T1 |  |
+| [0x231768](../../../src/game/object/xform.cpp) | `LoadXfmXfFromBrx` | S16 XF id -> pxfParent via vt49, matrix read, invalidate, vis mask | 0.75 | T1 | parse |
+| [0x2317E0](../../../src/game/object/xform.cpp) | `LoadXfmChildObjectsFromBrx` | pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37) | 0.75 | T1 | parse |

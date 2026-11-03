@@ -239,11 +239,11 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
 | [0x1CB2C0](../../src/game/object/proxy/func_001CB2C0.c) | `FCanAcquireProxy` | PspareChoose(this 2)!=0 | 0.85 | T1 | verified |
 | [0x1CB328](../../src/game/object/proxy/EnsureProxyCopy.c) | `EnsureProxyCopy` | if no current copy acquire one | 0.85 | T1 | verified |
 | [0x1CB770](../../src/game/object/proxy/FindProxysrc__FP2SWi.c) | `FindProxysrc` | index of proxy source with id or -1 | 0.80 | T1 |  |
-| [0x231100](../../src/game/object/xform/InitXfm.c) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | T1 | verified |
-| [0x231170](../../src/game/object/xform/LoadXfmFromBrx.c) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.90 | T1 | parse, verified |
-| [0x2311B0](../../src/game/object/xform/CloneXfm.c) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.85 | T1 | verified |
-| [0x231768](../../src/game/object/xform/LoadXfmXfFromBrx.c) | `LoadXfmXfFromBrx` | S16 XF id -> pxfParent via vt49, matrix read, invalidate, vis mask | 0.75 | T1 | parse |
-| [0x2317E0](../../src/game/object/xform/LoadXfmChildObjectsFromBrx.c) | `LoadXfmChildObjectsFromBrx` | pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37) | 0.75 | T1 | parse |
+| [0x231100](../../src/game/object/xform.cpp) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | T1 | verified |
+| [0x231170](../../src/game/object/xform.cpp) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.90 | T1 | parse, verified |
+| [0x2311B0](../../src/game/object/xform.cpp) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.85 | T1 | verified |
+| [0x231768](../../src/game/object/xform.cpp) | `LoadXfmXfFromBrx` | S16 XF id -> pxfParent via vt49, matrix read, invalidate, vis mask | 0.75 | T1 | parse |
+| [0x2317E0](../../src/game/object/xform.cpp) | `LoadXfmChildObjectsFromBrx` | pushes XF context, loads child objects (0x13FB40), pops, applies mat to each (vt37) | 0.75 | T1 | parse |
 
 Selected 70 of 166 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/object-model.md](../reference/functions/object-model.md).
 

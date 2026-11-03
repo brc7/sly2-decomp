@@ -30,14 +30,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetXfmClassDesc`](../../../src/game/app/class_registry/GetXfmClassDesc.c) | `0x113A40` | Pclassinfo |
-| 7 | Init | **override** | [`InitXfm`](../../../src/game/object/xform/InitXfm.c) | `0x231100` | Init |
+| 7 | Init | **override** | [`InitXfm`](../../../src/game/object/xform.cpp) | `0x231100` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
-| 10 | SetParent | **override** | [`SetXfmParent`](../../../src/game/object/xform/SetXfmParent.c) | `0x2315F0` | SetParent |
+| 10 | SetParent | **override** | [`SetXfmParent`](../../../src/game/object/xform.cpp) | `0x2315F0` | SetParent |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadXfmFromBrx`](../../../src/game/object/xform/LoadXfmFromBrx.c) | `0x231170` | LoadFromBrx |
+| 14 | LoadFromBrx | **override** | [`LoadXfmFromBrx`](../../../src/game/object/xform.cpp) | `0x231170` | LoadFromBrx |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` | VUnk14 |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` | VUnk16 |
@@ -52,19 +52,19 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` | VUnk25 |
 | 27 | LO_VUnk27Proxy | inherited (LO) | `LO_VUnk27Proxy?` | `0x1CB5C8` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
-| 29 | TranslateToPos | **override** | [`TranslateXfmToPos`](../../../src/game/object/xform/TranslateXfmToPos.c) | `0x2312A0` | TranslateToPos |
-| 30 | RotateToMat | **override** | [`RotateXfmToMat`](../../../src/game/object/xform/RotateXfmToMat.c) | `0x231300` | RotateToMat |
-| 31 | PmatWorld | **override** | [`XFM_PmatWorld`](../../../src/game/object/xform/XFM_PmatWorld.c) | `0x231440` | PmatWorld |
-| 32 | LO_PxfLocal | **override** | [`XFM_PxfLocal?`](../../../src/game/object/xform/func_00231550.c) | `0x231550` | PxfLocal |
-| 33 | GetVelocity | **override** | [`GetXfmVelocity?`](../../../src/game/object/xform/func_00231468.c) | `0x231468` | GetVelocity |
-| 34 | GetAngularVelocity | **override** | [`GetXfmAngularVelocity?`](../../../src/game/object/xform/func_002314D0.c) | `0x2314D0` | GetAngularVelocity |
+| 29 | TranslateToPos | **override** | [`TranslateXfmToPos`](../../../src/game/object/xform.cpp) | `0x2312A0` | TranslateToPos |
+| 30 | RotateToMat | **override** | [`RotateXfmToMat`](../../../src/game/object/xform.cpp) | `0x231300` | RotateToMat |
+| 31 | PmatWorld | **override** | [`XFM_PmatWorld`](../../../src/game/object/xform.cpp) | `0x231440` | PmatWorld |
+| 32 | LO_PxfLocal | **override** | [`XFM_PxfLocal?`](../../../src/game/object/xform.cpp) | `0x231550` | PxfLocal |
+| 33 | GetVelocity | **override** | [`GetXfmVelocity?`](../../../src/game/object/xform.cpp) | `0x231468` | GetVelocity |
+| 34 | GetAngularVelocity | **override** | [`GetXfmAngularVelocity?`](../../../src/game/object/xform.cpp) | `0x2314D0` | GetAngularVelocity |
 | 35 | SetVelocity | inherited (LO) | `SetLoVelocity?` | `0x1A6130` | SetVelocity |
 | 36 | SetAngularVelocity | inherited (LO) | `SetLoAngularVelocity` | `0x1A6148` | SetAngularVelocity |
-| 37 | ApplyLoProxyHierarchy | **override** | [`ApplyXfmProxy?`](../../../src/game/object/xform/func_00231598.c) | `0x231598` | ApplyProxy |
+| 37 | ApplyLoProxyHierarchy | **override** | [`ApplyXfmProxy?`](../../../src/game/object/xform.cpp) | `0x231598` | ApplyProxy |
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` | VUnk37 |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` | VUnk38 |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneXfm`](../../../src/game/object/xform/CloneXfm.c) | `0x2311B0` | Clone |
+| 41 | Clone | **override** | [`CloneXfm`](../../../src/game/object/xform.cpp) | `0x2311B0` | Clone |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
@@ -73,7 +73,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 47 | SetGrf | inherited (LO) | `SetLoGrf?` | `0x1A66C8` | VUnk46 |
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` | VUnk47 |
 | 49 | XFM_PxfFromId | **new** | [`XFM_PxfFromId?`](../../../src/game/engine/anim/xf/func_0022D750.c) | `0x22D750` | VSlot49 |
-| 50 |  | **new** | [`func_00231220`](../../../src/game/object/xform/func_00231220.c) | `0x231220` | VSlot50 |
+| 50 |  | **new** | [`func_00231220`](../../../src/game/object/xform.cpp) | `0x231220` | VSlot50 |
 
 ## Fields
 
