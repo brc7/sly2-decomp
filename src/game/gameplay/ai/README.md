@@ -12,7 +12,7 @@
 | [`pickpocket.cpp`](pickpocket.cpp) | 1 |
 | [`stepguard/`](stepguard/) | 158 |
 | [`tu_144B28/`](tu_144B28/) | 43 |
-| [`tu_14A008/`](tu_14A008/) | 21 |
+| [`tu_14A008.cpp`](tu_14A008.cpp) | 1 |
 | [`tu_14FAC8.cpp`](tu_14FAC8.cpp) | 1 |
 | [`tu_1553F0.cpp`](tu_1553F0.cpp) | 1 |
 | [`tu_1709A8/`](tu_1709A8/) | 42 |

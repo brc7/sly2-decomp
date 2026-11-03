@@ -19,25 +19,25 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14A008](../../../src/game/gameplay/ai/tu_14A008/LoadRouteFromBrx.c) | `LoadRouteFromBrx` | cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill it via 0x14A178), copy used part to the heap | 0.75 | T1 | parse |
-| [0x14A0A8](../../../src/game/gameplay/ai/tu_14A008/func_0014A0A8.c) | `PostRouteLoad` | vt15: PostLoLoad, build a path/curve object (0x1E94B0 kind 0x62C) from the points | 0.35 | T2 |  |
-| [0x14A178](../../../src/game/gameplay/ai/tu_14A008/func_0014A178.c) | `AddRoutePoint` | Splice: append {a, b, -1?} (max 256, 12 bytes) | 0.35 | T2 |  |
-| [0x14A1B0](../../../src/game/gameplay/ai/tu_14A008/func_0014A1B0.c) | `InitBhv182` | BHV182 slot 7: base, start music/stream cue (0x1FEE90 on D_003DD040), guard flag 0x24, indices -1 | 0.40 | T2 |  |
-| [0x14A200](../../../src/game/gameplay/ai/tu_14A008/func_0014A200.c) | `StartBhv182` | BHV182 slot 8: SetBhv182State(0), timestamp, guard +0x4A4 = 0 | 0.40 | T2 |  |
-| [0x14A248](../../../src/game/gameplay/ai/tu_14A008/func_0014A248.c) | `CloseBhv182` | BHV182 slot 9: state -1, clear flag 0x24, stop cue, guard +0x4A4 = 1 | 0.40 | T2 |  |
-| [0x14A2A0](../../../src/game/gameplay/ai/tu_14A008/func_0014A2A0.c) | `UpdateBhv182` | BHV182 slot 10: keep pace with the player along a route (distance-to-player logic 0x14A4D0, next point 0x14AD70, nearest point 0x14AA30) | 0.35 | T2 |  |
-| [0x14A478](../../../src/game/gameplay/ai/tu_14A008/func_0014A478.c) | `FBhv182OffGround` | true if guard not in air and no ground found within 100/-250 | 0.85 | T2 | verified |
-| [0x14A4D0](../../../src/game/gameplay/ai/tu_14A008/func_0014A4D0.cpp) | `UpdateBhv182Pace` | Compare player and guard positions/velocities to choose speed (lead the player) | 0.35 | T2 |  |
-| [0x14AA30](../../../src/game/gameplay/ai/tu_14A008/func_0014AA30.c) | `IBhv182NearestRoutePoint` | route point index closest to the current player | 0.35 | T2 |  |
-| [0x14AD70](../../../src/game/gameplay/ai/tu_14A008/func_0014AD70.c) | `AdvanceBhv182RoutePoint` | advance to next route point and act on its kind | 0.30 | T2 |  |
-| [0x14AE18](../../../src/game/gameplay/ai/tu_14A008/func_0014AE18.c) | `KindBhv182RoutePoint` | kind field of the current route point | 0.30 | T2 |  |
-| [0x14AE38](../../../src/game/gameplay/ai/tu_14A008/func_0014AE38.c) | `SetBhv182State` | BHV182 state change | 0.35 | T2 |  |
-| [0x14B1A0](../../../src/game/gameplay/ai/tu_14A008/func_0014B1A0.c) | `InitCarmelita` | cid 0x3F (STEPGUARD child) vt7: STEPGUARD init, register as D_002DD648, +0x4A4=1 | 0.35 | T2 | whole-game |
-| [0x14B1D8](../../../src/game/gameplay/ai/tu_14A008/func_0014B1D8.c) | `PostCarmelitaLoad` | vt15: STEPGUARD post-load, create helper object PloNew(3,0,0x62B,-1) at +0x1010 | 0.35 | T2 | verified, whole-game |
-| [0x14B218](../../../src/game/gameplay/ai/tu_14A008/func_0014B218.c) | `HandleCarmelitaMessage` | vt5: STEPGUARD handler; msg 0xB about itself when flag 0x24 clear -> 0x154038 | 0.30 | T2 | whole-game |
-| [0x14B290](../../../src/game/gameplay/ai/tu_14A008/func_0014B290.c) | `Carmelita_VUnk88` | vt88 (STEPGUARD own slot): choose best candidate object by kind/distance | 0.25 | T2 | whole-game |
-| [0x14B460](../../../src/game/gameplay/ai/tu_14A008/func_0014B460.c) | `Carmelita_VUnk86` | vt86: returns 0 | 0.25 | T2 | whole-game |
-| [0x14B468](../../../src/game/gameplay/ai/tu_14A008/func_0014B468.c) | `SetCarmelitaBhv9C` | Splice: send a value message to its behaviour 0x9C | 0.25 | T2 | verified, whole-game |
+| [0x14A008](../../../src/game/gameplay/ai/tu_14A008.cpp) | `LoadRouteFromBrx` | cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill it via 0x14A178), copy used part to the heap | 0.75 | T1 | parse |
+| [0x14A0A8](../../../src/game/gameplay/ai/tu_14A008.cpp) | `PostRouteLoad` | vt15: PostLoLoad, build a path/curve object (0x1E94B0 kind 0x62C) from the points | 0.35 | T2 |  |
+| [0x14A178](../../../src/game/gameplay/ai/tu_14A008.cpp) | `AddRoutePoint` | Splice: append {a, b, -1?} (max 256, 12 bytes) | 0.35 | T2 |  |
+| [0x14A1B0](../../../src/game/gameplay/ai/tu_14A008.cpp) | `InitBhv182` | BHV182 slot 7: base, start music/stream cue (0x1FEE90 on D_003DD040), guard flag 0x24, indices -1 | 0.40 | T2 |  |
+| [0x14A200](../../../src/game/gameplay/ai/tu_14A008.cpp) | `StartBhv182` | BHV182 slot 8: SetBhv182State(0), timestamp, guard +0x4A4 = 0 | 0.40 | T2 |  |
+| [0x14A248](../../../src/game/gameplay/ai/tu_14A008.cpp) | `CloseBhv182` | BHV182 slot 9: state -1, clear flag 0x24, stop cue, guard +0x4A4 = 1 | 0.40 | T2 |  |
+| [0x14A2A0](../../../src/game/gameplay/ai/tu_14A008.cpp) | `UpdateBhv182` | BHV182 slot 10: keep pace with the player along a route (distance-to-player logic 0x14A4D0, next point 0x14AD70, nearest point 0x14AA30) | 0.35 | T2 |  |
+| [0x14A478](../../../src/game/gameplay/ai/tu_14A008.cpp) | `FBhv182OffGround` | true if guard not in air and no ground found within 100/-250 | 0.85 | T2 | verified |
+| [0x14A4D0](../../../src/game/gameplay/ai/tu_14A008.cpp) | `UpdateBhv182Pace` | Compare player and guard positions/velocities to choose speed (lead the player) | 0.35 | T2 |  |
+| [0x14AA30](../../../src/game/gameplay/ai/tu_14A008.cpp) | `IBhv182NearestRoutePoint` | route point index closest to the current player | 0.35 | T2 |  |
+| [0x14AD70](../../../src/game/gameplay/ai/tu_14A008.cpp) | `AdvanceBhv182RoutePoint` | advance to next route point and act on its kind | 0.30 | T2 |  |
+| [0x14AE18](../../../src/game/gameplay/ai/tu_14A008.cpp) | `KindBhv182RoutePoint` | kind field of the current route point | 0.30 | T2 |  |
+| [0x14AE38](../../../src/game/gameplay/ai/tu_14A008.cpp) | `SetBhv182State` | BHV182 state change | 0.35 | T2 |  |
+| [0x14B1A0](../../../src/game/gameplay/ai/tu_14A008.cpp) | `InitCarmelita` | cid 0x3F (STEPGUARD child) vt7: STEPGUARD init, register as D_002DD648, +0x4A4=1 | 0.35 | T2 | whole-game |
+| [0x14B1D8](../../../src/game/gameplay/ai/tu_14A008.cpp) | `PostCarmelitaLoad` | vt15: STEPGUARD post-load, create helper object PloNew(3,0,0x62B,-1) at +0x1010 | 0.35 | T2 | verified, whole-game |
+| [0x14B218](../../../src/game/gameplay/ai/tu_14A008.cpp) | `HandleCarmelitaMessage` | vt5: STEPGUARD handler; msg 0xB about itself when flag 0x24 clear -> 0x154038 | 0.30 | T2 | whole-game |
+| [0x14B290](../../../src/game/gameplay/ai/tu_14A008.cpp) | `Carmelita_VUnk88` | vt88 (STEPGUARD own slot): choose best candidate object by kind/distance | 0.25 | T2 | whole-game |
+| [0x14B460](../../../src/game/gameplay/ai/tu_14A008.cpp) | `Carmelita_VUnk86` | vt86: returns 0 | 0.25 | T2 | whole-game |
+| [0x14B468](../../../src/game/gameplay/ai/tu_14A008.cpp) | `SetCarmelitaBhv9C` | Splice: send a value message to its behaviour 0x9C | 0.25 | T2 | verified, whole-game |
 
 ## tu_14FAC8 (0x14FAC8-0x14FCA8)
 

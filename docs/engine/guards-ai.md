@@ -220,8 +220,8 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14A008](../../src/game/gameplay/ai/tu_14A008/LoadRouteFromBrx.c) | `LoadRouteFromBrx` | cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill it via 0x14A178), copy used part to the heap | 0.75 | T1 | parse |
-| [0x14A478](../../src/game/gameplay/ai/tu_14A008/func_0014A478.c) | `FBhv182OffGround` | true if guard not in air and no ground found within 100/-250 | 0.85 | T2 | verified |
+| [0x14A008](../../src/game/gameplay/ai/tu_14A008.cpp) | `LoadRouteFromBrx` | cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill it via 0x14A178), copy used part to the heap | 0.75 | T1 | parse |
+| [0x14A478](../../src/game/gameplay/ai/tu_14A008.cpp) | `FBhv182OffGround` | true if guard not in air and no ground found within 100/-250 | 0.85 | T2 | verified |
 | [0x153D58](../../src/game/gameplay/ai/detector.cpp) | `InitDetector` | XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2 | 0.75 | T1 | verified |
 | [0x154080](../../src/game/gameplay/ai/detector.cpp) | `SetDetectorTargetState` | Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent (slot 3) virtual (msg 0x1C, args entry/old/new) and,  | 0.85 | T1 | verified |
 | [0x154158](../../src/game/gameplay/ai/detector.cpp) | `GetDetectorTargetStateById` |  | 0.75 | existing | arbitration; replaces existing X509v3_data_type_by_NID |
