@@ -316,8 +316,8 @@ Shader sketches for all of the above: `vu_microcode/pseudo_shaders.glsl`.
 | [0x1B4478](../../src/game/engine/graphics/pipeline/ms.cpp) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
 | [0x1BEA88](../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEA88.c) | `LoadCid45FromBrx` | CID 45 vt14: LoadXfmFromBrx | 0.75 | T2 | parse, verified |
 | [0x1BEE10](../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEE10.c) | `IRenderSlotTexture` | Table lookup D_002C0BF8[slot][n] or -1 | 0.30 | T2 | verified |
-| [0x1CD5F0](../../src/game/engine/graphics/pipeline/render/FillScreenRect.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |
-| [0x1CDA80](../../src/game/engine/graphics/pipeline/render/RenderSw.c) | `RenderSw` | SW vt8: per-frame world render entry (called from main loop) | 0.85 | T1 | runtime |
+| [0x1CD5F0](../../src/game/engine/graphics/pipeline/render.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |
+| [0x1CDA80](../../src/game/engine/graphics/pipeline/render.cpp) | `RenderSw` | SW vt8: per-frame world render entry (called from main loop) | 0.85 | T1 | runtime |
 | [0x1EA568](../../src/game/engine/graphics/pipeline/shd/RelocateSharedColorTables.c) | `RelocateSharedColorTables` | After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entrie | 0.65 | T1 | parse, format-doc |
 | [0x1EA8A8](../../src/game/engine/graphics/pipeline/shd/LoadClutFromBrx.c) | `LoadClutFromBrx` | Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entrie | 0.80 | T1 | parse, format-doc |
 | [0x1EA9F0](../../src/game/engine/graphics/pipeline/shd/func_001EA9F0.cpp) | `BuildSwBackgroundGifs` | Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at g_sw+0x3EA0) | 0.30 | T2 |  |

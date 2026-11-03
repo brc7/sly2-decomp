@@ -225,11 +225,11 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CD5F0](../../../src/game/engine/graphics/pipeline/render/FillScreenRect.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |
-| [0x1CD780](../../../src/game/engine/graphics/pipeline/render/func_001CD780.cpp) | `RenderWorldLabel` | project a world-space label, fit its rect and draw text in a color | 0.30 | T2 |  |
-| [0x1CD998](../../../src/game/engine/graphics/pipeline/render/PrplAllocRpl.c) | `PrplAllocRpl` | Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB) | 0.60 | T1 |  |
-| [0x1CD9E0](../../../src/game/engine/graphics/pipeline/render/SubmitSwRelightAll.c) | `SubmitSwRelightAll` | On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's globset | 0.60 | T1 |  |
-| [0x1CDA80](../../../src/game/engine/graphics/pipeline/render/RenderSw.c) | `RenderSw` | SW vt8: per-frame world render entry (called from main loop) | 0.85 | T1 | runtime |
+| [0x1CD5F0](../../../src/game/engine/graphics/pipeline/render.cpp) | `FillScreenRect` | GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF) | 0.80 | T1 | verified |
+| [0x1CD780](../../../src/game/engine/graphics/pipeline/render.cpp) | `RenderWorldLabel` | project a world-space label, fit its rect and draw text in a color | 0.30 | T2 |  |
+| [0x1CD998](../../../src/game/engine/graphics/pipeline/render.cpp) | `PrplAllocRpl` | Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB) | 0.60 | T1 |  |
+| [0x1CD9E0](../../../src/game/engine/graphics/pipeline/render.cpp) | `SubmitSwRelightAll` | On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's globset | 0.60 | T1 |  |
+| [0x1CDA80](../../../src/game/engine/graphics/pipeline/render.cpp) | `RenderSw` | SW vt8: per-frame world render entry (called from main loop) | 0.85 | T1 | runtime |
 
 ## tu_1D57A8 (0x1D57A8-0x1D6848)
 

@@ -8,7 +8,7 @@
 | [`glob/`](glob/) | 42 |
 | [`light/`](light/) | 32 |
 | [`ms.cpp`](ms.cpp) | 1 |
-| [`render/`](render/) | 7 |
+| [`render.cpp`](render.cpp) | 1 |
 | [`shd/`](shd/) | 45 |
 | [`shdanim/`](shdanim/) | 33 |
 | [`sky.cpp`](sky.cpp) | 1 |
