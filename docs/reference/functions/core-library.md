@@ -379,28 +379,28 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21D638](../../../src/game/platform/runtime/text/CchParsePchzInt__FPcPi.cpp) | `CchParsePchzInt__FPcPi` |  |  | existing |  |
-| [0x21D6B0](../../../src/game/platform/runtime/text/CchParsePchzTft__FPcP3TFTPPc.cpp) | `CchParsePchzTft__FPcP3TFTPPc` |  |  | existing |  |
-| [0x21D9F0](../../../src/game/platform/runtime/text/WriteTftPchz__FP3TFTP5OSTRMPc.cpp) | `WriteTftPchz__FP3TFTP5OSTRMPc` |  |  | existing |  |
-| [0x21DB38](../../../src/game/platform/runtime/text/FNegTftUl__FP3TFTP2UL.cpp) | `FNegTftUl__FP3TFTP2UL` |  |  | existing |  |
-| [0x21DC18](../../../src/game/platform/runtime/text/UnRadixFromChConversion__Fc.c) | `UnRadixFromChConversion__Fc` |  |  | existing |  |
-| [0x21DC70](../../../src/game/platform/runtime/text/CchAchFromUl__FPciUlUi.cpp) | `CchAchFromUl__FPciUlUi` |  |  | existing |  |
-| [0x21DD40](../../../src/game/platform/runtime/text/WriteTftUl__FP3TFTP5OSTRMUl.cpp) | `WriteTftUl__FP3TFTP5OSTRMUl` |  |  | existing |  |
-| [0x21E048](../../../src/game/platform/runtime/text/ExpFirstFromG__Fd.cpp) | `ExpFirstFromG__Fd` |  |  | existing |  |
-| [0x21E0D8](../../../src/game/platform/runtime/text/ChDigitFromG__Fdii.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
-| [0x21E1B0](../../../src/game/platform/runtime/text/CchAchFromDouble__FPciP3TFTd.cpp) | `CchAchFromDouble__FPciP3TFTd` |  |  | existing |  |
-| [0x21E4B8](../../../src/game/platform/runtime/text/WriteTftDouble__FP3TFTP5OSTRMd.cpp) | `WriteTftDouble__FP3TFTP5OSTRMd` |  |  | existing |  |
-| [0x21E718](../../../src/game/platform/runtime/text/WriteTft__FP3TFTP5OSTRMPPcPci.cpp) | `WriteTft__FP3TFTP5OSTRMPPcPci` |  |  | existing |  |
-| [0x21EAC8](../../../src/game/platform/runtime/text/CchOstrmPrintf__FP5OSTRMPcT1.cpp) | `CchOstrmPrintf__FP5OSTRMPcT1` |  |  | existing |  |
-| [0x21EBB8](../../../src/game/platform/runtime/text/vprintf.c) | `vprintf` |  |  | existing |  |
-| [0x21EC18](../../../src/game/platform/runtime/text/kprintf.c) | `printf` |  |  | existing |  |
-| [0x21EC60](../../../src/game/platform/runtime/text/s1_vsprintf.c) | `vsprintf` |  |  | existing |  |
-| [0x21ECD8](../../../src/game/platform/runtime/text/fiprintf.c) | `sprintf` |  |  | existing |  |
-| [0x21ED28](../../../src/game/platform/runtime/text/strlen.c) | `strlen` |  |  | existing |  |
-| [0x21ED58](../../../src/game/platform/runtime/text/strcpy.c) | `strcpy` |  |  | existing |  |
-| [0x21EDA0](../../../src/game/platform/runtime/text/strcpy1.c) | `strcpy1` |  |  | existing |  |
-| [0x21EDF8](../../../src/game/platform/runtime/text/strchr.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
-| [0x21EE30](../../../src/game/platform/runtime/text/UpperizePchz__FPc.c) | `UpperizePchz__FPc` |  |  | existing |  |
+| [0x21D638](../../../src/game/platform/runtime/text.cpp) | `CchParsePchzInt__FPcPi` |  |  | existing |  |
+| [0x21D6B0](../../../src/game/platform/runtime/text.cpp) | `CchParsePchzTft__FPcP3TFTPPc` |  |  | existing |  |
+| [0x21D9F0](../../../src/game/platform/runtime/text.cpp) | `WriteTftPchz__FP3TFTP5OSTRMPc` |  |  | existing |  |
+| [0x21DB38](../../../src/game/platform/runtime/text.cpp) | `FNegTftUl__FP3TFTP2UL` |  |  | existing |  |
+| [0x21DC18](../../../src/game/platform/runtime/text.cpp) | `UnRadixFromChConversion__Fc` |  |  | existing |  |
+| [0x21DC70](../../../src/game/platform/runtime/text.cpp) | `CchAchFromUl__FPciUlUi` |  |  | existing |  |
+| [0x21DD40](../../../src/game/platform/runtime/text.cpp) | `WriteTftUl__FP3TFTP5OSTRMUl` |  |  | existing |  |
+| [0x21E048](../../../src/game/platform/runtime/text.cpp) | `ExpFirstFromG__Fd` |  |  | existing |  |
+| [0x21E0D8](../../../src/game/platform/runtime/text.cpp) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
+| [0x21E1B0](../../../src/game/platform/runtime/text.cpp) | `CchAchFromDouble__FPciP3TFTd` |  |  | existing |  |
+| [0x21E4B8](../../../src/game/platform/runtime/text.cpp) | `WriteTftDouble__FP3TFTP5OSTRMd` |  |  | existing |  |
+| [0x21E718](../../../src/game/platform/runtime/text.cpp) | `WriteTft__FP3TFTP5OSTRMPPcPci` |  |  | existing |  |
+| [0x21EAC8](../../../src/game/platform/runtime/text.cpp) | `CchOstrmPrintf__FP5OSTRMPcT1` |  |  | existing |  |
+| [0x21EBB8](../../../src/game/platform/runtime/text.cpp) | `vprintf` |  |  | existing |  |
+| [0x21EC18](../../../src/game/platform/runtime/text.cpp) | `printf` |  |  | existing |  |
+| [0x21EC60](../../../src/game/platform/runtime/text.cpp) | `vsprintf` |  |  | existing |  |
+| [0x21ECD8](../../../src/game/platform/runtime/text.cpp) | `sprintf` |  |  | existing |  |
+| [0x21ED28](../../../src/game/platform/runtime/text.cpp) | `strlen` |  |  | existing |  |
+| [0x21ED58](../../../src/game/platform/runtime/text.cpp) | `strcpy` |  |  | existing |  |
+| [0x21EDA0](../../../src/game/platform/runtime/text.cpp) | `strcpy1` |  |  | existing |  |
+| [0x21EDF8](../../../src/game/platform/runtime/text.cpp) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
+| [0x21EE30](../../../src/game/platform/runtime/text.cpp) | `UpperizePchz__FPc` |  |  | existing |  |
 
 ## thread (0x21EFD0-0x21F2E0)
 

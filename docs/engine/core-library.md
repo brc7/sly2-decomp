@@ -133,8 +133,8 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x1AE2A0](../../src/game/platform/memory/memory.cpp) | `PvAllocSwClearImpl` | PvAllocSwImpl then memset 0 | 0.93 | T1 |  |
 | [0x1AE318](../../src/game/platform/memory/memory.cpp) | `PvAllocStackImpl` | Stack (scratch) heap allocator: D_002F6388 = (D_002F6388 - align16(cb)) & -cbAlign; grows down | 0.90 | existing | verified, arbitration; replaces existing PvAllocSlot__FP8ALLOCREQ |
 | [0x1AE4F8](../../src/game/platform/memory/memory.cpp) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |
-| [0x21E0D8](../../src/game/platform/runtime/text/ChDigitFromG__Fdii.c) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
-| [0x21EDF8](../../src/game/platform/runtime/text/strchr.c) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
+| [0x21E0D8](../../src/game/platform/runtime/text.cpp) | `ChDigitFromG` | digit character of g at decimal position a (precision b) | 0.85 | T1 | verified |
+| [0x21EDF8](../../src/game/platform/runtime/text.cpp) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
 | [0x21F0C0](../../src/game/platform/thread/thread.cpp) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
 | [0x21F100](../../src/game/platform/thread/thread.cpp) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
 | [0x2584A8](../../src/game/engine/fx/emitter/LoadEmitblipColorsFromBrx.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
