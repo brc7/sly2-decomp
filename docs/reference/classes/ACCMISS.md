@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BOMB) | `HandleBombMessage` | `0x13AAE8` |
 | 6 | Pclassinfo | **override** | [`GetAccmissClassDesc`](../../../src/game/app/class_registry/GetAccmissClassDesc.c) | `0x113F20` |
-| 7 | Init | **override** | [`InitAccmiss__FP7ACCMISS`](../../../src/game/gameplay/objects/missile/InitAccmiss__FP7ACCMISS.c) | `0x1B2070` |
+| 7 | Init | **override** | [`InitAccmiss__FP7ACCMISS`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B2070` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -92,7 +92,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetAccmissAccel`](../../../src/game/gameplay/objects/missile/PresetAccmissAccel.cpp) | `0x1B20B8` |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetAccmissAccel`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B20B8` |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |

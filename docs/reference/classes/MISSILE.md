@@ -29,14 +29,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BOMB) | `HandleBombMessage` | `0x13AAE8` |
 | 6 | Pclassinfo | **override** | [`GetMissileClassDesc`](../../../src/game/app/class_registry/GetMissileClassDesc.c) | `0x113F10` |
-| 7 | Init | **override** | [`InitMissile__FP7MISSILE`](../../../src/game/gameplay/objects/missile/InitMissile__FP7MISSILE.c) | `0x1B1DB8` |
+| 7 | Init | **override** | [`InitMissile__FP7MISSILE`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B1DB8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
-| 12 | RemoveHierarchy | **override** | [`OnMissileRemove__FP7MISSILE`](../../../src/game/gameplay/objects/missile/OnMissileRemove__FP7MISSILE.c) | `0x1B1E38` |
+| 12 | RemoveHierarchy | **override** | [`OnMissileRemove__FP7MISSILE`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B1E38` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream`](../../../src/game/gameplay/objects/missile/LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream.c) | `0x1B1E00` |
+| 14 | LoadFromBrx | **override** | [`LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B1E00` |
 | 15 | PostLoad | inherited (BOMB) | `PostBombLoad` | `0x13AAA0` |
 | 16 | Update | inherited (BOMB) | `UpdateBomb` | `0x13AB58` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
@@ -83,7 +83,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 58 | ScheduleSoTouchEvents | inherited (BOMB) | `BOMB_VUnk57?` | `0x13AEB0` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (BOMB) | `AddBombCustomXps` | `0x13ADE8` |
-| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreMissileIntersection__FP7MISSILEP2SO`](../../../src/game/gameplay/objects/missile/FIgnoreMissileIntersection__FP7MISSILEP2SO.c) | `0x1B1F40` |
+| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreMissileIntersection__FP7MISSILEP2SO`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B1F40` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |
@@ -99,8 +99,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
 | 75 | FZprHasField44 | inherited (BOMB) | `FAbsorbBombWkr` | `0x13B2F0` |
 | 76 | CloneBomb | inherited (BOMB) | `CloneBomb?` | `0x13AA70` |
-| 77 | ApplyBombThrow | **override** | [`ExplodeMissile?`](../../../src/game/gameplay/objects/missile/func_001B1F10.c) | `0x1B1F10` |
-| 78 | FireMissile | **new** | [`FireMissile`](../../../src/game/gameplay/objects/missile/FireMissile.c) | `0x1B1E88` |
+| 77 | ApplyBombThrow | **override** | [`ExplodeMissile?`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B1F10` |
+| 78 | FireMissile | **new** | [`FireMissile`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B1E88` |
 
 ## Fields
 

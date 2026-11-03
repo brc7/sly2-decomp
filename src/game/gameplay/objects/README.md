@@ -8,7 +8,7 @@
 | [`bomb/`](bomb/) | 22 |
 | [`button.cpp`](button.cpp) | 1 |
 | [`empty_1D7A30.cpp`](empty_1D7A30.cpp) | 1 |
-| [`missile/`](missile/) | 16 |
+| [`missile.cpp`](missile.cpp) | 1 |
 | [`rhythm/`](rhythm/) | 35 |
 | [`sensor/`](sensor/) | 21 |
 | [`target.cpp`](target.cpp) | 1 |

@@ -262,20 +262,20 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B1DB8](../../../src/game/gameplay/objects/missile/InitMissile__FP7MISSILE.c) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
-| [0x1B1E00](../../../src/game/gameplay/objects/missile/LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream.c) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
-| [0x1B1E38](../../../src/game/gameplay/objects/missile/OnMissileRemove__FP7MISSILE.c) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
-| [0x1B1E88](../../../src/game/gameplay/objects/missile/FireMissile.c) | `FireMissile` | MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action | 0.80 | T1 |  |
-| [0x1B1F10](../../../src/game/gameplay/objects/missile/func_001B1F10.c) | `ExplodeMissile` | MISSILE vt77: BOMB base (0x13B250) then retract asega at +0x268 | 0.35 | T2 |  |
-| [0x1B1F40](../../../src/game/gameplay/objects/missile/FIgnoreMissileIntersection__FP7MISSILEP2SO.c) | `FIgnoreMissileIntersection` | MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list +0x250 | 0.80 | T1 | verified |
-| [0x1B2020](../../../src/game/gameplay/objects/missile/func_001B2020.c) | `AddMissileSpecialObject` | Append OID to MISSILE list +0x23C (max 4, count +0x238) | 0.35 | T2 |  |
-| [0x1B2048](../../../src/game/gameplay/objects/missile/func_001B2048.c) | `AddMissileSpecialClass` | Append CID to MISSILE list +0x250 (max 4, count +0x24C) | 0.35 | T2 |  |
-| [0x1B2070](../../../src/game/gameplay/objects/missile/InitAccmiss__FP7ACCMISS.c) | `InitAccmiss` | ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0 | 0.85 | T1 |  |
-| [0x1B20B8](../../../src/game/gameplay/objects/missile/PresetAccmissAccel.cpp) | `PresetAccmissAccel` | ACCMISS vt70: smooth speed toward svTarget (GSmooth) and add the velocity change via AddSoVelocity | 0.70 | T1 |  |
-| [0x1B21F0](../../../src/game/gameplay/objects/missile/InitSplmiss.c) | `InitSplmiss` | CID-82 missile Init: InitMissile; +0x274=1500 | 0.50 | T1 |  |
-| [0x1B2228](../../../src/game/gameplay/objects/missile/FireSplmiss.cpp) | `FireSplmiss` | CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch velocity | 0.55 | T1 |  |
-| [0x1B2398](../../../src/game/gameplay/objects/missile/func_001B2398.c) | `PosMissileTarget` | Target position in world: transform stored target pos by source LO's world matrix (predicted dt), or raw pos if no source | 0.45 | T2 |  |
-| [0x1B2468](../../../src/game/gameplay/objects/missile/func_001B2468.cpp) | `PresetSplmissAccel` | CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278) | 0.45 | T2 |  |
+| [0x1B1DB8](../../../src/game/gameplay/objects/missile.cpp) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
+| [0x1B1E00](../../../src/game/gameplay/objects/missile.cpp) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
+| [0x1B1E38](../../../src/game/gameplay/objects/missile.cpp) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
+| [0x1B1E88](../../../src/game/gameplay/objects/missile.cpp) | `FireMissile` | MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action | 0.80 | T1 |  |
+| [0x1B1F10](../../../src/game/gameplay/objects/missile.cpp) | `ExplodeMissile` | MISSILE vt77: BOMB base (0x13B250) then retract asega at +0x268 | 0.35 | T2 |  |
+| [0x1B1F40](../../../src/game/gameplay/objects/missile.cpp) | `FIgnoreMissileIntersection` | MISSILE vt61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list +0x250 | 0.80 | T1 | verified |
+| [0x1B2020](../../../src/game/gameplay/objects/missile.cpp) | `AddMissileSpecialObject` | Append OID to MISSILE list +0x23C (max 4, count +0x238) | 0.35 | T2 |  |
+| [0x1B2048](../../../src/game/gameplay/objects/missile.cpp) | `AddMissileSpecialClass` | Append CID to MISSILE list +0x250 (max 4, count +0x24C) | 0.35 | T2 |  |
+| [0x1B2070](../../../src/game/gameplay/objects/missile.cpp) | `InitAccmiss` | ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0 | 0.85 | T1 |  |
+| [0x1B20B8](../../../src/game/gameplay/objects/missile.cpp) | `PresetAccmissAccel` | ACCMISS vt70: smooth speed toward svTarget (GSmooth) and add the velocity change via AddSoVelocity | 0.70 | T1 |  |
+| [0x1B21F0](../../../src/game/gameplay/objects/missile.cpp) | `InitSplmiss` | CID-82 missile Init: InitMissile; +0x274=1500 | 0.50 | T1 |  |
+| [0x1B2228](../../../src/game/gameplay/objects/missile.cpp) | `FireSplmiss` | CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch velocity | 0.55 | T1 |  |
+| [0x1B2398](../../../src/game/gameplay/objects/missile.cpp) | `PosMissileTarget` | Target position in world: transform stored target pos by source LO's world matrix (predicted dt), or raw pos if no source | 0.45 | T2 |  |
+| [0x1B2468](../../../src/game/gameplay/objects/missile.cpp) | `PresetSplmissAccel` | CID-82 vt70: steer velocity toward predicted target position until deadline (+0x278) | 0.45 | T2 |  |
 
 ## tu_1BAB50 (0x1BAB50-0x1BC050)
 
