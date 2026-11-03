@@ -46,10 +46,10 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x166270](../../../src/game/engine/physics/geom/CloneGeom__FP4GEOMP7MATRIX4T0.c) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recomputing plane offsets | 0.85 | T1 | verified |
-| [0x166428](../../../src/game/engine/physics/geom/TransformPointsVu0.c) | `TransformPointsVu0` | Transforms an array of qword points by a 4x4 matrix using VU0 micro-subroutines (vcallms 0x120/0xF0), double-buffered | 0.50 | T1 |  |
-| [0x1664A0](../../../src/game/engine/physics/geom/UpdateGeomWorld.cpp) | `UpdateGeomWorld` | Transforms a local GEOM into world space: points via VU0 (0x166428), plane normals by the inverse-transpose rotation, recomputing plane distances | 0.55 | T1 |  |
-| [0x1665F0](../../../src/game/engine/physics/geom/func_001665F0.cpp) | `CpedgeFromGeomPoint` | Collects up to max unique edges incident to a given GEOM point, using a BSP query around the point | 0.40 | T2 |  |
+| [0x166270](../../../src/game/engine/physics/geom.cpp) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recomputing plane offsets | 0.85 | T1 | verified |
+| [0x166428](../../../src/game/engine/physics/geom.cpp) | `TransformPointsVu0` | Transforms an array of qword points by a 4x4 matrix using VU0 micro-subroutines (vcallms 0x120/0xF0), double-buffered | 0.50 | T1 |  |
+| [0x1664A0](../../../src/game/engine/physics/geom.cpp) | `UpdateGeomWorld` | Transforms a local GEOM into world space: points via VU0 (0x166428), plane normals by the inverse-transpose rotation, recomputing plane distances | 0.55 | T1 |  |
+| [0x1665F0](../../../src/game/engine/physics/geom.cpp) | `CpedgeFromGeomPoint` | Collects up to max unique edges incident to a given GEOM point, using a BSP query around the point | 0.40 | T2 |  |
 
 ## mark (0x1A7C18-0x1AA978)
 

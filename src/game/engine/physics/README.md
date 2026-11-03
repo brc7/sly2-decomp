@@ -8,7 +8,7 @@
 | [`clip/`](clip/) | 8 |
 | [`dzg/`](dzg/) | 9 |
 | [`empty_1C2920.cpp`](empty_1C2920.cpp) | 1 |
-| [`geom/`](geom/) | 6 |
+| [`geom.cpp`](geom.cpp) | 1 |
 | [`mark/`](mark/) | 22 |
 | [`path/`](path/) | 51 |
 | [`shape/`](shape/) | 56 |
