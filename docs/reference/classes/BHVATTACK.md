@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvattack`](../../../src/game/app/class_registry/NewBhvattack.c) `0x113238` |
 | Descriptor getter (slot 6) | `GetBhvattackClassDesc` `0x114450` |
 | vtable | `D_002D0620`, 15 entries (slots 0..14; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewBhvattack`](../../../src/game/app/class_registry/NewBhvattack.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvattack`](../../../src/game/app/class_registry/NewBhvattack.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV164`, proposed `BHVATTACK` (confidence 0.6), guard flag `0x18`. perform one chosen attack: strike then follow-through on confirmed hit (msg 0xB)

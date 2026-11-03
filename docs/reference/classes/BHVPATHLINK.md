@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvpathlink`](../../../src/game/app/class_registry/NewBhvpathlink.c) `0x113808` |
 | Descriptor getter (slot 6) | `GetBhvpathlinkClassDesc` `0x1145F0` |
 | vtable | `D_002CFCA0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpathlink`](../../../src/game/app/class_registry/NewBhvpathlink.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvpathlink`](../../../src/game/app/class_registry/NewBhvpathlink.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV190`, proposed `BHVPATHLINK` (confidence 0.7), guard flag `0x2C`. traverse a pathlink segment by segment (walk or leap)

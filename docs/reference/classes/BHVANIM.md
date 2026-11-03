@@ -15,7 +15,7 @@
 | Factory (`pfnNew`) | [`NewBhvanim`](../../../src/game/app/class_registry/NewBhvanim.c) `0x1130B0` |
 | Descriptor getter (slot 6) | `GetBhvanimClassDesc` `0x1143E0` |
 | vtable | `D_002D0AB0`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvanim`](../../../src/game/app/class_registry/NewBhvanim.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvanim`](../../../src/game/app/class_registry/NewBhvanim.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175 (medium, 2 exclusive identical slots) — [hidden-types A1](../hidden-types.md#a1)

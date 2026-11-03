@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) `0x1138F8` |
 | Descriptor getter (slot 6) | `GetBhvfollowClassDesc` `0x114630` |
 | vtable | `D_002CC3C0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

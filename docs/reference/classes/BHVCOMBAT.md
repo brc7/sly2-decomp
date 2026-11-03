@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvcombat`](../../../src/game/app/class_registry/NewBhvcombat.c) `0x113270` |
 | Descriptor getter (slot 6) | `GetBhvcombatClassDesc` `0x114460` |
 | vtable | `D_002D05A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvcombat`](../../../src/game/app/class_registry/NewBhvcombat.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvcombat`](../../../src/game/app/class_registry/NewBhvcombat.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV165`, proposed `BHVCOMBAT` (confidence 0.65), guard flag `0x1D`. engage a target: pursue (BHVGOTO run 0x1C), melee, ranged, circle, give up (anim 0xD), hands-off

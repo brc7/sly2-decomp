@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvstrike`](../../../src/game/app/class_registry/NewBhvstrike.c) `0x113120` |
 | Descriptor getter (slot 6) | `GetBhvstrikeClassDesc` `0x114400` |
 | vtable | `D_002D07B0`, 15 entries (slots 0..14; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewBhvstrike`](../../../src/game/app/class_registry/NewBhvstrike.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvstrike`](../../../src/game/app/class_registry/NewBhvstrike.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV159`, proposed `BHVSTRIKE` (confidence 0.5), guard flag `3`. attack anim with lunge/leap at victim; engaged-busy +0xF3C hit window

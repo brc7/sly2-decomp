@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvleap`](../../../src/game/app/class_registry/NewBhvleap.c) `0x1133F8` |
 | Descriptor getter (slot 6) | `GetBhvleapClassDesc` `0x1144D0` |
 | vtable | `D_002D0320`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvleap`](../../../src/game/app/class_registry/NewBhvleap.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvleap`](../../../src/game/app/class_registry/NewBhvleap.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175 (medium, 2 exclusive identical slots) — [hidden-types A1](../hidden-types.md#a1)

@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvpatrolpath`](../../../src/game/app/class_registry/NewBhvpatrolpath.c) `0x113888` |
 | Descriptor getter (slot 6) | `GetBhvpatrolpathClassDesc` `0x114610` |
 | vtable | `D_002CFDA0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpatrolpath`](../../../src/game/app/class_registry/NewBhvpatrolpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvpatrolpath`](../../../src/game/app/class_registry/NewBhvpatrolpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV192`, proposed `BHVPATROLPATH` (confidence 0.6), guard flag `0x2E`. walk along a path SHAPE via BHVGOTO goals

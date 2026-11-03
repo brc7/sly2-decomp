@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvidle`](../../../src/game/app/class_registry/NewBhvidle.c) `0x1130E8` |
 | Descriptor getter (slot 6) | `GetBhvidleClassDesc` `0x1143F0` |
 | vtable | `D_002D0A30`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvidle`](../../../src/game/app/class_registry/NewBhvidle.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvidle`](../../../src/game/app/class_registry/NewBhvidle.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV158`, proposed `BHVIDLE` (confidence 0.6), guard flag `2 (default)`. stand idle anim (BHVANIM default flag 2); flag 1 = hands-off pose

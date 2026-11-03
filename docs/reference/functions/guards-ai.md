@@ -425,29 +425,29 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EEC60](../../../src/game/gameplay/ai/bhvstk/InitBhvstk.c) | `InitBhvstk` | BHVSTK init: pbhvstk->pstep = pstep | 0.85 | T1 | runtime |
-| [0x1EEC68](../../../src/game/gameplay/ai/bhvstk/CloneBhvstk.c) | `CloneBhvstk` | BHVSTK clone fix-up: re-point pstep at the new step after the object copy | 0.65 | T1 |  |
-| [0x1EEC70](../../../src/game/gameplay/ai/bhvstk/PostBhvstkLoad.c) | `PostBhvstkLoad` | Allocate the 8 BHV slots (CbBhvMax()=0xF0 bytes each, align 0x10) from the world heap into apbhv[0..7] | 0.75 | T1 |  |
-| [0x1EECD0](../../../src/game/gameplay/ai/bhvstk/ClearBhvstk__FP6BHVSTK.c) | `ClearBhvstk` | Pop every behaviour: if cpbhv>0 pop apbhv[0] (which pops everything stacked above it), then cpbhv=0 | 0.85 | T1 |  |
-| [0x1EED10](../../../src/game/gameplay/ai/bhvstk/UpdateBhvstk.c) | `UpdateBhvstk` | Call BHV vt10 (Update) on every stacked behaviour, top (last pushed) first | 0.80 | T1 |  |
-| [0x1EED78](../../../src/game/gameplay/ai/bhvstk/HandleBhvstkMessage.c) | `HandleBhvstkMessage` | Offer a step message (msgid,pv) to the behaviours, top first, until one's vt13 returns nonzero (consumed) | 0.85 | T1 |  |
-| [0x1EEE00](../../../src/game/gameplay/ai/bhvstk/PbhvPushBhvstk.c) | `PbhvPushBhvstk` | Push a new behaviour of class cid: take slot apbhv[cpbhv++], memset CbBhvMax, construct via PbhvNew, set pstep and pbhvPrev (prev->pbhvNext=new), call vt7 (Init); returns it | 0.85 | T1 |  |
-| [0x1EEED0](../../../src/game/gameplay/ai/bhvstk/DecrementBhvstk.c) | `DecrementBhvstk` | --pbhvstk->cpbhv | 0.55 | T1 |  |
-| [0x1EEEE0](../../../src/game/gameplay/ai/bhvstk/PbhvFindBhvstk.c) | `PbhvFindBhvstk` | Return the first stacked behaviour (bottom first) derived from cid, else NULL | 0.85 | T1 |  |
-| [0x1EEF68](../../../src/game/gameplay/ai/bhvstk/InitBhv.c) | `InitBhv` | BHV vt7 base: empty. Called by PbhvPushBhvstk right after construction | 0.70 | T1 |  |
-| [0x1EEF70](../../../src/game/gameplay/ai/bhvstk/StartBhv.c) | `StartBhv` | BHV vt8 base: empty. Start/activate the behaviour with default parameters (callers that push without a specific setter call it) | 0.85 | T1 |  |
-| [0x1EEF78](../../../src/game/gameplay/ai/bhvstk/CloseBhv.c) | `CloseBhv` | BHV vt9 base: pop whatever is stacked above (PopBhv(&this->pbhvNext)) | 0.60 | T1 |  |
-| [0x1EEF98](../../../src/game/gameplay/ai/bhvstk/UpdateBhv.c) | `UpdateBhv` | BHV vt10 base: empty per-frame update | 0.70 | T1 |  |
-| [0x1EEFA0](../../../src/game/gameplay/ai/bhvstk/func_001EEFA0.c) | `BHV_GrfGroundProbe` | BHV vt12 base: return pstep->+0x204 ? 0 : 7 -- the step's ground/collision flag mask (bit0 snap to ground, bit1 alt probe point, bit2 count in solver contacts) | 0.40 | T2 |  |
-| [0x1EEFB8](../../../src/game/gameplay/ai/bhvstk/UpdateBhvMotion.c) | `UpdateBhvMotion` | BHV vt11 base: empty. Per-frame motion update for the behaviour that currently owns the step's motion controller (STEPGUARD +0xFD0) | 0.70 | T1 |  |
-| [0x1EEFC0](../../../src/game/gameplay/ai/bhvstk/SetBhvBusy.c) | `SetBhvBusy` | If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b IncrementStepguardBusy); increment cBusyAbove on every pbhvPrev below | 0.85 | T1 | runtime |
-| [0x1EF038](../../../src/game/gameplay/ai/bhvstk/ClearBhvBusy.c) | `ClearBhvBusy` | Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below) | 0.85 | T1 | runtime |
-| [0x1EF0A8](../../../src/game/gameplay/ai/bhvstk/FBhvBusyAbove.c) | `FBhvBusyAbove` | Return cBusyAbove>0 (a behaviour higher on the stack is busy) | 0.60 | T1 |  |
-| [0x1EF0B8](../../../src/game/gameplay/ai/bhvstk/BHV_FHandleMessage.c) | `BHV_FHandleMessage` | BHV vt13 base: return 0 (message not consumed) | 0.75 | T1 |  |
-| [0x1EF0C0](../../../src/game/gameplay/ai/bhvstk/func_001EF0C0.c) | `UpdateBhvInput` | BHV vt14 base: on the record passed (JT/STEPPLAYER +0x150 input/joy record): +0x1C=0, +0x18=pstep->+0x1A8 | 0.40 | T2 |  |
-| [0x1EF0D8](../../../src/game/gameplay/ai/bhvstk/PopBhv.c) | `PopBhv` | Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot | 0.85 | T1 | verified |
-| [0x1EF138](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) | `PbhvNew` | Placement factory: switch(cid 0x9C..0xC6) memset size, set BASIC header + vtable for that BHV subclass | 0.75 | T1 |  |
-| [0x1EF6F0](../../../src/game/gameplay/ai/bhvstk/CbBhvMax.c) | `CbBhvMax` | return 0xF0: slot size for any BHV (largest subclass, BHV167 = 0xF0) | 0.60 | T1 |  |
+| [0x1EEC60](../../../src/game/gameplay/ai/bhvstk.cpp) | `InitBhvstk` | BHVSTK init: pbhvstk->pstep = pstep | 0.85 | T1 | runtime |
+| [0x1EEC68](../../../src/game/gameplay/ai/bhvstk.cpp) | `CloneBhvstk` | BHVSTK clone fix-up: re-point pstep at the new step after the object copy | 0.65 | T1 |  |
+| [0x1EEC70](../../../src/game/gameplay/ai/bhvstk.cpp) | `PostBhvstkLoad` | Allocate the 8 BHV slots (CbBhvMax()=0xF0 bytes each, align 0x10) from the world heap into apbhv[0..7] | 0.75 | T1 |  |
+| [0x1EECD0](../../../src/game/gameplay/ai/bhvstk.cpp) | `ClearBhvstk` | Pop every behaviour: if cpbhv>0 pop apbhv[0] (which pops everything stacked above it), then cpbhv=0 | 0.85 | T1 |  |
+| [0x1EED10](../../../src/game/gameplay/ai/bhvstk.cpp) | `UpdateBhvstk` | Call BHV vt10 (Update) on every stacked behaviour, top (last pushed) first | 0.80 | T1 |  |
+| [0x1EED78](../../../src/game/gameplay/ai/bhvstk.cpp) | `HandleBhvstkMessage` | Offer a step message (msgid,pv) to the behaviours, top first, until one's vt13 returns nonzero (consumed) | 0.85 | T1 |  |
+| [0x1EEE00](../../../src/game/gameplay/ai/bhvstk.cpp) | `PbhvPushBhvstk` | Push a new behaviour of class cid: take slot apbhv[cpbhv++], memset CbBhvMax, construct via PbhvNew, set pstep and pbhvPrev (prev->pbhvNext=new), call vt7 (Init); returns it | 0.85 | T1 |  |
+| [0x1EEED0](../../../src/game/gameplay/ai/bhvstk.cpp) | `DecrementBhvstk` | --pbhvstk->cpbhv | 0.55 | T1 |  |
+| [0x1EEEE0](../../../src/game/gameplay/ai/bhvstk.cpp) | `PbhvFindBhvstk` | Return the first stacked behaviour (bottom first) derived from cid, else NULL | 0.85 | T1 |  |
+| [0x1EEF68](../../../src/game/gameplay/ai/bhvstk.cpp) | `InitBhv` | BHV vt7 base: empty. Called by PbhvPushBhvstk right after construction | 0.70 | T1 |  |
+| [0x1EEF70](../../../src/game/gameplay/ai/bhvstk.cpp) | `StartBhv` | BHV vt8 base: empty. Start/activate the behaviour with default parameters (callers that push without a specific setter call it) | 0.85 | T1 |  |
+| [0x1EEF78](../../../src/game/gameplay/ai/bhvstk.cpp) | `CloseBhv` | BHV vt9 base: pop whatever is stacked above (PopBhv(&this->pbhvNext)) | 0.60 | T1 |  |
+| [0x1EEF98](../../../src/game/gameplay/ai/bhvstk.cpp) | `UpdateBhv` | BHV vt10 base: empty per-frame update | 0.70 | T1 |  |
+| [0x1EEFA0](../../../src/game/gameplay/ai/bhvstk.cpp) | `BHV_GrfGroundProbe` | BHV vt12 base: return pstep->+0x204 ? 0 : 7 -- the step's ground/collision flag mask (bit0 snap to ground, bit1 alt probe point, bit2 count in solver contacts) | 0.40 | T2 |  |
+| [0x1EEFB8](../../../src/game/gameplay/ai/bhvstk.cpp) | `UpdateBhvMotion` | BHV vt11 base: empty. Per-frame motion update for the behaviour that currently owns the step's motion controller (STEPGUARD +0xFD0) | 0.70 | T1 |  |
+| [0x1EEFC0](../../../src/game/gameplay/ai/bhvstk.cpp) | `SetBhvBusy` | If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b IncrementStepguardBusy); increment cBusyAbove on every pbhvPrev below | 0.85 | T1 | runtime |
+| [0x1EF038](../../../src/game/gameplay/ai/bhvstk.cpp) | `ClearBhvBusy` | Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below) | 0.85 | T1 | runtime |
+| [0x1EF0A8](../../../src/game/gameplay/ai/bhvstk.cpp) | `FBhvBusyAbove` | Return cBusyAbove>0 (a behaviour higher on the stack is busy) | 0.60 | T1 |  |
+| [0x1EF0B8](../../../src/game/gameplay/ai/bhvstk.cpp) | `BHV_FHandleMessage` | BHV vt13 base: return 0 (message not consumed) | 0.75 | T1 |  |
+| [0x1EF0C0](../../../src/game/gameplay/ai/bhvstk.cpp) | `UpdateBhvInput` | BHV vt14 base: on the record passed (JT/STEPPLAYER +0x150 input/joy record): +0x1C=0, +0x18=pstep->+0x1A8 | 0.40 | T2 |  |
+| [0x1EF0D8](../../../src/game/gameplay/ai/bhvstk.cpp) | `PopBhv` | Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot | 0.85 | T1 | verified |
+| [0x1EF138](../../../src/game/gameplay/ai/bhvstk.cpp) | `PbhvNew` | Placement factory: switch(cid 0x9C..0xC6) memset size, set BASIC header + vtable for that BHV subclass | 0.75 | T1 |  |
+| [0x1EF6F0](../../../src/game/gameplay/ai/bhvstk.cpp) | `CbBhvMax` | return 0xF0: slot size for any BHV (largest subclass, BHV167 = 0xF0) | 0.60 | T1 |  |
 
 ## pickpocket (0x1F1768-0x1F2108)
 

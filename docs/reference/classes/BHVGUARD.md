@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvguard`](../../../src/game/app/class_registry/NewBhvguard.cpp) `0x113060` |
 | Descriptor getter (slot 6) | `GetBhvguardClassDesc` `0x1143D0` |
 | vtable | `D_002D04A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvguard`](../../../src/game/app/class_registry/NewBhvguard.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvguard`](../../../src/game/app/class_registry/NewBhvguard.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV156`, proposed `BHVGUARD` (confidence 0.7), guard flag `-`. root guard brain: mode selector (patrol, search, alert, combat, script, damage, held/thrown, sleep, escort, target list, stalk, relocate)

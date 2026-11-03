@@ -33,14 +33,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetBhvClassDesc`](../../../src/game/app/class_registry/GetBhvClassDesc.c) | `0x1143C0` | Pclassinfo |
-| 7 | Init | **new** | [`InitBhv`](../../../src/game/gameplay/ai/bhvstk/InitBhv.c) | `0x1EEF68` | OnPush |
-| 8 | Start | **new** | [`StartBhv`](../../../src/game/gameplay/ai/bhvstk/StartBhv.c) | `0x1EEF70` | Start |
-| 9 | Close | **new** | [`CloseBhv`](../../../src/game/gameplay/ai/bhvstk/CloseBhv.c) | `0x1EEF78` | VSlot9 |
-| 10 | Update | **new** | [`UpdateBhv`](../../../src/game/gameplay/ai/bhvstk/UpdateBhv.c) | `0x1EEF98` | VSlot10 |
-| 11 | UpdateMotion | **new** | [`UpdateBhvMotion`](../../../src/game/gameplay/ai/bhvstk/UpdateBhvMotion.c) | `0x1EEFB8` | VSlot11 |
-| 12 | GrfGroundProbe | **new** | [`BHV_GrfGroundProbe?`](../../../src/game/gameplay/ai/bhvstk/func_001EEFA0.c) | `0x1EEFA0` | VSlot12 |
-| 13 | FHandleMessage | **new** | [`BHV_FHandleMessage`](../../../src/game/gameplay/ai/bhvstk/BHV_FHandleMessage.c) | `0x1EF0B8` | VSlot13 |
-| 14 | UpdateInput | **new** | [`UpdateBhvInput?`](../../../src/game/gameplay/ai/bhvstk/func_001EF0C0.c) | `0x1EF0C0` | VSlot14 |
+| 7 | Init | **new** | [`InitBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF68` | OnPush |
+| 8 | Start | **new** | [`StartBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF70` | Start |
+| 9 | Close | **new** | [`CloseBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF78` | VSlot9 |
+| 10 | Update | **new** | [`UpdateBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF98` | VSlot10 |
+| 11 | UpdateMotion | **new** | [`UpdateBhvMotion`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEFB8` | VSlot11 |
+| 12 | GrfGroundProbe | **new** | [`BHV_GrfGroundProbe?`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEFA0` | VSlot12 |
+| 13 | FHandleMessage | **new** | [`BHV_FHandleMessage`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EF0B8` | VSlot13 |
+| 14 | UpdateInput | **new** | [`UpdateBhvInput?`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EF0C0` | VSlot14 |
 
 ## Fields
 

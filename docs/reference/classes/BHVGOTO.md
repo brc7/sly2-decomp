@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvgoto`](../../../src/game/app/class_registry/NewBhvgoto.cpp) `0x113708` |
 | Descriptor getter (slot 6) | `GetBhvgotoClassDesc` `0x1145B0` |
 | vtable | `D_002CFE20`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvgoto`](../../../src/game/app/class_registry/NewBhvgoto.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvgoto`](../../../src/game/app/class_registry/NewBhvgoto.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV186`, proposed `BHVGOTO` (confidence 0.75), guard flag `param (+0x38; 0x1C = run)`. navigate to a goal through path zones and pathlinks

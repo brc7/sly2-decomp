@@ -265,10 +265,10 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x17E3A0](../../src/game/gameplay/ai/guardbhv/InitBhvpathlink.c) | `InitBhvpathlink` | BHVPATHLINK Init: raise flag 0x2C, state -1 | 0.75 | T1 | runtime |
 | [0x17E888](../../src/game/gameplay/ai/guardbhv/func_0017E888.c) | `InitBhv191` | BHVRELOCATE Init: raise flag 0x2D | 0.85 | T2 | verified |
 | [0x17EB48](../../src/game/gameplay/ai/guardbhv/InitBhvpatrolpath.c) | `InitBhvpatrolpath` | BHVPATROLPATH Init: raise flag 0x2E, param -1 | 0.90 | T1 | runtime, verified |
-| [0x1EEC60](../../src/game/gameplay/ai/bhvstk/InitBhvstk.c) | `InitBhvstk` | BHVSTK init: pbhvstk->pstep = pstep | 0.85 | T1 | runtime |
-| [0x1EEFC0](../../src/game/gameplay/ai/bhvstk/SetBhvBusy.c) | `SetBhvBusy` | If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b IncrementStepguardBusy); increment cBusyAbove on every  | 0.85 | T1 | runtime |
-| [0x1EF038](../../src/game/gameplay/ai/bhvstk/ClearBhvBusy.c) | `ClearBhvBusy` | Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below) | 0.85 | T1 | runtime |
-| [0x1EF0D8](../../src/game/gameplay/ai/bhvstk/PopBhv.c) | `PopBhv` | Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot | 0.85 | T1 | verified |
+| [0x1EEC60](../../src/game/gameplay/ai/bhvstk.cpp) | `InitBhvstk` | BHVSTK init: pbhvstk->pstep = pstep | 0.85 | T1 | runtime |
+| [0x1EEFC0](../../src/game/gameplay/ai/bhvstk.cpp) | `SetBhvBusy` | If !fBusy: fBusy=1; if pstep is a STEPGUARD (cid 0x38) increment its busy count (0x20B438, r7b IncrementStepguardBusy); increment cBusyAbove on every  | 0.85 | T1 | runtime |
+| [0x1EF038](../../src/game/gameplay/ai/bhvstk.cpp) | `ClearBhvBusy` | Inverse of SetBhvBusy (fBusy=0, STEPGUARD busy count-- via 0x20B478, cBusyAbove-- below) | 0.85 | T1 | runtime |
+| [0x1EF0D8](../../src/game/gameplay/ai/bhvstk.cpp) | `PopBhv` | Given a BHV* slot: if non-null call its vt9 (Close), decrement its step's cpbhv, null the slot | 0.85 | T1 | verified |
 | [0x2039C0](../../src/game/actor/step/LoadStepFromBrx.c) | `LoadStepFromBrx` | STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300 | 0.85 | T1 | parse |
 | [0x204C60](../../src/game/actor/step/OnStepSoContactFreed.c) | `OnStepSoContactFreed` | STEP vt54: base no-op then drop the cached ground contact +0x208 if it is the freed one | 0.85 | T1 | verified |
 | [0x204D48](../../src/game/actor/step/func_00204D48.c) | `SetStepSpinRatio` | smpSpin = default D_002C3CB8 with svFast/svSlow *r and dtFast /sqrt(r); store r at +0x1F0 | 0.85 | T1 | verified |

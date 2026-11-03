@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewBhvwalkpath`](../../../src/game/app/class_registry/NewBhvwalkpath.c) `0x1132E0` |
 | Descriptor getter (slot 6) | `GetBhvwalkpathClassDesc` `0x114480` |
 | vtable | `D_002D06A0`, 16 entries (slots 0..15; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewBhvwalkpath`](../../../src/game/app/class_registry/NewBhvwalkpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk/PbhvNew.c) |
+| vtable stored by | [`NewBhvwalkpath`](../../../src/game/app/class_registry/NewBhvwalkpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV167`, proposed `BHVWALKPATH` (confidence 0.6), guard flag `-`. path follow with walk/idle anim children and stuck timer
