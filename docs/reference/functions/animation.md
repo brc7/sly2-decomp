@@ -162,15 +162,15 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x137A30](../../../src/game/engine/anim/blend/EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL.cpp) | `EnsureAsegBlendDynamic` | Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables | 0.90 | T1 | verified |
-| [0x137FB8](../../../src/game/engine/anim/blend/FillBlAmrsg__FiiPviiP3OID.cpp) | `FillBlAmrsg__FiiPviiP3OID` |  |  | existing |  |
-| [0x1380F0](../../../src/game/engine/anim/blend/CalculateBlendAmrsg__FiiPviiP4MRSGPf.c) | `CalculateBlendAmrsg__FiiPviiP4MRSGPf` |  |  | existing |  |
-| [0x138370](../../../src/game/engine/anim/blend/ImrsgLookUp__FffiP4MRSGPf.cpp) | `ImrsgLookUp__FffiP4MRSGPf` |  |  | existing |  |
-| [0x1383F0](../../../src/game/engine/anim/blend/SetAsegblDominantBl.c) | `SetAsegblDominantBl` | When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping of every live ACT on the blended aseg channels | 0.85 | T1 | verified |
-| [0x1384C0](../../../src/game/engine/anim/blend/func_001384C0.c) | `ReblendAsegbl` | Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc), rescale times; mirror times from a linked asegbl (+0xD8) | 0.85 | T1 | verified |
-| [0x138660](../../../src/game/engine/anim/blend/func_00138660.c) | `EvaluateBlendChnPose` | Blended-channel actuator virtual: if a solo bl is selected forward to its channel, else blend all weighted bls' pose/transform at the current time into the output record | 0.35 | T2 |  |
-| [0x138970](../../../src/game/engine/anim/blend/EvaluateBlendChnPosVel.c) | `EvaluateBlendChnPosVel` | Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's position/rotation at time t (MRSG-mapped) | 0.60 | T1 | verified |
-| [0x138BA0](../../../src/game/engine/anim/blend/func_00138BA0.c) | `EvaluateBlendChnScalar` | Blended-channel actuator virtual (p, t, r, pa, pb): weighted sum of two scalars (e.g. twist and its rate) across bls | 0.30 | T2 |  |
+| [0x137A30](../../../src/game/engine/anim/blend.cpp) | `EnsureAsegBlendDynamic` | Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables | 0.90 | T1 | verified |
+| [0x137FB8](../../../src/game/engine/anim/blend.cpp) | `FillBlAmrsg__FiiPviiP3OID` |  |  | existing |  |
+| [0x1380F0](../../../src/game/engine/anim/blend.cpp) | `CalculateBlendAmrsg__FiiPviiP4MRSGPf` |  |  | existing |  |
+| [0x138370](../../../src/game/engine/anim/blend.cpp) | `ImrsgLookUp__FffiP4MRSGPf` |  |  | existing |  |
+| [0x1383F0](../../../src/game/engine/anim/blend.cpp) | `SetAsegblDominantBl` | When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping of every live ACT on the blended aseg channels | 0.85 | T1 | verified |
+| [0x1384C0](../../../src/game/engine/anim/blend.cpp) | `ReblendAsegbl` | Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc), rescale times; mirror times from a linked asegbl (+0xD8) | 0.85 | T1 | verified |
+| [0x138660](../../../src/game/engine/anim/blend.cpp) | `EvaluateBlendChnPose` | Blended-channel actuator virtual: if a solo bl is selected forward to its channel, else blend all weighted bls' pose/transform at the current time into the output record | 0.35 | T2 |  |
+| [0x138970](../../../src/game/engine/anim/blend.cpp) | `EvaluateBlendChnPosVel` | Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's position/rotation at time t (MRSG-mapped) | 0.60 | T1 | verified |
+| [0x138BA0](../../../src/game/engine/anim/blend.cpp) | `EvaluateBlendChnScalar` | Blended-channel actuator virtual (p, t, r, pa, pb): weighted sum of two scalars (e.g. twist and its rate) across bls | 0.30 | T2 |  |
 
 ## ik (0x186610-0x187030)
 
