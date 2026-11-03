@@ -20,7 +20,7 @@
 | [`jthands/`](jthands/) | 17 |
 | [`mode/`](mode/) | 14 |
 | [`murray/`](murray/) | 66 |
-| [`pipe/`](pipe/) | 14 |
+| [`pipe.cpp`](pipe.cpp) | 1 |
 | [`pipe_jt/`](pipe_jt/) | 15 |
 | [`places/`](places/) | 14 |
 | [`rail.cpp`](rail.cpp) | 1 |

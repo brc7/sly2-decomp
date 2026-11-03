@@ -375,10 +375,10 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x1B8450](../../src/game/gameplay/player/murray/MURRAY_FIgnoreIntersection.c) | `MURRAY_FIgnoreIntersection` | MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently released one x1430, or defers to JTTHROW filter in stat | 0.85 | T1 | verified |
 | [0x1B8988](../../src/game/gameplay/player/murray/UpdateMurrayAttack.c) | `UpdateMurrayAttack` | State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement cancel | 0.85 | T1 | runtime, verified |
 | [0x1B92F8](../../src/game/gameplay/player/murray/UpdateMurrayLift.c) | `UpdateMurrayLift` | State 4: wait for grab event (x1448), abort if object gone; after attach go to carry (state 5) when anim ends | 0.85 | T1 | runtime, verified |
-| [0x1C3390](../../src/game/gameplay/player/pipe/InitPipe.c) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
-| [0x1C33E8](../../src/game/gameplay/player/pipe/OnPipeAdd.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C3420](../../src/game/gameplay/player/pipe/OnPipeRemove.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C34B8](../../src/game/gameplay/player/pipe/ClonePipe.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
+| [0x1C3390](../../src/game/gameplay/player/pipe.cpp) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
+| [0x1C33E8](../../src/game/gameplay/player/pipe.cpp) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C3420](../../src/game/gameplay/player/pipe.cpp) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C34B8](../../src/game/gameplay/player/pipe.cpp) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
 | [0x1C3DC8](../../src/game/actor/po/LoadPoFromBrx.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
 | [0x1C3E20](../../src/game/actor/po/HandlePoMessage.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
 | [0x1C40F8](../../src/game/actor/po/FIsPoActive.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |

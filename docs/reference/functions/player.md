@@ -638,17 +638,17 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C3390](../../../src/game/gameplay/player/pipe/InitPipe.c) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
-| [0x1C33E8](../../../src/game/gameplay/player/pipe/OnPipeAdd.c) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C3420](../../../src/game/gameplay/player/pipe/OnPipeRemove.c) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
-| [0x1C3458](../../../src/game/gameplay/player/pipe/PostPipeLoad.c) | `PostPipeLoad` | PIPE vt15: base PostLoad + default length | 0.80 | T1 |  |
-| [0x1C34B8](../../../src/game/gameplay/player/pipe/ClonePipe.c) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
-| [0x1C3500](../../../src/game/gameplay/player/pipe/GetPipeGoalMat.cpp) | `GetPipeGoalMat` | Orientation basis for a position `distance` along the pipe path (searching samples until tangent agrees) | 0.50 | T1 |  |
-| [0x1C3958](../../../src/game/gameplay/player/pipe/func_001C3958.c) | `PIPE_ClampGrabDistance` | GRABSPOT iface: closest distance clamped | 0.35 | T2 |  |
-| [0x1C3A08](../../../src/game/gameplay/player/pipe/func_001C3A08.c) | `GetPipeGrabPosMat` | GRABSPOT iface: basis + position at distance | 0.30 | T2 |  |
-| [0x1C3A88](../../../src/game/gameplay/player/pipe/func_001C3A88.c) | `GetPipeGrabMat` | GRABSPOT iface: orientation at distance | 0.30 | T2 |  |
-| [0x1C3BB0](../../../src/game/gameplay/player/pipe/func_001C3BB0.c) | `PIPE_FGetGrabRange` | GRABSPOT iface: [low high] if enabled | 0.35 | T2 |  |
-| [0x1C3C08](../../../src/game/gameplay/player/pipe/func_001C3C08.c) | `SetPipeGrabDisabled` | +0x1AC = (arg==0) | 0.30 | T2 |  |
+| [0x1C3390](../../../src/game/gameplay/player/pipe.cpp) | `InitPipe` | PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults | 0.85 | T1 | verified |
+| [0x1C33E8](../../../src/game/gameplay/player/pipe.cpp) | `OnPipeAdd` | PIPE vt23: base then append to pipe list D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C3420](../../../src/game/gameplay/player/pipe.cpp) | `OnPipeRemove` | PIPE vt22: base then remove from D_003E13C0 | 0.85 | T1 | arbitration |
+| [0x1C3458](../../../src/game/gameplay/player/pipe.cpp) | `PostPipeLoad` | PIPE vt15: base PostLoad + default length | 0.80 | T1 |  |
+| [0x1C34B8](../../../src/game/gameplay/player/pipe.cpp) | `ClonePipe` | PIPE vt41 Clone | 0.85 | T1 | verified |
+| [0x1C3500](../../../src/game/gameplay/player/pipe.cpp) | `GetPipeGoalMat` | Orientation basis for a position `distance` along the pipe path (searching samples until tangent agrees) | 0.50 | T1 |  |
+| [0x1C3958](../../../src/game/gameplay/player/pipe.cpp) | `PIPE_ClampGrabDistance` | GRABSPOT iface: closest distance clamped | 0.35 | T2 |  |
+| [0x1C3A08](../../../src/game/gameplay/player/pipe.cpp) | `GetPipeGrabPosMat` | GRABSPOT iface: basis + position at distance | 0.30 | T2 |  |
+| [0x1C3A88](../../../src/game/gameplay/player/pipe.cpp) | `GetPipeGrabMat` | GRABSPOT iface: orientation at distance | 0.30 | T2 |  |
+| [0x1C3BB0](../../../src/game/gameplay/player/pipe.cpp) | `PIPE_FGetGrabRange` | GRABSPOT iface: [low high] if enabled | 0.35 | T2 |  |
+| [0x1C3C08](../../../src/game/gameplay/player/pipe.cpp) | `SetPipeGrabDisabled` | +0x1AC = (arg==0) | 0.30 | T2 |  |
 
 ## po (0x1C3D70-0x1C4E50)
 
