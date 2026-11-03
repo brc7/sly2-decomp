@@ -328,7 +328,7 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x142540](../../src/game/gameplay/player/stepplayer/StartStepplayerFollow.c) | `StartStepplayerFollow` | Splice: clear message list, and if a then create behaviour 0xC2 (0x205438) with params and run its vt8 \| runtime6: Splice optid 446 on STEPPLAYER: cle | 0.30 | T2 | pending-fix; pending fix; v2 name StartStepplayerBhvC2 |
 | [0x1440D0](../../src/game/gameplay/player/stepplayer/BindStepplayerHpMp.c) | `BindStepplayerHpMp` | Bind hp/mp to save vars hpCur/mpCur under vt103 root (+0xE00, +0x12FC); if unset or forced, reset to max | 0.80 | T1 | runtime |
 | [0x144480](../../src/game/gameplay/player/stepplayer/OnStepplayerActive.c) | `OnStepplayerActive` | vt78: PO OnPoActive, then vt105; when deactivated stop +0x1310 action and +0x1314=-1 | 0.80 | T1 | runtime |
-| [0x144638](../../src/game/gameplay/player/jtgoal/InitJtgoal.c) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
+| [0x144638](../../src/game/gameplay/player/jtgoal.cpp) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
 | [0x146298](../../src/game/gameplay/ai/tu_144B28/func_00146298.c) | `FBhv196Idle` | state == -1 | 0.85 | T2 | verified |
 | [0x182CC0](../../src/game/gameplay/player/grabspot/GRABSPOT_FGetGrabRange.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
 | [0x182EB8](../../src/game/gameplay/player/grabspot/func_00182EB8.c) | `OnCid12Add` | vt23: LO Unfreeze + append to grab list D_003E13F0 | 0.85 | T2 | arbitration |

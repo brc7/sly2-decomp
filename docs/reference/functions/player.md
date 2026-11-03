@@ -169,10 +169,10 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x144638](../../../src/game/gameplay/player/jtgoal/InitJtgoal.c) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
-| [0x144640](../../../src/game/gameplay/player/jtgoal/UpdateJtgoal.c) | `UpdateJtgoal` | Anti-stuck for scripted walk-to-goal: every D_002BD2D0 s while the player is pushed (behaviour stack/ride), if hands-off nudge blocking guards (event 0x17, 0x1F7BF8); if distance to qwGoal did not shrink enough, snap goa | 0.60 | T1 |  |
-| [0x1448F0](../../../src/game/gameplay/player/jtgoal/SetJtgoal.c) | `SetJtgoal` | Set goal position unless holding or already within D_002BD2D8: store qwGoal, sDist = distance from player, tCheck = now + interval | 0.65 | T1 |  |
-| [0x1449C8](../../../src/game/gameplay/player/jtgoal/FJtgoalHold.c) | `FJtgoalHold` | returns fHold (+0x28) | 0.60 | T1 |  |
+| [0x144638](../../../src/game/gameplay/player/jtgoal.cpp) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
+| [0x144640](../../../src/game/gameplay/player/jtgoal.cpp) | `UpdateJtgoal` | Anti-stuck for scripted walk-to-goal: every D_002BD2D0 s while the player is pushed (behaviour stack/ride), if hands-off nudge blocking guards (event 0x17, 0x1F7BF8); if distance to qwGoal did not shrink enough, snap goa | 0.60 | T1 |  |
+| [0x1448F0](../../../src/game/gameplay/player/jtgoal.cpp) | `SetJtgoal` | Set goal position unless holding or already within D_002BD2D8: store qwGoal, sDist = distance from player, tCheck = now + interval | 0.65 | T1 |  |
+| [0x1449C8](../../../src/game/gameplay/player/jtgoal.cpp) | `FJtgoalHold` | returns fHold (+0x28) | 0.60 | T1 |  |
 
 ## tu_144B28 (0x144B28-0x1471C0)
 
