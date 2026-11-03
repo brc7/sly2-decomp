@@ -289,7 +289,7 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x209970](../../src/game/gameplay/ai/stepguard/RemoveStepguardSgf.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
 | [0x20A730](../../src/game/gameplay/ai/stepguard/AddTargetRecordGuard.c) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
 | [0x20A818](../../src/game/gameplay/ai/stepguard/func_0020A818.cpp) | `FTargetRecordAllowsGuard` | Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires guard ready or inside camera frustum within heading tole | 0.40 | T2 |  |
-| [0x20D1A0](../../src/game/gameplay/ai/tu_20CE28/EnableStuckWatch.c) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
+| [0x20D1A0](../../src/game/gameplay/ai/tu_20CE28.cpp) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
 
 Selected 70 of 590 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/guards-ai.md](../reference/functions/guards-ai.md).
 

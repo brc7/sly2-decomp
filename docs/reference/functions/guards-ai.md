@@ -676,16 +676,16 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x20CE28](../../../src/game/gameplay/ai/tu_20CE28/func_0020CE28.c) | `InitStuckWatch` | po, state -1, enabled | 0.35 | T2 | verified |
-| [0x20CE40](../../../src/game/gameplay/ai/tu_20CE28/func_0020CE40.c) | `ResetStuckWatch` | state -1, enabled, state 0 | 0.35 | T2 |  |
-| [0x20CE70](../../../src/game/gameplay/ai/tu_20CE28/func_0020CE70.c) | `UpdateStuckWatch` | if all 5 probe points blocked for > D_002C3DF0 s -> InflictZap kind 0x4000 on self | 0.35 | T2 |  |
-| [0x20CFC0](../../../src/game/gameplay/ai/tu_20CE28/func_0020CFC0.c) | `FFilterStuckProbe` | probe filter: ignore cid 0x59 (water?) when flagged | 0.30 | T2 |  |
-| [0x20D020](../../../src/game/gameplay/ai/tu_20CE28/func_0020D020.c) | `FGuardStuck` | 5 probe offsets D_002C3E00 around guard all blocked | 0.30 | T2 |  |
-| [0x20D108](../../../src/game/gameplay/ai/tu_20CE28/func_0020D108.c) | `SetStuckWatchState` | state 2 -> InflictZap 0x4000 | 0.35 | T2 |  |
-| [0x20D178](../../../src/game/gameplay/ai/tu_20CE28/func_0020D178.c) | `DisableStuckWatch` | enabled = 0, state 0 | 0.35 | T2 |  |
-| [0x20D1A0](../../../src/game/gameplay/ai/tu_20CE28/EnableStuckWatch.c) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
-| [0x20D1B0](../../../src/game/gameplay/ai/tu_20CE28/func_0020D1B0.c) | `InitHazardWatch` | po, state -1, enabled | 0.35 | T2 |  |
-| [0x20D1C8](../../../src/game/gameplay/ai/tu_20CE28/func_0020D1C8.c) | `ResetHazardWatch` | state 0 | 0.35 | T2 |  |
-| [0x20D1F8](../../../src/game/gameplay/ai/tu_20CE28/func_0020D1F8.c) | `UpdateHazardWatch` | inside hazard object (vt73) while falling for > D_002C3E58 s -> zap with hazard params | 0.35 | T2 |  |
-| [0x20D3C0](../../../src/game/gameplay/ai/tu_20CE28/func_0020D3C0.c) | `SetHazardWatchState` | state 2 -> InflictZap with hazard +0x184/+0x188 | 0.35 | T2 |  |
-| [0x20D460](../../../src/game/gameplay/ai/tu_20CE28/func_0020D460.c) | `SetHazardWatchTarget` | +0xC = hazard object | 0.30 | T2 |  |
+| [0x20CE28](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `InitStuckWatch` | po, state -1, enabled | 0.35 | T2 | verified |
+| [0x20CE40](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `ResetStuckWatch` | state -1, enabled, state 0 | 0.35 | T2 |  |
+| [0x20CE70](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `UpdateStuckWatch` | if all 5 probe points blocked for > D_002C3DF0 s -> InflictZap kind 0x4000 on self | 0.35 | T2 |  |
+| [0x20CFC0](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `FFilterStuckProbe` | probe filter: ignore cid 0x59 (water?) when flagged | 0.30 | T2 |  |
+| [0x20D020](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `FGuardStuck` | 5 probe offsets D_002C3E00 around guard all blocked | 0.30 | T2 |  |
+| [0x20D108](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `SetStuckWatchState` | state 2 -> InflictZap 0x4000 | 0.35 | T2 |  |
+| [0x20D178](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `DisableStuckWatch` | enabled = 0, state 0 | 0.35 | T2 |  |
+| [0x20D1A0](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
+| [0x20D1B0](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `InitHazardWatch` | po, state -1, enabled | 0.35 | T2 |  |
+| [0x20D1C8](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `ResetHazardWatch` | state 0 | 0.35 | T2 |  |
+| [0x20D1F8](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `UpdateHazardWatch` | inside hazard object (vt73) while falling for > D_002C3E58 s -> zap with hazard params | 0.35 | T2 |  |
+| [0x20D3C0](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `SetHazardWatchState` | state 2 -> InflictZap with hazard +0x184/+0x188 | 0.35 | T2 |  |
+| [0x20D460](../../../src/game/gameplay/ai/tu_20CE28.cpp) | `SetHazardWatchTarget` | +0xC = hazard object | 0.30 | T2 |  |
