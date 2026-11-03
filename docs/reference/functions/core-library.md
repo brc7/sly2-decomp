@@ -112,9 +112,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x119BC8](../../../src/game/core/containers/tu_119BC8/func_00119BC8.c) | `PvKeyFromPtr` | Returns *p (key-extraction callback passed by the class below) | 0.30 | T2 |  |
-| [0x119BD0](../../../src/game/core/containers/tu_119BC8/func_00119BD0.c) | `CUnk2CA5E0_Init` | vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn 0x119BC8 | 0.25 | T2 |  |
-| [0x119C08](../../../src/game/core/containers/tu_119BC8/func_00119C08.c) | `CUnk2CA5E0_ReadString` | vtable slot 4: ReadStringSw(pbis, ppchz, this->pheap->palloc, kind 7) | 0.30 | T2 |  |
+| [0x119BC8](../../../src/game/core/containers/tu_119BC8.cpp) | `PvKeyFromPtr` | Returns *p (key-extraction callback passed by the class below) | 0.30 | T2 |  |
+| [0x119BD0](../../../src/game/core/containers/tu_119BC8.cpp) | `CUnk2CA5E0_Init` | vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn 0x119BC8 | 0.25 | T2 |  |
+| [0x119C08](../../../src/game/core/containers/tu_119BC8.cpp) | `CUnk2CA5E0_ReadString` | vtable slot 4: ReadStringSw(pbis, ppchz, this->pheap->palloc, kind 7) | 0.30 | T2 |  |
 
 ## dl (0x11A050-0x11A550)
 
@@ -450,18 +450,18 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2564A8](../../../src/game/core/math/bsp/func_002564A8.c) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2564B8](../../../src/game/core/math/bsp/func_002564B8.c) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
 | [0x2564C0](../../../src/game/engine/physics/mark/func_002564C0.c) | `Identity_002564C0` | return arg (inline cast/accessor) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x2564E0](../../../src/game/core/containers/tu_119BC8/func_002564E0.c) | `CUnk2CA5E0_Attach` | a->owner=b; append a to b->list (+4); a->x24=b->x0 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256528](../../../src/game/core/containers/tu_119BC8/func_00256528.c) | `CUnk2CA5E0_Attach2` | variant with extra arg c, list at +0x28 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256588](../../../src/game/core/containers/tu_119BC8/func_00256588.c) | `BroadcastToList` | for each node in list call node->vt[2\](pv) [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2565E0](../../../src/game/core/containers/tu_119BC8/func_002565E0.c) | `CDynArrayV_AppendNew` | grow array by 1, call vt init on new element, return it [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256658](../../../src/game/core/containers/tu_119BC8/func_00256658.c) | `CDynArrayV_Clear` | free array and destroy list nodes via vt [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2564E0](../../../src/game/core/containers/tu_119BC8.cpp) | `CUnk2CA5E0_Attach` | a->owner=b; append a to b->list (+4); a->x24=b->x0 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256528](../../../src/game/core/containers/tu_119BC8.cpp) | `CUnk2CA5E0_Attach2` | variant with extra arg c, list at +0x28 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256588](../../../src/game/core/containers/tu_119BC8.cpp) | `BroadcastToList` | for each node in list call node->vt[2\](pv) [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2565E0](../../../src/game/core/containers/tu_119BC8.cpp) | `CDynArrayV_AppendNew` | grow array by 1, call vt init on new element, return it [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256658](../../../src/game/core/containers/tu_119BC8.cpp) | `CDynArrayV_Clear` | free array and destroy list nodes via vt [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2566B0](../../../src/game/core/binstream/bis.cpp) | `LoadS32FromBis_vt` | virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2566D8](../../../src/game/core/containers/tu_119BC8/func_002566D8.cpp) | `LoadListFromBrx_vt` | virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2567D0](../../../src/game/core/containers/tu_119BC8/func_002567D0.c) | `CHash_Clear` | free all chained entries and bucket array through allocator vt[3] [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x2568A0](../../../src/game/core/containers/tu_119BC8/func_002568A0.c) | `CHash_ClearAt14` | CHash_Clear(this+0x14) [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2568C0](../../../src/game/core/containers/tu_119BC8/func_002568C0.c) | `CHash_Resize` | rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x2569F8](../../../src/game/core/containers/tu_119BC8/func_002569F8.c) | `CHash_Insert` | insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x256AF0](../../../src/game/core/containers/tu_119BC8/func_00256AF0.c) | `CHashIndex_Add` | insert (hash(px), index of px) into owner hash [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2566D8](../../../src/game/core/containers/tu_119BC8.cpp) | `LoadListFromBrx_vt` | virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2567D0](../../../src/game/core/containers/tu_119BC8.cpp) | `CHash_Clear` | free all chained entries and bucket array through allocator vt[3] [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x2568A0](../../../src/game/core/containers/tu_119BC8.cpp) | `CHash_ClearAt14` | CHash_Clear(this+0x14) [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2568C0](../../../src/game/core/containers/tu_119BC8.cpp) | `CHash_Resize` | rehash all entries into n buckets (realloc via allocator) [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x2569F8](../../../src/game/core/containers/tu_119BC8.cpp) | `CHash_Insert` | insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x256AF0](../../../src/game/core/containers/tu_119BC8.cpp) | `CHashIndex_Add` | insert (hash(px), index of px) into owner hash [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256B48](../../../src/game/app/bif/PvNewPair.c) | `PvNewPair` | allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256C38](../../../src/game/app/bif/func_00256C38.c) | `PairPtr_ctor` | CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release | 0.55 | T2 | top50; top50 round; v2 name PairPtr_Init |
 | [0x256C58](../../../src/game/app/bif/PairPtr_Assign.c) | `PairPtr_Assign` | refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)] | 0.50 | T1 |  |
