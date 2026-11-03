@@ -12,7 +12,7 @@
 | [`shd/`](shd/) | 45 |
 | [`shdanim/`](shdanim/) | 33 |
 | [`sky.cpp`](sky.cpp) | 1 |
-| [`tu_1BE398/`](tu_1BE398/) | 16 |
+| [`tu_1BE398.cpp`](tu_1BE398.cpp) | 1 |
 | [`tu_1D57A8.cpp`](tu_1D57A8.cpp) | 1 |
 | [`vis.cpp`](vis.cpp) | 1 |
 

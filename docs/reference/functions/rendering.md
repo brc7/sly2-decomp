@@ -206,20 +206,20 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1BE398](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BE398.cpp) | `InitItemRenderTargets` | Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots (D_003E1A78, D_003E1AA0) | 0.40 | T2 |  |
-| [0x1BE6F0](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BE6F0.cpp) | `SetupItemRenderView` | Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset, unpack) | 0.40 | T2 |  |
-| [0x1BE990](../../../src/game/engine/graphics/pipeline/tu_1BE398/BeginRpRenderTarget0.c) | `BeginRpRenderTarget0` | Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob | 0.55 | T1 |  |
-| [0x1BE9E8](../../../src/game/engine/graphics/pipeline/tu_1BE398/BeginRpRenderTarget1.c) | `BeginRpRenderTarget1` | Pass 9 begin (kind 18): same for slot 1 | 0.55 | T1 |  |
-| [0x1BEA40](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEA40.c) | `InitCid45` | CID 45 vt7: InitXfm, fov/near/far defaults 1, 4, 1000 | 0.55 | T2 |  |
-| [0x1BEA88](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEA88.c) | `LoadCid45FromBrx` | CID 45 vt14: LoadXfmFromBrx | 0.75 | T2 | parse, verified |
-| [0x1BEAA8](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEAA8.c) | `AddCid45Object` | Append object to list | 0.30 | T2 |  |
-| [0x1BEAD0](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEAD0.c) | `AddCid45ObjectShown` | Append object, set flags, call its vt9 | 0.30 | T2 |  |
-| [0x1BEB28](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEB28.c) | `AcquireCid45RenderSlot` | Grab a free render slot for this holder, prepare objects (in-world check, DL append) | 0.40 | T2 |  |
-| [0x1BECF8](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BECF8.c) | `AcquireCid45RenderSlotThunk` | wrapper | 0.25 | T2 |  |
-| [0x1BED18](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BED18.c) | `ReleaseCid45RenderSlot` | Release slot, restore objects (vt9 / vt21(1)), self vt21(0), vt3 msg 3 | 0.40 | T2 |  |
-| [0x1BEE10](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEE10.c) | `IRenderSlotTexture` | Table lookup D_002C0BF8[slot][n] or -1 | 0.30 | T2 | verified |
-| [0x1BEE60](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEE60.c) | `RenderCid45Self` | CID 45 vt19: if it owns a slot, draw each held object's globset (0x169198) | 0.45 | T2 |  |
-| [0x1BEED8](../../../src/game/engine/graphics/pipeline/tu_1BE398/func_001BEED8.c) | `FindItemPreviewObject` | Find preview object by id (0x2AE/0x2AF relative to current player) | 0.30 | T2 |  |
+| [0x1BE398](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `InitItemRenderTargets` | Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots (D_003E1A78, D_003E1AA0) | 0.40 | T2 |  |
+| [0x1BE6F0](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `SetupItemRenderView` | Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset, unpack) | 0.40 | T2 |  |
+| [0x1BE990](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `BeginRpRenderTarget0` | Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob | 0.55 | T1 |  |
+| [0x1BE9E8](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `BeginRpRenderTarget1` | Pass 9 begin (kind 18): same for slot 1 | 0.55 | T1 |  |
+| [0x1BEA40](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `InitCid45` | CID 45 vt7: InitXfm, fov/near/far defaults 1, 4, 1000 | 0.55 | T2 |  |
+| [0x1BEA88](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `LoadCid45FromBrx` | CID 45 vt14: LoadXfmFromBrx | 0.75 | T2 | parse, verified |
+| [0x1BEAA8](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `AddCid45Object` | Append object to list | 0.30 | T2 |  |
+| [0x1BEAD0](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `AddCid45ObjectShown` | Append object, set flags, call its vt9 | 0.30 | T2 |  |
+| [0x1BEB28](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `AcquireCid45RenderSlot` | Grab a free render slot for this holder, prepare objects (in-world check, DL append) | 0.40 | T2 |  |
+| [0x1BECF8](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `AcquireCid45RenderSlotThunk` | wrapper | 0.25 | T2 |  |
+| [0x1BED18](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `ReleaseCid45RenderSlot` | Release slot, restore objects (vt9 / vt21(1)), self vt21(0), vt3 msg 3 | 0.40 | T2 |  |
+| [0x1BEE10](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `IRenderSlotTexture` | Table lookup D_002C0BF8[slot][n] or -1 | 0.30 | T2 | verified |
+| [0x1BEE60](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `RenderCid45Self` | CID 45 vt19: if it owns a slot, draw each held object's globset (0x169198) | 0.45 | T2 |  |
+| [0x1BEED8](../../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `FindItemPreviewObject` | Find preview object by id (0x2AE/0x2AF relative to current player) | 0.30 | T2 |  |
 
 ## render (0x1CD5F0-0x1CDCD0)
 
