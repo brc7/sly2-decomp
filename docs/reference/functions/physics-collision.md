@@ -167,10 +167,10 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D6848](../../../src/game/engine/physics/tu_1D6848/func_001D6848.c) | `VecLaunchBallistic` | Launch velocity from start to end at elevation angle g under gravity acc (sin/cos/tan/atan2) | 0.45 | T2 |  |
-| [0x1D69F0](../../../src/game/engine/physics/tu_1D6848/func_001D69F0.c) | `VecToReachPosInDt` | Velocity that moves a->b in dt under vertical acceleration acc | 0.40 | T2 |  |
-| [0x1D6A90](../../../src/game/engine/physics/tu_1D6848/func_001D6A90.c) | `InitLauncher` | LO-subclass Init: InitLo then offset (0,0,0), up (0,1,0), coeffs 0.5 and D_002A7874 | 0.35 | T2 |  |
-| [0x1D6B00](../../../src/game/engine/physics/tu_1D6848/LaunchSoFromLauncher.cpp) | `LaunchSoFromLauncher` | Launch an object from a launcher: predicted aim point, class-dependent velocity (0x50/0x51/0x52 CIDs), random spin | 0.50 | T1 |  |
+| [0x1D6848](../../../src/game/engine/physics/tu_1D6848.cpp) | `VecLaunchBallistic` | Launch velocity from start to end at elevation angle g under gravity acc (sin/cos/tan/atan2) | 0.45 | T2 |  |
+| [0x1D69F0](../../../src/game/engine/physics/tu_1D6848.cpp) | `VecToReachPosInDt` | Velocity that moves a->b in dt under vertical acceleration acc | 0.40 | T2 |  |
+| [0x1D6A90](../../../src/game/engine/physics/tu_1D6848.cpp) | `InitLauncher` | LO-subclass Init: InitLo then offset (0,0,0), up (0,1,0), coeffs 0.5 and D_002A7874 | 0.35 | T2 |  |
+| [0x1D6B00](../../../src/game/engine/physics/tu_1D6848.cpp) | `LaunchSoFromLauncher` | Launch an object from a launcher: predicted aim point, class-dependent velocity (0x50/0x51/0x52 CIDs), random spin | 0.50 | T1 |  |
 
 ## shape (0x1E5D80-0x1EA568)
 
