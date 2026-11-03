@@ -35,12 +35,12 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14C6A0](../../../src/game/engine/physics/clip/ClsgClipEdgeToObject.c) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
-| [0x14C6D8](../../../src/game/engine/physics/clip/ClsgClipEdgeToObjectPruned.c) | `ClsgClipEdgeToObjectPruned` | If a BSP is given ClsgClipEdgeToBsp, else if the object is a sphere (bit 49) ClsgClipEdgeToSphere with its center/radius | 0.75 | T1 |  |
-| [0x14C748](../../../src/game/engine/physics/clip/func_0014C748.cpp) | `ClsgClipEdgeToSphere` | Segment/sphere intersection: quadratic in u, clamp to [0,1], emit up to 2 LSG entries | 0.75 | T1 |  |
-| [0x14C9F8](../../../src/game/engine/physics/clip/ClsgMergeAlsg.c) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
-| [0x14CC58](../../../src/game/engine/physics/clip/PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG.c) | `PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG` |  |  | existing |  |
-| [0x14CDB0](../../../src/game/engine/physics/clip/ClsgClipEdgeToObjects.c) | `ClsgClipEdgeToObjects` | Clip a segment against a list of SOs, merging each object's LSG list into the result (ClsgMergeAlsg k=0) | 0.60 | T1 |  |
+| [0x14C6A0](../../../src/game/engine/physics/clip.cpp) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
+| [0x14C6D8](../../../src/game/engine/physics/clip.cpp) | `ClsgClipEdgeToObjectPruned` | If a BSP is given ClsgClipEdgeToBsp, else if the object is a sphere (bit 49) ClsgClipEdgeToSphere with its center/radius | 0.75 | T1 |  |
+| [0x14C748](../../../src/game/engine/physics/clip.cpp) | `ClsgClipEdgeToSphere` | Segment/sphere intersection: quadratic in u, clamp to [0,1], emit up to 2 LSG entries | 0.75 | T1 |  |
+| [0x14C9F8](../../../src/game/engine/physics/clip.cpp) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
+| [0x14CC58](../../../src/game/engine/physics/clip.cpp) | `PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG` |  |  | existing |  |
+| [0x14CDB0](../../../src/game/engine/physics/clip.cpp) | `ClsgClipEdgeToObjects` | Clip a segment against a list of SOs, merging each object's LSG list into the result (ClsgMergeAlsg k=0) | 0.60 | T1 |  |
 
 ## geom (0x166270-0x166920)
 

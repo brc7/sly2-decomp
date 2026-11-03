@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`bbmark/`](bbmark/) | 13 |
-| [`clip/`](clip/) | 8 |
+| [`clip.cpp`](clip.cpp) | 1 |
 | [`dzg/`](dzg/) | 9 |
 | [`empty_1C2920.cpp`](empty_1C2920.cpp) | 1 |
 | [`geom.cpp`](geom.cpp) | 1 |

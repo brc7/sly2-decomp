@@ -96,8 +96,8 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x133C68](../../src/game/engine/physics/bbmark/PoxAddSw.c) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
-| [0x14C6A0](../../src/game/engine/physics/clip/ClsgClipEdgeToObject.c) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
-| [0x14C9F8](../../src/game/engine/physics/clip/ClsgMergeAlsg.c) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
+| [0x14C6A0](../../src/game/engine/physics/clip.cpp) | `ClsgClipEdgeToObject` | Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...) | 0.80 | T1 |  |
+| [0x14C9F8](../../src/game/engine/physics/clip.cpp) | `ClsgMergeAlsg` | Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 = union ...) | 0.85 | T1 | verified |
 | [0x166270](../../src/game/engine/physics/geom.cpp) | `CloneGeom` | Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by a matrix and rotates/renormalizes the normals, recom | 0.85 | T1 | verified |
 | [0x1A7C18](../../src/game/engine/physics/mark/PxpAdd.c) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *pp | 0.75 | T1 | verified |
 | [0x1A7E60](../../src/game/engine/physics/mark/RecalcSwXpPos.c) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
