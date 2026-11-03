@@ -302,7 +302,7 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12A3D8](../../../src/game/splice/serialize/PpairSerializeIn__FP18CBinaryInputStream.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
+| [0x12A3D8](../../../src/game/splice/serialize.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
 
 ## sidebag (0x12A980-0x12AE18)
 

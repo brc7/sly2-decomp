@@ -13,7 +13,7 @@
 | [`pair.cpp`](pair.cpp) | 1 |
 | [`proc.cpp`](proc.cpp) | 1 |
 | [`ref.cpp`](ref.cpp) | 1 |
-| [`serialize/`](serialize/) | 3 |
+| [`serialize.cpp`](serialize.cpp) | 1 |
 | [`sidebag/`](sidebag/) | 12 |
 | [`spliceutils.cpp`](spliceutils.cpp) | 1 |
 | [`varb.cpp`](varb.cpp) | 1 |

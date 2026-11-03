@@ -1301,9 +1301,9 @@ Decref__4CRef,0x129EC8,122,match,src/game/splice/ref.cpp
 SetTag__4CRef4TAGK,0x12A0B0,60,match,src/game/splice/ref.cpp
 StaticInit_ref,0x12A1A0,133,match,src/game/splice/ref.cpp
 func_0012A3B8,0x12A3B8,8,match,src/game/splice/ref.cpp
-PpairSerializeIn__FP18CBinaryInputStream,0x12A3D8,276,match,src/game/splice/serialize/PpairSerializeIn__FP18CBinaryInputStream.cpp
-StaticInit_serialize,0x12A828,77,match,src/game/splice/serialize/StaticInit_serialize.c
-func_0012A960,0x12A960,8,match,src/game/splice/serialize/func_0012A960.c
+PpairSerializeIn__FP18CBinaryInputStream,0x12A3D8,276,match,src/game/splice/serialize.cpp
+StaticInit_serialize,0x12A828,77,match,src/game/splice/serialize.cpp
+func_0012A960,0x12A960,8,match,src/game/splice/serialize.cpp
 CSidebag_RefAddBinding,0x12A980,59,match,src/game/splice/sidebag/CSidebag_RefAddBinding.cpp
 RefSetBinding__8CSidebagiP4CRef,0x12AA70,46,match,src/game/splice/sidebag/RefSetBinding__8CSidebagiP4CRef.cpp
 FFindBinding__8CSidebagiP4CRef,0x12AB28,20,match,src/game/splice/sidebag/FFindBinding__8CSidebagiP4CRef.cpp
