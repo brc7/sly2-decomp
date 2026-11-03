@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`bez/`](bez/) | 5 |
+| [`bez.cpp`](bez.cpp) | 1 |
 | [`bsp/`](bsp/) | 14 |
 | [`crout.cpp`](crout.cpp) | 1 |
 | [`dzgcore/`](dzgcore/) | 7 |

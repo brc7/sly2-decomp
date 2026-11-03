@@ -850,11 +850,11 @@ Reserve__9CDynArrayi,0x116D70,47,match,src/game/core/containers/dynarray.cpp
 CDynArray_Append,0x116E30,29,match,src/game/core/containers/dynarray.cpp
 StaticInit_dynarray,0x116ED8,77,match,src/game/core/containers/dynarray.cpp
 func_00117010,0x117010,8,match,src/game/core/containers/dynarray.cpp
-EvaluateBezierFloat,0x117030,59,match,src/game/core/math/bez/EvaluateBezierFloat.c
-EvaluateBezierPos,0x117120,121,match,src/game/core/math/bez/EvaluateBezierPos.c
-EvaluateBezierMat,0x117308,205,match,src/game/core/math/bez/EvaluateBezierMat.cpp
-StaticInit_bez,0x117650,77,match,src/game/core/math/bez/StaticInit_bez.c
-func_00117788,0x117788,8,match,src/game/core/math/bez/func_00117788.c
+EvaluateBezierFloat,0x117030,59,match,src/game/core/math/bez.cpp
+EvaluateBezierPos,0x117120,121,match,src/game/core/math/bez.cpp
+EvaluateBezierMat,0x117308,205,match,src/game/core/math/bez.cpp
+StaticInit_bez,0x117650,77,match,src/game/core/math/bez.cpp
+func_00117788,0x117788,8,match,src/game/core/math/bez.cpp
 __18CBinaryInputStream,0x1177A8,17,match,src/game/core/binstream/bis.cpp
 Close__18CBinaryInputStream,0x1177F0,7,match,src/game/core/binstream/bis.cpp
 Refill__18CBinaryInputStream,0x117810,34,match,src/game/core/binstream/bis.cpp

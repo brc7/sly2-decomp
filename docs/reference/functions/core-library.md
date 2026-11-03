@@ -46,9 +46,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x117030](../../../src/game/core/math/bez/EvaluateBezierFloat.c) | `EvaluateBezierFloat` | Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at time t; writes value and slope | 0.75 | T1 |  |
-| [0x117120](../../../src/game/core/math/bez/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
-| [0x117308](../../../src/game/core/math/bez/EvaluateBezierMat.cpp) | `EvaluateBezierMat` | Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular velocity | 0.75 | T1 |  |
+| [0x117030](../../../src/game/core/math/bez.cpp) | `EvaluateBezierFloat` | Cubic Hermite evaluation of a scalar between (g0,dg0) and (g1,dg1) over a segment of length dt at time t; writes value and slope | 0.75 | T1 |  |
+| [0x117120](../../../src/game/core/math/bez.cpp) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
+| [0x117308](../../../src/game/core/math/bez.cpp) | `EvaluateBezierMat` | Rotation interpolation between (mat0,w0) and (mat1,w1): blended orientation matrix and/or angular velocity | 0.75 | T1 |  |
 
 ## bis (0x1177A8-0x118668)
 

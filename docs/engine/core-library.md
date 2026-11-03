@@ -82,7 +82,7 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
 | [0x116A58](../../src/game/platform/memory/heap.cpp) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
-| [0x117120](../../src/game/core/math/bez/EvaluateBezierPos.c) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
+| [0x117120](../../src/game/core/math/bez.cpp) | `EvaluateBezierPos` | Cubic Hermite position/velocity/acceleration along a curve segment | 0.90 | T1 | verified |
 | [0x117988](../../src/game/core/binstream/bis.cpp) | `Align__18CBinaryInputStreami` |  | 0.45 | existing | parse |
 | [0x117FD0](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadGeom` | Reads a GEOM: positions, faces (planes), edges with twin links | 0.95 | T1 | parse, verified |
 | [0x118220](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadBspc` | Reads a BSP collision tree: U32 node count, allocate (0x1AE2A0), per node U16 plane/children indices | 0.80 | T1 | parse |
