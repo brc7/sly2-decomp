@@ -68,22 +68,22 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1553F0](../../../src/game/gameplay/ai/tu_1553F0/LoadDimitriFromBrx.c) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
-| [0x155450](../../../src/game/gameplay/ai/tu_1553F0/PostDimitriLoad.c) | `PostDimitriLoad` | STEPGUARD PostLoad then resolves the 4 oids of each route record | 0.60 | T1 | verified, whole-game |
-| [0x155530](../../../src/game/gameplay/ai/tu_1553F0/func_00155530.c) | `AddDimitriRoute` | Appends a route record of 4 oids | 0.40 | T2 | whole-game |
-| [0x155560](../../../src/game/gameplay/ai/tu_1553F0/func_00155560.c) | `InitBhv180` | BHV180 slot 7: base, guard flag 0x22, state -1 | 0.35 | T2 |  |
-| [0x155598](../../../src/game/gameplay/ai/tu_1553F0/func_00155598.c) | `CloseBhv180` | BHV180 slot 9: state -1, clear flag 0x22, 0x208540(guard,0) | 0.30 | T2 |  |
-| [0x1555E0](../../../src/game/gameplay/ai/tu_1553F0/func_001555E0.c) | `StartBhv180` | BHV180 slot 8: picks a route after enough frames and starts fleeing (state 0) or watching (state 1) | 0.30 | T2 |  |
-| [0x155660](../../../src/game/gameplay/ai/tu_1553F0/func_00155660.c) | `UpdateBhv180` | While watching: switches to state 1 when the player is within 850 xy and 400 z | 0.40 | T2 |  |
-| [0x155788](../../../src/game/gameplay/ai/tu_1553F0/func_00155788.c) | `SetBhv180State` | State 0 runs BHV181 along the chosen route; state 1 runs BHV165 | 0.40 | T2 |  |
-| [0x155868](../../../src/game/gameplay/ai/tu_1553F0/func_00155868.c) | `PrteDimitriFarthest` | Chooses the route whose nearer end is farthest from the player | 0.45 | T2 | whole-game |
-| [0x1559B0](../../../src/game/gameplay/ai/tu_1553F0/func_001559B0.c) | `InitBhv181` | BHV181 slot 7: base, flag 0x23, state -1 | 0.30 | T2 |  |
-| [0x1559F8](../../../src/game/gameplay/ai/tu_1553F0/func_001559F8.c) | `CloseBhv181` | BHV181 slot 9 | 0.80 | T2 | verified |
-| [0x155A38](../../../src/game/gameplay/ai/tu_1553F0/func_00155A38.c) | `StartBhv181` | BHV181 slot 8: state 0 | 0.30 | T2 |  |
-| [0x155A68](../../../src/game/gameplay/ai/tu_1553F0/func_00155A68.c) | `PloBhv181RouteEnd` | Picks which end of the route to run to (volume test 0x227C90) | 0.35 | T2 | verified |
-| [0x155AE0](../../../src/game/gameplay/ai/tu_1553F0/func_00155AE0.c) | `SetBhv181State` | States: 0 face away and run, 1 wait, 2 path-follow (BHV167), 3 hide (BHV164) | 0.35 | T2 | runtime-corrected |
-| [0x155D90](../../../src/game/gameplay/ai/tu_1553F0/func_00155D90.c) | `UpdateBhv181` | Run/hide state machine for the fleeing guard | 0.35 | T2 |  |
-| [0x155FB0](../../../src/game/gameplay/ai/tu_1553F0/func_00155FB0.cpp) | `PosChooseEscape` | Escape target: projects the player's motion by a difficulty-scaled time and finds the clearest of 11 directions | 0.40 | T2 |  |
+| [0x1553F0](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
+| [0x155450](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `PostDimitriLoad` | STEPGUARD PostLoad then resolves the 4 oids of each route record | 0.60 | T1 | verified, whole-game |
+| [0x155530](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `AddDimitriRoute` | Appends a route record of 4 oids | 0.40 | T2 | whole-game |
+| [0x155560](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `InitBhv180` | BHV180 slot 7: base, guard flag 0x22, state -1 | 0.35 | T2 |  |
+| [0x155598](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `CloseBhv180` | BHV180 slot 9: state -1, clear flag 0x22, 0x208540(guard,0) | 0.30 | T2 |  |
+| [0x1555E0](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `StartBhv180` | BHV180 slot 8: picks a route after enough frames and starts fleeing (state 0) or watching (state 1) | 0.30 | T2 |  |
+| [0x155660](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `UpdateBhv180` | While watching: switches to state 1 when the player is within 850 xy and 400 z | 0.40 | T2 |  |
+| [0x155788](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `SetBhv180State` | State 0 runs BHV181 along the chosen route; state 1 runs BHV165 | 0.40 | T2 |  |
+| [0x155868](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `PrteDimitriFarthest` | Chooses the route whose nearer end is farthest from the player | 0.45 | T2 | whole-game |
+| [0x1559B0](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `InitBhv181` | BHV181 slot 7: base, flag 0x23, state -1 | 0.30 | T2 |  |
+| [0x1559F8](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `CloseBhv181` | BHV181 slot 9 | 0.80 | T2 | verified |
+| [0x155A38](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `StartBhv181` | BHV181 slot 8: state 0 | 0.30 | T2 |  |
+| [0x155A68](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `PloBhv181RouteEnd` | Picks which end of the route to run to (volume test 0x227C90) | 0.35 | T2 | verified |
+| [0x155AE0](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `SetBhv181State` | States: 0 face away and run, 1 wait, 2 path-follow (BHV167), 3 hide (BHV164) | 0.35 | T2 | runtime-corrected |
+| [0x155D90](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `UpdateBhv181` | Run/hide state machine for the fleeing guard | 0.35 | T2 |  |
+| [0x155FB0](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `PosChooseEscape` | Escape target: projects the player's motion by a difficulty-scaled time and finds the clearest of 11 directions | 0.40 | T2 |  |
 
 ## noise (0x1564E8-0x157200)
 

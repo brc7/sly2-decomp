@@ -517,7 +517,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258458](../../../src/game/gameplay/objects/rhythm/CTextBox_SetTextColor.c) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258470](../../../src/game/gameplay/objects/rhythm/CTextBox_SetHorizontalJust.c) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258478](../../../src/game/gameplay/objects/rhythm/CTextBox_SetVerticalJust.c) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x258480](../../../src/game/gameplay/ai/tu_1553F0/VecCombo__FG8VU_FLOATG9VU_VECTORT0T1.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
+| [0x258480](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
 | [0x2584A8](../../../src/game/engine/fx/emitter/LoadEmitblipColorsFromBrx.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258598](../../../src/game/engine/fx/emitter/LoadEmitterFromBrx.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258620](../../../src/game/engine/fx/emitter/CloneEmitter.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
