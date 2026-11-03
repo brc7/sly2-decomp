@@ -235,14 +235,14 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D57A8](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D57A8.c) | `InitIntStack` | *p = 0 (empty stack) | 0.35 | T2 |  |
-| [0x1D57B8](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D57B8.c) | `PushIntStack` | Push int on 256-entry stack if not full | 0.45 | T2 |  |
-| [0x1D57E0](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D57E0.c) | `PopIntStack` | Pop int (0 if empty) | 0.45 | T2 |  |
-| [0x1D5808](../../../src/game/engine/graphics/pipeline/tu_1D57A8/CullSceneRenderList.cpp) | `CullSceneRenderList` | Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and queue meshes/packets/deferred blocks | 0.50 | T1 |  |
-| [0x1D6310](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D6310.c) | `RemoveLoFromSphereTree` | Unregister LO from world sphere tree: mark node entry free (fl\|=0xF<<32), +0x140=-1, +0x144=0, clear grf 0x80 | 0.45 | T2 |  |
-| [0x1D6378](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D6378.c) | `AddLoToSphereTree` | Insert LO's world bounding sphere (vt31 matrix * +0x90, radius +0xA0*scale) into world 4-ary sphere tree (g_sw+?), store entry +0x144, set grf 0x80 | 0.45 | T2 |  |
-| [0x1D6480](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D6480.c) | `PsphnodeNew` | Allocate 0x80-byte node of 4 sphere entries (kinds = -1) | 0.40 | T2 |  |
-| [0x1D6508](../../../src/game/engine/graphics/pipeline/tu_1D57A8/func_001D6508.c) | `PsphentInsert` | Descend sphere tree choosing child sphere that contains (pos,r) within busy distance; allocate free entry | 0.40 | T2 |  |
+| [0x1D57A8](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `InitIntStack` | *p = 0 (empty stack) | 0.35 | T2 |  |
+| [0x1D57B8](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `PushIntStack` | Push int on 256-entry stack if not full | 0.45 | T2 |  |
+| [0x1D57E0](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `PopIntStack` | Pop int (0 if empty) | 0.45 | T2 |  |
+| [0x1D5808](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `CullSceneRenderList` | Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and queue meshes/packets/deferred blocks | 0.50 | T1 |  |
+| [0x1D6310](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `RemoveLoFromSphereTree` | Unregister LO from world sphere tree: mark node entry free (fl\|=0xF<<32), +0x140=-1, +0x144=0, clear grf 0x80 | 0.45 | T2 |  |
+| [0x1D6378](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `AddLoToSphereTree` | Insert LO's world bounding sphere (vt31 matrix * +0x90, radius +0xA0*scale) into world 4-ary sphere tree (g_sw+?), store entry +0x144, set grf 0x80 | 0.45 | T2 |  |
+| [0x1D6480](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `PsphnodeNew` | Allocate 0x80-byte node of 4 sphere entries (kinds = -1) | 0.40 | T2 |  |
+| [0x1D6508](../../../src/game/engine/graphics/pipeline/tu_1D57A8.cpp) | `PsphentInsert` | Descend sphere tree choosing child sphere that contains (pos,r) within busy distance; allocate free entry | 0.40 | T2 |  |
 
 ## shd (0x1EA568-0x1ED7A8)
 
