@@ -522,18 +522,18 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x19F3E8](../../../src/game/gameplay/player/places/InitJtPlaces.c) | `InitJtPlaces` | Init the STEPPLAYER+0x9E0 safe-place table: store owner | 0.55 | T1 |  |
-| [0x19F3F0](../../../src/game/gameplay/player/places/PostLoadJtPlaces.c) | `PostLoadJtPlaces` | Empty PostLoad of the place table | 0.50 | T1 |  |
-| [0x19F3F8](../../../src/game/gameplay/player/places/func_0019F3F8.c) | `PosFromJtPlace` | World position of a recorded place (object-local pos via ConvertXfPos, or stored world pos) | 0.45 | T2 |  |
-| [0x19F540](../../../src/game/gameplay/player/places/func_0019F540.c) | `ReturnJtToPos` | Build a place record from a world position and call ReturnJtToSafePlace with it | 0.40 | T2 |  |
-| [0x19F590](../../../src/game/gameplay/player/places/ReturnJtToSafePlace.c) | `ReturnJtToSafePlace` | Put the player back at a safe place (best recorded place if none given): ballistic launch toward it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not the active player | 0.55 | T1 | runtime |
-| [0x19F7D0](../../../src/game/gameplay/player/places/func_0019F7D0.cpp) | `ScoreJtPlace` | Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects | 0.40 | T2 |  |
-| [0x19FAF8](../../../src/game/gameplay/player/places/func_0019FAF8.c) | `ChooseJtSafePlace` | Pick the best recorded place (ScoreJtPlace against up to 16 STEP objects CID 0x33) | 0.45 | T2 |  |
-| [0x19FC30](../../../src/game/gameplay/player/places/UpdateJtPlaces.c) | `UpdateJtPlaces` | Each frame, when standing on stable ground (jts in a ground list, floor normal z>0.7, not flagged) record the floor object/pos; grab and pipe states record their spot (RecordJtGrabPlace/RecordJtPipePlace) | 0.50 | T1 |  |
-| [0x19FD30](../../../src/game/gameplay/player/places/func_0019FD30.cpp) | `AddJtPlaceOnCurve` | Move-to-front insert of (object, param s) into the place table, merging entries within 50 of s | 0.40 | T2 |  |
-| [0x19FEB0](../../../src/game/gameplay/player/places/func_0019FEB0.c) | `AddJtPlaceAtPos` | Move-to-front insert of (object, position) merging entries within 50 units | 0.40 | T2 |  |
-| [0x1A0048](../../../src/game/gameplay/player/places/func_001A0048.c) | `RemoveJtPlacesOf` | Compact the place table removing entries that reference the given object(s) | 0.45 | T2 |  |
-| [0x1A00D0](../../../src/game/gameplay/player/places/RemoveSwPlacesOf.c) | `RemoveSwPlacesOf` | Purge a removed object from the place tables of Sly (g_pjt D_002E1E40), D_002DD5BC and D_002F7900 (the other two player globals, presumably Bentley/Murray) | 0.50 | T1 |  |
+| [0x19F3E8](../../../src/game/gameplay/player/places.cpp) | `InitJtPlaces` | Init the STEPPLAYER+0x9E0 safe-place table: store owner | 0.55 | T1 |  |
+| [0x19F3F0](../../../src/game/gameplay/player/places.cpp) | `PostLoadJtPlaces` | Empty PostLoad of the place table | 0.50 | T1 |  |
+| [0x19F3F8](../../../src/game/gameplay/player/places.cpp) | `PosFromJtPlace` | World position of a recorded place (object-local pos via ConvertXfPos, or stored world pos) | 0.45 | T2 |  |
+| [0x19F540](../../../src/game/gameplay/player/places.cpp) | `ReturnJtToPos` | Build a place record from a world position and call ReturnJtToSafePlace with it | 0.40 | T2 |  |
+| [0x19F590](../../../src/game/gameplay/player/places.cpp) | `ReturnJtToSafePlace` | Put the player back at a safe place (best recorded place if none given): ballistic launch toward it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not the active player | 0.55 | T1 | runtime |
+| [0x19F7D0](../../../src/game/gameplay/player/places.cpp) | `ScoreJtPlace` | Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects | 0.40 | T2 |  |
+| [0x19FAF8](../../../src/game/gameplay/player/places.cpp) | `ChooseJtSafePlace` | Pick the best recorded place (ScoreJtPlace against up to 16 STEP objects CID 0x33) | 0.45 | T2 |  |
+| [0x19FC30](../../../src/game/gameplay/player/places.cpp) | `UpdateJtPlaces` | Each frame, when standing on stable ground (jts in a ground list, floor normal z>0.7, not flagged) record the floor object/pos; grab and pipe states record their spot (RecordJtGrabPlace/RecordJtPipePlace) | 0.50 | T1 |  |
+| [0x19FD30](../../../src/game/gameplay/player/places.cpp) | `AddJtPlaceOnCurve` | Move-to-front insert of (object, param s) into the place table, merging entries within 50 of s | 0.40 | T2 |  |
+| [0x19FEB0](../../../src/game/gameplay/player/places.cpp) | `AddJtPlaceAtPos` | Move-to-front insert of (object, position) merging entries within 50 units | 0.40 | T2 |  |
+| [0x1A0048](../../../src/game/gameplay/player/places.cpp) | `RemoveJtPlacesOf` | Compact the place table removing entries that reference the given object(s) | 0.45 | T2 |  |
+| [0x1A00D0](../../../src/game/gameplay/player/places.cpp) | `RemoveSwPlacesOf` | Purge a removed object from the place tables of Sly (g_pjt D_002E1E40), D_002DD5BC and D_002F7900 (the other two player globals, presumably Bentley/Murray) | 0.50 | T1 |  |
 
 ## hurt (0x1A0B18-0x1A2BD0)
 
