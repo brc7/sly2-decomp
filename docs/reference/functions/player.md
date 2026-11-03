@@ -385,16 +385,16 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x18F908](../../../src/game/gameplay/player/hang/PostJtLoadSwing.c) | `PostJtLoadSwing` | Create the 3-entry dynamic swing ASEG blend (0x137A30 with cbBl 0xC, cbl 3) for the BL array and return it via out pointer | 0.75 | T1 |  |
-| [0x18F958](../../../src/game/gameplay/player/hang/AnticipateJtForce.cpp) | `AnticipateJtForce` | Solve a 3x3 system (CroutDecomp/CroutSolve) of per-axis impulse responses of Sly and the hang object (DvFromSoImpulse/DwFromSoImpulse, vt69) to get the force pair giving the requested velocity | 0.75 | T1 |  |
-| [0x18FC60](../../../src/game/gameplay/player/hang/CalculateJtHangAccel__FP2JT.cpp) | `CalculateJtHangAccel` | Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle, LoadRotateMatrix) and call AnticipateJtForce | 0.75 | T1 |  |
-| [0x1903B8](../../../src/game/gameplay/player/hang/PresetJtAccelHang__FP2JT.cpp) | `PresetJtAccelHang` | Add the hang force, then accelerate Sly's orientation toward tilt (toward hook) * spin(radTarget) with AccelSoTowardMat | 0.80 | T1 |  |
-| [0x1904E0](../../../src/game/gameplay/player/hang/AddJtExternalAccelerations.c) | `AddJtExternalAccelerations` | Callback: AddSoVelocity/AddSoAngularVelocity of the stored force pair to the hang target SO | 0.65 | T1 |  |
-| [0x190520](../../../src/game/gameplay/player/hang/UpdateJtActiveHang__FP2JT.cpp) | `UpdateJtActiveHang` | Per-frame active hang: heading from GetJtHangHeading (flipped +pi), stick near/far detection (60/120 deg), swing anim weights, jump-off/drop via SetJtJts, CalculateJtHangAccel | 0.70 | T1 |  |
-| [0x190BE0](../../../src/game/gameplay/player/hang/GetJtHangHeading__FP2JTPf.c) | `GetJtHangHeading` | *prad = atan2(m[0].y, m[0].x) of the current hook object's (x18C4) world matrix | 0.85 | T1 |  |
-| [0x190C58](../../../src/game/gameplay/player/hang/func_00190C58.c) | `PosJtHangHandle` | Return hook pos + normalize(hook pos - hand XF x19CC pos) * hook radius (x134) | 0.45 | T2 |  |
-| [0x190D10](../../../src/game/gameplay/player/hang/func_00190D10.c) | `RenderJtHangIk` | Render-time fix-up while hanging: move child XF x19C4 so the hand reaches PosJtHangHandle(+x1960 offset), bump g_sw xf stamp, rebuild its matrix, then vt18 | 0.40 | T2 |  |
-| [0x190E18](../../../src/game/gameplay/player/hang/UpdateJtHangIkGoals__FP2JT.cpp) | `UpdateJtHangIkGoals` | Orient hand toward the hook (rotate-vectors * fixed wrist angle D_002BF594), set actuator x1A00 from Euler angles, smooth the x1960 hand offset toward zero | 0.55 | T1 |  |
+| [0x18F908](../../../src/game/gameplay/player/hang.cpp) | `PostJtLoadSwing` | Create the 3-entry dynamic swing ASEG blend (0x137A30 with cbBl 0xC, cbl 3) for the BL array and return it via out pointer | 0.75 | T1 |  |
+| [0x18F958](../../../src/game/gameplay/player/hang.cpp) | `AnticipateJtForce` | Solve a 3x3 system (CroutDecomp/CroutSolve) of per-axis impulse responses of Sly and the hang object (DvFromSoImpulse/DwFromSoImpulse, vt69) to get the force pair giving the requested velocity | 0.75 | T1 |  |
+| [0x18FC60](../../../src/game/gameplay/player/hang.cpp) | `CalculateJtHangAccel` | Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle, LoadRotateMatrix) and call AnticipateJtForce | 0.75 | T1 |  |
+| [0x1903B8](../../../src/game/gameplay/player/hang.cpp) | `PresetJtAccelHang` | Add the hang force, then accelerate Sly's orientation toward tilt (toward hook) * spin(radTarget) with AccelSoTowardMat | 0.80 | T1 |  |
+| [0x1904E0](../../../src/game/gameplay/player/hang.cpp) | `AddJtExternalAccelerations` | Callback: AddSoVelocity/AddSoAngularVelocity of the stored force pair to the hang target SO | 0.65 | T1 |  |
+| [0x190520](../../../src/game/gameplay/player/hang.cpp) | `UpdateJtActiveHang` | Per-frame active hang: heading from GetJtHangHeading (flipped +pi), stick near/far detection (60/120 deg), swing anim weights, jump-off/drop via SetJtJts, CalculateJtHangAccel | 0.70 | T1 |  |
+| [0x190BE0](../../../src/game/gameplay/player/hang.cpp) | `GetJtHangHeading` | *prad = atan2(m[0].y, m[0].x) of the current hook object's (x18C4) world matrix | 0.85 | T1 |  |
+| [0x190C58](../../../src/game/gameplay/player/hang.cpp) | `PosJtHangHandle` | Return hook pos + normalize(hook pos - hand XF x19CC pos) * hook radius (x134) | 0.45 | T2 |  |
+| [0x190D10](../../../src/game/gameplay/player/hang.cpp) | `RenderJtHangIk` | Render-time fix-up while hanging: move child XF x19C4 so the hand reaches PosJtHangHandle(+x1960 offset), bump g_sw xf stamp, rebuild its matrix, then vt18 | 0.40 | T2 |  |
+| [0x190E18](../../../src/game/gameplay/player/hang.cpp) | `UpdateJtHangIkGoals` | Orient hand toward the hook (rotate-vectors * fixed wrist angle D_002BF594), set actuator x1A00 from Euler angles, smooth the x1960 hand offset toward zero | 0.55 | T1 |  |
 
 ## grab (0x191090-0x195950)
 

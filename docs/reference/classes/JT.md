@@ -129,7 +129,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 104 | STEPPLAYER_VUnk104 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk104?` | `0x141E30` | VSlot104 |
 | 105 | OnStepplayerGadgetsChanged | inherited (STEPPLAYER) | `OnStepplayerGadgetsChanged?` | `0x141E70` | VSlot105 |
 | 106 | JT_vt106 | **new** | [`JT_vt106?`](../../../src/game/gameplay/player/jt/func_0018D500.c) | `0x18D500` | VSlot106 |
-| 107 | AddJtExternalAccelerations | **new** | [`AddJtExternalAccelerations`](../../../src/game/gameplay/player/hang/AddJtExternalAccelerations.c) | `0x1904E0` | VSlot107 |
+| 107 | AddJtExternalAccelerations | **new** | [`AddJtExternalAccelerations`](../../../src/game/gameplay/player/hang.cpp) | `0x1904E0` | VSlot107 |
 
 ## Fields
 

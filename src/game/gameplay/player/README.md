@@ -12,7 +12,7 @@
 | [`empty_1378D8.cpp`](empty_1378D8.cpp) | 1 |
 | [`grab/`](grab/) | 28 |
 | [`grabspot/`](grabspot/) | 74 |
-| [`hang/`](hang/) | 12 |
+| [`hang.cpp`](hang.cpp) | 1 |
 | [`hnd.cpp`](hnd.cpp) | 1 |
 | [`hurt/`](hurt/) | 28 |
 | [`jt/`](jt/) | 51 |
