@@ -19,17 +19,17 @@ Totals on this page: EXISTING 3, T1 104, T2 30.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12E600](../../../src/game/engine/camera/tu_12E600/func_0012E600.c) | `InitCid44` | vtable slot 7 (Init) of class cid 0x2C (XFM child, 0x140 B): InitXfm (0x231100) then field init | 0.55 | T2 |  |
-| [0x12E648](../../../src/game/engine/camera/tu_12E600/func_0012E648.c) | `PostCid44Load` | slot 15: PostLoLoad then SetCmPolicy (0x14E328) with its embedded camera policy | 0.55 | T2 |  |
-| [0x12E6A0](../../../src/game/engine/camera/tu_12E600/func_0012E6A0.c) | `AddCid44Hierarchy` | slot 11: AddLoHierarchy (0x1A5800) + SetCmPolicy | 0.45 | T2 |  |
-| [0x12E6E8](../../../src/game/engine/camera/tu_12E600/func_0012E6E8.c) | `RemoveCid44Hierarchy` | slot 12: RemoveLoHierarchy (0x1A5848) + RevokeCmPolicy (0x14E4C8) | 0.45 | T2 |  |
-| [0x12E738](../../../src/game/engine/camera/tu_12E600/func_0012E738.c) | `CID44_Slot43` | slot 43: 8-byte stub | 0.25 | T2 |  |
-| [0x12E740](../../../src/game/engine/camera/tu_12E600/func_0012E740.c) | `CID44_Slot44` | slot 44: 16-byte accessor | 0.25 | T2 |  |
-| [0x12E750](../../../src/game/engine/camera/tu_12E600/func_0012E750.c) | `CID44_Slot45` | slot 45: 16-byte accessor | 0.25 | T2 |  |
-| [0x12E760](../../../src/game/engine/camera/tu_12E600/CPCAMERA_ctor.c) | `CPCAMERA_ctor` | Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) | 0.60 | T1 | verified |
-| [0x12E798](../../../src/game/engine/camera/tu_12E600/func_0012E798.c) | `ActivateCpcamera` | CPLCY::Activate (0x14FCC8) then SetCmFov | 0.40 | T2 |  |
-| [0x12E7F0](../../../src/game/engine/camera/tu_12E600/func_0012E7F0.c) | `DeactivateCpcamera` | CutCm (0x14D8C0) then CPLCY::Deactivate | 0.40 | T2 |  |
-| [0x12E858](../../../src/game/engine/camera/tu_12E600/func_0012E858.c) | `UpdateCpcamera` | Per-frame camera computation for this policy (positions, atanf -> SetCmFov) | 0.35 | T2 |  |
+| [0x12E600](../../../src/game/engine/camera/tu_12E600.cpp) | `InitCid44` | vtable slot 7 (Init) of class cid 0x2C (XFM child, 0x140 B): InitXfm (0x231100) then field init | 0.55 | T2 |  |
+| [0x12E648](../../../src/game/engine/camera/tu_12E600.cpp) | `PostCid44Load` | slot 15: PostLoLoad then SetCmPolicy (0x14E328) with its embedded camera policy | 0.55 | T2 |  |
+| [0x12E6A0](../../../src/game/engine/camera/tu_12E600.cpp) | `AddCid44Hierarchy` | slot 11: AddLoHierarchy (0x1A5800) + SetCmPolicy | 0.45 | T2 |  |
+| [0x12E6E8](../../../src/game/engine/camera/tu_12E600.cpp) | `RemoveCid44Hierarchy` | slot 12: RemoveLoHierarchy (0x1A5848) + RevokeCmPolicy (0x14E4C8) | 0.45 | T2 |  |
+| [0x12E738](../../../src/game/engine/camera/tu_12E600.cpp) | `CID44_Slot43` | slot 43: 8-byte stub | 0.25 | T2 |  |
+| [0x12E740](../../../src/game/engine/camera/tu_12E600.cpp) | `CID44_Slot44` | slot 44: 16-byte accessor | 0.25 | T2 |  |
+| [0x12E750](../../../src/game/engine/camera/tu_12E600.cpp) | `CID44_Slot45` | slot 45: 16-byte accessor | 0.25 | T2 |  |
+| [0x12E760](../../../src/game/engine/camera/tu_12E600.cpp) | `CPCAMERA_ctor` | Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) | 0.60 | T1 | verified |
+| [0x12E798](../../../src/game/engine/camera/tu_12E600.cpp) | `ActivateCpcamera` | CPLCY::Activate (0x14FCC8) then SetCmFov | 0.40 | T2 |  |
+| [0x12E7F0](../../../src/game/engine/camera/tu_12E600.cpp) | `DeactivateCpcamera` | CutCm (0x14D8C0) then CPLCY::Deactivate | 0.40 | T2 |  |
+| [0x12E858](../../../src/game/engine/camera/tu_12E600.cpp) | `UpdateCpcamera` | Per-frame camera computation for this policy (positions, atanf -> SetCmFov) | 0.35 | T2 |  |
 
 ## cm (0x14D3D8-0x14FAC8)
 

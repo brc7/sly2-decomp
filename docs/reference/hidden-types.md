@@ -164,7 +164,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CAB90` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamera?`, 3=`DeactivateCpcamera?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamera?`, 7=`ResetCplcy?` | [`CPCAMERA_ctor`](../../src/game/engine/camera/tu_12E600/CPCAMERA_ctor.c) (+0xC) | — |
+| `0x2CAB90` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamera?`, 3=`DeactivateCpcamera?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamera?`, 7=`ResetCplcy?` | [`CPCAMERA_ctor`](../../src/game/engine/camera/tu_12E600.cpp) (+0xC) | — |
 | `0x2CD378` | 8 | 1=`InitCplcy?`, 2=`ActivateCptwoshot?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptwoshot?`, 7=`ResetCplcy?` | [`CM_ctor?`](../../src/game/engine/camera/cm/CM_ctor.c) (+0xC) | — |
 | `0x2CD3C0` | 8 | 1=`InitCplcy?`, 2=`ActivateCpturret?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpturret?`, 7=`ResetCplcy?` | [`CPTURRET_ctor?`](../../src/game/engine/camera/cplcy/CPTURRET_ctor.c) (+0xC) | — |
 | `0x2CD408` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamblend?`, 3=`DeactivateCpcamblend?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamblend?`, 7=`ResetCplcy?` | [`CPCAMBLEND_ctor?`](../../src/game/engine/camera/cplcy/CPCAMBLEND_ctor.c) (+0xC) | — |
