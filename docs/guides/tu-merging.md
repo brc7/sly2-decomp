@@ -339,8 +339,9 @@ memory row of the mismatch table, not the path hash.
 ## Recurring asm idioms (input for the helper pass)
 
 The merged TUs repeat a small set of VU0/EE asm sequences, each spelled privately per function (often with different
-operand orders, earlyclobbers, allocation-only operands or register pins that the match depends on). A later pass can
-replace them with named inline helpers; until then they stay as they are. Names below are suggestions in the Sly 1
+operand orders, earlyclobbers, allocation-only operands or register pins that the match depends on). The inline pass
+replaces them with named inline helpers; difference, sum and a + v * s.x have one in sly2/vu0.h now (see "Shared inline
+helpers"), the others stay as they are. Names below are suggestions in the Sly 1
 style (VU_VECTOR / VU_FLOAT classes and their operators); HYPOTHESIS for the Sly 2 originals.
 
 | idiom | asm | example sites | likely helper |
@@ -372,7 +373,98 @@ Some TU directories also hold a small function from the linkonce area (0x254F00.
 inline member or template, homed in the TU that first uses it (proc 0x257038, varb 0x257430: a counted-pointer store).
 Keep it in the merged file, after the TU's own functions, as a plain C-linkage function under its current symbol,
 with a comment. Turning it back into the inline member it was would also need the callers to stop inlining it, which
-is a separate step.
+is a separate step. For linkonce copies that no code calls, see the next section.
+
+## Inline functions and linkonce copies
+
+(Inline pass 1.) A function defined in a header (inline, in-class member, template) is compiled into every TU that
+needs an out-of-line copy of it, in its own section `.gnu.linkonce.t.<symbol>` with a weak symbol; the linker keeps one
+copy and puts it in the linkonce area 0x254F00..0x259DE4. So the way to "home" such a copy is to define the function in
+its header and make one TU need it. tools/matchtool.py and tools/progress.py find it there with no change: they compare
+every FUNC symbol of the object by name (weak and linkonce ones included; each symbol is read from its own section).
+
+What makes g++ 2.95 emit the copy (all measured with matchtool on a scratch file):
+
+- Taking its address in any TU (or a call that is not inlined) emits a free inline function, and an inline member of a
+  class without virtual functions, in that TU.
+- An inline member of a polymorphic class is NOT emitted there: the TU only references it as an undefined symbol.
+  g++ emits the inline members of such a class only in the class's key TU (the one that defines its first non-inline
+  virtual function, where the vtable goes; compare bq's key-TU extras above), and only those that TU needs. No TU of
+  ours defines LO's, SO's, STEPPLAYER's... key function, so the member form cannot produce the copy.
+- Unused inline functions in a header emit nothing: after the pilot all 163 sources that include `sly2/` headers
+  were rebuilt; every function still matched and no addressed symbol appeared in another object.
+
+The 56 functions of src/game/core/linkonce/unhomed are all of one kind: no code refers to them; the only references
+are pointers to member functions (`{0xFFFF0000, pfn}`: delta 0, index -1, non-virtual) in the option table g_aeopid
+(D_002AC880, 0x28-byte EOPID records: get PMF at +0x8, set at +0x10, setUser at +0x18, ensure at +0x20). The owner class
+of a record is the root-most class whose option array in g_mpcidarysplopt (D_00279AD0, 199 x {count, SPLOPT *}) lists
+it. g_aeopid lives in crt0_splicewrap's .data and is not in the source, so:
+
+- the accessor becomes an inline function in its class's header (sly2/cm.h, lo.h, so.h, xfm.h, stepplayer.h,
+  guard.h so far), written against the header types;
+- src/game/app/eopid_linkonce.cpp includes the headers and takes the addresses as g_aeopid does, one
+  `SLY2_EOPID_REF(addr, &func)` line each (`__typeof__(pfn) g_eopidref_<addr> = pfn;`: data, ignored by the tools).
+  It is in app/ because it includes headers of every layer, as crt0_splicewrap does; matched.csv names it as the
+  source of those functions, and the doc links point at the header that defines each one;
+- the symbol becomes the function's real mangled form with tools/rename.py (run it BEFORE writing the header
+  definitions: it sweeps the placeholder token in include/ too, and turned the first header members into
+  `func_X__2CM()` declarations).
+
+Free functions, not members: the setters stored in the same records are free functions taking the object first
+(SetCmPos, SetStepplayerHp), so the getters stored next to them as PMFs can be free functions too, and a member of a
+polymorphic class could not have been emitted by the table's TU in the original either (above). The first pilot
+commit (82fdbfe5) used members (`func_X__2CM`), the next one renamed them to `func_X__FP2CM`. Names stay placeholders
+(`func_<addr>` with the parameter types the mangled name needs); the comment next to each says what it reads.
+
+Done: 19 of 56 (CM 2, STEPPLAYER 1, LO 1, SO 1 + BARREL's ensure, STEPGUARD 4 through a new DETECTOR view, and the
+nine "own fields" ensure accessors of SHAPE/XFM/VOL/TARGET-derived classes, `(char *)p + sizeof(BASE)`). Header
+additions: REGENT moved from CloneSo.cpp to so.h; DETECTOR (CID 0x10 : XFM, cb 0x180) in guard.h, typing
+STEPGUARD::pdetector. Left (37):
+
+- 34 emitter-block accessors, 17 for EMITTER (0x258898..0x258EC8) and the same 17 for EXPLO (0x259330..0x259960; its
+  records are owned by EXPLO or EXPLS : EXPLO). The two sets have the same sizes and order and differ only in the class
+  and the "ensure" callee (PemitbEnsureEmitter / PemitbEnsureExplo), so they are one function template instantiated
+  twice (HYPOTHESIS). Plan: one template per accessor over T in a new emitter header, the callee as an overload
+  `PemitbEnsure(T *, int)` asm-labelled to the two current symbols, both instantiations named in eopid_linkonce.cpp,
+  both addresses renamed to the template's mangled instantiations. Some of them call each other out of line
+  (func_002589A8 calls func_00258898), so check that the template calls stay calls.
+- 3 CID150 accessors (0x2562E0, 0x256318, 0x256350; CID150 : CID148 : BASIC, cb 0x30): need a CID150 view (+0x20
+  object, +0x24 record with a float at +8, a short at +0x14, an int at +0x18); their setters (0x2562B8...) are homed in
+  so/ as plain functions and are linkonce copies of the same kind.
+
+Related linkonce copies already homed in per-function TU directories (func_00256278 SetCmMat wrapper in cm/, the
+CID150 setters in so/, rail/pipe's 0x259B08/0x259AF8...) are the same kind and can move the same way.
+
+## Shared inline helpers
+
+(Inline pass 1.) include/sly2/vu0.h holds the VU0 idioms that merged TUs had pasted under private names, one helper
+each: VuSub, VuSubRef, VuAdd, VuAddScaled. They are templates over the quadword type because the TUs spell qword as
+two distinct TImode types (`int` in most TUs, `unsigned long long` in sly2/basic.h); a non-template helper would need
+one qword typedef everywhere first. Folding a TU's helper = delete its definition, call the shared one, add the
+include; then every function of the file must still match.
+
+Folded in pilot 1 (25 helpers in 13 TUs, all functions still MATCH): bsp Sub; tail QwSub, QwAdd, QwAddScaledX; trail
+VSub and its `"+j"(position)` Offset (the in-place "+j" spelling gives the same code as `"=j"` + inputs); tu_1C2D20
+Sub, Add; turret Sub; tu_1B9F80 Sub, Add; pipe Sub; pipe_jt Sub; tu_1D6848 Sub; dirblend AddScaled; hang Sub, VSub,
+QwAdd, VAdd, QwSub; cane VSub, Add, Sub; clip SubQ, Sub. Moving the asm into the header changed nothing through the
+path-hash quirk in these TUs.
+
+What breaks a fold (measured):
+
+| helper as written | folded into | result | rule |
+|---|---|---|---|
+| `Sub(const qword &a, const qword &b)` (clip, cane, hang QwSub) | VuSub (by value) | 6/172, 2/171, 12/469 off | by-reference parameters are a different idiom (the loads are scheduled at the asm): VuSubRef matches all three |
+| turret `Difference(b, a)`: `vsub %0, %2, %1` | VuSub | 1/238 off (and the renaming swapped the meaning) | an asm that lists its operands in the other order is a different helper; fold only with the call's arguments swapped, and test |
+| rail `AddScaled` with `register qword r asm("vf2")` | VuAddScaled | 2/108 off | register pins stay private |
+
+Not tried yet, expected to stay private: allocation-only extra operands (blend Madd/Madd2, cane AddScaled), `__volatile__`
+forms, helpers whose operands are wrapper types (`VU_FLOAT.qw`, `VUF k.qw`): those need the wrapper types unified first.
+The ranked list of the remaining idioms, with site counts, is in the inline pass report (outside the repo).
+
+After pass 1, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv
+unchanged by the run (the commits had already set the new names and sources); the same 332 sources do not build here.
+progress.py caches results by source mtime only, so it does not rebuild the includers of a changed header: after a
+header change, rebuild every includer with matchtool (pass 1 did, for all 163 `sly2/` includers).
 
 ## Merged TUs
 
@@ -556,6 +648,7 @@ directories that still hold per-function files, all with inline asm or asm-named
 config/matched.csv: directories whose sources are mostly files named after their function; the same count gives 109,
 not the 103 written here after wave 5, at wave 5's end). Smallest first: dzg 9, brx 16, missile 16, tu_171F58 16,
 tu_185130 16, tu_1BE398 16, jthands 17, spliceobj 18, xform 18, detector 19, joy 19, tu_1553F0 19, wr 20, blip 21,
-... Plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances not yet homed in a TU;
+... Plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 37 linkonce instances not yet homed (19 of
+the 56 moved into the class headers in inline pass 1, see "Inline functions and linkonce copies");
 platform/boot/crt0). Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table, then "Recurring asm
 idioms" before renaming any helper.
