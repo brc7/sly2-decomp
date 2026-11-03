@@ -439,11 +439,11 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x227BB8](../../../src/game/engine/physics/vol/LoadVolFromBrx.c) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
-| [0x227C90](../../../src/game/engine/physics/vol/FCheckVolPoint.c) | `FCheckVolPoint` | reject by bounding sphere then BSP point test (0x118FB0) in local space | 0.60 | T1 |  |
-| [0x227D20](../../../src/game/engine/physics/vol/func_00227D20.c) | `FCheckVolSphere` | radius<=1 -> point test else BSP prune with radius (0x118A88) | 0.40 | T2 |  |
-| [0x227E20](../../../src/game/engine/physics/vol/func_00227E20.c) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
-| [0x227E58](../../../src/game/engine/physics/vol/func_00227E58.c) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
+| [0x227BB8](../../../src/game/engine/physics/vol.cpp) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
+| [0x227C90](../../../src/game/engine/physics/vol.cpp) | `FCheckVolPoint` | reject by bounding sphere then BSP point test (0x118FB0) in local space | 0.60 | T1 |  |
+| [0x227D20](../../../src/game/engine/physics/vol.cpp) | `FCheckVolSphere` | radius<=1 -> point test else BSP prune with radius (0x118A88) | 0.40 | T2 |  |
+| [0x227E20](../../../src/game/engine/physics/vol.cpp) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
+| [0x227E58](../../../src/game/engine/physics/vol.cpp) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
 
 ## water (0x228B48-0x229EF0)
 

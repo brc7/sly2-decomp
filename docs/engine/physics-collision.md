@@ -158,9 +158,9 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | [0x1F9C48](../../src/game/engine/physics/solve/func_001F9C48.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
 | [0x1FA810](../../src/game/engine/physics/solve/ApplyConstr.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
 | [0x1FAC30](../../src/game/engine/physics/solve/AddSoAcceleration.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
-| [0x227BB8](../../src/game/engine/physics/vol/LoadVolFromBrx.c) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
-| [0x227E20](../../src/game/engine/physics/vol/func_00227E20.c) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
-| [0x227E58](../../src/game/engine/physics/vol/func_00227E58.c) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
+| [0x227BB8](../../src/game/engine/physics/vol.cpp) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
+| [0x227E20](../../src/game/engine/physics/vol.cpp) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
+| [0x227E58](../../src/game/engine/physics/vol.cpp) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
 | [0x228D20](../../src/game/engine/physics/water/func_00228D20.c) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
 | [0x229710](../../src/game/engine/physics/water/AddSoXa.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
 | [0x229738](../../src/game/engine/physics/water/func_00229738.c) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
