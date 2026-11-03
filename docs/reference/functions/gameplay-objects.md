@@ -399,12 +399,12 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FF3B8](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF3B8.c) | `InitCid39` | CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70) | 0.60 | T2 |  |
-| [0x1FF3E8](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF3E8.c) | `PostCid39Load` | vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58 | 0.55 | T2 |  |
-| [0x1FF438](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF438.c) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |
-| [0x1FF470](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF470.c) | `OnCid39Remove` | vt22: remove from SW update array (0x1A6150) and from DL D_003E13D8 | 0.85 | T2 | verified, arbitration |
-| [0x1FF4A8](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF4A8.c) | `CloneCid39` | Clone: XFM clone (0x2311B0) preserving a key field | 0.80 | T2 | verified |
-| [0x1FF4F0](../../../src/game/gameplay/objects/tu_1FF3B8/func_001FF4F0.c) | `GetCid27VecToLo` | *pv = PosLoWorld(a) - p->pos when pv non-NULL | 0.25 | T2 |  |
+| [0x1FF3B8](../../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `InitCid39` | CID 0x27 vt7 Init: XFM::Init (0x231100) then init sub-object at +0xE0 (0x182C70) | 0.60 | T2 |  |
+| [0x1FF3E8](../../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `PostCid39Load` | vt15: PostLoLoad; if radius-like field still 1e10 use default D_002C3C58 | 0.55 | T2 |  |
+| [0x1FF438](../../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |
+| [0x1FF470](../../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `OnCid39Remove` | vt22: remove from SW update array (0x1A6150) and from DL D_003E13D8 | 0.85 | T2 | verified, arbitration |
+| [0x1FF4A8](../../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `CloneCid39` | Clone: XFM clone (0x2311B0) preserving a key field | 0.80 | T2 | verified |
+| [0x1FF4F0](../../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `GetCid27VecToLo` | *pv = PosLoWorld(a) - p->pos when pv non-NULL | 0.25 | T2 |  |
 
 ## target (0x21D278-0x21D638)
 
