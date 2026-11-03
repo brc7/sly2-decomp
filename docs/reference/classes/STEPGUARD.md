@@ -110,7 +110,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 84 | RemoveStepDialogSmRefs | inherited (STEP) | `RemoveStepDialogSmRefs?` | `0x205588` | VUnk83 |
 | 85 | GrfStepGroundProbe | **override** | [`GrfStepguardGroundProbe?`](../../../src/game/gameplay/ai/stepguard/func_0020B090.c) | `0x20B090` | VUnk84 |
 | 86 | FStepVt86 | **override** | [`FLethalStepguardZap?`](../../../src/game/gameplay/ai/stepguard/func_00207530.c) | `0x207530` | VUnk85 |
-| 87 | StepVt87Nop | **override** | [`SetStepguardPlayable?`](../../../src/game/gameplay/ai/pickpocket/func_001F1F38.c) | `0x1F1F38` | VUnk86 |
+| 87 | StepVt87Nop | **override** | [`SetStepguardPlayable?`](../../../src/game/gameplay/ai/pickpocket.cpp) | `0x1F1F38` | VUnk86 |
 | 88 | PloChooseStepguardTarget | **new** | [`PloChooseStepguardTarget`](../../../src/game/gameplay/ai/stepguard/PloChooseStepguardTarget.cpp) | `0x2082D0` | VSlot87 |
 | 89 | FStepguardSenseStimulus | **new** | [`FStepguardSenseStimulus`](../../../src/game/gameplay/ai/stepguard/FStepguardSenseStimulus.cpp) | `0x208BE0` | VSlot88 |
 

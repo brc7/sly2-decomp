@@ -9,7 +9,7 @@
 | [`gomer.cpp`](gomer.cpp) | 1 |
 | [`guardbhv/`](guardbhv/) | 190 |
 | [`noise/`](noise/) | 23 |
-| [`pickpocket/`](pickpocket/) | 11 |
+| [`pickpocket.cpp`](pickpocket.cpp) | 1 |
 | [`stepguard/`](stepguard/) | 158 |
 | [`tu_144B28/`](tu_144B28/) | 43 |
 | [`tu_14A008/`](tu_14A008/) | 21 |
