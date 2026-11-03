@@ -111,8 +111,8 @@ in their original order, so g++ generates the initializer:
   dead countdown to steer cse, which g++'s own array-init code provides.
 - sprbuf: `SPRBUF D_003DD2C0[2] = { MakeFirst(), MakeSecond() };` (SPRBUF's constructor memsets it), then the pools.
   With SLY2_ALIAS binding the initializer, the asm-label hack and its `SLY2_ASM: gnu-reorder-db` line go away and
-  the draft builds and matches with the default toolchain here (all five functions). Not committed in wave 5 (the
-  task kept it for a Mac-side check); the draft is in the scratch area (`scratch/sprbuf/`, with a note).
+  the merged file builds and matches with the default toolchain (all five functions); it no longer needs GNU as.
+  Merged at the end of wave 5.
 
 ### Pool order
 
@@ -435,23 +435,23 @@ Wave 5 (the four leftovers, then asm TUs by size):
 | clip | engine/physics/clip.cpp | 8 | one LSG (0x60); PsoHitTestLineObjects keeps its literal C symbol |
 | ik | engine/anim/ik.cpp | 8 | IKREC; SolveIk keeps its offset-addressed views |
 | cd | platform/cdvd/cd.cpp | 10 | four mangled .c definitions as C++ |
+| sprbuf | platform/memory/sprbuf.cpp | 5 | SPRBUF pair + pools as globals; asm-label hack and gnu-reorder-db gone (no GNU as needed) |
 
-Total wave 5: 23 TUs, 156 functions; no `#line` pin and no header change was needed. After the wave,
+Total wave 5: 24 TUs, 161 functions (sprbuf merged after the progress run below); no `#line` pin and no header change was needed. After the wave,
 `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
 matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
-333 sources as in wave 4 do not build here and are carried over (among them sprbuf's asm-labelled initializer and
+333 sources as in wave 4 do not build here and are carried over (among them sprbuf's old asm-labelled initializer, merged since, and
 three gnu-reorder game files: emitter func_0015CAD8, grabspot func_00259A70/func_00259C08).
 
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| sprbuf | draft ready (natural SPRBUF pair + pools, matches here without GNU as) but kept out of wave 5 for a Mac-side check; see "The generated static initializer" |
 | dzg | skipped in wave 5: five incompatible per-file views of DZG/DZ/F/SO/X (the dzgcore DZG extended with contact rows, per-object friction data and XP records); needs dzgcore's DZG/DZ extended first |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 5 every game TU without inline asm is merged, and so are the 20 smallest asm TUs. Left: 104 TU
-directories whose files contain inline asm or asm-named code (sprbuf, dzg and 102 others, smallest first:
+After wave 5 every game TU without inline asm is merged, and so are the 20 smallest asm TUs. Left: 103 TU
+directories whose files contain inline asm or asm-named code (dzg and 102 others, smallest first:
 tu_1848A8 10, tu_1D57A8 10, pickpocket 11, tu_1471C0 11, rail 12, sidebag 12, turret 12, cane 12, blend 12, ...),
 plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances not yet homed in a TU;
 platform/boot/crt0). Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table.
