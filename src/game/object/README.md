@@ -6,7 +6,7 @@
 | --- | --- |
 | [`basic/`](basic/) | 31 |
 | [`brx/`](brx/) | 16 |
-| [`busy/`](busy/) | 8 |
+| [`busy.cpp`](busy.cpp) | 1 |
 | [`find.cpp`](find.cpp) | 1 |
 | [`lo/`](lo/) | 74 |
 | [`proxy/`](proxy/) | 38 |

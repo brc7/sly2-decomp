@@ -49,12 +49,12 @@ Totals on this page: T1 113, T2 53.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x147E20](../../../src/game/object/busy/func_00147E20.c) | `RemoveSwBusyObject` | Remove an object from the SW busy list (+0x20), advancing the update cursor (+0x39A4) if it points at it | 0.45 | T2 |  |
-| [0x147E88](../../../src/game/object/busy/func_00147E88.c) | `ReinsertSwBusyObject` | Remove then insert the object before the update cursor in the busy list | 0.45 | T2 |  |
-| [0x147EC8](../../../src/game/object/busy/func_00147EC8.c) | `RemoveSwBusyEntry` | RemoveDlEntry(psw+0x20, x) | 0.35 | T2 |  |
-| [0x147EE8](../../../src/game/object/busy/func_00147EE8.c) | `MoveBusyEntryToEnd` | Move entry to the end of a sub-list, recording the first | 0.35 | T2 |  |
-| [0x147F40](../../../src/game/object/busy/UpdateSwBusyList.c) | `UpdateSwBusyList` | Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current player, and move them between busy/idle lists | 0.85 | T1 | runtime |
-| [0x148300](../../../src/game/object/busy/func_00148300.c) | `UpdateLoBusy` | Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it | 0.40 | T2 |  |
+| [0x147E20](../../../src/game/object/busy.cpp) | `RemoveSwBusyObject` | Remove an object from the SW busy list (+0x20), advancing the update cursor (+0x39A4) if it points at it | 0.45 | T2 |  |
+| [0x147E88](../../../src/game/object/busy.cpp) | `ReinsertSwBusyObject` | Remove then insert the object before the update cursor in the busy list | 0.45 | T2 |  |
+| [0x147EC8](../../../src/game/object/busy.cpp) | `RemoveSwBusyEntry` | RemoveDlEntry(psw+0x20, x) | 0.35 | T2 |  |
+| [0x147EE8](../../../src/game/object/busy.cpp) | `MoveBusyEntryToEnd` | Move entry to the end of a sub-list, recording the first | 0.35 | T2 |  |
+| [0x147F40](../../../src/game/object/busy.cpp) | `UpdateSwBusyList` | Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current player, and move them between busy/idle lists | 0.85 | T1 | runtime |
+| [0x148300](../../../src/game/object/busy.cpp) | `UpdateLoBusy` | Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it | 0.40 | T2 |  |
 
 ## find (0x15E380-0x15EF00)
 
