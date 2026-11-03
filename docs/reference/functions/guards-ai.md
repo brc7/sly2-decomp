@@ -166,20 +166,20 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x171F58](../../../src/game/gameplay/ai/tu_171F58/func_00171F58.c) | `InitBhv171` | BHV171 slot 7: base, guard flag 0x1F, state -1, timers = FLT_MAX | 0.35 | T2 |  |
-| [0x171FA0](../../../src/game/gameplay/ai/tu_171F58/func_00171FA0.c) | `StartBhv171` | BHV171 slot 8: base, SetBhv171State(0) | 0.30 | T2 |  |
-| [0x171FD0](../../../src/game/gameplay/ai/tu_171F58/func_00171FD0.c) | `CloseBhv171` | BHV171 slot 9: base, state -1, clear flag 0x1F, clear watched object | 0.30 | T2 |  |
-| [0x172018](../../../src/game/gameplay/ai/tu_171F58/func_00172018.c) | `UpdateBhv171` | Search state machine: 0 react, 1 go to last-known position, 2 face it, 3 visit search points, 4 give up, 5 hold while 0x209098 | 0.45 | T2 |  |
-| [0x172320](../../../src/game/gameplay/ai/tu_171F58/func_00172320.c) | `SetBhv171State` | Enters a search state, starting the matching sub-behaviour (BHV157 anim 0xC/0xE/1, BHV186 goto, BHV158 look) and timers | 0.45 | T2 |  |
-| [0x172550](../../../src/game/gameplay/ai/tu_171F58/func_00172550.c) | `FBhv171Idle` | True if state == -1 | 0.40 | T2 |  |
-| [0x172560](../../../src/game/gameplay/ai/tu_171F58/func_00172560.c) | `SetBhv171LookTimers` | Random look duration from guard +0xE6C..+0xE70; second timer only if guard +0xE78 == 1 | 0.35 | T2 |  |
-| [0x1725E0](../../../src/game/gameplay/ai/tu_171F58/func_001725E0.c) | `SetBhv171Watched` | Swaps a watched refcounted object (+0x44) via its vt1/vt2 (incref/decref) and flags a re-plan | 0.35 | T2 |  |
-| [0x172658](../../../src/game/gameplay/ai/tu_171F58/func_00172658.c) | `FBhv171TargetReached` | True if the guard can't search or the last-known position is nearer than the target object + 50 | 0.35 | T2 |  |
-| [0x172760](../../../src/game/gameplay/ai/tu_171F58/func_00172760.c) | `PosBhv171LastKnown` | Last-known target position from the perception record (q20 if mode 4 for this guard, else q30) | 0.40 | T2 |  |
-| [0x172798](../../../src/game/gameplay/ai/tu_171F58/func_00172798.c) | `FAddSearchCandidate` | Adds a candidate point to a 64-entry list if its pitch and distance are within limits, storing its relative heading | 0.40 | T2 |  |
-| [0x172888](../../../src/game/gameplay/ai/tu_171F58/func_00172888.c) | `FCompareSearchCandidates` | Sort predicate on heading | 0.40 | T2 |  |
-| [0x1728B0](../../../src/game/gameplay/ai/tu_171F58/func_001728B0.cpp) | `ChooseBhv171SearchPoints` | Gathers candidate hiding places (several global object lists, cids 0x23/0x67/0x1B), sorts by heading, keeps up to 4 spread points, fills the rest randomly behind the guard | 0.45 | T2 |  |
-| [0x172F10](../../../src/game/gameplay/ai/tu_171F58/func_00172F10.c) | `StepBhv171SearchPoint` | Every ~1 s after arriving, moves BHV186 to the next of the 4 search points | 0.40 | T2 |  |
+| [0x171F58](../../../src/game/gameplay/ai/tu_171F58.cpp) | `InitBhv171` | BHV171 slot 7: base, guard flag 0x1F, state -1, timers = FLT_MAX | 0.35 | T2 |  |
+| [0x171FA0](../../../src/game/gameplay/ai/tu_171F58.cpp) | `StartBhv171` | BHV171 slot 8: base, SetBhv171State(0) | 0.30 | T2 |  |
+| [0x171FD0](../../../src/game/gameplay/ai/tu_171F58.cpp) | `CloseBhv171` | BHV171 slot 9: base, state -1, clear flag 0x1F, clear watched object | 0.30 | T2 |  |
+| [0x172018](../../../src/game/gameplay/ai/tu_171F58.cpp) | `UpdateBhv171` | Search state machine: 0 react, 1 go to last-known position, 2 face it, 3 visit search points, 4 give up, 5 hold while 0x209098 | 0.45 | T2 |  |
+| [0x172320](../../../src/game/gameplay/ai/tu_171F58.cpp) | `SetBhv171State` | Enters a search state, starting the matching sub-behaviour (BHV157 anim 0xC/0xE/1, BHV186 goto, BHV158 look) and timers | 0.45 | T2 |  |
+| [0x172550](../../../src/game/gameplay/ai/tu_171F58.cpp) | `FBhv171Idle` | True if state == -1 | 0.40 | T2 |  |
+| [0x172560](../../../src/game/gameplay/ai/tu_171F58.cpp) | `SetBhv171LookTimers` | Random look duration from guard +0xE6C..+0xE70; second timer only if guard +0xE78 == 1 | 0.35 | T2 |  |
+| [0x1725E0](../../../src/game/gameplay/ai/tu_171F58.cpp) | `SetBhv171Watched` | Swaps a watched refcounted object (+0x44) via its vt1/vt2 (incref/decref) and flags a re-plan | 0.35 | T2 |  |
+| [0x172658](../../../src/game/gameplay/ai/tu_171F58.cpp) | `FBhv171TargetReached` | True if the guard can't search or the last-known position is nearer than the target object + 50 | 0.35 | T2 |  |
+| [0x172760](../../../src/game/gameplay/ai/tu_171F58.cpp) | `PosBhv171LastKnown` | Last-known target position from the perception record (q20 if mode 4 for this guard, else q30) | 0.40 | T2 |  |
+| [0x172798](../../../src/game/gameplay/ai/tu_171F58.cpp) | `FAddSearchCandidate` | Adds a candidate point to a 64-entry list if its pitch and distance are within limits, storing its relative heading | 0.40 | T2 |  |
+| [0x172888](../../../src/game/gameplay/ai/tu_171F58.cpp) | `FCompareSearchCandidates` | Sort predicate on heading | 0.40 | T2 |  |
+| [0x1728B0](../../../src/game/gameplay/ai/tu_171F58.cpp) | `ChooseBhv171SearchPoints` | Gathers candidate hiding places (several global object lists, cids 0x23/0x67/0x1B), sorts by heading, keeps up to 4 spread points, fills the rest randomly behind the guard | 0.45 | T2 |  |
+| [0x172F10](../../../src/game/gameplay/ai/tu_171F58.cpp) | `StepBhv171SearchPoint` | Every ~1 s after arriving, moves BHV186 to the next of the 4 search points | 0.40 | T2 |  |
 
 ## tu_173158 (0x173158-0x174898)
 
