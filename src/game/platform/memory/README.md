@@ -8,7 +8,7 @@
 | [`memory/`](memory/) | 23 |
 | [`phasemem.cpp`](phasemem.cpp) | 1 |
 | [`slotheap.cpp`](slotheap.cpp) | 1 |
-| [`sprbuf/`](sprbuf/) | 5 |
+| [`sprbuf.cpp`](sprbuf.cpp) | 1 |
 | [`tu_1147D8.cpp`](tu_1147D8.cpp) | 1 |
 | [`tu_114AE0.cpp`](tu_114AE0.cpp) | 1 |
 

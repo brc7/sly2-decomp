@@ -5022,11 +5022,11 @@ RefSetArgsFromSplice__FiP4CRefP4OTYPe,0x201360,30,match,src/game/object/spliceob
 func_002013D8,0x2013D8,60,match,src/game/object/spliceobj/func_002013D8.cpp
 StaticInit_spliceobj,0x2014C8,77,match,src/game/object/spliceobj/StaticInit_spliceobj.c
 func_00201600,0x201600,8,match,src/game/object/spliceobj/func_00201600.c
-LoadSprBuf__Fie,0x201620,96,match,src/game/platform/memory/sprbuf/LoadSprBuf__Fie.cpp
-SaveSprBuf__FPve,0x2017A0,125,match,src/game/platform/memory/sprbuf/SaveSprBuf__FPve.cpp
-func_00201998,0x201998,22,match,src/game/platform/memory/sprbuf/func_00201998.c
-func_002019F0,0x2019F0,218,match,src/game/platform/memory/sprbuf/func_002019F0.cpp
-func_00201D58,0x201D58,8,match,src/game/platform/memory/sprbuf/func_00201D58.c
+LoadSprBuf__Fie,0x201620,96,match,src/game/platform/memory/sprbuf.cpp
+SaveSprBuf__FPve,0x2017A0,125,match,src/game/platform/memory/sprbuf.cpp
+func_00201998,0x201998,22,match,src/game/platform/memory/sprbuf.cpp
+func_002019F0,0x2019F0,218,match,src/game/platform/memory/sprbuf.cpp
+func_00201D58,0x201D58,8,match,src/game/platform/memory/sprbuf.cpp
 InitReconSel,0x201D78,20,match,src/game/gameplay/player/tu_201D78/InitReconSel.c
 PostReconSelLoad,0x201DC8,48,match,src/game/gameplay/player/tu_201D78/PostReconSelLoad.c
 func_00201E88,0x201E88,30,match,src/game/gameplay/player/tu_201D78/func_00201E88.c

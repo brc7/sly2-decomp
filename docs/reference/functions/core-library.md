@@ -361,9 +361,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x201620](../../../src/game/platform/memory/sprbuf/LoadSprBuf__Fie.cpp) | `LoadSprBuf__Fie` |  |  | existing |  |
-| [0x2017A0](../../../src/game/platform/memory/sprbuf/SaveSprBuf__FPve.cpp) | `SaveSprBuf__FPve` |  |  | existing |  |
-| [0x201998](../../../src/game/platform/memory/sprbuf/func_00201998.c) | `SwapSprBuf` | sceDmaSync on the transfer channel, flip double-buffer index D_002C3C5C, mark new buffer state 2 | 0.45 | T2 |  |
+| [0x201620](../../../src/game/platform/memory/sprbuf.cpp) | `LoadSprBuf__Fie` |  |  | existing |  |
+| [0x2017A0](../../../src/game/platform/memory/sprbuf.cpp) | `SaveSprBuf__FPve` |  |  | existing |  |
+| [0x201998](../../../src/game/platform/memory/sprbuf.cpp) | `SwapSprBuf` | sceDmaSync on the transfer channel, flip double-buffer index D_002C3C5C, mark new buffer state 2 | 0.45 | T2 |  |
 
 ## stream (0x20D5D0-0x20D9D0)
 
