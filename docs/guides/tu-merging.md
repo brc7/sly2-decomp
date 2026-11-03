@@ -101,6 +101,19 @@ CSpliceHeap s_heap; }` with five explicit instantiations after `SLY2_INSTANTIATE
 that used the raw `D_004521xx` addresses now names `CSpliceHeap<CB, C>::s_heap`. Other shapes (`tu_1147D8` 185,
 `tu_114AE0` 1926, sprbuf's SPRBUF array with a dynamic initializer) need their own spelling; not done in wave 1.
 
+Wave 5 spelled the three of them as the file-scope objects they are, defined before `SLY2_INSTANTIATE_SLOT_POOLS()`
+in their original order, so g++ generates the initializer:
+
+- tu_1147D8 and tu_114AE0 contain no code of their own: `RGBA D_0029A7C0[16] = { RGBA(0, 0, 0, 0xF), ... };`
+  (256 entries in tu_114AE0) with a private four-byte `RGBA` constructor, then `CLUT D_002DD500(D_0027A778);` and
+  `BMP D_002DD520(D_0029A790);` whose inline constructors call func_001EAD98 / func_001EB050 (CopyClutHeader /
+  CopyBmpHeader) on a header in .data. The natural array initializer matches; the per-function tu_114AE0 needed a
+  dead countdown to steer cse, which g++'s own array-init code provides.
+- sprbuf: `SPRBUF D_003DD2C0[2] = { MakeFirst(), MakeSecond() };` (SPRBUF's constructor memsets it), then the pools.
+  With SLY2_ALIAS binding the initializer, the asm-label hack and its `SLY2_ASM: gnu-reorder-db` line go away and
+  the draft builds and matches with the default toolchain here (all five functions). Not committed in wave 5 (the
+  task kept it for a Mac-side check); the draft is in the scratch area (`scratch/sprbuf/`, with a note).
+
 ### Pool order
 
 Naming a pool in code (for example a class-specific `operator delete` that frees into
@@ -150,6 +163,9 @@ the other Splice node kinds (frames, procs, method records...).
 | a pool allocator is 57 of 59 off: our code keeps the pool address in a saved register, the target rematerializes it (`lui`/`addiu`) at each use | a local `SLOTHEAP *p = &CSlotPool<..>::s_pool.slotheap` | name `CSlotPool<CB, C>::s_pool.slotheap` in every expression | frame (PvNewBinding) |
 | six per-pool instances of one helper are 67 of 90 off when written as one `static inline` function taking the pool's globals as arguments | the arguments become pseudos that are hoisted into saved registers; the original instances name the globals directly | a macro that expands the body per pool, and one small inline per pool for the (index, page) -> node lookup (`GC_DEFINE_HANDLE`) | gc (six sweeps, Collect) |
 | an initialisation of two members is 2 x 7 off: the count is cleared before the array pointer is stored | members stored directly may be reordered; the original stored through pointers (`InitStack(&c, &ap, n)`) | keep the pointer-taking inline helper | gc (Collect) |
+| a `.c` function with an asm whose output operand is a memory lvalue (`"=j"(out->q)` through a union pointer, `"=r"(c[0])`) has a 16-byte bigger frame as C++ and stores the value twice (33/106, 33/36 differ) | the C++ front end copies the asm output through an extra stack temporary | write the asm output to a scalar and store it afterwards (`qword BcQ(float)` returning the value, `scalar.q = BcQ(q)`; `"=r"(count)` then `c[0] = count`) | tu_1D6848 (func_001D6848), clock (StartupClock) |
+| a `.c` access to the previous array element `((struct E *)((char *)e - 0x70))->f` is 39/165 off as C++: the address is built as `e - 0x8000` plus `0x7FF4` | the C++ front end folds the negative byte offset as a large unsigned constant; `e[-1]` and `n->entries[j-1]` do no better | integer arithmetic: `((struct E *)((int)e - 0x70))->f` | tail (LoadSoChainsFromBrx) |
+| a register swap (v0/v1, 3 of 78) around a store after a call | one per-function file declared the callee returning `void *`, the other `void`; the merged prototype took `void *` | declare the callee with its real result (`void CopyAb(...)`, as its definition) | stream (CbWrite) |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -220,6 +236,21 @@ Other observations:
   bb97924b). The scratch helper now runs `git rm` first. (2) For a TU with duplicate rows, count the functions
   after removing the duplicates: the bis commit subject says 43 (rows) instead of 34 (functions); the header was
   corrected in a follow-up commit.
+- Wave 5 (asm TUs): the per-function views of one object were unified into one TU-private struct per object in
+  every TU (WAYPT, DIRAXIS, IKREC, LSG, DZG/DZ, SWBUSY...), with asm `"m"` operands renamed to the unified fields
+  (`"m"(axes[1].direction.q)` for a per-file `"m"(axes->b)`); no function changed codegen from that. Per-file layout
+  asserts of the replaced views are dropped; the unified types carry their own asserts. A shared header type was
+  used where its layout fits the asm (sly2/basic.h CLOCK in clock); where the asm wants qword rows (GEOM, MATRIX4 in
+  geom) a TU-private type with the header's field names is used instead.
+- Wave 5: a per-function `.c` defining a mangled name whose signature does not fit the code
+  (`PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG` takes qwords, its symbol says `VECTOR *`) stays a C-linkage
+  function under its literal symbol, as bas's constructor did. Functions whose signature fits (Startup__Fv,
+  FValidCdMmode__Fv, CloneGeom__FP4GEOMP7MATRIX4T0, the OSTRM constructors __5OSTRMi/__5OSTRMPvi...) became the C++
+  functions that mangle to them.
+- Wave 5: tu_119BC8's SLY2_CC/`-G0`/`-ffast-math -mvu0-use-vf0-vf31` overrides (three linkonce instances) were not
+  needed in the merged file either; its register pin (`register HENT *list asm("s1")`) stays.
+- Wave 5: a per-function file's `#define` aliases (waypoint's `#define cpso L.cpso`) leak into later functions of a
+  merged file; `#undef` them after the function.
 - Drafting tool hazard: never `git stash`/`stash pop` between finalising a TU and committing it. `stash pop` restores
   the files but not the index, so the commit took only the new `.cpp` (wave 2's draw commit had to be rebuilt).
 
@@ -260,6 +291,12 @@ helper; tu_1603B8: VU0 macro-mode asm with `"j"` operands) merged with no pin, a
 still matched under eight different `#line` pins each. Only functions where gcse PRE creates pseudos from an asm (and
 those pseudos then get stack slots) are sensitive. tu_1D1370 (44 functions), which holds the one known case, was not
 merged yet.
+
+Wave 5 merged 20 more asm TUs (VU0 macro-mode, VU0 microprogram calls, EE 128-bit asm, register pins, allocation-only
+operands) and none needed a pin: every miss was a C-vs-C++ or declaration difference (mismatch table). That includes
+the functions whose per-file notes describe stack-slot-sensitive spellings (LaunchSoFromLauncher in tu_1D6848,
+func_001C2EF0 in tu_1C2D20, UpdateChainLink in tail, func_0022A220 and RenderWaypt in waypoint, func_0014C748 in
+clip, EnforceDzgDz in dzgcore, SolveIk in ik): they matched at their new paths and lines.
 
 ## Linkonce instances
 
@@ -371,16 +408,50 @@ After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 35
 matched.csv unchanged by the run. The same 333 sources do not build here (one hung wibo compile of an SDK file,
 kCopy_0023B238.c, was killed).
 
+Wave 5 (the four leftovers, then asm TUs by size):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| tu_1147D8 | platform/memory/tu_1147D8.cpp | 2 | globals only: RGBA[16] palette with ctor, CLUT/BMP copied from headers |
+| tu_114AE0 | platform/memory/tu_114AE0.cpp | 2 | same shape, RGBA[256]; natural array initializer matches |
+| tu_119BC8 | core/containers/tu_119BC8.cpp | 16 | 11 linkonce (owner attach, virtual dynarray, hash table); overrides not needed; `s1` pin kept |
+| serialize | splice/serialize.cpp | 3 | private CRef with inline SetTag; NODE deletes into pool 0 |
+| bez | core/math/bez.cpp | 5 | VU0; shared VF/VF0 helpers |
+| dirblend | gameplay/player/dirblend.cpp | 5 | VU0 + pins; one DIRAXIS[8], PLAYERV, ANIMV |
+| jtgoal | gameplay/player/jtgoal.cpp | 6 | JTGOAL with a float/bits union; FIsBasicDerivedFrom as C++ |
+| geom | engine/physics/geom.cpp | 6 | VU0 microprograms + EE asm; private qword GEOM/MATRIX4; CloneGeom as C++ |
+| tu_1D6848 | engine/physics/tu_1D6848.cpp | 6 | asm output into memory: value-returning BcQ |
+| tail | engine/anim/tail.cpp | 6 | `(int)e - 0x70`; ACTCHAINV for the m2c chain actions |
+| stream | platform/runtime/stream.cpp | 7 | OSTRM constructors as C++; CopyAb returns void |
+| vol | engine/physics/vol.cpp | 7 | VOL view (BSPC +0xE0, GEOM +0xF0, sphere) |
+| tu_1C2D20 | gameplay/objects/tu_1C2D20.cpp | 7 | prize sprayer view |
+| render | engine/graphics/pipeline/render.cpp | 7 | DMAS::Flush members (dmas.h) |
+| main | app/main.cpp | 7 | Startup/StartupSif/StartupVU0/VU1 as C++; CProg members by linker name |
+| dzgcore | core/math/dzgcore.cpp | 7 | one DZ/DZG for the solver |
+| waypoint | gameplay/progression/waypoint.cpp | 7 | one WAYPT; SW/CAM/CLOCK unified; `#undef` of per-file aliases |
+| tu_1FF3B8 | gameplay/objects/tu_1FF3B8.cpp | 8 | grab spot view |
+| clock | core/time/clock.cpp | 8 | sly2/basic.h CLOCK; asm output into a scalar |
+| busy | object/busy.cpp | 8 | SWBUSY/SO/CM views; 3 m2c |
+| clip | engine/physics/clip.cpp | 8 | one LSG (0x60); PsoHitTestLineObjects keeps its literal C symbol |
+| ik | engine/anim/ik.cpp | 8 | IKREC; SolveIk keeps its offset-addressed views |
+| cd | platform/cdvd/cd.cpp | 10 | four mangled .c definitions as C++ |
+
+Total wave 5: 23 TUs, 156 functions; no `#line` pin and no header change was needed. After the wave,
+`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
+matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
+333 sources as in wave 4 do not build here and are carried over (among them sprbuf's asm-labelled initializer and
+three gnu-reorder game files: emitter func_0015CAD8, grabspot func_00259A70/func_00259C08).
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| tu_1147D8, tu_114AE0 | non-standard static initializer (185 / 1926 instructions): file-scope objects to model first |
-| sprbuf | its static initializer (SPRBUF array + pools) is currently emulated with an asm-labelled hack under `SLY2_ASM: gnu-reorder-db`, which this Linux environment cannot build; needs a real spelling and a Mac to verify |
-| tu_119BC8 | 16 functions, 13 of them linkonce hash-table/dynarray instances with mixed per-file flags, an m2c body and a register pin; worth a session of its own |
+| sprbuf | draft ready (natural SPRBUF pair + pools, matches here without GNU as) but kept out of wave 5 for a Mac-side check; see "The generated static initializer" |
+| dzg | skipped in wave 5: five incompatible per-file views of DZG/DZ/F/SO/X (the dzgcore DZG extended with contact rows, per-object friction data and XP records); needs dzgcore's DZG/DZ extended first |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 4 no asm-free game TU is left unmerged except the four above (tu_1147D8, tu_114AE0, sprbuf's emulated
-initializer, tu_119BC8) and the two non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances
-not yet homed in a TU). The next merges are TUs whose files contain inline asm (134 directories, most of them
-register pins or VU0 macro-mode helpers); read "Path-hash quirk" first.
+After wave 5 every game TU without inline asm is merged, and so are the 20 smallest asm TUs. Left: 104 TU
+directories whose files contain inline asm or asm-named code (sprbuf, dzg and 102 others, smallest first:
+tu_1848A8 10, tu_1D57A8 10, pickpocket 11, tu_1471C0 11, rail 12, sidebag 12, turret 12, cane 12, blend 12, ...),
+plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances not yet homed in a TU;
+platform/boot/crt0). Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table.
