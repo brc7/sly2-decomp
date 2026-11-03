@@ -111,11 +111,11 @@ the memcard worker (`MemcardThreadMain` 0x1AAF18), and an MPEG display thread `[
 | [0x187E78](../../src/game/platform/input/joy/StartJoySelection__FP3JOY.c) | `StartJoySelection` | Reset the menu selection repeat state (two fields = 0) | 0.55 | T1 | verified |
 | [0x187E88](../../src/game/platform/input/joy/DxSelectionJoy.c) | `DxSelectionJoy` | Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8, | 0.70 | T1 |  |
 | [0x1880D8](../../src/game/platform/input/joy/DySelectionJoy.c) | `DySelectionJoy` | Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick | 0.70 | T1 |  |
-| [0x1A7518](../../src/game/app/main/func_001A7518.c) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
-| [0x1A7630](../../src/game/app/main/StartupSif__Fv.c) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuff | 0.90 | T1 | verified |
-| [0x1A7890](../../src/game/app/main/StartupVU0__Fv.c) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
-| [0x1A7900](../../src/game/app/main/StartupVU1__Fv.c) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
-| [0x1A7970](../../src/game/app/main/Startup__Fv.c) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "08 | 0.95 | T1 | verified |
+| [0x1A7518](../../src/game/app/main.cpp) | `main` | Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame loop (see tu_docs/main.md) | 0.95 | T1 | verified |
+| [0x1A7630](../../src/game/app/main.cpp) | `StartupSif` | IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode, sceFsReset, alloc IOP heap and sceSifLoadModuleBuff | 0.90 | T1 | verified |
+| [0x1A7890](../../src/game/app/main.cpp) | `StartupVU0__Fv` | DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync | 0.95 | existing | verified |
+| [0x1A7900](../../src/game/app/main.cpp) | `StartupVU1__Fv` | DMA VU1 microcode (D_0025E050) | 0.95 | existing | verified |
+| [0x1A7970](../../src/game/app/main.cpp) | `Startup` | Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs), MarkClockTick(g_clock,1) per stage; prints build "08 | 0.95 | T1 | verified |
 | [0x1D5150](../../src/game/platform/input/rumble.cpp) | `InitRumble__FP6RUMBLEii` | Init RUMBLE: state Idle (or Stop if already active), store port/slot | 0.90 | existing | verified |
 | [0x1D51B8](../../src/game/platform/input/rumble.cpp) | `UpdateRumble__FP6RUMBLE` | Step rumble pattern instructions by real dt, stop when done | 0.90 | existing | verified |
 | [0x1D5310](../../src/game/platform/input/rumble.cpp) | `TriggerRumbleRumk__FP6RUMBLE4RUMKf` | Trigger predefined pattern D_002C2260[rumk] | 0.90 | existing | verified |
