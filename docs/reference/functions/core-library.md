@@ -587,7 +587,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259AE8](../../../src/game/core/linkonce/unhomed/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259AF8](../../../src/game/gameplay/player/pipe/func_00259AF8.c) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B00](../../../src/game/core/linkonce/unhomed/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259B08](../../../src/game/gameplay/player/rail/func_00259B08.c) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259B08](../../../src/game/gameplay/player/rail.cpp) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B10](../../../src/game/core/linkonce/unhomed/func_00259B10.c) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B20](../../../src/game/core/linkonce/unhomed/func_00259B20.c) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259B48](../../../src/game/engine/sound/sound/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |

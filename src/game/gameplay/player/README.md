@@ -23,7 +23,7 @@
 | [`pipe/`](pipe/) | 14 |
 | [`pipe_jt/`](pipe_jt/) | 15 |
 | [`places/`](places/) | 14 |
-| [`rail/`](rail/) | 12 |
+| [`rail.cpp`](rail.cpp) | 1 |
 | [`stepplayer/`](stepplayer/) | 96 |
 | [`throw/`](throw/) | 12 |
 | [`tu_19F0A8.cpp`](tu_19F0A8.cpp) | 1 |

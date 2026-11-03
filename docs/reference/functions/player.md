@@ -694,15 +694,15 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CB908](../../../src/game/gameplay/player/rail/InitRail.c) | `InitRail` | RAIL::Init (vt7): InitShape + init GRABSPOT base at +0x190; +0x1C4=1, +0x1C0=1000 | 0.85 | T1 |  |
-| [0x1CB950](../../../src/game/gameplay/player/rail/PostRailLoad.c) | `PostRailLoad` | RAIL vt15 PostLoad: base then if length (+0x38)==1e10 compute path length + margin | 0.80 | T1 |  |
-| [0x1CB9B0](../../../src/game/gameplay/player/rail/OnRailAdd.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
-| [0x1CB9E8](../../../src/game/gameplay/player/rail/OnRailRemove.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
-| [0x1CBA20](../../../src/game/gameplay/player/rail/CloneRail.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
-| [0x1CBA68](../../../src/game/gameplay/player/rail/func_001CBA68.c) | `RAIL_FGetGrabRange` | GRABSPOT iface: if enabled return path [low,high] distance | 0.35 | T2 |  |
-| [0x1CBAC0](../../../src/game/gameplay/player/rail/func_001CBAC0.c) | `RAIL_ClampGrabDistance` | GRABSPOT iface: nearest path distance to point, clamped to [50, high-50] unless looping | 0.35 | T2 |  |
-| [0x1CBB58](../../../src/game/gameplay/player/rail/func_001CBB58.c) | `GetRailGrabPos` | GRABSPOT iface: position at distance (+ offset from given point) | 0.30 | T2 |  |
-| [0x1CBBA8](../../../src/game/gameplay/player/rail/func_001CBBA8.cpp) | `GetRailGrabMat` | GRABSPOT iface: orientation basis along rail at distance | 0.30 | T2 |  |
+| [0x1CB908](../../../src/game/gameplay/player/rail.cpp) | `InitRail` | RAIL::Init (vt7): InitShape + init GRABSPOT base at +0x190; +0x1C4=1, +0x1C0=1000 | 0.85 | T1 |  |
+| [0x1CB950](../../../src/game/gameplay/player/rail.cpp) | `PostRailLoad` | RAIL vt15 PostLoad: base then if length (+0x38)==1e10 compute path length + margin | 0.80 | T1 |  |
+| [0x1CB9B0](../../../src/game/gameplay/player/rail.cpp) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
+| [0x1CB9E8](../../../src/game/gameplay/player/rail.cpp) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
+| [0x1CBA20](../../../src/game/gameplay/player/rail.cpp) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
+| [0x1CBA68](../../../src/game/gameplay/player/rail.cpp) | `RAIL_FGetGrabRange` | GRABSPOT iface: if enabled return path [low,high] distance | 0.35 | T2 |  |
+| [0x1CBAC0](../../../src/game/gameplay/player/rail.cpp) | `RAIL_ClampGrabDistance` | GRABSPOT iface: nearest path distance to point, clamped to [50, high-50] unless looping | 0.35 | T2 |  |
+| [0x1CBB58](../../../src/game/gameplay/player/rail.cpp) | `GetRailGrabPos` | GRABSPOT iface: position at distance (+ offset from given point) | 0.30 | T2 |  |
+| [0x1CBBA8](../../../src/game/gameplay/player/rail.cpp) | `GetRailGrabMat` | GRABSPOT iface: orientation basis along rail at distance | 0.30 | T2 |  |
 
 ## jthands (0x1CC158-0x1CD5F0)
 

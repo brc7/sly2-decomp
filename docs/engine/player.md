@@ -390,9 +390,9 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x1C46C0](../../src/game/actor/po/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
 | [0x1C4840](../../src/game/actor/po/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
 | [0x1C4A48](../../src/game/actor/po/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
-| [0x1CB9B0](../../src/game/gameplay/player/rail/OnRailAdd.c) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
-| [0x1CB9E8](../../src/game/gameplay/player/rail/OnRailRemove.c) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
-| [0x1CBA20](../../src/game/gameplay/player/rail/CloneRail.c) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
+| [0x1CB9B0](../../src/game/gameplay/player/rail.cpp) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
+| [0x1CB9E8](../../src/game/gameplay/player/rail.cpp) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
+| [0x1CBA20](../../src/game/gameplay/player/rail.cpp) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
 | [0x202378](../../src/game/gameplay/player/tu_201D78/UpdateReconTargetVisibility.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
 | [0x2035A8](../../src/game/gameplay/player/tu_201D78/LoadReconTargetFromBrx.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
 
