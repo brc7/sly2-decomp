@@ -89,10 +89,10 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x118380](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadStringSw` | Reads a U16-length-prefixed string into a buffer allocated from a heap/alloc request (Sly2 adds allocator + kind args) | 0.75 | T1 | parse |
 | [0x118420](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_SkipStringSw` | Skips a U16-length-prefixed string (Read(U16Read(),NULL)) | 0.60 | T1 | parse |
 | [0x118458](../../src/game/core/binstream/bis.cpp) | `CBinaryInputStream_ReadCb64` | Read(0x40 bytes) into buffer | 0.75 | T1 | parse |
-| [0x118668](../../src/game/core/math/bsp/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
-| [0x118A88](../../src/game/core/math/bsp/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
-| [0x119308](../../src/game/core/math/bsp/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
-| [0x1193C0](../../src/game/core/math/bsp/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
+| [0x118668](../../src/game/core/math/bsp.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
+| [0x118A88](../../src/game/core/math/bsp.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
+| [0x119308](../../src/game/core/math/bsp.cpp) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
+| [0x1193C0](../../src/game/core/math/bsp.cpp) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
 | [0x11A060](../../src/game/core/containers/dl.cpp) | `ClearSl` | pvFirst = pvLast = NULL | 0.85 | T1 | verified |
 | [0x11A070](../../src/game/core/containers/dl.cpp) | `AppendSlEntry` | Append to singly linked list (tail pointer) | 0.85 | T1 | verified |
 | [0x11A1B8](../../src/game/core/containers/dl.cpp) | `FFindSlEntry` | True if entry is linked (next != NULL or it is the tail) | 0.85 | T1 | verified |

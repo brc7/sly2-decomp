@@ -90,16 +90,16 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x118668](../../../src/game/core/math/bsp/func_00118668.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
-| [0x118A88](../../../src/game/core/math/bsp/func_00118A88.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
-| [0x118D08](../../../src/game/core/math/bsp/func_00118D08.cpp) | `FClassifyPolyBsp` | Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points, recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf) | 0.35 | T2 |  |
-| [0x118FB0](../../../src/game/core/math/bsp/PbspPointInBspQuick.cpp) | `PbspPointInBspQuick` | Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the leaf node | 0.65 | T1 |  |
-| [0x119090](../../../src/game/core/math/bsp/func_00119090.cpp) | `PbspPointInBsp` | Point location with on-plane case: if \|dist\|<=1e-4 try both children recursively | 0.60 | T1 |  |
-| [0x1191E8](../../../src/game/core/math/bsp/func_001191E8.c) | `CloneBspc` | Copies a BSPC from one GEOM to another, rebasing internal node/plane pointers | 0.75 | T1 |  |
-| [0x119308](../../../src/game/core/math/bsp/InitPlaneFromPositions.c) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
-| [0x119390](../../../src/game/core/math/bsp/InitPlaneFromNormalPos.c) | `InitPlaneFromNormalPos` | Plane from normal and a point on it (d = n.pos), VU asm | 0.50 | T1 |  |
-| [0x1193C0](../../../src/game/core/math/bsp/SetPlane.c) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
-| [0x1193D8](../../../src/game/core/math/bsp/func_001193D8.cpp) | `ConvertPlane` | Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d) | 0.45 | T2 |  |
+| [0x118668](../../../src/game/core/math/bsp.cpp) | `ClsgClipEdgeToBsp` | Clips an edge against a BSP volume; returns inside segments (LSG list) | 0.90 | T1 | verified |
+| [0x118A88](../../../src/game/core/math/bsp.cpp) | `PruneBsp` | Recursive prune of a BSP against a sphere (pos, radius): emits a reduced tree | 0.88 | T1 | verified |
+| [0x118D08](../../../src/game/core/math/bsp.cpp) | `FClassifyPolyBsp` | Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points, recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf) | 0.35 | T2 |  |
+| [0x118FB0](../../../src/game/core/math/bsp.cpp) | `PbspPointInBspQuick` | Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the leaf node | 0.65 | T1 |  |
+| [0x119090](../../../src/game/core/math/bsp.cpp) | `PbspPointInBsp` | Point location with on-plane case: if \|dist\|<=1e-4 try both children recursively | 0.60 | T1 |  |
+| [0x1191E8](../../../src/game/core/math/bsp.cpp) | `CloneBspc` | Copies a BSPC from one GEOM to another, rebasing internal node/plane pointers | 0.75 | T1 |  |
+| [0x119308](../../../src/game/core/math/bsp.cpp) | `InitPlaneFromPositions` | Plane through 3 points: normal = normalize((b-a)x(c-a)), d = n.a | 0.85 | T1 | verified |
+| [0x119390](../../../src/game/core/math/bsp.cpp) | `InitPlaneFromNormalPos` | Plane from normal and a point on it (d = n.pos), VU asm | 0.50 | T1 |  |
+| [0x1193C0](../../../src/game/core/math/bsp.cpp) | `SetPlane` | Stores normal qword and d at +0xC | 0.85 | T1 | verified |
+| [0x1193D8](../../../src/game/core/math/bsp.cpp) | `ConvertPlane` | Transforms a plane by a matrix (rotate normal, move a point on the plane, recompute d) | 0.45 | T2 |  |
 
 ## crout (0x1195E0-0x119BC8)
 
@@ -447,8 +447,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256360](../../../src/game/app/class_registry/STEPGUARD_ctor.c) | `STEPGUARD_ctor` | inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x2563E8](../../../src/game/app/class_registry/JT_ctor.c) | `JT_ctor` | inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x256440](../../../src/game/app/class_registry/MURRAY_ctor.c) | `MURRAY_ctor` | inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x2564A8](../../../src/game/core/math/bsp/func_002564A8.c) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2564B8](../../../src/game/core/math/bsp/func_002564B8.c) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
+| [0x2564A8](../../../src/game/core/math/bsp.cpp) | `VECTOR4_opAssign` | *p = qword v; return p [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2564B8](../../../src/game/core/math/bsp.cpp) | `Identity_002564B8` | return arg0 (out-of-line inline accessor/cast in the linkonce block) | 0.15 | T2 | top50 |
 | [0x2564C0](../../../src/game/engine/physics/mark/func_002564C0.c) | `Identity_002564C0` | return arg (inline cast/accessor) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x2564E0](../../../src/game/core/containers/tu_119BC8.cpp) | `CUnk2CA5E0_Attach` | a->owner=b; append a to b->list (+4); a->x24=b->x0 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256528](../../../src/game/core/containers/tu_119BC8.cpp) | `CUnk2CA5E0_Attach2` | variant with extra arg c, list at +0x28 [game linkonce (inline/template)] | 0.25 | T2 |  |
