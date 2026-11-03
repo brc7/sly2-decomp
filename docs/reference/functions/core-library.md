@@ -369,11 +369,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x20D5D0](../../../src/game/platform/runtime/stream/__5OSTRMi.c) | `__5OSTRMi` |  |  | existing |  |
-| [0x20D5F0](../../../src/game/platform/runtime/stream/__5OSTRMPvi.c) | `__5OSTRMPvi` |  |  | existing |  |
-| [0x20D618](../../../src/game/platform/runtime/stream/_$_5OSTRM.cpp) | `_$_5OSTRM` |  |  | existing |  |
-| [0x20D660](../../../src/game/platform/runtime/stream/CbWrite__5OSTRMPvi.cpp) | `CbWrite__5OSTRMPvi` |  |  | existing |  |
-| [0x20D798](../../../src/game/platform/runtime/stream/Flush__5OSTRM.cpp) | `Flush__5OSTRM` |  |  | existing |  |
+| [0x20D5D0](../../../src/game/platform/runtime/stream.cpp) | `__5OSTRMi` |  |  | existing |  |
+| [0x20D5F0](../../../src/game/platform/runtime/stream.cpp) | `__5OSTRMPvi` |  |  | existing |  |
+| [0x20D618](../../../src/game/platform/runtime/stream.cpp) | `_$_5OSTRM` |  |  | existing |  |
+| [0x20D660](../../../src/game/platform/runtime/stream.cpp) | `CbWrite__5OSTRMPvi` |  |  | existing |  |
+| [0x20D798](../../../src/game/platform/runtime/stream.cpp) | `Flush__5OSTRM` |  |  | existing |  |
 
 ## text (0x21D638-0x21EFD0)
 
