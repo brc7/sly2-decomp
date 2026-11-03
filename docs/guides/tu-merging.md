@@ -163,9 +163,17 @@ the other Splice node kinds (frames, procs, method records...).
 | a pool allocator is 57 of 59 off: our code keeps the pool address in a saved register, the target rematerializes it (`lui`/`addiu`) at each use | a local `SLOTHEAP *p = &CSlotPool<..>::s_pool.slotheap` | name `CSlotPool<CB, C>::s_pool.slotheap` in every expression | frame (PvNewBinding) |
 | six per-pool instances of one helper are 67 of 90 off when written as one `static inline` function taking the pool's globals as arguments | the arguments become pseudos that are hoisted into saved registers; the original instances name the globals directly | a macro that expands the body per pool, and one small inline per pool for the (index, page) -> node lookup (`GC_DEFINE_HANDLE`) | gc (six sweeps, Collect) |
 | an initialisation of two members is 2 x 7 off: the count is cleared before the array pointer is stored | members stored directly may be reordered; the original stored through pointers (`InitStack(&c, &ap, n)`) | keep the pointer-taking inline helper | gc (Collect) |
-| a `.c` function with an asm whose output operand is a memory lvalue (`"=j"(out->q)` through a union pointer, `"=r"(c[0])`) has a 16-byte bigger frame as C++ and stores the value twice (33/106, 33/36 differ) | the C++ front end copies the asm output through an extra stack temporary | write the asm output to a scalar and store it afterwards (`qword BcQ(float)` returning the value, `scalar.q = BcQ(q)`; `"=r"(count)` then `c[0] = count`) | tu_1D6848 (func_001D6848), clock (StartupClock) |
+| a `.c` function with an asm whose output operand is a memory lvalue (`"=j"(out->q)` through a union pointer, `"=r"(c[0])`) has a 16-byte bigger frame as C++ and stores the value twice (33/106, 33/36 differ) | the C++ front end copies the asm output through an extra stack temporary | write the asm output to a scalar and store it afterwards (`qword BcQ(float)` returning the value, `scalar.q = BcQ(q)`; `"=r"(count)` then `c[0] = count`) | tu_1D6848 (func_001D6848), clock (StartupClock), hang (func_00190C58: `"=j"(s.q)` into a union), pipe_jt (func_0019EA00, same) |
 | a `.c` access to the previous array element `((struct E *)((char *)e - 0x70))->f` is 39/165 off as C++: the address is built as `e - 0x8000` plus `0x7FF4` | the C++ front end folds the negative byte offset as a large unsigned constant; `e[-1]` and `n->entries[j-1]` do no better | integer arithmetic: `((struct E *)((int)e - 0x70))->f` | tail (LoadSoChainsFromBrx) |
 | a register swap (v0/v1, 3 of 78) around a store after a call | one per-function file declared the callee returning `void *`, the other `void`; the merged prototype took `void *` | declare the callee with its real result (`void CopyAb(...)`, as its definition) | stream (CbWrite) |
+| the reverse: a constant or loop counter takes v0 instead of v1 after a call (2 of 27; 4 of 76) | the callee was declared `void` but the original declared it returning `int` (its result occupies v0 even when unused) | declare the result: `int sceClose(int)`, `int func_00234A60(int)` (the semaphore calls) | tu_1848A8 (CStreamBis_Close), frm (FlushFrames) |
+| 4 of 122 off as C++: a hoisted `andi 0xFF` scheduled after a hoisted float constant instead of before | an `int` stored into a `long x : 8` bit-field; the per-function `.c` compiled as `.cpp` misses the same way (C-vs-C++) | store `(uchar)mask` (or `mask & 0xFF`) | tu_1D57A8 (func_001D6508) |
+| 2 x 2 off: the `ori` of a 32-bit constant argument scheduled after the `move a0` | two per-function prototypes of one callee disagreed on a parameter (`int` vs `ulong`); the merged one took `int` | take the type the mangled name says (`AddPrimPack__4GIFSiiUl`: `ulong`) | tu_1471C0 (func_001475C0) |
+| deleting an object that holds a counted pointer is 36 of 81 off: a call to the pointer's out-of-line destructor instead of the inline release | the member was declared with the out-of-line pointer type (SPM) where the per-file view used the inline-release one (SPW/SPB) | type the member with the pointer class whose destructor the original inlined (CSidebag::pbindingFirst is an SPW; CVarb::pnext stays SPM) | sidebag (CSidebag_CloneTo) |
+| s0/s1 swap at the top of a function (4 of 23) | the per-function file passed a parameter on to a callee unchanged (`PropagateSais(p, f)`: a1 still holds f); the merged prototype took one argument | keep the pass-through argument; when another caller uses the one-argument form, declare an asm-labelled alias for the second form (`void PropagateSaisF(FRM *, int) __asm__("PropagateSais");`). hang uses the same device for func_0011B500 called with a hidden result pointer by hand | frm (RenderFrame) |
+| a non-standard StaticInit (166 instructions) is 165-168 off when written as `E D_003D3A00[5] = { E(...), ... }` or as a global object whose inline constructor fills `this->ae` | g++ allocates more registers for the array-initializer and `this`-based code than for the per-file body | a global `LOGO D_003D3A00;` whose inline constructor is the per-file body and names the global, not `this` (`E *pe = D_003D3A00.ae;`) | prog |
+| `StaticInit_<tu>` is 83 instructions: two `jal`s before the pool blocks | file-scope packet builders with constructors (`__4GIFS`, `__4VIFS`) defined in the TU | define them before `SLY2_INSTANTIATE_SLOT_POOLS()`: `GIFS D_002DEA00; VIFS D_002DEA28;` | frm |
+| a constructor is 27 of 27 off (missing inlined body) | it inlined `Begin()`, which the TU also defines out of line; in one file a member cannot be both inline in the class and defined out of line | write the inlined stores in the constructor by hand (same order) | prog (`__5CProgP4RGBAN31`) |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -251,6 +259,29 @@ Other observations:
   needed in the merged file either; its register pin (`register HENT *list asm("s1")`) stays.
 - Wave 5: a per-function file's `#define` aliases (waypoint's `#define cpso L.cpso`) leak into later functions of a
   merged file; `#undef` them after the function.
+- Wave 6 (23 asm TUs of 10..15 functions): 15 matched on the first compile once the views were unified; every miss
+  was a declaration or C-vs-C++ difference (mismatch table). Patterns that recurred:
+  - Per-function `.c` prototypes often list a callee's arguments in register order (`EvaluateShapeS(shape, &pos,
+    &dir, s)`, `ChooseJtAttackTarget(p, mask, offset, &n, &v, heading, dt, cone)`, `ImrsgLookUp__FffiP4MRSGPf(c, a,
+    &t, t, tMax)`). Declare the callee once with its real order and pass the arguments in that order; the reordered
+    calls matched everywhere (rail, cane, blend, pipe, pipe_jt), including the hand-scheduled callers.
+  - Helpers with the same name and different asm in two functions of a TU must be renamed, not merged: overload
+    resolution would silently pick the wrong one (hang: AnticipateJtForce's `Sub(VU_VECTOR, VU_VECTOR)` next to
+    a `Sub(qword, qword)`; throw: CPUFloat/Scalar/Sub with different pins; pipe_jt: Direction/Normal). Identical
+    helpers are defined once.
+  - Use the shared header types when they cover the fields: mode is written against sly2/stepplayer.h's JTMODE,
+    JTMODEHUD, STEPPLAYER and POCTL (the per-file P/S views mapped onto them field for field); a type that the
+    headers only forward-declare (WIDGET) is completed in the TU as a view. turret and sidebag use sly2/cref.h's
+    CRef in place of private ones (asm-labelled copy constructors go away).
+  - When per-function files read one field in different forms (bsp: a node's surface as `SURF *`, as `qword *` and
+    as a pointer to rebase), an anonymous union keeps each read as it was; MEM forms matter in the hand-tuned
+    functions.
+  - A file that needs a TU-private VECTOR/qword can drop sly2/basic.h and declare the one enum it used (bsp: LSGK).
+  - Literal-named functions whose signature fits became the C++ functions that mangle to them (frm: nine; prog:
+    End/Draw).
+  - The SLY2_CC/-G0/-ffast-math overrides of sidebag's linkonce helpers were not needed either.
+  - dzg: dzgcore's DZG cannot simply grow: SolveInequalities has a DZG on its stack, and a 0x64-byte DZG changes its
+    frame (0x130 -> 0x150, 28 of 86 off). See "Not merged".
 - Drafting tool hazard: never `git stash`/`stash pop` between finalising a TU and committing it. `stash pop` restores
   the files but not the index, so the commit took only the new `.cpp` (wave 2's draw commit had to be rebuilt).
 
@@ -297,6 +328,43 @@ operands) and none needed a pin: every miss was a C-vs-C++ or declaration differ
 the functions whose per-file notes describe stack-slot-sensitive spellings (LaunchSoFromLauncher in tu_1D6848,
 func_001C2EF0 in tu_1C2D20, UpdateChainLink in tail, func_0022A220 and RenderWaypt in waypoint, func_0014C748 in
 clip, EnforceDzgDz in dzgcore, SolveIk in ik): they matched at their new paths and lines.
+
+Wave 6 (23 more asm TUs, among them the heavily hand-scheduled CullSceneRenderList, SetJtJtcs, ChooseJtAttackTarget,
+CalculateJtHangAccel, AnticipateJtForce, UpdateJtThrowArc, ClsgClipEdgeToBsp and UpdateJtActivePipe) needed no pin
+either. One verbatim pin was tried on tu_1D57A8's func_001D6508 (`#line 7 ".../func_001D6508.c"` around its Dist
+helper): the miss was scheduling, not stack offsets, and the pin changed nothing (the fix was a C++ cast). The two
+stack-frame misses of the wave (hang func_00190C58, pipe_jt func_0019EA00: 16 bytes bigger) were the asm-output-into-
+memory row of the mismatch table, not the path hash.
+
+## Recurring asm idioms (input for the helper pass)
+
+The merged TUs repeat a small set of VU0/EE asm sequences, each spelled privately per function (often with different
+operand orders, earlyclobbers, allocation-only operands or register pins that the match depends on). A later pass can
+replace them with named inline helpers; until then they stay as they are. Names below are suggestions in the Sly 1
+style (VU_VECTOR / VU_FLOAT classes and their operators); HYPOTHESIS for the Sly 2 originals.
+
+| idiom | asm | example sites | likely helper |
+|---|---|---|---|
+| float into a VF register | `qmtc2.ni r, vf` (sometimes from the float's memory word, `"rV"`) | tu_1471C0 VU_FLOAT, blend ToVf, hang VuFloat/VufFromMemWord, throw Scalar, trail Broadcast, pipe Bc, prog/tu_1D57A8 VU_FLOAT | `VU_FLOAT(float)` |
+| x of a VF register as a float | `qmfc2.ni r, vf` (+ `mtc1`) | tu_1D57A8 Scalar, cane, hang GXOfVf, bsp GFromVf, places, trail Sqrt | `float(VU_FLOAT)` / `GFromVf` |
+| lane of a qword in a GPR | `mtc1` (x), `prot3w` (y), `pextuw r, $0, q` (z) | cane GetY/GetZ, trail GetY/GetZ/StoreXYZ and its linkonce func_00259D98/DA8/DC0, throw GZOfQw, tu_20CE28, pipe_jt Z | VU_VECTOR x()/y()/z() accessors (the three linkonce instances are their out-of-line copies) |
+| three floats to a qword | `mfc1; mfc1; pextlw; mfc1; pcpyld` | turret Make (twice), pipe_jt UpdateJtActivePipe (inline) | `VU_VECTOR(x, y, z)` / SetVector |
+| difference / sum | `vsub.xyzw`, `vadd.xyzw` | nearly every TU (Sub, VSub, QwSub, Difference, Add) | `operator-`, `operator+` |
+| dot product (x only) | `vmul.xyz d,a,b; vaddw.x one,vf0,vf0w; vadday.x ACC,d,dy; vmaddz.x d,one,dz` | tu_1D57A8 Dot, turret Length, hang QwDot/StoreDot, throw, trail, bsp Dot3, places Dist, pipe Dot, tu_1B9F80 Square | `VU_FLOAT Dot(VU_VECTOR, VU_VECTOR)` |
+| length | dot + `vsqrt Q,dx; vwaitq; vaddq.x d,vf0,Q` | turret Length/OffsetLength, cane func_0018EE38 (xy only: `vmul.xy; vaddy.x`), hang QwSqrt, throw LengthV, trail Sqrt, tu_1D57A8 Dist, pipe Length | `Length` / `GLength` |
+| normalize with a fallback axis | length, `li.s 0.0001` compare, `lq` of D_002A2DC0/D_002A2DA0/D_002A2DD0, `vdiv Q,vf0w,len; vwaitq; vmulq.xyzw` | rail NormalizeOr, hang NormalizeAt/func_00190C58/UpdateJtActiveHang, throw PlanarUnit/ProjectUnit, pipe Normalize, pipe_jt Normal/NormalB, bsp Normalize (no fallback) | `NormalizeVector(v, fallback)` |
+| a + v * s.x | `vadda.xyzw ACC,a,vf0; vmaddx.xyzw r,v,sx` | blend Madd/MaddN/MaddV/Madd2, cane AddScaled, hang QwAddScaled(2), rail AddScaled, trail Offset, pipe func_001C3A08/A88 | `VU_VECTOR AddScaled(a, v, s)` |
+| a * s.x + b * t.x | `vmulax.xyzw ACC,a,sx; vmaddx.xyzw r,b,tx` | throw Lerp/TransitionBlend, trail Blend, hang QwCombo, bsp QwMix, cane FJtSweepBack (0.5 average), AnticipateJtForce MulAdd3 (three terms) | `Lerp` / weighted sum |
+| scale | `vmulx.xyzw r,v,sx` | tu_1471C0 `operator*(VU_FLOAT, VU_VECTOR)`, tu_12E600, hang QwScaleX, pipe_jt Scale | `operator*(VU_FLOAT, VU_VECTOR)` |
+| 3x3 / 4x4 matrix times vector | `vmulax.xyz ACC,r0,vx; vmadday.xyz ACC,r1,vy; vmaddz.xyz` (4x4: `vmaddaz` + `vmaddw.xyz r,r3,vf0w`) | cane Rotate/Transform, hang Mul (three rows = matrix product)/QwRotateVec, rail Dir, trail Transform, places func_0019F3F8, pipe Transform, tu_1D57A8 func_001D6378, bsp func_001193D8, turret InverseRotate (transposed) | `operator*(MATRIX3/MATRIX4, VU_VECTOR)` |
+| cross product | `vopmula.xyz ACC,a,b; vopmsub.xyz r,b,a` | hang QwCross, rail CrossKeepSecond, pipe Cross, bsp Cross | `Cross` |
+| plane distance | dot then `vmaddaz.x ACC,one,dz; vmsubw.x d,one,planew` | bsp (five functions) | `GDistancePlane` |
+| zero vector | `vsub.xyzw r,vf0,vf0` | blend func_00138660 | `VU_VECTOR()` zero |
+| out-of-line empty constructors | `return this` | bsp func_002564B8 (VUF), func_002564C0 (VECTOR), rail func_00259B08 / pipe func_00259AF8 (identity) | VU_FLOAT / VECTOR constructors |
+
+Not helpers and to be kept: register pins (`register ... asm("$n")`/`asm("vfN")`), empty `asm("" : "+r"(x))`/`"+j"`
+scheduling nudges, allocation-only extra operands, and the hand-scheduled blocks of SetJtJtcs, UpdateJtActiveHang,
+UpdateJtthrow, UpdateJtActivePipe and func_00220388; each carries a comment saying what it does to the match.
 
 ## Linkonce instances
 
@@ -443,15 +511,51 @@ matched.csv unchanged by the run (the merge commits had already pointed its sour
 333 sources as in wave 4 do not build here and are carried over (among them sprbuf's old asm-labelled initializer, merged since, and
 three gnu-reorder game files: emitter func_0015CAD8, grabspot func_00259A70/func_00259C08).
 
+Wave 6 (the next asm TUs by size, 10..15 functions):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| tu_1848A8 | core/binstream/tu_1848A8.cpp | 10 | CStreamBis as one CBinaryInputStream view (spool fields named); `int sceClose` |
+| tu_1D57A8 | engine/graphics/pipeline/tu_1D57A8.cpp | 10 | render tree (RENDER/BLOCK/STACK); `(uchar)mask` C++ fix; #line tried, not needed |
+| pickpocket | gameplay/ai/pickpocket.cpp | 11 | guard loot view (+0x3F4..+0x494); first compile |
+| tu_1471C0 | gameplay/cutscene/tu_1471C0.cpp | 11 | callee param `ulong` per mangled name |
+| rail | gameplay/player/rail.cpp | 12 | RAIL (SHAPE + grabspot); EvaluateShapeS declared once; linkonce 0x259B08 |
+| sidebag | splice/sidebag.cpp | 12 | CSidebag (pool 4); SPW member for the inline release; 6 linkonce |
+| turret | gameplay/objects/turret.cpp | 12 | TURRET view; cref.h CRef; first compile |
+| cane | gameplay/player/cane.cpp | 12 | JT view from SetJtJtcs; ChooseJtAttackTarget declared once |
+| blend | engine/anim/blend.cpp | 12 | ASEG/ASEGBL view, MRSG/BLMRSG/ELEM/CHN; linkonce 0x2581B8 |
+| hang | gameplay/player/hang.cpp | 12 | JT/NODE/IKJ; M3 vs M3P; helper renames; asm output into a scalar |
+| throw | gameplay/player/throw.cpp | 12 | JTTHROW/O/EFFECT; helper renames; first compile |
+| tu_12E600 | engine/camera/tu_12E600.cpp | 13 | CAMERA and CPCAMERA; first compile |
+| frm | engine/graphics/backend/frm.cpp | 13 | FRM; GIFS/VIFS globals in StaticInit; nine C++ names; pass-through alias |
+| prog | engine/presentation/prog.cpp | 13 | CProg members; LOGO global for the 166-instruction StaticInit |
+| trail | engine/fx/trail.cpp | 13 | TRAIL; 3 linkonce component readers |
+| bbmark | engine/physics/bbmark.cpp | 13 | SW sweep view, X (AAOBR), POX link; first compile |
+| pipe | gameplay/player/pipe.cpp | 14 | PIPE (as RAIL); linkonce 0x259AF8 |
+| tu_1B9F80 | gameplay/ai/tu_1B9F80.cpp | 14 | NEELA (STEPGUARD view) and its behaviour |
+| places | gameplay/player/places.cpp | 14 | PLACE/JTPLACES (JT +0x9E0) |
+| bsp | core/math/bsp.cpp | 14 | BSP with a union surface field; PLANE; basic.h dropped; 2 linkonce |
+| mode | gameplay/player/mode.cpp | 14 | shared stepplayer.h JTMODE/JTMODEHUD/STEPPLAYER/POCTL; WIDGET completed locally |
+| tu_20CE28 | gameplay/ai/tu_20CE28.cpp | 15 | STUCKWATCH/VOLWATCH and their event |
+| pipe_jt | gameplay/player/pipe_jt.cpp | 15 | JTPIPE; helper renames; asm output into a scalar |
+
+Total wave 6: 23 TUs, 291 functions; no `#line` pin and no header change was needed. After the wave,
+`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by the
+run (the merge commits had already pointed its sources at the merged files). 332 sources do not build here and are
+carried over (the 333 of wave 5 less sprbuf's old initializer): the SDK files and the three gnu-reorder game files.
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| dzg | skipped in wave 5: five incompatible per-file views of DZG/DZ/F/SO/X (the dzgcore DZG extended with contact rows, per-object friction data and XP records); needs dzgcore's DZG/DZ extended first |
+| dzg | skipped in waves 5 and 6: five incompatible per-file views of DZG/DZ/F/SO/X. dzgcore's DZG (TU-private, 0x50) cannot grow to the 0x64 bytes dzg reads (+0x50..+0x60): SolveInequalities keeps a DZG on its stack and a bigger DZG changes its frame (28 of 86 off, tried in wave 6). Needs DZ/DZG moved to a header unchanged plus a derived DZG for dzg (+0x50 contact count/array, +0x58 object count/array, +0x60 the 0x60-byte per-constraint records), and the per-record +0x50 pointer settled first: one function reads it as an object with an index at +0xA8, another as a 0x40-byte contact side |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 5 every game TU without inline asm is merged, and so are the 20 smallest asm TUs. Left: 103 TU
-directories whose files contain inline asm or asm-named code (dzg and 102 others, smallest first:
-tu_1848A8 10, tu_1D57A8 10, pickpocket 11, tu_1471C0 11, rail 12, sidebag 12, turret 12, cane 12, blend 12, ...),
-plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances not yet homed in a TU;
-platform/boot/crt0). Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table.
+After wave 6 every game TU without inline asm is merged, and so are the 43 smallest asm TUs. Left: 86 TU
+directories that still hold per-function files, all with inline asm or asm-named code (counted from
+config/matched.csv: directories whose sources are mostly files named after their function; the same count gives 109,
+not the 103 written here after wave 5, at wave 5's end). Smallest first: dzg 9, brx 16, missile 16, tu_171F58 16,
+tu_185130 16, tu_1BE398 16, jthands 17, spliceobj 18, xform 18, detector 19, joy 19, tu_1553F0 19, wr 20, blip 21,
+... Plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 56 linkonce instances not yet homed in a TU;
+platform/boot/crt0). Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table, then "Recurring asm
+idioms" before renaming any helper.
