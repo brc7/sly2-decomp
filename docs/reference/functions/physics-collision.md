@@ -449,17 +449,17 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x228B48](../../../src/game/engine/physics/water/InitWater.c) | `InitWater` | InitSo; defaults (1, -10, ...) | 0.55 | T1 |  |
-| [0x228BF8](../../../src/game/engine/physics/water/PostWaterLoad.c) | `PostWaterLoad` | calls SO PostLoad 0x1F36A8 | 0.50 | T1 |  |
-| [0x228C18](../../../src/game/engine/physics/water/CalculateWaterCurrent.cpp) | `CalculateWaterCurrent` | converts pos to water local space and evaluates current (v, w) | 0.55 | T1 |  |
-| [0x228D20](../../../src/game/engine/physics/water/func_00228D20.c) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
-| [0x228E50](../../../src/game/engine/physics/water/UpdateWater.cpp) | `UpdateWater` | tracks objects inside the water, emits contact/impact (splash) events | 0.55 | T1 |  |
-| [0x229308](../../../src/game/engine/physics/water/func_00229308.c) | `RemoveWaterHierarchy` | SO slot12 then removes and frees all XAs | 0.40 | T2 |  |
-| [0x229370](../../../src/game/engine/physics/water/func_00229370.c) | `HandleWaterMessage` | drops XAs on some messages then base HandleLoMessage 0x133590 | 0.45 | T2 |  |
-| [0x229468](../../../src/game/engine/physics/water/func_00229468.cpp) | `UGetWaterSubmerged` | vertical hit span and optional surface point/normal | 0.40 | T2 |  |
-| [0x2296A0](../../../src/game/engine/physics/water/func_002296A0.c) | `FreeXa` | returns one XA to g_sw slotheapXa (+0x40E8) | 0.40 | T2 |  |
-| [0x2296C0](../../../src/game/engine/physics/water/func_002296C0.c) | `FreeXaList` | frees a linked list of XA nodes into g_sw slotheapXa | 0.45 | T2 |  |
-| [0x229710](../../../src/game/engine/physics/water/AddSoXa.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
-| [0x229738](../../../src/game/engine/physics/water/func_00229738.c) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
-| [0x229798](../../../src/game/engine/physics/water/func_00229798.c) | `AddSoXaAccelerations` | for each XA call owner vt71 (AddSoExternalAccelerations) | 0.35 | T2 |  |
-| [0x2297F0](../../../src/game/engine/physics/water/AddSoExternalAccelerations.c) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |
+| [0x228B48](../../../src/game/engine/physics/water.cpp) | `InitWater` | InitSo; defaults (1, -10, ...) | 0.55 | T1 |  |
+| [0x228BF8](../../../src/game/engine/physics/water.cpp) | `PostWaterLoad` | calls SO PostLoad 0x1F36A8 | 0.50 | T1 |  |
+| [0x228C18](../../../src/game/engine/physics/water.cpp) | `CalculateWaterCurrent` | converts pos to water local space and evaluates current (v, w) | 0.55 | T1 |  |
+| [0x228D20](../../../src/game/engine/physics/water.cpp) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
+| [0x228E50](../../../src/game/engine/physics/water.cpp) | `UpdateWater` | tracks objects inside the water, emits contact/impact (splash) events | 0.55 | T1 |  |
+| [0x229308](../../../src/game/engine/physics/water.cpp) | `RemoveWaterHierarchy` | SO slot12 then removes and frees all XAs | 0.40 | T2 |  |
+| [0x229370](../../../src/game/engine/physics/water.cpp) | `HandleWaterMessage` | drops XAs on some messages then base HandleLoMessage 0x133590 | 0.45 | T2 |  |
+| [0x229468](../../../src/game/engine/physics/water.cpp) | `UGetWaterSubmerged` | vertical hit span and optional surface point/normal | 0.40 | T2 |  |
+| [0x2296A0](../../../src/game/engine/physics/water.cpp) | `FreeXa` | returns one XA to g_sw slotheapXa (+0x40E8) | 0.40 | T2 |  |
+| [0x2296C0](../../../src/game/engine/physics/water.cpp) | `FreeXaList` | frees a linked list of XA nodes into g_sw slotheapXa | 0.45 | T2 |  |
+| [0x229710](../../../src/game/engine/physics/water.cpp) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
+| [0x229738](../../../src/game/engine/physics/water.cpp) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
+| [0x229798](../../../src/game/engine/physics/water.cpp) | `AddSoXaAccelerations` | for each XA call owner vt71 (AddSoExternalAccelerations) | 0.35 | T2 |  |
+| [0x2297F0](../../../src/game/engine/physics/water.cpp) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |

@@ -161,10 +161,10 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | [0x227BB8](../../src/game/engine/physics/vol.cpp) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
 | [0x227E20](../../src/game/engine/physics/vol.cpp) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
 | [0x227E58](../../src/game/engine/physics/vol.cpp) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |
-| [0x228D20](../../src/game/engine/physics/water/func_00228D20.c) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
-| [0x229710](../../src/game/engine/physics/water/AddSoXa.c) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
-| [0x229738](../../src/game/engine/physics/water/func_00229738.c) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
-| [0x2297F0](../../src/game/engine/physics/water/AddSoExternalAccelerations.c) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |
+| [0x228D20](../../src/game/engine/physics/water.cpp) | `UpdateWaterXaList` | rebuilds the per-object XA records (add/remove, free unused) | 0.40 | T2 | verified |
+| [0x229710](../../src/game/engine/physics/water.cpp) | `AddSoXa` | push XA on SO XA list (0x138) then 0x1F5078 (wake) | 0.85 | T1 |  |
+| [0x229738](../../src/game/engine/physics/water.cpp) | `RemoveSoXa` | unlink XA from SO list then 0x1F5078 | 0.85 | T1 |  |
+| [0x2297F0](../../src/game/engine/physics/water.cpp) | `AddSoExternalAccelerations` | empty default | 0.80 | T1 | verified |
 
 Selected 70 of 389 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/physics-collision.md](../reference/functions/physics-collision.md).
 

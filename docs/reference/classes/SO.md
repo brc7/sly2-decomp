@@ -94,8 +94,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 68 | ApplySoContactImpulse | **new** | [`ApplySoContactImpulse?`](../../../src/game/engine/physics/solve/func_001FAD00.c) | `0x1FAD00` | VUnk67 |
 | 69 | GetSoVelocityAtPos | **new** | [`GetSoVelocityAtPos?`](../../../src/game/engine/physics/solve/func_001FADD0.c) | `0x1FADD0` | VUnk68 |
 | 70 | ApplySoPendingVelocity | **new** | [`ApplySoPendingVelocity?`](../../../src/game/engine/physics/solve/func_001F9B20.c) | `0x1F9B20` | VUnk69 |
-| 71 | AddSoExternalAccelerations | **new** | [`AddSoExternalAccelerations?`](../../../src/game/engine/physics/water/AddSoExternalAccelerations.c) | `0x2297F0` | VUnk70 |
-| 72 |  | **new** | [`func_002297F8`](../../../src/game/engine/physics/water/func_002297F8.cpp) | `0x2297F8` | VUnk71 |
+| 71 | AddSoExternalAccelerations | **new** | [`AddSoExternalAccelerations?`](../../../src/game/engine/physics/water.cpp) | `0x2297F0` | VUnk70 |
+| 72 |  | **new** | [`func_002297F8`](../../../src/game/engine/physics/water.cpp) | `0x2297F8` | VUnk71 |
 | 73 | FPosInSo | **new** | [`FPosInSo?`](../../../src/game/engine/physics/so/func_001F72F8.c) | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | **new** | [`InflictSoContactZaps?`](../../../src/game/engine/physics/so/func_001F7410.c) | `0x1F7410` | ProcessSoZapContacts |
 | 75 | FZprHasField44 | **new** | [`FZprHasField44?`](../../../src/game/engine/physics/so/func_001F7588.c) | `0x1F7588` | FTakeDamage |

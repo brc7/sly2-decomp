@@ -27,18 +27,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleWaterMessage?`](../../../src/game/engine/physics/water/func_00229370.c) | `0x229370` |
+| 5 | HandleMessage | **override** | [`HandleWaterMessage?`](../../../src/game/engine/physics/water.cpp) | `0x229370` |
 | 6 | Pclassinfo | **override** | [`GetWaterClassDesc`](../../../src/game/app/class_registry/GetWaterClassDesc.c) | `0x113FA0` |
-| 7 | Init | **override** | [`InitWater?`](../../../src/game/engine/physics/water/InitWater.c) | `0x228B48` |
+| 7 | Init | **override** | [`InitWater?`](../../../src/game/engine/physics/water.cpp) | `0x228B48` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
-| 12 | RemoveHierarchy | **override** | [`RemoveWaterHierarchy?`](../../../src/game/engine/physics/water/func_00229308.c) | `0x229308` |
+| 12 | RemoveHierarchy | **override** | [`RemoveWaterHierarchy?`](../../../src/game/engine/physics/water.cpp) | `0x229308` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostWaterLoad?`](../../../src/game/engine/physics/water/PostWaterLoad.c) | `0x228BF8` |
-| 16 | Update | **override** | [`UpdateWater?`](../../../src/game/engine/physics/water/UpdateWater.cpp) | `0x228E50` |
+| 15 | PostLoad | **override** | [`PostWaterLoad?`](../../../src/game/engine/physics/water.cpp) | `0x228BF8` |
+| 16 | Update | **override** | [`UpdateWater?`](../../../src/game/engine/physics/water.cpp) | `0x228E50` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -71,7 +71,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (SO) | `SetSoVisMask` | `0x1A6DC8` |
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` |
-| 49 | UpdateSoTreeBounds | **override** | [`func_00229680`](../../../src/game/engine/physics/water/func_00229680.c) | `0x229680` |
+| 49 | UpdateSoTreeBounds | **override** | [`func_00229680`](../../../src/game/engine/physics/water.cpp) | `0x229680` |
 | 50 | GetSoCpdefi | inherited (SO) | `GetSoCpdefi` | `0x1F58F0` |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
@@ -86,16 +86,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 61 | FIgnoreSoIntersection | inherited (SO) | `FIgnoreSoIntersection` | `0x1F4FC8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
-| 64 | ResetSoPhys | **override** | [`func_00228BB0`](../../../src/game/engine/physics/water/func_00228BB0.c) | `0x228BB0` |
+| 64 | ResetSoPhys | **override** | [`func_00228BB0`](../../../src/game/engine/physics/water.cpp) | `0x228BB0` |
 | 65 | ApplySoForcesXf | inherited (SO) | `ApplySoForcesXf?` | `0x1F9E70` |
 | 66 | ProjectSoForce | inherited (SO) | `ProjectSoForce?` | `0x1FA328` |
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
 | 70 | ApplySoPendingVelocity | inherited (SO) | `ApplySoPendingVelocity?` | `0x1F9B20` |
-| 71 | AddSoExternalAccelerations | **override** | [`func_002292D8`](../../../src/game/engine/physics/water/func_002292D8.c) | `0x2292D8` |
+| 71 | AddSoExternalAccelerations | **override** | [`func_002292D8`](../../../src/game/engine/physics/water.cpp) | `0x2292D8` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
-| 73 | FPosInSo | **override** | [`func_00229D78`](../../../src/game/engine/physics/water/func_00229D78.c) | `0x229D78` |
+| 73 | FPosInSo | **override** | [`func_00229D78`](../../../src/game/engine/physics/water.cpp) | `0x229D78` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
 | 75 | FZprHasField44 | inherited (SO) | `FZprHasField44?` | `0x1F7588` |
 
