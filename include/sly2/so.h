@@ -130,6 +130,16 @@ struct SOPHYS
       struct REGENT *pregent;
 };
 
+/* REGENT: moved from src/game/engine/physics/so/CloneSo.cpp */
+struct REGENT
+{
+      SO *pso;
+      undefined4 unk_0x04[3];
+      struct CID17 *pcid17;
+      undefined4 unk_0x14[3];
+      undefined4 unk_0x20[20];
+};
+
 /* SO: from src/game/gameplay/player/jt/JtChooseGroundState.cpp (23 copies in Lilly ports) */
 struct SO : public LO
 {
@@ -204,6 +214,18 @@ typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor
 typedef char assert_SO_pxfRoot[SLY2_OFFSETOF(SO, pxfRoot) == 0x60 ? 1 : -1];   /* position = pxfRoot->matWorld row 3 (CONFIRMED runtime) */
 typedef char assert_SO_dlChild[SLY2_OFFSETOF(SO, dlChild) == 0x64 ? 1 : -1];   /* child DL at SO+0x64 (CONFIRMED runtime) */
 typedef char assert_SO_gUnk13c[SLY2_OFFSETOF(SO, gUnk13c) == 0x13C ? 1 : -1];   /* holds 400.0f (CONFIRMED runtime) */
+
+/* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
+ * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
+inline CID17 *func_00259B20(SO *pso)   /* get */
+{
+    REGENT *pregent = pso->psophys ? pso->psophys->pregent : 0;
+    return pregent ? pregent->pcid17 : 0;
+}
+/* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
+struct BARREL;
+inline void *func_00259A28(BARREL *pbarrel) { return (char *)pbarrel + sizeof(SO); }
 
 /* LVO: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct LVO

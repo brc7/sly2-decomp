@@ -271,4 +271,10 @@ typedef char assert_CM_cplook[SLY2_OFFSETOF(CM, cplook) == 0x450 ? 1 : -1];   /*
 typedef char assert_CM_cpcamblend[SLY2_OFFSETOF(CM, cpcamblend) == 0x500 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_CM_cpzoom[SLY2_OFFSETOF(CM, cpzoom) == 0x520 ? 1 : -1];   /* CONFIRMED runtime */
 
+/* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
+ * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
+inline qword func_00256298(CM *pcm) { return *(qword *)&pcm->pos; }   /* get; its set is SetCmPos */
+inline MATRIX4 *func_002562A0(CM *pcm) { return &pcm->mat; }          /* get; its set is func_00256278 (SetCmMat) */
+
 #endif /* SLY2_CM_H */

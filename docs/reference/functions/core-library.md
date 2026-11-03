@@ -435,8 +435,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2560C8](../../../src/game/object/spliceobj/GcPool6_InitNode.c) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/game/splice/ref.cpp) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256278](../../../src/game/engine/camera/cm/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x256298](../../../src/game/core/linkonce/unhomed/func_00256298.c) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2562A0](../../../src/game/core/linkonce/unhomed/func_002562A0.c) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2562A0](../../../include/sly2/cm.h) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/game/gameplay/ai/guardbhv/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
 | [0x2562B8](../../../src/game/engine/physics/so/func_002562B8.c) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562E0](../../../src/game/core/linkonce/unhomed/func_002562E0.c) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
@@ -509,7 +509,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2581C0](../../../src/game/world/state/game/RefGetGlobalSaveVar.c) | `RefGetGlobalSaveVar` | Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer) | 0.60 | T1 | top50 |
 | [0x258200](../../../src/game/world/state/game/RefSetGlobalSaveVar.c) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
 | [0x258248](../../../src/game/ui/memcard/func_00258248.c) | `InitFileKey` | memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258280](../../../src/game/core/linkonce/unhomed/func_00258280.c) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x258280](../../../include/sly2/stepplayer.h) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x258290](../../../src/game/engine/camera/cm/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x258348](../../../src/game/engine/presentation/screen/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258438](../../../src/game/gameplay/objects/rhythm/CTextBox_SetPos.c) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
@@ -570,37 +570,37 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2599E0](../../../src/game/engine/graphics/pipeline/glob/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E8](../../../src/game/engine/graphics/pipeline/glob/func_002599E8.c) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599F0](../../../src/game/gameplay/player/grabspot/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2599F8](../../../src/game/core/linkonce/unhomed/func_002599F8.c) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599F8](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A00](../../../src/game/gameplay/player/grabspot/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A08](../../../src/game/core/linkonce/unhomed/func_00259A08.c) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A08](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A10](../../../src/game/gameplay/player/grabspot/func_00259A10.c) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A18](../../../src/game/core/linkonce/unhomed/func_00259A18.c) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A18](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A20](../../../src/game/gameplay/player/grabspot/func_00259A20.c) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A28](../../../src/game/core/linkonce/unhomed/func_00259A28.c) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A28](../../../include/sly2/so.h) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A30](../../../src/game/gameplay/player/grabspot/func_00259A30.c) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A38](../../../src/game/core/linkonce/unhomed/func_00259A38.c) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A38](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A40](../../../src/game/gameplay/player/grabspot/func_00259A40.c) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259A48](../../../src/game/core/linkonce/unhomed/func_00259A48.c) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A48](../../../include/sly2/xfm.h) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A70](../../../src/game/gameplay/player/grabspot/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259A78](../../../src/game/core/linkonce/unhomed/func_00259A78.c) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259A78](../../../include/sly2/xfm.h) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A88](../../../src/game/object/splicemap.cpp) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x259AE8](../../../src/game/core/linkonce/unhomed/func_00259AE8.c) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259AE8](../../../include/sly2/lo.h) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259AF8](../../../src/game/gameplay/player/pipe.cpp) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259B00](../../../src/game/core/linkonce/unhomed/func_00259B00.c) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259B00](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B08](../../../src/game/gameplay/player/rail.cpp) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259B10](../../../src/game/core/linkonce/unhomed/func_00259B10.c) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259B20](../../../src/game/core/linkonce/unhomed/func_00259B20.c) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259B10](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259B20](../../../include/sly2/so.h) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259B48](../../../src/game/engine/sound/sound/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x259BB0](../../../src/game/engine/sound/sound/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C08](../../../src/game/gameplay/player/grabspot/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259C10](../../../src/game/core/linkonce/unhomed/func_00259C10.c) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259C10](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/game/object/spliceobj/PvNewPool6.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x259CF8](../../../src/game/object/spliceobj/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259D18](../../../src/game/actor/step/func_00259D18.c) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259D38](../../../src/game/core/linkonce/unhomed/func_00259D38.c) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D48](../../../src/game/core/linkonce/unhomed/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D60](../../../src/game/core/linkonce/unhomed/func_00259D60.c) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D70](../../../src/game/core/linkonce/unhomed/func_00259D70.c) | `GetF64_EC` | return p->xF64->xEC [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D38](../../../include/sly2/guard.h) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D48](../../../include/sly2/guard.h) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D60](../../../include/sly2/guard.h) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259D70](../../../include/sly2/guard.h) | `GetF64_EC` | return p->xF64->xEC [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D98](../../../src/game/engine/fx/trail.cpp) | `VU_VECTOR_GetX` | float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259DA8](../../../src/game/engine/fx/trail.cpp) | `VU_VECTOR_GetY` | float lane 1 (prot3w then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259DC0](../../../src/game/engine/fx/trail.cpp) | `VU_VECTOR_GetZ` | float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |

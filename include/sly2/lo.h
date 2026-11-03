@@ -97,6 +97,11 @@ typedef char assert_LO_sleOid[SLY2_OFFSETOF(LO, sleOid) == 0x1C ? 1 : -1];   /* 
 typedef char assert_LO_sleCid[SLY2_OFFSETOF(LO, sleCid) == 0x20 ? 1 : -1];   /* per-class SL ibNext 0x20 (CONFIRMED runtime) */
 typedef char assert_LO_dleChild[SLY2_OFFSETOF(LO, dleChild) == 0x24 ? 1 : -1];   /* child DL ibDle 0x24 (CONFIRMED runtime) */
 
+/* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
+ * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
+inline ulong func_00259AE8(LO *plo) { return plo->fInWorld; }   /* get */
+
 /* PXR: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (26 copies in Lilly ports) */
 struct PXR
 {

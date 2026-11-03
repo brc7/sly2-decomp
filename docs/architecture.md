@@ -76,7 +76,7 @@ src/
   game/core/containers/        L2  intrusive lists (DL/SL), CDynArray, byte queues, hashing, small key/string class
                                    TU leaves: bq(10), dl(21), dynarray(9), empty_119DA0(2), empty_119EF8(2), empty_11B1A8(2), tu_119BC8(16), tu_11AFE0(3)
   game/core/linkonce/          L2  compiler-emitted linkonce instances (inline functions / templates) with no static referrer outside generated code (section 4b)
-                                   TU leaves: unhomed(56)
+                                   TU leaves: unhomed(37)
   game/core/locale/            L2  language / region selection
                                    TU leaves: language(8)
   game/core/math/              L2  vectors, matrices, Bezier, Crout solver, BSP/planes, DZG LCP core, misc util

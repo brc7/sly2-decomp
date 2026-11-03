@@ -7,6 +7,7 @@
 | [`bif/`](bif/) | 161 |
 | [`bif2.cpp`](bif2.cpp) | 1 |
 | [`class_registry/`](class_registry/) | 424 |
+| [`eopid_linkonce.cpp`](eopid_linkonce.cpp) | 1 |
 | [`main.cpp`](main.cpp) | 1 |
 | [`splice_thunks/`](splice_thunks/) | 31 |
 | [`tu_1A4E08.cpp`](tu_1A4E08.cpp) | 1 |

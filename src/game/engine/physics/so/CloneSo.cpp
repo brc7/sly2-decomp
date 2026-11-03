@@ -68,14 +68,6 @@ struct XPLIST
       XP **ppxpHead;
       SO *psoOther;
 };
-struct REGENT
-{
-      SO *pso;
-      undefined4 unk_0x04[3];
-      struct CID17 *pcid17;
-      undefined4 unk_0x14[3];
-      undefined4 unk_0x20[20];
-};
 void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase);
 struct SWALLOC
 {

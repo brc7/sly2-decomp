@@ -6,6 +6,7 @@
 #define SLY2_GUARD_H
 #include "sly2/basic.h"
 #include "sly2/step.h"
+#include "sly2/xfm.h"
 
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
 struct GUARDLOOT
@@ -13,6 +14,17 @@ struct GUARDLOOT
       OID oid;              /* +0x0 [R] loot object oid */
       undefined4 unk_0x4[3];  /* [?] */
 };
+
+/* DETECTOR (CID 0x10, cb 0x180): a guard's vision detector. Only the fields the option accessors below use. [S] */
+struct DETECTOR : public XFM
+{
+      undefined4 unk_0xe0[2];
+      VOL *pvolNear;        /* +0xE8 [S] near volume (tu_1B9F80's view; VOL type [H]) */
+      VOL *pvolFar;         /* +0xEC [S] far volume */
+      undefined4 unk_0xf0[(0x180 - 0xf0) / 4];
+};
+typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
+typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
 
 /* STEPGUARD: class descriptor cb 0x1010, vtable 89 entries (types/cid_table.csv, CONFIRMED runtime) */
 struct STEPGUARD : public STEP
@@ -33,7 +45,7 @@ struct STEPGUARD : public STEP
       int cloot;            /* +0x484 [R] entries used in aloot */
       undefined4 unk_0x488[(0xf60 - 0x488) / 4];
       int nFiringWindow;    /* +0xF60 [R] firing window (shooting guards) */
-      LO *pdetector;        /* +0xF64 [R] vision detector (CID 0x10; its +0xE0 owner == this guard) */
+      DETECTOR *pdetector;  /* +0xF64 [R] vision detector (CID 0x10; its +0xE0 owner == this guard) */
       undefined4 unk_0xf68[(0xfe0 - 0xf68) / 4];
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint grfCapability;   /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
@@ -52,6 +64,14 @@ typedef char assert_STEPGUARD_cloot[SLY2_OFFSETOF(STEPGUARD, cloot) == 0x484 ? 1
 typedef char assert_STEPGUARD_pdetector[SLY2_OFFSETOF(STEPGUARD, pdetector) == 0xF64 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_dleGuard[SLY2_OFFSETOF(STEPGUARD, dleGuard) == 0xFE0 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_cBusy[SLY2_OFFSETOF(STEPGUARD, cBusy) == 0xFFC ? 1 : -1];   /* CONFIRMED runtime */
+
+/* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
+ * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
+inline void func_00259D38(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetector->pvolNear = pvol; }   /* set */
+inline void func_00259D48(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetector->pvolFar = pvol; }    /* set */
+inline VOL *func_00259D60(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolNear; }   /* get */
+inline VOL *func_00259D70(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolFar; }    /* get */
 
 /* BHV156 (CID 0x9C, cb 0xB0): root of every guard's behaviour stack; its mode drives calm/search/combat */
 struct BHV156 : public BHV

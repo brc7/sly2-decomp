@@ -143,4 +143,20 @@ struct TN : public XFM
 };
 typedef char assert_TN_size[sizeof(TN) == 0x1C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
+/* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
+ * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
+/* The "ensure" accessors of these classes return the start of the class's own fields (the end of its base part); the
+ * option records address fields relative to it. The classes have no header yet, so only their names are used. */
+struct CID12; struct CID27; struct CID34; struct CID35; struct CID38; struct CID39; struct HND; struct PIPE; struct RAIL;
+inline void *func_002599F8(CID12 *p) { return (char *)p + sizeof(SHAPE); }    /* CID12 : SHAPE */
+inline void *func_00259A08(CID34 *p) { return (char *)p + sizeof(XFM); }      /* CID34 : XFM */
+inline void *func_00259A18(CID38 *p) { return (char *)p + sizeof(XFM); }      /* CID38 : XFM */
+inline void *func_00259A38(CID35 *p) { return (char *)p + sizeof(XFM); }      /* CID35 : XFM */
+inline void *func_00259A48(CID27 *p) { return (char *)p + sizeof(VOL); }      /* CID27 : VOL */
+inline void *func_00259A78(HND *phnd) { return (char *)phnd + sizeof(TARGET); }  /* HND : TARGET */
+inline void *func_00259B00(PIPE *ppipe) { return (char *)ppipe + sizeof(SHAPE); }  /* PIPE : SHAPE */
+inline void *func_00259B10(RAIL *prail) { return (char *)prail + sizeof(SHAPE); }  /* RAIL : SHAPE */
+inline void *func_00259C10(CID39 *p) { return (char *)p + sizeof(XFM); }      /* CID39 : XFM */
+
 #endif /* SLY2_XFM_H */
