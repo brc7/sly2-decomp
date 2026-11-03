@@ -601,6 +601,6 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259D48](../../../src/game/core/linkonce/unhomed/func_00259D48.c) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D60](../../../src/game/core/linkonce/unhomed/func_00259D60.c) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D70](../../../src/game/core/linkonce/unhomed/func_00259D70.c) | `GetF64_EC` | return p->xF64->xEC [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259D98](../../../src/game/engine/fx/trail/func_00259D98.c) | `VU_VECTOR_GetX` | float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x259DA8](../../../src/game/engine/fx/trail/func_00259DA8.c) | `VU_VECTOR_GetY` | float lane 1 (prot3w then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
-| [0x259DC0](../../../src/game/engine/fx/trail/func_00259DC0.c) | `VU_VECTOR_GetZ` | float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259D98](../../../src/game/engine/fx/trail.cpp) | `VU_VECTOR_GetX` | float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259DA8](../../../src/game/engine/fx/trail.cpp) | `VU_VECTOR_GetY` | float lane 1 (prot3w then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |
+| [0x259DC0](../../../src/game/engine/fx/trail.cpp) | `VU_VECTOR_GetZ` | float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)] | 0.45 | T2 |  |

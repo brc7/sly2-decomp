@@ -105,7 +105,7 @@ BLIPG (CID 0x1C) particle groups (smoke, sparkles), Sly 1 blip.c; slots 2 Delete
 | [0x1D04E8](../../src/game/engine/fx/rip/InitSmack.c) | `InitSmack` | SMACK (RIPT 9) Init | 0.85 | T1 | verified |
 | [0x1D05A0](../../src/game/engine/fx/rip/ProjectSmackTransform.c) | `ProjectSmackTransform` | SMACK Project | 0.85 | T1 | verified |
 | [0x1D0800](../../src/game/engine/fx/rip/UpdateSmack.cpp) | `UpdateSmack` | SMACK Update (RemoveRip when done) | 0.85 | T1 | verified |
-| [0x21C0D8](../../src/game/engine/fx/trail/UpdateTrail.c) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
+| [0x21C0D8](../../src/game/engine/fx/trail.cpp) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
 
 Selected 50 of 127 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/particles-effects.md](../reference/functions/particles-effects.md).
 

@@ -153,11 +153,11 @@ Totals on this page: EXISTING 27, T1 81, T2 18, T3 1.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x21BB88](../../../src/game/engine/fx/trail/InitTrail.c) | `InitTrail` | Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0 | 0.60 | T1 |  |
-| [0x21BBD0](../../../src/game/engine/fx/trail/func_0021BBD0.c) | `Cid105_slot11` | calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08) | 0.45 | T2 |  |
-| [0x21BC08](../../../src/game/engine/fx/trail/ResetTrailHistory.c) | `ResetTrailHistory` | fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix, alpha 0; idle=0 | 0.55 | T1 |  |
-| [0x21BD18](../../../src/game/engine/fx/trail/PostTrailLoad.cpp) | `PostTrailLoad` | PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and builds per-vertex Sample{pos,fraction} tables | 0.60 | T1 |  |
-| [0x21C0D8](../../../src/game/engine/fx/trail/UpdateTrail.c) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
-| [0x21C1C8](../../../src/game/engine/fx/trail/func_0021C1C8.c) | `Cid105_slot17` | after SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by rate/distance (0x21C5F8) | 0.55 | T2 |  |
-| [0x21C340](../../../src/game/engine/fx/trail/func_0021C340.c) | `RenderTrailSelf` | deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction, writes positions and per-vertex alpha, then base render 0x1F3C70 | 0.50 | T2 |  |
-| [0x21C5F8](../../../src/game/engine/fx/trail/func_0021C5F8.c) | `SetTrailMeshPositions` | copies one position into the vertex record of every linked mesh node | 0.40 | T2 |  |
+| [0x21BB88](../../../src/game/engine/fx/trail.cpp) | `InitTrail` | Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0 | 0.60 | T1 |  |
+| [0x21BBD0](../../../src/game/engine/fx/trail.cpp) | `Cid105_slot11` | calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08) | 0.45 | T2 |  |
+| [0x21BC08](../../../src/game/engine/fx/trail.cpp) | `ResetTrailHistory` | fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix, alpha 0; idle=0 | 0.55 | T1 |  |
+| [0x21BD18](../../../src/game/engine/fx/trail.cpp) | `PostTrailLoad` | PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and builds per-vertex Sample{pos,fraction} tables | 0.60 | T1 |  |
+| [0x21C0D8](../../../src/game/engine/fx/trail.cpp) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
+| [0x21C1C8](../../../src/game/engine/fx/trail.cpp) | `Cid105_slot17` | after SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by rate/distance (0x21C5F8) | 0.55 | T2 |  |
+| [0x21C340](../../../src/game/engine/fx/trail.cpp) | `RenderTrailSelf` | deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction, writes positions and per-vertex alpha, then base render 0x1F3C70 | 0.50 | T2 |  |
+| [0x21C5F8](../../../src/game/engine/fx/trail.cpp) | `SetTrailMeshPositions` | copies one position into the vertex record of every linked mesh node | 0.40 | T2 |  |
