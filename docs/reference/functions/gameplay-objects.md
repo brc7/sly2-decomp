@@ -318,11 +318,11 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C2D20](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2D20.c) | `PostCid99Load` | CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding | 0.60 | T2 |  |
-| [0x1C2D70](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2D70.c) | `RenderCid99Self` | CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel) | 0.50 | T2 |  |
-| [0x1C2DB8](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2DB8.c) | `ClearCid99Loot` | Clear held loot pointer(s) | 0.40 | T2 |  |
-| [0x1C2DC8](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2DC8.c) | `StageCid99Loot` | Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A) state 2 else vt9; find attach XF; returns status 0-3 | 0.45 | T2 |  |
-| [0x1C2EF0](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2EF0.cpp) | `LaunchCid99LootAtPlayer` | Launch count loot objects (first held, rest from proxy pool) toward random points around the player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay | 0.55 | T2 |  |
+| [0x1C2D20](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `PostCid99Load` | CID 99 vt15: PostSoLoad, BindLoOidTable(4,D_002C0CB0), SMA binding | 0.60 | T2 |  |
+| [0x1C2D70](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `RenderCid99Self` | CID 99 vt19: RenderSoSelf then place held loot object relative to attach XF (SetLoMatWorldRel) | 0.50 | T2 |  |
+| [0x1C2DB8](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `ClearCid99Loot` | Clear held loot pointer(s) | 0.40 | T2 |  |
+| [0x1C2DC8](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `StageCid99Loot` | Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A) state 2 else vt9; find attach XF; returns status 0-3 | 0.45 | T2 |  |
+| [0x1C2EF0](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `LaunchCid99LootAtPlayer` | Launch count loot objects (first held, rest from proxy pool) toward random points around the player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay | 0.55 | T2 |  |
 
 ## tu_1D1370 (0x1D1370-0x1D5150)
 

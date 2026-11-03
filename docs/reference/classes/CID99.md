@@ -37,11 +37,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (SO) | `LoadSoFromBrx` | `0x1F31E0` |
-| 15 | PostLoad | **override** | [`PostCid99Load?`](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2D20.c) | `0x1C2D20` |
+| 15 | PostLoad | **override** | [`PostCid99Load?`](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `0x1C2D20` |
 | 16 | Update | inherited (SO) | `UpdateSo` | `0x1F36E0` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderCid99Self?`](../../../src/game/gameplay/objects/tu_1C2D20/func_001C2D70.c) | `0x1C2D70` |
+| 19 | RenderSelf | **override** | [`RenderCid99Self?`](../../../src/game/gameplay/objects/tu_1C2D20.cpp) | `0x1C2D70` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
