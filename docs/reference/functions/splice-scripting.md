@@ -308,10 +308,10 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12A980](../../../src/game/splice/sidebag/CSidebag_RefAddBinding.cpp) | `CSidebag_RefAddBinding` | Prepends BINDING {n, ref} to sidebag list | 0.88 | T1 |  |
-| [0x12AA70](../../../src/game/splice/sidebag/RefSetBinding__8CSidebagiP4CRef.cpp) | `RefSetBinding__8CSidebagiP4CRef` |  |  | existing |  |
-| [0x12AB28](../../../src/game/splice/sidebag/FFindBinding__8CSidebagiP4CRef.cpp) | `FFindBinding__8CSidebagiP4CRef` |  |  | existing |  |
-| [0x12AB78](../../../src/game/splice/sidebag/CSidebag_CloneTo.cpp) | `CSidebag_CloneTo` | New sidebag (0x257D80) with cloned binding list (0x12B0E8) | 0.70 | T1 |  |
+| [0x12A980](../../../src/game/splice/sidebag.cpp) | `CSidebag_RefAddBinding` | Prepends BINDING {n, ref} to sidebag list | 0.88 | T1 |  |
+| [0x12AA70](../../../src/game/splice/sidebag.cpp) | `RefSetBinding__8CSidebagiP4CRef` |  |  | existing |  |
+| [0x12AB28](../../../src/game/splice/sidebag.cpp) | `FFindBinding__8CSidebagiP4CRef` |  |  | existing |  |
+| [0x12AB78](../../../src/game/splice/sidebag.cpp) | `CSidebag_CloneTo` | New sidebag (0x257D80) with cloned binding list (0x12B0E8) | 0.70 | T1 |  |
 
 ## spliceutils (0x12AE18-0x12B0E8)
 

@@ -14,7 +14,7 @@
 | [`proc.cpp`](proc.cpp) | 1 |
 | [`ref.cpp`](ref.cpp) | 1 |
 | [`serialize.cpp`](serialize.cpp) | 1 |
-| [`sidebag/`](sidebag/) | 12 |
+| [`sidebag.cpp`](sidebag.cpp) | 1 |
 | [`spliceutils.cpp`](spliceutils.cpp) | 1 |
 | [`varb.cpp`](varb.cpp) | 1 |
 
