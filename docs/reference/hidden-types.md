@@ -185,7 +185,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2D2918` | 3 | 1=`CStreamBis_Refill`, 2=`CStreamBis_Close` | [`CStreamBis_ctor?`](../../src/game/core/binstream/tu_1848A8/func_00184950.c) (+0x30), [`CStreamBis_ctor_1848A8?`](../../src/game/core/binstream/tu_1848A8/func_001848A8.c) (+0x30) | — |
+| `0x2D2918` | 3 | 1=`CStreamBis_Refill`, 2=`CStreamBis_Close` | [`CStreamBis_ctor?`](../../src/game/core/binstream/tu_1848A8.cpp) (+0x30), [`CStreamBis_ctor_1848A8?`](../../src/game/core/binstream/tu_1848A8.cpp) (+0x30) | — |
 
 #### B2.14 QueueOutputIpu
 

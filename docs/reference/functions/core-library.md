@@ -324,14 +324,14 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1848A8](../../../src/game/core/binstream/tu_1848A8/func_001848A8.c) | `CStreamBis_ctor_1848A8` | Constructor of a CBinaryInputStream subclass: base ctor 0x1177A8, vptr D_002D2918, grf, 64-byte-aligned spool buffer from (cb, pv) | 0.40 | T2 |  |
-| [0x184950](../../../src/game/core/binstream/tu_1848A8/func_00184950.c) | `CStreamBis_ctor` | Destructor: reset vptr, Close (0x184CF0), delete if flag&1 | 0.45 | T2 |  |
-| [0x1849A0](../../../src/game/core/binstream/tu_1848A8/func_001849A0.c) | `CStreamBis_RefillCd` | Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling (0x14BC78) | 0.45 | T2 |  |
-| [0x184C60](../../../src/game/core/binstream/tu_1848A8/func_00184C60.c) | `CStreamBis_RefillFile` | Refill from host file: sceRead(fd x3C, buf, cb) | 0.45 | T2 |  |
-| [0x184CA0](../../../src/game/core/binstream/tu_1848A8/CStreamBis_Refill.c) | `CStreamBis_Refill` | Virtual Refill: host file if fd>=0, CD if sector stream active, else empty | 0.50 | T1 |  |
-| [0x184CF0](../../../src/game/core/binstream/tu_1848A8/CStreamBis_Close.c) | `CStreamBis_Close` | Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close | 0.50 | T1 |  |
-| [0x184D60](../../../src/game/core/binstream/tu_1848A8/func_00184D60.c) | `FOpenStreamFileRec` | If the file record kind is 2 (disc sector), FOpenSector(rec sector, size) | 0.35 | T2 |  |
-| [0x184D98](../../../src/game/core/binstream/tu_1848A8/FOpenSector__18CBinaryInputStreamUiUi.cpp) | `FOpenSector__18CBinaryInputStreamUiUi` |  |  | existing |  |
+| [0x1848A8](../../../src/game/core/binstream/tu_1848A8.cpp) | `CStreamBis_ctor_1848A8` | Constructor of a CBinaryInputStream subclass: base ctor 0x1177A8, vptr D_002D2918, grf, 64-byte-aligned spool buffer from (cb, pv) | 0.40 | T2 |  |
+| [0x184950](../../../src/game/core/binstream/tu_1848A8.cpp) | `CStreamBis_ctor` | Destructor: reset vptr, Close (0x184CF0), delete if flag&1 | 0.45 | T2 |  |
+| [0x1849A0](../../../src/game/core/binstream/tu_1848A8.cpp) | `CStreamBis_RefillCd` | Advance spool and refill from disc: sceCdGetReadPos/sceCdSync, disk-type check, error handling (0x14BC78) | 0.45 | T2 |  |
+| [0x184C60](../../../src/game/core/binstream/tu_1848A8.cpp) | `CStreamBis_RefillFile` | Refill from host file: sceRead(fd x3C, buf, cb) | 0.45 | T2 |  |
+| [0x184CA0](../../../src/game/core/binstream/tu_1848A8.cpp) | `CStreamBis_Refill` | Virtual Refill: host file if fd>=0, CD if sector stream active, else empty | 0.50 | T1 |  |
+| [0x184CF0](../../../src/game/core/binstream/tu_1848A8.cpp) | `CStreamBis_Close` | Virtual Close: sceClose(fd), sceCdBreak for CD streaming, then base Close | 0.50 | T1 |  |
+| [0x184D60](../../../src/game/core/binstream/tu_1848A8.cpp) | `FOpenStreamFileRec` | If the file record kind is 2 (disc sector), FOpenSector(rec sector, size) | 0.35 | T2 |  |
+| [0x184D98](../../../src/game/core/binstream/tu_1848A8.cpp) | `FOpenSector__18CBinaryInputStreamUiUi` |  |  | existing |  |
 
 ## memory (0x1AE150-0x1AE7D0)
 
