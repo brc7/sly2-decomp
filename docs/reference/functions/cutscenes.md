@@ -19,15 +19,15 @@ Totals on this page: EXISTING 3, T1 137, T2 40.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1471C0](../../../src/game/gameplay/cutscene/tu_1471C0/func_001471C0.c) | `InitCid104` | cid 0x68 (SO, 0x180) vt7: InitSo, state -1, flags | 0.45 | T2 |  |
-| [0x147220](../../../src/game/gameplay/cutscene/tu_1471C0/func_00147220.c) | `PostCid104Load` | vt15: PostSoLoad, load class table, state -1, vt9 | 0.45 | T2 |  |
-| [0x147278](../../../src/game/gameplay/cutscene/tu_1471C0/func_00147278.c) | `UpdateCid104` | vt16: state 0 -> 1; state 3 waits for a sound/stream (0x1FE848) then 2 | 0.40 | T2 |  |
-| [0x147338](../../../src/game/gameplay/cutscene/tu_1471C0/func_00147338.c) | `HandleCid104Message` | vt5: msg 9 kinds 0x5FB..0x601 toggle three flags or start (state 3) | 0.40 | T2 |  |
-| [0x147410](../../../src/game/gameplay/cutscene/tu_1471C0/func_00147410.c) | `SetDancerState` | state change; leaving -1 grabs the screen: D_002DD644 = this, sound/stream 0x1FE5B8, clock rate change (0x14D1D0 on g_clock), IncrementSwHandsOff, vt8 | 0.40 | T2 | whole-game |
-| [0x1475C0](../../../src/game/gameplay/cutscene/tu_1471C0/func_001475C0.c) | `CaptureFramebufferToTexture` | GIF/DMA packet copying the frame buffer into a texture (D_002DECD0) | 0.40 | T2 |  |
-| [0x1477B0](../../../src/game/gameplay/cutscene/tu_1471C0/func_001477B0.c) | `FDancerScreenInactive` | 0 in states 2/3 else 1 | 0.35 | T2 | whole-game |
-| [0x1477D8](../../../src/game/gameplay/cutscene/tu_1471C0/func_001477D8.cpp) | `DrawDancerScreen` | From main loop: draw the captured frame as two textured quads transformed by two child matrices (screen split/flip transition) | 0.40 | T2 | whole-game |
-| [0x147C20](../../../src/game/gameplay/cutscene/tu_1471C0/func_00147C20.c) | `StartDancer` | set params and find the aseg object to play | 0.35 | T2 | whole-game |
+| [0x1471C0](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `InitCid104` | cid 0x68 (SO, 0x180) vt7: InitSo, state -1, flags | 0.45 | T2 |  |
+| [0x147220](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `PostCid104Load` | vt15: PostSoLoad, load class table, state -1, vt9 | 0.45 | T2 |  |
+| [0x147278](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `UpdateCid104` | vt16: state 0 -> 1; state 3 waits for a sound/stream (0x1FE848) then 2 | 0.40 | T2 |  |
+| [0x147338](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `HandleCid104Message` | vt5: msg 9 kinds 0x5FB..0x601 toggle three flags or start (state 3) | 0.40 | T2 |  |
+| [0x147410](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `SetDancerState` | state change; leaving -1 grabs the screen: D_002DD644 = this, sound/stream 0x1FE5B8, clock rate change (0x14D1D0 on g_clock), IncrementSwHandsOff, vt8 | 0.40 | T2 | whole-game |
+| [0x1475C0](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `CaptureFramebufferToTexture` | GIF/DMA packet copying the frame buffer into a texture (D_002DECD0) | 0.40 | T2 |  |
+| [0x1477B0](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `FDancerScreenInactive` | 0 in states 2/3 else 1 | 0.35 | T2 | whole-game |
+| [0x1477D8](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `DrawDancerScreen` | From main loop: draw the captured frame as two textured quads transformed by two child matrices (screen split/flip transition) | 0.40 | T2 | whole-game |
+| [0x147C20](../../../src/game/gameplay/cutscene/tu_1471C0.cpp) | `StartDancer` | set params and find the aseg object to play | 0.35 | T2 | whole-game |
 
 ## mpeg (0x1B2820-0x1B4438)
 
