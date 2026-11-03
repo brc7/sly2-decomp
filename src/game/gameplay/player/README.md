@@ -6,7 +6,7 @@
 | --- | --- |
 | [`air/`](air/) | 44 |
 | [`bentley/`](bentley/) | 48 |
-| [`cane/`](cane/) | 12 |
+| [`cane.cpp`](cane.cpp) | 1 |
 | [`dirblend.cpp`](dirblend.cpp) | 1 |
 | [`empty_1344F0.cpp`](empty_1344F0.cpp) | 1 |
 | [`empty_1378D8.cpp`](empty_1378D8.cpp) | 1 |

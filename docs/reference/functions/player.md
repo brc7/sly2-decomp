@@ -370,16 +370,16 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x18E540](../../../src/game/gameplay/player/cane/SetJtJtcs__FP2JTi.cpp) | `SetJtJtcs` | Set Sly's cane state (x18D8): exit old (remove sweep effect unless continuing, stop reach track), state 3 resolves to fore/back sweep 4/5 or 6/7, enter new (blend clip, contact deadline, sounds), continue ASEGA if transi | 0.90 | T1 |  |
-| [0x18ED70](../../../src/game/gameplay/player/cane/UpdateJtCane__FP2JT.c) | `UpdateJtCane` | If jtcs (x18D8)==0 (reach) run the reach tracker 0x1CC2E8 on JT+0x17D0 | 0.60 | T1 |  |
-| [0x18ED98](../../../src/game/gameplay/player/cane/FJtSweepBack.c) | `FJtSweepBack` | Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target behind) -> 1 | 0.50 | T1 |  |
-| [0x18EE38](../../../src/game/gameplay/player/cane/func_0018EE38.c) | `JtcsChooseJtAttack` | Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1 points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground; +1 alternates fore/bac | 0.45 | T2 |  |
-| [0x18F050](../../../src/game/gameplay/player/cane/func_0018F050.c) | `JtcsChooseJtSweep` | Return the next sweep jtcs: toggle 0x16<->0x17, else 0x17 if FJtSweepBack else 0x16 | 0.45 | T2 |  |
-| [0x18F0A8](../../../src/game/gameplay/player/cane/UpdateJtActiveCane__FP2JT.c) | `UpdateJtActiveCane` | Per-frame cane input: per-jts allow list (3/21/22 hang states: square(0x80) launches jump via SetJtAirJump; sidestep sub-cases), then buffered button 0x10/0x80 within 0.35 s restarts SetJtJtcs with JtcsChooseJtSweep/Atta | 0.75 | T1 |  |
-| [0x18F2B0](../../../src/game/gameplay/player/cane/ChooseJtAttackTarget.cpp) | `ChooseJtAttackTarget` | Search the target list D_003E13B4 (flags&mask) for the best TARGET within 300 of Sly's projected position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta | 0.80 | T1 |  |
-| [0x18F560](../../../src/game/gameplay/player/cane/ChooseJtSweepTarget.c) | `ChooseJtSweepTarget` | ChooseJtAttackTarget(grf 2, dt 0.15, drad 3.15 if jts==0 else 1.6), blend u=clamp((z+50)/110) into the two sweep BLs, reblend, face the target when standing | 0.85 | T1 |  |
-| [0x18F688](../../../src/game/gameplay/player/cane/ChooseJtRushTarget__FP2JT.c) | `ChooseJtRushTarget` | ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2), FixStepAngularVelocity | 0.85 | T1 | verified |
-| [0x18F740](../../../src/game/gameplay/player/cane/ChooseJtSmashTarget__FP2JT.c) | `ChooseJtSmashTarget` | ChooseJtAttackTarget(grf 4, 0.25, 3.15) and face target | 0.85 | T1 |  |
+| [0x18E540](../../../src/game/gameplay/player/cane.cpp) | `SetJtJtcs` | Set Sly's cane state (x18D8): exit old (remove sweep effect unless continuing, stop reach track), state 3 resolves to fore/back sweep 4/5 or 6/7, enter new (blend clip, contact deadline, sounds), continue ASEGA if transi | 0.90 | T1 |  |
+| [0x18ED70](../../../src/game/gameplay/player/cane.cpp) | `UpdateJtCane` | If jtcs (x18D8)==0 (reach) run the reach tracker 0x1CC2E8 on JT+0x17D0 | 0.60 | T1 |  |
+| [0x18ED98](../../../src/game/gameplay/player/cane.cpp) | `FJtSweepBack` | Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target behind) -> 1 | 0.50 | T1 |  |
+| [0x18EE38](../../../src/game/gameplay/player/cane.cpp) | `JtcsChooseJtAttack` | Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1 points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground; +1 alternates fore/bac | 0.45 | T2 |  |
+| [0x18F050](../../../src/game/gameplay/player/cane.cpp) | `JtcsChooseJtSweep` | Return the next sweep jtcs: toggle 0x16<->0x17, else 0x17 if FJtSweepBack else 0x16 | 0.45 | T2 |  |
+| [0x18F0A8](../../../src/game/gameplay/player/cane.cpp) | `UpdateJtActiveCane` | Per-frame cane input: per-jts allow list (3/21/22 hang states: square(0x80) launches jump via SetJtAirJump; sidestep sub-cases), then buffered button 0x10/0x80 within 0.35 s restarts SetJtJtcs with JtcsChooseJtSweep/Atta | 0.75 | T1 |  |
+| [0x18F2B0](../../../src/game/gameplay/player/cane.cpp) | `ChooseJtAttackTarget` | Search the target list D_003E13B4 (flags&mask) for the best TARGET within 300 of Sly's projected position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta | 0.80 | T1 |  |
+| [0x18F560](../../../src/game/gameplay/player/cane.cpp) | `ChooseJtSweepTarget` | ChooseJtAttackTarget(grf 2, dt 0.15, drad 3.15 if jts==0 else 1.6), blend u=clamp((z+50)/110) into the two sweep BLs, reblend, face the target when standing | 0.85 | T1 |  |
+| [0x18F688](../../../src/game/gameplay/player/cane.cpp) | `ChooseJtRushTarget` | ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2), FixStepAngularVelocity | 0.85 | T1 | verified |
+| [0x18F740](../../../src/game/gameplay/player/cane.cpp) | `ChooseJtSmashTarget` | ChooseJtAttackTarget(grf 4, 0.25, 3.15) and face target | 0.85 | T1 |  |
 
 ## hang (0x18F908-0x191090)
 
