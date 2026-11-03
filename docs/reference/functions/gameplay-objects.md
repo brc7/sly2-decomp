@@ -31,26 +31,26 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13A9E8](../../../src/game/gameplay/objects/bomb/InitBomb.c) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
-| [0x13AA70](../../../src/game/gameplay/objects/bomb/func_0013AA70.c) | `CloneBomb` | BOMB vt76: SO Clone then reset owner to self (0x13BC60) | 0.45 | T2 |  |
-| [0x13AAA0](../../../src/game/gameplay/objects/bomb/PostBombLoad.c) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
-| [0x13AAE8](../../../src/game/gameplay/objects/bomb/HandleBombMessage.c) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
-| [0x13AB58](../../../src/game/gameplay/objects/bomb/UpdateBomb.c) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
-| [0x13AC18](../../../src/game/gameplay/objects/bomb/UpdateBombCustomXps.c) | `UpdateBombCustomXps` | Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100 | 0.70 | T1 |  |
-| [0x13ADE8](../../../src/game/gameplay/objects/bomb/AddBombCustomXps.c) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
-| [0x13AEB0](../../../src/game/gameplay/objects/bomb/func_0013AEB0.c) | `BOMB_VUnk57` | BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds 0/1/2) | 0.40 | T2 |  |
-| [0x13B1C8](../../../src/game/gameplay/objects/bomb/func_0013B1C8.c) | `FBombChainHasNoExcludedClass` | 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1 | 0.30 | T2 |  |
-| [0x13B250](../../../src/game/gameplay/objects/bomb/ApplyBombThrow.c) | `ApplyBombThrow` | BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event 0x1B | 0.70 | T1 |  |
-| [0x13B2F0](../../../src/game/gameplay/objects/bomb/FAbsorbBombWkr.c) | `FAbsorbBombWkr` | BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal | 0.55 | T1 |  |
-| [0x13B428](../../../src/game/gameplay/objects/bomb/PrepareBombDetonation.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
-| [0x13B5C8](../../../src/game/gameplay/objects/bomb/PrimeBomb__FP4BOMBf.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
-| [0x13B5E8](../../../src/game/gameplay/objects/bomb/func_0013B5E8.c) | `CollectBombVictims` | Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of sight, sorted/uniqued | 0.50 | T2 |  |
-| [0x13B7A0](../../../src/game/gameplay/objects/bomb/func_0013B7A0.c) | `CompareBombVictims` | qsort comparator (pointer difference / element size) | 0.35 | T2 |  |
-| [0x13B7B8](../../../src/game/gameplay/objects/bomb/func_0013B7B8.c) | `SortUniqueBombVictims` | qsort then remove duplicates in place | 0.45 | T2 |  |
-| [0x13B860](../../../src/game/gameplay/objects/bomb/DetonateBomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
-| [0x13BB80](../../../src/game/gameplay/objects/bomb/ResetBomb.c) | `ResetBomb` | BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent | 0.40 | T2 |  |
-| [0x13BBF8](../../../src/game/gameplay/objects/bomb/FIgnoreBombIntersection.c) | `FIgnoreBombIntersection` | BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root | 0.60 | T1 |  |
-| [0x13BC60](../../../src/game/gameplay/objects/bomb/func_0013BC60.c) | `SetBombOwner` | Set owner (+0x200) and RecalcSwOxfFilterForObject if changed | 0.50 | T2 |  |
+| [0x13A9E8](../../../src/game/gameplay/objects/bomb.cpp) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
+| [0x13AA70](../../../src/game/gameplay/objects/bomb.cpp) | `CloneBomb` | BOMB vt76: SO Clone then reset owner to self (0x13BC60) | 0.45 | T2 |  |
+| [0x13AAA0](../../../src/game/gameplay/objects/bomb.cpp) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
+| [0x13AAE8](../../../src/game/gameplay/objects/bomb.cpp) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
+| [0x13AB58](../../../src/game/gameplay/objects/bomb.cpp) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
+| [0x13AC18](../../../src/game/gameplay/objects/bomb.cpp) | `UpdateBombCustomXps` | Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100 | 0.70 | T1 |  |
+| [0x13ADE8](../../../src/game/gameplay/objects/bomb.cpp) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
+| [0x13AEB0](../../../src/game/gameplay/objects/bomb.cpp) | `BOMB_VUnk57` | BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds 0/1/2) | 0.40 | T2 |  |
+| [0x13B1C8](../../../src/game/gameplay/objects/bomb.cpp) | `FBombChainHasNoExcludedClass` | 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1 | 0.30 | T2 |  |
+| [0x13B250](../../../src/game/gameplay/objects/bomb.cpp) | `ApplyBombThrow` | BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event 0x1B | 0.70 | T1 |  |
+| [0x13B2F0](../../../src/game/gameplay/objects/bomb.cpp) | `FAbsorbBombWkr` | BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal | 0.55 | T1 |  |
+| [0x13B428](../../../src/game/gameplay/objects/bomb.cpp) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
+| [0x13B5C8](../../../src/game/gameplay/objects/bomb.cpp) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
+| [0x13B5E8](../../../src/game/gameplay/objects/bomb.cpp) | `CollectBombVictims` | Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of sight, sorted/uniqued | 0.50 | T2 |  |
+| [0x13B7A0](../../../src/game/gameplay/objects/bomb.cpp) | `CompareBombVictims` | qsort comparator (pointer difference / element size) | 0.35 | T2 |  |
+| [0x13B7B8](../../../src/game/gameplay/objects/bomb.cpp) | `SortUniqueBombVictims` | qsort then remove duplicates in place | 0.45 | T2 |  |
+| [0x13B860](../../../src/game/gameplay/objects/bomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
+| [0x13BB80](../../../src/game/gameplay/objects/bomb.cpp) | `ResetBomb` | BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent | 0.40 | T2 |  |
+| [0x13BBF8](../../../src/game/gameplay/objects/bomb.cpp) | `FIgnoreBombIntersection` | BOMB vt61: SO base; ignore (max with 1) objects sharing the owner's root | 0.60 | T1 |  |
+| [0x13BC60](../../../src/game/gameplay/objects/bomb.cpp) | `SetBombOwner` | Set owner (+0x200) and RecalcSwOxfFilterForObject if changed | 0.50 | T2 |  |
 
 ## button (0x148620-0x149A50)
 

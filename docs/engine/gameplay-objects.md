@@ -60,14 +60,14 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x132140](../../src/game/gameplay/objects/barrier.cpp) | `FIgnoreBarrierIntersection` | BARRIER vt61: match other SO against aoid[coid]/acid[ccid]; with fAllow (+0x178) matched->3 else base; without fAllow matched->2 else 1 | 0.85 | T1 | verified |
 | [0x132238](../../src/game/gameplay/objects/barrier.cpp) | `NotifyBarrierImpact` | BARRIER vt55 (XP created): SO base 0x1F4FB0, then if the object has a Splice binding for event 5, EnsureSwCallback(g_sw, this, &0x132298) | 0.85 | T1 |  |
 | [0x132298](../../src/game/gameplay/objects/barrier.cpp) | `SendBarrierImpactMessages` | Deferred callback: collect up to 16 distinct SOs touching the barrier, and for each set +0x17C=pso and HandleSpliceEvent(5) via vt3 (fires the Splice  | 0.60 | T1 | verified |
-| [0x13A9E8](../../src/game/gameplay/objects/bomb/InitBomb.c) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
-| [0x13AAA0](../../src/game/gameplay/objects/bomb/PostBombLoad.c) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
-| [0x13AAE8](../../src/game/gameplay/objects/bomb/HandleBombMessage.c) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
-| [0x13AB58](../../src/game/gameplay/objects/bomb/UpdateBomb.c) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
-| [0x13ADE8](../../src/game/gameplay/objects/bomb/AddBombCustomXps.c) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
-| [0x13B428](../../src/game/gameplay/objects/bomb/PrepareBombDetonation.c) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
-| [0x13B5C8](../../src/game/gameplay/objects/bomb/PrimeBomb__FP4BOMBf.c) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
-| [0x13B860](../../src/game/gameplay/objects/bomb/DetonateBomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
+| [0x13A9E8](../../src/game/gameplay/objects/bomb.cpp) | `InitBomb` | BOMB vt7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self | 0.85 | T1 |  |
+| [0x13AAA0](../../src/game/gameplay/objects/bomb.cpp) | `PostBombLoad` | BOMB vt15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0) | 0.80 | T1 |  |
+| [0x13AAE8](../../src/game/gameplay/objects/bomb.cpp) | `HandleBombMessage` | BOMB vt5: base handler; on msg 4 about itself while not primed, PrimeBomb(0) | 0.80 | T1 |  |
+| [0x13AB58](../../src/game/gameplay/objects/bomb.cpp) | `UpdateBomb` | BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled | 0.80 | T1 |  |
+| [0x13ADE8](../../src/game/gameplay/objects/bomb.cpp) | `AddBombCustomXps` | BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (PxpAdd type 9) | 0.75 | T1 |  |
+| [0x13B428](../../src/game/gameplay/objects/bomb.cpp) | `PrepareBombDetonation` | Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal | 0.80 | T1 |  |
+| [0x13B5C8](../../src/game/gameplay/objects/bomb.cpp) | `PrimeBomb` | tDetonate = min(tDetonate, now + dt) | 0.85 | T1 | verified |
+| [0x13B860](../../src/game/gameplay/objects/bomb.cpp) | `DetonateBomb` | If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or remove | 0.80 | T1 |  |
 | [0x148B38](../../src/game/gameplay/objects/button.cpp) | `SetBtnRsmg` | FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal) | 0.80 | T1 |  |
 | [0x148BB0](../../src/game/gameplay/objects/button.cpp) | `InitButton` | cid 0x53 vt7: InitSo, InitBtn(+0x150), flag | 0.80 | T1 |  |
 | [0x148C08](../../src/game/gameplay/objects/button.cpp) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
