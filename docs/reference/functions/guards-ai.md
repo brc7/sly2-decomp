@@ -185,25 +185,25 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x173158](../../../src/game/gameplay/ai/tu_173158/func_00173158.c) | `InitCid119` | cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s | 0.75 | T2 | verified |
-| [0x1731B8](../../../src/game/gameplay/ai/tu_173158/func_001731B8.c) | `LoadCid119FromBrx` | Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks | 0.75 | T2 | parse |
-| [0x1732E0](../../../src/game/gameplay/ai/tu_173158/func_001732E0.c) | `AddCid119SpawnLo` | Appends spawn selector kind 0 (an LO spot) with oid (max 128) | 0.40 | T2 |  |
-| [0x173318](../../../src/game/gameplay/ai/tu_173158/func_00173318.c) | `AddCid119SpawnCurve` | Appends spawn selector kind 1 (a curve, sampled) | 0.40 | T2 | verified |
-| [0x173358](../../../src/game/gameplay/ai/tu_173158/func_00173358.c) | `AddCid119SpawnLoSmall` | Appends spawn selector kind 2 (an LO spot using the minimum radius) | 0.35 | T2 |  |
-| [0x173398](../../../src/game/gameplay/ai/tu_173158/func_00173398.c) | `AddCid119Template` | Appends a guard template object (max 8) at +0x90/+0x94 | 0.40 | T2 |  |
-| [0x1733C8](../../../src/game/gameplay/ai/tu_173158/func_001733C8.c) | `AddCid119Offset` | Appends a test offset vector (max 16) at +0x98/+0x9C | 0.40 | T2 | verified |
-| [0x1733F8](../../../src/game/gameplay/ai/tu_173158/func_001733F8.c) | `PostCid119Load` | Resolves selector oids; for kind 1 creates a cid 0x71 script with a goto; allocates per-slot entries; marks busy | 0.60 | T2 |  |
-| [0x173588](../../../src/game/gameplay/ai/tu_173158/func_00173588.c) | `FInScreenRect` | True if a projected point is in front (z>1e-4) and within +/-r in x and y | 0.45 | T2 |  |
-| [0x173610](../../../src/game/gameplay/ai/tu_173158/func_00173610.c) | `FSnapToGround` | Cast a line along the up axis from pos+a*up to pos+b*up against SW objects (IntersectSwBoundingBox + PsoHitTestLineObjects, default filter FFilterSoNotSelfVt62); on a hit with a walkable normal (z>=0.7 unless k) move *pp | 0.55 | T2 | top50 |
-| [0x173768](../../../src/game/gameplay/ai/tu_173158/func_00173768.cpp) | `KCid119PointConcealed` | Camera check for a spawn point: 0 if too far, behind or off screen; else 1 at screen edge, 2 out of planar range, 3 occluded (0 if plainly visible) | 0.40 | T2 |  |
-| [0x173928](../../../src/game/gameplay/ai/tu_173158/func_00173928.c) | `ReleaseCid119Entry` | Ends a spawned-guard slot: kind 0 removes the guard (vt9 RemoveLo), kind 1 sets a respawn delay; decrements count | 0.45 | T2 |  |
-| [0x173A18](../../../src/game/gameplay/ai/tu_173158/func_00173A18.c) | `PosCid119Focus` | Current player position (PpoCur) or the camera position | 0.50 | T2 |  |
-| [0x173A68](../../../src/game/gameplay/ai/tu_173158/func_00173A68.c) | `UpdateCid119` | Periodically spawns a guard at a concealed spawn point when a slot is free (gated by the player's last alert event), aims it and sends message 0x19 | 0.55 | T2 | verified |
-| [0x173D18](../../../src/game/gameplay/ai/tu_173158/func_00173D18.cpp) | `UpdateCid119Entries` | Releases slots whose guard died or was disabled and re-arms slots once the player is far enough | 0.45 | T2 |  |
-| [0x173E78](../../../src/game/gameplay/ai/tu_173158/func_00173E78.c) | `PentryCid119Free` | Picks the oldest free slot (or the oldest occupied one past the timeout) | 0.40 | T2 |  |
-| [0x173F18](../../../src/game/gameplay/ai/tu_173158/func_00173F18.cpp) | `ChooseCid119SpawnPoint` | Picks the nearest usable spawn selector (LO spot or curve sample) where every offset point is concealed from the camera | 0.50 | T2 |  |
-| [0x174490](../../../src/game/gameplay/ai/tu_173158/func_00174490.cpp) | `SpawnCid119Guard` | Clones/activates a guard from a template at the chosen point (0x1CB250), optionally sets its BHV156 mode | 0.45 | T2 |  |
-| [0x1746B8](../../../src/game/gameplay/ai/tu_173158/func_001746B8.c) | `RemoveCid119Hierarchy` | Base remove then releases all active slots | 0.55 | T2 |  |
+| [0x173158](../../../src/game/gameplay/ai/tu_173158.cpp) | `InitCid119` | cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s | 0.75 | T2 | verified |
+| [0x1731B8](../../../src/game/gameplay/ai/tu_173158.cpp) | `LoadCid119FromBrx` | Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks | 0.75 | T2 | parse |
+| [0x1732E0](../../../src/game/gameplay/ai/tu_173158.cpp) | `AddCid119SpawnLo` | Appends spawn selector kind 0 (an LO spot) with oid (max 128) | 0.40 | T2 |  |
+| [0x173318](../../../src/game/gameplay/ai/tu_173158.cpp) | `AddCid119SpawnCurve` | Appends spawn selector kind 1 (a curve, sampled) | 0.40 | T2 | verified |
+| [0x173358](../../../src/game/gameplay/ai/tu_173158.cpp) | `AddCid119SpawnLoSmall` | Appends spawn selector kind 2 (an LO spot using the minimum radius) | 0.35 | T2 |  |
+| [0x173398](../../../src/game/gameplay/ai/tu_173158.cpp) | `AddCid119Template` | Appends a guard template object (max 8) at +0x90/+0x94 | 0.40 | T2 |  |
+| [0x1733C8](../../../src/game/gameplay/ai/tu_173158.cpp) | `AddCid119Offset` | Appends a test offset vector (max 16) at +0x98/+0x9C | 0.40 | T2 | verified |
+| [0x1733F8](../../../src/game/gameplay/ai/tu_173158.cpp) | `PostCid119Load` | Resolves selector oids; for kind 1 creates a cid 0x71 script with a goto; allocates per-slot entries; marks busy | 0.60 | T2 |  |
+| [0x173588](../../../src/game/gameplay/ai/tu_173158.cpp) | `FInScreenRect` | True if a projected point is in front (z>1e-4) and within +/-r in x and y | 0.45 | T2 |  |
+| [0x173610](../../../src/game/gameplay/ai/tu_173158.cpp) | `FSnapToGround` | Cast a line along the up axis from pos+a*up to pos+b*up against SW objects (IntersectSwBoundingBox + PsoHitTestLineObjects, default filter FFilterSoNotSelfVt62); on a hit with a walkable normal (z>=0.7 unless k) move *pp | 0.55 | T2 | top50 |
+| [0x173768](../../../src/game/gameplay/ai/tu_173158.cpp) | `KCid119PointConcealed` | Camera check for a spawn point: 0 if too far, behind or off screen; else 1 at screen edge, 2 out of planar range, 3 occluded (0 if plainly visible) | 0.40 | T2 |  |
+| [0x173928](../../../src/game/gameplay/ai/tu_173158.cpp) | `ReleaseCid119Entry` | Ends a spawned-guard slot: kind 0 removes the guard (vt9 RemoveLo), kind 1 sets a respawn delay; decrements count | 0.45 | T2 |  |
+| [0x173A18](../../../src/game/gameplay/ai/tu_173158.cpp) | `PosCid119Focus` | Current player position (PpoCur) or the camera position | 0.50 | T2 |  |
+| [0x173A68](../../../src/game/gameplay/ai/tu_173158.cpp) | `UpdateCid119` | Periodically spawns a guard at a concealed spawn point when a slot is free (gated by the player's last alert event), aims it and sends message 0x19 | 0.55 | T2 | verified |
+| [0x173D18](../../../src/game/gameplay/ai/tu_173158.cpp) | `UpdateCid119Entries` | Releases slots whose guard died or was disabled and re-arms slots once the player is far enough | 0.45 | T2 |  |
+| [0x173E78](../../../src/game/gameplay/ai/tu_173158.cpp) | `PentryCid119Free` | Picks the oldest free slot (or the oldest occupied one past the timeout) | 0.40 | T2 |  |
+| [0x173F18](../../../src/game/gameplay/ai/tu_173158.cpp) | `ChooseCid119SpawnPoint` | Picks the nearest usable spawn selector (LO spot or curve sample) where every offset point is concealed from the camera | 0.50 | T2 |  |
+| [0x174490](../../../src/game/gameplay/ai/tu_173158.cpp) | `SpawnCid119Guard` | Clones/activates a guard from a template at the chosen point (0x1CB250), optionally sets its BHV156 mode | 0.45 | T2 |  |
+| [0x1746B8](../../../src/game/gameplay/ai/tu_173158.cpp) | `RemoveCid119Hierarchy` | Base remove then releases all active slots | 0.55 | T2 |  |
 
 ## guardbhv (0x174898-0x17F090)
 

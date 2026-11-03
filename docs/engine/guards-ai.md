@@ -230,8 +230,8 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x16F148](../../src/game/gameplay/ai/gomer.cpp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |
 | [0x1709F8](../../src/game/gameplay/ai/tu_1709A8/func_001709F8.c) | `InitCid113` | cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18) | 0.75 | T2 | verified |
 | [0x171CF8](../../src/game/gameplay/ai/tu_1709A8/func_00171CF8.c) | `StartGuardScript` | Sets the guard's BHV156 to mode 5 with the given script | 0.40 | T2 |  |
-| [0x173158](../../src/game/gameplay/ai/tu_173158/func_00173158.c) | `InitCid119` | cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s | 0.75 | T2 | verified |
-| [0x1731B8](../../src/game/gameplay/ai/tu_173158/func_001731B8.c) | `LoadCid119FromBrx` | Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks | 0.75 | T2 | parse |
+| [0x173158](../../src/game/gameplay/ai/tu_173158.cpp) | `InitCid119` | cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s | 0.75 | T2 | verified |
+| [0x1731B8](../../src/game/gameplay/ai/tu_173158.cpp) | `LoadCid119FromBrx` | Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks | 0.75 | T2 | parse |
 | [0x174920](../../src/game/gameplay/ai/guardbhv/InitBhvanim.c) | `InitBhvanim` | BHVANIM Init: base Init, state=-1, flag(+0x3C)=0 (shared by BHV160) | 0.80 | T1 | runtime |
 | [0x174950](../../src/game/gameplay/ai/guardbhv/StartBhvanim.c) | `StartBhvanim` | BHVANIM Start: raise guard flag +0x3C (AddStepguardSgf), pick anim binding for the current flags (PanimbindCur), enter state 0 (playing) or 1 (none -> | 0.80 | T1 | runtime |
 | [0x1749C0](../../src/game/gameplay/ai/guardbhv/SetBhvanimState.c) | `SetBhvanimState` | BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when flag 9), 1 = ClearBhvBusy, save walk phase, StopAni | 0.75 | T1 | runtime |
