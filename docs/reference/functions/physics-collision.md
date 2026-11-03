@@ -19,17 +19,17 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1336F0](../../../src/game/engine/physics/bbmark/AddSwAaobrObject.c) | `AddSwAaobrObject` | Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints on each of 3 axes to the sweep arrays (count += 2) | 0.75 | T1 |  |
-| [0x1337D0](../../../src/game/engine/physics/bbmark/RemoveSwAaobrObject.c) | `RemoveSwAaobrObject` | Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from SW lists and delete its endpoints from the 3 axis arrays | 0.75 | T1 |  |
-| [0x133A38](../../../src/game/engine/physics/bbmark/UpdateSwPox.c) | `UpdateSwPox` | Create or destroy the OX pair between two OXAs: k=1 force on, 2 force off, 0 keep current; pair if forced or overlapping (0x133D08); on removal call vt54 on both and free XP list | 0.70 | T1 |  |
-| [0x133C68](../../../src/game/engine/physics/bbmark/PoxAddSw.c) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
-| [0x133CB8](../../../src/game/engine/physics/bbmark/PoxRemoveSw.c) | `PoxRemoveSw` | Unlink and return the OX whose other matches | 0.75 | T1 |  |
-| [0x133D08](../../../src/game/engine/physics/bbmark/func_00133D08.c) | `FSwShouldPairObjects` | AABB overlap on 3 axes, then both objects' FIgnoreIntersection (vt61) combined by max; pair unless result is 1 or 3 | 0.50 | T2 |  |
-| [0x133E30](../../../src/game/engine/physics/bbmark/FlushSwBoundsUpdates.c) | `FlushSwBoundsUpdates` | While a queue is non-empty call vt49 (UpdateSoTreeBounds) on its head object | 0.50 | T1 |  |
-| [0x133E80](../../../src/game/engine/physics/bbmark/UpdateSwAaox.c) | `UpdateSwAaox` | If dirty: insertion-sort the 3 endpoint arrays; when a min/max pair crosses call UpdateSwPox(..,0) (sweep and prune) | 0.75 | T1 |  |
-| [0x134040](../../../src/game/engine/physics/bbmark/RecalcSwXpAll.c) | `RecalcSwXpAll` | Per solver step: flush bounds, sort, then walk objects and their pairs building contact (XP) lists into a stack array of up to 0x300 objects | 0.60 | T1 |  |
-| [0x134310](../../../src/game/engine/physics/bbmark/func_00134310.c) | `NMax` | return max(a,b) for ints; used to merge FIgnore*Intersection results | 0.50 | T2 | top50; top50 round; v2 name NMaxIgnore |
-| [0x134320](../../../src/game/engine/physics/bbmark/RecalcSwOxfFilterForObject.c) | `RecalcSwOxfFilterForObject` | If the object has a broadphase node (+0xEC): refresh (0x1F4BF8) and UpdateSwPox against every other node | 0.75 | T1 |  |
+| [0x1336F0](../../../src/game/engine/physics/bbmark.cpp) | `AddSwAaobrObject` | Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints on each of 3 axes to the sweep arrays (count += 2) | 0.75 | T1 |  |
+| [0x1337D0](../../../src/game/engine/physics/bbmark.cpp) | `RemoveSwAaobrObject` | Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from SW lists and delete its endpoints from the 3 axis arrays | 0.75 | T1 |  |
+| [0x133A38](../../../src/game/engine/physics/bbmark.cpp) | `UpdateSwPox` | Create or destroy the OX pair between two OXAs: k=1 force on, 2 force off, 0 keep current; pair if forced or overlapping (0x133D08); on removal call vt54 on both and free XP list | 0.70 | T1 |  |
+| [0x133C68](../../../src/game/engine/physics/bbmark.cpp) | `PoxAddSw` | Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list | 0.80 | T1 |  |
+| [0x133CB8](../../../src/game/engine/physics/bbmark.cpp) | `PoxRemoveSw` | Unlink and return the OX whose other matches | 0.75 | T1 |  |
+| [0x133D08](../../../src/game/engine/physics/bbmark.cpp) | `FSwShouldPairObjects` | AABB overlap on 3 axes, then both objects' FIgnoreIntersection (vt61) combined by max; pair unless result is 1 or 3 | 0.50 | T2 |  |
+| [0x133E30](../../../src/game/engine/physics/bbmark.cpp) | `FlushSwBoundsUpdates` | While a queue is non-empty call vt49 (UpdateSoTreeBounds) on its head object | 0.50 | T1 |  |
+| [0x133E80](../../../src/game/engine/physics/bbmark.cpp) | `UpdateSwAaox` | If dirty: insertion-sort the 3 endpoint arrays; when a min/max pair crosses call UpdateSwPox(..,0) (sweep and prune) | 0.75 | T1 |  |
+| [0x134040](../../../src/game/engine/physics/bbmark.cpp) | `RecalcSwXpAll` | Per solver step: flush bounds, sort, then walk objects and their pairs building contact (XP) lists into a stack array of up to 0x300 objects | 0.60 | T1 |  |
+| [0x134310](../../../src/game/engine/physics/bbmark.cpp) | `NMax` | return max(a,b) for ints; used to merge FIgnore*Intersection results | 0.50 | T2 | top50; top50 round; v2 name NMaxIgnore |
+| [0x134320](../../../src/game/engine/physics/bbmark.cpp) | `RecalcSwOxfFilterForObject` | If the object has a broadphase node (+0xEC): refresh (0x1F4BF8) and UpdateSwPox against every other node | 0.75 | T1 |  |
 
 ## clip (0x14C6A0-0x14CFE0)
 
