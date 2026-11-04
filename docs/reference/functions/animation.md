@@ -195,47 +195,47 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EFA90](../../../src/game/engine/anim/sm/InitSm.c) | `InitSm` | InitLo (0x1A5270) then flags(+0x40) | 0.50 | T1 |  |
-| [0x1EFAC0](../../../src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp) | `LoadSmFromBrx` | Reads csms (U8) states {oid, oidNext}, csmt (U8) transitions {from, to (via IsmsFindSmRequired), grfsmt, grfsmtBreak, gProbability}, then builds tables | 0.90 | T1 | parse, verified |
-| [0x1F00C8](../../../src/game/engine/anim/sm/PostSmLoad__FP2SM.cpp) | `PostSmLoad__FP2SM` | PostLoLoad; if a pending apply record exists, find its root ALO by OID and PsmaApplySm | 0.85 | existing |  |
-| [0x1F0128](../../../src/game/engine/anim/sm/SetSmPendingApply.c) | `SetSmPendingApply` | Allocates the 12-byte {oid, a, b} record at +0x74 consumed by PostSmLoad | 0.65 | T1 |  |
-| [0x1F0198](../../../src/game/engine/anim/sm/PsmaApplySmOut.c) | `PsmaApplySmOut` | Wrapper: core with kind 4 | 0.65 | T1 |  |
-| [0x1F01B8](../../../src/game/engine/anim/sm/ApplySmCore.cpp) | `ApplySmCore` | Takes an SMA from the g_sw pool (+0x3DDC), memsets 0x50, links it into SM and world lists, runs the ctor, sets the start state, notifies, chooses a transition | 0.70 | T1 |  |
-| [0x1F0380](../../../src/game/engine/anim/sm/func_001F0380.c) | `PsmaApplySm` | Wrapper returning the SMA (kind 4) | 0.85 | T1 |  |
-| [0x1F03A8](../../../src/game/engine/anim/sm/PsmaApplySmEx.c) | `PsmaApplySmEx` | Wrapper with explicit kind | 0.65 | T1 |  |
-| [0x1F03C8](../../../src/game/engine/anim/sm/PsmaFindSm__FP2SMP3ALO.cpp) | `PsmaFindSm__FP2SMP3ALO` | Linear search of the SMA list by root ALO | 0.85 | existing |  |
-| [0x1F0400](../../../src/game/engine/anim/sm/IsmsFindSmOptional__FP2SM3OID.cpp) | `IsmsFindSmOptional__FP2SM3OID` | Index of the state with that OID, or -1 | 0.85 | existing |  |
-| [0x1F0438](../../../src/game/engine/anim/sm/func_001F0438.c) | `IsmsFindSmRequired` | Optional lookup clamped to ≥0 (28 B) | 0.85 | T1 |  |
-| [0x1F0458](../../../src/game/engine/anim/sm/PsmdFindSm.c) | `PsmdFindSm` | First distance-table record whose mask intersects grfMask | 0.65 | T1 |  |
-| [0x1F0498](../../../src/game/engine/anim/sm/CsmtDistanceSm.c) | `CsmtDistanceSm` | table->ab[from·csms + to]: hop count between states under a mask | 0.65 | T1 |  |
-| [0x1F04F8](../../../src/game/engine/anim/sm/OidFromSmIsms.c) | `OidFromSmIsms` | asms[isms].oid, or -1 if out of range | 0.85 | T1 |  |
-| [0x1F0528](../../../src/game/engine/anim/sm/IncrefSma.c) | `IncrefSma` | cref(+0x10)++ | 0.85 | T1 |  |
-| [0x1F0538](../../../src/game/engine/anim/sm/DecrefSma.c) | `DecrefSma` | --cref; at 0: dtor, clear, unlink, free to pool D_003E1278 | 0.85 | T1 |  |
-| [0x1F0598](../../../src/game/engine/anim/sm/func_001F0598.c) | `RetractSma` | If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send message 3, Decref | 0.85 | T1 |  |
-| [0x1F0638](../../../src/game/engine/anim/sm/FSmaRetracted.c) | `FSmaRetracted` | True if the SMA is not in the live list D_003E126C | 0.65 | T1 |  |
-| [0x1F0660](../../../src/game/engine/anim/sm/SetSmaGoal.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a transition | 0.85 | T1 |  |
-| [0x1F0730](../../../src/game/engine/anim/sm/SetSmaGoalIfReachable.c) | `SetSmaGoalIfReachable` | SetSmaGoal only if the chooser finds a path under the current mask | 0.65 | T1 |  |
-| [0x1F07C8](../../../src/game/engine/anim/sm/GetSmaGoal.c) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
-| [0x1F07E8](../../../src/game/engine/anim/sm/func_001F07E8.c) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
-| [0x1F0808](../../../src/game/engine/anim/sm/GetSmaNext.c) | `GetSmaNext` | OID of ismsNext (+0x38), else of ismsCur | 0.75 | T1 |  |
-| [0x1F0850](../../../src/game/engine/anim/sm/SetSmaSvt.cpp) | `SetSmaSvt` | Stores +0x44; SetAsegaSpeed on the running ASEGA | 0.85 | T1 |  |
-| [0x1F08D0](../../../src/game/engine/anim/sm/AbortSmaTransition.c) | `AbortSmaTransition` | Detach the ASEGA, seek it to the start or end depending on speed sign, retract, then EndSmaTransition | 0.65 | T1 |  |
-| [0x1F0948](../../../src/game/engine/anim/sm/SeekSma.cpp) | `SeekSma` | Set the goal, abort the current transition, choose again immediately (ChooseSmaTransition(p, 1)) | 0.85 | T1 |  |
-| [0x1F09D8](../../../src/game/engine/anim/sm/SnapSma.cpp) | `SnapSma` | Jump straight to a state: kill the ASEGA, set cur/goal, notify enter, choose | 0.65 | T1 |  |
-| [0x1F0AD0](../../../src/game/engine/anim/sm/PsmtChooseWeighted.c) | `PsmtChooseWeighted` | Weighted random pick: GRandInRange(0, Σ gProbability) then cumulative walk | 0.70 | T1 |  |
-| [0x1F0B80](../../../src/game/engine/anim/sm/PsmtChooseTowardGoal.c) | `PsmtChooseTowardGoal` | Collects transitions from cur (or reversible, flag 1) that cut the distance to the goal by one hop, then weighted pick | 0.70 | T1 |  |
-| [0x1F0CF0](../../../src/game/engine/anim/sm/PsmtChooseFrom.c) | `PsmtChooseFrom` | Collects all transitions out of a state under the mask, then weighted pick | 0.70 | T1 |  |
-| [0x1F0D88](../../../src/game/engine/anim/sm/ChooseSmaTransition.c) | `ChooseSmaTransition` | Main driver: if no goal or at goal, random wander; else toward goal. Starts the transition's ASEG via ApplyAseg (0x12F9B8), sets ismsNext, notifies | 0.85 | T1 |  |
-| [0x1F0FA0](../../../src/game/engine/anim/sm/EndSmaTransition.c) | `EndSmaTransition` | pasegaCur=0; ismsCur=ismsNext; ismsNext=-1; NotifySmaSpliceOnEnterState(old, new) | 0.85 | T1 |  |
-| [0x1F0FD8](../../../src/game/engine/anim/sm/func_001F0FD8.cpp) | `NotifySma` | Forwards to listener +0x28's vtable slot 5, then to base 0x133508 | 0.35 | T2 |  |
-| [0x1F1078](../../../src/game/engine/anim/sm/HandleSmaMessage.cpp) | `HandleSmaMessage` | On msg 2 (ASEGA finished) for the current ASEGA: EndSmaTransition, ChooseSmaTransition | 0.85 | T1 |  |
-| [0x1F10F0](../../../src/game/engine/anim/sm/SkipSma.cpp) | `SkipSma` | While a transition runs: if dt < remaining, seek forward and stop; else end and re-choose | 0.85 | T1 |  |
-| [0x1F11A8](../../../src/game/engine/anim/sm/DtSmaToState.c) | `DtSmaToState` | Estimated time to reach a state: remaining time of the current segment plus durations along the path (quadratic x + t(y + tz) fits) | 0.65 | T1 |  |
-| [0x1F1350](../../../src/game/engine/anim/sm/SetSmaMask.c) | `SetSmaMask` | Stores the transition mask (+0x48); if the running transition is now disallowed, abort and re-choose | 0.65 | T1 |  |
-| [0x1F13A8](../../../src/game/engine/anim/sm/NotifySmaSpliceOnEnterState.c) | `NotifySmaSpliceOnEnterState` | Builds {psma, oidFrom, oidTo} and sends message 10 (notify) and 8 (Splice event with 2 args) through vtable slots 4/3 | 0.85 | T1 |  |
-| [0x1F1448](../../../src/game/engine/anim/sm/ReplaceSma.c) | `ReplaceSma` | Retract and Decref *ppsma; if a new SM is given, PsmaApplySm, Incref, store | 0.70 | T1 |  |
-| [0x1F14F8](../../../src/game/engine/anim/sm/ReplaceSmaEx.c) | `ReplaceSmaEx` | Same with explicit kind | 0.70 | T1 |  |
-| [0x1F15B8](../../../src/game/engine/anim/sm/ReleaseSma.c) | `ReleaseSma` | Retract, Decref, null | 0.70 | T1 |  |
+| [0x1EFA90](../../../src/game/engine/anim/sm.cpp) | `InitSm` | InitLo (0x1A5270) then flags(+0x40) | 0.50 | T1 |  |
+| [0x1EFAC0](../../../src/game/engine/anim/sm.cpp) | `LoadSmFromBrx` | Reads csms (U8) states {oid, oidNext}, csmt (U8) transitions {from, to (via IsmsFindSmRequired), grfsmt, grfsmtBreak, gProbability}, then builds tables | 0.90 | T1 | parse, verified |
+| [0x1F00C8](../../../src/game/engine/anim/sm.cpp) | `PostSmLoad__FP2SM` | PostLoLoad; if a pending apply record exists, find its root ALO by OID and PsmaApplySm | 0.85 | existing |  |
+| [0x1F0128](../../../src/game/engine/anim/sm.cpp) | `SetSmPendingApply` | Allocates the 12-byte {oid, a, b} record at +0x74 consumed by PostSmLoad | 0.65 | T1 |  |
+| [0x1F0198](../../../src/game/engine/anim/sm.cpp) | `PsmaApplySmOut` | Wrapper: core with kind 4 | 0.65 | T1 |  |
+| [0x1F01B8](../../../src/game/engine/anim/sm.cpp) | `ApplySmCore` | Takes an SMA from the g_sw pool (+0x3DDC), memsets 0x50, links it into SM and world lists, runs the ctor, sets the start state, notifies, chooses a transition | 0.70 | T1 |  |
+| [0x1F0380](../../../src/game/engine/anim/sm.cpp) | `PsmaApplySm` | Wrapper returning the SMA (kind 4) | 0.85 | T1 |  |
+| [0x1F03A8](../../../src/game/engine/anim/sm.cpp) | `PsmaApplySmEx` | Wrapper with explicit kind | 0.65 | T1 |  |
+| [0x1F03C8](../../../src/game/engine/anim/sm.cpp) | `PsmaFindSm__FP2SMP3ALO` | Linear search of the SMA list by root ALO | 0.85 | existing |  |
+| [0x1F0400](../../../src/game/engine/anim/sm.cpp) | `IsmsFindSmOptional__FP2SM3OID` | Index of the state with that OID, or -1 | 0.85 | existing |  |
+| [0x1F0438](../../../src/game/engine/anim/sm.cpp) | `IsmsFindSmRequired` | Optional lookup clamped to ≥0 (28 B) | 0.85 | T1 |  |
+| [0x1F0458](../../../src/game/engine/anim/sm.cpp) | `PsmdFindSm` | First distance-table record whose mask intersects grfMask | 0.65 | T1 |  |
+| [0x1F0498](../../../src/game/engine/anim/sm.cpp) | `CsmtDistanceSm` | table->ab[from·csms + to]: hop count between states under a mask | 0.65 | T1 |  |
+| [0x1F04F8](../../../src/game/engine/anim/sm.cpp) | `OidFromSmIsms` | asms[isms].oid, or -1 if out of range | 0.85 | T1 |  |
+| [0x1F0528](../../../src/game/engine/anim/sm.cpp) | `IncrefSma` | cref(+0x10)++ | 0.85 | T1 |  |
+| [0x1F0538](../../../src/game/engine/anim/sm.cpp) | `DecrefSma` | --cref; at 0: dtor, clear, unlink, free to pool D_003E1278 | 0.85 | T1 |  |
+| [0x1F0598](../../../src/game/engine/anim/sm.cpp) | `RetractSma` | If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send message 3, Decref | 0.85 | T1 |  |
+| [0x1F0638](../../../src/game/engine/anim/sm.cpp) | `FSmaRetracted` | True if the SMA is not in the live list D_003E126C | 0.65 | T1 |  |
+| [0x1F0660](../../../src/game/engine/anim/sm.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a transition | 0.85 | T1 |  |
+| [0x1F0730](../../../src/game/engine/anim/sm.cpp) | `SetSmaGoalIfReachable` | SetSmaGoal only if the chooser finds a path under the current mask | 0.65 | T1 |  |
+| [0x1F07C8](../../../src/game/engine/anim/sm.cpp) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
+| [0x1F07E8](../../../src/game/engine/anim/sm.cpp) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
+| [0x1F0808](../../../src/game/engine/anim/sm.cpp) | `GetSmaNext` | OID of ismsNext (+0x38), else of ismsCur | 0.75 | T1 |  |
+| [0x1F0850](../../../src/game/engine/anim/sm.cpp) | `SetSmaSvt` | Stores +0x44; SetAsegaSpeed on the running ASEGA | 0.85 | T1 |  |
+| [0x1F08D0](../../../src/game/engine/anim/sm.cpp) | `AbortSmaTransition` | Detach the ASEGA, seek it to the start or end depending on speed sign, retract, then EndSmaTransition | 0.65 | T1 |  |
+| [0x1F0948](../../../src/game/engine/anim/sm.cpp) | `SeekSma` | Set the goal, abort the current transition, choose again immediately (ChooseSmaTransition(p, 1)) | 0.85 | T1 |  |
+| [0x1F09D8](../../../src/game/engine/anim/sm.cpp) | `SnapSma` | Jump straight to a state: kill the ASEGA, set cur/goal, notify enter, choose | 0.65 | T1 |  |
+| [0x1F0AD0](../../../src/game/engine/anim/sm.cpp) | `PsmtChooseWeighted` | Weighted random pick: GRandInRange(0, Σ gProbability) then cumulative walk | 0.70 | T1 |  |
+| [0x1F0B80](../../../src/game/engine/anim/sm.cpp) | `PsmtChooseTowardGoal` | Collects transitions from cur (or reversible, flag 1) that cut the distance to the goal by one hop, then weighted pick | 0.70 | T1 |  |
+| [0x1F0CF0](../../../src/game/engine/anim/sm.cpp) | `PsmtChooseFrom` | Collects all transitions out of a state under the mask, then weighted pick | 0.70 | T1 |  |
+| [0x1F0D88](../../../src/game/engine/anim/sm.cpp) | `ChooseSmaTransition` | Main driver: if no goal or at goal, random wander; else toward goal. Starts the transition's ASEG via ApplyAseg (0x12F9B8), sets ismsNext, notifies | 0.85 | T1 |  |
+| [0x1F0FA0](../../../src/game/engine/anim/sm.cpp) | `EndSmaTransition` | pasegaCur=0; ismsCur=ismsNext; ismsNext=-1; NotifySmaSpliceOnEnterState(old, new) | 0.85 | T1 |  |
+| [0x1F0FD8](../../../src/game/engine/anim/sm.cpp) | `NotifySma` | Forwards to listener +0x28's vtable slot 5, then to base 0x133508 | 0.35 | T2 |  |
+| [0x1F1078](../../../src/game/engine/anim/sm.cpp) | `HandleSmaMessage` | On msg 2 (ASEGA finished) for the current ASEGA: EndSmaTransition, ChooseSmaTransition | 0.85 | T1 |  |
+| [0x1F10F0](../../../src/game/engine/anim/sm.cpp) | `SkipSma` | While a transition runs: if dt < remaining, seek forward and stop; else end and re-choose | 0.85 | T1 |  |
+| [0x1F11A8](../../../src/game/engine/anim/sm.cpp) | `DtSmaToState` | Estimated time to reach a state: remaining time of the current segment plus durations along the path (quadratic x + t(y + tz) fits) | 0.65 | T1 |  |
+| [0x1F1350](../../../src/game/engine/anim/sm.cpp) | `SetSmaMask` | Stores the transition mask (+0x48); if the running transition is now disallowed, abort and re-choose | 0.65 | T1 |  |
+| [0x1F13A8](../../../src/game/engine/anim/sm.cpp) | `NotifySmaSpliceOnEnterState` | Builds {psma, oidFrom, oidTo} and sends message 10 (notify) and 8 (Splice event with 2 args) through vtable slots 4/3 | 0.85 | T1 |  |
+| [0x1F1448](../../../src/game/engine/anim/sm.cpp) | `ReplaceSma` | Retract and Decref *ppsma; if a new SM is given, PsmaApplySm, Incref, store | 0.70 | T1 |  |
+| [0x1F14F8](../../../src/game/engine/anim/sm.cpp) | `ReplaceSmaEx` | Same with explicit kind | 0.70 | T1 |  |
+| [0x1F15B8](../../../src/game/engine/anim/sm.cpp) | `ReleaseSma` | Retract, Decref, null | 0.70 | T1 |  |
 
 ## tu_20B840 (0x20B840-0x20CE28)
 

@@ -132,17 +132,17 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x1384C0](../../src/game/engine/anim/blend.cpp) | `ReblendAsegbl` | Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc), rescale times; mirror times from a linked asegbl (+0 | 0.85 | T1 | verified |
 | [0x138970](../../src/game/engine/anim/blend.cpp) | `EvaluateBlendChnPosVel` | Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's position/rotation at time t (MRSG-mapped) | 0.60 | T1 | verified |
 | [0x186670](../../src/game/engine/anim/ik.cpp) | `LoadSoIkFromBrx` | Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930), create actuators (PactNewC); set SO flag bit 36 | 0.75 | T1 | parse |
-| [0x1EFAC0](../../src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp) | `LoadSmFromBrx` | Reads csms (U8) states {oid, oidNext}, csmt (U8) transitions {from, to (via IsmsFindSmRequired), grfsmt, grfsmtBreak, gProbability}, then builds table | 0.90 | T1 | parse, verified |
-| [0x1F00C8](../../src/game/engine/anim/sm/PostSmLoad__FP2SM.cpp) | `PostSmLoad__FP2SM` | PostLoLoad; if a pending apply record exists, find its root ALO by OID and PsmaApplySm | 0.85 | existing |  |
-| [0x1F0380](../../src/game/engine/anim/sm/func_001F0380.c) | `PsmaApplySm` | Wrapper returning the SMA (kind 4) | 0.85 | T1 |  |
-| [0x1F0438](../../src/game/engine/anim/sm/func_001F0438.c) | `IsmsFindSmRequired` | Optional lookup clamped to ≥0 (28 B) | 0.85 | T1 |  |
-| [0x1F04F8](../../src/game/engine/anim/sm/OidFromSmIsms.c) | `OidFromSmIsms` | asms[isms].oid, or -1 if out of range | 0.85 | T1 |  |
-| [0x1F0528](../../src/game/engine/anim/sm/IncrefSma.c) | `IncrefSma` | cref(+0x10)++ | 0.85 | T1 |  |
-| [0x1F0538](../../src/game/engine/anim/sm/DecrefSma.c) | `DecrefSma` | --cref; at 0: dtor, clear, unlink, free to pool D_003E1278 | 0.85 | T1 |  |
-| [0x1F0598](../../src/game/engine/anim/sm/func_001F0598.c) | `RetractSma` | If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send message 3, Decref | 0.85 | T1 |  |
-| [0x1F0660](../../src/game/engine/anim/sm/SetSmaGoal.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a trans | 0.85 | T1 |  |
-| [0x1F07C8](../../src/game/engine/anim/sm/GetSmaGoal.c) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
-| [0x1F07E8](../../src/game/engine/anim/sm/func_001F07E8.c) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
+| [0x1EFAC0](../../src/game/engine/anim/sm.cpp) | `LoadSmFromBrx` | Reads csms (U8) states {oid, oidNext}, csmt (U8) transitions {from, to (via IsmsFindSmRequired), grfsmt, grfsmtBreak, gProbability}, then builds table | 0.90 | T1 | parse, verified |
+| [0x1F00C8](../../src/game/engine/anim/sm.cpp) | `PostSmLoad__FP2SM` | PostLoLoad; if a pending apply record exists, find its root ALO by OID and PsmaApplySm | 0.85 | existing |  |
+| [0x1F0380](../../src/game/engine/anim/sm.cpp) | `PsmaApplySm` | Wrapper returning the SMA (kind 4) | 0.85 | T1 |  |
+| [0x1F0438](../../src/game/engine/anim/sm.cpp) | `IsmsFindSmRequired` | Optional lookup clamped to ≥0 (28 B) | 0.85 | T1 |  |
+| [0x1F04F8](../../src/game/engine/anim/sm.cpp) | `OidFromSmIsms` | asms[isms].oid, or -1 if out of range | 0.85 | T1 |  |
+| [0x1F0528](../../src/game/engine/anim/sm.cpp) | `IncrefSma` | cref(+0x10)++ | 0.85 | T1 |  |
+| [0x1F0538](../../src/game/engine/anim/sm.cpp) | `DecrefSma` | --cref; at 0: dtor, clear, unlink, free to pool D_003E1278 | 0.85 | T1 |  |
+| [0x1F0598](../../src/game/engine/anim/sm.cpp) | `RetractSma` | If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send message 3, Decref | 0.85 | T1 |  |
+| [0x1F0660](../../src/game/engine/anim/sm.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a trans | 0.85 | T1 |  |
+| [0x1F07C8](../../src/game/engine/anim/sm.cpp) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
+| [0x1F07E8](../../src/game/engine/anim/sm.cpp) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
 | [0x20BD78](../../src/game/gameplay/player/tu_20B840.cpp) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
 | [0x20BF80](../../src/game/gameplay/player/tu_20B840.cpp) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
 | [0x20CAA8](../../src/game/gameplay/player/tu_20B840.cpp) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |

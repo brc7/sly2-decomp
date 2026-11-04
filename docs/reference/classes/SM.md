@@ -29,15 +29,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetSmClassDesc`](../../../src/game/app/class_registry/GetSmClassDesc.c) | `0x114100` | Pclassinfo |
-| 7 | Init | **override** | [`InitSm`](../../../src/game/engine/anim/sm/InitSm.c) | `0x1EFA90` | Init |
+| 7 | Init | **override** | [`InitSm`](../../../src/game/engine/anim/sm.cpp) | `0x1EFA90` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` | SetParent |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadSmFromBrx__FP2SMP18CBinaryInputStream`](../../../src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp) | `0x1EFAC0` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostSmLoad__FP2SM`](../../../src/game/engine/anim/sm/PostSmLoad__FP2SM.cpp) | `0x1F00C8` | VUnk14 |
+| 14 | LoadFromBrx | **override** | [`LoadSmFromBrx__FP2SMP18CBinaryInputStream`](../../../src/game/engine/anim/sm.cpp) | `0x1EFAC0` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostSmLoad__FP2SM`](../../../src/game/engine/anim/sm.cpp) | `0x1F00C8` | VUnk14 |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` | UpdateXfWorldHierarchy |
@@ -74,7 +74,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/aseg.h` (`struct SM : LO`). SM: from src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp
+From `include/sly2/aseg.h` (`struct SM : LO`). SM: from src/game/engine/anim/sm.cpp
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 1 header asserts agree, 0 disagree. Size from header: 0x80.
 

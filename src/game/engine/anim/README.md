@@ -11,7 +11,7 @@
 | [`empty_12F0F0.cpp`](empty_12F0F0.cpp) | 1 |
 | [`empty_131F70.cpp`](empty_131F70.cpp) | 1 |
 | [`ik.cpp`](ik.cpp) | 1 |
-| [`sm/`](sm/) | 43 |
+| [`sm.cpp`](sm.cpp) | 1 |
 | [`tail.cpp`](tail.cpp) | 1 |
 | [`tu_1603B8.cpp`](tu_1603B8.cpp) | 1 |
 | [`wr.cpp`](wr.cpp) | 1 |
