@@ -310,7 +310,7 @@ static inline float Abs(float g) { return g<0.0f?-g:g; }
 static inline qword Bc(float g) {
     union { qword q; float f; } u;
     qword q;
-    __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(g));
+    q = VuFromFloat<qword>(g);
     u.q=q;
     return q;
 }

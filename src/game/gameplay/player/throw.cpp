@@ -578,7 +578,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  pjtthrow->ablC[1].gWeight=uFar;
  func_001384C0(pjtthrow->animation7);
 }
-#include "sly2/vu0.h" // after UpdateJtThrowArc: declaring the helpers before it changes its code (see the file header)
+#include "sly2/vu0.h" // here, not at the top: declared before UpdateJtThrowArc, the helpers change its code (355 of 517 off)
 
 // Complete vector-state update with the observed scalar scratch writes.
 struct G {char pad[0x10];qword v;};
@@ -722,7 +722,7 @@ static inline qword LaunchSpeed(const V &v){register qword q __asm__("vf4");__as
 static inline qword LaunchCurrent(qword position){register qword value asm("vf1");asm("qmtc2.ni %1,%0":"=j"(value):"r"(position));return value;}
 static inline qword ToVF(qword q){register qword r asm("vf2");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(q));return r;}
 static inline qword CPUFloatS(float f){qword r;__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
-static inline qword ScalarS(float f){register qword r __asm__("vf1");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
+static inline qword ScalarS(float f){register qword r __asm__("vf1");r = VuFromFloat<qword>(f);return r;}
 static inline qword SubS(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword DotV(qword a,qword b){register qword d __asm__("vf2"),one __asm__("vf4");__asm__("vmul.xyz %0,%1,%2":"=j"(d):"j"(a),"j"(b));__asm__("vaddw.x %0,$vf0,$vf0w":"=j"(one));__asm__("vadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d):"j"(one));return d;}
 static inline qword LengthV(qword v){register qword d __asm__("vf1"),one __asm__("vf2");d = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(d));return d;}

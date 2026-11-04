@@ -212,7 +212,7 @@ static inline qword CrossAndFallbackAddress(qword a,const qword&b,const qword**a
 static inline qword DisplacementValue(const qword&start,const qword&direction,float distance,U&scalar){
  register qword point __asm__("vf3"),vector __asm__("vf4"),scale __asm__("vf1");register int word __asm__("$2");
  __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tmfc1 %2,%5":"=j"(point),"=j"(vector),"=r"(word):"m"(start),"m"(direction),"f"(distance));
- __asm__("qmtc2.ni %1,%0":"=j"(scale):"r"(word));scalar.q=scale;
+ scale = VuFromFloat<qword>(word);scalar.q=scale;
  return AddScaled(point,vector,scalar.q);
 }
 /** @sly2-annot addr=0x1CBBA8

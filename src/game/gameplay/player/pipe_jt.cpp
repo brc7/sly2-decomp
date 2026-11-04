@@ -137,7 +137,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *p)
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->actor, 0x10, 2, &p->weight0, 0, 0, 0, &p->animation);
 }
 
-static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(g));u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
+static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;s = VuFromFloat<qword>(g);u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
 /** @sly2-annot addr=0x19DF70
  * Purpose: Accelerate Sly toward the pipe goal matrix (GetPipeGoalMat 0x1C3500 + Bezier frame) in states 0/4
  * Info: proposed name PresetJtAccelPipe (T1); TU pipe_jt
@@ -330,7 +330,7 @@ extern "C" void func_0019EA00(JTPIPE *p, Q *q)
     EvaluateShapeS(p->path, p->distance, 0, &v);
     p = (JTPIPE *)*(int *)&p->speed;
     qword sq;
-    __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(p));   /* C++: asm output into a scalar, then stored (see the mismatch table) */
+    sq = VuFromFloat<qword>(p);   /* C++: asm output into a scalar, then stored (see the mismatch table) */
     s.q = sq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q));
     q->v20 = r;

@@ -142,7 +142,7 @@ extern "C" void PostJtLoadSwing(void *p, void *q, int *pn)
 struct OBJ{NODE*p;};
 struct VU_FLOAT{qword q;VU_FLOAT(){}explicit VU_FLOAT(qword a){q=a;}inline VU_FLOAT(const float&f);};
 struct VU_VECTOR{qword q;VU_VECTOR(){}VU_VECTOR(qword a){q=a;}};
-static inline VU_FLOAT Scalar(float value){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(value));return VU_FLOAT(q);}
+static inline VU_FLOAT Scalar(float value){qword q;q = VuFromFloat<qword>(value);return VU_FLOAT(q);}
 static inline VU_VECTOR operator*(VU_VECTOR value,VU_FLOAT amount){qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(value.q),"j"(amount.q));return VU_VECTOR(q);}
 static inline qword SubV(VU_VECTOR first,VU_VECTOR second){qword q;q = VuSub(first.q, second.q);return q;}
 static inline void StoreDot(float*out,const qword&a0,const qword&b){qword a=a0;qword one;float bits;__asm__("vmul.xyz %1,%1,%3\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1":"=&rV"(*out),"+j"(a),"=j"(one):"j"(b),"j"(a));}

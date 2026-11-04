@@ -118,7 +118,7 @@ static inline float FloatX(qword q){int bits;float f;__asm__("qmfc2.ni %0,%1":"=
 static inline float Max(float a,float b){float f;__asm__("max.s %0,%1,%2":"=f"(f):"f"(a),"f"(b));return f;}
 
 static inline float Float3(qword q){register int bits __asm__("$7");float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
-static inline qword ScalarBits(int bits){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
+static inline qword ScalarBits(int bits){qword q;q = VuFromFloat<qword>(bits);return q;}
 
 static inline float Float1(qword q){register int bits __asm__("$7");register float f __asm__("$f1");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
@@ -142,7 +142,7 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
   if(FloatX(Dot(p->acceleration.q,axes[0].direction.q))<0.0f)p->side=1;
   else p->side=0;
  }
- {register int ratebits __asm__("$7");__asm__("mfc1 %0,%1":"=r"(ratebits):"f"(rate));__asm__("qmtc2.ni %1,%0":"=j"(rk):"r"(ratebits));}
+ {register int ratebits __asm__("$7");__asm__("mfc1 %0,%1":"=r"(ratebits):"f"(rate));rk = VuFromFloat<qword>(ratebits);}
  for(clear=7;clear>=0;clear--)axes[clear].weight.value=0.0f;
  switch(p->side){
  case -1:
@@ -202,7 +202,7 @@ static inline void RemoveSide(PLAYERV*p,U*result,U*old){
  result->q=value;
  SetVel(p,value);
 }
-static inline qword PureBits(int bits){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
+static inline qword PureBits(int bits){qword q;q = VuFromFloat<qword>(bits);return q;}
 static inline void BlendPositive(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,U*out){
  float x=xin;
  register float y __asm__("$f3"),zero __asm__("$f0"),left __asm__("$f2"),right __asm__("$f0");
@@ -212,7 +212,7 @@ static inline void BlendPositive(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,
  __asm__("lwc1 %1,%3\n\tmtc1 $%2,%0":"=f"(zero),"=f"(y):"J"(0),"m"(input->f[1]));
  __asm__("mfc1 %0,%3\n\tmin.s %1,%4,%5\n\tlqc2 %2,%6":"=&r"(ybits),"=f"(left),"=j"(c):"f"(y),"f"(zero),"f"(x),"m"(axes[5].direction.q));
  __asm__("qmtc2.ni %4,%0\n\tneg.s %1,%1\n\tmax.s %2,%5,%6\n\tsqc2 %0,%3":"=j"(ka),"+&f"(left),"=f"(right),"=m"(out->q):"r"(ybits),"f"(zero),"f"(x));
- __asm__("qmtc2.ni %1,%0":"=j"(kb):"r"(right));
+ kb = VuFromFloat<qword>(right);
  __asm__("mfc1 %0,%4\n\tlqc2 %1,%5\n\tqmtc2.ni %0,%2\n\tlqc2 %3,%6":"=&r"(leftbits),"=j"(a),"=j"(kc),"=j"(b):"f"(left),"m"(axes[1].direction.q),"m"(axes[3].direction.q));
  out->q=kb;
  __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(ka):"j"(a),"j"(b),"j"(c),"0"(ka),"j"(kb),"j"(kc));

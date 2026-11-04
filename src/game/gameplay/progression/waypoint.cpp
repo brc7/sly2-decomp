@@ -201,7 +201,7 @@ void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, O *), void *, in
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
 static inline qword Q(float f)
-{ qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(f)); return r; }
+{ qword r; r = VuFromFloat<qword>(f); return r; }
 static inline qword QI(int i)
 { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "rV"(i)); return r; }
 static inline qword AddUp(qword base, qword up, qword k)

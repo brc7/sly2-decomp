@@ -414,7 +414,7 @@ extern "C" int FJtSweepBack(JT *p)
     a = ConvertAloPos(0, p, func_001A62E8(p->pointObject));
     b = ConvertAloPos(0, p, p->point->position.q);
     t = 0.5f;
-    __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(t));
+    s = VuFromFloat<qword>(t);
     u.q = s;
     __asm__("vmulax.xyzw ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(d) : "j"(a), "j"(s), "j"(b));
     f = 1;
