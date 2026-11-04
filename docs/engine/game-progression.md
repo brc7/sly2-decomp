@@ -195,10 +195,10 @@ From [devtools/save_editor](../guides/devtools.md#save_editor) (73 save states; 
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13BE58](../../src/game/gameplay/progression/booty/LoadBootyFromBrx.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
-| [0x13C448](../../src/game/gameplay/progression/booty/AddAlarmAlbrk__FP5ALARM3OID.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
-| [0x13CFD8](../../src/game/gameplay/progression/booty/func_0013CFD8.c) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
-| [0x13D248](../../src/game/gameplay/progression/booty/NBootyContainerKind.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
+| [0x13BE58](../../src/game/gameplay/progression/booty.cpp) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
+| [0x13C448](../../src/game/gameplay/progression/booty.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
+| [0x13CFD8](../../src/game/gameplay/progression/booty.cpp) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
+| [0x13D248](../../src/game/gameplay/progression/booty.cpp) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
 | [0x1613A8](../../src/game/world/state/game/StartupGame.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
 | [0x1613F8](../../src/game/world/state/game/InitGame.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D | 0.55 | T1 | verified |
 | [0x161478](../../src/game/world/state/game/UpdateGameTimers.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); add | 0.75 | T1 |  |

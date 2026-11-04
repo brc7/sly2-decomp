@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`booty/`](booty/) | 28 |
+| [`booty.cpp`](booty.cpp) | 1 |
 | [`cheat.cpp`](cheat.cpp) | 1 |
 | [`prize/`](prize/) | 61 |
 | [`waypoint.cpp`](waypoint.cpp) | 1 |

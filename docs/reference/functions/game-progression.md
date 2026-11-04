@@ -19,32 +19,32 @@ Totals on this page: EXISTING 3, T1 112, T2 78.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x13BDF0](../../../src/game/gameplay/progression/booty/InitBooty.c) | `InitBooty` | cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit | 0.60 | T1 |  |
-| [0x13BE58](../../../src/game/gameplay/progression/booty/LoadBootyFromBrx.c) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
-| [0x13BF00](../../../src/game/gameplay/progression/booty/PostBootyLoad.c) | `PostBootyLoad` | cid 0x67 vt15: PostSoLoad then SetBootyState(0) | 0.60 | T1 |  |
-| [0x13BF30](../../../src/game/gameplay/progression/booty/func_0013BF30.c) | `BOOTY_VUnk26` | cid 0x67 vt27: SetBootyState(0) | 0.35 | T2 |  |
-| [0x13BF50](../../../src/game/gameplay/progression/booty/UpdateBooty.c) | `UpdateBooty` | cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop (DropStepplayerBooty) once the level timer D_003E1BFC passes | 0.55 | T1 |  |
-| [0x13C000](../../../src/game/gameplay/progression/booty/RenderBootySelf.c) | `RenderBootySelf` | cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw normally | 0.50 | T1 |  |
-| [0x13C1B8](../../../src/game/gameplay/progression/booty/HandleBootyMessage.c) | `HandleBootyMessage` | cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3) | 0.55 | T1 |  |
-| [0x13C278](../../../src/game/gameplay/progression/booty/FIgnoreBootyIntersection.c) | `FIgnoreBootyIntersection` | cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base | 0.55 | T1 |  |
-| [0x13C2D8](../../../src/game/gameplay/progression/booty/AdjustBootyNewXp.c) | `AdjustBootyNewXp` | cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58 | 0.50 | T1 |  |
-| [0x13C368](../../../src/game/gameplay/progression/booty/func_0013C368.c) | `BOOTY_FTakeDamage` | cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1 | 0.45 | T2 |  |
-| [0x13C3B8](../../../src/game/gameplay/progression/booty/AddBootyEntry.c) | `AddBootyEntry` | Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158) | 0.50 | T1 |  |
-| [0x13C440](../../../src/game/gameplay/progression/booty/func_0013C440.c) | `ClearBootyCurEntry` | current entry (+0x158) = 0 | 0.45 | T2 |  |
-| [0x13C448](../../../src/game/gameplay/progression/booty/AddAlarmAlbrk__FP5ALARM3OID.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
-| [0x13C478](../../../src/game/gameplay/progression/booty/IdBootyCur.c) | `IdBootyCur` | id of the current entry or -1 | 0.55 | T1 |  |
-| [0x13C490](../../../src/game/gameplay/progression/booty/SelectBootyEntry.c) | `SelectBootyEntry` | make the entry with this id current (else the first) | 0.50 | T1 |  |
-| [0x13C4D8](../../../src/game/gameplay/progression/booty/func_0013C4D8.c) | `PentryBootyCur` | returns current entry pointer | 0.40 | T2 |  |
-| [0x13C4E0](../../../src/game/gameplay/progression/booty/func_0013C4E0.c) | `ReturnDroppedBooty` | If dropped: reset to 0 and, if its container is still in world, put it back there (state 1) | 0.45 | T2 |  |
-| [0x13C560](../../../src/game/gameplay/progression/booty/SetBootyState.c) | `SetBootyState` | State machine for the booty object (-1..6): register/unregister with g_sw+0x4638 manager, leave/enter actions (feature flags, ripples, events 0x2F, player +0x11A8 link, sounds) | 0.60 | T1 |  |
-| [0x13CEB8](../../../src/game/gameplay/progression/booty/func_0013CEB8.c) | `InitBootyContainer` | cid 0x25 vt7: base init 0x183F08, default kind 0x2BC, -1, 15.0 | 0.40 | T2 |  |
-| [0x13CEF8](../../../src/game/gameplay/progression/booty/func_0013CEF8.c) | `PostBootyContainerLoad` | cid 0x25 vt15: base 0x183F50, unique id from a g_sw counter | 0.40 | T2 |  |
-| [0x13CF38](../../../src/game/gameplay/progression/booty/func_0013CF38.c) | `SpawnBootyInContainer` | If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its entry, link and set state 1 | 0.40 | T2 |  |
-| [0x13CFD8](../../../src/game/gameplay/progression/booty/func_0013CFD8.c) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
-| [0x13D020](../../../src/game/gameplay/progression/booty/func_0013D020.c) | `OnBootyContainerTouched` | cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27 | 0.40 | T2 |  |
-| [0x13D1A8](../../../src/game/gameplay/progression/booty/func_0013D1A8.cpp) | `PkeyBootyContainerSave` | Build the save key for this container (level entry + two symbols + id) | 0.35 | T2 |  |
-| [0x13D248](../../../src/game/gameplay/progression/booty/NBootyContainerKind.c) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
-| [0x13D328](../../../src/game/gameplay/progression/booty/func_0013D328.cpp) | `SetBootyContainerKind` | Splice: reset current booty, save kind n, and spawn if n != -1 | 0.35 | T2 |  |
+| [0x13BDF0](../../../src/game/gameplay/progression/booty.cpp) | `InitBooty` | cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit | 0.60 | T1 |  |
+| [0x13BE58](../../../src/game/gameplay/progression/booty.cpp) | `LoadBootyFromBrx` | cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to SW heap | 0.75 | T1 | parse |
+| [0x13BF00](../../../src/game/gameplay/progression/booty.cpp) | `PostBootyLoad` | cid 0x67 vt15: PostSoLoad then SetBootyState(0) | 0.60 | T1 |  |
+| [0x13BF30](../../../src/game/gameplay/progression/booty.cpp) | `BOOTY_VUnk26` | cid 0x67 vt27: SetBootyState(0) | 0.35 | T2 |  |
+| [0x13BF50](../../../src/game/gameplay/progression/booty.cpp) | `UpdateBooty` | cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop (DropStepplayerBooty) once the level timer D_003E1BFC passes | 0.55 | T1 |  |
+| [0x13C000](../../../src/game/gameplay/progression/booty.cpp) | `RenderBootySelf` | cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw normally | 0.50 | T1 |  |
+| [0x13C1B8](../../../src/game/gameplay/progression/booty.cpp) | `HandleBootyMessage` | cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3) | 0.55 | T1 |  |
+| [0x13C278](../../../src/game/gameplay/progression/booty.cpp) | `FIgnoreBootyIntersection` | cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base | 0.55 | T1 |  |
+| [0x13C2D8](../../../src/game/gameplay/progression/booty.cpp) | `AdjustBootyNewXp` | cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58 | 0.50 | T1 |  |
+| [0x13C368](../../../src/game/gameplay/progression/booty.cpp) | `BOOTY_FTakeDamage` | cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1 | 0.45 | T2 |  |
+| [0x13C3B8](../../../src/game/gameplay/progression/booty.cpp) | `AddBootyEntry` | Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158) | 0.50 | T1 |  |
+| [0x13C440](../../../src/game/gameplay/progression/booty.cpp) | `ClearBootyCurEntry` | current entry (+0x158) = 0 | 0.45 | T2 |  |
+| [0x13C448](../../../src/game/gameplay/progression/booty.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
+| [0x13C478](../../../src/game/gameplay/progression/booty.cpp) | `IdBootyCur` | id of the current entry or -1 | 0.55 | T1 |  |
+| [0x13C490](../../../src/game/gameplay/progression/booty.cpp) | `SelectBootyEntry` | make the entry with this id current (else the first) | 0.50 | T1 |  |
+| [0x13C4D8](../../../src/game/gameplay/progression/booty.cpp) | `PentryBootyCur` | returns current entry pointer | 0.40 | T2 |  |
+| [0x13C4E0](../../../src/game/gameplay/progression/booty.cpp) | `ReturnDroppedBooty` | If dropped: reset to 0 and, if its container is still in world, put it back there (state 1) | 0.45 | T2 |  |
+| [0x13C560](../../../src/game/gameplay/progression/booty.cpp) | `SetBootyState` | State machine for the booty object (-1..6): register/unregister with g_sw+0x4638 manager, leave/enter actions (feature flags, ripples, events 0x2F, player +0x11A8 link, sounds) | 0.60 | T1 |  |
+| [0x13CEB8](../../../src/game/gameplay/progression/booty.cpp) | `InitBootyContainer` | cid 0x25 vt7: base init 0x183F08, default kind 0x2BC, -1, 15.0 | 0.40 | T2 |  |
+| [0x13CEF8](../../../src/game/gameplay/progression/booty.cpp) | `PostBootyContainerLoad` | cid 0x25 vt15: base 0x183F50, unique id from a g_sw counter | 0.40 | T2 |  |
+| [0x13CF38](../../../src/game/gameplay/progression/booty.cpp) | `SpawnBootyInContainer` | If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its entry, link and set state 1 | 0.40 | T2 |  |
+| [0x13CFD8](../../../src/game/gameplay/progression/booty.cpp) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
+| [0x13D020](../../../src/game/gameplay/progression/booty.cpp) | `OnBootyContainerTouched` | cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27 | 0.40 | T2 |  |
+| [0x13D1A8](../../../src/game/gameplay/progression/booty.cpp) | `PkeyBootyContainerSave` | Build the save key for this container (level entry + two symbols + id) | 0.35 | T2 |  |
+| [0x13D248](../../../src/game/gameplay/progression/booty.cpp) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
+| [0x13D328](../../../src/game/gameplay/progression/booty.cpp) | `SetBootyContainerKind` | Splice: reset current booty, save kind n, and spawn if n != -1 | 0.35 | T2 |  |
 
 ## difficulty (0x154A60-0x1553F0)
 
