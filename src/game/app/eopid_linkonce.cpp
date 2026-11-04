@@ -9,15 +9,21 @@
 // g_aeopid is data and is not in the source, so this file takes the same addresses, one SLY2_EOPID_REF per accessor
 // (the variables are data; tools/matchtool.py and tools/progress.py compare every FUNC symbol of the object, the
 // weak linkonce ones included). The owner class of an accessor is the root-most class whose option array in
-// g_mpcidarysplopt (D_00279AD0) lists the record. See docs/guides/tu-merging.md "Inline functions and linkonce copies".
+// g_mpcidarysplopt (D_00279AD0) lists the record. The EMITTER and EXPLO accessors are function templates
+// (sly2/emitter.h): taking the address of each instance emits it the same way. See docs/guides/tu-merging.md "Inline
+// functions and linkonce copies".
 #include "sly2/cm.h"
 #include "sly2/lo.h"
 #include "sly2/so.h"
 #include "sly2/xfm.h"
 #include "sly2/stepplayer.h"
 #include "sly2/guard.h"
+#include "sly2/emitter.h"
 
 #define SLY2_EOPID_REF(addr, pfn) __typeof__(pfn) g_eopidref_##addr = pfn;
+// The same for a template instance (g++ 2.95 cannot take __typeof__ of a template-id's address): the pointer type is
+// spelled out, and the template argument is deduced from it.
+#define SLY2_EOPID_TREF(addr, ret, fn, params) ret (*g_eopidref_##addr) params = &fn;
 
 // CM
 SLY2_EOPID_REF(00256298, &func_00256298)   // EOPID 0x2AE338 get
@@ -51,3 +57,43 @@ SLY2_EOPID_REF(00259D38, &func_00259D38)   // set (and setUser)
 SLY2_EOPID_REF(00259D48, &func_00259D48)   // set (and setUser)
 SLY2_EOPID_REF(00259D60, &func_00259D60)   // get
 SLY2_EOPID_REF(00259D70, &func_00259D70)   // get
+// EMITTER and EXPLO: one template per accessor (sly2/emitter.h), instantiated for each class; the EXPLO copy of
+// func_00258898<T> is 0x259330, and so on in the same order
+// EMITTER (0x258898..0x258EC8)
+SLY2_EOPID_TREF(00258898, EMITV *, func_00258898, (EMITTER *, ENSK))     // ensure
+SLY2_EOPID_TREF(00258920, EMITV *, func_00258920, (EMITTER *, ENSK))     // ensure
+SLY2_EOPID_TREF(002589A8, void, func_002589A8, (EMITTER *, int))         // setUser
+SLY2_EOPID_TREF(002589F0, int, func_002589F0, (EMITTER *))               // get
+SLY2_EOPID_TREF(00258A00, void, func_00258A00, (EMITTER *, int))         // setUser
+SLY2_EOPID_TREF(00258AB8, int, func_00258AB8, (EMITTER *))               // get
+SLY2_EOPID_TREF(00258AC8, int *, func_00258AC8, (EMITTER *, ENSK))       // ensure
+SLY2_EOPID_TREF(00258B00, int, func_00258B00, (EMITTER *, ENSK))         // ensure
+SLY2_EOPID_TREF(00258B38, int *, func_00258B38, (EMITTER *, ENSK))       // ensure
+SLY2_EOPID_TREF(00258B70, void, func_00258B70, (EMITTER *, int))         // setUser
+SLY2_EOPID_TREF(00258C40, int, func_00258C40, (EMITTER *))               // get
+SLY2_EOPID_TREF(00258C60, void *, func_00258C60, (EMITTER *, ENSK))      // ensure
+SLY2_EOPID_TREF(00258CC8, void *, func_00258CC8, (EMITTER *, ENSK))      // ensure
+SLY2_EOPID_TREF(00258D30, void *, func_00258D30, (EMITTER *, ENSK))      // ensure
+SLY2_EOPID_TREF(00258D98, void, func_00258D98, (EMITTER *, int))         // set (and setUser)
+SLY2_EOPID_TREF(00258E40, int, func_00258E40, (EMITTER *))               // get
+SLY2_EOPID_TREF(00258E60, void *, func_00258E60, (EMITTER *, ENSK))      // ensure
+SLY2_EOPID_TREF(00258EC8, void *, func_00258EC8, (EMITTER *, ENSK))      // ensure
+// EXPLO (0x259330..0x259960; records owned by EXPLO or EXPLS : EXPLO)
+SLY2_EOPID_TREF(00259330, EMITV *, func_00258898, (EXPLO *, ENSK))       // ensure
+SLY2_EOPID_TREF(002593B8, EMITV *, func_00258920, (EXPLO *, ENSK))       // ensure
+SLY2_EOPID_TREF(00259440, void, func_002589A8, (EXPLO *, int))           // setUser
+SLY2_EOPID_TREF(00259488, int, func_002589F0, (EXPLO *))                 // get
+SLY2_EOPID_TREF(00259498, void, func_00258A00, (EXPLO *, int))           // setUser
+SLY2_EOPID_TREF(00259550, int, func_00258AB8, (EXPLO *))                 // get
+SLY2_EOPID_TREF(00259560, int *, func_00258AC8, (EXPLO *, ENSK))         // ensure
+SLY2_EOPID_TREF(00259598, int, func_00258B00, (EXPLO *, ENSK))           // ensure
+SLY2_EOPID_TREF(002595D0, int *, func_00258B38, (EXPLO *, ENSK))         // ensure
+SLY2_EOPID_TREF(00259608, void, func_00258B70, (EXPLO *, int))           // setUser
+SLY2_EOPID_TREF(002596D8, int, func_00258C40, (EXPLO *))                 // get
+SLY2_EOPID_TREF(002596F8, void *, func_00258C60, (EXPLO *, ENSK))        // ensure
+SLY2_EOPID_TREF(00259760, void *, func_00258CC8, (EXPLO *, ENSK))        // ensure
+SLY2_EOPID_TREF(002597C8, void *, func_00258D30, (EXPLO *, ENSK))        // ensure
+SLY2_EOPID_TREF(00259830, void, func_00258D98, (EXPLO *, int))           // set (and setUser)
+SLY2_EOPID_TREF(002598D8, int, func_00258E40, (EXPLO *))                 // get
+SLY2_EOPID_TREF(002598F8, void *, func_00258E60, (EXPLO *, ENSK))        // ensure
+SLY2_EOPID_TREF(00259960, void *, func_00258EC8, (EXPLO *, ENSK))        // ensure

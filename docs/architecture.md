@@ -23,7 +23,7 @@ stays and a header-only remedy.
 |---|---|---|
 | L0 | `sdk` | Sony / 989 SDK libraries (other compilers; replaced by HLE in a port) |
 | L1 | `game/platform` | PS2 machine services: boot, heaps, threads, disc (CD/DVD) I/O, pad, printf/string runtime |
-| L2 | `game/core` | engine-independent foundation: math, containers, binary streams, clock, locale, linkonce instances |
+| L2 | `game/core` | engine-independent foundation: math, containers, binary streams, clock, locale |
 | L3 | `game/splice` | Splice script VM (Sucker Punch library: values/refs, pairs, frames, evaluator, GC); built-ins live in app/ |
 | L4 | `game/object` | object model: BASIC/LO base classes, transforms, proxies, lookup, BRX object loading, script peers |
 | L5 | `game/world` | the SW world container and its registries; session state (game, save variables, difficulty) |
@@ -66,7 +66,7 @@ src/
   game/platform/input/         L1  pad (JOY) and rumble
                                    TU leaves: joy(19), rumble(11)
   game/platform/memory/        L1  heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), PvAllocClear, malloc/free
-                                   TU leaves: heap(12), memory(23), phasemem(4), slotheap(7), sprbuf(5), tu_1147D8(2), tu_114AE0(2)
+                                   TU leaves: heap(12), memory(21), phasemem(4), slotheap(7), sprbuf(5), tu_1147D8(2), tu_114AE0(2)
   game/platform/runtime/       L1  Sucker Punch's own printf/string runtime (CchOstrmPrintf, vsprintf, strlen) and OSTRM streams
                                    TU leaves: stream(7), text(24)
   game/platform/thread/        L1  EE threads / semaphores wrapper
@@ -75,8 +75,6 @@ src/
                                    TU leaves: bas(13), bis(43), tu_1848A8(10)
   game/core/containers/        L2  intrusive lists (DL/SL), CDynArray, byte queues, hashing, small key/string class
                                    TU leaves: bq(10), dl(21), dynarray(9), empty_119DA0(2), empty_119EF8(2), empty_11B1A8(2), tu_119BC8(16), tu_11AFE0(3)
-  game/core/linkonce/          L2  compiler-emitted linkonce instances (inline functions / templates) with no static referrer outside generated code (section 4b)
-                                   TU leaves: unhomed(37)
   game/core/locale/            L2  language / region selection
                                    TU leaves: language(8)
   game/core/math/              L2  vectors, matrices, Bezier, Crout solver, BSP/planes, DZG LCP core, misc util
@@ -127,6 +125,9 @@ src/
                                    TU leaves: empty_1AE7D0(2), memcard(81), menu(38), tu_15CD68(12)
   game/app/                    L11 composition root: main loop, boot sequence, class registry (New*/Get*ClassDesc, D_002BAAE8), Splice built-ins (bif, bif2) and binding thunks
                                    TU leaves: bif(161), bif2(31), class_registry(424), main(7), splice_thunks(31), tu_1A4E08(9)
+                                   eopid_linkonce.cpp (not a TU): takes the addresses of the inline option accessors defined in the
+                                   class headers (include/sly2/*.h), as the option table g_aeopid does, so g++ emits their linkonce copies
+                                   (formerly game/core/linkonce/unhomed; see docs/guides/tu-merging.md "Inline functions and linkonce copies")
   generated/splicewrap/        L11 tools/gen_splicewrap.py output (373 wrappers); never edit by hand
                                    TU leaves: splicewrap(373)
 ```
@@ -207,6 +208,10 @@ or one call each; all are listed in the design record, research/layout/):
 | 52 | core/linkonce (L2) | engine/physics (L6) | 3.0 | game_linkonce->so 3 | SPECIFIC |
 | 53 | object (L4) | world/state (L5) | 3.0 | lo->game 3 | WORLD |
 | 54 | world/scene (L5) | gameplay/progression (L9) | 3.0 | sw->prize 2, sw->cheat 1 | WORLD-UP |
+
+Rows 26, 51 and 52 were measured when the unhomed linkonce copies sat in game/core/linkonce/. That directory is gone
+(inline passes 1 and 3): the copies are inline functions or function templates in the class headers (include/sly2/),
+emitted through src/game/app/eopid_linkonce.cpp, so those edges now come from app/ (L11) and are downward.
 
 Specific notes (CONFIRMED from edge examples):
 - core/containers -> object: `tu_119BC8` (util library) defines a class whose vtable inherits BASIC slots; `bq`/`dynarray` call

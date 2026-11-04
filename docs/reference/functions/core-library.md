@@ -523,48 +523,48 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258620](../../../src/game/engine/fx/emitter/CloneEmitter.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258658](../../../src/game/engine/fx/emitter/PemitbEnsureExplo.c) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x2586D8](../../../src/game/engine/fx/emitter/func_002586D8.c) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
-| [0x258898](../../../src/game/core/linkonce/unhomed/func_00258898.c) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258920](../../../src/game/core/linkonce/unhomed/func_00258920.c) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2589A8](../../../src/game/core/linkonce/unhomed/func_002589A8.c) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2589F0](../../../src/game/core/linkonce/unhomed/func_002589F0.c) | `GetEmitterEmitbField4` | return pemitb->field4 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258A00](../../../src/game/platform/memory/memory.cpp) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
-| [0x258AB8](../../../src/game/core/linkonce/unhomed/func_00258AB8.c) | `GetEmitterEmitoKind` | return EMITO kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258AC8](../../../src/game/core/linkonce/unhomed/func_00258AC8.c) | `PemitoEmitterEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258B00](../../../src/game/core/linkonce/unhomed/func_00258B00.c) | `PemitoEmitterEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258B38](../../../src/game/core/linkonce/unhomed/func_00258B38.c) | `PemitoEmitterEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258B70](../../../src/game/core/linkonce/unhomed/func_00258B70.c) | `SetEmitterPartBKind` | set PartB variant kind (2,3,8..) with defaults (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258C40](../../../src/game/core/linkonce/unhomed/func_00258C40.c) | `GetEmitterPartBKind` | return PartB variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258C60](../../../src/game/core/linkonce/unhomed/func_00258C60.c) | `PvEmitterPartBEnsureKind2` | ensure PartB variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258CC8](../../../src/game/core/linkonce/unhomed/func_00258CC8.c) | `PvEmitterPartBEnsureKind3` | ensure PartB variant 3 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258D30](../../../src/game/core/linkonce/unhomed/func_00258D30.c) | `PvEmitterPartBEnsureKind8` | ensure PartB variant 8 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258D98](../../../src/game/core/linkonce/unhomed/func_00258D98.c) | `SetEmitterPartAKind` | set PartA variant kind (1,2) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258E40](../../../src/game/core/linkonce/unhomed/func_00258E40.c) | `GetEmitterPartAKind` | return PartA variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258E60](../../../src/game/core/linkonce/unhomed/func_00258E60.c) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258EC8](../../../src/game/core/linkonce/unhomed/func_00258EC8.c) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258898](../../../include/sly2/emitter.h) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258920](../../../include/sly2/emitter.h) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2589A8](../../../include/sly2/emitter.h) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2589F0](../../../include/sly2/emitter.h) | `GetEmitterEmitbField4` | return pemitb->field4 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258A00](../../../include/sly2/emitter.h) | `SetEmitterEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
+| [0x258AB8](../../../include/sly2/emitter.h) | `GetEmitterEmitoKind` | return EMITO kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258AC8](../../../include/sly2/emitter.h) | `PemitoEmitterEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258B00](../../../include/sly2/emitter.h) | `PemitoEmitterEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258B38](../../../include/sly2/emitter.h) | `PemitoEmitterEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258B70](../../../include/sly2/emitter.h) | `SetEmitterPartBKind` | set PartB variant kind (2,3,8..) with defaults (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258C40](../../../include/sly2/emitter.h) | `GetEmitterPartBKind` | return PartB variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258C60](../../../include/sly2/emitter.h) | `PvEmitterPartBEnsureKind2` | ensure PartB variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258CC8](../../../include/sly2/emitter.h) | `PvEmitterPartBEnsureKind3` | ensure PartB variant 3 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258D30](../../../include/sly2/emitter.h) | `PvEmitterPartBEnsureKind8` | ensure PartB variant 8 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258D98](../../../include/sly2/emitter.h) | `SetEmitterPartAKind` | set PartA variant kind (1,2) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258E40](../../../include/sly2/emitter.h) | `GetEmitterPartAKind` | return PartA variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258E60](../../../include/sly2/emitter.h) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258EC8](../../../include/sly2/emitter.h) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258F30](../../../src/game/object/basic/GetEmitterClassDesc_linkonce.c) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x258F40](../../../src/game/engine/fx/emitter/LoadExploBlipColorsFromBrx.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x259030](../../../src/game/engine/fx/emitter/LoadExploFromBrx.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x2590B8](../../../src/game/engine/fx/emitter/CloneExplo.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x2590F0](../../../src/game/actor/po/PemitbEnsureEmitter.c) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x259170](../../../src/game/engine/fx/emitter/func_00259170.c) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
-| [0x259330](../../../src/game/core/linkonce/unhomed/func_00259330.c) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2593B8](../../../src/game/core/linkonce/unhomed/func_002593B8.c) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259440](../../../src/game/core/linkonce/unhomed/func_00259440.c) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259488](../../../src/game/core/linkonce/unhomed/func_00259488.c) | `GetExploEmitbField4` | return pemitb->field4 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259498](../../../src/game/platform/memory/memory.cpp) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
-| [0x259550](../../../src/game/core/linkonce/unhomed/func_00259550.c) | `GetExploEmitoKind` | return EMITO kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259560](../../../src/game/core/linkonce/unhomed/func_00259560.c) | `PemitoExploEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259598](../../../src/game/core/linkonce/unhomed/func_00259598.c) | `PemitoExploEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2595D0](../../../src/game/core/linkonce/unhomed/func_002595D0.c) | `PemitoExploEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259608](../../../src/game/core/linkonce/unhomed/func_00259608.c) | `SetExploPartBKind` | set PartB variant kind (2,3,8..) with defaults (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2596D8](../../../src/game/core/linkonce/unhomed/func_002596D8.c) | `GetExploPartBKind` | return PartB variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2596F8](../../../src/game/core/linkonce/unhomed/func_002596F8.c) | `PvExploPartBEnsureKind2` | ensure PartB variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259760](../../../src/game/core/linkonce/unhomed/func_00259760.c) | `PvExploPartBEnsureKind3` | ensure PartB variant 3 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2597C8](../../../src/game/core/linkonce/unhomed/func_002597C8.c) | `PvExploPartBEnsureKind8` | ensure PartB variant 8 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259830](../../../src/game/core/linkonce/unhomed/func_00259830.c) | `SetExploPartAKind` | set PartA variant kind (1,2) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2598D8](../../../src/game/core/linkonce/unhomed/func_002598D8.c) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2598F8](../../../src/game/core/linkonce/unhomed/func_002598F8.c) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259960](../../../src/game/core/linkonce/unhomed/func_00259960.c) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259330](../../../include/sly2/emitter.h) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2593B8](../../../include/sly2/emitter.h) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259440](../../../include/sly2/emitter.h) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259488](../../../include/sly2/emitter.h) | `GetExploEmitbField4` | return pemitb->field4 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259498](../../../include/sly2/emitter.h) | `SetExploEmitoKind` | set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 | parse-code |
+| [0x259550](../../../include/sly2/emitter.h) | `GetExploEmitoKind` | return EMITO kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259560](../../../include/sly2/emitter.h) | `PemitoExploEnsureKind0` | ensure EMITO kind 0, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259598](../../../include/sly2/emitter.h) | `PemitoExploEnsureKind1` | ensure EMITO kind 1, return its data ptr (+0x30) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2595D0](../../../include/sly2/emitter.h) | `PemitoExploEnsureKind2` | ensure EMITO kind 2, return &pemitb->emito (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259608](../../../include/sly2/emitter.h) | `SetExploPartBKind` | set PartB variant kind (2,3,8..) with defaults (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2596D8](../../../include/sly2/emitter.h) | `GetExploPartBKind` | return PartB variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2596F8](../../../include/sly2/emitter.h) | `PvExploPartBEnsureKind2` | ensure PartB variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259760](../../../include/sly2/emitter.h) | `PvExploPartBEnsureKind3` | ensure PartB variant 3 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2597C8](../../../include/sly2/emitter.h) | `PvExploPartBEnsureKind8` | ensure PartB variant 8 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259830](../../../include/sly2/emitter.h) | `SetExploPartAKind` | set PartA variant kind (1,2) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2598D8](../../../include/sly2/emitter.h) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2598F8](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259960](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599C8](../../../src/game/engine/fx/emitter/GetExploClassDesc_linkonce.c) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599D8](../../../src/game/engine/graphics/pipeline/glob/func_002599D8.c) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E0](../../../src/game/engine/graphics/pipeline/glob/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |

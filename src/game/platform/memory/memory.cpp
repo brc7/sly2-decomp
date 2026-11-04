@@ -1,8 +1,8 @@
 // memory.cpp -- the memory manager: the level ("SW") heap that grows up from the end of the program image and the
 // stack heap that grows down from 32 MB (allocate, allocate cleared, reallocate-copy, free all), the stack scopes
 // that mark and release the stack heap (STACKSCOPE, under a critical section), the empty malloc/free/operator
-// delete, and the word/quadword copy routines. Plus two linkonce emitter-block setters homed here.
-// TU 0x1AE150..0x1AE7D0 (21 functions, address order) and the linkonce instances 0x258A00, 0x259498.
+// delete, and the word/quadword copy routines.
+// TU 0x1AE150..0x1AE7D0 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memory
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE7B0
 #include "sly2/slotheap.h"
@@ -355,57 +355,4 @@ void CopyAb(void *pvDst, void *pvSrc, uint cb)
         return;
     }
     CopyAqw(pvDst, pvSrc, cb >> 4);
-}
-
-/* Linkonce instances 0x258A00 (EMITTER) and 0x259498 (EXPLO), homed in this TU: the same emitter-block setter for the
-   two classes (see "Inline functions and linkonce copies" in docs/guides/tu-merging.md). */
-struct EMITB { char pad[0x10]; int x10; char pad2[0x1C]; int x30; };
-struct EMITTERV { char pad[0xE4]; EMITB *pemitb; };
-extern "C" {
-EMITB *PemitbEnsureEmitter(EMITTERV *, int);
-EMITB *PemitbEnsureExplo(EMITTERV *, int);
-}
-static inline int New(unsigned int cb) { AREQ req; req.cb = cb; req.cbAlign = 0x10; return (int)func_001AE2A0(&req); }
-/** @sly2-annot addr=0x258A00
- * Purpose: set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EMITTER copy) [game linkonce
- *   (inline/template)]
- * Info: proposed name SetEmitterEmitoKind (T2); TU game_linkonce
- * Notes: level_parser CONFIRMED-code (layout read from the matched function; class absent from samples)
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names+parse-code
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00258A00(EMITTERV *p, int k)
-{
-    EMITB *t;
-    if (p->pemitb->x10 == k) return;
-    if (p->pemitb->x10 != 0) return;
-    t = PemitbEnsureEmitter(p, 1);
-    t->x10 = k;
-    switch (k) {
-    case 1: t->x30 = New(0x20); break;
-    case 2: t->x30 = -1; break;
-    case 3: t->x30 = New(0x30); break;
-    }
-}
-
-/** @sly2-annot addr=0x259498
- * Purpose: set EMITO kind (pemitb+0x10) and allocate its data (COW first) (EXPLO copy) [game linkonce
- *   (inline/template)]
- * Info: proposed name SetExploEmitoKind (T2); TU game_linkonce
- * Notes: level_parser CONFIRMED-code (layout read from the matched function; class absent from samples)
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names+parse-code
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00259498(EMITTERV *p, int k)
-{
-    EMITB *t;
-    if (p->pemitb->x10 == k) return;
-    if (p->pemitb->x10 != 0) return;
-    t = PemitbEnsureExplo(p, 1);
-    t->x10 = k;
-    switch (k) {
-    case 1: t->x30 = New(0x20); break;
-    case 2: t->x30 = -1; break;
-    case 3: t->x30 = New(0x30); break;
-    }
 }

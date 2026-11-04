@@ -1,12 +1,11 @@
 # `src/game/core/`
 
-**Layer 2.** engine-independent foundation: math, containers, binary streams, clock, locale, linkonce instances
+**Layer 2.** engine-independent foundation: math, containers, binary streams, clock, locale
 
 | Directory | Files |
 | --- | --- |
 | [`binstream/`](binstream/) | 45 |
 | [`containers/`](containers/) | 63 |
-| [`linkonce/`](linkonce/) | 56 |
 | [`locale/`](locale/) | 8 |
 | [`math/`](math/) | 113 |
 | [`time/`](time/) | 8 |
