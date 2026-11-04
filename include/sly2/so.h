@@ -260,6 +260,31 @@ struct SOPART
       int nStampWorld;
 };
 
+/* CID148 (CID 0x94 : BASIC, cb 0x20) and CID150 (CID 0x96 : CID148, cb 0x30): placeholder names. A CID150 is the
+ * Splice handle of one part of an SO (the part's object at +0x20, the SOPART at +0x24); only those two are known. */
+struct CID148 : public BASIC
+{
+      undefined4 unk_0x10[4];
+};
+typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class descriptor cb */
+struct CID150 : public CID148
+{
+      SO *pso;              /* +0x20 */
+      SOPART *psopart;      /* +0x24 */
+      undefined4 unk_0x28[2];
+};
+typedef char assert_CID150_size[sizeof(CID150) == 0x30 ? 1 : -1];   /* class descriptor cb */
+
+/* CID150's option accessors (g_aeopid records 1234, 1233, 1232: get, set), inline as the ones above. Each setter
+ * then calls func_001F4BF8 on the part's object (HYPOTHESIS: marks its tree dirty). */
+extern "C" void func_001F4BF8(SO *pso);
+inline float func_002562E0(CID150 *p) { return p->psopart->gUnk08; }
+inline void func_002562B8(CID150 *p, float g) { p->psopart->gUnk08 = g; func_001F4BF8(p->pso); }
+inline short func_00256318(CID150 *p) { return p->psopart->dhp; }
+inline void func_002562F0(CID150 *p, short dhp) { p->psopart->dhp = dhp; func_001F4BF8(p->pso); }
+inline uint func_00256350(CID150 *p) { return p->psopart->grfzpk; }
+inline void func_00256328(CID150 *p, uint grfzpk) { p->psopart->grfzpk = grfzpk; func_001F4BF8(p->pso); }
+
 /* SOTREE: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (3 copies in Lilly ports) */
 struct SOTREE
 {

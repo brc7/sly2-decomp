@@ -438,12 +438,12 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../include/sly2/cm.h) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/game/gameplay/ai/guardbhv/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
-| [0x2562B8](../../../src/game/engine/physics/so/func_002562B8.c) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2562E0](../../../src/game/core/linkonce/unhomed/func_002562E0.c) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x2562F0](../../../src/game/engine/physics/so/func_002562F0.c) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256318](../../../src/game/core/linkonce/unhomed/func_00256318.c) | `GetSoOptS14` | return s16@0x14 [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256328](../../../src/game/engine/physics/so/func_00256328.c) | `SetSoOptI18` | set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
-| [0x256350](../../../src/game/core/linkonce/unhomed/func_00256350.c) | `GetSoOptI18` | return int@0x18 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2562B8](../../../include/sly2/so.h) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2562E0](../../../include/sly2/so.h) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x2562F0](../../../include/sly2/so.h) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256318](../../../include/sly2/so.h) | `GetSoOptS14` | return s16@0x14 [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256328](../../../include/sly2/so.h) | `SetSoOptI18` | set (p->x24)->int@0x18 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |
+| [0x256350](../../../include/sly2/so.h) | `GetSoOptI18` | return int@0x18 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x256360](../../../src/game/app/class_registry/STEPGUARD_ctor.c) | `STEPGUARD_ctor` | inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x2563E8](../../../src/game/app/class_registry/JT_ctor.c) | `JT_ctor` | inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x256440](../../../src/game/app/class_registry/MURRAY_ctor.c) | `MURRAY_ctor` | inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)] | 0.60 | T1 |  |
