@@ -6,6 +6,8 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013FF50
 #include "sly2/basic.h"
+#include "sly2/cref.h"
+#include "sly2/eopid.h"     /* EOPID, SETTER, PMF */
 #include "sly2/lo.h"
 #include "sly2/so.h"
 #include "sly2/sw.h"
@@ -15,7 +17,8 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Declarations from LoadOptionFromBrx's per-function file (Lilly port): a private CBinaryInputStream view (S8Read and
-   Skip added for LoadSwObjectsFromBrx), EOPID, CRef. Callees keep the names that file gave them. */
+   Skip added for LoadSwObjectsFromBrx). EOPID is sly2/eopid.h's, CRef sly2/cref.h's. Callees keep the names that file
+   gave them. */
 MATRIX3 LoadRotateMatrix(qword vec);
 LORUN *AddLoRunListEntry(LO *plo);
 class CBinaryStreamBase
@@ -60,34 +63,6 @@ public:
     float F32Read();
 };
 extern SW D_003DD490;
-typedef void (BASIC::*PMF)();
-union SETTER
-{
-    int ibSet;
-    PMF pmfSet;
-    PFNTHUNK pfnthunk;
-    void (BASIC::*pmfSetN)(int);
-};
-struct EOPID
-{
-      OTYP otyp;
-      GRFEOPID grfeopid;
-      union
-    {
-        int ib;
-        PFNTHUNK pfnthunkDeferred;
-        PMF pmfGet;
-    };
-      union
-    {
-        int ibSet;
-        PMF pmfSet;
-        PFNTHUNK pfnthunk;
-        void (BASIC::*pmfSetN)(int);
-    };
-      union { SETTER setFile; int ibFile; int crefReq; };
-      void *(BASIC::*pmfObj)(int);
-};
 struct SWALLOC
 {
     int cb;
@@ -99,39 +74,6 @@ struct STACKSCOPE
 {
     STACKSCOPE();
     ~STACKSCOPE();
-};
-union TAG
-{
-    int m_n;
-    float m_g;
-    int m_bool;
-    uint m_symid;
-    BIFK m_bifk;
-    const VECTOR4* m_pvec4;
-    CPair* m_ppair;
-    CProc* m_pproc;
-    VECTOR* m_pvector;
-    MATRIX4* m_pmatrix;
-    CLQ* m_pclq;
-    LM* m_plm;
-    SMP* m_psmp;
-    BASIC* m_pbasic;
-    CMethod* m_pmethod;
-};
-class CRef
-{
-public:
-    TAGK m_tagk;
-    TAG m_tag;
-    CRef() { m_tagk = TAGK_Nil; }
-    CRef(TAGK tagk) { SetTag(tagk); }
-    CRef(TAGK tagk, int n) { m_tagk = tagk; m_tag.m_n = n; }
-    CRef(TAGK tagk, float g) { m_tagk = tagk; m_tag.m_g = g; }
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &ref);
-    bool operator==(const CRef &ref);
-    void Decref();
-    void SetTag(TAGK tagk);
 };
 CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv);
 struct OIDFIELD
@@ -366,21 +308,21 @@ extern "C" CRef *func_0013E690(CRef *pref, int otyp, CBinaryInputStream *pbis)
     case 0:
         {
             int f = pbis->U8Read() != 0;
-            pref->m_tagk = (TAGK)0x17;
-            pref->m_tag.m_n = f;
+            pref->m_tagk = 0x17;
+            pref->u.n = f;
         }
         break;
     case 5: case 6:
-        pref->m_tag.m_n = pbis->S32Read();
-        pref->m_tagk = (TAGK)0x15;
+        pref->u.n = pbis->S32Read();
+        pref->m_tagk = 0x15;
         break;
     case 1:
-        pref->m_tag.m_g = pbis->F32Read();
-        pref->m_tagk = (TAGK)0x16;
+        pref->u.g = pbis->F32Read();
+        pref->m_tagk = 0x16;
         break;
     case 7: case 14: case 15: case 16: case 17: case 19: case 20: case 21: case 23:
-        pref->m_tag.m_n = pbis->S16Read();
-        pref->m_tagk = (TAGK)0x15;
+        pref->u.n = pbis->S16Read();
+        pref->m_tagk = 0x15;
         break;
     case 9:
         {
@@ -408,8 +350,8 @@ extern "C" CRef *func_0013E690(CRef *pref, int otyp, CBinaryInputStream *pbis)
     default:
         if (((otyp & ~0x8000) >> 12) == 1)
         {
-            pref->m_tag.m_n = pbis->U32Read();
-            pref->m_tagk = (TAGK)0x15;
+            pref->u.n = pbis->U32Read();
+            pref->m_tagk = 0x15;
         }
         else
         {
@@ -484,7 +426,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                 for (int iElt = 0; iElt < cElt; iElt++)
                 {
                     arefElt[iElt] = RefFromBrx((OTYP)otyp, pbis);
-                    apv[iElt] = &arefElt[iElt].m_tag;
+                    apv[iElt] = &arefElt[iElt].u;
                     aotyp[iElt] = (OTYP)otyp;
                 }
                 aref[iarg] = RefSetArgListFromPvs(cElt, aotyp, apv);
