@@ -181,6 +181,18 @@ the other Splice node kinds (frames, procs, method records...).
 | a call of the matrix `operator*` result stored into a member is 18 off and the frame 0x40 bigger | `t = a * b` with the C++ operator copies the returned temporary once more; the per-function file called `__ml__FRC7MATRIX4T0(&t, a, b)` with the result pointer by hand | an asm-labelled hidden-result declaration on the quadword-row type: `extern "C" void MulMatrix4Ret(M4 *, M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0")` | xform (func_00231598) |
 | v0/v1 swapped in two consecutive hand-made vtable calls | the merged body read the vtable pointer into a shared local (`VE *pvt = PVT(p)`); the per-function m2c read it in each call | read it in each call expression | xform (CloneXfm) |
 | compile error "jump to label crosses initialization" | a `.c` function jumps into a block past declarations with initializers (legal in C) | turn the initializers into assignments after plain declarations (no code change) | bomb (UpdateBomb) |
+| one instruction off in a `.c` countdown loop (`li 30` where the target loads 31) | `while (--i != -1);` with an empty body compiles differently as C++ | write it `do ; while (--i != -1);` | blip (PblipgNew) |
+| v0/v1 (or the register of an address loaded around a call) swapped | the callee's declared return type differs from the per-function file's (declared `void` where it returns a value, or the reverse) | declare it as the per-function file did, through an asm-labelled view when the TU also defines it (`void func_0011B500V(M3 *, float, qword) __asm__("func_0011B500")`) | blip (memset returns `void *`), tu_223F70 (an int-returning vtable slot), mat (LoadRotateMatrixPanTilt calls func_0011B500 as `void`) |
+| a call's argument registers are loaded in another order, or an argument is moved that the target leaves in place | callers of one function passed different argument lists (floats first, an extra unused argument, by value vs by address, int vs char) | keep each caller's view as an asm-labelled declaration of the same symbol (`int func_001BCAC0F(CID14 *, void *, float, float, int) __asm__("func_001BCAC0")`) | blip, aseg, font, gs, util, booty, tu_223F70, tu_1BC050, tn, tu_1BAB50, menu (RefGetGlobalSaveVar three ways) |
+| frame 0x10 smaller than the target | an unused local (a DLI, a temporary pointer) of the per-function file was dropped | keep it | aseg (PasegaFindAseg, SetAsegMasterSpeed, InitAseg's `CLQ *pclq`) |
+| an extra store per asm, or the frame bigger: asm output operand written straight into a union or struct member (`"=j"(u.q)`, `"=j"(m.r[0])`) | as C++ the member is stored, then reloaded | output to a scalar and assign it (`qword t; __asm__(... "=j"(t) ...); u.q = t;`) | solve, tu_1B0B78, tn (GDistPlanePos), light (func_001A3B80), mat (four functions), rhythm (VecMul) |
+| a field compared both signed and unsigned (`p->n < 4` and `p->n <= 0`) | the per-function files typed it differently | an anonymous union `{ unsigned int un; int n; }` and each function reads its own member; or `(int)` at the signed uses | tu_201D78, booty, mpeg (CMPEG count, CByteQueue +0x10), rhythm, po, tu_1BC050 |
+| a struct-returning call assigned to a local goes through one more temporary (frame bigger, an extra copy) | `m = f()` in C++ builds the result in a temporary; C passed `&m` as the hidden pointer | initialise (`M4 mT = f()`), or pass the hidden pointer by hand through an asm-labelled view (`MATRIX4 *InvertMatrix4RigidP(MATRIX4 *, void *) __asm__("InvertMatrix4Rigid")`), or construct in place (`new (&m) M3(f(...))`); an assignment to a member (`p->mat = f()`) went through a temporary in C too and matches as written | booty, mat (CalculateDmat4, func_0011B500), po (UpdatePoctl) |
+| an inline helper returning a struct adds a temporary | C++ copies the inline's local into the return slot, then into the target | named return value (`static inline M3 MulM3(...) return m { ... }`), or an out pointer with row copies | mat (MulMatrix3Matrix3, LoadRotateMatrixPanTilt) |
+| scheduling differs after two helpers were merged into one | they differed only in `volatile` | keep both | tu_223F70 (ToVF / ToVFN) |
+| a register-pinned value is copied again before a call | the pinned variable was not passed explicitly inside the pin block | pass it explicitly (`HandleAsegaEvent(p, pe)` with `pe` in `$5`) | asega |
+| a member-function callback and a C definition of the same symbol (PMF to `func_001BB400`) | an asm-labelled member declaration next to the C definition risks ICE 378 | make the definition the member function (`void TRIG::Action()` with the label, `TRIG *p = this;`) | tu_1BAB50 |
+| linkonce setters called through asm-labelled members (`void SetPos(float, float) __asm__("CTextBox_SetPos")`) | — | define the linkonce copies as those member functions at the end of the file | rhythm (five CTextBox setters) |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -312,6 +324,27 @@ Other observations:
     int but func_00155A68 reads the object's position from it. When a unified field is read as a pointer anywhere,
     type it as a pointer; anonymous unions where both reads matter (tu_1553F0's BHVO, water's motion node).
   - g++ 2.95's symbol for `::operator delete(void *)` is `__builtin_delete`: memory defines it as the operator.
+- Wave 8 (22 asm TUs of 21..38 functions, inline-asm TUs smallest first; dzg, jthands, spliceobj and sensor left for
+  a dedicated pass): tu_20B840, shdanim, tu_1BAB50 and menu matched on the first compile once the views were unified,
+  the rest after one to four fixes from the mismatch table. What recurred:
+  - Most mismatches were per-caller views of one callee (argument order or count, return type) and asm outputs
+    written into union or struct members; both have rows in the table above.
+  - Shared helpers used where identical: vu0.h VuSub/VuSubRef/VuDot (blip), VuSub (tu_1B0B78), VuAdd/VuSub
+    (tu_201D78); util.h GMax (font), GAbs (solve, util, tn), GClamp (util, rhythm), GMin (tn), FIsPtr (tu_223F70).
+    A helper with the same name but another form stays TU-private and renamed (rhythm and po GMaxR `a < b ? b : a`;
+    mat's three sqrt helpers, volatile and not).
+  - Header types where they cover the fields: basic.h CLOCK (asega), SMP/SMPA/CLQ/LM/RGBA/VECTOR (util), aseg.h and
+    dli.h (aseg, asega), stepplayer.h GAIT (tu_20B840), xfm.h TN, cm.h CMPART2/CM and UpdateCptn's CPD for all of tn,
+    gifs.h GIFS for both GIFS users of mpeg (one had declared a non-virtual private copy).
+  - A header move was reverted: adding CHN/OVR/OVRA/AC/ACTSEG to aseg.h breaks about 15 per-function Lilly ports
+    that define their own CHN/OVR/OVRA/KEY, so ACTSEG/OVRA/AC stay identical TU-private copies in aseg.cpp and
+    asega.cpp.
+  - basic.cpp keeps private views of BASIC/LO on purpose: defining BASIC's members there would make it BASIC's key TU.
+  - mpeg's StaticInit stores the audio output's vtable into the global player before the pools (as heap's level heap
+    does): the player D_002F66B0 is defined in mpeg.cpp with an inline constructor that stores the address by hand.
+  - The callback PMF passed by value from `.c` files is a packed long (`struct LONGU { long l; }
+    __attribute__((packed)); extern const LONGU D_...;` passing `.l`): aseg, booty, tn, rhythm.
+  - po's linkonce PemitbEnsureEmitter matched without its file's SLY2_CC / -G0 / -ffast-math overrides.
 - Drafting tool hazard: never `git stash`/`stash pop` between finalising a TU and committing it. `stash pop` restores
   the files but not the index, so the commit took only the new `.cpp` (wave 2's draw commit had to be rebuilt).
 
@@ -795,22 +828,59 @@ Total wave 7: 19 TUs, 378 functions; no `#line` pin and no header change was nee
 run (the merge commits had already pointed its sources at the merged files). The same 332 sources do not build here
 and are carried over (the SDK files and the three gnu-reorder game files).
 
+Wave 8 (inline-asm TUs of 21..38 functions, smallest first; dzg, jthands, spliceobj and sensor left for a dedicated
+pass; mark, hurt, grab, mat and proxy skipped, see "Not merged"):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| blip | engine/fx/blip.cpp | 21 | BLIPG (0x460) and BLIP unified; do/while countdown; memset returns `void *`; vu0.h VuSub/VuSubRef/VuDot; CblipeProjectBlipTransformAccelM view takes a struct |
+| aseg | engine/anim/aseg.cpp | 23 | aseg.h, dli.h; caller views (ApplyAseg = func_0012F9B8 floats first, PostAsegLoadCallback); unused DLI locals kept; packed-long PMF; aseg.h move reverted |
+| font | engine/font/font.cpp | 24 | CFont/CFontBrx/CRichText; ChNextI/ChNextC/DxFromChI/DxDrawChI int vs char views; util.h GMax |
+| solve | engine/physics/solve.cpp | 24 | SO/XF/SOPHYS/SOTREE/XP views, M3C/MATC; union asm output via a scalar; GAbs |
+| tu_1B0B78 | gameplay/objects/tu_1B0B78.cpp | 25 | CID96 view; union asm output via a scalar; VuSub |
+| gs | engine/graphics/backend/gs.cpp | 26 | GS_InterruptV() without its argument; BuildClearGifsP passes the RGBA by address; D_002DEB80W array view |
+| tu_201D78 | gameplay/player/tu_201D78.cpp | 26 | RECONSEL/RECONTGT; `== 0` for `!` (an original `!!` kept where it matches); `(int)` count casts; VuAdd/VuSub |
+| asega | engine/anim/asega.cpp | 27 | basic.h CLOCK, aseg.h; register-pinned pass-through argument |
+| util | core/math/util.cpp | 28 | basic.h SMP/SMPA/CLQ/LM/RGBA/VECTOR; ConvertUserHsvToUserRgbQ 16-byte VECTOR view; GAbs/GClamp |
+| booty | gameplay/progression/booty.cpp | 28 | struct-returning call initialised, not assigned (frame 0x40 smaller); PvContSaveKey view; packed-long PMF |
+| tu_223F70 | gameplay/objects/tu_223F70.cpp | 28 | CID100 : SO; ToVF / ToVFN kept apart (volatile); BuildOrthonormalMatrixZ's hidden pointer by hand; FIsPtr |
+| basic | object/basic.cpp | 31 | private BASIC/LO views (key-TU reasons); three linkonce copies |
+| tu_20B840 | gameplay/player/tu_20B840.cpp | 31 | stepplayer.h GAIT; private LEAP (0x70), curve markers, direction blend; first compile |
+| tu_1BC050 | engine/physics/tu_1BC050.cpp | 31 | one CID14 view (convex polygon SHAPE); float-first caller views; VU_QWORD's constructor = func_002564B8 |
+| tn | engine/camera/tn.cpp | 31 | UpdateCptn's headers for the whole TU (xfm.h TN, cm.h CMPART2/CM, its CPD); packed-long PMF; union asm output via a scalar |
+| light | engine/graphics/pipeline/light.cpp | 32 | one LIGHT (0x170) and one world light-slot view; union asm output via a scalar |
+| shdanim | engine/graphics/pipeline/shdanim.cpp | 33 | SAA base with LOOP/PINGPONG/SHUFFLE/EYES/SCROLLER/CIRCLER derived (the types the mangled names need); first compile |
+| tu_1BAB50 | gameplay/objects/tu_1BAB50.cpp | 34 | one trigger view; func_001BB400 is the member behind the callback PMF; first compile |
+| mpeg | gameplay/cutscene/mpeg.cpp | 34 | CMPEG/CMpegAudio/CQueueOutputIop; gifs.h for both GIFS users; the player defined here with a vtable-storing constructor |
+| rhythm | gameplay/objects/rhythm.cpp | 35 | DANCER/RHYTHMMGR; five linkonce CTextBox setters as TB members; packed-long PMF |
+| po | actor/po.cpp | 38 | PO/POCTL/world views; linkonce PemitbEnsureEmitter without overrides |
+| menu | ui/menu.cpp | 38 | PMENU/PAGE/ITEM, one CRef, three RefGetGlobalSaveVar views; first compile |
+
+Total wave 8: 22 TUs, 648 functions; no `#line` pin and no header change was needed. After the wave,
+`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by the
+run (the merge commits had already pointed its sources at the merged files). The same 332 sources do not build here
+and are carried over (the SDK files and the three gnu-reorder game files).
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| dzg | skipped in waves 5, 6 and 7 (no cheap fix found): five incompatible per-file views of DZG/DZ/F/SO/X. dzgcore's DZG (TU-private, 0x50) cannot grow to the 0x64 bytes dzg reads (+0x50..+0x60): SolveInequalities keeps a DZG on its stack and a bigger DZG changes its frame (28 of 86 off, tried in wave 6). Needs DZ/DZG moved to a header unchanged plus a derived DZG for dzg (+0x50 contact count/array, +0x58 object count/array, +0x60 the 0x60-byte per-constraint records), and the per-record +0x50 pointer settled first: one function reads it as an object with an index at +0xA8, another as a 0x40-byte contact side |
-| jthands | skipped in wave 7 (budget): five per-file views of JTHANDS (stepplayer.h has it whole), the Lilly InitJtHands on the headers (unsigned qword, real LO/SHAPE/XF classes) next to three hand-scheduled functions (UpdateJtHands, func_001CCC88, func_001CD308) written on private int-qword views with their own `LO`; needs the hand-scheduled bodies moved onto JTHANDS field by field |
-| spliceobj | skipped in wave 7 (budget): four CRef spellings (the Lilly class twice with different EOPID unions, a C struct with hidden-pointer returns, a class with an asm-labelled copy constructor) and the GC pool-6 linkonce helpers; needs one CRef (probably sly2/cref.h) and a superset EOPID first |
-| sensor | skipped in wave 7 (budget): the laser sensor's 0x150-byte beam records are read under six different layouts (endpoints with a motion-profile union, contact lists, caps), plus RenderLasenSelf's and func_001DE5D8's hand tuning; a straight but long unification |
+| dzg | skipped in waves 5, 6 and 7 (no cheap fix found), left for a dedicated pass in wave 8: five incompatible per-file views of DZG/DZ/F/SO/X. dzgcore's DZG (TU-private, 0x50) cannot grow to the 0x64 bytes dzg reads (+0x50..+0x60): SolveInequalities keeps a DZG on its stack and a bigger DZG changes its frame (28 of 86 off, tried in wave 6). Needs DZ/DZG moved to a header unchanged plus a derived DZG for dzg (+0x50 contact count/array, +0x58 object count/array, +0x60 the 0x60-byte per-constraint records), and the per-record +0x50 pointer settled first: one function reads it as an object with an index at +0xA8, another as a 0x40-byte contact side |
+| jthands | skipped in wave 7 (budget), left for a dedicated pass in wave 8: five per-file views of JTHANDS (stepplayer.h has it whole), the Lilly InitJtHands on the headers (unsigned qword, real LO/SHAPE/XF classes) next to three hand-scheduled functions (UpdateJtHands, func_001CCC88, func_001CD308) written on private int-qword views with their own `LO`; needs the hand-scheduled bodies moved onto JTHANDS field by field |
+| spliceobj | skipped in wave 7 (budget), left for a dedicated pass in wave 8: four CRef spellings (the Lilly class twice with different EOPID unions, a C struct with hidden-pointer returns, a class with an asm-labelled copy constructor) and the GC pool-6 linkonce helpers; needs one CRef (probably sly2/cref.h) and a superset EOPID first |
+| sensor | skipped in wave 7 (budget), left for a dedicated pass in wave 8: the laser sensor's 0x150-byte beam records are read under six different layouts (endpoints with a motion-profile union, contact lists, caps), plus RenderLasenSelf's and func_001DE5D8's hand tuning; a straight but long unification |
+| mark | skipped in wave 8: CsbiIntersectSphereBsp is a Lilly port on basic.h/xfm.h/so.h (unsigned qword, the header VECTOR), while func_001A87F0 and MarkSoContactsBspBsp are tuned on int-qword private views whose matches depend on the gcse expression table size; needs a header-based unification |
+| hurt | skipped in wave 8: JTHURT/ZPR/STEPPLAYER are in stepplayer.h, but eleven tuned functions read about 20 JT fields through private views and call a `C::*` PMF action; needs the JT field mapping first (with jthands) |
+| grab | skipped in wave 8: 4636 instructions on jt.h/stepplayer.h, same reason as hurt |
+| mat | skipped in wave 8: 32 of 33 match; func_0011B500 stays 2 off. As C, the hidden result pointer of LoadRotateMatrixSinCos (a0) is set after the a2 argument copy; every C++ spelling tried (explicit pointer through an asm label, placement new, initialisation, a `$6` or `$4` pin) sets a0 first or adds a copy. The rest is solved (scratch template kept: union outputs via scalars, hand-passed hidden pointers, NRV / out-pointer inline products, a `void` view of func_0011B500, the ICE-378 rule for DecomposeRotateMatrixRad) |
+| proxy | skipped in wave 8 (budget): four Lilly ports each declare their own CBinaryInputStream, GRABSPOT, CELL, ... next to private views; needs those deduplicated (or moved to headers) first |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 7 every game TU without inline asm is merged, and so are the 62 smallest asm TUs. Left: 67 TU
-directories that still hold per-function files, all with inline asm or asm-named code (counted from
-config/matched.csv: directories whose sources are mostly files named after their function, less the three non-TUs
-below; the wave-6 figure of 86 came from a looser count). Smallest first: dzg 9, jthands 17, spliceobj 18, blip 21,
-sensor 21, mark 22, aseg 23, font 24, solve 24, tu_1B0B78 25, gs 26, tu_201D78 26, asega 27, util 28, tu_223F70 28,
-grab 28, hurt 28, booty 28, ... Plus the non-TUs (splice_thunks; platform/boot/crt0). The unhomed linkonce
+After wave 8 every game TU without inline asm is merged, and so are the 84 smallest asm TUs except the nine in
+"Not merged". Left: 45 TU directories that still hold per-function files, all with inline asm or asm-named code
+(the wave-7 count of 67 less the 22 merged in wave 8). Smallest first: dzg 9, jthands 17, spliceobj 18, sensor 21,
+mark 22, hurt 28, grab 28, mat 33, proxy 38, tu_1709A8 42, glob 42, sm 43, tu_144B28 43, tu_1D1370 44, xf 44, air 44,
+shd 45, step 46, bentley 48, ... Plus the non-TUs (splice_thunks; platform/boot/crt0). The unhomed linkonce
 instances are all homed now (inline passes 1 and 3, see "Inline functions and linkonce copies"): src/game/core/linkonce
 no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table,
 then "Recurring asm idioms" before renaming any helper.
