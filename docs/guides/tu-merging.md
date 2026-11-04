@@ -429,14 +429,14 @@ What makes g++ 2.95 emit the copy (all measured with matchtool on a scratch file
 - Unused inline functions in a header emit nothing: after the pilot all 163 sources that include `sly2/` headers
   were rebuilt; every function still matched and no addressed symbol appeared in another object.
 
-The 56 functions of src/game/core/linkonce/unhomed are all of one kind: no code refers to them; the only references
+The 56 functions that were in src/game/core/linkonce/unhomed (removed in pass 3) were all of one kind: no code refers to them; the only references
 are pointers to member functions (`{0xFFFF0000, pfn}`: delta 0, index -1, non-virtual) in the option table g_aeopid
 (D_002AC880, 0x28-byte EOPID records: get PMF at +0x8, set at +0x10, setUser at +0x18, ensure at +0x20). The owner class
 of a record is the root-most class whose option array in g_mpcidarysplopt (D_00279AD0, 199 x {count, SPLOPT *}) lists
 it. g_aeopid lives in crt0_splicewrap's .data and is not in the source, so:
 
 - the accessor becomes an inline function in its class's header (sly2/cm.h, lo.h, so.h, xfm.h, stepplayer.h,
-  guard.h so far), written against the header types;
+  guard.h; function templates in emitter.h, pass 3), written against the header types;
 - src/game/app/eopid_linkonce.cpp includes the headers and takes the addresses as g_aeopid does, one
   `SLY2_EOPID_REF(addr, &func)` line each (`__typeof__(pfn) g_eopidref_<addr> = pfn;`: data, ignored by the tools).
   It is in app/ because it includes headers of every layer, as crt0_splicewrap does; matched.csv names it as the
@@ -456,24 +456,47 @@ They stay free inline functions for now (house style, as Sly 1's free-function c
 first non-inline virtual function, where g++ emits the vtable and the inline members) are merged: only there can a
 member form produce the linkonce copy, so the question can be settled by a match rather than by taste.
 
-Done: 19 of 56 (CM 2, STEPPLAYER 1, LO 1, SO 1 + BARREL's ensure, STEPGUARD 4 through a new DETECTOR view, and the
-nine "own fields" ensure accessors of SHAPE/XFM/VOL/TARGET-derived classes, `(char *)p + sizeof(BASE)`). Header
-additions: REGENT moved from CloneSo.cpp to so.h; DETECTOR (CID 0x10 : XFM, cb 0x180) in guard.h, typing
-STEPGUARD::pdetector. Left (37):
+Done in pass 1: 19 of 56 (CM 2, STEPPLAYER 1, LO 1, SO 1 + BARREL's ensure, STEPGUARD 4 through a new DETECTOR view,
+and the nine "own fields" ensure accessors of SHAPE/XFM/VOL/TARGET-derived classes, `(char *)p + sizeof(BASE)`).
+Header additions: REGENT moved from CloneSo.cpp to so.h; DETECTOR (CID 0x10 : XFM, cb 0x180) in guard.h, typing
+STEPGUARD::pdetector.
 
-- 34 emitter-block accessors, 17 for EMITTER (0x258898..0x258EC8) and the same 17 for EXPLO (0x259330..0x259960; its
-  records are owned by EXPLO or EXPLS : EXPLO). The two sets have the same sizes and order and differ only in the class
-  and the "ensure" callee (PemitbEnsureEmitter / PemitbEnsureExplo), so they are one function template instantiated
-  twice (HYPOTHESIS). Plan: one template per accessor over T in a new emitter header, the callee as an overload
-  `PemitbEnsure(T *, int)` asm-labelled to the two current symbols, both instantiations named in eopid_linkonce.cpp,
-  both addresses renamed to the template's mangled instantiations. Some of them call each other out of line
-  (func_002589A8 calls func_00258898), so check that the template calls stay calls.
-- 3 CID150 accessors (0x2562E0, 0x256318, 0x256350; CID150 : CID148 : BASIC, cb 0x30): need a CID150 view (+0x20
-  object, +0x24 record with a float at +8, a short at +0x14, an int at +0x18); their setters (0x2562B8...) are homed in
-  so/ as plain functions and are linkonce copies of the same kind.
+(Inline pass 3.) The other 37, plus five related copies that were homed as plain functions elsewhere (42 functions);
+src/game/core/linkonce/ is gone:
 
-Related linkonce copies already homed in per-function TU directories (func_00256278 SetCmMat wrapper in cm/, the
-CID150 setters in so/, rail/pipe's 0x259B08/0x259AF8...) are the same kind and can move the same way.
+- CID150 (6): the three getters (0x2562E0, 0x256318, 0x256350) and their setters from engine/physics/so (0x2562B8,
+  0x2562F0, 0x256328) are the get/set pairs of g_aeopid records 1234..1232. Free inline functions in so.h over a new
+  CID150 view (CID150 : CID148 : BASIC, cb 0x30: the part's SO at +0x20, its SOPART at +0x24); renamed with
+  rename.py to `func_X__FP6CID150...`. All six matched on the first compile.
+- EMITTER/EXPLO (36): the 17 accessors of each class plus memory.cpp's two emitter-block setters (0x258A00, 0x259498:
+  also g_aeopid records, the 18th pair) are one function template each over the emitter-bearing class, in the new
+  sly2/emitter.h: `template <class T> EMITV *func_00258898(T *p, ENSK ensk)` and so on, against an EMITB view of the
+  fields read, `EMITTER : XFM` (0x160), `EXPL : XFM` (0xE0), `EXPLO : EXPL` (0xF0) and `enum ENSK`. The per-class
+  callee is an overload resolved by asm label (`EMITB *PemitbEnsure(EMITTER *, ENSK) __asm__("PemitbEnsureEmitter")`
+  and the EXPLO one), so one body serves both. eopid_linkonce.cpp takes the address of both instances; all 36 matched
+  on the first compile, and the calls between the templates (func_002589A8 -> func_00258898...) stay calls because
+  the templates are not declared `inline` (a function template is emitted per instance either way; the copies come
+  out weak in `.gnu.linkonce.t.<symbol>` like the inline functions). Each template is named after its EMITTER copy's
+  address; the EXPLO copy is the other instance (`func_00258898__H1Z5EXPLO_PX014ENSK_P5EMITV` at 0x259330).
+
+What the template step needed beyond pass 1:
+
+| issue | what happened | what worked |
+|---|---|---|
+| taking a template instance's address in the data initializer | `__typeof__(&func_00258898<EMITTER>) g = &func_00258898<EMITTER>;`: g++ 2.95 "sorry, not implemented: initializer contains unrecognized tree code" | spell the pointer type and let deduction pick the instance: `SLY2_EOPID_TREF(addr, ret, fn, params)` = `ret (*g_eopidref_<addr>) params = &fn;` |
+| the symbol names | template functions mangle as `<name>__H1Z<class>_<params>_<return>` (`func_002589A8__H1Z7EMITTER_PX01i_v`: `PX01` = pointer to the first template argument, the return type is part of the name). tools/rename.py's validator rejects `__H` names ("class expected") | the 36 renames done by hand: functions.csv and matched.csv names (CRLF kept), one symbol_addrs.txt entry each in address order, matched.csv source eopid_linkonce.cpp; the unhomed files were deleted in the same commit, so no code referred to the old names. Teaching rename.py `__H` names was left out (no tooling change) |
+| per-file views | the 34 `.c` files used three views of the block (`{pad; x4; pad; M m}` at +0xC0, a kind + payload union, the setter's `x10`/`x30`) | one EMITB with a 0x40-byte `EMITV` record at +0xC0 (`aligned(16)` on the struct keeps the quadword copy of the defaults), payloads as small structs so the copies stay struct copies |
+
+The member form was not tried: EMITTER and EXPLO are polymorphic (XFM) and their key TUs are not merged, so a member
+template could not be emitted by eopid_linkonce.cpp (see above); free templates follow the free-function convention.
+
+Related linkonce copies still homed as plain functions in per-function directories (the same kind; candidates for the
+same move): func_00256278 (SetCmMat wrapper, cm/), rail/pipe's 0x259B08/0x259AF8, and the rest of the emitter family
+around the templates, whose EMITTER and EXPLO copies also come in pairs at the same offsets (LoadEmitblipColorsFromBrx
+0x2584A8 / LoadExploBlipColorsFromBrx 0x258F40, LoadEmitterFromBrx / LoadExploFromBrx, CloneEmitter / CloneExplo,
+PemitbEnsureEmitter 0x258658 / PemitbEnsureExplo 0x2590F0, func_002586D8 / func_00259170, GetEmitterClassDesc_linkonce
+/ GetExploClassDesc_linkonce): HYPOTHESIS that they are the rest of the same template set (or of one per-class
+macro); not checked.
 
 ## Shared inline helpers
 
@@ -509,8 +532,8 @@ size check rejects a quadword), `VuToFloat(v)` (qmfc2.ni into a float), `VuMulMa
 `VuMulMatrix4(r0, r1, r2, r3, v)` (matrix rows times vector; 4 adds the translation row), and VuSub/VuSubRef extended.
 All names are placeholders (no Sly 1 symbol names these idioms). The unit folded is one asm statement (a "site", as in
 the pass 1 survey): `__asm__(...)` becomes `out = Helper(args)` wherever it stands, inside a private wrapper (Dot, QwDot,
-Length, Scalar...) or a function body. The private wrappers stay, now around the shared helper: deleting them and
-calling the shared helper directly is the next reduction. Each fold was kept only if every function of its file still
+Length, Scalar...) or a function body. The private wrappers stayed, around the shared helper (pass 3 removed the pure
+forwarders, below). Each fold was kept only if every function of its file still
 matched (matchtool on the whole file); otherwise the site stays as it was. Pass 2 only touched merged files under
 src/game (one .cpp per TU).
 
@@ -531,6 +554,42 @@ Total: 248 sites folded in 41 files; every function of every touched file matche
 | the dot temp with or without earlyclobber (`"=j"` vs `"=&j"(one)`, about half the sites each) | no difference for any site (the misses miss with both) | one VuDot with a plain `"=j"` temp |
 | a pinned result (`register qword d asm("vf1")`) assigned from the helper; a pinned dot temp or qmfc2 GPR temp dropped by the fold | matches (vec LenV, geom Normalize, throw ScalarS and others) | unlike pass 1's rail case, a pin on the variable that receives the result survives the fold; the pins on temps that the fold removes were not needed |
 | the asm writes a wrapper's member (`"=j"(v.qw)`, a constructor's `q`, `r.r[i]`) | 1..2 functions off | the same family as "asm output into a memory lvalue" in the mismatch table: leave until the wrapper types are unified |
+
+(Inline pass 3.) Two reductions on top of pass 2, each kept only where every function of the file still matches.
+
+Forwarding wrappers removed: 47 private wrappers whose whole body was one call of a sly2/vu0.h helper (`qword
+Sub(qword a, qword b) { qword r; r = VuSub(a, b); return r; }`, `Dot3`, `QwDot`, `VF0`, `Broadcast`, `ToVf`, `FG`,
+`GFromVf`, `X`...) are gone and their call sites call the helper: 12 in core/math (bez, bsp, vec), 14 in engine (blend,
+tail, wr, trail, clip, tu_185130, tu_1D6848, water), 21 in gameplay (detector, tu_14A008, tu_1553F0, tu_171F58,
+tu_173158, bomb, missile, tu_1C2D20, places, dirblend, hang, throw, waypoint; the commit subject says 23). Two were
+unused (tu_173158 QwSub, throw X). vec's per-function namespaces were folded namespace by namespace (V_func_0011EA60
+keeps its own Sub, which has different asm). The `int`-typed float-to-VF wrappers (dirblend ScalarBits/PureBits, blend
+ToVf) fold into `VuFromFloat<qword>(bits)` unchanged, since VuFromFloat takes the word as given.
+
+| wrapper kept | why |
+|---|---|
+| tu_173158 QwSubFrom (`const qword &` operand) | calling VuSub directly: func_00173F18 55/350 off (the by-reference rule of pass 1). tu_171F58's QwSubFrom of the same shape folded fine |
+| tu_1D57A8 Dot / Scalar (VU_VECTOR operands by value) | folding even Scalar alone: CullSceneRenderList 15/705 off (the VU_VECTOR copy is part of the shape). tu_173158's GetXV (VU_VECTOR, used once inside LengthXY) folded fine |
+| tu_1D6848 Difference (`const qword *` operand) | VuSub(end, start) at the call: func_001D6848 4/105 off |
+| hang LengthSquared | its argument is a virtual call (`Velocity(p)`): the wrapper evaluates it once |
+| matrix adapters (Transform, QwTransformPos, Point, MulPos, MulV, Rotate, QwRotateVec...) | not forwarders: they turn a matrix type into four row operands; inlining them at the sites would add code |
+| composites (trail Dot = VuDot then VuToFloat, tu_1B9F80 Square, detector Dot, the length forms with their own vsqrt asm, wrappers whose result is a pinned register) | not single forwards |
+
+Shared C helpers: include/sly2/util.h (new) holds GMin, GMax (`a < b ? a : b`, `a > b ? a : b`), NMin (int),
+GClamp (early-return form), GAbs (`__builtin_fabsf`), FIsPtr (`!(n & 1)`: a word that is a pointer or an odd tag) and
+NLerp (t onto an integer range). 33 private helpers in 25 merged files folded (7 in core/platform/world, 10 in engine,
+16 in gameplay; the first commit's subject says 8 TUs, it is 7). Clamp spellings fold into the one GClamp even when
+written differently: the early-return form with `g > hi` (vec, cane, joy), the if/else-if form with a result variable
+(clock, tu_12E600, tu_1B9F80) and the in-place assignment form (places, wr GLimit, tu_1D6848) all match with it.
+
+| not folded | result | rule |
+|---|---|---|
+| `b < a ? b : a` min (bsp GMin, tu_1D57A8 Min, clip GMin, water Min) and `a < b ? b : a` max (bsp GMax, throw GMax) folded into GMin/GMax | 1..89 instructions off (water UpdateWater 1/290, tu_1D57A8 func_001D6508 1/122, bsp func_00118D08 2/168, clip func_0014C748 89/172) | the operand-swapped forms (they are std::min/std::max's spelling: compare with `<` only, return the first operand on ties) are a different idiom: kept private. clip, bsp and throw therefore do not include util.h (their private GMin/GMax would collide); a second pair of shared helpers for that spelling is the next step |
+| vec V_FindClosestPointOnLineSegment's GClamp (assignment form) | FindClosestPointOnLineSegment 60/62 off | context decides: the same spelling folded in places, wr and tu_1D6848. Kept in its namespace (it hides ::GClamp there) |
+
+After pass 3, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv
+unchanged by the run (the commits had already set names and sources); the same 332 sources do not build here (SDK
+files and the three gnu-reorder game files).
 
 After pass 1, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv
 unchanged by the run (the commits had already set the new names and sources); the same 332 sources do not build here.
@@ -726,7 +785,7 @@ Wave 7 (the next asm TUs by size, 16..25 functions; jthands, spliceobj and senso
 | vec | core/math/vec.cpp | 22 | per-function helper namespaces; six union asm outputs via a scalar |
 | bomb | gameplay/objects/bomb.cpp | 22 | one BOMB view; goto across initializations; struct list head; packed-long callback (B4); `(uchar)` |
 | water | engine/physics/water.cpp | 22 | SOW, the N node on two lists, one VE; one-argument func_001F5078 alias |
-| memory | platform/memory/memory.cpp | 23 | allocators, STACKSCOPE, `operator delete` = __builtin_delete; 2 linkonce emitter setters; overrides dropped |
+| memory | platform/memory/memory.cpp | 23 | allocators, STACKSCOPE, `operator delete` = __builtin_delete; 2 linkonce emitter setters (moved to sly2/emitter.h in inline pass 3: 21 left); overrides dropped |
 | noise | gameplay/ai/noise.cpp | 23 | NOISE, NOISETYPE, LISTENER; first compile |
 | bhvstk | gameplay/ai/bhvstk.cpp | 25 | BHV/BHVSTK layout; 17 m2c; first compile |
 | text | platform/runtime/text.cpp | 24 | printf: one TFT, one OSTRM (0x418); own functions by C++ name; first compile |
@@ -751,7 +810,7 @@ directories that still hold per-function files, all with inline asm or asm-named
 config/matched.csv: directories whose sources are mostly files named after their function, less the three non-TUs
 below; the wave-6 figure of 86 came from a looser count). Smallest first: dzg 9, jthands 17, spliceobj 18, blip 21,
 sensor 21, mark 22, aseg 23, font 24, solve 24, tu_1B0B78 25, gs 26, tu_201D78 26, asega 27, util 28, tu_223F70 28,
-grab 28, hurt 28, booty 28, ... Plus the non-TUs (splice_thunks; src/game/core/linkonce/unhomed, 37 linkonce
-instances not yet homed (19 of the 56 moved into the class headers in inline pass 1, see "Inline functions and
-linkonce copies"); platform/boot/crt0). Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table,
+grab 28, hurt 28, booty 28, ... Plus the non-TUs (splice_thunks; platform/boot/crt0). The unhomed linkonce
+instances are all homed now (inline passes 1 and 3, see "Inline functions and linkonce copies"): src/game/core/linkonce
+no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table,
 then "Recurring asm idioms" before renaming any helper.
