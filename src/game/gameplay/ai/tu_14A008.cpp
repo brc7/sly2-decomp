@@ -374,7 +374,7 @@ extern "C" int func_0014A478(BHVRT *p)
 }
 
 static inline int FLess(float a, float b) { return a < b; }
-static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline qword Sub(qword a, qword b) { qword r; r = VuSub(a, b); return r; }
 static inline qword SubX(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "j"(b)); /* extra operand: allocation only */ return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float Len(qword a)
@@ -755,13 +755,10 @@ extern "C" void func_0014B218(GUARDV *p, int msgid, void **ppv)
 
 static __inline__ float GDist(qword a, qword b)
 {
-    qword d, t;
+    qword d;
     float g;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    __asm__("vmul.xyz %0, %0, %0\n"
-        "vaddw.x %1, $vf0, $vf0w\n"
-        "vadday.x ACC, %0, %0y\n"
-        "vmaddz.x %0, %1, %0z" : "+j"(d), "=j"(t));
+    d = VuSub(a, b);
+    d = VuDot(d, d);
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
         "vaddq.x %0, $vf0, Q" : "+j"(d));

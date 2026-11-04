@@ -155,7 +155,7 @@ extern "C" void PostNeelaLoad(NEELA *p)
     func_001300B8(p->id, p, p->pv1030, p->node->space, &l, 0, *pg, 1.0f);
     a = l.q30;
     b = p->node->position;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+    d = VuSub(a, b);
     p->n1060 = 0;
     p->axis = d;
     p->n106C = 1;
@@ -339,7 +339,7 @@ extern "C" void func_001BA5C8(NBHV *p)
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+    d = VuSub(a, b);
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(d));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));

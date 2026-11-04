@@ -480,7 +480,7 @@ extern "C" int func_001545F0(DETECTOR *p, SOV *pso)
     return !f;
 }
 
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=&j"(d) : "j"(a), "j"(b)); return d; }
+static inline qword Sub(qword a, qword b) { qword d; d = VuSub(a, b); return d; }
 static inline float Dot(qword a, const VECTOR &b)
 {
     float g;

@@ -217,7 +217,7 @@ extern "C" void func_00172018(BHV171 *p) {
                 qword a = func_00172760(p);
                 qword b = func_001A62E8(p->pguard);
                 qword d;
-                __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+                d = VuSub(a, b);
                 SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
             }
             break;
@@ -294,7 +294,7 @@ extern "C" void func_00172320(BHV171 *p, int n) {
             qword a = func_00172760(p);
             qword b = func_001A62E8(p->pguard);
             qword d;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+            d = VuSub(a, b);
             SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
             { BHVO *o = func_00205438(p->pguard, 0x9E); VE *e = &o->pvt[8]; e->pfn((char *)o + e->d); }
             func_00172560(p);
@@ -363,7 +363,7 @@ extern "C" void func_001725E0(BHV171 *p, WATCH *o) {
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+    d = VuSub(a, b);
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(d));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
@@ -407,7 +407,7 @@ extern "C" int func_00172798(QUERY *p) {
     qword d;
     ROW *pe;
     float f;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(p->candidate.q), "j"(p->point.q));
+    d = VuSub(p->candidate.q, p->point.q);
     GetVectorSphere(d, &a, &b, &c);
     if (!FCheckLm(&D_002A53C0, c)) return 0;
     if (!FCheckLm(&D_002A53C8, b)) return 0;
@@ -431,7 +431,7 @@ extern "C" int func_00172888(ROW *a, ROW *b) { return a->angle < b->angle; }
 
 struct VU_FLOAT{qword qw;};
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwSubFrom(const qword &a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword QwSubFrom(const qword &a,qword b){qword r;r = VuSub(a, b);return r;}
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwLength(qword v){qword qw,vfOne,qwLen;
  qw = VuDot(v, v);

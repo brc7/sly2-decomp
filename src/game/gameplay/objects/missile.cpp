@@ -265,7 +265,7 @@ static inline VU_FLOAT VuFloat(float g)
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
+    qw = VuSub(qw0, qw1);
     return qw;
 }
 static inline float GFromVf(qword qw)

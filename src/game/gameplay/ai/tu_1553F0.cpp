@@ -294,7 +294,7 @@ extern "C" void func_00155660(BHVESC *p)
             qword b = func_001A62E8(p->ploTarget);
             qword d, l;
             float dist; int f;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+            d = VuSub(a, b);
             __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
             __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
             __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(l));
@@ -465,7 +465,7 @@ extern "C" void *func_00155A68(BHVATK *p)
     return p->pesc->ploA;
 }
 
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+static inline qword Sub(qword a, qword b) { qword d; d = VuSub(a, b); return d; }
 static __inline__ float GetX(qword q)
 {
     float x;

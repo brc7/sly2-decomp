@@ -376,7 +376,7 @@ static __inline__ qword VLenA(qword c)
 static inline qword Sub(qword a, qword b)
 {
     qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    r = VuSub(a, b);
     return r;
 }
 static inline qword DivQ(qword v, qword f)
@@ -785,7 +785,7 @@ extern "C" void DetonateBomb(BOMB *p)
             msg.po = (PO *)po;
             qword pos = func_001A62E8(po);
             qword def = D_002A2DC0;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(p->posDetonate));
+            d = VuSub(pos, p->posDetonate);
             {
                 register qword t __asm__("vf2");
                 t = VuDot(d, d);

@@ -109,13 +109,10 @@ extern "C" void func_00147EE8(SWBUSY *p, void *pv)
 
 static __inline__ float GDist(qword a, qword b)
 {
-    qword d, t;
+    qword d;
     float g;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    __asm__("vmul.xyz %0, %0, %0\n"
-        "vaddw.x %1, $vf0, $vf0w\n"
-        "vadday.x ACC, %0, %0y\n"
-        "vmaddz.x %0, %1, %0z" : "+j"(d), "=j"(t));
+    d = VuSub(a, b);
+    d = VuDot(d, d);
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
         "vaddq.x %0, $vf0, Q" : "+j"(d));
@@ -226,7 +223,7 @@ static __inline__ float GDistSq(qword a, qword b)
 {
     qword d;
     float g;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+    d = VuSub(a, b);
     d = VuDot(d, d);
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
