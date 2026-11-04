@@ -105,16 +105,16 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x11BA08](../../src/game/core/math/mat/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
 | [0x11C168](../../src/game/core/math/mat/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
 | [0x11C950](../../src/game/core/math/mat/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
-| [0x11CF60](../../src/game/core/math/util/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
-| [0x11D018](../../src/game/core/math/util/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
-| [0x11D448](../../src/game/core/math/util/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
-| [0x11D508](../../src/game/core/math/util/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
-| [0x11D608](../../src/game/core/math/util/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
-| [0x11D7F0](../../src/game/core/math/util/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
-| [0x11D898](../../src/game/core/math/util/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
-| [0x11D978](../../src/game/core/math/util/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
-| [0x11D9D8](../../src/game/core/math/util/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
-| [0x11DD30](../../src/game/core/math/util/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
+| [0x11CF60](../../src/game/core/math/util.cpp) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
+| [0x11D018](../../src/game/core/math/util.cpp) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
+| [0x11D448](../../src/game/core/math/util.cpp) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
+| [0x11D508](../../src/game/core/math/util.cpp) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
+| [0x11D608](../../src/game/core/math/util.cpp) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
+| [0x11D7F0](../../src/game/core/math/util.cpp) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
+| [0x11D898](../../src/game/core/math/util.cpp) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
+| [0x11D978](../../src/game/core/math/util.cpp) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
+| [0x11D9D8](../../src/game/core/math/util.cpp) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
+| [0x11DD30](../../src/game/core/math/util.cpp) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
 | [0x11E2D8](../../src/game/core/math/vec.cpp) | `GetNormalVectors` | Two unit vectors perpendicular to a normal (basis rows) | 0.65 | T1 | verified |
 | [0x11E630](../../src/game/core/math/vec.cpp) | `FindClosestPointBetweenLines` | Closest points between two infinite lines | 0.85 | T1 | verified |
 | [0x11E958](../../src/game/core/math/vec.cpp) | `CalculateVectorPanTilt` | pan = atan2(y,x), tilt = atan2(z, \|xy\|), each RadNormalized, optional outputs | 0.80 | T1 | verified |

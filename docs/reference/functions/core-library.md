@@ -206,32 +206,32 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11CF60](../../../src/game/core/math/util/RadNormalize__Ff.c) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
-| [0x11CFE0](../../../src/game/core/math/util/GLimitAbs__Fff.cpp) | `GLimitAbs__Fff` |  |  | existing |  |
-| [0x11D018](../../../src/game/core/math/util/GSmooth__FfffP3SMPPf.c) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
-| [0x11D1C0](../../../src/game/core/math/util/GSmoothA__FffffP4SMPAPf.cpp) | `GSmoothA__FffffP4SMPAPf` |  |  | existing |  |
-| [0x11D2D0](../../../src/game/core/math/util/RadSmooth__FfffP3SMPPf.cpp) | `RadSmooth__FfffP3SMPPf` |  |  | existing |  |
-| [0x11D340](../../../src/game/core/math/util/RadSmoothA__FffffP4SMPAPf.cpp) | `RadSmoothA__FffffP4SMPAPf` |  |  | existing |  |
-| [0x11D3C0](../../../src/game/core/math/util/NRand.c) | `NRand` | rand() % 905010707 | 0.50 | T1 |  |
-| [0x11D3F8](../../../src/game/core/math/util/NRandInRange__Fii.c) | `NRandInRange` | Uniform int in [nLow, nHi] | 0.85 | T1 |  |
-| [0x11D448](../../../src/game/core/math/util/GRandInRange__Fff.c) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
-| [0x11D4D0](../../../src/game/core/math/util/FFloatsNear__Ffff.cpp) | `FFloatsNear__Ffff` |  |  | existing |  |
-| [0x11D508](../../../src/game/core/math/util/CSolveQuadratic__FfffPf.c) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
-| [0x11D5B0](../../../src/game/core/math/util/PrescaleClq__FP3CLQffT0.c) | `PrescaleClq__FP3CLQffT0` |  |  | existing |  |
-| [0x11D608](../../../src/game/core/math/util/CalculateSinCos__FfPfT1.c) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
-| [0x11D740](../../../src/game/core/math/util/GTrunc__Fd.cpp) | `GTrunc__Fd` |  |  | existing |  |
-| [0x11D7F0](../../../src/game/core/math/util/GTrunc__Ff.c) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
-| [0x11D898](../../../src/game/core/math/util/GModPositive__Fff.c) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
-| [0x11D8D8](../../../src/game/core/math/util/FitClq__FffffP3CLQ.c) | `FitClq__FffffP3CLQ` |  |  | existing |  |
-| [0x11D910](../../../src/game/core/math/util/FCheckLm__FP2LMf.c) | `FCheckLm__FP2LMf` |  |  | existing |  |
-| [0x11D948](../../../src/game/core/math/util/GLimitLm__FP2LMf.cpp) | `GLimitLm__FP2LMf` |  |  | existing |  |
-| [0x11D978](../../../src/game/core/math/util/RadLimitLm.c) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
-| [0x11D9D8](../../../src/game/core/math/util/Force__FPv.c) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
-| [0x11D9E0](../../../src/game/core/math/util/MinimizeRange__FPFPvf_fPvffffPfT6.cpp) | `MinimizeRange__FPFPvf_fPvffffPfT6` |  |  | existing |  |
-| [0x11DCD8](../../../src/game/core/math/util/func_0011DCD8.c) | `ConvertRgbaToVector` | RGBA bytes -> floats /255 | 0.45 | T2 |  |
-| [0x11DD30](../../../src/game/core/math/util/ConvertVectorToRgba.c) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
-| [0x11DD90](../../../src/game/core/math/util/ConvertUserRgbToUserHsv.c) | `ConvertUserRgbToUserHsv` | RGB -> HSV (floorf), clamps | 0.70 | T1 |  |
-| [0x11DFA0](../../../src/game/core/math/util/ConvertUserHsvToUserRgb__FP6VECTORT0.cpp) | `ConvertUserHsvToUserRgb__FP6VECTORT0` |  |  | existing |  |
+| [0x11CF60](../../../src/game/core/math/util.cpp) | `RadNormalize` | Wraps an angle into [-pi, pi) using GModPositive | 0.85 | T1 | verified |
+| [0x11CFE0](../../../src/game/core/math/util.cpp) | `GLimitAbs__Fff` |  |  | existing |  |
+| [0x11D018](../../../src/game/core/math/util.cpp) | `GSmooth` | Critically-damped style smoothing of a scalar toward a target with SMP limits | 0.90 | T1 | verified |
+| [0x11D1C0](../../../src/game/core/math/util.cpp) | `GSmoothA__FffffP4SMPAPf` |  |  | existing |  |
+| [0x11D2D0](../../../src/game/core/math/util.cpp) | `RadSmooth__FfffP3SMPPf` |  |  | existing |  |
+| [0x11D340](../../../src/game/core/math/util.cpp) | `RadSmoothA__FffffP4SMPAPf` |  |  | existing |  |
+| [0x11D3C0](../../../src/game/core/math/util.cpp) | `NRand` | rand() % 905010707 | 0.50 | T1 |  |
+| [0x11D3F8](../../../src/game/core/math/util.cpp) | `NRandInRange` | Uniform int in [nLow, nHi] | 0.85 | T1 |  |
+| [0x11D448](../../../src/game/core/math/util.cpp) | `GRandInRange` | Uniform float in [gMin, gMax] | 0.88 | T1 | verified |
+| [0x11D4D0](../../../src/game/core/math/util.cpp) | `FFloatsNear__Ffff` |  |  | existing |  |
+| [0x11D508](../../../src/game/core/math/util.cpp) | `CSolveQuadratic` | Real roots of a x^2 + b x + c (count returned, roots written) | 0.85 | T1 | verified |
+| [0x11D5B0](../../../src/game/core/math/util.cpp) | `PrescaleClq__FP3CLQffT0` |  |  | existing |  |
+| [0x11D608](../../../src/game/core/math/util.cpp) | `CalculateSinCos` | sin and cos of an angle (polynomial, clamped) | 0.85 | T1 | verified |
+| [0x11D740](../../../src/game/core/math/util.cpp) | `GTrunc__Fd` |  |  | existing |  |
+| [0x11D7F0](../../../src/game/core/math/util.cpp) | `GTrunc` | Truncate a float toward zero via exponent bit manipulation | 0.85 | T1 | verified |
+| [0x11D898](../../../src/game/core/math/util.cpp) | `GModPositive` | fmod returning a non-negative result | 0.85 | T1 | verified |
+| [0x11D8D8](../../../src/game/core/math/util.cpp) | `FitClq__FffffP3CLQ` |  |  | existing |  |
+| [0x11D910](../../../src/game/core/math/util.cpp) | `FCheckLm__FP2LMf` |  |  | existing |  |
+| [0x11D948](../../../src/game/core/math/util.cpp) | `GLimitLm__FP2LMf` |  |  | existing |  |
+| [0x11D978](../../../src/game/core/math/util.cpp) | `RadLimitLm` | Clamps an angle into the angular range plm (around its midpoint, wrap-aware) | 0.85 | T1 | verified |
+| [0x11D9D8](../../../src/game/core/math/util.cpp) | `Force` | Empty function taking a pointer (keeps a value alive / forces evaluation) | 0.60 | T1 | verified |
+| [0x11D9E0](../../../src/game/core/math/util.cpp) | `MinimizeRange__FPFPvf_fPvffffPfT6` |  |  | existing |  |
+| [0x11DCD8](../../../src/game/core/math/util.cpp) | `ConvertRgbaToVector` | RGBA bytes -> floats /255 | 0.45 | T2 |  |
+| [0x11DD30](../../../src/game/core/math/util.cpp) | `ConvertVectorToRgba` | floats*255+0.5 -> RGBA bytes | 0.85 | T1 | verified |
+| [0x11DD90](../../../src/game/core/math/util.cpp) | `ConvertUserRgbToUserHsv` | RGB -> HSV (floorf), clamps | 0.70 | T1 |  |
+| [0x11DFA0](../../../src/game/core/math/util.cpp) | `ConvertUserHsvToUserRgb__FP6VECTORT0` |  |  | existing |  |
 
 ## vec (0x11E198-0x11F440)
 
