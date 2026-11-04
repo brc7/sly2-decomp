@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`blip/`](blip/) | 21 |
+| [`blip.cpp`](blip.cpp) | 1 |
 | [`emitter/`](emitter/) | 54 |
 | [`rip/`](rip/) | 64 |
 | [`trail.cpp`](trail.cpp) | 1 |

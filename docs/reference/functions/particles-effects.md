@@ -19,25 +19,25 @@ Totals on this page: EXISTING 27, T1 81, T2 18, T3 1.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x138F08](../../../src/game/engine/fx/blip/BuildBlipAqwGifs__FiPP2QW.cpp) | `BuildBlipAqwGifs` | Build static blip GIF packet for blend mode n | 0.90 | T1 | verified |
-| [0x138FC0](../../../src/game/engine/fx/blip/StartupBlips__Fv.c) | `StartupBlips` | Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600)) | 0.85 | T1 | verified |
-| [0x138FF8](../../../src/game/engine/fx/blip/PblipNew.c) | `PblipNew` | Allocate a BLIP (+spline block) and append to the blipg list | 0.85 | T1 | verified |
-| [0x139098](../../../src/game/engine/fx/blip/RemoveBlip__FP4BLIP.c) | `RemoveBlip` | Move blip from its group list to the pending-free list | 0.85 | T1 | verified |
-| [0x1390D8](../../../src/game/engine/fx/blip/PblipgNew.c) | `PblipgNew` | Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11 AddHierarchy, vt15 PostLoad | 0.80 | T1 |  |
-| [0x1391C8](../../../src/game/engine/fx/blip/InitBlipg__FP5BLIPG.c) | `InitBlipg` | BLIPG vt7 Init | 0.85 | T1 | verified |
-| [0x139250](../../../src/game/engine/fx/blip/OnBlipgRemove__FP5BLIPG.c) | `OnBlipgRemove` | BLIPG vt12: remove all blips, base remove, queue group for freeing | 0.85 | T1 | verified |
-| [0x139318](../../../src/game/engine/fx/blip/func_00139318.c) | `DeleteBlipg` | BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070 | 0.55 | T2 |  |
-| [0x139370](../../../src/game/engine/fx/blip/PropagateBlipgShader.c) | `PropagateBlipgShader` | Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF regs | 0.65 | T1 |  |
-| [0x1394C8](../../../src/game/engine/fx/blip/SetBlipgEmitb.c) | `SetBlipgEmitb` | Bind emitter parameter block to the blip group (copies emit settings, then PropagateBlipgShader) | 0.60 | T1 |  |
-| [0x1398E0](../../../src/game/engine/fx/blip/UpdateBlipg.c) | `UpdateBlipg` | BLIPG vt16 Update: just UpdateLo | 0.55 | T1 |  |
-| [0x139900](../../../src/game/engine/fx/blip/SubscribeBlipgObject.c) | `SubscribeBlipgObject` | BLIPG vt51: SubscribeLoObject, and if the target is an EMITTER-family (cid 0x1D) remember it (+0xE0) and copy its +0x38 | 0.70 | T1 |  |
-| [0x139950](../../../src/game/engine/fx/blip/CblipeProjectBlipTransformAccel.c) | `CblipeProjectBlipTransformAccel` | VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds | 0.70 | T1 |  |
-| [0x139AB8](../../../src/game/engine/fx/blip/ProjectBlipgTransformAccel.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
-| [0x139DC0](../../../src/game/engine/fx/blip/ProjectBlipgTransform.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
-| [0x13A1E8](../../../src/game/engine/fx/blip/RenderBlipgSelf.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
-| [0x13A688](../../../src/game/engine/fx/blip/func_0013A688.c) | `AddBlipgVu1Params` | Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to the DMA list | 0.45 | T2 |  |
-| [0x13A830](../../../src/game/engine/fx/blip/BeginRpBlip.c) | `BeginRpBlip` | Pass 2 begin (kind 12): upload blip microprogram | 0.55 | T1 |  |
-| [0x13A858](../../../src/game/engine/fx/blip/EndRpBlip.c) | `EndRpBlip` | Pass 2 end: FLUSHA | 0.55 | T1 |  |
+| [0x138F08](../../../src/game/engine/fx/blip.cpp) | `BuildBlipAqwGifs` | Build static blip GIF packet for blend mode n | 0.90 | T1 | verified |
+| [0x138FC0](../../../src/game/engine/fx/blip.cpp) | `StartupBlips` | Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600)) | 0.85 | T1 | verified |
+| [0x138FF8](../../../src/game/engine/fx/blip.cpp) | `PblipNew` | Allocate a BLIP (+spline block) and append to the blipg list | 0.85 | T1 | verified |
+| [0x139098](../../../src/game/engine/fx/blip.cpp) | `RemoveBlip` | Move blip from its group list to the pending-free list | 0.85 | T1 | verified |
+| [0x1390D8](../../../src/game/engine/fx/blip.cpp) | `PblipgNew` | Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11 AddHierarchy, vt15 PostLoad | 0.80 | T1 |  |
+| [0x1391C8](../../../src/game/engine/fx/blip.cpp) | `InitBlipg` | BLIPG vt7 Init | 0.85 | T1 | verified |
+| [0x139250](../../../src/game/engine/fx/blip.cpp) | `OnBlipgRemove` | BLIPG vt12: remove all blips, base remove, queue group for freeing | 0.85 | T1 | verified |
+| [0x139318](../../../src/game/engine/fx/blip.cpp) | `DeleteBlipg` | BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070 | 0.55 | T2 |  |
+| [0x139370](../../../src/game/engine/fx/blip.cpp) | `PropagateBlipgShader` | Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF regs | 0.65 | T1 |  |
+| [0x1394C8](../../../src/game/engine/fx/blip.cpp) | `SetBlipgEmitb` | Bind emitter parameter block to the blip group (copies emit settings, then PropagateBlipgShader) | 0.60 | T1 |  |
+| [0x1398E0](../../../src/game/engine/fx/blip.cpp) | `UpdateBlipg` | BLIPG vt16 Update: just UpdateLo | 0.55 | T1 |  |
+| [0x139900](../../../src/game/engine/fx/blip.cpp) | `SubscribeBlipgObject` | BLIPG vt51: SubscribeLoObject, and if the target is an EMITTER-family (cid 0x1D) remember it (+0xE0) and copy its +0x38 | 0.70 | T1 |  |
+| [0x139950](../../../src/game/engine/fx/blip.cpp) | `CblipeProjectBlipTransformAccel` | VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds | 0.70 | T1 |  |
+| [0x139AB8](../../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
+| [0x139DC0](../../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
+| [0x13A1E8](../../../src/game/engine/fx/blip.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
+| [0x13A688](../../../src/game/engine/fx/blip.cpp) | `AddBlipgVu1Params` | Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to the DMA list | 0.45 | T2 |  |
+| [0x13A830](../../../src/game/engine/fx/blip.cpp) | `BeginRpBlip` | Pass 2 begin (kind 12): upload blip microprogram | 0.55 | T1 |  |
+| [0x13A858](../../../src/game/engine/fx/blip.cpp) | `EndRpBlip` | Pass 2 end: FLUSHA | 0.55 | T1 |  |
 
 ## emitter (0x159118-0x15CD68)
 

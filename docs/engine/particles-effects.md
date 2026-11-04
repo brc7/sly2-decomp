@@ -56,16 +56,16 @@ BLIPG (CID 0x1C) particle groups (smoke, sparkles), Sly 1 blip.c; slots 2 Delete
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x138F08](../../src/game/engine/fx/blip/BuildBlipAqwGifs__FiPP2QW.cpp) | `BuildBlipAqwGifs` | Build static blip GIF packet for blend mode n | 0.90 | T1 | verified |
-| [0x138FC0](../../src/game/engine/fx/blip/StartupBlips__Fv.c) | `StartupBlips` | Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600)) | 0.85 | T1 | verified |
-| [0x138FF8](../../src/game/engine/fx/blip/PblipNew.c) | `PblipNew` | Allocate a BLIP (+spline block) and append to the blipg list | 0.85 | T1 | verified |
-| [0x139098](../../src/game/engine/fx/blip/RemoveBlip__FP4BLIP.c) | `RemoveBlip` | Move blip from its group list to the pending-free list | 0.85 | T1 | verified |
-| [0x1390D8](../../src/game/engine/fx/blip/PblipgNew.c) | `PblipgNew` | Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11 AddHierarchy, vt15 PostLoad | 0.80 | T1 |  |
-| [0x1391C8](../../src/game/engine/fx/blip/InitBlipg__FP5BLIPG.c) | `InitBlipg` | BLIPG vt7 Init | 0.85 | T1 | verified |
-| [0x139250](../../src/game/engine/fx/blip/OnBlipgRemove__FP5BLIPG.c) | `OnBlipgRemove` | BLIPG vt12: remove all blips, base remove, queue group for freeing | 0.85 | T1 | verified |
-| [0x139AB8](../../src/game/engine/fx/blip/ProjectBlipgTransformAccel.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
-| [0x139DC0](../../src/game/engine/fx/blip/ProjectBlipgTransform.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
-| [0x13A1E8](../../src/game/engine/fx/blip/RenderBlipgSelf.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
+| [0x138F08](../../src/game/engine/fx/blip.cpp) | `BuildBlipAqwGifs` | Build static blip GIF packet for blend mode n | 0.90 | T1 | verified |
+| [0x138FC0](../../src/game/engine/fx/blip.cpp) | `StartupBlips` | Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600)) | 0.85 | T1 | verified |
+| [0x138FF8](../../src/game/engine/fx/blip.cpp) | `PblipNew` | Allocate a BLIP (+spline block) and append to the blipg list | 0.85 | T1 | verified |
+| [0x139098](../../src/game/engine/fx/blip.cpp) | `RemoveBlip` | Move blip from its group list to the pending-free list | 0.85 | T1 | verified |
+| [0x1390D8](../../src/game/engine/fx/blip.cpp) | `PblipgNew` | Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11 AddHierarchy, vt15 PostLoad | 0.80 | T1 |  |
+| [0x1391C8](../../src/game/engine/fx/blip.cpp) | `InitBlipg` | BLIPG vt7 Init | 0.85 | T1 | verified |
+| [0x139250](../../src/game/engine/fx/blip.cpp) | `OnBlipgRemove` | BLIPG vt12: remove all blips, base remove, queue group for freeing | 0.85 | T1 | verified |
+| [0x139AB8](../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
+| [0x139DC0](../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
+| [0x13A1E8](../../src/game/engine/fx/blip.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
 | [0x159118](../../src/game/engine/fx/emitter/func_00159118.c) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
 | [0x1591B0](../../src/game/engine/fx/emitter/InitEmitter.c) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
 | [0x159240](../../src/game/engine/fx/emitter/LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
