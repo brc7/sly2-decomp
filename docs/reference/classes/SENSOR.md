@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetSensorClassDesc`](../../../src/game/app/class_registry/GetSensorClassDesc.c) | `0x113F50` |
-| 7 | Init | **override** | [`InitSensor`](../../../src/game/gameplay/objects/sensor/InitSensor.c) | `0x1DE2A0` |
+| 7 | Init | **override** | [`InitSensor`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE2A0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -82,7 +82,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
 | 60 | SO_vt60_Nop | inherited (SO) | `SO_vt60_Nop?` | `0x1F5990` |
-| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreSensorIntersection`](../../../src/game/gameplay/objects/sensor/FIgnoreSensorIntersection.c) | `0x1DE2D8` |
+| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreSensorIntersection`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE2D8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |

@@ -29,19 +29,19 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetLasenClassDesc`](../../../src/game/app/class_registry/GetLasenClassDesc.c) | `0x113F60` |
-| 7 | Init | **override** | [`InitLasen?`](../../../src/game/gameplay/objects/sensor/func_001DE400.c) | `0x1DE400` |
+| 7 | Init | **override** | [`InitLasen?`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE400` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
-| 14 | LoadFromBrx | **override** | [`LoadLasenFromBrx`](../../../src/game/gameplay/objects/sensor/LoadLasenFromBrx.cpp) | `0x1DE478` |
-| 15 | PostLoad | **override** | [`PostLasenLoad`](../../../src/game/gameplay/objects/sensor/PostLasenLoad.c) | `0x1DE568` |
-| 16 | Update | **override** | [`UpdateLasen`](../../../src/game/gameplay/objects/sensor/UpdateLasen.c) | `0x1DF3A0` |
+| 14 | LoadFromBrx | **override** | [`LoadLasenFromBrx`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE478` |
+| 15 | PostLoad | **override** | [`PostLasenLoad`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE568` |
+| 16 | Update | **override** | [`UpdateLasen`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DF3A0` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderLasenSelf`](../../../src/game/gameplay/objects/sensor/RenderLasenSelf.cpp) | `0x1DF5B0` |
+| 19 | RenderSelf | **override** | [`RenderLasenSelf`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DF5B0` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (SO) | `MatchSoXf?` | `0x1F49C8` |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` |
-| 41 | Clone | **override** | [`CloneLasen`](../../../src/game/gameplay/objects/sensor/CloneLasen.c) | `0x1DE518` |
+| 41 | Clone | **override** | [`CloneLasen`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE518` |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |
@@ -75,14 +75,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 50 | GetSoCpdefi | inherited (SO) | `GetSoCpdefi` | `0x1F58F0` |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
-| 53 | SO_PtreeNew | **override** | [`LASEN_PtreeNew?`](../../../src/game/gameplay/objects/sensor/func_001DE5A8.c) | `0x1DE5A8` |
-| 54 | SO_vt54_Nop | **override** | [`RemoveLasenContacts?`](../../../src/game/gameplay/objects/sensor/func_001DEEA8.c) | `0x1DEEA8` |
+| 53 | SO_PtreeNew | **override** | [`LASEN_PtreeNew?`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE5A8` |
+| 54 | SO_vt54_Nop | **override** | [`RemoveLasenContacts?`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DEEA8` |
 | 55 | SO_vt55_Nop | inherited (SO) | `SO_vt55_Nop?` | `0x1F4FB0` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
-| 60 | SO_vt60_Nop | **override** | [`UpdateLasenContacts?`](../../../src/game/gameplay/objects/sensor/func_001DF0A0.cpp) | `0x1DF0A0` |
+| 60 | SO_vt60_Nop | **override** | [`UpdateLasenContacts?`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DF0A0` |
 | 61 | FIgnoreSoIntersection | inherited (SENSOR) | `FIgnoreSensorIntersection` | `0x1DE2D8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
 | 63 | SO_vt63_Ret0 | inherited (SO) | `SO_vt63_Ret0?` | `0x1F5998` |

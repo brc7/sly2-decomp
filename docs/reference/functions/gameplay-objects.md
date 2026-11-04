@@ -375,25 +375,25 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1DE2A0](../../../src/game/gameplay/objects/sensor/InitSensor.c) | `InitSensor` | SENSOR::Init (vt7): InitSo; set SO grf bit 34 | 0.55 | T1 |  |
-| [0x1DE2D8](../../../src/game/gameplay/objects/sensor/FIgnoreSensorIntersection.c) | `FIgnoreSensorIntersection` | SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7, FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore | 0.55 | T1 |  |
-| [0x1DE3B0](../../../src/game/gameplay/objects/sensor/AddSensorNoTriggerClass.c) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
-| [0x1DE3D8](../../../src/game/gameplay/objects/sensor/AddSensorNoTriggerObject.c) | `AddSensorNoTriggerObject` | Append an oid to the no-trigger object list (+0x150, max 7) | 0.55 | T1 |  |
-| [0x1DE400](../../../src/game/gameplay/objects/sensor/func_001DE400.c) | `InitLasen` | LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8 | 0.45 | T2 |  |
-| [0x1DE478](../../../src/game/gameplay/objects/sensor/LoadLasenFromBrx.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
-| [0x1DE518](../../../src/game/gameplay/objects/sensor/CloneLasen.c) | `CloneLasen` | LASEN::Clone (vt41): Clone__2SO then private copy of the beam array | 0.50 | T1 |  |
-| [0x1DE568](../../../src/game/gameplay/objects/sensor/PostLasenLoad.c) | `PostLasenLoad` | LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0), initial zap pass (0x1DF260) | 0.50 | T1 |  |
-| [0x1DE5A8](../../../src/game/gameplay/objects/sensor/func_001DE5A8.c) | `LASEN_PtreeNew` | LASEN vt53: SO::PtreeNew then set tree flag 0x20 | 0.40 | T2 |  |
-| [0x1DE5D8](../../../src/game/gameplay/objects/sensor/func_001DE5D8.cpp) | `BuildLasenBeams` | (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion profile) and the beams' bounding box as the SO's single part | 0.45 | T2 |  |
-| [0x1DEDB0](../../../src/game/gameplay/objects/sensor/func_001DEDB0.c) | `BindLasenAnims` | For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key | 0.35 | T2 |  |
-| [0x1DEEA8](../../../src/game/gameplay/objects/sensor/func_001DEEA8.c) | `RemoveLasenContacts` | LASEN vt54: drop beam contact links that reference object x and free them | 0.35 | T2 |  |
-| [0x1DEF98](../../../src/game/gameplay/objects/sensor/GetLasenBeamEnds.c) | `GetLasenBeamEnds` | World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their distance | 0.50 | T1 |  |
-| [0x1DF0A0](../../../src/game/gameplay/objects/sensor/func_001DF0A0.cpp) | `UpdateLasenContacts` | LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap | 0.35 | T2 |  |
-| [0x1DF260](../../../src/game/gameplay/objects/sensor/ZapLasenBeams.c) | `ZapLasenBeams` | For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped (InflictZap kind 0x1000, -10) and the visible length is cut to it | 0.50 | T1 |  |
-| [0x1DF3A0](../../../src/game/gameplay/objects/sensor/UpdateLasen.c) | `UpdateLasen` | LASEN::Update (vt16): UpdateSo then move path endpoints | 0.50 | T1 |  |
-| [0x1DF3D0](../../../src/game/gameplay/objects/sensor/func_001DF3D0.c) | `MoveLasenEndpoints` | Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark the tree dirty, recompute length | 0.45 | T2 |  |
-| [0x1DF5B0](../../../src/game/gameplay/objects/sensor/RenderLasenSelf.cpp) | `RenderLasenSelf` | LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix) | 0.50 | T1 |  |
-| [0x1DF908](../../../src/game/gameplay/objects/sensor/AddLasenBeam.c) | `AddLasenBeam` | Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40) | 0.50 | T1 |  |
+| [0x1DE2A0](../../../src/game/gameplay/objects/sensor.cpp) | `InitSensor` | SENSOR::Init (vt7): InitSo; set SO grf bit 34 | 0.55 | T1 |  |
+| [0x1DE2D8](../../../src/game/gameplay/objects/sensor.cpp) | `FIgnoreSensorIntersection` | SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list (+0x150, max 7, FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with NMaxIgnore | 0.55 | T1 |  |
+| [0x1DE3B0](../../../src/game/gameplay/objects/sensor.cpp) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
+| [0x1DE3D8](../../../src/game/gameplay/objects/sensor.cpp) | `AddSensorNoTriggerObject` | Append an oid to the no-trigger object list (+0x150, max 7) | 0.55 | T1 |  |
+| [0x1DE400](../../../src/game/gameplay/objects/sensor.cpp) | `InitLasen` | LASEN::Init (vt7): InitSensor; speed(+0x1C0)=1.0; clear grf bit 35; set LO flag 8 | 0.45 | T2 |  |
+| [0x1DE478](../../../src/game/gameplay/objects/sensor.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
+| [0x1DE518](../../../src/game/gameplay/objects/sensor.cpp) | `CloneLasen` | LASEN::Clone (vt41): Clone__2SO then private copy of the beam array | 0.50 | T1 |  |
+| [0x1DE568](../../../src/game/gameplay/objects/sensor.cpp) | `PostLasenLoad` | LASEN::PostLoad (vt15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0), initial zap pass (0x1DF260) | 0.50 | T1 |  |
+| [0x1DE5A8](../../../src/game/gameplay/objects/sensor.cpp) | `LASEN_PtreeNew` | LASEN vt53: SO::PtreeNew then set tree flag 0x20 | 0.40 | T2 |  |
+| [0x1DE5D8](../../../src/game/gameplay/objects/sensor.cpp) | `BuildLasenBeams` | (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion profile) and the beams' bounding box as the SO's single part | 0.45 | T2 |  |
+| [0x1DEDB0](../../../src/game/gameplay/objects/sensor.cpp) | `BindLasenAnims` | For each of two animation slots find an ASEG (class 0x6D) on the object and its SMA/aseg key | 0.35 | T2 |  |
+| [0x1DEEA8](../../../src/game/gameplay/objects/sensor.cpp) | `RemoveLasenContacts` | LASEN vt54: drop beam contact links that reference object x and free them | 0.35 | T2 |  |
+| [0x1DEF98](../../../src/game/gameplay/objects/sensor.cpp) | `GetLasenBeamEnds` | World positions of a beam's two endpoints (kind 0 fixed via 0x22FC48, kind 1 point on path) and optionally their distance | 0.50 | T1 |  |
+| [0x1DF0A0](../../../src/game/gameplay/objects/sensor.cpp) | `UpdateLasenContacts` | LASEN vt60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap | 0.35 | T2 |  |
+| [0x1DF260](../../../src/game/gameplay/objects/sensor.cpp) | `ZapLasenBeams` | For each beam: length = endpoint distance; if something blocks it, the nearest contact is zapped (InflictZap kind 0x1000, -10) and the visible length is cut to it | 0.50 | T1 |  |
+| [0x1DF3A0](../../../src/game/gameplay/objects/sensor.cpp) | `UpdateLasen` | LASEN::Update (vt16): UpdateSo then move path endpoints | 0.50 | T1 |  |
+| [0x1DF3D0](../../../src/game/gameplay/objects/sensor.cpp) | `MoveLasenEndpoints` | Advance path-driven endpoints along their segment profiles at speed(+0x1C0)*dt (fmodf wrap), mark the tree dirty, recompute length | 0.45 | T2 |  |
+| [0x1DF5B0](../../../src/game/gameplay/objects/sensor.cpp) | `RenderLasenSelf` | LASEN::RenderSelf (vt19): RenderSoSelf + draw each visible beam (frustum test, beam matrix) | 0.50 | T1 |  |
+| [0x1DF908](../../../src/game/gameplay/objects/sensor.cpp) | `AddLasenBeam` | Append a beam {endpoint0 kind/xyz/m, endpoint1 kind/xyz/m} (max 0x40) | 0.50 | T1 |  |
 
 ## tu_1FF3B8 (0x1FF3B8-0x1FF690)
 
