@@ -10,7 +10,7 @@
 | [`dirblend.cpp`](dirblend.cpp) | 1 |
 | [`empty_1344F0.cpp`](empty_1344F0.cpp) | 1 |
 | [`empty_1378D8.cpp`](empty_1378D8.cpp) | 1 |
-| [`grab/`](grab/) | 28 |
+| [`grab.cpp`](grab.cpp) | 1 |
 | [`grabspot/`](grabspot/) | 74 |
 | [`hang.cpp`](hang.cpp) | 1 |
 | [`hnd.cpp`](hnd.cpp) | 1 |
