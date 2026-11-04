@@ -150,8 +150,7 @@ extern "C" qword func_0019F3F8(JT *p, PLACE *q, float g)
     }
     if (o && 0.0f < g) {
         LoadIdentityMatrix4(o, g, 0, &m, 0);
-        __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-                : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
+        r = VuMulMatrix4(m.r[0], m.r[1], m.r[2], m.r[3], v);
     } else {
         r = func_0022FC48(o, 0, v);
     }

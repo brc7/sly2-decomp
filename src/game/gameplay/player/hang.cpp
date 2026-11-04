@@ -225,7 +225,7 @@ static inline qword QwDivide(const qword&a,const qword&g){qword r;__asm__("vdiv 
 static inline qword QwDivideBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline qword QwCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwRotateVec(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
+static inline qword QwRotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
 static inline qword QwCombo(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
 static inline qword QwAddScaled2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
 static inline qword QwScaleXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */

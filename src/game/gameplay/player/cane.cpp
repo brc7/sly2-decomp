@@ -592,7 +592,7 @@ static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"
 static inline float AngleOf(U v){return atan2f(v.f[1],v.f[0]);}
 static inline qword AddScaled(qword p,qword v,VU_FLOAT k){qword q;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%2x":"=j"(q):"j"(p),"j"(k.qw),"j"(v),"j"(k.qw)/*allocation-only: VU preference spills k like the target*/);return q;}
 static inline qword Rotate(const M3&m,qword v){qword q;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(q):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"0"(v));return q;}
-static inline qword Transform(const M4&m,qword v){qword q;__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(q):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(m.r[3].q),"j"(v));return q;}
+static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, v);return q;}
 static inline qword GetVelocity(ALO*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
 static inline void*GetFrame(ALO*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
