@@ -28,16 +28,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
-| 5 | HandleMessage | **override** | [`HandlePoMessage`](../../../src/game/actor/po/HandlePoMessage.c) | `0x1C3E20` | HandleMessage |
+| 5 | HandleMessage | **override** | [`HandlePoMessage`](../../../src/game/actor/po.cpp) | `0x1C3E20` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetPoClassDesc`](../../../src/game/app/class_registry/GetPoClassDesc.c) | `0x113D30` | Pclassinfo |
-| 7 | Init | **override** | [`InitPo`](../../../src/game/actor/po/InitPo.c) | `0x1C3D70` | Init |
+| 7 | Init | **override** | [`InitPo`](../../../src/game/actor/po.cpp) | `0x1C3D70` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` | SetParent |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadPoFromBrx`](../../../src/game/actor/po/LoadPoFromBrx.c) | `0x1C3DC8` | LoadFromBrx |
+| 14 | LoadFromBrx | **override** | [`LoadPoFromBrx`](../../../src/game/actor/po.cpp) | `0x1C3DC8` | LoadFromBrx |
 | 15 | PostLoad | inherited (SO) | `PostSoLoad` | `0x1F36A8` | VUnk14 |
 | 16 | Update | inherited (SO) | `UpdateSo` | `0x1F36E0` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` | VUnk16 |
@@ -64,7 +64,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (SO) | `MatchSoXf?` | `0x1F49C8` | VUnk37 |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` | VUnk38 |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` | CloneHierarchy |
-| 41 | Clone | **override** | [`ClonePo`](../../../src/game/actor/po/ClonePo.c) | `0x1C3DF8` | Clone |
+| 41 | Clone | **override** | [`ClonePo`](../../../src/game/actor/po.cpp) | `0x1C3DF8` | Clone |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
@@ -99,12 +99,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` | ProcessSoZapContacts |
 | 75 | FZprHasField44 | inherited (SO) | `FZprHasField44?` | `0x1F7588` | FTakeDamage |
-| 76 | FInvulnerablePo | **new** | [`FInvulnerablePo`](../../../src/game/actor/po/FInvulnerablePo.c) | `0x1C3E90` | FInvulnerable |
-| 77 | JthsCurrentPo | **new** | [`JthsCurrentPo`](../../../src/game/actor/po/JthsCurrentPo.c) | `0x1C3ED0` | JthsCurrent |
-| 78 | OnPoActive | **new** | [`OnPoActive`](../../../src/game/actor/po/OnPoActive.c) | `0x1C3FF0` | OnActive |
-| 79 | SetPoCtlState | **new** | [`SetPoCtlState`](../../../src/game/actor/po/SetPoCtlState.c) | `0x1C3ED8` | SetCtlState |
-| 80 | FCanPoBeHealed | **new** | [`FCanPoBeHealed`](../../../src/game/actor/po/FCanPoBeHealed.cpp) | `0x1C41B8` | FCanBeHealed |
-| 81 | AddPoHpMp | **new** | [`AddPoHpMp`](../../../src/game/actor/po/AddPoHpMp.c) | `0x1C4228` | AddHpMp |
+| 76 | FInvulnerablePo | **new** | [`FInvulnerablePo`](../../../src/game/actor/po.cpp) | `0x1C3E90` | FInvulnerable |
+| 77 | JthsCurrentPo | **new** | [`JthsCurrentPo`](../../../src/game/actor/po.cpp) | `0x1C3ED0` | JthsCurrent |
+| 78 | OnPoActive | **new** | [`OnPoActive`](../../../src/game/actor/po.cpp) | `0x1C3FF0` | OnActive |
+| 79 | SetPoCtlState | **new** | [`SetPoCtlState`](../../../src/game/actor/po.cpp) | `0x1C3ED8` | SetCtlState |
+| 80 | FCanPoBeHealed | **new** | [`FCanPoBeHealed`](../../../src/game/actor/po.cpp) | `0x1C41B8` | FCanBeHealed |
+| 81 | AddPoHpMp | **new** | [`AddPoHpMp`](../../../src/game/actor/po.cpp) | `0x1C4228` | AddHpMp |
 
 ## Fields
 

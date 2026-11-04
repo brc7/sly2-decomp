@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | (none: not created by PloNew) |
 | Descriptor getter (slot 6) | `GetPoctlClassDesc` `0x1142A0` |
 | vtable | `D_002CA240`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`POCTL_ctor`](../../../src/game/actor/po/POCTL_ctor.c) (vptr +0xC) |
+| vtable stored by | [`POCTL_ctor`](../../../src/game/actor/po.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

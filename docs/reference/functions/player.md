@@ -654,41 +654,41 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1C3D70](../../../src/game/actor/po/InitPo.c) | `InitPo` | PO::Init (vt slot 7): InitSo; pzi.fCollectEnabled(+0x15C)=1; pzi.paloCollect(+0x168)=this; set flag 2 in grfUnk40 | 0.88 | T1 |  |
-| [0x1C3DC8](../../../src/game/actor/po/LoadPoFromBrx.c) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
-| [0x1C3DF8](../../../src/game/actor/po/ClonePo.c) | `ClonePo` | PO::Clone (vt slot 41): base clone 0x1F6068 then pzi.paloCollect(+0x168)=this | 0.75 | T1 |  |
-| [0x1C3E20](../../../src/game/actor/po/HandlePoMessage.c) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
-| [0x1C3E90](../../../src/game/actor/po/FInvulnerablePo.c) | `FInvulnerablePo` | PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off (FSwHandsOff(&g_sw)) | 0.90 | T1 |  |
-| [0x1C3ED0](../../../src/game/actor/po/JthsCurrentPo.c) | `JthsCurrentPo` | PO virtual slot 77: returns 0 (JTHS_Normal) | 0.75 | T1 |  |
-| [0x1C3ED8](../../../src/game/actor/po/SetPoCtlState.c) | `SetPoCtlState` | PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16) and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)), 0/-1 drop it; then  | 0.80 | T1 |  |
-| [0x1C3FF0](../../../src/game/actor/po/OnPoActive.c) | `OnPoActive` | PO virtual slot 78 (Lilly OnActive(int)): if PO has its own camera TN (+0x16C) (de)activate it, else SetCmPolicy / RevokeCmPolicy on g_cm | 0.85 | T1 |  |
-| [0x1C4080](../../../src/game/actor/po/GetPoCtlState.c) | `GetPoCtlState` | Returns pctl->nState (+0x80) or -1 if PO has no POCTL | 0.60 | T1 |  |
-| [0x1C4098](../../../src/game/actor/po/func_001C4098.c) | `FPlayablePo` | True if GetPoCtlState != -1 | 0.45 | T2 |  |
-| [0x1C40C0](../../../src/game/actor/po/FIsPoCur.c) | `FIsPoCur` | True if PO == g_sw current PO (+0x3EFC) | 0.50 | T1 |  |
-| [0x1C40F8](../../../src/game/actor/po/FIsPoActive.c) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
-| [0x1C4130](../../../src/game/actor/po/SetPoTnCam.c) | `SetPoTnCam` | Set PO camera TN (+0x16C, Lilly ptnCam): deactivate old TN, store new, tn+0x128=-1, unparent (0x1A58D0(tn,0,0)), activate it if this PO is the effective current | 0.55 | T1 |  |
-| [0x1C41B8](../../../src/game/actor/po/FCanPoBeHealed.cpp) | `FCanPoBeHealed` | PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and returns the answer | 0.55 | T1 |  |
-| [0x1C4228](../../../src/game/actor/po/AddPoHpMp.c) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
-| [0x1C4280](../../../src/game/actor/po/POCTL_ctor.c) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
-| [0x1C42E8](../../../src/game/actor/po/ResetPoctl.c) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
-| [0x1C4330](../../../src/game/actor/po/func_001C4330.c) | `ConvertPoctlStick` | Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays 0.2); below hold radius keeps previous angle | 0.45 | T2 |  |
-| [0x1C4468](../../../src/game/actor/po/UpdatePoctl.c) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), build matPanTilt from camera, polar sticks, update press times | 0.85 | T1 | verified |
-| [0x1C45A8](../../../src/game/actor/po/UpdatePoctlPressed.c) | `UpdatePoctlPressed` | Record g_clock.t into atPressed[i] for newly pressed buttons, and per-stick direction timestamps (atLeftStick/atRightStick) | 0.60 | T1 |  |
-| [0x1C4640](../../../src/game/actor/po/SetPoctlStateValue.c) | `SetPoctlStateValue` | nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as presses | 0.70 | T1 |  |
-| [0x1C4660](../../../src/game/actor/po/GrfPressedWithin__5POCTLUif.c) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
-| [0x1C46C0](../../../src/game/actor/po/GrfConsumePressed__5POCTLUif.c) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
-| [0x1C4700](../../../src/game/actor/po/POCTL_FConsumePressed.c) | `POCTL_FConsumePressed` | GrfConsumePressed(grf 0.0) != 0 | 0.50 | T1 |  |
-| [0x1C4728](../../../src/game/actor/po/POCTL_FButtonDown.c) | `POCTL_FButtonDown` | (grfbtn(+0x30) & grf) != 0 (held test) | 0.50 | T1 |  |
-| [0x1C4738](../../../src/game/actor/po/ClearPoctlJoyPressed.c) | `ClearPoctlJoyPressed` | Set atPressed[i] = -FLT_MAX for every bit in grf | 0.85 | T1 |  |
-| [0x1C4768](../../../src/game/actor/po/func_001C4768.c) | `POCTL_VecLateral` | Transform a direction into matPanTilt frame, take (-y,z,0), normalize (fallback D_002A2DB0) | 0.35 | T2 |  |
-| [0x1C4840](../../../src/game/actor/po/PpoHero.c) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
-| [0x1C4848](../../../src/game/actor/po/func_001C4848.c) | `AddSwPoFollower` | Append LO to SW 4-entry list (+0x4778) and give its sidebag/record (0x258658) a 0x14-byte block | 0.35 | T2 | verified |
-| [0x1C48C0](../../../src/game/actor/po/func_001C48C0.c) | `UpdateSwPoFollowers` | For each LO in SW+0x4778 list: store current PO into its record and re-parent it to the current PO (0x1A58D0) | 0.40 | T2 | verified |
-| [0x1C4940](../../../src/game/actor/po/SwitchToPo.c) | `SwitchToPo` | Make PO current: OnActive(0) on old effective PO, set SW+0x3EFC, OnActive(1) on new; if STEPPLAYER set Splice var "oidPoCurrent"; update grab candidates and followers | 0.75 | T1 |  |
-| [0x1C4A48](../../../src/game/actor/po/PpoCur.c) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
-| [0x1C4A60](../../../src/game/actor/po/func_001C4A60.c) | `SetSwPoOverride` | Set override PO (SW+0x3F00) with OnActive(0/1) on old/new effective PO | 0.40 | T2 |  |
-| [0x1C4AF8](../../../src/game/actor/po/PpoClosestSw.c) | `PpoClosestSw` | Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60 | 0.50 | T1 |  |
-| [0x1C4BD8](../../../src/game/actor/po/func_001C4BD8.c) | `CppziCur` | Fill up to cMax PZI pointers: current PO's pzi (+0x15C) or default pzi D_002C0D18, plus other in-world STEPPLAYERs from table D_002C0D28 passing check 0xC2; returns count | 0.45 | T2 |  |
+| [0x1C3D70](../../../src/game/actor/po.cpp) | `InitPo` | PO::Init (vt slot 7): InitSo; pzi.fCollectEnabled(+0x15C)=1; pzi.paloCollect(+0x168)=this; set flag 2 in grfUnk40 | 0.88 | T1 |  |
+| [0x1C3DC8](../../../src/game/actor/po.cpp) | `LoadPoFromBrx` | PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420 | 0.85 | T1 | parse |
+| [0x1C3DF8](../../../src/game/actor/po.cpp) | `ClonePo` | PO::Clone (vt slot 41): base clone 0x1F6068 then pzi.paloCollect(+0x168)=this | 0.75 | T1 |  |
+| [0x1C3E20](../../../src/game/actor/po.cpp) | `HandlePoMessage` | PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound at +0x174 and release it | 0.88 | T1 | verified |
+| [0x1C3E90](../../../src/game/actor/po.cpp) | `FInvulnerablePo` | PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off (FSwHandsOff(&g_sw)) | 0.90 | T1 |  |
+| [0x1C3ED0](../../../src/game/actor/po.cpp) | `JthsCurrentPo` | PO virtual slot 77: returns 0 (JTHS_Normal) | 0.75 | T1 |  |
+| [0x1C3ED8](../../../src/game/actor/po.cpp) | `SetPoCtlState` | PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16) and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)), 0/-1 drop it; then  | 0.80 | T1 |  |
+| [0x1C3FF0](../../../src/game/actor/po.cpp) | `OnPoActive` | PO virtual slot 78 (Lilly OnActive(int)): if PO has its own camera TN (+0x16C) (de)activate it, else SetCmPolicy / RevokeCmPolicy on g_cm | 0.85 | T1 |  |
+| [0x1C4080](../../../src/game/actor/po.cpp) | `GetPoCtlState` | Returns pctl->nState (+0x80) or -1 if PO has no POCTL | 0.60 | T1 |  |
+| [0x1C4098](../../../src/game/actor/po.cpp) | `FPlayablePo` | True if GetPoCtlState != -1 | 0.45 | T2 |  |
+| [0x1C40C0](../../../src/game/actor/po.cpp) | `FIsPoCur` | True if PO == g_sw current PO (+0x3EFC) | 0.50 | T1 |  |
+| [0x1C40F8](../../../src/game/actor/po.cpp) | `FIsPoActive` | True if PO == effective current PO (override +0x3F00 else +0x3EFC) | 0.85 | T1 | verified |
+| [0x1C4130](../../../src/game/actor/po.cpp) | `SetPoTnCam` | Set PO camera TN (+0x16C, Lilly ptnCam): deactivate old TN, store new, tn+0x128=-1, unparent (0x1A58D0(tn,0,0)), activate it if this PO is the effective current | 0.55 | T1 |  |
+| [0x1C41B8](../../../src/game/actor/po.cpp) | `FCanPoBeHealed` | PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and returns the answer | 0.55 | T1 |  |
+| [0x1C4228](../../../src/game/actor/po.cpp) | `AddPoHpMp` | Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3 | 0.85 | T1 | verified |
+| [0x1C4280](../../../src/game/actor/po.cpp) | `POCTL_ctor` | POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list D_003E133C | 0.85 | T1 | verified |
+| [0x1C42E8](../../../src/game/actor/po.cpp) | `ResetPoctl` | Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF) | 0.85 | T1 | verified |
+| [0x1C4330](../../../src/game/actor/po.cpp) | `ConvertPoctlStick` | Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays 0.2); below hold radius keeps previous angle | 0.45 | T2 |  |
+| [0x1C4468](../../../src/game/actor/po.cpp) | `UpdatePoctl` | Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00) sticks+buttons (grfbtn = held & ~mask \| ppo->grfbtnForce), build matPanTilt from camera, polar sticks, update press times | 0.85 | T1 | verified |
+| [0x1C45A8](../../../src/game/actor/po.cpp) | `UpdatePoctlPressed` | Record g_clock.t into atPressed[i] for newly pressed buttons, and per-stick direction timestamps (atLeftStick/atRightStick) | 0.60 | T1 |  |
+| [0x1C4640](../../../src/game/actor/po.cpp) | `SetPoctlStateValue` | nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as presses | 0.70 | T1 |  |
+| [0x1C4660](../../../src/game/actor/po.cpp) | `POCTL_GrfPressedWithin` | Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt) | 0.85 | T1 | verified |
+| [0x1C46C0](../../../src/game/actor/po.cpp) | `POCTL_GrfConsumePressed` | GrfPressedWithin then ClearJoyPressed on the result (consume the press) | 0.85 | T1 | verified |
+| [0x1C4700](../../../src/game/actor/po.cpp) | `POCTL_FConsumePressed` | GrfConsumePressed(grf 0.0) != 0 | 0.50 | T1 |  |
+| [0x1C4728](../../../src/game/actor/po.cpp) | `POCTL_FButtonDown` | (grfbtn(+0x30) & grf) != 0 (held test) | 0.50 | T1 |  |
+| [0x1C4738](../../../src/game/actor/po.cpp) | `ClearPoctlJoyPressed` | Set atPressed[i] = -FLT_MAX for every bit in grf | 0.85 | T1 |  |
+| [0x1C4768](../../../src/game/actor/po.cpp) | `POCTL_VecLateral` | Transform a direction into matPanTilt frame, take (-y,z,0), normalize (fallback D_002A2DB0) | 0.35 | T2 |  |
+| [0x1C4840](../../../src/game/actor/po.cpp) | `PpoHero` | Returns g_sw current PO (SW+0x3EFC) | 0.65 | T1 | runtime |
+| [0x1C4848](../../../src/game/actor/po.cpp) | `AddSwPoFollower` | Append LO to SW 4-entry list (+0x4778) and give its sidebag/record (0x258658) a 0x14-byte block | 0.35 | T2 | verified |
+| [0x1C48C0](../../../src/game/actor/po.cpp) | `UpdateSwPoFollowers` | For each LO in SW+0x4778 list: store current PO into its record and re-parent it to the current PO (0x1A58D0) | 0.40 | T2 | verified |
+| [0x1C4940](../../../src/game/actor/po.cpp) | `SwitchToPo` | Make PO current: OnActive(0) on old effective PO, set SW+0x3EFC, OnActive(1) on new; if STEPPLAYER set Splice var "oidPoCurrent"; update grab candidates and followers | 0.75 | T1 |  |
+| [0x1C4A48](../../../src/game/actor/po.cpp) | `PpoCur` | Effective current PO: override SW+0x3F00 if set else SW+0x3EFC | 0.90 | T1 | runtime, verified |
+| [0x1C4A60](../../../src/game/actor/po.cpp) | `SetSwPoOverride` | Set override PO (SW+0x3F00) with OnActive(0/1) on old/new effective PO | 0.40 | T2 |  |
+| [0x1C4AF8](../../../src/game/actor/po.cpp) | `PpoClosestSw` | Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60 | 0.50 | T1 |  |
+| [0x1C4BD8](../../../src/game/actor/po.cpp) | `CppziCur` | Fill up to cMax PZI pointers: current PO's pzi (+0x15C) or default pzi D_002C0D18, plus other in-world STEPPLAYERs from table D_002C0D28 passing check 0xC2; returns count | 0.45 | T2 |  |
 
 ## rail (0x1CB908-0x1CBEB0)
 

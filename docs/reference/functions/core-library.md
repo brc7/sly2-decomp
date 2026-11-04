@@ -545,7 +545,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258F40](../../../src/game/engine/fx/emitter/LoadExploBlipColorsFromBrx.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x259030](../../../src/game/engine/fx/emitter/LoadExploFromBrx.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x2590B8](../../../src/game/engine/fx/emitter/CloneExplo.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x2590F0](../../../src/game/actor/po/PemitbEnsureEmitter.c) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
+| [0x2590F0](../../../src/game/actor/po.cpp) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
 | [0x259170](../../../src/game/engine/fx/emitter/func_00259170.c) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x259330](../../../include/sly2/emitter.h) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2593B8](../../../include/sly2/emitter.h) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
