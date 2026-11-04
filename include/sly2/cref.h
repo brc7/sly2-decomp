@@ -23,6 +23,7 @@ struct CLQ;
 struct LM;
 struct SMP;
 struct BASIC;
+struct CMethod;
 
 
 struct CRef
@@ -33,6 +34,16 @@ struct CRef
             int n;
             float g;
             void *pv;
+            /* the payload by tag (spliceobj reads and writes it typed; one word in every case) */
+            VECTOR *pvec;           /* 0x1A */
+            MATRIX4 *pmat;          /* 0x1B */
+            CLQ *pclq;              /* 0x1C */
+            LM *plm;                /* 0x1D */
+            SMP *psmp;              /* 0x1E */
+            CPair *ppair;           /* 0x1F */
+            CProc *pproc;           /* 0x20 */
+            BASIC *pbasic;          /* 0x21 */
+            CMethod *pmethod;       /* 0x22 */
       } u;
 
       CRef() { m_tagk = -1; }
