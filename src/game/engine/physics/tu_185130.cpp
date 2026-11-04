@@ -277,7 +277,7 @@ static inline float Dot(const qword &a, const qword &b)
     qword d;
     float f;
     d = VuDot(a, b);
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 }

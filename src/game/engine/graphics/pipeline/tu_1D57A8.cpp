@@ -279,7 +279,7 @@ static inline qword Dot(VU_VECTOR a, VU_VECTOR b)
 static inline float Scalar(VU_VECTOR v)
 {
     float f;
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(v.q));
+    f = VuToFloat(v.q);
     return f;
 }
 static inline float SqLength(VU_VECTOR v)
@@ -682,7 +682,7 @@ static inline float Dist(qword a, qword b)
     __asm__("qmtc2.ni %1, %0" : "=j"(va) : "r"(a));
     d = VuSub(va, b);
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d), "=&j"(t));
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 

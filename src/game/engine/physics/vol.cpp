@@ -98,7 +98,7 @@ extern "C" int FCheckVolPoint(VOL *p, qword q)
     int fFar;
     d = VuSub(a, p->posCenter);
     r = VuDot(d, d);
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(r));
+    f = VuToFloat(r);
     fFar = p->sRadius < f;
     if (fFar) return 0;
     return PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, a) != 0;

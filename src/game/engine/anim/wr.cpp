@@ -264,7 +264,7 @@ static inline qword QwScale(qword qw, VU_FLOAT g)
 static inline float GFromVf(qword qw)
 {
     float g;
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qw));
+    g = VuToFloat(qw);
     return g;
 }
 

@@ -29,14 +29,14 @@ static inline qword BcQ(float f) { qword q; q = VuFromFloat<qword>(f); return q;
 static inline float Dot(const qword *a, qword b) {
     qword d, one; float r;
     d = VuDot(*a, b);
-    __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
+    r = VuToFloat(d);
     return r;
 }
 static inline float Len(qword a) {
     qword d,one; float r;
     d = VuDot(a, a);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
+    r = VuToFloat(d);
     return r;
 }
 static inline qword Norm(qword a) {

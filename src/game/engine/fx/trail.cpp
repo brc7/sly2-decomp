@@ -132,10 +132,10 @@ extern "C" void ResetTrailHistory(TRAIL *p)
 // Initialize mesh history and samples.
 static inline float Dot(qword a,qword b){qword one;float f;
     a = VuDot(a, b);
-    __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
+    f = VuToFloat(a);return f;}
 static inline float DotCopy(qword a,qword b){qword r,one;float f;
     r = VuDot(a, b);
-    __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
+    f = VuToFloat(r);return f;}
 static inline void RecordOperands(TRAIL *owner,N *node,int &bytes,unsigned &divisor,int &stride,Meta *&metadata){
  register Record *rb asm("$4")=owner->model.records;register int span asm("$5");register unsigned d asm("$2");register int st asm("$3");register Meta *mt asm("$6");
  asm("lui %0,0xCCCC":"=r"(d));
@@ -252,7 +252,7 @@ static inline qword DotSelf(qword d) {
 static inline float Sqrt(qword d) {
     float f;
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(d));
-    __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 /** @sly2-annot addr=0x21C1C8
