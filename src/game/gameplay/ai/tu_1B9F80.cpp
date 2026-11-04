@@ -193,7 +193,7 @@ extern "C" int func_001BA100(void *pv, ROW *prow)
 
 struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}
-static inline float Square(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
+static inline float Square(qword a){float f;a = VuDot(a, a);__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char ROW_Size[sizeof(ROW)==8?1:-1];

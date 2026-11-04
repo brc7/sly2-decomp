@@ -142,15 +142,15 @@ extern "C" int func_001C2DC8(SPRAYER *p, SO *plo, int id, void *pv)
 static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 static inline qword Dot(qword a, qword b)
 {
-    qword d, one;
-    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(d), "=&j"(one) : "j"(a), "j"(b));
+    qword d;
+    d = VuDot(a, b);
     return d;
 }
 static inline qword Scale(qword s, qword v) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(s), "j"(v)); return r; }
 static inline qword Length(qword v)
 {
-    qword d, one, len;
-    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v));
+    qword d, len;
+    d = VuDot(v, v);
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(d));
     return len;
 }

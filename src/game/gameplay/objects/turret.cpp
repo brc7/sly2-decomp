@@ -239,11 +239,11 @@ static inline qword LoadVF(const qword &q){qword r;__asm__("lqc2 %0,%1":"=j"(r):
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
 static inline float Length(qword d){qword r,one;float f;
-    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(d));
+    r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
     __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 static inline float OffsetLength(qword d){qword r,one;register int bits __asm__("$3");
-    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(d));
+    r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
     __asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(r));union {int i;float f;} value;value.i=(int)bits;return value.f;}
 static inline qword InverseRotate(const M3 &m,qword v){qword r=m.r[0],one,a,b,c;
