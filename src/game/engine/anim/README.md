@@ -6,7 +6,7 @@
 | --- | --- |
 | [`act/`](act/) | 72 |
 | [`aseg.cpp`](aseg.cpp) | 1 |
-| [`asega/`](asega/) | 27 |
+| [`asega.cpp`](asega.cpp) | 1 |
 | [`blend.cpp`](blend.cpp) | 1 |
 | [`empty_12F0F0.cpp`](empty_12F0F0.cpp) | 1 |
 | [`empty_131F70.cpp`](empty_131F70.cpp) | 1 |

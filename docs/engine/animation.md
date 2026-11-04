@@ -120,13 +120,13 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x130010](../../src/game/engine/anim/aseg.cpp) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
 | [0x130488](../../src/game/engine/anim/aseg.cpp) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
 | [0x1305B8](../../src/game/engine/anim/aseg.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
-| [0x130B18](../../src/game/engine/anim/asega/func_00130B18.c) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
-| [0x130D30](../../src/game/engine/anim/asega/func_00130D30.c) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
-| [0x131290](../../src/game/engine/anim/asega/HandleAsegaEvent.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |
-| [0x131990](../../src/game/engine/anim/asega/SetAsegaHandsOff.c) | `SetAsegaHandsOff` | Toggles the ASEGA's hands-off flag (+0x58) with Increment/DecrementSwHandsOff | 0.85 | T1 |  |
-| [0x131A20](../../src/game/engine/anim/asega/SetAsegaMasterSpeed.c) | `SetAsegaMasterSpeed` | +0x48 = g; effective speed +0x40 = speed*master*k | 0.85 | T1 |  |
-| [0x131A90](../../src/game/engine/anim/asega/func_00131A90.c) | `SetAsegaChannelWeight` | For channels of kind 7 that are live: kick blend state 9 and store g | 0.30 | T2 | verified |
-| [0x131D68](../../src/game/engine/anim/asega/GetActsegGoal.cpp) | `GetActsegGoal` | Per-frame channel time wrap (0x1317D8) and virtual update | 0.80 | T1 | verified |
+| [0x130B18](../../src/game/engine/anim/asega.cpp) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
+| [0x130D30](../../src/game/engine/anim/asega.cpp) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
+| [0x131290](../../src/game/engine/anim/asega.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |
+| [0x131990](../../src/game/engine/anim/asega.cpp) | `SetAsegaHandsOff` | Toggles the ASEGA's hands-off flag (+0x58) with Increment/DecrementSwHandsOff | 0.85 | T1 |  |
+| [0x131A20](../../src/game/engine/anim/asega.cpp) | `SetAsegaMasterSpeed` | +0x48 = g; effective speed +0x40 = speed*master*k | 0.85 | T1 |  |
+| [0x131A90](../../src/game/engine/anim/asega.cpp) | `SetAsegaChannelWeight` | For channels of kind 7 that are live: kick blend state 9 and store g | 0.30 | T2 | verified |
+| [0x131D68](../../src/game/engine/anim/asega.cpp) | `GetActsegGoal` | Per-frame channel time wrap (0x1317D8) and virtual update | 0.80 | T1 | verified |
 | [0x137A30](../../src/game/engine/anim/blend.cpp) | `EnsureAsegBlendDynamic` | Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables | 0.90 | T1 | verified |
 | [0x1383F0](../../src/game/engine/anim/blend.cpp) | `SetAsegblDominantBl` | When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping of every live ACT on the blended aseg channels | 0.85 | T1 | verified |
 | [0x1384C0](../../src/game/engine/anim/blend.cpp) | `ReblendAsegbl` | Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc), rescale times; mirror times from a linked asegbl (+0 | 0.85 | T1 | verified |

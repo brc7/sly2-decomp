@@ -23,10 +23,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 | Slot | Role | Status | Implementation | Address | Header decl |
 |---|---|---|---|---|---|
-| 1 | Incref-style hook | **override** | [`IncrefAsega`](../../../src/game/engine/anim/asega/IncrefAsega.c) | `0x1308A8` | VUnk00 |
-| 2 | Decref-style hook | **override** | [`DecrefAsega`](../../../src/game/engine/anim/asega/DecrefAsega.c) | `0x1308B8` | VUnk01 |
+| 1 | Incref-style hook | **override** | [`IncrefAsega`](../../../src/game/engine/anim/asega.cpp) | `0x1308A8` | VUnk00 |
+| 2 | Decref-style hook | **override** | [`DecrefAsega`](../../../src/game/engine/anim/asega.cpp) | `0x1308B8` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
-| 4 | SendMessage | **override** | [`NotifyAsega?`](../../../src/game/engine/anim/asega/func_00131738.c) | `0x131738` | SendMessage |
+| 4 | SendMessage | **override** | [`NotifyAsega?`](../../../src/game/engine/anim/asega.cpp) | `0x131738` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetAsegaClassDesc`](../../../src/game/app/class_registry/GetAsegaClassDesc.c) | `0x114270` | Pclassinfo |
 

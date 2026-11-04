@@ -133,30 +133,30 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1308A8](../../../src/game/engine/anim/asega/IncrefAsega.c) | `IncrefAsega` | cref(+0x10)++ | 0.70 | T1 |  |
-| [0x1308B8](../../../src/game/engine/anim/asega/DecrefAsega.c) | `DecrefAsega` | --cref; at 0 destroy and return to the ASEGA pool (FreeSlotheapPv) | 0.70 | T1 |  |
-| [0x130918](../../../src/game/engine/anim/asega/UpdateAsega.c) | `UpdateAsega` | Per-frame advance: time wrap (0x1317D8), event dispatch (0x130F88), retract when finished | 0.75 | T1 |  |
-| [0x130B18](../../../src/game/engine/anim/asega/func_00130B18.c) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
-| [0x130D30](../../../src/game/engine/anim/asega/func_00130D30.c) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
-| [0x130EB0](../../../src/game/engine/anim/asega/UpdateAsegaIeaCur__FP5ASEGA.cpp) | `UpdateAsegaIeaCur__FP5ASEGA` |  |  | existing |  |
-| [0x130F88](../../../src/game/engine/anim/asega/HandleAsegaEvents.cpp) | `HandleAsegaEvents` | Dispatches events crossed during the frame (calls HandleAsegaEvent) | 0.60 | T1 |  |
-| [0x131100](../../../src/game/engine/anim/asega/HandleAsegaEventsFF.cpp) | `HandleAsegaEventsFF` | Fast-forward event dispatch used when applying at t>0 | 0.60 | T1 |  |
-| [0x131270](../../../src/game/engine/anim/asega/func_00131270.c) | `PloAsegaEventTarget` | Returns p->+0x18 if set else p->+0x14 | 0.30 | T2 |  |
-| [0x131290](../../../src/game/engine/anim/asega/HandleAsegaEvent.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |
-| [0x131738](../../../src/game/engine/anim/asega/func_00131738.c) | `NotifyAsega` | Virtual notify: Incref, forwards to base 0x133508 | 0.40 | T2 |  |
-| [0x1317D8](../../../src/game/engine/anim/asega/FWrapAsegaTime.c) | `FWrapAsegaTime` | Wraps/ping-pongs the ASEGA time at segment end (fmodf, GModPositive) | 0.70 | T1 |  |
-| [0x131968](../../../src/game/engine/anim/asega/FAsegaRetracted.c) | `FAsegaRetracted` | True if the ASEGA is not on the live list D_003E1218 | 0.65 | T1 |  |
-| [0x131990](../../../src/game/engine/anim/asega/SetAsegaHandsOff.c) | `SetAsegaHandsOff` | Toggles the ASEGA's hands-off flag (+0x58) with Increment/DecrementSwHandsOff | 0.85 | T1 |  |
-| [0x131A00](../../../src/game/engine/anim/asega/SetAsegaSpeed__FP5ASEGAf.c) | `SetAsegaSpeed__FP5ASEGAf` |  |  | existing |  |
-| [0x131A20](../../../src/game/engine/anim/asega/SetAsegaMasterSpeed.c) | `SetAsegaMasterSpeed` | +0x48 = g; effective speed +0x40 = speed*master*k | 0.85 | T1 |  |
-| [0x131A40](../../../src/game/engine/anim/asega/SetAsegaPriority__FP5ASEGAi.c) | `SetAsegaPriority__FP5ASEGAi` |  |  | existing |  |
-| [0x131A90](../../../src/game/engine/anim/asega/func_00131A90.c) | `SetAsegaChannelWeight` | For channels of kind 7 that are live: kick blend state 9 and store g | 0.30 | T2 | verified |
-| [0x131B10](../../../src/game/engine/anim/asega/func_00131B10.c) | `DetachAsegaChannel` | Finds a channel by id and resets it (-1) via 0x2301D0 | 0.30 | T2 |  |
-| [0x131B60](../../../src/game/engine/anim/asega/func_00131B60.c) | `DetachAsegaChannels` | For each table entry matching any (a,b) filter pair, DetachAsegaChannel | 0.30 | T2 |  |
-| [0x131C40](../../../src/game/engine/anim/asega/func_00131C40.c) | `AsegaChnAttach` | Writes channel binding (+0x20/+0x24) into the target object's +0xA8 record | 0.25 | T2 |  |
-| [0x131C90](../../../src/game/engine/anim/asega/func_00131C90.c) | `AsegaChnDetach` | Clears that binding | 0.25 | T2 |  |
-| [0x131CD8](../../../src/game/engine/anim/asega/func_00131CD8.c) | `AsegaChnApply` | Applies channel to target (+0x88) and kicks state | 0.25 | T2 |  |
-| [0x131D68](../../../src/game/engine/anim/asega/GetActsegGoal.cpp) | `GetActsegGoal` | Per-frame channel time wrap (0x1317D8) and virtual update | 0.80 | T1 | verified |
+| [0x1308A8](../../../src/game/engine/anim/asega.cpp) | `IncrefAsega` | cref(+0x10)++ | 0.70 | T1 |  |
+| [0x1308B8](../../../src/game/engine/anim/asega.cpp) | `DecrefAsega` | --cref; at 0 destroy and return to the ASEGA pool (FreeSlotheapPv) | 0.70 | T1 |  |
+| [0x130918](../../../src/game/engine/anim/asega.cpp) | `UpdateAsega` | Per-frame advance: time wrap (0x1317D8), event dispatch (0x130F88), retract when finished | 0.75 | T1 |  |
+| [0x130B18](../../../src/game/engine/anim/asega.cpp) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
+| [0x130D30](../../../src/game/engine/anim/asega.cpp) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
+| [0x130EB0](../../../src/game/engine/anim/asega.cpp) | `UpdateAsegaIeaCur__FP5ASEGA` |  |  | existing |  |
+| [0x130F88](../../../src/game/engine/anim/asega.cpp) | `HandleAsegaEvents` | Dispatches events crossed during the frame (calls HandleAsegaEvent) | 0.60 | T1 |  |
+| [0x131100](../../../src/game/engine/anim/asega.cpp) | `HandleAsegaEventsFF` | Fast-forward event dispatch used when applying at t>0 | 0.60 | T1 |  |
+| [0x131270](../../../src/game/engine/anim/asega.cpp) | `PloAsegaEventTarget` | Returns p->+0x18 if set else p->+0x14 | 0.30 | T2 |  |
+| [0x131290](../../../src/game/engine/anim/asega.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |
+| [0x131738](../../../src/game/engine/anim/asega.cpp) | `NotifyAsega` | Virtual notify: Incref, forwards to base 0x133508 | 0.40 | T2 |  |
+| [0x1317D8](../../../src/game/engine/anim/asega.cpp) | `FWrapAsegaTime` | Wraps/ping-pongs the ASEGA time at segment end (fmodf, GModPositive) | 0.70 | T1 |  |
+| [0x131968](../../../src/game/engine/anim/asega.cpp) | `FAsegaRetracted` | True if the ASEGA is not on the live list D_003E1218 | 0.65 | T1 |  |
+| [0x131990](../../../src/game/engine/anim/asega.cpp) | `SetAsegaHandsOff` | Toggles the ASEGA's hands-off flag (+0x58) with Increment/DecrementSwHandsOff | 0.85 | T1 |  |
+| [0x131A00](../../../src/game/engine/anim/asega.cpp) | `SetAsegaSpeed__FP5ASEGAf` |  |  | existing |  |
+| [0x131A20](../../../src/game/engine/anim/asega.cpp) | `SetAsegaMasterSpeed` | +0x48 = g; effective speed +0x40 = speed*master*k | 0.85 | T1 |  |
+| [0x131A40](../../../src/game/engine/anim/asega.cpp) | `SetAsegaPriority__FP5ASEGAi` |  |  | existing |  |
+| [0x131A90](../../../src/game/engine/anim/asega.cpp) | `SetAsegaChannelWeight` | For channels of kind 7 that are live: kick blend state 9 and store g | 0.30 | T2 | verified |
+| [0x131B10](../../../src/game/engine/anim/asega.cpp) | `DetachAsegaChannel` | Finds a channel by id and resets it (-1) via 0x2301D0 | 0.30 | T2 |  |
+| [0x131B60](../../../src/game/engine/anim/asega.cpp) | `DetachAsegaChannels` | For each table entry matching any (a,b) filter pair, DetachAsegaChannel | 0.30 | T2 |  |
+| [0x131C40](../../../src/game/engine/anim/asega.cpp) | `AsegaChnAttach` | Writes channel binding (+0x20/+0x24) into the target object's +0xA8 record | 0.25 | T2 |  |
+| [0x131C90](../../../src/game/engine/anim/asega.cpp) | `AsegaChnDetach` | Clears that binding | 0.25 | T2 |  |
+| [0x131CD8](../../../src/game/engine/anim/asega.cpp) | `AsegaChnApply` | Applies channel to target (+0x88) and kicks state | 0.25 | T2 |  |
+| [0x131D68](../../../src/game/engine/anim/asega.cpp) | `GetActsegGoal` | Per-frame channel time wrap (0x1317D8) and virtual update | 0.80 | T1 | verified |
 
 ## blend (0x137A30-0x138F08)
 
