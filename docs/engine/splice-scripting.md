@@ -186,7 +186,7 @@ Compared with Sly 1's 125-entry table (which gives the Splice spellings) `[H r1 
 | [0x129618](../../src/game/splice/ref.cpp) | `CRef_SetBifk` | Decref then tag 0x19 | 0.85 | T1 | verified |
 | [0x129808](../../src/game/splice/ref.cpp) | `CRef_SetClq` | Decref, tag 0x1C | 0.85 | T1 | verified |
 | [0x12A3D8](../../src/game/splice/serialize.cpp) | `PpairSerializeIn` | Deserializes a compiled Splice expression tree from the level stream (typed U8 tag, S32/S16/F32/U32 payloads, jump table 0x2A4500) | 0.97 | T1 | parse, format-doc |
-| [0x200598](../../src/game/object/spliceobj/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
+| [0x200598](../../src/game/object/spliceobj.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
 
 Selected 60 of 268 named functions (T1 with confidence >= 0.85, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/splice-scripting.md](../reference/functions/splice-scripting.md).
 

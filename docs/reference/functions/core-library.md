@@ -431,8 +431,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255C00](../../../src/game/object/basic.cpp) | `GcSidebag_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255D90](../../../src/game/splice/sidebag.cpp) | `GcSidebag_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x255DE8](../../../src/game/splice/sidebag.cpp) | `GcSidebag_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x255F38](../../../src/game/object/spliceobj/GcPool6_PushFront.c) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x2560C8](../../../src/game/object/spliceobj/GcPool6_InitNode.c) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x255F38](../../../src/game/object/spliceobj.cpp) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x2560C8](../../../src/game/object/spliceobj.cpp) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/game/splice/ref.cpp) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256278](../../../src/game/engine/camera/cm/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
@@ -594,8 +594,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259BB0](../../../src/game/engine/sound/sound/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C08](../../../src/game/gameplay/player/grabspot/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259C18](../../../src/game/object/spliceobj/PvNewPool6.c) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x259CF8](../../../src/game/object/spliceobj/func_00259CF8.c) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259C18](../../../src/game/object/spliceobj.cpp) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x259CF8](../../../src/game/object/spliceobj.cpp) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259D18](../../../src/game/actor/step/func_00259D18.c) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259D38](../../../include/sly2/guard.h) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D48](../../../include/sly2/guard.h) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |

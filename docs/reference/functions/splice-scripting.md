@@ -341,14 +341,14 @@ Totals on this page: EXISTING 12, T1 206, T2 50.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1FFCF8](../../../src/game/object/spliceobj/PeopidFind.c) | `PeopidFind` | Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id; return its record | 0.85 | T1 |  |
-| [0x1FFD98](../../../src/game/object/spliceobj/RefGetPeopid.cpp) | `RefGetPeopid` | Splice value of an object option (method, direct member or getter; by type bool/float/vector/matrix/int/clq/lm/smp) | 0.85 | T1 |  |
-| [0x200598](../../../src/game/object/spliceobj/RefSetPeopid.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
-| [0x200BA0](../../../src/game/object/spliceobj/RefGetOption__FP5BASICi.cpp) | `RefGetOption` | Option id <=0x4D0: RefGetPeopid(PeopidFind); else sidebag binding | 0.85 | T1 | verified |
-| [0x200C28](../../../src/game/object/spliceobj/RefSetOption__FP5BASICiP4CRef.c) | `RefSetOption__FP5BASICiP4CRef` |  |  | existing |  |
-| [0x200CA8](../../../src/game/object/spliceobj/RefAddOption__FP5BASICiP4CRef.c) | `RefAddOption__FP5BASICiP4CRef` |  |  | existing |  |
-| [0x200D10](../../../src/game/object/spliceobj/RefEnsureOption__FP5BASICiP4CRef.c) | `RefEnsureOption__FP5BASICiP4CRef` |  |  | existing |  |
-| [0x200DA0](../../../src/game/object/spliceobj/func_00200DA0.cpp) | `RefSetArgListFromPvs` | Build a Splice list CRef from c (otype, pv) pairs (empty -> void) | 0.60 | T1 |  |
-| [0x200F58](../../../src/game/object/spliceobj/func_00200F58.cpp) | `RefSetArgListFromPvsUniform` | Same as RefSetArgListFromPvs with one otype for all values | 0.35 | T2 |  |
-| [0x201360](../../../src/game/object/spliceobj/RefSetArgsFromSplice__FiP4CRefP4OTYPe.c) | `RefSetArgsFromSplice__FiP4CRefP4OTYPe` |  |  | existing |  |
-| [0x2013D8](../../../src/game/object/spliceobj/func_002013D8.cpp) | `RefSetArgsFromSpliceList` | Convert each element of a Splice list into dest[] via RefSetArgsFromSplice; returns void ref | 0.30 | T2 |  |
+| [0x1FFCF8](../../../src/game/object/spliceobj.cpp) | `PeopidFind` | Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id; return its record | 0.85 | T1 |  |
+| [0x1FFD98](../../../src/game/object/spliceobj.cpp) | `RefGetPeopid` | Splice value of an object option (method, direct member or getter; by type bool/float/vector/matrix/int/clq/lm/smp) | 0.85 | T1 |  |
+| [0x200598](../../../src/game/object/spliceobj.cpp) | `RefSetPeopid` | Setter twin: write a Splice value into an object option | 0.85 | T1 | verified |
+| [0x200BA0](../../../src/game/object/spliceobj.cpp) | `RefGetOption` | Option id <=0x4D0: RefGetPeopid(PeopidFind); else sidebag binding | 0.85 | T1 | verified |
+| [0x200C28](../../../src/game/object/spliceobj.cpp) | `RefSetOption__FP5BASICiP4CRef` |  |  | existing |  |
+| [0x200CA8](../../../src/game/object/spliceobj.cpp) | `RefAddOption__FP5BASICiP4CRef` |  |  | existing |  |
+| [0x200D10](../../../src/game/object/spliceobj.cpp) | `RefEnsureOption__FP5BASICiP4CRef` |  |  | existing |  |
+| [0x200DA0](../../../src/game/object/spliceobj.cpp) | `RefSetArgListFromPvs` | Build a Splice list CRef from c (otype, pv) pairs (empty -> void) | 0.60 | T1 |  |
+| [0x200F58](../../../src/game/object/spliceobj.cpp) | `RefSetArgListFromPvsUniform` | Same as RefSetArgListFromPvs with one otype for all values | 0.35 | T2 |  |
+| [0x201360](../../../src/game/object/spliceobj.cpp) | `RefSetArgsFromSplice__FiP4CRefP4OTYPe` |  |  | existing |  |
+| [0x2013D8](../../../src/game/object/spliceobj.cpp) | `RefSetArgsFromSpliceList` | Convert each element of a Splice list into dest[] via RefSetArgsFromSplice; returns void ref | 0.30 | T2 |  |
