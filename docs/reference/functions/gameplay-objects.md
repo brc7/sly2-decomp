@@ -234,29 +234,29 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B0B78](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0B78.c) | `InitCid96` | CID 96 vt7 Init: InitSo + defaults | 0.60 | T2 |  |
-| [0x1B0C68](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0C68.c) | `RemoveCid96Hierarchy` | CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null) | 0.50 | T2 |  |
-| [0x1B0CA8](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0CA8.c) | `LoadCid96FromBrx` | CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects | 0.65 | T2 | parse-code |
-| [0x1B0D08](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D08.c) | `PostCid96Load` | CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset | 0.65 | T2 |  |
-| [0x1B0D60](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D60.c) | `Cid96_VUnk26Proxy` | CID 96 vt26: proxy base then reset | 0.40 | T2 |  |
-| [0x1B0D90](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0D90.c) | `ResetCid96` | Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle | 0.45 | T2 |  |
-| [0x1B0E28](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0E28.c) | `UpdateCid96` | CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following | 0.60 | T2 |  |
-| [0x1B0F88](../../../src/game/gameplay/objects/tu_1B0B78/func_001B0F88.c) | `HandleCid96Zap` | vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked object x1C8 | 0.40 | T2 |  |
-| [0x1B1030](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1030.c) | `UpdateCid96XfWorld` | CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17 | 0.35 | T2 |  |
-| [0x1B10B0](../../../src/game/gameplay/objects/tu_1B0B78/func_001B10B0.c) | `PresetCid96Accel` | CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position | 0.50 | T2 |  |
-| [0x1B10D0](../../../src/game/gameplay/objects/tu_1B0B78/func_001B10D0.c) | `HandleCid96Message` | CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4 | 0.60 | T2 |  |
-| [0x1B1140](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1140.c) | `RenderCid96Self` | CID 96 vt19: RenderSoSelf | 0.50 | T2 |  |
-| [0x1B1160](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1160.c) | `UpdateCid96PathFollow` | Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends | 0.40 | T2 |  |
-| [0x1B1328](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1328.cpp) | `SetCid96State` | State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from nearest player with deadline, 5 hit; sound and ASEG per state | 0.50 | T2 |  |
-| [0x1B17B8](../../../src/game/gameplay/objects/tu_1B0B78/SetStepSpinRatio__FP4STEPf.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
-| [0x1B1818](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1818.c) | `SetCid96Heading` | Store heading and rotation matrix about up | 0.40 | T2 |  |
-| [0x1B1868](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1868.c) | `FCid96FacingHeading` | True when facing within 1 degree of stored heading | 0.40 | T2 |  |
-| [0x1B1900](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1900.c) | `ChooseCid96StateFromPlayer` | Look at nearest player (0x1C4AF8): flee/turn decision and heading | 0.35 | T2 |  |
-| [0x1B1A38](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1A38.c) | `GetAsegSpeedForObject` | Root-motion speed of a clip for this object (displacement / duration) | 0.35 | T2 |  |
-| [0x1B1B10](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1B10.c) | `FValidCid96Link` | index < 6 | 0.30 | T2 |  |
-| [0x1B1B18](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1B18.c) | `SetCid96Link` | Set link slot n (not 2/5) id and optional value | 0.30 | T2 |  |
-| [0x1B1B98](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1B98.c) | `PloFindCid96Link` | PloFindSwObject by id and call its vt (slot 9) | 0.30 | T2 |  |
-| [0x1B1BF0](../../../src/game/gameplay/objects/tu_1B0B78/func_001B1BF0.c) | `ResolveCid96Links` | Resolve the 6 link ids into object pointers | 0.35 | T2 |  |
+| [0x1B0B78](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `InitCid96` | CID 96 vt7 Init: InitSo + defaults | 0.60 | T2 |  |
+| [0x1B0C68](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `RemoveCid96Hierarchy` | CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null) | 0.50 | T2 |  |
+| [0x1B0CA8](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `LoadCid96FromBrx` | CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects | 0.65 | T2 | parse-code |
+| [0x1B0D08](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `PostCid96Load` | CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset | 0.65 | T2 |  |
+| [0x1B0D60](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `Cid96_VUnk26Proxy` | CID 96 vt26: proxy base then reset | 0.40 | T2 |  |
+| [0x1B0D90](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `ResetCid96` | Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle | 0.45 | T2 |  |
+| [0x1B0E28](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `UpdateCid96` | CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following | 0.60 | T2 |  |
+| [0x1B0F88](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `HandleCid96Zap` | vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked object x1C8 | 0.40 | T2 |  |
+| [0x1B1030](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `UpdateCid96XfWorld` | CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17 | 0.35 | T2 |  |
+| [0x1B10B0](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `PresetCid96Accel` | CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position | 0.50 | T2 |  |
+| [0x1B10D0](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `HandleCid96Message` | CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4 | 0.60 | T2 |  |
+| [0x1B1140](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `RenderCid96Self` | CID 96 vt19: RenderSoSelf | 0.50 | T2 |  |
+| [0x1B1160](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `UpdateCid96PathFollow` | Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends | 0.40 | T2 |  |
+| [0x1B1328](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `SetCid96State` | State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from nearest player with deadline, 5 hit; sound and ASEG per state | 0.50 | T2 |  |
+| [0x1B17B8](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
+| [0x1B1818](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `SetCid96Heading` | Store heading and rotation matrix about up | 0.40 | T2 |  |
+| [0x1B1868](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `FCid96FacingHeading` | True when facing within 1 degree of stored heading | 0.40 | T2 |  |
+| [0x1B1900](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `ChooseCid96StateFromPlayer` | Look at nearest player (0x1C4AF8): flee/turn decision and heading | 0.35 | T2 |  |
+| [0x1B1A38](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `GetAsegSpeedForObject` | Root-motion speed of a clip for this object (displacement / duration) | 0.35 | T2 |  |
+| [0x1B1B10](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `FValidCid96Link` | index < 6 | 0.30 | T2 |  |
+| [0x1B1B18](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `SetCid96Link` | Set link slot n (not 2/5) id and optional value | 0.30 | T2 |  |
+| [0x1B1B98](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `PloFindCid96Link` | PloFindSwObject by id and call its vt (slot 9) | 0.30 | T2 |  |
+| [0x1B1BF0](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `ResolveCid96Links` | Resolve the 6 link ids into object pointers | 0.35 | T2 |  |
 
 ## missile (0x1B1DB8-0x1B2820)
 

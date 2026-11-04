@@ -82,7 +82,7 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x1800A0](../../src/game/gameplay/objects/tu_17F090/AddHackshipOidPair.c) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
 | [0x180188](../../src/game/gameplay/objects/tu_17F090/func_00180188.c) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |
 | [0x181F60](../../src/game/gameplay/objects/tu_17F090/func_00181F60.c) | `UpdateHackwall` | vt16: UpdateSo, per-segment shape tracking and random effects | 0.35 | T2 | verified, whole-game |
-| [0x1B17B8](../../src/game/gameplay/objects/tu_1B0B78/SetStepSpinRatio__FP4STEPf.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
+| [0x1B17B8](../../src/game/gameplay/objects/tu_1B0B78.cpp) | `SetCid96SpinRatio` | Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C | 0.65 | existing | arbitration; replaces existing SetStepSpinRatio__FP4STEPf |
 | [0x1B1DB8](../../src/game/gameplay/objects/missile.cpp) | `InitMissile` | MISSILE::Init (vt7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1 | 0.90 | T1 |  |
 | [0x1B1E00](../../src/game/gameplay/objects/missile.cpp) | `LoadMissileFromBrx` | MISSILE::LoadFromBrx (vt14): base load (0x1F31E0) + SnipLoObjects(this,1,s_asnipMissile D_002C0258) | 0.90 | T1 | parse |
 | [0x1B1E38](../../src/game/gameplay/objects/missile.cpp) | `OnMissileRemove` | MISSILE::OnRemove (vt12): OnSoRemove (0x1F2D48) then retract current asega | 0.85 | T1 |  |
