@@ -45,4 +45,15 @@ template <class QW> inline QW VuAddScaled(QW a, QW v, QW s)
     return r;
 }
 
+/* a . b over xyz, in x of the result (the other lanes are scratch): d = a * b per lane; one.x = vf0.x + vf0.w = 1.0;
+ * ACC.x = d.x + d.y; d.x = ACC.x + one.x * d.z. Self dot (squared length) is VuDot(v, v).
+ * Placeholder name (HYPOTHESIS: a VU_VECTOR dot-product inline in the original; no Sly 1 symbol names it). */
+template <class QW> inline QW VuDot(QW a, QW b)
+{
+    QW d, one;
+    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
+            : "=j"(d), "=j"(one) : "j"(a), "j"(b));
+    return d;
+}
+
 #endif /* SLY2_VU0_H */
