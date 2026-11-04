@@ -174,19 +174,19 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x132B10](../../src/game/object/basic/FIsBasicDerivedFrom__FP5BASIC3CID.c) | `FIsBasicDerivedFrom` | cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax) | 0.92 | T1 |  |
-| [0x132B78](../../src/game/object/basic/EnsureBasicSidebag__FP5BASIC.c) | `EnsureBasicSidebag` | If psidebag (+4) is null create one (0x257D80) and addref | 0.85 | T1 |  |
-| [0x132BC8](../../src/game/object/basic/EnsureLoSidebagBool__FP2LO5OPTIDi.c) | `EnsureLoSidebagBool` | RefEnsureOption(plo, optid, bool CRef (tagk 0x17)) | 0.90 | T1 |  |
-| [0x132C20](../../src/game/object/basic/EnsureLoSidebagInt__FP2LO5OPTIDi.c) | `EnsureLoSidebagInt` | RefEnsureOption with S32 CRef (tagk 0x15) | 0.88 | T1 |  |
-| [0x132C78](../../src/game/object/basic/EnsureLoSidebagFloat__FP2LO5OPTIDf.c) | `EnsureLoSidebagFloat` | RefEnsureOption with F32 CRef (tagk 0x16) | 0.90 | T1 |  |
-| [0x132CC8](../../src/game/object/basic/EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ.c) | `EnsureLoSidebagClq` | RefEnsureOption with CRef(CLQ*) | 0.85 | T1 |  |
-| [0x132D28](../../src/game/object/basic/EnsureLoSidebagLm__FP2LO5OPTIDP2LM.c) | `EnsureLoSidebagLm` | RefEnsureOption with CRef(LM*) | 0.85 | T1 |  |
-| [0x132D88](../../src/game/object/basic/EnsureLoSidebagOid__FP2LO5OPTID3OID.c) | `EnsureLoSidebagOid` | RefEnsureOption with S32 CRef holding an OID | 0.85 | T1 |  |
-| [0x132DE0](../../src/game/object/basic/EnsureLoSidebagVector.c) | `EnsureLoSidebagVector` | RefEnsureOption with a vector CRef (passed by value as qword) | 0.85 | T1 |  |
-| [0x1331F8](../../src/game/object/basic/HandleBasicSpliceEvent.c) | `HandleBasicSpliceEvent` | BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and either schedule (fPost) or evaluate now | 0.75 | T1 | arbitration |
-| [0x1333C0](../../src/game/object/basic/SubscribeLoObject.c) | `SubscribeLoObject` | Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted | 0.85 | T1 | verified |
-| [0x133508](../../src/game/object/basic/SendLoMessage.c) | `SendLoMessage` | BASIC vt4: own vt5 HandleMessage, then vt5 of every subscriber | 0.85 | T1 |  |
-| [0x133590](../../src/game/object/basic/HandleBasicMessage.c) | `HandleBasicMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | T1 |  |
+| [0x132B10](../../src/game/object/basic.cpp) | `FIsBasicDerivedFrom` | cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax) | 0.92 | T1 |  |
+| [0x132B78](../../src/game/object/basic.cpp) | `EnsureBasicSidebag` | If psidebag (+4) is null create one (0x257D80) and addref | 0.85 | T1 |  |
+| [0x132BC8](../../src/game/object/basic.cpp) | `EnsureLoSidebagBool` | RefEnsureOption(plo, optid, bool CRef (tagk 0x17)) | 0.90 | T1 |  |
+| [0x132C20](../../src/game/object/basic.cpp) | `EnsureLoSidebagInt` | RefEnsureOption with S32 CRef (tagk 0x15) | 0.88 | T1 |  |
+| [0x132C78](../../src/game/object/basic.cpp) | `EnsureLoSidebagFloat` | RefEnsureOption with F32 CRef (tagk 0x16) | 0.90 | T1 |  |
+| [0x132CC8](../../src/game/object/basic.cpp) | `EnsureLoSidebagClq` | RefEnsureOption with CRef(CLQ*) | 0.85 | T1 |  |
+| [0x132D28](../../src/game/object/basic.cpp) | `EnsureLoSidebagLm` | RefEnsureOption with CRef(LM*) | 0.85 | T1 |  |
+| [0x132D88](../../src/game/object/basic.cpp) | `EnsureLoSidebagOid` | RefEnsureOption with S32 CRef holding an OID | 0.85 | T1 |  |
+| [0x132DE0](../../src/game/object/basic.cpp) | `EnsureLoSidebagVector` | RefEnsureOption with a vector CRef (passed by value as qword) | 0.85 | T1 |  |
+| [0x1331F8](../../src/game/object/basic.cpp) | `HandleBasicSpliceEvent` | BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and either schedule (fPost) or evaluate now | 0.75 | T1 | arbitration |
+| [0x1333C0](../../src/game/object/basic.cpp) | `SubscribeLoObject` | Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted | 0.85 | T1 | verified |
+| [0x133508](../../src/game/object/basic.cpp) | `SendLoMessage` | BASIC vt4: own vt5 HandleMessage, then vt5 of every subscriber | 0.85 | T1 |  |
+| [0x133590](../../src/game/object/basic.cpp) | `HandleBasicMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | T1 |  |
 | [0x147F40](../../src/game/object/busy.cpp) | `UpdateSwBusyList` | Per frame: walk objects, test their busy radius against the camera (g_cm pos) and the current player, and move them between busy/idle lists | 0.85 | T1 | runtime |
 | [0x148300](../../src/game/object/busy.cpp) | `UpdateLoBusy` | Decide whether one object is busy (distance to camera/current PO vs its sBusy) and (re)insert it | 0.40 | T2 |  |
 | [0x15E380](../../src/game/object/find.cpp) | `PdlFromSwOid` | Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF | 0.85 | T1 | runtime |

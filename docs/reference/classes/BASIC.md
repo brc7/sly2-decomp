@@ -25,11 +25,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 | Slot | Role | Status | Implementation | Address | Header decl |
 |---|---|---|---|---|---|
-| 1 | Incref-style hook | **new** | [`BASIC_VUnk00?`](../../../src/game/object/basic/func_00132B00.c) | `0x132B00` | VUnk00 |
-| 2 | Decref-style hook | **new** | [`BASIC_VUnk01?`](../../../src/game/object/basic/func_00132B08.c) | `0x132B08` | VUnk01 |
-| 3 | HandleSpliceEvent | **new** | [`HandleBasicSpliceEvent`](../../../src/game/object/basic/HandleBasicSpliceEvent.c) | `0x1331F8` | HandleSpliceEvent |
-| 4 | SendMessage | **new** | [`SendLoMessage`](../../../src/game/object/basic/SendLoMessage.c) | `0x133508` | SendMessage |
-| 5 | HandleMessage | **new** | [`HandleBasicMessage`](../../../src/game/object/basic/HandleBasicMessage.c) | `0x133590` | HandleMessage |
+| 1 | Incref-style hook | **new** | [`BASIC_VUnk00?`](../../../src/game/object/basic.cpp) | `0x132B00` | VUnk00 |
+| 2 | Decref-style hook | **new** | [`BASIC_VUnk01?`](../../../src/game/object/basic.cpp) | `0x132B08` | VUnk01 |
+| 3 | HandleSpliceEvent | **new** | [`HandleBasicSpliceEvent`](../../../src/game/object/basic.cpp) | `0x1331F8` | HandleSpliceEvent |
+| 4 | SendMessage | **new** | [`SendLoMessage`](../../../src/game/object/basic.cpp) | `0x133508` | SendMessage |
+| 5 | HandleMessage | **new** | [`HandleBasicMessage`](../../../src/game/object/basic.cpp) | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **new** | [`GetBasicClassDesc`](../../../src/game/app/class_registry/GetBasicClassDesc.c) | `0x113A10` | Pclassinfo |
 
 ## Fields

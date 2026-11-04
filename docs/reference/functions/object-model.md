@@ -19,31 +19,31 @@ Totals on this page: T1 113, T2 53.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x132B00](../../../src/game/object/basic/func_00132B00.c) | `BASIC_VUnk00` | BASIC vt1 default (empty); inherited by ~190 classes | 0.60 | T2 |  |
-| [0x132B08](../../../src/game/object/basic/func_00132B08.c) | `BASIC_VUnk01` | BASIC vt2 default (empty) | 0.60 | T2 |  |
-| [0x132B10](../../../src/game/object/basic/FIsBasicDerivedFrom__FP5BASIC3CID.c) | `FIsBasicDerivedFrom` | cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax) | 0.92 | T1 |  |
-| [0x132B78](../../../src/game/object/basic/EnsureBasicSidebag__FP5BASIC.c) | `EnsureBasicSidebag` | If psidebag (+4) is null create one (0x257D80) and addref | 0.85 | T1 |  |
-| [0x132BC8](../../../src/game/object/basic/EnsureLoSidebagBool__FP2LO5OPTIDi.c) | `EnsureLoSidebagBool` | RefEnsureOption(plo, optid, bool CRef (tagk 0x17)) | 0.90 | T1 |  |
-| [0x132C20](../../../src/game/object/basic/EnsureLoSidebagInt__FP2LO5OPTIDi.c) | `EnsureLoSidebagInt` | RefEnsureOption with S32 CRef (tagk 0x15) | 0.88 | T1 |  |
-| [0x132C78](../../../src/game/object/basic/EnsureLoSidebagFloat__FP2LO5OPTIDf.c) | `EnsureLoSidebagFloat` | RefEnsureOption with F32 CRef (tagk 0x16) | 0.90 | T1 |  |
-| [0x132CC8](../../../src/game/object/basic/EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ.c) | `EnsureLoSidebagClq` | RefEnsureOption with CRef(CLQ*) | 0.85 | T1 |  |
-| [0x132D28](../../../src/game/object/basic/EnsureLoSidebagLm__FP2LO5OPTIDP2LM.c) | `EnsureLoSidebagLm` | RefEnsureOption with CRef(LM*) | 0.85 | T1 |  |
-| [0x132D88](../../../src/game/object/basic/EnsureLoSidebagOid__FP2LO5OPTID3OID.c) | `EnsureLoSidebagOid` | RefEnsureOption with S32 CRef holding an OID | 0.85 | T1 |  |
-| [0x132DE0](../../../src/game/object/basic/EnsureLoSidebagVector.c) | `EnsureLoSidebagVector` | RefEnsureOption with a vector CRef (passed by value as qword) | 0.85 | T1 |  |
-| [0x132E40](../../../src/game/object/basic/func_00132E40.c) | `EnsureLoSidebagBasic` | RefEnsureOption with a null BASIC CRef (default object option) | 0.60 | T2 |  |
-| [0x132EA0](../../../src/game/object/basic/CidBasic.c) | `CidBasic` | Returns Pclassinfo()->cid (vt6) | 0.70 | T1 |  |
-| [0x132ED8](../../../src/game/object/basic/func_00132ED8.c) | `PpairBuildSpliceEventArgs` | Build the Splice call list (symid, self as BASIC, then the arg pair list) for an event | 0.45 | T2 |  |
-| [0x133000](../../../src/game/object/basic/EvalSpliceEventCallback.c) | `EvalSpliceEventCallback` | RefEval the call list in the object's frame; copy result to *pref if given | 0.50 | T1 |  |
-| [0x133040](../../../src/game/object/basic/ScheduleSwSpliceCallback.c) | `ScheduleSwSpliceCallback` | Allocate a scheduled-callback node (pool g_sw+0x39FC) with id (++g_sw+0x3D6C if anonymous), time t, insert into time-sorted list D_003E0E80 | 0.55 | T1 |  |
-| [0x133130](../../../src/game/object/basic/CancelSwSpliceCallback.c) | `CancelSwSpliceCallback` | Remove the scheduled callback with given id and free its node | 0.55 | T1 |  |
-| [0x1331F8](../../../src/game/object/basic/HandleBasicSpliceEvent.c) | `HandleBasicSpliceEvent` | BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and either schedule (fPost) or evaluate now | 0.75 | T1 | arbitration |
-| [0x133340](../../../src/game/object/basic/func_00133340.c) | `FireLoSpliceEvent5` | vt3 HandleSpliceEvent(5) on the object | 0.40 | T2 |  |
-| [0x133380](../../../src/game/object/basic/func_00133380.c) | `FireLoSpliceEvent6` | vt3 HandleSpliceEvent(6) on the object | 0.40 | T2 |  |
-| [0x1333C0](../../../src/game/object/basic/SubscribeLoObject.c) | `SubscribeLoObject` | Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted | 0.85 | T1 | verified |
-| [0x133448](../../../src/game/object/basic/UnsubscribeLoObject.c) | `UnsubscribeLoObject` | Decrement/remove ploTarget from the subscriber list | 0.70 | T1 |  |
-| [0x1334A8](../../../src/game/object/basic/UnsubscribeLoAll.c) | `UnsubscribeLoAll` | Free the whole subscriber list | 0.55 | T1 |  |
-| [0x133508](../../../src/game/object/basic/SendLoMessage.c) | `SendLoMessage` | BASIC vt4: own vt5 HandleMessage, then vt5 of every subscriber | 0.85 | T1 |  |
-| [0x133590](../../../src/game/object/basic/HandleBasicMessage.c) | `HandleBasicMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | T1 |  |
+| [0x132B00](../../../src/game/object/basic.cpp) | `BASIC_VUnk00` | BASIC vt1 default (empty); inherited by ~190 classes | 0.60 | T2 |  |
+| [0x132B08](../../../src/game/object/basic.cpp) | `BASIC_VUnk01` | BASIC vt2 default (empty) | 0.60 | T2 |  |
+| [0x132B10](../../../src/game/object/basic.cpp) | `FIsBasicDerivedFrom` | cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax) | 0.92 | T1 |  |
+| [0x132B78](../../../src/game/object/basic.cpp) | `EnsureBasicSidebag` | If psidebag (+4) is null create one (0x257D80) and addref | 0.85 | T1 |  |
+| [0x132BC8](../../../src/game/object/basic.cpp) | `EnsureLoSidebagBool` | RefEnsureOption(plo, optid, bool CRef (tagk 0x17)) | 0.90 | T1 |  |
+| [0x132C20](../../../src/game/object/basic.cpp) | `EnsureLoSidebagInt` | RefEnsureOption with S32 CRef (tagk 0x15) | 0.88 | T1 |  |
+| [0x132C78](../../../src/game/object/basic.cpp) | `EnsureLoSidebagFloat` | RefEnsureOption with F32 CRef (tagk 0x16) | 0.90 | T1 |  |
+| [0x132CC8](../../../src/game/object/basic.cpp) | `EnsureLoSidebagClq` | RefEnsureOption with CRef(CLQ*) | 0.85 | T1 |  |
+| [0x132D28](../../../src/game/object/basic.cpp) | `EnsureLoSidebagLm` | RefEnsureOption with CRef(LM*) | 0.85 | T1 |  |
+| [0x132D88](../../../src/game/object/basic.cpp) | `EnsureLoSidebagOid` | RefEnsureOption with S32 CRef holding an OID | 0.85 | T1 |  |
+| [0x132DE0](../../../src/game/object/basic.cpp) | `EnsureLoSidebagVector` | RefEnsureOption with a vector CRef (passed by value as qword) | 0.85 | T1 |  |
+| [0x132E40](../../../src/game/object/basic.cpp) | `EnsureLoSidebagBasic` | RefEnsureOption with a null BASIC CRef (default object option) | 0.60 | T2 |  |
+| [0x132EA0](../../../src/game/object/basic.cpp) | `CidBasic` | Returns Pclassinfo()->cid (vt6) | 0.70 | T1 |  |
+| [0x132ED8](../../../src/game/object/basic.cpp) | `PpairBuildSpliceEventArgs` | Build the Splice call list (symid, self as BASIC, then the arg pair list) for an event | 0.45 | T2 |  |
+| [0x133000](../../../src/game/object/basic.cpp) | `EvalSpliceEventCallback` | RefEval the call list in the object's frame; copy result to *pref if given | 0.50 | T1 |  |
+| [0x133040](../../../src/game/object/basic.cpp) | `ScheduleSwSpliceCallback` | Allocate a scheduled-callback node (pool g_sw+0x39FC) with id (++g_sw+0x3D6C if anonymous), time t, insert into time-sorted list D_003E0E80 | 0.55 | T1 |  |
+| [0x133130](../../../src/game/object/basic.cpp) | `CancelSwSpliceCallback` | Remove the scheduled callback with given id and free its node | 0.55 | T1 |  |
+| [0x1331F8](../../../src/game/object/basic.cpp) | `HandleBasicSpliceEvent` | BASIC vt3: if the frame binds symidEvent, build args from s_aotypEvtParm[s_aiEvtParm[ev]] and either schedule (fPost) or evaluate now | 0.75 | T1 | arbitration |
+| [0x133340](../../../src/game/object/basic.cpp) | `FireLoSpliceEvent5` | vt3 HandleSpliceEvent(5) on the object | 0.40 | T2 |  |
+| [0x133380](../../../src/game/object/basic.cpp) | `FireLoSpliceEvent6` | vt3 HandleSpliceEvent(6) on the object | 0.40 | T2 |  |
+| [0x1333C0](../../../src/game/object/basic.cpp) | `SubscribeLoObject` | Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted | 0.85 | T1 | verified |
+| [0x133448](../../../src/game/object/basic.cpp) | `UnsubscribeLoObject` | Decrement/remove ploTarget from the subscriber list | 0.70 | T1 |  |
+| [0x1334A8](../../../src/game/object/basic.cpp) | `UnsubscribeLoAll` | Free the whole subscriber list | 0.55 | T1 |  |
+| [0x133508](../../../src/game/object/basic.cpp) | `SendLoMessage` | BASIC vt4: own vt5 HandleMessage, then vt5 of every subscriber | 0.85 | T1 |  |
+| [0x133590](../../../src/game/object/basic.cpp) | `HandleBasicMessage` | BASIC vt5 default (empty); PO/others call it as base | 0.75 | T1 |  |
 
 ## busy (0x147E20-0x148620)
 
