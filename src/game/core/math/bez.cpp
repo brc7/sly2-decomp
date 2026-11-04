@@ -56,14 +56,11 @@ static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
 {
     M3 t;
     qword r0, r1, r2;
-    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(r0) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[0]));
+    r0 = VuMulMatrix3(a.r[0], a.r[1], a.r[2], pb->r[0]);
     t.r[0] = r0; pm->r[0] = r0;
-    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(r1) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[1]));
+    r1 = VuMulMatrix3(a.r[0], a.r[1], a.r[2], pb->r[1]);
     t.r[1] = r1; pm->r[1] = r1;
-    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(r2) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[2]));
+    r2 = VuMulMatrix3(a.r[0], a.r[1], a.r[2], pb->r[2]);
     t.r[2] = r2; pm->r[2] = r2;
 }
 

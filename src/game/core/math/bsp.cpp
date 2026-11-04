@@ -626,8 +626,7 @@ extern "C" qword func_001193D8(MAT *pm, qword plane)
     qword n, t;
     VECTORQ v;
     v.q = plane;
-    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(n) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(v.q));
+    n = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v.q);
     t = pm->r[3];
     func_002564A8(&u.q, plane);
     float d = u.f[3];
