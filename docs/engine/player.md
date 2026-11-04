@@ -315,11 +315,11 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x134770](../../src/game/gameplay/player/bentley/LoadBentleyFromBrx.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
-| [0x1357C0](../../src/game/gameplay/player/bentley/FireBentleyDart.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb | 0.45 | T2 |  |
-| [0x135AD8](../../src/game/gameplay/player/bentley/HandleBentleyMessage.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
-| [0x136A28](../../src/game/gameplay/player/bentley/PgadgetBentleyFromId.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
-| [0x136CB0](../../src/game/gameplay/player/bentley/BENTLEY_PchzSaveVarRoot.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
+| [0x134770](../../src/game/gameplay/player/bentley.cpp) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
+| [0x1357C0](../../src/game/gameplay/player/bentley.cpp) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb | 0.45 | T2 |  |
+| [0x135AD8](../../src/game/gameplay/player/bentley.cpp) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
+| [0x136A28](../../src/game/gameplay/player/bentley.cpp) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
+| [0x136CB0](../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
 | [0x13FF70](../../src/game/gameplay/player/stepplayer/InitStepplayer.c) | `InitStepplayer` | STEPPLAYER vt7 Init: STEP Init (0x203948) then inits embedded components at +0x2C0,+0x4C0,+0x9E0,+0xDF0,+0xF00,+0x11B0,+0xF50,+0xFD0 and defaults (+0x | 0.85 | T1 | verified |
 | [0x1403D0](../../src/game/gameplay/player/stepplayer/UpdateStepplayer.c) | `UpdateStepplayer` | STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0), interact-target pick 0x142AF8, gadget/menu button han | 0.65 | T1 |  |
 | [0x140F90](../../src/game/gameplay/player/stepplayer/HandleStepplayerMessage.c) | `HandleStepplayerMessage` | STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds 0x15E/0x161/0x162/0x27B/0x27C/0x1C7/0x1C8, msgs 4/5/1/11) then forwards to 0x1EED78/0x1C3E | 0.85 | T1 | verified |

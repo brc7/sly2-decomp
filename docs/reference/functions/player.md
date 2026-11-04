@@ -19,52 +19,52 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x134648](../../../src/game/gameplay/player/bentley/InitBentley.c) | `InitBentley` | BENTLEY vt7: InitStepplayer then Bentley defaults (camera offsets 45/125, two 0x20B840 sub-objects at +0x1320/+0x1600, gadget slot kinds 7/9/11 ...) | 0.85 | T1 |  |
-| [0x134770](../../../src/game/gameplay/player/bentley/LoadBentleyFromBrx.c) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
-| [0x1347A8](../../../src/game/gameplay/player/bentley/PostBentleyLoad.c) | `PostBentleyLoad` | BENTLEY vt15: PostLoadStepplayer, find child SO 0xB, bind anim blends, init crosshair/aim helper (0x136D28), AttachStepplayerToStartMarker(0x16), SetBentleyState(0) | 0.80 | T1 |  |
-| [0x134850](../../../src/game/gameplay/player/bentley/UpdateBentleyStateMachine.c) | `UpdateBentleyStateMachine` | Per-frame transitions of the Bentley state (+0x13D0) driven by component states, then sub-machines 0x136118/0x136338/0x1367D8 | 0.45 | T2 |  |
-| [0x134D30](../../../src/game/gameplay/player/bentley/func_00134D30.c) | `UpdateBentleyJtmode` | While in jtmode: on button mask 0x4F0 in mode 1/kind 0 call 0x19CCE8, then update jtmode 0x19D330 | 0.40 | T2 |  |
-| [0x134DA8](../../../src/game/gameplay/player/bentley/UpdateBentley.c) | `UpdateBentley` | BENTLEY vt16: UpdateStepplayer, then (if in world) Bentley state machine and per-state actions | 0.80 | T1 |  |
-| [0x135248](../../../src/game/gameplay/player/bentley/SetBentleyState.c) | `SetBentleyState` | Bentley state change (+0x13D0): exit/enter actions, animations (asega), component state changes | 0.60 | T1 |  |
-| [0x1356E8](../../../src/game/gameplay/player/bentley/func_001356E8.c) | `UpdateBentleyAimPoint` | Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox + PsoHitTestLineObjects); store hit (or far point) at +0x16F0 | 0.50 | T2 |  |
-| [0x1357C0](../../../src/game/gameplay/player/bentley/FireBentleyDart.c) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb(4.0), mark fired | 0.45 | T2 |  |
-| [0x1358A8](../../../src/game/gameplay/player/bentley/GetBentleyCpdefi.c) | `GetBentleyCpdefi` | BENTLEY vt50: GetStepplayerCpdefi plus per-state tweaks (pipe 13 -> 0x19EA00, state 5 sets flag) | 0.75 | T1 |  |
-| [0x135940](../../../src/game/gameplay/player/bentley/func_00135940.c) | `BENTLEY_VUnk69` | BENTLEY vt70: state-dependent physics preset (pipe/jtair/jtgrab/jthurt components; state 6 sub 2 applies drag via 0x1FAC30) | 0.45 | T2 |  |
-| [0x135A48](../../../src/game/gameplay/player/bentley/func_00135A48.c) | `BENTLEY_VUnk54` | BENTLEY vt55: per-state contact hook (hurt 0x1A2100, pipe 0x19E9C8, else STEP base 0x204250) | 0.40 | T2 |  |
-| [0x135AD8](../../../src/game/gameplay/player/bentley/HandleBentleyMessage.c) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
-| [0x135C20](../../../src/game/gameplay/player/bentley/SetBentleyPlayerState.c) | `SetBentleyPlayerState` | BENTLEY vt88: map generic player state 0..8 to Bentley states (0,2,3,4,9,10,11,12,13) via SetBentleyState | 0.60 | T1 |  |
-| [0x135D08](../../../src/game/gameplay/player/bentley/BENTLEY_PlayerStateCur.c) | `BENTLEY_PlayerStateCur` | BENTLEY vt89: inverse map Bentley state -> generic 0..8 (else -1) | 0.60 | T1 |  |
-| [0x135D80](../../../src/game/gameplay/player/bentley/func_00135D80.c) | `BENTLEY_VUnk89` | BENTLEY vt90: ask the active component (jtair/jtgrab/jthurt) for an animation/feature id, default +0x268, then STEP 0x203D00 | 0.40 | T2 |  |
-| [0x135E30](../../../src/game/gameplay/player/bentley/func_00135E30.c) | `BENTLEY_VUnk90` | BENTLEY vt91: empty | 0.30 | T2 |  |
-| [0x135E38](../../../src/game/gameplay/player/bentley/func_00135E38.c) | `BENTLEY_VUnk91` | BENTLEY vt92: returns 0 | 0.30 | T2 |  |
-| [0x135E40](../../../src/game/gameplay/player/bentley/func_00135E40.c) | `BENTLEY_VUnk97` | BENTLEY vt98: STEPPLAYER::VUnk97, else 1 in states 1/5/14, -1 otherwise | 0.40 | T2 |  |
-| [0x135EB0](../../../src/game/gameplay/player/bentley/func_00135EB0.c) | `UpdateBentleyPlaces` | Per state: remember standing places (jtplaces 0x19FEB0) when on solid ground, or grab/pipe updates | 0.35 | T2 |  |
-| [0x135F78](../../../src/game/gameplay/player/bentley/BENTLEY_FInvulnerable.c) | `BENTLEY_FInvulnerable` | BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::FInvulnerable | 0.65 | T1 |  |
-| [0x135FF0](../../../src/game/gameplay/player/bentley/func_00135FF0.c) | `BENTLEY_VUnk93` | BENTLEY vt94: 1 in states 0/1/5/7 else 0 | 0.35 | T2 |  |
-| [0x136040](../../../src/game/gameplay/player/bentley/func_00136040.c) | `SetBentleySubState16B0` | Set +0x16B0 sub-state and play the matching aseg | 0.35 | T2 |  |
-| [0x136118](../../../src/game/gameplay/player/bentley/func_00136118.c) | `UpdateBentleySubState16B0` | Sub-state machine on +0x16B0 | 0.30 | T2 |  |
-| [0x136298](../../../src/game/gameplay/player/bentley/func_00136298.c) | `ReleaseBentleyHeldObject` | Release object at +0x186C back to its manager | 0.30 | T2 |  |
-| [0x1362F8](../../../src/game/gameplay/player/bentley/func_001362F8.c) | `SetBentleyAimState` | Set +0x16BC aim state with timestamp; state 0 stops crosshair helper (0x136F48(-1)) | 0.40 | T2 |  |
-| [0x136338](../../../src/game/gameplay/player/bentley/UpdateBentleyAim.c) | `UpdateBentleyAim` | Aim state machine (+0x16BC): button 8 enters aim, times out, fires | 0.40 | T2 |  |
-| [0x136530](../../../src/game/gameplay/player/bentley/func_00136530.c) | `SetBentleyHoverState` | State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code | 0.30 | T2 |  |
-| [0x1367D8](../../../src/game/gameplay/player/bentley/func_001367D8.c) | `UpdateBentleyStateMisc` | Small transition loop (state 1 returns to 0 and makes the PO current via vt79) | 0.30 | T2 |  |
-| [0x136870](../../../src/game/gameplay/player/bentley/BENTLEY_FCanUseGadget.c) | `BENTLEY_FCanUseGadget` | BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability | 0.70 | T1 |  |
-| [0x136A28](../../../src/game/gameplay/player/bentley/PgadgetBentleyFromId.c) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
-| [0x136A90](../../../src/game/gameplay/player/bentley/StartBentleyGadget.c) | `StartBentleyGadget` | BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget record | 0.70 | T1 |  |
-| [0x136C50](../../../src/game/gameplay/player/bentley/OnBentleyGadgetsChanged.c) | `OnBentleyGadgetsChanged` | BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else disable | 0.50 | T1 |  |
-| [0x136CB0](../../../src/game/gameplay/player/bentley/BENTLEY_PchzSaveVarRoot.c) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
-| [0x136CC0](../../../src/game/gameplay/player/bentley/func_00136CC0.c) | `BENTLEY_VUnk84` | BENTLEY vt85: per-state mode code, else STEPPLAYER::VUnk84 | 0.35 | T2 |  |
-| [0x136D28](../../../src/game/gameplay/player/bentley/func_00136D28.c) | `InitBentleyCrosshair` | Init 6 blended animation slots (EnsureAsegBlendDynamic) for an aim helper struct at +0x1710 | 0.40 | T2 |  |
-| [0x136DC0](../../../src/game/gameplay/player/bentley/func_00136DC0.c) | `UpdateBentleyCrosshair` | Aim-helper update: on button 0x80 and FCanUseGadget(2) restart | 0.35 | T2 |  |
-| [0x136ED0](../../../src/game/gameplay/player/bentley/func_00136ED0.c) | `HandleBentleyHelperMessage` | msg 9 kinds 0x16E/0x242 for the helper struct | 0.30 | T2 |  |
-| [0x136F48](../../../src/game/gameplay/player/bentley/func_00136F48.c) | `SetBentleyCrosshairState` | helper state change | 0.35 | T2 |  |
-| [0x1371B8](../../../src/game/gameplay/player/bentley/func_001371B8.c) | `InitJt1FF0Owner` | {owner, -1} init | 0.60 | T2 | verified |
-| [0x1371C8](../../../src/game/gameplay/player/bentley/func_001371C8.c) | `JtHelperStopScript` | If action +0x1030 done, vt88(0) | 0.25 | T2 |  |
-| [0x137218](../../../src/game/gameplay/player/bentley/func_00137218.c) | `JtHelperApplyInteract` | 0x2046F0(owner, owner->+0x10DC) | 0.25 | T2 |  |
-| [0x137248](../../../src/game/gameplay/player/bentley/func_00137248.cpp) | `JT_VUnk69` | Relative velocity/position correction against a ridden object | 0.30 | T2 |  |
-| [0x1374E0](../../../src/game/gameplay/player/bentley/func_001374E0.c) | `SetJtContactParam` | arg1+0x94 = const | 0.25 | T2 |  |
-| [0x1374F0](../../../src/game/gameplay/player/bentley/func_001374F0.c) | `JtHelper1374F0` | aim toward +0x10DC target | 0.20 | T2 |  |
-| [0x1375D0](../../../src/game/gameplay/player/bentley/func_001375D0.cpp) | `JtHelperSetState` | state setter scaling velocity on exit | 0.25 | T2 |  |
+| [0x134648](../../../src/game/gameplay/player/bentley.cpp) | `InitBentley` | BENTLEY vt7: InitStepplayer then Bentley defaults (camera offsets 45/125, two 0x20B840 sub-objects at +0x1320/+0x1600, gadget slot kinds 7/9/11 ...) | 0.85 | T1 |  |
+| [0x134770](../../../src/game/gameplay/player/bentley.cpp) | `LoadBentleyFromBrx` | BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load class-specific data table) | 0.75 | T1 | parse |
+| [0x1347A8](../../../src/game/gameplay/player/bentley.cpp) | `PostBentleyLoad` | BENTLEY vt15: PostLoadStepplayer, find child SO 0xB, bind anim blends, init crosshair/aim helper (0x136D28), AttachStepplayerToStartMarker(0x16), SetBentleyState(0) | 0.80 | T1 |  |
+| [0x134850](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyStateMachine` | Per-frame transitions of the Bentley state (+0x13D0) driven by component states, then sub-machines 0x136118/0x136338/0x1367D8 | 0.45 | T2 |  |
+| [0x134D30](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyJtmode` | While in jtmode: on button mask 0x4F0 in mode 1/kind 0 call 0x19CCE8, then update jtmode 0x19D330 | 0.40 | T2 |  |
+| [0x134DA8](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentley` | BENTLEY vt16: UpdateStepplayer, then (if in world) Bentley state machine and per-state actions | 0.80 | T1 |  |
+| [0x135248](../../../src/game/gameplay/player/bentley.cpp) | `SetBentleyState` | Bentley state change (+0x13D0): exit/enter actions, animations (asega), component state changes | 0.60 | T1 |  |
+| [0x1356E8](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyAimPoint` | Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox + PsoHitTestLineObjects); store hit (or far point) at +0x16F0 | 0.50 | T2 |  |
+| [0x1357C0](../../../src/game/gameplay/player/bentley.cpp) | `FireBentleyProjectile` | Update aim point, clone the selected projectile template (+0x16DC/+0x16E0), launch it toward the aim point (0x1D6B00), set angular velocity, PrimeBomb(4.0), mark fired | 0.45 | T2 |  |
+| [0x1358A8](../../../src/game/gameplay/player/bentley.cpp) | `GetBentleyCpdefi` | BENTLEY vt50: GetStepplayerCpdefi plus per-state tweaks (pipe 13 -> 0x19EA00, state 5 sets flag) | 0.75 | T1 |  |
+| [0x135940](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk69` | BENTLEY vt70: state-dependent physics preset (pipe/jtair/jtgrab/jthurt components; state 6 sub 2 applies drag via 0x1FAC30) | 0.45 | T2 |  |
+| [0x135A48](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk54` | BENTLEY vt55: per-state contact hook (hurt 0x1A2100, pipe 0x19E9C8, else STEP base 0x204250) | 0.40 | T2 |  |
+| [0x135AD8](../../../src/game/gameplay/player/bentley.cpp) | `HandleBentleyMessage` | BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from template, ...) | 0.85 | T1 | verified |
+| [0x135C20](../../../src/game/gameplay/player/bentley.cpp) | `SetBentleyPlayerState` | BENTLEY vt88: map generic player state 0..8 to Bentley states (0,2,3,4,9,10,11,12,13) via SetBentleyState | 0.60 | T1 |  |
+| [0x135D08](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_PlayerStateCur` | BENTLEY vt89: inverse map Bentley state -> generic 0..8 (else -1) | 0.60 | T1 |  |
+| [0x135D80](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk89` | BENTLEY vt90: ask the active component (jtair/jtgrab/jthurt) for an animation/feature id, default +0x268, then STEP 0x203D00 | 0.40 | T2 |  |
+| [0x135E30](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk90` | BENTLEY vt91: empty | 0.30 | T2 |  |
+| [0x135E38](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk91` | BENTLEY vt92: returns 0 | 0.30 | T2 |  |
+| [0x135E40](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk97` | BENTLEY vt98: STEPPLAYER::VUnk97, else 1 in states 1/5/14, -1 otherwise | 0.40 | T2 |  |
+| [0x135EB0](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyPlaces` | Per state: remember standing places (jtplaces 0x19FEB0) when on solid ground, or grab/pipe updates | 0.35 | T2 |  |
+| [0x135F78](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_FInvulnerable` | BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::FInvulnerable | 0.65 | T1 |  |
+| [0x135FF0](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk93` | BENTLEY vt94: 1 in states 0/1/5/7 else 0 | 0.35 | T2 |  |
+| [0x136040](../../../src/game/gameplay/player/bentley.cpp) | `SetBentleySubState16B0` | Set +0x16B0 sub-state and play the matching aseg | 0.35 | T2 |  |
+| [0x136118](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleySubState16B0` | Sub-state machine on +0x16B0 | 0.30 | T2 |  |
+| [0x136298](../../../src/game/gameplay/player/bentley.cpp) | `ReleaseBentleyHeldObject` | Release object at +0x186C back to its manager | 0.30 | T2 |  |
+| [0x1362F8](../../../src/game/gameplay/player/bentley.cpp) | `SetBentleyAimState` | Set +0x16BC aim state with timestamp; state 0 stops crosshair helper (0x136F48(-1)) | 0.40 | T2 |  |
+| [0x136338](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyAim` | Aim state machine (+0x16BC): button 8 enters aim, times out, fires | 0.40 | T2 |  |
+| [0x136530](../../../src/game/gameplay/player/bentley.cpp) | `SetBentleyHoverState` | State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code | 0.30 | T2 |  |
+| [0x1367D8](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyStateMisc` | Small transition loop (state 1 returns to 0 and makes the PO current via vt79) | 0.30 | T2 |  |
+| [0x136870](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_FCanUseGadget` | BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability | 0.70 | T1 |  |
+| [0x136A28](../../../src/game/gameplay/player/bentley.cpp) | `PgadgetBentleyFromId` |  | 0.70 | existing | arbitration; replaces existing CbFromSaak__F4SAAK |
+| [0x136A90](../../../src/game/gameplay/player/bentley.cpp) | `StartBentleyGadget` | BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget record | 0.70 | T1 |  |
+| [0x136C50](../../../src/game/gameplay/player/bentley.cpp) | `OnBentleyGadgetsChanged` | BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else disable | 0.50 | T1 |  |
+| [0x136CB0](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_PchzSaveVarRoot` | BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur) | 0.85 | T1 | verified |
+| [0x136CC0](../../../src/game/gameplay/player/bentley.cpp) | `BENTLEY_VUnk84` | BENTLEY vt85: per-state mode code, else STEPPLAYER::VUnk84 | 0.35 | T2 |  |
+| [0x136D28](../../../src/game/gameplay/player/bentley.cpp) | `InitBentleyCrosshair` | Init 6 blended animation slots (EnsureAsegBlendDynamic) for an aim helper struct at +0x1710 | 0.40 | T2 |  |
+| [0x136DC0](../../../src/game/gameplay/player/bentley.cpp) | `UpdateBentleyCrosshair` | Aim-helper update: on button 0x80 and FCanUseGadget(2) restart | 0.35 | T2 |  |
+| [0x136ED0](../../../src/game/gameplay/player/bentley.cpp) | `HandleBentleyHelperMessage` | msg 9 kinds 0x16E/0x242 for the helper struct | 0.30 | T2 |  |
+| [0x136F48](../../../src/game/gameplay/player/bentley.cpp) | `SetBentleyCrosshairState` | helper state change | 0.35 | T2 |  |
+| [0x1371B8](../../../src/game/gameplay/player/bentley.cpp) | `InitJt1FF0Owner` | {owner, -1} init | 0.60 | T2 | verified |
+| [0x1371C8](../../../src/game/gameplay/player/bentley.cpp) | `JtHelperStopScript` | If action +0x1030 done, vt88(0) | 0.25 | T2 |  |
+| [0x137218](../../../src/game/gameplay/player/bentley.cpp) | `JtHelperApplyInteract` | 0x2046F0(owner, owner->+0x10DC) | 0.25 | T2 |  |
+| [0x137248](../../../src/game/gameplay/player/bentley.cpp) | `JT_VUnk69` | Relative velocity/position correction against a ridden object | 0.30 | T2 |  |
+| [0x1374E0](../../../src/game/gameplay/player/bentley.cpp) | `SetJtContactParam` | arg1+0x94 = const | 0.25 | T2 |  |
+| [0x1374F0](../../../src/game/gameplay/player/bentley.cpp) | `JtHelper1374F0` | aim toward +0x10DC target | 0.20 | T2 |  |
+| [0x1375D0](../../../src/game/gameplay/player/bentley.cpp) | `JtHelperSetState` | state setter scaling velocity on exit | 0.25 | T2 |  |
 
 ## stepplayer (0x13FF70-0x144638)
 
