@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetProxyClassDesc`](../../../src/game/app/class_registry/GetProxyClassDesc.c) | `0x113A70` | Pclassinfo |
-| 7 | Init | **override** | [`InitProxy`](../../../src/game/object/proxy/InitProxy.c) | `0x1CA788` | Init |
+| 7 | Init | **override** | [`InitProxy`](../../../src/game/object/proxy.cpp) | `0x1CA788` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` | SetParent |
@@ -45,8 +45,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` | VUnk19 |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` | VUnk20 |
 | 22 | OnRemove | inherited (LO) | `OnLoRemove` | `0x1A6150` | Freeze |
-| 23 | OnAdd | **override** | [`OnProxyAdd`](../../../src/game/object/proxy/OnProxyAdd.c) | `0x1CA8E0` | Unfreeze |
-| 24 |  | **override** | [`PROXY_VUnk24?`](../../../src/game/object/proxy/func_001CB6D8.c) | `0x1CB6D8` | VUnk23 |
+| 23 | OnAdd | **override** | [`OnProxyAdd`](../../../src/game/object/proxy.cpp) | `0x1CA8E0` | Unfreeze |
+| 24 |  | **override** | [`PROXY_VUnk24?`](../../../src/game/object/proxy.cpp) | `0x1CB6D8` | VUnk23 |
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` | SetIdProxy |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` | VUnk25 |
 | 27 | LO_VUnk27Proxy | inherited (LO) | `LO_VUnk27Proxy?` | `0x1CB5C8` | VUnk26 |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` | VUnk37 |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` | VUnk38 |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneProxy`](../../../src/game/object/proxy/CloneProxy.c) | `0x1CA7B8` | Clone |
+| 41 | Clone | **override** | [`CloneProxy`](../../../src/game/object/proxy.cpp) | `0x1CA7B8` | Clone |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |

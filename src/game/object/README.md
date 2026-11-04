@@ -9,7 +9,7 @@
 | [`busy.cpp`](busy.cpp) | 1 |
 | [`find.cpp`](find.cpp) | 1 |
 | [`lo/`](lo/) | 74 |
-| [`proxy/`](proxy/) | 38 |
+| [`proxy.cpp`](proxy.cpp) | 1 |
 | [`splicemap.cpp`](splicemap.cpp) | 1 |
 | [`spliceobj.cpp`](spliceobj.cpp) | 1 |
 | [`xform.cpp`](xform.cpp) | 1 |

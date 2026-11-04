@@ -48,9 +48,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 22 | OnRemove | **override** | [`OnSoRemove`](../../../src/game/engine/physics/so/OnSoRemove.c) | `0x1F3E00` | Freeze |
 | 23 | OnAdd | **override** | [`OnSoAdd`](../../../src/game/engine/physics/so/OnSoAdd.c) | `0x1F3EA8` | Unfreeze |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` | VUnk23 |
-| 25 | SetIdProxy | **override** | [`SetSoIdProxy`](../../../src/game/object/proxy/SetSoIdProxy.c) | `0x1CA308` | SetIdProxy |
-| 26 | ResetLoForProxy | **override** | [`ResetSoForProxy?`](../../../src/game/object/proxy/func_001CB518.c) | `0x1CB518` | VUnk25 |
-| 27 | LO_VUnk27Proxy | **override** | [`SO_VUnk27Proxy?`](../../../src/game/object/proxy/func_001CB5D0.cpp) | `0x1CB5D0` | VUnk26 |
+| 25 | SetIdProxy | **override** | [`SetSoIdProxy`](../../../src/game/object/proxy.cpp) | `0x1CA308` | SetIdProxy |
+| 26 | ResetLoForProxy | **override** | [`ResetSoForProxy?`](../../../src/game/object/proxy.cpp) | `0x1CB518` | VUnk25 |
+| 27 | LO_VUnk27Proxy | **override** | [`SO_VUnk27Proxy?`](../../../src/game/object/proxy.cpp) | `0x1CB5D0` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/game/engine/physics/so/TranslateSoToPos.cpp) | `0x1F40A0` | TranslateToPos |
 | 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/game/engine/physics/so/RotateSoToMat.cpp) | `0x1F42E0` | RotateToMat |

@@ -48,9 +48,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 22 | OnRemove | **new** | [`OnLoRemove`](../../../src/game/object/lo/OnLoRemove.c) | `0x1A6150` | Freeze |
 | 23 | OnAdd | **new** | [`OnLoAdd`](../../../src/game/object/lo/OnLoAdd.c) | `0x1A6178` | Unfreeze |
 | 24 |  | **new** | [`func_00210330`](../../../src/game/world/scene/sw/func_00210330.c) | `0x210330` | VUnk23 |
-| 25 | SetIdProxy | **new** | [`SetLoIdProxy`](../../../src/game/object/proxy/SetLoIdProxy.cpp) | `0x1CA118` | SetIdProxy |
-| 26 | ResetLoForProxy | **new** | [`ResetLoForProxy?`](../../../src/game/object/proxy/func_001CB4E0.c) | `0x1CB4E0` | VUnk25 |
-| 27 | LO_VUnk27Proxy | **new** | [`LO_VUnk27Proxy?`](../../../src/game/object/proxy/func_001CB5C8.c) | `0x1CB5C8` | VUnk26 |
+| 25 | SetIdProxy | **new** | [`SetLoIdProxy`](../../../src/game/object/proxy.cpp) | `0x1CA118` | SetIdProxy |
+| 26 | ResetLoForProxy | **new** | [`ResetLoForProxy?`](../../../src/game/object/proxy.cpp) | `0x1CB4E0` | VUnk25 |
+| 27 | LO_VUnk27Proxy | **new** | [`LO_VUnk27Proxy?`](../../../src/game/object/proxy.cpp) | `0x1CB5C8` | VUnk26 |
 | 28 | CploChildren | **new** | [`LO_CploChildren`](../../../src/game/object/lo/LO_CploChildren.c) | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | **new** | [`TranslateLoToPos`](../../../src/game/object/lo/TranslateLoToPos.c) | `0x1A6110` | TranslateToPos |
 | 30 | RotateToMat | **new** | [`RotateLoToMat`](../../../src/game/object/lo/RotateLoToMat.c) | `0x1A6118` | RotateToMat |

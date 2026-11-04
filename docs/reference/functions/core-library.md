@@ -471,7 +471,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256D28](../../../src/game/app/bif/__ml__FG8VU_FLOATG9VU_VECTOR.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
 | [0x256D40](../../../src/game/app/bif/PairPtr_Release.c) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256DD0](../../../src/game/splice/eval.cpp) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256EE0](../../../src/game/object/proxy/FramePtr_Assign.c) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
+| [0x256EE0](../../../src/game/object/proxy.cpp) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
 | [0x256F48](../../../src/game/splice/eval.cpp) | `PvNewProc` | allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257038](../../../src/game/splice/proc.cpp) | `ProcPtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x257058](../../../src/game/splice/frame.cpp) | `FramePtr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.30 | T2 |  |

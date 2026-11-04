@@ -225,20 +225,20 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
 | [0x1A6EE8](../../src/game/object/lo/func_001A6EE8.c) | `LO_vt43` | LO vt43 default: return 0 | 0.20 | T2 | verified |
 | [0x1A6F00](../../src/game/object/lo/ConvertAloPos.c) | `ConvertAloPos` | Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse); vector by value | 0.80 | T1 |  |
 | [0x1A6FC0](../../src/game/object/lo/ConvertAloVec.c) | `ConvertAloVec` | Same for direction vectors (rotation only, M3) | 0.80 | T1 |  |
-| [0x1C9940](../../src/game/object/proxy/IdProxy__Fii.c) | `IdProxy` | (isrc<<16)\|(icopy&0xFFFF) | 0.85 | T1 |  |
-| [0x1C9950](../../src/game/object/proxy/IsrcFromIdProxy__Fi.c) | `IsrcFromIdProxy` | idProxy>>16 | 0.85 | T1 |  |
-| [0x1C99D8](../../src/game/object/proxy/func_001C99D8.c) | `FindPxr` | Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR | 0.85 | T1 | verified |
-| [0x1C9B08](../../src/game/object/proxy/LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp) | `LoadProxyFromBrx` | read one proxy record (source id/mode/placement) and instantiate copy or PROXY object | 0.95 | T1 | parse |
-| [0x1CA118](../../src/game/object/proxy/SetLoIdProxy.cpp) | `SetLoIdProxy` | LO vt25: put object into proxy copy tree under idProxy | 0.90 | T1 |  |
-| [0x1CA370](../../src/game/object/proxy/func_001CA370.c) | `AddProxyCopy` | Take source isrc's next copy: SetIdProxy, Add, SetParent, apply placement (vt37) to each object; notify collector; icopyNext++ | 0.85 | T1 | verified |
-| [0x1CA500](../../src/game/object/proxy/InitSwProxySpares.c) | `InitSwProxySpares` | After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest, PROXYSPARE array, identity mats) | 0.85 | T1 | verified |
-| [0x1CA788](../../src/game/object/proxy/InitProxy.c) | `InitProxy` | PROXY::Init (vt7): InitXfm + flag | 0.85 | T1 |  |
-| [0x1CA8E0](../../src/game/object/proxy/OnProxyAdd.c) | `OnProxyAdd` | PROXY vt23: LO::Unfreeze then 0x149AB8 | 0.85 | T1 | verified, arbitration |
-| [0x1CA930](../../src/game/object/proxy/IcopyFromPspare__FP5PROXYP10PROXYSPARE.c) | `IcopyFromPspare` | (pspare - aspare)/0x50 + first spare copy index | 0.85 | T1 |  |
-| [0x1CAA60](../../src/game/object/proxy/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp) | `ReleasePspare` | return a copy to the spare pool and restore its objects | 0.90 | T1 |  |
-| [0x1CB2C0](../../src/game/object/proxy/func_001CB2C0.c) | `FCanAcquireProxy` | PspareChoose(this 2)!=0 | 0.85 | T1 | verified |
-| [0x1CB328](../../src/game/object/proxy/EnsureProxyCopy.c) | `EnsureProxyCopy` | if no current copy acquire one | 0.85 | T1 | verified |
-| [0x1CB770](../../src/game/object/proxy/FindProxysrc__FP2SWi.c) | `FindProxysrc` | index of proxy source with id or -1 | 0.80 | T1 |  |
+| [0x1C9940](../../src/game/object/proxy.cpp) | `IdProxy` | (isrc<<16)\|(icopy&0xFFFF) | 0.85 | T1 |  |
+| [0x1C9950](../../src/game/object/proxy.cpp) | `IsrcFromIdProxy` | idProxy>>16 | 0.85 | T1 |  |
+| [0x1C99D8](../../src/game/object/proxy.cpp) | `FindPxr` | Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR | 0.85 | T1 | verified |
+| [0x1C9B08](../../src/game/object/proxy.cpp) | `LoadProxyFromBrx` | read one proxy record (source id/mode/placement) and instantiate copy or PROXY object | 0.95 | T1 | parse |
+| [0x1CA118](../../src/game/object/proxy.cpp) | `SetLoIdProxy` | LO vt25: put object into proxy copy tree under idProxy | 0.90 | T1 |  |
+| [0x1CA370](../../src/game/object/proxy.cpp) | `AddProxyCopy` | Take source isrc's next copy: SetIdProxy, Add, SetParent, apply placement (vt37) to each object; notify collector; icopyNext++ | 0.85 | T1 | verified |
+| [0x1CA500](../../src/game/object/proxy.cpp) | `InitSwProxySpares` | After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest, PROXYSPARE array, identity mats) | 0.85 | T1 | verified |
+| [0x1CA788](../../src/game/object/proxy.cpp) | `InitProxy` | PROXY::Init (vt7): InitXfm + flag | 0.85 | T1 |  |
+| [0x1CA8E0](../../src/game/object/proxy.cpp) | `OnProxyAdd` | PROXY vt23: LO::Unfreeze then 0x149AB8 | 0.85 | T1 | verified, arbitration |
+| [0x1CA930](../../src/game/object/proxy.cpp) | `IcopyFromPspare` | (pspare - aspare)/0x50 + first spare copy index | 0.85 | T1 |  |
+| [0x1CAA60](../../src/game/object/proxy.cpp) | `ReleasePspare` | return a copy to the spare pool and restore its objects | 0.90 | T1 |  |
+| [0x1CB2C0](../../src/game/object/proxy.cpp) | `FCanAcquireProxy` | PspareChoose(this 2)!=0 | 0.85 | T1 | verified |
+| [0x1CB328](../../src/game/object/proxy.cpp) | `EnsureProxyCopy` | if no current copy acquire one | 0.85 | T1 | verified |
+| [0x1CB770](../../src/game/object/proxy.cpp) | `FindProxysrc` | index of proxy source with id or -1 | 0.80 | T1 |  |
 | [0x231100](../../src/game/object/xform.cpp) | `InitXfm` | InitLo; pxfParent from parent+0x60; mat = identity | 0.85 | T1 | verified |
 | [0x231170](../../src/game/object/xform.cpp) | `LoadXfmFromBrx` | 0x231768 (XF ref + matrix) then LoadOptionsFromBrx | 0.90 | T1 | parse, verified |
 | [0x2311B0](../../src/game/object/xform.cpp) | `CloneXfm` | CloneLo 0x1A6730 then invalidate world | 0.85 | T1 | verified |
