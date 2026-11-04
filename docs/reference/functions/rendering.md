@@ -134,30 +134,30 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x16F2D0](../../../src/game/engine/graphics/backend/gs/BlendDisplayOnBufferMismatch__Fv.c) | `BlendDisplayOnBufferMismatch__Fv` |  |  | existing |  |
-| [0x16F468](../../../src/game/engine/graphics/backend/gs/VBlankS_Interrupt__Fi.cpp) | `VBlankS_Interrupt__Fi` |  |  | existing |  |
-| [0x16F560](../../../src/game/engine/graphics/backend/gs/SyncVBlank__Fv.cpp) | `SyncVBlank__Fv` |  |  | existing |  |
-| [0x16F590](../../../src/game/engine/graphics/backend/gs/SwapGsBuffers__Fv.cpp) | `SwapGsBuffers__Fv` |  |  | existing |  |
-| [0x16F6B8](../../../src/game/engine/graphics/backend/gs/RestoreGsBuffers__Fv.cpp) | `RestoreGsBuffers__Fv` |  |  | existing |  |
-| [0x16F788](../../../src/game/engine/graphics/backend/gs/GS_Interrupt__Fi.c) | `GS_Interrupt__Fi` |  |  | existing |  |
-| [0x16F868](../../../src/game/engine/graphics/backend/gs/ResetGs__Fv.cpp) | `ResetGs__Fv` |  |  | existing |  |
-| [0x16F8B8](../../../src/game/engine/graphics/backend/gs/SendDmaSyncGsFinish__FP10sceDmaChanP2QW.cpp) | `SendDmaSyncGsFinish__FP10sceDmaChanP2QW` |  |  | existing |  |
-| [0x16F960](../../../src/game/engine/graphics/backend/gs/BuildClearGifs__FP2QWG4RGBAi.cpp) | `BuildClearGifs__FP2QWG4RGBAi` |  |  | existing |  |
-| [0x16FAF8](../../../src/game/engine/graphics/backend/gs/BuildFbaGifs__FiP2QWl.cpp) | `BuildFbaGifs` | Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer | 0.60 | T1 |  |
-| [0x16FB78](../../../src/game/engine/graphics/backend/gs/BuildFrameTex0Gifs__Fv.cpp) | `BuildFrameTex0Gifs` | Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width of the current and the other display framebuffer (lets the framebuffer be sampled as a texture) | 0.50 | T1 |  |
-| [0x16FCA8](../../../src/game/engine/graphics/backend/gs/BuildFrameContextGifs.cpp) | `BuildFrameContextGifs` | Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1 and 2 of the current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for current/other buffer | 0.50 | T1 |  |
-| [0x170048](../../../src/game/engine/graphics/backend/gs/RebuildFrameGifs__Fv.c) | `RebuildFrameGifs` | Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a buffer swap | 0.85 | T1 | verified |
-| [0x1700D0](../../../src/game/engine/graphics/backend/gs/StartupGs__Fv.c) | `StartupGs` | GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets, semaphores, VBlank/GS interrupt handlers | 0.90 | T1 |  |
-| [0x170278](../../../src/game/engine/graphics/backend/gs/BlastAqwGifsBothFrames__FP2QW.cpp) | `BlastAqwGifsBothFrames__FP2QW` |  |  | existing |  |
-| [0x170348](../../../src/game/engine/graphics/backend/gs/ClearFrameBuffers__Fv.cpp) | `ClearFrameBuffers__Fv` |  |  | existing |  |
-| [0x1703C0](../../../src/game/engine/graphics/backend/gs/NLog2__FUi.cpp) | `NLog2__FUi` |  |  | existing |  |
-| [0x1703F8](../../../src/game/engine/graphics/backend/gs/InitZpr__FP3ZPR3ZPKP2LO.cpp) | `InitGsb__FP3GSBii` |  | 0.85 | existing | arbitration; replaces existing InitZpr__FP3ZPR3ZPKP2LO |
-| [0x170448](../../../src/game/engine/graphics/backend/gs/IgsbBucketFromCgs__Fi.c) | `IgsbBucketFromCgs` | Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64 | 0.50 | T1 |  |
-| [0x1704B8](../../../src/game/engine/graphics/backend/gs/PadGsbToPage__FP3GSB.c) | `PadGsbToPage` | Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists | 0.50 | T1 |  |
-| [0x170548](../../../src/game/engine/graphics/backend/gs/IgsAllocGsb__FP3GSBi.cpp) | `IgsAllocGsb` | Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a 0x80 boundary if it would straddle); returns the start index | 0.85 | T1 | verified |
-| [0x170650](../../../src/game/engine/graphics/backend/gs/BuildImageGifs__FiiiiiiP4GIFS.cpp) | `BuildImageGifs__FiiiiiiP4GIFS` |  |  | existing |  |
-| [0x170730](../../../src/game/engine/graphics/backend/gs/UploadBitmaps__FP3GSB.c) | `UploadBitmaps` | Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the GSB, then TEXFLUSH + FINISH | 0.70 | T1 | format-doc |
-| [0x170828](../../../src/game/engine/graphics/backend/gs/func_00170828.c) | `AllocBitmapsGsb` | Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) | 0.45 | T2 |  |
+| [0x16F2D0](../../../src/game/engine/graphics/backend/gs.cpp) | `BlendDisplayOnBufferMismatch__Fv` |  |  | existing |  |
+| [0x16F468](../../../src/game/engine/graphics/backend/gs.cpp) | `VBlankS_Interrupt__Fi` |  |  | existing |  |
+| [0x16F560](../../../src/game/engine/graphics/backend/gs.cpp) | `SyncVBlank__Fv` |  |  | existing |  |
+| [0x16F590](../../../src/game/engine/graphics/backend/gs.cpp) | `SwapGsBuffers__Fv` |  |  | existing |  |
+| [0x16F6B8](../../../src/game/engine/graphics/backend/gs.cpp) | `RestoreGsBuffers__Fv` |  |  | existing |  |
+| [0x16F788](../../../src/game/engine/graphics/backend/gs.cpp) | `GS_Interrupt__Fi` |  |  | existing |  |
+| [0x16F868](../../../src/game/engine/graphics/backend/gs.cpp) | `ResetGs__Fv` |  |  | existing |  |
+| [0x16F8B8](../../../src/game/engine/graphics/backend/gs.cpp) | `SendDmaSyncGsFinish__FP10sceDmaChanP2QW` |  |  | existing |  |
+| [0x16F960](../../../src/game/engine/graphics/backend/gs.cpp) | `BuildClearGifs__FP2QWG4RGBAi` |  |  | existing |  |
+| [0x16FAF8](../../../src/game/engine/graphics/backend/gs.cpp) | `BuildFbaGifs` | Builds a one-register GIF A+D packet setting GS FBA_1 (reg 0x4A) to d into a static QW buffer | 0.60 | T1 |  |
+| [0x16FB78](../../../src/game/engine/graphics/backend/gs.cpp) | `BuildFrameTex0Gifs` | Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width of the current and the other display framebuffer (lets the framebuffer be sampled as a texture) | 0.50 | T1 |  |
+| [0x16FCA8](../../../src/game/engine/graphics/backend/gs.cpp) | `BuildFrameContextGifs` | Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1 and 2 of the current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for current/other buffer | 0.50 | T1 |  |
+| [0x170048](../../../src/game/engine/graphics/backend/gs.cpp) | `RebuildFrameGifs` | Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a buffer swap | 0.85 | T1 | verified |
+| [0x1700D0](../../../src/game/engine/graphics/backend/gs.cpp) | `StartupGs` | GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets, semaphores, VBlank/GS interrupt handlers | 0.90 | T1 |  |
+| [0x170278](../../../src/game/engine/graphics/backend/gs.cpp) | `BlastAqwGifsBothFrames__FP2QW` |  |  | existing |  |
+| [0x170348](../../../src/game/engine/graphics/backend/gs.cpp) | `ClearFrameBuffers__Fv` |  |  | existing |  |
+| [0x1703C0](../../../src/game/engine/graphics/backend/gs.cpp) | `NLog2__FUi` |  |  | existing |  |
+| [0x1703F8](../../../src/game/engine/graphics/backend/gs.cpp) | `InitGsb__FP3GSBii` |  | 0.85 | existing | arbitration; replaces existing InitZpr__FP3ZPR3ZPKP2LO |
+| [0x170448](../../../src/game/engine/graphics/backend/gs.cpp) | `IgsbBucketFromCgs` | Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64 | 0.50 | T1 |  |
+| [0x1704B8](../../../src/game/engine/graphics/backend/gs.cpp) | `PadGsbToPage` | Rounds igsMac up to the next 0x80-unit boundary and records the skipped gap as a free run in the GSB bucket lists | 0.50 | T1 |  |
+| [0x170548](../../../src/game/engine/graphics/backend/gs.cpp) | `IgsAllocGsb` | Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a 0x80 boundary if it would straddle); returns the start index | 0.85 | T1 | verified |
+| [0x170650](../../../src/game/engine/graphics/backend/gs.cpp) | `BuildImageGifs__FiiiiiiP4GIFS` |  |  | existing |  |
+| [0x170730](../../../src/game/engine/graphics/backend/gs.cpp) | `UploadBitmaps` | Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the GSB, then TEXFLUSH + FINISH | 0.70 | T1 | format-doc |
+| [0x170828](../../../src/game/engine/graphics/backend/gs.cpp) | `AllocBitmapsGsb` | Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) | 0.45 | T2 |  |
 
 ## light (0x1A3260-0x1A4E08)
 
