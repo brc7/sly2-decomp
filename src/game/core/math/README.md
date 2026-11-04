@@ -8,7 +8,7 @@
 | [`bsp.cpp`](bsp.cpp) | 1 |
 | [`crout.cpp`](crout.cpp) | 1 |
 | [`dzgcore.cpp`](dzgcore.cpp) | 1 |
-| [`mat/`](mat/) | 33 |
+| [`mat.cpp`](mat.cpp) | 1 |
 | [`util.cpp`](util.cpp) | 1 |
 | [`vec.cpp`](vec.cpp) | 1 |
 

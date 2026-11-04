@@ -160,37 +160,37 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x11B318](../../../src/game/core/math/mat/FInvertMatrix3.c) | `FInvertMatrix3` | FInvertMatrix(stride 4, n 3, src, dst) | 0.85 | T1 |  |
-| [0x11B340](../../../src/game/core/math/mat/InvertMatrix3Cofactor.c) | `InvertMatrix3Cofactor` | 3x3 inverse by cofactors (row cross products / determinant) returned by value | 0.50 | T1 |  |
-| [0x11B3D0](../../../src/game/core/math/mat/NormalizeRotateMatrix3__FP7MATRIX3.cpp) | `NormalizeRotateMatrix3__FP7MATRIX3` |  |  | existing |  |
-| [0x11B480](../../../src/game/core/math/mat/LoadRotateMatrixSinCos.c) | `LoadRotateMatrixSinCos` | Rotation matrix about an axis from (sin, cos) | 0.55 | T1 |  |
-| [0x11B500](../../../src/game/core/math/mat/func_0011B500.c) | `LoadRotateMatrixRad` | Rotation matrix for angle rad about axis (CalculateSinCos 0x11D608 + 0x11B480) | 0.85 | T1 |  |
-| [0x11B570](../../../src/game/core/math/mat/func_0011B570.c) | `LoadRotateMatrix` | Rotation matrix from a rotation vector (angle = \|v\|, axis = v/\|v\|) | 0.75 | T1 |  |
-| [0x11B628](../../../src/game/core/math/mat/LoadRotateMatrixEuler.c) | `LoadRotateMatrixEuler` | Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products) | 0.85 | T1 |  |
-| [0x11B720](../../../src/game/core/math/mat/LoadRotateMatrixPanTilt.c) | `LoadRotateMatrixPanTilt` | R = Rz(pan) * Ry(-tilt) | 0.85 | T1 |  |
-| [0x11B7E0](../../../src/game/core/math/mat/LoadLookAtMatrix.c) | `LoadLookAtMatrix` | BuildOrthonormalMatrixZ(dir, default up) | 0.75 | T1 |  |
-| [0x11B830](../../../src/game/core/math/mat/BuildOrthonormalMatrixZ.c) | `BuildOrthonormalMatrixZ` | Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback 0x11E390) | 0.75 | T1 |  |
-| [0x11B938](../../../src/game/core/math/mat/TiltMatUpright.c) | `TiltMatUpright` | Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted matrix | 0.75 | T1 |  |
-| [0x11BA08](../../../src/game/core/math/mat/BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
-| [0x11BC00](../../../src/game/core/math/mat/MulMatrix3Matrix3.c) | `MulMatrix3Matrix3` | 3x3 matrix product into *pm (VU rows) | 0.50 | T1 |  |
-| [0x11BC88](../../../src/game/core/math/mat/DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1.cpp) | `DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1` |  |  | existing |  |
-| [0x11BCF8](../../../src/game/core/math/mat/DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR.cpp) | `DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR` |  |  | existing |  |
-| [0x11BFB8](../../../src/game/core/math/mat/func_0011BFB8.c) | `DecomposeRotateMatrixVector` | DecomposeRotateMatrixRad then returns rad*normal as a vector | 0.45 | T2 |  |
-| [0x11BFF0](../../../src/game/core/math/mat/func_0011BFF0.c) | `DecomposeRotateMatrixEuler` | Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock branch) | 0.80 | T1 |  |
-| [0x11C128](../../../src/game/core/math/mat/__ml__FRC7MATRIX4G8VU_FLOAT.cpp) | `__ml__FRC7MATRIX4G8VU_FLOAT` |  |  | existing |  |
-| [0x11C168](../../../src/game/core/math/mat/__ml__FRC7MATRIX4T0.c) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
-| [0x11C1A8](../../../src/game/core/math/mat/__ml__FRC7MATRIX4G10VU_VECTOR4.c) | `__ml__FRC7MATRIX4G10VU_VECTOR4` |  |  | existing |  |
-| [0x11C1D8](../../../src/game/core/math/mat/TransposeMatrix4.c) | `TransposeMatrix4` | Transpose (0x11C8E8 with 4,4) | 0.85 | T1 |  |
-| [0x11C210](../../../src/game/core/math/mat/LoadMatrixFromPosRotScale.c) | `LoadMatrixFromPosRotScale` | 4x4 from 3x3 rotation with per-row scale vector plus position | 0.75 | T1 |  |
-| [0x11C288](../../../src/game/core/math/mat/LoadMatrixFromPosRotScalar.c) | `LoadMatrixFromPosRotScalar` | 4x4 from 3x3 rotation uniformly scaled by g plus position | 0.50 | T1 |  |
-| [0x11C2F0](../../../src/game/core/math/mat/func_0011C2F0.c) | `FInvertMatrix4` | FInvertMatrix(4,4,src,dst) | 0.85 | T1 |  |
-| [0x11C318](../../../src/game/core/math/mat/InvertMatrix4Rigid.c) | `InvertMatrix4Rigid` | Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value | 0.50 | T1 |  |
-| [0x11C3D0](../../../src/game/core/math/mat/CalculateDmat4.c) | `CalculateDmat4` | dmat = inverse(a) * b | 0.75 | T1 |  |
-| [0x11C448](../../../src/game/core/math/mat/BuildSimpleProjectionMatrix__FffffffP7MATRIX4.cpp) | `BuildSimpleProjectionMatrix__FffffffP7MATRIX4` |  |  | existing |  |
-| [0x11C500](../../../src/game/core/math/mat/FInvertMatrix__FiPfT1.cpp) | `FInvertMatrix__FiPfT1` |  |  | existing |  |
-| [0x11C8E8](../../../src/game/core/math/mat/TransposeMatrix.c) | `TransposeMatrix` | Generic c x c transpose with stride | 0.55 | T1 |  |
-| [0x11C950](../../../src/game/core/math/mat/SmoothMatrix.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
-| [0x11CAB0](../../../src/game/core/math/mat/func_0011CAB0.c) | `SMaxRowMatrix3` | Largest row length (max of the three row dot products, then sqrt) | 0.40 | T2 |  |
+| [0x11B318](../../../src/game/core/math/mat.cpp) | `FInvertMatrix3` | FInvertMatrix(stride 4, n 3, src, dst) | 0.85 | T1 |  |
+| [0x11B340](../../../src/game/core/math/mat.cpp) | `InvertMatrix3Cofactor` | 3x3 inverse by cofactors (row cross products / determinant) returned by value | 0.50 | T1 |  |
+| [0x11B3D0](../../../src/game/core/math/mat.cpp) | `NormalizeRotateMatrix3__FP7MATRIX3` |  |  | existing |  |
+| [0x11B480](../../../src/game/core/math/mat.cpp) | `LoadRotateMatrixSinCos` | Rotation matrix about an axis from (sin, cos) | 0.55 | T1 |  |
+| [0x11B500](../../../src/game/core/math/mat.cpp) | `LoadRotateMatrixRad` | Rotation matrix for angle rad about axis (CalculateSinCos 0x11D608 + 0x11B480) | 0.85 | T1 |  |
+| [0x11B570](../../../src/game/core/math/mat.cpp) | `LoadRotateMatrix` | Rotation matrix from a rotation vector (angle = \|v\|, axis = v/\|v\|) | 0.75 | T1 |  |
+| [0x11B628](../../../src/game/core/math/mat.cpp) | `LoadRotateMatrixEuler` | Rotation matrix from Euler angles (sx,cx,sy,cy,sz,cz products) | 0.85 | T1 |  |
+| [0x11B720](../../../src/game/core/math/mat.cpp) | `LoadRotateMatrixPanTilt` | R = Rz(pan) * Ry(-tilt) | 0.85 | T1 |  |
+| [0x11B7E0](../../../src/game/core/math/mat.cpp) | `LoadLookAtMatrix` | BuildOrthonormalMatrixZ(dir, default up) | 0.75 | T1 |  |
+| [0x11B830](../../../src/game/core/math/mat.cpp) | `BuildOrthonormalMatrixZ` | Orthonormal basis from a forward vector and an up hint (cross/normalize, perpendicular fallback 0x11E390) | 0.75 | T1 |  |
+| [0x11B938](../../../src/game/core/math/mat.cpp) | `TiltMatUpright` | Rotation that takes the matrix's local Z onto world Z; optionally returns dmat and the uprighted matrix | 0.75 | T1 |  |
+| [0x11BA08](../../../src/game/core/math/mat.cpp) | `BuildRotateVectorsMatrix` | Rotation taking direction a onto b: identity if either is shorter than 1e-4, axis = norm(a x b) with perpendicular fallback, clamped cos | 0.75 | T1 | verified, arbitration |
+| [0x11BC00](../../../src/game/core/math/mat.cpp) | `MulMatrix3Matrix3` | 3x3 matrix product into *pm (VU rows) | 0.50 | T1 |  |
+| [0x11BC88](../../../src/game/core/math/mat.cpp) | `DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1` |  |  | existing |  |
+| [0x11BCF8](../../../src/game/core/math/mat.cpp) | `DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR` |  |  | existing |  |
+| [0x11BFB8](../../../src/game/core/math/mat.cpp) | `DecomposeRotateMatrixVector` | DecomposeRotateMatrixRad then returns rad*normal as a vector | 0.45 | T2 |  |
+| [0x11BFF0](../../../src/game/core/math/mat.cpp) | `DecomposeRotateMatrixEuler` | Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock branch) | 0.80 | T1 |  |
+| [0x11C128](../../../src/game/core/math/mat.cpp) | `__ml__FRC7MATRIX4G8VU_FLOAT` |  |  | existing |  |
+| [0x11C168](../../../src/game/core/math/mat.cpp) | `MultiplyMatrix4Matrix4` | 4x4 matrix product | 0.85 | T1 | verified |
+| [0x11C1A8](../../../src/game/core/math/mat.cpp) | `__ml__FRC7MATRIX4G10VU_VECTOR4` |  |  | existing |  |
+| [0x11C1D8](../../../src/game/core/math/mat.cpp) | `TransposeMatrix4` | Transpose (0x11C8E8 with 4,4) | 0.85 | T1 |  |
+| [0x11C210](../../../src/game/core/math/mat.cpp) | `LoadMatrixFromPosRotScale` | 4x4 from 3x3 rotation with per-row scale vector plus position | 0.75 | T1 |  |
+| [0x11C288](../../../src/game/core/math/mat.cpp) | `LoadMatrixFromPosRotScalar` | 4x4 from 3x3 rotation uniformly scaled by g plus position | 0.50 | T1 |  |
+| [0x11C2F0](../../../src/game/core/math/mat.cpp) | `FInvertMatrix4` | FInvertMatrix(4,4,src,dst) | 0.85 | T1 |  |
+| [0x11C318](../../../src/game/core/math/mat.cpp) | `InvertMatrix4Rigid` | Inverse of a rigid 4x4 (transpose rotation, -R^T t) returned by value | 0.50 | T1 |  |
+| [0x11C3D0](../../../src/game/core/math/mat.cpp) | `CalculateDmat4` | dmat = inverse(a) * b | 0.75 | T1 |  |
+| [0x11C448](../../../src/game/core/math/mat.cpp) | `BuildSimpleProjectionMatrix__FffffffP7MATRIX4` |  |  | existing |  |
+| [0x11C500](../../../src/game/core/math/mat.cpp) | `FInvertMatrix__FiPfT1` |  |  | existing |  |
+| [0x11C8E8](../../../src/game/core/math/mat.cpp) | `TransposeMatrix` | Generic c x c transpose with stride | 0.55 | T1 |  |
+| [0x11C950](../../../src/game/core/math/mat.cpp) | `SmoothMatrix` |  |  | existing | arbitration |
+| [0x11CAB0](../../../src/game/core/math/mat.cpp) | `SMaxRowMatrix3` | Largest row length (max of the three row dot products, then sqrt) | 0.40 | T2 |  |
 
 ## slotheap (0x11CCA8-0x11CF60)
 
