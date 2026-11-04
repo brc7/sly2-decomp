@@ -69,4 +69,13 @@ template <class QW, class G> inline QW VuFromFloat(G g)
     return r;
 }
 
+/* x of a VF register as a float (qmfc2.ni into a GPR; the compiler adds the mtc1 when the float goes to an FPR).
+ * The .ni form only, as VuFromFloat. Placeholder name (HYPOTHESIS: a VU_FLOAT-to-float conversion in the original). */
+template <class QW> inline float VuToFloat(QW v)
+{
+    float g;
+    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v));
+    return g;
+}
+
 #endif /* SLY2_VU0_H */
