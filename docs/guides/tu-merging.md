@@ -374,8 +374,9 @@ and UpdateWrMatrixes) needed no pin either.
 
 The merged TUs repeat a small set of VU0/EE asm sequences, each spelled privately per function (often with different
 operand orders, earlyclobbers, allocation-only operands or register pins that the match depends on). The inline pass
-replaces them with named inline helpers; difference, sum and a + v * s.x have one in sly2/vu0.h now (see "Shared inline
-helpers"), the others stay as they are. Names below are suggestions in the Sly 1
+replaces them with named inline helpers; difference, sum, a + v * s.x (pass 1), dot product, float to VF, VF x to float
+and matrix times vector (pass 2) have one in sly2/vu0.h now (see "Shared inline helpers"), the others stay as they are.
+Names below are suggestions in the Sly 1
 style (VU_VECTOR / VU_FLOAT classes and their operators); HYPOTHESIS for the Sly 2 originals.
 
 | idiom | asm | example sites | likely helper |
@@ -450,6 +451,11 @@ polymorphic class could not have been emitted by the table's TU in the original 
 commit (82fdbfe5) used members (`func_X__2CM`), the next one renamed them to `func_X__FP2CM`. Names stay placeholders
 (`func_<addr>` with the parameter types the mangled name needs); the comment next to each says what it reads.
 
+They stay free inline functions for now (house style, as Sly 1's free-function convention: `SetCmPos(CM *, ...)`, not
+`CM::SetPos`). Revisit them as members once the key source files of their classes (the TU that defines each class's
+first non-inline virtual function, where g++ emits the vtable and the inline members) are merged: only there can a
+member form produce the linkonce copy, so the question can be settled by a match rather than by taste.
+
 Done: 19 of 56 (CM 2, STEPPLAYER 1, LO 1, SO 1 + BARREL's ensure, STEPGUARD 4 through a new DETECTOR view, and the
 nine "own fields" ensure accessors of SHAPE/XFM/VOL/TARGET-derived classes, `(char *)p + sizeof(BASE)`). Header
 additions: REGENT moved from CloneSo.cpp to so.h; DETECTOR (CID 0x10 : XFM, cb 0x180) in guard.h, typing
@@ -496,6 +502,35 @@ forms, helpers whose operands are wrapper types (`VU_FLOAT.qw`, `VUF k.qw`): tho
 The ranked list of the remaining idioms, with site counts, is in the inline pass report (outside the repo).
 
 Wave 7 folded no helper into vu0.h (out of scope): the merged files keep their private helpers as matched.
+
+(Inline pass 2.) Five idioms added: `VuDot(a, b)` (xyz dot product into x; self dot is `VuDot(v, v)`),
+`VuFromFloat<QW>(g)` (qmtc2.ni; the result type is an explicit template argument, `g` a float or its bits in an int, a
+size check rejects a quadword), `VuToFloat(v)` (qmfc2.ni into a float), `VuMulMatrix3(r0, r1, r2, v)` /
+`VuMulMatrix4(r0, r1, r2, r3, v)` (matrix rows times vector; 4 adds the translation row), and VuSub/VuSubRef extended.
+All names are placeholders (no Sly 1 symbol names these idioms). The unit folded is one asm statement (a "site", as in
+the pass 1 survey): `__asm__(...)` becomes `out = Helper(args)` wherever it stands, inside a private wrapper (Dot, QwDot,
+Length, Scalar...) or a function body. The private wrappers stay, now around the shared helper: deleting them and
+calling the shared helper directly is the next reduction. Each fold was kept only if every function of its file still
+matched (matchtool on the whole file); otherwise the site stays as it was. Pass 2 only touched merged files under
+src/game (one .cpp per TU).
+
+| helper | folded | left | why left |
+|---|---:|---:|---|
+| VuDot | 80 | 26 | 16 not the plain statement (fused with vsub/lqc2/qmfc2/vsqrt in one asm, hand-scheduled blocks, a temp written as a literal `$vf2`); 4 change the code when folded (vec GetNormalVectors, whose asm lists the temp first; ik func_00186930; tu_171F58 QwLengthOne; waypoint Normalize); 2 `"memory"` clobber, 2 allocation-only operand, 1 volatile; 1 above throw's include |
+| VuSub / VuSubRef | 62 / 1 | 15 | 4 change the code (tu_171F58 two, one a two-output allocation form; turret Difference, operands listed reversed: still 1 off; throw SubS, an in-place `"+j"`); 5 above throw's include; 2 volatile, 1 `"memory"` and 1 `"vf4"` clobber, 2 allocation-only operand |
+| VuFromFloat | 37 | 75 | 34 not the plain statement (12 plain `qmtc2` without .ni: a different instruction; 22 fused into larger asm); 14 move a whole quadword (QwToVf, ToVF, PointVF, Vector...: a different idiom, a compile error by the size check); 13 change the code, mostly where the asm writes a wrapper's member (`VU_FLOAT(float f)` constructors storing `q`; `v.qw`, `g.q`: the returned temporary is one more copy); 8 `"rV"` (the float's memory word as the operand); 3 above throw's include; 1 volatile, 1 `"vf1"` clobber, 1 allocation-only operand |
+| VuToFloat | 44 | 53 | 14 fused into larger asm; 27 change the code: the result kept as int bits (`n`, `bits`, `nd`, `i`: VuToFloat returns a float, so the compiler converts) or the qmfc2+mtc1 pair whose GPR temp the match needs (bsp five times, vec, hang); 6 results kept as a quadword (a compile error); 2 above throw's include; 3 `"memory"` clobber, 1 volatile |
+| VuMulMatrix3 / 4 | 10 / 14 | 30 | 11 rows pinned in literal VF registers or fused with their loads (ik, tu_185130); 9 write a struct member (the rows of a matrix product, `r.r[i]` in tu_1603B8 and hang; tail `v.qw`); 3 in-place `"+j"` rotate (geom, pipe, rail); 3 list the vector first (tu_185130 two, tu_173158); 1 tied `"0"(v)` (cane); 1 earlyclobber result (pipe Transform); 2 allocation-only operand |
+
+Total: 248 sites folded in 41 files; every function of every touched file matches. What pass 2 learned about folds:
+
+| case | result | rule |
+|---|---|---|
+| a fold changes the code, but the raw asm next to it (the vsub feeding the dot in jtgoal IDist, tu_14A008, busy) is folded too | matches | mixing a helper call with the raw asm it feeds reorders the loads around the call boundary; fold neighbours together, and retry misses after the other helpers are in |
+| `#include "sly2/vu0.h"` at the top of throw.cpp, even on a line that shifts nothing | UpdateJtThrowArc 355/517 off | merely declaring the helpers before that function changes it (not the path-hash line quirk); throw.cpp includes vu0.h after UpdateJtThrowArc, and its sites above that point stay raw |
+| the dot temp with or without earlyclobber (`"=j"` vs `"=&j"(one)`, about half the sites each) | no difference for any site (the misses miss with both) | one VuDot with a plain `"=j"` temp |
+| a pinned result (`register qword d asm("vf1")`) assigned from the helper; a pinned dot temp or qmfc2 GPR temp dropped by the fold | matches (vec LenV, geom Normalize, throw ScalarS and others) | unlike pass 1's rail case, a pin on the variable that receives the result survives the fold; the pins on temps that the fold removes were not needed |
+| the asm writes a wrapper's member (`"=j"(v.qw)`, a constructor's `q`, `r.r[i]`) | 1..2 functions off | the same family as "asm output into a memory lvalue" in the mismatch table: leave until the wrapper types are unified |
 
 After pass 1, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv
 unchanged by the run (the commits had already set the new names and sources); the same 332 sources do not build here.
