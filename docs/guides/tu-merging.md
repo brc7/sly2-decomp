@@ -193,6 +193,13 @@ the other Splice node kinds (frames, procs, method records...).
 | a register-pinned value is copied again before a call | the pinned variable was not passed explicitly inside the pin block | pass it explicitly (`HandleAsegaEvent(p, pe)` with `pe` in `$5`) | asega |
 | a member-function callback and a C definition of the same symbol (PMF to `func_001BB400`) | an asm-labelled member declaration next to the C definition risks ICE 378 | make the definition the member function (`void TRIG::Action()` with the label, `TRIG *p = this;`) | tu_1BAB50 |
 | linkonce setters called through asm-labelled members (`void SetPos(float, float) __asm__("CTextBox_SetPos")`) | — | define the linkonce copies as those member functions at the end of the file | rhythm (five CTextBox setters) |
+| a hand-scheduled function copies a register-pinned object pointer into another saved register (a `move s2,s4`, the later loads through s2) | the vtable read `"m"(PVT(object))` went through an inline accessor `VTE *&PVT(LO *)`: an inline function's parameter becomes a new pseudo | make the accessor a macro (`#define PVT(plo) (*(VTE **)((char *)(plo) + 0xC))`) | jthands (func_001CCC88) |
+| internal compiler error 378 at an unrelated C++ declaration (`MATRIX4 operator*(const MATRIX4 &, const MATRIX4 &)`) | an earlier `extern "C"` declaration of the literal mangled name `__ml__FRC7MATRIX4T0` (the ICE-378 row above, the other way round) | declare the C-style call as an asm-labelled alias (`M4 *MulMatrix4Ret(M4 *, const M4 *, const M4 *) __asm__("__ml__FRC7MATRIX4T0")`) | jthands |
+| stack slots of two quadword copies swapped (4 of 137) | the matrix multiply was declared returning `M4 *`; that caller's file declared it `void` (the v0 rule above) | a `void` asm-labelled view for that caller | jthands (func_001CD098) |
+| an extra callee-saved FPU register and a float computed before a call (98 of 103) | the callee was declared with the float argument before two quadwords; the caller's file put it last. The registers are the same either way (the float goes to $f12), but the argument order decides evaluation order | an asm-labelled view with the caller's order (`func_0012DE58Q(..., qword, qword, float)`) | jthands (func_001CD308) |
+| missing side zeroed with an extra FPU register and a 16-byte bigger frame (129 of 142) | a VECTOR4 (float) view zeroed `x = y = z = 0` loads 0.0f into an FPU register; the per-file int view stored `$0` | zero through an int view of the same bytes (`union VECW { VECTOR4 vec; int an[4]; }`) | dzg (FillDzgDz) |
+| frame 0x10 bigger with an 8-byte allocation request bound to a `const AL &` parameter | the request is 16 bytes in the original (two more words) | `struct AL { int cb; int cbAlign; int pad[2]; }`; the other users match either way | dzg (ApplyDzg) |
+| (not a mismatch) C files that passed CRef results by hidden pointer into 16-byte aligned wrappers (`struct CREFA { CRef r; } __attribute__((aligned(16)))`) and called operator=/Decref by hand | — | with sly2/cref.h's CRef (constructor and destructor) the by-value C++ calls match without the wrappers: g++ gives the temporaries the same 16-byte slots. The 16-byte alignment of the counted pair pointer (SPPAIR) is still needed (27 of 110 off without) | spliceobj |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -347,6 +354,37 @@ Other observations:
   - po's linkonce PemitbEnsureEmitter matched without its file's SLY2_CC / -G0 / -ffast-math overrides.
 - Drafting tool hazard: never `git stash`/`stash pop` between finalising a TU and committing it. `stash pop` restores
   the files but not the index, so the commit took only the new `.cpp` (wave 2's draw commit had to be rebuilt).
+
+## Representation decisions
+
+The four "hard" TUs (dzg, jthands, spliceobj, sensor) had functions carrying competing private views of the same
+structs. The rules applied (from the project lead): separate structs where views genuinely conflict, no speculative
+unions (a union only where a kind/mode field selects what the bytes hold and the code shows it); extended structs
+become derived structs so matched code keeps the base unchanged; the most informative typed pointer, never `void *`
+plus casts; small documented matching-only islands (comment "this form exists to reproduce the original codegen").
+Every choice:
+
+| file | struct | choice | evidence (and the mismatches that forced it) | revisit when |
+|---|---|---|---|---|
+| sly2/dzg.h | DZG (0x50) / DZGXP : DZG (0x64) | base unchanged (moved out of dzgcore.cpp), contact fields in a derived struct; DZX the 0x60-byte row record | for the lightweight/full hypothesis: dzgcore's SolveInequalities keeps a 0x50 DZG on its stack (a 0x64 one changes its frame, 28 of 86 off), solve.cpp's SolveSwGroup keeps a 0x64 one, and InitDzgXp calls InitDzg (the base initialiser) and then fills +0x50..+0x60 (constructor chaining); dzgcore's functions take either. Against / not deciding: the symbols AppendDzgDz__FP3DZGP2DZ and SolveDzg__FP3DZGiiPP2XPPiPPP2SO say `DZG *` and read the extended fields, but they are Sly 1 symbols (AppendDzgDz takes three arguments, SolveDzg two), so they do not show Sly 2's types | solve.cpp switches to the header (it still has a private 0x64 DZG); a real Sly 2 symbol for SolveDzg/AppendDzgDz |
+| sly2/dzg.h | DZ +0x1C | `DZ *pdzOther` (was `int n1C`, unused in dzgcore) | SolveDzgFric pairs a friction row with its contact row both ways through it | — |
+| sly2/dzg.h | FX (DZX::afx[2]) | named FX after so.h's slot 68 parameter (HYPOTHESIS) | FillDzgDz passes &afx[side] to SO slot 68 (`VUnk68(FX *, qword, VECTOR4 *)`); ApplyDzg reads the pair as linear/angular velocity change | Sly 1/2 evidence for FX |
+| dzg.cpp | XP (contact) view | TU-private partial view: two 0x40-byte XPS sides (object +0x08, position +0x10), normal +0x80, friction +0x94, kind +0x9C, group index +0xA8, relative velocity +0xB0 | the per-file "SO" views of SolveDzgFric and the "+0x50 object with an index at +0xA8 / 0x40-byte contact side" conflict were both the XP: DZX +0x50 is the XP in every function | a shared XP header (sensor and dzg views agree; solve.cpp has a third) |
+| dzg.cpp | the zeroed side vector in FillDzgDz | int view of a VECTOR4 (`union VECW`) | float zero stores: 129 of 142 off | — (island) |
+| sensor.cpp | BEAM (0x150) / BEAMEND (0xA0) | one beam record; BEAMEND's tail is a union selected by `kind` (load-time BEAMPARAMS, fixed `pos`, moving TRACK whose MOTION profile overlays the params) | the six per-file layouts agree on every offset; GetLasenBeamEnds switches on kind and reads `pos` or `track`; BuildLasenBeams copies the params out and then writes the track over them. The user's "several laser kinds" hypothesis (horizontal / vertical / moving) is not supported: the variation is per endpoint (fixed or on a path), and beams have no kind field; so no base/derived beam structs | a beam field that does depend on a beam kind |
+| sensor.cpp | SENSOR : SO, LASEN : SENSOR | derived views over a TU-private SO view with so.h's names (SOPART, SOTREE) | InitSensor is called by LASEN's Init; the no-trigger lists (+0x150, +0x170) are SENSOR's (FIgnoreSensorIntersection), the beams LASEN's | so.h's SO used directly (the hand-tuned functions use int-mode qwords and whole words where so.h has bit-fields) |
+| sensor.cpp | LASENCAP (+0x1A0) | {ALO *, ASEG *, ASEGA *, SCALER *} | func_001DEDB0 fills the ASEG (oid at +0x18) and ASEGA (aseg.h tLocal +0x1C, svt +0x40); RenderLasenSelf calls the SCALER's slot 3 with those two; the per-file `int xC` became the SCALER pointer it is | — |
+| sensor.cpp / dzg.cpp | XP sides | XPS array (dzg's evidence) | sensor's func_001DEEA8 first needed `pxp + (side << 6) + 8` (indexing from a member field adds the operands the other way, 1 off); with XPS sides it is `pxp->axps[side].pso` | — |
+| sly2/cref.h | CRef payload | the union gains typed pointers by tag (additions only) | spliceobj's four CRef spellings disagreed only in how they named the payload; all 15 includers still match | — |
+| sly2/eopid.h | EOPID (0x28) | a real union of option ids: the get/set words are offsets, thunks or PMFs by grfeopid, and the PMF's signature by otyp; the typed PMF members are the superset of RefGetPeopid's, RefSetPeopid's and brx's | calling `(pobj->*peopid->pmfGetM)()` without a cast matches; a cast of the generic PMF is 2 delay-slot hoists off (Lilly's note) | brx.cpp switches to the header (it keeps a private EOPID for now) |
+| spliceobj.cpp | SPPAIR (counted pair pointer) | `__attribute__((aligned(16)))` kept (island) | 27/25 of 110/109 off without | the real pair pointer class is known |
+| spliceobj.cpp | GCNODE6 vs CMethod | the GC view of a pool-6 node stays separate from CMethod (as gc.cpp's GCHDR) | the linkonce pool helpers address the link word's bit-fields; CMethod (basic.h CGcObj) has it as one word | CGcObj's word split into the bit-fields |
+| jthands.cpp | JTHANDS | sly2/stepplayer.h's, for all 17 functions | the five per-file records map onto it field for field (owner = pso, animation = ppasega, motion = pasegbl, space = pxf, job/positionJob/otherJob/orientationJob = pact1Euler/pactPos/pactHold/pactTurn, follow = ploRef, mode = nKind, active = nMode...) | — |
+| jthands.cpp | JTV : SO, CID20 : LO | derived views for fields the headers do not name (hero: rotation +0x1B0, hand-target mask +0x1000, current ASEGA +0x1030; CID 0x14 target: mask +0xE0) | read by func_001CCA40/func_001CCAC0/func_001CCC88 | jt.h names them |
+| jthands.cpp | XFACT | separate view of an XF's +0x90 act, +0xA0 parent, +0xA8 float end time | so.h's XF names +0xA8 `pxfRef` (an XF *); func_001CCC88 stores a float there | XF +0xA8 settled |
+| jthands.cpp | M3/M4 (quadword rows) | TU-private, converted at the header boundary (MATRIX4 *) | the asm moves matrices as qword rows; InvertMatrix4Rigid has three per-caller views (header matrix, quadword rows, by value) | a qword-row MATRIX4 view in a header |
+| jthands.cpp | UpdateJtHands, func_001CCC88 | matching islands kept (asm transcriptions with register pins) on the header types | they matched on the first compile once the data was JTHANDS/SO/XF | — |
+| mat.cpp | func_0011B500 | hidden result pointer by hand with an ordering asm (island) | the a3/a2 copies must precede the a0 set-up (2 off with every plain spelling) | — |
 
 ## Path-hash quirk (asm functions)
 
@@ -861,25 +899,36 @@ Total wave 8: 22 TUs, 648 functions; no `#line` pin and no header change was nee
 run (the merge commits had already pointed its sources at the merged files). The same 332 sources do not build here
 and are carried over (the SDK files and the three gnu-reorder game files).
 
+Hard TUs (the four with competing views, plus mat; see "Representation decisions"):
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| sensor | gameplay/objects/sensor.cpp | 21 | one BEAM/BEAMEND (kind-selected endpoint union), SENSOR : SO, LASEN : SENSOR; ZapLasenBeams as the callback member LASEN::ZapBeams(int) |
+| dzg | engine/physics/dzg.cpp | 9 | new sly2/dzg.h (DZG base, DZGXP : DZG, DZX, FX), dzgcore on it; XP view; SO slots 67/68 through so.h; int-view zeroing, 16-byte AL |
+| jthands | gameplay/player/jthands.cpp | 17 | stepplayer.h JTHANDS throughout; JTV/CID20/XFACT views; islands kept; PVT as a macro; per-caller views of five callees |
+| spliceobj | object/spliceobj.cpp | 18 | sly2/cref.h CRef (payload union extended), new sly2/eopid.h; CREFA wrappers gone; SPPAIR aligned; 4 pool-6 linkonce |
+| mat | core/math/mat.cpp | 33 | func_0011B500 solved with an ordering asm |
+
+Total: 5 TUs, 98 functions; header commits: sly2/dzg.h (+ dzgcore), sly2/cref.h + sly2/eopid.h. No `#line` pin.
+After the pass, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
+matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
+332 sources do not build here (the SDK files and the three gnu-reorder game files). progress.py caches by source
+mtime, so the includers of the two changed headers were rebuilt with matchtool by hand (cref.h: 15, dzg.h: 1).
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| dzg | skipped in waves 5, 6 and 7 (no cheap fix found), left for a dedicated pass in wave 8: five incompatible per-file views of DZG/DZ/F/SO/X. dzgcore's DZG (TU-private, 0x50) cannot grow to the 0x64 bytes dzg reads (+0x50..+0x60): SolveInequalities keeps a DZG on its stack and a bigger DZG changes its frame (28 of 86 off, tried in wave 6). Needs DZ/DZG moved to a header unchanged plus a derived DZG for dzg (+0x50 contact count/array, +0x58 object count/array, +0x60 the 0x60-byte per-constraint records), and the per-record +0x50 pointer settled first: one function reads it as an object with an index at +0xA8, another as a 0x40-byte contact side |
-| jthands | skipped in wave 7 (budget), left for a dedicated pass in wave 8: five per-file views of JTHANDS (stepplayer.h has it whole), the Lilly InitJtHands on the headers (unsigned qword, real LO/SHAPE/XF classes) next to three hand-scheduled functions (UpdateJtHands, func_001CCC88, func_001CD308) written on private int-qword views with their own `LO`; needs the hand-scheduled bodies moved onto JTHANDS field by field |
-| spliceobj | skipped in wave 7 (budget), left for a dedicated pass in wave 8: four CRef spellings (the Lilly class twice with different EOPID unions, a C struct with hidden-pointer returns, a class with an asm-labelled copy constructor) and the GC pool-6 linkonce helpers; needs one CRef (probably sly2/cref.h) and a superset EOPID first |
-| sensor | skipped in wave 7 (budget), left for a dedicated pass in wave 8: the laser sensor's 0x150-byte beam records are read under six different layouts (endpoints with a motion-profile union, contact lists, caps), plus RenderLasenSelf's and func_001DE5D8's hand tuning; a straight but long unification |
 | mark | skipped in wave 8: CsbiIntersectSphereBsp is a Lilly port on basic.h/xfm.h/so.h (unsigned qword, the header VECTOR), while func_001A87F0 and MarkSoContactsBspBsp are tuned on int-qword private views whose matches depend on the gcse expression table size; needs a header-based unification |
-| hurt | skipped in wave 8: JTHURT/ZPR/STEPPLAYER are in stepplayer.h, but eleven tuned functions read about 20 JT fields through private views and call a `C::*` PMF action; needs the JT field mapping first (with jthands) |
+| hurt | skipped in wave 8: JTHURT/ZPR/STEPPLAYER are in stepplayer.h, but eleven tuned functions read about 20 JT fields through private views and call a `C::*` PMF action; needs the JT field mapping first (jthands.cpp's JTV view names three JT fields: +0x1B0, +0x1000, +0x1030) |
 | grab | skipped in wave 8: 4636 instructions on jt.h/stepplayer.h, same reason as hurt |
-| mat | skipped in wave 8: 32 of 33 match; func_0011B500 stays 2 off. As C, the hidden result pointer of LoadRotateMatrixSinCos (a0) is set after the a2 argument copy; every C++ spelling tried (explicit pointer through an asm label, placement new, initialisation, a `$6` or `$4` pin) sets a0 first or adds a copy. The rest is solved (scratch template kept: union outputs via scalars, hand-passed hidden pointers, NRV / out-pointer inline products, a `void` view of func_0011B500, the ICE-378 rule for DecomposeRotateMatrixRad) |
 | proxy | skipped in wave 8 (budget): four Lilly ports each declare their own CBinaryInputStream, GRABSPOT, CELL, ... next to private views; needs those deduplicated (or moved to headers) first |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 8 every game TU without inline asm is merged, and so are the 84 smallest asm TUs except the nine in
-"Not merged". Left: 45 TU directories that still hold per-function files, all with inline asm or asm-named code
-(the wave-7 count of 67 less the 22 merged in wave 8). Smallest first: dzg 9, jthands 17, spliceobj 18, sensor 21,
-mark 22, hurt 28, grab 28, mat 33, proxy 38, tu_1709A8 42, glob 42, sm 43, tu_144B28 43, tu_1D1370 44, xf 44, air 44,
+After wave 8 and the hard-TU pass every game TU without inline asm is merged, and so are the 84 smallest asm TUs
+except the four in "Not merged". Left: 40 TU directories that still hold per-function files, all with inline asm or
+asm-named code (the wave-7 count of 67 less the 22 merged in wave 8 and the 5 of the hard-TU pass). Smallest first:
+mark 22, hurt 28, grab 28, proxy 38, tu_1709A8 42, glob 42, sm 43, tu_144B28 43, tu_1D1370 44, xf 44, air 44,
 shd 45, step 46, bentley 48, ... Plus the non-TUs (splice_thunks; platform/boot/crt0). The unhomed linkonce
 instances are all homed now (inline passes 1 and 3, see "Inline functions and linkonce copies"): src/game/core/linkonce
 no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table,
