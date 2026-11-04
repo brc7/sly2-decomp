@@ -566,9 +566,9 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2598F8](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259960](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599C8](../../../src/game/engine/fx/emitter/GetExploClassDesc_linkonce.c) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2599D8](../../../src/game/engine/graphics/pipeline/glob/func_002599D8.c) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599E0](../../../src/game/engine/graphics/pipeline/glob/func_002599E0.c) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599E8](../../../src/game/engine/graphics/pipeline/glob/func_002599E8.c) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599D8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599E0](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x2599E8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599F0](../../../src/game/gameplay/player/grabspot/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599F8](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A00](../../../src/game/gameplay/player/grabspot/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
