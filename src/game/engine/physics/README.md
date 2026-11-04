@@ -6,7 +6,7 @@
 | --- | --- |
 | [`bbmark.cpp`](bbmark.cpp) | 1 |
 | [`clip.cpp`](clip.cpp) | 1 |
-| [`dzg/`](dzg/) | 9 |
+| [`dzg.cpp`](dzg.cpp) | 1 |
 | [`empty_1C2920.cpp`](empty_1C2920.cpp) | 1 |
 | [`geom.cpp`](geom.cpp) | 1 |
 | [`mark/`](mark/) | 22 |

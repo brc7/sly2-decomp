@@ -312,13 +312,13 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1585D8](../../../src/game/engine/physics/dzg/InitDzgXp.c) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
-| [0x158668](../../../src/game/engine/physics/dzg/AppendDzgDz__FP3DZGP2DZ.c) | `AppendDzgDz__FP3DZGP2DZ` |  |  | existing |  |
-| [0x158728](../../../src/game/engine/physics/dzg/FillDzgDz.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows | 0.70 | T1 | verified |
-| [0x158958](../../../src/game/engine/physics/dzg/func_00158958.c) | `PxpFromDzgDz` | Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60) | 0.40 | T2 |  |
-| [0x158988](../../../src/game/engine/physics/dzg/SolveDzg__FP3DZGiiPP2XPPiPPP2SO.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
-| [0x158B20](../../../src/game/engine/physics/dzg/SolveDzgFric.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz | 0.80 | T1 | verified |
-| [0x158E20](../../../src/game/engine/physics/dzg/ApplyDzg.cpp) | `ApplyDzg` | Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2 | 0.75 | T1 |  |
+| [0x1585D8](../../../src/game/engine/physics/dzg.cpp) | `InitDzgXp` | Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params, allocates 0x60 bytes per row | 0.50 | T1 | arbitration |
+| [0x158668](../../../src/game/engine/physics/dzg.cpp) | `AppendDzgDz__FP3DZGP2DZ` |  |  | existing |  |
+| [0x158728](../../../src/game/engine/physics/dzg.cpp) | `FillDzgDz` | Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO relative vectors and the dot products against existing rows | 0.70 | T1 | verified |
+| [0x158958](../../../src/game/engine/physics/dzg.cpp) | `PxpFromDzgDz` | Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60) | 0.40 | T2 |  |
+| [0x158988](../../../src/game/engine/physics/dzg.cpp) | `SolveDzg__FP3DZGi` |  | 0.80 | existing | arbitration; replaces existing SolveDzg__FP3DZGiiPP2XPPiPPP2SO |
+| [0x158B20](../../../src/game/engine/physics/dzg.cpp) | `SolveDzgFric` | Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz | 0.80 | T1 | verified |
+| [0x158E20](../../../src/game/engine/physics/dzg.cpp) | `ApplyDzg` | Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps both to maxima g1/g2 | 0.75 | T1 |  |
 
 ## tu_1848A8 (0x1848A8-0x184F50)
 
