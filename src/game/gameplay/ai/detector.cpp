@@ -175,7 +175,7 @@ extern "C" qword func_00153E60(DETECTOR *p)
         qword r;
         qword pos = func_001A62E8(p->pso);
         float f = 80.0f;
-        __asm__("qmtc2.ni %1, %0" : "=j"(gq) : "r"(f));
+        gq = VuFromFloat<qword>(f);
         g.q = gq;
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos), "j"(D_002A2DC0), "j"(g.q));
         return r;

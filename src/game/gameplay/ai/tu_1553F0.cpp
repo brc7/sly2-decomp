@@ -674,7 +674,7 @@ extern "C" qword func_00155FB0(void *p, qword pos)
         lm.gMax = u1 * D_002BDC70[1] + u * D_002BDC90[1];
         {
             qword t;
-            __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(GClampR(g, &lm)));
+            t = VuFromFloat<qword>(GClampR(g, &lm));
             sc.q = t;
         }
         off.q = ScaleR(vel, sc);

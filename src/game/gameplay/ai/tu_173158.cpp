@@ -342,7 +342,7 @@ static __inline__ qword MAdd(qword p, qword up, float s) {
     U u;
     qword uq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
     qword r;
-    __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(s));
+    uq = VuFromFloat<qword>(s);
     u.q = uq;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(p), "j"(up), "j"(u.q));
     return r;

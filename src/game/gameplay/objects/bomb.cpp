@@ -798,7 +798,7 @@ extern "C" void DetonateBomb(BOMB *p)
                 }
                 n = t;
             }
-            { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(D_002BC9E0)); g.q = t; }
+            { qword t; t = VuFromFloat<qword>(D_002BC9E0); g.q = t; }
             {
                 qword v;
                 __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(n), "j"(g.q));
