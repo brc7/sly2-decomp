@@ -296,37 +296,37 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1ED7A8](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED7A8.c) | `PsaaLoadFromBrx` | Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read 0x20-byte SAAF and call vt7 Init(psaa, psaaf) | 0.85 | T1 | parse, verified, format-doc |
-| [0x1ED850](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED850.c) | `PsaaClone` | Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the SAA list D_003E159C | 0.35 | T2 |  |
-| [0x1ED8E0](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED8E0.c) | `InitSaa` | SAA (CID 0x8A) vt7 Init | 0.60 | T1 |  |
-| [0x1ED960](../../../src/game/engine/graphics/pipeline/shdanim/func_001ED960.c) | `AddSaaCopyRecord` | Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack (0x226E88) and apply it | 0.30 | T2 |  |
-| [0x1EDA20](../../../src/game/engine/graphics/pipeline/shdanim/FUpdatableSaa__FP3SAA.c) | `FUpdatableSaa__FP3SAA` |  |  | existing |  |
-| [0x1EDA50](../../../src/game/engine/graphics/pipeline/shdanim/UpdateSaa.c) | `UpdateSaa` | SAA vt8 base: empty | 0.50 | T1 |  |
-| [0x1EDA58](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteSaa__FP3SAA.c) | `UCompleteSaa__FP3SAA` |  |  | existing |  |
-| [0x1EDA68](../../../src/game/engine/graphics/pipeline/shdanim/SetSaiIframe.c) | `SetSaiIframe` | Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked | 0.60 | T1 |  |
-| [0x1EDAD8](../../../src/game/engine/graphics/pipeline/shdanim/SetSaiDuDv.c) | `SetSaiDuDv` | Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked | 0.65 | T1 |  |
-| [0x1EDB80](../../../src/game/engine/graphics/pipeline/shdanim/func_001EDB80.c) | `SAA_FMatches` | SAA vt10: *poid == psaa->+0x14 | 0.40 | T2 |  |
-| [0x1EDB98](../../../src/game/engine/graphics/pipeline/shdanim/InitLoop.c) | `InitLoop` | LOOP vt7 Init | 0.85 | T1 | verified |
-| [0x1EDC40](../../../src/game/engine/graphics/pipeline/shdanim/UpdateLoop__FP4LOOPf.cpp) | `UpdateLoop__FP4LOOPf` |  |  | existing |  |
-| [0x1EDD30](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteLoop__FP4LOOP.c) | `UCompleteLoop__FP4LOOP` |  |  | existing |  |
-| [0x1EDD60](../../../src/game/engine/graphics/pipeline/shdanim/InitPingpong.c) | `InitPingpong` | PINGPONG vt7 Init | 0.60 | T1 |  |
-| [0x1EDE10](../../../src/game/engine/graphics/pipeline/shdanim/UpdatePingpong__FP8PINGPONGf.cpp) | `UpdatePingpong__FP8PINGPONGf` |  |  | existing |  |
-| [0x1EDF28](../../../src/game/engine/graphics/pipeline/shdanim/UCompletePingpong__FP8PINGPONG.cpp) | `UCompletePingpong__FP8PINGPONG` |  |  | existing |  |
-| [0x1EDFA0](../../../src/game/engine/graphics/pipeline/shdanim/InitShuffle__FP7SHUFFLEP4SAAF.cpp) | `InitShuffle__FP7SHUFFLEP4SAAF` |  |  | existing |  |
-| [0x1EDFE0](../../../src/game/engine/graphics/pipeline/shdanim/UpdateShuffle__FP7SHUFFLEf.cpp) | `UpdateShuffle__FP7SHUFFLEf` |  |  | existing |  |
-| [0x1EE090](../../../src/game/engine/graphics/pipeline/shdanim/InitEyes.c) | `InitEyes` | EYES vt7 Init | 0.60 | T1 |  |
-| [0x1EE100](../../../src/game/engine/graphics/pipeline/shdanim/SetEyesEyess__FP4EYES5EYESS.cpp) | `SetEyesEyess__FP4EYES5EYESS` |  |  | existing |  |
-| [0x1EE228](../../../src/game/engine/graphics/pipeline/shdanim/UpdateEyes.cpp) | `UpdateEyes` | EYES vt8 Update | 0.60 | T1 |  |
-| [0x1EE3B0](../../../src/game/engine/graphics/pipeline/shdanim/SetEyesClosed.c) | `SetEyesClosed` | Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) | 0.50 | T1 |  |
-| [0x1EE420](../../../src/game/engine/graphics/pipeline/shdanim/func_001EE420.c) | `EYES_FMatches` | EYES vt10: SAA::FMatches or *poid == +0x60 | 0.40 | T2 |  |
-| [0x1EE480](../../../src/game/engine/graphics/pipeline/shdanim/InitScroller__FP8SCROLLERP4SAAF.c) | `InitScroller__FP8SCROLLERP4SAAF` |  |  | existing |  |
-| [0x1EE4E0](../../../src/game/engine/graphics/pipeline/shdanim/UpdateScroller.c) | `UpdateScroller` | SCROLLER vt8 Update | 0.60 | T1 |  |
-| [0x1EE5B8](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteScroller__FP8SCROLLER.cpp) | `UCompleteScroller__FP8SCROLLER` |  |  | existing |  |
-| [0x1EE678](../../../src/game/engine/graphics/pipeline/shdanim/SetScrollerMasterSpeeds__FP8SCROLLERff.cpp) | `SetScrollerMasterSpeeds__FP8SCROLLERff` |  |  | existing |  |
-| [0x1EE688](../../../src/game/engine/graphics/pipeline/shdanim/InitCircler.c) | `InitCircler` | CIRCLER vt7 Init | 0.60 | T1 |  |
-| [0x1EE6D8](../../../src/game/engine/graphics/pipeline/shdanim/UpdateCircler__FP7CIRCLERf.cpp) | `UpdateCircler__FP7CIRCLERf` |  |  | existing |  |
-| [0x1EE768](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteCircler__FP7CIRCLER.cpp) | `UCompleteCircler__FP7CIRCLER` |  |  | existing |  |
-| [0x1EE7B0](../../../src/game/engine/graphics/pipeline/shdanim/PropagateSais.c) | `PropagateSais` | For every dirty SAA in D_003E159C apply its copy records and clear dirty | 0.60 | T1 |  |
+| [0x1ED7A8](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `PsaaLoadFromBrx` | Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read 0x20-byte SAAF and call vt7 Init(psaa, psaaf) | 0.85 | T1 | parse, verified, format-doc |
+| [0x1ED850](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `PsaaClone` | Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the SAA list D_003E159C | 0.35 | T2 |  |
+| [0x1ED8E0](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitSaa` | SAA (CID 0x8A) vt7 Init | 0.60 | T1 |  |
+| [0x1ED960](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `AddSaaCopyRecord` | Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack (0x226E88) and apply it | 0.30 | T2 |  |
+| [0x1EDA20](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `FUpdatableSaa__FP3SAA` |  |  | existing |  |
+| [0x1EDA50](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdateSaa` | SAA vt8 base: empty | 0.50 | T1 |  |
+| [0x1EDA58](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UCompleteSaa__FP3SAA` |  |  | existing |  |
+| [0x1EDA68](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `SetSaiIframe` | Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked | 0.60 | T1 |  |
+| [0x1EDAD8](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `SetSaiDuDv` | Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked | 0.65 | T1 |  |
+| [0x1EDB80](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `SAA_FMatches` | SAA vt10: *poid == psaa->+0x14 | 0.40 | T2 |  |
+| [0x1EDB98](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitLoop` | LOOP vt7 Init | 0.85 | T1 | verified |
+| [0x1EDC40](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdateLoop__FP4LOOPf` |  |  | existing |  |
+| [0x1EDD30](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UCompleteLoop__FP4LOOP` |  |  | existing |  |
+| [0x1EDD60](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitPingpong` | PINGPONG vt7 Init | 0.60 | T1 |  |
+| [0x1EDE10](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdatePingpong__FP8PINGPONGf` |  |  | existing |  |
+| [0x1EDF28](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UCompletePingpong__FP8PINGPONG` |  |  | existing |  |
+| [0x1EDFA0](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitShuffle__FP7SHUFFLEP4SAAF` |  |  | existing |  |
+| [0x1EDFE0](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdateShuffle__FP7SHUFFLEf` |  |  | existing |  |
+| [0x1EE090](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitEyes` | EYES vt7 Init | 0.60 | T1 |  |
+| [0x1EE100](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `SetEyesEyess__FP4EYES5EYESS` |  |  | existing |  |
+| [0x1EE228](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdateEyes` | EYES vt8 Update | 0.60 | T1 |  |
+| [0x1EE3B0](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `SetEyesClosed` | Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) | 0.50 | T1 |  |
+| [0x1EE420](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `EYES_FMatches` | EYES vt10: SAA::FMatches or *poid == +0x60 | 0.40 | T2 |  |
+| [0x1EE480](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitScroller__FP8SCROLLERP4SAAF` |  |  | existing |  |
+| [0x1EE4E0](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdateScroller` | SCROLLER vt8 Update | 0.60 | T1 |  |
+| [0x1EE5B8](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UCompleteScroller__FP8SCROLLER` |  |  | existing |  |
+| [0x1EE678](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `SetScrollerMasterSpeeds__FP8SCROLLERff` |  |  | existing |  |
+| [0x1EE688](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `InitCircler` | CIRCLER vt7 Init | 0.60 | T1 |  |
+| [0x1EE6D8](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UpdateCircler__FP7CIRCLERf` |  |  | existing |  |
+| [0x1EE768](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `UCompleteCircler__FP7CIRCLER` |  |  | existing |  |
+| [0x1EE7B0](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `PropagateSais` | For every dirty SAA in D_003E159C apply its copy records and clear dirty | 0.60 | T1 |  |
 
 ## sky (0x1EF850-0x1EFA90)
 

@@ -29,9 +29,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetScrollerClassDesc`](../../../src/game/app/class_registry/GetScrollerClassDesc.c) | `0x114300` |
-| 7 | InitSaa | **override** | [`InitScroller__FP8SCROLLERP4SAAF`](../../../src/game/engine/graphics/pipeline/shdanim/InitScroller__FP8SCROLLERP4SAAF.c) | `0x1EE480` |
-| 8 | UpdateSaa | **override** | [`UpdateScroller?`](../../../src/game/engine/graphics/pipeline/shdanim/UpdateScroller.c) | `0x1EE4E0` |
-| 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteScroller__FP8SCROLLER`](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteScroller__FP8SCROLLER.cpp) | `0x1EE5B8` |
+| 7 | InitSaa | **override** | [`InitScroller__FP8SCROLLERP4SAAF`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EE480` |
+| 8 | UpdateSaa | **override** | [`UpdateScroller?`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EE4E0` |
+| 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteScroller__FP8SCROLLER`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EE5B8` |
 | 10 | SAA_FMatches | inherited (SAA) | `SAA_FMatches?` | `0x1EDB80` |
 
 ## Fields

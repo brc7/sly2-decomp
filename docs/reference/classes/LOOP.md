@@ -29,9 +29,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetLoopClassDesc`](../../../src/game/app/class_registry/GetLoopClassDesc.c) | `0x1142C0` |
-| 7 | InitSaa | **override** | [`InitLoop?`](../../../src/game/engine/graphics/pipeline/shdanim/InitLoop.c) | `0x1EDB98` |
-| 8 | UpdateSaa | **override** | [`UpdateLoop__FP4LOOPf`](../../../src/game/engine/graphics/pipeline/shdanim/UpdateLoop__FP4LOOPf.cpp) | `0x1EDC40` |
-| 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteLoop__FP4LOOP`](../../../src/game/engine/graphics/pipeline/shdanim/UCompleteLoop__FP4LOOP.c) | `0x1EDD30` |
+| 7 | InitSaa | **override** | [`InitLoop?`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDB98` |
+| 8 | UpdateSaa | **override** | [`UpdateLoop__FP4LOOPf`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDC40` |
+| 9 | UCompleteSaa__FP3SAA | **override** | [`UCompleteLoop__FP4LOOP`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDD30` |
 | 10 | SAA_FMatches | inherited (SAA) | `SAA_FMatches?` | `0x1EDB80` |
 
 ## Fields
