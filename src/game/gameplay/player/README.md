@@ -14,7 +14,7 @@
 | [`grabspot/`](grabspot/) | 74 |
 | [`hang.cpp`](hang.cpp) | 1 |
 | [`hnd.cpp`](hnd.cpp) | 1 |
-| [`hurt/`](hurt/) | 28 |
+| [`hurt.cpp`](hurt.cpp) | 1 |
 | [`jt/`](jt/) | 51 |
 | [`jtgoal.cpp`](jtgoal.cpp) | 1 |
 | [`jthands.cpp`](jthands.cpp) | 1 |

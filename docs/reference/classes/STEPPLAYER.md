@@ -93,7 +93,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` | VUnk68 |
 | 70 | ApplySoPendingVelocity | inherited (STEP) | `PresetStepAccel` | `0x204108` | VUnk69 |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` | VUnk70 |
-| 72 |  | **override** | [`ResolveStepplayerXaContact?`](../../../src/game/gameplay/player/hurt/func_001A28B0.c) | `0x1A28B0` | VUnk71 |
+| 72 |  | **override** | [`ResolveStepplayerXaContact?`](../../../src/game/gameplay/player/hurt.cpp) | `0x1A28B0` | VUnk71 |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` | ProcessSoZapContacts |
 | 75 | FZprHasField44 | **override** | [`STEPPLAYER_FTakeDamage`](../../../src/game/gameplay/player/stepplayer/STEPPLAYER_FTakeDamage.c) | `0x140F50` | FTakeDamage |

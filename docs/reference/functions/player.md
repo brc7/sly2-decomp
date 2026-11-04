@@ -539,32 +539,32 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A0B18](../../../src/game/gameplay/player/hurt/InitJtHurt.c) | `InitJtHurt` | Init the STEPPLAYER+0xDF0 hurt/zap context: owner, state -1, x90=-1, x9C=2.0, count 0x28 | 0.60 | T1 | runtime |
-| [0x1A0B40](../../../src/game/gameplay/player/hurt/SetJtHurtState.cpp) | `SetJtHurtState` | Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit direction, retract/apply hit clips, death states 8..12 | 0.85 | T1 | runtime, verified |
-| [0x1A1098](../../../src/game/gameplay/player/hurt/func_001A1098.c) | `PostLoadJtHurt` | Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs (PxfFindSo) | 0.45 | T2 |  |
-| [0x1A1148](../../../src/game/gameplay/player/hurt/PresetJtAccelZap.cpp) | `PresetJtAccelZap` | Hurt-state acceleration: in knockback states add velocity / spring toward target velocity (AccelSoTowardPosSpring) | 0.60 | T1 |  |
-| [0x1A12F0](../../../src/game/gameplay/player/hurt/func_001A12F0.c) | `UpdateJtHurtInput` | When the owner's current ASEGA (x1030) has retracted, run the pending post-hurt callback (0x1A15D0); loop while state changes | 0.40 | T2 |  |
-| [0x1A1358](../../../src/game/gameplay/player/hurt/UpdateJtActiveZap.c) | `UpdateJtActiveZap` | jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, FCheckJtStuck escape | 0.50 | T1 |  |
-| [0x1A15B0](../../../src/game/gameplay/player/hurt/func_001A15B0.c) | `SetJtHurtCallback` | Store a pointer-to-member callback (pmf) to run when the hurt animation ends | 0.45 | T2 |  |
-| [0x1A15D0](../../../src/game/gameplay/player/hurt/RunJtHurtCallback.c) | `RunJtHurtCallback` | Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a safe place, others SetJtAirJump | 0.50 | T1 |  |
-| [0x1A16A8](../../../src/game/gameplay/player/hurt/ReturnJtToSafePlaceCb.c) | `ReturnJtToSafePlaceCb` | Callback thunk: ReturnJtToSafePlace(owner, NULL) | 0.65 | T1 | runtime |
-| [0x1A16C8](../../../src/game/gameplay/player/hurt/func_001A16C8.c) | `GetJtKnockbackVelocity` | Select/blend the knockback velocity by damage kind flags (0x200/0x8000/...) and source direction, limited length; then SetJtHurtState | 0.35 | T2 |  |
-| [0x1A19A0](../../../src/game/gameplay/player/hurt/FTakeJtDamage.cpp) | `FTakeJtDamage` | Apply a damage record to the player: owner vt86 veto, flag filters, damage scaled by difficulty (NScaleByDifficulty), health counter, game event broadcast, hit clip, sound, knockback, callback | 0.50 | T1 | runtime |
-| [0x1A1F68](../../../src/game/gameplay/player/hurt/JtHurtEndCb.c) | `JtHurtEndCb` | Callback: health>0 -> SetJtHurtState(0) else 8 (dead) | 0.65 | T1 | runtime |
-| [0x1A1FA8](../../../src/game/gameplay/player/hurt/func_001A1FA8.c) | `JtHurtFallCb` | Callback: if alive return to safe place when the hazard object has flag bit 33, else SetJtAirJump(11); dead -> state | 0.30 | T2 |  |
-| [0x1A2028](../../../src/game/gameplay/player/hurt/func_001A2028.c) | `JtHurtShockCb` | Callback: sound 0x6A, SetJtHurtState(6), chain next callback D_002A6790 | 0.30 | T2 |  |
-| [0x1A2080](../../../src/game/gameplay/player/hurt/func_001A2080.c) | `JtHurtFallCb2` | Same body as 0x1A1FA8 for another hazard kind | 0.25 | T2 |  |
-| [0x1A2100](../../../src/game/gameplay/player/hurt/func_001A2100.c) | `AdjustJtHurtXp` | Hurt states 4/12 set adjust fields x94=D_002BFB20, x98=0 (other states other values) | 0.30 | T2 |  |
-| [0x1A2160](../../../src/game/gameplay/player/hurt/func_001A2160.c) | `AddJtHurtCpdefiFlags` | Hurt states 5,8..12 clear x34; always set bit 0 of grf | 0.30 | T2 |  |
-| [0x1A21A0](../../../src/game/gameplay/player/hurt/func_001A21A0.c) | `JT_FIgnoreZap` | JT vt76 (zap kind n): hang/pipe/rope states ignore 0x4000; grab state asks FJtGrabBusy; else base 0x140ED8 | 0.30 | T2 |  |
-| [0x1A2230](../../../src/game/gameplay/player/hurt/func_001A2230.c) | `FStepplayerIgnoreZap` | Base check: object flag x298, hands-off, or for kinds 0x2000/0x4000 depending on hurt/grab/air sub-states | 0.30 | T2 |  |
-| [0x1A2358](../../../src/game/gameplay/player/hurt/func_001A2358.c) | `FJtVetoDamage` | Return owner vt86(record) | 0.30 | T2 |  |
-| [0x1A2388](../../../src/game/gameplay/player/hurt/func_001A2388.c) | `OnJtDeath` | JT vt93: SetSoEyesClosed(1.0) then base 0x140EB0 | 0.25 | T2 |  |
-| [0x1A23C0](../../../src/game/gameplay/player/hurt/func_001A23C0.c) | `JtHurtStatus` | 0 none, 1 hurt, 2 dead (health<=0) while in a hurt state; else x90==1 | 0.35 | T2 |  |
-| [0x1A23F8](../../../src/game/gameplay/player/hurt/func_001A23F8.c) | `PactadjFromJtHurt` | Return the state record for the hurt state, falling back through parent table D_002BFB28 | 0.35 | T2 |  |
-| [0x1A2460](../../../src/game/gameplay/player/hurt/func_001A2460.cpp) | `UpdateStepplayerWater` | From UpdateStepplayer: if the player's (height-adjusted) point is inside the linked volume (vt73) inflict zap/drown (InflictZap) and probe surface (0x1A2788) | 0.40 | T2 | runtime |
-| [0x1A2788](../../../src/game/gameplay/player/hurt/func_001A2788.cpp) | `FProbeStepplayerSurface` | Line/part test from the player down to the linked volume's surface; out position | 0.30 | T2 |  |
-| [0x1A28B0](../../../src/game/gameplay/player/hurt/func_001A28B0.c) | `ResolveStepplayerXaContact` | STEPPLAYER vt72 (shared by JT/Murray): in water/vertical states apply water current (CalculateWaterCurrent) and buoyancy (GSmoothA, AddSoVelocity); else SO slot72 0x2297F8 | 0.40 | T2 |  |
+| [0x1A0B18](../../../src/game/gameplay/player/hurt.cpp) | `InitJtHurt` | Init the STEPPLAYER+0xDF0 hurt/zap context: owner, state -1, x90=-1, x9C=2.0, count 0x28 | 0.60 | T1 | runtime |
+| [0x1A0B40](../../../src/game/gameplay/player/hurt.cpp) | `SetJtHurtState` | Hurt sub-state switch (leave/enter): JT-specific settings for CID 0x35, face/launch from hit direction, retract/apply hit clips, death states 8..12 | 0.85 | T1 | runtime, verified |
+| [0x1A1098](../../../src/game/gameplay/player/hurt.cpp) | `PostLoadJtHurt` | Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs (PxfFindSo) | 0.45 | T2 |  |
+| [0x1A1148](../../../src/game/gameplay/player/hurt.cpp) | `PresetJtAccelZap` | Hurt-state acceleration: in knockback states add velocity / spring toward target velocity (AccelSoTowardPosSpring) | 0.60 | T1 |  |
+| [0x1A12F0](../../../src/game/gameplay/player/hurt.cpp) | `UpdateJtHurtInput` | When the owner's current ASEGA (x1030) has retracted, run the pending post-hurt callback (0x1A15D0); loop while state changes | 0.40 | T2 |  |
+| [0x1A1358](../../../src/game/gameplay/player/hurt.cpp) | `UpdateJtActiveZap` | jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, FCheckJtStuck escape | 0.50 | T1 |  |
+| [0x1A15B0](../../../src/game/gameplay/player/hurt.cpp) | `SetJtHurtCallback` | Store a pointer-to-member callback (pmf) to run when the hurt animation ends | 0.45 | T2 |  |
+| [0x1A15D0](../../../src/game/gameplay/player/hurt.cpp) | `RunJtHurtCallback` | Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a safe place, others SetJtAirJump | 0.50 | T1 |  |
+| [0x1A16A8](../../../src/game/gameplay/player/hurt.cpp) | `ReturnJtToSafePlaceCb` | Callback thunk: ReturnJtToSafePlace(owner, NULL) | 0.65 | T1 | runtime |
+| [0x1A16C8](../../../src/game/gameplay/player/hurt.cpp) | `GetJtKnockbackVelocity` | Select/blend the knockback velocity by damage kind flags (0x200/0x8000/...) and source direction, limited length; then SetJtHurtState | 0.35 | T2 |  |
+| [0x1A19A0](../../../src/game/gameplay/player/hurt.cpp) | `FTakeJtDamage` | Apply a damage record to the player: owner vt86 veto, flag filters, damage scaled by difficulty (NScaleByDifficulty), health counter, game event broadcast, hit clip, sound, knockback, callback | 0.50 | T1 | runtime |
+| [0x1A1F68](../../../src/game/gameplay/player/hurt.cpp) | `JtHurtEndCb` | Callback: health>0 -> SetJtHurtState(0) else 8 (dead) | 0.65 | T1 | runtime |
+| [0x1A1FA8](../../../src/game/gameplay/player/hurt.cpp) | `JtHurtFallCb` | Callback: if alive return to safe place when the hazard object has flag bit 33, else SetJtAirJump(11); dead -> state | 0.30 | T2 |  |
+| [0x1A2028](../../../src/game/gameplay/player/hurt.cpp) | `JtHurtShockCb` | Callback: sound 0x6A, SetJtHurtState(6), chain next callback D_002A6790 | 0.30 | T2 |  |
+| [0x1A2080](../../../src/game/gameplay/player/hurt.cpp) | `JtHurtFallCb2` | Same body as 0x1A1FA8 for another hazard kind | 0.25 | T2 |  |
+| [0x1A2100](../../../src/game/gameplay/player/hurt.cpp) | `AdjustJtHurtXp` | Hurt states 4/12 set adjust fields x94=D_002BFB20, x98=0 (other states other values) | 0.30 | T2 |  |
+| [0x1A2160](../../../src/game/gameplay/player/hurt.cpp) | `AddJtHurtCpdefiFlags` | Hurt states 5,8..12 clear x34; always set bit 0 of grf | 0.30 | T2 |  |
+| [0x1A21A0](../../../src/game/gameplay/player/hurt.cpp) | `JT_FIgnoreZap` | JT vt76 (zap kind n): hang/pipe/rope states ignore 0x4000; grab state asks FJtGrabBusy; else base 0x140ED8 | 0.30 | T2 |  |
+| [0x1A2230](../../../src/game/gameplay/player/hurt.cpp) | `FStepplayerIgnoreZap` | Base check: object flag x298, hands-off, or for kinds 0x2000/0x4000 depending on hurt/grab/air sub-states | 0.30 | T2 |  |
+| [0x1A2358](../../../src/game/gameplay/player/hurt.cpp) | `FJtVetoDamage` | Return owner vt86(record) | 0.30 | T2 |  |
+| [0x1A2388](../../../src/game/gameplay/player/hurt.cpp) | `OnJtDeath` | JT vt93: SetSoEyesClosed(1.0) then base 0x140EB0 | 0.25 | T2 |  |
+| [0x1A23C0](../../../src/game/gameplay/player/hurt.cpp) | `JtHurtStatus` | 0 none, 1 hurt, 2 dead (health<=0) while in a hurt state; else x90==1 | 0.35 | T2 |  |
+| [0x1A23F8](../../../src/game/gameplay/player/hurt.cpp) | `PactadjFromJtHurt` | Return the state record for the hurt state, falling back through parent table D_002BFB28 | 0.35 | T2 |  |
+| [0x1A2460](../../../src/game/gameplay/player/hurt.cpp) | `UpdateStepplayerWater` | From UpdateStepplayer: if the player's (height-adjusted) point is inside the linked volume (vt73) inflict zap/drown (InflictZap) and probe surface (0x1A2788) | 0.40 | T2 | runtime |
+| [0x1A2788](../../../src/game/gameplay/player/hurt.cpp) | `FProbeStepplayerSurface` | Line/part test from the player down to the linked volume's surface; out position | 0.30 | T2 |  |
+| [0x1A28B0](../../../src/game/gameplay/player/hurt.cpp) | `ResolveStepplayerXaContact` | STEPPLAYER vt72 (shared by JT/Murray): in water/vertical states apply water current (CalculateWaterCurrent) and buoyancy (GSmoothA, AddSoVelocity); else SO slot72 0x2297F8 | 0.40 | T2 |  |
 
 ## murray (0x1B4728-0x1B9F80)
 

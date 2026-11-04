@@ -98,7 +98,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` | ProcessSoZapContacts |
 | 75 | FZprHasField44 | inherited (STEPPLAYER) | `STEPPLAYER_FTakeDamage` | `0x140F50` | FTakeDamage |
-| 76 | FInvulnerablePo | **override** | [`JT_FIgnoreZap?`](../../../src/game/gameplay/player/hurt/func_001A21A0.c) | `0x1A21A0` | FInvulnerable |
+| 76 | FInvulnerablePo | **override** | [`JT_FIgnoreZap?`](../../../src/game/gameplay/player/hurt.cpp) | `0x1A21A0` | FInvulnerable |
 | 77 | JthsCurrentPo | inherited (STEPPLAYER) | `JthsCurrent__10STEPPLAYER` | `0x140F70` | JthsCurrent |
 | 78 | OnPoActive | **override** | [`OnJtActive?`](../../../src/game/gameplay/player/jt/func_0018E3A0.c) | `0x18E3A0` | OnActive |
 | 79 | SetPoCtlState | inherited (STEPPLAYER) | `SetStepplayerCtlState` | `0x1406E8` | SetCtlState |
@@ -115,7 +115,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`JT_vt90?`](../../../src/game/gameplay/player/jt/func_0018C060.c) | `0x18C060` | VUnk89 |
 | 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`JT_vt91?`](../../../src/game/gameplay/player/jt/func_0018D548.c) | `0x18D548` | VUnk90 |
 | 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`JT_FFaceTarget`](../../../src/game/gameplay/player/jt/JT_FFaceTarget.c) | `0x189458` | VUnk91 |
-| 93 | OnStepplayerHeroDied | **override** | [`OnJtDeath?`](../../../src/game/gameplay/player/hurt/func_001A2388.c) | `0x1A2388` | OnHeroDied |
+| 93 | OnStepplayerHeroDied | **override** | [`OnJtDeath?`](../../../src/game/gameplay/player/hurt.cpp) | `0x1A2388` | OnHeroDied |
 | 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`JT_vt94?`](../../../src/game/gameplay/player/jt/func_001894F8.c) | `0x1894F8` | VUnk93 |
 | 95 | SetStepplayerPlayerInteractMode | inherited (STEPPLAYER) | `SetStepplayerPlayerInteractMode` | `0x140678` | SetPlayerInteractMode |
 | 96 | GetStepplayerStunHold | **override** | [`JT_vt96?`](../../../src/game/gameplay/player/jt/func_0018DE80.c) | `0x18DE80` | GetStunHold |
