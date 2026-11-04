@@ -170,9 +170,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 inline qword QwRotateVec(MATRIX3 *pmat, qword qwVec)
 {
     qword qwResult;
-    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(qwResult)
-            : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(qwVec));
+    qwResult = VuMulMatrix3(*(qword *)pmat->mat[0], *(qword *)pmat->mat[1], *(qword *)pmat->mat[2], qwVec);
     return qwResult;
 }
 MATRIX3 BuildRotateVectorsMatrix(qword vec1, qword vec2);

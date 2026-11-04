@@ -262,8 +262,7 @@ static inline float GFromVfBits(qword v)
 static inline qword Point(const MATRIX4 &m, qword v)
 {
     qword r;
-    __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w"
-            : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
+    r = VuMulMatrix4(m.r[0], m.r[1], m.r[2], m.r[3], v);
     return r;
 }
 static inline qword Length(qword v)

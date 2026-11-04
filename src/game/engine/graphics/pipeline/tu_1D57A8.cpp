@@ -639,8 +639,7 @@ extern "C" void func_001D6378(OBJ *pobj)
     M4 m = *((M4 *(*)(void *))pobj->pvt[31].pfn)((char *)pobj + pobj->pvt[31].delta);
     qword v;
     RENDER *prender;
-    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(v) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(pobj->posLocal));
+    v = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, pobj->posLocal);
     {
         float r = func_0011CAB0(&m) * pobj->sRadius;
         prender = func_001D6508(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);

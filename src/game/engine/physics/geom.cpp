@@ -59,8 +59,7 @@ int func_00118A88(void *, int, qword, int *, Entry **, float);
 
 static inline qword Transform(const MATRIX4 *m,qword p) {
  qword r;
- __asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w"
- :"=j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]),"j"(m->r[3]),"j"(p));return r;
+ r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], p);return r;
 }
 static inline qword Rotate(const MATRIX4 *m,qword p) {
  register qword a0 __asm__("vf6")=m->r[0];

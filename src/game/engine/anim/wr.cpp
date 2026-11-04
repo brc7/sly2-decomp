@@ -241,9 +241,7 @@ extern "C" void func_0022B7A0(WR *pwr, WRBG *pwrbg)
 static inline qword QwTransformPos(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
-    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(qw)
-            : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
+    qw = VuMulMatrix4(*(qword *)mat.mat[0], *(qword *)mat.mat[1], *(qword *)mat.mat[2], *(qword *)mat.mat[3], qwPos);
     return qw;
 }
 
@@ -314,10 +312,7 @@ static inline void FitLinearClq(CLQ *pclq, const float &s0, const float &u0, con
 static inline VU_VECTOR operator*(const MATRIX4 &mat, VU_VECTOR pos)
 {
     qword qw;
-    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(qw)
-            : "j"(VU_VECTOR(*(VECTOR *)mat.mat[0]).q), "j"(VU_VECTOR(*(VECTOR *)mat.mat[1]).q),
-              "j"(VU_VECTOR(*(VECTOR *)mat.mat[2]).q), "j"(VU_VECTOR(*(VECTOR *)mat.mat[3]).q), "j"(pos.q));
+    qw = VuMulMatrix4(VU_VECTOR(*(VECTOR *)mat.mat[0]).q, VU_VECTOR(*(VECTOR *)mat.mat[1]).q, VU_VECTOR(*(VECTOR *)mat.mat[2]).q, VU_VECTOR(*(VECTOR *)mat.mat[3]).q, pos.q);
     return VU_VECTOR(qw);
 }
 
@@ -598,7 +593,7 @@ static inline void CopyXYZ(V &destination,const V &v){float x=v.f[0],y=v.f[1],z=
 static inline void CopyXY(V &destination,const V &v){float x=v.f[0],y=v.f[1];destination.f[0]=x;destination.f[1]=y;}
 static inline qword Unit(qword v){qword len,r;len = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"0"(len));return r;}
 static inline qword UnitFresh(qword v){qword len,r;len = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(r):"j"(v),"j"(len));return r;}
-static inline qword Rotate(const M3 &m,qword v){__asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(*(const qword *)m.f[0]),"j"(*(const qword *)m.f[1]),"j"(*(const qword *)m.f[2]));return v;}
+static inline qword Rotate(const M3 &m,qword v){v = VuMulMatrix3(*(const qword *)m.f[0], *(const qword *)m.f[1], *(const qword *)m.f[2], v);return v;}
 /** @sly2-annot addr=0x22C028
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed

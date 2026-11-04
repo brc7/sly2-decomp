@@ -183,7 +183,7 @@ extern "C" void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*o
   addressB+=(unsigned)vertices;addressC+=(unsigned)vertices;
   __asm__("lqc2 %1,0(%3)\n\tlqc2 %2,0(%4)\n\tvmulax.xyz $ACC,%5,%1x\n\tvmadday.xyz $ACC,%6,%1y\n\tvmaddaz.xyz $ACC,%7,%1z\n\tvmaddw.xyz %0,%8,$vf0w"
    :"+j"(b),"=&j"(rawB),"=&j"(rawC):"r"(addressB),"r"(addressC),"j"(row0),"j"(row1),"j"(row2),"j"(row3):"memory");
-  __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(c):"j"(row0),"j"(row1),"j"(row2),"j"(row3),"j"(rawC));
+  c = VuMulMatrix4(row0, row1, row2, row3, rawC);
   __asm__("vmove.xyzw %0,%3\n\tvmove.xyzw %1,%4\n\tvmove.xyzw %2,%5":"=&j"(ac),"=&j"(cc),"=j"(bc):"j"(a),"j"(c),"j"(b));
   __asm__("vsub.xyzw %0,%2,%3\n\tvsub.xyzw %1,%4,%3":"=&j"(edgeA),"=j"(edgeB):"j"(ac),"j"(cc),"j"(bc));
   __asm__("lqc2 $vf4,%6\n\tvopmula.xyz $ACC,%3,%5\n\tvopmsub.xyz %0,%5,%3\n\tsqc2 %0,%1\n\tvsub.xyzw %0,$vf4,%4"
@@ -253,8 +253,7 @@ extern "C" {
 static inline qword Transform(const M4 &m, qword p)
 {
     qword r;
-    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-        : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(p));
+    r = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, p);
     return r;
 }
 static inline qword Sub(const qword &a, const qword &b) { qword r; r = VuSub(a, b); return r; }
@@ -598,7 +597,7 @@ static inline float GXOfQwR(qword qw,const qword&f){float x;__asm__("mtc1 %1,%0"
 static inline qword QwCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwRotateVecAt(const M3*m,const qword*pv){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
 static inline qword QwRotateVecJ(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(v),"j"(v),"j"(m->r[1].q));return r;}static inline qword QwRotateVec(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(v),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
-static inline qword QwTransformPos(M4*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(v));return r;}
+static inline qword QwTransformPos(M4*m,qword v){qword r;r = VuMulMatrix4(m->r[0].q, m->r[1].q, m->r[2].q, m->r[3].q, v);return r;}
 static inline qword QwCombo(qword a,qword b,VU_FLOAT ka,VU_FLOAT kb){qword r;__asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x":"=j"(r):"j"(a),"j"(b),"j"(ka.qw),"j"(kb.qw));return r;}
 static inline void BuildM4L(const M3&m,const qword&pos,M4*d){VECTOR_opAssign(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
 static inline void BuildM4(M4*d,const M3&m,const qword&pos){VECTOR_opAssign(&d->r[3].q,pos);d->r[0]=m.r[0];d->r[1]=m.r[1];d->r[2]=m.r[2];}
@@ -610,7 +609,7 @@ static inline void StoreAddM(U*d,const qword&a,const qword&b){qword r;__asm__("v
 static inline void StoreAddR(U*d,const qword&a,const qword&b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b),"r"(d));d->q=r;} // "r"(d): allocation-only
 static inline void StoreAddRot(U*d,const qword&a,const M3*m,const qword*pv){StoreAddM(d,a,QwRotateVecAt(m,pv));}
 static inline void ClearXyz(U*pv){pv->f[2]=0.0f;pv->f[1]=0.0f;pv->f[0]=0.0f;}
-static inline qword QwRotateVecR(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(v));return r;}
+static inline qword QwRotateVecR(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
 static inline qword QwRotateVecRJ(const M3*m,qword v){qword r;__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(v),"j"(v),"j"(v),"j"(m->r[1].q));return r;}
 static inline void MulM3(M3*r,const M3*a,const M3*b){qword c0=QwRotateVecR(a,b->r[0].q),c1=QwRotateVecR(a,b->r[1].q),c2=QwRotateVecR(a,b->r[2].q);r->r[0].q=c0;r->r[1].q=c1;r->r[2].q=c2;}
 static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}

@@ -299,7 +299,7 @@ extern "C" void func_0021C1C8(TRAIL *p)
 
 static inline qword Transform(const M4 *m,qword p) {
     qword r;
-    __asm__("vmulax.xyz ACC,%1,%2x\n\tvmadday.xyz ACC,%3,%2y\n\tvmaddaz.xyz ACC,%4,%2z\n\tvmaddw.xyz %0,%5,$vf0w" : "=j"(r) : "j"(m->r[0]),"j"(p),"j"(m->r[1]),"j"(m->r[2]),"j"(m->r[3])); return r;
+    r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], p); return r;
 }
 static inline qword Blend(qword a,qword b,qword beta,qword alpha) { register qword r __asm__("vf1"); __asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=&j"(r) : "j"(a),"j"(beta),"j"(b),"j"(alpha)); return r; }
 static inline float GetY(qword q) { float r; __asm__("prot3w %0,%1" : "=r"(r) : "r"(q)); return r; }
