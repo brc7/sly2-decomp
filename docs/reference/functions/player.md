@@ -178,47 +178,47 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x144B28](../../../src/game/gameplay/ai/tu_144B28/InitBhvwalkgoal.c) | `InitBhv168` | BHV168 slot 7: BHV166 base (0x177E80), speed scale +0xD0 = 1 | 0.45 | T2 |  |
-| [0x144B58](../../../src/game/gameplay/ai/tu_144B28/StartBhvwalkgoal.c) | `StartBhv168` | BHV168 slot 8: base, then SetJtgoal(owner+0xFD0, goal +0x80) | 0.45 | T2 |  |
-| [0x144B90](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvwalkgoal.c) | `UpdateBhv168Goal` | BHV168 slot 10: BHV166 update (0x1789F8), then refresh SetJtgoal | 0.40 | T2 |  |
-| [0x144BC8](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvwalkgoalPoctl.c) | `Bhv168_VUnk14` | BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ of xy distance, scaled by +0xD0) and heading toward the goal | 0.40 | T2 |  |
-| [0x144E20](../../../src/game/gameplay/ai/tu_144B28/func_00144E20.c) | `InitBhv193` | BHV193 slot 7: base, defaults 40.0 / 1 / 1.0 | 0.40 | T2 |  |
-| [0x144E68](../../../src/game/gameplay/ai/tu_144B28/func_00144E68.c) | `StartBhv193` | BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it | 0.40 | T2 |  |
-| [0x144EE8](../../../src/game/gameplay/ai/tu_144B28/func_00144EE8.c) | `FBhv193Done` | true if the child behaviour finished (0x178D00) or its state == 2 | 0.30 | T2 |  |
-| [0x144F48](../../../src/game/gameplay/ai/tu_144B28/func_00144F48.c) | `SetBhv193Goal` | store goal; build a path (straight or via nav graph 0x1C02D0) into the child's route | 0.35 | T2 |  |
-| [0x145010](../../../src/game/gameplay/ai/tu_144B28/InitBhvfollow.c) | `InitBhv194` | BHV194 slot 7: base, state -1, follow distances 0.25/250/350/1.0/1.2 | 0.40 | T2 |  |
-| [0x145080](../../../src/game/gameplay/ai/tu_144B28/StartBhvfollow.c) | `StartBhv194` | BHV194 slot 8: SetBhv194State(0) | 0.40 | T2 |  |
-| [0x1450B0](../../../src/game/gameplay/ai/tu_144B28/CloseBhvfollow.c) | `CloseBhv194` | BHV194 slot 9: SetBhv194State(-1) | 0.40 | T2 |  |
-| [0x1450E0](../../../src/game/gameplay/ai/tu_144B28/func_001450E0.c) | `PsoBhv194PickTarget` | Pick the nearest SO of several guard-state classes around the followed object | 0.30 | T2 |  |
-| [0x1453F0](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvfollow.c) | `UpdateBhv194` | BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when far | 0.40 | T2 |  |
-| [0x1457A8](../../../src/game/gameplay/ai/tu_144B28/func_001457A8.cpp) | `UpdateBhv194FollowPos` | compute follow target position behind the leader (uses its facing if STEP) | 0.30 | T2 |  |
-| [0x1459C0](../../../src/game/gameplay/ai/tu_144B28/func_001459C0.c) | `FBhv194LeaderOnNewGround` | checks the leader's ground object vs own | 0.25 | T2 |  |
-| [0x145AA8](../../../src/game/gameplay/ai/tu_144B28/func_00145AA8.c) | `PsoBhv194LeaderGround` | leader's ground/standing object if any | 0.25 | T2 |  |
-| [0x145B18](../../../src/game/gameplay/ai/tu_144B28/SetBhvfollowState.c) | `SetBhv194State` | state change; state 0 pushes a BHV168 walk-to-goal child | 0.40 | T2 |  |
-| [0x145CD0](../../../src/game/gameplay/ai/tu_144B28/func_00145CD0.c) | `InitBhv195` | BHV195 slot 7: base, state -1 | 0.40 | T2 |  |
-| [0x145D00](../../../src/game/gameplay/ai/tu_144B28/func_00145D00.c) | `StartBhv195` | BHV195 slot 8: state 0, SetPlayerInteractMode(4, target, 4, target), set owner +0x10E0 bit 1 | 0.40 | T2 |  |
-| [0x145D68](../../../src/game/gameplay/ai/tu_144B28/func_00145D68.c) | `CloseBhv195` | BHV195 slot 9: clear owner +0x10E0 bit 1 | 0.40 | T2 |  |
-| [0x145DA0](../../../src/game/gameplay/ai/tu_144B28/func_00145DA0.c) | `FBhv195Idle` | state == -1 | 0.30 | T2 |  |
-| [0x145DB0](../../../src/game/gameplay/ai/tu_144B28/func_00145DB0.c) | `UpdateBhv195` | BHV195 slot 10: approach target (+0x38) and interact; abort when hurt or target gone | 0.35 | T2 |  |
-| [0x146068](../../../src/game/gameplay/ai/tu_144B28/func_00146068.c) | `Bhv195_VUnk14` | BHV195 slot 14: drive toward target (slow in state 0) | 0.35 | T2 |  |
-| [0x146158](../../../src/game/gameplay/ai/tu_144B28/func_00146158.c) | `SetBhv195State` | state change with busy push/pop on state 2 | 0.35 | T2 |  |
-| [0x1461C8](../../../src/game/gameplay/ai/tu_144B28/func_001461C8.c) | `InitBhv196` | BHV196 slot 7 (same shape as BHV195) | 0.35 | T2 |  |
-| [0x1461F8](../../../src/game/gameplay/ai/tu_144B28/func_001461F8.c) | `StartBhv196` | BHV196 slot 8 | 0.35 | T2 |  |
-| [0x146260](../../../src/game/gameplay/ai/tu_144B28/func_00146260.c) | `CloseBhv196` | BHV196 slot 9 | 0.35 | T2 |  |
-| [0x146298](../../../src/game/gameplay/ai/tu_144B28/func_00146298.c) | `FBhv196Idle` | state == -1 | 0.85 | T2 | verified |
-| [0x1462A8](../../../src/game/gameplay/ai/tu_144B28/func_001462A8.c) | `UpdateBhv196` | BHV196 slot 10 (BHV195 variant) | 0.35 | T2 |  |
-| [0x146560](../../../src/game/gameplay/ai/tu_144B28/func_00146560.c) | `Bhv196_VUnk14` | BHV196 slot 14 | 0.35 | T2 |  |
-| [0x146650](../../../src/game/gameplay/ai/tu_144B28/func_00146650.c) | `SetBhv196State` | state setter | 0.35 | T2 |  |
-| [0x1466C0](../../../src/game/gameplay/ai/tu_144B28/func_001466C0.c) | `InitBhv197` | BHV197 slot 7 | 0.35 | T2 |  |
-| [0x1466F0](../../../src/game/gameplay/ai/tu_144B28/func_001466F0.c) | `StartBhv197` | BHV197 slot 8 | 0.35 | T2 |  |
-| [0x146758](../../../src/game/gameplay/ai/tu_144B28/func_00146758.c) | `CloseBhv197` | BHV197 slot 9 | 0.35 | T2 |  |
-| [0x146790](../../../src/game/gameplay/ai/tu_144B28/func_00146790.c) | `FBhv197Idle` | state == -1 | 0.30 | T2 |  |
-| [0x1467A0](../../../src/game/gameplay/ai/tu_144B28/func_001467A0.c) | `UpdateBhv197` | BHV197 slot 10: approach target with extra states 3/4 | 0.35 | T2 |  |
-| [0x146B18](../../../src/game/gameplay/ai/tu_144B28/func_00146B18.c) | `Bhv197_VUnk14` | BHV197 slot 14: speed GLimitLm(CLQ(\|d.xy\|)), heading atan2 toward target | 0.35 | T2 |  |
-| [0x146E18](../../../src/game/gameplay/ai/tu_144B28/func_00146E18.c) | `SetBhv197State` | state setter (busy in 2..4) | 0.35 | T2 |  |
-| [0x146E98](../../../src/game/gameplay/ai/tu_144B28/func_00146E98.c) | `StartBhv198` | BHV198 slot 8: MURRAY flag +0x1AC0=1, Murray state 0xC (0x1B6078), 0x1B8D30(0) | 0.35 | T2 |  |
-| [0x146EE0](../../../src/game/gameplay/ai/tu_144B28/func_00146EE0.c) | `CloseBhv198` | BHV198 slot 9: clear +0x1AC0, Murray state 0 | 0.35 | T2 |  |
-| [0x146F18](../../../src/game/gameplay/ai/tu_144B28/func_00146F18.c) | `UpdateBhv198` | BHV198 slot 10: Murray sub-state machine (+0x1840) relative to the current player D_002E1E40 | 0.30 | T2 |  |
+| [0x144B28](../../../src/game/gameplay/ai/tu_144B28.cpp) | `InitBhv168` | BHV168 slot 7: BHV166 base (0x177E80), speed scale +0xD0 = 1 | 0.45 | T2 |  |
+| [0x144B58](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv168` | BHV168 slot 8: base, then SetJtgoal(owner+0xFD0, goal +0x80) | 0.45 | T2 |  |
+| [0x144B90](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv168Goal` | BHV168 slot 10: BHV166 update (0x1789F8), then refresh SetJtgoal | 0.40 | T2 |  |
+| [0x144BC8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `Bhv168_VUnk14` | BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ of xy distance, scaled by +0xD0) and heading toward the goal | 0.40 | T2 |  |
+| [0x144E20](../../../src/game/gameplay/ai/tu_144B28.cpp) | `InitBhv193` | BHV193 slot 7: base, defaults 40.0 / 1 / 1.0 | 0.40 | T2 |  |
+| [0x144E68](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv193` | BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it | 0.40 | T2 |  |
+| [0x144EE8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `FBhv193Done` | true if the child behaviour finished (0x178D00) or its state == 2 | 0.30 | T2 |  |
+| [0x144F48](../../../src/game/gameplay/ai/tu_144B28.cpp) | `SetBhv193Goal` | store goal; build a path (straight or via nav graph 0x1C02D0) into the child's route | 0.35 | T2 |  |
+| [0x145010](../../../src/game/gameplay/ai/tu_144B28.cpp) | `InitBhv194` | BHV194 slot 7: base, state -1, follow distances 0.25/250/350/1.0/1.2 | 0.40 | T2 |  |
+| [0x145080](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv194` | BHV194 slot 8: SetBhv194State(0) | 0.40 | T2 |  |
+| [0x1450B0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `CloseBhv194` | BHV194 slot 9: SetBhv194State(-1) | 0.40 | T2 |  |
+| [0x1450E0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `PsoBhv194PickTarget` | Pick the nearest SO of several guard-state classes around the followed object | 0.30 | T2 |  |
+| [0x1453F0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv194` | BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when far | 0.40 | T2 |  |
+| [0x1457A8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv194FollowPos` | compute follow target position behind the leader (uses its facing if STEP) | 0.30 | T2 |  |
+| [0x1459C0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `FBhv194LeaderOnNewGround` | checks the leader's ground object vs own | 0.25 | T2 |  |
+| [0x145AA8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `PsoBhv194LeaderGround` | leader's ground/standing object if any | 0.25 | T2 |  |
+| [0x145B18](../../../src/game/gameplay/ai/tu_144B28.cpp) | `SetBhv194State` | state change; state 0 pushes a BHV168 walk-to-goal child | 0.40 | T2 |  |
+| [0x145CD0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `InitBhv195` | BHV195 slot 7: base, state -1 | 0.40 | T2 |  |
+| [0x145D00](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv195` | BHV195 slot 8: state 0, SetPlayerInteractMode(4, target, 4, target), set owner +0x10E0 bit 1 | 0.40 | T2 |  |
+| [0x145D68](../../../src/game/gameplay/ai/tu_144B28.cpp) | `CloseBhv195` | BHV195 slot 9: clear owner +0x10E0 bit 1 | 0.40 | T2 |  |
+| [0x145DA0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `FBhv195Idle` | state == -1 | 0.30 | T2 |  |
+| [0x145DB0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv195` | BHV195 slot 10: approach target (+0x38) and interact; abort when hurt or target gone | 0.35 | T2 |  |
+| [0x146068](../../../src/game/gameplay/ai/tu_144B28.cpp) | `Bhv195_VUnk14` | BHV195 slot 14: drive toward target (slow in state 0) | 0.35 | T2 |  |
+| [0x146158](../../../src/game/gameplay/ai/tu_144B28.cpp) | `SetBhv195State` | state change with busy push/pop on state 2 | 0.35 | T2 |  |
+| [0x1461C8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `InitBhv196` | BHV196 slot 7 (same shape as BHV195) | 0.35 | T2 |  |
+| [0x1461F8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv196` | BHV196 slot 8 | 0.35 | T2 |  |
+| [0x146260](../../../src/game/gameplay/ai/tu_144B28.cpp) | `CloseBhv196` | BHV196 slot 9 | 0.35 | T2 |  |
+| [0x146298](../../../src/game/gameplay/ai/tu_144B28.cpp) | `FBhv196Idle` | state == -1 | 0.85 | T2 | verified |
+| [0x1462A8](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv196` | BHV196 slot 10 (BHV195 variant) | 0.35 | T2 |  |
+| [0x146560](../../../src/game/gameplay/ai/tu_144B28.cpp) | `Bhv196_VUnk14` | BHV196 slot 14 | 0.35 | T2 |  |
+| [0x146650](../../../src/game/gameplay/ai/tu_144B28.cpp) | `SetBhv196State` | state setter | 0.35 | T2 |  |
+| [0x1466C0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `InitBhv197` | BHV197 slot 7 | 0.35 | T2 |  |
+| [0x1466F0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv197` | BHV197 slot 8 | 0.35 | T2 |  |
+| [0x146758](../../../src/game/gameplay/ai/tu_144B28.cpp) | `CloseBhv197` | BHV197 slot 9 | 0.35 | T2 |  |
+| [0x146790](../../../src/game/gameplay/ai/tu_144B28.cpp) | `FBhv197Idle` | state == -1 | 0.30 | T2 |  |
+| [0x1467A0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv197` | BHV197 slot 10: approach target with extra states 3/4 | 0.35 | T2 |  |
+| [0x146B18](../../../src/game/gameplay/ai/tu_144B28.cpp) | `Bhv197_VUnk14` | BHV197 slot 14: speed GLimitLm(CLQ(\|d.xy\|)), heading atan2 toward target | 0.35 | T2 |  |
+| [0x146E18](../../../src/game/gameplay/ai/tu_144B28.cpp) | `SetBhv197State` | state setter (busy in 2..4) | 0.35 | T2 |  |
+| [0x146E98](../../../src/game/gameplay/ai/tu_144B28.cpp) | `StartBhv198` | BHV198 slot 8: MURRAY flag +0x1AC0=1, Murray state 0xC (0x1B6078), 0x1B8D30(0) | 0.35 | T2 |  |
+| [0x146EE0](../../../src/game/gameplay/ai/tu_144B28.cpp) | `CloseBhv198` | BHV198 slot 9: clear +0x1AC0, Murray state 0 | 0.35 | T2 |  |
+| [0x146F18](../../../src/game/gameplay/ai/tu_144B28.cpp) | `UpdateBhv198` | BHV198 slot 10: Murray sub-state machine (+0x1840) relative to the current player D_002E1E40 | 0.30 | T2 |  |
 
 ## grabspot (0x182C70-0x1848A8)
 

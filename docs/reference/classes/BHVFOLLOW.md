@@ -29,10 +29,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvfollowClassDesc`](../../../src/game/app/class_registry/GetBhvfollowClassDesc.c) | `0x114630` |
-| 7 | Init | **override** | [`InitBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/InitBhvfollow.c) | `0x145010` |
-| 8 | Start | **override** | [`StartBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/StartBhvfollow.c) | `0x145080` |
-| 9 | Close | **override** | [`CloseBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/CloseBhvfollow.c) | `0x1450B0` |
-| 10 | Update | **override** | [`UpdateBhvfollow`](../../../src/game/gameplay/ai/tu_144B28/UpdateBhvfollow.c) | `0x1453F0` |
+| 7 | Init | **override** | [`InitBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x145010` |
+| 8 | Start | **override** | [`StartBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x145080` |
+| 9 | Close | **override** | [`CloseBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x1450B0` |
+| 10 | Update | **override** | [`UpdateBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x1453F0` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |
