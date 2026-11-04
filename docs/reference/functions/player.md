@@ -741,30 +741,30 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x201D78](../../../src/game/gameplay/player/tu_201D78/InitReconSel.c) | `InitReconSel` | recon selector init: owner, origin = screen centre (320,246.4), state -1 | 0.55 | T1 |  |
-| [0x201DC8](../../../src/game/gameplay/player/tu_201D78/PostReconSelLoad.c) | `PostReconSelLoad` | find widgets 0x362/0x365 (JT only) and LO 0x602; collect all CID 0x2E targets (max 16) | 0.55 | T1 |  |
-| [0x201E88](../../../src/game/gameplay/player/tu_201D78/func_00201E88.c) | `ResetReconTargets` | vt slot 9 on each target companion object (+0x100) | 0.30 | T2 |  |
-| [0x201F00](../../../src/game/gameplay/player/tu_201D78/func_00201F00.cpp) | `NotifyReconTargets` | vt slot 8 on companion of each visible target | 0.30 | T2 |  |
-| [0x201F90](../../../src/game/gameplay/player/tu_201D78/func_00201F90.c) | `UpdateReconSelInVolume` | flag +0xB8 = origin inside any class-0x19 VOL (FCheckVolPoint) | 0.40 | T2 |  |
-| [0x202030](../../../src/game/gameplay/player/tu_201D78/RefreshReconPendingTargets.c) | `RefreshReconPendingTargets` | pending list (+0x74/+0x78, max 5): targets with name id and task state 1/2 | 0.50 | T1 |  |
-| [0x2020C8](../../../src/game/gameplay/player/tu_201D78/func_002020C8.c) | `FadeReconTargetMarkers` | fade marker SO in/out (0.25 s) by camera distance vs radius | 0.45 | T2 |  |
-| [0x2021F8](../../../src/game/gameplay/player/tu_201D78/UpdateReconChecklist.c) | `UpdateReconChecklist` | per pending target play 0x33A (done) or 0x33B on widget +0xAC | 0.50 | T1 |  |
-| [0x2022A0](../../../src/game/gameplay/player/tu_201D78/func_002022A0.c) | `ClearReconTargetMarks` | target +0x108 = 0 | 0.35 | T2 |  |
-| [0x2022D8](../../../src/game/gameplay/player/tu_201D78/func_002022D8.c) | `FReconSelAvailable` | in-volume flag or any visible target | 0.40 | T2 |  |
-| [0x202350](../../../src/game/gameplay/player/tu_201D78/func_00202350.c) | `FFilterReconOccluder` | filter callback for IntersectSwBoundingBox | 0.35 | T2 |  |
-| [0x202378](../../../src/game/gameplay/player/tu_201D78/UpdateReconTargetVisibility.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
-| [0x202540](../../../src/game/gameplay/player/tu_201D78/SelectReconTarget.c) | `SelectReconTarget` | choose closest unblocked target in frustum; on change SetReconSelState(2) | 0.55 | T1 |  |
-| [0x2026F8](../../../src/game/gameplay/player/tu_201D78/PchzReconPending.c) | `PchzReconPending` | langstr of P+0xC0 | 0.50 | T1 |  |
-| [0x202730](../../../src/game/gameplay/player/tu_201D78/PchzReconSelected.c) | `PchzReconSelected` | langstr of P+0xBC | 0.50 | T1 |  |
-| [0x202768](../../../src/game/gameplay/player/tu_201D78/SetReconSelState.cpp) | `SetReconSelState` | state machine -1..10; 8 = snapshot (clock & sound paused, player flags 0x102), 9 = photo taken (StartDialog, BroadcastGameEvent 10, mark target done) | 0.60 | T1 |  |
-| [0x202D38](../../../src/game/gameplay/player/tu_201D78/UpdateReconSel.cpp) | `UpdateReconSel` | per frame: project target head to screen, proximity to centre / size gain, drive states, shutter on button 10 (250 when locked) | 0.60 | T1 |  |
-| [0x203568](../../../src/game/gameplay/player/tu_201D78/InitReconTarget.c) | `InitReconTarget` | CID 0x2E Init: InitXfm, ids -1/-2 | 0.65 | T1 |  |
-| [0x2035A8](../../../src/game/gameplay/player/tu_201D78/LoadReconTargetFromBrx.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
-| [0x203638](../../../src/game/gameplay/player/tu_201D78/PostReconTargetLoad.c) | `PostReconTargetLoad` | CID 0x2E PostLoad: PostLoLoad + register with task +0xEC | 0.65 | T1 |  |
-| [0x203670](../../../src/game/gameplay/player/tu_201D78/HandleReconTargetMessage.c) | `HandleReconTargetMessage` | CID 0x2E HandleMessage: on msg 0x11 refresh player recon list and checklist | 0.60 | T1 |  |
-| [0x2036E8](../../../src/game/gameplay/player/tu_201D78/func_002036E8.c) | `SetReconTargetDone` | mark target photographed (task +0xEC or local flag) | 0.45 | T2 |  |
-| [0x203758](../../../src/game/gameplay/player/tu_201D78/FReconTargetDone.c) | `FReconTargetDone` | task done ? or local flag | 0.50 | T1 |  |
-| [0x203790](../../../src/game/gameplay/player/tu_201D78/FReconTargetSelectable.c) | `FReconTargetSelectable` | visible and task state 1 | 0.50 | T1 |  |
+| [0x201D78](../../../src/game/gameplay/player/tu_201D78.cpp) | `InitReconSel` | recon selector init: owner, origin = screen centre (320,246.4), state -1 | 0.55 | T1 |  |
+| [0x201DC8](../../../src/game/gameplay/player/tu_201D78.cpp) | `PostReconSelLoad` | find widgets 0x362/0x365 (JT only) and LO 0x602; collect all CID 0x2E targets (max 16) | 0.55 | T1 |  |
+| [0x201E88](../../../src/game/gameplay/player/tu_201D78.cpp) | `ResetReconTargets` | vt slot 9 on each target companion object (+0x100) | 0.30 | T2 |  |
+| [0x201F00](../../../src/game/gameplay/player/tu_201D78.cpp) | `NotifyReconTargets` | vt slot 8 on companion of each visible target | 0.30 | T2 |  |
+| [0x201F90](../../../src/game/gameplay/player/tu_201D78.cpp) | `UpdateReconSelInVolume` | flag +0xB8 = origin inside any class-0x19 VOL (FCheckVolPoint) | 0.40 | T2 |  |
+| [0x202030](../../../src/game/gameplay/player/tu_201D78.cpp) | `RefreshReconPendingTargets` | pending list (+0x74/+0x78, max 5): targets with name id and task state 1/2 | 0.50 | T1 |  |
+| [0x2020C8](../../../src/game/gameplay/player/tu_201D78.cpp) | `FadeReconTargetMarkers` | fade marker SO in/out (0.25 s) by camera distance vs radius | 0.45 | T2 |  |
+| [0x2021F8](../../../src/game/gameplay/player/tu_201D78.cpp) | `UpdateReconChecklist` | per pending target play 0x33A (done) or 0x33B on widget +0xAC | 0.50 | T1 |  |
+| [0x2022A0](../../../src/game/gameplay/player/tu_201D78.cpp) | `ClearReconTargetMarks` | target +0x108 = 0 | 0.35 | T2 |  |
+| [0x2022D8](../../../src/game/gameplay/player/tu_201D78.cpp) | `FReconSelAvailable` | in-volume flag or any visible target | 0.40 | T2 |  |
+| [0x202350](../../../src/game/gameplay/player/tu_201D78.cpp) | `FFilterReconOccluder` | filter callback for IntersectSwBoundingBox | 0.35 | T2 |  |
+| [0x202378](../../../src/game/gameplay/player/tu_201D78.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
+| [0x202540](../../../src/game/gameplay/player/tu_201D78.cpp) | `SelectReconTarget` | choose closest unblocked target in frustum; on change SetReconSelState(2) | 0.55 | T1 |  |
+| [0x2026F8](../../../src/game/gameplay/player/tu_201D78.cpp) | `PchzReconPending` | langstr of P+0xC0 | 0.50 | T1 |  |
+| [0x202730](../../../src/game/gameplay/player/tu_201D78.cpp) | `PchzReconSelected` | langstr of P+0xBC | 0.50 | T1 |  |
+| [0x202768](../../../src/game/gameplay/player/tu_201D78.cpp) | `SetReconSelState` | state machine -1..10; 8 = snapshot (clock & sound paused, player flags 0x102), 9 = photo taken (StartDialog, BroadcastGameEvent 10, mark target done) | 0.60 | T1 |  |
+| [0x202D38](../../../src/game/gameplay/player/tu_201D78.cpp) | `UpdateReconSel` | per frame: project target head to screen, proximity to centre / size gain, drive states, shutter on button 10 (250 when locked) | 0.60 | T1 |  |
+| [0x203568](../../../src/game/gameplay/player/tu_201D78.cpp) | `InitReconTarget` | CID 0x2E Init: InitXfm, ids -1/-2 | 0.65 | T1 |  |
+| [0x2035A8](../../../src/game/gameplay/player/tu_201D78.cpp) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
+| [0x203638](../../../src/game/gameplay/player/tu_201D78.cpp) | `PostReconTargetLoad` | CID 0x2E PostLoad: PostLoLoad + register with task +0xEC | 0.65 | T1 |  |
+| [0x203670](../../../src/game/gameplay/player/tu_201D78.cpp) | `HandleReconTargetMessage` | CID 0x2E HandleMessage: on msg 0x11 refresh player recon list and checklist | 0.60 | T1 |  |
+| [0x2036E8](../../../src/game/gameplay/player/tu_201D78.cpp) | `SetReconTargetDone` | mark target photographed (task +0xEC or local flag) | 0.45 | T2 |  |
+| [0x203758](../../../src/game/gameplay/player/tu_201D78.cpp) | `FReconTargetDone` | task done ? or local flag | 0.50 | T1 |  |
+| [0x203790](../../../src/game/gameplay/player/tu_201D78.cpp) | `FReconTargetSelectable` | visible and task state 1 | 0.50 | T1 |  |
 
 ## throw (0x21F2E0-0x220D40)
 

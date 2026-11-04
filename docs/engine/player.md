@@ -393,8 +393,8 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x1CB9B0](../../src/game/gameplay/player/rail.cpp) | `OnRailAdd` | RAIL vt23: LO base (0x1A6178) then append to global rail list D_003E13CC | 0.85 | T1 | arbitration |
 | [0x1CB9E8](../../src/game/gameplay/player/rail.cpp) | `OnRailRemove` | RAIL vt22: LO base (0x1A6150) then remove from D_003E13CC | 0.85 | T1 | verified, arbitration |
 | [0x1CBA20](../../src/game/gameplay/player/rail.cpp) | `CloneRail` | RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link | 0.85 | T1 | verified |
-| [0x202378](../../src/game/gameplay/player/tu_201D78/UpdateReconTargetVisibility.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
-| [0x2035A8](../../src/game/gameplay/player/tu_201D78/LoadReconTargetFromBrx.c) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
+| [0x202378](../../src/game/gameplay/player/tu_201D78.cpp) | `UpdateReconTargetVisibility` | 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial | 0.85 | T1 | verified |
+| [0x2035A8](../../src/game/gameplay/player/tu_201D78.cpp) | `LoadReconTargetFromBrx` | CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults | 0.75 | T1 | parse |
 
 Selected 80 of 641 named functions (T1 with confidence >= 0.8, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/player.md](../reference/functions/player.md).
 

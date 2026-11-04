@@ -27,17 +27,17 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleReconTargetMessage`](../../../src/game/gameplay/player/tu_201D78/HandleReconTargetMessage.c) | `0x203670` |
+| 5 | HandleMessage | **override** | [`HandleReconTargetMessage`](../../../src/game/gameplay/player/tu_201D78.cpp) | `0x203670` |
 | 6 | Pclassinfo | **override** | [`GetCid46ClassDesc`](../../../src/game/app/class_registry/GetCid46ClassDesc.c) | `0x113CF0` |
-| 7 | Init | **override** | [`InitReconTarget`](../../../src/game/gameplay/player/tu_201D78/InitReconTarget.c) | `0x203568` |
+| 7 | Init | **override** | [`InitReconTarget`](../../../src/game/gameplay/player/tu_201D78.cpp) | `0x203568` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadReconTargetFromBrx`](../../../src/game/gameplay/player/tu_201D78/LoadReconTargetFromBrx.c) | `0x2035A8` |
-| 15 | PostLoad | **override** | [`PostReconTargetLoad`](../../../src/game/gameplay/player/tu_201D78/PostReconTargetLoad.c) | `0x203638` |
+| 14 | LoadFromBrx | **override** | [`LoadReconTargetFromBrx`](../../../src/game/gameplay/player/tu_201D78.cpp) | `0x2035A8` |
+| 15 | PostLoad | **override** | [`PostReconTargetLoad`](../../../src/game/gameplay/player/tu_201D78.cpp) | `0x203638` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
