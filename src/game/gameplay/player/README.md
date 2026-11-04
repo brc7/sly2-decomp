@@ -17,7 +17,7 @@
 | [`hurt/`](hurt/) | 28 |
 | [`jt/`](jt/) | 51 |
 | [`jtgoal.cpp`](jtgoal.cpp) | 1 |
-| [`jthands/`](jthands/) | 17 |
+| [`jthands.cpp`](jthands.cpp) | 1 |
 | [`mode.cpp`](mode.cpp) | 1 |
 | [`murray/`](murray/) | 66 |
 | [`pipe.cpp`](pipe.cpp) | 1 |

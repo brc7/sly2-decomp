@@ -708,21 +708,21 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1CC158](../../../src/game/gameplay/player/jthands/func_001CC158.c) | `ResetJtHands` | JTHANDS: target ids (+0x90, +0xA4) = -1 | 0.45 | T2 |  |
-| [0x1CC168](../../../src/game/gameplay/player/jthands/func_001CC168.c) | `ClosestPointOnJtHandsCurveA` | Closest point of q on segment between the two A curves (hand XF path) evaluated at t | 0.40 | T2 |  |
-| [0x1CC1F8](../../../src/game/gameplay/player/jthands/func_001CC1F8.c) | `ClosestPointOnJtHandsCurveB` | Same for the B curves (chain top XF) | 0.40 | T2 | verified |
-| [0x1CC288](../../../src/game/gameplay/player/jthands/func_001CC288.c) | `GJtHandsCurveA` | Parameter callback for curve A (used by FindShapeClosestPointFromS) | 0.30 | T2 |  |
-| [0x1CC2B8](../../../src/game/gameplay/player/jthands/func_001CC2B8.c) | `GJtHandsCurveB` | Parameter callback for curve B | 0.30 | T2 |  |
-| [0x1CC2E8](../../../src/game/gameplay/player/jthands/UpdateJtHands.cpp) | `UpdateJtHands` | Fit the hand curves to the grab target: find best clip parameter, seek/reblend the hold clips, set actor position goal and step turn target | 0.50 | T1 |  |
-| [0x1CC5E8](../../../src/game/gameplay/player/jthands/InitJtHands__FP7JTHANDSP2SOPP5ASEGA.cpp) | `InitJtHands` | Build hands record: hand-frame matrix, sampled A/B curves per hold clip (PredictAsegEffect), blend | 0.85 | T1 |  |
-| [0x1CC9A8](../../../src/game/gameplay/player/jthands/func_001CC9A8.c) | `GrfJtHandsIgnoreIntersection` | If hands hold an object (state 1) add ignore bits for its tree | 0.35 | T2 |  |
-| [0x1CCA20](../../../src/game/gameplay/player/jthands/func_001CCA20.c) | `UpdateJtHandsCallback` | SW callback wrapper calling UpdateJtHands | 0.35 | T2 |  |
-| [0x1CCA40](../../../src/game/gameplay/player/jthands/func_001CCA40.c) | `PloFindJtHandsTarget` | First nearby object of class 0x14 whose flags match the hands' grf | 0.40 | T2 |  |
-| [0x1CCAC0](../../../src/game/gameplay/player/jthands/func_001CCAC0.c) | `SetJtHandsTarget` | Choose grab target (shape closest point or class-0x14 object), new position act, reblend, schedule UpdateJtHandsCallback | 0.40 | T2 |  |
-| [0x1CCC88](../../../src/game/gameplay/player/jthands/func_001CCC88.cpp) | `StartJtHandsCarry` | Create position and orientation jobs that carry the selected animated object along the predicted clip path to the hand (ballistic time, SetLoParent) | 0.40 | T2 |  |
-| [0x1CD098](../../../src/game/gameplay/player/jthands/func_001CD098.cpp) | `AttachJtHandsObject` | Attach held object to the hand: constraints (SetSoCnstrForce/Torque), XF from matrix, acts, FadeSoIn | 0.40 | T2 |  |
-| [0x1CD2C0](../../../src/game/gameplay/player/jthands/func_001CD2C0.c) | `ReleaseJtHandsActs` | Free the three hand acts if active | 0.45 | T2 |  |
-| [0x1CD308](../../../src/game/gameplay/player/jthands/func_001CD308.cpp) | `SetJtHandsTargetAttached` | SetJtHandsTarget variant that parents the object and builds pos/rot acts | 0.30 | T2 |  |
+| [0x1CC158](../../../src/game/gameplay/player/jthands.cpp) | `ResetJtHands` | JTHANDS: target ids (+0x90, +0xA4) = -1 | 0.45 | T2 |  |
+| [0x1CC168](../../../src/game/gameplay/player/jthands.cpp) | `ClosestPointOnJtHandsCurveA` | Closest point of q on segment between the two A curves (hand XF path) evaluated at t | 0.40 | T2 |  |
+| [0x1CC1F8](../../../src/game/gameplay/player/jthands.cpp) | `ClosestPointOnJtHandsCurveB` | Same for the B curves (chain top XF) | 0.40 | T2 | verified |
+| [0x1CC288](../../../src/game/gameplay/player/jthands.cpp) | `GJtHandsCurveA` | Parameter callback for curve A (used by FindShapeClosestPointFromS) | 0.30 | T2 |  |
+| [0x1CC2B8](../../../src/game/gameplay/player/jthands.cpp) | `GJtHandsCurveB` | Parameter callback for curve B | 0.30 | T2 |  |
+| [0x1CC2E8](../../../src/game/gameplay/player/jthands.cpp) | `UpdateJtHands` | Fit the hand curves to the grab target: find best clip parameter, seek/reblend the hold clips, set actor position goal and step turn target | 0.50 | T1 |  |
+| [0x1CC5E8](../../../src/game/gameplay/player/jthands.cpp) | `InitJtHands` | Build hands record: hand-frame matrix, sampled A/B curves per hold clip (PredictAsegEffect), blend | 0.85 | T1 |  |
+| [0x1CC9A8](../../../src/game/gameplay/player/jthands.cpp) | `GrfJtHandsIgnoreIntersection` | If hands hold an object (state 1) add ignore bits for its tree | 0.35 | T2 |  |
+| [0x1CCA20](../../../src/game/gameplay/player/jthands.cpp) | `UpdateJtHandsCallback` | SW callback wrapper calling UpdateJtHands | 0.35 | T2 |  |
+| [0x1CCA40](../../../src/game/gameplay/player/jthands.cpp) | `PloFindJtHandsTarget` | First nearby object of class 0x14 whose flags match the hands' grf | 0.40 | T2 |  |
+| [0x1CCAC0](../../../src/game/gameplay/player/jthands.cpp) | `SetJtHandsTarget` | Choose grab target (shape closest point or class-0x14 object), new position act, reblend, schedule UpdateJtHandsCallback | 0.40 | T2 |  |
+| [0x1CCC88](../../../src/game/gameplay/player/jthands.cpp) | `StartJtHandsCarry` | Create position and orientation jobs that carry the selected animated object along the predicted clip path to the hand (ballistic time, SetLoParent) | 0.40 | T2 |  |
+| [0x1CD098](../../../src/game/gameplay/player/jthands.cpp) | `AttachJtHandsObject` | Attach held object to the hand: constraints (SetSoCnstrForce/Torque), XF from matrix, acts, FadeSoIn | 0.40 | T2 |  |
+| [0x1CD2C0](../../../src/game/gameplay/player/jthands.cpp) | `ReleaseJtHandsActs` | Free the three hand acts if active | 0.45 | T2 |  |
+| [0x1CD308](../../../src/game/gameplay/player/jthands.cpp) | `SetJtHandsTargetAttached` | SetJtHandsTarget variant that parents the object and builds pos/rot acts | 0.30 | T2 |  |
 
 ## tu_1D7238 (0x1D7238-0x1D7A30)
 
