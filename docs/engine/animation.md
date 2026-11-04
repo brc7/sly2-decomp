@@ -114,12 +114,12 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x12EC50](../../src/game/engine/sound/amb.cpp) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
 | [0x12ED20](../../src/game/engine/sound/amb.cpp) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |
 | [0x12EDE8](../../src/game/engine/sound/amb.cpp) | `OnCid43Remove` | slot 22: LO::Freeze then StopSnd | 0.85 | T2 | arbitration |
-| [0x12F248](../../src/game/engine/anim/aseg/InitAseg.c) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
-| [0x12F2A8](../../src/game/engine/anim/aseg/LoadAsegFromBrx.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
-| [0x12F590](../../src/game/engine/anim/aseg/LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |
-| [0x130010](../../src/game/engine/anim/aseg/func_00130010.c) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
-| [0x130488](../../src/game/engine/anim/aseg/func_00130488.c) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
-| [0x1305B8](../../src/game/engine/anim/aseg/ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
+| [0x12F248](../../src/game/engine/anim/aseg.cpp) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
+| [0x12F2A8](../../src/game/engine/anim/aseg.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
+| [0x12F590](../../src/game/engine/anim/aseg.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |
+| [0x130010](../../src/game/engine/anim/aseg.cpp) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
+| [0x130488](../../src/game/engine/anim/aseg.cpp) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
+| [0x1305B8](../../src/game/engine/anim/aseg.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
 | [0x130B18](../../src/game/engine/anim/asega/func_00130B18.c) | `RetractAsega` | Stops an application: unlink, hands-off release, notify, Decref | 0.85 | T1 | verified |
 | [0x130D30](../../src/game/engine/anim/asega/func_00130D30.c) | `SeekAsega` | Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur | 0.90 | T1 |  |
 | [0x131290](../../src/game/engine/anim/asega/HandleAsegaEvent.cpp) | `HandleAsegaEvent` | Executes one ASEG event (sound, rumble 0x187E28, hands-off, apply/seek/retract other asegs, Splice, emitters...) | 0.80 | T1 |  |

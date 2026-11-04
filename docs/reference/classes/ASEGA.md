@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | (none: not created by PloNew) |
 | Descriptor getter (slot 6) | `GetAsegaClassDesc` `0x114270` |
 | vtable | `D_002CAF48`, 7 entries (slots 0..6; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`ApplyAseg?`](../../../src/game/engine/anim/aseg/func_0012F9B8.cpp) (vptr +0xC) |
+| vtable stored by | [`ApplyAseg?`](../../../src/game/engine/anim/aseg.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`act/`](act/) | 72 |
-| [`aseg/`](aseg/) | 23 |
+| [`aseg.cpp`](aseg.cpp) | 1 |
 | [`asega/`](asega/) | 27 |
 | [`blend.cpp`](blend.cpp) | 1 |
 | [`empty_12F0F0.cpp`](empty_12F0F0.cpp) | 1 |

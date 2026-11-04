@@ -107,27 +107,27 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12F248](../../../src/game/engine/anim/aseg/InitAseg.c) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
-| [0x12F2A8](../../../src/game/engine/anim/aseg/LoadAsegFromBrx.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
-| [0x12F590](../../../src/game/engine/anim/aseg/LoadAsegEventsFromBrx__FP4ASEGP18CBinaryInputStreamiPiPP2EA.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |
-| [0x12F8C0](../../../src/game/engine/anim/aseg/PostAsegLoadCallback.c) | `PostAsegLoadCallback` | Message callback: applies the ASEG (ApplyAsegOvr 0x12F9B8) to the object recorded at load | 0.50 | T1 |  |
-| [0x12F8F0](../../../src/game/engine/anim/aseg/PostAsegLoad.c) | `PostAsegLoad` | PostLoLoad (0x1A5C48) and, if flagged, registers the load callback (0x149A50) | 0.65 | T1 |  |
-| [0x12F938](../../../src/game/engine/anim/aseg/func_0012F938.c) | `PeaFindAsegLabel` | Finds the label/event entry with a given id in the ASEG table | 0.65 | T1 |  |
-| [0x12F990](../../../src/game/engine/anim/aseg/func_0012F990.c) | `TFindAsegLabel` | Time of a label: PeaFindAsegLabel(...)->t | 0.70 | T1 |  |
-| [0x12F9B8](../../../src/game/engine/anim/aseg/func_0012F9B8.cpp) | `ApplyAseg` | Core of applying an animation segment to an ALO hierarchy: allocates an ASEGA from the pool, links it, binds channels, sets speed, fast-forwards events, UpdateAsegaIeaCur | 0.80 | T1 |  |
-| [0x12FDE8](../../../src/game/engine/anim/aseg/func_0012FDE8.c) | `SetAsegPendingApply` | Allocates a 12-byte {x, y, n} record on the ASEG (consumed later) | 0.30 | T2 |  |
-| [0x12FE58](../../../src/game/engine/anim/aseg/func_0012FE58.cpp) | `ResolveAsegKeyObject` | Resolves a channel key: PloFindSwObject(oid) under the root (or world), then the object's sub-target via its virtual Get | 0.35 | T2 |  |
-| [0x12FF10](../../../src/game/engine/anim/aseg/func_0012FF10.cpp) | `PchnFindAseg` | Find the ASEG channel entry (+0x60[], count +0x5C, 8 B each) that animates this object (oid +0x18) and XF component kind; optional check of the entry flag bit30; skips bit31 entries | 0.60 | T1 | top50; top50 round; v2 name PeFindAsegKeyForObject |
-| [0x130010](../../../src/game/engine/anim/aseg/func_00130010.c) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
-| [0x1300B8](../../../src/game/engine/anim/aseg/func_001300B8.cpp) | `PredictAsegEffect` | Predicts the transform an ASEG applies to an ALO at time t (matrix math on channels) | 0.60 | T1 |  |
-| [0x130488](../../../src/game/engine/anim/aseg/func_00130488.c) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
-| [0x1304A8](../../../src/game/engine/anim/aseg/PasegaFindAseg__FP4ASEGP3ALO.cpp) | `PasegaFindAseg__FP4ASEGP3ALO` |  |  | existing |  |
-| [0x1304E0](../../../src/game/engine/anim/aseg/EnsureAseg__FP4ASEGP3ALO4SEEKffiPP5ASEGA.cpp) | `EnsureAseg__FP4ASEGP3ALO4SEEKffiPP5ASEGA` |  |  | existing |  |
-| [0x130598](../../../src/game/engine/anim/aseg/PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi.cpp) | `PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi` |  |  | existing |  |
-| [0x1305B8](../../../src/game/engine/anim/aseg/ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
-| [0x130658](../../../src/game/engine/anim/aseg/ReleaseAsega.c) | `ReleaseAsega` | If *ppasega: RetractAsega(*ppasega), drop the reference (vt slot2 Decref), *ppasega=NULL | 0.60 | T1 | top50; top50 round; v2 name RetractAsegaRef |
-| [0x1306A8](../../../src/game/engine/anim/aseg/func_001306A8.c) | `ReleaseAsegaRef` | If *ppasega: vtable slot-2 Decref, *ppasega = NULL | 0.45 | T2 |  |
-| [0x1306F0](../../../src/game/engine/anim/aseg/SetAsegMasterSpeed.c) | `SetAsegMasterSpeed` | SetAsegaMasterSpeed on every application of the ASEG | 0.55 | T1 |  |
+| [0x12F248](../../../src/game/engine/anim/aseg.cpp) | `InitAseg` | InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0 | 0.85 | T1 |  |
+| [0x12F2A8](../../../src/game/engine/anim/aseg.cpp) | `LoadAsegFromBrx` | Reads ASEG: channels (0x12B3B0/0x12CB98 per channel kind), labels, events (0x12F590) | 0.90 | T1 | parse |
+| [0x12F590](../../../src/game/engine/anim/aseg.cpp) | `LoadAsegEventsFromBrx` | Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays | 0.85 | T1 | parse, verified |
+| [0x12F8C0](../../../src/game/engine/anim/aseg.cpp) | `PostAsegLoadCallback` | Message callback: applies the ASEG (ApplyAsegOvr 0x12F9B8) to the object recorded at load | 0.50 | T1 |  |
+| [0x12F8F0](../../../src/game/engine/anim/aseg.cpp) | `PostAsegLoad` | PostLoLoad (0x1A5C48) and, if flagged, registers the load callback (0x149A50) | 0.65 | T1 |  |
+| [0x12F938](../../../src/game/engine/anim/aseg.cpp) | `PeaFindAsegLabel` | Finds the label/event entry with a given id in the ASEG table | 0.65 | T1 |  |
+| [0x12F990](../../../src/game/engine/anim/aseg.cpp) | `TFindAsegLabel` | Time of a label: PeaFindAsegLabel(...)->t | 0.70 | T1 |  |
+| [0x12F9B8](../../../src/game/engine/anim/aseg.cpp) | `ApplyAseg` | Core of applying an animation segment to an ALO hierarchy: allocates an ASEGA from the pool, links it, binds channels, sets speed, fast-forwards events, UpdateAsegaIeaCur | 0.80 | T1 |  |
+| [0x12FDE8](../../../src/game/engine/anim/aseg.cpp) | `SetAsegPendingApply` | Allocates a 12-byte {x, y, n} record on the ASEG (consumed later) | 0.30 | T2 |  |
+| [0x12FE58](../../../src/game/engine/anim/aseg.cpp) | `ResolveAsegKeyObject` | Resolves a channel key: PloFindSwObject(oid) under the root (or world), then the object's sub-target via its virtual Get | 0.35 | T2 |  |
+| [0x12FF10](../../../src/game/engine/anim/aseg.cpp) | `PchnFindAseg` | Find the ASEG channel entry (+0x60[], count +0x5C, 8 B each) that animates this object (oid +0x18) and XF component kind; optional check of the entry flag bit30; skips bit31 entries | 0.60 | T1 | top50; top50 round; v2 name PeFindAsegKeyForObject |
+| [0x130010](../../../src/game/engine/anim/aseg.cpp) | `ResolveAsegEventObject` | Event target resolution via PloFindSwObject (root-relative or world) | 0.30 | T2 | verified |
+| [0x1300B8](../../../src/game/engine/anim/aseg.cpp) | `PredictAsegEffect` | Predicts the transform an ASEG applies to an ALO at time t (matrix math on channels) | 0.60 | T1 |  |
+| [0x130488](../../../src/game/engine/anim/aseg.cpp) | `PasegaApplyAseg` | ApplyAsegOvr without override | 0.80 | T1 | verified |
+| [0x1304A8](../../../src/game/engine/anim/aseg.cpp) | `PasegaFindAseg__FP4ASEGP3ALO` |  |  | existing |  |
+| [0x1304E0](../../../src/game/engine/anim/aseg.cpp) | `EnsureAseg__FP4ASEGP3ALO4SEEKffiPP5ASEGA` |  |  | existing |  |
+| [0x130598](../../../src/game/engine/anim/aseg.cpp) | `PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi` |  |  | existing |  |
+| [0x1305B8](../../../src/game/engine/anim/aseg.cpp) | `ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA` |  |  | existing |  |
+| [0x130658](../../../src/game/engine/anim/aseg.cpp) | `ReleaseAsega` | If *ppasega: RetractAsega(*ppasega), drop the reference (vt slot2 Decref), *ppasega=NULL | 0.60 | T1 | top50; top50 round; v2 name RetractAsegaRef |
+| [0x1306A8](../../../src/game/engine/anim/aseg.cpp) | `ReleaseAsegaRef` | If *ppasega: vtable slot-2 Decref, *ppasega = NULL | 0.45 | T2 |  |
+| [0x1306F0](../../../src/game/engine/anim/aseg.cpp) | `SetAsegMasterSpeed` | SetAsegaMasterSpeed on every application of the ASEG | 0.55 | T1 |  |
 
 ## asega (0x1308A8-0x131F70)
 
