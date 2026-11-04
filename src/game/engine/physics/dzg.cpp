@@ -17,9 +17,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    velocity. */
 struct XPS
 {
-    int x0, x4;
+    void *pv0;              /* +0x00 */
+    void *pv4;              /* +0x04 */
     SO *pso;                /* +0x08 */
-    int xC;
+    void *pvC;              /* +0x0C */
     qword qwPos;            /* +0x10 */
     char pad20[0x20];
 };

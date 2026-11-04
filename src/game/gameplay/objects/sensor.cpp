@@ -194,20 +194,21 @@ struct LASEN : SENSOR
 typedef char assert_LASEN_cbeam[(int)(char *)&(((LASEN *)0)->cbeam) == 0x198 ? 1 : -1];
 typedef char assert_LASEN_svt[(int)(char *)&(((LASEN *)0)->svt) == 0x1C0 ? 1 : -1];
 
-/* A contact (XP) between a beam and an object, as far as this TU reads it. The two sides' objects are 0x40 apart
-   (+0x08, +0x48) and overlap the 16-byte-aligned contact position at +0x10, so they are not an array of side records
-   here. */
+/* A contact (XP) between a beam and an object, as far as this TU reads it (the same shape as dzg.cpp's view): two
+   0x40-byte sides, each with its object at +0x08 and its contact position at +0x10. */
+struct XPS
+{
+    void *pv0;              /* +0x00 */
+    void *pv4;              /* +0x04 */
+    SO *pso;                /* +0x08 */
+    void *pvC;              /* +0x0C */
+    qword qwPos;            /* +0x10 */
+    char pad20[0x20];
+};
 struct XP
 {
-    void *pv0;              /* 0x00 */
-    int x4;
-    SO *pso0;               /* 0x08 side 0 */
-    void *pv0C;
-    qword pos;              /* 0x10 */
-    char pad20[0x48 - 0x20];
-    SO *pso1;               /* 0x48 side 1 */
-    void *pv4C;             /* 0x4C */
-    char pad50[0xA0 - 0x50];
+    XPS axps[2];
+    char pad80[0xA0 - 0x80];
     float s;                /* 0xA0 distance from the beam's first endpoint */
     char padA4[0xAC - 0xA4];
     XP *pxpNext;            /* 0xAC */
@@ -719,10 +720,8 @@ extern "C" void func_001DEEA8(LASEN *plasen, SO *pso)
         XP **ppxp = &plasen->abeam[i].pxpFirst;
         XP *pxp;
         while ((pxp = *ppxp) != 0) {
-            int side = pxp->pso0 == plasen;
-            /* the other side's object (pso0 or pso1, 0x40 apart). This form exists to reproduce the original
-               codegen: `pxp + (side << 6) + 8` (indexing from &pxp->pso0 adds the operands the other way, 1 off). */
-            if (pso == *(SO **)((char *)pxp + ((uint)side << 6) + 8)) {
+            int side = pxp->axps[0].pso == plasen;
+            if (pso == pxp->axps[side].pso) {   /* the other side's object */
                 *ppxp = pxp->pxpNext;
                 pxp->pxpNext = list;
                 list = pxp;
@@ -872,11 +871,11 @@ void LASEN::ZapBeams(int)
             }
             func_002333B4(&zap, 0, sizeof(zap));
             zap.plasen = p;
-            zap.pv4 = pxpMin->pv0;
-            zap.pv8 = pxpMin->pv4C;
+            zap.pv4 = pxpMin->axps[0].pv0;
+            zap.pv8 = pxpMin->axps[1].pvC;
             zap.grf = 0x1000;
             zap.dhp = -10;
-            zap.pos = pxpMin->pos;
+            zap.pos = pxpMin->axps[0].qwPos;
             func_001F7598(&zap);
             beam->sVisible = sMin;
         }
