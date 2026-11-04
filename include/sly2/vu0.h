@@ -78,4 +78,23 @@ template <class QW> inline float VuToFloat(QW v)
     return g;
 }
 
+/* matrix times vector, the matrix given as its rows (each a VF register): xyz = r0 * v.x + r1 * v.y + r2 * v.z
+ * (w of the result is scratch). VuMulMatrix4 adds r3 (the translation row of an affine 4x4: v.w taken as 1).
+ * Placeholder names (HYPOTHESIS: operator*(MATRIX3/MATRIX4, VU_VECTOR) in the original). */
+template <class QW> inline QW VuMulMatrix3(QW r0, QW r1, QW r2, QW v)
+{
+    QW r;
+    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
+            : "=j"(r) : "j"(r0), "j"(r1), "j"(r2), "j"(v));
+    return r;
+}
+
+template <class QW> inline QW VuMulMatrix4(QW r0, QW r1, QW r2, QW r3, QW v)
+{
+    QW r;
+    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
+            : "=j"(r) : "j"(r0), "j"(r1), "j"(r2), "j"(r3), "j"(v));
+    return r;
+}
+
 #endif /* SLY2_VU0_H */
