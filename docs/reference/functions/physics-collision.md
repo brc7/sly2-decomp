@@ -55,25 +55,25 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A7C18](../../../src/game/engine/physics/mark/PxpAdd.c) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *ppxpFirst | 0.75 | T1 | verified |
-| [0x1A7E10](../../../src/game/engine/physics/mark/FreeSwXpList__FP2SWP2XP.cpp) | `FreeSwXpList__FP2SWP2XP` |  |  | existing |  |
-| [0x1A7E60](../../../src/game/engine/physics/mark/RecalcSwXpPos.c) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
-| [0x1A7FC0](../../../src/game/engine/physics/mark/RecalcSwXpMovement.c) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
-| [0x1A80D8](../../../src/game/engine/physics/mark/ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG.c) | `ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG` |  |  | existing |  |
-| [0x1A81F8](../../../src/game/engine/physics/mark/ClsgClipSoBspEdges.c) | `ClsgClipSoBspEdges` | Clip the edges of selected (pruned) surfaces of one shape against the other's BSP into LSGs, attaching the source edge | 0.60 | T1 |  |
-| [0x1A8410](../../../src/game/engine/physics/mark/CategorizeAlsg__FiP3LSGPiT2PP3LSGT4.cpp) | `CategorizeAlsg__FiP3LSGPiT2PP3LSGT4` |  |  | existing |  |
-| [0x1A86B8](../../../src/game/engine/physics/mark/CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG.c) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
-| [0x1A87F0](../../../src/game/engine/physics/mark/func_001A87F0.cpp) | `AddSoEmbedXps` | Rank embedded vertex surfaces (largest min distance above D_002A6AD0) and emit vertex contacts through PxpAdd | 0.35 | T2 |  |
-| [0x1A8B50](../../../src/game/engine/physics/mark/MarkSoContactsBspBsp.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (kind 3) | 0.85 | T1 | verified |
-| [0x1A9108](../../../src/game/engine/physics/mark/func_001A9108.cpp) | `PruneSphereBsp` | Prune a BSP to a sphere (radius >= 100) and clip its edges (PruneBsp, ClsgClipEdgeToBsp, InitPlaneFromNormalPos) | 0.35 | T2 |  |
-| [0x1A93C8](../../../src/game/engine/physics/mark/CsbiIntersectSphereBsp.cpp) | `CsbiIntersectSphereBsp` | Contacts of a sphere with the BSP hull of a collision part (up to ccontactMax) | 0.70 | T1 |  |
-| [0x1A9B28](../../../src/game/engine/physics/mark/MarkSoContactsSphereBsp.cpp) | `MarkSoContactsSphereBsp` | Sphere vs BSP shape: CsbiIntersectSphereBsp then PxpAdd for each hit | 0.65 | T1 |  |
-| [0x1A9C40](../../../src/game/engine/physics/mark/MarkSoContactsSphereSphere.c) | `MarkSoContactsSphereSphere` | Sphere vs sphere: if overlapping add one XP along the centre line | 0.65 | T1 |  |
-| [0x1A9D38](../../../src/game/engine/physics/mark/func_001A9D38.cpp) | `MarkSoContactsSweepVertices` | Sweep moving vertices of one shape (old->new frame) with line tests against the other and add contacts at first hit | 0.35 | T2 |  |
-| [0x1A9FE0](../../../src/game/engine/physics/mark/func_001A9FE0.c) | `AppendXpList` | Splice list b in front of *pp (walk to tail, link) | 0.40 | T2 |  |
-| [0x1AA020](../../../src/game/engine/physics/mark/func_001AA020.c) | `PxpCloneList` | Duplicate an XP list into new slotheap nodes | 0.35 | T2 |  |
-| [0x1AA0B0](../../../src/game/engine/physics/mark/func_001AA0B0.c) | `AddSoZapXps` | Query the zap responder (PloFindZapResponder, vt slot 0x3C) and append its contacts | 0.30 | T2 |  |
-| [0x1AA1D8](../../../src/game/engine/physics/mark/AddSoXps.cpp) | `AddSoXps` | Build all contacts between two SOs: order by radius, per shape pair dispatch sphere/sphere, sphere/BSP, BSP/BSP, sweep, zap responders | 0.55 | T1 |  |
+| [0x1A7C18](../../../src/game/engine/physics/mark.cpp) | `PxpAdd` | Allocate an XP contact (slotheap) between two objects at pos/normal with distance g and kind, convert to local frames, compute movement, link into *ppxpFirst | 0.75 | T1 | verified |
+| [0x1A7E10](../../../src/game/engine/physics/mark.cpp) | `FreeSwXpList__FP2SWP2XP` |  |  | existing |  |
+| [0x1A7E60](../../../src/game/engine/physics/mark.cpp) | `RecalcSwXpPos` | For each XP in the array recompute world positions of its two sides (ConvertXfPos) | 0.85 | T1 | verified |
+| [0x1A7FC0](../../../src/game/engine/physics/mark.cpp) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
+| [0x1A80D8](../../../src/game/engine/physics/mark.cpp) | `ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG` |  |  | existing |  |
+| [0x1A81F8](../../../src/game/engine/physics/mark.cpp) | `ClsgClipSoBspEdges` | Clip the edges of selected (pruned) surfaces of one shape against the other's BSP into LSGs, attaching the source edge | 0.60 | T1 |  |
+| [0x1A8410](../../../src/game/engine/physics/mark.cpp) | `CategorizeAlsg__FiP3LSGPiT2PP3LSGT4` |  |  | existing |  |
+| [0x1A86B8](../../../src/game/engine/physics/mark.cpp) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
+| [0x1A87F0](../../../src/game/engine/physics/mark.cpp) | `AddSoEmbedXps` | Rank embedded vertex surfaces (largest min distance above D_002A6AD0) and emit vertex contacts through PxpAdd | 0.35 | T2 |  |
+| [0x1A8B50](../../../src/game/engine/physics/mark.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (kind 3) | 0.85 | T1 | verified |
+| [0x1A9108](../../../src/game/engine/physics/mark.cpp) | `PruneSphereBsp` | Prune a BSP to a sphere (radius >= 100) and clip its edges (PruneBsp, ClsgClipEdgeToBsp, InitPlaneFromNormalPos) | 0.35 | T2 |  |
+| [0x1A93C8](../../../src/game/engine/physics/mark.cpp) | `CsbiIntersectSphereBsp` | Contacts of a sphere with the BSP hull of a collision part (up to ccontactMax) | 0.70 | T1 |  |
+| [0x1A9B28](../../../src/game/engine/physics/mark.cpp) | `MarkSoContactsSphereBsp` | Sphere vs BSP shape: CsbiIntersectSphereBsp then PxpAdd for each hit | 0.65 | T1 |  |
+| [0x1A9C40](../../../src/game/engine/physics/mark.cpp) | `MarkSoContactsSphereSphere` | Sphere vs sphere: if overlapping add one XP along the centre line | 0.65 | T1 |  |
+| [0x1A9D38](../../../src/game/engine/physics/mark.cpp) | `MarkSoContactsSweepVertices` | Sweep moving vertices of one shape (old->new frame) with line tests against the other and add contacts at first hit | 0.35 | T2 |  |
+| [0x1A9FE0](../../../src/game/engine/physics/mark.cpp) | `AppendXpList` | Splice list b in front of *pp (walk to tail, link) | 0.40 | T2 |  |
+| [0x1AA020](../../../src/game/engine/physics/mark.cpp) | `PxpCloneList` | Duplicate an XP list into new slotheap nodes | 0.35 | T2 |  |
+| [0x1AA0B0](../../../src/game/engine/physics/mark.cpp) | `AddSoZapXps` | Query the zap responder (PloFindZapResponder, vt slot 0x3C) and append its contacts | 0.30 | T2 |  |
+| [0x1AA1D8](../../../src/game/engine/physics/mark.cpp) | `AddSoXps` | Build all contacts between two SOs: order by radius, per shape pair dispatch sphere/sphere, sphere/BSP, BSP/BSP, sweep, zap responders | 0.55 | T1 |  |
 
 ## tu_1BC050 (0x1BC050-0x1BE398)
 
