@@ -153,11 +153,11 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | [0x1F8470](../../src/game/engine/physics/so/func_001F8470.c) | `SetSoPhysParam4` | record.g4 = f | 0.25 | T2 | verified |
 | [0x1F8740](../../src/game/engine/physics/so/DecrefXfh.c) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
 | [0x1F8870](../../src/game/engine/physics/so/func_001F8870.c) | `GetXfhParamAC2` | duplicate of 0x1F87A0 (different vtable) | 0.15 | T2 | verified |
-| [0x1F8DD8](../../src/game/engine/physics/solve/SolveSw.c) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
-| [0x1F9410](../../src/game/engine/physics/solve/SolveSwGroup.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
-| [0x1F9C48](../../src/game/engine/physics/solve/func_001F9C48.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
-| [0x1FA810](../../src/game/engine/physics/solve/ApplyConstr.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
-| [0x1FAC30](../../src/game/engine/physics/solve/AddSoAcceleration.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
+| [0x1F8DD8](../../src/game/engine/physics/solve.cpp) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
+| [0x1F9410](../../src/game/engine/physics/solve.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
+| [0x1F9C48](../../src/game/engine/physics/solve.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
+| [0x1FA810](../../src/game/engine/physics/solve.cpp) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
+| [0x1FAC30](../../src/game/engine/physics/solve.cpp) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
 | [0x227BB8](../../src/game/engine/physics/vol.cpp) | `LoadVolFromBrx` | LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points | 0.90 | T1 | parse, verified |
 | [0x227E20](../../src/game/engine/physics/vol.cpp) | `OnCid23Add` | OnLoAdd + AppendDlEntry(&D_003E1480) | 0.85 | T2 | verified, arbitration |
 | [0x227E58](../../src/game/engine/physics/vol.cpp) | `OnCid23Remove` | OnLoRemove + RemoveDlEntry(&D_003E1480) | 0.85 | T2 | arbitration |

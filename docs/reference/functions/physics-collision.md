@@ -412,28 +412,28 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1F8DD8](../../../src/game/engine/physics/solve/SolveSw.c) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
-| [0x1F8E90](../../../src/game/engine/physics/solve/BuildContactGroup.c) | `BuildContactGroup` | Flood-fill: mark SO (fl\|=0x8000000), append to group array, recurse through touching contacts | 0.60 | T1 |  |
-| [0x1F8F80](../../../src/game/engine/physics/solve/func_001F8F80.c) | `SolveSwContactGroups` | For each dynamic root LO in the SW list: build its contact group (BuildContactGroup) and solve it (0x1F9240) | 0.40 | T2 |  |
-| [0x1F90D0](../../../src/game/engine/physics/solve/CpxpBuildXpArray.c) | `CpxpBuildXpArray` | Collect the contact points (XP) of a group of SOs into an array (max cMax), marking objects 0x10000000; returns count | 0.60 | T1 |  |
-| [0x1F9240](../../../src/game/engine/physics/solve/func_001F9240.c) | `SplitSwGroup` | Builds XP array for a group then runs SolveSwGroup in one or two passes depending on flags (1 resting, 4 position pass) | 0.35 | T2 |  |
-| [0x1F9410](../../../src/game/engine/physics/solve/SolveSwGroup.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
-| [0x1F9B20](../../../src/game/engine/physics/solve/func_001F9B20.c) | `ApplySoPendingVelocity` | If SO has nonzero pending velocity (pe+0x80) and not locked (kind!=3), constrain it (0x1FA810) and add via 0x1FAC30; then 0x229798 if +0x138 | 0.30 | T2 |  |
-| [0x1F9C48](../../../src/game/engine/physics/solve/func_001F9C48.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
-| [0x1F9E70](../../../src/game/engine/physics/solve/func_001F9E70.cpp) | `ApplySoForcesXf` | Applies two queued force/torque vectors to an SO transform (rotation build 0x11B570, normalize); no direct callers (vtable/callback) | 0.20 | T2 |  |
-| [0x1FA328](../../../src/game/engine/physics/solve/func_001FA328.c) | `ProjectSoForce` | If SO has data and nonzero force0, project/apply it through 0x230598/0x22FCC8; no direct callers | 0.20 | T2 |  |
-| [0x1FA528](../../../src/game/engine/physics/solve/func_001FA528.cpp) | `ApplySoQueuedMotion` | Apply queued translation and rotation (shift/turn) to SO then refresh changed objects | 0.30 | T2 |  |
-| [0x1FA810](../../../src/game/engine/physics/solve/ApplyConstr.c) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
-| [0x1FA970](../../../src/game/engine/physics/solve/ApplyConstr_1FA970.c) | `ApplyConstr_1FA970` | Same CT switch without the object transform | 0.50 | T1 |  |
-| [0x1FAA00](../../../src/game/engine/physics/solve/func_001FAA00.c) | `DvFromSoImpulse` | Linear velocity change = impulse / mass, constrained by force constraint | 0.35 | T2 |  |
-| [0x1FAA48](../../../src/game/engine/physics/solve/func_001FAA48.c) | `DwFromSoImpulse` | Angular velocity change: (pos - PosLoWorld) x impulse through inverse inertia (0x1FAA98) | 0.35 | T2 |  |
-| [0x1FAA98](../../../src/game/engine/physics/solve/func_001FAA98.c) | `ApplySoInverseInertia` | Transform torque into body frame, apply inertia tensor, back to world, constrain by torque constraint | 0.30 | T2 |  |
-| [0x1FAB48](../../../src/game/engine/physics/solve/func_001FAB48.c) | `VelocityAtSoPos` | v + w x (pos - center): velocity of a point of the SO | 0.40 | T2 |  |
-| [0x1FAB78](../../../src/game/engine/physics/solve/func_001FAB78.c) | `ApplySoImpulse` | Apply impulse at a point: add DvFromSoImpulse to linear and DwFromSoImpulse to angular velocity | 0.45 | T2 |  |
-| [0x1FAC30](../../../src/game/engine/physics/solve/AddSoAcceleration.c) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
-| [0x1FAC98](../../../src/game/engine/physics/solve/func_001FAC98.c) | `AddSoAngularVelocity` | Twin of 0x1FAC30 (identical shape, other field per callers) | 0.25 | T2 |  |
-| [0x1FAD00](../../../src/game/engine/physics/solve/func_001FAD00.c) | `ApplySoContactImpulse` | Applies an impulse derived from a contact record (v40) when SO has dynamics data | 0.20 | T2 |  |
-| [0x1FADD0](../../../src/game/engine/physics/solve/func_001FADD0.c) | `GetSoVelocityAtPos` | Out-param wrapper of VelocityAtSoPos; zero if SO has no dynamics block (+0xE8) | 0.40 | T2 |  |
+| [0x1F8DD8](../../../src/game/engine/physics/solve.cpp) | `SolveSw` | Per-frame physics solve over the world: pre-pass 0x134040, vt17 on entries with (grf&0x24)==4, then solve contact groups (0x1F8F80) | 0.70 | T1 |  |
+| [0x1F8E90](../../../src/game/engine/physics/solve.cpp) | `BuildContactGroup` | Flood-fill: mark SO (fl\|=0x8000000), append to group array, recurse through touching contacts | 0.60 | T1 |  |
+| [0x1F8F80](../../../src/game/engine/physics/solve.cpp) | `SolveSwContactGroups` | For each dynamic root LO in the SW list: build its contact group (BuildContactGroup) and solve it (0x1F9240) | 0.40 | T2 |  |
+| [0x1F90D0](../../../src/game/engine/physics/solve.cpp) | `CpxpBuildXpArray` | Collect the contact points (XP) of a group of SOs into an array (max cMax), marking objects 0x10000000; returns count | 0.60 | T1 |  |
+| [0x1F9240](../../../src/game/engine/physics/solve.cpp) | `SplitSwGroup` | Builds XP array for a group then runs SolveSwGroup in one or two passes depending on flags (1 resting, 4 position pass) | 0.35 | T2 |  |
+| [0x1F9410](../../../src/game/engine/physics/solve.cpp) | `SolveSwGroup` | Solve one contact group: build DZG rows from contacts, set targets, SolveDzg, apply impulses, notify objects (vt 65/66/67) | 0.75 | T1 |  |
+| [0x1F9B20](../../../src/game/engine/physics/solve.cpp) | `ApplySoPendingVelocity` | If SO has nonzero pending velocity (pe+0x80) and not locked (kind!=3), constrain it (0x1FA810) and add via 0x1FAC30; then 0x229798 if +0x138 | 0.30 | T2 |  |
+| [0x1F9C48](../../../src/game/engine/physics/solve.cpp) | `IntegrateSoGroupXf` | Integrates position/rotation of SOs in a solved group (NormalizeRotateMatrix3, UpdateSoPartGeom) stamped with SW frame counter +0x3D58 | 0.25 | T2 | runtime-corrected |
+| [0x1F9E70](../../../src/game/engine/physics/solve.cpp) | `ApplySoForcesXf` | Applies two queued force/torque vectors to an SO transform (rotation build 0x11B570, normalize); no direct callers (vtable/callback) | 0.20 | T2 |  |
+| [0x1FA328](../../../src/game/engine/physics/solve.cpp) | `ProjectSoForce` | If SO has data and nonzero force0, project/apply it through 0x230598/0x22FCC8; no direct callers | 0.20 | T2 |  |
+| [0x1FA528](../../../src/game/engine/physics/solve.cpp) | `ApplySoQueuedMotion` | Apply queued translation and rotation (shift/turn) to SO then refresh changed objects | 0.30 | T2 |  |
+| [0x1FA810](../../../src/game/engine/physics/solve.cpp) | `ApplyConstr` | Return a vector constrained by a CONSTR: kind 3 locked -> zero, 2 -> projected on (world-transformed) normal, 1 -> plane-projected | 0.85 | T1 | verified |
+| [0x1FA970](../../../src/game/engine/physics/solve.cpp) | `ApplyConstr_1FA970` | Same CT switch without the object transform | 0.50 | T1 |  |
+| [0x1FAA00](../../../src/game/engine/physics/solve.cpp) | `DvFromSoImpulse` | Linear velocity change = impulse / mass, constrained by force constraint | 0.35 | T2 |  |
+| [0x1FAA48](../../../src/game/engine/physics/solve.cpp) | `DwFromSoImpulse` | Angular velocity change: (pos - PosLoWorld) x impulse through inverse inertia (0x1FAA98) | 0.35 | T2 |  |
+| [0x1FAA98](../../../src/game/engine/physics/solve.cpp) | `ApplySoInverseInertia` | Transform torque into body frame, apply inertia tensor, back to world, constrain by torque constraint | 0.30 | T2 |  |
+| [0x1FAB48](../../../src/game/engine/physics/solve.cpp) | `VelocityAtSoPos` | v + w x (pos - center): velocity of a point of the SO | 0.40 | T2 |  |
+| [0x1FAB78](../../../src/game/engine/physics/solve.cpp) | `ApplySoImpulse` | Apply impulse at a point: add DvFromSoImpulse to linear and DwFromSoImpulse to angular velocity | 0.45 | T2 |  |
+| [0x1FAC30](../../../src/game/engine/physics/solve.cpp) | `AddSoAcceleration` | If the position XF is in a velocity role (1-3): xf->dv(+0xF0) += world vector converted into the XF parent space | 0.80 | T1 | top50; top50 round; v2 name AddSoVelocity |
+| [0x1FAC98](../../../src/game/engine/physics/solve.cpp) | `AddSoAngularVelocity` | Twin of 0x1FAC30 (identical shape, other field per callers) | 0.25 | T2 |  |
+| [0x1FAD00](../../../src/game/engine/physics/solve.cpp) | `ApplySoContactImpulse` | Applies an impulse derived from a contact record (v40) when SO has dynamics data | 0.20 | T2 |  |
+| [0x1FADD0](../../../src/game/engine/physics/solve.cpp) | `GetSoVelocityAtPos` | Out-param wrapper of VelocityAtSoPos; zero if SO has no dynamics block (+0xE8) | 0.40 | T2 |  |
 
 ## vol (0x227BB8-0x227FE8)
 

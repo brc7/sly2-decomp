@@ -13,7 +13,7 @@
 | [`path/`](path/) | 51 |
 | [`shape/`](shape/) | 56 |
 | [`so/`](so/) | 174 |
-| [`solve/`](solve/) | 24 |
+| [`solve.cpp`](solve.cpp) | 1 |
 | [`tu_185130.cpp`](tu_185130.cpp) | 1 |
 | [`tu_1BC050/`](tu_1BC050/) | 31 |
 | [`tu_1D6848.cpp`](tu_1D6848.cpp) | 1 |

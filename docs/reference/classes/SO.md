@@ -88,12 +88,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 62 | FIsSoFixed | **new** | [`FIsSoFixed?`](../../../src/game/engine/physics/so/func_001F5040.c) | `0x1F5040` | VUnk61 |
 | 63 | SO_vt63_Ret0 | **new** | [`SO_vt63_Ret0?`](../../../src/game/engine/physics/so/func_001F5998.c) | `0x1F5998` | CpartExtra |
 | 64 | ResetSoPhys | **new** | [`ResetSoPhys?`](../../../src/game/engine/physics/so/func_001F3590.c) | `0x1F3590` | InitPhys |
-| 65 | ApplySoForcesXf | **new** | [`ApplySoForcesXf?`](../../../src/game/engine/physics/solve/func_001F9E70.cpp) | `0x1F9E70` | VUnk64 |
-| 66 | ProjectSoForce | **new** | [`ProjectSoForce?`](../../../src/game/engine/physics/solve/func_001FA328.c) | `0x1FA328` | VUnk65 |
-| 67 | ApplySoQueuedMotion | **new** | [`ApplySoQueuedMotion?`](../../../src/game/engine/physics/solve/func_001FA528.cpp) | `0x1FA528` | VUnk66 |
-| 68 | ApplySoContactImpulse | **new** | [`ApplySoContactImpulse?`](../../../src/game/engine/physics/solve/func_001FAD00.c) | `0x1FAD00` | VUnk67 |
-| 69 | GetSoVelocityAtPos | **new** | [`GetSoVelocityAtPos?`](../../../src/game/engine/physics/solve/func_001FADD0.c) | `0x1FADD0` | VUnk68 |
-| 70 | ApplySoPendingVelocity | **new** | [`ApplySoPendingVelocity?`](../../../src/game/engine/physics/solve/func_001F9B20.c) | `0x1F9B20` | VUnk69 |
+| 65 | ApplySoForcesXf | **new** | [`ApplySoForcesXf?`](../../../src/game/engine/physics/solve.cpp) | `0x1F9E70` | VUnk64 |
+| 66 | ProjectSoForce | **new** | [`ProjectSoForce?`](../../../src/game/engine/physics/solve.cpp) | `0x1FA328` | VUnk65 |
+| 67 | ApplySoQueuedMotion | **new** | [`ApplySoQueuedMotion?`](../../../src/game/engine/physics/solve.cpp) | `0x1FA528` | VUnk66 |
+| 68 | ApplySoContactImpulse | **new** | [`ApplySoContactImpulse?`](../../../src/game/engine/physics/solve.cpp) | `0x1FAD00` | VUnk67 |
+| 69 | GetSoVelocityAtPos | **new** | [`GetSoVelocityAtPos?`](../../../src/game/engine/physics/solve.cpp) | `0x1FADD0` | VUnk68 |
+| 70 | ApplySoPendingVelocity | **new** | [`ApplySoPendingVelocity?`](../../../src/game/engine/physics/solve.cpp) | `0x1F9B20` | VUnk69 |
 | 71 | AddSoExternalAccelerations | **new** | [`AddSoExternalAccelerations?`](../../../src/game/engine/physics/water.cpp) | `0x2297F0` | VUnk70 |
 | 72 |  | **new** | [`func_002297F8`](../../../src/game/engine/physics/water.cpp) | `0x2297F8` | VUnk71 |
 | 73 | FPosInSo | **new** | [`FPosInSo?`](../../../src/game/engine/physics/so/func_001F72F8.c) | `0x1F72F8` | VUnk72 |
