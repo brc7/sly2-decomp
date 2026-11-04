@@ -80,20 +80,14 @@ static inline qword Combo(const VU_FLOAT &f1, const qword &v1, const VU_FLOAT &f
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1), "j"(f2.q), "j"(v2));
     return r;
 }
-static inline qword QwDot(const qword &a, const qword &b)
-{
-    qword d;
-    d = VuDot(a, b);
-    return d;
-}
 static inline qword QwSqrt(const qword &a) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(a)); return r; }
 static inline qword QwDivide(const qword &v, const qword &l) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 static inline float GXOfQw(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static inline float GXOfVf(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q), "j"(q)); return x; } /* allocation-only "j": the value stays in a VF register */
-static inline float Dot(const qword &a, const qword &b) { return GXOfVf(QwDot(a, b)); }
+static inline float Dot(const qword &a, const qword &b) { return GXOfVf(VuDot(a, b)); }
 static inline qword Normalize(const qword &v)
 {
-    qword l = QwSqrt(QwDot(v, v));
+    qword l = QwSqrt(VuDot(v, v));
     qword k = D_002A2DA0;
     qword r;
     if (GXOfQw(l) < 1e-4f)

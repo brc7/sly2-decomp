@@ -256,7 +256,6 @@ static inline qword Transform(const M4 &m, qword p)
     r = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, p);
     return r;
 }
-static inline qword Sub(const qword &a, const qword &b) { qword r; r = VuSub(a, b); return r; }
 static inline qword Cross(const qword &a, const qword &b)
 {
     qword r;
@@ -323,7 +322,7 @@ extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, S
         v[0].q = Transform(mat, mesh->vertices[t->index[0]]);
         v[1].q = Transform(mat, mesh->vertices[t->index[1]]);
         v[2].q = Transform(mat, mesh->vertices[t->index[2]]);
-        normal = Cross(Sub(v[1].q, v[0].q), Sub(v[2].q, v[0].q));
+        normal = Cross(VuSub(v[1].q, v[0].q), VuSub(v[2].q, v[0].q));
         for (edge = 0; edge < 3; edge++) {
             qword start, end, best_plane;
             float best;
@@ -336,8 +335,8 @@ extern "C" void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, S
                 qword point = points[n];
                 ClosestPoint(point, start, end, &closest.q, &dist);
                 if (dist < radius + stop) {
-                    qword unit = Normalize(Cross(normal, Sub(end, start)));
-                    Evaluate(radius, Dot(unit, Sub(point, closest.q)), step, params, &clamped);
+                    qword unit = Normalize(Cross(normal, VuSub(end, start)));
+                    Evaluate(radius, Dot(unit, VuSub(point, closest.q)), step, params, &clamped);
                     if (clamped < best) {
                         best = clamped;
                         BuildPlane(&plane.q, unit, best);
@@ -583,13 +582,11 @@ static inline VU_FLOAT VuFloatFromMemF(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,
 static inline qword QwDivideR(qword a,qword g,const qword&f){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g),"r"(f));return r;}
 static inline void LoadVuFloatFromMemWord(VU_FLOAT&v,int n){__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));}
 static inline qword QwAddP(const qword&a,const qword&b,U*s){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b),"r"(s));return r;}static inline qword QwAdd(const qword&a,const qword&b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwSub(qword a,qword b){qword r;r = VuSub(a, b);return r;}
 static inline qword QwScaleX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline VU_FLOAT VuFloatC1(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g):"vf1");return v;} // clobber of the dead vf1: allocation only
 static inline qword QwAddScaled(qword base,qword vec,VU_FLOAT k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
 static inline qword QwAddScaledJ(qword base,qword vec,VU_FLOAT k,qword f){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw),"j"(f));return r;}
 static inline qword QwAddScaledRef(qword base,const qword&vec,VU_FLOAT k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
-static inline qword QwDot(qword a,qword b){qword r;r = VuDot(a, b);return r;}
 static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(qword a,qword g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
@@ -619,16 +616,16 @@ extern "C" void func_00185E40(JT*p){
  qword position=func_001A62E8(p);
  func_00185310(p->mesh,position,&p->triangle,&p->triangle,&closest.q,&normal.q);
  M4 frame;U contacts[3];
- qword difference=QwSub(closest.q,position);
- qword len=QwSqrt(QwDot(difference,difference));
+ qword difference=VuSub(closest.q,position);
+ qword len=QwSqrt(VuDot(difference,difference));
  qword fallback=QwScaleX(normal.q,VuFloat(-1.0f));register qword direction asm("vf2"); // the one register pin: direction vf2
  if(GXOfQw(len)<0.0001f)direction=fallback;else direction=QwDivide(difference,len);
  qword target=QwAddScaled(closest.q,direction,VuFloat(-p->points[0].f[0]));
  M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,D_002A2DC0.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
  for(i=0;i<3;i++)func_00185310(p->mesh,QwTransformPos(&frame,p->points[i].q),&p->triangle,0,&contacts[i].q,0);
- qword surface=QwCross(QwSub(contacts[2].q,contacts[0].q),QwSub(contacts[1].q,contacts[0].q));
- qword unit=QwDivide(surface,QwSqrt(QwDot(surface,surface)));
+ qword surface=QwCross(VuSub(contacts[2].q,contacts[0].q),VuSub(contacts[1].q,contacts[0].q));
+ qword unit=QwDivide(surface,QwSqrt(VuDot(surface,surface)));
  {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);p->basis.r[0]=m.r[0];p->basis.r[1]=m.r[1];p->basis.r[2]=m.r[2];}
  U angular,linear;
  SmoothMatrix(func_001A6318(p),&p->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
@@ -644,7 +641,7 @@ extern "C" void func_00185E40(JT*p){
   M3 rotation;M3 inverse=InvertMatrix3Cofactor(&p->basis);
   MulM3(&rotation,&inverse,&D_002DDFA0);
   movement.q=QwRotateVec(&rotation,movement.q);movement.f[0]=0.0f;
-  qword dir=QwSqrt(QwDot(movement.q,movement.q));
+  qword dir=QwSqrt(VuDot(movement.q,movement.q));
   VU_FLOAT speed;LoadVuFloatFromMemWord(speed,*(int*)&p->control->speed);M3 copy=rotation;
   qword fallback=D_002A2DC0.q;
   if(GXOfQw(dir)<0.0001f)dir=fallback;else dir=QwDivideR(movement.q,dir,fallback); // "r"(fallback): allocation-only
@@ -658,7 +655,7 @@ extern "C" void func_00185E40(JT*p){
   p->acceleration.q=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
  }
  int active=0;
- if(GXOfQw(QwDot(p->acceleration.q,p->acceleration.q))>1.0f)active=1;
+ if(GXOfQw(VuDot(p->acceleration.q,p->acceleration.q))>1.0f)active=1;
  else if(p->control->speed!=0.0f)active=1;
  if(active){
   SetJtJts__FP2JT3JTS4JTBS(p,21,11);func_001A0450(p,p->axes,p->request);

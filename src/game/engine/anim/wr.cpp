@@ -259,12 +259,6 @@ static inline qword QwScale(qword qw, VU_FLOAT g)
     return qwResult;
 }
 
-static inline float GFromVf(qword qw)
-{
-    float g;
-    g = VuToFloat(qw);
-    return g;
-}
 
 // |v| (x, y, z) in x
 static inline qword QwLength(qword v)
@@ -423,19 +417,19 @@ void UpdateWrStateVectors(WR *pwr)
                     *pu = 1.0f;
                     continue;
                 case 0:
-                    s = GFromVf(QwLength(*(qword *)&pos));
+                    s = VuToFloat(QwLength(*(qword *)&pos));
                     break;
                 case 1:
                     pos.z = 0.0f;
-                    s = GFromVf(QwLength(*(qword *)&pos));
+                    s = VuToFloat(QwLength(*(qword *)&pos));
                     break;
                 case 2:
                     pos.y = 0.0f;
-                    s = GFromVf(QwLength(*(qword *)&pos));
+                    s = VuToFloat(QwLength(*(qword *)&pos));
                     break;
                 case 3:
                     pos.x = 0.0f;
-                    s = GFromVf(QwLength(*(qword *)&pos));
+                    s = VuToFloat(QwLength(*(qword *)&pos));
                     break;
                 case 4:
                     s = pos.x;
@@ -584,7 +578,6 @@ float GFromOnz(ONZ *ponz)
 
 // UpdateWrMatrixes (0x22C028). Circle case: the scalar-home sqc2 stores and one combine carry "memory" clobbers to fix their order (Claude agent).
 static inline qword ScalarLoad(const float &f){int bits;qword q;__asm__("lw %0,%1":"=r"(bits):"m"(f));q = VuFromFloat<qword>(bits);return q;}
-static inline qword Scalar(float f){qword q;q = VuFromFloat<qword>(f);return q;}
 static inline qword ScalarHome(V &home,qword value){__asm__("sqc2 %1,%0":"=m"(home.q):"j"(value));return value;}
 static inline qword Combine(qword fa,qword a,qword fb,qword b){qword r;__asm__("vmulax.xyzw ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x":"=j"(r):"j"(fa),"j"(a),"j"(fb),"j"(b));return r;}
 static inline qword CombineM(qword fa,qword a,qword fb,qword b){qword r;__asm__("vmulax.xyzw ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x":"=j"(r):"j"(fa),"j"(a),"j"(fb),"j"(b):"memory");return r;}
@@ -615,7 +608,7 @@ void UpdateWrMatrixes(WR *p){
    CalculateSinCos__FfPfT1(RadNormalize__Ff(angle),&sine,&cosine);
    int column=entry->data.circle.column,next=column+1;
    V *pos0=&matrix->r[column],*pos1=&matrix->r[next],*uv0=&coordinates->r[column],*uv1=&coordinates->r[next];
-   qword qn=Scalar(-sine),qc=ScalarLoad(cosine),qs=Scalar(sine);
+   qword qn=VuFromFloat<qword>(-sine),qc=ScalarLoad(cosine),qs=VuFromFloat<qword>(sine);
  {position.q=Combine(qc,entry->vectorA.q,qs,entry->data.circle.vectorB.q);}
    CopyXYZ(*pos0,position);
  ScalarHomeM(temporary,qc);

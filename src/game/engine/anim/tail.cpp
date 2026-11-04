@@ -249,12 +249,6 @@ static inline qword QwLengthUntied(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
 }
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qw = VuDot(a, b);
-    return qw;
-}
 static inline qword QwCross(qword a, qword b)
 {
     qword qw;
@@ -403,8 +397,8 @@ void UpdateChainLink(SO *pso, CHAINLINK *plink)
                     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwV) : "j"(qwD2));
                 }
                 *(qword *)&vecDir = qwV;
-                qword qwAlong = QwDot(qwVelTip, qwV);
-                qword qwAlongBase = QwDot(velBase, qwV);
+                qword qwAlong = VuDot(qwVelTip, qwV);
+                qword qwAlongBase = VuDot(velBase, qwV);
                 qwVelTip = VuAdd(QwScaleX(qwV, qwAlongBase), VuSub(qwVelTip, QwScaleX(qwV, qwAlong)));
                 plinkCur->velTip = qwVelTip;
                 qword qwSegLen = QwLength(plinkCur->qwSeg);

@@ -550,12 +550,6 @@ extern "C" void func_00138660(BLCHNQ *p, CHN *pq)
 
 /* EvaluateBlendChnPosVel (Claude agent, laneC29 2026-10-24): MATCH from v7 (4). ONE register pin (wb in $16); every other extra asm operand below is allocation-only and emits nothing: the "r"(i) operands stand in for the loop weighting of i, the extra "j" operands on the Madd asms raise the VF priorities of a/v/b, and the earlyclobber "=&j" with an unused "j"(a.q) input keeps s2 out of a's register. */
 /* wip (Claude agent, 2026-10-17): aligned 28 (was 52). for-loop gives target s-reg numbering and a0 reuse at loop head; E.w read as int (lw->qmtc2); vadda operand order fixed. Left: loop.c hoists 0.0f (f22, frame 0x100) and iSeg*8 (s4) out of the loop; target keeps them inside. */
-static __inline__ qword ToVf(int g)
-{
-    qword s;
-    s = VuFromFloat<qword>(g);
-    return s;
-}
 static __inline__ qword Madd2(qword a, qword v, qword s)
 {
     qword r;
@@ -642,7 +636,7 @@ top:
         }
         {
             qword s1, s2;
-            s1 = ToVf(pe->iw);
+            s1 = VuFromFloat<qword>(pe->iw);
             a.q = Madd(a.q, v20.q, s1);
             { register int wb asm("$16") = pe->iw; /* register pin (Claude agent): target reloads pe->w into pe's dying register s0 */ __asm__("qmtc2.ni %1, %0" : "=&j"(s2) : "r"(wb), "r"(i), "r"(i), "r"(i), "j"(a.q)); /* the three "r"(i) operands are allocation-only (Claude agent): they stand in for the loop weighting of i's refs, so i gets s1 before p; the "&" earlyclobber and the unused "j"(a.q) input are allocation-only too (they keep s2 out of a's VF register) */ }
             w.q = s1;

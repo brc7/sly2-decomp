@@ -66,7 +66,6 @@ extern char D_002C44F0[];
 extern float D_002A9240,D_002A9244;
 }
 
-static inline qword Broadcast(float f){qword q;q = VuFromFloat<qword>(f);return q;}
 
 /** @sly2-annot addr=0x21BB88
  * Purpose: Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0
@@ -203,7 +202,7 @@ extern "C" void PostTrailLoad(TRAIL *p){
                     qword position=*v,axis=p->axis;
                     float dot=DotCopy(position,axis);
                     float fraction=(dot-minimum)/range;
-                    qword scalar=Broadcast((p->scale-one)*dot);
+                    qword scalar=VuFromFloat<qword>((p->scale-one)*dot);
                     req.q=scalar;
                     out->position=VuAddScaled(position,axis,req.q);
                     out->fraction=fraction;
@@ -245,10 +244,6 @@ extern "C" void UpdateTrail(TRAIL *p, float dt)
         ((void (*)(void *))p->vt[9].pfn)((char *)p + p->vt[9].d);
 }
 
-static inline qword DotSelf(qword d) {
-    d = VuDot(d, d);
-    return d;
-}
 static inline float Sqrt(qword d) {
     float f;
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(d));
@@ -286,7 +281,7 @@ extern "C" void func_0021C1C8(TRAIL *p)
                 float rate = p->followRate;
                 qword d = VuSub(p->previous, pos);
                 float dist = p->distance;
-                d = DotSelf(d);
+                d = VuDot(d, d);
                 p->previous = pos;
                 length = Sqrt(d);
                 p->distance = dist + length / rate;
@@ -339,7 +334,7 @@ extern "C" void func_0021C340(TRAIL *p) {
                 int ia=(p->index+p->count-k-1)%p->count;
                 int ib=(ia+p->count-1)%p->count;
                 Ring *a=&p->ring[ia],*b=&p->ring[ib];
-                qword va=s->position,wa=Broadcast(alpha),wb=Broadcast(1.0f-alpha),pa,pb,pos;
+                qword va=s->position,wa=VuFromFloat<qword>(alpha),wb=VuFromFloat<qword>(1.0f-alpha),pa,pb,pos;
                 scalar.q=wb;
                 pa=Transform(&a->m,va);
                 scalar.q=wa;
