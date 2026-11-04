@@ -56,4 +56,16 @@ template <class QW> inline QW VuDot(QW a, QW b)
     return d;
 }
 
+/* a float into a VF register (qmtc2.ni moves the whole GPR; x holds the float, the other lanes are scratch). The
+ * result type is the template argument (VuFromFloat<qword>(g)) since it cannot be deduced; g is a float or, as many
+ * per-function sites pass it, its bit pattern in an int. The non-interlocking .ni form only: plain qmtc2 is a
+ * different instruction, and the "rV" spelling (the float's memory word as the operand) a different idiom.
+ * Placeholder name (HYPOTHESIS: a VU_FLOAT(float) constructor in the original, as Sly 1's VU_FLOAT type suggests). */
+template <class QW, class G> inline QW VuFromFloat(G g)
+{
+    QW r;
+    __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g));
+    return r;
+}
+
 #endif /* SLY2_VU0_H */
