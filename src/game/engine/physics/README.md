@@ -10,7 +10,7 @@
 | [`empty_1C2920.cpp`](empty_1C2920.cpp) | 1 |
 | [`geom.cpp`](geom.cpp) | 1 |
 | [`mark.cpp`](mark.cpp) | 1 |
-| [`path/`](path/) | 51 |
+| [`path.cpp`](path.cpp) | 1 |
 | [`shape/`](shape/) | 56 |
 | [`so/`](so/) | 174 |
 | [`solve.cpp`](solve.cpp) | 1 |

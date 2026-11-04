@@ -113,55 +113,55 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1BF110](../../../src/game/engine/physics/path/PcgtPointInCbspQuick.c) | `PcgtPointInCbspQuick` | Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2) | 0.60 | T1 |  |
-| [0x1BF1F8](../../../src/game/engine/physics/path/PcgtPointInCbspSafe.c) | `PcgtPointInCbspSafe` | Tolerant BSP walk returning nearest triangle | 0.55 | T1 |  |
-| [0x1BF398](../../../src/game/engine/physics/path/CbskFromG__Ff.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
-| [0x1BF3D8](../../../src/game/engine/physics/path/ClsgClipEdgeToCbsp.cpp) | `ClsgClipEdgeToCbsp` | Clip segment against the pathzone BSP, writing crossed leaf spans (LSG rows 96 B) | 0.75 | T1 |  |
-| [0x1BF900](../../../src/game/engine/physics/path/FClipEdgeToCbsp.c) | `FClipEdgeToCbsp` | True if the segment leaves the walkable area (no span or span not [0,1]) | 0.70 | T1 |  |
-| [0x1BF970](../../../src/game/engine/physics/path/IcgvFromPcgv__FP2CGP3CGV.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
-| [0x1BF980](../../../src/game/engine/physics/path/FindPathAStar.cpp) | `FindPathAStar` | A* over the pathzone vertex graph | 0.75 | T1 |  |
-| [0x1BFC18](../../../src/game/engine/physics/path/SimplifyApcgvNeighbor.c) | `SimplifyApcgvNeighbor` | Drop intermediate path vertices with clear line of sight (FClipEdgeToCbsp) | 0.70 | T1 |  |
-| [0x1BFDB0](../../../src/game/engine/physics/path/ClosestPointOnCgt.cpp) | `ClosestPointOnCgt` | Closest point of a navigation triangle to p (edge clamp or vertical projection) | 0.50 | T1 |  |
-| [0x1BFF28](../../../src/game/engine/physics/path/CposFindPath.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
-| [0x1C02D0](../../../src/game/engine/physics/path/func_001C02D0.c) | `FFindPathzonePathCurve` | CposFindPath on pathzone+0xE0 (max 16 points) into a path/curve object and rebuild it (0x1E6180); false if <2 points | 0.45 | T2 |  |
-| [0x1C0320](../../../src/game/engine/physics/path/FindClosestPointInCg.c) | `FindClosestPointInCg` | PcgtPointInCbspSafe then ClosestPointOnCgt; returns found | 0.65 | T1 |  |
-| [0x1C0378](../../../src/game/engine/physics/path/InitPathzone.c) | `InitPathzone` | CID 17 vt7: InitXfm, ids -1, init DL | 0.75 | T1 |  |
-| [0x1C03C0](../../../src/game/engine/physics/path/LoadPathzoneFromBrx.c) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
-| [0x1C0648](../../../src/game/engine/physics/path/InitDefaultPathzoneCg.c) | `InitDefaultPathzoneCg` | Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables D_002C0C10/D_002C0C90) covering everything | 0.50 | T1 |  |
-| [0x1C0880](../../../src/game/engine/physics/path/HookupCg.c) | `HookupCg` | Compute edge costs (XY distance between vertices) | 0.70 | T1 |  |
-| [0x1C0920](../../../src/game/engine/physics/path/FPosInPathzone.c) | `FPosInPathzone` | PcgtPointInCbspQuick(+0xE0) != 0 | 0.50 | T1 |  |
-| [0x1C0940](../../../src/game/engine/physics/path/FindPathzoneClosestPoint.c) | `FindPathzoneClosestPoint` | FindClosestPointInCg on pathzone+0xE0 | 0.70 | T1 |  |
-| [0x1C0960](../../../src/game/engine/physics/path/ClsgClipPathzone.c) | `ClsgClipPathzone` | ClsgClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
-| [0x1C0980](../../../src/game/engine/physics/path/FClipPathzone.c) | `FClipPathzone` | FClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
-| [0x1C09A0](../../../src/game/engine/physics/path/func_001C09A0.c) | `FPosFreeInPathzone` | Point inside pathzone and not inside any registered obstacle (0x1C1700 query + 0x1BC9F0 test) | 0.40 | T2 |  |
-| [0x1C0A40](../../../src/game/engine/physics/path/func_001C0A40.c) | `PloClipPathzoneSegment` | Clip segment to pathzone then against obstacles (0x1BC688), returns blocker | 0.35 | T2 |  |
-| [0x1C0B50](../../../src/game/engine/physics/path/func_001C0B50.c) | `FindPathzoneClosestFreePoint` | Closest point to pos inside the pathzone and outside obstacles | 0.35 | T2 |  |
-| [0x1C0D70](../../../src/game/engine/physics/path/PpathzoneFromPos.c) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
-| [0x1C0EC0](../../../src/game/engine/physics/path/LoadSwZoneBspFromBrx.c) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
-| [0x1C0F30](../../../src/game/engine/physics/path/LoadZoneBspFromBrx.c) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
-| [0x1C10C8](../../../src/game/engine/physics/path/PostLoadSwPathzones.c) | `PostLoadSwPathzones` | If no zone BSP: create default pathzone (PloNew cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then bind zones | 0.50 | T1 |  |
-| [0x1C1138](../../../src/game/engine/physics/path/func_001C1138.c) | `BindSwPathzones` | Resolve leaf zone ids to PATHZONE objects (index at +0x124), collect all CID 124 path links (index at +0x150) | 0.45 | T2 |  |
-| [0x1C1260](../../../src/game/engine/physics/path/func_001C1260.c) | `BuildPathzoneLinkLists` | Bucket path links by the zone of their first endpoint | 0.40 | T2 |  |
-| [0x1C1440](../../../src/game/engine/physics/path/func_001C1440.c) | `InitObstacleQueryCursor` | Reset a 0x40-byte sweep cursor for the zone obstacle lists | 0.35 | T2 |  |
-| [0x1C14A8](../../../src/game/engine/physics/path/func_001C14A8.c) | `SweepObstacleEvents` | Move cursor through sorted begin/end events toggling membership bits | 0.40 | T2 |  |
-| [0x1C15F8](../../../src/game/engine/physics/path/func_001C15F8.c) | `SweepObstacleRange` | Advance min/max cursors of one axis to a new range | 0.40 | T2 |  |
-| [0x1C1700](../../../src/game/engine/physics/path/func_001C1700.c) | `CploFindPathzoneObstacles` | Sweep-and-prune query: obstacles whose x and y intervals overlap the segment box | 0.45 | T2 |  |
-| [0x1C18B8](../../../src/game/engine/physics/path/func_001C18B8.c) | `RemoveObstacleEvents` | Delete the begin/end event pair of key from a sorted event array | 0.40 | T2 |  |
-| [0x1C1968](../../../src/game/engine/physics/path/func_001C1968.c) | `RemovePathzoneObstacle` | Unregister obstacle (both axes) and bump nav version | 0.45 | T2 |  |
-| [0x1C1A38](../../../src/game/engine/physics/path/func_001C1A38.c) | `InsertObstacleEvents` | Insert begin/end events into a time-sorted event array | 0.45 | T2 |  |
-| [0x1C1BA0](../../../src/game/engine/physics/path/func_001C1BA0.c) | `AddPathzoneObstacle` | Register obstacle in a zone unless it overlaps an existing one (then message 2), growing arrays | 0.45 | T2 |  |
-| [0x1C1D20](../../../src/game/engine/physics/path/func_001C1D20.c) | `GrowPathzoneObstacleArrays` | Grow obstacle/event arrays 0->16->128 with sentinel events | 0.45 | T2 |  |
-| [0x1C1EC0](../../../src/game/engine/physics/path/func_001C1EC0.c) | `PosPathlinkEndpoint` | Position of a path endpoint record: closest point on its shape (+0), else its object position (+4), else stored vector (+0x10) | 0.50 | T2 | top50 |
-| [0x1C1F28](../../../src/game/engine/physics/path/func_001C1F28.c) | `PosPathlinkEndpointCenter` | Endpoint position using shape midpoint | 0.35 | T2 |  |
-| [0x1C1FA0](../../../src/game/engine/physics/path/func_001C1FA0.c) | `FNearPathlinkEndpoint` | Object within radius of the endpoint (class 0x40 always true) | 0.30 | T2 |  |
-| [0x1C2048](../../../src/game/engine/physics/path/InitPathlink.c) | `InitPathlink` | CID 124 vt7: InitLo | 0.55 | T1 |  |
-| [0x1C2078](../../../src/game/engine/physics/path/AddPathlinkHierarchy.c) | `AddPathlinkHierarchy` | CID 124 vt11: AddLoHierarchy then bump world nav version | 0.50 | T1 |  |
-| [0x1C20B0](../../../src/game/engine/physics/path/RemovePathlinkHierarchy.c) | `RemovePathlinkHierarchy` | CID 124 vt12: RemoveLoHierarchy then bump world nav version | 0.50 | T1 |  |
-| [0x1C20E8](../../../src/game/engine/physics/path/func_001C20E8.c) | `AddPathlinkEndpointObject` | Append endpoint (shape if class 10 else LO), max 6 | 0.35 | T2 |  |
-| [0x1C2148](../../../src/game/engine/physics/path/func_001C2148.c) | `AddPathlinkEndpointPos` | Append fixed endpoint vector, max 6 | 0.35 | T2 |  |
-| [0x1C2170](../../../src/game/engine/physics/path/PostPathlinkLoad.c) | `PostPathlinkLoad` | CID 124 vt15: PostLoLoad, cache first/last endpoint positions and their pathzones | 0.55 | T1 |  |
-| [0x1C21D8](../../../src/game/engine/physics/path/FindPathlinkRoute.cpp) | `FindPathlinkRoute` | A* over pathzones connected by path links, from actor to goal | 0.50 | T1 |  |
-| [0x1C26E0](../../../src/game/engine/physics/path/func_001C26E0.c) | `FPathlinkAllowed` | May this actor traverse the link | 0.35 | T2 |  |
+| [0x1BF110](../../../src/game/engine/physics/path.cpp) | `PcgtPointInCbspQuick` | Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2) | 0.60 | T1 |  |
+| [0x1BF1F8](../../../src/game/engine/physics/path.cpp) | `PcgtPointInCbspSafe` | Tolerant BSP walk returning nearest triangle | 0.55 | T1 |  |
+| [0x1BF398](../../../src/game/engine/physics/path.cpp) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
+| [0x1BF3D8](../../../src/game/engine/physics/path.cpp) | `ClsgClipEdgeToCbsp` | Clip segment against the pathzone BSP, writing crossed leaf spans (LSG rows 96 B) | 0.75 | T1 |  |
+| [0x1BF900](../../../src/game/engine/physics/path.cpp) | `FClipEdgeToCbsp` | True if the segment leaves the walkable area (no span or span not [0,1]) | 0.70 | T1 |  |
+| [0x1BF970](../../../src/game/engine/physics/path.cpp) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
+| [0x1BF980](../../../src/game/engine/physics/path.cpp) | `FindPathAStar` | A* over the pathzone vertex graph | 0.75 | T1 |  |
+| [0x1BFC18](../../../src/game/engine/physics/path.cpp) | `SimplifyApcgvNeighbor` | Drop intermediate path vertices with clear line of sight (FClipEdgeToCbsp) | 0.70 | T1 |  |
+| [0x1BFDB0](../../../src/game/engine/physics/path.cpp) | `ClosestPointOnCgt` | Closest point of a navigation triangle to p (edge clamp or vertical projection) | 0.50 | T1 |  |
+| [0x1BFF28](../../../src/game/engine/physics/path.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
+| [0x1C02D0](../../../src/game/engine/physics/path.cpp) | `FFindPathzonePathCurve` | CposFindPath on pathzone+0xE0 (max 16 points) into a path/curve object and rebuild it (0x1E6180); false if <2 points | 0.45 | T2 |  |
+| [0x1C0320](../../../src/game/engine/physics/path.cpp) | `FindClosestPointInCg` | PcgtPointInCbspSafe then ClosestPointOnCgt; returns found | 0.65 | T1 |  |
+| [0x1C0378](../../../src/game/engine/physics/path.cpp) | `InitPathzone` | CID 17 vt7: InitXfm, ids -1, init DL | 0.75 | T1 |  |
+| [0x1C03C0](../../../src/game/engine/physics/path.cpp) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
+| [0x1C0648](../../../src/game/engine/physics/path.cpp) | `InitDefaultPathzoneCg` | Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables D_002C0C10/D_002C0C90) covering everything | 0.50 | T1 |  |
+| [0x1C0880](../../../src/game/engine/physics/path.cpp) | `HookupCg` | Compute edge costs (XY distance between vertices) | 0.70 | T1 |  |
+| [0x1C0920](../../../src/game/engine/physics/path.cpp) | `FPosInPathzone` | PcgtPointInCbspQuick(+0xE0) != 0 | 0.50 | T1 |  |
+| [0x1C0940](../../../src/game/engine/physics/path.cpp) | `FindPathzoneClosestPoint` | FindClosestPointInCg on pathzone+0xE0 | 0.70 | T1 |  |
+| [0x1C0960](../../../src/game/engine/physics/path.cpp) | `ClsgClipPathzone` | ClsgClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
+| [0x1C0980](../../../src/game/engine/physics/path.cpp) | `FClipPathzone` | FClipEdgeToCbsp on pathzone+0xE0 | 0.50 | T1 |  |
+| [0x1C09A0](../../../src/game/engine/physics/path.cpp) | `FPosFreeInPathzone` | Point inside pathzone and not inside any registered obstacle (0x1C1700 query + 0x1BC9F0 test) | 0.40 | T2 |  |
+| [0x1C0A40](../../../src/game/engine/physics/path.cpp) | `PloClipPathzoneSegment` | Clip segment to pathzone then against obstacles (0x1BC688), returns blocker | 0.35 | T2 |  |
+| [0x1C0B50](../../../src/game/engine/physics/path.cpp) | `FindPathzoneClosestFreePoint` | Closest point to pos inside the pathzone and outside obstacles | 0.35 | T2 |  |
+| [0x1C0D70](../../../src/game/engine/physics/path.cpp) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
+| [0x1C0EC0](../../../src/game/engine/physics/path.cpp) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
+| [0x1C0F30](../../../src/game/engine/physics/path.cpp) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
+| [0x1C10C8](../../../src/game/engine/physics/path.cpp) | `PostLoadSwPathzones` | If no zone BSP: create default pathzone (PloNew cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then bind zones | 0.50 | T1 |  |
+| [0x1C1138](../../../src/game/engine/physics/path.cpp) | `BindSwPathzones` | Resolve leaf zone ids to PATHZONE objects (index at +0x124), collect all CID 124 path links (index at +0x150) | 0.45 | T2 |  |
+| [0x1C1260](../../../src/game/engine/physics/path.cpp) | `BuildPathzoneLinkLists` | Bucket path links by the zone of their first endpoint | 0.40 | T2 |  |
+| [0x1C1440](../../../src/game/engine/physics/path.cpp) | `InitObstacleQueryCursor` | Reset a 0x40-byte sweep cursor for the zone obstacle lists | 0.35 | T2 |  |
+| [0x1C14A8](../../../src/game/engine/physics/path.cpp) | `SweepObstacleEvents` | Move cursor through sorted begin/end events toggling membership bits | 0.40 | T2 |  |
+| [0x1C15F8](../../../src/game/engine/physics/path.cpp) | `SweepObstacleRange` | Advance min/max cursors of one axis to a new range | 0.40 | T2 |  |
+| [0x1C1700](../../../src/game/engine/physics/path.cpp) | `CploFindPathzoneObstacles` | Sweep-and-prune query: obstacles whose x and y intervals overlap the segment box | 0.45 | T2 |  |
+| [0x1C18B8](../../../src/game/engine/physics/path.cpp) | `RemoveObstacleEvents` | Delete the begin/end event pair of key from a sorted event array | 0.40 | T2 |  |
+| [0x1C1968](../../../src/game/engine/physics/path.cpp) | `RemovePathzoneObstacle` | Unregister obstacle (both axes) and bump nav version | 0.45 | T2 |  |
+| [0x1C1A38](../../../src/game/engine/physics/path.cpp) | `InsertObstacleEvents` | Insert begin/end events into a time-sorted event array | 0.45 | T2 |  |
+| [0x1C1BA0](../../../src/game/engine/physics/path.cpp) | `AddPathzoneObstacle` | Register obstacle in a zone unless it overlaps an existing one (then message 2), growing arrays | 0.45 | T2 |  |
+| [0x1C1D20](../../../src/game/engine/physics/path.cpp) | `GrowPathzoneObstacleArrays` | Grow obstacle/event arrays 0->16->128 with sentinel events | 0.45 | T2 |  |
+| [0x1C1EC0](../../../src/game/engine/physics/path.cpp) | `PosPathlinkEndpoint` | Position of a path endpoint record: closest point on its shape (+0), else its object position (+4), else stored vector (+0x10) | 0.50 | T2 | top50 |
+| [0x1C1F28](../../../src/game/engine/physics/path.cpp) | `PosPathlinkEndpointCenter` | Endpoint position using shape midpoint | 0.35 | T2 |  |
+| [0x1C1FA0](../../../src/game/engine/physics/path.cpp) | `FNearPathlinkEndpoint` | Object within radius of the endpoint (class 0x40 always true) | 0.30 | T2 |  |
+| [0x1C2048](../../../src/game/engine/physics/path.cpp) | `InitPathlink` | CID 124 vt7: InitLo | 0.55 | T1 |  |
+| [0x1C2078](../../../src/game/engine/physics/path.cpp) | `AddPathlinkHierarchy` | CID 124 vt11: AddLoHierarchy then bump world nav version | 0.50 | T1 |  |
+| [0x1C20B0](../../../src/game/engine/physics/path.cpp) | `RemovePathlinkHierarchy` | CID 124 vt12: RemoveLoHierarchy then bump world nav version | 0.50 | T1 |  |
+| [0x1C20E8](../../../src/game/engine/physics/path.cpp) | `AddPathlinkEndpointObject` | Append endpoint (shape if class 10 else LO), max 6 | 0.35 | T2 |  |
+| [0x1C2148](../../../src/game/engine/physics/path.cpp) | `AddPathlinkEndpointPos` | Append fixed endpoint vector, max 6 | 0.35 | T2 |  |
+| [0x1C2170](../../../src/game/engine/physics/path.cpp) | `PostPathlinkLoad` | CID 124 vt15: PostLoLoad, cache first/last endpoint positions and their pathzones | 0.55 | T1 |  |
+| [0x1C21D8](../../../src/game/engine/physics/path.cpp) | `FindPathlinkRoute` | A* over pathzones connected by path links, from actor to goal | 0.50 | T1 |  |
+| [0x1C26E0](../../../src/game/engine/physics/path.cpp) | `FPathlinkAllowed` | May this actor traverse the link | 0.35 | T2 |  |
 
 ## tu_1D6848 (0x1D6848-0x1D7238)
 

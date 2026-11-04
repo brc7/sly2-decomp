@@ -111,13 +111,13 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | [0x1BD218](../../src/game/engine/physics/tu_1BC050.cpp) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
 | [0x1BD8A8](../../src/game/engine/physics/tu_1BC050.cpp) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
 | [0x1BDBC8](../../src/game/engine/physics/tu_1BC050.cpp) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
-| [0x1BF398](../../src/game/engine/physics/path/CbskFromG__Ff.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
-| [0x1BF970](../../src/game/engine/physics/path/IcgvFromPcgv__FP2CGP3CGV.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
-| [0x1BFF28](../../src/game/engine/physics/path/CposFindPath.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
-| [0x1C03C0](../../src/game/engine/physics/path/LoadPathzoneFromBrx.c) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
-| [0x1C0D70](../../src/game/engine/physics/path/PpathzoneFromPos.c) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
-| [0x1C0EC0](../../src/game/engine/physics/path/LoadSwZoneBspFromBrx.c) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
-| [0x1C0F30](../../src/game/engine/physics/path/LoadZoneBspFromBrx.c) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
+| [0x1BF398](../../src/game/engine/physics/path.cpp) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
+| [0x1BF970](../../src/game/engine/physics/path.cpp) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
+| [0x1BFF28](../../src/game/engine/physics/path.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |
+| [0x1C03C0](../../src/game/engine/physics/path.cpp) | `LoadPathzoneFromBrx` | CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg | 0.85 | T1 | parse |
+| [0x1C0D70](../../src/game/engine/physics/path.cpp) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
+| [0x1C0EC0](../../src/game/engine/physics/path.cpp) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
+| [0x1C0F30](../../src/game/engine/physics/path.cpp) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
 | [0x1E5DF8](../../src/game/engine/physics/shape/LoadShapeFromBrx.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for c | 0.80 | T1 | parse |
 | [0x1E6648](../../src/game/engine/physics/shape/SMaxShape.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
 | [0x1E7A28](../../src/game/engine/physics/shape/SetShapeChainMode.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |

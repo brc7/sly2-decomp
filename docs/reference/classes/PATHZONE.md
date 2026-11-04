@@ -29,14 +29,14 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetPathzoneClassDesc`](../../../src/game/app/class_registry/GetPathzoneClassDesc.c) | `0x113B20` |
-| 7 | Init | **override** | [`InitPathzone`](../../../src/game/engine/physics/path/InitPathzone.c) | `0x1C0378` |
+| 7 | Init | **override** | [`InitPathzone`](../../../src/game/engine/physics/path.cpp) | `0x1C0378` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadPathzoneFromBrx`](../../../src/game/engine/physics/path/LoadPathzoneFromBrx.c) | `0x1C03C0` |
+| 14 | LoadFromBrx | **override** | [`LoadPathzoneFromBrx`](../../../src/game/engine/physics/path.cpp) | `0x1C03C0` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |

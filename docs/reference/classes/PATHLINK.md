@@ -29,15 +29,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetPathlinkClassDesc`](../../../src/game/app/class_registry/GetPathlinkClassDesc.c) | `0x1141D0` |
-| 7 | Init | **override** | [`InitPathlink`](../../../src/game/engine/physics/path/InitPathlink.c) | `0x1C2048` |
+| 7 | Init | **override** | [`InitPathlink`](../../../src/game/engine/physics/path.cpp) | `0x1C2048` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` |
-| 11 | AddHierarchy | **override** | [`AddPathlinkHierarchy`](../../../src/game/engine/physics/path/AddPathlinkHierarchy.c) | `0x1C2078` |
-| 12 | RemoveHierarchy | **override** | [`RemovePathlinkHierarchy`](../../../src/game/engine/physics/path/RemovePathlinkHierarchy.c) | `0x1C20B0` |
+| 11 | AddHierarchy | **override** | [`AddPathlinkHierarchy`](../../../src/game/engine/physics/path.cpp) | `0x1C2078` |
+| 12 | RemoveHierarchy | **override** | [`RemovePathlinkHierarchy`](../../../src/game/engine/physics/path.cpp) | `0x1C20B0` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (LO) | `LoadLoFromBrx` | `0x1A5C28` |
-| 15 | PostLoad | **override** | [`PostPathlinkLoad`](../../../src/game/engine/physics/path/PostPathlinkLoad.c) | `0x1C2170` |
+| 15 | PostLoad | **override** | [`PostPathlinkLoad`](../../../src/game/engine/physics/path.cpp) | `0x1C2170` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
