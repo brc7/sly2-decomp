@@ -540,16 +540,10 @@ static inline qword Cross(qword a, qword b)
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
-static inline qword Dot3(qword a, qword b)
-{
-    qword d;
-    d = VuDot(a, b);
-    return d;
-}
 static inline qword Normalize(qword v)
 {
     qword d, l, r;
-    d = Dot3(v, v);
+    d = VuDot(v, v);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
@@ -567,7 +561,7 @@ extern "C" void InitPlaneFromPositions(PLANE *pplane, qword a, qword b, qword c)
     qword d;
     int n;
     u.q = Normalize(Cross(VuSub(b, a), VuSub(c, a)));
-    d = Dot3(u.q, a);
+    d = VuDot(u.q, a);
     __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(pplane->d) : "j"(d));
     { float tx = u.v.x, ty = u.v.y, tz = u.v.z; pplane->y = ty; pplane->z = tz; pplane->x = tx; }
 }

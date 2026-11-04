@@ -311,12 +311,6 @@ namespace V_FindClosestPointBetweenLines {
    so gcc emits the qmfc2 moves itself; the commented barrier sits after ba (not ca). One pin (d). */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    r = VuSub(a, b);
-    return r;
-}
 static inline qword Cross(qword a, qword b)
 {
     qword r;
@@ -351,10 +345,10 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
     qword ca, ba, pc, n;
     float lenSq;
     float eps = 1e-4f;
-    ca = Sub(c, a);
-    ba = Sub(b, a);
+    ca = VuSub(c, a);
+    ba = VuSub(b, a);
     __asm__ volatile(""); /* emulates toolchain order */
-    pc = Sub(pos, c);
+    pc = VuSub(pos, c);
     n = Cross(ba, pc);
     lenSq = Dot(n, n);
     if (lenSq < eps) {
@@ -525,12 +519,6 @@ static inline qword Sub(qword a, qword b)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory");
     return r;
 }
-static inline qword SubN(qword a, qword b)
-{
-    qword r;
-    r = VuSub(a, b);
-    return r;
-}
 static inline qword Cross(qword a, qword b)
 {
     qword r;
@@ -546,12 +534,6 @@ static inline qword DotQ(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b) : "memory");
-    return d;
-}
-static inline qword DotN(qword a, qword b)
-{
-    qword d;
-    d = VuDot(a, b);
     return d;
 }
 static inline float Dot(qword a, qword b)
@@ -580,7 +562,7 @@ static inline float DotS(qword a, qword b)
 extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qword *pnormal)
 {
     qword ca = Sub(c, a);
-    qword ba = SubN(b, a);
+    qword ba = VuSub(b, a);
     qword dc = Sub(d, c);
     qword n = Cross(ba, dc);
     qword ca2, n2, c1, lq, c2;
@@ -598,8 +580,8 @@ extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qwo
     if (lenSq < 1e-6f)
         return 0;
     if (puv) {
-        qword du = DotN(c2, n2);
-        qword dv = DotN(c1, n2);
+        qword du = VuDot(c2, n2);
+        qword dv = VuDot(c1, n2);
         puv[0] = F3(du) / lenSq;
         puv[1] = F3(dv) / lenSq;
     }
@@ -624,12 +606,6 @@ extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qwo
 namespace V_FIntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    r = VuSub(a, b);
-    return r;
-}
 static inline qword Cross(qword a, qword b)
 {
     qword r;
@@ -665,14 +641,14 @@ extern "C" int FIntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, 
 {
     V e1, e2, pvec, tvec, qvec;
     float det, inv, u, v, t;
-    e1.q = Sub(v1, v0);
-    e2.q = Sub(v2, v0);
+    e1.q = VuSub(v1, v0);
+    e2.q = VuSub(v2, v0);
     pvec.q = Cross(dir, e2.q);
     det = Dot(e1.q, pvec.q);
     if (det > -1e-6f && det < 1e-6f)
         return 0;
     inv = 1.0f / det;
-    tvec.q = Sub(orig, v0);
+    tvec.q = VuSub(orig, v0);
     u = DotS(tvec.q, pvec.q) * inv;
     if (u < 0.0f || u > 1.0f)
         return 0;
@@ -698,12 +674,6 @@ namespace V_FindClosestPointOnLine {
 // FindClosestPointOnLine (Claude agent, lane A22, 2026-10-23): matched from build/hand_wip/FindClosestPointOnLine.v4.c.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    r = VuSub(a, b);
-    return r;
-}
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -725,12 +695,12 @@ static inline float Dot(qword a, qword b)
 extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist)
 {
     register qword p0r __asm__("vf5") = p0; /* the one register pin: p0 copy shared by both Subs and the vadda */
-    qword d = Sub(p1, p0r);
+    qword d = VuSub(p1, p0r);
     qword d2;
     float n, t;
     __asm__("" : "=j"(d2) : "0"(d)); /* empty asm: the d copy (vmove) both dots read */
     __asm__("" : "+j"(pos)); /* empty asm, scheduling only: raises the priority of pos's qmtc2 to tie with the d vsub */
-    n = Dot(Sub(pos, p0r), d2);
+    n = Dot(VuSub(pos, p0r), d2);
     t = n / Dot(d2, d2);
     if (pt)
         *pt = t;
@@ -747,7 +717,7 @@ extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *ppo
         if (pdist) {
             qword e, l;
             int g;
-            e = Sub(pos, c);
+            e = VuSub(pos, c);
             e = VuDot(e, e);
             __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(e));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
@@ -763,30 +733,12 @@ namespace V_FindClosestPointOnLineSegment {
 // volatile sqc2 asm (keeps it ahead of beqz); the ppos copy goes vf->gpr via a gcc reload (empty asm with "0") so
 // reorg can steal its qmfc2 into the delay slot.
 typedef int qword __attribute__((mode(TI)));
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    r = VuSub(a, b);
-    return r;
-}
 static inline float Dot(qword a, qword b)
 {
     qword d;
     float g;
     d = VuDot(a, b);
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
-    return g;
-}
-static inline qword DotV(qword a, qword b)
-{
-    qword d;
-    d = VuDot(a, b);
-    return d;
-}
-static inline float ToF(qword d)
-{
-    float g;
-    g = VuToFloat(d);
     return g;
 }
 static inline float GClamp(float g, float lo, float hi)
@@ -807,11 +759,11 @@ static inline float GClamp(float g, float lo, float hi)
  * @end-sly2-annot */
 extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist)
 {
-    qword d = Sub(p1, p0);
-    qword e0 = Sub(pos, p0);
-    qword vd = DotV(d, d);
-    qword vn = DotV(e0, d);
-    float t = GClamp(ToF(vn) / ToF(vd), 0.0f, 1.0f);
+    qword d = VuSub(p1, p0);
+    qword e0 = VuSub(pos, p0);
+    qword vd = VuDot(d, d);
+    qword vn = VuDot(e0, d);
+    float t = GClamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
     if (pt)
         *pt = t;
     if (ppos || pdist) {
@@ -827,7 +779,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
         if (pdist) {
             qword e, l;
             int g;
-            e = Sub(pos, c);
+            e = VuSub(pos, c);
             e = VuDot(e, e);
             __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(e));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
@@ -937,27 +889,15 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    qw = VuSub(qw0, qw1);
-    return qw;
-}
 static inline float GFromVf(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qw = VuDot(a, b);
-    return qw;
-}
 static inline qword QwLengthDot(qword v)
 {
-    qword qw = QwDot(v, v);
+    qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
@@ -976,7 +916,7 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
-    r.qw = QwSub(a, b);
+    r.qw = VuSub(a, b);
     return r;
 }
 /** @sly2-annot addr=0x11F088

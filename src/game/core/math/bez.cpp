@@ -33,12 +33,6 @@ static inline qword VF(float g)
     s.q = q;
     return q;
 }
-static inline qword VF0(float g)
-{
-    qword q;
-    q = VuFromFloat<qword>(g);
-    return q;
-}
 static inline qword ScaleT(qword v, qword k)
 {
     qword r;
@@ -95,7 +89,7 @@ extern "C" void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, fl
 }
 
 /* EvaluateBezierPos: the body is exact; 0x117120..0x117128 holds the two nops the toolchain puts before its entry
-   div.s (formerly listed as junk). It loads its weights with VF0 (no dead VU-float store). */
+   div.s (formerly listed as junk). It loads its weights with VuFromFloat<qword> (no dead VU-float store). */
 /** @sly2-annot addr=0x117120
  * Purpose: Cubic Hermite position/velocity/acceleration along a curve segment
  * Info: proposed name EvaluateBezierPos (T1); TU bez
@@ -114,10 +108,10 @@ extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float 
         float u2 = t * t;
         float u2v = u2 * v;
         float u3c = u2 * t;
-        qword h00 = VF0(v * v * v + uv2 * 3.0f);
-        qword h10 = VF0(uv2 * dt);
-        qword h11 = VF0(-u2v * dt);
-        qword h01 = VF0(u3c + u2v * 3.0f);
+        qword h00 = VuFromFloat<qword>(v * v * v + uv2 * 3.0f);
+        qword h10 = VuFromFloat<qword>(uv2 * dt);
+        qword h11 = VuFromFloat<qword>(-u2v * dt);
+        qword h01 = VuFromFloat<qword>(u3c + u2v * 3.0f);
         qword r;
         *(volatile qword *)&tmp.q = h00;
         *(volatile qword *)&tmp.q = h10;
@@ -131,13 +125,13 @@ extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float 
         qword dp, s, w0, w1, w2, r, r2;
         float v6 = 6.0f - t * 6.0f;
         float u3 = t * 3.0f;
-        s = VF0(dtScale);
+        s = VuFromFloat<qword>(dtScale);
         dp = VuSub(p1, p0);
         *(volatile qword *)&tmp.q = s;
-        w2 = VF0(t * (u3 + -2.0f));
-        w0 = VF0(t * v6 / dt);
+        w2 = VuFromFloat<qword>(t * (u3 + -2.0f));
+        w0 = VuFromFloat<qword>(t * v6 / dt);
         *(volatile qword *)&tmp.q = w0;
-        w1 = VF0(1.0f - t * (4.0f - u3));
+        w1 = VuFromFloat<qword>(1.0f - t * (4.0f - u3));
         __asm__("vmulax.xyzw $ACC, %4, %1x\n\tvmaddax.xyzw $ACC, %5, %2x\n\tvmaddx.xyzw %0, %6, %3x"
                 : "=j"(r) : "j"(w0), "j"(w1), "j"(w2), "j"(dp), "j"(v0), "j"(v1));
         *(volatile qword *)&tmp.q = w1;
@@ -149,11 +143,11 @@ extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float 
         qword dp, s, w0, w1, w2, r, r2;
         float u6 = t * 6.0f;
         dp = VuSub(p1, p0);
-        s = VF0(dtScale * dtScale / dt);
-        w1 = VF0(u6 - 4.0f);
+        s = VuFromFloat<qword>(dtScale * dtScale / dt);
+        w1 = VuFromFloat<qword>(u6 - 4.0f);
         *(volatile qword *)&tmp.q = s;
-        w2 = VF0(u6 - 2.0f);
-        w0 = VF0((6.0f - t * 12.0f) / dt);
+        w2 = VuFromFloat<qword>(u6 - 2.0f);
+        w0 = VuFromFloat<qword>((6.0f - t * 12.0f) / dt);
         *(volatile qword *)&tmp.q = w0;
         __asm__("vmulax.xyzw $ACC, %4, %1x\n\tvmaddax.xyzw $ACC, %5, %2x\n\tvmaddx.xyzw %0, %6, %3x"
                 : "=j"(r) : "j"(w0), "j"(w1), "j"(w2), "j"(dp), "j"(v0), "j"(v1));
@@ -213,7 +207,7 @@ extern "C" void EvaluateBezierMat(float dt, float t, float gScale, M3 *pmat0, qw
         register qword sc __asm__("vf2"); /* pin */
         sc = VuFromFloat<qword>(gScale);
         us.r[0] = sc;
-        qword kb = VF0(u * (h + -2.0f));
+        qword kb = VuFromFloat<qword>(u * (h + -2.0f));
         qword ka = VF(1.0f - u * (4.0f - h));
         qword r;
         __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddax.xyzw $ACC, %3, %4x\n\tvmaddx.xyzw %0, %5, %6x"
