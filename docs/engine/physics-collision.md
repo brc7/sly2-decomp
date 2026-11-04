@@ -104,13 +104,13 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | [0x1A7FC0](../../src/game/engine/physics/mark/RecalcSwXpMovement.c) | `RecalcSwXpMovement` | For each XP recompute the relative velocity at the contact (GetXfVelocity of both sides) | 0.85 | T1 | verified |
 | [0x1A86B8](../../src/game/engine/physics/mark/CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG.c) | `CplsgFindEdgePath` | Breadth search (64 nodes) for a chain of LSGs connecting two positions along shared edges | 0.55 | T1 | verified |
 | [0x1A8B50](../../src/game/engine/physics/mark/MarkSoContactsBspBsp.cpp) | `MarkSoContactsBspBsp` | Edge/edge and vertex/face contacts between two BSP shapes: clip edges both ways, CategorizeAlsg, embedded vertex XPs, edge paths and closest points (k | 0.85 | T1 | verified |
-| [0x1BC088](../../src/game/engine/physics/tu_1BC050/func_001BC088.c) | `LoadCid14FromBrx` | CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1) | 0.75 | T2 | parse |
-| [0x1BC278](../../src/game/engine/physics/tu_1BC050/func_001BC278.c) | `SgnTurnXY` | Sign of 2D cross product of (a-b),(b-c) with epsilon | 0.45 | T2 | verified |
-| [0x1BC2F8](../../src/game/engine/physics/tu_1BC050/func_001BC2F8.c) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
-| [0x1BC688](../../src/game/engine/physics/tu_1BC050/ClsgClipEdgeToCnvo.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
-| [0x1BD218](../../src/game/engine/physics/tu_1BC050/func_001BD218.c) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
-| [0x1BD8A8](../../src/game/engine/physics/tu_1BC050/FCnvoOverlap.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
-| [0x1BDBC8](../../src/game/engine/physics/tu_1BC050/NCmpPosX.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
+| [0x1BC088](../../src/game/engine/physics/tu_1BC050.cpp) | `LoadCid14FromBrx` | CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1) | 0.75 | T2 | parse |
+| [0x1BC278](../../src/game/engine/physics/tu_1BC050.cpp) | `SgnTurnXY` | Sign of 2D cross product of (a-b),(b-c) with epsilon | 0.45 | T2 | verified |
+| [0x1BC2F8](../../src/game/engine/physics/tu_1BC050.cpp) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
+| [0x1BC688](../../src/game/engine/physics/tu_1BC050.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
+| [0x1BD218](../../src/game/engine/physics/tu_1BC050.cpp) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
+| [0x1BD8A8](../../src/game/engine/physics/tu_1BC050.cpp) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
+| [0x1BDBC8](../../src/game/engine/physics/tu_1BC050.cpp) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
 | [0x1BF398](../../src/game/engine/physics/path/CbskFromG__Ff.c) | `CbskFromG` | Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00) | 0.80 | T1 |  |
 | [0x1BF970](../../src/game/engine/physics/path/IcgvFromPcgv__FP2CGP3CGV.c) | `IcgvFromPcgv` | Index of a graph vertex: (pcgv - pcg->acgv) >> 5 | 0.85 | T1 | verified |
 | [0x1BFF28](../../src/game/engine/physics/path/CposFindPath.cpp) | `CposFindPath` | Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min spacing | 0.75 | T1 | verified |

@@ -79,35 +79,35 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1BC050](../../../src/game/engine/physics/tu_1BC050/func_001BC050.c) | `InitCid14` | CID 14 vt7: InitShape, owner -1, init DL | 0.60 | T2 |  |
-| [0x1BC088](../../../src/game/engine/physics/tu_1BC050/func_001BC088.c) | `LoadCid14FromBrx` | CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1) | 0.75 | T2 | parse |
-| [0x1BC0D0](../../../src/game/engine/physics/tu_1BC050/func_001BC0D0.c) | `CloneCid14` | CID 14 vt41: CloneShape, copy plane array | 0.60 | T2 |  |
-| [0x1BC160](../../../src/game/engine/physics/tu_1BC050/func_001BC160.c) | `AddCid14Hierarchy` | CID 14 vt11: AddLoHierarchy, append to pending-obstacle list D_003E1A4C | 0.55 | T2 |  |
-| [0x1BC198](../../../src/game/engine/physics/tu_1BC050/func_001BC198.c) | `RemoveCid14Hierarchy` | CID 14 vt12: RemoveLoHierarchy, detach from merged owner, unregister obstacle, leave pending list | 0.55 | T2 |  |
-| [0x1BC208](../../../src/game/engine/physics/tu_1BC050/func_001BC208.c) | `NCmpPosXY` | Lexicographic x then y compare | 0.45 | T2 |  |
-| [0x1BC278](../../../src/game/engine/physics/tu_1BC050/func_001BC278.c) | `SgnTurnXY` | Sign of 2D cross product of (a-b),(b-c) with epsilon | 0.45 | T2 | verified |
-| [0x1BC2F8](../../../src/game/engine/physics/tu_1BC050/func_001BC2F8.c) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
-| [0x1BC530](../../../src/game/engine/physics/tu_1BC050/func_001BC530.c) | `IWrapCid14Point` | Wrap point index into [0, c-1) (closed polygon) | 0.35 | T2 |  |
-| [0x1BC570](../../../src/game/engine/physics/tu_1BC050/func_001BC570.c) | `PostCid14Load` | CID 14 vt15: PostLoLoad, classify polygon, reverse/measure when needed | 0.55 | T2 |  |
-| [0x1BC688](../../../src/game/engine/physics/tu_1BC050/ClsgClipEdgeToCnvo.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
-| [0x1BC9F0](../../../src/game/engine/physics/tu_1BC050/FPosInCnvo.c) | `FPosInCnvo` | Point inside all planes of the convex volume | 0.50 | T1 |  |
-| [0x1BCAC0](../../../src/game/engine/physics/tu_1BC050/func_001BCAC0.c) | `FindCid14PathzoneSpan` | Walk polygon edges against the pathzone (FClipPathzone) to find valid span | 0.30 | T2 |  |
-| [0x1BCCE0](../../../src/game/engine/physics/tu_1BC050/func_001BCCE0.c) | `ClipShapeToPathzone` | Find valid parameter range of a shape inside the pathzone (returns status) | 0.30 | T2 |  |
-| [0x1BCF18](../../../src/game/engine/physics/tu_1BC050/func_001BCF18.c) | `FFindShapePointInPathzone` | Search along shape for a point inside the pathzone | 0.30 | T2 |  |
-| [0x1BD040](../../../src/game/engine/physics/tu_1BC050/func_001BD040.cpp) | `RegisterCid14Obstacle` | Transform polygon to world, find its pathzone (PpathzoneFromPos), compute bounds, AddPathzoneObstacle | 0.50 | T2 |  |
-| [0x1BD1E0](../../../src/game/engine/physics/tu_1BC050/func_001BD1E0.c) | `UnregisterCid14Obstacle` | RemovePathzoneObstacle if registered | 0.50 | T2 |  |
-| [0x1BD218](../../../src/game/engine/physics/tu_1BC050/func_001BD218.c) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
-| [0x1BD310](../../../src/game/engine/physics/tu_1BC050/func_001BD310.c) | `PcnvoFirstHitSegment` | Among obstacles overlapping a segment, return the first one the segment enters | 0.40 | T2 |  |
-| [0x1BD400](../../../src/game/engine/physics/tu_1BC050/func_001BD400.c) | `BuildCnvoPlanes` | (Re)build edge planes of the polygon in world space when its transform changed | 0.45 | T2 |  |
-| [0x1BD560](../../../src/game/engine/physics/tu_1BC050/func_001BD560.c) | `FindShapeFreeRange` | Step along a shape until it leaves obstacles | 0.30 | T2 |  |
-| [0x1BD718](../../../src/game/engine/physics/tu_1BC050/func_001BD718.c) | `FindShapeFreePoint` | Free point on a shape around parameter g avoiding obstacles | 0.30 | T2 |  |
-| [0x1BD8A8](../../../src/game/engine/physics/tu_1BC050/FCnvoOverlap.c) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
-| [0x1BDA00](../../../src/game/engine/physics/tu_1BC050/func_001BDA00.c) | `PcnvoNewMerged` | Create merged obstacle object (PloNew) holding member polygons | 0.35 | T2 |  |
-| [0x1BDBC8](../../../src/game/engine/physics/tu_1BC050/NCmpPosX.c) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
-| [0x1BDBF0](../../../src/game/engine/physics/tu_1BC050/func_001BDBF0.cpp) | `CposConvexHull` | 2D convex hull of points (sort + monotone chain) | 0.45 | T2 |  |
-| [0x1BDE18](../../../src/game/engine/physics/tu_1BC050/func_001BDE18.c) | `AddCid14ToMerged` | Attach polygon to merged owner and unregister it individually | 0.35 | T2 |  |
-| [0x1BDE80](../../../src/game/engine/physics/tu_1BC050/func_001BDE80.cpp) | `MergeCid14Obstacles` | Merge overlapping convex polygons into one new hull polygon | 0.40 | T2 |  |
-| [0x1BE1E8](../../../src/game/engine/physics/tu_1BC050/func_001BE1E8.c) | `UpdatePendingCid14Obstacles` | Drain pending list D_003E1A4C registering each obstacle | 0.50 | T2 |  |
+| [0x1BC050](../../../src/game/engine/physics/tu_1BC050.cpp) | `InitCid14` | CID 14 vt7: InitShape, owner -1, init DL | 0.60 | T2 |  |
+| [0x1BC088](../../../src/game/engine/physics/tu_1BC050.cpp) | `LoadCid14FromBrx` | CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1) | 0.75 | T2 | parse |
+| [0x1BC0D0](../../../src/game/engine/physics/tu_1BC050.cpp) | `CloneCid14` | CID 14 vt41: CloneShape, copy plane array | 0.60 | T2 |  |
+| [0x1BC160](../../../src/game/engine/physics/tu_1BC050.cpp) | `AddCid14Hierarchy` | CID 14 vt11: AddLoHierarchy, append to pending-obstacle list D_003E1A4C | 0.55 | T2 |  |
+| [0x1BC198](../../../src/game/engine/physics/tu_1BC050.cpp) | `RemoveCid14Hierarchy` | CID 14 vt12: RemoveLoHierarchy, detach from merged owner, unregister obstacle, leave pending list | 0.55 | T2 |  |
+| [0x1BC208](../../../src/game/engine/physics/tu_1BC050.cpp) | `NCmpPosXY` | Lexicographic x then y compare | 0.45 | T2 |  |
+| [0x1BC278](../../../src/game/engine/physics/tu_1BC050.cpp) | `SgnTurnXY` | Sign of 2D cross product of (a-b),(b-c) with epsilon | 0.45 | T2 | verified |
+| [0x1BC2F8](../../../src/game/engine/physics/tu_1BC050.cpp) | `ClassifyCid14Polygon` | Classify polygon (too few points / convex CW / CCW / not convex) from turn signs | 0.40 | T2 | verified |
+| [0x1BC530](../../../src/game/engine/physics/tu_1BC050.cpp) | `IWrapCid14Point` | Wrap point index into [0, c-1) (closed polygon) | 0.35 | T2 |  |
+| [0x1BC570](../../../src/game/engine/physics/tu_1BC050.cpp) | `PostCid14Load` | CID 14 vt15: PostLoLoad, classify polygon, reverse/measure when needed | 0.55 | T2 |  |
+| [0x1BC688](../../../src/game/engine/physics/tu_1BC050.cpp) | `ClsgClipEdgeToCnvo` | Clip segment to the convex volume and write the parts outside it (LSG 0x60) | 0.85 | T1 | verified |
+| [0x1BC9F0](../../../src/game/engine/physics/tu_1BC050.cpp) | `FPosInCnvo` | Point inside all planes of the convex volume | 0.50 | T1 |  |
+| [0x1BCAC0](../../../src/game/engine/physics/tu_1BC050.cpp) | `FindCid14PathzoneSpan` | Walk polygon edges against the pathzone (FClipPathzone) to find valid span | 0.30 | T2 |  |
+| [0x1BCCE0](../../../src/game/engine/physics/tu_1BC050.cpp) | `ClipShapeToPathzone` | Find valid parameter range of a shape inside the pathzone (returns status) | 0.30 | T2 |  |
+| [0x1BCF18](../../../src/game/engine/physics/tu_1BC050.cpp) | `FFindShapePointInPathzone` | Search along shape for a point inside the pathzone | 0.30 | T2 |  |
+| [0x1BD040](../../../src/game/engine/physics/tu_1BC050.cpp) | `RegisterCid14Obstacle` | Transform polygon to world, find its pathzone (PpathzoneFromPos), compute bounds, AddPathzoneObstacle | 0.50 | T2 |  |
+| [0x1BD1E0](../../../src/game/engine/physics/tu_1BC050.cpp) | `UnregisterCid14Obstacle` | RemovePathzoneObstacle if registered | 0.50 | T2 |  |
+| [0x1BD218](../../../src/game/engine/physics/tu_1BC050.cpp) | `DetachCid14FromOwner` | Remove from merged owner's DL (with safe DL iterator) and re-queue | 0.35 | T2 | verified |
+| [0x1BD310](../../../src/game/engine/physics/tu_1BC050.cpp) | `PcnvoFirstHitSegment` | Among obstacles overlapping a segment, return the first one the segment enters | 0.40 | T2 |  |
+| [0x1BD400](../../../src/game/engine/physics/tu_1BC050.cpp) | `BuildCnvoPlanes` | (Re)build edge planes of the polygon in world space when its transform changed | 0.45 | T2 |  |
+| [0x1BD560](../../../src/game/engine/physics/tu_1BC050.cpp) | `FindShapeFreeRange` | Step along a shape until it leaves obstacles | 0.30 | T2 |  |
+| [0x1BD718](../../../src/game/engine/physics/tu_1BC050.cpp) | `FindShapeFreePoint` | Free point on a shape around parameter g avoiding obstacles | 0.30 | T2 |  |
+| [0x1BD8A8](../../../src/game/engine/physics/tu_1BC050.cpp) | `FCnvoOverlap` | Two convex polygons overlap (edge clip or containment) | 0.85 | T1 | verified |
+| [0x1BDA00](../../../src/game/engine/physics/tu_1BC050.cpp) | `PcnvoNewMerged` | Create merged obstacle object (PloNew) holding member polygons | 0.35 | T2 |  |
+| [0x1BDBC8](../../../src/game/engine/physics/tu_1BC050.cpp) | `NCmpPosX` | qsort comparator on first float (used to sort hull points by x) | 0.55 | existing | arbitration; replaces existing NCmpWkr__FP3WKRT0 |
+| [0x1BDBF0](../../../src/game/engine/physics/tu_1BC050.cpp) | `CposConvexHull` | 2D convex hull of points (sort + monotone chain) | 0.45 | T2 |  |
+| [0x1BDE18](../../../src/game/engine/physics/tu_1BC050.cpp) | `AddCid14ToMerged` | Attach polygon to merged owner and unregister it individually | 0.35 | T2 |  |
+| [0x1BDE80](../../../src/game/engine/physics/tu_1BC050.cpp) | `MergeCid14Obstacles` | Merge overlapping convex polygons into one new hull polygon | 0.40 | T2 |  |
+| [0x1BE1E8](../../../src/game/engine/physics/tu_1BC050.cpp) | `UpdatePendingCid14Obstacles` | Drain pending list D_003E1A4C registering each obstacle | 0.50 | T2 |  |
 
 ## path (0x1BF110-0x1C2920)
 
