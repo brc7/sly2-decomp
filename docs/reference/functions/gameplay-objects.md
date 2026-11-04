@@ -328,48 +328,48 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D1370](../../../src/game/gameplay/objects/tu_1D1370/InitRobottank.c) | `InitRobottank` | CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1 | 0.75 | T1 | whole-game |
-| [0x1D1410](../../../src/game/gameplay/objects/tu_1D1370/CloneRobottank.cpp) | `CloneRobottank` | CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30, copy 0x9C bytes) | 0.70 | T1 | whole-game |
-| [0x1D14C0](../../../src/game/gameplay/objects/tu_1D1370/ResetRobottankHealth.c) | `ResetRobottankHealth` | health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0) | 0.50 | T1 | whole-game |
-| [0x1D1518](../../../src/game/gameplay/objects/tu_1D1370/PostRobottankLoad.cpp) | `PostRobottankLoad` | CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop unresolved  | 0.75 | T1 | whole-game |
-| [0x1D1910](../../../src/game/gameplay/objects/tu_1D1370/func_001D1910.c) | `Robottank_VUnk26Proxy` | CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth | 0.40 | T2 | whole-game |
-| [0x1D1940](../../../src/game/gameplay/objects/tu_1D1370/OnRobottankActive.c) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
-| [0x1D19A8](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottank.cpp) | `UpdateRobottank` | CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound v | 0.75 | T1 | whole-game |
-| [0x1D2150](../../../src/game/gameplay/objects/tu_1D1370/ReadRobottankInput.c) | `ReadRobottankInput` | Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires (SMA goal 0x68) or held-flag variant (0x67) | 0.50 | T1 | whole-game |
-| [0x1D2240](../../../src/game/gameplay/objects/tu_1D1370/func_001D2240.c) | `PweaponReadyRobottank` | First weapon with enough ammo whose state is not 4 | 0.40 | T2 | whole-game |
-| [0x1D22D0](../../../src/game/gameplay/objects/tu_1D1370/func_001D22D0.c) | `FindRobottankPickup` | Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass | 0.45 | T2 | whole-game |
-| [0x1D2420](../../../src/game/gameplay/objects/tu_1D1370/func_001D2420.c) | `ResetRobottankWheelHeights` | Clear x5B0 and set every wheel record's z to the car's height | 0.30 | T2 | whole-game |
-| [0x1D2490](../../../src/game/gameplay/objects/tu_1D1370/func_001D2490.c) | `SteerRobottankAlongPath` | Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive | 0.35 | T2 | whole-game |
-| [0x1D2610](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankAi.cpp) | `UpdateRobottankAi` | Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2 pursue, 3 back away), steering, fire weapons when aim error is small | 0.60 | T1 | whole-game |
-| [0x1D2DD0](../../../src/game/gameplay/objects/tu_1D1370/func_001D2DD0.c) | `PxpBestRobottankWheel` | Return the contact in an XP list with the largest +0x90 value (deepest) | 0.35 | T2 | whole-game |
-| [0x1D2E18](../../../src/game/gameplay/objects/tu_1D1370/PresetRobottankAccel.cpp) | `PresetRobottankAccel` | CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive within traction budget | 0.65 | T1 | whole-game |
-| [0x1D3450](../../../src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp) | `AddRobottankWheelXps` | Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18) | 0.55 | T1 | whole-game |
-| [0x1D3E48](../../../src/game/gameplay/objects/tu_1D1370/AddRobottankCustomXps.c) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
-| [0x1D3F30](../../../src/game/gameplay/objects/tu_1D1370/func_001D3F30.c) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
-| [0x1D3FA8](../../../src/game/gameplay/objects/tu_1D1370/func_001D3FA8.c) | `PweaponFindRobottank` | Find weapon record by id | 0.40 | T2 | whole-game |
-| [0x1D3FF0](../../../src/game/gameplay/objects/tu_1D1370/func_001D3FF0.c) | `CollectRobottankPickup` | Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup state 2 | 0.45 | T2 | whole-game |
-| [0x1D4050](../../../src/game/gameplay/objects/tu_1D1370/AdjustRobottankNewXp.c) | `AdjustRobottankNewXp` | CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID 0x6C pickup schedules CollectRcCarPickup | 0.55 | T1 | whole-game |
-| [0x1D4178](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankBounds.c) | `UpdateRobottankBounds` | CID 77 vt49: SO tree bounds then extend by each wheel sphere | 0.50 | T1 | whole-game |
-| [0x1D41F8](../../../src/game/gameplay/objects/tu_1D1370/RenderRobottankSelf.cpp) | `RenderRobottankSelf` | CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then RenderSoSelf | 0.60 | T1 | whole-game |
-| [0x1D4568](../../../src/game/gameplay/objects/tu_1D1370/func_001D4568.cpp) | `HandleRobottankZap` | CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or sender-relative knock-back impulse | 0.45 | T2 | whole-game |
-| [0x1D4940](../../../src/game/gameplay/objects/tu_1D1370/SetRobottankState.c) | `SetRobottankState` | Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5); drives body SMA goal from D_002C2208[state] | 0.50 | T1 | whole-game |
-| [0x1D4B28](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B28.c) | `SetRobottankTactic` | Set AI tactic x188 with timestamp x18C | 0.40 | T2 | whole-game |
-| [0x1D4B48](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B48.c) | `AddRobottankWheel` | Append wheel record (id, radius, ...) if fewer than 8 | 0.35 | T2 | whole-game |
-| [0x1D4B90](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B90.cpp) | `AddRobottankWeapon` | Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8 | 0.40 | T2 | whole-game |
-| [0x1D4C48](../../../src/game/gameplay/objects/tu_1D1370/func_001D4C48.c) | `AddRobottankAttachment` | Append (id, data) record if fewer than 4 | 0.30 | T2 | whole-game |
-| [0x1D4C88](../../../src/game/gameplay/objects/tu_1D1370/UpdateRobottankHealthMeter.c) | `UpdateRobottankHealthMeter` | Set meter value 0x34F = health/max (inverted if x564) | 0.50 | T1 | whole-game |
-| [0x1D4CE0](../../../src/game/gameplay/objects/tu_1D1370/func_001D4CE0.c) | `SetRobottankAmmo` | Set ammo slot i (count, max) | 0.30 | T2 | whole-game |
-| [0x1D4D00](../../../src/game/gameplay/objects/tu_1D1370/func_001D4D00.c) | `GetRobottankSlotValue` | Get field +0x574 of 12-byte slot i | 0.25 | T2 | whole-game |
-| [0x1D4D18](../../../src/game/gameplay/objects/tu_1D1370/func_001D4D18.c) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
-| [0x1D4D30](../../../src/game/gameplay/objects/tu_1D1370/func_001D4D30.c) | `InitRobottankWeapon` | Weapon record defaults (owner, default vectors D_002C2218..) | 0.40 | T2 | whole-game |
-| [0x1D4DE0](../../../src/game/gameplay/objects/tu_1D1370/func_001D4DE0.c) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
-| [0x1D4E08](../../../src/game/gameplay/objects/tu_1D1370/func_001D4E08.c) | `FRobottankWeaponHasAmmo` | ammo of the weapon's slot >= its cost | 0.45 | T2 | whole-game |
-| [0x1D4E30](../../../src/game/gameplay/objects/tu_1D1370/func_001D4E30.c) | `UseRobottankWeaponAmmo` | Subtract weapon cost from its slot, clamp 0 | 0.40 | T2 | whole-game |
-| [0x1D4E68](../../../src/game/gameplay/objects/tu_1D1370/InitRcPickup.c) | `InitRcPickup` | CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1 | 0.60 | T1 |  |
-| [0x1D4EC8](../../../src/game/gameplay/objects/tu_1D1370/PostRcPickupLoad.c) | `PostRcPickupLoad` | CID 108 vt15: PostSoLoad, SMA binding, state 0 | 0.60 | T1 |  |
-| [0x1D4F10](../../../src/game/gameplay/objects/tu_1D1370/func_001D4F10.c) | `RcPickup_VUnk26Proxy` | CID 108 vt26: proxy base then state -1 -> 0 (respawn) | 0.40 | T2 |  |
-| [0x1D4F50](../../../src/game/gameplay/objects/tu_1D1370/UpdateRcPickup.c) | `UpdateRcPickup` | CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3 | 0.55 | T1 |  |
-| [0x1D4FA0](../../../src/game/gameplay/objects/tu_1D1370/SetRcPickupState.c) | `SetRcPickupState` | Pickup state x150 with time; SMA goal from D_002C2248[state] | 0.50 | T1 |  |
+| [0x1D1370](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `InitRobottank` | CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1 | 0.75 | T1 | whole-game |
+| [0x1D1410](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `CloneRobottank` | CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30, copy 0x9C bytes) | 0.70 | T1 | whole-game |
+| [0x1D14C0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `ResetRobottankHealth` | health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0) | 0.50 | T1 | whole-game |
+| [0x1D1518](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `PostRobottankLoad` | CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop unresolved  | 0.75 | T1 | whole-game |
+| [0x1D1910](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `Robottank_VUnk26Proxy` | CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth | 0.40 | T2 | whole-game |
+| [0x1D1940](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
+| [0x1D19A8](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `UpdateRobottank` | CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound v | 0.75 | T1 | whole-game |
+| [0x1D2150](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `ReadRobottankInput` | Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires (SMA goal 0x68) or held-flag variant (0x67) | 0.50 | T1 | whole-game |
+| [0x1D2240](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `PweaponReadyRobottank` | First weapon with enough ammo whose state is not 4 | 0.40 | T2 | whole-game |
+| [0x1D22D0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `FindRobottankPickup` | Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass | 0.45 | T2 | whole-game |
+| [0x1D2420](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `ResetRobottankWheelHeights` | Clear x5B0 and set every wheel record's z to the car's height | 0.30 | T2 | whole-game |
+| [0x1D2490](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `SteerRobottankAlongPath` | Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive | 0.35 | T2 | whole-game |
+| [0x1D2610](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `UpdateRobottankAi` | Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2 pursue, 3 back away), steering, fire weapons when aim error is small | 0.60 | T1 | whole-game |
+| [0x1D2DD0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `PxpBestRobottankWheel` | Return the contact in an XP list with the largest +0x90 value (deepest) | 0.35 | T2 | whole-game |
+| [0x1D2E18](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `PresetRobottankAccel` | CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive within traction budget | 0.65 | T1 | whole-game |
+| [0x1D3450](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `AddRobottankWheelXps` | Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18) | 0.55 | T1 | whole-game |
+| [0x1D3E48](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
+| [0x1D3F30](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
+| [0x1D3FA8](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `PweaponFindRobottank` | Find weapon record by id | 0.40 | T2 | whole-game |
+| [0x1D3FF0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `CollectRobottankPickup` | Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup state 2 | 0.45 | T2 | whole-game |
+| [0x1D4050](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `AdjustRobottankNewXp` | CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID 0x6C pickup schedules CollectRcCarPickup | 0.55 | T1 | whole-game |
+| [0x1D4178](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `UpdateRobottankBounds` | CID 77 vt49: SO tree bounds then extend by each wheel sphere | 0.50 | T1 | whole-game |
+| [0x1D41F8](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `RenderRobottankSelf` | CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then RenderSoSelf | 0.60 | T1 | whole-game |
+| [0x1D4568](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `HandleRobottankZap` | CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or sender-relative knock-back impulse | 0.45 | T2 | whole-game |
+| [0x1D4940](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `SetRobottankState` | Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5); drives body SMA goal from D_002C2208[state] | 0.50 | T1 | whole-game |
+| [0x1D4B28](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `SetRobottankTactic` | Set AI tactic x188 with timestamp x18C | 0.40 | T2 | whole-game |
+| [0x1D4B48](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `AddRobottankWheel` | Append wheel record (id, radius, ...) if fewer than 8 | 0.35 | T2 | whole-game |
+| [0x1D4B90](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `AddRobottankWeapon` | Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8 | 0.40 | T2 | whole-game |
+| [0x1D4C48](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `AddRobottankAttachment` | Append (id, data) record if fewer than 4 | 0.30 | T2 | whole-game |
+| [0x1D4C88](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `UpdateRobottankHealthMeter` | Set meter value 0x34F = health/max (inverted if x564) | 0.50 | T1 | whole-game |
+| [0x1D4CE0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `SetRobottankAmmo` | Set ammo slot i (count, max) | 0.30 | T2 | whole-game |
+| [0x1D4D00](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `GetRobottankSlotValue` | Get field +0x574 of 12-byte slot i | 0.25 | T2 | whole-game |
+| [0x1D4D18](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
+| [0x1D4D30](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `InitRobottankWeapon` | Weapon record defaults (owner, default vectors D_002C2218..) | 0.40 | T2 | whole-game |
+| [0x1D4DE0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
+| [0x1D4E08](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `FRobottankWeaponHasAmmo` | ammo of the weapon's slot >= its cost | 0.45 | T2 | whole-game |
+| [0x1D4E30](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `UseRobottankWeaponAmmo` | Subtract weapon cost from its slot, clamp 0 | 0.40 | T2 | whole-game |
+| [0x1D4E68](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `InitRcPickup` | CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1 | 0.60 | T1 |  |
+| [0x1D4EC8](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `PostRcPickupLoad` | CID 108 vt15: PostSoLoad, SMA binding, state 0 | 0.60 | T1 |  |
+| [0x1D4F10](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `RcPickup_VUnk26Proxy` | CID 108 vt26: proxy base then state -1 -> 0 (respawn) | 0.40 | T2 |  |
+| [0x1D4F50](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `UpdateRcPickup` | CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3 | 0.55 | T1 |  |
+| [0x1D4FA0](../../../src/game/gameplay/objects/tu_1D1370.cpp) | `SetRcPickupState` | Pickup state x150 with time; SMA goal from D_002C2248[state] | 0.50 | T1 |  |
 
 ## sensor (0x1DE2A0-0x1DFAD8)
 

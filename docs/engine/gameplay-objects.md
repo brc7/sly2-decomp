@@ -93,11 +93,11 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x1BAD80](../../src/game/gameplay/objects/tu_1BAB50.cpp) | `OnCid98Remove` | CID 98 vt22: FreezeSo then RemoveDlEntry from class list D_003E1450 | 0.85 | T2 | arbitration |
 | [0x1BADB8](../../src/game/gameplay/objects/tu_1BAB50.cpp) | `OnCid98Add` | CID 98 vt23: UnfreezeSo then AppendDlEntry to D_003E1450 | 0.85 | T2 | arbitration |
 | [0x1BB250](../../src/game/gameplay/objects/tu_1BAB50.cpp) | `ScheduleCid98TouchEvents` | CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98 objects | 0.45 | T2 | verified |
-| [0x1D1940](../../src/game/gameplay/objects/tu_1D1370/OnRobottankActive.c) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
-| [0x1D3E48](../../src/game/gameplay/objects/tu_1D1370/AddRobottankCustomXps.c) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
-| [0x1D3F30](../../src/game/gameplay/objects/tu_1D1370/func_001D3F30.c) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
-| [0x1D4D18](../../src/game/gameplay/objects/tu_1D1370/func_001D4D18.c) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
-| [0x1D4DE0](../../src/game/gameplay/objects/tu_1D1370/func_001D4DE0.c) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
+| [0x1D1940](../../src/game/gameplay/objects/tu_1D1370.cpp) | `OnRobottankActive` | CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2 | 0.85 | T1 | verified, whole-game |
+| [0x1D3E48](../../src/game/gameplay/objects/tu_1D1370.cpp) | `AddRobottankCustomXps` | CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62 test | 0.50 | T1 | verified, whole-game |
+| [0x1D3F30](../../src/game/gameplay/objects/tu_1D1370.cpp) | `Robottank_vt54` | CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel | 0.35 | T2 | verified, whole-game |
+| [0x1D4D18](../../src/game/gameplay/objects/tu_1D1370.cpp) | `SetRobottankSlotValue` | Set field +0x574 of 12-byte slot i | 0.25 | T2 | verified, whole-game |
+| [0x1D4DE0](../../src/game/gameplay/objects/tu_1D1370.cpp) | `CopyRobottankWeapon` | CopyAb 0x9C bytes from +0x14 | 0.40 | T2 | verified, whole-game |
 | [0x1DE3B0](../../src/game/gameplay/objects/sensor.cpp) | `AddSensorNoTriggerClass` | Append a cid to the no-trigger class list (+0x170, max 7) | 0.55 | T1 | verified |
 | [0x1DE478](../../src/game/gameplay/objects/sensor.cpp) | `LoadLasenFromBrx` | LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds beams), shrink to count | 0.75 | T1 | parse |
 | [0x1FF438](../../src/game/gameplay/objects/tu_1FF3B8.cpp) | `OnCid39Add` | vt23: add to SW update array (0x1A6178) and to global DL D_003E13D8 | 0.85 | T2 | arbitration |

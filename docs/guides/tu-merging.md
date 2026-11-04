@@ -392,7 +392,7 @@ GCC 2.95 hashes the source file name and the line number into the gcse ordering 
 functions that ordering decides stack-slot numbering, so the match depends on (sum of path bytes, line) mod 287.
 A merge changes both the path and the line of every function. If a merged function that contains inline asm misses
 only by a few stack offsets, pin the name with `#line N "<repo-relative path>"` and keep the asm helper in the line
-window that matches (example: `src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp`).
+window that matches (example: `src/game/gameplay/objects/tu_1D1370.cpp`).
 
 What wave 2 measured (on func_001D3450, by changing only its `#line 13 "<path>"` pin; MATCH unless noted):
 
@@ -411,7 +411,7 @@ inline helper that contains it (VU_FLOAT at line 57 there), not of the function 
 
 Recipe for merging a sensitive function: directly before the asm helper's definition in the merged file write
 `#line <line the helper had in the per-function file> "<per-function file's pinned path>"` (func_001D3450: `#line 57
-"src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp"` before `struct VU_FLOAT`), and directly after it
+"src/game/gameplay/objects/tu_1D1370.cpp"` before `struct VU_FLOAT`), and directly after it
 `#line <real next line> "<merged path>"` so diagnostics point at the merged file again. That reproduces (sum, line)
 for the asm exactly, wherever the helper ends up in the merged file.
 A cheaper equivalent is any (name, line) pair whose sum lands in the same window, but the verbatim pin is easier to

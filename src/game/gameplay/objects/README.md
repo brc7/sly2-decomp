@@ -20,7 +20,7 @@
 | [`tu_1B0B78.cpp`](tu_1B0B78.cpp) | 1 |
 | [`tu_1BAB50.cpp`](tu_1BAB50.cpp) | 1 |
 | [`tu_1C2D20.cpp`](tu_1C2D20.cpp) | 1 |
-| [`tu_1D1370/`](tu_1D1370/) | 44 |
+| [`tu_1D1370.cpp`](tu_1D1370.cpp) | 1 |
 | [`tu_1FF3B8.cpp`](tu_1FF3B8.cpp) | 1 |
 | [`tu_223F70.cpp`](tu_223F70.cpp) | 1 |
 | [`turret.cpp`](turret.cpp) | 1 |

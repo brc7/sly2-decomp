@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewJsg`](../../../src/game/app/class_registry/NewJsg.c) `0x112FB8` |
 | Descriptor getter (slot 6) | `GetJsgClassDesc` `0x1143A0` |
 | vtable | `D_002C94A0`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`AddRobottankWeapon?`](../../../src/game/gameplay/objects/tu_1D1370/func_001D4B90.cpp) (vptr +0xC), [`CloneRobottank`](../../../src/game/gameplay/objects/tu_1D1370/CloneRobottank.cpp), [`NewJsg`](../../../src/game/app/class_registry/NewJsg.c) (vptr +0xC) |
+| vtable stored by | [`AddRobottankWeapon?`](../../../src/game/gameplay/objects/tu_1D1370.cpp) (vptr +0xC), [`CloneRobottank`](../../../src/game/gameplay/objects/tu_1D1370.cpp), [`NewJsg`](../../../src/game/app/class_registry/NewJsg.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
