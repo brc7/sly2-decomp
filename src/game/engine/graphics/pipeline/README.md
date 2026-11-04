@@ -9,7 +9,7 @@
 | [`light.cpp`](light.cpp) | 1 |
 | [`ms.cpp`](ms.cpp) | 1 |
 | [`render.cpp`](render.cpp) | 1 |
-| [`shd/`](shd/) | 45 |
+| [`shd.cpp`](shd.cpp) | 1 |
 | [`shdanim.cpp`](shdanim.cpp) | 1 |
 | [`sky.cpp`](sky.cpp) | 1 |
 | [`tu_1BE398.cpp`](tu_1BE398.cpp) | 1 |

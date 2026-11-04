@@ -248,49 +248,49 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1EA568](../../../src/game/engine/graphics/pipeline/shd/RelocateSharedColorTables.c) | `RelocateSharedColorTables` | After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entries | 0.65 | T1 | parse, format-doc |
-| [0x1EA688](../../../src/game/engine/graphics/pipeline/shd/func_001EA688.c) | `CpassShd` | Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1 | 0.35 | T2 |  |
-| [0x1EA6C8](../../../src/game/engine/graphics/pipeline/shd/Tex0FromTexIframeCtk.c) | `Tex0FromTexIframeCtk` | TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 \| clut TEX0 | 0.65 | T1 | format-doc |
-| [0x1EA750](../../../src/game/engine/graphics/pipeline/shd/PackTexGifs.c) | `PackTexGifs` | Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream | 0.50 | T1 |  |
-| [0x1EA8A8](../../../src/game/engine/graphics/pipeline/shd/LoadClutFromBrx.c) | `LoadClutFromBrx` | Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entries | 0.80 | T1 | parse, format-doc |
-| [0x1EA9F0](../../../src/game/engine/graphics/pipeline/shd/func_001EA9F0.cpp) | `BuildSwBackgroundGifs` | Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at g_sw+0x3EA0) | 0.30 | T2 |  |
-| [0x1EAD98](../../../src/game/engine/graphics/pipeline/shd/func_001EAD98.c) | `CopyClutHeader` | Copy a CLUT header, color-correct its colors, compute qword count | 0.30 | T2 |  |
-| [0x1EAE40](../../../src/game/engine/graphics/pipeline/shd/LoadColorTablesFromBrx__FP18CBinaryInputStream.c) | `LoadColorTablesFromBrx` | Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count | 0.85 | T1 | parse, format-doc |
-| [0x1EAF50](../../../src/game/engine/graphics/pipeline/shd/LoadBmpFromBrx.c) | `LoadBmpFromBrx` | Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash) | 0.80 | T1 | parse, format-doc |
-| [0x1EB050](../../../src/game/engine/graphics/pipeline/shd/func_001EB050.c) | `CopyBmpHeader` | Copy a BMP header and compute qword count | 0.30 | T2 |  |
-| [0x1EB098](../../../src/game/engine/graphics/pipeline/shd/LoadBitmapsFromBrx__FP18CBinaryInputStream.c) | `LoadBitmapsFromBrx` | Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each | 0.85 | T1 | parse, format-doc |
-| [0x1EB1A8](../../../src/game/engine/graphics/pipeline/shd/LoadTexFromBrx.c) | `LoadTexFromBrx` | Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) | 0.75 | T1 | parse |
-| [0x1EB2F0](../../../src/game/engine/graphics/pipeline/shd/LoadShdFromBrx.c) | `LoadShdFromBrx` | Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data | 0.80 | T1 | parse, format-doc |
-| [0x1EB678](../../../src/game/engine/graphics/pipeline/shd/func_001EB678.c) | `BuildShdTex0List` | Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture) | 0.35 | T2 |  |
-| [0x1EB748](../../../src/game/engine/graphics/pipeline/shd/LoadShadersFromBrx.c) | `LoadShadersFromBrx` | Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures (0x1ECE58); build shader packets | 0.80 | T1 | parse, format-doc |
-| [0x1EB960](../../../src/game/engine/graphics/pipeline/shd/func_001EB960.cpp) | `FillShaders` | Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind | 0.45 | T2 |  |
-| [0x1EC688](../../../src/game/engine/graphics/pipeline/shd/func_001EC688.c) | `AddShdVifUnpack` | Emit a VIF unpack (0x226F28 kind 12) for record i; return its size | 0.25 | T2 |  |
-| [0x1EC6D0](../../../src/game/engine/graphics/pipeline/shd/func_001EC6D0.c) | `AddShdVifUnpackQw` | Variant of 0x1EC688 for a single qword from an object | 0.25 | T2 |  |
-| [0x1EC718](../../../src/game/engine/graphics/pipeline/shd/func_001EC718.c) | `ApplyCopyRecord` | CopyAb(dst=+8, src=+4, cb=+0) | 0.25 | T2 |  |
-| [0x1EC740](../../../src/game/engine/graphics/pipeline/shd/func_001EC740.c) | `RelocateShdRefs` | Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew | 0.30 | T2 |  |
-| [0x1EC7A0](../../../src/game/engine/graphics/pipeline/shd/ResetShaders.c) | `ResetShaders` | Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) | 0.65 | T1 | format-doc |
-| [0x1EC7E8](../../../src/game/engine/graphics/pipeline/shd/func_001EC7E8.c) | `UnloadShaders` | Clear shader GS state (D_003DA790, D_003DCFA0, 0x40 bytes at D_003DCFA8) | 0.40 | T2 |  |
-| [0x1EC820](../../../src/game/engine/graphics/pipeline/shd/PshdFindShader.c) | `PshdFindShader` | Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL | 0.75 | T1 | format-doc |
-| [0x1EC880](../../../src/game/engine/graphics/pipeline/shd/func_001EC880.c) | `PfontFind` | Find an entry by oid in linked list D_003E1590 (next +0x18) | 0.30 | T2 |  |
-| [0x1EC8D0](../../../src/game/engine/graphics/pipeline/shd/func_001EC8D0.c) | `PfontFindOrDefault` | 0x1EC880(oid) or the list head | 0.30 | T2 |  |
-| [0x1EC8F8](../../../src/game/engine/graphics/pipeline/shd/func_001EC8F8.c) | `PshdFromIshd` | &D_003DCFEC[i] (stride 0x2C) | 0.85 | T1 | verified |
-| [0x1EC918](../../../src/game/engine/graphics/pipeline/shd/func_001EC918.c) | `PsaaFind` | Find an SAA by id (+0x14) in list D_003E159C (stops at entries with a child) | 0.35 | T2 |  |
-| [0x1EC968](../../../src/game/engine/graphics/pipeline/shd/UpdateShaders.c) | `UpdateShaders` | For each SAA in D_003E159C: if FUpdatableSaa call its vt8 (Update) | 0.65 | T1 |  |
-| [0x1EC9D0](../../../src/game/engine/graphics/pipeline/shd/BuildClutTex2__FP4CLUTi.c) | `BuildClutTex2` | Fill TEX2-style CLUT fields | 0.90 | T1 | verified, format-doc |
-| [0x1ECAB0](../../../src/game/engine/graphics/pipeline/shd/BuildClutGifs__FP4CLUTiP4GIFS.cpp) | `BuildClutGifs__FP4CLUTiP4GIFS` | existing name kept | 0.85 | existing | verified |
-| [0x1ECB18](../../../src/game/engine/graphics/pipeline/shd/BuildBmpTex0__FP3BMPi.cpp) | `BuildBmpTex0__FP3BMPi` | existing name kept | 0.85 | existing | verified |
-| [0x1ECBF0](../../../src/game/engine/graphics/pipeline/shd/BuildBmpGifs.c) | `BuildBmpGifs` | BuildImageGifs for a bitmap | 0.60 | T1 |  |
-| [0x1ECC28](../../../src/game/engine/graphics/pipeline/shd/FBuildUploadBitmapGifs__FiP3GSBP4GIFS.c) | `FBuildUploadBitmapGifs` | Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added | 0.80 | T1 | verified |
-| [0x1ECE58](../../../src/game/engine/graphics/pipeline/shd/UploadPermShaders.c) | `UploadPermShaders` | Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs | 0.65 | T1 | format-doc |
-| [0x1ED1A8](../../../src/game/engine/graphics/pipeline/shd/func_001ED1A8.cpp) | `ColorCorrectRgba16` | Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (D_003E12C8) | 0.45 | T2 |  |
-| [0x1ED278](../../../src/game/engine/graphics/pipeline/shd/ColorCorrectRgba.c) | `ColorCorrectRgba` | If color correction enabled (D_003E12C8): RGBA -> vector -> ColorCorrectVector -> RGBA | 0.65 | T1 | format-doc |
-| [0x1ED2D8](../../../src/game/engine/graphics/pipeline/shd/func_001ED2D8.c) | `ColorCorrectVector` | Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via HSV | 0.45 | T2 |  |
-| [0x1ED3A8](../../../src/game/engine/graphics/pipeline/shd/func_001ED3A8.c) | `AllocTexHashTables` | Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018) | 0.45 | T2 |  |
-| [0x1ED448](../../../src/game/engine/graphics/pipeline/shd/func_001ED448.c) | `ClearTexHashTables` | Null both hash tables and counts | 0.45 | T2 |  |
-| [0x1ED470](../../../src/game/engine/graphics/pipeline/shd/func_001ED470.c) | `AddBmpHash` | Insert a record into the bitmap hash (key % 0x3FFD, linear probe) | 0.40 | T2 |  |
-| [0x1ED4E0](../../../src/game/engine/graphics/pipeline/shd/func_001ED4E0.c) | `PbmpFindHash` | Look up a bitmap by id in the hash | 0.45 | T2 |  |
-| [0x1ED560](../../../src/game/engine/graphics/pipeline/shd/func_001ED560.c) | `AddClutHash` | Insert into the clut hash | 0.40 | T2 |  |
-| [0x1ED5D0](../../../src/game/engine/graphics/pipeline/shd/func_001ED5D0.c) | `PclutFindHash` | Look up a clut by id | 0.45 | T2 |  |
+| [0x1EA568](../../../src/game/engine/graphics/pipeline/shd.cpp) | `RelocateSharedColorTables` | After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data pointer and color-correct its entries | 0.65 | T1 | parse, format-doc |
+| [0x1EA688](../../../src/game/engine/graphics/pipeline/shd.cpp) | `CpassShd` | Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1 | 0.35 | T2 |  |
+| [0x1EA6C8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `Tex0FromTexIframeCtk` | TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 \| clut TEX0 | 0.65 | T1 | format-doc |
+| [0x1EA750](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PackTexGifs` | Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream | 0.50 | T1 |  |
+| [0x1EA8A8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadClutFromBrx` | Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via PclutFindHash; color-correct entries | 0.80 | T1 | parse, format-doc |
+| [0x1EA9F0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `BuildSwBackgroundGifs` | Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at g_sw+0x3EA0) | 0.30 | T2 |  |
+| [0x1EAD98](../../../src/game/engine/graphics/pipeline/shd.cpp) | `CopyClutHeader` | Copy a CLUT header, color-correct its colors, compute qword count | 0.30 | T2 |  |
+| [0x1EAE40](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadColorTablesFromBrx` | Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count | 0.85 | T1 | parse, format-doc |
+| [0x1EAF50](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadBmpFromBrx` | Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash) | 0.80 | T1 | parse, format-doc |
+| [0x1EB050](../../../src/game/engine/graphics/pipeline/shd.cpp) | `CopyBmpHeader` | Copy a BMP header and compute qword count | 0.30 | T2 |  |
+| [0x1EB098](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadBitmapsFromBrx` | Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each | 0.85 | T1 | parse, format-doc |
+| [0x1EB1A8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadTexFromBrx` | Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) | 0.75 | T1 | parse |
+| [0x1EB2F0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadShdFromBrx` | Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data | 0.80 | T1 | parse, format-doc |
+| [0x1EB678](../../../src/game/engine/graphics/pipeline/shd.cpp) | `BuildShdTex0List` | Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture) | 0.35 | T2 |  |
+| [0x1EB748](../../../src/game/engine/graphics/pipeline/shd.cpp) | `LoadShadersFromBrx` | Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures (0x1ECE58); build shader packets | 0.80 | T1 | parse, format-doc |
+| [0x1EB960](../../../src/game/engine/graphics/pipeline/shd.cpp) | `FillShaders` | Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind | 0.45 | T2 |  |
+| [0x1EC688](../../../src/game/engine/graphics/pipeline/shd.cpp) | `AddShdVifUnpack` | Emit a VIF unpack (0x226F28 kind 12) for record i; return its size | 0.25 | T2 |  |
+| [0x1EC6D0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `AddShdVifUnpackQw` | Variant of 0x1EC688 for a single qword from an object | 0.25 | T2 |  |
+| [0x1EC718](../../../src/game/engine/graphics/pipeline/shd.cpp) | `ApplyCopyRecord` | CopyAb(dst=+8, src=+4, cb=+0) | 0.25 | T2 |  |
+| [0x1EC740](../../../src/game/engine/graphics/pipeline/shd.cpp) | `RelocateShdRefs` | Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew | 0.30 | T2 |  |
+| [0x1EC7A0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `ResetShaders` | Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) | 0.65 | T1 | format-doc |
+| [0x1EC7E8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `UnloadShaders` | Clear shader GS state (D_003DA790, D_003DCFA0, 0x40 bytes at D_003DCFA8) | 0.40 | T2 |  |
+| [0x1EC820](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PshdFindShader` | Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL | 0.75 | T1 | format-doc |
+| [0x1EC880](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PfontFind` | Find an entry by oid in linked list D_003E1590 (next +0x18) | 0.30 | T2 |  |
+| [0x1EC8D0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PfontFindOrDefault` | 0x1EC880(oid) or the list head | 0.30 | T2 |  |
+| [0x1EC8F8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PshdFromIshd` | &D_003DCFEC[i] (stride 0x2C) | 0.85 | T1 | verified |
+| [0x1EC918](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PsaaFind` | Find an SAA by id (+0x14) in list D_003E159C (stops at entries with a child) | 0.35 | T2 |  |
+| [0x1EC968](../../../src/game/engine/graphics/pipeline/shd.cpp) | `UpdateShaders` | For each SAA in D_003E159C: if FUpdatableSaa call its vt8 (Update) | 0.65 | T1 |  |
+| [0x1EC9D0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `BuildClutTex2` | Fill TEX2-style CLUT fields | 0.90 | T1 | verified, format-doc |
+| [0x1ECAB0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `BuildClutGifs__FP4CLUTiP4GIFS` | existing name kept | 0.85 | existing | verified |
+| [0x1ECB18](../../../src/game/engine/graphics/pipeline/shd.cpp) | `BuildBmpTex0__FP3BMPi` | existing name kept | 0.85 | existing | verified |
+| [0x1ECBF0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `BuildBmpGifs` | BuildImageGifs for a bitmap | 0.60 | T1 |  |
+| [0x1ECC28](../../../src/game/engine/graphics/pipeline/shd.cpp) | `FBuildUploadBitmapGifs` | Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added | 0.80 | T1 | verified |
+| [0x1ECE58](../../../src/game/engine/graphics/pipeline/shd.cpp) | `UploadPermShaders` | Build and send DMA uploading the permanent (always-resident) bitmaps/CLUTs | 0.65 | T1 | format-doc |
+| [0x1ED1A8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `ColorCorrectRgba16` | Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (D_003E12C8) | 0.45 | T2 |  |
+| [0x1ED278](../../../src/game/engine/graphics/pipeline/shd.cpp) | `ColorCorrectRgba` | If color correction enabled (D_003E12C8): RGBA -> vector -> ColorCorrectVector -> RGBA | 0.65 | T1 | format-doc |
+| [0x1ED2D8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `ColorCorrectVector` | Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via HSV | 0.45 | T2 |  |
+| [0x1ED3A8](../../../src/game/engine/graphics/pipeline/shd.cpp) | `AllocTexHashTables` | Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018) | 0.45 | T2 |  |
+| [0x1ED448](../../../src/game/engine/graphics/pipeline/shd.cpp) | `ClearTexHashTables` | Null both hash tables and counts | 0.45 | T2 |  |
+| [0x1ED470](../../../src/game/engine/graphics/pipeline/shd.cpp) | `AddBmpHash` | Insert a record into the bitmap hash (key % 0x3FFD, linear probe) | 0.40 | T2 |  |
+| [0x1ED4E0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PbmpFindHash` | Look up a bitmap by id in the hash | 0.45 | T2 |  |
+| [0x1ED560](../../../src/game/engine/graphics/pipeline/shd.cpp) | `AddClutHash` | Insert into the clut hash | 0.40 | T2 |  |
+| [0x1ED5D0](../../../src/game/engine/graphics/pipeline/shd.cpp) | `PclutFindHash` | Look up a clut by id | 0.45 | T2 |  |
 
 ## shdanim (0x1ED7A8-0x1EE988)
 
