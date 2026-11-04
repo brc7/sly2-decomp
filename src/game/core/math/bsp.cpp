@@ -542,8 +542,8 @@ static inline qword Cross(qword a, qword b)
 }
 static inline qword Dot3(qword a, qword b)
 {
-    qword d, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
+    qword d;
+    d = VuDot(a, b);
     return d;
 }
 static inline qword Normalize(qword v)
@@ -631,12 +631,12 @@ extern "C" qword func_001193D8(MAT *pm, qword plane)
     t = pm->r[3];
     func_002564A8(&u.q, plane);
     float d = u.f[3];
-    qword pos, one, p2;
+    qword pos, p2;
     qword s;
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(d));
     u.q = s;
     __asm__("vadda.xyzw $ACC, %2, $vf0\n\tvmaddx.xyzw %0, %1, %3x" : "=j"(pos) : "j"(n), "j"(t), "j"(s));
-    __asm__("vmul.xyz %0, %0, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(p2), "=j"(one) : "0"(pos), "j"(n));
+    p2 = VuDot(pos, n);
     float g;
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(p2));
     SetPlane((PLANE *)&u.q, n, g);
