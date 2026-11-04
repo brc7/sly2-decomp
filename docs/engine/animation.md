@@ -149,11 +149,11 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x21C888](../../src/game/engine/anim/tail.cpp) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_0 | 0.90 | T1 | parse, verified |
 | [0x22B7D8](../../src/game/engine/anim/wr.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
 | [0x22C570](../../src/game/engine/anim/wr.cpp) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
-| [0x22D348](../../src/game/engine/anim/xf/GetXfVelocity.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
-| [0x22D7A0](../../src/game/engine/anim/xf/LoadSoXfsFromBrx.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
-| [0x22FCC8](../../src/game/engine/anim/xf/ConvertXfVec.c) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |
-| [0x230380](../../src/game/engine/anim/xf/func_00230380.c) | `FXfRoleVelocity` | role predicate {1,2,3} | 0.30 | T2 | verified |
-| [0x230598](../../src/game/engine/anim/xf/SlotUnsettle.c) | `SlotUnsettle` | Move an XF slot from an at-rest role to its moving counterpart (3->1, 6/10->7, 12->11, 19->18) via SlotSetRole | 0.70 | T1 | verified, top50; top50 round; v2 name StopXfMotion |
+| [0x22D348](../../src/game/engine/anim/xf.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
+| [0x22D7A0](../../src/game/engine/anim/xf.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
+| [0x22FCC8](../../src/game/engine/anim/xf.cpp) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |
+| [0x230380](../../src/game/engine/anim/xf.cpp) | `FXfRoleVelocity` | role predicate {1,2,3} | 0.30 | T2 | verified |
+| [0x230598](../../src/game/engine/anim/xf.cpp) | `SlotUnsettle` | Move an XF slot from an at-rest role to its moving counterpart (3->1, 6/10->7, 12->11, 19->18) via SlotSetRole | 0.70 | T1 | verified, top50; top50 round; v2 name StopXfMotion |
 
 Selected 60 of 267 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/animation.md](../reference/functions/animation.md).
 

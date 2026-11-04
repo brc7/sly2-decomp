@@ -41,7 +41,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 15 | PostLoad | **override** | [`PostSoLoad`](../../../src/game/engine/physics/so/PostSoLoad.c) | `0x1F36A8` | VUnk14 |
 | 16 | Update | **override** | [`UpdateSo`](../../../src/game/engine/physics/so/UpdateSo.c) | `0x1F36E0` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateSoXfWorld?`](../../../src/game/engine/physics/so/func_001F3980.c) | `0x1F3980` | VUnk16 |
-| 18 | UpdateLoXfWorldHierarchy | **override** | [`UpdateSoXfWorldHierarchy`](../../../src/game/engine/anim/xf/UpdateSoXfWorldHierarchy.c) | `0x22FBE0` | UpdateXfWorldHierarchy |
+| 18 | UpdateLoXfWorldHierarchy | **override** | [`UpdateSoXfWorldHierarchy`](../../../src/game/engine/anim/xf.cpp) | `0x22FBE0` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | **override** | [`RenderSoSelf`](../../../src/game/engine/physics/so/RenderSoSelf.c) | `0x1F3C70` | RenderSelf |
 | 20 | RenderLoAll | **override** | [`RenderSoAll?`](../../../src/game/engine/physics/so/func_001F3CC8.c) | `0x1F3CC8` | VUnk19 |
 | 21 | SetLoFlag8 | **override** | [`SetSoFlag8?`](../../../src/game/engine/physics/so/func_001F3B28.c) | `0x1F3B28` | VUnk20 |
@@ -74,7 +74,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/game/engine/physics/so/ClearSoGrf.c) | `0x1F3078` | VUnk47 |
 | 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/game/engine/physics/so/UpdateSoTreeBounds.cpp) | `0x1F50E0` | VUnk48 |
 | 50 | GetSoCpdefi | **new** | [`GetSoCpdefi`](../../../src/game/engine/physics/so/GetSoCpdefi.c) | `0x1F58F0` | GetCpdefi |
-| 51 | SO_PxfFromId | **new** | [`SO_PxfFromId?`](../../../src/game/engine/anim/xf/func_0022D778.c) | `0x22D778` | PxfFromIxf |
+| 51 | SO_PxfFromId | **new** | [`SO_PxfFromId?`](../../../src/game/engine/anim/xf.cpp) | `0x22D778` | PxfFromIxf |
 | 52 | CloneXfRef | **new** | [`CloneXfRef?`](../../../src/game/engine/physics/so/func_001F4CA0.c) | `0x1F4CA0` | CloneXfRef |
 | 53 | SO_PtreeNew | **new** | [`SO_PtreeNew?`](../../../src/game/engine/physics/so/func_001F56F8.c) | `0x1F56F8` | VUnk52 |
 | 54 | SO_vt54_Nop | **new** | [`SO_vt54_Nop?`](../../../src/game/engine/physics/so/func_001F5988.c) | `0x1F5988` | VUnk53 |

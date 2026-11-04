@@ -72,7 +72,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (LO) | `SetLoVisMask?` | `0x1A6DC0` | SetVisMask |
 | 47 | SetGrf | inherited (LO) | `SetLoGrf?` | `0x1A66C8` | VUnk46 |
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` | VUnk47 |
-| 49 | XFM_PxfFromId | **new** | [`XFM_PxfFromId?`](../../../src/game/engine/anim/xf/func_0022D750.c) | `0x22D750` | VSlot49 |
+| 49 | XFM_PxfFromId | **new** | [`XFM_PxfFromId?`](../../../src/game/engine/anim/xf.cpp) | `0x22D750` | VSlot49 |
 | 50 |  | **new** | [`func_00231220`](../../../src/game/object/xform.cpp) | `0x231220` | VSlot50 |
 
 ## Fields

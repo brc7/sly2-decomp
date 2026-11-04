@@ -41,7 +41,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 15 | PostLoad | **new** | [`PostLoLoad`](../../../src/game/object/lo/PostLoLoad.c) | `0x1A5C48` | VUnk14 |
 | 16 | Update | **new** | [`UpdateLo`](../../../src/game/object/lo/UpdateLo.c) | `0x1A5E28` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **new** | [`LO_vt17_InheritFlag4?`](../../../src/game/object/lo/func_001A5E80.c) | `0x1A5E80` | VUnk16 |
-| 18 | UpdateLoXfWorldHierarchy | **new** | [`UpdateLoXfWorldHierarchy`](../../../src/game/engine/anim/xf/UpdateLoXfWorldHierarchy.c) | `0x22FBD8` | UpdateXfWorldHierarchy |
+| 18 | UpdateLoXfWorldHierarchy | **new** | [`UpdateLoXfWorldHierarchy`](../../../src/game/engine/anim/xf.cpp) | `0x22FBD8` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | **new** | [`RenderLoSelf`](../../../src/game/object/lo/RenderLoSelf.c) | `0x1A5ED8` | RenderSelf |
 | 20 | RenderLoAll | **new** | [`RenderLoAll?`](../../../src/game/object/lo/func_001A5EE0.c) | `0x1A5EE0` | VUnk19 |
 | 21 | SetLoFlag8 | **new** | [`SetLoFlag8?`](../../../src/game/object/lo/func_001A6E80.c) | `0x1A6E80` | VUnk20 |

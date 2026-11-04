@@ -467,7 +467,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256C58](../../../src/game/app/bif/PairPtr_Assign.c) | `PairPtr_Assign` | refptr assign: incref new, release old pair (recursive cdr release, CRef dtor, unlink, free) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256CE8](../../../src/game/app/bif/__8VU_FLOATf.cpp) | `__8VU_FLOATf` |  |  | existing |  |
 | [0x256D08](../../../src/game/app/bif/__9VU_VECTORRC6VECTOR.c) | `__9VU_VECTORRC6VECTOR` |  |  | existing |  |
-| [0x256D18](../../../src/game/engine/anim/xf/VECTOR_opAssign.c) | `VECTOR_opAssign` | VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it | 0.60 | T1 | top50 |
+| [0x256D18](../../../src/game/engine/anim/xf.cpp) | `VECTOR_opAssign` | VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it | 0.60 | T1 | top50 |
 | [0x256D28](../../../src/game/app/bif/__ml__FG8VU_FLOATG9VU_VECTOR.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
 | [0x256D40](../../../src/game/app/bif/PairPtr_Release.c) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256DD0](../../../src/game/splice/eval.cpp) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |

@@ -307,37 +307,37 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x22C818](../../../src/game/engine/anim/xf/func_0022C818.c) | `InitXfValueRef` | b=1.0, a=0, pa=&a, pb=&b | 0.25 | T2 |  |
-| [0x22C840](../../../src/game/engine/anim/xf/func_0022C840.c) | `WakeXfSlot` | for active roles marks the owning SO awake | 0.30 | T2 |  |
-| [0x22C8C0](../../../src/game/engine/anim/xf/func_0022C8C0.c) | `ApplyXfOverride` | switch on kind: rotation/position override applied to matrix | 0.25 | T2 |  |
-| [0x22CA18](../../../src/game/engine/anim/xf/func_0022CA18.c) | `QwXfValueFromMat` | Extract an XF component value from a matrix by component kind (+0x94): translation row (1,4,5,9,10), Euler angles (6,7), shear (11), scale diagonal (12); kinds 0/15 nothing | 0.50 | T2 | top50; top50 round; v2 name func_0022CA18 |
-| [0x22CDC0](../../../src/game/engine/anim/xf/func_0022CDC0.cpp) | `SlotCurrentMatrix` | evaluates an XF slot matrix incl. jobs/parent | 0.30 | T2 |  |
-| [0x22D148](../../../src/game/engine/anim/xf/func_0022D148.c) | `GetXfAngularVelocity` | angular velocity of an XF (finite difference via 0x22CDC0) | 0.45 | T2 |  |
-| [0x22D348](../../../src/game/engine/anim/xf/GetXfVelocity.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
-| [0x22D670](../../../src/game/engine/anim/xf/func_0022D670.c) | `PushXfContext` | push onto stack D_004437A8[D_004437A0++] | 0.45 | T2 |  |
-| [0x22D698](../../../src/game/engine/anim/xf/func_0022D698.c) | `PopXfContext` | D_004437A0-- | 0.45 | T2 |  |
-| [0x22D6B0](../../../src/game/engine/anim/xf/func_0022D6B0.c) | `PxfResolveId` | id&0x3000: 0 local table, 0x1000 parent table, 0x2000 context stack top | 0.40 | T2 |  |
-| [0x22D750](../../../src/game/engine/anim/xf/func_0022D750.c) | `XFM_PxfFromId` | PxfResolveId(id, parent table, 0) | 0.45 | T2 |  |
-| [0x22D778](../../../src/game/engine/anim/xf/func_0022D778.c) | `SO_PxfFromId` | PxfResolveId(id, parent, this) | 0.45 | T2 |  |
-| [0x22D7A0](../../../src/game/engine/anim/xf/LoadSoXfsFromBrx.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
-| [0x22DD00](../../../src/game/engine/anim/xf/func_0022DD00.c) | `UpdateXfJobRange` | limits/advances a job value against gMin/gMax | 0.25 | T2 |  |
-| [0x22DE88](../../../src/game/engine/anim/xf/UpdateSoSlots.cpp) | `UpdateSoSlots` | per-frame step of all XF slots of an SO (roles, chase, springs, chains) | 0.75 | T1 |  |
-| [0x22FA20](../../../src/game/engine/anim/xf/func_0022FA20.c) | `PostSoSlotsUpdate` | if grf bit60: kind-specific refresh (0x1D6310/0x1D6378/0x147E88) | 0.25 | T2 |  |
-| [0x22FAA0](../../../src/game/engine/anim/xf/UpdateSoXfWorldMatrices.cpp) | `UpdateSoXfWorldMatrices` | recomputes linked XF world matrices with the VU matrix microprogram | 0.50 | T1 |  |
-| [0x22FBD8](../../../src/game/engine/anim/xf/UpdateLoXfWorldHierarchy.c) | `UpdateLoXfWorldHierarchy` | empty default | 0.55 | T1 |  |
-| [0x22FBE0](../../../src/game/engine/anim/xf/UpdateSoXfWorldHierarchy.c) | `UpdateSoXfWorldHierarchy` | 0x22FAA0 then children | 0.50 | T1 |  |
-| [0x22FC48](../../../src/game/engine/anim/xf/func_0022FC48.c) | `ConvertXfPos` | Transform a position from XF space a to XF space b (NULL = world): v*=a->mat; v*=inverse(b->mat) | 0.75 | T1 | top50 |
-| [0x22FCC8](../../../src/game/engine/anim/xf/ConvertXfVec.c) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |
-| [0x22FD38](../../../src/game/engine/anim/xf/ConvertXfMat.cpp) | `ConvertXfMat` | Transform a 3x3 matrix from XF space a to XF space b (NULL = world): inv(b)*a*m, copies to *pr | 0.65 | T1 | top50 |
-| [0x22FF40](../../../src/game/engine/anim/xf/func_0022FF40.c) | `ConvertXfMatrix4` | relative M4 between two XFs (inverse) | 0.30 | T2 |  |
-| [0x230018](../../../src/game/engine/anim/xf/AddXfAct.c) | `AddXfAct` | Insert an actuator into an XF slot list (+0x90) sorted by priority (+0xC); if it becomes the head, wake the slot and notify old head (vt2) and new head (vt1); else notify head (vt3) | 0.60 | T1 | top50 |
-| [0x230100](../../../src/game/engine/anim/xf/func_00230100.c) | `RemoveXfAct` | unlink actuator from XF list, then wake | 0.45 | T2 |  |
-| [0x2301D0](../../../src/game/engine/anim/xf/func_002301D0.c) | `ResortXfActList` | re-sorts up to 16 actuators by priority | 0.45 | T2 |  |
-| [0x230310](../../../src/game/engine/anim/xf/func_00230310.c) | `FXfRoleMoving` | role predicate {1,2,3,7..12,17..21} | 0.30 | T2 |  |
-| [0x230348](../../../src/game/engine/anim/xf/func_00230348.c) | `FXfRoleAtRest` | role predicate {0,3,10,12,19} | 0.30 | T2 |  |
-| [0x230380](../../../src/game/engine/anim/xf/func_00230380.c) | `FXfRoleVelocity` | role predicate {1,2,3} | 0.30 | T2 | verified |
-| [0x2303A0](../../../src/game/engine/anim/xf/func_002303A0.c) | `SlotSetRole` | Set the motion role (+0x98) of one XF slot of an SO; on leaving a static role capture the current value from the slot matrix; zero dv for velocity roles; wake the SO (vt47 SetSoGrf 4) unless the new role is an at-rest ro | 0.65 | T1 | top50 |
-| [0x230598](../../../src/game/engine/anim/xf/SlotUnsettle.c) | `SlotUnsettle` | Move an XF slot from an at-rest role to its moving counterpart (3->1, 6/10->7, 12->11, 19->18) via SlotSetRole | 0.70 | T1 | verified, top50; top50 round; v2 name StopXfMotion |
-| [0x230630](../../../src/game/engine/anim/xf/func_00230630.c) | `SlotSettle` | role/phase transitions via SlotSetRole | 0.25 | T2 |  |
-| [0x2309E8](../../../src/game/engine/anim/xf/LoadIdentityMatrix4.c) | `LoadIdentityMatrix4` | memset + diagonal 1.0 | 0.50 | T1 |  |
-| [0x230CF0](../../../src/game/engine/anim/xf/func_00230CF0.c) | `QwSlotValue` | evaluates an actuator value (Bezier/limits) | 0.30 | T2 |  |
+| [0x22C818](../../../src/game/engine/anim/xf.cpp) | `InitXfValueRef` | b=1.0, a=0, pa=&a, pb=&b | 0.25 | T2 |  |
+| [0x22C840](../../../src/game/engine/anim/xf.cpp) | `WakeXfSlot` | for active roles marks the owning SO awake | 0.30 | T2 |  |
+| [0x22C8C0](../../../src/game/engine/anim/xf.cpp) | `ApplyXfOverride` | switch on kind: rotation/position override applied to matrix | 0.25 | T2 |  |
+| [0x22CA18](../../../src/game/engine/anim/xf.cpp) | `QwXfValueFromMat` | Extract an XF component value from a matrix by component kind (+0x94): translation row (1,4,5,9,10), Euler angles (6,7), shear (11), scale diagonal (12); kinds 0/15 nothing | 0.50 | T2 | top50; top50 round; v2 name func_0022CA18 |
+| [0x22CDC0](../../../src/game/engine/anim/xf.cpp) | `SlotCurrentMatrix` | evaluates an XF slot matrix incl. jobs/parent | 0.30 | T2 |  |
+| [0x22D148](../../../src/game/engine/anim/xf.cpp) | `GetXfAngularVelocity` | angular velocity of an XF (finite difference via 0x22CDC0) | 0.45 | T2 |  |
+| [0x22D348](../../../src/game/engine/anim/xf.cpp) | `GetXfVelocity` | linear velocity of an XF | 0.70 | T1 | runtime |
+| [0x22D670](../../../src/game/engine/anim/xf.cpp) | `PushXfContext` | push onto stack D_004437A8[D_004437A0++] | 0.45 | T2 |  |
+| [0x22D698](../../../src/game/engine/anim/xf.cpp) | `PopXfContext` | D_004437A0-- | 0.45 | T2 |  |
+| [0x22D6B0](../../../src/game/engine/anim/xf.cpp) | `PxfResolveId` | id&0x3000: 0 local table, 0x1000 parent table, 0x2000 context stack top | 0.40 | T2 |  |
+| [0x22D750](../../../src/game/engine/anim/xf.cpp) | `XFM_PxfFromId` | PxfResolveId(id, parent table, 0) | 0.45 | T2 |  |
+| [0x22D778](../../../src/game/engine/anim/xf.cpp) | `SO_PxfFromId` | PxfResolveId(id, parent, this) | 0.45 | T2 |  |
+| [0x22D7A0](../../../src/game/engine/anim/xf.cpp) | `LoadSoXfsFromBrx` | reads XF records and optional animation jobs (incl. chains 0x21C888) | 0.75 | T1 | parse |
+| [0x22DD00](../../../src/game/engine/anim/xf.cpp) | `UpdateXfJobRange` | limits/advances a job value against gMin/gMax | 0.25 | T2 |  |
+| [0x22DE88](../../../src/game/engine/anim/xf.cpp) | `UpdateSoSlots` | per-frame step of all XF slots of an SO (roles, chase, springs, chains) | 0.75 | T1 |  |
+| [0x22FA20](../../../src/game/engine/anim/xf.cpp) | `PostSoSlotsUpdate` | if grf bit60: kind-specific refresh (0x1D6310/0x1D6378/0x147E88) | 0.25 | T2 |  |
+| [0x22FAA0](../../../src/game/engine/anim/xf.cpp) | `UpdateSoXfWorldMatrices` | recomputes linked XF world matrices with the VU matrix microprogram | 0.50 | T1 |  |
+| [0x22FBD8](../../../src/game/engine/anim/xf.cpp) | `UpdateLoXfWorldHierarchy` | empty default | 0.55 | T1 |  |
+| [0x22FBE0](../../../src/game/engine/anim/xf.cpp) | `UpdateSoXfWorldHierarchy` | 0x22FAA0 then children | 0.50 | T1 |  |
+| [0x22FC48](../../../src/game/engine/anim/xf.cpp) | `ConvertXfPos` | Transform a position from XF space a to XF space b (NULL = world): v*=a->mat; v*=inverse(b->mat) | 0.75 | T1 | top50 |
+| [0x22FCC8](../../../src/game/engine/anim/xf.cpp) | `ConvertXfVec` | transforms a direction between XF spaces | 0.85 | T1 | verified |
+| [0x22FD38](../../../src/game/engine/anim/xf.cpp) | `ConvertXfMat` | Transform a 3x3 matrix from XF space a to XF space b (NULL = world): inv(b)*a*m, copies to *pr | 0.65 | T1 | top50 |
+| [0x22FF40](../../../src/game/engine/anim/xf.cpp) | `ConvertXfMatrix4` | relative M4 between two XFs (inverse) | 0.30 | T2 |  |
+| [0x230018](../../../src/game/engine/anim/xf.cpp) | `AddXfAct` | Insert an actuator into an XF slot list (+0x90) sorted by priority (+0xC); if it becomes the head, wake the slot and notify old head (vt2) and new head (vt1); else notify head (vt3) | 0.60 | T1 | top50 |
+| [0x230100](../../../src/game/engine/anim/xf.cpp) | `RemoveXfAct` | unlink actuator from XF list, then wake | 0.45 | T2 |  |
+| [0x2301D0](../../../src/game/engine/anim/xf.cpp) | `ResortXfActList` | re-sorts up to 16 actuators by priority | 0.45 | T2 |  |
+| [0x230310](../../../src/game/engine/anim/xf.cpp) | `FXfRoleMoving` | role predicate {1,2,3,7..12,17..21} | 0.30 | T2 |  |
+| [0x230348](../../../src/game/engine/anim/xf.cpp) | `FXfRoleAtRest` | role predicate {0,3,10,12,19} | 0.30 | T2 |  |
+| [0x230380](../../../src/game/engine/anim/xf.cpp) | `FXfRoleVelocity` | role predicate {1,2,3} | 0.30 | T2 | verified |
+| [0x2303A0](../../../src/game/engine/anim/xf.cpp) | `SlotSetRole` | Set the motion role (+0x98) of one XF slot of an SO; on leaving a static role capture the current value from the slot matrix; zero dv for velocity roles; wake the SO (vt47 SetSoGrf 4) unless the new role is an at-rest ro | 0.65 | T1 | top50 |
+| [0x230598](../../../src/game/engine/anim/xf.cpp) | `SlotUnsettle` | Move an XF slot from an at-rest role to its moving counterpart (3->1, 6/10->7, 12->11, 19->18) via SlotSetRole | 0.70 | T1 | verified, top50; top50 round; v2 name StopXfMotion |
+| [0x230630](../../../src/game/engine/anim/xf.cpp) | `SlotSettle` | role/phase transitions via SlotSetRole | 0.25 | T2 |  |
+| [0x2309E8](../../../src/game/engine/anim/xf.cpp) | `LoadIdentityMatrix4` | memset + diagonal 1.0 | 0.50 | T1 |  |
+| [0x230CF0](../../../src/game/engine/anim/xf.cpp) | `QwSlotValue` | evaluates an actuator value (Bezier/limits) | 0.30 | T2 |  |
