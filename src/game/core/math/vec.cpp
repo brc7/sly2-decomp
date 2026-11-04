@@ -368,7 +368,7 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
         if (Dot(ca, n) < 0.0f) {
             U s;
             float m = -1.0f;
-            { qword s_q; __asm__("qmtc2.ni %1, %0" : "=j"(s_q) : "r"(m)); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
+            { qword s_q; s_q = VuFromFloat<qword>(m); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s.q));
         }
     }
@@ -413,7 +413,7 @@ static inline float GClamp(float g, float lo, float hi)
 static inline qword VF(float g)
 {
     U s;
-    { qword s_q; __asm__("qmtc2.ni %1, %0" : "=j"(s_q) : "r"(g)); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
+    { qword s_q; s_q = VuFromFloat<qword>(g); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
     return s.q;
 }
 static inline qword Len(qword v)
@@ -506,7 +506,7 @@ extern "C" qword LimitVectorLength(qword v, float gMax)
         qword r;
         float q;
         __asm__ __volatile__("div.s %0, %1, %2" : "=f"(q) : "f"(gMax), "f"(g));
-        { qword s_q; __asm__("qmtc2.ni %1, %0" : "=j"(s_q) : "r"(q)); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
+        { qword s_q; s_q = VuFromFloat<qword>(q); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
         return r;
     }
@@ -612,7 +612,7 @@ extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qwo
         U t;
         qword r;
         __asm__("sqrt.s %0, %1" : "=&f"(l) : "f"(lenSq));
-        { qword t_q; __asm__("qmtc2.ni %1, %0" : "=j"(t_q) : "r"(s / l)); t.q = t_q; }   /* asm output into a scalar, then the union (see the merge guide) */
+        { qword t_q; t_q = VuFromFloat<qword>(s / l); t.q = t_q; }   /* asm output into a scalar, then the union (see the merge guide) */
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(n), "j"(t.q));
         *pnormal = r;
     }
@@ -737,7 +737,7 @@ extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *ppo
     if (ppos || pdist) {
         qword s, buf;
         qword c, q;
-        __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(t));
+        s = VuFromFloat<qword>(t);
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(c) : "j"(p0r), "j"(d), "j"(s));
         __asm__ __volatile__("sqc2 %1, %0" : "=m"(buf) : "j"(s)); /* dead spill of s, as in the target */
         if (ppos) {
@@ -818,7 +818,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
     if (ppos || pdist) {
         qword s, buf;
         qword c, q;
-        __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(t));
+        s = VuFromFloat<qword>(t);
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(c) : "j"(p0), "j"(d), "j"(s));
         __asm__ __volatile__("sqc2 %1, %0" : "=m"(buf) : "j"(s));
         if (ppos) {

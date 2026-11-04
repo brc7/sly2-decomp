@@ -633,7 +633,7 @@ extern "C" qword func_001193D8(MAT *pm, qword plane)
     float d = u.f[3];
     qword pos, p2;
     qword s;
-    __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(d));
+    s = VuFromFloat<qword>(d);
     u.q = s;
     __asm__("vadda.xyzw $ACC, %2, $vf0\n\tvmaddx.xyzw %0, %1, %3x" : "=j"(pos) : "j"(n), "j"(t), "j"(s));
     p2 = VuDot(pos, n);

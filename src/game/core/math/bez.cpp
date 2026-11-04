@@ -29,14 +29,14 @@ static inline qword VF(float g)
 {
     U s;
     qword q;
-    __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(g));
+    q = VuFromFloat<qword>(g);
     s.q = q;
     return q;
 }
 static inline qword VF0(float g)
 {
     qword q;
-    __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(g));
+    q = VuFromFloat<qword>(g);
     return q;
 }
 static inline qword ScaleT(qword v, qword k)
@@ -214,7 +214,7 @@ extern "C" void EvaluateBezierMat(float dt, float t, float gScale, M3 *pmat0, qw
         float h = u * 3.0f;
         M3 us;
         register qword sc __asm__("vf2"); /* pin */
-        __asm__("qmtc2.ni %1, %0" : "=j"(sc) : "r"(gScale));
+        sc = VuFromFloat<qword>(gScale);
         us.r[0] = sc;
         qword kb = VF0(u * (h + -2.0f));
         qword ka = VF(1.0f - u * (4.0f - h));
