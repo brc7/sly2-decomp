@@ -191,13 +191,13 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2D4220` | 3 | 1=`CQueueOutputIpu_CbWrite?`, 2=`CQueueOutputIpu_FAsyncDrain?` | [`FMpegDecodeVideo?`](../../src/game/gameplay/cutscene/mpeg/FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg.c) (+0x0) | — |
+| `0x2D4220` | 3 | 1=`CQueueOutputIpu_CbWrite?`, 2=`CQueueOutputIpu_FAsyncDrain?` | [`FMpegDecodeVideo?`](../../src/game/gameplay/cutscene/mpeg.cpp) (+0x0) | — |
 
 #### B2.15 QueueOutputIop
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2D4240` | 3 | 1=`CQueueOutputIop_CbWrite?`, 2=`CQueueOutputIop_FAsyncDrain?` | [`StaticInit_mpeg?`](../../src/game/gameplay/cutscene/mpeg/StaticInit_mpeg.c) (+0x68A0) | — |
+| `0x2D4240` | 3 | 1=`CQueueOutputIop_CbWrite?`, 2=`CQueueOutputIop_FAsyncDrain?` | [`StaticInit_mpeg?`](../../src/game/gameplay/cutscene/mpeg.cpp) (+0x68A0) | — |
 
 #### B2.16 RIP / MATCH
 

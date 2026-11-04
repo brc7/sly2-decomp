@@ -82,29 +82,29 @@ From `devtools/cutscene_player/docs/relay_commands.txt`, checked against RELAY 0
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1B2940](../../src/game/gameplay/cutscene/mpeg/StartupMpeg__Fv.c) | `StartupMpeg` | Create mpeg semaphore and start the display thread | 0.85 | T1 | verified |
-| [0x1B29D0](../../src/game/gameplay/cutscene/mpeg/CQueueOutputIop_Init.c) | `CQueueOutputIop_Init` | Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset | 0.75 | T1 |  |
-| [0x1B2EB8](../../src/game/gameplay/cutscene/mpeg/CQueueOutputIop_Update.c) | `CQueueOutputIop_Update` | Read IOP playback position and update read/write cursors | 0.75 | T1 |  |
-| [0x1B2FD0](../../src/game/gameplay/cutscene/mpeg/FAsyncDrain__15CQueueOutputIop.c) | `CQueueOutputIop_FAsyncDrain` | returns 0 | 0.80 | T1 | verified |
-| [0x1B2FD8](../../src/game/gameplay/cutscene/mpeg/CQueueOutputIpu_CbWrite.c) | `CQueueOutputIpu_CbWrite` | Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes | 0.85 | T1 |  |
-| [0x1B3038](../../src/game/gameplay/cutscene/mpeg/FAsyncDrain__15CQueueOutputIpu.c) | `CQueueOutputIpu_FAsyncDrain` | returns 1 | 0.80 | T1 | verified |
-| [0x1B3040](../../src/game/gameplay/cutscene/mpeg/Init__10CMpegAudio.c) | `CMpegAudio_Init` | Stop game sound/music, allocate IOP voice resources for movie audio | 0.80 | T1 | verified |
-| [0x1B3130](../../src/game/gameplay/cutscene/mpeg/Reset__10CMpegAudio.c) | `CMpegAudio_Reset` | reset byte queues and IOP queue | 0.85 | T1 | verified |
-| [0x1B3190](../../src/game/gameplay/cutscene/mpeg/Close__10CMpegAudio.c) | `CMpegAudio_Close` | release IOP resources | 0.80 | T1 | verified |
-| [0x1B31E0](../../src/game/gameplay/cutscene/mpeg/FAccept__10CMpegAudioiPUc.c) | `CMpegAudio_FAccept` | accept demuxed audio packet: pick stream id, init queue from header, CbFill | 0.80 | T1 |  |
-| [0x1B32B8](../../src/game/gameplay/cutscene/mpeg/Update__10CMpegAudio.c) | `CMpegAudio_Update` | drain byte queue to IOP per state | 0.80 | T1 | verified |
-| [0x1B3388](../../src/game/gameplay/cutscene/mpeg/FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg.c) | `FMpegAcceptVideo` | sceMpeg video stream callback: CbFill video queue | 0.80 | T1 | verified |
-| [0x1B33C8](../../src/game/gameplay/cutscene/mpeg/FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg.c) | `FMpegAcceptAudio` | audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180) | 0.80 | T1 | verified |
-| [0x1B33F0](../../src/game/gameplay/cutscene/mpeg/FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg.c) | `FMpegDecodeVideo` | decode callback: feed IPU from video queue | 0.85 | T1 | verified |
-| [0x1B34D0](../../src/game/gameplay/cutscene/mpeg/FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg.c) | `FMpegDecoderIdle` | idle callback: spool stream + audio update | 0.75 | T1 |  |
-| [0x1B3508](../../src/game/gameplay/cutscene/mpeg/FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg.c) | `FMpegDecoderError` | returns 1 | 0.80 | T1 | verified |
-| [0x1B3510](../../src/game/gameplay/cutscene/mpeg/BuildMpegGifs.cpp) | `BuildMpegGifs` | build GIF packets to upload decoded RGB32 picture | 0.75 | T1 | verified |
-| [0x1B3B08](../../src/game/gameplay/cutscene/mpeg/CMpeg_ExecuteOids.cpp) | `CMpeg_ExecuteOids` | Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level transition | 0.75 | T1 |  |
-| [0x1B3BD0](../../src/game/gameplay/cutscene/mpeg/Execute__5CMpegPv.cpp) | `CMpeg_Execute` | Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish | 0.85 | T1 | verified |
-| [0x1B3EC0](../../src/game/gameplay/cutscene/mpeg/CMpeg_Start.c) | `CMpeg_Start` | init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks | 0.80 | T1 |  |
-| [0x1B4058](../../src/game/gameplay/cutscene/mpeg/Update__5CMpeg.c) | `CMpeg_Update` | get decoded picture, BuildMpegGifs, subtitles, signal display thread | 0.80 | T1 | arbitration |
-| [0x1B4140](../../src/game/gameplay/cutscene/mpeg/Finish__5CMpeg.c) | `CMpeg_Finish` | audio reset/close, sceMpegReset/Delete | 0.80 | T1 | verified |
-| [0x1B41D0](../../src/game/gameplay/cutscene/mpeg/CbDemuxed__5CMpegi.c) | `CMpeg_CbDemuxed` | spool async stream and demux into sceMpeg (returns 2 at EOF) | 0.85 | T1 | arbitration |
+| [0x1B2940](../../src/game/gameplay/cutscene/mpeg.cpp) | `StartupMpeg` | Create mpeg semaphore and start the display thread | 0.85 | T1 | verified |
+| [0x1B29D0](../../src/game/gameplay/cutscene/mpeg.cpp) | `CQueueOutputIop_Init` | Init IOP output queue from audio params (0x10 = streaming mode), allocate IOP buffer (0x232EE8), Reset | 0.75 | T1 |  |
+| [0x1B2EB8](../../src/game/gameplay/cutscene/mpeg.cpp) | `CQueueOutputIop_Update` | Read IOP playback position and update read/write cursors | 0.75 | T1 |  |
+| [0x1B2FD0](../../src/game/gameplay/cutscene/mpeg.cpp) | `CQueueOutputIop_FAsyncDrain` | returns 0 | 0.80 | T1 | verified |
+| [0x1B2FD8](../../src/game/gameplay/cutscene/mpeg.cpp) | `CQueueOutputIpu_CbWrite` | Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes | 0.85 | T1 |  |
+| [0x1B3038](../../src/game/gameplay/cutscene/mpeg.cpp) | `CQueueOutputIpu_FAsyncDrain` | returns 1 | 0.80 | T1 | verified |
+| [0x1B3040](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpegAudio_Init` | Stop game sound/music, allocate IOP voice resources for movie audio | 0.80 | T1 | verified |
+| [0x1B3130](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpegAudio_Reset` | reset byte queues and IOP queue | 0.85 | T1 | verified |
+| [0x1B3190](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpegAudio_Close` | release IOP resources | 0.80 | T1 | verified |
+| [0x1B31E0](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpegAudio_FAccept` | accept demuxed audio packet: pick stream id, init queue from header, CbFill | 0.80 | T1 |  |
+| [0x1B32B8](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpegAudio_Update` | drain byte queue to IOP per state | 0.80 | T1 | verified |
+| [0x1B3388](../../src/game/gameplay/cutscene/mpeg.cpp) | `FMpegAcceptVideo` | sceMpeg video stream callback: CbFill video queue | 0.80 | T1 | verified |
+| [0x1B33C8](../../src/game/gameplay/cutscene/mpeg.cpp) | `FMpegAcceptAudio` | audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180) | 0.80 | T1 | verified |
+| [0x1B33F0](../../src/game/gameplay/cutscene/mpeg.cpp) | `FMpegDecodeVideo` | decode callback: feed IPU from video queue | 0.85 | T1 | verified |
+| [0x1B34D0](../../src/game/gameplay/cutscene/mpeg.cpp) | `FMpegDecoderIdle` | idle callback: spool stream + audio update | 0.75 | T1 |  |
+| [0x1B3508](../../src/game/gameplay/cutscene/mpeg.cpp) | `FMpegDecoderError` | returns 1 | 0.80 | T1 | verified |
+| [0x1B3510](../../src/game/gameplay/cutscene/mpeg.cpp) | `BuildMpegGifs` | build GIF packets to upload decoded RGB32 picture | 0.75 | T1 | verified |
+| [0x1B3B08](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpeg_ExecuteOids` | Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level transition | 0.75 | T1 |  |
+| [0x1B3BD0](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpeg_Execute` | Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish | 0.85 | T1 | verified |
+| [0x1B3EC0](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpeg_Start` | init byte queue, CMpegAudio::Init, sceMpegInit/Create, add callbacks | 0.80 | T1 |  |
+| [0x1B4058](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpeg_Update` | get decoded picture, BuildMpegGifs, subtitles, signal display thread | 0.80 | T1 | arbitration |
+| [0x1B4140](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpeg_Finish` | audio reset/close, sceMpegReset/Delete | 0.80 | T1 | verified |
+| [0x1B41D0](../../src/game/gameplay/cutscene/mpeg.cpp) | `CMpeg_CbDemuxed` | spool async stream and demux into sceMpeg (returns 2 at EOF) | 0.85 | T1 | arbitration |
 | [0x1DFAD8](../../src/game/gameplay/cutscene/relay/InitRelay.c) | `InitRelay` | RELAY::Init (vt7): InitLo; crelaycmdMax(+0x58)=-1; InitDl(&dlJsg +0x5C, ibDle 0xE4) | 0.85 | T1 | verified |
 | [0x1DFB10](../../src/game/gameplay/cutscene/relay/LoadRelayFromBrx.cpp) | `LoadRelayFromBrx` | RELAY::LoadFromBrx (vt14): build commands into a 0xA000-byte temp buffer (0x200 x 0x50), start with BlockBegin(-1), fAppendEnd=1, LoadLoFromBrx (the o | 0.80 | T1 | parse |
 | [0x1DFBF8](../../src/game/gameplay/cutscene/relay/CloneRelay.c) | `CloneRelay` | RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own copy of the command array | 0.70 | T1 |  |
