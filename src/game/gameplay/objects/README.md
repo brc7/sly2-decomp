@@ -9,7 +9,7 @@
 | [`button.cpp`](button.cpp) | 1 |
 | [`empty_1D7A30.cpp`](empty_1D7A30.cpp) | 1 |
 | [`missile.cpp`](missile.cpp) | 1 |
-| [`rhythm/`](rhythm/) | 35 |
+| [`rhythm.cpp`](rhythm.cpp) | 1 |
 | [`sensor/`](sensor/) | 21 |
 | [`target.cpp`](target.cpp) | 1 |
 | [`tu_14C548.cpp`](tu_14C548.cpp) | 1 |

@@ -73,11 +73,11 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x148C08](../../src/game/gameplay/objects/button.cpp) | `LoadButtonFromBrx` | vt14: LoadSoFromBrx then LoadBtn(+0x150, this) | 0.85 | T1 | parse |
 | [0x148C38](../../src/game/gameplay/objects/button.cpp) | `PostButtonLoad` | vt15: PostSoLoad, PostBtnLoad, SetButtonButtons(0) | 0.75 | T1 |  |
 | [0x149358](../../src/game/gameplay/objects/button.cpp) | `LoadCid24FromBrx` |  | 0.75 | T2 | parse, format-doc |
-| [0x152100](../../src/game/gameplay/objects/rhythm/func_00152100.c) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
-| [0x152810](../../src/game/gameplay/objects/rhythm/func_00152810.c) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
-| [0x1535A0](../../src/game/gameplay/objects/rhythm/GRhythmTimingScore.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
-| [0x153760](../../src/game/gameplay/objects/rhythm/GAverageRhythmScore.c) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
-| [0x153800](../../src/game/gameplay/objects/rhythm/ResetRhythmScore.c) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
+| [0x152100](../../src/game/gameplay/objects/rhythm.cpp) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
+| [0x152810](../../src/game/gameplay/objects/rhythm.cpp) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
+| [0x1535A0](../../src/game/gameplay/objects/rhythm.cpp) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
+| [0x153760](../../src/game/gameplay/objects/rhythm.cpp) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
+| [0x153800](../../src/game/gameplay/objects/rhythm.cpp) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
 | [0x17F6B0](../../src/game/gameplay/objects/tu_17F090/func_0017F6B0.c) | `ResetCid71` | Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638) | 0.40 | T2 | verified |
 | [0x1800A0](../../src/game/gameplay/objects/tu_17F090/AddHackshipOidPair.c) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
 | [0x180188](../../src/game/gameplay/objects/tu_17F090/func_00180188.c) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |

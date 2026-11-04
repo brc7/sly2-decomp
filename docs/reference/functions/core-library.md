@@ -512,11 +512,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258280](../../../include/sly2/stepplayer.h) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x258290](../../../src/game/engine/camera/cm/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x258348](../../../src/game/engine/presentation/screen/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258438](../../../src/game/gameplay/objects/rhythm/CTextBox_SetPos.c) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258448](../../../src/game/gameplay/objects/rhythm/CTextBox_SetSize.c) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258458](../../../src/game/gameplay/objects/rhythm/CTextBox_SetTextColor.c) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258470](../../../src/game/gameplay/objects/rhythm/CTextBox_SetHorizontalJust.c) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x258478](../../../src/game/gameplay/objects/rhythm/CTextBox_SetVerticalJust.c) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x258438](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258448](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258458](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258470](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x258478](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258480](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
 | [0x2584A8](../../../src/game/engine/fx/emitter/LoadEmitblipColorsFromBrx.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
 | [0x258598](../../../src/game/engine/fx/emitter/LoadEmitterFromBrx.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |

@@ -27,18 +27,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleDancerMessage?`](../../../src/game/gameplay/objects/rhythm/func_00152250.c) | `0x152250` |
+| 5 | HandleMessage | **override** | [`HandleDancerMessage?`](../../../src/game/gameplay/objects/rhythm.cpp) | `0x152250` |
 | 6 | Pclassinfo | **override** | [`GetDancerClassDesc`](../../../src/game/app/class_registry/GetDancerClassDesc.c) | `0x113E50` |
 | 7 | Init | inherited (STEP) | `InitStep` | `0x203948` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
-| 12 | RemoveHierarchy | **override** | [`RemoveHierarchyDancer?`](../../../src/game/gameplay/objects/rhythm/func_001520C8.c) | `0x1520C8` |
+| 12 | RemoveHierarchy | **override** | [`RemoveHierarchyDancer?`](../../../src/game/gameplay/objects/rhythm.cpp) | `0x1520C8` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (STEP) | `LoadStepFromBrx` | `0x2039C0` |
-| 15 | PostLoad | **override** | [`PostLoadDancer?`](../../../src/game/gameplay/objects/rhythm/func_00152100.c) | `0x152100` |
-| 16 | Update | **override** | [`UpdateDancer?`](../../../src/game/gameplay/objects/rhythm/func_00152148.c) | `0x152148` |
+| 15 | PostLoad | **override** | [`PostLoadDancer?`](../../../src/game/gameplay/objects/rhythm.cpp) | `0x152100` |
+| 16 | Update | **override** | [`UpdateDancer?`](../../../src/game/gameplay/objects/rhythm.cpp) | `0x152148` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (STEP) | `RenderStepSelf` | `0x203AD0` |
@@ -72,7 +72,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` |
 | 49 | UpdateSoTreeBounds | inherited (SO) | `UpdateSoTreeBounds` | `0x1F50E0` |
-| 50 | GetSoCpdefi | **override** | [`GetDancerCpdefi`](../../../src/game/gameplay/objects/rhythm/GetDancerCpdefi.c) | `0x152350` |
+| 50 | GetSoCpdefi | **override** | [`GetDancerCpdefi`](../../../src/game/gameplay/objects/rhythm.cpp) | `0x152350` |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |

@@ -109,33 +109,33 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1520C8](../../../src/game/gameplay/objects/rhythm/func_001520C8.c) | `RemoveHierarchyDancer` | cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)) | 0.35 | T2 |  |
-| [0x152100](../../../src/game/gameplay/objects/rhythm/func_00152100.c) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
-| [0x152148](../../../src/game/gameplay/objects/rhythm/func_00152148.c) | `UpdateDancer` | cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg | 0.45 | T2 |  |
-| [0x152250](../../../src/game/gameplay/objects/rhythm/func_00152250.c) | `HandleDancerMessage` | cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived velocity via vt35 | 0.40 | T2 |  |
-| [0x152350](../../../src/game/gameplay/objects/rhythm/GetDancerCpdefi.c) | `GetDancerCpdefi` | cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees) | 0.70 | T1 |  |
-| [0x152390](../../../src/game/gameplay/objects/rhythm/func_00152390.c) | `PlayDancerMove` | Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally rebind result, stop asegs (0x2303A0 x2) and apply entry's aseg j | 0.35 | T2 |  |
-| [0x1524A0](../../../src/game/gameplay/objects/rhythm/ApplyDancerAseg.c) | `ApplyDancerAseg` | ApplyAsegCur(paseg, this, 0, 1, grf\|1, &this->pasega408) | 0.60 | T1 |  |
-| [0x1524D8](../../../src/game/gameplay/objects/rhythm/AddDancerMove.c) | `AddDancerMove` | Append move entry {a,b,c,d,e} (max 8) at +0x2C4 | 0.50 | T1 |  |
-| [0x152520](../../../src/game/gameplay/objects/rhythm/func_00152520.c) | `PloFindDancerMoveObject` | PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9 | 0.30 | T2 |  |
-| [0x152578](../../../src/game/gameplay/objects/rhythm/func_00152578.c) | `BindDancerMoves` | Resolve every move entry's 3 oids to objects via 0x152520 | 0.45 | T2 |  |
-| [0x152628](../../../src/game/gameplay/objects/rhythm/func_00152628.c) | `IGradeFromOid` | Map oid 0x626/0x627/0x628 -> 0/1/2 (else -1) | 0.40 | T2 |  |
-| [0x152680](../../../src/game/gameplay/objects/rhythm/func_00152680.c) | `OidFromIGrade` | Map 0/1/2 -> oid 0x626/0x627/0x628 | 0.40 | T2 |  |
-| [0x1526D8](../../../src/game/gameplay/objects/rhythm/InitRhythmMgr.c) | `InitRhythmMgr` | cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows 0.4/0.4, 8-sample average, grade thresholds | 0.50 | T1 |  |
-| [0x1527C8](../../../src/game/gameplay/objects/rhythm/func_001527C8.c) | `PostLoadRhythmMgr` | cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with 0x149A50 | 0.40 | T2 |  |
-| [0x152810](../../../src/game/gameplay/objects/rhythm/func_00152810.c) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
-| [0x152970](../../../src/game/gameplay/objects/rhythm/UpdateRhythmMgr.c) | `UpdateRhythmMgr` | cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades | 0.50 | T1 |  |
-| [0x152B58](../../../src/game/gameplay/objects/rhythm/func_00152B58.c) | `UpdateRhythmMgrGrades` | Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score | 0.40 | T2 |  |
-| [0x152C58](../../../src/game/gameplay/objects/rhythm/DrawRhythmMgr.cpp) | `DrawRhythmMgr` | Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions, highlights the expected one, animates a hint marker | 0.50 | T1 |  |
-| [0x153128](../../../src/game/gameplay/objects/rhythm/SetRhythmMgrState.c) | `SetRhythmMgrState` | Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 = Decrement; stamps time, resets cue index | 0.55 | T1 |  |
-| [0x1531A8](../../../src/game/gameplay/objects/rhythm/func_001531A8.c) | `SetRhythmMgrPrompts` | Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at y=468.8; then SetRhythmMgrState(q) | 0.40 | T2 |  |
-| [0x1532D8](../../../src/game/gameplay/objects/rhythm/func_001532D8.c) | `PushRhythmMgrCue` | Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0 | 0.35 | T2 |  |
-| [0x1533B0](../../../src/game/gameplay/objects/rhythm/func_001533B0.c) | `JudgeRhythmPress` | Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C | 0.40 | T2 |  |
-| [0x1535A0](../../../src/game/gameplay/objects/rhythm/GRhythmTimingScore.c) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
-| [0x153640](../../../src/game/gameplay/objects/rhythm/AddRhythmScore.c) | `AddRhythmScore` | Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute average (+0x284); post msg 0x36 | 0.50 | T1 |  |
-| [0x153760](../../../src/game/gameplay/objects/rhythm/GAverageRhythmScore.c) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
-| [0x153800](../../../src/game/gameplay/objects/rhythm/ResetRhythmScore.c) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
-| [0x153810](../../../src/game/gameplay/objects/rhythm/func_00153810.c) | `AddRhythmMgrGrade` | Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8 | 0.40 | T2 |  |
+| [0x1520C8](../../../src/game/gameplay/objects/rhythm.cpp) | `RemoveHierarchyDancer` | cid 0x44 vt12 override: base (0x1F2D48) then clear its animation (ApplyDancerAseg(this,0,0)) | 0.35 | T2 |  |
+| [0x152100](../../../src/game/gameplay/objects/rhythm.cpp) | `PostLoadDancer` | cid 0x44 vt15: base 0x203A38, BindDancerMoves (resolve aseg oids), vt79(0) | 0.40 | T2 | verified |
+| [0x152148](../../../src/game/gameplay/objects/rhythm.cpp) | `UpdateDancer` | cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg | 0.45 | T2 |  |
+| [0x152250](../../../src/game/gameplay/objects/rhythm.cpp) | `HandleDancerMessage` | cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived velocity via vt35 | 0.40 | T2 |  |
+| [0x152350](../../../src/game/gameplay/objects/rhythm.cpp) | `GetDancerCpdefi` | cid 0x44 vt50 GetCpdefi: base 0x1F58F0 then radHome(+0x30) -= 3*PI/4 (camera home swung 135 degrees) | 0.70 | T1 |  |
+| [0x152390](../../../src/game/gameplay/objects/rhythm.cpp) | `PlayDancerMove` | Find move entry by id (or, id==-1, the one matching the current aseg state 0x1C4700), optionally rebind result, stop asegs (0x2303A0 x2) and apply entry's aseg j | 0.35 | T2 |  |
+| [0x1524A0](../../../src/game/gameplay/objects/rhythm.cpp) | `ApplyDancerAseg` | ApplyAsegCur(paseg, this, 0, 1, grf\|1, &this->pasega408) | 0.60 | T1 |  |
+| [0x1524D8](../../../src/game/gameplay/objects/rhythm.cpp) | `AddDancerMove` | Append move entry {a,b,c,d,e} (max 8) at +0x2C4 | 0.50 | T1 |  |
+| [0x152520](../../../src/game/gameplay/objects/rhythm.cpp) | `PloFindDancerMoveObject` | PloFindSwObject(&g_sw, 4, oid, this) then call result's vt9 | 0.30 | T2 |  |
+| [0x152578](../../../src/game/gameplay/objects/rhythm.cpp) | `BindDancerMoves` | Resolve every move entry's 3 oids to objects via 0x152520 | 0.45 | T2 |  |
+| [0x152628](../../../src/game/gameplay/objects/rhythm.cpp) | `IGradeFromOid` | Map oid 0x626/0x627/0x628 -> 0/1/2 (else -1) | 0.40 | T2 |  |
+| [0x152680](../../../src/game/gameplay/objects/rhythm.cpp) | `OidFromIGrade` | Map 0/1/2 -> oid 0x626/0x627/0x628 | 0.40 | T2 |  |
+| [0x1526D8](../../../src/game/gameplay/objects/rhythm.cpp) | `InitRhythmMgr` | cid 0x79 vt7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows 0.4/0.4, 8-sample average, grade thresholds | 0.50 | T1 |  |
+| [0x1527C8](../../../src/game/gameplay/objects/rhythm.cpp) | `PostLoadRhythmMgr` | cid 0x79 vt15: base 0x1A5C48 then registers callback 0x152810 (pointer at D_002A5010+4) with 0x149A50 | 0.40 | T2 |  |
+| [0x152810](../../../src/game/gameplay/objects/rhythm.cpp) | `BindRhythmMgrGrades` | Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds across the score range | 0.35 | T2 | verified |
+| [0x152970](../../../src/game/gameplay/objects/rhythm.cpp) | `UpdateRhythmMgr` | cid 0x79 vt16 per-frame: music time t = 0x1FE3F8(&g_sndmgr); state 1 plays cue moves when due, state 2 posts msg 0x34 per prompt and scores misses (AddRhythmScore g2A4); smooth displayed score; UpdateRhythmMgrGrades | 0.50 | T1 |  |
+| [0x152B58](../../../src/game/gameplay/objects/rhythm.cpp) | `UpdateRhythmMgrGrades` | Per bound grade object: if finished unbind; else show grade j (oid 0x626+j) for the smoothed score | 0.40 | T2 |  |
+| [0x152C58](../../../src/game/gameplay/objects/rhythm.cpp) | `DrawRhythmMgr` | Draws the button-prompt HUD: per prompt 4 button glyphs ('&2?&.'-style font strings) at timeline positions, highlights the expected one, animates a hint marker | 0.50 | T1 |  |
+| [0x153128](../../../src/game/gameplay/objects/rhythm.cpp) | `SetRhythmMgrState` | Option setter: state(+0x50) change; entering 1 = IncrementSwHandsOff(g_sw,3), leaving 1 = Decrement; stamps time, resets cue index | 0.55 | T1 |  |
+| [0x1531A8](../../../src/game/gameplay/objects/rhythm.cpp) | `SetRhythmMgrPrompts` | Copy c prompt records (0x30 each, max 6) and lay them out on a 440-px timeline from x=100 at y=468.8; then SetRhythmMgrState(q) | 0.40 | T2 |  |
+| [0x1532D8](../../../src/game/gameplay/objects/rhythm.cpp) | `PushRhythmMgrCue` | Push cue {a,b,c,g, t=music time} into a ring of 3 at +0x1C0 | 0.35 | T2 |  |
+| [0x1533B0](../../../src/game/gameplay/objects/rhythm.cpp) | `JudgeRhythmPress` | Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button (0x1C4700) -> success move + timing score; wrong -> g29C | 0.40 | T2 |  |
+| [0x1535A0](../../../src/game/gameplay/objects/rhythm.cpp) | `GRhythmTimingScore` | Score = lerp(D_002BBB60 range, 1 - \|t - tCue\| / window), window = early(+0x58) or late(+0x5C) | 0.85 | T1 | verified |
+| [0x153640](../../../src/game/gameplay/objects/rhythm.cpp) | `AddRhythmScore` | Push clamped score (negative scaled by difficulty curve of D_002DE578) into ring of 16; recompute average (+0x284); post msg 0x36 | 0.50 | T1 |  |
+| [0x153760](../../../src/game/gameplay/objects/rhythm.cpp) | `GAverageRhythmScore` | Average of the last n (+0x280) scores clamped to lm | 0.85 | T1 | verified |
+| [0x153800](../../../src/game/gameplay/objects/rhythm.cpp) | `ResetRhythmScore` | Zero score count/average/smoothed (+0x23C,+0x284,+0x288) | 0.85 | T1 | verified |
+| [0x153810](../../../src/game/gameplay/objects/rhythm.cpp) | `AddRhythmMgrGrade` | Append {oid, kind, -1} (max 128, 0x1C each) at +0x2A8 | 0.40 | T2 |  |
 
 ## tu_153B08 (0x153B08-0x153D58)
 
