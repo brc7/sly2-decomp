@@ -174,7 +174,7 @@ static inline float Dot(qword a, qword b)
     qword d;
     float f;
     d = VuDot(a, b);
-    __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 // earlyclobber output: the result must not share a register with the matrix rows

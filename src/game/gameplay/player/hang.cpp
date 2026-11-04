@@ -361,7 +361,7 @@ extern "C" float fabsf(float);
 static inline float Abs(float a){return fabsf(a);}
 static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
 static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
-static inline float X(qword value){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(value));return f;}
+static inline float X(qword value){float f;f = VuToFloat(value);return f;}
 static inline qword Velocity(JT*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 static inline int Can(JT*p,int mode){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,mode);}
 static inline float Clamp(float f,float low,float high){if(f<low)return low;else if(f>high)return high;return f;}

@@ -269,7 +269,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
         d = VuSub(*lo->x218, *(qword *)(void *)&pos);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
-        __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(d));
+        dist = VuToFloat(d);
         g = GMax(g, GClamp(GFromClq(&D_002BF9D0, dist), D_002BF9E0.gMin, D_002BF9E0.gMax));
     }
     return g;
@@ -387,7 +387,7 @@ static __inline__ float Dist(qword a, qword b)
     r = VuSub(a, b);
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q"
             : "+j"(r), "=&j"(t));
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(r));
+    g = VuToFloat(r);
     return g;
 }
 /** @sly2-annot addr=0x19FEB0

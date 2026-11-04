@@ -442,7 +442,7 @@ extern "C" int func_0018EE38(JT *p)
         d = VuSub(func_001A62E8(p->p10dc), func_001A62E8(p));
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(l) : "j"(d));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
-        __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
+        g = VuToFloat(l);
         f = 0;
         if (g < D_002BF4AC)
             f = FCheckLm__FP2LMf(D_002BF4B0, GetZ(d)) != 0;

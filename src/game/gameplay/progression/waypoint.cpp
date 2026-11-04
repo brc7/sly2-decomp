@@ -134,7 +134,7 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
         "vaddq.x %0, $vf0, Q" : "+j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
+    g = VuToFloat(d);
     return g;
 }
 /** @sly2-annot addr=0x22A060
@@ -228,7 +228,7 @@ static inline float ZOfP(qword v)
 static inline float FQ(qword q)
 { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static inline float FG(qword q)
-{ float f; __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(q)); return f; }
+{ float f; f = VuToFloat(q); return f; }
 static inline float LenXY(qword v)
 {
     qword d, l;
