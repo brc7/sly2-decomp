@@ -480,7 +480,6 @@ extern "C" int func_001545F0(DETECTOR *p, SOV *pso)
     return !f;
 }
 
-static inline qword Sub(qword a, qword b) { qword d; d = VuSub(a, b); return d; }
 static inline float Dot(qword a, const VECTOR &b)
 {
     float g;
@@ -498,7 +497,7 @@ extern "C" int func_00154770(DETECTOR *p, SOV *pso)
 {
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34)) return 0;
     if (pso->x4CC == -1) return 0;
-    VECTOR d; d.q = Sub(func_001A62E8(pso), func_001A62E8(p));
+    VECTOR d; d.q = VuSub(func_001A62E8(pso), func_001A62E8(p));
     switch (pso->x4C8) {
     case 0:
     case 13:

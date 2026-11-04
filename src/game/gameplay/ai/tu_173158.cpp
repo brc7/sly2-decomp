@@ -381,7 +381,6 @@ extern "C" int func_00173610(qword *pv, float a, float b, int k, int (*fn)(void)
     return 1;
 }
 
-static inline qword Sub(qword a,qword b){a = VuSub(a, b);return a;}
 static inline qword LoadCpu(const U&u){register qword q asm("$5");__asm__("lq %0,%1":"=r"(q):"m"(u.q));return q;}
 static inline qword Load(const U&u){register qword q asm("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(u.q));return q;}
 static inline float Len3(qword a,const U&u){qword b=Load(u);register qword d asm("vf1");float f;d = VuDot(a, b);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
@@ -403,7 +402,7 @@ extern "C" int func_00173768(CID119*p,qword pos,int count,void**objects,float di
  U raised,origin,position,difference;
  register CM*camera asm("$2")=&D_002DDF40;
  position.q=pos;
- qword cpu,point,vector;ReadInputs(camera,position,cpu,point,vector);qword delta=Sub(point,vector);origin.q=cpu;difference.q=delta;
+ qword cpu,point,vector;ReadInputs(camera,position,cpu,point,vector);qword delta=VuSub(point,vector);origin.q=cpu;difference.q=delta;
  distance*=D_002BE5B8;
  if(distance<Len3(difference.q,difference))return 0;
  qword screen=ConvertCmWorldToScreen(camera,LoadCpu(position));
@@ -525,10 +524,9 @@ struct VU_VECTOR { qword q; VU_VECTOR() {} VU_VECTOR(qword a) { q = a; } };
 static inline VU_VECTOR VsubXyzw(VU_VECTOR a, VU_VECTOR b) { qword d; d = VuSub(a.q, b.q); return VU_VECTOR(d); }
 static inline VU_VECTOR SumXY(VU_VECTOR a) { qword d; __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
 static inline VU_VECTOR SqrtV(VU_VECTOR a) { qword d; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
-static inline float GetXV(VU_VECTOR a) { float f; f = VuToFloat(a.q); return f; }
 static inline VU_VECTOR operator-(VU_VECTOR a, VU_VECTOR b) { return VsubXyzw(a, b); }
 static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
-static inline float LengthXY(VU_VECTOR a) { return GetXV(LengthXYV(a)); }
+static inline float LengthXY(VU_VECTOR a) { return VuToFloat(LengthXYV(a).q); }
 static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b); }
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
 /** @sly2-annot addr=0x173D18
@@ -597,12 +595,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__ __volatile__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    qw = VuSub(qw0, qw1);
-    return qw;
-}
 static inline qword QwSubFrom(const qword &qw0, qword qw1)
 {
     qword qw;
@@ -613,12 +605,6 @@ static inline qword QwAdd(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
-static inline qword QwDot(qword a, qword b)
-{
-    qword qw;
-    qw = VuDot(a, b);
     return qw;
 }
 static inline float GXOfQw(qword qw)
@@ -745,7 +731,7 @@ extern "C" SEL *func_00173F18(CID119 *pset, qword pos, qword *pposOut, M3 *pmatO
                     if (sDist < D_002BE5E4 || sBest < sDist)
                         goto nextSample;
                     {
-                        int fFlipT = GXOfQw(QwDot(D_002DDF40.mat.r[0], dirCurve.q)) < 0.0f;
+                        int fFlipT = GXOfQw(VuDot(D_002DDF40.mat.r[0], dirCurve.q)) < 0.0f;
                         if (!fFlipT)
                         {
                             VU_FLOAT gNeg = VuFloatFromMemWord(0xBF800000);

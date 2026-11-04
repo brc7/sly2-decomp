@@ -113,12 +113,10 @@ extern "C" void func_001A0300(struct ACTOR *p, DIRAXIS *ae, MULTI **pn)
     *pn = n;
 }
 
-static inline qword Dot(qword a,qword b){qword d;d = VuDot(a, b);return d;}
 static inline float FloatX(qword q){int bits;float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 static inline float Max(float a,float b){float f;__asm__("max.s %0,%1,%2":"=f"(f):"f"(a),"f"(b));return f;}
 
 static inline float Float3(qword q){register int bits __asm__("$7");float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
-static inline qword ScalarBits(int bits){qword q;q = VuFromFloat<qword>(bits);return q;}
 
 static inline float Float1(qword q){register int bits __asm__("$7");register float f __asm__("$f1");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
@@ -139,7 +137,7 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
  rate=p->anim->rate;
  if(!axes[6].pclip||!axes[7].pclip)p->side=-1;
  else if(p->side==-1){
-  if(FloatX(Dot(p->acceleration.q,axes[0].direction.q))<0.0f)p->side=1;
+  if(FloatX(VuDot(p->acceleration.q,axes[0].direction.q))<0.0f)p->side=1;
   else p->side=0;
  }
  {register int ratebits __asm__("$7");__asm__("mfc1 %0,%1":"=r"(ratebits):"f"(rate));rk = VuFromFloat<qword>(ratebits);}
@@ -157,8 +155,8 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
  if(rate>0.0f){
   for(i=1;i<count;i++){
    DIRAXIS*entry=&axes[indices[i]];
-   float denominator=rate*Float1(Dot(entry->direction.q,entry->direction.q));
-   float along=Float3(Dot(p->acceleration.q,entry->direction.q));
+   float denominator=rate*Float1(VuDot(entry->direction.q,entry->direction.q));
+   float along=Float3(VuDot(p->acceleration.q,entry->direction.q));
    float w=Max(along/denominator,0.0f);
    entry->weight.value=w;
    sum+=w;
@@ -173,7 +171,7 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
  }
  total.i[0]=total.i[1]=total.i[2]=0;
  for(accum=7;accum>=0;accum--){
-  qword k=ScalarBits(axes->weight.bits);
+  qword k=VuFromFloat<qword>(axes->weight.bits);
   total.q=VuAddScaled(total.q,axes->direction.q,k);
   scalar.q=k;
   axes++;
@@ -202,7 +200,6 @@ static inline void RemoveSide(PLAYERV*p,U*result,U*old){
  result->q=value;
  SetVel(p,value);
 }
-static inline qword PureBits(int bits){qword q;q = VuFromFloat<qword>(bits);return q;}
 static inline void BlendPositive(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,U*out){
  float x=xin;
  register float y __asm__("$f3"),zero __asm__("$f0"),left __asm__("$f2"),right __asm__("$f0");
@@ -268,7 +265,7 @@ extern "C" void func_001A0720(PLAYERV*p,DIRAXIS*axes,int enabled,float heading,f
  p->acceleration.i[2]=0;
  {unsigned int animWord=(unsigned int)p->anim;register qword rate __asm__("vf2"),acceleration __asm__("vf1"),scaled __asm__("vf1");
  __asm__("lqc2 %0,%2\n\tlw %1,%3":"=j"(acceleration),"+r"(animWord):"m"(p->acceleration.q),"m"(((ANIMV*)animWord)->ratebits));
- rate=PureBits(animWord);scaled=ScaleAndSetSide(p,acceleration,rate,side);
+ rate=VuFromFloat<qword>(animWord);scaled=ScaleAndSetSide(p,acceleration,rate,side);
   __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(p->acceleration.q),"=m"(scalar.q):"j"(scaled),"j"(rate));
  }
 }

@@ -374,7 +374,6 @@ extern "C" int func_0014A478(BHVRT *p)
 }
 
 static inline int FLess(float a, float b) { return a < b; }
-static inline qword Sub(qword a, qword b) { qword r; r = VuSub(a, b); return r; }
 static inline qword SubX(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "j"(b)); /* extra operand: allocation only */ return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float Len(qword a)
@@ -425,7 +424,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
     HEROV *pso = PpoHero(pg);
     qword posPlayer = func_001A62E8(pso);
     qword posMe = func_001A62E8(p->pguard);
-    qword d = Sub(posPlayer, posMe);
+    qword d = VuSub(posPlayer, posMe);
     qword v;
     qword pos;
     {
@@ -469,7 +468,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
                 posT = func_001A62E8(pt);
                 r = *(float *)&pt->pxEC;
             }
-            if (!FLess(D_002BD478 * D_002BD478, LenSq(Sub(posT, posPlayer)))) {
+            if (!FLess(D_002BD478 * D_002BD478, LenSq(VuSub(posT, posPlayer)))) {
                 float pan = GRandInRange(-3.1415927f, 3.1415927f);
                 float tilt = GRandInRange(-3.1415927f, 3.1415927f);
                 register qword q asm("vf3"); /* register pin: the target's vadd writes posT's new value to vf3 */
@@ -489,7 +488,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
         }
     }
     if (FLess(Len2(v), D_002BD460)) {
-        qword e = Sub(posMe, posPlayer);
+        qword e = VuSub(posMe, posPlayer);
         float rad = atan2f(GetY(e), GetX(e));
         qword pp = func_001A62E8(pso);
         pos = Add(pp, SetVectorCylind(GRandInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));

@@ -219,7 +219,6 @@ static inline VUF VuFloat(float g){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"
 static inline VUF VufFromMemWord(int n){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwScaleX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword QwAddScaled(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
-static inline qword QwDot(qword a,qword b){qword r;r = VuDot(a, b);return r;}
 static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
 static inline qword QwDivideBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
@@ -229,17 +228,17 @@ static inline qword QwRotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->
 static inline qword QwCombo(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
 static inline qword QwAddScaled2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
 static inline qword QwScaleXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
-static inline qword QwProjectOut(const qword&v,const qword&axis){VUF d;d.qw=QwDot(v,axis);return VuSubRef(v,QwScaleX(axis,d));}
+static inline qword QwProjectOut(const qword&v,const qword&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,QwScaleX(axis,d));}
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
-static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=QwSqrt(QwDot(pv->q,pv->q));if(GXOfVf(len)<0.0001f)*pv=*pfallback;else pv->q=QwDivide(pv->q,len);return len;}
-static inline float GLength(qword v){return GXOfQw(QwSqrt(QwDot(v,v)));}
+static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=QwSqrt(VuDot(pv->q,pv->q));if(GXOfVf(len)<0.0001f)*pv=*pfallback;else pv->q=QwDivide(pv->q,len);return len;}
+static inline float GLength(qword v){return GXOfQw(QwSqrt(VuDot(v,v)));}
 static inline float GEvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
 static inline float GLimitG(float g,float gMin,float gMax){if(g<gMin)return gMin;if(gMax<g)return gMax;return g;}
 static inline float GMinOf(float a,float b){return(b<a)?b:a;}
 static inline float GMaxOf(float a,float b){return(b>a)?b:a;}
 static inline qword QwVelocity(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
 static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
-static inline qword QwNormalize(qword v,qword fallback){qword len=QwSqrt(QwDot(v,v));qword r;if(GXOfQw(len)<0.0001f)r=fallback;else r=QwDivide(v,len);return r;}
+static inline qword QwNormalize(qword v,qword fallback){qword len=QwSqrt(VuDot(v,v));qword r;if(GXOfQw(len)<0.0001f)r=fallback;else r=QwDivide(v,len);return r;}
 static inline CLOCK*Addr(CLOCK*p){return p;}
 static inline qword QwAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 /** @sly2-annot addr=0x18FC60
@@ -361,7 +360,6 @@ extern "C" float fabsf(float);
 static inline float Abs(float a){return fabsf(a);}
 static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
 static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
-static inline float X(qword value){float f;f = VuToFloat(value);return f;}
 static inline qword Velocity(JT*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 static inline int Can(JT*p,int mode){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,mode);}
 static inline float Clamp(float f,float low,float high){if(f<low)return low;else if(f>high)return high;return f;}
@@ -468,14 +466,14 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
   else if(far&&p->previous!=2){next=2;p->previous=-1;}
   else if(Abs(angle)<D_002BF560){qword magnitude=LengthSquared(Velocity(p));register float limit __asm__("$f1");
    __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlwc1 %1,%2" : "+j"(magnitude),"=f"(limit) : "m"(D_002BF568));
-   bool slow=X(magnitude)<limit;if(slow)next=3;}
+   bool slow=VuToFloat(magnitude)<limit;if(slow)next=3;}
   break;
  case 3:
   if(near&&p->previous!=0){next=0;p->previous=-1;}
   else if(far&&p->previous!=2){next=2;p->previous=-1;}
   else if(Abs(angle)>D_002BF564){qword magnitude=LengthSquared(Velocity(p));register float limit __asm__("$f1");
    __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlwc1 %1,%2" : "+j"(magnitude),"=f"(limit) : "m"(D_002BF56C));
-   bool fast=X(magnitude)>limit;if(fast)next=1;}
+   bool fast=VuToFloat(magnitude)>limit;if(fast)next=1;}
   break;
  }
  SetJtJts__FP2JT3JTS4JTBS(p,3,next);CalculateJtHangAccel__FP2JT(p);

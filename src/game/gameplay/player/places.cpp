@@ -167,7 +167,6 @@ extern "C" qword func_0019F3F8(JT *p, PLACE *q, float g)
  * @end-sly2-annot */
 extern "C" void func_0019F540(JT *p, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(p, &f); }
 
-static __inline__ qword VSub(qword a, qword b) { qword r; r = VuSub(a, b); return r; }
 /** @sly2-annot addr=0x19F590
  * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
  *   it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not
@@ -186,10 +185,10 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
         q = &e;
         if (p == PpoHero(&D_003DD490)) {
             qword r = func_0019F3F8(p, &e, 0.0f);
-            float g = func_00196928(VSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
+            float g = func_00196928(VuSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = p->places.c;
-                ((void (*)(void *, qword))p->vt[29].pfn)((char *)p + p->vt[29].d, VSub(r, p->x240));
+                ((void (*)(void *, qword))p->vt[29].pfn)((char *)p + p->vt[29].d, VuSub(r, p->x240));
                 p->places.c = save;
                 SetStepRadTargetVec(p, D_002DDF40.x60);
                 ((void (*)(void *, void *))p->vt[30].pfn)((char *)p + p->vt[30].d, p->x1b0);

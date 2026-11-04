@@ -465,7 +465,6 @@ extern "C" void *func_00155A68(BHVATK *p)
     return p->pesc->ploA;
 }
 
-static inline qword Sub(qword a, qword b) { qword d; d = VuSub(a, b); return d; }
 static __inline__ float GetX(qword q)
 {
     float x;
@@ -510,7 +509,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
         p->ploGoal = func_00155A68(p);
         pa = func_00205438(p->pguard, 0x9D);
         pa->x3C = 0xB;
-        d = Sub(func_001A62E8(p->ploGoal), func_001A62E8(p->pguard));
+        d = VuSub(func_001A62E8(p->ploGoal), func_001A62E8(p->pguard));
         {
             float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(p->pguard->moverFD0, g);
@@ -576,7 +575,7 @@ extern "C" void func_00155D90(BHVATK *p)
         case 0:
             if (FBhvanimDone(p->pbhvCur)) {
                 DIMITRI *pso;
-                qword d = Sub(func_001A62E8(p->ploGoal), p->pguard->pos);
+                qword d = VuSub(func_001A62E8(p->ploGoal), p->pguard->pos);
                 pso = p->pguard;
                 ((void (*)(void *, qword))pso->vt[29].pfn)((char *)pso + pso->vt[29].d, d);
                 pso = p->pguard;
@@ -647,7 +646,7 @@ static inline int FFast(qword v) { return D_002BDC98 < Len(v); }
 extern "C" qword func_00155FB0(void *p, qword pos)
 {
     HERO *pso = PpoHero(D_003DD490);
-    float dist = Len(Sub(func_001A62E8(pso), pos));
+    float dist = Len(VuSub(func_001A62E8(pso), pos));
     float u = GGetDifficulty(D_002DE578);
     qword posTarget = AddScaled(func_001A62E8(pso), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
@@ -683,7 +682,7 @@ extern "C" qword func_00155FB0(void *p, qword pos)
         M3 *pm2 = func_001A6318(pso);
         off.q = SetVectorCylind(atan2f(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
     }
-    GetVectorSphere(Sub(Add(posTarget, off.q), pos), &pan, &tilt, &s);
+    GetVectorSphere(VuSub(Add(posTarget, off.q), pos), &pan, &tilt, &s);
     STACKSCOPE_ctor(&frame);
     func_001B44D8(&c, &av);
     gBest = D_002A513C;

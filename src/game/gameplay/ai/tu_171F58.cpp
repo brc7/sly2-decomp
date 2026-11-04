@@ -431,7 +431,6 @@ extern "C" int func_00172888(ROW *a, ROW *b) { return a->angle < b->angle; }
 
 struct VU_FLOAT{qword qw;};
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwSubFrom(const qword &a,qword b){qword r;r = VuSub(a, b);return r;}
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwLength(qword v){qword qw,qwLen;
  qw = VuDot(v, v);
@@ -473,7 +472,7 @@ extern "C" void func_001728B0(BHV171*p){
  for(object=D_003E13FC;object;object=object->next104){
   qword posObj=func_001A62E8(object);
   qword qwFallback=D_002A2DA0;
-  w.query.delta.q=QwSubFrom(w.query.point.q,posObj);
+  w.query.delta.q=VuSub(w.query.point.q,posObj);
   w.query.delta.i[2]=0;
   qword len=QwLengthOne(w.query.delta.q);
   qword g=VuFloatFromMemWord(*(int*)&object->reach);

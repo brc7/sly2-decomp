@@ -373,12 +373,6 @@ static __inline__ qword VLenA(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    r = VuSub(a, b);
-    return r;
-}
 static inline qword DivQ(qword v, qword f)
 {
     qword r;
@@ -442,7 +436,7 @@ extern "C" void func_0013AEB0(BOMB *p)
     pqBest = 0;
     for (pl = p->pxp->pl; pl; pl = pl->next) {
         for (pq = pl->pq; pq; pq = pq->pqNext) {
-            float g = GetX(Length(Sub(*(qword *)AE(pq)[0].pad, pos)));
+            float g = GetX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
             int f;
             if (gBest <= g)
                 continue;

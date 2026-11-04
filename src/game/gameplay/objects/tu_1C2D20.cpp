@@ -140,12 +140,6 @@ extern "C" int func_001C2DC8(SPRAYER *p, SO *plo, int id, void *pv)
 //  * `count`, start, target and offset are plain values; the stack slots at sp+0x60..0x90 are their spill slots, and
 //    `dest` is caller-saved around the duration call.
 static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
-static inline qword Dot(qword a, qword b)
-{
-    qword d;
-    d = VuDot(a, b);
-    return d;
-}
 static inline qword Scale(qword s, qword v) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(s), "j"(v)); return r; }
 static inline qword Length(qword v)
 {
@@ -210,7 +204,7 @@ extern "C" SO *func_001C2EF0(SPRAYER *p, int count)
         float pan = Rand(D_002C0CF0);
         qword offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qword delta = VuSub(target, start);
-        qword side = VuSub(delta, Scale(Dot(delta, D_002A2DC0), D_002A2DC0));
+        qword side = VuSub(delta, Scale(VuDot(delta, D_002A2DC0), D_002A2DC0));
         M3 mat;
         mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), D_002A2DC0);
         qword dest = VuAdd(target, Transform(mat, offset));

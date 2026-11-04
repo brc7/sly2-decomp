@@ -200,16 +200,12 @@ int FFilterCamera(void *, O *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, O *), void *, int *, O ***);
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
-static inline qword Q(float f)
-{ qword r; r = VuFromFloat<qword>(f); return r; }
 static inline qword QI(int i)
 { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "rV"(i)); return r; }
 static inline qword AddUp(qword base, qword up, qword k)
 { qword r; __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(base), "j"(up), "j"(k)); return r; }
 static inline qword AddUpU(qword base, qword up, qword k)
 { qword r; __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(base), "j"(up), "j"(k), "j"(up)); return r; }
-static inline qword Sub(qword a, qword b)
-{ qword r; r = VuSub(a, b); return r; }
 static inline qword Max(qword a, qword b)
 { qword r; __asm__("vmax.xyz %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Min(qword a, qword b)
@@ -227,8 +223,6 @@ static inline float ZOfP(qword v)
 { float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(v)); return z; }
 static inline float FQ(qword q)
 { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static inline float FG(qword q)
-{ float f; f = VuToFloat(q); return f; }
 static inline float LenXY(qword v)
 {
     qword d, l;
@@ -243,7 +237,7 @@ static inline float PlaneDistA(UQ &r, UQ &one, qword plane, qword pos)
     func_002564B8(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
-    float f = FG(g);
+    float f = VuToFloat(g);
     one.q = o;
     r.q = g;
     return f;
@@ -350,7 +344,7 @@ extern "C" void func_0022A220(O *po)
     EDGE *pe;
     for (i = 0; i < 4; i++) {
         UQ *pc = corner;
-        qword edge = Sub(pc[(i + 1) % 4].q, pc[i].q);
+        qword edge = VuSub(pc[(i + 1) % 4].q, pc[i].q);
         func_002564C0(&nrm);
         nrm.q = plane;
         InitPlaneFromNormalPos(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
@@ -365,7 +359,7 @@ extern "C" void func_0022A220(O *po)
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
                   FFilterCamera, 0, &cpso, &apso);
-    qword dpos = Sub(posSrc, posCam);
+    qword dpos = VuSub(posSrc, posCam);
     int nso = cpso;
     float sMax = ZOfN(dpos, nso) / LenXYFN(dpos, nso);
     float sBase = sMax;
@@ -403,9 +397,9 @@ extern "C" void func_0022A220(O *po)
                 if (gA < 0.0f && gB < 0.0f)
                     continue;
                 float u = gA / (gA - gB);
-                qword qa = Q(1.0f - u);
+                qword qa = VuFromFloat<qword>(1.0f - u);
                 tmp.q = qa;
-                qword qb = Q(u);
+                qword qb = VuFromFloat<qword>(u);
                 tmp.q = qb;
                 qword posX;
                 __asm__("vmulax.xyzw ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(posX) : "j"(pvA.q), "j"(pvB.q), "j"(qa), "j"(qb));
@@ -416,7 +410,7 @@ extern "C" void func_0022A220(O *po)
                     PlaneDistS(d[5][0], d[5][1], side[3].q, posX) < 0.0f)
                     fIn = 1;
                 if (fIn) {
-                    qword dx = Sub(posX, posCam);
+                    qword dx = VuSub(posX, posCam);
                     float s = ZOfP(dx) / LenXY(dx);
                     if (sMax < s)
                         sMax = s;
@@ -428,7 +422,7 @@ extern "C" void func_0022A220(O *po)
             apface[j]->grf &= ~0x4000;
     }
     po->fHit = 1;
-    po->dz = (sMax - sBase) * LenXY(Sub(posCam, posSrc));
+    po->dz = (sMax - sBase) * LenXY(VuSub(posCam, posSrc));
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }
 #undef cpso

@@ -262,12 +262,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    qw = VuSub(qw0, qw1);
-    return qw;
-}
 static inline float GFromVf(qword qw)
 {
     float g;
@@ -324,7 +318,7 @@ void ACCMISS::VUnk69()
         qword qwDir = QwDivFloat(qwVel, sv);
         SMP smp = { svFast, 0.0f, 1.0f };
         float svNew = GSmooth(sv, svTarget, D_002DDED0.dt, &smp, 0);
-        qword qwDv = QwDivBits(QwSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.dt);
+        qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.dt);
         AddSoVelocity(this, QwApplyConstrInXf((CONSTR *)((char *)psophys + 0xB0), pxfUnk58, qwDv));
     }
 }
