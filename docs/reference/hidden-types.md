@@ -173,7 +173,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | `0x2CD4E0` | 8 | 1=`InitCplcy?`, 2=`ActivateCplook?`, 3=`DeactivateCplook?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCplook?`, 7=`ResetCplook?` | [`CPLOOK_ctor?`](../../src/game/engine/camera/cplcy/CPLOOK_ctor.c) (+0xC) | — |
 | `0x2CD528` | 8 | 1=`InitCmpart1?`, 2=`ActivateCplcy?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCmpart1?`, 7=`ResetCplcy?` | [`CMPART1_ctor?`](../../src/game/engine/camera/cplcy/CMPART1_ctor.c) (+0xC) | — |
 | `0x2CD570` | 8 | 1=`InitCplcy?`, 2=`ActivateCplcy?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCplcy?`, 7=`ResetCplcy?` | [`CPLCY_ctor?`](../../src/game/engine/camera/cplcy/CPLCY_ctor.c) (+0xC) | — |
-| `0x2DB858` | 8 | 1=`InitCptn?`, 2=`ActivateCptn?`, 3=`DeactivateCptn?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptn?`, 7=`ResetCplcy?` | [`CPTN_ctor?`](../../src/game/engine/camera/tn/CPTN_ctor.c) (+0xC) | — |
+| `0x2DB858` | 8 | 1=`InitCptn?`, 2=`ActivateCptn?`, 3=`DeactivateCptn?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptn?`, 7=`ResetCplcy?` | [`CPTN_ctor?`](../../src/game/engine/camera/tn.cpp) (+0xC) | — |
 
 #### B2.12 GRABSPOT
 
@@ -373,7 +373,7 @@ Registered class names that occur in mangled symbols (confirms the spelling as S
 |---|---|---|---|---|
 | `BHV156` | BHV | `guard.h` | 0 | BHV156 (CID 0x9C, cb 0xB0): root of every guard's behaviour stack; its mode drives calm/search/combat |
 | `CMBASE` | BASIC | `cm.h` | 0 | CMBASE: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
-| `CMPART2` | CPLCY | `cm.h` | 1 | CMPART2: from src/game/engine/camera/tn/func_00221DD8.cpp (6 copies in Lilly ports) |
+| `CMPART2` | CPLCY | `cm.h` | 1 | CMPART2: from src/game/engine/camera/tn.cpp (6 copies in Lilly ports) |
 | `CPCAMBLEND` | CPLCY | `cm.h` | 1 | CPCAMBLEND: from src/game/gameplay/player/mode.cpp (6 copies in Lilly ports) |
 | `CPLCY` | CPLCYDATA | `cm.h` | 1 | CPLCY: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
 

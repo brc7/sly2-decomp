@@ -109,16 +109,16 @@ In the Paris hub save states the stack held CMPART1 plus 1-3 CPTN entries (TN oi
 | [0x151208](../../src/game/engine/camera/cplcy/CPHANG_ctor.c) | `CPHANG_ctor` | CPHANG ctor (vtable D_002CD450) | 0.85 | T1 | verified |
 | [0x151340](../../src/game/engine/camera/cplcy/UpdateCphang.cpp) | `UpdateCphang` | Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF (0x12D108) and SetCmMat4 from the camera transform | 0.85 | T1 | verified |
 | [0x151648](../../src/game/engine/camera/cplcy/ActivateCpcamblend.c) | `ActivateCpcamblend` | pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event) | 0.85 | T1 | verified |
-| [0x220D40](../../src/game/engine/camera/tn/func_00220D40.c) | `InitCptnAngles` | if both angles are the sentinel, set both to GLimitLm(atan2(h, len)) | 0.30 | T2 | verified |
-| [0x220ED0](../../src/game/engine/camera/tn/InitTn.c) | `InitTn` | InitXfm; camera defaults (2.0,1.0,2.0,1.0), tns=-1, clq/lm defaults D_002C41C0/D_002C41D0, priority 7, busyk 1, grf\|=2 | 0.85 | T1 | verified |
-| [0x220FD0](../../src/game/engine/camera/tn/LoadTnFromBrx.c) | `LoadTnFromBrx` | LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot | 0.85 | T1 | parse |
-| [0x221178](../../src/game/engine/camera/tn/SetTnTns.c) | `SetTnTns` | tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8) + event 6; store tns and tTns=g_cl | 0.85 | T1 | verified |
-| [0x221268](../../src/game/engine/camera/tn/SetTnTnsOverride.c) | `SetTnTnsOverride` | if changed store and call UpdateTnCallback(ptn,0) | 0.85 | T1 |  |
-| [0x221298](../../src/game/engine/camera/tn/UpdateTnCallback.cpp) | `UpdateTnCallback` | current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless jumping | 0.85 | T1 |  |
-| [0x221388](../../src/game/engine/camera/tn/UpdateTn.c) | `UpdateTn` | UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback) | 0.85 | T1 |  |
-| [0x2213D8](../../src/game/engine/camera/tn/OnTnRemove.c) | `OnTnRemove` | OnLoRemove then SetTnTns(Out) | 0.85 | T1 | verified, arbitration |
-| [0x221980](../../src/game/engine/camera/tn/GetTnFocusX.c) | `GetTnFocusX` | returns tnfn.vecFocus.x | 0.60 | T1 | verified |
-| [0x223A10](../../src/game/engine/camera/tn/GDistPlanePos.c) | `GDistPlanePos` | signed distance of pos to a plane | 0.60 | T1 | verified |
+| [0x220D40](../../src/game/engine/camera/tn.cpp) | `InitCptnAngles` | if both angles are the sentinel, set both to GLimitLm(atan2(h, len)) | 0.30 | T2 | verified |
+| [0x220ED0](../../src/game/engine/camera/tn.cpp) | `InitTn` | InitXfm; camera defaults (2.0,1.0,2.0,1.0), tns=-1, clq/lm defaults D_002C41C0/D_002C41D0, priority 7, busyk 1, grf\|=2 | 0.85 | T1 | verified |
+| [0x220FD0](../../src/game/engine/camera/tn.cpp) | `LoadTnFromBrx` | LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot | 0.85 | T1 | parse |
+| [0x221178](../../src/game/engine/camera/tn.cpp) | `SetTnTns` | tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8) + event 6; store tns and tTns=g_cl | 0.85 | T1 | verified |
+| [0x221268](../../src/game/engine/camera/tn.cpp) | `SetTnTnsOverride` | if changed store and call UpdateTnCallback(ptn,0) | 0.85 | T1 |  |
+| [0x221298](../../src/game/engine/camera/tn.cpp) | `UpdateTnCallback` | current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless jumping | 0.85 | T1 |  |
+| [0x221388](../../src/game/engine/camera/tn.cpp) | `UpdateTn` | UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback) | 0.85 | T1 |  |
+| [0x2213D8](../../src/game/engine/camera/tn.cpp) | `OnTnRemove` | OnLoRemove then SetTnTns(Out) | 0.85 | T1 | verified, arbitration |
+| [0x221980](../../src/game/engine/camera/tn.cpp) | `GetTnFocusX` | returns tnfn.vecFocus.x | 0.60 | T1 | verified |
+| [0x223A10](../../src/game/engine/camera/tn.cpp) | `GDistPlanePos` | signed distance of pos to a plane | 0.60 | T1 | verified |
 
 Selected 60 of 137 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/camera.md](../reference/functions/camera.md).
 

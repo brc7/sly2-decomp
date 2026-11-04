@@ -142,32 +142,32 @@ Totals on this page: EXISTING 3, T1 104, T2 30.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x220D40](../../../src/game/engine/camera/tn/func_00220D40.c) | `InitCptnAngles` | if both angles are the sentinel, set both to GLimitLm(atan2(h, len)) | 0.30 | T2 | verified |
-| [0x220DD8](../../../src/game/engine/camera/tn/func_00220DD8.c) | `GetTnfnNose` | lerp of two endpoints by t; optional matrix/basis via 0x221408 / 0x2215C0 | 0.35 | T2 |  |
-| [0x220ED0](../../../src/game/engine/camera/tn/InitTn.c) | `InitTn` | InitXfm; camera defaults (2.0,1.0,2.0,1.0), tns=-1, clq/lm defaults D_002C41C0/D_002C41D0, priority 7, busyk 1, grf\|=2 | 0.85 | T1 | verified |
-| [0x220F88](../../../src/game/engine/camera/tn/RemoveTnHierarchy.c) | `RemoveTnHierarchy` | RemoveLoHierarchy then clears the TN sw-callback (0x149B58(g_sw,1,ptn,cb)) | 0.50 | T1 |  |
-| [0x220FD0](../../../src/game/engine/camera/tn/LoadTnFromBrx.c) | `LoadTnFromBrx` | LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot | 0.85 | T1 | parse |
-| [0x221120](../../../src/game/engine/camera/tn/func_00221120.c) | `FGetTnPshape` | returns 0 if field null else stores &field | 0.30 | T2 |  |
-| [0x221140](../../../src/game/engine/camera/tn/CloneTn.c) | `CloneTn` | CloneXfm then re-resolves ref field 0x10C via 0x13E510 | 0.75 | T1 |  |
-| [0x221178](../../../src/game/engine/camera/tn/SetTnTns.c) | `SetTnTns` | tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8) + event 6; store tns and tTns=g_clock.t | 0.85 | T1 | verified |
-| [0x221268](../../../src/game/engine/camera/tn/SetTnTnsOverride.c) | `SetTnTnsOverride` | if changed store and call UpdateTnCallback(ptn,0) | 0.85 | T1 |  |
-| [0x221298](../../../src/game/engine/camera/tn/UpdateTnCallback.cpp) | `UpdateTnCallback` | current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless jumping | 0.85 | T1 |  |
-| [0x221388](../../../src/game/engine/camera/tn/UpdateTn.c) | `UpdateTn` | UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback) | 0.85 | T1 |  |
-| [0x2213D8](../../../src/game/engine/camera/tn/OnTnRemove.c) | `OnTnRemove` | OnLoRemove then SetTnTns(Out) | 0.85 | T1 | verified, arbitration |
-| [0x221408](../../../src/game/engine/camera/tn/func_00221408.cpp) | `CalculateTnCrv` | projects a world point into the path basis and returns path direction | 0.35 | T2 |  |
-| [0x2215C0](../../../src/game/engine/camera/tn/func_002215C0.cpp) | `CalculateTnPos` | evaluates a clamped path offset (fmodf), rotates/translates to world | 0.35 | T2 |  |
-| [0x221818](../../../src/game/engine/camera/tn/func_00221818.c) | `SelectTnTnfn` | chooses/creates the TNFN record (max 4) for an id; resets 0x118 | 0.40 | T2 |  |
-| [0x221940](../../../src/game/engine/camera/tn/func_00221940.c) | `ClearTnTnfn` | 0x118 = 0 | 0.30 | T2 |  |
-| [0x221948](../../../src/game/engine/camera/tn/func_00221948.c) | `GetTnTnfnFirstWord` | returns *(0x118) | 0.30 | T2 |  |
-| [0x221958](../../../src/game/engine/camera/tn/PtnfnFromTn.c) | `PtnfnFromTn` | returns current TNFN pointer (0x118); base getter for TN splice properties | 0.60 | T1 |  |
-| [0x221960](../../../src/game/engine/camera/tn/SetTnFocusRatio.c) | `SetTnFocusRatio` | tnfn.vecFocus.x = y = u, z = 1.0 | 0.75 | T1 |  |
-| [0x221980](../../../src/game/engine/camera/tn/GetTnFocusX.c) | `GetTnFocusX` | returns tnfn.vecFocus.x | 0.60 | T1 | verified |
-| [0x221990](../../../src/game/engine/camera/tn/CPTN_ctor.c) | `CPTN_ctor` | base CPLCY ctor 0x14FCA8 then vptr = D_002DB858 | 0.55 | T1 |  |
-| [0x2219C8](../../../src/game/engine/camera/tn/func_002219C8.c) | `InitCptn` | base 0x14FCC0, sets globals D_002C41A8, clears fields | 0.45 | T2 |  |
-| [0x221A18](../../../src/game/engine/camera/tn/ActivateCptn.c) | `ActivateCptn` | base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) | 0.50 | T1 |  |
-| [0x221CC0](../../../src/game/engine/camera/tn/DeactivateCptn.c) | `DeactivateCptn` | clears tn/ppo (0x10,0x14) then base 0x14FCE8 | 0.50 | T1 |  |
-| [0x221CE8](../../../src/game/engine/camera/tn/func_00221CE8.c) | `UpdateCptnTarget` | positions tn target via FillCrvcCache or atan2 heading | 0.30 | T2 |  |
-| [0x221DD8](../../../src/game/engine/camera/tn/UpdateCptn.cpp) | `UpdateCptn` | the tunnel follow-camera update (focus, pull, free camera, pans) | 0.75 | T1 |  |
-| [0x2236E8](../../../src/game/engine/camera/tn/func_002236E8.cpp) | `UpdateCmLineOfSight` | every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden | 0.65 | T1 |  |
-| [0x223A10](../../../src/game/engine/camera/tn/GDistPlanePos.c) | `GDistPlanePos` | signed distance of pos to a plane | 0.60 | T1 | verified |
-| [0x223A70](../../../src/game/engine/camera/tn/func_00223A70.cpp) | `UpdateCptnSegmentAvoid` | camera segment avoidance (objects in box, UpdateCmFade) | 0.30 | T2 |  |
+| [0x220D40](../../../src/game/engine/camera/tn.cpp) | `InitCptnAngles` | if both angles are the sentinel, set both to GLimitLm(atan2(h, len)) | 0.30 | T2 | verified |
+| [0x220DD8](../../../src/game/engine/camera/tn.cpp) | `GetTnfnNose` | lerp of two endpoints by t; optional matrix/basis via 0x221408 / 0x2215C0 | 0.35 | T2 |  |
+| [0x220ED0](../../../src/game/engine/camera/tn.cpp) | `InitTn` | InitXfm; camera defaults (2.0,1.0,2.0,1.0), tns=-1, clq/lm defaults D_002C41C0/D_002C41D0, priority 7, busyk 1, grf\|=2 | 0.85 | T1 | verified |
+| [0x220F88](../../../src/game/engine/camera/tn.cpp) | `RemoveTnHierarchy` | RemoveLoHierarchy then clears the TN sw-callback (0x149B58(g_sw,1,ptn,cb)) | 0.50 | T1 |  |
+| [0x220FD0](../../../src/game/engine/camera/tn.cpp) | `LoadTnFromBrx` | LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot | 0.85 | T1 | parse |
+| [0x221120](../../../src/game/engine/camera/tn.cpp) | `FGetTnPshape` | returns 0 if field null else stores &field | 0.30 | T2 |  |
+| [0x221140](../../../src/game/engine/camera/tn.cpp) | `CloneTn` | CloneXfm then re-resolves ref field 0x10C via 0x13E510 | 0.75 | T1 |  |
+| [0x221178](../../../src/game/engine/camera/tn.cpp) | `SetTnTns` | tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8) + event 6; store tns and tTns=g_clock.t | 0.85 | T1 | verified |
+| [0x221268](../../../src/game/engine/camera/tn.cpp) | `SetTnTnsOverride` | if changed store and call UpdateTnCallback(ptn,0) | 0.85 | T1 |  |
+| [0x221298](../../../src/game/engine/camera/tn.cpp) | `UpdateTnCallback` | current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless jumping | 0.85 | T1 |  |
+| [0x221388](../../../src/game/engine/camera/tn.cpp) | `UpdateTn` | UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback) | 0.85 | T1 |  |
+| [0x2213D8](../../../src/game/engine/camera/tn.cpp) | `OnTnRemove` | OnLoRemove then SetTnTns(Out) | 0.85 | T1 | verified, arbitration |
+| [0x221408](../../../src/game/engine/camera/tn.cpp) | `CalculateTnCrv` | projects a world point into the path basis and returns path direction | 0.35 | T2 |  |
+| [0x2215C0](../../../src/game/engine/camera/tn.cpp) | `CalculateTnPos` | evaluates a clamped path offset (fmodf), rotates/translates to world | 0.35 | T2 |  |
+| [0x221818](../../../src/game/engine/camera/tn.cpp) | `SelectTnTnfn` | chooses/creates the TNFN record (max 4) for an id; resets 0x118 | 0.40 | T2 |  |
+| [0x221940](../../../src/game/engine/camera/tn.cpp) | `ClearTnTnfn` | 0x118 = 0 | 0.30 | T2 |  |
+| [0x221948](../../../src/game/engine/camera/tn.cpp) | `GetTnTnfnFirstWord` | returns *(0x118) | 0.30 | T2 |  |
+| [0x221958](../../../src/game/engine/camera/tn.cpp) | `PtnfnFromTn` | returns current TNFN pointer (0x118); base getter for TN splice properties | 0.60 | T1 |  |
+| [0x221960](../../../src/game/engine/camera/tn.cpp) | `SetTnFocusRatio` | tnfn.vecFocus.x = y = u, z = 1.0 | 0.75 | T1 |  |
+| [0x221980](../../../src/game/engine/camera/tn.cpp) | `GetTnFocusX` | returns tnfn.vecFocus.x | 0.60 | T1 | verified |
+| [0x221990](../../../src/game/engine/camera/tn.cpp) | `CPTN_ctor` | base CPLCY ctor 0x14FCA8 then vptr = D_002DB858 | 0.55 | T1 |  |
+| [0x2219C8](../../../src/game/engine/camera/tn.cpp) | `InitCptn` | base 0x14FCC0, sets globals D_002C41A8, clears fields | 0.45 | T2 |  |
+| [0x221A18](../../../src/game/engine/camera/tn.cpp) | `ActivateCptn` | base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) | 0.50 | T1 |  |
+| [0x221CC0](../../../src/game/engine/camera/tn.cpp) | `DeactivateCptn` | clears tn/ppo (0x10,0x14) then base 0x14FCE8 | 0.50 | T1 |  |
+| [0x221CE8](../../../src/game/engine/camera/tn.cpp) | `UpdateCptnTarget` | positions tn target via FillCrvcCache or atan2 heading | 0.30 | T2 |  |
+| [0x221DD8](../../../src/game/engine/camera/tn.cpp) | `UpdateCptn` | the tunnel follow-camera update (focus, pull, free camera, pans) | 0.75 | T1 |  |
+| [0x2236E8](../../../src/game/engine/camera/tn.cpp) | `UpdateCmLineOfSight` | every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden | 0.65 | T1 |  |
+| [0x223A10](../../../src/game/engine/camera/tn.cpp) | `GDistPlanePos` | signed distance of pos to a plane | 0.60 | T1 | verified |
+| [0x223A70](../../../src/game/engine/camera/tn.cpp) | `UpdateCptnSegmentAvoid` | camera segment avoidance (objects in box, UpdateCmFade) | 0.30 | T2 |  |
