@@ -29,30 +29,30 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetLightClassDesc`](../../../src/game/app/class_registry/GetLightClassDesc.c) | `0x113A50` |
-| 7 | Init | **override** | [`InitLight?`](../../../src/game/engine/graphics/pipeline/light/InitLight.c) | `0x1A3360` |
+| 7 | Init | **override** | [`InitLight?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3360` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
-| 11 | AddHierarchy | **override** | [`AddLightHierarchy?`](../../../src/game/engine/graphics/pipeline/light/AddLightHierarchy.c) | `0x1A3430` |
-| 12 | RemoveHierarchy | **override** | [`RemoveLightHierarchy?`](../../../src/game/engine/graphics/pipeline/light/RemoveLightHierarchy.c) | `0x1A34B0` |
+| 11 | AddHierarchy | **override** | [`AddLightHierarchy?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3430` |
+| 12 | RemoveHierarchy | **override** | [`RemoveLightHierarchy?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A34B0` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
-| 15 | PostLoad | **override** | [`PostLightLoad?`](../../../src/game/engine/graphics/pipeline/light/PostLightLoad.c) | `0x1A3400` |
+| 15 | PostLoad | **override** | [`PostLightLoad?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3400` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`LIGHT_vt17?`](../../../src/game/engine/graphics/pipeline/light/func_001A3460.c) | `0x1A3460` |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`LIGHT_vt17?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3460` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
-| 22 | OnRemove | **override** | [`OnLightRemove?`](../../../src/game/engine/graphics/pipeline/light/OnLightRemove.c) | `0x1A34E0` |
-| 23 | OnAdd | **override** | [`OnLightAdd?`](../../../src/game/engine/graphics/pipeline/light/OnLightAdd.c) | `0x1A3518` |
+| 22 | OnRemove | **override** | [`OnLightRemove?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A34E0` |
+| 23 | OnAdd | **override** | [`OnLightAdd?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3518` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` |
 | 27 | LO_VUnk27Proxy | inherited (LO) | `LO_VUnk27Proxy?` | `0x1CB5C8` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
-| 29 | TranslateToPos | **override** | [`TranslateLightToPos?`](../../../src/game/engine/graphics/pipeline/light/TranslateLightToPos.c) | `0x1A3550` |
-| 30 | RotateToMat | **override** | [`RotateLightToMat?`](../../../src/game/engine/graphics/pipeline/light/RotateLightToMat.c) | `0x1A3580` |
+| 29 | TranslateToPos | **override** | [`TranslateLightToPos?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3550` |
+| 30 | RotateToMat | **override** | [`RotateLightToMat?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3580` |
 | 31 | PmatWorld | inherited (XFM) | `XFM_PmatWorld` | `0x231440` |
 | 32 | LO_PxfLocal | inherited (XFM) | `XFM_PxfLocal?` | `0x231550` |
 | 33 | GetVelocity | inherited (XFM) | `GetXfmVelocity?` | `0x231468` |

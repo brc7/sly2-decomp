@@ -6,7 +6,7 @@
 | --- | --- |
 | [`draw.cpp`](draw.cpp) | 1 |
 | [`glob/`](glob/) | 42 |
-| [`light/`](light/) | 32 |
+| [`light.cpp`](light.cpp) | 1 |
 | [`ms.cpp`](ms.cpp) | 1 |
 | [`render.cpp`](render.cpp) | 1 |
 | [`shd/`](shd/) | 45 |

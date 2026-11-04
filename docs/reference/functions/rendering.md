@@ -163,36 +163,36 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1A3260](../../../src/game/engine/graphics/pipeline/light/EnsureSwDefaultLight.c) | `EnsureSwDefaultLight` | After world load, if no light in the world light list D_003E04F8 qualifies (x160==0), create a LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240 | 0.50 | T1 |  |
-| [0x1A3360](../../../src/game/engine/graphics/pipeline/light/InitLight.c) | `InitLight` | LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ... | 0.85 | T1 |  |
-| [0x1A3400](../../../src/game/engine/graphics/pipeline/light/PostLightLoad.c) | `PostLightLoad` | LIGHT vt15: PostLoLoad then RebuildLight | 0.80 | T1 |  |
-| [0x1A3430](../../../src/game/engine/graphics/pipeline/light/AddLightHierarchy.c) | `AddLightHierarchy` | LIGHT vt11: AddLoHierarchy then RebuildLight | 0.70 | T1 |  |
-| [0x1A3460](../../../src/game/engine/graphics/pipeline/light/func_001A3460.c) | `LIGHT_vt17` | LIGHT vt17: LO vt17, then if parent's x0A4 differs from own xE4 rebuild | 0.35 | T2 |  |
-| [0x1A34B0](../../../src/game/engine/graphics/pipeline/light/RemoveLightHierarchy.c) | `RemoveLightHierarchy` | LIGHT vt12: RemoveLoHierarchy then InvalidateLight | 0.70 | T1 |  |
-| [0x1A34E0](../../../src/game/engine/graphics/pipeline/light/OnLightRemove.c) | `OnLightRemove` | LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot) | 0.85 | T1 | arbitration |
-| [0x1A3518](../../../src/game/engine/graphics/pipeline/light/OnLightAdd.c) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
-| [0x1A3550](../../../src/game/engine/graphics/pipeline/light/TranslateLightToPos.c) | `TranslateLightToPos` | LIGHT vt29: XFM TranslateToPos then RebuildLight | 0.65 | T1 |  |
-| [0x1A3580](../../../src/game/engine/graphics/pipeline/light/RotateLightToMat.c) | `RotateLightToMat` | LIGHT vt30: XFM RotateToMat then RebuildLight | 0.65 | T1 |  |
-| [0x1A35B0](../../../src/game/engine/graphics/pipeline/light/SetLightKind.c) | `SetLightKind` | Invalidate, set kind (xE0), RebuildLight | 0.55 | T1 |  |
-| [0x1A35F0](../../../src/game/engine/graphics/pipeline/light/func_001A35F0.c) | `SetLightHighlightColor` | Store color vector xF0 (HSV, converted with ConvertUserHsvToUserRgb in RebuildLight) and rebuild | 0.45 | T2 |  |
-| [0x1A3610](../../../src/game/engine/graphics/pipeline/light/func_001A3610.c) | `SetLightMidtoneStrength` | Store float x150 and rebuild | 0.40 | T2 |  |
-| [0x1A3630](../../../src/game/engine/graphics/pipeline/light/func_001A3630.c) | `SetLightMidtoneAngle` | Store float x154 (deg, clamped >=30 in RebuildLight) and rebuild | 0.45 | T2 |  |
-| [0x1A3650](../../../src/game/engine/graphics/pipeline/light/func_001A3650.c) | `SetLightFallOff` | Copy an 8-byte LM falloff and rebuild | 0.45 | T2 |  |
-| [0x1A3680](../../../src/game/engine/graphics/pipeline/light/func_001A3680.c) | `SetLightFStatic` | Toggle flag x15C (clears x160 when set), invalidating before/after | 0.30 | T2 |  |
-| [0x1A36D8](../../../src/game/engine/graphics/pipeline/light/func_001A36D8.c) | `SetLightDynamic` | Toggle flag x160 (clears x15C when set), invalidating before/after | 0.45 | T2 |  |
-| [0x1A3730](../../../src/game/engine/graphics/pipeline/light/FitLinearFunction__FffffPfT4.cpp) | `FitLinearFunction__FffffPfT4` |  |  | existing |  |
-| [0x1A37D0](../../../src/game/engine/graphics/pipeline/light/FitRecipFunction__FffffPfT4.cpp) | `FitRecipFunction__FffffPfT4` |  |  | existing |  |
-| [0x1A38A8](../../../src/game/engine/graphics/pipeline/light/ConvertAngleStrength__FffffPfT4.cpp) | `ConvertAngleStrength__FffffPfT4` |  |  | existing |  |
-| [0x1A3968](../../../src/game/engine/graphics/pipeline/light/RebuildLight.c) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
-| [0x1A3B38](../../../src/game/engine/graphics/pipeline/light/func_001A3B38.c) | `InvalidateLight` | If not dynamic bump g_sw static-light stamp (+0x3D5C); if x15C==0 and kind!=0 set global dirty D_003E19E4 | 0.45 | T2 |  |
-| [0x1A3B80](../../../src/game/engine/graphics/pipeline/light/func_001A3B80.c) | `InsertLightInTree` | Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf masks | 0.40 | T2 |  |
-| [0x1A3D00](../../../src/game/engine/graphics/pipeline/light/AddLightToSw.c) | `AddLightToSw` | Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending | 0.55 | T1 |  |
-| [0x1A3E88](../../../src/game/engine/graphics/pipeline/light/RemoveLightFromSw.c) | `RemoveLightFromSw` | Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) | 0.55 | T1 |  |
-| [0x1A3EE8](../../../src/game/engine/graphics/pipeline/light/PrepareSwLights.c) | `PrepareSwLights` | If the light tree is dirty, clear masks and re-insert every slotted light | 0.50 | T1 |  |
-| [0x1A3F78](../../../src/game/engine/graphics/pipeline/light/func_001A3F78.cpp) | `FindSwLights` | Walk the light tree for a point and rank up to N lights affecting it | 0.40 | T2 |  |
-| [0x1A4258](../../../src/game/engine/graphics/pipeline/light/FSphereHitsSpheres.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
-| [0x1A4478](../../../src/game/engine/graphics/pipeline/light/func_001A4478.cpp) | `BuildSoLightPackets` | Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000 | 0.45 | T2 |  |
-| [0x1A4AD8](../../../src/game/engine/graphics/pipeline/light/func_001A4AD8.cpp) | `BuildLightPackets` | Same packet build for an explicit light list (rebuilds each light first) | 0.45 | T2 |  |
+| [0x1A3260](../../../src/game/engine/graphics/pipeline/light.cpp) | `EnsureSwDefaultLight` | After world load, if no light in the world light list D_003E04F8 qualifies (x160==0), create a LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240 | 0.50 | T1 |  |
+| [0x1A3360](../../../src/game/engine/graphics/pipeline/light.cpp) | `InitLight` | LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ... | 0.85 | T1 |  |
+| [0x1A3400](../../../src/game/engine/graphics/pipeline/light.cpp) | `PostLightLoad` | LIGHT vt15: PostLoLoad then RebuildLight | 0.80 | T1 |  |
+| [0x1A3430](../../../src/game/engine/graphics/pipeline/light.cpp) | `AddLightHierarchy` | LIGHT vt11: AddLoHierarchy then RebuildLight | 0.70 | T1 |  |
+| [0x1A3460](../../../src/game/engine/graphics/pipeline/light.cpp) | `LIGHT_vt17` | LIGHT vt17: LO vt17, then if parent's x0A4 differs from own xE4 rebuild | 0.35 | T2 |  |
+| [0x1A34B0](../../../src/game/engine/graphics/pipeline/light.cpp) | `RemoveLightHierarchy` | LIGHT vt12: RemoveLoHierarchy then InvalidateLight | 0.70 | T1 |  |
+| [0x1A34E0](../../../src/game/engine/graphics/pipeline/light.cpp) | `OnLightRemove` | LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot) | 0.85 | T1 | arbitration |
+| [0x1A3518](../../../src/game/engine/graphics/pipeline/light.cpp) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
+| [0x1A3550](../../../src/game/engine/graphics/pipeline/light.cpp) | `TranslateLightToPos` | LIGHT vt29: XFM TranslateToPos then RebuildLight | 0.65 | T1 |  |
+| [0x1A3580](../../../src/game/engine/graphics/pipeline/light.cpp) | `RotateLightToMat` | LIGHT vt30: XFM RotateToMat then RebuildLight | 0.65 | T1 |  |
+| [0x1A35B0](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightKind` | Invalidate, set kind (xE0), RebuildLight | 0.55 | T1 |  |
+| [0x1A35F0](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightHighlightColor` | Store color vector xF0 (HSV, converted with ConvertUserHsvToUserRgb in RebuildLight) and rebuild | 0.45 | T2 |  |
+| [0x1A3610](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightMidtoneStrength` | Store float x150 and rebuild | 0.40 | T2 |  |
+| [0x1A3630](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightMidtoneAngle` | Store float x154 (deg, clamped >=30 in RebuildLight) and rebuild | 0.45 | T2 |  |
+| [0x1A3650](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightFallOff` | Copy an 8-byte LM falloff and rebuild | 0.45 | T2 |  |
+| [0x1A3680](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightFStatic` | Toggle flag x15C (clears x160 when set), invalidating before/after | 0.30 | T2 |  |
+| [0x1A36D8](../../../src/game/engine/graphics/pipeline/light.cpp) | `SetLightDynamic` | Toggle flag x160 (clears x15C when set), invalidating before/after | 0.45 | T2 |  |
+| [0x1A3730](../../../src/game/engine/graphics/pipeline/light.cpp) | `FitLinearFunction__FffffPfT4` |  |  | existing |  |
+| [0x1A37D0](../../../src/game/engine/graphics/pipeline/light.cpp) | `FitRecipFunction__FffffPfT4` |  |  | existing |  |
+| [0x1A38A8](../../../src/game/engine/graphics/pipeline/light.cpp) | `ConvertAngleStrength__FffffPfT4` |  |  | existing |  |
+| [0x1A3968](../../../src/game/engine/graphics/pipeline/light.cpp) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
+| [0x1A3B38](../../../src/game/engine/graphics/pipeline/light.cpp) | `InvalidateLight` | If not dynamic bump g_sw static-light stamp (+0x3D5C); if x15C==0 and kind!=0 set global dirty D_003E19E4 | 0.45 | T2 |  |
+| [0x1A3B80](../../../src/game/engine/graphics/pipeline/light.cpp) | `InsertLightInTree` | Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf masks | 0.40 | T2 |  |
+| [0x1A3D00](../../../src/game/engine/graphics/pipeline/light.cpp) | `AddLightToSw` | Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending | 0.55 | T1 |  |
+| [0x1A3E88](../../../src/game/engine/graphics/pipeline/light.cpp) | `RemoveLightFromSw` | Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) | 0.55 | T1 |  |
+| [0x1A3EE8](../../../src/game/engine/graphics/pipeline/light.cpp) | `PrepareSwLights` | If the light tree is dirty, clear masks and re-insert every slotted light | 0.50 | T1 |  |
+| [0x1A3F78](../../../src/game/engine/graphics/pipeline/light.cpp) | `FindSwLights` | Walk the light tree for a point and rank up to N lights affecting it | 0.40 | T2 |  |
+| [0x1A4258](../../../src/game/engine/graphics/pipeline/light.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
+| [0x1A4478](../../../src/game/engine/graphics/pipeline/light.cpp) | `BuildSoLightPackets` | Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000 | 0.45 | T2 |  |
+| [0x1A4AD8](../../../src/game/engine/graphics/pipeline/light.cpp) | `BuildLightPackets` | Same packet build for an explicit light list (rebuilds each light first) | 0.45 | T2 |  |
 
 ## ms (0x1B4438-0x1B4728)
 

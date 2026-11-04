@@ -306,12 +306,12 @@ Shader sketches for all of the above: `vu_microcode/pseudo_shaders.glsl`.
 | [0x1700D0](../../src/game/engine/graphics/backend/gs.cpp) | `StartupGs` | GS startup: crit-sect, sceGsResetGraph, double buffers, build clear packets and FBA packets, frame context packets, semaphores, VBlank/GS interrupt ha | 0.90 | T1 |  |
 | [0x1703F8](../../src/game/engine/graphics/backend/gs.cpp) | `InitGsb__FP3GSBii` |  | 0.85 | existing | arbitration; replaces existing InitZpr__FP3ZPR3ZPKP2LO |
 | [0x170548](../../src/game/engine/graphics/backend/gs.cpp) | `IgsAllocGsb` | Allocates c units of GS memory from a GSB: first-fit from the size-bucket free lists, else bump igsMac (padding to a 0x80 boundary if it would straddl | 0.85 | T1 | verified |
-| [0x1A3360](../../src/game/engine/graphics/pipeline/light/InitLight.c) | `InitLight` | LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ... | 0.85 | T1 |  |
-| [0x1A3400](../../src/game/engine/graphics/pipeline/light/PostLightLoad.c) | `PostLightLoad` | LIGHT vt15: PostLoLoad then RebuildLight | 0.80 | T1 |  |
-| [0x1A34E0](../../src/game/engine/graphics/pipeline/light/OnLightRemove.c) | `OnLightRemove` | LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot) | 0.85 | T1 | arbitration |
-| [0x1A3518](../../src/game/engine/graphics/pipeline/light/OnLightAdd.c) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
-| [0x1A3968](../../src/game/engine/graphics/pipeline/light/RebuildLight.c) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
-| [0x1A4258](../../src/game/engine/graphics/pipeline/light/FSphereHitsSpheres.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
+| [0x1A3360](../../src/game/engine/graphics/pipeline/light.cpp) | `InitLight` | LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ... | 0.85 | T1 |  |
+| [0x1A3400](../../src/game/engine/graphics/pipeline/light.cpp) | `PostLightLoad` | LIGHT vt15: PostLoLoad then RebuildLight | 0.80 | T1 |  |
+| [0x1A34E0](../../src/game/engine/graphics/pipeline/light.cpp) | `OnLightRemove` | LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot) | 0.85 | T1 | arbitration |
+| [0x1A3518](../../src/game/engine/graphics/pipeline/light.cpp) | `OnLightAdd` | LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree) | 0.85 | T1 | arbitration |
+| [0x1A3968](../../src/game/engine/graphics/pipeline/light.cpp) | `RebuildLight` | Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position; then InvalidateLight | 0.75 | T1 |  |
+| [0x1A4258](../../src/game/engine/graphics/pipeline/light.cpp) | `FSphereHitsSpheres` | True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones) | 0.85 | T1 | verified |
 | [0x1B4438](../../src/game/engine/graphics/pipeline/ms.cpp) | `InitMs` | MS::Init (vt7): InitSo then clear flag bit 35 of +0x148 | 0.80 | T1 |  |
 | [0x1B4478](../../src/game/engine/graphics/pipeline/ms.cpp) | `RenderMsGlobset` | MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else DrawGlobset(0x168638) | 0.75 | T1 |  |
 | [0x1BEA88](../../src/game/engine/graphics/pipeline/tu_1BE398.cpp) | `LoadCid45FromBrx` | CID 45 vt14: LoadXfmFromBrx | 0.75 | T2 | parse, verified |
