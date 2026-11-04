@@ -228,8 +228,8 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x1553F0](../../src/game/gameplay/ai/tu_1553F0.cpp) | `LoadDimitriFromBrx` | cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD load, sets +0x1018 = INT_MAX | 0.75 | T1 | parse, verified, whole-game |
 | [0x1559F8](../../src/game/gameplay/ai/tu_1553F0.cpp) | `CloseBhv181` | BHV181 slot 9 | 0.80 | T2 | verified |
 | [0x16F148](../../src/game/gameplay/ai/gomer.cpp) | `InitGomer__FP5GOMER` | GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78 | 0.85 | existing | arbitration; replaces existing RenderGomerSelf__FP5GOMERP2CMP2RO |
-| [0x1709F8](../../src/game/gameplay/ai/tu_1709A8/func_001709F8.c) | `InitCid113` | cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18) | 0.75 | T2 | verified |
-| [0x171CF8](../../src/game/gameplay/ai/tu_1709A8/func_00171CF8.c) | `StartGuardScript` | Sets the guard's BHV156 to mode 5 with the given script | 0.40 | T2 |  |
+| [0x1709F8](../../src/game/gameplay/ai/tu_1709A8.cpp) | `InitCid113` | cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18) | 0.75 | T2 | verified |
+| [0x171CF8](../../src/game/gameplay/ai/tu_1709A8.cpp) | `StartGuardScript` | Sets the guard's BHV156 to mode 5 with the given script | 0.40 | T2 |  |
 | [0x173158](../../src/game/gameplay/ai/tu_173158.cpp) | `InitCid119` | cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s | 0.75 | T2 | verified |
 | [0x1731B8](../../src/game/gameplay/ai/tu_173158.cpp) | `LoadCid119FromBrx` | Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks | 0.75 | T2 | parse |
 | [0x174920](../../src/game/gameplay/ai/guardbhv/InitBhvanim.c) | `InitBhvanim` | BHVANIM Init: base Init, state=-1, flag(+0x3C)=0 (shared by BHV160) | 0.80 | T1 | runtime |

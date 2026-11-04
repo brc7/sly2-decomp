@@ -15,7 +15,7 @@
 | [`tu_14A008.cpp`](tu_14A008.cpp) | 1 |
 | [`tu_14FAC8.cpp`](tu_14FAC8.cpp) | 1 |
 | [`tu_1553F0.cpp`](tu_1553F0.cpp) | 1 |
-| [`tu_1709A8/`](tu_1709A8/) | 42 |
+| [`tu_1709A8.cpp`](tu_1709A8.cpp) | 1 |
 | [`tu_171F58.cpp`](tu_171F58.cpp) | 1 |
 | [`tu_173158.cpp`](tu_173158.cpp) | 1 |
 | [`tu_1B9F80.cpp`](tu_1B9F80.cpp) | 1 |

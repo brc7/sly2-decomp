@@ -121,46 +121,46 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1709A8](../../../src/game/gameplay/ai/tu_1709A8/func_001709A8.c) | `NShapeMoveKind` | Classifies a script target: 0 if cid 0xD (CID13, rail?), 1 if cid 0xB (CID11, pipe?), else -1 | 0.45 | T2 |  |
-| [0x1709F8](../../../src/game/gameplay/ai/tu_1709A8/func_001709F8.c) | `InitCid113` | cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18) | 0.75 | T2 | verified |
-| [0x170A28](../../../src/game/gameplay/ai/tu_1709A8/func_00170A28.c) | `PostCid113Load` | cid 0x71 PostLoad: LO PostLoad then PrepareCid71Targets | 0.65 | T2 |  |
-| [0x170A58](../../../src/game/gameplay/ai/tu_1709A8/func_00170A58.c) | `PrepareCid113Targets` | Walks the command list: context commands (kind 0) change the lookup context; for move-along-shape commands (kind 6) whose target is a plain SHAPE it calls 0x1E9C30 on it | 0.40 | T2 |  |
-| [0x170B40](../../../src/game/gameplay/ai/tu_1709A8/func_00170B40.c) | `AddCid113CmdContext` | Splice: append command kind 0 (set lookup context oid) | 0.40 | T2 |  |
-| [0x170B60](../../../src/game/gameplay/ai/tu_1709A8/func_00170B60.c) | `AddCid113CmdSetK2CC` | Splice: append command kind 1 with an 8-byte payload (copied to guard +0x2CC on execute) | 0.35 | T2 |  |
-| [0x170BA0](../../../src/game/gameplay/ai/tu_1709A8/func_00170BA0.c) | `AddCid113CmdSetK2D4` | Splice: append command kind 2 with an 8-byte payload (guard +0x2D4) | 0.35 | T2 |  |
-| [0x170BE0](../../../src/game/gameplay/ai/tu_1709A8/func_00170BE0.c) | `AddCid113CmdTeleport` | Splice: append command kind 3 (teleport guard to target oid) | 0.40 | T2 |  |
-| [0x170C00](../../../src/game/gameplay/ai/tu_1709A8/func_00170C00.c) | `AddCid113CmdMessage` | Splice: append command kind 4 (send message 4 with arg) | 0.35 | T2 |  |
-| [0x170C20](../../../src/game/gameplay/ai/tu_1709A8/func_00170C20.c) | `AddCid113CmdWait` | Splice: append command kind 5 with a float (wait time / idle) | 0.40 | T2 |  |
-| [0x170C50](../../../src/game/gameplay/ai/tu_1709A8/func_00170C50.c) | `AddCid113CmdGoto` | Append command kind 6 (move to target oid, with two args) | 0.45 | T2 |  |
-| [0x170C90](../../../src/game/gameplay/ai/tu_1709A8/func_00170C90.c) | `AddCid113CmdLookAt` | Append command kind 7 (target oid, int, float) | 0.35 | T2 |  |
-| [0x170CD0](../../../src/game/gameplay/ai/tu_1709A8/func_00170CD0.c) | `AddCid113CmdAnim` | Splice: append command kind 8 (apply animation segment of target oid) | 0.35 | T2 |  |
-| [0x170CF0](../../../src/game/gameplay/ai/tu_1709A8/func_00170CF0.c) | `AddCid113CmdLabel` | Splice: append command kind 9 (label id) | 0.45 | T2 |  |
-| [0x170D10](../../../src/game/gameplay/ai/tu_1709A8/func_00170D10.c) | `AddCid113CmdJump` | Splice: append command kind 10 (jump to label) | 0.45 | T2 |  |
-| [0x170D30](../../../src/game/gameplay/ai/tu_1709A8/func_00170D30.c) | `AddCid113CmdBusyOn` | Splice: append command kind 11 (SetBhvBusy; also suspends target selection) | 0.35 | T2 |  |
-| [0x170D50](../../../src/game/gameplay/ai/tu_1709A8/func_00170D50.c) | `AddCid113CmdBusyOff` | Splice: append command kind 12 (ClearBhvBusy) | 0.35 | T2 |  |
-| [0x170D70](../../../src/game/gameplay/ai/tu_1709A8/func_00170D70.c) | `AddCid113CmdKind13` | Splice: append command kind 13 (target + int; runs BHV172 0xAC) | 0.30 | T2 | verified |
-| [0x170DA0](../../../src/game/gameplay/ai/tu_1709A8/func_00170DA0.c) | `AddCid113CmdKind14` | Splice: append command kind 14 (two ints; runs BHV157 0x9D with a sensor block) | 0.30 | T2 |  |
-| [0x170DD0](../../../src/game/gameplay/ai/tu_1709A8/func_00170DD0.c) | `AddCid113CmdEnsureRelayAlarm` | Splice: append command kind 15 (EnsureRelayAlarm on target) | 0.60 | T2 | verified |
-| [0x170E00](../../../src/game/gameplay/ai/tu_1709A8/func_00170E00.c) | `PcmdAddCid113` | Allocate a script command node from pool D_003E1548 (PvAllocSlotheapClear), set kind (+0) and arg (+4), append to the CID113 script list (+0x50), return it | 0.55 | T2 | top50; top50 round; v2 name PcmdAppendCid113 |
-| [0x170E68](../../../src/game/gameplay/ai/tu_1709A8/func_00170E68.c) | `StartGuardCid113` | If a guard is given, StartGuardScript(guard, this) | 0.40 | T2 |  |
-| [0x170E90](../../../src/game/gameplay/ai/tu_1709A8/func_00170E90.c) | `ChooseCid113NearestPoint` | Walks the command list and picks the command (kind 3/7 point, kind 6 shape) whose point is closest to a position, honouring kind 11/12 disable brackets | 0.40 | T2 |  |
-| [0x1710F8](../../../src/game/gameplay/ai/tu_1709A8/func_001710F8.c) | `GetCid113TargetPose` | Position and heading of a target: closest point/tangent on a SHAPE (cid 0xA) or the LO position and yaw | 0.40 | T2 |  |
-| [0x1711F0](../../../src/game/gameplay/ai/tu_1709A8/func_001711F0.c) | `FindCid113Label` | Finds the kind-9 (label) command with the given id | 0.50 | T2 |  |
-| [0x171228](../../../src/game/gameplay/ai/tu_1709A8/func_00171228.c) | `InitBhv169` | BHV169 slot 7: base slot 7, then flag 0x21 on the guard (0x209890) | 0.35 | T2 |  |
-| [0x171258](../../../src/game/gameplay/ai/tu_1709A8/func_00171258.c) | `SetBhv169Script` | Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new (message 2) at its first command or a saved resume point | 0.45 | T2 |  |
-| [0x171398](../../../src/game/gameplay/ai/tu_1709A8/func_00171398.c) | `CloseBhv169` | BHV169 slot 9: base pop, ClearBhvBusy, clear the script, drop flag 0x21 | 0.35 | T2 |  |
-| [0x1713E8](../../../src/game/gameplay/ai/tu_1709A8/func_001713E8.c) | `UpdateBhv169` | BHV169 slot 10: executes script commands (vt slot 15) until one is still busy or the script ends | 0.45 | T2 |  |
-| [0x171458](../../../src/game/gameplay/ai/tu_1709A8/func_00171458.c) | `FBhv169ScriptDone` | True when no current command (+0x38 == 0) | 0.50 | T2 |  |
-| [0x171468](../../../src/game/gameplay/ai/tu_1709A8/func_00171468.c) | `FBhv169CmdBusy` | Whether the running command's sub-behaviour is still active (goto/look/wait/13/14 kinds); pops it when done | 0.45 | T2 |  |
-| [0x1715B8](../../../src/game/gameplay/ai/tu_1709A8/func_001715B8.c) | `PloFindBhv169Target` | PloFindSwObject relative to the script's current context object | 0.50 | T2 |  |
-| [0x1715F0](../../../src/game/gameplay/ai/tu_1709A8/func_001715F0.cpp) | `ExecuteBhv169Cmd` | Executes one script command (kinds 0-15): set context, teleport, message, spawn sub-behaviours BHV157/158/172/184-188/192, jump, busy on/off, relay alarm | 0.45 | T2 |  |
-| [0x171AF8](../../../src/game/gameplay/ai/tu_1709A8/func_00171AF8.c) | `GetBhv169TargetPose` | GetCid71TargetPose relative to the guard position | 0.40 | T2 |  |
-| [0x171B60](../../../src/game/gameplay/ai/tu_1709A8/func_00171B60.c) | `TeleportBhv169Guard` | Places the guard at a position and heading and zeroes its velocities | 0.45 | T2 |  |
-| [0x171C18](../../../src/game/gameplay/ai/tu_1709A8/func_00171C18.c) | `GetBhv169ResumeState` | Saves current command/context (and wait time) for later resumption | 0.40 | T2 |  |
-| [0x171C98](../../../src/game/gameplay/ai/tu_1709A8/func_00171C98.c) | `JumpBhv169ToLabel` | Pops any running sub-behaviour and jumps the script to a label | 0.40 | T2 |  |
-| [0x171CF8](../../../src/game/gameplay/ai/tu_1709A8/func_00171CF8.c) | `StartGuardScript` | Sets the guard's BHV156 to mode 5 with the given script | 0.40 | T2 |  |
-| [0x171D58](../../../src/game/gameplay/ai/tu_1709A8/func_00171D58.c) | `SetGuardBhvguardMode1` | Sets the guard's BHV156 to mode 1 (probably back to normal routine) | 0.35 | T2 | runtime |
-| [0x171DA8](../../../src/game/gameplay/ai/tu_1709A8/func_00171DA8.c) | `FGuardRunningScript` | True if the guard's BHV156 is in mode 5 with this script | 0.40 | T2 |  |
+| [0x1709A8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `NShapeMoveKind` | Classifies a script target: 0 if cid 0xD (CID13, rail?), 1 if cid 0xB (CID11, pipe?), else -1 | 0.45 | T2 |  |
+| [0x1709F8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `InitCid113` | cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18) | 0.75 | T2 | verified |
+| [0x170A28](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `PostCid113Load` | cid 0x71 PostLoad: LO PostLoad then PrepareCid71Targets | 0.65 | T2 |  |
+| [0x170A58](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `PrepareCid113Targets` | Walks the command list: context commands (kind 0) change the lookup context; for move-along-shape commands (kind 6) whose target is a plain SHAPE it calls 0x1E9C30 on it | 0.40 | T2 |  |
+| [0x170B40](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdContext` | Splice: append command kind 0 (set lookup context oid) | 0.40 | T2 |  |
+| [0x170B60](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdSetK2CC` | Splice: append command kind 1 with an 8-byte payload (copied to guard +0x2CC on execute) | 0.35 | T2 |  |
+| [0x170BA0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdSetK2D4` | Splice: append command kind 2 with an 8-byte payload (guard +0x2D4) | 0.35 | T2 |  |
+| [0x170BE0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdTeleport` | Splice: append command kind 3 (teleport guard to target oid) | 0.40 | T2 |  |
+| [0x170C00](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdMessage` | Splice: append command kind 4 (send message 4 with arg) | 0.35 | T2 |  |
+| [0x170C20](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdWait` | Splice: append command kind 5 with a float (wait time / idle) | 0.40 | T2 |  |
+| [0x170C50](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdGoto` | Append command kind 6 (move to target oid, with two args) | 0.45 | T2 |  |
+| [0x170C90](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdLookAt` | Append command kind 7 (target oid, int, float) | 0.35 | T2 |  |
+| [0x170CD0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdAnim` | Splice: append command kind 8 (apply animation segment of target oid) | 0.35 | T2 |  |
+| [0x170CF0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdLabel` | Splice: append command kind 9 (label id) | 0.45 | T2 |  |
+| [0x170D10](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdJump` | Splice: append command kind 10 (jump to label) | 0.45 | T2 |  |
+| [0x170D30](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdBusyOn` | Splice: append command kind 11 (SetBhvBusy; also suspends target selection) | 0.35 | T2 |  |
+| [0x170D50](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdBusyOff` | Splice: append command kind 12 (ClearBhvBusy) | 0.35 | T2 |  |
+| [0x170D70](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdKind13` | Splice: append command kind 13 (target + int; runs BHV172 0xAC) | 0.30 | T2 | verified |
+| [0x170DA0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdKind14` | Splice: append command kind 14 (two ints; runs BHV157 0x9D with a sensor block) | 0.30 | T2 |  |
+| [0x170DD0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `AddCid113CmdEnsureRelayAlarm` | Splice: append command kind 15 (EnsureRelayAlarm on target) | 0.60 | T2 | verified |
+| [0x170E00](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `PcmdAddCid113` | Allocate a script command node from pool D_003E1548 (PvAllocSlotheapClear), set kind (+0) and arg (+4), append to the CID113 script list (+0x50), return it | 0.55 | T2 | top50; top50 round; v2 name PcmdAppendCid113 |
+| [0x170E68](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `StartGuardCid113` | If a guard is given, StartGuardScript(guard, this) | 0.40 | T2 |  |
+| [0x170E90](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `ChooseCid113NearestPoint` | Walks the command list and picks the command (kind 3/7 point, kind 6 shape) whose point is closest to a position, honouring kind 11/12 disable brackets | 0.40 | T2 |  |
+| [0x1710F8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `GetCid113TargetPose` | Position and heading of a target: closest point/tangent on a SHAPE (cid 0xA) or the LO position and yaw | 0.40 | T2 |  |
+| [0x1711F0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `FindCid113Label` | Finds the kind-9 (label) command with the given id | 0.50 | T2 |  |
+| [0x171228](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `InitBhv169` | BHV169 slot 7: base slot 7, then flag 0x21 on the guard (0x209890) | 0.35 | T2 |  |
+| [0x171258](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `SetBhv169Script` | Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new (message 2) at its first command or a saved resume point | 0.45 | T2 |  |
+| [0x171398](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `CloseBhv169` | BHV169 slot 9: base pop, ClearBhvBusy, clear the script, drop flag 0x21 | 0.35 | T2 |  |
+| [0x1713E8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `UpdateBhv169` | BHV169 slot 10: executes script commands (vt slot 15) until one is still busy or the script ends | 0.45 | T2 |  |
+| [0x171458](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `FBhv169ScriptDone` | True when no current command (+0x38 == 0) | 0.50 | T2 |  |
+| [0x171468](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `FBhv169CmdBusy` | Whether the running command's sub-behaviour is still active (goto/look/wait/13/14 kinds); pops it when done | 0.45 | T2 |  |
+| [0x1715B8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `PloFindBhv169Target` | PloFindSwObject relative to the script's current context object | 0.50 | T2 |  |
+| [0x1715F0](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `ExecuteBhv169Cmd` | Executes one script command (kinds 0-15): set context, teleport, message, spawn sub-behaviours BHV157/158/172/184-188/192, jump, busy on/off, relay alarm | 0.45 | T2 |  |
+| [0x171AF8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `GetBhv169TargetPose` | GetCid71TargetPose relative to the guard position | 0.40 | T2 |  |
+| [0x171B60](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `TeleportBhv169Guard` | Places the guard at a position and heading and zeroes its velocities | 0.45 | T2 |  |
+| [0x171C18](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `GetBhv169ResumeState` | Saves current command/context (and wait time) for later resumption | 0.40 | T2 |  |
+| [0x171C98](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `JumpBhv169ToLabel` | Pops any running sub-behaviour and jumps the script to a label | 0.40 | T2 |  |
+| [0x171CF8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `StartGuardScript` | Sets the guard's BHV156 to mode 5 with the given script | 0.40 | T2 |  |
+| [0x171D58](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `SetGuardBhvguardMode1` | Sets the guard's BHV156 to mode 1 (probably back to normal routine) | 0.35 | T2 | runtime |
+| [0x171DA8](../../../src/game/gameplay/ai/tu_1709A8.cpp) | `FGuardRunningScript` | True if the guard's BHV156 is in mode 5 with this script | 0.40 | T2 |  |
 
 ## tu_171F58 (0x171F58-0x173158)
 
