@@ -28,6 +28,6 @@
 | [`throw.cpp`](throw.cpp) | 1 |
 | [`tu_19F0A8.cpp`](tu_19F0A8.cpp) | 1 |
 | [`tu_201D78.cpp`](tu_201D78.cpp) | 1 |
-| [`tu_20B840/`](tu_20B840/) | 31 |
+| [`tu_20B840.cpp`](tu_20B840.cpp) | 1 |
 
 Lower layers must not depend on higher ones; see [the architecture doc](../../../../docs/architecture.md) for the layer rules and the known exceptions. Each leaf directory under `src/game/` is one original translation unit (source file); names like `tu_1D7238` are units we have not named yet.

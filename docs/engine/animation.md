@@ -143,9 +143,9 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 | [0x1F0660](../../src/game/engine/anim/sm/SetSmaGoal.cpp) | `SetSmaGoal` | ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the transition allows a break (flag 2), else choose a trans | 0.85 | T1 |  |
 | [0x1F07C8](../../src/game/engine/anim/sm/GetSmaGoal.c) | `GetSmaGoal` | OidFromSmIsms(psm, ismsGoal +0x3C) | 0.85 | T1 |  |
 | [0x1F07E8](../../src/game/engine/anim/sm/func_001F07E8.c) | `GetSmaCur` | Same for ismsCur (+0x34) | 0.85 | T1 |  |
-| [0x20BD78](../../src/game/gameplay/player/tu_20B840/func_0020BD78.c) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
-| [0x20BF80](../../src/game/gameplay/player/tu_20B840/StartLeap.c) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
-| [0x20CAA8](../../src/game/gameplay/player/tu_20B840/func_0020CAA8.c) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |
+| [0x20BD78](../../src/game/gameplay/player/tu_20B840.cpp) | `InitAsegArc` | *p = -1 | 0.30 | T2 | verified |
+| [0x20BF80](../../src/game/gameplay/player/tu_20B840.cpp) | `StartLeap` | construct CID 0x91 leap in place and enter state 0 | 0.85 | T1 | verified |
+| [0x20CAA8](../../src/game/gameplay/player/tu_20B840.cpp) | `HandleDirAnimMessage` | CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward | 0.85 | T2 | verified |
 | [0x21C888](../../src/game/engine/anim/tail.cpp) | `LoadSoChainsFromBrx` | reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves the XF via vt slot51, creates a kind-3 hook (vt D_0 | 0.90 | T1 | parse, verified |
 | [0x22B7D8](../../src/game/engine/anim/wr.cpp) | `UpdateWrStateVectors` | per WRBG vertex weights + state vectors | 0.75 | T1 | verified |
 | [0x22C570](../../src/game/engine/anim/wr.cpp) | `GetWrWavelength` | 1/circle frequency (0 if 0) | 0.85 | T1 | verified |
