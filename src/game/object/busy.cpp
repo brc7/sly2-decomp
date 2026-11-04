@@ -225,7 +225,7 @@ static __inline__ float GDistSq(qword a, qword b)
     float g;
     d = VuSub(a, b);
     d = VuDot(d, d);
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
+    g = VuToFloat(d);
     return g;
 }
 

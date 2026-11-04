@@ -384,8 +384,8 @@ extern "C" int func_00173610(qword *pv, float a, float b, int k, int (*fn)(void)
 static inline qword Sub(qword a,qword b){a = VuSub(a, b);return a;}
 static inline qword LoadCpu(const U&u){register qword q asm("$5");__asm__("lq %0,%1":"=r"(q):"m"(u.q));return q;}
 static inline qword Load(const U&u){register qword q asm("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(u.q));return q;}
-static inline float Len3(qword a,const U&u){qword b=Load(u);register qword d asm("vf1");float f;d = VuDot(a, b);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
-static inline float Len2(qword input){register qword a asm("vf2")=input,d asm("vf1");float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(d):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
+static inline float Len3(qword a,const U&u){qword b=Load(u);register qword d asm("vf1");float f;d = VuDot(a, b);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+static inline float Len2(qword input){register qword a asm("vf2")=input,d asm("vf1");float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(d):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
 static inline void ReadInputs(CM*source,const U&position,qword&cpu,qword&point,qword&vector){register CM*p asm("$2")=source;register qword r asm("$5"),v asm("vf1"),o asm("vf2");__asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2":"=r"(r),"=j"(v),"=j"(o):"m"(p->mat.r[3]),"m"(position.q));cpu=r;point=v;vector=o;}
 static inline float Z(qword a){register int bits asm("$5");union{int n;float f;}value;__asm__("pextuw %0,$0,%1":"=r"(bits):"r"(a));value.n=bits;return value.f;}
 static inline int TooFar(qword a,float limit){return limit<Len2(a);}
@@ -456,7 +456,7 @@ extern "C" void func_00173928(CID119 *p, ENTRY *pe, int k, int f) {
 extern "C" qword func_00173A18(CID119 *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
-static inline float DistanceXY(qword a,qword b){qword d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
+static inline float DistanceXY(qword a,qword b){qword d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
 /** @sly2-annot addr=0x173A68
  * Purpose: Periodically spawns a guard at a concealed spawn point when a slot is free (gated by the player's
  *   last alert event), aims it and sends message 0x19
@@ -525,7 +525,7 @@ struct VU_VECTOR { qword q; VU_VECTOR() {} VU_VECTOR(qword a) { q = a; } };
 static inline VU_VECTOR VsubXyzw(VU_VECTOR a, VU_VECTOR b) { qword d; d = VuSub(a.q, b.q); return VU_VECTOR(d); }
 static inline VU_VECTOR SumXY(VU_VECTOR a) { qword d; __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
 static inline VU_VECTOR SqrtV(VU_VECTOR a) { qword d; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
-static inline float GetXV(VU_VECTOR a) { float f; __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(a.q)); return f; }
+static inline float GetXV(VU_VECTOR a) { float f; f = VuToFloat(a.q); return f; }
 static inline VU_VECTOR operator-(VU_VECTOR a, VU_VECTOR b) { return VsubXyzw(a, b); }
 static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
 static inline float LengthXY(VU_VECTOR a) { return GetXV(LengthXYV(a)); }

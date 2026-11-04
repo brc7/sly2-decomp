@@ -241,7 +241,7 @@ static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2
 static inline float Length(qword d){qword r,one;float f;
     r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
-    __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
+    f = VuToFloat(r);return f;}
 static inline float OffsetLength(qword d){qword r,one;register int bits __asm__("$3");
     r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));

@@ -297,7 +297,7 @@ extern "C" void func_00155660(BHVESC *p)
             d = VuSub(a, b);
             __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
             __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
-            __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(l));
+            dist = VuToFloat(l);
             f = 0;
             if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->x30) f = 1;
             if (f) func_00155788(p, 1);

@@ -297,7 +297,7 @@ extern "C" int func_00156918(NOISE *p, qword pos)
         return 0;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
-    __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(l));
+    dist = VuToFloat(l);
     { int f = func_00156898(p) < dist; return f ^ 1; }
 }
 
@@ -551,7 +551,7 @@ static __inline__ float DistXY(qword d)
     float dist;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
-    __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(l));
+    dist = VuToFloat(l);
     return dist;
 }
 static __inline__ int FIn(qword d, float g) { return DistXY(d) < g; }

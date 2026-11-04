@@ -485,7 +485,7 @@ static inline float Dot(qword a, const VECTOR &b)
 {
     float g;
     a = VuDot(a, b.q);
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
+    g = VuToFloat(a);
     return g;
 }
 /** @sly2-annot addr=0x154770

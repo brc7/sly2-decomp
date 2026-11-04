@@ -193,7 +193,7 @@ extern "C" int func_001BA100(void *pv, ROW *prow)
 
 struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}
-static inline float Square(qword a){float f;a = VuDot(a, a);__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
+static inline float Square(qword a){float f;a = VuDot(a, a);f = VuToFloat(a);return f;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char ROW_Size[sizeof(ROW)==8?1:-1];
@@ -342,7 +342,7 @@ static inline float Dist(qword a, qword b) {
     d = VuSub(a, b);
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(d));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }

@@ -366,7 +366,7 @@ static inline float Dist(qword a, qword b) {
     d = VuSub(a, b);
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(d));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 /** @sly2-annot addr=0x172658

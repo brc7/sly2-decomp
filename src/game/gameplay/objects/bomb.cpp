@@ -226,7 +226,7 @@ static __inline__ float GLength(qword v)
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
         "vaddq.x %0, $vf0, Q" : "+j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
+    g = VuToFloat(d);
     return g;
 }
 /** @sly2-annot addr=0x13AB58
@@ -485,7 +485,7 @@ extern "C" void func_0013AEB0(BOMB *p)
         float gl;
         __asm__("" : "=r"(kDef) : "0"(D_002A2DA0));
         l = VLenA(v);
-        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
+        gl = VuToFloat(l);
         if (gl < 1e-4f) {
             n = kDef;
         } else {
@@ -574,7 +574,7 @@ extern "C" int FAbsorbBombWkr(BOMB *p, WKR *pm)
         float gl;
         __asm__("" : "=r"(k) : "0"(D_002A2DC0));
         l = VLen(c);
-        __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
+        gl = VuToFloat(l);
         pu = &u;
         if (gl < 1e-4f) {
             n = k;
@@ -790,7 +790,7 @@ extern "C" void DetonateBomb(BOMB *p)
                 register qword t __asm__("vf2");
                 t = VuDot(d, d);
                 __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(t) : "j"(t));
-                __asm__("qmfc2.ni %0, %1" : "=r"(l) : "j"(t));
+                l = VuToFloat(t);
                 if (l < 1e-4f) {
                     t = def;
                 } else {
