@@ -250,7 +250,7 @@ static inline float Dot(qword a, qword b)
     qword d;
     float f;
     d = VuDot(a, b);
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 static inline qword Cross(qword a, qword b)
@@ -328,7 +328,7 @@ static inline float Dot(qword a, qword b)
     qword d;
     float f;
     d = VuDot(a, b);
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
+    f = VuToFloat(d);
     return f;
 }
 static inline float DotG(qword a, qword b)
@@ -379,7 +379,7 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
         float l;
         dd = VuDot(n, n);
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(t) : "j"(dd));
-        __asm__("qmfc2.ni %0, %1" : "=r"(l) : "j"(t));
+        l = VuToFloat(t);
         if (l < 1e-4f) {
             t = def;
         } else {
@@ -787,7 +787,7 @@ static inline float ToF(qword d)
 {
     float g;
     register int r __asm__("v0");
-    __asm__("qmfc2.ni %0, %2\n\tmtc1 %0, %1" : "=&r"(r), "=f"(g) : "j"(d));
+    g = VuToFloat(d);
     return g;
 }
 static inline float GClamp(float g, float lo, float hi)
