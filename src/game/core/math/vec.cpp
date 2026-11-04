@@ -101,7 +101,7 @@ extern "C" float func_0011E290(qword a, qword b, qword *ppar, qword *pperp)
     }
     if (pperp) {
         qword r;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(p));
+        r = VuSub(a, p);
         *pperp = r;
     }
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
@@ -314,7 +314,7 @@ typedef union { qword q; float f; } U;
 static inline qword Sub(qword a, qword b)
 {
     qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    r = VuSub(a, b);
     return r;
 }
 static inline qword Cross(qword a, qword b)
@@ -528,7 +528,7 @@ static inline qword Sub(qword a, qword b)
 static inline qword SubN(qword a, qword b)
 {
     qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    r = VuSub(a, b);
     return r;
 }
 static inline qword Cross(qword a, qword b)
@@ -627,7 +627,7 @@ typedef union { qword q; float af[4]; } V;
 static inline qword Sub(qword a, qword b)
 {
     qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    r = VuSub(a, b);
     return r;
 }
 static inline qword Cross(qword a, qword b)
@@ -701,7 +701,7 @@ typedef union { qword q; float f; } U;
 static inline qword Sub(qword a, qword b)
 {
     qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    r = VuSub(a, b);
     return r;
 }
 static inline float Dot(qword a, qword b)
@@ -766,7 +766,7 @@ typedef int qword __attribute__((mode(TI)));
 static inline qword Sub(qword a, qword b)
 {
     qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    r = VuSub(a, b);
     return r;
 }
 static inline float Dot(qword a, qword b)
@@ -941,7 +941,7 @@ static inline VU_FLOAT VuFloat(float g)
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
+    qw = VuSub(qw0, qw1);
     return qw;
 }
 static inline float GFromVf(qword qw)
