@@ -170,8 +170,7 @@ static inline qword Normalize(qword v, qword fallback)
 static inline qword Transform(const M3 &m, qword q)
 {
     qword r;
-    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-            : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(q));
+    r = VuMulMatrix3(m.r[0], m.r[1], m.r[2], q);
     return r;
 }
 static inline float Rand(const LM &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }

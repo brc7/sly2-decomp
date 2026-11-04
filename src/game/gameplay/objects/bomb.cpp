@@ -596,8 +596,7 @@ extern "C" int FAbsorbBombWkr(BOMB *p, WKR *pm)
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
-    __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(v));
+    o = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v);
     return o;
 }
 static __inline__ void MulStore(BOMB *p, M3 *pm)

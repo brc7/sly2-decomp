@@ -391,7 +391,7 @@ extern "C" void FireSplmiss(SPLMISS*p,LO*source,V*point){
  }
 }
 
-static inline qword MulPt(M4 *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0]), "j"(v), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3])); return r; }
+static inline qword MulPt(M4 *m, qword v) { qword r; r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v); return r; }
 /** @sly2-annot addr=0x1B2398
  * Purpose: Target position in world: transform stored target pos by source LO's world matrix (predicted dt),
  *   or raw pos if no source
