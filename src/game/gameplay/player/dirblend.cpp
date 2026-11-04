@@ -101,7 +101,7 @@ extern "C" void func_001A0300(struct ACTOR *p, DIRAXIS *ae, MULTI **pn)
                     register unsigned int bits __asm__("$2") = clip->x74.bits;
                     __asm__("qmtc2.ni %1, %0" : "=j"(scalar) : "r"(bits));
                     d = v0.q;
-                    __asm__("vsub.xyzw %0, %0, %1" : "+j"(d) : "j"(v1.q));
+                    d = VuSubRef(d, v1.q);
                     t.q = scalar;
                     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %0, $Q" : "+j"(d) : "j"(t.q));
                     e->direction.q = d;
@@ -190,7 +190,7 @@ static inline qword ProjectOut(qword ni,qword vi){
  register qword dot __asm__("vf2"),one __asm__("vf4");
  dot = VuDot(v, n);
  __asm__("vmulx.xyzw %0,%1,%0x":"+j"(dot):"j"(n));
- __asm__("vsub.xyzw %0,%0,%1":"+j"(v):"j"(dot));
+ v = VuSub(v, dot);
  return v;
 }
 static inline void RemoveSide(PLAYERV*p,U*result,U*old){

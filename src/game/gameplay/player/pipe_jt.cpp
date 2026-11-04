@@ -379,7 +379,7 @@ static inline qword NormalB(qword v,U*axis){
 static inline qword GoalInputs(U*target,qword position,void*&focus){
  register qword a __asm__("vf2"),b __asm__("vf3"),r __asm__("vf1");register void*nullFocus __asm__("$5");
  __asm__("lqc2 %0,%3\n\tdaddu %2,$zero,$zero\n\tqmtc2.ni %4,%1":"=j"(a),"=j"(b),"=&r"(nullFocus):"m"(target->q),"r"(position));
- focus=nullFocus;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;
+ focus=nullFocus;r = VuSub(a, b);return r;
 }
 static inline qword WorldInputs(JTPIPE*p,U*point,U*world,qword offset,JT*&owner){
  register JT*actor __asm__("$2");register qword value __asm__("vf1");

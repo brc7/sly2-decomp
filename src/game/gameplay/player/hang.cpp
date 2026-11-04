@@ -144,7 +144,7 @@ struct VU_FLOAT{qword q;VU_FLOAT(){}explicit VU_FLOAT(qword a){q=a;}inline VU_FL
 struct VU_VECTOR{qword q;VU_VECTOR(){}VU_VECTOR(qword a){q=a;}};
 static inline VU_FLOAT Scalar(float value){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(value));return VU_FLOAT(q);}
 static inline VU_VECTOR operator*(VU_VECTOR value,VU_FLOAT amount){qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(value.q),"j"(amount.q));return VU_VECTOR(q);}
-static inline qword SubV(VU_VECTOR first,VU_VECTOR second){qword q;__asm__("vsub.xyzw %0,%1,%2":"=j"(q):"j"(first.q),"j"(second.q));return q;}
+static inline qword SubV(VU_VECTOR first,VU_VECTOR second){qword q;q = VuSub(first.q, second.q);return q;}
 static inline void StoreDot(float*out,const qword&a0,const qword&b){qword a=a0;qword one;float bits;__asm__("vmul.xyz %1,%1,%3\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1":"=&rV"(*out),"+j"(a),"=j"(one):"j"(b),"j"(a));}
 static inline VU_FLOAT VuFloatFromMemWord(int n){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"rV"(n));return VU_FLOAT(q);}
 inline VU_FLOAT::VU_FLOAT(const float&f){*this=VuFloatFromMemWord(*(int*)&f);}
@@ -339,7 +339,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *p)
     qword a;
     __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(p->target)));
     v.q = a;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(a) : "j"(a), "j"(func_001A62E8(p)));
+    a = VuSub(a, func_001A62E8(p));
     d.q = a;
     m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0.q, a);
     m2 = func_0011B500(D_002A2DC0.q, p->angle);
@@ -564,7 +564,7 @@ extern "C" qword func_00190C58(JT *p)
     UF s;
     float g;
     q = func_001A62E8(p->target);
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(p->x19cc->m40.r[3].q));
+    d = VuSub(q, p->x19cc->m40.r[3].q);
     {
         register const qword *address __asm__("$2") = &D_002A2DC0.q;
         __asm__("lq %0,%1" : "=r"(fallback) : "m"(*address));

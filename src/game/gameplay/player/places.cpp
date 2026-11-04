@@ -156,7 +156,7 @@ extern "C" qword func_0019F3F8(JT *p, PLACE *q, float g)
         r = func_0022FC48(o, 0, v);
     }
     if (!q->pso)
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(r), "j"(p->x240));
+        r = VuSub(r, p->x240);
     return r;
 }
 
@@ -168,7 +168,7 @@ extern "C" qword func_0019F3F8(JT *p, PLACE *q, float g)
  * @end-sly2-annot */
 extern "C" void func_0019F540(JT *p, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(p, &f); }
 
-static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static __inline__ qword VSub(qword a, qword b) { qword r; r = VuSub(a, b); return r; }
 /** @sly2-annot addr=0x19F590
  * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
  *   it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not
@@ -266,7 +266,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
         if (lo == (LO2 *)p->pjt) continue;
         qword d;
         float dist;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*lo->x218), "j"(*(qword *)(void *)&pos));
+        d = VuSub(*lo->x218, *(qword *)(void *)&pos);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(d));
@@ -384,7 +384,7 @@ static __inline__ float Dist(qword a, qword b)
 {
     qword r, t;
     float g;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "0"(b));
+    r = VuSub(a, b);
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q"
             : "+j"(r), "=&j"(t));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(r));
