@@ -219,7 +219,7 @@ static inline VUF VuFloat(float g){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"
 static inline VUF VufFromMemWord(int n){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwScaleX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword QwAddScaled(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
-static inline qword QwDot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
+static inline qword QwDot(qword a,qword b){qword r;r = VuDot(a, b);return r;}
 static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
 static inline qword QwDivideBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
@@ -360,7 +360,7 @@ extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->o
 extern "C" float fabsf(float);
 static inline float Abs(float a){return fabsf(a);}
 static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
-static inline qword LengthSquared(qword value){qword n,one;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(n),"=&j"(one):"j"(value));return n;}
+static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
 static inline float X(qword value){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(value));return f;}
 static inline qword Velocity(JT*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 static inline int Can(JT*p,int mode){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,mode);}

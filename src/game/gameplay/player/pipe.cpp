@@ -151,8 +151,8 @@ static inline qword operator*(VU_FLOAT f, VU_VECTOR v) { qword r; __asm__("vmulx
 static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 static inline qword Length(qword v)
 {
-    qword d, one, len;
-    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v));
+    qword d, len;
+    d = VuDot(v, v);
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(d));
     return len;
 }
@@ -171,9 +171,9 @@ static inline qword Normalize(qword v, qword fallback)
 }
 static inline float Dot(qword a, qword b)
 {
-    qword d, one;
+    qword d;
     float f;
-    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(d), "=&j"(one) : "j"(a), "j"(b));
+    d = VuDot(a, b);
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
 }

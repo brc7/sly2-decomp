@@ -113,7 +113,7 @@ extern "C" void func_001A0300(struct ACTOR *p, DIRAXIS *ae, MULTI **pn)
     *pn = n;
 }
 
-static inline qword Dot(qword a,qword b){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a),"j"(b));return d;}
+static inline qword Dot(qword a,qword b){qword d;d = VuDot(a, b);return d;}
 static inline float FloatX(qword q){int bits;float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 static inline float Max(float a,float b){float f;__asm__("max.s %0,%1,%2":"=f"(f):"f"(a),"f"(b));return f;}
 
@@ -188,7 +188,7 @@ static inline qword ToVu(qword bits){register qword r __asm__("vf3");__asm__("qm
 static inline qword ProjectOut(qword ni,qword vi){
  register qword n __asm__("vf1")=ni,v __asm__("vf3")=vi;
  register qword dot __asm__("vf2"),one __asm__("vf4");
- __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(dot),"=&j"(one):"j"(v),"j"(n));
+ dot = VuDot(v, n);
  __asm__("vmulx.xyzw %0,%1,%0x":"+j"(dot):"j"(n));
  __asm__("vsub.xyzw %0,%0,%1":"+j"(v):"j"(dot));
  return v;
