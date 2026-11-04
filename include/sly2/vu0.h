@@ -63,6 +63,7 @@ template <class QW> inline QW VuDot(QW a, QW b)
  * Placeholder name (HYPOTHESIS: a VU_FLOAT(float) constructor in the original, as Sly 1's VU_FLOAT type suggests). */
 template <class QW, class G> inline QW VuFromFloat(G g)
 {
+    typedef char assert_g_is_a_word[sizeof(G) == 4 ? 1 : -1]; /* a quadword moved to VF is not this idiom */
     QW r;
     __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g));
     return r;
