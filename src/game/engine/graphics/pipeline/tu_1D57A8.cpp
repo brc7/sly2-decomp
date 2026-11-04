@@ -680,7 +680,7 @@ static inline float Dist(qword a, qword b)
     qword d, t, va;
     float f;
     __asm__("qmtc2.ni %1, %0" : "=j"(va) : "r"(a));
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(va), "j"(b));
+    d = VuSub(va, b);
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d), "=&j"(t));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;

@@ -73,7 +73,7 @@ extern "C" void LoadVolFromBrx(VOL *p, void *pbis)
         __asm__("qmtc2.ni %1, %0" : "=j"(h) : "r"(0.5f));
         u.q = h;
         __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(m) : "j"(a), "j"(h), "j"(b));
-        __asm__("vsub.xyzw %0, %1, %0" : "+j"(a) : "j"(m));
+        a = VuSub(m, a);
         p->posCenter = m;
         a = VuDot(a, a);
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
@@ -96,7 +96,7 @@ extern "C" int FCheckVolPoint(VOL *p, qword q)
     qword a = ConvertAloPos(0, p, q), d, r, t;
     float f;
     int fFar;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(p->posCenter));
+    d = VuSub(a, p->posCenter);
     r = VuDot(d, d);
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(r));
     fFar = p->sRadius < f;

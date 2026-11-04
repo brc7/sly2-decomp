@@ -46,7 +46,7 @@ static inline qword Norm(qword a) {
     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "+j"(d) : "j"(a));
     return d;
 }
-static inline qword Difference(qword end,const qword *start){qword result;__asm__("vsub.xyzw %0,%1,%2":"=j"(result):"j"(end),"j"(*start));return result;}
+static inline qword Difference(qword end,const qword *start){qword result;result = VuSub(end, *start);return result;}
 /** @sly2-annot addr=0x1D6848
  * Purpose: Launch velocity from start to end at elevation angle g under gravity acc (sin/cos/tan/atan2)
  * Info: proposed name VecLaunchBallistic (T2); TU tu_1D6848
@@ -109,13 +109,13 @@ extern "C" qword func_001D69F0(qword a, qword b, qword acc, float dt)
     float accz = Z(acc);
     qword delta, axis, dot, proj, flat, inv, vz, r;
     float z, invdt;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(delta) : "j"(b), "j"(a));
+    delta = VuSub(b, a);
     z = Z(delta) - (dt * halfdt) * accz;
     invdt = 1.0f / dt;
     axis = D_002A2DC0;
     dot = VuDot(delta, axis);
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(proj) : "j"(axis), "j"(dot));
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(flat) : "j"(delta), "j"(proj));
+    flat = VuSub(delta, proj);
     inv = Bc(invdt);
     vz = Bc(z / dt);
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(r) : "j"(flat), "j"(inv), "j"(axis), "j"(vz));

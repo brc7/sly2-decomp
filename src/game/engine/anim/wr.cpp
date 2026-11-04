@@ -324,7 +324,7 @@ static inline VU_VECTOR operator*(const MATRIX4 &mat, VU_VECTOR pos)
 static inline VU_VECTOR operator-(VU_VECTOR vec0, VU_VECTOR vec1)
 {
     qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(vec0.q), "j"(vec1.q));
+    qw = VuSub(vec0.q, vec1.q);
     return VU_VECTOR(qw);
 }
 

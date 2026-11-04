@@ -257,7 +257,7 @@ static inline qword Transform(const M4 &m, qword p)
         : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(p));
     return r;
 }
-static inline qword Sub(const qword &a, const qword &b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline qword Sub(const qword &a, const qword &b) { qword r; r = VuSub(a, b); return r; }
 static inline qword Cross(const qword &a, const qword &b)
 {
     qword r;
@@ -584,7 +584,7 @@ static inline VU_FLOAT VuFloatFromMemF(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,
 static inline qword QwDivideR(qword a,qword g,const qword&f){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g),"r"(f));return r;}
 static inline void LoadVuFloatFromMemWord(VU_FLOAT&v,int n){__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));}
 static inline qword QwAddP(const qword&a,const qword&b,U*s){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b),"r"(s));return r;}static inline qword QwAdd(const qword&a,const qword&b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword QwSub(qword a,qword b){qword r;r = VuSub(a, b);return r;}
 static inline qword QwScaleX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline VU_FLOAT VuFloatC1(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g):"vf1");return v;} // clobber of the dead vf1: allocation only
 static inline qword QwAddScaled(qword base,qword vec,VU_FLOAT k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
