@@ -34,28 +34,28 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x15EF00](../../../src/game/engine/font/font/StartupFont__Fv.c) | `StartupFont` | Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer D_002DE760 = font[0] | 0.70 | T1 |  |
-| [0x15EF30](../../../src/game/engine/font/font/PostFontsLoad__Fv.c) | `PostFontsLoad` | InitGsb(gsb,0x1000,0x1800) then sets up the two built-in CFontBrx fonts into that GS memory (0x15F710) | 0.55 | T1 |  |
-| [0x15EFA0](../../../src/game/engine/font/font/func_0015EFA0.c) | `PfontFromCh` | Maps a font-escape character (table D_002BE328, 2 entries) to one of the two registered fonts | 0.45 | T2 |  |
-| [0x15F000](../../../src/game/engine/font/font/CleanupDraw.cpp) | `CleanupDraw` | If requested, restores a full-screen SCISSOR_1 (0..511 x 0..223) after text drawing | 0.50 | T1 |  |
-| [0x15F078](../../../src/game/engine/font/font/PushScaling__5CFontff.cpp) | `PushScaling__5CFontff` |  |  | existing |  |
-| [0x15F0C0](../../../src/game/engine/font/font/PopScaling__5CFont.c) | `PopScaling__5CFont` |  |  | existing |  |
-| [0x15F0F0](../../../src/game/engine/font/font/DxFromCh__8CFontBrxc.cpp) | `DxFromCh__8CFontBrxc` |  |  | existing |  |
-| [0x15F148](../../../src/game/engine/font/font/FEnsureLoaded.c) | `FEnsureLoaded` | Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs, emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed | 0.70 | T1 |  |
-| [0x15F220](../../../src/game/engine/font/font/SetupDraw.c) | `SetupDraw` | CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then the sprite prim list setup | 0.65 | T1 |  |
-| [0x15F3E8](../../../src/game/engine/font/font/SwitchTex0__8CFontBrxP4GIFS.cpp) | `SwitchTex0__8CFontBrxP4GIFS` |  |  | existing |  |
-| [0x15F480](../../../src/game/engine/font/font/DxDrawCh__8CFontBrxcffUiP4GIFS.cpp) | `DxDrawCh__8CFontBrxcffUiP4GIFS` |  |  | existing |  |
-| [0x15F710](../../../src/game/engine/font/font/PostLoad.cpp) | `PostLoad` | CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb) and builds TEX0/CLUT upload GIFs for its bitmap | 0.60 | T1 |  |
-| [0x15F888](../../../src/game/engine/font/font/func_0015F888.c) | `RegisterFont` | Stores the font in the font table D_002DE9F0[font->id] | 0.40 | T2 |  |
-| [0x15F8A8](../../../src/game/engine/font/font/PglyffFromCh.c) | `PglyffFromCh` | Binary-searches the font glyph table for a character (via remap table D_002BE338) | 0.80 | T1 |  |
-| [0x15F928](../../../src/game/engine/font/font/__9CRichTextPcP5CFont.c) | `__9CRichTextPcP5CFont` |  |  | existing |  |
-| [0x15F970](../../../src/game/engine/font/font/Reset__9CRichText.cpp) | `Reset__9CRichText` |  |  | existing |  |
-| [0x15F9A8](../../../src/game/engine/font/font/SetBaseColor__9CRichTextP4RGBA.cpp) | `SetBaseColor__9CRichTextP4RGBA` |  |  | existing |  |
-| [0x15F9D0](../../../src/game/engine/font/font/ChNext__9CRichText.cpp) | `ChNext__9CRichText` |  |  | existing |  |
-| [0x15FD68](../../../src/game/engine/font/font/ClineWrap__9CRichTextf.cpp) | `ClineWrap__9CRichTextf` |  |  | existing |  |
-| [0x15FEF8](../../../src/game/engine/font/font/FUN_0015e1b0.c) | `FUN_0015e1b0` |  |  | existing |  |
-| [0x15FF40](../../../src/game/engine/font/font/DxMaxLine__9CRichText.cpp) | `DxMaxLine__9CRichText` |  |  | existing |  |
-| [0x15FFD0](../../../src/game/engine/font/font/Draw__9CRichTextP8CTextBoxT1P4GIFS.cpp) | `Draw__9CRichTextP8CTextBoxT1P4GIFS` |  |  | existing |  |
+| [0x15EF00](../../../src/game/engine/font/font.cpp) | `StartupFont` | Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer D_002DE760 = font[0] | 0.70 | T1 |  |
+| [0x15EF30](../../../src/game/engine/font/font.cpp) | `PostFontsLoad` | InitGsb(gsb,0x1000,0x1800) then sets up the two built-in CFontBrx fonts into that GS memory (0x15F710) | 0.55 | T1 |  |
+| [0x15EFA0](../../../src/game/engine/font/font.cpp) | `PfontFromCh` | Maps a font-escape character (table D_002BE328, 2 entries) to one of the two registered fonts | 0.45 | T2 |  |
+| [0x15F000](../../../src/game/engine/font/font.cpp) | `CleanupDraw` | If requested, restores a full-screen SCISSOR_1 (0..511 x 0..223) after text drawing | 0.50 | T1 |  |
+| [0x15F078](../../../src/game/engine/font/font.cpp) | `PushScaling__5CFontff` |  |  | existing |  |
+| [0x15F0C0](../../../src/game/engine/font/font.cpp) | `PopScaling__5CFont` |  |  | existing |  |
+| [0x15F0F0](../../../src/game/engine/font/font.cpp) | `DxFromCh__8CFontBrxc` |  |  | existing |  |
+| [0x15F148](../../../src/game/engine/font/font.cpp) | `FEnsureLoaded` | Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs, emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed | 0.70 | T1 |  |
+| [0x15F220](../../../src/game/engine/font/font.cpp) | `SetupDraw` | CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then the sprite prim list setup | 0.65 | T1 |  |
+| [0x15F3E8](../../../src/game/engine/font/font.cpp) | `SwitchTex0__8CFontBrxP4GIFS` |  |  | existing |  |
+| [0x15F480](../../../src/game/engine/font/font.cpp) | `DxDrawCh__8CFontBrxcffUiP4GIFS` |  |  | existing |  |
+| [0x15F710](../../../src/game/engine/font/font.cpp) | `PostLoad` | CFontBrx::PostLoad: copies header metrics, registers the font, allocates GS memory (IgsAllocGsb) and builds TEX0/CLUT upload GIFs for its bitmap | 0.60 | T1 |  |
+| [0x15F888](../../../src/game/engine/font/font.cpp) | `RegisterFont` | Stores the font in the font table D_002DE9F0[font->id] | 0.40 | T2 |  |
+| [0x15F8A8](../../../src/game/engine/font/font.cpp) | `PglyffFromCh` | Binary-searches the font glyph table for a character (via remap table D_002BE338) | 0.80 | T1 |  |
+| [0x15F928](../../../src/game/engine/font/font.cpp) | `__9CRichTextPcP5CFont` |  |  | existing |  |
+| [0x15F970](../../../src/game/engine/font/font.cpp) | `Reset__9CRichText` |  |  | existing |  |
+| [0x15F9A8](../../../src/game/engine/font/font.cpp) | `SetBaseColor__9CRichTextP4RGBA` |  |  | existing |  |
+| [0x15F9D0](../../../src/game/engine/font/font.cpp) | `ChNext__9CRichText` |  |  | existing |  |
+| [0x15FD68](../../../src/game/engine/font/font.cpp) | `ClineWrap__9CRichTextf` |  |  | existing |  |
+| [0x15FEF8](../../../src/game/engine/font/font.cpp) | `FUN_0015e1b0` |  |  | existing |  |
+| [0x15FF40](../../../src/game/engine/font/font.cpp) | `DxMaxLine__9CRichText` |  |  | existing |  |
+| [0x15FFD0](../../../src/game/engine/font/font.cpp) | `Draw__9CRichTextP8CTextBoxT1P4GIFS` |  |  | existing |  |
 
 ## language (0x1A2BD0-0x1A3020)
 
