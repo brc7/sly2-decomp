@@ -110,10 +110,10 @@ Class numbers in hex; see [class-tree](../reference/class-tree.md).
 | [0x21D428](../../src/game/gameplay/objects/target.cpp) | `OnCid21Remove` | OnLoRemove + RemoveDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
 | [0x21D460](../../src/game/gameplay/objects/target.cpp) | `OnCid21Add` | OnLoAdd + AppendDlEntry(&D_003E1474) | 0.85 | T2 | arbitration |
 | [0x21D498](../../src/game/gameplay/objects/target.cpp) | `CloneCid21` | same as CloneTarget for cid 0x15 (preserve DLE at 0xE0) | 0.85 | T2 | verified |
-| [0x223F70](../../src/game/gameplay/objects/tu_223F70/func_00223F70.c) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
-| [0x223FE0](../../src/game/gameplay/objects/tu_223F70/func_00223FE0.c) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
-| [0x224380](../../src/game/gameplay/objects/tu_223F70/func_00224380.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
-| [0x224610](../../src/game/gameplay/objects/tu_223F70/func_00224610.c) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
+| [0x223F70](../../src/game/gameplay/objects/tu_223F70.cpp) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
+| [0x223FE0](../../src/game/gameplay/objects/tu_223F70.cpp) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
+| [0x224380](../../src/game/gameplay/objects/tu_223F70.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
+| [0x224610](../../src/game/gameplay/objects/tu_223F70.cpp) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
 | [0x225A68](../../src/game/gameplay/objects/turret.cpp) | `CloneTurret` | ClonePo then fix self pointer 0x1D0 | 0.85 | T1 | verified |
 | [0x225AE8](../../src/game/gameplay/objects/turret.cpp) | `OnTurretActive` | OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy | 0.85 | T1 | verified |
 

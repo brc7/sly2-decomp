@@ -424,25 +424,25 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x223F70](../../../src/game/gameplay/objects/tu_223F70/func_00223F70.c) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
-| [0x223FE0](../../../src/game/gameplay/objects/tu_223F70/func_00223FE0.c) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
-| [0x224028](../../../src/game/gameplay/objects/tu_223F70/func_00224028.c) | `AddCid100Hierarchy` | SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal) | 0.40 | T2 |  |
-| [0x224068](../../../src/game/gameplay/objects/tu_223F70/func_00224068.c) | `RemoveCid100Hierarchy` | SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8 | 0.40 | T2 |  |
-| [0x2240B0](../../../src/game/gameplay/objects/tu_223F70/func_002240B0.c) | `UpdateCid100` | SO update (0x1F36E0); in state 1 with link calls 0x224258; distance check to target pt | 0.45 | T2 |  |
-| [0x2241D8](../../../src/game/gameplay/objects/tu_223F70/func_002241D8.c) | `HandleCid100Message` | base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3) | 0.50 | T2 |  |
-| [0x224380](../../../src/game/gameplay/objects/tu_223F70/func_00224380.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
-| [0x224508](../../../src/game/gameplay/objects/tu_223F70/func_00224508.c) | `FCid100ChainFree` | returns 0 if any node in list has one of 4 flags D_002C42E8 | 0.30 | T2 |  |
-| [0x224590](../../../src/game/gameplay/objects/tu_223F70/func_00224590.c) | `FCid100Active` | returns state in {1,2} | 0.40 | T2 |  |
-| [0x224610](../../../src/game/gameplay/objects/tu_223F70/func_00224610.c) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
-| [0x224638](../../../src/game/gameplay/objects/tu_223F70/func_00224638.c) | `FCid100StateBlocks` | state table predicate (4 with flag; 5,7,9,11,13,26,37,41) | 0.30 | T2 |  |
-| [0x224688](../../../src/game/gameplay/objects/tu_223F70/func_00224688.c) | `FCid100State11` | returns field 0x15C == 11 | 0.40 | T2 |  |
-| [0x224698](../../../src/game/gameplay/objects/tu_223F70/func_00224698.cpp) | `OrientCid100ToTarget` | turns linked active object toward target in horizontal plane | 0.30 | T2 |  |
-| [0x224820](../../../src/game/gameplay/objects/tu_223F70/func_00224820.cpp) | `ProbeCid100Hit` | traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*) | 0.40 | T2 |  |
-| [0x224BF8](../../../src/game/gameplay/objects/tu_223F70/func_00224BF8.c) | `SweepCid100Probes` | builds probe sphere set and calls 0x224820 per probe | 0.30 | T2 |  |
-| [0x224EC8](../../../src/game/gameplay/objects/tu_223F70/func_00224EC8.cpp) | `SetCid100State` | actor controller state transitions | 0.35 | T2 |  |
-| [0x2252E0](../../../src/game/gameplay/objects/tu_223F70/func_002252E0.c) | `InitCid102` | calls InitCid100 | 0.55 | T2 |  |
-| [0x225300](../../../src/game/gameplay/objects/tu_223F70/func_00225300.cpp) | `UpdateCid102` | state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3 | 0.45 | T2 |  |
-| [0x225660](../../../src/game/gameplay/objects/tu_223F70/func_00225660.cpp) | `SenseCid102` | change selection state and prepare nearest eligible actor | 0.30 | T2 |  |
+| [0x223F70](../../../src/game/gameplay/objects/tu_223F70.cpp) | `InitCid100` | InitSo; +0x?=-10, 3000.0, -1, -1; grf\|=6 | 0.85 | T2 | verified |
+| [0x223FE0](../../../src/game/gameplay/objects/tu_223F70.cpp) | `LoadCid100FromBrx` | LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0 | 0.75 | T2 | parse |
+| [0x224028](../../../src/game/gameplay/objects/tu_223F70.cpp) | `AddCid100Hierarchy` | SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal) | 0.40 | T2 |  |
+| [0x224068](../../../src/game/gameplay/objects/tu_223F70.cpp) | `RemoveCid100Hierarchy` | SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8 | 0.40 | T2 |  |
+| [0x2240B0](../../../src/game/gameplay/objects/tu_223F70.cpp) | `UpdateCid100` | SO update (0x1F36E0); in state 1 with link calls 0x224258; distance check to target pt | 0.45 | T2 |  |
+| [0x2241D8](../../../src/game/gameplay/objects/tu_223F70.cpp) | `HandleCid100Message` | base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3) | 0.50 | T2 |  |
+| [0x224380](../../../src/game/gameplay/objects/tu_223F70.cpp) | `UpdateCid100Contacts` | walks contact edges, picks neighbouring actor (0x224638, 0x224508) | 0.85 | T2 | verified |
+| [0x224508](../../../src/game/gameplay/objects/tu_223F70.cpp) | `FCid100ChainFree` | returns 0 if any node in list has one of 4 flags D_002C42E8 | 0.30 | T2 |  |
+| [0x224590](../../../src/game/gameplay/objects/tu_223F70.cpp) | `FCid100Active` | returns state in {1,2} | 0.40 | T2 |  |
+| [0x224610](../../../src/game/gameplay/objects/tu_223F70.cpp) | `FCid100State7Or11` | returns state in {7,11} | 0.60 | T2 | verified |
+| [0x224638](../../../src/game/gameplay/objects/tu_223F70.cpp) | `FCid100StateBlocks` | state table predicate (4 with flag; 5,7,9,11,13,26,37,41) | 0.30 | T2 |  |
+| [0x224688](../../../src/game/gameplay/objects/tu_223F70.cpp) | `FCid100State11` | returns field 0x15C == 11 | 0.40 | T2 |  |
+| [0x224698](../../../src/game/gameplay/objects/tu_223F70.cpp) | `OrientCid100ToTarget` | turns linked active object toward target in horizontal plane | 0.30 | T2 |  |
+| [0x224820](../../../src/game/gameplay/objects/tu_223F70.cpp) | `ProbeCid100Hit` | traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*) | 0.40 | T2 |  |
+| [0x224BF8](../../../src/game/gameplay/objects/tu_223F70.cpp) | `SweepCid100Probes` | builds probe sphere set and calls 0x224820 per probe | 0.30 | T2 |  |
+| [0x224EC8](../../../src/game/gameplay/objects/tu_223F70.cpp) | `SetCid100State` | actor controller state transitions | 0.35 | T2 |  |
+| [0x2252E0](../../../src/game/gameplay/objects/tu_223F70.cpp) | `InitCid102` | calls InitCid100 | 0.55 | T2 |  |
+| [0x225300](../../../src/game/gameplay/objects/tu_223F70.cpp) | `UpdateCid102` | state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3 | 0.45 | T2 |  |
+| [0x225660](../../../src/game/gameplay/objects/tu_223F70.cpp) | `SenseCid102` | change selection state and prepare nearest eligible actor | 0.30 | T2 |  |
 
 ## turret (0x2259D8-0x226550)
 
