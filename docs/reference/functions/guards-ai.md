@@ -467,49 +467,49 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x203948](../../../src/game/actor/step/InitStep.c) | `InitStep` | STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius 0x220=30, 0x214=-50, InitBhvstk(+0x26C,this) | 0.85 | T1 |  |
-| [0x2039C0](../../../src/game/actor/step/LoadStepFromBrx.c) | `LoadStepFromBrx` | STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300 | 0.85 | T1 | parse |
-| [0x203A08](../../../src/game/actor/step/CloneStep.c) | `CloneStep` | STEP vt41 Clone: ClonePo then re-point the BHVSTK owner (+0x26C) at the clone | 0.80 | T1 |  |
-| [0x203A38](../../../src/game/actor/step/PostStepLoad.c) | `PostStepLoad` | STEP vt15: PostSoLoad, alloc 0x294, attach two child objects (oids +0x58/+0x5C), find phys SOPART by oid +0x264 -> CloneStepPhys + hide it, allocate the 8 BHV slots | 0.80 | T1 |  |
-| [0x203AD0](../../../src/game/actor/step/RenderStepSelf.c) | `RenderStepSelf` | STEP vt19 RenderSelf: just RenderSoSelf | 0.75 | T1 |  |
-| [0x203AF0](../../../src/game/actor/step/func_00203AF0.c) | `CloneStepPhys` | Build the step's collision part from a mesh part: new SOPART (+0xE4[+0xE0++]), copy geometry, min height -> +0x210, append 2 extra points (base point and base+up*0x214) whose world ptrs go to +0x218/+0x21C | 0.45 | T2 |  |
-| [0x203CB8](../../../src/game/actor/step/func_00203CB8.c) | `SetStepPhysByOid` | Find SOPART by oid (0x1F6030) then SetStepPhys(this,part,f) | 0.35 | T2 |  |
-| [0x203D00](../../../src/game/actor/step/SetStepPhys.c) | `SetStepPhys` | Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts) | 0.60 | T1 |  |
-| [0x203E08](../../../src/game/actor/step/UpdateStepPhys.c) | `UpdateStepPhys` | Per point: smooth the body shape toward the phys shape with GSmooth(old,new,dt,s_smpPhys D_002C3C68) and store (new-old)/dt as point velocity | 0.80 | T1 |  |
-| [0x203FA0](../../../src/game/actor/step/func_00203FA0.c) | `SetStepFNoBase` | Option setter for STEP+0x204 (bool); setting it clears the ground contact +0x208 | 0.40 | T2 |  |
-| [0x203FC0](../../../src/game/actor/step/UpdateStep.c) | `UpdateStep` | STEP vt16: UpdateSo, UpdateStepPhys, then turn-rate speed factor +0x180 (CLQ D_002C3C80 of \|radTarget-heading\| clamped 0..1, or 1), stamp +0x20C while grounded | 0.85 | T1 |  |
-| [0x2040F8](../../../src/game/actor/step/func_002040F8.c) | `GrfStepGroundProbe` | STEP vt85: ground-probe flags for AddStepCustomXps: 0 if +0x204 else 7 (1 probe, 2 use top point, 4 ...) | 0.40 | T2 |  |
-| [0x204108](../../../src/game/actor/step/PresetStepAccel.c) | `PresetStepAccel` | STEP vt70: base accel (0x1F9B20) then steering: mode +0x1A4==0 accelerate toward matTarget with smpSpin (0x1F59A0), mode 1 angular force from desired w +0x1E0 | 0.55 | T1 |  |
-| [0x2041C0](../../../src/game/actor/step/TranslateStepToPos.c) | `TranslateStepToPos` | STEP vt29: TranslateSoToPos then refresh world base position +0x230 from local +0x240 | 0.60 | T1 |  |
-| [0x2041F8](../../../src/game/actor/step/RotateStepToMat.c) | `RotateStepToMat` | STEP vt30: RotateSoToMat then radTarget = current heading (SetStepRadTarget) and POCTL+0x18 = heading | 0.75 | T1 |  |
-| [0x204248](../../../src/game/actor/step/func_00204248.c) | `FStepVt63` | STEP vt63: returns 1 | 0.20 | T2 |  |
-| [0x204250](../../../src/game/actor/step/AdjustStepNewXp.c) | `AdjustStepNewXp` | STEP vt55: new contact setup: reset friction/response; kind 14 (base) gets mu D_002C3C90 when normal.z>0.7 and force limits mass*-4500..9000; side contacts add a horizontal kind-10 contact | 0.60 | T1 |  |
-| [0x2044B0](../../../src/game/actor/step/AdjustStepXpVelocity.cpp) | `AdjustStepXpVelocity` | STEP vt57: for base contacts (kind 0xE) smooth closing speed (GSmooth D_002C3C98/D_002C3CA8) limited by dt*9000/-4500 and add the desired tangential velocity matTarget*v190*g180 | 0.60 | T1 |  |
-| [0x204660](../../../src/game/actor/step/func_00204660.c) | `SetStepRadTarget` | Set desired heading radTarget (+0x1A8) and rebuild matTarget (+0x1B0) = LoadRotateMatrixRad(Z, rad) | 0.60 | T1 |  |
-| [0x2046B0](../../../src/game/actor/step/SetStepRadTargetVec.c) | `SetStepRadTargetVec` | SetStepRadTarget(atan2(v.y, v.x)) for a direction vector | 0.50 | T1 |  |
-| [0x2046F0](../../../src/game/actor/step/FaceStepToward.c) | `FaceStepToward` | Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this)) | 0.50 | T1 |  |
-| [0x204740](../../../src/game/actor/step/RadStepHeading.c) | `RadStepHeading` | Current heading = atan2(xf.mat[0][1], xf.mat[0][0]) | 0.55 | T1 |  |
-| [0x204768](../../../src/game/actor/step/func_00204768.c) | `AdjustStepXps` | STEP vt58: base 0x1F4F10, then keep only the best (lowest distance) kind-14 base contact as +0x208 (stamp +0x20C, pos +0x230) and free the other base contacts | 0.40 | T2 |  |
-| [0x2048C8](../../../src/game/actor/step/func_002048C8.c) | `FStepFloorNearby` | BFS over mesh polygon adjacency (max 32) from a hit polygon: true if a reachable neighbour within the step height window has normal.z>0.7 | 0.40 | T2 |  |
-| [0x204AC8](../../../src/game/actor/step/AddStepCustomXps.c) | `AddStepCustomXps` | STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a kind-0xE base contact with floor or hit normal | 0.50 | T1 |  |
-| [0x204C60](../../../src/game/actor/step/OnStepSoContactFreed.c) | `OnStepSoContactFreed` | STEP vt54: base no-op then drop the cached ground contact +0x208 if it is the freed one | 0.85 | T1 | verified |
-| [0x204CA8](../../../src/game/actor/step/FixStepAngularVelocity.c) | `FixStepAngularVelocity` | RadSmooth(heading, radTarget, 0, &smpSpin, &w.z) then SetAngularVelocity (vt36) | 0.80 | T1 |  |
-| [0x204D48](../../../src/game/actor/step/func_00204D48.c) | `SetStepSpinRatio` | smpSpin = default D_002C3CB8 with svFast/svSlow *r and dtFast /sqrt(r); store r at +0x1F0 | 0.85 | T1 | verified |
-| [0x204DA8](../../../src/game/actor/step/func_00204DA8.cpp) | `SetStepGravityRatio` | Clamp r>=0.1, SetSoMass(m*rOld/r), scale gravity vector by r/rOld, store rGravity +0x260 | 0.90 | T1 |  |
-| [0x204E38](../../../src/game/actor/step/func_00204E38.c) | `VecStepAsegaTranslation` | If the ASEGA is live: find its translation channel for this object (PchnFindAseg kind 1, checked) and evaluate it (channel vt3) at t with the ASEGA effective speed (+0x40); else zero vector | 0.50 | T2 | top50 |
-| [0x204ED8](../../../src/game/actor/step/func_00204ED8.c) | `VecStepAsegaRotation` | Same as 0x204E38 for channel kind 6 (rotation) | 0.30 | T2 |  |
-| [0x204F78](../../../src/game/actor/step/func_00204F78.c) | `LinkStepAttachment` | Find the SO with an attachment record up plo's parent chain and link/unlink (0x133A38 g_sw, f?1:2) this step's attachment with it, then 0x1F4BF8 | 0.30 | T2 |  |
-| [0x205008](../../../src/game/actor/step/AddStepAxisXps.cpp) | `AddStepAxisXps` | STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir) for a point, per grf bits, into the link list shared with plo's zap target | 0.50 | T1 |  |
-| [0x2052E0](../../../src/game/actor/step/MatchStepXf.c) | `MatchStepXf` | STEP vt38: copy pose of another object (vt31 matrix) incl. offset -+0x240 (TranslateToPos/RotateToMat), reset velocities; else SO::MatchXf | 0.85 | T1 | verified |
-| [0x205438](../../../src/game/actor/step/func_00205438.c) | `PbhvPushStep` | Push a new behaviour of class cid on the step's BHVSTK (+0x26C) and Init it (0x1EEE00) | 0.60 | T1 |  |
-| [0x205458](../../../src/game/actor/step/func_00205458.c) | `PbhvFindStep` | Find the behaviour of class cid in the step's BHVSTK (0x1EEEE0, FIsBasicDerivedFrom) | 0.60 | T1 |  |
-| [0x205478](../../../src/game/actor/step/func_00205478.c) | `AddStepDialogSmRefs` | STEP vt83: for each set bit i<6 of mask, ++refcount +0x2A0[i]; on first ref ensure an SMA of the dialog-role SM (OidDialogSmRole 0x1FD0C0) on this step | 0.40 | T2 |  |
-| [0x205588](../../../src/game/actor/step/func_00205588.c) | `RemoveStepDialogSmRefs` | STEP vt84: inverse of 0x205478: --refcount, at 0 retract the SMA (0x1F0598) | 0.40 | T2 |  |
-| [0x205670](../../../src/game/actor/step/func_00205670.c) | `FIntersectStepFootprint` | If grounded (+0x208), intersect segment from->to with the 2 footprint triangles (0x2057E8); return hit point | 0.30 | T2 |  |
-| [0x2057E8](../../../src/game/actor/step/func_002057E8.cpp) | `BuildStepFootprint` | Build 2 triangles (diamond of radius +0x220 around the base point +0x218, oriented by the world matrix) from table D_002C3CC8 | 0.30 | T2 |  |
-| [0x205910](../../../src/game/actor/step/func_00205910.cpp) | `FitStepToTerrain` | Fit orientation to the floor under 3 probe points (IntersectSwBoundingSphere + line tests 0x173610), tilt limited to D_002C3CE8; result in matTarget-like +0x1B0 | 0.45 | T2 |  |
-| [0x205D08](../../../src/game/actor/step/func_00205D08.c) | `FStepVt86` | STEP vt86: returns 0 (base; STEPGUARD override 0x207530 tests lethal zap) | 0.30 | T2 |  |
-| [0x205D10](../../../src/game/actor/step/func_00205D10.c) | `StepVt87Nop` | STEP vt87: empty | 0.30 | T2 |  |
+| [0x203948](../../../src/game/actor/step.cpp) | `InitStep` | STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius 0x220=30, 0x214=-50, InitBhvstk(+0x26C,this) | 0.85 | T1 |  |
+| [0x2039C0](../../../src/game/actor/step.cpp) | `LoadStepFromBrx` | STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300 | 0.85 | T1 | parse |
+| [0x203A08](../../../src/game/actor/step.cpp) | `CloneStep` | STEP vt41 Clone: ClonePo then re-point the BHVSTK owner (+0x26C) at the clone | 0.80 | T1 |  |
+| [0x203A38](../../../src/game/actor/step.cpp) | `PostStepLoad` | STEP vt15: PostSoLoad, alloc 0x294, attach two child objects (oids +0x58/+0x5C), find phys SOPART by oid +0x264 -> CloneStepPhys + hide it, allocate the 8 BHV slots | 0.80 | T1 |  |
+| [0x203AD0](../../../src/game/actor/step.cpp) | `RenderStepSelf` | STEP vt19 RenderSelf: just RenderSoSelf | 0.75 | T1 |  |
+| [0x203AF0](../../../src/game/actor/step.cpp) | `CloneStepPhys` | Build the step's collision part from a mesh part: new SOPART (+0xE4[+0xE0++]), copy geometry, min height -> +0x210, append 2 extra points (base point and base+up*0x214) whose world ptrs go to +0x218/+0x21C | 0.45 | T2 |  |
+| [0x203CB8](../../../src/game/actor/step.cpp) | `SetStepPhysByOid` | Find SOPART by oid (0x1F6030) then SetStepPhys(this,part,f) | 0.35 | T2 |  |
+| [0x203D00](../../../src/game/actor/step.cpp) | `SetStepPhys` | Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body part's frame (+0x258) and clear velocities, then 0x1F4BF8 (invalidate contacts) | 0.60 | T1 |  |
+| [0x203E08](../../../src/game/actor/step.cpp) | `UpdateStepPhys` | Per point: smooth the body shape toward the phys shape with GSmooth(old,new,dt,s_smpPhys D_002C3C68) and store (new-old)/dt as point velocity | 0.80 | T1 |  |
+| [0x203FA0](../../../src/game/actor/step.cpp) | `SetStepFNoBase` | Option setter for STEP+0x204 (bool); setting it clears the ground contact +0x208 | 0.40 | T2 |  |
+| [0x203FC0](../../../src/game/actor/step.cpp) | `UpdateStep` | STEP vt16: UpdateSo, UpdateStepPhys, then turn-rate speed factor +0x180 (CLQ D_002C3C80 of \|radTarget-heading\| clamped 0..1, or 1), stamp +0x20C while grounded | 0.85 | T1 |  |
+| [0x2040F8](../../../src/game/actor/step.cpp) | `GrfStepGroundProbe` | STEP vt85: ground-probe flags for AddStepCustomXps: 0 if +0x204 else 7 (1 probe, 2 use top point, 4 ...) | 0.40 | T2 |  |
+| [0x204108](../../../src/game/actor/step.cpp) | `PresetStepAccel` | STEP vt70: base accel (0x1F9B20) then steering: mode +0x1A4==0 accelerate toward matTarget with smpSpin (0x1F59A0), mode 1 angular force from desired w +0x1E0 | 0.55 | T1 |  |
+| [0x2041C0](../../../src/game/actor/step.cpp) | `TranslateStepToPos` | STEP vt29: TranslateSoToPos then refresh world base position +0x230 from local +0x240 | 0.60 | T1 |  |
+| [0x2041F8](../../../src/game/actor/step.cpp) | `RotateStepToMat` | STEP vt30: RotateSoToMat then radTarget = current heading (SetStepRadTarget) and POCTL+0x18 = heading | 0.75 | T1 |  |
+| [0x204248](../../../src/game/actor/step.cpp) | `FStepVt63` | STEP vt63: returns 1 | 0.20 | T2 |  |
+| [0x204250](../../../src/game/actor/step.cpp) | `AdjustStepNewXp` | STEP vt55: new contact setup: reset friction/response; kind 14 (base) gets mu D_002C3C90 when normal.z>0.7 and force limits mass*-4500..9000; side contacts add a horizontal kind-10 contact | 0.60 | T1 |  |
+| [0x2044B0](../../../src/game/actor/step.cpp) | `AdjustStepXpVelocity` | STEP vt57: for base contacts (kind 0xE) smooth closing speed (GSmooth D_002C3C98/D_002C3CA8) limited by dt*9000/-4500 and add the desired tangential velocity matTarget*v190*g180 | 0.60 | T1 |  |
+| [0x204660](../../../src/game/actor/step.cpp) | `SetStepRadTarget` | Set desired heading radTarget (+0x1A8) and rebuild matTarget (+0x1B0) = LoadRotateMatrixRad(Z, rad) | 0.60 | T1 |  |
+| [0x2046B0](../../../src/game/actor/step.cpp) | `SetStepRadTargetVec` | SetStepRadTarget(atan2(v.y, v.x)) for a direction vector | 0.50 | T1 |  |
+| [0x2046F0](../../../src/game/actor/step.cpp) | `FaceStepToward` | Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this)) | 0.50 | T1 |  |
+| [0x204740](../../../src/game/actor/step.cpp) | `RadStepHeading` | Current heading = atan2(xf.mat[0][1], xf.mat[0][0]) | 0.55 | T1 |  |
+| [0x204768](../../../src/game/actor/step.cpp) | `AdjustStepXps` | STEP vt58: base 0x1F4F10, then keep only the best (lowest distance) kind-14 base contact as +0x208 (stamp +0x20C, pos +0x230) and free the other base contacts | 0.40 | T2 |  |
+| [0x2048C8](../../../src/game/actor/step.cpp) | `FStepFloorNearby` | BFS over mesh polygon adjacency (max 32) from a hit polygon: true if a reachable neighbour within the step height window has normal.z>0.7 | 0.40 | T2 |  |
+| [0x204AC8](../../../src/game/actor/step.cpp) | `AddStepCustomXps` | STEP vt60: if ground-probe flags allow, ray test down from base point (0x14C6D8) and add a kind-0xE base contact with floor or hit normal | 0.50 | T1 |  |
+| [0x204C60](../../../src/game/actor/step.cpp) | `OnStepSoContactFreed` | STEP vt54: base no-op then drop the cached ground contact +0x208 if it is the freed one | 0.85 | T1 | verified |
+| [0x204CA8](../../../src/game/actor/step.cpp) | `FixStepAngularVelocity` | RadSmooth(heading, radTarget, 0, &smpSpin, &w.z) then SetAngularVelocity (vt36) | 0.80 | T1 |  |
+| [0x204D48](../../../src/game/actor/step.cpp) | `SetStepSpinRatio` | smpSpin = default D_002C3CB8 with svFast/svSlow *r and dtFast /sqrt(r); store r at +0x1F0 | 0.85 | T1 | verified |
+| [0x204DA8](../../../src/game/actor/step.cpp) | `SetStepGravityRatio` | Clamp r>=0.1, SetSoMass(m*rOld/r), scale gravity vector by r/rOld, store rGravity +0x260 | 0.90 | T1 |  |
+| [0x204E38](../../../src/game/actor/step.cpp) | `VecStepAsegaTranslation` | If the ASEGA is live: find its translation channel for this object (PchnFindAseg kind 1, checked) and evaluate it (channel vt3) at t with the ASEGA effective speed (+0x40); else zero vector | 0.50 | T2 | top50 |
+| [0x204ED8](../../../src/game/actor/step.cpp) | `VecStepAsegaRotation` | Same as 0x204E38 for channel kind 6 (rotation) | 0.30 | T2 |  |
+| [0x204F78](../../../src/game/actor/step.cpp) | `LinkStepAttachment` | Find the SO with an attachment record up plo's parent chain and link/unlink (0x133A38 g_sw, f?1:2) this step's attachment with it, then 0x1F4BF8 | 0.30 | T2 |  |
+| [0x205008](../../../src/game/actor/step.cpp) | `AddStepAxisXps` | STEP vt82: add up to 3 contacts (PxpAdd 0x1A7C18) along the axes of BuildOrthonormalMatrixZ(dir) for a point, per grf bits, into the link list shared with plo's zap target | 0.50 | T1 |  |
+| [0x2052E0](../../../src/game/actor/step.cpp) | `MatchStepXf` | STEP vt38: copy pose of another object (vt31 matrix) incl. offset -+0x240 (TranslateToPos/RotateToMat), reset velocities; else SO::MatchXf | 0.85 | T1 | verified |
+| [0x205438](../../../src/game/actor/step.cpp) | `PbhvPushStep` | Push a new behaviour of class cid on the step's BHVSTK (+0x26C) and Init it (0x1EEE00) | 0.60 | T1 |  |
+| [0x205458](../../../src/game/actor/step.cpp) | `PbhvFindStep` | Find the behaviour of class cid in the step's BHVSTK (0x1EEEE0, FIsBasicDerivedFrom) | 0.60 | T1 |  |
+| [0x205478](../../../src/game/actor/step.cpp) | `AddStepDialogSmRefs` | STEP vt83: for each set bit i<6 of mask, ++refcount +0x2A0[i]; on first ref ensure an SMA of the dialog-role SM (OidDialogSmRole 0x1FD0C0) on this step | 0.40 | T2 |  |
+| [0x205588](../../../src/game/actor/step.cpp) | `RemoveStepDialogSmRefs` | STEP vt84: inverse of 0x205478: --refcount, at 0 retract the SMA (0x1F0598) | 0.40 | T2 |  |
+| [0x205670](../../../src/game/actor/step.cpp) | `FIntersectStepFootprint` | If grounded (+0x208), intersect segment from->to with the 2 footprint triangles (0x2057E8); return hit point | 0.30 | T2 |  |
+| [0x2057E8](../../../src/game/actor/step.cpp) | `BuildStepFootprint` | Build 2 triangles (diamond of radius +0x220 around the base point +0x218, oriented by the world matrix) from table D_002C3CC8 | 0.30 | T2 |  |
+| [0x205910](../../../src/game/actor/step.cpp) | `FitStepToTerrain` | Fit orientation to the floor under 3 probe points (IntersectSwBoundingSphere + line tests 0x173610), tilt limited to D_002C3CE8; result in matTarget-like +0x1B0 | 0.45 | T2 |  |
+| [0x205D08](../../../src/game/actor/step.cpp) | `FStepVt86` | STEP vt86: returns 0 (base; STEPGUARD override 0x207530 tests lethal zap) | 0.30 | T2 |  |
+| [0x205D10](../../../src/game/actor/step.cpp) | `StepVt87Nop` | STEP vt87: empty | 0.30 | T2 |  |
 
 ## stepguard (0x205E70-0x20B840)
 

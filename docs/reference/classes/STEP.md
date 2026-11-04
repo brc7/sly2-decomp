@@ -30,19 +30,19 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetStepClassDesc`](../../../src/game/app/class_registry/GetStepClassDesc.c) | `0x113D40` | Pclassinfo |
-| 7 | Init | **override** | [`InitStep`](../../../src/game/actor/step/InitStep.c) | `0x203948` | Init |
+| 7 | Init | **override** | [`InitStep`](../../../src/game/actor/step.cpp) | `0x203948` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` | SetParent |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (SO) | `RemoveSoHierarchy` | `0x1F2D48` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadStepFromBrx`](../../../src/game/actor/step/LoadStepFromBrx.c) | `0x2039C0` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostStepLoad`](../../../src/game/actor/step/PostStepLoad.c) | `0x203A38` | VUnk14 |
-| 16 | Update | **override** | [`UpdateStep`](../../../src/game/actor/step/UpdateStep.c) | `0x203FC0` | VUnk15 |
+| 14 | LoadFromBrx | **override** | [`LoadStepFromBrx`](../../../src/game/actor/step.cpp) | `0x2039C0` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostStepLoad`](../../../src/game/actor/step.cpp) | `0x203A38` | VUnk14 |
+| 16 | Update | **override** | [`UpdateStep`](../../../src/game/actor/step.cpp) | `0x203FC0` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` | UpdateXfWorldHierarchy |
-| 19 | RenderSelf | **override** | [`RenderStepSelf`](../../../src/game/actor/step/RenderStepSelf.c) | `0x203AD0` | RenderSelf |
+| 19 | RenderSelf | **override** | [`RenderStepSelf`](../../../src/game/actor/step.cpp) | `0x203AD0` | RenderSelf |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` | VUnk19 |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` | VUnk20 |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` | Freeze |
@@ -52,8 +52,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 26 | ResetLoForProxy | inherited (SO) | `ResetSoForProxy?` | `0x1CB518` | VUnk25 |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
-| 29 | TranslateToPos | **override** | [`TranslateStepToPos`](../../../src/game/actor/step/TranslateStepToPos.c) | `0x2041C0` | TranslateToPos |
-| 30 | RotateToMat | **override** | [`RotateStepToMat`](../../../src/game/actor/step/RotateStepToMat.c) | `0x2041F8` | RotateToMat |
+| 29 | TranslateToPos | **override** | [`TranslateStepToPos`](../../../src/game/actor/step.cpp) | `0x2041C0` | TranslateToPos |
+| 30 | RotateToMat | **override** | [`RotateStepToMat`](../../../src/game/actor/step.cpp) | `0x2041F8` | RotateToMat |
 | 31 | PmatWorld | inherited (SO) | `SO_PmatWorld` | `0x1F3FA0` | PmatWorld |
 | 32 | LO_PxfLocal | inherited (SO) | `SO_PxfLocal?` | `0x1F3FB0` | PxfLocal |
 | 33 | GetVelocity | inherited (SO) | `GetSoVelocity` | `0x1F4440` | GetVelocity |
@@ -61,10 +61,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 35 | SetVelocity | inherited (SO) | `SetSoVelocity` | `0x1F4488` | SetVelocity |
 | 36 | SetAngularVelocity | inherited (SO) | `SetSoAngularVelocity` | `0x1F46D8` | SetAngularVelocity |
 | 37 | ApplyLoProxyHierarchy | inherited (SO) | `ApplySoProxy?` | `0x1F4010` | ApplyProxy |
-| 38 | MatchLoXf | **override** | [`MatchStepXf`](../../../src/game/actor/step/MatchStepXf.c) | `0x2052E0` | VUnk37 |
+| 38 | MatchLoXf | **override** | [`MatchStepXf`](../../../src/game/actor/step.cpp) | `0x2052E0` | VUnk37 |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` | VUnk38 |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneStep`](../../../src/game/actor/step/CloneStep.c) | `0x203A08` | Clone |
+| 41 | Clone | **override** | [`CloneStep`](../../../src/game/actor/step.cpp) | `0x203A08` | Clone |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
@@ -77,23 +77,23 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` | PxfFromIxf |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` | CloneXfRef |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` | VUnk52 |
-| 54 | SO_vt54_Nop | **override** | [`OnStepSoContactFreed`](../../../src/game/actor/step/OnStepSoContactFreed.c) | `0x204C60` | VUnk53 |
-| 55 | SO_vt55_Nop | **override** | [`AdjustStepNewXp`](../../../src/game/actor/step/AdjustStepNewXp.c) | `0x204250` | AdjustNewXp |
+| 54 | SO_vt54_Nop | **override** | [`OnStepSoContactFreed`](../../../src/game/actor/step.cpp) | `0x204C60` | VUnk53 |
+| 55 | SO_vt55_Nop | **override** | [`AdjustStepNewXp`](../../../src/game/actor/step.cpp) | `0x204250` | AdjustNewXp |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` | VUnk55 |
-| 57 | SO_vt57_Nop | **override** | [`AdjustStepXpVelocity`](../../../src/game/actor/step/AdjustStepXpVelocity.cpp) | `0x2044B0` | VUnk56 |
-| 58 | ScheduleSoTouchEvents | **override** | [`AdjustStepXps?`](../../../src/game/actor/step/func_00204768.c) | `0x204768` | VUnk57 |
+| 57 | SO_vt57_Nop | **override** | [`AdjustStepXpVelocity`](../../../src/game/actor/step.cpp) | `0x2044B0` | VUnk56 |
+| 58 | ScheduleSoTouchEvents | **override** | [`AdjustStepXps?`](../../../src/game/actor/step.cpp) | `0x204768` | VUnk57 |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` | VUnk58 |
-| 60 | SO_vt60_Nop | **override** | [`AddStepCustomXps`](../../../src/game/actor/step/AddStepCustomXps.c) | `0x204AC8` | VUnk59 |
+| 60 | SO_vt60_Nop | **override** | [`AddStepCustomXps`](../../../src/game/actor/step.cpp) | `0x204AC8` | VUnk59 |
 | 61 | FIgnoreSoIntersection | inherited (SO) | `FIgnoreSoIntersection` | `0x1F4FC8` | FIgnoreIntersection |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` | VUnk61 |
-| 63 | SO_vt63_Ret0 | **override** | [`FStepVt63?`](../../../src/game/actor/step/func_00204248.c) | `0x204248` | CpartExtra |
+| 63 | SO_vt63_Ret0 | **override** | [`FStepVt63?`](../../../src/game/actor/step.cpp) | `0x204248` | CpartExtra |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` | InitPhys |
 | 65 | ApplySoForcesXf | inherited (SO) | `ApplySoForcesXf?` | `0x1F9E70` | VUnk64 |
 | 66 | ProjectSoForce | inherited (SO) | `ProjectSoForce?` | `0x1FA328` | VUnk65 |
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` | VUnk66 |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` | VUnk67 |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` | VUnk68 |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetStepAccel`](../../../src/game/actor/step/PresetStepAccel.c) | `0x204108` | VUnk69 |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetStepAccel`](../../../src/game/actor/step.cpp) | `0x204108` | VUnk69 |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` | VUnk70 |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` | VUnk71 |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
@@ -105,12 +105,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 79 | SetPoCtlState | inherited (PO) | `SetPoCtlState` | `0x1C3ED8` | SetCtlState |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` | FCanBeHealed |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` | AddHpMp |
-| 82 | AddStepAxisXps | **new** | [`AddStepAxisXps`](../../../src/game/actor/step/AddStepAxisXps.cpp) | `0x205008` | VUnk81 |
-| 83 | AddStepDialogSmRefs | **new** | [`AddStepDialogSmRefs?`](../../../src/game/actor/step/func_00205478.c) | `0x205478` | VUnk82 |
-| 84 | RemoveStepDialogSmRefs | **new** | [`RemoveStepDialogSmRefs?`](../../../src/game/actor/step/func_00205588.c) | `0x205588` | VUnk83 |
-| 85 | GrfStepGroundProbe | **new** | [`GrfStepGroundProbe?`](../../../src/game/actor/step/func_002040F8.c) | `0x2040F8` | VUnk84 |
-| 86 | FStepVt86 | **new** | [`FStepVt86?`](../../../src/game/actor/step/func_00205D08.c) | `0x205D08` | VUnk85 |
-| 87 | StepVt87Nop | **new** | [`StepVt87Nop?`](../../../src/game/actor/step/func_00205D10.c) | `0x205D10` | VUnk86 |
+| 82 | AddStepAxisXps | **new** | [`AddStepAxisXps`](../../../src/game/actor/step.cpp) | `0x205008` | VUnk81 |
+| 83 | AddStepDialogSmRefs | **new** | [`AddStepDialogSmRefs?`](../../../src/game/actor/step.cpp) | `0x205478` | VUnk82 |
+| 84 | RemoveStepDialogSmRefs | **new** | [`RemoveStepDialogSmRefs?`](../../../src/game/actor/step.cpp) | `0x205588` | VUnk83 |
+| 85 | GrfStepGroundProbe | **new** | [`GrfStepGroundProbe?`](../../../src/game/actor/step.cpp) | `0x2040F8` | VUnk84 |
+| 86 | FStepVt86 | **new** | [`FStepVt86?`](../../../src/game/actor/step.cpp) | `0x205D08` | VUnk85 |
+| 87 | StepVt87Nop | **new** | [`StepVt87Nop?`](../../../src/game/actor/step.cpp) | `0x205D10` | VUnk86 |
 
 ## Fields
 
