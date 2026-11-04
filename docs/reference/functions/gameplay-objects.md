@@ -281,38 +281,38 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1BAB50](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAB50.c) | `InitCid98` | CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0) | 0.60 | T2 |  |
-| [0x1BABA0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BABA0.cpp) | `LoadCid98FromBrx` | CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to counts | 0.75 | T2 | parse |
-| [0x1BAD80](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAD80.c) | `OnCid98Remove` | CID 98 vt22: FreezeSo then RemoveDlEntry from class list D_003E1450 | 0.85 | T2 | arbitration |
-| [0x1BADB8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BADB8.c) | `OnCid98Add` | CID 98 vt23: UnfreezeSo then AppendDlEntry to D_003E1450 | 0.85 | T2 | arbitration |
-| [0x1BADF0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BADF0.c) | `FCid98AcceptZap` | Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8) | 0.40 | T2 |  |
-| [0x1BAED8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAED8.cpp) | `ScheduleCid98Reaction` | Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React) | 0.45 | T2 |  |
-| [0x1BAF18](../../../src/game/gameplay/objects/tu_1BAB50/func_001BAF18.c) | `SetCid98Stage` | Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage | 0.45 | T2 |  |
-| [0x1BB250](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB250.c) | `ScheduleCid98TouchEvents` | CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98 objects | 0.45 | T2 | verified |
-| [0x1BB400](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB400.c) | `ReactCid98` | Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648), stimulus 0x156B98, BroadcastGameEvent, advance stage | 0.45 | T2 |  |
-| [0x1BB648](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB648.c) | `RunCid98StageActions` | Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10, spawn 0x161F48 | 0.45 | T2 |  |
-| [0x1BB918](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB918.c) | `AddCid98TriggerClass` | Append (class, flag) to trigger list (max 8) | 0.35 | T2 |  |
-| [0x1BB950](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB950.c) | `AddCid98Stage` | Append stage id with action buffer (max 32) | 0.35 | T2 |  |
-| [0x1BB9B8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BB9B8.c) | `InitCid98PreStage` | Init stage -1 with action buffer | 0.30 | T2 |  |
-| [0x1BBA18](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBA18.c) | `SetCid98StageParam` | Set a field of the current stage record (D_002A76B8 key) | 0.25 | T2 |  |
-| [0x1BBA60](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBA60.c) | `AddCid98Action6` | Record action kind 6 with arg | 0.30 | T2 |  |
-| [0x1BBA90](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBA90.c) | `AddCid98Action7` | Record action kind 7 | 0.30 | T2 |  |
-| [0x1BBAC0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBAC0.c) | `AddCid98Action8` | Record action kind 8 | 0.30 | T2 |  |
-| [0x1BBAF0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBAF0.c) | `AddCid98Action9` | Record action kind 9 | 0.30 | T2 |  |
-| [0x1BBB20](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBB20.c) | `AddCid98Action10` | Record action kind 10 | 0.30 | T2 |  |
-| [0x1BBB50](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBB50.c) | `AddCid98Action11` | Record action kind 11 | 0.30 | T2 |  |
-| [0x1BBB80](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBB80.c) | `AddCid98Action0` | Record action kind 0 | 0.30 | T2 |  |
-| [0x1BBBB0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBBB0.c) | `AddCid98ShowGlobs` | Outside stage recording: ShowSoGlobsById now; else record action 2 | 0.35 | T2 |  |
-| [0x1BBC08](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBC08.c) | `AddCid98ShowParts` | Same for ShowSoPartsById (action 4) | 0.35 | T2 |  |
-| [0x1BBC60](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBC60.c) | `AddCid98Action1` | Record action 1 (default arg = own id) | 0.30 | T2 |  |
-| [0x1BBC98](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBC98.c) | `AddCid98HideGlobs` | HideSoGlobsById now or record action 3 | 0.35 | T2 |  |
-| [0x1BBCF0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBCF0.c) | `AddCid98HideParts` | HideSoPartsById now or record action 5 | 0.35 | T2 |  |
-| [0x1BBD48](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBD48.c) | `AddCid98Action12` | Record action 12 with a two-int payload | 0.30 | T2 |  |
-| [0x1BBDB0](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBDB0.c) | `PactionAddCid98` | Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it | 0.45 | T2 | top50 |
-| [0x1BBE18](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBE18.c) | `FCid98StageValid` | current stage index valid (0..count-1 or -1) | 0.40 | T2 |  |
-| [0x1BBE48](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBE48.c) | `FCid98Done` | !FCid98StageValid | 0.35 | T2 |  |
-| [0x1BBE68](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBE68.c) | `PstageCurCid98` | Current stage record or NULL | 0.40 | T2 |  |
-| [0x1BBEA8](../../../src/game/gameplay/objects/tu_1BAB50/func_001BBEA8.c) | `Cid98_VUnk26Proxy` | CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints | 0.40 | T2 |  |
+| [0x1BAB50](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `InitCid98` | CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0) | 0.60 | T2 |  |
+| [0x1BABA0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `LoadCid98FromBrx` | CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to counts | 0.75 | T2 | parse |
+| [0x1BAD80](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `OnCid98Remove` | CID 98 vt22: FreezeSo then RemoveDlEntry from class list D_003E1450 | 0.85 | T2 | arbitration |
+| [0x1BADB8](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `OnCid98Add` | CID 98 vt23: UnfreezeSo then AppendDlEntry to D_003E1450 | 0.85 | T2 | arbitration |
+| [0x1BADF0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `FCid98AcceptZap` | Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8) | 0.40 | T2 |  |
+| [0x1BAED8](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `ScheduleCid98Reaction` | Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React) | 0.45 | T2 |  |
+| [0x1BAF18](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `SetCid98Stage` | Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage | 0.45 | T2 |  |
+| [0x1BB250](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `ScheduleCid98TouchEvents` | CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98 objects | 0.45 | T2 | verified |
+| [0x1BB400](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `ReactCid98` | Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648), stimulus 0x156B98, BroadcastGameEvent, advance stage | 0.45 | T2 |  |
+| [0x1BB648](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `RunCid98StageActions` | Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10, spawn 0x161F48 | 0.45 | T2 |  |
+| [0x1BB918](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98TriggerClass` | Append (class, flag) to trigger list (max 8) | 0.35 | T2 |  |
+| [0x1BB950](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Stage` | Append stage id with action buffer (max 32) | 0.35 | T2 |  |
+| [0x1BB9B8](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `InitCid98PreStage` | Init stage -1 with action buffer | 0.30 | T2 |  |
+| [0x1BBA18](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `SetCid98StageParam` | Set a field of the current stage record (D_002A76B8 key) | 0.25 | T2 |  |
+| [0x1BBA60](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action6` | Record action kind 6 with arg | 0.30 | T2 |  |
+| [0x1BBA90](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action7` | Record action kind 7 | 0.30 | T2 |  |
+| [0x1BBAC0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action8` | Record action kind 8 | 0.30 | T2 |  |
+| [0x1BBAF0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action9` | Record action kind 9 | 0.30 | T2 |  |
+| [0x1BBB20](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action10` | Record action kind 10 | 0.30 | T2 |  |
+| [0x1BBB50](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action11` | Record action kind 11 | 0.30 | T2 |  |
+| [0x1BBB80](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action0` | Record action kind 0 | 0.30 | T2 |  |
+| [0x1BBBB0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98ShowGlobs` | Outside stage recording: ShowSoGlobsById now; else record action 2 | 0.35 | T2 |  |
+| [0x1BBC08](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98ShowParts` | Same for ShowSoPartsById (action 4) | 0.35 | T2 |  |
+| [0x1BBC60](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action1` | Record action 1 (default arg = own id) | 0.30 | T2 |  |
+| [0x1BBC98](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98HideGlobs` | HideSoGlobsById now or record action 3 | 0.35 | T2 |  |
+| [0x1BBCF0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98HideParts` | HideSoPartsById now or record action 5 | 0.35 | T2 |  |
+| [0x1BBD48](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `AddCid98Action12` | Record action 12 with a two-int payload | 0.30 | T2 |  |
+| [0x1BBDB0](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `PactionAddCid98` | Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it | 0.45 | T2 | top50 |
+| [0x1BBE18](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `FCid98StageValid` | current stage index valid (0..count-1 or -1) | 0.40 | T2 |  |
+| [0x1BBE48](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `FCid98Done` | !FCid98StageValid | 0.35 | T2 |  |
+| [0x1BBE68](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `PstageCurCid98` | Current stage record or NULL | 0.40 | T2 |  |
+| [0x1BBEA8](../../../src/game/gameplay/objects/tu_1BAB50.cpp) | `Cid98_VUnk26Proxy` | CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints | 0.40 | T2 |  |
 
 ## tu_1C2D20 (0x1C2D20-0x1C3390)
 
