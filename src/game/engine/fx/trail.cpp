@@ -66,7 +66,7 @@ extern char D_002C44F0[];
 extern float D_002A9240,D_002A9244;
 }
 
-static inline qword Broadcast(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
+static inline qword Broadcast(float f){qword q;q = VuFromFloat<qword>(f);return q;}
 
 /** @sly2-annot addr=0x21BB88
  * Purpose: Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0

@@ -25,7 +25,7 @@ union U { qword q; float a[4]; };
 static inline float Sqrt(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /* As C++ the per-file `void Bc(union U *out, float f)` (asm output straight into out->q) costs an extra union
    temporary (frame 0xB0 instead of 0xA0); returning the qword matches. */
-static inline qword BcQ(float f) { qword q; __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); return q; }
+static inline qword BcQ(float f) { qword q; q = VuFromFloat<qword>(f); return q; }
 static inline float Dot(const qword *a, qword b) {
     qword d, one; float r;
     d = VuDot(*a, b);
@@ -93,7 +93,7 @@ static inline float Z(qword q) { float f; __asm__("pextuw %0, $zero, %1" : "=r"(
 static inline qword Bc(float g) {
     union { qword q; float f; } u;
     qword k;
-    __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g));
+    k = VuFromFloat<qword>(g);
     u.q=k;
     return k;
 }

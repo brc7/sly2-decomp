@@ -588,8 +588,8 @@ float GFromOnz(ONZ *ponz)
 }
 
 // UpdateWrMatrixes (0x22C028). Circle case: the scalar-home sqc2 stores and one combine carry "memory" clobbers to fix their order (Claude agent).
-static inline qword ScalarLoad(const float &f){int bits;qword q;__asm__("lw %0,%1":"=r"(bits):"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
+static inline qword ScalarLoad(const float &f){int bits;qword q;__asm__("lw %0,%1":"=r"(bits):"m"(f));q = VuFromFloat<qword>(bits);return q;}
+static inline qword Scalar(float f){qword q;q = VuFromFloat<qword>(f);return q;}
 static inline qword ScalarHome(V &home,qword value){__asm__("sqc2 %1,%0":"=m"(home.q):"j"(value));return value;}
 static inline qword Combine(qword fa,qword a,qword fb,qword b){qword r;__asm__("vmulax.xyzw ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x":"=j"(r):"j"(fa),"j"(a),"j"(fb),"j"(b));return r;}
 static inline qword CombineM(qword fa,qword a,qword fb,qword b){qword r;__asm__("vmulax.xyzw ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x":"=j"(r):"j"(fa),"j"(a),"j"(fb),"j"(b):"memory");return r;}

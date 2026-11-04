@@ -70,7 +70,7 @@ extern "C" void LoadVolFromBrx(VOL *p, void *pbis)
         a = VecMinArray(p->geom.cpos, p->geom.apos);
         __asm__("qmtc2.ni %1,%0" : "=j"(a) : "r"(a));
         b = VecMaxArray(p->geom.cpos, p->geom.apos);
-        __asm__("qmtc2.ni %1, %0" : "=j"(h) : "r"(0.5f));
+        h = VuFromFloat<qword>(0.5f);
         u.q = h;
         __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(m) : "j"(a), "j"(h), "j"(b));
         a = VuSub(m, a);

@@ -596,13 +596,13 @@ static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));retu
 static inline float Y(qword q){qword v;float f;__asm__("prot3w %0,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Z(qword q){qword v;float f;__asm__("pextuw %0,$zero,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline bool Near(qword a,qword b,float epsilon){return FFloatsNear__Ffff(X(a),X(b),epsilon)&&FFloatsNear__Ffff(Y(a),Y(b),epsilon)&&FFloatsNear__Ffff(Z(a),Z(b),epsilon);}
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
+static inline qword Scalar(float f){qword q;q = VuFromFloat<qword>(f);return q;}
 static inline qword Scale(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 static inline qword Get(SOW *o,int slot){VE *v=o->vt;return v[slot].f.get((char *)o+v[slot].delta);}
 static inline qword SubB(qword a,qword b){qword r;r = VuSub(a, b);return r;}
 static inline qword AddNormal(qword motion,const V &projection){qword r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}
 static inline qword AddTangent(qword motion,const V &projection){qword r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}
-static inline qword NegativeAngular(qword angular,float sign,qword &scalar){qword factor;asm("qmtc2.ni %1,%0":"=j"(factor):"r"(sign));scalar=factor;return Scale(angular,factor);}
+static inline qword NegativeAngular(qword angular,float sign,qword &scalar){qword factor;factor = VuFromFloat<qword>(sign);scalar=factor;return Scale(angular,factor);}
 // The coefficient tables are indexed directly (not through a pointer) so each loop forms its own address.
 #define GAIN2(G,amount,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*amount*friction;}
 #define GAIN1(G,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*friction;}
