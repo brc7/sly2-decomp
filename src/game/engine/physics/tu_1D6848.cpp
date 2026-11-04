@@ -28,21 +28,20 @@ static inline float Sqrt(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1
 static inline qword BcQ(float f) { qword q; __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); return q; }
 static inline float Dot(const qword *a, qword b) {
     qword d, one; float r;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(*a), "j"(b));
+    d = VuDot(*a, b);
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
 static inline float Len(qword a) {
     qword d,one; float r;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(a));
+    d = VuDot(a, a);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
 static inline qword Norm(qword a) {
     register qword d __asm__("vf2");
-    qword one;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(a));
+    d = VuDot(a, a);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "+j"(d) : "j"(a));
     return d;
@@ -108,13 +107,13 @@ extern "C" qword func_001D69F0(qword a, qword b, qword acc, float dt)
 {
     float halfdt = dt * 0.5f;
     float accz = Z(acc);
-    qword delta, axis, dot, one, proj, flat, inv, vz, r;
+    qword delta, axis, dot, proj, flat, inv, vz, r;
     float z, invdt;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(delta) : "j"(b), "j"(a));
     z = Z(delta) - (dt * halfdt) * accz;
     invdt = 1.0f / dt;
     axis = D_002A2DC0;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(dot), "=&j"(one) : "j"(delta), "j"(axis));
+    dot = VuDot(delta, axis);
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(proj) : "j"(axis), "j"(dot));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(flat) : "j"(delta), "j"(proj));
     inv = Bc(invdt);
@@ -269,8 +268,8 @@ static inline qword Point(const MATRIX4 &m, qword v)
 }
 static inline qword Length(qword v)
 {
-    qword d, one, l;
-    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v));
+    qword d, l;
+    d = VuDot(v, v);
     __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
     return l;
 }

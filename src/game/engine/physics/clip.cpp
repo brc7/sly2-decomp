@@ -82,8 +82,8 @@ static inline qword Combo(const VU_FLOAT &f1, const qword &v1, const VU_FLOAT &f
 }
 static inline qword QwDot(const qword &a, const qword &b)
 {
-    qword d, one;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
+    qword d;
+    d = VuDot(a, b);
     return d;
 }
 static inline qword QwSqrt(const qword &a) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(a)); return r; }

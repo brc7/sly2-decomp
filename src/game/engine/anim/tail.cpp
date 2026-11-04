@@ -239,28 +239,22 @@ static inline float GFromVf(qword qw)
 static inline qword QwLength(qword v)
 {
     qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(v));
+    qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
 static inline qword QwLengthUntied(qword v)
 {
     qword qwSq;
-    qword vfOne;
     qword qwLen;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qwSq), "=j"(vfOne) : "j"(v));
+    qwSq = VuDot(v, v);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
 }
 static inline qword QwDot(qword a, qword b)
 {
     qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
+    qw = VuDot(a, b);
     return qw;
 }
 static inline qword QwCross(qword a, qword b)
