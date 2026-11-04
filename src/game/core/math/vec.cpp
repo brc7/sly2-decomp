@@ -786,7 +786,6 @@ static inline qword DotV(qword a, qword b)
 static inline float ToF(qword d)
 {
     float g;
-    register int r __asm__("v0");
     g = VuToFloat(d);
     return g;
 }

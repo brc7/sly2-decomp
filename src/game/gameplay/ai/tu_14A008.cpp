@@ -379,7 +379,7 @@ static inline qword SubX(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1,
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float Len(qword a)
 {
-    qword d, one; float g;
+    qword d; float g;
     d = VuDot(a, a);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     g = VuToFloat(d);
@@ -387,7 +387,7 @@ static inline float Len(qword a)
 }
 static inline float LenSq(qword a)
 {
-    qword d, one; float g;
+    qword d; float g;
     d = VuDot(a, a);
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;

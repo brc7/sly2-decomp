@@ -366,7 +366,7 @@ static inline qword DirectionB(U*a,U*b,U*&axis){
  axis=address;return direction;
 }
 static inline qword NormalB(qword v,U*axis){
- register qword d __asm__("vf1"),one __asm__("vf2"),r __asm__("vf2");float length;register int bits __asm__("$3");
+ register qword d __asm__("vf1"),r __asm__("vf2");float length;register int bits __asm__("$3");
  d = VuDot(v, v);
  register qword fallback __asm__("$2")=axis->q;
  __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));

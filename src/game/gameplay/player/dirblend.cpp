@@ -187,7 +187,7 @@ static inline qword ScaleAndSetSide(PLAYERV*p,qword v,qword k,int side){qword r;
 static inline qword ToVu(qword bits){register qword r __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(bits));return r;}
 static inline qword ProjectOut(qword ni,qword vi){
  register qword n __asm__("vf1")=ni,v __asm__("vf3")=vi;
- register qword dot __asm__("vf2"),one __asm__("vf4");
+ register qword dot __asm__("vf2");
  dot = VuDot(v, n);
  __asm__("vmulx.xyzw %0,%1,%0x":"+j"(dot):"j"(n));
  v = VuSub(v, dot);

@@ -65,7 +65,7 @@ extern "C" void LoadVolFromBrx(VOL *p, void *pbis)
     CBinaryInputStream_ReadBspc(pbis, &p->geom, &p->bspc);
     if (p->geom.cpos > 0) {
         VU u;
-        qword a,b,m,one; register qword h __asm__("vf1");
+        qword a,b,m; register qword h __asm__("vf1");
         qword g;
         a = VecMinArray(p->geom.cpos, p->geom.apos);
         __asm__("qmtc2.ni %1,%0" : "=j"(a) : "r"(a));
@@ -93,7 +93,7 @@ extern "C" void LoadVolFromBrx(VOL *p, void *pbis)
  * @end-sly2-annot */
 extern "C" int FCheckVolPoint(VOL *p, qword q)
 {
-    qword a = ConvertAloPos(0, p, q), d, r, t;
+    qword a = ConvertAloPos(0, p, q), d, r;
     float f;
     int fFar;
     d = VuSub(a, p->posCenter);

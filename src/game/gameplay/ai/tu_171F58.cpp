@@ -433,7 +433,7 @@ struct VU_FLOAT{qword qw;};
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwSubFrom(const qword &a,qword b){qword r;r = VuSub(a, b);return r;}
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwLength(qword v){qword qw,vfOne,qwLen;
+static inline qword QwLength(qword v){qword qw,qwLen;
  qw = VuDot(v, v);
  __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw));return qwLen;}
 // allocation-only "0"(vfOne): the length reuses the vfOne register, as in the target

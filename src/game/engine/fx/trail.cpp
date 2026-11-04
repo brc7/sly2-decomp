@@ -130,10 +130,10 @@ extern "C" void ResetTrailHistory(TRAIL *p)
 }
 
 // Initialize mesh history and samples.
-static inline float Dot(qword a,qword b){qword one;float f;
+static inline float Dot(qword a,qword b){float f;
     a = VuDot(a, b);
     f = VuToFloat(a);return f;}
-static inline float DotCopy(qword a,qword b){qword r,one;float f;
+static inline float DotCopy(qword a,qword b){qword r;float f;
     r = VuDot(a, b);
     f = VuToFloat(r);return f;}
 static inline void RecordOperands(TRAIL *owner,N *node,int &bytes,unsigned &divisor,int &stride,Meta *&metadata){

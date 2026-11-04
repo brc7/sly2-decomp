@@ -27,13 +27,13 @@ static inline float Sqrt(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1
    temporary (frame 0xB0 instead of 0xA0); returning the qword matches. */
 static inline qword BcQ(float f) { qword q; q = VuFromFloat<qword>(f); return q; }
 static inline float Dot(const qword *a, qword b) {
-    qword d, one; float r;
+    qword d; float r;
     d = VuDot(*a, b);
     r = VuToFloat(d);
     return r;
 }
 static inline float Len(qword a) {
-    qword d,one; float r;
+    qword d; float r;
     d = VuDot(a, a);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     r = VuToFloat(d);

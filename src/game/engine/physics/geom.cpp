@@ -69,7 +69,7 @@ static inline qword Rotate(const MATRIX4 *m,qword p) {
  :"+j"(p):"j"(a0),"j"(a1),"j"(a2));return p;
 }
 static inline qword Normalize(qword v) {
- qword t,r; register qword l __asm__("vf2");
+ qword r; register qword l __asm__("vf2");
  l = VuDot(v, v);
  __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(l):"0"(l));
  __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(l),"j"(v));return r;

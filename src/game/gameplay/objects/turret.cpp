@@ -238,11 +238,11 @@ extern "C" void UpdateTurretAim(TURRET *p){
 static inline qword LoadVF(const qword &q){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(q));return r;}
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
-static inline float Length(qword d){qword r,one;float f;
+static inline float Length(qword d){qword r;float f;
     r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
     f = VuToFloat(r);return f;}
-static inline float OffsetLength(qword d){qword r,one;register int bits __asm__("$3");
+static inline float OffsetLength(qword d){qword r;register int bits __asm__("$3");
     r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
     __asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(r));union {int i;float f;} value;value.i=(int)bits;return value.f;}
