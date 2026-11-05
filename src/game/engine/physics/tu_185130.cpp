@@ -59,14 +59,17 @@ public:
     void ReadVector(VECTOR *pvec);
 };
 
-extern float D_002A5684;
-extern float D_002DDED4, D_002A5688;
-extern float D_002A568C;
-extern float D_002A5690;
+extern const float D_002A5684 = 3.40282347e+38f;   /* FLT_MAX (four .rodata seeds) */
+extern float D_002DDED4;
+extern float D_002A5688;   /* not defined here: as a const it changes func_001856C0 (see the data guide) */
+extern const float D_002A568C = 3.40282347e+38f;
+extern const float D_002A5690 = 3.40282347e+38f;
 extern DL D_003E142C;
 extern "C" {
 extern const float D_002BE918;
-extern U D_002A2DC0;extern M3 D_002DDFA0;extern CLOCK D_002DDED0;extern SMP D_002BE920,D_002BE930,D_002BE940;
+extern U D_002A2DC0;extern M3 D_002DDFA0;extern CLOCK D_002DDED0;
+/* tu_185130's .data after D_002BE918: the smoothing parameters of the orientation, the position and the mesh fit. */
+SMP D_002BE920={25.0f,0.0f,0.25f},D_002BE930={1000.0f,0.0f,0.25f},D_002BE940={250.0f,0.0f,0.5f};
 void InitXfm(MESH *pmesh);
 void LoadXfmXfFromBrx(MESH *pmesh, CBinaryInputStream *pbis);
 void *func_001AE1D0(MSG *pmsg);

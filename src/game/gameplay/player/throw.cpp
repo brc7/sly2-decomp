@@ -84,13 +84,14 @@ typedef struct { float x, y, z; } V3;
 
 extern O *D_002DD5BC;
 extern CLOCK D_002DDED0;
-extern float D_002C40E0;
+/* throw's .data (address order; D_002C4108/D_002C410C are defined below, before their function). */
+float D_002C40E0 = 1.5f;                        // aim range scale with power-up 0x24
 extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
 extern SW D_003DD490;
-extern CLQ D_002C40F0;                         // the launch elevation over the aim distance
-extern float D_002C40E4;                       // 1.35: tPredict scale with power-up 0x24
-extern float D_002C4100,D_002C4104;            // 3.0 / 2.0: flight time / blend rate limits per second
-extern float D_002A96A0;                       // FLT_MAX
+float D_002C40E4 = 1.35f;                       // tPredict scale with power-up 0x24
+CLQ D_002C40F0 = {0.15f, 0.55f, 0.0f};          // the launch elevation over the aim distance
+float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limits per second
+extern const float D_002A96A0 = 3.40282347e+38f; // FLT_MAX
 extern "C" {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(O *a, int b, int c, void *d, int e, int f, int g, void *h);
 qword func_001A62E8(void *);
@@ -585,8 +586,8 @@ struct G {char pad[0x10];qword v;};
 struct Q {char pad[0x10];qword v,w;};
 union F32 {float f;int bits;};
 extern G D_002DDFA0;
-extern float D_002C4108;
-extern F32 D_002C410C;
+float D_002C4108 = -150.0f;
+F32 D_002C410C = {300.0f};
 /** @sly2-annot addr=0x220388
  * Purpose: vector-state update of hold point for states 4..6 (gain D_002C4108, normalize)
  * Info: proposed name UpdateJtthrowHoldPos (T2); TU throw
