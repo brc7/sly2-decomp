@@ -105,6 +105,11 @@ struct GLOBSET
     };
       WRBG *pwrbgFirst;
       void *pbatchrecsFirst;
+    /* Out of line at 0x167310 (stores -1 into the CRef tag at +0x4C: CRef's constructor inlined), current symbol
+       __4CRef. The label has a trailing space on purpose: the assembler drops it (the call still goes to __4CRef),
+       but g++ sees a different name; with the exact name, class_registry (whose thunks have an inline CRef::CRef())
+       emits a weak copy of CRef::CRef() under it. Renaming 0x167310 (__7GLOBSET) would remove the need. */
+    GLOBSET() __asm__("__4CRef ");
 };
 
 /* CONSTR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */

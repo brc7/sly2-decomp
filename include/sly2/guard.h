@@ -79,7 +79,9 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x4c4[3];
       ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
       ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
-      undefined4 unk_0xdb0[(0xf04 - 0xdb0) / 4];
+      LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (LEAP_ctor) */
+      CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
+      undefined4 unk_0xe60[(0xf04 - 0xe60) / 4];
       float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv FBhvcombatChooseAttack) */
       undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
       int fUnkF3C;          /* +0xF3C [S] set by StartBhvstrike */
@@ -99,6 +101,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0xfec[(0xffc - 0xfec) / 4];
       int cBusy;            /* +0xFFC [R] busy count */
       undefined4 unk_0x1000[4];
+    STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepguard");   /* slot 7 */

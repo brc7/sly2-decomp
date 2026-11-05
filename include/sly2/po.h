@@ -52,6 +52,7 @@ struct PO : public SO
       void *pvUnk174;
       undefined4 unk_0x178;
       int nUnk17c;
+    PO();   /* sets pvUnk174 = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetPoClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandlePoMessage");   /* slot 5 */
     virtual void Init() __asm__("InitPo");   /* slot 7 */

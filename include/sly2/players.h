@@ -77,7 +77,8 @@ struct MURRAY : public STEPPLAYER
       int nUnk1840;
       undefined4 unk_0x1844[(0x1850 - 0x1844) / 4];
       undefined4 unk_0x1850[0x40 / 4];
-      undefined4 unk_0x1890[(0x190c - 0x1890) / 4];
+      LEAP leap;   /* +0x1890 constructed by MURRAY_ctor (LEAP_ctor) */
+      undefined4 unk_0x1900[(0x190c - 0x1900) / 4];
       struct ASEGA *pasegaUnk190c;
       MOVEREC moverec;
       undefined4 unk_0x1a40[(0x1a58 - 0x1a40) / 4];
@@ -88,6 +89,7 @@ struct MURRAY : public STEPPLAYER
       float tUnk1ac8;
       struct ACT1 *pact1Unk1acc;
       undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
+    MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleMurrayMessage");   /* slot 5 */
     virtual void Init() __asm__("InitMurray");   /* slot 7 */
