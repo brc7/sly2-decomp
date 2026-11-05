@@ -211,7 +211,7 @@ struct SW : public BASIC
       SLOTHEAP slotheapUnk4054;
       uint32_t   _pad_318    [ 1 ] ;
       SLOTHEAP slotheapUnk4070;
-      SLOTHEAP slotheapUnk4088;
+      SLOTHEAP slotheapUnk4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
       SLOTHEAP slotheapUnk40a0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
       SLOTHEAP slotheapSsge;
       SLOTHEAP slotheapJsg; /* +0x40D0 [S] JSG slot heap (relay.cpp allocates / frees JSGs); was _pad_323 */
