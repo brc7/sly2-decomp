@@ -49,25 +49,25 @@ struct CRef
       CRef() { m_tagk = -1; }
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
-      CRef(CProc *pproc);                 /* a procedure value (eval: RefEvalLambda) */
-      CRef(CPair *ppair);
-      CRef(const VECTOR *pvec);           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */
-      CRef(const MATRIX4 *pmat);
-      CRef(const CLQ *pclq);
-      CRef(const LM *plm);
-      CRef(const SMP *psmp);
-      CRef(BASIC *pbasic);
+      CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: RefEvalLambda) */
+      CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
+      CRef(const VECTOR *pvec) __asm__("CRef_ctor_VECTOR");           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */
+      CRef(const MATRIX4 *pmat) __asm__("CRef_ctor_MATRIX4");
+      CRef(const CLQ *pclq) __asm__("CRef_ctor_CLQ");
+      CRef(const LM *plm) __asm__("CRef_ctor_LM");
+      CRef(const SMP *psmp) __asm__("CRef_ctor_SMP");
+      CRef(BASIC *pbasic) __asm__("CRef_ctor_BASIC");
       ~CRef() { Decref(); }
       CRef &operator=(const CRef &r);
-      CRef &operator=(bool f);            /* a boolean (tag 0x17) */
-      CRef &operator=(CPair *ppair);      /* a list (tag 0x1F) */
+      CRef &operator=(bool f) __asm__("CRef_SetBool");            /* a boolean (tag 0x17) */
+      CRef &operator=(CPair *ppair) __asm__("CRef_SetPair");      /* a list (tag 0x1F) */
       bool operator==(const CRef &ref);
       void Incref();
       void Decref();
       CRef &SetS32(int n);
       CRef &SetF32(float g);
       void SetTag(TAGK tagk);
-      void InitTag(int tagk);
+      void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
       void SetNil() { Decref(); InitTag(0); }
 };
 typedef char assert_CRef_size[sizeof(CRef) == 8 ? 1 : -1];
