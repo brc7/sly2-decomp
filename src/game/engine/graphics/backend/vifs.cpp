@@ -124,7 +124,7 @@ void VIFS::AddVifStmask(uint unMask)
     m_unMask = unMask;
 }
 
-extern int s_mpupkcb[];
+extern int s_mpupkcb[] __asm__("D_002C4430");
 
 /** @sly2-annot addr=0x226E10
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
