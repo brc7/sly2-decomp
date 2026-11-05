@@ -165,7 +165,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
 | `0x2CAB90` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamera?`, 3=`DeactivateCpcamera?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamera?`, 7=`ResetCplcy?` | [`CPCAMERA_ctor`](../../src/game/engine/camera/tu_12E600.cpp) (+0xC) | — |
-| `0x2CD378` | 8 | 1=`InitCplcy?`, 2=`ActivateCptwoshot?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptwoshot?`, 7=`ResetCplcy?` | [`CM_ctor?`](../../src/game/engine/camera/cm/CM_ctor.c) (+0xC) | — |
+| `0x2CD378` | 8 | 1=`InitCplcy?`, 2=`ActivateCptwoshot?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptwoshot?`, 7=`ResetCplcy?` | [`CM_ctor?`](../../src/game/engine/camera/cm.cpp) (+0xC) | — |
 | `0x2CD3C0` | 8 | 1=`InitCplcy?`, 2=`ActivateCpturret?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpturret?`, 7=`ResetCplcy?` | [`CPTURRET_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
 | `0x2CD408` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamblend?`, 3=`DeactivateCpcamblend?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamblend?`, 7=`ResetCplcy?` | [`CPCAMBLEND_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
 | `0x2CD450` | 8 | 1=`InitCplcy?`, 2=`ActivateCphang?`, 3=`DeactivateCphang?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCphang?`, 7=`ResetCplcy?` | [`CPHANG_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
@@ -372,10 +372,10 @@ Registered class names that occur in mangled symbols (confirms the spelling as S
 | Struct | Bases | Header | New virtuals | Note |
 |---|---|---|---|---|
 | `BHV156` | BHV | `guard.h` | 0 | BHV156 (CID 0x9C, cb 0xB0): root of every guard's behaviour stack; its mode drives calm/search/combat |
-| `CMBASE` | BASIC | `cm.h` | 0 | CMBASE: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
+| `CMBASE` | BASIC | `cm.h` | 0 | CMBASE: from src/game/engine/camera/cm.cpp (6 copies in Lilly ports) |
 | `CMPART2` | CPLCY | `cm.h` | 1 | CMPART2: from src/game/engine/camera/tn.cpp (6 copies in Lilly ports) |
 | `CPCAMBLEND` | CPLCY | `cm.h` | 1 | CPCAMBLEND: from src/game/gameplay/player/mode.cpp (6 copies in Lilly ports) |
-| `CPLCY` | CPLCYDATA | `cm.h` | 1 | CPLCY: from src/game/engine/camera/cm/func_0014DC58.cpp (6 copies in Lilly ports) |
+| `CPLCY` | CPLCYDATA | `cm.h` | 1 | CPLCY: from src/game/engine/camera/cm.cpp (6 copies in Lilly ports) |
 
 ## D. Code that stores more than one vtable
 
@@ -393,7 +393,7 @@ Functions that load (lui/addiu) two or more distinct vtable addresses and store 
 | [`PacNewKind2`](../../src/game/engine/anim/act/PacNewKind2.cpp) | `0x2CA8A0` (unclaimed) +0x0, `0x2CA8C0` (unclaimed) +0x0, `0x2CB588` (unclaimed) +0x0 |
 | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) | `0x2CAF08` (unclaimed) +0x18, `0x2CA820` (unclaimed) +0x18, `0x2CA7E0` (unclaimed) +?, `0x2DB338` (unclaimed) +?, `0x2CA7A0` (unclaimed) +?, `0x2CA760` (unclaimed) +?, `0x2CA720` (unclaimed) +0x18, `0x2D2E58` (unclaimed) +0x18, `0x2CA6E0` (unclaimed) +0x18, `0x2CA6A0` (unclaimed) +0x18 |
 | [`ApplyAseg?`](../../src/game/engine/anim/aseg.cpp) | `0x2CAF48` ASEGA +0xC, `0x2CAF08` (unclaimed) +? |
-| [`CM_ctor?`](../../src/game/engine/camera/cm/CM_ctor.c) | `0x2CA4D0` CM +0xC, `0x2CD378` (unclaimed) +0xC |
+| [`CM_ctor?`](../../src/game/engine/camera/cm.cpp) | `0x2CA4D0` CM +0xC, `0x2CD378` (unclaimed) +0xC |
 | [`PvtripFromRipt?`](../../src/game/engine/fx/rip/PvtripFromRipt.c) | `0x2D7738` (unclaimed) +?, `0x2D76E8` (unclaimed) +?, `0x2D7698` (unclaimed) +?, `0x2D7648` (unclaimed) +?, `0x2D75F8` (unclaimed) +?, `0x2D75A8` (unclaimed) +?, `0x2D74B8` (unclaimed) +?, `0x2D7558` (unclaimed) +?, `0x2D7508` (unclaimed) +?, `0x2D7788` (unclaimed) +0xEC, `0x2D7468` (unclaimed) +0xEC |
 | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/StaticInit_screen.c) | `0x2D8668` BASIC +0xC, `0x2D37D0` BASIC +0xC, `0x2CA490` CID154 +0xC |
 | [`PbhvNew`](../../src/game/gameplay/ai/bhvstk.cpp) | `0x2D04A0` BHVGUARD +0xC, `0x2D0AB0` BHVANIM +?, `0x2D0A30` BHVIDLE +?, `0x2D07B0` BHVSTRIKE +?, `0x2D0930` BHV161 +?, `0x2D0830` BHV162 +?, `0x2D08B0` BHVKO +?, `0x2D0620` BHVATTACK +?, `0x2D05A0` BHVCOMBAT +?, `0x2D06A0` BHVWALKPATH +?, `0x2CF7F8` BHV169 +?, `0x2D0520` BHVPATROL +?, `0x2CFA10` BHV171 +?, `0x2D4AF8` BHV174 +? … |

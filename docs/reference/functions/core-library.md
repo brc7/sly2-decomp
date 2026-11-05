@@ -434,7 +434,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255F38](../../../src/game/object/spliceobj.cpp) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2560C8](../../../src/game/object/spliceobj.cpp) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/game/splice/ref.cpp) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256278](../../../src/game/engine/camera/cm/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x256278](../../../src/game/engine/camera/cm.cpp) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../include/sly2/cm.h) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/game/gameplay/ai/guardbhv/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
@@ -510,7 +510,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258200](../../../src/game/world/state/game/RefSetGlobalSaveVar.c) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
 | [0x258248](../../../src/game/ui/memcard/func_00258248.c) | `InitFileKey` | memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258280](../../../include/sly2/stepplayer.h) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x258290](../../../src/game/engine/camera/cm/func_00258290.c) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x258290](../../../src/game/engine/camera/cm.cpp) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x258348](../../../src/game/engine/presentation/screen/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258438](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258448](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
