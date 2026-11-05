@@ -25,9 +25,42 @@ struct XP { char pad0[0x94]; float gFriction; };
 
 extern CLOCK D_002DDED0;
 extern "C" {
-extern char D_002BC390[];   /* Bentley's oid table */
-extern char D_002A4AE8[];   /* save-variable root name */
-extern float D_002BC9B4;
+/* Bentley's snip table (Sly 1 SNIP {grfsnip, oid, ib}, BindLoOidTable with a count of 0x76), bentley's first .data. */
+struct SNIP { int grfsnip; int oid; int ib; };
+SNIP D_002BC390[0x76] = {
+    {0x300, 0x1A0, 0x1334}, {0x300, 0x19E, 0x1374}, {0x300, 0x1A2, 0x1028}, {0x300, 0x1BC, 0x13E4},
+    {0x300, 0x1BD, 0x1404}, {0x300, 0x1BE, 0x1424}, {0x300, 0x1BF, 0x1444}, {0x300, 0x1C0, 0x1464},
+    {0x300, 0x1C1, 0x1484}, {0x300, 0x1C2, 0x14A4}, {0x300, 0x1C3, 0x14C4}, {0x300, 0x20A, 0x14E4},
+    {0x300, 0x20B, 0x14E8}, {0x300, 0x20C, 0x14F4}, {0x300, 0x20D, 0x1514}, {0x300, 0x20E, 0x1534},
+    {0x300, 0x20F, 0x1554}, {0x300, 0x210, 0x1574}, {0x300, 0x211, 0x1594}, {0x300, 0x212, 0x15B4},
+    {0x300, 0x213, 0x15D4}, {0x320, 0x215, 0x16B8}, {0x300, 0x244, 0x17F4}, {0x300, 0x230, 0x174C},
+    {0x300, 0x231, 0x1758}, {0x300, 0x232, 0x1768}, {0x300, 0x233, 0x1774}, {0x300, 0x234, 0x1784},
+    {0x300, 0x235, 0x1790}, {0x300, 0x236, 0x17A0}, {0x300, 0x237, 0x17AC}, {0x300, 0x238, 0x17BC},
+    {0x300, 0x239, 0x17C8}, {0x300, 0x23A, 0x17D8}, {0x300, 0x23B, 0x17E4}, {0x300, 0x22E, 0x16C4},
+    {0x300, 0x22F, 0x16C8}, {0x300, 0x1E9, 0x1614}, {0x300, 0x1E8, 0x1654}, {0x300, 0x1DE, 0x408},
+    {0x300, 0x1DF, 0x1808}, {0x300, 0x1E0, 0x180C}, {0x320, 0x25D, 0x380}, {0x320, 0x25E, 0x384},
+    {0x300, 0x24E, 0x3E0}, {0x300, 0x24F, 0x3EC}, {0x300, 0x250, 0x3F0}, {0x300, 0x251, 0x3E8},
+    {0x300, 0x252, 0x3E4}, {0x300, 0x253, 0x3F4}, {0x300, 0x254, 0x400}, {0x300, 0x255, 0x404},
+    {0x300, 0x256, 0x3FC}, {0x300, 0x257, 0x3F8}, {0x300, 0x258, 0x414}, {0x300, 0x259, 0x418},
+    {0x300, 0x25A, 0x41C}, {0x320, 0x284, 0x514}, {0x320, 0x285, 0x518}, {0x320, 0x286, 0x51C},
+    {0x320, 0x287, 0x520}, {0x300, 0x266, 0x534}, {0x300, 0x262, 0x554}, {0x300, 0x268, 0x574},
+    {0x300, 0x264, 0x594}, {0x300, 0x269, 0x5B4}, {0x300, 0x265, 0x5D4}, {0x300, 0x267, 0x5F4},
+    {0x300, 0x263, 0x614}, {0x300, 0x25F, 0x634}, {0x300, 0x260, 0x638}, {0x300, 0x261, 0x63C},
+    {0x300, 0x27D, 0x9D0}, {0x300, 0x25B, 0x9B0}, {0x300, 0x25C, 0x9B4}, {0x300, 0x622, 0x9C4},
+    {0x320, 0x297, 0xEC4}, {0x320, 0x298, 0xEC8}, {0x320, 0x299, 0xECC}, {0x320, 0x29A, 0xED0},
+    {0x320, 0x29B, 0xED4}, {0x320, 0x29C, 0xED8}, {0x320, 0x29D, 0xEDC}, {0x320, 0x29E, 0xEE0},
+    {0x320, 0x29F, 0xEE4}, {0x320, 0x2A0, 0xEE8}, {0x320, 0x2A1, 0xEEC}, {0x320, 0x2A2, 0xEF0},
+    {0x320, 0x2A3, 0xEF4}, {0x300, 0x289, 0xE90}, {0x300, 0x28A, 0xE94}, {0x300, 0x28B, 0xE98},
+    {0x300, 0x28C, 0xE9C}, {0x300, 0x28D, 0xEA0}, {0x300, 0x28E, 0xEA4}, {0x300, 0x28F, 0xEA8},
+    {0x300, 0x290, 0xEAC}, {0x300, 0x291, 0xEB0}, {0x300, 0x292, 0xEB4}, {0x300, 0x293, 0xEB8},
+    {0x300, 0x294, 0xEBC}, {0x300, 0x295, 0xEC0}, {0x300, 0xFC, 0x16D0}, {0x300, 0xFD, 0x16D4},
+    {0x100, 0x247, 0x16DC}, {0x100, 0x248, 0x16E0}, {0x100, 0x249, 0x16E4}, {0x300, 0x5E9, 0xF0C},
+    {0x300, 0x5EA, 0xF10}, {0x300, 0x217, 0x1828}, {0x300, 0x217, 0x1834}, {0x300, 0x217, 0x1840},
+    {0x300, 0x21A, 0x184C}, {0x300, 0x217, 0x1858}, {0x300, 0x21F, 0x1864}, {0x300, 0x137, 0x1820},
+    {0x300, 0x155, 0x1874}, {0x300, 0x24C, 0x1878},
+};
+extern const char D_002A4AE8[] = "bentley";   /* save-variable root name */
+extern float D_002BC9B4;   /* defined below, in address order */
 void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis);
 void BindLoOidTable(LO *plo, int c, void *aoid);
 void GetStepplayerCpdefi(STEPPLAYER *pstepplayer, CPDEFI *pcpdefi);
@@ -58,7 +91,7 @@ struct P {
     char pad8[0x1824 - 0x1804]; int x1824; int pad9[2]; int x1830; int padA[2]; int x183C; int padB[2]; int x1848;
     int padC[2]; int x1854; int padD[2]; int x1860; int padE[3]; int x1870;
 };
-extern struct P *D_002DD5BC;
+struct P *D_002DD5BC;   /* the Bentley object (bentley's .bss; medium: by layout) */
 void InitStepplayer(struct P *p);
 void InitGait(void *pv, struct P *p, int n);
 /** @sly2-annot addr=0x134648
@@ -128,7 +161,8 @@ namespace M_PostBentleyLoad { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct S { char pad[0x10b8]; int f10b8; char pad2[0x1320 - 0x10bc]; char a1320[0xc0]; char a13e0[0x100]; char a14e0[0x10];
     char a14f0[0x100]; char a15f0[0x10]; char a1600[0x110]; char a1710[0x10]; };
-extern ti128 D_002BC920;
+union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialized, read as a quadword (.q) */
+VQ D_002BC920 = {{175.0f, 0.0f, 0.0f, 0.0f}};
 void PostLoadStepplayer(struct S *);
 int PxfFindSo(struct S *, int, int);
 void func_001A0300(struct S *, void *, void *);
@@ -150,7 +184,7 @@ void PostBentleyLoad(struct S *p) {
     func_001A0300(p, p->a14f0, p->a15f0);
     PostJtLoadGait(p->a1320);
     PostJtLoadGait(p->a1600);
-    func_00136D28(p->a1710, p, D_002BC920, -50.0f, 50.0f);
+    func_00136D28(p->a1710, p, D_002BC920.q, -50.0f, 50.0f);
     func_001426E8(p, 0x16);
     SetBentleyState(p, 0);
 }
@@ -170,7 +204,7 @@ struct P {
 };
 struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
-extern float D_002BC930;
+float D_002BC930 = 2.0f;
 void func_00195A00(void *pv, int a, int b, int c);
 int FStepplayerNearInteractTarget(struct P *p, int n);
 void SetBentleyState(struct P *p, int n);
@@ -370,10 +404,10 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern struct LM D_002BBB60;
-extern struct POLY D_002BC940;
-extern struct POLY D_002BC950;
-extern float D_002BC960;
-extern float D_002BC934;
+float D_002BC934 = 0.5f;
+struct POLY D_002BC940 = {-1.0f, 2.0f, 0.0f};
+struct POLY D_002BC950 = {1.0f, 0.0f, 0.0f};
+float D_002BC960 = 5.0f;
 void UpdateStepplayer(struct P *p);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, struct P *p, int n);
 void func_00134D30(struct P *p);
@@ -773,8 +807,9 @@ typedef int ti128 __attribute__((mode(TI)));
 struct C { int a[4]; };
 struct LSG { ti128 pos; int pad[0x14]; };
 struct S { char pad[0xec]; int fec; char pad2[0x16f0 - 0xf0]; ti128 v16f0; };
-extern ti128 D_002BC970;
-extern ti128 D_002BC980;
+union VQ { float af[4]; ti128 q; };
+VQ D_002BC970 = {{0.0f, 0.0f, 10.0f, 0.0f}};    /* screen points for ConvertCmScreenToWorld */
+VQ D_002BC980 = {{0.0f, 0.0f, 40000.0f, 0.0f}};
 extern char D_002DDF40[];
 extern char D_003DD490[];
 ti128 ConvertCmScreenToWorld(void *, ti128);
@@ -796,8 +831,8 @@ void func_001356E8(struct S *p) {
     struct LSG lsg;
     int cso;
     int aso;
-    ti128 v1 = ConvertCmScreenToWorld(D_002DDF40, D_002BC970);
-    ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980);
+    ti128 v1 = ConvertCmScreenToWorld(D_002DDF40, D_002BC970.q);
+    ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
     IntersectSwBoundingBox(D_003DD490, v1, v2, func_0020FA10, p->fec, &cso, &aso);
     if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, v1, v2, cso, aso, &lsg)) p->v16f0 = lsg.pos;
@@ -890,7 +925,7 @@ typedef union { qword q; float f; } U;
 struct VT { short d; short pad; void *pfn; };
 struct P { char pad[0xC]; struct VT *pvt; char pad1[0x2C0 - 0x10]; char a2C0[0x200]; char a4C0[0xDF0 - 0x4C0];
     char aDF0[0x160]; char aF50[0x13D0 - 0xF50]; int k; char pad3[0x16B0 - 0x13D4]; int x16B0; };
-extern float D_002BC990;
+float D_002BC990 = 2.5f;
 void func_001F9B20(struct P *p);
 void PresetStepAccel(struct P *p);
 void PresetJtAccelJump(void *p);
@@ -1352,7 +1387,7 @@ struct P { char pad[0x150]; void *p150; char pad0[0xF20 - 0x154]; int xF20; char
     void *p1034; char pad3[0x13D0 - 0x1038]; int x13D0; char pad4[0x16BC - 0x13D4]; int x16BC; char pad5[0x1700 - 0x16C0];
     float g1700; int pad6[3]; char a1710[4]; int x1714; char pad7[0x181C - 0x1718]; int x181C; };
 extern struct CLOCK D_002DDED0;
-extern float D_002BC994;
+float D_002BC994 = 2.0f;
 int FStepplayerInJtmode(struct P *p);
 void func_001362F8(struct P *p, int n);
 int GrfConsumePressed__5POCTLUif(void *pv, int n, float g);
@@ -1770,7 +1805,7 @@ extern "C" void OnBentleyGadgetsChanged(BENTLEY *pbentley)
  * @end-sly2-annot */
 extern "C" char *BENTLEY_PchzSaveVarRoot()
 {
-    return D_002A4AE8;
+    return (char *)D_002A4AE8;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -2130,8 +2165,8 @@ struct CLOCK { float t; float dt; };
 struct SMP { float a, b, c; };
 extern "C" {
 extern CLOCK D_002DDED0;
-extern float D_002BC998, D_002BC99C, D_002BC9A0;
-extern SMP D_002BC9A8;
+float D_002BC998 = 250.0f, D_002BC99C = 1500.0f, D_002BC9A0 = 1500.0f;
+SMP D_002BC9A8 = {500.0f, 0.0f, 0.5f};
 extern qword D_002A2DC0, D_002A2DA0;
 qword func_001A62E8(P *p);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
@@ -2294,7 +2329,8 @@ struct S { P *p; int k; float t; int kCur; X *px0; X *px1; };
 struct CLOCK { float t; float dt; };
 extern "C" {
 extern CLOCK D_002DDED0;
-extern float D_002BC9B8;
+float D_002BC9B4 = 0.0f;   /* contact friction */
+float D_002BC9B8 = 0.5f;
 void FaceStepToward(P *p, int n);
 R *func_0012FF10(X *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
