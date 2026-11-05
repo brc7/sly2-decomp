@@ -1824,3 +1824,7 @@ qword func_001A7348(M3 *pm, int f, qword v)
     return v;
 }
 } } // namespace M_func_001A7348
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A6A40 = 3.40282347e+38f;
