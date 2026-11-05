@@ -200,30 +200,30 @@ checkpoint record in RAM `[C:runtime S29-S30]`. Task-level checkpoints are ordin
 | [0x149C80](../../src/game/world/scene/callback.cpp) | `ProcessSwCallbacks` | Drain the deferred-callback list (calling each member function, repeating while new ones are posted), then run all Splice scheduled callbacks whose ti | 0.80 | T1 |  |
 | [0x1C2A78](../../src/game/platform/memory/phasemem.cpp) | `SetPhase` | if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers | 0.85 | T1 |  |
 | [0x1C2BA8](../../src/game/platform/memory/phasemem.cpp) | `ClearPhase` | SetPhase(PHASE_None=0) | 0.80 | T1 |  |
-| [0x20D9D0](../../src/game/world/scene/sw/SW_ctor.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
-| [0x20DF80](../../src/game/world/scene/sw/SetSwTransition.c) | `SetSwTransition` | fRestored=1; copy CHK record | 0.60 | existing | arbitration; replaces existing RestoreChkmgrFromCheckpoint__FP6CHKMGR |
-| [0x20E068](../../src/game/world/scene/sw/DeleteSw.c) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |
-| [0x20E3C0](../../src/game/world/scene/sw/ResolveSwSaveVars__FP2SW.cpp) | `ResolveSwSaveVars` | Look up save-variable paths the game reads (language, sound flags, job/world, per-world dt/percent_complete), store current language/job/world, raise  | 0.85 | T1 | verified |
-| [0x20E740](../../src/game/world/scene/sw/PostSwLoad.c) | `PostSwLoad` | After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15) until queue empty, StartupCm-like camera reset, gam | 0.55 | T1 |  |
-| [0x20E890](../../src/game/world/scene/sw/ExecuteSwTransition.cpp) | `ExecuteSwTransition` | Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw, InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore che | 0.55 | T1 |  |
-| [0x20EFC0](../../src/game/world/scene/sw/IncrementSwHandsOff.c) | `IncrementSwHandsOff` | ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84 | 0.85 | T1 |  |
-| [0x20F030](../../src/game/world/scene/sw/DecrementSwHandsOff.c) | `DecrementSwHandsOff` | --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84 | 0.80 | T1 |  |
-| [0x20F0B0](../../src/game/world/scene/sw/FSwHandsOff.c) | `FSwHandsOff` | SW+0x3D78 > 0 | 0.85 | T1 | verified |
-| [0x20F0C0](../../src/game/world/scene/sw/func_0020F0C0.c) | `IncrementSwNoPause` | ++SW+0x3D7C (first -> AddGrfusr(4)) \| runtime6: SW+0x3D7C is the no-pause counter (SetJsgHandsOff, JT mode kind 1); Lilly jtmode.c name | 0.30 | T2 | verified, pending-fix; pending fix; v2 name IncrementSwUsrLock |
-| [0x20F160](../../src/game/world/scene/sw/ReleaseSwLetterbox.c) | `ReleaseSwLetterbox` | --SW+0x3D80; last -> 0x1A30D0 (vt50 hide) | 0.85 | T1 | verified |
-| [0x20F1B8](../../src/game/world/scene/sw/func_0020F1B8.c) | `FSwInputLock` | SW+0x3D84 > 0 | 0.30 | T2 | verified |
-| [0x20F2F8](../../src/game/world/scene/sw/SetSwIllum.c) | `SetSwIllum` | Store midtone +0x3E20 (ctor default 90) and UpdateSwIllum | 0.85 | T1 | verified |
-| [0x20F318](../../src/game/world/scene/sw/LoadLevelTableFromBrx.cpp) | `LoadLevelTableFromBrx` | Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry  | 0.85 | T1 |  |
-| [0x20F5D0](../../src/game/world/scene/sw/LoadSwSharedHeaderFromBrx.c) | `LoadSwSharedHeaderFromBrx` | Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced | 0.90 | T1 | parse, verified |
-| [0x20F640](../../src/game/world/scene/sw/LoadSwSharedDataFromBrx.c) | `LoadSwSharedDataFromBrx` | If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip it and reuse (0x170828) | 0.75 | T1 | parse |
-| [0x20F948](../../src/game/world/scene/sw/FFilterSoPair.c) | `FFilterSoPair` | Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3 | 0.85 | T1 | verified |
-| [0x20FAA0](../../src/game/world/scene/sw/IntersectSwBoundingBox.c) | `IntersectSwBoundingBox` | Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array | 0.75 | T1 |  |
-| [0x20FC60](../../src/game/world/scene/sw/IntersectSwBoundingSphere.c) | `IntersectSwBoundingSphere` | Same for a sphere (center, radius) | 0.85 | T1 | verified |
-| [0x20FEC0](../../src/game/world/scene/sw/FAddRsmg__FP2SWP4RSMGiPii3OIDN25.c) | `FAddRsmg__FP2SWP4RSMGiPii3OIDN25` | Add/update a (root,SM)->trigger/untrigger goal record | 0.80 | existing | verified, arbitration; replaces existing FAddRsmg__FP4RSMGiPii3OIDN24 |
-| [0x2102A0](../../src/game/world/scene/sw/func_002102A0.cpp) | `RefreshSwObjects` | 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038) | 0.25 | T2 | runtime-corrected |
-| [0x2108E8](../../src/game/world/scene/sw/StopSwAsegSound.c) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
-| [0x210A88](../../src/game/world/scene/sw/IlevelCur__Fv.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
-| [0x210B98](../../src/game/world/scene/sw/PrecWorldEntry.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
+| [0x20D9D0](../../src/game/world/scene/sw.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
+| [0x20DF80](../../src/game/world/scene/sw.cpp) | `SetSwTransition` | fRestored=1; copy CHK record | 0.60 | existing | arbitration; replaces existing RestoreChkmgrFromCheckpoint__FP6CHKMGR |
+| [0x20E068](../../src/game/world/scene/sw.cpp) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |
+| [0x20E3C0](../../src/game/world/scene/sw.cpp) | `ResolveSwSaveVars` | Look up save-variable paths the game reads (language, sound flags, job/world, per-world dt/percent_complete), store current language/job/world, raise  | 0.85 | T1 | verified |
+| [0x20E740](../../src/game/world/scene/sw.cpp) | `PostSwLoad` | After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15) until queue empty, StartupCm-like camera reset, gam | 0.55 | T1 |  |
+| [0x20E890](../../src/game/world/scene/sw.cpp) | `ExecuteSwTransition` | Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw, InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore che | 0.55 | T1 |  |
+| [0x20EFC0](../../src/game/world/scene/sw.cpp) | `IncrementSwHandsOff` | ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84 | 0.85 | T1 |  |
+| [0x20F030](../../src/game/world/scene/sw.cpp) | `DecrementSwHandsOff` | --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84 | 0.80 | T1 |  |
+| [0x20F0B0](../../src/game/world/scene/sw.cpp) | `FSwHandsOff` | SW+0x3D78 > 0 | 0.85 | T1 | verified |
+| [0x20F0C0](../../src/game/world/scene/sw.cpp) | `IncrementSwNoPause` | ++SW+0x3D7C (first -> AddGrfusr(4)) \| runtime6: SW+0x3D7C is the no-pause counter (SetJsgHandsOff, JT mode kind 1); Lilly jtmode.c name | 0.30 | T2 | verified, pending-fix; pending fix; v2 name IncrementSwUsrLock |
+| [0x20F160](../../src/game/world/scene/sw.cpp) | `ReleaseSwLetterbox` | --SW+0x3D80; last -> 0x1A30D0 (vt50 hide) | 0.85 | T1 | verified |
+| [0x20F1B8](../../src/game/world/scene/sw.cpp) | `FSwInputLock` | SW+0x3D84 > 0 | 0.30 | T2 | verified |
+| [0x20F2F8](../../src/game/world/scene/sw.cpp) | `SetSwIllum` | Store midtone +0x3E20 (ctor default 90) and UpdateSwIllum | 0.85 | T1 | verified |
+| [0x20F318](../../src/game/world/scene/sw.cpp) | `LoadLevelTableFromBrx` | Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry  | 0.85 | T1 |  |
+| [0x20F5D0](../../src/game/world/scene/sw.cpp) | `LoadSwSharedHeaderFromBrx` | Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced | 0.90 | T1 | parse, verified |
+| [0x20F640](../../src/game/world/scene/sw.cpp) | `LoadSwSharedDataFromBrx` | If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip it and reuse (0x170828) | 0.75 | T1 | parse |
+| [0x20F948](../../src/game/world/scene/sw.cpp) | `FFilterSoPair` | Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3 | 0.85 | T1 | verified |
+| [0x20FAA0](../../src/game/world/scene/sw.cpp) | `IntersectSwBoundingBox` | Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array | 0.75 | T1 |  |
+| [0x20FC60](../../src/game/world/scene/sw.cpp) | `IntersectSwBoundingSphere` | Same for a sphere (center, radius) | 0.85 | T1 | verified |
+| [0x20FEC0](../../src/game/world/scene/sw.cpp) | `FAddRsmg__FP2SWP4RSMGiPii3OIDN25` | Add/update a (root,SM)->trigger/untrigger goal record | 0.80 | existing | verified, arbitration; replaces existing FAddRsmg__FP4RSMGiPii3OIDN24 |
+| [0x2102A0](../../src/game/world/scene/sw.cpp) | `RefreshSwObjects` | 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038) | 0.25 | T2 | runtime-corrected |
+| [0x2108E8](../../src/game/world/scene/sw.cpp) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
+| [0x210A88](../../src/game/world/scene/sw.cpp) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
+| [0x210B98](../../src/game/world/scene/sw.cpp) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
 | [0x226550](../../src/game/level/update.cpp) | `UpdateSw` | per-frame world update: callbacks, objects (0x2267C0), lights, sound, camera ... | 0.75 | T1 |  |
 | [0x228140](../../src/game/level/exit_warp.cpp) | `LoadCid41FromBrx` | LoadXfmFromBrx + 0x118420 extra read | 0.75 | T2 | parse |
 | [0x228250](../../src/game/level/exit_warp.cpp) | `LoadWarpBlobFromBrx` | reads 0x40-byte header and allocates a copy if non-empty | 0.75 | T1 | parse |
