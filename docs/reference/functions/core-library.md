@@ -569,19 +569,19 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2599D8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E0](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599F0](../../../src/game/gameplay/player/grabspot/func_002599F0.c) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2599F0](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599F8](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A00](../../../src/game/gameplay/player/grabspot/func_00259A00.c) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A00](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A08](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A10](../../../src/game/gameplay/player/grabspot/func_00259A10.c) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A10](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A18](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A20](../../../src/game/gameplay/player/grabspot/func_00259A20.c) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A20](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A28](../../../include/sly2/so.h) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A30](../../../src/game/gameplay/player/grabspot/func_00259A30.c) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A30](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A38](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A40](../../../src/game/gameplay/player/grabspot/func_00259A40.c) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A40](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A48](../../../include/sly2/xfm.h) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A70](../../../src/game/gameplay/player/grabspot/func_00259A70.c) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259A70](../../../src/game/gameplay/player/grabspot.cpp) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259A78](../../../include/sly2/xfm.h) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A88](../../../src/game/object/splicemap.cpp) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259AE8](../../../include/sly2/lo.h) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
@@ -592,7 +592,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259B20](../../../include/sly2/so.h) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259B48](../../../src/game/engine/sound/sound/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x259BB0](../../../src/game/engine/sound/sound/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259C08](../../../src/game/gameplay/player/grabspot/func_00259C08.c) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259C08](../../../src/game/gameplay/player/grabspot.cpp) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/game/object/spliceobj.cpp) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x259CF8](../../../src/game/object/spliceobj.cpp) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |

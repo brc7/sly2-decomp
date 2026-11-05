@@ -330,19 +330,19 @@ from `oidPoCurrent`; the camera is CPCAMERA (CM+0x4A8) at priority 10 on a CID 0
 | [0x144480](../../src/game/gameplay/player/stepplayer/OnStepplayerActive.c) | `OnStepplayerActive` | vt78: PO OnPoActive, then vt105; when deactivated stop +0x1310 action and +0x1314=-1 | 0.80 | T1 | runtime |
 | [0x144638](../../src/game/gameplay/player/jtgoal.cpp) | `InitJtgoal` | JTGOAL init: store owning STEPPLAYER at +0 | 0.85 | T1 | verified |
 | [0x146298](../../src/game/gameplay/ai/tu_144B28.cpp) | `FBhv196Idle` | state == -1 | 0.85 | T2 | verified |
-| [0x182CC0](../../src/game/gameplay/player/grabspot/GRABSPOT_FGetGrabRange.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
-| [0x182EB8](../../src/game/gameplay/player/grabspot/func_00182EB8.c) | `OnCid12Add` | vt23: LO Unfreeze + append to grab list D_003E13F0 | 0.85 | T2 | arbitration |
-| [0x182EF0](../../src/game/gameplay/player/grabspot/func_00182EF0.c) | `OnCid12Remove` | vt22: LO Freeze + remove from D_003E13F0 | 0.85 | T2 | arbitration |
-| [0x183370](../../src/game/gameplay/player/grabspot/func_00183370.c) | `OnCid34Add` | vt23: Unfreeze + append to its grab list | 0.85 | T2 | arbitration |
-| [0x1833A8](../../src/game/gameplay/player/grabspot/func_001833A8.c) | `OnCid34Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
-| [0x1836F8](../../src/game/gameplay/player/grabspot/func_001836F8.c) | `OnCid38Add` | vt23: Unfreeze + append to grab list | 0.85 | T2 | arbitration |
-| [0x183730](../../src/game/gameplay/player/grabspot/func_00183730.c) | `OnCid38Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
-| [0x183998](../../src/game/gameplay/player/grabspot/OnBarrelAdd.c) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
-| [0x1839D0](../../src/game/gameplay/player/grabspot/OnBarrelRemove.c) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
-| [0x183FB8](../../src/game/gameplay/player/grabspot/func_00183FB8.c) | `OnCid35Add` | vt23 (shared with CID 0x24): Unfreeze + list | 0.85 | T2 | arbitration |
-| [0x183FF0](../../src/game/gameplay/player/grabspot/func_00183FF0.c) | `OnCid35Remove` | vt22 (shared with 0x24/0x25): Freeze + list | 0.85 | T2 | arbitration |
-| [0x1844A0](../../src/game/gameplay/player/grabspot/func_001844A0.c) | `OnCid27Add` | vt23: Unfreeze + append to D_003E1438 | 0.85 | T2 | arbitration |
-| [0x1844D8](../../src/game/gameplay/player/grabspot/func_001844D8.c) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
+| [0x182CC0](../../src/game/gameplay/player/grabspot.cpp) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
+| [0x182EB8](../../src/game/gameplay/player/grabspot.cpp) | `OnCid12Add` | vt23: LO Unfreeze + append to grab list D_003E13F0 | 0.85 | T2 | arbitration |
+| [0x182EF0](../../src/game/gameplay/player/grabspot.cpp) | `OnCid12Remove` | vt22: LO Freeze + remove from D_003E13F0 | 0.85 | T2 | arbitration |
+| [0x183370](../../src/game/gameplay/player/grabspot.cpp) | `OnCid34Add` | vt23: Unfreeze + append to its grab list | 0.85 | T2 | arbitration |
+| [0x1833A8](../../src/game/gameplay/player/grabspot.cpp) | `OnCid34Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
+| [0x1836F8](../../src/game/gameplay/player/grabspot.cpp) | `OnCid38Add` | vt23: Unfreeze + append to grab list | 0.85 | T2 | arbitration |
+| [0x183730](../../src/game/gameplay/player/grabspot.cpp) | `OnCid38Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
+| [0x183998](../../src/game/gameplay/player/grabspot.cpp) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
+| [0x1839D0](../../src/game/gameplay/player/grabspot.cpp) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
+| [0x183FB8](../../src/game/gameplay/player/grabspot.cpp) | `OnCid35Add` | vt23 (shared with CID 0x24): Unfreeze + list | 0.85 | T2 | arbitration |
+| [0x183FF0](../../src/game/gameplay/player/grabspot.cpp) | `OnCid35Remove` | vt22 (shared with 0x24/0x25): Freeze + list | 0.85 | T2 | arbitration |
+| [0x1844A0](../../src/game/gameplay/player/grabspot.cpp) | `OnCid27Add` | vt23: Unfreeze + append to D_003E1438 | 0.85 | T2 | arbitration |
+| [0x1844D8](../../src/game/gameplay/player/grabspot.cpp) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
 | [0x185150](../../src/game/engine/physics/tu_185130.cpp) | `LoadCid8FromBrx` | CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw, LoadOptionsFromBrx | 0.75 | T2 | parse, verified |
 | [0x188488](../../src/game/gameplay/player/jt.cpp) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD | 0.90 | T1 | runtime, verified |
 | [0x1885B8](../../src/game/gameplay/player/jt.cpp) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |

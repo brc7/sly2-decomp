@@ -224,70 +224,70 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x182C70](../../../src/game/gameplay/player/grabspot/InitGrabspot.c) | `InitGrabspot` | Init the GRABSPOT mix-in sub-object: x14=-1, sBusy-like g=D_002A5680, player mask 7, owner (vt6) busyk 3 | 0.60 | T1 |  |
-| [0x182CC0](../../../src/game/gameplay/player/grabspot/GRABSPOT_FGetGrabRange.c) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
-| [0x182CC8](../../../src/game/gameplay/player/grabspot/func_00182CC8.c) | `GetGrabspotClosestParam` | Default: *pparam = 0 | 0.35 | T2 |  |
-| [0x182CD0](../../../src/game/gameplay/player/grabspot/func_00182CD0.c) | `GetGrabspotGrabPos` | Default no-op | 0.35 | T2 |  |
-| [0x182CD8](../../../src/game/gameplay/player/grabspot/func_00182CD8.c) | `GetGrabspotPosNear` | Call slot B (closest param) then slot C (pos at that param) | 0.35 | T2 |  |
-| [0x182D70](../../../src/game/gameplay/player/grabspot/func_00182D70.c) | `AdjustGrabspotScore` | Default no-op | 0.30 | T2 |  |
-| [0x182D78](../../../src/game/gameplay/player/grabspot/func_00182D78.c) | `GetGrabspotSparklePos` | Default: random point in a sphere around the owner (GRandInRange pan/tilt/radius), zero dv | 0.45 | T2 |  |
-| [0x182E78](../../../src/game/gameplay/player/grabspot/func_00182E78.c) | `GRABSPOT_vtF` | Default: return 0 | 0.25 | T2 |  |
-| [0x182E80](../../../src/game/gameplay/player/grabspot/func_00182E80.c) | `InitCid12` | CID12 vt7: InitShape, InitGrabspot(+0x190 sub), kind 3 | 0.60 | T2 |  |
-| [0x182EB8](../../../src/game/gameplay/player/grabspot/func_00182EB8.c) | `OnCid12Add` | vt23: LO Unfreeze + append to grab list D_003E13F0 | 0.85 | T2 | arbitration |
-| [0x182EF0](../../../src/game/gameplay/player/grabspot/func_00182EF0.c) | `OnCid12Remove` | vt22: LO Freeze + remove from D_003E13F0 | 0.85 | T2 | arbitration |
-| [0x182F28](../../../src/game/gameplay/player/grabspot/func_00182F28.c) | `PostCid12Load` | vt15: PostLoLoad, private TN override off, default busy radius = bounding radius + D_002BE8B4 | 0.60 | T2 |  |
-| [0x182FA0](../../../src/game/gameplay/player/grabspot/func_00182FA0.c) | `CloneCid12` | vt41: CloneShape keeping own 8-byte field | 0.55 | T2 |  |
-| [0x182FE8](../../../src/game/gameplay/player/grabspot/func_00182FE8.c) | `CID12_FGetGrabRange` | If open shape: out [SMinShape, SMaxShape], return 1 | 0.50 | T2 |  |
-| [0x183040](../../../src/game/gameplay/player/grabspot/func_00183040.c) | `GetCid12ClosestParam` | FindShapeClosestPoint to the player, clamp to [30, sMax-30] if open | 0.40 | T2 |  |
-| [0x1830D8](../../../src/game/gameplay/player/grabspot/func_001830D8.c) | `GetCid12GrabPos` | Position and facing (atan2 of tangent x up) on the shape at param g | 0.40 | T2 |  |
-| [0x183218](../../../src/game/gameplay/player/grabspot/func_00183218.c) | `GetCid12SparklePos` | Random point along the shape with outward offset | 0.35 | T2 |  |
-| [0x183340](../../../src/game/gameplay/player/grabspot/func_00183340.c) | `InitCid34` | CID34 vt7: InitXfm + InitGrabspot(+0xE0) | 0.60 | T2 |  |
-| [0x183370](../../../src/game/gameplay/player/grabspot/func_00183370.c) | `OnCid34Add` | vt23: Unfreeze + append to its grab list | 0.85 | T2 | arbitration |
-| [0x1833A8](../../../src/game/gameplay/player/grabspot/func_001833A8.c) | `OnCid34Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
-| [0x1833E0](../../../src/game/gameplay/player/grabspot/func_001833E0.c) | `PostCid34Load` | vt15: PostLoLoad, TN override off, default radius = r(x10C)+D_002BE8C0 | 0.55 | T2 |  |
-| [0x183450](../../../src/game/gameplay/player/grabspot/func_00183450.c) | `CloneCid34` | vt41: CloneXfm keeping own field | 0.55 | T2 |  |
-| [0x183498](../../../src/game/gameplay/player/grabspot/func_00183498.c) | `CID34_FGetGrabRange` | Range [-pi r, pi r] (circumference of radius x10C): a round pole | 0.50 | T2 |  |
-| [0x1834D0](../../../src/game/gameplay/player/grabspot/func_001834D0.c) | `GetCid34ClosestParam` | Angle (atan2) from the pole axis to the player | 0.35 | T2 |  |
-| [0x183540](../../../src/game/gameplay/player/grabspot/func_00183540.c) | `GetCid34GrabPos` | Point at angle g/r on the circle of radius r + player radius | 0.35 | T2 |  |
-| [0x183600](../../../src/game/gameplay/player/grabspot/func_00183600.c) | `GetCid34SparklePos` | Random point on a ring around the pole | 0.35 | T2 |  |
-| [0x1836C8](../../../src/game/gameplay/player/grabspot/func_001836C8.c) | `InitCid38` | CID38 vt7: InitXfm + InitGrabspot(+0xE0) | 0.55 | T2 |  |
-| [0x1836F8](../../../src/game/gameplay/player/grabspot/func_001836F8.c) | `OnCid38Add` | vt23: Unfreeze + append to grab list | 0.85 | T2 | arbitration |
-| [0x183730](../../../src/game/gameplay/player/grabspot/func_00183730.c) | `OnCid38Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
-| [0x183768](../../../src/game/gameplay/player/grabspot/func_00183768.c) | `PostCid38Load` | vt15: PostLoLoad, TN override off, default radius D_002BE8C8 | 0.55 | T2 |  |
-| [0x1837D0](../../../src/game/gameplay/player/grabspot/func_001837D0.c) | `CloneCid38` | vt41: CloneXfm keeping own field | 0.55 | T2 |  |
-| [0x183818](../../../src/game/gameplay/player/grabspot/func_00183818.c) | `GetCid38GrabPos` | Hold position/heading from the object matrix (offset by player radius unless x10C) | 0.35 | T2 |  |
-| [0x183900](../../../src/game/gameplay/player/grabspot/InitBarrel.c) | `InitCid88` | CID88 vt7: InitSo, InitGrabspot(+0x150), state 0, radius 300, flag x18C=1, zap response mask | 0.55 | T2 |  |
-| [0x183970](../../../src/game/gameplay/player/grabspot/func_00183970.c) | `CID88_vt26` | vt26: SO slot 26 base then state x17C=0 | 0.30 | T2 |  |
-| [0x183998](../../../src/game/gameplay/player/grabspot/OnBarrelAdd.c) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
-| [0x1839D0](../../../src/game/gameplay/player/grabspot/OnBarrelRemove.c) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
-| [0x183A08](../../../src/game/gameplay/player/grabspot/CloneBarrel.c) | `CloneCid88` | vt41: SO Clone keeping own field | 0.55 | T2 |  |
-| [0x183A50](../../../src/game/gameplay/player/grabspot/func_00183A50.c) | `CID88_FIgnoreIntersection` | vt61: SO base, and ignore a STEPPLAYER that is holding this object (grab state 1 on it) | 0.35 | T2 |  |
-| [0x183B00](../../../src/game/gameplay/player/grabspot/func_00183B00.c) | `PresetCid88Accel` | vt70: pending velocity, and while free (x18C, state 0) spring the object upright | 0.40 | T2 |  |
-| [0x183B80](../../../src/game/gameplay/player/grabspot/func_00183B80.cpp) | `SetCid88State` | Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent), constraint force/torque, part flags | 0.40 | T2 |  |
-| [0x183E08](../../../src/game/gameplay/player/grabspot/func_00183E08.c) | `HandleCid88Zap` | CID88 own vt slot 75: on a zap that qualifies, noise event and drop/state change | 0.30 | T2 |  |
-| [0x183F08](../../../src/game/gameplay/player/grabspot/func_00183F08.c) | `InitCid35` | CID35 vt7: InitXfm, InitGrabspot(+0xE0), x0F0=1, radius 200, player mask 0 | 0.55 | T2 |  |
-| [0x183F50](../../../src/game/gameplay/player/grabspot/func_00183F50.c) | `PostCid35Load` | vt15: PostLoLoad, mask default 7, default radius D_002BE900 | 0.55 | T2 |  |
-| [0x183FB8](../../../src/game/gameplay/player/grabspot/func_00183FB8.c) | `OnCid35Add` | vt23 (shared with CID 0x24): Unfreeze + list | 0.85 | T2 | arbitration |
-| [0x183FF0](../../../src/game/gameplay/player/grabspot/func_00183FF0.c) | `OnCid35Remove` | vt22 (shared with 0x24/0x25): Freeze + list | 0.85 | T2 | arbitration |
-| [0x184028](../../../src/game/gameplay/player/grabspot/func_00184028.c) | `AddGrabspotPlayerMask` | Splice property op: mask(+0xFC) | 0.30 | T2 |  |
-| [0x184040](../../../src/game/gameplay/player/grabspot/func_00184040.c) | `SetGrabspotPlayerClass` | Map player class to mask: STEPPLAYER 0x34 -> 7, JT 0x35 | 0.40 | T2 |  |
-| [0x1840B8](../../../src/game/gameplay/player/grabspot/func_001840B8.c) | `AddCid35Rsmg` | FAddRsmg(g_sw, &p->b, 4, &p->a, 1, ...) | 0.35 | T2 |  |
-| [0x1840F8](../../../src/game/gameplay/player/grabspot/func_001840F8.c) | `AddCid35Pair` | FAddPair(D_002DEB30, ...) | 0.35 | T2 |  |
-| [0x184130](../../../src/game/gameplay/player/grabspot/func_00184130.c) | `TriggerCid35` | Set state x10C, send message 6, TriggerRsmg, ApplyTaskStates, FireRelay | 0.40 | T2 |  |
-| [0x1841F0](../../../src/game/gameplay/player/grabspot/func_001841F0.c) | `FGrabspotAllowsPlayer` | mask(+0xFC) & player's class bit (+0x1000) != 0 | 0.35 | T2 |  |
-| [0x184208](../../../src/game/gameplay/player/grabspot/func_00184208.c) | `GetCid35GrabPos` | Out PosLoWorld of the owner | 0.30 | T2 |  |
-| [0x184238](../../../src/game/gameplay/player/grabspot/func_00184238.c) | `AdjustCid35Score` | *pscore -= radius - (D_002BF660 - 150) | 0.30 | T2 |  |
-| [0x184268](../../../src/game/gameplay/player/grabspot/func_00184268.c) | `InitCid36` | CID 0x24 (child of CID35) vt7: InitCid35 and four oids -1 | 0.45 | T2 |  |
-| [0x1842B0](../../../src/game/gameplay/player/grabspot/func_001842B0.c) | `PostCid36Load` | CID 0x24 vt15: PostCid35Load and resolve three oids (PloFindSwObject kind 4) | 0.45 | T2 |  |
-| [0x184330](../../../src/game/gameplay/player/grabspot/func_00184330.c) | `Cid35OnGrab` | TriggerCid35 then, if the grabber is MURRAY, start his lift (0x1B7000) | 0.30 | T2 |  |
-| [0x184380](../../../src/game/gameplay/player/grabspot/func_00184380.c) | `FCid35NotTarget` | 1 if ids differ else FFindLoParent | 0.25 | T2 | verified |
-| [0x1843C0](../../../src/game/gameplay/player/grabspot/func_001843C0.c) | `InitCid27` | CID27 vt7: InitXfm + InitGrabspot(+0x130) | 0.55 | T2 |  |
-| [0x1843F0](../../../src/game/gameplay/player/grabspot/func_001843F0.c) | `PostCid27Load` | vt15: PostLoLoad; default radius = distance to its point + D_002BE904 | 0.55 | T2 |  |
-| [0x1844A0](../../../src/game/gameplay/player/grabspot/func_001844A0.c) | `OnCid27Add` | vt23: Unfreeze + append to D_003E1438 | 0.85 | T2 | arbitration |
-| [0x1844D8](../../../src/game/gameplay/player/grabspot/func_001844D8.c) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
-| [0x184510](../../../src/game/gameplay/player/grabspot/func_00184510.c) | `GetCid27GrabPos` | Hold position (debug flag D_002DFB84 uses child x15C pos + offset) | 0.30 | T2 |  |
-| [0x1845A0](../../../src/game/gameplay/player/grabspot/func_001845A0.c) | `GetCid27SparklePos` | Random point on a disc around its point | 0.30 | T2 | verified |
-| [0x184670](../../../src/game/gameplay/player/grabspot/PgrabspotFromLo.c) | `PgrabspotFromLo` | Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0, CID12 +0x190, ...) or NULL | 0.65 | T1 |  |
+| [0x182C70](../../../src/game/gameplay/player/grabspot.cpp) | `InitGrabspot` | Init the GRABSPOT mix-in sub-object: x14=-1, sBusy-like g=D_002A5680, player mask 7, owner (vt6) busyk 3 | 0.60 | T1 |  |
+| [0x182CC0](../../../src/game/gameplay/player/grabspot.cpp) | `GRABSPOT_FGetGrabRange` | Default: no wrap range (return 0) | 0.85 | T1 | verified |
+| [0x182CC8](../../../src/game/gameplay/player/grabspot.cpp) | `GetGrabspotClosestParam` | Default: *pparam = 0 | 0.35 | T2 |  |
+| [0x182CD0](../../../src/game/gameplay/player/grabspot.cpp) | `GetGrabspotGrabPos` | Default no-op | 0.35 | T2 |  |
+| [0x182CD8](../../../src/game/gameplay/player/grabspot.cpp) | `GetGrabspotPosNear` | Call slot B (closest param) then slot C (pos at that param) | 0.35 | T2 |  |
+| [0x182D70](../../../src/game/gameplay/player/grabspot.cpp) | `AdjustGrabspotScore` | Default no-op | 0.30 | T2 |  |
+| [0x182D78](../../../src/game/gameplay/player/grabspot.cpp) | `GetGrabspotSparklePos` | Default: random point in a sphere around the owner (GRandInRange pan/tilt/radius), zero dv | 0.45 | T2 |  |
+| [0x182E78](../../../src/game/gameplay/player/grabspot.cpp) | `GRABSPOT_vtF` | Default: return 0 | 0.25 | T2 |  |
+| [0x182E80](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid12` | CID12 vt7: InitShape, InitGrabspot(+0x190 sub), kind 3 | 0.60 | T2 |  |
+| [0x182EB8](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid12Add` | vt23: LO Unfreeze + append to grab list D_003E13F0 | 0.85 | T2 | arbitration |
+| [0x182EF0](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid12Remove` | vt22: LO Freeze + remove from D_003E13F0 | 0.85 | T2 | arbitration |
+| [0x182F28](../../../src/game/gameplay/player/grabspot.cpp) | `PostCid12Load` | vt15: PostLoLoad, private TN override off, default busy radius = bounding radius + D_002BE8B4 | 0.60 | T2 |  |
+| [0x182FA0](../../../src/game/gameplay/player/grabspot.cpp) | `CloneCid12` | vt41: CloneShape keeping own 8-byte field | 0.55 | T2 |  |
+| [0x182FE8](../../../src/game/gameplay/player/grabspot.cpp) | `CID12_FGetGrabRange` | If open shape: out [SMinShape, SMaxShape], return 1 | 0.50 | T2 |  |
+| [0x183040](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid12ClosestParam` | FindShapeClosestPoint to the player, clamp to [30, sMax-30] if open | 0.40 | T2 |  |
+| [0x1830D8](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid12GrabPos` | Position and facing (atan2 of tangent x up) on the shape at param g | 0.40 | T2 |  |
+| [0x183218](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid12SparklePos` | Random point along the shape with outward offset | 0.35 | T2 |  |
+| [0x183340](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid34` | CID34 vt7: InitXfm + InitGrabspot(+0xE0) | 0.60 | T2 |  |
+| [0x183370](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid34Add` | vt23: Unfreeze + append to its grab list | 0.85 | T2 | arbitration |
+| [0x1833A8](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid34Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
+| [0x1833E0](../../../src/game/gameplay/player/grabspot.cpp) | `PostCid34Load` | vt15: PostLoLoad, TN override off, default radius = r(x10C)+D_002BE8C0 | 0.55 | T2 |  |
+| [0x183450](../../../src/game/gameplay/player/grabspot.cpp) | `CloneCid34` | vt41: CloneXfm keeping own field | 0.55 | T2 |  |
+| [0x183498](../../../src/game/gameplay/player/grabspot.cpp) | `CID34_FGetGrabRange` | Range [-pi r, pi r] (circumference of radius x10C): a round pole | 0.50 | T2 |  |
+| [0x1834D0](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid34ClosestParam` | Angle (atan2) from the pole axis to the player | 0.35 | T2 |  |
+| [0x183540](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid34GrabPos` | Point at angle g/r on the circle of radius r + player radius | 0.35 | T2 |  |
+| [0x183600](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid34SparklePos` | Random point on a ring around the pole | 0.35 | T2 |  |
+| [0x1836C8](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid38` | CID38 vt7: InitXfm + InitGrabspot(+0xE0) | 0.55 | T2 |  |
+| [0x1836F8](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid38Add` | vt23: Unfreeze + append to grab list | 0.85 | T2 | arbitration |
+| [0x183730](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid38Remove` | vt22: Freeze + remove from grab list | 0.85 | T2 | arbitration |
+| [0x183768](../../../src/game/gameplay/player/grabspot.cpp) | `PostCid38Load` | vt15: PostLoLoad, TN override off, default radius D_002BE8C8 | 0.55 | T2 |  |
+| [0x1837D0](../../../src/game/gameplay/player/grabspot.cpp) | `CloneCid38` | vt41: CloneXfm keeping own field | 0.55 | T2 |  |
+| [0x183818](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid38GrabPos` | Hold position/heading from the object matrix (offset by player radius unless x10C) | 0.35 | T2 |  |
+| [0x183900](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid88` | CID88 vt7: InitSo, InitGrabspot(+0x150), state 0, radius 300, flag x18C=1, zap response mask | 0.55 | T2 |  |
+| [0x183970](../../../src/game/gameplay/player/grabspot.cpp) | `CID88_vt26` | vt26: SO slot 26 base then state x17C=0 | 0.30 | T2 |  |
+| [0x183998](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid88Add` | vt23: UnfreezeSo + append to grab list | 0.85 | T2 | arbitration |
+| [0x1839D0](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid88Remove` | vt22: FreezeSo + remove from grab list | 0.85 | T2 | arbitration |
+| [0x183A08](../../../src/game/gameplay/player/grabspot.cpp) | `CloneCid88` | vt41: SO Clone keeping own field | 0.55 | T2 |  |
+| [0x183A50](../../../src/game/gameplay/player/grabspot.cpp) | `CID88_FIgnoreIntersection` | vt61: SO base, and ignore a STEPPLAYER that is holding this object (grab state 1 on it) | 0.35 | T2 |  |
+| [0x183B00](../../../src/game/gameplay/player/grabspot.cpp) | `PresetCid88Accel` | vt70: pending velocity, and while free (x18C, state 0) spring the object upright | 0.40 | T2 |  |
+| [0x183B80](../../../src/game/gameplay/player/grabspot.cpp) | `SetCid88State` | Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent), constraint force/torque, part flags | 0.40 | T2 |  |
+| [0x183E08](../../../src/game/gameplay/player/grabspot.cpp) | `HandleCid88Zap` | CID88 own vt slot 75: on a zap that qualifies, noise event and drop/state change | 0.30 | T2 |  |
+| [0x183F08](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid35` | CID35 vt7: InitXfm, InitGrabspot(+0xE0), x0F0=1, radius 200, player mask 0 | 0.55 | T2 |  |
+| [0x183F50](../../../src/game/gameplay/player/grabspot.cpp) | `PostCid35Load` | vt15: PostLoLoad, mask default 7, default radius D_002BE900 | 0.55 | T2 |  |
+| [0x183FB8](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid35Add` | vt23 (shared with CID 0x24): Unfreeze + list | 0.85 | T2 | arbitration |
+| [0x183FF0](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid35Remove` | vt22 (shared with 0x24/0x25): Freeze + list | 0.85 | T2 | arbitration |
+| [0x184028](../../../src/game/gameplay/player/grabspot.cpp) | `AddGrabspotPlayerMask` | Splice property op: mask(+0xFC) | 0.30 | T2 |  |
+| [0x184040](../../../src/game/gameplay/player/grabspot.cpp) | `SetGrabspotPlayerClass` | Map player class to mask: STEPPLAYER 0x34 -> 7, JT 0x35 | 0.40 | T2 |  |
+| [0x1840B8](../../../src/game/gameplay/player/grabspot.cpp) | `AddCid35Rsmg` | FAddRsmg(g_sw, &p->b, 4, &p->a, 1, ...) | 0.35 | T2 |  |
+| [0x1840F8](../../../src/game/gameplay/player/grabspot.cpp) | `AddCid35Pair` | FAddPair(D_002DEB30, ...) | 0.35 | T2 |  |
+| [0x184130](../../../src/game/gameplay/player/grabspot.cpp) | `TriggerCid35` | Set state x10C, send message 6, TriggerRsmg, ApplyTaskStates, FireRelay | 0.40 | T2 |  |
+| [0x1841F0](../../../src/game/gameplay/player/grabspot.cpp) | `FGrabspotAllowsPlayer` | mask(+0xFC) & player's class bit (+0x1000) != 0 | 0.35 | T2 |  |
+| [0x184208](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid35GrabPos` | Out PosLoWorld of the owner | 0.30 | T2 |  |
+| [0x184238](../../../src/game/gameplay/player/grabspot.cpp) | `AdjustCid35Score` | *pscore -= radius - (D_002BF660 - 150) | 0.30 | T2 |  |
+| [0x184268](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid36` | CID 0x24 (child of CID35) vt7: InitCid35 and four oids -1 | 0.45 | T2 |  |
+| [0x1842B0](../../../src/game/gameplay/player/grabspot.cpp) | `PostCid36Load` | CID 0x24 vt15: PostCid35Load and resolve three oids (PloFindSwObject kind 4) | 0.45 | T2 |  |
+| [0x184330](../../../src/game/gameplay/player/grabspot.cpp) | `Cid35OnGrab` | TriggerCid35 then, if the grabber is MURRAY, start his lift (0x1B7000) | 0.30 | T2 |  |
+| [0x184380](../../../src/game/gameplay/player/grabspot.cpp) | `FCid35NotTarget` | 1 if ids differ else FFindLoParent | 0.25 | T2 | verified |
+| [0x1843C0](../../../src/game/gameplay/player/grabspot.cpp) | `InitCid27` | CID27 vt7: InitXfm + InitGrabspot(+0x130) | 0.55 | T2 |  |
+| [0x1843F0](../../../src/game/gameplay/player/grabspot.cpp) | `PostCid27Load` | vt15: PostLoLoad; default radius = distance to its point + D_002BE904 | 0.55 | T2 |  |
+| [0x1844A0](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid27Add` | vt23: Unfreeze + append to D_003E1438 | 0.85 | T2 | arbitration |
+| [0x1844D8](../../../src/game/gameplay/player/grabspot.cpp) | `OnCid27Remove` | vt22: Freeze + remove from D_003E1438 | 0.85 | T2 | arbitration |
+| [0x184510](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid27GrabPos` | Hold position (debug flag D_002DFB84 uses child x15C pos + offset) | 0.30 | T2 |  |
+| [0x1845A0](../../../src/game/gameplay/player/grabspot.cpp) | `GetCid27SparklePos` | Random point on a disc around its point | 0.30 | T2 | verified |
+| [0x184670](../../../src/game/gameplay/player/grabspot.cpp) | `PgrabspotFromLo` | Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0, CID12 +0x190, ...) or NULL | 0.65 | T1 |  |
 
 ## hnd (0x184F50-0x185130)
 

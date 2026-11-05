@@ -11,7 +11,7 @@
 | [`empty_1344F0.cpp`](empty_1344F0.cpp) | 1 |
 | [`empty_1378D8.cpp`](empty_1378D8.cpp) | 1 |
 | [`grab.cpp`](grab.cpp) | 1 |
-| [`grabspot/`](grabspot/) | 74 |
+| [`grabspot.cpp`](grabspot.cpp) | 1 |
 | [`hang.cpp`](hang.cpp) | 1 |
 | [`hnd.cpp`](hnd.cpp) | 1 |
 | [`hurt.cpp`](hurt.cpp) | 1 |
