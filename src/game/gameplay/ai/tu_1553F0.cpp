@@ -136,7 +136,7 @@ void func_00155788(BHVESC *p, int k);
 ESC *func_00155868(BHVESC *p);
 void func_00155AE0(BHVATK *p, int k);
 void *func_00155A68(BHVATK *p);
-extern qword g_normalZ;
+extern qword g_normalZ __asm__("D_002A2DC0");
 VECTOR D_002BDC60 = {0.0f, 0.0001f, 0.0f, 0.0f};
 float D_002BDC70[2] = {0.1f, 0.4f};
 VECTOR D_002BDC80 = {0.0f, 0.0f, 0.0f, 0.0f};

@@ -104,9 +104,9 @@ void func_00156BE0(NOISETYPE *ptype, qword q, int c, NOISE **ppnoise);
 void func_00156DE0(LISTENER *p, int f);
 int func_00156FE8(LISTENER *plo, NOISE *p);
 }
-void AppendDlEntry(void *pdl, void *pv);
-void RemoveDlEntry(void *pdl, void *pv);
-int FFindDlEntry(void *pdl, void *pv);
+void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
+void RemoveDlEntry(void *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
+int FFindDlEntry(void *pdl, void *pv) __asm__("FFindDlEntry__FP2DLPv");
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 

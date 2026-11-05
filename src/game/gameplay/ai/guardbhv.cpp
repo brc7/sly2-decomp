@@ -6801,7 +6801,7 @@ extern "C" {
 void func_001B44D8(int *pcpso, SOPART ***papso);
 }
 extern "C" {
-SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest);
+SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG");
 }
 static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
