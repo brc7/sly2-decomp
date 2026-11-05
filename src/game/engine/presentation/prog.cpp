@@ -6,7 +6,7 @@
 #include "vifs.h"
 #include "gifs.h"
 #include "sly2/slotheap.h"
-extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+#include "sly2/clock.h"
 
 struct RGBA { unsigned char r, g, b, a; };
 struct TRI { int ai[3]; };
@@ -79,15 +79,12 @@ typedef char assert_CProg_rgba3[(uint)&((CProg *)0)->m_rgba3 == 0x60 ? 1 : -1];
 struct M2 {float a[8];M2(){}void Identity();};
 struct V2 { float x, y; };
 struct SEMA {int count,maxCount,initialCount,waitThreads;uint attributes,option;};
-struct CLOCK {float t,dt,ratio,realRatio,realDt,realT;char pad18[0x24];float frameT,frameDt;ulong tick;};
 /* The render frame (frm.cpp FRM) as the loading screen touches it. */
 struct FRM {int n0;void *p4;char pad8[0x1C];void *packet;char pad28[8];int flags;};
 /* Thread creation parameters. */
 struct TP { int status; void *func; void *stack; int stack_size; void *gp_reg; int initial_priority; int pad[6]; };
 struct THREADS { char pad[0x10]; int tid; };
 
-#undef D_002DDF0C
-#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */   /* the clock's frame time (D_002DDED0 + 0x3C) as BeginLoadingScreen reads it */
 float *D_002DD314;          /* the loading screen's start time (.sbss in the target) */
 int D_003D3A3C, D_003D3A40, D_003D3A44;   /* start, end request, end done semaphores (prog's .bss after the logo) */
 extern THREADS D_004425D0;
@@ -294,7 +291,7 @@ static inline float *Receiver(float *p)
     return copy;
 }
 /** @sly2-annot addr=0x1C9058
- * Purpose: Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and
+ * Purpose: Store start time (g_clock real time g_clock.tReal) into caller's record, publish it (D_002DD314) and
  *   signal the loading-thread start sema
  * Info: proposed name BeginLoadingScreen (T1); TU prog
  * Notes: runtime5b: D_002DD314 = &h of LoadSwFromBrx during load (S56)
@@ -304,7 +301,7 @@ static inline float *Receiver(float *p)
  * @end-sly2-annot */
 extern "C" void BeginLoadingScreen(float *input)
 {
-    float now = D_002DDF0C;
+    float now = g_clock.tReal;
     float *p = Receiver(input);
     int sema = D_003D3A3C;
     *p = now;
@@ -396,7 +393,7 @@ extern "C" void LoadingScreenThread(void *)
             BeginFrame();
             ReferSemaStatus(D_003D3A40,&status);
             if(status.count!=0)break;
-            float t=-*D_002DD314+D_002DDED0.frameT;
+            float t=-*D_002DD314+D_002DDED0.tReal;
             float scale=1.0f+D_002C10B0*sinf(t*D_002C10B4);
             matrix.Identity();
             matrix.a[0]=D_002C10A0*scale;
