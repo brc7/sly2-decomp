@@ -51,7 +51,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | `0x2D85E8` (abstract: has `__pure_virtual`) | 15 | 7=`UpdateScreenTimeout?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`__pure_virtual` | [`SCREEN_ctor?`](../../src/game/engine/presentation/screen/func_001DA728.c) (+0xC) |
 | `0x2D8668` | 12 | 7=`UpdateHudMeter?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?` | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/StaticInit_screen.c) (+0xC) |
 | `0x2D86D0` | 12 | 7=`UpdateScreen?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?` | (no lui/addiu reference: never stored by code) |
-| `0x2D8C08` | 7 |  | [`PjsgNew?`](../../src/game/gameplay/cutscene/relay/PjsgNew.c) (+0xC) |
+| `0x2D8C08` | 7 |  | [`PjsgNew?`](../../src/game/gameplay/cutscene/relay.cpp) (+0xC) |
 
 #### [EMITTER](classes/EMITTER.md) (CID 29): 2 vtables
 
