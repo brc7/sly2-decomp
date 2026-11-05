@@ -96,7 +96,7 @@ void func_0015D648(EPMENU *p, int state, int sub);
 int func_0015D798(EPMENU *p);
 void func_0015D880(EPMENU *p, int f);
 }
-void *PloFindSwObject(struct SW *psw, int grffso, int oid, struct LO *ploContext);
+void *PloFindSwObject(struct SW *psw, int grffso, int oid, struct LO *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
 char *PchzFindSwLangstr(struct SW *psw, int n);
 void StartJoySelection(struct JOY *pjoy);
 
