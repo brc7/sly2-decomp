@@ -1195,15 +1195,15 @@ public:
     uchar U8Read();
     ushort U16Read();
     uint U32Read();
-    void ReadFileRecord(void *pv);
+    void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
 };
 struct SWALLOC
 {
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc);
-void *PvAllocSwClearImpl(SWALLOC *pswalloc);
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
 inline void *PvAllocSwLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;

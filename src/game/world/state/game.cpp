@@ -236,7 +236,7 @@ struct ALLOCREQ { int cb; int nKind; };
 class FRAME {
 public:
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 struct X { char pad[0x54]; int n; char pad2[0xA0 - 0x58]; int fA0; };
@@ -868,7 +868,7 @@ struct ALLOCREQ { int cb; int nKind; };
 class FRAME {
 public:
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 class CBinaryInputStream;
@@ -1789,7 +1789,7 @@ struct ALLOCREQ { int cb; int nKind; };
 class FRAME {
 public:
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 class CBinaryInputStream {
@@ -3249,7 +3249,7 @@ struct CRef { int m_tagk; int m_tag; };
 class FRAME {
 public:
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 struct G { char pad[0x3BF4]; int f3bf4; char pad2[0x3C38 - 0x3BF8]; int f3c38; int f3c3c; };
@@ -3664,7 +3664,7 @@ struct ALLOCREQ { int cb; int nKind; };
 class FRAME {
 public:
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 struct X { char pad[0x94]; int f94; char pad2[0xFC - 0x98]; int fFC; };
