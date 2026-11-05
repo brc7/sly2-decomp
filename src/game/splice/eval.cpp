@@ -21,9 +21,9 @@ CFrame *PvNewFrame();
 CProc *PvNewProc();
 CRef CFrame_RefAddBinding(CFrame *pframe, int sym, CRef *pref);
 void CFrame_SetSingleParent(CFrame *pframe, CFrame *pframeParent);
-void printf(char *psz);
+void printf(const char *psz);
 }
-extern char D_002A43B0[];   /* assert failure message */
+extern const char D_002A43B0[] = "Splice assert: ";   /* assert failure message */
 
 /* Link to a pair (out-of-line release and assignment). */
 struct SPM

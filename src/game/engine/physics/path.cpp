@@ -130,7 +130,7 @@ static __inline__ float Dot(qword a, qword b)
 typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
-extern float D_002C0C00;
+float D_002C0C00 = 0.01f;   /* path's .data starts here: the plane-side epsilon */
 /** @sly2-annot addr=0x1BF1F8
  * Purpose: Tolerant BSP walk returning nearest triangle
  * Info: proposed name PcgtPointInCbspSafe (T1); TU path
@@ -187,7 +187,6 @@ LEAF *PcgtPointInCbspSafe(struct T *p, NODE *pn, qword pos, int fl)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CbskFromG__Ff { extern "C" {
-extern float D_002C0C00;
 /** @sly2-annot addr=0x1BF398
  * Purpose: Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00)
  * Info: proposed name CbskFromG (T1); TU path
@@ -197,6 +196,7 @@ extern float D_002C0C00;
  * @end-sly2-annot */
 int CbskFromG__Ff(float x)
 {
+extern float D_002C0C00;
     if (D_002C0C00 < x) return 0;
     if (x < -D_002C0C00) return 1;
     return 2;
@@ -960,15 +960,22 @@ typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int x4; };
 struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
-struct VS { qword pos; int c; int ai[3]; };
+struct VS { union { float af[4]; qword q; } pos; int c; int ai[3]; };   /* floats first: initializable */
 struct F { struct V *apv[3]; };
 struct FS { int ai[3]; };
 struct P { float x, y; int z; unsigned short c, d; };
 struct S { char pad[0xE0]; int cE0; struct V *aE4; int cE8; struct F *aEC; int cF0; struct P *aF4; char p1[0x114 - 0xF8]; int x114; };
 struct G { char pad[0x3D70]; int x3D70; };
 extern struct G D_003DD490;
-extern struct VS D_002C0C10[];
-extern struct FS D_002C0C90[];
+/* The default navigation graph (path's .data): four corner vertices of a 200000-unit square, each with its
+ * neighbour indices (-1: unused), and its two triangles. */
+struct VS D_002C0C10[4] = {
+    {{{-100000.0f, -100000.0f, 0.0f, 0.0f}}, 3, {1, 2, 3}},
+    {{{100000.0f, -100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
+    {{{100000.0f, 100000.0f, 0.0f, 0.0f}}, 3, {0, 1, 3}},
+    {{{-100000.0f, 100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
+};
+struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 void *func_001AE2A0(struct A *pa);
 void *func_001AE1D0(struct A *pa);
@@ -994,7 +1001,7 @@ void InitDefaultPathzoneCg(struct S *p)
     for (i = 0; i < p->cE0; i++) {
         struct VS *ps = &D_002C0C10[i];
         struct V *pd = &p->aE4[i];
-        pd->pos = ps->pos;
+        pd->pos = ps->pos.q;
         pd->c = ps->c;
         a.cb = pd->c * 8 + 8;
         a.align = 0x10;
@@ -1177,7 +1184,7 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct HIT {qword pos[2];char pad[0x40];};
 struct S {char pad[0xE0];char bsp[8];int count;int padEC;int padF0;qword*vertices;};
-extern float D_002A76DC;
+extern const float D_002A76DC = 3.40282347e+38f;   /* FLT_MAX */
 void *PcgtPointInCbspQuick(void*,qword,int);
 qword ClosestPointOnCgt(void*,qword);
 int func_001C1700(struct S*,void*,qword,qword,int,void**);
@@ -1804,8 +1811,8 @@ namespace M_func_001C1D20 { extern "C" {
 struct E { float t; unsigned short k; unsigned short bit; };
 struct S { char pad[0xFC]; int xFC; int x100; struct E *x104; struct E *x108; void **x10C; };
 struct A { int cb; int align; };
-extern const float D_002A76E0;
-extern const float D_002A76E4;
+extern const float D_002A76E0 = -3.40282347e+38f;  /* -FLT_MAX */
+extern const float D_002A76E4 = 3.40282347e+38f;   /* FLT_MAX */
 void *func_001AE1D0(struct A *pa);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *func_002333B4(void *p, int c, int cb);

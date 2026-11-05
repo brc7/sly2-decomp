@@ -96,19 +96,18 @@ struct G { char pad[0x402C]; int x402C; };
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 
 extern CLOCK D_002DDED0;
-extern float D_002BC9C8;
-extern float D_002A4B18;
+/* bomb's .data (address order): the default radius, the four classes that defuse a chain, the gravity scalar. */
+float D_002BC9C8 = 200.0f;
+extern const float D_002A4B18 = 3.40282347e+38f, D_002A4B1C = 3.40282347e+38f, D_002A4B20 = 3.40282347e+38f;   /* FLT_MAX */
 extern qword D_002A2DA0;
 extern const LONGU D_002A4B10;   /* an 8-byte callback record (a pointer to member function) read as one packed long: see B4 in the merge guide */
-extern int D_002BC9D0[4];
-extern float D_002A4B20;
+int D_002BC9D0[4] = {0x33, 0x64, 0x4F, 0x67};
 extern qword D_002A2DD0;
 extern "C" {
 extern G D_003DD490;
 extern SOLIST D_003E13B4;   /* a struct, not a scalar: see the merge guide (struct-field vs scalar load scheduling) */
 extern qword D_002A2DC0;
-extern int D_002BC9E0;
-extern float D_002A4B1C;
+int D_002BC9E0 = 0x43FA0000;   /* 500.0f, read as its bit pattern */
 void InitSo(BOMB *);
 void CloneSo(BOMB *, BOMB *);
 void PostSoLoad(BOMB *);
