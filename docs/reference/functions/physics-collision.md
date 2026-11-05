@@ -235,178 +235,178 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1F2108](../../../src/game/engine/physics/so/InitSo.c) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from parent, +0x140=-1 | 0.85 | T1 | verified |
-| [0x1F21B8](../../../src/game/engine/physics/so/SetSoParent.cpp) | `SetSoParent` | SO vt10: compute old world matrix / velocities (vt33/vt34), LO::SetParent, re-point XF parents into new parent, rebind contacts and bounds (0x1F2468/0x1F26A8), refresh phys flag | 0.70 | T1 |  |
-| [0x1F2468](../../../src/game/engine/physics/so/ReleaseSoBoundsHierarchy.c) | `ReleaseSoBoundsHierarchy` | Drop the shared bounds record (+0x134, refcounted, pool D_003E12D4) of this SO and all SO children | 0.50 | T1 |  |
-| [0x1F2500](../../../src/game/engine/physics/so/EnsureSoBounds.c) | `EnsureSoBounds` | Attach SO to the bounds record (+0x134) of its root (alloc from pool if none), then grow record low/high radius by radius+distance from root origin per flag bits 32/33 of +0xD0 | 0.50 | T1 |  |
-| [0x1F2688](../../../src/game/engine/physics/so/func_001F2688.c) | `SetSoBoundsScale` | Store float at +0x13C and mirror it into the shared bounds record if this SO owns it | 0.30 | T2 |  |
-| [0x1F26A8](../../../src/game/engine/physics/so/EnsureSoBoundsHierarchy.c) | `EnsureSoBoundsHierarchy` | EnsureSoBounds on this SO and recursively on SO children | 0.50 | T1 |  |
-| [0x1F2718](../../../src/game/engine/physics/so/func_001F2718.c) | `SetSoField148_20` | Set 4-bit field +0x148 bits 20-23 | 0.20 | T2 | verified |
-| [0x1F2740](../../../src/game/engine/physics/so/func_001F2740.c) | `GetSoField148_20` | Get 4-bit field +0x148 bits 20-23 | 0.20 | T2 |  |
-| [0x1F2758](../../../src/game/engine/physics/so/GetSoIgnoreLocked.c) | `GetSoIgnoreLocked` | Return bit 34 of +0xD0 (fIgnoreLocked) | 0.75 | T1 |  |
-| [0x1F2768](../../../src/game/engine/physics/so/SetSoIgnoreLocked__FP2SOi.cpp) | `SetSoIgnoreLocked__FP2SOi` | Set +0xD0 bit34 (fIgnoreLocked) | 0.85 | existing | verified |
-| [0x1F2798](../../../src/game/engine/physics/so/PsoFindPhysRoot.c) | `PsoFindPhysRoot` | Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag +0x148 bit34; returns last visited | 0.85 | T1 | verified |
-| [0x1F27F0](../../../src/game/engine/physics/so/func_001F27F0.c) | `EnsureSoTree` | Ensure the SO has a contact-tree record (+0xEC): take the phys root's, creating it via vt53 and registering with g_sw (0x134320) | 0.45 | T2 |  |
-| [0x1F2870](../../../src/game/engine/physics/so/AddSoPartToTree.c) | `AddSoPartToTree` | Add one SOPART to the tree record's part DL (+0x34): copy XF matrix/stamp, mark tree dirty (0x1F4BF8), UpdateSoPartGeom, invalidate if not fixed | 0.50 | T1 |  |
-| [0x1F2930](../../../src/game/engine/physics/so/RemoveSoPartFromTree.c) | `RemoveSoPartFromTree` | Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if no own parts remain | 0.50 | T1 |  |
-| [0x1F2A60](../../../src/game/engine/physics/so/ShowSoPart.cpp) | `ShowSoPart` | If part hidden (fl bit50): clear it and, when SO in world, AddSoPartToTree | 0.85 | T1 | verified |
-| [0x1F2AD0](../../../src/game/engine/physics/so/HideSoPart.c) | `HideSoPart` | Set part hidden bit50 and, when in world, RemoveSoPartFromTree | 0.50 | T1 |  |
-| [0x1F2B20](../../../src/game/engine/physics/so/AddSoParts.c) | `AddSoParts` | AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride) | 0.85 | T1 | verified |
-| [0x1F2BA8](../../../src/game/engine/physics/so/RemoveSoParts.c) | `RemoveSoParts` | RemoveSoPartFromTree for every visible SOPART | 0.55 | T1 |  |
-| [0x1F2C30](../../../src/game/engine/physics/so/AddSoHierarchy.c) | `AddSoHierarchy` | SO vt11: AddLoHierarchy, 0x22FAA0, AddSoParts, set grf 0x14, register region (if SOPHYS region record), recurse vt11 on children | 0.65 | T1 |  |
-| [0x1F2D48](../../../src/game/engine/physics/so/RemoveSoHierarchy.c) | `RemoveSoHierarchy` | SO vt12: RemoveLoHierarchy, RemoveSoParts, reset fade (+0x130=0, +0x12C=1), unregister region callback, recurse vt12 on children | 0.65 | T1 |  |
-| [0x1F2E78](../../../src/game/engine/physics/so/UpdateSoLoroot.c) | `UpdateSoLoroot` | SO vt13: UpdateLoroot, recurse to children; if the SO has parts and its root changed, re-add parts to the new tree | 0.50 | T1 |  |
-| [0x1F2FE0](../../../src/game/engine/physics/so/SetSoGrf.c) | `SetSoGrf` | SO vt47: grf(+0x40 tagged word) \|= f, then vt47 on each child | 0.50 | T1 |  |
-| [0x1F3078](../../../src/game/engine/physics/so/ClearSoGrf.c) | `ClearSoGrf` | SO vt48 (new): grf &= ~f, then vt48 on each child | 0.50 | T1 |  |
-| [0x1F3118](../../../src/game/engine/physics/so/func_001F3118.cpp) | `SetSoSBusy` | SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root in g_sw (0x147E88), push smaller value to children | 0.45 | T2 |  |
-| [0x1F31E0](../../../src/game/engine/physics/so/LoadSoFromBrx.cpp) | `LoadSoFromBrx` | SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...), physics block (matrix, mass), options, bounds | 0.90 | T1 | parse, verified |
-| [0x1F3590](../../../src/game/engine/physics/so/func_001F3590.c) | `ResetSoPhys` | SO vt64: SOPHYS gravity vector (+0x80) = (0,0,-1750), both XF modes (+0xA0/+0xC0) = 3 (fixed) | 0.35 | T2 |  |
-| [0x1F35C8](../../../src/game/engine/physics/so/SetSoMass.c) | `SetSoMass` | Scale SOPHYS mass (+0xD0) to new value and scale inertia via 0x1F35F8 | 0.55 | T1 |  |
-| [0x1F35F8](../../../src/game/engine/physics/so/AdjustSoMomint.c) | `AdjustSoMomint` | Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular) | 0.85 | T1 | verified |
-| [0x1F36A8](../../../src/game/engine/physics/so/PostSoLoad.c) | `PostSoLoad` | SO vt15: PostLoLoad, 0x22FAA0, globset post-load (0x167B68 on +0x80) | 0.70 | T1 |  |
-| [0x1F36E0](../../../src/game/engine/physics/so/UpdateSo.c) | `UpdateSo` | SO vt16: UpdateLo; refresh region from position; advance fade alpha +0x12C by rate +0x130*dt, removing (vt9) at 0 | 0.70 | T1 |  |
-| [0x1F37C8](../../../src/game/engine/physics/so/func_001F37C8.c) | `SetSoPhysRegion` | Move the SOPHYS region link (+0xDC) from its current region DL (+0x118) to region q | 0.45 | T2 |  |
-| [0x1F3868](../../../src/game/engine/physics/so/func_001F3868.c) | `UpdateSoPhysRegionCallback` | Deferred callback: SetSoPhysRegion(so, region at PosLoWorld) | 0.45 | T2 |  |
-| [0x1F38A8](../../../src/game/engine/physics/so/UpdateSoPartGeom.c) | `UpdateSoPartGeom` | If part stamp != XF stamp: transform local geom to world (0x1664A0), copy stamp, mark tree dirty | 0.60 | T1 |  |
-| [0x1F3900](../../../src/game/engine/physics/so/UpdateSoPartMatrices.c) | `UpdateSoPartMatrices` | Copy each visible part's XF world matrix (+0x40) and stamp (+0xA4) into the part | 0.50 | T1 |  |
-| [0x1F3980](../../../src/game/engine/physics/so/func_001F3980.c) | `UpdateSoXfWorld` | SO vt17: refresh part matrices, step soft-mesh parts (0x1F6EF8), sync XF positions into SOPHYS, vt70 if XF kinds 1/2, UpdateSoSlots, UpdateSoPartGeom | 0.35 | T2 |  |
-| [0x1F3B28](../../../src/game/engine/physics/so/func_001F3B28.c) | `SetSoFlag8` | SO vt21: set/clear grf bit 8; when enabling and +0x148 bit35 and in world -> register (0x1D6378); disabling -> unregister | 0.30 | T2 |  |
-| [0x1F3C10](../../../src/game/engine/physics/so/func_001F3C10.c) | `RefreshSoBoundsLighting` | If bounds record (+0x134) stamp != g_sw+0x3D60, recompute via 0x1A4478 and store stamp | 0.25 | T2 |  |
-| [0x1F3C70](../../../src/game/engine/physics/so/RenderSoSelf.c) | `RenderSoSelf` | SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha +0x12C | 0.85 | T1 | verified |
-| [0x1F3CC8](../../../src/game/engine/physics/so/func_001F3CC8.c) | `RenderSoAll` | SO vt20: draw globset with explicit params and recurse vt20 to children | 0.30 | T2 |  |
-| [0x1F3E00](../../../src/game/engine/physics/so/OnSoRemove.c) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
-| [0x1F3EA8](../../../src/game/engine/physics/so/OnSoAdd.c) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
-| [0x1F3FA0](../../../src/game/engine/physics/so/SO_PmatWorld.c) | `SO_PmatWorld` | SO vt31: &pxfRoot(+0x60)->matWorld (+0x40) | 0.60 | T1 |  |
-| [0x1F3FB0](../../../src/game/engine/physics/so/func_001F3FB0.c) | `SO_PxfLocal` | SO vt32: optional identity into M4 out, return +0x60 | 0.45 | T2 |  |
-| [0x1F4010](../../../src/game/engine/physics/so/func_001F4010.c) | `ApplySoProxy` | SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820 | 0.45 | T2 |  |
-| [0x1F40A0](../../../src/game/engine/physics/so/TranslateSoToPos.cpp) | `TranslateSoToPos` | SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part matrices, region | 0.60 | T1 |  |
-| [0x1F42E0](../../../src/game/engine/physics/so/RotateSoToMat.cpp) | `RotateSoToMat` | SO vt30: set rotation XF matrix from world matrix (parent-normalized), bump stamp, vt18, free contacts, refresh | 0.60 | T1 |  |
-| [0x1F4440](../../../src/game/engine/physics/so/GetSoVelocity.c) | `GetSoVelocity` | SO vt33: velocity of position XF (kind 1) in world space, else zero | 0.60 | T1 |  |
-| [0x1F4488](../../../src/game/engine/physics/so/SetSoVelocity.c) | `SetSoVelocity` | SO vt35: set position-XF velocity so world velocity = v (minus current), refresh, mark phys | 0.60 | T1 |  |
-| [0x1F4558](../../../src/game/engine/physics/so/GetSoAngularVelocity.cpp) | `GetSoAngularVelocity` | SO vt34: world angular velocity of rotation XF (kind 6), zero otherwise | 0.90 | T1 | verified |
-| [0x1F46D8](../../../src/game/engine/physics/so/SetSoAngularVelocity.cpp) | `SetSoAngularVelocity` | SO vt36: set rotation-XF (kind 6) angular velocity from world w | 0.60 | T1 |  |
-| [0x1F4848](../../../src/game/engine/physics/so/func_001F4848.c) | `GetSoPosXfVelocityLocal` | Convert position XF velocity (+0xB0) between XF spaces (0x22FCC8) - result discarded by m2c | 0.30 | T2 |  |
-| [0x1F4870](../../../src/game/engine/physics/so/func_001F4870.c) | `GetSoRotXfVelocityLocal` | Same for rotation XF (+0x5C) | 0.30 | T2 |  |
-| [0x1F4898](../../../src/game/engine/physics/so/func_001F4898.c) | `SetSoPosXfVelocityLocal` | Set position XF velocity from a vector given in root XF space, refresh, mark phys | 0.40 | T2 |  |
-| [0x1F4930](../../../src/game/engine/physics/so/func_001F4930.c) | `SetSoRotXfVelocityLocal` | Same for rotation XF | 0.40 | T2 |  |
-| [0x1F49C8](../../../src/game/engine/physics/so/func_001F49C8.cpp) | `MatchSoXf` | SO vt38: LO::MatchLoXf then copy velocities via vt33..36 when SO has physics | 0.40 | T2 |  |
-| [0x1F4A80](../../../src/game/engine/physics/so/func_001F4A80.cpp) | `SetSoXf` | SO vt39: LO::SetXf, then derive linear/angular velocity from XF rate matrix (0x22D148) via vt35/vt36 | 0.40 | T2 |  |
-| [0x1F4B58](../../../src/game/engine/physics/so/func_001F4B58.c) | `MarkSoTreeBoundsDirty` | Set tree flag bit0 and add tree to dirty list D_003E11B8 | 0.40 | T2 |  |
-| [0x1F4BA8](../../../src/game/engine/physics/so/func_001F4BA8.c) | `ClearSoTreeBoundsDirty` | Clear tree flag bit0 and remove from D_003E11B8 | 0.40 | T2 |  |
-| [0x1F4BF8](../../../src/game/engine/physics/so/func_001F4BF8.c) | `InvalidateSoAaox` | After an SO moved/changed bounds: MarkSoTreeBoundsDirty, then flag its broadphase OXA (+0xEC, flag x70 bit1) dirty once and queue it on D_003E11C4 so UpdateSwAaox re-sorts its sweep endpoints | 0.55 | T2 | top50; top50 round; v2 name MarkSoTreeDirty |
-| [0x1F4C58](../../../src/game/engine/physics/so/PxfFindSo.c) | `PxfFindSo` | Find XF in SO XF array (+0x50/+0x54, 0x100 stride) matching (+0x9C, +0x94) ids | 0.50 | T1 |  |
-| [0x1F4CA0](../../../src/game/engine/physics/so/func_001F4CA0.c) | `CloneXfRef` | SO vt52: re-point an XF* from base SO's XF block to the clone's (also via parent) | 0.85 | T1 | verified |
-| [0x1F4D50](../../../src/game/engine/physics/so/func_001F4D50.c) | `ClearSoTreeDirty` | Inverse of MarkSoTreeDirty (clear bits 0/1, remove from both lists) | 0.40 | T2 |  |
-| [0x1F4DA8](../../../src/game/engine/physics/so/func_001F4DA8.c) | `RemoveSoContactsWith` | Unlink contact nodes between pa and pb from list, free them (FreeSwXpList) and invalidate pa | 0.35 | T2 |  |
-| [0x1F4E28](../../../src/game/engine/physics/so/func_001F4E28.c) | `FreeSoContacts` | Notify both sides (vt54) for each contact of the tree, free XP lists, clear tree contacts | 0.45 | T2 |  |
-| [0x1F4F10](../../../src/game/engine/physics/so/func_001F4F10.c) | `ScheduleSoTouchEvents` | SO vt58: if tree touching flags set, schedule touch callback 0x1F7950 (via D_002A8278) with g_sw | 0.35 | T2 |  |
-| [0x1F4FA8](../../../src/game/engine/physics/so/func_001F4FA8.c) | `SO_vt59_Nop` | SO vt59 default no-op | 0.30 | T2 |  |
-| [0x1F4FB0](../../../src/game/engine/physics/so/func_001F4FB0.c) | `SO_vt55_Nop` | SO vt55 default no-op | 0.30 | T2 |  |
-| [0x1F4FB8](../../../src/game/engine/physics/so/func_001F4FB8.c) | `SO_vt56_Nop` | SO vt56 default no-op | 0.30 | T2 |  |
-| [0x1F4FC0](../../../src/game/engine/physics/so/func_001F4FC0.c) | `SO_vt57_Nop` | SO vt57 default no-op | 0.30 | T2 |  |
-| [0x1F4FC8](../../../src/game/engine/physics/so/FIgnoreSoIntersection.c) | `FIgnoreSoIntersection` | SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed | 0.85 | T1 | verified |
-| [0x1F5040](../../../src/game/engine/physics/so/func_001F5040.c) | `FIsSoFixed` | SO vt62: true if no SOPHYS or both XF modes (+0xA0/+0xC0) == 3 | 0.45 | T2 |  |
-| [0x1F5078](../../../src/game/engine/physics/so/func_001F5078.c) | `WakeSo` | If the SO is in the broadphase (+0xEC): SetSoGrf(4) (vt47, the awake flag also set by SlotSetRole/WakeXfSlot) and, if +0xE8, un-settle its position and rotation XF slots (SlotUnsettle 0x230598) | 0.45 | T2 | top50; top50 round; v2 name InvalidateSoPhys |
-| [0x1F50E0](../../../src/game/engine/physics/so/UpdateSoTreeBounds.cpp) | `UpdateSoTreeBounds` | SO vt49: rebuild tree record AABB and bounding sphere from visible parts, set g_sw+0x3CCC, clear dirty | 0.70 | T1 |  |
-| [0x1F5480](../../../src/game/engine/physics/so/ExtendSoTreeBounds.c) | `ExtendSoTreeBounds` | Grow tree AABB/radius to include sphere (c,r) | 0.55 | T1 |  |
-| [0x1F5510](../../../src/game/engine/physics/so/func_001F5510.c) | `GetSoCnstrAxis` | Constraint table lookup: mode D_002C3C20[i], axis D_002C3BA0[i] transformed by matrix and normalized | 0.35 | T2 |  |
-| [0x1F55C8](../../../src/game/engine/physics/so/func_001F55C8.c) | `RebuildSoPhysHook` | After physics-root change: regroup contact trees of SOs whose phys root changed, re-register | 0.45 | T2 |  |
-| [0x1F56F8](../../../src/game/engine/physics/so/func_001F56F8.c) | `SO_PtreeNew` | SO vt53: create tree record via g_sw (0x1336F0) | 0.40 | T2 |  |
-| [0x1F5720](../../../src/game/engine/physics/so/SetSoCnstrForce.c) | `SetSoCnstrForce` | Set translation constraint from CNSTR: make pos XF dynamic if needed, store axis/mode in SOPHYS+0xB0, rebuild phys hook | 0.60 | T1 |  |
-| [0x1F57C0](../../../src/game/engine/physics/so/SetSoCnstrTorque.c) | `SetSoCnstrTorque` | Same for rotation XF into SOPHYS+0x90 | 0.85 | T1 | verified |
-| [0x1F5860](../../../src/game/engine/physics/so/GetSoDvGravity.c) | `GetSoDvGravity` | SOPHYS+0x80 (gravity vector) or zero | 0.85 | T1 | verified |
-| [0x1F5880](../../../src/game/engine/physics/so/SetSoDvGravity.c) | `SetSoDvGravity` | Make pos XF dynamic if needed and store gravity vector, invalidate | 0.50 | T1 |  |
-| [0x1F58F0](../../../src/game/engine/physics/so/GetSoCpdefi.c) | `GetSoCpdefi` | SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix, sAdjust 100, grfcpd 0, tMoveLast = g_clock.t | 0.85 | T1 |  |
-| [0x1F5988](../../../src/game/engine/physics/so/func_001F5988.c) | `SO_vt54_Nop` | SO vt54 default no-op (contact notify) | 0.30 | T2 |  |
-| [0x1F5990](../../../src/game/engine/physics/so/func_001F5990.c) | `SO_vt60_Nop` | SO vt60 default no-op | 0.30 | T2 |  |
-| [0x1F5998](../../../src/game/engine/physics/so/func_001F5998.c) | `SO_vt63_Ret0` | SO vt63 default: return 0 | 0.30 | T2 |  |
-| [0x1F59A0](../../../src/game/engine/physics/so/func_001F59A0.cpp) | `AccelSoTowardMatBounded` | Angular braking + bounded angular-velocity correction toward an orientation (coef top speed / accel) | 0.40 | T2 |  |
-| [0x1F5C30](../../../src/game/engine/physics/so/AccelSoTowardMatSpring.cpp) | `AccelSoTowardMatSpring` | Spring torque toward orientation (quadratic CLQ on angle) and toward target angular velocity (clamped 1/dt) | 0.55 | T1 |  |
-| [0x1F5E10](../../../src/game/engine/physics/so/AccelSoTowardPosSpring.c) | `AccelSoTowardPosSpring` | Spring force toward position (CLQ on distance) and toward target velocity (clamped 1/dt) | 0.60 | T1 |  |
-| [0x1F5FF8](../../../src/game/engine/physics/so/func_001F5FF8.c) | `PglobFindSo` | Find glob (globset +0xB8 array, 0x28 stride) by oid | 0.45 | T2 |  |
-| [0x1F6030](../../../src/game/engine/physics/so/PsopartFindSo.c) | `PsopartFindSo` | Find SOPART by oid (+0x0C) | 0.55 | T1 |  |
-| [0x1F6068](../../../src/game/engine/physics/so/CloneSo.cpp) | `CloneSo` | SO vt41 Clone: copy XF block, model, parts, physics for a clone | 0.90 | T1 | verified |
-| [0x1F66F0](../../../src/game/engine/physics/so/CloneSoHierarchy.c) | `CloneSoHierarchy` | SO vt40: vt41 Clone then PloCloneLo each non-removed child | 0.85 | T1 | verified |
-| [0x1F6788](../../../src/game/engine/physics/so/func_001F6788.c) | `PsmaFindByOidAndSm` | Search list D_003E1218 for node with n==oid and (m==-1 or owner->n==m) | 0.30 | T2 |  |
-| [0x1F67E0](../../../src/game/engine/physics/so/func_001F67E0.c) | `PsmaFindLive` | Same search over D_003E126C (SMA live list per sm.md) | 0.35 | T2 |  |
-| [0x1F6838](../../../src/game/engine/physics/so/func_001F6838.c) | `FSoTreeFlag2` | Bit 2 of tree flags (+0x70), 1 if no tree | 0.25 | T2 |  |
-| [0x1F6860](../../../src/game/engine/physics/so/func_001F6860.c) | `SetSoTreeFlag2` | Set tree flags bit 2 then FreeSoContacts | 0.30 | T2 |  |
-| [0x1F68A8](../../../src/game/engine/physics/so/func_001F68A8.c) | `SetSoPartsFlag48` | Set bit48 of every SOPART flag word | 0.30 | T2 |  |
-| [0x1F6918](../../../src/game/engine/physics/so/func_001F6918.c) | `SetSoFlag26` | Set +0x148 bit26 and refresh contacts (0x134320) | 0.25 | T2 |  |
-| [0x1F6960](../../../src/game/engine/physics/so/func_001F6960.c) | `GetSoFlag26` | Get +0x148 bit26 | 0.25 | T2 |  |
-| [0x1F6978](../../../src/game/engine/physics/so/ShowSoGlobsById.c) | `ShowSoGlobsById` | For every glob with id k: clear hidden flag 0x800 and clear the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
-| [0x1F69F8](../../../src/game/engine/physics/so/HideSoGlobsById.c) | `HideSoGlobsById` | For every glob with id k: set hidden flag 0x800 and set the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
-| [0x1F6A68](../../../src/game/engine/physics/so/func_001F6A68.c) | `HideSoAllGlobs` | Hide every glob and its linked part | 0.40 | T2 |  |
-| [0x1F6AC8](../../../src/game/engine/physics/so/ShowSoPartsById.c) | `ShowSoPartsById` | ShowSoPart for parts whose id (+0xC) == k | 0.85 | T1 | verified |
-| [0x1F6B48](../../../src/game/engine/physics/so/func_001F6B48.c) | `HideSoPartsById` | HideSoPart for parts whose id == k | 0.45 | T2 |  |
-| [0x1F6BC8](../../../src/game/engine/physics/so/func_001F6BC8.c) | `SetSoPartsField18ById` | Set SOPART +0x18 (grfzpk) for parts with id n | 0.25 | T2 |  |
-| [0x1F6C08](../../../src/game/engine/physics/so/func_001F6C08.cpp) | `EnsureSoPartMesh` | Build a soft-mesh scratch record (velocities, accelerations, oriented triangles) for a part once | 0.45 | T2 |  |
-| [0x1F6EF8](../../../src/game/engine/physics/so/func_001F6EF8.c) | `UpdateSoPartMesh` | Integrate soft-mesh vertices by dt (semi-implicit), track max radius, invalidate on large moves | 0.40 | T2 |  |
-| [0x1F70C0](../../../src/game/engine/physics/so/func_001F70C0.cpp) | `CloneSoPartGeomInserting` | Copy a part's geometry into another space inserting zeroed vertices, rebuild world geom and BSP | 0.30 | T2 |  |
-| [0x1F72F8](../../../src/game/engine/physics/so/func_001F72F8.c) | `FPosInSo` | SO vt73: true if pos is inside any visible sphere part or part BSP (0x118FB0) | 0.45 | T2 |  |
-| [0x1F7410](../../../src/game/engine/physics/so/func_001F7410.c) | `InflictSoContactZaps` | SO vt74: for each contact, if other part has zap kinds, build a zap record and InflictZap; free contact list | 0.35 | T2 |  |
-| [0x1F7530](../../../src/game/engine/physics/so/func_001F7530.c) | `PloFindZapResponder` | First LO in chain whose zap response for grfzpk is nonzero | 0.30 | T2 |  |
-| [0x1F7588](../../../src/game/engine/physics/so/func_001F7588.c) | `FZprHasField44` | return arg1->+0x44 != 0 | 0.20 | T2 |  |
-| [0x1F7598](../../../src/game/engine/physics/so/func_001F7598.c) | `PsoInflictZap` | Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time and, if damaging (grfzp | 0.55 | T2 | top50; top50 round; v2 name InflictZap |
-| [0x1F77C0](../../../src/game/engine/physics/so/ExpireSwZapRecords.c) | `ExpireSwZapRecords` | Drop zap-history entries older than 0.25 s from g_sw list | 0.85 | T1 | verified |
-| [0x1F78A0](../../../src/game/engine/physics/so/func_001F78A0.c) | `IzpkFromGrfzpk` | Index of lowest set bit among 26 zap kinds | 0.40 | T2 |  |
-| [0x1F78D8](../../../src/game/engine/physics/so/GrfzpdFromSoGrfzpk.c) | `GrfzpdFromSoGrfzpk` | OR of per-kind response bytes SO+0x110[26] selected by grfzpk | 0.85 | T1 | verified |
-| [0x1F7918](../../../src/game/engine/physics/so/func_001F7918.c) | `SetSoZapResponse` | Set SO+0x110[i]=b for each kind bit in grfzpk | 0.40 | T2 |  |
-| [0x1F7950](../../../src/game/engine/physics/so/func_001F7950.c) | `SoTouchZapCallback` | Deferred callback: process contact zaps (vt74) then emit self zap depending on zap mode (+0x148 bits 24-25) | 0.30 | T2 |  |
-| [0x1F7A68](../../../src/game/engine/physics/so/func_001F7A68.c) | `SetSoZapMode` | Set SO zap mode (+0x148 bits 24-25, 0..3): mode 2 turns parts with zap kind 0 into 0x10000 (damaging) with the SO damage byte; modes 0/1/3 turn them back with dhp -10 | 0.50 | T2 | top50 |
-| [0x1F7B40](../../../src/game/engine/physics/so/func_001F7B40.c) | `GetSoZapMode` | +0x148 bits 24-25 | 0.35 | T2 |  |
-| [0x1F7B58](../../../src/game/engine/physics/so/func_001F7B58.c) | `SetSoDhp0` | +0x148 byte = -n (damage amount, default 10) | 0.30 | T2 |  |
-| [0x1F7B68](../../../src/game/engine/physics/so/func_001F7B68.c) | `GetSoDhp0` | return -(+0x148 byte) | 0.30 | T2 |  |
-| [0x1F7B78](../../../src/game/engine/physics/so/func_001F7B78.c) | `SetSoDhp1` | +0x149 byte = -n (default 20) | 0.30 | T2 |  |
-| [0x1F7B88](../../../src/game/engine/physics/so/func_001F7B88.c) | `GetSoDhp1` | return -(+0x149 byte) | 0.30 | T2 |  |
-| [0x1F7B98](../../../src/game/engine/physics/so/func_001F7B98.c) | `EnsureSoInSwList187` | If SO not found in g_sw list 0x187 (0x15E938) add it (0x13E3C8) | 0.25 | T2 |  |
-| [0x1F7BF0](../../../src/game/engine/physics/so/func_001F7BF0.c) | `PsophysFromSo` | return +0xE8 | 0.30 | T2 |  |
-| [0x1F7BF8](../../../src/game/engine/physics/so/FadeSoOut.c) | `FadeSoOut` | dur<=0: rate 0, alpha 0 (removes); else rate -1/dur | 0.55 | T1 |  |
-| [0x1F7C68](../../../src/game/engine/physics/so/FadeSoIn.c) | `FadeSoIn` | dur<=0: rate 0, alpha 1; else re-Add if removed (alpha 0) and rate 1/dur | 0.55 | T1 |  |
-| [0x1F7D10](../../../src/game/engine/physics/so/SetSoAlpha.c) | `SetSoAlpha` | alpha<=0: Remove (vt9) unless class 0x69; else Add (vt8); store +0x12C | 0.50 | T1 |  |
-| [0x1F7D90](../../../src/game/engine/physics/so/SetSoFadeRate.c) | `SetSoFadeRate` | If rate != 0: Add (vt8) and set grf bit 2; store +0x130 | 0.85 | T1 | verified |
-| [0x1F7E08](../../../src/game/engine/physics/so/func_001F7E08.c) | `CsopartCollectSo` | Collect parts passing optional predicate into array, return count | 0.40 | T2 |  |
-| [0x1F7EC8](../../../src/game/engine/physics/so/func_001F7EC8.c) | `SetSoField148_16` | Set 4-bit field +0x148 bits 16-19 | 0.20 | T2 |  |
-| [0x1F7EF0](../../../src/game/engine/physics/so/func_001F7EF0.c) | `GetSoField148_16` | Get 4-bit field +0x148 bits 16-19 | 0.20 | T2 |  |
-| [0x1F7F08](../../../src/game/engine/physics/so/func_001F7F08.c) | `GetSoFlag29` | Get +0x148 bit29 | 0.20 | T2 |  |
-| [0x1F7F20](../../../src/game/engine/physics/so/func_001F7F20.c) | `SetSoFlag29` | Set +0x148 bit29 | 0.20 | T2 |  |
-| [0x1F7F48](../../../src/game/engine/physics/so/func_001F7F48.c) | `SetSoPhysHookFlag` | Set +0x148 bit34 and RebuildSoPhysHook if changed | 0.30 | T2 |  |
-| [0x1F7FA0](../../../src/game/engine/physics/so/func_001F7FA0.c) | `SetSoScrollerSpeeds` | SetScrollerMasterSpeeds(f,g) on every SCROLLER (CID 0x8F) in SO SAA list (+0xA4) | 0.45 | T2 |  |
-| [0x1F8038](../../../src/game/engine/physics/so/func_001F8038.c) | `SetSoSaaParams` | 0x1EDAD8(f,g) on every CID 0x8F SAA | 0.35 | T2 |  |
-| [0x1F80D0](../../../src/game/engine/physics/so/func_001F80D0.c) | `SetSoEyesClosed` | SetEyesClosed(f) on EYES (CID 0x8E) SAAs, recursively through SO children | 0.45 | T2 |  |
-| [0x1F8198](../../../src/game/engine/physics/so/PsaaFindSoOid.c) | `PsaaFindSoOid` | Find SAA in +0xA4 list with +0x18 == n | 0.85 | T1 | verified |
-| [0x1F81E0](../../../src/game/engine/physics/so/func_001F81E0.c) | `SetSoAnimIndex` | +0xB4 = -(index of n in +0xB0 list + 3), or 0 | 0.20 | T2 |  |
-| [0x1F8238](../../../src/game/engine/physics/so/func_001F8238.c) | `ClearSoB4` | +0xB4 = 0 | 0.20 | T2 |  |
-| [0x1F8240](../../../src/game/engine/physics/so/func_001F8240.c) | `PxxFindGlobalById` | Search D_003E145C list by id | 0.20 | T2 |  |
-| [0x1F8278](../../../src/game/engine/physics/so/func_001F8278.c) | `EnsureGlobalById` | Find, else new 0xAC object (0x20A5F8) | 0.20 | T2 |  |
-| [0x1F82B8](../../../src/game/engine/physics/so/func_001F82B8.c) | `SetSoSideRecordParams` | Ensure object then set x and optional 8-byte key | 0.45 | T2 | verified |
-| [0x1F8300](../../../src/game/engine/physics/so/func_001F8300.c) | `PsowaterEnsure` | Ensure 0x70-byte SOPHYS+0xDC record {pso, g4, g8=75 (150 for CID 0x34), gC=1} | 0.30 | T2 |  |
-| [0x1F83B0](../../../src/game/engine/physics/so/func_001F83B0.c) | `SetSoPhysParam8` | record.g8 = f | 0.25 | T2 |  |
-| [0x1F83E0](../../../src/game/engine/physics/so/func_001F83E0.c) | `GetSoPhysParam8` | record.g8 or 0 | 0.25 | T2 |  |
-| [0x1F8410](../../../src/game/engine/physics/so/func_001F8410.c) | `SetSoPhysParamC` | record.gC = f | 0.25 | T2 |  |
-| [0x1F8440](../../../src/game/engine/physics/so/func_001F8440.c) | `GetSoPhysParamC` | record.gC or 0 | 0.25 | T2 |  |
-| [0x1F8470](../../../src/game/engine/physics/so/func_001F8470.c) | `SetSoPhysParam4` | record.g4 = f | 0.25 | T2 | verified |
-| [0x1F84A0](../../../src/game/engine/physics/so/func_001F84A0.c) | `GetSoPhysParam4` | record.g4 or 0 | 0.25 | T2 |  |
-| [0x1F84D0](../../../src/game/engine/physics/so/SetSoIceable__FP2SOi.cpp) | `SetSoIceable__FP2SOi` | Set +0x148 bit33 (fIceable) | 0.85 | existing |  |
-| [0x1F8500](../../../src/game/engine/physics/so/GetSoIceable.c) | `GetSoIceable` | Return +0x148 bit33 | 0.75 | T1 |  |
-| [0x1F8510](../../../src/game/engine/physics/so/func_001F8510.c) | `PxfhNewSo` | Create a 0x30 handle object (pool D_003E15CC, vtable 0x2CA2C0 = CID 0x95) for the XF matching (oid,kind) | 0.30 | T2 |  |
-| [0x1F85E0](../../../src/game/engine/physics/so/func_001F85E0.c) | `PsoparthNewSo` | Create a 0x30 handle object (vtable 0x2CA280 = CID 0x96) for the SOPART with given oid | 0.30 | T2 |  |
-| [0x1F8668](../../../src/game/engine/physics/so/func_001F8668.c) | `SetSoFlag35Hierarchy` | Set +0x148 bit35 recursively; when g_sw+0x3E5C and enabling register (0x1D6378) | 0.30 | T2 |  |
-| [0x1F8730](../../../src/game/engine/physics/so/func_001F8730.c) | `IncrefXfh` | cref(+0x10)++ | 0.40 | T2 |  |
-| [0x1F8740](../../../src/game/engine/physics/so/DecrefXfh.c) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
-| [0x1F87A0](../../../src/game/engine/physics/so/func_001F87A0.c) | `GetXfhParamAC` | XF u16 +0xAC * 0.001 | 0.20 | T2 |  |
-| [0x1F87C8](../../../src/game/engine/physics/so/func_001F87C8.c) | `SetXfhParamAC` | XF +0xAC = g*1000, refresh XF kind | 0.20 | T2 |  |
-| [0x1F8808](../../../src/game/engine/physics/so/func_001F8808.c) | `GetXfhParamAE` | XF u16 +0xAE * 0.001 | 0.20 | T2 |  |
-| [0x1F8830](../../../src/game/engine/physics/so/func_001F8830.c) | `SetXfhParamAE` | XF +0xAE = g*1000, refresh | 0.20 | T2 |  |
-| [0x1F8870](../../../src/game/engine/physics/so/func_001F8870.c) | `GetXfhParamAC2` | duplicate of 0x1F87A0 (different vtable) | 0.15 | T2 | verified |
-| [0x1F8898](../../../src/game/engine/physics/so/func_001F8898.c) | `SetXfhParamAC2` | duplicate of 0x1F87C8 | 0.15 | T2 |  |
-| [0x1F88D8](../../../src/game/engine/physics/so/func_001F88D8.c) | `PxfFromXfh` | optionally refresh XF kind (arg==1) and return XF (+0x24) | 0.25 | T2 |  |
-| [0x1F8910](../../../src/game/engine/physics/so/func_001F8910.c) | `PactFindXfh` | Find XF actuator of kind k; remove if n==-1, else update and re-prioritize | 0.30 | T2 |  |
-| [0x1F89E0](../../../src/game/engine/physics/so/func_001F89E0.c) | `SetXfhActuator1` | Update/create kind-1 actuator with value n,m,q | 0.25 | T2 |  |
-| [0x1F8A78](../../../src/game/engine/physics/so/func_001F8A78.c) | `SetXfhActuator1World` | 0x1F89E0 with vector converted from XF parent space | 0.25 | T2 |  |
-| [0x1F8AD8](../../../src/game/engine/physics/so/func_001F8AD8.c) | `SetXfhActuator1Mat` | 0x1F89E0 with value from matrix | 0.25 | T2 |  |
-| [0x1F8B58](../../../src/game/engine/physics/so/func_001F8B58.c) | `SetXfhActuator4` | Update/create kind-4 actuator with two floats | 0.25 | T2 |  |
-| [0x1F8BF0](../../../src/game/engine/physics/so/func_001F8BF0.c) | `SetXfhKind16Params` | For XF kind 16: set n, xyz, angle (deg->rad), q | 0.25 | T2 |  |
+| [0x1F2108](../../../src/game/engine/physics/so.cpp) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from parent, +0x140=-1 | 0.85 | T1 | verified |
+| [0x1F21B8](../../../src/game/engine/physics/so.cpp) | `SetSoParent` | SO vt10: compute old world matrix / velocities (vt33/vt34), LO::SetParent, re-point XF parents into new parent, rebind contacts and bounds (0x1F2468/0x1F26A8), refresh phys flag | 0.70 | T1 |  |
+| [0x1F2468](../../../src/game/engine/physics/so.cpp) | `ReleaseSoBoundsHierarchy` | Drop the shared bounds record (+0x134, refcounted, pool D_003E12D4) of this SO and all SO children | 0.50 | T1 |  |
+| [0x1F2500](../../../src/game/engine/physics/so.cpp) | `EnsureSoBounds` | Attach SO to the bounds record (+0x134) of its root (alloc from pool if none), then grow record low/high radius by radius+distance from root origin per flag bits 32/33 of +0xD0 | 0.50 | T1 |  |
+| [0x1F2688](../../../src/game/engine/physics/so.cpp) | `SetSoBoundsScale` | Store float at +0x13C and mirror it into the shared bounds record if this SO owns it | 0.30 | T2 |  |
+| [0x1F26A8](../../../src/game/engine/physics/so.cpp) | `EnsureSoBoundsHierarchy` | EnsureSoBounds on this SO and recursively on SO children | 0.50 | T1 |  |
+| [0x1F2718](../../../src/game/engine/physics/so.cpp) | `SetSoField148_20` | Set 4-bit field +0x148 bits 20-23 | 0.20 | T2 | verified |
+| [0x1F2740](../../../src/game/engine/physics/so.cpp) | `GetSoField148_20` | Get 4-bit field +0x148 bits 20-23 | 0.20 | T2 |  |
+| [0x1F2758](../../../src/game/engine/physics/so.cpp) | `GetSoIgnoreLocked` | Return bit 34 of +0xD0 (fIgnoreLocked) | 0.75 | T1 |  |
+| [0x1F2768](../../../src/game/engine/physics/so.cpp) | `SetSoIgnoreLocked__FP2SOi` | Set +0xD0 bit34 (fIgnoreLocked) | 0.85 | existing | verified |
+| [0x1F2798](../../../src/game/engine/physics/so.cpp) | `PsoFindPhysRoot` | Walk up the parent chain to the first SO that has non-fixed physics (SOPHYS modes != 3) or flag +0x148 bit34; returns last visited | 0.85 | T1 | verified |
+| [0x1F27F0](../../../src/game/engine/physics/so.cpp) | `EnsureSoTree` | Ensure the SO has a contact-tree record (+0xEC): take the phys root's, creating it via vt53 and registering with g_sw (0x134320) | 0.45 | T2 |  |
+| [0x1F2870](../../../src/game/engine/physics/so.cpp) | `AddSoPartToTree` | Add one SOPART to the tree record's part DL (+0x34): copy XF matrix/stamp, mark tree dirty (0x1F4BF8), UpdateSoPartGeom, invalidate if not fixed | 0.50 | T1 |  |
+| [0x1F2930](../../../src/game/engine/physics/so.cpp) | `RemoveSoPartFromTree` | Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if no own parts remain | 0.50 | T1 |  |
+| [0x1F2A60](../../../src/game/engine/physics/so.cpp) | `ShowSoPart` | If part hidden (fl bit50): clear it and, when SO in world, AddSoPartToTree | 0.85 | T1 | verified |
+| [0x1F2AD0](../../../src/game/engine/physics/so.cpp) | `HideSoPart` | Set part hidden bit50 and, when in world, RemoveSoPartFromTree | 0.50 | T1 |  |
+| [0x1F2B20](../../../src/game/engine/physics/so.cpp) | `AddSoParts` | AddSoPartToTree for every visible SOPART (+0xE0 count / +0xE4 array, 0xB0 stride) | 0.85 | T1 | verified |
+| [0x1F2BA8](../../../src/game/engine/physics/so.cpp) | `RemoveSoParts` | RemoveSoPartFromTree for every visible SOPART | 0.55 | T1 |  |
+| [0x1F2C30](../../../src/game/engine/physics/so.cpp) | `AddSoHierarchy` | SO vt11: AddLoHierarchy, 0x22FAA0, AddSoParts, set grf 0x14, register region (if SOPHYS region record), recurse vt11 on children | 0.65 | T1 |  |
+| [0x1F2D48](../../../src/game/engine/physics/so.cpp) | `RemoveSoHierarchy` | SO vt12: RemoveLoHierarchy, RemoveSoParts, reset fade (+0x130=0, +0x12C=1), unregister region callback, recurse vt12 on children | 0.65 | T1 |  |
+| [0x1F2E78](../../../src/game/engine/physics/so.cpp) | `UpdateSoLoroot` | SO vt13: UpdateLoroot, recurse to children; if the SO has parts and its root changed, re-add parts to the new tree | 0.50 | T1 |  |
+| [0x1F2FE0](../../../src/game/engine/physics/so.cpp) | `SetSoGrf` | SO vt47: grf(+0x40 tagged word) \|= f, then vt47 on each child | 0.50 | T1 |  |
+| [0x1F3078](../../../src/game/engine/physics/so.cpp) | `ClearSoGrf` | SO vt48 (new): grf &= ~f, then vt48 on each child | 0.50 | T1 |  |
+| [0x1F3118](../../../src/game/engine/physics/so.cpp) | `SetSoSBusy` | SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root in g_sw (0x147E88), push smaller value to children | 0.45 | T2 |  |
+| [0x1F31E0](../../../src/game/engine/physics/so.cpp) | `LoadSoFromBrx` | SO vt14: LoadLo base, read model/globset, SOPART array (XF id, flags, radius, local geom, BSP...), physics block (matrix, mass), options, bounds | 0.90 | T1 | parse, verified |
+| [0x1F3590](../../../src/game/engine/physics/so.cpp) | `ResetSoPhys` | SO vt64: SOPHYS gravity vector (+0x80) = (0,0,-1750), both XF modes (+0xA0/+0xC0) = 3 (fixed) | 0.35 | T2 |  |
+| [0x1F35C8](../../../src/game/engine/physics/so.cpp) | `SetSoMass` | Scale SOPHYS mass (+0xD0) to new value and scale inertia via 0x1F35F8 | 0.55 | T1 |  |
+| [0x1F35F8](../../../src/game/engine/physics/so.cpp) | `AdjustSoMomint` | Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular) | 0.85 | T1 | verified |
+| [0x1F36A8](../../../src/game/engine/physics/so.cpp) | `PostSoLoad` | SO vt15: PostLoLoad, 0x22FAA0, globset post-load (0x167B68 on +0x80) | 0.70 | T1 |  |
+| [0x1F36E0](../../../src/game/engine/physics/so.cpp) | `UpdateSo` | SO vt16: UpdateLo; refresh region from position; advance fade alpha +0x12C by rate +0x130*dt, removing (vt9) at 0 | 0.70 | T1 |  |
+| [0x1F37C8](../../../src/game/engine/physics/so.cpp) | `SetSoPhysRegion` | Move the SOPHYS region link (+0xDC) from its current region DL (+0x118) to region q | 0.45 | T2 |  |
+| [0x1F3868](../../../src/game/engine/physics/so.cpp) | `UpdateSoPhysRegionCallback` | Deferred callback: SetSoPhysRegion(so, region at PosLoWorld) | 0.45 | T2 |  |
+| [0x1F38A8](../../../src/game/engine/physics/so.cpp) | `UpdateSoPartGeom` | If part stamp != XF stamp: transform local geom to world (0x1664A0), copy stamp, mark tree dirty | 0.60 | T1 |  |
+| [0x1F3900](../../../src/game/engine/physics/so.cpp) | `UpdateSoPartMatrices` | Copy each visible part's XF world matrix (+0x40) and stamp (+0xA4) into the part | 0.50 | T1 |  |
+| [0x1F3980](../../../src/game/engine/physics/so.cpp) | `UpdateSoXfWorld` | SO vt17: refresh part matrices, step soft-mesh parts (0x1F6EF8), sync XF positions into SOPHYS, vt70 if XF kinds 1/2, UpdateSoSlots, UpdateSoPartGeom | 0.35 | T2 |  |
+| [0x1F3B28](../../../src/game/engine/physics/so.cpp) | `SetSoFlag8` | SO vt21: set/clear grf bit 8; when enabling and +0x148 bit35 and in world -> register (0x1D6378); disabling -> unregister | 0.30 | T2 |  |
+| [0x1F3C10](../../../src/game/engine/physics/so.cpp) | `RefreshSoBoundsLighting` | If bounds record (+0x134) stamp != g_sw+0x3D60, recompute via 0x1A4478 and store stamp | 0.25 | T2 |  |
+| [0x1F3C70](../../../src/game/engine/physics/so.cpp) | `RenderSoSelf` | SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha +0x12C | 0.85 | T1 | verified |
+| [0x1F3CC8](../../../src/game/engine/physics/so.cpp) | `RenderSoAll` | SO vt20: draw globset with explicit params and recurse vt20 to children | 0.30 | T2 |  |
+| [0x1F3E00](../../../src/game/engine/physics/so.cpp) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
+| [0x1F3EA8](../../../src/game/engine/physics/so.cpp) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
+| [0x1F3FA0](../../../src/game/engine/physics/so.cpp) | `SO_PmatWorld` | SO vt31: &pxfRoot(+0x60)->matWorld (+0x40) | 0.60 | T1 |  |
+| [0x1F3FB0](../../../src/game/engine/physics/so.cpp) | `SO_PxfLocal` | SO vt32: optional identity into M4 out, return +0x60 | 0.45 | T2 |  |
+| [0x1F4010](../../../src/game/engine/physics/so.cpp) | `ApplySoProxy` | SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820 | 0.45 | T2 |  |
+| [0x1F40A0](../../../src/game/engine/physics/so.cpp) | `TranslateSoToPos` | SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part matrices, region | 0.60 | T1 |  |
+| [0x1F42E0](../../../src/game/engine/physics/so.cpp) | `RotateSoToMat` | SO vt30: set rotation XF matrix from world matrix (parent-normalized), bump stamp, vt18, free contacts, refresh | 0.60 | T1 |  |
+| [0x1F4440](../../../src/game/engine/physics/so.cpp) | `GetSoVelocity` | SO vt33: velocity of position XF (kind 1) in world space, else zero | 0.60 | T1 |  |
+| [0x1F4488](../../../src/game/engine/physics/so.cpp) | `SetSoVelocity` | SO vt35: set position-XF velocity so world velocity = v (minus current), refresh, mark phys | 0.60 | T1 |  |
+| [0x1F4558](../../../src/game/engine/physics/so.cpp) | `GetSoAngularVelocity` | SO vt34: world angular velocity of rotation XF (kind 6), zero otherwise | 0.90 | T1 | verified |
+| [0x1F46D8](../../../src/game/engine/physics/so.cpp) | `SetSoAngularVelocity` | SO vt36: set rotation-XF (kind 6) angular velocity from world w | 0.60 | T1 |  |
+| [0x1F4848](../../../src/game/engine/physics/so.cpp) | `GetSoPosXfVelocityLocal` | Convert position XF velocity (+0xB0) between XF spaces (0x22FCC8) - result discarded by m2c | 0.30 | T2 |  |
+| [0x1F4870](../../../src/game/engine/physics/so.cpp) | `GetSoRotXfVelocityLocal` | Same for rotation XF (+0x5C) | 0.30 | T2 |  |
+| [0x1F4898](../../../src/game/engine/physics/so.cpp) | `SetSoPosXfVelocityLocal` | Set position XF velocity from a vector given in root XF space, refresh, mark phys | 0.40 | T2 |  |
+| [0x1F4930](../../../src/game/engine/physics/so.cpp) | `SetSoRotXfVelocityLocal` | Same for rotation XF | 0.40 | T2 |  |
+| [0x1F49C8](../../../src/game/engine/physics/so.cpp) | `MatchSoXf` | SO vt38: LO::MatchLoXf then copy velocities via vt33..36 when SO has physics | 0.40 | T2 |  |
+| [0x1F4A80](../../../src/game/engine/physics/so.cpp) | `SetSoXf` | SO vt39: LO::SetXf, then derive linear/angular velocity from XF rate matrix (0x22D148) via vt35/vt36 | 0.40 | T2 |  |
+| [0x1F4B58](../../../src/game/engine/physics/so.cpp) | `MarkSoTreeBoundsDirty` | Set tree flag bit0 and add tree to dirty list D_003E11B8 | 0.40 | T2 |  |
+| [0x1F4BA8](../../../src/game/engine/physics/so.cpp) | `ClearSoTreeBoundsDirty` | Clear tree flag bit0 and remove from D_003E11B8 | 0.40 | T2 |  |
+| [0x1F4BF8](../../../src/game/engine/physics/so.cpp) | `InvalidateSoAaox` | After an SO moved/changed bounds: MarkSoTreeBoundsDirty, then flag its broadphase OXA (+0xEC, flag x70 bit1) dirty once and queue it on D_003E11C4 so UpdateSwAaox re-sorts its sweep endpoints | 0.55 | T2 | top50; top50 round; v2 name MarkSoTreeDirty |
+| [0x1F4C58](../../../src/game/engine/physics/so.cpp) | `PxfFindSo` | Find XF in SO XF array (+0x50/+0x54, 0x100 stride) matching (+0x9C, +0x94) ids | 0.50 | T1 |  |
+| [0x1F4CA0](../../../src/game/engine/physics/so.cpp) | `CloneXfRef` | SO vt52: re-point an XF* from base SO's XF block to the clone's (also via parent) | 0.85 | T1 | verified |
+| [0x1F4D50](../../../src/game/engine/physics/so.cpp) | `ClearSoTreeDirty` | Inverse of MarkSoTreeDirty (clear bits 0/1, remove from both lists) | 0.40 | T2 |  |
+| [0x1F4DA8](../../../src/game/engine/physics/so.cpp) | `RemoveSoContactsWith` | Unlink contact nodes between pa and pb from list, free them (FreeSwXpList) and invalidate pa | 0.35 | T2 |  |
+| [0x1F4E28](../../../src/game/engine/physics/so.cpp) | `FreeSoContacts` | Notify both sides (vt54) for each contact of the tree, free XP lists, clear tree contacts | 0.45 | T2 |  |
+| [0x1F4F10](../../../src/game/engine/physics/so.cpp) | `ScheduleSoTouchEvents` | SO vt58: if tree touching flags set, schedule touch callback 0x1F7950 (via D_002A8278) with g_sw | 0.35 | T2 |  |
+| [0x1F4FA8](../../../src/game/engine/physics/so.cpp) | `SO_vt59_Nop` | SO vt59 default no-op | 0.30 | T2 |  |
+| [0x1F4FB0](../../../src/game/engine/physics/so.cpp) | `SO_vt55_Nop` | SO vt55 default no-op | 0.30 | T2 |  |
+| [0x1F4FB8](../../../src/game/engine/physics/so.cpp) | `SO_vt56_Nop` | SO vt56 default no-op | 0.30 | T2 |  |
+| [0x1F4FC0](../../../src/game/engine/physics/so.cpp) | `SO_vt57_Nop` | SO vt57 default no-op | 0.30 | T2 |  |
+| [0x1F4FC8](../../../src/game/engine/physics/so.cpp) | `FIgnoreSoIntersection` | SO vt61: true if (pa flag +0x148 bit26 or pa fixed) and pb fixed | 0.85 | T1 | verified |
+| [0x1F5040](../../../src/game/engine/physics/so.cpp) | `FIsSoFixed` | SO vt62: true if no SOPHYS or both XF modes (+0xA0/+0xC0) == 3 | 0.45 | T2 |  |
+| [0x1F5078](../../../src/game/engine/physics/so.cpp) | `WakeSo` | If the SO is in the broadphase (+0xEC): SetSoGrf(4) (vt47, the awake flag also set by SlotSetRole/WakeXfSlot) and, if +0xE8, un-settle its position and rotation XF slots (SlotUnsettle 0x230598) | 0.45 | T2 | top50; top50 round; v2 name InvalidateSoPhys |
+| [0x1F50E0](../../../src/game/engine/physics/so.cpp) | `UpdateSoTreeBounds` | SO vt49: rebuild tree record AABB and bounding sphere from visible parts, set g_sw+0x3CCC, clear dirty | 0.70 | T1 |  |
+| [0x1F5480](../../../src/game/engine/physics/so.cpp) | `ExtendSoTreeBounds` | Grow tree AABB/radius to include sphere (c,r) | 0.55 | T1 |  |
+| [0x1F5510](../../../src/game/engine/physics/so.cpp) | `GetSoCnstrAxis` | Constraint table lookup: mode D_002C3C20[i], axis D_002C3BA0[i] transformed by matrix and normalized | 0.35 | T2 |  |
+| [0x1F55C8](../../../src/game/engine/physics/so.cpp) | `RebuildSoPhysHook` | After physics-root change: regroup contact trees of SOs whose phys root changed, re-register | 0.45 | T2 |  |
+| [0x1F56F8](../../../src/game/engine/physics/so.cpp) | `SO_PtreeNew` | SO vt53: create tree record via g_sw (0x1336F0) | 0.40 | T2 |  |
+| [0x1F5720](../../../src/game/engine/physics/so.cpp) | `SetSoCnstrForce` | Set translation constraint from CNSTR: make pos XF dynamic if needed, store axis/mode in SOPHYS+0xB0, rebuild phys hook | 0.60 | T1 |  |
+| [0x1F57C0](../../../src/game/engine/physics/so.cpp) | `SetSoCnstrTorque` | Same for rotation XF into SOPHYS+0x90 | 0.85 | T1 | verified |
+| [0x1F5860](../../../src/game/engine/physics/so.cpp) | `GetSoDvGravity` | SOPHYS+0x80 (gravity vector) or zero | 0.85 | T1 | verified |
+| [0x1F5880](../../../src/game/engine/physics/so.cpp) | `SetSoDvGravity` | Make pos XF dynamic if needed and store gravity vector, invalidate | 0.50 | T1 |  |
+| [0x1F58F0](../../../src/game/engine/physics/so.cpp) | `GetSoCpdefi` | SO vt50: camera default info: base pos/velocity, radHome = atan2(-m01,-m00) of upright matrix, sAdjust 100, grfcpd 0, tMoveLast = g_clock.t | 0.85 | T1 |  |
+| [0x1F5988](../../../src/game/engine/physics/so.cpp) | `SO_vt54_Nop` | SO vt54 default no-op (contact notify) | 0.30 | T2 |  |
+| [0x1F5990](../../../src/game/engine/physics/so.cpp) | `SO_vt60_Nop` | SO vt60 default no-op | 0.30 | T2 |  |
+| [0x1F5998](../../../src/game/engine/physics/so.cpp) | `SO_vt63_Ret0` | SO vt63 default: return 0 | 0.30 | T2 |  |
+| [0x1F59A0](../../../src/game/engine/physics/so.cpp) | `AccelSoTowardMatBounded` | Angular braking + bounded angular-velocity correction toward an orientation (coef top speed / accel) | 0.40 | T2 |  |
+| [0x1F5C30](../../../src/game/engine/physics/so.cpp) | `AccelSoTowardMatSpring` | Spring torque toward orientation (quadratic CLQ on angle) and toward target angular velocity (clamped 1/dt) | 0.55 | T1 |  |
+| [0x1F5E10](../../../src/game/engine/physics/so.cpp) | `AccelSoTowardPosSpring` | Spring force toward position (CLQ on distance) and toward target velocity (clamped 1/dt) | 0.60 | T1 |  |
+| [0x1F5FF8](../../../src/game/engine/physics/so.cpp) | `PglobFindSo` | Find glob (globset +0xB8 array, 0x28 stride) by oid | 0.45 | T2 |  |
+| [0x1F6030](../../../src/game/engine/physics/so.cpp) | `PsopartFindSo` | Find SOPART by oid (+0x0C) | 0.55 | T1 |  |
+| [0x1F6068](../../../src/game/engine/physics/so.cpp) | `CloneSo` | SO vt41 Clone: copy XF block, model, parts, physics for a clone | 0.90 | T1 | verified |
+| [0x1F66F0](../../../src/game/engine/physics/so.cpp) | `CloneSoHierarchy` | SO vt40: vt41 Clone then PloCloneLo each non-removed child | 0.85 | T1 | verified |
+| [0x1F6788](../../../src/game/engine/physics/so.cpp) | `PsmaFindByOidAndSm` | Search list D_003E1218 for node with n==oid and (m==-1 or owner->n==m) | 0.30 | T2 |  |
+| [0x1F67E0](../../../src/game/engine/physics/so.cpp) | `PsmaFindLive` | Same search over D_003E126C (SMA live list per sm.md) | 0.35 | T2 |  |
+| [0x1F6838](../../../src/game/engine/physics/so.cpp) | `FSoTreeFlag2` | Bit 2 of tree flags (+0x70), 1 if no tree | 0.25 | T2 |  |
+| [0x1F6860](../../../src/game/engine/physics/so.cpp) | `SetSoTreeFlag2` | Set tree flags bit 2 then FreeSoContacts | 0.30 | T2 |  |
+| [0x1F68A8](../../../src/game/engine/physics/so.cpp) | `SetSoPartsFlag48` | Set bit48 of every SOPART flag word | 0.30 | T2 |  |
+| [0x1F6918](../../../src/game/engine/physics/so.cpp) | `SetSoFlag26` | Set +0x148 bit26 and refresh contacts (0x134320) | 0.25 | T2 |  |
+| [0x1F6960](../../../src/game/engine/physics/so.cpp) | `GetSoFlag26` | Get +0x148 bit26 | 0.25 | T2 |  |
+| [0x1F6978](../../../src/game/engine/physics/so.cpp) | `ShowSoGlobsById` | For every glob with id k: clear hidden flag 0x800 and clear the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
+| [0x1F69F8](../../../src/game/engine/physics/so.cpp) | `HideSoGlobsById` | For every glob with id k: set hidden flag 0x800 and set the linked SOPART hide bit 50 | 0.60 | T1 | top50 |
+| [0x1F6A68](../../../src/game/engine/physics/so.cpp) | `HideSoAllGlobs` | Hide every glob and its linked part | 0.40 | T2 |  |
+| [0x1F6AC8](../../../src/game/engine/physics/so.cpp) | `ShowSoPartsById` | ShowSoPart for parts whose id (+0xC) == k | 0.85 | T1 | verified |
+| [0x1F6B48](../../../src/game/engine/physics/so.cpp) | `HideSoPartsById` | HideSoPart for parts whose id == k | 0.45 | T2 |  |
+| [0x1F6BC8](../../../src/game/engine/physics/so.cpp) | `SetSoPartsField18ById` | Set SOPART +0x18 (grfzpk) for parts with id n | 0.25 | T2 |  |
+| [0x1F6C08](../../../src/game/engine/physics/so.cpp) | `EnsureSoPartMesh` | Build a soft-mesh scratch record (velocities, accelerations, oriented triangles) for a part once | 0.45 | T2 |  |
+| [0x1F6EF8](../../../src/game/engine/physics/so.cpp) | `UpdateSoPartMesh` | Integrate soft-mesh vertices by dt (semi-implicit), track max radius, invalidate on large moves | 0.40 | T2 |  |
+| [0x1F70C0](../../../src/game/engine/physics/so.cpp) | `CloneSoPartGeomInserting` | Copy a part's geometry into another space inserting zeroed vertices, rebuild world geom and BSP | 0.30 | T2 |  |
+| [0x1F72F8](../../../src/game/engine/physics/so.cpp) | `FPosInSo` | SO vt73: true if pos is inside any visible sphere part or part BSP (0x118FB0) | 0.45 | T2 |  |
+| [0x1F7410](../../../src/game/engine/physics/so.cpp) | `InflictSoContactZaps` | SO vt74: for each contact, if other part has zap kinds, build a zap record and InflictZap; free contact list | 0.35 | T2 |  |
+| [0x1F7530](../../../src/game/engine/physics/so.cpp) | `PloFindZapResponder` | First LO in chain whose zap response for grfzpk is nonzero | 0.30 | T2 |  |
+| [0x1F7588](../../../src/game/engine/physics/so.cpp) | `FZprHasField44` | return arg1->+0x44 != 0 | 0.20 | T2 |  |
+| [0x1F7598](../../../src/game/engine/physics/so.cpp) | `PsoInflictZap` | Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time and, if damaging (grfzp | 0.55 | T2 | top50; top50 round; v2 name InflictZap |
+| [0x1F77C0](../../../src/game/engine/physics/so.cpp) | `ExpireSwZapRecords` | Drop zap-history entries older than 0.25 s from g_sw list | 0.85 | T1 | verified |
+| [0x1F78A0](../../../src/game/engine/physics/so.cpp) | `IzpkFromGrfzpk` | Index of lowest set bit among 26 zap kinds | 0.40 | T2 |  |
+| [0x1F78D8](../../../src/game/engine/physics/so.cpp) | `GrfzpdFromSoGrfzpk` | OR of per-kind response bytes SO+0x110[26] selected by grfzpk | 0.85 | T1 | verified |
+| [0x1F7918](../../../src/game/engine/physics/so.cpp) | `SetSoZapResponse` | Set SO+0x110[i]=b for each kind bit in grfzpk | 0.40 | T2 |  |
+| [0x1F7950](../../../src/game/engine/physics/so.cpp) | `SoTouchZapCallback` | Deferred callback: process contact zaps (vt74) then emit self zap depending on zap mode (+0x148 bits 24-25) | 0.30 | T2 |  |
+| [0x1F7A68](../../../src/game/engine/physics/so.cpp) | `SetSoZapMode` | Set SO zap mode (+0x148 bits 24-25, 0..3): mode 2 turns parts with zap kind 0 into 0x10000 (damaging) with the SO damage byte; modes 0/1/3 turn them back with dhp -10 | 0.50 | T2 | top50 |
+| [0x1F7B40](../../../src/game/engine/physics/so.cpp) | `GetSoZapMode` | +0x148 bits 24-25 | 0.35 | T2 |  |
+| [0x1F7B58](../../../src/game/engine/physics/so.cpp) | `SetSoDhp0` | +0x148 byte = -n (damage amount, default 10) | 0.30 | T2 |  |
+| [0x1F7B68](../../../src/game/engine/physics/so.cpp) | `GetSoDhp0` | return -(+0x148 byte) | 0.30 | T2 |  |
+| [0x1F7B78](../../../src/game/engine/physics/so.cpp) | `SetSoDhp1` | +0x149 byte = -n (default 20) | 0.30 | T2 |  |
+| [0x1F7B88](../../../src/game/engine/physics/so.cpp) | `GetSoDhp1` | return -(+0x149 byte) | 0.30 | T2 |  |
+| [0x1F7B98](../../../src/game/engine/physics/so.cpp) | `EnsureSoInSwList187` | If SO not found in g_sw list 0x187 (0x15E938) add it (0x13E3C8) | 0.25 | T2 |  |
+| [0x1F7BF0](../../../src/game/engine/physics/so.cpp) | `PsophysFromSo` | return +0xE8 | 0.30 | T2 |  |
+| [0x1F7BF8](../../../src/game/engine/physics/so.cpp) | `FadeSoOut` | dur<=0: rate 0, alpha 0 (removes); else rate -1/dur | 0.55 | T1 |  |
+| [0x1F7C68](../../../src/game/engine/physics/so.cpp) | `FadeSoIn` | dur<=0: rate 0, alpha 1; else re-Add if removed (alpha 0) and rate 1/dur | 0.55 | T1 |  |
+| [0x1F7D10](../../../src/game/engine/physics/so.cpp) | `SetSoAlpha` | alpha<=0: Remove (vt9) unless class 0x69; else Add (vt8); store +0x12C | 0.50 | T1 |  |
+| [0x1F7D90](../../../src/game/engine/physics/so.cpp) | `SetSoFadeRate` | If rate != 0: Add (vt8) and set grf bit 2; store +0x130 | 0.85 | T1 | verified |
+| [0x1F7E08](../../../src/game/engine/physics/so.cpp) | `CsopartCollectSo` | Collect parts passing optional predicate into array, return count | 0.40 | T2 |  |
+| [0x1F7EC8](../../../src/game/engine/physics/so.cpp) | `SetSoField148_16` | Set 4-bit field +0x148 bits 16-19 | 0.20 | T2 |  |
+| [0x1F7EF0](../../../src/game/engine/physics/so.cpp) | `GetSoField148_16` | Get 4-bit field +0x148 bits 16-19 | 0.20 | T2 |  |
+| [0x1F7F08](../../../src/game/engine/physics/so.cpp) | `GetSoFlag29` | Get +0x148 bit29 | 0.20 | T2 |  |
+| [0x1F7F20](../../../src/game/engine/physics/so.cpp) | `SetSoFlag29` | Set +0x148 bit29 | 0.20 | T2 |  |
+| [0x1F7F48](../../../src/game/engine/physics/so.cpp) | `SetSoPhysHookFlag` | Set +0x148 bit34 and RebuildSoPhysHook if changed | 0.30 | T2 |  |
+| [0x1F7FA0](../../../src/game/engine/physics/so.cpp) | `SetSoScrollerSpeeds` | SetScrollerMasterSpeeds(f,g) on every SCROLLER (CID 0x8F) in SO SAA list (+0xA4) | 0.45 | T2 |  |
+| [0x1F8038](../../../src/game/engine/physics/so.cpp) | `SetSoSaaParams` | 0x1EDAD8(f,g) on every CID 0x8F SAA | 0.35 | T2 |  |
+| [0x1F80D0](../../../src/game/engine/physics/so.cpp) | `SetSoEyesClosed` | SetEyesClosed(f) on EYES (CID 0x8E) SAAs, recursively through SO children | 0.45 | T2 |  |
+| [0x1F8198](../../../src/game/engine/physics/so.cpp) | `PsaaFindSoOid` | Find SAA in +0xA4 list with +0x18 == n | 0.85 | T1 | verified |
+| [0x1F81E0](../../../src/game/engine/physics/so.cpp) | `SetSoAnimIndex` | +0xB4 = -(index of n in +0xB0 list + 3), or 0 | 0.20 | T2 |  |
+| [0x1F8238](../../../src/game/engine/physics/so.cpp) | `ClearSoB4` | +0xB4 = 0 | 0.20 | T2 |  |
+| [0x1F8240](../../../src/game/engine/physics/so.cpp) | `PxxFindGlobalById` | Search D_003E145C list by id | 0.20 | T2 |  |
+| [0x1F8278](../../../src/game/engine/physics/so.cpp) | `EnsureGlobalById` | Find, else new 0xAC object (0x20A5F8) | 0.20 | T2 |  |
+| [0x1F82B8](../../../src/game/engine/physics/so.cpp) | `SetSoSideRecordParams` | Ensure object then set x and optional 8-byte key | 0.45 | T2 | verified |
+| [0x1F8300](../../../src/game/engine/physics/so.cpp) | `PsowaterEnsure` | Ensure 0x70-byte SOPHYS+0xDC record {pso, g4, g8=75 (150 for CID 0x34), gC=1} | 0.30 | T2 |  |
+| [0x1F83B0](../../../src/game/engine/physics/so.cpp) | `SetSoPhysParam8` | record.g8 = f | 0.25 | T2 |  |
+| [0x1F83E0](../../../src/game/engine/physics/so.cpp) | `GetSoPhysParam8` | record.g8 or 0 | 0.25 | T2 |  |
+| [0x1F8410](../../../src/game/engine/physics/so.cpp) | `SetSoPhysParamC` | record.gC = f | 0.25 | T2 |  |
+| [0x1F8440](../../../src/game/engine/physics/so.cpp) | `GetSoPhysParamC` | record.gC or 0 | 0.25 | T2 |  |
+| [0x1F8470](../../../src/game/engine/physics/so.cpp) | `SetSoPhysParam4` | record.g4 = f | 0.25 | T2 | verified |
+| [0x1F84A0](../../../src/game/engine/physics/so.cpp) | `GetSoPhysParam4` | record.g4 or 0 | 0.25 | T2 |  |
+| [0x1F84D0](../../../src/game/engine/physics/so.cpp) | `SetSoIceable__FP2SOi` | Set +0x148 bit33 (fIceable) | 0.85 | existing |  |
+| [0x1F8500](../../../src/game/engine/physics/so.cpp) | `GetSoIceable` | Return +0x148 bit33 | 0.75 | T1 |  |
+| [0x1F8510](../../../src/game/engine/physics/so.cpp) | `PxfhNewSo` | Create a 0x30 handle object (pool D_003E15CC, vtable 0x2CA2C0 = CID 0x95) for the XF matching (oid,kind) | 0.30 | T2 |  |
+| [0x1F85E0](../../../src/game/engine/physics/so.cpp) | `PsoparthNewSo` | Create a 0x30 handle object (vtable 0x2CA280 = CID 0x96) for the SOPART with given oid | 0.30 | T2 |  |
+| [0x1F8668](../../../src/game/engine/physics/so.cpp) | `SetSoFlag35Hierarchy` | Set +0x148 bit35 recursively; when g_sw+0x3E5C and enabling register (0x1D6378) | 0.30 | T2 |  |
+| [0x1F8730](../../../src/game/engine/physics/so.cpp) | `IncrefXfh` | cref(+0x10)++ | 0.40 | T2 |  |
+| [0x1F8740](../../../src/game/engine/physics/so.cpp) | `DecrefXfh` | --cref; at 0 destroy and free to pool D_003E15CC | 0.85 | T1 | verified |
+| [0x1F87A0](../../../src/game/engine/physics/so.cpp) | `GetXfhParamAC` | XF u16 +0xAC * 0.001 | 0.20 | T2 |  |
+| [0x1F87C8](../../../src/game/engine/physics/so.cpp) | `SetXfhParamAC` | XF +0xAC = g*1000, refresh XF kind | 0.20 | T2 |  |
+| [0x1F8808](../../../src/game/engine/physics/so.cpp) | `GetXfhParamAE` | XF u16 +0xAE * 0.001 | 0.20 | T2 |  |
+| [0x1F8830](../../../src/game/engine/physics/so.cpp) | `SetXfhParamAE` | XF +0xAE = g*1000, refresh | 0.20 | T2 |  |
+| [0x1F8870](../../../src/game/engine/physics/so.cpp) | `GetXfhParamAC2` | duplicate of 0x1F87A0 (different vtable) | 0.15 | T2 | verified |
+| [0x1F8898](../../../src/game/engine/physics/so.cpp) | `SetXfhParamAC2` | duplicate of 0x1F87C8 | 0.15 | T2 |  |
+| [0x1F88D8](../../../src/game/engine/physics/so.cpp) | `PxfFromXfh` | optionally refresh XF kind (arg==1) and return XF (+0x24) | 0.25 | T2 |  |
+| [0x1F8910](../../../src/game/engine/physics/so.cpp) | `PactFindXfh` | Find XF actuator of kind k; remove if n==-1, else update and re-prioritize | 0.30 | T2 |  |
+| [0x1F89E0](../../../src/game/engine/physics/so.cpp) | `SetXfhActuator1` | Update/create kind-1 actuator with value n,m,q | 0.25 | T2 |  |
+| [0x1F8A78](../../../src/game/engine/physics/so.cpp) | `SetXfhActuator1World` | 0x1F89E0 with vector converted from XF parent space | 0.25 | T2 |  |
+| [0x1F8AD8](../../../src/game/engine/physics/so.cpp) | `SetXfhActuator1Mat` | 0x1F89E0 with value from matrix | 0.25 | T2 |  |
+| [0x1F8B58](../../../src/game/engine/physics/so.cpp) | `SetXfhActuator4` | Update/create kind-4 actuator with two floats | 0.25 | T2 |  |
+| [0x1F8BF0](../../../src/game/engine/physics/so.cpp) | `SetXfhKind16Params` | For XF kind 16: set n, xyz, angle (deg->rad), q | 0.25 | T2 |  |
 
 ## solve (0x1F8DD8-0x1FAF70)
 

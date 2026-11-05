@@ -12,7 +12,7 @@
 | [`mark.cpp`](mark.cpp) | 1 |
 | [`path.cpp`](path.cpp) | 1 |
 | [`shape/`](shape/) | 56 |
-| [`so/`](so/) | 174 |
+| [`so.cpp`](so.cpp) | 1 |
 | [`solve.cpp`](solve.cpp) | 1 |
 | [`tu_185130.cpp`](tu_185130.cpp) | 1 |
 | [`tu_1BC050.cpp`](tu_1BC050.cpp) | 1 |
