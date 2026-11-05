@@ -590,8 +590,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x259B08](../../../src/game/gameplay/player/rail.cpp) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B10](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B20](../../../include/sly2/so.h) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x259B48](../../../src/game/engine/sound/sound/func_00259B48.c) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x259BB0](../../../src/game/engine/sound/sound/func_00259BB0.c) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259B48](../../../src/game/engine/sound/sound.cpp) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
+| [0x259BB0](../../../src/game/engine/sound/sound.cpp) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C08](../../../src/game/gameplay/player/grabspot.cpp) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../src/game/object/spliceobj.cpp) | `PvNewPool6` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |

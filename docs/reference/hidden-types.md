@@ -71,9 +71,9 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slots differing from the consensus (slot=impl) | Stored by (vptr offset) |
 |---|---|---|---|
-| `0x2D9BE0` | 17 |  | [`STREAMSND_ctor?`](../../src/game/engine/sound/sound/STREAMSND_ctor.c) (+0xC) |
-| `0x2D9C70` | 17 |  | [`BANKSND_ctor?`](../../src/game/engine/sound/sound/BANKSND_ctor.c) (+0xC) |
-| `0x2D9D00` (canonical) (abstract: has `__pure_virtual`) | 17 |  | [`SND_ctor?`](../../src/game/engine/sound/sound/SND_ctor.c) (+0xC) |
+| `0x2D9BE0` | 17 |  | [`STREAMSND_ctor?`](../../src/game/engine/sound/sound.cpp) (+0xC) |
+| `0x2D9C70` | 17 |  | [`BANKSND_ctor?`](../../src/game/engine/sound/sound.cpp) (+0xC) |
+| `0x2D9D00` (canonical) (abstract: has `__pure_virtual`) | 17 |  | [`SND_ctor?`](../../src/game/engine/sound/sound.cpp) (+0xC) |
 
 ### B2. Vtables with no registered getter in slot 6
 
