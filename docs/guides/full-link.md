@@ -278,7 +278,65 @@ wrong: .bss 48, .sbss 2, as before). ld.lld: 0 errors.
 4. **Code order for a TU-section link** (no bytes here, since every function is placed alone): 893 objects' code is
    one contiguous run in source order; 38 are split by other objects' code: class_registry (24 runs, interleaved
    with splice_thunks/splicewrap in the crt0 block) and the TUs that keep a linkonce-area copy as a plain function
-   (eval 6, sidebag 5, frame 5, ref 4, basic 4, emitter 4, bif 4, spliceobj 3, splicemap 3 ...).
+   (eval 6, sidebag 5, frame 5, ref 4, basic 4, emitter 4, bif 4, spliceobj 3, splicemap 3 ...). Diagnosis and the
+   check without `-ffunction-sections`: "Code order (link/contiguous-tus)" below.
+
+### Code order (link/contiguous-tus, 2026-11-05)
+
+What a real link (one `.text` per object, as the original build) needs from the sources, measured on
+integrate/round6 1d4d7c44. `tools/link.py` now ends with a second TU check, "without -ffunction-sections": each
+object's `.text` sections are laid out back to back in source order with their alignments (what gas does with a
+single `.text`) and must share one base address; the per-object verdicts go to build/link/tutext.txt. It agrees object
+for object with a scratch check that compiled all 932 sources without `-ffunction-sections` and compared each
+object's one `.text` with the ELF (same 76 failures).
+
+| verdict | objects |
+|---|---:|
+| `.text` links as one run at its ELF address | 855 |
+| split by other objects' code | 38 |
+| dead code (config/junk.csv scraps) inside the object's range | 33 |
+| gap/padding differs | 4 |
+| unplaced section | 1 |
+
+**Why the 38 are split** (every stray run was located against functions.csv and units.csv):
+
+- **Linkonce copies kept as plain functions: all 38.** 127 functions that the original emitted with vague linkage
+  (`.gnu.linkonce.t.*`, in the linkonce area 0x254F00..0x259DE4) are plain `.text` functions in our sources, homed in
+  a TU that uses them (tu-merging.md, "Linkonce instances"). For 37 objects this is the only cause: splice/gc 12,
+  core/containers/tu_119BC8 11, app/bif 10, engine/fx/emitter 10, gameplay/player/grabspot 8, splice/eval 8,
+  splice/sidebag 6, splice/spliceutils 6, gameplay/objects/rhythm 5, splice/frame 5, object/spliceobj 4, trail 3,
+  glob 3, basic 3, ref 3, bsp 2, cm 2, sound 2, splicemap 2, game 2, and one each in po, step, bis, asega, blend, xf,
+  cplcy, mark, screen, guardbhv, tu_1553F0, pipe, rail, proxy, proc, varb, memcard. For gc, spliceutils and
+  tu_119BC8 the linkonce copies outnumber the TU's own code, so link.py's run list shows the TU's real range
+  (0x128138, 0x12AE18, 0x119BC8) as the stray one. The families (tu-merging.md, "Linkonce copies by family") point at
+  a few templates: the six Splice GC pools (the `Gc<Pool>_PushFront/_InitNode/_Unlink` triples, `PvNew<Pool>`,
+  the counted-pointer stores and destructors, gc.cpp's sweeps, spliceutils' `GcShutdown<Pool>Pool`), the
+  EMITTER/EXPLO set around sly2/emitter.h, small accessors next to eopid_linkonce's, and math/text-box inlines.
+- **The crt0 block: class_registry's other 21 runs** (plus its 3 constructors STEPGUARD_ctor, JT_ctor, MURRAY_ctor,
+  which are linkonce copies). The original TU crt0_splicewrap (0x100218..0x1147D8) is one source file whose
+  functions our repo spreads over three places: class_registry.cpp (424), src/game/app/splice_thunks/ (31 C++
+  files) and src/generated/splicewrap/ (373 generated C files). In 0x100218..0x110AB0 class_registry's 2 asm
+  fragments and 33 option thunks alternate with thunks and wrappers in the original source order; the factories and
+  getters from 0x110AB0 on are one run. class_registry is not several TUs and crt0 does not sit inside it (`_start`
+  at 0x100008 comes before the block, its own object): the block has to become one object.
+- **Functions that belong to another TU: none.** Every stray run is either in the linkonce area or in the crt0 block,
+  so no move between merged TUs was made.
+
+**The other 38 failures** (only seen without `-ffunction-sections`): 33 objects contain junk.csv dead-code scraps
+inside their range (bytes no source emits: tu_1A4E08, bas, dl, dynarray, tu_11AFE0, bez, util, vec, sm, wr, font, rip,
+dmas, gifs, gs, vifs, shd, clip, shape, hud, stepguard, tu_144B28, tu_20CE28, tu_17F090, jt, stepplayer, cheat, lo,
+cd, slotheap, text, thread, sw); 4 have, besides scraps, 8 zero bytes before a 16-byte-aligned function that our object
+aligns to 8 (language 0x1A2DA0, mat 0x11C500, so 0x1F6A68, joy 0x188330 StaticInit_joy); grab.cpp's local class
+constructor/destructor (func_00192A28's) are code the ELF does not have. For a real link the scraps need source
+(the dead functions or a `.word` block) at their place.
+
+**Fixes, in order:** (1) the linkonce copies back to templates/inline functions in headers (tu-merging.md "Inline
+functions and linkonce copies": a non-`inline` function template is emitted per instance as linkonce and never
+inlined into callers, which is why emitter.h's set kept matching; free inline functions would be inlined by callers
+that now call them), one family at a time, renaming to the mangled names; (2) the crt0 block as one object (the
+generator emitting the 373 wrappers into the same file as class_registry's functions and splice_thunks, in address
+order; C vs C++ codegen of the wrappers to be checked); (3) the junk scraps and the 16-byte alignments. None was
+done on this branch (timebox: diagnosis only).
 
 ### Data order (data/bss-order on integrate/round5 before types/views-2/-3, 2026-11-05; superseded by Status)
 
@@ -315,5 +373,7 @@ No source change was needed under `-fno-rtti`: the two data branches' code match
    address order in the per-function-view files, shared literals, a few `.rodata` objects); then drop
    `-fdata-sections` from the default mode. The `D_` names nobody defines stay the work list for the real link.
 3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
-   copies back into inline/template instances, so `.text` can link without `-ffunction-sections`.
+   copies back into inline/template instances, so `.text` can link without `-ffunction-sections` ("Code order
+   (link/contiguous-tus)": 38 objects split, all by linkonce copies, class_registry also by the crt0 block; 38
+   more by junk scraps and alignment).
 4. The SDK objects built on the Mac (118,224 blob bytes of .text today).

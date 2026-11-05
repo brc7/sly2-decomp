@@ -718,6 +718,27 @@ PemitbEnsureEmitter 0x258658 / PemitbEnsureExplo 0x2590F0, func_002586D8 / func_
 / GetExploClassDesc_linkonce): HYPOTHESIS that they are the rest of the same template set (or of one per-class
 macro); not checked.
 
+### Linkonce copies by family (link/contiguous-tus)
+
+The plain-function copies are what keeps 38 objects' `.text` from linking as one section without
+`-ffunction-sections` ([full-link.md, "Code order (link/contiguous-tus)"](full-link.md#code-order-linkcontiguous-tus-2026-11-05)):
+127 functions in the linkonce area 0x254F00..0x259DE4 are still plain `.text` functions. By family (homes in
+brackets; the template/inline form is a HYPOTHESIS from the address pattern, not matched yet):
+
+| family | addresses | functions (homes) | likely original form |
+|---|---|---|---|
+| Splice GC pools, six pools (Pair 0x14, Binding, Frame, Proc, Sidebag, Pool6) | 0x254F00..0x256278, 0x256B48..0x257E88, 0x259C18..0x259D18 | `Gc<Pool>_PushFront/_InitNode/_Unlink` x6 (bif, frame, sidebag, splicemap, eval, ref, basic, spliceobj), `PvNew<Pool>` and the counted-pointer stores/destructors (`PairPtr_Assign`, `FramePtr_Assign`, `_$_8CPairPtr`, `_$_6CFrame`, `_$_5CProc`, `_$_8CVarbPtr`, func_00257038/57058/57430/57450/572E0/57E68/59CF8; bif, eval, proxy, proc, frame, varb, sidebag, spliceobj, ref), gc.cpp's 6 + 6 per-pool sweep functions 0x2574E0..0x257C18, spliceutils' `GcShutdown<Pool>Pool` x6 | members of a pool template over the node type (the per-pool copies share code shape and differ in slot size/count, as `CSlotPool<CB, C>` in sly2/slotheap.h) |
+| EMITTER / EXPLO | 0x2584A8..0x259170, 0x2599C8, 0x258F30 | emitter.cpp 10, po.cpp `PemitbEnsureEmitter`, basic.cpp `GetEmitterClassDesc_linkonce` | the rest of sly2/emitter.h's template set (pairs at equal offsets, above) |
+| one-to-three-instruction accessors next to eopid_linkonce's | 0x2562A8, 0x2564A8..0x2564C0, 0x2599D8..0x259C08, 0x259D18, 0x259D98..0x259DC0 | grabspot 8, glob 3, trail 3, bsp 2, mark, guardbhv, rail, pipe, step | free inline accessors in the class headers, as inline passes 1 and 3 |
+| containers / binstream | 0x2564E0..0x256AF0 | tu_119BC8 11, bis 1 (0x2566B0) | template container members |
+| math and text-box inlines | 0x256CE8..0x256D28, 0x258438..0x258480 | bif (`VU_FLOAT`/`VU_VECTOR` constructors, `operator*`), xf `VECTOR_opAssign`, tu_1553F0 `VecCombo`, rhythm's five `CTextBox_Set*` | inline members/operators in sly2 headers (not emitted inline by the callers that call them: they must stay calls) |
+| other | 0x256278, 0x256360..0x256440, 0x258040..0x258348, 0x259B48..0x259BB0 | cm 2 (SetCmMat wrapper, func_00258290), class_registry's STEPGUARD_ctor/JT_ctor/MURRAY_ctor, cplcy `RcPtr_Assign`, asega, blend, game `Ref{Get,Set}GlobalSaveVar`, memcard, screen, sound 2 | inline constructors and members |
+
+A function template that is not declared `inline` is the form that reproduces both sides at once: emitted per
+instance in `.gnu.linkonce.t.<symbol>` and never inlined into callers (emitter.h). A free `inline` function or an
+in-class member may instead be inlined by callers that today call the plain copy, which changes their code; check
+every caller's TU after such a move. Renaming to the mangled template names follows the emitter.h procedure above.
+
 ## Shared inline helpers
 
 (Inline pass 1.) include/sly2/vu0.h holds the VU0 idioms that merged TUs had pasted under private names, one helper
