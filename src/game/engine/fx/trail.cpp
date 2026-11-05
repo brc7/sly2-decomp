@@ -63,7 +63,7 @@ float func_00259D98(qword *pq);
 float func_00259DA8(qword *pq);
 float func_00259DC0(qword *pq);
 extern char D_002C44F0[];
-extern float D_002A9240,D_002A9244;
+extern const float D_002A9240 = 3.40282347e+38f, D_002A9244 = -3.40282347e+38f;   /* FLT_MAX, -FLT_MAX */
 }
 
 

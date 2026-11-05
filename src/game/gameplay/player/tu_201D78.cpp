@@ -100,7 +100,7 @@ extern CPLCY D_002DE2E0;
 extern char D_003DD040[], D_002DE390[], D_002DEB30[];
 extern int D_002C3588[];
 extern qword D_002DDFA0[3];
-extern const float D_002A8550;
+extern const float D_002A8550 = 3.40282347e+38f;   /* FLT_MAX */
 
 int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LO *ploCtx, int c, RECONTGT **apl);
 int FCheckVolPoint(LO *pvol, qword v);
