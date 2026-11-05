@@ -114,6 +114,22 @@ in their original order, so g++ generates the initializer:
   the merged file builds and matches with the default toolchain (all five functions); it no longer needs GNU as.
   Merged at the end of wave 5.
 
+### Globals with destructors (wave 10)
+
+A StaticInit whose `else` branch (initp == 0) calls destructors, and a third stub `_GLOBAL_$D$...` that calls it with
+`(0, 0xFFFF)`, means the TU defines global objects with a constructor and a destructor. Five TUs had them: cm (g_cm),
+sw (g_sw and a four-word table header), memcard (two dialog widgets), screen (nine screens) and sound (g_sndmgr).
+What matched in all five: define each object in the merged file, in the original order and before
+`SLY2_INSTANTIATE_SLOT_POOLS()`, as a view of its bytes whose inline constructor calls the C-named constructor and
+whose inline destructor calls the linkonce destructor with g++'s in-charge flag (`~CMG() { func_00258290(this, 2); }`);
+g++ then emits the destruction in reverse order itself. Add `// SLY2_ALIAS: _GLOBAL_$D$*=<stub>` next to the other two
+aliases. Several objects of one shape: a small template over the size (screen's `SCRINL<CB>` / `SCRCTOR<CB>`); an
+inline constructor taking a selector folds after inlining (memcard). When the destruction first releases member
+pointers and then calls the base destructor (sound: three counted pointers, one an array of eight, then ~BASIC), make
+the base destructor a base class's and the pointers members with inline destructors, and give the derived class an
+explicit empty inline destructor (the implicit one was emitted out of line as `_$_7SNDMGRG` and called); g++'s own
+array destruction is the `if (pa) { e = pa + 8; while (pa != e) Release(--e); }` loop of the target.
+
 ### Pool order
 
 Naming a pool in code (for example a class-specific `operator delete` that frees into
@@ -210,6 +226,17 @@ the other Splice node kinds (frames, procs, method records...).
 | `#include "bis.h"`/`"mat.h"` next to sly2/basic.h: redefinition errors, or an empty compiler error with exit 1 | vec.h's VECTOR/MATRIX types clash with basic.h's; with many errors the compiler printed nothing | include only one family; the Lilly CBinaryInputStream replaces bis.h (glob), a local 16-byte aligned VECTOR replaces mat.h (xf) | glob, xf |
 | a per-file `#define q u.q` breaks later functions | macro leak (the waypoint row) | `#undef` after the namespace | tu_1709A8 |
 | (not a mismatch) C files that passed CRef results by hidden pointer into 16-byte aligned wrappers (`struct CREFA { CRef r; } __attribute__((aligned(16)))`) and called operator=/Decref by hand | — | with sly2/cref.h's CRef (constructor and destructor) the by-value C++ calls match without the wrappers: g++ gives the temporaries the same 16-byte slots. The 16-byte alignment of the counted pair pointer (SPPAIR) is still needed (27 of 110 off without) | spliceobj |
+| compile error "parse error before `::'" in an asm statement | a C file's `__asm__("" ::: "$6")`: in C++ `:::` lexes as `::` followed by `:` | write `: : :` (no code change) | cplcy (ActivateCpzoom) |
+| a function that matches standalone is far off in the merged file; the per-function file compiled as C++ outside a namespace matches, inside `namespace X { }` it does not | a libc function the file declared itself (`extern "C" float fabsf(float)`, `char *strcpy(char *, const char *)`) is `X::fabsf` inside the namespace, and g++ only treats the global declaration as its builtin (fabsf becomes a call with an extra saved FPU register; strcpy of a string constant is no longer expanded inline) | drop the namespace's declaration and declare the function once at file scope (`extern "C"` block after the includes). Only where the builtin is what the C original got: strcpy whose source is not a constant must stay a call (memcard func_001ADA20 matched only as a call); m2c bodies call it through `char *StrcpyCall(char *, const char *) __asm__("strcpy")` | tu_17F090 (func_001821C0, fabsf), memcard (WriteIconSys, func_001AD820), screen |
+| frame 16 bytes bigger and a pinned float spilled | an inline helper took the address of a register-pinned local (`Max(&squared, g)` with `register float squared asm("$f2")`): C++ allows `&` on a register variable and puts it on the stack; the C front end kept it in the register | a value-returning helper: `squared = MaxR(squared, g)` | shape (func_001E7D90) |
+| a bit-field compared with a constant (`s->bf.k == 2`, `p->x28.b.st != 2`) is far off: a 64-bit mask test instead of the field extraction | the find row, for a signed multi-bit field and a non-zero constant | `(int)s->bf.k == 2` | lo (AddLo, PostLoLoad), game (PostTaskLoad) |
+| g++ 2.95 exits with status 1 and no message | a TU-private `struct SHAPE : public XFM { ... }` where sly2/xfm.h already defines SHAPE (a redefinition should be an error; this one crashes silently) | use the header's type (its field names) instead of a private one of the same name; find the line with a scratch bisect over the file's blocks | shape |
+| every field of a derived view is 8 bytes off | the derived classes keep their own words at +0x1C8, inside the base view's 16-byte tail padding (sizeof(HACK) rounds up to 0x1D0 because SO is 16-byte aligned) | separate views over the common base (`struct HACKSHIP : public SO` with the base words repeated by a macro) and a cast at the base-function calls; or a pad computed from `sizeof(BASE)` when the derived fields really start after it (grabspot GRABSPOT36) | tu_17F090, grabspot |
+| a C compound-literal store through a pointer (`*scalar = (U){complement}`) | C++ builds the literal as a temporary; a plain member store moves, and the C code's store order (the -1 store before an mfc1) is lost | a member store plus one matching-only `__asm__("" : "+f"(remain) : : "memory")` after the earlier store (it uses the value the mfc1 converts, so the store stays first) | murray (func_001B8B70) |
+| a loop label one nop further than the target in an otherwise matching function, only in the merged file | tools/wibo_cc.py measures the alignment nops of short loops with marker labels placed at line indices computed on the text after asfix.divfix (which inserts the R5900 div/sqrt hazard nops), but inserts them into the raw text; any vsqrt/vdiv at a block start earlier in the same file shifts the markers, the measurement fails and the loop keeps the unpadded alignment. Never seen with one function per file | fixed in tools/wibo_cc.py (wave 10): the markers go into the divfixed text; before the fix no other source was affected (all 1,723 checked) | lo (FMatchesLoName) |
+| a register swap of a constant and a vtable address before a call (v0/v1) | the base constructor was declared `void`; it returns the object (the v0 rule) | declare it returning the pointer | memcard (CMemcardDialog_ctor) |
+| an RPC stub moves zero into t0..t2 the merged version leaves alone | the callee takes seven arguments (m2c printed the last three as unset registers) | declare all seven and pass 0 | sound (func_001FC698 and two siblings) |
+| a call passes a register the target leaves untouched | the caller passed fewer arguments than the callee declares (CompleteJob gets the job only; a1 is passed through) | an asm-labelled view with the caller's argument list (`void CompleteJob1(JOB *) __asm__("CompleteJob")`); the existing pass-through rows | game (OnJobTaskComplete) |
 
 Other observations:
 - `.c` files compiled as C++ matched unchanged in every other case (about 20 files): expect B4 only for by-value
@@ -405,6 +432,17 @@ Every choice:
 | proxy.cpp | PROXY/PROXYSRC/PROXYSPARE | xfm.h PROXY; the Lilly PROXYSRC/PROXYSPARE (identical in three ports) at file scope | PspareFromIcopy/IcopyFromPspare, Lock/Unlock, PloAcquireProxy rewritten on them | a proxy header |
 | tu_1709A8.cpp | SSGE (guard script command) | the +0x08 argument is a union selected by the command kind (time for 5, point for 3/7, number for 6/13..15) | the build calls store a float, an int or a point pointer there by kind; func_00170E90 reads the point for kinds 3/7 | — |
 | tu_144B28.cpp, bentley.cpp, jt.cpp | unnamed header words | small macros naming the word at its offset (STEPGUARD +0xFD0 JTGOAL, +0x10E0 flags; BENTLEY +0x16C0, +0x186C; JT +0x1FA0) instead of a header change | the headers have padding there; no header change in wave 9 | the headers name them |
+| (wave 10) | C++-named hand-written definitions in namespaces | the wave-9 device at scale: a namespaced `.cpp` function whose symbol is mangled becomes a C-linkage definition of its literal symbol (`extern "C" int FPausedEmitter__FP7EMITTER(EMITTER *p)`), because its own private types would be `M_x::EMITTER` and change the mangling; done mechanically (emitter 8, rip 6, cm 2, memcard 3...) | the user's "keep conflicting private views in per-function namespaces"; the views conflict across the files of every wave-10 TU | the function's views move to shared types: then it becomes the C++ function again (reversible: the symbol is the same string) |
+| (wave 10) | namespaced callee and global declarations | as in wave 9, declarations inside a namespace of a `.cpp` block get the namespace in their mangled names (calls and globals of those blocks reference `..M_x..` symbols); relocations are masked, so matching is unaffected, but a native link would need them fixed. Left as wave 9 left them | — | the native-link step |
+| (wave 10) | m2c-body types | file-scope TU-private views of the fields the m2c bodies use, header types wherever the headers name the fields (cm.h CPLCY family and CM, xfm.h SHAPE, sw.h SW, lo.h LO with real virtual calls, stepplayer.h STEPPLAYER, so.h XF/SO), unnamed header words through offset macros, derived views for class hierarchies (ACTPHASE/ACTREST : ACT, CLUE/LOOT/VAULT : DPRIZE, GRABSPOT36 : GRABSPOT35) | each view names only what the code reads; names follow the per-function views and the annotations | the headers name the fields |
+| tu_17F090.cpp | HACK and HACKSHIP / HACKENEMY / HACKLOCK | separate views over SO (HACK words repeated by a macro), not derived | the class words at +0x1C8 lie inside HACK's 16-byte tail padding; a derived struct starts at 0x1D0 (every field 8 off) | a packed/aligned base view is shown to match |
+| memcard.cpp | SAVEINFO (+0x48) | union of the whole flag word and the creation day/month bytes that overlap its upper half | FillMcDirInfo reads/writes +0x48 with lw/sw and stores bytes at +0x4A/+0x4B | the real record (a date struct overlapping a bit-field word?) |
+| memcard.cpp | CompareSaves__FP4SAVET0 | C-linkage literal symbol over SAVEINFO | its Sly 1 symbol says SAVE, but it compares two directory records (SAVE is the 0xFD70-byte manager here) | a Sly 2 symbol |
+| stepplayer.cpp | STEPPLAYER virtual slots | real calls for slots 87, 88, 99; slot 101 by hand | stepplayer.h's declaration order gives OnActive at 0x270 (slot 77) where the code calls 0x330; the header's appended "override declared in" lines are not in vtable order | stepplayer.h's virtual order fixed |
+| stepplayer.cpp | JthsCurrent, FCanUseGadget, FCanBeHealed | defined as STEPPLAYER members (their mangled symbols are members) | as jt.cpp's JT::FCanUseGadget; no key-TU extras appeared | — |
+| sw.cpp | ResolveSwSaveVars (Lilly port) | at file scope, not in a namespace | it completes types basic.h only forward-declares (SVPATH, SAVEDATA, LOUPD...), which sw.h's SW refers to; in a namespace they became distinct types (compile errors) | the types move to headers |
+| emitter.cpp | EMITTER view vs sly2/emitter.h | TU-private EMITTER named EMITTER (the mangled names need it); emitter.h not included | emitter.h's EMITV is a 0x40-byte variant record, the static initializer's EMITV defaults are 0x70 bytes | emitter.h names the EMITTER fields and the two EMITVs get distinct names |
+| sound.cpp | g_sndmgr | SNDMGRBASE (destructor = ~BASIC) + SNDMGRG members SNDREF (inline release) | the destruction order (members, then base) and g++'s array loop reproduce StaticInit_sound | a real SNDMGR class |
 
 ## Path-hash quirk (asm functions)
 
@@ -968,19 +1006,53 @@ matched.csv unchanged by the run (the merge commits had already pointed its sour
 332 sources do not build here (the SDK files and the three gnu-reorder game files); one wibo compile of an SDK
 file hung until the 300-second compile timeout.
 
+Wave 10 (the remaining TUs of 51..103 functions; class_registry and the six largest TUs (relay, stepguard, bif, so,
+guardbhv, hud) were split off to other agents on their own branches mid-wave). Drafting was mechanical with scratch
+helpers (not in the repo): every hand-written per-function file verbatim in its namespace (C files wrapped in
+`extern "C"`), the m2c bodies rewritten by hand at file scope, and these automatic per-block fixes from the mismatch
+table: `(void (*)())` vtable entries and `:::`, attribute-on-typedef, `#undef` of per-file macros, `!(x & 1)` as
+`== 0`, asm outputs into union/struct members through a scalar, the 8-byte callback struct passed as a packed long
+(B4, when its globals are only call arguments), libc declarations hoisted to file scope where a constant argument
+makes the builtin matter, C-linkage literal symbols for namespaced C++-named definitions, and the void * casts.
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| cplcy | engine/camera/cplcy.cpp | 51 | cm.h policy classes; hand-stored vtables; `: : :`; PosCplookEye struct result by hand; asm output via scalar |
+| emitter | engine/fx/emitter.cpp | 54 | StaticInit generated from the EMITO/EMITV defaults (gnu-reorder-db and asm label gone); EMITTER view; B4 packed long |
+| cm | engine/camera/cm.cpp | 55 | g_cm with ctor + ~CM: construct-and-destruct StaticInit and `_GLOBAL_$D$`; cm.h CM; ZeroVector store order |
+| shape | engine/physics/shape.cpp | 56 | xfm.h SHAPE (a private SHAPE crashed g++); MaxR for a pinned register |
+| prize | gameplay/progression/prize.cpp | 61 | DPRIZE/CLUE/LOOT/VAULT views; first compile |
+| rip | engine/fx/rip.cpp | 64 | RIPG/RIP/EMITB views; first compile |
+| murray | gameplay/player/murray.cpp | 66 | players.h MURRAY; `== 0` bit tests; compound literal + memory-clobber island |
+| sw | world/scene/sw.cpp | 68 | g_sw + table header with ctor/dtor; sw.h SW; ResolveSwSaveVars at file scope; indexed lookup loop |
+| act | engine/anim/act.cpp | 72 | ACT/ACTPHASE/ACTREST, AC curves; CBinaryInputStream readers as members; asm outputs via scalar |
+| grabspot | gameplay/player/grabspot.cpp | 74 | grab spot class views; the last two gnu-reorder files match with the default toolchain |
+| tu_17F090 | gameplay/objects/tu_17F090.cpp | 76 | hack objects as separate views (tail padding); fabsf at file scope; B4 |
+| memcard | ui/memcard.cpp | 81 | two widgets with ctor/dtor; SAVE/SAVEINFO/MEMCARD views; CompareSaves literal; strcpy builtin at file scope where it matters |
+| stepplayer | gameplay/player/stepplayer.cpp | 96 | stepplayer.h STEPPLAYER; slot 101 by hand; three members defined; B4 |
+| screen | engine/presentation/screen.cpp | 98 | nine screens with ctor/dtor (templates); StrcpyCall for non-constant strcpy; first compile after the setup |
+| game | world/state/game.cpp | 101 | sw.h SW fields for the m2c globals; JOB/TASK views; one-argument CompleteJob view |
+| sound | engine/sound/sound.cpp | 103 | g_sndmgr base/member destructors; SNDV/SNDMGRV views; seven-argument RPC |
+| lo | object/lo.cpp | 74 | lo.h LO with real virtual calls; bit-field casts; needed the wibo_cc marker fix (below) |
+
+Total wave 10: 17 TUs, 1,250 functions; no `#line` pin and no header change. One tooling fix (its own commit):
+tools/wibo_cc.py placed the short-loop alignment markers (the two-pass measurement of `.p2align 3` inside short
+loops) at line indices computed on the text after asfix.divfix, but in the raw text; in a merged file a vsqrt at a
+block start in an earlier function shifted them (lo's FMatchesLoName, one nop too many). It now marks the divfixed
+text (divfix is idempotent). Before the change every source under src/game (1,723 files) was compiled to assembly
+and checked: no other file had a shifted marker, so no other object changes.
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| air | skipped in wave 9 (30-minute cap): everything matches except PxpFindJtBestEdge, whose C file stores two compound literals (`scalar = (U){back}`, `(U){lift}`) into a never-read union; as C++ the literal adds a temporary slot (87/213 off), plain stores lose the dead store (64/211), volatile stores keep all three stores but reorder them and the VF allocation (11/211). The draft scripts are kept outside the repo (three Lilly ports merged, 6 m2c, FCheckJtSingleEdge as a C-linkage literal symbol, union asm outputs) |
+| air | skipped in wave 9 (30-minute cap): everything matches except PxpFindJtBestEdge, whose C file stores two compound literals (`scalar = (U){back}`, `(U){lift}`) into a never-read union; as C++ the literal adds a temporary slot (87/213 off), plain stores lose the dead store (64/211), volatile stores keep all three stores but reorder them and the VF allocation (11/211). The draft scripts are kept outside the repo (three Lilly ports merged, 6 m2c, FCheckJtSingleEdge as a C-linkage literal symbol, union asm outputs) Wave 10 retried it (30 more minutes, no match): a constructed temporary with a volatile member (`(void)SCALARTMP(back)`) gives the right stack offsets after it but separate slots and the wrong store order (37/211); a volatile local or temporary plus a volatile store of `point` gets the order but stores `back` before the asm and allocates the VF registers differently (53/211); empty asms with `"m"` inputs to keep the dead stores alive are worse (104..108/214). The C original stores the literal's two values into one shared temporary after the asm; no C++ spelling found gives both the shared slot and the late stores. Draft kept outside the repo (scratch/w10/air_w10.cpp) |
+| crt0 | not a TU: platform/boot/crt0/_start.c is the hand-written `_start` as one top-level `__asm__` block (already one file); left as it is |
+| class_registry, relay, stepguard, bif, so, guardbhv, hud | not done in wave 10: split off mid-wave to other agents, which merge them on their own branches (class_registry as one src/game/app/class_registry.cpp in address order, by the user's decision) |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 9 every game TU without inline asm is merged, and so are the 99 smallest asm TUs except air. Left: 25
-TU directories that still hold per-function files (the 40 after wave 8 less the 15 of wave 9). Smallest first:
-air 44 (see above), cplcy 51 (27 m2c), emitter 54, cm 55, shape 56, prize 61, rip 64, murray 66, sw 68, act 72,
-grabspot 74, lo 74, tu_17F090 76, memcard 81, stepplayer 96, screen 98, game 101, sound 103, hud 124, relay 141,
-stepguard 158, bif 161, so 174, guardbhv 190, class_registry 424. Plus the non-TUs (splice_thunks;
-platform/boot/crt0). The unhomed linkonce
-instances are all homed now (inline passes 1 and 3, see "Inline functions and linkonce copies"): src/game/core/linkonce
-no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table,
-then "Recurring asm idioms" before renaming any helper.
+After wave 10 every game TU with per-function files is merged except air (see above) and the seven TUs handed to
+other agents (class_registry, relay, stepguard, bif, so, guardbhv, hud); the non-TUs crt0 and splice_thunks stay as
+they are. The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
+copies"): src/game/core/linkonce no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the
+mismatch table, then "Recurring asm idioms" before renaming any helper.
