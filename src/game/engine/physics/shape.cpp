@@ -1789,11 +1789,11 @@ struct CHAIN
     float shape, shapeDamping;
 };
 struct CLOCK { float t, dt; };
-extern CLOCK D_002DDED0;
-extern float D_002C3658[4];
-extern float D_002C3668[4];
-extern qword D_002A2DA0;
-extern qword D_002A2DC0;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern float D_002C3658[4]; }
+extern "C" { extern float D_002C3668[4]; }
+extern "C" { extern qword D_002A2DA0; }
+extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);
@@ -2108,8 +2108,8 @@ struct CHAIN
     float damping;
 };
 struct CLOCK { float t, dt; };
-extern CLOCK D_002DDED0;    // g_clock
-extern qword D_002A2DA0;    // fallback direction
+extern "C" { extern CLOCK D_002DDED0; }    // g_clock
+extern "C" { extern qword D_002A2DA0; }    // fallback direction
 extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);   // invert
@@ -2312,7 +2312,7 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct PATH {char pad[0xE8];int count;int padEC;float*dist;U*pos;};
 struct S {char pad[0x48];PATH*path;int active;int pad50;U*a;U*b;float*time;char pad60[0x84-0x60];int capacity;float step;};
-extern float D_002C3678;
+extern "C" { extern float D_002C3678; }
 extern "C" void InvalidateShapeCache(PATH*);
 extern "C" void func_001E95B0(S*,float);
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -2416,7 +2416,7 @@ struct S { char pad[0x80]; CONFIG config; char padD0[0xDC - 0xD0]; NODE *head; c
 struct AL { int cb, align; };
 union PHASE { AL request; U hit; };
 struct WORK { PHASE phase; U direction; M3 basis, temporary, inverse; float distance; };
-extern char D_002C44F0;
+extern "C" { extern char D_002C44F0; }
 
 extern "C" {
 void PostSoLoad(S *);

@@ -998,7 +998,7 @@ struct VTE { short d; short p; void (*pfn)(void *, float); };
 struct VT { VTE a[43]; };
 struct L { char pad[0xC]; VT *pvt; struct L *parent; int n14; char pad1[0x24 - 0x18]; struct L *next; ulong lo : 60; ulong b60 : 1; ulong hi : 3; float g30, g34, g38; char pad2[0x64 - 0x3C]; struct L *first; char pad3[0x140 - 0x68]; int n140; };
 struct G;
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" void func_001D6310(L *);
 extern "C" void func_001D6378(L *);
 extern "C" void func_00147E88(G *, int);
@@ -1047,7 +1047,7 @@ struct STATE {qword rows[3];char pad30[0xA0];float mass;char padD4[0xC];};
 struct DATA {char pad0[0x38];void *guard;char pad3C[0x24];};
 struct P {char pad0[0xC];VE *vt;char pad10[0x30];uint flags;char pad44[0x3C];DATA data;int count;E *entries;STATE *state;};
 struct MSG {int bytes,alignment;};
-extern char D_002C44F0[];
+extern "C" { extern char D_002C44F0[]; }
 extern "C" {
 void LoadSoXfsFromBrx(P *,void *);
 int U32Read__18CBinaryInputStream(void *);
@@ -1836,7 +1836,7 @@ struct LO { M3 matrix; U position; M3 rotation; char pad[0x30]; LO *parent; int 
 struct VTE { short delta,pad; void (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 struct G { char pad[0x3D58]; int stamp; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int);
@@ -2714,8 +2714,8 @@ struct SOTREE {qword qwMin,qwMax,qwCenter;float sRadius;SOPART *ppartFirst;};
 struct SO {char pad[0xEC];SOTREE *ptree;};
 struct SW {char pad[0x3CCC];int fUnk3CCC;};
 struct VU_FLOAT {qword qw;};
-extern qword D_002A2DE0,D_002A2DF0,D_002A2E00;
-extern SW D_003DD490;
+extern "C" { extern qword D_002A2DE0,D_002A2DF0,D_002A2E00; }
+extern "C" { extern SW D_003DD490; }
 extern "C" void UpdateSoPartGeom(SOPART *);
 extern "C" void func_001F4BA8(SO *);
 
@@ -3205,7 +3205,7 @@ struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword vel
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
 struct CLOCK {float time,dt;};
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
@@ -3295,7 +3295,7 @@ struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword vel
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
 struct CLOCK {float time,dt;};
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 ConvertXfMat(OWNER *,OWNER *,const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" M3 MulMatrix3Matrix3(const M3 *,const M3 *);

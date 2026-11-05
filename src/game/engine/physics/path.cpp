@@ -681,8 +681,8 @@ struct TRI { V *apv[3]; };
 struct BSP;
 struct G { int pad0[3]; TRI *atri; int cv; BSP *pbsp; };
 struct AREQ { int cb, align; AREQ() {} AREQ *Set(int n) { cb = n; align = 16; return this; } };
-extern const float D_002C0C04; // minimum spacing between route points (50.0f)
-extern qword D_002A2DA0;       // (1, 0, 0, 0)
+extern "C" { extern const float D_002C0C04; } // minimum spacing between route points (50.0f)
+extern "C" { extern qword D_002A2DA0; }       // (1, 0, 0, 0)
 extern "C" {
 TRI *PcgtPointInCbspSafe(G *, BSP *, qword, int);
 qword ClosestPointOnCgt(TRI *, qword);
