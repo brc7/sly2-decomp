@@ -19,7 +19,7 @@
 | [`jtgoal.cpp`](jtgoal.cpp) | 1 |
 | [`jthands.cpp`](jthands.cpp) | 1 |
 | [`mode.cpp`](mode.cpp) | 1 |
-| [`murray/`](murray/) | 66 |
+| [`murray.cpp`](murray.cpp) | 1 |
 | [`pipe.cpp`](pipe.cpp) | 1 |
 | [`pipe_jt.cpp`](pipe_jt.cpp) | 1 |
 | [`places.cpp`](places.cpp) | 1 |
