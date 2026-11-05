@@ -7,10 +7,10 @@
 | [`bhvstk.cpp`](bhvstk.cpp) | 1 |
 | [`detector.cpp`](detector.cpp) | 1 |
 | [`gomer.cpp`](gomer.cpp) | 1 |
-| [`guardbhv/`](guardbhv/) | 190 |
+| [`guardbhv.cpp`](guardbhv.cpp) | 1 |
 | [`noise.cpp`](noise.cpp) | 1 |
 | [`pickpocket.cpp`](pickpocket.cpp) | 1 |
-| [`stepguard/`](stepguard/) | 158 |
+| [`stepguard.cpp`](stepguard.cpp) | 1 |
 | [`tu_144B28.cpp`](tu_144B28.cpp) | 1 |
 | [`tu_14A008.cpp`](tu_14A008.cpp) | 1 |
 | [`tu_14FAC8.cpp`](tu_14FAC8.cpp) | 1 |

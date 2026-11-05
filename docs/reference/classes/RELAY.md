@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetRelayClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114130` |
-| 7 | Init | **override** | [`InitRelay?`](../../../src/game/gameplay/cutscene/relay/InitRelay.c) | `0x1DFAD8` |
+| 7 | Init | **override** | [`InitRelay?`](../../../src/game/gameplay/cutscene/relay.cpp) | `0x1DFAD8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadRelayFromBrx?`](../../../src/game/gameplay/cutscene/relay/LoadRelayFromBrx.cpp) | `0x1DFB10` |
+| 14 | LoadFromBrx | **override** | [`LoadRelayFromBrx?`](../../../src/game/gameplay/cutscene/relay.cpp) | `0x1DFB10` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
-| 16 | Update | **override** | [`UpdateRelay?`](../../../src/game/gameplay/cutscene/relay/UpdateRelay.c) | `0x1DFC50` |
+| 16 | Update | **override** | [`UpdateRelay?`](../../../src/game/gameplay/cutscene/relay.cpp) | `0x1DFC50` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneRelay?`](../../../src/game/gameplay/cutscene/relay/CloneRelay.c) | `0x1DFBF8` |
+| 41 | Clone | **override** | [`CloneRelay?`](../../../src/game/gameplay/cutscene/relay.cpp) | `0x1DFBF8` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

@@ -96,38 +96,38 @@ sprite text elements of kind 1 look up their id here, kind 0 uses a plain locali
 | [0x1DDDB8](../../src/game/engine/presentation/screen.cpp) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
 | [0x1EE988](../../src/game/engine/font/sjis.cpp) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
 | [0x1EEA70](../../src/game/engine/font/sjis.cpp) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
-| [0x210EB0](../../src/game/engine/presentation/hud/BuildContextText.c) | `BuildContextText` | STRINGGEN getter: strcpy(pchz, context) | 0.75 | T1 |  |
-| [0x210ED8](../../src/game/engine/presentation/hud/BuildCoinCountText.c) | `BuildCoinCountText` | STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text | 0.85 | T1 |  |
-| [0x210F50](../../src/game/engine/presentation/hud/BuildClueCountText.c) | `BuildClueCountText` | STRINGGEN id 0x2D0: sprintf("%d/%d", SW+0x4764, SW+0x4768) = clue bottles collected/total | 0.80 | T1 | runtime-corrected |
-| [0x210F80](../../src/game/engine/presentation/hud/BuildTimerText.c) | `BuildTimerText` | STRINGGEN id 0x2D1: countdown "%d:%02d" of max(0, SW+0x476C - g_clock.t) | 0.85 | T1 | verified |
-| [0x211348](../../src/game/engine/presentation/hud/BuildWidgetArgText.c) | `BuildWidgetArgText` | STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC) | 0.70 | T1 |  |
-| [0x211A80](../../src/game/engine/presentation/hud/BeginRpHud.c) | `BeginRpHud` | Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state | 0.85 | T1 | verified |
-| [0x212158](../../src/game/engine/presentation/hud/WIDGET_ctor.c) | `WIDGET_ctor` | WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68) | 0.85 | T1 | verified |
-| [0x212298](../../src/game/engine/presentation/hud/LoadWidgetFromBrx.c) | `LoadWidgetFromBrx` | WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width, height, fFont; immediate or deferred sprite load | 0.90 | T1 | parse |
-| [0x2123C8](../../src/game/engine/presentation/hud/PostWidgetLoad.c) | `PostWidgetLoad` | WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag, busy 1, set LO flags 0x102 | 0.85 | T1 |  |
-| [0x2128E8](../../src/game/engine/presentation/hud/ShowWidget.cpp) | `ShowWidget` | WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present | 0.70 | T1 |  |
-| [0x2129E8](../../src/game/engine/presentation/hud/HideWidget.c) | `HideWidget` | WIDGET slot50: request hide; if no disappear anim go straight to state 1 | 0.70 | T1 |  |
-| [0x212A50](../../src/game/engine/presentation/hud/SetWidgetRequest.c) | `SetWidgetRequest` |  | 0.75 | existing | arbitration; replaces existing SetTimerTimers__FP5TIMER6TIMERS |
-| [0x212A70](../../src/game/engine/presentation/hud/SetWidgetState.c) | `SetWidgetState` | state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause | 0.75 | T1 |  |
-| [0x212C50](../../src/game/engine/presentation/hud/UpdateWidget.c) | `UpdateWidget` | WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite | 0.90 | T1 | runtime |
-| [0x212E40](../../src/game/engine/presentation/hud/SetWidgetAnimPhase.c) | `SetWidgetAnimPhase` | seek anim id (0x314=main) to fraction g of its length (meters) | 0.60 | T1 |  |
-| [0x2130C0](../../src/game/engine/presentation/hud/QueueWidgetRenderSetup.c) | `QueueWidgetRenderSetup` | DMA packet with render init payloads (frame/mask GIF data) before widget sprites | 0.85 | T1 | verified |
-| [0x213300](../../src/game/engine/presentation/hud/RenderWidget.cpp) | `RenderWidget` | WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets | 0.80 | T1 |  |
-| [0x2137F0](../../src/game/engine/presentation/hud/FWidgetObscured.c) | `FWidgetObscured` | some widget in exclusive list D_003E1060 has higher priority (+0x0? field a) | 0.85 | T1 | verified |
-| [0x213CD8](../../src/game/engine/presentation/hud/SetWidgetAnimXf.cpp) | `SetWidgetAnimXf` | set M23 transform of the sprite that holds anim id | 0.85 | T1 | verified |
-| [0x214398](../../src/game/engine/presentation/hud/LoadSpriteTable.c) | `LoadSpriteTable` | read sprite count, alloc (n+1)*0x40, read each descriptor | 0.75 | T1 | parse |
-| [0x214460](../../src/game/engine/presentation/hud/LoadSpriteGroups.cpp) | `LoadSpriteGroups` | deserialize sprite groups, reusable frames and animation keys | 0.75 | T1 | parse |
-| [0x2149D8](../../src/game/engine/presentation/hud/LoadSpriteDescriptor.cpp) | `LoadSpriteDescriptor` | read one sprite descriptor (kinds 1 geometry,2 polygon,3 shader,4 index,6/7 picture,8 nested) and build packets | 0.75 | T1 | parse |
-| [0x215A50](../../src/game/engine/presentation/hud/PglyffFromCh__8CFontBrxc.c) | `IglyffFromCh__8CFontBrxc` |  | 0.60 | existing | arbitration; replaces existing PglyffFromCh__8CFontBrxc |
-| [0x215D00](../../src/game/engine/presentation/hud/func_00215D00.c) | `CRichText_SetBaseColor_215D00` | set base and current colour | 0.85 | T3 | verified |
-| [0x215E30](../../src/game/engine/presentation/hud/CRichText_Cch.c) | `CRichText_Cch` | count characters | 0.75 | T1 |  |
-| [0x215E80](../../src/game/engine/presentation/hud/CRichText_Trim.c) | `CRichText_Trim` | truncate after n chars | 0.85 | T1 | verified |
-| [0x215ED8](../../src/game/engine/presentation/hud/CRichText_Dx.c) | `CRichText_Dx` | sum of glyph widths * scale | 0.70 | T1 |  |
-| [0x216260](../../src/game/engine/presentation/hud/CRichText_GetExtents.c) | `CRichText_GetExtents` | dx = DxMaxLine, dy = lines*lineheight | 0.70 | T1 |  |
-| [0x216B40](../../src/game/engine/presentation/hud/PglyffFromCh__8CFontBrxc.c) | `CFontBrx_PglyffFromCh` | GLYFF* = &glyphs[i] for i = 0x215A50(ch) | 0.60 | T1 | arbitration |
-| [0x2174C8](../../src/game/engine/presentation/hud/RenderSpriteGeometry.c) | `RenderSpriteGeometry` | transformed sprite parameters with optional fade | 0.85 | T1 | verified |
-| [0x218710](../../src/game/engine/presentation/hud/FSpriteAnimActive.c) | `FSpriteAnimActive` | h!=0 && !done | 0.85 | T1 | verified |
-| [0x219348](../../src/game/engine/presentation/hud/ResetSpriteKeyItems.c) | `ResetSpriteKeyItems` | reset items referenced by a key | 0.85 | T1 | verified |
+| [0x210EB0](../../src/game/engine/presentation/hud.cpp) | `BuildContextText` | STRINGGEN getter: strcpy(pchz, context) | 0.75 | T1 |  |
+| [0x210ED8](../../src/game/engine/presentation/hud.cpp) | `BuildCoinCountText` | STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text | 0.85 | T1 |  |
+| [0x210F50](../../src/game/engine/presentation/hud.cpp) | `BuildClueCountText` | STRINGGEN id 0x2D0: sprintf("%d/%d", SW+0x4764, SW+0x4768) = clue bottles collected/total | 0.80 | T1 | runtime-corrected |
+| [0x210F80](../../src/game/engine/presentation/hud.cpp) | `BuildTimerText` | STRINGGEN id 0x2D1: countdown "%d:%02d" of max(0, SW+0x476C - g_clock.t) | 0.85 | T1 | verified |
+| [0x211348](../../src/game/engine/presentation/hud.cpp) | `BuildWidgetArgText` | STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC) | 0.70 | T1 |  |
+| [0x211A80](../../src/game/engine/presentation/hud.cpp) | `BeginRpHud` | Pass 5 begin (kind 21): HUD microprogram + constants + DIRECT HUD GS state | 0.85 | T1 | verified |
+| [0x212158](../../src/game/engine/presentation/hud.cpp) | `WIDGET_ctor` | WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68) | 0.85 | T1 | verified |
+| [0x212298](../../src/game/engine/presentation/hud.cpp) | `LoadWidgetFromBrx` | WIDGET LoadFromBrx: default anims 0x310/0x30F/0x311, LoadLoFromBrx, fStreamed, duration, width, height, fFont; immediate or deferred sprite load | 0.90 | T1 | parse |
+| [0x2123C8](../../src/game/engine/presentation/hud.cpp) | `PostWidgetLoad` | WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag, busy 1, set LO flags 0x102 | 0.85 | T1 |  |
+| [0x2128E8](../../src/game/engine/presentation/hud.cpp) | `ShowWidget` | WIDGET slot49: request show; main anim k or default appear/loop/disappear 0x30F/0x310/0x311 if present | 0.70 | T1 |  |
+| [0x2129E8](../../src/game/engine/presentation/hud.cpp) | `HideWidget` | WIDGET slot50: request hide; if no disappear anim go straight to state 1 | 0.70 | T1 |  |
+| [0x212A50](../../src/game/engine/presentation/hud.cpp) | `SetWidgetRequest` |  | 0.75 | existing | arbitration; replaces existing SetTimerTimers__FP5TIMER6TIMERS |
+| [0x212A70](../../src/game/engine/presentation/hud.cpp) | `SetWidgetState` | state machine 0 unloaded,1 hidden,2 visible(loop),3 appearing,4 disappearing; counts SW+0x3BEC, pauses clock when fPause | 0.75 | T1 |  |
+| [0x212C50](../../src/game/engine/presentation/hud.cpp) | `UpdateWidget` | WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main sprite | 0.90 | T1 | runtime |
+| [0x212E40](../../src/game/engine/presentation/hud.cpp) | `SetWidgetAnimPhase` | seek anim id (0x314=main) to fraction g of its length (meters) | 0.60 | T1 |  |
+| [0x2130C0](../../src/game/engine/presentation/hud.cpp) | `QueueWidgetRenderSetup` | DMA packet with render init payloads (frame/mask GIF data) before widget sprites | 0.85 | T1 | verified |
+| [0x213300](../../src/game/engine/presentation/hud.cpp) | `RenderWidget` | WIDGET RenderSelf: flush the sprite render queue with VU microprogram packets | 0.80 | T1 |  |
+| [0x2137F0](../../src/game/engine/presentation/hud.cpp) | `FWidgetObscured` | some widget in exclusive list D_003E1060 has higher priority (+0x0? field a) | 0.85 | T1 | verified |
+| [0x213CD8](../../src/game/engine/presentation/hud.cpp) | `SetWidgetAnimXf` | set M23 transform of the sprite that holds anim id | 0.85 | T1 | verified |
+| [0x214398](../../src/game/engine/presentation/hud.cpp) | `LoadSpriteTable` | read sprite count, alloc (n+1)*0x40, read each descriptor | 0.75 | T1 | parse |
+| [0x214460](../../src/game/engine/presentation/hud.cpp) | `LoadSpriteGroups` | deserialize sprite groups, reusable frames and animation keys | 0.75 | T1 | parse |
+| [0x2149D8](../../src/game/engine/presentation/hud.cpp) | `LoadSpriteDescriptor` | read one sprite descriptor (kinds 1 geometry,2 polygon,3 shader,4 index,6/7 picture,8 nested) and build packets | 0.75 | T1 | parse |
+| [0x215A50](../../src/game/engine/presentation/hud.cpp) | `IglyffFromCh__8CFontBrxc` |  | 0.60 | existing | arbitration; replaces existing PglyffFromCh__8CFontBrxc |
+| [0x215D00](../../src/game/engine/presentation/hud.cpp) | `CRichText_SetBaseColor_215D00` | set base and current colour | 0.85 | T3 | verified |
+| [0x215E30](../../src/game/engine/presentation/hud.cpp) | `CRichText_Cch` | count characters | 0.75 | T1 |  |
+| [0x215E80](../../src/game/engine/presentation/hud.cpp) | `CRichText_Trim` | truncate after n chars | 0.85 | T1 | verified |
+| [0x215ED8](../../src/game/engine/presentation/hud.cpp) | `CRichText_Dx` | sum of glyph widths * scale | 0.70 | T1 |  |
+| [0x216260](../../src/game/engine/presentation/hud.cpp) | `CRichText_GetExtents` | dx = DxMaxLine, dy = lines*lineheight | 0.70 | T1 |  |
+| [0x216B40](../../src/game/engine/presentation/hud.cpp) | `CFontBrx_PglyffFromCh` | GLYFF* = &glyphs[i] for i = 0x215A50(ch) | 0.60 | T1 | arbitration |
+| [0x2174C8](../../src/game/engine/presentation/hud.cpp) | `RenderSpriteGeometry` | transformed sprite parameters with optional fade | 0.85 | T1 | verified |
+| [0x218710](../../src/game/engine/presentation/hud.cpp) | `FSpriteAnimActive` | h!=0 && !done | 0.85 | T1 | verified |
+| [0x219348](../../src/game/engine/presentation/hud.cpp) | `ResetSpriteKeyItems` | reset items referenced by a key | 0.85 | T1 | verified |
 
 Selected 49 of 307 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/hud-ui.md](../reference/functions/hud-ui.md).
 

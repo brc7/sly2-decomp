@@ -34,13 +34,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvleapClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1144D0` |
-| 7 | Init | **override** | [`InitBhvleap`](../../../src/game/gameplay/ai/guardbhv/InitBhvleap.c) | `0x179F70` |
-| 8 | Start | **override** | [`StartBhvleap`](../../../src/game/gameplay/ai/guardbhv/StartBhvleap.cpp) | `0x179FA0` |
-| 9 | Close | **override** | [`CloseBhvleap`](../../../src/game/gameplay/ai/guardbhv/CloseBhvleap.c) | `0x17A3D0` |
-| 10 | Update | **override** | [`UpdateBhvleap`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvleap.c) | `0x17A400` |
-| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) | `0x174F08` |
-| 12 | GrfGroundProbe | **override** | [`BHVANIM_GrfGroundProbe`](../../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) | `0x174EA0` |
-| 13 | FHandleMessage | **override** | [`BHVANIM_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) | `0x174BD0` |
+| 7 | Init | **override** | [`InitBhvleap`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179F70` |
+| 8 | Start | **override** | [`StartBhvleap`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179FA0` |
+| 9 | Close | **override** | [`CloseBhvleap`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17A3D0` |
+| 10 | Update | **override** | [`UpdateBhvleap`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17A400` |
+| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174F08` |
+| 12 | GrfGroundProbe | **override** | [`BHVANIM_GrfGroundProbe`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174EA0` |
+| 13 | FHandleMessage | **override** | [`BHVANIM_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174BD0` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

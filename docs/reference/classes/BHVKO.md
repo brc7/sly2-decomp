@@ -31,9 +31,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvkoClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114440` |
-| 7 | Init | **override** | [`InitBhvko`](../../../src/game/gameplay/ai/guardbhv/InitBhvko.c) | `0x179868` |
-| 8 | Start | **override** | [`StartBhvko`](../../../src/game/gameplay/ai/guardbhv/StartBhvko.c) | `0x179898` |
-| 9 | Close | **override** | [`CloseBhvko`](../../../src/game/gameplay/ai/guardbhv/CloseBhvko.c) | `0x179A20` |
+| 7 | Init | **override** | [`InitBhvko`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179868` |
+| 8 | Start | **override** | [`StartBhvko`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179898` |
+| 9 | Close | **override** | [`CloseBhvko`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179A20` |
 | 10 | Update | inherited (BHVHIT) | `UpdateBhvhit` | `0x1795E8` |
 | 11 | UpdateMotion | inherited (BHVANIM) | `UpdateBhvanimMotion` | `0x174F08` |
 | 12 | GrfGroundProbe | inherited (BHVANIM) | `BHVANIM_GrfGroundProbe` | `0x174EA0` |

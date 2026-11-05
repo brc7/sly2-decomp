@@ -31,15 +31,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvwalkpathClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114480` |
-| 7 | Init | **override** | [`InitBhvwalkpath`](../../../src/game/gameplay/ai/guardbhv/InitBhvwalkpath.c) | `0x178E98` |
+| 7 | Init | **override** | [`InitBhvwalkpath`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x178E98` |
 | 8 | Start | inherited (BHVPATH) | `StartBhvpath` | `0x177EF0` |
 | 9 | Close | inherited (BHV) | `CloseBhv` | `0x1EEF78` |
-| 10 | Update | **override** | [`UpdateBhvwalkpath`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvwalkpath.cpp) | `0x178EE0` |
+| 10 | Update | **override** | [`UpdateBhvwalkpath`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x178EE0` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
-| 15 | SetState | **override** | [`SetBhvwalkpathState`](../../../src/game/gameplay/ai/guardbhv/SetBhvwalkpathState.c) | `0x1791C8` |
+| 15 | SetState | **override** | [`SetBhvwalkpathState`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x1791C8` |
 
 ## Fields
 

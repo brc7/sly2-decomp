@@ -31,10 +31,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvpipeClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1145A0` |
-| 7 | Init | **override** | [`InitBhvpipe`](../../../src/game/gameplay/ai/guardbhv/InitBhvpipe.c) | `0x17CE68` |
-| 8 | Start | **override** | [`StartBhvpipe`](../../../src/game/gameplay/ai/guardbhv/StartBhvpipe.c) | `0x17CEA0` |
-| 9 | Close | **override** | [`CloseBhvpipe`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpipe.c) | `0x17CED0` |
-| 10 | Update | **override** | [`UpdateBhvpipe`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpipe.c) | `0x17CF10` |
+| 7 | Init | **override** | [`InitBhvpipe`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17CE68` |
+| 8 | Start | **override** | [`StartBhvpipe`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17CEA0` |
+| 9 | Close | **override** | [`CloseBhvpipe`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17CED0` |
+| 10 | Update | **override** | [`UpdateBhvpipe`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17CF10` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |

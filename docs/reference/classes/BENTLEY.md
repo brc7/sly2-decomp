@@ -131,7 +131,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/players.h` (`struct BENTLEY : STEPPLAYER`). BENTLEY: from src/game/gameplay/cutscene/relay/func_001E1E30.cpp (2 copies in Lilly ports)
+From `include/sly2/players.h` (`struct BENTLEY : STEPPLAYER`). BENTLEY: from src/game/gameplay/cutscene/relay.cpp (2 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 1 header asserts agree, 0 disagree. Size from header: 0x1880.
 

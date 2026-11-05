@@ -30,64 +30,64 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetSoClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113D10` | Pclassinfo |
-| 7 | Init | **override** | [`InitSo`](../../../src/game/engine/physics/so/InitSo.c) | `0x1F2108` | Init |
+| 7 | Init | **override** | [`InitSo`](../../../src/game/engine/physics/so.cpp) | `0x1F2108` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
-| 10 | SetParent | **override** | [`SetSoParent`](../../../src/game/engine/physics/so/SetSoParent.cpp) | `0x1F21B8` | SetParent |
-| 11 | AddHierarchy | **override** | [`AddSoHierarchy`](../../../src/game/engine/physics/so/AddSoHierarchy.c) | `0x1F2C30` | AddHierarchy |
-| 12 | RemoveHierarchy | **override** | [`RemoveSoHierarchy`](../../../src/game/engine/physics/so/RemoveSoHierarchy.c) | `0x1F2D48` | RemoveHierarchy |
-| 13 | UpdateLoroot | **override** | [`UpdateSoLoroot`](../../../src/game/engine/physics/so/UpdateSoLoroot.c) | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadSoFromBrx`](../../../src/game/engine/physics/so/LoadSoFromBrx.cpp) | `0x1F31E0` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostSoLoad`](../../../src/game/engine/physics/so/PostSoLoad.c) | `0x1F36A8` | VUnk14 |
-| 16 | Update | **override** | [`UpdateSo`](../../../src/game/engine/physics/so/UpdateSo.c) | `0x1F36E0` | VUnk15 |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateSoXfWorld?`](../../../src/game/engine/physics/so/func_001F3980.c) | `0x1F3980` | VUnk16 |
+| 10 | SetParent | **override** | [`SetSoParent`](../../../src/game/engine/physics/so.cpp) | `0x1F21B8` | SetParent |
+| 11 | AddHierarchy | **override** | [`AddSoHierarchy`](../../../src/game/engine/physics/so.cpp) | `0x1F2C30` | AddHierarchy |
+| 12 | RemoveHierarchy | **override** | [`RemoveSoHierarchy`](../../../src/game/engine/physics/so.cpp) | `0x1F2D48` | RemoveHierarchy |
+| 13 | UpdateLoroot | **override** | [`UpdateSoLoroot`](../../../src/game/engine/physics/so.cpp) | `0x1F2E78` | UpdateLoroot |
+| 14 | LoadFromBrx | **override** | [`LoadSoFromBrx`](../../../src/game/engine/physics/so.cpp) | `0x1F31E0` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostSoLoad`](../../../src/game/engine/physics/so.cpp) | `0x1F36A8` | VUnk14 |
+| 16 | Update | **override** | [`UpdateSo`](../../../src/game/engine/physics/so.cpp) | `0x1F36E0` | VUnk15 |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateSoXfWorld?`](../../../src/game/engine/physics/so.cpp) | `0x1F3980` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | **override** | [`UpdateSoXfWorldHierarchy`](../../../src/game/engine/anim/xf.cpp) | `0x22FBE0` | UpdateXfWorldHierarchy |
-| 19 | RenderSelf | **override** | [`RenderSoSelf`](../../../src/game/engine/physics/so/RenderSoSelf.c) | `0x1F3C70` | RenderSelf |
-| 20 | RenderLoAll | **override** | [`RenderSoAll?`](../../../src/game/engine/physics/so/func_001F3CC8.c) | `0x1F3CC8` | VUnk19 |
-| 21 | SetLoFlag8 | **override** | [`SetSoFlag8?`](../../../src/game/engine/physics/so/func_001F3B28.c) | `0x1F3B28` | VUnk20 |
-| 22 | OnRemove | **override** | [`OnSoRemove`](../../../src/game/engine/physics/so/OnSoRemove.c) | `0x1F3E00` | Freeze |
-| 23 | OnAdd | **override** | [`OnSoAdd`](../../../src/game/engine/physics/so/OnSoAdd.c) | `0x1F3EA8` | Unfreeze |
+| 19 | RenderSelf | **override** | [`RenderSoSelf`](../../../src/game/engine/physics/so.cpp) | `0x1F3C70` | RenderSelf |
+| 20 | RenderLoAll | **override** | [`RenderSoAll?`](../../../src/game/engine/physics/so.cpp) | `0x1F3CC8` | VUnk19 |
+| 21 | SetLoFlag8 | **override** | [`SetSoFlag8?`](../../../src/game/engine/physics/so.cpp) | `0x1F3B28` | VUnk20 |
+| 22 | OnRemove | **override** | [`OnSoRemove`](../../../src/game/engine/physics/so.cpp) | `0x1F3E00` | Freeze |
+| 23 | OnAdd | **override** | [`OnSoAdd`](../../../src/game/engine/physics/so.cpp) | `0x1F3EA8` | Unfreeze |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` | VUnk23 |
 | 25 | SetIdProxy | **override** | [`SetSoIdProxy`](../../../src/game/object/proxy.cpp) | `0x1CA308` | SetIdProxy |
 | 26 | ResetLoForProxy | **override** | [`ResetSoForProxy?`](../../../src/game/object/proxy.cpp) | `0x1CB518` | VUnk25 |
 | 27 | LO_VUnk27Proxy | **override** | [`SO_VUnk27Proxy?`](../../../src/game/object/proxy.cpp) | `0x1CB5D0` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
-| 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/game/engine/physics/so/TranslateSoToPos.cpp) | `0x1F40A0` | TranslateToPos |
-| 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/game/engine/physics/so/RotateSoToMat.cpp) | `0x1F42E0` | RotateToMat |
-| 31 | PmatWorld | **override** | [`SO_PmatWorld`](../../../src/game/engine/physics/so/SO_PmatWorld.c) | `0x1F3FA0` | PmatWorld |
-| 32 | LO_PxfLocal | **override** | [`SO_PxfLocal?`](../../../src/game/engine/physics/so/func_001F3FB0.c) | `0x1F3FB0` | PxfLocal |
-| 33 | GetVelocity | **override** | [`GetSoVelocity`](../../../src/game/engine/physics/so/GetSoVelocity.c) | `0x1F4440` | GetVelocity |
-| 34 | GetAngularVelocity | **override** | [`GetSoAngularVelocity`](../../../src/game/engine/physics/so/GetSoAngularVelocity.cpp) | `0x1F4558` | GetAngularVelocity |
-| 35 | SetVelocity | **override** | [`SetSoVelocity`](../../../src/game/engine/physics/so/SetSoVelocity.c) | `0x1F4488` | SetVelocity |
-| 36 | SetAngularVelocity | **override** | [`SetSoAngularVelocity`](../../../src/game/engine/physics/so/SetSoAngularVelocity.cpp) | `0x1F46D8` | SetAngularVelocity |
-| 37 | ApplyLoProxyHierarchy | **override** | [`ApplySoProxy?`](../../../src/game/engine/physics/so/func_001F4010.c) | `0x1F4010` | ApplyProxy |
-| 38 | MatchLoXf | **override** | [`MatchSoXf?`](../../../src/game/engine/physics/so/func_001F49C8.cpp) | `0x1F49C8` | VUnk37 |
-| 39 | SetLoXf | **override** | [`SetSoXf?`](../../../src/game/engine/physics/so/func_001F4A80.cpp) | `0x1F4A80` | VUnk38 |
-| 40 | CloneHierarchy | **override** | [`CloneSoHierarchy`](../../../src/game/engine/physics/so/CloneSoHierarchy.c) | `0x1F66F0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneSo`](../../../src/game/engine/physics/so/CloneSo.cpp) | `0x1F6068` | Clone |
-| 42 | SetLoSBusy | **override** | [`SetSoSBusy?`](../../../src/game/engine/physics/so/func_001F3118.cpp) | `0x1F3118` | VUnk41 |
+| 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/game/engine/physics/so.cpp) | `0x1F40A0` | TranslateToPos |
+| 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/game/engine/physics/so.cpp) | `0x1F42E0` | RotateToMat |
+| 31 | PmatWorld | **override** | [`SO_PmatWorld`](../../../src/game/engine/physics/so.cpp) | `0x1F3FA0` | PmatWorld |
+| 32 | LO_PxfLocal | **override** | [`SO_PxfLocal?`](../../../src/game/engine/physics/so.cpp) | `0x1F3FB0` | PxfLocal |
+| 33 | GetVelocity | **override** | [`GetSoVelocity`](../../../src/game/engine/physics/so.cpp) | `0x1F4440` | GetVelocity |
+| 34 | GetAngularVelocity | **override** | [`GetSoAngularVelocity`](../../../src/game/engine/physics/so.cpp) | `0x1F4558` | GetAngularVelocity |
+| 35 | SetVelocity | **override** | [`SetSoVelocity`](../../../src/game/engine/physics/so.cpp) | `0x1F4488` | SetVelocity |
+| 36 | SetAngularVelocity | **override** | [`SetSoAngularVelocity`](../../../src/game/engine/physics/so.cpp) | `0x1F46D8` | SetAngularVelocity |
+| 37 | ApplyLoProxyHierarchy | **override** | [`ApplySoProxy?`](../../../src/game/engine/physics/so.cpp) | `0x1F4010` | ApplyProxy |
+| 38 | MatchLoXf | **override** | [`MatchSoXf?`](../../../src/game/engine/physics/so.cpp) | `0x1F49C8` | VUnk37 |
+| 39 | SetLoXf | **override** | [`SetSoXf?`](../../../src/game/engine/physics/so.cpp) | `0x1F4A80` | VUnk38 |
+| 40 | CloneHierarchy | **override** | [`CloneSoHierarchy`](../../../src/game/engine/physics/so.cpp) | `0x1F66F0` | CloneHierarchy |
+| 41 | Clone | **override** | [`CloneSo`](../../../src/game/engine/physics/so.cpp) | `0x1F6068` | Clone |
+| 42 | SetLoSBusy | **override** | [`SetSoSBusy?`](../../../src/game/engine/physics/so.cpp) | `0x1F3118` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
 | 45 | LO_vt45 | inherited (LO) | `LO_vt45?` | `0x1A6EF8` | VUnk44 |
 | 46 | SetVisMask | **override** | [`SetSoVisMask`](../../../src/game/object/lo.cpp) | `0x1A6DC8` | SetVisMask |
-| 47 | SetGrf | **override** | [`SetSoGrf`](../../../src/game/engine/physics/so/SetSoGrf.c) | `0x1F2FE0` | VUnk46 |
-| 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/game/engine/physics/so/ClearSoGrf.c) | `0x1F3078` | VUnk47 |
-| 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/game/engine/physics/so/UpdateSoTreeBounds.cpp) | `0x1F50E0` | VUnk48 |
-| 50 | GetSoCpdefi | **new** | [`GetSoCpdefi`](../../../src/game/engine/physics/so/GetSoCpdefi.c) | `0x1F58F0` | GetCpdefi |
+| 47 | SetGrf | **override** | [`SetSoGrf`](../../../src/game/engine/physics/so.cpp) | `0x1F2FE0` | VUnk46 |
+| 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/game/engine/physics/so.cpp) | `0x1F3078` | VUnk47 |
+| 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/game/engine/physics/so.cpp) | `0x1F50E0` | VUnk48 |
+| 50 | GetSoCpdefi | **new** | [`GetSoCpdefi`](../../../src/game/engine/physics/so.cpp) | `0x1F58F0` | GetCpdefi |
 | 51 | SO_PxfFromId | **new** | [`SO_PxfFromId?`](../../../src/game/engine/anim/xf.cpp) | `0x22D778` | PxfFromIxf |
-| 52 | CloneXfRef | **new** | [`CloneXfRef?`](../../../src/game/engine/physics/so/func_001F4CA0.c) | `0x1F4CA0` | CloneXfRef |
-| 53 | SO_PtreeNew | **new** | [`SO_PtreeNew?`](../../../src/game/engine/physics/so/func_001F56F8.c) | `0x1F56F8` | VUnk52 |
-| 54 | SO_vt54_Nop | **new** | [`SO_vt54_Nop?`](../../../src/game/engine/physics/so/func_001F5988.c) | `0x1F5988` | VUnk53 |
-| 55 | SO_vt55_Nop | **new** | [`SO_vt55_Nop?`](../../../src/game/engine/physics/so/func_001F4FB0.c) | `0x1F4FB0` | AdjustNewXp |
-| 56 | SO_vt56_Nop | **new** | [`SO_vt56_Nop?`](../../../src/game/engine/physics/so/func_001F4FB8.c) | `0x1F4FB8` | VUnk55 |
-| 57 | SO_vt57_Nop | **new** | [`SO_vt57_Nop?`](../../../src/game/engine/physics/so/func_001F4FC0.c) | `0x1F4FC0` | VUnk56 |
-| 58 | ScheduleSoTouchEvents | **new** | [`ScheduleSoTouchEvents?`](../../../src/game/engine/physics/so/func_001F4F10.c) | `0x1F4F10` | VUnk57 |
-| 59 | SO_vt59_Nop | **new** | [`SO_vt59_Nop?`](../../../src/game/engine/physics/so/func_001F4FA8.c) | `0x1F4FA8` | VUnk58 |
-| 60 | SO_vt60_Nop | **new** | [`SO_vt60_Nop?`](../../../src/game/engine/physics/so/func_001F5990.c) | `0x1F5990` | VUnk59 |
-| 61 | FIgnoreSoIntersection | **new** | [`FIgnoreSoIntersection`](../../../src/game/engine/physics/so/FIgnoreSoIntersection.c) | `0x1F4FC8` | FIgnoreIntersection |
-| 62 | FIsSoFixed | **new** | [`FIsSoFixed?`](../../../src/game/engine/physics/so/func_001F5040.c) | `0x1F5040` | VUnk61 |
-| 63 | SO_vt63_Ret0 | **new** | [`SO_vt63_Ret0?`](../../../src/game/engine/physics/so/func_001F5998.c) | `0x1F5998` | CpartExtra |
-| 64 | ResetSoPhys | **new** | [`ResetSoPhys?`](../../../src/game/engine/physics/so/func_001F3590.c) | `0x1F3590` | InitPhys |
+| 52 | CloneXfRef | **new** | [`CloneXfRef?`](../../../src/game/engine/physics/so.cpp) | `0x1F4CA0` | CloneXfRef |
+| 53 | SO_PtreeNew | **new** | [`SO_PtreeNew?`](../../../src/game/engine/physics/so.cpp) | `0x1F56F8` | VUnk52 |
+| 54 | SO_vt54_Nop | **new** | [`SO_vt54_Nop?`](../../../src/game/engine/physics/so.cpp) | `0x1F5988` | VUnk53 |
+| 55 | SO_vt55_Nop | **new** | [`SO_vt55_Nop?`](../../../src/game/engine/physics/so.cpp) | `0x1F4FB0` | AdjustNewXp |
+| 56 | SO_vt56_Nop | **new** | [`SO_vt56_Nop?`](../../../src/game/engine/physics/so.cpp) | `0x1F4FB8` | VUnk55 |
+| 57 | SO_vt57_Nop | **new** | [`SO_vt57_Nop?`](../../../src/game/engine/physics/so.cpp) | `0x1F4FC0` | VUnk56 |
+| 58 | ScheduleSoTouchEvents | **new** | [`ScheduleSoTouchEvents?`](../../../src/game/engine/physics/so.cpp) | `0x1F4F10` | VUnk57 |
+| 59 | SO_vt59_Nop | **new** | [`SO_vt59_Nop?`](../../../src/game/engine/physics/so.cpp) | `0x1F4FA8` | VUnk58 |
+| 60 | SO_vt60_Nop | **new** | [`SO_vt60_Nop?`](../../../src/game/engine/physics/so.cpp) | `0x1F5990` | VUnk59 |
+| 61 | FIgnoreSoIntersection | **new** | [`FIgnoreSoIntersection`](../../../src/game/engine/physics/so.cpp) | `0x1F4FC8` | FIgnoreIntersection |
+| 62 | FIsSoFixed | **new** | [`FIsSoFixed?`](../../../src/game/engine/physics/so.cpp) | `0x1F5040` | VUnk61 |
+| 63 | SO_vt63_Ret0 | **new** | [`SO_vt63_Ret0?`](../../../src/game/engine/physics/so.cpp) | `0x1F5998` | CpartExtra |
+| 64 | ResetSoPhys | **new** | [`ResetSoPhys?`](../../../src/game/engine/physics/so.cpp) | `0x1F3590` | InitPhys |
 | 65 | ApplySoForcesXf | **new** | [`ApplySoForcesXf?`](../../../src/game/engine/physics/solve.cpp) | `0x1F9E70` | VUnk64 |
 | 66 | ProjectSoForce | **new** | [`ProjectSoForce?`](../../../src/game/engine/physics/solve.cpp) | `0x1FA328` | VUnk65 |
 | 67 | ApplySoQueuedMotion | **new** | [`ApplySoQueuedMotion?`](../../../src/game/engine/physics/solve.cpp) | `0x1FA528` | VUnk66 |
@@ -96,9 +96,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 70 | ApplySoPendingVelocity | **new** | [`ApplySoPendingVelocity?`](../../../src/game/engine/physics/solve.cpp) | `0x1F9B20` | VUnk69 |
 | 71 | AddSoExternalAccelerations | **new** | [`AddSoExternalAccelerations?`](../../../src/game/engine/physics/water.cpp) | `0x2297F0` | VUnk70 |
 | 72 |  | **new** | [`func_002297F8`](../../../src/game/engine/physics/water.cpp) | `0x2297F8` | VUnk71 |
-| 73 | FPosInSo | **new** | [`FPosInSo?`](../../../src/game/engine/physics/so/func_001F72F8.c) | `0x1F72F8` | VUnk72 |
-| 74 | InflictSoContactZaps | **new** | [`InflictSoContactZaps?`](../../../src/game/engine/physics/so/func_001F7410.c) | `0x1F7410` | ProcessSoZapContacts |
-| 75 | FZprHasField44 | **new** | [`FZprHasField44?`](../../../src/game/engine/physics/so/func_001F7588.c) | `0x1F7588` | FTakeDamage |
+| 73 | FPosInSo | **new** | [`FPosInSo?`](../../../src/game/engine/physics/so.cpp) | `0x1F72F8` | VUnk72 |
+| 74 | InflictSoContactZaps | **new** | [`InflictSoContactZaps?`](../../../src/game/engine/physics/so.cpp) | `0x1F7410` | ProcessSoZapContacts |
+| 75 | FZprHasField44 | **new** | [`FZprHasField44?`](../../../src/game/engine/physics/so.cpp) | `0x1F7588` | FTakeDamage |
 
 ## Fields
 

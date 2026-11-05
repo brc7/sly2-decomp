@@ -1046,18 +1046,32 @@ matched.csv unchanged by the run (the merge commits had already pointed its sour
 sources do not build here (the SDK files; the three gnu-reorder game files of earlier waves are gone: emitter's and
 grabspot's now build with the default toolchain).
 
+Merged on their own branches (split off from wave 10 mid-wave; integrated on integrate/round2 together with wave 10
+and data/phase-2). Details in the sections "class_registry" and "Big six" below:
+
+| TU | file | functions | notes |
+|---|---|---:|---|
+| class_registry | app/class_registry.cpp | 424 | not a TU (the non-generated part of crt0_splicewrap) but merged the same way; REG construction views; see "class_registry" below |
+| hud | engine/presentation/hud.cpp | 124 | 107 namespaced (first compile); 17 m2c on a WIDGET : LO view (docs/engine/hud-ui.md), SPRITEGRP, VIFS/DMAS members, jt.h JTMODEHUD; the 1090-instruction StaticInit_hud keeps its hand-written form |
+| relay | gameplay/cutscene/relay.cpp | 141 | 2 Lilly ports with merged file-scope types; 77 m2c on the Lilly RELAY/RELAYCMD/JSG (AddRelay* builders fill the relayck-selected union member); EnsureSggAlarm at file scope over an SGG view |
+| stepguard | gameplay/ai/stepguard.cpp | 158 | guard.h extended first; 50 m2c on guard.h/step.h and GUARDMOVER/TARGETREC/ANIMLO/BHVARG views; detector Clone as a real LO virtual |
+| bif | app/bif.cpp | 161 | 120 namespaced; VU_FLOAT/VU_VECTOR linkonce members at file scope; 37 m2c builtins as C-linkage literal symbols with the CRef result pointer passed by hand (CREFV view); first compile |
+| so | engine/physics/so.cpp | 174 | 4 Lilly ports at file scope (SO::Clone is a member); 43 m2c on so.h's SO/SOPHYS/SOTREE/SOPART/XF; StaticInit_so generated from a file-scope `CPQ D_003DD020` (follow-up commit) |
+| guardbhv | gameplay/ai/guardbhv.cpp | 190 | guard.h extended first; 58 m2c (behaviour Init/Start/Close/Done) on step.h's BHV with derived behaviour views and STEPGUARD3C : STEPGUARD; first compile |
+
+Total: 7 files, 1,372 functions (class_registry 424, the big six 948), plus the two sly2/guard.h header commits of
+the big six. With wave 10 this leaves only air with per-function files (see "Not merged").
+
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
 | air | skipped in wave 9 (30-minute cap): everything matches except PxpFindJtBestEdge, whose C file stores two compound literals (`scalar = (U){back}`, `(U){lift}`) into a never-read union; as C++ the literal adds a temporary slot (87/213 off), plain stores lose the dead store (64/211), volatile stores keep all three stores but reorder them and the VF allocation (11/211). The draft scripts are kept outside the repo (three Lilly ports merged, 6 m2c, FCheckJtSingleEdge as a C-linkage literal symbol, union asm outputs) Wave 10 retried it (30 more minutes, no match): a constructed temporary with a volatile member (`(void)SCALARTMP(back)`) gives the right stack offsets after it but separate slots and the wrong store order (37/211); a volatile local or temporary plus a volatile store of `point` gets the order but stores `back` before the asm and allocates the VF registers differently (53/211); empty asms with `"m"` inputs to keep the dead stores alive are worse (104..108/214). The C original stores the literal's two values into one shared temporary after the asm; no C++ spelling found gives both the shared slot and the late stores. Draft kept outside the repo (scratch/w10/air_w10.cpp) |
 | crt0 | not a TU: platform/boot/crt0/_start.c is the hand-written `_start` as one top-level `__asm__` block (already one file); left as it is |
-| relay, stepguard, bif, so, guardbhv, hud | not done in wave 10: split off mid-wave to other agents, which merge them on their own branches |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
-After wave 10 every game TU with per-function files is merged except air (see above) and the six TUs handed to
-other agents (relay, stepguard, bif, so, guardbhv, hud); class_registry is merged (section "class_registry" below); the non-TUs crt0 and splice_thunks stay as
-they are. The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
+After wave 10 and the integration of the class_registry and big-six branches (integrate/round2), every game TU
+with per-function files is merged except air (see above); the non-TUs crt0 and splice_thunks stay as they are. The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
 copies"): src/game/core/linkonce no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the
 mismatch table, then "Recurring asm idioms" before renaming any helper.
 
@@ -1086,3 +1100,56 @@ initializer, and the out-of-line constructors STEPGUARD_ctor, JT_ctor and MURRAY
   it; renaming 0x167310 would remove the need.
 - The shared class headers (sly2/lo.h, so.h, ...) cannot construct as the game does (sly2/basic.h's `CRefPtr()` does
   not clear, GLOBSET has no constructor), hence the separate namespace.
+
+## Big six (hud, relay, stepguard, bif, so, guardbhv)
+
+The six largest TUs that were left after wave 9 (948 functions), merged on branch merge/big-six. Each was merged
+in one commit, and every function matches (matchtool on all six files at the end: 948 MATCH). Their rows are in the
+"Merged TUs" section (table "Merged on their own branches"); this section keeps what was learnt.
+
+Header commits (additions only; padding split into named fields, layout and asserts unchanged; every includer
+rebuilt by hand, all MATCH): sly2/guard.h twice. The first added ANIMBINDING/ANIMBINDINGREC and the STEPGUARD words
+pasega, nUnk390..nUnk3C0, cbindingrec, abindingrec, aabindingZap, nUnkF68 and qwUnkF70, plus DETECTOR::cUnkFC. The
+second added tAttackNext, fUnkF3C, cUnkF94 and cUnkFA8. Two follow-up commits only correct header comments (TU range
+of stepguard.cpp, STRINGGEN count of hud.cpp). No `#line` pin was needed.
+
+Procedure as in the waves before. Every per-function file goes verbatim into its own namespace. #include lines are
+hoisted to the top of the file, and each namespace starts with forward declarations of the structs it defines. m2c
+files keep their bodies under a temporary prelude until they are rewritten at file scope. Lilly ports' types are
+merged at file scope. `void *` results are cast mechanically. The scratch helpers are not in the repo.
+
+New mismatch causes and fixes (the C-vs-C++ ones already in the table above recurred about 20 times: packed-long
+callback PMFs, `!` on bit tests, asm outputs into union or struct members):
+
+| symptom | cause | fix | seen in |
+|---|---|---|---|
+| "call of overloaded `StopRelay (RELAY *&)' is ambiguous" | the same `extern "C"` function, with identical parameter types, is declared at file scope (for the rewritten bodies) and inside a per-function namespace whose code calls it. g++ 2.95 does not merge the two declarations. With different (namespace-local) parameter types the inner declaration hides the outer one and nothing is reported | drop the namespace's duplicate declaration | relay |
+| a namespaced port reports "invalid use of undefined type `struct RELAY`" before its own definition | an elaborated `struct X` that appears before the namespace defines X refers to basic.h's file-scope forward declaration | forward-declare every struct a namespace defines at the top of that namespace (a port whose types complete header types, e.g. GRABSPOT passed into stepplayer.h's JTPLACE, needs the file-scope copy instead) | relay |
+| "implicit declaration" of functions that a namespaced Lilly port declares itself | the port defines a member of a header class (`void SO::Clone(LO *)`). Lookup inside the member body goes from class scope to the class's namespace (global) and never reaches the port's namespace | put the port at file scope with its merged types | so |
+| a C++-named definition shows as "EXTRA symbol (no address)" plus a missing function | defined inside a per-function namespace, its symbol gets the namespace mangled in | file scope over file-scope types (VU_FLOAT::VU_FLOAT(float), operator*(VU_FLOAT, VU_VECTOR)) | bif |
+| parse error before `::` in a `.c` body | `__asm__ __volatile__("" ::: "memory")`: the C++ lexer reads `::` as the scope operator | write `: : :` | guardbhv |
+| a void function's m2c body "returns" `p + 4 * c` | the value is the address computation of the last store, left in v0 | define the function `void`. Returning the slot address is 8 of 25 off | stepguard (AddTargetRecordGuard) |
+| an m2c caller uses the result of a callee whose own body is void | the caller reads the v0 that the callee leaves behind | declare an int-returning asm-labelled view for that caller (`int func_002185F8I(...) __asm__("func_002185F8")`) | hud |
+| zeroing a VECTOR member is 2..14 off | the target builds `&v` once and stores z, y, x (`addiu v0, v1, 0x190; sw 4(v0); sw 8(v0); sw 0x190(v1)`) | use a local `VECTOR *pv = &p->v; pv->z = 0; pv->y = 0; pv->x = 0;` (float 0.0f stores use `$0`) | stepguard (func_00209790) |
+| `(uchar)p->f == 0` on a bit-field extracts the bit (dsrl; andi 1) where the target masks it (andi 2) | the `(uchar)` rule above is for bits past 31 (LO::fInWorld). For a low bit other than bit 0 it changes the code | `p->f == 0` or `!p->f` (SOTREE::fQueued2). Bit 0 (fQueued1) matches either way | so (func_001F4BF8) |
+| `x = !p->f` on an `unsigned int f : 1` after a 60-bit field | as the find/brx rows | `(uchar)p->f == 0` or `(int)p->f == 0`; `!(int)`, `^ 1`, `1 -`, `< 1` and `(unsigned int) == 0` do not match | relay (SetJsgTunnel) |
+| m2c calls without arguments (a0 passed through) | as the jt row | an argument-less asm-labelled view for callees outside the TU (CloneLo, RemoveSoHierarchy, PostLoLoad). The TU's own callees, and calls made first in the function (`CloseBhv(pbhv)`), matched with the arguments written out | stepguard, so, guardbhv |
+| a non-standard StaticInit (93 instructions) with one global copied from a zeroed temporary | a file-scope object with a memset constructor, initialised from an inline maker | `CPQ D_003DD020 = MakeCpq();` before SLY2_INSTANTIATE_SLOT_POOLS(), with the two SLY2_ALIAS lines (first try) | so |
+| hand-written non-standard StaticInit kept | — | it still matches inside the merged file, provided the file instantiates no slot pool (no slotheap.h), so that g++ emits no initializer of its own | hud (1090 instructions) |
+
+Representation decisions (the user's rules: separate structs by default, derived structs for supersets, unions only
+where a kind field selects the bytes, documented islands, per-function namespaces for conflicting views):
+
+| file | struct | choice | evidence | revisit when |
+|---|---|---|---|---|
+| sly2/guard.h | STEPGUARD, DETECTOR | padding split into named fields (`nUnkXXX` where the meaning is unknown), plus ANIMBINDING (16 bytes) and ANIMBINDINGREC (32 bytes) | the m2c bodies of stepguard and guardbhv read them | meanings found |
+| stepguard.cpp | GUARDMOVER | TU-private view of STEPGUARD +0xFD0 through a PMOVER macro. The header leaves +0xFD0 unnamed | stepguard's mover reads a lock flag at +4 and its owner at +0xC, while tu_144B28.cpp reads the same bytes as a JTGOAL (owner at +0). The views conflict, so the header gets no field | the +0xFD0 object is identified |
+| stepguard.cpp | TARGETREC, ANIMLO, BHVARG | TU-private views | each is used by one TU | headers for them |
+| relay.cpp | RELAYCMD | the Lilly RELAYCMD, a union of per-kind argument structs selected by relayck | each of the 59 builders stores its kind and fills that kind's member | — |
+| relay.cpp | Lilly ports, SGG | the two ports' type copies merged at file scope (GRABSPOT: the superset); SGG is an alarm view (+0x84/+0x88, the same block as RELAY's) | GRABSPOT is passed into stepplayer.h's JTPLACE | the types move to headers |
+| bif.cpp | RefOp builtins | m2c bodies are C-linkage functions under their literal mangled symbols, with the CRef result pointer passed by hand, over a TU-private POD CREFV. Not C++ `CRef RefOpX(int, CRef *, CFrame *)` | the TU's 120 other builtins use the literal-symbol convention. cref.h has no tag+value constructor that avoids the inline -1 store, and the binary calls the C-named func_001291A8/CRef_ctor_*, so every callee stays under its real symbol | the whole TU moves to C++ builtins (needs cref.h constructors and the CRef constructors renamed) |
+| so.cpp | Lilly ports; SOBOUNDS, XFH, STEPREC, SOWATCH | CloneSo/GetSoAngularVelocity/SetSoIgnoreLocked/SetSoIceable at file scope with merged types; TU-private views (so.h only forward-declares SOBOUNDS) | a member definition and C++ symbols; one TU each for the views | headers |
+| so.cpp | SO vtable entries 47 and 53 | hand-made calls (PVTE macro); LO Add/Remove as real virtuals | so.h's VUnk52/VUnk53 signatures do not fit entry 53 (it returns the new SOTREE). The VUnk numbering was not checked against vtable entries | so.h's slot names checked |
+| so.cpp | CPQ D_003DD020 | file-scope object that generates StaticInit_so (placeholder name) | matches; tu_1BC050 and guardbhv pass it to FindShapeClosestPoint (role HYPOTHESIS) | its fields are known |
+| guardbhv.cpp | behaviours | TU-private derived views of step.h's BHV per behaviour (BHVSTATE, BHVANIM, BHVATTACK, BHVCOMBAT, BHVPATH, BHVGOTO, BHVTARGET, BHVPATHLINK, BHVPATROLPATH, BHV50); the owner is `(STEPGUARD *)pbhv->pstep`; STEPGUARD3C : STEPGUARD for +0x108C | derived structs over the shared base | a behaviour header |
+| hud.cpp | WIDGET, StaticInit_hud | `WIDGET : LO` view completing basic.h's forward declaration; StaticInit_hud kept hand-written (reversible) | docs/engine/hud-ui.md. The STRINGGEN records are not one contiguous .rodata run (the copy list includes 0x2A9220, which reads as FLT_MAX / -FLT_MAX), so the table has to be rebuilt record by record from the code first | the table is spelled |

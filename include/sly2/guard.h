@@ -21,10 +21,29 @@ struct DETECTOR : public XFM
       undefined4 unk_0xe0[2];
       VOL *pvolNear;        /* +0xE8 [S] near volume (tu_1B9F80's view; VOL type [H]) */
       VOL *pvolFar;         /* +0xEC [S] far volume */
-      undefined4 unk_0xf0[(0x180 - 0xf0) / 4];
+      undefined4 unk_0xf0[(0xfc - 0xf0) / 4];
+      int cUnkFC;           /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp func_002087C8) */
+      undefined4 unk_0x100[(0x180 - 0x100) / 4];
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
+typedef char assert_DETECTOR_cUnkFC[SLY2_OFFSETOF(DETECTOR, cUnkFC) == 0xFC ? 1 : -1];
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
+
+/* An animation binding of a guard (16 bytes; stepguard.cpp ResolveAnimBinding/ReleaseAnimBinding): its kind (2 and 3
+   hold a handle released by func_0020C030 / func_0020CA20; -1 none), the handle, and two words. [S] */
+struct ANIMBINDING
+{
+      int kind;             /* +0x0 [S] */
+      int h;                /* +0x4 [S] */
+      int n8;               /* +0x8 [S] */
+      int nC;               /* +0xC [S] */
+};
+/* A guard's general animation binding record (32 bytes): the binding and 16 more bytes. [S] */
+struct ANIMBINDINGREC
+{
+      ANIMBINDING binding;  /* +0x0 [S] */
+      undefined4 unk_0x10[4];
+};
 
 /* STEPGUARD: class descriptor cb 0x1010, vtable 89 entries (types/cid_table.csv, CONFIRMED runtime) */
 struct STEPGUARD : public STEP
@@ -36,17 +55,42 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x334;
       int hpMax;            /* +0x338 [R] max hp */
       int hp;               /* +0x33C [R] current hp */
-      undefined4 unk_0x340[(0x38c - 0x340) / 4];
+      undefined4 unk_0x340[(0x34c - 0x340) / 4];
+      ASEGA *pasega;        /* +0x34C [S] an animation the guard holds (released with ReleaseAsega(&pasega)) */
+      undefined4 unk_0x350[(0x38c - 0x350) / 4];
       LO *ploTarget;        /* +0x38C [R] current target (Sly while chasing) */
-      undefined4 unk_0x390[(0x3cc - 0x390) / 4];
+      int nUnk390;          /* +0x390 [S] */
+      int nUnk394;          /* +0x394 [S] cleared with nUnk3A4 */
+      undefined4 unk_0x398[(0x3a4 - 0x398) / 4];
+      int cUnk3A4;          /* +0x3A4 [S] the guard's contribution to pdetector->cUnkFC */
+      int nUnk3A8;          /* +0x3A8 [S] */
+      undefined4 unk_0x3ac[(0x3c0 - 0x3ac) / 4];
+      int nUnk3C0;          /* +0x3C0 [S] */
+      undefined4 unk_0x3c4[(0x3cc - 0x3c4) / 4];
       void *pvEngage;       /* +0x3CC [R] engagement record (non-zero while in combat) [H type] */
       undefined4 unk_0x3d0[(0x404 - 0x3d0) / 4];
       GUARDLOOT aloot[8];   /* +0x404 [R] pickpocket loot list */
       int cloot;            /* +0x484 [R] entries used in aloot */
-      undefined4 unk_0x488[(0xf60 - 0x488) / 4];
+      undefined4 unk_0x488[(0x4c0 - 0x488) / 4];
+      int cbindingrec;      /* +0x4C0 [S] entries used in abindingrec */
+      undefined4 unk_0x4c4[3];
+      ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
+      ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
+      undefined4 unk_0xdb0[(0xf04 - 0xdb0) / 4];
+      float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv FBhvcombatChooseAttack) */
+      undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
+      int fUnkF3C;          /* +0xF3C [S] set by StartBhvstrike */
+      undefined4 unk_0xf40[(0xf60 - 0xf40) / 4];
       int nFiringWindow;    /* +0xF60 [R] firing window (shooting guards) */
       DETECTOR *pdetector;  /* +0xF64 [R] vision detector (CID 0x10; its +0xE0 owner == this guard) */
-      undefined4 unk_0xf68[(0xfe0 - 0xf68) / 4];
+      int nUnkF68;          /* +0xF68 [S] copied with qwUnkF70 into the root behaviour's sub-behaviour in mode 0x10 */
+      undefined4 unk_0xf6c;
+      qword qwUnkF70;       /* +0xF70 [S] */
+      undefined4 unk_0xf80[(0xf94 - 0xf80) / 4];
+      int cUnkF94;          /* +0xF94 [S] FBhvguardHasTargetList: non-zero with cUnkFA8 means a target list */
+      undefined4 unk_0xf98[(0xfa8 - 0xf98) / 4];
+      int cUnkFA8;          /* +0xFA8 [S] */
+      undefined4 unk_0xfac[(0xfe0 - 0xfac) / 4];
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint grfCapability;   /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
       undefined4 unk_0xfec[(0xffc - 0xfec) / 4];
@@ -61,6 +105,11 @@ typedef char assert_STEPGUARD_hp[SLY2_OFFSETOF(STEPGUARD, hp) == 0x33C ? 1 : -1]
 typedef char assert_STEPGUARD_ploTarget[SLY2_OFFSETOF(STEPGUARD, ploTarget) == 0x38C ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_aloot[SLY2_OFFSETOF(STEPGUARD, aloot) == 0x404 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_cloot[SLY2_OFFSETOF(STEPGUARD, cloot) == 0x484 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPGUARD_abindingrec[SLY2_OFFSETOF(STEPGUARD, abindingrec) == 0x4D0 ? 1 : -1];   /* stepguard.cpp */
+typedef char assert_STEPGUARD_aabindingZap[SLY2_OFFSETOF(STEPGUARD, aabindingZap) == 0x8D0 ? 1 : -1];   /* stepguard.cpp */
+typedef char assert_STEPGUARD_tAttackNext[SLY2_OFFSETOF(STEPGUARD, tAttackNext) == 0xF04 ? 1 : -1];   /* guardbhv.cpp */
+typedef char assert_STEPGUARD_cUnkFA8[SLY2_OFFSETOF(STEPGUARD, cUnkFA8) == 0xFA8 ? 1 : -1];   /* guardbhv.cpp */
+typedef char assert_STEPGUARD_qwUnkF70[SLY2_OFFSETOF(STEPGUARD, qwUnkF70) == 0xF70 ? 1 : -1];   /* stepguard.cpp */
 typedef char assert_STEPGUARD_pdetector[SLY2_OFFSETOF(STEPGUARD, pdetector) == 0xF64 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_dleGuard[SLY2_OFFSETOF(STEPGUARD, dleGuard) == 0xFE0 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_cBusy[SLY2_OFFSETOF(STEPGUARD, cBusy) == 0xFFC ? 1 : -1];   /* CONFIRMED runtime */

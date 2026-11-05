@@ -28,29 +28,29 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
-| 5 | HandleMessage | **override** | [`HandleStepguardMessage`](../../../src/game/gameplay/ai/stepguard/HandleStepguardMessage.c) | `0x2075D0` | HandleMessage |
+| 5 | HandleMessage | **override** | [`HandleStepguardMessage`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x2075D0` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetStepguardClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113D90` | Pclassinfo |
-| 7 | Init | **override** | [`InitStepguard`](../../../src/game/gameplay/ai/stepguard/InitStepguard.c) | `0x205EB8` | Init |
+| 7 | Init | **override** | [`InitStepguard`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x205EB8` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` | SetParent |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` | AddHierarchy |
-| 12 | RemoveHierarchy | **override** | [`RemoveStepguardHierarchy`](../../../src/game/gameplay/ai/stepguard/RemoveStepguardHierarchy.c) | `0x2064D8` | RemoveHierarchy |
+| 12 | RemoveHierarchy | **override** | [`RemoveStepguardHierarchy`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x2064D8` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` | UpdateLoroot |
 | 14 | LoadFromBrx | inherited (STEP) | `LoadStepFromBrx` | `0x2039C0` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostStepguardLoad`](../../../src/game/gameplay/ai/stepguard/PostStepguardLoad.c) | `0x2061D8` | VUnk14 |
-| 16 | Update | **override** | [`UpdateStepguard`](../../../src/game/gameplay/ai/stepguard/UpdateStepguard.c) | `0x207350` | VUnk15 |
+| 15 | PostLoad | **override** | [`PostStepguardLoad`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x2061D8` | VUnk14 |
+| 16 | Update | **override** | [`UpdateStepguard`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x207350` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` | UpdateXfWorldHierarchy |
-| 19 | RenderSelf | **override** | [`RenderStepguardSelf`](../../../src/game/gameplay/ai/stepguard/RenderStepguardSelf.cpp) | `0x207690` | RenderSelf |
+| 19 | RenderSelf | **override** | [`RenderStepguardSelf`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x207690` | RenderSelf |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` | VUnk19 |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` | VUnk20 |
-| 22 | OnRemove | **override** | [`OnStepguardRemove`](../../../src/game/gameplay/ai/stepguard/OnStepguardRemove.c) | `0x2079A0` | Freeze |
-| 23 | OnAdd | **override** | [`OnStepguardAdd`](../../../src/game/gameplay/ai/stepguard/OnStepguardAdd.c) | `0x2079E0` | Unfreeze |
+| 22 | OnRemove | **override** | [`OnStepguardRemove`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x2079A0` | Freeze |
+| 23 | OnAdd | **override** | [`OnStepguardAdd`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x2079E0` | Unfreeze |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` | VUnk23 |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` | SetIdProxy |
-| 26 | ResetLoForProxy | **override** | [`ResetStepguardToHome`](../../../src/game/gameplay/ai/stepguard/ResetStepguardToHome.c) | `0x206518` | VUnk25 |
-| 27 | LO_VUnk27Proxy | **override** | [`ClearStepguardState`](../../../src/game/gameplay/ai/stepguard/ClearStepguardState.c) | `0x206748` | VUnk26 |
+| 26 | ResetLoForProxy | **override** | [`ResetStepguardToHome`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x206518` | VUnk25 |
+| 27 | LO_VUnk27Proxy | **override** | [`ClearStepguardState`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x206748` | VUnk26 |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | inherited (STEP) | `TranslateStepToPos` | `0x2041C0` | TranslateToPos |
 | 30 | RotateToMat | inherited (STEP) | `RotateStepToMat` | `0x2041F8` | RotateToMat |
@@ -64,7 +64,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (STEP) | `MatchStepXf` | `0x2052E0` | VUnk37 |
 | 39 | SetLoXf | inherited (SO) | `SetSoXf?` | `0x1F4A80` | VUnk38 |
 | 40 | CloneHierarchy | inherited (SO) | `CloneSoHierarchy` | `0x1F66F0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneStepguard`](../../../src/game/gameplay/ai/stepguard/CloneStepguard.c) | `0x206100` | Clone |
+| 41 | Clone | **override** | [`CloneStepguard`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x206100` | Clone |
 | 42 | SetLoSBusy | inherited (SO) | `SetSoSBusy?` | `0x1F3118` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
@@ -82,9 +82,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` | VUnk55 |
 | 57 | SO_vt57_Nop | inherited (STEP) | `AdjustStepXpVelocity` | `0x2044B0` | VUnk56 |
 | 58 | ScheduleSoTouchEvents | inherited (STEP) | `AdjustStepXps?` | `0x204768` | VUnk57 |
-| 59 | SO_vt59_Nop | **override** | [`AddStepguardAttachXps?`](../../../src/game/gameplay/ai/stepguard/func_00209C88.c) | `0x209C88` | VUnk58 |
+| 59 | SO_vt59_Nop | **override** | [`AddStepguardAttachXps?`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x209C88` | VUnk58 |
 | 60 | SO_vt60_Nop | inherited (STEP) | `AddStepCustomXps` | `0x204AC8` | VUnk59 |
-| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreStepguardIntersection`](../../../src/game/gameplay/ai/stepguard/FIgnoreStepguardIntersection.c) | `0x206380` | FIgnoreIntersection |
+| 61 | FIgnoreSoIntersection | **override** | [`FIgnoreStepguardIntersection`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x206380` | FIgnoreIntersection |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` | VUnk61 |
 | 63 | SO_vt63_Ret0 | inherited (STEP) | `FStepVt63?` | `0x204248` | CpartExtra |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` | InitPhys |
@@ -98,9 +98,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` | VUnk71 |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` | ProcessSoZapContacts |
-| 75 | FZprHasField44 | **override** | [`FTakeStepguardDamage`](../../../src/game/gameplay/ai/stepguard/FTakeStepguardDamage.c) | `0x207468` | FTakeDamage |
-| 76 | FInvulnerablePo | **override** | [`FInvulnerableStepguard`](../../../src/game/gameplay/ai/stepguard/FInvulnerableStepguard.c) | `0x207598` | FInvulnerable |
-| 77 | JthsCurrentPo | **override** | [`JthsCurrentStepguard`](../../../src/game/gameplay/ai/stepguard/JthsCurrentStepguard.c) | `0x20B3D0` | JthsCurrent |
+| 75 | FZprHasField44 | **override** | [`FTakeStepguardDamage`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x207468` | FTakeDamage |
+| 76 | FInvulnerablePo | **override** | [`FInvulnerableStepguard`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x207598` | FInvulnerable |
+| 77 | JthsCurrentPo | **override** | [`JthsCurrentStepguard`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x20B3D0` | JthsCurrent |
 | 78 | OnPoActive | inherited (PO) | `OnPoActive` | `0x1C3FF0` | OnActive |
 | 79 | SetPoCtlState | inherited (PO) | `SetPoCtlState` | `0x1C3ED8` | SetCtlState |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` | FCanBeHealed |
@@ -108,11 +108,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 82 | AddStepAxisXps | inherited (STEP) | `AddStepAxisXps` | `0x205008` | VUnk81 |
 | 83 | AddStepDialogSmRefs | inherited (STEP) | `AddStepDialogSmRefs?` | `0x205478` | VUnk82 |
 | 84 | RemoveStepDialogSmRefs | inherited (STEP) | `RemoveStepDialogSmRefs?` | `0x205588` | VUnk83 |
-| 85 | GrfStepGroundProbe | **override** | [`GrfStepguardGroundProbe?`](../../../src/game/gameplay/ai/stepguard/func_0020B090.c) | `0x20B090` | VUnk84 |
-| 86 | FStepVt86 | **override** | [`FLethalStepguardZap?`](../../../src/game/gameplay/ai/stepguard/func_00207530.c) | `0x207530` | VUnk85 |
+| 85 | GrfStepGroundProbe | **override** | [`GrfStepguardGroundProbe?`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x20B090` | VUnk84 |
+| 86 | FStepVt86 | **override** | [`FLethalStepguardZap?`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x207530` | VUnk85 |
 | 87 | StepVt87Nop | **override** | [`SetStepguardPlayable?`](../../../src/game/gameplay/ai/pickpocket.cpp) | `0x1F1F38` | VUnk86 |
-| 88 | PloChooseStepguardTarget | **new** | [`PloChooseStepguardTarget`](../../../src/game/gameplay/ai/stepguard/PloChooseStepguardTarget.cpp) | `0x2082D0` | VSlot87 |
-| 89 | FStepguardSenseStimulus | **new** | [`FStepguardSenseStimulus`](../../../src/game/gameplay/ai/stepguard/FStepguardSenseStimulus.cpp) | `0x208BE0` | VSlot88 |
+| 88 | PloChooseStepguardTarget | **new** | [`PloChooseStepguardTarget`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x2082D0` | VSlot87 |
+| 89 | FStepguardSenseStimulus | **new** | [`FStepguardSenseStimulus`](../../../src/game/gameplay/ai/stepguard.cpp) | `0x208BE0` | VSlot88 |
 
 ## Fields
 

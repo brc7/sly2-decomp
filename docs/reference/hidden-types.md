@@ -16,8 +16,8 @@ HYPOTHESIS: an unregistered class `BHV → ? → {BHVANIM, BHVLEAP, BHV175}`. 2 
 
 | Slot | Role | Shared implementation | Parent has | Exclusive |
 |---|---|---|---|---|
-| 12 | GrfGroundProbe | [`BHVANIM_GrfGroundProbe`](../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) `0x174EA0` | `BHV_GrfGroundProbe?` | yes |
-| 13 | FHandleMessage | [`BHVANIM_FHandleMessage`](../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) `0x174BD0` | `BHV_FHandleMessage` | yes |
+| 12 | GrfGroundProbe | [`BHVANIM_GrfGroundProbe`](../../src/game/gameplay/ai/guardbhv.cpp) `0x174EA0` | `BHV_GrfGroundProbe?` | yes |
+| 13 | FHandleMessage | [`BHVANIM_FHandleMessage`](../../src/game/gameplay/ai/guardbhv.cpp) `0x174BD0` | `BHV_FHandleMessage` | yes |
 
 <a id="a2"></a>
 ### A2. Under [BHV](classes/BHV.md): {[BHVANIM](classes/BHVANIM.md), [BHVLEAP](classes/BHVLEAP.md), [BHV175](classes/BHV175.md), [BHVJUGGLED](classes/BHVJUGGLED.md)} — medium
@@ -27,7 +27,7 @@ HYPOTHESIS: an unregistered class `BHV → ? → {BHVANIM, BHVLEAP, BHV175, BHVJ
 
 | Slot | Role | Shared implementation | Parent has | Exclusive |
 |---|---|---|---|---|
-| 11 | UpdateMotion | [`UpdateBhvanimMotion`](../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) `0x174F08` | `UpdateBhvMotion` | yes |
+| 11 | UpdateMotion | [`UpdateBhvanimMotion`](../../src/game/gameplay/ai/guardbhv.cpp) `0x174F08` | `UpdateBhvMotion` | yes |
 
 ## B. Vtables and descriptor-like tables not claimed by a registered class
 
@@ -51,7 +51,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | `0x2D85E8` (abstract: has `__pure_virtual`) | 15 | 7=`UpdateScreenTimeout?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`__pure_virtual` | [`SCREEN_ctor?`](../../src/game/engine/presentation/screen.cpp) (+0xC) |
 | `0x2D8668` | 12 | 7=`UpdateHudMeter?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?` | [`StaticInit_screen?`](../../src/game/engine/presentation/screen.cpp) (+0xC) |
 | `0x2D86D0` | 12 | 7=`UpdateScreen?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?` | (no lui/addiu reference: never stored by code) |
-| `0x2D8C08` | 7 |  | [`PjsgNew?`](../../src/game/gameplay/cutscene/relay/PjsgNew.c) (+0xC) |
+| `0x2D8C08` | 7 |  | [`PjsgNew?`](../../src/game/gameplay/cutscene/relay.cpp) (+0xC) |
 
 #### [EMITTER](classes/EMITTER.md) (CID 29): 2 vtables
 
@@ -95,7 +95,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud/StaticInit_hud.cpp) | — |
+| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud.cpp) | — |
 
 #### B2.4 CBinaryInputStream / MemInputStream
 

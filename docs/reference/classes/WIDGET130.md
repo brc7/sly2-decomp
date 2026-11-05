@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewWidget130`](../../../src/game/app/class_registry.cpp) `0x112CD0` |
 | Descriptor getter (slot 6) | `GetWidget130ClassDesc` `0x114230` |
 | vtable | `D_002C9670`, 51 entries (slots 0..50; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`WIDGET130_ctor?`](../../../src/game/engine/presentation/hud/func_00211C58.cpp) (vptr +0xC) |
+| vtable stored by | [`WIDGET130_ctor?`](../../../src/game/engine/presentation/hud.cpp) (vptr +0xC) |
 | Level instances | 43 objects in 43 of 43 world files |
 
 ## Virtual table
