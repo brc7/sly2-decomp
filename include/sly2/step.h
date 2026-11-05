@@ -15,14 +15,15 @@ struct BHV : public BASIC
       int fBusy;            /* +0x1C [R] behaviour busy (shown with '*' in ram_inspector stacks) */
       int cBusyAbove;       /* +0x20 [R] number of busy behaviours above this one in the stack */
       undefined4 unk_0x24[3];
-      virtual void OnPush();
-      virtual void Start();
-    virtual void VSlot9();   /* slot 9: not yet identified */
-    virtual void VSlot10();   /* slot 10: not yet identified */
-    virtual void VSlot11();   /* slot 11: not yet identified */
-    virtual void VSlot12();   /* slot 12: not yet identified */
-    virtual void VSlot13();   /* slot 13: not yet identified */
-    virtual void VSlot14();   /* slot 14: not yet identified */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhvClassDesc");   /* slot 6 */
+      virtual void OnPush() __asm__("InitBhv");
+      virtual void Start() __asm__("StartBhv");
+    virtual void VSlot9() __asm__("CloseBhv");   /* slot 9: not yet identified */
+    virtual void VSlot10() __asm__("UpdateBhv");   /* slot 10: not yet identified */
+    virtual void VSlot11() __asm__("UpdateBhvMotion");   /* slot 11: not yet identified */
+    virtual void VSlot12() __asm__("func_001EEFA0");   /* slot 12: not yet identified */
+    virtual void VSlot13() __asm__("BHV_FHandleMessage");   /* slot 13: not yet identified */
+    virtual void VSlot14() __asm__("func_001EF0C0");   /* slot 14: not yet identified */
 };
 typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -73,12 +74,29 @@ struct STEP : public PO
       int nUnk298;
       undefined4 unk_0x29c;
       int acUnk2a0[6];
-      virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3);
-      virtual void VUnk82(uint grf, int fCount);
-      virtual void VUnk83(uint grf, int fCount);
-      virtual int VUnk84();
-      virtual int VUnk85(ZPR *pzpr);
-      virtual void VUnk86(int fOn);
+    virtual CLASSINFO *Pclassinfo() __asm__("GetStepClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitStep");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostStepLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateStep");   /* slot 16 */
+    virtual void RenderSelf() __asm__("RenderStepSelf");   /* slot 19 */
+    virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepToPos");   /* slot 29 */
+    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateStepToMat");   /* slot 30 */
+    virtual void VUnk37(LO *plo) __asm__("MatchStepXf");   /* slot 38 */
+    virtual void Clone(LO *ploBase) __asm__("CloneStep");   /* slot 41 */
+    virtual void VUnk53(SO *pso) __asm__("OnStepSoContactFreed");   /* slot 54 */
+    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustStepNewXp");   /* slot 55 */
+    virtual void VUnk56(XP *pxp, int ixpd) __asm__("AdjustStepXpVelocity");   /* slot 57 */
+    virtual void VUnk57() __asm__("func_00204768");   /* slot 58 */
+    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
+    virtual int CpartExtra() __asm__("func_00204248");   /* slot 63 */
+    virtual void VUnk69() __asm__("PresetStepAccel");   /* slot 70 */
+      virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
+      virtual void VUnk82(uint grf, int fCount) __asm__("func_00205478");
+      virtual void VUnk83(uint grf, int fCount) __asm__("func_00205588");
+      virtual int VUnk84() __asm__("func_002040F8");
+      virtual int VUnk85(ZPR *pzpr) __asm__("func_00205D08");
+      virtual void VUnk86(int fOn) __asm__("func_00205D10");
 };
 typedef char assert_STEP_size[sizeof(STEP) == 0x2C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1];   /* guard behaviour stack at STEP+0x26C (CONFIRMED runtime) */

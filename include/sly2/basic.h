@@ -257,12 +257,12 @@ struct BASIC
       CRefPtr<CFrame> pframe;
       CRefPtr<CSidebag> psidebag;
       struct REFNODE *prefnodeFirst;
-      virtual void VUnk00();
-      virtual void VUnk01();
-      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk);
-      virtual void SendMessage(MSGID msgid, void *pv);
-      virtual void HandleMessage(MSGID msgid, void *pv);
-      virtual CLASSINFO *Pclassinfo();
+      virtual void VUnk00() __asm__("func_00132B00");
+      virtual void VUnk01() __asm__("func_00132B08");
+      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleBasicSpliceEvent");
+      virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendLoMessage");
+      virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBasicMessage");
+      virtual CLASSINFO *Pclassinfo() __asm__("GetBasicClassDesc");
 };
 typedef char assert_BASIC_size[sizeof(BASIC) == 0x10 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

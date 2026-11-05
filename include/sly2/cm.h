@@ -260,6 +260,7 @@ struct CM : public CMBASE
       int nUnk61c;
       float rUnk620;
       float rUnk624;
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCmClassDesc");   /* slot 6 */
 };
 typedef char assert_CM_size[sizeof(CM) == 0x630 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_CM_acpr[SLY2_OFFSETOF(CM, acpr) == 0x310 ? 1 : -1];   /* policy stack acpr[8] of 16-byte CPR (CONFIRMED runtime) */

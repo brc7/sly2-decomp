@@ -179,9 +179,39 @@ struct JT : public STEPPLAYER
       struct EXPL *pexplUnk204c;
       ASEG *pasegPouncePowerUp;
       undefined4 unk_0x2054[3];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetJtClassDesc");   /* slot 6 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJtMessage");   /* slot 5 */
+    virtual void Init() __asm__("InitJt");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadJtFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostJtLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateJt");   /* slot 16 */
+    virtual void VUnk16() __asm__("func_0018A278");   /* slot 17 */
+    virtual void RenderSelf() __asm__("RenderJtSelf");   /* slot 19 */
+    virtual void VUnk48() __asm__("func_0018A2E0");   /* slot 49 */
+    virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("func_0018A428");   /* slot 50 */
+    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("func_00188CC8");   /* slot 55 */
+    virtual void VUnk56(XP *pxp, int ixpd) __asm__("func_00188E78");   /* slot 57 */
+    virtual void VUnk69() __asm__("func_00188960");   /* slot 70 */
+    virtual int FInvulnerable(ZPK zpk) __asm__("func_001A21A0");   /* slot 76 */
+    virtual void OnActive(int fActive) __asm__("func_0018E3A0");   /* slot 78 */
+    virtual int VUnk84() __asm__("func_0018DEE0");   /* slot 85 */
+    virtual void VUnk86(int fOn) __asm__("func_00189530");   /* slot 87 */
+    virtual void VUnk87(int n) __asm__("SetJtPlayerState");   /* slot 88 */
+    virtual int VUnk88() __asm__("GetJtPlayerState");   /* slot 89 */
+    virtual void VUnk89() __asm__("func_0018C060");   /* slot 90 */
+    virtual void VUnk90() __asm__("func_0018D548");   /* slot 91 */
+    virtual int VUnk91() __asm__("JT_FFaceTarget");   /* slot 92 */
+    virtual void OnHeroDied() __asm__("func_001A2388");   /* slot 93 */
+    virtual int VUnk93() __asm__("func_001894F8");   /* slot 94 */
+    virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("func_0018DE80");   /* slot 96 */
+    virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("func_0018A350");   /* slot 97 */
+    virtual int VUnk97() __asm__("func_00189488");   /* slot 98 */
+    virtual void StartGadget(int idGadget) __asm__("UseJtGadget");   /* slot 100 */
+    virtual void VSlot102() __asm__("func_0018DD78");   /* slot 102 */
+    virtual void VSlot103() __asm__("func_0018DE08");   /* slot 103 */
     virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__2JTi");   /* override declared in FCanUseGadget__2JTi.cpp */
-    virtual void VSlot106();   /* slot 106: not yet identified */
-    virtual void VSlot107();   /* slot 107: not yet identified */
+    virtual void VSlot106() __asm__("func_0018D500");   /* slot 106: not yet identified */
+    virtual void VSlot107() __asm__("AddJtExternalAccelerations");   /* slot 107: not yet identified */
 };
 typedef char assert_JT_size[sizeof(JT) == 0x2060 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_JT_jts[SLY2_OFFSETOF(JT, jts) == 0x18C8 ? 1 : -1];   /* 0 standing / 11 pickpocket (CONFIRMED runtime) */

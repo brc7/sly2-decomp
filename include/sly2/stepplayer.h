@@ -482,36 +482,50 @@ struct STEPPLAYER : public STEP
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
       int nUnk1318;
       float tUnk131c;
-    virtual void VUnk87(int n);
-    virtual int VUnk88();
-    virtual void VUnk89();
-    virtual void VUnk90();
-    virtual int VUnk91();
-      virtual void OnHeroDied();
-    virtual int VUnk93();
-      virtual void SetPlayerInteractMode(int nKind, LO *ploTarget, int nMode, LO *ploFight);
-      virtual void GetStunHold(STUNHOLD *phold, float dt);
-      virtual void GetCmFocusPos(VECTOR4 *ppos);
-    virtual int VUnk97();
-      virtual int FCanUseGadget(int idGadget);
-      virtual void StartGadget(int idGadget);
-    virtual void SetCtlState(int nState);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void OnActive(int fActive);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int FTakeDamage(ZPR *pzpr);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int FInvulnerable(ZPK zpk);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int JthsCurrent();   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk82(uint grf, int fCount);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk83(uint grf, int fCount);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int VUnk84();   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int FCanBeHealed();   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void AddHpMp(int dhp, int dmp);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int VUnk85(ZPR *pzpr);   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VSlot101();   /* slot 101: not yet identified */
-    virtual void VSlot102();   /* slot 102: not yet identified */
-    virtual void VSlot103();   /* slot 103: not yet identified */
-    virtual void VSlot104();   /* slot 104: not yet identified */
-    virtual void VSlot105();   /* slot 105: not yet identified */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */
+    virtual void Init() __asm__("InitStepplayer");   /* slot 7 */
+    virtual void RemoveHierarchy() __asm__("func_00141928");   /* slot 12 */
+    virtual void VUnk14() __asm__("PostLoadStepplayer");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateStepplayer");   /* slot 16 */
+    virtual void RenderSelf() __asm__("RenderStepplayerSelf");   /* slot 19 */
+    virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepplayerToPos");   /* slot 29 */
+    virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetStepplayerCpdefi");   /* slot 50 */
+    virtual void VUnk57() __asm__("func_00140D70");   /* slot 58 */
+    virtual void VUnk58() __asm__("func_00140D00");   /* slot 59 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
+    virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("func_00140DB0");   /* slot 68 */
+    virtual void VUnk71() __asm__("func_001A28B0");   /* slot 72 */
+    virtual void VUnk87(int n) __asm__("func_0023C820");
+    virtual int VUnk88() __asm__("func_0023C820");
+    virtual void VUnk89() __asm__("func_0023C820");
+    virtual void VUnk90() __asm__("func_0023C820");
+    virtual int VUnk91() __asm__("func_0023C820");
+      virtual void OnHeroDied() __asm__("OnStepplayerHeroDied");
+    virtual int VUnk93() __asm__("func_0023C820");
+      virtual void SetPlayerInteractMode(int nKind, LO *ploTarget, int nMode, LO *ploFight) __asm__("SetStepplayerPlayerInteractMode");
+      virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetStepplayerStunHold");
+      virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCmFocusPos");
+    virtual int VUnk97() __asm__("func_001409B8");
+      virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__10STEPPLAYERi");
+      virtual void StartGadget(int idGadget) __asm__("StartStepplayerGadget");
+    virtual void SetCtlState(int nState) __asm__("SetStepplayerCtlState");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void OnActive(int fActive) __asm__("OnStepplayerActive");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("STEPPLAYER_FTakeDamage");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int FInvulnerable(ZPK zpk) __asm__("STEPPLAYER_FInvulnerable");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int JthsCurrent() __asm__("JthsCurrent__10STEPPLAYER");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("func_00140C30");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk82(uint grf, int fCount) __asm__("func_001442D0");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk83(uint grf, int fCount) __asm__("func_00144338");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int VUnk84() __asm__("func_00143C78");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int FCanBeHealed() __asm__("FCanBeHealed__10STEPPLAYER");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual int VUnk85(ZPR *pzpr) __asm__("func_00144418");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void VSlot101() __asm__("UpdateStepplayerGadget");   /* slot 101: not yet identified */
+    virtual void VSlot102() __asm__("StopStepplayerGadget");   /* slot 102: not yet identified */
+    virtual void VSlot103() __asm__("func_0023C820");   /* slot 103: not yet identified */
+    virtual void VSlot104() __asm__("func_00141E30");   /* slot 104: not yet identified */
+    virtual void VSlot105() __asm__("func_00141E70");   /* slot 105: not yet identified */
 };
 typedef char assert_STEPPLAYER_size[sizeof(STEPPLAYER) == 0x1320 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEPPLAYER_jthurt_nHpMax[SLY2_OFFSETOF(STEPPLAYER, jthurt.nHpMax) == 0xDFC ? 1 : -1];   /* JT+0xDFC = 40 = max health (CONFIRMED runtime) */
