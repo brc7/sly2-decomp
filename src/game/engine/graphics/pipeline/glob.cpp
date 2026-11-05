@@ -2761,7 +2761,7 @@ SHD *PshdFromIshd(int ishd);
 int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern uint D_002BE540[];
 extern int D_002BE558[];
-extern QW D_002DEB60;
+extern "C" { QW D_002DEB60; }
 void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut);
 CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis);
 void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis);
@@ -2795,9 +2795,9 @@ extern "C" int func_001ED960(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
 extern int D_003DA790;
 extern int D_003E12D0;
-extern int D_002BE580;
-extern int D_002DEB54;
-extern float D_002A52A0;
+extern "C" int D_002BE580 = 0;
+extern "C" { int D_002DEB54; }
+extern "C" const float D_002A52A0 = 3.40282347e+38f;
 extern char D_00003628[];
 extern char D_000037A8[];
 extern char D_00002EF8[];
@@ -4165,7 +4165,7 @@ extern char D_0025E040[];
 extern char D_00001AA0[];
 extern int D_003E12C8;
 extern QW D_002DF800[];
-extern int D_002DEB70[2];
+extern "C" { int D_002DEB70[2]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps);
