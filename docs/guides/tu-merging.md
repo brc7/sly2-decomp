@@ -1041,6 +1041,10 @@ loops) at line indices computed on the text after asfix.divfix, but in the raw t
 block start in an earlier function shifted them (lo's FMatchesLoName, one nop too many). It now marks the divfixed
 text (divfix is idempotent). Before the change every source under src/game (1,723 files) was compiled to assembly
 and checked: no other file had a shifted marker, so no other object changes.
+After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
+matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). 329
+sources do not build here (the SDK files; the three gnu-reorder game files of earlier waves are gone: emitter's and
+grabspot's now build with the default toolchain).
 
 ## Not merged (and why)
 
