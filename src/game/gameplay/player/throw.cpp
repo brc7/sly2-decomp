@@ -90,7 +90,7 @@ float D_002C40E0 = 1.5f;                        // aim range scale with power-up
 extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
 extern SW D_003DD490;
 float D_002C40E4 = 1.35f;                       // tPredict scale with power-up 0x24
-CLQ D_002C40F0 = {0.15f, 0.55f, 0.0f};          // the launch elevation over the aim distance
+CLQ D_002C40F0 __attribute__((aligned(16))) = {0.15f, 0.55f, 0.0f};   // the launch elevation over the aim distance (16-aligned in the ELF)
 float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limits per second
 extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
@@ -593,7 +593,7 @@ union F32 {float f;int bits;};
 #undef D_002DDFA0
 #define D_002DDFA0 (*(G *)((char *)base_D_002DDF40 + 0x60))   /* g_cm (CM)+0x60 */
 float D_002C4108 = -150.0f;
-F32 D_002C410C = {300.0f};
+float D_002C410C = 300.0f;   /* a plain float: 4-aligned in the ELF, where the F32 union would be 8-aligned */
 /** @sly2-annot addr=0x220388
  * Purpose: vector-state update of hold point for states 4..6 (gain D_002C4108, normalize)
  * Info: proposed name UpdateJtthrowHoldPos (T2); TU throw
