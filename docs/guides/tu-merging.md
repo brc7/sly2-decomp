@@ -690,6 +690,39 @@ unchanged by the run (the commits had already set the new names and sources); th
 progress.py caches results by source mtime only, so it does not rebuild the includers of a changed header: after a
 header change, rebuild every includer with matchtool (pass 1 did, for all 163 `sly2/` includers).
 
+## Data
+
+`matchtool.py check` also verifies every data symbol a file DEFINES whose address is known (a `D_XXXXXXXX` name, or a
+`name = 0xADDR; // type:data size:0xN` line in config/symbol_addrs.txt): initialized data byte for byte against the
+ELF with relocated words masked, .bss by placement (and size, when symbol_addrs.txt gives one). It prints one line per
+data symbol after the functions: `D_002C0D00 @0x2C0D00 [.data 0x4]: MATCH`, or the differing words
+(`!! <addr>  <target bytes> | <ours>`), or a placement problem (`ours is zero-initialized (bss), target is in .rodata`).
+Extern declarations are not checked; a symbol with no known address (template statics, `g_eopidref_*`) is skipped.
+
+Defining a TU's data (pilot, 2026-11-04: pipe, water, hnd, sensor, memory):
+
+1. Find what the TU owns: the survey (/home/claude/ref/reports/data_survey/globals.csv, columns `owner_guess`,
+   `owner_confidence`) lists every D_ with its section, estimated size and users. Data is linked in TU order like
+   code, so the TU's .data/.bss is the range between the previous and the next TU's data; a word inside that range
+   that no code names (pipe's D_002C0D04) is the TU's too.
+2. Replace the TU's `extern` declarations by definitions with the values read from the ELF, in address order (g++
+   emits .data and .bss in definition order; memory's object reproduced the target's .bss offsets exactly). Use the
+   type the code reads and the layout shows: a 16-byte stride of three floats is a CLQ (water), the gap to the next
+   TU's data sizes an array (memory's `D_002F63A0[50]`). Keep the constness the section shows (.data = non-const;
+   .rodata = const or a literal). Do not claim padding-looking zeros up to the next TU's data (hnd, sensor).
+3. Leave `extern` declarations in other TUs' files as they are (memcard still declares memory's globals).
+4. `python3 tools/matchtool.py check <tu>.cpp`: every function still MATCH (defining a global in the TU that uses it
+   can change code generation) and every data symbol MATCH. Commit per TU: `data: define <tu>'s ... in <tu>.cpp`;
+   config/matched.csv does not change.
+
+Known limits: the ELF has no symbol table, so a definition that is too short passes unless symbol_addrs.txt gives
+`size:`; relocated words are masked, so a wrong pointer in a table still passes; unnamed literals and strings are not
+checked (only named symbols). Our compiler puts a const object with a dynamic initializer in .bss, where the original
+has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` report that placement
+difference (their functions match). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
+by any TU, and the end of .bss from about 0x4421A0 is not in TU order (hud, frm, memcard, mpeg, thread mixed, likely
+common symbols): do not define data there by layout.
+
 ## Merged TUs
 
 | TU | file | functions | notes |
