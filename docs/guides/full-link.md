@@ -5,32 +5,35 @@ What it takes to link the matched sources back into SCUS_973.16, and how far the
 round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (integrate/round5, 2026-11-05)
+## Status (types/views-3 on integrate/round5, 2026-11-05)
 
-Authoritative numbers for integrate/round5: round 4 + build/rtti-palettes (`-fno-rtti`, palette section attributes)
-+ data/address-names and data/interior-fields + types/views-2 (the registry classes made real) + 26 more interior
-macros converted (tu-merging.md, "Phase 4: interior fields"), all measured with `-fno-rtti`. Numbers elsewhere in
+Authoritative numbers for types/views-3 (from integrate/round5 9a55eb69): round 4 + build/rtti-palettes (`-fno-rtti`,
+palette section attributes) + data/address-names and data/interior-fields + types/views-2 (the registry classes made
+real) + 26 more interior macros converted (tu-merging.md, "Phase 4: interior fields") + types/views-3 (SW a real
+class, the eight files cc1plus crashed on and six others on the shared headers, 28 more macros: tu-merging.md, "Views
+unified (types/views-3)"), all measured with `-fno-rtti`. Numbers elsewhere in
 this guide that disagree are earlier measurements (marked "superseded").
 
 | measure | value | tool |
 |---|---|---|
 | functions matching | 6,662 / 6,662 (100%; 329 SDK sources carried over, verified on the Mac) | `tools/progress.py`, cache deleted first |
-| files either merged branch touched + includers of the shared headers (169) | functions 5,209 / 5,209, data symbols 1,481 / 1,481 MATCH | `tools/matchtool.py check` |
+| files either merged branch touched + includers of the shared headers (169) | functions 5,209 / 5,209, data symbols 1,481 / 1,481 MATCH (integrate/round5); types/views-3: its 17 source files and the 113 includers of basic.h / sw.h / cm.h all MATCH, and every object's nm symbol set equals integrate/round5's except sw.cpp's (`_vt$2SW` for `D_002DC018`) | `tools/matchtool.py check`, scratch symcheck.py |
 | undefined references not in config (209 merged objects + eopid_linkonce) | 35 (21 namespace views, 19 of them act.cpp's; 14 other: `_gp` in 4 objects, from the linker script; `D_C0`; the `gcc2_compiled.` markers; `__builtin_new`; tn's `Init__5CPLCY`; draw's `g_pfrmOpen`; brx_sw's `_$_3OBJ`; proxy's and spliceobj's three template members) | scratch symcheck.py |
 | duplicate strong definitions | 0 | scratch symcheck.py |
 | relocations checked against the ELF | 27,122 OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
-| address names over the 932 link objects | 324: 275 absolute, 49 aliases (47 to the registry vtables `_vt$<len><NAME>`); 27 alias-table lines | `tools/linkaliases.py` |
+| address names over the 932 link objects | 323: 275 absolute, 48 aliases (to the registry vtables `_vt$<len><NAME>` and other config names; `D_002DC018` became `_vt$2SW`); 27 alias-table entries (config/link_aliases.txt: 42 lines, unchanged by types/views-3) | `tools/linkaliases.py` |
 | ld.lld | 0 errors; 7,910 sections placed, 66 unplaced (544 bytes) | `tools/link.py` |
 | .text equal | 1,416,099 / 1,416,688 (99.96%); from objects 1,281,455 / 1,282,044 (99.95%) | `tools/link.py` |
 | .rodata equal | 303,037 / 304,356 (99.57%); from objects 22,245 / 23,564 (94.40%) | `tools/link.py` |
 | .data equal | 199,086 / 199,088 (99.999%); from objects 34,619 / 34,621 (99.99%) | `tools/link.py` |
 | differing bytes | 1,910: .rodata layout 1,263, .text %hi/%lo to those 589, .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
 | config names at their config address | 7,243 / 7,274 (wrong: .bss 29, .sbss 2) | `tools/link.py` |
-| interior base+offset macros | 47 in 23 files (73 after data/interior-fields) | grep `base_D_` |
+| interior base+offset macros | 19 in 10 files (47 on integrate/round5, 73 after data/interior-fields): all without a header type | grep `(char *)base_D_` |
 | docs links | 0 broken | `tools/docs/linkcheck.py` |
 
 Fixes the merges needed: none under `-fno-rtti` (the data branches' code matches with the flag as without), and
-none for types/views-2 (only full-link.md conflicted; cm.h auto-merged).
+none for types/views-2 (only full-link.md conflicted; cm.h auto-merged). types/views-3 changed no link number but the
+address-name count: symcheck 35 unresolved, relverify 27,122 OK / 0 mismatched, link.py byte counts identical.
 
 ## The target: the ELF's layout
 

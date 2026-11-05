@@ -52,6 +52,22 @@ struct HUDSTACK
       int fSnap;
 };
 
+/* RENDERTGT: one of the two render targets (SW::artgt; types/views-3, from tu_1BE398.cpp's RT view, which reads the
+   texture register through GS TEX0 bit-fields and keeps its own view): size, TEX0, the clearing and the as-texture
+   GIF packets func_001BE398 builds, and the camera object that claimed it (0 when free). */
+struct RENDERTGT
+{
+      int dx, dy;
+      ulong tex0;
+      int cqwClear;         /* +0x10 FRAME/ZBUF/offset/scissor setup and the clearing sprites */
+      union QW *aqwClear;
+      int cqwTex;           /* +0x18 TEX0/TEX1/CLAMP of the target as a texture */
+      union QW *aqwTex;
+      struct RTCAM *prtcam; /* +0x20 */
+      int unk24;
+};
+typedef char assert_RENDERTGT_size[sizeof(RENDERTGT) == 0x28 ? 1 : -1];
+
 /* SW: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct SW : public BASIC
 {
@@ -76,10 +92,10 @@ struct SW : public BASIC
       LO **pploNew;
       SPLCS *psplcs;
       SPLCS *psplcsHead;
-      SL slEvent;
-      SLOTHEAP slotheapEvent;
+      SL slEvent;           /* +0x39F0 [S] the deferred Splice callbacks, sorted by time (basic.cpp ScheduleSwSpliceCallback: its dlCallback) */
+      SLOTHEAP slotheapEvent; /* +0x39FC [S] their records (basic.cpp: slotheapCallback) */
       int fUnk3a14;
-      SAVEVARS savevars;
+      SAVEVARS savevars;    /* +0x3A18 g_svstore: save.cpp's SVSTORE {cent, aent, symtab} is this layout (read through a cast) */
       int ctask;
       DL dlTaskActive;      /* +0x3B00 [S] draft name: the TASKs SetTaskState appends / removes and BroadcastGameEvent walks
                                (game.cpp); was _pad_202 */
@@ -91,7 +107,7 @@ struct SW : public BASIC
       SVPATH *psvpCcoin;    /* +0x3B20 [R] -> save var loot.ccoin (g_gs+0xA0) (runtime3b FINDINGS) */
       SVPATH *psvpWidCurrent;
       SVPATH *psvpEpisodeCurrent;
-      SVPATH *psvpLang;
+      SVPATH *psvpLang;     /* +0x3B2C psvpLang..psvpAutosaveWarned: the settings keys ResetSaveGs keeps across a reset (save.cpp) */
       SVPATH *psvpMixerMode;
       SVPATH *psvpMusicVolume;
       SVPATH *psvpEffectsVolume;
@@ -103,7 +119,7 @@ struct SW : public BASIC
       SVPATH *psvpReverseAim;
       SVPATH *psvpAutosaveWarned;
       SVPATH *apsvpEpisodeDt[9];
-      SVPATH *apsvpEpisodePercent[9];
+      SVPATH *apsvpEpisodePercent[9];   /* +0x3B7C summed by NCompletionPercentGs (save.cpp) */
       HUDSTACK ahudstack[4];
       DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (FWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
@@ -134,14 +150,14 @@ struct SW : public BASIC
       DL dlSoTreeAll;
       DL dlSoTree;
       DL dlSoTreeQueue1;
-      DL dlSoTreeQueue2;
+      DL dlSoTreeQueue2;    /* +0x3D34 [S] the dirty SOTREEs (sensor.cpp appends a beam's tree after moving it) */
       SLOTHEAP slotheapXp;
       int nStampXf;
       int nUnk3d5c;
       int nStampLights;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       uint32_t   _pad_256    [ 1 ] ;
       int nStimulusSerial;
-      int cEventWorld;
+      int cEventWorld;      /* +0x3D6C [S] last callback id handed out (basic.cpp pre-increments it: its cCallbackId) */
       int nUnk3d70;
       int nUnk3d74;
       int cHandsOff;        /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
@@ -211,7 +227,7 @@ struct SW : public BASIC
       SLOTHEAP slotheapUnk4054;
       uint32_t   _pad_318    [ 1 ] ;
       SLOTHEAP slotheapUnk4070;
-      SLOTHEAP slotheapUnk4088;
+      SLOTHEAP slotheapUnk4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
       SLOTHEAP slotheapUnk40a0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
       SLOTHEAP slotheapSsge;
       SLOTHEAP slotheapJsg; /* +0x40D0 [S] JSG slot heap (relay.cpp allocates / frees JSGs); was _pad_323 */
@@ -234,9 +250,9 @@ struct SW : public BASIC
       REGTREE *pregtree;
       CLQ clqGuardScale;
       LM lmGuardScale;
-      uint32_t   _pad_338    [ 20 ] ;
-      LO *ploUnk4638;
-      int cCid37;
+      RENDERTGT artgt[2];   /* +0x45E8 [S] the two 128x128 render targets (tu_1BE398.cpp); was _pad_338 */
+      LO *ploUnk4638;       /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
+      int cCid37;           /* +0x463C [S] next booty-container id (booty.cpp func_0013CEF8 post-increments it) */
       int clangstr;
       LANGSTR *alangstr;
       SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (tu_20B840.cpp); was _pad_343 */
@@ -262,9 +278,15 @@ struct SW : public BASIC
       int cpemitTracked;
       struct EMITTER *apemitTracked[4];
       uint32_t   _pad_360    [ 1 ] ;
-    virtual void VSlot7();   /* slot 7: not yet identified */
-    virtual void VSlot8();   /* slot 8: not yet identified */
-    virtual void VSlot9();   /* slot 9: not yet identified */
+    /* Construction: out of line (SW_ctor, world/scene/sw.cpp; the factory NewSw in app/class_registry.cpp). */
+    SW() __asm__("SW_ctor");
+    /* Virtual layout of the ELF vtable _vt$2SW (0x2DC018, 9 slots): slots 1-5 BASIC's, then the overrides and
+       additions, each labelled with the function the vtable holds (types/views-3). Pclassinfo is the first virtual
+       SW declares, so it is the key function: no TU emits _vt$2SW (GetSwClassDesc is a C definition). */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSwClassDesc");   /* slot 6 */
+    virtual void Update() __asm__("UpdateSw");                   /* slot 7: the per-frame world update (update.cpp) */
+    virtual void Render() __asm__("RenderSw");                   /* slot 8 (render.cpp) */
+    virtual void Draw() __asm__("DrawSw");                       /* slot 9 (draw.cpp) */
 };
 typedef char assert_SW_size[sizeof(SW) == 0x4790 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_SW_dlChild[SLY2_OFFSETOF(SW, dlChild) == 0x10 ? 1 : -1];   /* root DL ibDle 0x24 (CONFIRMED runtime; Lilly name dlChild) */
@@ -309,6 +331,8 @@ typedef char assert_SW_dlCid14Pending[SLY2_OFFSETOF(SW, dlCid14Pending) == 0x45B
 typedef char assert_SW_clqGuardScale[SLY2_OFFSETOF(SW, clqGuardScale) == 0x45D0 ? 1 : -1];
 typedef char assert_SW_slotheapLeap[SLY2_OFFSETOF(SW, slotheapLeap) == 0x4648 ? 1 : -1];
 typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x4660 ? 1 : -1];
+typedef char assert_SW_artgt[SLY2_OFFSETOF(SW, artgt) == 0x45E8 ? 1 : -1];
+typedef char assert_SW_ploUnk4638[SLY2_OFFSETOF(SW, ploUnk4638) == 0x4638 ? 1 : -1];
 typedef char assert_SW_tUnk4758[SLY2_OFFSETOF(SW, tUnk4758) == 0x4758 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 

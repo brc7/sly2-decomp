@@ -12,6 +12,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CB8E8
 
 #include "sly2/basic.h"
+#include "sly2/cframe.h"
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
