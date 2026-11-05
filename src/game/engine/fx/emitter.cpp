@@ -1794,7 +1794,7 @@ namespace M_EmitParticles__FiP5EMITBP5EMITG {
 class CFrame {
     int m_a[4];
 public:
-    CFrame();
+    CFrame() __asm__("STACKSCOPE_ctor");
     ~CFrame();
 };
 struct LOC { int q0, q1, q2, q3; int f; int pad[3]; };
