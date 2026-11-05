@@ -405,7 +405,7 @@ struct JTTHROW
       undefined4 unk_0x134[(0x140 - 0x134) / 4];
 };
 
-/* STEPPLAYER: from src/game/gameplay/player/air/UpdateJtAirInput.cpp (15 copies in Lilly ports) */
+/* STEPPLAYER: from src/game/gameplay/player/air.cpp (UpdateJtAirInput) (15 copies in Lilly ports) */
 struct STEPPLAYER : public STEP
 {
       JTAIR jtair;
