@@ -878,8 +878,8 @@ extern "C" void FreeBanksnd(void *pv)
 namespace M_PstreamsndNew {
 struct A; struct B;
 struct X {
-    static void *operator new(unsigned int cb);
-    X(A *pa, B *pb);
+    static void *operator new(unsigned int cb) __asm__("PvAllocStreamsnd");
+    X(A *pa, B *pb) __asm__("STREAMSND_ctor");
     char pad[0x3C0];
 };
 /** @sly2-annot addr=0x1FC138
@@ -1633,7 +1633,7 @@ public:
     short S16Read();
     int S32Read();
     float F32Read();
-    void ReadFileRecord(void *pv);
+    void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
 };
 struct FILEREC
 {
@@ -1644,8 +1644,8 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc);
-void *PvAllocSwClearImpl(SWALLOC *pswalloc);
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
 inline void *PvAllocSwLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;
