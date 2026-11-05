@@ -55,6 +55,7 @@ struct WIDGETV { char pad0[0xC]; VTEW *pvt; };
 
 extern SW D_003DD490;
 extern "C" {
+extern int D_002DEB28;      /* declared before g_game: .bss is emitted in first-declaration order */
 extern char D_002DEB30[];   /* g_game */
 #undef D_002DEB40
 #define D_002DEB40 (*(int *)((char *)base_D_002DEB30 + 0x10))   /* g_game+0x10 */
@@ -3856,5 +3857,8 @@ extern const char D_002A5238[] = "oidPoCurrent";
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 int D_002DEB28;
-namespace M_InitGame { extern "C" { struct S D_002DEB30; } }   /* g_game, the 0x1C-byte GAME record InitGame clears */
+/* g_game, the 0x1C-byte GAME record InitGame clears (M_InitGame::S). Defined at file scope as bytes: plain objects
+ * are emitted at the end of the file, file scope first, then namespace by namespace, so a definition inside
+ * M_InitGame landed after D_002DEB4C. The file-scope declaration above is char[]; the views keep their types. */
+char D_002DEB30[0x1C];
 void *D_002DEB4C;

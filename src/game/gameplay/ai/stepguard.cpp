@@ -57,6 +57,8 @@ struct BHVARG : public BHV
 };
 
 extern CLOCK D_002DDED0;        /* g_clock */
+extern ulong D_003DD480;        /* declared first: .bss is emitted in first-declaration order */
+extern int D_003DD488;
 extern LO *D_003DD48C;          /* the guard manager */
 extern LO *D_002DD648;
 LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
