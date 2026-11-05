@@ -657,7 +657,7 @@ struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];MO
 struct CLOCK{float time,dt;};struct WORK{U a,b;};
 extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
-extern float D_002BF288,D_002BF28C,D_002BF290,D_002BF294;
+float D_002BF288 = 4000.0f, D_002BF28C = 4500.0f, D_002BF290 = 100.0f, D_002BF294 = 1.0f;
 void func_001F9B20(P*);void PresetStepAccel(P*);
 void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
 void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
@@ -761,8 +761,8 @@ struct O { char pad[0x4C8]; int x4C8; int x4CC; char pad1[0x4D4 - 0x4D0]; struct
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-extern float D_002BF298;
-extern float D_002BF29C;
+float D_002BF298 = 0.25f;
+float D_002BF29C = 3.0f;
 extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
 extern void func_0019E9C8(void *p, struct A *pa, void *pv);
 extern void func_001A2100(void *p, struct A *pa, void *pv);
@@ -1290,12 +1290,12 @@ static inline qword QwCross(qword a, qword b)
 qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross);
 extern qword D_002A2DC0;
-extern float D_002BF2D0;
-extern float D_002BF2D4;
-extern float D_002BF2D8;
-extern float D_002BF2DC;
-extern float D_002BF2E0;
-extern float D_002BF300;
+extern "C" float D_002BF2D0 = 0.1f;
+extern "C" float D_002BF2D4 = 1000.0f;
+extern "C" float D_002BF2D8 = 20.0f;
+extern "C" float D_002BF2DC = -7.5f;
+extern "C" float D_002BF2E0 = 0.5f;
+extern "C" float D_002BF300 = 1000.0f;
 extern CLQ D_002BF310;
 extern SMPA D_002BF320;
 extern CLQ D_002BF330;
@@ -1557,8 +1557,8 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
     return qw;
 }
 extern qword D_002A2DC0;
-extern int D_002BF340;
-extern int D_002BF344;
+extern "C" int D_002BF340 = 0x42480000;          // 50.0f, read as its bits
+extern "C" int D_002BF344 = (int)0xC2480000;     // -50.0f, read as its bits
 extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
 /** @sly2-annot addr=0x189C40
@@ -1893,7 +1893,7 @@ typedef struct CLOCK { float t; float dt; } CLOCK;
 struct SMP {float a,b,duration;};
 
 extern "C" CLOCK D_002DDED0;
-extern "C" SMP D_002BF348;
+extern "C" SMP D_002BF348 = {600.0f, 300.0f, 0.1f};
 
 extern "C" float RadStepHeading(A *p);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
@@ -2166,9 +2166,9 @@ qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGrav
 }
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
-extern float D_002BF354;
-extern float D_002BF360;
-extern float D_002BF364;
+extern "C" float D_002BF354 = 150.0f;
+extern "C" float D_002BF360 = 5.0f;
+extern "C" float D_002BF364 = 0.5f;
 extern qword D_002BF370;
 extern qword D_002A2DA0;
 extern qword D_002A2DC0;
@@ -2590,7 +2590,7 @@ struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];str
 struct DV{char pad[0x20];qword value;};
 struct P{char pad[0x60];struct SPACE*space;char pad64[0x1030-0x64];struct MODEL*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
-extern float D_002BF380,D_002BF3A0,D_002BF3B8,D_002BF3BC;
+float D_002BF380 = 0.15f, D_002BF3A0 = 0.75f, D_002BF3B8 = 120.0f, D_002BF3BC = 0.25f;
 extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
@@ -2796,7 +2796,7 @@ struct P{
 };
 union PHASE{qword direction;U scalar;};
 extern qword D_002A2DD0;extern char D_003DD490[];
-extern float D_002BF3C0,D_002BF3C4,D_002BF3C8,D_002BF3CC,D_002BF35C;
+float D_002BF3C0 = 1000.0f, D_002BF3C4 = 1.0f, D_002BF3C8 = 0.4f, D_002BF3CC = 0.5f, D_002BF35C = 0.1f;
 float RadStepHeading(struct P*);float RadNormalize__Ff(float);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
 void func_0018B2C0(struct P*);void JtChooseGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
@@ -2941,10 +2941,10 @@ struct X150 { char pad[0x18]; float g18; };
 struct X1854 { char pad[0x124]; int x124; };
 typedef union { qword q; float f[4]; } VU;
 
-extern float D_002BF3D4;
-extern float D_002BF3D8;
+float D_002BF3D4 = 1.3f;
+float D_002BF3D8 = 0.85f;
 
-extern float D_002BF3DC;
+float D_002BF3DC = 20.0f;
 
 extern void UpdateStepplayer(void *p);
 extern void UpdateJtPre(void *p);
@@ -3303,10 +3303,10 @@ void UpdateHeadingSmooth(STEP *pstep);
 }
 void SlotSetRole(SO *pso, XF *pxf, int nRole);
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn);
-extern float D_002BF3E0;
-extern float D_002BF3E4;
-extern float D_002BF3E8;
-extern float D_002BF358;
+extern "C" float D_002BF3E0 = 400.0f;
+extern "C" float D_002BF3E4 = 0.25f;
+extern "C" float D_002BF3E8 = 1000.0f;
+extern "C" float D_002BF358 = 3.0f;
 extern float D_002BF35C;
 static inline void ClearXyz(VECTOR *pvec)
 {
@@ -4105,8 +4105,8 @@ extern CM D_002DDF40;
 
 
 
-extern float D_002BF3EC;
-extern float D_002BF3F0;
+float D_002BF3EC = 0.25f;
+float D_002BF3F0 = 1.35f;
 int FPocketItemCarried(CID100 *pcid100);
 JTPOCKET *FindJtPocket(JT *pjt, int idGadget);
 /** @sly2-annot addr=0x18D760
@@ -4521,7 +4521,7 @@ struct SMP{float a,b,c;};
 extern "C" CLOCK D_002DDED0;
 extern "C" M3 D_002DDFA0;
 extern "C" qword D_002A2DC0;
-extern "C" SMP D_002BF3F8,D_002BF408;
+extern "C" SMP D_002BF3F8 = {25.0f, 0.0f, 0.25f}, D_002BF408 = {1000.0f, 0.0f, 0.25f};
 extern "C" M4*func_001A6318(P*);
 extern "C" qword func_001A62E8(P*);
 extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
@@ -4691,7 +4691,7 @@ extern void SetStepRadTargetVec(struct O *p, qword v);
 extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
 extern M3 *InvertMatrix3Cofactor(M3 *pmOut, M3 *pm);
 extern struct CLOCK D_002DDED0;
-extern float D_002BF414;
+float D_002BF414 = 200.0f;
 extern char D_002BF418[];
 extern qword D_002A2DA0;
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
