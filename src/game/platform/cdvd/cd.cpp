@@ -24,7 +24,7 @@ extern int D_003DD0E4;
 extern "C" {
 char *strupr(char *);
 char *strcpy(char *, const char *);
-char *strcat(char *, const char *);
+char *strcat(char *, const char *) __asm__("strcpy1");
 unsigned int strlen(const char *);
 int sprintf(char *, const char *, ...);
 int sceCdGetDiskType(void);
