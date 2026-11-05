@@ -1,7 +1,7 @@
 # Full PS2 link (sketch)
 
 What it takes to link the matched sources back into SCUS_973.16, and how far the repo is (integrate/round3:
-link round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). Nothing here is built yet: no linker script, no link step. The symbol side is in
+link round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
 ## The target: the ELF's layout
@@ -88,9 +88,97 @@ tu-merging.md "Inline functions and linkonce copies"); `.vutext` with the DVP ov
 outside the segments; `.irx` at 0x472200 in its own PT_LOAD; the output of `tools/linkaliases.py` included; the
 key-TU extras discarded.
 
+## Prototype link (link/prototype, 2026-11-05)
+
+`python3 tools/link.py [--no-compile] [--tu-data]` (one script plus the template tools/link.ld.in). Needs `ld.lld`
+and `llvm-objcopy` (LLVM 18 here; no MIPS GNU binutils were installable in the workspace) and your disc/SCUS_973.16.
+Everything it writes goes to build/link/ (ignored): objects, build/link/blobs.o (byte ranges cut from your ELF), the
+linker script sly2.ld, sly2.elf, ld.log, and the diagnostics overlaps.txt, conflicts.txt, unplaced.txt,
+mismatch.txt. A full run is ~6 min of compiling (932 sources, 2 cores) plus ~20 s; `--no-compile` reuses the objects.
+
+What it does:
+
+1. **Objects.** Every source of config/matched.csv that builds here, through matchtool's `compile_src` (same flags,
+   per-file overrides and relative path), plus `-ffunction-sections -fdata-sections`. Checked: with those flags all
+   6,334 functions with a config address still MATCH, and 1,236 of 1,238 data symbols (the 2 others fail the same way
+   without the flags, see below). The 329 SDK sources needing GNU as / native ee-gcc 2.96 are not built.
+2. **Placement.** Each object section's address is derived from the ELF, not assumed: votes from every symbol with a
+   config address (weighted by size), then propagated through relocations: for a placed section, the ELF's relocated
+   field (jal target, %hi/%lo pair, word) minus the object's addend gives the address of the target section or symbol.
+   The same propagation gives addresses to 53 undefined names no config file knows (`_impure_ptr`, `_ctype_`, the slot
+   pool init guards `__sn_t9CSlotPool...`, `__as__4CRefPv`...) and to COMMON symbols, which become absolute
+   assignments in the script (as do config names that only unbuilt code defines).
+3. **Script.** One output section per allocated ELF section at its address (from the ELF's headers); in it, object
+   sections in address order with `. = ADDR;`, and every byte no object covers filled from blobs.o; `_gp` from
+   .reginfo; tools/linkaliases.py's lines. Object fixes before linking (in build/link/fix/): llvm-objcopy rewrites
+   each object (gcc 2.95's as puts local symbols after globals, which ld.lld rejects) and applies the
+   `[source]` renames of config/link_aliases.txt; sections holding one symbol are cut to the symbol's size (gas pads
+   each section to its alignment, which with one section per object would overlap the next object). Linkonce
+   copies: the first placed copy is linked, the other copies' symbols are bound to its address. `--gc-sections` with
+   every placed section `KEEP`: the key-TU extras (unreferenced vtables, typeinfo) drop out.
+4. **Compare.** sly2.elf against the ELF byte by byte per section, with the owner (object section or blob) and the
+   reason (from the relocation at the differing word) of each differing byte; config names at the wrong address in
+   the output (this is what checks .sbss/.bss, which have no bytes).
+
+### Measured (integrate/round3 d864c1bc sources)
+
+"from objects" counts only bytes that object sections supply; the rest is blob and matches by construction.
+
+| section | bytes | equal | match | from objects | equal | match |
+|---|---:|---:|---:|---:|---:|---:|
+| .text | 1,416,688 | 1,415,991 | 99.95% | 1,282,044 | 1,281,347 | 99.95% |
+| .vutext | 34,112 | 34,112 | 100% (blob) | 0 | | |
+| .rodata | 304,356 | 303,004 | 99.56% | 21,552 | 20,200 | 93.73% |
+| .data | 199,088 | 199,069 | 99.99% | 33,505 | 33,486 | 99.94% |
+| .irx | 474,176 | 474,176 | 100% (blob) | 0 | | |
+| .sbss/.bss | (no bytes) | | | | | |
+
+Config names at their config address in the output: 7,022 of 7,075 (wrong: .bss 50, .sbss 2, .rodata 1).
+
+With `--tu-data` (no `-fdata-sections`: each object's .data/.rodata laid out in source order, as a real link would):
+.text 99.80% (objects 99.78%), .rodata 98.14% (objects 11,604 of 17,280 = 67.15%), .data 99.34% (objects 29,655 of
+30,972 = 95.75%); config names at their address 6,652 of 7,133 (wrong: .data 308, .rodata 121, .bss 50). This is
+the data-order work list for the real link.
+
+Blob-covered bytes (default mode), by reason: IOP modules (.irx) 474,176; data no object defines 448,387; text of SDK
+sources that do not build here 118,224; VU microcode 34,112; text padding / not in config 14,276 (mostly inter-function
+alignment padding left by `-ffunction-sections`); dead code (junk.csv) 2,136; unmatched function 4
+(`func_00100000`); matched but not in an object 4. The non-allocated `.DVP.*` overlay sections are not produced.
+
+Placement: 7,703 object sections placed; 159 sections that repeat bytes another object already places (the generated
+splicewrap files each carry their own copy of a string of the one original crt0 TU) and 6 .bss sections lying under a
+section whose layout differs are bound to their address instead of linked; 9 sections have a stricter alignment than
+their ELF address allows (alignment lowered: guardbhv .rodata 16, hurt's three 8-byte .data objects at 4-aligned
+addresses, ...); 2 sections overlap and go to `.unplaced` (class_registry .rodata, hurt .rodata); 83 unplaced (3,072
+bytes: key-TU vtables/typeinfo of JT, ACCMISS, SM, CMPART2, eopid_linkonce's `g_eopidref_*` pointers, grab.cpp's local
+class destructor, 100 bytes of snd_SendCurrentBatch .data).
+
+### Remaining mismatch classes (default mode, 2,068 bytes)
+
+1. **Object sections whose internal layout differs from the ELF** (1,296 .rodata bytes, plus 697 .text bytes of
+   %hi/%lo referencing them). Anonymous literal pools (18 objects; 15 of them interleave with the object's named
+   .rodata in the ELF, so in this mode it is an artifact of `-fdata-sections`, in `--tu-data` mode a source data-order
+   issue: memcard, guardbhv, text, screen, air, stepplayer, jt, prize ...) and file-level .bss whose order differs
+   from the ELF (`-fdata-sections` does not split .bss in g++ 2.95): gs, joy, dl, shd, screen, mpeg, memcard, game,
+   sprbuf (build/link/conflicts.txt lists the competing addresses).
+2. **Typeinfo slots in vtables** (17 .data bytes): our vtables point at `__tf*` typeinfo functions, the ELF's slot is 0.
+   With `-fno-rtti` the vtables match and the typeinfo extras (and `__rtti_si`/`__rtti_user`) disappear; heap, gifs,
+   bq, bis, dmas, vifs and jt compiled with it still MATCH all functions. matchtool's data check masks relocated
+   words, which is why this never showed. Decision for you: add `-fno-rtti` to the default CFLAGS (needs a full
+   progress run).
+3. **Bytes differ with no relocation** (53 .rodata + 2 .data): stepguard .rodata 24, bentley 7, aseg, hud, act,
+   tu_1BAB50, relay; and two zero-initialized arrays that are const in the ELF (tu_1147D8 D_0029A7C0, tu_114AE0
+   D_002A2900: `.bss` in ours, `.rodata` in the ELF; matchtool check reports the same).
+4. **Code order for a TU-section link** (no bytes here, since every function is placed alone): 893 objects' code is
+   one contiguous run in source order; 38 are split by other objects' code: class_registry (24 runs, interleaved
+   with splice_thunks/splicewrap in the crt0 block) and the TUs that keep a linkonce-area copy as a plain function
+   (eval 6, sidebag 5, frame 5, ref 4, basic 4, emitter 4, bif 4, spliceobj 3, splicemap 3 ...).
+
 ## What is left, in order
 
-1. Settle the libcdvd name inconsistency in config (functions.csv vs symbol_addrs.txt).
-2. Run the symbol check over the per-function directories and the generated wrappers (70 references to look at).
-3. Write the overlay-link script for the game objects and compare the image (blobs for everything else).
-4. Data from source, TU by TU (the `D_` names are the work list), toward the real link.
+1. Decide `-fno-rtti` (class 2) and re-run the match check.
+2. Data order from source, TU by TU, measured with `--tu-data` (conflicts.txt, mismatch.txt); the `D_` names nobody
+   defines stay the work list for the real link.
+3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
+   copies back into inline/template instances, so `.text` can link without `-ffunction-sections`.
+4. The SDK objects built on the Mac (118,224 blob bytes of .text today).
