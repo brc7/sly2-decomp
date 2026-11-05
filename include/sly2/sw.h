@@ -76,8 +76,8 @@ struct SW : public BASIC
       LO **pploNew;
       SPLCS *psplcs;
       SPLCS *psplcsHead;
-      SL slEvent;
-      SLOTHEAP slotheapEvent;
+      SL slEvent;           /* +0x39F0 [S] the deferred Splice callbacks, sorted by time (basic.cpp ScheduleSwSpliceCallback: its dlCallback) */
+      SLOTHEAP slotheapEvent; /* +0x39FC [S] their records (basic.cpp: slotheapCallback) */
       int fUnk3a14;
       SAVEVARS savevars;    /* +0x3A18 g_svstore: save.cpp's SVSTORE {cent, aent, symtab} is this layout (read through a cast) */
       int ctask;
@@ -141,7 +141,7 @@ struct SW : public BASIC
       int nStampLights;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       uint32_t   _pad_256    [ 1 ] ;
       int nStimulusSerial;
-      int cEventWorld;
+      int cEventWorld;      /* +0x3D6C [S] last callback id handed out (basic.cpp pre-increments it: its cCallbackId) */
       int nUnk3d70;
       int nUnk3d74;
       int cHandsOff;        /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
