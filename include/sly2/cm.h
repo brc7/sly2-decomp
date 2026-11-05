@@ -34,7 +34,7 @@ struct CPLCYDATA
 struct CPLCY : public CPLCYDATA
 {
     virtual void Init();
-    int FIsTop();   /* from FCanUseGadget__2JTi.cpp */
+    int FIsTop() __asm__("FActiveCplcy__FP5CPLCY");   /* from FCanUseGadget__2JTi.cpp */
 };
 
 /* CPLOOK: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
@@ -86,14 +86,14 @@ struct CPZOOM : public CPLCY
       CRefPtr<SND> psndZoom;
       CRefPtr<SND> psndUnkc4;
       uint32_t   _pad_245    [ 2 ] ;
-    void Reset();
-    void SetOwner(LO *plo);
-    void SetFocus(LO *plo);
-    void SetPose(qword pos, qword eul, float radFov);
-    void SetZoom(float u);
-    int FAtTargetFocus();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
-    int FAtTargetEye();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
-    int FAtTargetZoom();   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    void Reset() __asm__("SnapCpzoom");
+    void SetOwner(LO *plo) __asm__("SetCpzoomOwner");
+    void SetFocus(LO *plo) __asm__("SetCpzoomFocus");
+    void SetPose(qword pos, qword eul, float radFov) __asm__("SetCpzoomPose");
+    void SetZoom(float u) __asm__("SetCpzoomUZoomTarget");
+    int FAtTargetFocus() __asm__("func_00150F58");   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetEye() __asm__("func_00151018");   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FAtTargetZoom() __asm__("func_001510D8");   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 
 /* CPTURRET: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */

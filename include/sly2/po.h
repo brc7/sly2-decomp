@@ -30,10 +30,10 @@ struct POCTL : public BASIC
       float atLeftStick[2];
       float atRightStick[2];
       uint32_t   _pad_78    [ 2 ] ;
-    void ClearJoyPressed(int grf);
+    void ClearJoyPressed(int grf) __asm__("ClearPoctlJoyPressed");
     uint GrfPressedWithin(uint grf, float dt);
     uint GrfConsumePressed(uint grf, float dt);
-    int FConsumePressed(uint grf);   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
+    int FConsumePressed(uint grf) __asm__("POCTL_FConsumePressed");   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

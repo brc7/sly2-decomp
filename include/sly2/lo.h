@@ -80,7 +80,7 @@ struct LO : public BASIC
       virtual void VUnk37(LO *plo);
       virtual void VUnk38();
       virtual void CloneHierarchy(LO *ploBase);
-      virtual void Clone(LO *ploBase);
+      virtual void Clone(LO *ploBase) __asm__("CloneLo");
       virtual void VUnk41(float sBusy);
       virtual void *VUnk42(int id);
       virtual void VUnk43(int id);

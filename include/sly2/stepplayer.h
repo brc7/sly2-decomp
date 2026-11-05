@@ -104,8 +104,8 @@ struct JTMODEHUD
       struct WIDGET *pwidgetCur;
       int *pnUnk14;
       float uZoom;
-    void SetState(int nState);
-    void SetWidgetCur(struct WIDGET *pwidget);
+    void SetState(int nState) __asm__("func_0019D660");
+    void SetWidgetCur(struct WIDGET *pwidget) __asm__("func_0019DCA0");
 };
 
 /* JTMODE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */

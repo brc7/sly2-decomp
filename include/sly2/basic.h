@@ -246,8 +246,8 @@ public:
       CRefPtr<CFrame> m_apframeParent[4];
       CRefPtr<CVarb> m_pvarb;
       int m_fVisited;
-    void RemoveParent(CFrame *pframeParent);
-    void AddParent(CFrame *pframeParent);   /* from LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp */
+    void RemoveParent(CFrame *pframeParent) __asm__("CFrame_RemoveParent");
+    void AddParent(CFrame *pframeParent) __asm__("CFrame_AddParent");   /* from LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp */
 };
 
 /* BASIC: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (29 copies in Lilly ports) */
