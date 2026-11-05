@@ -166,13 +166,13 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 |---|---|---|---|---|
 | `0x2CAB90` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamera?`, 3=`DeactivateCpcamera?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamera?`, 7=`ResetCplcy?` | [`CPCAMERA_ctor`](../../src/game/engine/camera/tu_12E600.cpp) (+0xC) | — |
 | `0x2CD378` | 8 | 1=`InitCplcy?`, 2=`ActivateCptwoshot?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptwoshot?`, 7=`ResetCplcy?` | [`CM_ctor?`](../../src/game/engine/camera/cm/CM_ctor.c) (+0xC) | — |
-| `0x2CD3C0` | 8 | 1=`InitCplcy?`, 2=`ActivateCpturret?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpturret?`, 7=`ResetCplcy?` | [`CPTURRET_ctor?`](../../src/game/engine/camera/cplcy/CPTURRET_ctor.c) (+0xC) | — |
-| `0x2CD408` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamblend?`, 3=`DeactivateCpcamblend?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamblend?`, 7=`ResetCplcy?` | [`CPCAMBLEND_ctor?`](../../src/game/engine/camera/cplcy/CPCAMBLEND_ctor.c) (+0xC) | — |
-| `0x2CD450` | 8 | 1=`InitCplcy?`, 2=`ActivateCphang?`, 3=`DeactivateCphang?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCphang?`, 7=`ResetCplcy?` | [`CPHANG_ctor?`](../../src/game/engine/camera/cplcy/CPHANG_ctor.c) (+0xC) | — |
-| `0x2CD498` | 8 | 1=`InitCplcy?`, 2=`ActivateCpzoom?`, 3=`DeactivateCpzoom?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpzoom?`, 7=`ResetCpzoom?` | [`CPZOOM_ctor?`](../../src/game/engine/camera/cplcy/CPZOOM_ctor.c) (+0xC) | — |
-| `0x2CD4E0` | 8 | 1=`InitCplcy?`, 2=`ActivateCplook?`, 3=`DeactivateCplook?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCplook?`, 7=`ResetCplook?` | [`CPLOOK_ctor?`](../../src/game/engine/camera/cplcy/CPLOOK_ctor.c) (+0xC) | — |
-| `0x2CD528` | 8 | 1=`InitCmpart1?`, 2=`ActivateCplcy?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCmpart1?`, 7=`ResetCplcy?` | [`CMPART1_ctor?`](../../src/game/engine/camera/cplcy/CMPART1_ctor.c) (+0xC) | — |
-| `0x2CD570` | 8 | 1=`InitCplcy?`, 2=`ActivateCplcy?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCplcy?`, 7=`ResetCplcy?` | [`CPLCY_ctor?`](../../src/game/engine/camera/cplcy/CPLCY_ctor.c) (+0xC) | — |
+| `0x2CD3C0` | 8 | 1=`InitCplcy?`, 2=`ActivateCpturret?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpturret?`, 7=`ResetCplcy?` | [`CPTURRET_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
+| `0x2CD408` | 8 | 1=`InitCplcy?`, 2=`ActivateCpcamblend?`, 3=`DeactivateCpcamblend?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpcamblend?`, 7=`ResetCplcy?` | [`CPCAMBLEND_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
+| `0x2CD450` | 8 | 1=`InitCplcy?`, 2=`ActivateCphang?`, 3=`DeactivateCphang?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCphang?`, 7=`ResetCplcy?` | [`CPHANG_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
+| `0x2CD498` | 8 | 1=`InitCplcy?`, 2=`ActivateCpzoom?`, 3=`DeactivateCpzoom?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCpzoom?`, 7=`ResetCpzoom?` | [`CPZOOM_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
+| `0x2CD4E0` | 8 | 1=`InitCplcy?`, 2=`ActivateCplook?`, 3=`DeactivateCplook?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCplook?`, 7=`ResetCplook?` | [`CPLOOK_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
+| `0x2CD528` | 8 | 1=`InitCmpart1?`, 2=`ActivateCplcy?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCmpart1?`, 7=`ResetCplcy?` | [`CMPART1_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
+| `0x2CD570` | 8 | 1=`InitCplcy?`, 2=`ActivateCplcy?`, 3=`DeactivateCplcy?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCplcy?`, 7=`ResetCplcy?` | [`CPLCY_ctor?`](../../src/game/engine/camera/cplcy.cpp) (+0xC) | — |
 | `0x2DB858` | 8 | 1=`InitCptn?`, 2=`ActivateCptn?`, 3=`DeactivateCptn?`, 4=`SetCplcy?`, 5=`CPLCY_Revoke?`, 6=`UpdateCptn?`, 7=`ResetCplcy?` | [`CPTN_ctor?`](../../src/game/engine/camera/tn.cpp) (+0xC) | — |
 
 #### B2.12 GRABSPOT

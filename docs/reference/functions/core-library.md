@@ -502,7 +502,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x257F48](../../../src/game/splice/spliceutils.cpp) | `GcShutdownProcPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257F88](../../../src/game/splice/spliceutils.cpp) | `GcShutdownSidebagPool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x257FC8](../../../src/game/splice/spliceutils.cpp) | `GcShutdownPool6Pool` | zero list heads/count and ResetSlotheap [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x258040](../../../src/game/engine/camera/cplcy/RcPtr_Assign.c) | `RcPtr_Assign` | Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store | 0.60 | T1 | top50; top50 round; v2 name RcPtrAssign_00258040 |
+| [0x258040](../../../src/game/engine/camera/cplcy.cpp) | `RcPtr_Assign` | Ref-pointer assignment for objects with virtual refcounting: new->Incref (vt slot1), old->Decref (vt slot2), store | 0.60 | T1 | top50; top50 round; v2 name RcPtrAssign_00258040 |
 | [0x2580A8](../../../src/game/engine/anim/asega.cpp) | `SidebagPtr_Assign` | refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x258178](../../../src/game/object/basic.cpp) | `GcSidebag_MakeRoot` | move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x2581B8](../../../src/game/engine/anim/blend.cpp) | `GetKind5` | virtual returning constant 5 [game linkonce (inline/template)] | 0.15 | T2 |  |

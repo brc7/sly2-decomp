@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`cm/`](cm/) | 55 |
-| [`cplcy/`](cplcy/) | 51 |
+| [`cplcy.cpp`](cplcy.cpp) | 1 |
 | [`tn.cpp`](tn.cpp) | 1 |
 | [`tu_12E600.cpp`](tu_12E600.cpp) | 1 |
 
