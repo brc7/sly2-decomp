@@ -14,6 +14,11 @@
 #include "sly2/stackscope.h"
 #include "gifs.h"
 #include "vifs.h"
+extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_002DDF40[] __asm__("D_002DDF40");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
 struct WIDGET : public LO
@@ -47,9 +52,11 @@ struct SPRITEGRP
 
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
-extern DL D_003E1060;           /* exclusive widget list */
+#undef D_003E1060
+#define D_003E1060 (*(DL *)((char *)base_D_003DD490 + 0x3BD0))   /* g_sw+0x3BD0: SW::_pad_228 */   /* exclusive widget list */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
-extern int D_003DA0D8;          /* ticker text id */
+#undef D_003DA0D8
+#define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
 extern "C" char D_C0[];         /* VU1 microprogram entry at 0xC0 */
 char *PchzFindSwLangstr(SW *psw, int id);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
@@ -140,7 +147,8 @@ void BuildClueCountText(void *f)
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern float D_003E1BFC;
+#undef D_003E1BFC
+#define D_003E1BFC (*(float *)((char *)base_D_003DD490 + 0x476C))   /* g_sw+0x476C: SW::tHudTimerEnd */
 extern struct CLOCK { float t; float dt; } D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...);
@@ -160,12 +168,16 @@ void BuildTimerText(void *f)
     }
 }
 } } // namespace M_BuildTimerText
+#undef D_003E1BFC
 
 // 0x210FE0 func_00210FE0
 namespace M_func_00210FE0 { extern "C" {
 struct X { char pad[0xF20]; int xF20; char padf24[0x18]; float xF3C; };
 extern char D_003DD490[];
-extern float D_002DE3B8, D_002DE514;
+#undef D_002DE3B8
+#define D_002DE3B8 (*(float *)((char *)base_D_002DDF40 + 0x478))   /* g_cm (CM)+0x478 */
+#undef D_002DE514
+#define D_002DE514 (*(float *)((char *)base_D_002DDF40 + 0x5D4))   /* g_cm (CM)+0x5D4 */
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
 struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
@@ -208,6 +220,8 @@ void func_00210FE0(char *pch)
     }
 }
 } } // namespace M_func_00210FE0
+#undef D_002DE3B8
+#undef D_002DE514
 
 // 0x211148 BuildReconSelectionText
 /** @sly2-annot addr=0x211148
@@ -278,8 +292,10 @@ struct G { char gap[0x4640]; int count; struct RESOURCE *resources; };
 extern struct G D_003DD490;
 struct F { int id; char pad[0x1C]; };
 struct E { int c; struct F *af; char pad[0xC]; int x14; char pad2[4]; };
-extern struct E D_003D9EDC[];
-extern int D_003D9EF4;
+#undef D_003D9EDC
+extern struct E D_003D9EDC[];   /* kept: the base+offset form changes func_00211298 (CSE of the base) */
+#undef D_003D9EF4
+extern int D_003D9EF4;   /* kept: see D_003D9EDC */
 const char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
 char *strcpy(char *dst, const char *src);
 /** @sly2-annot addr=0x211298
@@ -301,6 +317,8 @@ void func_00211298(char *dst, int k)
     }
 }
 } } // namespace M_func_00211298
+#undef D_003D9EDC
+#undef D_003D9EF4
 
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText { extern "C" {
@@ -594,7 +612,8 @@ namespace M_func_00211D38 { extern "C" {
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
 struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int x58; float x5C; char pad60[0xB0]; int x110; int x114; };
 extern struct G { char pad[0x3B0C]; void *x3B0C; } D_003DD490;
-extern float D_002DDF0C;
+#undef D_002DDF0C
+#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int func_002121C8(struct S *p);
@@ -630,6 +649,7 @@ void func_00211D38(struct S *p)
     return;
 }
 } } // namespace M_func_00211D38
+#undef D_002DDF0C
 
 // 0x211E40 func_00211E40
 namespace M_func_00211E40 { extern "C" {
@@ -877,7 +897,10 @@ struct S {
     char pad[0x50]; int x50; int x54; int x58; char pad5c[0x14]; int x70; int x74; int x78; int x7C;
     char pad80[0x10]; float x90; int x94; int x98; char pad9c[0x20]; int xBC; struct O *xC0; void *xC4;
 };
-extern char D_003E1C70[], D_003E1C80[], D_003E106C[];
+extern char D_003E1C70[], D_003E1C80[];
+#undef D_003E106C
+#define D_003E106C (*(char (*)[])((char *)base_D_003DD490 + 0x3BDC))   /* g_sw+0x3BDC: SW::_pad_228+0xC */
+
 void LoadLoFromBrx(struct S *p, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
@@ -929,6 +952,7 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
     p->x7C = -1;
 }
 } } // namespace M_LoadWidgetFromBrx
+#undef D_003E106C
 
 // 0x2123C8 PostWidgetLoad
 namespace M_PostWidgetLoad { extern "C" {
@@ -1003,7 +1027,10 @@ extern "C" int strncmp(const void *,const void *,unsigned int);
 extern "C" void SetWidgetState(S *,int);
 extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
 extern "C" void LoadSpriteGroups(S *,BIS *,S *);
-extern "C" { extern N *D_003E106C; }
+extern "C" { 
+#undef D_003E106C
+#define D_003E106C (*(N * *)((char *)base_D_003DD490 + 0x3BDC))   /* g_sw+0x3BDC: SW::_pad_228+0xC */
+ }
 extern "C" { extern POOL D_003E1C70; }
 extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
@@ -1075,6 +1102,7 @@ load:
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);
 }
 } // namespace M_LoadWidgetSprites
+#undef D_003E106C
 
 // 0x212780 UnloadWidgetSprites
 namespace M_UnloadWidgetSprites { extern "C" {
@@ -1106,7 +1134,8 @@ void UnloadWidgetSprites(struct S *p)
 namespace M_func_002127C8 { extern "C" {
 struct Q { char pad[0x58]; int k; int pad2; int a; int b; };
 struct S { char pad[0x40]; struct Q *q; char pad2[8]; struct S *next; };
-extern struct S *D_003E106C;
+#undef D_003E106C
+#define D_003E106C (*(struct S * *)((char *)base_D_003DD490 + 0x3BDC))   /* g_sw+0x3BDC: SW::_pad_228+0xC */
 extern int D_002BE538;
 /** @sly2-annot addr=0x2127C8
  * Purpose: true when no deferred widget load (list D_003E106C) is younger than 2 frames
@@ -1133,6 +1162,7 @@ int func_002127C8(void)
     return 1;
 }
 } } // namespace M_func_002127C8
+#undef D_003E106C
 
 // 0x212828 ShowWidgetArgsFromSplice
 namespace M_ShowWidgetArgsFromSplice { extern "C" {
@@ -1330,7 +1360,8 @@ struct S {
 };
 struct Clock { char pad[0x3C]; float time; float dt; };
 extern struct Clock D_002DDED0;
-extern float D_002DDF10;
+#undef D_002DDF10
+#define D_002DDF10 (*(float *)((char *)base_D_002DDED0 + 0x40))   /* g_clock (CLOCK)+0x40 */
 void UpdateLo(struct S *);
 int FWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
@@ -1385,6 +1416,7 @@ void UpdateWidget(struct S *p) {
     }
 }
 } } // namespace M_UpdateWidget
+#undef D_002DDF10
 
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
@@ -1602,7 +1634,8 @@ extern "C" void RenderWidget(S *p){
 // 0x2137F0 FWidgetObscured
 namespace M_FWidgetObscured { extern "C" {
 struct S { char pad[0xA4]; int a; char pad2[0xC]; struct S *next; };
-extern struct S *D_003E1060;
+#undef D_003E1060
+#define D_003E1060 (*(struct S * *)((char *)base_D_003DD490 + 0x3BD0))   /* g_sw+0x3BD0: SW::_pad_228 */
 /** @sly2-annot addr=0x2137F0
  * Purpose: some widget in exclusive list D_003E1060 has higher priority (+0x0? field a)
  * Info: proposed name FWidgetObscured (T1); TU hud
@@ -1621,6 +1654,8 @@ int FWidgetObscured(struct S *p)
     return 0;
 }
 } } // namespace M_FWidgetObscured
+#undef D_003E1060
+#define D_003E1060 (*(DL *)((char *)base_D_003DD490 + 0x3BD0))   /* g_sw+0x3BD0: SW::_pad_228 */
 
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
@@ -3780,7 +3815,8 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; E *a; char pad8[8]; unsigned long ul10; float f18; int x1C; int x20; };
-extern "C" unsigned long D_002DDF18;
+#undef D_002DDF18
+#define D_002DDF18 (*(unsigned long *)((char *)base_D_002DDED0 + 0x48))   /* g_clock (CLOCK)+0x48 */
 extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x217CA8
  * Purpose: start anim k in a reuse slot
@@ -3812,6 +3848,7 @@ extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
     func_00217D98(p, i, z, q, t, c0, c1);
 }
 } // namespace M_func_00217CA8
+#undef D_002DDF18
 
 // 0x217D98 func_00217D98
 namespace M_func_00217D98 {
@@ -4180,7 +4217,9 @@ extern "C" void func_00218638(SPRITEGRP *pgrp)
 namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short h8; short pad2; float fC; int x10; void *x14; };
 struct S { char pad[8]; struct E *ae; char padc[4]; unsigned long ul10; float f18; int x1C; int x20; };
-extern struct CLOCK { unsigned long ticks; } D_002DDF18;
+struct CLOCK { unsigned long ticks; };
+#undef D_002DDF18
+#define D_002DDF18 (*(struct CLOCK *)((char *)base_D_002DDED0 + 0x48))   /* g_clock (CLOCK)+0x48 */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void func_00217F38(struct S *p, int i);

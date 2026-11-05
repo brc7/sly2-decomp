@@ -7,6 +7,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "gifs.h"
+extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 struct LM { float low, high; };
@@ -90,7 +91,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern DMA *D_002DE598;
 char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2F7900) */
-extern char D_002E5270[];
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern int D_004425DC;
 extern char D_003DD040[], D_004435F0[];
 extern char D_002D4220[];
@@ -104,7 +105,8 @@ extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 
 int D_002F68F8;
 int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
-extern GSAVE D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(GSAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern JOY D_002DFC00;
 
 int func_00234A60(int n) __asm__("WaitSema");

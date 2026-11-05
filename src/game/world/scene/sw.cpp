@@ -18,6 +18,8 @@
 #include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
+extern "C" char base_D_002DFC00[] __asm__("D_002DFC00");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
    destructor func_00258348 (cm.cpp's g_cm pattern). */
@@ -58,7 +60,8 @@ extern "C" {
 extern char D_002E1E60[];   /* the letterbox object */
 extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
-extern int D_003E1110;          /* current level index */
+#undef D_003E1110
+#define D_003E1110 (*(int *)((char *)base_D_003DD490 + 0x3C80))   /* g_sw+0x3C80: SW::nLoadFilter */   /* current level index */
 extern const char D_002A8A98[]; /* empty default for func_00210CA8 */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
@@ -341,7 +344,8 @@ void RestoreChkmgrFromCheckpoint(CHKMGR *pchkmgr, CHK *pchk)
 } } // namespace M_SetSwTransition
 
 namespace M_func_0020E040 { extern "C" {
-extern int D_003E1080;
+#undef D_003E1080
+#define D_003E1080 (*(int *)((char *)base_D_003DD490 + 0x3BF0))   /* g_sw+0x3BF0: SW::fTransitionPending */
 extern int D_00443740;
 /** @sly2-annot addr=0x20E040
  * Purpose: True if D_003E1080!=0 or D_00443740==1 (checkpoint-manager state)
@@ -351,10 +355,14 @@ extern int D_00443740;
  * @end-sly2-annot */
 int func_0020E040(void) { if (D_003E1080 != 0) return 1; return D_00443740 == 1; }
 } } // namespace M_func_0020E040
+#undef D_003E1080
 
 namespace M_DeleteSw { extern "C" {
 struct S { char pad[0x3B18]; int h3B18; };
-extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[], D_002E0CCC[];
+extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[];
+#undef D_002E0CCC
+#define D_002E0CCC (*(char (*)[])((char *)base_D_002DFC00 + 0x10CC))   /* g_joy (JOY)+0x10CC */
+
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
 void BroadcastGameEvent(void *p, int a, int b);
@@ -409,6 +417,7 @@ void DeleteSw(struct S *p)
     FreeSw__Fv();
 }
 } } // namespace M_DeleteSw
+#undef D_002E0CCC
 
 namespace M_func_0020E180 { extern "C" {
 struct MSG { int cb; int nKind; };

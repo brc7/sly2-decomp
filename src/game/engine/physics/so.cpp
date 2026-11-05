@@ -14,6 +14,8 @@
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_002DDF40[] __asm__("D_002DDF40");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -177,10 +179,14 @@ struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
 
 extern SW D_003DD490;           /* g_sw */
-extern DL D_003E11B8;           /* tree queue 1 */
-extern DL D_003E11C4;           /* tree queue 2 */
-extern SLOTHEAP D_003E15CC;     /* XFH slot heap */
-extern int D_002DDF54;          /* visibility mask */
+#undef D_003E11B8
+#define D_003E11B8 (*(DL *)((char *)base_D_003DD490 + 0x3D28))   /* g_sw+0x3D28: SW::dlSoTreeQueue1 */   /* tree queue 1 */
+#undef D_003E11C4
+#define D_003E11C4 (*(DL *)((char *)base_D_003DD490 + 0x3D34))   /* g_sw+0x3D34: SW::dlSoTreeQueue2 */   /* tree queue 2 */
+#undef D_003E15CC
+#define D_003E15CC (*(SLOTHEAP *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */   /* XFH slot heap */
+#undef D_002DDF54
+#define D_002DDF54 (*(int *)((char *)base_D_002DDF40 + 0x14))   /* g_cm (CM)+0x14 */   /* visibility mask */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -339,7 +345,8 @@ struct R; struct L;
 struct R { int pad[2]; int c; };
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0x134 - 0x74]; struct R *pr; };
 struct Pool;
-extern struct Pool D_003E12D4;
+#undef D_003E12D4
+#define D_003E12D4 (*(struct Pool *)((char *)base_D_003DD490 + 0x3E44))   /* g_sw+0x3E44: SW::slotheapSobounds */
 void func_0011CD98(struct Pool *, struct R *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 /** @sly2-annot addr=0x1F2468
@@ -361,6 +368,7 @@ void ReleaseSoBoundsHierarchy(struct L *p)
     }
 }
 } } // namespace M_ReleaseSoBoundsHierarchy
+#undef D_003E12D4
 
 // 0x1F2500 EnsureSoBounds
 namespace M_EnsureSoBounds { extern "C" {
@@ -1594,7 +1602,8 @@ struct E;
 struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xEC - 0x74]; struct E *pe; };
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
-extern struct DL D_003E11AC;
+#undef D_003E11AC
+#define D_003E11AC (*(struct DL *)((char *)base_D_003DD490 + 0x3D1C))   /* g_sw+0x3D1C: SW::dlSoTree */
 void OnLoRemove(struct L *);
 void func_001D6310(struct L *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
@@ -1623,6 +1632,7 @@ void OnSoRemove(struct L *p)
     }
 }
 } } // namespace M_OnSoRemove
+#undef D_003E11AC
 
 // 0x1F3EA8 OnSoAdd
 namespace M_OnSoAdd { extern "C" {
@@ -1634,7 +1644,8 @@ struct E;
 struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int v40; char pad2[0x64 - 0x44]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xEC - 0x74]; struct E *pe; char pad5[0x148 - 0xF0]; ulong fl; };
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
-extern struct DL D_003E11AC;
+#undef D_003E11AC
+#define D_003E11AC (*(struct DL *)((char *)base_D_003DD490 + 0x3D1C))   /* g_sw+0x3D1C: SW::dlSoTree */
 void OnLoAdd(struct L *);
 void func_001D6378(struct L *);
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
@@ -1666,6 +1677,7 @@ void OnSoAdd(struct L *p)
     }
 }
 } } // namespace M_OnSoAdd
+#undef D_003E11AC
 
 // 0x1F3FA0 SO_PmatWorld
 /** @sly2-annot addr=0x1F3FA0
@@ -2306,7 +2318,8 @@ struct T; struct S;
 struct T { char pad[0x70]; ulong fl; };
 struct S { char pad[0xEC]; struct T *pt; };
 struct DL;
-extern struct DL D_003E11B8;
+#undef D_003E11B8
+#define D_003E11B8 (*(struct DL *)((char *)base_D_003DD490 + 0x3D28))   /* g_sw+0x3D28: SW::dlSoTreeQueue1 */
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1F4BA8
  * Purpose: Clear tree flag bit0 and remove from D_003E11B8
@@ -2325,6 +2338,8 @@ void func_001F4BA8(struct S *p)
     RemoveDlEntry__FP2DLPv(&D_003E11B8, p->pt);
 }
 } } // namespace M_func_001F4BA8
+#undef D_003E11B8
+#define D_003E11B8 (*(DL *)((char *)base_D_003DD490 + 0x3D28))   /* g_sw+0x3D28: SW::dlSoTreeQueue1 */
 
 // 0x1F4BF8 func_001F4BF8
 /** @sly2-annot addr=0x1F4BF8
@@ -3654,7 +3669,8 @@ namespace M_func_001F6788 { extern "C" {
 struct B; struct N;
 struct B { char pad[0x18]; int n; };
 struct N { char pad[0x14]; struct B *pb; int n; char pad2[8]; struct N *next; };
-extern struct N *D_003E1218;
+#undef D_003E1218
+#define D_003E1218 (*(struct N * *)((char *)base_D_003DD490 + 0x3D88))   /* g_sw+0x3D88: SW::dlAsega */
 /** @sly2-annot addr=0x1F6788
  * Purpose: Search list D_003E1218 for node with n==oid and (m==-1 or owner->n==m)
  * Info: proposed name PsmaFindByOidAndSm (T2); TU so
@@ -3674,13 +3690,15 @@ struct N *func_001F6788(int n, int m)
     return 0;
 }
 } } // namespace M_func_001F6788
+#undef D_003E1218
 
 // 0x1F67E0 func_001F67E0
 namespace M_func_001F67E0 { extern "C" {
 struct B; struct N;
 struct B { char pad[0x18]; int n; };
 struct N { char pad[0x1C]; struct N *next; int pad2; struct B *pb; int n; };
-extern struct N *D_003E126C;
+#undef D_003E126C
+#define D_003E126C (*(struct N * *)((char *)base_D_003DD490 + 0x3DDC))   /* g_sw+0x3DDC: SW::dlSma */
 /** @sly2-annot addr=0x1F67E0
  * Purpose: Same search over D_003E126C (SMA live list per sm.md)
  * Info: proposed name PsmaFindLive (T2); TU so
@@ -3700,6 +3718,7 @@ struct N *func_001F67E0(int n, int m)
     return 0;
 }
 } } // namespace M_func_001F67E0
+#undef D_003E126C
 
 // 0x1F6838 func_001F6838
 namespace M_func_001F6838 { extern "C" {
@@ -4311,8 +4330,10 @@ struct N { int n0; int n4; int pad8; int nC; char pad[0x48 - 0x10]; struct O *p4
 struct M { struct O *po; int n; struct K *pk; };
 struct M2 { struct O **ppo; int *pn; };
 struct M3 { struct K *pk; };
-extern struct N *D_003E15C0;
-extern char D_003E15A8[];
+#undef D_003E15C0
+#define D_003E15C0 (*(struct N * *)((char *)base_D_003DD490 + 0x4130))   /* g_sw+0x4130: SW::dlZprHit */
+#undef D_003E15A8
+#define D_003E15A8 (*(char (*)[])((char *)base_D_003DD490 + 0x4118))   /* g_sw+0x4118: SW::slotheapZprHit */
 extern float D_002DDED0;
 struct O *PsoFromLo(void *);
 int GrfzpdFromSoGrfzpk(struct O *, int);
@@ -4376,6 +4397,8 @@ struct O *func_001F7598(struct K *pk)
     return 0;
 }
 } } // namespace M_func_001F7598
+#undef D_003E15A8
+#undef D_003E15C0
 
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords { extern "C" {
@@ -4995,7 +5018,8 @@ extern "C" void func_001F8238(SOWATCH *pwatch)
 namespace M_func_001F8240 { extern "C" {
 struct T;
 struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
-extern struct T *D_003E145C;
+#undef D_003E145C
+#define D_003E145C (*(struct T * *)((char *)base_D_003DD490 + 0x3FCC))   /* g_sw+0x3FCC: SW::_pad_310+0xC */
 /** @sly2-annot addr=0x1F8240
  * Purpose: Search D_003E145C list by id
  * Info: proposed name PxxFindGlobalById (T2); TU so
@@ -5004,6 +5028,7 @@ extern struct T *D_003E145C;
  * @end-sly2-annot */
 struct T *func_001F8240(int n) { struct T *pt; for (pt = D_003E145C; pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
 } } // namespace M_func_001F8240
+#undef D_003E145C
 
 // 0x1F8278 func_001F8278
 /** @sly2-annot addr=0x1F8278
@@ -5207,7 +5232,8 @@ struct E { char pad[0x94]; int n94; int pad2; int n9C; char pad3[0x100 - 0xA0]; 
 struct P { char pad[0x50]; int c; struct E *ae; };
 extern char D_002CA2C0[];
 struct Pool;
-extern struct Pool D_003E15CC;
+#undef D_003E15CC
+#define D_003E15CC (*(struct Pool *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F8510
@@ -5236,6 +5262,8 @@ struct Q *func_001F8510(struct P *p, int k, int m)
     return 0;
 }
 } } // namespace M_func_001F8510
+#undef D_003E15CC
+#define D_003E15CC (*(SLOTHEAP *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 
 // 0x1F85E0 func_001F85E0
 namespace M_func_001F85E0 { extern "C" {
@@ -5243,7 +5271,8 @@ struct Q;
 struct Q { int a, b, c; void *pvt; int pad[4]; void *p20; void *p24; int pad2[2]; };
 extern char D_002CA280[];
 struct Pool;
-extern struct Pool D_003E15CC;
+#undef D_003E15CC
+#define D_003E15CC (*(struct Pool *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 void *PsopartFindSo(void *);
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -5269,6 +5298,8 @@ struct Q *func_001F85E0(void *pa)
     return q;
 }
 } } // namespace M_func_001F85E0
+#undef D_003E15CC
+#define D_003E15CC (*(SLOTHEAP *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 
 // 0x1F8668 func_001F8668
 namespace M_func_001F8668 { extern "C" {

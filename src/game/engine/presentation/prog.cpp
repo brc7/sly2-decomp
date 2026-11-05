@@ -6,6 +6,7 @@
 #include "vifs.h"
 #include "gifs.h"
 #include "sly2/slotheap.h"
+extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 struct RGBA { unsigned char r, g, b, a; };
 struct TRI { int ai[3]; };
@@ -85,12 +86,13 @@ struct FRM {int n0;void *p4;char pad8[0x1C];void *packet;char pad28[8];int flags
 struct TP { int status; void *func; void *stack; int stack_size; void *gp_reg; int initial_priority; int pad[6]; };
 struct THREADS { char pad[0x10]; int tid; };
 
-extern float D_002DDF0C;    /* the clock's frame time (D_002DDED0 + 0x3C) as BeginLoadingScreen reads it */
+#undef D_002DDF0C
+#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */   /* the clock's frame time (D_002DDED0 + 0x3C) as BeginLoadingScreen reads it */
 float *D_002DD314;          /* the loading screen's start time (.sbss in the target) */
 int D_003D3A3C, D_003D3A40, D_003D3A44;   /* start, end request, end done semaphores (prog's .bss after the logo) */
 extern THREADS D_004425D0;
 char D_003D3A50[0x1000];    /* thread stack */
-extern char D_002E5270[];   /* _gp */
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern VIFS D_002DEA28;
 extern GIFS D_002DEA00;
 extern FRM *D_002DEA4C;

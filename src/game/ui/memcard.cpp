@@ -18,6 +18,10 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
 struct MCDLGG;
@@ -113,9 +117,11 @@ struct FILEKEY { int an[2]; int n8; char bC; };
 extern SW D_003DD490;
 extern "C" {
 extern char D_002DEB30[];       /* the game */
-extern SAVE D_002E65E0;         /* the save manager */
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */   /* the save manager */
 extern int D_004425D8;
-extern int D_003E0EA8;
+#undef D_003E0EA8
+#define D_003E0EA8 (*(int *)((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 extern int D_002E6590;          /* a langstr id */
 extern char D_003D9ED0[];       /* the pause menu */
 extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
@@ -409,7 +415,8 @@ void InitMemcard(MEMCARD *pmemcard)
 namespace M_MemcardThreadMain { extern "C" {
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { int x0; int x4; struct PMF pmf; int x10; };
-extern char D_002E65E0[];
+#undef D_002E65E0
+#define D_002E65E0 (*(char (*)[])((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern int D_004425D8[];
 void func_00234A60(int) __asm__("WaitSema");
 void func_00234A40(int) __asm__("SignalSema");
@@ -435,12 +442,15 @@ void MemcardThreadMain(struct S *s)
     ExitDeleteThread();
 }
 } } // namespace M_MemcardThreadMain
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 
 namespace M_CreateMemcardThread { extern "C" {
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { int x0; int x4; struct PMF pmf; int x10; };
 struct ThreadParam { int attr; void *entry; void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned int attr2; int option; int waitType; int waitId; int wakeupCount; };
-extern char D_002E5270[], D_002E2080[];
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
+extern char D_002E2080[];
 extern int D_004425D8[];
 void MemcardThreadMain(struct S *s);
 void SetMemcardThreadHighPrio__FP7MEMCARD(struct S *s);
@@ -575,7 +585,8 @@ struct S { int x0, x4; int x8; int xC; float x10; float x14; char pad[0xFD5C - 0
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
-extern float D_002DDF0C;
+#undef D_002DDF0C
+#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */
 extern const struct LONGU D_002A6BA0;
 int func_0020E040(void *g);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
@@ -640,6 +651,7 @@ void UpdateSave__FP4SAVE(struct S *s)
     }
 }
 } } // namespace M_UpdateSave__FP4SAVE
+#undef D_002DDF0C
 
 /** @sly2-annot addr=0x1AB398
  * Purpose: existing
@@ -1053,7 +1065,8 @@ namespace M_func_001ABCE8 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C88;
-extern char D_003E0EA8[];
+#undef D_003E0EA8
+#define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void func_001D84B0(void *p, int n);
@@ -1071,12 +1084,15 @@ void func_001ABCE8(struct S *p)
     CreateMemcardThread(p->xfd5c, D_002A6C88.l);
 }
 } } // namespace M_func_001ABCE8
+#undef D_003E0EA8
+#define D_003E0EA8 (*(int *)((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 
 namespace M_func_001ABD40 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C90;
-extern char D_003E0EA8[];
+#undef D_003E0EA8
+#define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void func_001D84B0(void *p, int n);
@@ -1094,6 +1110,8 @@ void func_001ABD40(struct S *p)
     CreateMemcardThread(p->xfd5c, D_002A6C90.l);
 }
 } } // namespace M_func_001ABD40
+#undef D_003E0EA8
+#define D_003E0EA8 (*(int *)((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 
 namespace M_func_001ABD98 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
@@ -1536,7 +1554,8 @@ extern "C" int func_001AC570(SAVE *psave, void *pslot)
 
 namespace M_McJobGetInfo { extern "C" {
 struct S { int x0; int x4; int x8; int xC; int x10; float x14; int x18; int x1C; int x20; char pad2[0xFD5C - 0x24]; char xFD5C[1]; };
-extern float D_002DDF0C;
+#undef D_002DDF0C
+#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */
 int sceMcGetInfo(int a, int b, int *c, int *d, int *e);
 int McSyncResult(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1AC598
@@ -1579,6 +1598,7 @@ int McJobGetInfo(struct S *s)
     return r;
 }
 } } // namespace M_McJobGetInfo
+#undef D_002DDF0C
 
 namespace M_func_001AC6A0 { extern "C" {
 struct S { int x0; int x4; int pad[4]; int x18; int x1C; int x20; char pad2[0xFD5C - 0x24]; char xFD5C[1]; };
@@ -1857,7 +1877,8 @@ extern "C" void func_001ACC18(MCDLG *pdlg, int nMode)
 
 namespace M_func_001ACC38 { extern "C" {
 struct H { char pad[0xFD50]; int x; };
-extern struct H D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct H *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 struct CLOCK { float t; float dt; char pad[0x34]; float t3c; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x44]; int x44; float x48; };
@@ -1879,6 +1900,8 @@ void func_001ACC38(struct S *p, int n)
     p->x48 = D_002DDED0.t3c;
 }
 } } // namespace M_func_001ACC38
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 
 namespace M_func_001ACC80 { extern "C" {
 struct S { char pad[0x40]; int x40; };
@@ -1907,7 +1930,8 @@ struct P { char pad[0x58]; int x58; float x5C; int pad2; int x64; };
 struct S { char pad[0x10]; void *x10; char pad2[0x24 - 0x14]; struct P *x24; char pad3[0x40 - 0x28]; int x40; int x44; int pad4; int x4C; };
 struct MC { char pad[8]; int x8; char pad2[0xFD58 - 0xC]; int xFD58; char pad3[0xFD6C - 0xFD5C]; int xFD6C; };
 struct CLOCK { char pad[0x3C]; float t3c; };
-extern struct MC D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct MC *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
@@ -2033,6 +2057,8 @@ void CMemcardDialog_Update(struct S *s)
     }
 }
 } } // namespace M_CMemcardDialog_Update
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 
 namespace M_func_001ACFE0 {
 // Game-state transition handler: switch on the new state id (x40) and run the menu/HUD hooks for it.
@@ -2056,8 +2082,12 @@ public:
 class O;
 struct S { char pad[0x40]; int x40; int x44; float x48; int x4C; };   // x40 = state id, x4C = counter
 extern "C" {
-extern char D_003DA530[], D_003D9ED0[], D_003D4A60[], D_002E65E0[];
-extern O *D_003E0FE4;
+extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
+#undef D_002E65E0
+#define D_002E65E0 (*(char (*)[])((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+
+#undef D_003E0FE4
+#define D_003E0FE4 (*(O * *)((char *)base_D_003DD490 + 0x3B54))   /* g_sw+0x3B54: SW::psvpAutosaveWarned */
 int FScreenShown(void *p);
 int func_001B0160(void *p);
 void ClearMcDialogState(S *s);
@@ -2119,6 +2149,9 @@ void func_001ACFE0(S *s)
     }
 }
 } // namespace M_func_001ACFE0
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FE4
 
 namespace M_func_001AD168 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
@@ -2162,8 +2195,10 @@ struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
-extern struct G D_002E65E0;
-extern int D_003E0FAC;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FAC
+#define D_003E0FAC (*(int *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2196,14 +2231,19 @@ void func_001AD250(struct S *s)
     }
 }
 } } // namespace M_func_001AD250
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FAC
 
 namespace M_func_001AD320 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
-extern struct G D_002E65E0;
-extern int D_003E0FAC;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FAC
+#define D_003E0FAC (*(int *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2233,14 +2273,19 @@ void func_001AD320(struct S *s)
     }
 }
 } } // namespace M_func_001AD320
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FAC
 
 namespace M_func_001AD3E0 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
 struct G { char pad[0xFD50]; int xFD50; int xFD54; int xFD58; };
 struct H { char pad[0x4C]; int x4C; };
-extern struct G D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern struct H D_002E6550;
-extern int D_003E0FE4;
+#undef D_003E0FE4
+#define D_003E0FE4 (*(int *)((char *)base_D_003DD490 + 0x3B54))   /* g_sw+0x3B54: SW::psvpAutosaveWarned */
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
@@ -2271,6 +2316,9 @@ void func_001AD3E0(void)
     }
 }
 } } // namespace M_func_001AD3E0
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FE4
 
 namespace M_func_001AD480 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
@@ -2278,9 +2326,11 @@ struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD58 - 0x24 - 3 * 0x5464]; struct B *xFD58; };
 struct H { char pad[0x4C]; int x4C; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
-extern struct G D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern struct H D_002E6550;
-extern int D_003E0FAC;
+#undef D_003E0FAC
+#define D_003E0FAC (*(int *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
@@ -2308,6 +2358,9 @@ void func_001AD480(struct S *s)
         s->x1C |= 2;
 }
 } } // namespace M_func_001AD480
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003E0FAC
 
 namespace M_func_001AD538 {
 struct CRef;
@@ -2319,12 +2372,14 @@ struct GD { char pad[0x3B1C]; int x3B1C; };
 struct E { char pad[0x14]; int x14; int pad2[1]; };
 struct H { char pad[0x24]; int x24; };
 extern "C" {
-extern struct G D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern struct B D_002E6604[];
 extern char D_002E6550[];
 extern struct GD D_003DD490;
 extern struct H D_003D9ED0;
-extern struct E D_003D9EDC[];
+#undef D_003D9EDC
+#define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 void func_001ACC38(void *p, int n);
 int IdPauseTopPage(void *g);
 }
@@ -2381,11 +2436,15 @@ extern "C" void func_001AD538(void)
     }
 }
 } // namespace M_func_001AD538
+#undef D_002E65E0
+#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+#undef D_003D9EDC
 
 namespace M_func_001AD740 { extern "C" {
 struct E { int x0, x4; void *x8; int xc, x10; char *x14; int x18; };
 struct G { int pad[9]; int x24; };
-extern struct E D_003D9EDC[];
+#undef D_003D9EDC
+#define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct G D_003D9ED0;
 extern int D_002E6594;
 struct S { int x0, x4; char *x8; };
@@ -2414,6 +2473,7 @@ void func_001AD740(struct S *s)
         PlayWidgetAnim(e->x8, s->x8 + 0x5C5);
 }
 } } // namespace M_func_001AD740
+#undef D_003D9EDC
 
 /** @sly2-annot addr=0x1AD7E0
  * Purpose: Dynamic text provider (langstr 0x2F2): strcpy name lookup
@@ -2504,7 +2564,8 @@ struct G { int pad[9]; int x24; };
 struct GD { char pad[0x3B1C]; int x3B1C; };
 struct B { char data[0x5464]; };
 extern struct G D_003D9ED0;
-extern struct E D_003D9EDC[];
+#undef D_003D9EDC
+#define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct GD D_003DD490;
 extern struct B D_002E6604[];
 int func_001B0108(struct G *g);
@@ -2558,6 +2619,7 @@ void func_001ADA20(char *buf)
     }
 }
 } } // namespace M_func_001ADA20
+#undef D_003D9EDC
 
 namespace M_func_001ADBB8 { extern "C" {
 extern char D_003D9ED0[], D_003DD490[], D_002A6EB8[];

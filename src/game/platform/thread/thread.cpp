@@ -25,7 +25,7 @@ struct CRITSECT
 
 extern int D_004425D0[2];
 extern char D_004425F0[];
-extern char D_002E5270[];
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 
 /* libkernel names in the comments are HYPOTHESIS (from the arguments and the neighbouring SignalSema). */
 extern "C" {

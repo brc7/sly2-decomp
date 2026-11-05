@@ -18,6 +18,9 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
 extern "C" {
@@ -114,7 +117,10 @@ extern char D_002DEA00[], D_002DEA28[];   /* the two HUD packet streams (DMAS) *
 extern LO *D_002E1E40, *D_002DD5BC, *D_002F7900;    /* the three heroes */
 extern JOBSEL *D_003DA4D0;
 extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
-extern char D_003E0EA8[], D_003D4A60[];
+extern char D_003D4A60[];
+#undef D_003E0EA8
+#define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
+
 void PostHudMeterLoad(void *pscreen);
 void func_001AE928(void *pmenu);
 void func_001A3020(void *pletterbox);
@@ -2664,7 +2670,8 @@ void func_001DC9C0(char *pch, int i) {
 } } // namespace M_func_001DC9C0
 
 namespace M_func_001DCA30 { extern "C" {
-extern int D_003DA180;
+#undef D_003DA180
+#define D_003DA180 (*(int *)((char *)base_D_003DA150 + 0x30))   /* screen's object+0x30 */
 extern struct G D_003DD490;
 void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
@@ -2685,6 +2692,7 @@ void func_001DCA30(char *pch) {
     strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, id));
 }
 } } // namespace M_func_001DCA30
+#undef D_003DA180
 
 namespace M_BuildThiefnetInfoText { extern "C" {
 typedef struct { int x0,x4,cost,xC,x10,ids1,ids2,x1C; } REC;
@@ -3117,7 +3125,8 @@ typedef struct OBJ {
 } OBJ;
 extern struct CLOCK { float a[16]; } D_002DDED0;
 extern char D_003DD490[];
-extern int D_003E0F9C;
+#undef D_003E0F9C
+#define D_003E0F9C (*(int *)((char *)base_D_003DD490 + 0x3B0C))   /* g_sw+0x3B0C: SW::ploJobCur */
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
@@ -3196,6 +3205,7 @@ void SetJobListPage(OBJ *p, int s)
     ((void (*)(void *, int))p->vt[14].pfn)((char *)p + p->vt[14].d, -1);
 }
 } } // namespace M_SetJobListPage
+#undef D_003E0F9C
 #undef VCALL
 
 namespace M_SetJobListStickDir { extern "C" {
@@ -3470,7 +3480,8 @@ typedef struct {
 } OBJ;
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
 typedef struct { char pad[0xFD50]; void *xFD50; void *xFD54; } BIG;
-extern BIG D_002E65E0;
+#undef D_002E65E0
+#define D_002E65E0 (*(BIG *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern char D_002E6550[];
 extern struct G D_003DD490;
 extern char D_003D9ED0[];
@@ -3542,6 +3553,7 @@ void UpdateTitleScreen(OBJ *p)
     func_001AF4D8(D_003D9ED0, c, D_003DA578, pv, D_002C35F0);
 }
 } } // namespace M_UpdateTitleScreen
+#undef D_002E65E0
 
 namespace M_StartNewGame {
 extern "C" { void *func_001291A8(void *, const void *); void Decref__4CRef(void *); }
@@ -3555,7 +3567,10 @@ public:
 };
 struct G;
 extern "C" { extern G D_003D4A60; }
-extern "C" { extern void *D_003E0FAC; }
+extern "C" { 
+#undef D_003E0FAC
+#define D_003E0FAC (*(void * *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
+ }
 extern "C" { extern void *D_002E1E40; }
 extern "C" { extern void *D_002DD5BC; }
 extern "C" { extern void *D_002F7900; }
@@ -3588,6 +3603,7 @@ extern "C" void StartNewGame(void)
     func_00165E38(&D_003D4A60);
 }
 } // namespace M_StartNewGame
+#undef D_003E0FAC
 
 /** @sly2-annot addr=0x1DDBD0
  * Purpose: Title screen slot 14: store direction and time
@@ -3618,7 +3634,10 @@ struct H { char pad[0x100C]; int x100C; int x1010; };
 struct I { char pad[0xFD54]; void *xFD54; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern H D_002DFC00; }
-extern "C" { extern I D_002E65E0; }
+extern "C" { 
+#undef D_002E65E0
+#define D_002E65E0 (*(I *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+ }
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
@@ -3658,6 +3677,7 @@ extern "C" void BuildTitlePromptText(char *pch)
     }
 }
 } // namespace M_BuildTitlePromptText
+#undef D_002E65E0
 
 namespace M_IdsFromWorld { extern "C" {
 /** @sly2-annot addr=0x1DDD40

@@ -17,6 +17,7 @@
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -111,7 +112,8 @@ struct CM {
 };
 struct G { char pad[0x3E38]; int x3E38; };
 extern struct CLOCK D_002DDED0;
-extern float D_002DDEE0;
+#undef D_002DDEE0
+#define D_002DDEE0 (*(float *)((char *)base_D_002DDED0 + 0x10))   /* g_clock (CLOCK)+0x10 */
 extern int D_002DFBC0;
 extern char D_002DFC00[];
 extern char D_002E0D00[];
@@ -178,6 +180,7 @@ void UpdateCmLast__FP2CM(struct CM *p)
         p->g620 = GSmooth__FfffP3SMPPf(p->g620, p->g624, D_002DDEE0, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
+#undef D_002DDEE0
 
 namespace M_func_0014D650 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
@@ -1267,7 +1270,8 @@ struct PL { qword pos; qword plane; };
 struct P { char pad[0x48]; float g48; };
 extern float D_002BD8D8;
 extern char D_002BD8E0[];
-extern float D_002DDEE0;
+#undef D_002DDEE0
+#define D_002DDEE0 (*(float *)((char *)base_D_002DDED0 + 0x10))   /* g_clock (CLOCK)+0x10 */
 void *func_002564B8(void *p);
 void GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 static __inline__ float GDistPlane(qword plane, qword pos)
@@ -1311,6 +1315,7 @@ float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
     return GDot(&vIn, pl->plane) - r;
 }
 } } // namespace M_SvSquishCmEyeConstraint
+#undef D_002DDEE0
 
 namespace M_func_0014F110 {
 // func_0014F110 (Claude agent, lane K5, 2026-10-24): MATCH. Built on laneK4v1 (K3/K4 fresh rewrite in the func_0014C748 style).

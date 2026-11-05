@@ -15,6 +15,9 @@
 
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
+extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_002DDF40[] __asm__("D_002DDF40");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+extern "C" char base_D_003DD040[] __asm__("D_003DD040");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
@@ -432,7 +435,8 @@ namespace M_RemoveSndFromDirtyList { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
 struct X { char pad[0xC]; struct VT *pvt; };
 struct DL;
-extern struct DL D_003DD08C;
+#undef D_003DD08C
+#define D_003DD08C (*(struct DL *)((char *)base_D_003DD040 + 0x4C))   /* the sound manager (SNDMGRG)+0x4C */
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1FB710
@@ -449,6 +453,7 @@ void RemoveSndFromDirtyList(struct X *px)
     }
 }
 } } // namespace M_RemoveSndFromDirtyList
+#undef D_003DD08C
 
 namespace M_CalculateSndVolPan { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -458,7 +463,8 @@ struct M3 {qword r[3];};
 struct CAMERA {char pad[0x90];qword position;};
 extern char D_003DD490[],D_002BBB60[];
 extern struct CAMERA D_002DDF40;
-extern struct M3 D_002DDFA0;
+#undef D_002DDFA0
+#define D_002DDFA0 (*(struct M3 *)((char *)base_D_002DDF40 + 0x60))   /* g_cm (CM)+0x60 */
 void *PpoCur(void*);
 qword func_001A62E8(void*);
 qword func_001A7348(const struct M3*,const struct M3*,qword);
@@ -510,6 +516,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
  }
 }
 } } // namespace M_CalculateSndVolPan
+#undef D_002DDFA0
 
 namespace M_UpdateSnd {
 struct VTE { short d; short p; void (*pfn)(void *); };
@@ -2067,7 +2074,8 @@ struct COEF {float a,b,c;};
 struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
 struct P {char pad5C[0x5C];int modeA,modeB,selected;char pad68[0xA0];float weights[3];struct COEF coefficients[3];char pad138[0xCC];int count;struct REF *refs[8];};
 extern char D_003DD490[];
-extern float D_002DDF10;
+#undef D_002DDF10
+#define D_002DDF10 (*(float *)((char *)base_D_002DDED0 + 0x40))   /* g_clock (CLOCK)+0x40 */
 struct PLAYER *PpoCur(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
@@ -2123,6 +2131,7 @@ norm:
 
 }
 } // namespace M_func_001FDC08
+#undef D_002DDF10
 
 /** @sly2-annot addr=0x1FDEC0
  * Purpose: Empty per-frame hook (jr ra)
@@ -2140,7 +2149,8 @@ struct X { char pad[0x40]; int n40; char pad2[0x4E - 0x44]; short n4E; unsigned 
 struct Ent { short h0; short pad; int n4; };
 struct S { char pad[0x50]; float f50; int n54; struct Ent *a58; };
 struct P { char pad[0x200]; struct X *r200; char pad2[0x244 - 0x204]; int n244; float f248; float f24C; };
-extern float D_002DDF10;
+#undef D_002DDF10
+#define D_002DDF10 (*(float *)((char *)base_D_002DDED0 + 0x40))   /* g_clock (CLOCK)+0x40 */
 void StopDialog(struct P *);
 void func_001FE0E8(struct P *, struct Ent *);
 /** @sly2-annot addr=0x1FDEC8
@@ -2183,6 +2193,7 @@ void func_001FDEC8(struct P *p)
     }
 }
 } } // namespace M_func_001FDEC8
+#undef D_002DDF10
 
 namespace M_func_001FE0E8 { extern "C" {
 struct E { short s0; short k; union { int n; float g; } u; };

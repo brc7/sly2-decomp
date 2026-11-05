@@ -17,6 +17,7 @@
 #include "sly2/xfm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
    that func_00159118 (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
@@ -2747,7 +2748,8 @@ void func_00259170(SO *p)
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
 extern "C" {
-extern char D_002BAD68[];   /* EXPLO class descriptor */
+#undef D_002BAD68
+#define D_002BAD68 (*(char (*)[])((char *)base_D_002BAAE8 + 0x280))   /* class descriptor table+0x280 (row 32, +0x0) */   /* EXPLO class descriptor */
 }
 /* linkonce copy (0x2599C8). */
 extern "C" void *GetExploClassDesc_linkonce()
