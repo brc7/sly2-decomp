@@ -286,8 +286,3 @@ extern "C" void StartupCodes(CODES *pcodes)
     AddCode(pcodes, &D_002BD7B8);
     AddCode(pcodes, &D_002BD7F0);
 }
-
-// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
-// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-int D_003DA0B8;
-int D_002E0CB4;
