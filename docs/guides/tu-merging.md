@@ -1278,6 +1278,9 @@ and data/phase-2). Details in the sections "class_registry" and "Big six" below:
 
 Total: 7 files, 1,372 functions (class_registry 424, the big six 948), plus the two sly2/guard.h header commits of
 the big six. With wave 10 this leaves only air with per-function files (see "Not merged").
+After the integration and the linkage fixes (see "Linkage of namespace-scoped declarations"), `JOBS=2 python3
+tools/progress.py` from an empty cache: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged
+by the run. The 329 sources that do not build here are all SDK files.
 
 ## Not merged (and why)
 
