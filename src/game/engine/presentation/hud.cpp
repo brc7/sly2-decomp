@@ -405,17 +405,17 @@ void func_00211420(char *pch)
 // 0x211528 func_00211528
 namespace M_func_00211528 {
 // Initialize the fixed GIF register packets.
-extern QW D_004421B0[7];
-extern QW D_00442240[0x27];
-extern QW D_00442210[3];
-extern QW D_004424B0[2];
-extern QW D_004424D0[2];
-extern QW D_00442560[4];
-extern QW D_004425A0[3];
-extern QW D_004424F0[3];
-extern QW D_00442520[4];
-extern int D_002DEDB0;
-extern ulong D_002DECE0,D_002DEBF0;
+extern "C" { extern QW D_004421B0[7]; }
+extern "C" { extern QW D_00442240[0x27]; }
+extern "C" { extern QW D_00442210[3]; }
+extern "C" { extern QW D_004424B0[2]; }
+extern "C" { extern QW D_004424D0[2]; }
+extern "C" { extern QW D_00442560[4]; }
+extern "C" { extern QW D_004425A0[3]; }
+extern "C" { extern QW D_004424F0[3]; }
+extern "C" { extern QW D_00442520[4]; }
+extern "C" { extern int D_002DEDB0; }
+extern "C" { extern ulong D_002DECE0,D_002DEBF0; }
 /** @sly2-annot addr=0x211528
  * Purpose: startup-table entry: builds the static GIF register packets used by sprite/HUD rendering
  * Info: proposed name StartupScreen (T2); TU hud
@@ -1002,10 +1002,10 @@ extern "C" int strncmp(const void *,const void *,unsigned int);
 extern "C" void SetWidgetState(S *,int);
 extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
 extern "C" void LoadSpriteGroups(S *,BIS *,S *);
-extern N *D_003E106C;
-extern POOL D_003E1C70;
-extern int D_002BE538;
-extern char D_002A8AE8[];
+extern "C" { extern N *D_003E106C; }
+extern "C" { extern POOL D_003E1C70; }
+extern "C" { extern int D_002BE538; }
+extern "C" { extern char D_002A8AE8[]; }
 static inline int Max(int a,int b) {return a<b?b:a;}
 static inline int SetKey(KEY *k,N *n) {
     if(!n)return 0;
@@ -1534,7 +1534,7 @@ struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload
 struct LIST {Q *first,*last;};
 struct S {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
 struct R {unsigned char *base;int pad[2];unsigned char *cur;};
-extern R D_002DEA28;
+extern "C" { extern R D_002DEA28; }
 extern "C" {
 void RenderLoSelf(S *);
 int FWidgetVisible(S *);
@@ -2280,11 +2280,11 @@ void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
 // The current stack-allocation scope (out of line: 0x1AE478 / 0x1AE4A0)
 struct STACKSCOPE {STACKSCOPE();~STACKSCOPE();};
-extern int D_002C40A4;
-extern PMF D_002A8B08;
-extern WORLD D_003DD490;
-extern QW D_002A2E10;
-extern char D_00000650[],D_00000140[];
+extern "C" { extern int D_002C40A4; }
+extern "C" { extern PMF D_002A8B08; }
+extern "C" { extern WORLD D_003DD490; }
+extern "C" { extern QW D_002A2E10; }
+extern "C" { extern char D_00000650[],D_00000140[]; }
 static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return func_001AE378(request);}
 static inline void CopyXY(M23 &dst,const M3 &src){
  const float *a=(const float *)&src.r[0],*b=(const float *)&src.r[1],*c=(const float *)&src.r[2];
@@ -3159,8 +3159,8 @@ struct M4 {qword r[4];};
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
 struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
-extern struct R D_002DEA28;
-extern char D_00442210[],D_002DF010[];
+extern "C" { extern struct R D_002DEA28; }
+extern "C" { extern char D_00442210[],D_002DF010[]; }
 extern "C" void CopyAqw__FPvT0i(void *,void *,int);
 extern "C" struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
@@ -3171,7 +3171,7 @@ static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50
 extern "C" void func_00215D00(struct RT *,RGBA *);
 extern "C" void func_002162D8(struct RT *,struct M4 *,struct M23 *);
 extern "C" void func_00216750(struct RT *,struct M4 *,struct DATA *);
-extern qword D_002A2E10,D_002A2E20;
+extern "C" { extern qword D_002A2E10,D_002A2E20; }
 /** @sly2-annot addr=0x2163B0
  * Purpose: configure box/alignment/colour and queue rich text
  * Info: proposed name CRichText2_Draw (T2); class CRichText; TU hud
@@ -3400,14 +3400,14 @@ typedef struct {char pad[0x3BE8];void *font;} WORLD;
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
 typedef struct {float t,dt;} CLOCK;
-extern WORLD D_003DD490;
-extern STRINGGEN D_003E1C88[];
-extern const char D_002A8B80[],D_002A8B88[];
-extern char D_004435F0[];
-extern RGBA D_004435F4;
-extern SCROLL D_003DA0C0;
-extern CLOCK D_002DDED0;
-extern const float D_002C40B8;
+extern "C" { extern WORLD D_003DD490; }
+extern "C" { extern STRINGGEN D_003E1C88[]; }
+extern "C" { extern const char D_002A8B80[],D_002A8B88[]; }
+extern "C" { extern char D_004435F0[]; }
+extern "C" { extern RGBA D_004435F4; }
+extern "C" { extern SCROLL D_003DA0C0; }
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern const float D_002C40B8; }
 extern "C" void *PchzFindSwLangstr__FP2SWi(WORLD *,int);
 extern "C" char *strcpy(char *,const char *);
 extern "C" char *strcpy1(char *,const char *);
@@ -4402,7 +4402,7 @@ struct R { char pad[8]; struct E *ae; };
 struct A { int kind; int id; };
 struct F { char pad[0x18]; unsigned char count; char pad1[3]; struct A *aa; };
 struct S { char pad[4]; struct F *af; char pad1[8]; struct R *r; };
-extern char D_003DD040[];
+extern "C" { extern char D_003DD040[]; }
 extern "C" struct M *PsndStartSound(int id);
 extern "C" void SetSndSourceLo(struct M *, struct O *);
 extern "C" void StopSnd(struct M *, float);
@@ -4996,121 +4996,121 @@ LINEAR *__11CLinearHeapiPUc(LINEAR *,int,void *);
 POOL *func_0011CCA8(POOL *,int,int,int);
 void BuildContextText(char *,void *,void *);
 }
-extern LINEAR D_003E1C70;
-extern HEAP D_003E1C80;
-extern char D_003E21A0[],D_002CA578[];
-extern STRINGGEN D_003E1C88[108];
-extern void *D_002C40A0;
-extern int D_002DD2E0,D_002DD2E4,D_002DD2E8,D_002DD2EC,D_002DD2F0,D_002DD2F4;
-extern POOL D_004520A8,D_004520D0,D_004520F8,D_00452120,D_00452148,D_00452170;
+extern "C" { extern LINEAR D_003E1C70; }
+extern "C" { extern HEAP D_003E1C80; }
+extern "C" { extern char D_003E21A0[],D_002CA578[]; }
+extern "C" { extern STRINGGEN D_003E1C88[108]; }
+extern "C" { extern void *D_002C40A0; }
+extern "C" { extern int D_002DD2E0,D_002DD2E4,D_002DD2E8,D_002DD2EC,D_002DD2F0,D_002DD2F4; }
+extern "C" { extern POOL D_004520A8,D_004520D0,D_004520F8,D_00452120,D_00452148,D_00452170; }
 // Existing constant records are twelve bytes each; the linker separates them by sixteen.
-extern const STRINGGEN D_002A8B90;
-extern const STRINGGEN D_002A8BA0;
-extern const STRINGGEN D_002A8BB0;
-extern const STRINGGEN D_002A8BC0;
-extern const STRINGGEN D_002A8BD0;
-extern const STRINGGEN D_002A8BE0;
-extern const STRINGGEN D_002A8BF0;
-extern const STRINGGEN D_002A8C00;
-extern const STRINGGEN D_002A8C10;
-extern const STRINGGEN D_002A8C20;
-extern const STRINGGEN D_002A8C30;
-extern const STRINGGEN D_002A8C40;
-extern const STRINGGEN D_002A8C50;
-extern const STRINGGEN D_002A8C60;
-extern const STRINGGEN D_002A8C70;
-extern const STRINGGEN D_002A8C80;
-extern const STRINGGEN D_002A8C90;
-extern const STRINGGEN D_002A8CA0;
-extern const STRINGGEN D_002A8CB0;
-extern const STRINGGEN D_002A8CC0;
-extern const STRINGGEN D_002A8CD0;
-extern const STRINGGEN D_002A8CE0;
-extern const STRINGGEN D_002A8CF0;
-extern const STRINGGEN D_002A8D00;
-extern const STRINGGEN D_002A8D10;
-extern const STRINGGEN D_002A8D20;
-extern const STRINGGEN D_002A8D30;
-extern const STRINGGEN D_002A8D40;
-extern const STRINGGEN D_002A8D50;
-extern const STRINGGEN D_002A8D60;
-extern const STRINGGEN D_002A8D70;
-extern const STRINGGEN D_002A8D80;
-extern const STRINGGEN D_002A8D90;
-extern const STRINGGEN D_002A8DA0;
-extern const STRINGGEN D_002A8DB0;
-extern const STRINGGEN D_002A8DC0;
-extern const STRINGGEN D_002A8DD0;
-extern const STRINGGEN D_002A8DE0;
-extern const STRINGGEN D_002A8DF0;
-extern const STRINGGEN D_002A8E00;
-extern const STRINGGEN D_002A8E10;
-extern const STRINGGEN D_002A8E20;
-extern const STRINGGEN D_002A8E30;
-extern const STRINGGEN D_002A8E40;
-extern const STRINGGEN D_002A8E50;
-extern const STRINGGEN D_002A8E60;
-extern const STRINGGEN D_002A8E70;
-extern const STRINGGEN D_002A8E80;
-extern const STRINGGEN D_002A8E90;
-extern const STRINGGEN D_002A8EA0;
-extern const STRINGGEN D_002A8EB0;
-extern const STRINGGEN D_002A8EC0;
-extern const STRINGGEN D_002A8ED0;
-extern const STRINGGEN D_002A8EE0;
-extern const STRINGGEN D_002A8EF0;
-extern const STRINGGEN D_002A8F00;
-extern const STRINGGEN D_002A8F10;
-extern const STRINGGEN D_002A8F20;
-extern const STRINGGEN D_002A8F30;
-extern const STRINGGEN D_002A8F40;
-extern const STRINGGEN D_002A8F50;
-extern const STRINGGEN D_002A8F60;
-extern const STRINGGEN D_002A8F70;
-extern const STRINGGEN D_002A8F80;
-extern const STRINGGEN D_002A8F90;
-extern const STRINGGEN D_002A8FA0;
-extern const STRINGGEN D_002A8FB0;
-extern const STRINGGEN D_002A8FC0;
-extern const STRINGGEN D_002A8FD0;
-extern const STRINGGEN D_002A8FE0;
-extern const STRINGGEN D_002A8FF0;
-extern const STRINGGEN D_002A9000;
-extern const STRINGGEN D_002A9010;
-extern const STRINGGEN D_002A9020;
-extern const STRINGGEN D_002A9030;
-extern const STRINGGEN D_002A9040;
-extern const STRINGGEN D_002A9050;
-extern const STRINGGEN D_002A9060;
-extern const STRINGGEN D_002A9070;
-extern const STRINGGEN D_002A9080;
-extern const STRINGGEN D_002A9090;
-extern const STRINGGEN D_002A90A0;
-extern const STRINGGEN D_002A90B0;
-extern const STRINGGEN D_002A90C0;
-extern const STRINGGEN D_002A90D0;
-extern const STRINGGEN D_002A90E0;
-extern const STRINGGEN D_002A90F0;
-extern const STRINGGEN D_002A9100;
-extern const STRINGGEN D_002A9110;
-extern const STRINGGEN D_002A9120;
-extern const STRINGGEN D_002A9130;
-extern const STRINGGEN D_002A9140;
-extern const STRINGGEN D_002A9150;
-extern const STRINGGEN D_002A9160;
-extern const STRINGGEN D_002A9170;
-extern const STRINGGEN D_002A9180;
-extern const STRINGGEN D_002A9190;
-extern const STRINGGEN D_002A91A0;
-extern const STRINGGEN D_002A91B0;
-extern const STRINGGEN D_002A91C0;
-extern const STRINGGEN D_002A91D0;
-extern const STRINGGEN D_002A91E0;
-extern const STRINGGEN D_002A91F0;
-extern const STRINGGEN D_002A9200;
-extern const STRINGGEN D_002A9210;
-extern const STRINGGEN D_002A9220;
-extern const STRINGGEN D_002A9230;
+extern "C" { extern const STRINGGEN D_002A8B90; }
+extern "C" { extern const STRINGGEN D_002A8BA0; }
+extern "C" { extern const STRINGGEN D_002A8BB0; }
+extern "C" { extern const STRINGGEN D_002A8BC0; }
+extern "C" { extern const STRINGGEN D_002A8BD0; }
+extern "C" { extern const STRINGGEN D_002A8BE0; }
+extern "C" { extern const STRINGGEN D_002A8BF0; }
+extern "C" { extern const STRINGGEN D_002A8C00; }
+extern "C" { extern const STRINGGEN D_002A8C10; }
+extern "C" { extern const STRINGGEN D_002A8C20; }
+extern "C" { extern const STRINGGEN D_002A8C30; }
+extern "C" { extern const STRINGGEN D_002A8C40; }
+extern "C" { extern const STRINGGEN D_002A8C50; }
+extern "C" { extern const STRINGGEN D_002A8C60; }
+extern "C" { extern const STRINGGEN D_002A8C70; }
+extern "C" { extern const STRINGGEN D_002A8C80; }
+extern "C" { extern const STRINGGEN D_002A8C90; }
+extern "C" { extern const STRINGGEN D_002A8CA0; }
+extern "C" { extern const STRINGGEN D_002A8CB0; }
+extern "C" { extern const STRINGGEN D_002A8CC0; }
+extern "C" { extern const STRINGGEN D_002A8CD0; }
+extern "C" { extern const STRINGGEN D_002A8CE0; }
+extern "C" { extern const STRINGGEN D_002A8CF0; }
+extern "C" { extern const STRINGGEN D_002A8D00; }
+extern "C" { extern const STRINGGEN D_002A8D10; }
+extern "C" { extern const STRINGGEN D_002A8D20; }
+extern "C" { extern const STRINGGEN D_002A8D30; }
+extern "C" { extern const STRINGGEN D_002A8D40; }
+extern "C" { extern const STRINGGEN D_002A8D50; }
+extern "C" { extern const STRINGGEN D_002A8D60; }
+extern "C" { extern const STRINGGEN D_002A8D70; }
+extern "C" { extern const STRINGGEN D_002A8D80; }
+extern "C" { extern const STRINGGEN D_002A8D90; }
+extern "C" { extern const STRINGGEN D_002A8DA0; }
+extern "C" { extern const STRINGGEN D_002A8DB0; }
+extern "C" { extern const STRINGGEN D_002A8DC0; }
+extern "C" { extern const STRINGGEN D_002A8DD0; }
+extern "C" { extern const STRINGGEN D_002A8DE0; }
+extern "C" { extern const STRINGGEN D_002A8DF0; }
+extern "C" { extern const STRINGGEN D_002A8E00; }
+extern "C" { extern const STRINGGEN D_002A8E10; }
+extern "C" { extern const STRINGGEN D_002A8E20; }
+extern "C" { extern const STRINGGEN D_002A8E30; }
+extern "C" { extern const STRINGGEN D_002A8E40; }
+extern "C" { extern const STRINGGEN D_002A8E50; }
+extern "C" { extern const STRINGGEN D_002A8E60; }
+extern "C" { extern const STRINGGEN D_002A8E70; }
+extern "C" { extern const STRINGGEN D_002A8E80; }
+extern "C" { extern const STRINGGEN D_002A8E90; }
+extern "C" { extern const STRINGGEN D_002A8EA0; }
+extern "C" { extern const STRINGGEN D_002A8EB0; }
+extern "C" { extern const STRINGGEN D_002A8EC0; }
+extern "C" { extern const STRINGGEN D_002A8ED0; }
+extern "C" { extern const STRINGGEN D_002A8EE0; }
+extern "C" { extern const STRINGGEN D_002A8EF0; }
+extern "C" { extern const STRINGGEN D_002A8F00; }
+extern "C" { extern const STRINGGEN D_002A8F10; }
+extern "C" { extern const STRINGGEN D_002A8F20; }
+extern "C" { extern const STRINGGEN D_002A8F30; }
+extern "C" { extern const STRINGGEN D_002A8F40; }
+extern "C" { extern const STRINGGEN D_002A8F50; }
+extern "C" { extern const STRINGGEN D_002A8F60; }
+extern "C" { extern const STRINGGEN D_002A8F70; }
+extern "C" { extern const STRINGGEN D_002A8F80; }
+extern "C" { extern const STRINGGEN D_002A8F90; }
+extern "C" { extern const STRINGGEN D_002A8FA0; }
+extern "C" { extern const STRINGGEN D_002A8FB0; }
+extern "C" { extern const STRINGGEN D_002A8FC0; }
+extern "C" { extern const STRINGGEN D_002A8FD0; }
+extern "C" { extern const STRINGGEN D_002A8FE0; }
+extern "C" { extern const STRINGGEN D_002A8FF0; }
+extern "C" { extern const STRINGGEN D_002A9000; }
+extern "C" { extern const STRINGGEN D_002A9010; }
+extern "C" { extern const STRINGGEN D_002A9020; }
+extern "C" { extern const STRINGGEN D_002A9030; }
+extern "C" { extern const STRINGGEN D_002A9040; }
+extern "C" { extern const STRINGGEN D_002A9050; }
+extern "C" { extern const STRINGGEN D_002A9060; }
+extern "C" { extern const STRINGGEN D_002A9070; }
+extern "C" { extern const STRINGGEN D_002A9080; }
+extern "C" { extern const STRINGGEN D_002A9090; }
+extern "C" { extern const STRINGGEN D_002A90A0; }
+extern "C" { extern const STRINGGEN D_002A90B0; }
+extern "C" { extern const STRINGGEN D_002A90C0; }
+extern "C" { extern const STRINGGEN D_002A90D0; }
+extern "C" { extern const STRINGGEN D_002A90E0; }
+extern "C" { extern const STRINGGEN D_002A90F0; }
+extern "C" { extern const STRINGGEN D_002A9100; }
+extern "C" { extern const STRINGGEN D_002A9110; }
+extern "C" { extern const STRINGGEN D_002A9120; }
+extern "C" { extern const STRINGGEN D_002A9130; }
+extern "C" { extern const STRINGGEN D_002A9140; }
+extern "C" { extern const STRINGGEN D_002A9150; }
+extern "C" { extern const STRINGGEN D_002A9160; }
+extern "C" { extern const STRINGGEN D_002A9170; }
+extern "C" { extern const STRINGGEN D_002A9180; }
+extern "C" { extern const STRINGGEN D_002A9190; }
+extern "C" { extern const STRINGGEN D_002A91A0; }
+extern "C" { extern const STRINGGEN D_002A91B0; }
+extern "C" { extern const STRINGGEN D_002A91C0; }
+extern "C" { extern const STRINGGEN D_002A91D0; }
+extern "C" { extern const STRINGGEN D_002A91E0; }
+extern "C" { extern const STRINGGEN D_002A91F0; }
+extern "C" { extern const STRINGGEN D_002A9200; }
+extern "C" { extern const STRINGGEN D_002A9210; }
+extern "C" { extern const STRINGGEN D_002A9220; }
+extern "C" { extern const STRINGGEN D_002A9230; }
 /** @sly2-annot addr=0x21AA60
  * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU hud
  * Info: proposed name StaticInit_hud (T1); TU hud

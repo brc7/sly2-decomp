@@ -1471,13 +1471,13 @@ struct CRef {
     void Decref();
 };
 struct G { char pad[0xC]; int n; };
-extern G D_002DEB30;
-extern char D_002A79A0[];
-extern char D_002A79A8[];
-extern char D_002A79B8[];
-int sprintf(char *, const char *, ...);
-CRef RefSetSaveVarV(const CRef &, const char *, ...);
-void BroadcastGameEvent(G *, int, int);
+extern "C" { extern G D_002DEB30; }
+extern "C" { extern char D_002A79A0[]; }
+extern "C" { extern char D_002A79A8[]; }
+extern "C" { extern char D_002A79B8[]; }
+extern "C" { int sprintf(char *, const char *, ...); }
+extern "C" { CRef RefSetSaveVarV(const CRef &, const char *, ...); }
+extern "C" { void BroadcastGameEvent(G *, int, int); }
 /** @sly2-annot addr=0x1DAF38
  * Purpose: Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n
  * Info: proposed name SetPowerupAcquired (T1); TU screen
@@ -1546,8 +1546,8 @@ struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; ch
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
 struct CLOCK { char pad[0x3C]; float t3C; };
-extern CLOCK D_002DDED0;
-extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
 
 extern "C" {
 ITEM *func_001DAE20(SELECTOR *sel, int id);
@@ -2131,9 +2131,9 @@ struct OBJ {
     ENT ae[0x40];
     int i;
 };
-extern char D_002A79A0[];
-extern char D_002A79D0[];
-extern char D_002A79D8[];
+extern "C" { extern char D_002A79A0[]; }
+extern "C" { extern char D_002A79D0[]; }
+extern "C" { extern char D_002A79D8[]; }
 extern "C" int sprintf(char *, const char *, ...);
 extern "C" CRef RefGetSaveVarV(const char *, ...);
 extern "C" int func_001DAE58(int);
@@ -2598,17 +2598,17 @@ struct TBL {
 };
 struct REC { char *name; int ids; int pad; };
 struct G;
-extern G D_003DD490;
-extern TBL D_003DA150;
-extern REC D_002C3288[];
-extern char D_002A79A0[];
-extern char D_002A79D0[];
-extern char D_002A79D8[];
-extern char D_002A7A30[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern TBL D_003DA150; }
+extern "C" { extern REC D_002C3288[]; }
+extern "C" { extern char D_002A79A0[]; }
+extern "C" { extern char D_002A79D0[]; }
+extern "C" { extern char D_002A79D8[]; }
+extern "C" { extern char D_002A7A30[]; }
 extern "C" int sprintf(char *, const char *, ...);
 extern "C" char *strcpy(char *, const char *);
 extern "C" CRef RefGetSaveVarV(const char *, ...);
-char *PchzFindSwLangstr__FP2SWi(G *, int);
+extern "C" { char *PchzFindSwLangstr__FP2SWi(G *, int); }
 /** @sly2-annot addr=0x1DC890
  * Purpose: Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once
  * Info: proposed name BuildThiefnetLootNameText (T1); TU screen
@@ -3558,11 +3558,11 @@ public:
     ~CRef() { Decref__4CRef(this); }
 };
 struct G;
-extern G D_003D4A60;
-extern void *D_003E0FAC;
-extern void *D_002E1E40;
-extern void *D_002DD5BC;
-extern void *D_002F7900;
+extern "C" { extern G D_003D4A60; }
+extern "C" { extern void *D_003E0FAC; }
+extern "C" { extern void *D_002E1E40; }
+extern "C" { extern void *D_002DD5BC; }
+extern "C" { extern void *D_002F7900; }
 extern "C" {
 CRef RefSetGlobalSaveVar(void *, const CRef &, G *);
 void BindStepplayerHpMp(void *, int);
@@ -3620,15 +3620,15 @@ struct CRef {
 struct G { char pad[0x3B1C]; void *x3B1C; };
 struct H { char pad[0x100C]; int x100C; int x1010; };
 struct I { char pad[0xFD54]; void *xFD54; };
-extern G D_003DD490;
-extern H D_002DFC00;
-extern I D_002E65E0;
-extern char D_002A7A70[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern H D_002DFC00; }
+extern "C" { extern I D_002E65E0; }
+extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
 extern "C" int CLanguagesRegion(void);
-char *PchzFindSwLangstr__FP2SWi(G *, int);
-CRef RefGetGlobalSaveVar(void *, void *);
+extern "C" { char *PchzFindSwLangstr__FP2SWi(G *, int); }
+extern "C" { CRef RefGetGlobalSaveVar(void *, void *); }
 /** @sly2-annot addr=0x1DDBF0
  * Purpose: Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids
  *   5/6/8/0x56
