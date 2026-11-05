@@ -63,8 +63,8 @@ extern char D_002DEB30[];
 extern char D_002DDF40[];
 extern char D_002DFC00[];
 extern char D_002DE578[];
-extern char D_002A76B8[];
-extern char D_002A76C0[];
+extern const char D_002A76B8[] = "LOOP";
+extern const char D_002A76C0[] = "";
 void *func_001AE318(const AREQ &r);
 void *func_001AE378(const AREQ &r);
 void *func_001AE238(const AREQ &r, void *pv);
@@ -108,7 +108,7 @@ E *func_001BBE68(TRIG *p);
 void *func_001AE318M(MSG *pmsg) __asm__("func_001AE318");
 struct XPC;
 int func_001BBE48X(TRIG *p, XPC *e) __asm__("func_001BBE48");
-E *func_001BBE68K(TRIG *p, void *k) __asm__("func_001BBE68");
+E *func_001BBE68K(TRIG *p, const void *k) __asm__("func_001BBE68");
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
 
 /** @sly2-annot addr=0x1BAB50

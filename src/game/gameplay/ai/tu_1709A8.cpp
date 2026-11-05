@@ -410,7 +410,7 @@ struct N{int kind,tag;qword*position;char padC[0xC];struct N*next;};
 struct P{char pad[0x50];struct N*head;};
 struct CHOICE{struct N*node;struct P*object;float value;};
 extern char D_003DD490[];
-extern float D_002A52B0;
+extern const float D_002A52B0 = 3.40282347e+38f;   /* FLT_MAX */
 struct P*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
 void func_001710F8(struct P*,qword,struct P*,qword*,float*);
 void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);

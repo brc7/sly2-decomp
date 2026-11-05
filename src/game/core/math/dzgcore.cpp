@@ -17,8 +17,8 @@ typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct FRAME { int an[4]; } FRAME;
 extern DLI *g_pdliFirst;
 extern "C" {
-extern const float D_002A4120;      /* "no upper bound" */
-extern const float D_002A4124;      /* "no lower bound" */
+extern const float D_002A4120 = 3.40282347e+38f;    /* "no upper bound" (FLT_MAX) */
+extern const float D_002A4124 = -3.40282347e+38f;   /* "no lower bound" (-FLT_MAX) */
 void *func_001AE378(MSG *pmsg);
 void *func_001AE318(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb);     /* memset */
