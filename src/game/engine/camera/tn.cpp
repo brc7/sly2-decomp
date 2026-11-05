@@ -21,9 +21,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Declarations of UpdateCptn (ported from Lilly's personal Sly 2 decomp, src/P2/cplcy.c), used by the whole TU. */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-qword PosLoWorld(LO *plo);
-qword XfmVecLoWorld(LO *ploFrom, LO *ploTo, qword qwVec);
-MATRIX4 *PmatLoWorld(LO *plo);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+extern "C" qword ConvertAloVec(LO *ploFrom, LO *ploTo, qword qwVec);
+MATRIX4 *PmatLoWorld(LO *plo) __asm__("func_001A6318");
 void DecomposeRotateMatrixPanTilt(MATRIX3 *pmat, float *pradPan, float *pradTilt);
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
@@ -47,8 +47,8 @@ struct GAME
       int oidTaskPending;
 };
 extern GAME D_002DEB30;
-SND *MakeSnd(int sfxid);
-void SetSndOwner(SND *psnd, LO *ploOwner);
+extern "C" SND *PsndStartSound(int sfxid);
+extern "C" void SetSndSourceLo(SND *psnd, LO *ploOwner);
 extern CLOCK D_002DDED0;
 struct EDGE
 {
@@ -167,8 +167,8 @@ struct CAMMOVE
       int nUnk18;
 };
 extern CM D_002DDF40;
-void SpringCm(CM *pcm, qword *pqwPos, VECTOR *pvVel, qword qwTarget, float k, float c);
-void SetCmPanTilt(CM *pcm, qword posEye, qword posCenter, float radPan, float radTilt);
+void SpringCm(CM *pcm, qword *pqwPos, VECTOR *pvVel, qword qwTarget, float k, float c) __asm__("func_0014E6D0");
+void SetCmPanTilt(CM *pcm, qword posEye, qword posCenter, float radPan, float radTilt) __asm__("func_0014E1A8");
 struct VU_FLOAT
 {
     qword qw;
@@ -253,10 +253,10 @@ struct CPD
       float cDist;
       LM lmTilt;
 } __attribute__((aligned(16)));
-void UpdateCmProgress(CMPART2 *pcmpart, CPDEFI *pcpdefi);
-void CalcCpdFocus(CPD *pcpd, CPDEFI *pcpdefi, qword *ppos, TN *ptn);
-void CalculateTnCrv(TN *ptn, qword qwPos, VECTOR4 *pdposCrv, VECTOR4 *pvecTangent);
-void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ *aclq, LM *alm, FTND ftnd, qword *pposOther);
+void UpdateCmProgress(CMPART2 *pcmpart, CPDEFI *pcpdefi) __asm__("func_00221CE8");
+void CalcCpdFocus(CPD *pcpd, CPDEFI *pcpdefi, qword *ppos, TN *ptn) __asm__("func_00220DD8");
+void CalculateTnCrv(TN *ptn, qword qwPos, VECTOR4 *pdposCrv, VECTOR4 *pvecTangent) __asm__("func_00221408");
+void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ *aclq, LM *alm, FTND ftnd, qword *pposOther) __asm__("func_002215C0");
 extern "C" {
 float atanf(float x);
 }
@@ -281,8 +281,8 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 extern "C" float atan2f(float y, float x);
-void DecomposeSphere(qword v, float *prad, float *pradTilt, float *psLen);
-extern "C" qword VuvecSphere(float radPan, float radTilt, float s);
+extern "C" void GetVectorSphere(qword v, float *prad, float *pradTilt, float *psLen);
+extern "C" qword SetVectorSphere(float radPan, float radTilt, float s);
 float D_002C41DC = 10.0f;
 extern VECTOR D_002A2DC0;
 extern qword D_002A2DC0q __asm__("D_002A2DC0");
@@ -350,11 +350,11 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-void OnGameEvent(GAME *pgame, int nEvent, LO *plo);
-void DecomposeCylind(qword v, float *prad, float *psXY, float *pz);
-qword ClipCmEye(CM *pcm, qword posFrom, qword posTo);
-void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut);
-void UpdateCmLineOfSight(CMPART2 *pcmpart);
+extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
+extern "C" void GetVectorCylind(qword v, float *prad, float *psXY, float *pz);
+qword ClipCmEye(CM *pcm, qword posFrom, qword posTo) __asm__("func_0014F110");
+void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut) __asm__("func_00223A70");
+void UpdateCmLineOfSight(CMPART2 *pcmpart) __asm__("func_002236E8");
 extern qword D_002A2DA0;
 int D_002C4118 = 0;
 float D_002C41D8 = 0.75f;
@@ -411,7 +411,7 @@ struct VTE { short d; short pad; int (*pfn)(...); };
 struct POX { char pad[0x2DC]; int x2DC; };        /* the current player as UpdateTnCallback reads it */
 struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GDistPlanePos) */
 struct STACKSCOPE {
-    STACKSCOPE();  // 0x1AE478
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");  // 0x1AE478
     ~STACKSCOPE(); // 0x1AE4A0
 };
 extern SW D_003DD490;
@@ -1093,7 +1093,7 @@ void func_00221CE8(CMPART2 *p, CPDEFI *b)
 //     ploPull forces the bit off); tMoveLast keeps the focus's latest tMoveLast.
 //  3. In a tunnel with a forward / backward view: CalculateTnCrv gives the focus's offsets from the curve (cylindrical: the pan is carried from last
 //     frame limited by TN::radPanLimit); CalculateTnPos with the CPD's offsets (ahead by dsOffset / behind) gives the two views as pan / tilt /
-//     distance from posHang (DecomposeSphere) -> radPanFwd.. / radPanRev..
+//     distance from posHang (GetVectorSphere) -> radPanFwd.. / radPanRev..
 //  4. A cut (g_cm.nCut): nCut 2 (CutCmPanTilt) continues from g_cm.radCutPan / radCutTilt (less the framing tilt); outside a tunnel view the pan is
 //     CPDEFI::radHome (the hero's heading) and the tilt CPD::lmTilt.gMin; else the nearer tunnel view becomes the mode (1 / 2). A mode its tunnel
 //     does not allow falls back to 4 (free).
@@ -1108,7 +1108,7 @@ void func_00221CE8(CMPART2 *p, CPDEFI *b)
 //     limited to 2.5, times uTunnel, times CLQ {1,-2,-2}(left stick y) in 1..2, times the ramp 0..1 of the seconds since the player let go, times dt.
 //     The tilt eases back into CPD::lmTilt (RadSmooth, SMP {0.75,0,2} x speed) once the hero moves faster than 60 u/s (speed / 600 capped at 1 > 0.1).
 //     With tunnel views: the view to pull toward is the forward one (plain zones, mode 1; the player's own tunnel +0x528 with blend 3.0), the backward
-//     one (mode 2), else by the hero's facing (PmatLoWorld row 0, z dropped) against the tunnel's direction (XfmVecLoWorld): blend = g^2 (3 - 2|g|),
+//     one (mode 2), else by the hero's facing (PmatLoWorld row 0, z dropped) against the tunnel's direction (ConvertAloVec): blend = g^2 (3 - 2|g|),
 //     backward when the backward view is allowed and g <= 0. The pull strength = (speed / 600, or / 200 while +0x4CC == -1 / +0x4C8, capped at 1)
 //     x CPD::gTurn; fPullIdle raises it to gPullIdle x ramps of (idle 0.75 s, no player turn 10 s) over dtPullIdle; fPullEnter (until fArrived) to
 //     gPullEnter x the ramp since the tunnel was entered (tTns) over dtPullEnter. The pulled pan / tilt = RadSmooth toward the view (SMP {0.5,0,0.5} x
@@ -1118,7 +1118,7 @@ void func_00221CE8(CMPART2 *p, CPDEFI *b)
 //     |CPD::dsOffset| as the distance outside tunnel views, else distance / uFrameX interpolated between the backward and forward views by where the
 //     pan lies between their pans (smoothstep, pans unwrapped). The distance and uFrameY spring to the wanted values (k = CPD::kDist * 15 * dt,
 //     c = CPD::cDist * -8 * dt + 1) unless cutting (velocities zeroed).
-//  9. posEyeWant = posHang + VuvecSphere(pan, tilt, dist); FreeCamClip on a cut, ClipCmEye normally (D_002C4118 = no clipping; a tunnel's fNoCamClip
+//  9. posEyeWant = posHang + SetVectorSphere(pan, tilt, dist); FreeCamClip on a cut, ClipCmEye normally (D_002C4118 = no clipping; a tunnel's fNoCamClip
 //     skips both); the angles are re-derived from the clipped eye; the eye handed to SetCmPanTilt is pushed back by sNearClip along the view;
 //     the framing offsets atan(uFrameX * gTanHalfX) / -atan(uFrameY * gTanHalfY) plus the look offsets (first frame: the difference between the camera's
 //     current pan / tilt (DecomposeRotateMatrixPanTilt of g_cm.matRot) and the new view, so there is no jump; later sprung back to 0 with k -10, c -5).
@@ -1177,7 +1177,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         CalculateTnCrv(ptnCur, *(qword *)&posFocus, &dposCrv, &vecTangent);
         if (ptnCur->fCylind)
         {
-            DecomposeCylind(*(qword *)&dposCrv, &dposCrv.x, &dposCrv.y, &dposCrv.z);
+            GetVectorCylind(*(qword *)&dposCrv, &dposCrv.x, &dposCrv.y, &dposCrv.z);
             if (!fEntered)
                 dposCrv.x += GLimitAbs(RadNormalize(radPanCrv - dposCrv.x), ptnCur->radPanLimit);
             radPanCrv = dposCrv.x;
@@ -1186,13 +1186,13 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         {
             VECTOR4 posView;
             CalculateTnPos(ptnCur, &dposCrv, ptnCur->uProgress, pcpd->dsOffset, pcpd->aclqOffset, pcpd->almOffset, FTND_Forward, (qword *)&posView);
-            DecomposeSphere(QwSub(*(qword *)&posView, *(qword *)&posHang), &radPanFwdNew, &radTiltFwdNew, &sDistFwd);
+            GetVectorSphere(QwSub(*(qword *)&posView, *(qword *)&posHang), &radPanFwdNew, &radTiltFwdNew, &sDistFwd);
         }
         if (grftnm & 2)
         {
             VECTOR4 posView;
             CalculateTnPos(ptnCur, &dposCrv, ptnCur->uProgress, pcpd->dsOffset, pcpd->aclqOffset, pcpd->almOffset, FTND_Reverse, (qword *)&posView);
-            DecomposeSphere(QwSub(*(qword *)&posView, *(qword *)&posHang), &radPanRevNew, &radTiltRevNew, &sDistRev);
+            GetVectorSphere(QwSub(*(qword *)&posView, *(qword *)&posHang), &radPanRevNew, &radTiltRevNew, &sDistRev);
         }
     }
     if (fEntered)
@@ -1267,8 +1267,8 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     {
         if (nMode != 4)
         {
-            SND *psnd = MakeSnd(3);
-            SetSndOwner(psnd, 0);
+            SND *psnd = PsndStartSound(3);
+            SetSndSourceLo(psnd, 0);
         }
         if (pjoy->sRight > 0.0f)
             fRecenter = 0;
@@ -1302,7 +1302,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             if (D_002DDED0.tCm - D_002DEB30.tCmTurned > 5.0f)
             {
                 D_002DEB30.tCmTurned = D_002DDED0.tCm;
-                OnGameEvent(&D_002DEB30, 6, 0);
+                BroadcastGameEvent(&D_002DEB30, 6, 0);
             }
         }
         nMode = 4;
@@ -1447,7 +1447,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwHeading) : "j"(qwHeadingRaw));
                 }
                 *(qword *)&vecHeading = qwHeading;
-                *(qword *)&vecTangent = XfmVecLoWorld(ptnCur, 0, *(qword *)&vecTangent);
+                *(qword *)&vecTangent = ConvertAloVec(ptnCur, 0, *(qword *)&vecTangent);
                 float gAlong = GFromVf(QwDot(*(qword *)&vecHeading, *(qword *)&vecTangent));
                 gBlend = gAlong * gAlong * (3.0f - (fabsf(gAlong) + fabsf(gAlong)));
                 if ((grftnm & 2) == 0 || 0.0f < gAlong)
@@ -1622,7 +1622,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         uFrameYWant = uFrameY + duFrameY * D_002DDED0.dt;
     }
     VECTOR4 dposEye;
-    *(qword *)&dposEye = VuvecSphere(radPanOut, radTiltOut, sDistOut);
+    *(qword *)&dposEye = SetVectorSphere(radPanOut, radTiltOut, sDistOut);
     VECTOR4 posEyeWant;
     *(qword *)&posEyeWant = QwAdd(*(qword *)&posHang, *(qword *)&dposEye);
     if (ptnCur == 0 || ptnCur->fNoCamClip == 0)
@@ -1633,7 +1633,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             *(qword *)&posEyeWant = ClipCmEye(&D_002DDF40, posEye, *(qword *)&posEyeWant);
     }
     *(qword *)&dposEye = QwSub(*(qword *)&posEyeWant, *(qword *)&posHang);
-    DecomposeSphere(*(qword *)&dposEye, &radPanOut, &radTiltOut, &sDistOut);
+    GetVectorSphere(*(qword *)&dposEye, &radPanOut, &radTiltOut, &sDistOut);
     posEye = *(qword *)&posEyeWant;
     *(qword *)&posEyeWant = QwAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + D_002DDF40.sNearClip) / sDistOut)));
     float radLookX = atanf(uFrameXWant * D_002DDF40.gTanHalfX);
@@ -1648,7 +1648,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         {
             float sXY;
             float z;
-            DecomposeCylind(*(qword *)&dposEye, 0, &sXY, &z);
+            GetVectorCylind(*(qword *)&dposEye, 0, &sXY, &z);
             float radPanCm;
             float radTiltCm;
             DecomposeRotateMatrixPanTilt(&D_002DDF40.matRot, &radPanCm, &radTiltCm);

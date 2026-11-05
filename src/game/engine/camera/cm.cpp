@@ -486,7 +486,7 @@ struct CAMMOVE
       CAMEVENT *pevent;
       int nUnk18;
 };
-extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut);
+extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("func_0014D8F8");
 extern "C" void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane);
 void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");
 struct VU_FLOAT
