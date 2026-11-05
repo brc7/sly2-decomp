@@ -39,9 +39,9 @@ typedef char *va_list;
 extern "C" {
 void *func_002333B4(void *, int, int) __asm__("memset");
 extern unsigned char D_002AA6A1[];   /* character class table: 1 upper, 2 lower */
-extern const char D_002A9370[] = "(null)";
+extern const char D_002A9370[];   /* defined before WriteTftPchz (.rodata order) */
 char D_002C40C8[] = "0123456789abcdef";   /* digits (text's .data, not const) */
-extern const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)";
+extern const char D_002A94F0[], D_002A94F8[];   /* defined before CchAchFromDouble (.rodata order) */
 double log10(double);
 double pow(double, double);
 double dpmul(double, double);
@@ -178,6 +178,9 @@ static inline void WritePad(OSTRM *postrm, char ch, int c)
         if (postrm->CbWrite(&b, 1) != 1)
             break;
 }
+/* .rodata order: g++ emits a named constant where it is defined and a function's literals and jump tables when
+ * the function is compiled, so each string the original had as a literal is defined right before its function. */
+extern "C" const char D_002A9370[] = "(null)";
 /** @sly2-annot addr=0x21D9F0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -387,6 +390,7 @@ int i; double x;
     return D_002C40C8[i];
 }
 
+extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)";   /* .rodata order (see WriteTftPchz) */
 /** @sly2-annot addr=0x21E1B0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
