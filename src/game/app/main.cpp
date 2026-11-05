@@ -11,7 +11,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct JOY; struct CM;
 enum PHASE { PHASE_1 = 1 };
 
-extern int D_002E2050, D_002E2054;      /* argc, argv */
+int D_002E2050, D_002E2054;             /* argc, argv (main's .bss, address order) */
 extern void *D_002DD644;
 extern int D_002BE538;                  /* frame count */
 extern char D_003DD490[], D_003D9E70[], D_002DDED0[];
@@ -85,8 +85,8 @@ struct E { int bytes; unsigned int source; int argumentBytes; const char *argume
 struct DMA { unsigned int source; unsigned int destination; int bytes; int attributes; };
 extern struct E *D_004E5D80;
 extern struct E *D_004E5E38;
-extern int D_002E2058;
-extern char D_002A6A48[];
+int D_002E2058;     /* main's .bss: skip the IOP reboot */
+extern const char D_002A6A48[] = "ioprp300.img";
 extern "C" {
 void func_00236A60(int n);
 int sceSifLoadFileReset(void);
@@ -133,7 +133,7 @@ void StartupSif()
     SetCdMmode();
     sceFsReset();
     if (!D_002E2058) {
-        CdPath(u.buf, D_002A6A48, 1);
+        CdPath(u.buf, (char *)D_002A6A48, 1);
         while (!sceSifRebootIop(u.buf))
             ;
         while (!sceSifSyncIop())
@@ -256,11 +256,15 @@ void StartupVU1()
    on a byte view, as the per-function file did (modelling CProg as a class is a separate step). */
 struct B { char data[0x70]; };
 struct C { int c; } __attribute__((aligned(16)));
-extern char D_002A6A58[], D_002C46D8[], D_002C46C0[];
+/* The start-up banner (.rodata) and its two arguments, the region and the build number (.data, address order; the
+ * build date between them, 0x2C46C8, is named by no code here). */
+extern const char D_002A6A58[] = "Sly 2: Band of Thieves \xa9 2004\n  Sony Computer Entertainment America &\n  Sucker Punch Productions\nP3: %s %s\nprops: %d\n\n";
+char D_002C46C0[] = "america";
+char D_002C46D8[] = "0813.0032";
 extern void (*D_002BFCE0[])(void);      /* the 19 startup stages */
 extern "C" {
 struct B *__5CProgP4RGBAN31(struct B *b, struct C *c0, struct C *c1, struct C *c2, struct C *c3);
-int kprintf(char *format, ...);
+int kprintf(const char *format, ...);
 void Begin__5CProg(struct B *b);
 void SetRemain__5CProgi(struct B *b, int n);
 void End__5CProg(struct B *b);
