@@ -1006,7 +1006,7 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocStackImpl(SWALLOC *pswalloc);
+void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 struct STACKSCOPE
 {
     STACKSCOPE() __asm__("STACKSCOPE_ctor");
