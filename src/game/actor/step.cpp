@@ -765,12 +765,12 @@ struct CLOCK
     float dt;
 };
 
-extern struct CLOCK D_002DDED0;
+extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" float D_002C3C98[3] = {3000.0f, 0.0f, 0.35f};   /* the two closing-speed SMPs */
 extern "C" float D_002C3CA8[3] = {3000.0f, 0.0f, 0.5f};
 
-void func_001F4FC0(struct STEP *pstep, struct XP *pxp, int ixpd);
-float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext);
+extern "C" { void func_001F4FC0(struct STEP *pstep, struct XP *pxp, int ixpd); }
+extern "C" { float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
 
 static inline qword QwSub(qword a, qword b)
 {
@@ -1344,8 +1344,8 @@ struct LO;
 struct LINK { XP *pxpFirst; LINK *plinkNext; XP **ppxpOut; SO *pso; };
 struct ATT { char pad0[0x34]; SOPART *psopart; char pad38[0x60 - 0x38]; SO *pso; LINK *plinkFirst; XP *pxpFirst; };
 struct SO { char pad0[0x10]; SO *psoParent; char pad14[0xEC - 0x14]; ATT *patt; char padF0[0x258 - 0xF0]; SOPART *psopart; };
-extern char D_003DD490[];  // g_sw
-extern qword D_002A2DC0;   // g_normalZ
+extern "C" { extern char D_003DD490[]; }  // g_sw
+extern "C" { extern qword D_002A2DC0; }   // g_normalZ
 extern "C" {
 SO *PsoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
@@ -1741,8 +1741,8 @@ struct FRAME {FRAME(){}~FRAME(){}};
 struct P {char pad0[0xEC];void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
 struct HEIGHT {float min,max;};
 struct GAME;
-extern GAME D_003DD490;
-extern qword D_002A2DC0;
+extern "C" { extern GAME D_003DD490; }
+extern "C" { extern qword D_002A2DC0; }
 extern "C" const float D_002A85F8 = -3.40282347e+38f;   /* -FLT_MAX */
 extern "C" float D_002C3CE0 = -24.0f;   /* the probe drop along the up row */
 extern "C" int D_002C3CE4 = 2;
