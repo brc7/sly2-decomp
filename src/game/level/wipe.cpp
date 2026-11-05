@@ -40,7 +40,7 @@ typedef char assert_WIPE_size[sizeof(WIPE) == 0x5C ? 1 : -1];
 extern SW D_003DD490;
 
 extern "C" {
-void *func_002333B4(void *p, int c, int n);     /* memset */
+void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
 void SetSwTransition(SW *psw, TRANS *ptrans);
 int FWidgetAnimPlaying(WIDGETV *pwidget, int a);
 void SetWipeWipes(WIPE *pwipe, int k);

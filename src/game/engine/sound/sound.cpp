@@ -660,7 +660,7 @@ struct S *PsndFromSfxid(struct G *, int);
 short IsndFromPsnd(struct G *, struct S *);
 void SetSndFlags(struct P *, int, int);
 void RemoveSndFromDirtyList(struct P *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001FBAF8(void);
 void func_00232320(struct M *, void (*)(void), struct P *);
 void func_002322F0(struct M *);
@@ -1702,7 +1702,7 @@ struct SNDMGR
 extern "C" { extern int D_002E1E54; }
 extern "C" void snd_UnloadBank(void *);
 extern "C" int snd_FlushSoundCommands(void);
-extern "C" void *func_002333B4(void *, int, uint);
+extern "C" void *func_002333B4(void *, int, uint) __asm__("memset");
 extern "C" STREAMSND *PstreamsndNew(FILEREC *, int);
 extern "C" void func_00259B48(void *, STREAMSND *);
 inline int FSameFileId(FILEREC *prec, FILEREC *precOther)
@@ -1870,7 +1870,7 @@ void snd_StopAllStreams(void);
 void func_00233048(int, int, int, int, int, int, int);
 int snd_FlushSoundCommands(void);
 void func_00156BE0(int, qword, int, void *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_00227788(void *);
 void func_00259B48(void *, void *);
 void ResetSlotheap(void *);
@@ -2454,7 +2454,7 @@ void func_001FE0E8(struct P *, struct A *);
 void SetSmaGoal(void *, int);
 void StopSnd(struct Y *, float);
 void func_00259B48(struct Ref *, void *);
-void func_002333B4(void *, int, int);
+void func_002333B4(void *, int, int) __asm__("memset");
 static inline void Stop(struct Ref *pr)
 {
     if (pr && pr->px) {
@@ -2607,7 +2607,7 @@ struct LM {float low,high;};
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern PMF D_002A8298,D_002A82A0; }
 extern "C" float GLimitLm__FP2LMf(LM *,float);
-extern "C" void *func_002333B4(void *,int,unsigned int);
+extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 extern "C" void snd_SetMasterVolume(int,int);
 static inline X *ReadReceiver(X **pp)
 {
@@ -2739,7 +2739,7 @@ namespace M_func_001FEED0 { extern "C" {
 struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
 struct P { char pad[0x64]; int n64; char pad2[0xE8 - 0x68]; int nE8; char pad3[0x138 - 0xEC]; int n138; };
 int NRandInRange__Fii(int, int);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void *PsndFromSfxid(struct P *, int);
 short IsndFromPsnd(struct P *, void *);
 void func_002322F0(struct M *);

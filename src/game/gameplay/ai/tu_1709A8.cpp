@@ -744,7 +744,7 @@ extern "C" { void SetBhvBusy(struct S *p); }
 extern "C" { void ClearBhvBusy(struct S *p); }
 extern "C" { void ReleaseAnimBinding(struct X50 *x, struct A *a); }
 extern "C" { void ResolveAnimBinding(struct X50 *x, struct A *a); }
-extern "C" { void func_001E0020(void *o, int n); }
+extern "C" { void func_001E0020(void *o, int n) __asm__("EnsureSggAlarm__FP3SGGP5ALARM"); }
 
 struct O2 : O { char pad1[0x30 - 0x10]; void *p30; int n34; float g38; char pad2[0x50-0x3C]; void *n50; int pad3; int n58; };
 struct O3 : O { char pad1[0xA8 - 0x10]; void *nA8; int pad2; float gB0; int pad3[2]; int nBC; };
@@ -965,7 +965,7 @@ struct R { struct K *pk; int n; float g; };
 struct U { char pad[0x38]; float g38; };
 struct T { char pad[0xF80]; int nF80; };
 struct S { char pad[0x10]; struct T *pt; int pad1; struct U *p18; char pad2[0x18]; int n34; struct K *p38; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x171C18
  * Purpose: Saves current command/context (and wait time) for later resumption
  * Info: proposed name GetBhv169ResumeState (T2); TU tu_1709A8
@@ -1008,7 +1008,7 @@ extern "C" void func_00171C98(BHVSSG *pbhv, int id)
 namespace M_func_00171CF8 { extern "C" {
 struct F { int a[0x1C]; };
 void *func_00205458(void *p, int n);
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x171CF8
  * Purpose: Sets the guard's BHV156 to mode 5 with the given script
@@ -1025,7 +1025,7 @@ void func_00171CF8(void *p, int n) { struct F f; void *o = func_00205458(p, 0x9C
 namespace M_func_00171D58 { extern "C" {
 struct F { int a[0x1C]; };
 void *func_00205458(void *p, int n);
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x171D58
  * Purpose: Sets the guard's BHV156 to mode 1 (probably back to normal routine)

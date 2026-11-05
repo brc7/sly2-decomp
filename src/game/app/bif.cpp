@@ -1403,7 +1403,7 @@ namespace M_RefOpSetCadr__FiP4CRefP6CFrame4BIFK { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-void func_00129658(CRef *pref, CRef *prefSrc);
+void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void PairPtr_Assign(void *p, void *q);
 /** @sly2-annot addr=0x120C48
  * Purpose: Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void
@@ -1496,7 +1496,7 @@ struct CRef; struct PAIR;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct PAIR { int a; int b; CRef ref; struct PAIR *pnext; } PAIR;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-void func_00129658(CRef *pref, CRef *prefSrc);
+void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 CRef *func_001291A8(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x120D78
@@ -2025,7 +2025,7 @@ struct CRef {
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" {
-void *func_002333B4(void *pv, int b, unsigned int cb);
+void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 CRef CRef_RefCoerceF32(CRef *pref);
 CRef RefOpMatrix__FiP4CRefP6CFrame(int carg, CRef *pref);
 }
@@ -2957,7 +2957,7 @@ extern "C" {
 M3 MulMatrix3Matrix3(M3 *pa, M3 *pb);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pmat, float *prad, qword *pvec);
 M3 func_0011B500(float rad, qword axis);
-void *func_002333B4(void *pv, int n, int cb);
+void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 }
 static inline M3 MulM3(const M3 &a, M3 *pb) return m
 {

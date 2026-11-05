@@ -109,7 +109,7 @@ struct S { int a, b, c, d; int f10, f14, f18; };
 extern char D_003D4A60[];
 extern char D_002DE578[];
 extern int D_002E1E00;
-void *func_002333B4(void *pv, int n, int cb);
+void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 void func_001D8D80(void *p, int n);
 void InitDifficulty(void *p);
 /** @sly2-annot addr=0x1613F8

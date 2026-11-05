@@ -10,7 +10,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 extern "C" {
 int memcmp(const void *pv1, const void *pv2, unsigned int cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, unsigned int cb);
+void *func_0023320C(void *pvDst, const void *pvSrc, unsigned int cb) __asm__("memcpy");
 }
 
 /* 0x116CA0..0x116D00: memcmp of 4/8/12/16 bytes (comparators for fixed-size keys). */

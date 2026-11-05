@@ -52,7 +52,7 @@ extern "C" unsigned short WSjisFromCh(unsigned char ch)
 
 typedef char GM_Size[sizeof(struct GM)==4?1:-1];typedef char GM_B[(unsigned)&((struct GM*)0)->b==2?1:-1];
 
-extern "C" int func_0021ED28(char *s);   /* strlen */
+extern "C" int func_0021ED28(char *s) __asm__("strlen");   /* strlen */
 /** @sly2-annot addr=0x1EEA70
  * Purpose: Convert C string (strlen) to array of u16 SJIS codes
  * Info: proposed name ConvertPchzToSjis (EXISTING); TU sjis

@@ -13,7 +13,7 @@ extern CB D_002C4690;
 extern int D_00443840[];
 extern unsigned int D_00448480;
 int snd_GotReturns__Fv(void);
-void func_00234CA0(int);
+void func_00234CA0(int) __asm__("FlushCache");
 void snd_SendCurrentBatch__Fv(void);
 int snd_StreamSafeCdSync(int);
 

@@ -36,7 +36,7 @@ int scePadGetState_243388(int port, int slot);
 int scePadInfoMode(int port, int slot, int term, int offs);
 int scePadSetMainMode(int port, int slot, int offs, int lock);
 int scePadInfoAct(int port, int slot, int term, int offs);
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int scePadSetActAlign(int port, int slot, unsigned char *pb);
 int scePadInfoPressMode(int port, int slot);
 int scePadEnterPressMode(int port, int slot);

@@ -782,7 +782,7 @@ float SMaxShape(FOCUS *);
 float UMinShape(FOCUS *);
 float UMaxShape(FOCUS *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
-void func_001940B0(CONTEXT *, int);
+void func_001940B0(CONTEXT *, int) __asm__("SetJtHfdk__FP2JT4HFDK");
 void func_00204660(ACTOR *, float);
 float RadStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
@@ -3108,7 +3108,7 @@ struct CLOCK { float t, dt; };
 extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
 float GRandInRange__Fff(float gMin, float gMax);                    // GRandInRange
-void *func_002333B4(void *pv, int b, unsigned int cb);          // memset
+void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");          // memset
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITX *pemitx, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
                    void *pv1, void *pv2);
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);

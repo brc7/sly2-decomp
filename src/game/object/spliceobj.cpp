@@ -51,7 +51,7 @@ CRef *CRef_SetLm(CRef *pref, const LM *plm);
 CRef *CRef_SetSmp(CRef *pref, const SMP *psmp);
 CRef *CRef_SetBasic(CRef *pref, BASIC *pbasic);
 CRef *CRef_SetMethod(CRef *pref, CMethod *pmethod);
-void *func_002333B4(void *pv, int b, int cb);   /* memset */
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 PVREC *PeopidFind(BASIC *pbasic, int opid);
 }
 /* CRef_RefCoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */

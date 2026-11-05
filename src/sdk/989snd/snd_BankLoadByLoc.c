@@ -9,9 +9,9 @@ int snd_StreamSafeCdSync(int);
 void printf(const char *, ...);
 void func_00234F48(void *, void *);
 void snd_FlushSoundCommands(void);
-void func_00234CA0(int);
-int func_00237488(void *);
-int func_00237288(void *, int, int, void *, int, void *, int, void *, void *);
+void func_00234CA0(int) __asm__("FlushCache");
+int func_00237488(void *) __asm__("sceSifCheckStatRpc");
+int func_00237288(void *, int, int, void *, int, void *, int, void *, void *) __asm__("sceSifCallRpc");
 
 int snd_BankLoadByLoc(int a, int b)
 {

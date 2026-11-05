@@ -163,7 +163,7 @@ extern VECTOR D_002A2DC0; // (0, 0, 1, 0)
 extern VECTOR D_002A2DD0; // (0, 0, 0, 0)
 extern "C"
 {
-void *func_002333B4(void *pv, int b, uint cb);                       // memset
+void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                       // memset
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);         // CopyAb
 qword ConvertAloPos(SO *psoFrom, SO *psoTo, qword pos);              // ConvertLoPos
 float RadNormalize__Ff(float rad);                                      // RadNormalize

@@ -128,7 +128,7 @@ uint GrfHandleJoyBtn(JOY *, uint);
 CRef RefGetGlobalSaveVar(OPT *, CONTEXT *);
 CRef RefSetGlobalSaveVar(OPT *, const CRef &, void *);
 void SetMcDialogState(MCDLG *, int);
-void *func_002333B4(void *p, int c, unsigned int n);
+void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 float GLimitLm__FP2LMf(void *, float);
 void SetSndmgrChannelVolume(SNDMGR *, int, float, int);
 void ApplyGsSettings(void *);

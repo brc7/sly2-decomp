@@ -1544,7 +1544,7 @@ qword ConvertAloPos(OWNER *, OWNER *, qword);
 qword *VECTOR_opAssign(qword *, qword);
 M4 InvertMatrix4Rigid(const M4 *);
 void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
-void *func_002333B4(void *, int, uint);
+void *func_002333B4(void *, int, uint) __asm__("memset");
 void *func_001AE318(SWALLOC *);
 int func_00118A88(BSP *, BSP *, qword, float, int *, BSP **);
 int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);

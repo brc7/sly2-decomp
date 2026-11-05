@@ -135,7 +135,7 @@ void func_001A5E80(LIGHT *p);
 void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
 void func_001ED2D8(V3 *pv);
 qword func_001A62E8(LIGHT *p);
-void *func_002333B4(void *, int, uint);                     /* memset */
+void *func_002333B4(void *, int, uint) __asm__("memset");                     /* memset */
 void GetNormalVectors(qword a, qword b, qword c, M3R *pm);
 qword *VECTOR_opAssign(qword *p, qword v);
 

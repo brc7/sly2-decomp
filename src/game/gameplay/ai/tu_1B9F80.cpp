@@ -97,7 +97,7 @@ void PopBhv(int *p);
 O *func_00205438(NEELA *p, int b);
 void func_00171258(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELA *b);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
 extern NEELA*D_003E1444;   /* the in-world guard list */
 extern const float D_002A7620 = 3.40282347e+38f;   /* FLT_MAX */

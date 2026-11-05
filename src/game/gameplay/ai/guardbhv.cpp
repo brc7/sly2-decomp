@@ -1684,7 +1684,7 @@ namespace M_StartBhvguard { extern "C" {
 struct F;
 struct F { int a[0x1C]; };
 void StartBhv(void *p);
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x176708
  * Purpose: BHVGUARD Start: enter mode 0 (immediately becomes patrol)
@@ -1812,7 +1812,7 @@ namespace M_InflictBhvguardZap { extern "C" {
 struct F; struct S;
 struct F { int a0; int pad; int n8; int nC; int n10; int pad2[0x13]; };
 struct S { char pad[0x10]; int n10; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void func_001F7598(struct F *pf);
 /** @sly2-annot addr=0x176B80
  * Purpose: Inflict a zap of kind 0x40000 and amount a on the guard from source b
@@ -1864,7 +1864,7 @@ extern "C"{
 extern OBJECT*D_002F7900;
 extern void*D_003E14BC;extern void*D_003E14B0;extern void*D_003E14B8;struct GAMESTATE{char pad[0x4028];void*context;};extern GAMESTATE D_003DD490;
 extern CLOCK D_002DDED0;extern float D_002BE620;
-void*func_002333B4(void*,int,unsigned);
+void*func_002333B4(void*,int,unsigned) __asm__("memset");
 void SetBhvguardMode(S*,STATE*);
 qword func_001A62E8(void*);M4*func_001A6318(void*);
 qword ConvertAloVec(void*,void*,qword);
@@ -2128,7 +2128,7 @@ extern "C"{
  int FBhvguardEscortActive(C*);
  int FBhvguardModeSame(const STATE*,const STATE*);
  void SetBhvguardMode(C*,const STATE*);
- void*func_002333B4(void*,int,unsigned int);
+ void*func_002333B4(void*,int,unsigned int) __asm__("memset");
  int func_00208B38(P*,P*);
  float func_00208BB0(P*);
  P*func_0020A408(P*,P*);
@@ -2290,7 +2290,7 @@ struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct A { char pad[0xC]; struct VTE *vt; char pad2[0xFBC - 0x10]; int nFBC; char pad3[0x1010 - 0xFC0]; int n1010; };
 struct S { char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; };
 struct F { int a; int pad[3]; void *p10; float f14; int rest[0x16]; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
 void *PpoHero(struct G *g);
 int FBhvguardHasTargetList(struct S *p);
@@ -4985,7 +4985,7 @@ float *func_0012F938(void *p, void *q);
 void func_00130D30(void *p, float a, float b, int n);
 void SetBhvjuggledState(struct S *p, int n);
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword func_001A62E8(struct A *a);
 void func_00156698(void *p, qword v, struct A *a);
 /** @sly2-annot addr=0x17AF30

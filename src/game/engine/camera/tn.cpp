@@ -425,7 +425,7 @@ extern int D_002DFBC4;
 float D_002C4110 = 0.5f, D_002C4114 = 2.0f;
 extern qword D_002C4290[5];
 
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void InitXfm(TN *p);
 void SetLoBusyk(TN *p, int a);
 void RemoveLoHierarchy(TN *p);

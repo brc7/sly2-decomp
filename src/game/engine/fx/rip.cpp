@@ -84,8 +84,8 @@ struct G { char pad[0x403C]; char pool[0x30]; struct O *x406C; };
 extern struct VTE D_002D9978[];
 extern struct VTE D_002D77D8[];
 void *PvAllocSlotheapClear(void *pool);
-void *func_002333B4(void *p, int c, int cb);
-void *func_00167310(void *p);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
+void *func_00167310(void *p) __asm__("__4CRef");
 void *PdlFromSwCid(struct G *p, int n);
 void func_0011A070(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
@@ -576,7 +576,7 @@ extern char D_002D7558[];
 extern char D_002D7508[];
 extern char D_002D7788[];
 extern char D_002D7468[];
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1CE6D0
  * Purpose: Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's
  *   vtable (11 types, vtables 0x2D7468..0x2D7788)

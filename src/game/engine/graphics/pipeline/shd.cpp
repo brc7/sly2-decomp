@@ -191,7 +191,7 @@ struct S8 { char pad[0x24]; int c; };
 struct Y { int a; unsigned short grf; short pad; struct S8 *ps8; };
 ulong Tex0FromTexIframeCtk(struct Y *py, int i, int n);
 void PackAD__4GIFSll(void *pq, int reg, ulong val);
-void *func_002333B4(void *p, int b, int cb);
+void *func_002333B4(void *p, int b, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1EA750
  * Purpose: Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D
  *   stream
@@ -1655,7 +1655,7 @@ void func_001ED2D8(VEC *p)
 namespace M_func_001ED3A8 { extern "C" {
 struct AR { int cb; int cbAlign; };
 void *func_001AE318(struct AR *par);
-void *func_002333B4(void *p, int b, int cb);
+void *func_002333B4(void *p, int b, int cb) __asm__("memset");
 extern void *D_003DD010;
 extern void *D_003DD018;
 extern int D_003DD00C;

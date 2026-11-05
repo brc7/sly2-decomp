@@ -1434,7 +1434,7 @@ typedef struct CRef { int tagk; int tag; } CRef;
 extern char D_002A79A0[], D_002A79A8[], D_002A79B8[];
 void sprintf(char *pch, char *fmt, int n);
 void RefGetSaveVarV(CRef *pref, char *a, char *b, char *c, int d);
-void func_00129658(CRef *pref, CRef *prefSrc);
+void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1DAEA8
  * Purpose: Save var powerUps.mppukfAcquired[n] (has the power-up been bought)
@@ -2219,7 +2219,7 @@ extern int D_003DA570;
 extern float D_002C35B0;
 extern int D_002C3588[];
 extern REC D_002BCD00[];
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int func_001DBBA0(OBJ *);
 void SetWidgetAnimXf(SUB *, int, M2 *);
 void SwitchWidgetAnim(SUB *, int, int *);
@@ -2949,7 +2949,7 @@ struct OBJ {
 };
 extern "C" {
 void StopWidgetAnim(void *, int);
-void func_002333B4(void *, int, unsigned int);
+void func_002333B4(void *, int, unsigned int) __asm__("memset");
 void SortTasksTopologically(int *, SO ***);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 int func_00165C28(const void *, const void *);
@@ -3489,7 +3489,7 @@ void StartNewGame(OBJ *);
 int CLanguagesRegion(void);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void GetRegionLanguages(int *, int **);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001AF4D8(void *, int, ITEM *, void *, void *);
 /** @sly2-annot addr=0x1DD920
  * Purpose: Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts
@@ -3795,7 +3795,7 @@ void GcBinding_Unlink(void *);
 void GcSidebag_Unlink(void *);
 void func_0011CD98(void *, void *);
 void func_00257078(void *, int) __asm__("_$_6CFrame");
-void func_001AE520(void *);
+void func_001AE520(void *) __asm__("__builtin_delete");
 
 static inline void Release1(R1 *r)
 {

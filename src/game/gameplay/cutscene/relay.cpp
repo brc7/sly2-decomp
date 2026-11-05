@@ -1751,7 +1751,7 @@ struct CMD; struct Q;
 struct CMD { int kind; int b; char pad[0x48]; };
 struct Q { char pad[0x50]; int c; struct CMD *a; int cMax; };
 extern struct CMD D_003DA740;
-void func_002333B4(void *p, int b, int cb);
+void func_002333B4(void *p, int b, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1E01F8
  * Purpose: Append a zeroed 0x50-byte RELAYCMD {relayck, fAsync} to the relay (limit crelaycmdMax or 0x200);
  *   on overflow return a scratch command D_003DA740
@@ -6395,7 +6395,7 @@ extern char D_003E1560[];
 extern char D_003DD490[];
 extern struct VTE D_002D8C08[];
 struct S *PvAllocSlotheapClear(void *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void PrependDlEntry__FP2DLPv(void *, void *);
 /** @sly2-annot addr=0x1E5AE0

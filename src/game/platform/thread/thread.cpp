@@ -29,10 +29,10 @@ extern char D_002E5270[];
 
 /* libkernel names in the comments are HYPOTHESIS (from the arguments and the neighbouring SignalSema). */
 extern "C" {
-void *func_002333B4(void *p, int c, int n);     /* memset */
-int func_00234A20(SemaParam *sp);               /* CreateSema */
+void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
+int func_00234A20(SemaParam *sp) __asm__("CreateSema");               /* CreateSema */
 int func_00234910(void);                        /* GetThreadId */
-int func_00234A60(int sema);                    /* WaitSema */
+int func_00234A60(int sema) __asm__("WaitSema");                    /* WaitSema */
 int SignalSema(int sema);
 void func_002348B0(int tid, int prio);          /* ChangeThreadPriority */
 int func_00234820(ThreadParam *tp);             /* CreateThread */

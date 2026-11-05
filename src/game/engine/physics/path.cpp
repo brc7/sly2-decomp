@@ -229,7 +229,7 @@ struct STATE { NODE *node; TRI *leaf; float t; U plane; };
 struct ROW { U a, b, planeA, planeB; float t0, t1; int flags; TRI *leaf; char tail[16]; };
 typedef char STATE_Size[sizeof(STATE) == 0x20 ? 1 : -1];
 typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
-extern "C" void *func_002333B4(void *, int, unsigned int); // memset
+extern "C" void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
 extern "C" int CbskFromG__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
 
 static inline float GetX(const qword &q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -1814,7 +1814,7 @@ extern const float D_002A76E0 = -3.40282347e+38f;  /* -FLT_MAX */
 extern const float D_002A76E4 = 3.40282347e+38f;   /* FLT_MAX */
 void *func_001AE1D0(struct A *pa);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1C1D20
  * Purpose: Grow obstacle/event arrays 0->16->128 with sentinel events
  * Info: proposed name GrowPathzoneObstacleArrays (T2); TU path
@@ -2099,7 +2099,7 @@ void *STACKSCOPE_ctor(void *pframe);
 void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE378(MSG *pmsg);
 void *func_001AE318(MSG *pmsg);
-void *func_002333B4(void *pv, int b, unsigned int cb);
+void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 qword func_001A62E8(void *pv);
 NAV *PpathzoneFromPos(qword pos, int f);
 void ClearDl__FP2DL(DL *pdl);

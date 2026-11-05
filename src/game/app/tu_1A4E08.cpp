@@ -46,7 +46,7 @@ extern const unsigned int D_002A38A8[16] = {0x6189A84E, 0xD1E3567A, 0xFB046C1C, 
     0x77E45E32, 0xBB286B3D, 0x3BFE72B8, 0x67842A68, 0x0E7E9F79, 0xA8D7FFF3, 0x618CB9AE, 0xFB046C41, 0xD17B76DC};
 
 extern "C" {
-void *func_002333B4(void *p, int c, int n);     /* memset */
+void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
 void CMpeg_QueueMovie(MPEGV *pmpeg, void *pv);
 void WipeToWorldWarp(void *psw, void *pfilerec, int a, int b, int grf, int oid);
 void func_001651D8(void *pv, int a, int b);

@@ -107,7 +107,7 @@ float GModPositive__Fff(float, float);
 int func_0012CEE0(CHNE *);
 void SetAsegblDominantBl(ASEG *p, int n);
 void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *amrsg, float *pf);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
 }
 int ImrsgLookUp(float t, float tMax, int cmrsg, MRSG *amrsg, float *pdt);

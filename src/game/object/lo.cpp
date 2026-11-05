@@ -1364,7 +1364,7 @@ int FFindLoParent(struct O *a, struct O *b)
 namespace M_func_001A6B30 { extern "C" {
 struct M { float a[16]; };
 extern struct M D_002C44F0;
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x1A6B30
  * Purpose: LO vt32: optionally write identity into M4 arg, return static D_002C44F0
  * Info: proposed name LO_PxfLocal (T2); class LO slot32; TU lo

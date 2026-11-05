@@ -157,7 +157,7 @@ int func_001F8278(struct P *);
 void SetSoMass(struct P *, float);
 qword func_001A62E8(struct P *);
 struct M3 *func_001A6318(struct P *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void PostSwCallback(struct G *, struct P *, long, int);
 
 /** @sly2-annot addr=0x1400B8
@@ -2726,7 +2726,7 @@ namespace M_UpdateStepplayerBootySave {
 struct CRef;
 extern "C" void Decref__4CRef(CRef *);
 extern "C" void *func_001291A8(CRef *, const CRef *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
-extern "C" CRef *func_00129658(CRef *, const CRef *);
+extern "C" CRef *func_00129658(CRef *, const CRef *) __asm__("__as__4CRefRC4CRef");
 struct CRef {
     int tagk; int tag;
     CRef() { tagk = -1; }
@@ -2756,7 +2756,7 @@ void *func_0013D1A8(Q *p);
 S *func_00143AF0(LO *p, int n);
 int IlevelCur__Fv(void);
 BL *func_002109B8(int);
-int func_00233178(const void *a, const void *b, int n);
+int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
 CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);

@@ -1845,7 +1845,7 @@ namespace M_SetLootDprizes {
 struct VTE { short d; short pad; void (*pf)(); };
 extern "C" {
 void Decref__4CRef(void *p);
-void func_00129658(void *p, const void *q);
+void func_00129658(void *p, const void *q) __asm__("__as__4CRefRC4CRef");
 float GRandInRange__Fff(float a, float b);
 void sprintf(char *buf, const char *fmt, ...);
 void SetDprizeDprizes(void *p, int n);
@@ -2544,7 +2544,7 @@ extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
 extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
-extern "C" void func_001E0020(SGG*,ALARM*);
+extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void func_001C8918(struct S*,int);
 extern "C" int FAsegaRetracted(void*);
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}

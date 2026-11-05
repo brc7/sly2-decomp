@@ -266,7 +266,7 @@ void AddSoParts(SO *pso);
 LO *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, OID oid, LO *ploContext);
 float SMaxShape(SHAPE *pshape);
 void EvaluateShapeS(SHAPE *pshape, qword *ppos, qword *pdir, float s);
-void *func_002333B4(void *pv, int b, int cb);   /* memset */
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 qword func_001A62E8(void *pso);   /* object position */
 qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEOM *pgeom, const M4 *pmat, GEOM *pgeomOut);

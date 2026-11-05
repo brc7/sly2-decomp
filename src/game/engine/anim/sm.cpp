@@ -423,7 +423,7 @@ extern "C" { extern SW D_003DD490; }
 extern "C" { extern VT D_002D9768; }
 extern "C" {
 S *PvAllocSlotheapClear(void *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
 void FramePtr_Assign(S *, int);
 int FSmaRetracted(S *);

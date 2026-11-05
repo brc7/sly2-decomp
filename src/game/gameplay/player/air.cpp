@@ -3691,7 +3691,7 @@ extern float D_002BF8E4, D_002BF8E8, D_002BF8EC, D_002BF8F0, D_002BF8F4, D_002BF
 extern float D_002BF90C, D_002BF914, D_002BF918;
 
 qword func_001A62E8(void *plo);                                         // PosLoWorld
-void *func_002333B4(void *pv, int b, uint cb);                         // memset
+void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                         // memset
 qword func_0019A750(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,

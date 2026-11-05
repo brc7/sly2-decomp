@@ -72,7 +72,7 @@ extern JT *D_002E1E40, *D_002DD5BC, *D_002F7900;
 extern "C" {
 qword func_0022FC48(void *a, void *b, qword q);
 void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void ReturnJtToSafePlace(JT *, PLACE *);
 void func_0019FAF8(JTPLACES *p, PLACE *e);
 JT *PpoHero(G *g);

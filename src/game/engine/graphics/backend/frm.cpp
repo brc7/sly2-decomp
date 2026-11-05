@@ -81,11 +81,11 @@ extern "C" {
 void AddIntcHandler(int n, int (*pfn)(), int m);
 void func_00235178(int n);
 void InitDl__FP2DLi(DL *pdl, int ib);
-void func_002355E0(int n, int m);
+void func_002355E0(int n, int m) __asm__("StartThread_2355E0");
 int VU1_Interrupt();
 void SetPhase__F5PHASE(int phase);
-int func_00234A60(int sid);   /* WaitSema */
-int func_00234A40(int sid);   /* SignalSema */
+int func_00234A60(int sid) __asm__("WaitSema");   /* WaitSema */
+int func_00234A40(int sid) __asm__("SignalSema");   /* SignalSema */
 void ClearDl__FP2DL(DL *pdl);
 void PropagateSais(FRM *pfrm);
 /* RenderFrame passes its flag on (a1 unchanged); written as an argument, it shapes RenderFrame's register allocation. */

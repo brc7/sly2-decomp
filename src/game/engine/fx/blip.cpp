@@ -167,7 +167,7 @@ extern char D_0025A0C0[];
 extern char D_0025AF90[];
 
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
-void *func_002333B4(void *pv, int b, int cb);              /* memset */
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");              /* memset */
 DL *PdlFromSwCid(SW *psw, CID cid);
 void func_0011A070(DL *pdl, void *pv);
 void RemoveSlEntry(DL *pdl, void *pv);

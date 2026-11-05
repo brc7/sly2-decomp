@@ -196,7 +196,7 @@ extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void func_0011A050(DL *,int);
 extern "C" int CbMaxRip(void);
-extern "C" void *func_002333B4(void *,int,unsigned int);
+extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 /** @sly2-annot addr=0x20D9D0
  * Purpose: SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV
  *   (180,255,255), fog/fov defaults
@@ -425,7 +425,7 @@ extern char D_002DEB30[];
 void *func_001AE1D0(struct MSG *pmsg);
 void *func_001AE2A0(struct MSG *pmsg);
 void func_0011A050(void *p, int n);
-void func_001703F8(struct ZPR *pz, int a, int b);
+void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001BE398(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
 
@@ -778,7 +778,7 @@ void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);
 void ResetClock(void *);
 void AddGrfusr__Fi(int);
-void *func_002333B4(void *,int,uint);
+void *func_002333B4(void *,int,uint) __asm__("memset");
 SW *SW_ctor(SW *);
 int CMpeg_ExecuteOids(void *);
 void InitCm__FP2CM(void *);
@@ -1344,7 +1344,7 @@ extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
 struct E { int x; int pad[2]; };
 struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n4764; int n4768; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
 int CClueCollected(void);
@@ -2371,7 +2371,7 @@ typedef struct { int a[4]; } ALLOC;
 extern struct G { char pad[0x4640]; int f; } D_003DD490;
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
 extern char *PchzFindSwLangstr__FP2SWi(struct G *, char *);
-extern int func_0021ED28(char *);
+extern int func_0021ED28(char *) __asm__("strlen");
 extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 
 /** @sly2-annot addr=0x210BE0

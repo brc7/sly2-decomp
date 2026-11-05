@@ -115,7 +115,7 @@ int func_001C1700(void *a, void *b, qword q2, qword q3, int c, CID14 **buf);
 void InitPlaneFromNormalPos(qword *pplane, qword n, qword pos);
 void FindShapeClosestPoint(CID14 *x, qword q, void *g, int a, int b, int c, float *pf);
 CID14 *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 void CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
 

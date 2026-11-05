@@ -93,7 +93,7 @@ struct CRefV{int tag;void*value;};
 struct HITY { qword v; char pad[0x18]; float f28; char pad2[0x14]; float f40; char pad3[0x1C]; };
 struct VU_FLOAT { qword qw; };
 /* SetBhvguardMode's argument (cleared by its constructor). */
-extern "C" void *func_002333B4(void *p, int c, int n);
+extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
 struct F { int a; int rest[0x1B]; F() { func_002333B4(this, 0, sizeof *this); } };
 
 extern CLOCK D_002DDED0;

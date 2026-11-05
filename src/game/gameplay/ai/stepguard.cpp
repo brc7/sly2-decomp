@@ -580,7 +580,7 @@ struct S {
 };
 void func_001CB5D0(struct S *p);
 void func_0020B210(struct S *p);
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetStepguardTarget(struct S *p, int n);
 void func_002088E0(struct S *p);
 void SetStepguardPickpocketState(struct S *p, int a);
@@ -1250,7 +1250,7 @@ extern "C" {
 void func_001F3C10(P *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
-void *func_002333B4(void *,int,unsigned int);
+void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 qword func_001A62E8(P *);
 float sinf(float);
 qword *VECTOR_opAssign(qword *,qword);
@@ -3294,7 +3294,7 @@ namespace M_func_00209E28 { extern "C" {
 struct F;
 struct F { int a[0x1C]; };
 void *func_00205458(void *p, int oid);
-void *func_002333B4(void *pv, int c, int cb);
+void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x209E28
  * Purpose: Send record {k=6, a[4]=n} to root behaviour BHV156 (0x176750)
@@ -3393,7 +3393,7 @@ namespace M_func_0020A058 { extern "C" {
 struct S;
 typedef struct { int tagk; int tag; } CRef;
 void func_002013D8(CRef *pr, int a, int b, int c, void *d, void *e);
-void func_00129658(CRef *pd, CRef *ps);
+void func_00129658(CRef *pd, CRef *ps) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pr);
 struct S { char pad[0xF94]; int a; int b; char pad2[0xFA8 - 0xF9C]; int c; int d; };
 /** @sly2-annot addr=0x20A058
@@ -3621,7 +3621,7 @@ struct O; struct L; struct S;
 struct O { char pad[0x30]; int n30; };
 struct L { int k; int rest[27]; };
 struct S { char pad[0x26C]; char x26C[0x2DC - 0x26C]; int a2DC[3]; int n2E8; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 struct O *PbhvFindBhvstk(void *p, int n);
 void SetBhvguardMode(struct O *po, struct L *pl);
 /** @sly2-annot addr=0x20A540
@@ -4513,7 +4513,7 @@ extern float D_002C3DBC;
 extern const float D_002A88CC;
 void UpdateLo(struct S *p);
 void *func_00205458(struct O *po, int n);
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct L *pl);
 void func_00153FF8(void *p);
 

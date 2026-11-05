@@ -52,7 +52,7 @@ struct CProc;
 extern "C" {
 void GcProc_Unlink(GCNODE *pnode);
 void GcPool6_Unlink(GCNODE *pnode);
-int func_00233178(const void *a, const void *b, int cb);   /* memcmp */
+int func_00233178(const void *a, const void *b, int cb) __asm__("memcmp");   /* memcmp */
 }
 
 

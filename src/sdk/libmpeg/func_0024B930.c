@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-M2C_UNK func_0024FA38(s32, M2C_UNK *);              /* extern */
+M2C_UNK func_0024FA38(s32, M2C_UNK *) __asm__("_sceMpegError");              /* extern */
 extern M2C_UNK D_002AC418;
 
 /** @sly2-annot addr=0x24B930

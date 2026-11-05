@@ -93,7 +93,7 @@ struct REQ { int size, alignment; };
 struct MARK {};
 struct WORLD { char pad[0x40E8]; SLOTHEAP slotheapN; };   /* +0x40E8 the pool of water nodes */
 /* CalculateWaterCurrent's matrix (constructed zeroed or not). */
-extern "C" void *func_002333B4(void *, int, int);
+extern "C" void *func_002333B4(void *, int, int) __asm__("memset");
 enum Init { Uninitialized, Zero };
 struct M4 { V r[4]; M4(Init mode) { if (mode == Zero) func_002333B4(this, 0, 0x40); } };
 /* func_002297F8's types. */

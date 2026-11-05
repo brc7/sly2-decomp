@@ -15,7 +15,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 
-extern "C" void *func_002333B4(void *pv, int b, int cb);   /* memset */
+extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
 /* 0x1F8C40 StaticInit_so (93 instructions) and its _GLOBAL_$I$ stub func_001F8DB8: g++'s initializer for the file-scope
    object below (built in a zeroed temporary and copied), then the six engine slot pools. D_003DD020 is the default
@@ -265,7 +265,7 @@ struct LO {
     char pad3[0x50 - 0x30]; int c; struct E *ae; char pad4[0x60 - 0x58]; struct ALO *palo;
 };
 extern "C" {
-void func_002333B4(void *, int, int);
+void func_002333B4(void *, int, int) __asm__("memset");
 void __ml__FRC7MATRIX4T0(struct MAT *, struct ALO *, struct MAT *);
 void func_001A5900(struct LO *, struct LO *, struct LO *, int);
 void UpdateSoXfWorldMatrices(struct LO *);
@@ -1178,8 +1178,8 @@ typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
 struct T { M3 m; qword v[3]; };
 struct X { char pad[0xE8]; struct T *pt; };
-void func_0023320C(void *d, const void *s, unsigned int cb);
-void *func_002333B4(void *d, int c, unsigned int cb);
+void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
+void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
 int FInvertMatrix3(struct T *pt, qword *pv);
 /** @sly2-annot addr=0x1F35F8
  * Purpose: Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular)
@@ -1684,7 +1684,7 @@ extern "C" MATRIX4 *SO_PmatWorld(SO *pso)
 namespace M_func_001F3FB0 { extern "C" {
 struct A;
 struct A { char pad[0x60]; int n; };
-void func_002333B4(void *p, int c, int cb);
+void func_002333B4(void *p, int c, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1F3FB0
  * Purpose: SO vt32: optional identity into M4 out, return +0x60
  * Info: proposed name SO_PxfLocal (T2); class SO slot32; TU so
@@ -1750,7 +1750,7 @@ extern struct SW D_003DD490;
 qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001F4E28(struct P *);
 void SlotUnsettle(struct P *, struct LO *);
 void UpdateSoPartMatrices(struct P *);
@@ -1833,7 +1833,7 @@ struct G { char pad[0x3D58]; int stamp; };
 extern "C" { extern G D_003DD490; }
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
-extern "C" void *func_002333B4(void *,int,int);
+extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 extern "C" void func_001F4E28(P *);
 extern "C" void SlotUnsettle(P *,LO *);
 extern "C" void UpdateSoPartMatrices(P *);
@@ -2018,7 +2018,7 @@ struct VTE { short delta,pad; qword (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
-extern "C" void *func_002333B4(void *,int,int);
+extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 extern "C" void SlotUnsettle(P *,LO *);
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
@@ -4214,7 +4214,7 @@ struct M { void *p0; void *p4; void *p8; int nC; int n10; int pad[3]; qword q20;
 struct G;
 extern struct G D_003DD490;
 void *func_001F7530(void *, int);
-void func_002333B4(void *, int, int);
+void func_002333B4(void *, int, int) __asm__("memset");
 int func_001F7598(struct M *);
 void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 /** @sly2-annot addr=0x1F7410
@@ -4493,7 +4493,7 @@ struct M { void *p0; int n4; void *p8; int nC; int n10; int pad[3]; qword q20; q
 struct G2 { void *p; };
 extern struct G2 D_002F7900;
 void func_001F7A68(struct P *, int);
-void func_002333B4(void *, int, int);
+void func_002333B4(void *, int, int) __asm__("memset");
 qword func_001A62E8(struct P *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001F7598(struct M *);
@@ -5209,7 +5209,7 @@ extern char D_002CA2C0[];
 struct Pool;
 extern struct Pool D_003E15CC;
 struct Q *PvAllocSlotheapClear(struct Pool *);
-void func_002333B4(void *, int, int);
+void func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F8510
  * Purpose: Create a 0x30 handle object (pool D_003E15CC, vtable 0x2CA2C0 = CID 0x95) for the XF matching
  *   (oid,kind)
@@ -5246,7 +5246,7 @@ struct Pool;
 extern struct Pool D_003E15CC;
 void *PsopartFindSo(void *);
 struct Q *PvAllocSlotheapClear(struct Pool *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F85E0
  * Purpose: Create a 0x30 handle object (vtable 0x2CA280 = CID 0x96) for the SOPART with given oid
  * Info: proposed name PsoparthNewSo (T2); TU so

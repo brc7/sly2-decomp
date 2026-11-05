@@ -8,12 +8,12 @@ extern int D_00443840[];
 extern char D_00443800[];
 extern char D_002AA5A0[], D_002AA1C8[];
 void printf(const char *, ...);
-void *func_0023320C(void *, void *, int);
+void *func_0023320C(void *, void *, int) __asm__("memcpy");
 void snd_FlushSoundCommands(void);
-void func_00234CA0(int);
+void func_00234CA0(int) __asm__("FlushCache");
 void snd_PrepareReturnBuffer(void *, int);
-int func_00237488(void *);
-int func_00237288(void *, int, int, void *, int, void *, int, void *, void *);
+int func_00237488(void *) __asm__("sceSifCheckStatRpc");
+int func_00237288(void *, int, int, void *, int, void *, int, void *, void *) __asm__("sceSifCallRpc");
 int snd_GotReturns__Fv(void);
 void snd_SendCurrentBatch__Fv(void);
 

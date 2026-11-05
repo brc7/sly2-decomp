@@ -2019,7 +2019,7 @@ extern "C" void func_0012E210(void *pv)
 
 namespace M_func_0012E238 {
 extern "C" void *func_0012E1F0(unsigned int cb);
-extern "C" void *func_002333B4(void *pv, int b, unsigned int cb);
+extern "C" void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 struct MATRIX4 { float m[4][4]; };
 struct CBase {
     int k;

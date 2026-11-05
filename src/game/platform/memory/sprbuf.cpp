@@ -14,7 +14,7 @@ typedef unsigned long ulong;
 struct SBE { int cb; ulong *pv; };
 typedef char assert_SBE_size[sizeof(SBE) == 8 ? 1 : -1];
 
-extern "C" void *func_002333B4(void *pv, int b, unsigned int cb);   /* memset */
+extern "C" void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");   /* memset */
 
 /* A scratchpad buffer: its DMA tag list, its scratchpad address, up to eight transfers and a state
    (1 loading, 2 current, 3 saving). */

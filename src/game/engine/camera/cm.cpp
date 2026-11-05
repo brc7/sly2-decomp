@@ -220,7 +220,7 @@ extern "C" {
 extern float D_002BD81C, D_002BD820, D_002BD824;
 extern qword D_002BD830;
 extern qword D_002BD840;
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void RecalcCmFrustrum__FP2CM(CM *p);
 void func_0014E1A8(CM *p, qword pos, qword tgt, float da, float db);
 void CutCm__FP2CM(CM *p);
@@ -319,7 +319,7 @@ namespace M_func_0014D8F8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void InvertMatrix4Rigid(M4F *pmOut, M4F *pm);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb);
 /** @sly2-annot addr=0x14D8F8

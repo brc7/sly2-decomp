@@ -137,7 +137,7 @@ void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, 
 void *func_001AE318(AREQ *preq);
 int CsbiIntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int func_001F7598(MSG *pmsg);
 int *func_00156698(int n, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");

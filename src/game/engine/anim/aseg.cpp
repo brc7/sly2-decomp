@@ -79,7 +79,7 @@ AC *PacNewKind2(int id);
 void InitLo(ASEG *paseg);
 void PostLoLoad(ASEG *paseg);
 void PostSwCallback(SW *psw, ASEG *paseg, long pmf, ASEGSTART *pasegstart);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 float GGetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
 void FramePtr_Assign(ASEGA *, CFrame *);

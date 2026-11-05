@@ -411,10 +411,10 @@ struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { int x0; int x4; struct PMF pmf; int x10; };
 extern char D_002E65E0[];
 extern int D_004425D8[];
-void func_00234A60(int);
-void func_00234A40(int);
+void func_00234A60(int) __asm__("WaitSema");
+void func_00234A40(int) __asm__("SignalSema");
 void ExitDeleteThread(void);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 /** @sly2-annot addr=0x1AAF18
  * Purpose: Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear
  *   job, signal, ExitThread
@@ -444,9 +444,9 @@ extern char D_002E5270[], D_002E2080[];
 extern int D_004425D8[];
 void MemcardThreadMain(struct S *s);
 void SetMemcardThreadHighPrio__FP7MEMCARD(struct S *s);
-void *func_002333B4(void *p, int c, unsigned int n);
+void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 int func_00234820(struct ThreadParam *tp);
-void func_002355E0(int id, void *arg);
+void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 /** @sly2-annot addr=0x1AAF90
  * Purpose: Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, _iDisableIntc+_iEnableDmac
  * Info: proposed name CreateMemcardThread (T1); TU memcard
@@ -503,9 +503,9 @@ int FMemcardThreadValid(MEMCARD *pmemcard)
 }
 
 namespace M_McSyncResult { extern "C" {
-int func_001AAB48(void *p);
-int func_00244450(int n, int *a, int *b);
-int func_001AAB68(int n);
+int func_001AAB48(void *p) __asm__("FUN_0018b910__Fi");
+int func_00244450(int n, int *a, int *b) __asm__("sceMcSync");
+int func_001AAB68(int n) __asm__("FUN_0018b930__Fi");
 int MsgFromMcError(void *p, int n);
 /** @sly2-annot addr=0x1AB098
  * Purpose: Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError
@@ -1152,9 +1152,9 @@ typedef struct { char a[0x40]; } ENT;
 typedef struct { char a[0x5C]; } OUT;
 extern char D_002E6500[];
 extern ENT D_002E6080[];
-unsigned int func_0021ED28(const char *);
+unsigned int func_0021ED28(const char *) __asm__("strlen");
 char *strcpy(char *, const char *);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int sceMcGetDir(int, int, char *, int, int, ENT *);
 int McSyncResult(void *, int, int, int *);
 void FillMcDirInfo(ENT *, OUT *);
@@ -1235,7 +1235,7 @@ typedef struct {
     unsigned char FnameDel[64];
     unsigned char Reserve3[512];
 } ICONSYS;
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void ConvertPchzToSjis(char *, unsigned char *);
 int McWriteFile(void *s, char *name, void *b, int n);
 
@@ -1492,7 +1492,7 @@ int WriteSaveSlotFileReset(void *s, struct B *b)
 
 namespace M_func_001AC4C8 { extern "C" {
 struct B { char pad[0x5408]; char x5408[0x44]; int x544C; int x5450; };
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 void BuildSaveFilePath(void *s, void *b, char *name);
 int ReadMcDirWrapper(void *s, char *name, void *p);
 int McReadFile(void *s, char *name, void *b, int n);

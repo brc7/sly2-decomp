@@ -426,7 +426,7 @@ extern "C" { extern int D_003E11EC; }
 extern "C" LO *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
-extern "C" void *func_002333B4(void *pv, int n, int cb);
+extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" void func_0022B7A0(LO *plo, X *px);
 /** @sly2-annot addr=0x167B68
  * Purpose: Resolves globset bone references after load: finds each referenced LO by oid, its bone, and
@@ -780,7 +780,7 @@ extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
 extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
+void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float func_0011CAB0(const M3 *pmat);
 RPL *PrplAllocRpl(void);
@@ -1230,7 +1230,7 @@ extern "C" {
 void SubmitGlobsetRelight(MODEL *pmodel);
 int FUpdatableSaa__FP3SAA(OBJ *pobj);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
+void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float func_0011CAB0(const MATRIX4 *pmat);
@@ -1751,8 +1751,8 @@ extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
-void *func_002333B4(void *pv, int b, uint cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
+void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
+void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void func_001A4AD8(G *pg, int c, void **apv, SHD *pshd);
 int FUpdatableSaa__FP3SAA(OBJ *pobj);
 int func_001BEE10(ALO *palo, int n);
@@ -3910,7 +3910,7 @@ void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void*func_001AE318(const REQUEST&);
-void*func_002333B4(void*,int,uint);
+void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
@@ -4345,7 +4345,7 @@ typedef char GAME_Size[sizeof(GAME)==0x3E3C?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpGlob {
-extern "C" void *func_002333B4(void *pv, int n, int cb);
+extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" { extern char D_0025E680[]; }
 extern "C" { extern char D_00262320[]; }
@@ -4373,7 +4373,7 @@ extern "C" void BeginRpGlob(VIFS *pvifs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_EndRpGlob {
-extern "C" void *func_002333B4(void *pv, int n, int cb);
+extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" { extern char D_00003AB0[]; }
 /** @sly2-annot addr=0x16E228
  * Purpose: Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA
@@ -4502,7 +4502,7 @@ void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void BuildCmFgfn(ENV*,float*,float);
-void*func_002333B4(void*,int,uint);
+void*func_002333B4(void*,int,uint) __asm__("memset");
 void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 extern ENV D_002DDF40;
 extern uint D_002DEB50;

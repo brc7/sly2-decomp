@@ -12,7 +12,7 @@ struct TRI { int ai[3]; };
 static inline void SetRgba(RGBA *pc, int r, int g, int b, int a) { pc->r = r; pc->g = g; pc->b = b; pc->a = a; }
 /* One triangle list of the loading-screen logo: count, triangles (vertex indices into D_002C10D0), colour. */
 struct E { int n; TRI *p; RGBA c; };
-extern "C" void *func_002333B4(void *, int, int);
+extern "C" void *func_002333B4(void *, int, int) __asm__("memset");
 extern TRI D_002C1740[], D_002C19C0[], D_002C1AC8[], D_002C1B50[], D_002C1BD8[];
 /* The logo's five triangle lists, filled by a constructor (the static initializer's code walks one element pointer). */
 struct LOGO
@@ -176,12 +176,12 @@ extern "C" {
 void ClearFrameBuffers__Fv(void);
 float GTrunc__Ff(float g);
 void FillScreenRect(RGBA *pc, GIFS *pgs, float x0, float y0, float x1, float y1);
-int func_00234A60(int);
-int func_00234A40(int);
+int func_00234A60(int) __asm__("WaitSema");
+int func_00234A40(int) __asm__("SignalSema");
 int SignalSema(int);
 int WaitSema(int);
 int func_00234820(TP *ptp);
-int func_002355E0(int tid, void *arg);
+int func_002355E0(int tid, void *arg) __asm__("StartThread_2355E0");
 void LoadingScreenThread(void *);
 int ReferSemaStatus(int,SEMA *);
 float sinf(float);

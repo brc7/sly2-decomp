@@ -3120,7 +3120,7 @@ void CRichText_GetExtents(struct S *p, float *pa, float *pb)
 // 0x2162D8 func_002162D8
 namespace M_func_002162D8 { extern "C" {
 struct S { char pad[0x64]; float f64; float f68; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x2162D8
  * Purpose: glyph matrix from 2x3 transform (0.8 / 0.4545 pixel scales, GS offset 786432)
  * Info: proposed name BuildRichTextMatrix (T2); TU hud
@@ -3151,7 +3151,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
 struct RT {char pad[0x6C];float offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
-extern "C" void *func_002333B4(void *,int,int);
+extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
 struct M4 {qword r[4];};
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
@@ -3261,7 +3261,7 @@ struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 extern float D_002C40A8,D_002C40AC,D_002C40B0,D_002C40B4;
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 void func_00215CA8(struct RT *,char *);
 int func_00215D40(struct RT *);
 float func_00216B80(void *,int);
@@ -3608,7 +3608,7 @@ struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
 struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *PrplAllocRpl(void);
 static inline int Min(int a,int b){return a<b?a:b;}
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
@@ -3671,7 +3671,7 @@ struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
 struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -4567,7 +4567,7 @@ struct ROOT { char pad[0x54]; SPRITE *sprites; };
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
 extern "C" {
 void ClearSle(int *);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void func_00215730(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
 void func_002158C0(SPRITE *, ITEM *);
@@ -4984,7 +4984,7 @@ namespace M_StaticInit_hud {
 struct LINEAR {void *vtable;int limit;void *buffer;int used;};
 struct HEAP {void *vtable;int field4;};
 struct POOL;
-extern "C" void *func_002333B4(void *,int,unsigned int);
+extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 struct STRINGGEN {
  int id;void (*get)(char *,void *,void *);void *context;
  STRINGGEN(){func_002333B4(this,0,sizeof(*this));}

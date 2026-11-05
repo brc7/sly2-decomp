@@ -250,7 +250,7 @@ struct S { char pad[0x258]; struct M *pm0; struct M *pm1; };
    passed by hand. This form exists to reproduce the original codegen. */
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void func_001F4BF8(struct S *p);
 /** @sly2-annot addr=0x203D00
  * Purpose: Set the current physical shape part (+0x25C); if fForceSnap, transform its points into the body

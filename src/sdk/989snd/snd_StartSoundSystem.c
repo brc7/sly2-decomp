@@ -15,8 +15,8 @@ extern int D_00448400[];
 extern unsigned int D_00448480;
 extern char D_002AA100[], D_002AA128[];
 void printf(const char *, ...);
-void func_00236A60(int);
-int func_002370A8(void *, int, int);
+void func_00236A60(int) __asm__("sceSifInitRpc");
+int func_002370A8(void *, int, int) __asm__("sceSifBindRpc");
 int snd_SendIOPCommandAndWait__FiiPc(int, int, void *);
 
 /** @sly2-annot addr=0x2319E8

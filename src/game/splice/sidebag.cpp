@@ -31,8 +31,8 @@ void GcSidebag_Unlink(GCHDR *p);
 void GcSidebag_PushFront(GCHDR *p, void *ppHead);
 CVarb *PvNewBinding();
 CSidebag *PvNewSidebag();
-void func_00129658(CRef *pref, const CRef *prefSrc);   /* CRef assignment (out of line) */
-void func_001AE520(void *pv);
+void func_00129658(CRef *pref, const CRef *prefSrc) __asm__("__as__4CRefRC4CRef");   /* CRef assignment (out of line) */
+void func_001AE520(void *pv) __asm__("__builtin_delete");
 void Collect__3CGc(void *pgc);
 /* Pool bookkeeping (see splice/gc.cpp): block tables 0x10 bytes before each pool's SLOTHEAP, block counts and the
    GC list heads. */

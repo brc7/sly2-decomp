@@ -81,7 +81,7 @@ extern NOISE *D_003E148C_head __asm__("D_003E148C");   /* the same DL read as it
 extern char D_003E1468[];         /* DL of the listeners */
 extern SLOTHEAP D_003E1498;       /* the noise pool (D_003DD490 + 0x4008) */
 void InitLo(NOISETYPE *p);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int);
 void func_002580A8(void *pv, int n);
 void UnsubscribeLoAll(NOISE *pnoise);

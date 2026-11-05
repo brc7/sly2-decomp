@@ -1670,7 +1670,7 @@ struct P {
 };
 void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
 void *func_001F7530(void *p, int n);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *func_001F7598(struct MSG *pmsg);
 float *func_0012F938(void *p, int n);
 void func_00130D30(struct Q *p, int n, float g, float h);

@@ -9,9 +9,9 @@ extern char D_00443800[];
 extern char D_002AA1C8[];
 void snd_PrepareReturnBuffer(void *, int, int *);
 void printf(const char *, ...);
-void func_00234CA0(int);
-int func_00237488(void *);
-int func_00237288(void *, int, int, void *, int, void *, int, void *, void *);
+void func_00234CA0(int) __asm__("FlushCache");
+int func_00237488(void *) __asm__("sceSifCheckStatRpc");
+int func_00237288(void *, int, int, void *, int, void *, int, void *, void *) __asm__("sceSifCallRpc");
 }
 
 void snd_SendCurrentBatch()

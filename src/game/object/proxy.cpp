@@ -696,7 +696,7 @@ void *func_001AE2A0(struct A *pa);
 qword func_001A62E8(struct LO *p);
 struct MAT3 *func_001A6318(struct LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 /** @sly2-annot addr=0x1CA500
  * Purpose: After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest,

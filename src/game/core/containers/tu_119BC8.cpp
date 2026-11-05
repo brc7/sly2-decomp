@@ -20,7 +20,7 @@ void func_0011A070(void *pdl, void *pv);                                   /* ap
 void CDynArray_Append(void *pary, int cb, int c);
 void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, ALLOC *palloc, int nKind);
 unsigned int HashPchzCaseless(int pchz);
-void *func_002333B4(void *pv, int b, int cb);                              /* memset */
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");                              /* memset */
 void *STACKSCOPE_ctor(void *pscope);
 void STACKSCOPE_ctor_1AE4A0(void *pscope, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(void *pdesc);

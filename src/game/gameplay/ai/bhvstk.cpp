@@ -81,7 +81,7 @@ extern char D_002CFDA0[];
 extern "C" {
 int CbBhvMax();
 void *func_001AE1D0(AREQ *pmsg);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void func_002562A8(REFV *);
 BHV *PbhvNew(int kind, void *memory);
 void PopBhv(BHV **ppbhv);

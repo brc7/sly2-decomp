@@ -3,7 +3,7 @@
 extern int D_002C464C;
 extern int D_002C4658;
 extern int D_00448400[];
-int func_00241E88(void);
+int func_00241E88(void) __asm__("sceCdSync");
 void func_00235078(void *, void *);
 void snd_FlushSoundCommands(void);
 
