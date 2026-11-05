@@ -799,8 +799,8 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
   `extern "C"` refers to `_<n>M_<view>$D_...`, which no native link resolves (relocations are masked, so the match never
   showed it). A definition there must carry `extern "C"` (`extern "C" T x = v;`, `extern "C" { T x; }` for `.bss`); the
   data check silently skips mangled names, so list the object's data symbols after each TU. Fixed for the data defined
-  here (step, hurt, grab, jt, tu_1D1370, glob); 118 mangled references to other data remain in 10 merged files (glob 50,
-  tu_1D1370 24, jt 17, xf 7, grab 7, step 5, shd 3, sm 2, path 2, tu_1709A8 1).
+  here (step, hurt, grab, jt, tu_1D1370, glob). The remaining references (555 data, 47 functions in 28 files, waves
+  9/10 and the big six included) were fixed on integrate/round2: see "Linkage of namespace-scoped declarations" below.
 - **Order.** Definitions go in address order where the declarations allow; in the big per-function-view files (tn,
   jt, tu_1D1370, glob) they sit at their first declaration, so the object's data order follows the declarations (each
   symbol still MATCHes; the layout is not reproduced).
@@ -917,6 +917,33 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
 | jt | 39 | floats, SMP x3, int(bits) x2 | declaration order; 18 mangled decls fixed; vectors/tables left |
 | tu_1D1370 | 37 | POLY, LIMITS, floats, float[2]/[3], S8(bits) x3, float (.rodata)x2 | declaration order; 29 mangled decls fixed; vectors left |
 | glob | 5 | int, float (.rodata), bss x3 | records/vector left |
+
+## Linkage of namespace-scoped declarations
+
+A declaration inside a per-function namespace gets the namespace in its symbol unless it has C linkage or an asm
+label. Relocations are masked, so the match never shows a wrong callee or global symbol; a native link does. Rules
+(integrate/round2, 2026-11-05):
+
+- A global (`D_...`, `g_...`) or a C-named function declared in a namespace: wrap the declaration in `extern "C" { }`
+  inside the namespace (the name stays namespace-scoped for lookup, so the view's types still apply). If the same
+  function is also declared `extern "C"` at file scope with identical parameter types, drop the namespace copy instead
+  (the relay "ambiguous" row above).
+- A callee declared under a view or Sly 1 name (`PosLoWorld`, `PvAllocSwImpl`, a view's `FRAME()`, `CRef(NODE *)`,
+  `SPM::operator=`): the jal target in the ELF names the real function; bind the declaration to it with an asm label
+  (`qword PosLoWorld(LO *plo) __asm__("func_001A62E8");`, `FRAME() __asm__("STACKSCOPE_ctor");`). This works for free
+  functions, constructors and members, and does not change code.
+- Not for destructors: an asm label on a destructor declaration makes g++ 2.95 drop the destructor call (3 instructions
+  per scope). The 41 view destructors that stand for `STACKSCOPE_ctor_1AE4A0(this, 2)` and `PairPtr_Release` stay
+  namespace-mangled; a native link needs a linker-script alias for them, or the shared class in a header.
+- Still open (C++-named targets, out of this pass): members, constructors and free functions of namespace views whose
+  real symbol is mangled (`Decref__4CRef`, `__4CRefRC4CRef`, `AddDmaCnt__4DMAS`, 227 references), the vtables of
+  namespaced view classes (`_vt$Q23REG...`, 214, mostly class_registry's construction views) and 600-odd file-scope
+  declarations whose name or signature differs from the config symbol. The full list with the recovered targets is in
+  the integration report (LINKCHECK.md, not in the repo).
+
+Verification: compile each merged object, list its undefined symbols, and check each against config/symbol_addrs.txt,
+config/functions.csv and the globals the other merged objects define; recover the intended target of an unresolved
+symbol from the relocated field in the ELF (jal target, %hi/%lo pair, R_MIPS_32). Scratch scripts, not in the repo.
 
 ## Merged TUs
 
