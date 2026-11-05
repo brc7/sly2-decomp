@@ -36,8 +36,12 @@ typedef char assert_PIPE_n1d4[(unsigned int)&((PIPE *)0)->n1d4 == 0x1D4 ? 1 : -1
 
 struct DL;
 extern DL D_003E13C0;       /* the list of pipes */
-extern float D_002C0D00;
-extern float D_002C0D10, D_002C0D08, D_002C0D0C;
+/* The TU's .data (0x2C0D00..0x2C0D14, address order = definition order). Only pipe's code reads them. */
+float D_002C0D00 = 1250.0f;     /* added to the shape's length at load (PIPE::g38) */
+float D_002C0D04 = -50.0f;      /* not read by the matched code; between pipe's own data, so pipe's */
+float D_002C0D08 = 1.8f;        /* random direction: radial scale */
+float D_002C0D0C = 25.0f;       /* random direction: magnitude range */
+float D_002C0D10 = 150.0f;      /* random point: range along the shape */
 extern "C" {
 extern qword D_002A2DA0, D_002A2DC0;   // fallback unit vectors
 void InitShape(PIPE *p);
