@@ -2104,3 +2104,8 @@ extern "C" void ReleaseAct(ACT **ppact)
         *ppact = 0;
     }
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A45A8 = 3.40282347e+38f;
+VECTOR4 D_002BC380 = {0.0f, 0.0f, 1750.0f, 0.0f};
