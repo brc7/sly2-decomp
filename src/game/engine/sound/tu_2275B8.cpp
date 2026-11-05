@@ -32,15 +32,17 @@ struct FLAGCHTABLE { FLAGCH a[16]; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];   /* g_sw */
-extern char D_002A97F0[];
-extern FLAGCHTABLE D_002A97F8;
-extern char D_002A9878[];
+extern const char D_002A97F0[] = "|";
+/* The pad buttons as glyph characters, {button mask, char} (16 entries). */
+extern const FLAGCHTABLE D_002A97F8 = {{{0x40, 'X'}, {0x20, 'O'}, {0x10, 'T'}, {0x80, 'S'}, {0x800, '!'}, {0x100, '_'}, {0x1000, '^'},
+    {0x4000, 'v'}, {0x8000, '<'}, {0x2000, '>'}, {0x4, 'L'}, {0x1, 'l'}, {0x200, '('}, {0x8, 'R'}, {0x2, 'r'}, {0x400, ')'}}};
+extern const char D_002A9878[] = "&2%c&.";
 
 extern "C" {
 RGBA RgbaFromSpeakerCid(int k);
 void func_00227788(SPEAKERLABEL *plabel);
 char *strcpy(char *pchDst, const char *pchSrc);
-void strcpy1(void *p, void *s);
+void strcpy1(void *p, const void *s);
 float func_001FCFD0(void *p, int id);
 int CRichText_Cch(CRichText *prt);
 int func_001FE848(void *p, int id);
