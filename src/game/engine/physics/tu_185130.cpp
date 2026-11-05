@@ -65,7 +65,7 @@ public:
 extern const float D_002A5684;   /* defined below where the ELF has it (.rodata order) */
 #undef D_002DDED4
 #define D_002DDED4 (*(float *)((char *)base_D_002DDED0 + 0x4))   /* g_clock (CLOCK)+0x4 */
-extern float D_002A5688;   /* not defined here: as a const it changes func_001856C0 (see the data guide) */
+extern float D_002A5688;   /* declared non-const: read as a const it changes func_001856C0 (see the data guide); defined below */
 extern const float D_002A568C;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5690;   /* defined below where the ELF has it (.rodata order) */
 #undef D_003E142C
@@ -244,6 +244,7 @@ extern "C" void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*o
  if(outNormal)*outNormal=Unit(w.bestNormal.q);
 }
 
+namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1856B8
  * Purpose: Writes 0 to out int
  * Info: TU tu_185130
