@@ -1,8 +1,33 @@
 # Full PS2 link (sketch)
 
-What it takes to link the matched sources back into SCUS_973.16, and how far the repo is (integrate/round3:
-link round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
+What it takes to link the matched sources back into SCUS_973.16, and how far the repo is: the current numbers are in
+"Status" right below; the sections after it keep each branch's own measurements as history (integrate/round3: link
+round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
+
+## Status (integrate/round5 1bf80489, 2026-11-05)
+
+Authoritative numbers for integrate/round5: round 4 + build/rtti-palettes (`-fno-rtti`, palette section attributes)
++ data/address-names and data/interior-fields, all measured with `-fno-rtti`. Numbers elsewhere in this guide that
+disagree are earlier measurements (marked "superseded").
+
+| measure | value | tool |
+|---|---|---|
+| functions matching | 6,662 / 6,662 (100%; 329 SDK sources carried over, verified on the Mac) | `tools/progress.py`, cache deleted first |
+| touched files (141 of the two data branches) | functions 4,431 / 4,431, data symbols 1,423 / 1,423 MATCH | `tools/matchtool.py check` |
+| undefined references not in config (209 merged objects + eopid_linkonce) | 443 (212 namespace views, 231 other; class_registry 192, jt 101) | scratch symcheck.py |
+| duplicate strong definitions | 0 | scratch symcheck.py |
+| relocations checked against the ELF | 27,044 OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
+| address names over the 932 link objects | 468 (466 absolute, 2 aliases); 218 alias-table lines | `tools/linkaliases.py` |
+| ld.lld | 0 errors; 7,909 sections placed, 69 unplaced (2,432 bytes) | `tools/link.py` |
+| .text equal | 1,416,099 / 1,416,688 (99.96%); from objects 1,281,455 / 1,282,044 (99.95%) | `tools/link.py` |
+| .rodata equal | 303,037 / 304,356 (99.57%); from objects 22,245 / 23,564 (94.40%) | `tools/link.py` |
+| .data equal | 199,086 / 199,088 (99.999%); from objects 33,979 / 33,981 (99.99%) | `tools/link.py` |
+| differing bytes | 1,910: .rodata layout 1,263, .text %hi/%lo to those 589, .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
+| config names at their config address | 7,242 / 7,273 (wrong: .bss 29, .sbss 2) | `tools/link.py` |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
+
+No source change was needed under `-fno-rtti`: the two data branches' code matches with the flag as it did without.
 
 ## The target: the ELF's layout
 
@@ -44,7 +69,7 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
 
 ## Symbols (state after link round 3 and data phase 2)
 
-- 531 undefined references not in config remain in the 209 objects (507 since build/rtti-palettes: the 22 typeinfo
+- 531 undefined references not in config remain in the 209 objects (superseded: 443 on integrate/round5, see Status; 507 since build/rtti-palettes: the 22 typeinfo
   references and two alias-table vtables are gone, see "-fno-rtti and the palettes" below): 289 are listed in config/link_aliases.txt
   (vtables and destructors of namespace-scoped views, a few declarations source cannot bind) and 242 are referenced
   only from key-TU extras that the ELF does not have (unreferenced linkonce vtables and typeinfo functions). The extras
@@ -62,7 +87,8 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
   data, the commons at the end of `.bss`/`.sbss`, interiors (base+offset), PMF constants and hud's records are now
   defined or resolved through objects; the rest and the reasons: tu-merging.md, Data, "Phase 3: address names".
   **After data/interior-fields**: 468 (466 absolute: sw.cpp defines D_003E1C34; 2 aliases); symcheck's unresolved
-  undefined references 467 (unchanged), relverify 27,043 relocations OK, 0 mismatched.
+  undefined references 467 (unchanged), relverify 27,043 relocations OK, 0 mismatched (measured without
+  `-fno-rtti`; superseded: 443 and 27,044 on integrate/round5, see Status).
 - Two objects define different functions under the same file-scope destructor name (`_$_3SPM`, `_$_3OBJ`): per-object
   `objcopy --redefine-syms` files from `tools/linkaliases.py --redefine DIR`.
 - 26,377 relocations agreed with the ELF after data phase 2 (field minus addend = the symbol's config address,
@@ -128,7 +154,7 @@ What it does:
    reason (from the relocation at the differing word) of each differing byte; config names at the wrong address in
    the output (this is what checks .sbss/.bss, which have no bytes).
 
-### Measured (integrate/round3 d864c1bc sources)
+### Measured (integrate/round3 d864c1bc sources; superseded by Status)
 
 "from objects" counts only bytes that object sections supply; the rest is blob and matches by construction.
 
@@ -143,7 +169,7 @@ What it does:
 
 Config names at their config address in the output: 7,022 of 7,075 (wrong: .bss 50, .sbss 2, .rodata 1).
 
-**data/interior-fields (2026-11-05)**, same tool in the Linux workspace; the branch start (data/address-names
+**data/interior-fields (2026-11-05, without `-fno-rtti`; superseded by Status)**, same tool in the Linux workspace; the branch start (data/address-names
 f45178d9) measures .text 1,415,908 equal (objects 1,281,264) and 7,216 of 7,269 names here. After it (memcard, mpeg
 and sw `.bss` laid out as the ELF, tu-merging.md "Phase 4: interior fields"):
 
@@ -193,7 +219,7 @@ of the placement (not investigated). Config names at their config address: 7,024
 `__tf*` sections of the key TUs are no longer emitted. No `__tf*`/`__ti*`/`__rtti_*` symbol is defined or referenced
 by any object. ld.lld: 0 errors.
 
-### Remaining mismatch classes (default mode, 2,068 bytes before build/rtti-palettes, 2,020 after)
+### Remaining mismatch classes (default mode, 2,068 bytes before build/rtti-palettes, 2,020 after; 1,910 on integrate/round5)
 
 1. **Object sections whose internal layout differs from the ELF** (1,296 .rodata bytes, plus 697 .text bytes of
    %hi/%lo referencing them). Anonymous literal pools (18 objects; 15 of them interleave with the object's named
