@@ -49,27 +49,29 @@ struct DLI {
  void*Next(){void*value=*next;next=(void**)((unsigned int)value+linkOffset);return value;}
 };
 
-extern int D_002DEB18;
-extern int D_002DEB1C;
-extern DL D_002DEAF0;
-extern DL D_002DEB00;
+/* frm's .bss after the two packet builders (address order; D_002DEA4C..D_002DEB00: medium/low by layout, frm is the
+ * code that maintains them). */
+FRM *D_002DEA4C;            /* the frame being built */
+FRM D_002DEA50[2];
+DL D_002DEAF0;
+DL D_002DEB00;
+unsigned int D_002DEB0C;
+unsigned int D_002DEB10;
+FRM *D_002DEB14;            /* the frame being rendered */
+int D_002DEB18;
+int D_002DEB1C;
+volatile int D_002DEB20;
+int D_002DEB24;
 extern int D_004425D4;
-extern FRM *D_002DEA4C;     /* the frame being built */
-extern FRM D_002DEA50[2];
-extern unsigned int D_002DEB10;
 extern int D_003D3980;
 extern int D_002DDF54;
 extern QW D_002DF740[];
 extern char D_0025E680[];   /* VU1 microcode start/end */
 extern char D_00262320[];
-extern FRM *D_002DEB14;     /* the frame being rendered */
-extern unsigned int D_002DEB0C;
-extern volatile int D_002DEB20;
 extern int D_002DEDBC;
 extern sceDmaChan *D_002DE594;
 extern sceDmaChan *D_002DE598;
 extern SLOTHEAP D_003E1530, D_003E1518;   /* the two slot heaps the dl40 records and their storage come from */
-extern int D_002DEB24;
 extern int D_003E12C8;
 extern int D_002DEDB0;
 extern int D_002DEDB8;
