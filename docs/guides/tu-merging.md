@@ -1063,6 +1063,62 @@ initializer that our compiler puts in `.bss`: accept, or `__attribute__((section
 would need a section attribute (none added this phase; tn's zero `.rodata` SWCBs may be the same case); and, new,
 whether to add `-fno-rtti` to the build flags (the game's vtables have 0 where ours point at a typeinfo function).
 
+### Phase 3: address names (branch data/address-names, 2026-11-05)
+
+Goal: no `D_`/`func_` name that no object defines, so tools/linkaliases.py stops binding names to absolute
+addresses (an absolute address pins the data in place: no relocatable link, no mods, no port). Measured on all 932
+objects tools/link.py builds: 917 address names (888 absolute, 29 aliases) before, 472 (470 absolute, 2 aliases)
+after. Per-name classification and the remaining list: /home/claude/ref/reports/address_names/CLASSIFY.md.
+
+| class | before | after | resolution |
+|---|---:|---:|---|
+| c: func_ name of a config function | 29 | 2 | `__asm__("<config name>")` on the declarations (92 sources; _start.c's inline asm calls FlushCache by name) |
+| a: object not defined yet | 134 | 59 | air's `.data` (73 objects, 0x2BF730..0x2BF920) and 2 FLT_MAX `.rodata` words, end-of-file block |
+| a: common symbols (end of `.bss`, `.sbss`) | 65 + 15 SDK | 0 | defined as commons (below) |
+| a: pointer records and PMF constants | 149 + 21 | 36 | 137 defined: 28 PMF constants, hud's 107 widget records, bif's math table (below) |
+| b: field / interior of a defined object | 132 | 3 | base+offset (below); D_002E5270 is `_gp` |
+| a: shared constant blocks, vtables, vtable block | 15 + 251 + 14 | same | owner undecided / decision (below) |
+| d: SDK data and unbuilt SDK functions | 47 | 47 | no owner object for the 989snd/libc/libkernel/libgraph data; 8 `.text` names are defined by the gnu-reorder SDK sources (Mac build) |
+| e: blob addresses (.vutext/.irx), small values, code interiors | 17 + 26 + 2 | same | blob labels need symbols on the blob objects; values 0x0..0x3AB0 are not image addresses (absolute is right) |
+
+Rules found:
+
+- **Commons.** g++ 2.95 emits an uninitialized class static data member or template static data member as COMMON
+  (`C` in nm), and C tentative definitions are commons; GNU ld allocates commons at the end of `.bss` (small ones in
+  `.sbss`). That is why `.bss` from 0x4421A0 mixes hud, prog, frm, memcard, mpeg, thread, xf, 989snd and libkernel,
+  and why the splice pool words 0x2DD280.. / 0x4520xx are not in TU order. Defined as commons with the address name:
+  `struct COMMONS_<tu> { static T c_X __asm__("D_X"); }; T COMMONS_<tu>::c_X;` at the end of one referencing TU (C:
+  `T c_X[n] __asm__("D_X");`), sized by the gap to the next name; a common takes its type's alignment (int/char
+  arrays 8, `qword` 16, `__attribute__((aligned))` is ignored), so 16-aligned starts with a 16-multiple size are
+  `qword` arrays. matchtool checks COMMON placement and size. Open for a byte-matching real link: ld's common order
+  is not the original's (the real names were template/class statics; their mangled names are not known).
+- **Interiors (b).** `#define D_X (*(T *)((char *)base_<OBJ> + 0xOFF))   /* field */` replaces each declaration
+  (arrays: `(*(T (*)[N])(...))`, so `&D_X`, indexing and decay keep working), with `extern "C" char base_<OBJ>[]
+  __asm__("<OBJ>");` after the first includes and an `#undef` where a namespace-local declaration's scope ends (a
+  later declaration with another type must not leak). Comments name the SW field (offsets from sly2/sw.h). The SW
+  type could replace the casts where a file has `SW` in scope (follow-up). Codegen: identical in 81 files; in two
+  functions the base form changes code (CSE of the shared base in hud's func_00211298, offset folding in
+  tu_201D78's UpdateReconTargetVisibility), so those three declarations stay extern.
+- **Pointer records.** `namespace ANPTR_<tu> { void p_F() __asm__("F"); extern "C" char d_X[] __asm__("X");
+  extern "C" { extern const unsigned int D_X[n] = {0xFFFF0000, (unsigned int)p_F}; } }` at the end of the TU: words as
+  in the ELF, pointers through asm-labelled declarations, no existing declaration has to agree. A non-virtual PMF
+  constant is 8 bytes {delta 0, index -1, pfn}; hud's widget records are {id, builder, arg, 0}. relverify checks the
+  pointers (the data check masks them).
+- **func_ labels and view inlines.** Labelling `func_00129658` as `__as__4CRefRC4CRef` in splicemap (and
+  `func_00256CE8` as `__8VU_FLOATf` in tu_1553F0) makes g++ emit the file's own inline member with that mangled name
+  (a referenced assembler name forces the deferred inline out): left as address names.
+- **Prototype link.** Resolving through the defining objects exposes the prototype link's existing `.bss` placement
+  differences (memcard, mpeg, sw, tn): `.text` from objects 1,281,279 equal bytes (68 fewer); relverify, which checks
+  every relocation against the ELF, has 0 mismatches.
+
+Left, by reason: 251 view vtables + 14 rows of the vtable block (decision: emit them as data tables in one file at
+the end of `.data`, or wait for real classes); 59 objects whose owner, extent or type is undecided (game's check
+tables, generated g_aeopid, eopid_linkonce's rows, g_gs, shd's E[], tn/grab CPDs, codegen devices kept extern on
+purpose); 36 pointer records (cheat CODEs, menu items, tu_15CD68 label tables, prize, the palette headers, bsp/font
+rows); 15 shared-block constants; 47 SDK (Mac list: 989snd strings and words at 0x2AA100.. / 0x2C4640..,
+`_ctype_+1` D_002AA6A1, libkernel/libgraph tables; InitThread.c's D_002E5270 is `_gp` but the file only builds on
+the Mac); 45 not source (blob labels, VU/scratchpad values, memcard's X::A/B code interiors).
+
 ## Linkage of namespace-scoped declarations
 
 A declaration inside a per-function namespace gets the namespace in its symbol unless it has C linkage or an asm
