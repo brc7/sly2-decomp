@@ -88,7 +88,7 @@ void InitRobottank(struct S *p) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneRobottank {
-extern char D_002C94A0[];
+extern "C" { extern char D_002C94A0[]; }
 struct OBJ;struct X;extern "C" void func_001D4D30(X*,OBJ*);
 extern "C" void *func_001AE4F8(int);
 struct A { int x0; int x4; A() {} };
@@ -448,12 +448,12 @@ struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
 struct P {char pad0[0xC];VENTRY *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
 struct CLOCK {float time,dt;};
-extern CLOCK D_002DDED0;
-extern const qword D_002A2DC0;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern const qword D_002A2DC0; }
 extern "C" POLY D_002C2040 = {0.0f, 0.8f, 0.0f}, D_002C2060 = {1.5f, -0.5f, 0.0f}, D_002C2080 = {-0.5f, 1.0f, 0.0f};
 extern "C" LIMITS D_002C2050 = {-0.5f, 0.5f}, D_002C2070 = {0.3f, 1.0f}, D_002C2090 = {1.0f, 2.5f};
 extern "C" float D_002C2030 = 500.0f, D_002C20A4 = 400.0f;
-extern char D_002C2098[],D_002C20A8[];
+extern "C" { extern char D_002C2098[],D_002C20A8[]; }
 extern "C" {
 void UpdateSo(P *);
 float atan2f(float,float);
@@ -1040,8 +1040,8 @@ struct P {
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];
     P *target; void *navigator; PATH *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
 };
-extern CLOCK D_002DDED0;
-extern const qword D_002A2DA0, D_002A2DC0;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern const qword D_002A2DA0, D_002A2DC0; }
 extern "C" float D_002C20E8 = 1.25f, D_002C20EC = 0.3f, D_002C20F0 = 0.3f, D_002C20F4 = 0.3f, D_002C20F8 = 0.3f;
 extern "C" {
 qword func_001A62E8(P *);
@@ -1334,8 +1334,8 @@ struct P {
 };
 struct CLOCK { float time, dt; };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
-extern CLOCK D_002DDED0;
-extern const qword D_002A2DC0, D_002A2DD0;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern const qword D_002A2DC0, D_002A2DD0; }
 extern "C" POLY D_002C2100 = {0.0f, 15.0f, 1.0f}, D_002C2120 = {0.0f, 0.25f, 0.75f}, D_002C2130 = {0.0f, 0.0f, 1.0f};
 extern "C" float D_002C2110 = 15.0f, D_002C2114 = 90.0f, D_002C2140 = 11250.0f, D_002C2144 = 0.5f, D_002C2148 = 0.25f;
 extern "C" {
@@ -1531,9 +1531,9 @@ struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; }
 struct WHEEL { char pad0[0x20]; float radius, bottom, top; char pad2C[0x24]; qword pos; };
 struct CONTACT;
 struct GAME;
-extern GAME D_003DD490;
-extern const qword D_002A2DC0;
-extern const qword D_002C2150[5];
+extern "C" { extern GAME D_003DD490; }
+extern "C" { extern const qword D_002A2DC0; }
+extern "C" { extern const qword D_002C2150[5]; }
 /* VU_FLOAT's mfc1 is partially redundant in the ray pass, so gcse PRE hoists the radius/height conversions to the
    top of the function as two new pseudos; PRE numbers its pseudos in expression-hash-bucket order, and that number
    order is the spill-slot order (i+1 at 0xFD8 < the two conversion qwords at 0xFE0/0xFF0 < &asupport at 0x1000). An asm's
@@ -2037,10 +2037,10 @@ struct VE{short delta,pad;qword(*fn)(P*);};
 struct P{char pad[0xC];VE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
 struct CLOCK{float time,dt;};
 struct G{char pad[0x3D58];int generation;};
-extern CLOCK D_002DDED0;
-extern G D_003DD490;
-extern qword D_002A2DC0,D_002A2DB0;
-extern char D_002C21A0[],D_002C21B0[],D_002C21C0[];
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern G D_003DD490; }
+extern "C" { extern qword D_002A2DC0,D_002A2DB0; }
+extern "C" { extern char D_002C21A0[],D_002C21B0[],D_002C21C0[]; }
 extern "C" float D_002C21CC = 0.25f;
 extern "C" {
 qword ConvertAloVec(P*,P*,qword);
@@ -2142,7 +2142,7 @@ static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" 
 struct VENTRY { short delta, pad; void *fn; };
 struct P { char pad0[0xC]; VENTRY *vt; char pad10[0x550]; int remaining; };
 struct EVENT { P *sender; char pad4[8]; int kind, change; };
-extern qword D_002A2DA0, D_002A2DC0;
+extern "C" { extern qword D_002A2DA0, D_002A2DC0; }
 extern "C" float D_002C21D0[2] = {50.0f, 100.0f}, D_002C21D8[2] = {300.0f, 400.0f}, D_002C21E0[2] = {2.0f, 5.0f}, D_002C21E8[2] = {50.0f, 100.0f}, D_002C21F0[2] = {50.0f, 75.0f}, D_002C21F8[2] = {2.5f, 3.0f}, D_002C2200[2] = {-0.5f, 0.5f};
 extern "C" {
 int func_001F7588(P *, EVENT *);
@@ -2389,7 +2389,7 @@ void func_001D4B48(struct S *p, int n, struct K *pk, float g) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4B90 {
-extern char D_002C94A0[];
+extern "C" { extern char D_002C94A0[]; }
 struct OBJ;
 struct X;
 extern "C" void func_001D4D30(X *,OBJ *);

@@ -1306,7 +1306,7 @@ struct VT { struct { short d; short pad; qword (*pfn)(void *); } a[40]; };
 struct X { char pad[0xA0]; void *pA0; };
 struct O { char pad[0xC]; struct VT *pvt; char pad1[0x5C - 0x10]; struct X *p5C; char pad2[0x1C0 - 0x60]; int n1C0;
     char pad3[0x204 - 0x1C4]; float g204; char pad4[0x210 - 0x208]; qword v210; char pad5[0x378 - 0x220]; char a378[0xC]; float g384; };
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
 extern "C" void func_001F59A0(struct O *p, MATRIX3 *pm, void *pv);
@@ -2245,7 +2245,7 @@ struct M4 {U r[4];};
 struct N {qword pos,dir;char pad20[0x50-0x20];float lateral,roll;char pad58[8];N*next;};
 struct E {char pad[0x10];N*first;char pad14[0x1C];};
 struct P {char pad[0x1C4];void*model;int count;E entries[1];};
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 extern "C" void RenderSoSelf(P*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 func_0011B500(qword,float);
