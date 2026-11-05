@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x240 (576 bytes), +0xC0 over PO |
 | Descriptor | `D_002BB060` (record 70 of D_002BAAE8; cid range 70..71) |
-| Factory (`pfnNew`) | [`NewSafehouse`](../../../src/game/app/class_registry/NewSafehouse.cpp) `0x111B18` |
+| Factory (`pfnNew`) | [`NewSafehouse`](../../../src/game/app/class_registry.cpp) `0x111B18` |
 | Descriptor getter (slot 6) | `GetSafehouseClassDesc` `0x113E70` |
 | vtable | `D_002D80D0`, 82 entries (slots 0..81; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewSafehouse`](../../../src/game/app/class_registry/NewSafehouse.cpp) (vptr +0xC) |
+| vtable stored by | [`NewSafehouse`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 8 objects in 8 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetSafehouseClassDesc`](../../../src/game/app/class_registry/GetSafehouseClassDesc.c) | `0x113E70` |
+| 6 | Pclassinfo | **override** | [`GetSafehouseClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113E70` |
 | 7 | Init | **override** | [`InitSafehouse?`](../../../src/game/gameplay/ai/tu_1D7238.cpp) | `0x1D7238` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

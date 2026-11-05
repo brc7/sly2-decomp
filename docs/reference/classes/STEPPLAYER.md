@@ -27,7 +27,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandleStepplayerMessage`](../../../src/game/gameplay/player/stepplayer.cpp) | `0x140F90` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetStepplayerClassDesc`](../../../src/game/app/class_registry/GetStepplayerClassDesc.c) | `0x113D50` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetStepplayerClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113D50` | Pclassinfo |
 | 7 | Init | **override** | [`InitStepplayer`](../../../src/game/gameplay/player/stepplayer.cpp) | `0x13FF70` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

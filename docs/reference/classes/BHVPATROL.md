@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x20 over BHV |
 | Descriptor | `D_002BB830` (record 170 of D_002BAAE8; cid range 170..171) |
-| Factory (`pfnNew`) | [`NewBhvpatrol`](../../../src/game/app/class_registry/NewBhvpatrol.c) `0x113388` |
+| Factory (`pfnNew`) | [`NewBhvpatrol`](../../../src/game/app/class_registry.cpp) `0x113388` |
 | Descriptor getter (slot 6) | `GetBhvpatrolClassDesc` `0x1144B0` |
 | vtable | `D_002D0520`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpatrol`](../../../src/game/app/class_registry/NewBhvpatrol.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvpatrol`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV170`, proposed `BHVPATROL` (confidence 0.75), guard flag `0x1E`. patrol: walk the guard route script (BHV169) / pause idle for random times
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvpatrolClassDesc`](../../../src/game/app/class_registry/GetBhvpatrolClassDesc.c) | `0x1144B0` |
+| 6 | Pclassinfo | **override** | [`GetBhvpatrolClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1144B0` |
 | 7 | Init | **override** | [`InitBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrol.c) | `0x179A58` |
 | 8 | Start | **override** | [`StartBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrol.c) | `0x179AA0` |
 | 9 | Close | **override** | [`CloseBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrol.c) | `0x179B60` |

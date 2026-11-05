@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xD0 (208 bytes), +0xA0 over BHV |
 | Descriptor | `D_002BB970` (record 186 of D_002BAAE8; cid range 186..187) |
-| Factory (`pfnNew`) | [`NewBhvgoto`](../../../src/game/app/class_registry/NewBhvgoto.cpp) `0x113708` |
+| Factory (`pfnNew`) | [`NewBhvgoto`](../../../src/game/app/class_registry.cpp) `0x113708` |
 | Descriptor getter (slot 6) | `GetBhvgotoClassDesc` `0x1145B0` |
 | vtable | `D_002CFE20`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvgoto`](../../../src/game/app/class_registry/NewBhvgoto.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBhvgoto`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV186`, proposed `BHVGOTO` (confidence 0.75), guard flag `param (+0x38; 0x1C = run)`. navigate to a goal through path zones and pathlinks
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvgotoClassDesc`](../../../src/game/app/class_registry/GetBhvgotoClassDesc.c) | `0x1145B0` |
+| 6 | Pclassinfo | **override** | [`GetBhvgotoClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1145B0` |
 | 7 | Init | **override** | [`InitBhvgoto`](../../../src/game/gameplay/ai/guardbhv/InitBhvgoto.c) | `0x17D360` |
 | 8 | Start | **override** | [`StartBhvgoto`](../../../src/game/gameplay/ai/guardbhv/StartBhvgoto.c) | `0x17D3B0` |
 | 9 | Close | **override** | [`CloseBhvgoto`](../../../src/game/gameplay/ai/guardbhv/CloseBhvgoto.c) | `0x17D408` |

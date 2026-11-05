@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x60 (96 bytes), +0x30 over BHV |
 | Descriptor | `D_002BB9E8` (record 192 of D_002BAAE8; cid range 192..193) |
-| Factory (`pfnNew`) | [`NewBhvpatrolpath`](../../../src/game/app/class_registry/NewBhvpatrolpath.c) `0x113888` |
+| Factory (`pfnNew`) | [`NewBhvpatrolpath`](../../../src/game/app/class_registry.cpp) `0x113888` |
 | Descriptor getter (slot 6) | `GetBhvpatrolpathClassDesc` `0x114610` |
 | vtable | `D_002CFDA0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpatrolpath`](../../../src/game/app/class_registry/NewBhvpatrolpath.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBhvpatrolpath`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV192`, proposed `BHVPATROLPATH` (confidence 0.6), guard flag `0x2E`. walk along a path SHAPE via BHVGOTO goals
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvpatrolpathClassDesc`](../../../src/game/app/class_registry/GetBhvpatrolpathClassDesc.c) | `0x114610` |
+| 6 | Pclassinfo | **override** | [`GetBhvpatrolpathClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114610` |
 | 7 | Init | **override** | [`InitBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrolpath.c) | `0x17EB48` |
 | 8 | Start | **override** | [`StartBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrolpath.c) | `0x17EB88` |
 | 9 | Close | **override** | [`CloseBhvpatrolpath`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrolpath.c) | `0x17EC80` |

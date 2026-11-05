@@ -11,10 +11,10 @@
 | Children | [BHVWALKPATH](BHVWALKPATH.md), [BHVWALKGOAL](BHVWALKGOAL.md) |
 | Instance size (`cb`) | 0xC0 (192 bytes), +0x90 over BHV |
 | Descriptor | `D_002BB7E0` (record 166 of D_002BAAE8; cid range 166..169) |
-| Factory (`pfnNew`) | [`NewBhvpath`](../../../src/game/app/class_registry/NewBhvpath.c) `0x1132A8` |
+| Factory (`pfnNew`) | [`NewBhvpath`](../../../src/game/app/class_registry.cpp) `0x1132A8` |
 | Descriptor getter (slot 6) | `GetBhvpathClassDesc` `0x114470` |
 | vtable | `D_002D0728`, 16 entries (slots 0..15; slot 0 null), 1 new, 4 overridden |
-| vtable stored by | [`NewBhvpath`](../../../src/game/app/class_registry/NewBhvpath.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvpath`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV166`, proposed `BHVPATH` (confidence 0.7), guard flag `-`. follow a SHAPE path (Lilly SetBhv166Path)
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvpathClassDesc`](../../../src/game/app/class_registry/GetBhvpathClassDesc.c) | `0x114470` |
+| 6 | Pclassinfo | **override** | [`GetBhvpathClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114470` |
 | 7 | Init | **override** | [`InitBhvpath`](../../../src/game/gameplay/ai/guardbhv/InitBhvpath.c) | `0x177E80` |
 | 8 | Start | **override** | [`StartBhvpath`](../../../src/game/gameplay/ai/guardbhv/StartBhvpath.c) | `0x177EF0` |
 | 9 | Close | inherited (BHV) | `CloseBhv` | `0x1EEF78` |

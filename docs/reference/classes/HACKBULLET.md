@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1E0 (480 bytes), +0x20 over HACK |
 | Descriptor | `D_002BB0B0` (record 74 of D_002BAAE8; cid range 74..75) |
-| Factory (`pfnNew`) | [`NewHackbullet`](../../../src/game/app/class_registry/NewHackbullet.cpp) `0x111C80` |
+| Factory (`pfnNew`) | [`NewHackbullet`](../../../src/game/app/class_registry.cpp) `0x111C80` |
 | Descriptor getter (slot 6) | `GetHackbulletClassDesc` `0x113EB0` |
 | vtable | `D_002D1328`, 84 entries (slots 0..83; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewHackbullet`](../../../src/game/app/class_registry/NewHackbullet.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHackbullet`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 7 objects in 5 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetHackbulletClassDesc`](../../../src/game/app/class_registry/GetHackbulletClassDesc.c) | `0x113EB0` |
+| 6 | Pclassinfo | **override** | [`GetHackbulletClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113EB0` |
 | 7 | Init | **override** | [`InitHackbullet?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180188` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

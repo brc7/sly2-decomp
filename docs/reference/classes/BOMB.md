@@ -12,10 +12,10 @@
 | Descendants | 3 classes (CID 80..82) |
 | Instance size (`cb`) | 0x210 (528 bytes), +0xC0 over SO |
 | Descriptor | `D_002BB114` (record 79 of D_002BAAE8; cid range 79..83) |
-| Factory (`pfnNew`) | [`NewBomb`](../../../src/game/app/class_registry/NewBomb.cpp) `0x111E40` |
+| Factory (`pfnNew`) | [`NewBomb`](../../../src/game/app/class_registry.cpp) `0x111E40` |
 | Descriptor getter (slot 6) | `GetBombClassDesc` `0x113F00` |
 | vtable | `D_002CB780`, 78 entries (slots 0..77; slot 0 null), 2 new, 10 overridden |
-| vtable stored by | [`NewBomb`](../../../src/game/app/class_registry/NewBomb.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBomb`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 100 objects in 34 of 43 world files |
 
 ## Virtual table
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleBombMessage`](../../../src/game/gameplay/objects/bomb.cpp) | `0x13AAE8` |
-| 6 | Pclassinfo | **override** | [`GetBombClassDesc`](../../../src/game/app/class_registry/GetBombClassDesc.c) | `0x113F00` |
+| 6 | Pclassinfo | **override** | [`GetBombClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113F00` |
 | 7 | Init | **override** | [`InitBomb`](../../../src/game/gameplay/objects/bomb.cpp) | `0x13A9E8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

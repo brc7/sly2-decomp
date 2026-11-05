@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x70 (112 bytes), +0x40 over BHV |
 | Descriptor | `D_002BB8BC` (record 177 of D_002BAAE8; cid range 177..178) |
-| Factory (`pfnNew`) | [`NewBhvjuggled`](../../../src/game/app/class_registry/NewBhvjuggled.c) `0x113510` |
+| Factory (`pfnNew`) | [`NewBhvjuggled`](../../../src/game/app/class_registry.cpp) `0x113510` |
 | Descriptor getter (slot 6) | `GetBhvjuggledClassDesc` `0x114520` |
 | vtable | `D_002D03A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvjuggled`](../../../src/game/app/class_registry/NewBhvjuggled.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvjuggled`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175, BHVJUGGLED (medium, 1 exclusive identical slots) — [hidden-types A2](../hidden-types.md#a2)
@@ -32,7 +32,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvjuggledClassDesc`](../../../src/game/app/class_registry/GetBhvjuggledClassDesc.c) | `0x114520` |
+| 6 | Pclassinfo | **override** | [`GetBhvjuggledClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114520` |
 | 7 | Init | **override** | [`InitBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/InitBhvjuggled.c) | `0x17A9D0` |
 | 8 | Start | **override** | [`StartBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/StartBhvjuggled.c) | `0x17AA08` |
 | 9 | Close | **override** | [`CloseBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/CloseBhvjuggled.c) | `0x17B178` |

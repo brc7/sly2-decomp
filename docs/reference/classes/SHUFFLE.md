@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x60 (96 bytes), +0x10 over SAA |
 | Descriptor | `D_002BB5EC` (record 141 of D_002BAAE8; cid range 141..142) |
-| Factory (`pfnNew`) | [`NewShuffle`](../../../src/game/app/class_registry/NewShuffle.c) `0x112E78` |
+| Factory (`pfnNew`) | [`NewShuffle`](../../../src/game/app/class_registry.cpp) `0x112E78` |
 | Descriptor getter (slot 6) | `GetShuffleClassDesc` `0x1142E0` |
 | vtable | `D_002D9300`, 11 entries (slots 0..10; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewShuffle`](../../../src/game/app/class_registry/NewShuffle.c) (vptr +0xC) |
+| vtable stored by | [`NewShuffle`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetShuffleClassDesc`](../../../src/game/app/class_registry/GetShuffleClassDesc.c) | `0x1142E0` |
+| 6 | Pclassinfo | **override** | [`GetShuffleClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1142E0` |
 | 7 | InitSaa | **override** | [`InitShuffle__FP7SHUFFLEP4SAAF`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDFA0` |
 | 8 | UpdateSaa | **override** | [`UpdateShuffle__FP7SHUFFLEf`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDFE0` |
 | 9 | UCompleteSaa__FP3SAA | inherited (SAA) | `UCompleteSaa__FP3SAA` | `0x1EDA58` |

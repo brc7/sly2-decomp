@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x170 (368 bytes), +0x90 over XFM |
 | Descriptor | `D_002BAB38` (record 4 of D_002BAAE8; cid range 4..5) |
-| Factory (`pfnNew`) | [`NewLight`](../../../src/game/app/class_registry/NewLight.c) `0x110B48` |
+| Factory (`pfnNew`) | [`NewLight`](../../../src/game/app/class_registry.cpp) `0x110B48` |
 | Descriptor getter (slot 6) | `GetLightClassDesc` `0x113A50` |
 | vtable | `D_002D33A0`, 51 entries (slots 0..50; slot 0 null), 0 new, 10 overridden |
-| vtable stored by | [`NewLight`](../../../src/game/app/class_registry/NewLight.c) (vptr +0xC) |
+| vtable stored by | [`NewLight`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 2855 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetLightClassDesc`](../../../src/game/app/class_registry/GetLightClassDesc.c) | `0x113A50` |
+| 6 | Pclassinfo | **override** | [`GetLightClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113A50` |
 | 7 | Init | **override** | [`InitLight?`](../../../src/game/engine/graphics/pipeline/light.cpp) | `0x1A3360` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

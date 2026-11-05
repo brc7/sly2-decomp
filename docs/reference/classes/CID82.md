@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x290 (656 bytes), +0x20 over MISSILE |
 | Descriptor | `D_002BB150` (record 82 of D_002BAAE8; cid range 82..83) |
-| Factory (`pfnNew`) | [`NewCid82`](../../../src/game/app/class_registry/NewCid82.cpp) `0x111F48` |
+| Factory (`pfnNew`) | [`NewCid82`](../../../src/game/app/class_registry.cpp) `0x111F48` |
 | Descriptor getter (slot 6) | `GetCid82ClassDesc` `0x113F30` |
 | vtable | `D_002D3AA0`, 79 entries (slots 0..78; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewCid82`](../../../src/game/app/class_registry/NewCid82.cpp) (vptr +0xC) |
+| vtable stored by | [`NewCid82`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 20 objects in 14 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BOMB) | `HandleBombMessage` | `0x13AAE8` |
-| 6 | Pclassinfo | **override** | [`GetCid82ClassDesc`](../../../src/game/app/class_registry/GetCid82ClassDesc.c) | `0x113F30` |
+| 6 | Pclassinfo | **override** | [`GetCid82ClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113F30` |
 | 7 | Init | **override** | [`InitSplmiss`](../../../src/game/gameplay/objects/missile.cpp) | `0x1B21F0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

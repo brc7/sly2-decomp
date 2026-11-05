@@ -11,10 +11,10 @@
 | Children | [DIMITRI](DIMITRI.md) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAF70` (record 58 of D_002BAAE8; cid range 58..60) |
-| Factory (`pfnNew`) | [`NewGuard`](../../../src/game/app/class_registry/NewGuard.c) `0x1117E8` |
+| Factory (`pfnNew`) | [`NewGuard`](../../../src/game/app/class_registry.cpp) `0x1117E8` |
 | Descriptor getter (slot 6) | `GetGuardClassDesc` `0x113DB0` |
 | vtable | `D_002C9DC0`, 90 entries (slots 0..89; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewGuard`](../../../src/game/app/class_registry/NewGuard.c) (vptr +0xC) |
+| vtable stored by | [`NewGuard`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 28 objects in 28 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
-| 6 | Pclassinfo | **override** | [`GetGuardClassDesc`](../../../src/game/app/class_registry/GetGuardClassDesc.c) | `0x113DB0` |
+| 6 | Pclassinfo | **override** | [`GetGuardClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113DB0` |
 | 7 | Init | inherited (STEPGUARD) | `InitStepguard` | `0x205EB8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

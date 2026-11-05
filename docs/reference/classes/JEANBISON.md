@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAFC0` (record 62 of D_002BAAE8; cid range 62..63) |
-| Factory (`pfnNew`) | [`NewJeanbison`](../../../src/game/app/class_registry/NewJeanbison.c) `0x1118E8` |
+| Factory (`pfnNew`) | [`NewJeanbison`](../../../src/game/app/class_registry.cpp) `0x1118E8` |
 | Descriptor getter (slot 6) | `GetJeanbisonClassDesc` `0x113DF0` |
 | vtable | `D_002C91C8`, 90 entries (slots 0..89; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewJeanbison`](../../../src/game/app/class_registry/NewJeanbison.c) (vptr +0xC) |
+| vtable stored by | [`NewJeanbison`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 6 objects in 6 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
-| 6 | Pclassinfo | **override** | [`GetJeanbisonClassDesc`](../../../src/game/app/class_registry/GetJeanbisonClassDesc.c) | `0x113DF0` |
+| 6 | Pclassinfo | **override** | [`GetJeanbisonClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113DF0` |
 | 7 | Init | inherited (STEPGUARD) | `InitStepguard` | `0x205EB8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

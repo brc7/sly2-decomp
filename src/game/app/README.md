@@ -6,7 +6,7 @@
 | --- | --- |
 | [`bif/`](bif/) | 161 |
 | [`bif2.cpp`](bif2.cpp) | 1 |
-| [`class_registry/`](class_registry/) | 424 |
+| [`class_registry.cpp`](class_registry.cpp) | 1 |
 | [`eopid_linkonce.cpp`](eopid_linkonce.cpp) | 1 |
 | [`main.cpp`](main.cpp) | 1 |
 | [`splice_thunks/`](splice_thunks/) | 31 |

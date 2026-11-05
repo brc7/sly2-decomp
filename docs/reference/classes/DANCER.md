@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x410 (1040 bytes), +0x150 over STEP |
 | Descriptor | `D_002BB038` (record 68 of D_002BAAE8; cid range 68..69) |
-| Factory (`pfnNew`) | [`NewDancer`](../../../src/game/app/class_registry/NewDancer.cpp) `0x111A68` |
+| Factory (`pfnNew`) | [`NewDancer`](../../../src/game/app/class_registry.cpp) `0x111A68` |
 | Descriptor getter (slot 6) | `GetDancerClassDesc` `0x113E50` |
 | vtable | `D_002CD748`, 88 entries (slots 0..87; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewDancer`](../../../src/game/app/class_registry/NewDancer.cpp) (vptr +0xC) |
+| vtable stored by | [`NewDancer`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 1 objects in 1 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleDancerMessage?`](../../../src/game/gameplay/objects/rhythm.cpp) | `0x152250` |
-| 6 | Pclassinfo | **override** | [`GetDancerClassDesc`](../../../src/game/app/class_registry/GetDancerClassDesc.c) | `0x113E50` |
+| 6 | Pclassinfo | **override** | [`GetDancerClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113E50` |
 | 7 | Init | inherited (STEP) | `InitStep` | `0x203948` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

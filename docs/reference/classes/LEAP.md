@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x70 (112 bytes), +0x60 over BASIC |
 | Descriptor | `D_002BB63C` (record 145 of D_002BAAE8; cid range 145..146) |
-| Factory (`pfnNew`) | [`NewLeap`](../../../src/game/app/class_registry/NewLeap.c) `0x112F58` |
+| Factory (`pfnNew`) | [`NewLeap`](../../../src/game/app/class_registry.cpp) `0x112F58` |
 | Descriptor getter (slot 6) | `GetLeapClassDesc` `0x114320` |
 | vtable | `D_002DAA10`, 7 entries (slots 0..6; slot 0 null), 0 new, 2 overridden |
 | vtable stored by | [`LEAP_ctor`](../../../src/game/gameplay/player/tu_20B840.cpp) (vptr +0xC) |
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleLeapMessage`](../../../src/game/gameplay/player/tu_20B840.cpp) | `0x20C290` |
-| 6 | Pclassinfo | **override** | [`GetLeapClassDesc`](../../../src/game/app/class_registry/GetLeapClassDesc.c) | `0x114320` |
+| 6 | Pclassinfo | **override** | [`GetLeapClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114320` |
 
 ## Fields
 

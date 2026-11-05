@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x130 (304 bytes), +0x20 over WIDGET |
 | Descriptor | `D_002BB510` (record 130 of D_002BAAE8; cid range 130..131) |
-| Factory (`pfnNew`) | [`NewWidget130`](../../../src/game/app/class_registry/NewWidget130.c) `0x112CD0` |
+| Factory (`pfnNew`) | [`NewWidget130`](../../../src/game/app/class_registry.cpp) `0x112CD0` |
 | Descriptor getter (slot 6) | `GetWidget130ClassDesc` `0x114230` |
 | vtable | `D_002C9670`, 51 entries (slots 0..50; slot 0 null), 0 new, 1 overridden |
 | vtable stored by | [`WIDGET130_ctor?`](../../../src/game/engine/presentation/hud/func_00211C58.cpp) (vptr +0xC) |
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWidget130ClassDesc`](../../../src/game/app/class_registry/GetWidget130ClassDesc.c) | `0x114230` |
+| 6 | Pclassinfo | **override** | [`GetWidget130ClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114230` |
 | 7 | Init | inherited (LO) | `InitLo` | `0x1A5270` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x20 over BHV |
 | Descriptor | `D_002BB9C0` (record 190 of D_002BAAE8; cid range 190..191) |
-| Factory (`pfnNew`) | [`NewBhvpathlink`](../../../src/game/app/class_registry/NewBhvpathlink.c) `0x113808` |
+| Factory (`pfnNew`) | [`NewBhvpathlink`](../../../src/game/app/class_registry.cpp) `0x113808` |
 | Descriptor getter (slot 6) | `GetBhvpathlinkClassDesc` `0x1145F0` |
 | vtable | `D_002CFCA0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpathlink`](../../../src/game/app/class_registry/NewBhvpathlink.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBhvpathlink`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV190`, proposed `BHVPATHLINK` (confidence 0.7), guard flag `0x2C`. traverse a pathlink segment by segment (walk or leap)
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvpathlinkClassDesc`](../../../src/game/app/class_registry/GetBhvpathlinkClassDesc.c) | `0x1145F0` |
+| 6 | Pclassinfo | **override** | [`GetBhvpathlinkClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1145F0` |
 | 7 | Init | **override** | [`InitBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/InitBhvpathlink.c) | `0x17E3A0` |
 | 8 | Start | **override** | [`StartBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/StartBhvpathlink.c) | `0x17E3D8` |
 | 9 | Close | **override** | [`CloseBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpathlink.c) | `0x17E410` |

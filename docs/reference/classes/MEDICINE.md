@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x250 (592 bytes), +0x20 over DPRIZE |
 | Descriptor | `D_002BB22C` (record 93 of D_002BAAE8; cid range 93..94) |
-| Factory (`pfnNew`) | [`NewMedicine`](../../../src/game/app/class_registry/NewMedicine.cpp) `0x112268` |
+| Factory (`pfnNew`) | [`NewMedicine`](../../../src/game/app/class_registry.cpp) `0x112268` |
 | Descriptor getter (slot 6) | `GetMedicineClassDesc` `0x113FE0` |
 | vtable | `D_002D66B8`, 77 entries (slots 0..76; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewMedicine`](../../../src/game/app/class_registry/NewMedicine.cpp) (vptr +0xC) |
+| vtable stored by | [`NewMedicine`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (DPRIZE) | `HandleDprizeMessage?` | `0x1C5098` |
-| 6 | Pclassinfo | **override** | [`GetMedicineClassDesc`](../../../src/game/app/class_registry/GetMedicineClassDesc.c) | `0x113FE0` |
+| 6 | Pclassinfo | **override** | [`GetMedicineClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113FE0` |
 | 7 | Init | **override** | [`InitMedicine?`](../../../src/game/gameplay/progression/prize.cpp) | `0x1C67D8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

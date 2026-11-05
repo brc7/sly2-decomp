@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1D0 (464 bytes), +0x40 over SENSOR |
 | Descriptor | `D_002BB18C` (record 85 of D_002BAAE8; cid range 85..86) |
-| Factory (`pfnNew`) | [`NewLasen`](../../../src/game/app/class_registry/NewLasen.cpp) `0x111FF8` |
+| Factory (`pfnNew`) | [`NewLasen`](../../../src/game/app/class_registry.cpp) `0x111FF8` |
 | Descriptor getter (slot 6) | `GetLasenClassDesc` `0x113F60` |
 | vtable | `D_002D8738`, 76 entries (slots 0..75; slot 0 null), 0 new, 10 overridden |
-| vtable stored by | [`NewLasen`](../../../src/game/app/class_registry/NewLasen.cpp) (vptr +0xC) |
+| vtable stored by | [`NewLasen`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 121 objects in 15 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetLasenClassDesc`](../../../src/game/app/class_registry/GetLasenClassDesc.c) | `0x113F60` |
+| 6 | Pclassinfo | **override** | [`GetLasenClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113F60` |
 | 7 | Init | **override** | [`InitLasen?`](../../../src/game/gameplay/objects/sensor.cpp) | `0x1DE400` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

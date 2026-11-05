@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1E0 (480 bytes), +0x50 over SHAPE |
 | Descriptor | `D_002BABC4` (record 11 of D_002BAAE8; cid range 11..12) |
-| Factory (`pfnNew`) | [`NewPipe`](../../../src/game/app/class_registry/NewPipe.cpp) `0x110CD0` |
+| Factory (`pfnNew`) | [`NewPipe`](../../../src/game/app/class_registry.cpp) `0x110CD0` |
 | Descriptor getter (slot 6) | `GetPipeClassDesc` `0x113AC0` |
 | vtable | `D_002D56F8`, 51 entries (slots 0..50; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewPipe`](../../../src/game/app/class_registry/NewPipe.cpp) (vptr +0xC) |
+| vtable stored by | [`NewPipe`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 246 objects in 26 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetPipeClassDesc`](../../../src/game/app/class_registry/GetPipeClassDesc.c) | `0x113AC0` |
+| 6 | Pclassinfo | **override** | [`GetPipeClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113AC0` |
 | 7 | Init | **override** | [`InitPipe`](../../../src/game/gameplay/player/pipe.cpp) | `0x1C3390` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

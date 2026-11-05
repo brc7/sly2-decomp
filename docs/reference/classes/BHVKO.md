@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xC0 (192 bytes), +0x0 over BHVHIT |
 | Descriptor | `D_002BB7A4` (record 163 of D_002BAAE8; cid range 163..164) |
-| Factory (`pfnNew`) | [`NewBhvko`](../../../src/game/app/class_registry/NewBhvko.c) `0x113200` |
+| Factory (`pfnNew`) | [`NewBhvko`](../../../src/game/app/class_registry.cpp) `0x113200` |
 | Descriptor getter (slot 6) | `GetBhvkoClassDesc` `0x114440` |
 | vtable | `D_002D08B0`, 15 entries (slots 0..14; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewBhvko`](../../../src/game/app/class_registry/NewBhvko.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvko`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV163`, proposed `BHVKO` (confidence 0.65), guard flag `7`. knocked out: dead flag +0x330, event 0x17/0x18, drops coins from the loot list
@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvkoClassDesc`](../../../src/game/app/class_registry/GetBhvkoClassDesc.c) | `0x114440` |
+| 6 | Pclassinfo | **override** | [`GetBhvkoClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114440` |
 | 7 | Init | **override** | [`InitBhvko`](../../../src/game/gameplay/ai/guardbhv/InitBhvko.c) | `0x179868` |
 | 8 | Start | **override** | [`StartBhvko`](../../../src/game/gameplay/ai/guardbhv/StartBhvko.c) | `0x179898` |
 | 9 | Close | **override** | [`CloseBhvko`](../../../src/game/gameplay/ai/guardbhv/CloseBhvko.c) | `0x179A20` |

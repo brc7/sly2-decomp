@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x70 (112 bytes), +0x20 over SAA |
 | Descriptor | `D_002BB5D8` (record 140 of D_002BAAE8; cid range 140..141) |
-| Factory (`pfnNew`) | [`NewPingpong`](../../../src/game/app/class_registry/NewPingpong.c) `0x112E40` |
+| Factory (`pfnNew`) | [`NewPingpong`](../../../src/game/app/class_registry.cpp) `0x112E40` |
 | Descriptor getter (slot 6) | `GetPingpongClassDesc` `0x1142D0` |
 | vtable | `D_002D9360`, 11 entries (slots 0..10; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewPingpong`](../../../src/game/app/class_registry/NewPingpong.c) (vptr +0xC) |
+| vtable stored by | [`NewPingpong`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetPingpongClassDesc`](../../../src/game/app/class_registry/GetPingpongClassDesc.c) | `0x1142D0` |
+| 6 | Pclassinfo | **override** | [`GetPingpongClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1142D0` |
 | 7 | InitSaa | **override** | [`InitPingpong?`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDD60` |
 | 8 | UpdateSaa | **override** | [`UpdatePingpong__FP8PINGPONGf`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDE10` |
 | 9 | UCompleteSaa__FP3SAA | **override** | [`UCompletePingpong__FP8PINGPONG`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDF28` |

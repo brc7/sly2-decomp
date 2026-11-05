@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x100 (256 bytes), +0xB0 over LO |
 | Descriptor | `D_002BB538` (record 132 of D_002BAAE8; cid range 132..133) |
-| Factory (`pfnNew`) | [`NewJob`](../../../src/game/app/class_registry/NewJob.c) `0x112D38` |
+| Factory (`pfnNew`) | [`NewJob`](../../../src/game/app/class_registry.cpp) `0x112D38` |
 | Descriptor getter (slot 6) | `GetJobClassDesc` `0x114250` |
 | vtable | `D_002CF378`, 49 entries (slots 0..48; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewJob`](../../../src/game/app/class_registry/NewJob.c) (vptr +0xC) |
+| vtable stored by | [`NewJob`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 388 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetJobClassDesc`](../../../src/game/app/class_registry/GetJobClassDesc.c) | `0x114250` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetJobClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114250` | Pclassinfo |
 | 7 | Init | **override** | [`InitJob`](../../../src/game/world/state/game.cpp) | `0x162448` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

@@ -11,10 +11,10 @@
 | Children | [CLUEPROXY](CLUEPROXY.md) |
 | Instance size (`cb`) | 0x100 (256 bytes), +0x20 over XFM |
 | Descriptor | `D_002BAB60` (record 6 of D_002BAAE8; cid range 6..8) |
-| Factory (`pfnNew`) | [`NewProxy`](../../../src/game/app/class_registry/NewProxy.c) `0x110BB8` |
+| Factory (`pfnNew`) | [`NewProxy`](../../../src/game/app/class_registry.cpp) `0x110BB8` |
 | Descriptor getter (slot 6) | `GetProxyClassDesc` `0x113A70` |
 | vtable | `D_002D6E08`, 51 entries (slots 0..50; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewProxy`](../../../src/game/app/class_registry/NewProxy.c) (vptr +0xC) |
+| vtable stored by | [`NewProxy`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 19259 objects in 43 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetProxyClassDesc`](../../../src/game/app/class_registry/GetProxyClassDesc.c) | `0x113A70` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetProxyClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113A70` | Pclassinfo |
 | 7 | Init | **override** | [`InitProxy`](../../../src/game/object/proxy.cpp) | `0x1CA788` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

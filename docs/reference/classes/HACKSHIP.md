@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x2B0 (688 bytes), +0xF0 over HACK |
 | Descriptor | `D_002BB088` (record 72 of D_002BAAE8; cid range 72..73) |
-| Factory (`pfnNew`) | [`NewHackship`](../../../src/game/app/class_registry/NewHackship.cpp) `0x111BC8` |
+| Factory (`pfnNew`) | [`NewHackship`](../../../src/game/app/class_registry.cpp) `0x111BC8` |
 | Descriptor getter (slot 6) | `GetHackshipClassDesc` `0x113E90` |
 | vtable | `D_002D15D0`, 84 entries (slots 0..83; slot 0 null), 0 new, 9 overridden |
-| vtable stored by | [`NewHackship`](../../../src/game/app/class_registry/NewHackship.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHackship`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 5 objects in 5 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetHackshipClassDesc`](../../../src/game/app/class_registry/GetHackshipClassDesc.c) | `0x113E90` |
+| 6 | Pclassinfo | **override** | [`GetHackshipClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113E90` |
 | 7 | Init | **override** | [`InitHackship`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x17F6F8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
