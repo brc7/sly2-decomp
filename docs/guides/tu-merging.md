@@ -450,6 +450,9 @@ Every choice:
 | config (types/views-1) | linkonce ~CFrame, ~CProc | config names `_$_6CFrame` / `_$_5CProc` (were func_00257078 / func_00257148); the C definitions keep their bodies and are bound with an asm label on a preceding declaration | every CFrame/CProc view already referenced the mangled names through the alias table | the definitions become the real destructors when CFrame/CProc are shared |
 | (types/views-1) | symbol of a shared class's out-of-line destructor | the config name becomes the mangled name and one object defines the member, rather than an alias line; explicit C callers keep their identifier with `__asm__("<mangled>")` on the declaration (the class names are placeholders: a rename changes header and config together) | removes the alias entry and makes symcheck/relverify see the destructor as defined | naming pass |
 | sly2/clock.h (types/views-1) | CLOCK | moved unchanged out of basic.h (common.h only); private views that name a prefix with the header's names removed | 175 views in 47 files | views with other names (time, t3c...) and the six files with layout asserts on their views (guardbhv, grab, murray, hang, cane, throw) |
+| sly2/classes.h + the class headers (types/views-2) | the 198 registry classes (all but SW) | real classes at file scope under their real names, replacing class_registry's `namespace REG` construction views: the 34 that sly2 headers define come from those headers (BASIC, LO, XFM, PROXY, SHAPE, TN, TARGET, VOL, DETECTOR, EMITTER, EXPL, EXPLO, SO, CID148, CID150, PO, POCTL, STEP, BHV, STEPPLAYER, JT, MURRAY, BENTLEY, STEPGUARD, ASEG, ASEGBL, SM, ASEGA, SMA, JOB, TASK, CM; LEAP and CID146 move into step.h), the other 164 plus GRABSPOT/BLIP/PATHLINKEND/BHVGUARDREC are in the new sly2/classes.h (included only by class_registry). Every class has its real virtual layout: each slot it overrides or adds is a member declaration with an asm label naming the function its ELF vtable holds there (member name and signature from the slot's first declaration; `VSlot<n>()` where no header names it); Pclassinfo is declared first, so it is the key function and no TU emits the vtable by defining a member. config/symbol_addrs.txt names the 191 vtables (`_vt$2LO = 0x2D3540; // type:data size:(slots + 2) * 8`) | the ELF vtables (8-byte entries {delta, pfn}; entry 0 and a terminator entry are null; class-tree.md's slot counts); the header virtual counts agree with them for all 11 classes that declared virtuals. Verified by emission: missile.cpp's ACCMISS (its key TU) with the generated overrides emits `_vt$7ACCMISS` byte-identical to 0x2D3D20 (all 78 relocations name the ELF's functions) | a class's members defined as members (then the getters become `CLASSINFO *X::Pclassinfo()` and class_registry emits every vtable); SW when sw.h settles |
+| sly2/basic.h, po.h (types/views-2) | BASIC and PO constructors | declared in the headers, defined inline in sly2/classes.h (`BASIC() : pframe(refptrNull), psidebag(refptrNull) {}` through a new clearing `CRefPtr(REFPTRNULL)`, `PO() { pvUnk174 = 0; }`); classes.h declares `~CRefPtr()` of CFrame/CSidebag/SND as explicit specializations | a user constructor makes g++ 2.95 instantiate the CRefPtr member destructors (cleanup of a partly built object, even with -fno-exceptions), whose pointees (CVarb, CSidebag, SND) are incomplete outside their own files; changing `CRefPtr()` to clear would add a store to spliceobj's local `CRefPtr<CMethod>` (the only default construction of a CRefPtr, found with an undefined-constructor probe over all objects; no object constructs a BASIC-derived class but class_registry) | complete CVarb/CSidebag/SND types in headers |
+| sly2/so.h, jt.h, players.h, guard.h, cm.h (types/views-2) | construction members | GLOBSET gets class_registry's `GLOBSET() __asm__("__4CRef ")` (the trailing-space label, see class_registry); JT/MURRAY/STEPGUARD/CM declare their out-of-line constructors (`JT_ctor`...); MURRAY +0x1890 and STEPGUARD +0xDB0 become `LEAP leap` (STEPGUARD +0xE20 `CID146 cid146`) in place of padding | JT_ctor, MURRAY_ctor and STEPGUARD_ctor (defined in class_registry over the header classes) and every factory MATCH | renaming 0x167310 `__7GLOBSET` |
 
 ### Views unified (types/views-1)
 
@@ -470,6 +473,28 @@ initializers), CLOCK in six files with asserts on their views. Not attempted: CR
 views (112 definitions), VTE/VT vtable-entry views, VU_FLOAT, M3/M4, the inline-release pointer owners.
 config/link_aliases.txt: 292 -> 234 lines (the view-destructor section is down to brx_sw's `_$_3OBJ`, a different
 function). symcheck: unresolved references 532 -> 463 (the branch start measured 532 with air merged).
+
+### Views unified (types/views-2): the registry classes
+
+Slice 2: the classes whose vtables the alias table carried, made real (no data-table stopgap). Every function and data
+symbol of every touched file MATCHes (class_registry 424/424 and D_002BAAE8, missile with the emitted
+`_vt$7ACCMISS`); the header changes were checked by a full progress run (6,662/6,662).
+
+| family | header | views removed | files | link aliases removed | config |
+|---|---|---:|---:|---:|---|
+| registry classes (BASIC/LO/XFM/SO/PO/STEP/STEPPLAYER/BHV/... all 198 but SW) | sly2/classes.h (164 + 4 helpers), basic.h, lo.h, xfm.h, so.h, po.h, step.h, stepplayer.h, jt.h, players.h, guard.h, aseg.h, task.h, cm.h, emitter.h | 198 (class_registry's `namespace REG`) | 16 | 191 (all `_vt$Q23REG...`, secondary GRABSPOT tables included) | 191 `_vt$` data names in symbol_addrs.txt |
+| header virtual layouts (LO/SO hierarchy, BHV, SM, ...) | the same headers | 0 | 14 | 0 | — |
+| BOMB/MISSILE/ACCMISS virtual layout | missile.cpp (views kept: fields) | 0 | 1 | 0 | `_vt$7ACCMISS` compared (MATCH) |
+
+Labels on the header virtuals also resolve the references of the key-TU extras: jt.cpp and sm.cpp no longer emit
+`_vt$2JT`/`_vt$2SM` (Pclassinfo is now their first virtual), missile.cpp's `_vt$7ACCMISS` names only real functions.
+config/link_aliases.txt: 234 -> 43 lines (vtables 212 -> 21: act.cpp's 19 curve classes, hud's and memcard's local
+classes). Reverted: none of the header or registry changes changed code; the only failed forms were build errors
+(a BASIC constructor defined in basic.h, `CRefPtr()` clearing, explicit specializations after the instantiation), see
+Representation decisions. Not attempted: act.cpp's three curve-class factories (21 lines; the classes have no registry
+entry and no header), SW (sw.h on data/interior-fields), folding the per-file views of registry classes that carry
+fields (missile's BOMB/MISSILE/ACCMISS, light.cpp's LIGHT, the GRABSPOT copies in proxy/sw/xf/jt) onto the shared
+classes, emitting the vtables from class_registry (getters as members).
 
 ## Path-hash quirk (asm functions)
 

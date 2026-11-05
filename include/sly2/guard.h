@@ -4,6 +4,7 @@
  * checked in save-state RAM), [S] static, [H] hypothesis. No src/ file includes this header yet. */
 #ifndef SLY2_GUARD_H
 #define SLY2_GUARD_H
+#include "sly2/leap.h"
 #include "sly2/basic.h"
 #include "sly2/step.h"
 #include "sly2/xfm.h"

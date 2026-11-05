@@ -3,6 +3,7 @@
  * compile-time asserts: a wrong field offset or class size stops the build. */
 #ifndef SLY2_PLAYERS_H
 #define SLY2_PLAYERS_H
+#include "sly2/leap.h"
 #include "sly2/basic.h"
 #include "sly2/stepplayer.h"
 #include "sly2/jt.h"
