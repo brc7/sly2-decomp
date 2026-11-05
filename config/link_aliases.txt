@@ -222,31 +222,11 @@ _vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
 _vt$Q215M_func_00211C581D = D_002C9670;   # engine/presentation/hud.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
-# destructors of namespace-scoped view classes -> the C function they stand for (an asm label would drop the call) (13 lines, 13 references)
-_$_Q214M_RefOpShuffle3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q215M_func_001215783SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q226M_RefOpFindObjectsFromOids3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q228M_RefOpMap__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q229M_RefOpCons__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q229M_RefOpEval__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q231M_RefOpAppend__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q231M_RefOpFilter__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q232M_RefOpForEach__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q241M_RefOpScheduleCallback__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q243M_RefOpVectorRadianNormal__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q248M_RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q254M_RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-
-# file-scope destructors -> the C function they stand for (same reason) (11 lines, 14 references)
+# destructors of view classes -> the C function they stand for (an asm label would drop the call) (6 lines, 9 references)
 [src/game/level/brx_sw.cpp] _$_3OBJ = func_00184950;
-[src/game/splice/eval.cpp] _$_3SPM = PairPtr_Release;
 [src/game/splice/frame.cpp] _$_3SPM = func_00257250;
-[src/game/splice/pair.cpp] _$_3SPM = PairPtr_Release;
-[src/game/splice/ref.cpp] _$_3SPM = PairPtr_Release;
-[src/game/splice/serialize.cpp] _$_3SPM = PairPtr_Release;
 [src/game/splice/sidebag.cpp] _$_3SPM = func_00257250;
 [src/game/splice/varb.cpp] _$_3SPM = func_00257250;
-[src/game/world/scene/callback.cpp] _$_3SPM = PairPtr_Release;
 _$_5CProc = func_00257148;   # splice/eval.cpp, splice/proc.cpp, splice/ref.cpp
 _$_6CFrame = func_00257078;   # splice/eval.cpp, splice/frame.cpp
 

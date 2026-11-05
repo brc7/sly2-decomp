@@ -6539,7 +6539,7 @@ __8VU_FLOATf,0x256CE8,bif
 __9VU_VECTORRC6VECTOR,0x256D08,bif
 VECTOR_opAssign,0x256D18,xf
 __ml__FG8VU_FLOATG9VU_VECTOR,0x256D28,bif
-PairPtr_Release,0x256D40,bif
+_$_8CPairPtr,0x256D40,bif
 PvNewFrame,0x256DD0,eval
 FramePtr_Assign,0x256EE0,proxy
 PvNewProc,0x256F48,eval

@@ -469,7 +469,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256D08](../../../src/game/app/bif.cpp) | `__9VU_VECTORRC6VECTOR` |  |  | existing |  |
 | [0x256D18](../../../src/game/engine/anim/xf.cpp) | `VECTOR_opAssign` | VECTOR::operator=(VU_VECTOR): store a 128-bit VU vector into a VECTOR and return it | 0.60 | T1 | top50 |
 | [0x256D28](../../../src/game/app/bif.cpp) | `__ml__FG8VU_FLOATG9VU_VECTOR` |  |  | existing |  |
-| [0x256D40](../../../src/game/app/bif.cpp) | `PairPtr_Release` | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
+| [0x256D40](../../../src/game/app/bif.cpp) | `_$_8CPairPtr` (was PairPtr_Release; ~CPairPtr, sly2/pair.h) | release pair refptr; (flags&1) -> operator delete(pp) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256DD0](../../../src/game/splice/eval.cpp) | `PvNewFrame` | allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256EE0](../../../src/game/object/proxy.cpp) | `FramePtr_Assign` | Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store | 0.60 | T1 | top50 |
 | [0x256F48](../../../src/game/splice/eval.cpp) | `PvNewProc` | allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |

@@ -64,7 +64,7 @@ void CRef_ctor(CREFV *pref, qword v);
 CPAIR *PvNewPair(void);
 void func_00256C38(SPAIR *psp, CPAIR *pn);
 void PairPtr_Assign(SPAIR *psp, CPAIR *pn);
-void PairPtr_Release(SPAIR *psp, int n);
+void PairPtr_Release(SPAIR *psp, int n) __asm__("_$_8CPairPtr");
 CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
 void CRef_SetSymid(CREFV *pref, int n);
 void CRef_SetBasic(CREFV *pref, BASIC *pbasic);

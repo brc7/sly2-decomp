@@ -393,7 +393,7 @@ CRef RefEnsureOption(BASIC *pbasic, int opid, CRef *pref)
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:
-   the store and the release are out of line (func_00256C38 / PairPtr_Assign, PairPtr_Release), the destructor's
+   the store and the release are out of line (func_00256C38 / PairPtr_Assign, _$_8CPairPtr), the destructor's
    release inline. SPPAIR is 16-byte aligned: the original frame has its list pointers in 16-byte slots, so this form
    exists to reproduce the original codegen. */
 struct CPair;
@@ -410,7 +410,7 @@ struct CPair { int cref; int link; CRef ref; SPPAIR next; };
 extern "C" {
 void func_00256C38(SPPAIR *psp, CPair *ppair);
 void PairPtr_Assign(SPPAIR *psp, CPair *ppair);
-void PairPtr_Release(SPPAIR *psp, int grf);
+void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_8CPairPtr");
 CPair *PvNewPair(void);
 void GcPair_Unlink(CPair *ppair);
 }
