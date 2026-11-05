@@ -60,6 +60,13 @@ SCRINL<0x30> D_003DA0C0(D_002CA490);    /* notice */
 SCRCTOR<0x60> D_003DA0F0(GADGETMENU_ctor);
 SCRCTOR<0x270> D_003DA150(func_001DB7A8);
 SCRCTOR<0x110> D_003DA3C0(func_001DCC58);
+/* 0x3DA4D0: the selected job (JOBSEL *, read as D_003DA4D0 below) heads a 0x20-byte object: the next screen starts
+ * at 0x3DA4F0. A plain pointer would be emitted after every constructed object (plain .bss goes at the end of the
+ * file), so the slot is a 0x20-byte record with an empty inline constructor, emitted here in order and constructed
+ * by no code. Only the first word is named. */
+struct JOBSEL;
+struct JOBSELSLOT { JOBSEL *pjobsel; int an[7]; JOBSELSLOT() {} };
+JOBSELSLOT s_jobselslot __asm__("D_003DA4D0");
 SCRCTOR<0x40> D_003DA4F0(func_001DD648);
 SCRCTOR<0x40> D_003DA530(func_001DD7D8);
 
@@ -3912,6 +3919,5 @@ float D_002C35B0 = 40.0f;
 int D_002C35B4 = 6;
 int D_002C35B8[14] = {88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101};
 int D_002C35F0[8] = {790, 792, 791, 793, 795, 794, 796, 797};
-JOBSEL *D_003DA4D0;
 int D_003DA570;
 namespace M_UpdateTitleScreen { extern "C" { ITEM D_003DA578[14]; } }   /* one per region language */
