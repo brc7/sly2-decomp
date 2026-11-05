@@ -1627,12 +1627,12 @@ public:
     int m_cbufFill;
     int m_icbufRead;
     int m_icbufWrite;
-    void Read(int cb, void *pv);
-    uchar U8Read();
-    char S8Read();
-    short S16Read();
-    int S32Read();
-    float F32Read();
+    void Read(int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
+    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
+    char S8Read() __asm__("S8Read__18CBinaryInputStream");
+    short S16Read() __asm__("S16Read__18CBinaryInputStream");
+    int S32Read() __asm__("S32Read__18CBinaryInputStream");
+    float F32Read() __asm__("F32Read__18CBinaryInputStream");
     void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
 };
 struct FILEREC
