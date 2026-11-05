@@ -138,100 +138,100 @@ Totals on this page: EXISTING 21, T1 136, T2 144, T3 6.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1D93D8](../../../src/game/engine/presentation/screen/func_001D93D8.c) | `InitScreenDl` | InitDl(arg, ibDle 0x14) and return it (list constructor) | 0.30 | T2 |  |
-| [0x1D9408](../../../src/game/engine/presentation/screen/func_001D9408.c) | `ResetScreens` | Call each global HUD screen's Reset (slot-13 implementations 0x1D9B30/0x1DAA48/0x1DB7F0/0x1DA320/0x1DCCD8/0x1DA7B0) and walk the active list | 0.40 | T2 |  |
-| [0x1D9520](../../../src/game/engine/presentation/screen/func_001D9520.c) | `PostScreensLoad` | Call PostLoad (slot 12) on every global HUD screen object (D_003D9E80, D_003DA0F0, D_003DA150, D_003DA0C0, ...) | 0.40 | T2 |  |
-| [0x1D95B8](../../../src/game/engine/presentation/screen/func_001D95B8.c) | `UpdateScreenFocus` | If the requested top screen (list head) differs from the current one, notify the old one (vt) and switch focus | 0.35 | T2 |  |
-| [0x1D9648](../../../src/game/engine/presentation/screen/func_001D9648.c) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
-| [0x1D9820](../../../src/game/engine/presentation/screen/DrawUi.c) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
-| [0x1D9870](../../../src/game/engine/presentation/screen/func_001D9870.c) | `UpdateScreen` | slot 7 base: empty | 0.35 | T2 |  |
-| [0x1D9878](../../../src/game/engine/presentation/screen/func_001D9878.c) | `DrawScreen` | slot 8: empty (shared by all 12 screen vtables) | 0.30 | T2 |  |
-| [0x1D9880](../../../src/game/engine/presentation/screen/FScreenShown.c) | `FScreenShown` | Return whether the screen is in the shown-screen list D_003D9E70 | 0.65 | T1 | top50 |
-| [0x1D98A8](../../../src/game/engine/presentation/screen/func_001D98A8.c) | `SCREEN_vt9` | slot 9: empty | 0.25 | T2 |  |
-| [0x1D98B0](../../../src/game/engine/presentation/screen/func_001D98B0.c) | `ShowScreen` | slot 10: move/append the screen to the active list and refocus | 0.45 | T2 |  |
-| [0x1D9910](../../../src/game/engine/presentation/screen/func_001D9910.c) | `HideScreen` | slot 11: remove from the active list and refocus | 0.45 | T2 |  |
-| [0x1D9968](../../../src/game/engine/presentation/screen/PostHudMeterLoad.c) | `PostHudMeterLoad` | Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly 0x33D-341, Murray 0x342-346, Be | 0.60 | T1 |  |
-| [0x1D9B30](../../../src/game/engine/presentation/screen/ResetHudMeter.c) | `ResetHudMeter` | Reset the meter: state 0, drop widget | 0.55 | T1 |  |
-| [0x1D9B60](../../../src/game/engine/presentation/screen/SetHudMeterState.c) | `SetHudMeterState` | Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the character owns a power-up with a cost), 2 damage, 6/7 alternate anims | 0.55 | T1 |  |
-| [0x1D9DF8](../../../src/game/engine/presentation/screen/UpdateHudMeter.c) | `UpdateHudMeter` | Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and power change (state 4) with GSmooth, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1, empty at 0 hp | 0.60 | T1 |  |
-| [0x1DA2E0](../../../src/game/engine/presentation/screen/PostNoticeLoad.c) | `PostNoticeLoad` | Notice banner (global D_003DA0C0): find its widget 0x371 | 0.50 | T1 |  |
-| [0x1DA320](../../../src/game/engine/presentation/screen/ResetNotice.c) | `ResetNotice` | Notice banner reset: no current/queued text, drop widget, state 0 | 0.50 | T1 |  |
-| [0x1DA350](../../../src/game/engine/presentation/screen/UpdateNotice.c) | `UpdateNotice` | Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden) or swap to the queued text (anim 0x312); hide | 0.50 | T1 |  |
-| [0x1DA4B8](../../../src/game/engine/presentation/screen/PostNotice.c) | `PostNotice` | Request a notice text n for duration g (queue behind the current one); n=-1 cancels | 0.50 | T1 |  |
-| [0x1DA578](../../../src/game/engine/presentation/screen/CancelNotice.c) | `CancelNotice` | Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue | 0.50 | T1 |  |
-| [0x1DA5B0](../../../src/game/engine/presentation/screen/func_001DA5B0.c) | `IdsCurNotice` | Text id being shown or queued | 0.45 | T2 |  |
-| [0x1DA5C8](../../../src/game/engine/presentation/screen/SetNoticeState.c) | `SetNoticeState` | Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main anim 0x310 after a swap | 0.50 | T1 |  |
-| [0x1DA728](../../../src/game/engine/presentation/screen/func_001DA728.c) | `SCREEN_ctor` | Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset | 0.40 | T2 |  |
-| [0x1DA770](../../../src/game/engine/presentation/screen/func_001DA770.c) | `PostScreenLoad` | slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5) | 0.45 | T2 |  |
-| [0x1DA7B0](../../../src/game/engine/presentation/screen/func_001DA7B0.c) | `ResetScreen` | slot 13: drop widget pointer and reset mode | 0.45 | T2 |  |
-| [0x1DA7D0](../../../src/game/engine/presentation/screen/func_001DA7D0.c) | `ResetScreenMode` | state(+0x28)=-1, t=now, SetScreenMode(-1,-1) | 0.35 | T2 |  |
-| [0x1DA808](../../../src/game/engine/presentation/screen/func_001DA808.c) | `UpdateScreenTimeout` | Base update then close when the mode timer (+0x34) expires | 0.35 | T2 |  |
-| [0x1DA858](../../../src/game/engine/presentation/screen/UpdateScreenStickDir.c) | `UpdateScreenStickDir` | Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1) when back under 0.5 | 0.55 | T1 |  |
-| [0x1DA950](../../../src/game/engine/presentation/screen/func_001DA950.c) | `SetScreenMode` | Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout | 0.35 | T2 |  |
-| [0x1DA9E8](../../../src/game/engine/presentation/screen/func_001DA9E8.c) | `CloseScreen` | SetScreenMode(-1,-1) | 0.30 | T2 |  |
-| [0x1DAA08](../../../src/game/engine/presentation/screen/GADGETMENU_ctor.c) | `GADGETMENU_ctor` | Gadget menu constructor (vtable 0x2D8568) for D_003DA0F0 | 0.55 | T1 |  |
-| [0x1DAA48](../../../src/game/engine/presentation/screen/ResetGadgetMenu.c) | `ResetGadgetMenu` | Gadget menu reset (slot 13) | 0.55 | T1 |  |
-| [0x1DAA78](../../../src/game/engine/presentation/screen/ClearGadgetMenu.c) | `ClearGadgetMenu` | Gadget menu: state -1, timestamp | 0.50 | T1 |  |
-| [0x1DAA90](../../../src/game/engine/presentation/screen/UpdateGadgetMenu.c) | `UpdateGadgetMenu` | Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons (D_002C3258 = 4,1,2) assign the selected power-up to that slot (SetStepplayerGadget) when owned, else error message 0x32/0x33 | 0.60 | T1 |  |
-| [0x1DAC58](../../../src/game/engine/presentation/screen/func_001DAC58.c) | `DrawGadgetMenuSlotLabels` | While the gadget menu widget is visible draw the button glyph (&2L / &2l / &2r) next to each power-up equipped in a slot | 0.45 | T2 |  |
-| [0x1DAE20](../../../src/game/engine/presentation/screen/func_001DAE20.c) | `PentryFindScreen` | Find an entry (0x20 bytes) by id in the screen's item list (+0x4C/+0x50) | 0.30 | T2 |  |
-| [0x1DAE58](../../../src/game/engine/presentation/screen/func_001DAE58.c) | `FScreenItemUnlocked` | Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold | 0.30 | T2 |  |
-| [0x1DAEA8](../../../src/game/engine/presentation/screen/FPowerupAcquired.c) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
-| [0x1DAF38](../../../src/game/engine/presentation/screen/SetPowerupAcquired.cpp) | `SetPowerupAcquired` | Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n | 0.75 | T1 |  |
-| [0x1DB010](../../../src/game/engine/presentation/screen/RefreshGadgetMenuItems.c) | `RefreshGadgetMenuItems` | Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired | 0.60 | T1 |  |
-| [0x1DB0C8](../../../src/game/engine/presentation/screen/SetGadgetMenuStickDir.cpp) | `SetGadgetMenuStickDir` | Gadget menu slot 14: move the selection to the selectable item lying closest along the stick direction | 0.60 | T1 |  |
-| [0x1DB390](../../../src/game/engine/presentation/screen/SelectGadgetMenuItem.c) | `SelectGadgetMenuItem` | Select item key and switch each item's highlight anim (selected / acquired / unlocked) | 0.55 | T1 |  |
-| [0x1DB490](../../../src/game/engine/presentation/screen/OpenGadgetMenuForHero.c) | `OpenGadgetMenuForHero` | Open the gadget menu page for the current hero: 0 Sly (g_pjt), 1 Bentley (D_002DD5BC), 2 Murray (D_002F7900) | 0.55 | T1 |  |
-| [0x1DB520](../../../src/game/engine/presentation/screen/SetGadgetMenuState.c) | `SetGadgetMenuState` | Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 = Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0x377, 8); close restores clock | 0.60 | T1 |  |
-| [0x1DB7A8](../../../src/game/engine/presentation/screen/func_001DB7A8.c) | `SCREEN378_ctor` | Screen subclass with vtable 0x2D84E8, widget oid 0x378, 64-entry selection table | 0.30 | T2 |  |
-| [0x1DB7F0](../../../src/game/engine/presentation/screen/ResetThiefnet.c) | `ResetThiefnet` | ThiefNet shop reset (slot 13) | 0.60 | T1 |  |
-| [0x1DB820](../../../src/game/engine/presentation/screen/ClearThiefnet.c) | `ClearThiefnet` | ThiefNet: state -1, clear the 64-entry item list and anim handles | 0.55 | T1 |  |
-| [0x1DB870](../../../src/game/engine/presentation/screen/UpdateThiefnet.cpp) | `UpdateThiefnet` | ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm, deduct, SetPowerupAcquired, notify players); tab 1 sell one loot item (loot.mplootkc[i]-1, add its price to coins); tab swi | 0.65 | T1 |  |
-| [0x1DBBA0](../../../src/game/engine/presentation/screen/func_001DBBA0.c) | `IThiefnetRowEnd` | Index past the last visible row (scroll window D_002C35B4 rows, adjusted for scroll arrows) | 0.40 | T2 |  |
-| [0x1DBBE0](../../../src/game/engine/presentation/screen/SelectThiefnetItem.c) | `SelectThiefnetItem` | Select row i (clamped), scroll the window, set current power-up/loot id | 0.55 | T1 |  |
-| [0x1DBD10](../../../src/game/engine/presentation/screen/RefreshThiefnetItems.cpp) | `RefreshThiefnetItems` | Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot kinds with count > 0 | 0.65 | T1 |  |
-| [0x1DBEF0](../../../src/game/engine/presentation/screen/UpdateThiefnetWidgets.c) | `UpdateThiefnetWidgets` | Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind (0x456-0x458), cursor 0x437, popup 0x43B/0x439 | 0.50 | T1 |  |
-| [0x1DC260](../../../src/game/engine/presentation/screen/SetThiefnetTab.c) | `SetThiefnetTab` | ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1 sell page (0x49B-0x49D); refresh list | 0.60 | T1 |  |
-| [0x1DC4B0](../../../src/game/engine/presentation/screen/func_001DC4B0.c) | `SetThiefnetStickDir` | ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds) | 0.55 | T2 | verified |
-| [0x1DC598](../../../src/game/engine/presentation/screen/BuildGadgetMenuInfoText.c) | `BuildGadgetMenuInfoText` | Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name, slot button and description | 0.50 | T1 |  |
-| [0x1DC790](../../../src/game/engine/presentation/screen/BuildThiefnetPowerupNameText.c) | `BuildThiefnetPowerupNameText` | Text callback rows 0x43C-0x441: power-up name of row i | 0.50 | T1 |  |
-| [0x1DC820](../../../src/game/engine/presentation/screen/func_001DC820.c) | `BuildThiefnetPowerupCostText` | Text callback rows 0x442-0x447: power-up cost of row i | 0.45 | T2 |  |
-| [0x1DC890](../../../src/game/engine/presentation/screen/BuildThiefnetLootNameText.cpp) | `BuildThiefnetLootNameText` | Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once | 0.50 | T1 |  |
-| [0x1DC9C0](../../../src/game/engine/presentation/screen/func_001DC9C0.c) | `BuildThiefnetLootPriceText` | Text callback rows 0x44E-0x453: loot price of row i | 0.45 | T2 |  |
-| [0x1DCA30](../../../src/game/engine/presentation/screen/func_001DCA30.c) | `BuildThiefnetPromptText` | Text callback 0x436: popup prompt text by popup mode (-1/0/1 -> ids 0xDE/0xDF/0xE0) | 0.45 | T2 |  |
-| [0x1DCAB0](../../../src/game/engine/presentation/screen/BuildThiefnetInfoText.c) | `BuildThiefnetInfoText` | Text callback 0x435: popup message, or the selected power-up's name, description and affordability (0xD9/0xDA), or the loot sell line (0xDB) | 0.50 | T1 |  |
-| [0x1DCC58](../../../src/game/engine/presentation/screen/func_001DCC58.c) | `SCREEN4E0_ctor` | Screen subclass with vtable 0x2D8468, widget oid 0x4E0 | 0.30 | T2 |  |
-| [0x1DCCA0](../../../src/game/engine/presentation/screen/PostJobListLoad.c) | `PostJobListLoad` | Job list (D_003DA3C0, widget 0x4E0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.55 | T1 |  |
-| [0x1DCCD8](../../../src/game/engine/presentation/screen/ResetJobList.c) | `ResetJobList` | Job list reset (slot 13) | 0.55 | T1 |  |
-| [0x1DCD08](../../../src/game/engine/presentation/screen/ClearJobList.c) | `ClearJobList` | Job list: state -1, timestamp, anim handles -1 | 0.50 | T1 |  |
-| [0x1DCD30](../../../src/game/engine/presentation/screen/UpdateJobList.c) | `UpdateJobList` | Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle jobs page <-> tasks page | 0.60 | T1 |  |
-| [0x1DCE90](../../../src/game/engine/presentation/screen/SelectJobListItem.c) | `SelectJobListItem` | Select row i (clamped) | 0.50 | T1 |  |
-| [0x1DCED8](../../../src/game/engine/presentation/screen/RefreshJobListEntries.cpp) | `RefreshJobListEntries` | Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the selected job up to the first unfinished one; keep the last 10/4 | 0.60 | T1 |  |
-| [0x1DD1F8](../../../src/game/engine/presentation/screen/UpdateJobListWidgets.c) | `UpdateJobListWidgets` | Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via FJobComplete/FTaskComplete | 0.55 | T1 |  |
-| [0x1DD300](../../../src/game/engine/presentation/screen/SetJobListPage.c) | `SetJobListPage` | Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off while open | 0.60 | T1 |  |
-| [0x1DD558](../../../src/game/engine/presentation/screen/SetJobListStickDir.c) | `SetJobListStickDir` | Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows | 0.55 | T1 |  |
-| [0x1DD648](../../../src/game/engine/presentation/screen/func_001DD648.c) | `SCREEN52D_ctor` | Screen subclass with vtable 0x2D83E8, widget oid 0x52D | 0.30 | T2 |  |
-| [0x1DD690](../../../src/game/engine/presentation/screen/func_001DD690.c) | `PostScreen52DLoad` | Screen 0x52D (D_003DA4F0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.40 | T2 |  |
-| [0x1DD6C8](../../../src/game/engine/presentation/screen/func_001DD6C8.c) | `ShowScreen52D` | Show screen 0x52D (vt10) and its widget (vt49 -1) | 0.35 | T2 |  |
-| [0x1DD728](../../../src/game/engine/presentation/screen/func_001DD728.c) | `HideScreen52D` | Hide screen 0x52D (vt11) and its widget (vt50) | 0.35 | T2 |  |
-| [0x1DD780](../../../src/game/engine/presentation/screen/func_001DD780.c) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
-| [0x1DD7B8](../../../src/game/engine/presentation/screen/func_001DD7B8.c) | `SetScreenState` | slot 14 of 0x2D83E8: if state(+0x28) changes, store it and the time | 0.35 | T2 |  |
-| [0x1DD7D8](../../../src/game/engine/presentation/screen/func_001DD7D8.c) | `SCREEN5D2_ctor` | Screen subclass with vtable 0x2D8368, widget oid 0x5D2 | 0.30 | T2 |  |
-| [0x1DD820](../../../src/game/engine/presentation/screen/func_001DD820.c) | `ShowTitleScreen` | Show the title screen (D_003DA530, widget 0x5D2) and its widget; reset rumble | 0.45 | T2 |  |
-| [0x1DD888](../../../src/game/engine/presentation/screen/HideTitleScreen.c) | `HideTitleScreen` | Hide the title screen and its widget | 0.50 | T1 |  |
-| [0x1DD8E0](../../../src/game/engine/presentation/screen/SelectLanguageItem.c) | `SelectLanguageItem` | Language menu item callback: SetLanguage(item) and warp to world 0x189 | 0.55 | T1 |  |
-| [0x1DD920](../../../src/game/engine/presentation/screen/UpdateTitleScreen.c) | `UpdateTitleScreen` | Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts a new game; SELECT opens options; X opens the language list when the region has several languages | 0.60 | T1 |  |
-| [0x1DDB08](../../../src/game/engine/presentation/screen/StartNewGame.cpp) | `StartNewGame` | Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs) | 0.55 | T1 |  |
-| [0x1DDBD0](../../../src/game/engine/presentation/screen/func_001DDBD0.c) | `SetTitleScreenStickDir` | Title screen slot 14: store direction and time | 0.40 | T2 |  |
-| [0x1DDBF0](../../../src/game/engine/presentation/screen/BuildTitlePromptText.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
-| [0x1DDD40](../../../src/game/engine/presentation/screen/IdsFromWorld.c) | `IdsFromWorld` | World index 0-8 -> episode name string id 0x6D-0x75 | 0.55 | T1 |  |
-| [0x1DDDB8](../../../src/game/engine/presentation/screen/BuildJobListWorldText.c) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
-| [0x1DDE10](../../../src/game/engine/presentation/screen/func_001DDE10.c) | `BuildJobListJobDescText` | Text callback 0x51D: selected job string +0x70 | 0.40 | T2 |  |
-| [0x1DDE58](../../../src/game/engine/presentation/screen/func_001DDE58.c) | `BuildJobListJobNameText` | Text callback 0x51C: selected job string +0x6C | 0.40 | T2 |  |
-| [0x1DDEA0](../../../src/game/engine/presentation/screen/BuildJobListRowText.c) | `BuildJobListRowText` | Text callback rows 0x51E-0x527: job name of row i | 0.50 | T1 |  |
-| [0x1DDF00](../../../src/game/engine/presentation/screen/BuildJobListTaskRowText.c) | `BuildJobListTaskRowText` | Text callback rows 0x528-0x52B: task name of row i | 0.50 | T1 |  |
-| [0x1DDF60](../../../src/game/engine/presentation/screen/func_001DDF60.c) | `BuildTitleText5D7` | Text callback 0x5D7: string 0x40 plus a button-glyph suffix | 0.30 | T2 |  |
-| [0x1DDFB0](../../../src/game/engine/presentation/screen/BuildTitleCompletionText.c) | `BuildTitleCompletionText` | Text callback 0x5D5: "%d%%" game completion | 0.50 | T1 |  |
+| [0x1D93D8](../../../src/game/engine/presentation/screen.cpp) | `InitScreenDl` | InitDl(arg, ibDle 0x14) and return it (list constructor) | 0.30 | T2 |  |
+| [0x1D9408](../../../src/game/engine/presentation/screen.cpp) | `ResetScreens` | Call each global HUD screen's Reset (slot-13 implementations 0x1D9B30/0x1DAA48/0x1DB7F0/0x1DA320/0x1DCCD8/0x1DA7B0) and walk the active list | 0.40 | T2 |  |
+| [0x1D9520](../../../src/game/engine/presentation/screen.cpp) | `PostScreensLoad` | Call PostLoad (slot 12) on every global HUD screen object (D_003D9E80, D_003DA0F0, D_003DA150, D_003DA0C0, ...) | 0.40 | T2 |  |
+| [0x1D95B8](../../../src/game/engine/presentation/screen.cpp) | `UpdateScreenFocus` | If the requested top screen (list head) differs from the current one, notify the old one (vt) and switch focus | 0.35 | T2 |  |
+| [0x1D9648](../../../src/game/engine/presentation/screen.cpp) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
+| [0x1D9820](../../../src/game/engine/presentation/screen.cpp) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
+| [0x1D9870](../../../src/game/engine/presentation/screen.cpp) | `UpdateScreen` | slot 7 base: empty | 0.35 | T2 |  |
+| [0x1D9878](../../../src/game/engine/presentation/screen.cpp) | `DrawScreen` | slot 8: empty (shared by all 12 screen vtables) | 0.30 | T2 |  |
+| [0x1D9880](../../../src/game/engine/presentation/screen.cpp) | `FScreenShown` | Return whether the screen is in the shown-screen list D_003D9E70 | 0.65 | T1 | top50 |
+| [0x1D98A8](../../../src/game/engine/presentation/screen.cpp) | `SCREEN_vt9` | slot 9: empty | 0.25 | T2 |  |
+| [0x1D98B0](../../../src/game/engine/presentation/screen.cpp) | `ShowScreen` | slot 10: move/append the screen to the active list and refocus | 0.45 | T2 |  |
+| [0x1D9910](../../../src/game/engine/presentation/screen.cpp) | `HideScreen` | slot 11: remove from the active list and refocus | 0.45 | T2 |  |
+| [0x1D9968](../../../src/game/engine/presentation/screen.cpp) | `PostHudMeterLoad` | Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly 0x33D-341, Murray 0x342-346, Be | 0.60 | T1 |  |
+| [0x1D9B30](../../../src/game/engine/presentation/screen.cpp) | `ResetHudMeter` | Reset the meter: state 0, drop widget | 0.55 | T1 |  |
+| [0x1D9B60](../../../src/game/engine/presentation/screen.cpp) | `SetHudMeterState` | Meter state switch: 0/5 hide/appear anims, 1 steady (show hp gauge; show power gauge only if the character owns a power-up with a cost), 2 damage, 6/7 alternate anims | 0.55 | T1 |  |
+| [0x1D9DF8](../../../src/game/engine/presentation/screen.cpp) | `UpdateHudMeter` | Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and power change (state 4) with GSmooth, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1, empty at 0 hp | 0.60 | T1 |  |
+| [0x1DA2E0](../../../src/game/engine/presentation/screen.cpp) | `PostNoticeLoad` | Notice banner (global D_003DA0C0): find its widget 0x371 | 0.50 | T1 |  |
+| [0x1DA320](../../../src/game/engine/presentation/screen.cpp) | `ResetNotice` | Notice banner reset: no current/queued text, drop widget, state 0 | 0.50 | T1 |  |
+| [0x1DA350](../../../src/game/engine/presentation/screen.cpp) | `UpdateNotice` | Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden) or swap to the queued text (anim 0x312); hide | 0.50 | T1 |  |
+| [0x1DA4B8](../../../src/game/engine/presentation/screen.cpp) | `PostNotice` | Request a notice text n for duration g (queue behind the current one); n=-1 cancels | 0.50 | T1 |  |
+| [0x1DA578](../../../src/game/engine/presentation/screen.cpp) | `CancelNotice` | Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue | 0.50 | T1 |  |
+| [0x1DA5B0](../../../src/game/engine/presentation/screen.cpp) | `IdsCurNotice` | Text id being shown or queued | 0.45 | T2 |  |
+| [0x1DA5C8](../../../src/game/engine/presentation/screen.cpp) | `SetNoticeState` | Notice state switch: 1 ShowWidgetArgs(text id), 3 hide (widget vt50), 4 swap anim 0x312, 2 main anim 0x310 after a swap | 0.50 | T1 |  |
+| [0x1DA728](../../../src/game/engine/presentation/screen.cpp) | `SCREEN_ctor` | Base screen constructor: vtable 0x2D85E8, widget oid(+0x20)=-1, reset | 0.40 | T2 |  |
+| [0x1DA770](../../../src/game/engine/presentation/screen.cpp) | `PostScreenLoad` | slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5) | 0.45 | T2 |  |
+| [0x1DA7B0](../../../src/game/engine/presentation/screen.cpp) | `ResetScreen` | slot 13: drop widget pointer and reset mode | 0.45 | T2 |  |
+| [0x1DA7D0](../../../src/game/engine/presentation/screen.cpp) | `ResetScreenMode` | state(+0x28)=-1, t=now, SetScreenMode(-1,-1) | 0.35 | T2 |  |
+| [0x1DA808](../../../src/game/engine/presentation/screen.cpp) | `UpdateScreenTimeout` | Base update then close when the mode timer (+0x34) expires | 0.35 | T2 |  |
+| [0x1DA858](../../../src/game/engine/presentation/screen.cpp) | `UpdateScreenStickDir` | Turn the left stick into an 8-way direction: call screen vt14(dir) when deflection >0.8, vt14(-1) when back under 0.5 | 0.55 | T1 |  |
+| [0x1DA950](../../../src/game/engine/presentation/screen.cpp) | `SetScreenMode` | Set mode n (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout | 0.35 | T2 |  |
+| [0x1DA9E8](../../../src/game/engine/presentation/screen.cpp) | `CloseScreen` | SetScreenMode(-1,-1) | 0.30 | T2 |  |
+| [0x1DAA08](../../../src/game/engine/presentation/screen.cpp) | `GADGETMENU_ctor` | Gadget menu constructor (vtable 0x2D8568) for D_003DA0F0 | 0.55 | T1 |  |
+| [0x1DAA48](../../../src/game/engine/presentation/screen.cpp) | `ResetGadgetMenu` | Gadget menu reset (slot 13) | 0.55 | T1 |  |
+| [0x1DAA78](../../../src/game/engine/presentation/screen.cpp) | `ClearGadgetMenu` | Gadget menu: state -1, timestamp | 0.50 | T1 |  |
+| [0x1DAA90](../../../src/game/engine/presentation/screen.cpp) | `UpdateGadgetMenu` | Gadget menu per-frame (slot 7): circle closes, info button shows a message, the 3 slot buttons (D_002C3258 = 4,1,2) assign the selected power-up to that slot (SetStepplayerGadget) when owned, else error message 0x32/0x33 | 0.60 | T1 |  |
+| [0x1DAC58](../../../src/game/engine/presentation/screen.cpp) | `DrawGadgetMenuSlotLabels` | While the gadget menu widget is visible draw the button glyph (&2L / &2l / &2r) next to each power-up equipped in a slot | 0.45 | T2 |  |
+| [0x1DAE20](../../../src/game/engine/presentation/screen.cpp) | `PentryFindScreen` | Find an entry (0x20 bytes) by id in the screen's item list (+0x4C/+0x50) | 0.30 | T2 |  |
+| [0x1DAE58](../../../src/game/engine/presentation/screen.cpp) | `FScreenItemUnlocked` | Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold | 0.30 | T2 |  |
+| [0x1DAEA8](../../../src/game/engine/presentation/screen.cpp) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
+| [0x1DAF38](../../../src/game/engine/presentation/screen.cpp) | `SetPowerupAcquired` | Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n | 0.75 | T1 |  |
+| [0x1DB010](../../../src/game/engine/presentation/screen.cpp) | `RefreshGadgetMenuItems` | Per item: flag 2 = unlocked by episode (FScreenItemUnlocked), flag 4 = acquired | 0.60 | T1 |  |
+| [0x1DB0C8](../../../src/game/engine/presentation/screen.cpp) | `SetGadgetMenuStickDir` | Gadget menu slot 14: move the selection to the selectable item lying closest along the stick direction | 0.60 | T1 |  |
+| [0x1DB390](../../../src/game/engine/presentation/screen.cpp) | `SelectGadgetMenuItem` | Select item key and switch each item's highlight anim (selected / acquired / unlocked) | 0.55 | T1 |  |
+| [0x1DB490](../../../src/game/engine/presentation/screen.cpp) | `OpenGadgetMenuForHero` | Open the gadget menu page for the current hero: 0 Sly (g_pjt), 1 Bentley (D_002DD5BC), 2 Murray (D_002F7900) | 0.55 | T1 |  |
+| [0x1DB520](../../../src/game/engine/presentation/screen.cpp) | `SetGadgetMenuState` | Gadget menu open/close: opening freezes the clock and hands-off and shows the screen; page 0/1/2 = Sly (widget 0x375, 18 items) / Bentley (0x376, 9) / Murray (0x377, 8); close restores clock | 0.60 | T1 |  |
+| [0x1DB7A8](../../../src/game/engine/presentation/screen.cpp) | `SCREEN378_ctor` | Screen subclass with vtable 0x2D84E8, widget oid 0x378, 64-entry selection table | 0.30 | T2 |  |
+| [0x1DB7F0](../../../src/game/engine/presentation/screen.cpp) | `ResetThiefnet` | ThiefNet shop reset (slot 13) | 0.60 | T1 |  |
+| [0x1DB820](../../../src/game/engine/presentation/screen.cpp) | `ClearThiefnet` | ThiefNet: state -1, clear the 64-entry item list and anim handles | 0.55 | T1 |  |
+| [0x1DB870](../../../src/game/engine/presentation/screen.cpp) | `UpdateThiefnet` | ThiefNet per-frame (slot 7): tab 0 buy the selected power-up (cost check against coins, confirm, deduct, SetPowerupAcquired, notify players); tab 1 sell one loot item (loot.mplootkc[i]-1, add its price to coins); tab swi | 0.65 | T1 |  |
+| [0x1DBBA0](../../../src/game/engine/presentation/screen.cpp) | `IThiefnetRowEnd` | Index past the last visible row (scroll window D_002C35B4 rows, adjusted for scroll arrows) | 0.40 | T2 |  |
+| [0x1DBBE0](../../../src/game/engine/presentation/screen.cpp) | `SelectThiefnetItem` | Select row i (clamped), scroll the window, set current power-up/loot id | 0.55 | T1 |  |
+| [0x1DBD10](../../../src/game/engine/presentation/screen.cpp) | `RefreshThiefnetItems` | Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot kinds with count > 0 | 0.65 | T1 |  |
+| [0x1DBEF0](../../../src/game/engine/presentation/screen.cpp) | `UpdateThiefnetWidgets` | Drive ThiefNet widget anims: scroll arrows (0x4DA/0x4A1, 0x4DD/0x4A4), row icons by item kind (0x456-0x458), cursor 0x437, popup 0x43B/0x439 | 0.50 | T1 |  |
+| [0x1DC260](../../../src/game/engine/presentation/screen.cpp) | `SetThiefnetTab` | ThiefNet open/tab: -1 close (resume clock, hands-off--, hide), 0 buy page (anims 0x4D4-0x4D6), 1 sell page (0x49B-0x49D); refresh list | 0.60 | T1 |  |
+| [0x1DC4B0](../../../src/game/engine/presentation/screen.cpp) | `SetThiefnetStickDir` | ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds) | 0.55 | T2 | verified |
+| [0x1DC598](../../../src/game/engine/presentation/screen.cpp) | `BuildGadgetMenuInfoText` | Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name, slot button and description | 0.50 | T1 |  |
+| [0x1DC790](../../../src/game/engine/presentation/screen.cpp) | `BuildThiefnetPowerupNameText` | Text callback rows 0x43C-0x441: power-up name of row i | 0.50 | T1 |  |
+| [0x1DC820](../../../src/game/engine/presentation/screen.cpp) | `BuildThiefnetPowerupCostText` | Text callback rows 0x442-0x447: power-up cost of row i | 0.45 | T2 |  |
+| [0x1DC890](../../../src/game/engine/presentation/screen.cpp) | `BuildThiefnetLootNameText` | Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once | 0.50 | T1 |  |
+| [0x1DC9C0](../../../src/game/engine/presentation/screen.cpp) | `BuildThiefnetLootPriceText` | Text callback rows 0x44E-0x453: loot price of row i | 0.45 | T2 |  |
+| [0x1DCA30](../../../src/game/engine/presentation/screen.cpp) | `BuildThiefnetPromptText` | Text callback 0x436: popup prompt text by popup mode (-1/0/1 -> ids 0xDE/0xDF/0xE0) | 0.45 | T2 |  |
+| [0x1DCAB0](../../../src/game/engine/presentation/screen.cpp) | `BuildThiefnetInfoText` | Text callback 0x435: popup message, or the selected power-up's name, description and affordability (0xD9/0xDA), or the loot sell line (0xDB) | 0.50 | T1 |  |
+| [0x1DCC58](../../../src/game/engine/presentation/screen.cpp) | `SCREEN4E0_ctor` | Screen subclass with vtable 0x2D8468, widget oid 0x4E0 | 0.30 | T2 |  |
+| [0x1DCCA0](../../../src/game/engine/presentation/screen.cpp) | `PostJobListLoad` | Job list (D_003DA3C0, widget 0x4E0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.55 | T1 |  |
+| [0x1DCCD8](../../../src/game/engine/presentation/screen.cpp) | `ResetJobList` | Job list reset (slot 13) | 0.55 | T1 |  |
+| [0x1DCD08](../../../src/game/engine/presentation/screen.cpp) | `ClearJobList` | Job list: state -1, timestamp, anim handles -1 | 0.50 | T1 |  |
+| [0x1DCD30](../../../src/game/engine/presentation/screen.cpp) | `UpdateJobList` | Job list per-frame (slot 7): wait for widget load; START/circle close; direction buttons toggle jobs page <-> tasks page | 0.60 | T1 |  |
+| [0x1DCE90](../../../src/game/engine/presentation/screen.cpp) | `SelectJobListItem` | Select row i (clamped) | 0.50 | T1 |  |
+| [0x1DCED8](../../../src/game/engine/presentation/screen.cpp) | `RefreshJobListEntries` | Sort tasks topologically then by CompareTasks; page 0 = jobs with state > 0, page 1 = tasks of the selected job up to the first unfinished one; keep the last 10/4 | 0.60 | T1 |  |
+| [0x1DD1F8](../../../src/game/engine/presentation/screen.cpp) | `UpdateJobListWidgets` | Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via FJobComplete/FTaskComplete | 0.55 | T1 |  |
+| [0x1DD300](../../../src/game/engine/presentation/screen.cpp) | `SetJobListPage` | Job list open/page: -1 close, 0 jobs (10 rows), 1 tasks of the selected job (4 rows); hands-off while open | 0.60 | T1 |  |
+| [0x1DD558](../../../src/game/engine/presentation/screen.cpp) | `SetJobListStickDir` | Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows | 0.55 | T1 |  |
+| [0x1DD648](../../../src/game/engine/presentation/screen.cpp) | `SCREEN52D_ctor` | Screen subclass with vtable 0x2D83E8, widget oid 0x52D | 0.30 | T2 |  |
+| [0x1DD690](../../../src/game/engine/presentation/screen.cpp) | `PostScreen52DLoad` | Screen 0x52D (D_003DA4F0) post-load: base PostScreenLoad, widget +0xB0=1 | 0.40 | T2 |  |
+| [0x1DD6C8](../../../src/game/engine/presentation/screen.cpp) | `ShowScreen52D` | Show screen 0x52D (vt10) and its widget (vt49 -1) | 0.35 | T2 |  |
+| [0x1DD728](../../../src/game/engine/presentation/screen.cpp) | `HideScreen52D` | Hide screen 0x52D (vt11) and its widget (vt50) | 0.35 | T2 |  |
+| [0x1DD780](../../../src/game/engine/presentation/screen.cpp) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
+| [0x1DD7B8](../../../src/game/engine/presentation/screen.cpp) | `SetScreenState` | slot 14 of 0x2D83E8: if state(+0x28) changes, store it and the time | 0.35 | T2 |  |
+| [0x1DD7D8](../../../src/game/engine/presentation/screen.cpp) | `SCREEN5D2_ctor` | Screen subclass with vtable 0x2D8368, widget oid 0x5D2 | 0.30 | T2 |  |
+| [0x1DD820](../../../src/game/engine/presentation/screen.cpp) | `ShowTitleScreen` | Show the title screen (D_003DA530, widget 0x5D2) and its widget; reset rumble | 0.45 | T2 |  |
+| [0x1DD888](../../../src/game/engine/presentation/screen.cpp) | `HideTitleScreen` | Hide the title screen and its widget | 0.50 | T1 |  |
+| [0x1DD8E0](../../../src/game/engine/presentation/screen.cpp) | `SelectLanguageItem` | Language menu item callback: SetLanguage(item) and warp to world 0x189 | 0.55 | T1 |  |
+| [0x1DD920](../../../src/game/engine/presentation/screen.cpp) | `UpdateTitleScreen` | Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts a new game; SELECT opens options; X opens the language list when the region has several languages | 0.60 | T1 |  |
+| [0x1DDB08](../../../src/game/engine/presentation/screen.cpp) | `StartNewGame` | Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs) | 0.55 | T1 |  |
+| [0x1DDBD0](../../../src/game/engine/presentation/screen.cpp) | `SetTitleScreenStickDir` | Title screen slot 14: store direction and time | 0.40 | T2 |  |
+| [0x1DDBF0](../../../src/game/engine/presentation/screen.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
+| [0x1DDD40](../../../src/game/engine/presentation/screen.cpp) | `IdsFromWorld` | World index 0-8 -> episode name string id 0x6D-0x75 | 0.55 | T1 |  |
+| [0x1DDDB8](../../../src/game/engine/presentation/screen.cpp) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
+| [0x1DDE10](../../../src/game/engine/presentation/screen.cpp) | `BuildJobListJobDescText` | Text callback 0x51D: selected job string +0x70 | 0.40 | T2 |  |
+| [0x1DDE58](../../../src/game/engine/presentation/screen.cpp) | `BuildJobListJobNameText` | Text callback 0x51C: selected job string +0x6C | 0.40 | T2 |  |
+| [0x1DDEA0](../../../src/game/engine/presentation/screen.cpp) | `BuildJobListRowText` | Text callback rows 0x51E-0x527: job name of row i | 0.50 | T1 |  |
+| [0x1DDF00](../../../src/game/engine/presentation/screen.cpp) | `BuildJobListTaskRowText` | Text callback rows 0x528-0x52B: task name of row i | 0.50 | T1 |  |
+| [0x1DDF60](../../../src/game/engine/presentation/screen.cpp) | `BuildTitleText5D7` | Text callback 0x5D7: string 0x40 plus a button-glyph suffix | 0.30 | T2 |  |
+| [0x1DDFB0](../../../src/game/engine/presentation/screen.cpp) | `BuildTitleCompletionText` | Text callback 0x5D5: "%d%%" game completion | 0.50 | T1 |  |
 
 ## sjis (0x1EE988-0x1EEC60)
 

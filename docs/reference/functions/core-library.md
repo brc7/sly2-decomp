@@ -511,7 +511,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258248](../../../src/game/ui/memcard.cpp) | `InitFileKey` | memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258280](../../../include/sly2/stepplayer.h) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x258290](../../../src/game/engine/camera/cm.cpp) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
-| [0x258348](../../../src/game/engine/presentation/screen/func_00258348.c) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x258348](../../../src/game/engine/presentation/screen.cpp) | `BASIC_dtor` | base destructor: release binding/sidebag refs [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258438](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetPos` | p->x=x; p->y=y [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258448](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetSize` | p->dx=dx; p->dy=dy [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x258458](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetTextColor` | p->rgba = *c [game linkonce (inline/template)] | 0.55 | T1 |  |
