@@ -1051,7 +1051,7 @@ struct P {
     char padFC0[4];
     SCALE *scale;
 };
-struct FRAME { int n; FRAME(); ~FRAME(); }; /* out-of-line ctor/dtor: STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2) */
+struct FRAME { int n; FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); }; /* out-of-line ctor/dtor: STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2) */
 struct LSG { U point; char rest[0x50]; };
 struct LOS { U start, end; LSG hit; };
 extern "C" void Decref__4CRef(void *);
@@ -6781,7 +6781,7 @@ struct LSG
 };
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 struct VU_FLOAT

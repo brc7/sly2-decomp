@@ -2291,7 +2291,7 @@ void func_0020FA10();
 extern char D_003DD490[];
 int FStepguardSenseStimulus(S2 *p, O *o);
 }
-class FRAME { public: FRAME(); ~FRAME(); };
+class FRAME { public: FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); };
 
 /** @sly2-annot addr=0x208BE0
  * Purpose: STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >=
