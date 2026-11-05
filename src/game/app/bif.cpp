@@ -76,8 +76,8 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(int n);
     CRef &operator=(float g);
-    CRef &operator=(const VECTOR &v);
-    CRef &operator=(const MATRIX4 &m);
+    CRef &operator=(const VECTOR &v) __asm__("CRef_SetVector");
+    CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef RefOpAdd__FiP4CRefP6CFrame(void *pv, CRef *aref);
@@ -168,8 +168,8 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(int n);
     CRef &operator=(float g);
-    CRef &operator=(const VECTOR &v);
-    CRef &operator=(const MATRIX4 &m);
+    CRef &operator=(const VECTOR &v) __asm__("CRef_SetVector");
+    CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef RefOpSub__FiP4CRefP6CFrame(void *pv, CRef *aref);
@@ -287,8 +287,8 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(int n);
     CRef &operator=(float g);
-    CRef &operator=(qword v);
-    CRef &operator=(const MATRIX4 &m);
+    CRef &operator=(qword v) __asm__("CRef_SetVector_VU_VECTOR");
+    CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
@@ -855,7 +855,7 @@ struct CRef {
     union { int n; void *pv; NODE *pnode; struct W *pw; struct X *px; } u;
     CRef() { m_tagk = -1; }
     CRef(int n, int tagk) { u.n = n; m_tagk = tagk; }
-    CRef(NODE *p);                  /* 0x129480 */
+    CRef(NODE *p) __asm__("CRef_ctor_CPair");                  /* 0x129480 */
     CRef(const CRef &r);            /* 0x1291A8 */
     void Decref();                  /* 0x129EC8 */
     ~CRef() { Decref(); }
@@ -1334,7 +1334,7 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(struct NODE *p);
+    CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
@@ -1351,7 +1351,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    SPM &operator=(NODE *pn);
+    SPM &operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -1362,7 +1362,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
@@ -1618,7 +1618,7 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(NODE *p);
+    CRef(NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
@@ -1634,7 +1634,7 @@ int NRandInRange__Fii(int nLo, int nHi);
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -1645,9 +1645,9 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
     NODE *operator->() { return p; }
     int pad[3];
 };
@@ -1734,12 +1734,12 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(NODE *p);
+    CRef(NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(NODE *p);
+    CRef &operator=(NODE *p) __asm__("CRef_SetPair");
 };
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
@@ -1750,7 +1750,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -1764,7 +1764,7 @@ struct SP {
     SP() { p = 0; }
     SP(const SP &);
     ~SP() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
     NODE *operator->() { return p; }
 };
 extern "C" SP CPair_CloneTo(NODE *src, void *a, void *b);
@@ -1802,7 +1802,7 @@ struct CRef {
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(NODE *pn);
+    CRef &operator=(NODE *pn) __asm__("CRef_SetPair");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 extern "C" { extern char D_004520A8[]; }
@@ -1814,7 +1814,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -1826,7 +1826,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     SPN() {}
     SPN(NODE *pn) { Set(pn); }
     SPN(const SPN &);
@@ -1874,13 +1874,13 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(struct NODE *p);
+    CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
-    CRef &operator=(NODE *p);
+    CRef &operator=(NODE *p) __asm__("CRef_SetPair");
 };
 struct NODE;
 extern "C" { extern char D_004520A8[]; }
@@ -1892,7 +1892,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -1903,7 +1903,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
     int pad[3];
@@ -1936,12 +1936,12 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(NODE *p);
+    CRef(NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(NODE *p);
+    CRef &operator=(NODE *p) __asm__("CRef_SetPair");
 };
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
@@ -1952,7 +1952,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -1966,12 +1966,12 @@ struct SP {
     SP() { p = 0; }
     SP(const SP &);
     ~SP() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
     NODE *operator->() { return p; }
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
     int pad[3];
@@ -2111,7 +2111,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
@@ -2853,7 +2853,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; qword *pq; } u;
     CRef() { m_tagk = -1; }
-    CRef(const qword *pq);
+    CRef(const qword *pq) __asm__("CRef_ctor_VECTOR");
     CRef(const CRef &r);
     void Decref();
     void InitTag(int tagk);
@@ -3033,7 +3033,7 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(struct NODE *p);
+    CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
@@ -3051,7 +3051,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -3063,7 +3063,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
@@ -3275,7 +3275,7 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(struct NODE *p);
+    CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
@@ -3293,7 +3293,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -3305,7 +3305,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
@@ -4008,8 +4008,8 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(int n);
-    CRef &operator=(NODE *p);
-    CRef &operator=(OBJ *p);
+    CRef &operator=(NODE *p) __asm__("CRef_SetPair");
+    CRef &operator=(OBJ *p) __asm__("CRef_SetProc");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 extern "C" { extern char D_004520A8[]; }
@@ -4028,7 +4028,7 @@ R *ScheduleSwSpliceCallback(G *pg, int n, NODE *pnode, float t);
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -4040,7 +4040,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
@@ -4246,8 +4246,8 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
-    CRef &operator=(struct NODE *p);
-    CRef &operator=(struct O *po);
+    CRef &operator=(struct NODE *p) __asm__("CRef_SetPair");
+    CRef &operator=(struct O *po) __asm__("CRef_SetBasic");
 };
 struct O;
 struct NODE { int cref; int pad; CRef ref; NODE *pnext; };
@@ -4383,14 +4383,14 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
-    CRef(struct NODE *p);
+    CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
-    CRef &operator=(NODE *p);
-    CRef &operator=(struct LO *p);
+    CRef &operator=(NODE *p) __asm__("CRef_SetPair");
+    CRef &operator=(struct LO *p) __asm__("CRef_SetBasic");
 };
 struct NODE;
 extern "C" { extern char D_004520A8[]; }
@@ -4402,7 +4402,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -4413,7 +4413,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
     int pad[3];
@@ -4668,7 +4668,7 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
 };
-struct OBJ { int a[4]; OBJ(); ~OBJ(); };
+struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap);
@@ -4712,7 +4712,7 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
 };
-struct OBJ { int a[4]; OBJ(); ~OBJ(); };
+struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
@@ -4761,9 +4761,9 @@ struct CRef {
     void Decref();
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(NODE *pn);
-    CRef &operator=(LO *plo);
-    CRef &operator=(qword *pv);
+    CRef &operator=(NODE *pn) __asm__("CRef_SetPair");
+    CRef &operator=(LO *plo) __asm__("CRef_SetBasic");
+    CRef &operator=(qword *pv) __asm__("CRef_SetVector");
 };
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
@@ -4774,7 +4774,7 @@ NODE *PvNewPair();
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -4785,10 +4785,10 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     SPN(NODE *pn) { Set(pn); }
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
     NODE *operator->() { return p; }
     int pad;
 };
@@ -5182,7 +5182,7 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
-struct OBJ { int a[4]; OBJ(); ~OBJ(); };
+struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 struct X { int a[4]; };
 extern "C" { extern char D_003E0EA8[]; }
 extern "C" { extern char D_003D4A60[]; }
@@ -5226,7 +5226,7 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
-struct OBJ { int a[4]; OBJ(); ~OBJ(); };
+struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 struct X { int a[4]; };
 extern "C" { extern char D_003E0EA8[]; }
 extern "C" { extern char D_003D4A60[]; }
