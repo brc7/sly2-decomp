@@ -2756,7 +2756,24 @@ void UpdateRemit(OBJ *p)
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 /* D_002C1F40/F90/FA0 are declared qword at file scope (read whole); defined as float vectors under C linkage
    in a namespace, which g++ 2.95 accepts beside the file-scope declaration (same symbol). */
-namespace M_rip_data { extern "C" { VECTOR4 D_002C1F40 = {0.0f, 0.0f, -1750.0f, 0.0f}; } }
+namespace M_rip_data { extern "C" {  } }
+
+
+
+
+
+
+
+
+namespace M_rip_data { extern "C" {
+
+
+} }
+
+// ---- rip's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_rip_data { extern "C" {
+VECTOR4 D_002C1F40 = {0.0f, 0.0f, -1750.0f, 0.0f};
+} } // namespace M_rip_data extern "C"
 VECTOR4 D_002C1F50 = {1.0f, 1.666667f, -2.666667f, 0.0f};
 float D_002C1F60 = 0.5f;
 float D_002C1F64 = 0.5f;
@@ -2768,14 +2785,14 @@ float D_002C1F80[3] = {0.0f, 0.001f, 0.0f};
 namespace M_rip_data { extern "C" {
 VECTOR4 D_002C1F90 = {0.0f, 4.0f, -4.0f, 0.0f};
 VECTOR4 D_002C1FA0 = {0.25f, 3.0f, -3.0f, 0.0f};
-} }
+} } // namespace M_rip_data extern "C"
 CLQ D_002C1FB0 = {{{0.0f, 0.75f, 0.0f, 0.0f}}};
 float D_002C1FC0[2] = {1.0f, 5.0f};
-CLQ D_002C1FD0 = {{{0.5f, 0.0f, 0.5f, 0.0f}}};
+CLQ D_002C1FD0 __attribute__((aligned(16))) = {{{0.5f, 0.0f, 0.5f, 0.0f}}};
 float D_002C1FE0[2] = {0.5f, 1.0f};
-CLQ D_002C1FF0 = {{{0.0f, 1.0f, 0.0f, 0.0f}}};
+CLQ D_002C1FF0 __attribute__((aligned(16))) = {{{0.0f, 1.0f, 0.0f, 0.0f}}};
 float D_002C2000 = 0.5f;
-CLQ D_002C2010 = {{{0.0f, -0.01f, 0.0f, 0.0f}}};
+CLQ D_002C2010 __attribute__((aligned(16))) = {{{0.0f, -0.01f, 0.0f, 0.0f}}};
 float D_002C2020[2] = {-10.0f, 10.0f};
 float D_002C2028 = 200.0f;
 float D_002C202C = -1.0f;

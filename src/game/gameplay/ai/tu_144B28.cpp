@@ -142,7 +142,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
-float D_002BD2F0 = 500.0f;
+float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
 void func_001EF0C0(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
@@ -416,7 +416,7 @@ struct LIST { char pad[0x28]; int c; struct SO *a[1]; };
 struct PO { char pad[0x1088]; struct LIST *plist; };
 struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; void *p30; char pad3[0x90 - 0x34]; struct SO *p90; };
 extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
-struct CLQ D_002BD300 = {-200.0f, 0.8f, 0.0f, 0.0f};
+struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword func_001A62E8(void *p);
@@ -1431,7 +1431,7 @@ struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; int x30; floa
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DA0;
 float D_002BD360 = 450.0f;
-float D_002BD368 = 400.0f;
+float D_002BD368 __attribute__((aligned(8))) = 400.0f;
 float D_002BD36C = 550.0f;
 float D_002BD370 = 0.2f;
 void UpdateBhv(struct P *p);

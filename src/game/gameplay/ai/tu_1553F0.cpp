@@ -102,7 +102,7 @@ struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DD0;
-int D_002BDC50 = 1;   /* tu_1553F0's .data starts here (address order) */
+extern int D_002BDC50;   /* tu_1553F0's .data starts here (address order) */
 extern const float D_002A5130;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5134;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5138;   /* defined below where the ELF has it (.rodata order) */
@@ -137,12 +137,12 @@ ESC *func_00155868(BHVESC *p);
 void func_00155AE0(BHVATK *p, int k);
 void *func_00155A68(BHVATK *p);
 extern qword g_normalZ __asm__("D_002A2DC0");
-VECTOR D_002BDC60 = {0.0f, 0.0001f, 0.0f, 0.0f};
-float D_002BDC70[2] = {0.1f, 0.4f};
-VECTOR D_002BDC80 = {0.0f, 0.0f, 0.0f, 0.0f};
-float D_002BDC90[2] = {0.0f, 0.0f};
-float D_002BDC98 = 60.0f;
-float D_002BDCA0[11] = {0.0f, -0.025f, 0.025f, -0.05f, 0.05f, -0.1f, 0.1f, -0.2f, 0.2f, -0.4f, 0.4f};   /* pan offsets tried in turn */
+extern VECTOR D_002BDC60;
+extern float D_002BDC70[2];
+extern VECTOR D_002BDC80;
+extern float D_002BDC90[2];
+extern float D_002BDC98;
+extern float D_002BDCA0[11];   /* pan offsets tried in turn */
 extern const float D_002A513C;   /* defined below where the ELF has it (.rodata order) */
 HERO *PpoHero(void *p);
 extern char D_002DE578[];
@@ -730,4 +730,15 @@ qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
+}
+
+// ---- tu_1553F0's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+int D_002BDC50 = 1;
+extern "C" {
+VECTOR D_002BDC60 __attribute__((aligned(16))) = {0.0f, 0.0001f, 0.0f, 0.0f};
+float D_002BDC70[2] = {0.1f, 0.4f};
+VECTOR D_002BDC80 __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 0.0f};
+float D_002BDC90[2] = {0.0f, 0.0f};
+float D_002BDC98 = 60.0f;
+float D_002BDCA0[11] = {0.0f, -0.025f, 0.025f, -0.05f, 0.05f, -0.1f, 0.1f, -0.2f, 0.2f, -0.4f, 0.4f};
 }
