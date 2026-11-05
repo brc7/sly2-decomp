@@ -2756,3 +2756,33 @@ void UpdateRemit(OBJ *p)
     }
 }
 } } // namespace M_UpdateRemit
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A77D0 = 3.40282347e+38f;
+extern const float D_002A77D4 = -3.40282347e+38f;
+/* D_002C1F40/F90/FA0 are declared qword at file scope (read whole); defined as float vectors under C linkage
+   in a namespace, which g++ 2.95 accepts beside the file-scope declaration (same symbol). */
+namespace M_rip_data { extern "C" { VECTOR4 D_002C1F40 = {0.0f, 0.0f, -1750.0f, 0.0f}; } }
+VECTOR4 D_002C1F50 = {1.0f, 1.666667f, -2.666667f, 0.0f};
+float D_002C1F60 = 0.5f;
+float D_002C1F64 = 0.5f;
+float D_002C1F68 = 200.0f;
+float D_002C1F6C = 0.25f;
+int D_002C1F70[1] = {50};
+LM D_002C1F78 = {0.75f, 1.25f};
+float D_002C1F80[3] = {0.0f, 0.001f, 0.0f};
+namespace M_rip_data { extern "C" {
+VECTOR4 D_002C1F90 = {0.0f, 4.0f, -4.0f, 0.0f};
+VECTOR4 D_002C1FA0 = {0.25f, 3.0f, -3.0f, 0.0f};
+} }
+CLQ D_002C1FB0 = {{{0.0f, 0.75f, 0.0f, 0.0f}}};
+float D_002C1FC0[2] = {1.0f, 5.0f};
+CLQ D_002C1FD0 = {{{0.5f, 0.0f, 0.5f, 0.0f}}};
+float D_002C1FE0[2] = {0.5f, 1.0f};
+CLQ D_002C1FF0 = {{{0.0f, 1.0f, 0.0f, 0.0f}}};
+float D_002C2000 = 0.5f;
+CLQ D_002C2010 = {{{0.0f, -0.01f, 0.0f, 0.0f}}};
+float D_002C2020[2] = {-10.0f, 10.0f};
+float D_002C2028 = 200.0f;
+float D_002C202C = -1.0f;
