@@ -17,6 +17,7 @@
 #include "sly2/basic.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
 extern "C" {
@@ -2922,11 +2923,6 @@ void SelectJobListItem(struct S *p, int i) {
 } } // namespace M_SelectJobListItem
 
 namespace M_RefreshJobListEntries {
-struct FRAME {
-    int a;
-    FRAME() __asm__("STACKSCOPE_ctor");
-    ~FRAME();
-};
 struct SO {
     char pad0[0x54];
     int x54;
@@ -2984,7 +2980,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
     p->x118 = 0;
     p->n = 0;
     func_002333B4(p->ae, 0, p->n * sizeof(E));
-    FRAME frame;
+    STACKSCOPE frame;
     int c;
     SO **aso;
     SortTasksTopologically(&c, &aso);

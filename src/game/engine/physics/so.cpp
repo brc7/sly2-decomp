@@ -13,6 +13,7 @@
 #include "sly2/so.h"
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb);   /* memset */
 extern qword D_002A2DC0;
@@ -108,11 +109,6 @@ struct SWALLOC
 
 void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 
-struct STACKSCOPE
-{
-    STACKSCOPE() __asm__("STACKSCOPE_ctor");
-    ~STACKSCOPE();
-};
 
 void EnsureSoBounds(SO *pso) __asm__("EnsureSoBounds");
 

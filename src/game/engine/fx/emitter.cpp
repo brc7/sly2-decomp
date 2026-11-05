@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/xfm.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
    that func_00159118 (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
@@ -1791,12 +1792,6 @@ void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
 } // namespace M_OriginateSplineSinkParticles
 
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
-class CFrame {
-    int m_a[4];
-public:
-    CFrame() __asm__("STACKSCOPE_ctor");
-    ~CFrame();
-};
 struct LOC { int q0, q1, q2, q3; int f; int pad[3]; };
 struct L2 { int a; int b; int pad[6]; };
 struct B { int pad; int k4; char pad2[0xC4 - 8]; int kC4; };
@@ -1818,7 +1813,7 @@ void EmitParticles__FiP5EMITBP5EMITG(void *a, B *b, void *c)
 {
     if (a) {
         LOC loc;
-        CFrame frame;
+        STACKSCOPE frame;
         loc.f = 1;
         OriginateParticles__FiP5EMITBP7EMITGEN(a, b, &loc);
         if (b->k4 == 1) {

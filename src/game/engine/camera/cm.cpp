@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -1323,14 +1324,13 @@ namespace M_func_0014F110 {
 typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
 struct CLOCK { float t, dt, x8, xC, dtPrev; };
-struct FRAME { int n; FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); }; /* out-of-line ctor/dtor: STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2) */
 extern "C" {
 extern CLOCK D_002DDED0;
 extern qword D_002BD8F0, D_002BD900;
 extern float D_002BD8D8, D_002BD8DC;
 extern char D_003DD490[];
-void *STACKSCOPE_ctor(FRAME *p);
-void STACKSCOPE_ctor_1AE4A0(FRAME *p, int n);
+void *STACKSCOPE_ctor(STACKSCOPE *p);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *p, int n);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 qword SquishCmEye(void *p, int i, int j, void *pfn, qword a, qword v, float g, float h);
 void FFilterCamera(void);
@@ -1372,7 +1372,7 @@ qword func_0014F110(void *p, qword pos, qword posTarget)
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
     qword posMin = Add(pos, D_002BD8F0);
     qword posMax = Add(pos, D_002BD900);
-    FRAME frame;
+    STACKSCOPE frame;
     IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)FFilterCamera, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
     qword r = AddScaled(pos, w, VU_FLOAT(&pclock->dtPrev));

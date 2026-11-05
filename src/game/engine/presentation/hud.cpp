@@ -11,6 +11,7 @@
 #include "sly2/lo.h"
 #include "sly2/jt.h"
 #include "sly2/stepplayer.h"
+#include "sly2/stackscope.h"
 #include "gifs.h"
 #include "vifs.h"
 
@@ -2278,8 +2279,6 @@ void *func_001AE378(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
-// The current stack-allocation scope (out of line: 0x1AE478 / 0x1AE4A0)
-struct STACKSCOPE {STACKSCOPE() __asm__("STACKSCOPE_ctor");~STACKSCOPE();};
 extern "C" { extern int D_002C40A4; }
 extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern WORLD D_003DD490; }
@@ -2439,7 +2438,6 @@ void PackAD__4GIFSll(void *, int, unsigned long);
 void AddPrimEnd__4GIFS(void *);
 void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *);
 }
-class FRAME { public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct BUF { int a[12]; };
 struct P { char pad[0xC4]; int xC4; };
 struct Q { int x0; int x4; char pad8[8]; int x10; char pad14[8]; int x1C; int x20; };
@@ -2452,7 +2450,7 @@ extern "C" void func_002155C0(P *p, Q *q);
  * @end-sly2-annot */
 void func_002155C0(P *p, Q *q)
 {
-    FRAME frame;
+    STACKSCOPE frame;
     if (q->x4 == 7) {
         q->x1C = 0;
         q->x20 = 0;

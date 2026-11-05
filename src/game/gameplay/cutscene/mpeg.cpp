@@ -5,6 +5,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_mpeg
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001B4418
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 #include "gifs.h"
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -77,10 +78,9 @@ CMPEG D_002F66B0;
 // (inlined) and the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-struct CTX;
-extern "C" CTX *STACKSCOPE_ctor(CTX *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(CTX *, int);
-struct CTX { CTX() __asm__("STACKSCOPE_ctor"); ~CTX() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
+
+extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
+extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DMA;
 struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned attr; unsigned option; int waitType; int waitId; int wakeupCount; };
@@ -311,7 +311,7 @@ void func_001B2AA0(CQueueOutputIop *p, int cb, char *pb)
     int ch = p->x4;
     if (ch != 0x10) return;
     if (p->xC == 1) return;
-    CTX ctx;
+    STACKSCOPE ctx;
     char *pbCur = pb;
     int chunk = p->xC << 10;
     char *tmp = Alloc(chunk, 0x10);
@@ -875,7 +875,7 @@ typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,xFD50)==64848?1:-1];
  * @end-sly2-annot */
 void Execute__5CMpegPv(CMPEG *p, K *k)
 {
-    CTX ctx;
+    STACKSCOPE ctx;
     p->pb = (char *)func_001AE378(AREQ(0x41FC00, 0x40));
     CBinaryAsyncStream strm(0x80000, p->pb);
     X x;
