@@ -874,9 +874,9 @@ struct RGBA {uchar r,g,b,a;};
 struct PACKET {int count;QW*data;};
 struct TEXTURE;
 struct ENTRY {char unknown0[4];uchar kind,flags;char unknown6[6];RGBA color,secondary;char unknown14[4];TEXTURE*texture;int unknown1C;PACKET*packets;char unknown24[8];};
-extern int D_003DCFE8;
-extern ENTRY *D_003DCFEC;
-extern uint D_002DE18C;
+extern "C" { extern int D_003DCFE8; }
+extern "C" { extern ENTRY *D_003DCFEC; }
+extern "C" { extern uint D_002DE18C; }
 extern "C" void PackTexGifs(TEXTURE*,int,GIFS*);
 extern "C" void func_001EB960();
 static inline ulong ColorWord(const RGBA&color,const ENTRY*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->flags&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}

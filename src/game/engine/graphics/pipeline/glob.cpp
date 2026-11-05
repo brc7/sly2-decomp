@@ -420,8 +420,8 @@ struct HDR { signed char c0; signed char citem; char pad[0x12]; };
 struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
 struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int f4C; char pad3[0x58 - 0x50]; X *pxFirst; };
 struct G;
-extern G D_003DD490;
-extern int D_003E11EC;
+extern "C" { extern G D_003DD490; }
+extern "C" { extern int D_003E11EC; }
 extern "C" LO *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
@@ -601,9 +601,9 @@ int VU1_Interrupt(void)
 namespace M_BeginRpRelight {
 struct X { char pad[0x120]; QW amat[3]; int f150[4]; int f160; };
 struct G;
-extern G D_003DD490;
-extern char D_0025E090[];
-extern char D_0025E668[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_0025E090[]; }
+extern "C" { extern char D_0025E668[]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
@@ -775,8 +775,8 @@ struct G
     char pad[0x3D5C];
     int tick;
 };
-extern DMA D_002DEA28;
-extern G D_003DD490;
+extern "C" { extern DMA D_002DEA28; }
+extern "C" { extern G D_003DD490; }
 extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
@@ -1220,11 +1220,11 @@ struct RPL
     uchar *pb;
     char *pv;
 };
-extern DMA D_002DEA28;
-extern G D_003DD490;
-extern VIEW D_002DDF40;
-extern CLOCK D_002DDED0;
-extern MATRIX4 D_002A2D30;
+extern "C" { extern DMA D_002DEA28; }
+extern "C" { extern G D_003DD490; }
+extern "C" { extern VIEW D_002DDF40; }
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void SubmitGlobsetRelight(MODEL *pmodel);
 int FUpdatableSaa__FP3SAA(OBJ *pobj);
@@ -1746,9 +1746,9 @@ struct RPL
     char *pv;
 };
 struct G;
-extern DMA D_002DEA28;
-extern G D_003DD490;
-extern MATRIX4 D_002A2D30;
+extern "C" { extern DMA D_002DEA28; }
+extern "C" { extern G D_003DD490; }
+extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void *func_002333B4(void *pv, int b, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
@@ -2686,7 +2686,7 @@ struct XF
       qword qwRestUnkE0;
       qword qwUnkF0;
 };
-extern CM D_002DDF40;
+extern "C" { extern CM D_002DDF40; }
 void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase);
 struct SWALLOCC
 {
@@ -2707,7 +2707,7 @@ struct STACKSCOPE
     STACKSCOPE();
     ~STACKSCOPE();
 };
-void CopyAb(void *pvDst, void *pvSrc, uint cb);
+extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb); }
 struct UVF
 {
     float u, v;
@@ -2743,7 +2743,7 @@ struct WRBG
     WRBG *pwrbgNextGlobset;
     WRBG *pwrbgNextWr;
 };
-extern char D_00000000[];
+extern "C" { extern char D_00000000[]; }
 extern "C" {
 void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016A000");
 }
@@ -2759,8 +2759,8 @@ static inline void *PvAllocSwCopy(int cb, void *pvBase)
 }
 SHD *PshdFromIshd(int ishd);
 int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
-extern uint D_002BE540[];
-extern int D_002BE558[];
+extern "C" { extern uint D_002BE540[]; }
+extern "C" { extern int D_002BE558[]; }
 extern "C" { QW D_002DEB60; }
 void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut);
 CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis);
@@ -2773,7 +2773,7 @@ void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, co
 extern "C" void ReadCb12__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 void FixupRgba(RGBA *prgba);
-extern int D_003E11EC;
+extern "C" { extern int D_003E11EC; }
 static inline void *PvAllocStackP(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
@@ -2793,21 +2793,21 @@ extern "C" SHD *PshdFromOid(int oid);
 extern "C" int func_001EC6D0(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern "C" int func_001ED960(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
-extern int D_003DA790;
-extern int D_003E12D0;
+extern "C" { extern int D_003DA790; }
+extern "C" { extern int D_003E12D0; }
 extern "C" int D_002BE580 = 0;
 extern "C" { int D_002DEB54; }
 extern "C" const float D_002A52A0 = 3.40282347e+38f;
-extern char D_00003628[];
-extern char D_000037A8[];
-extern char D_00002EF8[];
-extern char D_00002E20[];
-extern char D_00002F80[];
-extern char D_00002E68[];
-extern char D_00002FC8[];
-extern char D_00002EB0[];
-extern char D_00003358[];
-extern char D_00002EE8[];
+extern "C" { extern char D_00003628[]; }
+extern "C" { extern char D_000037A8[]; }
+extern "C" { extern char D_00002EF8[]; }
+extern "C" { extern char D_00002E20[]; }
+extern "C" { extern char D_00002F80[]; }
+extern "C" { extern char D_00002E68[]; }
+extern "C" { extern char D_00002FC8[]; }
+extern "C" { extern char D_00002EB0[]; }
+extern "C" { extern char D_00003358[]; }
+extern "C" { extern char D_00002EE8[]; }
 struct SAAVIRT
 {
     int unk_0x0[3];
@@ -4160,11 +4160,11 @@ extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpProjVolume {
-extern char D_0025C1C0[];
-extern char D_0025E040[];
-extern char D_00001AA0[];
-extern int D_003E12C8;
-extern QW D_002DF800[];
+extern "C" { extern char D_0025C1C0[]; }
+extern "C" { extern char D_0025E040[]; }
+extern "C" { extern char D_00001AA0[]; }
+extern "C" { extern int D_003E12C8; }
+extern "C" { extern QW D_002DF800[]; }
 extern "C" { int D_002DEB70[2]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
@@ -4236,11 +4236,11 @@ namespace M_EndRpProjVolume {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 struct COMMAND {short kind,index;};
 struct GAME {char pad[0x3E38];int ready;};
-extern GAME D_003DD490;
-extern int D_002DEB70[2];
-extern ulong D_003E1330;
-extern QW*D_002DEA4C;
-extern QW D_002DEA50[],D_002DF940[],D_002DFA80[];
+extern "C" { extern GAME D_003DD490; }
+extern "C" { extern int D_002DEB70[2]; }
+extern "C" { extern ulong D_003E1330; }
+extern "C" { extern QW*D_002DEA4C; }
+extern "C" { extern QW D_002DEA50[],D_002DF940[],D_002DFA80[]; }
 extern "C" void AddFramePatch(int,GIFS*,COMMAND**);
 extern "C" void func_0016D6C8(GIFS*,uint,COMMAND**);
 typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
@@ -4353,9 +4353,9 @@ typedef char GAME_Size[sizeof(GAME)==0x3E3C?1:-1];
 namespace M_BeginRpGlob {
 extern "C" void *func_002333B4(void *pv, int n, int cb);
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern char D_0025E680[];
-extern char D_00262320[];
-extern char D_00000000[];
+extern "C" { extern char D_0025E680[]; }
+extern "C" { extern char D_00262320[]; }
+extern "C" { extern char D_00000000[]; }
 /** @sly2-annot addr=0x16E1A8
  * Purpose: Pass 0 begin: upload main glob microprogram D_0025E680..D_00262320, zero the 11-qw batch
  *   descriptor at TOPS+0xA, MSCAL 0
@@ -4380,7 +4380,7 @@ extern "C" void BeginRpGlob(VIFS *pvifs)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_EndRpGlob {
 extern "C" void *func_002333B4(void *pv, int n, int cb);
-extern char D_00003AB0[];
+extern "C" { extern char D_00003AB0[]; }
 /** @sly2-annot addr=0x16E228
  * Purpose: Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA
  * Info: proposed name EndRpGlob (T1); TU glob
@@ -4403,8 +4403,8 @@ extern "C" void EndRpGlob(VIFS *pvifs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpBackground {
-extern int D_003DCFA0;
-extern QW *D_003DCFA8[];
+extern "C" { extern int D_003DCFA0; }
+extern "C" { extern QW *D_003DCFA8[]; }
 extern "C" void BeginRpGlob(VIFS *pvifs);
 /** @sly2-annot addr=0x16E298
  * Purpose: Pass 3 begin (kind 1 sky/background): BeginRpGlob + DMA CALL each per-frame texture upload chain
