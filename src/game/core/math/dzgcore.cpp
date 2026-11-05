@@ -15,7 +15,7 @@ struct DLI { DL *pdl; void **ppv; int ibDle; DLI *pdliNext; int nUnused; };
 
 typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct FRAME { int an[4]; } FRAME;
-extern DLI *g_pdliFirst;
+extern DLI *g_pdliFirst __asm__("D_002DD2FC");
 extern "C" {
 extern const float D_002A4120 = 3.40282347e+38f;    /* "no upper bound" (FLT_MAX) */
 extern const float D_002A4124 = -3.40282347e+38f;   /* "no lower bound" (-FLT_MAX) */

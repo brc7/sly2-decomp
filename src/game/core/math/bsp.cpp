@@ -41,7 +41,7 @@ typedef struct PLANE { float x, y, z, d; } __attribute__((aligned(16))) PLANE;
 /* A VU0 temporary with an out-of-line empty constructor (func_002564B8 below). */
 class VUF {
 public:
-    VUF();
+    VUF() __asm__("func_002564B8");
     qword q;
 };
 union VUFU { qword q; float f[4]; };   /* PbspPointInBspQuick calls that constructor by hand */
@@ -72,7 +72,7 @@ extern "C" void *func_002564B8(void *p);
 struct VU_QWORD
 {
     qword qw;
-    VU_QWORD();
+    VU_QWORD() __asm__("func_002564B8");
 };
 struct LSG
 {
