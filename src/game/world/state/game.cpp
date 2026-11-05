@@ -1794,8 +1794,8 @@ public:
 };
 class CBinaryInputStream {
 public:
-    int U8Read();
-    int S32Read();
+    int U8Read() __asm__("U8Read__18CBinaryInputStream");
+    int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
 struct S { char pad[0x90]; int *a90; int c94; void *a98; int *a9C; int cA0; void *aA4; int cA8; void *aAC; int cB0; void *aB4; };
 extern "C" void *func_001AE318(ALLOCREQ *preq);

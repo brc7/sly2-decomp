@@ -1192,9 +1192,9 @@ public:
     int m_cbufFill;
     int m_icbufRead;
     int m_icbufWrite;
-    uchar U8Read();
-    ushort U16Read();
-    uint U32Read();
+    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
+    ushort U16Read() __asm__("U16Read__18CBinaryInputStream");
+    uint U32Read() __asm__("U32Read__18CBinaryInputStream");
     void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
 };
 struct SWALLOC
