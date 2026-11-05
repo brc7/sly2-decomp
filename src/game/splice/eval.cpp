@@ -976,3 +976,223 @@ extern "C" void func_002572E0(CFrame **ppframe, int flags)
     if (flags & 1)
         operator delete(ppframe);
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+/* The Splice builtin table: 169 records {pfn, cargMin, fRest}; the builtins are bound to their linker names with
+   asm labels in a namespace. */
+namespace M_eval_data {
+CRef RefOpAdd(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAdd__FiP4CRefP6CFrame");
+CRef RefOpSub(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSub__FiP4CRefP6CFrame");
+CRef RefOpMult(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMult__FiP4CRefP6CFrame");
+CRef RefOpDiv(int c, CRef *aref, CFrame *pframe) __asm__("RefOpDiv__FiP4CRefP6CFrame");
+CRef RefOpPrint(int c, CRef *aref, CFrame *pframe) __asm__("RefOpPrint__FiP4CRefP6CFrame");
+CRef RefOpPrintFrame(int c, CRef *aref, CFrame *pframe) __asm__("RefOpPrintFrame__FiP4CRefP6CFrame");
+CRef RefOpPrintSidebag(int c, CRef *aref, CFrame *pframe) __asm__("RefOpPrintSidebag__FiP4CRefP6CFrame");
+CRef RefOpIntEqual(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIntEqual__FiP4CRefP6CFrame");
+CRef RefOpL(int c, CRef *aref, CFrame *pframe) __asm__("RefOpL__FiP4CRefP6CFrame");
+CRef RefOpLE(int c, CRef *aref, CFrame *pframe) __asm__("RefOpLE__FiP4CRefP6CFrame");
+CRef RefOpG(int c, CRef *aref, CFrame *pframe) __asm__("RefOpG__FiP4CRefP6CFrame");
+CRef RefOpGE(int c, CRef *aref, CFrame *pframe) __asm__("RefOpGE__FiP4CRefP6CFrame");
+CRef RefOpEqv(int c, CRef *aref, CFrame *pframe) __asm__("RefOpEqv__FiP4CRefP6CFrame");
+CRef RefOpEqual(int c, CRef *aref, CFrame *pframe) __asm__("RefOpEqual__FiP4CRefP6CFrame");
+CRef RefOpIsBoolean(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsBoolean__FiP4CRefP6CFrame");
+CRef RefOpIsNum(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsNum__FiP4CRefP6CFrame");
+CRef RefOpIsInteger(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsInteger__FiP4CRefP6CFrame");
+CRef RefOpIsFloat(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsFloat__FiP4CRefP6CFrame");
+CRef RefOpIsSymbol(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsSymbol__FiP4CRefP6CFrame");
+CRef RefOpIsVector(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsVector__FiP4CRefP6CFrame");
+CRef RefOpIsMatrix(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsMatrix__FiP4CRefP6CFrame");
+CRef RefOpIsClq(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsClq__FiP4CRefP6CFrame");
+CRef RefOpIsLm(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsLm__FiP4CRefP6CFrame");
+CRef RefOpIsSmp(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsSmp__FiP4CRefP6CFrame");
+CRef RefOpIsList(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsList__FiP4CRefP6CFrame");
+CRef RefOpIsNull(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsNull__FiP4CRefP6CFrame");
+CRef RefOpIsObject(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsObject__FiP4CRefP6CFrame");
+CRef RefOpIsNullObj(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsNullObj__FiP4CRefP6CFrame");
+CRef RefOpIsMethod(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsMethod__FiP4CRefP6CFrame");
+CRef RefOpIsProcedure(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsProcedure__FiP4CRefP6CFrame");
+CRef RefOpAreNear(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAreNear__FiP4CRefP6CFrame");
+CRef RefOpNot(int c, CRef *aref, CFrame *pframe) __asm__("RefOpNot__FiP4CRefP6CFrame");
+CRef RefOpCons(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCons__FiP4CRefP6CFrame");
+CRef RefOpCar(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCar__FiP4CRefP6CFrame");
+CRef RefOpCdr(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCdr__FiP4CRefP6CFrame");
+CRef RefOpSetCar(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSetCar__FiP4CRefP6CFrame");
+CRef RefOpSetCdr(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSetCdr__FiP4CRefP6CFrame");
+CRef RefOpLength(int c, CRef *aref, CFrame *pframe) __asm__("RefOpLength__FiP4CRefP6CFrame");
+CRef RefOpNth(int c, CRef *aref, CFrame *pframe) __asm__("RefOpNth__FiP4CRefP6CFrame");
+CRef RefOpIsMember(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsMember__FiP4CRefP6CFrame");
+CRef RefOpList(int c, CRef *aref, CFrame *pframe) __asm__("RefOpList__FiP4CRefP6CFrame");
+CRef RefOpShuffle(int c, CRef *aref, CFrame *pframe) __asm__("RefOpShuffle");
+CRef RefOpAppend(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAppend__FiP4CRefP6CFrame");
+CRef RefOpMap(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMap__FiP4CRefP6CFrame");
+CRef RefOpFilter(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFilter__FiP4CRefP6CFrame");
+CRef RefOpForEach(int c, CRef *aref, CFrame *pframe) __asm__("RefOpForEach__FiP4CRefP6CFrame");
+CRef RefOpEval(int c, CRef *aref, CFrame *pframe) __asm__("RefOpEval__FiP4CRefP6CFrame");
+CRef RefOpVector(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVector__FiP4CRefP6CFrame");
+CRef RefOpMatrix(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrix__FiP4CRefP6CFrame");
+CRef RefOpClq(int c, CRef *aref, CFrame *pframe) __asm__("RefOpClq__FiP4CRefP6CFrame");
+CRef RefOpLm(int c, CRef *aref, CFrame *pframe) __asm__("RefOpLm__FiP4CRefP6CFrame");
+CRef RefOpSmp(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSmp__FiP4CRefP6CFrame");
+CRef RefOpGetElement(int c, CRef *aref, CFrame *pframe) __asm__("RefOpGetElement__FiP4CRefP6CFrame");
+CRef RefOpRandom(int c, CRef *aref, CFrame *pframe) __asm__("RefOpRandom__FiP4CRefP6CFrame");
+CRef RefOpSqrt(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSqrt__FiP4CRefP6CFrame");
+CRef RefOpSin(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSin__FiP4CRefP6CFrame");
+CRef RefOpCos(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCos__FiP4CRefP6CFrame");
+CRef RefOpTan(int c, CRef *aref, CFrame *pframe) __asm__("RefOpTan__FiP4CRefP6CFrame");
+CRef RefOpAsin(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAsin__FiP4CRefP6CFrame");
+CRef RefOpAcos(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAcos__FiP4CRefP6CFrame");
+CRef RefOpAtan(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAtan__FiP4CRefP6CFrame");
+CRef RefOpRadNormalize(int c, CRef *aref, CFrame *pframe) __asm__("RefOpRadNormalize__FiP4CRefP6CFrame");
+CRef RefOpAtan2(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAtan2__FiP4CRefP6CFrame");
+CRef RefOpVectorDotProduct(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorDotProduct__FiP4CRefP6CFrame");
+CRef RefOpVectorCrossProduct(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorCrossProduct__FiP4CRefP6CFrame");
+CRef RefOpVectorLth(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorLth__FiP4CRefP6CFrame");
+CRef RefOpVectorDistance(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorDistance__FiP4CRefP6CFrame");
+CRef RefOpVectorDistanceSquared(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorDistanceSquared__FiP4CRefP6CFrame");
+CRef RefOpVectorNormalize(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorNormalize__FiP4CRefP6CFrame");
+CRef RefOpVectorProjectNormal(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorProjectNormal__FiP4CRefP6CFrame");
+CRef RefOpVectorProjectTangent(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorProjectTangent__FiP4CRefP6CFrame");
+CRef RefOpVectorBallisticVelocity(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorBallisticVelocity__FiP4CRefP6CFrame");
+CRef RefOpVectorRadianNormal(int c, CRef *aref, CFrame *pframe) __asm__("RefOpVectorRadianNormal__FiP4CRefP6CFrame");
+CRef RefOpMatrixTranspose(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixTranspose__FiP4CRefP6CFrame");
+CRef RefOpMatrixInvert(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixInvert__FiP4CRefP6CFrame");
+CRef RefOpMatrixCalculateDmat(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixCalculateDmat__FiP4CRefP6CFrame");
+CRef RefOpMatrixInterpolateRotate(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame");
+CRef RefOpMatrixDecomposeToTranslate(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame");
+CRef RefOpMatrixDecomposeToRotate(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixDecomposeToRotate__FiP4CRefP6CFrame");
+CRef RefOpMatrixDecomposeToEuler(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame");
+CRef RefOpMatrixDecomposeToRadianNormal(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame");
+CRef RefOpMatrixLookAt(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixLookAt__FiP4CRefP6CFrame");
+CRef RefOpMatrixTiltUpright(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMatrixTiltUpright__FiP4CRefP6CFrame");
+CRef RefOpClqEvaluate(int c, CRef *aref, CFrame *pframe) __asm__("RefOpClqEvaluate__FiP4CRefP6CFrame");
+CRef RefOpClqEvaluateLm(int c, CRef *aref, CFrame *pframe) __asm__("RefOpClqEvaluateLm__FiP4CRefP6CFrame");
+CRef RefOpClqFit(int c, CRef *aref, CFrame *pframe) __asm__("RefOpClqFit__FiP4CRefP6CFrame");
+CRef RefOpLmLimit(int c, CRef *aref, CFrame *pframe) __asm__("RefOpLmLimit__FiP4CRefP6CFrame");
+CRef RefOpLmCheck(int c, CRef *aref, CFrame *pframe) __asm__("RefOpLmCheck__FiP4CRefP6CFrame");
+CRef RefOpFloor(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFloor__FiP4CRefP6CFrame");
+CRef RefOpCeiling(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCeiling__FiP4CRefP6CFrame");
+CRef RefOpRound(int c, CRef *aref, CFrame *pframe) __asm__("RefOpRound__FiP4CRefP6CFrame");
+CRef RefOpTruncate(int c, CRef *aref, CFrame *pframe) __asm__("RefOpTruncate__FiP4CRefP6CFrame");
+CRef RefOpAbs(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAbs__FiP4CRefP6CFrame");
+CRef RefOpMaximum(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMaximum__FiP4CRefP6CFrame");
+CRef RefOpMinimum(int c, CRef *aref, CFrame *pframe) __asm__("RefOpMinimum__FiP4CRefP6CFrame");
+CRef RefOpModulo(int c, CRef *aref, CFrame *pframe) __asm__("RefOpModulo__FiP4CRefP6CFrame");
+CRef RefOpCurrentTime(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCurrentTime__FiP4CRefP6CFrame");
+CRef RefOpCurrentLevel(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCurrentLevel");
+CRef RefOpCurrentEpisode(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCurrentEpisode");
+CRef RefOpCurrentWorld(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCurrentWorld");
+CRef RefOpFindCurrentJob(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindCurrentJob");
+CRef RefOpFindCurrentTask(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindCurrentTask");
+CRef RefOpFindPendingTask(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindPendingTask");
+CRef RefOpGetDifficulty(int c, CRef *aref, CFrame *pframe) __asm__("RefOpGetDifficulty");
+CRef func_00123BA0(int c, CRef *aref, CFrame *pframe) __asm__("func_00123BA0");
+CRef RefOpScheduleCallback(int c, CRef *aref, CFrame *pframe) __asm__("RefOpScheduleCallback__FiP4CRefP6CFrame");
+CRef RefOpCancelCallback(int c, CRef *aref, CFrame *pframe) __asm__("RefOpCancelCallback");
+CRef RefOpDeferObjectUpdate(int c, CRef *aref, CFrame *pframe) __asm__("RefOpDeferObjectUpdate__FiP4CRefP6CFrame");
+CRef RefOpAddO(int c, CRef *aref, CFrame *pframe) __asm__("RefOpAddO__FiP4CRefP6CFrame");
+CRef RefOpEnsureO(int c, CRef *aref, CFrame *pframe) __asm__("RefOpEnsureO__FiP4CRefP6CFrame");
+CRef RefOpSetO(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSetO__FiP4CRefP6CFrame");
+CRef RefOpGetO(int c, CRef *aref, CFrame *pframe) __asm__("RefOpGetO__FiP4CRefP6CFrame");
+CRef RefOpFindObject(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindObject__FiP4CRefP6CFrame");
+CRef RefOpFindObjects(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindObjects__FiP4CRefP6CFrame");
+CRef RefOpFindObjectsFromOids(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindObjectsFromOids");
+CRef RefOpFindNearestObject(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindNearestObject__FiP4CRefP6CFrame");
+CRef RefOpFindNearestObjects(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindNearestObjects__FiP4CRefP6CFrame");
+CRef RefOpFindWorldObject(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindWorldObject__FiP4CRefP6CFrame");
+CRef RefOpFindSoundObject(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindSoundObject");
+CRef RefOpFindCameraObject(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindCameraObject__FiP4CRefP6CFrame");
+CRef RefOpFindClassObjects(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindClassObjects__FiP4CRefP6CFrame");
+CRef RefOpFindObjectsInBoundingBox(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame");
+CRef RefOpFindObjectsInBoundingSphere(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame");
+CRef RefOpHitTestObjects(int c, CRef *aref, CFrame *pframe) __asm__("RefOpHitTestObjects__FiP4CRefP6CFrame");
+CRef RefOpHitTestObjectsFirst(int c, CRef *aref, CFrame *pframe) __asm__("RefOpHitTestObjectsFirst__FiP4CRefP6CFrame");
+CRef RefOpConvertObjectPosition(int c, CRef *aref, CFrame *pframe) __asm__("RefOpConvertObjectPosition__FiP4CRefP6CFrame");
+CRef RefOpConvertObjectVector(int c, CRef *aref, CFrame *pframe) __asm__("RefOpConvertObjectVector__FiP4CRefP6CFrame");
+CRef RefOpConvertObjectMatrix(int c, CRef *aref, CFrame *pframe) __asm__("RefOpConvertObjectMatrix__FiP4CRefP6CFrame");
+CRef RefOpNearClipCenter(int c, CRef *aref, CFrame *pframe) __asm__("RefOpNearClipCenter__FiP4CRefP6CFrame");
+CRef RefOpStartSound(int c, CRef *aref, CFrame *pframe) __asm__("RefOpStartSound__FiP4CRefP6CFrame");
+CRef RefOpStartRumble(int c, CRef *aref, CFrame *pframe) __asm__("RefOpStartRumble__FiP4CRefP6CFrame");
+CRef RefOpGetSaveVar(int c, CRef *aref, CFrame *pframe) __asm__("RefOpGetSaveVar");
+CRef RefOpSetSaveVar(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSetSaveVar");
+CRef RefOpFindBindingOrNoop(int c, CRef *aref, CFrame *pframe) __asm__("RefOpFindBindingOrNoop");
+CRef RefOpNoop(int c, CRef *aref, CFrame *pframe) __asm__("RefOpNoop");
+CRef RefOpBitAnd(int c, CRef *aref, CFrame *pframe) __asm__("RefOpBitAnd");
+CRef RefOpBitOr(int c, CRef *aref, CFrame *pframe) __asm__("RefOpBitOr");
+CRef func_00125690(int c, CRef *aref, CFrame *pframe) __asm__("func_00125690");
+CRef RefOpIsPowerUpAcquired(int c, CRef *aref, CFrame *pframe) __asm__("RefOpIsPowerUpAcquired");
+CRef RefOpSetPowerUpAcquired(int c, CRef *aref, CFrame *pframe) __asm__("RefOpSetPowerUpAcquired");
+CRef func_001258F0(int c, CRef *aref, CFrame *pframe) __asm__("func_001258F0");
+CRef func_00125930(int c, CRef *aref, CFrame *pframe) __asm__("func_00125930");
+CRef func_00125970(int c, CRef *aref, CFrame *pframe) __asm__("func_00125970");
+CRef func_001259B0(int c, CRef *aref, CFrame *pframe) __asm__("func_001259B0");
+CRef func_001259F0(int c, CRef *aref, CFrame *pframe) __asm__("func_001259F0");
+CRef func_00125A30(int c, CRef *aref, CFrame *pframe) __asm__("func_00125A30");
+CRef func_00125A70(int c, CRef *aref, CFrame *pframe) __asm__("func_00125A70");
+CRef func_00125AB0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125AB0");
+CRef func_00125AF0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125AF0");
+CRef func_00125B30(int c, CRef *aref, CFrame *pframe) __asm__("func_00125B30");
+CRef func_00125B70(int c, CRef *aref, CFrame *pframe) __asm__("func_00125B70");
+CRef func_00125BB0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125BB0");
+CRef func_00125BF0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125BF0");
+CRef func_00125C30(int c, CRef *aref, CFrame *pframe) __asm__("func_00125C30");
+CRef func_00125C70(int c, CRef *aref, CFrame *pframe) __asm__("func_00125C70");
+CRef func_00125CB0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125CB0");
+CRef func_00125CF0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125CF0");
+CRef func_00125D30(int c, CRef *aref, CFrame *pframe) __asm__("func_00125D30");
+CRef func_00125D70(int c, CRef *aref, CFrame *pframe) __asm__("func_00125D70");
+CRef func_00125DB0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125DB0");
+CRef func_00125DF0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125DF0");
+CRef func_00125E30(int c, CRef *aref, CFrame *pframe) __asm__("func_00125E30");
+CRef func_00125E70(int c, CRef *aref, CFrame *pframe) __asm__("func_00125E70");
+CRef func_00125EB0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125EB0");
+CRef func_00125EF0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125EF0");
+CRef func_00125F30(int c, CRef *aref, CFrame *pframe) __asm__("func_00125F30");
+CRef func_00125F70(int c, CRef *aref, CFrame *pframe) __asm__("func_00125F70");
+CRef func_00125FB0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125FB0");
+CRef func_00125FF0(int c, CRef *aref, CFrame *pframe) __asm__("func_00125FF0");
+extern "C" { BIF D_002BBB90[169] = {
+    {RefOpAdd, 1, 1}, {RefOpSub, 1, 1}, {RefOpMult, 1, 1}, {RefOpDiv, 1, 1}, {RefOpPrint, 1, 0},
+    {RefOpPrintFrame, 0, 1}, {RefOpPrintSidebag, 1, 0}, {RefOpIntEqual, 2, 0}, {RefOpL, 2, 0}, {RefOpLE, 2, 0},
+    {RefOpG, 2, 0}, {RefOpGE, 2, 0}, {RefOpEqv, 2, 0}, {RefOpEqual, 2, 0}, {RefOpIsBoolean, 1, 0},
+    {RefOpIsNum, 1, 0}, {RefOpIsInteger, 1, 0}, {RefOpIsFloat, 1, 0}, {RefOpIsSymbol, 1, 0}, {RefOpIsVector, 1, 0},
+    {RefOpIsMatrix, 1, 0}, {RefOpIsClq, 1, 0}, {RefOpIsLm, 1, 0}, {RefOpIsSmp, 1, 0}, {RefOpIsList, 1, 0},
+    {RefOpIsNull, 1, 0}, {RefOpIsObject, 1, 0}, {RefOpIsNullObj, 1, 0}, {RefOpIsMethod, 1, 0},
+    {RefOpIsProcedure, 1, 0}, {RefOpAreNear, 3, 0}, {RefOpNot, 1, 0}, {RefOpCons, 2, 0}, {RefOpCar, 1, 0},
+    {RefOpCdr, 1, 0}, {RefOpSetCar, 2, 0}, {RefOpSetCdr, 2, 0}, {RefOpLength, 1, 0}, {RefOpNth, 2, 0},
+    {RefOpIsMember, 2, 0}, {RefOpList, 0, 1}, {RefOpShuffle, 1, 0}, {RefOpAppend, 0, 1}, {RefOpMap, 2, 0},
+    {RefOpFilter, 2, 0}, {RefOpForEach, 2, 0}, {RefOpEval, 1, 0}, {RefOpVector, 0, 1}, {RefOpMatrix, 0, 1},
+    {RefOpClq, 3, 0}, {RefOpLm, 2, 0}, {RefOpSmp, 3, 0}, {RefOpGetElement, 1, 1}, {RefOpRandom, 2, 0},
+    {RefOpSqrt, 1, 0}, {RefOpSin, 1, 0}, {RefOpCos, 1, 0}, {RefOpTan, 1, 0}, {RefOpAsin, 1, 0}, {RefOpAcos, 1, 0},
+    {RefOpAtan, 1, 0}, {RefOpRadNormalize, 1, 0}, {RefOpAtan2, 2, 0}, {RefOpVectorDotProduct, 2, 0},
+    {RefOpVectorCrossProduct, 2, 0}, {RefOpVectorLth, 1, 0}, {RefOpVectorDistance, 1, 1},
+    {RefOpVectorDistanceSquared, 1, 1}, {RefOpVectorNormalize, 1, 1}, {RefOpVectorProjectNormal, 2, 0},
+    {RefOpVectorProjectTangent, 2, 0}, {RefOpVectorBallisticVelocity, 3, 1}, {RefOpVectorRadianNormal, 2, 0},
+    {RefOpMatrixTranspose, 1, 0}, {RefOpMatrixInvert, 1, 0}, {RefOpMatrixCalculateDmat, 2, 0},
+    {RefOpMatrixInterpolateRotate, 3, 0}, {RefOpMatrixDecomposeToTranslate, 1, 0},
+    {RefOpMatrixDecomposeToRotate, 1, 0}, {RefOpMatrixDecomposeToEuler, 1, 0},
+    {RefOpMatrixDecomposeToRadianNormal, 1, 0}, {RefOpMatrixLookAt, 2, 1}, {RefOpMatrixTiltUpright, 1, 0},
+    {RefOpClqEvaluate, 2, 0}, {RefOpClqEvaluateLm, 3, 0}, {RefOpClqFit, 4, 0}, {RefOpLmLimit, 2, 0},
+    {RefOpLmCheck, 2, 0}, {RefOpFloor, 1, 0}, {RefOpCeiling, 1, 0}, {RefOpRound, 1, 0}, {RefOpTruncate, 1, 0},
+    {RefOpAbs, 1, 0}, {RefOpMaximum, 1, 1}, {RefOpMinimum, 1, 1}, {RefOpModulo, 2, 0}, {RefOpCurrentTime, 0, 0},
+    {RefOpCurrentLevel, 0, 0}, {RefOpCurrentEpisode, 0, 0}, {RefOpCurrentWorld, 0, 0}, {RefOpFindCurrentJob, 0, 0},
+    {RefOpFindCurrentTask, 0, 0}, {RefOpFindPendingTask, 0, 0}, {RefOpGetDifficulty, 0, 0}, {func_00123BA0, 0, 0},
+    {RefOpScheduleCallback, 2, 1}, {RefOpCancelCallback, 1, 0}, {RefOpDeferObjectUpdate, 2, 0}, {RefOpAddO, 3, 0},
+    {RefOpEnsureO, 3, 0}, {RefOpSetO, 3, 0}, {RefOpGetO, 2, 0}, {RefOpFindObject, 2, 1}, {RefOpFindObjects, 2, 1},
+    {RefOpFindObjectsFromOids, 2, 1}, {RefOpFindNearestObject, 2, 1}, {RefOpFindNearestObjects, 2, 1},
+    {RefOpFindWorldObject, 0, 0}, {RefOpFindSoundObject, 0, 0}, {RefOpFindCameraObject, 0, 0},
+    {RefOpFindClassObjects, 2, 0}, {RefOpFindObjectsInBoundingBox, 2, 0}, {RefOpFindObjectsInBoundingSphere, 2, 0},
+    {RefOpHitTestObjects, 3, 0}, {RefOpHitTestObjectsFirst, 3, 0}, {RefOpConvertObjectPosition, 3, 0},
+    {RefOpConvertObjectVector, 3, 0}, {RefOpConvertObjectMatrix, 3, 0}, {RefOpNearClipCenter, 0, 0},
+    {RefOpStartSound, 2, 0}, {RefOpStartRumble, 2, 0}, {RefOpGetSaveVar, 1, 0}, {RefOpSetSaveVar, 2, 0},
+    {RefOpFindBindingOrNoop, 1, 0}, {RefOpNoop, 0, 1}, {RefOpBitAnd, 0, 1}, {RefOpBitOr, 0, 1},
+    {func_00125690, 0, 0}, {RefOpIsPowerUpAcquired, 1, 0}, {RefOpSetPowerUpAcquired, 2, 0}, {func_001258F0, 0, 0},
+    {func_00125930, 0, 0}, {func_00125970, 0, 0}, {func_001259B0, 0, 0}, {func_001259F0, 0, 0},
+    {func_00125A30, 0, 0}, {func_00125A70, 0, 0}, {func_00125AB0, 0, 0}, {func_00125AF0, 0, 0},
+    {func_00125B30, 0, 0}, {func_00125B70, 0, 0}, {func_00125BB0, 1, 0}, {func_00125BF0, 1, 0},
+    {func_00125C30, 1, 0}, {func_00125C70, 0, 0}, {func_00125CB0, 0, 0}, {func_00125CF0, 3, 0},
+    {func_00125D30, 1, 0}, {func_00125D70, 0, 0}, {func_00125DB0, 1, 0}, {func_00125DF0, 0, 0},
+    {func_00125E30, 0, 0}, {func_00125E70, 3, 0}, {func_00125EB0, 2, 0}, {func_00125EF0, 1, 0},
+    {func_00125F30, 0, 0}, {func_00125F70, 2, 0}, {func_00125FB0, 0, 0}, {func_00125FF0, 0, 0}
+}; }
+}
