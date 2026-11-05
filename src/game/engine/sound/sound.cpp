@@ -1699,7 +1699,7 @@ struct SNDMGR
     byte abUnk1EC[0x3C];
     STREAMSND *psndAmbience;
 };
-extern int D_002E1E54;
+extern "C" { extern int D_002E1E54; }
 extern "C" void snd_UnloadBank(void *);
 extern "C" int snd_FlushSoundCommands(void);
 extern "C" void *func_002333B4(void *, int, uint);
@@ -2222,9 +2222,9 @@ struct Ref {
 };
 struct S { int c; Ref a[8]; };
 struct P { char pad[0x204]; S s; };
-extern int D_002DD5BC;
-extern int D_002F7900;
-extern int D_002E1E40;
+extern "C" { extern int D_002DD5BC; }
+extern "C" { extern int D_002F7900; }
+extern "C" { extern int D_002E1E40; }
 extern "C" {
 Ref func_001FE478(P *, int);
 void StopSnd(X *, float);
@@ -2393,8 +2393,8 @@ struct Ref {
 struct D { char pad[0x48]; int n48; char pad2[0x54 - 0x4C]; int n54; };
 struct P { char pad[0x200]; Ref r200; char pad2[0x22C - 0x204]; X *a[6]; int n244; int n248; int n24C; };
 struct G;
-extern G D_003DD490;
-extern char D_004435F0[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_004435F0[]; }
 extern "C" {
 void StopDialog(P *, int);
 D *func_001FCFA0(P *, int);
@@ -2604,8 +2604,8 @@ class X;
 typedef void (X::*PMF)();
 struct P {char pad0[0x13C];float weights[8][4];int pad1BC;float outputs[4];char pad1D0[0x30];X *object;int count;X *refs[8];X *component;};
 struct LM {float low,high;};
-extern LM D_002BBB60;
-extern PMF D_002A8298,D_002A82A0;
+extern "C" { extern LM D_002BBB60; }
+extern "C" { extern PMF D_002A8298,D_002A82A0; }
 extern "C" float GLimitLm__FP2LMf(LM *,float);
 extern "C" void *func_002333B4(void *,int,unsigned int);
 extern "C" void snd_SetMasterVolume(int,int);
