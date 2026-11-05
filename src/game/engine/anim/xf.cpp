@@ -130,7 +130,7 @@ namespace M_func_0022C840 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(...); };   /* the C file's unprototyped pointer */
 struct O { int a[3]; struct VTE *vt; };
 struct Q { char pad[0x80]; float a, b; void *pa, *pb; char pad2[8]; short k; short l; };
-extern float D_002A98D0;
+extern const float D_002A98D0 = -3.40282347e+38f;   /* -FLT_MAX */
 extern char D_002C44E0[];
 /** @sly2-annot addr=0x22C840
  * Purpose: for active roles marks the owning SO awake

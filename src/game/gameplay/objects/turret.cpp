@@ -54,16 +54,17 @@ struct TURRET
 typedef char assert_TURRET_pact[(unsigned int)&((TURRET *)0)->pact == 0x1D8 ? 1 : -1];
 struct CLOCK {float t,dt;};
 
-extern LM D_002C4400;
+/* turret's .data (address order). */
+LM D_002C4400 = {0.1f, 1.0f};
+float D_002C4408[3] = {5.0f, 0.0f, 0.5f};          /* damping */
+float D_002C4418[2] = {1.0f, 4.0f}, D_002C4420[3] = {2.0f, 0.0f, -1.0f};
 extern char D_002DDF40[];
 extern CLOCK D_002DDED0;
 extern int D_003E0FE0;
 extern char D_003D4A60[];
-extern float D_002C4408[];
 extern float D_002DDF7C;
 extern LM D_002BBB60;
-extern float D_002C4418[2],D_002C4420[3];
-extern SMP D_002A97B0;
+extern const SMP D_002A97B0 = {0.2f, 0.0f, 0.5f, 1.0f};
 extern "C" {
 void InitPo(TURRET *p);
 void ClonePo(TURRET *p, TURRET *pSrc);

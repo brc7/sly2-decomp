@@ -97,8 +97,9 @@ extern SW D_003DD490;
 extern char D_002DEB30[];
 extern qword D_002A2DD0;
 extern qword D_002A2DE0;
-extern qword D_002A4B60;
-extern float D_002A4B30[];
+union VQ { float af[4]; qword q; };   /* a 16-byte vector that can be initialized, read as a qword */
+extern const VQ D_002A4B60 = {{0.0f, 0.0f, -2500.0f, 0.0f}};   /* the dropped booty's gravity */
+extern const float D_002A4B30[3] = {0.0f, 0.0f, 1.5f};
 extern RANGE D_002BBB60;
 extern float D_003E1BFC;
 extern const LONGU D_002A4B58;
@@ -106,8 +107,8 @@ extern const LONGU D_002A4BB0;
 extern int D_003E0F9C;
 extern char D_003DA0C0[];
 extern char D_003E0EA8[];
-extern char D_002A4BB8[];
-extern char D_002A4BC0[];
+extern const char D_002A4BB8[] = "booty";
+extern const char D_002A4BC0[] = "aoidAssembly";
 extern char D_003D4A60[];
 
 void InitSo(BOOTY *);
@@ -159,7 +160,7 @@ void PostNotice(void *pv, int n, float g);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *pv, int n);
 void UpdateStepplayerBootySave(HERO *q, int n, CID37 *p);
-short NFindSaveSymbol(void *, char *);
+short NFindSaveSymbol(void *, const char *);
 void *func_002109B8(int);
 struct SVKEYS;
 void PkeyConcatSaveKeys(void *, SVKEYS *);
@@ -722,7 +723,7 @@ void SetBootyState(BOOTY *p, int st)
         u.f[1] = b;
         u.f[2] = c;
         VCALL(p, 36, PFNQ), u.q);
-        SetSoDvGravity(p, D_002A4B60);
+        SetSoDvGravity(p, D_002A4B60.q);
         BroadcastGameEvent(D_002DEB30, 0x30, p);
         break;
     }

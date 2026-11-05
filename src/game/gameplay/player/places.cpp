@@ -63,8 +63,8 @@ struct CLOCK { float t; float dt; };
 
 extern G D_003DD490;
 extern D D_002DDF40;
-extern float D_002BF940;
-extern float D_002A66A0;
+float D_002BF940 = 1.25f;   /* places' .data starts here (address order) */
+extern const float D_002A66A0 = 3.40282347e+38f;   /* FLT_MAX */
 extern VECTOR D_002A2DD0;
 extern CLOCK D_002DDED0;
 extern JT *D_002E1E40, *D_002DD5BC, *D_002F7900;
@@ -89,10 +89,13 @@ void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
 void FFilterSoPair(void);
-extern float D_002BF944;
-extern qword D_002BF950[8];
-extern CLQ D_002BF9D0;
-extern LM D_002BF9E0;
+/* VQ: a 16-byte vector that can be initialized (floats first), read as a qword (.q). */
+union VQ { float af[4]; qword q; };
+float D_002BF944 = 500.0f;          /* the nearby-objects sphere radius */
+VQ D_002BF950[8] = {{{40.0f, 0.0f, 0.0f, 0.0f}}, {{28.3f, 28.3f, 0.0f, 0.0f}}, {{0.0f, 40.0f, 0.0f, 0.0f}}, {{-28.3f, 28.3f, 0.0f, 0.0f}},
+    {{-40.0f, 0.0f, 0.0f, 0.0f}}, {{-28.3f, -28.3f, 0.0f, 0.0f}}, {{0.0f, -40.0f, 0.0f, 0.0f}}, {{28.3f, -28.3f, 0.0f, 0.0f}}};   /* 8 probe offsets */
+CLQ D_002BF9D0 = {400.0f, -1.0f, 0.0f};
+LM D_002BF9E0 = {0.0f, 1000.0f};
 int CploFindSwObjectsByClass(G *g, int k, int n, int m, int c, LO2 **apv);
 float func_0019F7D0(JTPLACES *p, PLACE *e, int c, LO2 **apv);
 qword func_001A62E8(void *p);
@@ -247,7 +250,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
             g = GMax(g, 2000.0f);
         for (unsigned k = 0; k < 8; k++) {
             qword v;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(D_002BF950[k]));
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(D_002BF950[k].q));
             b.q = v;
             a.q = v;
             a.f[2] += 50.0f;
