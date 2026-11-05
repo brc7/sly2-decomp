@@ -1902,3 +1902,13 @@ namespace M_tn_data { extern "C" {
 VECTOR4 D_002C4290[5] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, -50.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 75.0f, 0.0f},
     {0.0f, 0.0f, -50.0f, 0.0f}};
 } }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_tn {
+void p_UpdateTnCallback() __asm__("UpdateTnCallback");
+extern "C" {
+extern const unsigned int D_002A96F0[2] = {0xFFFF0000, (unsigned int)p_UpdateTnCallback};
+}
+} // namespace ANPTR_tn

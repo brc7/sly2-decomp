@@ -1489,3 +1489,13 @@ extern "C" void FramePtr_Assign(CFrame **ppframe, CFrame *pframe)
     }
     *ppframe = pframe;
 }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_proxy {
+void p_func_001CA8C0() __asm__("func_001CA8C0");
+extern "C" {
+extern const unsigned int D_002A77C0[2] = {0xFFFF0000, (unsigned int)p_func_001CA8C0};
+}
+} // namespace ANPTR_proxy

@@ -5645,3 +5645,15 @@ VECTOR4 D_002C3BA0[8] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, {1.
     {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f},
     {1.0f, 0.0f, 0.0f, 0.0f}};
 int D_002C3C20[8] = {0, 3, 2, 2, 2, 1, 1, 1};
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_so {
+void p_func_001F3868() __asm__("func_001F3868");
+void p_func_001F7950() __asm__("func_001F7950");
+extern "C" {
+extern const unsigned int D_002A8270[2] = {0xFFFF0000, (unsigned int)p_func_001F3868};
+extern const unsigned int D_002A8278[2] = {0xFFFF0000, (unsigned int)p_func_001F7950};
+}
+} // namespace ANPTR_so

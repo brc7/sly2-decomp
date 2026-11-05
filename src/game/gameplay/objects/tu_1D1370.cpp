@@ -2771,3 +2771,13 @@ SMP D_002C21C0 = {5.0f, 0.0f, 0.2f};
 int D_002C2208[4] = {115, 116, 117, 118};
 VECTOR4 D_002C2230 = {0.5f, 0.001f, 0.0f, 0.0f};
 int D_002C2248[3] = {119, 120, 121};
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_tu_1D1370 {
+void p_func_001D3FF0() __asm__("func_001D3FF0");
+extern "C" {
+extern const unsigned int D_002A7840[2] = {0xFFFF0000, (unsigned int)p_func_001D3FF0};
+}
+} // namespace ANPTR_tu_1D1370

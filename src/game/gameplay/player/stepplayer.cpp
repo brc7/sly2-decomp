@@ -3526,3 +3526,13 @@ VECTOR4 D_002BD2B0 = {-500.0f, -0.5f, 0.0f, 0.0f};
 float D_002BD2C0 = 1.0f;
 float D_002BD2C4 = 2.5f;
 int D_002DD640;
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_stepplayer {
+void p_func_00143BD8() __asm__("func_00143BD8");
+extern "C" {
+extern const unsigned int D_002A4D10[2] = {0xFFFF0000, (unsigned int)p_func_00143BD8};
+}
+} // namespace ANPTR_stepplayer

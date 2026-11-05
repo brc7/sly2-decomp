@@ -985,3 +985,13 @@ void TB::SetVerticalJust(int j) {
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 RHYTHMMGR *D_002DE570;
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_rhythm {
+void p_func_00152810() __asm__("func_00152810");
+extern "C" {
+extern const unsigned int D_002A5010[2] = {0xFFFF0000, (unsigned int)p_func_00152810};
+}
+} // namespace ANPTR_rhythm

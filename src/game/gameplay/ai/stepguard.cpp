@@ -4612,3 +4612,13 @@ float D_002C3DBC = 0.25f;
 ulong D_003DD480;
 int D_003DD488;
 LO *D_003DD48C;
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_stepguard {
+void p_func_00206170() __asm__("func_00206170");
+extern "C" {
+extern const unsigned int D_002A8608[2] = {0xFFFF0000, (unsigned int)p_func_00206170};
+}
+} // namespace ANPTR_stepguard

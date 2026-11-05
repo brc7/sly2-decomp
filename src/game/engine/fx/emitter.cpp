@@ -2764,3 +2764,13 @@ extern const float D_002A514C = 3.40282347e+38f;
 extern const float D_002A5150 = 3.40282347e+38f;
 int D_002BDEB0[4] = {75, 77, 78, 76};
 LM D_002BDEC0 = {0.5f, 2.0f};
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_emitter {
+void p_func_00159968() __asm__("func_00159968");
+extern "C" {
+extern const unsigned int D_002A5140[2] = {0xFFFF0000, (unsigned int)p_func_00159968};
+}
+} // namespace ANPTR_emitter

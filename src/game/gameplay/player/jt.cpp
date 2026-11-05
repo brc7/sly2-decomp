@@ -4849,3 +4849,13 @@ LM D_002BF3A8 = {-1.0f, 1.0f};
 LM D_002BF3B0 = {-50.0f, 35.0f};
 SMPA D_002BF418 = {1000.0f, 0.0f, 0.5f, 0.0f};
 LO *D_002E1E40;   /* g_pjt */
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_jt {
+void p_func_0018E330() __asm__("func_0018E330");
+extern "C" {
+extern const unsigned int D_002A5F98[2] = {0xFFFF0000, (unsigned int)p_func_0018E330};
+}
+} // namespace ANPTR_jt

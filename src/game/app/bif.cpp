@@ -5599,3 +5599,20 @@ int COMMONS_bif::c_002DD288;
 int COMMONS_bif::c_002DD28C;
 int COMMONS_bif::c_00452098[4];
 int COMMONS_bif::c_004520A8[4];
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_bif {
+void p_RadNormalize__Ff() __asm__("RadNormalize__Ff");
+void p_acosf() __asm__("acosf");
+void p_asinf() __asm__("asinf");
+void p_atanf() __asm__("atanf");
+void p_cosf() __asm__("cosf");
+void p_sinf() __asm__("sinf");
+void p_sqrtf() __asm__("sqrtf");
+void p_tanf() __asm__("tanf");
+extern "C" {
+extern unsigned int D_002BBB70[8] = {(unsigned int)p_sqrtf, (unsigned int)p_sinf, (unsigned int)p_cosf, (unsigned int)p_tanf, (unsigned int)p_asinf, (unsigned int)p_acosf, (unsigned int)p_atanf, (unsigned int)p_RadNormalize__Ff};
+}
+} // namespace ANPTR_bif

@@ -1292,3 +1292,13 @@ void func_001A28B0(struct P *p,void *o)
 }
 } } // namespace M_func_001A28B0
 
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_hurt {
+void p_func_001A2080() __asm__("func_001A2080");
+extern "C" {
+extern const unsigned int D_002A6790[2] = {0xFFFF0000, (unsigned int)p_func_001A2080};
+}
+} // namespace ANPTR_hurt

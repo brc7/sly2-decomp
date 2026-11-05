@@ -2835,3 +2835,15 @@ extern const SMP D_002A8288 = {2.0f, 0.0f, 0.2f};   /* copied whole as three wor
 extern const LM D_002A83B8 = {500.0f, 3000.0f};
 extern const LM D_002A83C0 = {500.0f, 1000.0f};
 int D_002C3C40[6] = {1548, 1549, 1550, -1, 1551, 1552};
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_sound {
+void p_PauseSnd() __asm__("PauseSnd");
+void p_ResumeSnd() __asm__("ResumeSnd");
+extern "C" {
+extern const unsigned int D_002A8298[2] = {0xFFFF0000, (unsigned int)p_PauseSnd};
+extern const unsigned int D_002A82A0[2] = {0xFFFF0000, (unsigned int)p_ResumeSnd};
+}
+} // namespace ANPTR_sound

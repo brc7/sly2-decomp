@@ -2842,3 +2842,23 @@ struct COMMONS_memcard {
     static int c_004425D8 __asm__("D_004425D8");   /* .bss 0x4 */
 };
 int COMMONS_memcard::c_004425D8;
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_memcard {
+void p_McJobCreateSave() __asm__("McJobCreateSave");
+void p_McJobFormat() __asm__("McJobFormat");
+void p_McJobGetInfo() __asm__("McJobGetInfo");
+void p_McJobSaveSlot() __asm__("McJobSaveSlot");
+void p_func_001ABBE0() __asm__("func_001ABBE0");
+void p_func_001ABC68() __asm__("func_001ABC68");
+extern "C" {
+extern const unsigned int D_002A6BA0[2] = {0xFFFF0000, (unsigned int)p_McJobGetInfo};
+extern const unsigned int D_002A6C88[2] = {0xFFFF0000, (unsigned int)p_func_001ABBE0};
+extern const unsigned int D_002A6C90[2] = {0xFFFF0000, (unsigned int)p_McJobSaveSlot};
+extern const unsigned int D_002A6D88[2] = {0xFFFF0000, (unsigned int)p_McJobCreateSave};
+extern const unsigned int D_002A6E88[2] = {0xFFFF0000, (unsigned int)p_McJobFormat};
+extern const unsigned int D_002A6E90[2] = {0xFFFF0000, (unsigned int)p_func_001ABC68};
+}
+} // namespace ANPTR_memcard

@@ -935,3 +935,15 @@ extern "C" void func_0013D328(CID37 *p, int n)
     }
     if (n != -1) func_0013CF38(p, 0);
 }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_booty {
+void p_func_0013C4E0() __asm__("func_0013C4E0");
+void p_func_0013CF38() __asm__("func_0013CF38");
+extern "C" {
+extern const unsigned int D_002A4B58[2] = {0xFFFF0000, (unsigned int)p_func_0013C4E0};
+extern const unsigned int D_002A4BB0[2] = {0xFFFF0000, (unsigned int)p_func_0013CF38};
+}
+} // namespace ANPTR_booty
