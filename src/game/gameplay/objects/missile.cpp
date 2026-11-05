@@ -36,6 +36,18 @@ struct BOMB : public SO
       undefined4 unk_0x1f8[2];
       RWM *prwmOwner;
       undefined4 unk_0x204[3];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBombClassDesc");   /* slot 6 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
+    virtual void Init() __asm__("InitBomb");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostBombLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateBomb");   /* slot 16 */
+    virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
+    virtual void VUnk57() __asm__("func_0013AEB0");   /* slot 58 */
+    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBombIntersection");   /* slot 61 */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbBombWkr");   /* slot 75 */
+    virtual void VSlot76() __asm__("func_0013AA70");   /* slot 76 */
+    virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
 };
 struct MISSILE : public BOMB
 {
@@ -52,6 +64,13 @@ struct MISSILE : public BOMB
       int fAct;              /* +0x264 run the flight action */
       ACT *pact;             /* +0x268 */
       float gAct;            /* +0x26C the action's parameter (1.0) */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
+    virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreMissileIntersection__FP7MISSILEP2SO");   /* slot 61 */
+    virtual void VSlot77() __asm__("func_001B1F10");   /* slot 77 */
+    virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
 typedef char assert_MISSILE_paseg[SLY2_OFFSETOF(MISSILE, paseg) == 0x230 ? 1 : -1];
@@ -62,6 +81,8 @@ struct ACCMISS : public MISSILE
       float svFast;
       undefined4 unk_0x278[2];
     virtual void VUnk69() __asm__("PresetAccmissAccel");
+    virtual CLASSINFO *Pclassinfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
 };
 struct SPLMISS : public MISSILE
 {
