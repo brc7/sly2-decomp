@@ -464,8 +464,8 @@ MATRIX3 LoadRotateMatrix(qword vec);
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
 bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst);
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sFar, float sNear, MATRIX4 *pmat);
-extern LM D_002BBB60;
-extern CLOCK D_002DDED0;
+extern "C" { extern LM D_002BBB60; }
+extern "C" { extern CLOCK D_002DDED0; }
 struct CAMEVENT
 {
       uint32_t   _pad_376    [ 3 ] ;
@@ -499,15 +499,15 @@ static inline qword QwAddScaled(qword qwBase, qword qwD, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwD), "j"(g.qw));
     return qw;
 }
-extern float D_002BD850;
-extern float D_002BD854;
-extern CLQ D_002BD860;
-extern qword D_002BD870;
-extern qword D_002BD880;
-extern qword D_002BD890;
-extern qword D_002BD8A0;
-extern qword D_002A2DE0;
-extern float *VECTOR_opAssign(float *pg, qword qw);
+extern "C" { extern float D_002BD850; }
+extern "C" { extern float D_002BD854; }
+extern "C" { extern CLQ D_002BD860; }
+extern "C" { extern qword D_002BD870; }
+extern "C" { extern qword D_002BD880; }
+extern "C" { extern qword D_002BD890; }
+extern "C" { extern qword D_002BD8A0; }
+extern "C" { extern qword D_002A2DE0; }
+extern "C" { extern float *VECTOR_opAssign(float *pg, qword qw); }
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
