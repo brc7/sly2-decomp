@@ -1082,6 +1082,10 @@ int FFindCmClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgM
 }
 } } // namespace M_FFindCmClearInterval
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A4FF8 __asm__("D_002A4FF8") = 3.40282347e+38f; }
 namespace M_FindCmClosestClearPos {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
@@ -1860,7 +1864,7 @@ void func_00258290(S *p, int x)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A4FF8 = 3.40282347e+38f;
+extern const float D_002A4FF8;   /* defined below where the ELF has it (.rodata order) */
 
 
 

@@ -504,6 +504,13 @@ static inline int IOther(SOTREEV *ptree, CONTACT *pcontact)
     return ptree->plo == pcontact->aend[0].plo ? 0 : 1;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_func_00149010() __asm__("func_00149010");
+extern const unsigned int r_D_002A4E80[2] __asm__("D_002A4E80") = {0xFFFF0000, (unsigned int)p_func_00149010};
+}
 /** @sly2-annot addr=0x148C98
  * Purpose: vt16: UpdateSo then press/repush state machine against pushing objects (current player etc.)
  * Info: proposed name UpdateButton (T1); class BUTTON slot16; TU button
@@ -1117,6 +1124,6 @@ extern "C" void func_00149880(VOLBTN *pvolbtn)
 namespace ANPTR_button {
 void p_func_00149010() __asm__("func_00149010");
 extern "C" {
-extern const unsigned int D_002A4E80[2] = {0xFFFF0000, (unsigned int)p_func_00149010};
+extern const unsigned int D_002A4E80[2];   /* defined below where the ELF has it (.rodata order) */
 }
 } // namespace ANPTR_button
