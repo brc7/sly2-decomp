@@ -968,7 +968,10 @@ are defined (1,230 D_ objects in merged files and the six vtables); all function
   the classes' virtual functions are free functions with C names (the LO/BASIC hierarchy, CSwHeap, CMemInputStream,
   ...; heap.cpp's comment), so the classes are views. Four objects emit vtables of view classes (SM, ACCMISS, JT,
   CMPART2) that name placeholder members (VUnk00__5BASIC, Init__5CPLCY) no object defines: not counted. VIFS's
-  vtable has no counterpart in the game (the block holds one `{EndPrim__4DMASi}` vtable, DMAS's).
+  vtable has no counterpart in the game (the block holds one `{EndPrim__4DMASi}` vtable, DMAS's). Matched code that
+  names a view's vtable (`_vt$Q23REG2SO`) is resolved by config/link_aliases.txt instead (see "Linkage of
+  namespace-scoped declarations"): its vtable lines point at 212 addresses in the block (190 of the survey's kind
+  `vtable`, the rest classified otherwise or not listed), none of them defined by an object yet.
 
 | TU | defined | kinds | notes |
 |---|---:|---|---|
@@ -1039,7 +1042,7 @@ whether to add `-fno-rtti` to the build flags (the game's vtables have 0 where o
 A declaration inside a per-function namespace gets the namespace in its symbol unless it has C linkage or an asm
 label; a file-scope declaration under a draft name or signature gets a symbol nobody defines. Relocations are masked,
 so the match never shows a wrong callee or global symbol; a native link does. Rules (integrate/round2 and
-link/round3, 2026-11-05):
+link/round3, 2026-11-05; the data definitions of the Data section follow them too):
 
 - A global (`D_...`, `g_...`) or a C-named function declared in a namespace: wrap the declaration in `extern "C" { }`
   inside the namespace (the name stays namespace-scoped for lookup, so the view's types still apply). If the same
@@ -1066,7 +1069,7 @@ link/round3, 2026-11-05):
   name; the link resolves it through the alias table.
 - What source cannot bind goes to config/link_aliases.txt, `symbol = target;` with the target recovered from the
   ELF: the 214 vtables of namespace-scoped view classes (`_vt$Q23REG2SO = D_002D9978;`, class_registry's
-  construction views and other views with virtuals), the 41 view destructors and 28 file-scope destructor references
+  construction views and other views with virtuals; 212 distinct addresses, see Data, phase 2, "Vtables"), the 41 view destructors and 28 file-scope destructor references
   (`STACKSCOPE_ctor_1AE4A0`, `PairPtr_Release`), g_pfrmOpen, `__builtin_new` (the game's operator new,
   func_001AE4F8), three template members and `D_C0`. Two file-scope destructor names stand for different functions in
   different objects (`_$_3SPM`: PairPtr_Release in eval/pair/ref/serialize/callback, func_00257250 in
@@ -1076,6 +1079,11 @@ link/round3, 2026-11-05):
   defines: the config name at that address when there is one (`func_002333B4 = memset;`), else the absolute address,
   which is only right in a link that keeps the original data image at its original addresses (docs/guides/full-link.md).
   Not used by any build yet.
+- Data definitions and the alias table: a definition inside a namespace carries `extern "C"` like a declaration
+  (Data, "Namespace-mangled externs" and "Under C linkage in a namespace"). An alias target may be an object some file
+  defines (`g_pfrmOpen = D_002DEA4C;`, frm's; 11 targets are defined objects or functions); an entry whose symbol
+  becomes defined by an object must leave the table (none after data phase 2), and a `D_` name that becomes defined
+  drops out of the address names linkaliases.py derives.
 - Check the whole relocation, not only the symbol: for every relocation in a function or data object with a known
   address, the relocated field in the ELF (jal target, %hi/%lo pair, R_MIPS_32) minus the object's addend must be the
   address config gives the symbol. This found two source bugs the match masks (round 3): mpeg called
@@ -1088,18 +1096,22 @@ symbol from the relocated field in the ELF; then check every relocation as above
 (symcheck.py, targets.py, relverify.py; nslabel2.py and fixdecl.py did the round-3 edits). Every touched file was
 re-checked with matchtool (functions and data MATCH); header changes were checked in all includers.
 
-Numbers (209 merged game objects, link/round3 head):
+Numbers (209 merged game objects; integrate/round3 = link/round3 merged with data/phase-3):
 
-| | integrate/round2 | link/round3 |
-|---|---:|---:|
-| unresolved undefined references | 1,114 | 531 |
-| of them covered by config/link_aliases.txt | - | 289 |
-| of them referenced only from unmatched key-TU extras (see below) | - | 242 |
-| other | - | 0 |
-| address-name references (`D_`/`func_` not in config; derived by linkaliases.py) | 1,858 | 1,860 (1,133 names) |
-| relocations checked against the ELF | - | 25,768 OK, 2 mismatched (below) |
-| strong globals defined by more than one object | 0 | 0 |
-| namespace-mangled global definitions | 0 | 0 |
+| | integrate/round2 | link/round3 | integrate/round3 |
+|---|---:|---:|---:|
+| unresolved undefined references | 1,114 | 531 | 531 (same set) |
+| of them covered by config/link_aliases.txt | - | 289 | 289 |
+| of them referenced only from unmatched key-TU extras (see below) | - | 242 | 242 |
+| other | - | 0 | 0 |
+| address-name references (`D_`/`func_` not in config; derived by linkaliases.py) | 1,858 | 1,860 (1,133 names) | 1,146 (616 names) |
+| relocations checked against the ELF | - | 25,768 OK, 2 mismatched (below) | 26,377 OK, 2 mismatched |
+| strong globals defined by more than one object | 0 | 0 | 0 |
+| namespace-mangled global definitions | 0 | 0 | 0 |
+
+Data phase 2 defines only objects that config already names or that have `D_` names, so it lowers the address-name
+references, not the unresolved ones; none of its definitions is a symbol of the alias table. The merge needed no
+source change: every function and data symbol of the 69 sources either branch touched still MATCHes.
 
 Round 3 fixed 583 references in source: 227 namespace references with a C++ target (asm labels, 14 files) and 356
 file-scope references (57 renames, 299 asm labels, in 45 sources and 7 headers). Of the 632 file-scope references at

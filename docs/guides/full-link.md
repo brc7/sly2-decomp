@@ -1,7 +1,7 @@
 # Full PS2 link (sketch)
 
-What it takes to link the matched sources back into SCUS_973.16, and how far the repo is (link/round3,
-2026-11-05). Nothing here is built yet: no linker script, no link step. The symbol side is in
+What it takes to link the matched sources back into SCUS_973.16, and how far the repo is (integrate/round3:
+link round 3 and data phase 2, 2026-11-05). Nothing here is built yet: no linker script, no link step. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
 ## The target: the ELF's layout
@@ -34,25 +34,31 @@ Segment 0 covers .text through .bss (file size 0x1DD230, memory size 0x352200); 
 | crt0 | 1 | 1 (`_start`) | yes | src/game/platform/boot/crt0/_start.c; `func_00100000` before it is unmatched |
 | dead code | - | - | - | junk.csv ranges: emit the original bytes to keep addresses |
 | VU microcode, IRX modules | - | - | - | blobs |
-| data nobody defines | - | - | - | 1,296 address names (`D_XXXXXXXX`), see below |
+| data nobody defines | - | - | - | 779 address names (`D_XXXXXXXX`), see below |
 
 matched.csv has 6,663 rows (all `match`). Named data objects that the 209 merged objects define, by section (data
-symbols with a known address, bytes): .data 466 objects / 0x38F5 (7.3% of the section), .rodata 100 / 0xC75 (1.0%,
-plus the anonymous literals of every object), .sbss 3 / 0xC, .bss 140 / 0xE5BF4 (61.6%).
+symbols with a known address, bytes): .data 845 objects / 0x81E9 (16.7% of the section), .rodata 205 / 0xF63 (1.3%,
+plus the anonymous literals of every object), .sbss 3 / 0xC, .bss 179 / 0xEB4E0 (63.1%): 1,232 objects, about 1,236
+of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before data phase 2 (link/round3): .data
+466 / 0x38F5, .rodata 100 / 0xC75, .sbss 3 / 0xC, .bss 140 / 0xE5BF4.
 
-## Symbols (state after link round 3)
+## Symbols (state after link round 3 and data phase 2)
 
 - 531 undefined references not in config remain in the 209 objects: 289 are listed in config/link_aliases.txt
   (vtables and destructors of namespace-scoped views, a few declarations source cannot bind) and 242 are referenced
   only from key-TU extras that the ELF does not have (unreferenced linkonce vtables and typeinfo functions). The extras
-  must not be resolved but dropped: `--gc-sections`, or a `/DISCARD/` for those `.gnu.linkonce.*` sections.
-- 1,860 references to 1,133 address names nobody defines. `tools/linkaliases.py <objects>` derives them: 24 `func_`
-  names are config functions under another name (`func_002333B4 = memset;`, declared under the address name by 70 of
-  the 209 sources) and become aliases; the rest (1,296 names with the alias targets) become absolute addresses: .data 697, .rodata 266, .bss 229,
-  .sbss 31, .text 29, .vutext 14, .irx 3, and 26 small values (0x0..0x3AB0, VU-memory / scratchpad offsets).
+  must not be resolved but dropped: `--gc-sections`, or a `/DISCARD/` for those `.gnu.linkonce.*` sections. Data
+  phase 2 left this set unchanged: no symbol of the alias table is among the newly defined objects (its six vtables
+  are of real classes, the table's 214 are of views; 11 alias targets, e.g. D_002DEA4C, are defined by objects).
+- 1,146 references to 616 address names nobody defines (1,860 to 1,133 before data phase 2).
+  `tools/linkaliases.py <objects>` derives them: 24 `func_` names are config functions under another name
+  (`func_002333B4 = memset;`, declared under the address name by 70 of the 209 sources) and become aliases; the rest
+  (779 names with the alias targets; 1,296 before data phase 2) become absolute addresses: .data 323, .rodata 162,
+  .bss 190, .sbss 31, .text 29, .vutext 14, .irx 3, and 27 small values (0x0..0x3AB0, VU-memory / scratchpad offsets).
 - Two objects define different functions under the same file-scope destructor name (`_$_3SPM`, `_$_3OBJ`): per-object
   `objcopy --redefine-syms` files from `tools/linkaliases.py --redefine DIR`.
-- 25,768 relocations agree with the ELF (field minus addend = the symbol's config address, through the alias table);
+- 26,377 relocations agree with the ELF (field minus addend = the symbol's config address, through the alias table;
+  25,768 before data phase 2);
   2 do not because config/functions.csv and config/symbol_addrs.txt disagree on the libcdvd names at 0x242A20,
   0x242AB8 and 0x242AE0. A link resolves `sceCdGetError` / `sceCdGetDiskType` by whichever object defines them, so
   this has to be settled before the link.
@@ -68,7 +74,7 @@ plus the anonymous literals of every object), .sbss 3 / 0xC, .bss 140 / 0xE5BF4 
    with the SDK still unbuilt (its code comes from the image, its symbols from config).
 2. **Real link.** Every section from objects, in the ELF's order, so code and data can move. Needs: an object for
    every byte (SDK, dead code as `.word` blobs or the junk ranges recompiled, VU and IRX blobs as binary input),
-   every `D_` defined by some object (today 1,296 are not), the TU order inside each output section reproduced from
+   every `D_` defined by some object (today 779 are not), the TU order inside each output section reproduced from
    tools/layout/units.csv (functions) and the data addresses (the anonymous .rodata literals land wherever their
    object lands, so the order is checked by comparing the image, not by symbols), and the absolute address names
    replaced by symbols of the objects that define the data.
