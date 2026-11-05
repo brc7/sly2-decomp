@@ -1862,3 +1862,27 @@ void func_00258290(S *p, int x)
     func_00258348(p, x);
 }
 } } // namespace M_func_00258290
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A4FF8 = 3.40282347e+38f;
+SMP D_002BD810 = {20.0f, 10.0f, 0.5f};
+float D_002BD81C = 500.0f;
+float D_002BD820 = 20000.0f;
+float D_002BD824 = 0.5f;
+VECTOR4 D_002BD830 = {0.0f, -2000.0f, 500.0f, 0.0f};
+VECTOR4 D_002BD840 = {0.0f, 0.0f, 0.0f, 0.0f};
+float D_002BD850 = 0.5f;
+float D_002BD854 = 50.0f;
+CLQ D_002BD860 = {{{1.0f, -2.0f, 1.0f, 0.0f}}};
+VECTOR4 D_002BD870 = {0.0f, 0.0f, 0.0f, 0.0f};
+VECTOR4 D_002BD880 = {0.05f, 0.0f, 0.0f, 0.0f};
+VECTOR4 D_002BD890 = {0.0f, 0.0f, 0.0f, 0.0f};
+VECTOR4 D_002BD8A0 = {0.0f, 0.0f, 0.0f, 0.0f};
+int D_002BD8B0[9] = {1, 5, 10, 12, 15, 12, 10, 5, 1};  /* smoothing weights */
+float D_002BD8D4 = 4.0f;
+float D_002BD8D8 = 125.0f;
+float D_002BD8DC = 1500.0f;
+SMPA D_002BD8E0 = {2500.0f, 0.0f, 0.25f, 0.0f};
+VECTOR4 D_002BD8F0 = {-250.0f, -250.0f, -250.0f, 0.0f};
+VECTOR4 D_002BD900 = {250.0f, 250.0f, 250.0f, 0.0f};

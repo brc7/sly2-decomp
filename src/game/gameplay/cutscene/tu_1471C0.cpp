@@ -430,3 +430,7 @@ extern "C" void func_00147C20(P *p, int oid, int n)
         func_00147410(p, 0);
     }
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+P *D_002DD644;

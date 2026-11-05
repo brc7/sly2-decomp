@@ -4566,3 +4566,41 @@ void func_0020B590(struct S *p)
 }
 } } // namespace M_func_0020B590
 
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A8600 = 3.40282347e+38f;
+extern const float D_002A8604 = -3.40282347e+38f;
+extern const float D_002A8610 = -3.40282347e+38f;
+extern const float D_002A8614 = -3.40282347e+38f;
+extern const float D_002A8698 = 3.40282347e+38f;
+extern const float D_002A8868 = 3.40282347e+38f;
+extern const float D_002A886C = 3.40282347e+38f;
+extern const float D_002A88C4 = 3.40282347e+38f;
+extern const float D_002A88C8 = 3.40282347e+38f;
+extern const float D_002A88CC = 3.40282347e+38f;
+int D_002C3CF0 = 0;
+int D_002C3CF8[3] = {256, 1515, 3724};  /* 3.59e-43f 2.123e-42f 5.218e-42f */
+float D_002C3D04 = 1500.0f;
+float D_002C3D08 = 1000.0f;
+float D_002C3D0C = 250.0f;
+int D_002C3D10[5] = {59, 64, 61, 62, 65};  /* cids */
+VECTOR4 D_002C3D30 = {0.5f, 0.5f, 0.5f, 0.0f};
+float D_002C3D40[3] = {10.0f, 30.0f, 5.0f};
+float D_002C3D4C = 80.0f;
+float D_002C3D50[3] = {1.0f, -2.0f, 1.0f};
+float D_002C3D60[2] = {-0.08f, 0.05f};
+float D_002C3D70[3] = {-400.0f, 0.8f, 0.0f};
+float D_002C3D80[3] = {-500.0f, 0.8f, 0.0f};
+float D_002C3D90 = -500.0f;
+float D_002C3D94 = 0.7f;
+int D_002C3D98[4] = {3, 20, 12, 22};  /* 4e-45f 2.8e-44f 1.7e-44f 3.1e-44f */
+float D_002C3DA8 = 800.0f;
+float D_002C3DAC = 0.2f;
+float D_002C3DB0 = 2.0f;
+float D_002C3DB4 = 5.0f;
+float D_002C3DB8 = 1.0f;
+float D_002C3DBC = 0.25f;
+ulong D_003DD480;
+int D_003DD488;
+LO *D_003DD48C;

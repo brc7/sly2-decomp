@@ -111,7 +111,7 @@ struct SFXHOLDER : public XFM
 
 extern SW D_003DD490;       /* g_sw */
 extern "C" {
-extern float D_002A514C;    /* "indefinitely": a time far in the future */
+extern const float D_002A514C;    /* "indefinitely": a time far in the future */
 extern CLOCK D_002DDED0;    /* g_clock */
 void func_001C4848(SW *psw, EMITTER *pemitter);
 void SetLoParent_1A58D0(LO *plo, SO *psoParent, int n);
@@ -2765,3 +2765,11 @@ extern "C" void *GetExploClassDesc_linkonce()
 {
     return D_002BAD68;
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A5148 = 3.40282347e+38f;
+extern const float D_002A514C = 3.40282347e+38f;
+extern const float D_002A5150 = 3.40282347e+38f;
+int D_002BDEB0[4] = {75, 77, 78, 76};
+LM D_002BDEC0 = {0.5f, 2.0f};

@@ -59,7 +59,7 @@ extern char D_002E1E60[];   /* the letterbox object */
 extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
 extern int D_003E1110;          /* current level index */
-extern char D_002A8A98[];       /* empty default for func_00210CA8 */
+extern const char D_002A8A98[]; /* empty default for func_00210CA8 */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
 void UpdateSwIllum(SW *psw);
@@ -2413,6 +2413,33 @@ extern "C" void *func_00210CA8(KVT *pkvt, int key)
             return pkvt->a[i].pv;
         }
     }
-    return D_002A8A98;
+    return (char *)D_002A8A98;
 }
 
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const char D_002A8A78[] = "episodeBest";
+extern const char D_002A8A88[] = "oidPoCurrent";
+extern const char D_002A8A98[] = "";
+float D_002C3E60 = 4000.0f;
+float D_002C3E64 = 1500.0f;
+float D_002C3E68 = 1.5f;
+float D_002C3E6C = 1.0f;
+int D_002C3E70[4] = {881, 877, 878, 879};
+float D_002C3E80 = 65.0f;
+SMPA D_002C3E88 = {500.0f, 0.0f, 0.25f, 2500.0f};
+float D_002C3EA0[3] = {2.0f, -2.0f, 0.0f};
+float D_002C3EB0[2] = {0.0f, 1.0f};
+char D_002C3EB8[8] = {0};   /* zero-filled .data, the address goes into D_003E1C20 */
+int D_003E1C30;
+int D_003E1C38;
+int D_003E1C3C;
+FILEREC *D_003E1C40;   /* g_arecLevel */
+int *D_003E1C44;
+int *D_003E1C48;
+LEVELLIST8 *D_003E1C4C;   /* g_alevellist */
+FILEREC *D_003E1C50;   /* g_aWorldEntryRecord */
+int D_003E1C54;
+int D_003E1C58;
+char D_003E1C60[0x10];   /* its address goes into D_003E1C20 */

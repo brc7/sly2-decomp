@@ -4867,3 +4867,9 @@ extern "C" float func_002599E8(VECTOR *pvec)
 {
     return pvec->z;
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+uint D_002BE540[5] = {0, 0x54545454, 0x50505050, 0x40404040, 0};   /* STMASK per weight count */
+int D_002BE558[5] = {-1, 2, 6, 10, 14};   /* UNPACK format per weight count */
+VECTOR4 D_002BE570 = {0.0f, 0.0f, 1.5f, 0.0f};

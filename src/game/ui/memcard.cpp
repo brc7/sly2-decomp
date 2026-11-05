@@ -120,7 +120,8 @@ extern char D_003D9ED0[];       /* the pause menu */
 extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
 extern CLOCK D_002DDED0;
 extern void *D_002D3750[];      /* CMemcardDialog vtable */
-extern char D_002A38E8[], D_002A6CA0[];   /* the icon file and its card name */
+extern char D_002A38E8[];   /* the icon file */
+extern const char D_002A6CA0[];   /* its card name */
 void InitGame(void *pgame);
 void *memset(void *pv, int b, unsigned int cb);
 char *strcpy(char *pchDst, const char *pchSrc);
@@ -1307,7 +1308,7 @@ int WriteIconSys(void *p, char *dir, char *title)
  * @end-sly2-annot */
 extern "C" void load_sly_icon_from_disc(int n0, int n1)
 {
-    load_file_from_disc(n0, n1, D_002A38E8, D_002A6CA0);
+    load_file_from_disc(n0, n1, D_002A38E8, (char *)D_002A6CA0);
 }
 
 namespace M_load_file_from_disc {
@@ -2749,3 +2750,25 @@ extern "C" void func_00258248(FILEKEY *pfk)
     pfk->bC = 0;
     pfk->n8 = -1;
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const char D_002A6BB0[] = "/BASCUS-97316YAOTWTD!";
+extern const char D_002A6BC8[] = "/BASCUS-97316YAOTWTD!/BASCUS-97316YAOTWTD!";
+extern const char D_002A6BF8[] = "Sly 2";
+extern const char D_002A6C00[] = "/";
+extern const char D_002A6C08[] = "/BASCUS-97316YAOTWTD!/icon.sys";
+extern const char D_002A6C28[] = "/BASCUS-97316YAOTWTD!/memcard_icon.ico";
+extern const char D_002A6C50[] = "/%s/%s%d";
+extern const char D_002A6C60[] = "BASCUS-97316YAOTWTD!";
+extern const char D_002A6C78[] = "save";
+extern const char D_002A6CA0[] = "memcard_icon.ico";
+extern const char D_002A6CB8[] = "%s/%s";
+extern const char D_002A6EB8[] = " : &2T&.";
+extern const char D_002A6EC8[] = "%s : %d%%";
+extern const char D_002A6EE0[] = "episodeBest";
+char D_002E2080[0x4000];   /* the memcard thread's stack (stackSize 0x4000) */
+namespace M_ReadMcDir { extern "C" { ENT D_002E6080[0x480 / sizeof(ENT)]; } }   /* sceMcGetDir table, cleared as 0x480 bytes */
+char D_002E6500[0x50];   /* directory path */
+int D_002E6590;
+int D_002E6594;

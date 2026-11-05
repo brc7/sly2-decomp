@@ -2752,3 +2752,7 @@ typedef int qword __attribute__((mode(TI)));
  * @end-sly2-annot */
 qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }
 } } // namespace M_VECTOR_opAssign
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+char D_002C44E0[4] = {0};   /* an empty buffer the queue pointers start at */

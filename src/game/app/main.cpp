@@ -313,3 +313,33 @@ void Startup()
     End__5CProg(&b);
     ClearPhase(1);
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+/* The 19 startup stages and the terminating 0; the stages are bound to their linker names with asm labels. */
+namespace M_main_data {
+void StartupDma() __asm__("StartupDma__Fv");
+void StartupThread() __asm__("StartupThread__Fv");
+void StartupSif() __asm__("StartupSif__Fv");
+void StartupGs() __asm__("StartupGs__Fv");
+void StartupMemMgr() __asm__("StartupMemMgr__Fv");
+void StartupCd() __asm__("StartupCd__Fv");
+void func_0014B660() __asm__("func_0014B660");
+void StartupFont() __asm__("StartupFont__Fv");
+void StartupJoy() __asm__("StartupJoy__Fv");
+void StartupFrame() __asm__("StartupFrame__Fv");
+void StartupLoadingScreen() __asm__("StartupLoadingScreen");
+void StartupClock() __asm__("StartupClock");
+void StartupVU0() __asm__("StartupVU0__Fv");
+void StartupVU1() __asm__("StartupVU1__Fv");
+void StartupSound() __asm__("StartupSound");
+void StartupBlips() __asm__("StartupBlips__Fv");
+void func_00211528() __asm__("func_00211528");
+void StartupMemcard() __asm__("StartupMemcard__Fv");
+void StartupMpeg() __asm__("StartupMpeg__Fv");
+extern "C" { void (*D_002BFCE0[20])(void) = {
+    StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, func_0014B660, StartupFont,
+    StartupJoy, StartupFrame, StartupLoadingScreen, StartupClock, StartupVU0, StartupVU1, StartupSound, StartupBlips,
+    func_00211528, StartupMemcard, StartupMpeg, 0
+}; }
+}

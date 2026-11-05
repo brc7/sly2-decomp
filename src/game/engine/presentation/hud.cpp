@@ -5255,3 +5255,25 @@ extern "C" void func_0021BB68(void)
     StaticInit_hud(1, 0xFFFF);
 }
 
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const char D_002A8AA0[] = "%d";
+extern const char D_002A8AA8[] = "%d/%d";
+extern const char D_002A8AB0[] = "%d:%02d";
+extern const char D_002A8AB8[] = "x%d";
+extern const char D_002A8AC0[] = "x%5.3f";
+extern const char D_002A8AC8[] = "Far";
+extern const char D_002A8AD0[] = "Near";
+extern const char D_002A8AD8[] = "YIKES";
+extern const char D_002A8AE8[] = "ZRB.";
+extern const char D_002A8B80[] = "Unknown";
+extern const char D_002A8B88[] = "     ";
+char D_002C3EC0[10][0x30] = {"Widget Item 0", "Widget Item 1", "Widget Item 2", "Widget Item 3", "Widget Item 4",
+    "Widget Item 5", "Widget Item 6", "Widget Item 7", "Widget Item 8", "Widget Item 9"};
+int D_002C40A4 = 0;
+float D_002C40A8 = 788096.0f;
+float D_002C40AC = 788864.0f;
+float D_002C40B0 = 788240.0f;
+float D_002C40B4 = 788720.0f;
+float D_002C40B8 = 0.25f;

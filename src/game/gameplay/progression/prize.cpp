@@ -2807,3 +2807,51 @@ void func_001C8AF0(struct S *p, int n)
     }
 }
 } } // namespace M_func_001C8AF0
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A7710 = 3.40282347e+38f;
+extern const float D_002A773C = 3.40282347e+38f;
+extern const float D_002A7758 = 3.40282347e+38f;
+extern const float D_002A775C = -3.40282347e+38f;
+extern const float D_002A7760 = 3.40282347e+38f;
+extern const char D_002A7768[] = "%d";
+extern const char D_002A7770[] = "loot";
+extern const char D_002A7778[] = "mplootkc";
+extern const char D_002A7788[] = "afClue";
+extern const float D_002A7798 = 3.40282347e+38f;
+struct OIDT { int grfsnip; int oid; int ib; };   /* SNIP record (Sly 1 SnipLoObjects) */
+OIDT D_002C0D40[1] = {{0x200, 0x182, 0x164}};
+float D_002C0D4C = -5.0f;
+float D_002C0D50 = 5.0f;
+VECTOR4 D_002C0D60 = {0.0f, 0.0f, -2250.0f, 0.0f};
+float D_002C0D70 = 0.1f;
+float D_002C0D74 = 300.0f;
+float D_002C0D78 = 600.0f;
+float D_002C0D7C = 300.0f;
+VECTOR4 D_002C0D80 = {1.0f, 1.0f, 0.0f, 0.0f};
+float D_002C0D90 = 1.0f;
+float D_002C0E80 = 2000.0f;
+float D_002C0E84 = 300.0f;
+float D_002C0E88 = 25.0f;
+float D_002C0E8C = 100.0f;
+float D_002C0E90 = 23.0f;
+float D_002C0E94 = 1.8f;
+CLQ D_002C0EA0 = {{{200.0f, -250.0f, 0.0f, 0.0f}}};
+LM D_002C0EB0 = {0.0f, 150.0f};
+float D_002C0EB8 = 850.0f;
+float D_002C0EBC = -850.0f;
+float D_002C0EC0 = 1.0f;
+float D_002C0EC4 = 0.075f;
+OIDT D_002C0EC8[0x18] = {{0x200, 0x63C, 0x1A8}, {0x200, 0x63D, 0x1AC}, {0x200, 0x63E, 0x1B0}, {0x200, 0x63F, 0x1B4},
+    {0x200, 0x640, 0x1B8}, {0x200, 0x641, 0x1BC}, {0x200, 0x642, 0x1C0}, {0x200, 0x643, 0x1C4},
+    {0x200, 0x644, 0x1C8}, {0x200, 0x646, 0x208}, {0x200, 0x647, 0x1CC}, {0x200, 0x648, 0x1D0},
+    {0x200, 0x649, 0x1D4}, {0x200, 0x64A, 0x1D8}, {0x200, 0x64B, 0x1DC}, {0x200, 0x64C, 0x1E0},
+    {0x200, 0x64D, 0x1E4}, {0x200, 0x64E, 0x1E8}, {0x200, 0x64F, 0x1EC}, {0x0, 0x650, 0x210}, {0x0, 0x651, 0x214},
+    {0x0, 0x652, 0x218}, {0x0, 0x653, 0x21C}, {0x0, 0x654, 0x220}};
+float D_002C0FE8 = 0.7f;
+VECTOR4 D_002C0FF0[9] = {{-0.7f, 0.7f, 0.0f, 0.0f}, {0.0f, 0.8f, 0.0f, 0.0f}, {0.7f, 0.7f, 0.0f, 0.0f},
+    {-0.8f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, {0.8f, 0.0f, 0.0f, 0.0f}, {-0.7f, -0.7f, 0.0f, 0.0f},
+    {0.0f, -0.8f, 0.0f, 0.0f}, {0.7f, -0.7f, 0.0f, 0.0f}};
+VECTOR4 D_002C1080 = {0.0f, 0.0f, 0.0f, 0.0f};
+VECTOR4 D_002C1090 = {100.0f, 0.0f, 0.0f, 0.0f};

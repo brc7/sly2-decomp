@@ -286,3 +286,36 @@ extern "C" void DrawSw(GAME *pgame)
         func_001EA9F0(pgame, 0);
     }
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+/* The render-pass begin/end hooks, one pair per pass (12: D_002BDD20 indexes 0..11); asm labels bind the hooks. */
+namespace M_draw_data {
+void BeginRpGlob() __asm__("BeginRpGlob");
+void EndRpGlob() __asm__("EndRpGlob");
+void BeginRpCelBorder() __asm__("BeginRpCelBorder");
+void EndRpCelBorder() __asm__("EndRpCelBorder");
+void BeginRpBlip() __asm__("BeginRpBlip");
+void EndRpBlip() __asm__("EndRpBlip");
+void BeginRpBackground() __asm__("BeginRpBackground");
+void EndRpBackground() __asm__("EndRpBackground");
+void BeginRpRelight() __asm__("BeginRpRelight");
+void EndRpRelight() __asm__("EndRpRelight");
+void BeginRpHud() __asm__("BeginRpHud");
+void EndRpHud() __asm__("EndRpHud");
+void BeginRpProjVolume() __asm__("BeginRpProjVolume");
+void EndRpProjVolume() __asm__("EndRpProjVolume");
+void BeginRpRenderTarget0() __asm__("BeginRpRenderTarget0");
+void BeginRpRenderTarget1() __asm__("BeginRpRenderTarget1");
+void BeginRpForeground() __asm__("BeginRpForeground");
+void BeginRpCutout() __asm__("BeginRpCutout");
+void EndRpCutout() __asm__("EndRpCutout");
+extern "C" { PFNRP D_002BDD88[12][2] = {
+    {(PFNRP)BeginRpGlob, (PFNRP)EndRpGlob}, {(PFNRP)BeginRpCelBorder, (PFNRP)EndRpCelBorder},
+    {(PFNRP)BeginRpBlip, (PFNRP)EndRpBlip}, {(PFNRP)BeginRpBackground, (PFNRP)EndRpBackground},
+    {(PFNRP)BeginRpRelight, (PFNRP)EndRpRelight}, {(PFNRP)BeginRpHud, (PFNRP)EndRpHud},
+    {(PFNRP)BeginRpProjVolume, (PFNRP)EndRpProjVolume}, {(PFNRP)BeginRpProjVolume, (PFNRP)EndRpProjVolume},
+    {(PFNRP)BeginRpRenderTarget0, (PFNRP)EndRpGlob}, {(PFNRP)BeginRpRenderTarget1, (PFNRP)EndRpGlob},
+    {(PFNRP)BeginRpForeground, (PFNRP)EndRpGlob}, {(PFNRP)BeginRpCutout, (PFNRP)EndRpCutout}
+}; }
+}

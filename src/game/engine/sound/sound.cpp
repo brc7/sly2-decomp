@@ -2817,3 +2817,10 @@ typedef struct { int pad[2]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
 void func_00259BB0(O **pp, O *o) { if (o) o->vt->f((char *)o + o->vt->d); *pp = o; }
 } } // namespace M_func_00259BB0
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const SMP D_002A8288 = {2.0f, 0.0f, 0.2f};   /* copied whole as three words */
+extern const LM D_002A83B8 = {500.0f, 3000.0f};
+extern const LM D_002A83C0 = {500.0f, 1000.0f};
+int D_002C3C40[6] = {1548, 1549, 1550, -1, 1551, 1552};

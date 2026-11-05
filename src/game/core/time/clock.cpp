@@ -143,3 +143,7 @@ extern "C" TICK TickNow(CLOCK *p)
     p->tickLastRaw = c;
     return ((unsigned long)p->cWrapAround << 32) | c;
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+CLOCK D_002DDED0;   /* g_clock (0x60 bytes: 0x2DDED0..0x2DDF30, between cd's and cm's .bss) */

@@ -981,3 +981,7 @@ void TB::SetHorizontalJust(int j) {
 void TB::SetVerticalJust(int j) {
     jv = j;
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+RHYTHMMGR *D_002DE570;

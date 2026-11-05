@@ -3868,3 +3868,13 @@ namespace M_RefSetGlobalSaveVar { extern "C" {
 extern char D_003E0EA8[]; void RefSetSaveVar(void *, void *, int, int, int);
 void *RefSetGlobalSaveVar(void *a, int b, int c, int d) { RefSetSaveVar(a, D_003E0EA8, b, c, d); return a; }
 } } // namespace M_RefSetGlobalSaveVar
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const char D_002A5238[] = "oidPoCurrent";
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+int D_002DEB28;
+namespace M_InitGame { extern "C" { struct S D_002DEB30; } }   /* g_game, the 0x1C-byte GAME record InitGame clears */
+void *D_002DEB4C;

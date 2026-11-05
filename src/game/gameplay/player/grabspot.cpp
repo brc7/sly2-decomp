@@ -1580,3 +1580,21 @@ long func_00259C08(long a)
     return a;
 }
 } } // namespace M_func_00259C08
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A5680 = 3.40282347e+38f;
+float D_002BE8B0 = 35.0f;
+float D_002BE8B4 = 1250.0f;
+float D_002BE8B8 = 150.0f;
+float D_002BE8BC = 50.0f;
+float D_002BE8C0 = 1250.0f;
+float D_002BE8C4 = 50.0f;
+float D_002BE8C8 = 1250.0f;
+CLQ D_002BE8D0 = {{{0.0f, 45.0f, 4.5f, 0.0f}}};
+CLQ D_002BE8E0 = {{{0.0f, 7.5f, 0.75f, 0.0f}}};
+VECTOR4 D_002BE8F0 = {0.0f, 0.0f, -50.0f, 0.0f};
+float D_002BE900 = 1000.0f;
+float D_002BE904 = 1000.0f;
+float D_002BE908 = 50.0f;
+float D_002BE90C = 75.0f;
