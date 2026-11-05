@@ -238,7 +238,6 @@ void PostLoadStepplayer(struct P *p)
 } } // namespace M_PostLoadStepplayer
 
 namespace M_func_00140338 { extern "C" {
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct G { char pad[0x4A4]; int n4A4; };
@@ -824,7 +823,6 @@ struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
 struct ENT { void *po; int x4; };
-struct CLOCK { float t; float dt; };
 struct GS { char pad[0x4758]; float g4758; };
 struct GG { char pad[0x2010]; void *p2010; };
 extern struct CLOCK D_002DDED0;
@@ -1106,7 +1104,6 @@ struct JT {
     char pad4[0xDF0 - 0x4D0]; char axDF0[4]; int xDF4; char pad5[0x1044 - 0xDF8]; int x1044; int pad6;
     float x104C; float x1050; char pad7[0x1060 - 0x1054]; VU x1060; qword x1070;
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct GS { char pad[0x260]; struct JT *p260; char pad2[0x300 - 0x264]; int x300; };
 extern struct GS D_002DDF40;
@@ -1278,7 +1275,6 @@ struct P {
     char pad[0xC]; struct VTE *vt; char pad1[0x150 - 0x10]; struct X150 *p150; char pad2[0x1180 - 0x154];
     struct E ae[3]; char pad3[0x1304 - 0x11A4]; float t1304;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern int D_002C3258[];
 extern struct T D_002BCD00[];
@@ -1574,7 +1570,6 @@ struct CRef {
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct E { int id; int a; float g; };
 struct P { char pad[0xC]; VTE *vt; char pad2[0x1180 - 0x10]; E ae[3]; };
-struct CLOCK { float t; float dt; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern char D_002A4D50[];
@@ -1750,7 +1745,6 @@ struct P {
     char pad[0x4C8]; int x4C8; char pad1[0x4D4 - 0x4CC]; int x4D4; char pad2[0x934 - 0x4D8]; struct O *po;
     char pad3[0x994 - 0x938]; struct X994 *p994; char pad4[0x9A4 - 0x998]; int x9A4;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void LoadIdentityMatrix4(void *a, int b, M4 *pm, int c, float g);
 qword func_001A62E8(void *p);
@@ -1887,7 +1881,6 @@ struct P {
     char pad5[0xF20 - 0xF08]; int xF20; char pad6[0x10D4 - 0xF24]; float g10D4; float g10D8;
     char pad7[0x19A0 - 0x10DC]; struct Y *py0; struct Y *py1;
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern int D_002DDF54;
 extern struct P *D_002E1E40;
@@ -2043,7 +2036,6 @@ void func_00142868(struct S *p, int a)
 } } // namespace M_func_00142868
 
 namespace M_func_00142880 { extern "C" {
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 float GRandInRange__Fff(float a, float b);
 struct X { char pad[0x1138]; float a0, b0, a1, b1; int f; float tNext; };
@@ -2285,7 +2277,6 @@ namespace M_func_00142AF8 {
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct CLOCK { float t; float dt; };
 struct LM { float gMin; float gMax; };
 struct R { char pad[0x40]; M3 m40; char pad1[0xA0 - 0x70]; void *pA0; };
 struct Q { char pad[8]; R *p8; };
@@ -3224,7 +3215,6 @@ extern "C" void SetStepplayerMp(STEPPLAYER *pstepplayer, int mp)
 
 namespace M_DrainStepplayerMp { extern "C" {
 /* only diff: hazard nop placement (target: no nop after mfc1 before beqz, nop after mtc1); assembler-level */
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 int MpStepplayerCur(void *p);
 void SetStepplayerMp(void *p, int n);

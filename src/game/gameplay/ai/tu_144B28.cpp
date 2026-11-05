@@ -138,7 +138,6 @@ struct P {
     char pad[0x10]; void *p10; char pad1[0x4C - 0x14]; int x4C; float x50; char pad2[0x80 - 0x54];
     qword q80; char pad3[0xC0 - 0x90]; struct O *xC0; int xC4; float xC8; int xCC; float xD0;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
@@ -842,7 +841,6 @@ struct P {
     char pad[0x10]; void *p10; char pad1[4]; char m18[0x30 - 0x18]; struct X30 *p30; char pad2[0x60 - 0x34];
     int state; float tState; char pad3[0x80 - 0x68]; qword v80; int x90;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int oid);
@@ -972,7 +970,6 @@ extern "C" int func_00145DA0(BHVSTATE *pbhv)
 namespace M_func_00145DB0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 float D_002BD344 = 300.0f;
 struct { float a; float b; } D_002BD348 = {250.0f, 350.0f};
@@ -1068,7 +1065,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
@@ -1199,7 +1195,6 @@ extern "C" int func_00146298(BHVSTATE *pbhv)
 namespace M_func_001462A8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 float D_002BD350 = 350.0f;
 struct { float a; float b; } D_002BD358 = {250.0f, 350.0f};
@@ -1295,7 +1290,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
@@ -1429,7 +1423,6 @@ struct M3 { qword r[3]; };
 struct PO { char pad[0x2DC]; int x2DC; float g2E0; char pad2[0xDF4 - 0x2E4]; int xDF4; char pad3[0x18C8 - 0xDF8]; int x18C8; char pad4[0x18D8 - 0x18CC]; int x18D8; };
 struct T { char pad[0x330]; int x330; };
 struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct T *p38; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DA0;
 float D_002BD360 = 450.0f;
@@ -1555,7 +1548,6 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct PO { char pad[0x2DC]; int x2DC; };
 struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
-struct CLOCK { float t; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
 struct LM { float gMin, gMax; };
 extern struct CLOCK D_002DDED0;
@@ -1660,7 +1652,6 @@ void func_00146B18(struct P *p, struct Q *q)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146E18 { extern "C" {
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct P { char pad[0x30]; int state; float tState; };
 void ClearBhvBusy(struct P *p);
@@ -1727,7 +1718,6 @@ namespace M_func_00146F18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x1A8]; float g1A8; char pad2[0x1840 - 0x1AC]; int x1840; };
 struct P { char pad[0x10]; struct X *px; char pad2[0x30 - 0x14]; float g30; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002E1E40;
 float D_002BD374 = 0.5f, D_002BD378 = 15.0f;

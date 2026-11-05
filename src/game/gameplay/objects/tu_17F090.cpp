@@ -521,7 +521,6 @@ void func_0017F8C8(struct S *p, int f) { OnPoActive(p, f); if (f) func_0017FD08(
 
 namespace M_func_0017F930 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE7E8;
 extern char D_002BE7F0[];
@@ -687,7 +686,6 @@ extern "C" void func_0017FCB0(HACKSHIP *phackship)
 
 namespace M_func_0017FD08 {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
 extern "C" struct CLOCK D_002DDED0;
 extern "C" qword D_002A2DD0;
 extern "C" char D_002DEB30[];
@@ -1011,7 +1009,6 @@ void func_001803E0(struct S *p, struct E *ae, int i)
 namespace M_func_00180478 { extern "C" {
 struct T { char pad[0x60]; void *p60; };
 struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float t1c0; float g1c4; int n; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 void RecalcSwOxfFilterForObject(void *g, struct S *p);
@@ -1134,7 +1131,6 @@ struct NODE{char pad0[12];VTE*vt;char pad10[0x18];ulong flags;char pad30[0x2C];F
 struct LM{float low,high;};
 struct RULE{int distanceEnabled,angleEnabled;LM enterDistance,stayDistance,enterAngle,stayAngle;};
 struct POLY{float a,b,c;};
-struct CLOCK{float t,dt;};
 struct P{NODE node;char padF0[0xD0];int state;float stateTime;int cooldown,active;void*binding;NODE*target;void*curve;float progress;qword previousSelf,previousTarget;float stamp,heading;char pad208[8];qword output;char pad220[0x50];RULE rules[5];float scale;char pad33C[4];POLY remaining;char pad34C[4];POLY angle;char pad35C[4];POLY simpleAngle;char pad36C[4];LM simpleClamp;};
 struct VU_FLOAT{qword qw;};
 extern "C"{
@@ -1497,7 +1493,6 @@ namespace M_func_00181268 { extern "C" {
 struct X { int a; int b; int c; };
 struct E { int a[4]; };
 struct S { char pad[0x180]; int x180; int x184; char p1[0x38]; int n; float t; char p2[0x48]; struct X x; int p3; struct E ae[1]; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 static __inline__ void ClearX(struct X *px) { px->a = px->b = px->c = 0; }
 void func_0017F4C0(struct S *p, struct E *pe);
@@ -2126,7 +2121,6 @@ namespace M_func_00181EB0 { extern "C" {
 struct R { char pad[0xC]; int c; char dl[0xC]; };
 struct Q { char pad[0x20]; struct R *pr; int n; float t; };
 struct S { char pad[0x28C]; char dl[0xC]; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_002DEB30[];
 void RemoveDlEntry__FP2DLPv(void *pdl, void *pv);
@@ -2162,7 +2156,6 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x10]; char x10[0x2C]; float g3c; float g40; float g44; char p1[8]; float g50; float g54; float g58; float g5c; struct Q *next; };
 struct E { int a; int b; int c; int d; struct Q *pqFirst; void *pqLast; int ib; int x1c; float g; int oid; float g28; float g2c; };
 struct S { char pad[0x1C0]; int x1c0; char p0[4]; int c; struct E ae[4]; };
-struct CLOCK { float t; float dt; };
 struct V { float a[4]; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002DFB80;

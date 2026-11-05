@@ -657,7 +657,6 @@ typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof_
 
 namespace M_CheckDprizeCollect { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct CLOCK { float t, dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int x1C8; float x1CC; };
@@ -709,7 +708,6 @@ int func_001C5DF0(struct O *p, struct Q *q)
 
 namespace M_UpdateDprize {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t, dt; };
 extern "C" {
 extern struct CLOCK D_002DDED0;
 extern float D_002C0D50;
@@ -863,7 +861,6 @@ struct S {
     qword q170; qword q180; qword q190;
     char p2[0x1CC - 0x1A0]; float x1CC;
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002C0D60;
@@ -958,7 +955,6 @@ struct S {
 };
 struct Q { char pad[0x18]; float duration; void *owner; char pad20[0xEC-0x20]; struct VTE *vt; void *emit; };
 struct CAMERA { char pad[0x60]; qword a,b; };
-struct CLOCK { float t; };
 extern struct CAMERA D_002DDF40;
 extern struct CLOCK D_002DDED0;
 extern qword D_002C0D80;
@@ -1067,7 +1063,6 @@ void func_001C6508(struct S *p)
 namespace M_func_001C6588 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4]; float g238; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 /** @sly2-annot addr=0x1C6588
@@ -1206,7 +1201,6 @@ void func_001C67D8(struct S *p)
 namespace M_func_001C6880 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4]; float g238; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 /** @sly2-annot addr=0x1C6880
@@ -1385,7 +1379,6 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct V3 { float x, y, z; };
 struct X { char pad[0xB0]; struct V3 v; };
-struct CLOCK { float t, dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_002A2D00[];
 extern const float D_002A7758;
@@ -1829,7 +1822,6 @@ void LoadLootFromBrx(struct S *p, void *pv)
 namespace M_func_001C7778 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x140]; int n150; char pad2[0xE4]; float g238; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 /** @sly2-annot addr=0x1C7778
@@ -2622,7 +2614,6 @@ struct S {
     char p0[0x180 - 0x10]; int x180; float x184; int p188[2]; struct LO *x190; int x194; int p198; void *x19C; int p1A0; int x1A4;
     char p1[0x1F4 - 0x1A8]; void *x1F4; int p1F8; void *x1FC; int x200; int p204[2]; void *a20C[6];
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];
@@ -2709,7 +2700,6 @@ struct S {
     char pad[0x188]; int x188; float x18C; void *x190; int x194; int p198[2];
     char x1A0[8]; void *a1A8[9]; void *a1CC[14]; struct X *x204; void *x208;
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002C1080;
 extern qword D_002C1090;

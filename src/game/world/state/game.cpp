@@ -381,7 +381,6 @@ namespace M_func_001618F8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x8C - 0x10]; int f8c; };
 struct S { char pad[0x3BC4]; struct O *po; char pad2[0x476C - 0x3BC8]; float t; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 /** @sly2-annot addr=0x1618F8
  * Purpose: Shows HUD widget g_sw+0x3BC4 (clears +0x8C, vt49 Show(-1)) and sets its hide time g_sw+0x476C =
@@ -1576,7 +1575,6 @@ struct X {
     char pad3[0xA0 - 0x9C]; int cA0; struct X **aA4;
     char pad4[0xB0 - 0xA8]; int fB0; int fB4; struct O *pB8; struct O *pBC; struct X *fC0; int fC4; float fC8;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 int FTaskComplete(struct X *p);
@@ -2037,7 +2035,6 @@ namespace M_UpdateTask { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x54]; int n; float t; char pad2[0x78 - 0x5C]; float dt; char pad3[4]; struct O *po; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern int D_003E0F9C;
 void UpdateLo(struct S *p);
@@ -3431,7 +3428,6 @@ public:
     int ff4;
 };
 struct DL { void *pvFirst; void *pvLast; int ibDle; };
-struct CLOCK { float t; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern DL D_003E0F90; }
 extern "C" { extern char D_002DEB30[]; }

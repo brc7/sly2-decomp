@@ -760,7 +760,6 @@ struct B { char pad[0x1BC]; int x1BC; };
 struct O { char pad[0x4C8]; int x4C8; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
     char aDF0[0xF50 - 0xDF0]; char aF50[0x18C8 - 0xF50]; int n18C8; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 float D_002BF298 = 0.25f;
 float D_002BF29C = 3.0f;
@@ -1696,7 +1695,6 @@ struct S {
     char p2[0xE1C]; void *x1028; char p3[8]; void *x1034; char p4[0x4DC]; int x1514; char p5[8];
     char x1520[0x100]; char x1620[0x3B4]; int x19d4, x19d8, x19dc, x19e0; char p6[0xC]; int x19f0, x19f4;
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 int func_001430C8(struct S *p);
 void SetSmaMask(void *p, int n);
@@ -1846,7 +1844,6 @@ void func_0018A350(struct S *p, UV *pv)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A428 { extern "C" {
 struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char xf50[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void GetStepplayerCpdefi(struct S *p, int *pf);
 void func_0019EA00(void *p, int *pf);
@@ -4376,7 +4373,6 @@ void UseJtGadget(char *p, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DD78 { extern "C" {
 struct S { char pad[0x2044]; void *p2044; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern int D_003E1BEC;
 void func_0014D1D0(struct CLOCK *pclock, int n, float g);
@@ -4685,7 +4681,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 typedef struct { qword r[3]; } M3;
 struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *p10DC; };
-struct CLOCK { float t; float dt; };
 extern qword func_001A62E8(void *p);
 extern void SetStepRadTargetVec(struct O *p, qword v);
 extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);

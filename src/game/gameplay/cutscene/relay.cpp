@@ -6202,7 +6202,7 @@ void func_001E5570(struct P *p)
 
 // 0x1E5628 RemoveJsg
 namespace M_RemoveJsg {
-struct VTE; struct Q; struct P; class LOCK; struct CLOCK;
+struct VTE; struct Q; struct P; class LOCK; 
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct Q { char pad[0x5C]; int dl; };
 struct P { int pad[3]; VTE *vt; int pad10; Q *pq; char pad2[0x9C - 0x18]; int x9C; char pad3[0xEC - 0xA0]; void *pvEC; };
@@ -6212,7 +6212,6 @@ public:
     LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
     ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
 };
-struct CLOCK { float t; };
 extern "C" {
 extern CLOCK D_002DDED0;
 int FJsgRemoved(P *p);

@@ -1027,7 +1027,6 @@ typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct M3 { U rows[3]; };
 struct LM { float min, max; };
-struct CLOCK { float t, dt; };
 struct BINDING { char pad0[0x28]; float pitch; };
 struct P;
 struct ATTACH {

@@ -342,7 +342,6 @@ namespace M_UpdateRipg { extern "C" {
 typedef struct DL { void *head; void *tail; int ibDle; } DL;
 typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
 extern DLI *D_002DD2FC;
-struct CLOCK { float t, dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pf)(); };
 struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; struct VTE *vt; };
@@ -426,7 +425,6 @@ struct OBJ { char padEC[0xEC]; STATE *state; };
 struct NODE { int pad; NODE *next; char pad8[4]; OBJ *object; };
 struct PVE { short delta, pad; void (*fn)(void *); };
 struct P { char padC[0xC]; PVE *vt; char pad10[0xDC]; STATE *state; char padF0[0x60]; int mode; char pad154[8]; DL rips; };
-struct CLOCK { float t, dt; };
 struct REQ { int cb, align; };
 struct FRAME { int a[4]; };
 extern "C" {
@@ -514,7 +512,6 @@ namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO {
 struct DL { void *head; void *tail; int ibDle; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
-struct CLOCK { float t, dt; };
 extern "C" { extern CLOCK D_002DDED0; }
 struct VTE { short d; short pad; void (*pf)(); };
 struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; VTE *vt; };
@@ -800,7 +797,6 @@ void TouchRip(RIP *prip, int fRemove)
 
 namespace M_ForceRipFade__FP3RIPf {
 struct RIP { char pad[0x14]; float t14; float g18; };
-struct CLOCK { float t; float dt; };
 extern "C" { extern CLOCK D_002DDED0; }
 /** @sly2-annot addr=0x1CEAA8
  * Purpose: start fade
@@ -1272,7 +1268,6 @@ typedef char layout_cf0a0_34[((unsigned)&((M4*)0)->d==0x30)?1:-1];
 namespace M_UpdateRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
-struct CLOCK { float t, dt; };
 extern struct CLOCK D_002DDED0;
 struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long x28; char p2[0xE8 - 0x30]; int xE8; };
 struct G { char pad[0x150]; int x150; };
@@ -1482,7 +1477,6 @@ struct EMIT {char pad8[8];LO*owner;char padC[8];float start,duration;char pad1C[
 struct O;
 struct VE {short delta,pad;void(*fn)(void*,qword,int,float);};
 struct O {char pad18[0x18];float duration;LO*visual;char pad20[8];float spin;char pad2C[0x14];M3 matrix;U position;char pad80[0x10];U velocity;char padA0[0x4C];VE*vt;LO*space;};
-struct CLOCK {float t,dt;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }

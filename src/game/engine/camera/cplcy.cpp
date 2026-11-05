@@ -376,7 +376,6 @@ void ActivateCplook(struct X *p)
 
 namespace M_UpdateCplook { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct CM { char pad[0x20]; float g20; };
 extern struct CM D_002DDF40;
@@ -711,7 +710,6 @@ namespace M_UpdateCpzoom { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct CM;
 extern struct CM D_002DDF40;
@@ -1129,7 +1127,6 @@ namespace M_UpdateCphang {
 // so cse2 keeps the target's two lqc2 0x20(v0); k is read through a VU_FLOAT(const float *) ctor whose word input has a
 // never-chosen "V" alternative (the func_0014F110 trick: lw instead of lwc1+mfc1).
 typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float t; float dt; };
 extern "C" CLOCK D_002DDED0;
 struct CM;
 extern "C" CM D_002DDF40;
@@ -1320,7 +1317,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct CM { char pad[0x390]; float g390; };
 extern struct CM D_002DDF40;
@@ -1450,7 +1446,6 @@ namespace M_UpdateCpturret {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
-struct CLOCK { float t; float dt; };
 extern "C" CLOCK D_002DDED0;
 struct CM {
     char pad0[0x20]; float g20; float g24; char pad1[0x60 - 0x28];

@@ -1788,7 +1788,6 @@ struct CHAIN
     float bend, bendDamping;
     float shape, shapeDamping;
 };
-struct CLOCK { float t, dt; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3658[4]; }
 extern "C" { extern float D_002C3668[4]; }
@@ -2107,7 +2106,6 @@ struct CHAIN
     float *distance;        // rest distance along the chain
     float damping;
 };
-struct CLOCK { float t, dt; };
 extern "C" { extern CLOCK D_002DDED0; }    // g_clock
 extern "C" { extern qword D_002A2DA0; }    // fallback direction
 extern "C" {

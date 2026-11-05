@@ -1675,7 +1675,6 @@ struct BASE_E0 { char data[0xE0]; };
 struct BASE_190 { char data[0x190]; };
 struct PATH : BASE_E0, SAMPLER {};
 struct SPLINE : BASE_190, SAMPLER {};
-struct CLOCK { float t, dt; };
 struct LM { float low, high; };
 struct SMP { float a, b, c; };
 struct VU_FLOAT { qword q; };
@@ -3677,7 +3676,6 @@ struct OBJCTX { JTAIR *pjtair; void *plo; int pad[2]; qword v; };               
 struct PAIR { JTAIR *pjtair; void *plo; };                                               // GMeasureJumpPipe
 struct SOLIST { int cpso; void **apso; };                                                // func_0019B0A8
 
-struct CLOCK { float t, dt; };
 typedef float (*PFNSCORE)(void *, float);
 
 extern "C" {

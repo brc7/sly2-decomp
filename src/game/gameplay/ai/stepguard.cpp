@@ -1230,7 +1230,7 @@ void HandleStepguardMessage(struct S *p, int k, struct Q *q)
 
 // 0x207690 RenderStepguardSelf
 namespace M_RenderStepguardSelf {
-union U; struct M4; struct SPACE; union FLAGS; struct P; struct CAMERA; struct PROFILE; struct CLOCK;
+union U; struct M4; struct SPACE; union FLAGS; struct P; struct CAMERA; struct PROFILE; 
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M4 {U rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
@@ -1328,8 +1328,7 @@ extern "C" void RenderStepguardSelf(P *p)
 
 // 0x2079A0 OnStepguardRemove
 namespace M_OnStepguardRemove { extern "C" {
-struct CLOCK; struct DL; struct S;
-struct CLOCK { float t; };
+struct DL; struct S;
 extern struct CLOCK D_002DDED0;
 struct DL { void *a, *b; int c; };
 extern struct DL D_003E1444;
@@ -1937,9 +1936,8 @@ extern "C" void func_002085B0(STEPGUARD *pstepguard, LO *plo)
 
 // 0x2085D0 FAddStepguardDetectTarget
 namespace M_FAddStepguardDetectTarget {
-struct CLOCK; struct E; struct T; struct S;
+struct E; struct T; struct S;
 inline void *operator new(unsigned int,void *storage){return storage;}
-struct CLOCK {float t,dt;};
 struct S;
 struct E { struct S *object; int n4; float t8; int pad; E(S *source,const CLOCK&clock):object(source),n4(0),t8(clock.t){} };
 struct T { char pad[0xFC]; unsigned int c; struct E a[8]; };
@@ -3768,8 +3766,7 @@ extern "C" void func_0020A790(TARGETREC *ptargetrec, STEPGUARD *pstepguard)
 
 // 0x20A7E0 func_0020A7E0
 namespace M_func_0020A7E0 { extern "C" {
-struct CLOCK; struct S;
-struct CLOCK { float t; };
+struct S;
 extern struct CLOCK D_002DDED0;
 extern float D_002C3DB4;
 struct S { int a; float t; };
@@ -3856,8 +3853,7 @@ extern "C" int func_0020A818(P*p,Actor*a)
 
 // 0x20A9A8 func_0020A9A8
 namespace M_func_0020A9A8 { extern "C" {
-struct CLOCK; struct S;
-struct CLOCK { float t; };
+struct S;
 extern struct CLOCK D_002DDED0;
 struct S { int a; float t; int n; };
 /** @sly2-annot addr=0x20A9A8

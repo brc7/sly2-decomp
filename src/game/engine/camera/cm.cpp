@@ -110,7 +110,6 @@ struct CM {
     char pad4[0x620 - 0x390]; float g620; float g624;
 };
 struct G { char pad[0x3E38]; int x3E38; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002DDEE0;
 extern int D_002DFBC0;
@@ -763,7 +762,6 @@ struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct O { int pad[3]; struct VTE *vt; };
 struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
@@ -817,7 +815,6 @@ struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct O { int pad[3]; struct VTE *vt; };
 struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 /** @sly2-annot addr=0x14E4C8
  * Purpose: Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if
