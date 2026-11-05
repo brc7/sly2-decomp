@@ -4,6 +4,7 @@
  * checked in save-state RAM), [S] static, [H] hypothesis. No src/ file includes this header yet. */
 #ifndef SLY2_GUARD_H
 #define SLY2_GUARD_H
+#include "sly2/leap.h"
 #include "sly2/basic.h"
 #include "sly2/step.h"
 #include "sly2/xfm.h"
@@ -24,6 +25,9 @@ struct DETECTOR : public XFM
       undefined4 unk_0xf0[(0xfc - 0xf0) / 4];
       int cUnkFC;           /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp func_002087C8) */
       undefined4 unk_0x100[(0x180 - 0x100) / 4];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitDetector");   /* slot 7 */
+    virtual void VUnk15() __asm__("UpdateDetector");   /* slot 16 */
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_DETECTOR_cUnkFC[SLY2_OFFSETOF(DETECTOR, cUnkFC) == 0xFC ? 1 : -1];
@@ -76,7 +80,9 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x4c4[3];
       ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
       ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
-      undefined4 unk_0xdb0[(0xf04 - 0xdb0) / 4];
+      LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (LEAP_ctor) */
+      CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
+      undefined4 unk_0xe60[(0xf04 - 0xe60) / 4];
       float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv FBhvcombatChooseAttack) */
       undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
       int fUnkF3C;          /* +0xF3C [S] set by StartBhvstrike */
@@ -96,8 +102,29 @@ struct STEPGUARD : public STEP
       undefined4 unk_0xfec[(0xffc - 0xfec) / 4];
       int cBusy;            /* +0xFFC [R] busy count */
       undefined4 unk_0x1000[4];
-    virtual void VSlot87();   /* slot 87: not yet identified (STEPGUARD adds 2 slots to STEP's 87) */
-    virtual void VSlot88();   /* slot 88: not yet identified */
+    STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
+    virtual void Init() __asm__("InitStepguard");   /* slot 7 */
+    virtual void RemoveHierarchy() __asm__("RemoveStepguardHierarchy");   /* slot 12 */
+    virtual void VUnk14() __asm__("PostStepguardLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateStepguard");   /* slot 16 */
+    virtual void RenderSelf() __asm__("RenderStepguardSelf");   /* slot 19 */
+    virtual void Freeze() __asm__("OnStepguardRemove");   /* slot 22 */
+    virtual void Unfreeze() __asm__("OnStepguardAdd");   /* slot 23 */
+    virtual void VUnk25(LO *plo) __asm__("ResetStepguardToHome");   /* slot 26 */
+    virtual void VUnk26(LO *plo) __asm__("ClearStepguardState");   /* slot 27 */
+    virtual void Clone(LO *ploBase) __asm__("CloneStepguard");   /* slot 41 */
+    virtual void VUnk58() __asm__("func_00209C88");   /* slot 59 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreStepguardIntersection");   /* slot 61 */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("FTakeStepguardDamage");   /* slot 75 */
+    virtual int FInvulnerable(ZPK zpk) __asm__("FInvulnerableStepguard");   /* slot 76 */
+    virtual int JthsCurrent() __asm__("JthsCurrentStepguard");   /* slot 77 */
+    virtual int VUnk84() __asm__("func_0020B090");   /* slot 85 */
+    virtual int VUnk85(ZPR *pzpr) __asm__("func_00207530");   /* slot 86 */
+    virtual void VUnk86(int fOn) __asm__("func_001F1F38");   /* slot 87 */
+    virtual void VSlot87() __asm__("PloChooseStepguardTarget");   /* slot 87: not yet identified (STEPGUARD adds 2 slots to STEP's 87) */
+    virtual void VSlot88() __asm__("FStepguardSenseStimulus");   /* slot 88: not yet identified */
 };
 typedef char assert_STEPGUARD_size[sizeof(STEPGUARD) == 0x1010 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_STEPGUARD_grfsg[SLY2_OFFSETOF(STEPGUARD, grfsg) == 0x2C0 ? 1 : -1];   /* CONFIRMED runtime */

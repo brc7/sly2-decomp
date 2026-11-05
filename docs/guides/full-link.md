@@ -76,6 +76,15 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
   must not be resolved but dropped: `--gc-sections`, or a `/DISCARD/` for those `.gnu.linkonce.*` sections. Data
   phase 2 left this set unchanged: no symbol of the alias table is among the newly defined objects (its six vtables
   are of real classes, the table's 214 are of views; 11 alias targets, e.g. D_002DEA4C, are defined by objects).
+- types/views-2 (the registry classes made real; superseded by Status): 31 unresolved references remain (from 439 at build/rtti-palettes
+  8d31590d): config/link_aliases.txt is down to 42 lines (21 view vtables: act.cpp's curve classes, hud's and
+  memcard's local classes; brx_sw's destructor; the six other declarations). class_registry's factories reference
+  the 191 real vtables `_vt$<len><NAME>`, which config/symbol_addrs.txt names as data (size (slots + 2) * 8, entry 0
+  and the terminator null); no object defines them except missile.cpp's `_vt$7ACCMISS` (its key TU), which matches
+  the ELF byte for byte. The key-TU extras of jt.cpp and sm.cpp are gone (Pclassinfo is now the classes' first
+  virtual, never defined as a member) and missile's references name real functions, so "referenced only from
+  extras" dropped from 242 to the 2 `gcc2_compiled.` markers plus tn.cpp's CMPART2. 26,974 relocations agree with
+  the ELF, 0 mismatched.
 - 1,146 references to 616 address names nobody defines (1,860 to 1,133 before data phase 2).
   `tools/linkaliases.py <objects>` derives them: 24 `func_` names are config functions under another name
   (`func_002333B4 = memset;`, declared under the address name by 70 of the 209 sources) and become aliases; the rest
@@ -218,6 +227,15 @@ of the placement (not investigated). Config names at their config address: 7,024
 7,075 with .rodata 1, .bss 50). Placed object sections 7,697 (7,703), unplaced 69 / 2,432 bytes (83 / 3,072): the
 `__tf*` sections of the key TUs are no longer emitted. No `__tf*`/`__ti*`/`__rtti_*` symbol is defined or referenced
 by any object. ld.lld: 0 errors.
+
+### The registry classes made real (types/views-2, from build/rtti-palettes 8d31590d; superseded by Status)
+
+Same script, default mode, against the build/rtti-palettes numbers above: `.text` 1,416,000 and `.rodata` 303,026
+equal bytes (unchanged), `.data` from objects 34,145 bytes (33,505 + the 640 of missile.cpp's `_vt$7ACCMISS`, the
+first registry vtable an object supplies), 34,143 equal (all 640 new bytes equal; the 2 differing are the old ones).
+Placed object sections 7,698 (7,697 + that vtable), unplaced 66 / 544 bytes (69 / 2,432: the key-TU vtables of JT
+and SM are no longer emitted). Config names at their config address: 7,025 of 7,075 (`_vt$7ACCMISS` the added one;
+wrong: .bss 48, .sbss 2, as before). ld.lld: 0 errors.
 
 ### Remaining mismatch classes (default mode, 2,068 bytes before build/rtti-palettes, 2,020 after; 1,910 on integrate/round5)
 

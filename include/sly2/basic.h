@@ -192,12 +192,14 @@ struct DLE
 };
 
 /* CRefPtr: from src/game/object/spliceobj/RefGetPeopid.cpp (30 copies in Lilly ports) */
+enum REFPTRNULL { refptrNull };
 template <class T>
 class CRefPtr
 {
 public:
     T *m_p;
     CRefPtr() {}
+    CRefPtr(REFPTRNULL) { m_p = 0; }   /* the clearing constructor of the classes' counted pointers (BASIC) */
     void Attach(T *p);
     CRefPtr(T *p) { Attach(p); }
     CRefPtr(const CRefPtr &ref)
@@ -257,12 +259,16 @@ struct BASIC
       CRefPtr<CFrame> pframe;
       CRefPtr<CSidebag> psidebag;
       struct REFNODE *prefnodeFirst;
-      virtual void VUnk00();
-      virtual void VUnk01();
-      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk);
-      virtual void SendMessage(MSGID msgid, void *pv);
-      virtual void HandleMessage(MSGID msgid, void *pv);
-      virtual CLASSINFO *Pclassinfo();
+      /* Construction: both counted pointers cleared by their member constructors, then the vptr (+0xC). Defined
+         inline in sly2/classes.h (its definition makes g++ instantiate the CRefPtr destructors, whose pointees are
+         incomplete in most includers; only class_registry constructs classes). */
+      BASIC();
+      virtual void VUnk00() __asm__("func_00132B00");
+      virtual void VUnk01() __asm__("func_00132B08");
+      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleBasicSpliceEvent");
+      virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendLoMessage");
+      virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBasicMessage");
+      virtual CLASSINFO *Pclassinfo() __asm__("GetBasicClassDesc");
 };
 typedef char assert_BASIC_size[sizeof(BASIC) == 0x10 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

@@ -60,11 +60,20 @@ struct EMITTER : public XFM
     int fDirty;             /* +0xE0 set by an ensure for writing */
     EMITB *pemitb;          /* +0xE4 */
     char padE8[0x160 - 0xE8];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleEmitterMessage__FP7EMITTER5MSGIDPv");   /* slot 5 */
+    virtual void Init() __asm__("InitEmitter");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostEmitterLoad__FP7EMITTER");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateEmitter__FP7EMITTERf");   /* slot 16 */
+    virtual void Clone(LO *ploBase) __asm__("CloneEmitter");   /* slot 41 */
 };
 typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class descriptor cb */
 
 struct EXPL : public XFM
 {
+    virtual CLASSINFO *Pclassinfo() __asm__("GetExplClassDesc");   /* slot 6 */
+    virtual void VSlot51() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 */
 };
 typedef char assert_EXPL_size[sizeof(EXPL) == 0xE0 ? 1 : -1];   /* class descriptor cb */
 
@@ -73,6 +82,10 @@ struct EXPLO : public EXPL
     int fDirty;             /* +0xE0 */
     EMITB *pemitb;          /* +0xE4 */
     char padE8[0xF0 - 0xE8];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetExploClassDesc");   /* slot 6 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExploFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("func_00259170");   /* slot 15 */
+    virtual void Clone(LO *ploBase) __asm__("CloneExplo");   /* slot 41 */
 };
 typedef char assert_EXPLO_size[sizeof(EXPLO) == 0xF0 ? 1 : -1];   /* class descriptor cb */
 

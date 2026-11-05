@@ -25,6 +25,11 @@ struct JOB : public LO
       int ksvName;          /* +0xD0 [R] save-name reference {kind, prec} (job save-variable name) */
       void *psvName;        /* +0xD4 [R] */
       undefined4 unk_0xd8[(0x100 - 0xd8) / 4];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetJobClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitJob");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadJobFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostJobLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateJob");   /* slot 16 */
 };
 typedef char assert_JOB_size[sizeof(JOB) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_JOB_ptaskStart[SLY2_OFFSETOF(JOB, ptaskStart) == 0x64 ? 1 : -1];   /* CONFIRMED runtime */
@@ -48,6 +53,11 @@ struct TASK : public LO
       undefined4 unk_0xc4[(0xf4 - 0xc4) / 4];   /* +0xC8..+0xE8: {kind, prec} save-name references (one of them names the task) */
       int nMode;            /* +0xF4 [R] */
       undefined4 unk_0xf8[(0x110 - 0xf8) / 4];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetTaskClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitTask");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTaskFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostTaskLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateTask");   /* slot 16 */
 };
 typedef char assert_TASK_size[sizeof(TASK) == 0x110 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_TASK_nState[SLY2_OFFSETOF(TASK, nState) == 0x54 ? 1 : -1];   /* CONFIRMED runtime */

@@ -59,6 +59,10 @@ struct ASEG : public LO
       EA *aeaEnd;
       ASEGSTART *pasegstart;
       uint32_t   _pad_273    [ 3 ] ;
+    virtual CLASSINFO *Pclassinfo() __asm__("GetAsegClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitAseg");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAsegFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostAsegLoad");   /* slot 15 */
 };
 typedef char assert_ASEG_size[sizeof(ASEG) == 0xC0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -73,6 +77,7 @@ struct ASEGBL : public ASEG
       int iblSolo;
       ASEG *pasegEvents;
       uint32_t   _pad_333    [ 1 ] ;
+    virtual CLASSINFO *Pclassinfo() __asm__("GetAsegblClassDesc");   /* slot 6 */
 };
 typedef char assert_ASEGBL_size[sizeof(ASEGBL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -99,6 +104,11 @@ struct SMA : public BASIC
       float svtLocal;
       int grfRoute;
     undefined4 unk_0x4c;      /* HYPOTHESIS: Lilly SMA ends at 0x4C but the class descriptor says 0x50 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSmaClassDesc");   /* slot 6 */
+    virtual void VUnk00() __asm__("IncrefSma");   /* slot 1 */
+    virtual void VUnk01() __asm__("DecrefSma");   /* slot 2 */
+    virtual void SendMessage(MSGID msgid, void *pv) __asm__("func_001F0FD8");   /* slot 4 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleSmaMessage");   /* slot 5 */
 };
 typedef char assert_SMA_size[sizeof(SMA) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -123,6 +133,10 @@ struct ASEGA : public BASIC
       int ieaEnd;
       int nWorldHold;
       CRefPtr<SND> psnd;
+    virtual CLASSINFO *Pclassinfo() __asm__("GetAsegaClassDesc");   /* slot 6 */
+    virtual void VUnk00() __asm__("IncrefAsega");   /* slot 1 */
+    virtual void VUnk01() __asm__("DecrefAsega");   /* slot 2 */
+    virtual void SendMessage(MSGID msgid, void *pv) __asm__("func_00131738");   /* slot 4 */
 };
 typedef char assert_ASEGA_size[sizeof(ASEGA) == 0x60 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_ASEGA_dleSw[SLY2_OFFSETOF(ASEGA, dleSw) == 0x24 ? 1 : -1];   /* CONFIRMED runtime (SW::dlAsega ibDle) */
@@ -144,6 +158,9 @@ struct SM : public LO
       SMRT *asmrt;
       DL dlSma;
       SMINIT *psminit;
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSmClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitSm");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
     undefined4 unk_0x78[2];   /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
 };

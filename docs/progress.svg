@@ -3,7 +3,7 @@
 
   <!-- Header -->
   <text x="32.0" y="40.0" font-size="22" fill="#1f2328" text-anchor="start" font-weight="bold">Sly 2: Band of Thieves — matching decompilation progress</text>
-  <text x="32.0" y="62.0" font-size="13" fill="#656d76" text-anchor="start" font-weight="normal">SCUS_973.16 (NTSC-U) · only byte-identical functions count · updated 2026-11-02</text>
+  <text x="32.0" y="62.0" font-size="13" fill="#656d76" text-anchor="start" font-weight="normal">SCUS_973.16 (NTSC-U) · only byte-identical functions count · updated 2026-11-05</text>
 
   <!-- Functions Section -->
   <text x="32.0" y="106.0" font-size="15" fill="#1f2328" text-anchor="start" font-weight="bold">Functions</text>
