@@ -1067,13 +1067,13 @@ whether to add `-fno-rtti` to the build flags (the game's vtables have 0 where o
 
 Goal: no `D_`/`func_` name that no object defines, so tools/linkaliases.py stops binding names to absolute
 addresses (an absolute address pins the data in place: no relocatable link, no mods, no port). Measured on all 932
-objects tools/link.py builds: 917 address names (888 absolute, 29 aliases) before, 472 (470 absolute, 2 aliases)
+objects tools/link.py builds: 917 address names (888 absolute, 29 aliases) before, 469 (467 absolute, 2 aliases)
 after. Per-name classification and the remaining list: /home/claude/ref/reports/address_names/CLASSIFY.md.
 
 | class | before | after | resolution |
 |---|---:|---:|---|
 | c: func_ name of a config function | 29 | 2 | `__asm__("<config name>")` on the declarations (92 sources; _start.c's inline asm calls FlushCache by name) |
-| a: object not defined yet | 134 | 59 | air's `.data` (73 objects, 0x2BF730..0x2BF920) and 2 FLT_MAX `.rodata` words, end-of-file block |
+| a: object not defined yet | 134 | 56 | air's `.data` (73 objects, 0x2BF730..0x2BF920) and 2 FLT_MAX `.rodata` words, end-of-file block; 3 virtual PMF constants (bomb, tu_17F090) |
 | a: common symbols (end of `.bss`, `.sbss`) | 65 + 15 SDK | 0 | defined as commons (below) |
 | a: pointer records and PMF constants | 149 + 21 | 36 | 137 defined: 28 PMF constants, hud's 107 widget records, bif's math table (below) |
 | b: field / interior of a defined object | 132 | 3 | base+offset (below); D_002E5270 is `_gp` |
@@ -1111,8 +1111,8 @@ Rules found:
   differences (memcard, mpeg, sw, tn): `.text` from objects 1,281,279 equal bytes (68 fewer); relverify, which checks
   every relocation against the ELF, has 0 mismatches.
 
-Left, by reason: 251 view vtables + 14 rows of the vtable block (decision: emit them as data tables in one file at
-the end of `.data`, or wait for real classes); 59 objects whose owner, extent or type is undecided (game's check
+Left, by reason (467 absolute names): 251 view vtables + 14 rows of the vtable block (decision: emit them as data tables in one file at
+the end of `.data`, or wait for real classes); 56 objects whose owner, extent or type is undecided (game's check
 tables, generated g_aeopid, eopid_linkonce's rows, g_gs, shd's E[], tn/grab CPDs, codegen devices kept extern on
 purpose); 36 pointer records (cheat CODEs, menu items, tu_15CD68 label tables, prize, the palette headers, bsp/font
 rows); 15 shared-block constants; 47 SDK (Mac list: 989snd strings and words at 0x2AA100.. / 0x2C4640..,

@@ -34,7 +34,7 @@ Segment 0 covers .text through .bss (file size 0x1DD230, memory size 0x352200); 
 | crt0 | 1 | 1 (`_start`) | yes | src/game/platform/boot/crt0/_start.c; `func_00100000` before it is unmatched |
 | dead code | - | - | - | junk.csv ranges: emit the original bytes to keep addresses |
 | VU microcode, IRX modules | - | - | - | blobs |
-| data nobody defines | - | - | - | 470 absolute address names over all 932 objects (888 before data/address-names; 779 for the 209 merged objects at integrate/round3), see below |
+| data nobody defines | - | - | - | 467 absolute address names over all 932 objects (888 before data/address-names; 779 for the 209 merged objects at integrate/round3), see below |
 
 matched.csv has 6,663 rows (all `match`). Named data objects that the 209 merged objects define, by section (data
 symbols with a known address, bytes): .data 845 objects / 0x81E9 (16.7% of the section), .rodata 205 / 0xF63 (1.3%,
@@ -56,8 +56,8 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
   (779 names with the alias targets; 1,296 before data phase 2) become absolute addresses: .data 323, .rodata 162,
   .bss 190, .sbss 31, .text 29, .vutext 14, .irx 3, and 27 small values (0x0..0x3AB0, VU-memory / scratchpad offsets).
   **After data/address-names (2026-11-05)**, over all 932 objects tools/link.py builds (the 209-object count above
-  is a subset): 917 address names (888 absolute, 29 aliases) -> 472 (470 absolute, 2 aliases); absolute by section
-  .data 345 (265 of them the vtable block), .rodata 42, .bss 30, .text 10, .vutext 14, .irx 3, small values 26. Air's
+  is a subset): 917 address names (888 absolute, 29 aliases) -> 469 (467 absolute, 2 aliases); absolute by section
+  .data 345 (265 of them the vtable block), .rodata 39, .bss 30, .text 10, .vutext 14, .irx 3, small values 26. Air's
   data, the commons at the end of `.bss`/`.sbss`, interiors (base+offset), PMF constants and hud's records are now
   defined or resolved through objects; the rest and the reasons: tu-merging.md, Data, "Phase 3: address names".
 - Two objects define different functions under the same file-scope destructor name (`_$_3SPM`, `_$_3OBJ`): per-object
@@ -81,7 +81,7 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
    with the SDK still unbuilt (its code comes from the image, its symbols from config).
 2. **Real link.** Every section from objects, in the ELF's order, so code and data can move. Needs: an object for
    every byte (SDK, dead code as `.word` blobs or the junk ranges recompiled, VU and IRX blobs as binary input),
-   every `D_` defined by some object (today 470 are not: 265 in the vtable block, 43 blob labels or small values), the TU order inside each output section reproduced from
+   every `D_` defined by some object (today 467 are not: 265 in the vtable block, 43 blob labels or small values), the TU order inside each output section reproduced from
    tools/layout/units.csv (functions) and the data addresses (the anonymous .rodata literals land wherever their
    object lands, so the order is checked by comparing the image, not by symbols), and the absolute address names
    replaced by symbols of the objects that define the data.
