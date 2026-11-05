@@ -143,7 +143,6 @@ extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5
 extern CLOCK D_002DDED0;
 extern void *D_002D3750[];      /* CMemcardDialog vtable */
 extern char D_002A38E8[];   /* the icon file */
-extern const char D_002A6CA0[];   /* its card name */
 void InitGame(void *pgame);
 void *memset(void *pv, int b, unsigned int cb);
 char *strcpy(char *pchDst, const char *pchSrc);
@@ -590,6 +589,11 @@ extern "C" void InitSave__FP4SAVEii(SAVE *psave, int a, int b)
 }
 } // namespace M_InitSave__FP4SAVEii
 
+// The memcard thread runs a pointer-to-member job (CreateMemcardThread). UpdateSave and SetSaveState spell the
+// same constant (&McJobGetInfo), which g++ emits once, as the ELF has it at 0x2A6BA0 (with &McJobGetDir after it).
+struct MCJOB { int GetInfo() __asm__("McJobGetInfo"); int GetDir() __asm__("McJobGetDir"); };
+void CreateMemcardThreadJob(void *, int (MCJOB::*)()) __asm__("CreateMemcardThread");
+
 namespace M_UpdateSave__FP4SAVE { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short pad; int (*pfn)(void *); };
@@ -598,7 +602,6 @@ struct S { int x0, x4; int x8; int xC; float x10; float x14; char pad[0xFD5C - 0
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
-extern const struct LONGU D_002A6BA0;
 int func_0020E040(void *g);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *t, long pmf);
@@ -608,7 +611,7 @@ int func_001B42C0(void *p);
 int func_001B01E8(void *p);
 void SetMcDialogState(struct H *h, int n);
 /** @sly2-annot addr=0x1AB1A0
- * Purpose: Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0.l)
+ * Purpose: Per-frame save state machine: skip during transitions/when thread busy; poll card (job McJobGetInfo)
  *   or advance state (0x1AB418); autosave trigger with 0.3s debounce
  * Info: proposed name UpdateSave (T1); TU memcard
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090+verdicts_A2
@@ -627,7 +630,7 @@ void UpdateSave__FP4SAVE(struct S *s)
         return;
     if (s->x8 == s->xC) {
         if (s->x14 <= g_clock.tReal)
-            CreateMemcardThread(s->xFD5C, D_002A6BA0.l);
+            CreateMemcardThreadJob(s->xFD5C, &MCJOB::GetInfo);
         else
             func_001AB630(s);
     } else {
@@ -727,8 +730,6 @@ void SetSaveState(MC *p, int state);
 }
 CRef Eval(int, SLOT *) __asm__("RefGetGlobalSaveVar");
 static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
-struct X { int A() __asm__("func_001AB0A0"); int B() __asm__("func_001AB0F0"); };
-void _iEnableDmac(void *, int (X::*)()) __asm__("CreateMemcardThread");
 
 /** @sly2-annot addr=0x1AB418
  * Purpose: SAVE state change (x8) with per-state actions on the 3 slots (Splice CRef evals), UI state
@@ -761,10 +762,10 @@ void SetSaveState(MC *p, int state)
     switch (state) {
     case 0:
     case 1:
-        _iEnableDmac(&p->thr, &X::A);
+        CreateMemcardThreadJob(&p->thr, &MCJOB::GetInfo);
         break;
     case 3:
-        _iEnableDmac(&p->thr, &X::B);
+        CreateMemcardThreadJob(&p->thr, &MCJOB::GetDir);
         break;
     case 6:
         p->pslotCur = &p->aslot[0];
@@ -856,7 +857,6 @@ extern "C" int FOpenSaveIconFile(S *p)
 } // namespace M_FOpenSaveIconFile
 
 namespace M_CreateSaveDir { extern "C" {
-extern char D_002A6BB0[], D_002A6BC8[], D_002A6BF8[];
 void *McMkdir(void *s, char *a);
 void *McWriteFile(void *s, char *a, char *b, int n);
 void *WriteIconSys(void *s, char *a, char *b);
@@ -870,23 +870,23 @@ void *load_sly_icon_from_disc(void *s, char *a);
  * @end-sly2-annot */
 void *CreateSaveDir(void *s)
 {
-    void *p = McMkdir(s, D_002A6BB0);
+    void *p = McMkdir(s, "/BASCUS-97316YAOTWTD!");
     if (p)
         return p;
-    p = McWriteFile(s, D_002A6BC8, D_002A6BF8, 5);
+    p = McWriteFile(s, "/BASCUS-97316YAOTWTD!/BASCUS-97316YAOTWTD!", "Sly 2", 5);
     if (p)
         return p;
-    p = WriteIconSys(s, D_002A6BB0, D_002A6BF8);
+    p = WriteIconSys(s, "/BASCUS-97316YAOTWTD!", "Sly 2");
     if (p)
         return p;
-    return load_sly_icon_from_disc(s, D_002A6BB0);
+    return load_sly_icon_from_disc(s, "/BASCUS-97316YAOTWTD!");
 }
 } } // namespace M_CreateSaveDir
 
 namespace M_McJobCreateSave { extern "C" {
 struct B { char data[0x5464]; };
 struct S { int x0; int x4; int x8; int xC; int x10, x14, x18; int x1C; int x20; struct B a[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char xFD5C[1]; };
-extern char D_002A6C00[], D_002A38E8[], D_002A6C08[], D_002A6C28[], D_002A6BC8[], D_002A6BB0[], D_002E6550[];
+extern char D_002A38E8[], D_002E6550[];
 int sceMcGetEntSpace(int a, int b, char *c);
 int McSyncResult(void *p, int a, int b, int *c);
 int FOpenSaveIconFile(void *p);
@@ -912,7 +912,7 @@ int McJobCreateSave(struct S *s)
     int i;
     void *p = s->xFD5C;
     k = 1;
-    r = McSyncResult(p, sceMcGetEntSpace(s->x0, s->x4, D_002A6C00), 0x12, &n);
+    r = McSyncResult(p, sceMcGetEntSpace(s->x0, s->x4, "/"), 0x12, &n);
     if (r == 0) {
         if (!n)
             k = 2;
@@ -938,10 +938,10 @@ cleanup:
                 BuildSaveFilePath(s, &s->a[i], name);
                 McDelete(s, name);
             }
-            McDelete(s, D_002A6C08);
-            McDelete(s, D_002A6C28);
-            McDelete(s, D_002A6BC8);
-            McDelete(s, D_002A6BB0);
+            McDelete(s, "/BASCUS-97316YAOTWTD!/icon.sys");
+            McDelete(s, "/BASCUS-97316YAOTWTD!/memcard_icon.ico");
+            McDelete(s, "/BASCUS-97316YAOTWTD!/BASCUS-97316YAOTWTD!");
+            McDelete(s, "/BASCUS-97316YAOTWTD!");
         }
     }
     if (r)
@@ -954,7 +954,6 @@ done:
 namespace M_McJobGetDir { extern "C" {
 struct B { char data[0x5464]; };
 struct S { int x0; int x4; int x8; int xC; int pad[5]; struct B a[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char xFD5C[1]; };
-extern char D_002A6BB0[];
 int sceMcGetDir(int a, int b, char *c, int d, int e, int f);
 int McSyncResult(void *p, int a, int b, int *c);
 int func_001AC6A0(struct S *s, int *out);
@@ -976,7 +975,7 @@ int McJobGetDir(struct S *s)
     int n[2];
     int r;
     int i;
-    r = McSyncResult(p, sceMcGetDir(s->x0, s->x4, D_002A6BB0, 0, -1, 0), 0xD, &n[0]);
+    r = McSyncResult(p, sceMcGetDir(s->x0, s->x4, "/BASCUS-97316YAOTWTD!", 0, -1, 0), 0xD, &n[0]);
     if (n[0] <= 0) {
         func_001AC6A0(s, &n[1]);
         if (n[1] <= 0x18FFF)
@@ -994,7 +993,6 @@ int McJobGetDir(struct S *s)
 namespace M_BuildSaveFilePath { extern "C" {
 struct SAVE { char ab[0x5464]; };
 struct M { char pad[0x24]; struct SAVE asave[4]; };
-extern char D_002A6C50[], D_002A6C60[], D_002A6C78[];
 int sprintf(char *buf, char *fmt, ...);
 /** @sly2-annot addr=0x1ABB10
  * Purpose: sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i)
@@ -1005,7 +1003,7 @@ int sprintf(char *buf, char *fmt, ...);
  * @end-sly2-annot */
 void BuildSaveFilePath(struct M *pm, struct SAVE *ps, char *buf)
 {
-    sprintf(buf, D_002A6C50, D_002A6C60, D_002A6C78, ps - pm->asave + 1);
+    sprintf(buf, "/%s/%s%d", "BASCUS-97316YAOTWTD!", "save", ps - pm->asave + 1);
 }
 } } // namespace M_BuildSaveFilePath
 
@@ -1238,6 +1236,16 @@ int ReadMcDirWrapper(int a, int b, int c)
 }
 } } // namespace M_ReadMcDirWrapper
 
+// .rodata order (tu-merging.md "Phase 5: data order"): the pointer-to-member records are defined where the ELF has
+// them among the functions' literals, under asm labels. 0x2A6C80 "/%s/%s" is a literal no code in the ELF
+// references (a use the original compiled away); defined here under its address name to keep the layout.
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_func_001ABBE0() __asm__("func_001ABBE0");
+void p_McJobSaveSlot() __asm__("McJobSaveSlot");
+extern const char r_D_002A6C80[] __asm__("D_002A6C80") = "/%s/%s";
+extern const unsigned int r_D_002A6C88[2] __asm__("D_002A6C88") = {0xFFFF0000, (unsigned int)p_func_001ABBE0};
+extern const unsigned int r_D_002A6C90[2] __asm__("D_002A6C90") = {0xFFFF0000, (unsigned int)p_McJobSaveSlot};
+}
 namespace M_WriteIconSys { extern "C" {
 typedef struct {
     char Head[4];
@@ -1329,7 +1337,7 @@ int WriteIconSys(void *p, char *dir, char *title)
  * @end-sly2-annot */
 extern "C" void load_sly_icon_from_disc(int n0, int n1)
 {
-    load_file_from_disc(n0, n1, D_002A38E8, (char *)D_002A6CA0);
+    load_file_from_disc(n0, n1, D_002A38E8, (char *)"memcard_icon.ico");
 }
 
 namespace M_load_file_from_disc {
@@ -1343,7 +1351,6 @@ struct Y;extern "C" void func_00184950(Y*,int);
 struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("func_001848A8");~Y(){func_00184950(this,2);}};
 struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
 extern "C" {
-extern char D_002A6CB8[];
 int sprintf(char *buf, const char *fmt, ...);
 int McOpen(void *p, char *name, int mode, int *ph);
 void *func_001AE318(REQUEST *pmsg);
@@ -1423,7 +1430,7 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
     STACKSCOPE frame;
     char name[0x50];
     int ret;
-    sprintf(name, D_002A6CB8, a, b);
+    sprintf(name, "%s/%s", a, b);
     int h = -1;
     ret = McOpen(p, name, 0x202, &h);
     if (ret == 0) {
@@ -1920,6 +1927,10 @@ int func_001ACC80(struct S *p)
 }
 } } // namespace M_func_001ACC80
 
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_McJobCreateSave() __asm__("McJobCreateSave");
+extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (unsigned int)p_McJobCreateSave};
+}
 namespace M_CMemcardDialog_Update { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short index; void (*pfn)(void *); };
@@ -2454,6 +2465,14 @@ extern "C" void func_001AD7E0(char *pch)
     strcpy(pch, PchzFindSwLangstr(&D_003DD490, ::D_002E6550.idUnk40));
 }
 
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_McJobFormat() __asm__("McJobFormat");
+extern const unsigned int r_D_002A6E88[2] __asm__("D_002A6E88") = {0xFFFF0000, (unsigned int)p_McJobFormat};
+}
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_func_001ABC68() __asm__("func_001ABC68");
+extern const unsigned int r_D_002A6E90[2] __asm__("D_002A6E90") = {0xFFFF0000, (unsigned int)p_func_001ABC68};
+}
 namespace M_func_001AD820 { extern "C" {
 extern char D_002E6550[], D_003DD490[];
 int func_001ACC80(void *p);
@@ -2497,7 +2516,7 @@ extern "C" void func_001AD928(char *pch)
 namespace M_func_001AD980 { extern "C" {
 struct G { char pad[0x3A18]; char x3A18[1]; };
 extern struct G D_003DD490;
-extern char D_003DA530[], D_002A6EC8[], D_003D4A60[];
+extern char D_003DA530[], D_003D4A60[];
 int FScreenShown(void *p);
 void *NEpisodeBest(void);
 int IdsFromWorld(void *p);
@@ -2517,7 +2536,7 @@ void func_001AD980(char *buf)
     char *fmt;
     if (FScreenShown(D_003DA530))
         return;
-    fmt = D_002A6EC8;
+    fmt = "%s : %d%%";
     g = &D_003DD490;
     a = PchzFindSwLangstr__FP2SWi(g, IdsFromWorld(NEpisodeBest()));
     sprintf(buf, fmt, a, NCompletionPercentGs(g->x3A18, D_003D4A60));
@@ -2589,7 +2608,7 @@ void func_001ADA20(char *buf)
 #undef D_003D9EDC
 
 namespace M_func_001ADBB8 { extern "C" {
-extern char D_003D9ED0[], D_003DD490[], D_002A6EB8[];
+extern char D_003D9ED0[], D_003DD490[];
 int IdPauseTopPage(void *p);
 void *PchzFindSwLangstr__FP2SWi(void *p, int n);
 void strcpy(void *s, void *q);
@@ -2607,7 +2626,7 @@ void func_001ADBB8(void *s)
     case 0x1E:
     case 0x1F:
         strcpy(s, PchzFindSwLangstr__FP2SWi(D_003DD490, 0x40));
-        strcpy1(s, D_002A6EB8);
+        strcpy1(s, (char *)" : &2T&.");
         break;
     }
 }
@@ -2621,7 +2640,7 @@ struct B{char data[0x5464];};
 extern "C" {
  extern G D_003DD490;
  extern B D_002E6604[];
- extern char D_003D9ED0[],D_002A6EE0[],D_002A6EC8[];
+ extern char D_003D9ED0[];
  void*RefGetGlobalSaveVar(REF*,void*,void*);
  void Decref__4CRef(REF*);
  void*STACKSCOPE_ctor(void*);
@@ -2648,10 +2667,10 @@ extern "C" void func_001ADC40(char*buf,int idx){
  B*pb=&D_002E6604[idx];
  if(GetG(ref,pg->primary,pb)!=0.0f){
   int frame[4];int*pf=frame;STACKSCOPE_ctor(pf);
-  void*value=PkeyAllocSaveKey(D_002A6EE0,0);
+  void*value=PkeyAllocSaveKey((char *)"episodeBest",0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->fallback,pb);
-  sprintf(buf,D_002A6EC8,(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),NCompletionPercentGs(D_003DD490.object,pb));
+  sprintf(buf,"%s : %d%%",(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),NCompletionPercentGs(D_003DD490.object,pb));
   STACKSCOPE_ctor_1AE4A0(frame,2);
  }else{
   switch(IdPauseTopPage(D_003D9ED0)){
@@ -2779,22 +2798,9 @@ extern "C" void func_00258248(FILEKEY *pfk)
     pfk->n8 = -1;
 }
 
-// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
-// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const char D_002A6BB0[] = "/BASCUS-97316YAOTWTD!";
-extern const char D_002A6BC8[] = "/BASCUS-97316YAOTWTD!/BASCUS-97316YAOTWTD!";
-extern const char D_002A6BF8[] = "Sly 2";
-extern const char D_002A6C00[] = "/";
-extern const char D_002A6C08[] = "/BASCUS-97316YAOTWTD!/icon.sys";
-extern const char D_002A6C28[] = "/BASCUS-97316YAOTWTD!/memcard_icon.ico";
-extern const char D_002A6C50[] = "/%s/%s%d";
-extern const char D_002A6C60[] = "BASCUS-97316YAOTWTD!";
-extern const char D_002A6C78[] = "save";
-extern const char D_002A6CA0[] = "memcard_icon.ico";
-extern const char D_002A6CB8[] = "%s/%s";
-extern const char D_002A6EB8[] = " : &2T&.";
-extern const char D_002A6EC8[] = "%s : %d%%";
-extern const char D_002A6EE0[] = "episodeBest";
+// ---- memcard's strings (0x2A6BB0-0x2A6EE0: the save directory and file names, the format strings) are the
+// functions' own literals, pooled per TU, so they are spelled as literals where they are used (tu-merging.md
+// "Phase 6: one link mode"); the pointer-to-member records are defined among the functions (RO_ORDER).
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
@@ -2804,23 +2810,3 @@ struct COMMONS_memcard {
     static int c_004425D8 __asm__("D_004425D8");   /* .bss 0x4 */
 };
 int COMMONS_memcard::c_004425D8;
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_memcard {
-void p_McJobCreateSave() __asm__("McJobCreateSave");
-void p_McJobFormat() __asm__("McJobFormat");
-void p_McJobGetInfo() __asm__("McJobGetInfo");
-void p_McJobSaveSlot() __asm__("McJobSaveSlot");
-void p_func_001ABBE0() __asm__("func_001ABBE0");
-void p_func_001ABC68() __asm__("func_001ABC68");
-extern "C" {
-extern const unsigned int D_002A6BA0[2] = {0xFFFF0000, (unsigned int)p_McJobGetInfo};
-extern const unsigned int D_002A6C88[2] = {0xFFFF0000, (unsigned int)p_func_001ABBE0};
-extern const unsigned int D_002A6C90[2] = {0xFFFF0000, (unsigned int)p_McJobSaveSlot};
-extern const unsigned int D_002A6D88[2] = {0xFFFF0000, (unsigned int)p_McJobCreateSave};
-extern const unsigned int D_002A6E88[2] = {0xFFFF0000, (unsigned int)p_McJobFormat};
-extern const unsigned int D_002A6E90[2] = {0xFFFF0000, (unsigned int)p_func_001ABC68};
-}
-} // namespace ANPTR_memcard

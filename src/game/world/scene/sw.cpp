@@ -68,7 +68,6 @@ extern "C" {
 extern char D_002E1E60[];   /* the letterbox object */
 extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
-extern const char D_002A8A98[]; /* empty default for func_00210CA8 */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
 void UpdateSwIllum(SW *psw);
@@ -770,7 +769,6 @@ struct FRAME;
 struct STREAM;
 struct REF;
 extern "C" { extern char D_002DDED0[],D_002DDF40[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
-extern "C" { extern char D_002A8A88[]; }
 extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
 extern "C" { extern SW D_003DD490; }
 extern "C" {
@@ -886,7 +884,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
         ACTOR *selected=0;
         int actorId;
-        {REF value=RefGetSaveVarV(D_002A8A88,0);actorId=value.value;}
+        {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
         if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(p,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
@@ -2305,7 +2303,6 @@ namespace M_NEpisodeBest { extern "C" {
 struct CRef { int tagk; int tag; };
 void RefGetSaveVarV(struct CRef *r, char *s, int a);
 void Decref__4CRef(struct CRef *r);
-extern char D_002A8A78[];
 /** @sly2-annot addr=0x210B28
  * Purpose: Read save variable "episodeBest"
  * Info: proposed name NEpisodeBest (T1); TU sw
@@ -2318,7 +2315,7 @@ int NEpisodeBest(void)
 {
     struct CRef r;
     int v;
-    RefGetSaveVarV(&r, D_002A8A78, 0);
+    RefGetSaveVarV(&r, "episodeBest", 0);
     v = r.tag;
     Decref__4CRef(&r);
     return v;
@@ -2408,7 +2405,7 @@ void func_00210BE0(TBL *p)
 } } // namespace M_func_00210BE0
 
 /** @sly2-annot addr=0x210CA8
- * Purpose: Search {key,ptr} table; return ptr or default empty D_002A8A98
+ * Purpose: Search {key,ptr} table; return ptr or default empty string
  * Info: proposed name PvFindSwKeyedTable (T2); TU sw
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
@@ -2422,15 +2419,14 @@ extern "C" void *func_00210CA8(KVT *pkvt, int key)
             return pkvt->a[i].pv;
         }
     }
-    return (char *)D_002A8A98;
+    return (char *)"";
 }
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const char D_002A8A78[] = "episodeBest";
-extern const char D_002A8A88[] = "oidPoCurrent";
-extern const char D_002A8A98[] = "";
+// The strings at 0x2A8A78 ("episodeBest"), 0x2A8A88 ("oidPoCurrent") and 0x2A8A98 ("") are the functions' own
+// literals, pooled per TU (spelled as literals where they are used: tu-merging.md "Phase 6").
 float D_002C3E60 = 4000.0f;
 float D_002C3E64 = 1500.0f;
 float D_002C3E68 = 1.5f;
