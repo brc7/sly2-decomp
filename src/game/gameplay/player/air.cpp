@@ -975,6 +975,10 @@ extern "C" void func_00196AA8(MOVE*p,U*out){
 }
 } // namespace M_func_00196AA8
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A63B0 __asm__("D_002A63B0") = 3.40282347e+38f; }
 //////// 0x196DF8 PresetJtAccelJump
 namespace M_PresetJtAccelJump {
 typedef int qword __attribute__((mode(TI)));
@@ -3149,6 +3153,7 @@ static inline float SqrtfEarly(float g)
     return r;
 }
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("func_0019A750");
+namespace RO_ORDER { extern const float r_D_002A656C __asm__("D_002A656C") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x19A750
  * Purpose: Launch velocity for a flight kind: z raised to the per-kind value (215/1200/250/500 apex,
  *   700/900/800 constants, bounce, double jump solved with CSolveQuadratic)
@@ -4514,8 +4519,6 @@ void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). At the end of the file so no
 // function sees a definition; the namespaced extern "C" declarations above refer to these symbols.
-extern const float D_002A63B0 = 3.40282347e+38f;    /* .rodata, FLT_MAX (before the jump tables) */
-extern const float D_002A656C = 3.40282347e+38f;    /* .rodata, FLT_MAX */
 float D_002BF730 = 515.0f;
 float D_002BF734 = 515.0f;
 float D_002BF738 = 215.0f;
