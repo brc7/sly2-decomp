@@ -176,60 +176,60 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1E5D80](../../../src/game/engine/physics/shape/InitShape.c) | `InitShape` | SHAPE::Init (vt7): InitXfm; cached segment(+0x148)=-1; +0x178=1 | 0.70 | T1 |  |
-| [0x1E5DB8](../../../src/game/engine/physics/shape/CloneShape.c) | `CloneShape` | SHAPE::Clone (vt41): CloneXfm; if a chain was attached (+0x17C) rebuild it | 0.65 | T1 |  |
-| [0x1E5DF8](../../../src/game/engine/physics/shape/LoadShapeFromBrx.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for curves), options; then MeasureShape | 0.80 | T1 | parse |
-| [0x1E5FC8](../../../src/game/engine/physics/shape/CacheShapeSegment.c) | `CacheShapeSegment` | Cache 11 Hermite samples of curve segment i (transformed by the shape matrix) and their cumulative lengths (+0x14C), segment id +0x148 | 0.50 | T1 |  |
-| [0x1E6180](../../../src/game/engine/physics/shape/MeasureShape.c) | `MeasureShape` | Recompute the cumulative-distance array (+0xF0) from the world-space points (linear) or per-segment cached lengths (curve); invalidate cache; resync chain | 0.50 | T1 |  |
-| [0x1E6330](../../../src/game/engine/physics/shape/InvalidateShapeCache.c) | `InvalidateShapeCache` | +0x178=0, cached segment=-1 | 0.50 | T1 |  |
-| [0x1E6340](../../../src/game/engine/physics/shape/func_001E6340.c) | `UpdateShapeXfWorld` | SHAPE vt17: if a chain is attached step its simulation (mode 0/3 -> 0x1E8378, 1/2 -> 0x1E9090) else LO vt17 | 0.35 | T2 |  |
-| [0x1E63C0](../../../src/game/engine/physics/shape/SFromShapeU.c) | `SFromShapeU` | Arc length at parameter u (interpolated from the distance table, with per-segment sub-samples for curves) | 0.60 | T1 |  |
-| [0x1E64C8](../../../src/game/engine/physics/shape/UFromShapeS.c) | `UFromShapeS` | Parameter u at arc length s (inverse of SFromShapeU) | 0.60 | T1 |  |
-| [0x1E6610](../../../src/game/engine/physics/shape/UMinShape.c) | `UMinShape` | return times[0] (+0xEC) | 0.55 | T1 |  |
-| [0x1E6620](../../../src/game/engine/physics/shape/SMinShape.c) | `SMinShape` | return dists[0] (+0xF0) | 0.55 | T1 |  |
-| [0x1E6630](../../../src/game/engine/physics/shape/UMaxShape.c) | `UMaxShape` | return times[c-1] | 0.60 | T1 |  |
-| [0x1E6648](../../../src/game/engine/physics/shape/SMaxShape.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
-| [0x1E6660](../../../src/game/engine/physics/shape/UWrapShape.c) | `UWrapShape` | If closed, wrap u into [times[0],times[c-1]] (GModPositive) | 0.50 | T1 |  |
-| [0x1E66C8](../../../src/game/engine/physics/shape/SWrapShape.c) | `SWrapShape` | If closed, wrap s into [0,length] | 0.50 | T1 |  |
-| [0x1E6728](../../../src/game/engine/physics/shape/SClampShape.c) | `SClampShape` | Closed: SWrapShape; open: clamp s to [SMin,SMax] | 0.50 | T1 |  |
-| [0x1E67B8](../../../src/game/engine/physics/shape/EvaluateShapeU.c) | `EvaluateShapeU` | Position and tangent at parameter u (linear lerp or Hermite via 0x117120), in world space | 0.55 | T1 |  |
-| [0x1E69A0](../../../src/game/engine/physics/shape/func_001E69A0.c) | `GDistShapeU` | Minimizer callback: squared distance from a query point (in a space) to EvaluateShapeU(u) | 0.40 | T2 |  |
-| [0x1E6A30](../../../src/game/engine/physics/shape/func_001E6A30.cpp) | `FindShapeClosestPointLinearFromU` | Closest point on a linear shape, walking segments from a start parameter | 0.45 | T2 |  |
-| [0x1E6DB8](../../../src/game/engine/physics/shape/func_001E6DB8.c) | `FindShapeClosestPointCurveFromU` | Closest point on a curved shape by MinimizeRange around a start parameter (step = segment/10) | 0.45 | T2 |  |
-| [0x1E6ED8](../../../src/game/engine/physics/shape/FindShapeClosestPointFromU.c) | `FindShapeClosestPointFromU` | Dispatch on mode to the linear/curve closest-point search | 0.50 | T1 |  |
-| [0x1E6F10](../../../src/game/engine/physics/shape/EvaluateShapeS.c) | `EvaluateShapeS` | EvaluateShapeU(UFromShapeS(s)) | 0.55 | T1 |  |
-| [0x1E6F60](../../../src/game/engine/physics/shape/FindShapeClosestPoint.cpp) | `FindShapeClosestPoint` | Global closest point on the shape to a position (segment scan, or nearest vertex then refine); outputs pos, dir, u, s | 0.55 | T1 |  |
-| [0x1E7380](../../../src/game/engine/physics/shape/FindShapeClosestPointFromS.c) | `FindShapeClosestPointFromS` | FindShapeClosestPointFromU(shape, pos, ..., UFromShapeS(shape, s)) | 0.75 | T1 | top50 |
-| [0x1E7410](../../../src/game/engine/physics/shape/func_001E7410.c) | `FindShapeBestVertex` | Pick the vertex parameter minimizing a callback; evaluate pos/dir and s there | 0.40 | T2 |  |
-| [0x1E7538](../../../src/game/engine/physics/shape/IsegFindShapeU.c) | `IsegFindShapeU` | Segment index containing u (searching from hint +0x178), with offset and segment span outputs | 0.50 | T1 |  |
-| [0x1E7668](../../../src/game/engine/physics/shape/IsegFindShapeS.c) | `IsegFindShapeS` | Segment index containing s | 0.50 | T1 |  |
-| [0x1E77B0](../../../src/game/engine/physics/shape/func_001E77B0.c) | `PosFindShapeClosest` | Return only the closest point of FindShapeClosestPoint | 0.45 | T2 |  |
-| [0x1E77E8](../../../src/game/engine/physics/shape/DuGetShapeSearchIncrement.c) | `DuGetShapeSearchIncrement` | (uMax-uMin)/(count*10) | 0.60 | T1 |  |
-| [0x1E7840](../../../src/game/engine/physics/shape/func_001E7840.c) | `PchainEnsureShape` | Create (0x90 bytes, 0x1E81C0) the shape's chain if missing, measure, set LO busy flags; f==1 re-arms an existing one; returns it | 0.45 | T2 |  |
-| [0x1E7930](../../../src/game/engine/physics/shape/func_001E7930.c) | `SetShapeChainStartObject` | Chain end 0 follows object (or shape start) | 0.40 | T2 |  |
-| [0x1E7968](../../../src/game/engine/physics/shape/func_001E7968.c) | `SetShapeChainEndObject` | Chain end 1 follows object (or shape end) | 0.40 | T2 |  |
-| [0x1E79A0](../../../src/game/engine/physics/shape/func_001E79A0.c) | `SGetShapeChainLength` | Last entry of the chain's sample array (0 if no points) | 0.30 | T2 |  |
-| [0x1E79F0](../../../src/game/engine/physics/shape/func_001E79F0.c) | `AddShapeChainSample` | Ensure chain then append sample 0x1E95B0(chain,g) | 0.35 | T2 |  |
-| [0x1E7A28](../../../src/game/engine/physics/shape/SetShapeChainMode.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
-| [0x1E7B38](../../../src/game/engine/physics/shape/func_001E7B38.c) | `DsShape` | b-a, wrapped to the shorter way round on closed shapes | 0.45 | T2 |  |
-| [0x1E7BB8](../../../src/game/engine/physics/shape/func_001E7BB8.c) | `GetShapeBounds` | World AABB of the transformed points and curve controls | 0.45 | T2 |  |
-| [0x1E7D90](../../../src/game/engine/physics/shape/func_001E7D90.c) | `UpdateShapeBoundingSphere` | Bounding radius from transformed vertices and Bezier controls (after UpdateXfmMatWorld) | 0.35 | T2 |  |
-| [0x1E7FF0](../../../src/game/engine/physics/shape/func_001E7FF0.c) | `GetShapeChainMode` | chain ? chain->+0x4C : -1 | 0.40 | T2 |  |
-| [0x1E8008](../../../src/game/engine/physics/shape/SRandomShapeRange.c) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
-| [0x1E81C0](../../../src/game/engine/physics/shape/InitChain.c) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
-| [0x1E8378](../../../src/game/engine/physics/shape/func_001E8378.cpp) | `StepChainRk4` | One RK4-style step of the spring rope chain | 0.35 | T2 |  |
-| [0x1E9090](../../../src/game/engine/physics/shape/func_001E9090.cpp) | `StepChain` | One integration step of the rope chain (Verlet-like with distance constraints, pinned ends) | 0.40 | T2 |  |
-| [0x1E93F0](../../../src/game/engine/physics/shape/func_001E93F0.c) | `SetChainEndObject` | Attach chain end i to object (its matrix via vt32) or to the shape's start/end point | 0.40 | T2 |  |
-| [0x1E94B0](../../../src/game/engine/physics/shape/func_001E94B0.c) | `PshapeNewSampled` | Create a SHAPE (cid 0xA) with c samples (times 0..c-1) and empty dist/point arrays | 0.45 | T2 |  |
-| [0x1E95B0](../../../src/game/engine/physics/shape/func_001E95B0.cpp) | `AddChainSample` | Append a time sample to a sampled path (truncate on going back, interpolate inserted samples) | 0.35 | T2 |  |
-| [0x1E9828](../../../src/game/engine/physics/shape/func_001E9828.c) | `SyncChainDists` | Copy the shape's dist array into the chain's | 0.40 | T2 |  |
-| [0x1E9858](../../../src/game/engine/physics/shape/func_001E9858.cpp) | `PostCid106Load` | CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local basis, distance along path) | 0.35 | T2 | verified |
-| [0x1E9AC0](../../../src/game/engine/physics/shape/func_001E9AC0.cpp) | `RenderCid106Self` | CID 0x6A vt19: RenderSoSelf and deform the mesh along the path (EvaluateShapeU per sample) | 0.35 | T2 |  |
-| [0x1E9C30](../../../src/game/engine/physics/shape/func_001E9C30.c) | `EnsureShapeVolumeSegments` | Allocate (0x9C) and build the shape's volume/segment table once (+0x180) | 0.30 | T2 |  |
-| [0x1E9C88](../../../src/game/engine/physics/shape/func_001E9C88.c) | `BuildShapeVolumeSegments` | Sample the path, collect distinct containing objects (0x1C0D70) and parameter ranges | 0.30 | T2 |  |
-| [0x1E9F50](../../../src/game/engine/physics/shape/func_001E9F50.c) | `PvFindValidAtPos` | Find an object at pos (0x1C0D70/0x1C1700) passing 0x1BC9F0 | 0.25 | T2 |  |
-| [0x1EA000](../../../src/game/engine/physics/shape/func_001EA000.c) | `BuildShapeValidRanges` | Sample the path over [t0,t1] and collect valid parameter ranges, intersect with existing ones | 0.30 | T2 |  |
-| [0x1EA3B0](../../../src/game/engine/physics/shape/func_001EA3B0.c) | `PrangeFind` | Return the {gMin,gMax} range containing g | 0.35 | T2 |  |
+| [0x1E5D80](../../../src/game/engine/physics/shape.cpp) | `InitShape` | SHAPE::Init (vt7): InitXfm; cached segment(+0x148)=-1; +0x178=1 | 0.70 | T1 |  |
+| [0x1E5DB8](../../../src/game/engine/physics/shape.cpp) | `CloneShape` | SHAPE::Clone (vt41): CloneXfm; if a chain was attached (+0x17C) rebuild it | 0.65 | T1 |  |
+| [0x1E5DF8](../../../src/game/engine/physics/shape.cpp) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for curves), options; then MeasureShape | 0.80 | T1 | parse |
+| [0x1E5FC8](../../../src/game/engine/physics/shape.cpp) | `CacheShapeSegment` | Cache 11 Hermite samples of curve segment i (transformed by the shape matrix) and their cumulative lengths (+0x14C), segment id +0x148 | 0.50 | T1 |  |
+| [0x1E6180](../../../src/game/engine/physics/shape.cpp) | `MeasureShape` | Recompute the cumulative-distance array (+0xF0) from the world-space points (linear) or per-segment cached lengths (curve); invalidate cache; resync chain | 0.50 | T1 |  |
+| [0x1E6330](../../../src/game/engine/physics/shape.cpp) | `InvalidateShapeCache` | +0x178=0, cached segment=-1 | 0.50 | T1 |  |
+| [0x1E6340](../../../src/game/engine/physics/shape.cpp) | `UpdateShapeXfWorld` | SHAPE vt17: if a chain is attached step its simulation (mode 0/3 -> 0x1E8378, 1/2 -> 0x1E9090) else LO vt17 | 0.35 | T2 |  |
+| [0x1E63C0](../../../src/game/engine/physics/shape.cpp) | `SFromShapeU` | Arc length at parameter u (interpolated from the distance table, with per-segment sub-samples for curves) | 0.60 | T1 |  |
+| [0x1E64C8](../../../src/game/engine/physics/shape.cpp) | `UFromShapeS` | Parameter u at arc length s (inverse of SFromShapeU) | 0.60 | T1 |  |
+| [0x1E6610](../../../src/game/engine/physics/shape.cpp) | `UMinShape` | return times[0] (+0xEC) | 0.55 | T1 |  |
+| [0x1E6620](../../../src/game/engine/physics/shape.cpp) | `SMinShape` | return dists[0] (+0xF0) | 0.55 | T1 |  |
+| [0x1E6630](../../../src/game/engine/physics/shape.cpp) | `UMaxShape` | return times[c-1] | 0.60 | T1 |  |
+| [0x1E6648](../../../src/game/engine/physics/shape.cpp) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
+| [0x1E6660](../../../src/game/engine/physics/shape.cpp) | `UWrapShape` | If closed, wrap u into [times[0],times[c-1]] (GModPositive) | 0.50 | T1 |  |
+| [0x1E66C8](../../../src/game/engine/physics/shape.cpp) | `SWrapShape` | If closed, wrap s into [0,length] | 0.50 | T1 |  |
+| [0x1E6728](../../../src/game/engine/physics/shape.cpp) | `SClampShape` | Closed: SWrapShape; open: clamp s to [SMin,SMax] | 0.50 | T1 |  |
+| [0x1E67B8](../../../src/game/engine/physics/shape.cpp) | `EvaluateShapeU` | Position and tangent at parameter u (linear lerp or Hermite via 0x117120), in world space | 0.55 | T1 |  |
+| [0x1E69A0](../../../src/game/engine/physics/shape.cpp) | `GDistShapeU` | Minimizer callback: squared distance from a query point (in a space) to EvaluateShapeU(u) | 0.40 | T2 |  |
+| [0x1E6A30](../../../src/game/engine/physics/shape.cpp) | `FindShapeClosestPointLinearFromU` | Closest point on a linear shape, walking segments from a start parameter | 0.45 | T2 |  |
+| [0x1E6DB8](../../../src/game/engine/physics/shape.cpp) | `FindShapeClosestPointCurveFromU` | Closest point on a curved shape by MinimizeRange around a start parameter (step = segment/10) | 0.45 | T2 |  |
+| [0x1E6ED8](../../../src/game/engine/physics/shape.cpp) | `FindShapeClosestPointFromU` | Dispatch on mode to the linear/curve closest-point search | 0.50 | T1 |  |
+| [0x1E6F10](../../../src/game/engine/physics/shape.cpp) | `EvaluateShapeS` | EvaluateShapeU(UFromShapeS(s)) | 0.55 | T1 |  |
+| [0x1E6F60](../../../src/game/engine/physics/shape.cpp) | `FindShapeClosestPoint` | Global closest point on the shape to a position (segment scan, or nearest vertex then refine); outputs pos, dir, u, s | 0.55 | T1 |  |
+| [0x1E7380](../../../src/game/engine/physics/shape.cpp) | `FindShapeClosestPointFromS` | FindShapeClosestPointFromU(shape, pos, ..., UFromShapeS(shape, s)) | 0.75 | T1 | top50 |
+| [0x1E7410](../../../src/game/engine/physics/shape.cpp) | `FindShapeBestVertex` | Pick the vertex parameter minimizing a callback; evaluate pos/dir and s there | 0.40 | T2 |  |
+| [0x1E7538](../../../src/game/engine/physics/shape.cpp) | `IsegFindShapeU` | Segment index containing u (searching from hint +0x178), with offset and segment span outputs | 0.50 | T1 |  |
+| [0x1E7668](../../../src/game/engine/physics/shape.cpp) | `IsegFindShapeS` | Segment index containing s | 0.50 | T1 |  |
+| [0x1E77B0](../../../src/game/engine/physics/shape.cpp) | `PosFindShapeClosest` | Return only the closest point of FindShapeClosestPoint | 0.45 | T2 |  |
+| [0x1E77E8](../../../src/game/engine/physics/shape.cpp) | `DuGetShapeSearchIncrement` | (uMax-uMin)/(count*10) | 0.60 | T1 |  |
+| [0x1E7840](../../../src/game/engine/physics/shape.cpp) | `PchainEnsureShape` | Create (0x90 bytes, 0x1E81C0) the shape's chain if missing, measure, set LO busy flags; f==1 re-arms an existing one; returns it | 0.45 | T2 |  |
+| [0x1E7930](../../../src/game/engine/physics/shape.cpp) | `SetShapeChainStartObject` | Chain end 0 follows object (or shape start) | 0.40 | T2 |  |
+| [0x1E7968](../../../src/game/engine/physics/shape.cpp) | `SetShapeChainEndObject` | Chain end 1 follows object (or shape end) | 0.40 | T2 |  |
+| [0x1E79A0](../../../src/game/engine/physics/shape.cpp) | `SGetShapeChainLength` | Last entry of the chain's sample array (0 if no points) | 0.30 | T2 |  |
+| [0x1E79F0](../../../src/game/engine/physics/shape.cpp) | `AddShapeChainSample` | Ensure chain then append sample 0x1E95B0(chain,g) | 0.35 | T2 |  |
+| [0x1E7A28](../../../src/game/engine/physics/shape.cpp) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
+| [0x1E7B38](../../../src/game/engine/physics/shape.cpp) | `DsShape` | b-a, wrapped to the shorter way round on closed shapes | 0.45 | T2 |  |
+| [0x1E7BB8](../../../src/game/engine/physics/shape.cpp) | `GetShapeBounds` | World AABB of the transformed points and curve controls | 0.45 | T2 |  |
+| [0x1E7D90](../../../src/game/engine/physics/shape.cpp) | `UpdateShapeBoundingSphere` | Bounding radius from transformed vertices and Bezier controls (after UpdateXfmMatWorld) | 0.35 | T2 |  |
+| [0x1E7FF0](../../../src/game/engine/physics/shape.cpp) | `GetShapeChainMode` | chain ? chain->+0x4C : -1 | 0.40 | T2 |  |
+| [0x1E8008](../../../src/game/engine/physics/shape.cpp) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
+| [0x1E81C0](../../../src/game/engine/physics/shape.cpp) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
+| [0x1E8378](../../../src/game/engine/physics/shape.cpp) | `StepChainRk4` | One RK4-style step of the spring rope chain | 0.35 | T2 |  |
+| [0x1E9090](../../../src/game/engine/physics/shape.cpp) | `StepChain` | One integration step of the rope chain (Verlet-like with distance constraints, pinned ends) | 0.40 | T2 |  |
+| [0x1E93F0](../../../src/game/engine/physics/shape.cpp) | `SetChainEndObject` | Attach chain end i to object (its matrix via vt32) or to the shape's start/end point | 0.40 | T2 |  |
+| [0x1E94B0](../../../src/game/engine/physics/shape.cpp) | `PshapeNewSampled` | Create a SHAPE (cid 0xA) with c samples (times 0..c-1) and empty dist/point arrays | 0.45 | T2 |  |
+| [0x1E95B0](../../../src/game/engine/physics/shape.cpp) | `AddChainSample` | Append a time sample to a sampled path (truncate on going back, interpolate inserted samples) | 0.35 | T2 |  |
+| [0x1E9828](../../../src/game/engine/physics/shape.cpp) | `SyncChainDists` | Copy the shape's dist array into the chain's | 0.40 | T2 |  |
+| [0x1E9858](../../../src/game/engine/physics/shape.cpp) | `PostCid106Load` | CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local basis, distance along path) | 0.35 | T2 | verified |
+| [0x1E9AC0](../../../src/game/engine/physics/shape.cpp) | `RenderCid106Self` | CID 0x6A vt19: RenderSoSelf and deform the mesh along the path (EvaluateShapeU per sample) | 0.35 | T2 |  |
+| [0x1E9C30](../../../src/game/engine/physics/shape.cpp) | `EnsureShapeVolumeSegments` | Allocate (0x9C) and build the shape's volume/segment table once (+0x180) | 0.30 | T2 |  |
+| [0x1E9C88](../../../src/game/engine/physics/shape.cpp) | `BuildShapeVolumeSegments` | Sample the path, collect distinct containing objects (0x1C0D70) and parameter ranges | 0.30 | T2 |  |
+| [0x1E9F50](../../../src/game/engine/physics/shape.cpp) | `PvFindValidAtPos` | Find an object at pos (0x1C0D70/0x1C1700) passing 0x1BC9F0 | 0.25 | T2 |  |
+| [0x1EA000](../../../src/game/engine/physics/shape.cpp) | `BuildShapeValidRanges` | Sample the path over [t0,t1] and collect valid parameter ranges, intersect with existing ones | 0.30 | T2 |  |
+| [0x1EA3B0](../../../src/game/engine/physics/shape.cpp) | `PrangeFind` | Return the {gMin,gMax} range containing g | 0.35 | T2 |  |
 
 ## so (0x1F2108-0x1F8DD8)
 

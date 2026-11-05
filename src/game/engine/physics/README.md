@@ -11,7 +11,7 @@
 | [`geom.cpp`](geom.cpp) | 1 |
 | [`mark.cpp`](mark.cpp) | 1 |
 | [`path.cpp`](path.cpp) | 1 |
-| [`shape/`](shape/) | 56 |
+| [`shape.cpp`](shape.cpp) | 1 |
 | [`so/`](so/) | 174 |
 | [`solve.cpp`](solve.cpp) | 1 |
 | [`tu_185130.cpp`](tu_185130.cpp) | 1 |

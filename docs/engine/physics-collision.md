@@ -118,12 +118,12 @@ From [devtools/collision_paths](../guides/devtools.md#collision_paths) (README +
 | [0x1C0D70](../../src/game/engine/physics/path.cpp) | `PpathzoneFromPos` | Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone SW+0x45C8 | 0.55 | T1 |  |
 | [0x1C0EC0](../../src/game/engine/physics/path.cpp) | `LoadSwZoneBspFromBrx` | Read world zone BSP (if count) into SW+0x45CC | 0.75 | T1 | parse |
 | [0x1C0F30](../../src/game/engine/physics/path.cpp) | `LoadZoneBspFromBrx` | Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids | 0.75 | T1 | parse |
-| [0x1E5DF8](../../src/game/engine/physics/shape/LoadShapeFromBrx.c) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for c | 0.80 | T1 | parse |
-| [0x1E6648](../../src/game/engine/physics/shape/SMaxShape.c) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
-| [0x1E7A28](../../src/game/engine/physics/shape/SetShapeChainMode.c) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
-| [0x1E8008](../../src/game/engine/physics/shape/SRandomShapeRange.c) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
-| [0x1E81C0](../../src/game/engine/physics/shape/InitChain.c) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
-| [0x1E9858](../../src/game/engine/physics/shape/func_001E9858.cpp) | `PostCid106Load` | CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local basis, distance along path) | 0.35 | T2 | verified |
+| [0x1E5DF8](../../src/game/engine/physics/shape.cpp) | `LoadShapeFromBrx` | SHAPE::LoadFromBrx (vt14): XFM xf, mode(+0xE0: 0 linear, 1 curve), fClosed(+0xE4), count, then times/dists/points (+tangent arrays +0x140/+0x144 for c | 0.80 | T1 | parse |
+| [0x1E6648](../../src/game/engine/physics/shape.cpp) | `SMaxShape` | return dists[c-1] (total length) | 0.85 | T1 | verified |
+| [0x1E7A28](../../src/game/engine/physics/shape.cpp) | `SetShapeChainMode` | n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C | 0.85 | T1 | verified |
+| [0x1E8008](../../src/game/engine/physics/shape.cpp) | `SRandomShapeRange` | Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650 | 0.85 | T1 | verified |
+| [0x1E81C0](../../src/game/engine/physics/shape.cpp) | `InitChain` | Initialise a chain record for a shape (copy points/dists to a private array, set rest lengths) | 0.85 | T1 | verified |
+| [0x1E9858](../../src/game/engine/physics/shape.cpp) | `PostCid106Load` | CID 0x6A (SO child 0x160) vt15: PostSoLoad then rebuild each mesh vertex as (offset in path-local basis, distance along path) | 0.35 | T2 | verified |
 | [0x1F2108](../../src/game/engine/physics/so/InitSo.c) | `InitSo` | SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20, gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from  | 0.85 | T1 | verified |
 | [0x1F2718](../../src/game/engine/physics/so/func_001F2718.c) | `SetSoField148_20` | Set 4-bit field +0x148 bits 20-23 | 0.20 | T2 | verified |
 | [0x1F2768](../../src/game/engine/physics/so/SetSoIgnoreLocked__FP2SOi.cpp) | `SetSoIgnoreLocked__FP2SOi` | Set +0xD0 bit34 (fIgnoreLocked) | 0.85 | existing | verified |
