@@ -1524,7 +1524,7 @@ struct SWALLOC { int cb; int cbAlign; };
 struct STACKSCOPE;
 extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
-struct STACKSCOPE { STACKSCOPE(); ~STACKSCOPE(); };
+struct STACKSCOPE { STACKSCOPE() __asm__("STACKSCOPE_ctor"); ~STACKSCOPE(); };
 struct VTE { short delta, pad; M4 *(*pfn)(void *); };
 struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };
