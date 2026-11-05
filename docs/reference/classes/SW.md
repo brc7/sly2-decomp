@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetSwClassDesc`](../../../src/game/app/class_registry/GetSwClassDesc.c) | `0x113A20` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetSwClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113A20` | Pclassinfo |
 | 7 | UpdateSw | **new** | [`UpdateSw`](../../../src/game/level/update.cpp) | `0x226550` | VSlot7 |
 | 8 | RenderSw | **new** | [`RenderSw?`](../../../src/game/engine/graphics/pipeline/render.cpp) | `0x1CDA80` | VSlot8 |
 | 9 | DrawSw | **new** | [`DrawSw?`](../../../src/game/engine/graphics/pipeline/draw.cpp) | `0x157FA0` | VSlot9 |

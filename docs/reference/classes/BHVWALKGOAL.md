@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvwalkgoalClassDesc`](../../../src/game/app/class_registry/GetBhvwalkgoalClassDesc.c) | `0x114490` |
+| 6 | Pclassinfo | **override** | [`GetBhvwalkgoalClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114490` |
 | 7 | Init | **override** | [`InitBhvwalkgoal`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x144B28` |
 | 8 | Start | **override** | [`StartBhvwalkgoal`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x144B58` |
 | 9 | Close | inherited (BHV) | `CloseBhv` | `0x1EEF78` |

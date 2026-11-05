@@ -15,7 +15,7 @@
 | Factory (`pfnNew`) | [`NewStepguard`](../../../src/game/app/class_registry.cpp) `0x111780` |
 | Descriptor getter (slot 6) | `GetStepguardClassDesc` `0x113D90` |
 | vtable | `D_002DA568`, 90 entries (slots 0..89; slot 0 null), 2 new, 20 overridden |
-| vtable stored by | [`STEPGUARD_ctor?`](../../../src/game/app/class_registry/STEPGUARD_ctor.c) (vptr +0xC) |
+| vtable stored by | [`STEPGUARD_ctor?`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table
@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandleStepguardMessage`](../../../src/game/gameplay/ai/stepguard/HandleStepguardMessage.c) | `0x2075D0` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetStepguardClassDesc`](../../../src/game/app/class_registry/GetStepguardClassDesc.c) | `0x113D90` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetStepguardClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113D90` | Pclassinfo |
 | 7 | Init | **override** | [`InitStepguard`](../../../src/game/gameplay/ai/stepguard/InitStepguard.c) | `0x205EB8` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

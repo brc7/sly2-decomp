@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetPingpongClassDesc`](../../../src/game/app/class_registry/GetPingpongClassDesc.c) | `0x1142D0` |
+| 6 | Pclassinfo | **override** | [`GetPingpongClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1142D0` |
 | 7 | InitSaa | **override** | [`InitPingpong?`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDD60` |
 | 8 | UpdateSaa | **override** | [`UpdatePingpong__FP8PINGPONGf`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDE10` |
 | 9 | UCompleteSaa__FP3SAA | **override** | [`UCompletePingpong__FP8PINGPONG`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EDF28` |

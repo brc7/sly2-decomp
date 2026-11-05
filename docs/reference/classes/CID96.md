@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleCid96Message?`](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `0x1B10D0` |
-| 6 | Pclassinfo | **override** | [`GetCid96ClassDesc`](../../../src/game/app/class_registry/GetCid96ClassDesc.c) | `0x114010` |
+| 6 | Pclassinfo | **override** | [`GetCid96ClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114010` |
 | 7 | Init | **override** | [`InitCid96?`](../../../src/game/gameplay/objects/tu_1B0B78.cpp) | `0x1B0B78` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

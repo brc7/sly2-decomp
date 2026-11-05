@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewJt`](../../../src/game/app/class_registry.cpp) `0x1116D8` |
 | Descriptor getter (slot 6) | `GetJtClassDesc` `0x113D60` |
 | vtable | `D_002D2E98`, 108 entries (slots 0..107; slot 0 null), 2 new, 31 overridden |
-| vtable stored by | [`JT_ctor?`](../../../src/game/app/class_registry/JT_ctor.c) (vptr +0xC) |
+| vtable stored by | [`JT_ctor?`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandleJtMessage`](../../../src/game/gameplay/player/jt.cpp) | `0x188F20` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetJtClassDesc`](../../../src/game/app/class_registry/GetJtClassDesc.c) | `0x113D60` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetJtClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113D60` | Pclassinfo |
 | 7 | Init | **override** | [`InitJt`](../../../src/game/gameplay/player/jt.cpp) | `0x188488` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

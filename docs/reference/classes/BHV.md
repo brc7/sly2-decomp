@@ -32,7 +32,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetBhvClassDesc`](../../../src/game/app/class_registry/GetBhvClassDesc.c) | `0x1143C0` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetBhvClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1143C0` | Pclassinfo |
 | 7 | Init | **new** | [`InitBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF68` | OnPush |
 | 8 | Start | **new** | [`StartBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF70` | Start |
 | 9 | Close | **new** | [`CloseBhv`](../../../src/game/gameplay/ai/bhvstk.cpp) | `0x1EEF78` | VSlot9 |

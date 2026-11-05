@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (STEPGUARD) | `HandleStepguardMessage` | `0x2075D0` |
-| 6 | Pclassinfo | **override** | [`GetRajanClassDesc`](../../../src/game/app/class_registry/GetRajanClassDesc.c) | `0x113DE0` |
+| 6 | Pclassinfo | **override** | [`GetRajanClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113DE0` |
 | 7 | Init | **override** | [`InitRajan?`](../../../src/game/gameplay/ai/tu_1CBEB0.cpp) | `0x1CBEB0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

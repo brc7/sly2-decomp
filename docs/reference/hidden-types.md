@@ -39,7 +39,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slots differing from the consensus (slot=impl) | Stored by (vptr offset) |
 |---|---|---|---|
-| `0x2CB1F0` (canonical) | 7 |  | [`STEPGUARD_ctor?`](../../src/game/app/class_registry/STEPGUARD_ctor.c) |
+| `0x2CB1F0` (canonical) | 7 |  | [`STEPGUARD_ctor?`](../../src/game/app/class_registry.cpp) |
 | `0x2D36D0` | 15 | 7=`CMcStatus_Update?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`CMcStatus_SetMode?` | [`CMcStatus_ctor?`](../../src/game/ui/memcard/func_001ADDF0.cpp) (+0xC) |
 | `0x2D3750` | 15 | 7=`CMemcardDialog_Update?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`CMemcardDialog_vt12?`, 13=`CMemcardDialog_vt13?`, 14=`CMemcardDialog_SetMode?` | [`CMemcardDialog_ctor?`](../../src/game/ui/memcard/CMemcardDialog_ctor.c) (+0xC) |
 | `0x2D37D0` | 12 | 7=`UpdatePauseMenu?`, 8=`PAUSEMENU_vt8?`, 9=`PAUSEMENU_vt9?`, 10=`ShowPausemenu?`, 11=`HidePausemenu?` | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/StaticInit_screen.c) (+0xC) |
@@ -398,7 +398,7 @@ Functions that load (lui/addiu) two or more distinct vtable addresses and store 
 | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/StaticInit_screen.c) | `0x2D8668` BASIC +0xC, `0x2D37D0` BASIC +0xC, `0x2CA490` CID154 +0xC |
 | [`PbhvNew`](../../src/game/gameplay/ai/bhvstk.cpp) | `0x2D04A0` BHVGUARD +0xC, `0x2D0AB0` BHVANIM +?, `0x2D0A30` BHVIDLE +?, `0x2D07B0` BHVSTRIKE +?, `0x2D0930` BHV161 +?, `0x2D0830` BHV162 +?, `0x2D08B0` BHVKO +?, `0x2D0620` BHVATTACK +?, `0x2D05A0` BHVCOMBAT +?, `0x2D06A0` BHVWALKPATH +?, `0x2CF7F8` BHV169 +?, `0x2D0520` BHVPATROL +?, `0x2CFA10` BHV171 +?, `0x2D4AF8` BHV174 +? … |
 | [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) | `0x2CA820` (unclaimed) +0x18, `0x2CA7E0` (unclaimed) +0x18, `0x2CA7A0` (unclaimed) +0x18, `0x2CA6A0` (unclaimed) +0x18 |
-| [`STEPGUARD_ctor?`](../../src/game/app/class_registry/STEPGUARD_ctor.c) | `0x2D9978` SO +?, `0x2CB1F0` BASIC +?, `0x2DA568` STEPGUARD +0xC, `0x2DA9D0` CID146 +0xC |
+| [`STEPGUARD_ctor?`](../../src/game/app/class_registry.cpp) | `0x2D9978` SO +?, `0x2CB1F0` BASIC +?, `0x2DA568` STEPGUARD +0xC, `0x2DA9D0` CID146 +0xC |
 
 ## E. Sly 1 class tree comparison
 

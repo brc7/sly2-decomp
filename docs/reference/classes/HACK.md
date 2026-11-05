@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
-| 6 | Pclassinfo | **override** | [`GetHackClassDesc`](../../../src/game/app/class_registry/GetHackClassDesc.c) | `0x113E80` |
+| 6 | Pclassinfo | **override** | [`GetHackClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113E80` |
 | 7 | Init | **override** | [`InitHack?`](../../../src/game/gameplay/objects/tu_17F090/func_0017F090.c) | `0x17F090` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

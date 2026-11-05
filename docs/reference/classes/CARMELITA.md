@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleCarmelitaMessage?`](../../../src/game/gameplay/ai/tu_14A008.cpp) | `0x14B218` |
-| 6 | Pclassinfo | **override** | [`GetCarmelitaClassDesc`](../../../src/game/app/class_registry/GetCarmelitaClassDesc.c) | `0x113E00` |
+| 6 | Pclassinfo | **override** | [`GetCarmelitaClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113E00` |
 | 7 | Init | **override** | [`InitCarmelita?`](../../../src/game/gameplay/ai/tu_14A008.cpp) | `0x14B1A0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

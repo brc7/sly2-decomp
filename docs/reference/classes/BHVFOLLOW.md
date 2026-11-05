@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvfollowClassDesc`](../../../src/game/app/class_registry/GetBhvfollowClassDesc.c) | `0x114630` |
+| 6 | Pclassinfo | **override** | [`GetBhvfollowClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114630` |
 | 7 | Init | **override** | [`InitBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x145010` |
 | 8 | Start | **override** | [`StartBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x145080` |
 | 9 | Close | **override** | [`CloseBhvfollow`](../../../src/game/gameplay/ai/tu_144B28.cpp) | `0x1450B0` |

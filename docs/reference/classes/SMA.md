@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | **override** | [`NotifySma?`](../../../src/game/engine/anim/sm.cpp) | `0x1F0FD8` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandleSmaMessage`](../../../src/game/engine/anim/sm.cpp) | `0x1F1078` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetSmaClassDesc`](../../../src/game/app/class_registry/GetSmaClassDesc.c) | `0x114290` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetSmaClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114290` | Pclassinfo |
 
 ## Fields
 

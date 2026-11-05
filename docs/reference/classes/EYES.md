@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetEyesClassDesc`](../../../src/game/app/class_registry/GetEyesClassDesc.c) | `0x1142F0` |
+| 6 | Pclassinfo | **override** | [`GetEyesClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1142F0` |
 | 7 | InitSaa | **override** | [`InitEyes?`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EE090` |
 | 8 | UpdateSaa | **override** | [`UpdateEyes?`](../../../src/game/engine/graphics/pipeline/shdanim.cpp) | `0x1EE228` |
 | 9 | UCompleteSaa__FP3SAA | inherited (SAA) | `UCompleteSaa__FP3SAA` | `0x1EDA58` |

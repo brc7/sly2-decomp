@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleEmitterMessage__FP7EMITTER5MSGIDPv`](../../../src/game/engine/fx/emitter/HandleEmitterMessage__FP7EMITTER5MSGIDPv.cpp) | `0x1599A8` |
-| 6 | Pclassinfo | **override** | [`GetEmitterClassDesc`](../../../src/game/app/class_registry/GetEmitterClassDesc.c) | `0x113BE0` |
+| 6 | Pclassinfo | **override** | [`GetEmitterClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113BE0` |
 | 7 | Init | **override** | [`InitEmitter`](../../../src/game/engine/fx/emitter/InitEmitter.c) | `0x1591B0` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

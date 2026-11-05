@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | **override** | [`HandleLeapMessage`](../../../src/game/gameplay/player/tu_20B840.cpp) | `0x20C290` |
-| 6 | Pclassinfo | **override** | [`GetLeapClassDesc`](../../../src/game/app/class_registry/GetLeapClassDesc.c) | `0x114320` |
+| 6 | Pclassinfo | **override** | [`GetLeapClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114320` |
 
 ## Fields
 

@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetJsgClassDesc`](../../../src/game/app/class_registry/GetJsgClassDesc.c) | `0x1143A0` |
+| 6 | Pclassinfo | **override** | [`GetJsgClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1143A0` |
 
 ## Fields
 

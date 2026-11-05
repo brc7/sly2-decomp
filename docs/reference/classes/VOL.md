@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetVolClassDesc`](../../../src/game/app/class_registry/GetVolClassDesc.c) | `0x113B70` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetVolClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113B70` | Pclassinfo |
 | 7 | Init | inherited (XFM) | `InitXfm` | `0x231100` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

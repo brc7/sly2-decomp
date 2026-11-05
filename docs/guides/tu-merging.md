@@ -984,3 +984,29 @@ platform/boot/crt0). The unhomed linkonce
 instances are all homed now (inline passes 1 and 3, see "Inline functions and linkonce copies"): src/game/core/linkonce
 no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the mismatch table,
 then "Recurring asm idioms" before renaming any helper.
+
+## class_registry
+
+src/game/app/class_registry/ (424 functions, the non-generated part of the crt0_splicewrap block, not a TU of its
+own) is one file, src/game/app/class_registry.cpp, in address order: the two crt0 asm fragments, the 33 Splice
+option thunks, the 185 `New<Class>` factories, the 199 `Get<Class>ClassDesc` getters, the generated static
+initializer, and the out-of-line constructors STEPGUARD_ctor, JT_ctor and MURRAY_ctor from the linkonce area. All
+424 match. What it needed:
+
+- Factories are `return new CLASS;` over construction views in `namespace REG`: one struct per class with the real
+  name, parent and size (class-tree.md; cb asserted), and only what construction shows. Each view declares
+  `virtual CLASSINFO *Pclassinfo();` (the slot-6 override every class has), so each class gets its own vtable and
+  stores its vptr; intermediate vptr stores disappear unless a call separates them, as in the game. g++ 2.95 order:
+  base constructors, vptr, member constructors, body.
+- An asm label on a constructor declaration binds an out-of-line constructor to its current symbol
+  (`STEPGUARD() __asm__("STEPGUARD_ctor");`), for calls and for the definition alike.
+- BASIC's two words must be members with clearing constructors (`PTR<T>`, CRefPtr's shape), not stores in BASIC's
+  constructor body: STEPGUARD_ctor's embedded CID146 was 5/33 off otherwise (the +0x4 clear addressed from the member,
+  not from the enclosing object). The ten grab-spot classes take a second base GRABSPOT (0x20 data bytes, then its
+  vptr).
+- An asm label that equals the mangled name of an inline function of the file makes g++ emit that inline function
+  under it: GLOBSET's constructor (0x167310, current symbol `__4CRef`) labelled `"__4CRef"` added a weak copy of the
+  thunks' CRef::CRef() as an extra `__4CRef`. The label `"__4CRef "` (trailing space, dropped by the assembler) avoids
+  it; renaming 0x167310 would remove the need.
+- The shared class headers (sly2/lo.h, so.h, ...) cannot construct as the game does (sly2/basic.h's `CRefPtr()` does
+  not clear, GLOBSET has no constructor), hence the separate namespace.

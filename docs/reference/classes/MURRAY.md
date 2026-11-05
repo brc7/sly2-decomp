@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewMurray`](../../../src/game/app/class_registry.cpp) `0x111700` |
 | Descriptor getter (slot 6) | `GetMurrayClassDesc` `0x113D70` |
 | vtable | `D_002D44C8`, 106 entries (slots 0..105; slot 0 null), 0 new, 24 overridden |
-| vtable stored by | [`MURRAY_ctor?`](../../../src/game/app/class_registry/MURRAY_ctor.c) (vptr +0xC) |
+| vtable stored by | [`MURRAY_ctor?`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table
@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | **override** | [`HandleMurrayMessage`](../../../src/game/gameplay/player/murray/HandleMurrayMessage.c) | `0x1B68B8` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetMurrayClassDesc`](../../../src/game/app/class_registry/GetMurrayClassDesc.c) | `0x113D70` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetMurrayClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113D70` | Pclassinfo |
 | 7 | Init | **override** | [`InitMurray`](../../../src/game/gameplay/player/murray/InitMurray.c) | `0x1B4728` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |

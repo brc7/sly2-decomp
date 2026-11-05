@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvpatrolClassDesc`](../../../src/game/app/class_registry/GetBhvpatrolClassDesc.c) | `0x1144B0` |
+| 6 | Pclassinfo | **override** | [`GetBhvpatrolClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1144B0` |
 | 7 | Init | **override** | [`InitBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrol.c) | `0x179A58` |
 | 8 | Start | **override** | [`StartBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrol.c) | `0x179AA0` |
 | 9 | Close | **override** | [`CloseBhvpatrol`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrol.c) | `0x179B60` |

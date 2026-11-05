@@ -34,7 +34,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvanimClassDesc`](../../../src/game/app/class_registry/GetBhvanimClassDesc.c) | `0x1143E0` |
+| 6 | Pclassinfo | **override** | [`GetBhvanimClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1143E0` |
 | 7 | Init | **override** | [`InitBhvanim`](../../../src/game/gameplay/ai/guardbhv/InitBhvanim.c) | `0x174920` |
 | 8 | Start | **override** | [`StartBhvanim`](../../../src/game/gameplay/ai/guardbhv/StartBhvanim.c) | `0x174950` |
 | 9 | Close | **override** | [`CloseBhvanim`](../../../src/game/gameplay/ai/guardbhv/CloseBhvanim.c) | `0x174B28` |

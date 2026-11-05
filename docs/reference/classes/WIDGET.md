@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetWidgetClassDesc`](../../../src/game/app/class_registry/GetWidgetClassDesc.c) | `0x1141F0` |
+| 6 | Pclassinfo | **override** | [`GetWidgetClassDesc`](../../../src/game/app/class_registry.cpp) | `0x1141F0` |
 | 7 | Init | inherited (LO) | `InitLo` | `0x1A5270` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` | HandleSpliceEvent |
 | 4 | SendMessage | **override** | [`NotifyAsega?`](../../../src/game/engine/anim/asega.cpp) | `0x131738` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
-| 6 | Pclassinfo | **override** | [`GetAsegaClassDesc`](../../../src/game/app/class_registry/GetAsegaClassDesc.c) | `0x114270` | Pclassinfo |
+| 6 | Pclassinfo | **override** | [`GetAsegaClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114270` | Pclassinfo |
 
 ## Fields
 

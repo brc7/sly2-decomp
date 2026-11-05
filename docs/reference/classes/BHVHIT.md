@@ -30,7 +30,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvhitClassDesc`](../../../src/game/app/class_registry/GetBhvhitClassDesc.c) | `0x114410` |
+| 6 | Pclassinfo | **override** | [`GetBhvhitClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114410` |
 | 7 | Init | inherited (BHVANIM) | `InitBhvanim` | `0x174920` |
 | 8 | Start | **override** | [`StartBhvhit`](../../../src/game/gameplay/ai/guardbhv/StartBhvhit.c) | `0x179328` |
 | 9 | Close | **override** | [`CloseBhvhit`](../../../src/game/gameplay/ai/guardbhv/CloseBhvhit.c) | `0x179598` |

@@ -28,7 +28,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetCid37ClassDesc`](../../../src/game/app/class_registry/GetCid37ClassDesc.c) | `0x113C60` |
+| 6 | Pclassinfo | **override** | [`GetCid37ClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113C60` |
 | 7 | Init | **override** | [`InitBootyContainer?`](../../../src/game/gameplay/progression/booty.cpp) | `0x13CEB8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |

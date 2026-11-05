@@ -32,7 +32,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 3 | HandleSpliceEvent | inherited (BASIC) | `HandleBasicSpliceEvent` | `0x1331F8` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
-| 6 | Pclassinfo | **override** | [`GetBhvjuggledClassDesc`](../../../src/game/app/class_registry/GetBhvjuggledClassDesc.c) | `0x114520` |
+| 6 | Pclassinfo | **override** | [`GetBhvjuggledClassDesc`](../../../src/game/app/class_registry.cpp) | `0x114520` |
 | 7 | Init | **override** | [`InitBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/InitBhvjuggled.c) | `0x17A9D0` |
 | 8 | Start | **override** | [`StartBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/StartBhvjuggled.c) | `0x17AA08` |
 | 9 | Close | **override** | [`CloseBhvjuggled`](../../../src/game/gameplay/ai/guardbhv/CloseBhvjuggled.c) | `0x17B178` |
