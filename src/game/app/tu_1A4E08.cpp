@@ -35,9 +35,15 @@ struct HV { char pad[0x44]; int x44; };
 
 extern MPEGV D_002F66B0;
 extern HV D_002E6550;
-extern STEPE D_002E1E68;    /* returned when the queue is full */
-extern char D_003DD490[], D_002BFCA0[], D_002DEB30[];
-extern char D_002A3868[], D_002A38A8[];
+STEPE D_002E1E68;           /* returned when the queue is full (tu_1A4E08's .bss) */
+extern char D_003DD490[], D_002DEB30[];
+FILEREF D_002BFCA0 = {0};   /* an empty file reference (tu_1A4E08's .data, zero-filled) */
+/* The two file references of the start-up queue (sly2/sw.h FILEREC layout: 16 hashed words): the intro movie and
+ * the first world. */
+extern const unsigned int D_002A3868[16] = {0xD77E9E24, 0xEF8D7128, 0x90A6F254, 0xF139A465, 0x0183958F, 0x6D4D86AC, 0xC5C41E37,
+    0xE5DD4733, 0x9BD55409, 0xDEFE997A, 0x3CCDE869, 0xE79189E6, 0xC3EC6045, 0xD77006A2, 0x90A6FA5C, 0xEFA0B12C};
+extern const unsigned int D_002A38A8[16] = {0x6189A84E, 0xD1E3567A, 0xFB046C1C, 0xA1A9052D, 0x596F7CB5, 0xFCEB103A, 0x013C1BF7,
+    0x77E45E32, 0xBB286B3D, 0x3BFE72B8, 0x67842A68, 0x0E7E9F79, 0xA8D7FFF3, 0x618CB9AE, 0xFB046C41, 0xD17B76DC};
 
 extern "C" {
 void *func_002333B4(void *p, int c, int n);     /* memset */
@@ -111,7 +117,7 @@ extern "C" void func_001A4E80(STEPQ *pq)
         CMpeg_QueueMovie(pmpeg, pe->pv);
         if (pe->k == 1)
             pmpeg->x108 = pe->k;
-        WipeToWorldWarp(D_003DD490, D_002BFCA0, 0x189, -1, 0, -1);
+        WipeToWorldWarp(D_003DD490, &D_002BFCA0, 0x189, -1, 0, -1);
         break;
     case 2:
         WipeToWorldWarp(D_003DD490, pe->pfileref, pe->oid, -1, pe->grf, 0x30A);
