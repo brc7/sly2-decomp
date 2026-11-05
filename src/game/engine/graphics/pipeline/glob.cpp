@@ -2292,12 +2292,12 @@ public:
       uchar* m_pb;
       int m_fPad;
       int m_fEndPrim;
-    void AllocStack(int cqw);
-    void DetachCopySw(int *pcqw, QW **paqw, QW **paqwCopy);
-    void AddDmaCnt();
-    void AddDmaRefs(int cqw, QW *aqw);
-    void AddDmaRet();
-    void EndDmaCnt();
+    void AllocStack(int cqw) __asm__("AllocSw__4DMASi");
+    void DetachCopySw(int *pcqw, QW **paqw, QW **paqwCopy) __asm__("DetachCopySw__4DMASPiPP2QWT2");
+    void AddDmaCnt() __asm__("AddDmaCnt__4DMAS");
+    void AddDmaRefs(int cqw, QW *aqw) __asm__("AddDmaRefs__4DMASiP2QW");
+    void AddDmaRet() __asm__("AddDmaRet__4DMAS");
+    void EndDmaCnt() __asm__("EndDmaCnt__4DMAS");
     virtual void EndPrim(int fEOP);
 };
 inline void AddDmaInt(DMAS *pdmas, int val)
@@ -2319,14 +2319,14 @@ class VIFS : public DMAS
 public:
       uint m_unMask;
       int m_fCheckCnt;
-    VIFS();
-    void Align(int iun);
-    void AddVifMscal(void *pv);
-    void AddVifStcycl(int wl, int cl);
-    void AddVifStrow(QW *pqw);
-    void AddVifStmask(uint unMask);
-    void UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun);
-    void AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw);
+    VIFS() __asm__("__4VIFS");
+    void Align(int iun) __asm__("Align__4VIFSi");
+    void AddVifMscal(void *pv) __asm__("AddVifMscal__4VIFSPv");
+    void AddVifStcycl(int wl, int cl) __asm__("AddVifStcycl__4VIFSii");
+    void AddVifStrow(QW *pqw) __asm__("AddVifStrow__4VIFSP2QW");
+    void AddVifStmask(uint unMask) __asm__("AddVifStmask__4VIFSUi");
+    void UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun) __asm__("UnpackHelper__4VIFS3UPKiiPiPPUi");
+    void AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw) __asm__("AddVifUnpack__4VIFS3UPKiPvi");
 };
 struct BMP;
 struct CLUT;
@@ -2349,7 +2349,7 @@ struct SL
 void InitSl(SL *psl, int ibSle) __asm__("func_0011A050");
 void AppendSlEntry(SL *psl, void *pv) __asm__("func_0011A070");
 struct BASIC;
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 struct XF;
 class CBinaryStreamBase
 {
@@ -2382,14 +2382,14 @@ public:
     int m_cbufFill;
     int m_icbufRead;
     int m_icbufWrite;
-    void Read(int cb, void *pv);
-    uchar U8Read();
-    char S8Read();
-    short S16Read();
-    int S32Read();
-    float F32Read();
-    void ReadVector(VECTOR *pvec);
-    void ReadMatrix4(MATRIX4 *pmat);
+    void Read(int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
+    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
+    char S8Read() __asm__("S8Read__18CBinaryInputStream");
+    short S16Read() __asm__("S16Read__18CBinaryInputStream");
+    int S32Read() __asm__("S32Read__18CBinaryInputStream");
+    float F32Read() __asm__("F32Read__18CBinaryInputStream");
+    void ReadVector(VECTOR *pvec) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+    void ReadMatrix4(MATRIX4 *pmat) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
 };
 typedef struct SHD;
 typedef struct SHDP;
@@ -2701,7 +2701,7 @@ struct SWALLOCC
 void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("func_001AE1D0");
 void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE2A0");
 void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE378");
-void *PvAllocStackImpl(SWALLOCC *pswalloc);
+void *PvAllocStackImpl(SWALLOCC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 struct STACKSCOPE
 {
     STACKSCOPE() __asm__("STACKSCOPE_ctor");
@@ -3708,9 +3708,9 @@ namespace M_func_0016C8E0 {
 struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream {
 public:
-    int U8Read();
-    int U16Read();
-    int S16Read();
+    int U8Read() __asm__("U8Read__18CBinaryInputStream");
+    int U16Read() __asm__("U16Read__18CBinaryInputStream");
+    int S16Read() __asm__("S16Read__18CBinaryInputStream");
 };
 struct E6 { short a; short b; char c; char pad; };
 struct E8 { int c; E6 *a; };
