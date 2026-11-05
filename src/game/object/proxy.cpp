@@ -147,7 +147,7 @@ struct LOUPD
 
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 
@@ -203,7 +203,7 @@ public:
 class CLoadCollectorArray : public CLoadCollector
 {
 public:
-    CLoadCollectorArray();
+    CLoadCollectorArray() __asm__("CLoadCollectorArray_ctor");
     int m_unk4;
     int m_cplo;
     LO **m_aplo;
@@ -331,13 +331,13 @@ again:
 // objects (kind 5 / 6 = its first object, else the object found by oid kind below the new PXR node),
 // and loads the nested list under the proxy's XF with each of its objects tagged and moved like the copy's.
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-void SetLoVisMask(LO *plo, uint grfvis);
+void SetLoVisMask(LO *plo, uint grfvis) __asm__("func_001A6D28");
 
 
-XF *PxfFromIxf(int ixf, SO *psoParent, SO *pso);
-void PushXf(XF *pxf);
-void PopXf(XF *pxf);
-void InvalidateXfmWorld(XFM *pxfm);
+XF *PxfFromIxf(int ixf, SO *psoParent, SO *pso) __asm__("func_0022D6B0");
+void PushXf(XF *pxf) __asm__("func_0022D670");
+void PopXf(XF *pxf) __asm__("func_0022D698");
+void InvalidateXfmWorld(XFM *pxfm) __asm__("func_002313F0");
 
 
 
@@ -357,15 +357,15 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbis, CLoadCollecto
 
 int IdProxy(int isrc, int icopy);
 int FindProxysrc(SW *psw, int idSource);
-PXR *FindPxr(PXR *ppxrParent, int cid, int *aid);
-void AddProxyCopy(SW *psw, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector);
-int CploFindSwObjects(SW *psw, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo);
+PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("func_001C99D8");
+void AddProxyCopy(SW *psw, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector) __asm__("func_001CA370");
+int CploFindSwObjects(SW *psw, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("func_0015E678");
 
-void *PvAllocSwImpl(SWALLOC *pswalloc);
-void *PvAllocSwClearImpl(SWALLOC *pswalloc);
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
 void InitStackImpl();
 void FreeStackImpl();
-CFrame *PframeFromIsplice(SW *psw, int isplice, LO *plo);
+CFrame *PframeFromIsplice(SW *psw, int isplice, LO *plo) __asm__("func_001FFA40");
 inline void *PvAllocSwClear(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -570,7 +570,7 @@ extern SW D_003DD490;
 
 
 int IsrcFromIdProxy(int idProxy);
-PXR *FindPxr(PXR *ppxrParent, int cid, int *aid);
+PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("func_001C99D8");
 
 inline PROXYSRC *PproxysrcFromIdProxy(int idProxy)
 {
@@ -906,10 +906,10 @@ inline void SetMatrix4Identity(MATRIX4 *pmat)
     pmat->mat[1][1] = 1.0f;
     pmat->mat[0][0] = 1.0f;
 }
-MATRIX4 MatInvertMat4(MATRIX4 *pmat);
+extern "C" MATRIX4 InvertMatrix4Rigid(MATRIX4 *pmat);
 extern qword D_002A2DD0;
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-void SetLoParent(LO *plo, SO *psoParent, int grf);
+void SetLoParent(LO *plo, SO *psoParent, int grf) __asm__("SetLoParent_1A58D0");
 
 
 
@@ -957,7 +957,7 @@ void ReleasePspare(PROXY *pproxy, PROXYSPARE *pspare)
     pspare->pproxy = 0;
     LO *ploProxy = pproxy;
     MATRIX4 matInverse;
-    matInverse = MatInvertMat4(&pspare->mat);
+    matInverse = InvertMatrix4Rigid(&pspare->mat);
     SetMatrix4Identity(&pspare->mat);
     int icopy = IcopyFromPspare(pproxy, pspare);
     for (iplo = 0; iplo < pproxy->psrc->cplo; iplo++)

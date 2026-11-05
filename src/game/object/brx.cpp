@@ -19,8 +19,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Declarations from LoadOptionFromBrx's per-function file (Lilly port): a private CBinaryInputStream view (S8Read and
    Skip added for LoadSwObjectsFromBrx). EOPID is sly2/eopid.h's, CRef sly2/cref.h's. Callees keep the names that file
    gave them. */
-MATRIX3 LoadRotateMatrix(qword vec);
-LORUN *AddLoRunListEntry(LO *plo);
+MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
+extern "C" LORUN *PdcbAddLo(LO *plo);
 class CBinaryStreamBase
 {
 public:
@@ -68,14 +68,14 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwClearImpl(SWALLOC *pswalloc);
-void *PvAllocStackClearImpl(SWALLOC *pswalloc);
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("func_001AE378");
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
-CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv);
+CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("func_00200DA0");
 struct OIDFIELD
 {
     OID oid;
@@ -89,8 +89,8 @@ struct OIDSETTER
 void PostLoadOidField(LO *plo, void *pv);
 void PostLoadOidSetter(LO *plo, void *pv);
 CRef RefFromBrx(OTYP otyp, CBinaryInputStream *pbis) __asm__("func_0013E690");   /* defined below (C symbol) */
-void *func_00210120(SW *psw);
-void FixupRgba(RGBA *prgba);
+void *func_00210120(SW *psw) __asm__("func_00210120");
+extern "C" void ColorCorrectRgba(RGBA *prgba);
 inline void *PvAllocSwClear(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -492,7 +492,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
         {
             RGBA rgba;
             *(uint *)&rgba = pbis->U32Read();
-            FixupRgba(&rgba);
+            ColorCorrectRgba(&rgba);
             *(uint *)pf = *(uint *)&rgba;
             return;
         }
@@ -538,7 +538,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                     OIDFIELD *poidfield = (OIDFIELD *)func_00210120(&D_003DD490);
                     poidfield->oid = (OID)oid;
                     poidfield->ib = pf - (char *)pvStruct;
-                    LORUN *plorun = AddLoRunListEntry((LO *)pvStruct);
+                    LORUN *plorun = PdcbAddLo((LO *)pvStruct);
                     plorun->pv = poidfield;
                     plorun->pfn = PostLoadOidField;
                     return;
@@ -665,7 +665,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
     {
         RGBA rgba;
         *(uint *)&rgba = pbis->U32Read();
-        FixupRgba(&rgba);
+        ColorCorrectRgba(&rgba);
         RGBA rgbaSet = rgba;
         (pbasic->*(void (BASIC::*)(RGBA *))pmfSet)(&rgbaSet);
         break;
@@ -716,7 +716,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                 OIDSETTER *poidsetter = (OIDSETTER *)func_00210120(&D_003DD490);
                 poidsetter->oid = (OID)oid;
                 poidsetter->setter = peopid->setFile;
-                LORUN *plorun = AddLoRunListEntry((LO *)pvStruct);
+                LORUN *plorun = PdcbAddLo((LO *)pvStruct);
                 plorun->pv = poidsetter;
                 plorun->pfn = PostLoadOidSetter;
                 return;
