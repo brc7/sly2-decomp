@@ -4,9 +4,10 @@
 // docs/guides/tu-merging.md "Representation decisions"); the former m2c bodies are written at file scope against
 // the views below.
 // StaticInit_hud (0x21AA60, 1090 instructions: the 0x60000-byte CLinearHeap D_003E1C70, a level-heap object D_003E1C80
-// with a hand-stored vtable, and the 109-entry STRINGGEN table D_003E1C88 copied from .rodata 0x2A8B90) keeps the
-// hand-written per-function form, with its _GLOBAL_$I$ stub func_0021BB68; the file defines no other static object,
-// so g++ generates no initializer of its own. Spelling the three objects as file-scope definitions is open.
+// with a hand-stored vtable, and the 108-entry STRINGGEN table D_003E1C88, 107 records copied from .rodata
+// 0x2A8B90.. and one built at run time) keeps the hand-written per-function form, with its _GLOBAL_$I$ stub
+// func_0021BB68; the file defines no other static object, so g++ generates no initializer of its own. Spelling the
+// three objects as file-scope definitions is open.
 #include "sly2/lo.h"
 #include "sly2/jt.h"
 #include "sly2/stepplayer.h"
