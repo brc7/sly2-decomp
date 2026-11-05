@@ -1084,7 +1084,7 @@ Resolved decisions (user, build/rtti-palettes):
   assembler leaves the object's `.rodata` SHF_ALLOC only (the `"aw"` flag string gcc writes is ignored), the
   functions still MATCH and the data check reports both MATCH.
 - **tn's zero `.rodata` SWCB** D_002A96E8 is not the same case: it is a null pointer-to-member constant `{0, 0, 0}`
-  (its neighbour D_002A96F0 is `{0, -1, 0x221298}`), statically zero, with no initializer writing it; it stays
+  (its neighbour D_002A96F0 is a non-null one), statically zero, with no initializer writing it; it stays
   extern with the other PMF constants (literal phase). No other section attribute was added.
 
 ## Linkage of namespace-scoped declarations
