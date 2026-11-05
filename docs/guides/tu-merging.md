@@ -1224,14 +1224,21 @@ Representation decisions:
   D_003E1C34 defined: one absolute address name fewer). This was the cause of the 68-byte `.text` regression of
   phase 3, and more: `.text` from objects 1,281,264 -> 1,281,448 equal bytes (full-link.md).
 
-Left (73 macros), by reason:
+Left after phase 4: 73 macros. **integrate/round5** converted 26 more in 12 files (rumble, detector, shdanim,
+tu_14A008, rail, pipe, draw, tu_185130, tu_1BC050, noise, tu_171F58, turret): each file includes sly2/sw.h (cm.h,
+clock.h where needed); a private view that clashes with a shared type by name only is renamed with a `V` suffix
+(`LMV`, `SLV`, `DLV`, `VECTORV`, `VECTORQ`, `MATRIX4V`, `SMPV`, `CLOCKV`: they keep their own layout and are the
+view-unification list for those files), the private signed TI qword gives way to basic.h's unsigned one, rumble's
+RUMS/RUMK enumerators moved into basic.h's empty placeholders. Checked: every function and data symbol MATCH, and each
+object's global symbol set (nm) is unchanged, which is what keeps a `V` rename safe: it must not touch a mangled name.
+The types/views-2 registry classes did not change the picture: the clashes are the files' own views, not registry
+classes. 47 macros remain in 23 files, by reason:
 
-- **Header does not compile in the TU** (SW 45 in 23 files, CM 8 in 7, CLOCK 1): file-scope private views that clash
-  with basic.h/sw.h/cm.h (`struct SW`/`BASIC`/`LO`/`DL`/`VECTOR`/`MATRIX4`/`LM`/`SMP`/`CLOCK`, `class CFrame`,
-  `enum OID`/`CID`/`RUMS`, brace-initialized globals of a view type that has a constructor in the header) in bif,
-  detector, draw, frm, noise, pipe, rail, sensor, shdanim, tu_14A008, tu_171F58, tu_185130, tu_1BC050, tu_1BE398,
-  turret, eval, frame, rumble (sw.h); po (its mat.h breaks sw.h's and cm.h's offset asserts); basic, booty, find,
-  save (sw.h) and frm, pipe_jt, throw, tu_201D78 (cm.h): cc1plus exits 1 with no message (their own file-scope
+- **Header does not compile in the TU, not easy** (SW and CM): eval, frame (their `class CFrame` view has members
+  defined in the file, so a rename changes mangled names: `FFindBinding__6CFrame...`); sensor, tu_1BE398 (private
+  `enum OID`/`CID` whose enumerators collide with basic.h's); bif (its VECTOR view is passed to cref.h's
+  `CRef::SetVector(const VECTOR *)`); po (its mat.h breaks sw.h's and cm.h's offset asserts); basic, booty, find, save
+  (sw.h) and frm, pipe_jt, throw, tu_201D78 (cm.h): cc1plus exits 1 with no message (their own file-scope
   `struct SW`/view classes). Each needs its views unified first.
 - **No header type**: the sound manager SNDMGRG (cd, menu, save: the type lives in sound.cpp), g_game D_002DEB30
   (game.cpp), the screen objects D_003D9ED0 / D_003DA150 / D_003DA0C0 (screen.cpp's opaque SCRCTOR blobs; cheat,
