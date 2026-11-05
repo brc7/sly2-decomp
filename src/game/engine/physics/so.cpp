@@ -4,15 +4,37 @@
 // scope (member definitions and C++ symbols) with their type copies merged; the other per-function files keep their
 // views in namespaces named after the function (docs/guides/tu-merging.md "Representation decisions"). The former
 // m2c bodies are written at file scope on sly2/so.h's SO/SOPHYS/SOTREE/SOPART/XF/CONSTR.
-// StaticInit_so (0x1F8C40, 93 instructions: the 0x20-byte global D_003DD020 built from a zeroed temporary before the
-// six slot pools) keeps its hand-written per-function form with its stub func_001F8DB8; the file instantiates no
-// pool itself, so g++ generates no initializer of its own. Spelling D_003DD020 as a file-scope object is open.
+// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_so
+// SLY2_ALIAS: _GLOBAL_$I$*=func_001F8DB8
 #include "common.h"
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
 #include "sly2/cm.h"
+#include "sly2/slotheap.h"
+
+extern "C" void *func_002333B4(void *pv, int b, int cb);   /* memset */
+extern qword D_002A2DC0;
+/* 0x1F8C40 StaticInit_so (93 instructions) and its _GLOBAL_$I$ stub func_001F8DB8: g++'s initializer for the file-scope
+   object below (built in a zeroed temporary and copied), then the six engine slot pools. D_003DD020 is the default
+   query record that tu_1BC050 and guardbhv pass to FindShapeClosestPoint (role HYPOTHESIS; the name is a placeholder). */
+struct CPQ
+{
+    qword q0;               /* D_002A2DC0 */
+    int n10;                /* 1 */
+    int pad[3];
+    CPQ() { func_002333B4(this, 0, sizeof(CPQ)); }
+};
+static inline CPQ MakeCpq()
+{
+    CPQ cpq;
+    cpq.q0 = D_002A2DC0;
+    cpq.n10 = 1;
+    return cpq;
+}
+CPQ D_003DD020 = MakeCpq();
+SLY2_INSTANTIATE_SLOT_POOLS()
 
 // Types of the Lilly ports (merged copies)
 struct EDGE
@@ -197,7 +219,6 @@ void FramePtr_Assign(void *ppframe, CFrame *pframe);
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
-void StaticInit_so(int fInitialize, int nPriority);
 }
 
 // 0x1F2108 InitSo
@@ -5591,52 +5612,5 @@ void func_001F8BF0(struct S *p, int n, qword q, float x, float y, float z, float
 { struct T *pt = p->pt; if (pt->k == 16) { struct U *pu = pt->pv->pu; pu->n = n; pu->x = x; pu->y = y; pu->z = z; pu->r = deg * 0.01745329424738884f; pu->q = q; } }
 } } // namespace M_func_001F8BF0
 
-// 0x1F8C40 StaticInit_so
-namespace M_StaticInit_so { extern "C" {
-struct S;
-typedef int qword __attribute__((mode(TI)));
-struct S { qword q0; int n10; int pad[3]; };
-extern struct S D_003DD020;
-extern qword D_002A2DC0;
-extern int D_002DD2E0, D_002DD2E4, D_002DD2E8, D_002DD2EC, D_002DD2F0, D_002DD2F4;
-extern char D_004520A8[], D_004520D0[], D_004520F8[], D_00452120[], D_00452148[], D_00452170[];
-void *func_002333B4(void *, int, int);
-void func_0011CCA8(void *, int, int, int);
-/** @sly2-annot addr=0x1F8C40
- * Purpose: compiler-generated __static_initialization_and_destruction_0 of TU so
- * Info: proposed name StaticInit_so (T1); TU so
- * Notes: real local symbol name is __static_initialization_and_destruction_0 (not unique; renamed per TU)
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r6_1D5150
- * See: docs/engine/physics-collision.md#1-so-the-solid-object-socpp-0x1f2108-0x1f8dd8-174-functions
- * @end-sly2-annot */
-void StaticInit_so(int init, int prio)
-{
-    if (prio == 0xFFFF && init) {
-        struct S *pg = &D_003DD020;
-        struct S t;
-        func_002333B4(&t, 0, 0x20);
-        t.q0 = D_002A2DC0;
-        t.n10 = 1;
-        *pg = t;
-        if (++D_002DD2E0 == 1) func_0011CCA8(D_004520A8, 0x14, 0x2000, 0x10);
-        if (++D_002DD2E4 == 1) func_0011CCA8(D_004520D0, 0x18, 0x800, 0x10);
-        if (++D_002DD2E8 == 1) func_0011CCA8(D_004520F8, 0x28, 0x200, 0x10);
-        if (++D_002DD2EC == 1) func_0011CCA8(D_00452120, 0x1C, 0x800, 0x10);
-        if (++D_002DD2F0 == 1) func_0011CCA8(D_00452148, 0xC, 0xC8, 0x10);
-        if (++D_002DD2F4 == 1) func_0011CCA8(D_00452170, 0x14, 0x100, 0x10);
-    }
-}
-} } // namespace M_StaticInit_so
 
-// 0x1F8DB8 func_001F8DB8
-/** @sly2-annot addr=0x1F8DB8
- * Purpose: compiler-generated global constructor stub (calls static init with (1,0xFFFF))
- * Info: proposed name _GLOBAL_$I$so (T1); TU so
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r6_1D5150
- * @end-sly2-annot */
-/* _GLOBAL_$I$ stub: runs the static initializer above. */
-extern "C" void func_001F8DB8(void)
-{
-    StaticInit_so(1, 0xFFFF);
-}
 
