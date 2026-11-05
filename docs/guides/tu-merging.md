@@ -258,9 +258,10 @@ Other observations:
   ...)`) become by-value calls in C++ and match: g++ uses the same hidden-pointer convention for a returned non-POD
   class (tu_2275B8, difficulty).
 - Defining a class's first virtual function in the merged file makes it the class's key TU: g++ then also emits
-  `__tf...` typeinfo functions and out-of-line copies of the class's inline members (bq:
-  `__17CQueueInputMemoryPUci`). They have no address in the binary (the code exists nowhere there) and show as
-  extras, not mismatches; `-fno-rtti` would drop the `__tf` ones but not the constructor copy. Left as is.
+  out-of-line copies of the class's inline members (bq: `__17CQueueInputMemoryPUci`) and, with RTTI, `__tf...`
+  typeinfo functions. They have no address in the binary (the code exists nowhere there) and show as extras, not
+  mismatches. Since C++ is compiled with `-fno-rtti` (build/rtti-palettes, as the game was) the `__tf` ones are gone;
+  the constructor copy stays.
 - A per-function `.c` that defines a mangled name as a C symbol (`InitDl__FP2DLi`, `PloFindSwObject__FP2SWi3OIDP2LO`)
   becomes the C++ function that mangles to it; its parameter types must then carry the exact names (`SW`, `OID`,
   `LO`, `CID`), so a TU-private view of LO is called `LO` (find). The same applies to callee declarations: a callee
@@ -782,8 +783,8 @@ Defining a TU's data (pilot, 2026-11-04: pipe, water, hnd, sensor, memory):
 Known limits: the ELF has no symbol table, so a definition that is too short passes unless symbol_addrs.txt gives
 `size:`; relocated words are masked, so a wrong pointer in a table still passes; unnamed literals and strings are not
 checked (only named symbols). Our compiler puts a const object with a dynamic initializer in .bss, where the original
-has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` report that placement
-difference (their functions match). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
+has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` carry
+`__attribute__((section(".rodata")))` for it (see "Resolved decisions" under Data). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
 by any TU, and the end of .bss from about 0x4421A0 is not in TU order (hud, frm, memcard, mpeg, thread mixed, likely
 common symbols): do not define data there by layout.
 
@@ -989,8 +990,9 @@ are defined (1,230 D_ objects in merged files and the six vtables); all function
   are real members. Six are: CLinearHeap (heap), CBinaryInputStream (bis), CQueueInputFile and CQueueInputMemory
   (bq), DMAS (dmas), GIFS (gifs). Giving them `_vt$... = 0x...; // type:data size:0x..` lines in symbol_addrs.txt
   makes the data check compare them with the block at the end of `.data`: all MATCH. The word after the first entry
-  (the typeinfo function) is relocated in our objects and 0 in the game; with `-fno-rtti` the six are byte-identical,
-  so the game was most likely built without RTTI (a build-flag decision, below). The other 238 cannot be emitted yet:
+  (the typeinfo slot) was relocated to a `__tf*` function in our objects (so the data check, which masks relocated
+  words, hid it) and is 0 in the game: the game was built without RTTI, and C++ now compiles with `-fno-rtti`
+  (resolved, below), so the slot is an unrelocated 0 compared byte for byte. The other 238 cannot be emitted yet:
   the classes' virtual functions are free functions with C names (the LO/BASIC hierarchy, CSwHeap, CMemInputStream,
   ...; heap.cpp's comment), so the classes are views. Four objects emit vtables of view classes (SM, ACCMISS, JT,
   CMPART2) that name placeholder members (VUnk00__5BASIC, Init__5CPLCY) no object defines: not counted. VIFS's
@@ -1029,7 +1031,7 @@ are defined (1,230 D_ objects in merged files and the six vtables); all function
 | class_registry | 1 (199 rows) | CLASSDESC D_002BAAE8[199] (parents, 185 factories) | |
 | main, draw, bif | 1 each | startup stages [20]; render-pass hooks PFNRP[12][2]; Splice builtin table BIF[169] | pointers resolved |
 | clock | 1 | g_clock (CLOCK) | |
-| heap, bis, bq, dmas, gifs | 6 | vtables via symbol_addrs.txt | typeinfo word masked |
+| heap, bis, bq, dmas, gifs | 6 | vtables via symbol_addrs.txt | typeinfo word compared (0) since `-fno-rtti` |
 
 **Deferred (data phase 2), with reasons.** Still extern in the merged TUs, by survey kind: 238 vtables, 235 `.bss` names (101 SW
 interiors, 40 end of `.bss`, 31 `.sbss`, 63 others), 144 records with code pointers, 21 PMF constants, 43 int/float
@@ -1058,10 +1060,32 @@ engine tables/objects (the survey also lists the 198 row names inside D_002BAAE8
   pattern and the resolver; generated tables g_aeopid D_002AC880 and g_mpcidarysplopt D_00279AD0 (extend
   gen_splicewrap); g_gs D_003D4A60 and g_cframe (owner/type not settled).
 
-Pending decisions (user): the palettes D_0029A7C0/D_002A2900 (zero-filled `.rodata` const objects with a dynamic
-initializer that our compiler puts in `.bss`: accept, or `__attribute__((section(".rodata")))`); anything else that
-would need a section attribute (none added this phase; tn's zero `.rodata` SWCBs may be the same case); and, new,
-whether to add `-fno-rtti` to the build flags (the game's vtables have 0 where ours point at a typeinfo function).
+Resolved decisions (user, build/rtti-palettes):
+
+- **`-fno-rtti`** is in the C++ build flags (matchtool's CFLAGS, which progress.py and tools/link.py use; stripped for
+  `.c`; per-file `SLY2_CFLAGS:` headers state their whole flag list and are unchanged, and the two `.cpp` ones,
+  libgcc's `__main` and 989snd's `snd_SendCurrentBatch`, define no classes). Evidence: every vtable in the ELF has 0
+  in the typeinfo slot, and no `__tf*`/`__rtti_*` code exists in it; no source uses `typeid`/`dynamic_cast`. The
+  six vtables are byte-identical, the `__tf*` extras (and their 22 references) are gone, and a full progress run
+  stays 6,662/6,662. There never was vtable-specific masking: the data check masks every relocated word, and the
+  typeinfo slot is simply no longer relocated.
+  One codegen effect, in class_registry: without RTTI g++ 2.95 reuses a base's own vtable for a secondary base whose
+  virtuals the class does not override (with RTTI the typeinfo slot made every secondary vtable distinct). The 12
+  factories of the grab-spot classes (`X : SHAPE/XFM/VOL/TARGET/SO, GRABSPOT`) then stored `_vt$GRABSPOT` and
+  scheduled their two vptr stores differently. The ELF shows the real rule: each of those classes overrides GRABSPOT
+  slot 6 (delta != 0 in its secondary vtable) except CID36/CID37, which reuse CID35's (D_002D1EA8 for all three),
+  as only a no-RTTI compiler does. The GRABSPOT view now lists its six slots and the ten classes declare the slot-6
+  override (`VtF`); the 12 MATCH again and CID36/CID37 name CID35's secondary vtable (two link_aliases.txt lines
+  fewer). Rule for views: a class with a secondary base must override at least one of that base's virtuals exactly
+  when its secondary vtable in the ELF differs from the base's own.
+- **Palettes D_0029A7C0/D_002A2900**: `__attribute__((section(".rodata")))` on the two definitions, with a comment.
+  The original compiler placed a const object with a dynamic initializer zero-filled in `.rodata`, ours uses `.bss`;
+  ee-gcc 2.95.3 accepts the attribute on the (non-const, written at startup) arrays without a warning, the
+  assembler leaves the object's `.rodata` SHF_ALLOC only (the `"aw"` flag string gcc writes is ignored), the
+  functions still MATCH and the data check reports both MATCH.
+- **tn's zero `.rodata` SWCB** D_002A96E8 is not the same case: it is a null pointer-to-member constant `{0, 0, 0}`
+  (its neighbour D_002A96F0 is `{0, -1, 0x221298}`), statically zero, with no initializer writing it; it stays
+  extern with the other PMF constants (literal phase). No other section attribute was added.
 
 ## Linkage of namespace-scoped declarations
 
@@ -1146,7 +1170,8 @@ relocation site in matched code (242 extras, below, and `D_C0`).
 
 The 242 extras-only references: key-TU extras that g++ emits and the ELF does not have (unreferenced linkonce vtables
 `_vt$2JT`, `_vt$2SM`, `_vt$7ACCMISS`, `_vt$7CMPART2`, which reference LO/SO/BASIC virtuals no object defines: 218;
-typeinfo functions `__tf*` calling `__rtti_si`/`__rtti_user` and base-class `__ti*`/`__tf*`: 22; the
+typeinfo functions `__tf*` calling `__rtti_si`/`__rtti_user` and base-class `__ti*`/`__tf*`: 22, gone since
+`-fno-rtti`; the
 `gcc2_compiled.` markers of eopid_linkonce: 2). Nothing matched references them; a link drops them with
 `--gc-sections` (or a `/DISCARD/` of those linkonce sections) rather than resolving them.
 
@@ -1213,7 +1238,7 @@ Wave 2 (asm-free TUs of 7..21 functions, smallest first, then three small asm TU
 | barrier | gameplay/objects/barrier.cpp | 9 | B4 caller side solved (packed long) |
 | tu_1A4E08 | app/tu_1A4E08.cpp | 9 | 16-step queue; signed/unsigned count |
 | amb | engine/sound/amb.cpp | 10 | `AMB : XFM` |
-| bq | core/containers/bq.cpp | 10 | key-TU extras (`__tf`, out-of-line ctor) |
+| bq | core/containers/bq.cpp | 10 | key-TU extra (out-of-line ctor; `__tf` gone with `-fno-rtti`) |
 | difficulty | world/state/difficulty.cpp | 10 | CRef by value (sly2/cref.h); SW::ploJobCur |
 | splicemap | object/splicemap.cpp | 10 | two counted pointers; SPLCS defined; 2 linkonce GC helpers |
 | tu_1D7238 | gameplay/ai/tu_1D7238.cpp | 10 | safehouse select object; callee types for mangled names |
@@ -1427,7 +1452,7 @@ Wave 9 (follow-ups, the wave-8 skips, then the next asm TUs by size; the per-fun
 | proxy | object/proxy.cpp | 38 | three Lilly ports merged; 11 m2c on PROXY/PROXYSRC/PROXYSPARE; linkonce FramePtr_Assign |
 | tu_1709A8 | gameplay/ai/tu_1709A8.cpp | 42 | guard scripts: SSGE (kind-selected union), SSG, BHVSSG; 26 m2c rewritten |
 | glob | engine/graphics/pipeline/glob.cpp | 42 | Lilly globset types replace bis.h; 81-instruction StaticInit (cel-border RGBA word ctor) |
-| sm | engine/anim/sm.cpp | 43 | aseg.h SM/SMA, SW::dlSma/slotheapSma; three C++-named functions at file scope; __tf2SM extra |
+| sm | engine/anim/sm.cpp | 43 | aseg.h SM/SMA, SW::dlSma/slotheapSma; three C++-named functions at file scope; __tf2SM extra (gone with `-fno-rtti`) |
 | tu_144B28 | gameplay/ai/tu_144B28.cpp | 43 | behaviour views BHVB/BHVSTATE/...; 18 m2c |
 | tu_1D1370 | gameplay/objects/tu_1D1370.cpp | 44 | robot tank; func_001D3450's verbatim `#line` pin kept and restored after it |
 | xf | engine/anim/xf.cpp | 44 | six SLY2_CC/-G0 overrides not needed; struct results by hand; `(...)` vtable pointers |
@@ -1435,7 +1460,7 @@ Wave 9 (follow-ups, the wave-8 skips, then the next asm TUs by size; the per-fun
 | step | actor/step.cpp | 46 | step.h STEP for 18 m2c; v0 rule (func_001F8300 returns int) |
 | bentley | gameplay/player/bentley.cpp | 48 | players.h BENTLEY/BTBLENDS for 11 m2c |
 | path | engine/physics/path.cpp | 51 | CG/CGV/PATHZONE; child-index fold island |
-| jt | gameplay/player/jt.cpp | 51 | five Lilly ports merged; argument-less pass-through view; __tf2JT extra |
+| jt | gameplay/player/jt.cpp | 51 | five Lilly ports merged; argument-less pass-through view; __tf2JT extra (gone with `-fno-rtti`) |
 
 Total wave 9: 15 TUs, 615 functions, plus the solve.cpp (dzg.h DZGXP) and brx.cpp (eopid.h/cref.h) follow-ups; no
 header change; one `#line` pin carried over (tu_1D1370). Scratch helpers used (not in the repo): a namespaced draft
