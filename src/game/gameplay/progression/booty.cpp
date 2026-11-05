@@ -914,7 +914,7 @@ int NBootyContainerKind(CID37 *p) {
 
 struct FRAME {
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60); }
