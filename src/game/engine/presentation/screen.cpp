@@ -20,7 +20,6 @@
 #include "sly2/stackscope.h"
 extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
 extern "C" {
@@ -118,8 +117,6 @@ extern LO *D_002E1E40, *D_002DD5BC, *D_002F7900;    /* the three heroes */
 extern JOBSEL *D_003DA4D0;
 extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
 extern char D_003D4A60[];
-#undef D_003E0EA8
-#define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 
 void PostHudMeterLoad(void *pscreen);
 void func_001AE928(void *pmenu);
@@ -3125,8 +3122,6 @@ typedef struct OBJ {
 } OBJ;
 extern struct CLOCK { float a[16]; } D_002DDED0;
 extern char D_003DD490[];
-#undef D_003E0F9C
-#define D_003E0F9C (*(int *)((char *)base_D_003DD490 + 0x3B0C))   /* g_sw+0x3B0C: SW::ploJobCur */
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
@@ -3184,7 +3179,7 @@ void SetJobListPage(OBJ *p, int s)
         if (i >= 0 && i < p->x48)
             p->x110 = p->a4C[i].x0;
         else
-            p->x110 = D_003E0F9C;
+            p->x110 = (*(int *)&g_sw.ploJobCur);
         p->x114 = (old == 0);
         p->x10C = 4;
         p->x24->x70 = 0x4E6;
@@ -3205,7 +3200,6 @@ void SetJobListPage(OBJ *p, int s)
     ((void (*)(void *, int))p->vt[14].pfn)((char *)p + p->vt[14].d, -1);
 }
 } } // namespace M_SetJobListPage
-#undef D_003E0F9C
 #undef VCALL
 
 namespace M_SetJobListStickDir { extern "C" {
@@ -3568,8 +3562,6 @@ public:
 struct G;
 extern "C" { extern G D_003D4A60; }
 extern "C" { 
-#undef D_003E0FAC
-#define D_003E0FAC (*(void * *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
  }
 extern "C" { extern void *D_002E1E40; }
 extern "C" { extern void *D_002DD5BC; }
@@ -3583,7 +3575,7 @@ void func_00165E38(G *);
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, &D_003D4A60); }
 /** @sly2-annot addr=0x1DDB08
- * Purpose: Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs)
+ * Purpose: Clear the save flag at (*(void * *)&g_sw.psvpDt), bind hp/power of the three heroes, PlayGameFromGs(g_gs)
  * Info: proposed name StartNewGame (T1); TU screen
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
@@ -3592,7 +3584,7 @@ extern "C" void StartNewGame(void)
 {
     {
         CRef ref(0x16, 0);
-        SetPv(D_003E0FAC, ref, &D_003D4A60);
+        SetPv((*(void * *)&g_sw.psvpDt), ref, &D_003D4A60);
     }
     if (D_002E1E40)
         BindStepplayerHpMp(D_002E1E40, 1);
@@ -3603,7 +3595,6 @@ extern "C" void StartNewGame(void)
     func_00165E38(&D_003D4A60);
 }
 } // namespace M_StartNewGame
-#undef D_003E0FAC
 
 /** @sly2-annot addr=0x1DDBD0
  * Purpose: Title screen slot 14: store direction and time
@@ -3800,7 +3791,7 @@ extern "C" void func_001DDF60(char *pch)
  * @end-sly2-annot */
 extern "C" void BuildTitleCompletionText(char *pch)
 {
-    sprintf(pch, D_002A7AB8, NCompletionPercentGs(D_003E0EA8, D_003D4A60));
+    sprintf(pch, D_002A7AB8, NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60));
 }
 
 

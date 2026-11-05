@@ -18,10 +18,8 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
-extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
 struct MCDLGG;
@@ -120,8 +118,6 @@ extern char D_002DEB30[];       /* the game */
 #undef D_002E65E0
 #define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */   /* the save manager */
 extern int D_004425D8;
-#undef D_003E0EA8
-#define D_003E0EA8 (*(int *)((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 extern int D_002E6590;          /* a langstr id */
 extern char D_003D9ED0[];       /* the pause menu */
 extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
@@ -585,8 +581,6 @@ struct S { int x0, x4; int x8; int xC; float x10; float x14; char pad[0xFD5C - 0
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
-#undef D_002DDF0C
-#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */
 extern const struct LONGU D_002A6BA0;
 int func_0020E040(void *g);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
@@ -615,7 +609,7 @@ void UpdateSave__FP4SAVE(struct S *s)
     if (FMemcardThreadValid__FP7MEMCARD(s->xFD5C))
         return;
     if (s->x8 == s->xC) {
-        if (s->x14 <= D_002DDF0C)
+        if (s->x14 <= g_clock.tReal)
             CreateMemcardThread(s->xFD5C, D_002A6BA0.l);
         else
             func_001AB630(s);
@@ -628,7 +622,7 @@ void UpdateSave__FP4SAVE(struct S *s)
         return;
     if (D_002E6550.x44 != 1)
         return;
-    if (0.3f <= D_002DDF0C - s->x10) {
+    if (0.3f <= g_clock.tReal - s->x10) {
     if (func_001B01E8(D_003D9ED0)) {
         if (s->x8 != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
@@ -651,7 +645,6 @@ void UpdateSave__FP4SAVE(struct S *s)
     }
 }
 } } // namespace M_UpdateSave__FP4SAVE
-#undef D_002DDF0C
 
 /** @sly2-annot addr=0x1AB398
  * Purpose: existing
@@ -776,18 +769,18 @@ void SetSaveState(MC *p, int state)
 } // namespace M_SetSaveState
 
 /** @sly2-annot addr=0x1AB630
- * Purpose: If state 5 and D_003E0EA8: wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to
+ * Purpose: If state 5 and (*(int *)&g_sw.savevars): wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to
  *   state 6
  * Info: proposed name ReloadSaveSlots (T2); TU memcard
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
-/* Reloads the three slots once the worker is idle (state 5 and D_003E0EA8 set). */
+/* Reloads the three slots once the worker is idle (state 5 and (*(int *)&g_sw.savevars) set). */
 extern "C" void func_001AB630(SAVE *psave)
 {
     int i;
     char *pslot;
-    if (psave->nState == 5 && D_003E0EA8 != 0) {
+    if (psave->nState == 5 && (*(int *)&g_sw.savevars) != 0) {
         pslot = psave->aslot[0];
         i = 2;
         SetMemcardThreadHighPrio(&psave->memcard);
@@ -1065,8 +1058,6 @@ namespace M_func_001ABCE8 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C88;
-#undef D_003E0EA8
-#define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void func_001D84B0(void *p, int n);
@@ -1080,19 +1071,15 @@ void CreateMemcardThread(void *p, long k);
 void func_001ABCE8(struct S *p)
 {
     ResetRumbleSaveVar(p);
-    func_001D84B0(D_003E0EA8, p->xfd50);
+    func_001D84B0((*(char (*)[])&g_sw.savevars), p->xfd50);
     CreateMemcardThread(p->xfd5c, D_002A6C88.l);
 }
 } } // namespace M_func_001ABCE8
-#undef D_003E0EA8
-#define D_003E0EA8 (*(int *)((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 
 namespace M_func_001ABD40 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C90;
-#undef D_003E0EA8
-#define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void func_001D84B0(void *p, int n);
@@ -1106,12 +1093,10 @@ void CreateMemcardThread(void *p, long k);
 void func_001ABD40(struct S *p)
 {
     ResetRumbleSaveVar(p);
-    func_001D84B0(D_003E0EA8, p->xfd50);
+    func_001D84B0((*(char (*)[])&g_sw.savevars), p->xfd50);
     CreateMemcardThread(p->xfd5c, D_002A6C90.l);
 }
 } } // namespace M_func_001ABD40
-#undef D_003E0EA8
-#define D_003E0EA8 (*(int *)((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
 
 namespace M_func_001ABD98 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
@@ -1548,14 +1533,12 @@ int func_001AC4C8(void *s, struct B *b)
  * @end-sly2-annot */
 extern "C" int func_001AC570(SAVE *psave, void *pslot)
 {
-    ResetGsIfSchemaChanged(&D_003E0EA8);
+    ResetGsIfSchemaChanged(&(*(int *)&g_sw.savevars));
     return 0;
 }
 
 namespace M_McJobGetInfo { extern "C" {
 struct S { int x0; int x4; int x8; int xC; int x10; float x14; int x18; int x1C; int x20; char pad2[0xFD5C - 0x24]; char xFD5C[1]; };
-#undef D_002DDF0C
-#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */
 int sceMcGetInfo(int a, int b, int *c, int *d, int *e);
 int McSyncResult(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1AC598
@@ -1594,11 +1577,10 @@ int McJobGetInfo(struct S *s)
             s->xC = 1;
         }
     }
-    s->x14 = D_002DDF0C + 0.3f;
+    s->x14 = g_clock.tReal + 0.3f;
     return r;
 }
 } } // namespace M_McJobGetInfo
-#undef D_002DDF0C
 
 namespace M_func_001AC6A0 { extern "C" {
 struct S { int x0; int x4; int pad[4]; int x18; int x1C; int x20; char pad2[0xFD5C - 0x24]; char xFD5C[1]; };
@@ -2086,8 +2068,6 @@ extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
 #undef D_002E65E0
 #define D_002E65E0 (*(char (*)[])((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 
-#undef D_003E0FE4
-#define D_003E0FE4 (*(O * *)((char *)base_D_003DD490 + 0x3B54))   /* g_sw+0x3B54: SW::psvpAutosaveWarned */
 int FScreenShown(void *p);
 int func_001B0160(void *p);
 void ClearMcDialogState(S *s);
@@ -2135,7 +2115,7 @@ void func_001ACFE0(S *s)
         break;
     case 34:
         {
-            O *po = D_003E0FE4;
+            O *po = (*(O * *)&g_sw.psvpAutosaveWarned);
             CRef ref(true);
             SetPv(po, ref, D_003D4A60);
         }
@@ -2151,7 +2131,6 @@ void func_001ACFE0(S *s)
 } // namespace M_func_001ACFE0
 #undef D_002E65E0
 #define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FE4
 
 namespace M_func_001AD168 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
@@ -2197,8 +2176,6 @@ struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464];
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 #undef D_002E65E0
 #define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FAC
-#define D_003E0FAC (*(int *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2217,7 +2194,7 @@ void func_001AD250(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
     f = ref.m_tag;
     Decref__4CRef(&ref);
     if (f == 0.0f) {
@@ -2233,7 +2210,6 @@ void func_001AD250(struct S *s)
 } } // namespace M_func_001AD250
 #undef D_002E65E0
 #define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FAC
 
 namespace M_func_001AD320 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
@@ -2242,8 +2218,6 @@ struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464];
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 #undef D_002E65E0
 #define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FAC
-#define D_003E0FAC (*(int *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2259,7 +2233,7 @@ void func_001AD320(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
     f = ref.m_tag;
     Decref__4CRef(&ref);
     D_002E65E0.xFD50 = p;
@@ -2275,7 +2249,6 @@ void func_001AD320(struct S *s)
 } } // namespace M_func_001AD320
 #undef D_002E65E0
 #define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FAC
 
 namespace M_func_001AD3E0 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
@@ -2284,8 +2257,6 @@ struct H { char pad[0x4C]; int x4C; };
 #undef D_002E65E0
 #define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern struct H D_002E6550;
-#undef D_003E0FE4
-#define D_003E0FE4 (*(int *)((char *)base_D_003DD490 + 0x3B54))   /* g_sw+0x3B54: SW::psvpAutosaveWarned */
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
@@ -2305,7 +2276,7 @@ void func_001AD3E0(void)
     int t;
     g->xFD50 = g->xFD58;
     h->x4C = 2;
-    RefGetGlobalSaveVar(&ref, D_003E0FE4, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
     t = ref.m_tag;
     Decref__4CRef(&ref);
     if (!t) {
@@ -2318,7 +2289,6 @@ void func_001AD3E0(void)
 } } // namespace M_func_001AD3E0
 #undef D_002E65E0
 #define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FE4
 
 namespace M_func_001AD480 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
@@ -2329,8 +2299,6 @@ struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 #undef D_002E65E0
 #define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
 extern struct H D_002E6550;
-#undef D_003E0FAC
-#define D_003E0FAC (*(int *)((char *)base_D_003DD490 + 0x3B1C))   /* g_sw+0x3B1C: SW::psvpDt */
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
@@ -2346,7 +2314,7 @@ void func_001AD480(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
     f = ref.m_tag;
     Decref__4CRef(&ref);
     D_002E65E0.xFD58 = p;
@@ -2360,7 +2328,6 @@ void func_001AD480(struct S *s)
 } } // namespace M_func_001AD480
 #undef D_002E65E0
 #define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
-#undef D_003E0FAC
 
 namespace M_func_001AD538 {
 struct CRef;

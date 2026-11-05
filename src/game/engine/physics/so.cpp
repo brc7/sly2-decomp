@@ -14,8 +14,7 @@
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
-extern "C" char base_D_002DDF40[] __asm__("D_002DDF40");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+#include "sly2/sw.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -179,14 +178,6 @@ struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
 
 extern SW D_003DD490;           /* g_sw */
-#undef D_003E11B8
-#define D_003E11B8 (*(DL *)((char *)base_D_003DD490 + 0x3D28))   /* g_sw+0x3D28: SW::dlSoTreeQueue1 */   /* tree queue 1 */
-#undef D_003E11C4
-#define D_003E11C4 (*(DL *)((char *)base_D_003DD490 + 0x3D34))   /* g_sw+0x3D34: SW::dlSoTreeQueue2 */   /* tree queue 2 */
-#undef D_003E15CC
-#define D_003E15CC (*(SLOTHEAP *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */   /* XFH slot heap */
-#undef D_002DDF54
-#define D_002DDF54 (*(int *)((char *)base_D_002DDF40 + 0x14))   /* g_cm (CM)+0x14 */   /* visibility mask */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -345,12 +336,10 @@ struct R; struct L;
 struct R { int pad[2]; int c; };
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0x134 - 0x74]; struct R *pr; };
 struct Pool;
-#undef D_003E12D4
-#define D_003E12D4 (*(struct Pool *)((char *)base_D_003DD490 + 0x3E44))   /* g_sw+0x3E44: SW::slotheapSobounds */
 void func_0011CD98(struct Pool *, struct R *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 /** @sly2-annot addr=0x1F2468
- * Purpose: Drop the shared bounds record (+0x134, refcounted, pool D_003E12D4) of this SO and all SO children
+ * Purpose: Drop the shared bounds record (+0x134, refcounted, pool (*(struct Pool *)&g_sw.slotheapSobounds)) of this SO and all SO children
  * Info: proposed name ReleaseSoBoundsHierarchy (T1); TU so
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
@@ -360,7 +349,7 @@ void ReleaseSoBoundsHierarchy(struct L *p)
     struct L *q;
     struct R *pr = p->pr;
     if (pr) {
-        if (--pr->c == 0) func_0011CD98(&D_003E12D4, pr);
+        if (--pr->c == 0) func_0011CD98(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
         p->pr = 0;
     }
     for (q = p->first; q != p->end; q = q->next) {
@@ -368,7 +357,6 @@ void ReleaseSoBoundsHierarchy(struct L *p)
     }
 }
 } } // namespace M_ReleaseSoBoundsHierarchy
-#undef D_003E12D4
 
 // 0x1F2500 EnsureSoBounds
 namespace M_EnsureSoBounds { extern "C" {
@@ -1541,7 +1529,7 @@ void func_001F3C10(struct A *p)
 
 // 0x1F3C70 RenderSoSelf
 /** @sly2-annot addr=0x1F3C70
- * Purpose: SO vt19: if visible in current vis mask (+0x2D & D_002DDF54) draw globset (+0x80) with alpha
+ * Purpose: SO vt19: if visible in current vis mask (+0x2D & (*(int *)&g_cm.grfvis)) draw globset (+0x80) with alpha
  *   +0x12C
  * Info: proposed name RenderSoSelf (T1); class SO slot19; TU so
  * Notes: names_v2 C proposed SetSoNoXpsCenter__FP2SOi (0.438)
@@ -1552,7 +1540,7 @@ void func_001F3C10(struct A *p)
 extern "C" void RenderSoSelf(SO *pso)
 {
     float uAlpha;
-    if (pso->grfvis & D_002DDF54) {
+    if (pso->grfvis & (*(int *)&g_cm.grfvis)) {
         func_001F3C10(pso);
         uAlpha = pso->uAlpha;
         RenderSoGlobset(&pso->globset, 0, uAlpha, uAlpha, pso->psobounds);
@@ -1602,15 +1590,13 @@ struct E;
 struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xEC - 0x74]; struct E *pe; };
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
-#undef D_003E11AC
-#define D_003E11AC (*(struct DL *)((char *)base_D_003DD490 + 0x3D1C))   /* g_sw+0x3D1C: SW::dlSoTree */
 void OnLoRemove(struct L *);
 void func_001D6310(struct L *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 /** @sly2-annot addr=0x1F3E00
  * Purpose: SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from
- *   D_003E11AC
+ *   g_sw.dlSoTree
  * Info: proposed name OnSoRemove (T1); class SO slot22; TU so
  * Notes: names_v2 C proposed RebuildSoPhysHook__FP2SO (0.638) | slot 22 OnRemove resolved by arbitration
  *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was FreezeSo)
@@ -1628,11 +1614,10 @@ void OnSoRemove(struct L *p)
     for (q = p->first; q != p->end; q = q->next) VF(q, 22);
     if (p->pe && p->pe->p60 == p) {
         VF(p, 49);
-        RemoveDlEntry__FP2DLPv(&D_003E11AC, p->pe);
+        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, p->pe);
     }
 }
 } } // namespace M_OnSoRemove
-#undef D_003E11AC
 
 // 0x1F3EA8 OnSoAdd
 namespace M_OnSoAdd { extern "C" {
@@ -1644,15 +1629,13 @@ struct E;
 struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int v40; char pad2[0x64 - 0x44]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0xEC - 0x74]; struct E *pe; char pad5[0x148 - 0xF0]; ulong fl; };
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
-#undef D_003E11AC
-#define D_003E11AC (*(struct DL *)((char *)base_D_003DD490 + 0x3D1C))   /* g_sw+0x3D1C: SW::dlSoTree */
 void OnLoAdd(struct L *);
 void func_001D6378(struct L *);
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void AppendDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 /** @sly2-annot addr=0x1F3EA8
- * Purpose: SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49
+ * Purpose: SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to g_sw.dlSoTree and vt49
  * Info: proposed name OnSoAdd (T1); class SO slot23; TU so
  * Notes: names_v2 C proposed FGetSoContactList__FP2SOPv (0.167) | slot 23 OnAdd resolved by arbitration
  *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was UnfreezeSo)
@@ -1672,12 +1655,11 @@ void OnSoAdd(struct L *p)
     }
     for (q = p->first; q != p->end; q = q->next) VF(q, 23);
     if (p->pe && p->pe->p60 == p) {
-        if (!FFindDlEntry__FP2DLPv(&D_003E11AC, p->pe)) AppendDlEntry__FP2DLPv(&D_003E11AC, p->pe);
+        if (!FFindDlEntry__FP2DLPv((DL *)&g_sw.dlSoTree, p->pe)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, p->pe);
         VF(p, 49);
     }
 }
 } } // namespace M_OnSoAdd
-#undef D_003E11AC
 
 // 0x1F3FA0 SO_PmatWorld
 /** @sly2-annot addr=0x1F3FA0
@@ -2294,12 +2276,12 @@ extern "C" void func_001F4A80(struct P *p, struct A *pa)
 
 // 0x1F4B58 func_001F4B58
 /** @sly2-annot addr=0x1F4B58
- * Purpose: Set tree flag bit0 and add tree to dirty list D_003E11B8
+ * Purpose: Set tree flag bit0 and add tree to dirty list g_sw.dlSoTreeQueue1
  * Info: proposed name MarkSoTreeBoundsDirty (T2); TU so
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-/* Queues the object's tree on list 1 (D_003E11B8) once. */
+/* Queues the object's tree on list 1 (g_sw.dlSoTreeQueue1) once. */
 extern "C" void func_001F4B58(SO *pso)
 {
     SOTREE *ptree;
@@ -2307,7 +2289,7 @@ extern "C" void func_001F4B58(SO *pso)
     if (ptree != 0) {
         if ((uchar)ptree->fQueued1 == 0) {
             ptree->fQueued1 = 1;
-            AppendDlEntry(&D_003E11B8, pso->ptree);
+            AppendDlEntry(&g_sw.dlSoTreeQueue1, pso->ptree);
         }
     }
 }
@@ -2318,11 +2300,9 @@ struct T; struct S;
 struct T { char pad[0x70]; ulong fl; };
 struct S { char pad[0xEC]; struct T *pt; };
 struct DL;
-#undef D_003E11B8
-#define D_003E11B8 (*(struct DL *)((char *)base_D_003DD490 + 0x3D28))   /* g_sw+0x3D28: SW::dlSoTreeQueue1 */
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1F4BA8
- * Purpose: Clear tree flag bit0 and remove from D_003E11B8
+ * Purpose: Clear tree flag bit0 and remove from g_sw.dlSoTreeQueue1
  * Info: proposed name ClearSoTreeBoundsDirty (T2); TU so
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/particles-effects.md#6-key-functions,
@@ -2335,16 +2315,14 @@ void func_001F4BA8(struct S *p)
     if (!pt) return;
     if ((pt->fl & 1) == 0) return;
     pt->fl &= ~1;
-    RemoveDlEntry__FP2DLPv(&D_003E11B8, p->pt);
+    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, p->pt);
 }
 } } // namespace M_func_001F4BA8
-#undef D_003E11B8
-#define D_003E11B8 (*(DL *)((char *)base_D_003DD490 + 0x3D28))   /* g_sw+0x3D28: SW::dlSoTreeQueue1 */
 
 // 0x1F4BF8 func_001F4BF8
 /** @sly2-annot addr=0x1F4BF8
  * Purpose: After an SO moved/changed bounds: MarkSoTreeBoundsDirty, then flag its broadphase OXA (+0xEC, flag
- *   x70 bit1) dirty once and queue it on D_003E11C4 so UpdateSwAaox re-sorts its sweep endpoints
+ *   x70 bit1) dirty once and queue it on g_sw.dlSoTreeQueue2 so UpdateSwAaox re-sorts its sweep endpoints
  * Info: proposed name InvalidateSoAaox (T2); TU so
  * Notes: v3: superseded MarkSoTreeDirty | top50_round (0.55): Body + callees AppendDlEntry. +0xEC is the OXA
  *   node (AddSwAaobrObject allocates it; RecalcSwOxfFilterForObject tests +0xEC). Per-object counterpart of
@@ -2355,7 +2333,7 @@ void func_001F4BA8(struct S *p)
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-/* Queues the object's tree on lists 1 and 2 (D_003E11C4) once. */
+/* Queues the object's tree on lists 1 and 2 (g_sw.dlSoTreeQueue2) once. */
 extern "C" void func_001F4BF8(SO *pso)
 {
     SOTREE *ptree;
@@ -2364,7 +2342,7 @@ extern "C" void func_001F4BF8(SO *pso)
     if (ptree != 0) {
         if (ptree->fQueued2 == 0) {
             ptree->fQueued2 = 1;
-            AppendDlEntry(&D_003E11C4, pso->ptree);
+            AppendDlEntry(&g_sw.dlSoTreeQueue2, pso->ptree);
         }
     }
 }
@@ -2438,7 +2416,7 @@ extern "C" void func_001F4D50(SO *pso)
     if (ptree != 0) {
         if (ptree->fQueued2) {
             ptree->fQueued2 = 0;
-            RemoveDlEntry(&D_003E11C4, pso->ptree);
+            RemoveDlEntry(&g_sw.dlSoTreeQueue2, pso->ptree);
         }
     }
 }
@@ -3669,10 +3647,8 @@ namespace M_func_001F6788 { extern "C" {
 struct B; struct N;
 struct B { char pad[0x18]; int n; };
 struct N { char pad[0x14]; struct B *pb; int n; char pad2[8]; struct N *next; };
-#undef D_003E1218
-#define D_003E1218 (*(struct N * *)((char *)base_D_003DD490 + 0x3D88))   /* g_sw+0x3D88: SW::dlAsega */
 /** @sly2-annot addr=0x1F6788
- * Purpose: Search list D_003E1218 for node with n==oid and (m==-1 or owner->n==m)
+ * Purpose: Search list (*(struct N * *)&g_sw.dlAsega) for node with n==oid and (m==-1 or owner->n==m)
  * Info: proposed name PsmaFindByOidAndSm (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
@@ -3681,7 +3657,7 @@ struct N *func_001F6788(int n, int m)
 {
     struct N *p;
     int unused[4];
-    for (p = D_003E1218; p; p = p->next) {
+    for (p = (*(struct N * *)&g_sw.dlAsega); p; p = p->next) {
         if (p->n == n) {
             if (m == -1 || p->pb->n == m)
                 return p;
@@ -3690,17 +3666,14 @@ struct N *func_001F6788(int n, int m)
     return 0;
 }
 } } // namespace M_func_001F6788
-#undef D_003E1218
 
 // 0x1F67E0 func_001F67E0
 namespace M_func_001F67E0 { extern "C" {
 struct B; struct N;
 struct B { char pad[0x18]; int n; };
 struct N { char pad[0x1C]; struct N *next; int pad2; struct B *pb; int n; };
-#undef D_003E126C
-#define D_003E126C (*(struct N * *)((char *)base_D_003DD490 + 0x3DDC))   /* g_sw+0x3DDC: SW::dlSma */
 /** @sly2-annot addr=0x1F67E0
- * Purpose: Same search over D_003E126C (SMA live list per sm.md)
+ * Purpose: Same search over (*(struct N * *)&g_sw.dlSma) (SMA live list per sm.md)
  * Info: proposed name PsmaFindLive (T2); TU so
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
@@ -3709,7 +3682,7 @@ struct N *func_001F67E0(int n, int m)
 {
     struct N *p;
     int unused[4];
-    for (p = D_003E126C; p; p = p->next) {
+    for (p = (*(struct N * *)&g_sw.dlSma); p; p = p->next) {
         if (p->n == n) {
             if (m == -1 || p->pb->n == m)
                 return p;
@@ -3718,7 +3691,6 @@ struct N *func_001F67E0(int n, int m)
     return 0;
 }
 } } // namespace M_func_001F67E0
-#undef D_003E126C
 
 // 0x1F6838 func_001F6838
 namespace M_func_001F6838 { extern "C" {
@@ -4330,10 +4302,6 @@ struct N { int n0; int n4; int pad8; int nC; char pad[0x48 - 0x10]; struct O *p4
 struct M { struct O *po; int n; struct K *pk; };
 struct M2 { struct O **ppo; int *pn; };
 struct M3 { struct K *pk; };
-#undef D_003E15C0
-#define D_003E15C0 (*(struct N * *)((char *)base_D_003DD490 + 0x4130))   /* g_sw+0x4130: SW::dlZprHit */
-#undef D_003E15A8
-#define D_003E15A8 (*(char (*)[])((char *)base_D_003DD490 + 0x4118))   /* g_sw+0x4118: SW::slotheapZprHit */
 extern float D_002DDED0;
 struct O *PsoFromLo(void *);
 int GrfzpdFromSoGrfzpk(struct O *, int);
@@ -4345,7 +4313,7 @@ void AppendDlEntry__FP2DLPv(void *, void *);
 
 /** @sly2-annot addr=0x1F7598
  * Purpose: Deliver a zap record to the first SO in the target chain that accepts it: dedupe against the
- *   recent-zap list D_003E15C0, compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time
+ *   recent-zap list (*(struct N * *)&g_sw.dlZprHit), compute GrfzpdFromSoGrfzpk, ask target vt75; on accept log a copy with time
  *   and, if damaging (grfzpd&0xF8), send msg 0xB to both and splice events 0xA/0xB; return the SO or NULL
  * Info: proposed name PsoInflictZap (T2); TU so
  * Notes: v3: superseded InflictZap | top50_round (0.55): Body. Sly 1 zap.cpp InflictZpdZap/FInflictSoZap
@@ -4364,18 +4332,18 @@ struct O *func_001F7598(struct K *pk)
     struct O *po;
     for (po = PsoFromLo(pk->p8); po; po = po->pNext) {
         struct N *pn;
-        for (pn = D_003E15C0; pn; pn = pn->pNext) {
+        for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;
         }
         pk->n44 = GrfzpdFromSoGrfzpk(po, pk->nC);
         if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
             struct K *pkNew;
             pk->p48 = po;
-            pkNew = PvAllocSlotheapClear(D_003E15A8);
+            pkNew = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapZprHit));
             *pkNew = *pk;
             pkNew->f4C = D_002DDED0;
             ClearDle__FP3DLE(pkNew->dle);
-            AppendDlEntry__FP2DLPv(&D_003E15C0, pkNew);
+            AppendDlEntry__FP2DLPv(&(*(struct N * *)&g_sw.dlZprHit), pkNew);
             if (pk->n44 & 0xF8) {
                 {
                     m.po = po; m.n = (int)pk->p0; m.pk = pk;
@@ -4397,8 +4365,6 @@ struct O *func_001F7598(struct K *pk)
     return 0;
 }
 } } // namespace M_func_001F7598
-#undef D_003E15A8
-#undef D_003E15C0
 
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords { extern "C" {
@@ -5018,17 +4984,14 @@ extern "C" void func_001F8238(SOWATCH *pwatch)
 namespace M_func_001F8240 { extern "C" {
 struct T;
 struct T { int a[3]; int n; char pad[0x10]; struct T *pnext; };
-#undef D_003E145C
-#define D_003E145C (*(struct T * *)((char *)base_D_003DD490 + 0x3FCC))   /* g_sw+0x3FCC: SW::_pad_310+0xC */
 /** @sly2-annot addr=0x1F8240
- * Purpose: Search D_003E145C list by id
+ * Purpose: Search (*(struct T * *)&g_sw.dlTargetrec) list by id
  * Info: proposed name PxxFindGlobalById (T2); TU so
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-struct T *func_001F8240(int n) { struct T *pt; for (pt = D_003E145C; pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
+struct T *func_001F8240(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->pnext) if (pt->n == n) return pt; return 0; }
 } } // namespace M_func_001F8240
-#undef D_003E145C
 
 // 0x1F8278 func_001F8278
 /** @sly2-annot addr=0x1F8278
@@ -5232,12 +5195,10 @@ struct E { char pad[0x94]; int n94; int pad2; int n9C; char pad3[0x100 - 0xA0]; 
 struct P { char pad[0x50]; int c; struct E *ae; };
 extern char D_002CA2C0[];
 struct Pool;
-#undef D_003E15CC
-#define D_003E15CC (*(struct Pool *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F8510
- * Purpose: Create a 0x30 handle object (pool D_003E15CC, vtable 0x2CA2C0 = CID 0x95) for the XF matching
+ * Purpose: Create a 0x30 handle object (pool (*(struct Pool *)&g_sw.slotheapXfh), vtable 0x2CA2C0 = CID 0x95) for the XF matching
  *   (oid,kind)
  * Info: proposed name PxfhNewSo (T2); TU so
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
@@ -5249,7 +5210,7 @@ struct Q *func_001F8510(struct P *p, int k, int m)
     for (i = 0; i < p->c; i++) {
         struct E *pe = &p->ae[i];
         if (pe->n94 == m && (k == -1 || pe->n9C == k)) {
-            struct Q *q = PvAllocSlotheapClear(&D_003E15CC);
+            struct Q *q = PvAllocSlotheapClear(&(*(struct Pool *)&g_sw.slotheapXfh));
             func_002333B4(q, 0, 0x30);
             q->pvt = D_002CA2C0;
             q->p20 = p;
@@ -5262,8 +5223,6 @@ struct Q *func_001F8510(struct P *p, int k, int m)
     return 0;
 }
 } } // namespace M_func_001F8510
-#undef D_003E15CC
-#define D_003E15CC (*(SLOTHEAP *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 
 // 0x1F85E0 func_001F85E0
 namespace M_func_001F85E0 { extern "C" {
@@ -5271,8 +5230,6 @@ struct Q;
 struct Q { int a, b, c; void *pvt; int pad[4]; void *p20; void *p24; int pad2[2]; };
 extern char D_002CA280[];
 struct Pool;
-#undef D_003E15CC
-#define D_003E15CC (*(struct Pool *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 void *PsopartFindSo(void *);
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -5288,7 +5245,7 @@ struct Q *func_001F85E0(void *pa)
     void *r = PsopartFindSo(pa);
     struct Q *q;
     if (!r) return 0;
-    q = PvAllocSlotheapClear(&D_003E15CC);
+    q = PvAllocSlotheapClear(&(*(struct Pool *)&g_sw.slotheapXfh));
     func_002333B4(q, 0, 0x30);
     q->p20 = pa;
     q->p24 = r;
@@ -5298,8 +5255,6 @@ struct Q *func_001F85E0(void *pa)
     return q;
 }
 } } // namespace M_func_001F85E0
-#undef D_003E15CC
-#define D_003E15CC (*(SLOTHEAP *)((char *)base_D_003DD490 + 0x413C))   /* g_sw+0x413C: SW::_pad_328 */
 
 // 0x1F8668 func_001F8668
 namespace M_func_001F8668 { extern "C" {
@@ -5348,7 +5303,7 @@ extern "C" void func_001F8730(XFH *pxfh)
 
 // 0x1F8740 DecrefXfh
 /** @sly2-annot addr=0x1F8740
- * Purpose: --cref; at 0 destroy and free to pool D_003E15CC
+ * Purpose: --cref; at 0 destroy and free to pool g_sw.slotheapXfh
  * Info: proposed name DecrefXfh (T1); class CID148 slot2; TU so
  * Notes: verifier CORRECT: HANDLE::Decref -> XFH::Decref
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
@@ -5365,7 +5320,7 @@ extern "C" void DecrefXfh(XFH *pxfh)
         FramePtr_Assign(&pxfh->pframe, 0);
         func_002580A8(&pxfh->psidebag, 0);
         UnsubscribeLoAll(pxfh);
-        func_0011CD98(&D_003E15CC, pxfh);
+        func_0011CD98(&g_sw.slotheapXfh, pxfh);
     }
 }
 

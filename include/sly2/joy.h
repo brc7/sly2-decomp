@@ -72,5 +72,10 @@ typedef char assert_JOY_dxLeft[SLY2_OFFSETOF(JOY, dxLeft) == 0x103C ? 1 : -1];  
 typedef char assert_JOY_dxRight[SLY2_OFFSETOF(JOY, dxRight) == 0x1070 ? 1 : -1];   /* CONFIRMED (pine_input) */
 typedef char assert_JOY_grfbtn[SLY2_OFFSETOF(JOY, grfbtn) == 0x10B4 ? 1 : -1];   /* CONFIRMED (pine_input + match) */
 typedef char assert_JOY_grfbtnLatched[SLY2_OFFSETOF(JOY, grfbtnLatched) == 0x10BC ? 1 : -1];   /* CONFIRMED (pine_input) */
+typedef char assert_JOY_dtIdle[SLY2_OFFSETOF(JOY, dtIdle) == 0x1020 ? 1 : -1];   /* match (game.cpp reads +0x1020) */
+typedef char assert_JOY_rumble[SLY2_OFFSETOF(JOY, rumble) == 0x10CC ? 1 : -1];   /* match (sw.cpp passes +0x10CC) */
+
+/* g_joy: the first of the two JOYs (joy.cpp defines it under its address name). */
+extern JOY g_joy __asm__("D_002DFC00");
 
 #endif /* SLY2_JOY_H */

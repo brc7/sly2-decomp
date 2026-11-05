@@ -270,11 +270,20 @@ typedef char assert_CM_ccpr[SLY2_OFFSETOF(CM, ccpr) == 0x30C ? 1 : -1];   /* CON
 typedef char assert_CM_cplook[SLY2_OFFSETOF(CM, cplook) == 0x450 ? 1 : -1];   /* CONFIRMED runtime (vptr seen in policy stack) */
 typedef char assert_CM_cpcamblend[SLY2_OFFSETOF(CM, cpcamblend) == 0x500 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_CM_cpzoom[SLY2_OFFSETOF(CM, cpzoom) == 0x520 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_CM_grfvis[SLY2_OFFSETOF(CM, grfvis) == 0x14 ? 1 : -1];   /* match (so.cpp / frm.cpp visibility mask) */
+typedef char assert_CM_rAspect[SLY2_OFFSETOF(CM, rAspect) == 0x3C ? 1 : -1];   /* match (turret.cpp) */
+typedef char assert_CM_mat[SLY2_OFFSETOF(CM, mat) == 0x60 ? 1 : -1];   /* match (camera matrix, pos at +0x90) */
+typedef char assert_CM_rgbaFog[SLY2_OFFSETOF(CM, rgbaFog) == 0x24C ? 1 : -1];   /* match (shd.cpp) */
+typedef char assert_CM_cplook_rZoomMax[SLY2_OFFSETOF(CM, cplook.rZoomMax) == 0x478 ? 1 : -1];   /* match (hud.cpp) */
+typedef char assert_CM_cpzoom_rZoomMax[SLY2_OFFSETOF(CM, cpzoom.rZoomMax) == 0x5D4 ? 1 : -1];   /* match (hud.cpp) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline qword func_00256298(CM *pcm) { return *(qword *)&pcm->pos; }   /* get; its set is SetCmPos */
 inline MATRIX4 *func_002562A0(CM *pcm) { return &pcm->mat; }          /* get; its set is func_00256278 (SetCmMat) */
+
+/* g_cm: the one camera (cm.cpp defines it under its address name as a CMG). */
+extern CM g_cm __asm__("D_002DDF40");
 
 #endif /* SLY2_CM_H */

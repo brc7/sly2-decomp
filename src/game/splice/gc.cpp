@@ -6,7 +6,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00128B40
 #include "sly2/cref.h"
 #include "sly2/slotheap.h"
-extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+#include "sly2/sw.h"
 
 struct CGc;
 extern "C" CGc *CGc_ctor(CGc *pgc);
@@ -132,8 +132,6 @@ extern GCHDR *D_002DD2B0, *D_002DD2B8;
 extern GCHDR *D_002DD2C0, *D_002DD2C8;
 extern ENV *D_002DD2CC;
 extern GCHDR *D_002DD2D0, *D_002DD2D8;
-#undef D_003E0E80
-#define D_003E0E80 (*(ROOT * *)((char *)base_D_003DD490 + 0x39F0))   /* g_sw+0x39F0: SW::slEvent */
 /* Block tables of the six pools, each 0x10 bytes before the pool's SLOTHEAP (HYPOTHESIS: the pool object is
    {block table[4]; SLOTHEAP}, which would explain the 0x28 spacing of the pools). */
 extern char *D_00452098[4];
@@ -420,7 +418,7 @@ void CGc::Collect()
             penv = penvNext;
         }
     }
-    for (pr = D_003E0E80; pr; pr = pr->prNext)
+    for (pr = (*(ROOT * *)&g_sw.slEvent); pr; pr = pr->prNext)
     {
         NODE *p = pr->pobj;
         if (p->fMark != D_002DD598.fMark)

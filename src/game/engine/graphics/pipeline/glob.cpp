@@ -20,7 +20,7 @@
 #include "gifs.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
-extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+#include "sly2/sw.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -424,8 +424,6 @@ struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; ch
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { 
-#undef D_003E11EC
-#define D_003E11EC (*(int *)((char *)base_D_003DD490 + 0x3D5C))   /* g_sw+0x3D5C: SW::nUnk3d5c */
  }
 extern "C" LO *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
@@ -443,7 +441,7 @@ extern "C" void func_0022B7A0(LO *plo, X *px);
 extern "C" void BindGlobset(S *p)
 {
     if (p->f4C != -1)
-        p->f4C = D_003E11EC;
+        p->f4C = g_sw.nUnk3d5c;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -478,7 +476,6 @@ extern "C" void BindGlobset(S *p)
     }
 }
 } // namespace M_BindGlobset
-#undef D_003E11EC
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00167DA0 { extern "C" {
@@ -2774,8 +2771,6 @@ extern "C" void ReadCb12__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void 
 extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 void FixupRgba(RGBA *prgba) __asm__("ColorCorrectRgba");
 extern "C" { 
-#undef D_003E11EC
-#define D_003E11EC (*(int *)((char *)base_D_003DD490 + 0x3D5C))   /* g_sw+0x3D5C: SW::nUnk3d5c */
  }
 static inline void *PvAllocStackP(int cb)
 {
@@ -2798,8 +2793,6 @@ extern "C" int func_001ED960(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
 extern "C" { extern int D_003DA790; }
 extern "C" { 
-#undef D_003E12D0
-#define D_003E12D0 (*(int *)((char *)base_D_003DD490 + 0x3E40))   /* g_sw+0x3E40: SW::_pad_279+0x4 */
  }
 extern "C" int D_002BE580 = 0;
 extern "C" { int D_002DEB54; }
@@ -2899,7 +2892,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     {
         vifsAux.AllocStack(0x800);
         if (FIsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 &&
-            psubglob->gUnk04 == D_002A52A0 && D_003E12D0 == 0)
+            psubglob->gUnk04 == D_002A52A0 && g_sw.fUnk3e40 == 0)
         {
             QW qwOne;
             qwOne.ag[0] = 1.0f;
@@ -3663,7 +3656,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
     }
     if (pclutset != 0)
-        pglobset->nUnk4c = D_003E11EC;
+        pglobset->nUnk4c = g_sw.nUnk3d5c;
     pglob->iUnkEnd = D_003DA790;
     func_001EC740(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)
@@ -3708,8 +3701,6 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     LoadSubglobInstancesFromBrx(pglobset, psubglob, pglob, psubglobx, cSubExtra, cbatch, acbatch, apbatch, pbis);
 }
 } // namespace M_func_0016A000
-#undef D_003E11EC
-#undef D_003E12D0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0016C8E0 {
@@ -4171,8 +4162,6 @@ extern "C" { extern char D_0025C1C0[]; }
 extern "C" { extern char D_0025E040[]; }
 extern "C" { extern char D_00001AA0[]; }
 extern "C" { 
-#undef D_003E12C8
-#define D_003E12C8 (*(int *)((char *)base_D_003DD490 + 0x3E38))   /* g_sw+0x3E38: SW::fUnk3e38 */
  }
 extern "C" { extern QW D_002DF800[]; }
 extern "C" { int D_002DEB70[2]; }
@@ -4193,7 +4182,7 @@ extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
 {
     EnsureVu1Code__FP4VIFSPvT1(pvifs, D_0025C1C0, D_0025E040);
     pvifs->AddDmaCnt();
-    if (n2 != 7 && D_003E12C8) {
+    if (n2 != 7 && g_sw.fUnk3e38) {
         pvifs->AddVifFlush();
         pvifs->AddDmaCall(D_002DF800);
         pvifs->AddVifBaseOffset(0x32, 0x1E7);
@@ -4239,7 +4228,6 @@ extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
     D_002DEB70[n1 == 8 ? 1 : 0] = 1;
 }
 } // namespace M_BeginRpProjVolume
-#undef D_003E12C8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_EndRpProjVolume {
@@ -4250,8 +4238,6 @@ struct GAME {char pad[0x3E38];int ready;};
 extern "C" { extern GAME D_003DD490; }
 extern "C" { extern int D_002DEB70[2]; }
 extern "C" { 
-#undef D_003E1330
-#define D_003E1330 (*(ulong *)((char *)base_D_003DD490 + 0x3EA0))   /* g_sw+0x3EA0: SW::_pad_283+0x3C */
  }
 extern "C" { extern QW*D_002DEA4C; }
 extern "C" { extern QW D_002DEA50[],D_002DF940[],D_002DFA80[]; }
@@ -4270,7 +4256,7 @@ typedef char GAME_ready_Offset[FIELD_OFFSET(GAME,ready)==15928?1:-1];
 typedef char COMMAND_kind_Offset[FIELD_OFFSET(COMMAND,kind)==0?1:-1];
 typedef char COMMAND_index_Offset[FIELD_OFFSET(COMMAND,index)==2?1:-1];
 /** @sly2-annot addr=0x16DD58
- * Purpose: Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 D_003E1330) with
+ * Purpose: Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2ProjVolume) with
  *   alpha blend over full-screen strips (MSCAL 0x1C48)
  * Info: proposed name EndRpProjVolume (T1); TU glob
  * Notes: no usable identifier; purpose only
@@ -4322,7 +4308,7 @@ extern "C" void EndRpProjVolume(VIFS*input,int first,int mode){
   AddFramePatch(2,&gifs,&cursor);
   gifs.PackAD(6,0x6A8000000L);
   gifs.PackAD(0x14,1);
-  gifs.PackAD(0x16,D_003E1330);
+  gifs.PackAD(0x16,g_sw.tex2ProjVolume);
   gifs.PackAD(0x3F,0);
   gifs.PackAD(0x47,0x31001);
   gifs.PackAD(1,0x180808080L);
@@ -4362,7 +4348,6 @@ typedef char UINT_Size[sizeof(uint)==4?1:-1];
 typedef char ULONG_Size[sizeof(ulong)==8?1:-1];
 typedef char GAME_Size[sizeof(GAME)==0x3E3C?1:-1];
 } // namespace M_EndRpProjVolume
-#undef D_003E1330
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpGlob {

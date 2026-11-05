@@ -81,7 +81,8 @@ struct SW : public BASIC
       int fUnk3a14;
       SAVEVARS savevars;
       int ctask;
-      uint32_t   _pad_202    [ 3 ] ;
+      DL dlTaskActive;      /* +0x3B00 [S] draft name: the TASKs SetTaskState appends / removes and BroadcastGameEvent walks
+                               (game.cpp); was _pad_202 */
       LO *ploJobCur;        /* +0x3B0C [R] current JOB (CID 0x84); mirrors g_game+0x10 oid (runtime FINDINGS, slygame SW_CURTASK) */
       LO *ploTaskCur;       /* +0x3B10 [R] current TASK (CID 0x85) */
       LO *ploTaskPending;   /* +0x3B14 [R] pending TASK */
@@ -104,7 +105,9 @@ struct SW : public BASIC
       SVPATH *apsvpEpisodeDt[9];
       SVPATH *apsvpEpisodePercent[9];
       HUDSTACK ahudstack[4];
-      uint32_t   _pad_228    [ 7 ] ;
+      DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (FWidgetObscured, hud.cpp); was _pad_228 */
+      SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
+      uint32_t   _pad_228    [ 1 ] ;
       int fUnk3bec;
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
       int fTransitionPending;   /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
@@ -159,11 +162,15 @@ struct SW : public BASIC
       VECTOR vecLightRgb;
       float uMidtone;
       int fUnk3e38;
-      uint32_t   _pad_279    [ 2 ] ;
+      uint32_t   _pad_279    [ 1 ] ;
+      int fUnk3e40;         /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;
       void *pvUnk3e5c;
       CID116 *pcid116Fade;
-      uint32_t   _pad_283    [ 18 ] ;
+      float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp func_001EA9F0); was _pad_283 */
+      float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
+      ulong tex2ProjVolume; /* +0x3EA0 [S] draft name: TEX2 register packed by EndRpProjVolume (glob.cpp) */
+      uint32_t   _pad_283    [ 1 ] ;
       SL slPoctl;
       uint cpo;             /* +0x3EB8 [R] player-object count (4 in the Paris hub: Bentley, Sly, Murray, char-select PO; 0 in
                                the 3 states with no world loaded) */
@@ -192,9 +199,11 @@ struct SW : public BASIC
       DL dlCid9;
       DL dlCid27;
       DL dlStepguard;
-      uint32_t   _pad_310    [ 6 ] ;
+      DL dlCid98;           /* +0x3FC0 [S] class list of CID 98 (its vt22/vt23 remove / append, tu_1BAB50.cpp); was _pad_310 */
+      DL dlTargetrec;       /* +0x3FCC [S] draft name: target records (stepguard.cpp appends, so.cpp searches by id) */
       DL dlCid47;
-      uint32_t   _pad_312    [ 6 ] ;
+      DL dlCid21;           /* +0x3FE4 [S] class list of CID 0x15 (target.cpp OnLoAdd / OnLoRemove); was _pad_312 */
+      DL dlCid23;           /* +0x3FF0 [S] class list of CID 23, the volumes (vol.cpp OnCid23Add / Remove, detector.cpp walks) */
       DL dlStimulus;
       SLOTHEAP slotheapStimulus;
       struct STIMK *apstimk[7];
@@ -203,19 +212,24 @@ struct SW : public BASIC
       uint32_t   _pad_318    [ 1 ] ;
       SLOTHEAP slotheapUnk4070;
       SLOTHEAP slotheapUnk4088;
-      uint32_t   _pad_321    [ 6 ] ;
+      SLOTHEAP slotheapUnk40a0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
       SLOTHEAP slotheapSsge;
-      uint32_t   _pad_323    [ 6 ] ;
+      SLOTHEAP slotheapJsg; /* +0x40D0 [S] JSG slot heap (relay.cpp allocates / frees JSGs); was _pad_323 */
       SLOTHEAP slotheapXa;
-      uint32_t   _pad_325    [ 6 ] ;
+      SL slShd;             /* +0x4100 [S] draft name: the loaded shaders (LoadShadersFromBrx appends, PshdFindShader walks); was _pad_325 */
+      SL slSaa;             /* +0x410C [S] draft name: every SAA (shdanim.cpp appends, shd.cpp walks) */
       SLOTHEAP slotheapZprHit;
       DL dlZprHit;
-      uint32_t   _pad_328    [ 263 ] ;
+      SLOTHEAP slotheapXfh; /* +0x413C [S] XFH slot heap; was _pad_328[263] */
+      uint32_t   _pad_328    [ 256 ] ;
+      int fUnk4554;         /* +0x4554 [S] draft: set to 1 by func_001A3B38 for some lights (light.cpp) */
       int ccell;
       CELL *acell;
       int cleaf;
       void *aleaf;
-      uint32_t   _pad_333    [ 24 ] ;
+      uint32_t   _pad_333    [ 18 ] ;
+      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (func_001BDA00, tu_1BC050.cpp); was _pad_333+0x48 */
+      DL dlCid14Pending;    /* +0x45BC [S] draft name: CID 14 objects waiting for their path zone (func_001BE1E8) */
       CID17 *pcid17Default;
       REGTREE *pregtree;
       CLQ clqGuardScale;
@@ -225,7 +239,8 @@ struct SW : public BASIC
       int cCid37;
       int clangstr;
       LANGSTR *alangstr;
-      uint32_t   _pad_343    [ 12 ] ;
+      SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (tu_20B840.cpp); was _pad_343 */
+      SLOTHEAP slotheapDiract; /* +0x4660 [S] DIRACT slot heap (tu_20B840.cpp) */
       int cjtgrabcand;
       undefined4 unk_0x467c;
       JTGRABCAND ajtgrabcand[4];
@@ -234,7 +249,8 @@ struct SW : public BASIC
       int fGuardsFrozen;
       float tGuardsFrozen;
       float tLookLast;
-      uint32_t   _pad_352    [ 2 ] ;
+      uint32_t   _pad_352    [ 1 ] ;
+      float tUnk4758;       /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.t (guardbhv.cpp) */
       float gUnk475c;
       uint32_t   _pad_354    [ 1 ] ;
       int cClue;            /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
@@ -242,7 +258,7 @@ struct SW : public BASIC
 
       float tHudTimerEnd;
       int csecHudTimerShown;
-      uint32_t   _pad_357    [ 1 ] ;
+      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (func_0015CD68 registers itself, tu_15CD68.cpp); was _pad_357 */
       int cpemitTracked;
       struct EMITTER *apemitTracked[4];
       uint32_t   _pad_360    [ 1 ] ;
@@ -268,5 +284,35 @@ typedef char assert_SW_cpo[SLY2_OFFSETOF(SW, cpo) == 0x3EB8 ? 1 : -1];   /* CONF
 typedef char assert_SW_ppoHero[SLY2_OFFSETOF(SW, ppoHero) == 0x3EFC ? 1 : -1];   /* current player, CONFIRMED runtime */
 typedef char assert_SW_ppoOverride[SLY2_OFFSETOF(SW, ppoOverride) == 0x3F00 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_SW_cClue[SLY2_OFFSETOF(SW, cClue) == 0x4764 ? 1 : -1];   /* CONFIRMED runtime */
+/* Fields named from the interior address names (data/interior-fields): offsets as the matched code uses them. */
+typedef char assert_SW_dlTaskActive[SLY2_OFFSETOF(SW, dlTaskActive) == 0x3B00 ? 1 : -1];
+typedef char assert_SW_dlWidgetExclusive[SLY2_OFFSETOF(SW, dlWidgetExclusive) == 0x3BD0 ? 1 : -1];
+typedef char assert_SW_slWidgetDeferred[SLY2_OFFSETOF(SW, slWidgetDeferred) == 0x3BDC ? 1 : -1];
+typedef char assert_SW_fUnk3e40[SLY2_OFFSETOF(SW, fUnk3e40) == 0x3E40 ? 1 : -1];
+typedef char assert_SW_agShdLight[SLY2_OFFSETOF(SW, agShdLight) == 0x3E64 ? 1 : -1];
+typedef char assert_SW_aclrShdLight[SLY2_OFFSETOF(SW, aclrShdLight) == 0x3E70 ? 1 : -1];
+typedef char assert_SW_tex2ProjVolume[SLY2_OFFSETOF(SW, tex2ProjVolume) == 0x3EA0 ? 1 : -1];
+typedef char assert_SW_slPoctl[SLY2_OFFSETOF(SW, slPoctl) == 0x3EAC ? 1 : -1];
+typedef char assert_SW_dlCid98[SLY2_OFFSETOF(SW, dlCid98) == 0x3FC0 ? 1 : -1];
+typedef char assert_SW_dlTargetrec[SLY2_OFFSETOF(SW, dlTargetrec) == 0x3FCC ? 1 : -1];
+typedef char assert_SW_dlCid21[SLY2_OFFSETOF(SW, dlCid21) == 0x3FE4 ? 1 : -1];
+typedef char assert_SW_dlCid23[SLY2_OFFSETOF(SW, dlCid23) == 0x3FF0 ? 1 : -1];
+typedef char assert_SW_dlStimulus[SLY2_OFFSETOF(SW, dlStimulus) == 0x3FFC ? 1 : -1];
+typedef char assert_SW_slotheapUnk40a0[SLY2_OFFSETOF(SW, slotheapUnk40a0) == 0x40A0 ? 1 : -1];
+typedef char assert_SW_slotheapJsg[SLY2_OFFSETOF(SW, slotheapJsg) == 0x40D0 ? 1 : -1];
+typedef char assert_SW_slShd[SLY2_OFFSETOF(SW, slShd) == 0x4100 ? 1 : -1];
+typedef char assert_SW_slSaa[SLY2_OFFSETOF(SW, slSaa) == 0x410C ? 1 : -1];
+typedef char assert_SW_slotheapXfh[SLY2_OFFSETOF(SW, slotheapXfh) == 0x413C ? 1 : -1];
+typedef char assert_SW_fUnk4554[SLY2_OFFSETOF(SW, fUnk4554) == 0x4554 ? 1 : -1];
+typedef char assert_SW_dlCid14Free[SLY2_OFFSETOF(SW, dlCid14Free) == 0x45B0 ? 1 : -1];
+typedef char assert_SW_dlCid14Pending[SLY2_OFFSETOF(SW, dlCid14Pending) == 0x45BC ? 1 : -1];
+typedef char assert_SW_clqGuardScale[SLY2_OFFSETOF(SW, clqGuardScale) == 0x45D0 ? 1 : -1];
+typedef char assert_SW_slotheapLeap[SLY2_OFFSETOF(SW, slotheapLeap) == 0x4648 ? 1 : -1];
+typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x4660 ? 1 : -1];
+typedef char assert_SW_tUnk4758[SLY2_OFFSETOF(SW, tUnk4758) == 0x4758 ? 1 : -1];
+typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
+
+/* g_sw: the one world (sw.cpp defines it under its address name as an SWG). */
+extern SW g_sw __asm__("D_003DD490");
 
 #endif /* SLY2_SW_H */

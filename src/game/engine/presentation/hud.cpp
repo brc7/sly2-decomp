@@ -14,11 +14,9 @@
 #include "sly2/stackscope.h"
 #include "gifs.h"
 #include "vifs.h"
-extern "C" char base_D_002DDED0[] __asm__("D_002DDED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_002DDF40[] __asm__("D_002DDF40");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
+#include "sly2/cm.h"
+#include "sly2/sw.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_003DD490[] __asm__("D_003DD490");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
 struct WIDGET : public LO
@@ -52,8 +50,6 @@ struct SPRITEGRP
 
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
-#undef D_003E1060
-#define D_003E1060 (*(DL *)((char *)base_D_003DD490 + 0x3BD0))   /* g_sw+0x3BD0: SW::_pad_228 */   /* exclusive widget list */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
 #undef D_003DA0D8
 #define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
@@ -147,8 +143,6 @@ void BuildClueCountText(void *f)
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-#undef D_003E1BFC
-#define D_003E1BFC (*(float *)((char *)base_D_003DD490 + 0x476C))   /* g_sw+0x476C: SW::tHudTimerEnd */
 extern struct CLOCK { float t; float dt; } D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...);
@@ -160,7 +154,7 @@ void fiprintf(void *f, const char *fmt, ...);
  * @end-sly2-annot */
 void BuildTimerText(void *f)
 {
-    float t = -D_002DDED0.t + D_003E1BFC; int n; t = (t < 0.0f) ? 0.0f : t;
+    float t = -D_002DDED0.t + g_sw.tHudTimerEnd; int n; t = (t < 0.0f) ? 0.0f : t;
     n = (int)t;
     {
         int q = n / 60;
@@ -168,16 +162,11 @@ void BuildTimerText(void *f)
     }
 }
 } } // namespace M_BuildTimerText
-#undef D_003E1BFC
 
 // 0x210FE0 func_00210FE0
 namespace M_func_00210FE0 { extern "C" {
 struct X { char pad[0xF20]; int xF20; char padf24[0x18]; float xF3C; };
 extern char D_003DD490[];
-#undef D_002DE3B8
-#define D_002DE3B8 (*(float *)((char *)base_D_002DDF40 + 0x478))   /* g_cm (CM)+0x478 */
-#undef D_002DE514
-#define D_002DE514 (*(float *)((char *)base_D_002DDF40 + 0x5D4))   /* g_cm (CM)+0x5D4 */
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
 struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
@@ -199,10 +188,10 @@ void func_00210FE0(char *pch)
         return;
     switch (x->xF20) {
     case 0:
-        g = D_002DE3B8 * x->xF3C;
+        g = g_cm.cplook.rZoomMax * x->xF3C;
         break;
     case 1:
-        g = D_002DE514 * x->xF3C;
+        g = g_cm.cpzoom.rZoomMax * x->xF3C;
         break;
     }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x35)) {
@@ -220,8 +209,6 @@ void func_00210FE0(char *pch)
     }
 }
 } } // namespace M_func_00210FE0
-#undef D_002DE3B8
-#undef D_002DE514
 
 // 0x211148 BuildReconSelectionText
 /** @sly2-annot addr=0x211148
@@ -612,8 +599,6 @@ namespace M_func_00211D38 { extern "C" {
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
 struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int x58; float x5C; char pad60[0xB0]; int x110; int x114; };
 extern struct G { char pad[0x3B0C]; void *x3B0C; } D_003DD490;
-#undef D_002DDF0C
-#define D_002DDF0C (*(float *)((char *)base_D_002DDED0 + 0x3C))   /* g_clock (CLOCK)+0x3C */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int func_002121C8(struct S *p);
@@ -636,7 +621,7 @@ void func_00211D38(struct S *p)
     if (r)
         return;
     UpdateWidget(p);
-    if (p->x58 == 2 && 0.5f < D_002DDF0C - p->x5C && !FScreenShown(D_002E6550)
+    if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
         && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
@@ -649,7 +634,6 @@ void func_00211D38(struct S *p)
     return;
 }
 } } // namespace M_func_00211D38
-#undef D_002DDF0C
 
 // 0x211E40 func_00211E40
 namespace M_func_00211E40 { extern "C" {
@@ -898,8 +882,6 @@ struct S {
     char pad80[0x10]; float x90; int x94; int x98; char pad9c[0x20]; int xBC; struct O *xC0; void *xC4;
 };
 extern char D_003E1C70[], D_003E1C80[];
-#undef D_003E106C
-#define D_003E106C (*(char (*)[])((char *)base_D_003DD490 + 0x3BDC))   /* g_sw+0x3BDC: SW::_pad_228+0xC */
 
 void LoadLoFromBrx(struct S *p, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
@@ -942,7 +924,7 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
         p->xC0 = func_001AE2A0(&req);
         p->xC0->x40 = p;
         CBinaryInputStream_ReadCb64(pbis, p->xC0);
-        func_0011A070(D_003E106C, p->xC0);
+        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
     } else {
         p->x58 = 1;
         p->xC4 = D_003E1C80;
@@ -952,7 +934,6 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
     p->x7C = -1;
 }
 } } // namespace M_LoadWidgetFromBrx
-#undef D_003E106C
 
 // 0x2123C8 PostWidgetLoad
 namespace M_PostWidgetLoad { extern "C" {
@@ -1028,8 +1009,6 @@ extern "C" void SetWidgetState(S *,int);
 extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
 extern "C" void LoadSpriteGroups(S *,BIS *,S *);
 extern "C" { 
-#undef D_003E106C
-#define D_003E106C (*(N * *)((char *)base_D_003DD490 + 0x3BDC))   /* g_sw+0x3BDC: SW::_pad_228+0xC */
  }
 extern "C" { extern POOL D_003E1C70; }
 extern "C" { extern int D_002BE538; }
@@ -1062,13 +1041,13 @@ extern "C" void LoadWidgetSprites(S *p) {
     N *n;
     S *owner;
     int version;
-    for(n=D_003E106C;n;n=n->next) {
+    for(n=(*(N * *)&g_sw.slWidgetDeferred);n;n=n->next) {
         owner=n->owner;
         if(owner->state==0)continue;
         if(owner->state==1 && D_002BE538-owner->tick>=2)continue;
         priority=Max(priority,n->last);
     }
-    for(n=D_003E106C;n;n=n->next) {
+    for(n=(*(N * *)&g_sw.slWidgetDeferred);n;n=n->next) {
         owner=n->owner;
         if(n->priority>=priority && owner->state!=0)SetWidgetState(owner,0);
     }
@@ -1102,7 +1081,6 @@ load:
     STACKSCOPE_ctor_1AE4A0(&work.frame,2);
 }
 } // namespace M_LoadWidgetSprites
-#undef D_003E106C
 
 // 0x212780 UnloadWidgetSprites
 namespace M_UnloadWidgetSprites { extern "C" {
@@ -1134,11 +1112,9 @@ void UnloadWidgetSprites(struct S *p)
 namespace M_func_002127C8 { extern "C" {
 struct Q { char pad[0x58]; int k; int pad2; int a; int b; };
 struct S { char pad[0x40]; struct Q *q; char pad2[8]; struct S *next; };
-#undef D_003E106C
-#define D_003E106C (*(struct S * *)((char *)base_D_003DD490 + 0x3BDC))   /* g_sw+0x3BDC: SW::_pad_228+0xC */
 extern int D_002BE538;
 /** @sly2-annot addr=0x2127C8
- * Purpose: true when no deferred widget load (list D_003E106C) is younger than 2 frames
+ * Purpose: true when no deferred widget load (list (*(struct S * *)&g_sw.slWidgetDeferred)) is younger than 2 frames
  * Info: proposed name FWidgetLoadsIdle (T2); TU hud
  * Notes: names_v2 v1 proposed FUN_001ab600 (0.000)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
@@ -1147,7 +1123,7 @@ extern int D_002BE538;
 int func_002127C8(void)
 {
     struct S *p;
-    for (p = D_003E106C; p; p = p->next) {
+    for (p = (*(struct S * *)&g_sw.slWidgetDeferred); p; p = p->next) {
         struct Q *q = p->q;
         int v;
         if (q->k == 0)
@@ -1162,7 +1138,6 @@ int func_002127C8(void)
     return 1;
 }
 } } // namespace M_func_002127C8
-#undef D_003E106C
 
 // 0x212828 ShowWidgetArgsFromSplice
 namespace M_ShowWidgetArgsFromSplice { extern "C" {
@@ -1360,8 +1335,6 @@ struct S {
 };
 struct Clock { char pad[0x3C]; float time; float dt; };
 extern struct Clock D_002DDED0;
-#undef D_002DDF10
-#define D_002DDF10 (*(float *)((char *)base_D_002DDED0 + 0x40))   /* g_clock (CLOCK)+0x40 */
 void UpdateLo(struct S *);
 int FWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
@@ -1410,13 +1383,12 @@ void UpdateWidget(struct S *p) {
     }
     SetWidgetState(p,state);
     if(p->selected!=-1) {
-        float dt=D_002DDF10;
+        float dt=g_clock.dtReal;
         p->animtime+=dt;
         func_00218220(p->sprite,dt);
     }
 }
 } } // namespace M_UpdateWidget
-#undef D_002DDF10
 
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
@@ -1634,10 +1606,8 @@ extern "C" void RenderWidget(S *p){
 // 0x2137F0 FWidgetObscured
 namespace M_FWidgetObscured { extern "C" {
 struct S { char pad[0xA4]; int a; char pad2[0xC]; struct S *next; };
-#undef D_003E1060
-#define D_003E1060 (*(struct S * *)((char *)base_D_003DD490 + 0x3BD0))   /* g_sw+0x3BD0: SW::_pad_228 */
 /** @sly2-annot addr=0x2137F0
- * Purpose: some widget in exclusive list D_003E1060 has higher priority (+0x0? field a)
+ * Purpose: some widget in exclusive list (*(struct S * *)&g_sw.dlWidgetExclusive) has higher priority (+0x0? field a)
  * Info: proposed name FWidgetObscured (T1); TU hud
  * Notes: names_v2 v1 proposed FUN_001aca68 (0.000)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud+verdicts_followups
@@ -1647,15 +1617,13 @@ int FWidgetObscured(struct S *p)
 {
     struct S *q;
     int unused[4];
-    for (q = D_003E1060; q; q = q->next) {
+    for (q = (*(struct S * *)&g_sw.dlWidgetExclusive); q; q = q->next) {
         if (p->a < q->a)
             return 1;
     }
     return 0;
 }
 } } // namespace M_FWidgetObscured
-#undef D_003E1060
-#define D_003E1060 (*(DL *)((char *)base_D_003DD490 + 0x3BD0))   /* g_sw+0x3BD0: SW::_pad_228 */
 
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
@@ -2096,24 +2064,24 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
 
 // 0x214300 func_00214300
 /** @sly2-annot addr=0x214300
- * Purpose: flag +0xA8; value 0 = in exclusive list D_003E1060 (suppresses lower-priority widgets)
+ * Purpose: flag +0xA8; value 0 = in exclusive list g_sw.dlWidgetExclusive (suppresses lower-priority widgets)
  * Info: proposed name SetWidgetExclusive (T2); TU hud
  * Notes: names_v2 v1 proposed UpdateAttract__FP7ATTRACT (0.024)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-/* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list D_003E1060. */
+/* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 extern "C" void func_00214300(WIDGET *pwidget, int f)
 {
     int fOld;
     fOld = pwidget->fA8;
     if (fOld != f) {
-        if ((fOld == 0) && (FFindDlEntry(&D_003E1060, pwidget) != 0)) {
-            RemoveDlEntry(&D_003E1060, pwidget);
+        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) != 0)) {
+            RemoveDlEntry(&g_sw.dlWidgetExclusive, pwidget);
         }
         pwidget->fA8 = f;
-        if ((f == 0) && (FFindDlEntry(&D_003E1060, pwidget) == 0)) {
-            AppendDlEntry(&D_003E1060, pwidget);
+        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) == 0)) {
+            AppendDlEntry(&g_sw.dlWidgetExclusive, pwidget);
         }
     }
 }
@@ -3815,8 +3783,6 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; E *a; char pad8[8]; unsigned long ul10; float f18; int x1C; int x20; };
-#undef D_002DDF18
-#define D_002DDF18 (*(unsigned long *)((char *)base_D_002DDED0 + 0x48))   /* g_clock (CLOCK)+0x48 */
 extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x217CA8
  * Purpose: start anim k in a reuse slot
@@ -3832,7 +3798,7 @@ extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
         i = p->x20;
         if (i != -1) {
             p->x20 = -1;
-        } else if (p->ul10 == D_002DDF18) {
+        } else if (p->ul10 == (*(unsigned long *)&g_clock.tickFrame)) {
             t = p->f18;
             i = p->x1C;
         } else {
@@ -3848,7 +3814,6 @@ extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
     func_00217D98(p, i, z, q, t, c0, c1);
 }
 } // namespace M_func_00217CA8
-#undef D_002DDF18
 
 // 0x217D98 func_00217D98
 namespace M_func_00217D98 {
@@ -4218,8 +4183,6 @@ namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short h8; short pad2; float fC; int x10; void *x14; };
 struct S { char pad[8]; struct E *ae; char padc[4]; unsigned long ul10; float f18; int x1C; int x20; };
 struct CLOCK { unsigned long ticks; };
-#undef D_002DDF18
-#define D_002DDF18 (*(struct CLOCK *)((char *)base_D_002DDED0 + 0x48))   /* g_clock (CLOCK)+0x48 */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void func_00217F38(struct S *p, int i);
@@ -4243,7 +4206,7 @@ void func_00218660(struct S *p, int i)
         float t=e->fC;
         p->x1C = e->h8;
         p->f18 = t;
-        p->ul10 = D_002DDF18.ticks;
+        p->ul10 = (*(struct CLOCK *)&g_clock.tickFrame).ticks;
         p->x20 = -1;
         e->h8 = -1;
         e->x10 = 0;
