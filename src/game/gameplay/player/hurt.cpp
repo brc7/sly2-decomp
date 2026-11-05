@@ -898,6 +898,13 @@ extern "C" void func_001A2080(JTHURT *pjthurt)
  * @end-sly2-annot */
 /* The friction and elasticity of a contact by hurt state (D_002BFB20/D_002BFB24; no bounce in states 4 and 12, the
    contact's own values in 0, 6 and 7). */
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_func_001A2080() __asm__("func_001A2080");
+extern const unsigned int r_D_002A6790[2] __asm__("D_002A6790") = {0xFFFF0000, (unsigned int)p_func_001A2080};
+}
 extern "C" void func_001A2100(JTHURT *pjthurt, XP *pxp)
 {
     switch (pjthurt->nState) {
@@ -1299,6 +1306,5 @@ void func_001A28B0(struct P *p,void *o)
 namespace ANPTR_hurt {
 void p_func_001A2080() __asm__("func_001A2080");
 extern "C" {
-extern const unsigned int D_002A6790[2] = {0xFFFF0000, (unsigned int)p_func_001A2080};
 }
 } // namespace ANPTR_hurt

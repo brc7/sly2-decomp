@@ -100,7 +100,7 @@ extern char D_002DEB30[];
 extern qword D_002A2DD0;
 extern qword D_002A2DE0;
 union VQ { float af[4]; qword q; };   /* a 16-byte vector that can be initialized, read as a qword */
-extern const VQ D_002A4B60 = {{0.0f, 0.0f, -2500.0f, 0.0f}};   /* the dropped booty's gravity */
+extern const VQ D_002A4B60;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A4B30[3] = {0.0f, 0.0f, 1.5f};
 extern RANGE D_002BBB60;
 #undef D_003E1BFC
@@ -112,8 +112,8 @@ extern const LONGU D_002A4BB0;
 extern char D_003DA0C0[];
 #undef D_003E0EA8
 #define D_003E0EA8 (*(char (*)[])((char *)base_D_003DD490 + 0x3A18))   /* g_sw+0x3A18: SW::savevars */
-extern const char D_002A4BB8[] = "booty";
-extern const char D_002A4BC0[] = "aoidAssembly";
+extern const char D_002A4BB8[];   /* defined below where the ELF has it (.rodata order) */
+extern const char D_002A4BC0[];   /* defined below where the ELF has it (.rodata order) */
 extern char D_003D4A60[];
 
 void InitSo(BOOTY *);
@@ -569,6 +569,14 @@ static inline void Notify(RLO *pr, int k)
     msg.k = k;
     VCALL(pr, 51, PFNM), &msg);
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_func_0013C4E0() __asm__("func_0013C4E0");
+extern const unsigned int r_D_002A4B58[2] __asm__("D_002A4B58") = {0xFFFF0000, (unsigned int)p_func_0013C4E0};
+}
+namespace RO_ORDER { extern const VQ r_D_002A4B60 __asm__("D_002A4B60") = {{0.0f, 0.0f, -2500.0f, 0.0f}}; }
 void SetBootyState(BOOTY *p, int st)
 {
     int stOld;
@@ -943,7 +951,9 @@ namespace ANPTR_booty {
 void p_func_0013C4E0() __asm__("func_0013C4E0");
 void p_func_0013CF38() __asm__("func_0013CF38");
 extern "C" {
-extern const unsigned int D_002A4B58[2] = {0xFFFF0000, (unsigned int)p_func_0013C4E0};
 extern const unsigned int D_002A4BB0[2] = {0xFFFF0000, (unsigned int)p_func_0013CF38};
 }
 } // namespace ANPTR_booty
+
+namespace RO_ORDER { extern const char r_D_002A4BB8[] __asm__("D_002A4BB8") = "booty"; }
+namespace RO_ORDER { extern const char r_D_002A4BC0[] __asm__("D_002A4BC0") = "aoidAssembly"; }
