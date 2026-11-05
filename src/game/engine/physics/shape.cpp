@@ -2884,3 +2884,15 @@ struct LM *func_001EA3B0(struct S *p, float g)
     return 0;
 }
 } } // namespace M_func_001EA3B0
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A8130 = -3.40282347e+38f;
+extern const float D_002A8134 = 3.40282347e+38f;
+extern const float D_002A8138 = 3.40282347e+38f;
+extern const float D_002A813C = 3.40282347e+38f;
+int D_002C3650 = 1;
+float D_002C3658[4] = {0.0f, 0.5f, 0.5f, 1.0f};
+float D_002C3668[4] = {0.16666667f, 0.33333334f, 0.33333334f, 0.16666667f};
+float D_002C3678 = 1.5f;
+float D_002C367C = 50.0f;
