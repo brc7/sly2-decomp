@@ -52,22 +52,26 @@ struct LO;
 struct ZPR { ZPK zpk; ZPK zpk2; LO *ploSource; char pad[0x630 - 12]; };
 
 extern "C" {
-extern DISPENV D_002DEB80[2];
+DISPENV D_002DEB80[2];      /* gs' .bss starts here (medium: by layout; menu, save and others read it) */
 extern DISPENVW D_002DEB80W[2] __asm__("D_002DEB80");   /* StartupGs's view of the same array */
 extern DRAWENV D_002DEBE0, D_002DECD0;
 extern QW D_002DEBD0, D_002DECC0;       /* the GIF tags in front of the two draw environments */
 extern CRITSECT D_002DFB40;
-extern int D_002DEDB0;                  /* frame counter (buffer = & 1) */
-extern int D_002DEDB4;                  /* half offset of the next frame */
-extern int D_002DEDB8;                  /* field of the current frame */
-extern int D_002DEDBC;                  /* display mode */
-extern int D_002DFB4C, D_002DFB50;      /* vblank / GS-finish semaphores */
-extern int D_002DFB54, D_002DFB58, D_002DFB5C, D_002DFB60;
-extern int D_002BE590, D_002BE594, D_002BE598, D_002BE59C;
+/* gs' .data. */
+int D_002BE590 = 0xF, D_002BE594 = 0, D_002BE598 = 0xFFFF00, D_002BE59C = 0xFF;
+/* gs' .bss after the draw environments (address order; the draw-environment pairs {GIF tag, DRAWENV} and the
+ * CRITSECT stay extern: this TU's DRAWENV view is 0xF0 bytes, which overlaps the second tag). */
+int D_002DEDB0;                         /* frame counter (buffer = & 1) */
+int D_002DEDB4;                         /* half offset of the next frame */
+int D_002DEDB8;                         /* field of the current frame */
+int D_002DEDBC;                         /* display mode */
 extern sceDmaChan *D_002DE598;
-extern QW D_002DEDC0[], D_002DF010[], D_002DF260[], D_002DF4B0[], D_002DF700[], D_002DF720[];
-extern QW D_002DF740[], D_002DF800[], D_002DF880[], D_002DF940[], D_002DF9C0[], D_002DFA80[];
-extern QW D_002DFB00[], D_002DFB20[];
+/* The packet buffers, sized by the layout (0x250 = 37 quadwords, ...). */
+QW D_002DEDC0[37], D_002DF010[37], D_002DF260[37], D_002DF4B0[37], D_002DF700[2], D_002DF720[2];
+QW D_002DF740[12], D_002DF800[8], D_002DF880[12], D_002DF940[8], D_002DF9C0[12], D_002DFA80[8];
+QW D_002DFB00[2], D_002DFB20[2];
+int D_002DFB4C, D_002DFB50;             /* vblank / GS-finish semaphores */
+int D_002DFB54, D_002DFB58, D_002DFB5C, D_002DFB60;
 extern int D_003DCF9C, D_003DCF98;
 
 void func_00234A50(int sid);
