@@ -26,52 +26,52 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 |---|---|---|---|---|---|
 | 1 | Incref-style hook | inherited (BASIC) | `BASIC_VUnk00?` | `0x132B00` | VUnk00 |
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` | VUnk01 |
-| 3 | HandleSpliceEvent | **override** | [`HandleLoSpliceEvent`](../../../src/game/object/lo/HandleLoSpliceEvent.c) | `0x1A61E0` | HandleSpliceEvent |
+| 3 | HandleSpliceEvent | **override** | [`HandleLoSpliceEvent`](../../../src/game/object/lo.cpp) | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetLoClassDesc`](../../../src/game/app/class_registry/GetLoClassDesc.c) | `0x113A30` | Pclassinfo |
-| 7 | Init | **new** | [`InitLo`](../../../src/game/object/lo/InitLo.c) | `0x1A5270` | Init |
-| 8 | Add | **new** | [`AddLo`](../../../src/game/object/lo/AddLo.c) | `0x1A5478` | Add |
-| 9 | Remove | **new** | [`RemoveLo`](../../../src/game/object/lo/RemoveLo.c) | `0x1A5630` | Remove |
-| 10 | SetParent | **new** | [`SetLoParent?`](../../../src/game/object/lo/func_001A5900.c) | `0x1A5900` | SetParent |
-| 11 | AddHierarchy | **new** | [`AddLoHierarchy`](../../../src/game/object/lo/AddLoHierarchy.c) | `0x1A5800` | AddHierarchy |
-| 12 | RemoveHierarchy | **new** | [`RemoveLoHierarchy`](../../../src/game/object/lo/RemoveLoHierarchy.c) | `0x1A5848` | RemoveHierarchy |
-| 13 | UpdateLoroot | **new** | [`UpdateLoroot?`](../../../src/game/object/lo/func_001A5B80.c) | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **new** | [`LoadLoFromBrx`](../../../src/game/object/lo/LoadLoFromBrx.c) | `0x1A5C28` | LoadFromBrx |
-| 15 | PostLoad | **new** | [`PostLoLoad`](../../../src/game/object/lo/PostLoLoad.c) | `0x1A5C48` | VUnk14 |
-| 16 | Update | **new** | [`UpdateLo`](../../../src/game/object/lo/UpdateLo.c) | `0x1A5E28` | VUnk15 |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **new** | [`LO_vt17_InheritFlag4?`](../../../src/game/object/lo/func_001A5E80.c) | `0x1A5E80` | VUnk16 |
+| 7 | Init | **new** | [`InitLo`](../../../src/game/object/lo.cpp) | `0x1A5270` | Init |
+| 8 | Add | **new** | [`AddLo`](../../../src/game/object/lo.cpp) | `0x1A5478` | Add |
+| 9 | Remove | **new** | [`RemoveLo`](../../../src/game/object/lo.cpp) | `0x1A5630` | Remove |
+| 10 | SetParent | **new** | [`SetLoParent?`](../../../src/game/object/lo.cpp) | `0x1A5900` | SetParent |
+| 11 | AddHierarchy | **new** | [`AddLoHierarchy`](../../../src/game/object/lo.cpp) | `0x1A5800` | AddHierarchy |
+| 12 | RemoveHierarchy | **new** | [`RemoveLoHierarchy`](../../../src/game/object/lo.cpp) | `0x1A5848` | RemoveHierarchy |
+| 13 | UpdateLoroot | **new** | [`UpdateLoroot?`](../../../src/game/object/lo.cpp) | `0x1A5B80` | UpdateLoroot |
+| 14 | LoadFromBrx | **new** | [`LoadLoFromBrx`](../../../src/game/object/lo.cpp) | `0x1A5C28` | LoadFromBrx |
+| 15 | PostLoad | **new** | [`PostLoLoad`](../../../src/game/object/lo.cpp) | `0x1A5C48` | VUnk14 |
+| 16 | Update | **new** | [`UpdateLo`](../../../src/game/object/lo.cpp) | `0x1A5E28` | VUnk15 |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **new** | [`LO_vt17_InheritFlag4?`](../../../src/game/object/lo.cpp) | `0x1A5E80` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | **new** | [`UpdateLoXfWorldHierarchy`](../../../src/game/engine/anim/xf.cpp) | `0x22FBD8` | UpdateXfWorldHierarchy |
-| 19 | RenderSelf | **new** | [`RenderLoSelf`](../../../src/game/object/lo/RenderLoSelf.c) | `0x1A5ED8` | RenderSelf |
-| 20 | RenderLoAll | **new** | [`RenderLoAll?`](../../../src/game/object/lo/func_001A5EE0.c) | `0x1A5EE0` | VUnk19 |
-| 21 | SetLoFlag8 | **new** | [`SetLoFlag8?`](../../../src/game/object/lo/func_001A6E80.c) | `0x1A6E80` | VUnk20 |
-| 22 | OnRemove | **new** | [`OnLoRemove`](../../../src/game/object/lo/OnLoRemove.c) | `0x1A6150` | Freeze |
-| 23 | OnAdd | **new** | [`OnLoAdd`](../../../src/game/object/lo/OnLoAdd.c) | `0x1A6178` | Unfreeze |
+| 19 | RenderSelf | **new** | [`RenderLoSelf`](../../../src/game/object/lo.cpp) | `0x1A5ED8` | RenderSelf |
+| 20 | RenderLoAll | **new** | [`RenderLoAll?`](../../../src/game/object/lo.cpp) | `0x1A5EE0` | VUnk19 |
+| 21 | SetLoFlag8 | **new** | [`SetLoFlag8?`](../../../src/game/object/lo.cpp) | `0x1A6E80` | VUnk20 |
+| 22 | OnRemove | **new** | [`OnLoRemove`](../../../src/game/object/lo.cpp) | `0x1A6150` | Freeze |
+| 23 | OnAdd | **new** | [`OnLoAdd`](../../../src/game/object/lo.cpp) | `0x1A6178` | Unfreeze |
 | 24 |  | **new** | [`func_00210330`](../../../src/game/world/scene/sw.cpp) | `0x210330` | VUnk23 |
 | 25 | SetIdProxy | **new** | [`SetLoIdProxy`](../../../src/game/object/proxy.cpp) | `0x1CA118` | SetIdProxy |
 | 26 | ResetLoForProxy | **new** | [`ResetLoForProxy?`](../../../src/game/object/proxy.cpp) | `0x1CB4E0` | VUnk25 |
 | 27 | LO_VUnk27Proxy | **new** | [`LO_VUnk27Proxy?`](../../../src/game/object/proxy.cpp) | `0x1CB5C8` | VUnk26 |
-| 28 | CploChildren | **new** | [`LO_CploChildren`](../../../src/game/object/lo/LO_CploChildren.c) | `0x1A5BE8` | CploChildren |
-| 29 | TranslateToPos | **new** | [`TranslateLoToPos`](../../../src/game/object/lo/TranslateLoToPos.c) | `0x1A6110` | TranslateToPos |
-| 30 | RotateToMat | **new** | [`RotateLoToMat`](../../../src/game/object/lo/RotateLoToMat.c) | `0x1A6118` | RotateToMat |
-| 31 | PmatWorld | **new** | [`LO_PmatWorld`](../../../src/game/object/lo/LO_PmatWorld.c) | `0x1A62D8` | PmatWorld |
-| 32 | LO_PxfLocal | **new** | [`LO_PxfLocal?`](../../../src/game/object/lo/func_001A6B30.c) | `0x1A6B30` | PxfLocal |
-| 33 | GetVelocity | **new** | [`GetLoVelocity?`](../../../src/game/object/lo/func_001A6120.c) | `0x1A6120` | GetVelocity |
-| 34 | GetAngularVelocity | **new** | [`GetLoAngularVelocity`](../../../src/game/object/lo/GetLoAngularVelocity.c) | `0x1A6138` | GetAngularVelocity |
-| 35 | SetVelocity | **new** | [`SetLoVelocity?`](../../../src/game/object/lo/func_001A6130.c) | `0x1A6130` | SetVelocity |
-| 36 | SetAngularVelocity | **new** | [`SetLoAngularVelocity`](../../../src/game/object/lo/SetLoAngularVelocity.c) | `0x1A6148` | SetAngularVelocity |
-| 37 | ApplyLoProxyHierarchy | **new** | [`ApplyLoProxyHierarchy?`](../../../src/game/object/lo/func_001A6450.c) | `0x1A6450` | ApplyProxy |
-| 38 | MatchLoXf | **new** | [`MatchLoXf?`](../../../src/game/object/lo/func_001A6B88.c) | `0x1A6B88` | VUnk37 |
-| 39 | SetLoXf | **new** | [`SetLoXf?`](../../../src/game/object/lo/func_001A6BC8.c) | `0x1A6BC8` | VUnk38 |
-| 40 | CloneHierarchy | **new** | [`CloneLoHierarchy`](../../../src/game/object/lo/CloneLoHierarchy.c) | `0x1A6AD0` | CloneHierarchy |
-| 41 | Clone | **new** | [`CloneLo`](../../../src/game/object/lo/CloneLo.cpp) | `0x1A6730` | Clone |
-| 42 | SetLoSBusy | **new** | [`SetLoSBusy?`](../../../src/game/object/lo/func_001A6C48.c) | `0x1A6C48` | VUnk41 |
-| 43 | LO_vt43 | **new** | [`LO_vt43?`](../../../src/game/object/lo/func_001A6EE8.c) | `0x1A6EE8` | VUnk42 |
-| 44 | LO_vt44 | **new** | [`LO_vt44?`](../../../src/game/object/lo/func_001A6EF0.c) | `0x1A6EF0` | VUnk43 |
-| 45 | LO_vt45 | **new** | [`LO_vt45?`](../../../src/game/object/lo/func_001A6EF8.c) | `0x1A6EF8` | VUnk44 |
-| 46 | SetVisMask | **new** | [`SetLoVisMask?`](../../../src/game/object/lo/func_001A6DC0.c) | `0x1A6DC0` | SetVisMask |
-| 47 | SetGrf | **new** | [`SetLoGrf?`](../../../src/game/object/lo/func_001A66C8.c) | `0x1A66C8` | VUnk46 |
-| 48 | ClearLoGrf | **new** | [`ClearLoGrf?`](../../../src/game/object/lo/func_001A66F8.c) | `0x1A66F8` | VUnk47 |
+| 28 | CploChildren | **new** | [`LO_CploChildren`](../../../src/game/object/lo.cpp) | `0x1A5BE8` | CploChildren |
+| 29 | TranslateToPos | **new** | [`TranslateLoToPos`](../../../src/game/object/lo.cpp) | `0x1A6110` | TranslateToPos |
+| 30 | RotateToMat | **new** | [`RotateLoToMat`](../../../src/game/object/lo.cpp) | `0x1A6118` | RotateToMat |
+| 31 | PmatWorld | **new** | [`LO_PmatWorld`](../../../src/game/object/lo.cpp) | `0x1A62D8` | PmatWorld |
+| 32 | LO_PxfLocal | **new** | [`LO_PxfLocal?`](../../../src/game/object/lo.cpp) | `0x1A6B30` | PxfLocal |
+| 33 | GetVelocity | **new** | [`GetLoVelocity?`](../../../src/game/object/lo.cpp) | `0x1A6120` | GetVelocity |
+| 34 | GetAngularVelocity | **new** | [`GetLoAngularVelocity`](../../../src/game/object/lo.cpp) | `0x1A6138` | GetAngularVelocity |
+| 35 | SetVelocity | **new** | [`SetLoVelocity?`](../../../src/game/object/lo.cpp) | `0x1A6130` | SetVelocity |
+| 36 | SetAngularVelocity | **new** | [`SetLoAngularVelocity`](../../../src/game/object/lo.cpp) | `0x1A6148` | SetAngularVelocity |
+| 37 | ApplyLoProxyHierarchy | **new** | [`ApplyLoProxyHierarchy?`](../../../src/game/object/lo.cpp) | `0x1A6450` | ApplyProxy |
+| 38 | MatchLoXf | **new** | [`MatchLoXf?`](../../../src/game/object/lo.cpp) | `0x1A6B88` | VUnk37 |
+| 39 | SetLoXf | **new** | [`SetLoXf?`](../../../src/game/object/lo.cpp) | `0x1A6BC8` | VUnk38 |
+| 40 | CloneHierarchy | **new** | [`CloneLoHierarchy`](../../../src/game/object/lo.cpp) | `0x1A6AD0` | CloneHierarchy |
+| 41 | Clone | **new** | [`CloneLo`](../../../src/game/object/lo.cpp) | `0x1A6730` | Clone |
+| 42 | SetLoSBusy | **new** | [`SetLoSBusy?`](../../../src/game/object/lo.cpp) | `0x1A6C48` | VUnk41 |
+| 43 | LO_vt43 | **new** | [`LO_vt43?`](../../../src/game/object/lo.cpp) | `0x1A6EE8` | VUnk42 |
+| 44 | LO_vt44 | **new** | [`LO_vt44?`](../../../src/game/object/lo.cpp) | `0x1A6EF0` | VUnk43 |
+| 45 | LO_vt45 | **new** | [`LO_vt45?`](../../../src/game/object/lo.cpp) | `0x1A6EF8` | VUnk44 |
+| 46 | SetVisMask | **new** | [`SetLoVisMask?`](../../../src/game/object/lo.cpp) | `0x1A6DC0` | SetVisMask |
+| 47 | SetGrf | **new** | [`SetLoGrf?`](../../../src/game/object/lo.cpp) | `0x1A66C8` | VUnk46 |
+| 48 | ClearLoGrf | **new** | [`ClearLoGrf?`](../../../src/game/object/lo.cpp) | `0x1A66F8` | VUnk47 |
 
 ## Fields
 

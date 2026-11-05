@@ -69,7 +69,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |
 | 45 | LO_vt45 | inherited (LO) | `LO_vt45?` | `0x1A6EF8` | VUnk44 |
-| 46 | SetVisMask | **override** | [`SetSoVisMask`](../../../src/game/object/lo/SetSoVisMask.c) | `0x1A6DC8` | SetVisMask |
+| 46 | SetVisMask | **override** | [`SetSoVisMask`](../../../src/game/object/lo.cpp) | `0x1A6DC8` | SetVisMask |
 | 47 | SetGrf | **override** | [`SetSoGrf`](../../../src/game/engine/physics/so/SetSoGrf.c) | `0x1F2FE0` | VUnk46 |
 | 48 | ClearLoGrf | **override** | [`ClearSoGrf`](../../../src/game/engine/physics/so/ClearSoGrf.c) | `0x1F3078` | VUnk47 |
 | 49 | UpdateSoTreeBounds | **new** | [`UpdateSoTreeBounds`](../../../src/game/engine/physics/so/UpdateSoTreeBounds.cpp) | `0x1F50E0` | VUnk48 |

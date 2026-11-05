@@ -8,7 +8,7 @@
 | [`brx.cpp`](brx.cpp) | 1 |
 | [`busy.cpp`](busy.cpp) | 1 |
 | [`find.cpp`](find.cpp) | 1 |
-| [`lo/`](lo/) | 74 |
+| [`lo.cpp`](lo.cpp) | 1 |
 | [`proxy.cpp`](proxy.cpp) | 1 |
 | [`splicemap.cpp`](splicemap.cpp) | 1 |
 | [`spliceobj.cpp`](spliceobj.cpp) | 1 |
