@@ -16,7 +16,6 @@
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
 #include "sly2/cm.h"
-extern "C" char base_D_003DD040[] __asm__("D_003DD040");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
@@ -34,7 +33,9 @@ void func_00258348(void *pv, int grfDelete);   /* ~BASIC */
 }
 struct SNDMGRBASE
 {
-    char ab[0x200];
+    char ab[0x4C];
+    DL dlSndDirty;          /* +0x4C [S] draft name: the sounds RemoveSndFromDirtyList takes out (was the address name D_003DD08C) */
+    char ab58[0x200 - 0x58];
     ~SNDMGRBASE() { func_00258348(this, 2); }
 };
 struct SNDMGRG : public SNDMGRBASE
@@ -434,8 +435,6 @@ namespace M_RemoveSndFromDirtyList { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
 struct X { char pad[0xC]; struct VT *pvt; };
 struct DL;
-#undef D_003DD08C
-#define D_003DD08C (*(struct DL *)((char *)base_D_003DD040 + 0x4C))   /* the sound manager (SNDMGRG)+0x4C */
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1FB710
@@ -446,13 +445,12 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
  * @end-sly2-annot */
 void RemoveSndFromDirtyList(struct X *px)
 {
-    if (FFindDlEntry__FP2DLPv(&D_003DD08C, px)) {
-        RemoveDlEntry__FP2DLPv(&D_003DD08C, px);
+    if (FFindDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px)) {
+        RemoveDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px);
         px->pvt->pfn((char *)px + px->pvt->d);
     }
 }
 } } // namespace M_RemoveSndFromDirtyList
-#undef D_003DD08C
 
 namespace M_CalculateSndVolPan { extern "C" {
 typedef int qword __attribute__((mode(TI)));
