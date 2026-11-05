@@ -438,7 +438,7 @@ int IcgvFromPcgv(CG *pcg, CGV *pcgv)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindPathAStar {
 typedef int qword __attribute__((mode(TI)));
-struct CTX { int a[4]; CTX(); ~CTX(); };
+struct CTX { int a[4]; CTX() __asm__("STACKSCOPE_ctor"); ~CTX(); };
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct V;
 struct E { V *pv; float cost; };
@@ -2116,7 +2116,7 @@ int FPosInPathzone(NAV *pnav, qword pos, int f);
 static inline void *PvAllocClear(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return func_001AE378(&msg); }
 static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return func_001AE318(&msg); }
 // The current stack-allocation scope (out of line: 0x1AE478 / 0x1AE4A0)
-struct STACKSCOPE { STACKSCOPE(); ~STACKSCOPE(); };
+struct STACKSCOPE { STACKSCOPE() __asm__("STACKSCOPE_ctor"); ~STACKSCOPE(); };
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwLength(qword v)
 {

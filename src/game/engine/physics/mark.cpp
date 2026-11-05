@@ -1009,7 +1009,7 @@ struct SWALLOC
 void *PvAllocStackImpl(SWALLOC *pswalloc);
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 struct VU_FLOAT
