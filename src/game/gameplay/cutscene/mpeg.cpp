@@ -61,11 +61,13 @@ struct CMPEG {
     char pad228[0x23C - 0x228];
     int sema;                   /* 0x23C */
     volatile int stage;         /* 0x240: display thread stage */
+    int pad244;                 /* 0x244: the ELF's next object is at +0x248 */
     CMPEG();
 };
 typedef char CMPEG_x104[FIELD_OFFSET(CMPEG,psubt)==0x104?1:-1];
 typedef char CMPEG_x118[FIELD_OFFSET(CMPEG,mpeg)==0x118?1:-1];
 typedef char CMPEG_x240[FIELD_OFFSET(CMPEG,stage)==0x240?1:-1];
+typedef char CMPEG_size[sizeof(CMPEG)==0x248?1:-1];
 
 /* 0x002F66B0: the player. Its constructor (inlined into StaticInit_mpeg) only sets the audio output's vtable; the
    output's virtuals still have C names (CQueueOutputIop_CbWrite, FAsyncDrain__15CQueueOutputIop), so the address is
@@ -89,6 +91,7 @@ struct JOY;
 extern "C" {
 extern CLOCK D_002DDED0;
 extern DMA *D_002DE598;
+int D_002F68F8;            /* first declared before D_002F6900: g++ 2.95 lays plain .bss out in declaration order */
 char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2F7900) */
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern int D_004425DC;
@@ -101,7 +104,6 @@ extern const unsigned int D_002A3968[16] = {0xD77E9E24, 0xEF8D7128, 0x90A6F254, 
     0xE5DD4733, 0x9BD55409, 0xDEFE997A, 0x3CCDE869, 0xE79189E6, 0xC3EC6045, 0xD77006A2, 0x90A6FA5C, 0xEFA0B12C};
 extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 0x30120C3B, 0x285ED44F, 0xF6109257, 0xAE965CAD,
     0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
-int D_002F68F8;
 int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
 extern GSAVE D_002E65E0;

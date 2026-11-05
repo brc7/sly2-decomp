@@ -23,7 +23,16 @@
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
    destructor func_00258348 (cm.cpp's g_cm pattern). */
 struct SWG;
+struct LEVELLIST8;
 extern "C" {
+/* sw's plain .bss words, first declared in address order: g++ 2.95 lays the .bss objects without a constructor out
+   in the order of their first declaration (after g_sw and D_003E1C20, which it emits at their definitions). */
+extern int D_003E1C30, D_003E1C34, D_003E1C38, D_003E1C3C;
+extern FILEREC *D_003E1C40;
+extern int *D_003E1C44, *D_003E1C48;
+extern LEVELLIST8 *D_003E1C4C;
+extern FILEREC *D_003E1C50;
+extern int D_003E1C54, D_003E1C58;
 SW *SW_ctor(SW *psw);
 void func_00258348(SWG *psw, int grfDelete);
 extern char D_002C3EB8[], D_003E1C60[];
@@ -2433,6 +2442,7 @@ float D_002C3EA0[3] = {2.0f, -2.0f, 0.0f};
 float D_002C3EB0[2] = {0.0f, 1.0f};
 char D_002C3EB8[8] = {0};   /* zero-filled .data, the address goes into D_003E1C20 */
 int D_003E1C30;
+int D_003E1C34;   /* read by brx_sw.cpp's level loader and serialize.cpp */
 int D_003E1C38;
 int D_003E1C3C;
 FILEREC *D_003E1C40;   /* g_arecLevel */
