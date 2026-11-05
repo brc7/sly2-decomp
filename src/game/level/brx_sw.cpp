@@ -92,10 +92,10 @@ struct SW {
     char pad39EC[0x3E00 - 0x39EC]; RGBAPOD rgba; char pad3E04[0x3E38 - 0x3E04]; int x3E38;
     char pad3E3C[0x3F04 - 0x3E3C]; int cwe; WE *awe; int pad3F0C; int iwe;
 };
-class FRAME { public: FRAME(); ~FRAME(); int a[4]; };
+class FRAME { public: FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); int a[4]; };
 struct ZPR { char ab[0x630]; };
 struct ODD { ODD() { ab[2] = 2; } int ab[0x110 / 4]; };
-class OBJ { public: OBJ(int k, void *pv, int n); ~OBJ(); char ab[0x70]; };
+class OBJ { public: OBJ(int k, void *pv, int n) __asm__("func_001848A8"); ~OBJ(); char ab[0x70]; };
 
 static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE2A0(preq); }
 static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE1D0(preq); }
