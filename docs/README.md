@@ -55,6 +55,7 @@ Start with [architecture.md](architecture.md) for how the source tree is organis
 | [guides/port-plan.md](guides/port-plan.md) | Proposal: native macOS (Apple Silicon) port architecture (static recompilation spine, render-pass HLE, Metal) |
 | [guides/naming-workflow.md](guides/naming-workflow.md) | Naming playbook, conventions, verification calibration, the rename tool |
 | [guides/tu-merging.md](guides/tu-merging.md) | Merging a TU directory into one source file that still matches: procedure, mismatch causes, merged TUs |
+| [guides/full-link.md](guides/full-link.md) | Sketch: what a full PS2 link of the matched objects needs (layout, inputs, symbols, linker script) and how far we are |
 | [reference/class-tree.md](reference/class-tree.md) | All 199 classes (CIDs) with v2 class names, sizes, vtables, identifications |
 | [reference/tu-map.md](reference/tu-map.md) | Address range -> source file (translation unit) |
 | [reference/functions/](reference/functions/) | Generated per-subsystem function lists from master_names_v2 (tier + evidence per name), plus [crt0-thunks](reference/functions/crt0-thunks.md) and [sdk-libraries](reference/functions/sdk-libraries.md) |
