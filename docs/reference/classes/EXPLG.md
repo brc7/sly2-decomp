@@ -36,7 +36,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadExplgFromBrx`](../../../src/game/engine/fx/emitter/LoadExplgFromBrx.c) | `0x15C1E8` |
+| 14 | LoadFromBrx | **override** | [`LoadExplgFromBrx`](../../../src/game/engine/fx/emitter.cpp) | `0x15C1E8` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
@@ -50,7 +50,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 25 | SetIdProxy | inherited (LO) | `SetLoIdProxy` | `0x1CA118` |
 | 26 | ResetLoForProxy | inherited (LO) | `ResetLoForProxy?` | `0x1CB4E0` |
 | 27 | LO_VUnk27Proxy | inherited (LO) | `LO_VUnk27Proxy?` | `0x1CB5C8` |
-| 28 | CploChildren | **override** | [`CploExplgChildren`](../../../src/game/engine/fx/emitter/CploExplgChildren.c) | `0x15C310` |
+| 28 | CploChildren | **override** | [`CploExplgChildren`](../../../src/game/engine/fx/emitter.cpp) | `0x15C310` |
 | 29 | TranslateToPos | inherited (XFM) | `TranslateXfmToPos` | `0x2312A0` |
 | 30 | RotateToMat | inherited (XFM) | `RotateXfmToMat` | `0x231300` |
 | 31 | PmatWorld | inherited (XFM) | `XFM_PmatWorld` | `0x231440` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneExplg`](../../../src/game/engine/fx/emitter/CloneExplg.c) | `0x15C320` |
+| 41 | Clone | **override** | [`CloneExplg`](../../../src/game/engine/fx/emitter.cpp) | `0x15C320` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |
@@ -73,7 +73,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |
 | 49 | XFM_PxfFromId | inherited (XFM) | `XFM_PxfFromId?` | `0x22D750` |
 | 50 |  | inherited (XFM) | `func_00231220` | `0x231220` |
-| 51 | ExplodeExplExplso__FP4EXPLP6EXPLSO | **override** | [`ExplodeExplgExplso`](../../../src/game/engine/fx/emitter/ExplodeExplgExplso.cpp) | `0x15C3C0` |
+| 51 | ExplodeExplExplso__FP4EXPLP6EXPLSO | **override** | [`ExplodeExplgExplso`](../../../src/game/engine/fx/emitter.cpp) | `0x15C3C0` |
 
 ## Fields
 

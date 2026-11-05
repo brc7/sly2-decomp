@@ -43,44 +43,44 @@ Totals on this page: EXISTING 27, T1 81, T2 18, T3 1.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x159118](../../../src/game/engine/fx/emitter/func_00159118.c) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
-| [0x1591B0](../../../src/game/engine/fx/emitter/InitEmitter.c) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
-| [0x159240](../../../src/game/engine/fx/emitter/LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
-| [0x159500](../../../src/game/engine/fx/emitter/PostEmitterLoad__FP7EMITTER.c) | `PostEmitterLoad__FP7EMITTER` |  |  | existing |  |
-| [0x1599A8](../../../src/game/engine/fx/emitter/HandleEmitterMessage__FP7EMITTER5MSGIDPv.cpp) | `HandleEmitterMessage__FP7EMITTER5MSGIDPv` |  |  | existing |  |
-| [0x159A08](../../../src/game/engine/fx/emitter/PemitterEnsureEmitter__FP7EMITTER4ENSK.c) | `PemitterEnsureEmitter__FP7EMITTER4ENSK` |  |  | existing |  |
-| [0x159A20](../../../src/game/engine/fx/emitter/ModifyEmitterParticles__FP7EMITTER.cpp) | `ModifyEmitterParticles__FP7EMITTER` |  |  | existing |  |
-| [0x159C80](../../../src/game/engine/fx/emitter/UpdateEmitter__FP7EMITTERf.cpp) | `UpdateEmitter__FP7EMITTERf` |  |  | existing |  |
-| [0x15A138](../../../src/game/engine/fx/emitter/PauseEmitter__FP7EMITTERf.c) | `PauseEmitter__FP7EMITTERf` |  |  | existing |  |
-| [0x15A150](../../../src/game/engine/fx/emitter/PauseEmitterIndefinite__FP7EMITTER.c) | `PauseEmitterIndefinite__FP7EMITTER` |  |  | existing |  |
-| [0x15A160](../../../src/game/engine/fx/emitter/UnpauseEmitter__FP7EMITTER.c) | `UnpauseEmitter__FP7EMITTER` |  |  | existing |  |
-| [0x15A170](../../../src/game/engine/fx/emitter/FPausedEmitter__FP7EMITTER.cpp) | `FPausedEmitter__FP7EMITTER` |  |  | existing |  |
-| [0x15A1C0](../../../src/game/engine/fx/emitter/OnEmitterValuesChanged__FP7EMITTER.c) | `OnEmitterValuesChanged__FP7EMITTER` |  |  | existing |  |
-| [0x15A240](../../../src/game/engine/fx/emitter/SetEmitterParticleCount__FP7EMITTERi.cpp) | `SetEmitterParticleCount__FP7EMITTERi` |  |  | existing |  |
-| [0x15A2B0](../../../src/game/engine/fx/emitter/SetEmitterAutoPause__FP7EMITTERi.c) | `SetEmitterAutoPause__FP7EMITTERi` |  |  | existing |  |
-| [0x15A2C0](../../../src/game/engine/fx/emitter/WakeSoWater__FP2SOP5WATERfP6VECTORT3ff.cpp) | `WakeSoWater__FP2SOP5WATERfP6VECTORT3ff` |  |  | existing |  |
-| [0x15A808](../../../src/game/engine/fx/emitter/ChooseEmitoPos__FP5EMITOiiP6VECTORT3.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
-| [0x15AD48](../../../src/game/engine/fx/emitter/ConvertEmitoPosVec__FP5EMITOP6VECTORT1.c) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
-| [0x15AE38](../../../src/game/engine/fx/emitter/CalculateEmitvx__FiP2LMiP6EMITVX.cpp) | `CalculateEmitvx__FiP2LMiP6EMITVX` |  |  | existing |  |
-| [0x15AF08](../../../src/game/engine/fx/emitter/ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4.c) | `ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4` |  |  | existing |  |
-| [0x15B0C8](../../../src/game/engine/fx/emitter/ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7.c) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
-| [0x15B1B0](../../../src/game/engine/fx/emitter/EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
-| [0x15B428](../../../src/game/engine/fx/emitter/EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
-| [0x15B7E8](../../../src/game/engine/fx/emitter/OriginateParticles__FiP5EMITBP7EMITGEN.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
-| [0x15B9F0](../../../src/game/engine/fx/emitter/OriginateSplineSinkParticles.cpp) | `OriginateSplineSinkParticles` | For spline-sink emitters (kind 2) computes the extra per-particle transform data passed to EmitBlips | 0.50 | T1 |  |
-| [0x15BD20](../../../src/game/engine/fx/emitter/EmitParticles__FiP5EMITBP5EMITG.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
-| [0x15BF40](../../../src/game/engine/fx/emitter/SetEmitdvEmitb__FP6EMITDVP5EMITB.c) | `SetEmitdvEmitb` | Copies the drift/velocity parameters of an EMITB into an EMITDV | 0.70 | T1 |  |
-| [0x15BFD8](../../../src/game/engine/fx/emitter/CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4.cpp) | `CalculateEmitdvMatrix` | Computes the drift/curl matrix of an EMITDV for time t | 0.70 | T1 |  |
-| [0x15C150](../../../src/game/engine/fx/emitter/func_0015C150.c) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
-| [0x15C198](../../../src/game/engine/fx/emitter/ExplodeExplParams.c) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
-| [0x15C1E0](../../../src/game/engine/fx/emitter/ExplodeExplExplso__FP4EXPLP6EXPLSO.c) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
-| [0x15C1E8](../../../src/game/engine/fx/emitter/LoadExplgFromBrx.c) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
-| [0x15C310](../../../src/game/engine/fx/emitter/CploExplgChildren.c) | `CploExplgChildren` | EXPLG: returns child count (+0xE0) and child array (+0xE4) via out-param | 0.50 | T1 |  |
-| [0x15C320](../../../src/game/engine/fx/emitter/CloneExplg.c) | `CloneExplg` | EXPLG clone: XFM clone, realloc child array, clone each child (0x13E510) | 0.70 | T1 |  |
-| [0x15C3C0](../../../src/game/engine/fx/emitter/ExplodeExplgExplso.cpp) | `ExplodeExplgExplso` | EXPLG explode: transforms the explosion origin by its matrix and forwards the explode call to every child explosion (vtable) | 0.60 | T1 |  |
-| [0x15C5C8](../../../src/game/engine/fx/emitter/HandleExplsMessage.c) | `HandleExplsMessage` | EXPLS::HandleMessage: on msg 1 (removed) forgets cached p100/p104 references | 0.70 | T1 |  |
-| [0x15C628](../../../src/game/engine/fx/emitter/ExplodeExplsExplso.c) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
-| [0x15C690](../../../src/game/engine/fx/emitter/FireExplsExplso.c) | `FireExplsExplso` | EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position and emits particles | 0.55 | T1 |  |
+| [0x159118](../../../src/game/engine/fx/emitter.cpp) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
+| [0x1591B0](../../../src/game/engine/fx/emitter.cpp) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
+| [0x159240](../../../src/game/engine/fx/emitter.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
+| [0x159500](../../../src/game/engine/fx/emitter.cpp) | `PostEmitterLoad__FP7EMITTER` |  |  | existing |  |
+| [0x1599A8](../../../src/game/engine/fx/emitter.cpp) | `HandleEmitterMessage__FP7EMITTER5MSGIDPv` |  |  | existing |  |
+| [0x159A08](../../../src/game/engine/fx/emitter.cpp) | `PemitterEnsureEmitter__FP7EMITTER4ENSK` |  |  | existing |  |
+| [0x159A20](../../../src/game/engine/fx/emitter.cpp) | `ModifyEmitterParticles__FP7EMITTER` |  |  | existing |  |
+| [0x159C80](../../../src/game/engine/fx/emitter.cpp) | `UpdateEmitter__FP7EMITTERf` |  |  | existing |  |
+| [0x15A138](../../../src/game/engine/fx/emitter.cpp) | `PauseEmitter__FP7EMITTERf` |  |  | existing |  |
+| [0x15A150](../../../src/game/engine/fx/emitter.cpp) | `PauseEmitterIndefinite__FP7EMITTER` |  |  | existing |  |
+| [0x15A160](../../../src/game/engine/fx/emitter.cpp) | `UnpauseEmitter__FP7EMITTER` |  |  | existing |  |
+| [0x15A170](../../../src/game/engine/fx/emitter.cpp) | `FPausedEmitter__FP7EMITTER` |  |  | existing |  |
+| [0x15A1C0](../../../src/game/engine/fx/emitter.cpp) | `OnEmitterValuesChanged__FP7EMITTER` |  |  | existing |  |
+| [0x15A240](../../../src/game/engine/fx/emitter.cpp) | `SetEmitterParticleCount__FP7EMITTERi` |  |  | existing |  |
+| [0x15A2B0](../../../src/game/engine/fx/emitter.cpp) | `SetEmitterAutoPause__FP7EMITTERi` |  |  | existing |  |
+| [0x15A2C0](../../../src/game/engine/fx/emitter.cpp) | `WakeSoWater__FP2SOP5WATERfP6VECTORT3ff` |  |  | existing |  |
+| [0x15A808](../../../src/game/engine/fx/emitter.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
+| [0x15AD48](../../../src/game/engine/fx/emitter.cpp) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
+| [0x15AE38](../../../src/game/engine/fx/emitter.cpp) | `CalculateEmitvx__FiP2LMiP6EMITVX` |  |  | existing |  |
+| [0x15AF08](../../../src/game/engine/fx/emitter.cpp) | `ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4` |  |  | existing |  |
+| [0x15B0C8](../../../src/game/engine/fx/emitter.cpp) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
+| [0x15B1B0](../../../src/game/engine/fx/emitter.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
+| [0x15B428](../../../src/game/engine/fx/emitter.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
+| [0x15B7E8](../../../src/game/engine/fx/emitter.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
+| [0x15B9F0](../../../src/game/engine/fx/emitter.cpp) | `OriginateSplineSinkParticles` | For spline-sink emitters (kind 2) computes the extra per-particle transform data passed to EmitBlips | 0.50 | T1 |  |
+| [0x15BD20](../../../src/game/engine/fx/emitter.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
+| [0x15BF40](../../../src/game/engine/fx/emitter.cpp) | `SetEmitdvEmitb` | Copies the drift/velocity parameters of an EMITB into an EMITDV | 0.70 | T1 |  |
+| [0x15BFD8](../../../src/game/engine/fx/emitter.cpp) | `CalculateEmitdvMatrix` | Computes the drift/curl matrix of an EMITDV for time t | 0.70 | T1 |  |
+| [0x15C150](../../../src/game/engine/fx/emitter.cpp) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
+| [0x15C198](../../../src/game/engine/fx/emitter.cpp) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
+| [0x15C1E0](../../../src/game/engine/fx/emitter.cpp) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
+| [0x15C1E8](../../../src/game/engine/fx/emitter.cpp) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
+| [0x15C310](../../../src/game/engine/fx/emitter.cpp) | `CploExplgChildren` | EXPLG: returns child count (+0xE0) and child array (+0xE4) via out-param | 0.50 | T1 |  |
+| [0x15C320](../../../src/game/engine/fx/emitter.cpp) | `CloneExplg` | EXPLG clone: XFM clone, realloc child array, clone each child (0x13E510) | 0.70 | T1 |  |
+| [0x15C3C0](../../../src/game/engine/fx/emitter.cpp) | `ExplodeExplgExplso` | EXPLG explode: transforms the explosion origin by its matrix and forwards the explode call to every child explosion (vtable) | 0.60 | T1 |  |
+| [0x15C5C8](../../../src/game/engine/fx/emitter.cpp) | `HandleExplsMessage` | EXPLS::HandleMessage: on msg 1 (removed) forgets cached p100/p104 references | 0.70 | T1 |  |
+| [0x15C628](../../../src/game/engine/fx/emitter.cpp) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
+| [0x15C690](../../../src/game/engine/fx/emitter.cpp) | `FireExplsExplso` | EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position and emits particles | 0.55 | T1 |  |
 
 ## rip (0x1CDCD0-0x1D1370)
 

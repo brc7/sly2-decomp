@@ -5,7 +5,7 @@
 | Directory | Files |
 | --- | --- |
 | [`blip.cpp`](blip.cpp) | 1 |
-| [`emitter/`](emitter/) | 54 |
+| [`emitter.cpp`](emitter.cpp) | 1 |
 | [`rip/`](rip/) | 64 |
 | [`trail.cpp`](trail.cpp) | 1 |
 

@@ -66,21 +66,21 @@ BLIPG (CID 0x1C) particle groups (smoke, sparkles), Sly 1 blip.c; slots 2 Delete
 | [0x139AB8](../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
 | [0x139DC0](../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
 | [0x13A1E8](../../src/game/engine/fx/blip.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
-| [0x159118](../../src/game/engine/fx/emitter/func_00159118.c) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
-| [0x1591B0](../../src/game/engine/fx/emitter/InitEmitter.c) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
-| [0x159240](../../src/game/engine/fx/emitter/LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
-| [0x15A808](../../src/game/engine/fx/emitter/ChooseEmitoPos__FP5EMITOiiP6VECTORT3.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
-| [0x15AD48](../../src/game/engine/fx/emitter/ConvertEmitoPosVec__FP5EMITOP6VECTORT1.c) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
-| [0x15B0C8](../../src/game/engine/fx/emitter/ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7.c) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
-| [0x15B1B0](../../src/game/engine/fx/emitter/EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
-| [0x15B428](../../src/game/engine/fx/emitter/EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
-| [0x15B7E8](../../src/game/engine/fx/emitter/OriginateParticles__FiP5EMITBP7EMITGEN.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
-| [0x15BD20](../../src/game/engine/fx/emitter/EmitParticles__FiP5EMITBP5EMITG.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
-| [0x15C150](../../src/game/engine/fx/emitter/func_0015C150.c) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
-| [0x15C198](../../src/game/engine/fx/emitter/ExplodeExplParams.c) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
-| [0x15C1E0](../../src/game/engine/fx/emitter/ExplodeExplExplso__FP4EXPLP6EXPLSO.c) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
-| [0x15C1E8](../../src/game/engine/fx/emitter/LoadExplgFromBrx.c) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
-| [0x15C628](../../src/game/engine/fx/emitter/ExplodeExplsExplso.c) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
+| [0x159118](../../src/game/engine/fx/emitter.cpp) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
+| [0x1591B0](../../src/game/engine/fx/emitter.cpp) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
+| [0x159240](../../src/game/engine/fx/emitter.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
+| [0x15A808](../../src/game/engine/fx/emitter.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
+| [0x15AD48](../../src/game/engine/fx/emitter.cpp) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
+| [0x15B0C8](../../src/game/engine/fx/emitter.cpp) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
+| [0x15B1B0](../../src/game/engine/fx/emitter.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
+| [0x15B428](../../src/game/engine/fx/emitter.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
+| [0x15B7E8](../../src/game/engine/fx/emitter.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
+| [0x15BD20](../../src/game/engine/fx/emitter.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
+| [0x15C150](../../src/game/engine/fx/emitter.cpp) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
+| [0x15C198](../../src/game/engine/fx/emitter.cpp) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
+| [0x15C1E0](../../src/game/engine/fx/emitter.cpp) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
+| [0x15C1E8](../../src/game/engine/fx/emitter.cpp) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
+| [0x15C628](../../src/game/engine/fx/emitter.cpp) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
 | [0x1CDCD0](../../src/game/engine/fx/rip/PripgNew.c) | `PripgNew` | Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world | 0.75 | T1 |  |
 | [0x1CDDC8](../../src/game/engine/fx/rip/InitRipg__FP4RIPG.c) | `InitRipg` | RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags | 0.85 | T1 | verified |
 | [0x1CDE70](../../src/game/engine/fx/rip/SetRipgEmitb__FP4RIPGP5EMITB.c) | `SetRipgEmitb__FP4RIPGP5EMITB` | copy emitb rate into RIPG | 0.90 | existing | verified |

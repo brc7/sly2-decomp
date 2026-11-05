@@ -518,11 +518,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258470](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258478](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258480](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
-| [0x2584A8](../../../src/game/engine/fx/emitter/LoadEmitblipColorsFromBrx.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258598](../../../src/game/engine/fx/emitter/LoadEmitterFromBrx.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258620](../../../src/game/engine/fx/emitter/CloneEmitter.c) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258658](../../../src/game/engine/fx/emitter/PemitbEnsureExplo.c) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x2586D8](../../../src/game/engine/fx/emitter/func_002586D8.c) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
+| [0x2584A8](../../../src/game/engine/fx/emitter.cpp) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258598](../../../src/game/engine/fx/emitter.cpp) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258620](../../../src/game/engine/fx/emitter.cpp) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258658](../../../src/game/engine/fx/emitter.cpp) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x2586D8](../../../src/game/engine/fx/emitter.cpp) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x258898](../../../include/sly2/emitter.h) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258920](../../../include/sly2/emitter.h) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589A8](../../../include/sly2/emitter.h) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -542,11 +542,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258E60](../../../include/sly2/emitter.h) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258EC8](../../../include/sly2/emitter.h) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258F30](../../../src/game/object/basic.cpp) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x258F40](../../../src/game/engine/fx/emitter/LoadExploBlipColorsFromBrx.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x259030](../../../src/game/engine/fx/emitter/LoadExploFromBrx.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x2590B8](../../../src/game/engine/fx/emitter/CloneExplo.c) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258F40](../../../src/game/engine/fx/emitter.cpp) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x259030](../../../src/game/engine/fx/emitter.cpp) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x2590B8](../../../src/game/engine/fx/emitter.cpp) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
 | [0x2590F0](../../../src/game/actor/po.cpp) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x259170](../../../src/game/engine/fx/emitter/func_00259170.c) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
+| [0x259170](../../../src/game/engine/fx/emitter.cpp) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x259330](../../../include/sly2/emitter.h) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2593B8](../../../include/sly2/emitter.h) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259440](../../../include/sly2/emitter.h) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -565,7 +565,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2598D8](../../../include/sly2/emitter.h) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2598F8](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259960](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599C8](../../../src/game/engine/fx/emitter/GetExploClassDesc_linkonce.c) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2599C8](../../../src/game/engine/fx/emitter.cpp) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599D8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E0](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
