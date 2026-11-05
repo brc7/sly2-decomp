@@ -451,9 +451,14 @@ struct P {char pad0[0xC];VENTRY *vt;char pad10[0x50];FRAME *space;char pad64[0x1
 struct CLOCK {float time,dt;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0; }
-extern "C" POLY D_002C2040 = {0.0f, 0.8f, 0.0f}, D_002C2060 = {1.5f, -0.5f, 0.0f}, D_002C2080 = {-0.5f, 1.0f, 0.0f};
-extern "C" LIMITS D_002C2050 = {-0.5f, 0.5f}, D_002C2070 = {0.3f, 1.0f}, D_002C2090 = {1.0f, 2.5f};
-extern "C" float D_002C2030 = 500.0f, D_002C20A4 = 400.0f;
+extern "C" POLY D_002C2040;
+extern "C" POLY D_002C2060;
+extern "C" POLY D_002C2080;
+extern "C" LIMITS D_002C2050;
+extern "C" LIMITS D_002C2070;
+extern "C" LIMITS D_002C2090;
+extern "C" float D_002C2030;
+extern "C" float D_002C20A4;
 extern "C" { extern char D_002C2098[],D_002C20A8[]; }
 extern "C" {
 void UpdateSo(P *);
@@ -842,7 +847,7 @@ typedef struct {
 } OBJ;
 extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
-float D_002C20C0[3] = {-200.0f, 0.8f, 0.0f};
+extern float D_002C20C0[3];
 qword func_001A62E8(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
 /** @sly2-annot addr=0x1D22D0
@@ -923,8 +928,8 @@ typedef struct {
     void *path;
     float cursor;
 } OBJ;
-float D_002C20D0[3] = {150.0f, -1.0f, 0.0f};
-float D_002C20E0[2] = {0.0f, 150.0f};
+extern float D_002C20D0[3];
+extern float D_002C20E0[2];
 qword func_001A62E8(void *);
 void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
@@ -1046,7 +1051,11 @@ struct P {
 };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DA0, D_002A2DC0; }
-extern "C" float D_002C20E8 = 1.25f, D_002C20EC = 0.3f, D_002C20F0 = 0.3f, D_002C20F4 = 0.3f, D_002C20F8 = 0.3f;
+extern "C" float D_002C20E8;
+extern "C" float D_002C20EC;
+extern "C" float D_002C20F0;
+extern "C" float D_002C20F4;
+extern "C" float D_002C20F8;
 extern "C" {
 qword func_001A62E8(P *);
 ATTACH *func_001D2240(P *);
@@ -1341,8 +1350,14 @@ struct CLOCK { float time, dt; };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0, D_002A2DD0; }
-extern "C" POLY D_002C2100 = {0.0f, 15.0f, 1.0f}, D_002C2120 = {0.0f, 0.25f, 0.75f}, D_002C2130 = {0.0f, 0.0f, 1.0f};
-extern "C" float D_002C2110 = 15.0f, D_002C2114 = 90.0f, D_002C2140 = 11250.0f, D_002C2144 = 0.5f, D_002C2148 = 0.25f;
+extern "C" POLY D_002C2100;
+extern "C" POLY D_002C2120;
+extern "C" POLY D_002C2130;
+extern "C" float D_002C2110;
+extern "C" float D_002C2114;
+extern "C" float D_002C2140;
+extern "C" float D_002C2144;
+extern "C" float D_002C2148;
 extern "C" {
 void func_001F9B20(P *);
 M3 *func_001A6318(P *);
@@ -2043,7 +2058,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern G D_003DD490; }
 extern "C" { extern qword D_002A2DC0,D_002A2DB0; }
 extern "C" { extern char D_002C21A0[],D_002C21B0[],D_002C21C0[]; }
-extern "C" float D_002C21CC = 0.25f;
+extern "C" float D_002C21CC;
 extern "C" {
 qword ConvertAloVec(P*,P*,qword);
 qword func_0022FC48(P*,NODE*,qword);
@@ -2145,7 +2160,13 @@ struct VENTRY { short delta, pad; void *fn; };
 struct P { char pad0[0xC]; VENTRY *vt; char pad10[0x550]; int remaining; };
 struct EVENT { P *sender; char pad4[8]; int kind, change; };
 extern "C" { extern qword D_002A2DA0, D_002A2DC0; }
-extern "C" float D_002C21D0[2] = {50.0f, 100.0f}, D_002C21D8[2] = {300.0f, 400.0f}, D_002C21E0[2] = {2.0f, 5.0f}, D_002C21E8[2] = {50.0f, 100.0f}, D_002C21F0[2] = {50.0f, 75.0f}, D_002C21F8[2] = {2.5f, 3.0f}, D_002C2200[2] = {-0.5f, 0.5f};
+extern "C" float D_002C21D0[2];
+extern "C" float D_002C21D8[2];
+extern "C" float D_002C21E0[2];
+extern "C" float D_002C21E8[2];
+extern "C" float D_002C21F0[2];
+extern "C" float D_002C21F8[2];
+extern "C" float D_002C2200[2];
 extern "C" {
 int func_001F7588(P *, EVENT *);
 void UpdateRobottankHealthMeter(P *);
@@ -2584,7 +2605,9 @@ typedef struct {
     float x9C;
 } OBJ;
 // float pairs read as their bits: {-1.57f, 1.57f}, {250.0f, 2500.0f}, {0.5f, 1.5f}
-S8 D_002C2218 = {(int)0xBFC8F5C3, 0x3FC8F5C3}, D_002C2220 = {0x437A0000, 0x451C4000}, D_002C2240 = {0x3F000000, 0x3FC00000};
+extern S8 D_002C2218;
+extern S8 D_002C2220;
+extern S8 D_002C2240;
 extern qword D_002C2230;
 /** @sly2-annot addr=0x1D4D30
  * Purpose: Weapon record defaults (owner, default vectors D_002C2218..)
@@ -2766,16 +2789,15 @@ void SetRcPickupState(struct S *p, int n) {
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-SMP D_002C2098 = {10.0f, 0.0f, 0.25f};
-SMPA D_002C20A8 = {1.0f, 0.0f, 0.25f, 0.0f};
-VECTOR4 D_002C2150[5] = {{-1.0f, 0.0f, 0.0f, 0.0f}, {-0.707f, 0.0f, -0.707f, 0.0f}, {0.0f, 0.0f, -1.0f, 0.0f},
-    {0.707f, 0.0f, -0.707f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}};
-SMPA D_002C21A0 = {1500.0f, 500.0f, 0.1f, 0.0f};
-SMPA D_002C21B0 = {20.0f, 5.0f, 0.2f, 0.0f};
-SMP D_002C21C0 = {5.0f, 0.0f, 0.2f};
-int D_002C2208[4] = {115, 116, 117, 118};
-VECTOR4 D_002C2230 = {0.5f, 0.001f, 0.0f, 0.0f};
-int D_002C2248[3] = {119, 120, 121};
+
+
+
+
+
+
+
+
+
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
@@ -2786,3 +2808,70 @@ extern "C" {
 extern const unsigned int D_002A7840[2] = {0xFFFF0000, (unsigned int)p_func_001D3FF0};
 }
 } // namespace ANPTR_tu_1D1370
+
+// ---- tu_1D1370's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_UpdateRobottank {
+extern "C" float D_002C2030 = 500.0f;
+extern "C" POLY D_002C2040 __attribute__((aligned(16))) = {0.0f, 0.8f, 0.0f};
+extern "C" LIMITS D_002C2050 = {-0.5f, 0.5f};
+extern "C" POLY D_002C2060 __attribute__((aligned(16))) = {1.5f, -0.5f, 0.0f};
+extern "C" LIMITS D_002C2070 = {0.3f, 1.0f};
+extern "C" POLY D_002C2080 __attribute__((aligned(16))) = {-0.5f, 1.0f, 0.0f};
+extern "C" LIMITS D_002C2090 = {1.0f, 2.5f};
+} // namespace M_UpdateRobottank
+SMP D_002C2098 = {10.0f, 0.0f, 0.25f};
+namespace M_UpdateRobottank {
+extern "C" float D_002C20A4 = 400.0f;
+} // namespace M_UpdateRobottank
+SMPA D_002C20A8 = {1.0f, 0.0f, 0.25f, 0.0f};
+namespace M_func_001D22D0 { extern "C" {
+float D_002C20C0[3] __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f};
+} } // namespace M_func_001D22D0 extern "C"
+namespace M_func_001D2490 { extern "C" {
+float D_002C20D0[3] = {150.0f, -1.0f, 0.0f};
+float D_002C20E0[2] = {0.0f, 150.0f};
+} } // namespace M_func_001D2490 extern "C"
+namespace M_UpdateRobottankAi {
+extern "C" float D_002C20E8 = 1.25f;
+extern "C" float D_002C20EC = 0.3f;
+extern "C" float D_002C20F0 = 0.3f;
+extern "C" float D_002C20F4 = 0.3f;
+extern "C" float D_002C20F8 = 0.3f;
+} // namespace M_UpdateRobottankAi
+namespace M_PresetRobottankAccel {
+extern "C" POLY D_002C2100 = {0.0f, 15.0f, 1.0f};
+extern "C" float D_002C2110 __attribute__((aligned(16))) = 15.0f;
+extern "C" float D_002C2114 = 90.0f;
+extern "C" POLY D_002C2120 __attribute__((aligned(16))) = {0.0f, 0.25f, 0.75f};
+extern "C" POLY D_002C2130 = {0.0f, 0.0f, 1.0f};
+extern "C" float D_002C2140 __attribute__((aligned(16))) = 11250.0f;
+extern "C" float D_002C2144 = 0.5f;
+extern "C" float D_002C2148 = 0.25f;
+} // namespace M_PresetRobottankAccel
+VECTOR4 D_002C2150[5] = {{-1.0f, 0.0f, 0.0f, 0.0f}, {-0.707f, 0.0f, -0.707f, 0.0f}, {0.0f, 0.0f, -1.0f, 0.0f},
+    {0.707f, 0.0f, -0.707f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}};
+SMPA D_002C21A0 = {1500.0f, 500.0f, 0.1f, 0.0f};
+SMPA D_002C21B0 = {20.0f, 5.0f, 0.2f, 0.0f};
+SMP D_002C21C0 = {5.0f, 0.0f, 0.2f};
+namespace M_RenderRobottankSelf {
+extern "C" float D_002C21CC = 0.25f;
+} // namespace M_RenderRobottankSelf
+namespace M_func_001D4568 {
+extern "C" float D_002C21D0[2] = {50.0f, 100.0f};
+extern "C" float D_002C21D8[2] = {300.0f, 400.0f};
+extern "C" float D_002C21E0[2] = {2.0f, 5.0f};
+extern "C" float D_002C21E8[2] = {50.0f, 100.0f};
+extern "C" float D_002C21F0[2] = {50.0f, 75.0f};
+extern "C" float D_002C21F8[2] = {2.5f, 3.0f};
+extern "C" float D_002C2200[2] = {-0.5f, 0.5f};
+} // namespace M_func_001D4568
+int D_002C2208[4] = {115, 116, 117, 118};
+namespace M_func_001D4D30 { extern "C" {
+S8 D_002C2218 = {(int)0xBFC8F5C3, 0x3FC8F5C3};
+S8 D_002C2220 = {0x437A0000, 0x451C4000};
+} } // namespace M_func_001D4D30 extern "C"
+VECTOR4 D_002C2230 = {0.5f, 0.001f, 0.0f, 0.0f};
+namespace M_func_001D4D30 { extern "C" {
+S8 D_002C2240 = {0x3F000000, 0x3FC00000};
+} } // namespace M_func_001D4D30 extern "C"
+int D_002C2248[3] = {119, 120, 121};
