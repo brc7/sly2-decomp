@@ -587,8 +587,8 @@ struct LOUPD
       int grf;
       LO *plo;
 };
-int GetCurrentJob();
-void OnGameEvent(GAME *pgame, int nEvent, LO *plo);
+int IlevelCur();
+extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 union TAG
 {
     int m_n;
@@ -626,17 +626,17 @@ public:
 extern int D_002E1E54;
 extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
-SVPATH *PsvpMake(const char *pchz, ...);
-CRef SetSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *psave);
-inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetSaveVar(psvp, ref, &D_003D4A60); }
+extern "C" SVPATH *PkeyNewSaveKey(const char *pchz, ...);
+extern "C" CRef RefSetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *psave);
+inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { RefSetGlobalSaveVar(psvp, ref, &D_003D4A60); }
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
     CRef ref((TAGK)0x15, n);
     SetSaveVarRef(psvp, ref);
 }
-CRef SetSaveVarByName(const CRef &ref, const char *pchz, ...);
+extern "C" CRef RefSetSaveVarV(const CRef &ref, const char *pchz, ...);
 extern "C" int NWorldCur();
-int NGetEpisodeBest();
+extern "C" int NEpisodeBest();
 void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
 /** @sly2-annot addr=0x20E3C0
  * Purpose: Look up save-variable paths the game reads (language, sound flags, job/world, per-world
@@ -650,32 +650,32 @@ void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
  * @end-sly2-annot */
 void ResolveSwSaveVars(SW *psw)
 {
-    psw->psvpDt = PsvpMake("dt", 0);
-    psw->psvpWidCurrent = PsvpMake("widCurrent", 0);
-    psw->psvpEpisodeCurrent = PsvpMake("episodeCurrent", 0);
-    psw->psvpCcoin = PsvpMake("loot", "ccoin", 0);
-    psw->psvpLang = PsvpMake("flags", "lang", 0);
-    psw->psvpMixerMode = PsvpMake("flags", "nMixerMode", 0);
-    psw->psvpMusicVolume = PsvpMake("flags", "uMusicVolume", 0);
-    psw->psvpEffectsVolume = PsvpMake("flags", "uEffectsVolume", 0);
-    psw->psvpUseHeadset = PsvpMake("flags", "fUseHeadset", 0);
-    psw->psvpScreenCenterX = PsvpMake("flags", "dxScreenCenter", 0);
-    psw->psvpScreenCenterY = PsvpMake("flags", "dyScreenCenter", 0);
-    psw->psvpNoVibration = PsvpMake("flags", "fNoVibration", 0);
-    psw->psvpReverseLookAround = PsvpMake("flags", "fReverseLookAround", 0);
-    psw->psvpReverseAim = PsvpMake("flags", "fReverseAim", 0);
-    psw->psvpAutosaveWarned = PsvpMake("flags", "fAutosaveWarned", 0);
+    psw->psvpDt = PkeyNewSaveKey("dt", 0);
+    psw->psvpWidCurrent = PkeyNewSaveKey("widCurrent", 0);
+    psw->psvpEpisodeCurrent = PkeyNewSaveKey("episodeCurrent", 0);
+    psw->psvpCcoin = PkeyNewSaveKey("loot", "ccoin", 0);
+    psw->psvpLang = PkeyNewSaveKey("flags", "lang", 0);
+    psw->psvpMixerMode = PkeyNewSaveKey("flags", "nMixerMode", 0);
+    psw->psvpMusicVolume = PkeyNewSaveKey("flags", "uMusicVolume", 0);
+    psw->psvpEffectsVolume = PkeyNewSaveKey("flags", "uEffectsVolume", 0);
+    psw->psvpUseHeadset = PkeyNewSaveKey("flags", "fUseHeadset", 0);
+    psw->psvpScreenCenterX = PkeyNewSaveKey("flags", "dxScreenCenter", 0);
+    psw->psvpScreenCenterY = PkeyNewSaveKey("flags", "dyScreenCenter", 0);
+    psw->psvpNoVibration = PkeyNewSaveKey("flags", "fNoVibration", 0);
+    psw->psvpReverseLookAround = PkeyNewSaveKey("flags", "fReverseLookAround", 0);
+    psw->psvpReverseAim = PkeyNewSaveKey("flags", "fReverseAim", 0);
+    psw->psvpAutosaveWarned = PkeyNewSaveKey("flags", "fAutosaveWarned", 0);
     for (int iworld = 0; iworld < 9; iworld++)
     {
-        psw->apsvpEpisodeDt[iworld] = PsvpMake("episode", D_002A39E8[iworld], "dt", 0);
-        psw->apsvpEpisodePercent[iworld] = PsvpMake("episode", D_002A39E8[iworld], "percent_complete", 0);
+        psw->apsvpEpisodeDt[iworld] = PkeyNewSaveKey("episode", D_002A39E8[iworld], "dt", 0);
+        psw->apsvpEpisodePercent[iworld] = PkeyNewSaveKey("episode", D_002A39E8[iworld], "percent_complete", 0);
     }
     SetSaveVarInt(psw->psvpLang, D_002E1E54);
-    SetSaveVarInt(psw->psvpWidCurrent, GetCurrentJob());
+    SetSaveVarInt(psw->psvpWidCurrent, IlevelCur());
     SetSaveVarInt(psw->psvpEpisodeCurrent, NWorldCur());
-    if (NWorldCur() > NGetEpisodeBest())
-        SetSaveVarByName(CRef((TAGK)0x15, NWorldCur()), "episodeBest", 0);
-    OnGameEvent(&D_002DEB30, 3, 0);
+    if (NWorldCur() > NEpisodeBest())
+        RefSetSaveVarV(CRef((TAGK)0x15, NWorldCur()), "episodeBest", 0);
+    BroadcastGameEvent(&D_002DEB30, 3, 0);
 }
 
 namespace M_PostSwLoad { extern "C" {
