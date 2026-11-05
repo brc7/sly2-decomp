@@ -5,35 +5,43 @@ What it takes to link the matched sources back into SCUS_973.16, and how far the
 round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (types/views-3 on integrate/round5, 2026-11-05)
+## Status (integrate/round6: types/views-3 + data/bss-order, 2026-11-05)
 
-Authoritative numbers for types/views-3 (from integrate/round5 9a55eb69): round 4 + build/rtti-palettes (`-fno-rtti`,
-palette section attributes) + data/address-names and data/interior-fields + types/views-2 (the registry classes made
-real) + 26 more interior macros converted (tu-merging.md, "Phase 4: interior fields") + types/views-3 (SW a real
-class, the eight files cc1plus crashed on and six others on the shared headers, 28 more macros: tu-merging.md, "Views
-unified (types/views-3)"), all measured with `-fno-rtti`. Numbers elsewhere in
-this guide that disagree are earlier measurements (marked "superseded").
+Authoritative numbers for integrate/round6: integrate/round5 9a55eb69 (round 4 + build/rtti-palettes (`-fno-rtti`,
+palette section attributes) + data/address-names and data/interior-fields + types/views-2, the registry classes made
+real, and 26 more interior macros converted) + types/views-3 (SW a real class, the eight files cc1plus crashed on and
+six others on the shared headers, 28 more macros: tu-merging.md, "Views unified (types/views-3)") + data/bss-order
+(data order inside the objects: tu-merging.md, "Phase 5: data order"), all measured with `-fno-rtti`. Numbers
+elsewhere in this guide that disagree are earlier measurements (marked "superseded"); the types/views-3 values (the
+first parent) are given in brackets where they differ.
 
 | measure | value | tool |
 |---|---|---|
 | functions matching | 6,662 / 6,662 (100%; 329 SDK sources carried over, verified on the Mac) | `tools/progress.py`, cache deleted first |
-| files either merged branch touched + includers of the shared headers (169) | functions 5,209 / 5,209, data symbols 1,481 / 1,481 MATCH (integrate/round5); types/views-3: its 17 source files and the 113 includers of basic.h / sw.h / cm.h all MATCH, and every object's nm symbol set equals integrate/round5's except sw.cpp's (`_vt$2SW` for `D_002DC018`) | `tools/matchtool.py check`, scratch symcheck.py |
+| files either merged branch touched (53 sources) | functions 2,761 / 2,761, data symbols 898 / 898 MATCH; the other merged objects compile from the same sources and headers as on types/views-3 | `tools/matchtool.py check` |
+| nm symbol sets (210 objects) | every object's global symbols (defined and undefined) are the three-way merge of both parents' against the merge base 23223370: a symbol is present exactly when the side that changed it has it (0 deviations; this would catch a callee renamed on one side and still spelled the old way in a file the other side edited) | scratch nm3.py |
 | undefined references not in config (209 merged objects + eopid_linkonce) | 35 (21 namespace views, 19 of them act.cpp's; 14 other: `_gp` in 4 objects, from the linker script; `D_C0`; the `gcc2_compiled.` markers; `__builtin_new`; tn's `Init__5CPLCY`; draw's `g_pfrmOpen`; brx_sw's `_$_3OBJ`; proxy's and spliceobj's three template members) | scratch symcheck.py |
 | duplicate strong definitions | 0 | scratch symcheck.py |
-| relocations checked against the ELF | 27,122 OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
-| address names over the 932 link objects | 323: 275 absolute, 48 aliases (to the registry vtables `_vt$<len><NAME>` and other config names; `D_002DC018` became `_vt$2SW`); 27 alias-table entries (config/link_aliases.txt: 42 lines, unchanged by types/views-3) | `tools/linkaliases.py` |
-| ld.lld | 0 errors; 7,910 sections placed, 66 unplaced (544 bytes) | `tools/link.py` |
-| .text equal | 1,416,099 / 1,416,688 (99.96%); from objects 1,281,455 / 1,282,044 (99.95%) | `tools/link.py` |
-| .rodata equal | 303,037 / 304,356 (99.57%); from objects 22,245 / 23,564 (94.40%) | `tools/link.py` |
-| .data equal | 199,086 / 199,088 (99.999%); from objects 34,619 / 34,621 (99.99%) | `tools/link.py` |
-| differing bytes | 1,910: .rodata layout 1,263, .text %hi/%lo to those 589, .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
-| config names at their config address | 7,243 / 7,274 (wrong: .bss 29, .sbss 2) | `tools/link.py` |
+| relocations checked against the ELF | 27,125 [27,122] OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
+| address names over the 932 link objects | 319 [323]: 271 absolute [275], 48 aliases (to the registry vtables `_vt$<len><NAME>` and other config names); 27 alias-table entries (config/link_aliases.txt unchanged) | `tools/linkaliases.py` |
+| ld.lld | 0 errors; 7,914 [7,910] sections placed, 66 unplaced (544 bytes) | `tools/link.py` |
+| .text equal | 1,416,389 / 1,416,688 (99.98%) [1,416,099]; from objects 1,281,745 / 1,282,044 (99.98%) | `tools/link.py` |
+| .rodata equal | 303,037 / 304,356 (99.57%) [same]; from objects 22,245 / 23,564 (94.40%) | `tools/link.py` |
+| .data equal | 199,086 / 199,088 (99.999%) [same]; from objects 34,631 / 34,633 (99.99%) | `tools/link.py` |
+| differing bytes | 1,620 [1,910] (as on data/bss-order): .rodata layout 1,263 (the `-fdata-sections` artifact, "Data order" below), .text %hi/%lo to those 299 [589], .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
+| config names at their config address | 7,283 / 7,283 [7,243 / 7,274; wrong .bss 29, .sbss 2] | `tools/link.py` (list: build/link/wrongaddr.txt) |
+| `--tu-data` (real-link data layout): .text / .rodata / .data equal | 1,415,300 (99.90%) / 301,625 (99.10%) / 198,222 (99.57%); from objects .rodata 21,217 / 23,948 (88.60%), .data 29,706 / 30,572 (97.17%); 6,756 sections placed, 6 unplaced (544 bytes) | `tools/link.py --tu-data` |
+| `--tu-data` differing bytes | 4,985 (as on data/bss-order) | `tools/link.py --tu-data` |
+| `--tu-data` config names at their config address | 6,934 / 7,283 (wrong .rodata 46, .data 303: the per-function-view `.data` and shared literals, tu-merging.md "Phase 5: data order") | `tools/link.py --tu-data` |
 | interior base+offset macros | 19 in 10 files (47 on integrate/round5, 73 after data/interior-fields): all without a header type | grep `(char *)base_D_` |
 | docs links | 0 broken | `tools/docs/linkcheck.py` |
 
 Fixes the merges needed: none under `-fno-rtti` (the data branches' code matches with the flag as without), and
 none for types/views-2 (only full-link.md conflicted; cm.h auto-merged). types/views-3 changed no link number but the
-address-name count: symcheck 35 unresolved, relverify 27,122 OK / 0 mismatched, link.py byte counts identical.
+address-name count. data/bss-order on top of types/views-3: one source conflict, booty.cpp (views-3 replaced the
+`SW::savevars` interior macro by `g_sw.savevars`, bss-order moved the two strings' definitions to their `.rodata`
+place; both kept), and no other change: every number of data/bss-order's own table ("Data order" below) carries over
+except those that the views branches moved (relocations, address names, `.data` from objects).
 
 ## The target: the ELF's layout
 

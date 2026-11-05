@@ -1334,6 +1334,10 @@ isolates code from data-order problems: dropping it today would turn the default
 .rodata from objects 94.4% -> 88.6%), and `--tu-data` is the measure for data order. Once `--tu-data` is at least as
 good, drop the flag (make `--tu-data` the default).
 
+**Merged onto types/views-3 (integrate/round6).** Only booty.cpp conflicted (views-3's `g_sw.savevars` kept, with
+this phase's `.rodata` order); no other source change, and both link modes give this phase's numbers (full-link.md,
+Status).
+
 **Left (`--tu-data`), by kind:**
 
 - *`.data` in definition order but not address order* (the per-function-view files whose phase-1 definitions sit at
