@@ -27,7 +27,7 @@ struct AMB : public XFM
 };
 
 /* A local object constructed and destroyed around the BRX load (constructor and destructor not identified). */
-struct OBJ { int a[4]; OBJ(); ~OBJ(); };
+struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 struct G { char pad[0x228]; void *p; };
 extern G D_003DD040;
 
