@@ -19,76 +19,76 @@ Totals on this page: EXISTING 27, T1 110, T2 130.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12B3B0](../../../src/game/engine/anim/act/PacNewKind.cpp) | `PacNewKind` | Factory: new animation-curve object of kind 0..5 (six C++ curve classes) | 0.75 | T1 | parse |
-| [0x12B4F0](../../../src/game/engine/anim/act/func_0012B4F0.c) | `GetAcConstTimes` | 8-byte stub in curve vtables (returns nothing / 0) | 0.25 | T2 |  |
-| [0x12B4F8](../../../src/game/engine/anim/act/LoadAcConstFromBrx.c) | `LoadAcConstFromBrx` | Reads a fixed-size constant record (Read) | 0.75 | T1 | parse |
-| [0x12B520](../../../src/game/engine/anim/act/func_0012B520.c) | `EvaluateAcConst` | Returns the constant value | 0.30 | T2 |  |
-| [0x12B590](../../../src/game/engine/anim/act/func_0012B590.c) | `CloneAcConst` | CopyAb of the record | 0.25 | T2 |  |
-| [0x12B5E0](../../../src/game/engine/anim/act/LoadAcVecAFromBrx.c) | `LoadAcVecAFromBrx` | Reads U16 key count and VECTOR keys (with tangents) into a heap array | 0.75 | T1 | parse |
-| [0x12B6D8](../../../src/game/engine/anim/act/func_0012B6D8.c) | `AcVecA_IkeyFind` | Finds the key segment containing time t | 0.35 | T2 |  |
-| [0x12B738](../../../src/game/engine/anim/act/func_0012B738.c) | `EvaluateAcVecA` | Evaluates the vector curve at t (inline Hermite) | 0.30 | T2 |  |
-| [0x12B9D0](../../../src/game/engine/anim/act/func_0012B9D0.c) | `EvaluateAcVecABezier` | Evaluates via EvaluateBezierPos (value/velocity) | 0.30 | T2 |  |
-| [0x12BA98](../../../src/game/engine/anim/act/LoadAcVecBFromBrx.c) | `LoadAcVecBFromBrx` | Second vector-keyed curve class: load | 0.75 | T1 | parse |
-| [0x12BB70](../../../src/game/engine/anim/act/func_0012BB70.c) | `AcVecB_IkeyFind` | Key segment search | 0.35 | T2 | verified |
-| [0x12BBD0](../../../src/game/engine/anim/act/func_0012BBD0.c) | `EvaluateAcVecB` | Evaluate at t | 0.30 | T2 |  |
-| [0x12BE68](../../../src/game/engine/anim/act/func_0012BE68.c) | `EvaluateAcVecBBezier` | Evaluate via EvaluateBezierPos | 0.30 | T2 |  |
-| [0x12BF30](../../../src/game/engine/anim/act/LoadAcFloatAFromBrx.c) | `LoadAcFloatAFromBrx` | Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors | 0.75 | T1 | parse |
-| [0x12C0E0](../../../src/game/engine/anim/act/func_0012C0E0.c) | `AcFloatA_IkeyFind` | Key segment search | 0.35 | T2 |  |
-| [0x12C140](../../../src/game/engine/anim/act/func_0012C140.c) | `EvaluateAcFloatA` | Evaluate at t | 0.30 | T2 |  |
-| [0x12C440](../../../src/game/engine/anim/act/func_0012C440.c) | `EvaluateAcFloatABezier` | Evaluate via EvaluateBezierFloat | 0.30 | T2 |  |
-| [0x12C570](../../../src/game/engine/anim/act/LoadAcFloatBFromBrx.c) | `LoadAcFloatBFromBrx` | Second scalar curve class: load | 0.75 | T1 | parse |
-| [0x12C708](../../../src/game/engine/anim/act/func_0012C708.c) | `AcFloatB_IkeyFind` | Key segment search | 0.35 | T2 |  |
-| [0x12C768](../../../src/game/engine/anim/act/func_0012C768.c) | `EvaluateAcFloatB` | Evaluate at t | 0.30 | T2 |  |
-| [0x12CA68](../../../src/game/engine/anim/act/func_0012CA68.c) | `EvaluateAcFloatBBezier` | Evaluate via EvaluateBezierFloat | 0.30 | T2 |  |
-| [0x12CB98](../../../src/game/engine/anim/act/PacNewKind2.cpp) | `PacNewKind2` | Factory: new object of kind 0..2 (second curve family) | 0.75 | T1 | parse |
-| [0x12CC60](../../../src/game/engine/anim/act/func_0012CC60.c) | `AcStub8` | 8-byte stub (in curve vtable 0x2CA8E0 and in a BASIC-derived vtable slot 116) | 0.20 | T2 |  |
-| [0x12CC68](../../../src/game/engine/anim/act/LoadAcFloatConstFromBrx.c) | `LoadAcFloatConstFromBrx` | Reads one F32 | 0.75 | T1 | parse |
-| [0x12CC98](../../../src/game/engine/anim/act/func_0012CC98.c) | `EvaluateAcFloatConst` | Returns the stored float | 0.30 | T2 |  |
-| [0x12CCB8](../../../src/game/engine/anim/act/LoadAcFloatKeysFromBrx.c) | `LoadAcFloatKeysFromBrx` | U16 count + F32 keys | 0.75 | T1 | parse |
-| [0x12CDA0](../../../src/game/engine/anim/act/func_0012CDA0.c) | `EvaluateAcFloatKeys` | Evaluate via EvaluateBezierFloat | 0.30 | T2 |  |
-| [0x12CE50](../../../src/game/engine/anim/act/func_0012CE50.c) | `PactAlloc` | Allocates an ACT-family object from its slot pool (PvAllocSlotheapClear) | 0.45 | T2 |  |
-| [0x12CE70](../../../src/game/engine/anim/act/func_0012CE70.c) | `FreeAct` | Returns an ACT-family object to its pool (FreeSlotheapPv) | 0.45 | T2 |  |
-| [0x12CE98](../../../src/game/engine/anim/act/func_0012CE98.c) | `RetractAct` | Common slot 1 of the ACT vtables: detaches from the ALO (0x2303A0, 0x22C840) | 0.35 | T2 |  |
-| [0x12CED8](../../../src/game/engine/anim/act/func_0012CED8.c) | `ACT_Stub2` | 8-byte shared virtual (no-op) | 0.25 | T2 |  |
-| [0x12CEE0](../../../src/game/engine/anim/act/func_0012CEE0.c) | `FActLive` | Tests whether an ACT entry is live/attached | 0.35 | T2 |  |
-| [0x12CF20](../../../src/game/engine/anim/act/func_0012CF20.c) | `ACT_Stub3` | 8-byte shared virtual (no-op) | 0.25 | T2 | verified |
-| [0x12CF28](../../../src/game/engine/anim/act/func_0012CF28.c) | `GetActPoseGoalDefault` | 8-byte default virtual (returns 0 / nothing) | 0.20 | T2 |  |
-| [0x12CF30](../../../src/game/engine/anim/act/func_0012CF30.c) | `UpdateAct` | Default slot-5: forwards to 0x22CA18 | 0.25 | T2 |  |
-| [0x12CF88](../../../src/game/engine/anim/act/CloneAct.c) | `CloneAct` | Copies header fields and CopyAb the class body (size from D_003E1230.cb) | 0.50 | T1 |  |
-| [0x12CFE0](../../../src/game/engine/anim/act/func_0012CFE0.c) | `AttachActToAlo` | 0x12D058 then link into ALO act list (0x230018) | 0.30 | T2 |  |
-| [0x12D020](../../../src/game/engine/anim/act/func_0012D020.c) | `DetachActFromAlo` | 0x12D058 then unlink (0x230100) | 0.30 | T2 |  |
-| [0x12D058](../../../src/game/engine/anim/act/func_0012D058.c) | `ActResetLink` | Helper shared by attach/detach | 0.25 | T2 |  |
-| [0x12D088](../../../src/game/engine/anim/act/func_0012D088.c) | `ActUnk_2CA830_4` | vtable 0x2CA830 slot 4 | 0.20 | T2 |  |
-| [0x12D0D8](../../../src/game/engine/anim/act/func_0012D0D8.c) | `ActUnk_2CA830_5` | vtable 0x2CA830 slot 5 | 0.20 | T2 |  |
-| [0x12D108](../../../src/game/engine/anim/act/SetActPositionGoal.c) | `SetActPositionGoal` | Store a new position goal (+0x20); if this act is the XF driver (xf+0x90==act) and the goal moved, copy it to xf+0xC0 and un-settle the slot (0x230598) | 0.65 | T1 | top50 |
-| [0x12D210](../../../src/game/engine/anim/act/func_0012D210.c) | `ActUnk_2CA7F0_1` | vtable 0x2CA7F0 slot 1 (12-byte) | 0.20 | T2 |  |
-| [0x12D220](../../../src/game/engine/anim/act/UpdateActLookAt.c) | `UpdateActLookAt` | Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt (CalculateVectorPanTilt) | 0.85 | T1 | verified |
-| [0x12D4D8](../../../src/game/engine/anim/act/func_0012D4D8.c) | `ActLookAt_Slot4` | vtable 0x2CA7F0 slot 4 | 0.20 | T2 |  |
-| [0x12D508](../../../src/game/engine/anim/act/func_0012D508.cpp) | `UpdateActPath` | Path-following act: EvaluateBezierPos + BuildOrthonormalMatrixZ | 0.30 | T2 |  |
-| [0x12D858](../../../src/game/engine/anim/act/func_0012D858.c) | `ActUnk_2CA758_1` | vtable 0x2CA758 slot 1 | 0.20 | T2 |  |
-| [0x12D890](../../../src/game/engine/anim/act/func_0012D890.c) | `ActUnk_2CA758_2` | vtable 0x2CA758 slot 2 | 0.20 | T2 |  |
-| [0x12D8D8](../../../src/game/engine/anim/act/func_0012D8D8.c) | `ActUnk_2CA758_3` | vtable 0x2CA758 slot 3 | 0.20 | T2 |  |
-| [0x12D958](../../../src/game/engine/anim/act/func_0012D958.c) | `ActUnk_2CA758_4` | vtable 0x2CA758 slot 4 | 0.20 | T2 |  |
-| [0x12D9D0](../../../src/game/engine/anim/act/func_0012D9D0.c) | `ActUnk_2CA758_5` | vtable 0x2CA758 slot 5 | 0.20 | T2 |  |
-| [0x12DA30](../../../src/game/engine/anim/act/func_0012DA30.c) | `SetActRotationGoal` | Stores a rotation goal and pushes it to the ALO (0x230598) | 0.30 | T2 |  |
-| [0x12DB50](../../../src/game/engine/anim/act/func_0012DB50.c) | `PactNewKind` | Allocates/initialises an act record of a kind (0x12E238) for (alo, owner) | 0.40 | T2 |  |
-| [0x12DBB0](../../../src/game/engine/anim/act/func_0012DBB0.c) | `PactNewA` | Create act (variant A) and attach (0x230018) | 0.30 | T2 |  |
-| [0x12DC18](../../../src/game/engine/anim/act/func_0012DC18.c) | `PactNewPosition` | Create an ACT of kind 1 (PactNewKind) for (so, xf), store an int (+0x1C) and a vector goal (+0x20), insert it into the XF actuator list (AddXfAct), return it | 0.50 | T2 | top50; top50 round; v2 name PactNewVector |
-| [0x12DCA0](../../../src/game/engine/anim/act/func_0012DCA0.c) | `PactNewB` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DD28](../../../src/game/engine/anim/act/func_0012DD28.c) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DDB0](../../../src/game/engine/anim/act/func_0012DDB0.c) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DE58](../../../src/game/engine/anim/act/func_0012DE58.c) | `PactNewE` | Create act variant and attach | 0.30 | T2 |  |
-| [0x12DEF0](../../../src/game/engine/anim/act/func_0012DEF0.cpp) | `UpdateActXform` | Matrix-based act update (InvertMatrix4Rigid, M4*M4) | 0.25 | T2 |  |
-| [0x12DFE0](../../../src/game/engine/anim/act/func_0012DFE0.c) | `ActXform_Slot5` | vtable 0x2CA730 slot 5 | 0.20 | T2 |  |
-| [0x12E010](../../../src/game/engine/anim/act/func_0012E010.c) | `ActUnk_2CA6F0_4` | vtable 0x2CA6F0 slot 4 | 0.20 | T2 |  |
-| [0x12E060](../../../src/game/engine/anim/act/func_0012E060.c) | `ActUnk_2CA6F0_5` | vtable 0x2CA6F0 slot 5: EvaluateBezierPos | 0.25 | T2 |  |
-| [0x12E0F0](../../../src/game/engine/anim/act/func_0012E0F0.c) | `ActUnk_12E0F0` | Small accessor | 0.20 | T2 |  |
-| [0x12E120](../../../src/game/engine/anim/act/func_0012E120.c) | `ActUnk_2CA6A0_1` | vtable 0x2CA6A0 slot 1 (calls ACT::Retract) | 0.20 | T2 |  |
-| [0x12E1F0](../../../src/game/engine/anim/act/func_0012E1F0.c) | `PactAlloc2` | Pool alloc of a second act-record type | 0.40 | T2 |  |
-| [0x12E210](../../../src/game/engine/anim/act/func_0012E210.c) | `FreeAct2` | Pool free of that type | 0.40 | T2 |  |
-| [0x12E238](../../../src/game/engine/anim/act/func_0012E238.cpp) | `InitActKind` | Initialises an act record by kind | 0.30 | T2 |  |
-| [0x12E3F0](../../../src/game/engine/anim/act/func_0012E3F0.c) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
-| [0x12E460](../../../src/game/engine/anim/act/ReleaseAct.c) | `ReleaseAct` | If *ppact: DetachActFromAlo, free it (0x12E210), *ppact=NULL | 0.70 | T1 | top50 |
+| [0x12B3B0](../../../src/game/engine/anim/act.cpp) | `PacNewKind` | Factory: new animation-curve object of kind 0..5 (six C++ curve classes) | 0.75 | T1 | parse |
+| [0x12B4F0](../../../src/game/engine/anim/act.cpp) | `GetAcConstTimes` | 8-byte stub in curve vtables (returns nothing / 0) | 0.25 | T2 |  |
+| [0x12B4F8](../../../src/game/engine/anim/act.cpp) | `LoadAcConstFromBrx` | Reads a fixed-size constant record (Read) | 0.75 | T1 | parse |
+| [0x12B520](../../../src/game/engine/anim/act.cpp) | `EvaluateAcConst` | Returns the constant value | 0.30 | T2 |  |
+| [0x12B590](../../../src/game/engine/anim/act.cpp) | `CloneAcConst` | CopyAb of the record | 0.25 | T2 |  |
+| [0x12B5E0](../../../src/game/engine/anim/act.cpp) | `LoadAcVecAFromBrx` | Reads U16 key count and VECTOR keys (with tangents) into a heap array | 0.75 | T1 | parse |
+| [0x12B6D8](../../../src/game/engine/anim/act.cpp) | `AcVecA_IkeyFind` | Finds the key segment containing time t | 0.35 | T2 |  |
+| [0x12B738](../../../src/game/engine/anim/act.cpp) | `EvaluateAcVecA` | Evaluates the vector curve at t (inline Hermite) | 0.30 | T2 |  |
+| [0x12B9D0](../../../src/game/engine/anim/act.cpp) | `EvaluateAcVecABezier` | Evaluates via EvaluateBezierPos (value/velocity) | 0.30 | T2 |  |
+| [0x12BA98](../../../src/game/engine/anim/act.cpp) | `LoadAcVecBFromBrx` | Second vector-keyed curve class: load | 0.75 | T1 | parse |
+| [0x12BB70](../../../src/game/engine/anim/act.cpp) | `AcVecB_IkeyFind` | Key segment search | 0.35 | T2 | verified |
+| [0x12BBD0](../../../src/game/engine/anim/act.cpp) | `EvaluateAcVecB` | Evaluate at t | 0.30 | T2 |  |
+| [0x12BE68](../../../src/game/engine/anim/act.cpp) | `EvaluateAcVecBBezier` | Evaluate via EvaluateBezierPos | 0.30 | T2 |  |
+| [0x12BF30](../../../src/game/engine/anim/act.cpp) | `LoadAcFloatAFromBrx` | Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors | 0.75 | T1 | parse |
+| [0x12C0E0](../../../src/game/engine/anim/act.cpp) | `AcFloatA_IkeyFind` | Key segment search | 0.35 | T2 |  |
+| [0x12C140](../../../src/game/engine/anim/act.cpp) | `EvaluateAcFloatA` | Evaluate at t | 0.30 | T2 |  |
+| [0x12C440](../../../src/game/engine/anim/act.cpp) | `EvaluateAcFloatABezier` | Evaluate via EvaluateBezierFloat | 0.30 | T2 |  |
+| [0x12C570](../../../src/game/engine/anim/act.cpp) | `LoadAcFloatBFromBrx` | Second scalar curve class: load | 0.75 | T1 | parse |
+| [0x12C708](../../../src/game/engine/anim/act.cpp) | `AcFloatB_IkeyFind` | Key segment search | 0.35 | T2 |  |
+| [0x12C768](../../../src/game/engine/anim/act.cpp) | `EvaluateAcFloatB` | Evaluate at t | 0.30 | T2 |  |
+| [0x12CA68](../../../src/game/engine/anim/act.cpp) | `EvaluateAcFloatBBezier` | Evaluate via EvaluateBezierFloat | 0.30 | T2 |  |
+| [0x12CB98](../../../src/game/engine/anim/act.cpp) | `PacNewKind2` | Factory: new object of kind 0..2 (second curve family) | 0.75 | T1 | parse |
+| [0x12CC60](../../../src/game/engine/anim/act.cpp) | `AcStub8` | 8-byte stub (in curve vtable 0x2CA8E0 and in a BASIC-derived vtable slot 116) | 0.20 | T2 |  |
+| [0x12CC68](../../../src/game/engine/anim/act.cpp) | `LoadAcFloatConstFromBrx` | Reads one F32 | 0.75 | T1 | parse |
+| [0x12CC98](../../../src/game/engine/anim/act.cpp) | `EvaluateAcFloatConst` | Returns the stored float | 0.30 | T2 |  |
+| [0x12CCB8](../../../src/game/engine/anim/act.cpp) | `LoadAcFloatKeysFromBrx` | U16 count + F32 keys | 0.75 | T1 | parse |
+| [0x12CDA0](../../../src/game/engine/anim/act.cpp) | `EvaluateAcFloatKeys` | Evaluate via EvaluateBezierFloat | 0.30 | T2 |  |
+| [0x12CE50](../../../src/game/engine/anim/act.cpp) | `PactAlloc` | Allocates an ACT-family object from its slot pool (PvAllocSlotheapClear) | 0.45 | T2 |  |
+| [0x12CE70](../../../src/game/engine/anim/act.cpp) | `FreeAct` | Returns an ACT-family object to its pool (FreeSlotheapPv) | 0.45 | T2 |  |
+| [0x12CE98](../../../src/game/engine/anim/act.cpp) | `RetractAct` | Common slot 1 of the ACT vtables: detaches from the ALO (0x2303A0, 0x22C840) | 0.35 | T2 |  |
+| [0x12CED8](../../../src/game/engine/anim/act.cpp) | `ACT_Stub2` | 8-byte shared virtual (no-op) | 0.25 | T2 |  |
+| [0x12CEE0](../../../src/game/engine/anim/act.cpp) | `FActLive` | Tests whether an ACT entry is live/attached | 0.35 | T2 |  |
+| [0x12CF20](../../../src/game/engine/anim/act.cpp) | `ACT_Stub3` | 8-byte shared virtual (no-op) | 0.25 | T2 | verified |
+| [0x12CF28](../../../src/game/engine/anim/act.cpp) | `GetActPoseGoalDefault` | 8-byte default virtual (returns 0 / nothing) | 0.20 | T2 |  |
+| [0x12CF30](../../../src/game/engine/anim/act.cpp) | `UpdateAct` | Default slot-5: forwards to 0x22CA18 | 0.25 | T2 |  |
+| [0x12CF88](../../../src/game/engine/anim/act.cpp) | `CloneAct` | Copies header fields and CopyAb the class body (size from D_003E1230.cb) | 0.50 | T1 |  |
+| [0x12CFE0](../../../src/game/engine/anim/act.cpp) | `AttachActToAlo` | 0x12D058 then link into ALO act list (0x230018) | 0.30 | T2 |  |
+| [0x12D020](../../../src/game/engine/anim/act.cpp) | `DetachActFromAlo` | 0x12D058 then unlink (0x230100) | 0.30 | T2 |  |
+| [0x12D058](../../../src/game/engine/anim/act.cpp) | `ActResetLink` | Helper shared by attach/detach | 0.25 | T2 |  |
+| [0x12D088](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA830_4` | vtable 0x2CA830 slot 4 | 0.20 | T2 |  |
+| [0x12D0D8](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA830_5` | vtable 0x2CA830 slot 5 | 0.20 | T2 |  |
+| [0x12D108](../../../src/game/engine/anim/act.cpp) | `SetActPositionGoal` | Store a new position goal (+0x20); if this act is the XF driver (xf+0x90==act) and the goal moved, copy it to xf+0xC0 and un-settle the slot (0x230598) | 0.65 | T1 | top50 |
+| [0x12D210](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA7F0_1` | vtable 0x2CA7F0 slot 1 (12-byte) | 0.20 | T2 |  |
+| [0x12D220](../../../src/game/engine/anim/act.cpp) | `UpdateActLookAt` | Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt (CalculateVectorPanTilt) | 0.85 | T1 | verified |
+| [0x12D4D8](../../../src/game/engine/anim/act.cpp) | `ActLookAt_Slot4` | vtable 0x2CA7F0 slot 4 | 0.20 | T2 |  |
+| [0x12D508](../../../src/game/engine/anim/act.cpp) | `UpdateActPath` | Path-following act: EvaluateBezierPos + BuildOrthonormalMatrixZ | 0.30 | T2 |  |
+| [0x12D858](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA758_1` | vtable 0x2CA758 slot 1 | 0.20 | T2 |  |
+| [0x12D890](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA758_2` | vtable 0x2CA758 slot 2 | 0.20 | T2 |  |
+| [0x12D8D8](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA758_3` | vtable 0x2CA758 slot 3 | 0.20 | T2 |  |
+| [0x12D958](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA758_4` | vtable 0x2CA758 slot 4 | 0.20 | T2 |  |
+| [0x12D9D0](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA758_5` | vtable 0x2CA758 slot 5 | 0.20 | T2 |  |
+| [0x12DA30](../../../src/game/engine/anim/act.cpp) | `SetActRotationGoal` | Stores a rotation goal and pushes it to the ALO (0x230598) | 0.30 | T2 |  |
+| [0x12DB50](../../../src/game/engine/anim/act.cpp) | `PactNewKind` | Allocates/initialises an act record of a kind (0x12E238) for (alo, owner) | 0.40 | T2 |  |
+| [0x12DBB0](../../../src/game/engine/anim/act.cpp) | `PactNewA` | Create act (variant A) and attach (0x230018) | 0.30 | T2 |  |
+| [0x12DC18](../../../src/game/engine/anim/act.cpp) | `PactNewPosition` | Create an ACT of kind 1 (PactNewKind) for (so, xf), store an int (+0x1C) and a vector goal (+0x20), insert it into the XF actuator list (AddXfAct), return it | 0.50 | T2 | top50; top50 round; v2 name PactNewVector |
+| [0x12DCA0](../../../src/game/engine/anim/act.cpp) | `PactNewB` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DD28](../../../src/game/engine/anim/act.cpp) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DDB0](../../../src/game/engine/anim/act.cpp) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DE58](../../../src/game/engine/anim/act.cpp) | `PactNewE` | Create act variant and attach | 0.30 | T2 |  |
+| [0x12DEF0](../../../src/game/engine/anim/act.cpp) | `UpdateActXform` | Matrix-based act update (InvertMatrix4Rigid, M4*M4) | 0.25 | T2 |  |
+| [0x12DFE0](../../../src/game/engine/anim/act.cpp) | `ActXform_Slot5` | vtable 0x2CA730 slot 5 | 0.20 | T2 |  |
+| [0x12E010](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA6F0_4` | vtable 0x2CA6F0 slot 4 | 0.20 | T2 |  |
+| [0x12E060](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA6F0_5` | vtable 0x2CA6F0 slot 5: EvaluateBezierPos | 0.25 | T2 |  |
+| [0x12E0F0](../../../src/game/engine/anim/act.cpp) | `ActUnk_12E0F0` | Small accessor | 0.20 | T2 |  |
+| [0x12E120](../../../src/game/engine/anim/act.cpp) | `ActUnk_2CA6A0_1` | vtable 0x2CA6A0 slot 1 (calls ACT::Retract) | 0.20 | T2 |  |
+| [0x12E1F0](../../../src/game/engine/anim/act.cpp) | `PactAlloc2` | Pool alloc of a second act-record type | 0.40 | T2 |  |
+| [0x12E210](../../../src/game/engine/anim/act.cpp) | `FreeAct2` | Pool free of that type | 0.40 | T2 |  |
+| [0x12E238](../../../src/game/engine/anim/act.cpp) | `InitActKind` | Initialises an act record by kind | 0.30 | T2 |  |
+| [0x12E3F0](../../../src/game/engine/anim/act.cpp) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
+| [0x12E460](../../../src/game/engine/anim/act.cpp) | `ReleaseAct` | If *ppact: DetachActFromAlo, free it (0x12E210), *ppact=NULL | 0.70 | T1 | top50 |
 
 ## amb (0x12EB48-0x12F0F0)
 

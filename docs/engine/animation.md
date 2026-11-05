@@ -94,22 +94,22 @@ From `devtools/anim_lab/ANIM_FORMAT.txt` (tool tags in brackets: code / parse / 
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x12B3B0](../../src/game/engine/anim/act/PacNewKind.cpp) | `PacNewKind` | Factory: new animation-curve object of kind 0..5 (six C++ curve classes) | 0.75 | T1 | parse |
-| [0x12B4F8](../../src/game/engine/anim/act/LoadAcConstFromBrx.c) | `LoadAcConstFromBrx` | Reads a fixed-size constant record (Read) | 0.75 | T1 | parse |
-| [0x12B5E0](../../src/game/engine/anim/act/LoadAcVecAFromBrx.c) | `LoadAcVecAFromBrx` | Reads U16 key count and VECTOR keys (with tangents) into a heap array | 0.75 | T1 | parse |
-| [0x12BA98](../../src/game/engine/anim/act/LoadAcVecBFromBrx.c) | `LoadAcVecBFromBrx` | Second vector-keyed curve class: load | 0.75 | T1 | parse |
-| [0x12BB70](../../src/game/engine/anim/act/func_0012BB70.c) | `AcVecB_IkeyFind` | Key segment search | 0.35 | T2 | verified |
-| [0x12BF30](../../src/game/engine/anim/act/LoadAcFloatAFromBrx.c) | `LoadAcFloatAFromBrx` | Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors | 0.75 | T1 | parse |
-| [0x12C570](../../src/game/engine/anim/act/LoadAcFloatBFromBrx.c) | `LoadAcFloatBFromBrx` | Second scalar curve class: load | 0.75 | T1 | parse |
-| [0x12CB98](../../src/game/engine/anim/act/PacNewKind2.cpp) | `PacNewKind2` | Factory: new object of kind 0..2 (second curve family) | 0.75 | T1 | parse |
-| [0x12CC68](../../src/game/engine/anim/act/LoadAcFloatConstFromBrx.c) | `LoadAcFloatConstFromBrx` | Reads one F32 | 0.75 | T1 | parse |
-| [0x12CCB8](../../src/game/engine/anim/act/LoadAcFloatKeysFromBrx.c) | `LoadAcFloatKeysFromBrx` | U16 count + F32 keys | 0.75 | T1 | parse |
-| [0x12CF20](../../src/game/engine/anim/act/func_0012CF20.c) | `ACT_Stub3` | 8-byte shared virtual (no-op) | 0.25 | T2 | verified |
-| [0x12D220](../../src/game/engine/anim/act/UpdateActLookAt.c) | `UpdateActLookAt` | Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt (CalculateVectorPanTilt) | 0.85 | T1 | verified |
-| [0x12DCA0](../../src/game/engine/anim/act/func_0012DCA0.c) | `PactNewB` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DD28](../../src/game/engine/anim/act/func_0012DD28.c) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12DDB0](../../src/game/engine/anim/act/func_0012DDB0.c) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
-| [0x12E3F0](../../src/game/engine/anim/act/func_0012E3F0.c) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
+| [0x12B3B0](../../src/game/engine/anim/act.cpp) | `PacNewKind` | Factory: new animation-curve object of kind 0..5 (six C++ curve classes) | 0.75 | T1 | parse |
+| [0x12B4F8](../../src/game/engine/anim/act.cpp) | `LoadAcConstFromBrx` | Reads a fixed-size constant record (Read) | 0.75 | T1 | parse |
+| [0x12B5E0](../../src/game/engine/anim/act.cpp) | `LoadAcVecAFromBrx` | Reads U16 key count and VECTOR keys (with tangents) into a heap array | 0.75 | T1 | parse |
+| [0x12BA98](../../src/game/engine/anim/act.cpp) | `LoadAcVecBFromBrx` | Second vector-keyed curve class: load | 0.75 | T1 | parse |
+| [0x12BB70](../../src/game/engine/anim/act.cpp) | `AcVecB_IkeyFind` | Key segment search | 0.35 | T2 | verified |
+| [0x12BF30](../../src/game/engine/anim/act.cpp) | `LoadAcFloatAFromBrx` | Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors | 0.75 | T1 | parse |
+| [0x12C570](../../src/game/engine/anim/act.cpp) | `LoadAcFloatBFromBrx` | Second scalar curve class: load | 0.75 | T1 | parse |
+| [0x12CB98](../../src/game/engine/anim/act.cpp) | `PacNewKind2` | Factory: new object of kind 0..2 (second curve family) | 0.75 | T1 | parse |
+| [0x12CC68](../../src/game/engine/anim/act.cpp) | `LoadAcFloatConstFromBrx` | Reads one F32 | 0.75 | T1 | parse |
+| [0x12CCB8](../../src/game/engine/anim/act.cpp) | `LoadAcFloatKeysFromBrx` | U16 count + F32 keys | 0.75 | T1 | parse |
+| [0x12CF20](../../src/game/engine/anim/act.cpp) | `ACT_Stub3` | 8-byte shared virtual (no-op) | 0.25 | T2 | verified |
+| [0x12D220](../../src/game/engine/anim/act.cpp) | `UpdateActLookAt` | Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt (CalculateVectorPanTilt) | 0.85 | T1 | verified |
+| [0x12DCA0](../../src/game/engine/anim/act.cpp) | `PactNewB` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DD28](../../src/game/engine/anim/act.cpp) | `PactNewC` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12DDB0](../../src/game/engine/anim/act.cpp) | `PactNewD` | Create act variant and attach | 0.30 | T2 | verified |
+| [0x12E3F0](../../src/game/engine/anim/act.cpp) | `ActUnk_12E3F0` | Wrapper of InitActKind (no callers: callback) | 0.20 | T2 | verified |
 | [0x12EB78](../../src/game/engine/sound/amb.cpp) | `LoadCid43FromBrx` | slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list | 0.75 | T2 | parse |
 | [0x12EC50](../../src/game/engine/sound/amb.cpp) | `PostCid43Load` | slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind (0x1FE990) | 0.85 | T2 | verified |
 | [0x12ED20](../../src/game/engine/sound/amb.cpp) | `OnCid43Add` | slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange) | 0.85 | T2 | arbitration |

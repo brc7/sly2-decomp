@@ -127,38 +127,38 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA6A0` | 7 | 1=`ActUnk_2CA6A0_1?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
-| `0x2CA6E0` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`ActUnk_2CA6F0_4?`, 5=`ActUnk_2CA6F0_5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18) | — |
-| `0x2CA720` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`UpdateActXform?`, 5=`ActXform_Slot5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18) | — |
-| `0x2CA760` | 7 | 1=`ActUnk_2CA758_1?`, 2=`ActUnk_2CA758_2?`, 3=`ActUnk_2CA758_3?`, 4=`ActUnk_2CA758_4?`, 5=`ActUnk_2CA758_5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) | — |
-| `0x2CA7A0` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`UpdateActPath?`, 5=`UpdateAct?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
-| `0x2CA7E0` | 7 | 1=`RetractAct?`, 2=`ActUnk_2CA7F0_1?`, 3=`ACT_Stub3?`, 4=`UpdateActLookAt`, 5=`ActLookAt_Slot4?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
-| `0x2CA820` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`ActUnk_2CA830_4?`, 5=`ActUnk_2CA830_5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
+| `0x2CA6A0` | 7 | 1=`ActUnk_2CA6A0_1?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp) (+0x18), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
+| `0x2CA6E0` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`ActUnk_2CA6F0_4?`, 5=`ActUnk_2CA6F0_5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp) (+0x18) | — |
+| `0x2CA720` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`UpdateActXform?`, 5=`ActXform_Slot5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp) (+0x18) | — |
+| `0x2CA760` | 7 | 1=`ActUnk_2CA758_1?`, 2=`ActUnk_2CA758_2?`, 3=`ActUnk_2CA758_3?`, 4=`ActUnk_2CA758_4?`, 5=`ActUnk_2CA758_5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp) | — |
+| `0x2CA7A0` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`UpdateActPath?`, 5=`UpdateAct?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
+| `0x2CA7E0` | 7 | 1=`RetractAct?`, 2=`ActUnk_2CA7F0_1?`, 3=`ACT_Stub3?`, 4=`UpdateActLookAt`, 5=`ActLookAt_Slot4?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
+| `0x2CA820` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`ActUnk_2CA830_4?`, 5=`ActUnk_2CA830_5?`, 6=`CloneAct` | [`InitActKind?`](../../src/game/engine/anim/act.cpp) (+0x18), [`LoadSoXfsFromBrx`](../../src/game/engine/anim/xf.cpp) (+0x18) | — |
 | `0x2CA860` | 7 | 1=`RetractAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneAct` | (no lui/addiu reference: reached through a table or unused) | — |
-| `0x2CAF08` | 7 | 1=`AsegaChnAttach?`, 2=`AsegaChnDetach?`, 3=`ACT_Stub3?`, 4=`AsegaChnApply?`, 5=`GetActsegGoal`, 6=`CloneAct` | [`ApplyAseg?`](../../src/game/engine/anim/aseg.cpp), [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18) | — |
-| `0x2D2E58` | 7 | 1=`RetractActik?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`ApplyActik?` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) (+0x18) | — |
-| `0x2DB338` | 7 | 1=`RetractChainAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneChainAct?` | [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp), [`LoadSoChainsFromBrx?`](../../src/game/engine/anim/tail.cpp) (+0x18) | — |
+| `0x2CAF08` | 7 | 1=`AsegaChnAttach?`, 2=`AsegaChnDetach?`, 3=`ACT_Stub3?`, 4=`AsegaChnApply?`, 5=`GetActsegGoal`, 6=`CloneAct` | [`ApplyAseg?`](../../src/game/engine/anim/aseg.cpp), [`InitActKind?`](../../src/game/engine/anim/act.cpp) (+0x18) | — |
+| `0x2D2E58` | 7 | 1=`RetractActik?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`ApplyActik?` | [`InitActKind?`](../../src/game/engine/anim/act.cpp) (+0x18) | — |
+| `0x2DB338` | 7 | 1=`RetractChainAct?`, 2=`ACT_Stub2?`, 3=`ACT_Stub3?`, 4=`GetActPoseGoalDefault?`, 5=`UpdateAct?`, 6=`CloneChainAct?` | [`InitActKind?`](../../src/game/engine/anim/act.cpp), [`LoadSoChainsFromBrx?`](../../src/game/engine/anim/tail.cpp) (+0x18) | — |
 
 #### B2.9 AC / BLEND
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA8A0` | 3 | 1=`LoadAcFloatConstFromBrx`, 2=`EvaluateAcFloatConst?` | [`PacNewKind2`](../../src/game/engine/anim/act/PacNewKind2.cpp) (+0x0) | — |
-| `0x2CA8C0` | 3 | 1=`LoadAcFloatKeysFromBrx`, 2=`EvaluateAcFloatKeys?` | [`PacNewKind2`](../../src/game/engine/anim/act/PacNewKind2.cpp) (+0x0) | — |
+| `0x2CA8A0` | 3 | 1=`LoadAcFloatConstFromBrx`, 2=`EvaluateAcFloatConst?` | [`PacNewKind2`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
+| `0x2CA8C0` | 3 | 1=`LoadAcFloatKeysFromBrx`, 2=`EvaluateAcFloatKeys?` | [`PacNewKind2`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
 | `0x2CA8E0` | 3 | 1=`AcStub8?`, 2=`__pure_virtual` | (no lui/addiu reference: reached through a table or unused) | — |
-| `0x2CB588` | 3 | 1=`AcStub8?`, 2=`EvaluateBlendChnScalar?` | [`PacNewKind2`](../../src/game/engine/anim/act/PacNewKind2.cpp) (+0x0) | — |
+| `0x2CB588` | 3 | 1=`AcStub8?`, 2=`EvaluateBlendChnScalar?` | [`PacNewKind2`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
 
 #### B2.10 AC / BLEND
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA900` | 4 | 1=`LoadAcFloatBFromBrx`, 2=`EvaluateAcFloatB?`, 3=`EvaluateAcFloatBBezier?` | [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) (+0x0) | — |
-| `0x2CA928` | 4 | 1=`LoadAcFloatAFromBrx`, 2=`EvaluateAcFloatA?`, 3=`EvaluateAcFloatABezier?` | [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) (+0x0) | — |
-| `0x2CA950` | 4 | 1=`LoadAcVecBFromBrx`, 2=`EvaluateAcVecB?`, 3=`EvaluateAcVecBBezier?` | [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) (+0x0) | — |
-| `0x2CA978` | 4 | 1=`LoadAcVecAFromBrx`, 2=`EvaluateAcVecA?`, 3=`EvaluateAcVecABezier?` | [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) (+0x0) | — |
-| `0x2CA9A0` | 4 | 1=`LoadAcConstFromBrx`, 2=`EvaluateAcConst?`, 3=`CloneAcConst?` | [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) (+0x0) | — |
+| `0x2CA900` | 4 | 1=`LoadAcFloatBFromBrx`, 2=`EvaluateAcFloatB?`, 3=`EvaluateAcFloatBBezier?` | [`PacNewKind`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
+| `0x2CA928` | 4 | 1=`LoadAcFloatAFromBrx`, 2=`EvaluateAcFloatA?`, 3=`EvaluateAcFloatABezier?` | [`PacNewKind`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
+| `0x2CA950` | 4 | 1=`LoadAcVecBFromBrx`, 2=`EvaluateAcVecB?`, 3=`EvaluateAcVecBBezier?` | [`PacNewKind`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
+| `0x2CA978` | 4 | 1=`LoadAcVecAFromBrx`, 2=`EvaluateAcVecA?`, 3=`EvaluateAcVecABezier?` | [`PacNewKind`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
+| `0x2CA9A0` | 4 | 1=`LoadAcConstFromBrx`, 2=`EvaluateAcConst?`, 3=`CloneAcConst?` | [`PacNewKind`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
 | `0x2CA9C8` | 4 | 1=`GetAcConstTimes?`, 2=`__pure_virtual`, 3=`__pure_virtual` | (no lui/addiu reference: reached through a table or unused) | — |
-| `0x2CB5A8` | 5 | 1=`GetAcConstTimes?`, 2=`EvaluateBlendChnPose?`, 3=`EvaluateBlendChnPosVel`, 4=`GetKind5?` | [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) (+0x0) | — |
+| `0x2CB5A8` | 5 | 1=`GetAcConstTimes?`, 2=`EvaluateBlendChnPose?`, 3=`EvaluateBlendChnPosVel`, 4=`GetKind5?` | [`PacNewKind`](../../src/game/engine/anim/act.cpp) (+0x0) | — |
 
 #### B2.11 CPLCY / CPZOOM
 
@@ -389,9 +389,9 @@ Functions that load (lui/addiu) two or more distinct vtable addresses and store 
 
 | Function | Vtables in load order (class, vptr offset) |
 |---|---|
-| [`PacNewKind`](../../src/game/engine/anim/act/PacNewKind.cpp) | `0x2CA9A0` (unclaimed) +0x0, `0x2CA978` (unclaimed) +0x0, `0x2CA950` (unclaimed) +0x0, `0x2CA928` (unclaimed) +0x0, `0x2CA900` (unclaimed) +0x0, `0x2CB5A8` (unclaimed) +0x0 |
-| [`PacNewKind2`](../../src/game/engine/anim/act/PacNewKind2.cpp) | `0x2CA8A0` (unclaimed) +0x0, `0x2CA8C0` (unclaimed) +0x0, `0x2CB588` (unclaimed) +0x0 |
-| [`InitActKind?`](../../src/game/engine/anim/act/func_0012E238.cpp) | `0x2CAF08` (unclaimed) +0x18, `0x2CA820` (unclaimed) +0x18, `0x2CA7E0` (unclaimed) +?, `0x2DB338` (unclaimed) +?, `0x2CA7A0` (unclaimed) +?, `0x2CA760` (unclaimed) +?, `0x2CA720` (unclaimed) +0x18, `0x2D2E58` (unclaimed) +0x18, `0x2CA6E0` (unclaimed) +0x18, `0x2CA6A0` (unclaimed) +0x18 |
+| [`PacNewKind`](../../src/game/engine/anim/act.cpp) | `0x2CA9A0` (unclaimed) +0x0, `0x2CA978` (unclaimed) +0x0, `0x2CA950` (unclaimed) +0x0, `0x2CA928` (unclaimed) +0x0, `0x2CA900` (unclaimed) +0x0, `0x2CB5A8` (unclaimed) +0x0 |
+| [`PacNewKind2`](../../src/game/engine/anim/act.cpp) | `0x2CA8A0` (unclaimed) +0x0, `0x2CA8C0` (unclaimed) +0x0, `0x2CB588` (unclaimed) +0x0 |
+| [`InitActKind?`](../../src/game/engine/anim/act.cpp) | `0x2CAF08` (unclaimed) +0x18, `0x2CA820` (unclaimed) +0x18, `0x2CA7E0` (unclaimed) +?, `0x2DB338` (unclaimed) +?, `0x2CA7A0` (unclaimed) +?, `0x2CA760` (unclaimed) +?, `0x2CA720` (unclaimed) +0x18, `0x2D2E58` (unclaimed) +0x18, `0x2CA6E0` (unclaimed) +0x18, `0x2CA6A0` (unclaimed) +0x18 |
 | [`ApplyAseg?`](../../src/game/engine/anim/aseg.cpp) | `0x2CAF48` ASEGA +0xC, `0x2CAF08` (unclaimed) +? |
 | [`CM_ctor?`](../../src/game/engine/camera/cm.cpp) | `0x2CA4D0` CM +0xC, `0x2CD378` (unclaimed) +0xC |
 | [`PvtripFromRipt?`](../../src/game/engine/fx/rip.cpp) | `0x2D7738` (unclaimed) +?, `0x2D76E8` (unclaimed) +?, `0x2D7698` (unclaimed) +?, `0x2D7648` (unclaimed) +?, `0x2D75F8` (unclaimed) +?, `0x2D75A8` (unclaimed) +?, `0x2D74B8` (unclaimed) +?, `0x2D7558` (unclaimed) +?, `0x2D7508` (unclaimed) +?, `0x2D7788` (unclaimed) +0xEC, `0x2D7468` (unclaimed) +0xEC |
