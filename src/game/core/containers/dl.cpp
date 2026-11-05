@@ -10,7 +10,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Safe iterator over an SL (the SL counterpart of DLI); live iterators form a stack at D_002DD2F8 (g_psliFirst). */
 struct SLI { SL *psl; void **ppv; int ibSle; SLI *psliNext; };
-extern SLI *D_002DD2F8;
+SLI *D_002DD2F8;    /* .sbss in the target; ours is .bss (-G0) */
+DLI *D_002DD2FC;    /* g_pdliFirst (sly2/dli.h), likewise */
 
 #define PPVNEXT(psl, pv) ((void **)((char *)(pv) + (psl)->ibSle))
 #define PDLE(pdl, pv) ((DLE *)((char *)(pv) + (pdl)->ibDle))
