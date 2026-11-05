@@ -405,7 +405,7 @@ struct O {
  short k98,k9A;unsigned tag;O *parent;int priority;SOURCE source;
  unsigned short force,damping;qword qB0;MOTIONDATA data;
 };
-extern qword D_002A2DD0;
+extern "C" { extern qword D_002A2DD0; }
 extern "C" void *func_0023320C(void *d, void *s, int n);
 extern "C" void *func_002333B4(void *p, int c, int n);
 extern "C" M4 *func_0022CCD0(M4 *pm, struct O *pa, const M3 *basis, qword v);
@@ -609,7 +609,7 @@ union V {qword q;float f[4];};
 struct JOB {int kind;void *owner;};
 union SOURCE {void *object;float deadline;};
 struct O {M4 local,world;float t0,t1;float *time,*dt;JOB *hook;int kind;short mode,state;unsigned int tag;O *parent;int priority;SOURCE source;unsigned short force,damping;qword velocity,v0,v1,v2,v3;};
-extern qword D_002A2DD0;
+extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 M4 InvertMatrix4Rigid(const M4 *);
 M4 func_0022CDC0(O *);
@@ -788,7 +788,7 @@ struct J9 {JOB h;int pad1C;V value;};
 struct E {M4 matrix;char pad40[0x50];JOB *jobs;int kind,pad98,tag;RESOURCE *reference;int padA4;RESOURCE *origin;short lo,hi;char padB0[0x10];qword current;char padD0[0x10];qword previous;char padF0[0x10];};
 struct S {char pad0[0xC];VE *vt;char pad10[0x30];int flags;char pad44[0xC];int count;E *records;RESOURCE *a,*b,*c;};
 struct REQ {int size,kind;};
-extern char D_002CA820[],D_002CA7E0[],D_002CA7A0[],D_002CA6A0[];
+extern "C" { extern char D_002CA820[],D_002CA7E0[],D_002CA7A0[],D_002CA6A0[]; }
 extern "C" {
 int S16Read__18CBinaryInputStream(void *);
 int S32Read__18CBinaryInputStream(void *);
@@ -1867,7 +1867,7 @@ typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 struct X {M4 local,world;char pad80[0x20];X *parent;int priority;char pada8[0x58];};
 struct S {char pad[0x50];int count;X *array;};
-extern M4 D_002A2D30;
+extern "C" { extern M4 D_002A2D30; }
 extern "C" void func_0022FA20(S *);
 /** @sly2-annot addr=0x22FAA0
  * Purpose: recomputes linked XF world matrices with the VU matrix microprogram

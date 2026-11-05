@@ -1851,7 +1851,7 @@ struct MATRIX4 { float mat[4][4]; } __attribute__((aligned(16)));
 struct BONE { char pad[0x40]; MATRIX4 mat; };
 struct Y { char pad[0x9A]; short s9A; char pad2[0xA0 - 0x9C]; BONE *pA0; char pad3[0xC0 - 0xA4]; qword qC0; qword qD0; };
 struct XX { char pad[8]; Y *py; char pad2[0x1C - 0xC]; BONE *p1C; MATRIX4 mat; };
-extern qword D_002A2DD0;
+extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat);
 MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);

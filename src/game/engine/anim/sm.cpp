@@ -423,8 +423,8 @@ struct VT { VTE a[3]; VTE5 a3; };
 struct P { int n0; char pad[0xC - 4]; VT *pvt; char pad2[0x68 - 0x10]; char dl68[0xC]; };
 struct S { int n0; int n4; int n8; VT *pvt; char pad[0x24 - 0x10]; P *p24; int n28; int n2C; int pad30; int n34; int n38; int n3C; int pad40; float f44; int n48; int pad4C; };
 struct SW { char pad[0x3DDC]; char dl[0xC]; char pool[0x10]; };
-extern SW D_003DD490;
-extern VT D_002D9768;
+extern "C" { extern SW D_003DD490; }
+extern "C" { extern VT D_002D9768; }
 extern "C" {
 S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int);
