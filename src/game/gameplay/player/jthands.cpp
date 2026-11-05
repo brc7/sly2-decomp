@@ -70,8 +70,12 @@ struct LONGU { long l; } __attribute__((packed));
 
 extern "C" {
 extern CLOCK D_002DDED0;
-extern float D_002C1EF0, D_002C1EF4;
-extern qword D_002C1EE0;    /* zero gravity (no SOPHYS) */
+/* jthands' .data (address order): the carried-shape point count, the default gravity (VQ: initializable, read as a
+ * qword), the hand-follow distance and the act delay. */
+union VQ { float af[4]; qword q; };
+int D_002C1ED0 = 9;
+VQ D_002C1EE0 = {{0.0f, 0.0f, -2250.0f, 0.0f}};   /* gravity when the object has no SOPHYS */
+float D_002C1EF0 = 400.0f, D_002C1EF4 = 0.25f;
 extern qword D_002A2DD0;
 extern const LONGU D_002A77C8;   /* PMF of func_001CCA20 */
 extern SW D_003DD490;
@@ -349,7 +353,6 @@ void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc,
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
 extern "C" void MeasureShape(SHAPE *pshape);
-extern int D_002C1ED0;
 inline void *PvAllocSw(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -620,7 +623,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
   }
  }
  SetLoParent_1A58D0(object,0,15);
- const qword*velocityAddress=object->psophys?(const qword *)&object->psophys->dvGravity:&D_002C1EE0;register float unit __asm__("$f20");register SO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
+ const qword*velocityAddress=object->psophys?(const qword *)&object->psophys->dvGravity:&D_002C1EE0.q;register float unit __asm__("$f20");register SO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
  __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3":"=r"(initialVelocity),"=r"(initialOwner),"=f"(unit),"=m"(work.velocity):"m"(*velocityAddress),"r"(object):"$1");}
  {register qword destination __asm__("$2");__asm__("lq %0,%1":"=r"(destination):"m"(work.final.r[3]));work.destination=destination;}
  float limit;qword initialSpeed;DeltaForDuration(work,func_001A62E8(initialOwner),limit,initialSpeed);

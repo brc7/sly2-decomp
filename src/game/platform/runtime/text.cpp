@@ -39,9 +39,9 @@ typedef char *va_list;
 extern "C" {
 void *func_002333B4(void *, int, int);
 extern unsigned char D_002AA6A1[];   /* character class table: 1 upper, 2 lower */
-extern char D_002A9370[];            /* "(null)" */
-extern char D_002C40C8[];            /* digits */
-extern char D_002A94F0[], D_002A94F8[];
+extern const char D_002A9370[] = "(null)";
+char D_002C40C8[] = "0123456789abcdef";   /* digits (text's .data, not const) */
+extern const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)";
 double log10(double);
 double pow(double, double);
 double dpmul(double, double);
@@ -190,7 +190,7 @@ void WriteTftPchz(TFT *ptft, OSTRM *postrm, char *pchz)
     int cchRight;
     char ch;
     if (!pchz)
-        pchz = D_002A9370;
+        pchz = (char *)D_002A9370;
     cch = strlen(pchz);
     cchRight = 0;
     cchLeft = 0;
