@@ -1255,7 +1255,7 @@ struct MSG; struct FRAME; struct ENT; struct OBJ;
 struct MSG { int cb; int nKind; };
 struct FRAME {
     int a[4];
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 struct ENT { char a[0x50]; };
@@ -3528,10 +3528,10 @@ inline int GrfUpdateLo(LO *plo)
     }
     return grf;
 }
-qword PosLoWorld(LO *plo);
-SMA *PsmaFindOnAlo(ALO *paloRoot, OID oidSm);
-int FIsSmaRetracted(SMA *psma);
-OID GetSmaCur(SMA *psma);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+SMA *PsmaFindOnAlo(ALO *paloRoot, OID oidSm) __asm__("func_001F67E0");
+int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
+OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
 
 
 
@@ -3592,7 +3592,7 @@ static inline qword QwAdd(qword qw0, qword qw1)
 
 
 void PlayAsegSoundEvent(SW *psw, int sfxid, OID oid, int sNear, int sFar, float gPitch, float gUnk14, float gVolume, LO *plo, LO *ploRoot,
-                        ASEG *paseg, CRefPtr<SND> *ppsnd);
+                        ASEG *paseg, CRefPtr<SND> *ppsnd) __asm__("StartSwAsegSound");
 
 
 extern "C" { extern SUBTITLE D_004435F0; }
@@ -4761,9 +4761,9 @@ inline int GrfUpdateLo(LO *plo)
     }
     return grf;
 }
-qword PosLoWorld(LO *plo);
-int FIsSmaRetracted(SMA *psma);
-OID GetSmaCur(SMA *psma);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
+OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
 int FFloatsNear(float g1, float g2, float gEpsilon);
 float GLimitLm(LM *plm, float g);
 
