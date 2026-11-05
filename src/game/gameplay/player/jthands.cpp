@@ -348,10 +348,10 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc);
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
-extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
+extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
 extern "C" void MeasureShape(SHAPE *pshape);
 inline void *PvAllocSw(int cb, int cbAlign)
 {

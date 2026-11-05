@@ -77,7 +77,7 @@ union SCRATCH {V vector;RANGE range;};
 struct WORK {SCRATCH scratch;V delta;float angle,radius;V ownerPosition,speed,vector,playerPosition;};
 /* The line-test filter's argument. */
 struct SOPAIR { int a; void *p; };
-struct STACKSCOPE {STACKSCOPE();~STACKSCOPE();};
+struct STACKSCOPE {STACKSCOPE() __asm__("STACKSCOPE_ctor");~STACKSCOPE();};
 struct CLQ {float g0,g1,g2;};
 struct HIT {V pos;char unk10[0x50];};
 typedef struct { float x, y, z; } V3;

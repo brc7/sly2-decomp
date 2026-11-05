@@ -60,11 +60,11 @@ struct MRSGC
       int cmrsg;
       MRSG *amrsg;
 };
-void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf);
-CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped);
+void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("func_0012FE58");
+CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("func_0012FF10");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
-void ReblendAsegbl(ASEGBL *pasegbl);
+void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
 struct VKBLEND : public VECKEY
 {
       ASEGBL *pasegbl;

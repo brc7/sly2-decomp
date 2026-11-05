@@ -156,13 +156,13 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-int FJtairCanUseGadget(JTAIR *pjtair, int idGadget);
+int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("func_0019C8D0");
 
-int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget);
+int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("func_00194558");
 
-int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget);
+int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("func_0019EEF0");
 
-bool FJtModeActive(STEPPLAYER *pstepplayer);
+bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("FStepplayerInJtmode");
 
 struct PROXYSPARE
 {
@@ -173,9 +173,9 @@ struct PROXYSPARE
       MATRIX4 mat;
 };
 
-PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin);
+PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("func_001CADE0");
 
-int FCanAcquireProxy(PROXY *pproxy);
+int FCanAcquireProxy(PROXY *pproxy) __asm__("func_001CB2C0");
 
 struct CID100 : public SO
 {
@@ -233,7 +233,7 @@ struct OVRA
       OVRA *povraNext;
 };
 
-float TFindAsegLabel(ASEG *paseg, OID oidLabel);
+float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("func_0012F990");
 
 struct JTREC
 {
@@ -244,7 +244,7 @@ struct JTREC
       ASEG *apaseg[2];
 };
 
-void JtInteractPre(JTREC *prec);
+void JtInteractPre(JTREC *prec) __asm__("func_001371C8");
 
 struct STUNHOLD
 {
@@ -256,15 +256,15 @@ struct STUNHOLD
       qword qwVel;
 };
 
-void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride);
+void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("func_0019CC50");
 
-void HeroHurtPre(JTHURT *pjthurt);
+void HeroHurtPre(JTHURT *pjthurt) __asm__("func_001A12F0");
 
-void UpdateJtThrow(JTTHROW *pjtthrow);
+extern "C" void UpdateJtthrow(JTTHROW *pjtthrow);
 
-void UpdateJtPipe(JTPIPE *pjtpipe);
+extern "C" void UpdateJtActivePipe(JTPIPE *pjtpipe);
 
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo);
+void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
 
 struct XPD
 {
@@ -291,9 +291,9 @@ struct XP
       XP *pxpNext;
 };
 
-float PeekLastB(SHAPE *pshape);
+extern "C" float SMaxShape(SHAPE *pshape);
 
-void GetShapePosDirAtS(SHAPE *pshape, float s, qword *ppos, qword *pdir);
+extern "C" void EvaluateShapeS(SHAPE *pshape, float s, qword *ppos, qword *pdir);
 
 struct CID19 : public TARGET, public GRABSPOT
 {
@@ -308,9 +308,9 @@ struct CID19 : public TARGET, public GRABSPOT
 
 void SetJtJts(JT *pjt, JTS jts, JTBS jtbs);
 
-int FAsegaStopped(ASEGA *pasega);
+int FAsegaStopped(ASEGA *pasega) __asm__("FAsegaRetracted");
 
-void SeekAsega(ASEGA *pasega, SEEK seek, float dtLocal, float svtLocal);
+void SeekAsega(ASEGA *pasega, SEEK seek, float dtLocal, float svtLocal) __asm__("func_00130D30");
 
 struct VU_FLOAT
 {
@@ -366,7 +366,7 @@ struct LSG
       LSG *plsgNext;
 };
 
-EA *PeaFindAsegLabel(ASEG *paseg, OID oidLabel);
+EA *PeaFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("func_0012F938");
 
 struct ACT1 : public ACT
 {
@@ -375,17 +375,17 @@ struct ACT1 : public ACT
     ACT1() { ack = 1; nPhase = 2; }
 };
 
-void InsertNodeBySlot(SO *pso, XF *pxf, ACT *pact);
+extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
-void RemoveNodeBySlot(SO *pso, XF *pxf, ACT *pact);
+void RemoveNodeBySlot(SO *pso, XF *pxf, ACT *pact) __asm__("func_00230100");
 
-SND *MakeSnd(int sfxid);
+extern "C" SND *PsndStartSound(int sfxid);
 
-void SetSndOwner(SND *psnd, LO *ploOwner);
+extern "C" void SetSndSourceLo(SND *psnd, LO *ploOwner);
 
-void SetSndVolume(SND *psnd, float gVolume);
+void SetSndVolume(SND *psnd, float gVolume) __asm__("func_001FB1F8");
 
-void SetSndNearFar(SND *psnd, float sNear, float sFar);
+extern "C" void SetSndRange(SND *psnd, float sNear, float sFar);
 
 struct BSP
 {
@@ -398,29 +398,29 @@ struct EXPL : public XFM
 {
 };
 
-void FreeSwXaList(SW *psw, XA *pxaFirst);
+void FreeSwXaList(SW *psw, XA *pxaFirst) __asm__("func_002296C0");
 
-void ShowSoPartRec(SO *pso, SOPART *ppart);
+extern "C" void ShowSoPart(SO *pso, SOPART *ppart);
 
-void RemoveSoXa(SO *pso, XA *pxaRemove);
+void RemoveSoXa(SO *pso, XA *pxaRemove) __asm__("func_00229738");
 
-void SetStepRadTarget(STEP *pstep, float radTarget);
+void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("func_00204660");
 
-void SetStepRadTowardDir(STEP *pstep, qword dpos);
+extern "C" void SetStepRadTargetVec(STEP *pstep, qword dpos);
 
-void ApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
+void ApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega) __asm__("func_0012F9B8");
 
-void ReblendAsegbl(ASEGBL *pasegbl);
+void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
 
-int NJtRecSide(JTREC *prec);
+int NJtRecSide(JTREC *prec) __asm__("func_001374F0");
 
-void SetJtRecState(JTREC *prec, int nState);
+void SetJtRecState(JTREC *prec, int nState) __asm__("func_001375D0");
 
 void SetJtModeState(JTMODE *pjtmode, int nState);
 
-void SetJtPipeState(JTPIPE *pjtpipe, int nState);
+void SetJtPipeState(JTPIPE *pjtpipe, int nState) __asm__("func_0019EAB0");
 
-void SetJtAirState(JTAIR *pjtair, int nState, LO *plo);
+void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("func_00195FB8");
 
 struct TRI3
 {
@@ -445,11 +445,11 @@ struct CLIMBSURF : public XFM
     void FindClosestPoint(qword pos, SURFLOC *plocHint, SURFLOC *ploc, qword *ppos, qword *pnormal);
 };
 
-void RetractAsega(ASEGA *pasega);
+void RetractAsega(ASEGA *pasega) __asm__("func_00130B18");
 
-int FFindInOwnerChain(ACT *pact);
+int FFindInOwnerChain(ACT *pact) __asm__("func_0012D058");
 
-void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew);
+void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew) __asm__("func_0012DA30");
 
 struct XPLIST
 {
@@ -459,9 +459,9 @@ struct XPLIST
       SO *psoOther;
 };
 
-float PeekFirstB(SHAPE *pshape);
+extern "C" float SMinShape(SHAPE *pshape);
 
-void GetShapePosDirAtU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
+extern "C" void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 
 struct CID12 : public SHAPE, public GRABSPOT
 {
@@ -1288,7 +1288,7 @@ static inline qword QwCross(qword a, qword b)
     return qw;
 }
 extern "C" { qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos); }
-extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross);
+extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("func_0011E290");
 extern "C" { extern qword D_002A2DC0; }
 extern "C" float D_002BF2D0 = 0.1f;
 extern "C" float D_002BF2D4 = 1000.0f;
@@ -1386,7 +1386,7 @@ void UpdateJtLean(JT *pjt)
             case 3:
             {
                 SHAPE *pshape = (SHAPE *)pjt->jtgrab.plo;
-                GetShapePosDirAtU(pshape, pjt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
+                EvaluateShapeU(pshape, pjt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
                 plo = pshape;
                 if (((CID12 *)plo)->nUnk1bc)
                 {
@@ -1395,20 +1395,20 @@ void UpdateJtLean(JT *pjt)
                     float gSpeed = GFromVf(QwDot(qwVel, *(qword *)&vecDir));
                     *(qword *)&vecLean = QwScale(*(qword *)&vecDir, VuFloat(gSpeed));
                     float sAhead = pjt->jtgrab.sParam + gSpeed * D_002BF2D0;
-                    float sMax = PeekLastB((SHAPE *)plo);
+                    float sMax = SMaxShape((SHAPE *)plo);
                     if (((SHAPE *)plo)->fClosed)
                     {
                         sAhead = GModPositive(sAhead, sMax);
                     }
                     else
                     {
-                        float sMin = PeekFirstB((SHAPE *)plo);
+                        float sMin = SMinShape((SHAPE *)plo);
                         if (sAhead < sMin)
                             sAhead = sMin;
                         else if (sMax < sAhead)
                             sAhead = sMax;
                     }
-                    GetShapePosDirAtS(pshape, sAhead, 0, (qword *)&vecDir);
+                    EvaluateShapeS(pshape, sAhead, 0, (qword *)&vecDir);
                     *(qword *)&vecLocal = QwScale(QwNormalize(*(qword *)&vecDir), VuFloat(gSpeed));
                     *(qword *)&vecDv = QwSub(*(qword *)&vecLocal, *(qword *)&vecLean);
                     if (pjt->jtgrab.pasegblC)
@@ -1559,7 +1559,7 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
 extern "C" { extern qword D_002A2DC0; }
 extern "C" int D_002BF340 = 0x42480000;          // 50.0f, read as its bits
 extern "C" int D_002BF344 = (int)0xC2480000;     // -50.0f, read as its bits
-extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
+extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
 /** @sly2-annot addr=0x189C40
  * Purpose: Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical
@@ -2150,19 +2150,19 @@ extern "C" {
 void UpdateJtAirInput(JTAIR *pjtair);
 }
 extern "C" {
-void UpdateJtGrabPre(JTGRAB *pjtgrab);
+void UpdateJtGrabInput(JTGRAB *pjtgrab);
 }
 extern "C" {
-int GetHeroMp(STEPPLAYER *pstepplayer);
+int GetHeroMp(STEPPLAYER *pstepplayer) __asm__("MpStepplayerCur");
 }
 extern "C" {
-uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n);
+uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GrfbtnGadget");
 }
 extern "C" {
-int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis);
+int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("FStepplayerNearInteractTarget");
 }
 extern "C" {
-qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity);
+qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity) __asm__("func_001D6848");
 }
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
@@ -2261,19 +2261,19 @@ extern "C" void JtChooseGroundState(JT *pjt)
                         SetJtJts(pjt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
-                    UpdateJtGrabPre(&pjt->jtgrab);
+                    UpdateJtGrabInput(&pjt->jtgrab);
                     break;
                 case JTS_Unk04:
                     HeroHurtPre(&pjt->jthurt);
                     break;
                 case JTS_Throw:
-                    UpdateJtThrow(&pjt->jtthrow);
+                    UpdateJtthrow(&pjt->jtthrow);
                     break;
                 case JTS_Interact:
                     JtInteractPre((JTREC *)&pjt->unk_0x1ff0);
                     break;
                 case JTS_Unk08:
-                    UpdateJtPipe(&pjt->jtpipe);
+                    UpdateJtActivePipe(&pjt->jtpipe);
                     break;
                 case JTS_Stand:
                 case JTS_Run:
@@ -2478,7 +2478,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
                         if (ploTarget && FIsBasicDerivedFrom(ploTarget, (CID)10))
                         {
                             SHAPE *pshape = (SHAPE *)pjt->phndHang->ploUnk138;
-                            GetShapePosDirAtS(pshape, PeekLastB(pshape) * (0.5f - pjt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
+                            EvaluateShapeS(pshape, SMaxShape(pshape) * (0.5f - pjt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
                         }
                         else
                         {
@@ -3180,7 +3180,7 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtJts
 extern "C" { extern GAME D_002DEB30; }
-extern "C" qword MakeVecFromAngle(float rad, float sXY, float sZ);
+extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
 int IsmsFindSmOptional(SM *psm, OID oid) __asm__("IsmsFindSmOptional__FP2SM3OID");
@@ -3242,34 +3242,34 @@ extern "C" {
 void SetJtAnimState(JT *pjt, int jtas);
 }
 extern "C" {
-void SetHeroHurtState(JTHURT *pjthurt, int nState);
+void SetJtHurtState(JTHURT *pjthurt, int nState);
 }
 extern "C" {
-void SetJtThrowState(JTTHROW *pjtthrow, int nState);
+void SetJtthrowState(JTTHROW *pjtthrow, int nState);
 }
 extern "C" {
-void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase);
+void SetJtGrabKind(JTGRAB *pjtgrab, int nPhase);
 }
 extern "C" {
-void UpdateJtPounceArc(JT *pjt);
+void UpdateJtPounceArc(JT *pjt) __asm__("func_0018E1E0");
 }
 extern "C" {
 void JtHangFrame(JT *pjt, float *prad);
 }
 extern "C" {
-int GrfJtLeanMask(STEPPLAYER *pstepplayer);
+int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("func_001430C8");
 }
 extern "C" {
-void RollHeroIdleTimer(STEPPLAYER *pstepplayer);
+void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("func_00142880");
 }
 extern "C" {
-int FPowerUpAcquired(int ipowerup);
+int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
 }
 extern "C" {
-void ReleaseRefNode(void *pvTarget, void *pvRef);
+void UnsubscribeLoObject(void *pvTarget, void *pvRef);
 }
 extern "C" {
-void AddRefOidRef(void *pvTarget, void *pvRef);
+void SubscribeLoObject(void *pvTarget, void *pvRef);
 }
 extern "C" {
 void UpdateJtHangPlace(JT *pjt);
@@ -3281,25 +3281,25 @@ extern "C" {
 void SetSndSourcePos(SND *psnd, qword qwPos);
 }
 extern "C" {
-void GuardCapVelocityForPounce(STEPGUARD *pguard);
+void GuardCapVelocityForPounce(STEPGUARD *pguard) __asm__("func_00209EE0");
 }
 extern "C" {
-void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind);
+void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("func_00142868");
 }
 extern "C" {
-void SetJtUnk1d30(JT *pjt, int n);
+void SetJtUnk1d30(JT *pjt, int n) __asm__("func_0018DF50");
 }
 extern "C" {
-void ClearGaitFootDown(GAIT *pgait);
+void ClearGaitFootDown(GAIT *pgait) __asm__("func_0020BD68");
 }
 extern "C" {
-void PredictAsegEffect(float t, float svt, ASEG *paseg, ALO *palo, XF *pxfPart, XF *pxfRoot, MATRIX4 *pmat, int n);
+void PredictAsegEffect(float t, float svt, ASEG *paseg, ALO *palo, XF *pxfPart, XF *pxfRoot, MATRIX4 *pmat, int n) __asm__("func_001300B8");
 }
 extern "C" {
 void SetSoCnstrForce(SO *pso, int fOn);
 }
 extern "C" {
-void UpdateHeadingSmooth(STEP *pstep);
+void FixStepAngularVelocity(STEP *pstep);
 }
 void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("func_002303A0");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
@@ -3417,10 +3417,10 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                             break;
                     default:
                     {
-                        SND *psnd = MakeSnd(0x3D);
-                        SetSndOwner(psnd, pjt);
+                        SND *psnd = PsndStartSound(0x3D);
+                        SetSndSourceLo(psnd, pjt);
                         SetSndVolume(psnd, 0.7f);
-                        SetSndNearFar(psnd, 500.0f, 1000.0f);
+                        SetSndRange(psnd, 500.0f, 1000.0f);
                     }
                     break;
                 }
@@ -3467,7 +3467,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Hang:
                 pjt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
-                ReleaseRefNode(pjt->phndHang, pjt);
+                UnsubscribeLoObject(pjt->phndHang, pjt);
                 SetJtAnimState(pjt, -1);
                 RemoveNodeBySlot(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
                 if (pjt->janim.pxaHang != 0)
@@ -3488,20 +3488,20 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
             }
             break;
             case JTS_Grab:
-                SetJtGrabPhase(&pjt->jtgrab, -1);
+                SetJtGrabKind(&pjt->jtgrab, -1);
                 break;
             case JTS_Unk04:
-                SetHeroHurtState(&pjt->jthurt, -1);
+                SetJtHurtState(&pjt->jthurt, -1);
                 break;
             case JTS_Throw:
-                SetJtThrowState(&pjt->jtthrow, -1);
+                SetJtthrowState(&pjt->jtthrow, -1);
                 break;
             case JTS_Interact:
                 SetJtRecState((JTREC *)&pjt->unk_0x1ff0, -1);
                 break;
             case JTS_Unk09:
                 pjt->ploAttached = 0;
-                ShowSoPartRec(pjt, pjt->precUnk1a90);
+                ShowSoPart(pjt, pjt->precUnk1a90);
                 break;
             case JTS_Stand:
                 SlotSetRole(pjt, pjt->pxfUnk58, 2);
@@ -3559,7 +3559,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
             case JTS_HangFollow:
                 SetSoCnstrForce(pjt, 0);
                 pjt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
-                ReleaseRefNode(pjt->phndHang, pjt);
+                UnsubscribeLoObject(pjt->phndHang, pjt);
                 pjt->phndHang = 0;
                 SetPlayerTn(pjt, 0);
                 break;
@@ -3644,12 +3644,12 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 paseg = pjt->pasegHang;
                 ClearXyz((VECTOR *)&pact1->qwRest);
                 tStart = 0.5f;
-                InsertNodeBySlot(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
+                AddXfAct(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
                 qword posHand = PosLoWorld(pjt->psoUnk19a4);
                 pjt->janim.dposHang = QwSub(posHand, func_00190C58(pjt));
                 UpdateJtHangPlace(pjt);
                 pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
-                AddRefOidRef(pjt->phndHang, pjt);
+                SubscribeLoObject(pjt->phndHang, pjt);
                 float radFrame;
                 JtHangFrame(pjt, &radFrame);
                 float radBack = RadNormalize(radFrame + 3.1415927f);
@@ -3746,7 +3746,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                     MATRIX3 *pmat = &pjt->matTarget;
                     qword qwVel = QwRotateVecRows(*(qword *)pmat->mat[0], *(qword *)pmat->mat[1], *(qword *)pmat->mat[2], QwScale(*(qword *)&pjt->vUnk190, VuFloat(-1.0f)));
                     pjt->SetVelocity(qwVel);
-                    UpdateHeadingSmooth(pjt);
+                    FixStepAngularVelocity(pjt);
                 }
                 else
                 {
@@ -3754,8 +3754,8 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                     qword posTarget = PosLoWorld(pjt->ploInteract);
                     float gZero = 0.0f;
                     qword dpos = QwSub(posTarget, PosLoWorld(pjt));
-                    SetStepRadTowardDir(pjt, QwScale(dpos, VuFloat(-1.0f)));
-                    UpdateHeadingSmooth(pjt);
+                    SetStepRadTargetVec(pjt, QwScale(dpos, VuFloat(-1.0f)));
+                    FixStepAngularVelocity(pjt);
                     float tLabel = TFindAsegLabel(paseg, (OID)0x173);
                     MATRIX4 matHand;
                     PredictAsegEffect(tLabel, gZero, paseg, (ALO *)pjt, pjt->psoUnk19a4->pxfRoot, pjt->pxfRoot, &matHand, 0);
@@ -3809,7 +3809,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 pjt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&pjt->vUnk190);
                 pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
-                AddRefOidRef(pjt->phndHang, pjt);
+                SubscribeLoObject(pjt->phndHang, pjt);
                 SetPlayerTn(pjt, pjt->phndHang->ptn);
                 break;
             case JTS_Unk18:
@@ -3823,7 +3823,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                 ReblendAsegbl(pjt->pasegblUnk2038);
                 paseg = pjt->pasegblUnk2038;
                 SetStepRadTarget(pjt, pjt->pctl->radLeft);
-                qword qwVel = MakeVecFromAngle(pjt->radTarget, D_002BF3E8, gZero);
+                qword qwVel = SetVectorCylind(pjt->radTarget, D_002BF3E8, gZero);
                 pjt->SetVelocity(qwVel);
                 ClearXyz(&pjt->vUnk190);
             }
@@ -3921,8 +3921,8 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
     SetJtChannelMask(pjt, grf);
     if (sfxid != -1)
     {
-        SND *psnd = MakeSnd(sfxid);
-        SetSndOwner(psnd, 0);
+        SND *psnd = PsndStartSound(sfxid);
+        SetSndSourceLo(psnd, 0);
         SetSndSourcePos(psnd, PosLoWorld(pjt));
     }
     if (!fKeep)
@@ -4107,8 +4107,8 @@ extern CM D_002DDF40;
 
 float D_002BF3EC = 0.25f;
 float D_002BF3F0 = 1.35f;
-int FPocketItemCarried(CID100 *pcid100);
-JTPOCKET *FindJtPocket(JT *pjt, int idGadget);
+int FPocketItemCarried(CID100 *pcid100) __asm__("func_00224590");
+extern "C" JTPOCKET *PgadrecFromJtGadget(JT *pjt, int idGadget);
 /** @sly2-annot addr=0x18D760
  * Purpose: Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket
  *   item)
@@ -4182,7 +4182,7 @@ int JT::FCanUseGadget(int idGadget)
         case 0x26:
         case 0x29:
         {
-            JTPOCKET *ppocket = FindJtPocket(this, idGadget);
+            JTPOCKET *ppocket = PgadrecFromJtGadget(this, idGadget);
             if (ppocket->pcid100)
             {
                 if (FPocketItemCarried(ppocket->pcid100))

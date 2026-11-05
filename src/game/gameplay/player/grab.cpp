@@ -2733,16 +2733,16 @@ static inline float GLength(qword v)
     return GFromVf(QwLength(v));
 }
 extern "C" {
-int FIsSwHero(STEPPLAYER *pstepplayer);
+int FIsPoCur(STEPPLAYER *pstepplayer);
 }
 extern "C" {
-int GetHintBoxTextId(HINTBOX *phintbox);
+int GetHintBoxTextId(HINTBOX *phintbox) __asm__("func_001DA5B0");
 }
 extern "C" {
-void SetHintBoxText(HINTBOX *phintbox, int idText, float dt);
+void PostNotice(HINTBOX *phintbox, int idText, float dt);
 }
 extern "C" {
-void ClearIfSlotId(HINTBOX *phintbox, int idText);
+void CancelNotice(HINTBOX *phintbox, int idText);
 }
 extern "C" { extern float D_002BF660; }
 extern "C" { extern float D_002BF664; }
@@ -2762,7 +2762,7 @@ void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__(
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf)
 {
     JTGRABCAND ajtgrabcand[4];
-    if (!FIsSwHero(pstepplayer))
+    if (!FIsPoCur(pstepplayer))
         return;
     memset(ajtgrabcand, 0, sizeof(ajtgrabcand));
     uint i = 0;
@@ -2856,9 +2856,9 @@ void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf)
     if (idHint != idHintOld)
     {
         if (idHint == -1)
-            ClearIfSlotId(&D_003DA0C0, D_003DD490.idHintGrab);
+            CancelNotice(&D_003DA0C0, D_003DD490.idHintGrab);
         else
-            SetHintBoxText(&D_003DA0C0, idHint, -1.0f);
+            PostNotice(&D_003DA0C0, idHint, -1.0f);
         D_003DD490.idHintGrab = idHint;
     }
 }

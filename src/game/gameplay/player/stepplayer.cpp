@@ -2076,7 +2076,7 @@ namespace M_HeroInteractDistance {
 // plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->ploInteract, *pdz is tested against the guard's height window;
 // HeroPickInteractGuard minimises *psDist) and the interact-target pick 0x142AF8 (three calls, *pploCur = &hero->ploLean).
 // The biases are CLQs (c0 + c1 d + c2 d^2) from 0x2BD280: (1) for the current target: xy D_002BD280(d) = -200 - 0.2 d, height D_002BD290(dz) = -0.2 dz (hysteresis: the
-// target already chosen looks nearer). (2) while the hero is steered (pctl) and d > 0.0001: rAway = (stick . (hero - plo)) / d with the stick vector = MakeVecFromAngle
+// target already chosen looks nearer). (2) while the hero is steered (pctl) and d > 0.0001: rAway = (stick . (hero - plo)) / d with the stick vector = SetVectorCylind
 // (radLeft, sLeft, 0) (|stick| = sLeft); xy += clamp01(D_002BD2A0(rAway) = 0.5 - 0.5 rAway) * D_002BD2B0(d) (= -500 - 0.5 d): pushing the stick toward the object (rAway
 // = -sLeft) takes up to 500 + d/2 off its distance, away from it nothing, no stick half.
 // NOTE as compiled the hysteresis test compares the HERO (a0) with the current target (`lw v0,0(s1); bnel s2,v0`, s2 = a0), not the object (a1): both callers pass a
@@ -2234,7 +2234,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
         return gMax;
     return g;
 }
-extern "C" qword MakeVecFromAngle(float rad, float sXY, float sZ);
+extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 extern "C" void HeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pploCur, float *psDist, float *pdz) __asm__("HeroInteractDistance");
 /** @sly2-annot addr=0x1428D8
  * Purpose: Distance score of an object for interact picking: xy distance + CLQ biases (hysteresis for current
@@ -2260,7 +2260,7 @@ extern "C" void HeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pplo
     POCTL *pctl = pstepplayer->pctl;
     if (pctl != 0 && sXY > 0.0001f)
     {
-        qword qwStick = MakeVecFromAngle(pctl->radLeft, pctl->sLeft, 0.0f);
+        qword qwStick = SetVectorCylind(pctl->radLeft, pctl->sLeft, 0.0f);
         float rAway = GXOfQwVf(QwDot(qwStick, vec)) / sXY;
         sBias += GEvaluateClqLm(&D_002BD2A0, &D_002BBB60, rAway) * GEvaluateClq(&D_002BD2B0, sXY);
     }
