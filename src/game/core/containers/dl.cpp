@@ -2,6 +2,10 @@
 // TU 0x11A050..0x11A550 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dl
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011A530
+// .bss order: g++ 2.95 emits plain uninitialized objects at the end of the file in first-declaration order, and
+// dli.h declares D_002DD2FC; this declaration comes first so D_002DD2F8 keeps its address below it.
+struct SLI;
+extern SLI *D_002DD2F8;
 #include "sly2/dli.h"
 #include "sly2/slotheap.h"
 
