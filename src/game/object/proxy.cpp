@@ -1202,7 +1202,7 @@ extern "C" void EnsureProxyCopy(PROXY *pproxy)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB360 {
-struct R { int a[4]; R(int c, int f, void **ap); };
+struct R { int a[4]; R(int c, int f, void **ap) __asm__("func_00200F58"); };
 struct N { int x0; N *pnext; };
 struct T { int x0; void **ap; };
 struct S { char pad[0xE0]; T *xE0; int pad2; N *xE8; };
