@@ -78,9 +78,9 @@ struct ACT
     ACT(int ack) : ack(ack) {}
 };
 
-void InsertNodeBySlot(SO *pso, XF *pxf, ACT *pact);
+extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
-ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf);
+ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("func_0012E3F0");
 
 struct SUBGLOBX
 {
@@ -98,7 +98,7 @@ struct XPLIST
       SO *psoOther;
 };
 
-void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase);
+void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("func_001AE238");
 
 struct SWALLOC
 {
@@ -106,15 +106,15 @@ struct SWALLOC
     int cbAlign;
 };
 
-void *PvAllocStackImpl(SWALLOC *pswalloc);
+void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 
-void EnsureSoBounds(SO *pso);
+void EnsureSoBounds(SO *pso) __asm__("EnsureSoBounds");
 
 struct IKLIMB
 {
@@ -1961,7 +1961,7 @@ void SetSoVelocity(struct P *p, qword q)
 // with the mfc1 outside (the compiler's own, two asm statements) the scheduler sees gZ's path to the end one instruction shorter than
 // gX's and gY's, gives the row-0 chain of the product a lower priority and computes the rows in the order 1, 2, 0 (51.6%); with ONE
 // statement the three chains tie and the rows come out 0, 1, 2 as in the game. (Same recipe as the fused qmfc2 + mtc1 of vu0.h.)
-MATRIX3 InvertMatrix3(MATRIX3 *pmat);
+extern "C" MATRIX3 InvertMatrix3Cofactor(MATRIX3 *pmat);
 
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
@@ -1985,7 +1985,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 
 extern qword D_002A2DD0;
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
-MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo);
+MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("func_0022D148");
 qword SO::GetAngularVelocity()
 {
     XF *pxf = pxfUnk5c;
@@ -2000,7 +2000,7 @@ qword SO::GetAngularVelocity()
     MATRIX3 *pmatWorld = (MATRIX3 *)&pxf->matWorld;
     matNorm = *pmatWorld;
     NormalizeRotateMatrix3(&matNorm);
-    matRate = matNorm * InvertMatrix3(pmatWorld) * matRate;
+    matRate = matNorm * InvertMatrix3Cofactor(pmatWorld) * matRate;
     float gX = matRate.mat[1][2];
     float gY = matRate.mat[2][0];
     float gZ = matRate.mat[0][1];
@@ -3463,7 +3463,7 @@ struct E *PsopartFindSo(struct S *p, int oid)
 // Virtual 40. LO's clone (the byte copy) took the base's child list, tree record and removed-children mark along: the clone's own
 // are put back. Then everything the SO owns is copied for the clone and every pointer into the base's XFs is re-pointed at the
 // clone's (CloneXfRef): the XF block (each XF's parent, the record its slot holds in roles 4 / 13 / 15 / 16, its actuators - cloned
-// in their order of priority by PactNewClone + InsertNodeBySlot), the three XFs of the object (position, rotation, root), the
+// in their order of priority by PactNewClone + AddXfAct), the three XFs of the object (position, rotation, root), the
 // model (CloneGlobset), the collision parts (geometry, BSP and the per-geometry arrays) and the physics record with its region
 // entry. A clone in the world joins the contact list, and it gets a bounds record of its own (EnsureSoBounds).
 
@@ -3483,9 +3483,9 @@ inline int FIsLoInWorld(LO *plo)
 
 
 extern XF D_002C44F0;
-void AddSoParts(SO *pso);
-void CloneGlobset(GLOBSET *pglobset, SO *pso, LO *ploBase);
-void CloneBspc(BSPC *pbspcBase, GEOM *pgeomBase, BSPC *pbspc, GEOM *pgeom);
+void AddSoParts(SO *pso) __asm__("AddSoParts");
+void CloneGlobset(GLOBSET *pglobset, SO *pso, LO *ploBase) __asm__("func_0016EA80");
+void CloneBspc(BSPC *pbspcBase, GEOM *pgeomBase, BSPC *pbspc, GEOM *pgeom) __asm__("func_001191E8");
 inline void *PvAllocSwCopy(int cb, void *pvBase)
 {
     SWALLOC swalloc;
@@ -3585,7 +3585,7 @@ void SO::Clone(LO *ploBase)
             for (iact = cact - 1; iact >= 0; iact--)
             {
                 ACT *pactNew = PactNewClone(apact[iact], this, pxf);
-                InsertNodeBySlot(this, pxf, pactNew);
+                AddXfAct(this, pxf, pactNew);
             }
         }
     }

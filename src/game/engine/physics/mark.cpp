@@ -1597,7 +1597,7 @@ extern "C" void func_001AA0B0(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, SOPART
 
 /* AddSoXps: the stack scope sits at sp+2 (ach is never touched; the target builds `addiu v0,sp,2`), as in
    grab's func_00192A28. This form exists to reproduce the original codegen. */
-struct STACKSCOPE { STACKSCOPE(); ~STACKSCOPE(); };
+struct STACKSCOPE { STACKSCOPE() __asm__("STACKSCOPE_ctor"); ~STACKSCOPE(); };
 struct SCOPE2 { char ach[2]; STACKSCOPE scope; };
 struct CBSP { int c; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
