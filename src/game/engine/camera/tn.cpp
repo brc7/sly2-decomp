@@ -284,7 +284,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 extern "C" float atan2f(float y, float x);
 extern "C" void GetVectorSphere(qword v, float *prad, float *pradTilt, float *psLen);
 extern "C" qword SetVectorSphere(float radPan, float radTilt, float s);
-float D_002C41DC = 10.0f;
+extern float D_002C41DC;
 extern VECTOR D_002A2DC0;
 extern qword D_002A2DC0q __asm__("D_002A2DC0");
 extern qword D_002A2DD0;
@@ -357,27 +357,27 @@ qword ClipCmEye(CM *pcm, qword posFrom, qword posTo) __asm__("func_0014F110");
 void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut) __asm__("func_00223A70");
 void UpdateCmLineOfSight(CMPART2 *pcmpart) __asm__("func_002236E8");
 extern qword D_002A2DA0;
-int D_002C4118 = 0;
-float D_002C41D8 = 0.75f;
-float D_002C41E0 = 2.5f;
+extern int D_002C4118;
+extern float D_002C41D8;
+extern float D_002C41E0;
 extern CLQ D_002C41F0;
-LM D_002C4200 = {1.0f, 2.0f};
+extern LM D_002C4200;
 extern SMP D_002C4208;
 extern CLQ D_002C4220;
 extern SMP D_002C4230;
 extern SMPA D_002C4240;
 extern SMPA D_002C4250;
 extern SMP D_002C4260;
-float D_002C426C = -8.0f;
-float D_002C4270 = 15.0f;
-float D_002C4274 = -10.0f;
-float D_002C4278 = -5.0f;
-float D_002C427C = -10.0f;
-float D_002C4280 = -5.0f;
-LM D_002C41B0 = {-0.5f, 1.5550884f};
-float D_002C41E4 = 2.5f;
-float D_002C41E8 = 1.0f;
-float D_002C41EC = 15.0f;
+extern float D_002C426C;
+extern float D_002C4270;
+extern float D_002C4274;
+extern float D_002C4278;
+extern float D_002C427C;
+extern float D_002C4280;
+extern LM D_002C41B0;
+extern float D_002C41E4;
+extern float D_002C41E8;
+extern float D_002C41EC;
 static inline qword QwToVu(qword qw)
 {
     qword qwOut;
@@ -413,16 +413,21 @@ struct POX { char pad[0x2DC]; int x2DC; };        /* the current player as Updat
 struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GDistPlanePos) */
 extern SW D_003DD490;
 extern "C" {
-extern const float D_002A96E0 = -3.40282347e+38f, D_002A96E4 = 3.40282347e+38f, D_002A96F8 = -3.40282347e+38f, D_002A96FC = 3.40282347e+38f, D_002A9700 = 3.40282347e+38f;
+extern const float D_002A96E0;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A96E4;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A96F8;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A96FC;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A9700;   /* defined below where the ELF has it (.rodata order) */
 extern qword D_002C41C0;
-LM D_002C41D0 = {0.0f, 3.40282347e+38f};
-LM D_002C41A8 = {-3.40282347e+38f, 3.40282347e+38f};
+extern LM D_002C41D0;
+extern LM D_002C41A8;
 extern const SWCB D_002A96E8, D_002A96F0;
 extern CPD D_002C4120;              /* the default CPD */
 extern void *D_002DB858[];          /* CPTN's vtable */
 int D_002DE240;
 extern int D_002DFBC4;
-float D_002C4110 = 0.5f, D_002C4114 = 2.0f;
+extern float D_002C4110;
+extern float D_002C4114;
 extern qword D_002C4290[5];
 
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
@@ -497,6 +502,11 @@ void UpdateTnCallbackA(TN *p, int a) __asm__("UpdateTnCallback");
 void func_00221940I(TN *p, int id) __asm__("func_00221940");
 
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A96E0 __asm__("D_002A96E0") = -3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A96E4 __asm__("D_002A96E4") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x220D40
  * Purpose: if both angles are the sentinel, set both to GLimitLm(atan2(h, len))
  * Info: proposed name InitCptnAngles (T2); TU tn
@@ -577,6 +587,7 @@ extern "C" void InitTn(TN *p)
     else p->grfUnk40 = f | 2;
 }
 
+namespace RO_ORDER { extern const unsigned int r_D_002A96E8[2] __asm__("D_002A96E8") = {0, 0}; }   /* a null callback record */
 /** @sly2-annot addr=0x220F88
  * Purpose: RemoveLoHierarchy then clears the TN sw-callback (0x149B58(g_sw,1,ptn,cb))
  * Info: proposed name RemoveTnHierarchy (T1); class TN slot12; TU tn
@@ -949,6 +960,12 @@ extern "C" CMPART2 *CPTN_ctor(CMPART2 *p) {
     return p;
 }
 
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_UpdateTnCallback() __asm__("UpdateTnCallback");
+extern const unsigned int r_D_002A96F0[2] __asm__("D_002A96F0") = {0xFFFF0000, (unsigned int)p_UpdateTnCallback};
+}
+namespace RO_ORDER { extern const float r_D_002A96F8 __asm__("D_002A96F8") = -3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A96FC __asm__("D_002A96FC") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x2219C8
  * Purpose: base 0x14FCC0, sets globals D_002C41A8, clears fields
  * Info: proposed name InitCptn (T2); TU tn
@@ -1831,6 +1848,7 @@ static inline qword ScalarHome(V &home,float value){home.q=Scalar(value);return 
 static inline qword Blend(qword a,qword b,qword left,qword right){__asm__("vmulax.xyzw ACC,%0,%2x\n\tvmaddx.xyzw %0,%1,%3x":"+j"(a):"j"(b),"j"(left),"j"(right));return a;}
 static inline qword BlendToRight(qword a,qword b,qword left,qword right){__asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(b):"j"(a),"j"(left),"j"(right));return b;}
 static inline void StoreVF(qword *p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
+namespace RO_ORDER { extern const float r_D_002A9700 __asm__("D_002A9700") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x223A70
  * Purpose: camera segment avoidance (objects in box, UpdateCmFade)
  * Info: proposed name UpdateCptnSegmentAvoid (T2); TU tn
@@ -1888,27 +1906,54 @@ extern "C" void func_00223A70(CAMS *p,qword begin,qword end,qword *out){
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+// One block in address order (definition order is emission order: tu-merging.md "Phase 6: one link mode"); the
+// declarations above are what the functions see.
 /* D_002C41C0 and D_002C4290 are declared qword at file scope (read whole); defined as float vectors under C linkage
    in a namespace, which g++ 2.95 accepts beside the file-scope declaration (same symbol). */
-namespace M_tn_data { extern "C" { VECTOR4 D_002C41C0 = {0.0f, 0.5f, 0.0f, 0.0f}; } }
+extern "C" {
+float D_002C4110 = 0.5f;
+float D_002C4114 = 2.0f;
+} // extern "C"
+int D_002C4118 = 0;
+/* The default CPD (D_002C4120; the declaration above has the CPD type). Its last field, lmTilt, is D_002C41A8,
+ * which InitCptn writes by that name, so the record is defined without it, immediately followed by that LM. */
+struct CPD_HEAD { int cid; float dsOffset; int unk08[2]; float aclqOffset[3][4]; float almOffset[3][2]; float uFrameX, uFrameY,
+    gWeight, uTunnel, gTurn; int unk6c; float agRate[3]; int unk7c; float kDist, cDist; };
+namespace TN_DATA { extern CPD_HEAD r_D_002C4120 __asm__("D_002C4120") __attribute__((aligned(16))); }
+CPD_HEAD TN_DATA::r_D_002C4120 = {0x30, -450.0f, {0, 0}, {{0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {125.0f, 1.0f, 0.0f, 0.0f}},
+    {{-3.40282347e+38f, 3.40282347e+38f}, {-3.40282347e+38f, 3.40282347e+38f}, {-3.40282347e+38f, 3.40282347e+38f}},
+    0.0f, -0.1f, 1.0f, 1.0f, 1.0f, 0, {1.0f, 1.0f, 1.0f}, 0, 1.0f, 1.0f};
+extern "C" {
+LM D_002C41A8 = {-3.40282347e+38f, 3.40282347e+38f};
+} // extern "C"
+LM D_002C41B0 = {-0.5f, 1.5550884f};
+namespace M_tn_data { extern "C" {
+VECTOR4 D_002C41C0 = {0.0f, 0.5f, 0.0f, 0.0f};
+} } // namespace M_tn_data extern "C"
+extern "C" {
+LM D_002C41D0 = {0.0f, 3.40282347e+38f};
+} // extern "C"
+float D_002C41D8 = 0.75f;
+float D_002C41DC = 10.0f;
+float D_002C41E0 = 2.5f;
+float D_002C41E4 = 2.5f;
+float D_002C41E8 = 1.0f;
+float D_002C41EC = 15.0f;
 CLQ D_002C41F0 = {{{1.0f, -2.0f, -2.0f, 0.0f}}};
+LM D_002C4200 = {1.0f, 2.0f};
 SMP D_002C4208 = {0.5f, 0.0f, 0.5f};
-CLQ D_002C4220 = {{{0.0f, 1.0f, 0.0f, 0.0f}}};
+CLQ D_002C4220 __attribute__((aligned(16))) = {{{0.0f, 1.0f, 0.0f, 0.0f}}};   /* 16-aligned in the ELF (0x2C4220 after 0x2C4214) */
 SMP D_002C4230 = {4.0f, 0.0f, 0.25f};
 SMPA D_002C4240 = {5.0f, 0.0f, 0.25f, 35.0f};
 SMPA D_002C4250 = {10.0f, 0.0f, 0.1f, 100.0f};
 SMP D_002C4260 = {0.75f, 0.0f, 2.0f};
+float D_002C426C = -8.0f;
+float D_002C4270 = 15.0f;
+float D_002C4274 = -10.0f;
+float D_002C4278 = -5.0f;
+float D_002C427C = -10.0f;
+float D_002C4280 = -5.0f;
 namespace M_tn_data { extern "C" {
 VECTOR4 D_002C4290[5] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, -50.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 75.0f, 0.0f},
     {0.0f, 0.0f, -50.0f, 0.0f}};
 } }
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_tn {
-void p_UpdateTnCallback() __asm__("UpdateTnCallback");
-extern "C" {
-extern const unsigned int D_002A96F0[2] = {0xFFFF0000, (unsigned int)p_UpdateTnCallback};
-}
-} // namespace ANPTR_tn
