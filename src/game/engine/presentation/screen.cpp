@@ -18,7 +18,6 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
-extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -3474,8 +3473,7 @@ typedef struct {
 } OBJ;
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
 typedef struct { char pad[0xFD50]; void *xFD50; void *xFD54; } BIG;
-#undef D_002E65E0
-#define D_002E65E0 (*(BIG *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern BIG D_002E65E0;
 extern char D_002E6550[];
 extern struct G D_003DD490;
 extern char D_003D9ED0[];
@@ -3547,7 +3545,6 @@ void UpdateTitleScreen(OBJ *p)
     func_001AF4D8(D_003D9ED0, c, D_003DA578, pv, D_002C35F0);
 }
 } } // namespace M_UpdateTitleScreen
-#undef D_002E65E0
 
 namespace M_StartNewGame {
 extern "C" { void *func_001291A8(void *, const void *); void Decref__4CRef(void *); }
@@ -3626,8 +3623,7 @@ struct I { char pad[0xFD54]; void *xFD54; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern H D_002DFC00; }
 extern "C" { 
-#undef D_002E65E0
-#define D_002E65E0 (*(I *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern I D_002E65E0;
  }
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
@@ -3668,7 +3664,6 @@ extern "C" void BuildTitlePromptText(char *pch)
     }
 }
 } // namespace M_BuildTitlePromptText
-#undef D_002E65E0
 
 namespace M_IdsFromWorld { extern "C" {
 /** @sly2-annot addr=0x1DDD40

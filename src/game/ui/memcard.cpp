@@ -18,7 +18,6 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
-extern "C" char base_D_002E65A0[] __asm__("D_002E65A0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -31,12 +30,34 @@ void func_00258348(MCDLGG *pv, int grfDelete);
 }
 struct MCDLGG
 {
-    char ab[0x50];
-    MCDLGG(int f) { if (f) CMemcardDialog_ctor((MCDLG *)this); else func_001ADDF0(this); }
+    char ab[0x40];
+    int idUnk40;            /* +0x40 draft: a langstr id (func_001AD8F8 prints it); was the address name D_002E6590 */
+    int nUnk44;             /* +0x44 draft: the dialog's state (1, 3 tested; SetMcDialogState); was D_002E6594 */
+    char ab48[8];
+    MCDLGG() { CMemcardDialog_ctor((MCDLG *)this); }
     ~MCDLGG() { func_00258348(this, 2); }
 };
-MCDLGG D_002E6550(1);   /* the memory card dialog (CMemcardDialog) */
-MCDLGG D_002E65A0(0);   /* the card status widget (CMcStatus) */
+struct MCSTATUSG
+{
+    char ab[0x40];
+    MCSTATUSG() { func_001ADDF0(this); }
+    ~MCSTATUSG() { func_00258348((MCDLGG *)this, 2); }
+};
+/* memcard's .bss, in the ELF's order: the thread stack, the sceMcGetDir table, the directory path, the dialog (0x50),
+   the status widget (0x40), the save manager. g++ 2.95 emits an object with a constructor at its definition and
+   every other uninitialized object at the end of the file, so the three plain buffers get an empty inline
+   constructor (no code) to keep them ahead of the dialogs. Asm labels: the view declarations need not agree. */
+namespace BSS_memcard {
+template <int N> struct BUF { char ab[N]; BUF() {} };
+BUF<0x4000> d_002E2080 __asm__("D_002E2080");   /* the memcard thread's stack (stackSize 0x4000) */
+BUF<0x480> d_002E6080 __asm__("D_002E6080");    /* sceMcGetDir table (ENTs), cleared as 0x480 bytes */
+BUF<0x50> d_002E6500 __asm__("D_002E6500");     /* directory path */
+}
+MCDLGG D_002E6550;      /* the memory card dialog (CMemcardDialog) */
+MCSTATUSG D_002E65A0;   /* the card status widget (CMcStatus) */
+/* The save manager (SAVE, 0xFDA0 bytes up to memory.cpp's .bss at 0x2F6380; its MEMCARD worker D_002F633C at
+   +0xFD5C). */
+namespace BSS_memcard { BUF<0xFDA0> d_002E65E0 __asm__("D_002E65E0"); }
 
 // 0x1ADF98 StaticInit_memcard (the two widgets, then the six slot pools; their destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -115,10 +136,8 @@ struct FILEKEY { int an[2]; int n8; char bC; };
 extern SW D_003DD490;
 extern "C" {
 extern char D_002DEB30[];       /* the game */
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */   /* the save manager */
+extern SAVE D_002E65E0;   /* the save manager */
 extern int D_004425D8;
-extern int D_002E6590;          /* a langstr id */
 extern char D_003D9ED0[];       /* the pause menu */
 extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
 extern CLOCK D_002DDED0;
@@ -411,8 +430,7 @@ void InitMemcard(MEMCARD *pmemcard)
 namespace M_MemcardThreadMain { extern "C" {
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { int x0; int x4; struct PMF pmf; int x10; };
-#undef D_002E65E0
-#define D_002E65E0 (*(char (*)[])((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern char D_002E65E0[];
 extern int D_004425D8[];
 void func_00234A60(int) __asm__("WaitSema");
 void func_00234A40(int) __asm__("SignalSema");
@@ -438,8 +456,7 @@ void MemcardThreadMain(struct S *s)
     ExitDeleteThread();
 }
 } } // namespace M_MemcardThreadMain
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_CreateMemcardThread { extern "C" {
 struct PMF { short delta; short pad; int (*pfn)(void *); };
@@ -1859,8 +1876,7 @@ extern "C" void func_001ACC18(MCDLG *pdlg, int nMode)
 
 namespace M_func_001ACC38 { extern "C" {
 struct H { char pad[0xFD50]; int x; };
-#undef D_002E65E0
-#define D_002E65E0 (*(struct H *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct H D_002E65E0;
 struct CLOCK { float t; float dt; char pad[0x34]; float t3c; };
 extern struct CLOCK D_002DDED0;
 struct S { char pad[0x44]; int x44; float x48; };
@@ -1882,8 +1898,7 @@ void func_001ACC38(struct S *p, int n)
     p->x48 = D_002DDED0.t3c;
 }
 } } // namespace M_func_001ACC38
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001ACC80 { extern "C" {
 struct S { char pad[0x40]; int x40; };
@@ -1912,8 +1927,7 @@ struct P { char pad[0x58]; int x58; float x5C; int pad2; int x64; };
 struct S { char pad[0x10]; void *x10; char pad2[0x24 - 0x14]; struct P *x24; char pad3[0x40 - 0x28]; int x40; int x44; int pad4; int x4C; };
 struct MC { char pad[8]; int x8; char pad2[0xFD58 - 0xC]; int xFD58; char pad3[0xFD6C - 0xFD5C]; int xFD6C; };
 struct CLOCK { char pad[0x3C]; float t3c; };
-#undef D_002E65E0
-#define D_002E65E0 (*(struct MC *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct MC D_002E65E0;
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
@@ -2039,8 +2053,7 @@ void CMemcardDialog_Update(struct S *s)
     }
 }
 } } // namespace M_CMemcardDialog_Update
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001ACFE0 {
 // Game-state transition handler: switch on the new state id (x40) and run the menu/HUD hooks for it.
@@ -2065,8 +2078,7 @@ class O;
 struct S { char pad[0x40]; int x40; int x44; float x48; int x4C; };   // x40 = state id, x4C = counter
 extern "C" {
 extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
-#undef D_002E65E0
-#define D_002E65E0 (*(char (*)[])((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern char D_002E65E0[];
 
 int FScreenShown(void *p);
 int func_001B0160(void *p);
@@ -2129,8 +2141,7 @@ void func_001ACFE0(S *s)
     }
 }
 } // namespace M_func_001ACFE0
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD168 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
@@ -2174,8 +2185,7 @@ struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
-#undef D_002E65E0
-#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct G D_002E65E0;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2208,16 +2218,14 @@ void func_001AD250(struct S *s)
     }
 }
 } } // namespace M_func_001AD250
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD320 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
-#undef D_002E65E0
-#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct G D_002E65E0;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2247,15 +2255,13 @@ void func_001AD320(struct S *s)
     }
 }
 } } // namespace M_func_001AD320
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
 struct G { char pad[0xFD50]; int xFD50; int xFD54; int xFD58; };
 struct H { char pad[0x4C]; int x4C; };
-#undef D_002E65E0
-#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct G D_002E65E0;
 extern struct H D_002E6550;
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
@@ -2287,8 +2293,7 @@ void func_001AD3E0(void)
     }
 }
 } } // namespace M_func_001AD3E0
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD480 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
@@ -2296,8 +2301,7 @@ struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD58 - 0x24 - 3 * 0x5464]; struct B *xFD58; };
 struct H { char pad[0x4C]; int x4C; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
-#undef D_002E65E0
-#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct G D_002E65E0;
 extern struct H D_002E6550;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
@@ -2326,8 +2330,7 @@ void func_001AD480(struct S *s)
         s->x1C |= 2;
 }
 } } // namespace M_func_001AD480
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD538 {
 struct CRef;
@@ -2339,8 +2342,7 @@ struct GD { char pad[0x3B1C]; int x3B1C; };
 struct E { char pad[0x14]; int x14; int pad2[1]; };
 struct H { char pad[0x24]; int x24; };
 extern "C" {
-#undef D_002E65E0
-#define D_002E65E0 (*(struct G *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern struct G D_002E65E0;
 extern struct B D_002E6604[];
 extern char D_002E6550[];
 extern struct GD D_003DD490;
@@ -2403,8 +2405,7 @@ extern "C" void func_001AD538(void)
     }
 }
 } // namespace M_func_001AD538
-#undef D_002E65E0
-#define D_002E65E0 (*(SAVE *)((char *)base_D_002E65A0 + 0x40))   /* memcard save block+0x40 */
+extern SAVE D_002E65E0;
 #undef D_003D9EDC
 
 namespace M_func_001AD740 { extern "C" {
@@ -2413,7 +2414,6 @@ struct G { int pad[9]; int x24; };
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct G D_003D9ED0;
-extern int D_002E6594;
 struct S { int x0, x4; char *x8; };
 void func_001AF608(struct G *g);
 int func_001B0108(struct G *g);
@@ -2427,7 +2427,7 @@ void PlayWidgetAnim(void *a, char *b);
 void func_001AD740(struct S *s)
 {
     struct E *e;
-    if (D_002E6594 != 1) {
+    if (::D_002E6550.nUnk44 != 1) {
         func_001AF608(&D_003D9ED0);
         return;
     }
@@ -2451,7 +2451,7 @@ void func_001AD740(struct S *s)
 /* Dynamic text: the card name. */
 extern "C" void func_001AD7E0(char *pch)
 {
-    strcpy(pch, PchzFindSwLangstr(&D_003DD490, D_002E6590));
+    strcpy(pch, PchzFindSwLangstr(&D_003DD490, ::D_002E6550.idUnk40));
 }
 
 namespace M_func_001AD820 { extern "C" {
@@ -2795,11 +2795,6 @@ extern const char D_002A6CB8[] = "%s/%s";
 extern const char D_002A6EB8[] = " : &2T&.";
 extern const char D_002A6EC8[] = "%s : %d%%";
 extern const char D_002A6EE0[] = "episodeBest";
-char D_002E2080[0x4000];   /* the memcard thread's stack (stackSize 0x4000) */
-namespace M_ReadMcDir { extern "C" { ENT D_002E6080[0x480 / sizeof(ENT)]; } }   /* sceMcGetDir table, cleared as 0x480 bytes */
-char D_002E6500[0x50];   /* directory path */
-int D_002E6590;
-int D_002E6594;
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
