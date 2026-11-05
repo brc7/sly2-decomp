@@ -115,8 +115,9 @@ extern LIGHT *D_003E04F8;
 extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern int D_003E19E4;
 extern VIFS D_002DEA28;
-extern BLOCK D_002BFC60;
-extern float D_002BFC90, D_002BFC94;
+/* light's .data (address order): the default light block (three qwords), the point-light pull-back distance and limit scale. */
+BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 2 = 0.5f */
+float D_002BFC90 = 1000.0f, D_002BFC94 = 2.5f;
 extern CAMERA D_002DDF40;
 
 LIGHT *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);

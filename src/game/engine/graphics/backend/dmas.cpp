@@ -13,11 +13,11 @@ extern "C" {
 sceDmaChan *sceDmaGetChan(int id);
 int sceDmaReset(int mode);
 int sceGsResetPath();
-extern sceDmaChan *D_002DE590;   /* VIF0 */
-extern sceDmaChan *D_002DE594;   /* VIF1 */
-extern sceDmaChan *D_002DE598;   /* GIF */
-extern sceDmaChan *D_002DE59C;   /* fromSPR */
-extern sceDmaChan *D_002DE5A0;   /* toSPR */
+sceDmaChan *D_002DE590;   /* VIF0 (dmas' .bss, address order) */
+sceDmaChan *D_002DE594;   /* VIF1 */
+sceDmaChan *D_002DE598;   /* GIF */
+sceDmaChan *D_002DE59C;   /* fromSPR */
+sceDmaChan *D_002DE5A0;   /* toSPR */
 }
 
 /** @sly2-annot addr=0x157200

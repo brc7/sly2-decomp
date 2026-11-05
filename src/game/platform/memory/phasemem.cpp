@@ -10,10 +10,14 @@ enum PHASE { PHASE_Nil = 0 };   /* values 2 and 3 select the two buffer layouts 
 
 struct BUF { int pad0[2]; char *p; int c; int pad1[2]; char *p2; int c2; int pad2[12]; };
 extern struct BUF D_002DEA50[2];
-extern int D_003D3980;
-extern char D_003CF980[];
-extern char D_002F7980[];
-extern char D_00303980[];
+/* phasemem's .bss (address order): the phase buffers (layout 2: two 0x6000 + two 0x58000 halves; layout 3: two
+ * 0x1800 + two 0x800 in one 0x4000 block), the RPL buffer between them (no code here names it: render, draw and
+ * tu_1D57A8 use it; it fills the gap exactly) and g_phase. */
+char D_002F7980[0xC000];
+char D_00303980[0xB0000];
+char D_003B3980[0x1C000];
+char D_003CF980[0x4000];
+int D_003D3980;                     /* g_phase */
 extern "C" void func_00234CA0(int n);
 /** @sly2-annot addr=0x1C2A78
  * Purpose: if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers
