@@ -40,8 +40,8 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 | vtable | Entries | Slots differing from the consensus (slot=impl) | Stored by (vptr offset) |
 |---|---|---|---|
 | `0x2CB1F0` (canonical) | 7 |  | [`STEPGUARD_ctor?`](../../src/game/app/class_registry/STEPGUARD_ctor.c) |
-| `0x2D36D0` | 15 | 7=`CMcStatus_Update?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`CMcStatus_SetMode?` | [`CMcStatus_ctor?`](../../src/game/ui/memcard/func_001ADDF0.cpp) (+0xC) |
-| `0x2D3750` | 15 | 7=`CMemcardDialog_Update?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`CMemcardDialog_vt12?`, 13=`CMemcardDialog_vt13?`, 14=`CMemcardDialog_SetMode?` | [`CMemcardDialog_ctor?`](../../src/game/ui/memcard/CMemcardDialog_ctor.c) (+0xC) |
+| `0x2D36D0` | 15 | 7=`CMcStatus_Update?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`CMcStatus_SetMode?` | [`CMcStatus_ctor?`](../../src/game/ui/memcard.cpp) (+0xC) |
+| `0x2D3750` | 15 | 7=`CMemcardDialog_Update?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`CMemcardDialog_vt12?`, 13=`CMemcardDialog_vt13?`, 14=`CMemcardDialog_SetMode?` | [`CMemcardDialog_ctor?`](../../src/game/ui/memcard.cpp) (+0xC) |
 | `0x2D37D0` | 12 | 7=`UpdatePauseMenu?`, 8=`PAUSEMENU_vt8?`, 9=`PAUSEMENU_vt9?`, 10=`ShowPausemenu?`, 11=`HidePausemenu?` | [`StaticInit_screen?`](../../src/game/engine/presentation/screen/StaticInit_screen.c) (+0xC) |
 | `0x2D8368` | 15 | 7=`UpdateTitleScreen?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreenLoad?`, 13=`ResetScreen?`, 14=`SetTitleScreenStickDir?` | [`SCREEN5D2_ctor?`](../../src/game/engine/presentation/screen/func_001DD7D8.c) (+0xC) |
 | `0x2D83E8` | 15 | 7=`UpdateScreenTimeout?`, 8=`DrawScreen?`, 9=`SCREEN_vt9?`, 10=`ShowScreen?`, 11=`HideScreen?`, 12=`PostScreen52DLoad?`, 13=`ResetScreen?`, 14=`SetScreenState?` | [`SCREEN52D_ctor?`](../../src/game/engine/presentation/screen/func_001DD648.c) (+0xC) |
