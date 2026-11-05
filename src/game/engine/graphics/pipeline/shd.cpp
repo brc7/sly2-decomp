@@ -58,17 +58,25 @@ typedef char assert_SHDV_size[sizeof(SHDV) == 0x2C ? 1 : -1];
 
 extern "C" {
 /* The tables (separate globals: one lui per store in ResetShaders). */
-extern int D_003DCFE8;      /* shader count */
-extern SHDV *D_003DCFEC;    /* shaders */
-extern int D_003DCFF0;      /* bitmap count */
-extern BMP *D_003DCFF4;    /* bitmaps */
-extern int D_003DCFF8;      /* colour table count */
-extern CLUT *D_003DCFFC;   /* colour tables */
-extern int D_003DD000;
-extern void *D_003DD004;
-extern int D_003DA790;
-extern int D_003DCFA0;
-extern char D_003DCFA8[0x40];
+/* shd's .bss (address order; the per-function views below redeclare some with their own types). D_003DA790 and
+ * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too); the 0x2800-byte table D_003DA798 between
+ * them is declared in its function's view only and not defined here. */
+int D_003DA790;
+int D_003DCF98, D_003DCF9C;
+int D_003DCFA0;
+char D_003DCFA8[0x40];
+int D_003DCFE8;             /* shader count */
+SHDV *D_003DCFEC;           /* shaders */
+int D_003DCFF0;             /* bitmap count */
+BMP *D_003DCFF4;            /* bitmaps */
+int D_003DCFF8;             /* colour table count */
+CLUT *D_003DCFFC;           /* colour tables */
+int D_003DD000;
+void *D_003DD004;
+int D_003DD00C;
+void *D_003DD010;
+int D_003DD014;
+void *D_003DD018;
 extern void *D_003E1590;    /* the default shader */
 void ColorCorrectRgba(RGBAV *prgba);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
@@ -286,7 +294,7 @@ struct O { char pad[0x3EA0]; ulong tex0; };
 extern "C" {
 struct SRC { float ag[3]; float aclr[3][4]; };
 extern struct SRC D_003E12F4;
-extern int D_002C3680[];
+int D_002C3680[3] = {8, -16, 8};   /* shd's .data starts here (the zero word after it is alignment) */
 extern int D_002DE598;
 void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *);
 int IgsAllocGsb__FP3GSBi(void *, int);
@@ -1608,7 +1616,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) VEC;
 struct G3 { float x, y, z; };
 extern int D_003E12C8;
-extern float D_002C3690, D_002C3694, D_002C3698;
+float D_002C3690 = 60.0f, D_002C3694 = 0.0f, D_002C3698 = 0.6f;
 extern char D_002BBB60[];
 float powf(float, float);
 float GLimitLm__FP2LMf(void *, float);
