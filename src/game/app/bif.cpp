@@ -276,7 +276,7 @@ struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f); };
 struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v); };
 qword operator*(VU_FLOAT_X f, VU_VECTOR v);
 extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
-MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
+extern "C" { MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b); }
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
@@ -291,7 +291,7 @@ struct CRef {
     CRef &operator=(const MATRIX4 &m);
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
-CRef CRef_CloneTo(CRef *pref, void *a, void *b);
+extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
 extern "C" CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *aref);
 
 static inline qword MulVF(const qword *pv, float g)
@@ -508,7 +508,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
-CRef CRef_CloneTo(CRef *pref, void *a, void *b);
+extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
 extern "C" CRef RefOpDiv__FiP4CRefP6CFrame(void *pv, CRef *aref);
 
 struct VU_FLOAT_V {
@@ -1342,7 +1342,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -1624,7 +1624,7 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -1741,7 +1741,7 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(NODE *p);
 };
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -1805,7 +1805,7 @@ struct CRef {
     CRef &operator=(NODE *pn);
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -1883,7 +1883,7 @@ struct CRef {
     CRef &operator=(NODE *p);
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -1943,7 +1943,7 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(NODE *p);
 };
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -2021,7 +2021,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -2091,7 +2091,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -2759,7 +2759,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct W { char pad[0xC]; qword *pv; };
-extern qword D_002A2DD0;
+extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 CRef RefOpVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -2817,7 +2817,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct W { char pad[0xC]; qword *pv; };
-extern qword D_002A2DD0;
+extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -2861,7 +2861,7 @@ struct CRef {
     CRef &operator=(const CRef &r);
 };
 struct W { char pad[0xC]; qword *pv; };
-extern qword D_002A2DD0;
+extern "C" { extern qword D_002A2DD0; }
 extern "C" CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 static __inline__ qword VLen(qword c)
 {
@@ -3042,7 +3042,7 @@ struct CRef {
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -3284,7 +3284,7 @@ struct CRef {
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -3349,7 +3349,7 @@ struct CRef {
 struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
 struct MATRIX3 { VECTOR mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b);
 CRef RefOpMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
@@ -4012,11 +4012,11 @@ struct CRef {
     CRef &operator=(OBJ *p);
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 struct G;
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 struct CLOCK { float t; float dt; };
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 struct R { char pad[0xC]; int n; };
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
@@ -4339,7 +4339,7 @@ struct CRef {
 struct Q { char pad[0x3C]; void *pv; };
 struct W { char pad[0xC]; Q *pq; };
 struct G { char pad[0x3F0C]; void *pv; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" {
 int func_0015E678(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
@@ -4393,7 +4393,7 @@ struct CRef {
     CRef &operator=(struct LO *p);
 };
 struct NODE;
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -4422,7 +4422,7 @@ struct LO;
 struct SW { char pad[0x3C]; int n3C; };
 struct OW { char pad[0xC]; SW *psw; };
 struct G { char pad[0x3F0C]; int n3F0C; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" LO *PloFindSwObject_15E958(G *pg, int kind, int n, void *pv, int n2);
 extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
 /** @sly2-annot addr=0x1242B8
@@ -4501,7 +4501,7 @@ struct CRef {
 struct Q { char pad[0x3C]; void *pv; };
 struct W { char pad[0xC]; Q *pq; };
 struct G { char pad[0x3F0C]; void *pv; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" {
 int func_0015E678(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
@@ -4630,7 +4630,7 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
-extern char D_003DD490[];
+extern "C" { extern char D_003DD490[]; }
 extern "C" {
 int CploFindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
@@ -4669,7 +4669,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct OBJ { int a[4]; OBJ(); ~OBJ(); };
-extern char D_003DD490[];
+extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap);
 void func_0020FDC8(int c, void *ap, int *pc, void **pap);
@@ -4713,7 +4713,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct OBJ { int a[4]; OBJ(); ~OBJ(); };
-extern char D_003DD490[];
+extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
 void func_0020FDC8(int c, void *ap, int *pc, void **pap);
@@ -4765,7 +4765,7 @@ struct CRef {
     CRef &operator=(LO *plo);
     CRef &operator=(qword *pv);
 };
-extern char D_004520A8[];
+extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void GcPair_Unlink(void *pv);
@@ -5184,8 +5184,8 @@ struct CRef {
 };
 struct OBJ { int a[4]; OBJ(); ~OBJ(); };
 struct X { int a[4]; };
-extern char D_003E0EA8[];
-extern char D_003D4A60[];
+extern "C" { extern char D_003E0EA8[]; }
+extern "C" { extern char D_003D4A60[]; }
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
 CRef RefGetSaveVar(void *a, X *px, void *b);
@@ -5228,8 +5228,8 @@ struct CRef {
 };
 struct OBJ { int a[4]; OBJ(); ~OBJ(); };
 struct X { int a[4]; };
-extern char D_003E0EA8[];
-extern char D_003D4A60[];
+extern "C" { extern char D_003E0EA8[]; }
+extern "C" { extern char D_003D4A60[]; }
 extern "C" {
 void FillAsFromPair(void *pv, X *px);
 CRef RefSetSaveVar(void *a, X *px, CRef *pref, void *b);
