@@ -415,9 +415,9 @@ namespace M_RecalcCmFrustrum__FP2CM {
 // sqrt.s as volatile inline asm (as in other matched cm/util code): it orders the stores like the original.
 extern "C" float tanf(float);
 static inline float sqrtf(float x){float r; __asm__ __volatile__("sqrt.s %0,%1":"=&f"(r):"f"(x)); return r;}
-void BuildProj(void *p, float a, float b, float c, float d, float e, float f);
+void BuildProj(void *p, float a, float b, float c, float d, float e, float f) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 void SetCmLookAt(CM *p, float g, void *pv) __asm__("BuildCmFgfn");
-void RecalcCm(CM *p);
+void RecalcCm(CM *p) __asm__("UpdateCmMat4__FP2CM");
 static inline float GMax(float a, float b) { return a > b ? a : b; }
 /** @sly2-annot addr=0x14DB70
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -461,9 +461,9 @@ namespace M_UpdateCmMat4__FP2CM {
 #include "sly2/aseg.h"
 #include "sly2/cm.h"
 MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
-MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
+MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR) __asm__("__ml__FRC7MATRIX4T0");
 bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("func_0011C2F0");
-void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sFar, float sNear, MATRIX4 *pmat);
+void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sFar, float sNear, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern CLOCK D_002DDED0; }
 struct CAMEVENT
@@ -488,7 +488,7 @@ struct CAMMOVE
 };
 extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut);
 extern "C" void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane);
-void UpdateCmVisZone(CM *pcm);
+void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");
 struct VU_FLOAT
 {
     qword qw;
