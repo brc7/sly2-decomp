@@ -32,11 +32,9 @@ struct FLAGCHTABLE { FLAGCH a[16]; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];   /* g_sw */
-extern const char D_002A97F0[] = "|";
-/* The pad buttons as glyph characters, {button mask, char} (16 entries). */
-extern const FLAGCHTABLE D_002A97F8 = {{{0x40, 'X'}, {0x20, 'O'}, {0x10, 'T'}, {0x80, 'S'}, {0x800, '!'}, {0x100, '_'}, {0x1000, '^'},
-    {0x4000, 'v'}, {0x8000, '<'}, {0x2000, '>'}, {0x4, 'L'}, {0x1, 'l'}, {0x200, '('}, {0x8, 'R'}, {0x2, 'r'}, {0x400, ')'}}};
-extern const char D_002A9878[] = "&2%c&.";
+extern const char D_002A97F0[];         /* defined at the end (.rodata order: after RgbaFromSpeakerCid's jump table) */
+extern const FLAGCHTABLE D_002A97F8;
+extern const char D_002A9878[];
 
 extern "C" {
 RGBA RgbaFromSpeakerCid(int k);
@@ -165,3 +163,10 @@ extern "C" void func_00227940(SPEAKERLABEL *plabel, char *pch)
             sprintf(pch, D_002A9878, t.a[i].ch);
     }
 }
+
+// .rodata order (tu-merging.md "Phase 5: data order"): these follow RgbaFromSpeakerCid's jump table in the ELF.
+extern const char D_002A97F0[] = "|";
+/* The pad buttons as glyph characters, {button mask, char} (16 entries). */
+extern const FLAGCHTABLE D_002A97F8 = {{{0x40, 'X'}, {0x20, 'O'}, {0x10, 'T'}, {0x80, 'S'}, {0x800, '!'}, {0x100, '_'}, {0x1000, '^'},
+    {0x4000, 'v'}, {0x8000, '<'}, {0x2000, '>'}, {0x4, 'L'}, {0x1, 'l'}, {0x200, '('}, {0x8, 'R'}, {0x2, 'r'}, {0x400, ')'}}};
+extern const char D_002A9878[] = "&2%c&.";
