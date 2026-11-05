@@ -562,6 +562,11 @@ extern "C" int func_001CE6C0(RIPG *pripg)
     return pripg->nState != 1;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A77D0 __asm__("D_002A77D0") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A77D4 __asm__("D_002A77D4") = -3.40282347e+38f; }
 namespace M_PvtripFromRipt { extern "C" {
 struct X { int k; char pad[0xEC - 4]; void *vt; };
 extern char D_002D7738[];
@@ -2749,8 +2754,6 @@ void UpdateRemit(OBJ *p)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A77D0 = 3.40282347e+38f;
-extern const float D_002A77D4 = -3.40282347e+38f;
 /* D_002C1F40/F90/FA0 are declared qword at file scope (read whole); defined as float vectors under C linkage
    in a namespace, which g++ 2.95 accepts beside the file-scope declaration (same symbol). */
 namespace M_rip_data { extern "C" { VECTOR4 D_002C1F40 = {0.0f, 0.0f, -1750.0f, 0.0f}; } }

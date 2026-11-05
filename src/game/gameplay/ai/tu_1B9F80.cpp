@@ -99,7 +99,7 @@ void func_00171258(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELA *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
-extern const float D_002A7620 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A7620;   /* defined below where the ELF has it (.rodata order) */
 /* tu_1B9F80's .data (address order): the snip table, then NEELA's target volume: the centre offset and the box around it. */
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
 SNIP D_002C0A50[3] = {{0x200, 0x5D8, 0x1020}, {0x10, 0x5D9, 0x1030}, {0x10, 0x5DA, 0x1034}};
@@ -212,6 +212,10 @@ typedef char NEELA_target_Offset[FIELD_OFFSET(NEELA,target)==4136?1:-1];
 typedef char NEELA_motion_Offset[FIELD_OFFSET(NEELA,motion)==4140?1:-1];
 typedef char NEELA_node_Offset[FIELD_OFFSET(NEELA,node)==4148?1:-1];
 typedef char NEELA_axis_Offset[FIELD_OFFSET(NEELA,axis)==4160?1:-1];
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7620 __asm__("D_002A7620") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1BA128
  * Purpose: CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a
  *   volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends

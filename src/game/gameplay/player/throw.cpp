@@ -92,7 +92,7 @@ extern SW D_003DD490;
 float D_002C40E4 = 1.35f;                       // tPredict scale with power-up 0x24
 CLQ D_002C40F0 = {0.15f, 0.55f, 0.0f};          // the launch elevation over the aim distance
 float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limits per second
-extern const float D_002A96A0 = 3.40282347e+38f; // FLT_MAX
+extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(O *a, int b, int c, void *d, int e, int f, int g, void *h);
 qword func_001A62E8(void *);
@@ -459,6 +459,10 @@ static inline float GClamp(float g,float gMin,float gMax){if(g<gMin)return gMin;
 static inline float GMax(float g0,float g1){return g0<g1?g1:g0;}
 static inline float GFromClq(const CLQ &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A96A0 __asm__("D_002A96A0") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x21FB70
  * Purpose: predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the
  *   aim marker ring, updates aim blends

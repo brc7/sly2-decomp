@@ -107,7 +107,7 @@ extern char D_003DD040[], D_002DEB30[];
 extern int D_002C3588[];
 #undef D_002DDFA0
 extern qword D_002DDFA0[3];   /* kept: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
-extern const float D_002A8550 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
 int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LO *ploCtx, int c, RECONTGT **apl);
 int FCheckVolPoint(LO *pvol, qword v);
@@ -451,6 +451,10 @@ __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(a):"0"(a));
 __asm__("qmfc2.ni %0,%1":"=r"(g):"j"(a));return g;}
 static inline void Store(qword*p,qword q){__asm__("sq %1,%0":"=m"(*p):"r"(q));}
 static inline qword ScalarBits(const float*p){qword q;__asm__("lw %0,%1":"=r"(q):"m"(*p));return q;}
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A8550 __asm__("D_002A8550") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x202540
  * Purpose: choose closest unblocked target in frustum; on change SetReconSelState(2)
  * Info: proposed name SelectReconTarget (T1); TU tu_201D78

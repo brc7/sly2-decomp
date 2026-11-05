@@ -28,7 +28,7 @@ typedef char assert_VOL_sRadius[(unsigned int)&((VOL *)0)->sRadius == 0x120 ? 1 
 typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct MARK { int a[4]; } MARK;
 struct DL;
-extern const float D_002A9880 = -3.40282347e+38f;  /* -FLT_MAX */
+extern const float D_002A9880;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 void LoadXfmFromBrx(VOL *p, void *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);   /* linker name of CBinaryInputStream::ReadGeom */
@@ -48,6 +48,10 @@ int FCheckVolPoint(VOL *p, qword q);
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A9880 __asm__("D_002A9880") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x227BB8
  * Purpose: LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points
  * Info: proposed name LoadVolFromBrx (T1); class VOL slot14; TU vol

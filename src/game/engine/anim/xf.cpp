@@ -101,11 +101,6 @@ struct VU_FLOAT
     qword qw;
 };
 
-struct GFTUNE
-{
-    float g;
-};
-
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022C818 { extern "C" {
 struct S { char pad[0x80]; int a; float b; int *pa; float *pb; };
@@ -125,12 +120,16 @@ void func_0022C818(void *q, struct S *p)
 }
 } } // namespace M_func_0022C818
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A98D0 __asm__("D_002A98D0") = -3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022C840 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(...); };   /* the C file's unprototyped pointer */
 struct O { int a[3]; struct VTE *vt; };
 struct Q { char pad[0x80]; float a, b; void *pa, *pb; char pad2[8]; short k; short l; };
-extern const float D_002A98D0 = -3.40282347e+38f;   /* -FLT_MAX */
+extern const float D_002A98D0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
 /** @sly2-annot addr=0x22C840
  * Purpose: for active roles marks the owning SO awake
@@ -1083,16 +1082,30 @@ extern "C" void ApplyXfmConstraint(SO *pso, struct XFLOCK *pxflock);
 void UpdateChainLink(SO *pso, struct CHAINLINK *plink) __asm__("func_0021CB18");
 extern "C" float *VECTOR_opAssign(float *pg, qword qw);
 
-static const SMP s_smpChaseRot = {0.015000001f, 0.0f, 0.5f};
-static const GFTUNE s_gAccelRot = {0.06000001f};
-static const SMP s_smpChasePos = {1.5000001f, 0.0f, 0.5f};
-static const SMP s_smpChaseScale = {0.005000001f, 0.0f, 0.5f};
-static const GFTUNE s_gAccelPos = {6.0000005f};
-static const GFTUNE s_gAccelScale = {0.020000001f};
-static const GFTUNE s_gKpPos = {0.015000001f};
-static const GFTUNE s_gKdPos = {0.0025000001f};
-static const GFTUNE s_gKpRot = {0.015000001f};
-static const GFTUNE s_gKdRot = {0.0025000001f};
+// ---- xf's .data, in address order (docs/guides/tu-merging.md "Data"; definition order is emission order, so the
+// block sits before the chase tuning below, which follows it in the ELF).
+char D_002C44E0[4] = {0};   /* an empty buffer the queue pointers start at */
+float D_002C44E4 = 1.0f;    /* the unit weight the world frame's second pointer reads */
+/* The world frame (other TUs: g_xfWorld, the identity XF a slot without a parent uses): both matrices identity,
+ * the default bounds -FLT_MAX/FLT_MAX and pointers to g_clock (its first float) and to D_002C44E4. */
+namespace XF_DATA { extern float p_g_clock __asm__("D_002DDED0"); }
+XF D_002C44F0 = {
+    {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}},
+    {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}},
+    -3.40282347e+38f, 3.40282347e+38f, &XF_DATA::p_g_clock, &D_002C44E4,
+};
+/* The chase tuning: writable statics in .data (the ELF has them at 0x2C45F0-0x2C4634; the scalars are plain floats,
+ * 4-aligned, where a one-float struct would be 8-aligned). */
+static SMP s_smpChaseRot = {0.015000001f, 0.0f, 0.5f};
+static float s_gAccelRot = 0.0600000024f;
+static SMP s_smpChasePos = {1.5000001f, 0.0f, 0.5f};
+static SMP s_smpChaseScale = {0.00500000035f, 0.0f, 0.5f};
+static float s_gAccelPos = 6.0000005f;
+static float s_gAccelScale = 0.020000001f;
+static float s_gKpPos = 0.015000001f;
+static float s_gKdPos = 0.0025000001f;
+static float s_gKpRot = 0.015000001f;
+static float s_gKdRot = 0.0025000001f;
 static inline qword QwMulAddX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
@@ -1450,7 +1463,7 @@ void UpdateSoSlots(SO *pso)
                         {
                             case 0xb:
                             {
-                                float gMax = (float)(ushort)pxf->nUnkAc * s_gAccelRot.g;
+                                float gMax = (float)(ushort)pxf->nUnkAc * s_gAccelRot;
                                 qword qwNewOmega = QwSMulAddX(VuFloat(dgNext - gRateAlong).qw, *(qword *)&vecAxis, qwRotRate);
                                 qword qwV0 = *(qword *)&pxf->vUnkB0;
                                 qword qwDOmega = QwSub(qwNewOmega, qwV0);
@@ -1584,12 +1597,12 @@ void UpdateSoSlots(SO *pso)
                                 if (pxf->xfk < 13)
                                 {
                                     if (pxf->xfk >= 11)
-                                        gMax = (float)(ushort)pxf->nUnkAc * s_gAccelScale.g;
+                                        gMax = (float)(ushort)pxf->nUnkAc * s_gAccelScale;
                                     else
-                                        gMax = (float)(ushort)pxf->nUnkAc * s_gAccelPos.g;
+                                        gMax = (float)(ushort)pxf->nUnkAc * s_gAccelPos;
                                 }
                                 else
-                                    gMax = (float)(ushort)pxf->nUnkAc * s_gAccelPos.g;
+                                    gMax = (float)(ushort)pxf->nUnkAc * s_gAccelPos;
                                 if (gMax < gNeed)
                                 {
                                     qword qwV0 = *(qword *)&pxf->vUnkB0;
@@ -1687,8 +1700,8 @@ void UpdateSoSlots(SO *pso)
                     qword qwTarget = qw;
                     qword qwTargetVel;
                     SLOT_RATE_SWITCH(pxf, qw, qwTargetVel)
-                    float gKp = (float)(ushort)pxf->nUnkAc * s_gKpPos.g;
-                    float gKd = (float)(ushort)pxf->nUnkAe * s_gKdPos.g;
+                    float gKp = (float)(ushort)pxf->nUnkAc * s_gKpPos;
+                    float gKd = (float)(ushort)pxf->nUnkAe * s_gKdPos;
                     float dt = D_002DDED0.dt;
                     qword qwV0 = *(qword *)&pxf->vUnkB0;
                     qword qwDV = QwSub(qwTargetVel, qwV0);
@@ -1746,8 +1759,8 @@ void UpdateSoSlots(SO *pso)
                     }
                     matDmat = MulMatrix3Matrix3((MATRIX3 *)&pxf->mat, &matTarget);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
-                    float gKp = (float)(ushort)pxf->nUnkAc * s_gKpRot.g;
-                    float gKd = (float)(ushort)pxf->nUnkAe * s_gKdRot.g;
+                    float gKp = (float)(ushort)pxf->nUnkAc * s_gKpRot;
+                    float gKd = (float)(ushort)pxf->nUnkAe * s_gKdRot;
                     qword qwDV = QwSub(qwRate, qwOmega0);
                     qword qwAccel = QwMulXMulX_P2134(*(qword *)&vecAxis, VuFloat(gKp * gAngle).qw, qwDV, VuFloat(gKd).qw);
                     qword qwOmega1 = QwMulAddX(qwOmega0, qwAccel, VuFloat(dt).qw);
@@ -2753,9 +2766,6 @@ typedef int qword __attribute__((mode(TI)));
 qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }
 } } // namespace M_VECTOR_opAssign
 
-// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
-// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-char D_002C44E0[4] = {0};   /* an empty buffer the queue pointers start at */
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end

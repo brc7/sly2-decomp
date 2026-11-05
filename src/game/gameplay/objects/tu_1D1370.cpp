@@ -43,7 +43,7 @@ struct XPLISTV { int pad0[2]; XP *pxpFirst; };
 
 extern CLOCK D_002DDED0;
 extern "C" {
-extern const float D_002A7834 = -3.40282347e+38f;
+extern const float D_002A7834;   /* defined below where the ELF has it (.rodata order) */
 void OnPoActive(ROBOTTANK *ptank, int fActive);
 void SetRobottankState(ROBOTTANK *ptank, int nState);
 void UpdateRobottankHealthMeter(ROBOTTANK *ptank);
@@ -825,6 +825,10 @@ struct O *func_001D2240(struct S *p) {
 }
 } } // namespace M_func_001D2240
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7810 __asm__("D_002A7810") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D22D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -837,7 +841,7 @@ typedef struct {
     SO *x5B8;
 } OBJ;
 extern char D_003DD490[];
-extern const float D_002A7810 = 3.40282347e+38f;
+extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
 float D_002C20C0[3] = {-200.0f, 0.8f, 0.0f};
 qword func_001A62E8(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
@@ -1277,6 +1281,7 @@ extern "C" void UpdateRobottankAi(P *p)
  * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
 /* The contact of the list with the largest separation above D_002A7834, or 0. */
+namespace RO_ORDER { extern const float r_D_002A7834 __asm__("D_002A7834") = -3.40282347e+38f; }
 extern "C" XP *func_001D2DD0(ROBOTTANK *ptank, XPLISTV *pxplist)
 {
     float g;

@@ -96,7 +96,7 @@ extern qword D_002A2DC0, D_002A2DA0, D_002A2DD0, D_002A2DE0;
 extern float D_002C3C60[];
 extern LM D_002BBB60;
 extern SO *D_002E1E40;
-extern const float D_002A97A8 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A97A8;   /* defined below where the ELF has it (.rodata order) */
 /* tu_223F70's .data (address order). The two springs' parameters are float[4] (passed as void *). */
 float D_002C42E0 = 0.25f;
 int D_002C42E8[4] = {0x33, 0x64, 0x4F, 0x67};     /* the four classes that block the release */
@@ -712,6 +712,10 @@ static inline M3 MakeBasis(qword direction,qword rawUp) return result;{
  __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(normalized):"j"(v),"j"(len));
  BuildOrthonormalMatrixZP(&result,first,normalized);
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A97A8 __asm__("D_002A97A8") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x224EC8
  * Purpose: CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to
  *   surface +0x1A0, 3 detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114

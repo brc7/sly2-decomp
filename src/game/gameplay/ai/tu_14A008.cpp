@@ -96,7 +96,7 @@ extern char D_003DD040[];
 extern char D_002DDF40[];
 void *D_002DD648;   /* the registered guard (tu_14A008's .bss; medium: by layout, just before cd's .bss) */
 extern qword D_002A2DD0;
-extern const float D_002A4EE8 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A4EE8;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 #undef D_003E1450
 #define D_003E1450 (*(SO * *)((char *)base_D_003DD490 + 0x3FC0))   /* g_sw+0x3FC0: SW::_pad_310 */
@@ -768,6 +768,10 @@ static __inline__ float GDist(qword a, qword b)
     g = VuToFloat(d);
     return g;
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x14B290
  * Purpose: vt88 (STEPGUARD own slot): choose best candidate object by kind/distance
  * Info: proposed name Carmelita_VUnk88 (T2); class CARMELITA slot88; TU tu_14A008
