@@ -27,18 +27,18 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
-| 5 | HandleMessage | **override** | [`HandleHackenemyMessage?`](../../../src/game/gameplay/objects/tu_17F090/func_00181060.cpp) | `0x181060` |
+| 5 | HandleMessage | **override** | [`HandleHackenemyMessage?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181060` |
 | 6 | Pclassinfo | **override** | [`GetHackenemyClassDesc`](../../../src/game/app/class_registry/GetHackenemyClassDesc.c) | `0x113EA0` |
-| 7 | Init | **override** | [`InitHackenemy`](../../../src/game/gameplay/objects/tu_17F090/InitHackenemy.c) | `0x180500` |
+| 7 | Init | **override** | [`InitHackenemy`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180500` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` |
-| 12 | RemoveHierarchy | **override** | [`RemoveHackenemyHierarchy?`](../../../src/game/gameplay/objects/tu_17F090/func_00180598.c) | `0x180598` |
+| 12 | RemoveHierarchy | **override** | [`RemoveHackenemyHierarchy?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180598` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostHackenemyLoad?`](../../../src/game/gameplay/objects/tu_17F090/func_001805C8.c) | `0x1805C8` |
-| 16 | Update | **override** | [`UpdateHackenemy?`](../../../src/game/gameplay/objects/tu_17F090/func_00180668.cpp) | `0x180668` |
+| 15 | PostLoad | **override** | [`PostHackenemyLoad?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1805C8` |
+| 16 | Update | **override** | [`UpdateHackenemy?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180668` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -48,7 +48,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 23 | OnAdd | inherited (SO) | `OnSoAdd` | `0x1F3EA8` |
 | 24 |  | inherited (LO) | `func_00210330` | `0x210330` |
 | 25 | SetIdProxy | inherited (SO) | `SetSoIdProxy` | `0x1CA308` |
-| 26 | ResetLoForProxy | **override** | [`HACKENEMY_vt26?`](../../../src/game/gameplay/objects/tu_17F090/func_00180638.c) | `0x180638` |
+| 26 | ResetLoForProxy | **override** | [`HACKENEMY_vt26?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180638` |
 | 27 | LO_VUnk27Proxy | inherited (SO) | `SO_VUnk27Proxy?` | `0x1CB5D0` |
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
@@ -77,7 +77,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |
 | 54 | SO_vt54_Nop | inherited (SO) | `SO_vt54_Nop?` | `0x1F5988` |
-| 55 | SO_vt55_Nop | **override** | [`AdjustHackenemyXp?`](../../../src/game/gameplay/objects/tu_17F090/func_00180FF0.c) | `0x180FF0` |
+| 55 | SO_vt55_Nop | **override** | [`AdjustHackenemyXp?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180FF0` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
@@ -92,12 +92,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` |
 | 68 | ApplySoContactImpulse | inherited (SO) | `ApplySoContactImpulse?` | `0x1FAD00` |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetHackenemyAccel?`](../../../src/game/gameplay/objects/tu_17F090/func_00180EE8.cpp) | `0x180EE8` |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetHackenemyAccel?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x180EE8` |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` |
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`HACKENEMY_TakeDamage?`](../../../src/game/gameplay/objects/tu_17F090/func_001811B8.c) | `0x1811B8` |
+| 75 | FZprHasField44 | **override** | [`HACKENEMY_TakeDamage?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1811B8` |
 | 76 | FInvulnerablePo | inherited (PO) | `FInvulnerablePo` | `0x1C3E90` |
 | 77 | JthsCurrentPo | inherited (PO) | `JthsCurrentPo` | `0x1C3ED0` |
 | 78 | OnPoActive | inherited (PO) | `OnPoActive` | `0x1C3FF0` |
@@ -105,7 +105,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |
 | 82 | HACK_Die | inherited (HACK) | `HACK_Die?` | `0x17F5F8` |
-| 83 | ResetHack | **override** | [`ResetHackenemy?`](../../../src/game/gameplay/objects/tu_17F090/func_00181238.c) | `0x181238` |
+| 83 | ResetHack | **override** | [`ResetHackenemy?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181238` |
 
 ## Fields
 

@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetHacklockClassDesc`](../../../src/game/app/class_registry/GetHacklockClassDesc.c) | `0x113EC0` |
-| 7 | Init | **override** | [`InitHacklock`](../../../src/game/gameplay/objects/tu_17F090/InitHacklock.c) | `0x181408` |
+| 7 | Init | **override** | [`InitHacklock`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181408` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,8 +37,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (HACK) | `RemoveHackHierarchy?` | `0x17F110` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostHacklockLoad?`](../../../src/game/gameplay/objects/tu_17F090/func_00181440.c) | `0x181440` |
-| 16 | Update | **override** | [`UpdateHacklock?`](../../../src/game/gameplay/objects/tu_17F090/func_00181478.c) | `0x181478` |
+| 15 | PostLoad | **override** | [`PostHacklockLoad?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181440` |
+| 16 | Update | **override** | [`UpdateHacklock?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181478` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (SO) | `RenderSoSelf` | `0x1F3C70` |
@@ -105,7 +105,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |
 | 82 | HACK_Die | inherited (HACK) | `HACK_Die?` | `0x17F5F8` |
-| 83 | ResetHack | **override** | [`ResetHacklock?`](../../../src/game/gameplay/objects/tu_17F090/func_00181598.c) | `0x181598` |
+| 83 | ResetHack | **override** | [`ResetHacklock?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181598` |
 
 ## Fields
 
