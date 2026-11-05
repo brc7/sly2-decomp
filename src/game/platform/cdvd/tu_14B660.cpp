@@ -15,7 +15,7 @@ struct CDREQ
 };
 
 extern int D_002BD4C0;
-extern char D_002A4EF0[];
+extern const char D_002A4EF0[] = "fid:#unknown";
 
 /** @sly2-annot addr=0x14B660
  * Purpose: D_002BD4C0 = 3
@@ -55,5 +55,5 @@ extern "C" int func_0014B670(CDREQ *preq)
  * @end-sly2-annot */
 extern "C" char *func_0014B690()
 {
-      return D_002A4EF0;
+      return (char *)D_002A4EF0;
 }

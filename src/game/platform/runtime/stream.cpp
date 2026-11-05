@@ -12,7 +12,7 @@ extern "C" {
 int func_00236960(const char *fmt, ...);                   /* printf */
 int sceWrite(int fd, const void *pv, int cb);
 }
-extern char D_002A8910[];                                  /* "%s" */
+extern const char D_002A8910[] = "%s";
 
 class OSTRM
 {
