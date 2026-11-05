@@ -2346,8 +2346,8 @@ struct SL
     void *tail;
     int ibSle;
 };
-void InitSl(SL *psl, int ibSle);
-void AppendSlEntry(SL *psl, void *pv);
+void InitSl(SL *psl, int ibSle) __asm__("func_0011A050");
+void AppendSlEntry(SL *psl, void *pv) __asm__("func_0011A070");
 struct BASIC;
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 struct XF;
@@ -2687,7 +2687,7 @@ struct XF
       qword qwUnkF0;
 };
 extern "C" { extern CM D_002DDF40; }
-void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase);
+void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("func_001AE238");
 struct SWALLOCC
 {
     int cb;
@@ -2698,13 +2698,13 @@ struct SWALLOCC
         cbAlign = cbAlignArg;
     }
 };
-void *PvAllocSwImpl(SWALLOCC *pswalloc);
-void *PvAllocSwClearImpl(SWALLOCC *pswalloc);
-void *PvAllocStackClearImpl(SWALLOCC *pswalloc);
+void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("func_001AE1D0");
+void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE378");
 void *PvAllocStackImpl(SWALLOCC *pswalloc);
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb); }
@@ -2757,22 +2757,22 @@ static inline void *PvAllocSwCopy(int cb, void *pvBase)
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwCopyImpl(&swalloc, pvBase);
 }
-SHD *PshdFromIshd(int ishd);
-int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
+SHD *PshdFromIshd(int ishd) __asm__("func_001EC8F8");
+int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("func_001EC688");
 extern "C" { extern uint D_002BE540[]; }
 extern "C" { extern int D_002BE558[]; }
 extern "C" { QW D_002DEB60; }
-void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut);
-CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis);
-void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis);
-int CompareVertRec(const void *pv1, const void *pv2);
-void CopyDmaRefsChainSw(SUBGLOB *psubglob, GLOB *pglob, int cqw, void *pvBase, int cqwMain, char *pbNew, char *pbOld);
+void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut) __asm__("BuildCmFgfn");
+CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("func_0016C8E0");
+void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("func_001699E8");
+int CompareVertRec(const void *pv1, const void *pv2) __asm__("func_00169988");
+void CopyDmaRefsChainSw(SUBGLOB *psubglob, GLOB *pglob, int cqw, void *pvBase, int cqwMain, char *pbNew, char *pbOld) __asm__("CopyRelocateDmaChain");
 extern "C" {
 void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
 }
 extern "C" void ReadCb12__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
-void FixupRgba(RGBA *prgba);
+void FixupRgba(RGBA *prgba) __asm__("ColorCorrectRgba");
 extern "C" { extern int D_003E11EC; }
 static inline void *PvAllocStackP(int cb)
 {
