@@ -817,7 +817,7 @@ extern "C" void GetActsegGoal(ACTSEG *p, qword *pq1, qword *pq2, float g) {
 typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern "C" {
-void func_00257250(void *, int);
+void func_00257250(void *, int) __asm__("_$_8CVarbPtr");
 void GcBinding_Unlink(void *);
 void GcSidebag_Unlink(void *);
 }

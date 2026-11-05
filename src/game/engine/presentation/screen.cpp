@@ -17,6 +17,7 @@
 #include "sly2/basic.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
 extern "C" {
@@ -2922,11 +2923,6 @@ void SelectJobListItem(struct S *p, int i) {
 } } // namespace M_SelectJobListItem
 
 namespace M_RefreshJobListEntries {
-struct FRAME {
-    int a;
-    FRAME() __asm__("STACKSCOPE_ctor");
-    ~FRAME();
-};
 struct SO {
     char pad0[0x54];
     int x54;
@@ -2984,7 +2980,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
     p->x118 = 0;
     p->n = 0;
     func_002333B4(p->ae, 0, p->n * sizeof(E));
-    FRAME frame;
+    STACKSCOPE frame;
     int c;
     SO **aso;
     SortTasksTopologically(&c, &aso);
@@ -3793,12 +3789,12 @@ typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
 typedef struct R2 { int cref; } R2;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern char D_004520D0[], D_00452148[];
-void func_00257250(void *, int);
+void func_00257250(void *, int) __asm__("_$_8CVarbPtr");
 void Decref__4CRef(void *);
 void GcBinding_Unlink(void *);
 void GcSidebag_Unlink(void *);
 void func_0011CD98(void *, void *);
-void func_00257078(void *, int);
+void func_00257078(void *, int) __asm__("_$_6CFrame");
 void func_001AE520(void *);
 
 static inline void Release1(R1 *r)

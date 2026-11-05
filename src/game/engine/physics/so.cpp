@@ -13,6 +13,7 @@
 #include "sly2/so.h"
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb);   /* memset */
 extern qword D_002A2DC0;
@@ -108,11 +109,6 @@ struct SWALLOC
 
 void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 
-struct STACKSCOPE
-{
-    STACKSCOPE() __asm__("STACKSCOPE_ctor");
-    ~STACKSCOPE();
-};
 
 void EnsureSoBounds(SO *pso) __asm__("EnsureSoBounds");
 
@@ -1234,13 +1230,12 @@ extern "C" void PostSoLoad(SO *pso)
 
 // 0x1F36E0 UpdateSo
 namespace M_UpdateSo { extern "C" {
-struct VTE; struct VT; struct E; struct P; struct CLOCK;
+struct VTE; struct VT; struct E; struct P; 
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[10]; };
 struct E { char pad[0xDC]; void *pDC; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xE8 - 0x10]; struct E *pe; char pad3[0x12C - 0xEC]; float g12C; float g130; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct P *);
 qword func_001A62E8(struct P *);
@@ -1378,7 +1373,7 @@ void UpdateSoPartMatrices(struct P *p)
 
 // 0x1F3980 func_001F3980
 namespace M_func_001F3980 { extern "C" {
-struct VTE; struct E; struct Q; struct R; struct P; struct CLOCK;
+struct VTE; struct E; struct Q; struct R; struct P; 
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct VTE { short d; short p; void (*pfn)(void *); };
@@ -1386,7 +1381,6 @@ struct E { char pad[0x10]; ulong fl; char pad2[0xB0 - 0x18]; };
 struct Q { char pad[0x98]; short h98; char pad2[0xB0 - 0x9A]; qword vB0; char padC0[0xF0 - 0xC0]; int aF0[3]; };
 struct R { char pad[0x60]; qword v60; qword v70; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *p58; struct Q *p5C; char pad3[0xE0 - 0x60]; int nE0; struct E *aE4; struct R *pE8; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void UpdateSoPartMatrices(struct P *);
 void func_001F6EF8(struct E *, float);
@@ -3121,13 +3115,12 @@ void SetSoDvGravity(struct P *p, qword q)
 
 // 0x1F58F0 GetSoCpdefi
 namespace M_GetSoCpdefi { extern "C" {
-struct V; struct O; struct P; struct Out; struct CLOCK;
+struct V; struct O; struct P; struct Out; 
 typedef int qword __attribute__((mode(TI)));
 struct V { float x, y, z, w; float pad[8]; };
 struct O { char pad[0x40]; char sub[0x30]; qword q70; };
 struct P { char pad[0x60]; struct O *po; };
 struct Out { int n0; int pad[3]; qword q10; qword q20; float g30; float g34; float g38; int n3C; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 qword GetXfVelocity(struct O *, int, qword);
 void TiltMatUpright(void *, int, struct V *);
@@ -3191,7 +3184,7 @@ extern "C" int func_001F5998(void)
 
 // 0x1F59A0 func_001F59A0
 namespace M_func_001F59A0 {
-union U; struct M3; struct OWNER; struct P; struct COEF; struct CLOCK;
+union U; struct M3; struct OWNER; struct P; struct COEF; 
 // func_001F59A0: angular braking and bounded angular-velocity correction.
 // coef a = top angular speed, (a-b)/c = angular acceleration, a*a/(2*acceleration) = stopping angle.
 // Caps an overspeed, turns the owner toward `orientation` (expressed in its parent space) with a desired
@@ -3287,7 +3280,7 @@ typedef char check_clock_dt[((unsigned)&((CLOCK*)0)->dt==4)?1:-1];
 
 // 0x1F5C30 AccelSoTowardMatSpring
 namespace M_AccelSoTowardMatSpring {
-union U; struct M3; struct OWNER; struct P; struct COEF; struct CLOCK;
+union U; struct M3; struct OWNER; struct P; struct COEF; 
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
@@ -3352,7 +3345,7 @@ extern "C" void AccelSoTowardMatSpring(P*p,const M3*orientation,const COEF*c,qwo
 
 // 0x1F5E10 AccelSoTowardPosSpring
 namespace M_AccelSoTowardPosSpring { extern "C" {
-struct COEF; struct VE; struct OWNER; struct S; struct CLOCK;
+struct COEF; struct VE; struct OWNER; struct S; 
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} V;
 struct COEF {float a,b,c;};
@@ -3949,7 +3942,7 @@ struct PLANE {U normal;U extra;};
 struct P {char pad0[0x10];MESH *mesh;char pad14[0x68];U *positions;int planeCount;PLANE *planes;char pad88[8];int pointCount;U *source;int triCount;void *triSource;int edgeCount;EDGE *edges;};
 struct FRAME;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 struct FRAME {FRAME(){}~FRAME(){}};
 struct MSG {int bytes,alignment;};
 extern "C" void *func_001AE1D0(MSG *);
@@ -4125,7 +4118,7 @@ struct TREE {int count,flag,unused;void *nodes;};
 struct P {LO *owner;int flags;float radius;int material;char pad10[0xC];int pinnedCount;char pad20[0x48];TREE tree;GEO local,world;};
 struct FRAME {int pad[4];};
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 struct MSG {int bytes,alignment;};
 extern "C" void *func_001AE378(MSG *);
 extern "C" void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
@@ -4386,11 +4379,10 @@ struct O *func_001F7598(struct K *pk)
 
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords { extern "C" {
-struct DL; struct DLI; struct CLOCK; struct E; struct P;
+struct DL; struct DLI; struct E; struct P;
 struct DL { void *pvFirst; void *pvLast; int ibDle; };
 struct DLI { struct DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; };
 extern struct DLI *D_002DD2FC;
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 struct E { char pad[0x4C]; float t; };
 struct P { char pad[0x4118]; char pool[0x18]; struct DL dl; };

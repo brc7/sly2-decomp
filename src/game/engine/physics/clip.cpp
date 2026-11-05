@@ -33,7 +33,7 @@ int ClsgClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *a
 int ClsgClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg);
 int ClsgMergeAlsg(int c1, LSG *alsg1, int c2, LSG *alsg2_, int cMax, LSG *alsgOut, int k);
 struct CTX *STACKSCOPE_ctor(struct CTX *);
-void STACKSCOPE_ctor_1AE4A0(struct CTX *, int);
+void STACKSCOPE_ctor_1AE4A0(struct CTX *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(struct AREQ *);
 }
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);   /* CopyAb__FPvT0Ui */

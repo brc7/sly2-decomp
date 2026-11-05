@@ -11,6 +11,7 @@
 #include "sly2/lo.h"
 #include "sly2/jt.h"
 #include "sly2/stepplayer.h"
+#include "sly2/stackscope.h"
 #include "gifs.h"
 #include "vifs.h"
 
@@ -989,7 +990,7 @@ typedef struct N {int a,b;char pad8[0x2C];int c;int pad38;int d;S *owner;int pri
 struct S {char pad[0x50];int count;void *data;int state;char pad5c[4];int tick;char pad64[0x5C];N *file;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *func_001848A8(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int);
 extern "C" void func_00258248(KEY *);
@@ -2278,8 +2279,6 @@ void *func_001AE378(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
-// The current stack-allocation scope (out of line: 0x1AE478 / 0x1AE4A0)
-struct STACKSCOPE {STACKSCOPE() __asm__("STACKSCOPE_ctor");~STACKSCOPE();};
 extern "C" { extern int D_002C40A4; }
 extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern WORLD D_003DD490; }
@@ -2429,7 +2428,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
 namespace M_func_002155C0 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 struct X { char pad[0x14]; unsigned long *px14; };
 X *func_001EC880(int);
 void __4GIFS(void *);
@@ -2439,7 +2438,6 @@ void PackAD__4GIFSll(void *, int, unsigned long);
 void AddPrimEnd__4GIFS(void *);
 void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *);
 }
-class FRAME { public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct BUF { int a[12]; };
 struct P { char pad[0xC4]; int xC4; };
 struct Q { int x0; int x4; char pad8[8]; int x10; char pad14[8]; int x1C; int x20; };
@@ -2452,7 +2450,7 @@ extern "C" void func_002155C0(P *p, Q *q);
  * @end-sly2-annot */
 void func_002155C0(P *p, Q *q)
 {
-    FRAME frame;
+    STACKSCOPE frame;
     if (q->x4 == 7) {
         q->x1C = 0;
         q->x20 = 0;

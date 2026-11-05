@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/xfm.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
    that func_00159118 (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
@@ -539,7 +540,6 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
 namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
-struct CLOCK { float t; float dt; };
 extern "C" { extern CLOCK D_002DDED0; }
 struct CM { char pad[0x1C]; float g1C; char pad2[0x90 - 0x20]; qword pos; };
 extern "C" { extern CM D_002DDF40; }
@@ -743,7 +743,6 @@ void UnpauseEmitter(EMITTER *pemitter)
 }
 
 namespace M_FPausedEmitter__FP7EMITTER {
-struct CLOCK { float t; float dt; };
 extern "C" { extern CLOCK D_002DDED0; }
 struct EMITTER { char pad[0xF0]; int k; int c; char pad2[0x148 - 0xF8]; float tUnpause; };
 /** @sly2-annot addr=0x15A170
@@ -888,7 +887,6 @@ struct WATER { char pad[0x18]; int x18; char pad1c[0x178 - 0x1C]; EX *px178; EX 
 struct RIP { char pad[0x1C]; EX *pex; float g20; float g24; char pad28[0xEC - 0x28]; EVTT *pvt; };
 struct E { int x0, x4; EX *p8; EX *pC; WATER *p10; };
 union V4 { qword q; float a[4]; };
-struct CLOCK { float t; };
 
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -1355,7 +1353,6 @@ namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 { ex
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct P { char pad[0xC]; float gC; char pad1[0x38 - 0x10]; float g38; float g3C; char pad2[0x48 - 0x40]; float g48; float g4C; float g50; float g54; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, struct P *plm, qword *pv, int n, qword *pvOut);
 float GRandInRange__Fff(float a, float b);
@@ -1696,7 +1693,6 @@ class ALO { public: char pad[0xC]; VT *pvt; int x10; char pad2[0xE4 - 0x14]; EMI
 struct EO { char pad[8]; ALO *palo; };
 struct EMITTER { char pad[8]; EO *peo; };
 struct TIMES { char pad[0xC]; float *at; };
-struct CLOCK { float t; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
@@ -1791,12 +1787,6 @@ void OriginateSplineSinkParticles(int c, EMITTER *pemit, TIMES *ptimes, BUF *pb)
 } // namespace M_OriginateSplineSinkParticles
 
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
-class CFrame {
-    int m_a[4];
-public:
-    CFrame() __asm__("STACKSCOPE_ctor");
-    ~CFrame();
-};
 struct LOC { int q0, q1, q2, q3; int f; int pad[3]; };
 struct L2 { int a; int b; int pad[6]; };
 struct B { int pad; int k4; char pad2[0xC4 - 8]; int kC4; };
@@ -1818,7 +1808,7 @@ void EmitParticles__FiP5EMITBP5EMITG(void *a, B *b, void *c)
 {
     if (a) {
         LOC loc;
-        CFrame frame;
+        STACKSCOPE frame;
         loc.f = 1;
         OriginateParticles__FiP5EMITBP7EMITGEN(a, b, &loc);
         if (b->k4 == 1) {
@@ -1922,7 +1912,6 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int *)&f)); } };
-struct CLOCK { float t; float dt; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 struct X { float x, y, z, w; qword axis; float gRot; float gScale; };
@@ -2040,7 +2029,7 @@ struct O { int a[3]; struct VTE *vt; int pad[6]; unsigned long fl; };
 struct DA { int n0; int cMax; int c; struct O **a; };
 struct S { char pad[0xE0]; int c; struct O **apo; };
 void STACKSCOPE_ctor(struct C *);
-void STACKSCOPE_ctor_1AE4A0(struct C *, int);
+void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void LoadXfmFromBrx(struct S *p, void *q);
 void CLoadCollectorArray_ctor(struct DA *pda);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);

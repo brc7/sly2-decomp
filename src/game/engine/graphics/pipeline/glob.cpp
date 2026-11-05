@@ -19,6 +19,7 @@
 #include "vifs.h"
 #include "gifs.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -2051,7 +2052,7 @@ struct VE{short delta,pad;TRANSFORM*(*fn)(SO*,int);};
 struct SO{char pad[0xC];VE*vt;};
 struct P{SO*owner;};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
-struct MARK;
+
 struct STREAM;
 struct LINK{short first,second;unsigned char kind,pad;};
 struct LINKS{int count;LINK*links;};
@@ -2101,13 +2102,12 @@ int S32Read__18CBinaryInputStream(STREAM*) __asm__("S32Read__18CBinaryInputStrea
 void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*);
 void*func_001AE1D0(const REQUEST&);
 void*func_001AE238(const REQUEST&,void*);
-MARK*STACKSCOPE_ctor(MARK*);
-void STACKSCOPE_ctor_1AE4A0(MARK*,int);
+STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 BINDING*func_0016C8E0(P*,STREAM*);
 M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
-struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline void*Allocate(int bytes){return func_001AE1D0(REQUEST(bytes,16));}
 static inline void*Reallocate(int bytes,void*old){return func_001AE238(REQUEST(bytes,16),old);}
 /** @sly2-annot addr=0x169AC8
@@ -2136,7 +2136,7 @@ extern "C" void LoadSubglobInstanceFromBrx(P*p,const D*sourceD,const E*sourceE,c
     else{entry->parent=(M4*)Allocate(sizeof(M4));ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,entry->parent);}
     entry->value=S32Read__18CBinaryInputStream(stream);
     entry->flags.bits.feature=S8Read__18CBinaryInputStream(stream);
-    MARK scope;
+    STACKSCOPE scope;
     BINDING*binding=func_0016C8E0(p,stream);
     if(!(desc->flags&1)&&desc->kind==0){
         char*old=entry->data;
@@ -2702,11 +2702,6 @@ void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("func_001AE1D0");
 void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE2A0");
 void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE378");
 void *PvAllocStackImpl(SWALLOCC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
-struct STACKSCOPE
-{
-    STACKSCOPE() __asm__("STACKSCOPE_ctor");
-    ~STACKSCOPE();
-};
 extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb); }
 struct UVF
 {
@@ -3782,7 +3777,7 @@ struct HEADER{ushort flags,base,pad4,pad6,position,weights,color,end,extra,extra
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 extern "C"{
 void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
+void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
@@ -3793,7 +3788,6 @@ extern uint D_002BE540[];
 extern UPK D_002BE558[];
 extern char D_00000000[],D_00001910[],D_00001A68[];
 }
-struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline void*Allocate(int bytes){return func_001AE2A0(REQUEST(bytes,16));}
 typedef char D_Size[sizeof(D)==20?1:-1];
@@ -3844,7 +3838,7 @@ extern "C" void LoadSubglobType2FromBrx(OWNER*p,D*desc,E*entry,void*,SPHERE*sphe
  int i=0;
  p->flags|=1UL<<33;
  VIFS vifs;
- MARK outer;
+ STACKSCOPE outer;
  vifs.AllocSw(0x2000);
  vifs.AddDmaCnt();
  int count=stream->U8Read();
@@ -3913,7 +3907,7 @@ struct HEADER{ushort flags,base,vertices,pad6,pad8,padA,padC,padE,weight,end,seg
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}void*Allocate();void*AllocateZero();};
 extern "C"{
 void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
+void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void*func_001AE318(const REQUEST&);
 void*func_002333B4(void*,int,uint);
@@ -4505,7 +4499,7 @@ struct HEADER{ushort flags,base,weight,pad6,position,positionEnd,color,end,bones
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 extern "C"{
 void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
+void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void BuildCmFgfn(ENV*,float*,float);
 void*func_002333B4(void*,int,uint);
@@ -4517,7 +4511,6 @@ extern uint D_002BE540[];
 extern UPK D_002BE558[];
 extern char D_00000000[],D_00000738[],D_000007F0[];
 }
-struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct LEASE{~LEASE(){}void Acquire(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline void*Allocate(int bytes){return func_001AE2A0(REQUEST(bytes,16));}
 typedef char PARAM_Size[sizeof(PARAM)==12?1:-1];
@@ -4530,7 +4523,7 @@ typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
 typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
 typedef char QW_Size[sizeof(QW)==16?1:-1];
-typedef char MARK_Size[sizeof(MARK)==1?1:-1];
+typedef char MARK_Size[sizeof(STACKSCOPE)==1?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
 typedef char PARAM_value_Offset[FIELD_OFFSET(PARAM,value)==0?1:-1];
 typedef char PARAM_kind_Offset[FIELD_OFFSET(PARAM,kind)==8?1:-1];
@@ -4572,7 +4565,7 @@ typedef char ENV_fade_Offset[FIELD_OFFSET(ENV,fade)==584?1:-1];
 extern "C" void LoadSubglobType1FromBrx(P*p,D*desc,E*entry,PARAM*param,SPHERE*sphere,int groups,CBinaryInputStream*stream){
  int i=0;
  VIFS vifs;
- MARK outer;
+ STACKSCOPE outer;
  vifs.AllocSw(0x2000);vifs.AddDmaCnt();
  float*environment;
  vifs.UnpackHelper(UPK_V4_32,1,9,0,(uint**)&environment);

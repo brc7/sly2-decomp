@@ -222,66 +222,8 @@ _vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
 _vt$Q215M_func_00211C581D = D_002C9670;   # engine/presentation/hud.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
-# destructors of namespace-scoped view classes -> the C function they stand for (an asm label would drop the call) (42 lines, 42 references)
-_$_Q214M_RefOpShuffle3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q215M_func_001215783SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q217M_RefOpGetSaveVar3OBJ = STACKSCOPE_ctor_1AE4A0;   # app/bif.cpp
-_$_Q217M_RefOpSetSaveVar3OBJ = STACKSCOPE_ctor_1AE4A0;   # app/bif.cpp
-_$_Q226M_RefOpFindObjectsFromOids3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q228M_RefOpMap__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q229M_RefOpCons__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q229M_RefOpEval__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q231M_RefOpAppend__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q231M_RefOpFilter__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q232M_RefOpForEach__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q241M_RefOpScheduleCallback__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q243M_RefOpVectorRadianNormal__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q248M_RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q249M_RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame3OBJ = STACKSCOPE_ctor_1AE4A0;   # app/bif.cpp
-_$_Q252M_RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame3OBJ = STACKSCOPE_ctor_1AE4A0;   # app/bif.cpp
-_$_Q254M_RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame3SPM = PairPtr_Release;   # app/bif.cpp
-_$_Q215M_func_0014F1105FRAME = STACKSCOPE_ctor_1AE4A0;   # engine/camera/cm.cpp
-_$_Q233M_EmitParticles__FiP5EMITBP5EMITG6CFrame = STACKSCOPE_ctor_1AE4A0;   # engine/fx/emitter.cpp
-_$_Q215M_func_0016A00010STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # engine/graphics/pipeline/glob.cpp
-_$_Q224M_CsbiIntersectSphereBsp10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # engine/physics/mark.cpp
-_$_Q215M_FindPathAStar3CTX = STACKSCOPE_ctor_1AE4A0;   # engine/physics/path.cpp
-_$_Q219M_FindPathlinkRoute10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # engine/physics/path.cpp
-_$_Q222M_LoadSpriteDescriptor10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # engine/presentation/hud.cpp
-_$_Q223M_RefreshJobListEntries5FRAME = STACKSCOPE_ctor_1AE4A0;   # engine/presentation/screen.cpp
-_$_Q224M_FSnapPosToSurfaceAbove10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # gameplay/ai/guardbhv.cpp
-_$_Q229M_PentryChooseStepguardAttack5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/ai/guardbhv.cpp
-_$_Q225M_FStepguardSenseStimulus5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/ai/stepguard.cpp
-_$_Q218M_LoadRelayFromBrx5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/cutscene/relay.cpp
-_$_Q215M_func_001D345010STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # gameplay/objects/tu_1D1370.cpp
-_$_Q220M_FFindJtObstruction5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/air.cpp
-_$_Q219M_UpdateJtGrabInput10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/grab.cpp
-_$_Q215M_func_001A27885FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/hurt.cpp
-_$_Q213M_FMatchJtXmg3CLS = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/jt.cpp
-_$_Q227M_UpdateStepplayerBootySave4MARK = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/stepplayer.cpp
-_$_Q214M_SprayDprizes5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/progression/prize.cpp
-_$_Q215M_func_001C6DE85FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/progression/prize.cpp
-_$_Q216M_LoadJobFromBrx5FRAME = STACKSCOPE_ctor_1AE4A0;   # world/state/game.cpp
-_$_Q217M_LoadTaskFromBrx5FRAME = STACKSCOPE_ctor_1AE4A0;   # world/state/game.cpp
-_$_Q223M_RestoreTasksAfterLoad5FRAME = STACKSCOPE_ctor_1AE4A0;   # world/state/game.cpp
-_$_Q224M_SortTasksTopologically5FRAME = STACKSCOPE_ctor_1AE4A0;   # world/state/game.cpp
-_$_Q225M_NEpisodePercentComplete5FRAME = STACKSCOPE_ctor_1AE4A0;   # world/state/game.cpp
-
-# file-scope destructors -> the C function they stand for (same reason) (15 lines, 28 references)
-[src/game/engine/sound/amb.cpp] _$_3OBJ = STACKSCOPE_ctor_1AE4A0;
+# destructors of view classes -> the C function they stand for (an asm label would drop the call) (1 line, 1 reference)
 [src/game/level/brx_sw.cpp] _$_3OBJ = func_00184950;
-[src/game/splice/eval.cpp] _$_3SPM = PairPtr_Release;
-[src/game/splice/frame.cpp] _$_3SPM = func_00257250;
-[src/game/splice/pair.cpp] _$_3SPM = PairPtr_Release;
-[src/game/splice/ref.cpp] _$_3SPM = PairPtr_Release;
-[src/game/splice/serialize.cpp] _$_3SPM = PairPtr_Release;
-[src/game/splice/sidebag.cpp] _$_3SPM = func_00257250;
-[src/game/splice/varb.cpp] _$_3SPM = func_00257250;
-[src/game/world/scene/callback.cpp] _$_3SPM = PairPtr_Release;
-_$_5FRAME = STACKSCOPE_ctor_1AE4A0;   # engine/anim/aseg.cpp, engine/anim/blend.cpp, gameplay/progression/booty.cpp, level/brx_sw.cpp
-_$_10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # engine/anim/sm.cpp, engine/camera/tn.cpp, engine/physics/mark.cpp, engine/physics/so.cpp, gameplay/player/throw.cpp, object/brx.cpp, object/proxy.cpp, world/state/save.cpp
-_$_3CTX = STACKSCOPE_ctor_1AE4A0;   # gameplay/objects/tu_1BAB50.cpp
-_$_5CProc = func_00257148;   # splice/eval.cpp, splice/proc.cpp, splice/ref.cpp
-_$_6CFrame = func_00257078;   # splice/eval.cpp, splice/frame.cpp
 
 # other declarations that cannot be bound in source (6)
 g_pfrmOpen = D_002DEA4C;   # engine/graphics/pipeline/draw.cpp: codegen depends on the symbol name: neither an asm label nor a rename keeps DrawSw matching

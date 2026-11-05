@@ -93,7 +93,7 @@ void *func_002333B4(void *, int, uint);
 void AddIntcHandler(int a, void *pfn, int b);
 void func_00235178(int a);
 STACKSCOPEMK *STACKSCOPE_ctor(STACKSCOPEMK *pm);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n) __asm__("_$_10STACKSCOPE");
 }
 void EnterCritSect(CRITSECT *pcs);                                  /* EnterCritSect__FP8CRITSECT */
 void LeaveCritSect(CRITSECT *pcs);                                  /* LeaveCritSect__FP8CRITSECT */

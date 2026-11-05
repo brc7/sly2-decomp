@@ -38,16 +38,16 @@ int S16Read__18CBinaryInputStream(BIS *pbis);
 float F32Read__18CBinaryInputStream(BIS *pbis);
 unsigned int U32Read__18CBinaryInputStream(BIS *pbis);
 }
-struct SPM {
+struct CPairPtr {
     NODE *p;
-    ~SPM();
+    ~CPairPtr();
     void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
     int x4;
     CRef ref;
-    SPM pnext;
+    CPairPtr pnext;
     void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
 };
 struct SPN {

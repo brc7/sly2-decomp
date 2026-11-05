@@ -49,6 +49,7 @@ struct CRef
       CRef() { m_tagk = -1; }
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
+      CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }            /* a word with its tag, no retain (bif's builtins) */
       CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: RefEvalLambda) */
       CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
       CRef(const VECTOR *pvec) __asm__("CRef_ctor_VECTOR");           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */
@@ -61,6 +62,11 @@ struct CRef
       CRef &operator=(const CRef &r);
       CRef &operator=(bool f) __asm__("CRef_SetBool");            /* a boolean (tag 0x17) */
       CRef &operator=(CPair *ppair) __asm__("CRef_SetPair");      /* a list (tag 0x1F) */
+      /* the other setters of splice/ref.cpp, as named members (operator= overloads would change how includers that
+         assign through the converting constructors compile) */
+      CRef &SetVector(const VECTOR *pvec) __asm__("CRef_SetVector"); /* tag 0x1A */
+      CRef &SetProc(CProc *pproc) __asm__("CRef_SetProc");           /* tag 0x20 */
+      CRef &SetBasic(BASIC *pbasic) __asm__("CRef_SetBasic");        /* tag 0x21 */
       bool operator==(const CRef &ref);
       void Incref();
       void Decref();
@@ -69,6 +75,7 @@ struct CRef
       void SetTag(TAGK tagk);
       void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
       void SetNil() { Decref(); InitTag(0); }
+      void Retag(int tagk) { Decref(); InitTag(tagk); }               /* release the payload, then set a new tag */
 };
 typedef char assert_CRef_size[sizeof(CRef) == 8 ? 1 : -1];
 

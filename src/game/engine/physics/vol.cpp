@@ -39,7 +39,7 @@ qword VecMaxArray(int c, qword *points);
 qword ConvertAloPos(int a, VOL *p, qword q);
 int PbspPointInBspQuick(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
-void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n);
+void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(MSG *pmsg);
 int func_00118A88(void *p, int n, qword v, int *pc, void **ppv, float g);
 void OnLoAdd(VOL *p);

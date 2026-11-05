@@ -443,6 +443,32 @@ Every choice:
 | sw.cpp | ResolveSwSaveVars (Lilly port) | at file scope, not in a namespace | it completes types basic.h only forward-declares (SVPATH, SAVEDATA, LOUPD...), which sw.h's SW refers to; in a namespace they became distinct types (compile errors) | the types move to headers |
 | emitter.cpp | EMITTER view vs sly2/emitter.h | TU-private EMITTER named EMITTER (the mangled names need it); emitter.h not included | emitter.h's EMITV is a 0x40-byte variant record, the static initializer's EMITV defaults are 0x70 bytes | emitter.h names the EMITTER fields and the two EMITVs get distinct names |
 | sound.cpp | g_sndmgr | SNDMGRBASE (destructor = ~BASIC) + SNDMGRG members SNDREF (inline release) | the destruction order (members, then base) and g++'s array loop reproduce StaticInit_sound | a real SNDMGR class |
+| sly2/stackscope.h (types/views-1) | STACKSCOPE (the stack-heap scope) | one class, no members, constructor asm-labelled STACKSCOPE_ctor, out-of-line destructor `_$_10STACKSCOPE` (config renamed from STACKSCOPE_ctor_1AE4A0); memory.cpp defines both members | the 69 private views (FRAME, OBJ, CTX, MARK, CLS, CFrame, HEAP_SCOPE, STACKSCOPE; int a[4] / int n / empty) all match with the empty class; the out-of-line destructor form matches everywhere but one function, the inline-wrapper form (`~X() { STACKSCOPE_ctor_1AE4A0(this, 2); }`) missed 15 functions; the mangled name came from the annotation | glob.cpp func_0016CF78 keeps its inline-wrapper MARK (island; 15/456 off with the shared class); the LEASE/SCOPEW helpers (explicit release) stay |
+| sly2/pair.h, sly2/varb.h (types/views-1) | CPair/CPairPtr, CVarb/CVarbPtr | the Splice list nodes and their counted links as shared structs; out-of-line destructors `_$_8CPairPtr` / `_$_8CVarbPtr` (config renamed from PairPtr_Release / func_00257250), assignments bound to PairPtr_Assign / func_00257450 with `void` result; bif.cpp, sidebag.cpp and frame.cpp define the four linkonce copies as the members (MATCH) | the views agreed field for field; `CPairPtr &operator=` puts eval's RefEvalLambda 2 registers off; varb.h must come after SLY2_INSTANTIATE_SLOT_POOLS() (CVarb::operator delete names the second pool; earlier, the static initializer reorders) | HYPOTHESIS: both pointers are out-of-line instances of basic.h's CRefPtr<T> (as FramePtr_Assign is CRefPtr<CFrame>::operator=); not modelled as the template because its inline destructor would inline where the game calls out of line. The inline-release owners (SPW/SPN) and serialize.cpp's NODE/CRef views stay |
+| bif.cpp (types/views-1) | 13 per-function CRef/SPM/NODE views | cref.h's CRef and pair.h's types; cref.h gains additions only (CRef(int n, int tagk), Retag = the views' inline SetTag, named setters SetVector/SetProc/SetBasic); the views' operator= overloads become SetS32/SetF32/Set* calls at 9 sites | operator= overloads in cref.h would change how includers that assign through the converting constructors compile | — |
+| config (types/views-1) | linkonce ~CFrame, ~CProc | config names `_$_6CFrame` / `_$_5CProc` (were func_00257078 / func_00257148); the C definitions keep their bodies and are bound with an asm label on a preceding declaration | every CFrame/CProc view already referenced the mangled names through the alias table | the definitions become the real destructors when CFrame/CProc are shared |
+| (types/views-1) | symbol of a shared class's out-of-line destructor | the config name becomes the mangled name and one object defines the member, rather than an alias line; explicit C callers keep their identifier with `__asm__("<mangled>")` on the declaration (the class names are placeholders: a rename changes header and config together) | removes the alias entry and makes symcheck/relverify see the destructor as defined | naming pass |
+| sly2/clock.h (types/views-1) | CLOCK | moved unchanged out of basic.h (common.h only); private views that name a prefix with the header's names removed | 175 views in 47 files | views with other names (time, t3c...) and the six files with layout asserts on their views (guardbhv, grab, murray, hang, cane, throw) |
+
+### Views unified (types/views-1)
+
+Duplicated private views replaced by one shared type where the layouts agree (code reduction, first slice). Every
+change kept all functions and data of every touched file and every includer MATCHing.
+
+| type | header | views removed | files | link aliases removed | config renames |
+|---|---|---:|---:|---:|---|
+| STACKSCOPE | sly2/stackscope.h | 69 | 44 (+ memory.cpp defines it) | 33 (29 namespace dtors, _$_5FRAME, _$_3CTX, amb _$_3OBJ, then _$_10STACKSCOPE) | 0x1AE4A0 `_$_10STACKSCOPE` |
+| CPair, CPairPtr | sly2/pair.h | 4 files x 2 + 13 bif namespaces x 3 (with their CRef) | 6 | 18 (13 namespace, 5 per-object _$_3SPM) | 0x256D40 `_$_8CPairPtr` |
+| CVarb, CVarbPtr | sly2/varb.h | 3 x 2 | 3 | 3 (per-object _$_3SPM) | 0x257250 `_$_8CVarbPtr` |
+| CFrame/CProc destructors | (config only) | 0 | 7 | 2 | 0x257078 `_$_6CFrame`, 0x257148 `_$_5CProc` |
+| CLOCK | sly2/clock.h | 175 | 47 | 0 | — |
+
+Per-function namespaces emptied: none (every namespace still holds its function). Reverted: the inline-wrapper
+STACKSCOPE form (15 functions off), `CPairPtr &operator=` (1 function), varb.h before the slot pools (2 static
+initializers), CLOCK in six files with asserts on their views. Not attempted: CRef in the remaining per-function
+views (112 definitions), VTE/VT vtable-entry views, VU_FLOAT, M3/M4, the inline-release pointer owners.
+config/link_aliases.txt: 292 -> 234 lines (the view-destructor section is down to brx_sw's `_$_3OBJ`, a different
+function). symcheck: unresolved references 532 -> 463 (the branch start measured 532 with air merged).
 
 ## Path-hash quirk (asm functions)
 
@@ -1059,7 +1085,7 @@ link/round3, 2026-11-05; the data definitions of the Data section follow them to
   function or global: rename the identifier in the file to the config name, adding or dropping `extern "C"` to match
   the target's linkage (57 renames in round 3, e.g. `MakeSnd` -> `PsndStartSound`, `InsertNodeBySlot` -> `AddXfAct`).
   Members, constructors, operators, declarations in shared headers (sly2/cref.h, cm.h, po.h, basic.h, lo.h,
-  stepplayer.h, dmas.h) and config names that only disambiguate (`SetLoParent_1A58D0`, `STACKSCOPE_ctor_1AE4A0`,
+  stepplayer.h, dmas.h) and config names that only disambiguate (`SetLoParent_1A58D0`,
   `strcpy1`): asm label. A header label is checked against every includer.
 - Not for destructors: an asm label on a destructor declaration makes g++ 2.95 drop the destructor call (3 instructions
   per scope). Not for template members either: g++ 2.95 ignores an asm label on an explicit specialization
@@ -1069,11 +1095,10 @@ link/round3, 2026-11-05; the data definitions of the Data section follow them to
   name; the link resolves it through the alias table.
 - What source cannot bind goes to config/link_aliases.txt, `symbol = target;` with the target recovered from the
   ELF: the 214 vtables of namespace-scoped view classes (`_vt$Q23REG2SO = D_002D9978;`, class_registry's
-  construction views and other views with virtuals; 212 distinct addresses, see Data, phase 2, "Vtables"), the 41 view destructors and 28 file-scope destructor references
-  (`STACKSCOPE_ctor_1AE4A0`, `PairPtr_Release`), g_pfrmOpen, `__builtin_new` (the game's operator new,
-  func_001AE4F8), three template members and `D_C0`. Two file-scope destructor names stand for different functions in
-  different objects (`_$_3SPM`: PairPtr_Release in eval/pair/ref/serialize/callback, func_00257250 in
-  frame/sidebag/varb; `_$_3OBJ`), so they are per-object entries (`[source] symbol = target;`, for
+  construction views and other views with virtuals; 212 distinct addresses, see Data, phase 2, "Vtables"), the view destructors (one left after types/views-1: brx_sw's
+  `_$_3OBJ` = func_00184950), g_pfrmOpen, `__builtin_new` (the game's operator new,
+  func_001AE4F8), three template members and `D_C0`. A file-scope destructor name can stand for different functions in
+  different objects (`_$_3OBJ`; `_$_3SPM` was one until types/views-1), so such entries are per-object (`[source] symbol = target;`, for
   `objcopy --redefine-syms`). `python3 tools/linkaliases.py [objects...]` prints the table as linker-script lines
   (quoting names with `$`) and, given the objects, derives every `D_XXXXXXXX` / `func_XXXXXXXX` name that no object
   defines: the config name at that address when there is one (`func_002333B4 = memset;`), else the absolute address,

@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -109,7 +110,6 @@ struct CM {
     char pad4[0x620 - 0x390]; float g620; float g624;
 };
 struct G { char pad[0x3E38]; int x3E38; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002DDEE0;
 extern int D_002DFBC0;
@@ -762,7 +762,6 @@ struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct O { int pad[3]; struct VTE *vt; };
 struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
@@ -816,7 +815,6 @@ struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct O { int pad[3]; struct VTE *vt; };
 struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 /** @sly2-annot addr=0x14E4C8
  * Purpose: Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if
@@ -1156,7 +1154,7 @@ struct LO { char pad[0x70]; int c70; struct E *ae74; };
 struct AL { int cb; int cbAlign; };
 extern float D_002BD8D4;
 void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(struct AL *pal);
 int CsbiIntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
 void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
@@ -1323,14 +1321,13 @@ namespace M_func_0014F110 {
 typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
 struct CLOCK { float t, dt, x8, xC, dtPrev; };
-struct FRAME { int n; FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); }; /* out-of-line ctor/dtor: STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2) */
 extern "C" {
 extern CLOCK D_002DDED0;
 extern qword D_002BD8F0, D_002BD900;
 extern float D_002BD8D8, D_002BD8DC;
 extern char D_003DD490[];
-void *STACKSCOPE_ctor(FRAME *p);
-void STACKSCOPE_ctor_1AE4A0(FRAME *p, int n);
+void *STACKSCOPE_ctor(STACKSCOPE *p);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *p, int n) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 qword SquishCmEye(void *p, int i, int j, void *pfn, qword a, qword v, float g, float h);
 void FFilterCamera(void);
@@ -1372,7 +1369,7 @@ qword func_0014F110(void *p, qword pos, qword posTarget)
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
     qword posMin = Add(pos, D_002BD8F0);
     qword posMax = Add(pos, D_002BD900);
-    FRAME frame;
+    STACKSCOPE frame;
     IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)FFilterCamera, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
     qword r = AddScaled(pos, w, VU_FLOAT(&pclock->dtPrev));

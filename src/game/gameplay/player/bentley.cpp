@@ -202,7 +202,6 @@ struct P {
     char a11B0[0x13D0 - 0x11B0]; int state; float t13D4; char pad6[0x16B4 - 0x13D8]; int x16B4;
     char pad7[0x1870 - 0x16B8]; int x1870;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 float D_002BC930 = 2.0f;
 void func_00195A00(void *pv, int a, int b, int c);
@@ -400,7 +399,6 @@ struct P {
     int x14E0; char pad14E4[0x14F0 - 0x14E4]; char x14F0[0x1520 - 0x14F0]; qword v1520; char pad1530[0x15F0 - 0x1530];
     int x15F0; char pad15F4[0x1600 - 0x15F4]; char x1600[0x16B0 - 0x1600]; int x16B0; char pad16B4[0x181C - 0x16B4]; int x181C;
 };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern struct LM D_002BBB60;
@@ -599,7 +597,6 @@ struct P {
     char pad11[0x181C - 0x16D8]; int x181C; struct ASEG *p1820; char pad12[0x186C - 0x1824]; struct VO *p186C;
     char pad13[0x1878 - 0x1870]; struct ASEG *p1878;
 };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void func_002303A0(struct P *, void *, int);
@@ -814,7 +811,7 @@ extern char D_002DDF40[];
 extern char D_003DD490[];
 ti128 ConvertCmScreenToWorld(void *, ti128);
 struct C *STACKSCOPE_ctor(struct C *);
-void STACKSCOPE_ctor_1AE4A0(struct C *, int);
+void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void func_0020FA10();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, ti128, ti128, int, int, struct LSG *);
@@ -1293,7 +1290,6 @@ struct O { char pad[0xC]; struct VTE *vt; char pad1[0x158 - 0x10]; int x158; cha
 struct Q { int x0; };
 struct P { char pad[0x150]; void *p150; char pad0[0x20C - 0x154]; float g20C; char padA[0x2C0 - 0x210]; char a2C0[0x1030 - 0x2C0]; void *p1030;
     char pad1[0x13D0 - 0x1034]; int x13D0; char pad2[0x16B0 - 0x13D4]; int x16B0; struct Q *pq; char pad3[0x186C - 0x16B8]; struct O *po; };
-struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 int FAsegaRetracted(void *pv);
 void func_00136040(struct P *p, int n);
@@ -1382,7 +1378,6 @@ extern "C" void func_001362F8(BENTLEY *pbentley, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBentleyAim { extern "C" {
-struct CLOCK { float t; };
 struct P { char pad[0x150]; void *p150; char pad0[0xF20 - 0x154]; int xF20; char pad1[0x1028 - 0xF24]; void *p1028; int pad2[2];
     void *p1034; char pad3[0x13D0 - 0x1038]; int x13D0; char pad4[0x16BC - 0x13D4]; int x16BC; char pad5[0x1700 - 0x16C0];
     float g1700; int pad6[3]; char a1710[4]; int x1714; char pad7[0x181C - 0x1718]; int x181C; };
@@ -1465,7 +1460,6 @@ struct P {
     int k1800; float t1804; void *apv[2]; void *pv1810; void *pv1814;
 };
 extern struct G *D_002F7900;
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetLoParent_1A58D0(struct P *, int, int);
@@ -1918,7 +1912,6 @@ struct PO { char pad[0x1A8]; float g1A8; char pad1[0x10B8 - 0x1AC]; int x10B8; }
 struct E { float f0; int pad[2]; float fC; int pad2[2]; void *p18; };
 struct S { struct PO *po; int state; int x8; int xC; int x10; int x14; float g18; float g1C; char a20[0x10]; float g30; float g34;
     struct E ae[6]; char pad[0xE0 - 0x38 - 6 * 28]; void *pvE0; void *pvE4; };
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
@@ -2161,7 +2154,6 @@ struct P : BASE {
 };
 struct PX { char pad[0x10DC]; P *py; };
 struct S { P *p; };
-struct CLOCK { float t; float dt; };
 struct SMP { float a, b, c; };
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -2326,7 +2318,6 @@ struct Q {
 struct R { int x0; Q *pq; };
 struct X { char pad[0x78]; float g78; };
 struct S { P *p; int k; float t; int kCur; X *px0; X *px1; };
-struct CLOCK { float t; float dt; };
 extern "C" {
 extern CLOCK D_002DDED0;
 float D_002BC9B4 = 0.0f;   /* contact friction */

@@ -640,7 +640,6 @@ extern "C" int func_00171458(BHVSSG *pbhv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171468 { extern "C" {
-struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct E { int k; int pad; float g8; };
 struct O { char pad[0xF80]; int nF80; char pad2[0xFD0 - 0xF84]; char aFD0[4]; };
@@ -727,7 +726,6 @@ struct S : SB {
     struct X50 x50;
 };
 struct X { void *p0; void *p4; int pad[2]; qword q; X(); };
-struct CLOCK { float t; float dt; };
 extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" { void *func_001715B8(struct S *p, int oid); }
 extern "C" { void func_00171AF8(struct S *p, void *o, qword *pq, float *pg); }

@@ -155,7 +155,7 @@ void VECTOR_opAssign(VECTOR *pv, qword v);
 qword SetVectorCylind(float a, float b, float c);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 FRAME *STACKSCOPE_ctor(FRAME *pf);
-void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n);
+void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n) __asm__("_$_10STACKSCOPE");
 void func_001B44D8(int *pc, void **pa);
 qword SetVectorSphere(float pan, float tilt, float s);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, void *pv, qword *phit);

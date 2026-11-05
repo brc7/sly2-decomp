@@ -22,7 +22,7 @@ void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, ALL
 unsigned int HashPchzCaseless(int pchz);
 void *func_002333B4(void *pv, int b, int cb);                              /* memset */
 void *STACKSCOPE_ctor(void *pscope);
-void STACKSCOPE_ctor_1AE4A0(void *pscope, int n);
+void STACKSCOPE_ctor_1AE4A0(void *pscope, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(void *pdesc);
 int S32Read__18CBinaryInputStream(void *pbis);
 void Reserve__9CDynArrayi(void *pary, int c);

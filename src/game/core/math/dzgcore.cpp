@@ -23,7 +23,7 @@ void *func_001AE378(MSG *pmsg);
 void *func_001AE318(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb);     /* memset */
 void STACKSCOPE_ctor(FRAME *pframe);
-void STACKSCOPE_ctor_1AE4A0(FRAME *pframe, int n);
+void STACKSCOPE_ctor_1AE4A0(FRAME *pframe, int n) __asm__("_$_10STACKSCOPE");
 DZG *InitDzg(DZG *pdzg, int cdzMax);
 void SolveDzgFilled(DZG *pdzg);
 }

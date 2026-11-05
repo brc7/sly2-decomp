@@ -17,6 +17,7 @@
 #include "sly2/basic.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
+#include "sly2/stackscope.h"
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
 struct MCDLGG;
@@ -1313,8 +1314,7 @@ extern "C" void load_sly_icon_from_disc(int n0, int n1)
 
 namespace M_load_file_from_disc {
 typedef unsigned int uint;
-struct FRAME;extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int);
-struct FRAME {FRAME()__asm__("STACKSCOPE_ctor");~FRAME(){STACKSCOPE_ctor_1AE4A0(this,2);}};
+extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 struct REQUEST {uint bytes,alignment;};
 struct X;
 extern "C" void func_00258248(X *px);
@@ -1383,7 +1383,7 @@ typedef char Y_word58_Offset[FIELD_OFFSET(Y,word58)==88?1:-1];
 typedef char Y_word5C_Offset[FIELD_OFFSET(Y,word5C)==92?1:-1];
 typedef char Y_word60_Offset[FIELD_OFFSET(Y,word60)==96?1:-1];
 typedef char Y_tail64_Offset[FIELD_OFFSET(Y,tail64)==100?1:-1];
-typedef char Size_0[sizeof(FRAME)==1?1:-1];
+typedef char Size_0[sizeof(STACKSCOPE)==1?1:-1];
 typedef char Size_1[sizeof(REQUEST)==8?1:-1];
 typedef char Size_2[sizeof(X)==272?1:-1];
 typedef char Size_3[sizeof(K)==64?1:-1];
@@ -1400,7 +1400,7 @@ typedef char Size_7[sizeof(void*)==4?1:-1];
  * @end-sly2-annot */
 int load_file_from_disc(void *p, const char *a, K *k, const char *b)
 {
-    FRAME frame;
+    STACKSCOPE frame;
     char name[0x50];
     int ret;
     sprintf(name, D_002A6CB8, a, b);
@@ -2596,7 +2596,7 @@ extern "C" {
  void*RefGetGlobalSaveVar(REF*,void*,void*);
  void Decref__4CRef(REF*);
  void*STACKSCOPE_ctor(void*);
- void STACKSCOPE_ctor_1AE4A0(void*,int);
+ void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
  void*PkeyAllocSaveKey(void*,...);
  int IdsFromWorld(int);
  void*PchzFindSwLangstr__FP2SWi(void*,int);
@@ -2605,7 +2605,6 @@ extern "C" {
  char*strcpy(char*,const char*);
  int IdPauseTopPage(void*);
 }
-struct FRAME{FRAME()__asm__("STACKSCOPE_ctor");~FRAME(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 static inline float GetG(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);float g=r.g;Decref__4CRef(&r);return g;}
 static inline int GetN(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);int n=r.n;Decref__4CRef(&r);return n;}
 /** @sly2-annot addr=0x1ADC40
