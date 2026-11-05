@@ -5614,3 +5614,11 @@ void func_001F8BF0(struct S *p, int n, qword q, float x, float y, float z, float
 
 
 
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+float D_002C3B90 = 400.0f;
+VECTOR4 D_002C3BA0[8] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f, 0.0f}};
+int D_002C3C20[8] = {0, 3, 2, 2, 2, 1, 1, 1};
