@@ -4431,6 +4431,10 @@ extern "C" void func_0018DE18(JT *pjt, LO *plo)
     }
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const char r_D_002A5EF0[] __asm__("D_002A5EF0") = "sly"; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DE80 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
@@ -4779,7 +4783,6 @@ void func_0018E3A0(void *p)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const char D_002A5EF0[] = "sly";
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
 SNIP D_002BE990[0xAD] = {{0x200, 0x7C, 0x1028}, {0x200, 0x7D, 0x1334}, {0x200, 0x7E, 0x1374}, {0x200, 0x7F, 0x13D4},
     {0x200, 0x80, 0x13F4}, {0x200, 0x81, 0x1414}, {0x200, 0x82, 0x1434}, {0x200, 0x83, 0x1454},

@@ -46,7 +46,9 @@ static inline SPRBUF MakeSecond() { SPRBUF b; b.aqw = (ulong *)((int)D_003DD400 
 // 0x2019F0 func_002019F0 (StaticInit_sprbuf, 218 instructions) and its _GLOBAL_$I$ stub func_00201D58: generated
 // by g++ for the SPRBUF pair below, then the six engine slot pools.
 SPRBUF D_003DD2C0[2] = { MakeFirst(), MakeSecond() };
-ulong D_003DD380[16], D_003DD400[16];   /* the two tag lists (0x80 bytes each, up to stepguard's .bss) */
+/* the two tag lists (0x80 bytes each, up to stepguard's .bss), read uncached: 64-aligned (a cache line), which is
+ * what puts the first at 0x3DD380 after D_003DD2C0 ends at 0x3DD360 */
+ulong D_003DD380[16] __attribute__((aligned(64))), D_003DD400[16] __attribute__((aligned(64)));
 
 SLY2_INSTANTIATE_SLOT_POOLS()
 

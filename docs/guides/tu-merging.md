@@ -1279,7 +1279,75 @@ include the headers; Views unified, slice 3), leaving 19 in 10 files:
   scope).
 - **Other `.bss` laid out differently from the ELF** (same technique, not done here; build/link/conflicts.txt): dl, gs,
   glob, shd, prog, screen, stepguard, grab, joy, sprbuf, game (tu_1147D8 / tu_114AE0 are the const-array `.rodata`
-  case).
+  case). Done in phase 5 (below).
+
+### Phase 5: data order (branch data/bss-order, 2026-11-05)
+
+Goal: each object's `.bss`, `.data` and `.rodata` laid out as the ELF's, so a real link (no `-fdata-sections`,
+`tools/link.py --tu-data`) puts every byte where the game has it. Measured with tools/link.py in both modes
+(full-link.md, Status): config names at the wrong address 31 -> 0 (default mode) and 487 -> 349 (`--tu-data`: `.bss`
+29 -> 0, `.sbss` 2 -> 0, `.rodata` 143 -> 46, `.data` 313 -> 303). Every touched file keeps all functions and data
+symbols MATCH; no reorder changed codegen in its final form (one first attempt did, below).
+
+**Emission order (g++ 2.95, checked on these objects).** It decides where each object lands inside its object's
+section, and so in a link without `-fdata-sections`:
+
+- **`.bss`.** An object with a constructor (an empty inline one counts) is emitted at its definition. Every other
+  uninitialized object is emitted at the end of the file: first the global namespace's, in the order of their
+  *first declaration* (a declaration in an included header counts: dli.h declares `D_002DD2FC`, so dl.cpp's
+  `D_002DD2F8` came second), then each namespace's, the most recently opened namespace first (glob: `D_002DEB70` in
+  `M_BeginRpProjVolume` came before `D_002DEB60`/`D_002DEB54` of the earlier `M_func_0016A000`), each in
+  first-declaration order. Class and template static members are COMMON (phase 3) and go to the end of `.bss`/`.sbss`
+  at link time. `-fdata-sections` does not split `.bss`, so this order matters in both link modes.
+- **`.data`.** Initialized objects are emitted at their definition, in source order (namespaces do not matter).
+- **`.rodata`.** A named constant is emitted at its definition; a function's string literals while the function is
+  compiled (identical strings are shared within the TU), and its float constants and jump tables with it (the float
+  constants after the jump tables). The decompiled sources name many of the original literals (`D_` strings,
+  FLT_MAX words, PMF constants), so each named constant has to be defined between the functions where the ELF has
+  it. Spelling, so that no function sees a definition (no folding, the declarations above stay as they are):
+  `namespace RO_ORDER { extern const float r_D_002A5408 __asm__("D_002A5408") = 3.40282347e+38f; }` before the
+  function the ELF puts after it, with a comment on the first one in each file; pointer records bring their
+  asm-labelled pointee declarations into the same namespace.
+- **Alignment the layout shows** goes on the definition (no header class changes): sprbuf's two uncached tag lists
+  64 (0x3DD380 after D_003DD2C0 ends at 0x3DD360), g_joy 64 (0x2DFC00 after the words at 0x2DFBC0), prog's thread
+  stack 16. Each is a choice that fits the layout (a 64-byte-aligned buffer and padding words would place the same);
+  noted at the definition.
+
+**Fixed.** `.bss`: dl (declaration before the include), gs (the libgraph double buffer's tail `D_002DEBD0` 0x1E0
+bytes and the frame CRITSECT `D_002DFB40` defined; spelling `D_002DEBE0`/`D_002DECC0`/`D_002DECD0` as offsets into
+the block made g++ share the base in RestoreGsBuffers/BlastAqwGifsBothFrames, so those three stay separate extern
+address names), glob (definitions moved to file scope), shd (the 0x200-entry record table `D_003DA798` and the gap
+word `D_003DD008` defined), prog (`D_002DD314` is a `.sbss` common), screen (the selected-job slot `D_003DA4D0` is a
+0x20-byte record with an empty inline constructor: a plain pointer would be emitted after all nine screens), game
+(g_game defined at file scope as `char[0x1C]`, `D_002DEB28` declared first), stepguard, joy, grab, sprbuf.
+`.rodata` (in `--tu-data` mode now byte-identical to the ELF, relocated words aside): text, guardbhv, game,
+stepguard, screen (with its `D_002C3268` string table and the three strings, which also closes the gap in its
+`.data`), air, stepplayer, jt, prize, murray, sound, relay, tu_17F090, booty; hud from 84 to 9 differing bytes, hurt to 4 (its
+shared literal).
+
+**`-fdata-sections` (the default mode of tools/link.py).** It gives each named object its own section but leaves
+every object's anonymous literals and jump tables in one `.rodata` section, so where the ELF interleaves named
+constants with the functions' literals (most objects with both) that section cannot match in the default mode
+whatever the source order: the 1,263 `.rodata` layout bytes of the default mode are this artifact and did not
+change here. Decision (stylistic, keeps both measures): `-fdata-sections` stays in the default mode for now (it
+isolates code from data-order problems: dropping it today would turn the default numbers into the `--tu-data` ones,
+.rodata from objects 94.4% -> 88.6%), and `--tu-data` is the measure for data order. Once `--tu-data` is at least as
+good, drop the flag (make `--tu-data` the default).
+
+**Left (`--tu-data`), by kind:**
+
+- *`.data` in definition order but not address order* (the per-function-view files whose phase-1 definitions sit at
+  their first declaration, and gap objects not defined): jt 36, tu_1D1370 35, cplcy 26, tn 22, prize 16, tu_17F090
+  12, stepguard 11, grab 9, tu_223F70 9, rip 8, murray/hurt/tu_144B28/bentley 7, hang/prog 6, ... (303 names in 39
+  objects). Same recipe: one definition block in address order, with the gap objects defined.
+- *Shared literals* (a named constant whose bytes the ELF shares with a function's own literal: gcc pools identical
+  strings and constants per TU, ours emits both): memcard `D_002A6BA0`/`D_002A6CA0`/`D_002A6CB8`/`D_002A6EB8`,
+  tn 5, tu_171F58 3, step 3, bomb 3, tu_185130 3, path 3, tu_1D1370 2, tu_144B28 2, hurt, sw, tu_14A008, tu_20B840.
+  Fix: the function reads the named symbol instead of spelling the literal (or the reverse); the relocated words
+  are masked, so the match shows whether the code is unchanged.
+- *`.rodata` with unnamed data missing or misplaced jump tables*: memcard (with the strings above), menu, bentley,
+  sw, xf, cd, tu_1BAB50, tu_223F70, tn, bomb, rhythm (the last three: named constants to move as above, not done in
+  the timebox).
 
 ## Linkage of namespace-scoped declarations
 

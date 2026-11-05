@@ -3631,6 +3631,10 @@ static inline qword QwAddScaledX(qword qw, qword qwDir, VU_FLOAT vuScale)
     return qwSum;
 }
 void NextJsgCommand(JSG *pjsg) __asm__("NextJsgCommand__FP3JSG");
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7AD0 __asm__("D_002A7AD0") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1E1E30
  * Purpose: Advance the script to the next command and execute it by kind
  * Info: proposed name NextJsgCommand (T1); TU relay
@@ -6447,7 +6451,6 @@ done:
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A7AD0 = 3.40282347e+38f;
 extern const float D_002A8124 = 3.40282347e+38f;
 float D_002C3620 = 7.0f;
 float D_002C3624 = 10.0f;

@@ -60,6 +60,13 @@ SCRINL<0x30> D_003DA0C0(D_002CA490);    /* notice */
 SCRCTOR<0x60> D_003DA0F0(GADGETMENU_ctor);
 SCRCTOR<0x270> D_003DA150(func_001DB7A8);
 SCRCTOR<0x110> D_003DA3C0(func_001DCC58);
+/* 0x3DA4D0: the selected job (JOBSEL *, read as D_003DA4D0 below) heads a 0x20-byte object: the next screen starts
+ * at 0x3DA4F0. A plain pointer would be emitted after every constructed object (plain .bss goes at the end of the
+ * file), so the slot is a 0x20-byte record with an empty inline constructor, emitted here in order and constructed
+ * by no code. Only the first word is named. */
+struct JOBSEL;
+struct JOBSELSLOT { JOBSEL *pjobsel; int an[7]; JOBSELSLOT() {} };
+JOBSELSLOT s_jobselslot __asm__("D_003DA4D0");
 SCRCTOR<0x40> D_003DA4F0(func_001DD648);
 SCRCTOR<0x40> D_003DA530(func_001DD7D8);
 
@@ -2420,6 +2427,21 @@ void SetThiefnetTab(OBJ *p, int s)
 } } // namespace M_SetThiefnetTab
 #undef VCALL
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7984 __asm__("D_002A7984") = 3.40282347e+38f; }
+/* the three strings of the D_002C3268 table (.data, below), defined here because the ELF has them here */
+namespace RO_ORDER { extern const char r_D_002A7988[] __asm__("D_002A7988") = "&2L&."; }
+namespace RO_ORDER { extern const char r_D_002A7990[] __asm__("D_002A7990") = "&2l&."; }
+namespace RO_ORDER { extern const char r_D_002A7998[] __asm__("D_002A7998") = "&2r&."; }
+namespace RO_ORDER { extern const char r_D_002A79A0[] __asm__("D_002A79A0") = "%d"; }
+namespace RO_ORDER { extern const char r_D_002A79A8[] __asm__("D_002A79A8") = "powerUps"; }
+namespace RO_ORDER { extern const char r_D_002A79B8[] __asm__("D_002A79B8") = "mppukfAcquired"; }
+namespace RO_ORDER { extern const float r_D_002A79C8 __asm__("D_002A79C8") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A79CC __asm__("D_002A79CC") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "loot"; }
+namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
 namespace M_func_001DC4B0 { extern "C" {
 extern struct CLOCK { float a[16]; } D_002DDED0;
 typedef struct {
@@ -3201,6 +3223,11 @@ void SetJobListPage(OBJ *p, int s)
 } } // namespace M_SetJobListPage
 #undef VCALL
 
+namespace RO_ORDER { extern const char r_D_002A7A10[] __asm__("D_002A7A10") = ""; }
+namespace RO_ORDER { extern const char r_D_002A7A18[] __asm__("D_002A7A18") = "%s%s%s. %s"; }
+namespace RO_ORDER { extern const char r_D_002A7A28[] __asm__("D_002A7A28") = ": "; }
+namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%s (%d)"; }
+namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
 namespace M_SetJobListStickDir { extern "C" {
 extern struct CLOCK { float a[16]; } D_002DDED0;
 typedef struct {
@@ -3665,6 +3692,7 @@ extern "C" void BuildTitlePromptText(char *pch)
 }
 } // namespace M_BuildTitlePromptText
 
+namespace RO_ORDER { extern const char r_D_002A7A70[] __asm__("D_002A7A70") = "\n"; }
 namespace M_IdsFromWorld { extern "C" {
 /** @sly2-annot addr=0x1DDD40
  * Purpose: World index 0-8 -> episode name string id 0x6D-0x75
@@ -3852,20 +3880,6 @@ void func_00258348(S *p, int flags)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A7984 = 3.40282347e+38f;
-extern const char D_002A79A0[] = "%d";
-extern const char D_002A79A8[] = "powerUps";
-extern const char D_002A79B8[] = "mppukfAcquired";
-extern const float D_002A79C8 = 3.40282347e+38f;
-extern const float D_002A79CC = 3.40282347e+38f;
-extern const char D_002A79D0[] = "loot";
-extern const char D_002A79D8[] = "mplootkc";
-extern const char D_002A7A10[] = "";
-extern const char D_002A7A18[] = "%s%s%s. %s";
-extern const char D_002A7A28[] = ": ";
-extern const char D_002A7A30[] = "%s (%d)";
-extern const char D_002A7A38[] = "%s: %s. %s";
-extern const char D_002A7A70[] = "\n";
 extern const char D_002A7AA8[] = " : &2T&.";
 extern const char D_002A7AB8[] = "%d%%";
 /* Gadget menu entries (power-up id, three widget oids, -1, x, y, flag); 18/9/8 entries for Sly, Bentley, Murray. */
@@ -3892,6 +3906,7 @@ SMP D_002C3248 = {100.0f, 0.0f, 0.5f};
 float D_002C3254 = 5.0f;
 int D_002C3258[3] = {4, 1, 2};
 float D_002C3264 = 0.66f;
+char *D_002C3268[3] = {(char *)RO_ORDER::r_D_002A7988, (char *)RO_ORDER::r_D_002A7990, (char *)RO_ORDER::r_D_002A7998};
 float D_002C3274 = 750.0f;
 float D_002C3278 = 40.0f;
 float D_002C327C = 200.0f;
@@ -3912,6 +3927,5 @@ float D_002C35B0 = 40.0f;
 int D_002C35B4 = 6;
 int D_002C35B8[14] = {88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101};
 int D_002C35F0[8] = {790, 792, 791, 793, 795, 794, 796, 797};
-JOBSEL *D_003DA4D0;
 int D_003DA570;
 namespace M_UpdateTitleScreen { extern "C" { ITEM D_003DA578[14]; } }   /* one per region language */

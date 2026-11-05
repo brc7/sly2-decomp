@@ -2543,7 +2543,7 @@ static inline qword QwDot(qword a, qword b)
 }
 extern "C" void *memmove(void *pvDst, const void *pvSrc, size_t cb);
 extern "C" { extern JT *D_002E1E40; }
-extern "C" { int D_002E1E4C; }   // C symbol: this view has no extern "C" block
+extern "C" { extern int D_002E1E4C; }   // C symbol: this view has no extern "C" block; defined at file scope below
 extern "C" { extern float D_002BF664; }
 static inline int FBeyondBusy(LO *plo, qword qwPos)
 {
@@ -2913,6 +2913,7 @@ struct CLOCK { float t; float dt; };
 
 extern "C" {
 extern CLOCK D_002DDED0;
+int D_002E1E4C;   /* .bss order: file-scope plain objects are emitted first, in first-declaration order */
 int D_002E1E50;
 float D_002BF710 = 15.0f, D_002BF714 = 5.0f;
 SMP D_002BF718 = {1500.0f, 0.0f, 2.0f};

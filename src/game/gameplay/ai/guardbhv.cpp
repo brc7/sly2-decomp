@@ -1569,6 +1569,10 @@ typedef char C_PrefixSize[sizeof(C)==0x60?1:-1];
 typedef char P_PrefixSize[sizeof(P)==0xFC8?1:-1];
 } } // namespace M_UpdateBhvcombat
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A5408 __asm__("D_002A5408") = 3.40282347e+38f; }
 // 0x176458 SetBhvcombatState
 namespace M_SetBhvcombatState { extern "C" {
 struct CLOCK; struct VTE; struct X; struct O; struct A; struct P; struct S;
@@ -2415,6 +2419,7 @@ extern "C" int func_00177D70(BHV *pbhv)
     return f;
 }
 
+namespace RO_ORDER { extern const float r_D_002A54D0 __asm__("D_002A54D0") = 3.40282347e+38f; }
 // 0x177DC0 FBhvguardModeSame
 namespace M_FBhvguardModeSame { extern "C" {
 struct S;
@@ -3633,6 +3638,7 @@ void func_00156C80(struct G *g, int a, qword q, int b, void *pv);
 void CloseBhvhit(struct S *p) { CloseBhvanim(p); func_00156C80(&D_003DD490, -1, D_002A2DD0, 0, p->p10 + 0x35C); }
 } } // namespace M_CloseBhvhit
 
+namespace RO_ORDER { extern const float r_D_002A5584 __asm__("D_002A5584") = 3.40282347e+38f; }
 // 0x1795E8 UpdateBhvhit
 namespace M_UpdateBhvhit { extern "C" {
 struct CLOCK; struct V; struct T; struct S;
@@ -6618,6 +6624,8 @@ extern "C" void func_0017D330(BHV *pbhv)
     RemoveStepguardSgf((STEPGUARD *)pbhv->pstep, 0x29);
 }
 
+namespace RO_ORDER { extern const float r_D_002A55FC __asm__("D_002A55FC") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A5600 __asm__("D_002A5600") = 3.40282347e+38f; }
 // 0x17D360 InitBhvgoto
 namespace M_InitBhvgoto { extern "C" {
 struct T; struct G; struct S;
@@ -8051,11 +8059,6 @@ void func_002562A8(P *p) { p->a = 0; p->b = 0; }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A5408 = 3.40282347e+38f;
-extern const float D_002A54D0 = 3.40282347e+38f;
-extern const float D_002A5584 = 3.40282347e+38f;
-extern const float D_002A55FC = 3.40282347e+38f;
-extern const float D_002A5600 = 3.40282347e+38f;
 VECTOR4 D_002BE600 = {0.0f, 0.005f, 0.0f, 0.0f};
 float D_002BE610 = 0.25f;
 float D_002BE614 = 500.0f;

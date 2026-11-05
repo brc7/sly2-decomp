@@ -19,9 +19,9 @@ struct GSTATE { char pad[0x30C]; int x30c; int x310; void *x314; char pad318[0x3
 struct SNDV { float t; };
 
 extern CLOCK D_002DDED0;
-extern JOY D_002DFC00;     /* g_joy */
 extern int D_002DFBC0;     /* g_grfjoyt */
 extern int D_002DFBC4;     /* the users' grf */
+extern JOY D_002DFC00;     /* g_joy (declared after the two words: .bss is emitted in first-declaration order) */
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
 extern GSTATE D_002DDF40;
@@ -656,4 +656,4 @@ extern "C" int DySelectionJoy(JOY *p)
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 int D_002DFBC0;   /* g_grfjoyt */
 int D_002DFBC4;   /* the users' grf */
-JOY D_002DFC00;   /* g_joy */
+JOY D_002DFC00 __attribute__((aligned(64)));   /* g_joy (64-aligned by layout: 0x2DFC00 after the words at 0x2DFBC0) */

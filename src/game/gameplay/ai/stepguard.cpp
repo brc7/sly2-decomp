@@ -57,6 +57,8 @@ struct BHVARG : public BHV
 };
 
 extern CLOCK D_002DDED0;        /* g_clock */
+extern ulong D_003DD480;        /* declared first: .bss is emitted in first-declaration order */
+extern int D_003DD488;
 extern LO *D_003DD48C;          /* the guard manager */
 extern LO *D_002DD648;
 LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
@@ -874,6 +876,17 @@ void func_00208948(void *p, int n);
 void func_00206E50(void *p) { unsigned int i; for (i = 0; i < 5; i++) func_00208948(p, D_002C3D10[i]); }
 } } // namespace M_func_00206E50
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A8600 __asm__("D_002A8600") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A8604 __asm__("D_002A8604") = -3.40282347e+38f; }
+namespace RO_ORDER {   /* a non-virtual pointer-to-member constant {delta 0, index -1, pfn} */
+void p_func_00206170() __asm__("func_00206170");
+extern const unsigned int r_D_002A8608[2] __asm__("D_002A8608") = {0xFFFF0000, (unsigned int)p_func_00206170};
+}
+namespace RO_ORDER { extern const float r_D_002A8610 __asm__("D_002A8610") = -3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A8614 __asm__("D_002A8614") = -3.40282347e+38f; }
 // 0x206EB0 func_00206EB0
 namespace M_func_00206EB0 { extern "C" {
 struct X;
@@ -919,6 +932,7 @@ int func_00206EB0(void *p, int k)
 }
 } } // namespace M_func_00206EB0
 
+namespace RO_ORDER { extern const float r_D_002A8698 __asm__("D_002A8698") = 3.40282347e+38f; }
 // 0x207030 SetStepguardSpecial
 namespace M_SetStepguardSpecial { extern "C" {
 struct V3; struct Y14; struct Y; struct X; struct Z; struct S;
@@ -2564,6 +2578,8 @@ void ResolveAnimBinding(struct E *e, void *context)
 }
 } } // namespace M_ResolveAnimBinding
 
+namespace RO_ORDER { extern const float r_D_002A8868 __asm__("D_002A8868") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A886C __asm__("D_002A886C") = 3.40282347e+38f; }
 // 0x209278 StartAnimBinding
 namespace M_StartAnimBinding { extern "C" {
 struct O; struct E;
@@ -4564,13 +4580,6 @@ void func_0020B590(struct S *p)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A8600 = 3.40282347e+38f;
-extern const float D_002A8604 = -3.40282347e+38f;
-extern const float D_002A8610 = -3.40282347e+38f;
-extern const float D_002A8614 = -3.40282347e+38f;
-extern const float D_002A8698 = 3.40282347e+38f;
-extern const float D_002A8868 = 3.40282347e+38f;
-extern const float D_002A886C = 3.40282347e+38f;
 extern const float D_002A88C4 = 3.40282347e+38f;
 extern const float D_002A88C8 = 3.40282347e+38f;
 extern const float D_002A88CC = 3.40282347e+38f;
@@ -4599,13 +4608,3 @@ float D_002C3DBC = 0.25f;
 ulong D_003DD480;
 int D_003DD488;
 LO *D_003DD48C;
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_stepguard {
-void p_func_00206170() __asm__("func_00206170");
-extern "C" {
-extern const unsigned int D_002A8608[2] = {0xFFFF0000, (unsigned int)p_func_00206170};
-}
-} // namespace ANPTR_stepguard

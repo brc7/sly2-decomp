@@ -61,9 +61,13 @@ typedef char assert_SHDV_size[sizeof(SHDV) == 0x2C ? 1 : -1];
 extern "C" {
 /* The tables (separate globals: one lui per store in ResetShaders). */
 /* shd's .bss (address order; the per-function views below redeclare some with their own types). D_003DA790 and
- * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too); the 0x2800-byte table D_003DA798 between
- * them is declared in its function's view only and not defined here. */
+ * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too). D_003DA798 is the 0x200-entry table of
+ * 0x14-byte records between them (func_001EC740's E, shdanim's SAIE, glob's LINK); defined here with a file-scope
+ * record type of that size so the .bss after it keeps the ELF's addresses (g++ 2.95 does not compare the views'
+ * namespaced extern "C" declarations with it). */
+struct SHDREC { int a; int b; unsigned int p; int c; int d; };
 int D_003DA790;
+SHDREC D_003DA798[0x200];
 int D_003DCF98, D_003DCF9C;
 int D_003DCFA0;
 char D_003DCFA8[0x40];
@@ -75,6 +79,7 @@ int D_003DCFF8;             /* colour table count */
 CLUT *D_003DCFFC;           /* colour tables */
 int D_003DD000;
 void *D_003DD004;
+int D_003DD008;             /* named by no code; keeps the layout */
 int D_003DD00C;
 void *D_003DD010;
 int D_003DD014;

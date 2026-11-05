@@ -1274,6 +1274,18 @@ extern "C" void SetWidgetRequest(WIDGET *pwidget, int nRequest)
     }
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const char r_D_002A8AA0[] __asm__("D_002A8AA0") = "%d"; }
+namespace RO_ORDER { extern const char r_D_002A8AA8[] __asm__("D_002A8AA8") = "%d/%d"; }
+namespace RO_ORDER { extern const char r_D_002A8AB0[] __asm__("D_002A8AB0") = "%d:%02d"; }
+namespace RO_ORDER { extern const char r_D_002A8AB8[] __asm__("D_002A8AB8") = "x%d"; }
+namespace RO_ORDER { extern const char r_D_002A8AC0[] __asm__("D_002A8AC0") = "x%5.3f"; }
+namespace RO_ORDER { extern const char r_D_002A8AC8[] __asm__("D_002A8AC8") = "Far"; }
+namespace RO_ORDER { extern const char r_D_002A8AD0[] __asm__("D_002A8AD0") = "Near"; }
+namespace RO_ORDER { extern const char r_D_002A8AD8[] __asm__("D_002A8AD8") = "YIKES"; }
+namespace RO_ORDER { extern const char r_D_002A8AE8[] __asm__("D_002A8AE8") = "ZRB."; }
 // 0x212A70 SetWidgetState
 namespace M_SetWidgetState { extern "C" {
 struct S {
@@ -2231,6 +2243,10 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
 }
 } // namespace M_LoadSpriteGroups
 
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_func_002155C0() __asm__("func_002155C0");
+extern const unsigned int r_D_002A8B08[2] __asm__("D_002A8B08") = {0xFFFF0000, (unsigned int)p_func_002155C0};
+}
 // 0x2149D8 LoadSpriteDescriptor
 namespace M_LoadSpriteDescriptor {
 // LoadSpriteDescriptor: reads one sprite descriptor from the stream into sprites[id] and builds its packet data.
@@ -5258,15 +5274,6 @@ extern "C" void func_0021BB68(void)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const char D_002A8AA0[] = "%d";
-extern const char D_002A8AA8[] = "%d/%d";
-extern const char D_002A8AB0[] = "%d:%02d";
-extern const char D_002A8AB8[] = "x%d";
-extern const char D_002A8AC0[] = "x%5.3f";
-extern const char D_002A8AC8[] = "Far";
-extern const char D_002A8AD0[] = "Near";
-extern const char D_002A8AD8[] = "YIKES";
-extern const char D_002A8AE8[] = "ZRB.";
 extern const char D_002A8B80[] = "Unknown";
 extern const char D_002A8B88[] = "     ";
 char D_002C3EC0[10][0x30] = {"Widget Item 0", "Widget Item 1", "Widget Item 2", "Widget Item 3", "Widget Item 4",
@@ -5379,7 +5386,6 @@ void p_func_002155C0() __asm__("func_002155C0");
 extern "C" char d_D_002C3EC0[] __asm__("D_002C3EC0");
 extern "C" char d_D_003DD490[] __asm__("D_003DD490");
 extern "C" {
-extern const unsigned int D_002A8B08[2] = {0xFFFF0000, (unsigned int)p_func_002155C0};
 extern const unsigned int D_002A8B90[4] = {0x2CF, (unsigned int)p_BuildCoinCountText, (unsigned int)(d_D_003DD490 + 0x3B20), 0};
 extern const unsigned int D_002A8BA0[4] = {0x2D0, (unsigned int)p_BuildClueCountText, 0, 0};
 extern const unsigned int D_002A8BB0[4] = {0x2D1, (unsigned int)p_BuildTimerText, 0, 0};

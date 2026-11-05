@@ -492,8 +492,9 @@ def symbol_check(path, img):
             bad += 1
             wrong[sec[0] if sec else '?'] += 1
             badnames.append(f'{n} 0x{val:X} (config 0x{a:X})')
-    print(f'\nsymbols at their config address: {ok} of {ok + bad}; wrong by section: {dict(wrong)}: '
-          + ', '.join(badnames[:12]))
+    open(os.path.join(OUT, 'wrongaddr.txt'), 'w').writelines(b + '\n' for b in badnames)
+    print(f'\nsymbols at their config address: {ok} of {ok + bad}; wrong by section: {dict(wrong)} '
+          '(all in build/link/wrongaddr.txt): ' + ', '.join(badnames[:12]))
 
 
 def tu_check(objs, base):

@@ -44,7 +44,8 @@ struct RGBA {
     RGBA(const RGBA &rgba);
 };
 
-struct CRITSECT;
+/* A recursive critical section (thread.cpp): entry count, owning thread id, semaphore id. */
+struct CRITSECT { int cEnter; int thread; int sema; };
 struct sceDmaChan;
 struct STACKSCOPEMK { int a; };
 enum ZPK { ZPK_Nil = -1 };
@@ -54,13 +55,19 @@ struct ZPR { ZPK zpk; ZPK zpk2; LO *ploSource; char pad[0x630 - 12]; };
 extern "C" {
 DISPENV D_002DEB80[2];      /* gs' .bss starts here (medium: by layout; menu, save and others read it) */
 extern DISPENVW D_002DEB80W[2] __asm__("D_002DEB80");   /* StartupGs's view of the same array */
+/* The rest of the libgraph double buffer (sceGsDBuff after its two display environments, 0x1E0 bytes): per
+ * buffer a GIF tag, the draw environment and its clear packet. Defined as one block so that .bss after it keeps the
+ * ELF's addresses. The other three names stay separate extern symbols (address names at +0x10/+0xF0/+0x100): spelled
+ * as offsets into the block, g++ shares the base between the two arms of the buffer selects and
+ * RestoreGsBuffers/BlastAqwGifsBothFrames no longer match. This TU's DRAWENV view spans a draw environment, its
+ * clear packet and the next tag (0xF0, the stride of current+1/current-1). */
+QW D_002DEBD0[30];                      /* buffer 0's GIF tag first */
 extern DRAWENV D_002DEBE0, D_002DECD0;
-extern QW D_002DEBD0, D_002DECC0;       /* the GIF tags in front of the two draw environments */
-extern CRITSECT D_002DFB40;
+extern QW D_002DECC0;                   /* buffer 1's GIF tag */
 /* gs' .data. */
 int D_002BE590 = 0xF, D_002BE594 = 0, D_002BE598 = 0xFFFF00, D_002BE59C = 0xFF;
-/* gs' .bss after the draw environments (address order; the draw-environment pairs {GIF tag, DRAWENV} and the
- * CRITSECT stay extern: this TU's DRAWENV view is 0xF0 bytes, which overlaps the second tag). */
+/* gs' .bss after the double buffer, in address order (plain objects are emitted at the end of the file in
+ * first-declaration order). */
 int D_002DEDB0;                         /* frame counter (buffer = & 1) */
 int D_002DEDB4;                         /* half offset of the next frame */
 int D_002DEDB8;                         /* field of the current frame */
@@ -70,6 +77,7 @@ extern sceDmaChan *D_002DE598;
 QW D_002DEDC0[37], D_002DF010[37], D_002DF260[37], D_002DF4B0[37], D_002DF700[2], D_002DF720[2];
 QW D_002DF740[12], D_002DF800[8], D_002DF880[12], D_002DF940[8], D_002DF9C0[12], D_002DFA80[8];
 QW D_002DFB00[2], D_002DFB20[2];
+CRITSECT D_002DFB40;                    /* guards the frame swap (EnterCritSect/LeaveCritSect) */
 int D_002DFB4C, D_002DFB50;             /* vblank / GS-finish semaphores */
 int D_002DFB54, D_002DFB58, D_002DFB5C, D_002DFB60;
 extern int D_003DCF9C, D_003DCF98;
@@ -266,7 +274,7 @@ void RestoreGsBuffers()
         D_002DEDB4 = FFieldCsr() == 0;
         sceGsSetHalfOffset((D_002DEDB0 & 1) ? &D_002DECD0 : &D_002DEBE0, 0x800, 0x800, D_002DEDB4);
         func_00234CA0(0);
-        sceGsPutDrawEnv((D_002DEDB0 & 1) ? &D_002DECC0 : &D_002DEBD0);
+        sceGsPutDrawEnv((D_002DEDB0 & 1) ? &D_002DECC0 : &D_002DEBD0[0]);
     }
 }
 
@@ -551,7 +559,7 @@ void BlastAqwGifsBothFrames(QW *aqw)
     func_00234CA0(0);
     for (int i = 0; i < 2; i++)
     {
-        sceGsPutDrawEnv(((i + D_002DEDB0) & 1) ? &D_002DEBD0 : &D_002DECC0);
+        sceGsPutDrawEnv(((i + D_002DEDB0) & 1) ? &D_002DEBD0[0] : &D_002DECC0);
         sceDmaSend(D_002DE598, aqw);
     }
     sceDmaSync(D_002DE598, 0, 0);

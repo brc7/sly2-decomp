@@ -803,6 +803,14 @@ int STEPPLAYER::JthsCurrent()
     return func_001A23C0(&jthurt);
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER {   /* a non-virtual pointer-to-member constant {delta 0, index -1, pfn} */
+void p_func_00143BD8() __asm__("func_00143BD8");
+extern const unsigned int r_D_002A4D10[2] __asm__("D_002A4D10") = {0xFFFF0000, (unsigned int)p_func_00143BD8};
+}
+namespace RO_ORDER { extern const float r_D_002A4D18 __asm__("D_002A4D18") = 3.40282347e+38f; }
 namespace M_HandleStepplayerMessage { extern "C" {
 // HandleStepplayerMessage (0x140F90): message handler (p, msg, pv): msg 3 resets x1038 and stops the 0xDF0/0x11B0 actions, msg 9 (pso->p18 == p)
 // switches on pmsg->k (0x15E: x190 = -v and virtual slot 35 called with the 0x1B0 rows times v; 0x161/0x162; 0x27B/0x27C; 0x1C7/0x1C8),
@@ -2015,6 +2023,9 @@ extern "C" void func_00142860(STEPPLAYER *pstepplayer)
     FLEAN1100(pstepplayer) = 0;
 }
 
+namespace RO_ORDER { extern const char r_D_002A4D50[] __asm__("D_002A4D50") = "%d"; }
+namespace RO_ORDER { extern const char r_D_002A4D58[] __asm__("D_002A4D58") = "apukCur"; }
+namespace RO_ORDER { extern const float r_D_002A4D60 __asm__("D_002A4D60") = 3.40282347e+38f; }
 namespace M_func_00142868 { extern "C" {
 struct S { char pad[0x1148]; int a; float f; };
 /** @sly2-annot addr=0x142868
@@ -2458,6 +2469,7 @@ void func_00143090(struct X *p, struct S8 *a, struct S8 *b, struct S8 *c)
 }
 } } // namespace M_func_00143090
 
+namespace RO_ORDER { extern const float r_D_002A4D68 __asm__("D_002A4D68") = 3.40282347e+38f; }
 namespace M_func_001430C8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { char pad[0x10F8]; void *p10F8; int x10FC; };
@@ -2921,6 +2933,13 @@ void func_00143BD8(struct O *p)
 }
 } } // namespace M_func_00143BD8
 
+namespace RO_ORDER { extern const char r_D_002A4D88[] __asm__("D_002A4D88") = "episode"; }
+namespace RO_ORDER { extern const char r_D_002A4D90[] __asm__("D_002A4D90") = "level"; }
+namespace RO_ORDER { extern const char r_D_002A4D98[] __asm__("D_002A4D98") = "booty"; }
+namespace RO_ORDER { extern const char r_D_002A4DA0[] __asm__("D_002A4DA0") = "aoidAssembly"; }
+namespace RO_ORDER { extern const char r_D_002A4DB0[] __asm__("D_002A4DB0") = "oidBooty"; }
+namespace RO_ORDER { extern const char r_D_002A4DC0[] __asm__("D_002A4DC0") = "loot"; }
+namespace RO_ORDER { extern const char r_D_002A4DC8[] __asm__("D_002A4DC8") = "mplootkc"; }
 namespace M_func_00143C78 { extern "C" {
 /** @sly2-annot addr=0x143C78
  * Purpose: vt85: returns a mode code from component states (0 if +0x204, 4 in grab 3/4, 1 in air, 7
@@ -3415,18 +3434,6 @@ void OnStepplayerActive(struct O *p, int a)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A4D18 = 3.40282347e+38f;
-extern const char D_002A4D50[] = "%d";
-extern const char D_002A4D58[] = "apukCur";
-extern const float D_002A4D60 = 3.40282347e+38f;
-extern const float D_002A4D68 = 3.40282347e+38f;
-extern const char D_002A4D88[] = "episode";
-extern const char D_002A4D90[] = "level";
-extern const char D_002A4D98[] = "booty";
-extern const char D_002A4DA0[] = "aoidAssembly";
-extern const char D_002A4DB0[] = "oidBooty";
-extern const char D_002A4DC0[] = "loot";
-extern const char D_002A4DC8[] = "mplootkc";
 extern const char D_002A4E18[] = "hpCur";
 extern const char D_002A4E20[] = "mpCur";
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
@@ -3495,13 +3502,3 @@ VECTOR4 D_002BD2B0 = {-500.0f, -0.5f, 0.0f, 0.0f};
 float D_002BD2C0 = 1.0f;
 float D_002BD2C4 = 2.5f;
 int D_002DD640;
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_stepplayer {
-void p_func_00143BD8() __asm__("func_00143BD8");
-extern "C" {
-extern const unsigned int D_002A4D10[2] = {0xFFFF0000, (unsigned int)p_func_00143BD8};
-}
-} // namespace ANPTR_stepplayer
