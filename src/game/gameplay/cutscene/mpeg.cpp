@@ -91,16 +91,20 @@ struct JOY;
 extern "C" {
 extern CLOCK D_002DDED0;
 extern DMA *D_002DE598;
-extern char D_002F6900[];
+char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2F7900) */
 extern char D_002E5270[];
 extern int D_004425DC;
 extern char D_003DD040[], D_004435F0[];
 extern char D_002D4220[];
 extern int D_002E1E54, D_002DEDBC;
-extern K D_002A3968;
-extern K D_002A39A8;
-extern int D_002F68F8;
-extern int D_002C0268;
+/* Two movie file references (16 hashed words, sly2/sw.h FILEREC layout; the first is the intro movie, the same record
+ * as tu_1A4E08's D_002A3868), read as K. */
+extern const unsigned int D_002A3968[16] = {0xD77E9E24, 0xEF8D7128, 0x90A6F254, 0xF139A465, 0x0183958F, 0x6D4D86AC, 0xC5C41E37,
+    0xE5DD4733, 0x9BD55409, 0xDEFE997A, 0x3CCDE869, 0xE79189E6, 0xC3EC6045, 0xD77006A2, 0x90A6FA5C, 0xEFA0B12C};
+extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 0x30120C3B, 0x285ED44F, 0xF6109257, 0xAE965CAD,
+    0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
+int D_002F68F8;
+int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
 extern GSAVE D_002E65E0;
 extern JOY D_002DFC00;
@@ -884,7 +888,7 @@ void Execute__5CMpegPv(CMPEG *p, K *k)
             UpdateJoy__FP3JOY(&D_002DFC00);
             if (!D_002E65E0.xFD50) UpdateSave__FP4SAVE(&D_002E65E0);
             f = 0;
-            if (FMatch(k, &D_002A3968) || FMatch(k, &D_002A39A8)) f = D_002F68F8 != 0;
+            if (FMatch(k, (K *)D_002A3968) || FMatch(k, (K *)D_002A39A8)) f = D_002F68F8 != 0;
             if (D_002C0268) f = 1;
             if (f) {
                 int fQuit = 0;
@@ -900,7 +904,7 @@ void Execute__5CMpegPv(CMPEG *p, K *k)
             }
             Update__5CMpeg(p);
         }
-        if (FMatch(k, &D_002A39A8)) D_002F68F8 = 1;
+        if (FMatch(k, (K *)D_002A39A8)) D_002F68F8 = 1;
         Finish__5CMpeg(p);
         Close__18CBinaryAsyncStream(&strm);
     }

@@ -187,7 +187,7 @@ struct P4 { qword q; };
 struct REQ { int cb, align; };
 struct FRAME { int x[4]; };
 struct WORLD;
-extern int D_002C4490;
+int D_002C4490 = 0x459C4000;   /* 5000.0f, read as its bits (waypoint's .data starts here) */
 extern "C" {
 void InitPlaneFromPositions(UQ *, qword, qword, qword);
 void InitPlaneFromNormalPos(UQ *, qword, qword);
@@ -437,9 +437,10 @@ extern "C" void func_0022A220(O *po)
 // copied into s4), the name plate drawn through a by-value RGBA inline (copy addresses in s0/s1), and the
 // float argument of func_001CD780 second (invisible in the callee, decides the f12 move's slot).
 extern LM D_002BBB60;      // g_lmZeroOne
-extern float D_002C4494, D_002C4498, D_002C449C, D_002C44D8;
-extern CLQ D_002C44A0, D_002C44B0, D_002C44C0;
-extern LM D_002C44D0;
+float D_002C4494 = 10.0f, D_002C4498 = 10.0f, D_002C449C = 0.1f;   /* waypoint's .data, address order */
+CLQ D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
+LM D_002C44D0 = {1.0f, 5.0f};
+float D_002C44D8 = 300.0f;
 extern "C" {
 void RenderSoSelf(WAYPT *pwaypt);
 int FPowerupAcquired(int ipuk);

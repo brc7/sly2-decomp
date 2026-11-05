@@ -79,8 +79,9 @@ extern "C" {
 extern DL D_003E1A4C;           /* polygons waiting for their path zone (func_001BE1E8) */
 extern DL D_003E1A40;           /* free merged polygons (func_001BDA00) */
 extern DLI *D_002DD2FC;
-extern float D_002C0AB0, D_002C0AB4, D_002C0AB8, D_002C0ABC, D_002C0AC0, D_002C0AC4;
-extern float D_002A76D0, D_002A76D4;
+/* tu_1BC050's .data (address order; the 24 ints after D_002C0AC4 are named by no code and not claimed). */
+float D_002C0AB0 = 1.0f, D_002C0AB4 = 1.0f, D_002C0AB8 = 0.2f, D_002C0ABC = 10.0f, D_002C0AC0 = 50.0f, D_002C0AC4 = 200.0f;
+extern const float D_002A76D0 = -3.40282347e+38f, D_002A76D4 = 3.40282347e+38f;   /* -FLT_MAX, FLT_MAX */
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_003DD020[];
 
