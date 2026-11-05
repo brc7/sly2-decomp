@@ -5,11 +5,12 @@ What it takes to link the matched sources back into SCUS_973.16, and how far the
 round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (integrate/round5 1bf80489, 2026-11-05)
+## Status (data/bss-order on integrate/round5, 2026-11-05)
 
-Authoritative numbers for integrate/round5: round 4 + build/rtti-palettes (`-fno-rtti`, palette section attributes)
-+ data/address-names and data/interior-fields, all measured with `-fno-rtti`. Numbers elsewhere in this guide that
-disagree are earlier measurements (marked "superseded").
+Authoritative numbers: integrate/round5 (round 4 + build/rtti-palettes (`-fno-rtti`, palette section attributes)
++ data/address-names and data/interior-fields) + data/bss-order (data order inside the objects, tu-merging.md
+"Phase 5: data order"), all measured with `-fno-rtti`. Numbers elsewhere in this guide that disagree are earlier
+measurements (marked "superseded"); the integrate/round5 values before data/bss-order are given in brackets.
 
 | measure | value | tool |
 |---|---|---|
@@ -18,13 +19,16 @@ disagree are earlier measurements (marked "superseded").
 | undefined references not in config (209 merged objects + eopid_linkonce) | 443 (212 namespace views, 231 other; class_registry 192, jt 101) | scratch symcheck.py |
 | duplicate strong definitions | 0 | scratch symcheck.py |
 | relocations checked against the ELF | 27,044 OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
-| address names over the 932 link objects | 468 (466 absolute, 2 aliases); 218 alias-table lines | `tools/linkaliases.py` |
-| ld.lld | 0 errors; 7,909 sections placed, 69 unplaced (2,432 bytes) | `tools/link.py` |
-| .text equal | 1,416,099 / 1,416,688 (99.96%); from objects 1,281,455 / 1,282,044 (99.95%) | `tools/link.py` |
-| .rodata equal | 303,037 / 304,356 (99.57%); from objects 22,245 / 23,564 (94.40%) | `tools/link.py` |
-| .data equal | 199,086 / 199,088 (99.999%); from objects 33,979 / 33,981 (99.99%) | `tools/link.py` |
-| differing bytes | 1,910: .rodata layout 1,263, .text %hi/%lo to those 589, .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
-| config names at their config address | 7,242 / 7,273 (wrong: .bss 29, .sbss 2) | `tools/link.py` |
+| address names over the 932 link objects | 464 [468]; 218 alias-table lines | `tools/linkaliases.py` |
+| ld.lld | 0 errors; 7,913 sections placed, 69 unplaced (2,432 bytes) | `tools/link.py` |
+| .text equal | 1,416,389 / 1,416,688 (99.98%) [1,416,099]; from objects 1,281,745 / 1,282,044 (99.98%) | `tools/link.py` |
+| .rodata equal | 303,037 / 304,356 (99.57%) [same]; from objects 22,245 / 23,564 (94.40%) | `tools/link.py` |
+| .data equal | 199,086 / 199,088 (99.999%) [same]; from objects 33,991 / 33,993 (99.99%) | `tools/link.py` |
+| differing bytes | 1,620 [1,910]: .rodata layout 1,263 (the `-fdata-sections` artifact, below), .text %hi/%lo to those 299 [589], .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
+| config names at their config address | 7,282 / 7,282 [7,242 / 7,273; wrong .bss 29, .sbss 2] | `tools/link.py` (list: build/link/wrongaddr.txt) |
+| `--tu-data` (real-link data layout): .text / .rodata / .data equal | 1,415,191 (99.89%) [1,413,936] / 301,629 (99.10%) [298,405] / 198,222 (99.57%) [197,806]; from objects .rodata 20,837 / 23,564 (88.43%) [12,157 / 18,108], .data 29,066 / 29,932 (97.11%) [28,634 / 29,916] | `tools/link.py --tu-data` |
+| `--tu-data` differing bytes | 5,090 [9,985] | `tools/link.py --tu-data` |
+| `--tu-data` config names at their config address | 6,931 / 7,288 (wrong .rodata 54, .data 303) [6,847 / 7,334; wrong .rodata 143, .bss 29, .data 313, .sbss 2] | `tools/link.py --tu-data` |
 | docs links | 0 broken | `tools/docs/linkcheck.py` |
 
 No source change was needed under `-fno-rtti`: the two data branches' code matches with the flag as it did without.
@@ -127,7 +131,7 @@ key-TU extras discarded.
 `python3 tools/link.py [--no-compile] [--tu-data]` (one script plus the template tools/link.ld.in). Needs `ld.lld`
 and `llvm-objcopy` (LLVM 18 here; no MIPS GNU binutils were installable in the workspace) and your disc/SCUS_973.16.
 Everything it writes goes to build/link/ (ignored): objects, build/link/blobs.o (byte ranges cut from your ELF), the
-linker script sly2.ld, sly2.elf, ld.log, and the diagnostics overlaps.txt, conflicts.txt, unplaced.txt,
+linker script sly2.ld, sly2.elf, ld.log, and the diagnostics overlaps.txt, conflicts.txt, unplaced.txt, wrongaddr.txt,
 mismatch.txt. A full run is ~6 min of compiling (932 sources, 2 cores) plus ~20 s; `--no-compile` reuses the objects.
 
 What it does:
@@ -222,13 +226,18 @@ by any object. ld.lld: 0 errors.
 ### Remaining mismatch classes (default mode, 2,068 bytes before build/rtti-palettes, 2,020 after; 1,910 on integrate/round5)
 
 1. **Object sections whose internal layout differs from the ELF** (1,296 .rodata bytes, plus 697 .text bytes of
-   %hi/%lo referencing them). Anonymous literal pools (18 objects; 15 of them interleave with the object's named
+   %hi/%lo referencing them; on data/bss-order 1,263 + 299, every `.bss` in place). Anonymous literal pools (18 objects; 15 of them interleave with the object's named
    .rodata in the ELF, so in this mode it is an artifact of `-fdata-sections`, in `--tu-data` mode a source data-order
    issue: memcard, guardbhv, text, screen, air, stepplayer, jt, prize ...) and file-level .bss whose order differs
    from the ELF (`-fdata-sections` does not split .bss in g++ 2.95): gs, joy, dl, shd, screen, game, sprbuf
    (build/link/conflicts.txt lists the competing addresses; mpeg, memcard and sw fixed on data/interior-fields: g++
    emits objects with a constructor at their definition and the rest in first-declaration order, tu-merging.md
-   "Phase 4: interior fields").
+   "Phase 4: interior fields"). **data/bss-order**: every `.bss` now as the ELF (dl, gs, glob, shd, prog, screen,
+   game, stepguard, joy, grab, sprbuf); in `--tu-data` mode the `.rodata` of text, guardbhv, game, stepguard,
+   screen, air, stepplayer, jt, prize, murray, sound, relay and tu_17F090 is byte-identical. The default mode's
+   `.rodata` bytes cannot improve by source order: `-fdata-sections` takes the named constants out of the object's
+   `.rodata` and leaves its literals and jump tables together, while the ELF interleaves them; tu-merging.md "Phase
+   5: data order" has the emission rules, the decision to keep the flag for now, and the remaining list.
 2. **Typeinfo slots in vtables** (17 .data bytes): our vtables pointed at `__tf*` typeinfo functions, the ELF's slot
    is 0. Resolved (build/rtti-palettes): `-fno-rtti` is in the C++ flags, the vtables match and the typeinfo extras
    (and `__rtti_si`/`__rtti_user`) are gone. matchtool's data check masks relocated words, which is why this never
@@ -246,8 +255,10 @@ by any object. ld.lld: 0 errors.
 ## What is left, in order
 
 1. ~~Decide `-fno-rtti` (class 2)~~: done (build/rtti-palettes).
-2. Data order from source, TU by TU, measured with `--tu-data` (conflicts.txt, mismatch.txt); the `D_` names nobody
-   defines stay the work list for the real link.
+2. Data order from source, TU by TU, measured with `--tu-data` (conflicts.txt, mismatch.txt, wrongaddr.txt); `.bss`
+   done and 13 objects' `.rodata` on data/bss-order (tu-merging.md "Phase 5: data order", with what is left: `.data`
+   address order in the per-function-view files, shared literals, a few `.rodata` objects); then drop
+   `-fdata-sections` from the default mode. The `D_` names nobody defines stay the work list for the real link.
 3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
    copies back into inline/template instances, so `.text` can link without `-ffunction-sections`.
 4. The SDK objects built on the Mac (118,224 blob bytes of .text today).
