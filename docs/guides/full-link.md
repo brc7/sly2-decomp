@@ -51,6 +51,15 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
   must not be resolved but dropped: `--gc-sections`, or a `/DISCARD/` for those `.gnu.linkonce.*` sections. Data
   phase 2 left this set unchanged: no symbol of the alias table is among the newly defined objects (its six vtables
   are of real classes, the table's 214 are of views; 11 alias targets, e.g. D_002DEA4C, are defined by objects).
+- types/views-2 (the registry classes made real): 31 unresolved references remain (from 439 at build/rtti-palettes
+  8d31590d): config/link_aliases.txt is down to 42 lines (21 view vtables: act.cpp's curve classes, hud's and
+  memcard's local classes; brx_sw's destructor; the six other declarations). class_registry's factories reference
+  the 191 real vtables `_vt$<len><NAME>`, which config/symbol_addrs.txt names as data (size (slots + 2) * 8, entry 0
+  and the terminator null); no object defines them except missile.cpp's `_vt$7ACCMISS` (its key TU), which matches
+  the ELF byte for byte. The key-TU extras of jt.cpp and sm.cpp are gone (Pclassinfo is now the classes' first
+  virtual, never defined as a member) and missile's references name real functions, so "referenced only from
+  extras" dropped from 242 to the 2 `gcc2_compiled.` markers plus tn.cpp's CMPART2. 26,974 relocations agree with
+  the ELF, 0 mismatched.
 - 1,146 references to 616 address names nobody defines (1,860 to 1,133 before data phase 2).
   `tools/linkaliases.py <objects>` derives them: 24 `func_` names are config functions under another name
   (`func_002333B4 = memset;`, declared under the address name by 70 of the 209 sources) and become aliases; the rest
