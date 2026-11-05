@@ -3310,6 +3310,15 @@ float D_002BF664 = 1000.0f;
 } } // namespace M_FJtGrabNearestCandidate extern "C"
 namespace M_GetJtRailLanding { extern "C" {
 float D_002BF668 = 0.2f;
+/* A camera-parameter record (CPD layout, as tn's default D_002C4120 with its lmTilt: cid 0x30, offsets, limits,
+ * weights) that func_00194118 points a target at (+0x114); 0x90 bytes, 16-aligned. */
+namespace GRAB_DATA { struct CPDINIT { int cid; float ag[35]; };
+extern CPDINIT r_D_002BF670 __asm__("D_002BF670") __attribute__((aligned(16))); }
+GRAB_DATA::CPDINIT GRAB_DATA::r_D_002BF670 = {0x30, {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -225.0f,
+    1.0f, 0.0f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, -3.40282347e+38f,
+    3.40282347e+38f, -3.40282347e+38f, 3.40282347e+38f, -3.40282347e+38f, 3.40282347e+38f, 0.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, -3.40282347e+38f, 3.40282347e+38f}};
 } } // namespace M_GetJtRailLanding extern "C"
 namespace M_PresetJtAccelHide { extern "C" {
 struct SMP D_002BF700 = {2500.0f, 0.0f, 1.0f};

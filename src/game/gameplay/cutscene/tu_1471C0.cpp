@@ -47,8 +47,8 @@ struct GIFS { int a[16]; };
 struct TEX { ulong ul0; ulong pad; ulong ul10; };
 struct X { char pad[0x24]; void *x24; char pad2[0x30 - 0x28]; int x30; };
 
-/* tu_1471C0's .data (address order; the UV offsets D_002BD398/D_002BD39C are one float[6] read through two names,
- * kept extern). */
+/* tu_1471C0's .data: defined after the functions, in address order (the UV offsets D_002BD398/D_002BD39C are one
+ * float[6] read through two names; D_002BD398 defined). */
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
 extern SNIP D_002BD380[2];
 extern CLOCK D_002DDED0;
@@ -440,6 +440,8 @@ P *D_002DD644;
 // ---- tu_1471C0's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 SNIP D_002BD380[2] = {{0x10, 0x5F9, 0x158}, {0x10, 0x5FA, 0x15C}};
 extern "C" {
+/* The UV offsets: one float[6], read through D_002BD398 and D_002BD39C (its second word, an address name). */
+float D_002BD398[6] = {0.0f, 0.0f, 0.25f, 0.0f, 0.0f, 0.0f};
 VECTOR4F D_002BD3B0[4] = {{-0.5f, 0.5f, 0.0f, 1.0f}, {-0.5f, -0.5f, 0.0f, 1.0f}, {0.5f, 0.5f, 0.0f, 1.0f}, {0.5f, -0.5f, 0.0f, 1.0f}};
 float D_002BD3F0[8] = {0.0f, 0.0f, 0.0f, 0.21875f, 0.25f, 0.0f, 0.25f, 0.21875f};
 M4F D_002BD410 = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f}};
