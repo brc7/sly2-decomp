@@ -183,7 +183,7 @@ RENDER *func_001D6508(G *pg, qword pos, float sRadius, float sFar, int grfChanne
 BLOCK *func_001D6480(G *pg);
 void *func_001AE2A0(struct MSG *pmsg);
 }
-extern float D_002A7870;
+extern const float D_002A7870 = 3.40282347e+38f;  /* FLT_MAX */
 
 /** @sly2-annot addr=0x1D57A8
  * Purpose: *p = 0 (empty stack)

@@ -29,7 +29,7 @@ typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct MARK { int a[4]; } MARK;
 struct DL;
 extern DL D_003E1480;   /* the list of volumes */
-extern float D_002A9880;
+extern const float D_002A9880 = -3.40282347e+38f;  /* -FLT_MAX */
 extern "C" {
 void LoadXfmFromBrx(VOL *p, void *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);   /* linker name of CBinaryInputStream::ReadGeom */

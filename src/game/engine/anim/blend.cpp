@@ -86,7 +86,7 @@ struct CHNO { VTE *vt; };
 struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; qword q; };
 struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; };
 
-extern const float D_002A4AF0;
+extern const float D_002A4AF0 = -3.40282347e+38f;  /* -FLT_MAX */
 extern char D_002C44E0[];
 extern qword D_002A2DD0;
 extern "C" {
