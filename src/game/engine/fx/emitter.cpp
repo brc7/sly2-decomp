@@ -566,11 +566,11 @@ int CPvDl__FP2DL(int *pdl);
 void *func_002333B4(void *pv, int b, int cb);
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
 }
-void OnEmitterValuesChanged(EMITTER *p);
-int FPausedEmitter(EMITTER *p);
-void PauseEmitter(EMITTER *p, float dt);
-void PauseEmitterIndefinite(EMITTER *p);
-void ModifyEmitterParticles(EMITTER *p);
+void OnEmitterValuesChanged(EMITTER *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
+int FPausedEmitter(EMITTER *p) __asm__("FPausedEmitter__FP7EMITTER");
+void PauseEmitter(EMITTER *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
+void PauseEmitterIndefinite(EMITTER *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+void ModifyEmitterParticles(EMITTER *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
 
 static inline float Dist2(qword a, qword b)
 {
@@ -788,8 +788,8 @@ void OnEmitterValuesChanged(EMITTER *pemitter)
 
 namespace M_SetEmitterParticleCount__FP7EMITTERi {
 struct EMITTER { char pad[0xE0]; int fDirty; char pad2[0xC]; int k; int c; };
-void PauseEmitterIndefinite(EMITTER *pemitter);
-void UnpauseEmitter(EMITTER *pemitter);
+void PauseEmitterIndefinite(EMITTER *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+void UnpauseEmitter(EMITTER *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
 /** @sly2-annot addr=0x15A240
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -1927,8 +1927,8 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 struct X { float x, y, z, w; qword axis; float gRot; float gScale; };
 extern "C" { void func_0011B500(MATRIX3 *pm, float g, qword axis); }
-MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
-MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s);
+MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
+MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) __asm__("__ml__FRC7MATRIX4G8VU_FLOAT");
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
 {
@@ -2128,7 +2128,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, P *); };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
 extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }
-MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
+MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 struct VU_VECTOR4 { qword qw; };
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
