@@ -3789,7 +3789,7 @@ typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
 typedef struct R2 { int cref; } R2;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern char D_004520D0[], D_00452148[];
-void func_00257250(void *, int);
+void func_00257250(void *, int) __asm__("_$_8CVarbPtr");
 void Decref__4CRef(void *);
 void GcBinding_Unlink(void *);
 void GcSidebag_Unlink(void *);

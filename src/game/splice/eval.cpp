@@ -708,7 +708,7 @@ void GcFrame_PushFront(GCNODE *pnode, void *phead);
 void GcProc_PushFront(PROCNODE *pnode, PROCNODE **ppnodeHead);
 void GcBinding_Unlink(void *pv);
 void GcFrame_Unlink(GCNODE *pnode);
-void func_00257250(void *pv, int n);
+void func_00257250(void *pv, int n) __asm__("_$_8CVarbPtr");
 void Decref__4CRef(void *pref);
 void func_002572E0(CFrame **ppframe, int flags);
 }

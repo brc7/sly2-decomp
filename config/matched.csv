@@ -6535,7 +6535,7 @@ func_00257038,0x257038,7,match,src/game/splice/proc.cpp
 func_00257058,0x257058,7,match,src/game/splice/frame.cpp
 func_00257078,0x257078,52,match,src/game/splice/eval.cpp
 func_00257148,0x257148,65,match,src/game/splice/ref.cpp
-func_00257250,0x257250,35,match,src/game/splice/sidebag.cpp
+_$_8CVarbPtr,0x257250,35,match,src/game/splice/sidebag.cpp
 func_002572E0,0x2572E0,24,match,src/game/splice/eval.cpp
 PvNewBinding,0x257340,59,match,src/game/splice/frame.cpp
 func_00257430,0x257430,7,match,src/game/splice/varb.cpp

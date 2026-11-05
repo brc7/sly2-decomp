@@ -1258,7 +1258,7 @@ extern "C"{
 extern char D_002DD598[],D_004520D0[],D_00452148[];
 extern G D_003DD490;
 void CGc_UpdateRecyclable(void*);
-void func_00257250(void*,int);
+void func_00257250(void*,int) __asm__("_$_8CVarbPtr");
 void Decref__4CRef(void*);
 void GcBinding_Unlink(void*);
 void GcSidebag_Unlink(void*);

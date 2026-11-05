@@ -222,11 +222,8 @@ _vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
 _vt$Q215M_func_00211C581D = D_002C9670;   # engine/presentation/hud.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
-# destructors of view classes -> the C function they stand for (an asm label would drop the call) (6 lines, 9 references)
+# destructors of view classes -> the C function they stand for (an asm label would drop the call) (3 lines, 6 references)
 [src/game/level/brx_sw.cpp] _$_3OBJ = func_00184950;
-[src/game/splice/frame.cpp] _$_3SPM = func_00257250;
-[src/game/splice/sidebag.cpp] _$_3SPM = func_00257250;
-[src/game/splice/varb.cpp] _$_3SPM = func_00257250;
 _$_5CProc = func_00257148;   # splice/eval.cpp, splice/proc.cpp, splice/ref.cpp
 _$_6CFrame = func_00257078;   # splice/eval.cpp, splice/frame.cpp
 

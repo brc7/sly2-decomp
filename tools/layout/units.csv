@@ -6547,7 +6547,7 @@ func_00257038,0x257038,proc
 func_00257058,0x257058,frame
 func_00257078,0x257078,eval
 func_00257148,0x257148,ref
-func_00257250,0x257250,sidebag
+_$_8CVarbPtr,0x257250,sidebag
 func_002572E0,0x2572E0,eval
 PvNewBinding,0x257340,frame
 func_00257430,0x257430,varb
