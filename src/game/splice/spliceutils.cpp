@@ -10,7 +10,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* The five Splice value heaps (sly2/slotheap.h): StaticInit_spliceutils initializes them after the six pools. */
 SLY2_INSTANTIATE_SPLICE_HEAPS()
 
-extern int D_002DD5B8;                   /* Splice running flag */
+int D_002DD5B8;                          /* Splice running flag (spliceutils' .bss) */
 extern "C" {
 void GcShutdownPairPool();
 void GcShutdownFramePool();

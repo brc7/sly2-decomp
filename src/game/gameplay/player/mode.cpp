@@ -204,7 +204,7 @@ void SetWidgetState(WIDGET *p, int n);
 void SetWidgetRequest(WIDGET *p, int n);
 void UpdateReconSel(SELECTOR *p);
 void func_0019D660(JTMODEHUD *phud, int n);
-extern int D_002BF920;
+int D_002BF920 = -1;   /* mode's .data: the interact mode the HUD widget last showed (-1: none) */
 }
 extern char D_002DEB30[];
 extern char D_004435F0[];
