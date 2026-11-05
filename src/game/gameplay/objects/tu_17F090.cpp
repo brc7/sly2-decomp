@@ -2692,8 +2692,6 @@ void func_00182AB8(struct S *p, int a, int b, int c, float g)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const unsigned long D_002A5630 = 0xC00530000;
-extern const unsigned long D_002A5638 = 0;
 VECTOR4 D_002BE7D0 = {300.0f, 50.0f, 0.0f, 0.0f};
 LM D_002BE7E0 = {0.0f, 800.0f};
 float D_002BE7E8 = 1000.0f;
