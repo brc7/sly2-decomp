@@ -6794,9 +6794,9 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-extern float D_002BE750;
-extern float D_002BE754;
-extern qword D_002A2DC0;
+extern "C" { extern float D_002BE750; }
+extern "C" { extern float D_002BE754; }
+extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 void func_001B44D8(int *pcpso, SOPART ***papso);
 }

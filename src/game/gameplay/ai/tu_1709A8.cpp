@@ -728,25 +728,25 @@ struct S : SB {
 };
 struct X { void *p0; void *p4; int pad[2]; qword q; X(); };
 struct CLOCK { float t; float dt; };
-extern struct CLOCK D_002DDED0;
-void *func_001715B8(struct S *p, int oid);
-void func_00171AF8(struct S *p, void *o, qword *pq, float *pg);
-void func_00171B60(struct S *p, qword q, float g);
-void *func_00205438(struct A *a, int k);
-void func_001E9C30(void *o);
-void SetBhvrailGoal(void *o, int n);
-void SetBhvpipeGoal(void *o, int n);
-void func_002562A8(struct X *x);
+extern "C" { extern struct CLOCK D_002DDED0; }
+extern "C" { void *func_001715B8(struct S *p, int oid); }
+extern "C" { void func_00171AF8(struct S *p, void *o, qword *pq, float *pg); }
+extern "C" { void func_00171B60(struct S *p, qword q, float g); }
+extern "C" { void *func_00205438(struct A *a, int k); }
+extern "C" { void func_001E9C30(void *o); }
+extern "C" { void SetBhvrailGoal(void *o, int n); }
+extern "C" { void SetBhvpipeGoal(void *o, int n); }
+extern "C" { void func_002562A8(struct X *x); }
 inline X::X() { func_002562A8(this); }
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-void SetBhvgotoGoal(void *o, struct X *x);
-void func_0012F9B8(void *o, int a, int b, void *c, float f, float g);
-void *func_001711F0(void *p, int id);
-void SetBhvBusy(struct S *p);
-void ClearBhvBusy(struct S *p);
-void ReleaseAnimBinding(struct X50 *x, struct A *a);
-void ResolveAnimBinding(struct X50 *x, struct A *a);
-void func_001E0020(void *o, int n);
+extern "C" { int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n); }
+extern "C" { void SetBhvgotoGoal(void *o, struct X *x); }
+extern "C" { void func_0012F9B8(void *o, int a, int b, void *c, float f, float g); }
+extern "C" { void *func_001711F0(void *p, int id); }
+extern "C" { void SetBhvBusy(struct S *p); }
+extern "C" { void ClearBhvBusy(struct S *p); }
+extern "C" { void ReleaseAnimBinding(struct X50 *x, struct A *a); }
+extern "C" { void ResolveAnimBinding(struct X50 *x, struct A *a); }
+extern "C" { void func_001E0020(void *o, int n); }
 
 struct O2 : O { char pad1[0x30 - 0x10]; void *p30; int n34; float g38; char pad2[0x50-0x3C]; void *n50; int pad3; int n58; };
 struct O3 : O { char pad1[0xA8 - 0x10]; void *nA8; int pad2; float gB0; int pad3[2]; int nBC; };

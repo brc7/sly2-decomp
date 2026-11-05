@@ -1240,11 +1240,11 @@ struct CAMERA {char pad0[0x14];int mask;char pad18[0x78];U position;};
 struct PROFILE {float a,b,c,unused,min,max;};
 struct CLOCK {float time,dt;};
 struct EFFECT;
-extern CAMERA D_002DDF40;
-extern PROFILE D_003E1A60;
-extern CLOCK D_002DDED0;
-extern float D_002C3D4C;
-extern float D_002C3D50[3],D_002C3D60[2],D_002BBB60[2];
+extern "C" { extern CAMERA D_002DDF40; }
+extern "C" { extern PROFILE D_003E1A60; }
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern float D_002C3D4C; }
+extern "C" { extern float D_002C3D50[3],D_002C3D60[2],D_002BBB60[2]; }
 extern "C" {
 void func_001F3C10(P *);
 int FActiveCplcy__FP5CPLCY(void *);
@@ -1821,7 +1821,7 @@ struct O {char pad28[0x28];ulong flags;};
 struct ENTRY {O *object;int available;int x8,xC;};
 struct GROUP {char padFC[0xFC];int count;ENTRY entries[1];};
 struct P {char pad38C[0x38C];O *previous,*current;char pad394[0xBD0];GROUP *group;char padF68[0x54];int mode;};
-extern float D_002A886C,D_002C3D70[3],D_002C3D80[3];
+extern "C" { extern float D_002A886C,D_002C3D70[3],D_002C3D80[3]; }
 extern "C" qword func_001A62E8(void *);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 extern "C" int func_002089F0(P *,O *);
@@ -3791,7 +3791,7 @@ union U { qword q; float f[4]; };
 struct Actor { char pad[0xF30]; int blocked,ready,padF38,busy; };
 struct P { char pad[0xC]; Actor *target; int kind; float unused,tolerance; int disabled; char pad20[8]; int count; Actor *actors[1]; };
 struct Camera { char pad[0x90]; qword position; };
-extern Camera D_002DDF40;
+extern "C" { extern Camera D_002DDF40; }
 extern "C" {
 qword func_001A62E8(Actor *);
 int FInsideCmFrustum(Camera *,qword,qword);
