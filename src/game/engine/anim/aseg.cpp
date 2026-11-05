@@ -467,7 +467,7 @@ void func_00130010(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
 }
 
 // (Claude agent, laneB10) memsets through an inline ClearM4 helper keep &m2/&mB out of gcse; pe at function scope.
-class FRAME { public: FRAME(); ~FRAME(); int a[4]; };
+class FRAME { public: FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); int a[4]; };
 static inline void ClearM4(M4 *pm) { func_002333B4(pm, 0, sizeof(M4)); }
 static inline M4 AddM4(const M4 &a, const M4 &b) return m
 {

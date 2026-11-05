@@ -173,7 +173,7 @@ inline qword QwRotateVec(MATRIX3 *pmat, qword qwVec)
     qwResult = VuMulMatrix3(*(qword *)pmat->mat[0], *(qword *)pmat->mat[1], *(qword *)pmat->mat[2], qwVec);
     return qwResult;
 }
-MATRIX3 BuildRotateVectorsMatrix(qword vec1, qword vec2);
+MATRIX3 BuildRotateVectorsMatrix(qword vec1, qword vec2) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
 struct ACT
 {
       int ack;
@@ -186,7 +186,7 @@ struct ACT
     ACT(int ack) : ack(ack) {}
 };
 extern CLOCK D_002DDED0;
-qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos);
+qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("func_0022FC48");
 extern SW D_003DD490;
 struct CHAINLINK
 {
@@ -255,9 +255,9 @@ static inline qword QwCross(qword a, qword b)
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
     return qw;
 }
-qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
-float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
+extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
+extern "C" float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 extern qword D_002A2DA0;
 static inline qword QwAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {

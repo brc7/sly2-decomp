@@ -926,7 +926,7 @@ void func_0022DD00(void *pa, struct S *p)
 //   roles 5 6   the actuator's value (QwSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 qwRest, 5 the 3 rows of a rotation in qwRest/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
 //   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with GSmooth under an SMP built from the XF's speed limit nUnkAc (+ the target
 //               speed along the direction); role 9 must arrive by the time stored in pxfRef (as a float); role 0xB also limits the change of velocity (nUnkAc * gain per second);
-//               xfk 6 / 7 do the same with rotations (CalculateDmat -> axis + angle, LoadRotateMatrixRad about the axis) and angular velocities (QwRotRateFromEulerRate);
+//               xfk 6 / 7 do the same with rotations (MulMatrix3Matrix3 -> axis + angle, LoadRotateMatrixRad about the axis) and angular velocities (QwRotRateFromEulerRate);
 //               on arrival role 7/9 stay, 0xB phase 2 -> 0xC, phase 1 -> 6, phase 2 -> 10; the velocity becomes the target's rate
 //   roles 0xD 0xF 0x10  call the class loaders' update functions 0x186A50 / 0x1604E8 / 0x21CB18 with (pso, pxfRef)
 //   role 0x11   position row: Hermite from the current value + velocity to qwRest at the time pxfRef (as float), then qwRest
@@ -962,7 +962,7 @@ void func_0022DD00(void *pa, struct S *p)
 //    $v0 loads, the spill `sq v0,0x1C0(sp)` is shared, and the goal reload becomes $vf4; a bare `asm("")` after it keeps the `sq` ahead of the argument moves of the next call.
 //  - the world-matrix tail is written with asm text (loads + vcallms in one output-less asm, the result rows as cfc2.i outputs) and ONE register pin instead of
 //    the personal draft's eight bound vf variables.
-MATRIX3 LoadRotateMatrix(qword vec);
+MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
 
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
@@ -983,9 +983,9 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
     *(VU_VECTOR4 *)mat.mat[2] = v2;
 }
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pnormal);
-qword DecomposeRotateMatrixEuler(MATRIX3 *pmat);
+qword DecomposeRotateMatrixEuler(MATRIX3 *pmat) __asm__("func_0011BFF0");
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
-MATRIX3 CalculateDmat(MATRIX3 *pmat0, MATRIX3 *pmat1);
+extern "C" MATRIX3 MulMatrix3Matrix3(MATRIX3 *pmat0, MATRIX3 *pmat1);
 float RadNormalize(float rad);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int FFloatsNear(float g1, float g2, float gEpsilon);
@@ -1000,7 +1000,7 @@ extern CLOCK D_002DDED0;
 
 
 extern SW D_003DD490;
-void HermiteVec4(float dt, float t, float sRate, qword p0, qword m0, qword p1, qword m1, VECTOR4 *ppos, VECTOR4 *pvel, VECTOR4 *pacc);
+extern "C" void EvaluateBezierPos(float dt, float t, float sRate, qword p0, qword m0, qword p1, qword m1, VECTOR4 *ppos, VECTOR4 *pvel, VECTOR4 *pacc);
 
 static inline VU_FLOAT VuFloat(float g)
 {
@@ -1072,15 +1072,15 @@ static inline int FQwNearXyz(qword qwA, qword qwB)
 }
 extern qword D_002A2DD0;
 extern qword D_002A2DA0;
-qword SlotRestValue(XF *pxf, MATRIX4 *pmat);
-void SlotRefresh(SO *pso, XF *pxf);
-void SlotSetRole(SO *pso, XF *pxf, int nRole);
-MATRIX4 SlotStoreValue(XF *pxf, qword qwVal);
-qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate);
+qword SlotRestValue(XF *pxf, MATRIX4 *pmat) __asm__("func_0022CA18");
+void SlotRefresh(SO *pso, XF *pxf) __asm__("func_0022DD00");
+void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("func_002303A0");
+MATRIX4 SlotStoreValue(XF *pxf, qword qwVal) __asm__("func_0022C8C0");
+qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate) __asm__("func_0022CAD0");
 extern "C" void func_0022FA20(SO *pso);
 extern "C" void SolveIk(SO *pso, void *pv);
-void UpdateXflock(SO *pso, struct XFLOCK *pxflock);
-void UpdateChainLink(SO *pso, struct CHAINLINK *plink);
+extern "C" void ApplyXfmConstraint(SO *pso, struct XFLOCK *pxflock);
+void UpdateChainLink(SO *pso, struct CHAINLINK *plink) __asm__("func_0021CB18");
 extern "C" float *VECTOR_opAssign(float *pg, qword qw);
 
 static const SMP s_smpChaseRot = {0.015000001f, 0.0f, 0.5f};
@@ -1164,7 +1164,7 @@ static inline qword QwSlotValue(XF *pxf)
         case 1:
         {
             VECTOR4 vec;
-            HermiteVec4(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, &vec, 0, 0);
+            EvaluateBezierPos(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, &vec, 0, 0);
             qw = *(qword *)&vec;
             break;
         }
@@ -1185,13 +1185,13 @@ static inline qword QwSlotValue(XF *pxf)
 static inline qword QwHermitePos(XF *pxf)
 {
     VECTOR4 vec;
-    HermiteVec4(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, &vec, 0, 0);
+    EvaluateBezierPos(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, &vec, 0, 0);
     return *(qword *)&vec;
 }
 static inline qword QwHermiteVel(XF *pxf)
 {
     VECTOR4 vec;
-    HermiteVec4(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, 0, &vec, 0);
+    EvaluateBezierPos(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, 0, &vec, 0);
     return *(qword *)&vec;
 }
 // The value / rate switches of an XF's actuator, open-coded (the game does not use a helper; see SlotCurrentMatrix in the personal xf.c).
@@ -1252,7 +1252,7 @@ static inline void TurnSlotMat(XF *pxf, MATRIX3 *pmatFrom, qword qwTurn)
     pxf->mat.mat[1][3] = 0.0f;
     pxf->mat.mat[0][3] = 0.0f;
 }
-MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis);
+MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("func_0011B500");
 void UpdateSoSlots(SO *pso) __asm__("UpdateSoSlots");
 /** @sly2-annot addr=0x22DE88
  * Purpose: per-frame step of all XF slots of an SO (roles, chase, springs, chains)
@@ -1421,7 +1421,7 @@ void UpdateSoSlots(SO *pso)
                         pxf->mat = SlotStoreValue(pxf, qwEuler);
                         qwRotRate = QwRotRateFromEulerRate(qwEuler, qwEulerRate);
                     }
-                    matDmat = CalculateDmat(&matOld, (MATRIX3 *)&pxf->mat);
+                    matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&pxf->mat);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
                     float gRateAlong = GFromVf(QwDot(qwRotRate, *(qword *)&vecAxis));
                     SMP smp;
@@ -1651,7 +1651,7 @@ void UpdateSoSlots(SO *pso)
                 SolveIk(pso, pxf->pxfRef);
                 break;
             case 0xf:
-                UpdateXflock(pso, (struct XFLOCK *)pxf->pxfRef);
+                ApplyXfmConstraint(pso, (struct XFLOCK *)pxf->pxfRef);
                 break;
             case 0x10:
                 UpdateChainLink(pso, (struct CHAINLINK *)pxf->pxfRef);
@@ -1667,7 +1667,7 @@ void UpdateSoSlots(SO *pso)
                 }
                 else
                 {
-                    HermiteVec4((*(float *)&pxf->pxfRef - D_002DDED0.t) + D_002DDED0.dt, D_002DDED0.dt, 1.0f, *(qword *)pxf->mat.mat[3], *(qword *)&pxf->vUnkB0, pxf->qwRest, pxf->qwUnkD0, &vecPos, &vecVel, 0);
+                    EvaluateBezierPos((*(float *)&pxf->pxfRef - D_002DDED0.t) + D_002DDED0.dt, D_002DDED0.dt, 1.0f, *(qword *)pxf->mat.mat[3], *(qword *)&pxf->vUnkB0, pxf->qwRest, pxf->qwUnkD0, &vecPos, &vecVel, 0);
                 }
                 fIdle = 0;
                 VECTOR_opAssign(pxf->mat.mat[3], *(qword *)&vecPos);
@@ -1744,7 +1744,7 @@ void UpdateSoSlots(SO *pso)
                         matTarget = *pmatTarget;
                         qwRate = QwRotRateFromEulerRate(qwEuler, qwEulerRate);
                     }
-                    matDmat = CalculateDmat((MATRIX3 *)&pxf->mat, &matTarget);
+                    matDmat = MulMatrix3Matrix3((MATRIX3 *)&pxf->mat, &matTarget);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
                     float gKp = (float)(ushort)pxf->nUnkAc * s_gKpRot.g;
                     float gKd = (float)(ushort)pxf->nUnkAe * s_gKdRot.g;

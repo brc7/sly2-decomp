@@ -123,7 +123,7 @@ struct SWALLOC
 
 struct STACKSCOPE
 {
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 
@@ -135,7 +135,7 @@ public:
 class CLoadCollectorArray : public CLoadCollector
 {
 public:
-    CLoadCollectorArray();
+    CLoadCollectorArray() __asm__("CLoadCollectorArray_ctor");
     int m_unk4;
     int m_cplo;
     LO **m_aplo;
@@ -177,13 +177,13 @@ void InitDl(DL *pdl, int ibDle);
 
 
 
-int IsmsFindSmRequired(SM *psm, OID oid);
+int IsmsFindSmRequired(SM *psm, OID oid) __asm__("func_001F0438");
 
 
-void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase);
+void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("func_001AE238");
 
-void *PvAllocSwImpl(SWALLOC *pswalloc);
-void *PvAllocStackClearImpl(SWALLOC *pswalloc);
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
+void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("func_001AE378");
 
 void LoadOptionsFromBrx(void *pvStruct, CBinaryInputStream *pbis);
 

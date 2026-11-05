@@ -14,7 +14,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 enum OID { OID_Nil };
 struct AREQ { int cb; int cbAlign; AREQ(int c) { cb = c; cbAlign = 0x10; } };
-class FRAME { public: FRAME(); ~FRAME(); int a[4]; };
+class FRAME { public: FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); int a[4]; };
 
 struct ASEG;
 /* One (time, duration) entry of a segment's timing table. */
