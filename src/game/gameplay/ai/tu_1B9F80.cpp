@@ -12,7 +12,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
-union U{qword q;float f[4];};
+union U{float f[4];qword q;};   /* floats first, so a U global can be initialized */
 struct M3{qword rows[3];};
 struct SPACE;
 /* The part turned toward the target (a joint: position, its space). */
@@ -101,11 +101,15 @@ void BroadcastGameEvent(void *p, int a, NEELA *b);
 void *func_002333B4(void *p, int c, int cb);
 void SetBhvguardMode(O *p, MODE *pf);
 extern NEELA*D_003E1444;   /* the in-world guard list */
-extern float D_002A7620;
-extern qword D_002C0A80,D_002C0A90,D_002C0AA0;
+extern const float D_002A7620 = 3.40282347e+38f;   /* FLT_MAX */
+/* tu_1B9F80's .data (address order): the snip table, then NEELA's target volume: the centre offset and the box around it. */
+struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
+SNIP D_002C0A50[3] = {{0x200, 0x5D8, 0x1020}, {0x10, 0x5D9, 0x1030}, {0x10, 0x5DA, 0x1034}};
+U D_002C0A80 = {{400.0f, 0.0f, 70.0f, 0.0f}};
+U D_002C0A90 = {{-500.0f, -500.0f, -300.0f, 0.0f}};
+U D_002C0AA0 = {{500.0f, 500.0f, 300.0f, 0.0f}};
 extern GAME D_003DD490;
 }
-extern char D_002C0A50[];
 extern CLOCK D_002DDED0;
 extern void *D_002E1E40;    /* the player */
 extern qword D_002A2DD0;
@@ -237,9 +241,9 @@ extern "C" void UpdateNeela(NEELA*p){
    if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
   }
   if(!p->target&&!FStepguardHasSgf(p,2)){
-   qword position=Vector(ConvertAloPos(p,0,D_002C0A80));
-   qword low=VuAdd(position,D_002C0A90);
-   qword high=VuAdd(position,D_002C0AA0);
+   qword position=Vector(ConvertAloPos(p,0,D_002C0A80.q));
+   qword low=VuAdd(position,D_002C0A90.q);
+   qword high=VuAdd(position,D_002C0AA0.q);
    MARK arena;
    int count;ROW**rows;
    IntersectSwBoundingBox(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
