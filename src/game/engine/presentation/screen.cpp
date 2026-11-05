@@ -2924,7 +2924,7 @@ void SelectJobListItem(struct S *p, int i) {
 namespace M_RefreshJobListEntries {
 struct FRAME {
     int a;
-    FRAME();
+    FRAME() __asm__("STACKSCOPE_ctor");
     ~FRAME();
 };
 struct SO {

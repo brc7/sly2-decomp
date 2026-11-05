@@ -2279,7 +2279,7 @@ void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
 // The current stack-allocation scope (out of line: 0x1AE478 / 0x1AE4A0)
-struct STACKSCOPE {STACKSCOPE();~STACKSCOPE();};
+struct STACKSCOPE {STACKSCOPE() __asm__("STACKSCOPE_ctor");~STACKSCOPE();};
 extern "C" { extern int D_002C40A4; }
 extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern WORLD D_003DD490; }
