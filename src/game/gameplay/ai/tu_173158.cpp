@@ -110,7 +110,7 @@ float D_002BE5E8=200.0f;
 float D_002BE5F0[2]={-350.0f,100.0f};
 extern "C" {
 extern CM D_002DDF40;
-extern const float D_002A53E0=3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A53E0;   /* defined below where the ELF has it (.rodata order) */
 extern LM D_002BBB60;
 void InitLo(CID119 *p);
 void LoadLoFromBrx(CID119 *p, void *pbis);
@@ -636,6 +636,10 @@ static inline float SLengthXY(qword qw)
     return GXOfQw(qwT);
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x173F18
  * Purpose: Picks the nearest usable spawn selector (LO spot or curve sample) where every offset point is
  *   concealed from the camera

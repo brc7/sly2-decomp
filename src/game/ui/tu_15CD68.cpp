@@ -55,13 +55,12 @@ extern CLOCK D_002DDED0;
 extern int D_002BE248[];
 /* tu_15CD68's .data after its pointer tables (address order; the per-episode tables have 9 entries, the zero word
  * after each is alignment). The four pointer tables D_002BE080/D_002BE1B8/D_002BE200/D_002BE248 stay extern. */
-int D_002BE26C = 0;
-int D_002BE270 = -1;
-int D_002BE278[11] = {1, 2, -1, 2, 3, 2, 5, 8, -1, 2, -1};
-int D_002BE2A8[9] = {-1, 0x531, 0x532, 0x533, 0x534, 0x535, 0x536, 0x537, 0x538};   /* exit oid per episode */
-int D_002BE2D0[9] = {-1, 2, 4, 6, 8, 10, 12, 14, 16};
-void *D_002BE2F8[9] = {(void *)-1, (void *)0x21, (void *)0x22, (void *)0x23, (void *)0x24, (void *)0x25, (void *)0x26, (void *)0x27,
-    (void *)0x28};   /* power-up per episode */
+extern int D_002BE26C;
+extern int D_002BE270;
+extern int D_002BE278[11];
+extern int D_002BE2A8[9];   /* exit oid per episode */
+extern int D_002BE2D0[9];
+extern void *D_002BE2F8[9];   /* power-up per episode */
 extern int D_002BE200[];
 extern int *D_002BE1B8[];
 extern int *D_002BE080[];
@@ -529,3 +528,15 @@ extern "C" void func_0015DA88(char *pch, int f)
         break;
     }
 }
+
+// ---- tu_15CD68's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+/* Gap word before D_002BE26C: a pointer to the 64-byte key at 0x2A37A8 (no code reads it by this address; whether
+ * it starts tu_15CD68's .data or ends a table of the TU before is not known: the section has to start 8-aligned). */
+namespace TU_15CD68_DATA { extern char k_D_002A37A8[] __asm__("D_002A37A8"); char *r_D_002BE268 __asm__("D_002BE268") = k_D_002A37A8; }
+int D_002BE26C = 0;
+int D_002BE270 = -1;
+int D_002BE278[11] __attribute__((aligned(8))) = {1, 2, -1, 2, 3, 2, 5, 8, -1, 2, -1};
+int D_002BE2A8[9] = {-1, 0x531, 0x532, 0x533, 0x534, 0x535, 0x536, 0x537, 0x538};
+int D_002BE2D0[9] = {-1, 2, 4, 6, 8, 10, 12, 14, 16};
+void *D_002BE2F8[9] = {(void *)-1, (void *)0x21, (void *)0x22, (void *)0x23, (void *)0x24, (void *)0x25, (void *)0x26, (void *)0x27,
+    (void *)0x28};

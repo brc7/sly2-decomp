@@ -102,10 +102,10 @@ struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DD0;
-int D_002BDC50 = 1;   /* tu_1553F0's .data starts here (address order) */
-extern const float D_002A5130 = -3.40282347e+38f;   /* -FLT_MAX */
-extern const float D_002A5134 = 3.40282347e+38f;    /* FLT_MAX */
-extern const float D_002A5138 = 3.40282347e+38f;    /* FLT_MAX */
+extern int D_002BDC50;   /* tu_1553F0's .data starts here (address order) */
+extern const float D_002A5130;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A5134;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A5138;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 void *func_001AE2A0(MSG *pmsg);
 void LoadStepFromBrx(DIMITRI *p, void *pbis);
@@ -137,13 +137,13 @@ ESC *func_00155868(BHVESC *p);
 void func_00155AE0(BHVATK *p, int k);
 void *func_00155A68(BHVATK *p);
 extern qword g_normalZ __asm__("D_002A2DC0");
-VECTOR D_002BDC60 = {0.0f, 0.0001f, 0.0f, 0.0f};
-float D_002BDC70[2] = {0.1f, 0.4f};
-VECTOR D_002BDC80 = {0.0f, 0.0f, 0.0f, 0.0f};
-float D_002BDC90[2] = {0.0f, 0.0f};
-float D_002BDC98 = 60.0f;
-float D_002BDCA0[11] = {0.0f, -0.025f, 0.025f, -0.05f, 0.05f, -0.1f, 0.1f, -0.2f, 0.2f, -0.4f, 0.4f};   /* pan offsets tried in turn */
-extern const float D_002A513C = -3.40282347e+38f;   /* -FLT_MAX */
+extern VECTOR D_002BDC60;
+extern float D_002BDC70[2];
+extern VECTOR D_002BDC80;
+extern float D_002BDC90[2];
+extern float D_002BDC98;
+extern float D_002BDCA0[11];   /* pan offsets tried in turn */
+extern const float D_002A513C;   /* defined below where the ELF has it (.rodata order) */
 HERO *PpoHero(void *p);
 extern char D_002DE578[];
 M3 *func_001A6318(void *p);
@@ -356,6 +356,10 @@ static inline qword Dot(qword v)
 static inline qword Sqrt(qword v) { qword d; __asm__ __volatile__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(v)); return d; }
 static inline float GFromQ(qword v) { float g; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A5130 __asm__("D_002A5130") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x155868
  * Purpose: Chooses the route whose nearer end is farthest from the player
  * Info: proposed name PrteDimitriFarthest (T2); class DIMITRI; TU tu_1553F0
@@ -400,6 +404,7 @@ extern "C" ESC *func_00155868(BHVESC *p)
     return peBest;
 }
 
+namespace RO_ORDER { extern const float r_D_002A5134 __asm__("D_002A5134") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1559B0
  * Purpose: BHV181 slot 7: base, flag 0x23, state -1
  * Info: proposed name InitBhv181 (T2); class BHV181 slot7; TU tu_1553F0
@@ -477,6 +482,7 @@ static __inline__ float GetY(qword q)
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(q));
     return y;
 }
+namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x155AE0
  * Purpose: States: 0 face away and run, 1 wait, 2 path-follow (BHV167), 3 hide (BHV164)
  * Info: proposed name SetBhv181State (T2); TU tu_1553F0
@@ -636,6 +642,7 @@ static inline float GClampR(float g, LM *plm) { if (g < plm->gMin) return plm->g
 
 static inline int FFast(qword v) { return D_002BDC98 < Len(v); }
 
+namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x155FB0
  * Purpose: Escape target: projects the player's motion by a difficulty-scaled time and finds the clearest of
  *   11 directions
@@ -723,4 +730,15 @@ qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
+}
+
+// ---- tu_1553F0's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+int D_002BDC50 = 1;
+extern "C" {
+VECTOR D_002BDC60 __attribute__((aligned(16))) = {0.0f, 0.0001f, 0.0f, 0.0f};
+float D_002BDC70[2] = {0.1f, 0.4f};
+VECTOR D_002BDC80 __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 0.0f};
+float D_002BDC90[2] = {0.0f, 0.0f};
+float D_002BDC98 = 60.0f;
+float D_002BDCA0[11] = {0.0f, -0.025f, 0.025f, -0.05f, 0.05f, -0.1f, 0.1f, -0.2f, 0.2f, -0.4f, 0.4f};
 }

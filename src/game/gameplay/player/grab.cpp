@@ -473,7 +473,9 @@ extern SW D_003DD490;                                   // the world
 extern CLOCK D_002DDED0;                                // g_clock
 extern uint D_002DFBC4;
 extern qword D_002A2DC0;                                // (0, 0, 1)
-float D_002BF5B0 = 200.0f, D_002BF5B4 = 25.0f, D_002BF5B8 = 0.35f;
+extern float D_002BF5B0;
+extern float D_002BF5B4;
+extern float D_002BF5B8;
 int GrfConsumePressed__5POCTLUif(JOY *, uint, float);
 int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
@@ -769,10 +771,14 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern ACTOR *D_002E1E40;
 extern qword D_002A2DA0;                    // (1, 0, 0, 0)
-float D_002BF5BC = 1.5f, D_002BF5C0 = 3.0f, D_002BF5C4 = 0.75f, D_002BF5C8 = 0.2f, D_002BF5CC = 55.0f;
-U D_002BF5D0[3] = {{{0.0f, 0.0f, -50.0f, 0.0f}}, {{45.0f, -40.0f, -50.0f, 0.0f}}, {{45.0f, 40.0f, -50.0f, 0.0f}}};   // probe points (hang)
-U D_002BF600[3] = {{{0.0f, 0.0f, -15.0f, 0.0f}}, {{45.0f, -40.0f, -15.0f, 0.0f}}, {{45.0f, 40.0f, -15.0f, 0.0f}}};   // probe points (low)
-HEIGHT D_002BF630 = {-50.0f, 0.0f};
+extern float D_002BF5BC;
+extern float D_002BF5C0;
+extern float D_002BF5C4;
+extern float D_002BF5C8;
+extern float D_002BF5CC;
+extern U D_002BF5D0[3];   // probe points (hang)
+extern U D_002BF600[3];   // probe points (low)
+extern HEIGHT D_002BF630;
 qword func_001A62E8(ACTOR *);
 void func_00182CD8(void *, ACTOR *, float *, U *, float *);
 qword PosSmooth(qword, qword, float, SMP *, U *);
@@ -1254,7 +1260,7 @@ void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
 extern char D_003DD490[];
-float D_002BF638 = 1500.0f;
+extern float D_002BF638;
 }
 struct E { int x0; int x4; };
 struct F { char pad[0xF8]; int xf8; };
@@ -1368,7 +1374,8 @@ extern ACTOR *D_002E1E40;         // the player
 extern ACTOR *D_002F7900;
 extern MANAGER D_002DDF40;
 extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002BF650;
-float D_002BF63C = -0.2f, D_002BF640 = 0.5f;
+extern float D_002BF63C;
+extern float D_002BF640;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword func_001A62E8(void *);
 M3 *func_001A6318(void *);
@@ -1836,7 +1843,8 @@ struct O { char pad[0x10C]; int x10c; };
 struct E { struct O *x0; int x4; float x8; int pad[9]; };
 struct G { char pad[0x4678]; int c; int pad2; struct E ae[1]; };
 extern struct G D_003DD490;
-float D_002BF660 = 250.0f, D_002BF664 = 1000.0f;
+extern float D_002BF660;
+extern float D_002BF664;
 extern int D_002E1E40;
 struct P { int x0; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
@@ -1897,7 +1905,7 @@ struct CURVE;
 struct SMP {float g0,g1,g2;};
 struct CLOCK {float t,dt;};
 extern struct CLOCK D_002DDED0;
-float D_002BF668 = 0.2f;
+extern float D_002BF668;
 extern qword D_002A2DC0,D_002A2DD0;
 void EvaluateShapeU(struct CURVE*,float,qword*,qword*);
 qword SetVectorCylind(float,float,float);
@@ -2201,7 +2209,7 @@ struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; flo
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
-struct SMP D_002BF700 = {2500.0f, 0.0f, 1.0f};
+extern struct SMP D_002BF700;
 void EvaluateShapeU(struct S *s, U *position, U *direction, float g);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
 void AddSoAcceleration(struct O *o, qword q);
@@ -2742,7 +2750,7 @@ void CancelNotice(HINTBOX *phintbox, int idText);
 }
 extern "C" { extern float D_002BF660; }
 extern "C" { extern float D_002BF664; }
-extern "C" float D_002BF70C = 1.0f;   // C symbol: this view has no extern "C" block
+extern "C" float D_002BF70C;   // C symbol: this view has no extern "C" block
 extern "C" { extern HINTBOX D_003DA0C0; }
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
@@ -2915,8 +2923,9 @@ extern "C" {
 extern CLOCK D_002DDED0;
 int D_002E1E4C;   /* .bss order: file-scope plain objects are emitted first, in first-declaration order */
 int D_002E1E50;
-float D_002BF710 = 15.0f, D_002BF714 = 5.0f;
-SMP D_002BF718 = {1500.0f, 0.0f, 2.0f};
+extern float D_002BF710;
+extern float D_002BF714;
+extern SMP D_002BF718;
 extern char D_002DEB30[];
 int CompareJtGrabCand(const void *, const void *);   // JTGRABCAND compare for qsort
 void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort
@@ -3270,4 +3279,55 @@ extern "C" void func_001957C0(SW *psw)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+
+// ---- grab's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_UpdateJtGrabInput { extern "C" {
+float D_002BF5B0 = 200.0f;
+float D_002BF5B4 = 25.0f;
+float D_002BF5B8 = 0.35f;
+} } // namespace M_UpdateJtGrabInput extern "C"
+namespace M_UpdateJtActiveHide { extern "C" {
+float D_002BF5BC = 1.5f;
+float D_002BF5C0 = 3.0f;
+float D_002BF5C4 = 0.75f;
+float D_002BF5C8 = 0.2f;
+float D_002BF5CC = 55.0f;
+U D_002BF5D0[3] = {{{0.0f, 0.0f, -50.0f, 0.0f}}, {{45.0f, -40.0f, -50.0f, 0.0f}}, {{45.0f, 40.0f, -50.0f, 0.0f}}};
+U D_002BF600[3] = {{{0.0f, 0.0f, -15.0f, 0.0f}}, {{45.0f, -40.0f, -15.0f, 0.0f}}, {{45.0f, 40.0f, -15.0f, 0.0f}}};
+HEIGHT D_002BF630 = {-50.0f, 0.0f};
+} } // namespace M_UpdateJtActiveHide extern "C"
+namespace M_func_00192A28 { extern "C" {
+float D_002BF638 = 1500.0f;
+} } // namespace M_func_00192A28 extern "C"
+namespace M_SetJtGrabKind { extern "C" {
+float D_002BF63C = -0.2f;
+float D_002BF640 = 0.5f;
+} } // namespace M_SetJtGrabKind extern "C"
 VECTOR4 D_002BF650 = {225.0f, 0.0f, 125.0f, 0.0f};
+namespace M_FJtGrabNearestCandidate { extern "C" {
+float D_002BF660 = 250.0f;
+float D_002BF664 = 1000.0f;
+} } // namespace M_FJtGrabNearestCandidate extern "C"
+namespace M_GetJtRailLanding { extern "C" {
+float D_002BF668 = 0.2f;
+/* A camera-parameter record (CPD layout, as tn's default D_002C4120 with its lmTilt: cid 0x30, offsets, limits,
+ * weights) that func_00194118 points a target at (+0x114); 0x90 bytes, 16-aligned. */
+namespace GRAB_DATA { struct CPDINIT { int cid; float ag[35]; };
+extern CPDINIT r_D_002BF670 __asm__("D_002BF670") __attribute__((aligned(16))); }
+GRAB_DATA::CPDINIT GRAB_DATA::r_D_002BF670 = {0x30, {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -225.0f,
+    1.0f, 0.0f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, -3.40282347e+38f,
+    3.40282347e+38f, -3.40282347e+38f, 3.40282347e+38f, -3.40282347e+38f, 3.40282347e+38f, 0.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, -3.40282347e+38f, 3.40282347e+38f}};
+} } // namespace M_GetJtRailLanding extern "C"
+namespace M_PresetJtAccelHide { extern "C" {
+struct SMP D_002BF700 = {2500.0f, 0.0f, 1.0f};
+} } // namespace M_PresetJtAccelHide extern "C"
+namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi {
+extern "C" float D_002BF70C = 1.0f;
+} // namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi
+namespace M_UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND { extern "C" {
+float D_002BF710 = 15.0f;
+float D_002BF714 = 5.0f;
+SMP D_002BF718 = {1500.0f, 0.0f, 2.0f};
+} }

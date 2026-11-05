@@ -60,10 +60,10 @@ public:
     void ReadVector(VECTOR *pvec);
 };
 
-extern const float D_002A5684 = 3.40282347e+38f;   /* FLT_MAX (four .rodata seeds) */
-extern float D_002A5688;   /* not defined here: as a const it changes func_001856C0 (see the data guide) */
-extern const float D_002A568C = 3.40282347e+38f;
-extern const float D_002A5690 = 3.40282347e+38f;
+extern const float D_002A5684;   /* defined below where the ELF has it (.rodata order) */
+extern float D_002A5688;   /* declared non-const: read as a const it changes func_001856C0 (see the data guide); defined below */
+extern const float D_002A568C;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A5690;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 extern const float D_002BE918;
 extern U D_002A2DC0;
@@ -152,6 +152,10 @@ extern "C" void func_00185150(MESH *p, CBinaryInputStream *pbis)
 
 typedef struct WORK{M4 matrix;TRIREF candidate;TRIREF best __attribute__((aligned(16)));U closest,scalar;float parameter;U bestNormal,input,normal;}WORK;
 static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __asm__("vf1"),r __asm__("vf1");d = VuDot(a, a);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"j"(d));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(d));return r;}
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x185310
  * Purpose: Closest point/normal/triangle on the object's triangle mesh to a point (world matrix via vt31)
  * Info: proposed name FindMeshClosestPoint (T2); TU tu_185130
@@ -232,6 +236,7 @@ extern "C" void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*o
  if(outNormal)*outNormal=Unit(w.bestNormal.q);
 }
 
+namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1856B8
  * Purpose: Writes 0 to out int
  * Info: TU tu_185130
@@ -395,6 +400,7 @@ static inline float FloatFromBitsW(int b, float w)
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(b), "f"(w), "f"(w), "f"(w));
     return x;
 }
+namespace RO_ORDER { extern const float r_D_002A568C __asm__("D_002A568C") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x185A80
  * Purpose: SolveInequalities on contact planes to project a vector
  * Info: proposed name SolveMeshConstraints (T2); TU tu_185130
@@ -436,6 +442,7 @@ extern "C" qword func_00185A80(void *unused, LIST *p, qword v)
     return v;
 }
 
+namespace RO_ORDER { extern const float r_D_002A5690 __asm__("D_002A5690") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x185BF8
  * Purpose: CID 9 vt7: InitCid8 then default radius D_002A5690
  * Info: proposed name InitCid9 (T2); class CID9 slot7; TU tu_185130

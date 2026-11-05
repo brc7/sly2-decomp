@@ -17,8 +17,8 @@ typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct FRAME { int an[4]; } FRAME;
 extern DLI *g_pdliFirst __asm__("D_002DD2FC");
 extern "C" {
-extern const float D_002A4120 = 3.40282347e+38f;    /* "no upper bound" (FLT_MAX) */
-extern const float D_002A4124 = -3.40282347e+38f;   /* "no lower bound" (-FLT_MAX) */
+extern const float D_002A4120;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A4124;   /* defined below where the ELF has it (.rodata order) */
 void *func_001AE378(MSG *pmsg);
 void *func_001AE318(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");     /* memset */
@@ -105,6 +105,11 @@ void ClearDzgSolution(DZG *pdzg)
 }
 
 // EnforceDzgDz: Sly 1's dzg solver step (A/B/C/D constraint lists, Crout decomposition).
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A4120 __asm__("D_002A4120") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A4124 __asm__("D_002A4124") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x11A770
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed

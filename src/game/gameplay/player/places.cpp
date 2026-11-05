@@ -65,7 +65,7 @@ typedef struct { float gMin, gMax; } LM;
 extern G D_003DD490;
 extern D D_002DDF40;
 float D_002BF940 = 1.25f;   /* places' .data starts here (address order) */
-extern const float D_002A66A0 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A66A0;   /* defined below where the ELF has it (.rodata order) */
 extern VECTOR D_002A2DD0;
 extern CLOCK D_002DDED0;
 extern JT *D_002E1E40, *D_002DD5BC, *D_002F7900;
@@ -273,6 +273,10 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
     return g;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A66A0 __asm__("D_002A66A0") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x19FAF8
  * Purpose: Pick the best recorded place (ScoreJtPlace against up to 16 STEP objects CID 0x33)
  * Info: proposed name ChooseJtSafePlace (T2); TU places

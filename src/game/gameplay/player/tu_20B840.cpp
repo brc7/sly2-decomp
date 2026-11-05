@@ -145,7 +145,7 @@ int D_002C3DD0[2] = {2, 2};
 int D_002C3DD8[2] = {0x20, 0x30};
 float D_002C3DE0 = 5.0f;
 float D_002C3DE4 = 1.1f;
-extern const float D_002A8904 = -3.40282347e+38f;   /* -FLT_MAX */
+extern const float D_002A8904;   /* defined below where the ELF has it (.rodata order) */
 extern void *D_002DAA10[];
 extern void *D_002DA9D0[];
 
@@ -896,6 +896,10 @@ __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(length):"0"(le
 static inline float Float(qword v){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(v));return f;}
 static inline qword ScalarFW(const FLOATWORD*p){register qword v __asm__("vf1");register int w __asm__("$2")=p->bits;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(w));return v;}
 static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x20CB28
  * Purpose: choose best of 4 directional anims vs desired direction
  * Info: proposed name SelectDirAnim (T2); TU tu_20B840

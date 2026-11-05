@@ -88,9 +88,10 @@ float D_002C40E0 = 1.5f;                        // aim range scale with power-up
 extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
 extern SW D_003DD490;
 float D_002C40E4 = 1.35f;                       // tPredict scale with power-up 0x24
-CLQV D_002C40F0 = {0.15f, 0.55f, 0.0f};          // the launch elevation over the aim distance
+extern CLQV D_002C40F0;                          // the launch elevation over the aim distance: a 16-byte CLQV
+namespace THROW_DATA { float r_D_002C40F0[4] __asm__("D_002C40F0") __attribute__((aligned(16))) = {0.15f, 0.55f, 0.0f, 0.0f}; }
 float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limits per second
-extern const float D_002A96A0 = 3.40282347e+38f; // FLT_MAX
+extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(O *a, int b, int c, void *d, int e, int f, int g, void *h);
 qword func_001A62E8(void *);
@@ -457,6 +458,10 @@ static inline float GClamp(float g,float gMin,float gMax){if(g<gMin)return gMin;
 static inline float GMax(float g0,float g1){return g0<g1?g1:g0;}
 static inline float GFromClq(const CLQV &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A96A0 __asm__("D_002A96A0") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x21FB70
  * Purpose: predicts the throw arc of the held object, line-tests 28 samples, writes up to 30 points into the
  *   aim marker ring, updates aim blends
@@ -585,7 +590,7 @@ struct G {char pad[0x10];qword v;};
 struct Q {char pad[0x10];qword v,w;};
 union F32 {float f;int bits;};
 float D_002C4108 = -150.0f;
-F32 D_002C410C = {300.0f};
+float D_002C410C = 300.0f;   /* a plain float: 4-aligned in the ELF, where the F32 union would be 8-aligned */
 /** @sly2-annot addr=0x220388
  * Purpose: vector-state update of hold point for states 4..6 (gain D_002C4108, normalize)
  * Info: proposed name UpdateJtthrowHoldPos (T2); TU throw

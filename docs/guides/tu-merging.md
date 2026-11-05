@@ -1332,13 +1332,13 @@ whatever the source order: the 1,263 `.rodata` layout bytes of the default mode 
 change here. Decision (stylistic, keeps both measures): `-fdata-sections` stays in the default mode for now (it
 isolates code from data-order problems: dropping it today would turn the default numbers into the `--tu-data` ones,
 .rodata from objects 94.4% -> 88.6%), and `--tu-data` is the measure for data order. Once `--tu-data` is at least as
-good, drop the flag (make `--tu-data` the default).
+good, drop the flag (make `--tu-data` the default). (Done in phase 6: the flag is gone.)
 
 **Merged onto types/views-3 (integrate/round6).** Only booty.cpp conflicted (views-3's `g_sw.savevars` kept, with
-this phase's `.rodata` order); no other source change, and both link modes give this phase's numbers (full-link.md,
+this phase's `.rodata` order); no other source change, and both link modes gave this phase's numbers (full-link.md,
 Status).
 
-**Left (`--tu-data`), by kind:**
+**Left (`--tu-data`) at the end of phase 5, by kind** (all done in phase 6, below):
 
 - *`.data` in definition order but not address order* (the per-function-view files whose phase-1 definitions sit at
   their first declaration, and gap objects not defined): jt 36, tu_1D1370 35, cplcy 26, tn 22, prize 16, tu_17F090
@@ -1352,6 +1352,66 @@ Status).
 - *`.rodata` with unnamed data missing or misplaced jump tables*: memcard (with the strings above), menu, bentley,
   sw, xf, cd, tu_1BAB50, tu_223F70, tn, bomb, rhythm (the last three: named constants to move as above, not done in
   the timebox).
+
+### Phase 6: one link mode (branch data/order-2, 2026-11-05)
+
+Goal: the `--tu-data` layout at least as good as the `-fdata-sections` one, then one link mode. Done: tools/link.py
+compiles without `-fdata-sections` (the `--tu-data` option and build/link/obj-tu are gone). Differing bytes 1,620
+(old default) / 4,985 (old `--tu-data`) -> 115; config names at their address 7,401 / 7,401 (`--tu-data` had 349
+wrong); `.data` and `.rodata` from objects byte-identical except 3 bytes (full-link.md, Status). 66 sources touched,
+every function and data symbol MATCH, relocations of the touched objects 14,666 OK / 0 mismatched, no new
+unresolved symbol, ld.lld 0 errors (no duplicate definitions). Scratch tools (not in the repo): plan2/mvdef (the
+RO_ORDER moves), gather (one `.data` block), fixalign, dord/rplan/seccmp (layout against the ELF).
+
+How the original got one copy where we emitted two (*shared literals*), by kind:
+
+- **Float constants** (FLT_MAX, ...): g++ 2.95 keeps a constant pool per function, so a function that reads a const
+  float whose definition it sees folds it into its own literal (bomb has three FLT_MAX words, one per function). The
+  named constant is that function's literal: defined under its asm label just before the function (`RO_ORDER`),
+  with the declaration kept, so the function loads the symbol (same `lui/lwc1`) and emits nothing of its own. Only
+  valid where the constant is the first of the function's literals; true in all 30 cases here (po, blend, mark,
+  path, bomb, tn, step, hurt, tu_171F58, tu_185130, ...).
+- **Strings** are pooled per TU (`output_constant_def`): memcard's 14 and sw's 3 named strings were the functions'
+  literals, so they are now spelled as literals where they are used and the definitions are gone (`(char *)` where
+  a `void *` parameter takes one). The symbols stop existing; nothing else referenced them.
+- **Aggregate constants** (pointer-to-member jobs) are pooled per TU like strings: memcard's UpdateSave and
+  SetSaveState now spell the same `&MCJOB::GetInfo`, emitted once at 0x2A6BA0. The masked relocation had hidden a
+  wrong target: SetSaveState's jobs were bound to `func_001AB0A0`/`func_001AB0F0` (no such functions); the ELF's
+  words say McJobGetInfo and McJobGetDir.
+- **Unreferenced literals** (strings no code in the ELF loads: a use the original compiled away): memcard
+  0x2A6C80, cd's disc-type names 0x2A4F08-0x2A4FC0, defined under their address names where they sit. hud's
+  0x2A8AE0 turned out to be the string a `char *` global (D_002C40A0) points at.
+
+Other layout rules found:
+
+- **The first part of `.rodata`** (up to about 0x2A3A00) holds named constants of many objects in TU order before
+  every object's literals (cd's read modes and CRC table, the file-reference keys of tu_1A4E08, menu and mpeg, the
+  two palettes). The reason the original compiler separated them is not known. Decision (stylistic, easy to rename):
+  those of objects that also have literals get `__attribute__((section(".rodata.early")))` (cd, menu, tu_1A4E08),
+  so the link can place them apart; the palettes keep their `.rodata` attribute.
+- **Writable statics and strings in `.data`**: xf's chase tuning and rhythm's two prompt glyph strings are in
+  `.data` in the ELF (const removed / `char[]` arrays). A one-float struct is 8-aligned (`DATA_ALIGNMENT` raises
+  records and arrays to 64 bits) where the ELF has 4-aligned words: those are plain floats (xf's tuning, hurt's F
+  words, throw's D_002C410C), defined under their asm labels where the declarations keep the view's type.
+- **16-aligned objects** the layout shows (12-byte POLY/CLQ-like records and the objects after them) carry
+  `aligned(16)` on the definition (tn, tu_1D1370, jt, cplcy, stepguard, prize, ... ; scratch fixalign added them one
+  at a time from the ELF addresses). Where the type is probably 16 bytes (CLQ), the attribute is a stand-in.
+- **`.data` block**: in the per-function-view files the definitions sat at their first declaration. Each such file
+  now has one block after the functions in address order, each definition re-wrapped in its namespace /
+  `extern "C"` context, the original place keeping an `extern` declaration (what the functions see is unchanged).
+- **Gap objects** defined (address names before, or nothing): xf's world frame D_002C44F0 (identity XF) and
+  D_002C44E4, tn's default CPD D_002C4120 (without lmTilt, which is D_002C41A8), prize's two smack records, grab's
+  CPD record D_002BF670, menu's pause pages and items (D_002BFD58..D_002C01C8, function pointers by asm label), jt's
+  D_002BF2F0/D_002BF3D0, murray's D_002C09A4 (func_001B6CC0 reads it by absolute address), cane, font, path
+  (D_002C0C04), tu_1471C0 (D_002BD398; D_002BD39C stays its interior address name), tu_15CD68 (D_002BE268, a
+  pointer to the key at 0x2A37A8; whether it is tu_15CD68's is not known), tn's null callback record D_002A96E8.
+- **main's build strings** (region, date, build number at 0x2C46C0) lie after xf's `.data`, in a later TU's place:
+  section `.data.buildinfo` (stylistic, as `.rodata.early`).
+
+Nothing was reverted for changing codegen. Left: class_registry (its literals interleave with the splicewrap
+objects' in the ELF: 112 `.text` bytes of %hi/%lo, the merged crt0 block of "What is left" in full-link.md) and 3
+bytes of a jump-table word in serialize's PpairSerializeIn (also in the old default mode). throw keeps its private
+3-float CLQ view (`CLQV`, types/views-3); D_002C40F0 is defined as the 16-byte record under its asm label.
 
 ## Linkage of namespace-scoped declarations
 

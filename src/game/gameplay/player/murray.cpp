@@ -3896,6 +3896,38 @@ void func_001B9DB8(struct S *p, int x)
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   /* POLY */
+
+
+
+
+
+LO *D_002F7900;   /* g_pmurray */
+
+// ---- murray's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 SNIP D_002C0270[0x89] = {{0x300, 0x1A0, 0x1334}, {0x300, 0x19E, 0x1374}, {0x300, 0x1A2, 0x1028},
     {0x300, 0x24E, 0x3E0}, {0x300, 0x1A1, 0x13E0}, {0x300, 0x1A8, 0x17FC}, {0x300, 0x1A9, 0x1800},
     {0x300, 0x1B3, 0x1804}, {0x300, 0x1B2, 0x1808}, {0x300, 0xC4, 0x180C}, {0x300, 0x1B8, 0x1848},
@@ -3943,7 +3975,8 @@ float D_002C0988 = 1.0f;
 float D_002C0990[3] = {1.5f, 1.5f, 1.5f};
 float D_002C099C = 4.0f;
 float D_002C09A0 = 0.75f;
-float D_002C09A8 = -500.0f;
+float D_002C09A4 = 2.5f;   /* gap object: no code reads it by this address */
+float D_002C09A8 __attribute__((aligned(8))) = -500.0f;
 float D_002C09AC = 300.0f;
 LM D_002C09B0 = {100.0f, 500.0f};
 float D_002C09B8 = 400.0f;
@@ -3953,10 +3986,9 @@ VECTOR4 D_002C09D0 = {300.0f, 0.0f, -1000.0f, 0.0f};
 VECTOR4 D_002C09E0 = {-400.0f, 0.0f, 600.0f, 0.0f};
 float D_002C09F0 = 0.4f;
 int D_002C09F8[5][2] = {{11, -1}, {17, -1}, {16, -1}, {21, -1}, {20, -1}};
-float D_002C0A20[3] = {0.5f, 0.5f, 0.0f};   /* POLY */
-float D_002C0A30 = 0.66f;
+float D_002C0A20[3] = {0.5f, 0.5f, 0.0f};
+float D_002C0A30 __attribute__((aligned(16))) = 0.66f;
 float D_002C0A34 = 0.15f;
 float D_002C0A38 = -0.3f;
 float D_002C0A3C = 4.75f;
 float D_002C0A40 = 1.5f;
-LO *D_002F7900;   /* g_pmurray */

@@ -84,7 +84,7 @@ extern U D_002A2DD0, D_002A2DA0, D_002A2DC0;
 extern SW D_003DD490;
 extern char D_002DE578[];
 int D_002C0230[6] = {8, 8, -1, 0, 8, -1};   /* tu_1B0B78's .data, address order */
-extern const float D_002A70E0 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A70E0;   /* defined below where the ELF has it (.rodata order) */
 VECTOR3 D_002C0248 = {25.0f, 0.0f, 0.25f};
 
 void InitSo(CID96 *p);
@@ -263,6 +263,10 @@ void func_001B0D90(CID96 *p)
     }
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1B0E28
  * Purpose: CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut);
  *   path following

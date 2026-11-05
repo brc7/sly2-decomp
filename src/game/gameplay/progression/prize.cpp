@@ -2812,6 +2812,8 @@ void func_001C8AF0(struct S *p, int n)
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 struct OIDT { int grfsnip; int oid; int ib; };   /* SNIP record (Sly 1 SnipLoObjects) */
+
+// ---- prize's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 OIDT D_002C0D40[1] = {{0x200, 0x182, 0x164}};
 float D_002C0D4C = -5.0f;
 float D_002C0D50 = 5.0f;
@@ -2822,13 +2824,25 @@ float D_002C0D78 = 600.0f;
 float D_002C0D7C = 300.0f;
 VECTOR4 D_002C0D80 = {1.0f, 1.0f, 0.0f, 0.0f};
 float D_002C0D90 = 1.0f;
+/* The two smack records (0x70 bytes each, read through D_002C0DA0 / D_002C0E10 as char arrays): 24 floats, then
+ * the done callback as a pointer-to-member constant {0xFFFF0000, pfn} at +0x60. */
+namespace PRIZE_DATA {
+struct SMACKI_DEF { float ag[24]; unsigned int pmfDone[2]; int pad[2]; } __attribute__((aligned(16)));
+void p_func_001C67A0() __asm__("func_001C67A0");
+void p_OnMedicineSmackDone() __asm__("OnMedicineSmackDone");
+extern SMACKI_DEF r_D_002C0DA0 __asm__("D_002C0DA0"), r_D_002C0E10 __asm__("D_002C0E10");
+SMACKI_DEF r_D_002C0DA0 = {{0.83f, 0.75f, 100.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 2.0f, 0.0f, 0.0f, 1.0f, 3.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.9f, 0.0f, 0.0f}, {0xFFFF0000, (unsigned int)p_func_001C67A0}, {0, 0}};
+SMACKI_DEF r_D_002C0E10 = {{-0.7f, 0.72f, 100.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 2.0f, 0.0f, 0.0f, 1.0f, 3.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.8f, 0.0f, 0.0f}, {0xFFFF0000, (unsigned int)p_OnMedicineSmackDone}, {0, 0}};
+}
 float D_002C0E80 = 2000.0f;
 float D_002C0E84 = 300.0f;
 float D_002C0E88 = 25.0f;
 float D_002C0E8C = 100.0f;
 float D_002C0E90 = 23.0f;
 float D_002C0E94 = 1.8f;
-CLQ D_002C0EA0 = {{{200.0f, -250.0f, 0.0f, 0.0f}}};
+CLQ D_002C0EA0 __attribute__((aligned(16))) = {{{200.0f, -250.0f, 0.0f, 0.0f}}};
 LM D_002C0EB0 = {0.0f, 150.0f};
 float D_002C0EB8 = 850.0f;
 float D_002C0EBC = -850.0f;

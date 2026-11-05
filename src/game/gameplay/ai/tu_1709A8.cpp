@@ -402,6 +402,10 @@ extern "C" void func_00170E68(SSG *pssg, LO *plo)
     }
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A52B0 __asm__("D_002A52B0") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00170E90 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -410,7 +414,7 @@ struct N{int kind,tag;qword*position;char padC[0xC];struct N*next;};
 struct P{char pad[0x50];struct N*head;};
 struct CHOICE{struct N*node;struct P*object;float value;};
 extern char D_003DD490[];
-extern const float D_002A52B0 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata order) */
 struct P*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
 void func_001710F8(struct P*,qword,struct P*,qword*,float*);
 void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);

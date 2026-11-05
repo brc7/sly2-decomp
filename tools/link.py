@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Prototype full link of SCUS_973.16 from the matched sources (docs/guides/full-link.md).
 
-usage: python3 tools/link.py [--no-compile] [--tu-data]
+usage: python3 tools/link.py [--no-compile]
 
-  1. compile every source of config/matched.csv that builds here (matchtool's compile_src, plus -ffunction-sections
-     -fdata-sections) into build/link/obj/; --no-compile reuses the objects already there; --tu-data leaves out
-     -fdata-sections (objects in build/link/obj-tu/), so each object's data is laid out in source order as in a
-     real link
+  1. compile every source of config/matched.csv that builds here (matchtool's compile_src, plus -ffunction-sections;
+     no -fdata-sections: each object's data stays in its .data/.rodata in source order, as in a real link) into
+     build/link/obj/; --no-compile reuses the objects already there
   2. place every object section at the address its symbols and relocations give it in the ELF, cover everything
      else with byte ranges cut from your disc/SCUS_973.16 (build/link/blobs.o, never committed), and write
      build/link/sly2.ld from tools/link.ld.in
@@ -20,7 +19,6 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import matchtool, linkaliases
 
 OUT = os.path.join(ROOT, 'build', 'link')
-TU_DATA = '--tu-data' in sys.argv
 ELF = matchtool.ELF
 
 
@@ -37,14 +35,14 @@ def sources():
 
 
 def obj_path(src):
-    return os.path.join(OUT, 'obj-tu' if TU_DATA else 'obj', src + '.o')
+    return os.path.join(OUT, 'obj', src + '.o')
 
 
 def compile_all(srcs):
     # one section per function and per data object, so each lands at its own address even where a source's order
     # differs from the ELF's (codegen is unchanged: every function still MATCHes in these objects).  Appended to
     # matchtool's include list because that is the one argument list every compile path of compile_src passes on.
-    matchtool.INCLUDES += ['-ffunction-sections'] + ([] if TU_DATA else ['-fdata-sections'])
+    matchtool.INCLUDES += ['-ffunction-sections']
     def one(s):
         o = obj_path(s)
         os.makedirs(os.path.dirname(o), exist_ok=True)

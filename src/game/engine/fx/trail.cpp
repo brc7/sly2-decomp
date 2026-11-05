@@ -63,7 +63,8 @@ float func_00259D98(qword *pq);
 float func_00259DA8(qword *pq);
 float func_00259DC0(qword *pq);
 extern char D_002C44F0[];
-extern const float D_002A9240 = 3.40282347e+38f, D_002A9244 = -3.40282347e+38f;   /* FLT_MAX, -FLT_MAX */
+extern const float D_002A9240;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A9244;   /* defined below where the ELF has it (.rodata order) */
 }
 
 
@@ -150,6 +151,11 @@ static inline void SampleInputs(qword *buffer,float maximum,float minimum,qword 
  asm("sub.s %0,%3,%4\n\tli.s %1,1.0\n\tdaddu %2,%5,$zero":"=&f"(span),"=&f"(unit),"=r"(v):"f"(maximum),"f"(minimum),"r"(buffer));
  cursor=v;range=span;one=unit;
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A9240 __asm__("D_002A9240") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A9244 __asm__("D_002A9244") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x21BD18
  * Purpose: PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis
  *   (min/max) and builds per-vertex Sample{pos,fraction} tables

@@ -197,6 +197,23 @@ void UpdateCd(void)
     }
 }
 
+// .rodata order (tu-merging.md "Phase 5: data order"): the disc-type names and their format string are literals
+// no code in the ELF references (a debug dump the original compiled away), between CpchzTokenizePath's and CdPath's
+// literals; defined here under their address names to keep the layout.
+namespace RO_ORDER {
+extern const char r_D_002A4F08[] __asm__("D_002A4F08") = "PlayStation2 DVD";
+extern const char r_D_002A4F20[] __asm__("D_002A4F20") = "PlayStation2 CD";
+extern const char r_D_002A4F30[] __asm__("D_002A4F30") = "PlayStation2 CD with CDDA";
+extern const char r_D_002A4F50[] __asm__("D_002A4F50") = "PlayStation CD";
+extern const char r_D_002A4F60[] __asm__("D_002A4F60") = "PlayStation CD with CDDA";
+extern const char r_D_002A4F80[] __asm__("D_002A4F80") = "IllgalMedia";
+extern const char r_D_002A4F90[] __asm__("D_002A4F90") = "DVD video";
+extern const char r_D_002A4FA0[] __asm__("D_002A4FA0") = "CD-DA";
+extern const char r_D_002A4FA8[] __asm__("D_002A4FA8") = "Working";
+extern const char r_D_002A4FB0[] __asm__("D_002A4FB0") = "No Disc";
+extern const char r_D_002A4FB8[] __asm__("D_002A4FB8") = "Unknown";
+extern const char r_D_002A4FC0[] __asm__("D_002A4FC0") = "    %#x = %s\n";
+}
 /** @sly2-annot addr=0x14BBB0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -250,11 +267,14 @@ int FCdCompleted(int f)
 
 /* cd's .rodata (address order): the two sceCdRMode read modes {trycount, spindlctrl, datapattern, pad}, the identity
  * sector's LSN base and expected CRC, and the CRC-32 table (reflected polynomial 0xEDB88320). */
-extern const char D_002A2E50[4] = {0x7F, 0, 0, 0};    /* read mode (fMode 1) */
-extern const char D_002A2E58[4] = {0x7F, 1, 0, 0};    /* read mode (other) */
-extern const int D_002A2E5C = 0x132AA3;               /* LSN base of the identity sector */
-extern const unsigned int D_002A2E60 = 0xACDD3EE4;    /* its expected CRC */
-extern const unsigned int D_002A2E68[256] = {
+/* In the ELF these constants lie in the first part of .rodata, which holds the objects' named constants in TU
+ * order before every object's literals and jump tables; a section of their own places them there
+ * (tu-merging.md "Phase 6: one link mode", ".rodata.early"). */
+extern const char D_002A2E50[4] __attribute__((section(".rodata.early"))) = {0x7F, 0, 0, 0};    /* read mode (fMode 1) */
+extern const char D_002A2E58[4] __attribute__((section(".rodata.early"))) = {0x7F, 1, 0, 0};    /* read mode (other) */
+extern const int D_002A2E5C __attribute__((section(".rodata.early"))) = 0x132AA3;               /* LSN base of the identity sector */
+extern const unsigned int D_002A2E60 __attribute__((section(".rodata.early"))) = 0xACDD3EE4;    /* its expected CRC */
+extern const unsigned int D_002A2E68[256] __attribute__((section(".rodata.early"))) = {
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
     0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
     0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,

@@ -591,10 +591,21 @@ extern "C" {
  * vectors (VQ: initializable, read as qwords) and the score polynomial (declared above). */
 union VQ { float af[4]; qword q; };
 float D_002BDB50 = 0.55f, D_002BDB54 = 0.35f, D_002BDB58 = 1.2f, D_002BDB5C = 0.6f;
+/* The two prompt glyph strings are writable arrays in .data (not literals: the ELF has them here). */
+char D_002BDB60[] = "&2?&.";
+char D_002BDB68[] = "&2m&.";
 KEY D_002BDB70[4] = {{0x10, 'T', -0.5f, -3.0f}, {0x20, 'O', 0.5f, -2.0f}, {0x40, 'X', -0.5f, -1.0f}, {0x80, 'S', -1.5f, -2.0f}};
 float D_002BDBB0 = 0.4f;
 VQ D_002BDBC0 = {{100.0f, -1000.0f, 0.0f, 0.0f}}, D_002BDBD0 = {{100.0f, 1000.0f, 0.0f, 0.0f}};
 float D_002BDBE0[3] = {1.2f, -0.6f, 0.0f};
+}
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): the pointer-to-member record precedes the
+// big-glyph string in the ELF; definition order is emission order.
+namespace RO_ORDER {
+void p_func_00152810() __asm__("func_00152810");
+extern const unsigned int r_D_002A5010[2] __asm__("D_002A5010") = {0xFFFF0000, (unsigned int)p_func_00152810};
+}
+extern "C" {
 extern const SZ D_002A5018 = {"&2T&."};
 void RenderLoSelf(RHYTHMMGR *p);
 FONT *CRichText_ctor(FONT *pf, const char *sz, float scale);
@@ -617,9 +628,9 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
     float t = TMusicCur(D_003DD040);
     if (p->state < 3) if (p->state > 0) if (p->c != 0) {
         FONT fontA;
-        CRichText_ctor(&fontA, "&2?&.", D_002BDB58);
+        CRichText_ctor(&fontA, D_002BDB60, D_002BDB58);
         FONT fontB;
-        CRichText_ctor(&fontB, "&2m&.", D_002BDB5C);
+        CRichText_ctor(&fontB, D_002BDB68, D_002BDB5C);
         TB tb;
         union { RGBA rgba; SZ s; } u;
         tb.Init(0.0f, 0.0f, 640.0f, 448.0f * 1.1f, 0xFF808080, &u.rgba);
@@ -985,13 +996,3 @@ void TB::SetVerticalJust(int j) {
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 RHYTHMMGR *D_002DE570;
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_rhythm {
-void p_func_00152810() __asm__("func_00152810");
-extern "C" {
-extern const unsigned int D_002A5010[2] = {0xFFFF0000, (unsigned int)p_func_00152810};
-}
-} // namespace ANPTR_rhythm

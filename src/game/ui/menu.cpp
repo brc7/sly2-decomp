@@ -95,16 +95,19 @@ extern ITEM D_002C00E8[];
 extern struct H { char pad[0x24]; int x24; } D_003DA3C0;
 extern ITEM D_002BFEC8[11];
 extern char D_003DA530[];
-/* menu's .data that holds no pointers (address order; the page and item tables between them, D_002BFDA8..D_002C00E8,
- * hold function pointers and stay extern): the page animations, the two camera speeds and the three cheat-label
- * lists (-1 terminated, read as char *). */
-META D_002BFD38 = {0x316, 0x318, 0x317, 0x319, 0x31B, 0x31A, 0x31C, 0x31D};
-float D_002C01C8 = 5.0f, D_002C01CC = 2.0f;
-int D_002C01D0[8] = {0x328, 0x329, 0x32A, -1, -1, -1, -1, -1};
-int D_002C01F0[8] = {0x32B, 0x32C, 0x32D, -1, -1, -1, -1, -1};
-int D_002C0210[8] = {0x32E, 0x32F, 0x330, -1, -1, -1, -1, -1};
+/* menu's .data, defined after the functions in address order: the page animations, the pause-menu pages and
+ * items, the two camera speeds and the three cheat-label lists (-1 terminated, read as char *). */
+extern META D_002BFD38;
+extern float D_002C01C8;
+extern float D_002C01CC;
+extern int D_002C01D0[8];
+extern int D_002C01F0[8];
+extern int D_002C0210[8];
 /* The world of the "quit to hideout" warp (.rodata, a file reference: 16 hashed words). */
-extern const unsigned int D_002A3928[16] = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
+/* In the ELF these constants lie in the first part of .rodata, which holds the objects' named constants in TU
+ * order before every object's literals and jump tables; a section of their own places them there
+ * (tu-merging.md "Phase 6: one link mode", ".rodata.early"). */
+extern const unsigned int D_002A3928[16] __attribute__((section(".rodata.early"))) = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
 /* menu's .bss (address order): the camera offsets and the two runtime item lists. */
 float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
@@ -1093,4 +1096,85 @@ extern "C" void PauseItemReturnToHideout(ITEM *p)
     WipeToWorldWarp(pg, (void *)D_002A3928, 0x189, -1, 0x80, -1);
     if (pg->p3b0c) func_00162E38(pg->p3b0c);
     if (p) p->flags |= 2;
+}
+
+// ---- menu's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+extern "C" {
+META D_002BFD38 = {0x316, 0x318, 0x317, 0x319, 0x31B, 0x31A, 0x31C, 0x31D};
+/* The pause menu's pages and items (D_002BFD58..D_002C01C8): the label lists the items cycle through, then the
+ * item tables ({kind, select, count, list or sub-page, update, init, x18, flags}); the declarations above keep
+ * their types (char arrays, ITEM), these are bound by asm label. */
+namespace MENU_DATA {
+void f_1AD250(ITEM *) __asm__("func_001AD250");
+void f_1AD320(ITEM *) __asm__("func_001AD320");
+void f_1AD480(ITEM *) __asm__("func_001AD480");
+void f_1AD538(ITEM *) __asm__("func_001AD538");
+void f_1AD740(ITEM *) __asm__("func_001AD740");
+void f_1AF9C8(ITEM *) __asm__("func_001AF9C8");
+void f_1AFFC0(ITEM *) __asm__("func_001AFFC0");
+void f_1B0270(ITEM *) __asm__("func_001B0270");
+void f_1B04E0(ITEM *) __asm__("func_001B04E0");
+void f_1B0668(ITEM *) __asm__("func_001B0668");
+void f_1B0688(ITEM *) __asm__("func_001B0688");
+void f_1B06D8(ITEM *) __asm__("func_001B06D8");
+void f_1B0720(ITEM *) __asm__("func_001B0720");
+void f_1B0740(ITEM *) __asm__("func_001B0740");
+void f_1B0808(ITEM *) __asm__("func_001B0808");
+void f_1B0848(ITEM *) __asm__("func_001B0848");
+void f_1B0878(ITEM *) __asm__("func_001B0878");
+void f_1B0970(ITEM *) __asm__("func_001B0970");
+void f_1B09A8(ITEM *) __asm__("PauseItemReturnToHideout");
+int d_2BFD58[4] __asm__("D_002BFD58") = {0x4E, 0x4D, 0x4C, 0x0};
+int d_2BFD68[2] __asm__("D_002BFD68") = {0x48, 0x49};
+int d_2BFD70[2] __asm__("D_002BFD70") = {0x4F, 0x50};
+int d_2BFD78[2] __asm__("D_002BFD78") = {0x51, 0x52};
+int d_2BFD80[2] __asm__("D_002BFD80") = {0x53, 0x54};
+int d_2BFD88[8] __asm__("D_002BFD88") = {0x5C2, 0x5C3, 0x5C4, -1, -1, -1, -1, -1};
+ITEM d_2BFDA8[3] __asm__("D_002BFDA8") = {
+    {0x45, f_1AD250, 0, 0, f_1AD740, f_1AD538, 0, 0x0},
+    {0x45, f_1AD250, 1, 0, f_1AD740, 0, 0, 0x0},
+    {0x45, f_1AD250, 2, 0, f_1AD740, 0, 0, 0x0}};
+ITEM d_2BFE08[3] __asm__("D_002BFE08") = {
+    {0x45, f_1AD320, 0, 0, f_1AD740, f_1AD538, 0, 0x0},
+    {0x45, f_1AD320, 1, 0, f_1AD740, 0, 0, 0x0},
+    {0x45, f_1AD320, 2, 0, f_1AD740, 0, 0, 0x0}};
+ITEM d_2BFE68[3] __asm__("D_002BFE68") = {
+    {0x45, f_1AD480, 0, 0, f_1AD740, f_1AD538, 0, 0x0},
+    {0x45, f_1AD480, 1, 0, f_1AD740, 0, 0, 0x0},
+    {0x45, f_1AD480, 2, 0, f_1AD740, 0, 0, 0x0}};
+ITEM d_2BFEC8[11] __asm__("D_002BFEC8") = {
+    {0x3C, f_1B0688, 3, (int *)d_2BFDA8, 0, 0, (int)(d_2BFD88), 0x0},
+    {0x3D, f_1B0688, 3, (int *)d_2BFE08, 0, 0, (int)(d_2BFD88), 0x0},
+    {0x3E, f_1B0688, 3, (int *)d_2BFE68, 0, 0, (int)(d_2BFD88), 0x0},
+    {0x4C, f_1AFFC0, 3, d_2BFD58, 0, f_1AF9C8, 0, 0x0},
+    {0x67, f_1B0720, 0, 0, 0, 0, 0, 0x0},
+    {0x68, f_1B0720, 0, 0, 0, 0, 0, 0x0},
+    {0x50, f_1AFFC0, 2, d_2BFD70, 0, f_1AF9C8, 0, 0x0},
+    {0x51, f_1AFFC0, 2, d_2BFD78, 0, f_1AF9C8, 0, 0x0},
+    {0x53, f_1AFFC0, 2, d_2BFD80, 0, f_1AF9C8, 0, 0x0},
+    {0x3F, f_1B0720, 0, 0, 0, 0, 0, 0x0},
+    {0x48, f_1AFFC0, 2, d_2BFD68, 0, f_1AF9C8, 0, 0x0}};
+ITEM d_2C0028[2] __asm__("D_002C0028") = {
+    {0xB, f_1B0668, 0, 0, 0, 0, 0, 0x0},
+    {0xA, f_1B0878, 0, 0, 0, 0, 0, 0x0}};
+ITEM d_2C0068[2] __asm__("D_002C0068") = {
+    {0xD, f_1B0668, 0, 0, 0, 0, 0, 0x0},
+    {0xC, f_1B09A8, 0, 0, 0, 0, 0, 0x0}};
+ITEM d_2C00A8[2] __asm__("D_002C00A8") = {
+    {0xF, f_1B0668, 0, 0, 0, 0, 0, 0x0},
+    {0xE, f_1B0970, 0, 0, 0, 0, 0, 0x0}};
+ITEM d_2C00E8[7] __asm__("D_002C00E8") = {
+    {0x39, f_1B0270, 0, 0, 0, 0, 0, 0x0},
+    {0x46, f_1B06D8, 2, (int *)d_2C0028, f_1B0848, 0, 0, 0x0},
+    {0x42, f_1B06D8, 2, (int *)d_2C0068, 0, 0, 0, 0x0},
+    {0x6B, f_1B06D8, 2, (int *)d_2C00A8, 0, 0, 0, 0x0},
+    {0x2C, f_1B04E0, 0, 0, 0, 0, 0, 0x0},
+    {0x43, f_1B0740, 0, 0, 0, 0, 0, 0x0},
+    {0x6A, f_1B0808, 0, 0, 0, 0, 0, 0x0}};
+}
+float D_002C01C8 __attribute__((aligned(8))) = 5.0f;
+float D_002C01CC = 2.0f;
+int D_002C01D0[8] = {0x328, 0x329, 0x32A, -1, -1, -1, -1, -1};
+int D_002C01F0[8] = {0x32B, 0x32C, 0x32D, -1, -1, -1, -1, -1};
+int D_002C0210[8] = {0x32E, 0x32F, 0x330, -1, -1, -1, -1, -1};
 }

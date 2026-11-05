@@ -93,17 +93,30 @@ extern U D_002A2DC0,D_002A2DA0,D_002A2DB0,D_002A2DD0;
 extern LM D_002BBB60;
 extern CLOCK D_002DDED0;
 /* hang's .data (address order). */
-CLQ D_002BF4F0={1.5f,-0.35f,0.0f};
-LM D_002BF500={-5.0f,-0.25f};
-float D_002BF508=-2.5f,D_002BF50C=-1.0f,D_002BF510=0.25f,D_002BF514=5.0f;
-CLQ D_002BF520={0.5f,-0.01f,0.0f};
-SMPA D_002BF530={1000.0f,0.0f,0.25f,5000.0f};
-float D_002BF540=75.0f,D_002BF544=230.0f;
-float D_002BF548[3]={15.0f,0.0f,0.1f};
-float D_002BF554=1.4f,D_002BF558=1.4f,D_002BF55C=0.25f,D_002BF560=0.1f,D_002BF564=0.4f,D_002BF568=80.0f,D_002BF56C=120.0f;
-SMP D_002BF570={1.0f,0.0f,0.1f},D_002BF580={4.0f,0.0f,0.1f};
-float D_002BF58C=1.7f,D_002BF590=3.0f,D_002BF594=1.5f;
-float D_002BF598[3]={3000.0f,1000.0f,0.15f};
+extern CLQ D_002BF4F0;
+extern LM D_002BF500;
+extern float D_002BF508;
+extern float D_002BF50C;
+extern float D_002BF510;
+extern float D_002BF514;
+extern CLQ D_002BF520;
+extern SMPA D_002BF530;
+extern float D_002BF540;
+extern float D_002BF544;
+extern float D_002BF548[3];
+extern float D_002BF554;
+extern float D_002BF558;
+extern float D_002BF55C;
+extern float D_002BF560;
+extern float D_002BF564;
+extern float D_002BF568;
+extern float D_002BF56C;
+extern SMP D_002BF570;
+extern SMP D_002BF580;
+extern float D_002BF58C;
+extern float D_002BF590;
+extern float D_002BF594;
+extern float D_002BF598[3];
 extern G D_003DD490;
 }
 /* func_0011B500 with its hidden result pointer passed by hand (UpdateJtActiveHang loads it in asm). */
@@ -636,4 +649,32 @@ extern "C" void UpdateJtHangIkGoals__FP2JT(JT *p)
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), func_0011B500(D_002A2DA0.q, D_002BF594));
     SetActPositionGoal(p->x1a00, func_0011BFF0(&m));
     p->x1960 = PosSmooth(p->x1960, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
+}
+
+// ---- hang's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+extern "C" {
+CLQ D_002BF4F0={1.5f,-0.35f,0.0f};
+LM D_002BF500={-5.0f,-0.25f};
+float D_002BF508=-2.5f;
+float D_002BF50C=-1.0f;
+float D_002BF510=0.25f;
+float D_002BF514=5.0f;
+CLQ D_002BF520 __attribute__((aligned(16)))={0.5f,-0.01f,0.0f};
+SMPA D_002BF530={1000.0f,0.0f,0.25f,5000.0f};
+float D_002BF540=75.0f;
+float D_002BF544=230.0f;
+float D_002BF548[3]={15.0f,0.0f,0.1f};
+float D_002BF554=1.4f;
+float D_002BF558=1.4f;
+float D_002BF55C=0.25f;
+float D_002BF560=0.1f;
+float D_002BF564=0.4f;
+float D_002BF568=80.0f;
+float D_002BF56C=120.0f;
+SMP D_002BF570={1.0f,0.0f,0.1f};
+SMP D_002BF580={4.0f,0.0f,0.1f};
+float D_002BF58C=1.7f;
+float D_002BF590=3.0f;
+float D_002BF594=1.5f;
+float D_002BF598[3]={3000.0f,1000.0f,0.15f};
 }

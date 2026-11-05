@@ -66,14 +66,19 @@ typedef char assert_LISTENER_k104[(unsigned int)&((LISTENER *)0)->k104 == 0x104 
 
 /* noise's .data (address order): default loudness and its range, the falloff time and polynomial, and the per-kind
  * noise durations/loudnesses. */
-float D_002BDCD0 = 1500.0f;
-LMV D_002BDCD8 = {-200.0f, 500.0f};
+extern float D_002BDCD0;
+extern LMV D_002BDCD8;
 extern SWN D_003DD490;
 extern CLOCK D_002DDED0;
-float D_002BDCE0 = 1.0f;
-float D_002BDCF0[3] = {0.15f, 1.1f, -0.25f};
-float D_002BDD00 = -1.0f, D_002BDD04 = 750.0f, D_002BDD08 = 2500.0f, D_002BDD0C = 0.35f, D_002BDD10 = 4000.0f, D_002BDD14 = 0.5f,
-    D_002BDD18 = 1000.0f;
+extern float D_002BDCE0;
+extern float D_002BDCF0[3];
+extern float D_002BDD00;
+extern float D_002BDD04;
+extern float D_002BDD08;
+extern float D_002BDD0C;
+extern float D_002BDD10;
+extern float D_002BDD14;
+extern float D_002BDD18;
 extern "C" {
 extern VTE D_002CE2B8[];          /* NOISE vtable */
 void InitLo(NOISETYPE *p);
@@ -576,3 +581,16 @@ extern "C" int func_00156FE8(LISTENER *plo, NOISE *p)
     }
     return 0;
 }
+
+// ---- noise's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+float D_002BDCD0 = 1500.0f;
+LMV D_002BDCD8 = {-200.0f, 500.0f};
+float D_002BDCE0 = 1.0f;
+float D_002BDCF0[3] __attribute__((aligned(16))) = {0.15f, 1.1f, -0.25f};
+float D_002BDD00 __attribute__((aligned(16))) = -1.0f;
+float D_002BDD04 = 750.0f;
+float D_002BDD08 = 2500.0f;
+float D_002BDD0C = 0.35f;
+float D_002BDD10 = 4000.0f;
+float D_002BDD14 = 0.5f;
+float D_002BDD18 = 1000.0f;

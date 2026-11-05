@@ -1687,12 +1687,53 @@ void RcPtr_Assign(O **pp, O *o)
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 extern const VECTOR4 D_002A5000 = {-50.0f, 0.0f, 0.0f, 0.0f};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int D_002DE254;
+
+// ---- cplcy's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 LM D_002BD950 = {-10.0f, 10.0f};
 LM D_002BD958 = {-1.0f, 1.0f};
 LM D_002BD960 = {-1.5f, 1.5f};
 LM D_002BD968 = {-1.0f, 1.0f};
 LM D_002BD970 = {-1.0f, 1.0f};
-CLQ D_002BD980 = {{{2.0f, 0.0f, -1.0f, 0.0f}}};
+CLQ D_002BD980 __attribute__((aligned(16))) = {{{2.0f, 0.0f, -1.0f, 0.0f}}};
 float D_002BD990 = 0.9f;
 float D_002BD994 = 0.8f;
 float D_002BD998 = 10.0f;
@@ -1704,9 +1745,9 @@ SMPA D_002BD9C8 = {300.0f, 100.0f, 0.5f, 0.0f};
 SMPA D_002BD9D8 = {1.0f, 0.5f, 0.5f, 0.0f};
 SMPA D_002BD9E8 = {1.0f, 0.4f, 1.5f, 0.0f};
 SMPA D_002BD9F8 = {100.0f, 40.0f, 1.5f, 0.0f};
-CLQ D_002BDA10 = {{{0.0f, 1.1f, -0.3f, 0.0f}}};
+CLQ D_002BDA10 __attribute__((aligned(16))) = {{{0.0f, 1.1f, -0.3f, 0.0f}}};
 LM D_002BDA20 = {0.0f, 0.5f};
-CLQ D_002BDA30 = {{{0.0f, 0.5f, -0.1f, 0.0f}}};
+CLQ D_002BDA30 __attribute__((aligned(16))) = {{{0.0f, 0.5f, -0.1f, 0.0f}}};
 LM D_002BDA40 = {0.0f, 0.4f};
 LM D_002BDA48 = {-0.01f, 0.01f};
 LM D_002BDA50 = {-0.04f, 0.04f};
@@ -1719,10 +1760,9 @@ SMP D_002BDAC0 = {2000.0f, 0.0f, 1.0f};
 float D_002BDACC = 0.45f;
 CLQ D_002BDAD0 = {{{200.0f, 0.22f, 0.0f, 0.0f}}};
 LM D_002BDAE0 = {225.0f, 650.0f};
-CLQ D_002BDAF0 = {{{600.0f, 0.33f, 0.0f, 0.0f}}};
+CLQ D_002BDAF0 __attribute__((aligned(16))) = {{{600.0f, 0.33f, 0.0f, 0.0f}}};
 LM D_002BDB00 = {600.0f, 1500.0f};
-CLQ D_002BDB10 = {{{200.0f, 0.225f, 0.0f, 0.0f}}};
+CLQ D_002BDB10 __attribute__((aligned(16))) = {{{200.0f, 0.225f, 0.0f, 0.0f}}};
 LM D_002BDB20 = {0.0f, 500.0f};
-CLQ D_002BDB30 = {{{0.6f, 0.00045f, 0.0f, 0.0f}}};
+CLQ D_002BDB30 __attribute__((aligned(16))) = {{{0.6f, 0.00045f, 0.0f, 0.0f}}};
 LM D_002BDB40 = {0.7f, 1.2f};
-int D_002DE254;

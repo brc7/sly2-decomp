@@ -93,7 +93,7 @@ extern CMV D_002DDF40;
 extern char D_002CA240[];
 extern float D_002DDED0;
 extern qword D_002A2DB0;
-extern const float D_002A7708 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A7708;   /* defined below where the ELF has it (.rodata order) */
 /* po's .data (address order): the default PZI (zero) and the three player pointers (jt's, bentley's and murray's
  * globals) scanned for in-world STEPPLAYERs. */
 char D_002C0D18[0x10] = {0};
@@ -773,6 +773,10 @@ static inline float LenSq(qword a) {
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7708 __asm__("D_002A7708") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1C4AF8
  * Purpose: Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60
  * Info: proposed name PpoClosestSw (T1); TU po

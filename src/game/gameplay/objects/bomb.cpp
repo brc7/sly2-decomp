@@ -98,7 +98,9 @@ struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 extern CLOCK D_002DDED0;
 /* bomb's .data (address order): the default radius, the four classes that defuse a chain, the gravity scalar. */
 float D_002BC9C8 = 200.0f;
-extern const float D_002A4B18 = 3.40282347e+38f, D_002A4B1C = 3.40282347e+38f, D_002A4B20 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A4B18;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A4B1C;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A4B20;   /* defined below where the ELF has it (.rodata order) */
 extern qword D_002A2DA0;
 extern const LONGU D_002A4B10;   /* an 8-byte callback record (a pointer to member function) read as one packed long: see B4 in the merge guide */
 int D_002BC9D0[4] = {0x33, 0x64, 0x4F, 0x67};
@@ -391,6 +393,12 @@ static inline qword NormalizeSafe(qword v, qword def)
         return def;
     return DivQ(v, len);
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+// D_002A4B10: a virtual pointer-to-member constant, 8 bytes {delta 0, vtable index, vptr offset 0xC} (tu-merging.md "Data").
+namespace RO_ORDER { extern const unsigned int r_D_002A4B10[2] __asm__("D_002A4B10") = {0x4E0000, 0xC}; }
+namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x13AEB0
  * Purpose: BOMB vt58: after base, choose best contact/target and prime or prepare detonation (state machine
  *   on +0x170 kinds 0/1/2)
@@ -742,6 +750,7 @@ extern "C" void func_0013B7B8(BOMB *unused, int *pc, SOV **a) {
 }
 
 // (Claude agent) frame declared at function scope with explicit init/free calls (free = dtor with in-charge 2) so msg2 reuses msg's slot.
+namespace RO_ORDER { extern const float r_D_002A4B1C __asm__("D_002A4B1C") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x13B860
  * Purpose: If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode
  *   effects, reclaim or remove
@@ -827,6 +836,7 @@ extern "C" void DetonateBomb(BOMB *p)
     ((void (*)(BOMB *, int, int, int, int, int))p->vt[3].pfn)((BOMB *)((char *)p + p->vt[3].d), 5, 0, 0, 0, 0);
 }
 
+namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x13BB80
  * Purpose: BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent
  * Info: proposed name ResetBomb (T1); class BOMB slot26; TU bomb
@@ -876,9 +886,3 @@ extern "C" void func_0013BC60(BOMB *p, BOMB *pbombOwner)
         RecalcSwOxfFilterForObject(&D_003DD490, p);
     }
 }
-
-// ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
-// vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
-namespace ANPTR_bomb { extern "C" {
-extern const unsigned int D_002A4B10[2] = {0x4E0000, 0xC};
-} } // namespace ANPTR_bomb

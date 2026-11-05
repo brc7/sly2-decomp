@@ -77,7 +77,8 @@ extern "C" {
 extern DLI *D_002DD2FC;
 /* tu_1BC050's .data (address order; the 24 ints after D_002C0AC4 are named by no code and not claimed). */
 float D_002C0AB0 = 1.0f, D_002C0AB4 = 1.0f, D_002C0AB8 = 0.2f, D_002C0ABC = 10.0f, D_002C0AC0 = 50.0f, D_002C0AC4 = 200.0f;
-extern const float D_002A76D0 = -3.40282347e+38f, D_002A76D4 = 3.40282347e+38f;   /* -FLT_MAX, FLT_MAX */
+extern const float D_002A76D0;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A76D4;   /* defined below where the ELF has it (.rodata order) */
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_003DD020[];
 
@@ -641,6 +642,11 @@ int func_001BCF18(CID14 *a, void *b, float g, float range, float *pf, int c)
 
 static inline qword Min(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Max(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A76D0 __asm__("D_002A76D0") = -3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A76D4 __asm__("D_002A76D4") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1BD040
  * Purpose: Transform polygon to world, find its pathzone (PpathzoneFromPos), compute bounds,
  *   AddPathzoneObstacle

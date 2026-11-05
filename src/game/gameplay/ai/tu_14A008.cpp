@@ -95,15 +95,21 @@ extern char D_003DD040[];
 extern char D_002DDF40[];
 void *D_002DD648;   /* the registered guard (tu_14A008's .bss; medium: by layout, just before cd's .bss) */
 extern qword D_002A2DD0;
-extern const float D_002A4EE8 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A4EE8;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 /* tu_14A008's .data (address order). */
-float D_002BD460 = 100.0f;
-float D_002BD468[2] = {4.0f, 6.0f};
-float D_002BD470 = 200.0f, D_002BD474 = -75.0f, D_002BD478 = 600.0f, D_002BD47C = 10.0f;
-LMV D_002BD480 = {900.0f, 1400.0f}, D_002BD488 = {1400.0f, 4000.0f}, D_002BD490 = {600.0f, 1000.0f}, D_002BD498 = {1000.0f, 4000.0f},
-    D_002BD4A0 = {0.0f, 10.0f};
-float D_002BD4B0[3] = {-400.0f, 0.8f, 0.0f};
+extern float D_002BD460;
+extern float D_002BD468[2];
+extern float D_002BD470;
+extern float D_002BD474;
+extern float D_002BD478;
+extern float D_002BD47C;
+extern LMV D_002BD480;
+extern LMV D_002BD488;
+extern LMV D_002BD490;
+extern LMV D_002BD498;
+extern LMV D_002BD4A0;
+extern float D_002BD4B0[3];
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 RTE *func_001AE378(ALLOCREQ *preq);
@@ -765,6 +771,10 @@ static __inline__ float GDist(qword a, qword b)
     g = VuToFloat(d);
     return g;
 }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x14B290
  * Purpose: vt88 (STEPGUARD own slot): choose best candidate object by kind/distance
  * Info: proposed name Carmelita_VUnk88 (T2); class CARMELITA slot88; TU tu_14A008
@@ -854,4 +864,20 @@ extern "C" void func_0014B468(GUARDV *p, int val)
         m.kind = 1;
         SetBhvguardMode(o, &m);
     }
+}
+
+// ---- tu_14A008's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+extern "C" {
+float D_002BD460 = 100.0f;
+float D_002BD468[2] = {4.0f, 6.0f};
+float D_002BD470 = 200.0f;
+float D_002BD474 = -75.0f;
+float D_002BD478 = 600.0f;
+float D_002BD47C = 10.0f;
+LMV D_002BD480 = {900.0f, 1400.0f};
+LMV D_002BD488 = {1400.0f, 4000.0f};
+LMV D_002BD490 = {600.0f, 1000.0f};
+LMV D_002BD498 = {1000.0f, 4000.0f};
+LMV D_002BD4A0 = {0.0f, 10.0f};
+float D_002BD4B0[3] __attribute__((aligned(16))) = {-400.0f, 0.8f, 0.0f};
 }
