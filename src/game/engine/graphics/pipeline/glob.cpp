@@ -2758,7 +2758,7 @@ SHD *PshdFromIshd(int ishd) __asm__("func_001EC8F8");
 int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("func_001EC688");
 extern "C" { extern uint D_002BE540[]; }
 extern "C" { extern int D_002BE558[]; }
-extern "C" { QW D_002DEB60; }
+extern "C" { extern QW D_002DEB60; }
 void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut) __asm__("BuildCmFgfn");
 CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("func_0016C8E0");
 void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("func_001699E8");
@@ -2795,7 +2795,7 @@ extern "C" { extern int D_003DA790; }
 extern "C" { 
  }
 extern "C" int D_002BE580 = 0;
-extern "C" { int D_002DEB54; }
+extern "C" { extern int D_002DEB54; }
 extern "C" const float D_002A52A0 = 3.40282347e+38f;
 extern "C" { extern char D_00003628[]; }
 extern "C" { extern char D_000037A8[]; }
@@ -4164,7 +4164,7 @@ extern "C" { extern char D_00001AA0[]; }
 extern "C" { 
  }
 extern "C" { extern QW D_002DF800[]; }
-extern "C" { int D_002DEB70[2]; }
+extern "C" { extern int D_002DEB70[2]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
 extern "C" void func_0016D6C8(GIFS *pgifs, uint grf, short **pps);
@@ -4872,3 +4872,11 @@ extern "C" float func_002599E8(VECTOR *pvec)
 uint D_002BE540[5] = {0, 0x54545454, 0x50505050, 0x40404040, 0};   /* STMASK per weight count */
 int D_002BE558[5] = {-1, 2, 6, 10, 14};   /* UNPACK format per weight count */
 VECTOR4 D_002BE570 = {0.0f, 0.0f, 1.5f, 0.0f};
+// .bss after D_002DEB50 (which has a constructor and is emitted where it is defined). Plain objects are emitted at
+// the end of the file, file scope first and then namespace by namespace (the latest-opened namespace first), so
+// these are defined here at file scope, in address order, instead of inside their functions' namespaces.
+extern "C" {
+int D_002DEB54;
+QW D_002DEB60;
+int D_002DEB70[2];
+}
