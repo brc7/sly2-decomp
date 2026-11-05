@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (DPRIZE) | `HandleDprizeMessage?` | `0x1C5098` |
 | 6 | Pclassinfo | **override** | [`GetMedicineClassDesc`](../../../src/game/app/class_registry/GetMedicineClassDesc.c) | `0x113FE0` |
-| 7 | Init | **override** | [`InitMedicine?`](../../../src/game/gameplay/progression/prize/func_001C67D8.c) | `0x1C67D8` |
+| 7 | Init | **override** | [`InitMedicine?`](../../../src/game/gameplay/progression/prize.cpp) | `0x1C67D8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -38,7 +38,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (DPRIZE) | `LoadDprizeFromBrx?` | `0x1C4EF8` |
 | 15 | PostLoad | inherited (DPRIZE) | `PostDprizeLoad?` | `0x1C4F60` |
-| 16 | Update | **override** | [`UpdateMedicine?`](../../../src/game/gameplay/progression/prize/func_001C6880.c) | `0x1C6880` |
+| 16 | Update | **override** | [`UpdateMedicine?`](../../../src/game/gameplay/progression/prize.cpp) | `0x1C6880` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (DPRIZE) | `ProjectDprizeTransform?` | `0x1C5148` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
 | 19 | RenderSelf | inherited (DPRIZE) | `RenderDprizeSelf?` | `0x1C5FA0` |
@@ -98,7 +98,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
 | 75 | FZprHasField44 | inherited (DPRIZE) | `DPRIZE_VUnk75?` | `0x1C5DF0` |
-| 76 | SetDprizeDprizes | **override** | [`SetMedicineDprizes?`](../../../src/game/gameplay/progression/prize/func_001C68F0.c) | `0x1C68F0` |
+| 76 | SetDprizeDprizes | **override** | [`SetMedicineDprizes?`](../../../src/game/gameplay/progression/prize.cpp) | `0x1C68F0` |
 
 ## Fields
 

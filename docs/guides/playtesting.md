@@ -33,10 +33,10 @@ globals (6,847 symbols, PT_LOADs byte-identical to retail) `[C:static]`.
 
 ### Workflow A: pnach (quick; works with save states)
 
-1. Edit the function's source, e.g. `src/game/gameplay/progression/prize/func_001C67A0.c` (`AwardDprize91`, the coin award): `+ 1` -> `+ 10`.
+1. Edit the function's source, e.g. `src/game/gameplay/progression/prize.cpp` (`AwardDprize91`, the coin award): `+ 1` -> `+ 10`.
 2. Generate a patch into PCSX2's patches folder (PCSX2 loads every `SCUS-97316_07652DD9*.pnach` / `07652DD9*.pnach`):
    ```sh
-   python3 tools/pnach.py src/game/gameplay/progression/prize/func_001C67A0.c --name "coins x10" -o "$P2/patches/SCUS-97316_07652DD9_coins.pnach"
+   python3 tools/pnach.py src/game/gameplay/progression/prize.cpp --name "coins x10" -o "$P2/patches/SCUS-97316_07652DD9_coins.pnach"
    ```
    The pristine version comes from `git show HEAD:<file>` (`--orig` otherwise). Check the report ("in place, N word(s) differ").
 3. In PCSX2: game Properties -> Patches, tick the patch (labelled patches must be enabled; `--unlabelled` writes auto-enabled lines). The default place=2 applies at
@@ -46,7 +46,7 @@ globals (6,847 symbols, PT_LOADs byte-identical to retail) `[C:static]`.
 ### Workflow B: patched ELF (big changes, many functions)
 
 ```sh
-python3 tools/patchelf.py src/game/gameplay/progression/prize/func_001C67A0.c -o build/sly2_patched.elf --listing [--elf build/SCUS_973.16.sym.elf]
+python3 tools/patchelf.py src/game/gameplay/progression/prize.cpp -o build/sly2_patched.elf --listing [--elf build/SCUS_973.16.sym.elf]
 /Applications/PCSX2.app/Contents/MacOS/<binary> -elf "$PWD/build/sly2_patched.elf" -- ~/Games/PS2/Sly2.iso
 ```
 (or drag the ELF onto the PCSX2 window while the disc is loaded). **Do not load a save state** to test an ELF patch: a state restores all RAM including the old code.
