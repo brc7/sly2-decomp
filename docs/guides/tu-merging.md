@@ -918,6 +918,122 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
 | tu_1D1370 | 37 | POLY, LIMITS, floats, float[2]/[3], S8(bits) x3, float (.rodata)x2 | declaration order; 29 mangled decls fixed; vectors left |
 | glob | 5 | int, float (.rodata), bss x3 | records/vector left |
 
+Phase 2 over the merged TUs (branch data/phase-3, 2026-11-05): the 24 TUs merged since phase 1 (waves 9/10, the big six),
+the leftovers of phase 1, six vtables, the class descriptor table, four engine tables and g_clock/g_game/g_joy. 524 data
+objects newly defined plus 6 vtables (survey kinds: 178 floats, 112 16-byte vectors, 88 int/float tables, records
+and zero rows, 56 strings, 45 float pairs, 40 `.bss` objects with g_clock, g_game and g_joy, 5 tables with pointers:
+the class descriptor table, which covers the survey's 199 descriptor-row names, the builtin, gadget, render-pass and
+startup tables); D_002E0CBC went back to `extern` (a field). With phase 1, about 1,236 of the survey's ~1,740 objects
+are defined (1,230 D_ objects in merged files and the six vtables); all functions and data symbols of every touched file MATCH, linkcheck 0, progress
+6,662/6,662. Refinements:
+
+- **End-of-file block.** In the big per-function-namespace files the TU's data goes in one block at the END of the
+  file, at file scope, in address order (`// ---- Data owned by this TU, in address order ...`). No function sees a
+  definition, so nothing folds (no define-after-use juggling), and the namespaced `extern "C"` declarations above,
+  whatever type each view gives the object, refer to the same symbol: g++ 2.95 does not compare an `extern "C"`
+  declaration in one namespace with a definition in another (tested). A file-scope declaration must agree with the
+  definition: make it `extern const` for `.rodata` (no code change anywhere; a `char *` return or argument then gets
+  a cast, e.g. `return (char *)D_002A75E0;`, `load_file_from_disc(..., (char *)D_002A6CA0)`).
+- **Types.** Use the type the code gives where it is a plain or header type: `LM`, `CLQ` (`{{{g0, g1, g2, 0}}}`),
+  `SMP`/`SMPA` (GSmooth/PosSmooth parameters, also when the code passes `char[]`), `VECTOR4` for a 16-byte vector,
+  `SNIP` records for BindLoOidTable tables (count from the call). A float pair or float followed by zero words up to
+  a 16-aligned object leaves the padding unclaimed; a POLY between two such pairs is a CLQ (it must be 16-aligned).
+- **Under C linkage in a namespace.** Three cases need a type the file scope cannot give: an object declared `qword`
+  at file scope (no float initializer: rip's D_002C1F40/F90/FA0, tn's D_002C41C0 and VECTOR4[5] D_002C4290), a type
+  with no aggregate initializer (CLASSDESC derives from CLASSINFO), and a view-local type (screen's ITEM[14], relay's
+  CMD, memcard's ENT[], game's 0x1C-byte g_game). Define it as `namespace M_x { extern "C" { T D_xxx = ...; } }`,
+  reopening the view's own namespace when its type is wanted. Same symbol, no change to the reads.
+- **Pointer tables.** Pointees are declared with asm labels in a namespace of the data block
+  (`void StartupDma() __asm__("StartupDma__Fv");`), so no existing declaration changes; casts to the element type.
+  The data check masks relocated words, so each table was also checked with a scratch resolver (R_MIPS_32 symbol +
+  addend against symbol_addrs/functions.csv, compared with the ELF word): class table 383, builtin table 169,
+  render-pass hooks 24, startup stages 19 pointers, all correct.
+- **Is it an object or a field?** Before defining a `.bss` name, look at its neighbours and their owners in text
+  order. Found this phase: D_002E0C20 (game), D_002E0CB4 (cheat), D_002E0CBC (joy, defined in phase 1 and now back to
+  `extern`) and D_002E0CCC (sw) are fields of g_joy (JOY, 0x1100 bytes from 0x2DFC00); D_002DDED4..D_002DDF18 are
+  g_clock fields; D_002DEB40/44/48 g_game fields; D_002E5270 is an address inside memcard's thread stack. A scalar
+  declared by the code with much more room to the next name than its size stays extern ("extent unclear").
+- **Ownership by text order** again beat the survey: g_joy, g_grfjoyt, g_grfusr (survey: guardbhv) are joy's; the
+  ship singleton D_002DFB80 (guardbhv) is tu_17F090's; g_clock (cd) is clock's; the builtin table D_002BBB90 (no
+  owner) is bif's, right after bif's D_002BBB70 (eval only indexes it). `.rodata` names the code no longer uses (now
+  literals in the function) are not defined (guardbhv's D_002A5588..D_002A55A0).
+- **PMF constants** can look like 64-bit integers: tu_17F090's D_002A5630 `{0, 0x53, 12}` is a virtual
+  pointer-to-member (delta 0, vtable index 0x53, vptr at +0xC) passed to PostSwCallback; left for the literal phase.
+- **Vtables.** g++ 2.95 emits a vtable (`_vt$<class>`, `.gnu.linkonce.d`) only where the class's virtual functions
+  are real members. Six are: CLinearHeap (heap), CBinaryInputStream (bis), CQueueInputFile and CQueueInputMemory
+  (bq), DMAS (dmas), GIFS (gifs). Giving them `_vt$... = 0x...; // type:data size:0x..` lines in symbol_addrs.txt
+  makes the data check compare them with the block at the end of `.data`: all MATCH. The word after the first entry
+  (the typeinfo function) is relocated in our objects and 0 in the game; with `-fno-rtti` the six are byte-identical,
+  so the game was most likely built without RTTI (a build-flag decision, below). The other 238 cannot be emitted yet:
+  the classes' virtual functions are free functions with C names (the LO/BASIC hierarchy, CSwHeap, CMemInputStream,
+  ...; heap.cpp's comment), so the classes are views. Four objects emit vtables of view classes (SM, ACCMISS, JT,
+  CMPART2) that name placeholder members (VUnk00__5BASIC, Init__5CPLCY) no object defines: not counted. VIFS's
+  vtable has no counterpart in the game (the block holds one `{EndPrim__4DMASi}` vtable, DMAS's).
+
+| TU | defined | kinds | notes |
+|---|---:|---|---|
+| stepguard | 35 | FLT_MAX (.rodata) x10, floats, cid/oid int tables, float[3]/[2] x5, VECTOR4, bss x3 | |
+| guardbhv | 65 | FLT_MAX (.rodata) x5, floats, LM x5, vectors x7, cid int[5] x2, float[16], bss x3 | .bss after D_002DFB7C is tu_17F090's and joy's |
+| stepplayer | 51 | strings (.rodata) x11, FLT_MAX x3, SNIP[0x35], SMPA x3, gadget table GADGETDESC[43], floats, vectors, bss | |
+| cplcy | 40 | LM/CLQ x21, SMPA/SMP x7, VECTOR4[4], floats, vector (.rodata), bss int | D_002BBB68 (shared block) left |
+| screen | 45 | strings (.rodata) x13, FLT_MAX x3, GADGETITEM[18]/[9]/[8], int tables, SMP, floats, bss x3 (ITEM[14]) | D_003DA180 left |
+| prize | 37 | strings/FLT_MAX (.rodata) x10, SNIP tables (OIDT completed) [1]/[0x18], VECTOR4[9], CLQ, LM, floats | 2 fn-pointer records left |
+| hud | 18 | strings (.rodata) x11, "Widget Item N" char[10][0x30], words x6 | shared constants, fn records, .bss left |
+| cm | 21 | SMP/SMPA, CLQ, vectors (5 zero), smoothing weights int[9], floats, FLT_MAX | |
+| murray | 31 | name string, SNIP[0x89], anim id tables, LM, floats, vectors, g_pmurray | |
+| tu_17F090 | 25 | SMPA x3, CLQ x4, LM x2, floats, vector, ship singleton (.bss) | 2 PMF constants left |
+| memcard | 21 | strings (.rodata) x15, thread stack char[0x4000], ENT[] (0x480), path char[0x50], bss ints | |
+| sw | 26 | strings (.rodata) x3, floats, SMPA, oid table, level-table pointers and counters (.bss after g_sw) | |
+| rip | 23 | FLT_MAX x2, CLQ x4, VECTOR4 x4, floats, LM, pairs | D_002BBB50 (shared block) left |
+| grabspot | 15 | floats, CLQ x2, vector, FLT_MAX | D_002DFB84 left |
+| jt | 16 | name string, SNIP[0xAD]/[0x12], id pairs, CLQ x2, SMPA x2, vectors, LM x2, g_pjt | |
+| tn | 9 | CLQ x2, SMP x3, SMPA x2, VECTOR4, VECTOR4[5] | default CPD, zero SWCBs left |
+| relay | 9 | FLT_MAX x2, floats, float[3], CMD (.bss) | |
+| emitter | 5 | FLT_MAX x3, cid int[4], LM | |
+| sound | 4 | SMP, LM x2 (.rodata), oid int[6] | |
+| game | 4 | string; .bss guard word, g_game, pointer | check tables at 0x2A37E8 left |
+| tu_1D1370 | 9 | SMP x2, SMPA x3, VECTOR4[5], vector, goal tables | |
+| shape | 9 | FLT_MAX x4, int, float[4] x2, floats | |
+| joy | 3 (-1) | g_grfjoyt, g_grfusr, g_joy (JOY) | D_002E0CBC back to extern (a g_joy field) |
+| so, glob | 3, 3 | constraint axes/modes; VIF STMASK/UNPACK tables, vector | |
+| act, xf, lo, grab, rhythm, tu_1471C0 | 2, 1, 1, 1, 1, 1 | FLT_MAX, vectors, zero buffer, singletons/pointers | |
+| class_registry | 1 (199 rows) | CLASSDESC D_002BAAE8[199] (parents, 185 factories) | |
+| main, draw, bif | 1 each | startup stages [20]; render-pass hooks PFNRP[12][2]; Splice builtin table BIF[169] | pointers resolved |
+| clock | 1 | g_clock (CLOCK) | |
+| heap, bis, bq, dmas, gifs | 6 | vtables via symbol_addrs.txt | typeinfo word masked |
+
+**Deferred (data phase 2), with reasons.** Still extern in the merged TUs, by survey kind: 238 vtables, 235 `.bss` names (101 SW
+interiors, 40 end of `.bss`, 31 `.sbss`, 63 others), 144 records with code pointers, 21 PMF constants, 43 int/float
+tables and zero rows, 15 floats, 11 vectors, 4 float pairs, 4 strings, 17 pointer tables and data-pointer records, 7
+engine tables/objects (the survey also lists the 198 row names inside D_002BAAE8, now defined). By reason:
+
+- *Not objects (fields or interiors):* SW interiors (0x3DD490..0x3E1C20, the bulk of the `.bss` count); g_joy fields
+  D_002E0C20/D_002E0CB4/D_002E0CBC/D_002E0CCC; g_clock fields D_002DDED4..D_002DDF18; g_game fields
+  D_002DEB40/44/48; save-manager fields D_002E6604 (+0x24), D_002F633C (+0xFD5C); D_002E5270 (inside memcard's stack:
+  needs `stack + 0x31F0`); D_003DA0B8 (inside screen's objects); D_002DE390/D_002DE3B8/D_002DE440/D_002DE514 (inside
+  cplcy's `.bss` range by text order); tn's default CPD D_002C4120 (its `lmTilt` is the separately named D_002C41A8).
+- *Extent unclear* (a scalar declaration with much more room to the next name): screen D_003DA180, grabspot
+  D_002DFB84, sound D_003DD08C, hud D_002DDF18/D_002DEBF0/D_002DECE0/D_003D9EF4/D_003DA0D8, shd D_002DE18C, the save
+  manager D_002E65E0 itself, hud's objects right after g_sw (D_003E1C70..D_003E21A0).
+- *Not in TU order:* end of `.bss` from 0x4421A0, `.sbss` pool words, `.bss` 0x3DD0E4..0x3DD190 (as in phase 1);
+  frm-range pointer D_002DEA34 (tu_1471C0).
+- *Owner by layout undecided:* the shared constant blocks `.rodata` 0x2A2D00..0x2A2E50 (identity matrices,
+  unit/zero/FLT_MAX vectors) and `.data` 0x2BBB10..0x2BBB90 (bsp's range, names used by rip/cplcy/many); the
+  `.rodata` block 0x2A37E8..0x2A3A30 (game's check tables, memcard's icon data, hud's identity M23, the world-name
+  table D_002A39E8) that sits outside those TUs' `.rodata`.
+- *Waits for types:* the CPD record D_002BF670 (grab; the CPD type lives only in tn.cpp), shd's E[] D_003DA798 (view
+  type), the zero `.data` rows D_002CE4A0/D_002CE4B8 inside the vtable block.
+- *Waits for other phases:* 238 vtables (classes' virtuals are C-named free functions); 21 PMF constants (literal
+  phase, tu_17F090's two included); 144 records with code pointers and the remaining pointer tables (hud's 107
+  `.rodata` widget records, menu/cheat/tu_15CD68 tables, prize's two records): now mechanical with the asm-label
+  pattern and the resolver; generated tables g_aeopid D_002AC880 and g_mpcidarysplopt D_00279AD0 (extend
+  gen_splicewrap); g_gs D_003D4A60 and g_cframe (owner/type not settled).
+
+Pending decisions (user): the palettes D_0029A7C0/D_002A2900 (zero-filled `.rodata` const objects with a dynamic
+initializer that our compiler puts in `.bss`: accept, or `__attribute__((section(".rodata")))`); anything else that
+would need a section attribute (none added this phase; tn's zero `.rodata` SWCBs may be the same case); and, new,
+whether to add `-fno-rtti` to the build flags (the game's vtables have 0 where ours point at a typeinfo function).
+
 ## Linkage of namespace-scoped declarations
 
 A declaration inside a per-function namespace gets the namespace in its symbol unless it has C linkage or an asm
