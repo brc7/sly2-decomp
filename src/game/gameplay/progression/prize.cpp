@@ -1490,7 +1490,7 @@ struct LSG {
     float u;                // 0x44
     char pad48[0x18];
 };
-struct FRAME { int n; FRAME(); ~FRAME(); };
+struct FRAME { int n; FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); };
 struct CANDIDATE;
 struct VU_FLOAT {
     qword q;
@@ -1571,7 +1571,7 @@ typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
 struct CLQ { float g0, g1, g2, gUnused; };
 struct LM { float gMin, gMax; };
-struct FRAME { int n; FRAME(); ~FRAME(); };
+struct FRAME { int n; FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
 struct LINK { char pad0[0x10]; REGION *pregion; };
