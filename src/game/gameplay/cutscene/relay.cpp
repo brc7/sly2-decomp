@@ -6452,3 +6452,15 @@ done:
 }
 } } // namespace M_PjsgNew
 
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A7AD0 = 3.40282347e+38f;
+extern const float D_002A8124 = 3.40282347e+38f;
+float D_002C3620 = 7.0f;
+float D_002C3624 = 10.0f;
+float D_002C3628 = 0.1f;
+float D_002C362C = 10.0f;
+float D_002C3630[3] = {0.25f, 0.01f, 0.0f};
+float D_002C3640 = 0.1f;
+namespace M_PrelaycmdAddRelay { extern "C" { struct CMD D_003DA740; } }
