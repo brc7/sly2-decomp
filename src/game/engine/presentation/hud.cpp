@@ -1234,7 +1234,7 @@ extern "C" void HideWidget(WIDGET *pwidget)
 
 // 0x212A30 func_00212A30
 /** @sly2-annot addr=0x212A30
- * Purpose: if state==2, state time = g_clock.t (restarts the visible-duration timeout)
+ * Purpose: if state==2, state time = g_clock.tReal (restarts the visible-duration timeout)
  * Info: proposed name ResetWidgetVisibleTime (T2); TU hud
  * Notes: names_v2 v1 proposed StopTimer__FP5TIMER (0.006)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
@@ -1245,7 +1245,7 @@ extern "C" void HideWidget(WIDGET *pwidget)
 extern "C" void func_00212A30(WIDGET *pwidget)
 {
     if (pwidget->nState == 2) {
-        pwidget->tState = D_002DDED0.t;
+        pwidget->tState = D_002DDED0.tReal;
     }
 }
 
@@ -1264,7 +1264,7 @@ extern "C" void SetWidgetRequest(WIDGET *pwidget, int nRequest)
 {
     if (pwidget->nRequest != nRequest) {
         pwidget->nRequest = nRequest;
-        pwidget->tRequest = D_002DDED0.t;
+        pwidget->tRequest = D_002DDED0.tReal;
     }
 }
 
