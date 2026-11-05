@@ -34,7 +34,7 @@ Segment 0 covers .text through .bss (file size 0x1DD230, memory size 0x352200); 
 | crt0 | 1 | 1 (`_start`) | yes | src/game/platform/boot/crt0/_start.c; `func_00100000` before it is unmatched |
 | dead code | - | - | - | junk.csv ranges: emit the original bytes to keep addresses |
 | VU microcode, IRX modules | - | - | - | blobs |
-| data nobody defines | - | - | - | 467 absolute address names over all 932 objects (888 before data/address-names; 779 for the 209 merged objects at integrate/round3), see below |
+| data nobody defines | - | - | - | 466 absolute address names over all 932 objects (467 after data/address-names, 888 before it; 779 for the 209 merged objects at integrate/round3), see below |
 
 matched.csv has 6,663 rows (all `match`). Named data objects that the 209 merged objects define, by section (data
 symbols with a known address, bytes): .data 845 objects / 0x81E9 (16.7% of the section), .rodata 205 / 0xF63 (1.3%,
@@ -60,6 +60,8 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
   .data 345 (265 of them the vtable block), .rodata 39, .bss 30, .text 10, .vutext 14, .irx 3, small values 26. Air's
   data, the commons at the end of `.bss`/`.sbss`, interiors (base+offset), PMF constants and hud's records are now
   defined or resolved through objects; the rest and the reasons: tu-merging.md, Data, "Phase 3: address names".
+  **After data/interior-fields**: 468 (466 absolute: sw.cpp defines D_003E1C34; 2 aliases); symcheck's unresolved
+  undefined references 467 (unchanged), relverify 27,043 relocations OK, 0 mismatched.
 - Two objects define different functions under the same file-scope destructor name (`_$_3SPM`, `_$_3OBJ`): per-object
   `objcopy --redefine-syms` files from `tools/linkaliases.py --redefine DIR`.
 - 26,377 relocations agreed with the ELF after data phase 2 (field minus addend = the symbol's config address,
@@ -140,6 +142,18 @@ What it does:
 
 Config names at their config address in the output: 7,022 of 7,075 (wrong: .bss 50, .sbss 2, .rodata 1).
 
+**data/interior-fields (2026-11-05)**, same tool in the Linux workspace; the branch start (data/address-names
+f45178d9) measures .text 1,415,908 equal (objects 1,281,264) and 7,216 of 7,269 names here. After it (memcard, mpeg
+and sw `.bss` laid out as the ELF, tu-merging.md "Phase 4: interior fields"):
+
+| section | bytes | equal | match | from objects | equal | match |
+|---|---:|---:|---:|---:|---:|---:|
+| .text | 1,416,688 | 1,416,092 | 99.96% | 1,282,044 | 1,281,448 | 99.95% |
+| .rodata | 304,356 | 303,029 | 99.56% | 23,564 | 22,237 | 94.37% |
+| .data | 199,088 | 199,068 | 99.99% | 33,981 | 33,961 | 99.94% |
+
+Config names at their config address: 7,239 of 7,273 (wrong: .bss 31, .sbss 2, .rodata 1).
+
 With `--tu-data` (no `-fdata-sections`: each object's .data/.rodata laid out in source order, as a real link would):
 .text 99.80% (objects 99.78%), .rodata 98.14% (objects 11,604 of 17,280 = 67.15%), .data 99.34% (objects 29,655 of
 30,972 = 95.75%); config names at their address 6,652 of 7,133 (wrong: .data 308, .rodata 121, .bss 50). This is
@@ -164,8 +178,10 @@ class destructor, 100 bytes of snd_SendCurrentBatch .data).
    %hi/%lo referencing them). Anonymous literal pools (18 objects; 15 of them interleave with the object's named
    .rodata in the ELF, so in this mode it is an artifact of `-fdata-sections`, in `--tu-data` mode a source data-order
    issue: memcard, guardbhv, text, screen, air, stepplayer, jt, prize ...) and file-level .bss whose order differs
-   from the ELF (`-fdata-sections` does not split .bss in g++ 2.95): gs, joy, dl, shd, screen, mpeg, memcard, game,
-   sprbuf (build/link/conflicts.txt lists the competing addresses).
+   from the ELF (`-fdata-sections` does not split .bss in g++ 2.95): gs, joy, dl, shd, screen, game, sprbuf
+   (build/link/conflicts.txt lists the competing addresses; mpeg, memcard and sw fixed on data/interior-fields: g++
+   emits objects with a constructor at their definition and the rest in first-declaration order, tu-merging.md
+   "Phase 4: interior fields").
 2. **Typeinfo slots in vtables** (17 .data bytes): our vtables point at `__tf*` typeinfo functions, the ELF's slot is 0.
    With `-fno-rtti` the vtables match and the typeinfo extras (and `__rtti_si`/`__rtti_user`) disappear; heap, gifs,
    bq, bis, dmas, vifs and jt compiled with it still MATCH all functions. matchtool's data check masks relocated
