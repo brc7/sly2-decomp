@@ -2761,3 +2761,16 @@ void SetRcPickupState(struct S *p, int n) {
 }
 } } // namespace M_SetRcPickupState
 
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+SMP D_002C2098 = {10.0f, 0.0f, 0.25f};
+SMPA D_002C20A8 = {1.0f, 0.0f, 0.25f, 0.0f};
+VECTOR4 D_002C2150[5] = {{-1.0f, 0.0f, 0.0f, 0.0f}, {-0.707f, 0.0f, -0.707f, 0.0f}, {0.0f, 0.0f, -1.0f, 0.0f},
+    {0.707f, 0.0f, -0.707f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}};
+SMPA D_002C21A0 = {1500.0f, 500.0f, 0.1f, 0.0f};
+SMPA D_002C21B0 = {20.0f, 5.0f, 0.2f, 0.0f};
+SMP D_002C21C0 = {5.0f, 0.0f, 0.2f};
+int D_002C2208[4] = {115, 116, 117, 118};
+VECTOR4 D_002C2230 = {0.5f, 0.001f, 0.0f, 0.0f};
+int D_002C2248[3] = {119, 120, 121};
