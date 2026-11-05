@@ -2737,7 +2737,7 @@ extern "C" void func_001FEEC0(SNDMGRV *psndmgr)
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
-namespace RO_ORDER { extern const SMP r_D_002A8288 __asm__("D_002A8288") = {2.0f, 0.0f, 0.2f}; }
+namespace RO_ORDER { extern const SMP r_D_002A8288 __asm__("D_002A8288") = {2.0f, 0.0f, 0.2f}; }   /* copied whole as three words */
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_PauseSnd() __asm__("PauseSnd");
 extern const unsigned int r_D_002A8298[2] __asm__("D_002A8298") = {0xFFFF0000, (unsigned int)p_PauseSnd};
@@ -2834,13 +2834,3 @@ void func_00259BB0(O **pp, O *o) { if (o) o->vt->f((char *)o + o->vt->d); *pp = 
 extern const LM D_002A83B8 = {500.0f, 3000.0f};
 extern const LM D_002A83C0 = {500.0f, 1000.0f};
 int D_002C3C40[6] = {1548, 1549, 1550, -1, 1551, 1552};
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_sound {
-void p_PauseSnd() __asm__("PauseSnd");
-void p_ResumeSnd() __asm__("ResumeSnd");
-extern "C" {
-}
-} // namespace ANPTR_sound
