@@ -24,7 +24,7 @@
 | [`pipe_jt.cpp`](pipe_jt.cpp) | 1 |
 | [`places.cpp`](places.cpp) | 1 |
 | [`rail.cpp`](rail.cpp) | 1 |
-| [`stepplayer/`](stepplayer/) | 96 |
+| [`stepplayer.cpp`](stepplayer.cpp) | 1 |
 | [`throw.cpp`](throw.cpp) | 1 |
 | [`tu_19F0A8.cpp`](tu_19F0A8.cpp) | 1 |
 | [`tu_201D78.cpp`](tu_201D78.cpp) | 1 |
