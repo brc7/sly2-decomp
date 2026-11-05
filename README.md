@@ -15,7 +15,7 @@ Only functions whose compiled bytes are identical to the original game count, an
 them is checked against the original (relocation-aware check).
 
 ## Toolchain (confirmed)
-- **Game code: ee-gcc 2.95.3 build 136**, flags `-O2 -G0 -ffast-math`, sources compiled as C++ (`-x c++`),
+- **Game code: ee-gcc 2.95.3 build 136**, flags `-O2 -G0 -ffast-math` (plus `-fno-exceptions -fno-rtti`), sources compiled as C++ (`-x c++`),
   assembled with the SN assembler `ps2eeas` from build 114 plus the short-loop filter in `tools/asfix.py`.
   (Sly 1 used SN ee-gcc 2.95.2 v2.73a; Sly 2 differs — it saves `$ra` with `sd`, not `sq`.)
 - **Sony SDK libraries** (`src/sdk/`) use other Sony-era compilers (ee-gcc 2.9x / 2.96 / 3.2); each file names its

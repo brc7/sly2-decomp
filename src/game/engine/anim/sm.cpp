@@ -6,8 +6,8 @@
 // Types: aseg.h SM/SMA, sw.h SW, lo.h LO; the file-scope types after the includes are LoadSmFromBrx's Lilly
 // declarations (SMT, SMS, SMINIT, its CBinaryInputStream...). The m2c bodies and the three C++-named functions are
 // written on them; the other functions keep the per-function views they were matched with, each in a namespace
-// named after it (as vec.cpp and mark.cpp do). __tf2SM is a no-address extra: SM::LoadFromBrx (its first virtual)
-// is defined here, so g++ emits SM's typeinfo function.
+// named after it (as vec.cpp and mark.cpp do). SM::LoadFromBrx (its first virtual) is defined here, so this is SM's
+// key TU (with -fno-rtti g++ emits no typeinfo function __tf2SM for it any more).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sm
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001F1748
 

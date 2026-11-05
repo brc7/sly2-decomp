@@ -63,7 +63,7 @@ verification above. Don't commit the files progress.py regenerates (`docs/progre
 | `ModuleNotFoundError: rabbitizer` | `python3 -m pip install rabbitizer` (or `SLY2_PYTHONPATH` to a checkout) |
 | mixed SDK files fail on macOS with a docker error | start Docker Desktop; build the image (`tools/dev.sh image`) |
 | `tty[@]: unbound variable` | old dev.sh on macOS bash 3.2 — update |
-| `__tf… no address known` | compiler type-info symbol; harmless |
+| `__tf… no address known` | compiler type-info symbol (only without `-fno-rtti`, e.g. an old `SLY2_CFLAGS` env); harmless |
 
 Environment variables: `SLY2_WIBO_BIN` (wibo path), `SLY2_M2C_INC`, `SLY2_PYTHONPATH`, `SLY2_SLY1` (Sly 1 decomp
 checkout for tools/show.py), `SLY2_IMAGE` (Docker image), `JOBS`.

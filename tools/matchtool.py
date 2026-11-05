@@ -24,7 +24,9 @@ CC = os.environ.get('SLY2_CC', os.path.join(ROOT, 'tools', 'compilers', 'bundle'
 WIBO = os.environ.get('SLY2_WIBO', os.path.join(ROOT, 'tools', 'wibo_cc.py'))
 WIBO_CMD = [sys.executable, WIBO] if os.name == 'nt' else [WIBO]   # native Windows: no wibo, wibo_cc.py runs the .exe files
 M2C_INC = os.environ.get('SLY2_M2C_INC', os.path.expanduser('~/m2c'))     # directory holding m2c_macros.h (needed by raw m2c .c files)
-CFLAGS = os.environ.get('SLY2_CFLAGS', '-x c++ -O2 -G0 -ffast-math -mvu0-use-vf0-vf31 -fno-exceptions').split() + ['-B' + os.path.join(ROOT, 'tools/compilers/bundle/ee-gcc2.95.3-136/lib/gcc-lib/ee/2.95.3') + '/']
+# -fno-rtti: the game was built without RTTI (the typeinfo slot of every vtable in the ELF is 0, and no __tf*/__rtti_*
+# code exists); with RTTI g++ fills that slot and emits typeinfo functions for each key TU. C++ only (see compile_src).
+CFLAGS = os.environ.get('SLY2_CFLAGS', '-x c++ -O2 -G0 -ffast-math -mvu0-use-vf0-vf31 -fno-exceptions -fno-rtti').split() + ['-B' + os.path.join(ROOT, 'tools/compilers/bundle/ee-gcc2.95.3-136/lib/gcc-lib/ee/2.95.3') + '/']
 INCLUDES = ['-I' + os.path.join(ROOT, 'include')] + os.environ.get('SLY2_INC', '').split()
 
 rabbitizer.config.regNames_gprAbiNames = rabbitizer.Abi.O32
@@ -273,7 +275,7 @@ def compile_src(src):
     out = tempfile.mktemp(suffix='.o')
     flags = CFLAGS
     if src.endswith('.c'):
-        flags = ['c' if x == 'c++' else x for x in CFLAGS]
+        flags = ['c' if x == 'c++' else x for x in CFLAGS if x != '-fno-rtti']   # C++-only flag
         flags = flags + ['-I' + M2C_INC]
     cc = CC
     # Per-file overrides (used for Sony SDK library code built with other compilers/flags):

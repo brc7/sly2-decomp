@@ -30,7 +30,8 @@ Project root: `/home/claude/decomp`. Always run tools from the root.
    `build/hand_wip/*`, and your notes file `notes/<your-range>.md`.
 
 ## Compiler facts
-- ee-gcc 2.95.3 (build 136), `-O2 -G0 -ffast-math -mvu0-use-vf0-vf31`. `.c` files compile as C, `.cpp` as C++.
+- ee-gcc 2.95.3 (build 136), `-O2 -G0 -ffast-math -mvu0-use-vf0-vf31`. `.c` files compile as C, `.cpp` as C++
+  (with `-fno-exceptions -fno-rtti`: the game's vtables have 0 in the typeinfo slot).
 - The original is C++. Use `.cpp` when the symbol is a mangled name (e.g. `Free__9CDynArray`): declare the class
   locally in your file with the right member offsets and define the method. g++ 2.95 mangling: `Name__ClassArgs`,
   e.g. `Foo__4CBarii` = `CBar::Foo(int,int)`, `__4CBar` = ctor, `_$_4CBar` = dtor, free function

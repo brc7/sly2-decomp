@@ -6,7 +6,7 @@
 // includes are the union of five Lilly ports' private declarations; JT::FCanUseGadget (a member) and the ports
 // that define members stay at file scope, the other ports and the per-function files keep their views in
 // namespaces named after each function (as vec.cpp and mark.cpp do). The m2c bodies are written on the headers.
-// __tf2JT is a no-address extra (a JT key function is defined here).
+// A JT key function is defined here (no __tf2JT typeinfo extra since -fno-rtti).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_jt
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0018E520
 
