@@ -64,13 +64,16 @@ struct LISTENER { char pad0[0xC]; VTE *vt; char pad10[0x18]; int x28; signed cha
                   char pad30[0x10]; unsigned int grfUnk40; char pad44[0xE0 - 0x44]; unsigned int c; NOISE *ao[8]; K k104; };
 typedef char assert_LISTENER_k104[(unsigned int)&((LISTENER *)0)->k104 == 0x104 ? 1 : -1];
 
-extern float D_002BDCD0;
-extern LM D_002BDCD8;
+/* noise's .data (address order): default loudness and its range, the falloff time and polynomial, and the per-kind
+ * noise durations/loudnesses. */
+float D_002BDCD0 = 1500.0f;
+LM D_002BDCD8 = {-200.0f, 500.0f};
 extern SWN D_003DD490;
 extern CLOCK D_002DDED0;
-extern float D_002BDCE0;
-extern float D_002BDCF0[3];
-extern float D_002BDD00, D_002BDD04, D_002BDD08, D_002BDD0C, D_002BDD10, D_002BDD14, D_002BDD18;
+float D_002BDCE0 = 1.0f;
+float D_002BDCF0[3] = {0.15f, 1.1f, -0.25f};
+float D_002BDD00 = -1.0f, D_002BDD04 = 750.0f, D_002BDD08 = 2500.0f, D_002BDD0C = 0.35f, D_002BDD10 = 4000.0f, D_002BDD14 = 0.5f,
+    D_002BDD18 = 1000.0f;
 extern "C" {
 extern VTE D_002CE2B8[];          /* NOISE vtable */
 extern char D_003E148C[];         /* DL of the live noises (D_003DD490 + 0x3FFC) */
