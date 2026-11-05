@@ -1384,6 +1384,11 @@ every function and data symbol MATCH, relocations of the touched objects 14,666 
 unresolved symbol, ld.lld 0 errors (no duplicate definitions). Scratch tools (not in the repo): plan2/mvdef (the
 RO_ORDER moves), gather (one `.data` block), fixalign, dord/rplan/seccmp (layout against the ELF).
 
+**Merged onto integrate/round6 (integrate/round7).** Five sources conflicted with types/views-2/-3 (tu_185130,
+noise, tu_14A008, tu_171F58, throw): this phase's `.data` blocks and `RO_ORDER` definitions kept, spelled with
+views-3's V-renamed private views (`LMV`, `CLQV`) and without the interior macros the views branches replaced by
+typed fields. Link numbers unchanged except where the views moved them (full-link.md, Status).
+
 How the original got one copy where we emitted two (*shared literals*), by kind:
 
 - **Float constants** (FLT_MAX, ...): g++ 2.95 keeps a constant pool per function, so a function that reads a const
