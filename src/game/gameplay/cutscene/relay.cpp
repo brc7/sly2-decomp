@@ -946,7 +946,7 @@ struct RELAY : public LO
 
 LO *PloFindSwObject(SW *psw, GRFFSO grffso, OID oid, LO *ploContext);
 
-void StopAsegSoundEvent(SW *psw, int sfxid, ASEG *paseg, CRefPtr<SND> *ppsnd);
+void StopAsegSoundEvent(SW *psw, int sfxid, ASEG *paseg, CRefPtr<SND> *ppsnd) __asm__("StopSwAsegSound");
 
 LO *FadeAsegObjectEvent(SW *psw, int fIn, OID oid, float dtFade, LO *ploRoot, ASEG *paseg) __asm__("ShowSwAsegObject");
 

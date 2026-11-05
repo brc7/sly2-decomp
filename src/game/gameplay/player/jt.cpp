@@ -442,7 +442,7 @@ struct CLIMBSURF : public XFM
       TRI3 *atri;
       TRI3 *atriB;
       undefined4 unk_0xf4[3];
-    void FindClosestPoint(qword pos, SURFLOC *plocHint, SURFLOC *ploc, qword *ppos, qword *pnormal);
+    void FindClosestPoint(qword pos, SURFLOC *plocHint, SURFLOC *ploc, qword *ppos, qword *pnormal) __asm__("func_00185310");
 };
 
 void RetractAsega(ASEGA *pasega) __asm__("func_00130B18");
@@ -3239,7 +3239,7 @@ void ExplodeExpl(EXPL *pexpl) __asm__("func_0015C150");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
 void CalculateJtHangAccel(JT *pjt) __asm__("CalculateJtHangAccel__FP2JT");
 extern "C" {
-void SetJtAnimState(JT *pjt, int jtas);
+void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtJtcs__FP2JTi");
 }
 extern "C" {
 void SetJtHurtState(JTHURT *pjthurt, int nState);
@@ -3254,7 +3254,7 @@ extern "C" {
 void UpdateJtPounceArc(JT *pjt) __asm__("func_0018E1E0");
 }
 extern "C" {
-void JtHangFrame(JT *pjt, float *prad);
+void JtHangFrame(JT *pjt, float *prad) __asm__("GetJtHangHeading__FP2JTPf");
 }
 extern "C" {
 int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("func_001430C8");
@@ -3272,7 +3272,7 @@ extern "C" {
 void SubscribeLoObject(void *pvTarget, void *pvRef);
 }
 extern "C" {
-void UpdateJtHangPlace(JT *pjt);
+void UpdateJtHangPlace(JT *pjt) __asm__("UpdateJtHangIkGoals__FP2JT");
 }
 extern "C" {
 qword func_00190C58(JT *pjt);

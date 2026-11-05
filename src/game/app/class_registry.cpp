@@ -72,12 +72,12 @@ struct CRef
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     void Decref();
-    void InitTag(int tagk);
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(void *pv);
-    CRef &operator=(qword q);
-    CRef &operator=(bool f);
+    CRef &operator=(void *pv) __asm__("CRef_SetBasic");
+    CRef &operator=(qword q) __asm__("CRef_SetVector_VU_VECTOR");
+    CRef &operator=(bool f) __asm__("CRef_SetBool");
     CRef &operator=(int n);
     CRef &operator=(float g);
 };

@@ -22,7 +22,7 @@ unsigned char D_002DD680[0x800];    /* sector buffer */
 int D_002DDE80, D_002DDE84;
 extern int D_003DD0E4;
 extern "C" {
-char *strupr(char *);
+char *strupr(char *) __asm__("UpperizePchz__FPc");
 char *strcpy(char *, const char *);
 char *strcat(char *, const char *) __asm__("strcpy1");
 unsigned int strlen(const char *);
