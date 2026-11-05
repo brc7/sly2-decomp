@@ -29,17 +29,17 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetShapeClassDesc`](../../../src/game/app/class_registry/GetShapeClassDesc.c) | `0x113AB0` | Pclassinfo |
-| 7 | Init | **override** | [`InitShape`](../../../src/game/engine/physics/shape/InitShape.c) | `0x1E5D80` | Init |
+| 7 | Init | **override** | [`InitShape`](../../../src/game/engine/physics/shape.cpp) | `0x1E5D80` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` | SetParent |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadShapeFromBrx`](../../../src/game/engine/physics/shape/LoadShapeFromBrx.c) | `0x1E5DF8` | LoadFromBrx |
+| 14 | LoadFromBrx | **override** | [`LoadShapeFromBrx`](../../../src/game/engine/physics/shape.cpp) | `0x1E5DF8` | LoadFromBrx |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` | VUnk14 |
 | 16 | Update | inherited (LO) | `UpdateLo` | `0x1A5E28` | VUnk15 |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateShapeXfWorld?`](../../../src/game/engine/physics/shape/func_001E6340.c) | `0x1E6340` | VUnk16 |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`UpdateShapeXfWorld?`](../../../src/game/engine/physics/shape.cpp) | `0x1E6340` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` | RenderSelf |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` | VUnk19 |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` | VUnk37 |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` | VUnk38 |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` | CloneHierarchy |
-| 41 | Clone | **override** | [`CloneShape`](../../../src/game/engine/physics/shape/CloneShape.c) | `0x1E5DB8` | Clone |
+| 41 | Clone | **override** | [`CloneShape`](../../../src/game/engine/physics/shape.cpp) | `0x1E5DB8` | Clone |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` | VUnk41 |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` | VUnk42 |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` | VUnk43 |

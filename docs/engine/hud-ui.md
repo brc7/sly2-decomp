@@ -86,14 +86,14 @@ sprite text elements of kind 1 look up their id here, kind 0 uses a plain locali
 | [0x1B09A8](../../src/game/ui/menu.cpp) | `PauseItemReturnToHideout` | WipeToWorldWarp(...,0x189) and fail current job | 0.85 | T1 | verified |
 | [0x1C8DB8](../../src/game/engine/presentation/prog.cpp) | `CProg_End` | clear progress state (same stores as Begin) | 0.85 | T1 | verified |
 | [0x1C8DD8](../../src/game/engine/presentation/prog.cpp) | `CProg_Draw` | draw progress bar (GIF/DMA packet) | 0.75 | T1 | verified |
-| [0x1D9648](../../src/game/engine/presentation/screen/func_001D9648.c) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
-| [0x1D9820](../../src/game/engine/presentation/screen/DrawUi.c) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
-| [0x1DAEA8](../../src/game/engine/presentation/screen/FPowerupAcquired.c) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
-| [0x1DAF38](../../src/game/engine/presentation/screen/SetPowerupAcquired.cpp) | `SetPowerupAcquired` | Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n | 0.75 | T1 |  |
-| [0x1DC4B0](../../src/game/engine/presentation/screen/func_001DC4B0.c) | `SetThiefnetStickDir` | ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds) | 0.55 | T2 | verified |
-| [0x1DD780](../../src/game/engine/presentation/screen/func_001DD780.c) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
-| [0x1DDBF0](../../src/game/engine/presentation/screen/BuildTitlePromptText.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
-| [0x1DDDB8](../../src/game/engine/presentation/screen/BuildJobListWorldText.c) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
+| [0x1D9648](../../src/game/engine/presentation/screen.cpp) | `UpdateScreens` | Per-frame: handle the pause/menu buttons (joy D_002DFBC4 flags) and run Update (slot 7) of the HUD screens | 0.40 | T2 |  |
+| [0x1D9820](../../src/game/engine/presentation/screen.cpp) | `DrawUi` | Called from main: run 0x1D9878 on the three main HUD screens, then flush the two HUD DMA streams (D_002DEA00/D_002DEA28) | 0.60 | existing | arbitration; replaces existing UpdateRecyclable__3CGc |
+| [0x1DAEA8](../../src/game/engine/presentation/screen.cpp) | `FPowerupAcquired` | Save var powerUps.mppukfAcquired[n] (has the power-up been bought) | 0.75 | T1 |  |
+| [0x1DAF38](../../src/game/engine/presentation/screen.cpp) | `SetPowerupAcquired` | Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n | 0.75 | T1 |  |
+| [0x1DC4B0](../../src/game/engine/presentation/screen.cpp) | `SetThiefnetStickDir` | ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds) | 0.55 | T2 | verified |
+| [0x1DD780](../../src/game/engine/presentation/screen.cpp) | `FScreen52DShown` | Widget fully shown (+0x58==2 and +0x64==2) | 0.35 | T2 | verified |
+| [0x1DDBF0](../../src/game/engine/presentation/screen.cpp) | `BuildTitlePromptText` | Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids 5/6/8/0x56 | 0.85 | T1 | verified |
+| [0x1DDDB8](../../src/game/engine/presentation/screen.cpp) | `BuildJobListWorldText` | Text callback 0x51B: current episode name | 0.85 | T1 | verified |
 | [0x1EE988](../../src/game/engine/font/sjis.cpp) | `WSjisFromCh` | Map one ASCII byte to a 16-bit SJIS code via table | 0.55 | existing | verified, arbitration; replaces existing FUN_001b5b58 |
 | [0x1EEA70](../../src/game/engine/font/sjis.cpp) | `ConvertPchzToSjis` | Convert C string (strlen) to array of u16 SJIS codes | 0.55 | existing | arbitration; replaces existing FUN_001b5c40 |
 | [0x210EB0](../../src/game/engine/presentation/hud/BuildContextText.c) | `BuildContextText` | STRINGGEN getter: strcpy(pchz, context) | 0.75 | T1 |  |

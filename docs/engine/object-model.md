@@ -199,32 +199,32 @@ were live in the Paris hub; guards and pickups are pooled and switched in/out as
 | [0x15E9C8](../../src/game/object/find.cpp) | `CploFindSwObjectsByClass` | Collects up to cploMax LOs of a class (or derived) relative to a context | 0.85 | T1 | verified |
 | [0x15ED78](../../src/game/object/find.cpp) | `PloFindSwObjectByClass` | First LO of a class: CploFindSwObjectsByClass(grffso\|0x200, cid, ctx, 1, &plo) | 0.85 | T1 |  |
 | [0x1603B8](../../src/game/engine/anim/tu_1603B8.cpp) | `LoadXfmConstraintsFromBrx` | Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from the BRX stream, links each dest to its record and sw | 0.75 | T1 | parse |
-| [0x1A5270](../../src/game/object/lo/InitLo.c) | `InitLo` | LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21 | 0.95 | T1 | runtime, verified |
-| [0x1A53E0](../../src/game/object/lo/FreeLoroot.c) | `FreeLoroot` | Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool g_sw+0x398C, clear x14 | 0.85 | T1 | verified |
-| [0x1A5478](../../src/game/object/lo/AddLo.c) | `AddLo` | LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call vt11 AddHierarchy if parent in world, root not-busyk2 | 0.85 | T1 | verified |
-| [0x1A5630](../../src/game/object/lo/RemoveLo.c) | `RemoveLo` | LO vt9 Remove: if in world vt22 + drop root from g_sw+0x2C; drop root from busy list; move to removed tail of child DL, set bit56, remove children (vt | 0.85 | T1 | verified |
-| [0x1A5900](../../src/game/object/lo/func_001A5900.c) | `SetLoParent` | LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set psoParent, vt13 UpdateLoroot, recurse to children ( | 0.85 | T1 | verified |
-| [0x1A5C28](../../src/game/object/lo/LoadLoFromBrx.c) | `LoadLoFromBrx` | LO vt14: LoadOptionsFromBrx loop (0x13F810) | 0.90 | T1 | parse, verified |
-| [0x1A5C48](../../src/game/object/lo/PostLoLoad.c) | `PostLoLoad` | LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf x40\|=2 (wants Splice update) else tSplice(x30)=D_002A | 0.85 | T1 | verified |
-| [0x1A5D58](../../src/game/object/lo/PdcbAddLo.c) | `PdcbAddLo` | Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34 list | 0.85 | T1 | verified |
-| [0x1A5FB8](../../src/game/object/lo/func_001A5FB8.c) | `SetLoBeamXf` | Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos D_002DDF40+0x90) and apply via 0x1A5EE8 | 0.35 | T2 | verified |
-| [0x1A6118](../../src/game/object/lo/RotateLoToMat.c) | `RotateLoToMat` | LO vt30 default no-op | 0.85 | T1 | verified |
-| [0x1A6138](../../src/game/object/lo/GetLoAngularVelocity.c) | `GetLoAngularVelocity` | LO vt34: return zero vector | 0.85 | T1 | verified |
-| [0x1A6148](../../src/game/object/lo/SetLoAngularVelocity.c) | `SetLoAngularVelocity` | LO vt36 default no-op | 0.85 | T1 | verified |
-| [0x1A6150](../../src/game/object/lo/OnLoRemove.c) | `OnLoRemove` | LO vt22: unregister from g_sw per-object update table (0x210268: clear entry, dead++) | 0.85 | T1 | arbitration |
-| [0x1A6178](../../src/game/object/lo/OnLoAdd.c) | `OnLoAdd` | LO vt23: register in g_sw update table (0x210140, compacts when >10% dead) | 0.85 | T1 | arbitration |
-| [0x1A61A0](../../src/game/object/lo/func_001A61A0.c) | `FIsLoInWorld` | bit60 set and plo->ploroot is in g_sw+0x2C list | 0.70 | T1 |  |
-| [0x1A61E0](../../src/game/object/lo/HandleLoSpliceEvent.c) | `HandleLoSpliceEvent` | LO vt3: BASIC Splice-event post (0x1331F8) then for msg 5/6 notify D_002DEB30 with 0x1A/0x1B | 0.85 | T1 | arbitration |
-| [0x1A6290](../../src/game/object/lo/FMatchesLoName.c) | `FMatchesLoName` | True if plo->oid==oid or any proxy-alias node owned by plo has that oid | 0.85 | T1 | verified |
-| [0x1A62E8](../../src/game/object/lo/func_001A62E8.c) | `PosLoWorld` | Return vt31 PmatWorld()->pos (row 3, +0x30) | 0.90 | T1 | verified |
-| [0x1A6318](../../src/game/object/lo/func_001A6318.c) | `PmatLoWorld` | Return vt31 PmatWorld() | 0.90 | T1 | verified |
-| [0x1A6730](../../src/game/object/lo/CloneLo.cpp) | `CloneLo` | LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone proxy nodes when g_sw phase==-2; CopyAb the class body  | 0.85 | T1 | runtime |
-| [0x1A6AD0](../../src/game/object/lo/CloneLoHierarchy.c) | `CloneLoHierarchy` | LO vt40: forwards to vt41 Clone | 0.85 | T1 | runtime |
-| [0x1A6BE8](../../src/game/object/lo/SetLoXfFromMat.c) | `SetLoXfFromMat` | vt29 TranslateToPos(mat.pos) then vt30 RotateToMat(mat) | 0.85 | T1 | verified |
-| [0x1A6CA8](../../src/game/object/lo/SetLoBusyk.c) | `SetLoBusyk` | Set the LO busy kind (LO+0x28 bits 52-55: 0 busy within sBusy of the camera, 1 always busy, 2 never busy, 3 busy within sBusy of the hero) and re-sort | 0.80 | T1 | top50 |
-| [0x1A6EE8](../../src/game/object/lo/func_001A6EE8.c) | `LO_vt43` | LO vt43 default: return 0 | 0.20 | T2 | verified |
-| [0x1A6F00](../../src/game/object/lo/ConvertAloPos.c) | `ConvertAloPos` | Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse); vector by value | 0.80 | T1 |  |
-| [0x1A6FC0](../../src/game/object/lo/ConvertAloVec.c) | `ConvertAloVec` | Same for direction vectors (rotation only, M3) | 0.80 | T1 |  |
+| [0x1A5270](../../src/game/object/lo.cpp) | `InitLo` | LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21 | 0.95 | T1 | runtime, verified |
+| [0x1A53E0](../../src/game/object/lo.cpp) | `FreeLoroot` | Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool g_sw+0x398C, clear x14 | 0.85 | T1 | verified |
+| [0x1A5478](../../src/game/object/lo.cpp) | `AddLo` | LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call vt11 AddHierarchy if parent in world, root not-busyk2 | 0.85 | T1 | verified |
+| [0x1A5630](../../src/game/object/lo.cpp) | `RemoveLo` | LO vt9 Remove: if in world vt22 + drop root from g_sw+0x2C; drop root from busy list; move to removed tail of child DL, set bit56, remove children (vt | 0.85 | T1 | verified |
+| [0x1A5900](../../src/game/object/lo.cpp) | `SetLoParent` | LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set psoParent, vt13 UpdateLoroot, recurse to children ( | 0.85 | T1 | verified |
+| [0x1A5C28](../../src/game/object/lo.cpp) | `LoadLoFromBrx` | LO vt14: LoadOptionsFromBrx loop (0x13F810) | 0.90 | T1 | parse, verified |
+| [0x1A5C48](../../src/game/object/lo.cpp) | `PostLoLoad` | LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf x40\|=2 (wants Splice update) else tSplice(x30)=D_002A | 0.85 | T1 | verified |
+| [0x1A5D58](../../src/game/object/lo.cpp) | `PdcbAddLo` | Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34 list | 0.85 | T1 | verified |
+| [0x1A5FB8](../../src/game/object/lo.cpp) | `SetLoBeamXf` | Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos D_002DDF40+0x90) and apply via 0x1A5EE8 | 0.35 | T2 | verified |
+| [0x1A6118](../../src/game/object/lo.cpp) | `RotateLoToMat` | LO vt30 default no-op | 0.85 | T1 | verified |
+| [0x1A6138](../../src/game/object/lo.cpp) | `GetLoAngularVelocity` | LO vt34: return zero vector | 0.85 | T1 | verified |
+| [0x1A6148](../../src/game/object/lo.cpp) | `SetLoAngularVelocity` | LO vt36 default no-op | 0.85 | T1 | verified |
+| [0x1A6150](../../src/game/object/lo.cpp) | `OnLoRemove` | LO vt22: unregister from g_sw per-object update table (0x210268: clear entry, dead++) | 0.85 | T1 | arbitration |
+| [0x1A6178](../../src/game/object/lo.cpp) | `OnLoAdd` | LO vt23: register in g_sw update table (0x210140, compacts when >10% dead) | 0.85 | T1 | arbitration |
+| [0x1A61A0](../../src/game/object/lo.cpp) | `FIsLoInWorld` | bit60 set and plo->ploroot is in g_sw+0x2C list | 0.70 | T1 |  |
+| [0x1A61E0](../../src/game/object/lo.cpp) | `HandleLoSpliceEvent` | LO vt3: BASIC Splice-event post (0x1331F8) then for msg 5/6 notify D_002DEB30 with 0x1A/0x1B | 0.85 | T1 | arbitration |
+| [0x1A6290](../../src/game/object/lo.cpp) | `FMatchesLoName` | True if plo->oid==oid or any proxy-alias node owned by plo has that oid | 0.85 | T1 | verified |
+| [0x1A62E8](../../src/game/object/lo.cpp) | `PosLoWorld` | Return vt31 PmatWorld()->pos (row 3, +0x30) | 0.90 | T1 | verified |
+| [0x1A6318](../../src/game/object/lo.cpp) | `PmatLoWorld` | Return vt31 PmatWorld() | 0.90 | T1 | verified |
+| [0x1A6730](../../src/game/object/lo.cpp) | `CloneLo` | LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone proxy nodes when g_sw phase==-2; CopyAb the class body  | 0.85 | T1 | runtime |
+| [0x1A6AD0](../../src/game/object/lo.cpp) | `CloneLoHierarchy` | LO vt40: forwards to vt41 Clone | 0.85 | T1 | runtime |
+| [0x1A6BE8](../../src/game/object/lo.cpp) | `SetLoXfFromMat` | vt29 TranslateToPos(mat.pos) then vt30 RotateToMat(mat) | 0.85 | T1 | verified |
+| [0x1A6CA8](../../src/game/object/lo.cpp) | `SetLoBusyk` | Set the LO busy kind (LO+0x28 bits 52-55: 0 busy within sBusy of the camera, 1 always busy, 2 never busy, 3 busy within sBusy of the hero) and re-sort | 0.80 | T1 | top50 |
+| [0x1A6EE8](../../src/game/object/lo.cpp) | `LO_vt43` | LO vt43 default: return 0 | 0.20 | T2 | verified |
+| [0x1A6F00](../../src/game/object/lo.cpp) | `ConvertAloPos` | Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse); vector by value | 0.80 | T1 |  |
+| [0x1A6FC0](../../src/game/object/lo.cpp) | `ConvertAloVec` | Same for direction vectors (rotation only, M3) | 0.80 | T1 |  |
 | [0x1C9940](../../src/game/object/proxy.cpp) | `IdProxy` | (isrc<<16)\|(icopy&0xFFFF) | 0.85 | T1 |  |
 | [0x1C9950](../../src/game/object/proxy.cpp) | `IsrcFromIdProxy` | idProxy>>16 | 0.85 | T1 |  |
 | [0x1C99D8](../../src/game/object/proxy.cpp) | `FindPxr` | Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR | 0.85 | T1 | verified |

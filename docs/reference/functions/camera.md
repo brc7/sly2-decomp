@@ -35,108 +35,108 @@ Totals on this page: EXISTING 3, T1 104, T2 30.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14D3D8](../../../src/game/engine/camera/cm/CM_ctor.c) | `CM_ctor` | CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera policies at +0x3A0..+0x600 | 0.90 | T1 |  |
-| [0x14D470](../../../src/game/engine/camera/cm/SetupCm__FP2CM.c) | `SetupCm__FP2CM` |  | 0.90 | existing | arbitration; replaces existing StartupCm__Fv |
-| [0x14D478](../../../src/game/engine/camera/cm/UpdateCmLast__FP2CM.c) | `UpdateCmLast` | Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50 GetCpdefi into cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then policy vt6 Update(pcpdefi, joy); then fov smoothing (SetCmFov | 0.85 | T1 |  |
-| [0x14D650](../../../src/game/engine/camera/cm/func_0014D650.c) | `ResetCmPolicies` | Calls vt7 (unknown 'reset/close' slot) on every policy in acpr[], then rUnk620=0, rUnk624=10.0 | 0.40 | T2 | verified |
-| [0x14D6D8](../../../src/game/engine/camera/cm/InitCm__FP2CM.cpp) | `InitCm` | Camera init: rgba fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat, RecalcCmFrustrum, SetCmLookAt, CutCm, Init on each embedded policy, push default policy (+0x3A0) with SetCmPolicy(prio 0), tJolt=-10 | 0.90 | T1 |  |
-| [0x14D8C0](../../../src/game/engine/camera/cm/CutCm__FP2CM.c) | `CutCm` | nCut(+0x300) = max(nCut,1): request a camera cut (no smoothing) this frame | 0.85 | T1 | verified |
-| [0x14D8D8](../../../src/game/engine/camera/cm/SetCmCut.c) | `SetCmCut` | Cut with explicit pan/tilt: radCutPan(+0x304)/radCutTilt(+0x308) = args, nCut = max(nCut,2) | 0.60 | T1 |  |
-| [0x14D8F8](../../../src/game/engine/camera/cm/func_0014D8F8.c) | `CombineEyeLookAtProj` | matViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x) | 0.85 | T1 |  |
-| [0x14DA08](../../../src/game/engine/camera/cm/BuildFrustrum.cpp) | `BuildFrustrum` |  |  | existing |  |
-| [0x14DB70](../../../src/game/engine/camera/cm/RecalcCmFrustrum__FP2CM.cpp) | `RecalcCmFrustrum__FP2CM` |  |  | existing |  |
-| [0x14DC58](../../../src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp) | `UpdateCmMat4` | Recomputes matViewProj (+jolt shake for 0.5 s), its inverse, frustum side planes (normal and wide) and transposed VU0 cull rows, then UpdateCmVisZone | 0.90 | T1 | verified |
-| [0x14E000](../../../src/game/engine/camera/cm/func_0014E000.c) | `ICompareCmVisZone` | qsort comparator for vis-zone candidates: by +0x110 desc, +0xE4 desc, then +0x114 (distance) asc | 0.45 | T2 |  |
-| [0x14E078](../../../src/game/engine/camera/cm/UpdateCmVisZone__FP2CM.c) | `UpdateCmVisZone` | Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best via SetCmVisZone if its kind==1 | 0.80 | T1 |  |
-| [0x14E148](../../../src/game/engine/camera/cm/SetCmVisZone.c) | `SetCmVisZone` | If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0 | 0.65 | T1 |  |
-| [0x14E168](../../../src/game/engine/camera/cm/SetCmMat4.c) | `SetCmMat4` | Copies a 4x4 placement into CM::mat (+0x60..0x9F) then UpdateCmMat4 | 0.75 | T1 |  |
-| [0x14E1A8](../../../src/game/engine/camera/cm/func_0014E1A8.c) | `SetCmLookAt` | Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos) (0x11EFB0), rotation 0x11B720, pos row, UpdateCmMat4 | 0.75 | T1 |  |
-| [0x14E270](../../../src/game/engine/camera/cm/BuildCmFgfn.c) | `BuildCmFgfn` | Builds the GS fog function (FGFN) from sNearFog/sFarFog/uFogMax (+0x240..0x248): linear map to 0..4080, +8417280 bias | 0.80 | T1 |  |
-| [0x14E328](../../../src/game/engine/camera/cm/SetCmPolicy.c) | `SetCmPolicy` | Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top: prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate | 0.95 | T1 | runtime |
-| [0x14E4C8](../../../src/game/engine/camera/cm/RevokeCmPolicy.c) | `RevokeCmPolicy` | Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if top removed: Deactivate it and Activate new top | 0.90 | T1 |  |
-| [0x14E698](../../../src/game/engine/camera/cm/CalcCmAdjust.c) | `CalcCmAdjust` | dposAdjust = cylindrical vector (radHome+PI, sAdjust) from CPDEFI +0x30/+0x34 via 0x11E1A0 | 0.70 | T1 |  |
-| [0x14E6D0](../../../src/game/engine/camera/cm/func_0014E6D0.c) | `SpringCm` | Critically-damped spring of *ppos/*pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when nCut | 0.85 | T1 |  |
-| [0x14E768](../../../src/game/engine/camera/cm/AdjustCmCpdefi.c) | `AdjustCmCpdefi` | Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different gains; writes cpdefi.posAdjust = posBase + dposAdjust | 0.85 | T1 |  |
-| [0x14E920](../../../src/game/engine/camera/cm/ResetCmAdjust.c) | `ResetCmAdjust` | dposAdjust = CalcCmAdjust(); zero vAdjust (+0x2D0) and vFocus (+0x2F0) | 0.85 | T1 | verified |
-| [0x14E968](../../../src/game/engine/camera/cm/GetCmCpdefi.c) | `GetCmCpdefi` | If pso == psoAdjust(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and posAdjust = posBase + CalcCmAdjust | 0.85 | T1 |  |
-| [0x14EA08](../../../src/game/engine/camera/cm/FFindCmClearInterval.c) | `FFindCmClearInterval` | Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap > duMin in *puFrom/*puTo | 0.85 | T1 |  |
-| [0x14EB70](../../../src/game/engine/camera/cm/FindCmClosestClearPos.cpp) | `FindCmClosestClearPos` | Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position | 0.90 | T1 |  |
-| [0x14EDA0](../../../src/game/engine/camera/cm/SquishCmEye.c) | `SquishCmEye` | Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix + constraint values via pfn, solves (0x11AD30) and returns v + sum of normal impulses | 0.80 | T1 |  |
-| [0x14F030](../../../src/game/engine/camera/cm/FFilterCamera.c) | `FFilterCamera` | Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0) | 0.60 | T1 |  |
-| [0x14F040](../../../src/game/engine/camera/cm/SvSquishCmEyeConstraint.c) | `SvSquishCmEyeConstraint` | Constraint for SquishCmEye: GSmooth(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye, normal) - smoothed | 0.85 | T1 | verified |
-| [0x14F110](../../../src/game/engine/camera/cm/func_0014F110.cpp) | `ClipCmEye` | vEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt | 0.85 | T1 |  |
-| [0x14F268](../../../src/game/engine/camera/cm/ConvertCmScreenToWorld.c) | `ConvertCmScreenToWorld` | Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat | 0.85 | T1 |  |
-| [0x14F308](../../../src/game/engine/camera/cm/ConvertCmWorldToScreen.c) | `ConvertCmWorldToScreen` | World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4) | 0.85 | T1 |  |
-| [0x14F3C8](../../../src/game/engine/camera/cm/SetCmPos.c) | `SetCmPos` | Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4 | 0.85 | T1 |  |
-| [0x14F428](../../../src/game/engine/camera/cm/SetCmMat.c) | `SetCmMat` | Set rotation from MATRIX3, keep pos, SetCmMat4 | 0.75 | T1 |  |
-| [0x14F478](../../../src/game/engine/camera/cm/GetCmRotDeg.c) | `GetCmRotDeg` | Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees | 0.85 | T1 | verified |
-| [0x14F4E0](../../../src/game/engine/camera/cm/SetCmRotDeg.c) | `SetCmRotDeg` | Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4 | 0.60 | T1 |  |
-| [0x14F5A0](../../../src/game/engine/camera/cm/SetCmFov__FP2CMf.c) | `SetCmFov` | fov(+0x20)=fovTarget(+0x24)=f, dfov=0; RecalcCmFrustrum if changed > 1e-4 | 0.90 | T1 | verified |
-| [0x14F5F8](../../../src/game/engine/camera/cm/SetCmBaseFovTarget.c) | `SetCmBaseFovTarget` | Option setter g_aeopid[162] (field +0x24): fovTarget=f and the active policy's saved fov (acpr[0].pcplcy+4) so Deactivate restores it | 0.50 | T1 |  |
-| [0x14F610](../../../src/game/engine/camera/cm/SetCmNearClip__FP2CMf.c) | `SetCmNearClip` | sNearClip(+0x4C)=f; RecalcCmFrustrum | 0.85 | T1 |  |
-| [0x14F630](../../../src/game/engine/camera/cm/SetCmBaseNearClip.c) | `SetCmBaseNearClip` | Option setter g_aeopid[164]: SetCmNearClip and the active policy's saved near clip (pcplcy+8) | 0.50 | T1 |  |
-| [0x14F670](../../../src/game/engine/camera/cm/SetCmFarClip__FP2CMf.c) | `SetCmFarClip` | sFarClip(+0x50)=f; RecalcCmFrustrum | 0.85 | T1 |  |
-| [0x14F690](../../../src/game/engine/camera/cm/SetCmNearFog__FP2CMf.c) | `SetCmNearFog` | sNearFog(+0x240)=f; RecalcCmFrustrum | 0.85 | T1 |  |
-| [0x14F6B0](../../../src/game/engine/camera/cm/SetCmFarFog__FP2CMf.c) | `SetCmFarFog` | sFarFog(+0x244)=f; RecalcCmFrustrum | 0.85 | T1 | verified |
-| [0x14F6D0](../../../src/game/engine/camera/cm/SetCmUFogMax__FP2CMf.c) | `SetCmUFogMax` | uFogMax(+0x248)=f; RecalcCmFrustrum | 0.85 | T1 |  |
-| [0x14F6F0](../../../src/game/engine/camera/cm/SetCmRgbaFog__FP2CMP4RGBA.c) | `SetCmRgbaFog` | rgbaFog(+0x24C)=*prgba; 0x1ED278 on it; RecalcCmFrustrum | 0.80 | T1 |  |
-| [0x14F730](../../../src/game/engine/camera/cm/SetCmMrdRatio__FP2CMf.c) | `SetCmMrdRatio` | rMRD ratio (+0x18)=f; RecalcCmFrustrum (which derives +0x1C = max(r/fov,1)) | 0.75 | T1 |  |
-| [0x14F750](../../../src/game/engine/camera/cm/func_0014F750.c) | `JoltCm` | tJolt(+0x618)=clock.t, nUnk61c=arg: starts the 0.5 s camera shake applied by UpdateCmMat4 | 0.80 | T1 |  |
-| [0x14F768](../../../src/game/engine/camera/cm/func_0014F768.c) | `BuildCmEyeViewProj` | Builds a view-proj from CM::mat with pos offset along the right axis by +/- rUnk620 (k=1/2) via CombineEyeLookAtProj into pm (proj = pv or matProj) | 0.40 | T2 |  |
-| [0x14F850](../../../src/game/engine/camera/cm/FInsideCmFrustum.c) | `FInsideCmFrustum` | True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags | 0.50 | T1 |  |
-| [0x14F898](../../../src/game/engine/camera/cm/FInsideCmMrd.c) | `FInsideCmMrd` | True if \|dpos\| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) | 0.75 | T1 |  |
+| [0x14D3D8](../../../src/game/engine/camera/cm.cpp) | `CM_ctor` | CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera policies at +0x3A0..+0x600 | 0.90 | T1 |  |
+| [0x14D470](../../../src/game/engine/camera/cm.cpp) | `SetupCm__FP2CM` |  | 0.90 | existing | arbitration; replaces existing StartupCm__Fv |
+| [0x14D478](../../../src/game/engine/camera/cm.cpp) | `UpdateCmLast` | Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50 GetCpdefi into cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then policy vt6 Update(pcpdefi, joy); then fov smoothing (SetCmFov | 0.85 | T1 |  |
+| [0x14D650](../../../src/game/engine/camera/cm.cpp) | `ResetCmPolicies` | Calls vt7 (unknown 'reset/close' slot) on every policy in acpr[], then rUnk620=0, rUnk624=10.0 | 0.40 | T2 | verified |
+| [0x14D6D8](../../../src/game/engine/camera/cm.cpp) | `InitCm` | Camera init: rgba fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat, RecalcCmFrustrum, SetCmLookAt, CutCm, Init on each embedded policy, push default policy (+0x3A0) with SetCmPolicy(prio 0), tJolt=-10 | 0.90 | T1 |  |
+| [0x14D8C0](../../../src/game/engine/camera/cm.cpp) | `CutCm` | nCut(+0x300) = max(nCut,1): request a camera cut (no smoothing) this frame | 0.85 | T1 | verified |
+| [0x14D8D8](../../../src/game/engine/camera/cm.cpp) | `SetCmCut` | Cut with explicit pan/tilt: radCutPan(+0x304)/radCutTilt(+0x308) = args, nCut = max(nCut,2) | 0.60 | T1 |  |
+| [0x14D8F8](../../../src/game/engine/camera/cm.cpp) | `CombineEyeLookAtProj` | matViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x) | 0.85 | T1 |  |
+| [0x14DA08](../../../src/game/engine/camera/cm.cpp) | `BuildFrustrum` |  |  | existing |  |
+| [0x14DB70](../../../src/game/engine/camera/cm.cpp) | `RecalcCmFrustrum__FP2CM` |  |  | existing |  |
+| [0x14DC58](../../../src/game/engine/camera/cm.cpp) | `UpdateCmMat4` | Recomputes matViewProj (+jolt shake for 0.5 s), its inverse, frustum side planes (normal and wide) and transposed VU0 cull rows, then UpdateCmVisZone | 0.90 | T1 | verified |
+| [0x14E000](../../../src/game/engine/camera/cm.cpp) | `ICompareCmVisZone` | qsort comparator for vis-zone candidates: by +0x110 desc, +0xE4 desc, then +0x114 (distance) asc | 0.45 | T2 |  |
+| [0x14E078](../../../src/game/engine/camera/cm.cpp) | `UpdateCmVisZone` | Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best via SetCmVisZone if its kind==1 | 0.80 | T1 |  |
+| [0x14E148](../../../src/game/engine/camera/cm.cpp) | `SetCmVisZone` | If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0 | 0.65 | T1 |  |
+| [0x14E168](../../../src/game/engine/camera/cm.cpp) | `SetCmMat4` | Copies a 4x4 placement into CM::mat (+0x60..0x9F) then UpdateCmMat4 | 0.75 | T1 |  |
+| [0x14E1A8](../../../src/game/engine/camera/cm.cpp) | `SetCmLookAt` | Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos) (0x11EFB0), rotation 0x11B720, pos row, UpdateCmMat4 | 0.75 | T1 |  |
+| [0x14E270](../../../src/game/engine/camera/cm.cpp) | `BuildCmFgfn` | Builds the GS fog function (FGFN) from sNearFog/sFarFog/uFogMax (+0x240..0x248): linear map to 0..4080, +8417280 bias | 0.80 | T1 |  |
+| [0x14E328](../../../src/game/engine/camera/cm.cpp) | `SetCmPolicy` | Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top: prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate | 0.95 | T1 | runtime |
+| [0x14E4C8](../../../src/game/engine/camera/cm.cpp) | `RevokeCmPolicy` | Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if top removed: Deactivate it and Activate new top | 0.90 | T1 |  |
+| [0x14E698](../../../src/game/engine/camera/cm.cpp) | `CalcCmAdjust` | dposAdjust = cylindrical vector (radHome+PI, sAdjust) from CPDEFI +0x30/+0x34 via 0x11E1A0 | 0.70 | T1 |  |
+| [0x14E6D0](../../../src/game/engine/camera/cm.cpp) | `SpringCm` | Critically-damped spring of *ppos/*pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when nCut | 0.85 | T1 |  |
+| [0x14E768](../../../src/game/engine/camera/cm.cpp) | `AdjustCmCpdefi` | Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different gains; writes cpdefi.posAdjust = posBase + dposAdjust | 0.85 | T1 |  |
+| [0x14E920](../../../src/game/engine/camera/cm.cpp) | `ResetCmAdjust` | dposAdjust = CalcCmAdjust(); zero vAdjust (+0x2D0) and vFocus (+0x2F0) | 0.85 | T1 | verified |
+| [0x14E968](../../../src/game/engine/camera/cm.cpp) | `GetCmCpdefi` | If pso == psoAdjust(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and posAdjust = posBase + CalcCmAdjust | 0.85 | T1 |  |
+| [0x14EA08](../../../src/game/engine/camera/cm.cpp) | `FFindCmClearInterval` | Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap > duMin in *puFrom/*puTo | 0.85 | T1 |  |
+| [0x14EB70](../../../src/game/engine/camera/cm.cpp) | `FindCmClosestClearPos` | Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position | 0.90 | T1 |  |
+| [0x14EDA0](../../../src/game/engine/camera/cm.cpp) | `SquishCmEye` | Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix + constraint values via pfn, solves (0x11AD30) and returns v + sum of normal impulses | 0.80 | T1 |  |
+| [0x14F030](../../../src/game/engine/camera/cm.cpp) | `FFilterCamera` | Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0) | 0.60 | T1 |  |
+| [0x14F040](../../../src/game/engine/camera/cm.cpp) | `SvSquishCmEyeConstraint` | Constraint for SquishCmEye: GSmooth(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye, normal) - smoothed | 0.85 | T1 | verified |
+| [0x14F110](../../../src/game/engine/camera/cm.cpp) | `ClipCmEye` | vEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt | 0.85 | T1 |  |
+| [0x14F268](../../../src/game/engine/camera/cm.cpp) | `ConvertCmScreenToWorld` | Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat | 0.85 | T1 |  |
+| [0x14F308](../../../src/game/engine/camera/cm.cpp) | `ConvertCmWorldToScreen` | World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4) | 0.85 | T1 |  |
+| [0x14F3C8](../../../src/game/engine/camera/cm.cpp) | `SetCmPos` | Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4 | 0.85 | T1 |  |
+| [0x14F428](../../../src/game/engine/camera/cm.cpp) | `SetCmMat` | Set rotation from MATRIX3, keep pos, SetCmMat4 | 0.75 | T1 |  |
+| [0x14F478](../../../src/game/engine/camera/cm.cpp) | `GetCmRotDeg` | Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees | 0.85 | T1 | verified |
+| [0x14F4E0](../../../src/game/engine/camera/cm.cpp) | `SetCmRotDeg` | Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4 | 0.60 | T1 |  |
+| [0x14F5A0](../../../src/game/engine/camera/cm.cpp) | `SetCmFov` | fov(+0x20)=fovTarget(+0x24)=f, dfov=0; RecalcCmFrustrum if changed > 1e-4 | 0.90 | T1 | verified |
+| [0x14F5F8](../../../src/game/engine/camera/cm.cpp) | `SetCmBaseFovTarget` | Option setter g_aeopid[162] (field +0x24): fovTarget=f and the active policy's saved fov (acpr[0].pcplcy+4) so Deactivate restores it | 0.50 | T1 |  |
+| [0x14F610](../../../src/game/engine/camera/cm.cpp) | `SetCmNearClip` | sNearClip(+0x4C)=f; RecalcCmFrustrum | 0.85 | T1 |  |
+| [0x14F630](../../../src/game/engine/camera/cm.cpp) | `SetCmBaseNearClip` | Option setter g_aeopid[164]: SetCmNearClip and the active policy's saved near clip (pcplcy+8) | 0.50 | T1 |  |
+| [0x14F670](../../../src/game/engine/camera/cm.cpp) | `SetCmFarClip` | sFarClip(+0x50)=f; RecalcCmFrustrum | 0.85 | T1 |  |
+| [0x14F690](../../../src/game/engine/camera/cm.cpp) | `SetCmNearFog` | sNearFog(+0x240)=f; RecalcCmFrustrum | 0.85 | T1 |  |
+| [0x14F6B0](../../../src/game/engine/camera/cm.cpp) | `SetCmFarFog` | sFarFog(+0x244)=f; RecalcCmFrustrum | 0.85 | T1 | verified |
+| [0x14F6D0](../../../src/game/engine/camera/cm.cpp) | `SetCmUFogMax` | uFogMax(+0x248)=f; RecalcCmFrustrum | 0.85 | T1 |  |
+| [0x14F6F0](../../../src/game/engine/camera/cm.cpp) | `SetCmRgbaFog` | rgbaFog(+0x24C)=*prgba; 0x1ED278 on it; RecalcCmFrustrum | 0.80 | T1 |  |
+| [0x14F730](../../../src/game/engine/camera/cm.cpp) | `SetCmMrdRatio` | rMRD ratio (+0x18)=f; RecalcCmFrustrum (which derives +0x1C = max(r/fov,1)) | 0.75 | T1 |  |
+| [0x14F750](../../../src/game/engine/camera/cm.cpp) | `JoltCm` | tJolt(+0x618)=clock.t, nUnk61c=arg: starts the 0.5 s camera shake applied by UpdateCmMat4 | 0.80 | T1 |  |
+| [0x14F768](../../../src/game/engine/camera/cm.cpp) | `BuildCmEyeViewProj` | Builds a view-proj from CM::mat with pos offset along the right axis by +/- rUnk620 (k=1/2) via CombineEyeLookAtProj into pm (proj = pv or matProj) | 0.40 | T2 |  |
+| [0x14F850](../../../src/game/engine/camera/cm.cpp) | `FInsideCmFrustum` | True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags | 0.50 | T1 |  |
+| [0x14F898](../../../src/game/engine/camera/cm.cpp) | `FInsideCmMrd` | True if \|dpos\| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) | 0.75 | T1 |  |
 
 ## cplcy (0x14FCA8-0x1520C8)
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x14FCA8](../../../src/game/engine/camera/cplcy/CPLCY_ctor.c) | `CPLCY_ctor` | CPLCY base constructor: vptr(+0xC) = D_002CD570 | 0.85 | T1 |  |
-| [0x14FCC0](../../../src/game/engine/camera/cplcy/InitCplcy.c) | `InitCplcy` | Default (empty) CPLCY slot 1 = Init | 0.75 | T1 |  |
-| [0x14FCC8](../../../src/game/engine/camera/cplcy/ActivateCplcy.c) | `ActivateCplcy` | Default slot 2 Activate(psoFocus, pv): pvHero(+0)=psoFocus; save g_cm fovTarget (+4) and sNearClip (+8) | 0.80 | T1 |  |
-| [0x14FCE8](../../../src/game/engine/camera/cplcy/DeactivateCplcy.c) | `DeactivateCplcy` | Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); fovTarget=saved | 0.80 | T1 |  |
-| [0x14FD30](../../../src/game/engine/camera/cplcy/SetCplcy.c) | `SetCplcy` | Default (empty) slot 4: called by SetCmPolicy with pv on every insert | 0.60 | T1 |  |
-| [0x14FD38](../../../src/game/engine/camera/cplcy/CPLCY_Revoke.c) | `CPLCY_Revoke` | Default (empty) slot 5: called by RevokeCmPolicy for each removed entry | 0.60 | T1 |  |
-| [0x14FD40](../../../src/game/engine/camera/cplcy/UpdateCplcy.c) | `UpdateCplcy` | Default (empty) slot 6 Update(pcpdefi, pjoy) | 0.85 | T1 | verified |
-| [0x14FD48](../../../src/game/engine/camera/cplcy/func_0014FD48.c) | `ResetCplcy` | Default (empty) slot 7 | 0.35 | T2 |  |
-| [0x14FD50](../../../src/game/engine/camera/cplcy/FActiveCplcy__FP5CPLCY.c) | `FActiveCplcy` | True if pcplcy is g_cm's current top policy (D_002DE254 = g_cm.acpr[0].pcplcy) | 0.85 | T1 |  |
-| [0x14FD68](../../../src/game/engine/camera/cplcy/CMPART1_ctor.c) | `CMPART1_ctor` | Constructor of the default policy at CM+0x3A0 (vtable D_002CD528) | 0.60 | T1 |  |
-| [0x14FDA0](../../../src/game/engine/camera/cplcy/InitCmpart1.c) | `InitCmpart1` | Slot 1 of D_002CD528: just calls CPLCY::Init | 0.60 | T1 |  |
-| [0x14FDC0](../../../src/game/engine/camera/cplcy/UpdateCmpart1.c) | `UpdateCmpart1` | Slot 6 of D_002CD528: just calls CPLCY::Update (default policy does nothing) | 0.85 | T1 | verified |
-| [0x14FDE0](../../../src/game/engine/camera/cplcy/CPLOOK_ctor.c) | `CPLOOK_ctor` | CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndUnk38 = 0 | 0.80 | T1 |  |
-| [0x14FE58](../../../src/game/engine/camera/cplcy/PosCplookAnchor.c) | `PosCplookAnchor` | Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER | 0.75 | T1 |  |
-| [0x14FEC8](../../../src/game/engine/camera/cplcy/PosCplookEye.c) | `PosCplookEye` | Eye = anchor + RotMatrix(radPan +0x10, radTilt +0x14) * D_002A5000 offset | 0.70 | T1 |  |
-| [0x14FF38](../../../src/game/engine/camera/cplcy/ActivateCplook.c) | `ActivateCplook` | Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits, uZoom=0, fov zoom range, near clip 49, cEnter++ | 0.90 | T1 | runtime |
-| [0x150160](../../../src/game/engine/camera/cplcy/UpdateCplook.c) | `UpdateCplook` | Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks (invert option via splice 0x3D4A60), limits, SetCmLookAt(eye, anchor) | 0.85 | T1 |  |
-| [0x1505D8](../../../src/game/engine/camera/cplcy/func_001505D8.c) | `ResetCplook` | Slot 7: release psndUnk38/psndZoom refs | 0.35 | T2 |  |
-| [0x150610](../../../src/game/engine/camera/cplcy/DeactivateCplook.c) | `DeactivateCplook` | Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then CPLCY::Deactivate | 0.85 | T1 |  |
-| [0x150728](../../../src/game/engine/camera/cplcy/CPZOOM_ctor.c) | `CPZOOM_ctor` | CPZOOM ctor (vtable D_002CD498): rZoomMax(+0xB4)=7.0, uZoomTarget(+0x18)=-1, sounds 0 | 0.80 | T1 |  |
-| [0x150780](../../../src/game/engine/camera/cplcy/PosCpzoomCenter.c) | `PosCpzoomCenter` | Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos | 0.50 | T1 |  |
-| [0x1507F8](../../../src/game/engine/camera/cplcy/PosCpzoomEye.c) | `PosCpzoomEye` | Eye: if ploFocus(+0x14), behind center looking at focus (updates radPan +0xA4); else center + Rot(radPan,radTilt)*offset | 0.50 | T1 |  |
-| [0x150938](../../../src/game/engine/camera/cplcy/ActivateCpzoom.c) | `ActivateCpzoom` | Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49, SnapCpzoom, shares cEnter counter (g_cm+0x4A4) | 0.80 | T1 |  |
-| [0x150A28](../../../src/game/engine/camera/cplcy/UpdateCpzoom.c) | `UpdateCpzoom` | Smooth uZoom toward uZoomTarget with sounds; if posed (fPose +0x40) blend pos/eul/fov to target pose, else smooth center/eye and SetCmLookAt | 0.80 | T1 |  |
-| [0x150DE8](../../../src/game/engine/camera/cplcy/func_00150DE8.c) | `ResetCpzoom` | Slot 7: release the two sound refs (+0xC4/+0xC0) | 0.35 | T2 |  |
-| [0x150E20](../../../src/game/engine/camera/cplcy/SetCpzoomOwner.c) | `SetCpzoomOwner` | ploOwner(+0x10)=plo; if posed, SnapCpzoom; fPose=0 | 0.50 | T1 |  |
-| [0x150E60](../../../src/game/engine/camera/cplcy/SetCpzoomFocus.c) | `SetCpzoomFocus` | ploFocus(+0x14)=plo; if posed, SnapCpzoom; fPose=0 | 0.50 | T1 |  |
-| [0x150EA0](../../../src/game/engine/camera/cplcy/SetCpzoomPose.c) | `SetCpzoomPose` | posTarget(+0x80), eulTarget(+0x90), radFovTarget(+0xA0); if not posed SnapCpzoom; fPose=1 | 0.50 | T1 |  |
-| [0x150EE8](../../../src/game/engine/camera/cplcy/SetCpzoomUZoomTarget.c) | `SetCpzoomUZoomTarget` | uZoomTarget(+0x18)=g | 0.85 | T1 | verified |
-| [0x150EF0](../../../src/game/engine/camera/cplcy/SnapCpzoom.c) | `SnapCpzoom` | Reset smoothed center/eye to current targets, uZoom=uZoomTarget (if >=0), pose = target pose | 0.85 | T1 | verified |
-| [0x150F58](../../../src/game/engine/camera/cplcy/func_00150F58.c) | `FCpzoomCenterArrived` | Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis | 0.45 | T2 |  |
-| [0x151018](../../../src/game/engine/camera/cplcy/func_00151018.c) | `FCpzoomEyeArrived` | Smoothed eye (+0x30) == PosCpzoomEye within 1e-4 | 0.45 | T2 |  |
-| [0x1510D8](../../../src/game/engine/camera/cplcy/func_001510D8.c) | `FCpzoomZoomArrived` | uZoomTarget < 0 or uZoom ~= uZoomTarget (0.01) | 0.45 | T2 |  |
-| [0x151130](../../../src/game/engine/camera/cplcy/DeactivateCpzoom.c) | `DeactivateCpzoom` | Release sounds, clear owner/focus/pose, uZoomTarget=-1, CutCm, CPLCY::Deactivate | 0.80 | T1 |  |
-| [0x151208](../../../src/game/engine/camera/cplcy/CPHANG_ctor.c) | `CPHANG_ctor` | CPHANG ctor (vtable D_002CD450) | 0.85 | T1 | verified |
-| [0x151240](../../../src/game/engine/camera/cplcy/ActivateCphang.c) | `ActivateCphang` | Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1 | 0.70 | T1 |  |
-| [0x1512E0](../../../src/game/engine/camera/cplcy/DeactivateCphang.c) | `DeactivateCphang` | 0x12E460(+0x14), CutCm, CPLCY::Deactivate | 0.70 | T1 |  |
-| [0x151340](../../../src/game/engine/camera/cplcy/UpdateCphang.cpp) | `UpdateCphang` | Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF (0x12D108) and SetCmMat4 from the camera transform | 0.85 | T1 | verified |
-| [0x151610](../../../src/game/engine/camera/cplcy/CPCAMBLEND_ctor.c) | `CPCAMBLEND_ctor` | CPCAMBLEND ctor (vtable D_002CD408) | 0.70 | T1 |  |
-| [0x151648](../../../src/game/engine/camera/cplcy/ActivateCpcamblend.c) | `ActivateCpcamblend` | pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event) | 0.85 | T1 | verified |
-| [0x151698](../../../src/game/engine/camera/cplcy/DeactivateCpcamblend.c) | `DeactivateCpcamblend` | CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0 | 0.75 | T1 |  |
-| [0x151700](../../../src/game/engine/camera/cplcy/UpdateCpcamblend.cpp) | `UpdateCpcamblend` | t=(clock.t - tModeStart)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two CAMPOSEs; SetCmMat4 + SetCmFov | 0.80 | T1 |  |
-| [0x1518C8](../../../src/game/engine/camera/cplcy/CPTURRET_ctor.c) | `CPTURRET_ctor` | CPTURRET ctor (vtable D_002CD3C0) | 0.65 | T1 |  |
-| [0x151900](../../../src/game/engine/camera/cplcy/ActivateCpturret.c) | `ActivateCpturret` | CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC | 0.65 | T1 |  |
-| [0x151950](../../../src/game/engine/camera/cplcy/UpdateCpturret.cpp) | `UpdateCpturret` | Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position unless cut; fov from turret +0x1BC | 0.65 | T1 |  |
-| [0x151BF0](../../../src/game/engine/camera/cplcy/ActivateCptwoshot.c) | `ActivateCptwoshot` | CPLCY::Activate; +0x14=psoFocus arg, +0x10=pv arg | 0.70 | T1 |  |
-| [0x151C38](../../../src/game/engine/camera/cplcy/UpdateCptwoshot.cpp) | `UpdateCptwoshot` | Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by distance curves, look-at matrix, fov from distance curve | 0.75 | T1 |  |
+| [0x14FCA8](../../../src/game/engine/camera/cplcy.cpp) | `CPLCY_ctor` | CPLCY base constructor: vptr(+0xC) = D_002CD570 | 0.85 | T1 |  |
+| [0x14FCC0](../../../src/game/engine/camera/cplcy.cpp) | `InitCplcy` | Default (empty) CPLCY slot 1 = Init | 0.75 | T1 |  |
+| [0x14FCC8](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCplcy` | Default slot 2 Activate(psoFocus, pv): pvHero(+0)=psoFocus; save g_cm fovTarget (+4) and sNearClip (+8) | 0.80 | T1 |  |
+| [0x14FCE8](../../../src/game/engine/camera/cplcy.cpp) | `DeactivateCplcy` | Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); fovTarget=saved | 0.80 | T1 |  |
+| [0x14FD30](../../../src/game/engine/camera/cplcy.cpp) | `SetCplcy` | Default (empty) slot 4: called by SetCmPolicy with pv on every insert | 0.60 | T1 |  |
+| [0x14FD38](../../../src/game/engine/camera/cplcy.cpp) | `CPLCY_Revoke` | Default (empty) slot 5: called by RevokeCmPolicy for each removed entry | 0.60 | T1 |  |
+| [0x14FD40](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCplcy` | Default (empty) slot 6 Update(pcpdefi, pjoy) | 0.85 | T1 | verified |
+| [0x14FD48](../../../src/game/engine/camera/cplcy.cpp) | `ResetCplcy` | Default (empty) slot 7 | 0.35 | T2 |  |
+| [0x14FD50](../../../src/game/engine/camera/cplcy.cpp) | `FActiveCplcy` | True if pcplcy is g_cm's current top policy (D_002DE254 = g_cm.acpr[0].pcplcy) | 0.85 | T1 |  |
+| [0x14FD68](../../../src/game/engine/camera/cplcy.cpp) | `CMPART1_ctor` | Constructor of the default policy at CM+0x3A0 (vtable D_002CD528) | 0.60 | T1 |  |
+| [0x14FDA0](../../../src/game/engine/camera/cplcy.cpp) | `InitCmpart1` | Slot 1 of D_002CD528: just calls CPLCY::Init | 0.60 | T1 |  |
+| [0x14FDC0](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCmpart1` | Slot 6 of D_002CD528: just calls CPLCY::Update (default policy does nothing) | 0.85 | T1 | verified |
+| [0x14FDE0](../../../src/game/engine/camera/cplcy.cpp) | `CPLOOK_ctor` | CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndUnk38 = 0 | 0.80 | T1 |  |
+| [0x14FE58](../../../src/game/engine/camera/cplcy.cpp) | `PosCplookAnchor` | Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER | 0.75 | T1 |  |
+| [0x14FEC8](../../../src/game/engine/camera/cplcy.cpp) | `PosCplookEye` | Eye = anchor + RotMatrix(radPan +0x10, radTilt +0x14) * D_002A5000 offset | 0.70 | T1 |  |
+| [0x14FF38](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCplook` | Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits, uZoom=0, fov zoom range, near clip 49, cEnter++ | 0.90 | T1 | runtime |
+| [0x150160](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCplook` | Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks (invert option via splice 0x3D4A60), limits, SetCmLookAt(eye, anchor) | 0.85 | T1 |  |
+| [0x1505D8](../../../src/game/engine/camera/cplcy.cpp) | `ResetCplook` | Slot 7: release psndUnk38/psndZoom refs | 0.35 | T2 |  |
+| [0x150610](../../../src/game/engine/camera/cplcy.cpp) | `DeactivateCplook` | Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then CPLCY::Deactivate | 0.85 | T1 |  |
+| [0x150728](../../../src/game/engine/camera/cplcy.cpp) | `CPZOOM_ctor` | CPZOOM ctor (vtable D_002CD498): rZoomMax(+0xB4)=7.0, uZoomTarget(+0x18)=-1, sounds 0 | 0.80 | T1 |  |
+| [0x150780](../../../src/game/engine/camera/cplcy.cpp) | `PosCpzoomCenter` | Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos | 0.50 | T1 |  |
+| [0x1507F8](../../../src/game/engine/camera/cplcy.cpp) | `PosCpzoomEye` | Eye: if ploFocus(+0x14), behind center looking at focus (updates radPan +0xA4); else center + Rot(radPan,radTilt)*offset | 0.50 | T1 |  |
+| [0x150938](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCpzoom` | Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49, SnapCpzoom, shares cEnter counter (g_cm+0x4A4) | 0.80 | T1 |  |
+| [0x150A28](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCpzoom` | Smooth uZoom toward uZoomTarget with sounds; if posed (fPose +0x40) blend pos/eul/fov to target pose, else smooth center/eye and SetCmLookAt | 0.80 | T1 |  |
+| [0x150DE8](../../../src/game/engine/camera/cplcy.cpp) | `ResetCpzoom` | Slot 7: release the two sound refs (+0xC4/+0xC0) | 0.35 | T2 |  |
+| [0x150E20](../../../src/game/engine/camera/cplcy.cpp) | `SetCpzoomOwner` | ploOwner(+0x10)=plo; if posed, SnapCpzoom; fPose=0 | 0.50 | T1 |  |
+| [0x150E60](../../../src/game/engine/camera/cplcy.cpp) | `SetCpzoomFocus` | ploFocus(+0x14)=plo; if posed, SnapCpzoom; fPose=0 | 0.50 | T1 |  |
+| [0x150EA0](../../../src/game/engine/camera/cplcy.cpp) | `SetCpzoomPose` | posTarget(+0x80), eulTarget(+0x90), radFovTarget(+0xA0); if not posed SnapCpzoom; fPose=1 | 0.50 | T1 |  |
+| [0x150EE8](../../../src/game/engine/camera/cplcy.cpp) | `SetCpzoomUZoomTarget` | uZoomTarget(+0x18)=g | 0.85 | T1 | verified |
+| [0x150EF0](../../../src/game/engine/camera/cplcy.cpp) | `SnapCpzoom` | Reset smoothed center/eye to current targets, uZoom=uZoomTarget (if >=0), pose = target pose | 0.85 | T1 | verified |
+| [0x150F58](../../../src/game/engine/camera/cplcy.cpp) | `FCpzoomCenterArrived` | Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis | 0.45 | T2 |  |
+| [0x151018](../../../src/game/engine/camera/cplcy.cpp) | `FCpzoomEyeArrived` | Smoothed eye (+0x30) == PosCpzoomEye within 1e-4 | 0.45 | T2 |  |
+| [0x1510D8](../../../src/game/engine/camera/cplcy.cpp) | `FCpzoomZoomArrived` | uZoomTarget < 0 or uZoom ~= uZoomTarget (0.01) | 0.45 | T2 |  |
+| [0x151130](../../../src/game/engine/camera/cplcy.cpp) | `DeactivateCpzoom` | Release sounds, clear owner/focus/pose, uZoomTarget=-1, CutCm, CPLCY::Deactivate | 0.80 | T1 |  |
+| [0x151208](../../../src/game/engine/camera/cplcy.cpp) | `CPHANG_ctor` | CPHANG ctor (vtable D_002CD450) | 0.85 | T1 | verified |
+| [0x151240](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCphang` | Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1 | 0.70 | T1 |  |
+| [0x1512E0](../../../src/game/engine/camera/cplcy.cpp) | `DeactivateCphang` | 0x12E460(+0x14), CutCm, CPLCY::Deactivate | 0.70 | T1 |  |
+| [0x151340](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCphang` | Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF (0x12D108) and SetCmMat4 from the camera transform | 0.85 | T1 | verified |
+| [0x151610](../../../src/game/engine/camera/cplcy.cpp) | `CPCAMBLEND_ctor` | CPCAMBLEND ctor (vtable D_002CD408) | 0.70 | T1 |  |
+| [0x151648](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCpcamblend` | pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event) | 0.85 | T1 | verified |
+| [0x151698](../../../src/game/engine/camera/cplcy.cpp) | `DeactivateCpcamblend` | CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0 | 0.75 | T1 |  |
+| [0x151700](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCpcamblend` | t=(clock.t - tModeStart)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two CAMPOSEs; SetCmMat4 + SetCmFov | 0.80 | T1 |  |
+| [0x1518C8](../../../src/game/engine/camera/cplcy.cpp) | `CPTURRET_ctor` | CPTURRET ctor (vtable D_002CD3C0) | 0.65 | T1 |  |
+| [0x151900](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCpturret` | CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC | 0.65 | T1 |  |
+| [0x151950](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCpturret` | Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position unless cut; fov from turret +0x1BC | 0.65 | T1 |  |
+| [0x151BF0](../../../src/game/engine/camera/cplcy.cpp) | `ActivateCptwoshot` | CPLCY::Activate; +0x14=psoFocus arg, +0x10=pv arg | 0.70 | T1 |  |
+| [0x151C38](../../../src/game/engine/camera/cplcy.cpp) | `UpdateCptwoshot` | Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by distance curves, look-at matrix, fov from distance curve | 0.75 | T1 |  |
 
 ## tn (0x220D40-0x223F70)
 

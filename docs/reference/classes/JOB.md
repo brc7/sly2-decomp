@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetJobClassDesc`](../../../src/game/app/class_registry/GetJobClassDesc.c) | `0x114250` | Pclassinfo |
-| 7 | Init | **override** | [`InitJob`](../../../src/game/world/state/game/InitJob.c) | `0x162448` | Init |
+| 7 | Init | **override** | [`InitJob`](../../../src/game/world/state/game.cpp) | `0x162448` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` | SetParent |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadJobFromBrx`](../../../src/game/world/state/game/LoadJobFromBrx.cpp) | `0x1624A8` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostJobLoad`](../../../src/game/world/state/game/PostJobLoad.c) | `0x162780` | VUnk14 |
-| 16 | Update | **override** | [`UpdateJob`](../../../src/game/world/state/game/UpdateJob.c) | `0x163078` | VUnk15 |
+| 14 | LoadFromBrx | **override** | [`LoadJobFromBrx`](../../../src/game/world/state/game.cpp) | `0x1624A8` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostJobLoad`](../../../src/game/world/state/game.cpp) | `0x162780` | VUnk14 |
+| 16 | Update | **override** | [`UpdateJob`](../../../src/game/world/state/game.cpp) | `0x163078` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` | RenderSelf |

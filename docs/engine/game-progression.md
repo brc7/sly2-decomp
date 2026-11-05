@@ -199,49 +199,49 @@ From [devtools/save_editor](../guides/devtools.md#save_editor) (73 save states; 
 | [0x13C448](../../src/game/gameplay/progression/booty.cpp) | `AddBootyEntryOid` |  | 0.80 | existing | arbitration; replaces existing AddAlarmAlbrk__FP5ALARM3OID |
 | [0x13CFD8](../../src/game/gameplay/progression/booty.cpp) | `OnCid37Add` | cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0) | 0.85 | T2 | arbitration |
 | [0x13D248](../../src/game/gameplay/progression/booty.cpp) | `NBootyContainerKind` | Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1 | 0.85 | T1 | verified |
-| [0x1613A8](../../src/game/world/state/game/StartupGame.c) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
-| [0x1613F8](../../src/game/world/state/game/InitGame.c) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D | 0.55 | T1 | verified |
-| [0x161478](../../src/game/world/state/game/UpdateGameTimers.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); add | 0.75 | T1 |  |
-| [0x161660](../../src/game/world/state/game/NEpisodePercentComplete.cpp) | `NEpisodePercentComplete` | Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state 3)/count, clamped to 1..99 unless 0 or all | 0.65 | T1 |  |
-| [0x1618F8](../../src/game/world/state/game/func_001618F8.c) | `ShowSwWidget3BC4Timed` | Shows HUD widget g_sw+0x3BC4 (clears +0x8C, vt49 Show(-1)) and sets its hide time g_sw+0x476C = now + dt | 0.40 | T2 | verified |
-| [0x1619A0](../../src/game/world/state/game/BroadcastGameEvent.c) | `BroadcastGameEvent` | Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list g_sw+0x3B00) of the current job (SendTaskGameEvent), then the | 0.85 | T1 | verified |
-| [0x161FC8](../../src/game/world/state/game/GrfFromState.c) | `GrfFromState` | 1<<state, 0 for -1 | 0.85 | T1 | verified |
-| [0x162448](../../src/game/world/state/game/InitJob.c) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
-| [0x1624A8](../../src/game/world/state/game/LoadJobFromBrx.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
-| [0x162600](../../src/game/world/state/game/AddJobCompleteEvent.c) | `AddJobCompleteEvent` | Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives | 0.55 | existing | arbitration; replaces existing FUN_001e53f8 |
-| [0x162908](../../src/game/world/state/game/EndCurrentJob.c) | `EndCurrentJob` | If p is the current job, EndJob(p) | 0.85 | T1 | verified |
-| [0x162BB8](../../src/game/world/state/game/HandleJobGameEvent.cpp) | `HandleJobGameEvent` | Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (-> 0x162DD0) and fail-event list (-> FailJob); if not live, | 0.60 | T1 | verified |
-| [0x163078](../../src/game/world/state/game/UpdateJob.c) | `UpdateJob` | JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when the widget label finishes | 0.60 | T1 |  |
-| [0x1633E8](../../src/game/world/state/game/FIsCurrentJob.c) | `FIsCurrentJob` | p == g_sw+0x3B0C (current job) | 0.85 | T1 | verified |
-| [0x163460](../../src/game/world/state/game/UpdateJobSaveVars.cpp) | `UpdateJobSaveVars` | Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs (+0xD0/+0xD8/+0xE0) | 0.50 | T1 |  |
-| [0x1635A0](../../src/game/world/state/game/InitTask.c) | `InitTask` | TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC | 0.70 | T1 |  |
-| [0x1635F8](../../src/game/world/state/game/LoadTaskFromBrx.cpp) | `LoadTaskFromBrx` | TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and successors (+0x9C) | 0.75 | T1 | parse |
-| [0x1638F8](../../src/game/world/state/game/PostTaskLoad.c) | `PostTaskLoad` | TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK pointers, apply inactive visuals if live, restore two sa | 0.65 | T1 |  |
-| [0x163B48](../../src/game/world/state/game/UpdateTask.c) | `UpdateTask` | TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO (+0x80, AddLo) only while available and no job is curren | 0.60 | T1 |  |
-| [0x164018](../../src/game/world/state/game/FIsCurrentTask.c) | `FIsCurrentTask` | p == g_sw+0x3B10 | 0.70 | T1 |  |
-| [0x164098](../../src/game/world/state/game/OidFromTaskState.c) | `OidFromTaskState` | Maps task state 0..3 to oid 0x612..0x615 (the default SM goal per state), else -1 | 0.60 | T1 | verified |
-| [0x1643B0](../../src/game/world/state/game/UpdateTaskSaveVars.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
-| [0x1657A8](../../src/game/world/state/game/AnnounceTaskJob.c) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
-| [0x165B40](../../src/game/world/state/game/RecomputeTaskState.c) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
-| [0x1C4E50](../../src/game/gameplay/progression/prize/InitDprize.c) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
-| [0x1C4EF8](../../src/game/gameplay/progression/prize/LoadDprizeFromBrx.c) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
-| [0x1C4F60](../../src/game/gameplay/progression/prize/PostDprizeLoad.c) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |
-| [0x1C5148](../../src/game/gameplay/progression/prize/ProjectDprizeTransform.cpp) | `ProjectDprizeTransform` | DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base) | 0.75 | T1 |  |
-| [0x1C55E0](../../src/game/gameplay/progression/prize/CheckDprizeBounce.cpp) | `CheckDprizeBounce` | query nearby solids (0x20FAA0) and resolve deepest contact (bounce) | 0.70 | T1 |  |
-| [0x1C5E48](../../src/game/gameplay/progression/prize/UpdateDprize.cpp) | `UpdateDprize` | DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect | 0.80 | T1 |  |
-| [0x1C5FA0](../../src/game/gameplay/progression/prize/RenderDprizeSelf.cpp) | `RenderDprizeSelf` | DPRIZE vt19 RenderSelf (bob/spin then SO render) | 0.85 | T1 | verified |
-| [0x1C60B8](../../src/game/gameplay/progression/prize/SetDprizeDprizes.c) | `SetDprizeDprizes` | DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps) | 0.85 | T1 | verified |
-| [0x1C68F0](../../src/game/gameplay/progression/prize/func_001C68F0.c) | `SetMedicineDprizes` | CID 93 setter (uses PpoCur - gives to current character) | 0.35 | T2 | verified, whole-game |
-| [0x1C6AB0](../../src/game/gameplay/progression/prize/OnMedicineSmackDone.c) | `OnMedicineSmackDone` | 8-byte helper | 0.60 | T1 | verified, whole-game |
-| [0x1C6B28](../../src/game/gameplay/progression/prize/func_001C6B28.c) | `SetKeyDprizes` | CID 92 setter (sound on collect) | 0.35 | T2 | verified, whole-game |
-| [0x1C6BD0](../../src/game/gameplay/progression/prize/LaunchSprayedDprize.c) | `LaunchSprayedDprize` | re-parent spawned prize (0x1A58D0) and init motion | 0.60 | T1 | verified |
-| [0x1C6CE8](../../src/game/gameplay/progression/prize/PdprizeNewSpray.c) | `PdprizeNewSpray` | make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo) | 0.50 | T1 | runtime |
-| [0x1C76D0](../../src/game/gameplay/progression/prize/LoadLootFromBrx.c) | `LoadLootFromBrx` | CID 94 LoadFromBrx (base + copies table on stack heap) | 0.75 | T1 | parse, verified |
-| [0x1C7988](../../src/game/gameplay/progression/prize/AddLootEntry.c) | `AddLootEntry` | calls 0x1C7A08 stub | 0.70 | T1 | arbitration |
-| [0x1C7A10](../../src/game/gameplay/progression/prize/AddAlarmSensor__FP5ALARM3OID.cpp) | `AddLootEntryOid` | Append OID to the list behind this+0x244 (count +0x1C, max 3) | 0.85 | existing | arbitration; replaces existing AddAlarmSensor__FP5ALARM3OID |
-| [0x1C7EA8](../../src/game/gameplay/progression/prize/func_001C7EA8.c) | `ClueVt27` | CID 95 vt27 | 0.30 | T2 | verified |
-| [0x1C8350](../../src/game/gameplay/progression/prize/func_001C8350.c) | `UpdateVault` | CID 78 vt16: per-state update (input / open) | 0.45 | T2 | verified |
-| [0x1C8730](../../src/game/gameplay/progression/prize/func_001C8730.c) | `SetVaultState` | state transition (camera/sound/hands-off) | 0.35 | T2 | verified |
+| [0x1613A8](../../src/game/world/state/game.cpp) | `StartupGame` | Once-per-boot game startup from main: language-dependent init (sceScfGetLanguage), broadcast game event 0, init the game sequence queue D_002E1E88 | 0.75 | T1 |  |
+| [0x1613F8](../../src/game/world/state/game.cpp) | `InitGame` | Resets the 0x1C-byte GAME record g_game (D_002DEB30): zero, oidJob/oidTask/oidTaskPending (+0x10/+0x14/+0x18) = -1; ResetGs(g_gs,0); InitDifficulty; D | 0.55 | T1 | verified |
+| [0x161478](../../src/game/world/state/game.cpp) | `UpdateGameTimers` | Per-tick: adds dt to the total-play-time save var (g_sw+0x3B1C) and to the current episode's play-time var (g_sw+0x3B58[NWorldCur()], 9 episodes); add | 0.75 | T1 |  |
+| [0x161660](../../src/game/world/state/game.cpp) | `NEpisodePercentComplete` | Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state 3)/count, clamped to 1..99 unless 0 or all | 0.65 | T1 |  |
+| [0x1618F8](../../src/game/world/state/game.cpp) | `ShowSwWidget3BC4Timed` | Shows HUD widget g_sw+0x3BC4 (clears +0x8C, vt49 Show(-1)) and sets its hide time g_sw+0x476C = now + dt | 0.40 | T2 | verified |
+| [0x1619A0](../../src/game/world/state/game.cpp) | `BroadcastGameEvent` | Game event bus: HandleGameEvent(g_game), difficulty 0x154A90, every AVAILABLE task (list g_sw+0x3B00) of the current job (SendTaskGameEvent), then the | 0.85 | T1 | verified |
+| [0x161FC8](../../src/game/world/state/game.cpp) | `GrfFromState` | 1<<state, 0 for -1 | 0.85 | T1 | verified |
+| [0x162448](../../src/game/world/state/game.cpp) | `InitJob` | JOB (cid 0x84) Init: LO Init, difficulty-ease thresholds 480/720 s, ids -1, InitDl(+0x80, link 0x84) for its tasks | 0.70 | T1 | verified |
+| [0x1624A8](../../src/game/world/state/game.cpp) | `LoadJobFromBrx` | JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load, shrinks to the counts read | 0.75 | T1 | parse, verified |
+| [0x162600](../../src/game/world/state/game.cpp) | `AddJobCompleteEvent` | Splice: appends a game-event id to the job list at +0x54/+0x58 (max 32); HandleJobGameEvent fires event 0x1D when it arrives | 0.55 | existing | arbitration; replaces existing FUN_001e53f8 |
+| [0x162908](../../src/game/world/state/game.cpp) | `EndCurrentJob` | If p is the current job, EndJob(p) | 0.85 | T1 | verified |
+| [0x162BB8](../../src/game/world/state/game.cpp) | `HandleJobGameEvent` | Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (-> 0x162DD0) and fail-event list (-> FailJob); if not live, | 0.60 | T1 | verified |
+| [0x163078](../../src/game/world/state/game.cpp) | `UpdateJob` | JOB Update: completion sequence phases 1 (intro label on widget) -> 2/3 -> done, advancing when the widget label finishes | 0.60 | T1 |  |
+| [0x1633E8](../../src/game/world/state/game.cpp) | `FIsCurrentJob` | p == g_sw+0x3B0C (current job) | 0.85 | T1 | verified |
+| [0x163460](../../src/game/world/state/game.cpp) | `UpdateJobSaveVars` | Writes job count (+0x7C), complete flag and elapsed time (+0xA4) into its three save-var refs (+0xD0/+0xD8/+0xE0) | 0.50 | T1 |  |
+| [0x1635A0](../../src/game/world/state/game.cpp) | `InitTask` | TASK (cid 0x85) Init: LO Init, ids -1, counts tasks in g_sw+0x3AFC | 0.70 | T1 |  |
+| [0x1635F8](../../src/game/world/state/game.cpp) | `LoadTaskFromBrx` | TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and successors (+0x9C) | 0.75 | T1 | parse |
+| [0x1638F8](../../src/game/world/state/game.cpp) | `PostTaskLoad` | TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK pointers, apply inactive visuals if live, restore two sa | 0.65 | T1 |  |
+| [0x163B48](../../src/game/world/state/game.cpp) | `UpdateTask` | TASK Update: time-limited available task sends timeout (SendTaskTimeout); shows its marker LO (+0x80, AddLo) only while available and no job is curren | 0.60 | T1 |  |
+| [0x164018](../../src/game/world/state/game.cpp) | `FIsCurrentTask` | p == g_sw+0x3B10 | 0.70 | T1 |  |
+| [0x164098](../../src/game/world/state/game.cpp) | `OidFromTaskState` | Maps task state 0..3 to oid 0x612..0x615 (the default SM goal per state), else -1 | 0.60 | T1 | verified |
+| [0x1643B0](../../src/game/world/state/game.cpp) | `UpdateTaskSaveVars` | Writes task fields (two ints, complete flag, state, false) into five save-var refs and refreshes its job's vars | 0.50 | T1 |  |
+| [0x1657A8](../../src/game/world/state/game.cpp) | `AnnounceTaskJob` | Broadcasts event 0x1E with the task's job | 0.85 | T1 | verified |
+| [0x165B40](../../src/game/world/state/game.cpp) | `RecomputeTaskState` | Derives a successor's state from its prerequisites (locked unless all complete; locked->available) | 0.85 | T1 | verified |
+| [0x1C4E50](../../src/game/gameplay/progression/prize.cpp) | `InitDprize` | DPRIZE::Init (vt7): InitSo + 0x1F7918 setup | 0.85 | T1 | verified |
+| [0x1C4EF8](../../src/game/gameplay/progression/prize.cpp) | `LoadDprizeFromBrx` | DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8) | 0.85 | T1 | parse |
+| [0x1C4F60](../../src/game/gameplay/progression/prize.cpp) | `PostDprizeLoad` | DPRIZE vt15 PostLoad: base + resolve linked objects via SW lookup | 0.85 | T1 | verified |
+| [0x1C5148](../../src/game/gameplay/progression/prize.cpp) | `ProjectDprizeTransform` | DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base) | 0.75 | T1 |  |
+| [0x1C55E0](../../src/game/gameplay/progression/prize.cpp) | `CheckDprizeBounce` | query nearby solids (0x20FAA0) and resolve deepest contact (bounce) | 0.70 | T1 |  |
+| [0x1C5E48](../../src/game/gameplay/progression/prize.cpp) | `UpdateDprize` | DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect | 0.80 | T1 |  |
+| [0x1C5FA0](../../src/game/gameplay/progression/prize.cpp) | `RenderDprizeSelf` | DPRIZE vt19 RenderSelf (bob/spin then SO render) | 0.85 | T1 | verified |
+| [0x1C60B8](../../src/game/gameplay/progression/prize.cpp) | `SetDprizeDprizes` | DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps) | 0.85 | T1 | verified |
+| [0x1C68F0](../../src/game/gameplay/progression/prize.cpp) | `SetMedicineDprizes` | CID 93 setter (uses PpoCur - gives to current character) | 0.35 | T2 | verified, whole-game |
+| [0x1C6AB0](../../src/game/gameplay/progression/prize.cpp) | `OnMedicineSmackDone` | 8-byte helper | 0.60 | T1 | verified, whole-game |
+| [0x1C6B28](../../src/game/gameplay/progression/prize.cpp) | `SetKeyDprizes` | CID 92 setter (sound on collect) | 0.35 | T2 | verified, whole-game |
+| [0x1C6BD0](../../src/game/gameplay/progression/prize.cpp) | `LaunchSprayedDprize` | re-parent spawned prize (0x1A58D0) and init motion | 0.60 | T1 | verified |
+| [0x1C6CE8](../../src/game/gameplay/progression/prize.cpp) | `PdprizeNewSpray` | make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo) | 0.50 | T1 | runtime |
+| [0x1C76D0](../../src/game/gameplay/progression/prize.cpp) | `LoadLootFromBrx` | CID 94 LoadFromBrx (base + copies table on stack heap) | 0.75 | T1 | parse, verified |
+| [0x1C7988](../../src/game/gameplay/progression/prize.cpp) | `AddLootEntry` | calls 0x1C7A08 stub | 0.70 | T1 | arbitration |
+| [0x1C7A10](../../src/game/gameplay/progression/prize.cpp) | `AddLootEntryOid` | Append OID to the list behind this+0x244 (count +0x1C, max 3) | 0.85 | existing | arbitration; replaces existing AddAlarmSensor__FP5ALARM3OID |
+| [0x1C7EA8](../../src/game/gameplay/progression/prize.cpp) | `ClueVt27` | CID 95 vt27 | 0.30 | T2 | verified |
+| [0x1C8350](../../src/game/gameplay/progression/prize.cpp) | `UpdateVault` | CID 78 vt16: per-state update (input / open) | 0.45 | T2 | verified |
+| [0x1C8730](../../src/game/gameplay/progression/prize.cpp) | `SetVaultState` | state transition (camera/sound/hands-off) | 0.35 | T2 | verified |
 | [0x22A908](../../src/game/gameplay/progression/waypoint.cpp) | `RenderWaypt` | fades the job marker, draws 3 child SOs scaled by distance, job name plate | 0.85 | T1 | verified |
 
 Selected 48 of 193 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/game-progression.md](../reference/functions/game-progression.md).

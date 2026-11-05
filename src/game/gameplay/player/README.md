@@ -11,7 +11,7 @@
 | [`empty_1344F0.cpp`](empty_1344F0.cpp) | 1 |
 | [`empty_1378D8.cpp`](empty_1378D8.cpp) | 1 |
 | [`grab.cpp`](grab.cpp) | 1 |
-| [`grabspot/`](grabspot/) | 74 |
+| [`grabspot.cpp`](grabspot.cpp) | 1 |
 | [`hang.cpp`](hang.cpp) | 1 |
 | [`hnd.cpp`](hnd.cpp) | 1 |
 | [`hurt.cpp`](hurt.cpp) | 1 |
@@ -19,12 +19,12 @@
 | [`jtgoal.cpp`](jtgoal.cpp) | 1 |
 | [`jthands.cpp`](jthands.cpp) | 1 |
 | [`mode.cpp`](mode.cpp) | 1 |
-| [`murray/`](murray/) | 66 |
+| [`murray.cpp`](murray.cpp) | 1 |
 | [`pipe.cpp`](pipe.cpp) | 1 |
 | [`pipe_jt.cpp`](pipe_jt.cpp) | 1 |
 | [`places.cpp`](places.cpp) | 1 |
 | [`rail.cpp`](rail.cpp) | 1 |
-| [`stepplayer/`](stepplayer/) | 96 |
+| [`stepplayer.cpp`](stepplayer.cpp) | 1 |
 | [`throw.cpp`](throw.cpp) | 1 |
 | [`tu_19F0A8.cpp`](tu_19F0A8.cpp) | 1 |
 | [`tu_201D78.cpp`](tu_201D78.cpp) | 1 |

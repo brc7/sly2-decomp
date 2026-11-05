@@ -62,42 +62,42 @@ Related: [reference/save-variables.md](../reference/save-variables.md) (the vari
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x1AA978](../../src/game/ui/memcard/StartupMemcard__Fv.c) | `StartupMemcard` | Startup-table entry: reset D_002DEB30 (0x1613F8), clear D_004425D8, InitSave(&g_save,0,0) | 0.85 | T1 | verified |
-| [0x1AA9B8](../../src/game/ui/memcard/FillMcDirInfo.c) | `FillMcDirInfo` | memset + fill a save-directory info block from sceMcGetDir results | 0.60 | existing | arbitration; replaces existing FUN_0018b780 |
-| [0x1AAB48](../../src/game/ui/memcard/FUN_0018b910__Fi.cpp) | `McResFromSyncState` | sceMcSync state -> internal result: 0 -> 0x1D (done), >0 -> 0x1E, <0 -> 0x1F | 0.50 | existing | arbitration; replaces existing FUN_0018b910__Fi |
-| [0x1AAB68](../../src/game/ui/memcard/FUN_0018b930__Fi.cpp) | `McResFromSyncCmd` | sceMcSync cmd result -> 0x21 (0), 0x22 (1), 0x20 (-1), else 0x1F | 0.50 | existing | arbitration; replaces existing FUN_0018b930__Fi |
-| [0x1AABC0](../../src/game/ui/memcard/MsgFromMcError.c) | `MsgFromMcError` | (kind 1..21, sceMc error) -> message id for the UI | 0.60 | existing | arbitration; replaces existing FUN_0018b988 |
-| [0x1AAED8](../../src/game/ui/memcard/InitMemcard__FP7MEMCARD.c) | `InitMemcard` | MEMCARD init: SemaCreate(1,1), thread id -1, prio 0x20 | 0.75 | T1 | verified |
-| [0x1AAF18](../../src/game/ui/memcard/MemcardThreadMain.c) | `MemcardThreadMain` | Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear job, signal, ExitThread | 0.60 | T1 |  |
-| [0x1AAF90](../../src/game/ui/memcard/CreateMemcardThread.c) | `CreateMemcardThread` | Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, CreateThread+StartThread | 0.85 | T1 | verified |
-| [0x1AB040](../../src/game/ui/memcard/SetMemcardThreadHighPrio__FP7MEMCARD.c) | `SetMemcardThreadHighPrio` | If thread valid ChangeThreadPriority(id,1); then wait/signal sema (block until job finishes) | 0.60 | T1 | verified |
-| [0x1AB088](../../src/game/ui/memcard/FMemcardThreadValid__FP7MEMCARD.c) | `FMemcardThreadValid__FP7MEMCARD` | Thread id (+4) != -1 | 0.90 | existing | verified |
-| [0x1AB098](../../src/game/ui/memcard/McSyncResult.c) | `McSyncResult` | Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError | 0.60 | existing | arbitration; replaces existing FUN_0018bc90 |
-| [0x1AB1A0](../../src/game/ui/memcard/UpdateSave__FP4SAVE.c) | `UpdateSave` | Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0) or advance state (0x1AB418); autosave trigger with  | 0.80 | T1 | verified |
-| [0x1AB398](../../src/game/ui/memcard/CompareSaves__FP4SAVET0.c) | `CompareSaves__FP4SAVET0` | existing | 0.85 | existing | verified |
-| [0x1AB6C0](../../src/game/ui/memcard/McJobFormat.c) | `McJobFormat` | Thread job: sceMcFormat(port,slot); result -> SAVE next state 2/3 and UI state | 0.75 | T1 |  |
-| [0x1AB750](../../src/game/ui/memcard/FOpenSaveIconFile.cpp) | `FOpenSaveIconFile` | Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670 | 0.35 | existing | arbitration; replaces existing FUN_0018c1e8 |
-| [0x1ABA10](../../src/game/ui/memcard/McJobGetDir.c) | `McJobGetDir` | Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8) | 0.60 | existing | arbitration; replaces existing FUN_0018c420 |
-| [0x1ABB10](../../src/game/ui/memcard/BuildSaveFilePath.c) | `BuildSaveFilePath` | sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i) | 0.85 | T1 | verified |
-| [0x1ABB60](../../src/game/ui/memcard/McJobSaveSlot.c) | `McJobSaveSlot` | Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420) | 0.85 | T1 | verified |
-| [0x1ABE78](../../src/game/ui/memcard/ReadMcDir.c) | `ReadMcDir` | sceMcGetDir into table, then FillMcDirInfo | 0.50 | existing | arbitration; replaces existing FUN_0018c888 |
-| [0x1ABFC0](../../src/game/ui/memcard/ReadMcDirWrapper.c) | `ReadMcDirWrapper` | wrapper of 0x1ABE78 | 0.35 | existing | arbitration; replaces existing FUN_0018c9c0 |
-| [0x1AC008](../../src/game/ui/memcard/WriteIconSys.c) | `WriteIconSys` | Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it | 0.60 | existing | verified, arbitration; replaces existing FUN_0018ca10 |
-| [0x1AC260](../../src/game/ui/memcard/load_file_from_disc.cpp) | `load_file_from_disc` | Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close | 0.60 | T1 | verified |
-| [0x1AC420](../../src/game/ui/memcard/WriteSaveSlotFile.c) | `WriteSaveSlotFile` | BuildSaveFilePath + McWriteFile | 0.40 | existing | arbitration; replaces existing FUN_0018d2e8 |
-| [0x1AC468](../../src/game/ui/memcard/WriteSaveSlotFileReset.c) | `WriteSaveSlotFileReset` | ResetGs then BuildSaveFilePath + McWriteFile | 0.35 | existing | arbitration; replaces existing FUN_0018d328 |
-| [0x1AC748](../../src/game/ui/memcard/McMkdir.c) | `McMkdir` | sceMcMkdir wrapper + sync | 0.70 | T1 |  |
-| [0x1AC7A0](../../src/game/ui/memcard/McOpen.c) | `McOpen` | sceMcOpen wrapper + sync | 0.85 | T1 | verified |
-| [0x1AC808](../../src/game/ui/memcard/McClose.c) | `McClose` | sceMcClose wrapper + sync | 0.70 | T1 |  |
-| [0x1AC850](../../src/game/ui/memcard/McRead.c) | `McRead` | sceMcRead + McSyncResult | 0.70 | T1 |  |
-| [0x1AC8A8](../../src/game/ui/memcard/McWrite.c) | `McWrite` | sceMcWrite + McSyncResult | 0.70 | T1 |  |
-| [0x1AC900](../../src/game/ui/memcard/McWriteFile.c) | `McWriteFile` | McOpen(create) + McWrite + McClose | 0.60 | existing | arbitration; replaces existing FUN_0018d368 |
-| [0x1ACA40](../../src/game/ui/memcard/McDelete.c) | `McDelete` | sceMcDelete wrapper | 0.85 | T1 | verified |
-| [0x1ACB58](../../src/game/ui/memcard/SetMcDialogState.c) | `SetMcDialogState` | x40 = state; if shown (x24) call vt10 and child vt49(-1) | 0.85 | T1 | verified |
-| [0x1ACBB8](../../src/game/ui/memcard/ClearMcDialogState.c) | `ClearMcDialogState` | x40=-1; vt11 and child vt50 | 0.85 | T1 | verified |
-| [0x1ACCC8](../../src/game/ui/memcard/CMemcardDialog_Update.c) | `CMemcardDialog_Update` | vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs (CreateMemcardThread), transition (0x1ACFE0) | 0.85 | T1 | verified |
-| [0x1ADE70](../../src/game/ui/memcard/HideMcDialogWidget.c) | `HideMcDialogWidget` | small | 0.60 | T1 | verified |
-| [0x1ADF78](../../src/game/ui/memcard/func_001ADF78.c) | `CMcStatus_SetMode` | vt14 same body as 0x1ACC18 | 0.30 | T2 | runtime-corrected |
+| [0x1AA978](../../src/game/ui/memcard.cpp) | `StartupMemcard` | Startup-table entry: reset D_002DEB30 (0x1613F8), clear D_004425D8, InitSave(&g_save,0,0) | 0.85 | T1 | verified |
+| [0x1AA9B8](../../src/game/ui/memcard.cpp) | `FillMcDirInfo` | memset + fill a save-directory info block from sceMcGetDir results | 0.60 | existing | arbitration; replaces existing FUN_0018b780 |
+| [0x1AAB48](../../src/game/ui/memcard.cpp) | `McResFromSyncState` | sceMcSync state -> internal result: 0 -> 0x1D (done), >0 -> 0x1E, <0 -> 0x1F | 0.50 | existing | arbitration; replaces existing FUN_0018b910__Fi |
+| [0x1AAB68](../../src/game/ui/memcard.cpp) | `McResFromSyncCmd` | sceMcSync cmd result -> 0x21 (0), 0x22 (1), 0x20 (-1), else 0x1F | 0.50 | existing | arbitration; replaces existing FUN_0018b930__Fi |
+| [0x1AABC0](../../src/game/ui/memcard.cpp) | `MsgFromMcError` | (kind 1..21, sceMc error) -> message id for the UI | 0.60 | existing | arbitration; replaces existing FUN_0018b988 |
+| [0x1AAED8](../../src/game/ui/memcard.cpp) | `InitMemcard` | MEMCARD init: SemaCreate(1,1), thread id -1, prio 0x20 | 0.75 | T1 | verified |
+| [0x1AAF18](../../src/game/ui/memcard.cpp) | `MemcardThreadMain` | Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear job, signal, ExitThread | 0.60 | T1 |  |
+| [0x1AAF90](../../src/game/ui/memcard.cpp) | `CreateMemcardThread` | Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, CreateThread+StartThread | 0.85 | T1 | verified |
+| [0x1AB040](../../src/game/ui/memcard.cpp) | `SetMemcardThreadHighPrio` | If thread valid ChangeThreadPriority(id,1); then wait/signal sema (block until job finishes) | 0.60 | T1 | verified |
+| [0x1AB088](../../src/game/ui/memcard.cpp) | `FMemcardThreadValid__FP7MEMCARD` | Thread id (+4) != -1 | 0.90 | existing | verified |
+| [0x1AB098](../../src/game/ui/memcard.cpp) | `McSyncResult` | Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError | 0.60 | existing | arbitration; replaces existing FUN_0018bc90 |
+| [0x1AB1A0](../../src/game/ui/memcard.cpp) | `UpdateSave` | Per-frame save state machine: skip during transitions/when thread busy; poll card (job D_002A6BA0) or advance state (0x1AB418); autosave trigger with  | 0.80 | T1 | verified |
+| [0x1AB398](../../src/game/ui/memcard.cpp) | `CompareSaves__FP4SAVET0` | existing | 0.85 | existing | verified |
+| [0x1AB6C0](../../src/game/ui/memcard.cpp) | `McJobFormat` | Thread job: sceMcFormat(port,slot); result -> SAVE next state 2/3 and UI state | 0.75 | T1 |  |
+| [0x1AB750](../../src/game/ui/memcard.cpp) | `FOpenSaveIconFile` | Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670 | 0.35 | existing | arbitration; replaces existing FUN_0018c1e8 |
+| [0x1ABA10](../../src/game/ui/memcard.cpp) | `McJobGetDir` | Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8) | 0.60 | existing | arbitration; replaces existing FUN_0018c420 |
+| [0x1ABB10](../../src/game/ui/memcard.cpp) | `BuildSaveFilePath` | sprintf('/%s/%s%d', 'BASCUS-97316YAOTWTD!', 'save', i) | 0.85 | T1 | verified |
+| [0x1ABB60](../../src/game/ui/memcard.cpp) | `McJobSaveSlot` | Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420) | 0.85 | T1 | verified |
+| [0x1ABE78](../../src/game/ui/memcard.cpp) | `ReadMcDir` | sceMcGetDir into table, then FillMcDirInfo | 0.50 | existing | arbitration; replaces existing FUN_0018c888 |
+| [0x1ABFC0](../../src/game/ui/memcard.cpp) | `ReadMcDirWrapper` | wrapper of 0x1ABE78 | 0.35 | existing | arbitration; replaces existing FUN_0018c9c0 |
+| [0x1AC008](../../src/game/ui/memcard.cpp) | `WriteIconSys` | Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it | 0.60 | existing | verified, arbitration; replaces existing FUN_0018ca10 |
+| [0x1AC260](../../src/game/ui/memcard.cpp) | `load_file_from_disc` | Open disc file '%s/%s' via BIS, read into alloc, write to card with sceMcOpen/Write/Close | 0.60 | T1 | verified |
+| [0x1AC420](../../src/game/ui/memcard.cpp) | `WriteSaveSlotFile` | BuildSaveFilePath + McWriteFile | 0.40 | existing | arbitration; replaces existing FUN_0018d2e8 |
+| [0x1AC468](../../src/game/ui/memcard.cpp) | `WriteSaveSlotFileReset` | ResetGs then BuildSaveFilePath + McWriteFile | 0.35 | existing | arbitration; replaces existing FUN_0018d328 |
+| [0x1AC748](../../src/game/ui/memcard.cpp) | `McMkdir` | sceMcMkdir wrapper + sync | 0.70 | T1 |  |
+| [0x1AC7A0](../../src/game/ui/memcard.cpp) | `McOpen` | sceMcOpen wrapper + sync | 0.85 | T1 | verified |
+| [0x1AC808](../../src/game/ui/memcard.cpp) | `McClose` | sceMcClose wrapper + sync | 0.70 | T1 |  |
+| [0x1AC850](../../src/game/ui/memcard.cpp) | `McRead` | sceMcRead + McSyncResult | 0.70 | T1 |  |
+| [0x1AC8A8](../../src/game/ui/memcard.cpp) | `McWrite` | sceMcWrite + McSyncResult | 0.70 | T1 |  |
+| [0x1AC900](../../src/game/ui/memcard.cpp) | `McWriteFile` | McOpen(create) + McWrite + McClose | 0.60 | existing | arbitration; replaces existing FUN_0018d368 |
+| [0x1ACA40](../../src/game/ui/memcard.cpp) | `McDelete` | sceMcDelete wrapper | 0.85 | T1 | verified |
+| [0x1ACB58](../../src/game/ui/memcard.cpp) | `SetMcDialogState` | x40 = state; if shown (x24) call vt10 and child vt49(-1) | 0.85 | T1 | verified |
+| [0x1ACBB8](../../src/game/ui/memcard.cpp) | `ClearMcDialogState` | x40=-1; vt11 and child vt50 | 0.85 | T1 | verified |
+| [0x1ACCC8](../../src/game/ui/memcard.cpp) | `CMemcardDialog_Update` | vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs (CreateMemcardThread), transition (0x1ACFE0) | 0.85 | T1 | verified |
+| [0x1ADE70](../../src/game/ui/memcard.cpp) | `HideMcDialogWidget` | small | 0.60 | T1 | verified |
+| [0x1ADF78](../../src/game/ui/memcard.cpp) | `CMcStatus_SetMode` | vt14 same body as 0x1ACC18 | 0.30 | T2 | runtime-corrected |
 | [0x1D7B88](../../src/game/world/state/save.cpp) | `LoadSaveSchemaFromBrx` | Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry count -> c*10-byte trie entries; then reset g_gs if sch | 0.90 | T1 | runtime, format-doc |
 | [0x1D7C80](../../src/game/world/state/save.cpp) | `ResetGsIfSchemaChanged` | Byte-sum the schema trie and read U16 version at end; if differs from GS+0x5400/+0x5404 memset GS 0x5400 bytes and store new version/sum | 0.70 | T1 |  |
 | [0x1D7D30](../../src/game/world/state/save.cpp) | `FGsMatchesSchema` | True if GS stored version/checksum (+0x5400/+0x5404) equal schema's | 0.75 | T1 |  |

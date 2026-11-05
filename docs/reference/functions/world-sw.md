@@ -74,70 +74,70 @@ Totals on this page: EXISTING 3, T1 63, T2 51.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x20D9D0](../../../src/game/world/scene/sw/SW_ctor.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
-| [0x20DF80](../../../src/game/world/scene/sw/SetSwTransition.c) | `SetSwTransition` | fRestored=1; copy CHK record | 0.60 | existing | arbitration; replaces existing RestoreChkmgrFromCheckpoint__FP6CHKMGR |
-| [0x20E040](../../../src/game/world/scene/sw/func_0020E040.c) | `FSwTransitionBusy` | True if D_003E1080!=0 or D_00443740==1 (checkpoint-manager state) | 0.25 | T2 |  |
-| [0x20E068](../../../src/game/world/scene/sw/DeleteSw.c) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |
-| [0x20E180](../../../src/game/world/scene/sw/func_0020E180.c) | `InitSwLoadBuffers` | Pre-load setup of the fresh SW: 3x0x4800 and 0x8000 work buffers, 0x28 header with DL, InitZpr x2, game callback(2) | 0.40 | T2 |  |
-| [0x20E2B0](../../../src/game/world/scene/sw/func_0020E2B0.c) | `BindSwMs` | Find up to 16 objects of class MS (0x31); keep the one with largest +0xB8, store its +0xC8 and call 0x1A6D28(po,0xFF) | 0.25 | T2 |  |
-| [0x20E338](../../../src/game/world/scene/sw/func_0020E338.cpp) | `CreateSwDefaultObject74` | PloNew(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60 | 0.25 | T2 |  |
-| [0x20E3C0](../../../src/game/world/scene/sw/ResolveSwSaveVars__FP2SW.cpp) | `ResolveSwSaveVars` | Look up save-variable paths the game reads (language, sound flags, job/world, per-world dt/percent_complete), store current language/job/world, raise episodeBest, notify game (event 3) | 0.85 | T1 | verified |
-| [0x20E740](../../../src/game/world/scene/sw/PostSwLoad.c) | `PostSwLoad` | After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15) until queue empty, StartupCm-like camera reset, game callback(4) | 0.55 | T1 |  |
-| [0x20E890](../../../src/game/world/scene/sw/ExecuteSwTransition.cpp) | `ExecuteSwTransition` | Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw, InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore checkpoint/actor (oidPoCurrent), camera, game callback(5) | 0.55 | T1 |  |
-| [0x20EFC0](../../../src/game/world/scene/sw/IncrementSwHandsOff.c) | `IncrementSwHandsOff` | ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84 | 0.85 | T1 |  |
-| [0x20F030](../../../src/game/world/scene/sw/DecrementSwHandsOff.c) | `DecrementSwHandsOff` | --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84 | 0.80 | T1 |  |
-| [0x20F0B0](../../../src/game/world/scene/sw/FSwHandsOff.c) | `FSwHandsOff` | SW+0x3D78 > 0 | 0.85 | T1 | verified |
-| [0x20F0C0](../../../src/game/world/scene/sw/func_0020F0C0.c) | `IncrementSwNoPause` | ++SW+0x3D7C (first -> AddGrfusr(4)) \| runtime6: SW+0x3D7C is the no-pause counter (SetJsgHandsOff, JT mode kind 1); Lilly jtmode.c name | 0.30 | T2 | verified, pending-fix; pending fix; v2 name IncrementSwUsrLock |
-| [0x20F0F0](../../../src/game/world/scene/sw/func_0020F0F0.c) | `DecrementSwNoPause` | --SW+0x3D7C (last -> RemoveGrfusr(4)) \| runtime6: inverse of IncrementSwNoPause | 0.30 | T2 | pending-fix; pending fix; v2 name DecrementSwUsrLock |
-| [0x20F128](../../../src/game/world/scene/sw/AcquireSwLetterbox.c) | `AcquireSwLetterbox` | ++SW+0x3D80; first -> show letterbox object (0x1A3078(&D_002E1E60): hides subtitles, vt49) | 0.50 | T1 |  |
-| [0x20F160](../../../src/game/world/scene/sw/ReleaseSwLetterbox.c) | `ReleaseSwLetterbox` | --SW+0x3D80; last -> 0x1A30D0 (vt50 hide) | 0.85 | T1 | verified |
-| [0x20F198](../../../src/game/world/scene/sw/func_0020F198.c) | `IncrementSwInputLock` | ++SW+0x3D84 | 0.30 | T2 |  |
-| [0x20F1A8](../../../src/game/world/scene/sw/func_0020F1A8.c) | `DecrementSwInputLock` | --SW+0x3D84 | 0.30 | T2 |  |
-| [0x20F1B8](../../../src/game/world/scene/sw/func_0020F1B8.c) | `FSwInputLock` | SW+0x3D84 > 0 | 0.30 | T2 | verified |
-| [0x20F1C8](../../../src/game/world/scene/sw/UpdateSwIllum.c) | `UpdateSwIllum` | Recompute ambient light colour from HSV (+0x3E10) scaled by midtone (+0x3E20/255) and shadow level (+0x3E24/255); bump illum change counter | 0.50 | T1 |  |
-| [0x20F2B8](../../../src/game/world/scene/sw/func_0020F2B8.c) | `SetSwIllumHsv` | Store HSV qword (+0x3E10) and UpdateSwIllum | 0.45 | T2 |  |
-| [0x20F2D8](../../../src/game/world/scene/sw/SetSwIllumShadow.c) | `SetSwIllumShadow` | Store +0x3E24 and UpdateSwIllum | 0.50 | T1 |  |
-| [0x20F2F8](../../../src/game/world/scene/sw/SetSwIllum.c) | `SetSwIllum` | Store midtone +0x3E20 (ctor default 90) and UpdateSwIllum | 0.85 | T1 | verified |
-| [0x20F318](../../../src/game/world/scene/sw/LoadLevelTableFromBrx.cpp) | `LoadLevelTableFromBrx` | Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry records | 0.85 | T1 |  |
-| [0x20F5D0](../../../src/game/world/scene/sw/LoadSwSharedHeaderFromBrx.c) | `LoadSwSharedHeaderFromBrx` | Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced | 0.90 | T1 | parse, verified |
-| [0x20F640](../../../src/game/world/scene/sw/LoadSwSharedDataFromBrx.c) | `LoadSwSharedDataFromBrx` | If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip it and reuse (0x170828) | 0.75 | T1 | parse |
-| [0x20F710](../../../src/game/world/scene/sw/func_0020F710.c) | `BindSwTimerHud` | Find 4 HUD objects (kind 0x405, OIDs 0x371/0x36D/0x36E/0x36F), init them, record two counters | 0.35 | T2 |  |
-| [0x20F7E0](../../../src/game/world/scene/sw/func_0020F7E0.c) | `UpdateSwTimerHud` | Per-frame: smooth the 4 HUD elements; while a countdown (SW+0x476C - t) runs play tick/tock sfx 0x30/0x31 each second | 0.40 | T2 |  |
-| [0x20F948](../../../src/game/world/scene/sw/FFilterSoPair.c) | `FFilterSoPair` | Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3 | 0.85 | T1 | verified |
-| [0x20FA10](../../../src/game/world/scene/sw/func_0020FA10.c) | `FFilterSoNotSelf` | Filter: entry object is not ctx and not flag 4 | 0.30 | T2 |  |
-| [0x20FA50](../../../src/game/world/scene/sw/func_0020FA50.c) | `FFilterSoNotSelfVt62` | FFilterSoNotSelf && object vt62 predicate | 0.25 | T2 |  |
-| [0x20FAA0](../../../src/game/world/scene/sw/IntersectSwBoundingBox.c) | `IntersectSwBoundingBox` | Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array | 0.75 | T1 |  |
-| [0x20FC60](../../../src/game/world/scene/sw/IntersectSwBoundingSphere.c) | `IntersectSwBoundingSphere` | Same for a sphere (center, radius) | 0.85 | T1 | verified |
-| [0x20FDC8](../../../src/game/world/scene/sw/func_0020FDC8.c) | `UniqueSwSoList` | Deduplicate the SOs referenced by an array (mark 0x40000000), output count + slot array | 0.35 | T2 |  |
-| [0x20FEC0](../../../src/game/world/scene/sw/FAddRsmg__FP2SWP4RSMGiPii3OIDN25.c) | `FAddRsmg__FP2SWP4RSMGiPii3OIDN25` | Add/update a (root,SM)->trigger/untrigger goal record | 0.80 | existing | verified, arbitration; replaces existing FAddRsmg__FP4RSMGiPii3OIDN24 |
-| [0x20FF70](../../../src/game/world/scene/sw/TriggerRsmg.c) | `TriggerRsmg` | Apply every RSMG record in an array (calls 0x20FFF0 each) | 0.60 | T1 |  |
-| [0x20FFF0](../../../src/game/world/scene/sw/func_0020FFF0.c) | `TriggerRsmgOne` | Find root object, its SM by oid, then SeekSma or SetSmaGoal to trigger/untrigger goal; optional returned SMA ref | 0.45 | T2 |  |
-| [0x210100](../../../src/game/world/scene/sw/func_00210100.c) | `PAllocSwLoQueue` | Return &array(+0x39D0)[count(+0x39D4)++] (12-byte records) | 0.30 | T2 |  |
-| [0x210120](../../../src/game/world/scene/sw/func_00210120.c) | `PAllocSwPostLoadQueue` | Return &array(+0x39D8)[count++] (12-byte records); drained by PostSwLoad | 0.30 | T2 |  |
-| [0x210140](../../../src/game/world/scene/sw/func_00210140.c) | `AddSwUpdateLo` | Append LO to SW update array (back-pointer at LO+0x40), compacting when >=4096 or >10% dead | 0.45 | T2 |  |
-| [0x210268](../../../src/game/world/scene/sw/func_00210268.c) | `RemoveSwUpdateLo` | Clear LO entry in update array, restore LO+0x40 flags, ++dead count (+0x3F18) | 0.45 | T2 |  |
-| [0x2102A0](../../../src/game/world/scene/sw/func_002102A0.cpp) | `RefreshSwObjects` | 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038) | 0.25 | T2 | runtime-corrected |
-| [0x210338](../../../src/game/world/scene/sw/ShowSwAsegObject.cpp) | `ShowSwAsegObject` | ASEG event 7/8: find object; fade in/out over dt if SO-derived and dt!=0, else vt8 Add / vt9 Remove | 0.50 | T1 |  |
-| [0x210408](../../../src/game/world/scene/sw/func_00210408.c) | `HandleSwAsegEvent13` | ASEG event 13/14: on SO target call 0x1F6978 or 0x1F69F8 (enable/disable pair) | 0.25 | T2 |  |
-| [0x2104A0](../../../src/game/world/scene/sw/func_002104A0.c) | `HandleSwAsegEvent15` | ASEG event 15/16: on SO call 0x1F6AC8 or 0x1F6B48 | 0.25 | T2 |  |
-| [0x210538](../../../src/game/world/scene/sw/func_00210538.c) | `SendSwAsegMessage` | ASEG event 17: find object and two optional others, build a message (grf bits 1/0x20/0x18) and send via vt | 0.30 | T2 |  |
-| [0x210678](../../../src/game/world/scene/sw/func_00210678.c) | `HandleSwAsegEvent20` | ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f) | 0.25 | T2 |  |
-| [0x210740](../../../src/game/world/scene/sw/StartSwAsegSound.c) | `StartSwAsegSound` | ASEG event 0: start sfx at source object (optionally by oid) with range/vol/pitch; continuous ones stored in the ASEGA ref | 0.55 | T1 |  |
-| [0x2108E8](../../../src/game/world/scene/sw/StopSwAsegSound.c) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
-| [0x210940](../../../src/game/world/scene/sw/func_00210940.c) | `BindSwObject620` | SW+0x4638 = PloFindSwObject(psw,5,oid 0x620,0) | 0.30 | T2 |  |
-| [0x210978](../../../src/game/world/scene/sw/func_00210978.c) | `SetSwField3EA8` | If n==1 store at SW+0x3EA8; return psw | 0.20 | T2 |  |
-| [0x210990](../../../src/game/world/scene/sw/func_00210990.c) | `PrecLevelFile` | &g_arecLevel[ilevel] (NULL for -1) | 0.40 | T2 |  |
-| [0x2109B8](../../../src/game/world/scene/sw/func_002109B8.c) | `PlevelFromIlevel` | g_alevellist + ilevel*8 | 0.40 | T2 |  |
-| [0x2109D0](../../../src/game/world/scene/sw/func_002109D0.c) | `IlevelFromRec` | Index of level whose file record equals arg, else -1 | 0.40 | T2 |  |
-| [0x210A88](../../../src/game/world/scene/sw/IlevelCur__Fv.c) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
-| [0x210A98](../../../src/game/world/scene/sw/NEpisodeCur.c) | `NEpisodeCur` | g_anEpisodeOfLevel[IlevelCur()] or -1 | 0.50 | T1 |  |
-| [0x210AE0](../../../src/game/world/scene/sw/NWorldCur.c) | `NWorldCur` | g_anWorldOfLevel[IlevelCur()] or -1 | 0.50 | T1 |  |
-| [0x210B28](../../../src/game/world/scene/sw/NEpisodeBest.c) | `NEpisodeBest` | Read save variable "episodeBest" | 0.55 | T1 |  |
-| [0x210B68](../../../src/game/world/scene/sw/func_00210B68.c) | `FSwStub0` | return 0 | 0.20 | T2 |  |
-| [0x210B70](../../../src/game/world/scene/sw/func_00210B70.c) | `PrecWorldEntryCur` | PrecWorldEntry(NWorldCur()) | 0.40 | T2 |  |
-| [0x210B98](../../../src/game/world/scene/sw/PrecWorldEntry.c) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
-| [0x210BE0](../../../src/game/world/scene/sw/func_00210BE0.c) | `LocalizeSwStringTable` | For each entry look up localized string via g_sw (0x13E368) and copy into a linear heap | 0.35 | T2 |  |
-| [0x210CA8](../../../src/game/world/scene/sw/func_00210CA8.c) | `PvFindSwKeyedTable` | Search {key,ptr} table; return ptr or default empty D_002A8A98 | 0.30 | T2 |  |
+| [0x20D9D0](../../../src/game/world/scene/sw.cpp) | `SW_ctor` | SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV (180,255,255), fog/fov defaults | 0.70 | T1 |  |
+| [0x20DF80](../../../src/game/world/scene/sw.cpp) | `SetSwTransition` | fRestored=1; copy CHK record | 0.60 | existing | arbitration; replaces existing RestoreChkmgrFromCheckpoint__FP6CHKMGR |
+| [0x20E040](../../../src/game/world/scene/sw.cpp) | `FSwTransitionBusy` | True if D_003E1080!=0 or D_00443740==1 (checkpoint-manager state) | 0.25 | T2 |  |
+| [0x20E068](../../../src/game/world/scene/sw.cpp) | `DeleteSw` | Tear down the current world before loading: game callback(1), free view/joy state, ResetSndmgr, clear ~15 global object pointers, FreeSw | 0.60 | T1 |  |
+| [0x20E180](../../../src/game/world/scene/sw.cpp) | `InitSwLoadBuffers` | Pre-load setup of the fresh SW: 3x0x4800 and 0x8000 work buffers, 0x28 header with DL, InitZpr x2, game callback(2) | 0.40 | T2 |  |
+| [0x20E2B0](../../../src/game/world/scene/sw.cpp) | `BindSwMs` | Find up to 16 objects of class MS (0x31); keep the one with largest +0xB8, store its +0xC8 and call 0x1A6D28(po,0xFF) | 0.25 | T2 |  |
+| [0x20E338](../../../src/game/world/scene/sw.cpp) | `CreateSwDefaultObject74` | PloNew(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60 | 0.25 | T2 |  |
+| [0x20E3C0](../../../src/game/world/scene/sw.cpp) | `ResolveSwSaveVars` | Look up save-variable paths the game reads (language, sound flags, job/world, per-world dt/percent_complete), store current language/job/world, raise episodeBest, notify game (event 3) | 0.85 | T1 | verified |
+| [0x20E740](../../../src/game/world/scene/sw.cpp) | `PostSwLoad` | After the BRX is read: reset transient pools, bind HUD/aux objects, run post-load callbacks (vt15) until queue empty, StartupCm-like camera reset, game callback(4) | 0.55 | T1 |  |
+| [0x20E890](../../../src/game/world/scene/sw.cpp) | `ExecuteSwTransition` | Level transition: if a request is pending, open level file, DeleteSw, memset+construct g_sw, InitSwLoadBuffers, LoadSwFromBrx, PostSwLoad, restore checkpoint/actor (oidPoCurrent), camera, game callback(5) | 0.55 | T1 |  |
+| [0x20EFC0](../../../src/game/world/scene/sw.cpp) | `IncrementSwHandsOff` | ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84 | 0.85 | T1 |  |
+| [0x20F030](../../../src/game/world/scene/sw.cpp) | `DecrementSwHandsOff` | --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84 | 0.80 | T1 |  |
+| [0x20F0B0](../../../src/game/world/scene/sw.cpp) | `FSwHandsOff` | SW+0x3D78 > 0 | 0.85 | T1 | verified |
+| [0x20F0C0](../../../src/game/world/scene/sw.cpp) | `IncrementSwNoPause` | ++SW+0x3D7C (first -> AddGrfusr(4)) \| runtime6: SW+0x3D7C is the no-pause counter (SetJsgHandsOff, JT mode kind 1); Lilly jtmode.c name | 0.30 | T2 | verified, pending-fix; pending fix; v2 name IncrementSwUsrLock |
+| [0x20F0F0](../../../src/game/world/scene/sw.cpp) | `DecrementSwNoPause` | --SW+0x3D7C (last -> RemoveGrfusr(4)) \| runtime6: inverse of IncrementSwNoPause | 0.30 | T2 | pending-fix; pending fix; v2 name DecrementSwUsrLock |
+| [0x20F128](../../../src/game/world/scene/sw.cpp) | `AcquireSwLetterbox` | ++SW+0x3D80; first -> show letterbox object (0x1A3078(&D_002E1E60): hides subtitles, vt49) | 0.50 | T1 |  |
+| [0x20F160](../../../src/game/world/scene/sw.cpp) | `ReleaseSwLetterbox` | --SW+0x3D80; last -> 0x1A30D0 (vt50 hide) | 0.85 | T1 | verified |
+| [0x20F198](../../../src/game/world/scene/sw.cpp) | `IncrementSwInputLock` | ++SW+0x3D84 | 0.30 | T2 |  |
+| [0x20F1A8](../../../src/game/world/scene/sw.cpp) | `DecrementSwInputLock` | --SW+0x3D84 | 0.30 | T2 |  |
+| [0x20F1B8](../../../src/game/world/scene/sw.cpp) | `FSwInputLock` | SW+0x3D84 > 0 | 0.30 | T2 | verified |
+| [0x20F1C8](../../../src/game/world/scene/sw.cpp) | `UpdateSwIllum` | Recompute ambient light colour from HSV (+0x3E10) scaled by midtone (+0x3E20/255) and shadow level (+0x3E24/255); bump illum change counter | 0.50 | T1 |  |
+| [0x20F2B8](../../../src/game/world/scene/sw.cpp) | `SetSwIllumHsv` | Store HSV qword (+0x3E10) and UpdateSwIllum | 0.45 | T2 |  |
+| [0x20F2D8](../../../src/game/world/scene/sw.cpp) | `SetSwIllumShadow` | Store +0x3E24 and UpdateSwIllum | 0.50 | T1 |  |
+| [0x20F2F8](../../../src/game/world/scene/sw.cpp) | `SetSwIllum` | Store midtone +0x3E20 (ctor default 90) and UpdateSwIllum | 0.85 | T1 | verified |
+| [0x20F318](../../../src/game/world/scene/sw.cpp) | `LoadLevelTableFromBrx` | Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry records | 0.85 | T1 |  |
+| [0x20F5D0](../../../src/game/world/scene/sw.cpp) | `LoadSwSharedHeaderFromBrx` | Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced | 0.90 | T1 | parse, verified |
+| [0x20F640](../../../src/game/world/scene/sw.cpp) | `LoadSwSharedDataFromBrx` | If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip it and reuse (0x170828) | 0.75 | T1 | parse |
+| [0x20F710](../../../src/game/world/scene/sw.cpp) | `BindSwTimerHud` | Find 4 HUD objects (kind 0x405, OIDs 0x371/0x36D/0x36E/0x36F), init them, record two counters | 0.35 | T2 |  |
+| [0x20F7E0](../../../src/game/world/scene/sw.cpp) | `UpdateSwTimerHud` | Per-frame: smooth the 4 HUD elements; while a countdown (SW+0x476C - t) runs play tick/tock sfx 0x30/0x31 each second | 0.40 | T2 |  |
+| [0x20F948](../../../src/game/world/scene/sw.cpp) | `FFilterSoPair` | Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3 | 0.85 | T1 | verified |
+| [0x20FA10](../../../src/game/world/scene/sw.cpp) | `FFilterSoNotSelf` | Filter: entry object is not ctx and not flag 4 | 0.30 | T2 |  |
+| [0x20FA50](../../../src/game/world/scene/sw.cpp) | `FFilterSoNotSelfVt62` | FFilterSoNotSelf && object vt62 predicate | 0.25 | T2 |  |
+| [0x20FAA0](../../../src/game/world/scene/sw.cpp) | `IntersectSwBoundingBox` | Collect up to 256 SOs whose groups overlap the AABB(min/max of two points), optional filter; result in slot-allocated array | 0.75 | T1 |  |
+| [0x20FC60](../../../src/game/world/scene/sw.cpp) | `IntersectSwBoundingSphere` | Same for a sphere (center, radius) | 0.85 | T1 | verified |
+| [0x20FDC8](../../../src/game/world/scene/sw.cpp) | `UniqueSwSoList` | Deduplicate the SOs referenced by an array (mark 0x40000000), output count + slot array | 0.35 | T2 |  |
+| [0x20FEC0](../../../src/game/world/scene/sw.cpp) | `FAddRsmg__FP2SWP4RSMGiPii3OIDN25` | Add/update a (root,SM)->trigger/untrigger goal record | 0.80 | existing | verified, arbitration; replaces existing FAddRsmg__FP4RSMGiPii3OIDN24 |
+| [0x20FF70](../../../src/game/world/scene/sw.cpp) | `TriggerRsmg` | Apply every RSMG record in an array (calls 0x20FFF0 each) | 0.60 | T1 |  |
+| [0x20FFF0](../../../src/game/world/scene/sw.cpp) | `TriggerRsmgOne` | Find root object, its SM by oid, then SeekSma or SetSmaGoal to trigger/untrigger goal; optional returned SMA ref | 0.45 | T2 |  |
+| [0x210100](../../../src/game/world/scene/sw.cpp) | `PAllocSwLoQueue` | Return &array(+0x39D0)[count(+0x39D4)++] (12-byte records) | 0.30 | T2 |  |
+| [0x210120](../../../src/game/world/scene/sw.cpp) | `PAllocSwPostLoadQueue` | Return &array(+0x39D8)[count++] (12-byte records); drained by PostSwLoad | 0.30 | T2 |  |
+| [0x210140](../../../src/game/world/scene/sw.cpp) | `AddSwUpdateLo` | Append LO to SW update array (back-pointer at LO+0x40), compacting when >=4096 or >10% dead | 0.45 | T2 |  |
+| [0x210268](../../../src/game/world/scene/sw.cpp) | `RemoveSwUpdateLo` | Clear LO entry in update array, restore LO+0x40 flags, ++dead count (+0x3F18) | 0.45 | T2 |  |
+| [0x2102A0](../../../src/game/world/scene/sw.cpp) | `RefreshSwObjects` | 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038) | 0.25 | T2 | runtime-corrected |
+| [0x210338](../../../src/game/world/scene/sw.cpp) | `ShowSwAsegObject` | ASEG event 7/8: find object; fade in/out over dt if SO-derived and dt!=0, else vt8 Add / vt9 Remove | 0.50 | T1 |  |
+| [0x210408](../../../src/game/world/scene/sw.cpp) | `HandleSwAsegEvent13` | ASEG event 13/14: on SO target call 0x1F6978 or 0x1F69F8 (enable/disable pair) | 0.25 | T2 |  |
+| [0x2104A0](../../../src/game/world/scene/sw.cpp) | `HandleSwAsegEvent15` | ASEG event 15/16: on SO call 0x1F6AC8 or 0x1F6B48 | 0.25 | T2 |  |
+| [0x210538](../../../src/game/world/scene/sw.cpp) | `SendSwAsegMessage` | ASEG event 17: find object and two optional others, build a message (grf bits 1/0x20/0x18) and send via vt | 0.30 | T2 |  |
+| [0x210678](../../../src/game/world/scene/sw.cpp) | `HandleSwAsegEvent20` | ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f) | 0.25 | T2 |  |
+| [0x210740](../../../src/game/world/scene/sw.cpp) | `StartSwAsegSound` | ASEG event 0: start sfx at source object (optionally by oid) with range/vol/pitch; continuous ones stored in the ASEGA ref | 0.55 | T1 |  |
+| [0x2108E8](../../../src/game/world/scene/sw.cpp) | `StopSwAsegSound` | ASEG event 1: StopSnd stored continuous sound (optionally matching id) and release ref | 0.85 | T1 | verified |
+| [0x210940](../../../src/game/world/scene/sw.cpp) | `BindSwObject620` | SW+0x4638 = PloFindSwObject(psw,5,oid 0x620,0) | 0.30 | T2 |  |
+| [0x210978](../../../src/game/world/scene/sw.cpp) | `SetSwField3EA8` | If n==1 store at SW+0x3EA8; return psw | 0.20 | T2 |  |
+| [0x210990](../../../src/game/world/scene/sw.cpp) | `PrecLevelFile` | &g_arecLevel[ilevel] (NULL for -1) | 0.40 | T2 |  |
+| [0x2109B8](../../../src/game/world/scene/sw.cpp) | `PlevelFromIlevel` | g_alevellist + ilevel*8 | 0.40 | T2 |  |
+| [0x2109D0](../../../src/game/world/scene/sw.cpp) | `IlevelFromRec` | Index of level whose file record equals arg, else -1 | 0.40 | T2 |  |
+| [0x210A88](../../../src/game/world/scene/sw.cpp) | `IlevelCur` | Return the current level index D_003E1110 | 0.80 | T1 | top50 |
+| [0x210A98](../../../src/game/world/scene/sw.cpp) | `NEpisodeCur` | g_anEpisodeOfLevel[IlevelCur()] or -1 | 0.50 | T1 |  |
+| [0x210AE0](../../../src/game/world/scene/sw.cpp) | `NWorldCur` | g_anWorldOfLevel[IlevelCur()] or -1 | 0.50 | T1 |  |
+| [0x210B28](../../../src/game/world/scene/sw.cpp) | `NEpisodeBest` | Read save variable "episodeBest" | 0.55 | T1 |  |
+| [0x210B68](../../../src/game/world/scene/sw.cpp) | `FSwStub0` | return 0 | 0.20 | T2 |  |
+| [0x210B70](../../../src/game/world/scene/sw.cpp) | `PrecWorldEntryCur` | PrecWorldEntry(NWorldCur()) | 0.40 | T2 |  |
+| [0x210B98](../../../src/game/world/scene/sw.cpp) | `PrecWorldEntry` | &g_arecWorldEntry[iworld] (64 bytes) if valid, else NULL | 0.85 | T1 | verified |
+| [0x210BE0](../../../src/game/world/scene/sw.cpp) | `LocalizeSwStringTable` | For each entry look up localized string via g_sw (0x13E368) and copy into a linear heap | 0.35 | T2 |  |
+| [0x210CA8](../../../src/game/world/scene/sw.cpp) | `PvFindSwKeyedTable` | Search {key,ptr} table; return ptr or default empty D_002A8A98 | 0.30 | T2 |  |
 
 ## update (0x226550-0x226AB8)
 

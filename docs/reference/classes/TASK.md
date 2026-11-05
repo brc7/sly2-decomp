@@ -29,16 +29,16 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetTaskClassDesc`](../../../src/game/app/class_registry/GetTaskClassDesc.c) | `0x114260` | Pclassinfo |
-| 7 | Init | **override** | [`InitTask`](../../../src/game/world/state/game/InitTask.c) | `0x1635A0` | Init |
+| 7 | Init | **override** | [`InitTask`](../../../src/game/world/state/game.cpp) | `0x1635A0` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` | SetParent |
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadTaskFromBrx`](../../../src/game/world/state/game/LoadTaskFromBrx.cpp) | `0x1635F8` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostTaskLoad`](../../../src/game/world/state/game/PostTaskLoad.c) | `0x1638F8` | VUnk14 |
-| 16 | Update | **override** | [`UpdateTask`](../../../src/game/world/state/game/UpdateTask.c) | `0x163B48` | VUnk15 |
+| 14 | LoadFromBrx | **override** | [`LoadTaskFromBrx`](../../../src/game/world/state/game.cpp) | `0x1635F8` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostTaskLoad`](../../../src/game/world/state/game.cpp) | `0x1638F8` | VUnk14 |
+| 16 | Update | **override** | [`UpdateTask`](../../../src/game/world/state/game.cpp) | `0x163B48` | VUnk15 |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` | UpdateXfWorldHierarchy |
 | 19 | RenderSelf | inherited (LO) | `RenderLoSelf` | `0x1A5ED8` | RenderSelf |

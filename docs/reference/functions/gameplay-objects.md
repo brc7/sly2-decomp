@@ -155,80 +155,80 @@ Totals on this page: EXISTING 4, T1 123, T2 232.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x17F090](../../../src/game/gameplay/objects/tu_17F090/func_0017F090.c) | `InitCid71` | CID 0x47 vt7: InitSo, max health x180=10, two default vectors, grf | 0.60 | T2 |  |
-| [0x17F110](../../../src/game/gameplay/objects/tu_17F090/func_0017F110.c) | `RemoveCid71Hierarchy` | vt12: RemoveSoHierarchy then clear dying flag x18C | 0.55 | T2 |  |
-| [0x17F138](../../../src/game/gameplay/objects/tu_17F090/func_0017F138.c) | `PostCid71Load` | vt15: PostSoLoad then own vt83 | 0.55 | T2 |  |
-| [0x17F170](../../../src/game/gameplay/objects/tu_17F090/func_0017F170.c) | `CID71_vt26` | vt26: SO base then health x184 = max x180 (reset) | 0.35 | T2 |  |
-| [0x17F1A0](../../../src/game/gameplay/objects/tu_17F090/func_0017F1A0.c) | `AdjustCid71Xp` | vt55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust) | 0.30 | T2 |  |
-| [0x17F1D0](../../../src/game/gameplay/objects/tu_17F090/func_0017F1D0.c) | `CID71_TakeDamage` | vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain, limited) through constraint and SetVelocity | 0.55 | T2 |  |
-| [0x17F3E0](../../../src/game/gameplay/objects/tu_17F090/func_0017F3E0.c) | `InitCid47Entries` | Set n=-1 on c entries | 0.40 | T2 |  |
-| [0x17F408](../../../src/game/gameplay/objects/tu_17F090/func_0017F408.c) | `BindCid47Entries` | Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D | 0.35 | T2 |  |
-| [0x17F4C0](../../../src/game/gameplay/objects/tu_17F090/func_0017F4C0.c) | `StartCid47Anim` | Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state | 0.40 | T2 |  |
-| [0x17F550](../../../src/game/gameplay/objects/tu_17F090/func_0017F550.c) | `FCid47AnimDone` | True when the current ASEGA retracted or the SM reached its end state | 0.40 | T2 |  |
-| [0x17F5B0](../../../src/game/gameplay/objects/tu_17F090/func_0017F5B0.c) | `StartCid47Dying` | Once: set dying flag x18C and PostSwCallback(D_002A5630, n) | 0.40 | T2 |  |
-| [0x17F5F8](../../../src/game/gameplay/objects/tu_17F090/func_0017F5F8.c) | `CID71_Die` | vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190, then vt9 Remove | 0.50 | T2 |  |
-| [0x17F6B0](../../../src/game/gameplay/objects/tu_17F090/func_0017F6B0.c) | `ResetCid71` | Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638) | 0.40 | T2 | verified |
-| [0x17F6F8](../../../src/game/gameplay/objects/tu_17F090/InitHackship.c) | `InitHackship` | CID 0x48 vt7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1 | 0.55 | T1 | whole-game |
-| [0x17F740](../../../src/game/gameplay/objects/tu_17F090/func_0017F740.c) | `RemoveHackshipHierarchy` | vt12: base then state change via SetCid48State | 0.40 | T2 | whole-game |
-| [0x17F770](../../../src/game/gameplay/objects/tu_17F090/func_0017F770.c) | `BindHackshipParts` | Look up child XFs / objects for entries and create vector actuators | 0.30 | T2 | whole-game |
-| [0x17F850](../../../src/game/gameplay/objects/tu_17F090/func_0017F850.c) | `PostHackshipLoad` | vt15: PostCid47Load, bind entries and parts | 0.45 | T2 | whole-game |
-| [0x17F8C8](../../../src/game/gameplay/objects/tu_17F090/func_0017F8C8.c) | `OnHackshipActive` | vt78: base then SetCid48State | 0.35 | T2 | whole-game |
-| [0x17F930](../../../src/game/gameplay/objects/tu_17F090/func_0017F930.c) | `UpdateHackship` | vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals | 0.45 | T2 | whole-game |
-| [0x17FB50](../../../src/game/gameplay/objects/tu_17F090/func_0017FB50.cpp) | `PresetHackshipAccel` | vt70 override | 0.35 | T2 | whole-game |
-| [0x17FBE8](../../../src/game/gameplay/objects/tu_17F090/HACKSHIP_TakeDamage.c) | `HACKSHIP_TakeDamage` | vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and state 2 (hit) or 4 (defeated) | 0.50 | T1 | whole-game |
-| [0x17FCB0](../../../src/game/gameplay/objects/tu_17F090/func_0017FCB0.c) | `ResetHackship` | Reset health and state (ResetCid47 + SetCid48State + health bar) | 0.30 | T2 | whole-game |
-| [0x17FD08](../../../src/game/gameplay/objects/tu_17F090/func_0017FD08.cpp) | `SetHackshipState` | State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5 | 0.45 | T2 | whole-game |
-| [0x1800A0](../../../src/game/gameplay/objects/tu_17F090/AddHackshipOidPair.c) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
-| [0x1800D8](../../../src/game/gameplay/objects/tu_17F090/func_001800D8.c) | `SetHackshipEntry` | Set entry i (<5) fields a,d | 0.35 | T2 | whole-game |
-| [0x180100](../../../src/game/gameplay/objects/tu_17F090/UpdateHackshipHealthBar.c) | `UpdateHackshipHealthBar` | Set widget anim 0x34F phase = 1 - health/max (clamped) | 0.50 | T1 | whole-game |
-| [0x180188](../../../src/game/gameplay/objects/tu_17F090/func_00180188.c) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |
-| [0x1801B8](../../../src/game/gameplay/objects/tu_17F090/func_001801B8.cpp) | `UpdateHackbullet` | vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn rate | 0.40 | T2 | whole-game |
-| [0x1803A8](../../../src/game/gameplay/objects/tu_17F090/func_001803A8.c) | `HACKBULLET_FIgnoreIntersection` | vt61 override | 0.30 | T2 | whole-game |
-| [0x1803E0](../../../src/game/gameplay/objects/tu_17F090/func_001803E0.c) | `AdjustHackbulletXp` | vt55: CID47::AdjustXp then start dying on contact | 0.30 | T2 | whole-game |
-| [0x180478](../../../src/game/gameplay/objects/tu_17F090/func_00180478.c) | `SetHackbulletMode` | Set mode field and recalc object filters (RecalcSwOxfFilterForObject) | 0.30 | T2 | whole-game |
-| [0x180500](../../../src/game/gameplay/objects/tu_17F090/InitHackenemy.c) | `InitHackenemy` | CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries | 0.50 | T1 | whole-game |
-| [0x180598](../../../src/game/gameplay/objects/tu_17F090/func_00180598.c) | `RemoveHackenemyHierarchy` | vt12: CID47 RemoveHierarchy + SetCid49State | 0.40 | T2 | whole-game |
-| [0x1805C8](../../../src/game/gameplay/objects/tu_17F090/func_001805C8.c) | `PostHackenemyLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
-| [0x180638](../../../src/game/gameplay/objects/tu_17F090/func_00180638.c) | `HACKENEMY_vt26` | vt26: base + SetCid49State | 0.30 | T2 | whole-game |
-| [0x180668](../../../src/game/gameplay/objects/tu_17F090/func_00180668.cpp) | `UpdateHackenemy` | vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion | 0.40 | T2 | whole-game |
-| [0x180EE8](../../../src/game/gameplay/objects/tu_17F090/func_00180EE8.cpp) | `PresetHackenemyAccel` | vt70 override | 0.30 | T2 | whole-game |
-| [0x180FF0](../../../src/game/gameplay/objects/tu_17F090/func_00180FF0.c) | `AdjustHackenemyXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
-| [0x181060](../../../src/game/gameplay/objects/tu_17F090/func_00181060.cpp) | `HandleHackenemyMessage` | vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step | 0.45 | T2 | whole-game |
-| [0x1811B8](../../../src/game/gameplay/objects/tu_17F090/func_001811B8.c) | `HACKENEMY_TakeDamage` | vt75: CID47::TakeDamage + state change | 0.40 | T2 | whole-game |
-| [0x181238](../../../src/game/gameplay/objects/tu_17F090/func_00181238.c) | `ResetHackenemy` | Reset health and state | 0.30 | T2 | whole-game |
-| [0x181268](../../../src/game/gameplay/objects/tu_17F090/func_00181268.c) | `SetHackenemyState` | State switch; from -1 reset health; start state clip (StartCid47Anim) | 0.40 | T2 | whole-game |
-| [0x181308](../../../src/game/gameplay/objects/tu_17F090/func_00181308.c) | `SetHackenemyEntry` | Set entry i (<5) | 0.30 | T2 | whole-game |
-| [0x181330](../../../src/game/gameplay/objects/tu_17F090/func_00181330.c) | `SetHackenemyEntryVectors` | Set two 8-byte fields of entry i | 0.30 | T2 | whole-game |
-| [0x181378](../../../src/game/gameplay/objects/tu_17F090/func_00181378.c) | `SetHackenemyEntryVectors2` | Twin setter | 0.30 | T2 | whole-game |
-| [0x1813C0](../../../src/game/gameplay/objects/tu_17F090/func_001813C0.c) | `SetHackenemyScale` | Scale default vector D_002BE870 by g into x378.. | 0.30 | T2 | whole-game |
-| [0x1813F0](../../../src/game/gameplay/objects/tu_17F090/func_001813F0.c) | `SetHackenemyRange` | x384 = g * D_002BE87C | 0.30 | T2 | whole-game |
-| [0x181408](../../../src/game/gameplay/objects/tu_17F090/InitHacklock.c) | `InitHacklock` | CID 0x4B vt7: InitCid47 + 3 entries | 0.50 | T1 | whole-game |
-| [0x181440](../../../src/game/gameplay/objects/tu_17F090/func_00181440.c) | `PostHacklockLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
-| [0x181478](../../../src/game/gameplay/objects/tu_17F090/func_00181478.c) | `UpdateHacklock` | vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression | 0.40 | T2 | whole-game |
-| [0x181598](../../../src/game/gameplay/objects/tu_17F090/func_00181598.c) | `ResetHacklock` | Reset health + state | 0.30 | T2 | whole-game |
-| [0x1815E8](../../../src/game/gameplay/objects/tu_17F090/func_001815E8.c) | `SetHacklockState` | State switch; drives the CID 0x48 singleton (SetCid48State) and game events | 0.35 | T2 | whole-game |
-| [0x1816C0](../../../src/game/gameplay/objects/tu_17F090/func_001816C0.c) | `SetHacklockEntry` | Set entry i (<3) | 0.30 | T2 | whole-game |
-| [0x1816E8](../../../src/game/gameplay/objects/tu_17F090/func_001816E8.c) | `AddHacklockRsmg` | FAddRsmg on its RSMG table | 0.30 | T2 | whole-game |
-| [0x181728](../../../src/game/gameplay/objects/tu_17F090/func_00181728.c) | `TriggerHackshipFromHacklock` | SetCid48State(singleton x1C8, 1) and own vt call | 0.30 | T2 | whole-game |
-| [0x181780](../../../src/game/gameplay/objects/tu_17F090/func_00181780.c) | `TriggerHacklockRsmg` | TriggerRsmg on its table | 0.30 | T2 | whole-game |
-| [0x1817E8](../../../src/game/gameplay/objects/tu_17F090/InitHackwall.c) | `InitHackwall` | CID 0x4C vt7: InitCid47, grf | 0.50 | T1 | whole-game |
-| [0x181840](../../../src/game/gameplay/objects/tu_17F090/func_00181840.c) | `PostHackwallLoad` | vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load | 0.40 | T2 | whole-game |
-| [0x1819E0](../../../src/game/gameplay/objects/tu_17F090/func_001819E0.c) | `ResetHackwall` | Reset all segments | 0.30 | T2 | whole-game |
-| [0x181A90](../../../src/game/gameplay/objects/tu_17F090/func_00181A90.c) | `ResetHackwallSegment` | Reset one segment's pieces along its shape | 0.30 | T2 | whole-game |
-| [0x181B60](../../../src/game/gameplay/objects/tu_17F090/func_00181B60.c) | `LayoutHackwallPieces` | Distribute pieces along the segment shape length (SMaxShape) | 0.30 | T2 | whole-game |
-| [0x181CB0](../../../src/game/gameplay/objects/tu_17F090/func_00181CB0.c) | `UpdateHackwallPieces` | Per-frame piece placement along shape | 0.30 | T2 | whole-game |
-| [0x181E10](../../../src/game/gameplay/objects/tu_17F090/func_00181E10.c) | `UpdateHackwallSegments` | Iterate segments and advance their states | 0.30 | T2 | whole-game |
-| [0x181EB0](../../../src/game/gameplay/objects/tu_17F090/func_00181EB0.c) | `SetHackwallSegmentState` | Segment state switch: move between DLs, game event, relayout | 0.35 | T2 | whole-game |
-| [0x181F60](../../../src/game/gameplay/objects/tu_17F090/func_00181F60.c) | `UpdateHackwall` | vt16: UpdateSo, per-segment shape tracking and random effects | 0.35 | T2 | verified, whole-game |
-| [0x1821C0](../../../src/game/gameplay/objects/tu_17F090/func_001821C0.cpp) | `RenderHackwallSelf` | vt19: RenderSoSelf then draw each segment piece with its own matrix | 0.40 | T2 | whole-game |
-| [0x1823C8](../../../src/game/gameplay/objects/tu_17F090/func_001823C8.c) | `AddHackwallXps` | vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49 | 0.40 | T2 | whole-game |
-| [0x182700](../../../src/game/gameplay/objects/tu_17F090/func_00182700.c) | `AdjustHackwallXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
-| [0x182778](../../../src/game/gameplay/objects/tu_17F090/func_00182778.c) | `HACKWALL_vt63` | vt63: 8-byte override | 0.25 | T2 | whole-game |
-| [0x182780](../../../src/game/gameplay/objects/tu_17F090/func_00182780.c) | `HACKWALL_vt49` | vt49 override | 0.25 | T2 | whole-game |
-| [0x182810](../../../src/game/gameplay/objects/tu_17F090/func_00182810.c) | `PsegFindHackwall` | Nearest segment record to a world position | 0.35 | T2 | whole-game |
-| [0x1828A8](../../../src/game/gameplay/objects/tu_17F090/func_001828A8.c) | `HACKWALL_TakeDamage` | vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state change | 0.40 | T2 | whole-game |
-| [0x1829D8](../../../src/game/gameplay/objects/tu_17F090/func_001829D8.c) | `HACKWALL_Die` | vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change | 0.40 | T2 | whole-game |
-| [0x182AB8](../../../src/game/gameplay/objects/tu_17F090/func_00182AB8.c) | `AddHackwallSegment` | Append a segment record (max 4) {a,b,c,g} | 0.30 | T2 | whole-game |
+| [0x17F090](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitCid71` | CID 0x47 vt7: InitSo, max health x180=10, two default vectors, grf | 0.60 | T2 |  |
+| [0x17F110](../../../src/game/gameplay/objects/tu_17F090.cpp) | `RemoveCid71Hierarchy` | vt12: RemoveSoHierarchy then clear dying flag x18C | 0.55 | T2 |  |
+| [0x17F138](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PostCid71Load` | vt15: PostSoLoad then own vt83 | 0.55 | T2 |  |
+| [0x17F170](../../../src/game/gameplay/objects/tu_17F090.cpp) | `CID71_vt26` | vt26: SO base then health x184 = max x180 (reset) | 0.35 | T2 |  |
+| [0x17F1A0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AdjustCid71Xp` | vt55: SO base then clear adjust fields x94/x98 (same as pipe twin ResetJtPipeAdjust) | 0.30 | T2 |  |
+| [0x17F1D0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `CID71_TakeDamage` | vt75 (msg with flag 8): health x184 += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain, limited) through constraint and SetVelocity | 0.55 | T2 |  |
+| [0x17F3E0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitCid47Entries` | Set n=-1 on c entries | 0.40 | T2 |  |
+| [0x17F408](../../../src/game/gameplay/objects/tu_17F090.cpp) | `BindCid47Entries` | Resolve entry oids with PloFindSwObject (kind 4) and test class 0x6D | 0.35 | T2 |  |
+| [0x17F4C0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `StartCid47Anim` | Retract current ASEGA (x194) / SM (x198) and apply the record's clip and SM state | 0.40 | T2 |  |
+| [0x17F550](../../../src/game/gameplay/objects/tu_17F090.cpp) | `FCid47AnimDone` | True when the current ASEGA retracted or the SM reached its end state | 0.40 | T2 |  |
+| [0x17F5B0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `StartCid47Dying` | Once: set dying flag x18C and PostSwCallback(D_002A5630, n) | 0.40 | T2 |  |
+| [0x17F5F8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `CID71_Die` | vt82: if it carries a blast damage x188 InflictZap area damage at its position, ExplodeExpl its explosion x190, then vt9 Remove | 0.50 | T2 |  |
+| [0x17F6B0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `ResetCid71` | Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638) | 0.40 | T2 | verified |
+| [0x17F6F8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitHackship` | CID 0x48 vt7: InitCid47, 5 entries, state -1, register singleton D_002DFB80 = this, sound -1 | 0.55 | T1 | whole-game |
+| [0x17F740](../../../src/game/gameplay/objects/tu_17F090.cpp) | `RemoveHackshipHierarchy` | vt12: base then state change via SetCid48State | 0.40 | T2 | whole-game |
+| [0x17F770](../../../src/game/gameplay/objects/tu_17F090.cpp) | `BindHackshipParts` | Look up child XFs / objects for entries and create vector actuators | 0.30 | T2 | whole-game |
+| [0x17F850](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PostHackshipLoad` | vt15: PostCid47Load, bind entries and parts | 0.45 | T2 | whole-game |
+| [0x17F8C8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `OnHackshipActive` | vt78: base then SetCid48State | 0.35 | T2 | whole-game |
+| [0x17F930](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackship` | vt16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals | 0.45 | T2 | whole-game |
+| [0x17FB50](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PresetHackshipAccel` | vt70 override | 0.35 | T2 | whole-game |
+| [0x17FBE8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKSHIP_TakeDamage` | vt75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and state 2 (hit) or 4 (defeated) | 0.50 | T1 | whole-game |
+| [0x17FCB0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `ResetHackship` | Reset health and state (ResetCid47 + SetCid48State + health bar) | 0.30 | T2 | whole-game |
+| [0x17FD08](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackshipState` | State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5 | 0.45 | T2 | whole-game |
+| [0x1800A0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AddHackshipOidPair` | Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230) | 0.50 | existing | arbitration; replaces existing UseStepguardDeathAnimation__FP9STEPGUARDi3OID |
+| [0x1800D8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackshipEntry` | Set entry i (<5) fields a,d | 0.35 | T2 | whole-game |
+| [0x180100](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackshipHealthBar` | Set widget anim 0x34F phase = 1 - health/max (clamped) | 0.50 | T1 | whole-game |
+| [0x180188](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitHackbullet` | CID 0x4A vt7: InitCid47, field = 10 | 0.50 | T2 | verified, whole-game |
+| [0x1801B8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackbullet` | vt16: UpdateSo; self-destruct (vt82) when its timer expires; turn toward target with limited turn rate | 0.40 | T2 | whole-game |
+| [0x1803A8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKBULLET_FIgnoreIntersection` | vt61 override | 0.30 | T2 | whole-game |
+| [0x1803E0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AdjustHackbulletXp` | vt55: CID47::AdjustXp then start dying on contact | 0.30 | T2 | whole-game |
+| [0x180478](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackbulletMode` | Set mode field and recalc object filters (RecalcSwOxfFilterForObject) | 0.30 | T2 | whole-game |
+| [0x180500](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitHackenemy` | CID 0x49 vt7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries | 0.50 | T1 | whole-game |
+| [0x180598](../../../src/game/gameplay/objects/tu_17F090.cpp) | `RemoveHackenemyHierarchy` | vt12: CID47 RemoveHierarchy + SetCid49State | 0.40 | T2 | whole-game |
+| [0x1805C8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PostHackenemyLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
+| [0x180638](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKENEMY_vt26` | vt26: base + SetCid49State | 0.30 | T2 | whole-game |
+| [0x180668](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackenemy` | vt16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion | 0.40 | T2 | whole-game |
+| [0x180EE8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PresetHackenemyAccel` | vt70 override | 0.30 | T2 | whole-game |
+| [0x180FF0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AdjustHackenemyXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
+| [0x181060](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HandleHackenemyMessage` | vt5: HandlePoMessage; on ASEGA event 0x15E of its clip apply a translation step | 0.45 | T2 | whole-game |
+| [0x1811B8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKENEMY_TakeDamage` | vt75: CID47::TakeDamage + state change | 0.40 | T2 | whole-game |
+| [0x181238](../../../src/game/gameplay/objects/tu_17F090.cpp) | `ResetHackenemy` | Reset health and state | 0.30 | T2 | whole-game |
+| [0x181268](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackenemyState` | State switch; from -1 reset health; start state clip (StartCid47Anim) | 0.40 | T2 | whole-game |
+| [0x181308](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackenemyEntry` | Set entry i (<5) | 0.30 | T2 | whole-game |
+| [0x181330](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackenemyEntryVectors` | Set two 8-byte fields of entry i | 0.30 | T2 | whole-game |
+| [0x181378](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackenemyEntryVectors2` | Twin setter | 0.30 | T2 | whole-game |
+| [0x1813C0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackenemyScale` | Scale default vector D_002BE870 by g into x378.. | 0.30 | T2 | whole-game |
+| [0x1813F0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackenemyRange` | x384 = g * D_002BE87C | 0.30 | T2 | whole-game |
+| [0x181408](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitHacklock` | CID 0x4B vt7: InitCid47 + 3 entries | 0.50 | T1 | whole-game |
+| [0x181440](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PostHacklockLoad` | vt15: PostCid47Load + bind entries | 0.45 | T2 | whole-game |
+| [0x181478](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHacklock` | vt16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression | 0.40 | T2 | whole-game |
+| [0x181598](../../../src/game/gameplay/objects/tu_17F090.cpp) | `ResetHacklock` | Reset health + state | 0.30 | T2 | whole-game |
+| [0x1815E8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHacklockState` | State switch; drives the CID 0x48 singleton (SetCid48State) and game events | 0.35 | T2 | whole-game |
+| [0x1816C0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHacklockEntry` | Set entry i (<3) | 0.30 | T2 | whole-game |
+| [0x1816E8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AddHacklockRsmg` | FAddRsmg on its RSMG table | 0.30 | T2 | whole-game |
+| [0x181728](../../../src/game/gameplay/objects/tu_17F090.cpp) | `TriggerHackshipFromHacklock` | SetCid48State(singleton x1C8, 1) and own vt call | 0.30 | T2 | whole-game |
+| [0x181780](../../../src/game/gameplay/objects/tu_17F090.cpp) | `TriggerHacklockRsmg` | TriggerRsmg on its table | 0.30 | T2 | whole-game |
+| [0x1817E8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `InitHackwall` | CID 0x4C vt7: InitCid47, grf | 0.50 | T1 | whole-game |
+| [0x181840](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PostHackwallLoad` | vt15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load | 0.40 | T2 | whole-game |
+| [0x1819E0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `ResetHackwall` | Reset all segments | 0.30 | T2 | whole-game |
+| [0x181A90](../../../src/game/gameplay/objects/tu_17F090.cpp) | `ResetHackwallSegment` | Reset one segment's pieces along its shape | 0.30 | T2 | whole-game |
+| [0x181B60](../../../src/game/gameplay/objects/tu_17F090.cpp) | `LayoutHackwallPieces` | Distribute pieces along the segment shape length (SMaxShape) | 0.30 | T2 | whole-game |
+| [0x181CB0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackwallPieces` | Per-frame piece placement along shape | 0.30 | T2 | whole-game |
+| [0x181E10](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackwallSegments` | Iterate segments and advance their states | 0.30 | T2 | whole-game |
+| [0x181EB0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `SetHackwallSegmentState` | Segment state switch: move between DLs, game event, relayout | 0.35 | T2 | whole-game |
+| [0x181F60](../../../src/game/gameplay/objects/tu_17F090.cpp) | `UpdateHackwall` | vt16: UpdateSo, per-segment shape tracking and random effects | 0.35 | T2 | verified, whole-game |
+| [0x1821C0](../../../src/game/gameplay/objects/tu_17F090.cpp) | `RenderHackwallSelf` | vt19: RenderSoSelf then draw each segment piece with its own matrix | 0.40 | T2 | whole-game |
+| [0x1823C8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AddHackwallXps` | vt60: SO base then contacts against each segment (PxpAdd) for requests with flag bit 49 | 0.40 | T2 | whole-game |
+| [0x182700](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AdjustHackwallXp` | vt55: base then start dying | 0.30 | T2 | whole-game |
+| [0x182778](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKWALL_vt63` | vt63: 8-byte override | 0.25 | T2 | whole-game |
+| [0x182780](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKWALL_vt49` | vt49 override | 0.25 | T2 | whole-game |
+| [0x182810](../../../src/game/gameplay/objects/tu_17F090.cpp) | `PsegFindHackwall` | Nearest segment record to a world position | 0.35 | T2 | whole-game |
+| [0x1828A8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKWALL_TakeDamage` | vt75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state change | 0.40 | T2 | whole-game |
+| [0x1829D8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `HACKWALL_Die` | vt82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change | 0.40 | T2 | whole-game |
+| [0x182AB8](../../../src/game/gameplay/objects/tu_17F090.cpp) | `AddHackwallSegment` | Append a segment record (max 4) {a,b,c,g} | 0.30 | T2 | whole-game |
 
 ## tu_1B0B78 (0x1B0B78-0x1B1DB8)
 

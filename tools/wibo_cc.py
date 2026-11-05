@@ -91,7 +91,9 @@ def main():
             # alignments and pad each loop fully; every loop then has the length it will have in the final output
             # (alignment nops + remaining padding = full padding), so the address after each loop-head label shows
             # whether the alignment adds a nop there (section start assumed 8-aligned).
-            marked = asfix.add_markers(raw, needs)
+            # the indices in needs refer to the text after asfix.divfix (fix() runs it first), so mark that text;
+            # divfix is idempotent, so the fix() calls below see the same lines
+            marked = asfix.add_markers(asfix.divfix(raw), needs)
             if os.environ.get('SLY2_ALIGNLOG'):
                 open(os.environ['SLY2_ALIGNLOG'], 'a').write(src + '\n')
             meas = re.sub(r'^(__afA\d+:)\n\s*\.(p2align|align)\s+3\s*$', r'\1', marked, flags=re.M)

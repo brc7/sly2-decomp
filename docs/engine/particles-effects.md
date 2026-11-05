@@ -66,45 +66,45 @@ BLIPG (CID 0x1C) particle groups (smoke, sparkles), Sly 1 blip.c; slots 2 Delete
 | [0x139AB8](../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransformAccel` | VU-accelerated particle advance with bounds | 0.85 | T1 | verified |
 | [0x139DC0](../../src/game/engine/fx/blip.cpp) | `ProjectBlipgTransform` | BLIPG vt17: per-blip transform/projection (non-accelerated path) | 0.75 | T1 |  |
 | [0x13A1E8](../../src/game/engine/fx/blip.cpp) | `RenderBlipgSelf` | BLIPG vt19 RenderSelf: build VU1 DMA for the blip group | 0.75 | T1 |  |
-| [0x159118](../../src/game/engine/fx/emitter/func_00159118.c) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
-| [0x1591B0](../../src/game/engine/fx/emitter/InitEmitter.c) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
-| [0x159240](../../src/game/engine/fx/emitter/LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
-| [0x15A808](../../src/game/engine/fx/emitter/ChooseEmitoPos__FP5EMITOiiP6VECTORT3.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
-| [0x15AD48](../../src/game/engine/fx/emitter/ConvertEmitoPosVec__FP5EMITOP6VECTORT1.c) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
-| [0x15B0C8](../../src/game/engine/fx/emitter/ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7.c) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
-| [0x15B1B0](../../src/game/engine/fx/emitter/EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
-| [0x15B428](../../src/game/engine/fx/emitter/EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
-| [0x15B7E8](../../src/game/engine/fx/emitter/OriginateParticles__FiP5EMITBP7EMITGEN.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
-| [0x15BD20](../../src/game/engine/fx/emitter/EmitParticles__FiP5EMITBP5EMITG.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
-| [0x15C150](../../src/game/engine/fx/emitter/func_0015C150.c) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
-| [0x15C198](../../src/game/engine/fx/emitter/ExplodeExplParams.c) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
-| [0x15C1E0](../../src/game/engine/fx/emitter/ExplodeExplExplso__FP4EXPLP6EXPLSO.c) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
-| [0x15C1E8](../../src/game/engine/fx/emitter/LoadExplgFromBrx.c) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
-| [0x15C628](../../src/game/engine/fx/emitter/ExplodeExplsExplso.c) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
-| [0x1CDCD0](../../src/game/engine/fx/rip/PripgNew.c) | `PripgNew` | Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world | 0.75 | T1 |  |
-| [0x1CDDC8](../../src/game/engine/fx/rip/InitRipg__FP4RIPG.c) | `InitRipg` | RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags | 0.85 | T1 | verified |
-| [0x1CDE70](../../src/game/engine/fx/rip/SetRipgEmitb__FP4RIPGP5EMITB.c) | `SetRipgEmitb__FP4RIPGP5EMITB` | copy emitb rate into RIPG | 0.90 | existing | verified |
-| [0x1CDF88](../../src/game/engine/fx/rip/ProjectRipgTransform.c) | `ProjectRipgTransform` | RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set center/radius | 0.70 | T1 | verified |
-| [0x1CE170](../../src/game/engine/fx/rip/UpdateRipgBounds.c) | `UpdateRipgBounds` | RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag D_003E115C, call SO bound update 0x1F4BA8 | 0.85 | T1 | verified |
-| [0x1CE1C8](../../src/game/engine/fx/rip/UpdateRipg.c) | `UpdateRipg` | RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active | 0.75 | existing | arbitration; replaces existing FUN_0019e420 |
-| [0x1CE2E8](../../src/game/engine/fx/rip/BounceRipgRips__FP4RIPG.cpp) | `BounceRipgRips` | Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual | 0.85 | T1 | verified |
-| [0x1CE888](../../src/game/engine/fx/rip/PripNewRipg.c) | `PripNewRipg` | Allocate a RIP from the rip pool (D_003E1144?), construct by type, link into RIPG dlRip, AddRipRef | 0.85 | T1 | verified |
-| [0x1CE920](../../src/game/engine/fx/rip/InitRip.c) | `InitRip` | RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix | 0.85 | T1 | verified |
-| [0x1CE9D0](../../src/game/engine/fx/rip/ReleaseRip__FP3RIP.c) | `ReleaseRip` | Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip | 0.85 | T1 | verified |
-| [0x1CEAA8](../../src/game/engine/fx/rip/ForceRipFade__FP3RIPf.cpp) | `ForceRipFade__FP3RIPf` | start fade | 0.90 | existing | verified |
-| [0x1CEB08](../../src/game/engine/fx/rip/FBounceRip.cpp) | `FBounceRip` | RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade | 0.75 | T1 | verified |
-| [0x1CF518](../../src/game/engine/fx/rip/RenderRip.cpp) | `RenderRip` | RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip | 0.85 | T1 | verified |
-| [0x1CF578](../../src/game/engine/fx/rip/SubscribeRipObject.c) | `SubscribeRipObject` | Push {plo} subscription node (pool D_003E1144) onto rip->(+0xE8) list | 0.75 | T1 |  |
-| [0x1CF6B0](../../src/game/engine/fx/rip/CreateStuck.cpp) | `CreateStuck` | Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation | 0.75 | T1 |  |
-| [0x1CF968](../../src/game/engine/fx/rip/FBounceLeaf.c) | `FBounceLeaf` | FLYING FBounce: on contact CreateStuck then RemoveRip | 0.65 | T1 | verified, arbitration |
-| [0x1CFAB8](../../src/game/engine/fx/rip/PostShrapnelEmit__FP8SHRAPNELP5EMITB.cpp) | `PostShrapnelEmit__FP8SHRAPNELP5EMITB` | SHRAPNEL (RIPT 8) PostEmit | 0.85 | existing | verified |
-| [0x1CFD30](../../src/game/engine/fx/rip/LaunchMatch__FP5MATCH.cpp) | `LaunchMatch` | Aim match at its target object: take target pose, decompose rotation, set launch velocity | 0.85 | T1 | verified |
-| [0x1CFE88](../../src/game/engine/fx/rip/ProjectMatchTransform.cpp) | `ProjectMatchTransform` | MATCH Project: Hermite-follow target pose | 0.70 | T1 | verified |
-| [0x1D0038](../../src/game/engine/fx/rip/UpdateMatch.c) | `UpdateMatch` | MATCH Update: LaunchMatch / RemoveRip | 0.85 | T1 | verified |
-| [0x1D0190](../../src/game/engine/fx/rip/RenderGlint.cpp) | `RenderGlint` | RIPT 4 Render: large custom draw (fades; RemoveRip when done) | 0.85 | T1 | verified |
-| [0x1D04E8](../../src/game/engine/fx/rip/InitSmack.c) | `InitSmack` | SMACK (RIPT 9) Init | 0.85 | T1 | verified |
-| [0x1D05A0](../../src/game/engine/fx/rip/ProjectSmackTransform.c) | `ProjectSmackTransform` | SMACK Project | 0.85 | T1 | verified |
-| [0x1D0800](../../src/game/engine/fx/rip/UpdateSmack.cpp) | `UpdateSmack` | SMACK Update (RemoveRip when done) | 0.85 | T1 | verified |
+| [0x159118](../../src/game/engine/fx/emitter.cpp) | `InitEmitb` | Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0) | 0.85 | T1 |  |
+| [0x1591B0](../../src/game/engine/fx/emitter.cpp) | `InitEmitter` | EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2 | 0.85 | T1 |  |
+| [0x159240](../../src/game/engine/fx/emitter.cpp) | `LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream` |  | 0.75 | existing | parse |
+| [0x15A808](../../src/game/engine/fx/emitter.cpp) | `ChooseEmitoPos` | Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton) | 0.85 | T1 | verified |
+| [0x15AD48](../../src/game/engine/fx/emitter.cpp) | `ConvertEmitoPosVec` | Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space | 0.70 | T1 | verified |
+| [0x15B0C8](../../src/game/engine/fx/emitter.cpp) | `ChooseEmitvVelocityAge` | Chooses per-particle velocity (ChooseEmitVelocity) and age | 0.65 | T1 | verified |
+| [0x15B1B0](../../src/game/engine/fx/emitter.cpp) | `EmitRips` | Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions | 0.85 | T1 | verified |
+| [0x15B428](../../src/game/engine/fx/emitter.cpp) | `EmitBlips` | Spawns BLIP particles for originated positions | 0.65 | T1 | verified |
+| [0x15B7E8](../../src/game/engine/fx/emitter.cpp) | `OriginateParticles` | Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge, ConvertEmitoPosVec) | 0.70 | T1 | verified |
+| [0x15BD20](../../src/game/engine/fx/emitter.cpp) | `EmitParticles` | Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips | 0.75 | T1 | verified |
+| [0x15C150](../../src/game/engine/fx/emitter.cpp) | `ExplodeExpl` | Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) | 0.75 | T1 |  |
+| [0x15C198](../../src/game/engine/fx/emitter.cpp) | `ExplodeExplParams` | Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51) | 0.75 | T1 |  |
+| [0x15C1E0](../../src/game/engine/fx/emitter.cpp) | `ExplodeExplExplso` | Empty base implementation of the EXPL explode virtual (slot 51) | 0.50 | T1 | verified |
+| [0x15C1E8](../../src/game/engine/fx/emitter.cpp) | `LoadExplgFromBrx` | EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo | 0.85 | T1 | parse |
+| [0x15C628](../../src/game/engine/fx/emitter.cpp) | `ExplodeExplsExplso` | EXPLS explode: forwards to its own vtable slot 52 (fire) | 0.55 | T1 | verified |
+| [0x1CDCD0](../../src/game/engine/fx/rip.cpp) | `PripgNew` | Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it, construct (CRef), add to world | 0.75 | T1 |  |
+| [0x1CDDC8](../../src/game/engine/fx/rip.cpp) | `InitRipg` | RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags | 0.85 | T1 | verified |
+| [0x1CDE70](../../src/game/engine/fx/rip.cpp) | `SetRipgEmitb__FP4RIPGP5EMITB` | copy emitb rate into RIPG | 0.90 | existing | verified |
+| [0x1CDF88](../../src/game/engine/fx/rip.cpp) | `ProjectRipgTransform` | RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set center/radius | 0.70 | T1 | verified |
+| [0x1CE170](../../src/game/engine/fx/rip.cpp) | `UpdateRipgBounds` | RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag D_003E115C, call SO bound update 0x1F4BA8 | 0.85 | T1 | verified |
+| [0x1CE1C8](../../src/game/engine/fx/rip.cpp) | `UpdateRipg` | RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active | 0.75 | existing | arbitration; replaces existing FUN_0019e420 |
+| [0x1CE2E8](../../src/game/engine/fx/rip.cpp) | `BounceRipgRips` | Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual | 0.85 | T1 | verified |
+| [0x1CE888](../../src/game/engine/fx/rip.cpp) | `PripNewRipg` | Allocate a RIP from the rip pool (D_003E1144?), construct by type, link into RIPG dlRip, AddRipRef | 0.85 | T1 | verified |
+| [0x1CE920](../../src/game/engine/fx/rip.cpp) | `InitRip` | RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix | 0.85 | T1 | verified |
+| [0x1CE9D0](../../src/game/engine/fx/rip.cpp) | `ReleaseRip` | Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip | 0.85 | T1 | verified |
+| [0x1CEAA8](../../src/game/engine/fx/rip.cpp) | `ForceRipFade__FP3RIPf` | start fade | 0.90 | existing | verified |
+| [0x1CEB08](../../src/game/engine/fx/rip.cpp) | `FBounceRip` | RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade | 0.75 | T1 | verified |
+| [0x1CF518](../../src/game/engine/fx/rip.cpp) | `RenderRip` | RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip | 0.85 | T1 | verified |
+| [0x1CF578](../../src/game/engine/fx/rip.cpp) | `SubscribeRipObject` | Push {plo} subscription node (pool D_003E1144) onto rip->(+0xE8) list | 0.75 | T1 |  |
+| [0x1CF6B0](../../src/game/engine/fx/rip.cpp) | `CreateStuck` | Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation | 0.75 | T1 |  |
+| [0x1CF968](../../src/game/engine/fx/rip.cpp) | `FBounceLeaf` | FLYING FBounce: on contact CreateStuck then RemoveRip | 0.65 | T1 | verified, arbitration |
+| [0x1CFAB8](../../src/game/engine/fx/rip.cpp) | `PostShrapnelEmit__FP8SHRAPNELP5EMITB` | SHRAPNEL (RIPT 8) PostEmit | 0.85 | existing | verified |
+| [0x1CFD30](../../src/game/engine/fx/rip.cpp) | `LaunchMatch` | Aim match at its target object: take target pose, decompose rotation, set launch velocity | 0.85 | T1 | verified |
+| [0x1CFE88](../../src/game/engine/fx/rip.cpp) | `ProjectMatchTransform` | MATCH Project: Hermite-follow target pose | 0.70 | T1 | verified |
+| [0x1D0038](../../src/game/engine/fx/rip.cpp) | `UpdateMatch` | MATCH Update: LaunchMatch / RemoveRip | 0.85 | T1 | verified |
+| [0x1D0190](../../src/game/engine/fx/rip.cpp) | `RenderGlint` | RIPT 4 Render: large custom draw (fades; RemoveRip when done) | 0.85 | T1 | verified |
+| [0x1D04E8](../../src/game/engine/fx/rip.cpp) | `InitSmack` | SMACK (RIPT 9) Init | 0.85 | T1 | verified |
+| [0x1D05A0](../../src/game/engine/fx/rip.cpp) | `ProjectSmackTransform` | SMACK Project | 0.85 | T1 | verified |
+| [0x1D0800](../../src/game/engine/fx/rip.cpp) | `UpdateSmack` | SMACK Update (RemoveRip when done) | 0.85 | T1 | verified |
 | [0x21C0D8](../../src/game/engine/fx/trail.cpp) | `UpdateTrail` | ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove) | 0.55 | T1 | verified |
 
 Selected 50 of 127 named functions (T1 with confidence >= 0.75, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/particles-effects.md](../reference/functions/particles-effects.md).

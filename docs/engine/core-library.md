@@ -137,10 +137,10 @@ thread.cpp (semaphores, critical sections, `StartupThread`), text.cpp (`CchOstrm
 | [0x21EDF8](../../src/game/platform/runtime/text.cpp) | `strchr` | libc-style strchr game copy | 0.85 | T1 | verified |
 | [0x21F0C0](../../src/game/platform/thread/thread.cpp) | `LeaveCritSect` | decrement enter count; at 0 clear owner and SignalSema | 0.90 | T1 | verified |
 | [0x21F100](../../src/game/platform/thread/thread.cpp) | `StartupThread` | creates the worker thread (stack 0x1000, prio 2, entry 0x160B70) after raising main prio to 5 | 0.90 | T1 | verified |
-| [0x2584A8](../../src/game/engine/fx/emitter/LoadEmitblipColorsFromBrx.c) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258598](../../src/game/engine/fx/emitter/LoadEmitterFromBrx.c) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258F40](../../src/game/engine/fx/emitter/LoadExploBlipColorsFromBrx.c) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x259030](../../src/game/engine/fx/emitter/LoadExploFromBrx.c) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x2584A8](../../src/game/engine/fx/emitter.cpp) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258598](../../src/game/engine/fx/emitter.cpp) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258F40](../../src/game/engine/fx/emitter.cpp) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x259030](../../src/game/engine/fx/emitter.cpp) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
 
 Selected 60 of 460 named functions (T1 with confidence >= 0.85, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/core-library.md](../reference/functions/core-library.md).
 

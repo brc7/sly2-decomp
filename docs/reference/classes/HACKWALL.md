@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (PO) | `HandlePoMessage` | `0x1C3E20` |
 | 6 | Pclassinfo | **override** | [`GetHackwallClassDesc`](../../../src/game/app/class_registry/GetHackwallClassDesc.c) | `0x113ED0` |
-| 7 | Init | **override** | [`InitHackwall`](../../../src/game/gameplay/objects/tu_17F090/InitHackwall.c) | `0x1817E8` |
+| 7 | Init | **override** | [`InitHackwall`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1817E8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` |
@@ -37,11 +37,11 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 12 | RemoveHierarchy | inherited (HACK) | `RemoveHackHierarchy?` | `0x17F110` |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` |
 | 14 | LoadFromBrx | inherited (PO) | `LoadPoFromBrx` | `0x1C3DC8` |
-| 15 | PostLoad | **override** | [`PostHackwallLoad?`](../../../src/game/gameplay/objects/tu_17F090/func_00181840.c) | `0x181840` |
-| 16 | Update | **override** | [`UpdateHackwall?`](../../../src/game/gameplay/objects/tu_17F090/func_00181F60.c) | `0x181F60` |
+| 15 | PostLoad | **override** | [`PostHackwallLoad?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181840` |
+| 16 | Update | **override** | [`UpdateHackwall?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x181F60` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (SO) | `UpdateSoXfWorld?` | `0x1F3980` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` |
-| 19 | RenderSelf | **override** | [`RenderHackwallSelf?`](../../../src/game/gameplay/objects/tu_17F090/func_001821C0.cpp) | `0x1821C0` |
+| 19 | RenderSelf | **override** | [`RenderHackwallSelf?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1821C0` |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` |
@@ -71,21 +71,21 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (SO) | `SetSoVisMask` | `0x1A6DC8` |
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` |
-| 49 | UpdateSoTreeBounds | **override** | [`HACKWALL_vt49?`](../../../src/game/gameplay/objects/tu_17F090/func_00182780.c) | `0x182780` |
+| 49 | UpdateSoTreeBounds | **override** | [`HACKWALL_vt49?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x182780` |
 | 50 | GetSoCpdefi | inherited (SO) | `GetSoCpdefi` | `0x1F58F0` |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` |
 | 54 | SO_vt54_Nop | inherited (SO) | `SO_vt54_Nop?` | `0x1F5988` |
-| 55 | SO_vt55_Nop | **override** | [`AdjustHackwallXp?`](../../../src/game/gameplay/objects/tu_17F090/func_00182700.c) | `0x182700` |
+| 55 | SO_vt55_Nop | **override** | [`AdjustHackwallXp?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x182700` |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` |
 | 57 | SO_vt57_Nop | inherited (SO) | `SO_vt57_Nop?` | `0x1F4FC0` |
 | 58 | ScheduleSoTouchEvents | inherited (SO) | `ScheduleSoTouchEvents?` | `0x1F4F10` |
 | 59 | SO_vt59_Nop | inherited (SO) | `SO_vt59_Nop?` | `0x1F4FA8` |
-| 60 | SO_vt60_Nop | **override** | [`AddHackwallXps?`](../../../src/game/gameplay/objects/tu_17F090/func_001823C8.c) | `0x1823C8` |
+| 60 | SO_vt60_Nop | **override** | [`AddHackwallXps?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1823C8` |
 | 61 | FIgnoreSoIntersection | inherited (SO) | `FIgnoreSoIntersection` | `0x1F4FC8` |
 | 62 | FIsSoFixed | inherited (SO) | `FIsSoFixed?` | `0x1F5040` |
-| 63 | SO_vt63_Ret0 | **override** | [`HACKWALL_vt63?`](../../../src/game/gameplay/objects/tu_17F090/func_00182778.c) | `0x182778` |
+| 63 | SO_vt63_Ret0 | **override** | [`HACKWALL_vt63?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x182778` |
 | 64 | ResetSoPhys | inherited (SO) | `ResetSoPhys?` | `0x1F3590` |
 | 65 | ApplySoForcesXf | inherited (SO) | `ApplySoForcesXf?` | `0x1F9E70` |
 | 66 | ProjectSoForce | inherited (SO) | `ProjectSoForce?` | `0x1FA328` |
@@ -97,15 +97,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 72 |  | inherited (SO) | `func_002297F8` | `0x2297F8` |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` |
 | 74 | InflictSoContactZaps | inherited (SO) | `InflictSoContactZaps?` | `0x1F7410` |
-| 75 | FZprHasField44 | **override** | [`HACKWALL_TakeDamage?`](../../../src/game/gameplay/objects/tu_17F090/func_001828A8.c) | `0x1828A8` |
+| 75 | FZprHasField44 | **override** | [`HACKWALL_TakeDamage?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1828A8` |
 | 76 | FInvulnerablePo | inherited (PO) | `FInvulnerablePo` | `0x1C3E90` |
 | 77 | JthsCurrentPo | inherited (PO) | `JthsCurrentPo` | `0x1C3ED0` |
 | 78 | OnPoActive | inherited (PO) | `OnPoActive` | `0x1C3FF0` |
 | 79 | SetPoCtlState | inherited (PO) | `SetPoCtlState` | `0x1C3ED8` |
 | 80 | FCanPoBeHealed | inherited (PO) | `FCanPoBeHealed` | `0x1C41B8` |
 | 81 | AddPoHpMp | inherited (PO) | `AddPoHpMp` | `0x1C4228` |
-| 82 | HACK_Die | **override** | [`HACKWALL_Die?`](../../../src/game/gameplay/objects/tu_17F090/func_001829D8.c) | `0x1829D8` |
-| 83 | ResetHack | **override** | [`ResetHackwall?`](../../../src/game/gameplay/objects/tu_17F090/func_001819E0.c) | `0x1819E0` |
+| 82 | HACK_Die | **override** | [`HACKWALL_Die?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1829D8` |
+| 83 | ResetHack | **override** | [`ResetHackwall?`](../../../src/game/gameplay/objects/tu_17F090.cpp) | `0x1819E0` |
 
 ## Fields
 
