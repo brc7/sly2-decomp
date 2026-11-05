@@ -767,7 +767,7 @@ extern "C" { extern SW D_003DD490; }
 extern "C" {
 void FlushFrames__Fi(int);
 FRAME *STACKSCOPE_ctor(FRAME *);
-void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void SetPhase__F5PHASE(int);
 void func_00258248(KEY *);
 STREAM *func_001848A8(STREAM *,int,void *,int);
@@ -1302,7 +1302,7 @@ void *func_001AE318(struct M *pm);
 void Read__18CBinaryInputStreamiPv(void *q, int a, void *x);
 void RelocateSharedColorTables(void *x);
 void UploadBitmaps__FP3GSB(void *p);
-void STACKSCOPE_ctor_1AE4A0(struct L *pl, int n);
+void STACKSCOPE_ctor_1AE4A0(struct L *pl, int n) __asm__("_$_10STACKSCOPE");
 void Skip__18CBinaryInputStreami(void *q, int a);
 void func_00170828(void *p);
 /** @sly2-annot addr=0x20F640

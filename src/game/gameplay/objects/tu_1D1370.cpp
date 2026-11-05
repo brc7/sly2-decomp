@@ -1523,8 +1523,6 @@ struct SOPART { char pad0[0x90]; GEOM geomWorld; };
 struct SUPPORT { qword pos; SURF *apsurf[2]; int fUsed; int pad; };
 struct SWALLOC { int cb; int cbAlign; };
 
-extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
 struct VTE { short delta, pad; M4 *(*pfn)(void *); };
 struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };

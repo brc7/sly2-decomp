@@ -76,8 +76,6 @@ int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
-void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
 int func_001BA100(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);

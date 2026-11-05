@@ -155,7 +155,7 @@ void func_00257948();
 void func_00257AB0();
 void func_00257C18();
 void STACKSCOPE_ctor(STACKSCOPE *pss);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(MSG *pmsg);
 void func_001285D8(CGc *pgc, CRef *pref);
 void GcFrame_Unlink(GCHDR *p);

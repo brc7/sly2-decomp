@@ -1246,8 +1246,6 @@ void SetJtGrabState(struct P *p, int n, int a, int b)
 namespace M_func_00192A28 {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
-void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void *PdteFindDetectorTarget(void *a, void *b);
 void SetDetectorTargetState(void *a, void *b, int c);
 qword func_001A62E8(void *p);

@@ -435,7 +435,7 @@ void LoadXfmXfFromBrx(TN *p, CBinaryInputStream *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(CBinaryInputStream *pbis, GEOM *pgeom);
 void CBinaryInputStream_ReadBspc(CBinaryInputStream *pbis, GEOM *pgeom, BSPC *pbspc);
 MARK *STACKSCOPE_ctor(MARK *pm);
-void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n);
+void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(MSGA *pmsg);
 void *func_001AE238(MSGA *pmsg, void *pv);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(TN *p, CBinaryInputStream *pbis);

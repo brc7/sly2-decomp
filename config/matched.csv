@@ -3485,7 +3485,7 @@ func_001AE378,0x1AE378,23,match,src/game/platform/memory/memory.cpp
 InitStackImpl__Fv,0x1AE3D8,19,match,src/game/platform/memory/memory.cpp
 FreeStackImpl__Fv,0x1AE428,19,match,src/game/platform/memory/memory.cpp
 STACKSCOPE_ctor,0x1AE478,10,match,src/game/platform/memory/memory.cpp
-STACKSCOPE_ctor_1AE4A0,0x1AE4A0,17,match,src/game/platform/memory/memory.cpp
+_$_10STACKSCOPE,0x1AE4A0,17,match,src/game/platform/memory/memory.cpp
 malloc,0x1AE4E8,2,match,src/game/platform/memory/memory.cpp
 free,0x1AE4F0,2,match,src/game/platform/memory/memory.cpp
 func_001AE4F8,0x1AE4F8,10,match,src/game/platform/memory/memory.cpp

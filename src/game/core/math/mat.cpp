@@ -50,8 +50,6 @@ float GSmooth__FfffP3SMPPf(float g, float gGoal, float dt, SMP *psmp, float *pdv
 float atan2f(float y, float x);
 float acosf(float g);
 float asinf(float g);
-void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void *func_001AE318(MSG *pmsg);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 

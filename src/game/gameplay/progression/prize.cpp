@@ -421,7 +421,7 @@ extern char D_003DD490[];
 extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002A2DE0;
 extern float D_002C0D74, D_002C0D78;
 void STACKSCOPE_ctor(STACKSCOPE *);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
 qword func_001A62E8(P *);
 int FFilterDprizeObjects(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
@@ -1794,7 +1794,7 @@ struct S { char p0[0x23C]; int x23C; void *x240; };
 struct H *STACKSCOPE_ctor(struct H *ph);
 void *func_001AE318(struct AL *pal);
 void *func_001AE238(struct AL *pal, void *pv);
-void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n);
+void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n) __asm__("_$_10STACKSCOPE");
 void LoadDprizeFromBrx(struct S *p, void *pv);
 void func_001C7A08(struct S *p);
 /** @sly2-annot addr=0x1C76D0
@@ -2080,7 +2080,7 @@ struct A *FClueCollected(int input)
 namespace M_func_001C7BB8 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void *FClueCollected(void *p);
 }
@@ -2107,7 +2107,7 @@ int func_001C7BB8(void *p)
 namespace M_func_001C7C30 {
 extern "C" {
 void *STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void func_001291A8(void *p, const void *q);
 void *FClueCollected(int n);
@@ -2380,7 +2380,7 @@ int FVaultOpened(void)
 namespace M_func_001C8110 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void *FVaultOpened(void);
 }
@@ -2407,7 +2407,7 @@ int func_001C8110(void)
 namespace M_func_001C8188 {
 extern "C" {
 void *STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void *func_001291A8(void *p, const void *q);
 void *FVaultOpened(void);

@@ -232,7 +232,6 @@ struct ZAP
 struct ALLOCREQ { int cb; int cbAlign; };
 
 
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pscope, int grf);
 
 /* Raycast request (the object hit through +0x4 -> +0x14). */
 struct SUB { char pad[0x14]; SO **ppso; };

@@ -543,7 +543,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CTX { int a[4]; };
 struct REQ { int cb; int align; };
 void STACKSCOPE_ctor(struct CTX *c);
-void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n);
+void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(struct REQ *r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 int FClipEdgeToCbsp(void *ctx, qword a, qword b, int n);
@@ -687,7 +687,7 @@ extern "C" {
 TRI *PcgtPointInCbspSafe(G *, BSP *, qword, int);
 qword ClosestPointOnCgt(TRI *, qword);
 void STACKSCOPE_ctor(void *);
-void STACKSCOPE_ctor_1AE4A0(void *, int);
+void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(AREQ *);
 void FindPathAStar(G *, V *, V *, int, int *, V **);
 void SimplifyApcgvNeighbor(G *, int *, V **);
@@ -1471,7 +1471,7 @@ struct Q { char pad[0x124]; struct R *x124; int x128; };
 struct B { int c; int *p; };
 struct S { char pad[0x10]; int c10; int p14[2]; struct B *x1C; int c20; struct Q **a24; };
 int STACKSCOPE_ctor(struct H *p);
-void STACKSCOPE_ctor_1AE4A0(struct H *p, int n);
+void STACKSCOPE_ctor_1AE4A0(struct H *p, int n) __asm__("_$_10STACKSCOPE");
 int *func_001AE378(struct A *pa);
 void *func_001AE1D0(struct A *pa);
 static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return func_001AE378(pa); }
@@ -2096,7 +2096,7 @@ struct NODE { NAV *pnav; EDGE *pedge; NODE *pnodeParent; float gCost; float gEst
 
 extern "C" {
 void *STACKSCOPE_ctor(void *pframe);
-void STACKSCOPE_ctor_1AE4A0(void *pframe, int n);
+void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE378(MSG *pmsg);
 void *func_001AE318(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb);

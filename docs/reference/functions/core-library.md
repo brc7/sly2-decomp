@@ -349,7 +349,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x1AE3D8](../../../src/game/platform/memory/memory.cpp) | `InitStackImpl__Fv` | EnterCritSect and push stack-heap mark | 0.97 | existing |  |
 | [0x1AE428](../../../src/game/platform/memory/memory.cpp) | `FreeStackImpl__Fv` | Pop stack-heap mark and LeaveCritSect | 0.97 | existing |  |
 | [0x1AE478](../../../src/game/platform/memory/memory.cpp) | `STACKSCOPE_ctor` | RAII scope ctor: InitStackImpl; returns this | 0.80 | T1 |  |
-| [0x1AE4A0](../../../src/game/platform/memory/memory.cpp) | `STACKSCOPE_ctor_1AE4A0` | RAII scope dtor: FreeStackImpl; deletes if (flags&1) | 0.80 | T1 |  |
+| [0x1AE4A0](../../../src/game/platform/memory/memory.cpp) | `_$_10STACKSCOPE` | RAII scope dtor (sly2/stackscope.h; was STACKSCOPE_ctor_1AE4A0): FreeStackImpl; deletes if (flags&1) | 0.80 | T1 |  |
 | [0x1AE4E8](../../../src/game/platform/memory/memory.cpp) | `malloc` | Returns NULL (libc malloc disabled) | 0.97 | existing |  |
 | [0x1AE4F0](../../../src/game/platform/memory/memory.cpp) | `free` | No-op | 0.97 | existing |  |
 | [0x1AE4F8](../../../src/game/platform/memory/memory.cpp) | `__builtin_new` | operator new: PvAllocSwClearImpl({cb 16}) | 0.95 | T1 |  |

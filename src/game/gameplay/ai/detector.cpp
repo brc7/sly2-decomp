@@ -95,8 +95,6 @@ int func_00118668(void *p, int mask, qword a, qword b, int n, BUF *pbuf);
 int FCheckVolPoint(void *p, qword v);
 int func_0020FA10(void *pv, HITV *phit);
 int CidBasic(OV *po);
-void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void *func_001AE318(AL *pal);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);

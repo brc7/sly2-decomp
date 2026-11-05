@@ -131,7 +131,7 @@ V *VECTOR_opAssign(V *pv, qword q);
 void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
 qword func_0011BFB8(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
-void STACKSCOPE_ctor_1AE4A0(MARK *, int);
+void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(const REQ *);
 int func_00229D60(void *, COLL *);
 int func_001F7E08(SOW *, int (*)(void *, COLL *), void *, COLL **);

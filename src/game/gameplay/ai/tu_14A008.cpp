@@ -106,7 +106,7 @@ LM D_002BD480 = {900.0f, 1400.0f}, D_002BD488 = {1400.0f, 4000.0f}, D_002BD490 =
     D_002BD4A0 = {0.0f, 10.0f};
 float D_002BD4B0[3] = {-400.0f, 0.8f, 0.0f};
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
-void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n);
+void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 RTE *func_001AE378(ALLOCREQ *preq);
 RTE *func_001AE238(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);

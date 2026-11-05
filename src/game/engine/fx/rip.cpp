@@ -433,7 +433,7 @@ extern "C" {
 extern DLI *D_002DD2FC; /* innermost active list iterator */
 extern CLOCK D_002DDED0;
 FRAME *STACKSCOPE_ctor(FRAME *);
-void STACKSCOPE_ctor_1AE4A0(FRAME *, int);
+void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(const REQ *);
 int func_00118A88(void *, int, qword, float, int *, ENTRY **);
 int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);

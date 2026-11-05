@@ -331,8 +331,6 @@ applyFlags:
 // flags&4 = position pass first (returns early when flags == 4).
 
 extern "C" {
-STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *,int);
 DZGXP *InitDzgXp(DZGXP *,int,XP **,int,SO **);
 void AppendDzgDz__FP3DZGP2DZ(DZGXP *,DZ *,DZX *);
 void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *,int);

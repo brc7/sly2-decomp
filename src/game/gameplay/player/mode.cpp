@@ -590,8 +590,6 @@ extern "C" void func_0019D660(JTMODEHUD *p, int st)
 }
 
 
-extern "C" STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int);
 struct X {char pad0[0x5C];int x5C;char pad1[0x6C-0x60];int x6C;char pad2[0x7C-0x70];X*x7C;};
 struct GTASK {char pad[0x3B0C];X*x;};
 extern "C" void SortTasksTopologically(int*,X***);

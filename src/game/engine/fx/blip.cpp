@@ -185,7 +185,7 @@ void FlushCache(int);
 void func_00201998(void);
 int sceDmaSync(void *pch, int mode, int timeout);
 void STACKSCOPE_ctor(void *pf);
-void STACKSCOPE_ctor_1AE4A0(void *pf, int n);
+void STACKSCOPE_ctor_1AE4A0(void *pf, int n) __asm__("_$_10STACKSCOPE");
 void VECTOR_opAssign(void *pv, qword v);
 void AddDmaCnt__4DMAS(VIFS *p);
 void EndDmaCnt__4DMAS(VIFS *p);

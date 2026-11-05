@@ -1453,7 +1453,7 @@ extern struct E2 *D_003DCFF4;
 void __4GIFS(struct DMAS *);
 void __4VIFS(struct X *);
 struct M *STACKSCOPE_ctor(struct M *);
-void STACKSCOPE_ctor_1AE4A0(struct M *, int);
+void STACKSCOPE_ctor_1AE4A0(struct M *, int) __asm__("_$_10STACKSCOPE");
 void AllocSw__4DMASi(struct X *, int);
 void AddDmaCnt__4DMAS(struct X *);
 void AddVifFlush__4VIFS(struct X *);

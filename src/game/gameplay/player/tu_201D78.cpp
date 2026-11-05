@@ -366,8 +366,6 @@ int func_00202350(void *a, RECONTGT *po) { SOF *p = (SOF *)po; int r = 0; if (!(
  * operand twice, and the case-4 constant is a variable set before the switch (the game has it in v1 in the beqz delay slot). */
 struct QUERY {int count;RECONTGT **objects;};
 
-extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *,int);
 static inline qword Cross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Scale(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 // v / |v|: the dot product names v twice (the side vector's registers only match that way)

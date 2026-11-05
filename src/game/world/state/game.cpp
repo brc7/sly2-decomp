@@ -495,7 +495,7 @@ extern "C"{
  void ApplyGsSettings(void*);
  void RestoreTasksAfterLoad(P*);
  LEASE*STACKSCOPE_ctor(LEASE*);
- void STACKSCOPE_ctor_1AE4A0(LEASE*,int);
+ void STACKSCOPE_ctor_1AE4A0(LEASE*,int) __asm__("_$_10STACKSCOPE");
  void SortTasksTopologically(int*,P***);
  void RestoreTaskState(P*);
  void UpdateTaskSaveVars(P*);
@@ -3023,7 +3023,7 @@ extern char D_002DEB30[],D_002E65E0[],D_003D4A60[];
 extern G D_003DD490;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void*func_001AE378(const REQUEST&);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 void CollectTaskCascade(P*,int,int*,P**);
 void SetTaskStatePropagate(P*,int);
 int NWorldCur(void);

@@ -2103,7 +2103,7 @@ void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*);
 void*func_001AE1D0(const REQUEST&);
 void*func_001AE238(const REQUEST&,void*);
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 BINDING*func_0016C8E0(P*,STREAM*);
 M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
@@ -3777,7 +3777,7 @@ struct HEADER{ushort flags,base,pad4,pad6,position,weights,color,end,extra,extra
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 extern "C"{
 void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
+void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
@@ -3907,7 +3907,7 @@ struct HEADER{ushort flags,base,vertices,pad6,pad8,padA,padC,padE,weight,end,seg
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}void*Allocate();void*AllocateZero();};
 extern "C"{
 void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
+void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void*func_001AE318(const REQUEST&);
 void*func_002333B4(void*,int,uint);
@@ -4499,7 +4499,7 @@ struct HEADER{ushort flags,base,weight,pad6,position,positionEnd,color,end,bones
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 extern "C"{
 void*STACKSCOPE_ctor(void*);
-void STACKSCOPE_ctor_1AE4A0(void*,int);
+void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void BuildCmFgfn(ENV*,float*,float);
 void*func_002333B4(void*,int,uint);

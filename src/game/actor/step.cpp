@@ -1754,7 +1754,7 @@ MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 qword func_001A62E8(P *);
 qword *VECTOR_opAssign(qword *,qword);
 FRAME *STACKSCOPE_ctor(FRAME *);
-void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingSphere(GAME *,qword,float,int (*)(void *,void *),void *,int *,void ***);
 int func_0020FA50(void *,void *);
 int func_00173610(qword *,float,float,int,void *);

@@ -67,8 +67,6 @@ struct MSG { int cb; int nKind; };
 struct AREQC { int cb; int align; };
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 
-extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
 struct VU_QWORD;
 extern "C" VU_QWORD *func_002564B8(VU_QWORD *);
 struct VU_QWORD { qword qw; VU_QWORD() { (void)func_002564B8(this); } };

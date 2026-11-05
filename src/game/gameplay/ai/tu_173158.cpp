@@ -119,7 +119,7 @@ void UpdateLo(CID119 *p);
 void RemoveLoHierarchy(CID119 *p);
 void SetLoBusyk(CID119 *p, int n);
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
-void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n);
+void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE378(AI *pa);
 void *func_001AE318(AI *pa);
 void *func_001AE238(AI *pa, void *pv);

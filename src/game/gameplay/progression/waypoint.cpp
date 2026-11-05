@@ -194,7 +194,7 @@ void InitPlaneFromNormalPos(UQ *, qword, qword);
 UQ *func_002564C0(UQ *);
 UQ *func_002564B8(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
-void STACKSCOPE_ctor_1AE4A0(FRAME *, int);
+void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(REQ *);
 int FFilterCamera(void *, O *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, O *), void *, int *, O ***);

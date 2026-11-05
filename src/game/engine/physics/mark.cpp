@@ -832,7 +832,7 @@ struct OUT{qword p,plane;int kind;};
 union U{qword q;float f[4];};union SCR{REQ req;U u;};
 struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;U position,endpoint;};
 extern "C" FRAME*STACKSCOPE_ctor(FRAME*);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
 extern "C" void*func_001AE318(REQ*);
 extern "C" int func_00118A88(ENTRY*,int,qword,float,int*,ENTRY**);
 extern "C" int func_00118668(ENTRY*,int,qword,qword,int,HIT*);

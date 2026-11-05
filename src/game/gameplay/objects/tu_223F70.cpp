@@ -143,7 +143,7 @@ qword func_001FAA00(SO *, qword);
 qword func_001FAA48(SO *, qword, qword);
 struct STACKSCOPEMK { int a[4]; };
 STACKSCOPEMK *STACKSCOPE_ctor(STACKSCOPEMK *pm);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n) __asm__("_$_10STACKSCOPE");
 void func_0020FA10();
 void IntersectSwBoundingSphere(SW *pg, qword pos, void (*pfn)(), void *pv, float r, int *pc, COLL ***papa);
 qword SetVectorSphere(float a, float b, float c);

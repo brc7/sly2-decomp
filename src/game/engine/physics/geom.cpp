@@ -53,7 +53,7 @@ void InitPlaneFromNormalPos(PLANE *n, qword v, qword p);
 void TransformPointsVu0(const MATRIX4 *, unsigned int, const qword *, qword *);
 M3 InvertMatrix3Cofactor(const M3 *);
 FRAME *STACKSCOPE_ctor(FRAME *);
-void STACKSCOPE_ctor_1AE4A0(FRAME *, int);
+void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(REQ *);
 int func_00118A88(void *, int, qword, int *, Entry **, float);
 }

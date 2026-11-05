@@ -1280,7 +1280,7 @@ float RadNormalize__Ff(float f);
 qword *func_001A6318(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
 void STACKSCOPE_ctor(struct X *x);
-void STACKSCOPE_ctor_1AE4A0(struct X *x, int n);
+void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
 int func_0020FA10(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
 struct R *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, int d, struct Y *y);

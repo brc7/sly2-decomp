@@ -1314,7 +1314,7 @@ extern "C" void load_sly_icon_from_disc(int n0, int n1)
 
 namespace M_load_file_from_disc {
 typedef unsigned int uint;
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int);
+extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 struct REQUEST {uint bytes,alignment;};
 struct X;
 extern "C" void func_00258248(X *px);
@@ -2596,7 +2596,7 @@ extern "C" {
  void*RefGetGlobalSaveVar(REF*,void*,void*);
  void Decref__4CRef(REF*);
  void*STACKSCOPE_ctor(void*);
- void STACKSCOPE_ctor_1AE4A0(void*,int);
+ void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
  void*PkeyAllocSaveKey(void*,...);
  int IdsFromWorld(int);
  void*PchzFindSwLangstr__FP2SWi(void*,int);

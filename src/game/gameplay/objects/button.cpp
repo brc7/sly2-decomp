@@ -171,7 +171,7 @@ void UpdateLo(VOLBTN *pvolbtn, float dt);
 void RemoveLoHierarchy(VOLBTN *pvolbtn);
 int func_001AE1D0(int *pn);
 void STACKSCOPE_ctor(int *pctx);
-void STACKSCOPE_ctor_1AE4A0(int *pctx, int n);
+void STACKSCOPE_ctor_1AE4A0(int *pctx, int n) __asm__("_$_10STACKSCOPE");
 int CploFindSwObjectsByClass(SW *psw, int grffso, CID cid, int x, int cploMax, LO **aplo);
 int func_001A61A0(LO *plo);
 qword func_001A62E8(LO *plo);

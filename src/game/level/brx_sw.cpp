@@ -25,8 +25,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 extern "C" {
 struct BIS;
 struct AREQ { int cb; int cbAlign; };
-void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
 void *func_001AE1D0(AREQ *preq);
 void *func_001AE2A0(AREQ *preq);
 void *func_001AE318(AREQ *preq);

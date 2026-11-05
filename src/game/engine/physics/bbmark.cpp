@@ -74,7 +74,7 @@ int func_00134310(int a, int b);
 void FlushSwBoundsUpdates(SW *p);
 void UpdateSwAaox(SW *p);
 C *STACKSCOPE_ctor(C *);
-void STACKSCOPE_ctor_1AE4A0(C *, int);
+void STACKSCOPE_ctor_1AE4A0(C *, int) __asm__("_$_10STACKSCOPE");
 void *AddSoXps(SW *, X *, X *);
 void func_001F4BF8(LO *);
 }

@@ -79,8 +79,6 @@ CMPEG D_002F66B0;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 
-extern "C" STACKSCOPE *STACKSCOPE_ctor(STACKSCOPE *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int);
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DMA;
 struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned attr; unsigned option; int waitType; int waitId; int wakeupCount; };

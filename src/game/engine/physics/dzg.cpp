@@ -45,8 +45,6 @@ struct AL { int cb; int cbAlign; int pad[2]; AL() {} AL(int c, int a) { cb = c; 
 
 
 extern "C" {
-void STACKSCOPE_ctor(STACKSCOPE *pscope);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pscope, int grf);
 }
 
 extern "C" {

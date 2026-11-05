@@ -990,7 +990,7 @@ typedef struct N {int a,b;char pad8[0x2C];int c;int pad38;int d;S *owner;int pri
 struct S {char pad[0x50];int count;void *data;int state;char pad5c[4];int tick;char pad64[0x5C];N *file;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int);
+extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *func_001848A8(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int);
 extern "C" void func_00258248(KEY *);
@@ -2428,7 +2428,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
 namespace M_func_002155C0 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 struct X { char pad[0x14]; unsigned long *px14; };
 X *func_001EC880(int);
 void __4GIFS(void *);

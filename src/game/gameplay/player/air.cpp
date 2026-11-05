@@ -893,7 +893,7 @@ union U{qword q;float f[4];int i[4];};struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];U normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
 struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{U scalar;REQ request;};struct WORK{U normals[64];SCRATCH scratch;FRAME frame;U residual,original;};
-extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int);void*func_001AE318(REQ*);void SolveInequalities(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
+extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*func_001AE318(REQ*);void SolveInequalities(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
 static inline void Publish(U*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(v):"j"(v),"j"(k));return v;}
@@ -2790,7 +2790,7 @@ extern CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 extern float D_002A656C;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE318(REQUEST*);
 void SolveInequalities(int,float*,float*,float*,float);
 }
@@ -3462,7 +3462,7 @@ namespace M_FFindJtObstruction {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
 void STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n);
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 struct HIT;
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);

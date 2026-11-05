@@ -114,7 +114,7 @@ extern char D_003D4A60[];
 
 void InitSo(BOOTY *);
 STACKSCOPEC *STACKSCOPE_ctor(STACKSCOPEC *);
-void STACKSCOPE_ctor_1AE4A0(STACKSCOPEC *, int);
+void STACKSCOPE_ctor_1AE4A0(STACKSCOPEC *, int) __asm__("_$_10STACKSCOPE");
 void *func_001AE378(REQ *);
 void *func_001AE238(REQ *, void *);
 void LoadSoFromBrx(BOOTY *, void *);

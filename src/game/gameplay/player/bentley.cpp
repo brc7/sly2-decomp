@@ -814,7 +814,7 @@ extern char D_002DDF40[];
 extern char D_003DD490[];
 ti128 ConvertCmScreenToWorld(void *, ti128);
 struct C *STACKSCOPE_ctor(struct C *);
-void STACKSCOPE_ctor_1AE4A0(struct C *, int);
+void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void func_0020FA10();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, ti128, ti128, int, int, struct LSG *);

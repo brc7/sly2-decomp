@@ -141,7 +141,7 @@ void *func_002333B4(void *pv, int b, int cb);
 int func_001F7598(MSG *pmsg);
 int *func_00156698(int n, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
-void FrameFree(FRAME *, int) __asm__("STACKSCOPE_ctor_1AE4A0");
+void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void func_001CB518(BOMB *);
 void func_001F6860(BOMB *, int);
 int FIgnoreSoIntersection(BOMB *pbomb, SOV *pso);
