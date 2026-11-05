@@ -37,7 +37,7 @@ extern "C" void InitHnd(HND *phnd)
 }
 
 struct VEC { float x, y, z, w; };
-extern float D_002BE910;
+float D_002BE910 = -150.0f;   /* hnd's .data (0x2BE910; the next 4 bytes are 0): z offset of the grab position */
 extern "C" qword func_001A62E8(void *a, void *b);
 /** @sly2-annot addr=0x184F98
  * Purpose: GRABSPOT slot C: owner position + D_002BE910 in z
