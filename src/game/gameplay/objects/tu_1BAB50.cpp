@@ -51,7 +51,7 @@ typedef char offset_0_x170[FIELD_OFFSET(TRIG,x170)==0x170?1:-1];
 typedef char size_1[sizeof(E)==16?1:-1];
 typedef char size_2[sizeof(I)==8?1:-1];
 
-struct CTX { int a[4]; CTX(); ~CTX(); };
+struct CTX { int a[4]; CTX() __asm__("STACKSCOPE_ctor"); ~CTX(); };
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct MSG { int cb; int nKind; };
 struct SW;

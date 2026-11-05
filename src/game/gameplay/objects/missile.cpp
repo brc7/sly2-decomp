@@ -107,13 +107,13 @@ int func_0014C748(qword a, qword b, qword c, int n, HIT *phit, float r);
 void LoadIdentityMatrix4(void *pv, int a, M4 *pmat, int b, float g);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 void AddSoAcceleration(SO *pso, qword qwAccel);
-qword QwApplyConstrInXf(CONSTR *pconstr, XF *pxf, qword qw);
+qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
 /* func_001B2398 as its two callers call it: the hidden result pointer passed by hand. */
 extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("func_001B2398");
 void ApplyAsegCur(ASEG *paseg, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
 int FFloatsNear(float g0, float g1, float gEpsilon);
-void AddSoVelocity(SO *pso, qword qwVel);
+extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
@@ -284,9 +284,9 @@ static inline float GLength(qword v)
     return GFromVf(QwLength(v));
 }
 extern "C" {
-qword QwApplyConstrInXf(CONSTR *pconstr, XF *pxf, qword qw);
+qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
-void AddSoVelocity(SO *pso, qword qwVel);
+extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 static inline qword QwDivFloat(qword qw, float g)
 {
@@ -323,7 +323,7 @@ void ACCMISS::VUnk69()
         SMP smp = { svFast, 0.0f, 1.0f };
         float svNew = GSmooth(sv, svTarget, D_002DDED0.dt, &smp, 0);
         qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.dt);
-        AddSoVelocity(this, QwApplyConstrInXf((CONSTR *)((char *)psophys + 0xB0), pxfUnk58, qwDv));
+        AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)psophys + 0xB0), pxfUnk58, qwDv));
     }
 }
 
