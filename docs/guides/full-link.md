@@ -183,6 +183,15 @@ of the placement (not investigated). Config names at their config address: 7,024
 `__tf*` sections of the key TUs are no longer emitted. No `__tf*`/`__ti*`/`__rtti_*` symbol is defined or referenced
 by any object. ld.lld: 0 errors.
 
+### The registry classes made real (types/views-2)
+
+Same script, default mode, against the build/rtti-palettes numbers above: `.text` 1,416,000 and `.rodata` 303,026
+equal bytes (unchanged), `.data` from objects 34,145 bytes (33,505 + the 640 of missile.cpp's `_vt$7ACCMISS`, the
+first registry vtable an object supplies), 34,143 equal (all 640 new bytes equal; the 2 differing are the old ones).
+Placed object sections 7,698 (7,697 + that vtable), unplaced 66 / 544 bytes (69 / 2,432: the key-TU vtables of JT
+and SM are no longer emitted). Config names at their config address: 7,025 of 7,075 (`_vt$7ACCMISS` the added one;
+wrong: .bss 48, .sbss 2, as before). ld.lld: 0 errors.
+
 ### Remaining mismatch classes (default mode, 2,068 bytes before build/rtti-palettes, 2,020 after)
 
 1. **Object sections whose internal layout differs from the ELF** (1,296 .rodata bytes, plus 697 .text bytes of
