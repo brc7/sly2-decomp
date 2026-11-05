@@ -72,7 +72,7 @@ float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
 M4 *func_001A6318(PLAYERV *p);
 }
-extern float D_002BF9F0;
+float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 bytes are 0: alignment) */
 
 /** @sly2-annot addr=0x1A0300
  * Purpose: For 8 directional clips measure root velocity (clip displacement / duration via key lookup

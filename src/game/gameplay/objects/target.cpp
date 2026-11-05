@@ -20,7 +20,7 @@ struct CID21 : public XFM
 
 extern DL D_003E13B4;   /* g_dlTarget */
 extern DL D_003E1474;
-extern float D_002C40C0;
+float D_002C40C0 = 1500.0f;   /* target's .data (the next word is 0: alignment): busy radius margin */
 
 extern "C" {
 void InitXfm(XFM *pxfm);

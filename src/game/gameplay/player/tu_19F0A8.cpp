@@ -22,7 +22,7 @@ struct SWVIEW
 
 extern SWVIEW D_003DD490;         /* g_sw */
 extern CLOCK D_002DDED0;          /* g_clock */
-extern float D_002BF938;          /* override duration */
+float D_002BF938 = 6.0f;         /* override duration (s) */
 extern "C" {
 int CploFindSwObjectsByClass(SWVIEW *psw, int grffso, int cid, int a, int cpoMax, void *apo);
 void SetStepguardSpecial(GUARDV *pguard, int n);

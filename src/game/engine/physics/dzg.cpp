@@ -52,7 +52,7 @@ struct STACKSCOPE { STACKSCOPE() { STACKSCOPE_ctor(this); } ~STACKSCOPE() { STAC
 
 extern "C" {
 extern CLOCK D_002DDED0;
-extern float D_002BDDE8;
+float D_002BDDE8 = 1500.0f;   /* dzg's .data (the next word is 0: alignment) */
 void *func_001AE378(AL *pal);
 void *func_001AE318(const AL &al);
 DZG *InitDzg(DZG *pdzg, int cdzMax);
