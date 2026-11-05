@@ -81,9 +81,9 @@ struct TASKPAIR
     int nState;
 };
 
-void SetTaskStates(GAME *pgame, int ctaskpair, TASKPAIR *ataskpair, LO *ploContext);
+void SetTaskStates(GAME *pgame, int ctaskpair, TASKPAIR *ataskpair, LO *ploContext) __asm__("ApplyTaskStates");
 
-void SetClockRate(CLOCK *pclock, CRK crk, float rt);
+void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("func_0014D1D0");
 
 struct EDGE
 {
@@ -201,7 +201,7 @@ struct MRSGC
       MRSG *amrsg;
 };
 
-ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl);
+ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl) __asm__("func_00130488");
 
 void TriggerJoyRumbleRumk(JOY *pjoy, RUMK rumk, float dt);
 
@@ -243,7 +243,7 @@ struct CAMMOVE
       int nUnk18;
 };
 
-void JoltCm(CM *pcm, int nUnk61c);
+void JoltCm(CM *pcm, int nUnk61c) __asm__("func_0014F750");
 
 void CutCm(CM *pcm);
 
@@ -265,7 +265,7 @@ struct GRABSPOT : public GRABSPOTDATA
     virtual void GetClosestParam(JT *pjt, float *psParam);
 };
 
-void ClearSoXps(SO *pso);
+void ClearSoXps(SO *pso) __asm__("func_001F4E28");
 
 struct BHV166 : public BHV
 {
@@ -311,13 +311,13 @@ struct BHV193 : public BHV
       qword qwUnk40;
 };
 
-void SetBhv193Goal(BHV193 *pbhv, qword qwPos);
+void SetBhv193Goal(BHV193 *pbhv, qword qwPos) __asm__("func_00144F48");
 
-void SetBhv166Path(BHV166 *pbhv, void *pshape, int nUnk38);
+void SetBhv166Path(BHV166 *pbhv, void *pshape, int nUnk38) __asm__("SetBhvpathShape");
 
-void SetStepRadTarget(STEP *pstep, float radTarget);
+void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("func_00204660");
 
-void SetStepRadTowardDir(STEP *pstep, qword dpos);
+void SetStepRadTowardDir(STEP *pstep, qword dpos) __asm__("SetStepRadTargetVec");
 
 struct LOREF
 {
@@ -325,25 +325,25 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride);
+void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("func_0019CC50");
 
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo);
+void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
 
-void StepCmdHoldOn(STEPPLAYER *pstepplayer, LO *plo);
+void StepCmdHoldOn(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_00142140");
 
-void StepCmdPutDown(STEPPLAYER *pstepplayer, LO *ploObj, LO *ploWhere);
+void StepCmdPutDown(STEPPLAYER *pstepplayer, LO *ploObj, LO *ploWhere) __asm__("func_00142278");
 
-void StepCmdHoldOn9(STEPPLAYER *pstepplayer, LO *plo);
+void StepCmdHoldOn9(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_00142340");
 
-void StepCmdCarry(STEPPLAYER *pstepplayer, LO *plo);
+void StepCmdCarry(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_001421A0");
 
-void StepCmdPlaceHeld(STEPPLAYER *pstepplayer, LO *plo);
+void StepCmdPlaceHeld(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_001421F8");
 
-void StepCmdGrab0xC(STEPPLAYER *pstepplayer, ASEG *paseg, LO *plo, int n);
+void StepCmdGrab0xC(STEPPLAYER *pstepplayer, ASEG *paseg, LO *plo, int n) __asm__("func_001424E0");
 
-void PlayStepClip(STEPPLAYER *pstepplayer, OID oid, int grfapl, int nState);
+void PlayStepClip(STEPPLAYER *pstepplayer, OID oid, int grfapl, int nState) __asm__("func_00143EE0");
 
-void FindShapeClosestPointAll(SHAPE *pshape, qword posFrom, CONSTR *pconstr, qword *pposClosest, VECTOR4 *pnormTangentClosest, float *pu, float *ps);
+void FindShapeClosestPointAll(SHAPE *pshape, qword posFrom, CONSTR *pconstr, qword *pposClosest, VECTOR4 *pnormTangentClosest, float *pu, float *ps) __asm__("FindShapeClosestPoint");
 
 struct CID100 : public SO
 {
@@ -419,21 +419,21 @@ struct JSGREF
     }
 };
 
-void SetJsgHandsOff(JSG *pjsg, int fHandsOff, int grfHandsOff);
+void SetJsgHandsOff(JSG *pjsg, int fHandsOff, int grfHandsOff) __asm__("func_001E50E0");
 
-void GetJsgLocation(JSG *pjsg, LO *plo, qword *ppos, float *prad);
+void GetJsgLocation(JSG *pjsg, LO *plo, qword *ppos, float *prad) __asm__("GetJsgTargetPosHeading");
 
-void SetJsgJt(JSG *pjsg, struct RELAYCMD *prelaycmdJt, LO *pjt);
+void SetJsgJt(JSG *pjsg, struct RELAYCMD *prelaycmdJt, LO *pjt) __asm__("func_001E4EB8");
 
-void EndJsgJtMode(JSG *pjsg);
+void EndJsgJtMode(JSG *pjsg) __asm__("func_001E54B0");
 
-void SetJsgFocus(JSG *pjsg, LO *plo);
+void SetJsgFocus(JSG *pjsg, LO *plo) __asm__("func_001E5000");
 
-void SetJsgTn(JSG *pjsg, TN *ptn);
+void SetJsgTn(JSG *pjsg, TN *ptn) __asm__("SetJsgTunnel");
 
-void UpdateJsg(JSG *pjsg);
+void UpdateJsg(JSG *pjsg) __asm__("func_001E1C40");
 
-LO *PloFindJsgObject(JSG *pjsg, OID oid);
+LO *PloFindJsgObject(JSG *pjsg, OID oid) __asm__("func_001E1DB8");
 
 struct VU_FLOAT
 {
@@ -948,15 +948,15 @@ LO *PloFindSwObject(SW *psw, GRFFSO grffso, OID oid, LO *ploContext);
 
 void StopAsegSoundEvent(SW *psw, int sfxid, ASEG *paseg, CRefPtr<SND> *ppsnd);
 
-LO *FadeAsegObjectEvent(SW *psw, int fIn, OID oid, float dtFade, LO *ploRoot, ASEG *paseg);
+LO *FadeAsegObjectEvent(SW *psw, int fIn, OID oid, float dtFade, LO *ploRoot, ASEG *paseg) __asm__("ShowSwAsegObject");
 
-void SetAsegPartFlagEvent(SW *psw, int fClear, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg);
+void SetAsegPartFlagEvent(SW *psw, int fClear, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("func_00210408");
 
-void ShowAsegPartEvent(SW *psw, int fShow, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg);
+void ShowAsegPartEvent(SW *psw, int fShow, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("func_002104A0");
 
-void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoot, ASEG *paseg, float gScale);
+void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoot, ASEG *paseg, float gScale) __asm__("func_00210538");
 
-void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g);
+void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("func_00210678");
 
 struct WIDGET : public LO
 {
@@ -992,11 +992,11 @@ struct SUBTITLE
       int grfbtnPrompt;
 };
 
-void ClearSubtitle(SUBTITLE *psubtitle);
+void ClearSubtitle(SUBTITLE *psubtitle) __asm__("func_00227788");
 
-void SetStepSsgGoal(STEP *pstep, SSG *pssg);
+void SetStepSsgGoal(STEP *pstep, SSG *pssg) __asm__("func_00171CF8");
 
-void ResetStepGoal(STEP *pstep, SSG *pssg);
+void ResetStepGoal(STEP *pstep, SSG *pssg) __asm__("func_00171D58");
 
 void EnsureSggAlarm(SGG *psgg, ALARM *palarm);
 
@@ -1009,21 +1009,21 @@ struct PARTLINK
       undefined4 unk_0x10[0xD0 / 4];
 };
 
-JSG *PjsgStartBlock(RELAY *prelay, RELAYCMD *prelaycmdBegin, JSG *pjsgParent);
+JSG *PjsgStartBlock(RELAY *prelay, RELAYCMD *prelaycmdBegin, JSG *pjsgParent) __asm__("PjsgNew");
 
-JSG *PjsgFindRelayBlock(RELAY *prelay, OID oidLabel, JSG *pjsgExcept);
+JSG *PjsgFindRelayBlock(RELAY *prelay, OID oidLabel, JSG *pjsgExcept) __asm__("func_001E0180");
 
-void EndJsg(JSG *pjsg);
+void EndJsg(JSG *pjsg) __asm__("RemoveJsg");
 
 extern "C" void AddJsgStepHold(JSG *pjsg, LO *plo, int n5, int n6);
 
 extern "C" void RemoveJsgStepHold(JSG *pjsg, LO *plo, int n5, int n6);
 
-void StartJsgCamBlend(JSG *pjsg, RELAYCMD *prelaycmdFrom, RELAYCMD *prelaycmdTo, float dt);
+void StartJsgCamBlend(JSG *pjsg, RELAYCMD *prelaycmdFrom, RELAYCMD *prelaycmdTo, float dt) __asm__("func_001E57A0");
 
-void PopJsgCamBlend(JSG *pjsg, int n);
+void PopJsgCamBlend(JSG *pjsg, int n) __asm__("func_001E5A98");
 
-float DtJsgCommand(JSG *pjsg, RELAYCMD *prelaycmd);
+float DtJsgCommand(JSG *pjsg, RELAYCMD *prelaycmd) __asm__("func_001E4530");
 
 extern "C" void func_0020FFF0(SW *psw, OID *aoid, LO *ploContext, int grf, JSG *pjsg, SMA **ppsma);
 
@@ -1039,21 +1039,21 @@ extern "C" void func_001B9C00(MURRAY *pmurray, SMA *psma, int n7, int n6, int n8
 
 extern "C" void func_001B9880(MURRAY *pmurray);
 
-void ReleaseJsgSma(JSG *pjsg);
+void ReleaseJsgSma(JSG *pjsg) __asm__("ClearJsgSma");
 
 extern "C" void func_00220508(MOVEREC *pmr, LO *plo);
 
-void PutSwHeroAtWarp(WARP *pwarp);
+void PutSwHeroAtWarp(WARP *pwarp) __asm__("func_00228170");
 
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 
-GRABSPOT *PspotFromLo(LO *plo);
+GRABSPOT *PspotFromLo(LO *plo) __asm__("PgrabspotFromLo");
 
-extern "C" int GuardSpawnerGroundSnap(qword *ppos, int n, void *pfnFilter, float gUp, float gDown);
+extern "C" int GuardSpawnerGroundSnap(qword *ppos, int n, void *pfnFilter, float gUp, float gDown) __asm__("func_00173610");
 
-void SetJtAnimState(JT *pjt, int jtas);
+void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtJtcs__FP2JTi");
 
-int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk);
+int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
 
 struct JSGENT
 {
@@ -1138,7 +1138,7 @@ struct JOY
       undefined4 unk_0x10f0[4];
 };
 
-void LatchButtonEdges(JOY *pjoy, uint grfbtn);
+void LatchButtonEdges(JOY *pjoy, uint grfbtn) __asm__("SetJoyBtnHandled");
 
 struct CELL
 {
@@ -1175,33 +1175,33 @@ struct LOUPD
       LO *plo;
 };
 
-int FAsegaStopped(ASEGA *pasega);
+int FAsegaStopped(ASEGA *pasega) __asm__("FAsegaRetracted");
 
-int FBhv193AtGoal(BHV193 *pbhv);
+int FBhv193AtGoal(BHV193 *pbhv) __asm__("func_00144EE8");
 
-int FBhv166NearEnd(BHV166 *pbhv);
+int FBhv166NearEnd(BHV166 *pbhv) __asm__("FBhvpathAtEnd");
 
-void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit);
+void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit) __asm__("func_0019E110");
 
-int FStepHoldArrived(STEPPLAYER *pstepplayer);
+int FStepHoldArrived(STEPPLAYER *pstepplayer) __asm__("func_001423A0");
 
-int FStepPutDownDone(STEPPLAYER *pstepplayer);
+int FStepPutDownDone(STEPPLAYER *pstepplayer) __asm__("func_001424C0");
 
-int FStepHoldOn9Done(STEPPLAYER *pstepplayer);
+int FStepHoldOn9Done(STEPPLAYER *pstepplayer) __asm__("func_001424D0");
 
-int FStepGrab0xCDone(STEPPLAYER *pstepplayer);
+int FStepGrab0xCDone(STEPPLAYER *pstepplayer) __asm__("func_00142530");
 
-int FStepClipPlaying(STEPPLAYER *pstepplayer);
+int FStepClipPlaying(STEPPLAYER *pstepplayer) __asm__("func_00144038");
 
-void StopStepClip(STEPPLAYER *pstepplayer);
+void StopStepClip(STEPPLAYER *pstepplayer) __asm__("func_00143FF8");
 
-void SetJtGoalPos(JTGOAL *pjtgoal, qword qwPos);
+void SetJtGoalPos(JTGOAL *pjtgoal, qword qwPos) __asm__("SetJtgoal");
 
-void RemoveRelayAlarm(RELAY *prelay, ALARM *palarm);
+void RemoveRelayAlarm(RELAY *prelay, ALARM *palarm) __asm__("func_001E0070");
 
-int FRelayHasAlarm(RELAY *prelay, ALARM *palarm);
+int FRelayHasAlarm(RELAY *prelay, ALARM *palarm) __asm__("FWipingAseg__FP4ASEG");
 
-int FStepGoalIs(STEP *pstep, SSG *pssg);
+int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("func_00171DA8");
 
 /* The alarm set of a guard group (SGG) as EnsureSggAlarm reads it (RELAY has the same block at +0x84). */
 struct SGG
@@ -3598,18 +3598,18 @@ void PlayAsegSoundEvent(SW *psw, int sfxid, OID oid, int sNear, int sFar, float 
 extern "C" { extern SUBTITLE D_004435F0; }
 
 
-extern "C" void RelayFire(RELAY *prelay, LO *ploFirer);
-extern "C" BHV *PbhvPushStep(STEP *pstep, int cid);
-extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOT *pspot);
-extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase);
-extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer);
-extern "C" void RespawnAtSafeSpot(STEPPLAYER *pstepplayer, JTPLACE *pplace);
-extern "C" void PlayJtAsegDefault(LO *plo, LO *ploOther, int n);
-extern "C" int StartDialogueLine(SNDMGR *psndmgr, int idLine, int fWait);
-extern "C" void StartMusic(SNDMGR *psndmgr, int idMusic);
-extern "C" void StopMusic(SNDMGR *psndmgr, int idMusic);
-extern "C" void SetHintBoxText(HINTBOX *phintbox, int idText, float dt);
-extern "C" void ClearIfSlotId(HINTBOX *phintbox, int idText);
+extern "C" void RelayFire(RELAY *prelay, LO *ploFirer) __asm__("FireRelay");
+extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("func_00205438");
+extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOT *pspot) __asm__("SetJtGrabState");
+extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
+extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("func_00141968");
+extern "C" void RespawnAtSafeSpot(STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("ReturnJtToSafePlace");
+extern "C" void PlayJtAsegDefault(LO *plo, LO *ploOther, int n) __asm__("ApplyDancerAseg");
+extern "C" int StartDialogueLine(SNDMGR *psndmgr, int idLine, int fWait) __asm__("StartDialog");
+extern "C" void StartMusic(SNDMGR *psndmgr, int idMusic) __asm__("PushMusic");
+extern "C" void StopMusic(SNDMGR *psndmgr, int idMusic) __asm__("func_001FE310");
+extern "C" void SetHintBoxText(HINTBOX *phintbox, int idText, float dt) __asm__("PostNotice");
+extern "C" void ClearIfSlotId(HINTBOX *phintbox, int idText) __asm__("CancelNotice");
 extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern HINTBOX D_003DA0C0; }
 extern "C" { extern char D_003DA530[]; }
@@ -4853,16 +4853,16 @@ static inline float GXOfQwAct(qword qw)
 }
 extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern char D_003DA530[]; }
-extern "C" BHV *PbhvFindStep(STEP *pstep, int cid);
-extern "C" int FObjHasTarget(LO *plo, OID oid);
+extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
+extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSG *pjsg);
 extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
 extern "C" int FScreenShown(void *pv);
-extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine);
+extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("func_001FE848");
 extern "C" float func_001FE888(SNDMGR *psndmgr);
-extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr);
-extern "C" void ClearBhvstk(BHVSTK *pbhvstk);
+extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("TMusicCur");
+extern "C" void ClearBhvstk(BHVSTK *pbhvstk) __asm__("ClearBhvstk__FP6BHVSTK");
 extern "C" { extern float D_002BD850; }
 extern "C" { extern float D_002C3620; }
 extern "C" { extern float D_002C3624; }

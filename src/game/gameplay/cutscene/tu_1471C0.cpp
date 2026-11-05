@@ -300,7 +300,7 @@ struct VU_VECTOR { qword q; VU_VECTOR() {} VU_VECTOR(qword a) { q = a; } VU_VECT
 struct VU_VECTOR4 { qword q; VU_VECTOR4() {} VU_VECTOR4(qword a) { q = a; } VU_VECTOR4(const VECTOR4F &v) { q = *(qword *)&v; } };
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 inline VU_VECTOR::VU_VECTOR(const VECTOR4 &v) { q = v.q; }
-VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v);
+VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
 static inline qword operator*(VU_FLOAT f, VU_VECTOR v)
 { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
 static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { PackSTQ__4GIFSfff(pgifs, s, t, q); }
