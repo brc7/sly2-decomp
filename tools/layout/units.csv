@@ -6290,8 +6290,8 @@ sceCdDiskReady_2425F0,0x2425F0,sdk:libcdvd
 sceCdGetReadPos,0x242810,sdk:libcdvd
 sceCdRead,0x242840,sdk:libcdvd
 sceCdGetDiskType2,0x242A20,sdk:libcdvd
-sceCdGetDiskType_242AB8,0x242AB8,sdk:libcdvd
-sceCdGetDiskType,0x242AE0,sdk:libcdvd
+sceCdGetDiskType,0x242AB8,sdk:libcdvd
+sceCdGetError,0x242AE0,sdk:libcdvd
 sceCdBreak,0x242B78,sdk:libcdvd
 sceCdMmode,0x242C30,sdk:libcdvd
 scePadInit,0x242D08,sdk:libpad

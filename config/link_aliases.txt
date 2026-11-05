@@ -222,7 +222,7 @@ _vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
 _vt$Q215M_func_00211C581D = D_002C9670;   # engine/presentation/hud.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
-# destructors of namespace-scoped view classes -> the C function they stand for (an asm label would drop the call) (41 lines, 41 references)
+# destructors of namespace-scoped view classes -> the C function they stand for (an asm label would drop the call) (42 lines, 42 references)
 _$_Q214M_RefOpShuffle3SPM = PairPtr_Release;   # app/bif.cpp
 _$_Q215M_func_001215783SPM = PairPtr_Release;   # app/bif.cpp
 _$_Q217M_RefOpGetSaveVar3OBJ = STACKSCOPE_ctor_1AE4A0;   # app/bif.cpp
@@ -253,6 +253,7 @@ _$_Q229M_PentryChooseStepguardAttack5FRAME = STACKSCOPE_ctor_1AE4A0;   # gamepla
 _$_Q225M_FStepguardSenseStimulus5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/ai/stepguard.cpp
 _$_Q218M_LoadRelayFromBrx5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/cutscene/relay.cpp
 _$_Q215M_func_001D345010STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # gameplay/objects/tu_1D1370.cpp
+_$_Q220M_FFindJtObstruction5FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/air.cpp
 _$_Q219M_UpdateJtGrabInput10STACKSCOPE = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/grab.cpp
 _$_Q215M_func_001A27885FRAME = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/hurt.cpp
 _$_Q213M_FMatchJtXmg3CLS = STACKSCOPE_ctor_1AE4A0;   # gameplay/player/jt.cpp

@@ -218,7 +218,7 @@ the other Splice node kinds (frames, procs, method records...).
 | compile error "too many arguments to function" at a hand-made vtable call | the C file's vtable entry type `void (*pfn)();` means "unspecified arguments" in C and "no arguments" in C++ | `void (*pfn)(...)` (xf: same code) or a cast at the call (tu_1709A8) | xf, tu_1709A8 |
 | compile error "ANSI C++ forbids implicit conversion from `void *'" | C bodies assign allocator results (func_001AE1D0/2A0/378, PvAllocSlotheapClear) to typed pointers | a cast; mechanically `x = (__typeof__(x))f(...)` (scratch helper, no code change) | shd, path, step, jt, glob |
 | a C struct-returning call assigned to an existing local (`t = f(...)`) is a temporary (frame 0x10..0x40 bigger) | as the booty/mat row | pass the result pointer by hand through an asm-labelled view (`void MulMatrix4P(M4 *, M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0")`, `InvertMatrix4RigidP`) | xf (func_002303A0, func_00230A98), step (SetStepPhys) |
-| a C compound literal store `scalar = (U){b}` is an extra temporary or a store in the wrong place | C++ builds the literal as a temporary | hurt func_001A16C8: `__asm__("" : "+j"(b)); scalar.q = b;` keeps the store last; air PxpFindJtBestEdge (two literal stores to one never-read union): no spelling found within the cap (best 11/211 with volatile stores) | hurt, air (skipped) |
+| a C compound literal store `scalar = (U){b}` is an extra temporary or a store in the wrong place | C++ builds the literal as a temporary | hurt func_001A16C8: `__asm__("" : "+j"(b)); scalar.q = b;` keeps the store last; air PxpFindJtBestEdge (`scalar = (U){back}; point.q = value; scalar = (U){lift};`, scalar never read): each literal in its own block as an initialised local, `{ U s = {back}; } point.q = value; { U s = {lift}; }`, with the outer `scalar` dropped (see "air" below) | hurt, air |
 | `a[cond ? 1 : 0]` is a shift of a 0/1 value instead of a 0/2 byte offset added to the array base | the C front end folds the scale into the conditional's arms; with a bool condition g++ does not | `int ib = cond ? 2 : 0; unsigned short *pa = a; k = *(unsigned short *)((char *)pa + ib);` | path (PcgtPointInCbspQuick) |
 | a register-pinned constant base `(char *)p - 0x2FF0` is rematerialised with lui | negative offsets from a pointer (the tail row) | `(int)p - 0x2FF0`; the same for `*(ulong *)(pqw - 1)` | shd (func_001ED470/560, UploadPermShaders), step (func_00205670) |
 | v0/v1 or a delay-slot store swapped after a call | the callee returns a value the merged prototype declared void (the v0 rule) | declare its result: `int func_001F8300(STEP *)` | step (LoadStepFromBrx) |
@@ -423,7 +423,7 @@ Every choice:
 | jthands.cpp | UpdateJtHands, func_001CCC88 | matching islands kept (asm transcriptions with register pins) on the header types | they matched on the first compile once the data was JTHANDS/SO/XF | — |
 | mat.cpp | func_0011B500 | hidden result pointer by hand with an ordering asm (island) | the a3/a2 copies must precede the a0 set-up (2 off with every plain spelling) | — |
 | (wave 9) | per-function namespaces | a function whose per-function views conflict with the file's types, or are part of its tuning (by-value helper shapes that size gcse's table, register pins, union stores), keeps those views and helpers verbatim in `namespace M_<function> { ... }` (vec.cpp's device); `extern "C"` definitions keep their plain symbols there; conflicting `extern "C"` declarations in different namespaces compile with g++ 2.95. C++-named definitions (mangled symbols) must be at file scope on file-scope types, or become C-linkage definitions of their literal symbol when their Sly 1 signature does not fit (SetJtHfdk, ClsgClipSoAllEdges, FCheckJtSingleEdge) | the user's "separate structs by default"; every wave-9 TU | a function's views move to shared types when they are named in a header and the function still matches |
-| (wave 9) | Lilly ports in one TU | the ports' private type copies are declared once at file scope (identical copies merged; where they differ, the superset: grab's GRABSPOT with all four virtuals); prototypes between the copies move with them; a port that defines a member (LO::SetIdProxy, JT::FCanUseGadget) stays at file scope, the others go into namespaces | grab (2 ports), proxy (3), glob, sm, xf (1), air (3, skipped), jt (5) | the types move to headers |
+| (wave 9) | Lilly ports in one TU | the ports' private type copies are declared once at file scope (identical copies merged; where they differ, the superset: grab's GRABSPOT with all four virtuals); prototypes between the copies move with them; a port that defines a member (LO::SetIdProxy, JT::FCanUseGadget) stays at file scope, the others go into namespaces | grab (2 ports), proxy (3), glob, sm, xf (1), air (3), jt (5) | the types move to headers |
 | mark.cpp | XP/XPS (0xC0) | one TU-private contact record (per side: part, transform, tree root object, object, world/local point, velocity; normal, separation, friction, elasticity, kind, two features, index, link, relative velocity) for PxpAdd, RecalcSwXp*, the list helpers, AddSoXps | the per-file views agree field for field; names follow dzg.cpp/solve.cpp; SO slots 54/56/59 as real virtual calls (AdjustNewXp, VUnk56, VUnk59: their vtable offsets matched), slot 55 by hand (so.h declares it without parameters) | a shared XP header (now four views: mark, dzg, solve, sensor) |
 | mark.cpp | parts and trees | so.h SOPART (the per-file SHAPE/A/B/S/GEOM views) and SOTREE (AddSoXps's "SO": centre, radius, part list, zap list, flag word +0x70 read as a mask through a macro) | offsets map one to one (fUnk48 = zap-only part, fUnk49 = sphere part as bit-fields: matched) | so.h names fUnk48/49 |
 | mark.cpp | EDGE/SURF/BSP/LSG | CsbiIntersectSphereBsp's Lilly types at file scope; SURF::grf signed (the clearing masks are built with addiu) | ClsgClip*, CplsgFindEdgePath (its "VTX" is the SURF array, its edge "ipos" the aisurf pair), CategorizeAlsg (ends swapped through a 16-byte aligned block: island) | a bsp header shared with bsp.cpp/clip.cpp |
@@ -1125,10 +1125,23 @@ typeinfo functions `__tf*` calling `__rtti_si`/`__rtti_user` and base-class `__t
 `gcc2_compiled.` markers of eopid_linkonce: 2). Nothing matched references them; a link drops them with
 `--gc-sections` (or a `/DISCARD/` of those linkonce sections) rather than resolving them.
 
-The 2 relocation mismatches are a config inconsistency, not source: config/functions.csv names 0x242AB8
-sceCdGetDiskType and 0x242AE0 sceCdGetError (as bas.cpp and cd.cpp call them), config/symbol_addrs.txt names
-0x242A20 sceCdGetError, 0x242AB8 sceCdGetDiskType_242AB8 and 0x242AE0 sceCdGetDiskType (as the libcdvd sources define
-them). Left for a config decision.
+air.cpp (merged after round 3, branch merge/air) had 79 unresolved references from its wave-10 draft and got the same
+treatment: 38 namespace globals wrapped in `extern "C" { }`, 17 namespace callees asm-labelled and one (PosSmooth)
+wrapped, the FRAME view's constructor labelled `STACKSCOPE_ctor`, its destructor added to config/link_aliases.txt,
+and 21 file-scope declarations (9 renamed to their config names, e.g. `GetHeroMp` -> `MpStepplayerCur`, 12
+labelled). Afterwards: no unresolved reference outside the alias table, 544 relocations checked OK, 44/44 MATCH.
+
+The 2 relocation mismatches were a config inconsistency, not source: config/functions.csv named 0x242AB8
+sceCdGetDiskType and 0x242AE0 sceCdGetError (as bas.cpp and cd.cpp call them), config/symbol_addrs.txt named
+0x242A20 sceCdGetError, 0x242AB8 sceCdGetDiskType_242AB8 and 0x242AE0 sceCdGetDiskType (as the libcdvd sources defined
+them). Settled for functions.csv's names (both files and the SDK sources now agree): 0x242A20 and 0x242AE0 are
+S-command RPCs on the client bound to 0x80000593 (in _sceCd_scmd_prechk); cdvdfsv dispatches S-command 3 to
+sceCdGetDiskType and 4 to sceCdGetError, and 0x242A20 sends 3, 0x242AE0 sends 4. 0x242AB8 calls 0x242A20 and maps
+-1 to 0 (SCECdNODISC); the game calls it where it wants the disk type (FValidCdMmode compares with 0x14, PS2DVD)
+and calls 0x242AE0 to read the error after a read (bas.cpp; ReadCdDirect's retry loop; tu_1848A8's func_001849A0,
+which tests it for 0, SCECdErNO). The last two were spelled `sceCdGetDiskType()` in source, and were round 3's two
+mismatches; they now call sceCdGetError (relocations of the four touched objects: 94 OK, 0 mismatched). So 0x242AB8 is sceCdGetDiskType, 0x242AE0 sceCdGetError, and 0x242A20 keeps
+functions.csv's placeholder sceCdGetDiskType2 (Sony's name for the raw call is not known).
 
 ## Merged TUs
 
@@ -1462,21 +1475,47 @@ and data/phase-2). Details in the sections "class_registry" and "Big six" below:
 | guardbhv | gameplay/ai/guardbhv.cpp | 190 | guard.h extended first; 58 m2c (behaviour Init/Start/Close/Done) on step.h's BHV with derived behaviour views and STEPGUARD3C : STEPGUARD; first compile |
 
 Total: 7 files, 1,372 functions (class_registry 424, the big six 948), plus the two sly2/guard.h header commits of
-the big six. With wave 10 this leaves only air with per-function files (see "Not merged").
+the big six. With wave 10 this left only air with per-function files; it was merged last (see "air" below).
 After the integration and the linkage fixes (see "Linkage of namespace-scoped declarations"), `JOBS=2 python3
 tools/progress.py` from an empty cache: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged
 by the run. The 329 sources that do not build here are all SDK files.
+
+### air (merged last)
+
+air (gameplay/player/air.cpp, 44 functions) was skipped in waves 9 and 10: everything matched except
+PxpFindJtBestEdge (a `.c` file), 11/211 off at best. Its draft (three Lilly ports merged, 6 m2c, FCheckJtSingleEdge as
+a C-linkage literal symbol, union asm outputs) was otherwise unchanged; merged on branch merge/air.
+
+Diagnosis (stack slots and a dead store; not the path hash, not scheduling). The C body stores two compound literals
+into a union that is never read, with a store to another union between them:
+`scalar = (U){back}; point.q = value; scalar = (U){lift};`. The target keeps three `sqc2`s, `back` and `lift` into
+the same slot (sp+0x20) and `point` into sp+0x10, frame 0xF0. In C, `scalar` itself is a dead pseudo and disappears;
+the two literals are block-level temporaries that share one stack slot and keep their stores. The C++ spellings tried
+before were all wrong in one of two ways: assigning a literal (or a constructed temporary) to `scalar` makes `scalar`
+addressable, so it gets a second slot (87/213: frame 0x100, stores into 0x20 and 0x30); plain stores
+`scalar.q = back; ... scalar.q = lift;` are one memory object, and the first store is deleted as dead (by flow, presumably), after which the
+VF registers are allocated differently (64/211; one instruction short, the rest shifted); volatile stores keep all
+three but reorder them and change the VF allocation (11/211, wave 9).
+A first diagnostic step was to compile the `.c` body as C++ on its own, with `#line 1` naming the old
+per-function path so that the path hash matched the original: the same 87/213 as in the merged file, so the pin was
+not the issue (the fix later matched under `#line 1 "a.cpp"` too).
+
+Fix: each literal becomes an initialised local in its own block, `{ U s = {back}; } point.q = value;
+{ U s = {lift}; }`, and the outer `scalar` declaration is dropped (an unused `U` local still takes a slot: with it the
+code is right but the block locals sit at sp+0x30 in a 0x100 frame, 44/211). Locals of sibling blocks share one
+stack slot in g++ 2.95 and an initialisation is a store to a fresh object, so both stores stay, in source order. A compound literal as the
+initialiser (`U s = (U){back};`) gives the same code; an assignment in the block (`U s; s.q = back;`) does not
+(the first store is deleted, 64/211). Plain C++ (no island), no `#line` pin; all 44 functions match.
 
 ## Not merged (and why)
 
 | TU | why |
 |---|---|
-| air | skipped in wave 9 (30-minute cap): everything matches except PxpFindJtBestEdge, whose C file stores two compound literals (`scalar = (U){back}`, `(U){lift}`) into a never-read union; as C++ the literal adds a temporary slot (87/213 off), plain stores lose the dead store (64/211), volatile stores keep all three stores but reorder them and the VF allocation (11/211). The draft scripts are kept outside the repo (three Lilly ports merged, 6 m2c, FCheckJtSingleEdge as a C-linkage literal symbol, union asm outputs) Wave 10 retried it (30 more minutes, no match): a constructed temporary with a volatile member (`(void)SCALARTMP(back)`) gives the right stack offsets after it but separate slots and the wrong store order (37/211); a volatile local or temporary plus a volatile store of `point` gets the order but stores `back` before the asm and allocates the VF registers differently (53/211); empty asms with `"m"` inputs to keep the dead stores alive are worse (104..108/214). The C original stores the literal's two values into one shared temporary after the asm; no C++ spelling found gives both the shared slot and the late stores. Draft kept outside the repo (scratch/w10/air_w10.cpp) |
 | crt0 | not a TU: platform/boot/crt0/_start.c is the hand-written `_start` as one top-level `__asm__` block (already one file); left as it is |
 | splice_thunks | not a TU: 31 hand-written thunks from crt0_splicewrap (0x100000..0x1147D8), whose other functions are the generated ones in src/generated (out of scope) |
 
 After wave 10 and the integration of the class_registry and big-six branches (integrate/round2), every game TU
-with per-function files is merged except air (see above); the non-TUs crt0 and splice_thunks stay as they are. The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
+with per-function files is merged (air last, see "air" in Merged TUs); the non-TUs crt0 and splice_thunks stay as they are. The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
 copies"): src/game/core/linkonce no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the
 mismatch table, then "Recurring asm idioms" before renaming any helper.
 

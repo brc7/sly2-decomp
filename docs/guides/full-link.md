@@ -1,7 +1,7 @@
 # Full PS2 link (sketch)
 
 What it takes to link the matched sources back into SCUS_973.16, and how far the repo is (integrate/round3:
-link round 3 and data phase 2, 2026-11-05). Nothing here is built yet: no linker script, no link step. The symbol side is in
+link round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). Nothing here is built yet: no linker script, no link step. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
 ## The target: the ELF's layout
@@ -57,11 +57,13 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
   .bss 190, .sbss 31, .text 29, .vutext 14, .irx 3, and 27 small values (0x0..0x3AB0, VU-memory / scratchpad offsets).
 - Two objects define different functions under the same file-scope destructor name (`_$_3SPM`, `_$_3OBJ`): per-object
   `objcopy --redefine-syms` files from `tools/linkaliases.py --redefine DIR`.
-- 26,377 relocations agree with the ELF (field minus addend = the symbol's config address, through the alias table;
-  25,768 before data phase 2);
-  2 do not because config/functions.csv and config/symbol_addrs.txt disagree on the libcdvd names at 0x242A20,
-  0x242AB8 and 0x242AE0. A link resolves `sceCdGetError` / `sceCdGetDiskType` by whichever object defines them, so
-  this has to be settled before the link.
+- 26,377 relocations agreed with the ELF after data phase 2 (field minus addend = the symbol's config address,
+  through the alias table; 25,768 before it). The 2 that did not (config/functions.csv and config/symbol_addrs.txt
+  disagreed on the libcdvd names at 0x242A20, 0x242AB8 and 0x242AE0) are settled: 0x242A20 sceCdGetDiskType2
+  (S-command 3, raw), 0x242AB8 sceCdGetDiskType (its -1 -> 0 wrapper, called by FValidCdMmode), 0x242AE0
+  sceCdGetError (S-command 4, called by bas.cpp, ReadCdDirect and tu_1848A8's func_001849A0, the last two now spelled
+  so in source); see docs/guides/tu-merging.md, "Linkage of namespace-scoped declarations". air.cpp (merged last)
+  adds 544 relocations, all agreeing.
 - Duplicate strong definitions among the 209 objects (and among the 449 per-function and generated objects): 0.
 
 ## Two ways to link

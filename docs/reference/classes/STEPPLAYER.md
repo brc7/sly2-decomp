@@ -130,7 +130,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 
 ## Fields
 
-From `include/sly2/stepplayer.h` (`struct STEPPLAYER : STEP`). STEPPLAYER: from src/game/gameplay/player/air/UpdateJtAirInput.cpp (15 copies in Lilly ports)
+From `include/sly2/stepplayer.h` (`struct STEPPLAYER : STEP`). STEPPLAYER: from src/game/gameplay/player/air.cpp (15 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 5 header asserts agree, 0 disagree. Size from header: 0x1320.
 

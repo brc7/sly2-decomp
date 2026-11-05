@@ -29,12 +29,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetCid40ClassDesc`](../../../src/game/app/class_registry.cpp) | `0x113C90` |
-| 7 | Init | **override** | [`InitJmt`](../../../src/game/gameplay/player/air/InitJmt.c) | `0x19C9B8` |
+| 7 | Init | **override** | [`InitJmt`](../../../src/game/gameplay/player/air.cpp) | `0x19C9B8` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (XFM) | `SetXfmParent` | `0x2315F0` |
-| 11 | AddHierarchy | **override** | [`AddJmtHierarchy`](../../../src/game/gameplay/player/air/AddJmtHierarchy.c) | `0x19C9E8` |
-| 12 | RemoveHierarchy | **override** | [`RemoveJmtHierarchy`](../../../src/game/gameplay/player/air/RemoveJmtHierarchy.c) | `0x19CA20` |
+| 11 | AddHierarchy | **override** | [`AddJmtHierarchy`](../../../src/game/gameplay/player/air.cpp) | `0x19C9E8` |
+| 12 | RemoveHierarchy | **override** | [`RemoveJmtHierarchy`](../../../src/game/gameplay/player/air.cpp) | `0x19CA20` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (XFM) | `LoadXfmFromBrx` | `0x231170` |
 | 15 | PostLoad | inherited (LO) | `PostLoLoad` | `0x1A5C48` |
@@ -63,7 +63,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 38 | MatchLoXf | inherited (LO) | `MatchLoXf?` | `0x1A6B88` |
 | 39 | SetLoXf | inherited (LO) | `SetLoXf?` | `0x1A6BC8` |
 | 40 | CloneHierarchy | inherited (LO) | `CloneLoHierarchy` | `0x1A6AD0` |
-| 41 | Clone | **override** | [`CloneJmt`](../../../src/game/gameplay/player/air/CloneJmt.c) | `0x19CA58` |
+| 41 | Clone | **override** | [`CloneJmt`](../../../src/game/gameplay/player/air.cpp) | `0x19CA58` |
 | 42 | SetLoSBusy | inherited (LO) | `SetLoSBusy?` | `0x1A6C48` |
 | 43 | LO_vt43 | inherited (LO) | `LO_vt43?` | `0x1A6EE8` |
 | 44 | LO_vt44 | inherited (LO) | `LO_vt44?` | `0x1A6EF0` |

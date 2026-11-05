@@ -28,6 +28,7 @@ char *strcat(char *, const char *) __asm__("strcpy1");
 unsigned int strlen(const char *);
 int sprintf(char *, const char *, ...);
 int sceCdGetDiskType(void);
+int sceCdGetError(void);
 int sceCdMmode(int n);
 int sceCdSync(int n);
 int sceCdRead(unsigned int lsn, unsigned int c, void *buf, void *mode);
@@ -230,7 +231,7 @@ extern "C" void ReadCdDirect(unsigned int lsn, unsigned int c, void *buf, int fM
         D_002DDE80 = sceCdRead(lsn, c, buf, mode);
         if (D_002DDE80 == 1) break;
         sceCdSync(0);
-        D_002DDE84 = sceCdGetDiskType();
+        D_002DDE84 = sceCdGetError();
     } while (1);
 }
 
