@@ -1267,11 +1267,11 @@ struct OBJ {
     char pad5c[0x7C - 0x5C];
     int f7C;
 };
-void *func_001AE318(MSG *);
-void *func_001AE1D0(MSG *);
-void CopyAb__FPvT0Ui(void *, void *, int);
-void AddRelayBlockBegin(OBJ *, int);
-void LoadLoFromBrx(OBJ *, void *);
+extern "C" { void *func_001AE318(MSG *); }
+extern "C" { void *func_001AE1D0(MSG *); }
+extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
+extern "C" { void AddRelayBlockBegin(OBJ *, int); }
+extern "C" { void LoadLoFromBrx(OBJ *, void *); }
 static inline int Max(int a, int b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x1DFB10
  * Purpose: RELAY::LoadFromBrx (vt14): build commands into a 0xA000-byte temp buffer (0x200 x 0x50), start
@@ -3535,11 +3535,9 @@ OID GetSmaCur(SMA *psma);
 
 
 
-extern GAME D_002DEB30;
+extern "C" { extern GAME D_002DEB30; }
 
-extern CLOCK D_002DDED0;
-
-
+extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -3552,16 +3550,18 @@ extern CLOCK D_002DDED0;
 
 
 
-extern JOY D_002DFC00;
+
+
+extern "C" { extern JOY D_002DFC00; }
 
 
 
 
 
-extern CM D_002DDF40;
+extern "C" { extern CM D_002DDF40; }
 
 
-extern SW D_003DD490;
+extern "C" { extern SW D_003DD490; }
 
 
 
@@ -3595,7 +3595,7 @@ void PlayAsegSoundEvent(SW *psw, int sfxid, OID oid, int sNear, int sFar, float 
                         ASEG *paseg, CRefPtr<SND> *ppsnd);
 
 
-extern SUBTITLE D_004435F0;
+extern "C" { extern SUBTITLE D_004435F0; }
 
 
 extern "C" void RelayFire(RELAY *prelay, LO *ploFirer);
@@ -3610,13 +3610,13 @@ extern "C" void StartMusic(SNDMGR *psndmgr, int idMusic);
 extern "C" void StopMusic(SNDMGR *psndmgr, int idMusic);
 extern "C" void SetHintBoxText(HINTBOX *phintbox, int idText, float dt);
 extern "C" void ClearIfSlotId(HINTBOX *phintbox, int idText);
-extern SNDMGR D_003DD040;
-extern HINTBOX D_003DA0C0;
-extern char D_003DA530[];
-extern LO *D_002DE570;
-extern float D_002A7AD0;
-extern qword D_002A2DD0;
-extern qword D_002A2DC0;
+extern "C" { extern SNDMGR D_003DD040; }
+extern "C" { extern HINTBOX D_003DA0C0; }
+extern "C" { extern char D_003DA530[]; }
+extern "C" { extern LO *D_002DE570; }
+extern "C" { extern float D_002A7AD0; }
+extern "C" { extern qword D_002A2DD0; }
+extern "C" { extern qword D_002A2DC0; }
 static inline LO *PloJsgActorDefault(JSG *pjsg)
 {
     if (pjsg->ploActorDefault)
@@ -4768,7 +4768,7 @@ int FFloatsNear(float g1, float g2, float gEpsilon);
 float GLimitLm(LM *plm, float g);
 
 
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -4785,12 +4785,12 @@ extern CLOCK D_002DDED0;
 
 
 
-extern JOY D_002DFC00;
+extern "C" { extern JOY D_002DFC00; }
 
 
 
 
-extern CM D_002DDF40;
+extern "C" { extern CM D_002DDF40; }
 
 
 
@@ -4798,7 +4798,7 @@ extern CM D_002DDF40;
 
 
 
-extern SW D_003DD490;
+extern "C" { extern SW D_003DD490; }
 
 
 
@@ -4843,7 +4843,7 @@ static inline float GZOfQw(qword qw)
 
 
 
-extern SUBTITLE D_004435F0;
+extern "C" { extern SUBTITLE D_004435F0; }
 
 static inline float GXOfQwAct(qword qw)
 {
@@ -4851,8 +4851,8 @@ static inline float GXOfQwAct(qword qw)
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
-extern SNDMGR D_003DD040;
-extern char D_003DA530[];
+extern "C" { extern SNDMGR D_003DD040; }
+extern "C" { extern char D_003DA530[]; }
 extern "C" BHV *PbhvFindStep(STEP *pstep, int cid);
 extern "C" int FObjHasTarget(LO *plo, OID oid);
 extern "C" int func_002121C8(LO *plo);
@@ -4863,11 +4863,11 @@ extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine);
 extern "C" float func_001FE888(SNDMGR *psndmgr);
 extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr);
 extern "C" void ClearBhvstk(BHVSTK *pbhvstk);
-extern float D_002BD850;
-extern float D_002C3620;
-extern float D_002C3624;
-extern float D_002C3628;
-extern float D_002C362C;
+extern "C" { extern float D_002BD850; }
+extern "C" { extern float D_002C3620; }
+extern "C" { extern float D_002C3624; }
+extern "C" { extern float D_002C3628; }
+extern "C" { extern float D_002C362C; }
 static inline float TJsgNow(JSG *pjsg)
 {
     if (GrfUpdateLo(pjsg->prelay) & 0x100)
