@@ -3270,3 +3270,7 @@ extern "C" void func_001957C0(SW *psw)
 {
     psw->ploUnk4744 = PloFindSwObject(psw, 0x405, (OID)0x624, 0);
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+VECTOR4 D_002BF650 = {225.0f, 0.0f, 125.0f, 0.0f};
