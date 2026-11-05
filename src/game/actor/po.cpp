@@ -94,9 +94,12 @@ extern char D_002CA240[];
 extern SL D_003E133C;
 extern float D_002DDED0;
 extern qword D_002A2DB0;
-extern float D_002A7708;
-extern PO **D_002C0D28[3];
-extern char D_002C0D18[];
+extern const float D_002A7708 = 3.40282347e+38f;   /* FLT_MAX */
+/* po's .data (address order): the default PZI (zero) and the three player pointers (jt's, bentley's and murray's
+ * globals) scanned for in-world STEPPLAYERs. */
+char D_002C0D18[0x10] = {0};
+extern PO *D_002E1E40, *D_002DD5BC, *D_002F7900;
+PO **D_002C0D28[3] = {&D_002E1E40, &D_002DD5BC, &D_002F7900};
 void InitSo(PO *p);
 void LoadSoFromBrx(PO *a, void *b);
 void CBinaryInputStream_SkipStringSw(void *b);

@@ -102,10 +102,10 @@ struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DD0;
-extern int D_002BDC50;
-extern float D_002A5130;
-extern float D_002A5134;
-extern float D_002A5138;
+int D_002BDC50 = 1;   /* tu_1553F0's .data starts here (address order) */
+extern const float D_002A5130 = -3.40282347e+38f;   /* -FLT_MAX */
+extern const float D_002A5134 = 3.40282347e+38f;    /* FLT_MAX */
+extern const float D_002A5138 = 3.40282347e+38f;    /* FLT_MAX */
 extern "C" {
 void *func_001AE2A0(MSG *pmsg);
 void LoadStepFromBrx(DIMITRI *p, void *pbis);
@@ -137,13 +137,13 @@ ESC *func_00155868(BHVESC *p);
 void func_00155AE0(BHVATK *p, int k);
 void *func_00155A68(BHVATK *p);
 extern qword g_normalZ;
-extern float D_002BDC98;
-extern VECTOR D_002BDC60;
-extern VECTOR D_002BDC80;
-extern float D_002BDC70[2];
-extern float D_002BDC90[2];
-extern float D_002BDCA0[11];
-extern float D_002A513C;
+VECTOR D_002BDC60 = {0.0f, 0.0001f, 0.0f, 0.0f};
+float D_002BDC70[2] = {0.1f, 0.4f};
+VECTOR D_002BDC80 = {0.0f, 0.0f, 0.0f, 0.0f};
+float D_002BDC90[2] = {0.0f, 0.0f};
+float D_002BDC98 = 60.0f;
+float D_002BDCA0[11] = {0.0f, -0.025f, 0.025f, -0.05f, 0.05f, -0.1f, 0.1f, -0.2f, 0.2f, -0.4f, 0.4f};   /* pan offsets tried in turn */
+extern const float D_002A513C = -3.40282347e+38f;   /* -FLT_MAX */
 HERO *PpoHero(void *p);
 extern char D_002DE578[];
 M3 *func_001A6318(void *p);
