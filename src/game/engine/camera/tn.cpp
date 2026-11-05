@@ -1888,3 +1888,20 @@ extern "C" void func_00223A70(CAMS *p,qword begin,qword end,qword *out){
     }
     StoreVF(out,final);
 }
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+/* D_002C41C0 and D_002C4290 are declared qword at file scope (read whole); defined as float vectors under C linkage
+   in a namespace, which g++ 2.95 accepts beside the file-scope declaration (same symbol). */
+namespace M_tn_data { extern "C" { VECTOR4 D_002C41C0 = {0.0f, 0.5f, 0.0f, 0.0f}; } }
+CLQ D_002C41F0 = {{{1.0f, -2.0f, -2.0f, 0.0f}}};
+SMP D_002C4208 = {0.5f, 0.0f, 0.5f};
+CLQ D_002C4220 = {{{0.0f, 1.0f, 0.0f, 0.0f}}};
+SMP D_002C4230 = {4.0f, 0.0f, 0.25f};
+SMPA D_002C4240 = {5.0f, 0.0f, 0.25f, 35.0f};
+SMPA D_002C4250 = {10.0f, 0.0f, 0.1f, 100.0f};
+SMP D_002C4260 = {0.75f, 0.0f, 2.0f};
+namespace M_tn_data { extern "C" {
+VECTOR4 D_002C4290[5] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, -50.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 75.0f, 0.0f},
+    {0.0f, 0.0f, -50.0f, 0.0f}};
+} }
