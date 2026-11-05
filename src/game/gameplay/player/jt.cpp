@@ -1175,8 +1175,8 @@ static inline float GEvaluateClq(CLQ *pclq, float x)
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
 }
 extern "C" { extern LM D_002BBB60; }
-float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
-float GModPositive(float gDividend, float gDivisor);
+float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext) __asm__("GSmoothA__FffffP4SMPAPf");
+float GModPositive(float gDividend, float gDivisor) __asm__("GModPositive__Fff");
 
 
 
@@ -2089,7 +2089,7 @@ inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
               "j"(qwPos));
     return qwResult;
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertAloPos");
 MATRIX4 *PmatLoWorld(LO *plo) __asm__("func_001A6318");
@@ -3183,9 +3183,9 @@ extern "C" { extern GAME D_002DEB30; }
 extern "C" qword MakeVecFromAngle(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
-int IsmsFindSmOptional(SM *psm, OID oid);
+int IsmsFindSmOptional(SM *psm, OID oid) __asm__("IsmsFindSmOptional__FP2SM3OID");
 void RetractSma(SMA *psma) __asm__("func_001F0598");
-float RadNormalize(float rad);
+float RadNormalize(float rad) __asm__("RadNormalize__Ff");
 
 
 
@@ -3237,7 +3237,7 @@ static inline float GZOfQw(qword qw)
 }
 void ExplodeExpl(EXPL *pexpl) __asm__("func_0015C150");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
-void CalculateJtHangAccel(JT *pjt);
+void CalculateJtHangAccel(JT *pjt) __asm__("CalculateJtHangAccel__FP2JT");
 extern "C" {
 void SetJtAnimState(JT *pjt, int jtas);
 }
@@ -3354,8 +3354,8 @@ static inline qword QwRotateVecV(qword qwVec, MATRIX3 *pmat)
             : "j"(qwVec), "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]));
     return qwResult;
 }
-void ChooseJtRushTarget(JT *pjt);
-void ChooseJtSmashTarget(JT *pjt);
+void ChooseJtRushTarget(JT *pjt) __asm__("ChooseJtRushTarget__FP2JT");
+void ChooseJtSmashTarget(JT *pjt) __asm__("ChooseJtSmashTarget__FP2JT");
 void SetJtChannelMask(JT *pjt, uint grf) __asm__("func_0018C120");
 void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtJts__FP2JT3JTS4JTBS");
 /** @sly2-annot addr=0x18C250

@@ -497,7 +497,7 @@ int func_001423A0(ACTOR *);
 int MpStepplayerCur(ACTOR *);
 uint GrfbtnGadget(ACTOR *, int);
 }
-void FreeSwXpList(SW *, XP *);
+void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 
 static inline void SetControl(ACTOR *p, int n) { VTE &v = p->vt[88]; ((void (*)(void *, int))v.fn)((char *)p + v.delta, n); }
 static inline int CanAct(ACTOR *p, int n) { VTE &v = p->vt[99]; return ((int (*)(void *, int))v.fn)((char *)p + v.delta, n); }
@@ -2674,7 +2674,7 @@ namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi {
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 
 
@@ -2686,8 +2686,8 @@ qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 
 
 
-void UpdateJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
-void EmitJtGrabSparkles(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
+void UpdateJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand) __asm__("UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND");
+void EmitJtGrabSparkles(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand) __asm__("EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND");
 
 
 
@@ -2748,7 +2748,7 @@ extern "C" { extern float D_002BF660; }
 extern "C" { extern float D_002BF664; }
 extern "C" float D_002BF70C = 1.0f;   // C symbol: this view has no extern "C" block
 extern "C" { extern HINTBOX D_003DA0C0; }
-void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand);
+void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
 /** @sly2-annot addr=0x194A40
  * Purpose: Every frame collect the player's grab candidates from the world grab lists selected by grf (HND,
@@ -3116,7 +3116,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITX *pemitx,
                    void *pv1, void *pv2);
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
-void OnEmitterValuesChanged(EMITTER *pemitter);
+void OnEmitterValuesChanged(EMITTER *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 
 static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
 static inline VU_VECTOR operator*(VU_FLOAT g, VU_VECTOR v)

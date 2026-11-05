@@ -2641,8 +2641,8 @@ struct CRef {
     int m_tag;
     CRef() { m_tagk = -1; }
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &);
-    void Decref();
+    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
 };
 struct ENT {
     short ch;
