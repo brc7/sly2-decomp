@@ -24,7 +24,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct XP { char pad[0x94]; float gFriction; float gElasticity; };
 
 extern "C" {
-extern float D_002BFB20;    /* hurt contact friction */
+extern float D_002BFB20;    /* hurt contact friction (defined below, in address order) */
 extern float D_002BFB24;    /* hurt contact elasticity */
 int FAsegaRetracted(ASEGA *pasega);
 void RunJtHurtCallback(JTHURT *pjthurt);
@@ -63,7 +63,7 @@ extern "C" void InitJtHurt(JTHURT *pjthurt, STEPPLAYER *pstepplayer)
 namespace M_SetJtHurtState {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
-union U{qword q;float f[4];int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};
+union U{float f[4];qword q;int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};   // floats first: U globals are initialized
 struct VE{short delta,pad;void(*fn)();};
 struct ASEGA{char pad[12];VE*vt;};
 struct ASEG;
@@ -81,10 +81,13 @@ struct LIMIT{float lo,hi;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern CM D_002DDF40;
- extern U D_002BFA00,D_002BFA10,D_002A2DD0;
- extern POLY D_002BFA20;
+ extern U D_002A2DD0;
+ // hurt's .data starts here (address order across the namespaces below). This namespace has no extern "C" block, so
+ // the definitions carry it themselves (C symbols).
+ extern "C" U D_002BFA00={{0.0f,0.0f,-750.0f,0.0f}},D_002BFA10={{0.0f,0.0f,500.0f,0.0f}};
+ extern "C" POLY D_002BFA20={-1.0f,0.004f,0.0f};
  extern LIMIT D_002BBB60;
- extern float D_002A6720;
+ extern "C" const float D_002A6720=3.40282347e+38f;   // FLT_MAX
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
@@ -265,7 +268,9 @@ namespace M_func_001A1098 { extern "C" {
 struct E { int x0; int x4; int x8; };
 struct S { int x0; int pad[4]; int x14; struct E *x18; };
 struct D { int a; int b; };
-extern char D_002BFA30[];
+struct HURTZ { int n; float g; int x; };   /* (zap kind, duration, 0) records */
+HURTZ D_002BFA30[7] = {{0xD, 30.0f, 0}, {0xC, 30.0f, 0}, {0x13, 30.0f, 0}, {0x12, 30.0f, 0}, {0x16, 60.0f, 0}, {0xF7, 30.0f, 0},
+    {0x13D, 30.0f, 0}};
 struct E *func_001AE238(struct D *d, void *p);
 int PxfFindSo(int a, int b, int c);
 /** @sly2-annot addr=0x1A1098
@@ -300,7 +305,7 @@ struct X { char pad[0x80]; qword v80; };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0xE8-0x10]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
 struct P { struct O *o; int state; };
 extern "C" qword D_002A2DD0;
-extern "C" float D_002BFA90[];
+extern "C" float D_002BFA90[3] = {0.0f, 10.0f, 0.01f};   /* the zap spring */
 struct CLOCK { float t,dt; };
 extern "C" struct CLOCK D_002DDED0;
 
@@ -373,7 +378,7 @@ struct LO { int x0, x4, x8; VTE *vt; char pad10[0xD0 - 0x10]; float xD0; char pa
 struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
 struct CLOCK { float t, dt; };
 extern struct CLOCK D_002DDED0;
-extern float D_002BFAA0[3], D_002BFAB0[3], D_002BFAC0[];
+float D_002BFAA0[3] = {1.0f, 0.0f, -0.75f}, D_002BFAB0[3] = {0.7f, 0.3f, 0.0f}, D_002BFAC0[3] = {3.5f, 0.0f, 0.5f};
 extern float D_002BBB60[2];
 void func_001F4BF8(struct LO *po);
 float cosf(float g);
@@ -504,14 +509,16 @@ extern "C" void ReturnJtToSafePlaceCb(JTHURT *pjthurt)
 namespace M_func_001A16C8 { extern "C" {
 // Select and blend the movement vector for the active mode.
 typedef int qword __attribute__((mode(TI)));
-typedef union U{qword q;float f[4];int bits[4];}U;
+typedef union U{float f[4];qword q;int bits[4];}U;   // floats first: U globals are initialized
 typedef union F{float value;int bits;}F;
 struct VT{short delta,pad;void*fn;};
 struct O{char pad[0xC];struct VT*vt;};
 struct M3{U row[3];};
 struct P{struct O*self;char pad4[0x30-4];struct O*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
-extern F D_002BFACC,D_002BFAD0,D_002BFAD4,D_002BFB00,D_002BFB04;
-extern U D_002BFAE0,D_002BFAF0,D_002A2DA0,D_002A2DC0;
+F D_002BFACC={0.25f},D_002BFAD0={700.0f},D_002BFAD4={1200.0f};
+U D_002BFAE0={{1000.0f,900.0f,950.0f,0.0f}},D_002BFAF0={{1000.0f,-900.0f,950.0f,0.0f}};
+F D_002BFB00={600.0f},D_002BFB04={800.0f};
+extern U D_002A2DA0,D_002A2DC0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
 qword LimitVectorLength(qword,float);
 qword func_001A62E8(struct O*);
@@ -659,7 +666,9 @@ extern "C"{
  extern CLOCK D_002DDED0;
  extern char D_002DE578[],D_002DEB30[];
  extern G D_003DD490;
- extern qword D_002A2DD0,D_002BFB10;
+ extern qword D_002A2DD0;
+ union VQ{float f[4];qword q;};
+ extern "C" VQ D_002BFB10={{0.0f,0.0f,-1000.0f,0.0f}};   // C symbol: this namespace has no extern "C" block
  int func_001A2358(C*,RECORD*);
  int func_00155228(void*,int);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
@@ -786,7 +795,7 @@ notify:
    SetVector(p->actor,35,D_002A2DD0);SetVector(p->actor,36,D_002A2DD0);
    SetJtHurtState(p,input->flags==0x800?1:2);func_001A15B0(p,&C::Stop);break;
   case 0x2000:if(*p->counter>0){SetJtHurtState(p,3);func_001A15B0(p,&C::Finish);}else SetJtHurtState(p,10);break;
-  case 0x400:SetVector(p->actor,35,D_002BFB10);if(*p->counter>0)SetJtHurtState(p,4);else SetJtHurtState(p,12);break;
+  case 0x400:SetVector(p->actor,35,D_002BFB10.q);if(*p->counter>0)SetJtHurtState(p,4);else SetJtHurtState(p,12);break;
   case 0x4000:
    if(*p->counter>0){SetJtHurtState(p,5);func_001A15B0(p,&C::Finish);}else SetJtHurtState(p,11);break;
   case 0x40:func_001A16C8(p);func_001A15B0(p,&C::Reaction);break;
@@ -1046,7 +1055,8 @@ extern "C" int func_001A23C0(JTHURT *pjthurt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A23F8 { extern "C" {
-extern int D_002BFB28[];
+float D_002BFB20 = 1.0f, D_002BFB24 = 0.3f;   /* hurt's contact friction and elasticity */
+int D_002BFB28[14] = {-1, 0, 0, 0, -1, 0, 0, 0, 0, -1, 8, 8, 5, 4};   /* parent state, -1: none */
 struct S { int x0; int x4; char pad[0xCC]; void *a[1]; };
 /** @sly2-annot addr=0x1A23F8
  * Purpose: Return the state record for the hurt state, falling back through parent table D_002BFB28
