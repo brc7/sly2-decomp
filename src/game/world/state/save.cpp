@@ -105,8 +105,8 @@ extern char D_002DD590[];       /* the level heap */
 /* save's .data: bytes per element by kind, and the completion weight of each world's progress variable. */
 int D_002C2D90[11] = {4, 4, 4, 4, 4, 16, 16, 8, 12, 4, 4};
 int D_002C2DC0[9] = {13, 86, 97, 147, 141, 160, 106, 182, 166};
-extern const char D_002A78F0[] = "fVault";
-extern const char D_002A78F8[] = "from_memcard";
+extern const char D_002A78F0[];   /* defined below where the ELF has it (.rodata order) */
+extern const char D_002A78F8[];   /* defined below where the ELF has it (.rodata order) */
 extern unsigned char D_002AA6A1[];  /* ctype table */
 extern char D_003DD040[];       /* g_sndmgr */
 #undef D_003DD050
@@ -849,3 +849,9 @@ extern "C" void ApplyGsSettings(SVSET *psvset)
         p->d1.dy = p->d2.dy = fptoui(g + 50.0f) & ~1;
     }
 }
+
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const char r_D_002A78F0[] __asm__("D_002A78F0") = "fVault"; }
+namespace RO_ORDER { extern const char r_D_002A78F8[] __asm__("D_002A78F8") = "from_memcard"; }

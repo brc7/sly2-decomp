@@ -104,7 +104,10 @@ int D_002C01D0[8] = {0x328, 0x329, 0x32A, -1, -1, -1, -1, -1};
 int D_002C01F0[8] = {0x32B, 0x32C, 0x32D, -1, -1, -1, -1, -1};
 int D_002C0210[8] = {0x32E, 0x32F, 0x330, -1, -1, -1, -1, -1};
 /* The world of the "quit to hideout" warp (.rodata, a file reference: 16 hashed words). */
-extern const unsigned int D_002A3928[16] = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
+/* In the ELF these constants lie in the first part of .rodata, which holds the objects' named constants in TU
+ * order before every object's literals and jump tables; a section of their own places them there
+ * (tu-merging.md "Phase 6: one link mode", ".rodata.early"). */
+extern const unsigned int D_002A3928[16] __attribute__((section(".rodata.early"))) = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
 /* menu's .bss (address order): the camera offsets and the two runtime item lists. */
 float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];

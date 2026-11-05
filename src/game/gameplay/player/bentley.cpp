@@ -59,7 +59,7 @@ SNIP D_002BC390[0x76] = {
     {0x300, 0x21A, 0x184C}, {0x300, 0x217, 0x1858}, {0x300, 0x21F, 0x1864}, {0x300, 0x137, 0x1820},
     {0x300, 0x155, 0x1874}, {0x300, 0x24C, 0x1878},
 };
-extern const char D_002A4AE8[] = "bentley";   /* save-variable root name */
+extern const char D_002A4AE8[];   /* defined below where the ELF has it (.rodata order) */
 extern float D_002BC9B4;   /* defined below, in address order */
 void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis);
 void BindLoOidTable(LO *plo, int c, void *aoid);
@@ -2367,3 +2367,8 @@ extern "C" void func_001375D0(S *s, int k)
 }
 } // namespace M_func_001375D0
 
+
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const char r_D_002A4AE8[] __asm__("D_002A4AE8") = "bentley"; }

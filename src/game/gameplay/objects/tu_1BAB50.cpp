@@ -62,8 +62,8 @@ extern char D_002DEB30[];
 extern char D_002DDF40[];
 extern char D_002DFC00[];
 extern char D_002DE578[];
-extern const char D_002A76B8[] = "LOOP";
-extern const char D_002A76C0[] = "";
+extern const char D_002A76B8[];   /* defined below where the ELF has it (.rodata order) */
+extern const char D_002A76C0[];   /* defined below where the ELF has it (.rodata order) */
 void *func_001AE318(const AREQ &r);
 void *func_001AE378(const AREQ &r);
 void *func_001AE238(const AREQ &r, void *pv);
@@ -810,3 +810,9 @@ extern "C" void func_001BBEA8(TRIG *p)
         SetSoCnstrTorque(p, 1);
     }
 }
+
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const char r_D_002A76B8[] __asm__("D_002A76B8") = "LOOP"; }
+namespace RO_ORDER { extern const char r_D_002A76C0[] __asm__("D_002A76C0") = ""; }
