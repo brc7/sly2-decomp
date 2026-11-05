@@ -169,11 +169,11 @@ void SetRipgEmitb(RIPG *pripg, EMITB *pemitb)
 namespace M_OnRipgRemove__FP4RIPG {
 struct DL { void *head; void *tail; int ibDle; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
-extern DLI *D_002DD2FC;
+extern "C" { extern DLI *D_002DD2FC; }
 struct RIP;
 struct RIPG { char pad[0x10]; int x10; char p1[0xEC - 0x14]; void *xEC; char p2[0x15C - 0xF0]; DL dl; };
 struct SW { char pad[0x403C]; char pool[0x30]; RIPG *x406C; };
-extern SW D_003DD490;
+extern "C" { extern SW D_003DD490; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *prip);
 void RemoveSoHierarchy(RIPG *p);
@@ -513,9 +513,9 @@ void BounceRipgRips__FP4RIPG(P *p)
 namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO {
 struct DL { void *head; void *tail; int ibDle; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
-extern DLI *D_002DD2FC;
+extern "C" { extern DLI *D_002DD2FC; }
 struct CLOCK { float t, dt; };
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 struct VTE { short d; short pad; void (*pf)(); };
 struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; VTE *vt; };
 struct RIPG { char pad[0x15C]; DL dl; };
@@ -801,7 +801,7 @@ void TouchRip(RIP *prip, int fRemove)
 namespace M_ForceRipFade__FP3RIPf {
 struct RIP { char pad[0x14]; float t14; float g18; };
 struct CLOCK { float t; float dt; };
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 /** @sly2-annot addr=0x1CEAA8
  * Purpose: start fade
  * Info: proposed name ForceRipFade__FP3RIPf (EXISTING); TU rip
@@ -1166,7 +1166,7 @@ union U {qword q;float f;};
 struct M3 {U r[3];M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};struct M4 {qword a,b,c,d;};
 struct PHYS {qword accel,axis;float rate,scale;};
 struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float gE0,gE4;};
-extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0;
+extern "C" { extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0; }
 extern "C" {
 int func_001CF010(qword);int func_001CEFC8(qword);int func_001CF058(qword);
 M3*func_0011B500(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
@@ -1313,9 +1313,9 @@ struct POLY { float a,b,c; };
 struct LO { char pad[0x38]; float radius; };
 struct S { char pad[0x14]; float start,duration; LO *lo; POLY size; int pad2; POLY alpha; };
 struct G { char pad[0x90]; qword pos; };
-extern G D_002DDF40;
-extern struct CLOCK { float t,dt; } D_002DDED0;
-extern struct LIMIT { float lo,hi; } D_002BBB60;
+extern "C" { extern G D_002DDF40; }
+extern "C" { extern struct CLOCK { float t,dt; } D_002DDED0; }
+extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
 extern "C" {
 int FInsideCmFrustum(G*,qword,qword);
 int FInsideCmMrd(G*,qword,float,float*);
@@ -1440,8 +1440,8 @@ typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
 struct S { char pad[0x70]; qword q70; char p1[0x90 - 0x80]; qword q90; char p2[0xF4 - 0xA0]; int f; };
 struct G { char pad[0x60]; qword q60; };
-extern G D_002DDF40;
-extern qword D_002A2DC0;
+extern "C" { extern G D_002DDF40; }
+extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 M BuildOrthonormalMatrixZ(qword a, qword b);
 int FRenderRipPosMat(S *p, qword q, M m);
@@ -1483,9 +1483,9 @@ struct O;
 struct VE {short delta,pad;void(*fn)(void*,qword,int,float);};
 struct O {char pad18[0x18];float duration;LO*visual;char pad20[8];float spin;char pad2C[0x14];M3 matrix;U position;char pad80[0x10];U velocity;char padA0[0x4C];VE*vt;LO*space;};
 struct CLOCK {float t,dt;};
-extern CLOCK D_002DDED0;
-extern char D_003DD490[];
-extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern char D_003DD490[]; }
+extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
 O *PripNewRipg(void*,void*,void*);
 qword func_0022FC48(void*,LO*,qword);
@@ -1714,7 +1714,7 @@ union F {float value;int bits;};
 struct M3 {qword rows[3];};
 struct SHRAPNEL {char pad40[0x40];M3 matrix;qword position;char pad80[0x70];F depth;};
 struct CM;
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 extern "C" int FRenderRipPosMat(SHRAPNEL *,qword,const M3 &);
 static inline qword AddScaled(qword p,qword a,qword k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(p):"j"(a),"j"(k));return p;}
 static inline SHRAPNEL* Receiver(SHRAPNEL*input){register SHRAPNEL*p __asm__("$3");__asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));return p;}
@@ -1761,7 +1761,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VECTOR;
 struct SO;
 struct MATCH { char pad[0x20]; float g20; float g24; int n28; int pad2; qword q30; };
-extern qword D_002BBB50;
+extern "C" { extern qword D_002BBB50; }
 extern "C" void InitRip(MATCH *p, VECTOR *pv, float g, SO *pso);
 /** @sly2-annot addr=0x1CFCD8
  * Purpose: MATCH (RIPT 6) Init
@@ -1854,7 +1854,7 @@ struct S {
     char pad[0x14]; float start, duration; X *x; char pad20[0x40 - 0x20];
     M3 mat; qword pos, prev, vel, accel; char padB0[0xF0 - 0xB0]; qword axis; float angle;
 };
-extern struct CLOCK { float t, dt; } D_002DDED0;
+extern "C" { extern struct CLOCK { float t, dt; } D_002DDED0; }
 extern "C" {
 void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
@@ -2008,11 +2008,11 @@ struct POLY {float a,b,c;};
 struct RIP {char pad0[0x14];float start,duration;void *material;POLY size;int unused2C;POLY opacity;char pad3C[0x34];qword position;};
 struct CAMERA {char pad0[0x90];qword position;};
 struct CLOCK {float time,dt;};
-extern CAMERA D_002DDF40;
-extern CLOCK D_002DDED0;
-extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0;
-extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2];
-extern const qword D_002A2DA0,D_002A2DC0;
+extern "C" { extern CAMERA D_002DDF40; }
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0; }
+extern "C" { extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2]; }
+extern "C" { extern const qword D_002A2DA0,D_002A2DC0; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *);
 int FInsideCmFrustum(CAMERA *,qword,qword);
@@ -2172,8 +2172,8 @@ union U { qword q; float f; };
 struct G { char pad[0x60]; M3 mat; };
 struct SPIN { char pad[0x40]; qword axis; };
 struct S {char pad[0x14];float start,duration;char pad1C[0x40-0x1C];M3 mat;char pad70[0xF0-0x70];SPIN *spin;char padF4[0x100-0xF4];qword pos;};
-extern G D_002DDF40;
-extern struct CLOCK {float t,dt;} D_002DDED0;
+extern "C" { extern G D_002DDF40; }
+extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" {
 qword ConvertCmScreenToWorld(G*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
@@ -2209,7 +2209,7 @@ void RenderSmack(S *p) {
 } // namespace M_RenderSmack
 
 namespace M_UpdateSmack {
-extern struct { float t; float dt; } D_002DDED0;
+extern "C" { extern struct { float t; float dt; } D_002DDED0; }
 struct C { virtual void f(); };
 typedef void (C::*PMF)(void *);
 struct D { char pad[0x60]; PMF pmf; };

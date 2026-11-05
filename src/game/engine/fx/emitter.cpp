@@ -193,7 +193,7 @@ float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void *func_001AE1D0(AL *pal);
 void *func_001AE2A0(AL *pal);
 }
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return func_001AE1D0(&al); }
 static inline void *PvAllocClear(int cb, int cbAlign) { AL al(cb, cbAlign); return func_001AE2A0(&al); }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -436,7 +436,7 @@ extern "C" void func_00159968(EMITTER *pemitter)
 namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv {
 struct EMITTER { char pad[0x14C]; void *p14C; void *p150; };
 enum MSGID { MSGID_0, MSGID_1 };
-void UnsubscribeLoObject(void *pv, void *po);
+extern "C" { void UnsubscribeLoObject(void *pv, void *po); }
 /** @sly2-annot addr=0x1599A8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -540,9 +540,9 @@ namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
 struct CLOCK { float t; float dt; };
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 struct CM { char pad[0x1C]; float g1C; char pad2[0x90 - 0x20]; qword pos; };
-extern CM D_002DDF40;
+extern "C" { extern CM D_002DDF40; }
 struct EMITO { void *palo; int f4; };
 struct EMITB { int pad0; int f4; EMITO *pemito; };
 struct RIPG { char pad[0x15C]; int dl; };
@@ -744,7 +744,7 @@ void UnpauseEmitter(EMITTER *pemitter)
 
 namespace M_FPausedEmitter__FP7EMITTER {
 struct CLOCK { float t; float dt; };
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 struct EMITTER { char pad[0xF0]; int k; int c; char pad2[0x148 - 0xF8]; float tUnpause; };
 /** @sly2-annot addr=0x15A170
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -1028,8 +1028,8 @@ struct VU_VECTOR { qword q; };
 static inline VU_VECTOR V(qword q) { VU_VECTOR v; v.q = q; return v; }
 struct MATRIX3 { qword r[3]; };
 struct CM { char pad[0x60]; MATRIX3 mat; };
-extern CM D_002DDF40;
-extern qword D_002A2DA0;
+extern "C" { extern CM D_002DDF40; }
+extern "C" { extern qword D_002A2DA0; }
 struct TRI { int aipos[3]; float sArea; };
 struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; };
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
@@ -1923,10 +1923,10 @@ struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int *)&f)); } };
 struct CLOCK { float t; float dt; };
-extern CLOCK D_002DDED0;
-extern MATRIX4 D_002A2D30;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern MATRIX4 D_002A2D30; }
 struct X { float x, y, z, w; qword axis; float gRot; float gScale; };
-void func_0011B500(MATRIX3 *pm, float g, qword axis);
+extern "C" { void func_0011B500(MATRIX3 *pm, float g, qword axis); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -2127,7 +2127,7 @@ struct P { int fl; void *pv; int a8, aC; qword q10, q20; int x30; XF *pxf; int x
 struct VTE { short d; short pad; void (*pfn)(void *, P *); };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
-MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm);
+extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 struct VU_VECTOR4 { qword qw; };
