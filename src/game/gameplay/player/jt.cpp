@@ -659,7 +659,10 @@ struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];MO
 struct CLOCK{float time,dt;};struct WORK{U a,b;};
 extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
-float D_002BF288 = 4000.0f, D_002BF28C = 4500.0f, D_002BF290 = 100.0f, D_002BF294 = 1.0f;
+extern float D_002BF288;
+extern float D_002BF28C;
+extern float D_002BF290;
+extern float D_002BF294;
 void func_001F9B20(P*);void PresetStepAccel(P*);
 void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
 void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
@@ -762,8 +765,8 @@ struct O { char pad[0x4C8]; int x4C8; int x4CC; char pad1[0x4D4 - 0x4D0]; struct
     char aDF0[0xF50 - 0xDF0]; char aF50[0x18C8 - 0xF50]; int n18C8; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
 extern struct CLOCK D_002DDED0;
-float D_002BF298 = 0.25f;
-float D_002BF29C = 3.0f;
+extern float D_002BF298;
+extern float D_002BF29C;
 extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
 extern void func_0019E9C8(void *p, struct A *pa, void *pv);
 extern void func_001A2100(void *p, struct A *pa, void *pv);
@@ -1291,12 +1294,12 @@ static inline qword QwCross(qword a, qword b)
 extern "C" { qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos); }
 extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("func_0011E290");
 extern "C" { extern qword D_002A2DC0; }
-extern "C" float D_002BF2D0 = 0.1f;
-extern "C" float D_002BF2D4 = 1000.0f;
-extern "C" float D_002BF2D8 = 20.0f;
-extern "C" float D_002BF2DC = -7.5f;
-extern "C" float D_002BF2E0 = 0.5f;
-extern "C" float D_002BF300 = 1000.0f;
+extern "C" float D_002BF2D0;
+extern "C" float D_002BF2D4;
+extern "C" float D_002BF2D8;
+extern "C" float D_002BF2DC;
+extern "C" float D_002BF2E0;
+extern "C" float D_002BF300;
 extern "C" { extern CLQ D_002BF310; }
 extern "C" { extern SMPA D_002BF320; }
 extern "C" { extern CLQ D_002BF330; }
@@ -1558,8 +1561,8 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
     return qw;
 }
 extern "C" { extern qword D_002A2DC0; }
-extern "C" int D_002BF340 = 0x42480000;          // 50.0f, read as its bits
-extern "C" int D_002BF344 = (int)0xC2480000;     // -50.0f, read as its bits
+extern "C" int D_002BF340;          // 50.0f, read as its bits
+extern "C" int D_002BF344;     // -50.0f, read as its bits
 extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
 /** @sly2-annot addr=0x189C40
@@ -1891,7 +1894,7 @@ typedef struct CLOCK { float t; float dt; } CLOCK;
 struct SMP {float a,b,duration;};
 
 extern "C" CLOCK D_002DDED0;
-extern "C" SMP D_002BF348 = {600.0f, 300.0f, 0.1f};
+extern "C" SMP D_002BF348;
 
 extern "C" float RadStepHeading(A *p);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
@@ -2164,9 +2167,9 @@ qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGrav
 }
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
-extern "C" float D_002BF354 = 150.0f;
-extern "C" float D_002BF360 = 5.0f;
-extern "C" float D_002BF364 = 0.5f;
+extern "C" float D_002BF354;
+extern "C" float D_002BF360;
+extern "C" float D_002BF364;
 extern "C" { extern qword D_002BF370; }
 extern "C" { extern qword D_002A2DA0; }
 extern "C" { extern qword D_002A2DC0; }
@@ -2588,7 +2591,10 @@ struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];str
 struct DV{char pad[0x20];qword value;};
 struct P{char pad[0x60];struct SPACE*space;char pad64[0x1030-0x64];struct MODEL*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
-float D_002BF380 = 0.15f, D_002BF3A0 = 0.75f, D_002BF3B8 = 120.0f, D_002BF3BC = 0.25f;
+extern float D_002BF380;
+extern float D_002BF3A0;
+extern float D_002BF3B8;
+extern float D_002BF3BC;
 extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
@@ -2794,7 +2800,11 @@ struct P{
 };
 union PHASE{qword direction;U scalar;};
 extern qword D_002A2DD0;extern char D_003DD490[];
-float D_002BF3C0 = 1000.0f, D_002BF3C4 = 1.0f, D_002BF3C8 = 0.4f, D_002BF3CC = 0.5f, D_002BF35C = 0.1f;
+extern float D_002BF3C0;
+extern float D_002BF3C4;
+extern float D_002BF3C8;
+extern float D_002BF3CC;
+extern float D_002BF35C;
 float RadStepHeading(struct P*);float RadNormalize__Ff(float);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
 void func_0018B2C0(struct P*);void JtChooseGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
@@ -2939,10 +2949,10 @@ struct X150 { char pad[0x18]; float g18; };
 struct X1854 { char pad[0x124]; int x124; };
 typedef union { qword q; float f[4]; } VU;
 
-float D_002BF3D4 = 1.3f;
-float D_002BF3D8 = 0.85f;
+extern float D_002BF3D4;
+extern float D_002BF3D8;
 
-float D_002BF3DC = 20.0f;
+extern float D_002BF3DC;
 
 extern void UpdateStepplayer(void *p);
 extern void UpdateJtPre(void *p);
@@ -3301,10 +3311,10 @@ void FixStepAngularVelocity(STEP *pstep);
 }
 void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("func_002303A0");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
-extern "C" float D_002BF3E0 = 400.0f;
-extern "C" float D_002BF3E4 = 0.25f;
-extern "C" float D_002BF3E8 = 1000.0f;
-extern "C" float D_002BF358 = 3.0f;
+extern "C" float D_002BF3E0;
+extern "C" float D_002BF3E4;
+extern "C" float D_002BF3E8;
+extern "C" float D_002BF358;
 extern "C" { extern float D_002BF35C; }
 static inline void ClearXyz(VECTOR *pvec)
 {
@@ -4102,8 +4112,8 @@ extern CM D_002DDF40;
 
 
 
-float D_002BF3EC = 0.25f;
-float D_002BF3F0 = 1.35f;
+extern float D_002BF3EC;
+extern float D_002BF3F0;
 int FPocketItemCarried(CID100 *pcid100) __asm__("func_00224590");
 extern "C" JTPOCKET *PgadrecFromJtGadget(JT *pjt, int idGadget);
 /** @sly2-annot addr=0x18D760
@@ -4518,7 +4528,8 @@ struct CLOCK{float time,dt;};
 struct SMP{float a,b,c;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
-extern "C" SMP D_002BF3F8 = {25.0f, 0.0f, 0.25f}, D_002BF408 = {1000.0f, 0.0f, 0.25f};
+extern "C" SMP D_002BF3F8;
+extern "C" SMP D_002BF408;
 extern "C" M4*func_001A6318(P*);
 extern "C" qword func_001A62E8(P*);
 extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
@@ -4687,7 +4698,7 @@ extern void SetStepRadTargetVec(struct O *p, qword v);
 extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
 extern M3 *InvertMatrix3Cofactor(M3 *pmOut, M3 *pm);
 extern struct CLOCK D_002DDED0;
-float D_002BF414 = 200.0f;
+extern float D_002BF414;
 extern char D_002BF418[];
 extern qword D_002A2DA0;
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -4784,6 +4795,31 @@ void func_0018E3A0(void *p)
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
+
+
+
+
+
+
+
+
+
+
+
+
+LO *D_002E1E40;   /* g_pjt */
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_jt {
+void p_func_0018E330() __asm__("func_0018E330");
+extern "C" {
+extern const unsigned int D_002A5F98[2] = {0xFFFF0000, (unsigned int)p_func_0018E330};
+}
+} // namespace ANPTR_jt
+
+// ---- jt's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 SNIP D_002BE990[0xAD] = {{0x200, 0x7C, 0x1028}, {0x200, 0x7D, 0x1334}, {0x200, 0x7E, 0x1374}, {0x200, 0x7F, 0x13D4},
     {0x200, 0x80, 0x13F4}, {0x200, 0x81, 0x1414}, {0x200, 0x82, 0x1434}, {0x200, 0x83, 0x1454},
     {0x200, 0x84, 0x1474}, {0x200, 0x85, 0x1494}, {0x200, 0x86, 0x14B4}, {0x300, 0x96, 0x14D4},
@@ -4828,24 +4864,88 @@ SNIP D_002BF1B0[0x12] = {{0x0, 0x13C, 0x19A0}, {0x0, 0x13D, 0x19A4}, {0x200, 0x1
     {0x300, 0x115, 0x1C84}, {0x100, 0x5F5, 0x1D20}, {0x100, 0x5F6, 0x1D24}, {0x220, 0x14C, 0x1A88},
     {0x220, 0x14D, 0x1A8C}, {0x220, 0x14E, 0x1A90}, {0x220, 0x14F, 0x1A94}, {0x220, 0x151, 0x1A98},
     {0x220, 0x152, 0x1A9C}};
+namespace M_func_00188960 { extern "C" {
+float D_002BF288 = 4000.0f;
+float D_002BF28C = 4500.0f;
+float D_002BF290 = 100.0f;
+float D_002BF294 = 1.0f;
+} } // namespace M_func_00188960 extern "C"
+namespace M_func_00188CC8 { extern "C" {
+float D_002BF298 = 0.25f;
+float D_002BF29C = 3.0f;
+} } // namespace M_func_00188CC8 extern "C"
 int D_002BF2A0[3][2] = {{24, -1}, {19, -1}, {21, -1}};
 int D_002BF2B8[3][2] = {{25, -1}, {18, -1}, {20, -1}};
-CLQ D_002BF310 = {{{0.0f, 2.0f, -1.0f, 0.0f}}};
+namespace M_UpdateJtLean__FP2JT {
+extern "C" float D_002BF2D0 = 0.1f;
+extern "C" float D_002BF2D4 = 1000.0f;
+extern "C" float D_002BF2D8 = 20.0f;
+extern "C" float D_002BF2DC = -7.5f;
+extern "C" float D_002BF2E0 = 0.5f;
+extern "C" float D_002BF2F0[4] __attribute__((aligned(16))) = {0.0f, 2.0f, -1.0f, 0.0f};   /* gap object: no code reads it by this address */
+extern "C" float D_002BF300 = 1000.0f;
+} // namespace M_UpdateJtLean__FP2JT
+CLQ D_002BF310 __attribute__((aligned(16))) = {{{0.0f, 2.0f, -1.0f, 0.0f}}};
 SMPA D_002BF320 = {4.0f, 0.0f, 0.5f, 10.0f};
 CLQ D_002BF330 = {{{0.0f, 0.5f, 0.0f, 0.0f}}};
+namespace M_RebuildJtXmg {
+extern "C" int D_002BF340 = 0x42480000;
+extern "C" int D_002BF344 = (int)0xC2480000;
+} // namespace M_RebuildJtXmg
+namespace M_func_0018A4E8 {
+extern "C" SMP D_002BF348 = {600.0f, 300.0f, 0.1f};
+} // namespace M_func_0018A4E8
+namespace M_JtChooseGroundState {
+extern "C" float D_002BF354 = 150.0f;
+} // namespace M_JtChooseGroundState
+namespace M_SetJtJts__FP2JT3JTS4JTBS {
+extern "C" float D_002BF358 = 3.0f;
+} // namespace M_SetJtJts__FP2JT3JTS4JTBS
+namespace M_UpdateJtPre { extern "C" {
+float D_002BF35C = 0.1f;
+} } // namespace M_UpdateJtPre extern "C"
+namespace M_JtChooseGroundState {
+extern "C" float D_002BF360 = 5.0f;
+extern "C" float D_002BF364 = 0.5f;
+} // namespace M_JtChooseGroundState
 VECTOR4 D_002BF370 = {-50.0f, 0.0f, 300.0f, 0.0f};
+namespace M_func_0018B460 { extern "C" {
+float D_002BF380 = 0.15f;
+} } // namespace M_func_0018B460 extern "C"
 VECTOR4 D_002BF390 = {0.0f, 0.0f, 25.0f, 0.0f};
+namespace M_func_0018B460 { extern "C" {
+float D_002BF3A0 = 0.75f;
+} } // namespace M_func_0018B460 extern "C"
 LM D_002BF3A8 = {-1.0f, 1.0f};
 LM D_002BF3B0 = {-50.0f, 35.0f};
+namespace M_func_0018B460 { extern "C" {
+float D_002BF3B8 = 120.0f;
+float D_002BF3BC = 0.25f;
+} } // namespace M_func_0018B460 extern "C"
+namespace M_UpdateJtPre { extern "C" {
+float D_002BF3C0 = 1000.0f;
+float D_002BF3C4 = 1.0f;
+float D_002BF3C8 = 0.4f;
+float D_002BF3CC = 0.5f;
+float D_002BF3D0 = 0.25f;   /* gap object: no code reads it by this address */
+} } // namespace M_UpdateJtPre extern "C"
+namespace M_UpdateJt { extern "C" {
+float D_002BF3D4 = 1.3f;
+float D_002BF3D8 = 0.85f;
+float D_002BF3DC = 20.0f;
+} } // namespace M_UpdateJt extern "C"
+namespace M_SetJtJts__FP2JT3JTS4JTBS {
+extern "C" float D_002BF3E0 = 400.0f;
+extern "C" float D_002BF3E4 = 0.25f;
+extern "C" float D_002BF3E8 = 1000.0f;
+} // namespace M_SetJtJts__FP2JT3JTS4JTBS
+float D_002BF3EC = 0.25f;
+float D_002BF3F0 = 1.35f;
+namespace M_func_0018DF60 {
+extern "C" SMP D_002BF3F8 = {25.0f, 0.0f, 0.25f};
+extern "C" SMP D_002BF408 = {1000.0f, 0.0f, 0.25f};
+} // namespace M_func_0018DF60
+namespace M_func_0018E1E0 { extern "C" {
+float D_002BF414 = 200.0f;
+} } // namespace M_func_0018E1E0 extern "C"
 SMPA D_002BF418 = {1000.0f, 0.0f, 0.5f, 0.0f};
-LO *D_002E1E40;   /* g_pjt */
-
-// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
-// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
-// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
-namespace ANPTR_jt {
-void p_func_0018E330() __asm__("func_0018E330");
-extern "C" {
-extern const unsigned int D_002A5F98[2] = {0xFFFF0000, (unsigned int)p_func_0018E330};
-}
-} // namespace ANPTR_jt

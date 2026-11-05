@@ -2812,6 +2812,8 @@ void func_001C8AF0(struct S *p, int n)
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 struct OIDT { int grfsnip; int oid; int ib; };   /* SNIP record (Sly 1 SnipLoObjects) */
+
+// ---- prize's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 OIDT D_002C0D40[1] = {{0x200, 0x182, 0x164}};
 float D_002C0D4C = -5.0f;
 float D_002C0D50 = 5.0f;
