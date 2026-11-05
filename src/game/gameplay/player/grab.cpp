@@ -464,7 +464,7 @@ struct CONTEXT {
 };
 struct CLOCK { float t, dt; };
 struct SWALLOC { int cb, cbAlign; };
-struct STACKSCOPE { STACKSCOPE(); ~STACKSCOPE(); };   // 0x1AE478 / 0x1AE4A0(this, 2)
+struct STACKSCOPE { STACKSCOPE() __asm__("STACKSCOPE_ctor"); ~STACKSCOPE(); };   // 0x1AE478 / 0x1AE4A0(this, 2)
 struct VU_FLOAT { qword q; };
 
 extern "C" {
@@ -2490,7 +2490,7 @@ namespace M_AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
-qword PosLoWorld(LO *plo);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 extern "C" { extern CLOCK D_002DDED0; }
 
 
@@ -2675,7 +2675,7 @@ extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-qword PosLoWorld(LO *plo);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 
 
 
@@ -2706,7 +2706,7 @@ extern "C" { extern SW D_003DD490; }
 
 
 
-PROXY *PproxyFromLo(LO *plo);
+PROXY *PproxyFromLo(LO *plo) __asm__("func_001CB658");
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;

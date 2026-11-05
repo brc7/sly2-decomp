@@ -2092,7 +2092,7 @@ struct VU_VECTOR4
 {
     qword qw;
 };
-qword PosLoWorld(LO *plo);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -2744,7 +2744,7 @@ struct CRef {
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 struct CRef16 : CRef { int pad[2]; CRef16(int k, int n) : CRef(k, n) {} };
-struct MARK { int a[4]; MARK(); ~MARK(); };
+struct MARK { int a[4]; MARK() __asm__("STACKSCOPE_ctor"); ~MARK(); };
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct Y { int x0; int x4; };
 struct X { char pad[0x158]; Y *p158; void *p15C; };

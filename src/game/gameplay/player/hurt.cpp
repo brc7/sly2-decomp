@@ -1166,7 +1166,7 @@ extern "C" void func_001A2460(P*p){
 namespace M_func_001A2788 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct FRAME { int a[4]; FRAME(); ~FRAME(); };
+struct FRAME { int a[4]; FRAME() __asm__("STACKSCOPE_ctor"); ~FRAME(); };
 struct MSG { int cb; int nKind; };
 struct HIT { qword pos; char pad[0x5F0]; };
 struct O { char pad[0x1098]; float x1098; float x109C; };

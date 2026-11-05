@@ -1169,7 +1169,7 @@ namespace M_UpdateJtLean__FP2JT {
 //  - holding a SHAPE the curve also bends under him: his speed along the curve's tangent (ahead = the tangent 0.1 s later) gives a sideways acceleration; the part of it across the
 //    tangent and the vertical (SProjectVector) drives the three-clip lean blend of the grab record (ablC, weights +0x7B0 / +0x7BC / +0x7C8, pasegblC +0x7D4), smoothed with GSmoothA
 //    (+0x7D8 the value, +0x7DC its rate), flipped when the record's flip (+0x4E4) is set.
-qword PosLoWorld(LO *plo);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -1549,7 +1549,7 @@ static inline qword QwAdd(qword qw0, qword qw1)
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-int ClsgClipEdgeToSphere(qword posSphere, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
+int ClsgClipEdgeToSphere(qword posSphere, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg) __asm__("func_0014C748");
 static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
@@ -1628,7 +1628,7 @@ void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *p
 namespace M_FMatchJtXmg {
 typedef int qword __attribute__((mode(TI)));
 struct HIT { qword v0; char pad[0x28 - 0x10]; float g28; char pad1[0x40 - 0x2C]; float g40; char pad2[0x60 - 0x44]; };
-struct CLS { CLS(); ~CLS(); char pad[0x10]; };
+struct CLS { CLS() __asm__("STACKSCOPE_ctor"); ~CLS(); char pad[0x10]; };
 struct M { char pad[0x4]; int x4; char pad1[0x10 - 0x8]; qword v10; char pad2[0x30 - 0x20]; qword v30; qword v40; qword v50;
     char pad3[0x08]; float g48; };
 struct O { char pad[0xEC]; int xEC; char pad1[0x208 - 0xF0]; int x208; };
@@ -2090,10 +2090,10 @@ inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
     return qwResult;
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-qword PosLoWorld(LO *plo);
-qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos);
-MATRIX4 *PmatLoWorld(LO *plo);
-int FIsSmaRetracted(SMA *psma);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertAloPos");
+MATRIX4 *PmatLoWorld(LO *plo) __asm__("func_001A6318");
+int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 
 
 extern "C" { extern CLOCK D_002DDED0; }
@@ -2164,8 +2164,8 @@ int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis);
 extern "C" {
 qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity);
 }
-int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk);
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
+int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 extern "C" float D_002BF354 = 150.0f;
 extern "C" float D_002BF360 = 5.0f;
 extern "C" float D_002BF364 = 0.5f;
@@ -3181,10 +3181,10 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // 0x0018C250 SetJtJts
 extern "C" { extern GAME D_002DEB30; }
 extern "C" qword MakeVecFromAngle(float rad, float sXY, float sZ);
-qword PosLoWorld(LO *plo);
-SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute);
+qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
 int IsmsFindSmOptional(SM *psm, OID oid);
-void RetractSma(SMA *psma);
+void RetractSma(SMA *psma) __asm__("func_001F0598");
 float RadNormalize(float rad);
 
 
@@ -3235,8 +3235,8 @@ static inline float GZOfQw(qword qw)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-void ExplodeExpl(EXPL *pexpl);
-void OnGameEvent(GAME *pgame, int nEvent, LO *plo);
+void ExplodeExpl(EXPL *pexpl) __asm__("func_0015C150");
+void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
 void CalculateJtHangAccel(JT *pjt);
 extern "C" {
 void SetJtAnimState(JT *pjt, int jtas);
@@ -3301,8 +3301,8 @@ void SetSoCnstrForce(SO *pso, int fOn);
 extern "C" {
 void UpdateHeadingSmooth(STEP *pstep);
 }
-void SlotSetRole(SO *pso, XF *pxf, int nRole);
-void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn);
+void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("func_002303A0");
+void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 extern "C" float D_002BF3E0 = 400.0f;
 extern "C" float D_002BF3E4 = 0.25f;
 extern "C" float D_002BF3E8 = 1000.0f;
@@ -3356,7 +3356,7 @@ static inline qword QwRotateVecV(qword qwVec, MATRIX3 *pmat)
 }
 void ChooseJtRushTarget(JT *pjt);
 void ChooseJtSmashTarget(JT *pjt);
-void SetJtChannelMask(JT *pjt, uint grf);
+void SetJtChannelMask(JT *pjt, uint grf) __asm__("func_0018C120");
 void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtJts__FP2JT3JTS4JTBS");
 /** @sly2-annot addr=0x18C250
  * Purpose: Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state
