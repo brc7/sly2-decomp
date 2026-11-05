@@ -30,7 +30,7 @@ struct SPM
 {
     CPair *p;
     ~SPM();
-    void operator=(CPair *ppair);
+    void operator=(CPair *ppair) __asm__("PairPtr_Assign");
 };
 
 /* Link to a frame (out-of-line release and assignment). */
@@ -38,7 +38,7 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe);
+    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
 };
 
 /* CPair: the Splice cons cell (as in splice/pair.cpp). An expression is a pair whose ref is the form: a symbol
@@ -89,14 +89,14 @@ struct SPF
     CFrame *p;
     SPF() { p = 0; }
     ~SPF() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
-    void operator=(CFrame *pframe);
+    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
 };
 
 /* Owning pointer to a proc (inline release). */
 struct SPO
 {
     CProc *p;
-    void Set(CProc *pproc);
+    void Set(CProc *pproc) __asm__("func_00257038");
     SPO() {}
     SPO(CProc *pproc) { Set(pproc); }
     SPO(const SPO &);
@@ -530,11 +530,11 @@ struct SPPAIR
 {
     CPair *p;
     int pad;
-    void Set(CPair *ppair);
+    void Set(CPair *ppair) __asm__("func_00256C38");
     SPPAIR() { p = 0; }
     SPPAIR(CPair *ppair) { Set(ppair); }
     ~SPPAIR() { CPair *ppair = p; if (ppair && --ppair->cref == 0) delete ppair; }
-    void Assign(CPair *ppair);
+    void Assign(CPair *ppair) __asm__("PairPtr_Assign");
     SPPAIR &operator=(CPair *ppair) { Assign(ppair); return *this; }
     CPair *operator->() { return p; }
 };
@@ -542,7 +542,7 @@ struct SPFRAME
 {
     CFrame *p;
     int pad;
-    void Set(CFrame *pframe);
+    void Set(CFrame *pframe) __asm__("func_00257058");
     SPFRAME(CFrame *pframe) { Set(pframe); }
     ~SPFRAME() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
 };

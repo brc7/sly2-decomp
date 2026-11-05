@@ -9,8 +9,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct X;
 struct Y;
-struct SPX { X *p; ~SPX(); SPX &operator=(X *px); };
-struct SPY { Y *p; ~SPY(); SPY &operator=(Y *py); };
+struct SPX { X *p; ~SPX(); SPX &operator=(X *px) __asm__("FramePtr_Assign"); };
+struct SPY { Y *p; ~SPY(); SPY &operator=(Y *py) __asm__("PairPtr_Assign"); };
 struct CProc {
     int cref;
     int x4;
@@ -23,7 +23,7 @@ struct CProc {
 };
 struct SPO {
     CProc *p;
-    void Set(CProc *pproc);
+    void Set(CProc *pproc) __asm__("func_00257038");
     SPO() {}
     SPO(CProc *pproc) { Set(pproc); }
     SPO(const SPO &);

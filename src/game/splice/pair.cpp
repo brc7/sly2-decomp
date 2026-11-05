@@ -21,7 +21,7 @@ struct SPM
 {
       CPair *p;
       ~SPM();
-      SPM &operator=(CPair *ppair);
+      SPM &operator=(CPair *ppair) __asm__("PairPtr_Assign");
 };
 
 struct CPair
@@ -41,7 +41,7 @@ typedef char assert_CPair_size[sizeof(CPair) == 0x14 ? 1 : -1];
 struct SPW
 {
       CPair *p;
-      void Set(CPair *ppair);
+      void Set(CPair *ppair) __asm__("func_00256C38");
       SPW() {}
       SPW(CPair *ppair) { Set(ppair); }
       SPW(const SPW &);

@@ -16,16 +16,16 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(const CRef &r);
     void Decref();
-    void InitTag(int tagk);
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(int n);
-    CRef &operator=(float g);
-    CRef &operator=(bool f);
-    CRef &operator=(OBJ *p);
-    CRef &operator=(T18 *p);
-    CRef &operator=(T19 *p);
-    CRef &operator=(NODE *p);
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
+    CRef &operator=(bool f) __asm__("CRef_SetBool");
+    CRef &operator=(OBJ *p) __asm__("CRef_SetBifk");
+    CRef &operator=(T18 *p) __asm__("CRef_SetBasic");
+    CRef &operator=(T19 *p) __asm__("CRef_SetSymid");
+    CRef &operator=(NODE *p) __asm__("CRef_SetPair");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 extern int D_003E1C34;
@@ -41,7 +41,7 @@ unsigned int U32Read__18CBinaryInputStream(BIS *pbis);
 struct SPM {
     NODE *p;
     ~SPM();
-    void operator=(NODE *pn);
+    void operator=(NODE *pn) __asm__("PairPtr_Assign");
 };
 struct NODE {
     int cref;
@@ -52,7 +52,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn);
+    void Set(NODE *pn) __asm__("func_00256C38");
     SPN() {}
     SPN(NODE *pn) { Set(pn); }
     SPN(const SPN &);

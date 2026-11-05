@@ -52,7 +52,7 @@ struct SPM
 {
     CVarb *p;
     ~SPM();
-    void operator=(CVarb *pvarb);
+    void operator=(CVarb *pvarb) __asm__("func_00257450");
 };
 
 /* CVarb: a variable binding (as in splice/frame.cpp and splice/varb.cpp). */
@@ -74,9 +74,9 @@ struct SPW
     CVarb *p;
     SPW() {}
     SPW(const SPW &);
-    void Set(CVarb *pvarb);
+    void Set(CVarb *pvarb) __asm__("func_00257430");
     ~SPW() { CVarb *pvarb = p; if (pvarb && --pvarb->cref == 0) delete pvarb; }
-    void operator=(CVarb *pvarb);
+    void operator=(CVarb *pvarb) __asm__("func_00257450");
     CVarb *operator->() { return p; }
     operator CVarb *() { return p; }
 };
@@ -100,7 +100,7 @@ typedef char assert_CSidebag_size[sizeof(CSidebag) == 0xC ? 1 : -1];
 struct SPS
 {
     CSidebag *p;
-    void Set(CSidebag *psb);
+    void Set(CSidebag *psb) __asm__("func_00257E68");
     SPS() {}
     SPS(CSidebag *psb) { Set(psb); }
     SPS(const SPS &);

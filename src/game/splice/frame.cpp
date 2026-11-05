@@ -54,7 +54,7 @@ struct SPM
 {
     CVarb *p;
     ~SPM();
-    SPM &operator=(CVarb *pvarb);
+    SPM &operator=(CVarb *pvarb) __asm__("func_00257450");
 };
 
 /* Link to a parent frame (out of line; the assignment is FramePtr_Assign). */
@@ -62,7 +62,7 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe);
+    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
 };
 
 /* CVarb: a variable binding (as in splice/varb.cpp, where its methods live). */
@@ -83,7 +83,7 @@ typedef char assert_CVarb_size[sizeof(CVarb) == 0x18 ? 1 : -1];
 struct SPW
 {
     CVarb *p;
-    void Set(CVarb *pvarb);
+    void Set(CVarb *pvarb) __asm__("func_00257430");
     SPW() {}
     SPW(CVarb *pvarb) { Set(pvarb); }
     SPW(const SPW &);
@@ -115,7 +115,7 @@ public:
 struct SPO
 {
     CFrame *p;
-    void Set(CFrame *pframe);
+    void Set(CFrame *pframe) __asm__("func_00257058");
     SPO() {}
     SPO(CFrame *pframe) { Set(pframe); }
     SPO(const SPO &);

@@ -22,7 +22,7 @@ struct SPM
 {
       CVarb *p;
       ~SPM();
-      SPM &operator=(CVarb *pvarb);
+      SPM &operator=(CVarb *pvarb) __asm__("func_00257450");
 };
 
 struct CVarb
@@ -42,7 +42,7 @@ typedef char assert_CVarb_size[sizeof(CVarb) == 0x18 ? 1 : -1];
 struct SPW
 {
       CVarb *p;
-      void Set(CVarb *pvarb);
+      void Set(CVarb *pvarb) __asm__("func_00257430");
       SPW() {}
       SPW(CVarb *pvarb) { Set(pvarb); }
       SPW(const SPW &);
