@@ -4,7 +4,7 @@
 
 | Directory | Files |
 | --- | --- |
-| [`bif/`](bif/) | 161 |
+| [`bif.cpp`](bif.cpp) | 1 |
 | [`bif2.cpp`](bif2.cpp) | 1 |
 | [`class_registry/`](class_registry/) | 424 |
 | [`eopid_linkonce.cpp`](eopid_linkonce.cpp) | 1 |
