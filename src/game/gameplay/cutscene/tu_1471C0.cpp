@@ -46,7 +46,10 @@ struct GIFS { int a[16]; };
 struct TEX { ulong ul0; ulong pad; ulong ul10; };
 struct X { char pad[0x24]; void *x24; char pad2[0x30 - 0x28]; int x30; };
 
-extern char D_002BD380[];
+/* tu_1471C0's .data (address order; the UV offsets D_002BD398/D_002BD39C are one float[6] read through two names,
+ * kept extern). */
+struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
+SNIP D_002BD380[2] = {{0x10, 0x5F9, 0x158}, {0x10, 0x5FA, 0x15C}};
 extern CLOCK D_002DDED0;
 extern P *D_002DD644;
 extern char D_003DD040[];
@@ -61,9 +64,10 @@ extern char D_002DFB00[];
 extern char D_002DFB20[];
 extern float D_002BD398[];
 extern float D_002BD39C[];
-extern VECTOR4F D_002BD3B0[4];
-extern float D_002BD3F0[8];
-extern M4 D_002BD410;
+VECTOR4F D_002BD3B0[4] = {{-0.5f, 0.5f, 0.0f, 1.0f}, {-0.5f, -0.5f, 0.0f, 1.0f}, {0.5f, 0.5f, 0.0f, 1.0f}, {0.5f, -0.5f, 0.0f, 1.0f}};   /* quad corners */
+float D_002BD3F0[8] = {0.0f, 0.0f, 0.0f, 0.21875f, 0.25f, 0.0f, 0.25f, 0.21875f};   /* corner UVs */
+union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */
+M4F D_002BD410 = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f}};
 void InitSo(P *p);
 void SetLoBusyk(P *p, int n);
 void PostSoLoad(P *p);
@@ -382,7 +386,7 @@ extern "C" void func_001477D8(P *p)
                 VECTOR4 u;
                 GIFS *pgifs = &D_002DEA00; // one GIF packet pointer for the three per-vertex calls
                 VU_VECTOR4 pos = am[i] * VU_VECTOR4(D_002BD3B0[j]);
-                VU_VECTOR4 posClip = D_002BD410 * pos;
+                VU_VECTOR4 posClip = D_002BD410.m * pos;
                 u.q = posClip.q;
                 Force__FPv(&u);
                 rw = 1.0f / u.f[3];
