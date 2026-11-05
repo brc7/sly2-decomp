@@ -50,7 +50,7 @@ struct X { char pad[0x24]; void *x24; char pad2[0x30 - 0x28]; int x30; };
 /* tu_1471C0's .data (address order; the UV offsets D_002BD398/D_002BD39C are one float[6] read through two names,
  * kept extern). */
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
-SNIP D_002BD380[2] = {{0x10, 0x5F9, 0x158}, {0x10, 0x5FA, 0x15C}};
+extern SNIP D_002BD380[2];
 extern CLOCK D_002DDED0;
 extern P *D_002DD644;
 extern char D_003DD040[];
@@ -66,10 +66,10 @@ extern char D_002DFB00[];
 extern char D_002DFB20[];
 extern float D_002BD398[];
 extern float D_002BD39C[];
-VECTOR4F D_002BD3B0[4] = {{-0.5f, 0.5f, 0.0f, 1.0f}, {-0.5f, -0.5f, 0.0f, 1.0f}, {0.5f, 0.5f, 0.0f, 1.0f}, {0.5f, -0.5f, 0.0f, 1.0f}};   /* quad corners */
-float D_002BD3F0[8] = {0.0f, 0.0f, 0.0f, 0.21875f, 0.25f, 0.0f, 0.25f, 0.21875f};   /* corner UVs */
+extern VECTOR4F D_002BD3B0[4];   /* quad corners */
+extern float D_002BD3F0[8];   /* corner UVs */
 union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */
-M4F D_002BD410 = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f}};
+extern M4F D_002BD410;
 void InitSo(P *p);
 void SetLoBusyk(P *p, int n);
 void PostSoLoad(P *p);
@@ -436,3 +436,11 @@ extern "C" void func_00147C20(P *p, int oid, int n)
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 P *D_002DD644;
+
+// ---- tu_1471C0's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+SNIP D_002BD380[2] = {{0x10, 0x5F9, 0x158}, {0x10, 0x5FA, 0x15C}};
+extern "C" {
+VECTOR4F D_002BD3B0[4] = {{-0.5f, 0.5f, 0.0f, 1.0f}, {-0.5f, -0.5f, 0.0f, 1.0f}, {0.5f, 0.5f, 0.0f, 1.0f}, {0.5f, -0.5f, 0.0f, 1.0f}};
+float D_002BD3F0[8] = {0.0f, 0.0f, 0.0f, 0.21875f, 0.25f, 0.0f, 0.25f, 0.21875f};
+M4F D_002BD410 = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f}};
+}

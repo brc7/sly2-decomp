@@ -98,21 +98,22 @@ extern LM D_002BBB60;
 extern SO *D_002E1E40;
 extern const float D_002A97A8;   /* defined below where the ELF has it (.rodata order) */
 /* tu_223F70's .data (address order). The two springs' parameters are float[4] (passed as void *). */
-float D_002C42E0 = 0.25f;
-int D_002C42E8[4] = {0x33, 0x64, 0x4F, 0x67};     /* the four classes that block the release */
-float D_002C4300[4] = {0.0f, 45.0f, 0.0f, 0.0f};
-float D_002C4310[4] = {0.0f, 7.5f, 0.0f, 0.0f};
-POLY D_002C4320 = {1.0f, 0.0f, -1.0f};
-float D_002C4330 = 100.0f;
-float D_002C4334 = 1000.0f;                       /* the target speed */
-float D_002C4338[11] = {-1.5f, -1.2f, -0.9f, -0.6f, -0.3f, 0.0f, 0.3f, 0.6f, 0.9f, 1.2f, 1.5f};
-int D_002C4368[11] = {3, 7, 9, 10, 11, 12, 11, 10, 9, 7, 3};
-int D_002C4398[6] = {0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72};   /* SMA goal per state */
-float D_002C43B0 = 3.0f, D_002C43C0[3] = {1.2f, 0.0f, -1.0f};
-float D_002C43D0[4] = {0.0f, 15.0f, 0.0f, 0.0f};
-float D_002C43E0[4] = {0.0f, 2.5f, 0.0f, 0.0f};
-float D_002C43F0 = 0.5f;
-float D_002C43F4 = 400.0f;                        /* medium: the last word before turret's .data */
+extern float D_002C42E0;
+extern int D_002C42E8[4];     /* the four classes that block the release */
+extern float D_002C4300[4];
+extern float D_002C4310[4];
+extern POLY D_002C4320;
+extern float D_002C4330;
+extern float D_002C4334;                       /* the target speed */
+extern float D_002C4338[11];
+extern int D_002C4368[11];
+extern int D_002C4398[6];   /* SMA goal per state */
+extern float D_002C43B0;
+extern float D_002C43C0[3];
+extern float D_002C43D0[4];
+extern float D_002C43E0[4];
+extern float D_002C43F0;
+extern float D_002C43F4;                        /* medium: the last word before turret's .data */
 
 void InitSo(CID100 *p);
 void LoadSoFromBrx(CID100 *p, void *pbis);
@@ -963,4 +964,24 @@ extern "C" void func_00225660(CID100 *p, int k)
             func_00209E28(poBest, 0);
         }
     }
+}
+
+// ---- tu_223F70's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+extern "C" {
+float D_002C42E0 = 0.25f;
+int D_002C42E8[4] = {0x33, 0x64, 0x4F, 0x67};
+float D_002C4300[4] __attribute__((aligned(16))) = {0.0f, 45.0f, 0.0f, 0.0f};
+float D_002C4310[4] = {0.0f, 7.5f, 0.0f, 0.0f};
+POLY D_002C4320 = {1.0f, 0.0f, -1.0f};
+float D_002C4330 __attribute__((aligned(16))) = 100.0f;
+float D_002C4334 = 1000.0f;
+float D_002C4338[11] = {-1.5f, -1.2f, -0.9f, -0.6f, -0.3f, 0.0f, 0.3f, 0.6f, 0.9f, 1.2f, 1.5f};
+int D_002C4368[11] = {3, 7, 9, 10, 11, 12, 11, 10, 9, 7, 3};
+int D_002C4398[6] = {0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72};
+float D_002C43B0 = 3.0f;
+float D_002C43C0[3] __attribute__((aligned(16))) = {1.2f, 0.0f, -1.0f};
+float D_002C43D0[4] = {0.0f, 15.0f, 0.0f, 0.0f};
+float D_002C43E0[4] = {0.0f, 2.5f, 0.0f, 0.0f};
+float D_002C43F0 = 0.5f;
+float D_002C43F4 = 400.0f;
 }

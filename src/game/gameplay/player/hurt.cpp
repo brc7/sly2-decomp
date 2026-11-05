@@ -90,8 +90,9 @@ extern "C"{
  extern U D_002A2DD0;
  // hurt's .data starts here (address order across the namespaces below). This namespace has no extern "C" block, so
  // the definitions carry it themselves (C symbols).
- extern "C" U D_002BFA00={{0.0f,0.0f,-750.0f,0.0f}},D_002BFA10={{0.0f,0.0f,500.0f,0.0f}};
- extern "C" POLY D_002BFA20={-1.0f,0.004f,0.0f};
+ extern "C" U D_002BFA00;
+extern "C" U D_002BFA10;
+ extern "C" POLY D_002BFA20;
  extern LIMIT D_002BBB60;
 extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rodata order) */
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
@@ -275,8 +276,7 @@ struct E { int x0; int x4; int x8; };
 struct S { int x0; int pad[4]; int x14; struct E *x18; };
 struct D { int a; int b; };
 struct HURTZ { int n; float g; int x; };   /* (zap kind, duration, 0) records */
-HURTZ D_002BFA30[7] = {{0xD, 30.0f, 0}, {0xC, 30.0f, 0}, {0x13, 30.0f, 0}, {0x12, 30.0f, 0}, {0x16, 60.0f, 0}, {0xF7, 30.0f, 0},
-    {0x13D, 30.0f, 0}};
+extern HURTZ D_002BFA30[7];
 struct E *func_001AE238(struct D *d, void *p);
 int PxfFindSo(int a, int b, int c);
 /** @sly2-annot addr=0x1A1098
@@ -311,7 +311,7 @@ struct X { char pad[0x80]; qword v80; };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0xE8-0x10]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
 struct P { struct O *o; int state; };
 extern "C" qword D_002A2DD0;
-extern "C" float D_002BFA90[3] = {0.0f, 10.0f, 0.01f};   /* the zap spring */
+extern "C" float D_002BFA90[3];   /* the zap spring */
 extern "C" struct CLOCK D_002DDED0;
 
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
@@ -382,7 +382,9 @@ typedef struct { short d; short pad; qword (*pfn)(struct LO *); } VTE;
 struct LO { int x0, x4, x8; VTE *vt; char pad10[0xD0 - 0x10]; float xD0; char padD4[0x1A8 - 0xD4]; float x1A8; char pad1AC[0x208 - 0x1AC]; int x208; };
 struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
 extern struct CLOCK D_002DDED0;
-float D_002BFAA0[3] = {1.0f, 0.0f, -0.75f}, D_002BFAB0[3] = {0.7f, 0.3f, 0.0f}, D_002BFAC0[3] = {3.5f, 0.0f, 0.5f};
+extern float D_002BFAA0[3];
+extern float D_002BFAB0[3];
+extern float D_002BFAC0[3];
 extern float D_002BBB60[2];
 void func_001F4BF8(struct LO *po);
 float cosf(float g);
@@ -519,9 +521,13 @@ struct VT{short delta,pad;void*fn;};
 struct O{char pad[0xC];struct VT*vt;};
 struct M3{U row[3];};
 struct P{struct O*self;char pad4[0x30-4];struct O*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
-F D_002BFACC={0.25f},D_002BFAD0={700.0f},D_002BFAD4={1200.0f};
-U D_002BFAE0={{1000.0f,900.0f,950.0f,0.0f}},D_002BFAF0={{1000.0f,-900.0f,950.0f,0.0f}};
-F D_002BFB00={600.0f},D_002BFB04={800.0f};
+extern F D_002BFACC;
+extern F D_002BFAD0;
+extern F D_002BFAD4;
+extern U D_002BFAE0;
+extern U D_002BFAF0;
+extern F D_002BFB00;
+extern F D_002BFB04;
 extern U D_002A2DA0,D_002A2DC0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
 qword LimitVectorLength(qword,float);
@@ -672,7 +678,7 @@ extern "C"{
  extern G D_003DD490;
  extern qword D_002A2DD0;
  union VQ{float f[4];qword q;};
- extern "C" VQ D_002BFB10={{0.0f,0.0f,-1000.0f,0.0f}};   // C symbol: this namespace has no extern "C" block
+ extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
  int func_001A2358(C*,RECORD*);
  int func_00155228(void*,int);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
@@ -1063,8 +1069,9 @@ extern "C" int func_001A23C0(JTHURT *pjthurt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A23F8 { extern "C" {
-float D_002BFB20 = 1.0f, D_002BFB24 = 0.3f;   /* hurt's contact friction and elasticity */
-int D_002BFB28[14] = {-1, 0, 0, 0, -1, 0, 0, 0, 0, -1, 8, 8, 5, 4};   /* parent state, -1: none */
+extern float D_002BFB20;
+extern float D_002BFB24;   /* hurt's contact friction and elasticity */
+extern int D_002BFB28[14];   /* parent state, -1: none */
 struct S { int x0; int x4; char pad[0xCC]; void *a[1]; };
 /** @sly2-annot addr=0x1A23F8
  * Purpose: Return the state record for the hurt state, falling back through parent table D_002BFB28
@@ -1309,3 +1316,41 @@ void p_func_001A2080() __asm__("func_001A2080");
 extern "C" {
 }
 } // namespace ANPTR_hurt
+
+// ---- hurt's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_SetJtHurtState { extern "C" {
+extern "C" U D_002BFA00={{0.0f,0.0f,-750.0f,0.0f}};
+extern "C" U D_002BFA10={{0.0f,0.0f,500.0f,0.0f}};
+extern "C" POLY D_002BFA20={-1.0f,0.004f,0.0f};
+} } // namespace M_SetJtHurtState extern "C"
+namespace M_func_001A1098 { extern "C" {
+HURTZ D_002BFA30[7] = {{0xD, 30.0f, 0}, {0xC, 30.0f, 0}, {0x13, 30.0f, 0}, {0x12, 30.0f, 0}, {0x16, 60.0f, 0}, {0xF7, 30.0f, 0},
+    {0x13D, 30.0f, 0}};
+} } // namespace M_func_001A1098 extern "C"
+namespace M_PresetJtAccelZap {
+extern "C" float D_002BFA90[3] __attribute__((aligned(16))) = {0.0f, 10.0f, 0.01f};
+} // namespace M_PresetJtAccelZap
+namespace M_UpdateJtActiveZap { extern "C" {
+float D_002BFAA0[3] = {1.0f, 0.0f, -0.75f};
+float D_002BFAB0[3] = {0.7f, 0.3f, 0.0f};
+float D_002BFAC0[3] = {3.5f, 0.0f, 0.5f};
+} } // namespace M_UpdateJtActiveZap extern "C"
+namespace M_func_001A16C8 { extern "C" {
+/* The F words are plain floats (4-aligned in the ELF; the one-float union would be 8-aligned), defined under
+ * their asm labels so the declarations above stay as the functions see them. */
+namespace HURT_DATA { float r_D_002BFACC __asm__("D_002BFACC") = 0.25f; }
+namespace HURT_DATA { float r_D_002BFAD0 __asm__("D_002BFAD0") = 700.0f; }
+namespace HURT_DATA { float r_D_002BFAD4 __asm__("D_002BFAD4") = 1200.0f; }
+U D_002BFAE0={{1000.0f,900.0f,950.0f,0.0f}};
+U D_002BFAF0={{1000.0f,-900.0f,950.0f,0.0f}};
+namespace HURT_DATA { float r_D_002BFB00 __asm__("D_002BFB00") = 600.0f; }
+namespace HURT_DATA { float r_D_002BFB04 __asm__("D_002BFB04") = 800.0f; }
+} } // namespace M_func_001A16C8 extern "C"
+namespace M_FTakeJtDamage { extern "C" {
+extern "C" VQ D_002BFB10={{0.0f,0.0f,-1000.0f,0.0f}};
+} } // namespace M_FTakeJtDamage extern "C"
+namespace M_func_001A23F8 { extern "C" {
+float D_002BFB20 = 1.0f;
+float D_002BFB24 = 0.3f;
+int D_002BFB28[14] = {-1, 0, 0, 0, -1, 0, 0, 0, 0, -1, 8, 8, 5, 4};
+} }

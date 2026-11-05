@@ -2690,6 +2690,38 @@ void func_00182AB8(struct S *p, int a, int b, int c, float g)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HACKSHIP *D_002DFB80;   /* the ship singleton */
+
+// ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
+// vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
+namespace ANPTR_tu_17F090 { extern "C" {
+} } // namespace ANPTR_tu_17F090
+
+// ---- tu_17F090's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 VECTOR4 D_002BE7D0 = {300.0f, 50.0f, 0.0f, 0.0f};
 LM D_002BE7E0 = {0.0f, 800.0f};
 float D_002BE7E8 = 1000.0f;
@@ -2702,7 +2734,7 @@ float D_002BE828 = 200.0f;
 CLQ D_002BE830 = {{{1.0f, -0.5f, 0.0f, 0.0f}}};
 CLQ D_002BE840 = {{{1500.0f, -5.0f, 0.0f, 0.0f}}};
 LM D_002BE850 = {0.0f, 1000.0f};
-CLQ D_002BE860 = {{{0.0f, -1.0f, 0.0f, 0.0f}}};
+CLQ D_002BE860 __attribute__((aligned(16))) = {{{0.0f, -1.0f, 0.0f, 0.0f}}};
 float D_002BE870[3] = {25.0f, 0.0f, 0.25f};
 float D_002BE87C = 5.0f;
 float D_002BE880 = 50.0f;
@@ -2714,9 +2746,3 @@ float D_002BE8A0 = -15.0f;
 float D_002BE8A4 = -2.5f;
 float D_002BE8A8 = 0.25f;
 int D_002BE8AC = 30;
-HACKSHIP *D_002DFB80;   /* the ship singleton */
-
-// ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
-// vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
-namespace ANPTR_tu_17F090 { extern "C" {
-} } // namespace ANPTR_tu_17F090
