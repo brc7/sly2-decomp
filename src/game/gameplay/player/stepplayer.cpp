@@ -34,7 +34,7 @@ extern SW D_003DD490;
 extern "C" {
 extern char D_002DEB30[];       /* the game */
 extern CLOCK D_002DDED0;
-extern float D_002A4D60;
+extern const float D_002A4D60;
 int FSwHandsOff(SW *psw);
 STEPPLAYER *PpoHero(SW *psw);
 void SetTnTnsOverride(TN *ptn, int f);
@@ -3431,3 +3431,70 @@ void OnStepplayerActive(struct O *p, int a)
     }
 }
 } } // namespace M_OnStepplayerActive
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const float D_002A4D18 = 3.40282347e+38f;
+extern const char D_002A4D50[] = "%d";
+extern const char D_002A4D58[] = "apukCur";
+extern const float D_002A4D60 = 3.40282347e+38f;
+extern const float D_002A4D68 = 3.40282347e+38f;
+extern const char D_002A4D88[] = "episode";
+extern const char D_002A4D90[] = "level";
+extern const char D_002A4D98[] = "booty";
+extern const char D_002A4DA0[] = "aoidAssembly";
+extern const char D_002A4DB0[] = "oidBooty";
+extern const char D_002A4DC0[] = "loot";
+extern const char D_002A4DC8[] = "mplootkc";
+extern const char D_002A4E18[] = "hpCur";
+extern const char D_002A4E20[] = "mpCur";
+struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
+SNIP D_002BC9F0[0x35] = {{0x110, 0x26E, 0x10BC}, {0x300, 0x26C, 0x654}, {0x300, 0x26D, 0x694}, {0x300, 0x26B, 0x6F0},
+    {0x110, 0x5DC, 0x10C0}, {0x300, 0x5DE, 0x7E4}, {0x300, 0x5DF, 0x7E8}, {0x300, 0x5E0, 0x7EC},
+    {0x300, 0x5E1, 0x7F4}, {0x300, 0x5E2, 0x814}, {0x300, 0x5E3, 0x834}, {0x300, 0x5E4, 0x854},
+    {0x300, 0x5E5, 0x874}, {0x300, 0x5E6, 0x894}, {0x300, 0x5E7, 0x8B4}, {0x300, 0x5E8, 0x8D4},
+    {0x320, 0x5DD, 0x524}, {0x300, 0x27A, 0x9B8}, {0x300, 0x26A, 0x9D4}, {0x300, 0x2AC, 0x10C4},
+    {0x100, 0x5EC, 0x42C}, {0x100, 0x5ED, 0x430}, {0x300, 0x296, 0xEF8}, {0x300, 0x5EE, 0x438},
+    {0x300, 0x5EF, 0x440}, {0x300, 0x5F0, 0x44C}, {0x300, 0x5F1, 0x458}, {0x300, 0x5F3, 0x464},
+    {0x300, 0x5F2, 0x470}, {0x300, 0x5F4, 0x47C}, {0x300, 0x24B, 0x488}, {0x300, 0x283, 0x934},
+    {0x300, 0x26F, 0x90C}, {0x300, 0x270, 0x920}, {0x300, 0x281, 0x9C8}, {0x300, 0x271, 0x1258},
+    {0x300, 0x272, 0x1264}, {0x300, 0x273, 0x121C}, {0x300, 0x274, 0x1228}, {0x300, 0x275, 0x1234},
+    {0x300, 0x276, 0x1240}, {0x300, 0x277, 0x124C}, {0x300, 0x278, 0x1250}, {0x300, 0x283, 0x11BC},
+    {0x300, 0x24A, 0x12DC}, {0x300, 0x1A3, 0x102C}, {0x300, 0x2AD, 0x11A4}, {0x300, 0x2A6, 0xFC4},
+    {0x300, 0x2A7, 0xFC8}, {0x300, 0x2A8, 0xFCC}, {0x300, 0x2A9, 0xFA4}, {0x300, 0x2AA, 0xFB4},
+    {0x300, 0x181, 0x12F8}};
+float D_002BCC6C = 2.0f;
+float D_002BCC70 = -4.0f;
+float D_002BCC74 = 4.0f;
+float D_002BCC78 = -4.0f;
+float D_002BCC7C = 1700.0f;
+float D_002BCC80 = 1000.0f;
+float D_002BCC84 = -750.0f;
+float D_002BCC88 = 750.0f;
+float D_002BCC8C = 500.0f;
+float D_002BCC90 = 500.0f;
+float D_002BCC94 = 2.0f;
+float D_002BCC98 = -300.0f;
+float D_002BCC9C = 200.0f;
+float D_002BCCA0 = -125.0f;
+float D_002BCCA4 = 200.0f;
+float D_002BCCA8 = -275.0f;
+float D_002BCCAC = 150.0f;
+float D_002BCCB0 = -50.0f;
+float D_002BCCB4 = 85.0f;
+SMPA D_002BCCB8 = {4000.0f, 0.0f, 4.0f, 0.0f};
+SMPA D_002BCCC8 = {4000.0f, 0.0f, 0.3f, 0.0f};
+SMPA D_002BCCD8 = {1500.0f, 0.0f, 0.5f, 0.0f};
+VECTOR4 D_002BCCF0 = {1.5f, -0.5f, 0.0f, 0.0f};
+float D_002BD260 = 2.0f;
+float D_002BD264 = 1.0f;
+float D_002BD268 = 0.15f;
+float D_002BD26C = 0.0f;
+VECTOR4 D_002BD270 = {12.0f, 2.0f, 0.1f, 0.0f};
+VECTOR4 D_002BD280 = {-200.0f, -0.2f, 0.0f, 0.0f};
+VECTOR4 D_002BD290 = {0.0f, -0.2f, 0.0f, 0.0f};
+VECTOR4 D_002BD2A0 = {0.5f, -0.5f, 0.0f, 0.0f};
+VECTOR4 D_002BD2B0 = {-500.0f, -0.5f, 0.0f, 0.0f};
+float D_002BD2C0 = 1.0f;
+float D_002BD2C4 = 2.5f;
+int D_002DD640;
