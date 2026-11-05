@@ -516,7 +516,51 @@ def tu_check(objs, base):
     print(f'\nTU check (.text): {ready} objects link as one section; {len(order)} contiguous but in another order '
           f'than the source ({", ".join(order[:8])}); {len(split)} split into several runs by other objects\' code '
           f'({", ".join(f"{s} {g}" for g, s in sorted(split, reverse=True)[:10])})')
+    tu_text_check(objs, base, {s for g, s in split})
     return split
+
+
+def tu_text_check(objs, base, split):
+    """the same question as a link without -ffunction-sections asks it: lay each object's .text sections out
+    back to back in source order with their alignments (what gas does with one .text) and require one base address
+    for all of them.  Objects that fail are split by other objects' code (above), or have ELF bytes inside their
+    range that no source emits (junk.csv dead-code scraps), or a gap/padding that differs; per object in
+    build/link/tutext.txt"""
+    junk = matchtool.load_junk()
+    good, bad = 0, collections.Counter()
+    lines = []
+    for k, o in enumerate(objs):
+        secs = [i for i in o.alloc() if o.secs[i][0].startswith('.text') and 0 < o.secs[i][5]]
+        if not secs or not any((k, i) in base for i in secs):
+            continue
+        off, pos = 0, []
+        for i in secs:
+            al = max(o.secs[i][8], 1)
+            off = (off + al - 1) // al * al
+            pos.append((i, off))
+            off += o.secs[i][5]
+        if any((k, i) not in base for i, _ in pos):
+            why = 'unplaced section'
+        elif len({base[k, i] - p for i, p in pos}) == 1:
+            good += 1
+            continue
+        elif o.src in split:
+            why = 'split by other objects\' code'
+        else:
+            gaps = []
+            for (i, p), (j, q) in zip(pos, pos[1:]):
+                d = (base[k, j] - base[k, i]) - (q - p)
+                if d:
+                    end = base[k, i] + o.secs[i][5]
+                    inj = any(a < base[k, j] and e > end for a, e in junk)
+                    gaps.append(f'0x{end:X}{d:+d}' + (' junk' if inj else ''))
+            why = 'dead code (junk.csv) inside' if all(g.endswith('junk') for g in gaps) else 'gap/padding differs'
+            why += ': ' + ' '.join(gaps[:6])
+        bad[why.split(':')[0]] += 1
+        lines.append(f'{o.src}: {why}\n')
+    open(os.path.join(OUT, 'tutext.txt'), 'w').writelines(sorted(lines))
+    print(f'TU check without -ffunction-sections (.text back to back in source order): {good} objects link as one '
+          f'run at their ELF address; {sum(bad.values())} do not: {dict(bad)} (build/link/tutext.txt)')
 
 
 def main():
