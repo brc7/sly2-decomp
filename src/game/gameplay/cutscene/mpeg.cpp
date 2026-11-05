@@ -694,7 +694,7 @@ void BuildMpegGifs(CMPEG *p)
     gifs.PackAD(0x3F, 0);
     gifs.PackAD(0x61, 0);
     gifs.AddPrimEnd();
-    gifs.EndDmaCnt();
+    gifs.AddDmaEnd();
     gifs.Detach(0, 0);
 }
 
