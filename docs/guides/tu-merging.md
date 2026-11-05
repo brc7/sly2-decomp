@@ -997,6 +997,12 @@ typeinfo functions `__tf*` calling `__rtti_si`/`__rtti_user` and base-class `__t
 `gcc2_compiled.` markers of eopid_linkonce: 2). Nothing matched references them; a link drops them with
 `--gc-sections` (or a `/DISCARD/` of those linkonce sections) rather than resolving them.
 
+air.cpp (merged after round 3, branch merge/air) had 79 unresolved references from its wave-10 draft and got the same
+treatment: 38 namespace globals wrapped in `extern "C" { }`, 17 namespace callees asm-labelled and one (PosSmooth)
+wrapped, the FRAME view's constructor labelled `STACKSCOPE_ctor`, its destructor added to config/link_aliases.txt,
+and 21 file-scope declarations (9 renamed to their config names, e.g. `GetHeroMp` -> `MpStepplayerCur`, 12
+labelled). Afterwards: no unresolved reference outside the alias table, 544 relocations checked OK, 44/44 MATCH.
+
 The 2 relocation mismatches are a config inconsistency, not source: config/functions.csv names 0x242AB8
 sceCdGetDiskType and 0x242AE0 sceCdGetError (as bas.cpp and cd.cpp call them), config/symbol_addrs.txt names
 0x242A20 sceCdGetError, 0x242AB8 sceCdGetDiskType_242AB8 and 0x242AE0 sceCdGetDiskType (as the libcdvd sources define
