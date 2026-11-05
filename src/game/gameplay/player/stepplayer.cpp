@@ -1581,7 +1581,7 @@ extern char D_002A4D58[];
 void SetGadgetSlotState(P *p, E *pe, int n);
 int sprintf(char *pch, const char *fmt, ...);
 }
-CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...);
+extern "C" { CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...); }
 /** @sly2-annot addr=0x141FC8
  * Purpose: Assign gadget id to slot i (<3): stop old, clear duplicates in other slots, write all to save var
  *   apukCur[%d], then vt105
@@ -2199,11 +2199,11 @@ static inline float GZOfQw(qword qw)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-extern CLQ D_002BD280;
-extern CLQ D_002BD290;
-extern CLQ D_002BD2A0;
-extern CLQ D_002BD2B0;
-extern LM D_002BBB60;
+extern "C" { extern CLQ D_002BD280; }
+extern "C" { extern CLQ D_002BD290; }
+extern "C" { extern CLQ D_002BD2A0; }
+extern "C" { extern CLQ D_002BD2B0; }
+extern "C" { extern LM D_002BBB60; }
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
@@ -2770,8 +2770,8 @@ int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
 CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 }
-CRef RefSetSaveVarV(const CRef &ref, const void *o, ...);
-CRef RefGetSaveVarV(const char *, ...);
+extern "C" { CRef RefSetSaveVarV(const CRef &ref, const void *o, ...); }
+extern "C" { CRef RefGetSaveVarV(const char *, ...); }
 static inline void Send(void *pv, CRef ref) { RefSetGlobalSaveVar(pv, ref, &D_003D4A60); }
 struct CRefRaw { int tagk; int tag; };
 static inline void SetPv(void *pv, const CRef &r, void *)
@@ -2870,7 +2870,7 @@ struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct LO { char pad[0xC]; VTE *vt; char pad2[0x18 - 0x10]; void *p18; };
 struct G;
 extern "C" G D_003D4A60;
-extern char D_002A4DB0[];
+extern "C" { extern char D_002A4DB0[]; }
 extern "C" {
 void *PkeyFindBootySaveVar(void *p);
 CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);

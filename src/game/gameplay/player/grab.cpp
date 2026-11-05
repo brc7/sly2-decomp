@@ -2491,7 +2491,7 @@ extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
 qword PosLoWorld(LO *plo);
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -2502,7 +2502,7 @@ extern CLOCK D_002DDED0;
 
 
 
-void CopyAb(void *pvDst, void *pvSrc, uint cb);
+extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb); }
 
 
 
@@ -2546,9 +2546,9 @@ static inline qword QwDot(qword a, qword b)
     return qw;
 }
 extern "C" void *memmove(void *pvDst, const void *pvSrc, size_t cb);
-extern JT *D_002E1E40;
+extern "C" { extern JT *D_002E1E40; }
 extern "C" { int D_002E1E4C; }   // C symbol: this view has no extern "C" block
-extern float D_002BF664;
+extern "C" { extern float D_002BF664; }
 static inline int FBeyondBusy(LO *plo, qword qwPos)
 {
     qword qwDiff = QwSub(PosLoWorld(plo), qwPos);
@@ -2693,7 +2693,7 @@ void EmitJtGrabSparkles(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND 
 
 
 
-extern SW D_003DD490;
+extern "C" { extern SW D_003DD490; }
 
 
 
@@ -2744,10 +2744,10 @@ void SetHintBoxText(HINTBOX *phintbox, int idText, float dt);
 extern "C" {
 void ClearIfSlotId(HINTBOX *phintbox, int idText);
 }
-extern float D_002BF660;
-extern float D_002BF664;
+extern "C" { extern float D_002BF660; }
+extern "C" { extern float D_002BF664; }
 extern "C" float D_002BF70C = 1.0f;   // C symbol: this view has no extern "C" block
-extern HINTBOX D_003DA0C0;
+extern "C" { extern HINTBOX D_003DA0C0; }
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand);
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
 /** @sly2-annot addr=0x194A40

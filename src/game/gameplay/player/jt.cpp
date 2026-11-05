@@ -1174,14 +1174,14 @@ static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
 }
-extern LM D_002BBB60;
+extern "C" { extern LM D_002BBB60; }
 float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
 float GModPositive(float gDividend, float gDivisor);
 
 
 
-extern qword D_002A2DD0;
-extern CLOCK D_002DDED0;
+extern "C" { extern qword D_002A2DD0; }
+extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -1287,18 +1287,18 @@ static inline qword QwCross(qword a, qword b)
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
     return qw;
 }
-qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
+extern "C" { qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos); }
 extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross);
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 extern "C" float D_002BF2D0 = 0.1f;
 extern "C" float D_002BF2D4 = 1000.0f;
 extern "C" float D_002BF2D8 = 20.0f;
 extern "C" float D_002BF2DC = -7.5f;
 extern "C" float D_002BF2E0 = 0.5f;
 extern "C" float D_002BF300 = 1000.0f;
-extern CLQ D_002BF310;
-extern SMPA D_002BF320;
-extern CLQ D_002BF330;
+extern "C" { extern CLQ D_002BF310; }
+extern "C" { extern SMPA D_002BF320; }
+extern "C" { extern CLQ D_002BF330; }
 static inline float GMaxOf(float a, float b)
 {
     return (a > b) ? a : b;
@@ -1556,7 +1556,7 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
     return qw;
 }
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002A2DC0; }
 extern "C" int D_002BF340 = 0x42480000;          // 50.0f, read as its bits
 extern "C" int D_002BF344 = (int)0xC2480000;     // -50.0f, read as its bits
 extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f);
@@ -2096,7 +2096,7 @@ MATRIX4 *PmatLoWorld(LO *plo);
 int FIsSmaRetracted(SMA *psma);
 
 
-extern CLOCK D_002DDED0;
+extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -2169,9 +2169,9 @@ MATRIX3 LoadRotateMatrixRad(float rad, qword normal);
 extern "C" float D_002BF354 = 150.0f;
 extern "C" float D_002BF360 = 5.0f;
 extern "C" float D_002BF364 = 0.5f;
-extern qword D_002BF370;
-extern qword D_002A2DA0;
-extern qword D_002A2DC0;
+extern "C" { extern qword D_002BF370; }
+extern "C" { extern qword D_002A2DA0; }
+extern "C" { extern qword D_002A2DC0; }
 static inline qword QwProjectOut(qword v, qword n)
 {
     qword qwDot = QwDot(v, n);
@@ -3179,7 +3179,7 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtJts
-extern GAME D_002DEB30;
+extern "C" { extern GAME D_002DEB30; }
 extern "C" qword MakeVecFromAngle(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo);
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute);
@@ -3189,8 +3189,8 @@ float RadNormalize(float rad);
 
 
 
-extern qword D_002A2DD0;
-extern CLOCK D_002DDED0;
+extern "C" { extern qword D_002A2DD0; }
+extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -3198,7 +3198,7 @@ extern CLOCK D_002DDED0;
 
 
 
-extern SW D_003DD490;
+extern "C" { extern SW D_003DD490; }
 
 
 
@@ -3307,7 +3307,7 @@ extern "C" float D_002BF3E0 = 400.0f;
 extern "C" float D_002BF3E4 = 0.25f;
 extern "C" float D_002BF3E8 = 1000.0f;
 extern "C" float D_002BF358 = 3.0f;
-extern float D_002BF35C;
+extern "C" { extern float D_002BF35C; }
 static inline void ClearXyz(VECTOR *pvec)
 {
     pvec->z = 0.0f;
