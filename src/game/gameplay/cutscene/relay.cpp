@@ -3515,7 +3515,7 @@ namespace M_NextJsgCommand__FP3JSG {
 // the time it started is noted (the relay's busy bit 0x100 picks the real-time clock). A reference is held on the script meanwhile: a command can
 // end it (StopBlock on itself).
 typedef unsigned  size_t;
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
@@ -4747,7 +4747,7 @@ namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // HeroState, Unk50 / 51 / 58 / 59 / 5A) wait for the character (pjt / ploActor) to get there or reach a state; Face / Unk32 / Rumble / HintBox wait their time
 // since tCommand; Line / StopLine / Unk52 / WaitTimer / ButtonPrompt wait for the dialogue; the camera ones (CamBlendTo, Tween*) for the camera.
 // The result is one variable (the game's s2) assigned in every arm; a command that has several "done at once" exits writes them as `else fComplete = 1`.
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 inline int FIsLoInWorld(LO *plo)
 {
     return plo->fInWorld != 0;
@@ -4764,8 +4764,8 @@ inline int GrfUpdateLo(LO *plo)
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
-int FFloatsNear(float g1, float g2, float gEpsilon);
-float GLimitLm(LM *plm, float g);
+int FFloatsNear(float g1, float g2, float gEpsilon) __asm__("FFloatsNear__Ffff");
+float GLimitLm(LM *plm, float g) __asm__("GLimitLm__FP2LMf");
 
 
 extern "C" { extern CLOCK D_002DDED0; }
