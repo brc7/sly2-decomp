@@ -52,6 +52,22 @@ struct HUDSTACK
       int fSnap;
 };
 
+/* RENDERTGT: one of the two render targets (SW::artgt; types/views-3, from tu_1BE398.cpp's RT view, which reads the
+   texture register through GS TEX0 bit-fields and keeps its own view): size, TEX0, the clearing and the as-texture
+   GIF packets func_001BE398 builds, and the camera object that claimed it (0 when free). */
+struct RENDERTGT
+{
+      int dx, dy;
+      ulong tex0;
+      int cqwClear;         /* +0x10 FRAME/ZBUF/offset/scissor setup and the clearing sprites */
+      union QW *aqwClear;
+      int cqwTex;           /* +0x18 TEX0/TEX1/CLAMP of the target as a texture */
+      union QW *aqwTex;
+      struct RTCAM *prtcam; /* +0x20 */
+      int unk24;
+};
+typedef char assert_RENDERTGT_size[sizeof(RENDERTGT) == 0x28 ? 1 : -1];
+
 /* SW: from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct SW : public BASIC
 {
@@ -134,7 +150,7 @@ struct SW : public BASIC
       DL dlSoTreeAll;
       DL dlSoTree;
       DL dlSoTreeQueue1;
-      DL dlSoTreeQueue2;
+      DL dlSoTreeQueue2;    /* +0x3D34 [S] the dirty SOTREEs (sensor.cpp appends a beam's tree after moving it) */
       SLOTHEAP slotheapXp;
       int nStampXf;
       int nUnk3d5c;
@@ -234,7 +250,7 @@ struct SW : public BASIC
       REGTREE *pregtree;
       CLQ clqGuardScale;
       LM lmGuardScale;
-      uint32_t   _pad_338    [ 20 ] ;
+      RENDERTGT artgt[2];   /* +0x45E8 [S] the two 128x128 render targets (tu_1BE398.cpp); was _pad_338 */
       LO *ploUnk4638;       /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
       int cCid37;           /* +0x463C [S] next booty-container id (booty.cpp func_0013CEF8 post-increments it) */
       int clangstr;
@@ -315,6 +331,8 @@ typedef char assert_SW_dlCid14Pending[SLY2_OFFSETOF(SW, dlCid14Pending) == 0x45B
 typedef char assert_SW_clqGuardScale[SLY2_OFFSETOF(SW, clqGuardScale) == 0x45D0 ? 1 : -1];
 typedef char assert_SW_slotheapLeap[SLY2_OFFSETOF(SW, slotheapLeap) == 0x4648 ? 1 : -1];
 typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x4660 ? 1 : -1];
+typedef char assert_SW_artgt[SLY2_OFFSETOF(SW, artgt) == 0x45E8 ? 1 : -1];
+typedef char assert_SW_ploUnk4638[SLY2_OFFSETOF(SW, ploUnk4638) == 0x4638 ? 1 : -1];
 typedef char assert_SW_tUnk4758[SLY2_OFFSETOF(SW, tUnk4758) == 0x4758 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 
