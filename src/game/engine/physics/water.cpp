@@ -99,6 +99,11 @@ struct M4 { V r[4]; M4(Init mode) { if (mode == Zero) func_002333B4(this, 0, 0x4
 /* func_002297F8's types. */
 struct M4B { M3 basis; qword position; };
 struct COEF { float f[3]; };
+/* sly2/basic.h's CLQ (Sly 1 util.h), same layout; basic.h cannot be included here (its qword is unsigned). */
+struct CLQ { union { struct { float g0, g1, g2, gUnused; }; float ag[4]; }; };
+/* The water current's spring gains (linear, angular): CLQ triples, defined here (only water reads them). */
+CLQ D_002C4470 = {{{0.0f, 3.0f, 0.0f, 0.0f}}};
+CLQ D_002C4480 = {{{0.0f, 0.75f, 0.0f, 0.0f}}};
 union PHASE { V vectors[3]; M3 basis; };
 union AXIS { COEF coefficients; V vector; };
 struct WORK7F8 { V point, normal, velocity; PHASE phase; AXIS axis; V angularNormal, angularTangent, scalar; float angle; };
@@ -113,7 +118,6 @@ extern "C" {
 extern WORLD D_003DD490;
 extern qword D_002A2DC0, D_002A2DD0;
 extern M3 D_002A2D00;
-extern COEF D_002C4470, D_002C4480;
 extern float D_002DDED4;
 void InitSo(SOW *p);
 void PostSoLoad(SOW *p);
@@ -601,8 +605,8 @@ static inline qword AddNormal(qword motion,const V &projection){qword r;asm("vad
 static inline qword AddTangent(qword motion,const V &projection){qword r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}
 static inline qword NegativeAngular(qword angular,float sign,qword &scalar){qword factor;factor = VuFromFloat<qword>(sign);scalar=factor;return Scale(angular,factor);}
 // The coefficient tables are indexed directly (not through a pointer) so each loop forms its own address.
-#define GAIN2(G,amount,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*amount*friction;}
-#define GAIN1(G,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.f[i]*friction;}
+#define GAIN2(G,amount,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.ag[i]*amount*friction;}
+#define GAIN1(G,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.ag[i]*friction;}
 static inline void ZeroXyz(V &v,float zero){v.f[0]=v.f[1]=v.f[2]=zero;}
 static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitter,0.0f);RcPtr_Assign(emitter,0);}}
 /** @sly2-annot addr=0x2297F8
