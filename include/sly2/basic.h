@@ -241,17 +241,9 @@ public:
     }
 };
 
-/* CFrame: from src/game/object/proxy/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
-class CFrame : public CGcObj<CFrame>
-{
-public:
-      int m_cpframeParent;
-      CRefPtr<CFrame> m_apframeParent[4];
-      CRefPtr<CVarb> m_pvarb;
-      int m_fVisited;
-    void RemoveParent(CFrame *pframeParent) __asm__("CFrame_RemoveParent");
-    void AddParent(CFrame *pframeParent) __asm__("CFrame_AddParent");   /* from LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp */
-};
+/* CFrame: sly2/cframe.h (types/views-3: out of basic.h so that splice/frame.cpp and eval.cpp, which define their own
+   CFrame views, can include the shared headers). */
+
 
 /* BASIC: from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (29 copies in Lilly ports) */
 struct BASIC
