@@ -95,7 +95,7 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud/StaticInit_hud.cpp) | — |
+| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud.cpp) | — |
 
 #### B2.4 CBinaryInputStream / MemInputStream
 

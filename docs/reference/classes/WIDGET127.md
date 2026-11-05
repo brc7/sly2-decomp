@@ -29,7 +29,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetWidget127ClassDesc`](../../../src/game/app/class_registry/GetWidget127ClassDesc.c) | `0x114200` |
-| 7 | Init | **override** | [`InitWidget127?`](../../../src/game/engine/presentation/hud/func_00211D08.c) | `0x211D08` |
+| 7 | Init | **override** | [`InitWidget127?`](../../../src/game/engine/presentation/hud.cpp) | `0x211D08` |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` |
 | 10 | SetParent | inherited (LO) | `SetLoParent?` | `0x1A5900` |
@@ -38,7 +38,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
 | 14 | LoadFromBrx | inherited (WIDGET) | `LoadWidgetFromBrx?` | `0x212298` |
 | 15 | PostLoad | inherited (WIDGET) | `PostWidgetLoad?` | `0x2123C8` |
-| 16 | Update | **override** | [`UpdateWidget127?`](../../../src/game/engine/presentation/hud/func_00211D38.c) | `0x211D38` |
+| 16 | Update | **override** | [`UpdateWidget127?`](../../../src/game/engine/presentation/hud.cpp) | `0x211D38` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
 | 19 | RenderSelf | inherited (WIDGET) | `RenderWidget?` | `0x213300` |
@@ -71,7 +71,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (LO) | `SetLoVisMask?` | `0x1A6DC0` |
 | 47 | SetGrf | inherited (LO) | `SetLoGrf?` | `0x1A66C8` |
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |
-| 49 | ShowWidget | **override** | [`ShowWidget127?`](../../../src/game/engine/presentation/hud/func_00211CA8.c) | `0x211CA8` |
+| 49 | ShowWidget | **override** | [`ShowWidget127?`](../../../src/game/engine/presentation/hud.cpp) | `0x211CA8` |
 | 50 | HideWidget | inherited (WIDGET) | `HideWidget?` | `0x2129E8` |
 
 ## Fields

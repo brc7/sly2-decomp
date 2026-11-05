@@ -14,7 +14,7 @@
 | Factory (`pfnNew`) | [`NewWidget`](../../../src/game/app/class_registry/NewWidget.c) `0x112BE8` |
 | Descriptor getter (slot 6) | `GetWidgetClassDesc` `0x1141F0` |
 | vtable | `D_002DAF30`, 51 entries (slots 0..50; slot 0 null), 2 new, 5 overridden |
-| vtable stored by | [`WIDGET_ctor?`](../../../src/game/engine/presentation/hud/WIDGET_ctor.c) (vptr +0xC) |
+| vtable stored by | [`WIDGET_ctor?`](../../../src/game/engine/presentation/hud.cpp) (vptr +0xC) |
 | Level instances | 1659 objects in 43 of 43 world files |
 
 ## Virtual table
@@ -36,12 +36,12 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 11 | AddHierarchy | inherited (LO) | `AddLoHierarchy` | `0x1A5800` |
 | 12 | RemoveHierarchy | inherited (LO) | `RemoveLoHierarchy` | `0x1A5848` |
 | 13 | UpdateLoroot | inherited (LO) | `UpdateLoroot?` | `0x1A5B80` |
-| 14 | LoadFromBrx | **override** | [`LoadWidgetFromBrx?`](../../../src/game/engine/presentation/hud/LoadWidgetFromBrx.c) | `0x212298` |
-| 15 | PostLoad | **override** | [`PostWidgetLoad?`](../../../src/game/engine/presentation/hud/PostWidgetLoad.c) | `0x2123C8` |
-| 16 | Update | **override** | [`UpdateWidget?`](../../../src/game/engine/presentation/hud/UpdateWidget.c) | `0x212C50` |
+| 14 | LoadFromBrx | **override** | [`LoadWidgetFromBrx?`](../../../src/game/engine/presentation/hud.cpp) | `0x212298` |
+| 15 | PostLoad | **override** | [`PostWidgetLoad?`](../../../src/game/engine/presentation/hud.cpp) | `0x2123C8` |
+| 16 | Update | **override** | [`UpdateWidget?`](../../../src/game/engine/presentation/hud.cpp) | `0x212C50` |
 | 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | inherited (LO) | `LO_vt17_InheritFlag4?` | `0x1A5E80` |
 | 18 | UpdateLoXfWorldHierarchy | inherited (LO) | `UpdateLoXfWorldHierarchy` | `0x22FBD8` |
-| 19 | RenderSelf | **override** | [`RenderWidget?`](../../../src/game/engine/presentation/hud/RenderWidget.cpp) | `0x213300` |
+| 19 | RenderSelf | **override** | [`RenderWidget?`](../../../src/game/engine/presentation/hud.cpp) | `0x213300` |
 | 20 | RenderLoAll | inherited (LO) | `RenderLoAll?` | `0x1A5EE0` |
 | 21 | SetLoFlag8 | inherited (LO) | `SetLoFlag8?` | `0x1A6E80` |
 | 22 | OnRemove | inherited (LO) | `OnLoRemove` | `0x1A6150` |
@@ -71,8 +71,8 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (LO) | `SetLoVisMask?` | `0x1A6DC0` |
 | 47 | SetGrf | inherited (LO) | `SetLoGrf?` | `0x1A66C8` |
 | 48 | ClearLoGrf | inherited (LO) | `ClearLoGrf?` | `0x1A66F8` |
-| 49 | ShowWidget | **new** | [`ShowWidget?`](../../../src/game/engine/presentation/hud/ShowWidget.cpp) | `0x2128E8` |
-| 50 | HideWidget | **new** | [`HideWidget?`](../../../src/game/engine/presentation/hud/HideWidget.c) | `0x2129E8` |
+| 49 | ShowWidget | **new** | [`ShowWidget?`](../../../src/game/engine/presentation/hud.cpp) | `0x2128E8` |
+| 50 | HideWidget | **new** | [`HideWidget?`](../../../src/game/engine/presentation/hud.cpp) | `0x2129E8` |
 
 ## Fields
 
