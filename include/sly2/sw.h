@@ -79,7 +79,7 @@ struct SW : public BASIC
       SL slEvent;
       SLOTHEAP slotheapEvent;
       int fUnk3a14;
-      SAVEVARS savevars;
+      SAVEVARS savevars;    /* +0x3A18 g_svstore: save.cpp's SVSTORE {cent, aent, symtab} is this layout (read through a cast) */
       int ctask;
       DL dlTaskActive;      /* +0x3B00 [S] draft name: the TASKs SetTaskState appends / removes and BroadcastGameEvent walks
                                (game.cpp); was _pad_202 */
@@ -91,7 +91,7 @@ struct SW : public BASIC
       SVPATH *psvpCcoin;    /* +0x3B20 [R] -> save var loot.ccoin (g_gs+0xA0) (runtime3b FINDINGS) */
       SVPATH *psvpWidCurrent;
       SVPATH *psvpEpisodeCurrent;
-      SVPATH *psvpLang;
+      SVPATH *psvpLang;     /* +0x3B2C psvpLang..psvpAutosaveWarned: the settings keys ResetSaveGs keeps across a reset (save.cpp) */
       SVPATH *psvpMixerMode;
       SVPATH *psvpMusicVolume;
       SVPATH *psvpEffectsVolume;
@@ -103,7 +103,7 @@ struct SW : public BASIC
       SVPATH *psvpReverseAim;
       SVPATH *psvpAutosaveWarned;
       SVPATH *apsvpEpisodeDt[9];
-      SVPATH *apsvpEpisodePercent[9];
+      SVPATH *apsvpEpisodePercent[9];   /* +0x3B7C summed by NCompletionPercentGs (save.cpp) */
       HUDSTACK ahudstack[4];
       DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (FWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
@@ -235,8 +235,8 @@ struct SW : public BASIC
       CLQ clqGuardScale;
       LM lmGuardScale;
       uint32_t   _pad_338    [ 20 ] ;
-      LO *ploUnk4638;
-      int cCid37;
+      LO *ploUnk4638;       /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
+      int cCid37;           /* +0x463C [S] next booty-container id (booty.cpp func_0013CEF8 post-increments it) */
       int clangstr;
       LANGSTR *alangstr;
       SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (tu_20B840.cpp); was _pad_343 */
